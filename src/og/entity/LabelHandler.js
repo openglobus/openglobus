@@ -2,12 +2,12 @@
  * @module og/entity/LabelHandler
  */
 
-'use strict';
+"use strict";
 
-import * as shaders from '../shaders/label.js';
-import { ALIGN } from './Label.js';
-import { BillboardHandler } from './BillboardHandler.js';
-import { concatTypedArrays, spliceTypedArray } from '../utils/shared.js';
+import * as shaders from "../shaders/label.js";
+import { ALIGN } from "./Label.js";
+import { BillboardHandler } from "./BillboardHandler.js";
+import { concatTypedArrays, spliceTypedArray } from "../utils/shared.js";
 
 const PICKINGCOLOR_BUFFER = 0;
 const POSITION_BUFFER = 1;
@@ -23,7 +23,7 @@ const OUTLINE_BUFFER = 10;
 const OUTLINECOLOR_BUFFER = 11;
 
 window.uZ = -2.0;
-window.dZ = 0.1;
+window.dZ = 1.1;
 /*
  * og.LabelHandler
  *
@@ -31,7 +31,6 @@ window.dZ = 0.1;
  */
 class LabelHandler extends BillboardHandler {
     constructor(entityCollection, maxLetters = 21) {
-
         super(entityCollection);
 
         this._gliphParamBuffer = null;
@@ -57,7 +56,6 @@ class LabelHandler extends BillboardHandler {
 
     initProgram() {
         if (this._renderer.handler) {
-
             if (!this._renderer.handler.programs.label) {
                 if (this._renderer.handler.gl.type === "webgl2") {
                     this._renderer.handler.addProgram(shaders.label_webgl2());
@@ -90,7 +88,6 @@ class LabelHandler extends BillboardHandler {
     }
 
     clear() {
-
         this._texCoordArr = null;
         this._gliphParamArr = null;
         this._vertexArr = null;
@@ -169,41 +166,159 @@ class LabelHandler extends BillboardHandler {
     _addBillboardToArrays(label) {
         for (var i = 0; i < this._maxLetters; i++) {
             if (label._visibility) {
-                this._vertexArr = concatTypedArrays(this._vertexArr, [
-                    0, 0,
-                    0, -1,
-                    1, -1,
-                    1, -1,
-                    1, 0,
-                    0, 0
-                ]);
+                this._vertexArr = concatTypedArrays(
+                    this._vertexArr,
+                    [0, 0, 0, -1, 1, -1, 1, -1, 1, 0, 0, 0]
+                );
             } else {
-                this._vertexArr = concatTypedArrays(this._vertexArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+                this._vertexArr = concatTypedArrays(
+                    this._vertexArr,
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                );
             }
 
-            this._texCoordArr = concatTypedArrays(this._texCoordArr, [0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0]);
-            this._gliphParamArr = concatTypedArrays(this._gliphParamArr, [1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0]);
+            this._texCoordArr = concatTypedArrays(
+                this._texCoordArr,
+                [0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0]
+            );
+            this._gliphParamArr = concatTypedArrays(
+                this._gliphParamArr,
+                [1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0]
+            );
 
-            var x = label._positionHigh.x, y = label._positionHigh.y, z = label._positionHigh.z, w;
-            this._positionHighArr = concatTypedArrays(this._positionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+            var x = label._positionHigh.x,
+                y = label._positionHigh.y,
+                z = label._positionHigh.z,
+                w;
+            this._positionHighArr = concatTypedArrays(this._positionHighArr, [
+                x,
+                y,
+                z,
+                x,
+                y,
+                z,
+                x,
+                y,
+                z,
+                x,
+                y,
+                z,
+                x,
+                y,
+                z,
+                x,
+                y,
+                z
+            ]);
 
-            x = label._positionLow.x; y = label._positionLow.y; z = label._positionLow.z;
-            this._positionLowArr = concatTypedArrays(this._positionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+            x = label._positionLow.x;
+            y = label._positionLow.y;
+            z = label._positionLow.z;
+            this._positionLowArr = concatTypedArrays(this._positionLowArr, [
+                x,
+                y,
+                z,
+                x,
+                y,
+                z,
+                x,
+                y,
+                z,
+                x,
+                y,
+                z,
+                x,
+                y,
+                z,
+                x,
+                y,
+                z
+            ]);
 
             x = label._size;
             this._sizeArr = concatTypedArrays(this._sizeArr, [x, x, x, x, x, x]);
 
-            x = label._offset.x; y = label._offset.y; z = label._offset.z;
-            this._offsetArr = concatTypedArrays(this._offsetArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+            x = label._offset.x;
+            y = label._offset.y;
+            z = label._offset.z;
+            this._offsetArr = concatTypedArrays(this._offsetArr, [
+                x,
+                y,
+                z,
+                x,
+                y,
+                z,
+                x,
+                y,
+                z,
+                x,
+                y,
+                z,
+                x,
+                y,
+                z,
+                x,
+                y,
+                z
+            ]);
 
-            x = label._color.x; y = label._color.y; z = label._color.z; w = label._color.w;
-            this._rgbaArr = concatTypedArrays(this._rgbaArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
+            x = label._color.x;
+            y = label._color.y;
+            z = label._color.z;
+            w = label._color.w;
+            this._rgbaArr = concatTypedArrays(this._rgbaArr, [
+                x,
+                y,
+                z,
+                w,
+                x,
+                y,
+                z,
+                w,
+                x,
+                y,
+                z,
+                w,
+                x,
+                y,
+                z,
+                w,
+                x,
+                y,
+                z,
+                w,
+                x,
+                y,
+                z,
+                w
+            ]);
 
             x = label._rotation;
             this._rotationArr = concatTypedArrays(this._rotationArr, [x, x, x, x, x, x]);
 
-            x = label._alignedAxis.x; y = label._alignedAxis.y; z = label._alignedAxis.z;
-            this._alignedAxisArr = concatTypedArrays(this._alignedAxisArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+            x = label._alignedAxis.x;
+            y = label._alignedAxis.y;
+            z = label._alignedAxis.z;
+            this._alignedAxisArr = concatTypedArrays(this._alignedAxisArr, [
+                x,
+                y,
+                z,
+                x,
+                y,
+                z,
+                x,
+                y,
+                z,
+                x,
+                y,
+                z,
+                x,
+                y,
+                z,
+                x,
+                y,
+                z
+            ]);
 
             x = label._fontIndex;
             this._fontIndexArr = concatTypedArrays(this._fontIndexArr, [x, x, x, x, x, x]);
@@ -212,15 +327,71 @@ class LabelHandler extends BillboardHandler {
             this._outlineArr = concatTypedArrays(this._outlineArr, [x, x, x, x, x, x]);
 
             const weight = 0.001;
-            this._noOutlineArr = concatTypedArrays(this._noOutlineArr, [weight, weight, weight, weight, weight, weight]);
+            this._noOutlineArr = concatTypedArrays(this._noOutlineArr, [
+                weight,
+                weight,
+                weight,
+                weight,
+                weight,
+                weight
+            ]);
 
-            x = label._outlineColor.x; y = label._outlineColor.y; z = label._outlineColor.z; w = label._outlineColor.w;
-            this._outlineColorArr = concatTypedArrays(this._outlineColorArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
+            x = label._outlineColor.x;
+            y = label._outlineColor.y;
+            z = label._outlineColor.z;
+            w = label._outlineColor.w;
+            this._outlineColorArr = concatTypedArrays(this._outlineColorArr, [
+                x,
+                y,
+                z,
+                w,
+                x,
+                y,
+                z,
+                w,
+                x,
+                y,
+                z,
+                w,
+                x,
+                y,
+                z,
+                w,
+                x,
+                y,
+                z,
+                w,
+                x,
+                y,
+                z,
+                w
+            ]);
 
-            x = label._entity._pickingColor.x / 255; y = label._entity._pickingColor.y / 255; z = label._entity._pickingColor.z / 255;
-            this._pickingColorArr = concatTypedArrays(this._pickingColorArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+            x = label._entity._pickingColor.x / 255;
+            y = label._entity._pickingColor.y / 255;
+            z = label._entity._pickingColor.z / 255;
+            this._pickingColorArr = concatTypedArrays(this._pickingColorArr, [
+                x,
+                y,
+                z,
+                x,
+                y,
+                z,
+                x,
+                y,
+                z,
+                x,
+                y,
+                z,
+                x,
+                y,
+                z,
+                x,
+                y,
+                z
+            ]);
         }
-    };
+    }
 
     _displayPASS() {
         var r = this._renderer;
@@ -254,19 +425,47 @@ class LabelHandler extends BillboardHandler {
         gl.uniform2fv(shu.viewport, [h.canvas.width, h.canvas.height]);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
-        gl.vertexAttribPointer(sha.a_texCoord, this._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_texCoord,
+            this._texCoordBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._gliphParamBuffer);
-        gl.vertexAttribPointer(sha.a_gliphParam, this._gliphParamBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_gliphParam,
+            this._gliphParamBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer);
-        gl.vertexAttribPointer(sha.a_positionsHigh, this._positionHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_positionsHigh,
+            this._positionHighBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer);
-        gl.vertexAttribPointer(sha.a_positionsLow, this._positionLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_positionsLow,
+            this._positionLowBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
         gl.vertexAttribPointer(sha.a_size, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -281,12 +480,26 @@ class LabelHandler extends BillboardHandler {
         gl.vertexAttribPointer(sha.a_offset, this._offsetBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._fontIndexBuffer);
-        gl.vertexAttribPointer(sha.a_fontIndex, this._fontIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_fontIndex,
+            this._fontIndexBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         //
         // outline
         gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer);
-        gl.vertexAttribPointer(sha.a_rgba, this._outlineColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_rgba,
+            this._outlineColorBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer);
         gl.vertexAttribPointer(sha.a_outline, this._outlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -300,7 +513,14 @@ class LabelHandler extends BillboardHandler {
         gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._noOutlineBuffer);
-        gl.vertexAttribPointer(sha.a_outline, this._noOutlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_outline,
+            this._noOutlineBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.uniform1f(shu.uZ, window.uZ);
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
@@ -336,19 +556,47 @@ class LabelHandler extends BillboardHandler {
         gl.uniform2fv(shu.viewport, [h.canvas.width, h.canvas.height]);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
-        gl.vertexAttribPointer(sha.a_texCoord, this._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_texCoord,
+            this._texCoordBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._gliphParamBuffer);
-        gl.vertexAttribPointer(sha.a_gliphParam, this._gliphParamBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_gliphParam,
+            this._gliphParamBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer);
-        gl.vertexAttribPointer(sha.a_positionsHigh, this._positionHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_positionsHigh,
+            this._positionHighBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer);
-        gl.vertexAttribPointer(sha.a_positionsLow, this._positionLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_positionsLow,
+            this._positionLowBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
         gl.vertexAttribPointer(sha.a_size, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -364,7 +612,14 @@ class LabelHandler extends BillboardHandler {
 
         // no outline
         gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingColorBuffer);
-        gl.vertexAttribPointer(sha.a_rgba, this._pickingColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_rgba,
+            this._pickingColorBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
     }
@@ -406,10 +661,9 @@ class LabelHandler extends BillboardHandler {
 
         label._handlerIndex = -1;
         label._handler = null;
-    };
+    }
 
     setText(index, text, fontIndex, align) {
-
         var fa = this._renderer.fontAtlas.atlasesArr[fontIndex];
 
         if (!fa) return;
@@ -554,8 +808,14 @@ class LabelHandler extends BillboardHandler {
 
     setPositionArr(index, positionHigh, positionLow) {
         var i = index * 18 * this._maxLetters;
-        var a = this._positionHighArr, x = positionHigh.x, y = positionHigh.y, z = positionHigh.z,
-            b = this._positionLowArr, xl = positionLow.x, yl = positionLow.y, zl = positionLow.z;
+        var a = this._positionHighArr,
+            x = positionHigh.x,
+            y = positionHigh.y,
+            z = positionHigh.z,
+            b = this._positionLowArr,
+            xl = positionLow.x,
+            yl = positionLow.y,
+            zl = positionLow.z;
 
         for (var q = 0; q < this._maxLetters; q++) {
             var j = i + q * 18;
@@ -614,7 +874,10 @@ class LabelHandler extends BillboardHandler {
 
     setPickingColorArr(index, color) {
         var i = index * 18 * this._maxLetters;
-        var a = this._pickingColorArr, x = color.x / 255, y = color.y / 255, z = color.z / 255;
+        var a = this._pickingColorArr,
+            x = color.x / 255,
+            y = color.y / 255,
+            z = color.z / 255;
 
         for (var q = 0; q < this._maxLetters; q++) {
             var j = i + q * 18;
@@ -647,7 +910,6 @@ class LabelHandler extends BillboardHandler {
     }
 
     setSizeArr(index, size) {
-
         var i = index * 6 * this._maxLetters;
         var a = this._sizeArr;
 
@@ -665,9 +927,11 @@ class LabelHandler extends BillboardHandler {
     }
 
     setOffsetArr(index, offset) {
-
         var i = index * 18 * this._maxLetters;
-        var a = this._offsetArr, x = offset.x, y = offset.y, z = offset.z;
+        var a = this._offsetArr,
+            x = offset.x,
+            y = offset.y,
+            z = offset.z;
 
         for (var q = 0; q < this._maxLetters; q++) {
             var j = i + q * 18;
@@ -701,7 +965,11 @@ class LabelHandler extends BillboardHandler {
 
     setRgbaArr(index, rgba) {
         var i = index * 24 * this._maxLetters;
-        var a = this._rgbaArr, x = rgba.x, y = rgba.y, z = rgba.z, w = rgba.w;
+        var a = this._rgbaArr,
+            x = rgba.x,
+            y = rgba.y,
+            z = rgba.z,
+            w = rgba.w;
 
         for (var q = 0; q < this._maxLetters; q++) {
             var j = i + q * 24;
@@ -742,7 +1010,11 @@ class LabelHandler extends BillboardHandler {
 
     setOutlineColorArr(index, rgba) {
         var i = index * 24 * this._maxLetters;
-        var a = this._outlineColorArr, x = rgba.x, y = rgba.y, z = rgba.z, w = rgba.w;
+        var a = this._outlineColorArr,
+            x = rgba.x,
+            y = rgba.y,
+            z = rgba.z,
+            w = rgba.w;
 
         for (var q = 0; q < this._maxLetters; q++) {
             var j = i + q * 24;
@@ -799,7 +1071,6 @@ class LabelHandler extends BillboardHandler {
     }
 
     setRotationArr(index, rotation) {
-
         var i = index * 6 * this._maxLetters;
         var a = this._rotationArr;
 
@@ -817,7 +1088,6 @@ class LabelHandler extends BillboardHandler {
     }
 
     setVertexArr(index, vertexArr) {
-
         var i = index * 12 * this._maxLetters;
         var a = this._vertexArr;
 
@@ -845,7 +1115,10 @@ class LabelHandler extends BillboardHandler {
 
     setAlignedAxisArr(index, alignedAxis) {
         var i = index * 18 * this._maxLetters;
-        var a = this._alignedAxisArr, x = alignedAxis.x, y = alignedAxis.y, z = alignedAxis.z;
+        var a = this._alignedAxisArr,
+            x = alignedAxis.x,
+            y = alignedAxis.y,
+            z = alignedAxis.z;
 
         for (var q = 0; q < this._maxLetters; q++) {
             var j = i + q * 18;
@@ -878,7 +1151,6 @@ class LabelHandler extends BillboardHandler {
     }
 
     setFontIndexArr(index, fontIndex) {
-
         fontIndex = fontIndex;
 
         var i = index * 6 * this._maxLetters;
@@ -906,16 +1178,28 @@ class LabelHandler extends BillboardHandler {
     createFontIndexBuffer() {
         var h = this._renderer.handler;
         h.gl.deleteBuffer(this._fontIndexBuffer);
-        this._fontIndexBuffer = h.createArrayBuffer(this._fontIndexArr, 1, this._fontIndexArr.length);
+        this._fontIndexBuffer = h.createArrayBuffer(
+            this._fontIndexArr,
+            1,
+            this._fontIndexArr.length
+        );
     }
 
     createTexCoordBuffer() {
         var h = this._renderer.handler;
         h.gl.deleteBuffer(this._texCoordBuffer);
-        this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr, 4, this._texCoordArr.length / 4);
+        this._texCoordBuffer = h.createArrayBuffer(
+            this._texCoordArr,
+            4,
+            this._texCoordArr.length / 4
+        );
 
         h.gl.deleteBuffer(this._gliphParamBuffer);
-        this._gliphParamBuffer = h.createArrayBuffer(this._gliphParamArr, 4, this._gliphParamArr.length / 4);
+        this._gliphParamBuffer = h.createArrayBuffer(
+            this._gliphParamArr,
+            4,
+            this._gliphParamArr.length / 4
+        );
     }
 
     createOutlineBuffer() {
@@ -925,13 +1209,21 @@ class LabelHandler extends BillboardHandler {
         this._outlineBuffer = h.createArrayBuffer(this._outlineArr, 1, this._outlineArr.length);
 
         h.gl.deleteBuffer(this._noOutlineBuffer);
-        this._noOutlineBuffer = h.createArrayBuffer(this._noOutlineArr, 1, this._noOutlineArr.length);
+        this._noOutlineBuffer = h.createArrayBuffer(
+            this._noOutlineArr,
+            1,
+            this._noOutlineArr.length
+        );
     }
 
     createOutlineColorBuffer() {
         var h = this._renderer.handler;
         h.gl.deleteBuffer(this._outlineColorBuffer);
-        this._outlineColorBuffer = h.createArrayBuffer(this._outlineColorArr, 4, this._outlineColorArr.length / 4);
+        this._outlineColorBuffer = h.createArrayBuffer(
+            this._outlineColorArr,
+            4,
+            this._outlineColorArr.length / 4
+        );
     }
 
     setMaxLetters(c) {
@@ -943,6 +1235,6 @@ class LabelHandler extends BillboardHandler {
         // it is empty
         return null;
     }
-};
+}
 
 export { LabelHandler };
