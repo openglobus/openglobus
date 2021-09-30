@@ -15,7 +15,7 @@
     "core": "rollup -c --environment entry:core",
     "test": "jest --env=jsdom",
     "lint": "eslint src/og",
-    "postbuild": "rm -rf types; tsc src/**/*.js --declaration --allowJs --emitDeclarationOnly --outDir types",
+    "generate_types": "rm -rf types; tsc src/**/*.js --declaration --allowJs --emitDeclarationOnly --outDir types",
     "prepare": "husky install"
   },
   "types": "./types/index.d.ts",
