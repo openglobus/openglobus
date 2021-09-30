@@ -188,7 +188,7 @@ class Polyline {
      * @param {Array.<Array.<og.LonLat>>} [outPath3v] - Cartesian coordinates out array.
      * @param {Array.<Array.<og.LonLat>>} [outTransformedPathMerc] - Mercator coordinates out array.
      * @param {og.Extent} [outExtent] - Geodetic line extent.
-     * @param {Array} [outColors] - Geodetic line extent.
+     * @param {Array} [outColors]
      * @static
      */
     static appendLineData3v(
