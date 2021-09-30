@@ -18,6 +18,7 @@
     "postbuild": "rm -rf types; tsc src/**/*.js --declaration --allowJs --emitDeclarationOnly --outDir types",
     "prepare": "husky install"
   },
+  "types": "./types/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/openglobus/openglobus.git"
