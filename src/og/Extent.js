@@ -48,7 +48,7 @@ export class Extent {
     /**
      * Creates extent instance from values in array.
      * @static
-     * @param {Array.<number,number,number,number>} arr - South west and north east longitude and latidudes packed in array.
+     * @param {Array.<number>} arr - South west and north east longitude and latidudes packed in array. (exactly 4 entries)
      * @return {og.Extent} Extent object.
      */
     static createFromArray(arr) {
