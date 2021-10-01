@@ -52,7 +52,7 @@ export class LonLat {
     /**
      * Creates coordinates array.
      * @static
-     * @param{Array.<Array<number,number,number>>} arr - Coordinates array data.
+     * @param{Array.<Array<number>>} arr - Coordinates array data. (exactly 3 entries)
      * @return{Array.<og.LonLat>} the same coordinates array but each element is LonLat instance.
      */
     static join(arr) {
@@ -67,7 +67,7 @@ export class LonLat {
     /**
      * Creates an object by coordinate array.
      * @static
-     * @param {Array.<number,number,number>} arr - Coordiante array, where first is longitude, second is latitude and third is a height.
+     * @param {Array.<number>} arr - Coordiante array, where first is longitude, second is latitude and third is a height. (exactly 3 entries)
      * @returns {og.LonLat} -
      */
     static createFromArray(arr) {
