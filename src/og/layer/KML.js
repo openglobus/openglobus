@@ -18,6 +18,11 @@ export class KML extends Vector {
     _billboard = { src: 'https://openglobus.org/examples/billboards/carrot.png' };
     _color = '#6689db';
 
+    /**
+     * 
+     * @param {string} name 
+     * @param {*} [options]
+     */
     constructor(name, options = {}) {
         super(name, options);
         this._extent = null;

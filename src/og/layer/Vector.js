@@ -68,6 +68,11 @@ function _entitiesConstructor(entities) {
  * @fires og.layer.Vector#visibilitychange
  */
 class Vector extends Layer {
+
+    /**
+     * @param {string} name 
+     * @param {*} [options]
+     */
     constructor(name, options = {}) {
 
         super(name, options);

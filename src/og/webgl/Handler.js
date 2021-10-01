@@ -897,9 +897,7 @@ class Handler {
      * Creates default texture object
      * @public
      * @param {Object} [params] - Texture parameters:
-     * @param {Array.<number, number, number, number>} [params.color] - Texture RGBA color
-     * @param {number} [params.url] - Texture source url
-     * @param {callback} success - Creation callback
+     * @param {callback} [success] - Creation callback
      */
     createDefaultTexture(params, success) {
         var imgCnv;

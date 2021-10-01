@@ -297,6 +297,7 @@ class PlanetCamera extends Camera {
      * @param {Number} [ampl] - Altitude amplitude factor.
      * @param {cameraCallback} [completeCallback] - Callback that calls after flying when flying is finished.
      * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
+     * @param [frameCallback]
      */
     flyExtent(extent, height, up, ampl, completeCallback, startCallback, frameCallback) {
         this.flyCartesian(
@@ -361,6 +362,7 @@ class PlanetCamera extends Camera {
      * @param {Number} [ampl=1.0] - Altitude amplitude factor.
      * @param {cameraCallback} [completeCallback] - Callback that calls after flying when flying is finished.
      * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
+     * @param [frameCallback]
      */
     flyCartesian(cartesian, look, up, ampl = 1.0, completeCallback, startCallback, frameCallback) {
         this.stopFlying();
