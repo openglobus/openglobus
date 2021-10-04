@@ -185,16 +185,16 @@ class GeoObjectHandler {
     }
 
     createPickingColorBuffer() {
-        // var h = this._renderer.handler;
-        // for (let i = 0; i < this._pickingColorArr.length; i++) {
-        //     this._pickingColorBuffer && h.gl.deleteBuffer(this._pickingColorBuffer[i]);
-        //     this._pickingColorArr[i] = makeArrayTyped(this._pickingColorArr[i]);
-        //     this._pickingColorBuffer[i] = h.createArrayBuffer(
-        //         this._pickingColorArr[i],
-        //         3,
-        //         this._pickingColorArr[i].length / 3
-        //     );
-        // }
+        var h = this._renderer.handler;
+        for (let i = 0; i < this._pickingColorArr.length; i++) {
+            this._pickingColorBuffer && h.gl.deleteBuffer(this._pickingColorBuffer[i]);
+            this._pickingColorArr[i] = makeArrayTyped(this._pickingColorArr[i]);
+            this._pickingColorBuffer[i] = h.createArrayBuffer(
+                this._pickingColorArr[i],
+                3,
+                this._pickingColorArr[i].length / 3
+            );
+        }
     }
 
     static get _staticCounter() {
@@ -212,6 +212,9 @@ class GeoObjectHandler {
         if (this._renderer.handler) {
             if (!this._renderer.handler.programs.geo_object) {
                 this._renderer.handler.addProgram(shaders.geo_object());
+            }
+            if (!this._renderer.handler.programs.geo_object_picking) {
+                this._renderer.handler.addProgram(shaders.geo_object_picking());
             }
         }
     }
@@ -533,6 +536,114 @@ class GeoObjectHandler {
             gl.vertexAttribPointer(
                 a.aColor,
                 this._rgbaBuffer[ti].itemSize,
+                gl.FLOAT,
+                false, 0, 0
+            );
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer[ti]);
+            gl.vertexAttribPointer(
+                a.aPositionHigh,
+                this._positionHighBuffer[ti].itemSize,
+                gl.FLOAT,
+                false, 0, 0
+            );
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer[ti]);
+            gl.vertexAttribPointer(
+                a.aPositionLow,
+                this._positionLowBuffer[ti].itemSize,
+                gl.FLOAT,
+                false, 0, 0
+            );
+
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer[ti]);
+
+            if (tagData.iCounts) {
+                gl.drawElementsInstanced(
+                    gl.TRIANGLES,
+                    this._indicesBuffer[ti].numItems / tagData.iCounts,
+                    gl.UNSIGNED_SHORT,
+                    0,
+                    tagData.iCounts
+                );
+            } else {
+                gl.drawElements(gl.TRIANGLES, this._indicesBuffer[ti].numItems, gl.UNSIGNED_SHORT, 0);
+            }
+        }
+        gl.disable(gl.CULL_FACE);
+    }
+
+    drawPicking() {
+        if (this._geoObjects.length && this.pickingEnabled) {
+            this._pickingPASS();
+        }
+    }
+
+    _pickingPASS() {
+        const r = this._renderer,
+            sh = r.handler.programs.geo_object_picking,
+            p = sh._program,
+            u = p.uniforms,
+            a = p.attributes,
+            gl = r.handler.gl,
+            ec = this._entityCollection;
+
+        sh.activate();
+
+        gl.enable(gl.CULL_FACE);
+        gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
+
+        gl.uniform1f(u.pickingScale, ec.pickingScale);
+
+        gl.uniform3fv(u.eyePositionHigh, r.activeCamera.eyeHigh);
+        gl.uniform3fv(u.eyePositionLow, r.activeCamera.eyeLow);
+
+        gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
+        gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera.getViewMatrix());
+
+        for (const tag of this.instancedTags) {
+            const tagData = tag[1],
+                ti = tagData.index;
+
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer[ti]);
+            gl.vertexAttribPointer(
+                a.aVertexPosition,
+                this._vertexBuffer[ti].itemSize,
+                gl.FLOAT,
+                false,
+                0,
+                0
+            );
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._directionBuffer[ti]);
+            gl.vertexAttribPointer(
+                a.aDirection,
+                this._directionBuffer[ti].itemSize,
+                gl.FLOAT,
+                false, 0, 0
+            );
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer[ti]);
+            gl.vertexAttribPointer(
+                a.aScale,
+                this._sizeBuffer[ti].itemSize,
+                gl.FLOAT,
+                false, 0, 0
+            );
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._pitchRollBuffer[ti]);
+            gl.vertexAttribPointer(
+                a.aPitchRoll,
+                this._pitchRollBuffer[ti].itemSize,
+                gl.FLOAT,
+                false, 0, 0
+            );
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingColorBuffer[ti]);
+            gl.vertexAttribPointer(
+                a.aPickingColor,
+                this._pickingColorBuffer[ti].itemSize,
                 gl.FLOAT,
                 false, 0, 0
             );

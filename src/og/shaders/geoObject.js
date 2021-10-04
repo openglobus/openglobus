@@ -124,3 +124,88 @@ export const geo_object = () =>
                     gl_FragColor = vec4(lightWeighting, 1.0) * vColor;
                 }`
     });
+
+export const geo_object_picking = () =>
+    new Program("geo_object_picking", {
+        uniforms: {
+            viewMatrix: "mat4",
+            projectionMatrix: "mat4",
+
+            uScaleByDistance: "vec3",
+
+            eyePositionHigh: "vec3",
+            eyePositionLow: "vec3",
+            pickingScale: "float",
+
+        },
+        attributes: {
+            aVertexPosition: "vec3",
+            aPositionHigh: { type: "vec3", divisor: 1 },
+            aPositionLow: { type: "vec3", divisor: 1 },
+            aDirection: { type: "vec3", divisor: 1 },
+            aPitchRoll: { type: "vec2", divisor: 1 },
+            aPickingColor: { type: "vec3", divisor: 1 },
+            aScale: { type: "float", divisor: 1 }
+        },
+        vertexShader: `precision highp float;
+
+            attribute vec3 aVertexPosition;
+            attribute vec3 aPositionHigh;
+            attribute vec3 aPositionLow;    
+            attribute vec3 aDirection;
+            attribute vec2 aPitchRoll;
+            attribute vec3 aPickingColor;
+            attribute float aScale;
+            
+            uniform vec3 uScaleByDistance;
+            uniform mat4 projectionMatrix;
+            uniform mat4 viewMatrix;
+            uniform float pickingScale;
+            
+            uniform vec3 eyePositionHigh;
+            uniform vec3 eyePositionLow;
+
+            varying vec3 vColor;
+            
+            const float RADIANS = 3.141592653589793 / 180.0;
+
+            void main(void) {
+            
+                vColor = aPickingColor;
+                float roll = aPitchRoll.y * RADIANS;
+                mat3 rotZ = mat3(
+                     vec3(cos(roll), sin(roll), 0.0),
+                     vec3(-sin(roll), cos(roll), 0.0), 
+                     vec3(0.0, 0.0, 1.0) 
+                );
+
+                float pitch = aPitchRoll.x * RADIANS;
+                mat3 rotX = mat3(
+                    vec3(1.0, 0.0, 0.0),
+                    vec3(0.0, cos(pitch), sin(pitch)), 
+                    vec3(0.0, -sin(pitch), cos(pitch)) 
+               );
+
+                vec3 position = aPositionHigh + aPositionLow;
+                vec3 r = cross(normalize(-position), aDirection);
+                mat3 modelMatrix = mat3(r, normalize(position), -aDirection) * rotX * rotZ; /*up=-cross(aDirection, r)*/
+
+                vec3 look = position - (eyePositionHigh + eyePositionLow);
+                float lookLength = length(look);
+                float scd = aScale * pickingScale * (1.0 - smoothstep(uScaleByDistance[0], uScaleByDistance[1], lookLength)) * (1.0 - step(uScaleByDistance[2], lookLength));
+
+                vec3 highDiff = aPositionHigh - eyePositionHigh;
+                vec3 lowDiff = aPositionLow + modelMatrix * (aVertexPosition * scd) - eyePositionLow;
+
+                mat4 viewMatrixRTE = viewMatrix;
+                viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
+
+                gl_Position = projectionMatrix *viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+            }`,
+        fragmentShader:
+            `precision highp float;
+            varying vec3 vColor;
+            void main () {
+                gl_FragColor = vec4(vColor, 1.0);
+            }`
+    });

@@ -292,6 +292,12 @@ class RenderNode extends BaseNode {
                 ec[i]._fadingOpacity && ec[i].billboardHandler.drawPicking();
             }
 
+            // geoObject pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].geoObjectHandler.drawPicking();
+            }
+
             // label pass
             i = ec.length;
             while (i--) {
