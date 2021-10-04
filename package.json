@@ -7,6 +7,7 @@
   },
   "main": "./src/og/index.js",
   "style": "./css/og.css",
+  "types": "./types/index.d.ts",
   "scripts": {
     "api": "jsdoc -t ./jsdoc -r ./src/ -c ./jsdoc/conf.json -d ./api",
     "serve": "ws",
@@ -18,7 +19,6 @@
     "generate_types": "rm -rf types; tsc src/**/*.js --declaration --allowJs --emitDeclarationOnly --outDir types",
     "prepare": "husky install"
   },
-  "types": "./types/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/openglobus/openglobus.git"
