@@ -7,15 +7,16 @@
   },
   "main": "./src/og/index.js",
   "style": "./css/og.css",
+  "types": "./types/index.d.ts",
   "scripts": {
     "api": "jsdoc -t ./jsdoc -r ./src/ -c ./jsdoc/conf.json -d ./api",
     "serve": "ws",
     "build": "rollup -c",
     "webgl": "rollup -c --environment entry:webgl",
     "core": "rollup -c --environment entry:core",
-    "test": "jest --coverage",
+    "test": "jest --env=jsdom",
     "lint": "eslint src/og",
-    "generate_types": "tsc src/**/*.js --declaration --allowJs --emitDeclarationOnly --outDir node_modules/@types/openglobus__og",
+    "generate_types": "rm -rf types; tsc src/**/*.js --declaration --allowJs --emitDeclarationOnly --outDir types",
     "prepare": "husky install"
   },
   "repository": {
@@ -52,7 +53,7 @@
     "eslint-plugin-standard": "^4.1.0",
     "husky": "^6.0.0",
     "jaguarjs-jsdoc": "^1.1.0",
-    "jest": "^26.6.3",
+    "jest": "^27.2.3",
     "jsdoc": "^3.6.7",
     "lint-staged": "^11.0.0",
     "local-web-server": "^5.1.1",

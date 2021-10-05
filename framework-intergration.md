@@ -6,8 +6,6 @@ npm install @openglobus/og --save
 yarn add @openglobus/og
 ```
 
-TODO npm i --save-dev @types/openglobus__og
-
 ### Code: using in Angular
 
 ```javascript
