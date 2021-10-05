@@ -15,9 +15,6 @@ import { Vector } from './Vector.js';
  */
 export class KML extends Vector {
 
-    _billboard = { src: 'https://openglobus.org/examples/billboards/carrot.png' };
-    _color = '#6689db';
-
     /**
      * 
      * @param {string} name 
@@ -26,8 +23,8 @@ export class KML extends Vector {
     constructor(name, options = {}) {
         super(name, options);
         this._extent = null;
-        this._billboard = options.billboard || this._billboard;
-        this._color = options.color || this._color;
+        this._billboard = options.billboard || { src: 'https://openglobus.org/examples/billboards/carrot.png' };
+        this._color = options.color || '#6689db';
     }
 
     get instanceName() {
