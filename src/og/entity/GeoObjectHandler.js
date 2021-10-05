@@ -832,25 +832,20 @@ class GeoObjectHandler {
     }
 
     setPickingColorArr(index, color) {
-        var i = index * 9,
-            ti = this.getTagIndexByObjectIndex(index);
-        var a = this._pickingColorArr[ti],
+        const itemSize = 3,
+            ti = this.getTagIndexByObjectIndex(index),
+            ob = this.getObjectByIndex(index),
             x = color.x / 255,
             y = color.y / 255,
             z = color.z / 255;
 
-        a[i] = x;
-        a[i + 1] = y;
-        a[i + 2] = z;
+        let length = ob._verticesCount * itemSize;
 
-        a[i + 3] = x;
-        a[i + 4] = y;
-        a[i + 5] = z;
+        if (ob.instanced) {
+            length = itemSize;
+        }
 
-        a[i + 6] = x;
-        a[i + 7] = y;
-        a[i + 8] = z;
-
+        setParametersToArray(this._pickingColorArr[ti], ob._tagIndex, length, itemSize, x, y, z);
         this._changedBuffers[PICKINGCOLOR_BUFFER] = true;
     }
 
