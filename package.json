@@ -5,8 +5,8 @@
   "directories": {
     "example": "./sandbox"
   },
-  "main": "./src/og/index.js",
-  "style": "./css/og.css",
+  "main": "index.js",
+  "style": "og.css",
   "types": "./types/index.d.ts",
   "scripts": {
     "api": "jsdoc -t ./jsdoc -r ./src/ -c ./jsdoc/conf.json -d ./api",
