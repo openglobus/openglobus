@@ -22,7 +22,7 @@ import { GeoObjectHandler } from "./GeoObjectHandler.js";
  * @param {Object} [options] - Entity options:
  * @param {Array.<og.Entity>} [options.entities] - Entities array.
  * @param {boolean} [options.visibility=true] - Entity visibility.
- * @param {Array.<number,number,number>} [options.scaleByDistance] - Entity scale by distance parameters.
+ * @param {Array.<number>} [options.scaleByDistance] - Entity scale by distance parameters. (exactly 3 entries)
  * First index - near distance to the entity, after entity becomes full scale.
  * Second index - far distance to the entity, when entity becomes zero scale.
  * Third index - far distance to the entity, when entity becomes invisible.

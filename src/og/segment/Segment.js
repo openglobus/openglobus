@@ -31,8 +31,6 @@ var _RenderingSlice = function (p) {
     };
 };
 
-//const BSPHERERADIUSEXT = 2;
-
 /**
  * Planet segment Web Mercator tile class that stored and rendered with quad tree.
  * @class
@@ -42,6 +40,8 @@ var _RenderingSlice = function (p) {
  * @param {og.Extent} extent - Segment extent.
  */
 const Segment = function (node, planet, tileZoom, extent) {
+    this.isPole = false;
+
     this._tileGroup = 0;
 
     this._projection = EPSG3857;
@@ -1000,7 +1000,7 @@ Segment.prototype.createBoundsByExtent = function () {
     var coord_ne = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.northEast.lat);
 
     // check for zoom
-    if (this.tileZoom < MAX_NORMAL_ZOOM) {
+    if (this.tileZoom <= MAX_NORMAL_ZOOM) {
         var coord_nw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.northEast.lat);
         var coord_se = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.southWest.lat);
 
@@ -1037,7 +1037,7 @@ Segment.prototype.createBoundsByParent = function () {
             this.bsphere.center.z = pn.segment.bsphere.center.z;
             this.bsphere.radius = pn.segment.bsphere.radius;
 
-            if (this.tileZoom < MAX_NORMAL_ZOOM) {
+            if (this.tileZoom <= MAX_NORMAL_ZOOM) {
                 let i0 = gridSize * offsetY;
                 let j0 = gridSize * offsetX;
 
@@ -1481,6 +1481,10 @@ Segment.prototype.screenRendering = function (
                 m = pm[li._id] = li.createMaterial(this);
             }
 
+            if (!m.isReady) {
+                this.planet._renderCompleted = false;
+            }
+
             slice.layers.push(li);
 
             var n4 = n * 4,
@@ -1854,19 +1858,17 @@ Segment.prototype.getNodeState = function () {
 };
 
 Segment.prototype.getNeighborSide = function (b) {
-    if (this._tileGroup === b._tileGroup) {
-        if (this.tileY === b.tileY) {
-            if (this.tileX === b.tileXE) {
-                return W;
-            } else if (this.tileX === b.tileXW) {
-                return E;
-            }
-        } else if (this.tileX === b.tileX) {
-            if (this.tileY === b.tileYS) {
-                return N;
-            } else if (this.tileY === b.tileYN) {
-                return S;
-            }
+    if (this.tileY === b.tileY) {
+        if (this.tileX === b.tileXE) {
+            return W;
+        } else if (this.tileX === b.tileXW) {
+            return E;
+        }
+    } else if (this.tileX === b.tileX) {
+        if (this.tileY === b.tileYS) {
+            return N;
+        } else if (this.tileY === b.tileYN) {
+            return S;
         }
     }
 

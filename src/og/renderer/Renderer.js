@@ -766,8 +766,6 @@ Renderer.prototype.draw = function () {
         this._drawPickingBuffer(k);
     }
 
-    e.dispatch(e.postdraw, this);
-
     sfb.deactivate();
 
     this.blitFramebuffer && sfb.blitTo(this.blitFramebuffer);
@@ -778,6 +776,8 @@ Renderer.prototype.draw = function () {
 
     // Tone mapping followed by rendering on the screen
     this._fnScreenFrame();
+
+    e.dispatch(e.postdraw, this);
 
     e.mouseState.moving = false;
     e.touchState.moving = false;

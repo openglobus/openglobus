@@ -147,13 +147,13 @@ let emptyTerrain = new EmptyTerrain(),
             64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 16, 8, 4
             //8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4
         ]
-        //urlRewrite: function (s, u) {
-        //    let z = s.tileZoom,
-        //        ymax = 1 << z,
-        //        y = ymax - s.tileY - 1;
-
-        //    return stringTemplate(u, XYZ.getTMS(s.tileX, s.tileY, s.tileZoom));
-        //}
+        // urlRewrite: function (s, u) {
+        //     let z = s.tileZoom,
+        //         ymax = 1 << z,
+        //         y = ymax - s.tileY - 1;
+        //
+        //     return stringTemplate(u, XYZ.getTMS(s.tileX, s.tileY, s.tileZoom));
+        // }
     });
 
 window.globe = new Globe({

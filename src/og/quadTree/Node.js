@@ -32,8 +32,7 @@ import {
 
 import { MAX_NORMAL_ZOOM } from "../segment/Segment.js";
 
-const DOT_VIS = 0.3;
-const VISIBLE_HEIGHT = 3000000.0;
+const VISIBLE_HEIGHT = 1400000.0;
 
 let _tempHigh = new Vec3(),
     _tempLow = new Vec3();
@@ -255,7 +254,7 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
             }
         }
     } else {
-        let commonFrustumFlag = 1 << (numFrustums - 1 - 1); //Math.pow(2, numFrustums - 1) - 1;
+        let commonFrustumFlag = 1 << (numFrustums - 1 - 1);
         for (let i = 0; commonFrustumFlag && i < numFrustums; i++) {
             if (seg.terrainReady) {
                 if (frustums[i].containsBox(seg.bbox)) {
@@ -332,12 +331,13 @@ Node.prototype.prepareForRendering = function (
     } else {
         if (seg.tileZoom < 2) {
             this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
+        } else if (seg.tileZoom > MAX_NORMAL_ZOOM) {
+            this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
         } else if (
-            seg.tileZoom < MAX_NORMAL_ZOOM &&
-            (seg._swNorm.dot(cam.eyeNorm) > DOT_VIS ||
-                seg._nwNorm.dot(cam.eyeNorm) > DOT_VIS ||
-                seg._neNorm.dot(cam.eyeNorm) > DOT_VIS ||
-                seg._seNorm.dot(cam.eyeNorm) > DOT_VIS)
+            seg._swNorm.dot(cam._n) > 0.0 ||
+            seg._nwNorm.dot(cam._n) > 0.0 ||
+            seg._neNorm.dot(cam._n) > 0.0 ||
+            seg._seNorm.dot(cam._n) > 0.0
         ) {
             this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
         } else {
@@ -438,6 +438,10 @@ Node.prototype.addToRender = function (inFrustum) {
 
     nodes.push(this);
 
+    if (!this.segment.terrainReady) {
+        this.planet._renderCompleted = false;
+    }
+
     let k = 0,
         rf = this.planet._renderedNodesInFrustum;
     while (inFrustum) {
@@ -453,15 +457,17 @@ Node.prototype.getCommonSide = function (node) {
     var as = this.segment,
         bs = node.segment;
 
-    if (as.tileZoom === bs.tileZoom) {
+    if (as.tileZoom === bs.tileZoom && as._tileGroup === bs._tileGroup) {
         return as.getNeighborSide(bs);
     } else {
-        var a = as._extent,
-            b = bs._extent;
+        var a = as._extentLonLat,
+            b = bs._extentLonLat;
+
         var a_ne = a.northEast,
             a_sw = a.southWest,
             b_ne = b.northEast,
             b_sw = b.southWest;
+
         var a_ne_lon = a_ne.lon,
             a_ne_lat = a_ne.lat,
             a_sw_lon = a_sw.lon,
@@ -471,37 +477,83 @@ Node.prototype.getCommonSide = function (node) {
             b_sw_lon = b_sw.lon,
             b_sw_lat = b_sw.lat;
 
+        if (as._tileGroup === bs._tileGroup) {
+            if (
+                a_ne_lon === b_sw_lon &&
+                ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
+                    (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
+            ) {
+                return E;
+            } else if (
+                a_sw_lon === b_ne_lon &&
+                ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
+                    (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
+            ) {
+                return W;
+            } else if (
+                a_ne_lat === b_sw_lat &&
+                ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
+                    (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
+            ) {
+                return N;
+            } else if (
+                a_sw_lat === b_ne_lat &&
+                ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
+                    (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
+            ) {
+                return S;
+            } else if (
+                bs.tileX === 0 &&
+                as.tileX === Math.pow(2, as.tileZoom) - 1 &&
+                ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
+                    (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
+            ) {
+                return E;
+            } else if (
+                as.tileX === 0 &&
+                bs.tileX === Math.pow(2, bs.tileZoom) - 1 &&
+                ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
+                    (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
+            ) {
+                return W;
+            }
+        }
+
         if (
-            a_ne_lon === b_sw_lon &&
-            ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
-                (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
-        ) {
-            return E;
-        } else if (
-            a_sw_lon === b_ne_lon &&
-            ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
-                (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
-        ) {
-            return W;
-        } else if (
-            a_ne_lat === b_sw_lat &&
+            as._tileGroup === 0 &&
+            bs._tileGroup === 1 &&
+            as.tileY === 0 &&
+            bs.tileY === Math.pow(2, bs.tileZoom) - 1 &&
             ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
                 (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
         ) {
             return N;
         } else if (
-            a_sw_lat === b_ne_lat &&
+            as._tileGroup === 2 &&
+            bs._tileGroup === 0 &&
+            as.tileY === 0 &&
+            bs.tileY === Math.pow(2, bs.tileZoom) - 1 &&
+            ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
+                (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
+        ) {
+            return N;
+        } else if (
+            bs._tileGroup === 1 &&
+            as._tileGroup === 0 &&
+            as.tileY === Math.pow(2, as.tileZoom) - 1 &&
+            bs.tileY === 0 &&
             ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
                 (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
         ) {
             return S;
-        } else if (a_ne_lon === POLE && b_sw_lon === -POLE) {
-            return E;
-        } else if (a_sw.lon === -POLE && b_ne.lon == POLE) {
-            return W;
-        } else if (a_ne_lat === POLE && b_sw_lat === MAX_LAT) {
-            return N;
-        } else if (a_sw_lat === -POLE && b_ne_lat === -MAX_LAT) {
+        } else if (
+            as._tileGroup === 1 &&
+            bs._tileGroup === 0 &&
+            as.tileY === Math.pow(2, as.tileZoom) - 1 &&
+            bs.tileY === 0 &&
+            ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
+                (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
+        ) {
             return S;
         }
     }

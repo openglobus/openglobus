@@ -194,7 +194,7 @@ class Layer {
         this.setExtent(
             utils.createExtent(
                 options.extent,
-                new Extent(new LonLat(-180.0, -90.0), new LonLat(180.0, 90.0))
+                new Extent(new LonLat(-180, -90), new LonLat(180, 90))
             )
         );
 

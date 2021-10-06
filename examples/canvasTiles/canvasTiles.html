@@ -16,6 +16,8 @@
         import { EmptyTerrain } from '../../src/og/terrain/EmptyTerrain.js';
         import { XYZ } from '../../src/og/layer/XYZ.js';
         import { CanvasTiles } from '../../src/og/layer/CanvasTiles.js';
+        import { ToggleWireframe } from '../../src/og/control/ToggleWireframe.js';
+        import { SegmentLonLat } from '../../src/og/segment/SegmentLonLat.js';
 
         const osm = new XYZ("OSM", {
             'specular': [0.0003, 0.00012, 0.00001],
@@ -36,6 +38,7 @@
             visibility: true,
             isBaseLayer: false,
             drawTile: function (material, applyCanvas) {
+
                 //Clear canvas
                 ctx.clearRect(0, 0, cnv.width, cnv.height);
 
@@ -48,16 +51,27 @@
 
                 let size;
 
-                //Draw text
-                if (material.segment.tileZoom > 14) {
-                    size = "26";
+                if (material.segment.isPole) {
+                    let ext = material.segment.getExtentLonLat();
+
+                    ctx.fillStyle = 'black';
+                    ctx.font = 'normal ' + 29 + 'px Verdana';
+
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`${ext.northEast.lon.toFixed(3)} ${ext.northEast.lat.toFixed(3)}`, cnv.width / 2, cnv.height / 2 + 20);
+                    ctx.fillText(`${ext.southWest.lon.toFixed(3)} ${ext.southWest.lat.toFixed(3)}`, cnv.width / 2, cnv.height / 2 - 20);
                 } else {
-                    size = "32";
+                    //Draw text
+                    if (material.segment.tileZoom > 14) {
+                        size = "26";
+                    } else {
+                        size = "32";
+                    }
+                    ctx.fillStyle = 'black';
+                    ctx.font = 'normal ' + size + 'px Verdana';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
                 }
-                ctx.fillStyle = 'black';
-                ctx.font = 'normal ' + size + 'px Verdana';
-                ctx.textAlign = 'center';
-                ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
 
                 //Draw canvas tile
                 applyCanvas(cnv);
@@ -73,6 +87,8 @@
                 "active": false
             }
         });
+
+        window.globe.planet.addControl(new ToggleWireframe());
     </script>
 </body>
 

@@ -301,33 +301,38 @@ class RendererEvents extends Events {
     }
 
     /**
+     * @protected
+     */
+    updateButtonsStates(buttons) {
+        var ms = this.mouseState;
+        if (buttons & LB_M) {
+            ms.leftButtonDown = true;
+        } else {
+            ms.leftButtonHold = false;
+            ms.leftButtonDown = false;
+        }
+
+        if (buttons & RB_M) {
+            ms.rightButtonDown = true;
+        } else {
+            ms.rightButtonHold = false;
+            ms.rightButtonDown = false;
+        }
+
+        if (buttons & MB_M) {
+            ms.middleButtonDown = true;
+        } else {
+            ms.middleButtonHold = false;
+            ms.middleButtonDown = false;
+        }
+    }
+
+    /**
      * @private
      */
     onMouseMove(event, sys) {
-        let b = sys.buttons;
-
-        if (b & LB_M) {
-            this.mouseState.leftButtonDown = true;
-        } else {
-            this.mouseState.leftButtonHold = false;
-            this.mouseState.leftButtonDown = false;
-        }
-
-        if (b & RB_M) {
-            this.mouseState.rightButtonDown = true;
-        } else {
-            this.mouseState.rightButtonHold = false;
-            this.mouseState.rightButtonDown = false;
-        }
-
-        if (b & MB_M) {
-            this.mouseState.middleButtonDown = true;
-        } else {
-            this.mouseState.middleButtonHold = false;
-            this.mouseState.middleButtonDown = false;
-        }
-
         var ms = this.mouseState;
+        this.updateButtonsStates(sys.buttons)
         ms.sys = event;
 
         let ex = event.clientX,
