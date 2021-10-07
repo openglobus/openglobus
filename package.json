@@ -73,7 +73,8 @@
   },
   "files": [
     "src/**/*",
-    "css/**/*"
+    "css/**/*",
+    "types/**/*"
   ],
   "keywords": [
     "map",
@@ -81,5 +82,8 @@
     "webgl",
     "globe",
     "og"
-  ]
+  ],
+  "dependencies": {
+    "@openglobus/og": "^0.10.6"
+  }
 }
