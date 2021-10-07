@@ -17,9 +17,6 @@ node_modules
 *.map
 api
 
-package-lock.json
-yarn.lock
-
 coverage
 
 dist

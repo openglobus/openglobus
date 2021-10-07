@@ -82,8 +82,5 @@
     "webgl",
     "globe",
     "og"
-  ],
-  "dependencies": {
-    "@openglobus/og": "^0.10.6"
-  }
+  ]
 }
