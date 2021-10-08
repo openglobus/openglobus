@@ -675,6 +675,10 @@ export class Planet extends RenderNode {
             }
         }
 
+        this.renderer.events.on("resize", () => {
+            this._renderCompletedActivated = false;
+        });
+
         // Initialize texture coordinates buffer pool
         this._textureCoordsBufferCache = [];
 
