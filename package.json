@@ -12,7 +12,6 @@
     "api": "jsdoc -t ./jsdoc -r ./src/ -c ./jsdoc/conf.json -d ./api",
     "serve": "ws",
     "build": "rollup -c",
-    "postbuild": "npm run generate_types",
     "webgl": "rollup -c --environment entry:webgl",
     "core": "rollup -c --environment entry:core",
     "test": "jest --env=jsdom",
