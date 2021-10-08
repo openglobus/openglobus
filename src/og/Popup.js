@@ -72,7 +72,7 @@ class Popup {
 
     setScreen(p) {
         if (this._planet) {
-            this.el.style.transform = "translate(" + (p.x - this.clientWidth * 0.5) + "px, " + (p.y - this._planet.renderer.handler.canvas.height - this.clientHeight * 0.5) + "px)"
+            this.el.style.transform = "translate(" + (p.x - this.clientWidth * 0.5) + "px, " + (p.y - this._planet.renderer.handler.canvas.height - this._tipEl.clientHeight) + "px)"
         }
     }
 
@@ -98,6 +98,7 @@ class Popup {
         this.el = this._renderTemplate(params);
         this._contentEl = this.el.querySelector(".og-popup-content");
         this._titleEl = this.el.querySelector(".og-popup-title")
+        this._tipEl = this.el.querySelector(".og-popup-tip-container")
         this.setOffset(this._offset[0], this._offset[1]);
         this.setContent(this._content);
         this.setTitle(this._title);
