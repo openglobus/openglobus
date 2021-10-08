@@ -93,6 +93,13 @@ SegmentLonLat.prototype._assignTileIndexes = function () {
         );
     }
 
+    var p2 = Math.pow(2, tileZoom);
+    this.tileXE = (this.tileX + 1) % p2;
+    this.tileXW = (p2 + this.tileX - 1) % p2;
+
+    this.tileYN = this.tileY - 1;
+    this.tileYS = this.tileY + 1;
+
     this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom);
 };
 
