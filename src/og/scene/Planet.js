@@ -675,6 +675,10 @@ export class Planet extends RenderNode {
             }
         }
 
+        this.renderer.events.on("resize", () => {
+            this._renderCompletedActivated = false;
+        });
+
         // Initialize texture coordinates buffer pool
         this._textureCoordsBufferCache = [];
 
@@ -1092,7 +1096,9 @@ export class Planet extends RenderNode {
         gl.disable(gl.POLYGON_OFFSET_FILL);
 
         if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
-            this._collectRenderNodes();
+            if (!this._renderCompletedActivated || this.camera._moved) {
+                this._collectRenderNodes();
+            }
 
             // Here is the planet node dispatches a draw event before
             // rendering begins and we have got render nodes.
