@@ -73,7 +73,8 @@
   },
   "files": [
     "src/**/*",
-    "css/**/*"
+    "css/**/*",
+    "types/**/*"
   ],
   "keywords": [
     "map",
