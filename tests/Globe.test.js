@@ -1,4 +1,4 @@
-import { Globe } from '../src/og/Globe.js';
+import { Globe } from '../src/og/Globe';
 import { Worker } from './worker';
 import { JSDOM } from 'jsdom';
 

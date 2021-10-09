@@ -15,6 +15,7 @@
     "webgl": "rollup -c --environment entry:webgl",
     "core": "rollup -c --environment entry:core",
     "test": "jest --env=jsdom",
+    "test_watch": "jest --env=jsdom --watch",
     "lint": "eslint src/og",
     "generate_types": "rm -rf types; tsc src/**/*.js --declaration --allowJs --emitDeclarationOnly --outDir types; exit 0",
     "prepare": "husky install"

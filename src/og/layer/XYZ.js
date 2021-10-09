@@ -41,6 +41,11 @@ import { RENDERING } from '../quadTree/quadTree.js';
  * });
  */
 class XYZ extends Layer {
+
+    /**
+     * @param {string} name - Layer name.
+     * @param {*} options
+     */
     constructor(name, options) {
         super(name, options);
 
