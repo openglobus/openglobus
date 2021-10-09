@@ -3,5 +3,6 @@ module.exports = {
     coverageDirectory: "coverage",
     collectCoverage: true,
     coverageProvider: "v8",
+    setupFiles: ["jest-webgl-canvas-mock"],
     testEnvironment: "jsdom",
 };
