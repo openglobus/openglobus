@@ -55,6 +55,7 @@
     "husky": "^6.0.0",
     "jaguarjs-jsdoc": "^1.1.0",
     "jest": "^27.2.3",
+    "jest-canvas-mock": "^2.3.1",
     "jest-webgl-canvas-mock": "^0.2.3",
     "jsdoc": "^3.6.7",
     "lint-staged": "^11.0.0",
