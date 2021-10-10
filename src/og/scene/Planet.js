@@ -563,6 +563,8 @@ export class Planet extends RenderNode {
      * @param {og.terrain.Terrain} terrain - Terrain provider.
      */
     setTerrain(terrain) {
+        this._renderCompletedActivated = false;
+
         if (this._initialized) {
             this.memClear();
         }
