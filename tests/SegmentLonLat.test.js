@@ -1,6 +1,6 @@
-import { Extent } from '../src/og/Extent.js';
-import { Planet } from '../src/og/scene/Planet.js';
-import { SegmentLonLat } from '../src/og/segment/SegmentLonLat.js';
+import { Extent } from '../src/og/Extent';
+import { Planet } from '../src/og/scene/Planet';
+import { SegmentLonLat } from '../src/og/segment/SegmentLonLat';
 import { Worker } from './worker';
 
 window.Worker = Worker;
