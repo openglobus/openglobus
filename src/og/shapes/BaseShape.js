@@ -459,8 +459,6 @@ drawPicking() {
                 gl = r.handler.gl,
                 sha, shu;
 
-
-
                 sh = r.handler.programs.shape_picking;
                 p = sh._program;
                 shu = p.uniforms;

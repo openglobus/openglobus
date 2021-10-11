@@ -332,7 +332,7 @@ class RendererEvents extends Events {
      */
     onMouseMove(event, sys) {
         var ms = this.mouseState;
-        this.updateButtonsStates(sys.buttons)
+        this.updateButtonsStates(sys.buttons);
         ms.sys = event;
 
         let ex = event.clientX,

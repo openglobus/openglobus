@@ -48,7 +48,7 @@ export class Vec4 {
      * @const
      * @type {og.math.Vec4}
      */
-    static get identity() { return new Vec4(0, 0, 0, 1) };
+    static get identity() { return new Vec4(0, 0, 0, 1); };
 
     /**
      * Creates 4d vector from array.

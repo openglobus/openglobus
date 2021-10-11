@@ -1,15 +1,11 @@
 "use strict";
 
-import * as math from "../math.js";
-import { Control } from "./Control.js";
-import { input } from "../input/input.js";
-import { Key } from "../Lock.js";
+import { Sphere } from "../bv/Sphere.js";
 import { LonLat } from "../LonLat.js";
-import { Mat4 } from "../math/Mat4.js";
 import { Quat } from "../math/Quat.js";
 import { Ray } from "../math/Ray.js";
-import { Sphere } from "../bv/Sphere.js";
 import { Vec3 } from "../math/Vec3.js";
+import { Control } from "./Control.js";
 
 class EarthNavigation extends Control {
     constructor(options) {
@@ -121,8 +117,7 @@ class EarthNavigation extends Control {
             if (
                 Math.abs(this.touches[0].x - this.touches[0].prev_x) < 3 &&
                 Math.abs(this.touches[0].y - this.touches[0].prev_y) < 3
-            )
-                this.stopRotation();
+            ) { this.stopRotation(); }
         }
     }
 

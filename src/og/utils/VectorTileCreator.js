@@ -217,7 +217,7 @@ export class VectorTileCreator {
 
             // var prevLayerId = -1;
 
-            var extentParams = new Float32Array(4);
+            // var extentParams = new Float32Array(4);
 
             var extentParamsHigh = new Float32Array(4);
             var extentParamsLow = new Float32Array(4);

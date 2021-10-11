@@ -4,21 +4,19 @@
 
 "use strict";
 
-import { EmptyTerrain } from "./terrain/EmptyTerrain.js";
-import { Handler } from "./webgl/Handler.js";
-import { Planet } from "./scene/Planet.js";
-import { Renderer } from "./renderer/Renderer.js";
-import { wgs84 } from "./ellipsoid/wgs84.js";
-import { isEmpty } from "./utils/shared.js";
-
-import { EarthCoordinates } from "./control/EarthCoordinates.js";
-import { MouseNavigation } from "./control/MouseNavigation.js";
-import { EarthNavigation } from "./control/EarthNavigation.js";
-import { TouchNavigation } from "./control/TouchNavigation.js";
-import { Sun } from "./control/Sun.js";
-import { ZoomControl } from "./control/ZoomControl.js";
-import { ScaleControl } from "./control/ScaleControl.js";
 import { CompassButton } from "./control/CompassButton.js";
+import { EarthCoordinates } from "./control/EarthCoordinates.js";
+import { EarthNavigation } from "./control/EarthNavigation.js";
+import { MouseNavigation } from "./control/MouseNavigation.js";
+import { ScaleControl } from "./control/ScaleControl.js";
+import { Sun } from "./control/Sun.js";
+import { TouchNavigation } from "./control/TouchNavigation.js";
+import { ZoomControl } from "./control/ZoomControl.js";
+import { Renderer } from "./renderer/Renderer.js";
+import { Planet } from "./scene/Planet.js";
+import { EmptyTerrain } from "./terrain/EmptyTerrain.js";
+import { isEmpty } from "./utils/shared.js";
+import { Handler } from "./webgl/Handler.js";
 
 /** @const {string} */
 const CANVAS_ID_PREFIX = "globus_viewport_";
@@ -64,7 +62,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {boolean} [options.useSpecularTexture] - use specular water mask
  * @param {boolean} [options.useNightTexture] - show night cities
  */
-class Globe {
+export class Globe {
     constructor(options) {
         // Canvas creation
         var _canvasId = CANVAS_ID_PREFIX + Globe._staticCounter++;
@@ -263,5 +261,3 @@ class Globe {
         this._counter = n;
     }
 }
-
-export { Globe };

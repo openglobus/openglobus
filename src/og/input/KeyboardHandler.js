@@ -42,7 +42,7 @@ const KeyboardHandler = function () {
 
     this.releaseKeys = function () {
         _currentlyPressedKeys = {};
-    }
+    };
 
     this.addEvent = function (event, sender, callback, keyCode, priority) {
         if (priority === undefined) {

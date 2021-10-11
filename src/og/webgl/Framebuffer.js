@@ -55,8 +55,8 @@ export class Framebuffer {
 
         this._typeArr = options.type instanceof Array ? options.type : [options.type || "UNSIGNED_BYTE"];
 
-        this._attachmentArr = options.attachment instanceof Array ?
-            options.attachment.map((a, i) => {
+        this._attachmentArr = options.attachment instanceof Array
+            ? options.attachment.map((a, i) => {
                 let res = a.toUpperCase();
                 if (res === "COLOR_ATTACHMENT") {
                     return `${res}${i.toString()}`;

@@ -1151,7 +1151,6 @@ class LabelHandler extends BillboardHandler {
     }
 
     setFontIndexArr(index, fontIndex) {
-        fontIndex = fontIndex;
 
         var i = index * 6 * this._maxLetters;
         var a = this._fontIndexArr;

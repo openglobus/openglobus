@@ -35,7 +35,7 @@ export class Extent {
      * Whole mercator extent.
      * @const
      */
-    static get FULL_MERC() { return new Extent(LonLat.SW_MERC, LonLat.NE_MERC) };
+    static get FULL_MERC() { return new Extent(LonLat.SW_MERC, LonLat.NE_MERC); };
 
     /**
      * Degrees extent from north mercator limit to north pole.
@@ -47,7 +47,7 @@ export class Extent {
      * Degrees extent from south pole to south mercator limit.
      * @const
      */
-    static get SOUTH_POLE_DEG() { return new Extent(new LonLat(-180.0, -90.0), LonLat.SE_MERC_DEG) };
+    static get SOUTH_POLE_DEG() { return new Extent(new LonLat(-180.0, -90.0), LonLat.SE_MERC_DEG); };
 
     /**
      * Creates extent instance from values in array.

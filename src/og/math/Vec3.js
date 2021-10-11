@@ -38,25 +38,25 @@ export class Vec3 {
     };
 
     /** @const */
-    static get UP() { return new Vec3(0, 1, 0) };
+    static get UP() { return new Vec3(0, 1, 0); };
     /** @const */
-    static get DOWN() { return new Vec3(0, -1, 0) };
+    static get DOWN() { return new Vec3(0, -1, 0); };
     /** @const */
-    static get RIGHT() { return new Vec3(1, 0, 0) };
+    static get RIGHT() { return new Vec3(1, 0, 0); };
     /** @const */
-    static get LEFT() { return new Vec3(-1, 0, 0) };
+    static get LEFT() { return new Vec3(-1, 0, 0); };
     /** @const */
-    static get FORWARD() { return new Vec3(0, 0, -1) };
+    static get FORWARD() { return new Vec3(0, 0, -1); };
     /** @const */
-    static get BACKWARD() { return new Vec3(0, 0, 1) };
+    static get BACKWARD() { return new Vec3(0, 0, 1); };
     /** @const */
-    static get ZERO() { return new Vec3() };
+    static get ZERO() { return new Vec3(); };
     /** @const */
-    static get UNIT_X() { return new Vec3(1, 0, 0) };
+    static get UNIT_X() { return new Vec3(1, 0, 0); };
     /** @const */
-    static get UNIT_Y() { return new Vec3(0, 1, 0) };
+    static get UNIT_Y() { return new Vec3(0, 1, 0); };
     /** @const */
-    static get UNIT_Z() { return new Vec3(0, 0, 1) };
+    static get UNIT_Z() { return new Vec3(0, 0, 1); };
 
     /**
      * Separate 63 bit Vec3 to two Vec3 32 bit float values.
@@ -765,7 +765,7 @@ export class Vec3 {
         return new Vec3(this.x * t + v2.x * one_d, this.y * t + v2.y * one_d, this.z * t + v2.z * one_d);
     };
 
-    static get LERP_DELTA() { return 1e-6 };
+    static get LERP_DELTA() { return 1e-6; };
 
     /**
      * Spherically interpolates between two vectors.
@@ -862,4 +862,3 @@ export class Vec3 {
 export function vec3(x, y, z) {
     return new Vec3(x, y, z);
 };
-

@@ -3,21 +3,20 @@
  */
 "use strict";
 
-import * as mercator from "../mercator.js";
-import { EmptyTerrain } from "./EmptyTerrain.js";
-import { EPSG3857 } from "../proj/EPSG3857.js";
 import { Events } from "../Events.js";
-import { Loader } from "../utils/Loader.js";
-import { NOTRENDERING } from "../quadTree/quadTree.js";
-// import { QueueArray } from '../QueueArray.js';
-import { stringTemplate, createExtent } from "../utils/shared.js";
-import { Geoid } from "./Geoid.js";
-import { Layer } from "../layer/Layer.js";
-import { Vec3 } from "../math/Vec3.js";
-import { Ray } from "../math/Ray.js";
 import { Extent } from "../Extent.js";
+import { Layer } from "../layer/Layer.js";
 import { LonLat } from "../LonLat.js";
-import { MAX_NORMAL_ZOOM } from "../segment/Segment.js";
+import { Ray } from "../math/Ray.js";
+import { Vec3 } from "../math/Vec3.js";
+import * as mercator from "../mercator.js";
+import { EPSG3857 } from "../proj/EPSG3857.js";
+import { NOTRENDERING } from "../quadTree/quadTree.js";
+import { Loader } from "../utils/Loader.js";
+// import { QueueArray } from '../QueueArray.js';
+import { createExtent, stringTemplate } from "../utils/shared.js";
+import { EmptyTerrain } from "./EmptyTerrain.js";
+import { Geoid } from "./Geoid.js";
 
 const EVENT_NAMES = [
     /**

@@ -33,7 +33,7 @@ export function label_webgl2() {
             a_rgba: "vec4",
             a_offset: "vec3",
             //a_alignedAxis: "vec3",
-            a_fontIndex: "float",
+            a_fontIndex: "float"
         },
         vertexShader:
             `#version 300 es
@@ -199,7 +199,7 @@ export function labelPicking() {
             a_offset: "vec3",
             a_size: "float",
             //a_rotation: "float",
-            a_rgba: "vec4",
+            a_rgba: "vec4"
             //a_alignedAxis: "vec3"
         },
         vertexShader:
@@ -310,7 +310,7 @@ export function label_screen() {
             //a_rotation: "float",
             a_rgba: "vec4",
             //a_alignedAxis: "vec3",
-            a_fontIndex: "float",
+            a_fontIndex: "float"
         },
         vertexShader:
             `

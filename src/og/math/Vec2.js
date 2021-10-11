@@ -28,16 +28,17 @@ export class Vec2 {
          */
         this.y = y || 0.0;
     };
+
     /** @const */
-    static get UP() { return new Vec2(0, 1) };
+    static get UP() { return new Vec2(0, 1); };
     /** @const */
-    static get DOWN() { return new Vec2(0, -1) };
+    static get DOWN() { return new Vec2(0, -1); };
     /** @const */
-    static get RIGHT() { return new Vec2(1, 0) };
+    static get RIGHT() { return new Vec2(1, 0); };
     /** @const */
-    static get LEFT() { return new Vec2(-1, 0) };
+    static get LEFT() { return new Vec2(-1, 0); };
     /** @const */
-    static get ZERO() { return new Vec2() };
+    static get ZERO() { return new Vec2(); };
 
     /**
      * Returns summary vector.
@@ -462,7 +463,7 @@ export class Vec2 {
         return res;
     };
 
-    static get LERP_DELTA() { return 1e-6 };
+    static get LERP_DELTA() { return 1e-6; };
 
     /**
      * Spherically interpolates between two vectors.
