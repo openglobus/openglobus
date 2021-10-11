@@ -62,7 +62,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {boolean} [options.useSpecularTexture] - use specular water mask
  * @param {boolean} [options.useNightTexture] - show night cities
  */
-export class Globe {
+class Globe {
     constructor(options) {
         // Canvas creation
         var _canvasId = CANVAS_ID_PREFIX + Globe._staticCounter++;
@@ -261,3 +261,5 @@ export class Globe {
         this._counter = n;
     }
 }
+
+export { Globe };
