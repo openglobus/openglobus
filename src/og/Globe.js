@@ -82,8 +82,13 @@ class Globe {
          * @public
          * @type {Element}
          */
-        this.div =
-            document.getElementById(options.target) || document.querySelector(options.target);
+        if (options.target instanceof HTMLElement) {
+            this.div = options.target;
+        } else {
+            this.div =
+                document.getElementById(options.target) || document.querySelector(options.target);
+        }
+
         this.div.appendChild(this._canvas);
         this.div.classList.add("ogViewport");
 
@@ -177,8 +182,8 @@ class Globe {
                 options.useEarthNavigation
                     ? new EarthNavigation()
                     : new MouseNavigation({
-                          minSlope: options.minSlope
-                      }),
+                        minSlope: options.minSlope
+                    }),
                 new TouchNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),
