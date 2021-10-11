@@ -1,4 +1,3 @@
-import { exportAllDeclaration } from '@babel/types';
 import { LonLat } from '../src/og/LonLat';
 
 test('Testing LonLat', () => {
