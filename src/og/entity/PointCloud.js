@@ -208,7 +208,7 @@ class PointCloud {
     /**
      * Adds points to render.
      * @public
-     * @param {Array.<Array<number,number,number,number,number,number,number,*>>} points - Point cloud array.
+     * @param {[[number,number,number,number,number,number,number,*]]} points - Point cloud array.
      * @example
      * var points = [[0, 0, 0, 255, 255, 255, 255, { 'name': 'White point' }], [100, 100, 0, 255, 0, 0, 255, { 'name': 'Red point' }]];
      */
