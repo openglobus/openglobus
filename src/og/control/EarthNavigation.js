@@ -70,7 +70,7 @@ class EarthNavigation extends Control {
 
         var ll = this.renderer.activeCamera._lonLat;
 
-        globus.planet.flyLonLat(new LonLat(ll.lon, ll.lat, this.positionState[this.currState].h));
+        this.planet.flyLonLat(new LonLat(ll.lon, ll.lat, this.positionState[this.currState].h));
     }
 
     onMouseWheel(event) {

@@ -93,7 +93,7 @@ SegmentLonLat.prototype._assignTileIndexes = function () {
         );
     }
 
-    var p2 = Math.pow(2, tileZoom);
+    var p2 = 1 << tileZoom;
     this.tileXE = (this.tileX + 1) % p2;
     this.tileXW = (p2 + this.tileX - 1) % p2;
 
