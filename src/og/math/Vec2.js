@@ -309,7 +309,7 @@ export class Vec2 {
     /**
      * Gets vectors dot production.
      * @public
-     * @param {Array.<number,number>} arr - Array vector.
+     * @param {[number,number]} arr - Array vector.
      * @returns {number}
      */
     dotArr(arr) {
@@ -370,7 +370,7 @@ export class Vec2 {
     /**
      * Converts vector to a number array.
      * @public
-     * @returns {Array.<number,number>}
+     * @returns {[number,number]}
      */
     toVec() {
         return [this.x, this.y];

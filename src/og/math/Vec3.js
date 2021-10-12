@@ -64,7 +64,7 @@ export class Vec3 {
      * @param {number} value - Double type value.
      * @param {Vec3} high - Out vector high values.
      * @param {Vec3} low - Out vector low values.
-     * @returns {Array.<number,number>} Encoded array.
+     * @returns {[number,number]} Encoded array.
      */
     static doubleToTwoFloats(v, high, low) {
 
@@ -107,7 +107,7 @@ export class Vec3 {
      * @param {number} value - Double type value.
      * @param {Float32Array} high - Out vector high values.
      * @param {Float32Array} low - Out vector low values.
-     * @returns {Array.<number,number>} Encoded array.
+     * @returns {[number,number]} Encoded array.
      */
     static doubleToTwoFloat32Array(v, high, low) {
 
@@ -147,7 +147,7 @@ export class Vec3 {
     /**
      * Creates 3d vector from array.
      * @function
-     * @param {Array.<number,number,number>} arr - Input array
+     * @param {[number,number,number]} arr - Input array
      * @returns {og.Vec3} -
      */
     static fromVec(arr) {
@@ -517,7 +517,7 @@ export class Vec3 {
     /**
      * Gets vectors dot production.
      * @public
-     * @param {Array.<number,number,number>} arr - Array vector.
+     * @param {[number,number,number]} arr - Array vector.
      * @returns {number} -
      */
     dotArr(arr) {
@@ -657,7 +657,7 @@ export class Vec3 {
     /**
      * Converts vector to a number array.
      * @public
-     * @returns {Array.<number,number,number>} -
+     * @returns {[number,number,number]} -
      * @deprecated
      */
     toVec() {
@@ -667,7 +667,7 @@ export class Vec3 {
     /**
      * Converts vector to a number array.
      * @public
-     * @returns {Array.<number,number,number>} -
+     * @returns {[number,number,number]} -
      */
     toArray() {
         return [this.x, this.y, this.z];

@@ -1,5 +1,6 @@
 import { Control } from "./Control.js";
 import { DebugInfo } from "./DebugInfo";
+import { EarthNavigation } from "./EarthNavigation.js";
 import { EarthCoordinates } from "./EarthCoordinates.js";
 import { GeoImageDragControl } from "./GeoImageDragControl.js";
 import { KeyboardNavigation } from "./KeyboardNavigation.js";
@@ -16,6 +17,7 @@ import { Lighting } from "./Lighting.js";
 export {
     Control,
     DebugInfo,
+    EarthNavigation,
     EarthCoordinates,
     GeoImageDragControl,
     KeyboardNavigation,

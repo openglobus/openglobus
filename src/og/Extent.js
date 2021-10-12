@@ -35,7 +35,7 @@ export class Extent {
      * Whole mercator extent.
      * @const
      */
-    static get FULL_MERC() { return new Extent(LonLat.SW_MERC, LonLat.NE_MERC) };
+    static get FULL_MERC() { return new Extent(LonLat.SW_MERC, LonLat.NE_MERC); }
 
     /**
      * Degrees extent from north mercator limit to north pole.
@@ -47,12 +47,12 @@ export class Extent {
      * Degrees extent from south pole to south mercator limit.
      * @const
      */
-    static get SOUTH_POLE_DEG() { return new Extent(new LonLat(-180.0, -90.0), LonLat.SE_MERC_DEG) };
+    static get SOUTH_POLE_DEG() { return new Extent(new LonLat(-180.0, -90.0), LonLat.SE_MERC_DEG); }
 
     /**
      * Creates extent instance from values in array.
      * @static
-     * @param {Array.<number>} arr - South west and north east longitude and latidudes packed in array. (exactly 4 entries)
+     * @param {[number]} arr - South west and north east longitude and latidudes packed in array. (exactly 4 entries)
      * @return {og.Extent} Extent object.
      */
     static createFromArray(arr) {
@@ -62,7 +62,7 @@ export class Extent {
     /**
      * Creates bound extent instance by coordinate array.
      * @static
-     * @param {Array.<og.LonLat>} arr - Coordinate array.
+     * @param {[og.LonLat]} arr - Coordinate array.
      * @return {og.Extent} Extent object.
      */
     static createByCoordinates(arr) {
@@ -81,7 +81,7 @@ export class Extent {
     /**
      * Creates bound extent instance by coordinate array.
      * @static
-     * @param {Array.<Array<number,number>>} arr - Coordinate array.
+     * @param {[[number,number]]} arr - Coordinate array.
      * @return {og.Extent} Extent object.
      */
     static createByCoordinatesArr(arr) {
@@ -126,7 +126,7 @@ export class Extent {
     /**
      * Sets current bounding extent object by coordinate array.
      * @public
-     * @param {Array.<og.LonLat>} arr - Coordinate array.
+     * @param {[og.LonLat]} arr - Coordinate array.
      * @return {og.Extent} Current extent.
      */
     setByCoordinates(arr) {
@@ -291,7 +291,7 @@ export class Extent {
      * Gets cartesian bounding bounds of the current ellipsoid.
      * @public
      * @param {og.Ellipsoid} ellipsoid - Ellipsoid.
-     * @return {Array.<number,number,number,number,number,number>} Cartesian 3d coordinate array.
+     * @return {[number,number,number,number,number,number]} Cartesian 3d coordinate array.
      */
     getCartesianBounds(ellipsoid) {
         let xmin = math.MAX, xmax = math.MIN, ymin = math.MAX,
