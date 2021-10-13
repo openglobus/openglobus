@@ -1623,7 +1623,7 @@ export class Planet extends RenderNode {
     /**
      * Sets camera to the planet geographical extent.
      * @public
-     * @param {[number,number,number,number]} extentArr - Geographical extent array,
+     * @param {Array.<number>} extentArr - Geographical extent array, (exactly 4 entries)
      * where index 0 - southwest longitude, 1 - latitude southwest, 2 - longitude northeast, 3 - latitude northeast.
      */
     viewExtentArr(extentArr) {

@@ -169,14 +169,14 @@ const Renderer = function (handler, params) {
     /**
      * Stores current picking rgb color.
      * @private
-     * @type {Array.<number,number,number>}
+     * @type {Array.<number>} - (exactly 3 entries)
      */
     this._currPickingColor = new Uint8Array(4);
 
     /**
      * Stores previous picked rgb color.
      * @private
-     * @type {Array.<number,number,number>}
+     * @type {Array.<number>} - (exactly 3 entries)
      */
     this._prevPickingColor = [0, 0, 0];
 

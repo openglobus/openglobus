@@ -81,7 +81,7 @@ export class Extent {
     /**
      * Creates bound extent instance by coordinate array.
      * @static
-     * @param {[[number,number]]} arr - Coordinate array.
+     * @param {Array.<Array<number>>} arr - Coordinate array. (exactly 2 entries)
      * @return {og.Extent} Extent object.
      */
     static createByCoordinatesArr(arr) {
@@ -291,7 +291,7 @@ export class Extent {
      * Gets cartesian bounding bounds of the current ellipsoid.
      * @public
      * @param {og.Ellipsoid} ellipsoid - Ellipsoid.
-     * @return {[number,number,number,number,number,number]} Cartesian 3d coordinate array.
+     * @return {Array.<number>} Cartesian 3d coordinate array. (exactly 6 entries)
      */
     getCartesianBounds(ellipsoid) {
         let xmin = math.MAX, xmax = math.MIN, ymin = math.MAX,

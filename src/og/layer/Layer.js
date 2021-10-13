@@ -22,7 +22,7 @@ export const FADING_FACTOR = 0.29;
  * @param {String} [name="noname"] - Layer name.
  * @param {Object} [options] - Layer options:
  * @param {number} [options.opacity=1.0] - Layer opacity.
- * @param {Array.<number,number,number>} [options.transparentColor=[-1,-1,-1]] - RGB color that defines transparent color.
+ * @param {Array.<number>} [options.transparentColor=[-1,-1,-1]] - RGB color that defines transparent color. (exactly 3 entries)
  * @param {number} [options.minZoom=0] - Minimal visibility zoom level.
  * @param {number} [options.maxZoom=0] - Maximal visibility zoom level.
  * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
@@ -87,7 +87,7 @@ class Layer {
         /**
          * Transparent RGB color mask.
          * @public
-         * @type {Array.<number,number,number>}
+         * @type {Array.<number>} - (exactly 3 entries)
          */
         this.transparentColor = options.transparentColor || [-1, -1, -1];
 
