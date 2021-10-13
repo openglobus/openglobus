@@ -259,7 +259,7 @@ window.ELLNORM = false;
  * Returns distance from object to terrain coordinates and terrain point that calculates out in the res parameter.
  * @public
  * @param {og.Vec3} xyz - Cartesian object position.
- * @param {og.LonLat} insideSegmentPosition - Geodetic object position.
+ * @param {LonLat} insideSegmentPosition - Geodetic object position.
  * @param {og.Vec3} [res] - Result cartesian coordiantes on the terrain.
  * @param {og.Vec3} [normal] - Terrain point normal.
  * @returns {number} -
@@ -345,8 +345,8 @@ Segment.prototype.getTerrainPoint = function (xyz, insideSegmentPosition, res, n
 /**
  * Project wgs86 to segment native projection.
  * @public
- * @param {og.LonLat} lonlat - Coordinates to project.
- * @returns {og.LonLat} -
+ * @param {LonLat} lonlat - Coordinates to project.
+ * @returns {LonLat} -
  */
 Segment.prototype.projectNative = function (lonlat) {
     return lonlat.forwardMercator();

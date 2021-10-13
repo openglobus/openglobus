@@ -1469,7 +1469,7 @@ export class Planet extends RenderNode {
      * Returns 2d screen coordanates projection point to the planet ellipsoid geographical coordinates.
      * @public
      * @param {og.math.Pixel} px - 2D screen coordinates.
-     * @returns {og.LonLat} -
+     * @returns {LonLat} -
      */
     getLonLatFromPixelEllipsoid(px) {
         var coords = this.getCartesianFromPixelEllipsoid(px);
@@ -1518,7 +1518,7 @@ export class Planet extends RenderNode {
      * @public
      * @param {og.Vec2} px - Pixel screen 2d coordinates.
      * @param {Boolean} [force=false] - Force framebuffer rendering.
-     * @returns {og.LonLat} -
+     * @returns {LonLat} -
      */
     getLonLatFromPixelTerrain(px, force) {
         var coords = this.getCartesianFromPixelTerrain(px, force);
@@ -1541,7 +1541,7 @@ export class Planet extends RenderNode {
     /**
      * Returns projected 2d screen coordinates by geographical coordinates.
      * @public
-     * @param {og.LonLat} lonlat - Geographical coordinates.
+     * @param {LonLat} lonlat - Geographical coordinates.
      * @returns {og.Vec2} -
      */
     getPixelFromLonLat(lonlat) {
@@ -1669,7 +1669,7 @@ export class Planet extends RenderNode {
     /**
      * Sets camera to the planet geographical position.
      * @public
-     * @param {og.LonLat} lonlat - New geographical position.
+     * @param {LonLat} lonlat - New geographical position.
      * @param {og.Vec3} [up] - Camera UP vector.
      */
     viewLonLat(lonlat, up) {
@@ -1723,7 +1723,7 @@ export class Planet extends RenderNode {
     /**
      * Fly camera to the new geographical position.
      * @public
-     * @param {og.LonLat} lonlat - Fly geographical coordiantes.
+     * @param {LonLat} lonlat - Fly geographical coordiantes.
      * @param {og.Vec3} [look] - Camera "look at" point on the end of a flying.
      * @param {og.Vec3} [up] - Camera UP vector on the end of a flying.
      * @param {Number} [ampl] - Altitude amplitude factor.
