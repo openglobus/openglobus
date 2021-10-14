@@ -2,7 +2,7 @@ import { Entity } from '../../src/og/entity/Entity';
 import { EntityCollection } from '../../src/og/entity/EntityCollection';
 
 
-test('Testing Entity', () => {
+test('Testing EntityCollection', () => {
     let entityCollection = new EntityCollection();
 
     entityCollection.setVisibility(true);
@@ -22,5 +22,6 @@ test('Testing Entity', () => {
     entityCollection.clear();
     expect(entityCollection.belongs(entity)).toBeFalsy();
 
+    entityCollection.setScaleByDistance(1, 1, 1);
 
 });

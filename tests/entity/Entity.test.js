@@ -1,7 +1,6 @@
 import { Billboard } from '../../src/og/entity/Billboard';
 import { Entity } from '../../src/og/entity/Entity';
 import { EntityCollection } from '../../src/og/entity/EntityCollection';
-import { Geometry } from '../../src/og/entity/Geometry';
 import { PointCloud } from '../../src/og/entity/PointCloud';
 import { Polyline } from '../../src/og/entity/Polyline';
 import { Ray } from '../../src/og/entity/Ray';
