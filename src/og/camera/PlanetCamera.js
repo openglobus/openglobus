@@ -71,14 +71,14 @@ class PlanetCamera extends Camera {
         /**
          * Current geographical degree position.
          * @protected
-         * @type {og.LonLat}
+         * @type {LonLat}
          */
         this._lonLat = this.planet.ellipsoid.cartesianToLonLat(this.eye);
 
         /**
          * Current geographical mercator position.
          * @protected
-         * @type {og.LonLat}
+         * @type {LonLat}
          */
         this._lonLatMerc = this._lonLat.forwardMercator();
 
@@ -107,7 +107,7 @@ class PlanetCamera extends Camera {
          * Coordinates that depends on what segment class we are fling over.
          * It can be WGS84 or Mercator coordinates. Gets in og.quadTree.Node
          * @protected
-         * @type {og.LonLat}
+         * @type {LonLat}
          */
         this._insideSegmentPosition = new LonLat();
 
@@ -176,8 +176,8 @@ class PlanetCamera extends Camera {
     /**
      * Places camera to view to the geographical point.
      * @public
-     * @param {og.LonLat} lonlat - New camera and camera view position.
-     * @param {og.LonLat} [lookLonLat] - Look up coordinates.
+     * @param {LonLat} lonlat - New camera and camera view position.
+     * @param {LonLat} [lookLonLat] - Look up coordinates.
      * @param {og.Vec3} [up] - Camera UP vector. Default (0,1,0)
      */
     setLonLat(lonlat, lookLonLat, up) {
@@ -193,7 +193,7 @@ class PlanetCamera extends Camera {
     /**
      * Returns camera geographical position.
      * @public
-     * @returns {og.LonLat}
+     * @returns {LonLat}
      */
     getLonLat() {
         return this._lonLat;
@@ -452,7 +452,7 @@ class PlanetCamera extends Camera {
     /**
      * Flies to the geo coordiantes.
      * @public
-     * @param {og.LonLat} lonlat - Finish coordinates.
+     * @param {LonLat} lonlat - Finish coordinates.
      * @param {og.Vec3} [look] - Camera LOOK in the end of flying. Default - (0,0,0)
      * @param {og.Vec3} [up] - Camera UP vector in the end of flying. Default - (0,1,0)
      * @param {Number} [ampl] - Altitude amplitude factor.

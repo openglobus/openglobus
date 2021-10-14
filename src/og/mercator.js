@@ -117,8 +117,8 @@ export function getTileY(lat, zoom) {
 /**
  * Converts geodetic coordinate array to mercator coordinate array.
  * @function
- * @param {Array.<og.LonLat>} lonLatArr - LonLat array to convert.
- * @returns {Array.<og.LonLat>}
+ * @param {Array.<LonLat>} lonLatArr - LonLat array to convert.
+ * @returns {Array.<LonLat>}
  */
 export function forwardArray(lonlatArr) {
     var res = [];

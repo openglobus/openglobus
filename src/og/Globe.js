@@ -64,6 +64,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {boolean} [options.useSpecularTexture] - use specular water mask
  * @param {boolean} [options.useNightTexture] - show night cities
  */
+
 class Globe {
     constructor(options) {
         // Canvas creation
@@ -182,12 +183,12 @@ class Globe {
                 options.useEarthNavigation
                     ? new EarthNavigation()
                     : new MouseNavigation({
-                        minSlope: options.minSlope
-                    }),
+                          minSlope: options.minSlope
+                      }),
                 new TouchNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),
-                new CompassButton()
+                new CompassButton(options)
             ]);
         }
 

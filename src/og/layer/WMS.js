@@ -17,7 +17,7 @@ import { XYZ } from './XYZ.js';
  * @param {string} name - Layer name.
  * @param {Object} options - Options:
  * @param {number} [options.opacity=1.0] - Layer opacity.
- * @param {Array.<number,number,number>} [options.transparentColor=[-1,-1,-1]] - RGB color that defines transparent color.
+ * @param {Array.<number>} [options.transparentColor=[-1,-1,-1]] - RGB color that defines transparent color.
  * @param {number} [options.minZoom=0] - Minimal visibility zoom level.
  * @param {number} [options.maxZoom=0] - Maximal visibility zoom level.
  * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.

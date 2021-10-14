@@ -93,13 +93,15 @@ class CompassButton extends Control {
 
         this.planet = null;
 
+        this.compassSvg = options.compassSvg || svg;
+
         this._heading = null;
 
         this._svg = null;
     }
 
     oninit() {
-        var btnEl = parseHTML(`<div class="og-compass-button">${svg}</div>`)[0];
+        var btnEl = parseHTML(`<div class="og-compass-button">${this.compassSvg}</div>`)[0];
 
         this._svg = btnEl.querySelector("svg");
 
