@@ -58,7 +58,7 @@ export class LonLat {
      * Creates coordinates array.
      * @static
      * @param{Array.<Array<number>>} arr - Coordinates array data. (exactly 3 entries)
-     * @return{Array.<og.LonLat>} the same coordinates array but each element is LonLat instance.
+     * @return{Array.<LonLat>} the same coordinates array but each element is LonLat instance.
      */
     static join(arr) {
         var res = [];
@@ -73,7 +73,7 @@ export class LonLat {
      * Creates an object by coordinate array.
      * @static
      * @param {Array.<number>} arr - Coordiante array, where first is longitude, second is latitude and third is a height. (exactly 3 entries)
-     * @returns {og.LonLat} -
+     * @returns {LonLat} -
      */
     static createFromArray(arr) {
         return new LonLat(arr[0], arr[1], arr[2]);
@@ -85,7 +85,7 @@ export class LonLat {
      * @param {number} lon - Degrees longitude.
      * @param {number} lat - Degrees latitude.
      * @param {number} [height] - Height.
-     * @returns {og.LonLat} -
+     * @returns {LonLat} -
      */
     static forwardMercator(lon, lat, height) {
         return new LonLat(lon * mercator.POLE_BY_180,
@@ -99,7 +99,7 @@ export class LonLat {
      * @param {number} x - Mercator longitude.
      * @param {number} y - Mercator latitude.
      * @param {number} [height] - Height.
-     * @returns {og.LonLat} -
+     * @returns {LonLat} -
      */
     static inverseMercator(x, y, height) {
         return new LonLat(x * mercator.INV_POLE_BY_180,
@@ -113,7 +113,7 @@ export class LonLat {
      * @param {number} [lon] - Longitude.
      * @param {number} [lat] - Latitude.
      * @param {number} [height] - Height.
-     * @returns {og.LonLat} -
+     * @returns {LonLat} -
      */
     set(lon, lat, height) {
         this.lon = lon || 0;
@@ -125,8 +125,8 @@ export class LonLat {
     /**
      * Copy coordinates.
      * @public
-     * @param {og.LonLat} [lonLat] - Coordinates to copy.
-     * @returns {og.LonLat} -
+     * @param {LonLat} [lonLat] - Coordinates to copy.
+     * @returns {LonLat} -
      */
     copy(lonLat) {
         this.lon = lonLat.lon;
@@ -138,7 +138,7 @@ export class LonLat {
     /**
      * Clone the coordiante.
      * @public
-     * @returns {og.LonLat} -
+     * @returns {LonLat} -
      */
     clone() {
         return new LonLat(this.lon, this.lat, this.height);
@@ -147,7 +147,7 @@ export class LonLat {
     /**
      * Converts to mercator coordinates.
      * @public
-     * @returns {og.LonLat} -
+     * @returns {LonLat} -
      */
     forwardMercator() {
         return LonLat.forwardMercator(this.lon, this.lat, this.height);
@@ -168,7 +168,7 @@ export class LonLat {
     /**
      * Converts from mercator coordinates.
      * @public
-     * @returns {og.LonLat} -
+     * @returns {LonLat} -
      */
     inverseMercator() {
         return LonLat.inverseMercator(this.lon, this.lat, this.height);
@@ -177,7 +177,7 @@ export class LonLat {
     /**
      * Compares coordinates.
      * @public
-     * @param {og.LonLat} b - Coordinate to compare with.
+     * @param {LonLat} b - Coordinate to compare with.
      * @returns {boolean} -
      */
     equal(b) {

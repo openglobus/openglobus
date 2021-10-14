@@ -15,7 +15,7 @@ import { Mat4 } from '../math/Mat4.js';
  * @param {og.Vec3} [options.position] - Shape position.
  * @param {og.Quat} [options.orientation] - Shape orientation(rotation).
  * @param {og.Vec3} [options.scale] - Scale vector.
- * @param {Array.<number,number,number,number>} [options.color] - Shape RGBA color.
+ * @param {Array.<number>} [options.color] - Shape RGBA color. (exactly 4 entries)
  * @param {string} [options.src] - Texture image url source.
  * @param {boolean} [options.visibility] - Shape visibility.
  */
@@ -57,7 +57,7 @@ class BaseShape {
         /**
          * Shape RGBA color.
          * @public
-         * @type {Array.<number,number,number,number>}
+         * @type {Array.<number>} - (exactly 4 entries)
          */
         this.color = options.color ? new Float32Array(options.color) : new Float32Array([1.0, 1.0, 1.0, 1.0]);
 
@@ -164,7 +164,7 @@ class BaseShape {
         /**
          * Assigned picking color.
          * @protected
-         * @type {Array.<number,number,number>}
+         * @type {Array.<number>} - (exactly 3 entries)
          */
         this._pickingColor = [0.0, 0.0, 0.0, 0.0];
 
@@ -228,7 +228,7 @@ class BaseShape {
     /**
      * Sets shape color.
      * @public
-     * @param {Array.<number,number,number,number>} color - RGBA color values array.
+     * @param {Array.<number>} color - RGBA color values array. (exactly 4 entries)
      */
     setColor(color) {
         this.color[0] = color[0];

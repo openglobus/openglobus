@@ -11,14 +11,14 @@ import { LonLat } from './LonLat.js';
 /**
  * Represents geographical coordinates extent.
  * @class
- * @param {og.LonLat} [sw] - South West extent corner coordiantes.
- * @param {og.LonLat} [ne] - North East extent corner coordiantes.
+ * @param {LonLat} [sw] - South West extent corner coordiantes.
+ * @param {LonLat} [ne] - North East extent corner coordiantes.
  */
 export class Extent {
 
     /**
-     * @param {og.LonLat} [sw] - South West extent corner coordiantes.
-     * @param {og.LonLat} [ne] - North East extent corner coordiantes.
+     * @param {LonLat} [sw] - South West extent corner coordiantes.
+     * @param {LonLat} [ne] - North East extent corner coordiantes.
      */
     constructor(sw, ne) {
         /**
@@ -62,8 +62,8 @@ export class Extent {
     /**
      * Creates bound extent instance by coordinate array.
      * @static
-     * @param {[og.LonLat]} arr - Coordinate array.
-     * @return {og.Extent} Extent object.
+     * @param {Array.<LonLat>} arr - Coordinate array.
+     * @return {Extent} Extent object.
      */
     static createByCoordinates(arr) {
         let lonmin = math.MAX, lonmax = math.MIN,
@@ -81,7 +81,7 @@ export class Extent {
     /**
      * Creates bound extent instance by coordinate array.
      * @static
-     * @param {[[number,number]]} arr - Coordinate array.
+     * @param {Array.<Array<number>>} arr - Coordinate array. (exactly 2 entries)
      * @return {og.Extent} Extent object.
      */
     static createByCoordinatesArr(arr) {
@@ -126,7 +126,7 @@ export class Extent {
     /**
      * Sets current bounding extent object by coordinate array.
      * @public
-     * @param {[og.LonLat]} arr - Coordinate array.
+     * @param {Array.<LonLat>} arr - Coordinate array.
      * @return {og.Extent} Current extent.
      */
     setByCoordinates(arr) {
@@ -291,7 +291,7 @@ export class Extent {
      * Gets cartesian bounding bounds of the current ellipsoid.
      * @public
      * @param {og.Ellipsoid} ellipsoid - Ellipsoid.
-     * @return {[number,number,number,number,number,number]} Cartesian 3d coordinate array.
+     * @return {Array.<number>} Cartesian 3d coordinate array. (exactly 6 entries)
      */
     getCartesianBounds(ellipsoid) {
         let xmin = math.MAX, xmax = math.MIN, ymin = math.MAX,

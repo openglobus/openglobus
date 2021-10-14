@@ -26,7 +26,7 @@ import { Vec3 } from '../math/Vec3.js';
  * @param {Object} [options] - Entity options:
  * @param {string} [options.name] - A human readable name to display to users. It does not have to be unique.
  * @param {og.Vec3|Array.<number>} [options.cartesian] - Spatial entities like billboard, label, sphere etc. cartesian position.
- * @param {og.LonLat} [options.lonlat] - Geodetic coordiantes for an entities like billboard, label, sphere etc.
+ * @param {LonLat} [options.lonlat] - Geodetic coordiantes for an entities like billboard, label, sphere etc.
  * @param {boolean} [options.aground] - True for entities that have to be placed on the relief.
  * @param {boolean} [options.visibility] - Entity visibility.
  * @param {*} [options.billboard] - Billboard options(see {@link og.Billboard}).
@@ -91,14 +91,14 @@ class Entity {
         /**
          * Geodetic entity coordiantes.
          * @protected
-         * @type {og.LonLat}
+         * @type {LonLat}
          */
         this._lonlat = utils.createLonLat(options.lonlat);
 
         /**
          * World Mercator entity coordinates.
          * @protected
-         * @type {og.LonLat}
+         * @type {LonLat}
          */
         this._lonlatMerc = null;
 
@@ -405,7 +405,7 @@ class Entity {
     /**
      * Gets entity geodetic coordinates.
      * @public
-     * @returns {og.LonLat} -
+     * @returns {LonLat} -
      */
     getLonLat() {
         return this._lonlat.clone();
@@ -414,7 +414,7 @@ class Entity {
     /**
      * Sets geodetic coordinates of the entity point object.
      * @public
-     * @param {og.LonLat} lonlat - WGS84 coordinates.
+     * @param {LonLat} lonlat - WGS84 coordinates.
      */
     setLonLat(lonlat) {
         var l = this._lonlat;

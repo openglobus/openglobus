@@ -49,7 +49,7 @@ export function decodeFloatFromRGBAArr(arr, use32) {
  * Separate 64 bit value to two 32 bit float values.
  * @function
  * @param {number} value - Double type value.
- * @returns {Array.<number,number>} Encoded array.
+ * @returns {Array.<number>} Encoded array. (exactly 2 entries)
  */
 export function doubleToTwoFloats(value) {
     var high, low;
@@ -69,7 +69,7 @@ export function doubleToTwoFloats(value) {
  * Separate 64 bit value to two 32 bit float values.
  * @function
  * @param {number} value - Double type value.
- * @returns {Array.<number,number>} Encoded array.
+ * @returns {Array.<number>} Encoded array. (exactly 2 entries)
  */
 export function doubleToTwoFloats2(value, highLowArr) {
     if (value >= 0.0) {
@@ -88,7 +88,7 @@ export function doubleToTwoFloats2(value, highLowArr) {
  * Separate 64 bit value to two 32 bit float values.
  * @function
  * @param {number} value - Double type value.
- * @returns {Array.<number,number>} Encoded array.
+ * @returns {Array.<number>} Encoded array. (exactly 2 entries)
  */
 export function doubleToTwoFloatsV2(value, highLowVec) {
     if (value >= 0.0) {

@@ -244,7 +244,7 @@ export class Quat {
         var rotAxis = source.cross(dest).normalize();
         return Quat.axisAngleToQuat(rotAxis, rotAngle);
     };
-
+  
     /**
      * Returns true if the components are zero.
      * @public
@@ -362,7 +362,7 @@ export class Quat {
     /**
      * Converts Quat values to array.
      * @public
-     * @returns {Array.<number,number,number,number>} -
+     * @returns {Array.<number>} - (exactly 4 entries)
      */
     toVec() {
         return [this.x, this.y, this.z, this.w];
@@ -920,8 +920,8 @@ export class Quat {
             return Math.asin(-2 * (x * z - w * y));
         }
     };
-
 }
+
 /**
  * Creates Quat instance.
  * @function
