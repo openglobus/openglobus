@@ -29,7 +29,7 @@ export class GeoImageCreator {
     /**
      * Creates geoImage corners coordinates grid buffer.
      * @public
-     * @param{Array.<og.LonLat>} c - GeoImage corners coordinates.
+     * @param{Array.<LonLat>} c - GeoImage corners coordinates.
      * @return{WebGLBuffer} Grid coordinates buffer.
      */
     createGridBuffer(c, toMerc) {

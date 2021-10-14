@@ -53,7 +53,7 @@ export class Vec4 {
     /**
      * Creates 4d vector from array.
      * @function
-     * @param {[number,number,number,number]}
+     * @param {Array.<number>} - (exactly 4 entries)
      * @returns {og.math.Vec4}
      */
     static fromVec(arr) {
@@ -104,7 +104,7 @@ export class Vec4 {
     /**
      * Converts vector to a number array.
      * @public
-     * @returns {[number,number,number,number]}
+     * @returns {Array.<number>} - (exactly 4 entries)
      * @deprecated
      */
     toVec() {
@@ -114,7 +114,7 @@ export class Vec4 {
     /**
      * Converts vector to a number array.
      * @public
-     * @returns {[number,number,number,number]}
+     * @returns {Array.<number>} - (exactly 4 entries)
      */
     toArray() {
         return [this.x, this.y, this.z, this.w];

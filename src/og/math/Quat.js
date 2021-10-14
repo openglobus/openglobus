@@ -365,7 +365,7 @@ Quat.prototype.scale = function (scale) {
 /**
  * Converts Quat values to array.
  * @public
- * @returns {Array.<number,number,number,number>} -
+ * @returns {Array.<number>} - (exactly 4 entries)
  */
 Quat.prototype.toVec = function () {
     return [this.x, this.y, this.z, this.w];

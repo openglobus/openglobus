@@ -15,7 +15,7 @@ const PICKING_COLOR_BUFFER = 2;
  * PointCloud object.
  * @class
  * @param {*} [options] - Point cloud options:
- * @param {Array.<Array.<number,number,number,number,number,number,number,*>>} [options.points] - Points cartesian coordinates array, 
+ * @param {Array.<Array.<number>>} [options.points] - Points cartesian coordinates array, 
  * where first three is cartesian coordinates, next fourth is a RGBA color, and last is an point properties.
  * @param {number} [options.pointSize] - Point screen size in pixels.
  * @param {number} [options.pickingDistance] - Point border picking size in screen pixels.
@@ -208,7 +208,7 @@ class PointCloud {
     /**
      * Adds points to render.
      * @public
-     * @param {[[number,number,number,number,number,number,number,*]]} points - Point cloud array.
+     * @param {Array.<Array<number>>} points - Point cloud array.
      * @example
      * var points = [[0, 0, 0, 255, 255, 255, 255, { 'name': 'White point' }], [100, 100, 0, 255, 0, 0, 255, { 'name': 'Red point' }]];
      */
