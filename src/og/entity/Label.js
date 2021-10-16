@@ -136,7 +136,7 @@ class Label extends BaseBillboard {
     setAlign(align) {
         this._align = STR2ALIGN[align.trim().toLowerCase()];
         this._handler && this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align);
-    };
+    }
 
     /**
      * Gets label text current alignment.
@@ -252,7 +252,7 @@ class Label extends BaseBillboard {
      */
     setOutlineColorHTML(color) {
         this.setOutlineColor4v(utils.htmlColorToRgba(color));
-    };
+    }
 
     /**
      * Gets outline color vector.
@@ -311,6 +311,6 @@ class Label extends BaseBillboard {
         !this._fontAtlas && (this._fontAtlas = fontAtlas);
         this.update();
     }
-};
+}
 
 export { Label, ALIGN };

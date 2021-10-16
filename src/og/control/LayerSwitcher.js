@@ -48,7 +48,7 @@ class LayerSwitcher extends Control {
                 this.addSwitcher("checkbox", layer, this.overlaysDiv, this._id);
             }
         }
-    };
+    }
 
     onLayerRemoved(layer) {
         layer._removeCallback();
@@ -153,6 +153,6 @@ class LayerSwitcher extends Control {
         };
         this.renderer.div.appendChild(button);
     }
-};
+}
 
 export { LayerSwitcher };

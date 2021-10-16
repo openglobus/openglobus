@@ -631,7 +631,7 @@ class EntityCollection {
             this._clearEntity(entity.childrenNodes[i]);
         }
     }
-};
+}
 
 const EVENT_NAMES = [
     /**

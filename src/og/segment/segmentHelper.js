@@ -4,7 +4,7 @@ import { N, W, S, E } from '../quadTree/quadTree.js';
 
 function NewIndexesTypedArray(arr) {
     return new Uint32Array(arr);
-};
+}
 
 function createCenterBodyIndexes(size) {
 
@@ -29,7 +29,7 @@ function createCenterBodyIndexes(size) {
     indexes.push(indexes[indexes.length - 1], size * size - size);
 
     return NewIndexesTypedArray(indexes);
-};
+}
 
 function createWestNeighborSkirt(size, deltaGr) {
     let indexes = [];
@@ -51,7 +51,7 @@ function createWestNeighborSkirt(size, deltaGr) {
     }
 
     return NewIndexesTypedArray(indexes);
-};
+}
 
 function createNorthNeighborSkirt(size, deltaGr) {
     let indexes = [];
@@ -72,7 +72,7 @@ function createNorthNeighborSkirt(size, deltaGr) {
     }
 
     return NewIndexesTypedArray(indexes);
-};
+}
 
 function createEastNeighborSkirt(size, deltaGr) {
     let indexes = [];
@@ -93,7 +93,7 @@ function createEastNeighborSkirt(size, deltaGr) {
     }
 
     return NewIndexesTypedArray(indexes);
-};
+}
 
 function createSouthNeighborSkirt(size, deltaGr) {
     let indexes = [];
@@ -116,7 +116,7 @@ function createSouthNeighborSkirt(size, deltaGr) {
     indexes.push(size * size - size);
 
     return NewIndexesTypedArray(indexes);
-};
+}
 
 function initIndexesBodySkirts(pow) {
     var table = [];
@@ -145,7 +145,7 @@ function initIndexesBodySkirts(pow) {
         }
     }
     return table;
-};
+}
 
 function initIndexBodiesTable(pow) {
     var table = [];
@@ -154,7 +154,7 @@ function initIndexBodiesTable(pow) {
         table[i] = createCenterBodyIndexes(d + 1);
     }
     return table;
-};
+}
 
 function createTextureCoords(size) {
     var texCoords = new Uint16Array((size + 1) * (size + 1) * 2);
@@ -166,7 +166,7 @@ function createTextureCoords(size) {
         }
     }
     return texCoords;
-};
+}
 
 class SegmentHelper {
     constructor(maxGridSize = 0) {
@@ -217,10 +217,10 @@ class SegmentHelper {
         }
         return table;
     }
-};
+}
 
 let instance = new SegmentHelper();
 
 export function getInstance() {
     return instance;
-};
+}

@@ -46,10 +46,10 @@ class SegmentBoundVisualization extends Control {
             this._boundingSphereCollection.add(si._sphereEntity);
         }
     }
-};
+}
 
 export function segmentBoundVisualization(options) {
     return new SegmentBoundVisualization(options);
-};
+}
 
 export { SegmentBoundVisualization };

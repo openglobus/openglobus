@@ -29,10 +29,10 @@ class ShowFps extends Control {
     _draw() {
         print2d("ogShowFpsControl", (1000.0 / this.renderer.handler.deltaTime).toFixed(1), this.renderer.handler.canvas.clientWidth - 60, 0);
     }
-};
+}
 
 export function showFps(options) {
     return new ShowFps(options);
-};
+}
 
 export { ShowFps };

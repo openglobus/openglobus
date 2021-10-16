@@ -10,7 +10,7 @@ class Node {
         this.prev = null;
         this.data = null;
     }
-};
+}
 
 class Stack {
     constructor(size = 256) {
@@ -34,7 +34,7 @@ class Stack {
     push(data) {
         this._current = this._current.next;
         this._current.data = data;
-    };
+    }
 
     pop(data) {
         this._current = this._current.prev;
@@ -45,6 +45,6 @@ class Stack {
         this._current = this._current.prev;
         return this._current.data;
     }
-};
+}
 
 export { Stack };

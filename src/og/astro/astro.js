@@ -48,4 +48,4 @@ export function TAItoTDB(tai) {
     tai += og.astro.TDT_TAI * jd.ONE_BY_SECONDS_PER_DAY;
     var g = 6.239996 + 0.0172019696544 * (tai - jd.J2000);
     return tai + 0.001658 * Math.sin(g + 1.671e-2 * Math.sin(g)) * jd.ONE_BY_SECONDS_PER_DAY;
-};
+}

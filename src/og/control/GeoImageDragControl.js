@@ -71,6 +71,6 @@ class GeoImageDragControl extends Control {
             }, this);
         }
     }
-};
+}
 
 export { GeoImageDragControl };

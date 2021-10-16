@@ -346,6 +346,6 @@ class Program {
         gl.deleteShader(fs);
         gl.deleteShader(vs);
     }
-};
+}
 
 export { Program };

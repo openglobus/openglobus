@@ -15,7 +15,7 @@ function dec2deg(base) {
     return (numToFixedString(degrees, 3) + "\u00B0" +
         numToFixedString(minutes, 2) + "\u0027" +
         numToFixedString(seconds.toFixed(2), 2) + "\u0022");
-};
+}
 
 function numToFixedString(num, fixed) {
     var dl = num.toString().split('.')[0].length;
@@ -24,20 +24,20 @@ function numToFixedString(num, fixed) {
         white += '&nbsp;&nbsp;';
     }
     return white + num.toString();
-};
+}
 
 function toDecimal(ll) {
     return ll.lat.toFixed(5) + ", " + ll.lon.toFixed(5);
-};
+}
 
 function toDegrees(ll) {
     return dec2deg(ll.lat) + ", " + dec2deg(ll.lon);
-};
+}
 
 function toMercator(ll) {
     var m = ll.forwardMercator();
     return m.lat.toFixed(5) + ", " + m.lon.toFixed(5);
-};
+}
 
 const DisplayTypesConverters = [
     toDecimal,
@@ -121,7 +121,7 @@ class EarthCoordinates extends Control {
             }
             that._converter = DisplayTypesConverters[that._displayType];
             that._showPosition();
-        };
+        }
 
         this._display.onclick = function (e) {
             that._displayType += 1;
@@ -192,10 +192,10 @@ class EarthCoordinates extends Control {
             this._showPosition();
         }
     }
-};
+}
 
 export function earthCoordinates(options) {
     return new EarthCoordinates(options);
-};
+}
 
 export { EarthCoordinates };

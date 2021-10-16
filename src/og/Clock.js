@@ -189,6 +189,6 @@ class Clock {
     equal(clock) {
         return this._id === clock._id;
     }
-};
+}
 
 export { Clock };

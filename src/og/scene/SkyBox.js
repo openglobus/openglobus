@@ -103,6 +103,6 @@ class SkyBox extends RenderNode {
 
         this.vertexPositionBuffer = this.renderer.handler.createArrayBuffer(vertices, 3, vertices.length / 3);
     }
-};
+}
 
 export { SkyBox };

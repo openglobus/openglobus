@@ -96,7 +96,7 @@ class Geoid {
                     }
                     if ((j > start) && (rawfile[j - 1] === 13)) j--;
                     return String.fromCharCode.apply(null, rawfile.slice(start, j));
-                };
+                }
 
                 var m, s;
                 for (; ;) {
@@ -237,6 +237,6 @@ class Geoid {
 
         return model.offset + model.scale * h;
     }
-};
+}
 
 export { Geoid };

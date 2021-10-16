@@ -454,4 +454,4 @@ export function label_screen() {
                 gl_FragColor = vec4(v_rgba.rgb, opacity * v_rgba.a);
             }`
     });
-};
+}
