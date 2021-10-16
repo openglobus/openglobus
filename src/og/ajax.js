@@ -104,7 +104,7 @@ function createXMLHttp() {
             }
         }
     }
-};
+}
 
 /**
  * Send an ajax request.

@@ -29,7 +29,7 @@ export class Ray {
          * @type {og.Vec3}
          */
         this.direction = direction || new Vec3();
-    };
+    }
 
     /** @const */
     static get OUTSIDE() { return 0; }
@@ -52,7 +52,7 @@ export class Ray {
         this.origin = origin;
         this.direction = direction;
         return this;
-    };
+    }
 
     /**
      * Computes the point along the ray on the distance.
@@ -62,7 +62,7 @@ export class Ray {
      */
     getPoint(distance) {
         return Vec3.add(this.origin, this.direction.scaleTo(distance));
-    };
+    }
 
     /**
      * Returns ray hit a triange result.
@@ -125,7 +125,7 @@ export class Ray {
         }
 
         return Ray.INSIDE;
-    };
+    }
 
     /**
      * Gets a ray hit a plane result. If the ray cross the plane returns 1 - og.Ray.INSIDE otherwise returns 0 - og.Ray.OUTSIDE.
@@ -166,7 +166,7 @@ export class Ray {
         res.z = this.origin.z + d.z;
 
         return Ray.INSIDE;
-    };
+    }
 
     /**
      * Returns a ray hit sphere coordiante. If there isn't hit returns null.
@@ -211,13 +211,13 @@ export class Ray {
                 return intersection;
             }
         }
-    };
+    }
 
     hitBox(box) {
         //
         // TODO
         //
-    };
+    }
 
 }
 
@@ -230,5 +230,5 @@ export class Ray {
  */
 export function ray(origin, direction) {
     return new Ray(origin, direction);
-};
+}
 

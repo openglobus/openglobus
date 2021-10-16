@@ -104,7 +104,7 @@ class Popup {
         this.setTitle(this._title);
         this.setLonLat(this._lonLat);
         this.setVisibility(this._visibility);
-        this.el.querySelector(".og-popup-close").addEventListener("click", (e) => {
+        this.el.querySelector(".og-popup-close").addEventListener("click", () => {
             this.hide();
         });
         return this;

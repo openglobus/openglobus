@@ -39,4 +39,4 @@ export function pointCloud() {
                 gl_FragColor = color;
             }`
     });
-};
+}

@@ -146,6 +146,6 @@ class GeoTexture2d extends BaseGeoImage {
 
         this._creationProceeding = false;
     }
-};
+}
 
 export { GeoTexture2d };

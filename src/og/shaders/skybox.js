@@ -34,4 +34,4 @@ export function skybox() {
                 gl_FragColor = textureCube(uSampler, vTextureCoord);
             }`
     });
-};
+}

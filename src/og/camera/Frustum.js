@@ -315,6 +315,6 @@ class Frustum {
 
         return result;
     }
-};
+}
 
 export { Frustum };

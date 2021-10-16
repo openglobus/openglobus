@@ -32,7 +32,7 @@ function _entitiesConstructor(entities) {
         }
     }
     return res;
-};
+}
 
 /**
  * Vector layer represents alternative entities store. Used for geospatial data rendering like
@@ -933,7 +933,7 @@ class Vector extends Layer {
         this._geometryHandler.update();
         this.events.dispatch(this.events.draw, this);
     }
-};
+}
 
 const EVENT_NAMES = [
     /**

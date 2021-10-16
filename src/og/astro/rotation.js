@@ -28,4 +28,4 @@ export function getRotationMatrix(rightAscension, declination) {
     res._m[8] = zAxis.z;
 
     return result;
-};
+}

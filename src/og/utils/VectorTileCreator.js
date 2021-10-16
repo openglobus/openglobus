@@ -24,7 +24,7 @@ export class VectorTileCreator {
         this._currentFrame = 0;
         this._queue = [];
         this._initialize();
-    };
+    }
 
     _initialize() {
 
@@ -189,7 +189,7 @@ export class VectorTileCreator {
             useDepth: false
         });
         this._framebuffer.init();
-    };
+    }
 
     frame() {
         if (this._planet.layerLock.isFree() && this._queue.length) {
@@ -404,13 +404,13 @@ export class VectorTileCreator {
 
             f.deactivate();
         }
-    };
+    }
 
     add(material) {
         this._queue.push(material);
-    };
+    }
 
     remove(material) {
         //...
-    };
+    }
 }

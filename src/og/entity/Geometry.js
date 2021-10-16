@@ -311,6 +311,6 @@ class Geometry {
     getType() {
         return this._type;
     }
-};
+}
 
 export { Geometry, GeometryType };

@@ -76,7 +76,7 @@ export function shape_wl() {
                 gl_FragColor = vec4(lightWeighting, uColor.a) * cc * uColor;
             }`
     });
-};
+}
 
 export function shape_nl() {
     return new Program("shape_nl", {
@@ -110,7 +110,7 @@ export function shape_nl() {
                 gl_FragColor = uColor*texture2D( uSampler, vTextureCoord.st );
             }`
     });
-};
+}
 
 export function shape_picking() {
     return new Program("shape_picking", {
@@ -138,4 +138,4 @@ export function shape_picking() {
                 gl_FragColor = uColor;
             }`
     });
-};
+}
