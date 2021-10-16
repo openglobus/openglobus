@@ -808,7 +808,7 @@ export class Planet extends RenderNode {
     _preRender() {
         this._quadTree.createChildrenNodes();
         this._quadTree.segment.createPlainSegment();
-        this._quadTree.renderNode();
+        this._quadTree.renderNode(true);
         this._normalMapCreator.drawSingle(this._quadTree.segment);
 
         for (var i = 0; i < this._quadTree.nodes.length; i++) {
@@ -819,13 +819,25 @@ export class Planet extends RenderNode {
 
         this._quadTreeNorth.createChildrenNodes();
         this._quadTreeNorth.segment.createPlainSegment();
-        this._quadTreeNorth.renderNode();
+        this._quadTreeNorth.renderNode(true);
         this._normalMapCreator.drawSingle(this._quadTreeNorth.segment);
+
+        for (var i = 0; i < this._quadTreeNorth.nodes.length; i++) {
+            this._quadTreeNorth.nodes[i].segment.createPlainSegment();
+            this._quadTreeNorth.nodes[i].renderNode(true);
+            this._normalMapCreator.drawSingle(this._quadTreeNorth.nodes[i].segment);
+        }
 
         this._quadTreeSouth.createChildrenNodes();
         this._quadTreeSouth.segment.createPlainSegment();
-        this._quadTreeSouth.renderNode();
+        this._quadTreeSouth.renderNode(true);
         this._normalMapCreator.drawSingle(this._quadTreeSouth.segment);
+
+        for (var i = 0; i < this._quadTreeSouth.nodes.length; i++) {
+            this._quadTreeSouth.nodes[i].segment.createPlainSegment();
+            this._quadTreeSouth.nodes[i].renderNode(true);
+            this._normalMapCreator.drawSingle(this._quadTreeSouth.nodes[i].segment);
+        }
     }
 
     /**
@@ -1098,9 +1110,10 @@ export class Planet extends RenderNode {
         gl.disable(gl.POLYGON_OFFSET_FILL);
 
         if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
-            if (!this._renderCompletedActivated || this.camera._moved) {
+            if (this._skipPreRender /* && (!this._renderCompletedActivated || cam._moved)*/) {
                 this._collectRenderNodes();
             }
+            this._skipPreRender = true;
 
             // Here is the planet node dispatches a draw event before
             // rendering begins and we have got render nodes.
@@ -1185,8 +1198,6 @@ export class Planet extends RenderNode {
             shu = sh.uniforms;
             gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
             gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
-
-            //gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, cam.getProjectionViewMatrix());
         }
 
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
@@ -1231,7 +1242,6 @@ export class Planet extends RenderNode {
                 rn[i].segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
-        //gl.disable(gl.POLYGON_OFFSET_FILL);
 
         gl.disable(gl.BLEND);
     }

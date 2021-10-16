@@ -1338,6 +1338,13 @@ Segment.prototype._createPlainVertices = function () {
     this.normalMapVerticesHigh = new Float32Array(gsgs * 3);
     this.normalMapVerticesLow = new Float32Array(gsgs * 3);
 
+    let xmin = 549755748352.0,
+        xmax = -549755748352.0,
+        ymin = 549755748352.0,
+        ymax = -549755748352.0,
+        zmin = 549755748352.0,
+        zmax = -549755748352.0;
+
     var verts = this.plainVertices,
         vertsHigh = this.plainVerticesHigh,
         vertsLow = this.plainVerticesLow,
@@ -1394,8 +1401,21 @@ Segment.prototype._createPlainVertices = function () {
             vertsHigh[ind] = _tempHigh.z;
             vertsLow[ind] = _tempLow.z;
             norms[ind++] = nzl;
+
+            if (v.x < xmin) xmin = v.x;
+            if (v.x > xmax) xmax = v.x;
+            if (v.y < ymin) ymin = v.y;
+            if (v.y > ymax) ymax = v.y;
+            if (v.z < zmin) zmin = v.z;
+            if (v.z > zmax) zmax = v.z;
         }
     }
+
+    let x = (xmax - xmin) * 0.5,
+        y = (ymax - ymin) * 0.5,
+        z = (zmax - zmin) * 0.5;
+
+    this._plainRadius = Math.sqrt(x * x + y * y + z * z);
 
     this.terrainVertices = verts;
     this.terrainVerticesHigh = vertsHigh;
