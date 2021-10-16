@@ -12,7 +12,7 @@ import { Box } from "../bv/Box.js";
 import { Vec3 } from "../math/Vec3.js";
 import * as segmentHelper from "../segment/segmentHelper.js";
 
-export const MAX_NORMAL_ZOOM = 7;
+export const MAX_NORMAL_ZOOM = 6;
 
 var _tempHigh = new Vec3();
 var _tempLow = new Vec3();

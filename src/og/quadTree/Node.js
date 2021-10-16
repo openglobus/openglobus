@@ -270,7 +270,7 @@ Node.prototype.renderTree = function (cam, maxZoom, terrainReadySegment, stopLoa
         }
     }
 
-    if (this.inFrustum || this._cameraInside) {
+    if (this.inFrustum || this._cameraInside || seg.tileZoom < 3) {
         let h = cam._lonLat.height;
 
         let altVis =
