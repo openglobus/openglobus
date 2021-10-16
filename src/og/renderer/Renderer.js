@@ -17,6 +17,9 @@ import * as arial from "../arial.js";
 import { depth } from "../shaders/depth.js";
 import { ARIAL_FONT_B64 } from "../res/images.js";
 
+let __pickingCallbackCounter__ = 0;
+let __depthCallbackCounter__ = 0;
+
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
  * @class
@@ -208,10 +211,6 @@ const Renderer = function (handler, params) {
     this._currentOutput = "screen";
 };
 
-Renderer.__pickingCallbackCounter__ = 0;
-
-Renderer.__depthCallbackCounter__ = 0;
-
 /**
  * Sets renderer events activity.
  * @param {Boolean} activity - Events activity.
@@ -226,7 +225,7 @@ Renderer.prototype.setScreenScale = function (scale) {
 };
 
 Renderer.prototype.addDepthCallback = function (sender, callback) {
-    var id = Renderer.__depthCallbackCounter__++;
+    var id = __depthCallbackCounter__++;
     this._depthCallbacks.push({
         id: id,
         callback: callback,
@@ -251,7 +250,7 @@ Renderer.prototype.removeDepthCallback = function (id) {
  * @returns {Number} Handler id
  */
 Renderer.prototype.addPickingCallback = function (sender, callback) {
-    var id = Renderer.__pickingCallbackCounter__++;
+    var id = __pickingCallbackCounter__++;
     this._pickingCallbacks.push({
         id: id,
         callback: callback,
