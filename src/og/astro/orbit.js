@@ -32,14 +32,14 @@ export function getEccentricAnomaly(M, ecc) {
         let E = log(2 * M / ecc + 1.85);
         return math.solve_iteration_fixed(solveKeplerLaguerreConwayHyp(ecc, M), E, 30);
     }
-};
+}
 
 // Standard iteration for solving Kepler's Equation
 function solveKeplerFunc1(ecc, M) {
     return function (x) {
         return M + ecc * Math.sin(x);
     };
-};
+}
 
 // Faster converging iteration for Kepler's Equation; more efficient
 // than above for orbits with eccentricities greater than 0.3.  This
@@ -48,7 +48,7 @@ function solveKeplerFunc2(ecc, M) {
     return function (x) {
         return x + (M + ecc * Math.sin(x) - x) / (1 - ecc * Math.cos(x));
     };
-};
+}
 
 function solveKeplerLaguerreConway(ecc, M) {
     return function (x) {
@@ -60,7 +60,7 @@ function solveKeplerLaguerreConway(ecc, M) {
         x += -5 * f / (f1 + Math.sign(f1) * Math.sqrt(abs(16 * f1 * f1 - 20 * f * f2)));
         return x;
     };
-};
+}
 
 function solveKeplerLaguerreConwayHyp(ecc, M) {
     return function (x) {
@@ -72,7 +72,7 @@ function solveKeplerLaguerreConwayHyp(ecc, M) {
         x += -5 * f / (f1 + Math.sign(f1) * Math.sqrt(Math.abs(16 * f1 * f1 - 20 * f * f2)));
         return x;
     };
-};
+}
 
 export function getEllipticalEccentricAnomaly(meanAnomaly, eccentricity) {
     var tol = 0.00000001745;
@@ -86,7 +86,7 @@ export function getEllipticalEccentricAnomaly(meanAnomaly, eccentricity) {
         iterations--;
     }
     return e;
-};
+}
 
 export function getTrueAnomaly(eccentricAnomaly, eccentricity) {
     var revs = Math.floor(eccentricAnomaly / math.TWO_PI);
@@ -98,7 +98,7 @@ export function getTrueAnomaly(eccentricAnomaly, eccentricity) {
         trueAnomaly -= math.TWO_PI;
     }
     return trueAnomaly + revs * math.TWO_PI;
-};
+}
 
 export function getPerifocalToCartesianMatrix(argumentOfPeriapsis, inclination, rightAscension) {
     var res = new Mat3();
@@ -118,4 +118,4 @@ export function getPerifocalToCartesianMatrix(argumentOfPeriapsis, inclination, 
     res._m[7] = -cosraan * sini;
     res._m[8] = cosi;
     return res;
-};
+}

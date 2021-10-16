@@ -342,6 +342,6 @@ class RenderNode extends BaseNode {
     _entityCollectionPickingCallback() {
         this.drawPickingEntityCollections(this.entityCollections);
     }
-};
+}
 
 export { RenderNode };

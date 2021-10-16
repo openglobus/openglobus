@@ -86,4 +86,4 @@ export function toneMapping() {
                 fragColor = vec4(mapped, 1.0);
             }`
     });
-};
+}

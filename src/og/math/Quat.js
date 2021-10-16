@@ -53,7 +53,7 @@ export class Quat {
          * @default 0.0
          */
         this.w = w || 0.0;
-    };
+    }
 
     /**
      * Identity Quat.
@@ -73,7 +73,7 @@ export class Quat {
     static xRotation(a) {
         a *= 0.5;
         return new Quat(Math.sin(a), 0.0, 0.0, Math.cos(a));
-    };
+    }
 
     /**
      * Returns a Quat represents rotation around Y axis.
@@ -84,7 +84,7 @@ export class Quat {
     static yRotation(a) {
         a *= 0.5;
         return new Quat(0.0, Math.sin(a), 0.0, Math.cos(a));
-    };
+    }
 
     /**
      * Returns a Quat represents rotation around Z axis.
@@ -95,7 +95,7 @@ export class Quat {
     static zRotation(a) {
         a *= 0.5;
         return new Quat(0.0, 0.0, Math.sin(a), Math.cos(a));
-    };
+    }
 
     /**
      * Computes a Quat representing a rotation around an axis.
@@ -114,7 +114,7 @@ export class Quat {
             v.y * sin_a,
             v.z * sin_a,
             Math.cos(half_angle));
-    };
+    }
 
     /**
      * Computes a rotation from the given heading and up vector.
@@ -168,7 +168,7 @@ export class Quat {
             0.25 / fd,
             (u.x - s.y) * fd
         );
-    };
+    }
 
     /**
      * Computes a Quat from from source point heading to the destination point.
@@ -189,7 +189,7 @@ export class Quat {
         var rotAngle = Math.acos(dot);
         var rotAxis = Vec3.FORWARD.cross(forwardVector).normalize();
         return Quat.axisAngleToQuat(rotAxis, rotAngle);
-    };
+    }
 
     /**
      * Compute rotation between two vectors.
@@ -202,7 +202,7 @@ export class Quat {
         var w = u.cross(v);
         var q = new Quat(w.x, w.y, w.z, 1.0 + u.dot(v));
         return q.normalize();
-    };
+    }
 
     /**
      * Compute rotation between two vectors.
@@ -216,7 +216,7 @@ export class Quat {
         var w = u.cross(v);
         res.set(w.x, w.y, w.z, 1.0 + u.dot(v));
         return res.normalize();
-    };
+    }
 
     /**
      * Compute rotation between two vectors with around vector up 
@@ -243,7 +243,7 @@ export class Quat {
         var rotAngle = Math.acos(dot);
         var rotAxis = source.cross(dest).normalize();
         return Quat.axisAngleToQuat(rotAxis, rotAngle);
-    };
+    }
   
     /**
      * Returns true if the components are zero.
@@ -253,7 +253,7 @@ export class Quat {
      */
     isZero() {
         return this.x === 0.0 && this.y === 0.0 && this.z === 0.0 && this.w === 0.0;
-    };
+    }
 
     /**
      * Clear Quat. Sets zeroes.
@@ -263,7 +263,7 @@ export class Quat {
     clear() {
         this.x = this.y = this.z = this.w = 0;
         return this;
-    };
+    }
 
     /**
      * Sets Quat values.
@@ -280,7 +280,7 @@ export class Quat {
         this.z = z;
         this.w = w;
         return this;
-    };
+    }
 
     /**
      * Copy Quat values.
@@ -294,7 +294,7 @@ export class Quat {
         this.z = q.z;
         this.w = q.w;
         return this;
-    };
+    }
 
     /**
      * Set current Quat instance to identity Quat.
@@ -307,7 +307,7 @@ export class Quat {
         this.z = 0.0;
         this.w = 1.0;
         return this;
-    };
+    }
 
     /**
      * Duplicates a Quat instance.
@@ -316,7 +316,7 @@ export class Quat {
      */
     clone() {
         return new Quat(this.x, this.y, this.z, this.w);
-    };
+    }
 
     /**
      * Computes the componentwise sum of two Quats.
@@ -326,7 +326,7 @@ export class Quat {
      */
     add(q) {
         return new Quat(this.x + q.x, this.y + q.y, this.z + q.z, this.w + q.w);
-    };
+    }
 
     /**
      * Computes the componentwise difference of two Quats.
@@ -336,7 +336,7 @@ export class Quat {
      */
     sub(q) {
         return new Quat(this.x - q.x, this.y - q.y, this.z - q.z, this.w - q.w);
-    };
+    }
 
     /**
      * Multiplies the provided Quat componentwise by the provided scalar.
@@ -346,7 +346,7 @@ export class Quat {
      */
     scaleTo(scale) {
         return new Quat(this.x * scale, this.y * scale, this.z * scale, this.w * scale);
-    };
+    }
 
     /**
      * Multiplies the provided Quat componentwise.
@@ -357,7 +357,7 @@ export class Quat {
     scale(scale) {
         this.x *= scale; this.y *= scale; this.z *= scale; this.w *= scale;
         return this;
-    };
+    }
 
     /**
      * Converts Quat values to array.
@@ -366,7 +366,7 @@ export class Quat {
      */
     toVec() {
         return [this.x, this.y, this.z, this.w];
-    };
+    }
 
     /**
      * Sets current quaternion by spherical coordinates.
@@ -388,7 +388,7 @@ export class Quat {
         this.z = sin_a * sin_lat * cos_long;
         this.w = cos_a;
         return this;
-    };
+    }
 
     /**
      * Sets rotation with the given heading and up vectors.
@@ -432,7 +432,7 @@ export class Quat {
         }
 
         return this;
-    };
+    }
 
     /**
      * Gets spherical coordinates.
@@ -461,7 +461,7 @@ export class Quat {
         }
 
         return { lat: lat, lon: lon, alpha: Math.acos(cos_a) };
-    };
+    }
 
     /**
      * Sets current Quat representing a rotation around an axis.
@@ -476,7 +476,7 @@ export class Quat {
         var sin_a = Math.sin(half_angle);
         this.set(v.x * sin_a, v.y * sin_a, v.z * sin_a, Math.cos(half_angle));
         return this;
-    };
+    }
 
     /**
      * Returns axis and angle of the current Quat.
@@ -499,7 +499,7 @@ export class Quat {
             angle = 0;
         }
         return { axis: axis, angle: angle };
-    };
+    }
 
     /**
      * Sets current Quat by Euler's angles.
@@ -531,7 +531,7 @@ export class Quat {
         this.z = cr * cp * sy - sr * sp * cy;
 
         return this.normalize();
-    };
+    }
 
     /**
      * Returns Euler's angles of the current Quat.
@@ -558,7 +558,7 @@ export class Quat {
         let yaw = Math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (sqy + z * z));
 
         return { roll, pitch, yaw };
-    };
+    }
 
     /**
      * Computes a Quat from the provided 4x4 matrix instance.
@@ -605,7 +605,7 @@ export class Quat {
             this.w = q[3];
         }
         return this;
-    };
+    }
 
     /**
      * Converts current Quat to the rotation 4x4 matrix.
@@ -627,7 +627,7 @@ export class Quat {
         var zz = this.z * zs;
         var m = out || new Mat4();
         return m.set([1 - (yy + zz), xy - wz, xz + wy, 0, xy + wz, 1 - (xx + zz), yz - wx, 0, xz - wy, yz + wx, 1 - (xx + yy), 0, 0, 0, 0, 1]);
-    };
+    }
 
     /**
      * Converts current Quat to the rotation 3x3 matrix.
@@ -663,7 +663,7 @@ export class Quat {
         mx[6] = c - h; mx[7] = d + f; mx[8] = 1 - (j + l);
 
         return m;
-    };
+    }
 
     /**
      * Returns quatrenion and vector production.
@@ -695,7 +695,7 @@ export class Quat {
             i * a + d * -b + j * -h - k * -f,
             j * a + d * -f + k * -b - i * -h,
             k * a + d * -h + i * -f - j * -b);
-    };
+    }
 
     /**
      * Computes the product of two Quats.
@@ -711,7 +711,7 @@ export class Quat {
             e * b + a * h + g * f - d * i,
             g * b + a * i + d * h - e * f,
             a * b - d * f - e * h - g * i);
-    };
+    }
 
     /**
      * Computes the product of two Quats.
@@ -727,7 +727,7 @@ export class Quat {
         this.z = g * b + a * i + d * h - e * f;
         this.w = a * b - d * f - e * h - g * i;
         return this;
-    };
+    }
 
     /**
      * Gets the conjugate of the Quat.
@@ -736,7 +736,7 @@ export class Quat {
      */
     conjugate() {
         return new Quat(-this.x, -this.y, -this.z, this.w);
-    };
+    }
 
     /** 
      * Computes the inverse of the Quat.
@@ -746,7 +746,7 @@ export class Quat {
     inverse() {
         var n = 1 / this.magnitude2();
         return new Quat(-this.x * n, -this.y * n, -this.z * n, this.w * n);
-    };
+    }
 
     /**
      * Computes a magnitude of the Quat.
@@ -756,7 +756,7 @@ export class Quat {
     magnitude() {
         var b = this.x, c = this.y, d = this.z, a = this.w;
         return Math.sqrt(b * b + c * c + d * d + a * a);
-    };
+    }
 
     /**
      * Computes a squared magnitude of the Quat.
@@ -766,7 +766,7 @@ export class Quat {
     magnitude2() {
         var b = this.x, c = this.y, d = this.z, a = this.w;
         return b * b + c * c + d * d + a * a;
-    };
+    }
 
     /**
      * Computes the dot (scalar) product of two Quats.
@@ -776,7 +776,7 @@ export class Quat {
      */
     dot(q) {
         return this.x * q.x + this.y * q.y + this.z * q.z;
-    };
+    }
 
     /**
      * Current Quat normalization.
@@ -799,7 +799,7 @@ export class Quat {
         this.z = e * f;
         this.w = g * f;
         return this;
-    };
+    }
 
     /**
      * Compares two Quats.
@@ -813,7 +813,7 @@ export class Quat {
             return true;
         }
         return false;
-    };
+    }
 
     /**
      * Performs a spherical linear interpolation between two Quats.
@@ -855,7 +855,7 @@ export class Quat {
             scale0 * az + scale1 * bz,
             scale0 * aw + scale1 * bw
         );
-    };
+    }
 
     /**
      * Returns a roll angle in radians.
@@ -876,7 +876,7 @@ export class Quat {
         } else {
             return Math.atan2(2 * (x * y + w * z), w * w + x * x - y * y - z * z);
         }
-    };
+    }
 
     /**
      * Returns a pitch angle in radians.
@@ -897,7 +897,7 @@ export class Quat {
         } else {
             return Math.atan2(2 * (y * z + w * x), w * w - x * x - y * y + z * z);
         }
-    };
+    }
 
     /**
      * Returns a yaw angle in radians.
@@ -919,7 +919,7 @@ export class Quat {
         } else {
             return Math.asin(-2 * (x * z - w * y));
         }
-    };
+    }
 }
 
 /**
@@ -933,5 +933,5 @@ export class Quat {
  */
 export function quat(x, y, z, w) {
     return new Quat(x, y, z, w);
-};
+}
 

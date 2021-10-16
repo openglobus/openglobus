@@ -117,13 +117,13 @@ class SimpleNavigation extends Control {
             cam.update();
         }
     }
-};
+}
 
 /**
  * Creates simple navigation control instance.
  */
 export function simpleNavigation(options) {
     return new SimpleNavigation(options);
-};
+}
 
 export { SimpleNavigation };

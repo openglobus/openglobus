@@ -343,8 +343,8 @@ class XYZ extends Layer {
         if (e.northEast.lat <= mercator.MIN_LAT) {
             e.northEast.lat = mercator.MIN_LAT;
         }
-    };
-};
+    }
+}
 
 const EVENT_NAMES = [
     /**

@@ -107,4 +107,4 @@ export function getSunPosition(jDate) {
     // Convert to RA and Decl
     // var RA = Math.atan2(yequat, xequat) * math.DEGREES;
     // var Decl = Math.atan2(zequat, Math.sqrt(xequat * xequat + yequat * yequat)) * math.DEGREES;
-};
+}

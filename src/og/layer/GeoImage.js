@@ -218,6 +218,6 @@ class GeoImage extends BaseGeoImage {
 
         this._creationProceeding = false;
     }
-};
+}
 
 export { GeoImage };

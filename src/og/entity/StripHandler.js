@@ -153,6 +153,6 @@ class StripHandler {
         this._strips.length = 0;
         this._strips = [];
     }
-};
+}
 
 export { StripHandler };

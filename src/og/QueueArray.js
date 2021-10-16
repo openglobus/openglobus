@@ -66,6 +66,6 @@ class QueueArray {
             callback(this._array[i]);
         }
     }
-};
+}
 
 export { QueueArray };

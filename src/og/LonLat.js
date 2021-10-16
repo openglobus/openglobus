@@ -48,11 +48,11 @@ export class LonLat {
          * @type {number}
          */
         this.height = height || 0;
-    };
+    }
 
     isZero() {
         return this.lon === 0.0 && this.lat === 0.0 && this.height === 0.0;
-    };
+    }
 
     /**
      * Creates coordinates array.
@@ -67,7 +67,7 @@ export class LonLat {
             res[i] = new LonLat(ai[0], ai[1], ai[2]);
         }
         return res;
-    };
+    }
 
     /**
      * Creates an object by coordinate array.
@@ -77,7 +77,7 @@ export class LonLat {
      */
     static createFromArray(arr) {
         return new LonLat(arr[0], arr[1], arr[2]);
-    };
+    }
 
     /**
      * Converts degrees to mercator coordinates.
@@ -91,7 +91,7 @@ export class LonLat {
         return new LonLat(lon * mercator.POLE_BY_180,
             Math.log(Math.tan((90.0 + lat) * PI_BY_360)) * mercator.POLE_BY_PI,
             height);
-    };
+    }
 
     /**
      * Converts mercator to degrees coordinates.
@@ -105,7 +105,7 @@ export class LonLat {
         return new LonLat(x * mercator.INV_POLE_BY_180,
             INV_PI_BY_360 * Math.atan(Math.exp(y * mercator.PI_BY_POLE)) - INV_PI_BY_180_HALF_PI,
             height);
-    };
+    }
 
     /**
      * Sets coordinates.
@@ -120,7 +120,7 @@ export class LonLat {
         this.lat = lat || 0;
         this.height = height || 0;
         return this;
-    };
+    }
 
     /**
      * Copy coordinates.
@@ -133,7 +133,7 @@ export class LonLat {
         this.lat = lonLat.lat;
         this.height = lonLat.height;
         return this;
-    };
+    }
 
     /**
      * Clone the coordiante.
@@ -142,7 +142,7 @@ export class LonLat {
      */
     clone() {
         return new LonLat(this.lon, this.lat, this.height);
-    };
+    }
 
     /**
      * Converts to mercator coordinates.
@@ -151,7 +151,7 @@ export class LonLat {
      */
     forwardMercator() {
         return LonLat.forwardMercator(this.lon, this.lat, this.height);
-    };
+    }
 
     forwardMercatorEPS01() {
         var lat = this.lat;
@@ -163,7 +163,7 @@ export class LonLat {
         return new LonLat(
             this.lon * mercator.POLE_BY_180,
             Math.log(Math.tan((90.0 + lat) * PI_BY_360)) * mercator.POLE_BY_PI);
-    };
+    }
 
     /**
      * Converts from mercator coordinates.
@@ -172,7 +172,7 @@ export class LonLat {
      */
     inverseMercator() {
         return LonLat.inverseMercator(this.lon, this.lat, this.height);
-    };
+    }
 
     /**
      * Compares coordinates.
@@ -186,5 +186,5 @@ export class LonLat {
         } else {
             return this.lon === b.lon && this.lat === b.lat;
         }
-    };
+    }
 }

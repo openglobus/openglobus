@@ -276,6 +276,6 @@ class BaseGeoImage extends Layer {
     get getFrameHeight() {
         return this._frameHeight;
     }
-};
+}
 
 export { BaseGeoImage };

@@ -181,6 +181,6 @@ class Control {
     isEqual(control) {
         return control._id === this._id;
     }
-};
+}
 
 export { Control };

@@ -7,11 +7,11 @@ export class Line3 {
     constructor(p0, p1) {
         this.p0 = p0 || new Vec3();
         this.p1 = p1 || new Vec3();
-    };
+    }
 
     getMagnitude() {
         return this.p0.distance(this.p1);
-    };
+    }
 
     getSphereIntersection(sphere) {
         var p0 = this.p0,
@@ -62,7 +62,7 @@ export class Line3 {
         }
 
         return [solution2, solution1];
-    };
+    }
 
     intersects(line, res, res2) {
 
@@ -109,7 +109,7 @@ export class Line3 {
         }
 
         return true;
-    };
+    }
 
     getNearestDistancePoint(point, res) {
 
@@ -135,6 +135,6 @@ export class Line3 {
         }
 
         return true;
-    };
+    }
 
 }

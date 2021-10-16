@@ -78,7 +78,7 @@ export class Multisample {
         this._glFilter = null;
 
         this.renderbuffers = new Array(this._size);
-    };
+    }
 
     destroy() {
         var gl = this.handler.gl;
@@ -95,7 +95,7 @@ export class Multisample {
         this._fbo = null;
 
         this._active = false;
-    };
+    }
 
     /**
      * Framebuffer initialization.
@@ -134,7 +134,7 @@ export class Multisample {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
         return this;
-    };
+    }
 
     blitTo(framebuffer, attachmentIndex = 0) {
 
@@ -155,7 +155,7 @@ export class Multisample {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
-    };
+    }
 
     /**
      * Sets framebuffer viewport size.
@@ -175,7 +175,7 @@ export class Multisample {
             this.destroy();
             this.init();
         }
-    };
+    }
 
     /**
      * Returns framebuffer completed.
@@ -188,7 +188,7 @@ export class Multisample {
             return true;
         }
         return false;
-    };
+    }
 
     /**
      * Activate framebuffer frame to draw.
@@ -205,7 +205,7 @@ export class Multisample {
         c && (c._active = false);
         this.handler.framebufferStack.push(this);
         return this;
-    };
+    }
 
     /**
      * Deactivate framebuffer frame.
@@ -228,5 +228,5 @@ export class Multisample {
         } else {
             gl.viewport(0, 0, h.canvas.width, h.canvas.height);
         }
-    };
+    }
 }

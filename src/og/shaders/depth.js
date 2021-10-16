@@ -45,4 +45,4 @@ export function depth() {
                 fragColor = vec4(c, c, c, 1.0);
             }`
     });
-};
+}

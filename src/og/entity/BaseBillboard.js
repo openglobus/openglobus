@@ -330,6 +330,6 @@ class BaseBillboard {
     setPickingColor3v(color) {
         this._handler && this._handler.setPickingColorArr(this._handlerIndex, color);
     }
-};
+}
 
 export { BaseBillboard };

@@ -97,7 +97,7 @@ export class Framebuffer {
          * @type {number}
          */
         this.textures = options.textures || new Array(this._size);
-    };
+    }
 
     static blit(sourceFramebuffer, destFramebuffer, glAttachment, glMask, glFilter) {
 
@@ -118,7 +118,7 @@ export class Framebuffer {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
-    };
+    }
 
     destroy() {
         var gl = this.handler.gl;
@@ -135,7 +135,7 @@ export class Framebuffer {
         this._fbo = null;
 
         this._active = false;
-    };
+    }
 
     /**
      * Framebuffer initialization.
@@ -186,7 +186,7 @@ export class Framebuffer {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
         return this;
-    };
+    }
 
     /**
      * Bind buffer texture.
@@ -199,7 +199,7 @@ export class Framebuffer {
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, glAttachment || gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
         gl.bindTexture(gl.TEXTURE_2D, null);
-    };
+    }
 
     /**
      * Sets framebuffer viewport size.
@@ -219,7 +219,7 @@ export class Framebuffer {
             this.destroy();
             this.init();
         }
-    };
+    }
 
     /**
      * Returns framebuffer completed.
@@ -232,7 +232,7 @@ export class Framebuffer {
             return true;
         }
         return false;
-    };
+    }
 
     /**
      * Gets pixel RBGA color from framebuffer by coordinates.
@@ -250,7 +250,7 @@ export class Framebuffer {
         gl.readBuffer && gl.readBuffer(gl.COLOR_ATTACHMENT0 + index || 0);
         gl.readPixels(nx * this._width, ny * this._height, w, h, gl.RGBA, gl[this._typeArr[index]], res);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    };
+    }
 
     /**
      * Reads all pixels(RGBA colors) from framebuffer.
@@ -264,7 +264,7 @@ export class Framebuffer {
         gl.readBuffer && gl.readBuffer(gl.COLOR_ATTACHMENT0 + attachmentIndex);
         gl.readPixels(0, 0, this._width, this._height, gl.RGBA, gl[this._typeArr[attachmentIndex]], res);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    };
+    }
 
     /**
      * Activate framebuffer frame to draw.
@@ -281,7 +281,7 @@ export class Framebuffer {
         c && (c._active = false);
         this.handler.framebufferStack.push(this);
         return this;
-    };
+    }
 
     /**
      * Deactivate framebuffer frame.
@@ -301,7 +301,7 @@ export class Framebuffer {
         } else {
             gl.viewport(0, 0, h.canvas.width, h.canvas.height);
         }
-    };
+    }
 
     /**
      * Gets JavaScript image object that framebuffer has drawn.
@@ -314,7 +314,7 @@ export class Framebuffer {
         var imageCanvas = new ImageCanvas(this._width, this._height);
         imageCanvas.setData(data);
         return imageCanvas.getImage();
-    };
+    }
 
     /**
      * Open dialog window with framebuffer image.
@@ -335,5 +335,5 @@ export class Framebuffer {
         printWin.document.write(windowContent);
         printWin.document.close();
         printWin.focus();
-    };
+    }
 }

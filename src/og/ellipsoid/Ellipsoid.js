@@ -389,7 +389,7 @@ class Ellipsoid {
                 deltaSigma = B * sinSigma * (cos2SigmaM + B / 4 * (cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM) - B / 6 * cos2SigmaM * (-3 + 4 * sinSigma * sinSigma) * (-3 + 4 * cos2SigmaM * cos2SigmaM)));
             sigmaP = sigma;
             sigma = s / (b * A) + deltaSigma;
-        };
+        }
         var tmp = sinU1 * sinSigma - cosU1 * cosSigma * cosAlpha1,
             lat2 = Math.atan2(sinU1 * cosSigma + cosU1 * sinSigma * cosAlpha1, (1 - f) * Math.sqrt(sinAlpha * sinAlpha + tmp * tmp)),
             lambda = Math.atan2(sinSigma * sinAlpha1, cosU1 * cosSigma - sinU1 * sinSigma * cosAlpha1),
@@ -467,6 +467,6 @@ class Ellipsoid {
             return null;
         }
     }
-};
+}
 
 export { Ellipsoid };

@@ -154,6 +154,6 @@ class WMS extends XYZ {
             em.southWest.lon = -ENLARGE_MERCATOR_LON;
         }
     }
-};
+}
 
 export { WMS };

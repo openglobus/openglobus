@@ -32,7 +32,7 @@ export class ProgramController {
          * @type {boolean}
          */
         this._activated = false;
-    };
+    }
 
     /**
      * Lazy create program call.
@@ -40,7 +40,7 @@ export class ProgramController {
      */
     initialize() {
         this._program.createProgram(this._handler.gl);
-    };
+    }
 
     /**
      * Returns controller's shader program.
@@ -49,7 +49,7 @@ export class ProgramController {
      */
     getProgram() {
         return this._program;
-    };
+    }
 
     /**
      * Activates current shader program.
@@ -66,7 +66,7 @@ export class ProgramController {
             p.use();
         }
         return this;
-    };
+    }
 
     /**
      * Remove program from handler
@@ -82,7 +82,7 @@ export class ProgramController {
             p[this._program.name] = null;
             delete p[this._program.name];
         }
-    };
+    }
 
     /**
      * Deactivate shader program. This is not necessary while activae function used.
@@ -91,7 +91,7 @@ export class ProgramController {
     deactivate() {
         this._program.disableAttribArrays();
         this._activated = false;
-    };
+    }
 
     /**
      * Returns program activity.
@@ -100,7 +100,7 @@ export class ProgramController {
      */
     isActive() {
         return this._activated;
-    };
+    }
 
     /**
      * Sets program uniforms and attributes values and return controller instance.
@@ -112,7 +112,7 @@ export class ProgramController {
         this.activate();
         this._program.set(params);
         return this;
-    };
+    }
 
     /**
      * Draw index buffer with this program.
@@ -124,7 +124,7 @@ export class ProgramController {
     drawIndexBuffer(mode, buffer) {
         this._program.drawIndexBuffer(mode, buffer);
         return this;
-    };
+    }
 
     /**
      * Calls Gl drawArray function.
@@ -135,5 +135,5 @@ export class ProgramController {
     drawArrays(mode, numItems) {
         this._program.drawArrays(mode, numItems);
         return this;
-    };
+    }
 }

@@ -41,14 +41,14 @@ export class Vec4 {
          * @type {number}
          */
         this.w = w || 0.0;
-    };
+    }
 
     /**
      * Identity vector [0,0,0,1].
      * @const
      * @type {og.math.Vec4}
      */
-    static get identity() { return new Vec4(0, 0, 0, 1) };
+    static get identity() { return new Vec4(0, 0, 0, 1) }
 
     /**
      * Creates 4d vector from array.
@@ -58,7 +58,7 @@ export class Vec4 {
      */
     static fromVec(arr) {
         return new Vec4(arr[0], arr[1], arr[2], arr[3]);
-    };
+    }
 
     /**
      * Converts to 3d vector, without fourth value.
@@ -67,7 +67,7 @@ export class Vec4 {
      */
     toVec3() {
         return new Vec3(this.x, this.y, this.z);
-    };
+    }
 
     /**
      * Returns clone vector.
@@ -76,7 +76,7 @@ export class Vec4 {
      */
     clone(v) {
         return new Vec4(this.x, this.y, this.z, this.w);
-    };
+    }
 
     /**
      * Compares with vector. Returns true if it equals another.
@@ -86,7 +86,7 @@ export class Vec4 {
      */
     equal(v) {
         return this.x === v.x && this.y === v.y && this.z === v.z && this.w === v.w;
-    };
+    }
 
     /**
      * Copy input vector's values.
@@ -99,7 +99,7 @@ export class Vec4 {
         this.z = v.z;
         this.w = v.w;
         return this;
-    };
+    }
 
     /**
      * Converts vector to a number array.
@@ -109,7 +109,7 @@ export class Vec4 {
      */
     toVec() {
         return [this.x, this.y, this.z, this.w];
-    };
+    }
 
     /**
      * Converts vector to a number array.
@@ -118,7 +118,7 @@ export class Vec4 {
      */
     toArray() {
         return [this.x, this.y, this.z, this.w];
-    };
+    }
 
     /**
      * Sets vector's values.
@@ -135,7 +135,7 @@ export class Vec4 {
         this.z = z;
         this.w = w;
         return this;
-    };
+    }
 
     /**
      * Adds vector to the current.
@@ -149,7 +149,7 @@ export class Vec4 {
         this.z += v.z;
         this.w += v.w;
         return this;
-    };
+    }
 
     /**
      * Subtract vector from the current.
@@ -163,7 +163,7 @@ export class Vec4 {
         this.z -= v.z;
         this.w -= v.w;
         return this;
-    };
+    }
 
     /**
      * Scale current vector.
@@ -177,7 +177,7 @@ export class Vec4 {
         this.z *= scale;
         this.w *= scale;
         return this;
-    };
+    }
 
     /**
      * Makes vector affinity. Thereby fourh component becomes to 1.0.
@@ -191,7 +191,7 @@ export class Vec4 {
         this.z *= iw;
         this.w = 1.0;
         return this;
-    };
+    }
 
     /**
      * Scale current vector to another instance.
@@ -201,7 +201,7 @@ export class Vec4 {
      */
     scaleTo(scale) {
         return new Vec4(this.x * scale, this.y * scale, this.z * scale, this.w * scale);
-    };
+    }
 
     /**
      * Vector's edge function that returns vector where each component is 0.0 if it's smaller then edge and otherwise 1.0.
@@ -215,7 +215,7 @@ export class Vec4 {
             this.z < edge ? 0.0 : 1.0,
             this.w < edge ? 0.0 : 1.0
         );
-    };
+    }
 
     /**
      * The vector fract function returns the vector of fractional parts of each value, i.e. x minus floor(x).
@@ -229,7 +229,7 @@ export class Vec4 {
             og.math.frac(v.z),
             og.math.frac(v.w)
         );
-    };
+    }
 
     /**
      * Gets vectors dot production.
@@ -239,7 +239,7 @@ export class Vec4 {
      */
     dot(v) {
         return v.x * this.x + v.y * this.y + v.z * this.z + v.w * this.w;
-    };
+    }
 
     /**
      * Returns true if vector's values are zero.
@@ -248,7 +248,7 @@ export class Vec4 {
      */
     isZero() {
         return !(this.x || this.y || this.z || this.w);
-    };
+    }
 }
 
 /**
@@ -262,4 +262,4 @@ export class Vec4 {
  */
 export function vec4(x, y, z, w) {
     return new og.math.Vec4(x, y, z, w);
-};
+}

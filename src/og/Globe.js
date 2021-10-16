@@ -4,21 +4,19 @@
 
 "use strict";
 
-import { EmptyTerrain } from "./terrain/EmptyTerrain.js";
-import { Handler } from "./webgl/Handler.js";
-import { Planet } from "./scene/Planet.js";
-import { Renderer } from "./renderer/Renderer.js";
-import { wgs84 } from "./ellipsoid/wgs84.js";
-import { isEmpty } from "./utils/shared.js";
-
-import { EarthCoordinates } from "./control/EarthCoordinates.js";
-import { MouseNavigation } from "./control/MouseNavigation.js";
-import { EarthNavigation } from "./control/EarthNavigation.js";
-import { TouchNavigation } from "./control/TouchNavigation.js";
-import { Sun } from "./control/Sun.js";
-import { ZoomControl } from "./control/ZoomControl.js";
-import { ScaleControl } from "./control/ScaleControl.js";
 import { CompassButton } from "./control/CompassButton.js";
+import { EarthCoordinates } from "./control/EarthCoordinates.js";
+import { EarthNavigation } from "./control/EarthNavigation.js";
+import { MouseNavigation } from "./control/MouseNavigation.js";
+import { ScaleControl } from "./control/ScaleControl.js";
+import { Sun } from "./control/Sun.js";
+import { TouchNavigation } from "./control/TouchNavigation.js";
+import { ZoomControl } from "./control/ZoomControl.js";
+import { Renderer } from "./renderer/Renderer.js";
+import { Planet } from "./scene/Planet.js";
+import { EmptyTerrain } from "./terrain/EmptyTerrain.js";
+import { isEmpty } from "./utils/shared.js";
+import { Handler } from "./webgl/Handler.js";
 
 /** @const {string} */
 const CANVAS_ID_PREFIX = "globus_viewport_";
@@ -183,8 +181,8 @@ class Globe {
                 options.useEarthNavigation
                     ? new EarthNavigation()
                     : new MouseNavigation({
-                          minSlope: options.minSlope
-                      }),
+                        minSlope: options.minSlope
+                    }),
                 new TouchNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),

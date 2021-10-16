@@ -94,6 +94,6 @@ class ShapeHandler {
         this._shapes.length = 0;
         this._shapes = [];
     }
-};
+}
 
 export { ShapeHandler };
