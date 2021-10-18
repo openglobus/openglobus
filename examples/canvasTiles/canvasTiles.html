@@ -29,15 +29,18 @@
             'attribution': 'Data @ OpenStreetMap contributors, ODbL'
         });
 
-        let cnv = document.createElement("canvas");
-        let ctx = cnv.getContext("2d");
-        cnv.width = 256;
-        cnv.height = 256;
-
         const tg = new CanvasTiles("Tile grid", {
             visibility: true,
             isBaseLayer: false,
             drawTile: function (material, applyCanvas) {
+
+                //
+                // This is important create canvas here!
+                //
+                let cnv = document.createElement("canvas");
+                let ctx = cnv.getContext("2d");
+                cnv.width = 256;
+                cnv.height = 256;
 
                 //Clear canvas
                 ctx.clearRect(0, 0, cnv.width, cnv.height);
