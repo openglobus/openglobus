@@ -7,6 +7,23 @@ import { Ray } from "../math/Ray.js";
 import { Vec3 } from "../math/Vec3.js";
 import { Control } from "./Control.js";
 
+class Touch {
+    constructor() {
+        this.x = 0;
+        this.y = 0;
+        this.prev_x = 0;
+        this.prev_y = 0;
+        this.grabbedPoint = new Vec3();
+        this.grabbedSpheroid = new Sphere();
+        this.dX = function () {
+            return this.x - this.prev_x;
+        };
+        this.dY = function () {
+            return this.y - this.prev_y;
+        };
+    };
+}
+
 class EarthNavigation extends Control {
     constructor(options) {
         super(options);
@@ -28,21 +45,6 @@ class EarthNavigation extends Control {
             { h: 1000000, max: 0.99, min: -0.99 },
             { h: 500000, max: 0.99, min: -0.99 }
         ];
-
-        var Touch = function () {
-            this.x = 0;
-            this.y = 0;
-            this.prev_x = 0;
-            this.prev_y = 0;
-            this.grabbedPoint = new Vec3();
-            this.grabbedSpheroid = new Sphere();
-            this.dX = function () {
-                return this.x - this.prev_x;
-            };
-            this.dY = function () {
-                return this.y - this.prev_y;
-            };
-        };
 
         this.touches = [new Touch(), new Touch()];
     }
