@@ -15,7 +15,7 @@ class BilTerrain extends GlobusTerrain {
 
         this.equalizeNormals = true;
 
-        this.minZoom = options.minZoom || 3;
+        this.minZoom = options.minZoom || 2;
 
         this.maxZoom = options.maxZoom || 14;
 
