@@ -351,6 +351,6 @@ class LightSource {
         }
         this._renderNode = null;
     }
-};
+}
 
 export { LightSource };

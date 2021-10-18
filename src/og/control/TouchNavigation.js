@@ -247,7 +247,7 @@ class TouchNavigation extends Control {
                 }
             }
         }
-    };
+    }
 
     onDraw(e) {
 
@@ -303,6 +303,6 @@ class TouchNavigation extends Control {
             this.planet._normalMapCreator.free(this._keyLock);
         }
     }
-};
+}
 
 export { TouchNavigation };

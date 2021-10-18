@@ -113,10 +113,10 @@ class KeyboardNavigation extends Control {
         this.renderer.activeCamera.roll(15 / this.renderer.handler.deltaTime);
         this.renderer.activeCamera.update();
     }
-};
+}
 
 export function keyboardNavigation(options) {
     return new KeyboardNavigation(options);
-};
+}
 
 export { KeyboardNavigation };

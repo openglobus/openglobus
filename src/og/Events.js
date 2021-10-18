@@ -181,6 +181,6 @@ class Events {
         this._eventNames.length = 0;
         this._eventNames = [];
     }
-};
+}
 
 export { Events };

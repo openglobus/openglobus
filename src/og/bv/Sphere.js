@@ -53,6 +53,6 @@ class Sphere {
     setFromExtent(ellipsoid, extent) {
         this.setFromBounds(extent.getCartesianBounds(ellipsoid));
     }
-};
+}
 
 export { Sphere };

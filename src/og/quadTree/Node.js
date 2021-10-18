@@ -279,8 +279,8 @@ class Node {
             }
         }
 
-        if (this.inFrustum || this._cameraInside) {
-            let h = cam._lonLat.height;
+    if (this.inFrustum || this._cameraInside || seg.tileZoom < 3) {
+        let h = cam._lonLat.height;
 
             let altVis =
                 cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius <

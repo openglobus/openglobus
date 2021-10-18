@@ -78,7 +78,7 @@ class ImageCanvas {
     fillColor(color) {
         this._context.fillStyle = color;
         this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
-    };
+    }
 
     /**
      * Sets RGBA pixel data.
@@ -218,6 +218,6 @@ class ImageCanvas {
         this._canvas = null;
         this._context = null;
     }
-};
+}
 
 export { ImageCanvas };

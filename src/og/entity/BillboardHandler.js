@@ -352,7 +352,7 @@ class BillboardHandler {
         gl.vertexAttribPointer(sha.a_alignedAxis, this._alignedAxisBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
-    };
+    }
 
     draw() {
         if (this._billboards.length) {
@@ -790,6 +790,6 @@ class BillboardHandler {
             }
         }
     }
-};
+}
 
 export { BillboardHandler };

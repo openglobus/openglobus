@@ -109,6 +109,6 @@ class BaseNode {
     isEqual(node) {
         return node.__staticId === this.__staticId;
     }
-};
+}
 
 export { BaseNode };

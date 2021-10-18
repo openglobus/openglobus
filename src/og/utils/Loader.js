@@ -12,7 +12,7 @@ if (window && !('createImageBitmap' in window)) {
             img.src = URL.createObjectURL(blob);
         });
     };
-};
+}
 
 export class Loader {
 
@@ -33,12 +33,12 @@ export class Loader {
             'imageBitmap': r => r.blob().then(createImageBitmap),
             'text': r => r.text()
         };
-    };
+    }
 
     load(params, callback) {
         this._queue.push({ 'params': params, 'callback': callback });
         this._exec();
-    };
+    }
 
     fetch(params) {
         return fetch(
@@ -60,7 +60,7 @@ export class Loader {
             .catch(err => {
                 return { 'status': "error", 'msg': err.toString() };
             });
-    };
+    }
 
     _exec() {
 
@@ -98,7 +98,7 @@ export class Loader {
         } else if (this._loading === 0) {
             this.events.dispatch(this.events.loadend);
         }
-    };
+    }
 
     abort() {
         //this._queue.each(e => e.callback({ 'status': "abort" }));
@@ -109,5 +109,5 @@ export class Loader {
             this._queue[i] = null;
         }
         this._queue = [];
-    };
+    }
 }

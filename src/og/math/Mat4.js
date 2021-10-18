@@ -17,7 +17,7 @@ export class Mat4 {
          * @type {Array.<number>}
          */
         this._m = new Array(16);
-    };
+    }
     
     /**
      * Returns identity matrix instance.
@@ -31,7 +31,7 @@ export class Mat4 {
         res._m[8] = 0; res._m[9] = 0; res._m[10] = 1; res._m[11] = 0;
         res._m[12] = 0; res._m[13] = 0; res._m[14] = 0; res._m[15] = 1;
         return res;
-    };
+    }
 
     /**
      * Sets column-major order array matrix.
@@ -57,7 +57,7 @@ export class Mat4 {
         this._m[14] = m[14];
         this._m[15] = m[15];
         return this;
-    };
+    }
 
     /**
      * Duplicates a Matrix3 instance.
@@ -68,7 +68,7 @@ export class Mat4 {
         var res = new Mat4();
         res.set(this);
         return res;
-    };
+    }
 
     /**
      * Copy matrix.
@@ -77,7 +77,7 @@ export class Mat4 {
      */
     copy(a) {
         this.set(a._m);
-    };
+    }
 
     /**
      * Converts to 3x3 matrix.
@@ -98,7 +98,7 @@ export class Mat4 {
         b[7] = a[9];
         b[8] = a[10];
         return res;
-    };
+    }
 
     /**
      * Multiply to 3d vector.
@@ -113,7 +113,7 @@ export class Mat4 {
             this._m[1] * d + this._m[5] * e + this._m[9] * g + this._m[13],
             this._m[2] * d + this._m[6] * e + this._m[10] * g + this._m[14]
         );
-    };
+    }
 
     /**
      * Multiply to 4d vector.
@@ -129,7 +129,7 @@ export class Mat4 {
             this._m[2] * d + this._m[6] * e + this._m[10] * g + this._m[14] * f,
             this._m[3] * d + this._m[7] * e + this._m[11] * g + this._m[15] * f
         );
-    };
+    }
 
     /**
      * Creates an inversed 3x3 matrix of the current.
@@ -163,7 +163,7 @@ export class Mat4 {
         res._m[7] = (-j * c + d * i) * n;
         res._m[8] = (f * c - d * g) * n;
         return res;
-    };
+    }
 
     /**
      * Creates an inversed matrix of the current.
@@ -195,7 +195,7 @@ export class Mat4 {
         res._m[8] = (f * D - h * z + j * x) * q; res._m[9] = (-c * D + d * z - g * x) * q; res._m[10] = (n * v - p * t + s * A) * q; res._m[11] = (-k * v + l * t - m * A) * q;
         res._m[12] = (-f * C + h * y - i * x) * q; res._m[13] = (c * C - d * y + e * x) * q; res._m[14] = (-n * u + p * B - r * A) * q; res._m[15] = (k * u - l * B + o * A) * q;
         return res;
-    };
+    }
 
     /**
      * Creates a trasposed matrix of the current.
@@ -209,7 +209,7 @@ export class Mat4 {
         res._m[8] = this._m[2]; res._m[9] = this._m[6]; res._m[10] = this._m[10]; res._m[11] = this._m[14];
         res._m[12] = this._m[3]; res._m[13] = this._m[7]; res._m[14] = this._m[11]; res._m[15] = this._m[15];
         return res;
-    };
+    }
 
     /**
      * Sets matrix to identity.
@@ -222,7 +222,7 @@ export class Mat4 {
         this._m[8] = 0; this._m[9] = 0; this._m[10] = 1; this._m[11] = 0;
         this._m[12] = 0; this._m[13] = 0; this._m[14] = 0; this._m[15] = 1;
         return this;
-    };
+    }
 
     /**
      * Computes the product of two matrices.
@@ -247,7 +247,7 @@ export class Mat4 {
         res._m[8] = z * d + C * h + D * l + E * p; res._m[9] = z * e + C * i + D * o + E * r; res._m[10] = z * g + C * j + D * m + E * s; res._m[11] = z * f + C * k + D * n + E * a;
         res._m[12] = q * d + F * h + G * l + b * p; res._m[13] = q * e + F * i + G * o + b * r; res._m[14] = q * g + F * j + G * m + b * s; res._m[15] = q * f + F * k + G * n + b * a;
         return res;
-    };
+    }
 
     /**
      * Add translation vector to the current matrix.
@@ -263,7 +263,7 @@ export class Mat4 {
         a[14] = a[2] * d + a[6] * e + a[10] * b + a[14];
         a[15] = a[3] * d + a[7] * e + a[11] * b + a[15];
         return this;
-    };
+    }
 
     /**
      * Sets translation matrix to the position.
@@ -277,7 +277,7 @@ export class Mat4 {
         a[13] = v.y;
         a[14] = v.z;
         return this;
-    };
+    }
 
     /**
      * Rotate currrent matrix around the aligned axis and angle.
@@ -297,7 +297,7 @@ export class Mat4 {
         mx[8] = (1 - c) * u.x * u.z - s * u.y; mx[9] = (1 - c) * u.y * u.z + s * u.x; mx[10] = c + (1 - c) * u.z * u.z; mx[11] = 0;
         mx[12] = 0; mx[13] = 0; mx[14] = 0; mx[15] = 1;
         return this.mul(rot);
-    };
+    }
 
     /**
      * Sets current rotation matrix around the aligned axis and angle.
@@ -315,7 +315,7 @@ export class Mat4 {
         mx[8] = (1 - c) * u.x * u.z - s * u.y; mx[9] = (1 - c) * u.y * u.z + s * u.x; mx[10] = c + (1 - c) * u.z * u.z; mx[11] = 0;
         mx[12] = 0; mx[13] = 0; mx[14] = 0; mx[15] = 1;
         return this;
-    };
+    }
 
     /**
      * Gets the rotation matrix from one vector to another.
@@ -327,7 +327,7 @@ export class Mat4 {
     rotateBetweenVectors(a, b) {
         var q = Quat.getRotationBetweenVectors(a, b);
         return q.getMat4();
-    };
+    }
 
     /**
      * Scale current matrix to the vector values.
@@ -341,7 +341,7 @@ export class Mat4 {
         mx[4] = mx[4] * v.y; mx[5] = mx[5] * v.y; mx[6] = mx[6] * v.y; mx[7] = mx[7] * v.y;
         mx[8] = mx[8] * v.z; mx[9] = mx[9] * v.z; mx[10] = mx[10] * v.z; mx[11] = mx[11] * v.z;
         return this;
-    };
+    }
 
     /**
      * Sets perspective projection matrix frustum values.
@@ -373,7 +373,7 @@ export class Mat4 {
         this._m[14] = -(far * near * 2) / j;
         this._m[15] = 0;
         return this;
-    };
+    }
 
     /**
      * Creates current orthographic projection matrix.
@@ -410,7 +410,7 @@ export class Mat4 {
         m[14] = (far + near) * nf;
         m[15] = 1.0;
         return this;
-    };
+    }
 
     /**
      * Sets current rotation matrix by euler's angles.
@@ -446,7 +446,7 @@ export class Mat4 {
         mat[15] = 1;
 
         return this;
-    };
+    }
 }
 
 /**
@@ -456,4 +456,4 @@ export class Mat4 {
  */
 export function mat4() {
     return new og.Mat4();
-};
+}

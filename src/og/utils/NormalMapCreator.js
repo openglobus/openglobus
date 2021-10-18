@@ -35,7 +35,7 @@ export class NormalMapCreator {
         this._lock = new Lock();
 
         this._init();
-    };
+    }
 
     _init() {
         var isWebkit = false; //('WebkitAppearance' in document.documentElement.style) && !/^((?!chrome).)*safari/i.test(navigator.userAgent);
@@ -161,7 +161,7 @@ export class NormalMapCreator {
         var positions = new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0]);
 
         this._positionBuffer = this._handler.createArrayBuffer(positions, 2, positions.length / 2);
-    };
+    }
 
     _drawNormalMapBlur(segment) {
         var normals = segment.normalMapNormals;
@@ -242,7 +242,7 @@ export class NormalMapCreator {
             }
         }
         return false;
-    };
+    }
 
     _drawNormalMapNoBlur(segment) {
         var normals = segment.normalMapNormals;
@@ -302,7 +302,7 @@ export class NormalMapCreator {
             }
         }
         return false;
-    };
+    }
 
     _drawNormalMap(segment) {
         let t = segment.planet.terrain;
@@ -312,7 +312,7 @@ export class NormalMapCreator {
         } else {
             return this._drawNormalMapNoBlur(segment);
         }
-    };
+    }
 
     drawSingle(segment) {
         var h = this._handler,
@@ -337,7 +337,7 @@ export class NormalMapCreator {
         gl.enable(gl.CULL_FACE);
 
         this._framebuffer.deactivate();
-    };
+    }
 
     frame() {
         if (this._queue.length) {
@@ -371,28 +371,28 @@ export class NormalMapCreator {
 
             this._framebuffer.deactivate();
         }
-    };
+    }
 
     queue(segment) {
         segment._inTheQueue = true;
         this._queue.push(segment);
-    };
+    }
 
     unshift(segment) {
         segment._inTheQueue = true;
         this._queue.unshift(segment);
-    };
+    }
 
     remove(segment) {
         //...
-    };
+    }
 
     clear() {
         while (this._queue.length) {
             var s = this._queue.pop();
             s._inTheQueue = false;
         }
-    };
+    }
 
     /**
      * Set activity off
@@ -400,7 +400,7 @@ export class NormalMapCreator {
      */
     lock(key) {
         this._lock.lock(key);
-    };
+    }
 
     /**
      * Set activity on
@@ -408,6 +408,6 @@ export class NormalMapCreator {
      */
     free(key) {
         this._lock.free(key);
-    };
+    }
 
 }

@@ -85,7 +85,7 @@ export class KML extends Vector {
             fileReader.onload = async i => resolve((new DOMParser()).parseFromString(i.target.result, 'text/xml'));
             fileReader.readAsText(file);
         });
-    };
+    }
 
     /**
      * @private
@@ -140,7 +140,7 @@ export class KML extends Vector {
             };
             request.send();
         });
-    };
+    }
 
     /**
      * @public
@@ -156,4 +156,4 @@ export class KML extends Vector {
         return { entities, extent };
     }
 
-};
+}

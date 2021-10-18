@@ -44,7 +44,6 @@ class SegmentLonLat extends Segment {
         this.isPole = true;
     };
 
-
     _setExtentLonLat() {
         this._extentLonLat = this._extent;
     };
@@ -98,7 +97,7 @@ class SegmentLonLat extends Segment {
                 (mercator.MIN_LAT - lat) / (extent.northEast.lat - extent.southWest.lat)
             );
         }
-
+   
         var p2 = 1 << tileZoom;
         this.tileXE = (this.tileX + 1) % p2;
         this.tileXW = (p2 + this.tileX - 1) % p2;
@@ -110,103 +109,123 @@ class SegmentLonLat extends Segment {
     };
 
     _createPlainVertices() {
-        var gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
+      var gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
 
-        var e = this._extent,
-            fgs = this.planet.terrain.plainGridSize;
-        var lonSize = e.getWidth();
-        var latSize = e.getHeight();
-        var llStep = lonSize / Math.max(fgs, gridSize);
-        var ltStep = latSize / gridSize;
-        var esw_lon = e.southWest.lon,
-            ene_lat = e.northEast.lat;
-        var dg = Math.max(fgs / gridSize, 1),
-            gs = Math.max(fgs, gridSize) + 1;
-        var r2 = this.planet.ellipsoid._invRadii2;
-        var ind = 0,
-            nmInd = 0;
-        const gsgs = gs * gs;
+      var e = this._extent,
+          fgs = this.planet.terrain.plainGridSize;
+      var lonSize = e.getWidth();
+      var latSize = e.getHeight();
+      var llStep = lonSize / Math.max(fgs, gridSize);
+      var ltStep = latSize / gridSize;
+      var esw_lon = e.southWest.lon,
+          ene_lat = e.northEast.lat;
+      var dg = Math.max(fgs / gridSize, 1),
+          gs = Math.max(fgs, gridSize) + 1;
+      var r2 = this.planet.ellipsoid._invRadii2;
+      var ind = 0,
+          nmInd = 0;
+      const gsgs = gs * gs;
 
-        var gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
+      var gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
 
-        this.plainNormals = new Float32Array(gridSize3);
-        this.plainVertices = new Float64Array(gridSize3);
-        this.plainVerticesHigh = new Float32Array(gridSize3);
-        this.plainVerticesLow = new Float32Array(gridSize3);
+      this.plainNormals = new Float32Array(gridSize3);
+      this.plainVertices = new Float64Array(gridSize3);
+      this.plainVerticesHigh = new Float32Array(gridSize3);
+      this.plainVerticesLow = new Float32Array(gridSize3);
 
-        this.normalMapNormals = new Float32Array(gsgs * 3);
-        this.normalMapVertices = new Float64Array(gsgs * 3);
-        this.normalMapVerticesHigh = new Float32Array(gsgs * 3);
-        this.normalMapVerticesLow = new Float32Array(gsgs * 3);
+      this.normalMapNormals = new Float32Array(gsgs * 3);
+      this.normalMapVertices = new Float64Array(gsgs * 3);
+      this.normalMapVerticesHigh = new Float32Array(gsgs * 3);
+      this.normalMapVerticesLow = new Float32Array(gsgs * 3);
 
-        var verts = this.plainVertices,
-            vertsHigh = this.plainVerticesHigh,
-            vertsLow = this.plainVerticesLow,
-            norms = this.plainNormals,
-            nmVerts = this.normalMapVertices,
-            nmVertsHigh = this.normalMapVerticesHigh,
-            nmVertsLow = this.normalMapVerticesLow,
-            nmNorms = this.normalMapNormals;
+      let xmin = 549755748352.0,
+          xmax = -549755748352.0,
+          ymin = 549755748352.0,
+          ymax = -549755748352.0,
+          zmin = 549755748352.0,
+          zmax = -549755748352.0;
 
-        for (var k = 0; k < gsgs; k++) {
-            var j = k % gs,
-                i = ~~(k / gs);
+      var verts = this.plainVertices,
+          vertsHigh = this.plainVerticesHigh,
+          vertsLow = this.plainVerticesLow,
+          norms = this.plainNormals,
+          nmVerts = this.normalMapVertices,
+          nmVertsHigh = this.normalMapVerticesHigh,
+          nmVertsLow = this.normalMapVerticesLow,
+          nmNorms = this.normalMapNormals;
 
-            var v = this.planet.ellipsoid.lonLatToCartesian(
-                new LonLat(esw_lon + j * llStep, ene_lat - i * ltStep)
-            );
-            var nx = v.x * r2.x,
-                ny = v.y * r2.y,
-                nz = v.z * r2.z;
-            var l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-            var nxl = nx * l,
-                nyl = ny * l,
-                nzl = nz * l;
+      for (var k = 0; k < gsgs; k++) {
+          var j = k % gs,
+              i = ~~(k / gs);
 
-            Vec3.doubleToTwoFloats(v, _tempHigh, _tempLow);
+          var v = this.planet.ellipsoid.lonLatToCartesian(
+              new LonLat(esw_lon + j * llStep, ene_lat - i * ltStep)
+          );
+          var nx = v.x * r2.x,
+              ny = v.y * r2.y,
+              nz = v.z * r2.z;
+          var l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+          var nxl = nx * l,
+              nyl = ny * l,
+              nzl = nz * l;
 
-            nmVerts[nmInd] = v.x;
-            nmVertsHigh[nmInd] = _tempHigh.x;
-            nmVertsLow[nmInd] = _tempLow.x;
-            nmNorms[nmInd++] = nxl;
+          Vec3.doubleToTwoFloats(v, _tempHigh, _tempLow);
 
-            nmVerts[nmInd] = v.y;
-            nmVertsHigh[nmInd] = _tempHigh.y;
-            nmVertsLow[nmInd] = _tempLow.y;
-            nmNorms[nmInd++] = nyl;
+          nmVerts[nmInd] = v.x;
+          nmVertsHigh[nmInd] = _tempHigh.x;
+          nmVertsLow[nmInd] = _tempLow.x;
+          nmNorms[nmInd++] = nxl;
 
-            nmVerts[nmInd] = v.z;
-            nmVertsHigh[nmInd] = _tempHigh.z;
-            nmVertsLow[nmInd] = _tempLow.z;
-            nmNorms[nmInd++] = nzl;
+          nmVerts[nmInd] = v.y;
+          nmVertsHigh[nmInd] = _tempHigh.y;
+          nmVertsLow[nmInd] = _tempLow.y;
+          nmNorms[nmInd++] = nyl;
 
-            if (i % dg === 0 && j % dg === 0) {
-                verts[ind] = v.x;
-                vertsHigh[ind] = _tempHigh.x;
-                vertsLow[ind] = _tempLow.x;
-                norms[ind++] = nxl;
+          nmVerts[nmInd] = v.z;
+          nmVertsHigh[nmInd] = _tempHigh.z;
+          nmVertsLow[nmInd] = _tempLow.z;
+          nmNorms[nmInd++] = nzl;
 
-                verts[ind] = v.y;
-                vertsHigh[ind] = _tempHigh.y;
-                vertsLow[ind] = _tempLow.y;
-                norms[ind++] = nyl;
+          if (i % dg === 0 && j % dg === 0) {
+              verts[ind] = v.x;
+              vertsHigh[ind] = _tempHigh.x;
+              vertsLow[ind] = _tempLow.x;
+              norms[ind++] = nxl;
 
-                verts[ind] = v.z;
-                vertsHigh[ind] = _tempHigh.z;
-                vertsLow[ind] = _tempLow.z;
-                norms[ind++] = nzl;
-            }
-        }
+              verts[ind] = v.y;
+              vertsHigh[ind] = _tempHigh.y;
+              vertsLow[ind] = _tempLow.y;
+              norms[ind++] = nyl;
 
-        this.terrainVertices = verts;
-        this.terrainVerticesHigh = vertsHigh;
-        this.terrainVerticesLow = vertsLow;
+              verts[ind] = v.z;
+              vertsHigh[ind] = _tempHigh.z;
+              vertsLow[ind] = _tempLow.z;
+              norms[ind++] = nzl;
 
-        //store raw normals
-        this.normalMapNormalsRaw = new Float32Array(nmNorms.length);
-        this.normalMapNormalsRaw.set(nmNorms);
+              if (v.x < xmin) xmin = v.x;
+              if (v.x > xmax) xmax = v.x;
+              if (v.y < ymin) ymin = v.y;
+              if (v.y > ymax) ymax = v.y;
+              if (v.z < zmin) zmin = v.z;
+              if (v.z > zmax) zmax = v.z;
+          }
+      }
 
-        this.plainReady = true;
+      this.terrainVertices = verts;
+      this.terrainVerticesHigh = vertsHigh;
+      this.terrainVerticesLow = vertsLow;
+
+      //store raw normals
+      this.normalMapNormalsRaw = new Float32Array(nmNorms.length);
+      this.normalMapNormalsRaw.set(nmNorms);
+
+      let x = (xmax - xmin) * 0.5,
+          y = (ymax - ymin) * 0.5,
+          z = (zmax - zmin) * 0.5;
+
+      this._plainRadius = Math.sqrt(x * x + y * y + z * z);
+
+      this.plainReady = true;
     };
 
     _assignGlobalTextureCoordinates() {

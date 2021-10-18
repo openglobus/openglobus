@@ -20,7 +20,7 @@ export class Mat3 {
          * @type {Array.<number>}
          */
         this._m = new Array(9);
-    };
+    }
 
     /**
      * Sets column-major order array matrix.
@@ -39,7 +39,7 @@ export class Mat3 {
         this._m[7] = m[7];
         this._m[8] = m[8];
         return this;
-    };
+    }
 
     /**
      * Duplicates a Mat3 instance.
@@ -50,7 +50,7 @@ export class Mat3 {
         var res = new Mat3();
         res.set(this);
         return res;
-    };
+    }
 
     /**
      * Copy matrix.
@@ -60,7 +60,7 @@ export class Mat3 {
      */
     copy(a) {
         return this.set(a._m);
-    };
+    }
 
     /**
      * Creates trasposed matrix from the current.
@@ -74,7 +74,7 @@ export class Mat3 {
         res._m[3] = m[1]; res._m[4] = m[4]; res._m[5] = m[7];
         res._m[6] = m[2]; res._m[7] = m[5]; res._m[8] = m[8];
         return res;
-    };
+    }
 
     /**
      * Sets matrix to identity.
@@ -86,7 +86,7 @@ export class Mat3 {
         this._m[3] = 0; this._m[4] = 1; this._m[5] = 0;
         this._m[6] = 0; this._m[7] = 0; this._m[8] = 1;
         return this;
-    };
+    }
 
     /**
      * Multiply to 3d vector.
@@ -102,7 +102,7 @@ export class Mat3 {
             m[1] * d + m[4] * e + m[7] * g,
             m[2] * d + m[5] * e + m[8] * g
         );
-    };
+    }
 
     /**
      * Converts to 4x4 matrix.
@@ -130,7 +130,7 @@ export class Mat3 {
         b[14] = 0;
         b[15] = 1;
         return res;
-    };
+    }
 
 }
 
@@ -141,4 +141,4 @@ export class Mat3 {
  */
 export function mat3() {
     return new Mat3();
-};
+}

@@ -160,7 +160,7 @@ export const J2000 = 2451545.0;
  */
 export function T(jd) {
     return (jd - J2000) / DAYS_PER_JULIAN_CENTURY;
-};
+}
 
 /**
  * Gets the date's julian day.
@@ -174,7 +174,7 @@ export function getDayNumber(year, month, day) {
     var b = year + 4800 + a;
     return (((1461 * b) / 4) | 0) + (((367 * (month - 2 - 12 * a)) / 12) | 0) -
         (((3 * (((b + 100) / 100) | 0)) / 4) | 0) + day - 32075;
-};
+}
 
 /**
  * Converts javascript date to the universal(UTC) julian date.
@@ -208,7 +208,7 @@ export function DateToUTC(date) {
     }
 
     return dayNumber + secondsOfDay * ONE_BY_SECONDS_PER_DAY;
-};
+}
 
 /**
  * Converts javascript date to the atomic(TAI) julian date.
@@ -217,7 +217,7 @@ export function DateToUTC(date) {
  */
 export function DateToTAI(date) {
     return UTCtoTAI(DateToUTC(date));
-};
+}
 
 /**
  * Converts coordinated universal(UTC) julian date to atomic(TAI) julian date.
@@ -248,7 +248,7 @@ export function UTCtoTAI(jd) {
     }
 
     return jd + offset * ONE_BY_SECONDS_PER_DAY;
-};
+}
 
 /**
  * Converts atomic julian date(TAI) to the coordinated universal(UTC) julian date.
@@ -284,7 +284,7 @@ export function TAItoUTC(tai) {
     }
 
     return tai - leapSeconds[index - 1].leapSeconds * ONE_BY_SECONDS_PER_DAY;
-};
+}
 
 /**
  * Converts UTC julian date to the javascript date object.
@@ -323,7 +323,7 @@ export function UTCtoDate(utc) {
     }
 
     return new Date(Date.UTC(year, month - 1, day, hour, minute, second, millisecond));
-};
+}
 
 /**
  * Converts TAI julian date to the javascript date object.
@@ -339,7 +339,7 @@ export function TAItoDate(tai) {
     }
 
     return UTCtoDate(utc);
-};
+}
 
 /**
  * Adds milliseconds to the julian date.
@@ -349,7 +349,7 @@ export function TAItoDate(tai) {
  */
 export function addMilliseconds(jd, milliseconds) {
     return jd + milliseconds * ONE_BY_MILLISECONDS_PER_DAY;
-};
+}
 
 /**
  * Adds seconds to the julian date.
@@ -359,7 +359,7 @@ export function addMilliseconds(jd, milliseconds) {
  */
 export function addSeconds(jd, seconds) {
     return jd + seconds * ONE_BY_SECONDS_PER_DAY;
-};
+}
 
 /**
  * Adds hours to the julian date.
@@ -369,7 +369,7 @@ export function addSeconds(jd, seconds) {
  */
 export function addHours(jd, hours) {
     return jd + hours * ONE_BY_HOURS_PER_DAY;
-};
+}
 
 /**
  * Adds minutes to the julian date.
@@ -379,7 +379,7 @@ export function addHours(jd, hours) {
  */
 export function addMinutes(jd, minutes) {
     return jd + minutes * MINUTES_PER_DAY;
-};
+}
 
 /**
  * Adds days to the julian date.
@@ -389,7 +389,7 @@ export function addMinutes(jd, minutes) {
  */
 export function addDays(jd, days) {
     return jd + days;
-};
+}
 
 /**
  * Gets milliseconds of a julian date.
@@ -400,7 +400,7 @@ export function getMilliseconds(jd) {
     var s = jd - (jd | 0);
     s *= SECONDS_PER_DAY;
     return (s - (s | 0)) * MILLISECONDS_PER_SECOND | 0;
-};
+}
 
 /**
  * Gets seconds of a julian date.
@@ -410,7 +410,7 @@ export function getMilliseconds(jd) {
 export function getSeconds(jd) {
     var s = jd - (jd | 0);
     return s * SECONDS_PER_DAY;
-};
+}
 
 /**
  * Gets hours of a julian date.
@@ -434,7 +434,7 @@ export function getHours(jd) {
     }
 
     return hour;
-};
+}
 
 /**
  * Gets minutes of a julian date.
@@ -444,7 +444,7 @@ export function getHours(jd) {
 export function getMinutes(jd) {
     var s = jd - (jd | 0);
     return s * MINUTES_PER_DAY | 0;
-};
+}
 
 /**
  * Gets days of a julian date.
@@ -453,7 +453,7 @@ export function getMinutes(jd) {
  */
 export function getDays(jd) {
     return jd | 0;
-};
+}
 
 /**
  * Returns days in seconds.
@@ -462,7 +462,7 @@ export function getDays(jd) {
  */
 export function secondsToDays(s) {
     return s * ONE_BY_SECONDS_PER_DAY;
-};
+}
 
 /**
  * Returns seconds in days.
@@ -471,14 +471,14 @@ export function secondsToDays(s) {
  */
 export function daysToSeconds(d) {
     return d * SECONDS_PER_DAY;
-};
+}
 
 function __ls(jd, leapSeconds) {
     return {
         jd: jd,
         leapSeconds: leapSeconds
     };
-};
+}
 
 const leapSecondsTable = [
     __ls(2441317.5, 10.0), // 1972-01-01T00:00:00.000Z

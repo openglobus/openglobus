@@ -1,6 +1,7 @@
 module.exports = {
     "env": {
         "browser": true,
+        "jest": true,
         "es2021": true
     },
     "extends": "eslint:recommended",
@@ -9,6 +10,5 @@ module.exports = {
         "sourceType": "module"
     },
     "rules": {
-        "no-extra-semi": "off" 
     }
 };

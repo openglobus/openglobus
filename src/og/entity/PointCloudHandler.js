@@ -121,6 +121,6 @@ class PointCloudHandler {
         this._pointClouds.length = 0;
         this._pointClouds = [];
     }
-};
+}
 
 export { PointCloudHandler };

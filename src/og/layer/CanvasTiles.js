@@ -171,7 +171,9 @@ class CanvasTiles extends Layer {
                     that._counter--;
                     CanvasTiles.__requestsCounter--;
                     if (material.isLoading) {
-                        material.applyImage(canvas);
+                        requestAnimationFrame(() => {
+                            material.applyImage(canvas);
+                        });
                     }
                     that._dequeueRequest();
                 }

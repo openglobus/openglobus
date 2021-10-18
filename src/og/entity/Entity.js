@@ -705,6 +705,6 @@ class Entity {
     isEqual(entity) {
         return this.id === entity.id;
     }
-};
+}
 
 export { Entity };
