@@ -1110,7 +1110,7 @@ export class Planet extends RenderNode {
         gl.disable(gl.POLYGON_OFFSET_FILL);
 
         if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
-            if (this._skipPreRender /* && (!this._renderCompletedActivated || cam._moved)*/) {
+            if (this._skipPreRender && (!this._renderCompletedActivated || cam._moved)) {
                 this._collectRenderNodes();
             }
             this._skipPreRender = true;
