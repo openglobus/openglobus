@@ -12,7 +12,7 @@ import { Box } from "../bv/Box.js";
 import { Vec3 } from "../math/Vec3.js";
 import * as segmentHelper from "../segment/segmentHelper.js";
 
-export const MAX_NORMAL_ZOOM = 6;
+export const MAX_NORMAL_ZOOM = 7;
 
 var _tempHigh = new Vec3();
 var _tempLow = new Vec3();
@@ -64,7 +64,6 @@ window.BBSC = 100;
  * @param {og.Extent} extent - Segment extent.
  */
 class Segment {
-
     /**
      * @param {quadTree.Node} node - Segment node.
      * @param {scene.Planet} planet - Current planet scene.
@@ -248,7 +247,7 @@ class Segment {
         this.readyToEngage = false;
 
         this.plainProcessing = false;
-    };
+    }
 
     /**
      * Returns that segment good for rendering with camera by current lod ratio.
@@ -258,9 +257,10 @@ class Segment {
      */
     acceptForRendering(camera) {
         return (
-            camera.projectedSize(this.bsphere.center, this._plainRadius) < 256 / this.planet._lodRatio
+            camera.projectedSize(this.bsphere.center, this._plainRadius) <
+            256 / this.planet._lodRatio
         );
-    };
+    }
 
     /**
      * Returns entity terrain point.
@@ -272,11 +272,11 @@ class Segment {
      */
     getEntityTerrainPoint(entity, res, normal) {
         return this.getTerrainPoint(entity._cartesian, entity._lonlatMerc, res, normal);
-    };
+    }
 
     isEntityInside(e) {
         return this._extent.isInside(e._lonlatMerc);
-    };
+    }
 
     /**
      * Returns distance from object to terrain coordinates and terrain point that calculates out in the res parameter.
@@ -363,7 +363,7 @@ class Segment {
             normal && normal.copy(xyz.normal());
             return xyz.distance(this.planet.ellipsoid.hitRay(_ray.origin, _ray.direction));
         }
-    };
+    }
 
     /**
      * Project wgs86 to segment native projection.
@@ -373,7 +373,7 @@ class Segment {
      */
     projectNative(lonlat) {
         return lonlat.forwardMercator();
-    };
+    }
 
     loadTerrain(forceLoading) {
         if (this.tileZoom < this.planet.terrain.minZoom) {
@@ -391,7 +391,7 @@ class Segment {
                 this.planet.terrain.loadTerrain(this, forceLoading);
             }
         }
-    };
+    }
 
     /**
      * Terrain obtained from server.
@@ -412,7 +412,7 @@ class Segment {
                 this.tempVerticesLow = null;
             }
         }
-    };
+    }
 
     _checkEqualization(neighborSide, neigborNode) {
         return (
@@ -428,7 +428,7 @@ class Segment {
             //    neigborNode.equalizedNeighborGridSize[OPSIDE[neighborSide]] !== this.gridSize
             //)
         );
-    };
+    }
 
     equalize() {
         if (this.tileZoom < 8 || this.gridSize < 2) {
@@ -613,12 +613,12 @@ class Segment {
                 vLow[index + 2] = nvLow[n_index + 2];
             }
         }
-    };
+    }
 
     engage() {
         this.readyToEngage = false;
         this.createCoordsBuffers(this.tempVerticesHigh, this.tempVerticesLow, this.gridSize);
-    };
+    }
 
     _plainSegmentWorkerCallback(data) {
         this.plainProcessing = false;
@@ -645,7 +645,7 @@ class Segment {
 
             this.plainReady = true;
         }
-    };
+    }
 
     _terrainWorkerCallback(data) {
         if (this.plainReady) {
@@ -712,7 +712,7 @@ class Segment {
                 this.planet._normalMapCreator.queue(this);
             }
         }
-    };
+    }
 
     /**
      * Terrain is not obtained or not exists on the server.
@@ -746,7 +746,7 @@ class Segment {
             this.terrainReady = true;
             this.terrainExists = false;
         }
-    };
+    }
     _normalMapEdgeEqualize(side) {
         let nn = this.node.neighbors;
         let n = nn[side][0];
@@ -832,7 +832,7 @@ class Segment {
                 }
             }
         }
-    };
+    }
 
     applyTerrain(elevations) {
         if (elevations) {
@@ -840,7 +840,7 @@ class Segment {
         } else {
             this.elevationsNotExists();
         }
-    };
+    }
 
     /**
      * Delete segment gl buffers.
@@ -857,7 +857,7 @@ class Segment {
         this.vertexPositionBufferHigh = null;
         this.vertexPositionBufferLow = null;
         this.vertexTextureCoordBuffer = null;
-    };
+    }
 
     /**
      * Delete materials.
@@ -871,7 +871,7 @@ class Segment {
             }
         }
         this.materials.length = 0;
-    };
+    }
 
     /**
      * Delete elevation data.
@@ -912,7 +912,7 @@ class Segment {
         this.normalMapTextureBias[1] = 0;
         this.normalMapTextureBias[2] = 1;
         this._inTheQueue = false;
-    };
+    }
 
     /**
      * Clear but not destroy segment data.
@@ -923,7 +923,7 @@ class Segment {
         this.deleteBuffers();
         this.deleteMaterials();
         this.deleteElevations();
-    };
+    }
 
     /**
      * Removes cache records.
@@ -931,7 +931,7 @@ class Segment {
     _freeCache() {
         this.planet._quadTreeNodesCacheMerc[this.tileIndex] = null;
         delete this.planet._quadTreeNodesCacheMerc[this.tileIndex];
-    };
+    }
 
     /**
      * Clear and destroy all segment data.
@@ -992,11 +992,11 @@ class Segment {
         this._appliedNeighborsZoom = null;
 
         this._globalTextureCoordinates = null;
-    };
+    }
 
     _setExtentLonLat() {
         this._extentLonLat = this._extent.inverseMercator();
-    };
+    }
 
     /**
      * Creates bound volumes by segment geographical extent.
@@ -1010,8 +1010,14 @@ class Segment {
 
         // check for zoom
         if (this.tileZoom <= MAX_NORMAL_ZOOM) {
-            var coord_nw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.northEast.lat);
-            var coord_se = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.southWest.lat);
+            var coord_nw = ellipsoid.geodeticToCartesian(
+                extent.southWest.lon,
+                extent.northEast.lat
+            );
+            var coord_se = ellipsoid.geodeticToCartesian(
+                extent.northEast.lon,
+                extent.southWest.lat
+            );
 
             this._swNorm = coord_sw.normal();
             this._nwNorm = coord_nw.normal();
@@ -1020,7 +1026,7 @@ class Segment {
         }
 
         this.setBoundingVolume3v(coord_sw, coord_ne);
-    };
+    }
 
     createBoundsByParent() {
         let pn = this.node;
@@ -1092,8 +1098,16 @@ class Segment {
                 let v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
                     v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
 
-                let vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
-                    vw = new Vec3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
+                let vn = new Vec3(
+                        bigOne[3] - bigOne[0],
+                        bigOne[4] - bigOne[1],
+                        bigOne[5] - bigOne[2]
+                    ),
+                    vw = new Vec3(
+                        bigOne[6] - bigOne[0],
+                        bigOne[7] - bigOne[1],
+                        bigOne[8] - bigOne[2]
+                    ),
                     ve = new Vec3(
                         bigOne[3] - bigOne[9],
                         bigOne[4] - bigOne[10],
@@ -1142,15 +1156,14 @@ class Segment {
         } else {
             this.createBoundsByExtent();
         }
-    };
+    }
 
     setBoundingSphere(x, y, z, v) {
         this.bsphere.center.x = x;
         this.bsphere.center.y = y;
         this.bsphere.center.z = z;
         this.bsphere.radius = this.bsphere.center.distance(v);
-    };
-
+    }
 
     setBoundingVolume(xmin, ymin, zmin, xmax, ymax, zmax) {
         this.bbox.setFromBoundsArr([xmin, ymin, zmin, xmax, ymax, zmax]);
@@ -1161,7 +1174,7 @@ class Segment {
 
         this.bsphere.center.set(x, y, z);
         this.bsphere.radius = this.bsphere.center.distance(new Vec3(xmin, ymin, zmin));
-    };
+    }
 
     setBoundingVolume3v(vmin, vmax) {
         this.bbox.setFromBoundsArr([vmin.x, vmin.y, vmin.z, vmax.x, vmax.y, vmax.z]);
@@ -1172,7 +1185,7 @@ class Segment {
 
         this.bsphere.center.set(x, y, z);
         this.bsphere.radius = this.bsphere.center.distance(new Vec3(vmin.x, vmin.y, vmin.z));
-    };
+    }
 
     setBoundingVolumeArr(bounds) {
         this.bbox.setFromBoundsArr(bounds);
@@ -1182,8 +1195,10 @@ class Segment {
             z = bounds[2] + (bounds[5] - bounds[2]) * 0.5;
 
         this.bsphere.center.set(x, y, z);
-        this.bsphere.radius = this.bsphere.center.distance(new Vec3(bounds[0], bounds[1], bounds[2]));
-    };
+        this.bsphere.radius = this.bsphere.center.distance(
+            new Vec3(bounds[0], bounds[1], bounds[2])
+        );
+    }
 
     createCoordsBuffers(verticesHigh, verticesLow, gridSize) {
         var gsgs = (gridSize + 1) * (gridSize + 1);
@@ -1196,7 +1211,8 @@ class Segment {
             h.gl.deleteBuffer(this.vertexPositionBufferHigh);
             h.gl.deleteBuffer(this.vertexPositionBufferLow);
 
-            this.vertexTextureCoordBuffer = this.planet._textureCoordsBufferCache[Math.log2(gridSize)];
+            this.vertexTextureCoordBuffer =
+                this.planet._textureCoordsBufferCache[Math.log2(gridSize)];
 
             //this.vertexPositionBufferHigh = h.createStreamArrayBuffer(3, gsgs);
             //h.setStreamArrayBuffer(this.vertexPositionBufferHigh, verticesHigh);
@@ -1207,7 +1223,7 @@ class Segment {
             this.vertexPositionBufferHigh = h.createArrayBuffer(verticesHigh, 3, gsgs);
             this.vertexPositionBufferLow = h.createArrayBuffer(verticesLow, 3, gsgs);
         }
-    };
+    }
 
     _addViewExtent() {
         var ext = this._extentLonLat;
@@ -1237,7 +1253,7 @@ class Segment {
         if (ext.northEast.lat > viewExt.northEast.lat) {
             viewExt.northEast.lat = ext.northEast.lat;
         }
-    };
+    }
 
     _assignTileIndexes() {
         this._tileGroup = 0;
@@ -1259,7 +1275,7 @@ class Segment {
 
         this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom);
         this.planet._quadTreeNodesCacheMerc[this.tileIndex] = this.node;
-    };
+    }
 
     initialize() {
         var p = this.planet;
@@ -1270,17 +1286,20 @@ class Segment {
             n.sideSize[2] =
             n.sideSize[3] =
             this.gridSize =
-            p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize;
+                p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize;
 
         n.sideSizeLog2[0] =
             n.sideSizeLog2[1] =
             n.sideSizeLog2[2] =
             n.sideSizeLog2[3] =
-            Math.log2(p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize);
+                Math.log2(p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize);
 
         if (this.tileZoom <= p.terrain.maxZoom) {
             var nmc = this.planet._normalMapCreator;
-            this.normalMapTexturePtr = p.renderer.handler.createEmptyTexture_l(nmc._width, nmc._height);
+            this.normalMapTexturePtr = p.renderer.handler.createEmptyTexture_l(
+                nmc._width,
+                nmc._height
+            );
         }
 
         this.normalMapTexture = this.planet.transparentTexture;
@@ -1288,7 +1307,7 @@ class Segment {
         this._assignGlobalTextureCoordinates();
 
         this.initialized = true;
-    };
+    }
 
     _assignGlobalTextureCoordinates() {
         var e = this._extent;
@@ -1300,7 +1319,7 @@ class Segment {
             (e.northEast.lon + mercator.POLE) * mercator.ONE_BY_POLE_DOUBLE;
         this._globalTextureCoordinates[3] =
             (mercator.POLE - e.southWest.lat) * mercator.ONE_BY_POLE_DOUBLE;
-    };
+    }
 
     createPlainSegmentAsync() {
         let p = this.planet,
@@ -1310,128 +1329,107 @@ class Segment {
             this.plainProcessing = true;
             p._plainSegmentWorker.make(this);
         }
-    };
+    }
 
     createPlainSegment() {
         this.initialize();
         this._createPlainVertices();
         this.readyToEngage = true;
-    };
+    }
 
     _createPlainVertices() {
-      
-      var gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
+        var gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
 
-      var e = this._extent,
-          fgs = this.planet.terrain.plainGridSize;
-      var lonSize = e.getWidth();
-      var llStep = lonSize / Math.max(fgs, gridSize);
-      var esw_lon = e.southWest.lon,
-          ene_lat = e.northEast.lat;
-      var dg = Math.max(fgs / gridSize, 1),
-          gs = Math.max(fgs, gridSize) + 1;
-      var r2 = this.planet.ellipsoid._invRadii2;
-      var ind = 0,
-          nmInd = 0;
-      const gsgs = gs * gs;
+        var e = this._extent,
+            fgs = this.planet.terrain.plainGridSize;
+        var lonSize = e.getWidth();
+        var llStep = lonSize / Math.max(fgs, gridSize);
+        var esw_lon = e.southWest.lon,
+            ene_lat = e.northEast.lat;
+        var dg = Math.max(fgs / gridSize, 1),
+            gs = Math.max(fgs, gridSize) + 1;
+        var r2 = this.planet.ellipsoid._invRadii2;
+        var ind = 0,
+            nmInd = 0;
+        const gsgs = gs * gs;
 
-      var gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
+        var gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
 
-      this.plainNormals = new Float32Array(gridSize3);
-      this.plainVertices = new Float64Array(gridSize3);
-      this.plainVerticesHigh = new Float32Array(gridSize3);
-      this.plainVerticesLow = new Float32Array(gridSize3);
+        this.plainNormals = new Float32Array(gridSize3);
+        this.plainVertices = new Float64Array(gridSize3);
+        this.plainVerticesHigh = new Float32Array(gridSize3);
+        this.plainVerticesLow = new Float32Array(gridSize3);
 
-      this.normalMapNormals = new Float32Array(gsgs * 3);
-      this.normalMapVertices = new Float64Array(gsgs * 3);
-      this.normalMapVerticesHigh = new Float32Array(gsgs * 3);
-      this.normalMapVerticesLow = new Float32Array(gsgs * 3);
+        this.normalMapNormals = new Float32Array(gsgs * 3);
+        this.normalMapVertices = new Float64Array(gsgs * 3);
+        this.normalMapVerticesHigh = new Float32Array(gsgs * 3);
+        this.normalMapVerticesLow = new Float32Array(gsgs * 3);
 
-      let xmin = 549755748352.0,
-          xmax = -549755748352.0,
-          ymin = 549755748352.0,
-          ymax = -549755748352.0,
-          zmin = 549755748352.0,
-          zmax = -549755748352.0;
+        var verts = this.plainVertices,
+            vertsHigh = this.plainVerticesHigh,
+            vertsLow = this.plainVerticesLow,
+            norms = this.plainNormals,
+            nmVerts = this.normalMapVertices,
+            nmVertsHigh = this.normalMapVerticesHigh,
+            nmVertsLow = this.normalMapVerticesLow,
+            nmNorms = this.normalMapNormals;
 
-      var verts = this.plainVertices,
-          vertsHigh = this.plainVerticesHigh,
-          vertsLow = this.plainVerticesLow,
-          norms = this.plainNormals,
-          nmVerts = this.normalMapVertices,
-          nmVertsHigh = this.normalMapVerticesHigh,
-          nmVertsLow = this.normalMapVerticesLow,
-          nmNorms = this.normalMapNormals;
+        for (var k = 0; k < gsgs; k++) {
+            var j = k % gs,
+                i = ~~(k / gs);
 
-      for (var k = 0; k < gsgs; k++) {
-          var j = k % gs,
-              i = ~~(k / gs);
+            var v = this.planet.ellipsoid.lonLatToCartesian(
+                LonLat.inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep)
+            );
+            var nx = v.x * r2.x,
+                ny = v.y * r2.y,
+                nz = v.z * r2.z;
+            var l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+            var nxl = nx * l,
+                nyl = ny * l,
+                nzl = nz * l;
 
-          var v = this.planet.ellipsoid.lonLatToCartesian(
-              LonLat.inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep)
-          );
-          var nx = v.x * r2.x,
-              ny = v.y * r2.y,
-              nz = v.z * r2.z;
-          var l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-          var nxl = nx * l,
-              nyl = ny * l,
-              nzl = nz * l;
+            Vec3.doubleToTwoFloats(v, _tempHigh, _tempLow);
 
-          Vec3.doubleToTwoFloats(v, _tempHigh, _tempLow);
+            nmVerts[nmInd] = v.x;
+            nmVertsHigh[nmInd] = _tempHigh.x;
+            nmVertsLow[nmInd] = _tempLow.x;
+            nmNorms[nmInd++] = nxl;
 
-          nmVerts[nmInd] = v.x;
-          nmVertsHigh[nmInd] = _tempHigh.x;
-          nmVertsLow[nmInd] = _tempLow.x;
-          nmNorms[nmInd++] = nxl;
+            nmVerts[nmInd] = v.y;
+            nmVertsHigh[nmInd] = _tempHigh.y;
+            nmVertsLow[nmInd] = _tempLow.y;
+            nmNorms[nmInd++] = nyl;
 
-          nmVerts[nmInd] = v.y;
-          nmVertsHigh[nmInd] = _tempHigh.y;
-          nmVertsLow[nmInd] = _tempLow.y;
-          nmNorms[nmInd++] = nyl;
+            nmVerts[nmInd] = v.z;
+            nmVertsHigh[nmInd] = _tempHigh.z;
+            nmVertsLow[nmInd] = _tempLow.z;
+            nmNorms[nmInd++] = nzl;
 
-          nmVerts[nmInd] = v.z;
-          nmVertsHigh[nmInd] = _tempHigh.z;
-          nmVertsLow[nmInd] = _tempLow.z;
-          nmNorms[nmInd++] = nzl;
+            if (i % dg === 0 && j % dg === 0) {
+                verts[ind] = v.x;
+                vertsHigh[ind] = _tempHigh.x;
+                vertsLow[ind] = _tempLow.x;
+                norms[ind++] = nxl;
 
-          if (i % dg === 0 && j % dg === 0) {
-              verts[ind] = v.x;
-              vertsHigh[ind] = _tempHigh.x;
-              vertsLow[ind] = _tempLow.x;
-              norms[ind++] = nxl;
+                verts[ind] = v.y;
+                vertsHigh[ind] = _tempHigh.y;
+                vertsLow[ind] = _tempLow.y;
+                norms[ind++] = nyl;
 
-              verts[ind] = v.y;
-              vertsHigh[ind] = _tempHigh.y;
-              vertsLow[ind] = _tempLow.y;
-              norms[ind++] = nyl;
+                verts[ind] = v.z;
+                vertsHigh[ind] = _tempHigh.z;
+                vertsLow[ind] = _tempLow.z;
+                norms[ind++] = nzl;
+            }
+        }
 
-              verts[ind] = v.z;
-              vertsHigh[ind] = _tempHigh.z;
-              vertsLow[ind] = _tempLow.z;
-              norms[ind++] = nzl;
-
-              if (v.x < xmin) xmin = v.x;
-              if (v.x > xmax) xmax = v.x;
-              if (v.y < ymin) ymin = v.y;
-              if (v.y > ymax) ymax = v.y;
-              if (v.z < zmin) zmin = v.z;
-              if (v.z > zmax) zmax = v.z;
-          }
-      }
-
-      let x = (xmax - xmin) * 0.5,
-          y = (ymax - ymin) * 0.5,
-          z = (zmax - zmin) * 0.5;
-
-      this._plainRadius = Math.sqrt(x * x + y * y + z * z);
-
-      this.terrainVertices = verts;
-      this.terrainVerticesHigh = vertsHigh;
-      this.terrainVerticesLow = vertsLow;
+        this.terrainVertices = verts;
+        this.terrainVerticesHigh = vertsHigh;
+        this.terrainVerticesLow = vertsLow;
 
         this.plainReady = true;
-    };
+    }
 
     /**
      * Gets specific layer material.
@@ -1441,7 +1439,7 @@ class Segment {
      */
     getMaterialByLayer(layer) {
         return this.materials[layer._id];
-    };
+    }
 
     _getLayerExtentOffset(layer) {
         var v0s = layer._extentMerc;
@@ -1453,15 +1451,9 @@ class Segment {
         var dSize_x = (v0t.northEast.lon - v0t.southWest.lon) / sSize_x;
         var dSize_y = (v0t.northEast.lat - v0t.southWest.lat) / sSize_y;
         return [dV0s_x, dV0s_y, dSize_x, dSize_y];
-    };
+    }
 
-    screenRendering(
-        sh,
-        layerSlice,
-        sliceIndex,
-        defaultTexture,
-        isOverlay
-    ) {
+    screenRendering(sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
         var gl = this.handler.gl;
         var sha = sh.attributes,
             shu = sh.uniforms;
@@ -1609,15 +1601,9 @@ class Segment {
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
             gl.drawElements(p.drawMode, this._indexBuffer.numItems, gl.UNSIGNED_INT, 0);
         }
-    };
+    }
 
-    heightPickingRendering(
-        sh,
-        layerSlice,
-        sliceIndex,
-        defaultTexture,
-        isOverlay
-    ) {
+    heightPickingRendering(sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
         var gl = this.handler.gl;
         var sha = sh.attributes,
             shu = sh.uniforms;
@@ -1684,15 +1670,9 @@ class Segment {
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
             gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_INT, 0);
         }
-    };
+    }
 
-    colorPickingRendering(
-        sh,
-        layerSlice,
-        sliceIndex,
-        defaultTexture,
-        isOverlay
-    ) {
+    colorPickingRendering(sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
         var gl = this.handler.gl;
         var sha = sh.attributes,
             shu = sh.uniforms;
@@ -1766,15 +1746,9 @@ class Segment {
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
             gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_INT, 0);
         }
-    };
+    }
 
-    depthRendering(
-        sh,
-        layerSlice,
-        sliceIndex,
-        defaultTexture,
-        isOverlay
-    ) {
+    depthRendering(sh, layerSlice, sliceIndex, defaultTexture, isOverlay) {
         var gl = this.handler.gl;
         var sha = sh.attributes,
             shu = sh.uniforms;
@@ -1841,7 +1815,7 @@ class Segment {
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
             gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer.numItems, gl.UNSIGNED_INT, 0);
         }
-    };
+    }
 
     _getIndexBuffer() {
         var s = this.node.sideSizeLog2;
@@ -1855,36 +1829,36 @@ class Segment {
             indexes = null;
         }
         return cache.buffer;
-    };
+    }
 
     _collectVisibleNodes() {
         this.planet._visibleNodes[this.node.nodeId] = this.node;
-    };
+    }
 
     layerOverlap(layer) {
         return this._extent.overlaps(layer._extentMerc);
-    };
+    }
 
     getDefaultTexture() {
         return this.planet.solidTextureOne;
-    };
+    }
 
     getExtentLonLat() {
         return this._extentLonLat;
-    };
+    }
 
     getExtentMerc() {
         return this._extent;
-    };
+    }
 
     getExtent() {
         return this._extent;
-    };
+    }
 
     getNodeState() {
         var vn = this.planet._visibleNodes[this.node.nodeId];
         return (vn && vn.state) || NOTRENDERING;
-    };
+    }
 
     getNeighborSide(b) {
         if (this.tileY === b.tileY) {
@@ -1902,6 +1876,6 @@ class Segment {
         }
 
         return -1;
-    };
+    }
 }
 export { Segment };
