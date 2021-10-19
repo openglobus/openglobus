@@ -49,7 +49,7 @@ class Proj {
          * @type {integer}
          */
         this.id = _counter++;
-    };
+    }
 
     /**
      * Compare projections.
@@ -59,7 +59,7 @@ class Proj {
      */
     equal(proj) {
         return proj.id === this.id;
-    };
+    }
 }
 
 export { Proj };

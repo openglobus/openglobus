@@ -21,7 +21,7 @@ class Touch {
         this.dY = function () {
             return this.y - this.prev_y;
         };
-    };
+    }
 }
 
 class EarthNavigation extends Control {
