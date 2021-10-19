@@ -212,7 +212,7 @@ class Renderer {
         }
 
         this._currentOutput = "screen";
-    };
+    }
 
     /**
      * Sets renderer events activity.
@@ -220,12 +220,12 @@ class Renderer {
      */
     setEventsActivity(activity) {
         this.events.active = activity;
-    };
+    }
 
     setScreenScale(scale) {
         this._screenScale = scale;
         this._resize();
-    };
+    }
 
     addDepthCallback(sender, callback) {
         var id = __depthCallbackCounter__++;
@@ -235,7 +235,7 @@ class Renderer {
             sender: sender
         });
         return id;
-    };
+    }
 
     removeDepthCallback(id) {
         for (var i = 0; i < this._depthCallbacks.length; i++) {
@@ -244,7 +244,7 @@ class Renderer {
                 break;
             }
         }
-    };
+    }
 
     /**
      * Adds picking rendering callback function.
@@ -260,7 +260,7 @@ class Renderer {
             sender: sender
         });
         return id;
-    };
+    }
 
     /**
      * Removes picking rendering callback function.
@@ -273,11 +273,11 @@ class Renderer {
                 break;
             }
         }
-    };
+    }
 
     getPickingObjectByColor(r, g, b) {
         return this.colorObjects[r + "_" + g + "_" + b];
-    };
+    }
 
     /**
      * Assign picking color to the object.
@@ -307,7 +307,7 @@ class Renderer {
 
             this.colorObjects[str] = obj;
         }
-    };
+    }
 
     /**
      * Removes picking color from object.
@@ -323,7 +323,7 @@ class Renderer {
                 c.x = c.y = c.z = 0;
             }
         }
-    };
+    }
 
     /**
      * Get the client width.
@@ -332,7 +332,7 @@ class Renderer {
      */
     getWidth() {
         return this.handler.canvas.width;
-    };
+    }
 
     /**
      * Get the client height.
@@ -341,7 +341,7 @@ class Renderer {
      */
     getHeight() {
         return this.handler.canvas.height;
-    };
+    }
 
     /**
      * Get center of the screen
@@ -351,7 +351,7 @@ class Renderer {
     getCenter() {
         var cnv = this.handler.canvas;
         return new Vec2(Math.round(cnv.width * 0.5), Math.round(cnv.height * 0.5));
-    };
+    }
 
     /**
      * Add the given control to the renderer.
@@ -359,7 +359,7 @@ class Renderer {
      */
     addControl(control) {
         control.addTo(this);
-    };
+    }
 
     /**
      * Add the given controls array to the planet node.
@@ -369,7 +369,7 @@ class Renderer {
         for (var i = 0; i < cArr.length; i++) {
             cArr[i].addTo(this);
         }
-    };
+    }
 
     /**
      * Remove control from the renderer.
@@ -377,7 +377,7 @@ class Renderer {
      */
     removeControl(control) {
         control.remove();
-    };
+    }
 
     /**
      * Renderer initialization.
@@ -514,14 +514,14 @@ class Renderer {
         this.outputTexture = this.screenTexture.screen;
 
         this.fontAtlas.initFont("arial", arial.data, ARIAL_FONT_B64);
-    };
+    }
 
     setCurrentScreen(screenName) {
         this._currentOutput = screenName;
         if (this.screenTexture[screenName]) {
             this.outputTexture = this.screenTexture[screenName];
         }
-    };
+    }
 
     _resize() {
         let obj = this.handler.canvas;
@@ -555,11 +555,11 @@ class Renderer {
         }
 
         this.setCurrentScreen(this._currentOutput);
-    };
+    }
 
     removeNode(renderNode) {
         renderNode.remove();
-    };
+    }
 
     /**
      * Adds render node to the renderer.
@@ -574,7 +574,7 @@ class Renderer {
         } else {
             cons.logWrn("Node name " + renderNode.name + " allready exists.");
         }
-    };
+    }
 
     /**
      * Adds render node to the renderer before specific node.
@@ -595,7 +595,7 @@ class Renderer {
         } else {
             cons.logWrn("Node name " + renderNode.name + " allready exists.");
         }
-    };
+    }
 
     /**
      * Adds render nodes array to the renderer.
@@ -606,24 +606,24 @@ class Renderer {
         for (var i = 0; i < nodesArr.length; i++) {
             this.addNode(nodesArr[i]);
         }
-    };
+    }
 
     getMaxMSAA(internalFormat) {
         var gl = this.handler.gl;
         let samples = gl.getInternalformatParameter(gl.RENDERBUFFER, gl[internalFormat], gl.SAMPLES);
         return samples[0];
-    };
+    }
 
     getMSAA() {
         return this._msaa;
-    };
+    }
 
     /**
      * TODO: replace with cahce frendly linked list by bilboardHandler, label handler etc.
      */
     enqueueEntityCollectionsToDraw(ecArr) {
         this._entityCollections.push.apply(this._entityCollections, ecArr);
-    };
+    }
 
     /**
      * Draws entity collections.
@@ -718,7 +718,7 @@ class Renderer {
             this._entityCollections.length = 0;
             this._entityCollections = [];
         }
-    };
+    }
 
     /**
      * Draw nodes.
@@ -778,7 +778,7 @@ class Renderer {
 
         e.mouseState.moving = false;
         e.touchState.moving = false;
-    };
+    }
 
     _screenFrameMSAA() {
         var h = this.handler;
@@ -819,7 +819,7 @@ class Renderer {
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         gl.enable(gl.DEPTH_TEST);
-    };
+    }
 
     _screenFrameNoMSAA() {
         var h = this.handler;
@@ -836,7 +836,7 @@ class Renderer {
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         gl.enable(gl.DEPTH_TEST);
-    };
+    }
 
     /**
      * Returns picking object by screen coordinates
@@ -849,7 +849,7 @@ class Renderer {
             c = new Uint8Array(3);
         this.readPixels(c, x / cnv.width, (cnv.height - y) / cnv.height, 1);
         return this.colorObjects[c[0] + "_" + c[1] + "_" + c[2]];
-    };
+    }
 
     /**
      * Draw picking objects framebuffer.
@@ -883,7 +883,7 @@ class Renderer {
 
             this.pickingFramebuffer.deactivate();
         }
-    };
+    }
 
     _drawDepthBuffer(frustumIndex) {
         if (frustumIndex === 0) {
@@ -931,7 +931,7 @@ class Renderer {
 
             this.screenDepthFramebuffer.deactivate();
         }
-    };
+    }
 
     _readPickingColor() {
         var ms = this.events.mouseState;
@@ -955,7 +955,7 @@ class Renderer {
                 }
             }
         }
-    };
+    }
 
     /**
      * Function starts rendering.
@@ -963,7 +963,7 @@ class Renderer {
      */
     start() {
         this.handler.start();
-    };
+    }
 
 }
 

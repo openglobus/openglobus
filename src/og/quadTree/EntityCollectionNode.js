@@ -31,11 +31,11 @@ class EntityCollectionNode {
         this.bsphere = new Sphere();
 
         planet && this._setExtentBounds();
-    };
+    }
 
     insertEntity(entity, rightNow) {
         this.buildTree([entity], rightNow);
-    };
+    }
 
     _addEntitiesToCollection(entities, rightNow) {
         if (entities.length) {
@@ -62,7 +62,7 @@ class EntityCollectionNode {
                 this.deferredEntities.push.apply(this.deferredEntities, entities);
             }
         }
-    };
+    }
 
     _setExtentBounds() {
         if (!this.nodeId) {
@@ -71,7 +71,7 @@ class EntityCollectionNode {
         } else {
             this.bsphere.setFromExtent(this.layer._planet.ellipsoid, this.extent.inverseMercator());
         }
-    };
+    }
 
     __setLonLat__(entity) {
 
@@ -85,7 +85,7 @@ class EntityCollectionNode {
             entity._lonlatMerc = null;
         }
         return entity._lonlatMerc;
-    };
+    }
 
     buildTree(entities, rightNow) {
 
@@ -128,11 +128,11 @@ class EntityCollectionNode {
         } else {
             this._addEntitiesToCollection(entities, rightNow);
         }
-    };
+    }
 
     isInside(entity) {
         return this.extent.isInside(entity._lonlatMerc);
-    };
+    }
 
     createChildrenNodes() {
         var l = this.layer;
@@ -158,7 +158,7 @@ class EntityCollectionNode {
 
         nd[quadTree.SE] = new EntityCollectionNode(l, quadTree.SE, this, id,
             new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
-    };
+    }
 
     collectRenderCollectionsPASS1(visibleNodes, outArr) {
         var n = visibleNodes[this.nodeId];
@@ -177,7 +177,7 @@ class EntityCollectionNode {
                 }
             }
         }
-    };
+    }
 
     collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId) {
         var p = this.layer._planet;
@@ -201,14 +201,14 @@ class EntityCollectionNode {
             }
 
         }
-    };
+    }
 
     applyCollection() {
         this.entityCollection.addEntities(this.deferredEntities);
         this.deferredEntities.length = 0;
         this.deferredEntities = [];
         this._inTheQueue = false;
-    };
+    }
 
     traverseTree(callback) {
 
@@ -222,7 +222,7 @@ class EntityCollectionNode {
             cn[quadTree.SW].traverseTree(callback);
             cn[quadTree.SE].traverseTree(callback);
         }
-    };
+    }
 
     renderCollection(outArr, visibleNodes, renderingNodeId) {
 
@@ -277,20 +277,20 @@ class EntityCollectionNode {
                 }
             }
         }
-    };
+    }
 
     alignEntityToTheGround(entity, segment) {
         var res = new Vec3();
         segment.getEntityTerrainPoint(entity, res);
         entity._setCartesian3vSilent(res.addA(res.normal().scale((Number(this.layer.relativeToGround) && entity._altitude) || 0.0)));
-    };
+    }
 
     isVisible() {
         if (this.layer._renderingNodes[this.nodeId]) {
             return true;
         }
         return false;
-    };
+    }
 
 }
 
@@ -325,21 +325,21 @@ class EntityCollectionNodeWGS84 extends EntityCollectionNode {
 
         nd[quadTree.SE] = new EntityCollectionNodeWGS84(l, quadTree.SE, this, id,
             new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
-    };
+    }
 
     _setExtentBounds() {
         if (this.extent.northEast.lat > 0) {
             this.isNorth = true;
         }
         this.bsphere.setFromExtent(this.layer._planet.ellipsoid, this.extent);
-    };
+    }
 
     __setLonLat__(entity) {
         if (entity._lonlat.isZero()) {
             entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
         }
         return entity._lonlat;
-    };
+    }
 
     isVisible() {
         if (this.isNorth && this.layer._renderingNodesNorth[this.nodeId]) {
@@ -348,11 +348,11 @@ class EntityCollectionNodeWGS84 extends EntityCollectionNode {
             return true;
         }
         return false;
-    };
+    }
 
     isInside(entity) {
         return this.extent.isInside(entity._lonlat);
-    };
+    }
 
     /**
      * 
@@ -381,7 +381,7 @@ class EntityCollectionNodeWGS84 extends EntityCollectionNode {
         this.entityCollection.pickingScale = this.layer.pickingScale;
 
         outArr.push(this.entityCollection);
-    };
+    }
 }
 
 export { EntityCollectionNode, EntityCollectionNodeWGS84 };

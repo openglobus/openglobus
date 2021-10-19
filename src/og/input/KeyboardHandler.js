@@ -126,7 +126,7 @@ class KeyboardHandler {
                 }
             }
         };
-    };
+    }
 }
 
 export { KeyboardHandler };

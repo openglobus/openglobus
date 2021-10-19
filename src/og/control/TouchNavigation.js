@@ -23,7 +23,7 @@ class Touch {
         this.grabbedSpheroid = new Sphere();
         this.dX = function () { return this.x - this.prev_x; };
         this.dY = function () { return this.y - this.prev_y; };
-    };
+    }
 }
 
 /**

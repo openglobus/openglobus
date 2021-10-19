@@ -8,7 +8,7 @@ class MouseHandler {
 
     constructor(htmlObject) {
         this._htmlObject = htmlObject;
-    };
+    }
 
     setEvent(event, sender, callback) {
         switch (event) {
@@ -92,7 +92,7 @@ class MouseHandler {
                 });
                 break;
         }
-    };
+    }
 }
 
 export { MouseHandler };

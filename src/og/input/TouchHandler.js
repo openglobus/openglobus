@@ -8,7 +8,7 @@ class TouchHandler {
 
     constructor(htmlObject) {
         this._htmlObject = htmlObject;
-    };
+    }
 
     setEvent(event, sender, callback) {
         switch (event) {
@@ -56,7 +56,7 @@ class TouchHandler {
                 });
                 break;
         }
-    };
+    }
 }
 
 export { TouchHandler };

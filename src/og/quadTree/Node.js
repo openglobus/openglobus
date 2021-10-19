@@ -85,7 +85,7 @@ class Node {
         this.inFrustum = 0;
         this.createBounds();
         this.planet._createdNodesCount++;
-    };
+    }
 
     createChildrenNodes() {
         this.ready = true;
@@ -141,7 +141,7 @@ class Node {
             z,
             new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y))
         );
-    };
+    }
 
     createBounds() {
         let seg = this.segment;
@@ -153,7 +153,7 @@ class Node {
         } else {
             seg.createBoundsByParent();
         }
-    };
+    }
 
     getState() {
         if (this.state === -1) {
@@ -167,7 +167,7 @@ class Node {
             pn = pn.parentNode;
         }
         return this.state;
-    };
+    }
 
     /**
      * Returns the same deep existent neighbour node.
@@ -197,11 +197,11 @@ class Node {
                 }
             }
         }
-    };
+    }
 
     isBrother(node) {
         return !(this.parentNode || node.parentNode) || this.parentNode.id === node.parentNode.id;
-    };
+    }
 
     renderTree(cam, maxZoom, terrainReadySegment, stopLoading) {
         if (
@@ -307,7 +307,7 @@ class Node {
         } else {
             this.state = NOTRENDERING;
         }
-    };
+    }
 
     traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading) {
         if (!this.ready) {
@@ -320,7 +320,7 @@ class Node {
         n[1].renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
         n[2].renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
         n[3].renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
-    };
+    }
 
     prepareForRendering(
         cam,
@@ -353,7 +353,7 @@ class Node {
                 this.state = NOTRENDERING;
             }
         }
-    };
+    }
 
     renderNode(inFrustum, onlyTerrain, terrainReadySegment, stopLoading) {
         var seg = this.segment;
@@ -398,7 +398,7 @@ class Node {
 
         // Finally this node proceeds to rendering.
         this.addToRender(inFrustum);
-    };
+    }
 
     /**
      * Seraching for neighbours and pickup current node to render processing.
@@ -460,7 +460,7 @@ class Node {
             k++;
             inFrustum >>= 1;
         }
-    };
+    }
 
     getCommonSide(node) {
         var as = this.segment,
@@ -568,7 +568,7 @@ class Node {
         }
 
         return -1;
-    };
+    }
 
     // TODO: test test test
     ___getCommonSide___(b) {
@@ -629,7 +629,7 @@ class Node {
         }
 
         return -1;
-    };
+    }
 
     whileNormalMapCreating() {
         var seg = this.segment;
@@ -657,7 +657,7 @@ class Node {
                 seg.parentNormalMapReady = true;
             }
         }
-    };
+    }
 
     whileTerrainLoading(terrainReadySegment, stopLoading) {
         const seg = this.segment;
@@ -907,7 +907,7 @@ class Node {
                 }
             }
         }
-    };
+    }
 
     destroy() {
         this.state = NOTRENDERING;
@@ -922,7 +922,7 @@ class Node {
         this.sideSize = null;
         this.sideSizeLog2 = null;
         this.segment = null;
-    };
+    }
 
     clearTree() {
         var state = this.getState();
@@ -936,14 +936,14 @@ class Node {
                 this.nodes[i] && this.nodes[i].clearTree();
             }
         }
-    };
+    }
 
     clearBranches() {
         for (let i = 0; i < this.nodes.length; i++) {
             this.nodes[i].clearBranches();
             this.nodes[i].segment.deleteMaterials();
         }
-    };
+    }
 
     destroyBranches() {
         if (this.ready) {
@@ -966,7 +966,7 @@ class Node {
             nodesToRemove.length = 0;
             nodesToRemove = null;
         }
-    };
+    }
 
     traverseTree(callback) {
         callback(this);
@@ -975,7 +975,7 @@ class Node {
                 this.nodes[i].traverseTree(callback);
             }
         }
-    };
+    }
 
     getOffsetOppositeNeighbourSide(neighbourNode, side) {
         let pNode = this,
@@ -988,7 +988,7 @@ class Node {
         }
 
         return offset;
-    };
+    }
 }
 
 export { Node };
