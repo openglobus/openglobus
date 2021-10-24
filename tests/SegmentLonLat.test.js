@@ -1,10 +1,6 @@
 import { Extent } from '../src/og/Extent';
 import { Planet } from '../src/og/scene/Planet';
 import { SegmentLonLat } from '../src/og/segment/SegmentLonLat';
-import { Worker } from './worker';
-
-window.Worker = Worker;
-global.URL.createObjectURL = jest.fn(() => '');
 
 const mockPlanet = () => {
     const planet = new Planet();
