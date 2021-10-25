@@ -73,6 +73,6 @@ class Axes extends RenderNode {
         this.axisBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices), 3, 6);
         this.axisColorBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(colors), 4, 6);
     }
-};
+}
 
 export { Axes };

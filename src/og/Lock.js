@@ -25,7 +25,7 @@ class Lock {
     isLocked() {
         return this._lock !== 0;
     }
-};
+}
 
 class Key {
 
@@ -43,6 +43,6 @@ class Key {
     constructor() {
         this._id = Key._staticCounter++;
     }
-};
+}
 
 export { Lock, Key };

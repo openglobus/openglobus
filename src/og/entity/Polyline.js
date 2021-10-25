@@ -36,9 +36,9 @@ const A = 3;
  * @param {Boolean} [options.opacity] - Line opacity.
  * @param {Boolean} [options.visibility] - Polyline visibility. True default.
  * @param {Boolean} [options.isClosed] - Closed geometry type identificator.
- * @param {Array.<Array.<number,number,number>>} [options.pathLonLat] - Polyline geodetic coordinates array.
- * @param {Array.<Array.<number,number,number>>} [options.path3v] - LinesString cartesian coordinates array. [[0,0,0], [1,1,1],...]
- * @param {Array.<Array.<number,number,number, number>>} [options.pathColors] - Coordinates color. [[1,0,0,1], [0,1,0,1],...] for right and green colors.
+ * @param {Array.<Array.<number>>} [options.pathLonLat] - Polyline geodetic coordinates array. [[0,0,0], [1,1,1],...]
+ * @param {Array.<Array.<number>>} [options.path3v] - LinesString cartesian coordinates array. [[0,0,0], [1,1,1],...]
+ * @param {Array.<Array.<number>>} [options.pathColors] - Coordinates color. [[1,0,0,1], [0,1,0,1],...] for right and green colors.
  */
 class Polyline {
     constructor(options) {
@@ -64,7 +64,7 @@ class Polyline {
         /**
          * Polyline RGBA color.
          * @public
-         * @type {Array<Number,Number,Number,Number>}
+         * @type {Array<number>} - (exactly 4 entries)
          */
         this._defaultColor = htmlColorToFloat32Array(
             options.color || DEFAULT_COLOR,
@@ -97,14 +97,14 @@ class Polyline {
         /**
          * Polyline geodetic degrees coordiantes.
          * @private
-         * @type {Array.<og.LonLat>}
+         * @type {Array.<LonLat>}
          */
         this._pathLonLat = [];
 
         /**
          * Polyline geodetic mercator coordinates.
          * @private
-         * @type {Array.<og.LonLat>}
+         * @type {Array.<LonLat>}
          */
         this._pathLonLatMerc = [];
 
@@ -178,15 +178,15 @@ class Polyline {
 
     /**
      * Appends to the line array new cartesian coordinates line data.
-     * @param {Array.<Array.<number, number, number>>} path3v - Line coordinates path array.
+     * @param {Array.<Array.<number>>} path3v - Line coordinates path array. [[0,0,0], [1,1,1],...]
      * @param {Boolean} isClosed - Identificator for the closed line data creation.
      * @param {Number[]} outVertices - Out vertices data array.
      * @param {Number[]} outOrders - Out vertices orders data array.
      * @param {Number[]} outIndexes - Out vertices indexes data array.
      * @param {og.Ellipsoid} [ellipsoid] - Ellipsoid to coordinates transformation.
-     * @param {Array.<Array.<og.LonLat>>} [outTransformedPathLonLat] - Geodetic coordinates out array.
-     * @param {Array.<Array.<og.LonLat>>} [outPath3v] - Cartesian coordinates out array.
-     * @param {Array.<Array.<og.LonLat>>} [outTransformedPathMerc] - Mercator coordinates out array.
+     * @param {Array.<Array.<LonLat>>} [outTransformedPathLonLat] - Geodetic coordinates out array.
+     * @param {Array.<Array.<LonLat>>} [outPath3v] - Cartesian coordinates out array.
+     * @param {Array.<Array.<LonLat>>} [outTransformedPathMerc] - Mercator coordinates out array.
      * @param {og.Extent} [outExtent] - Geodetic line extent.
      * @param {Array} [outColors]
      * @static
@@ -449,15 +449,15 @@ class Polyline {
 
     /**
      * Appends to the line new cartesian coordinates point data.
-     * @param {Array.<Array.<number, number, number>>} path3v - Line coordinates path array.
+     * @param {Array.<Array.<number>>} path3v - Line coordinates path array. [[0,0,0], [1,1,1],...]
      * @param {Boolean} isClosed - Identificator for the closed line data creation.
      * @param {Number[]} outVertices - Out vertices data array.
      * @param {Number[]} outOrders - Out vertices orders data array.
      * @param {Number[]} outIndexes - Out vertices indexes data array.
      * @param {og.Ellipsoid} [ellipsoid] - Ellipsoid to coordinates transformation.
-     * @param {Array.<Array.<og.LonLat>>} [outTransformedPathLonLat] - Geodetic coordinates out array.
-     * @param {Array.<Array.<og.LonLat>>} [outPath3v] - Cartesian coordinates out array.
-     * @param {Array.<Array.<og.LonLat>>} [outTransformedPathMerc] - Mercator coordinates out array.
+     * @param {Array.<Array.<LonLat>>} [outTransformedPathLonLat] - Geodetic coordinates out array.
+     * @param {Array.<Array.<LonLat>>} [outPath3v] - Cartesian coordinates out array.
+     * @param {Array.<Array.<LonLat>>} [outTransformedPathMerc] - Mercator coordinates out array.
      * @param {og.Extent} [outExtent] - Geodetic line extent.
      * @static
      */
@@ -701,15 +701,15 @@ class Polyline {
 
     /**
      * Appends to the line array new geodetic coordinates line data.
-     * @param {Array.<Array.<number, number, number>>} pathLonLat - Line geodetic coordinates path array.
+     * @param {Array.<Array.<number>>} pathLonLat - Line geodetic coordinates path array. [[0,0,0], [1,1,1],...]
      * @param {Boolean} isClosed - Identificator for the closed line data creation.
      * @param {Number[]} outVertices - Out vertices data array.
      * @param {Number[]} outOrders - Out vertices orders data array.
      * @param {Number[]} outIndexes - Out indexes data array.
      * @param {og.Ellipsoid} ellipsoid - Ellipsoid to coordinates transformation.
-     * @param {Array.<Array.<Number, Number, Number>>} outTransformedPathCartesian - Cartesian coordinates out array.
-     * @param {Array.<Array.<og.LonLat>>} outPathLonLat - Geographic coordinates out array.
-     * @param {Array.<Array.<og.LonLat>>} outTransformedPathMerc - Mercator coordinates out array.
+     * @param {Array.<Array.<number>>} outTransformedPathCartesian - Cartesian coordinates out array. [[0,0,0], [1,1,1],...]
+     * @param {Array.<Array.<LonLat>>} outPathLonLat - Geographic coordinates out array.
+     * @param {Array.<Array.<LonLat>>} outTransformedPathMerc - Mercator coordinates out array.
      * @param {og.Extent} outExtent - Geodetic line extent.
      * @static
      */
@@ -1157,7 +1157,7 @@ class Polyline {
     /**
      * Sets polyline with geodetic coordinates.
      * @protected
-     * @param {og.LonLat[]} pathLonLat - Geodetic polyline path coordinates.
+     * @param {LonLat[]} pathLonLat - Geodetic polyline path coordinates.
      */
     _setEqualPathLonLat(pathLonLat) {
         var extent = this._extent;
@@ -1640,7 +1640,7 @@ class Polyline {
     /**
      * Adds a new geodetic point in the end of the path.
      * @public
-     * @param {og.LonLat} lonLat - New coordinate.
+     * @param {LonLat} lonLat - New coordinate.
      * @param {number} [multiLineIndex=0] - Path part index, first by default.
      */
     addPointLonLat(lonLat, multiLineIndex = 0) {
@@ -1886,7 +1886,7 @@ class Polyline {
 
     /**
      * Returns geodetic path coordinates.
-     * @return {Array.<og.LonLat>} Polyline path.
+     * @return {Array.<LonLat>} Polyline path.
      */
     getPathLonLat() {
         return this._pathLonLat;
@@ -1932,7 +1932,7 @@ class Polyline {
     /**
      * Sets geodetic coordinates.
      * @public
-     * @param {Array.<Array.<number,number,number>>} pathLonLat - Polyline path cartesian coordinates.
+     * @param {Array.<Array.<number>>} pathLonLat - Polyline path cartesian coordinates. (exactly 3 entries)
      * @param {Boolean} [forceEqual=false] - Makes assigning faster for size equal coordinates array.
      */
     setPathLonLat(pathLonLat, forceEqual) {
@@ -1955,7 +1955,7 @@ class Polyline {
     /**
      * Sets Polyline cartesian coordinates.
      * @public
-     * @param {Array.<Array.<number,number,number>>} path3v - Polyline path cartesian coordinates.
+     * @param {Array.<Array.<number>>} path3v - Polyline path cartesian coordinates. (exactly 3 entries)
      * @param {Boolean} [forceEqual=false] - Makes assigning faster for size equal coordinates array.
      */
     setPath3v(path3v, pathColors, forceEqual) {

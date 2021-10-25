@@ -13,6 +13,11 @@ import { Vec3 } from '../math/Vec3.js';
  * @param {og.Vec3} [center] - Bounding sphere coordiantes.
  */
 class Sphere {
+    /**
+     * 
+     * @param {number} radius 
+     * @param {Vec3} center 
+     */
     constructor(radius, center) {
 
         /**
@@ -48,6 +53,6 @@ class Sphere {
     setFromExtent(ellipsoid, extent) {
         this.setFromBounds(extent.getCartesianBounds(ellipsoid));
     }
-};
+}
 
 export { Sphere };

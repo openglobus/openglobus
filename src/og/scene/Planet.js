@@ -563,6 +563,8 @@ export class Planet extends RenderNode {
      * @param {og.terrain.Terrain} terrain - Terrain provider.
      */
     setTerrain(terrain) {
+        this._renderCompletedActivated = false;
+
         if (this._initialized) {
             this.memClear();
         }
@@ -674,6 +676,10 @@ export class Planet extends RenderNode {
                 }
             }
         }
+
+        this.renderer.events.on("resize", () => {
+            this._renderCompletedActivated = false;
+        });
 
         // Initialize texture coordinates buffer pool
         this._textureCoordsBufferCache = [];
@@ -802,7 +808,7 @@ export class Planet extends RenderNode {
     _preRender() {
         this._quadTree.createChildrenNodes();
         this._quadTree.segment.createPlainSegment();
-        this._quadTree.renderNode();
+        this._quadTree.renderNode(true);
         this._normalMapCreator.drawSingle(this._quadTree.segment);
 
         for (var i = 0; i < this._quadTree.nodes.length; i++) {
@@ -813,13 +819,25 @@ export class Planet extends RenderNode {
 
         this._quadTreeNorth.createChildrenNodes();
         this._quadTreeNorth.segment.createPlainSegment();
-        this._quadTreeNorth.renderNode();
+        this._quadTreeNorth.renderNode(true);
         this._normalMapCreator.drawSingle(this._quadTreeNorth.segment);
+
+        for (var i = 0; i < this._quadTreeNorth.nodes.length; i++) {
+            this._quadTreeNorth.nodes[i].segment.createPlainSegment();
+            this._quadTreeNorth.nodes[i].renderNode(true);
+            this._normalMapCreator.drawSingle(this._quadTreeNorth.nodes[i].segment);
+        }
 
         this._quadTreeSouth.createChildrenNodes();
         this._quadTreeSouth.segment.createPlainSegment();
-        this._quadTreeSouth.renderNode();
+        this._quadTreeSouth.renderNode(true);
         this._normalMapCreator.drawSingle(this._quadTreeSouth.segment);
+
+        for (var i = 0; i < this._quadTreeSouth.nodes.length; i++) {
+            this._quadTreeSouth.nodes[i].segment.createPlainSegment();
+            this._quadTreeSouth.nodes[i].renderNode(true);
+            this._normalMapCreator.drawSingle(this._quadTreeSouth.nodes[i].segment);
+        }
     }
 
     /**
@@ -1092,7 +1110,10 @@ export class Planet extends RenderNode {
         gl.disable(gl.POLYGON_OFFSET_FILL);
 
         if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
-            this._collectRenderNodes();
+            if (this._skipPreRender && (!this._renderCompletedActivated || cam._moved)) {
+                this._collectRenderNodes();
+            }
+            this._skipPreRender = true;
 
             // Here is the planet node dispatches a draw event before
             // rendering begins and we have got render nodes.
@@ -1177,8 +1198,6 @@ export class Planet extends RenderNode {
             shu = sh.uniforms;
             gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
             gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
-
-            //gl.uniformMatrix4fv(sh.uniforms.projectionViewMatrix, false, cam.getProjectionViewMatrix());
         }
 
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
@@ -1223,7 +1242,6 @@ export class Planet extends RenderNode {
                 rn[i].segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
-        //gl.disable(gl.POLYGON_OFFSET_FILL);
 
         gl.disable(gl.BLEND);
     }
@@ -1461,7 +1479,7 @@ export class Planet extends RenderNode {
      * Returns 2d screen coordanates projection point to the planet ellipsoid geographical coordinates.
      * @public
      * @param {og.math.Pixel} px - 2D screen coordinates.
-     * @returns {og.LonLat} -
+     * @returns {LonLat} -
      */
     getLonLatFromPixelEllipsoid(px) {
         var coords = this.getCartesianFromPixelEllipsoid(px);
@@ -1510,7 +1528,7 @@ export class Planet extends RenderNode {
      * @public
      * @param {og.Vec2} px - Pixel screen 2d coordinates.
      * @param {Boolean} [force=false] - Force framebuffer rendering.
-     * @returns {og.LonLat} -
+     * @returns {LonLat} -
      */
     getLonLatFromPixelTerrain(px, force) {
         var coords = this.getCartesianFromPixelTerrain(px, force);
@@ -1533,7 +1551,7 @@ export class Planet extends RenderNode {
     /**
      * Returns projected 2d screen coordinates by geographical coordinates.
      * @public
-     * @param {og.LonLat} lonlat - Geographical coordinates.
+     * @param {LonLat} lonlat - Geographical coordinates.
      * @returns {og.Vec2} -
      */
     getPixelFromLonLat(lonlat) {
@@ -1615,7 +1633,7 @@ export class Planet extends RenderNode {
     /**
      * Sets camera to the planet geographical extent.
      * @public
-     * @param {Array.<number,number,number,number>} extentArr - Geographical extent array,
+     * @param {Array.<number>} extentArr - Geographical extent array, (exactly 4 entries)
      * where index 0 - southwest longitude, 1 - latitude southwest, 2 - longitude northeast, 3 - latitude northeast.
      */
     viewExtentArr(extentArr) {
@@ -1661,7 +1679,7 @@ export class Planet extends RenderNode {
     /**
      * Sets camera to the planet geographical position.
      * @public
-     * @param {og.LonLat} lonlat - New geographical position.
+     * @param {LonLat} lonlat - New geographical position.
      * @param {og.Vec3} [up] - Camera UP vector.
      */
     viewLonLat(lonlat, up) {
@@ -1715,7 +1733,7 @@ export class Planet extends RenderNode {
     /**
      * Fly camera to the new geographical position.
      * @public
-     * @param {og.LonLat} lonlat - Fly geographical coordiantes.
+     * @param {LonLat} lonlat - Fly geographical coordiantes.
      * @param {og.Vec3} [look] - Camera "look at" point on the end of a flying.
      * @param {og.Vec3} [up] - Camera UP vector on the end of a flying.
      * @param {Number} [ampl] - Altitude amplitude factor.

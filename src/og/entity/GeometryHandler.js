@@ -47,7 +47,7 @@ function doubleToTwoFloats(v, high, low) {
         high.y = Math.fround(-doubleHigh);
         low.y = Math.fround(y + doubleHigh);
     }
-};
+}
 
 let tempHigh = new Vec2(),
     tempLow = new Vec2(),
@@ -860,6 +860,6 @@ class GeometryHandler {
         h.gl.deleteBuffer(this._lineStrokeColorsBuffer);
         this._lineStrokeColorsBuffer = h.createArrayBuffer(new Float32Array(this._lineStrokeColors), 4, this._lineStrokeColors.length / 4);
     }
-};
+}
 
 export { GeometryHandler };

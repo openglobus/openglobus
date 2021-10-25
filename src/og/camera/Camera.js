@@ -1,13 +1,13 @@
-'use strict';
+"use strict";
 
-import * as math from '../math.js';
-import { Events } from '../Events.js';
-import { Frustum } from './Frustum.js';
-import { Vec2 } from '../math/Vec2.js';
-import { Vec3 } from '../math/Vec3.js';
-import { Vec4 } from '../math/Vec4.js';
-import { Mat3 } from '../math/Mat3.js';
-import { Mat4 } from '../math/Mat4.js';
+import * as math from "../math.js";
+import { Events } from "../Events.js";
+import { Frustum } from "./Frustum.js";
+import { Vec2 } from "../math/Vec2.js";
+import { Vec3 } from "../math/Vec3.js";
+import { Vec4 } from "../math/Vec4.js";
+import { Mat3 } from "../math/Mat3.js";
+import { Mat4 } from "../math/Mat4.js";
 
 /**
  * Camera class.
@@ -26,7 +26,6 @@ import { Mat4 } from '../math/Mat4.js';
  */
 class Camera {
     constructor(renderer, options) {
-
         /**
          * Assigned renderer
          * @public
@@ -136,7 +135,7 @@ class Camera {
                     aspect: this._aspect,
                     near: fi[0],
                     far: fi[1]
-                })
+                });
 
                 fr._cameraFrustumIndex = this.frustums.length;
                 this.frustums.push(fr);
@@ -145,7 +144,6 @@ class Camera {
                 this.frustumColors.push.apply(this.frustumColors, fr._pickingColorU);
             }
         } else {
-
             let near = 1.0,
                 far = 10000.0;
 
@@ -177,10 +175,12 @@ class Camera {
             eye = this.eye;
 
         if (this.events.moveend.handlers.length) {
-            if (this._peye.equal(eye) &&
+            if (
+                this._peye.equal(eye) &&
                 this._pu.equal(u) &&
                 this._pv.equal(v) &&
-                this._pn.equal(n)) {
+                this._pn.equal(n)
+            ) {
                 if (this._moved) {
                     this.events.dispatch(this.events.moveend, this);
                 }
@@ -209,13 +209,13 @@ class Camera {
      * @param {og.Vec3} [options.up] - Camera eye position. Default (0,1,0)
      */
     _init(options) {
-
         this._setProj(this._viewAngle, this._aspect);
 
         this.set(
             options.eye || new Vec3(0.0, 0.0, 1.0),
             options.look || new Vec3(),
-            options.up || new Vec3(0.0, 1.0, 0.0));
+            options.up || new Vec3(0.0, 1.0, 0.0)
+        );
     }
 
     getUp() {
@@ -248,18 +248,33 @@ class Camera {
      * @virtual
      */
     update() {
-        var u = this._u, v = this._v, n = this._n, eye = this.eye;
+        var u = this._u,
+            v = this._v,
+            n = this._n,
+            eye = this.eye;
 
         Vec3.doubleToTwoFloat32Array(eye, this.eyeHigh, this.eyeLow);
 
         this._viewMatrix.set([
-            u.x, v.x, n.x, 0.0,
-            u.y, v.y, n.y, 0.0,
-            u.z, v.z, n.z, 0.0,
-            -eye.dot(u), -eye.dot(v), -eye.dot(n), 1.0
+            u.x,
+            v.x,
+            n.x,
+            0.0,
+            u.y,
+            v.y,
+            n.y,
+            0.0,
+            u.z,
+            v.z,
+            n.z,
+            0.0,
+            -eye.dot(u),
+            -eye.dot(v),
+            -eye.dot(n),
+            1.0
         ]);
 
-        this._normalMatrix = this._viewMatrix.toMatrix3();// this._viewMatrix.toInverseMatrix3().transposeTo();
+        this._normalMatrix = this._viewMatrix.toMatrix3(); // this._viewMatrix.toInverseMatrix3().transposeTo();
 
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             this.frustums[i].setViewMatrix(this._viewMatrix);
@@ -306,11 +321,22 @@ class Camera {
         this._viewAngle = angle;
         this._aspect = aspect;
         this._tanViewAngle_hrad = Math.tan(angle * math.RADIANS_HALF);
-        this._tanViewAngle_hradOneByHeight = this._tanViewAngle_hrad * this.renderer.handler._oneByHeight;
+        this._tanViewAngle_hradOneByHeight =
+            this._tanViewAngle_hrad * this.renderer.handler._oneByHeight;
         var c = this.renderer.handler.canvas;
-        this._projSizeConst = Math.min(c.clientWidth, c.clientHeight) / (angle * math.RADIANS);
+        this._projSizeConst =
+            Math.min(
+                c.clientWidth < 256 ? 256 : c.clientWidth,
+                c.clientHeight < 256 ? 256 : c.clientHeight
+            ) /
+            (angle * math.RADIANS);
         for (let i = 0, len = this.frustums.length; i < len; i++) {
-            this.frustums[i].setProjectionMatrix(angle, aspect, this.frustums[i].near, this.frustums[i].far);
+            this.frustums[i].setProjectionMatrix(
+                angle,
+                aspect,
+                this.frustums[i].near,
+                this.frustums[i].far
+            );
         }
     }
 
@@ -327,7 +353,7 @@ class Camera {
     /**
      * Gets camera view angle in degrees
      * @public
-     * @returns {number} angle - 
+     * @returns {number} angle -
      */
     getViewAngle() {
         return this._viewAngle;
@@ -393,8 +419,16 @@ class Camera {
         var cs = Math.cos(math.RADIANS * angle);
         var sn = Math.sin(math.RADIANS * angle);
         var t = this._u.clone();
-        this._u.set(cs * t.x - sn * this._v.x, cs * t.y - sn * this._v.y, cs * t.z - sn * this._v.z);
-        this._v.set(sn * t.x + cs * this._v.x, sn * t.y + cs * this._v.y, sn * t.z + cs * this._v.z);
+        this._u.set(
+            cs * t.x - sn * this._v.x,
+            cs * t.y - sn * this._v.y,
+            cs * t.z - sn * this._v.z
+        );
+        this._v.set(
+            sn * t.x + cs * this._v.x,
+            sn * t.y + cs * this._v.y,
+            sn * t.z + cs * this._v.z
+        );
     }
 
     /**
@@ -406,8 +440,16 @@ class Camera {
         var cs = Math.cos(math.RADIANS * angle);
         var sn = Math.sin(math.RADIANS * angle);
         var t = this._n.clone();
-        this._n.set(cs * t.x - sn * this._v.x, cs * t.y - sn * this._v.y, cs * t.z - sn * this._v.z);
-        this._v.set(sn * t.x + cs * this._v.x, sn * t.y + cs * this._v.y, sn * t.z + cs * this._v.z);
+        this._n.set(
+            cs * t.x - sn * this._v.x,
+            cs * t.y - sn * this._v.y,
+            cs * t.z - sn * this._v.z
+        );
+        this._v.set(
+            sn * t.x + cs * this._v.x,
+            sn * t.y + cs * this._v.y,
+            sn * t.z + cs * this._v.z
+        );
     }
 
     /**
@@ -419,8 +461,16 @@ class Camera {
         var cs = Math.cos(math.RADIANS * angle);
         var sn = Math.sin(math.RADIANS * angle);
         var t = this._u.clone();
-        this._u.set(cs * t.x - sn * this._n.x, cs * t.y - sn * this._n.y, cs * t.z - sn * this._n.z);
-        this._n.set(sn * t.x + cs * this._n.x, sn * t.y + cs * this._n.y, sn * t.z + cs * this._n.z);
+        this._u.set(
+            cs * t.x - sn * this._n.x,
+            cs * t.y - sn * this._n.y,
+            cs * t.z - sn * this._n.z
+        );
+        this._n.set(
+            sn * t.x + cs * this._n.x,
+            sn * t.y + cs * this._n.y,
+            sn * t.z + cs * this._n.z
+        );
     }
 
     /**
@@ -438,8 +488,12 @@ class Camera {
         var px = (x - w) / w,
             py = -(y - h) / h;
 
-        var world1 = this.frustums[0]._inverseProjectionViewMatrix.mulVec4(new Vec4(px, py, -1.0, 1.0)).affinity(),
-            world2 = this.frustums[0]._inverseProjectionViewMatrix.mulVec4(new Vec4(px, py, 0.0, 1.0)).affinity();
+        var world1 = this.frustums[0]._inverseProjectionViewMatrix
+                .mulVec4(new Vec4(px, py, -1.0, 1.0))
+                .affinity(),
+            world2 = this.frustums[0]._inverseProjectionViewMatrix
+                .mulVec4(new Vec4(px, py, 0.0, 1.0))
+                .affinity();
 
         return world2.subA(world1).toVec3().normalize();
     }
@@ -579,7 +633,7 @@ class Camera {
     getInverseProjectionMatrix() {
         return this.frustum._inverseProjectionMatrix._m;
     }
-};
+}
 
 const EVENT_NAMES = [
     /**

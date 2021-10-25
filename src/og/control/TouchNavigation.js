@@ -13,6 +13,19 @@ import { Ray } from '../math/Ray.js';
 import { Sphere } from '../bv/Sphere.js';
 import { Vec3 } from '../math/Vec3.js';
 
+class Touch {
+    constructor() {
+        this.x = 0;
+        this.y = 0;
+        this.prev_x = 0;
+        this.prev_y = 0;
+        this.grabbedPoint = new Vec3();
+        this.grabbedSpheroid = new Sphere();
+        this.dX = function () { return this.x - this.prev_x; };
+        this.dY = function () { return this.y - this.prev_y; };
+    }
+}
+
 /**
  * Touch pad planet camera dragging control.
  * @class
@@ -37,17 +50,6 @@ class TouchNavigation extends Control {
         this.stepsCount = 5;
         this.stepsForward = null;
         this.stepIndex = 0;
-
-        var Touch = function () {
-            this.x = 0;
-            this.y = 0;
-            this.prev_x = 0;
-            this.prev_y = 0;
-            this.grabbedPoint = new Vec3();
-            this.grabbedSpheroid = new Sphere();
-            this.dX = function () { return this.x - this.prev_x; };
-            this.dY = function () { return this.y - this.prev_y; };
-        };
 
         this.pointOnEarth = null;
         this.earthUp = null;
@@ -245,7 +247,7 @@ class TouchNavigation extends Control {
                 }
             }
         }
-    };
+    }
 
     onDraw(e) {
 
@@ -301,6 +303,6 @@ class TouchNavigation extends Control {
             this.planet._normalMapCreator.free(this._keyLock);
         }
     }
-};
+}
 
 export { TouchNavigation };

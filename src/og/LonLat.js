@@ -48,17 +48,17 @@ export class LonLat {
          * @type {number}
          */
         this.height = height || 0;
-    };
+    }
 
     isZero() {
         return this.lon === 0.0 && this.lat === 0.0 && this.height === 0.0;
-    };
+    }
 
     /**
      * Creates coordinates array.
      * @static
      * @param{Array.<Array<number>>} arr - Coordinates array data. (exactly 3 entries)
-     * @return{Array.<og.LonLat>} the same coordinates array but each element is LonLat instance.
+     * @return{Array.<LonLat>} the same coordinates array but each element is LonLat instance.
      */
     static join(arr) {
         var res = [];
@@ -67,17 +67,17 @@ export class LonLat {
             res[i] = new LonLat(ai[0], ai[1], ai[2]);
         }
         return res;
-    };
+    }
 
     /**
      * Creates an object by coordinate array.
      * @static
      * @param {Array.<number>} arr - Coordiante array, where first is longitude, second is latitude and third is a height. (exactly 3 entries)
-     * @returns {og.LonLat} -
+     * @returns {LonLat} -
      */
     static createFromArray(arr) {
         return new LonLat(arr[0], arr[1], arr[2]);
-    };
+    }
 
     /**
      * Converts degrees to mercator coordinates.
@@ -85,13 +85,13 @@ export class LonLat {
      * @param {number} lon - Degrees longitude.
      * @param {number} lat - Degrees latitude.
      * @param {number} [height] - Height.
-     * @returns {og.LonLat} -
+     * @returns {LonLat} -
      */
     static forwardMercator(lon, lat, height) {
         return new LonLat(lon * mercator.POLE_BY_180,
             Math.log(Math.tan((90.0 + lat) * PI_BY_360)) * mercator.POLE_BY_PI,
             height);
-    };
+    }
 
     /**
      * Converts mercator to degrees coordinates.
@@ -99,13 +99,13 @@ export class LonLat {
      * @param {number} x - Mercator longitude.
      * @param {number} y - Mercator latitude.
      * @param {number} [height] - Height.
-     * @returns {og.LonLat} -
+     * @returns {LonLat} -
      */
     static inverseMercator(x, y, height) {
         return new LonLat(x * mercator.INV_POLE_BY_180,
             INV_PI_BY_360 * Math.atan(Math.exp(y * mercator.PI_BY_POLE)) - INV_PI_BY_180_HALF_PI,
             height);
-    };
+    }
 
     /**
      * Sets coordinates.
@@ -113,45 +113,45 @@ export class LonLat {
      * @param {number} [lon] - Longitude.
      * @param {number} [lat] - Latitude.
      * @param {number} [height] - Height.
-     * @returns {og.LonLat} -
+     * @returns {LonLat} -
      */
     set(lon, lat, height) {
         this.lon = lon || 0;
         this.lat = lat || 0;
         this.height = height || 0;
         return this;
-    };
+    }
 
     /**
      * Copy coordinates.
      * @public
-     * @param {og.LonLat} [lonLat] - Coordinates to copy.
-     * @returns {og.LonLat} -
+     * @param {LonLat} [lonLat] - Coordinates to copy.
+     * @returns {LonLat} -
      */
     copy(lonLat) {
         this.lon = lonLat.lon;
         this.lat = lonLat.lat;
         this.height = lonLat.height;
         return this;
-    };
+    }
 
     /**
      * Clone the coordiante.
      * @public
-     * @returns {og.LonLat} -
+     * @returns {LonLat} -
      */
     clone() {
         return new LonLat(this.lon, this.lat, this.height);
-    };
+    }
 
     /**
      * Converts to mercator coordinates.
      * @public
-     * @returns {og.LonLat} -
+     * @returns {LonLat} -
      */
     forwardMercator() {
         return LonLat.forwardMercator(this.lon, this.lat, this.height);
-    };
+    }
 
     forwardMercatorEPS01() {
         var lat = this.lat;
@@ -163,21 +163,21 @@ export class LonLat {
         return new LonLat(
             this.lon * mercator.POLE_BY_180,
             Math.log(Math.tan((90.0 + lat) * PI_BY_360)) * mercator.POLE_BY_PI);
-    };
+    }
 
     /**
      * Converts from mercator coordinates.
      * @public
-     * @returns {og.LonLat} -
+     * @returns {LonLat} -
      */
     inverseMercator() {
         return LonLat.inverseMercator(this.lon, this.lat, this.height);
-    };
+    }
 
     /**
      * Compares coordinates.
      * @public
-     * @param {og.LonLat} b - Coordinate to compare with.
+     * @param {LonLat} b - Coordinate to compare with.
      * @returns {boolean} -
      */
     equal(b) {
@@ -186,5 +186,5 @@ export class LonLat {
         } else {
             return this.lon === b.lon && this.lat === b.lat;
         }
-    };
+    }
 }

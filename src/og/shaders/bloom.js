@@ -34,4 +34,4 @@ export function bloom() {
               gl_FragColor = vOriginal + vT1 + vT2;
             }`
     });
-};
+}

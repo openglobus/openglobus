@@ -28,4 +28,4 @@ export function screenFrame() {
                 gl_FragColor = texture2D( texture, tc );
             }`
     });
-};
+}

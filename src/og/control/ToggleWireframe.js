@@ -33,6 +33,6 @@ class ToggleWireframe extends Control {
             this.planet.setDrawMode(this.renderer.handler.gl.LINE_STRIP);
         }
     }
-};
+}
 
 export { ToggleWireframe };

@@ -95,7 +95,7 @@ class Geometry {
      * Returns geometry feature extent.
      @static
      @param {Object} geometryObj - GeoJSON style geometry feature.
-     @param {og.LonLat[]} outCoordinates - Geometry feature coordinates clone.
+     @param {LonLat[]} outCoordinates - Geometry feature coordinates clone.
      @returns {og.Extent} -
      */
     static getExtent(geometryObj, outCoordinates) {
@@ -311,6 +311,6 @@ class Geometry {
     getType() {
         return this._type;
     }
-};
+}
 
 export { Geometry, GeometryType };

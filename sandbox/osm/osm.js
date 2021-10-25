@@ -16,7 +16,7 @@ import { ToggleWireframe } from "../../src/og/control/ToggleWireframe.js";
 //import * as math from '../../src/og/math.js';
 //import { LayerSwitcher } from '../../src/og/control/LayerSwitcher.js';
 //import { Popup } from '../../src/og/Popup.js';
-//import { LonLat } from '../../src/og/LonLat.js';
+import { LonLat } from "../../src/og/LonLat.js";
 //import { Vec3 } from '../../src/og/math/Vec3.js';
 //import { ScaleControl } from '../../src/og/control/ScaleControl.js';
 //import { stringTemplate } from '../../src/og/utils/shared.js';
@@ -468,6 +468,13 @@ globus.planet.addControl(
         ]
     })
 );
+
+//setTimeout(() => {
+//globus.planet.camera.setLonLat(new LonLat(10, 10, 4500000));
+//}, 1000);
+
+//globus.planet.camera.update()
+
 globus.planet.addControl(
     new ToggleWireframe({
         isActive: false

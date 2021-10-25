@@ -17,7 +17,7 @@ class MapboxTerrain extends GlobusTerrain {
 
         this.equalizeNormals = options.equalizeNormals || false;
 
-        this.minZoom = options.minZoom != undefined ? options.minZoom : 3;
+        this.minZoom = options.minZoom != undefined ? options.minZoom : 2;
 
         this.maxZoom = options.maxZoom != undefined ? options.maxZoom : 17;
 

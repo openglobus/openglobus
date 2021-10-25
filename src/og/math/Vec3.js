@@ -35,28 +35,28 @@ export class Vec3 {
          * @type {number}
          */
         this.z = z || 0.0;
-    };
+    }
 
     /** @const */
-    static get UP() { return new Vec3(0, 1, 0) };
+    static get UP() { return new Vec3(0, 1, 0) }
     /** @const */
-    static get DOWN() { return new Vec3(0, -1, 0) };
+    static get DOWN() { return new Vec3(0, -1, 0) }
     /** @const */
-    static get RIGHT() { return new Vec3(1, 0, 0) };
+    static get RIGHT() { return new Vec3(1, 0, 0) }
     /** @const */
-    static get LEFT() { return new Vec3(-1, 0, 0) };
+    static get LEFT() { return new Vec3(-1, 0, 0) }
     /** @const */
-    static get FORWARD() { return new Vec3(0, 0, -1) };
+    static get FORWARD() { return new Vec3(0, 0, -1) }
     /** @const */
-    static get BACKWARD() { return new Vec3(0, 0, 1) };
+    static get BACKWARD() { return new Vec3(0, 0, 1) }
     /** @const */
-    static get ZERO() { return new Vec3() };
+    static get ZERO() { return new Vec3() }
     /** @const */
-    static get UNIT_X() { return new Vec3(1, 0, 0) };
+    static get UNIT_X() { return new Vec3(1, 0, 0) }
     /** @const */
-    static get UNIT_Y() { return new Vec3(0, 1, 0) };
+    static get UNIT_Y() { return new Vec3(0, 1, 0) }
     /** @const */
-    static get UNIT_Z() { return new Vec3(0, 0, 1) };
+    static get UNIT_Z() { return new Vec3(0, 0, 1) }
 
     /**
      * Separate 63 bit Vec3 to two Vec3 32 bit float values.
@@ -64,7 +64,7 @@ export class Vec3 {
      * @param {number} value - Double type value.
      * @param {Vec3} high - Out vector high values.
      * @param {Vec3} low - Out vector low values.
-     * @returns {Array.<number,number>} Encoded array.
+     * @returns {Array.<number>} Encoded array. (exactly 2 entries)
      */
     static doubleToTwoFloats(v, high, low) {
 
@@ -99,7 +99,7 @@ export class Vec3 {
             high.z = Math.fround(-doubleHigh);
             low.z = Math.fround(z + doubleHigh);
         }
-    };
+    }
 
     /**
      * Separate 63 bit Vec3 to two Vec3 32 bit float values.
@@ -107,7 +107,7 @@ export class Vec3 {
      * @param {number} value - Double type value.
      * @param {Float32Array} high - Out vector high values.
      * @param {Float32Array} low - Out vector low values.
-     * @returns {Array.<number,number>} Encoded array.
+     * @returns {Array.<number>} Encoded array. (exactly 2 entries)
      */
     static doubleToTwoFloat32Array(v, high, low) {
 
@@ -142,17 +142,17 @@ export class Vec3 {
             high[2] = Math.fround(-doubleHigh);
             low[2] = Math.fround(z + doubleHigh);
         }
-    };
+    }
 
     /**
      * Creates 3d vector from array.
      * @function
-     * @param {Array.<number,number,number>} arr - Input array
+     * @param {Array.<number>} arr - Input array (exactly 3 entries)
      * @returns {og.Vec3} -
      */
     static fromVec(arr) {
         return new Vec3(arr[0], arr[1], arr[2]);
-    };
+    }
 
     /**
      * Gets angle between two vectors.
@@ -163,7 +163,7 @@ export class Vec3 {
      */
     static angle(a, b) {
         return Math.acos(a.dot(b) / Math.sqrt(a.length2() * b.length2()));
-    };
+    }
 
     /**
      * Returns two vectors linear interpolation.
@@ -175,7 +175,7 @@ export class Vec3 {
      */
     static lerp(v1, v2, l) {
         return Vec3(v1.x + (v2.x - v1.x) * l, v1.y + (v2.y - v1.y) * l, v1.z + (v2.z - v1.z) * l);
-    };
+    }
 
     /**
      * Returns summary vector.
@@ -188,7 +188,7 @@ export class Vec3 {
         var res = new Vec3(a.x, a.y, a.z);
         res.addA(b);
         return res;
-    };
+    }
 
     /**
      * Returns two vectors subtraction.
@@ -201,7 +201,7 @@ export class Vec3 {
         var res = new Vec3(a.x, a.y, a.z);
         res.subA(b);
         return res;
-    };
+    }
 
     /**
      * Returns scaled vector.
@@ -214,7 +214,7 @@ export class Vec3 {
         var res = new Vec3(a.x, a.y, a.z);
         res.scale(scale);
         return res;
-    };
+    }
 
     /**
      * Returns two vectors production.
@@ -227,7 +227,7 @@ export class Vec3 {
         var res = new Vec3(a.x, a.y, a.z);
         res.mulA(b);
         return res;
-    };
+    }
 
     /**
      * Returns true if two vectors are non collinear.
@@ -238,7 +238,7 @@ export class Vec3 {
      */
     static noncollinear(a, b) {
         return a.y * b.z - a.z * b.y || a.z * b.x - a.x * b.z || a.x * b.y - a.y * b.z;
-    };
+    }
 
     /**
      * Get projection of the vector to plane where n - normal to the plane.
@@ -254,7 +254,7 @@ export class Vec3 {
             return new Vec3(def.x, def.y, def.z);
         }
         return res;
-    };
+    }
 
     /**
      * Get projection of the first vector to the second.
@@ -265,7 +265,7 @@ export class Vec3 {
      */
     static proj_b_to_a(b, a) {
         return a.scaleTo(a.dot(b) / a.dot(a));
-    };
+    }
 
     /**
      * Makes vectors normalized and orthogonal to each other.
@@ -279,7 +279,7 @@ export class Vec3 {
         normal = normal.normal();
         normal.scale(tangent.dot(normal));
         return tangent.subA(normal).normalize();
-    };
+    }
 
     /**
      * Returns vector components division product one to another.
@@ -292,7 +292,7 @@ export class Vec3 {
         var res = new Vec3(a.x, a.y, a.z);
         res.divA(b);
         return res;
-    };
+    }
 
     /**
      * Converts to 4d vector, Fourth value is 1.0.
@@ -301,7 +301,7 @@ export class Vec3 {
      */
     toVec4() {
         return new Vec4(this.x, this.y, this.z, 1.0);
-    };
+    }
 
     /**
      * Returns clone vector.
@@ -310,7 +310,7 @@ export class Vec3 {
      */
     clone() {
         return new Vec3(this.x, this.y, this.z);
-    };
+    }
 
     /**
      * Converts vector to text string.
@@ -319,7 +319,7 @@ export class Vec3 {
      */
     toString() {
         return "(" + this.x + "," + this.y + "," + this.z + ")";
-    };
+    }
 
     /**
      * Returns true if vector's values are zero.
@@ -328,7 +328,7 @@ export class Vec3 {
      */
     isZero() {
         return !(this.x || this.y || this.z);
-    };
+    }
 
     /**
      * Get projection of the first vector to the second.
@@ -338,7 +338,7 @@ export class Vec3 {
      */
     projToVec(a) {
         return a.scaleTo(a.dot(this) / a.dot(a));
-    };
+    }
 
     /**
      * Compares with vector. Returns true if it equals another.
@@ -348,7 +348,7 @@ export class Vec3 {
      */
     equal(p) {
         return this.x === p.x && this.y === p.y && this.z === p.z;
-    };
+    }
 
     /**
      * Copy input vector's values.
@@ -360,7 +360,7 @@ export class Vec3 {
         this.y = point3.y;
         this.z = point3.z;
         return this;
-    };
+    }
 
     /**
      * Gets vector's length.
@@ -369,7 +369,7 @@ export class Vec3 {
      */
     length() {
         return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
-    };
+    }
 
     /**
      * Returns squared vector's length.
@@ -378,7 +378,7 @@ export class Vec3 {
      */
     length2() {
         return this.x * this.x + this.y * this.y + this.z * this.z;
-    };
+    }
 
     /**
      * Converts vector's values to a quaternion object.
@@ -387,7 +387,7 @@ export class Vec3 {
      */
     getQuat() {
         return new Quat(this.x, this.y, this.z);
-    };
+    }
 
     /**
      * Adds vector to the current.
@@ -400,7 +400,7 @@ export class Vec3 {
         this.y += point3.y;
         this.z += point3.z;
         return this;
-    };
+    }
 
     /**
      * Gets two vectors summarization.
@@ -410,7 +410,7 @@ export class Vec3 {
      */
     add(point3) {
         return new Vec3(this.x + point3.x, this.y + point3.y, this.z + point3.z);
-    };
+    }
 
     /**
      * Subtract vector from the current.
@@ -423,7 +423,7 @@ export class Vec3 {
         this.y -= point3.y;
         this.z -= point3.z;
         return this;
-    };
+    }
 
     /**
      * Gets vector subtraction.
@@ -433,7 +433,7 @@ export class Vec3 {
      */
     sub(point3) {
         return new Vec3(this.x - point3.x, this.y - point3.y, this.z - point3.z);
-    };
+    }
 
     /**
      * Scale current vector.
@@ -446,7 +446,7 @@ export class Vec3 {
         this.y *= scale;
         this.z *= scale;
         return this;
-    };
+    }
 
     /**
      * Scale current vector to another instance.
@@ -456,7 +456,7 @@ export class Vec3 {
      */
     scaleTo(scale) {
         return new Vec3(this.x * scale, this.y * scale, this.z * scale);
-    };
+    }
 
     /**
      * Multiply current vector object to another and store result in the current instance.
@@ -469,7 +469,7 @@ export class Vec3 {
         this.y *= vec.y;
         this.z *= vec.z;
         return this;
-    };
+    }
 
     /**
      * Multiply current vector object to another and returns new vector instance.
@@ -479,7 +479,7 @@ export class Vec3 {
      */
     mul(vec) {
         return new Vec3(this.x * vec.x, this.y * vec.y, this.z * vec.z);
-    };
+    }
 
     /**
      * Divide current vector's components to another. Results stores in the current vector object.
@@ -492,7 +492,7 @@ export class Vec3 {
         this.y /= vec.y;
         this.z /= vec.z;
         return this;
-    };
+    }
 
     /**
      * Divide current vector's components to another and returns new vector instance.
@@ -502,7 +502,7 @@ export class Vec3 {
      */
     div(vec) {
         return new Vec3(this.x / vec.x, this.y / vec.y, this.z / vec.z);
-    };
+    }
 
     /**
      * Gets vectors dot production.
@@ -512,17 +512,17 @@ export class Vec3 {
      */
     dot(point3) {
         return point3.x * this.x + point3.y * this.y + point3.z * this.z;
-    };
+    }
 
     /**
      * Gets vectors dot production.
      * @public
-     * @param {Array.<number,number,number>} arr - Array vector.
+     * @param {Array.<number>} arr - Array vector. (exactly 3 entries)
      * @returns {number} -
      */
     dotArr(arr) {
         return arr[0] * this.x + arr[1] * this.y + arr[2] * this.z;
-    };
+    }
 
     /**
      * Gets vectors cross production.
@@ -536,7 +536,7 @@ export class Vec3 {
             this.z * point3.x - this.x * point3.z,
             this.x * point3.y - this.y * point3.x
         );
-    };
+    }
 
     /**
      * Sets vector to zero.
@@ -546,7 +546,7 @@ export class Vec3 {
     clear() {
         this.x = this.y = this.z = 0;
         return this;
-    };
+    }
 
     /**
      * Returns normalized vector.
@@ -564,7 +564,7 @@ export class Vec3 {
         res.z *= length;
 
         return res;
-    };
+    }
 
     /**
      * Returns normalized vector.
@@ -583,7 +583,7 @@ export class Vec3 {
         res.z *= length;
 
         return res;
-    };
+    }
 
     /**
      * Returns normalized negate vector.
@@ -601,7 +601,7 @@ export class Vec3 {
         res.z *= length;
 
         return res;
-    };
+    }
 
     /**
      * Returns normalized negate scale vector.
@@ -619,7 +619,7 @@ export class Vec3 {
         res.z *= length;
 
         return res;
-    };
+    }
 
     /**
      * Returns normalized scale vector.
@@ -637,7 +637,7 @@ export class Vec3 {
         res.z *= length;
 
         return res;
-    };
+    }
 
     /**
      * Normalize current vector.
@@ -652,26 +652,26 @@ export class Vec3 {
         this.z *= length;
 
         return this;
-    };
+    }
 
     /**
      * Converts vector to a number array.
      * @public
-     * @returns {Array.<number,number,number>} -
+     * @returns {Array.<number>} - (exactly 3 entries)
      * @deprecated
      */
     toVec() {
         return [this.x, this.y, this.z];
-    };
+    }
 
     /**
      * Converts vector to a number array.
      * @public
-     * @returns {Array.<number,number,number>} -
+     * @returns {Array.<number>} - (exactly 3 entries)
      */
     toArray() {
         return [this.x, this.y, this.z];
-    };
+    }
 
     /**
      * Gets distance to point.
@@ -681,7 +681,7 @@ export class Vec3 {
      */
     distance(point3) {
         return Vec3.sub(this, point3).length();
-    };
+    }
 
     /**
      * Sets vector's values.
@@ -696,7 +696,7 @@ export class Vec3 {
         this.y = y;
         this.z = z;
         return this;
-    };
+    }
 
     /**
      * Negate current vector.
@@ -708,7 +708,7 @@ export class Vec3 {
         this.y = -this.y;
         this.z = -this.z;
         return this;
-    };
+    }
 
     /**
      * Negate current vector to another instance.
@@ -717,7 +717,7 @@ export class Vec3 {
      */
     negateTo() {
         return new Vec3(-this.x, -this.y, -this.z);
-    };
+    }
 
     /**
      * Gets projected point coordinates of the current vector on the ray.
@@ -730,7 +730,7 @@ export class Vec3 {
         var v = Vec3.proj_b_to_a(Vec3.sub(this, pos), direction);
         v.addA(pos);
         return v;
-    };
+    }
 
     /**
      * Gets angle between two vectors.
@@ -740,7 +740,7 @@ export class Vec3 {
      */
     angle(a) {
         return Vec3.angle(this, a);
-    };
+    }
 
     /**
      * Returns two vectors linear interpolation.
@@ -751,7 +751,7 @@ export class Vec3 {
      */
     lerp(v2, l) {
         return new Vec3(this.x + (v2.x - this.x) * l, this.y + (v2.y - this.y) * l, this.z + (v2.z - this.z) * l);
-    };
+    }
 
     /**
      * Returns vector interpolation by v(t) = v1 * t + v2 * (1 - t)
@@ -763,9 +763,9 @@ export class Vec3 {
     smerp(v2, t) {
         var one_d = 1 - t;
         return new Vec3(this.x * t + v2.x * one_d, this.y * t + v2.y * one_d, this.z * t + v2.z * one_d);
-    };
+    }
 
-    static get LERP_DELTA() { return 1e-6 };
+    static get LERP_DELTA() { return 1e-6 }
 
     /**
      * Spherically interpolates between two vectors.
@@ -802,7 +802,7 @@ export class Vec3 {
         }
 
         return Vec3.add(this.scaleTo(scale0), v2.scale(scale1));
-    };
+    }
 
     /**
      * Gets the shortest arc quaternion to rotate this vector to the destination vector.
@@ -848,7 +848,7 @@ export class Vec3 {
             q.normalise();
             return q;
         }
-    };
+    }
 }
 
 /**
@@ -861,5 +861,5 @@ export class Vec3 {
  */
 export function vec3(x, y, z) {
     return new Vec3(x, y, z);
-};
+}
 

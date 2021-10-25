@@ -17,6 +17,10 @@ import * as arial from "../arial.js";
 import { depth } from "../shaders/depth.js";
 import { ARIAL_FONT_B64 } from "../res/images.js";
 
+let __pickingCallbackCounter__ = 0;
+
+let __depthCallbackCounter__ = 0;
+
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
  * @class
@@ -50,922 +54,923 @@ import { ARIAL_FONT_B64 } from "../res/images.js";
  * @fires og.RendererEvents#touchleave
  * @fires og.RendererEvents#touchenter
  */
-const Renderer = function (handler, params) {
-    params = params || {};
+class Renderer {
 
-    /**
-     * Div element with WebGL canvas.
-     * @public
-     * @type {object}
-     */
-    this.div = null;
+    constructor(handler, params) {
+        params = params || {};
 
-    /**
-     * WebGL handler context.
-     * @public
-     * @type {og.webgl.Handler}
-     */
-    this.handler = handler;
+        /**
+         * Div element with WebGL canvas.
+         * @public
+         * @type {object}
+         */
+        this.div = null;
 
-    this.exposure = 4;
+        /**
+         * WebGL handler context.
+         * @public
+         * @type {og.webgl.Handler}
+         */
+        this.handler = handler;
 
-    this.gamma = 0.5;
+        this.exposure = 4;
 
-    this.whitepoint = 1.0;
+        this.gamma = 0.5;
 
-    this.brightThreshold = 0.9;
+        this.whitepoint = 1.0;
 
-    this.backgroundColor = params.backgroundColor || new Vec3(115 / 255, 203 / 255, 249 / 255);
+        this.brightThreshold = 0.9;
 
-    /**
-     * Render nodes drawing queue.
-     * @private
-     * @type {Array.<og.scene.RenderNode>}
-     */
-    this._renderNodesArr = [];
+        this.backgroundColor = params.backgroundColor || new Vec3(115 / 255, 203 / 255, 249 / 255);
 
-    /**
-     * Render nodes store for the comfortable access by the node name.
-     * @public
-     * @type {Object.<og.scene.RenderNode>}
-     */
-    this.renderNodes = {};
+        /**
+         * Render nodes drawing queue.
+         * @private
+         * @type {Array.<og.scene.RenderNode>}
+         */
+        this._renderNodesArr = [];
 
-    /**
-     * Current active camera.
-     * @public
-     * @type {og.Camera}
-     */
-    this.activeCamera = null;
+        /**
+         * Render nodes store for the comfortable access by the node name.
+         * @public
+         * @type {Object.<og.scene.RenderNode>}
+         */
+        this.renderNodes = {};
 
-    /**
-     * Renderer events. Represents interface for setting events like mousemove, draw, keypress etc.
-     * @public
-     * @type {og.RendererEvents}
-     */
-    this.events = new RendererEvents(this);
+        /**
+         * Current active camera.
+         * @public
+         * @type {og.Camera}
+         */
+        this.activeCamera = null;
 
-    /**
-     * OpenGlobus controls array.
-     * @public
-     * @type {Object}
-     */
-    this.controls = {};
+        /**
+         * Renderer events. Represents interface for setting events like mousemove, draw, keypress etc.
+         * @public
+         * @type {og.RendererEvents}
+         */
+        this.events = new RendererEvents(this);
 
-    if (params.controls) {
-        for (let i in params.controls) {
-            this.controls[params.controls[i].name] = params.controls[i];
-        }
-    }
+        /**
+         * OpenGlobus controls array.
+         * @public
+         * @type {Object}
+         */
+        this.controls = {};
 
-    /**
-     * Provides exchange between controls.
-     * @public
-     * @type {Object}
-     */
-    this.controlsBag = {};
-
-    /**
-     * Hash table for drawing objects.
-     * @public
-     * @type {Object}
-     */
-    this.colorObjects = {};
-
-    /**
-     * Color picking objects rendering queue.
-     * @type {Array.<og.Renderer~pickingCallback>}
-     */
-    this._pickingCallbacks = [];
-
-    /**
-     * Picking objects(labels and billboards) framebuffer.
-     * @public
-     * @type {og.webgl.Framebuffer}
-     */
-    this.pickingFramebuffer = null;
-
-    /**
-     * Depth objects rendering queue.
-     * @type {Array.<og.Renderer~depthCallback>}
-     */
-    this._depthCallbacks = [];
-
-    this.depthFramebuffer = null;
-
-    this._msaa = params.msaa || 8;
-    this._internalFormat = "RGBA16F";
-    this._format = "RGBA";
-    this._type = "FLOAT";
-
-    this._screenScale = params.screenScale || 1.0;
-
-    this.sceneFramebuffer = null;
-
-    this.blitFramebuffer = null;
-
-    this.toneMappingFramebuffer = null;
-
-    /**
-     * Stores current picking rgb color.
-     * @private
-     * @type {Array.<number,number,number>}
-     */
-    this._currPickingColor = new Uint8Array(4);
-
-    /**
-     * Stores previous picked rgb color.
-     * @private
-     * @type {Array.<number,number,number>}
-     */
-    this._prevPickingColor = [0, 0, 0];
-
-    this._tempPickingColor_ = new Uint8Array(4);
-
-    this._initialized = false;
-
-    /**
-     * Texture atlas for the billboards images. One atlas per node.
-     * @protected
-     * @type {og.utils.TextureAtlas}
-     */
-    this.billboardsTextureAtlas = new TextureAtlas();
-
-    /**
-     * Texture font atlas for the font families and styles. One atlas per node.
-     * @public
-     * @type {og.utils.FontAtlas}
-     */
-    this.fontAtlas = new FontAtlas();
-
-    this._entityCollections = [];
-
-    if (params.autoActivate || isEmpty(params.autoActivate)) {
-        this.initialize();
-        this.start();
-    }
-
-    this._currentOutput = "screen";
-};
-
-Renderer.__pickingCallbackCounter__ = 0;
-
-Renderer.__depthCallbackCounter__ = 0;
-
-/**
- * Sets renderer events activity.
- * @param {Boolean} activity - Events activity.
- */
-Renderer.prototype.setEventsActivity = function (activity) {
-    this.events.active = activity;
-};
-
-Renderer.prototype.setScreenScale = function (scale) {
-    this._screenScale = scale;
-    this._resize();
-};
-
-Renderer.prototype.addDepthCallback = function (sender, callback) {
-    var id = Renderer.__depthCallbackCounter__++;
-    this._depthCallbacks.push({
-        id: id,
-        callback: callback,
-        sender: sender
-    });
-    return id;
-};
-
-Renderer.prototype.removeDepthCallback = function (id) {
-    for (var i = 0; i < this._depthCallbacks.length; i++) {
-        if (id === this._depthCallbacks[i].id) {
-            this._depthCallbacks.splice(i, 1);
-            break;
-        }
-    }
-};
-
-/**
- * Adds picking rendering callback function.
- * @param {object} sender - Callback context.
- * @param {og.Renderer~pickingCallback} callback - Rendering callback.
- * @returns {Number} Handler id
- */
-Renderer.prototype.addPickingCallback = function (sender, callback) {
-    var id = Renderer.__pickingCallbackCounter__++;
-    this._pickingCallbacks.push({
-        id: id,
-        callback: callback,
-        sender: sender
-    });
-    return id;
-};
-
-/**
- * Removes picking rendering callback function.
- * @param {Number} id - Handler id to remove.
- */
-Renderer.prototype.removePickingCallback = function (id) {
-    for (var i = 0; i < this._pickingCallbacks.length; i++) {
-        if (id === this._pickingCallbacks[i].id) {
-            this._pickingCallbacks.splice(i, 1);
-            break;
-        }
-    }
-};
-
-Renderer.prototype.getPickingObjectByColor = function (r, g, b) {
-    return this.colorObjects[r + "_" + g + "_" + b];
-};
-
-/**
- * Assign picking color to the object.
- * @public
- * @param {Object} obj - Object that pressume to be picked.
- */
-Renderer.prototype.assignPickingColor = function (obj) {
-    if (!obj._pickingColor || obj._pickingColor.isZero()) {
-        var r = 0,
-            g = 0,
-            b = 0;
-        var str = "0_0_0";
-        while (!(r || g || b) || this.colorObjects[str]) {
-            r = randomi(1, 255);
-            g = randomi(1, 255);
-            b = randomi(1, 255);
-            str = r + "_" + g + "_" + b;
+        if (params.controls) {
+            for (let i in params.controls) {
+                this.controls[params.controls[i].name] = params.controls[i];
+            }
         }
 
-        if (!obj._pickingColor) {
-            obj._pickingColor = new Vec3(r, g, b);
-        } else {
-            obj._pickingColor.set(r, g, b);
+        /**
+         * Provides exchange between controls.
+         * @public
+         * @type {Object}
+         */
+        this.controlsBag = {};
+
+        /**
+         * Hash table for drawing objects.
+         * @public
+         * @type {Object}
+         */
+        this.colorObjects = {};
+
+        /**
+         * Color picking objects rendering queue.
+         * @type {Array.<og.Renderer~pickingCallback>}
+         */
+        this._pickingCallbacks = [];
+
+        /**
+         * Picking objects(labels and billboards) framebuffer.
+         * @public
+         * @type {og.webgl.Framebuffer}
+         */
+        this.pickingFramebuffer = null;
+
+        /**
+         * Depth objects rendering queue.
+         * @type {Array.<og.Renderer~depthCallback>}
+         */
+        this._depthCallbacks = [];
+
+        this.depthFramebuffer = null;
+
+        this._msaa = params.msaa || 8;
+        this._internalFormat = "RGBA16F";
+        this._format = "RGBA";
+        this._type = "FLOAT";
+
+        this._screenScale = params.screenScale || 1.0;
+
+        this.sceneFramebuffer = null;
+
+        this.blitFramebuffer = null;
+
+        this.toneMappingFramebuffer = null;
+
+        /**
+         * Stores current picking rgb color.
+         * @private
+         * @type {Array.<number>} - (exactly 3 entries)
+         */
+        this._currPickingColor = new Uint8Array(4);
+
+        /**
+         * Stores previous picked rgb color.
+         * @private
+         * @type {Array.<number>} - (exactly 3 entries)
+         */
+        this._prevPickingColor = [0, 0, 0];
+
+        this._tempPickingColor_ = new Uint8Array(4);
+
+        this._initialized = false;
+
+        /**
+         * Texture atlas for the billboards images. One atlas per node.
+         * @protected
+         * @type {og.utils.TextureAtlas}
+         */
+        this.billboardsTextureAtlas = new TextureAtlas();
+
+        /**
+         * Texture font atlas for the font families and styles. One atlas per node.
+         * @public
+         * @type {og.utils.FontAtlas}
+         */
+        this.fontAtlas = new FontAtlas();
+
+        this._entityCollections = [];
+
+        if (params.autoActivate || isEmpty(params.autoActivate)) {
+            this.initialize();
+            this.start();
         }
 
-        obj._pickingColorU = new Float32Array([r / 255, g / 255, b / 255]);
-
-        this.colorObjects[str] = obj;
-    }
-};
-
-/**
- * Removes picking color from object.
- * @public
- * @param {Object} obj - Object to remove picking color.
- */
-Renderer.prototype.clearPickingColor = function (obj) {
-    if (!obj._pickingColor.isZero()) {
-        var c = obj._pickingColor;
-        if (!c.isZero()) {
-            this.colorObjects[c.x + "_" + c.y + "_" + c.z] = null;
-            delete this.colorObjects[c.x + "_" + c.y + "_" + c.z];
-            c.x = c.y = c.z = 0;
-        }
-    }
-};
-
-/**
- * Get the client width.
- * @public
- * @returns {number} -
- */
-Renderer.prototype.getWidth = function () {
-    return this.handler.canvas.width;
-};
-
-/**
- * Get the client height.
- * @public
- * @returns {number} -
- */
-Renderer.prototype.getHeight = function () {
-    return this.handler.canvas.height;
-};
-
-/**
- * Get center of the screen
- * @public
- * @returns {og.math.Vec2} -
- */
-Renderer.prototype.getCenter = function () {
-    var cnv = this.handler.canvas;
-    return new Vec2(Math.round(cnv.width * 0.5), Math.round(cnv.height * 0.5));
-};
-
-/**
- * Add the given control to the renderer.
- * @param {og.control.Control} control - Control.
- */
-Renderer.prototype.addControl = function (control) {
-    control.addTo(this);
-};
-
-/**
- * Add the given controls array to the planet node.
- * @param {Array.<og.control.Control>} cArr - Control array.
- */
-Renderer.prototype.addControls = function (cArr) {
-    for (var i = 0; i < cArr.length; i++) {
-        cArr[i].addTo(this);
-    }
-};
-
-/**
- * Remove control from the renderer.
- * @param {og.control.Control} control  - Control.
- */
-Renderer.prototype.removeControl = function (control) {
-    control.remove();
-};
-
-/**
- * Renderer initialization.
- * @public
- */
-Renderer.prototype.initialize = function () {
-    if (this._initialized) {
-        return;
-    } else {
-        this._initialized = true;
+        this._currentOutput = "screen";
     }
 
-    var that = this;
-
-    this.billboardsTextureAtlas.assignHandler(this.handler);
-
-    this.fontAtlas.assignHandler(this.handler);
-
-    this.handler.setFrameCallback(function () {
-        that.draw();
-    });
-
-    this.activeCamera = new Camera(this, {
-        eye: new Vec3(0, 0, 0),
-        look: new Vec3(0, 0, -1),
-        up: new Vec3(0, 1, 0)
-    });
-
-    this.events.initialize();
-
-    // Bind console key
-    this.events.on("charkeypress", input.KEY_APOSTROPHE, function () {
-        cons.setVisibility(!cons.getVisibility());
-    });
-
-    this.handler.addProgram(screenFrame());
-
-    this.pickingFramebuffer = new Framebuffer(this.handler, {
-        width: 640,
-        height: 480
-    }).init();
-
-    this.depthFramebuffer = new Framebuffer(this.handler, {
-        size: 2,
-        internalFormat: ["RGBA", "DEPTH_COMPONENT24"],
-        format: ["RGBA", "DEPTH_COMPONENT"],
-        type: ["UNSIGNED_BYTE", "UNSIGNED_INT"],
-        attachment: ["COLOR_ATTACHMENT", "DEPTH_ATTACHMENT"],
-        useDepth: false
-    }).init();
-
-    //this.depthFramebuffer = new Framebuffer(this.handler, {
-    //    size: 2,
-    //    internalFormat: ["RGBA", "RGBA"],
-    //    format: ["RGBA", "RGBA"],
-    //    type: ["UNSIGNED_BYTE", "UNSIGNED_BYTE"],
-    //    attachment: ["COLOR_ATTACHMENT", "COLOR_ATTACHMENT"],
-    //    useDepth: true
-    //}).init();
-    this.screenDepthFramebuffer = new Framebuffer(this.handler, {
-        useDepth: false
-    }).init();
-
-    this.readPixels = () => {};
-
-    if (this.handler.gl.type === "webgl") {
-        this.sceneFramebuffer = new Framebuffer(this.handler);
-        this.sceneFramebuffer.init();
-
-        this._fnScreenFrame = this._screenFrameNoMSAA;
-
-        this.screenTexture = {
-            screen: this.sceneFramebuffer.textures[0],
-            picking: this.pickingFramebuffer.textures[0],
-            depth: this.screenDepthFramebuffer.textures[0]
-        };
-    } else {
-        let _maxMSAA = this.getMaxMSAA(this._internalFormat);
-
-        if (this._msaa > _maxMSAA) {
-            this._msaa = _maxMSAA;
-        }
-
-        this.handler.addPrograms([toneMapping()]);
-
-        this.handler.addPrograms([depth()]);
-
-        this.sceneFramebuffer = new Multisample(this.handler, {
-            size: 1,
-            msaa: this._msaa,
-            internalFormat: this._internalFormat,
-            filter: "LINEAR"
-        }).init();
-
-        this.blitFramebuffer = new Framebuffer(this.handler, {
-            useDepth: false,
-            internalFormat: this._internalFormat,
-            format: this._format,
-            type: this._type,
-            filter: "LINEAR"
-        }).init();
-
-        this.toneMappingFramebuffer = new Framebuffer(this.handler, {
-            useDepth: false
-        }).init();
-
-        this._fnScreenFrame = this._screenFrameMSAA;
-
-        this.screenTexture = {
-            screen: this.toneMappingFramebuffer.textures[0],
-            picking: this.pickingFramebuffer.textures[0],
-            depth: this.screenDepthFramebuffer.textures[0],
-            frustum: this.depthFramebuffer.textures[0]
-        };
+    /**
+     * Sets renderer events activity.
+     * @param {Boolean} activity - Events activity.
+     */
+    setEventsActivity(activity) {
+        this.events.active = activity;
     }
 
-    this.handler.onCanvasResize = () => {
-        this.events.dispatch(this.events.resize, this.handler.canvas);
+    setScreenScale(scale) {
+        this._screenScale = scale;
         this._resize();
-    };
-
-    this._screenFrameCornersBuffer = this.handler.createArrayBuffer(
-        new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]),
-        2,
-        4
-    );
-
-    let temp = this.controls;
-    this.controls = {};
-    for (let i in temp) {
-        this.addControl(temp[i]);
     }
 
-    this.outputTexture = this.screenTexture.screen;
-
-    this.fontAtlas.initFont("arial", arial.data, ARIAL_FONT_B64);
-};
-
-Renderer.prototype.setCurrentScreen = function (screenName) {
-    this._currentOutput = screenName;
-    if (this.screenTexture[screenName]) {
-        this.outputTexture = this.screenTexture[screenName];
-    }
-};
-
-Renderer.prototype._resize = function () {
-    let obj = this.handler.canvas;
-    this.activeCamera.setAspectRatio(obj.clientWidth / obj.clientHeight);
-    this.sceneFramebuffer.setSize(
-        obj.clientWidth * this._screenScale,
-        obj.clientHeight * this._screenScale
-    );
-    this.blitFramebuffer &&
-        this.blitFramebuffer.setSize(
-            obj.clientWidth * this._screenScale,
-            obj.clientHeight * this._screenScale,
-            true
-        );
-    this.toneMappingFramebuffer &&
-        this.toneMappingFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
-    this.depthFramebuffer && this.depthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
-    this.screenDepthFramebuffer &&
-        this.screenDepthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
-
-    if (this.handler.gl.type === "webgl") {
-        this.screenTexture.screen = this.sceneFramebuffer.textures[0];
-        this.screenTexture.picking = this.pickingFramebuffer.textures[0];
-        this.screenTexture.depth = this.screenDepthFramebuffer.textures[0];
-        this.screenTexture.frustum = this.depthFramebuffer.textures[0];
-    } else {
-        this.screenTexture.screen = this.toneMappingFramebuffer.textures[0];
-        this.screenTexture.picking = this.pickingFramebuffer.textures[0];
-        this.screenTexture.depth = this.screenDepthFramebuffer.textures[0];
-        this.screenTexture.frustum = this.depthFramebuffer.textures[0];
+    addDepthCallback(sender, callback) {
+        var id = __depthCallbackCounter__++;
+        this._depthCallbacks.push({
+            id: id,
+            callback: callback,
+            sender: sender
+        });
+        return id;
     }
 
-    this.setCurrentScreen(this._currentOutput);
-};
-
-Renderer.prototype.removeNode = function (renderNode) {
-    renderNode.remove();
-};
-
-/**
- * Adds render node to the renderer.
- * @public
- * @param {og.scene.RenderNode} renderNode - Render node.
- */
-Renderer.prototype.addNode = function (renderNode) {
-    if (!this.renderNodes[renderNode.name]) {
-        renderNode.assign(this);
-        this._renderNodesArr.unshift(renderNode);
-        this.renderNodes[renderNode.name] = renderNode;
-    } else {
-        cons.logWrn("Node name " + renderNode.name + " allready exists.");
-    }
-};
-
-/**
- * Adds render node to the renderer before specific node.
- * @public
- * @param {og.scene.RenderNode} renderNode - Render node.
- */
-Renderer.prototype.addNodeBefore = function (renderNode, renderNodeBefore) {
-    if (!this.renderNodes[renderNode.name]) {
-        renderNode.assign(this);
-        this.renderNodes[renderNode.name] = renderNode;
-        for (let i = 0; i < this._renderNodesArr.length; i++) {
-            if (this._renderNodesArr[i].isEqual(renderNodeBefore)) {
-                this._renderNodesArr.splice(i, 0, renderNode);
+    removeDepthCallback(id) {
+        for (var i = 0; i < this._depthCallbacks.length; i++) {
+            if (id === this._depthCallbacks[i].id) {
+                this._depthCallbacks.splice(i, 1);
                 break;
             }
         }
-        this._renderNodesArr.unshift(renderNode);
-    } else {
-        cons.logWrn("Node name " + renderNode.name + " allready exists.");
     }
-};
 
-/**
- * Adds render nodes array to the renderer.
- * @public
- * @param {Array.<og.scene.RenderNode>} nodesArr - Render nodes array.
- */
-Renderer.prototype.addNodes = function (nodesArr) {
-    for (var i = 0; i < nodesArr.length; i++) {
-        this.addNode(nodesArr[i]);
+    /**
+     * Adds picking rendering callback function.
+     * @param {object} sender - Callback context.
+     * @param {og.Renderer~pickingCallback} callback - Rendering callback.
+     * @returns {Number} Handler id
+     */
+    addPickingCallback(sender, callback) {
+        var id = __pickingCallbackCounter__++;
+        this._pickingCallbacks.push({
+            id: id,
+            callback: callback,
+            sender: sender
+        });
+        return id;
     }
-};
 
-Renderer.prototype.getMaxMSAA = function (internalFormat) {
-    var gl = this.handler.gl;
-    let samples = gl.getInternalformatParameter(gl.RENDERBUFFER, gl[internalFormat], gl.SAMPLES);
-    return samples[0];
-};
-
-Renderer.prototype.getMSAA = function () {
-    return this._msaa;
-};
-
-/**
- * TODO: replace with cahce frendly linked list by bilboardHandler, label handler etc.
- */
-Renderer.prototype.enqueueEntityCollectionsToDraw = function (ecArr) {
-    this._entityCollections.push.apply(this._entityCollections, ecArr);
-};
-
-/**
- * Draws entity collections.
- * @public
- * @param {Array<og.EntityCollection>} ec - Entity collection array.
- */
-Renderer.prototype._drawEntityCollections = function () {
-    let ec = this._entityCollections;
-
-    if (ec.length) {
-        var gl = this.handler.gl;
-
-        gl.enable(gl.BLEND);
-        gl.blendEquation(gl.FUNC_ADD);
-        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
-        gl.disable(gl.CULL_FACE);
-
-        // Z-buffer offset
-        gl.enable(gl.POLYGON_OFFSET_FILL);
-        gl.polygonOffset(0.0, 0.0);
-
-        // billboards pass
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture);
-
-        var i = ec.length;
-        while (i--) {
-            var eci = ec[i];
-            if (eci._fadingOpacity) {
-                // first begin draw event
-                eci.events.dispatch(eci.events.draw, eci);
-                eci.billboardHandler.draw();
+    /**
+     * Removes picking rendering callback function.
+     * @param {Number} id - Handler id to remove.
+     */
+    removePickingCallback(id) {
+        for (var i = 0; i < this._pickingCallbacks.length; i++) {
+            if (id === this._pickingCallbacks[i].id) {
+                this._pickingCallbacks.splice(i, 1);
+                break;
             }
         }
-
-        // labels pass
-        var fa = this.fontAtlas.atlasesArr;
-        for (i = 0; i < fa.length; i++) {
-            gl.activeTexture(gl.TEXTURE0 + i);
-            gl.bindTexture(gl.TEXTURE_2D, fa[i].texture);
-        }
-
-        i = ec.length;
-        while (i--) {
-            ec[i]._fadingOpacity && ec[i].labelHandler.draw();
-        }
-
-        i = ec.length;
-        while (i--) {
-            ec[i]._fadingOpacity && ec[i].geoObjectHandler.draw();
-        }
-
-        // rays
-        i = ec.length;
-        while (i--) {
-            ec[i]._fadingOpacity && ec[i].rayHandler.draw();
-        }
-
-        // polyline pass
-        i = ec.length;
-        while (i--) {
-            ec[i]._fadingOpacity && ec[i].polylineHandler.draw();
-        }
-
-        gl.enable(gl.CULL_FACE);
-
-        // pointClouds pass
-        i = ec.length;
-        while (i--) {
-            if (ec[i]._fadingOpacity) {
-                ec[i].pointCloudHandler.draw();
-            }
-        }
-
-        // shapes pass
-        i = ec.length;
-        while (i--) {
-            eci = ec[i];
-            if (eci._fadingOpacity) {
-                eci.shapeHandler.draw();
-            }
-        }
-
-        // Strip pass
-        i = ec.length;
-        while (i--) {
-            if (ec[i]._fadingOpacity) {
-                ec[i].stripHandler.draw();
-                // post draw event
-                eci.events.dispatch(eci.events.drawend, eci);
-            }
-        }
-
-        // gl.polygonOffset(0.0, 0.0);
-        gl.disable(gl.POLYGON_OFFSET_FILL);
-
-        this._entityCollections.length = 0;
-        this._entityCollections = [];
-    }
-};
-
-/**
- * Draw nodes.
- * @public
- */
-Renderer.prototype.draw = function () {
-    this.activeCamera.checkMoveEnd();
-
-    let e = this.events;
-    e.handleEvents();
-
-    let sfb = this.sceneFramebuffer;
-    sfb.activate();
-
-    let h = this.handler;
-
-    h.gl.clearColor(this.backgroundColor.x, this.backgroundColor.y, this.backgroundColor.z, 1.0);
-    h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
-
-    e.dispatch(e.draw, this);
-
-    //h.gl.activeTexture(h.gl.TEXTURE0);
-    //h.gl.bindTexture(h.gl.TEXTURE_2D, h.transparentTexture);
-
-    let frustums = this.activeCamera.frustums;
-
-    // Rendering scene nodes and entityCollections
-    let rn = this._renderNodesArr;
-    let k = frustums.length;
-    while (k--) {
-        this.activeCamera.setCurrentFrustum(k);
-        h.gl.clear(h.gl.DEPTH_BUFFER_BIT);
-        let i = rn.length;
-        while (i--) {
-            rn[i].drawNode();
-        }
-        this._drawEntityCollections();
-
-        this._drawDepthBuffer(k);
-
-        // Rendering picking callbacks and refresh pickingColor
-        this._drawPickingBuffer(k);
     }
 
-    sfb.deactivate();
-
-    this.blitFramebuffer && sfb.blitTo(this.blitFramebuffer);
-
-    if (e.mouseState.anyEvent()) {
-        this._readPickingColor();
+    getPickingObjectByColor(r, g, b) {
+        return this.colorObjects[r + "_" + g + "_" + b];
     }
 
-    // Tone mapping followed by rendering on the screen
-    this._fnScreenFrame();
+    /**
+     * Assign picking color to the object.
+     * @public
+     * @param {Object} obj - Object that pressume to be picked.
+     */
+    assignPickingColor(obj) {
+        if (!obj._pickingColor || obj._pickingColor.isZero()) {
+            var r = 0,
+                g = 0,
+                b = 0;
+            var str = "0_0_0";
+            while (!(r || g || b) || this.colorObjects[str]) {
+                r = randomi(1, 255);
+                g = randomi(1, 255);
+                b = randomi(1, 255);
+                str = r + "_" + g + "_" + b;
+            }
 
-    e.dispatch(e.postdraw, this);
+            if (!obj._pickingColor) {
+                obj._pickingColor = new Vec3(r, g, b);
+            } else {
+                obj._pickingColor.set(r, g, b);
+            }
 
-    e.mouseState.moving = false;
-    e.touchState.moving = false;
-};
+            obj._pickingColorU = new Float32Array([r / 255, g / 255, b / 255]);
 
-Renderer.prototype._screenFrameMSAA = function () {
-    var h = this.handler;
+            this.colorObjects[str] = obj;
+        }
+    }
 
-    var sh = h.programs.toneMapping,
-        p = sh._program,
-        gl = h.gl;
+    /**
+     * Removes picking color from object.
+     * @public
+     * @param {Object} obj - Object to remove picking color.
+     */
+    clearPickingColor(obj) {
+        if (!obj._pickingColor.isZero()) {
+            var c = obj._pickingColor;
+            if (!c.isZero()) {
+                this.colorObjects[c.x + "_" + c.y + "_" + c.z] = null;
+                delete this.colorObjects[c.x + "_" + c.y + "_" + c.z];
+                c.x = c.y = c.z = 0;
+            }
+        }
+    }
 
-    gl.disable(gl.DEPTH_TEST);
+    /**
+     * Get the client width.
+     * @public
+     * @returns {number} -
+     */
+    getWidth() {
+        return this.handler.canvas.width;
+    }
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
-    gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+    /**
+     * Get the client height.
+     * @public
+     * @returns {number} -
+     */
+    getHeight() {
+        return this.handler.canvas.height;
+    }
 
-    this.toneMappingFramebuffer.activate();
+    /**
+     * Get center of the screen
+     * @public
+     * @returns {og.math.Vec2} -
+     */
+    getCenter() {
+        var cnv = this.handler.canvas;
+        return new Vec2(Math.round(cnv.width * 0.5), Math.round(cnv.height * 0.5));
+    }
 
-    sh.activate();
+    /**
+     * Add the given control to the renderer.
+     * @param {og.control.Control} control - Control.
+     */
+    addControl(control) {
+        control.addTo(this);
+    }
 
-    // screen texture
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.blitFramebuffer.textures[0]);
-    gl.uniform1i(p.uniforms.hdrBuffer, 0);
+    /**
+     * Add the given controls array to the planet node.
+     * @param {Array.<og.control.Control>} cArr - Control array.
+     */
+    addControls(cArr) {
+        for (var i = 0; i < cArr.length; i++) {
+            cArr[i].addTo(this);
+        }
+    }
 
-    gl.uniform1f(p.uniforms.gamma, this.gamma);
-    gl.uniform1f(p.uniforms.exposure, this.exposure);
-    gl.uniform1f(p.uniforms.whitepoint, this.whitepoint);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    /**
+     * Remove control from the renderer.
+     * @param {og.control.Control} control  - Control.
+     */
+    removeControl(control) {
+        control.remove();
+    }
 
-    this.toneMappingFramebuffer.deactivate();
-
-    sh = h.programs.screenFrame;
-    p = sh._program;
-    gl = h.gl;
-
-    sh.activate();
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
-    gl.uniform1i(p.uniforms.texture, 0);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-    gl.enable(gl.DEPTH_TEST);
-};
-
-Renderer.prototype._screenFrameNoMSAA = function () {
-    var h = this.handler;
-    var sh = h.programs.screenFrame,
-        p = sh._program,
-        gl = h.gl;
-
-    gl.disable(gl.DEPTH_TEST);
-    sh.activate();
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
-    gl.uniform1i(p.uniforms.texture, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
-    gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    gl.enable(gl.DEPTH_TEST);
-};
-
-/**
- * Returns picking object by screen coordinates
- * @param {number} x - X position
- * @param {number} y - Y position
- * @return {Object} -
- */
-Renderer.prototype.getPickingObject = function (x, y) {
-    let cnv = this.renderer.handler.canvas,
-        c = new Uint8Array(3);
-    this.readPixels(c, x / cnv.width, (cnv.height - y) / cnv.height, 1);
-    return this.colorObjects[c[0] + "_" + c[1] + "_" + c[2]];
-};
-
-/**
- * Draw picking objects framebuffer.
- * @private
- */
-Renderer.prototype._drawPickingBuffer = function (frustumIndex) {
-    if (this.events.mouseState.anyEvent()) {
-        this.pickingFramebuffer.activate();
-
-        var h = this.handler;
-        var gl = h.gl;
-
-        if (frustumIndex === this.activeCamera.FARTHEST_FRUSTUM_INDEX) {
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    /**
+     * Renderer initialization.
+     * @public
+     */
+    initialize() {
+        if (this._initialized) {
+            return;
         } else {
-            gl.clear(gl.DEPTH_BUFFER_BIT);
+            this._initialized = true;
         }
 
-        gl.disable(h.gl.BLEND);
+        var that = this;
 
-        var dp = this._pickingCallbacks;
-        var i = dp.length;
-        while (i--) {
-            /**
-             * This callback renders picking frame.
-             * @callback og.Renderer~pickingCallback
-             */
-            dp[i].callback.call(dp[i].sender);
+        this.billboardsTextureAtlas.assignHandler(this.handler);
+
+        this.fontAtlas.assignHandler(this.handler);
+
+        this.handler.setFrameCallback(function () {
+            that.draw();
+        });
+
+        this.activeCamera = new Camera(this, {
+            eye: new Vec3(0, 0, 0),
+            look: new Vec3(0, 0, -1),
+            up: new Vec3(0, 1, 0)
+        });
+
+        this.events.initialize();
+
+        // Bind console key
+        this.events.on("charkeypress", input.KEY_APOSTROPHE, function () {
+            cons.setVisibility(!cons.getVisibility());
+        });
+
+        this.handler.addProgram(screenFrame());
+
+        this.pickingFramebuffer = new Framebuffer(this.handler, {
+            width: 640,
+            height: 480
+        }).init();
+
+        this.depthFramebuffer = new Framebuffer(this.handler, {
+            size: 2,
+            internalFormat: ["RGBA", "DEPTH_COMPONENT24"],
+            format: ["RGBA", "DEPTH_COMPONENT"],
+            type: ["UNSIGNED_BYTE", "UNSIGNED_INT"],
+            attachment: ["COLOR_ATTACHMENT", "DEPTH_ATTACHMENT"],
+            useDepth: false
+        }).init();
+
+        //this.depthFramebuffer = new Framebuffer(this.handler, {
+        //    size: 2,
+        //    internalFormat: ["RGBA", "RGBA"],
+        //    format: ["RGBA", "RGBA"],
+        //    type: ["UNSIGNED_BYTE", "UNSIGNED_BYTE"],
+        //    attachment: ["COLOR_ATTACHMENT", "COLOR_ATTACHMENT"],
+        //    useDepth: true
+        //}).init();
+        this.screenDepthFramebuffer = new Framebuffer(this.handler, {
+            useDepth: false
+        }).init();
+
+        this.readPixels = () => { };
+
+        if (this.handler.gl.type === "webgl") {
+            this.sceneFramebuffer = new Framebuffer(this.handler);
+            this.sceneFramebuffer.init();
+
+            this._fnScreenFrame = this._screenFrameNoMSAA;
+
+            this.screenTexture = {
+                screen: this.sceneFramebuffer.textures[0],
+                picking: this.pickingFramebuffer.textures[0],
+                depth: this.screenDepthFramebuffer.textures[0]
+            };
+        } else {
+            let _maxMSAA = this.getMaxMSAA(this._internalFormat);
+
+            if (this._msaa > _maxMSAA) {
+                this._msaa = _maxMSAA;
+            }
+
+            this.handler.addPrograms([toneMapping()]);
+
+            this.handler.addPrograms([depth()]);
+
+            this.sceneFramebuffer = new Multisample(this.handler, {
+                size: 1,
+                msaa: this._msaa,
+                internalFormat: this._internalFormat,
+                filter: "LINEAR"
+            }).init();
+
+            this.blitFramebuffer = new Framebuffer(this.handler, {
+                useDepth: false,
+                internalFormat: this._internalFormat,
+                format: this._format,
+                type: this._type,
+                filter: "LINEAR"
+            }).init();
+
+            this.toneMappingFramebuffer = new Framebuffer(this.handler, {
+                useDepth: false
+            }).init();
+
+            this._fnScreenFrame = this._screenFrameMSAA;
+
+            this.screenTexture = {
+                screen: this.toneMappingFramebuffer.textures[0],
+                picking: this.pickingFramebuffer.textures[0],
+                depth: this.screenDepthFramebuffer.textures[0],
+                frustum: this.depthFramebuffer.textures[0]
+            };
         }
 
-        this.pickingFramebuffer.deactivate();
+        this.handler.onCanvasResize = () => {
+            this.events.dispatch(this.events.resize, this.handler.canvas);
+            this._resize();
+        };
+
+        this._screenFrameCornersBuffer = this.handler.createArrayBuffer(
+            new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]),
+            2,
+            4
+        );
+
+        let temp = this.controls;
+        this.controls = {};
+        for (let i in temp) {
+            this.addControl(temp[i]);
+        }
+
+        this.outputTexture = this.screenTexture.screen;
+
+        this.fontAtlas.initFont("arial", arial.data, ARIAL_FONT_B64);
     }
-};
 
-Renderer.prototype._drawDepthBuffer = function (frustumIndex) {
-    if (frustumIndex === 0) {
-        this.depthFramebuffer.activate();
+    setCurrentScreen(screenName) {
+        this._currentOutput = screenName;
+        if (this.screenTexture[screenName]) {
+            this.outputTexture = this.screenTexture[screenName];
+        }
+    }
 
-        var h = this.handler;
-        var gl = h.gl;
+    _resize() {
+        let obj = this.handler.canvas;
+        this.activeCamera.setAspectRatio(obj.clientWidth / obj.clientHeight);
+        this.sceneFramebuffer.setSize(
+            obj.clientWidth * this._screenScale,
+            obj.clientHeight * this._screenScale
+        );
+        this.blitFramebuffer &&
+            this.blitFramebuffer.setSize(
+                obj.clientWidth * this._screenScale,
+                obj.clientHeight * this._screenScale,
+                true
+            );
+        this.toneMappingFramebuffer &&
+            this.toneMappingFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
+        this.depthFramebuffer && this.depthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
+        this.screenDepthFramebuffer &&
+            this.screenDepthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
 
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-        gl.enable(gl.DEPTH_TEST);
-
-        var dp = this._depthCallbacks;
-        var i = dp.length;
-        while (i--) {
-            /**
-             * This callback renders depth frame.
-             * @callback og.Renderer~depthCallback
-             */
-            dp[i].callback.call(dp[i].sender);
+        if (this.handler.gl.type === "webgl") {
+            this.screenTexture.screen = this.sceneFramebuffer.textures[0];
+            this.screenTexture.picking = this.pickingFramebuffer.textures[0];
+            this.screenTexture.depth = this.screenDepthFramebuffer.textures[0];
+            this.screenTexture.frustum = this.depthFramebuffer.textures[0];
+        } else {
+            this.screenTexture.screen = this.toneMappingFramebuffer.textures[0];
+            this.screenTexture.picking = this.pickingFramebuffer.textures[0];
+            this.screenTexture.depth = this.screenDepthFramebuffer.textures[0];
+            this.screenTexture.frustum = this.depthFramebuffer.textures[0];
         }
 
-        this.depthFramebuffer.deactivate();
+        this.setCurrentScreen(this._currentOutput);
+    }
 
-        //
-        // PASS to depth visualization
-        var sh = h.programs.depth,
-            p = sh._program;
+    removeNode(renderNode) {
+        renderNode.remove();
+    }
 
-        gl = h.gl;
+    /**
+     * Adds render node to the renderer.
+     * @public
+     * @param {og.scene.RenderNode} renderNode - Render node.
+     */
+    addNode(renderNode) {
+        if (!this.renderNodes[renderNode.name]) {
+            renderNode.assign(this);
+            this._renderNodesArr.unshift(renderNode);
+            this.renderNodes[renderNode.name] = renderNode;
+        } else {
+            cons.logWrn("Node name " + renderNode.name + " allready exists.");
+        }
+    }
+
+    /**
+     * Adds render node to the renderer before specific node.
+     * @public
+     * @param {og.scene.RenderNode} renderNode - Render node.
+     */
+    addNodeBefore(renderNode, renderNodeBefore) {
+        if (!this.renderNodes[renderNode.name]) {
+            renderNode.assign(this);
+            this.renderNodes[renderNode.name] = renderNode;
+            for (let i = 0; i < this._renderNodesArr.length; i++) {
+                if (this._renderNodesArr[i].isEqual(renderNodeBefore)) {
+                    this._renderNodesArr.splice(i, 0, renderNode);
+                    break;
+                }
+            }
+            this._renderNodesArr.unshift(renderNode);
+        } else {
+            cons.logWrn("Node name " + renderNode.name + " allready exists.");
+        }
+    }
+
+    /**
+     * Adds render nodes array to the renderer.
+     * @public
+     * @param {Array.<og.scene.RenderNode>} nodesArr - Render nodes array.
+     */
+    addNodes(nodesArr) {
+        for (var i = 0; i < nodesArr.length; i++) {
+            this.addNode(nodesArr[i]);
+        }
+    }
+
+    getMaxMSAA(internalFormat) {
+        var gl = this.handler.gl;
+        let samples = gl.getInternalformatParameter(gl.RENDERBUFFER, gl[internalFormat], gl.SAMPLES);
+        return samples[0];
+    }
+
+    getMSAA() {
+        return this._msaa;
+    }
+
+    /**
+     * TODO: replace with cahce frendly linked list by bilboardHandler, label handler etc.
+     */
+    enqueueEntityCollectionsToDraw(ecArr) {
+        this._entityCollections.push.apply(this._entityCollections, ecArr);
+    }
+
+    /**
+     * Draws entity collections.
+     * @public
+     * @param {Array<og.EntityCollection>} ec - Entity collection array.
+     */
+    _drawEntityCollections() {
+        let ec = this._entityCollections;
+
+        if (ec.length) {
+            var gl = this.handler.gl;
+
+            gl.enable(gl.BLEND);
+            gl.blendEquation(gl.FUNC_ADD);
+            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+            gl.disable(gl.CULL_FACE);
+
+            // Z-buffer offset
+            gl.enable(gl.POLYGON_OFFSET_FILL);
+            gl.polygonOffset(0.0, 0.0);
+
+            // billboards pass
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture);
+
+            var i = ec.length;
+            while (i--) {
+                var eci = ec[i];
+                if (eci._fadingOpacity) {
+                    // first begin draw event
+                    eci.events.dispatch(eci.events.draw, eci);
+                    eci.billboardHandler.draw();
+                }
+            }
+
+            // labels pass
+            var fa = this.fontAtlas.atlasesArr;
+            for (i = 0; i < fa.length; i++) {
+                gl.activeTexture(gl.TEXTURE0 + i);
+                gl.bindTexture(gl.TEXTURE_2D, fa[i].texture);
+            }
+
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].labelHandler.draw();
+            }
+
+            //geoObject
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].geoObjectHandler.draw();
+            }
+
+            // rays
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].rayHandler.draw();
+            }
+
+            // polyline pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].polylineHandler.draw();
+            }
+
+            gl.enable(gl.CULL_FACE);
+
+            // pointClouds pass
+            i = ec.length;
+            while (i--) {
+                if (ec[i]._fadingOpacity) {
+                    ec[i].pointCloudHandler.draw();
+                }
+            }
+
+            // shapes pass
+            i = ec.length;
+            while (i--) {
+                eci = ec[i];
+                if (eci._fadingOpacity) {
+                    eci.shapeHandler.draw();
+                }
+            }
+
+            // Strip pass
+            i = ec.length;
+            while (i--) {
+                if (ec[i]._fadingOpacity) {
+                    ec[i].stripHandler.draw();
+                    // post draw event
+                    eci.events.dispatch(eci.events.drawend, eci);
+                }
+            }
+
+            // gl.polygonOffset(0.0, 0.0);
+            gl.disable(gl.POLYGON_OFFSET_FILL);
+
+            this._entityCollections.length = 0;
+            this._entityCollections = [];
+        }
+    }
+
+    /**
+     * Draw nodes.
+     * @public
+     */
+    draw() {
+        this.activeCamera.checkMoveEnd();
+
+        let e = this.events;
+        e.handleEvents();
+
+        let sfb = this.sceneFramebuffer;
+        sfb.activate();
+
+        let h = this.handler;
+
+        h.gl.clearColor(this.backgroundColor.x, this.backgroundColor.y, this.backgroundColor.z, 1.0);
+        h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
+
+        e.dispatch(e.draw, this);
+
+        //h.gl.activeTexture(h.gl.TEXTURE0);
+        //h.gl.bindTexture(h.gl.TEXTURE_2D, h.transparentTexture);
+
+        let frustums = this.activeCamera.frustums;
+
+        // Rendering scene nodes and entityCollections
+        let rn = this._renderNodesArr;
+        let k = frustums.length;
+        while (k--) {
+            this.activeCamera.setCurrentFrustum(k);
+            h.gl.clear(h.gl.DEPTH_BUFFER_BIT);
+            let i = rn.length;
+            while (i--) {
+                rn[i].drawNode();
+            }
+            this._drawEntityCollections();
+
+            this._drawDepthBuffer(k);
+
+            // Rendering picking callbacks and refresh pickingColor
+            this._drawPickingBuffer(k);
+        }
+
+        sfb.deactivate();
+
+        this.blitFramebuffer && sfb.blitTo(this.blitFramebuffer);
+
+        if (e.mouseState.anyEvent()) {
+            this._readPickingColor();
+        }
+
+        // Tone mapping followed by rendering on the screen
+        this._fnScreenFrame();
+
+        e.dispatch(e.postdraw, this);
+
+        e.mouseState.moving = false;
+        e.touchState.moving = false;
+    }
+
+    _screenFrameMSAA() {
+        var h = this.handler;
+
+        var sh = h.programs.toneMapping,
+            p = sh._program,
+            gl = h.gl;
+
+        gl.disable(gl.DEPTH_TEST);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
-        this.screenDepthFramebuffer.activate();
+        this.toneMappingFramebuffer.activate();
 
         sh.activate();
 
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer.textures[1]);
-        gl.uniform1i(p.uniforms.depthTexture, 1);
+        // screen texture
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.blitFramebuffer.textures[0]);
+        gl.uniform1i(p.uniforms.hdrBuffer, 0);
 
+        gl.uniform1f(p.uniforms.gamma, this.gamma);
+        gl.uniform1f(p.uniforms.exposure, this.exposure);
+        gl.uniform1f(p.uniforms.whitepoint, this.whitepoint);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-        this.screenDepthFramebuffer.deactivate();
+        this.toneMappingFramebuffer.deactivate();
+
+        sh = h.programs.screenFrame;
+        p = sh._program;
+        gl = h.gl;
+
+        sh.activate();
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
+        gl.uniform1i(p.uniforms.texture, 0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        gl.enable(gl.DEPTH_TEST);
     }
-};
 
-Renderer.prototype._readPickingColor = function () {
-    var ms = this.events.mouseState;
-    var ts = this.events.touchState;
+    _screenFrameNoMSAA() {
+        var h = this.handler;
+        var sh = h.programs.screenFrame,
+            p = sh._program,
+            gl = h.gl;
 
-    if (!(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
-        this._prevPickingColor[0] = this._currPickingColor[0];
-        this._prevPickingColor[1] = this._currPickingColor[1];
-        this._prevPickingColor[2] = this._currPickingColor[2];
+        gl.disable(gl.DEPTH_TEST);
+        sh.activate();
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
+        gl.uniform1i(p.uniforms.texture, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
+        gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        gl.enable(gl.DEPTH_TEST);
+    }
 
-        var pc = this._currPickingColor;
-        if (ts.x || ts.y) {
-            this.pickingFramebuffer.readPixels(pc, ts.nx, 1.0 - ts.ny);
-            if (!(pc[0] || pc[1] || pc[2])) {
-                this.readPixels(pc, ts.nx, 1.0 - ts.ny, 1);
+    /**
+     * Returns picking object by screen coordinates
+     * @param {number} x - X position
+     * @param {number} y - Y position
+     * @return {Object} -
+     */
+    getPickingObject(x, y) {
+        let cnv = this.renderer.handler.canvas,
+            c = new Uint8Array(3);
+        this.readPixels(c, x / cnv.width, (cnv.height - y) / cnv.height, 1);
+        return this.colorObjects[c[0] + "_" + c[1] + "_" + c[2]];
+    }
+
+    /**
+     * Draw picking objects framebuffer.
+     * @private
+     */
+    _drawPickingBuffer(frustumIndex) {
+        if (this.events.mouseState.anyEvent()) {
+            this.pickingFramebuffer.activate();
+
+            var h = this.handler;
+            var gl = h.gl;
+
+            if (frustumIndex === this.activeCamera.FARTHEST_FRUSTUM_INDEX) {
+                gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            } else {
+                gl.clear(gl.DEPTH_BUFFER_BIT);
             }
-        } else {
-            this.pickingFramebuffer.readPixels(pc, ms.nx, 1.0 - ms.ny);
-            if (!(pc[0] || pc[1] || pc[2])) {
-                this.readPixels(pc, ms.nx, 1.0 - ms.ny, 1);
+
+            gl.disable(h.gl.BLEND);
+
+            var dp = this._pickingCallbacks;
+            var i = dp.length;
+            while (i--) {
+                /**
+                 * This callback renders picking frame.
+                 * @callback og.Renderer~pickingCallback
+                 */
+                dp[i].callback.call(dp[i].sender);
+            }
+
+            this.pickingFramebuffer.deactivate();
+        }
+    }
+
+    _drawDepthBuffer(frustumIndex) {
+        if (frustumIndex === 0) {
+            this.depthFramebuffer.activate();
+
+            var h = this.handler;
+            var gl = h.gl;
+
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            gl.enable(gl.DEPTH_TEST);
+
+            var dp = this._depthCallbacks;
+            var i = dp.length;
+            while (i--) {
+                /**
+                 * This callback renders depth frame.
+                 * @callback og.Renderer~depthCallback
+                 */
+                dp[i].callback.call(dp[i].sender);
+            }
+
+            this.depthFramebuffer.deactivate();
+
+            //
+            // PASS to depth visualization
+            var sh = h.programs.depth,
+                p = sh._program;
+
+            gl = h.gl;
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
+            gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+
+            this.screenDepthFramebuffer.activate();
+
+            sh.activate();
+
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer.textures[1]);
+            gl.uniform1i(p.uniforms.depthTexture, 1);
+
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            this.screenDepthFramebuffer.deactivate();
+        }
+    }
+
+    _readPickingColor() {
+        var ms = this.events.mouseState;
+        var ts = this.events.touchState;
+
+        if (!(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
+            this._prevPickingColor[0] = this._currPickingColor[0];
+            this._prevPickingColor[1] = this._currPickingColor[1];
+            this._prevPickingColor[2] = this._currPickingColor[2];
+
+            var pc = this._currPickingColor;
+            if (ts.x || ts.y) {
+                this.pickingFramebuffer.readPixels(pc, ts.nx, 1.0 - ts.ny);
+                if (!(pc[0] || pc[1] || pc[2])) {
+                    this.readPixels(pc, ts.nx, 1.0 - ts.ny, 1);
+                }
+            } else {
+                this.pickingFramebuffer.readPixels(pc, ms.nx, 1.0 - ms.ny);
+                if (!(pc[0] || pc[1] || pc[2])) {
+                    this.readPixels(pc, ms.nx, 1.0 - ms.ny, 1);
+                }
             }
         }
     }
-};
 
-/**
- * Function starts rendering.
- * @public
- */
-Renderer.prototype.start = function () {
-    this.handler.start();
-};
+    /**
+     * Function starts rendering.
+     * @public
+     */
+    start() {
+        this.handler.start();
+    }
+
+}
 
 export { Renderer };

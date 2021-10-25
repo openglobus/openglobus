@@ -48,7 +48,7 @@ export const ONE_BY_POLE_DOUBLE = 1.0 / POLE_DOUBLE;
 
 export function forward(lonLat) {
     return new LonLat(lonLat.lon * POLE / 180.0, Math.log(Math.tan((90.0 + lonLat.lat) * PI_BY_360)) * POLE_BY_PI, lonLat.height);
-};
+}
 
 /**
  * Converts degrees longitude to mercator coordinate.
@@ -58,7 +58,7 @@ export function forward(lonLat) {
  */
 export function forward_lon(lon) {
     return lon * POLE / 180.0;
-};
+}
 
 /**
  * Converts degrees latitude to mercator coordinate.
@@ -68,7 +68,7 @@ export function forward_lon(lon) {
  */
 export function forward_lat(lat) {
     return Math.log(Math.tan((90.0 + lat) * PI_BY_360)) * POLE_BY_PI;
-};
+}
 
 /**
  * Converts mercator longitude to degrees coordinate.
@@ -78,7 +78,7 @@ export function forward_lat(lat) {
  */
 export function inverse_lon(lon) {
     return 180 * lon / POLE;
-};
+}
 
 /**
  * Converts mercator latitude to degrees coordinate.
@@ -88,7 +88,7 @@ export function inverse_lon(lon) {
  */
 export function inverse_lat(lat) {
     return INV_PI_BY_180 * (2.0 * Math.atan(Math.exp(lat * PI_BY_POLE)) - HALF_PI);
-};
+}
 
 /**
  * Returns mercator map tile grid horizontal coordinate index by geodetic 
@@ -100,7 +100,7 @@ export function inverse_lat(lat) {
  */
 export function getTileX(lon, zoom) {
     return Math.floor((lon + 180) / 360.0 * Math.pow(2, zoom));
-};
+}
 
 /**
  * Returns mercator map tile grid vertical coordinate index by geodetic 
@@ -112,13 +112,13 @@ export function getTileX(lon, zoom) {
  */
 export function getTileY(lat, zoom) {
     return Math.floor((1.0 - Math.log(Math.tan(lat * PI_BY_180) + 1.0 / Math.cos(lat * PI_BY_180)) / Math.PI) * 0.5 * Math.pow(2, zoom));
-};
+}
 
 /**
  * Converts geodetic coordinate array to mercator coordinate array.
  * @function
- * @param {Array.<og.LonLat>} lonLatArr - LonLat array to convert.
- * @returns {Array.<og.LonLat>}
+ * @param {Array.<LonLat>} lonLatArr - LonLat array to convert.
+ * @returns {Array.<LonLat>}
  */
 export function forwardArray(lonlatArr) {
     var res = [];
@@ -126,13 +126,13 @@ export function forwardArray(lonlatArr) {
         res.push(lonlatArr[i].forwardMercator());
     }
     return res;
-};
+}
 
 export function getTileExtent(x, y, z) {
     let size = POLE2 / Math.pow(2, z),
         sw = new LonLat(-POLE + x * size, POLE - y * size - size);
     return new Extent(sw, new LonLat(sw.lon + size, sw.lat + size));
-};
+}
 
 /**
  * Max mercator latitude.

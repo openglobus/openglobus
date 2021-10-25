@@ -19,17 +19,17 @@ export class GeoImageCreator {
         this._queue = [];
         this._animate = [];
         this._initialize();
-    };
+    }
 
     _initialize() {
         this._initShaders();
         this._initBuffers();
-    };
+    }
 
     /**
      * Creates geoImage corners coordinates grid buffer.
      * @public
-     * @param{Array.<og.LonLat>} c - GeoImage corners coordinates.
+     * @param{Array.<LonLat>} c - GeoImage corners coordinates.
      * @return{WebGLBuffer} Grid coordinates buffer.
      */
     createGridBuffer(c, toMerc) {
@@ -62,7 +62,7 @@ export class GeoImageCreator {
             }
         }
         return this._planet.renderer.handler.createArrayBuffer(grid, 2, grid.length / 2);
-    };
+    }
 
     frame() {
         var i = this.MAX_FRAMES;
@@ -76,7 +76,7 @@ export class GeoImageCreator {
         while (i--) {
             this._animate[i].rendering();
         }
-    };
+    }
 
     add(geoImage) {
         if (!geoImage._isRendering) {
@@ -87,7 +87,7 @@ export class GeoImageCreator {
                 this._queue.push(geoImage);
             }
         }
-    };
+    }
 
     remove(geoImage) {
         if (geoImage._isRendering) {
@@ -106,7 +106,7 @@ export class GeoImageCreator {
                 }
             }
         }
-    };
+    }
 
     _initBuffers() {
 
@@ -126,7 +126,7 @@ export class GeoImageCreator {
 
         this._quadTexCoordsBuffer = h.createArrayBuffer(new Float32Array([0, 1, 1, 1, 0, 0, 1, 0]), 2, 4);
         this._quadVertexBuffer = h.createArrayBuffer(new Float32Array([-1, 1, 1, 1, -1, -1, 1, -1]), 2, 4);
-    };
+    }
 
     _initShaders() {
 
@@ -155,6 +155,6 @@ export class GeoImageCreator {
                             gl_FragColor = texture2D(sourceTexture, v_texCoords);
                         }`
         }));
-    };
+    }
 
 }

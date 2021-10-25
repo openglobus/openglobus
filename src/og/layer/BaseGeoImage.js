@@ -54,7 +54,7 @@ class BaseGeoImage extends Layer {
     /**
      * Gets corners coordinates.
      * @public
-     * @return {Array.<og.LonLat,og.LonLat,og.LonLat,og.LonLat>} -
+     * @return {Array.<LonLat>} - (exactly 4 entries)
      */
     getCornersLonLat() {
         var c = this._cornersWgs84;
@@ -65,7 +65,7 @@ class BaseGeoImage extends Layer {
     /**
      * Gets corners coordinates.
      * @public
-     * @return {Array.<Array<number,number,number>>} -
+     * @return {Array.<Array<number>>} - (exactly 3 entries)
      */
     getCorners() {
         var c = this._cornersWgs84;
@@ -75,7 +75,7 @@ class BaseGeoImage extends Layer {
     /**
      * Sets geoImage geographical corners coordinates.
      * @public
-     * @param {Array.<Array.<number,number,number>>} corners - GeoImage corners coordinates. Where first coordinate
+     * @param {Array.<Array.<number>>} corners - GeoImage corners coordinates. Where first coordinate (exactly 3 entries)
      * coincedents to the left top image corner, secont to the right top image corner, third to the right bottom
      * and fourth - left bottom image corner.
      */
@@ -86,9 +86,9 @@ class BaseGeoImage extends Layer {
     /**
      * Sets geoImage geographical corners coordinates.
      * @public
-     * @param {Array.<og.LonLat, og.LonLat, og.LonLat, og.LonLat>} corners - GeoImage corners coordinates. Where first coordinate
+     * @param {Array.<LonLat>} corners - GeoImage corners coordinates. Where first coordinate
      * coincedents to the left top image corner, secont to the right top image corner, third to the right bottom
-     * and fourth - left bottom image corner.
+     * and fourth - left bottom image corner. (exactly 4 entries)
      */
     setCornersLonLat(corners) {
         this._refreshFrame = true;
@@ -228,7 +228,7 @@ class BaseGeoImage extends Layer {
      * @virtual
      * @protected
      * @param {og.planetSegment.Material} material - GeoImage material.
-     * @returns {Array<Number, Number, Number, Number> } -
+     * @returns {Array<number> } -
      */
     applyMaterial(material) {
 
@@ -276,6 +276,6 @@ class BaseGeoImage extends Layer {
     get getFrameHeight() {
         return this._frameHeight;
     }
-};
+}
 
 export { BaseGeoImage };

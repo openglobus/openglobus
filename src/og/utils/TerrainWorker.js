@@ -84,7 +84,7 @@ class TerrainWorker {
             this.check();
         }
     }
-};
+}
 
 const _programm =
     `'use strict';

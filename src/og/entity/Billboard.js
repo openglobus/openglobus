@@ -156,6 +156,6 @@ class Billboard extends BaseBillboard {
     getHeight() {
         return this._height;
     }
-};
+}
 
 export { Billboard };

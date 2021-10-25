@@ -24,7 +24,7 @@ export function buildKernel(sigma) {
     for (i = 0; i < kernelSize; ++i) values[i] /= sum;
 
     return values;
-};
+}
 
 export function blur() {
 
@@ -76,4 +76,4 @@ export function blur() {
                 gl_FragColor = sum;
             }`
     });
-};
+}

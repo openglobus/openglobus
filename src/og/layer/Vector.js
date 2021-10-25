@@ -32,7 +32,7 @@ function _entitiesConstructor(entities) {
         }
     }
     return res;
-};
+}
 
 /**
  * Vector layer represents alternative entities store. Used for geospatial data rendering like
@@ -48,7 +48,7 @@ function _entitiesConstructor(entities) {
  * @param {boolean} [options.visibility=true] - Layer visibility. True is default.
  * @param {boolean} [options.isBaseLayer=false] - Layer base layer. False is default.
  * @param {Array.<og.Entity>} [options.entities] - Entities array.
- * @param {Array.<number,number,number>} [options.scaleByDistance] - Scale by distance parameters.
+ * @param {Array.<number>} [options.scaleByDistance] - Scale by distance parameters. (exactly 3 entries)
  *      First index - near distance to the entity, after entity becomes full scale.
  *      Second index - far distance to the entity, when entity becomes zero scale.
  *      Third index - far distance to the entity, when entity becomes invisible.
@@ -88,7 +88,7 @@ class Vector extends Layer {
          * Second index - far distance to the entity, when entity becomes zero scale.
          * Third index - far distance to the entity, when entity becomes invisible.
          * @public
-         * @type {Array.<number,number,number>}
+         * @type {Array.<number>} - (exactly 3 entries)
          */
         this.scaleByDistance = options.scaleByDistance || [math.MAX32, math.MAX32, math.MAX32];
 
@@ -933,7 +933,7 @@ class Vector extends Layer {
         this._geometryHandler.update();
         this.events.dispatch(this.events.draw, this);
     }
-};
+}
 
 const EVENT_NAMES = [
     /**

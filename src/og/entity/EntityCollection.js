@@ -184,7 +184,7 @@ class EntityCollection {
          * Second index - far distance to the entity, when entity becomes zero scale.
          * Third index - far distance to the entity, when entity becomes invisible.
          * @public
-         * @type {Array.<number,number,number>}
+         * @type {Array.<number>} - (exactly 3 entries)
          */
         this.scaleByDistance = options.scaleByDistance || [math.MAX32, math.MAX32, math.MAX32];
 

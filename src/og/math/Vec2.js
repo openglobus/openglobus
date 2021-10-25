@@ -27,17 +27,17 @@ export class Vec2 {
          * @type {number}
          */
         this.y = y || 0.0;
-    };
+    }
     /** @const */
-    static get UP() { return new Vec2(0, 1) };
+    static get UP() { return new Vec2(0, 1) }
     /** @const */
-    static get DOWN() { return new Vec2(0, -1) };
+    static get DOWN() { return new Vec2(0, -1) }
     /** @const */
-    static get RIGHT() { return new Vec2(1, 0) };
+    static get RIGHT() { return new Vec2(1, 0) }
     /** @const */
-    static get LEFT() { return new Vec2(-1, 0) };
+    static get LEFT() { return new Vec2(-1, 0) }
     /** @const */
-    static get ZERO() { return new Vec2() };
+    static get ZERO() { return new Vec2() }
 
     /**
      * Returns summary vector.
@@ -50,7 +50,7 @@ export class Vec2 {
         var res = new Vec2(a.x, a.y);
         res.addA(b);
         return res;
-    };
+    }
 
     /**
      * Returns two vectors subtraction.
@@ -63,7 +63,7 @@ export class Vec2 {
         var res = new Vec2(a.x, a.y);
         res.subA(b);
         return res;
-    };
+    }
 
     /**
      * Returns scaled vector.
@@ -76,7 +76,7 @@ export class Vec2 {
         var res = new Vec2(a.x, a.y);
         res.scale(scale);
         return res;
-    };
+    }
 
     /**
      * Returns two vectors production.
@@ -89,7 +89,7 @@ export class Vec2 {
         var res = new Vec2(a.x, a.y);
         res.mulA(b);
         return res;
-    };
+    }
 
     /**
      * Returns vector components division product one to another.
@@ -102,7 +102,7 @@ export class Vec2 {
         var res = new Vec2(a.x, a.y);
         res.divA(b);
         return res;
-    };
+    }
 
     /**
      * Get projection of the first vector to the second.
@@ -113,7 +113,7 @@ export class Vec2 {
      */
     static proj_b_to_a(b, a) {
         return a.scaleTo(a.dot(b) / a.dot(a));
-    };
+    }
 
     /**
      * Gets angle between two vectors.
@@ -124,7 +124,7 @@ export class Vec2 {
      */
     static angle(a, b) {
         return Math.acos(a.dot(b) / Math.sqrt(a.length2() * b.length2()));
-    };
+    }
 
     /**
      * Makes vectors normalized and orthogonal to each other.
@@ -137,7 +137,7 @@ export class Vec2 {
         normal = normal.norm();
         normal.scale(tangent.dot(normal));
         return tangent.sub(normal).normalize();
-    };
+    }
 
     /**
      * Converts to 3d vector, third value is 0.0.
@@ -146,7 +146,7 @@ export class Vec2 {
      */
     toVector3() {
         return new Vec3(this.x, this.y, 0);
-    };
+    }
 
     /**
      * Returns clone vector.
@@ -155,7 +155,7 @@ export class Vec2 {
      */
     clone() {
         return new Vec2(this.x, this.y);
-    };
+    }
 
     /**
      * Compares with vector. Returns true if it equals another.
@@ -165,7 +165,7 @@ export class Vec2 {
      */
     equal(p) {
         return this.x === p.x && this.y === p.y;
-    };
+    }
 
     /**
      * Copy input vector's values.
@@ -176,7 +176,7 @@ export class Vec2 {
         this.x = point2.x;
         this.y = point2.y;
         return this;
-    };
+    }
 
     /**
      * Gets vector's length.
@@ -185,7 +185,7 @@ export class Vec2 {
      */
     length() {
         return Math.sqrt(this.x * this.x + this.y * this.y);
-    };
+    }
 
     /**
      * Returns squared vector's length.
@@ -194,7 +194,7 @@ export class Vec2 {
      */
     length2() {
         return this.x * this.x + this.y * this.y;
-    };
+    }
 
     /**
      * Adds vector to the current.
@@ -206,7 +206,7 @@ export class Vec2 {
         this.x += v.x;
         this.y += v.y;
         return this;
-    };
+    }
 
     /**
      * Summarize two vectors.
@@ -216,7 +216,7 @@ export class Vec2 {
      */
     add(v) {
         return new Vec2(this.x + v.x, this.y + v.y);
-    };
+    }
 
     /**
      * Subtract vector from the current where results saved on the current instance.
@@ -228,7 +228,7 @@ export class Vec2 {
         this.x -= v.x;
         this.y -= v.y;
         return this;
-    };
+    }
 
     /**
      * Subtract vector from the current.
@@ -238,7 +238,7 @@ export class Vec2 {
      */
     sub(v) {
         return new Vec2(this.x - v.x, this.y - v.y);
-    };
+    }
 
     /**
      * Scale current vector.
@@ -250,7 +250,7 @@ export class Vec2 {
         this.x *= scale;
         this.y *= scale;
         return this;
-    };
+    }
 
     /**
      * Scale current vector to another instance.
@@ -260,7 +260,7 @@ export class Vec2 {
      */
     scaleTo(scale) {
         return new Vec2(this.x * scale, this.y * scale);
-    };
+    }
 
     /**
      * Multiply current vector object to another and store result in the current instance.
@@ -272,7 +272,7 @@ export class Vec2 {
         this.x *= vec.x;
         this.y *= vec.y;
         return this;
-    };
+    }
 
     /**
      * Multiply current vector object to another and returns new vector instance.
@@ -282,7 +282,7 @@ export class Vec2 {
      */
     mul(vec) {
         return new Vec2(this.x * vec.x, this.y * vec.y);
-    };
+    }
 
     /**
      * Divide current vector's components to another. Results stores in the current vector object.
@@ -294,7 +294,7 @@ export class Vec2 {
         this.x /= vec.x;
         this.y /= vec.y;
         return this;
-    };
+    }
 
     /**
      * Gets vectors dot production.
@@ -304,17 +304,17 @@ export class Vec2 {
      */
     dot(v) {
         return v.x * this.x + v.y * this.y;
-    };
+    }
 
     /**
      * Gets vectors dot production.
      * @public
-     * @param {Array.<number,number>} arr - Array vector.
+     * @param {Array.<number>} arr - Array vector. (exactly 2 entries)
      * @returns {number}
      */
     dotArr(arr) {
         return arr[0] * this.x + arr[1] * this.y;
-    };
+    }
 
     /**
      * Gets vectors cross production.
@@ -324,7 +324,7 @@ export class Vec2 {
      */
     cross(v) {
         return this.x * v.y - this.y * v.x;
-    };
+    }
 
     /**
      * Sets vector to zero.
@@ -334,7 +334,7 @@ export class Vec2 {
     clear() {
         this.x = this.y = 0;
         return this;
-    };
+    }
 
     /**
      * Returns normalized vector.
@@ -351,7 +351,7 @@ export class Vec2 {
         res.y *= length;
 
         return res;
-    };
+    }
 
     /**
      * Normalize current vector.
@@ -365,16 +365,16 @@ export class Vec2 {
         this.y *= length;
 
         return this;
-    };
+    }
 
     /**
      * Converts vector to a number array.
      * @public
-     * @returns {Array.<number,number>}
+     * @returns {Array.<number>} - (exactly 2 entries)
      */
     toVec() {
         return [this.x, this.y];
-    };
+    }
 
     /**
      * Gets distance to point.
@@ -385,7 +385,7 @@ export class Vec2 {
     distance(p) {
         var vec = Vec2.sub(this, p);
         return vec.length();
-    };
+    }
 
     /**
      * Sets vector's values.
@@ -398,7 +398,7 @@ export class Vec2 {
         this.x = x;
         this.y = y;
         return this;
-    };
+    }
 
     /**
      * Negate current vector.
@@ -409,7 +409,7 @@ export class Vec2 {
         this.x = -this.x;
         this.y = -this.y;
         return this;
-    };
+    }
 
     /**
      * Negate current vector to another instance.
@@ -418,7 +418,7 @@ export class Vec2 {
      */
     negateTo() {
         return new Vec2(-this.x, -this.y);
-    };
+    }
 
     /**
      * Gets projected point coordinates of the current vector on the ray.
@@ -431,7 +431,7 @@ export class Vec2 {
         var v = Vec2.proj_b_to_a(Vec2.sub(this, pos), direction);
         v.add(pos);
         return v;
-    };
+    }
 
     /**
      * Gets angle between two vectors.
@@ -441,7 +441,7 @@ export class Vec2 {
      */
     angle(a) {
         return Vec2.angle(this, a);
-    };
+    }
 
     /**
      * Returns two vectors linear interpolation.
@@ -460,9 +460,9 @@ export class Vec2 {
             res = Vec2.add(v1, Vec2.sub(v2, v1).scale(l));
         }
         return res;
-    };
+    }
 
-    static get LERP_DELTA() { return 1e-6 };
+    static get LERP_DELTA() { return 1e-6 }
 
     /**
      * Spherically interpolates between two vectors.
@@ -499,7 +499,7 @@ export class Vec2 {
         }
 
         return Vec2.add(this.scale(scale0), v2.scale(scale1));
-    };
+    }
 }
 
 /**
@@ -511,4 +511,4 @@ export class Vec2 {
  */
 export function vec2(x, y) {
     return new Vec2(x, y);
-};
+}

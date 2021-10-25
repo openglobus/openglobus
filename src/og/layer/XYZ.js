@@ -17,7 +17,7 @@ import { RENDERING } from '../quadTree/quadTree.js';
  * @param {string} name - Layer name.
  * @param {Object} options:
  * @param {number} [options.opacity=1.0] - Layer opacity.
- * @param {Array.<number,number,number>} [options.transparentColor=[-1,-1,-1]] - RGB color that defines transparent color.
+ * @param {Array.<number>} [options.transparentColor=[-1,-1,-1]] - RGB color that defines transparent color. (exactly 3 entries)
  * @param {Array.<string>} [options.subdomains=['a','b','c']] - Subdomains of the tile service.
  * @param {number} [options.minZoom=0] - Minimal visibility zoom level.
  * @param {number} [options.maxZoom=0] - Maximal visibility zoom level.
@@ -41,6 +41,11 @@ import { RENDERING } from '../quadTree/quadTree.js';
  * });
  */
 class XYZ extends Layer {
+
+    /**
+     * @param {string} name - Layer name.
+     * @param {*} options
+     */
     constructor(name, options) {
         super(name, options);
 
@@ -338,8 +343,8 @@ class XYZ extends Layer {
         if (e.northEast.lat <= mercator.MIN_LAT) {
             e.northEast.lat = mercator.MIN_LAT;
         }
-    };
-};
+    }
+}
 
 const EVENT_NAMES = [
     /**

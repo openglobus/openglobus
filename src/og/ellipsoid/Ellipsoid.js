@@ -52,9 +52,9 @@ class Ellipsoid {
 
     /**
      * Returns the midpoint between two points on the great circle.
-     * @param   {og.LonLat} lonLat1 - Longitude/latitude of first point.
-     * @param   {og.LonLat} lonLat2 - Longitude/latitude of second point.
-     * @return {og.LonLat} Midpoint between points.
+     * @param   {LonLat} lonLat1 - Longitude/latitude of first point.
+     * @param   {LonLat} lonLat2 - Longitude/latitude of second point.
+     * @return {LonLat} Midpoint between points.
      */
     static getMiddlePointOnGreatCircle(lonLat1, lonLat2) {
         var f1 = lonLat1.lat * math.RADIANS,
@@ -76,10 +76,10 @@ class Ellipsoid {
 
     /**
      * Returns the point at given fraction between two points on the great circle.
-     * @param   {og.LonLat} lonLat1 - Longitude/Latitude of source point.
-     * @param   {og.LonLat} lonLat2 - Longitude/Latitude of destination point.
+     * @param   {LonLat} lonLat1 - Longitude/Latitude of source point.
+     * @param   {LonLat} lonLat2 - Longitude/Latitude of destination point.
      * @param   {number} fraction - Fraction between the two points (0 = source point, 1 = destination point).
-     * @returns {og.LonLat} Intermediate point between points.
+     * @returns {LonLat} Intermediate point between points.
      */
     static getIntermediatePointOnGreatCircle(lonLat1, lonLat2, fraction) {
         var f1 = lonLat1.lat * math.RADIANS, l1 = lonLat1.lon * math.RADIANS;
@@ -129,8 +129,8 @@ class Ellipsoid {
 
     /**
      * Returns the (initial) bearing from source to destination point on the great circle.
-     * @param {og.LonLat} lonLat1 - Longitude/latitude of source point.
-     * @param {og.LonLat} lonLat2 - Longitude/latitude of destination point.
+     * @param {LonLat} lonLat1 - Longitude/latitude of source point.
+     * @param {LonLat} lonLat2 - Longitude/latitude of destination point.
      * @return {number} Initial bearing in degrees from north.
      */
     static getInitialBearing(lonLat1, lonLat2) {
@@ -146,11 +146,11 @@ class Ellipsoid {
 
     /**
      * Returns the point of intersection of two paths defined by point and bearing.
-     * @param   {og.LonLat} p1 - First point.
+     * @param   {LonLat} p1 - First point.
      * @param   {number} brng1 - Initial bearing from first point.
-     * @param   {og.LonLat} p2 - Second point.
+     * @param   {LonLat} p2 - Second point.
      * @param   {number} brng2 - Initial bearing from second point.
-     * @return {og.LonLat|null} Destination point (null if no unique intersection defined).
+     * @return {LonLat|null} Destination point (null if no unique intersection defined).
      */
     static intersection(p1, brng1, p2, brng2) {
         var f1 = p1.lat * math.RADIANS,
@@ -195,8 +195,8 @@ class Ellipsoid {
     /**
      * Returns final bearing arriving at destination destination point from lonLat1 point; the final bearing
      * will differ from the initial bearing by varying degrees according to distance and latitude.
-     * @param {og.LonLat} lonLat1 - Longitude/latitude of source point.
-     * @param {og.LonLat} lonLat2 - Longitude/latitude of destination point.
+     * @param {LonLat} lonLat1 - Longitude/latitude of source point.
+     * @param {LonLat} lonLat2 - Longitude/latitude of destination point.
      * @return {number} Final bearing in degrees from north.
      */
     static getFinalBearing(lonLat1, lonLat2) {
@@ -225,7 +225,7 @@ class Ellipsoid {
     /**
      * Gets cartesian ECEF from Wgs84 geodetic coordiantes.
      * @public
-     * @param {og.LonLat} lonlat - Degrees geodetic coordiantes.
+     * @param {LonLat} lonlat - Degrees geodetic coordiantes.
      * @returns {og.Vec3} -
      */
     lonLatToCartesian(lonlat) {
@@ -246,7 +246,7 @@ class Ellipsoid {
     /**
      * Gets cartesian ECEF from Wgs84 geodetic coordiantes.
      * @public
-     * @param {og.LonLat} lonlat - Degrees geodetic coordiantes.
+     * @param {LonLat} lonlat - Degrees geodetic coordiantes.
      * @param {og.Vec3} res - Output result.
      * @returns {og.Vec3} - 
      */
@@ -293,7 +293,7 @@ class Ellipsoid {
      * Gets Wgs84 geodetic coordiantes from cartesian ECEF.
      * @public
      * @param {og.Vec3} cartesian - Cartesian coordinates.
-     * @returns {og.LonLat} -
+     * @returns {LonLat} -
      */
     cartesianToLonLat(cartesian) {
         var x = cartesian.z, y = cartesian.x, z = cartesian.y;
@@ -344,8 +344,8 @@ class Ellipsoid {
 
     /**
      * Returns the distance from one point to another(using haversine formula) on the great circle.
-     * @param   {og.LonLat} lonLat1 - Longitude/latitude of source point.
-     * @param   {og.LonLat} lonLat2 - Longitude/latitude of destination point.
+     * @param   {LonLat} lonLat1 - Longitude/latitude of source point.
+     * @param   {LonLat} lonLat2 - Longitude/latitude of destination point.
      * @return {number} Distance between points.
      */
     getGreatCircleDistance(lonLat1, lonLat2) {
@@ -389,7 +389,7 @@ class Ellipsoid {
                 deltaSigma = B * sinSigma * (cos2SigmaM + B / 4 * (cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM) - B / 6 * cos2SigmaM * (-3 + 4 * sinSigma * sinSigma) * (-3 + 4 * cos2SigmaM * cos2SigmaM)));
             sigmaP = sigma;
             sigma = s / (b * A) + deltaSigma;
-        };
+        }
         var tmp = sinU1 * sinSigma - cosU1 * cosSigma * cosAlpha1,
             lat2 = Math.atan2(sinU1 * cosSigma + cosU1 * sinSigma * cosAlpha1, (1 - f) * Math.sqrt(sinAlpha * sinAlpha + tmp * tmp)),
             lambda = Math.atan2(sinSigma * sinAlpha1, cosU1 * cosSigma - sinU1 * sinSigma * cosAlpha1),
@@ -467,6 +467,6 @@ class Ellipsoid {
             return null;
         }
     }
-};
+}
 
 export { Ellipsoid };

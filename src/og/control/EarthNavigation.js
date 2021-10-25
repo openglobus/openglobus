@@ -1,15 +1,28 @@
 "use strict";
 
-import * as math from "../math.js";
-import { Control } from "./Control.js";
-import { input } from "../input/input.js";
-import { Key } from "../Lock.js";
+import { Sphere } from "../bv/Sphere.js";
 import { LonLat } from "../LonLat.js";
-import { Mat4 } from "../math/Mat4.js";
 import { Quat } from "../math/Quat.js";
 import { Ray } from "../math/Ray.js";
-import { Sphere } from "../bv/Sphere.js";
 import { Vec3 } from "../math/Vec3.js";
+import { Control } from "./Control.js";
+
+class Touch {
+    constructor() {
+        this.x = 0;
+        this.y = 0;
+        this.prev_x = 0;
+        this.prev_y = 0;
+        this.grabbedPoint = new Vec3();
+        this.grabbedSpheroid = new Sphere();
+        this.dX = function () {
+            return this.x - this.prev_x;
+        };
+        this.dY = function () {
+            return this.y - this.prev_y;
+        };
+    }
+}
 
 class EarthNavigation extends Control {
     constructor(options) {
@@ -33,21 +46,6 @@ class EarthNavigation extends Control {
             { h: 500000, max: 0.99, min: -0.99 }
         ];
 
-        var Touch = function () {
-            this.x = 0;
-            this.y = 0;
-            this.prev_x = 0;
-            this.prev_y = 0;
-            this.grabbedPoint = new Vec3();
-            this.grabbedSpheroid = new Sphere();
-            this.dX = function () {
-                return this.x - this.prev_x;
-            };
-            this.dY = function () {
-                return this.y - this.prev_y;
-            };
-        };
-
         this.touches = [new Touch(), new Touch()];
     }
 
@@ -70,7 +68,7 @@ class EarthNavigation extends Control {
 
         var ll = this.renderer.activeCamera._lonLat;
 
-        globus.planet.flyLonLat(new LonLat(ll.lon, ll.lat, this.positionState[this.currState].h));
+        this.planet.flyLonLat(new LonLat(ll.lon, ll.lat, this.positionState[this.currState].h));
     }
 
     onMouseWheel(event) {

@@ -629,7 +629,7 @@ function deviation(data, holeIndices, dim, triangles) {
 
     return polygonArea === 0 && trianglesArea === 0 ? 0 :
         Math.abs((trianglesArea - polygonArea) / polygonArea);
-};
+}
 
 function signedArea(data, start, end, dim) {
     var sum = 0;

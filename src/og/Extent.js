@@ -11,11 +11,15 @@ import { LonLat } from './LonLat.js';
 /**
  * Represents geographical coordinates extent.
  * @class
- * @param {og.LonLat} [sw] - South West extent corner coordiantes.
- * @param {og.LonLat} [ne] - North East extent corner coordiantes.
+ * @param {LonLat} [sw] - South West extent corner coordiantes.
+ * @param {LonLat} [ne] - North East extent corner coordiantes.
  */
 export class Extent {
 
+    /**
+     * @param {LonLat} [sw] - South West extent corner coordiantes.
+     * @param {LonLat} [ne] - North East extent corner coordiantes.
+     */
     constructor(sw, ne) {
         /**
          * @public
@@ -31,7 +35,7 @@ export class Extent {
      * Whole mercator extent.
      * @const
      */
-    static get FULL_MERC() { return new Extent(LonLat.SW_MERC, LonLat.NE_MERC) };
+    static get FULL_MERC() { return new Extent(LonLat.SW_MERC, LonLat.NE_MERC); }
 
     /**
      * Degrees extent from north mercator limit to north pole.
@@ -43,7 +47,7 @@ export class Extent {
      * Degrees extent from south pole to south mercator limit.
      * @const
      */
-    static get SOUTH_POLE_DEG() { return new Extent(new LonLat(-180.0, -90.0), LonLat.SE_MERC_DEG) };
+    static get SOUTH_POLE_DEG() { return new Extent(new LonLat(-180.0, -90.0), LonLat.SE_MERC_DEG); }
 
     /**
      * Creates extent instance from values in array.
@@ -53,13 +57,13 @@ export class Extent {
      */
     static createFromArray(arr) {
         return new Extent(new LonLat(arr[0], arr[1]), new LonLat(arr[2], arr[3]));
-    };
+    }
 
     /**
      * Creates bound extent instance by coordinate array.
      * @static
-     * @param {Array.<og.LonLat>} arr - Coordinate array.
-     * @return {og.Extent} Extent object.
+     * @param {Array.<LonLat>} arr - Coordinate array.
+     * @return {Extent} Extent object.
      */
     static createByCoordinates(arr) {
         let lonmin = math.MAX, lonmax = math.MIN,
@@ -72,12 +76,12 @@ export class Extent {
             if (vi.lat > latmax) latmax = vi.lat;
         }
         return new Extent(new LonLat(lonmin, latmin), new LonLat(lonmax, latmax));
-    };
+    }
 
     /**
      * Creates bound extent instance by coordinate array.
      * @static
-     * @param {Array.<Array<number,number>>} arr - Coordinate array.
+     * @param {Array.<Array<number>>} arr - Coordinate array. (exactly 2 entries)
      * @return {og.Extent} Extent object.
      */
     static createByCoordinatesArr(arr) {
@@ -91,7 +95,7 @@ export class Extent {
             if (vi[1] > latmax) latmax = vi[1];
         }
         return new Extent(new LonLat(lonmin, latmin), new LonLat(lonmax, latmax));
-    };
+    }
 
     /**
      * Creates extent by meractor grid tile coordinates.
@@ -117,12 +121,12 @@ export class Extent {
             right = left + lnSize;
 
         return new Extent(new LonLat(left, bottom), new LonLat(right, top));
-    };
+    }
 
     /**
      * Sets current bounding extent object by coordinate array.
      * @public
-     * @param {Array.<og.LonLat>} arr - Coordinate array.
+     * @param {Array.<LonLat>} arr - Coordinate array.
      * @return {og.Extent} Current extent.
      */
     setByCoordinates(arr) {
@@ -140,7 +144,7 @@ export class Extent {
         this.northEast.lon = lonmax;
         this.northEast.lat = latmax;
         return this;
-    };
+    }
 
     /**
      * Determines if point inside extent.
@@ -153,7 +157,7 @@ export class Extent {
             ne = this.northEast;
         return lonlat.lon >= sw.lon && lonlat.lon <= ne.lon &&
             lonlat.lat >= sw.lat && lonlat.lat <= ne.lat;
-    };
+    }
 
     /**
      * Returns true if two extent overlap each other.
@@ -166,7 +170,7 @@ export class Extent {
             ne = this.northEast;
         return sw.lon <= e.northEast.lon && ne.lon >= e.southWest.lon &&
             sw.lat <= e.northEast.lat && ne.lat >= e.southWest.lat;
-    };
+    }
 
     /**
      * Gets extent width.
@@ -175,7 +179,7 @@ export class Extent {
      */
     getWidth() {
         return this.northEast.lon - this.southWest.lon;
-    };
+    }
 
     /**
      * Gets extent height.
@@ -184,7 +188,7 @@ export class Extent {
      */
     getHeight() {
         return this.northEast.lat - this.southWest.lat;
-    };
+    }
 
     /**
      * Creates clone instance of the current extent.
@@ -193,7 +197,7 @@ export class Extent {
      */
     clone() {
         return new Extent(this.southWest.clone(), this.northEast.clone());
-    };
+    }
 
     /**
      * Gets the center coordinate of the extent.
@@ -203,57 +207,57 @@ export class Extent {
     getCenter() {
         const sw = this.southWest, ne = this.northEast;
         return new LonLat(sw.lon + (ne.lon - sw.lon) * 0.5, sw.lat + (ne.lat - sw.lat) * 0.5);
-    };
+    }
 
     /**
      * @public
      */
     getNorthWest() {
         return new LonLat(this.southWest.lon, this.northEast.lat);
-    };
+    }
 
     /**
      * @public
      */
     getNorthEast() {
         return new LonLat(this.northEast.lon, this.northEast.lat);
-    };
+    }
 
     getSouthWest() {
         return new LonLat(this.southWest.lon, this.southWest.lat);
-    };
+    }
 
     /**
      * @public
      */
     getSouthEast() {
         return new LonLat(this.northEast.lon, this.southWest.lat);
-    };
+    }
 
     /**
      * @public
      */
     getNorth() {
         return this.northEast.lat;
-    };
+    }
 
     getEast() {
         return this.northEast.lon;
-    };
+    }
 
     /**
      * @public
      */
     getWest() {
         return this.southWest.lon;
-    };
+    }
 
     /**
      * @public
      */
     getSouth() {
         return this.southWest.lat;
-    };
+    }
 
     /**
      * Returns extents are equals.
@@ -263,7 +267,7 @@ export class Extent {
     equals(extent) {
         return this.southWest.lon === extent.southWest.lon && this.southWest.lat === extent.southWest.lat &&
             this.northEast.lon === extent.northEast.lon && this.northEast.lat === extent.northEast.lat;
-    };
+    }
 
     /**
      * Converts extent coordinates to mercator projection coordinates.
@@ -272,7 +276,7 @@ export class Extent {
      */
     forwardMercator() {
         return new Extent(this.southWest.forwardMercator(), this.northEast.forwardMercator());
-    };
+    }
 
     /**
      * Converts extent coordinates from mercator projection to degrees.
@@ -281,13 +285,13 @@ export class Extent {
      */
     inverseMercator() {
         return new Extent(this.southWest.inverseMercator(), this.northEast.inverseMercator());
-    };
+    }
 
     /**
      * Gets cartesian bounding bounds of the current ellipsoid.
      * @public
      * @param {og.Ellipsoid} ellipsoid - Ellipsoid.
-     * @return {Array.<number,number,number,number,number,number>} Cartesian 3d coordinate array.
+     * @return {Array.<number>} Cartesian 3d coordinate array. (exactly 6 entries)
      */
     getCartesianBounds(ellipsoid) {
         let xmin = math.MAX, xmax = math.MIN, ymin = math.MAX,
@@ -310,10 +314,10 @@ export class Extent {
         }
 
         return [xmin, ymin, zmin, xmax, ymax, zmax];
-    };
+    }
 
     toString() {
         return "[" + this.southWest.lon + ", " + this.southWest.lat + ", " + this.northEast.lon + ", " + this.northEast.lat + "]";
-    };
+    }
 
 }
