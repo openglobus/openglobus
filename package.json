@@ -18,6 +18,7 @@
     "test_watch": "jest --env=jsdom --watch",
     "lint": "eslint src/og",
     "generate_types": "rm -rf types; tsc src/**/*.js --declaration --allowJs --emitDeclarationOnly --outDir types; exit 0",
+    "compile_js_as_ts": "tsc src/og/index.js --AllowJs --checkJs --outDir dist/@openglobus/src/",
     "prepare": "husky install"
   },
   "repository": {
@@ -45,6 +46,7 @@
   "devDependencies": {
     "@babel/preset-env": "^7.15.8",
     "@rollup/plugin-json": "^4.1.0",
+    "@types/jest": "^27.0.2",
     "eslint": "^8.0.1",
     "husky": "^7.0.2",
     "jaguarjs-jsdoc": "^1.1.0",
