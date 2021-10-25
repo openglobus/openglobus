@@ -100,7 +100,7 @@ class Handler {
         }
         this._params.width = w || 256;
 
-        var h = this._params.height;
+        let h = this._params.height;
         if (h > MAX_SIZE) {
             h = MAX_SIZE;
         }
@@ -150,7 +150,7 @@ class Handler {
      * @returns {Object} -
      */
     static getExtension(gl, name) {
-        var i, ext;
+        let i, ext;
         for (i in vendorPrefixes) {
             ext = gl.getExtension(vendorPrefixes[i] + name);
             if (ext) {
@@ -168,12 +168,13 @@ class Handler {
      */
     static getContext(canvas, contextAttributes) {
         const CONTEXT_TYPE = ["webgl2", "webgl"];
-        var ctx = null;
+        let ctx = null;
 
         try {
             for (let i = 0; i < CONTEXT_TYPE.length; i++) {
                 ctx = canvas.getContext(CONTEXT_TYPE[i], contextAttributes);
                 if (ctx) {
+                    console.log(CONTEXT_TYPE[i]);
                     ctx.type = CONTEXT_TYPE[i];
                     break;
                 }
@@ -205,8 +206,8 @@ class Handler {
      * @returns {Object} - WebGL texture object.
      */
     createTexture_n(image) {
-        var gl = this.gl;
-        var texture = gl.createTexture();
+        let gl = this.gl;
+        let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
@@ -239,8 +240,8 @@ class Handler {
         type = "UNSIGNED_BYTE",
         level = 0
     ) {
-        var gl = this.gl;
-        var texture = gl.createTexture();
+        let gl = this.gl;
+        let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
 
@@ -315,8 +316,8 @@ class Handler {
      * @returns {Object} - WebGL texture object.
      */
     createEmptyTexture_n(width, height) {
-        var gl = this.gl;
-        var texture = gl.createTexture();
+        let gl = this.gl;
+        let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
@@ -336,8 +337,8 @@ class Handler {
      * @returns {Object} - WebGL texture object.
      */
     createEmptyTexture_l(width, height) {
-        var gl = this.gl;
-        var texture = gl.createTexture();
+        let gl = this.gl;
+        let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
@@ -356,8 +357,8 @@ class Handler {
      * @returns {Object} - WebGL texture object.
      */
     createTexture_l(image) {
-        var gl = this.gl;
-        var texture = gl.createTexture();
+        let gl = this.gl;
+        let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -375,8 +376,8 @@ class Handler {
      * @returns {Object} - WebGL texture object.
      */
     createTexture_mm(image) {
-        var gl = this.gl;
-        var texture = gl.createTexture();
+        let gl = this.gl;
+        let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
@@ -395,8 +396,8 @@ class Handler {
      * @returns {Object} - WebGL texture object.
      */
     createTexture_a(image) {
-        var gl = this.gl;
-        var texture = gl.createTexture();
+        let gl = this.gl;
+        let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
@@ -436,15 +437,15 @@ class Handler {
      * @returns {Object} - WebGL texture object.
      */
     loadCubeMapTexture(params) {
-        var gl = this.gl;
-        var texture = gl.createTexture();
+        let gl = this.gl;
+        let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-        var faces = [
+        let faces = [
             [params.px, gl.TEXTURE_CUBE_MAP_POSITIVE_X],
             [params.nx, gl.TEXTURE_CUBE_MAP_NEGATIVE_X],
             [params.py, gl.TEXTURE_CUBE_MAP_POSITIVE_Y],
@@ -453,9 +454,9 @@ class Handler {
             [params.nz, gl.TEXTURE_CUBE_MAP_NEGATIVE_Z]
         ];
 
-        var imageCanvas = new ImageCanvas();
+        let imageCanvas = new ImageCanvas();
         imageCanvas.fillEmpty();
-        var emptyImage = imageCanvas.getImage();
+        let emptyImage = imageCanvas.getImage();
 
         for (let i = 0; i < faces.length; i++) {
             let face = faces[i][1];
@@ -489,7 +490,7 @@ class Handler {
      */
     addProgram(program, notActivate) {
         if (!this.programs[program.name]) {
-            var sc = new ProgramController(this, program);
+            let sc = new ProgramController(this, program);
             this.programs[program.name] = sc;
             this._initProgramController(sc);
             if (notActivate) {
@@ -518,7 +519,7 @@ class Handler {
      * @param {Array.<og.webgl.Program>} programsArr - Shader program array.
      */
     addPrograms(programsArr) {
-        for (var i = 0; i < programsArr.length; i++) {
+        for (let i = 0; i < programsArr.length; i++) {
             this.addProgram(programsArr[i]);
         }
     }
@@ -547,7 +548,7 @@ class Handler {
      * @private
      */
     _initPrograms() {
-        for (var p in this.programs) {
+        for (let p in this.programs) {
             this._initProgramController(this.programs[p]);
         }
     }
@@ -561,7 +562,7 @@ class Handler {
      */
     initializeExtension(extensionStr, showLog) {
         if (!(this.extensions && this.extensions[extensionStr])) {
-            var ext = Handler.getExtension(this.gl, extensionStr);
+            let ext = Handler.getExtension(this.gl, extensionStr);
             if (ext) {
                 this.extensions[extensionStr] = ext;
             } else if (showLog) {
@@ -603,7 +604,7 @@ class Handler {
             this._params.extensions.push("OES_texture_float_linear");
         }
 
-        var i = this._params.extensions.length;
+        let i = this._params.extensions.length;
         while (i--) {
             this.initializeExtension(this._params.extensions[i], true);
         }
@@ -631,7 +632,7 @@ class Handler {
         this.gl.cullFace(this.gl.BACK);
         this.activateFaceCulling();
         this.deactivateBlending();
-        var that = this;
+        let that = this;
         this.createDefaultTexture({ color: "rgba(0,0,0,0.0)" }, function (t) {
             that.transparentTexture = t;
         });
@@ -695,7 +696,7 @@ class Handler {
      * @return {Object} -
      */
     createStreamArrayBuffer(itemSize, numItems, usage, bites = 4) {
-        var buffer = this.gl.createBuffer();
+        let buffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
         this.gl.bufferData(
             this.gl.ARRAY_BUFFER,
@@ -735,7 +736,7 @@ class Handler {
      * @return {Object} -
      */
     createArrayBuffer(array, itemSize, numItems, usage) {
-        var buffer = this.gl.createBuffer();
+        let buffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, array, usage || this.gl.STATIC_DRAW);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
@@ -754,7 +755,7 @@ class Handler {
      * @return {Object} -
      */
     createElementArrayBuffer(array, itemSize, numItems, usage) {
-        var buffer = this.gl.createBuffer();
+        let buffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
         this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, array, usage || this.gl.STATIC_DRAW);
         this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, null);
@@ -822,7 +823,7 @@ class Handler {
      * @returns {number} -
      */
     getCenter() {
-        var c = this.canvas;
+        let c = this.canvas;
         return new Vec2(Math.round(c.width * 0.5), Math.round(c.height * 0.5));
     }
 
@@ -833,18 +834,18 @@ class Handler {
      */
     drawFrame() {
         /** Calculating frame time */
-        var now = window.performance.now();
+        let now = window.performance.now();
         this.deltaTime = now - this._lastAnimationFrameTime;
         this._lastAnimationFrameTime = now;
 
         this.defaultClock._tick(this.deltaTime);
 
-        for (var i = 0; i < this._clocks.length; i++) {
+        for (let i = 0; i < this._clocks.length; i++) {
             this._clocks[i]._tick(this.deltaTime);
         }
 
         /** Canvas resize checking */
-        var canvas = this.canvas;
+        let canvas = this.canvas;
         if (canvas.clientWidth !== canvas.width || canvas.clientHeight !== canvas.height) {
             this.setSize(canvas.clientWidth, canvas.clientHeight);
         }
@@ -858,7 +859,7 @@ class Handler {
      * @public
      */
     clearFrame() {
-        var gl = this.gl;
+        let gl = this.gl;
         this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     }
@@ -900,8 +901,8 @@ class Handler {
      * @param {callback} [success] - Creation callback
      */
     createDefaultTexture(params, success) {
-        var imgCnv;
-        var texture;
+        let imgCnv;
+        let texture;
         if (params && params.color) {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor(params.color);
@@ -909,8 +910,8 @@ class Handler {
             texture.default = true;
             success(texture);
         } else if (params && params.url) {
-            var img = new Image();
-            var that = this;
+            let img = new Image();
+            let that = this;
             img.onload = function () {
                 texture = that.createTexture(this);
                 texture.default = true;
@@ -930,11 +931,11 @@ class Handler {
      * @public
      */
     destroy() {
-        var gl = this.gl;
+        let gl = this.gl;
 
         this.stop();
 
-        for (var p in this.programs) {
+        for (let p in this.programs) {
             this.removeProgram(p);
         }
 
@@ -951,8 +952,8 @@ class Handler {
         this.canvas.height = 1;
         this.canvas = null;
 
-        var numAttribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
-        var tmp = gl.createBuffer();
+        let numAttribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
+        let tmp = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, tmp);
         for (let ii = 0; ii < numAttribs; ++ii) {
             gl.disableVertexAttribArray(ii);
@@ -961,7 +962,7 @@ class Handler {
         }
         gl.deleteBuffer(tmp);
 
-        var numTextureUnits = gl.getParameter(gl.MAX_TEXTlURE_IMAGE_UNITS);
+        let numTextureUnits = gl.getParameter(gl.MAX_TEXTlURE_IMAGE_UNITS);
         for (let ii = 0; ii < numTextureUnits; ++ii) {
             gl.activeTexture(gl.TEXTURE0 + ii);
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
@@ -999,15 +1000,15 @@ class Handler {
     }
 
     addClocks(clockArr) {
-        for (var i = 0; i < clockArr.length; i++) {
+        for (let i = 0; i < clockArr.length; i++) {
             this.addClock(clockArr[i]);
         }
     }
 
     removeClock(clock) {
         if (clock.__handler) {
-            var c = this._clocks;
-            var i = c.length;
+            let c = this._clocks;
+            let i = c.length;
             while (i--) {
                 if (c[i].equal(clock)) {
                     clock.__handler = null;
