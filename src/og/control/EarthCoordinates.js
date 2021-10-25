@@ -48,7 +48,7 @@ const DisplayTypesConverters = [
 /**
  * Control displays mouse or screen center Earth coordinates.
  * @class
- * @extends {og.control.Control}
+ * @extends {Control}
  * @param {Object} [options] - Options:
  * @param {Boolean} [options.center] - Earth coordiantes by screen center otherwise mouse pointer. False is default.
  * @param {Boolean} [options.type] - Coordinates shown: 0 - is decimal degrees, 1 - degrees, 2 - mercator geodetic coordinates.

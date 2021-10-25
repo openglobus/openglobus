@@ -38,7 +38,7 @@ function _entitiesConstructor(entities) {
  * Vector layer represents alternative entities store. Used for geospatial data rendering like
  * points, lines, polygons, geometry objects etc.
  * @class
- * @extends {og.Layer}
+ * @extends {Layer}
  * @param {string} [name="noname"] - Layer name.
  * @param {Object} [options] - Layer options:
  * @param {number} [options.minZoom=0] - Minimal visible zoom. 0 is default

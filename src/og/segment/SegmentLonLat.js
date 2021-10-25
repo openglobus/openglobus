@@ -19,7 +19,7 @@ let _tempHigh = new Vec3(),
 /**
  * Planet segment Web Mercator tile class that stored and rendered with quad tree.
  * @class
- * @extends {og.planetSegment.Segment}
+ * @extends {Segment}
  * @param {og.quadNode.Node} node - Quad tree segment node.
  * @param {og.scene.Planet} planet - Scene planet.
  * @param {Number} tileZoom - Segment tile zoom index.

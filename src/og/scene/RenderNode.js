@@ -10,7 +10,7 @@ import { Events } from '../Events.js';
  * There are collections of ligh sources, entities and so on in the node.
  * Access to the node is renderer.renderNodes["Earth"]
  * @class
- * @extends {og.RenderNode}
+ * @extends {RenderNode}
  * @param {string} name - Node name.
  */
 class RenderNode extends BaseNode {

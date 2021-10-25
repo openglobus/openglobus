@@ -9,7 +9,7 @@ import { BaseGeoImage } from './BaseGeoImage.js';
 /**
  * Used to load and display a single image over specific corner coordinates on the globe, implements og.layer.BaseGeoImage interface.
  * @class
- * @extends {og.layer.BaseGeoImage}
+ * @extends {BaseGeoImage}
  */
 class GeoImage extends BaseGeoImage {
     constructor(name, options) {

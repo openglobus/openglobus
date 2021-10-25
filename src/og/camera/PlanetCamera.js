@@ -17,7 +17,7 @@ import { Mat4 } from "../math/Mat4.js";
 /**
  * Planet camera.
  * @class
- * @extends {og.Camera}
+ * @extends {Camera}
  * @param {og.RenderNode} planet - Planet render node.
  * @param {Object} [options] - Planet camera options:
  * @param {Object} [options.name] - Camera name.
