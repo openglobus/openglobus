@@ -36,7 +36,7 @@ const EVENT_NAMES = [
 /**
  * Class that loads segment elevation data, converts it to the array and passes it to the planet segment.
  * @class
- * @extends {og.terrain.EmptyTerrain}
+ * @extends {EmptyTerrain}
  * @param {string} [name=""] - Terrain provider name.
  * @param {Object} [options] - Provider options:
  * @param {number} [options.minZoom=3] - Minimal visible zoom index when terrain handler works.

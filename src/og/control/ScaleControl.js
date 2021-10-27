@@ -21,7 +21,7 @@ const TEMPLATE = `<div class="og-scale-container">
 /**
  * Planet zoom buttons control.
  * @class
- * @extends {og.control.Control}
+ * @extends {Control}
  * @params {Object} [options] - Control options.
  */
 class ScaleControl extends Control {

@@ -28,7 +28,7 @@ const STR2ALIGN = {
 /**
  * Billboard text label.
  * @class
- * @extends {og.BaseBillboard}
+ * @extends {BaseBillboard}
  * @param {Object} [options] - Label options:
  * @param {og.Vec3|Array.<number>} [options.position] - Billboard spatial position.
  * @param {number} [options.rotation] - Screen angle rotaion.

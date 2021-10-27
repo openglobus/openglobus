@@ -9,7 +9,7 @@ import { Control } from './Control.js';
 /**
  * Simple(OpenLayers like)layer switcher, includes base layers, overlays, geo images etc. groups.
  * @class
- * @extends {og.control.Control}
+ * @extends {Control}
  * @param {Object} [options] - Control options.
  */
 class LayerSwitcher extends Control {

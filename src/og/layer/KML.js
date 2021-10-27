@@ -11,7 +11,7 @@ import { Vector } from './Vector.js';
 /**
  * Layer to render KMLs files
  * @class
- * @extends {og.Vector}
+ * @extends {Vector}
  */
 export class KML extends Vector {
 

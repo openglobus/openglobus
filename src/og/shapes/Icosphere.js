@@ -8,7 +8,7 @@ import { BaseShape } from './BaseShape.js';
 
 /**
  * @class
- * @extends {og.shape.BaseShape}
+ * @extends {BaseShape}
  * @param {Object} options - Icosphere parameters:
  * @param {og.Vec3} [options.position] - Icosphere position.
  * @param {og.Quat} [options.orientation] - Icosphere orientation(rotation).

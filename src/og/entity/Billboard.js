@@ -9,7 +9,7 @@ import { BaseBillboard } from './BaseBillboard.js';
 /**
  * Represents basic quad billboard image.
  * @class
- * @extends {og.BaseBillboard}
+ * @extends {BaseBillboard}
  * @param {Object} [options] - Options:
  * @param {og.Vec3|Array.<number>} [options.position] - Billboard spatial position.
  * @param {number} [options.rotation] - Screen angle rotaion.

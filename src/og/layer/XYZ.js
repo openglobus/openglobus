@@ -13,7 +13,7 @@ import { RENDERING } from '../quadTree/quadTree.js';
 /**
  * Represents an imagery tiles source provider.
  * @class
- * @extends {og.Layer}
+ * @extends {Layer}
  * @param {string} name - Layer name.
  * @param {Object} options:
  * @param {number} [options.opacity=1.0] - Layer opacity.

@@ -89,7 +89,7 @@ const EVENT_NAMES = [
 /**
  * Main class for rendering planet
  * @class
- * @extends {og.scene.RenderNode}
+ * @extends {RenderNode}
  * @param {string} name - Planet name(Earth by default)
  * @param {og.Ellipsoid} ellipsoid - Planet ellipsoid(WGS84 by default)
  * @param {Number} [maxGridSize=128] - Segment maximal grid size

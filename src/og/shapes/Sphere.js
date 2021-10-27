@@ -8,7 +8,7 @@ import { BaseShape } from './BaseShape.js';
 
 /**
  * @class
- * @extends {og.shape.BaseShape}
+ * @extends {BaseShape}
  * @param {Object} options - Sphere parameters:
  * @param {og.Vec3} [options.position] - Sphere position.
  * @param {og.Quat} [options.orientation] - Sphere orientation(rotation).

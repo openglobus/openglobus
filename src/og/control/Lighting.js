@@ -115,7 +115,7 @@ const TEMPLATE = `<div class="og-lighing">
 /**
  * Helps to setup lighting.
  * @class
- * @extends {og.control.Control}
+ * @extends {Control}
  * @param {Object} [options] -
  */
 class Lighting extends Control {

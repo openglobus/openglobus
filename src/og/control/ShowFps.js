@@ -10,7 +10,7 @@ import { print2d } from '../utils/shared.js';
 /**
  * Frame per second(FPS) display control.
  * @class
- * @extends {og.control.Control}
+ * @extends {Control}
  * @param {Object} [options] - Control options.
  */
 class ShowFps extends Control {
