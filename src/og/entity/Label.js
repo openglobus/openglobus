@@ -286,11 +286,10 @@ class Label extends BaseBillboard {
      * Updates label parameters.
      * @public
      */
-    update() {
+    async update() {
         if (this._fontAtlas) {
-            this._fontAtlas.getFontIndex(this._face).then((fontIndex) => {
-                this._applyFontIndex(fontIndex);
-            });
+            const fontIndex = await this._fontAtlas.getFontIndex(this._face);
+            this._applyFontIndex(fontIndex);
         }
     }
 
