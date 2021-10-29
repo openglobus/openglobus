@@ -15,7 +15,7 @@ import { Planet } from "../scene/Planet.js";
  * @param {Object} options - Sphere parameters:
  * @param {og.Vec3} [options.position] - Sphere position.
  * @param {og.Quat} [options.orientation] - Sphere orientation(rotation).
- * @param {og.Vec3} [options.scale] - Scale vector.
+ * @param {number} [options.scale] - Scale
  * @param {Array.<number,number,number,number>} [options.color] - Sphere RGBA color.
  * @param {string} [options.src] - Texture image url source.
  * @param {boolean} [options.visibility] - Sphere visibility.
@@ -23,10 +23,6 @@ import { Planet } from "../scene/Planet.js";
  * @param {number} [options.latBands=16] - Number of latitude bands.
  * @param {number} [options.lonBands=16] - Number of longitude bands.
  */
-
-const MIN_SCALE = 0.003;
-const MAX_SCALE_HEIGHT = 3000.0;
-const MIN_SCALE_HEIGHT = 1900000.0;
 
 class GeoObject {
     constructor(options) {
@@ -201,14 +197,8 @@ class GeoObject {
     }
 
     setScale(scale) {
-        const r = this.renderer,
-            camera = r.activeCamera,
-            t =
-                1.0 -
-                (camera._lonLat.height - MAX_SCALE_HEIGHT) / (MIN_SCALE_HEIGHT - MAX_SCALE_HEIGHT);
-        this._distanceToCamera = this._position.distance(camera.eye);
-        this.scale = lerp(t < 0 ? 0 : t, scale, MIN_SCALE) * this._distanceToCamera;
-        this._handler && this._handler.setSizeArr(this._handlerIndex, this.scale);
+        this.scale = scale;
+        this._handler && this._handler.setScaleArr(this._handlerIndex, scale);
     }
 
     /**
