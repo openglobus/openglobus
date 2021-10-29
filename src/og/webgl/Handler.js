@@ -579,7 +579,6 @@ class Handler {
      * @public
      */
     initialize() {
-
         if (this._id) {
             this.canvas = document.getElementById(this._id);
         } else {
@@ -746,6 +745,25 @@ class Handler {
     }
 
     /**
+     * Creates ARRAY buffer specific length.
+     * @public
+     * @param {Array.<number>} array - Input array.
+     * @param {number} itemSize - Array item size.
+     * @param {number} numItems - Items quantity.
+     * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
+     * @return {Object} -
+     */
+    createArrayBufferLength(size, usage) {
+        let buffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, size, usage || this.gl.STATIC_DRAW);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+        buffer.itemSize = 1;
+        buffer.numItems = size;
+        return buffer;
+    }
+
+    /**
      * Creates ELEMENT ARRAY buffer.
      * @public
      * @param {Array.<number>} array - Input array.
@@ -771,7 +789,6 @@ class Handler {
      * @param {number} h - Canvas height.
      */
     setSize(w, h) {
-
         if (w > MAX_SIZE) {
             w = MAX_SIZE;
         }
