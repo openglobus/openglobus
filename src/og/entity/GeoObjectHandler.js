@@ -18,7 +18,7 @@ const VERTEX_BUFFER = 0,
 
 const setParametersToArray = (arr = [], index = 0, length, itemSize, ...params) => {
     const currIndex = index * length;
-    for (let i = currIndex; i < currIndex + length; i++) {
+    for (let i = currIndex, len = currIndex + length; i < len; i++) {
         arr[i] = params[i % itemSize];
     }
     return arr;
@@ -361,7 +361,7 @@ class GeoObjectHandler {
             this._sizeArr[ti],
             setParametersToArray([], 0, itemSize, itemSize, geoObject.scale)
         );
-        this.recalculateIndices();
+        this._recalculateIndices();
     }
 
     _addGeoObjectToArrays(geoObject) {
@@ -702,7 +702,7 @@ class GeoObjectHandler {
         gl.disable(gl.CULL_FACE);
     }
 
-    recalculateIndices() {
+    _recalculateIndices() {
         const allIndices = this._indicesArr,
             goArr = this._geoObjects,
             maxIndicesByTags = new Array(this._instancedTags.size).fill(0);
@@ -729,7 +729,6 @@ class GeoObjectHandler {
                 }
             }
         }
-        return this._indicesArr;
     }
 
     //todo refactor for support instancing
@@ -990,7 +989,7 @@ class GeoObjectHandler {
         }
     }
 
-    reindexGeoObjects(startIndex, tag) {
+    _reindexGeoObjects(startIndex, tag) {
         var b = this._geoObjects;
 
         for (var i = startIndex; i < b.length; i++) {
@@ -1065,8 +1064,8 @@ class GeoObjectHandler {
         i = gi * 1;
         this._sizeArr[ti] = spliceArray(this._sizeArr[ti], i, 1);
 
-        this.reindexGeoObjects(gi, tag);
-        this.recalculateIndices();
+        this._reindexGeoObjects(gi, tag);
+        this._recalculateIndices();
         this.refresh();
 
         geoObject._handlerIndex = -1;
