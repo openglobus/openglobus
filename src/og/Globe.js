@@ -50,12 +50,12 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  *
  * @param {object} options - Options:
  * @param {string} options.target - HTML element id where planet canvas have to be created.
- * @param {og.scene.RenderNode} [options.skybox] - Render skybox. null - default.
+ * @param {scene.RenderNode} [options.skybox] - Render skybox. null - default.
  * @param {string} [options.name] - Planet name. Default is unic identifier.
- * @param {og.terrain.Terrain} [options.terrain] - Terrain provider. Default no terrain - og.terrain.EmptyTerrain.
- * @param {Array.<og.control.Control>} [options.controls] - Renderer controls array.
- * @param {Array.<og.Layer>} [options.layers] - Planet layers.
- * @param {og.Extent} [options.viewExtent] - Viewable starting extent.
+ * @param {terrain.Terrain} [options.terrain] - Terrain provider. Default no terrain - og.terrain.EmptyTerrain.
+ * @param {Array.<control.Control>} [options.controls] - Renderer controls array.
+ * @param {Array.<Layer>} [options.layers] - Planet layers.
+ * @param {Extent} [options.viewExtent] - Viewable starting extent.
  * @param {boolean} [options.autoActivate] - Globe rendering auto activation flag. True is default.
  * @param {DOMElement} [options.attributionContainer] - Container for attribution list.
  * @param {Number} [options.maxGridSize] = Maximal segment grid size. 128 is default
@@ -108,7 +108,7 @@ class Globe {
         /**
          * Interface for the renderer context(events, input states, renderer nodes etc.)
          * @public
-         * @type {og.Renderer}
+         * @type {Renderer}
          */
         this.renderer = new Renderer(
             new Handler(_canvasId, {
@@ -148,7 +148,7 @@ class Globe {
             /**
              * Render node renders a planet.
              * @public
-             * @type {og.scene.Planet|og.scene.PlanetAtmosphere}
+             * @type {scene.Planet|og.scene.PlanetAtmosphere}
              */
             // TODO:
         } else {

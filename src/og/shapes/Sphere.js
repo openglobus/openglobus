@@ -10,9 +10,9 @@ import { BaseShape } from './BaseShape.js';
  * @class
  * @extends {BaseShape}
  * @param {Object} options - Sphere parameters:
- * @param {og.Vec3} [options.position] - Sphere position.
- * @param {og.Quat} [options.orientation] - Sphere orientation(rotation).
- * @param {og.Vec3} [options.scale] - Scale vector.
+ * @param {Vec3} [options.position] - Sphere position.
+ * @param {Quat} [options.orientation] - Sphere orientation(rotation).
+ * @param {Vec3} [options.scale] - Scale vector.
  * @param {Array.<number>} [options.color] - Sphere RGBA color. (exactly 4 entries)
  * @param {string} [options.src] - Texture image url source.
  * @param {boolean} [options.visibility] - Sphere visibility.

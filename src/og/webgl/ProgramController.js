@@ -5,8 +5,8 @@
  * program capabilities, like switching program during the rendering.
  * Get access to the program from ...handler.programs.<program name> etc.
  * @class
- * @param {og.webgl.Handler} handler - Handler.
- * @param {og.webgl.Program} program - Shader program.
+ * @param {webgl.Handler} handler - Handler.
+ * @param {webgl.Program} program - Shader program.
  */
 export class ProgramController {
 
@@ -15,14 +15,14 @@ export class ProgramController {
         /**
          * Shader program.
          * @private
-         * @type {og.webgl.Program}
+         * @type {webgl.Program}
          */
         this._program = program;
 
         /**
          * Handler.
          * @private
-         * @type {og.webgl.Handler}
+         * @type {webgl.Handler}
          */
         this._handler = handler;
 
@@ -45,7 +45,7 @@ export class ProgramController {
     /**
      * Returns controller's shader program.
      * @public
-     * @return {og.webgl.Program} -
+     * @return {webgl.Program} -
      */
     getProgram() {
         return this._program;
@@ -106,7 +106,7 @@ export class ProgramController {
      * Sets program uniforms and attributes values and return controller instance.
      * @public
      * @param {Object} params - Object with variable name and value like { value: 12, someArray:[1,2,3], uSampler: texture,... }
-     * @return {og.webgl.ProgramController} -
+     * @return {webgl.ProgramController} -
      */
     set(params) {
         this.activate();
@@ -119,7 +119,7 @@ export class ProgramController {
      * @public
      * @param {number} mode - Gl draw mode
      * @param {WEBGLBuffer} buffer - Buffer to draw.
-     * @return {og.webgl.ProgramController} Returns current shader controller instance.
+     * @return {webgl.ProgramController} Returns current shader controller instance.
      */
     drawIndexBuffer(mode, buffer) {
         this._program.drawIndexBuffer(mode, buffer);
@@ -130,7 +130,7 @@ export class ProgramController {
      * Calls Gl drawArray function.
      * @param {number} mode - Gl draw mode.
      * @param {number} numItems - draw items count.
-     * @return {og.webgl.ProgramController} Returns current shader controller instance.
+     * @return {webgl.ProgramController} Returns current shader controller instance.
      */
     drawArrays(mode, numItems) {
         this._program.drawArrays(mode, numItems);

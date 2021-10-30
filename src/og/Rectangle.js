@@ -43,7 +43,7 @@ class Rectangle {
     /**
      * Clone rectangle object.
      * @public
-     * @returns {og.Rectangle}
+     * @returns {Rectangle}
      */
     clone() {
         return new Rectangle(this.left, this.top, this.right, this.bottom);

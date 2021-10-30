@@ -253,7 +253,7 @@ class GeometryHandler {
 
     /**
      * @public
-     * @param {og.Geometry} geometry - Geometry object.
+     * @param {Geometry} geometry - Geometry object.
      */
     add(geometry) {
         //

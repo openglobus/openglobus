@@ -19,7 +19,7 @@ import { ShapeHandler } from './ShapeHandler.js';
  * Entity collection provide handlers for an each type of entity like billboard, label or 3ds object.
  * @constructor
  * @param {Object} [options] - Entity options:
- * @param {Array.<og.Entity>} [options.entities] - Entities array.
+ * @param {Array.<Entity>} [options.entities] - Entities array.
  * @param {boolean} [options.visibility=true] - Entity visibility.
  * @param {Array.<number>} [options.scaleByDistance] - Entity scale by distance parameters. (exactly 3 entries)
  * First index - near distance to the entity, after entity becomes full scale.
@@ -85,7 +85,7 @@ class EntityCollection {
         /**
          * Render node context.
          * @public
-         * @type {og.scene.RenderNode}
+         * @type {scene.RenderNode}
          */
         this.renderNode = null;
 
@@ -113,49 +113,49 @@ class EntityCollection {
         /**
          * Billboards handler
          * @public
-         * @type {og.BillboardHandler}
+         * @type {BillboardHandler}
          */
         this.billboardHandler = new BillboardHandler(this);
 
         /**
          * Labels handler
          * @public
-         * @type {og.LabelHandler}
+         * @type {LabelHandler}
          */
         this.labelHandler = new LabelHandler(this, options.labelMaxLetters);
 
         /**
          * Shape handler
          * @public
-         * @type {og.ShapeHandler}
+         * @type {ShapeHandler}
          */
         this.shapeHandler = new ShapeHandler(this);
 
         /**
          * Polyline handler
          * @public
-         * @type {og.PolylineHandler}
+         * @type {PolylineHandler}
          */
         this.polylineHandler = new PolylineHandler(this);
 
         /**
          * Ray handler
          * @public
-         * @type {og.RayHandler}
+         * @type {RayHandler}
          */
         this.rayHandler = new RayHandler(this);
 
         /**
          * PointCloud handler
          * @public
-         * @type {og.PointCloudHandler}
+         * @type {PointCloudHandler}
          */
         this.pointCloudHandler = new PointCloudHandler(this);
 
         /**
          * Strip handler
          * @public
-         * @type {og.StripHandler}
+         * @type {StripHandler}
          */
         this.stripHandler = new StripHandler(this);
 
@@ -166,7 +166,7 @@ class EntityCollection {
         /**
          * Entities array.
          * @protected
-         * @type {Array.<og.Entity>}
+         * @type {Array.<Entity>}
          */
         this._entities = [];
 
@@ -198,7 +198,7 @@ class EntityCollection {
         /**
          * Entity collection events handler.
          * @public
-         * @type {og.Events}
+         * @type {Events}
          */
         this.events = new Events(EVENT_NAMES, this);
 
@@ -328,8 +328,8 @@ class EntityCollection {
     /**
      * Adds entity to the collection and returns collection.
      * @public
-     * @param {og.Entity} entity - Entity.
-     * @returns {og.EntityCollection} -
+     * @param {Entity} entity - Entity.
+     * @returns {EntityCollection} -
      */
     add(entity) {
         if (!entity._entityCollection) {
@@ -352,8 +352,8 @@ class EntityCollection {
     /**
      * Adds entities array to the collection and returns collection.
      * @public
-     * @param {Array.<og.Entity>} entities - Entities array.
-     * @returns {og.EntityCollection} -
+     * @param {Array.<Entity>} entities - Entities array.
+     * @returns {EntityCollection} -
      */
     addEntities(entities) {
         for (let i = 0, len = entities.length; i < len; i++) {
@@ -365,7 +365,7 @@ class EntityCollection {
     /**
      * Returns true if the entity belongs this collection, otherwise returns false.
      * @public
-     * @param {og.Entity} entity - Entity.
+     * @param {Entity} entity - Entity.
      * @returns {boolean} -
      */
     belongs(entity) {
@@ -405,7 +405,7 @@ class EntityCollection {
     /**
      * Removes entity from this collection.
      * @public
-     * @param {og.Entity} entity - Entity to remove.
+     * @param {Entity} entity - Entity to remove.
      */
     removeEntity(entity) {
         this._entities.splice(entity._entityCollectionIndex, 1);
@@ -468,9 +468,9 @@ class EntityCollection {
     /**
      * Adds this collection to render node.
      * @public
-     * @param {og.scene.RenderNode} renderNode - Render node.
+     * @param {scene.RenderNode} renderNode - Render node.
      * @param {boolean} [isHidden] - Uses in vector layers that render in planet render specific function.
-     * @returns {og.EntityCollection} -
+     * @returns {EntityCollection} -
      */
     addTo(renderNode, isHidden) {
         if (!this.renderNode) {
@@ -490,7 +490,7 @@ class EntityCollection {
 
     /**
      * This function is called in the RenderNode assign function.
-     * @param {og.RenderNode} renderNode
+     * @param {RenderNode} renderNode
      */
     bindRenderNode(renderNode) {
 
@@ -514,7 +514,7 @@ class EntityCollection {
     /**
      * Updates coordiantes all lonLat entities in collection after collecction attached to the planet node.
      * @private
-     * @param {og.Ellipsoid} ellipsoid - Globe ellipsoid.
+     * @param {Ellipsoid} ellipsoid - Globe ellipsoid.
      */
     _updateGeodeticCoordinates(ellipsoid) {
         var e = this._entities;
@@ -571,7 +571,7 @@ class EntityCollection {
     /**
      * Gets entity array.
      * @public
-     * @returns {Array.<og.Entity>} -
+     * @returns {Array.<Entity>} -
      */
     getEntities() {
         return [].concat(this._entities);
@@ -622,7 +622,7 @@ class EntityCollection {
     /**
      * Clears entity recursevely.
      * @private
-     * @param {og.Entity} entity - Entity to clear.
+     * @param {Entity} entity - Entity to clear.
      */
     _clearEntity(entity) {
         entity._entityCollection = null;

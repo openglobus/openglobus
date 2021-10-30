@@ -40,14 +40,14 @@ class Handler {
         /**
          * Application default timer.
          * @public
-         * @type {og.Clock}
+         * @type {Clock}
          */
         this.defaultClock = new Clock();
 
         /**
          * Custom timers.
          * @protected
-         * @type{og.Clock[]}
+         * @type{Clock[]}
          */
         this._clocks = [];
 
@@ -83,7 +83,7 @@ class Handler {
         /**
          * Current active shader program controller.
          * @public
-         * @type {og.webgl.ProgramController}
+         * @type {webgl.ProgramController}
          */
         this.activeProgram = null;
 
@@ -483,9 +483,9 @@ class Handler {
     /**
      * Adds shader program to the handler.
      * @public
-     * @param {og.webgl.Program} program - Shader program.
+     * @param {webgl.Program} program - Shader program.
      * @param {boolean} [notActivate] - If it's true program will not compile.
-     * @return {og.webgl.Program} -
+     * @return {webgl.Program} -
      */
     addProgram(program, notActivate) {
         if (!this.programs[program.name]) {
@@ -515,7 +515,7 @@ class Handler {
     /**
      * Adds shader programs to the handler.
      * @public
-     * @param {Array.<og.webgl.Program>} programsArr - Shader program array.
+     * @param {Array.<webgl.Program>} programsArr - Shader program array.
      */
     addPrograms(programsArr) {
         for (var i = 0; i < programsArr.length; i++) {
@@ -526,7 +526,7 @@ class Handler {
     /**
      * Used in addProgram
      * @private
-     * @param {og.webgl.ProgramController} sc - Program controller
+     * @param {webgl.ProgramController} sc - Program controller
      */
     _initProgramController(sc) {
         if (this._initialized) {

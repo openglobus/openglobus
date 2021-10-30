@@ -11,11 +11,11 @@ import { Vec3 } from '../math/Vec3.js';
  * Base prototype for billboard and label classes.
  * @class
  * @param {Object} [options] - Options:
- * @param {og.Vec3|Array.<number>} [options.position] - Billboard spatial position.
+ * @param {Vec3|Array.<number>} [options.position] - Billboard spatial position.
  * @param {number} [options.rotation] - Screen angle rotaion.
- * @param {og.Vec4|string|Array.<number>} [options.color] - Billboard color.
- * @param {og.Vec3|Array.<number>} [options.alignedAxis] - Billboard aligned vector.
- * @param {og.Vec3|Array.<number>} [options.offset] - Billboard center screen offset.
+ * @param {Vec4|string|Array.<number>} [options.color] - Billboard color.
+ * @param {Vec3|Array.<number>} [options.alignedAxis] - Billboard aligned vector.
+ * @param {Vec3|Array.<number>} [options.offset] - Billboard center screen offset.
  * @param {boolean} [options.visibility] - Visibility.
  */
 class BaseBillboard {
@@ -33,7 +33,7 @@ class BaseBillboard {
         /**
          * Billboard center cartesian position.
          * @protected
-         * @type {og.Vec3}
+         * @type {Vec3}
          */
         this._position = utils.createVector3(options.position);
 
@@ -53,21 +53,21 @@ class BaseBillboard {
         /**
          * RGBA color.
          * @protected
-         * @type {og.Vec4}
+         * @type {Vec4}
          */
         this._color = utils.createColorRGBA(options.color);
 
         /**
          * Cartesian aligned axis vector.
          * @protected
-         * @type {og.Vec3}
+         * @type {Vec3}
          */
         this._alignedAxis = utils.createVector3(options.alignedAxis);
 
         /**
          * Billboard center screen space offset. Where x,y - screen space offset and z - depth offset.
          * @protected
-         * @type {og.math.Vecto3}
+         * @type {math.Vecto3}
          */
         this._offset = utils.createVector3(options.offset);
 
@@ -81,14 +81,14 @@ class BaseBillboard {
         /**
          * Entity instance that holds this billboard.
          * @protected
-         * @type {og.Entity}
+         * @type {Entity}
          */
         this._entity = null;
 
         /**
          * Handler that stores and renders this billboard object.
          * @protected
-         * @type {og.BillboardHandler}
+         * @type {BillboardHandler}
          */
         this._handler = null;
 
@@ -129,7 +129,7 @@ class BaseBillboard {
     /**
      * Sets billboard position.
      * @public
-     * @param {og.Vec3} position - Cartesian coordinates.
+     * @param {Vec3} position - Cartesian coordinates.
      */
     setPosition3v(position) {
         this._position.x = position.x;
@@ -142,7 +142,7 @@ class BaseBillboard {
     /**
      * Returns billboard position.
      * @public
-     * @returns {og.Vec3}
+     * @returns {Vec3}
      */
     getPosition() {
         return this._position;
@@ -165,7 +165,7 @@ class BaseBillboard {
     /**
      * Sets screen space offset.
      * @public
-     * @param {og.Vec2} offset - Offset size.
+     * @param {Vec2} offset - Offset size.
      */
     setOffset3v(offset) {
         this._offset.x = offset.x;
@@ -177,7 +177,7 @@ class BaseBillboard {
     /**
      * Returns billboard screen space offset size.
      * @public
-     * @returns {og.Vec3}
+     * @returns {Vec3}
      */
     getOffset() {
         return this._offset;
@@ -231,7 +231,7 @@ class BaseBillboard {
     /**
      * Sets RGBA color. Each channel from 0.0 to 1.0.
      * @public
-     * @param {og.Vec4} color - RGBA vector.
+     * @param {Vec4} color - RGBA vector.
      */
     setColor4v(color) {
         this._color.x = color.x;
@@ -253,7 +253,7 @@ class BaseBillboard {
     /**
      * Returns RGBA color.
      * @public
-     * @returns {og.Vec4}
+     * @returns {Vec4}
      */
     getColor() {
         return this._color;
@@ -295,7 +295,7 @@ class BaseBillboard {
     /**
      * Sets billboard aligned vector.
      * @public
-     * @param {og.math.Vecto3} alignedAxis - Vector to align.
+     * @param {math.Vecto3} alignedAxis - Vector to align.
      */
     setAlignedAxis3v(alignedAxis) {
         this._alignedAxis.x = alignedAxis.x;
@@ -307,7 +307,7 @@ class BaseBillboard {
     /**
      * Returns aligned vector.
      * @public
-     * @returns {og.Vec3}
+     * @returns {Vec3}
      */
     getAlignedAxis() {
         return this._alignedAxis;
@@ -325,7 +325,7 @@ class BaseBillboard {
     /**
      * Sets billboard picking color.
      * @public
-     * @param {og.Vec3} color - Picking color.
+     * @param {Vec3} color - Picking color.
      */
     setPickingColor3v(color) {
         this._handler && this._handler.setPickingColorArr(this._handlerIndex, color);

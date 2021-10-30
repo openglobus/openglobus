@@ -58,10 +58,10 @@ window.BBSC = 100;
 /**
  * Planet segment Web Mercator tile class that stored and rendered with quad tree.
  * @class
- * @param {og.quadTree.Node} node - Segment node.
- * @param {og.scene.Planet} planet - Current planet scene.
+ * @param {quadTree.Node} node - Segment node.
+ * @param {scene.Planet} planet - Current planet scene.
  * @param {Number} tileZoom - Zoom index.
- * @param {og.Extent} extent - Segment extent.
+ * @param {Extent} extent - Segment extent.
  */
 class Segment {
     /**
@@ -79,25 +79,25 @@ class Segment {
 
         /**
          * Quad tree node of the segment.
-         * @type {og.quadTree.Node}
+         * @type {quadTree.Node}
          */
         this.node = node;
 
         /**
          * Planet pointer.
-         * @type {og.scene.Planet}
+         * @type {scene.Planet}
          */
         this.planet = planet;
 
         /**
          * WebGl handler pointer.
-         * @type {og.webgl.Handler}
+         * @type {webgl.Handler}
          */
         this.handler = planet.renderer.handler;
 
         /**
          * Segment bounding sphere
-         * @type {og.bv.Sphere}
+         * @type {bv.Sphere}
          */
         this.bsphere = new Sphere();
 
@@ -105,7 +105,7 @@ class Segment {
 
         /**
          * Segment bounding box.
-         * @type {og.bv.Box}
+         * @type {bv.Box}
          */
         this.bbox = new Box();
 
@@ -116,7 +116,7 @@ class Segment {
 
         /**
          * Geographical extent.
-         * @type {og.Extent}
+         * @type {Extent}
          */
         this._extent = extent;
 
@@ -162,7 +162,7 @@ class Segment {
 
         /**
          * Texture materials array.
-         * @type {Array.<og.planetSegment.Material>}
+         * @type {Array.<planetSegment.Material>}
          */
         this.materials = [];
 
@@ -252,7 +252,7 @@ class Segment {
     /**
      * Returns that segment good for rendering with camera by current lod ratio.
      * @public
-     * @param {og.Camera} camera - Camera object.
+     * @param {Camera} camera - Camera object.
      * @returns {boolean} -
      */
     acceptForRendering(camera) {
@@ -265,10 +265,10 @@ class Segment {
     /**
      * Returns entity terrain point.
      * @public
-     * @param {og.Entity} entity - Entity.
-     * @param {og.Vec3} res - Point coordinates.
-     * @param {og.Vec3} [normal] - Terrain point normal.
-     * @returns {og.Vec3} -
+     * @param {Entity} entity - Entity.
+     * @param {Vec3} res - Point coordinates.
+     * @param {Vec3} [normal] - Terrain point normal.
+     * @returns {Vec3} -
      */
     getEntityTerrainPoint(entity, res, normal) {
         return this.getTerrainPoint(entity._cartesian, entity._lonlatMerc, res, normal);
@@ -281,10 +281,10 @@ class Segment {
     /**
      * Returns distance from object to terrain coordinates and terrain point that calculates out in the res parameter.
      * @public
-     * @param {og.Vec3} xyz - Cartesian object position.
+     * @param {Vec3} xyz - Cartesian object position.
      * @param {LonLat} insideSegmentPosition - Geodetic object position.
-     * @param {og.Vec3} [res] - Result cartesian coordiantes on the terrain.
-     * @param {og.Vec3} [normal] - Terrain point normal.
+     * @param {Vec3} [res] - Result cartesian coordiantes on the terrain.
+     * @param {Vec3} [normal] - Terrain point normal.
      * @returns {number} -
      */
     getTerrainPoint(xyz, insideSegmentPosition, res, normal) {
@@ -375,6 +375,10 @@ class Segment {
         return lonlat.forwardMercator();
     }
 
+    /**
+     * 
+     * @param {boolean} forceLoading 
+     */
     loadTerrain(forceLoading) {
         if (this.tileZoom < this.planet.terrain.minZoom) {
             this.terrainIsLoading = true;
@@ -1434,8 +1438,8 @@ class Segment {
     /**
      * Gets specific layer material.
      * @public
-     * @param {og.Layer} layer - Layer object.
-     * @returns {og.planetSegment.Material} - Segment material.
+     * @param {Layer} layer - Layer object.
+     * @returns {planetSegment.Material} - Segment material.
      */
     getMaterialByLayer(layer) {
         return this.materials[layer._id];

@@ -29,7 +29,7 @@ class Control {
         /**
          * Assigned renderer.
          * @public
-         * @type {og.Renderer}
+         * @type {Renderer}
          */
         this.renderer = null;
 
@@ -106,7 +106,7 @@ class Control {
     /**
      * Assign renderer to the control.
      * @public
-     * @type {og.Renderer}
+     * @type {Renderer}
      */
     addTo(renderer) {
         if (renderer) {

@@ -20,7 +20,7 @@ class RenderNode extends BaseNode {
         /**
          * Renderer that calls frame() callback.
          * @public
-         * @type {og.Renderer}
+         * @type {Renderer}
          */
         this.renderer = null;
 
@@ -43,7 +43,7 @@ class RenderNode extends BaseNode {
         /**
          * Point light array.
          * @private
-         * @type {Array.<og.LightSource>}
+         * @type {Array.<LightSource>}
          */
         this._lights = [];
         this._lightsTransformedPositions = [];
@@ -54,7 +54,7 @@ class RenderNode extends BaseNode {
         /**
          * Entity collection array.
          * @public
-         * @type {Array.<og.EntityCollection>}
+         * @type {Array.<EntityCollection>}
          */
         this.entityCollections = [];
 
@@ -66,7 +66,7 @@ class RenderNode extends BaseNode {
     /**
      * Adds node to the current hierarchy.
      * @public
-     * @type {og.RenderNode}
+     * @type {RenderNode}
      */
     addNode(node) {
         super.addNode(node);
@@ -76,7 +76,7 @@ class RenderNode extends BaseNode {
     /**
      * Assign render node with renderer.
      * @public
-     * @param {og.Renderer} renderer - Redner node's renderer.
+     * @param {Renderer} renderer - Redner node's renderer.
      */
     assign(renderer) {
         this.renderer = renderer;
@@ -119,9 +119,9 @@ class RenderNode extends BaseNode {
     /**
      * Adds entity collection.
      * @public
-     * @param {og.EntityCollection} entityCollection - Entity collection.
+     * @param {EntityCollection} entityCollection - Entity collection.
      * @param {boolean} [isHidden] - If it's true that this collection has specific rendering.
-     * @returns {og.scene.RenderNode} -
+     * @returns {scene.RenderNode} -
      */
     addEntityCollection(entityCollection, isHidden) {
         entityCollection.addTo(this, isHidden);
@@ -131,7 +131,7 @@ class RenderNode extends BaseNode {
     /**
      * Removes entity collection.
      * @public
-     * @param {og.EntityCollection} entityCollection - Entity collection for remove.
+     * @param {EntityCollection} entityCollection - Entity collection for remove.
      */
     removeEntityCollection(entityCollection) {
         entityCollection.remove();
@@ -140,8 +140,8 @@ class RenderNode extends BaseNode {
     /**
      * Adds point light source.
      * @public
-     * @param {og.LightSource} light - Light source.
-     * @returns {og.scene.RenderNode}
+     * @param {LightSource} light - Light source.
+     * @returns {scene.RenderNode}
      */
     addLight(light) {
         light.addTo(this);
@@ -152,7 +152,7 @@ class RenderNode extends BaseNode {
      * Gets light object by its name.
      * @public
      * @param {string} name - Point light name.
-     * @returns {og.LightSource}
+     * @returns {LightSource}
      */
     getLightByName(name) {
         var li = this._lightsNames.indexOf(name);
@@ -162,7 +162,7 @@ class RenderNode extends BaseNode {
     /**
      * Removes light source.
      * @public
-     * @param {og.LightSource} light - Light source object.
+     * @param {LightSource} light - Light source object.
      */
     removeLight(light) {
         light.remove();

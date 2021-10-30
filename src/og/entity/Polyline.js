@@ -32,7 +32,7 @@ const A = 3;
  * @param {Object} [options] - Polyline options:
  * @param {number} [options.thickness] - Thickness in screen pixels 1.5 is default.
  * @param {Number} [options.altitude] - Relative to ground layers altitude value.
- * @param {og.Vec4} [options.color] - RGBA color.
+ * @param {Vec4} [options.color] - RGBA color.
  * @param {Boolean} [options.opacity] - Line opacity.
  * @param {Boolean} [options.visibility] - Polyline visibility. True default.
  * @param {Boolean} [options.isClosed] - Closed geometry type identificator.
@@ -88,7 +88,7 @@ class Polyline {
         /**
          * Polyline cartesian coordinates.
          * @private
-         * @type {Array.<og.Vec3>}
+         * @type {Array.<Vec3>}
          */
         this._path3v = [];
 
@@ -113,7 +113,7 @@ class Polyline {
         /**
          * Polyline geodetic extent.
          * @protected
-         * @type {og.Extent}
+         * @type {Extent}
          */
         this._extent = new Extent();
 
@@ -136,14 +136,14 @@ class Polyline {
         /**
          * Entity instance that holds this Polyline.
          * @private
-         * @type {og.Entity}
+         * @type {Entity}
          */
         this._entity = null;
 
         /**
          * Handler that stores and renders this Polyline object.
          * @private
-         * @type {og.PolylineHandler}
+         * @type {PolylineHandler}
          */
         this._handler = null;
         this._handlerIndex = -1;
@@ -183,11 +183,11 @@ class Polyline {
      * @param {Number[]} outVertices - Out vertices data array.
      * @param {Number[]} outOrders - Out vertices orders data array.
      * @param {Number[]} outIndexes - Out vertices indexes data array.
-     * @param {og.Ellipsoid} [ellipsoid] - Ellipsoid to coordinates transformation.
+     * @param {Ellipsoid} [ellipsoid] - Ellipsoid to coordinates transformation.
      * @param {Array.<Array.<LonLat>>} [outTransformedPathLonLat] - Geodetic coordinates out array.
      * @param {Array.<Array.<LonLat>>} [outPath3v] - Cartesian coordinates out array.
      * @param {Array.<Array.<LonLat>>} [outTransformedPathMerc] - Mercator coordinates out array.
-     * @param {og.Extent} [outExtent] - Geodetic line extent.
+     * @param {Extent} [outExtent] - Geodetic line extent.
      * @param {Array} [outColors]
      * @static
      */
@@ -454,11 +454,11 @@ class Polyline {
      * @param {Number[]} outVertices - Out vertices data array.
      * @param {Number[]} outOrders - Out vertices orders data array.
      * @param {Number[]} outIndexes - Out vertices indexes data array.
-     * @param {og.Ellipsoid} [ellipsoid] - Ellipsoid to coordinates transformation.
+     * @param {Ellipsoid} [ellipsoid] - Ellipsoid to coordinates transformation.
      * @param {Array.<Array.<LonLat>>} [outTransformedPathLonLat] - Geodetic coordinates out array.
      * @param {Array.<Array.<LonLat>>} [outPath3v] - Cartesian coordinates out array.
      * @param {Array.<Array.<LonLat>>} [outTransformedPathMerc] - Mercator coordinates out array.
-     * @param {og.Extent} [outExtent] - Geodetic line extent.
+     * @param {Extent} [outExtent] - Geodetic line extent.
      * @static
      */
     static appendPoint3v(
@@ -706,11 +706,11 @@ class Polyline {
      * @param {Number[]} outVertices - Out vertices data array.
      * @param {Number[]} outOrders - Out vertices orders data array.
      * @param {Number[]} outIndexes - Out indexes data array.
-     * @param {og.Ellipsoid} ellipsoid - Ellipsoid to coordinates transformation.
+     * @param {Ellipsoid} ellipsoid - Ellipsoid to coordinates transformation.
      * @param {Array.<Array.<number>>} outTransformedPathCartesian - Cartesian coordinates out array. [[0,0,0], [1,1,1],...]
      * @param {Array.<Array.<LonLat>>} outPathLonLat - Geographic coordinates out array.
      * @param {Array.<Array.<LonLat>>} outTransformedPathMerc - Mercator coordinates out array.
-     * @param {og.Extent} outExtent - Geodetic line extent.
+     * @param {Extent} outExtent - Geodetic line extent.
      * @static
      */
     static appendLineDataLonLat(
@@ -1579,7 +1579,7 @@ class Polyline {
     /**
      * Adds a new cartesian point in the end of the path in a last line segment.
      * @public
-     * @param {og.Vec3} point3v - New coordinate.
+     * @param {Vec3} point3v - New coordinate.
      */
     appendPoint3v(point3v, color, skipEllipsoid) {
         if (this._path3v.length === 0) {
@@ -1623,7 +1623,7 @@ class Polyline {
     /**
      * Adds a new cartesian point in the end of the path.
      * @public
-     * @param {og.Vec3} point3v - New coordinate.
+     * @param {Vec3} point3v - New coordinate.
      * @param {number} [multiLineIndex=0] - Path part index, first by default.
      */
     addPoint3v(point3v, multiLineIndex = 0) {
@@ -1752,7 +1752,7 @@ class Polyline {
     /**
      * Assign with render node.
      * @public
-     * @param {og.scene.RenderNode} renderNode -
+     * @param {scene.RenderNode} renderNode -
      */
     setRenderNode(renderNode) {
         if (renderNode) {
@@ -1870,7 +1870,7 @@ class Polyline {
     /**
      * Returns polyline geodetic extent.
      * @public
-     * @returns {og.Extent} - Geodetic extent
+     * @returns {Extent} - Geodetic extent
      */
     getExtent() {
         return this._extent.clone();
@@ -1878,7 +1878,7 @@ class Polyline {
 
     /**
      * Returns path cartesian coordinates.
-     * @return {Array.<og.Vec3>} Polyline path.
+     * @return {Array.<Vec3>} Polyline path.
      */
     getPath3v() {
         return this._path3v;

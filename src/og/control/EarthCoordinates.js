@@ -96,7 +96,7 @@ class EarthCoordinates extends Control {
         /**
          * Current position.
          * @public
-         * @type {og.Vec3}
+         * @type {Vec3}
          */
         this.position = null;
     }

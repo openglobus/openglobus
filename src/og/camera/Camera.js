@@ -12,15 +12,15 @@ import { Mat4 } from "../math/Mat4.js";
 /**
  * Camera class.
  * @class
- * @param {og.Renderer} [renderer] - Renderer uses the camera instance.
+ * @param {Renderer} [renderer] - Renderer uses the camera instance.
  * @param {Object} [options] - Camera options:
  * @param {Object} [options.name] - Camera name.
  * @param {number} [options.viewAngle=38] - Camera angle of view. Default is 30.0
  * @param {number} [options.near=1] - Camera near plane distance. Default is 1.0
  * @param {number} [options.far=og.math.MAX] - Camera far plane distance. Deafult is og.math.MAX
- * @param {og.Vec3} [options.eye=[0,0,0]] - Camera eye position. Default (0,0,0)
- * @param {og.Vec3} [options.look=[0,0,0]] - Camera look position. Default (0,0,0)
- * @param {og.Vec3} [options.up=[0,1,0]] - Camera eye position. Default (0,1,0)
+ * @param {Vec3} [options.eye=[0,0,0]] - Camera eye position. Default (0,0,0)
+ * @param {Vec3} [options.look=[0,0,0]] - Camera look position. Default (0,0,0)
+ * @param {Vec3} [options.up=[0,1,0]] - Camera eye position. Default (0,1,0)
  *
  * @fires og.Camera#viewchange
  */
@@ -29,35 +29,35 @@ class Camera {
         /**
          * Assigned renderer
          * @public
-         * @type {og.Renderer}
+         * @type {Renderer}
          */
         this.renderer = renderer;
 
         /**
          * Camera events handler
          * @public
-         * @type {og.Events}
+         * @type {Events}
          */
         this.events = new Events(EVENT_NAMES, this);
 
         /**
          * Camera position.
          * @public
-         * @type {og.Vec3}
+         * @type {Vec3}
          */
         this.eye = new Vec3();
 
         /**
          * Camera RTE high position
          * @public
-         * @type {og.Vec3}
+         * @type {Vec3}
          */
         this.eyeHigh = new Float32Array(3);
 
         /**
          * Camera RTE low position
          * @public
-         * @type {og.Vec3}
+         * @type {Vec3}
          */
         this.eyeLow = new Float32Array(3);
 
@@ -78,35 +78,35 @@ class Camera {
         /**
          * Camera normal matrix.
          * @protected
-         * @type {og.Mat3}
+         * @type {Mat3}
          */
         this._normalMatrix = new Mat3();
 
         /**
          * Camera view matrix.
          * @protected
-         * @type {og.Mat4}
+         * @type {Mat4}
          */
         this._viewMatrix = new Mat4();
 
         /**
          * Camera right vector.
          * @protected
-         * @type {og.Vec3}
+         * @type {Vec3}
          */
         this._u = new Vec3(0.0, 1.0, 0.0); // up x n
 
         /**
          * Camera up vector.
          * @protected
-         * @type {og.Vec3}
+         * @type {Vec3}
          */
         this._v = new Vec3(1.0, 0.0, 0.0); // n x u - UP
 
         /**
          * Camera forward vector.
          * @protected
-         * @type {og.Vec3}
+         * @type {Vec3}
          */
         this._n = new Vec3(0.0, 0.0, 1.0); // eye - look - FORWARD
 
@@ -199,14 +199,14 @@ class Camera {
     /**
      * Camera initialization.
      * @public
-     * @param {og.Renderer} renderer - OpenGlobus renderer object.
+     * @param {Renderer} renderer - OpenGlobus renderer object.
      * @param {Object} [options] - Camera options:
      * @param {number} [options.viewAngle] - Camera angle of view. Default is 30.0
      * @param {number} [options.near] - Camera near plane distance. Default is 1.0
      * @param {number} [options.far] - Camera far plane distance. Deafult is og.math.MAX
-     * @param {og.Vec3} [options.eye] - Camera eye position. Default (0,0,0)
-     * @param {og.Vec3} [options.look] - Camera look position. Default (0,0,0)
-     * @param {og.Vec3} [options.up] - Camera eye position. Default (0,1,0)
+     * @param {Vec3} [options.eye] - Camera eye position. Default (0,0,0)
+     * @param {Vec3} [options.look] - Camera look position. Default (0,0,0)
+     * @param {Vec3} [options.up] - Camera eye position. Default (0,1,0)
      */
     _init(options) {
         this._setProj(this._viewAngle, this._aspect);
@@ -362,10 +362,10 @@ class Camera {
     /**
      * Sets camera to eye position
      * @public
-     * @param {og.Vec3} eye - Camera position
-     * @param {og.Vec3} look - Look point
-     * @param {og.Vec3} up - Camera up vector
-     * @returns {og.Camera} - This camera
+     * @param {Vec3} eye - Camera position
+     * @param {Vec3} look - Look point
+     * @param {Vec3} up - Camera up vector
+     * @returns {Camera} - This camera
      */
     set(eye, look, up) {
         this.eye.x = eye.x;
@@ -386,8 +386,8 @@ class Camera {
     /**
      * Sets camera look point
      * @public
-     * @param {og.Vec3} look - Look point
-     * @param {og.Vec3} [up] - Camera up vector otherwise camera current up vector(this._v)
+     * @param {Vec3} look - Look point
+     * @param {Vec3} [up] - Camera up vector otherwise camera current up vector(this._v)
      */
     look(look, up) {
         this._n.set(this.eye.x - look.x, this.eye.y - look.y, this.eye.z - look.z);
@@ -478,7 +478,7 @@ class Camera {
      * @public
      * @param {number} x - Scren X coordinate
      * @param {number} y - Scren Y coordinate
-     * @returns {og.Vec3} - Direction vector
+     * @returns {Vec3} - Direction vector
      */
     unproject(x, y) {
         var c = this.renderer.handler.canvas,
@@ -501,8 +501,8 @@ class Camera {
     /**
      * Gets projected 3d point to the 2d screen coordiantes
      * @public
-     * @param {og.Vec3} v - Cartesian 3d coordiantes
-     * @returns {og.Vec2} - Screen point coordinates
+     * @param {Vec3} v - Cartesian 3d coordiantes
+     * @returns {Vec2} - Screen point coordinates
      */
     project(v) {
         var r = this.frustums[0]._projectionViewMatrix.mulVec4(v.toVec4()),
@@ -516,8 +516,8 @@ class Camera {
      * @param {number} angle - Rotation angle in radians
      * @param {boolean} isArc - If true camera up vector gets from current up vector every frame,
      * otherwise up is always input parameter.
-     * @param {og.Vec3} center - Point that the camera rotates around
-     * @param {og.math.Vecto3} [up] - Camera up vector
+     * @param {Vec3} center - Point that the camera rotates around
+     * @param {math.Vecto3} [up] - Camera up vector
      */
     rotateAround(angle, isArc, center, up) {
         center = center || Vec3.ZERO;
@@ -541,8 +541,8 @@ class Camera {
      * @param {number} angle - Rotation angle in radians.
      * @param {boolaen} isArc - If true camera up vector gets from current up vector every frame,
      * otherwise up is always input parameter.
-     * @param {og.Vec3} center - Point that the camera rotates around.
-     * @param {og.Vec3} [up] - Camera up vector.
+     * @param {Vec3} center - Point that the camera rotates around.
+     * @param {Vec3} [up] - Camera up vector.
      */
     rotateHorizontal(angle, isArc, center, up) {
         this.rotateAround(angle, isArc, center, up);
@@ -551,7 +551,7 @@ class Camera {
     /**
      * Rotates camera around center point by vecrtical.
      * @param {number} angle - Rotation angle in radians.
-     * @param {og.Vec3} center - Point that the camera rotates around.
+     * @param {Vec3} center - Point that the camera rotates around.
      */
     rotateVertical(angle, center) {
         this.rotateAround(angle, false, center, this._u);
@@ -560,8 +560,8 @@ class Camera {
     /**
      * Gets 3d size factor. Uses in LOD distance calculation.
      * @public
-     * @param {og.Vec3} p - Far point.
-     * @param {og.Vec3} r - Far point.
+     * @param {Vec3} p - Far point.
+     * @param {Vec3} r - Far point.
      * @returns {number} - Size factor.
      */
     projectedSize(p, r) {
@@ -571,7 +571,7 @@ class Camera {
     /**
      * Returns normal matrix.
      * @public
-     * @returns {og.Mat3} - Normal matrix.
+     * @returns {Mat3} - Normal matrix.
      */
     getNormalMatrix() {
         return this._normalMatrix._m;
@@ -580,7 +580,7 @@ class Camera {
     /**
      * Returns model matrix.
      * @public
-     * @returns {og.Mat4} - View matrix.
+     * @returns {Mat4} - View matrix.
      */
     getViewMatrix() {
         return this._viewMatrix._m;
@@ -601,7 +601,7 @@ class Camera {
     /**
      * Returns projection matrix.
      * @public
-     * @returns {og.Mat4} - Projection matrix.
+     * @returns {Mat4} - Projection matrix.
      */
     getProjectionMatrix() {
         return this.frustum._projectionMatrix._m;
@@ -610,7 +610,7 @@ class Camera {
     /**
      * Returns projection and model matrix product.
      * @public
-     * @return {og.Mat4} - Projection-view matrix.
+     * @return {Mat4} - Projection-view matrix.
      */
     getProjectionViewMatrix() {
         return this.frustum._projectionViewMatrix._m;
@@ -619,7 +619,7 @@ class Camera {
     /**
      * Returns inverse projection and model matrix product.
      * @public
-     * @returns {og.Mat4} - Inversed projection-view matrix.
+     * @returns {Mat4} - Inversed projection-view matrix.
      */
     getInverseProjectionViewMatrix() {
         return this.frustum._inverseProjectionViewMatrix._m;
@@ -628,7 +628,7 @@ class Camera {
     /**
      * Returns inverse projection matrix.
      * @public
-     * @returns {og.Mat4} - Inversed projection-view matrix.
+     * @returns {Mat4} - Inversed projection-view matrix.
      */
     getInverseProjectionMatrix() {
         return this.frustum._inverseProjectionMatrix._m;

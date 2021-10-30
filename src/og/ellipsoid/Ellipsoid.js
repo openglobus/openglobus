@@ -226,7 +226,7 @@ class Ellipsoid {
      * Gets cartesian ECEF from Wgs84 geodetic coordiantes.
      * @public
      * @param {LonLat} lonlat - Degrees geodetic coordiantes.
-     * @returns {og.Vec3} -
+     * @returns {Vec3} -
      */
     lonLatToCartesian(lonlat) {
         var latrad = math.RADIANS * lonlat.lat,
@@ -247,8 +247,8 @@ class Ellipsoid {
      * Gets cartesian ECEF from Wgs84 geodetic coordiantes.
      * @public
      * @param {LonLat} lonlat - Degrees geodetic coordiantes.
-     * @param {og.Vec3} res - Output result.
-     * @returns {og.Vec3} - 
+     * @param {Vec3} res - Output result.
+     * @returns {Vec3} - 
      */
     lonLatToCartesianRes(lonlat, res) {
         var latrad = math.RADIANS * lonlat.lat,
@@ -272,7 +272,7 @@ class Ellipsoid {
      * @param {Number} lon - Longitude.
      * @param {Number} lat - Latitude.
      * @param {Number} height - Height.
-     * @returns {og.Vec3} -
+     * @returns {Vec3} -
      */
     geodeticToCartesian(lon, lat, height = 0) {
         var latrad = math.RADIANS * lat,
@@ -292,7 +292,7 @@ class Ellipsoid {
     /**
      * Gets Wgs84 geodetic coordiantes from cartesian ECEF.
      * @public
-     * @param {og.Vec3} cartesian - Cartesian coordinates.
+     * @param {Vec3} cartesian - Cartesian coordinates.
      * @returns {LonLat} -
      */
     cartesianToLonLat(cartesian) {
@@ -321,8 +321,8 @@ class Ellipsoid {
     /**
      * Gets ellipsoid surface normal.
      * @public
-     * @param {og.Vec3} coord - Spatial coordiantes.
-     * @returns {og.Vec3} -
+     * @param {Vec3} coord - Spatial coordiantes.
+     * @returns {Vec3} -
      */
     getSurfaceNormal3v(coord) {
         var r2 = this._invRadii2;
@@ -403,9 +403,9 @@ class Ellipsoid {
      * Returns ray vector hit ellipsoid coordinates.
      * If the ray doesn't hit ellipsoid returns null.
      * @public
-     * @param {og.Vec3} origin - Ray origin point.
-     * @param {og.Vec3} direction - Ray direction.
-     * @returns {og.Vec3} -
+     * @param {Vec3} origin - Ray origin point.
+     * @param {Vec3} direction - Ray direction.
+     * @returns {Vec3} -
      */
     hitRay(origin, direction) {
 

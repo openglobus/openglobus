@@ -122,7 +122,7 @@ class Program {
     /**
      * Bind program buffer.
      * @function
-     * @param {og.webgl.Program} program - Used program.
+     * @param {webgl.Program} program - Used program.
      * @param {Object} variable - Variable represents buffer data.
      */
     static bindBuffer(program, variable) {

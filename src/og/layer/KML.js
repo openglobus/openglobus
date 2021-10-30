@@ -24,6 +24,9 @@ export class KML extends Vector {
         super(name, options);
         this._extent = null;
         this._billboard = options.billboard || { src: 'https://openglobus.org/examples/billboards/carrot.png' };
+        /**
+         * @type {string}
+         */
         this._color = options.color || '#6689db';
     }
 
@@ -45,7 +48,7 @@ export class KML extends Vector {
      * @private
      * @param {Array} coordonates
      * @param {string} color 
-     * @returns {Array<og.Entity>}
+     * @returns {Array<Entity>}
      */
     _convertCoordonatesIntoEntities(coordinates, color, billboard) {
         const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
@@ -78,6 +81,7 @@ export class KML extends Vector {
 
     /**
      * @private
+     * @returns {Document}
      */
     _getXmlContent(file) {
         return new Promise(resolve => {
@@ -102,7 +106,7 @@ export class KML extends Vector {
     /**
      * @public
      * @param {File[]} kmls
-     * @returns {Promise}
+     * @returns {Promise<{entities: Entity[], extent: Extent}>}
      */
     async addKmlFromFiles(kmls) {
         const kmlObjs = await Promise.all(kmls.map(this._getXmlContent));
@@ -145,7 +149,7 @@ export class KML extends Vector {
     /**
      * @public
      * @param {string} url - Url of the KML to display. './myFile.kml' or 'http://mySite/myFile.kml' for example.
-     * @returns {Promise}
+     * @returns {Promise<{entities: Entity[], extent: Extent}>}
      */
     async addKmlFromUrl(url) {
         const kml = await this._getKmlFromUrl(url);

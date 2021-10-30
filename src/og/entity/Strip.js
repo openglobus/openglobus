@@ -57,14 +57,14 @@ class Strip {
         /**
          * Parent collection render node.
          * @private
-         * @type {og.scene.RenderNode}
+         * @type {scene.RenderNode}
          */
         this._renderNode = null;
 
         /**
          * Entity instance that holds this strip.
          * @private
-         * @type {og.Entity}
+         * @type {Entity}
          */
         this._entity = null;
 
@@ -87,7 +87,7 @@ class Strip {
         /**
          * Handler that stores and renders this object.
          * @private
-         * @type {og.StripHandler}
+         * @type {StripHandler}
          */
         this._handler = null;
         this._handlerIndex = -1;
@@ -111,7 +111,7 @@ class Strip {
     /**
      * Assign picking color.
      * @protected
-     * @param {og.Vec3} color - Picking RGB color.
+     * @param {Vec3} color - Picking RGB color.
      */
     setPickingColor3v(color) {
         this._pickingColor[0] = color.x / 255.0;
@@ -177,7 +177,7 @@ class Strip {
     /**
      * Assign rendering scene node.
      * @public
-     * @param {og.scene.RenderNode}  renderNode - Assigned render node.
+     * @param {scene.RenderNode}  renderNode - Assigned render node.
      */
     setRenderNode(renderNode) {
         this._renderNode = renderNode;
