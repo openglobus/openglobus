@@ -564,7 +564,7 @@ class Renderer {
     /**
      * Adds render node to the renderer.
      * @public
-     * @param {scene.RenderNode} renderNode - Render node.
+     * @param {RenderNode} renderNode - Render node.
      */
     addNode(renderNode) {
         if (!this.renderNodes[renderNode.name]) {
@@ -579,7 +579,7 @@ class Renderer {
     /**
      * Adds render node to the renderer before specific node.
      * @public
-     * @param {scene.RenderNode} renderNode - Render node.
+     * @param {RenderNode} renderNode - Render node.
      */
     addNodeBefore(renderNode, renderNodeBefore) {
         if (!this.renderNodes[renderNode.name]) {

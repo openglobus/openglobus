@@ -57,7 +57,7 @@ class Strip {
         /**
          * Parent collection render node.
          * @private
-         * @type {scene.RenderNode}
+         * @type {RenderNode}
          */
         this._renderNode = null;
 
@@ -177,7 +177,7 @@ class Strip {
     /**
      * Assign rendering scene node.
      * @public
-     * @param {scene.RenderNode}  renderNode - Assigned render node.
+     * @param {RenderNode}  renderNode - Assigned render node.
      */
     setRenderNode(renderNode) {
         this._renderNode = renderNode;

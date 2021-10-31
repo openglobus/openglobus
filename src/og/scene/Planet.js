@@ -163,7 +163,7 @@ export class Planet extends RenderNode {
         /**
          * Terrain provider.
          * @public
-         * @type {terrain.Terrain}
+         * @type {Terrain}
          */
         this.terrain = null;
 
@@ -560,7 +560,7 @@ export class Planet extends RenderNode {
     /**
      * Sets terrain provider
      * @public
-     * @param {terrain.Terrain} terrain - Terrain provider.
+     * @param {Terrain} terrain - Terrain provider.
      */
     setTerrain(terrain) {
         this._renderCompletedActivated = false;

@@ -157,7 +157,7 @@ class BaseShape {
         /**
          * Assigned render node.
          * @protected
-         * @type {scene.RenderNode}
+         * @type {RenderNode}
          */
         this._renderNode = null;
 
@@ -296,7 +296,7 @@ class BaseShape {
     /**
      * Assign render node.
      * @public
-     * @param {scene.RenderNode} renderNode - Render node to assign.
+     * @param {RenderNode} renderNode - Render node to assign.
      */
     setRenderNode(renderNode) {
         this._renderNode = renderNode;

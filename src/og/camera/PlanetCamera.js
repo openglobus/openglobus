@@ -50,7 +50,7 @@ class PlanetCamera extends Camera {
         /**
          * Assigned camera's planet.
          * @public
-         * @type {scene.Planet}
+         * @type {Planet}
          */
         this.planet = planet;
 

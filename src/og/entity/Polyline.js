@@ -1752,7 +1752,7 @@ class Polyline {
     /**
      * Assign with render node.
      * @public
-     * @param {scene.RenderNode} renderNode -
+     * @param {RenderNode} renderNode -
      */
     setRenderNode(renderNode) {
         if (renderNode) {

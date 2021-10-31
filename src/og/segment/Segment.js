@@ -59,14 +59,14 @@ window.BBSC = 100;
  * Planet segment Web Mercator tile class that stored and rendered with quad tree.
  * @class
  * @param {quadTree.Node} node - Segment node.
- * @param {scene.Planet} planet - Current planet scene.
+ * @param {Planet} planet - Current planet scene.
  * @param {Number} tileZoom - Zoom index.
  * @param {Extent} extent - Segment extent.
  */
 class Segment {
     /**
      * @param {quadTree.Node} node - Segment node.
-     * @param {scene.Planet} planet - Current planet scene.
+     * @param {Planet} planet - Current planet scene.
      * @param {number} tileZoom - Zoom index.
      * @param {Extent} extent - Segment extent.
      */
@@ -85,7 +85,7 @@ class Segment {
 
         /**
          * Planet pointer.
-         * @type {scene.Planet}
+         * @type {Planet}
          */
         this.planet = planet;
 
@@ -97,7 +97,7 @@ class Segment {
 
         /**
          * Segment bounding sphere
-         * @type {bv.Sphere}
+         * @type {Sphere}
          */
         this.bsphere = new Sphere();
 
@@ -105,7 +105,7 @@ class Segment {
 
         /**
          * Segment bounding box.
-         * @type {bv.Box}
+         * @type {Box}
          */
         this.bbox = new Box();
 

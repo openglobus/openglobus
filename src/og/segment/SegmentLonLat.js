@@ -21,14 +21,14 @@ let _tempHigh = new Vec3(),
  * @class
  * @extends {Segment}
  * @param {quadNode.Node} node - Quad tree segment node.
- * @param {scene.Planet} planet - Scene planet.
+ * @param {Planet} planet - Scene planet.
  * @param {Number} tileZoom - Segment tile zoom index.
  * @param {Extent} extent - Segment WGS84 extent.
  */
 class SegmentLonLat extends Segment {
     /**
      * @param {quadTree.Node} node - Segment node.
-     * @param {scene.Planet} planet - Current planet scene.
+     * @param {Planet} planet - Current planet scene.
      * @param {number} tileZoom - Zoom index.
      * @param {Extent} extent - Segment extent.
      */

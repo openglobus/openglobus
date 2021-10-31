@@ -58,7 +58,7 @@ class EmptyTerrain {
         /**
          * Planet node.
          * @protected
-         * @type {scene.Planet}
+         * @type {Planet}
          */
         this._planet = null;
 

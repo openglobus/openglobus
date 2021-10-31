@@ -28,7 +28,7 @@ class Sun extends Control {
         /**
          * Earth planet node.
          * @public
-         * @type {scene.Planet}
+         * @type {Planet}
          */
         this.planet = null;
 

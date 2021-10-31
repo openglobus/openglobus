@@ -227,7 +227,7 @@ class Frustum {
     /**
      * Returns true if the frustum contains a bonding sphere, but bottom plane exclude.
      * @public
-     * @param {bv.Sphere} sphere - Bounding sphere.
+     * @param {Sphere} sphere - Bounding sphere.
      * @returns {boolean} -
      */
     containsSphereBottomExc(sphere) {
@@ -251,7 +251,7 @@ class Frustum {
     /**
      * Returns true if the frustum contains a bonding sphere.
      * @public
-     * @param {bv.Sphere} sphere - Bounding sphere.
+     * @param {Sphere} sphere - Bounding sphere.
      * @returns {boolean} -
      */
     containsSphere(sphere) {
@@ -287,7 +287,7 @@ class Frustum {
     /**
      * Returns true if the frustum contains a bounding box.
      * @public
-     * @param {bv.Box} box - Bounding box.
+     * @param {Box} box - Bounding box.
      * @returns {boolean} -
      */
     containsBox(box) {

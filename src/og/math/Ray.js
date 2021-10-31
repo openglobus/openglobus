@@ -171,7 +171,7 @@ export class Ray {
     /**
      * Returns a ray hit sphere coordiante. If there isn't hit returns null.
      * @public
-     * @param {bv.Sphere} sphere - Sphere object.
+     * @param {Sphere} sphere - Sphere object.
      * @returns {Vec3}
      */
     hitSphere(sphere) {

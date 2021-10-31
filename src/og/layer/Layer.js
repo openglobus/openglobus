@@ -118,7 +118,7 @@ class Layer {
         /**
          * Planet node.
          * @protected
-         * @type {scene.Planet}
+         * @type {Planet}
          */
         this._planet = null;
 
@@ -321,7 +321,7 @@ class Layer {
      * Assign the planet.
      * @protected
      * @virtual
-     * @param {scene.Planet} planet - Planet render node.
+     * @param {Planet} planet - Planet render node.
      */
     _assignPlanet(planet) {
         planet.layers.push(this);
@@ -348,7 +348,7 @@ class Layer {
     /**
      * Adds layer to the planet.
      * @public
-     * @param {scene.Planet} planet - Adds layer to the planet.
+     * @param {Planet} planet - Adds layer to the planet.
      */
     addTo(planet) {
         if (!this._planet) {

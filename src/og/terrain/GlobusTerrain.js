@@ -426,7 +426,7 @@ class GlobusTerrain extends EmptyTerrain {
     /**
      * Sets url rewrite callback, used for custom url rewriting for every tile laoding.
      * @public
-     * @param {terrain.GlobusTerrain~_urlRewriteCallback} ur - The callback that returns tile custom created url.
+     * @param {GlobusTerrain~_urlRewriteCallback} ur - The callback that returns tile custom created url.
      */
     setUrlRewriteCallback(ur) {
         this._urlRewriteCallback = ur;

@@ -68,7 +68,7 @@ class PointCloud {
         /**
          * Parent collection render node.
          * @private
-         * @type {scene.RenderNode}
+         * @type {RenderNode}
          */
         this._renderNode = null;
 
@@ -189,7 +189,7 @@ class PointCloud {
     /**
      * Assign rendering scene node.
      * @public
-     * @param {scene.RenderNode}  renderNode - Assigned render node.
+     * @param {RenderNode}  renderNode - Assigned render node.
      */
     setRenderNode(renderNode) {
         this._renderNode = renderNode;

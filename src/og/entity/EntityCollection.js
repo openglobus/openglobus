@@ -85,7 +85,7 @@ class EntityCollection {
         /**
          * Render node context.
          * @public
-         * @type {scene.RenderNode}
+         * @type {RenderNode}
          */
         this.renderNode = null;
 
@@ -468,7 +468,7 @@ class EntityCollection {
     /**
      * Adds this collection to render node.
      * @public
-     * @param {scene.RenderNode} renderNode - Render node.
+     * @param {RenderNode} renderNode - Render node.
      * @param {boolean} [isHidden] - Uses in vector layers that render in planet render specific function.
      * @returns {EntityCollection} -
      */

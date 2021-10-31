@@ -50,9 +50,9 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  *
  * @param {object} options - Options:
  * @param {string} options.target - HTML element id where planet canvas have to be created.
- * @param {scene.RenderNode} [options.skybox] - Render skybox. null - default.
+ * @param {RenderNode} [options.skybox] - Render skybox. null - default.
  * @param {string} [options.name] - Planet name. Default is unic identifier.
- * @param {terrain.Terrain} [options.terrain] - Terrain provider. Default no terrain - og.terrain.EmptyTerrain.
+ * @param {Terrain} [options.terrain] - Terrain provider. Default no terrain - og.terrain.EmptyTerrain.
  * @param {Array.<control.Control>} [options.controls] - Renderer controls array.
  * @param {Array.<Layer>} [options.layers] - Planet layers.
  * @param {Extent} [options.viewExtent] - Viewable starting extent.
@@ -148,7 +148,7 @@ class Globe {
             /**
              * Render node renders a planet.
              * @public
-             * @type {scene.Planet|og.scene.PlanetAtmosphere}
+             * @type {Planet|og.scene.PlanetAtmosphere}
              */
             // TODO:
         } else {

@@ -42,7 +42,7 @@ class LightSource {
         /**
          * Render node where light is shines.
          * @protected
-         * @type {scene.RenderNode}
+         * @type {RenderNode}
          */
         this._renderNode = null;
 
@@ -320,7 +320,7 @@ class LightSource {
     /**
      * Adds current light to the render node scene.
      * @public
-     * @param {scene.RenderNode} renderNode - Render node scene.
+     * @param {RenderNode} renderNode - Render node scene.
      * @returns {LightSource}
      */
     addTo(renderNode) {

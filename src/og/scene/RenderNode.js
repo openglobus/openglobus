@@ -121,7 +121,7 @@ class RenderNode extends BaseNode {
      * @public
      * @param {EntityCollection} entityCollection - Entity collection.
      * @param {boolean} [isHidden] - If it's true that this collection has specific rendering.
-     * @returns {scene.RenderNode} -
+     * @returns {RenderNode} -
      */
     addEntityCollection(entityCollection, isHidden) {
         entityCollection.addTo(this, isHidden);
@@ -141,7 +141,7 @@ class RenderNode extends BaseNode {
      * Adds point light source.
      * @public
      * @param {LightSource} light - Light source.
-     * @returns {scene.RenderNode}
+     * @returns {RenderNode}
      */
     addLight(light) {
         light.addTo(this);
