@@ -25,6 +25,10 @@ import { Mat4 } from "../math/Mat4.js";
  * @fires og.Camera#viewchange
  */
 class Camera {
+    /**
+     * @param {Renderer} [renderer] - Renderer uses the camera instance.
+     * @param {Object} [options] - Camera options:
+     */
     constructor(renderer, options) {
         /**
          * Assigned renderer

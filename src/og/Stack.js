@@ -13,6 +13,11 @@ class Node {
 }
 
 class Stack {
+
+    /**
+     * 
+     * @param {number} [size]
+     */
     constructor(size = 256) {
 
         this._current = new Node();

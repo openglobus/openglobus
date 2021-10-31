@@ -11,6 +11,11 @@ import { Vec3 } from "../math/Vec3.js";
  * @class
  */
 class Box {
+
+    /**
+     * 
+     * @param {*} boundsArr 
+     */
     constructor(boundsArr) {
         /**
          * Vertices array.

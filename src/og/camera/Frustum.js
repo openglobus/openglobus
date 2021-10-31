@@ -15,6 +15,10 @@ function planeNormalize(plane) {
  * @class
  */
 class Frustum {
+
+    /**
+     * @param {*} options 
+     */
     constructor(options = {}) {
         /**
          * Frustum planes.

@@ -64,6 +64,10 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  */
 
 class Globe {
+
+    /**
+     * @param {*} options 
+     */
     constructor(options) {
         // Canvas creation
         var _canvasId = CANVAS_ID_PREFIX + Globe._staticCounter++;

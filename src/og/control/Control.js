@@ -12,6 +12,10 @@
  * @param {Boolean} [options.autoActivated=true] - If true - calls initialize function after the renderer assigning.
  */
 class Control {
+
+    /**
+     * @param {Object} [options] - Control activation options:
+     */
     constructor(options) {
         options = options || {};
 

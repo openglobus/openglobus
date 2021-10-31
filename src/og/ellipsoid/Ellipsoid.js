@@ -15,6 +15,10 @@ import { LonLat } from '../LonLat.js';
  * @param {number} polarSize - Polar ellipsoid size.
  */
 class Ellipsoid {
+    /**
+     * @param {number} equatorialSize - Equatorial ellipsoid size.
+     * @param {number} polarSize - Polar ellipsoid size.
+     */
     constructor(equatorialSize, polarSize) {
         this._a = equatorialSize;
         this._b = polarSize;
