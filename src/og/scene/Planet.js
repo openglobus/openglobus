@@ -811,7 +811,7 @@ export class Planet extends RenderNode {
         this._quadTree.renderNode(true);
         this._normalMapCreator.drawSingle(this._quadTree.segment);
 
-        for (var i = 0; i < this._quadTree.nodes.length; i++) {
+        for (let i = 0; i < this._quadTree.nodes.length; i++) {
             this._quadTree.nodes[i].segment.createPlainSegment();
             this._quadTree.nodes[i].renderNode(true);
             this._normalMapCreator.drawSingle(this._quadTree.nodes[i].segment);
@@ -822,7 +822,7 @@ export class Planet extends RenderNode {
         this._quadTreeNorth.renderNode(true);
         this._normalMapCreator.drawSingle(this._quadTreeNorth.segment);
 
-        for (var i = 0; i < this._quadTreeNorth.nodes.length; i++) {
+        for (let i = 0; i < this._quadTreeNorth.nodes.length; i++) {
             this._quadTreeNorth.nodes[i].segment.createPlainSegment();
             this._quadTreeNorth.nodes[i].renderNode(true);
             this._normalMapCreator.drawSingle(this._quadTreeNorth.nodes[i].segment);
@@ -833,7 +833,7 @@ export class Planet extends RenderNode {
         this._quadTreeSouth.renderNode(true);
         this._normalMapCreator.drawSingle(this._quadTreeSouth.segment);
 
-        for (var i = 0; i < this._quadTreeSouth.nodes.length; i++) {
+        for (let i = 0; i < this._quadTreeSouth.nodes.length; i++) {
             this._quadTreeSouth.nodes[i].segment.createPlainSegment();
             this._quadTreeSouth.nodes[i].renderNode(true);
             this._normalMapCreator.drawSingle(this._quadTreeSouth.nodes[i].segment);
