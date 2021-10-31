@@ -91,7 +91,7 @@ class Segment {
 
         /**
          * WebGl handler pointer.
-         * @type {webgl.Handler}
+         * @type {Handler}
          */
         this.handler = planet.renderer.handler;
 

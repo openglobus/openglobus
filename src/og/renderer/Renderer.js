@@ -24,7 +24,7 @@ let __depthCallbackCounter__ = 0;
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
  * @class
- * @param {webgl.Handler} handler - WebGL handler context.
+ * @param {Handler} handler - WebGL handler context.
  * @param {Object} [params] - Renderer parameters:
  * @fires og.RendererEvents#draw
  * @fires og.RendererEvents#resize
@@ -69,7 +69,7 @@ class Renderer {
         /**
          * WebGL handler context.
          * @public
-         * @type {webgl.Handler}
+         * @type {Handler}
          */
         this.handler = handler;
 
@@ -147,7 +147,7 @@ class Renderer {
         /**
          * Picking objects(labels and billboards) framebuffer.
          * @public
-         * @type {webgl.Framebuffer}
+         * @type {Framebuffer}
          */
         this.pickingFramebuffer = null;
 

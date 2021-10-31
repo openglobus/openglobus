@@ -83,7 +83,7 @@ class Handler {
         /**
          * Current active shader program controller.
          * @public
-         * @type {webgl.ProgramController}
+         * @type {ProgramController}
          */
         this.activeProgram = null;
 
@@ -483,9 +483,9 @@ class Handler {
     /**
      * Adds shader program to the handler.
      * @public
-     * @param {webgl.Program} program - Shader program.
+     * @param {Program} program - Shader program.
      * @param {boolean} [notActivate] - If it's true program will not compile.
-     * @return {webgl.Program} -
+     * @return {Program} -
      */
     addProgram(program, notActivate) {
         if (!this.programs[program.name]) {
@@ -515,7 +515,7 @@ class Handler {
     /**
      * Adds shader programs to the handler.
      * @public
-     * @param {Array.<webgl.Program>} programsArr - Shader program array.
+     * @param {Array.<Program>} programsArr - Shader program array.
      */
     addPrograms(programsArr) {
         for (var i = 0; i < programsArr.length; i++) {
@@ -526,7 +526,7 @@ class Handler {
     /**
      * Used in addProgram
      * @private
-     * @param {webgl.ProgramController} sc - Program controller
+     * @param {ProgramController} sc - Program controller
      */
     _initProgramController(sc) {
         if (this._initialized) {

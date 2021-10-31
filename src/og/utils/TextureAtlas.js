@@ -71,7 +71,7 @@ class TextureAtlas {
     /**
      * Sets openglobus gl handler that creates gl texture.
      * @public
-     * @param {webgl.Handler} handler - WebGL handler.
+     * @param {Handler} handler - WebGL handler.
      */
     assignHandler(handler) {
         this._handler = handler;
