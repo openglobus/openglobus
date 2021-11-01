@@ -139,7 +139,7 @@ class GlobusTerrain extends EmptyTerrain {
          * Rewrites elevation storage url query.
          * @private
          * @callback og.terrain.GlobusTerrain~_urlRewriteCallback
-         * @param {planetSegment.Segment} segment - Segment to load.
+         * @param {Segment} segment - Segment to load.
          * @param {string} url - Created url.
          * @returns {string} - Url query string.
          */
@@ -400,7 +400,7 @@ class GlobusTerrain extends EmptyTerrain {
      * Creates query url.
      * @protected
      * @virtual
-     * @param {planetSegment.Segment} segment -
+     * @param {Segment} segment -
      * @returns {string} -
      */
     _createUrl(segment) {
@@ -414,7 +414,7 @@ class GlobusTerrain extends EmptyTerrain {
     /**
      * Returns actual url query string.
      * @protected
-     * @param {planetSegment.Segment} segment - Segment that loads image data.
+     * @param {Segment} segment - Segment that loads image data.
      * @returns {string} - Url string.
      */
     _getHTTPRequestString(segment) {
@@ -445,7 +445,7 @@ class GlobusTerrain extends EmptyTerrain {
 
     /**
      * @protected
-     * @param {planetSegment.Segment} segment -
+     * @param {Segment} segment -
      * @param {*} data -
      */
     _applyElevationsData(segment, elevations) {

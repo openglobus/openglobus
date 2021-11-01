@@ -139,7 +139,7 @@ class GeoVideo extends BaseGeoImage {
      * Loads planet segment material. In this case - GeoImage source video.
      * @virtual
      * @public
-     * @param {planetSegment.Material} material - GeoImage planet material.
+     * @param {Material} material - GeoImage planet material.
      */
     loadMaterial(material) {
         material.isLoading = true;
@@ -177,7 +177,7 @@ class GeoVideo extends BaseGeoImage {
 
     /**
      * @virtual
-     * @param {planetSegment.Material} material - GeoImage material.
+     * @param {Material} material - GeoImage material.
      */
     abortMaterialLoading(material) {
         this._video && (this._video.src = "");

@@ -521,7 +521,7 @@ class Camera {
      * @param {boolean} isArc - If true camera up vector gets from current up vector every frame,
      * otherwise up is always input parameter.
      * @param {Vec3} center - Point that the camera rotates around
-     * @param {math.Vecto3} [up] - Camera up vector
+     * @param {Vecto3} [up] - Camera up vector
      */
     rotateAround(angle, isArc, center, up) {
         center = center || Vec3.ZERO;

@@ -55,7 +55,7 @@ let BOUNDS = {
 /**
  * Quad tree planet segment node.
  * @constructor
- * @param {planetSegment.Segment|og.planetSegment.SegmentLonLat} segmentPrototype - Planet segment node constructor.
+ * @param {Segment|og.planetSegment.SegmentLonLat} segmentPrototype - Planet segment node constructor.
  * @param {RenderNode} planet - Planet render node.
  * @param {number} partId - NorthEast, SouthWest etc.
  * @param {quadTree.Node} parent - Parent of this node.

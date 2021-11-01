@@ -84,7 +84,7 @@ class GeoImage extends BaseGeoImage {
      * Loads planet segment material. In this case - GeoImage source image.
      * @virtual
      * @public
-     * @param {planetSegment.Material} material - GeoImage planet material.
+     * @param {Material} material - GeoImage planet material.
      */
     loadMaterial(material) {
         material.isLoading = true;
@@ -114,7 +114,7 @@ class GeoImage extends BaseGeoImage {
 
     /**
      * @virtual
-     * @param {planetSegment.Material} material - GeoImage material.
+     * @param {Material} material - GeoImage material.
      */
     abortMaterialLoading(material) {
         this._image && (this._image.src = '');

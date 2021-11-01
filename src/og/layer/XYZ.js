@@ -88,7 +88,7 @@ class XYZ extends Layer {
          * Rewrites imagery tile url query.
          * @private
          * @callback og.layer.XYZ~_urlRewriteCallback
-         * @param {planetSegment.Segment} segment - Segment to load.
+         * @param {Segment} segment - Segment to load.
          * @param {string} url - Created url.
          * @returns {string} - Url query string.
          */
@@ -143,7 +143,7 @@ class XYZ extends Layer {
      * Start to load tile material.
      * @public
      * @virtual
-     * @param {planetSegment.Material} material - Loads current material.
+     * @param {Material} material - Loads current material.
      */
     loadMaterial(material, forceLoading) {
 
@@ -197,7 +197,7 @@ class XYZ extends Layer {
      * Creates query url.
      * @protected
      * @virtual
-     * @param {planetSegment.Segment} segment - Creates specific url for current segment.
+     * @param {Segment} segment - Creates specific url for current segment.
      * @returns {String} - Returns url string.
      */
     _createUrl(segment) {
@@ -216,7 +216,7 @@ class XYZ extends Layer {
     /**
      * Returns actual url query string.
      * @protected
-     * @param {planetSegment.Segment} segment - Segment that loads image data.
+     * @param {Segment} segment - Segment that loads image data.
      * @returns {string} - Url string.
      */
     _getHTTPRequestString(segment) {

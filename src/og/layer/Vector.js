@@ -845,7 +845,7 @@ class Vector extends Layer {
     /**
      * Abort exact material loading.
      * @public
-     * @param {planetSegment.Material} material - Segment material.
+     * @param {Material} material - Segment material.
      */
     abortMaterialLoading(material) {
         material.isLoading = false;

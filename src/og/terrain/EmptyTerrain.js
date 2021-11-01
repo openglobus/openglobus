@@ -117,7 +117,7 @@ class EmptyTerrain {
      * Loads or creates segment elevation data.
      * @public
      * @virtual
-     * @param {planetSegment.Segment} segment - Segment to create elevation data.
+     * @param {Segment} segment - Segment to create elevation data.
      */
     handleSegmentTerrain(segment) {
         segment.terrainIsLoading = false;
