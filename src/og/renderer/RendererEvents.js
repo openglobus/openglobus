@@ -190,6 +190,9 @@ class RendererEvents extends Events {
         this._dblTchCoords = new Vec2();
         this._oneTouchStart = false;
         this._dblTchBegins = 0;
+        /**
+         * @type {number}
+         */
         this._mousestopThread = null;
         this._ldblClkBegins = 0;
         this._rdblClkBegins = 0;
