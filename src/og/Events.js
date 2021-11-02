@@ -15,7 +15,7 @@ class Events {
     /**
      * 
      * @param {Array.<string>} [eventNames] - Event names that could be dispatched.
-     * @param {*} sender 
+     * @param {*} [sender] 
      */
     constructor(eventNames, sender) {
         /**
