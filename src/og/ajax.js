@@ -88,24 +88,6 @@ const defaultParams = {
     responseType: "text"
 };
 
-function createXMLHttp() {
-    var xhr = null;
-    if (typeof XMLHttpRequest != "undefined") {
-        xhr = new XMLHttpRequest();
-        return xhr;
-    } else if (window.ActiveXObject) {
-        var ieXMLHttpVersions = ['MSXML2.XMLHttp.5.0', 'MSXML2.XMLHttp.4.0', 'MSXML2.XMLHttp.3.0', 'MSXML2.XMLHttp', 'Microsoft.XMLHttp'];
-        for (var i = 0; i < ieXMLHttpVersions.length; i++) {
-            try {
-                xhr = new ActiveXObject(ieXMLHttpVersions[i]);
-                return xhr;
-            } catch (e) {
-                throw new Error('og.ajax.createXMLHttp creation failed.');
-            }
-        }
-    }
-}
-
 /**
  * Send an ajax request.
  * @function
@@ -137,7 +119,7 @@ ajax.request = function (url, params) {
 
     p.data = params.data;
 
-    var xhr = createXMLHttp();
+    var xhr = new XMLHttpRequest();
 
     var customXhr = new Xhr(xhr);
 
