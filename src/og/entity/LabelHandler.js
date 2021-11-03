@@ -30,6 +30,11 @@ window.dZ = 1.1;
  *
  */
 class LabelHandler extends BillboardHandler {
+    /**
+     * 
+     * @param {*} entityCollection 
+     * @param {*} maxLetters 
+     */
     constructor(entityCollection, maxLetters = 21) {
         super(entityCollection);
 

@@ -27,7 +27,7 @@ class Geometry {
         /**
          * Entity instance that holds this geometry.
          * @protected
-         * @type {og.Entity}
+         * @type {Entity}
          */
         this._entity = null;
 
@@ -96,7 +96,7 @@ class Geometry {
      @static
      @param {Object} geometryObj - GeoJSON style geometry feature.
      @param {LonLat[]} outCoordinates - Geometry feature coordinates clone.
-     @returns {og.Extent} -
+     @returns {Extent} -
      */
     static getExtent(geometryObj, outCoordinates) {
         var res = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));

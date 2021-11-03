@@ -13,10 +13,10 @@ import { doubleToTwoFloats2 } from '../math/coder.js';
  * Ray class.
  * @class
  * @param {Object} [options] - Options:
- * @param {og.Vec3|Array.<number>} [options.startPosition] - Ray start point position.
- * @param {og.Vec3|Array.<number>} [options.endPosition] - Ray end point position.
- * @param {og.Vec3|Array.<number>} [options.startColor] - Ray start point color.
- * @param {og.Vec3|Array.<number>} [options.endColor] - Ray end point color.
+ * @param {Vec3|Array.<number>} [options.startPosition] - Ray start point position.
+ * @param {Vec3|Array.<number>} [options.endPosition] - Ray end point position.
+ * @param {Vec3|Array.<number>} [options.startColor] - Ray start point color.
+ * @param {Vec3|Array.<number>} [options.endColor] - Ray end point color.
  * @param {boolean} [options.visibility] - Visibility.
  */
 class Ray {
@@ -65,14 +65,14 @@ class Ray {
         /**
          * Entity instance that holds this billboard.
          * @protected
-         * @type {og.Entity}
+         * @type {Entity}
          */
         this._entity = null;
 
         /**
          * Handler that stores and renders this billboard object.
          * @protected
-         * @type {og.BillboardHandler}
+         * @type {BillboardHandler}
          */
         this._handler = null;
 
@@ -102,7 +102,7 @@ class Ray {
     /**
      * Sets ray start position.
      * @public
-     * @param {og.Vec3} position - Cartesian coordinates.
+     * @param {Vec3} position - Cartesian coordinates.
      */
     setStartPosition3v(position) {
         this._startPosition.x = position.x;
@@ -130,7 +130,7 @@ class Ray {
     /**
      * Sets ray end position.
      * @public
-     * @param {og.Vec3} position - Cartesian coordinates.
+     * @param {Vec3} position - Cartesian coordinates.
      */
     setEndPosition3v(position) {
         this._endPosition.x = position.x;
@@ -184,7 +184,7 @@ class Ray {
     /**
      * Returns ray start position.
      * @public
-     * @returns {og.Vec3}
+     * @returns {Vec3}
      */
     getStartPosition() {
         return this._startPosition;
@@ -193,7 +193,7 @@ class Ray {
     /**
      * Returns ray end position.
      * @public
-     * @returns {og.Vec3}
+     * @returns {Vec3}
      */
     getEndPosition() {
         return this._endPosition;
@@ -230,7 +230,7 @@ class Ray {
     /**
      * Sets billboard picking color.
      * @public
-     * @param {og.Vec3} color - Picking color.
+     * @param {Vec3} color - Picking color.
      */
     setPickingColor3v(color) {
         this._handler && this._handler.setPickingColorArr(this._handlerIndex, color);

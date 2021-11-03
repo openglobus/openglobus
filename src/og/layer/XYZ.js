@@ -28,7 +28,7 @@ import { RENDERING } from '../quadTree/quadTree.js';
  * @param {boolean} [options.visibility=true] - Layer visibility.
  * @param {string} [options.crossOrigin=true] - If true, all tiles will have their crossOrigin attribute set to ''.
  * @param {string} options.url - Tile url source template(see example below).
- * @param {og.layer.XYZ~_urlRewriteCallback} options.urlRewrite - Url rewrite function.
+ * @param {layer.XYZ~_urlRewriteCallback} options.urlRewrite - Url rewrite function.
  * @fires og.layer.XYZ#load
  * @fires og.layer.XYZ#loadend
  *
@@ -88,7 +88,7 @@ class XYZ extends Layer {
          * Rewrites imagery tile url query.
          * @private
          * @callback og.layer.XYZ~_urlRewriteCallback
-         * @param {og.planetSegment.Segment} segment - Segment to load.
+         * @param {Segment} segment - Segment to load.
          * @param {string} url - Created url.
          * @returns {string} - Url query string.
          */
@@ -143,7 +143,7 @@ class XYZ extends Layer {
      * Start to load tile material.
      * @public
      * @virtual
-     * @param {og.planetSegment.Material} material - Loads current material.
+     * @param {Material} material - Loads current material.
      */
     loadMaterial(material, forceLoading) {
 
@@ -197,7 +197,7 @@ class XYZ extends Layer {
      * Creates query url.
      * @protected
      * @virtual
-     * @param {og.planetSegment.Segment} segment - Creates specific url for current segment.
+     * @param {Segment} segment - Creates specific url for current segment.
      * @returns {String} - Returns url string.
      */
     _createUrl(segment) {
@@ -216,7 +216,7 @@ class XYZ extends Layer {
     /**
      * Returns actual url query string.
      * @protected
-     * @param {og.planetSegment.Segment} segment - Segment that loads image data.
+     * @param {Segment} segment - Segment that loads image data.
      * @returns {string} - Url string.
      */
     _getHTTPRequestString(segment) {
@@ -226,7 +226,7 @@ class XYZ extends Layer {
     /**
      * Sets url rewrite callback, used for custom url rewriting for every tile laoding.
      * @public
-     * @param {og.layer.XYZ~_urlRewriteCallback} ur - The callback that returns tile custom created url.
+     * @param {layer.XYZ~_urlRewriteCallback} ur - The callback that returns tile custom created url.
      */
     setUrlRewriteCallback(ur) {
         this._urlRewriteCallback = ur;

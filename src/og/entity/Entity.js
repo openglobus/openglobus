@@ -25,7 +25,7 @@ import { Vec3 } from '../math/Vec3.js';
  * @class
  * @param {Object} [options] - Entity options:
  * @param {string} [options.name] - A human readable name to display to users. It does not have to be unique.
- * @param {og.Vec3|Array.<number>} [options.cartesian] - Spatial entities like billboard, label, sphere etc. cartesian position.
+ * @param {Vec3|Array.<number>} [options.cartesian] - Spatial entities like billboard, label, sphere etc. cartesian position.
  * @param {LonLat} [options.lonlat] - Geodetic coordiantes for an entities like billboard, label, sphere etc.
  * @param {boolean} [options.aground] - True for entities that have to be placed on the relief.
  * @param {boolean} [options.visibility] - Entity visibility.
@@ -70,21 +70,21 @@ class Entity {
         /**
          * Children entities.
          * @public
-         * @type {Array.<og.Entity>}
+         * @type {Array.<Entity>}
          */
         this.childrenNodes = [];
 
         /**
          * Parent entity.
          * @public
-         * @type {og.Entity}
+         * @type {Entity}
          */
         this.parent = null;
 
         /**
          * Entity cartesian position.
          * @protected
-         * @type {og.Vec3}
+         * @type {Vec3}
          */
         this._cartesian = utils.createVector3(options.cartesian);
 
@@ -119,7 +119,7 @@ class Entity {
         /**
          * Entity collection that this entity belongs to.
          * @protected
-         * @type {og.EntityCollection}
+         * @type {EntityCollection}
          */
         this._entityCollection = null;
 
@@ -133,7 +133,7 @@ class Entity {
         /**
          * Assigned vector layer pointer.
          * @protected
-         * @type {og.layer.Vector}
+         * @type {layer.Vector}
          */
         this._layer = null;
 
@@ -147,7 +147,7 @@ class Entity {
         /**
          * Picking color.
          * @protected
-         * @type {og.Vec3}
+         * @type {Vec3}
          */
         this._pickingColor = new Vec3(0, 0, 0);
 
@@ -166,56 +166,56 @@ class Entity {
         /**
          * Billboard entity.
          * @public
-         * @type {og.Billboard}
+         * @type {Billboard}
          */
         this.billboard = this._createOptionFeature('billboard', options.billboard);
 
         /**
          * Text label entity.
          * @public
-         * @type {og.Label}
+         * @type {Label}
          */
         this.label = this._createOptionFeature('label', options.label);
 
         /**
          * Shape entity.
          * @public
-         * @type {og.shape.BaseShape}
+         * @type {shape.BaseShape}
          */
         this.shape = this._createOptionFeature('sphere', options.sphere || options.box);
 
         /**
          * Polyline entity.
          * @public
-         * @type {og.Polyline}
+         * @type {Polyline}
          */
         this.polyline = this._createOptionFeature('polyline', options.polyline);
 
         /**
          * Ray entity.
          * @public
-         * @type {og.ray}
+         * @type {ray}
          */
         this.ray = this._createOptionFeature('ray', options.ray);
 
         /**
          * PointCloud entity.
          * @public
-         * @type {og.PointCloud}
+         * @type {PointCloud}
          */
         this.pointCloud = this._createOptionFeature('pointCloud', options.pointCloud);
 
         /**
          * Geometry entity(available for vector layer only).
          * @public
-         * @type {og.Geometry}
+         * @type {Geometry}
          */
         this.geometry = this._createOptionFeature('geometry', options.geometry);
 
         /**
          * Strip entity.
          * @public
-         * @type {og.Strip}
+         * @type {Strip}
          */
         this.strip = this._createOptionFeature('strip', options.strip);
     }
@@ -250,9 +250,9 @@ class Entity {
     /**
      * Adds current entity into the specified entity collection.
      * @public
-     * @param {og.EntityCollection|og.layer.Vector} collection - Specified entity collection or vector layer.
+     * @param {EntityCollection|og.layer.Vector} collection - Specified entity collection or vector layer.
      * @param {Boolean} [rightNow=false] - Entity insertion option for vector layer.
-     * @returns {og.Entity} - This object.
+     * @returns {Entity} - This object.
      */
     addTo(collection, rightNow) {
         collection.add(this, rightNow);
@@ -311,7 +311,7 @@ class Entity {
     /**
      * Sets entity cartesian position.
      * @public
-     * @param {og.Vec3} cartesian - Cartesian position in 3d space.
+     * @param {Vec3} cartesian - Cartesian position in 3d space.
      */
     setCartesian3v(cartesian) {
         this.setCartesian(cartesian.x, cartesian.y, cartesian.z);
@@ -364,7 +364,7 @@ class Entity {
     /**
      * Sets entity cartesian position without event dispatching.
      * @protected
-     * @param {og.Vec3} cartesian - Cartesian position in 3d space.
+     * @param {Vec3} cartesian - Cartesian position in 3d space.
      * @param {boolean} skipLonLat - skip geodetic calculation.
      */
     _setCartesian3vSilent(cartesian, skipLonLat) {
@@ -458,7 +458,7 @@ class Entity {
     /**
      * Returns carteain position.
      * @public
-     * @returns {og.Vec3} -
+     * @returns {Vec3} -
      */
     getCartesian() {
         return this._cartesian.clone();
@@ -467,8 +467,8 @@ class Entity {
     /**
      * Sets entity billboard.
      * @public
-     * @param {og.Billboard} billboard - Billboard object.
-     * @returns {og.Billboard} -
+     * @param {Billboard} billboard - Billboard object.
+     * @returns {Billboard} -
      */
     setBillboard(billboard) {
         if (this.billboard) {
@@ -485,8 +485,8 @@ class Entity {
     /**
      * Sets entity label.
      * @public
-     * @param {og.Label} label - Text label.
-     * @returns {og.Label} -
+     * @param {Label} label - Text label.
+     * @returns {Label} -
      */
     setLabel(label) {
         if (this.label) {
@@ -503,8 +503,8 @@ class Entity {
     /**
      * Sets entity ray.
      * @public
-     * @param {og.Ray} ray - Ray object.
-     * @returns {og.Ray} -
+     * @param {Ray} ray - Ray object.
+     * @returns {Ray} -
      */
     setRay(ray) {
         if (this.ray) {
@@ -520,8 +520,8 @@ class Entity {
     /**
      * Sets entity shape.
      * @public
-     * @param {og.BaseShape} shape - Shape object.
-     * @returns {og.Polyline} -
+     * @param {BaseShape} shape - Shape object.
+     * @returns {Polyline} -
      */
     setShape(shape) {
         if (this.shape) {
@@ -538,8 +538,8 @@ class Entity {
     /**
      * Sets entity polyline.
      * @public
-     * @param {og.Polyline} polyline - Polyline object.
-     * @returns {og.Polyline} -
+     * @param {Polyline} polyline - Polyline object.
+     * @returns {Polyline} -
      */
     setPolyline(polyline) {
         if (this.polyline) {
@@ -555,8 +555,8 @@ class Entity {
     /**
      * Sets entity pointCloud.
      * @public
-     * @param {og.PointCloud} pointCloud - PointCloud object.
-     * @returns {og.PointCloud} -
+     * @param {PointCloud} pointCloud - PointCloud object.
+     * @returns {PointCloud} -
      */
     setPointCloud(pointCloud) {
         if (this.pointCloud) {
@@ -572,8 +572,8 @@ class Entity {
     /**
      * Sets entity geometry.
      * @public
-     * @param {og.Geometry} geometry - Geometry object.
-     * @returns {og.Geometry} -
+     * @param {Geometry} geometry - Geometry object.
+     * @returns {Geometry} -
      */
     setGeometry(geometry) {
         if (this.geometry) {
@@ -589,8 +589,8 @@ class Entity {
     /**
      * Sets entity strip.
      * @public
-     * @param {og.Strip} strip - Strip object.
-     * @returns {og.Strip} -
+     * @param {Strip} strip - Strip object.
+     * @returns {Strip} -
      */
     setStrip(strip) {
         if (this.strip) {
@@ -618,7 +618,7 @@ class Entity {
     /**
      * Append child entity.
      * @public
-     * @param {og.Entity} entity - Child entity.
+     * @param {Entity} entity - Child entity.
      */
     appendChild(entity) {
         entity._entityCollection = this._entityCollection;
@@ -661,7 +661,7 @@ class Entity {
 
     /**
      * Return geodethic extent.
-     * @returns {og.Extent} -
+     * @returns {Extent} -
      */
     getExtent() {
         var res;

@@ -28,7 +28,7 @@ class Sun extends Control {
         /**
          * Earth planet node.
          * @public
-         * @type {og.scene.Planet}
+         * @type {Planet}
          */
         this.planet = null;
 
@@ -46,7 +46,7 @@ class Sun extends Control {
         /**
          * Light source.
          * @public
-         * @type {og.LightSource}
+         * @type {LightSource}
          */
         this.sunlight = null;
 

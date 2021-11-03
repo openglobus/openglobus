@@ -22,7 +22,7 @@ export class Mat4 {
     /**
      * Returns identity matrix instance.
      * @static
-     * @returns {og.Mat4} -
+     * @returns {Mat4} -
      */
     static get identity() {
         var res = new Mat4();
@@ -37,7 +37,7 @@ export class Mat4 {
      * Sets column-major order array matrix.
      * @public
      * @param {Array.<number>} m - Matrix array.
-     * @returns {og.Mat4} -
+     * @returns {Mat4} -
      */
     set(m) {
         this._m[0] = m[0];
@@ -62,7 +62,7 @@ export class Mat4 {
     /**
      * Duplicates a Matrix3 instance.
      * @public
-     * @returns {og.Mat4} -
+     * @returns {Mat4} -
      */
     clone() {
         var res = new Mat4();
@@ -73,7 +73,7 @@ export class Mat4 {
     /**
      * Copy matrix.
      * @public
-     * @param {og.Mat3} a - Matrix to copy.
+     * @param {Mat3} a - Matrix to copy.
      */
     copy(a) {
         this.set(a._m);
@@ -82,7 +82,7 @@ export class Mat4 {
     /**
      * Converts to 3x3 matrix.
      * @public
-     * @returns {og.Mat3} -
+     * @returns {Mat3} -
      */
     toMatrix3() {
         var res = new Mat3();
@@ -103,8 +103,8 @@ export class Mat4 {
     /**
      * Multiply to 3d vector.
      * @public
-     * @param {og.Vec3} p - 3d vector.
-     * @returns {og.Vec3} -
+     * @param {Vec3} p - 3d vector.
+     * @returns {Vec3} -
      */
     mulVec3(p) {
         var d = p.x, e = p.y, g = p.z;
@@ -118,8 +118,8 @@ export class Mat4 {
     /**
      * Multiply to 4d vector.
      * @public
-     * @param {og.Vec4} p - 4d vector.
-     * @returns {og.Vec4} -
+     * @param {Vec4} p - 4d vector.
+     * @returns {Vec4} -
      */
     mulVec4(p) {
         var d = p.x, e = p.y, g = p.z, f = p.w;
@@ -134,7 +134,7 @@ export class Mat4 {
     /**
      * Creates an inversed 3x3 matrix of the current.
      * @public
-     * @returns {og.Mat3} -
+     * @returns {Mat3} -
      */
     toInverseMatrix3() {
         var a = this._m;
@@ -168,7 +168,7 @@ export class Mat4 {
     /**
      * Creates an inversed matrix of the current.
      * @public
-     * @returns {og.Mat4} -
+     * @returns {Mat4} -
      */
     inverseTo(res) {
         var c = this._m[0], d = this._m[1], e = this._m[2], g = this._m[3],
@@ -200,7 +200,7 @@ export class Mat4 {
     /**
      * Creates a trasposed matrix of the current.
      * @public
-     * @returns {og.Mat4} -
+     * @returns {Mat4} -
      */
     transposeTo() {
         var res = new Mat4();
@@ -214,7 +214,7 @@ export class Mat4 {
     /**
      * Sets matrix to identity.
      * @public
-     * @returns {og.Mat4} -
+     * @returns {Mat4} -
      */
     setIdentity() {
         this._m[0] = 1; this._m[1] = 0; this._m[2] = 0; this._m[3] = 0;
@@ -227,8 +227,8 @@ export class Mat4 {
     /**
      * Computes the product of two matrices.
      * @public
-     * @param {og.Mat4} mx - Matrix to multiply.
-     * @returns {og.Mat4} -
+     * @param {Mat4} mx - Matrix to multiply.
+     * @returns {Mat4} -
      */
     mul(mx) {
         let d = this._m[0], e = this._m[1], g = this._m[2], f = this._m[3],
@@ -252,8 +252,8 @@ export class Mat4 {
     /**
      * Add translation vector to the current matrix.
      * @public
-     * @param {og.Vec3} v - Translate vector.
-     * @returns {og.Mat4} -
+     * @param {Vec3} v - Translate vector.
+     * @returns {Mat4} -
      */
     translate(v) {
         var d = v.x, e = v.y, b = v.z;
@@ -268,8 +268,8 @@ export class Mat4 {
     /**
      * Sets translation matrix to the position.
      * @public
-     * @param {og.Vec3} v - Translate to position.
-     * @returns {og.Mat4} -
+     * @param {Vec3} v - Translate to position.
+     * @returns {Mat4} -
      */
     translateToPosition(v) {
         var a = this._m;
@@ -282,9 +282,9 @@ export class Mat4 {
     /**
      * Rotate currrent matrix around the aligned axis and angle.
      * @public
-     * @param {og.Vec3} u - Aligned axis.
+     * @param {Vec3} u - Aligned axis.
      * @param {number} angle - Aligned axis angle in radians.
-     * @returns {og.Mat4} -
+     * @returns {Mat4} -
      * @todo: OPTIMIZE: reveal multiplication
      */
     rotate(u, angle) {
@@ -302,9 +302,9 @@ export class Mat4 {
     /**
      * Sets current rotation matrix around the aligned axis and angle.
      * @public
-     * @param {og.Vec3} u - Aligned axis.
+     * @param {Vec3} u - Aligned axis.
      * @param {number} angle - Aligned axis angle in radians.
-     * @returns {og.Mat4} -
+     * @returns {Mat4} -
      */
     setRotation(u, angle) {
         var c = Math.cos(angle),
@@ -320,9 +320,9 @@ export class Mat4 {
     /**
      * Gets the rotation matrix from one vector to another.
      * @public
-     * @param {og.Vec3} a - Firtst vector.
-     * @param {og.Vec3} b - Second vector.
-     * @returns {og.Mat4} -
+     * @param {Vec3} a - Firtst vector.
+     * @param {Vec3} b - Second vector.
+     * @returns {Mat4} -
      */
     rotateBetweenVectors(a, b) {
         var q = Quat.getRotationBetweenVectors(a, b);
@@ -332,8 +332,8 @@ export class Mat4 {
     /**
      * Scale current matrix to the vector values.
      * @public
-     * @param {og.Vec3} v - Scale vector.
-     * @returns {og.Mat4} -
+     * @param {Vec3} v - Scale vector.
+     * @returns {Mat4} -
      */
     scale(v) {
         var mx = this._m;
@@ -352,7 +352,7 @@ export class Mat4 {
      * @param {number} top -
      * @param {number} near -
      * @param {number} far -
-     * @returns {og.Mat4} -
+     * @returns {Mat4} -
      */
     setPerspective(left, right, bottom, top, near, far) {
         var h = right - left, i = top - bottom, j = far - near;
@@ -384,7 +384,7 @@ export class Mat4 {
      * @param {number} top -
      * @param {number} near -
      * @param {number} far -
-     * @return {og.Mat4} -
+     * @return {Mat4} -
      */
     setOrtho(left, right, bottom, top, near, far) {
 
@@ -418,7 +418,7 @@ export class Mat4 {
      * @param {number} ax - Rotation angle in radians arond X axis.
      * @param {number} ay - Rotation angle in radians arond Y axis.
      * @param {number} az - Rotation angle in radians arond Z axis.
-     * @returns {og.Mat4} -
+     * @returns {Mat4} -
      */
     eulerToMatrix(ax, ay, az) {
         var a = Math.cos(ax),
@@ -452,7 +452,7 @@ export class Mat4 {
 /**
  * Mat4 factory.
  * @static
- * @returns {og.Mat4} -
+ * @returns {Mat4} -
  */
 export function mat4() {
     return new og.Mat4();

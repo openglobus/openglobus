@@ -39,7 +39,7 @@ class Proj {
 
         /**
          * @public
-         * @type {og.proj.Units}
+         * @type {proj.Units}
          */
         this.units = /** @type {Units} */ (options.units);
 
@@ -54,7 +54,7 @@ class Proj {
     /**
      * Compare projections.
      * @public
-     * @param {og.Proj} proj - Projetion object.
+     * @param {Proj} proj - Projetion object.
      * @returns {boolean}
      */
     equal(proj) {

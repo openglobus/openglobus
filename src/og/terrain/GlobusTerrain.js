@@ -17,7 +17,6 @@ import { Vec3 } from "../math/Vec3.js";
 import { Ray } from "../math/Ray.js";
 import { Extent } from "../Extent.js";
 import { LonLat } from "../LonLat.js";
-import { MAX_NORMAL_ZOOM } from "../segment/Segment.js";
 
 const EVENT_NAMES = [
     /**
@@ -63,7 +62,7 @@ class GlobusTerrain extends EmptyTerrain {
         /**
          * Events handler.
          * @public
-         * @type {og.Events}
+         * @type {Events}
          */
         this.events = new Events(EVENT_NAMES, this);
 
@@ -140,7 +139,7 @@ class GlobusTerrain extends EmptyTerrain {
          * Rewrites elevation storage url query.
          * @private
          * @callback og.terrain.GlobusTerrain~_urlRewriteCallback
-         * @param {og.planetSegment.Segment} segment - Segment to load.
+         * @param {Segment} segment - Segment to load.
          * @param {string} url - Created url.
          * @returns {string} - Url query string.
          */
@@ -350,7 +349,8 @@ class GlobusTerrain extends EmptyTerrain {
      * Starts to load segment data.
      * @public
      * @virtual
-     * @param {og.planetSegment.Segment} segment - Segment that wants a terrain data.
+     * @param {Segment} segment - Segment that wants a terrain data.
+     * @param {boolean} forceLoading
      */
     loadTerrain(segment, forceLoading) {
         if (this._planet.terrainLock.isFree()) {
@@ -400,7 +400,7 @@ class GlobusTerrain extends EmptyTerrain {
      * Creates query url.
      * @protected
      * @virtual
-     * @param {og.planetSegment.Segment} segment -
+     * @param {Segment} segment -
      * @returns {string} -
      */
     _createUrl(segment) {
@@ -414,7 +414,7 @@ class GlobusTerrain extends EmptyTerrain {
     /**
      * Returns actual url query string.
      * @protected
-     * @param {og.planetSegment.Segment} segment - Segment that loads image data.
+     * @param {Segment} segment - Segment that loads image data.
      * @returns {string} - Url string.
      */
     _getHTTPRequestString(segment) {
@@ -426,7 +426,7 @@ class GlobusTerrain extends EmptyTerrain {
     /**
      * Sets url rewrite callback, used for custom url rewriting for every tile laoding.
      * @public
-     * @param {og.terrain.GlobusTerrain~_urlRewriteCallback} ur - The callback that returns tile custom created url.
+     * @param {GlobusTerrain~_urlRewriteCallback} ur - The callback that returns tile custom created url.
      */
     setUrlRewriteCallback(ur) {
         this._urlRewriteCallback = ur;
@@ -445,7 +445,7 @@ class GlobusTerrain extends EmptyTerrain {
 
     /**
      * @protected
-     * @param {og.planetSegment.Segment} segment -
+     * @param {Segment} segment -
      * @param {*} data -
      */
     _applyElevationsData(segment, elevations) {

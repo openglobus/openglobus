@@ -7,7 +7,7 @@
 /**
  * Class represents multisample framebuffer.
  * @class
- * @param {og.webgl.Handler} handler - WebGL handler.
+ * @param {Handler} handler - WebGL handler.
  * @param {Object} [options] - Framebuffer options:
  * @param {number} [options.width] - Framebuffer width. Default is handler canvas width.
  * @param {number} [options.height] - Framebuffer height. Default is handler canvas height.
@@ -24,7 +24,7 @@ export class Multisample {
         /**
          * WebGL handler.
          * @public
-         * @type {og.webgl.Handler}
+         * @type {Handler}
          */
         this.handler = handler;
 
@@ -193,7 +193,7 @@ export class Multisample {
     /**
      * Activate framebuffer frame to draw.
      * @public
-     * @returns {og.webgl.Framebuffer} Returns Current framebuffer.
+     * @returns {Framebuffer} Returns Current framebuffer.
      */
     activate() {
         var gl = this.handler.gl;

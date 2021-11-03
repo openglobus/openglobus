@@ -299,11 +299,11 @@ export function bezier1v(t, p0, p1, p2, p3) {
  * Performs a 3D bezier interpolation.
  * @function
  * @param {number} t - Interpolation value.
- * @param {og.Vec3} p0 - First control point.
- * @param {og.Vec3} p1 - Second control point.
- * @param {og.Vec3} p2 - Third control point.
- * @param {og.Vec3} p3 - Fourth control point.
- * @returns {og.Vec3} -
+ * @param {Vec3} p0 - First control point.
+ * @param {Vec3} p1 - Second control point.
+ * @param {Vec3} p2 - Third control point.
+ * @param {Vec3} p3 - Fourth control point.
+ * @returns {Vec3} -
  */
 export function bezier3v(t, p0, p1, p2, p3) {
     var u = 1 - t;

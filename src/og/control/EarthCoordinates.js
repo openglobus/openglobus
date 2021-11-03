@@ -54,6 +54,10 @@ const DisplayTypesConverters = [
  * @param {Boolean} [options.type] - Coordinates shown: 0 - is decimal degrees, 1 - degrees, 2 - mercator geodetic coordinates.
  */
 class EarthCoordinates extends Control {
+    /**
+     * 
+     * @param {Object} [options] - Options:
+     */
     constructor(options) {
         super(options);
 
@@ -96,7 +100,7 @@ class EarthCoordinates extends Control {
         /**
          * Current position.
          * @public
-         * @type {og.Vec3}
+         * @type {Vec3}
          */
         this.position = null;
     }

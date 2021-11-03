@@ -9,10 +9,14 @@ import { stamp, binaryInsert } from './utils/shared.js';
 /**
  * Base events class to handle custom events.
  * @class
- * @param {Array.<string>} [eventNames] - Event names that could be dispatched.
  */
 class Events {
 
+    /**
+     * 
+     * @param {Array.<string>} [eventNames] - Event names that could be dispatched.
+     * @param {*} [sender] 
+     */
     constructor(eventNames, sender) {
         /**
          * Registered event names.

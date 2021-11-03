@@ -19,21 +19,21 @@ class PointCloudHandler {
         /**
          * Parent collection
          * @private
-         * @type {og.EntityCollection}
+         * @type {EntityCollection}
          */
         this._entityCollection = entityCollection;
 
         /**
          * Renderer
          * @private
-         * @type {og.Renderer}
+         * @type {Renderer}
          */
         this._renderer = null;
 
         /**
          * Point cloud array
          * @private
-         * @type {Array.<og.PointCloud>}
+         * @type {Array.<PointCloud>}
          */
         this._pointClouds = [];
 
