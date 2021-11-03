@@ -2,10 +2,10 @@
  * @module og/astro/orbit
  */
 
-'use strict';
+"use strict";
 
-import * as math from '../math.js';
-import { Mat3 } from '../math/Mat3.js';
+import * as math from "../math.js";
+import { Mat3 } from "../math/Mat3.js";
 
 export function getEccentricAnomaly(M, ecc) {
     if (ecc == 0.0) {
@@ -22,14 +22,14 @@ export function getEccentricAnomaly(M, ecc) {
         // Extremely stable Laguerre-Conway method for solving Kepler's
         // equation.  Only use this for high-eccentricity orbits, as it
         // requires more calcuation.
-        let E = M + 0.85 * ecc * sign(sin(M));
+        let E = M + 0.85 * ecc * Math.sign(Math.sin(M));
         return math.solve_iteration_fixed(solveKeplerLaguerreConway(ecc, M), E, 8);
     } else if (ecc == 1.0) {
         // TODO: Parabolic orbit
         return M;
     } else {
         // Laguerre-Conway method for hyperbolic (ecc > 1) orbits.
-        let E = log(2 * M / ecc + 1.85);
+        let E = Math.log((2 * M) / ecc + 1.85);
         return math.solve_iteration_fixed(solveKeplerLaguerreConwayHyp(ecc, M), E, 30);
     }
 }
@@ -57,7 +57,7 @@ function solveKeplerLaguerreConway(ecc, M) {
         var f = x - s - M;
         var f1 = 1 - c;
         var f2 = s;
-        x += -5 * f / (f1 + Math.sign(f1) * Math.sqrt(abs(16 * f1 * f1 - 20 * f * f2)));
+        x += (-5 * f) / (f1 + Math.sign(f1) * Math.sqrt(Math.abs(16 * f1 * f1 - 20 * f * f2)));
         return x;
     };
 }
@@ -69,7 +69,7 @@ function solveKeplerLaguerreConwayHyp(ecc, M) {
         var f = s - x - M;
         var f1 = c - 1;
         var f2 = s;
-        x += -5 * f / (f1 + Math.sign(f1) * Math.sqrt(Math.abs(16 * f1 * f1 - 20 * f * f2)));
+        x += (-5 * f) / (f1 + Math.sign(f1) * Math.sqrt(Math.abs(16 * f1 * f1 - 20 * f * f2)));
         return x;
     };
 }
@@ -77,7 +77,7 @@ function solveKeplerLaguerreConwayHyp(ecc, M) {
 export function getEllipticalEccentricAnomaly(meanAnomaly, eccentricity) {
     var tol = 0.00000001745;
     var iterations = 20;
-    var e = meanAnomaly - 2.0 * Math.PI * (meanAnomaly / (2.0 * Math.PI) | 0);
+    var e = meanAnomaly - 2.0 * Math.PI * ((meanAnomaly / (2.0 * Math.PI)) | 0);
     var err = 1;
     while (Math.abs(err) > tol && iterations > 0) {
         err = e - eccentricity * Math.sin(e) - meanAnomaly;
@@ -91,8 +91,10 @@ export function getEllipticalEccentricAnomaly(meanAnomaly, eccentricity) {
 export function getTrueAnomaly(eccentricAnomaly, eccentricity) {
     var revs = Math.floor(eccentricAnomaly / math.TWO_PI);
     eccentricAnomaly -= revs * math.TWO_PI;
-    var trueAnomaly = Math.atan2(Math.sin(eccentricAnomaly) * Math.sqrt(1 - eccentricity * eccentricity),
-        Math.cos(eccentricAnomaly) - eccentricity);
+    var trueAnomaly = Math.atan2(
+        Math.sin(eccentricAnomaly) * Math.sqrt(1 - eccentricity * eccentricity),
+        Math.cos(eccentricAnomaly) - eccentricity
+    );
     trueAnomaly = math.zeroTwoPI(trueAnomaly);
     if (eccentricAnomaly < 0) {
         trueAnomaly -= math.TWO_PI;

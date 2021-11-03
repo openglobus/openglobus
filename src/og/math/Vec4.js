@@ -2,9 +2,10 @@
  * @module og/math/Vec4
  */
 
-'use strict';
+"use strict";
 
-import { Vec3 } from './Vec3.js';
+import { Vec3 } from "./Vec3.js";
+import { frac } from "../math.js";
 
 /**
  * Class represents a 4d vector.
@@ -15,9 +16,7 @@ import { Vec3 } from './Vec3.js';
  * @param {number} [w] - Fourth value.
  */
 export class Vec4 {
-
     constructor(x, y, z, w) {
-
         /**
          * @public
          * @type {number}
@@ -46,15 +45,17 @@ export class Vec4 {
     /**
      * Identity vector [0,0,0,1].
      * @const
-     * @type {math.Vec4}
+     * @type {Vec4}
      */
-    static get identity() { return new Vec4(0, 0, 0, 1) }
+    static get identity() {
+        return new Vec4(0, 0, 0, 1);
+    }
 
     /**
      * Creates 4d vector from array.
      * @function
      * @param {Array.<number>} - (exactly 4 entries)
-     * @returns {math.Vec4}
+     * @returns {Vec4}
      */
     static fromVec(arr) {
         return new Vec4(arr[0], arr[1], arr[2], arr[3]);
@@ -72,7 +73,7 @@ export class Vec4 {
     /**
      * Returns clone vector.
      * @public
-     * @returns {math.Vec4}
+     * @returns {Vec4}
      */
     clone(v) {
         return new Vec4(this.x, this.y, this.z, this.w);
@@ -81,7 +82,7 @@ export class Vec4 {
     /**
      * Compares with vector. Returns true if it equals another.
      * @public
-     * @param {math.Vec4} p - Vector to compare.
+     * @param {Vec4} p - Vector to compare.
      * @returns {boolean}
      */
     equal(v) {
@@ -90,8 +91,8 @@ export class Vec4 {
 
     /**
      * Copy input vector's values.
-     * @param {math.Vec4} v - Vector to copy.
-     * @returns {math.Vec4}
+     * @param {Vec4} v - Vector to copy.
+     * @returns {Vec4}
      */
     copy(v) {
         this.x = v.x;
@@ -127,7 +128,7 @@ export class Vec4 {
      * @param {number} y - Value Y.
      * @param {number} z - Value Z.
      * @param {number} w - Value W.
-     * @returns {math.Vec4}
+     * @returns {Vec4}
      */
     set(x, y, z, w) {
         this.x = x;
@@ -140,8 +141,8 @@ export class Vec4 {
     /**
      * Adds vector to the current.
      * @public
-     * @param {math.Vec4}
-     * @returns {math.Vec4}
+     * @param {Vec4}
+     * @returns {Vec4}
      */
     addA(v) {
         this.x += v.x;
@@ -154,8 +155,8 @@ export class Vec4 {
     /**
      * Subtract vector from the current.
      * @public
-     * @param {math.Vec4} v - Subtract vector.
-     * @returns {math.Vec4}
+     * @param {Vec4} v - Subtract vector.
+     * @returns {Vec4}
      */
     subA(v) {
         this.x -= v.x;
@@ -169,7 +170,7 @@ export class Vec4 {
      * Scale current vector.
      * @public
      * @param {number} scale - Scale value.
-     * @returns {math.Vec4}
+     * @returns {Vec4}
      */
     scale(scale) {
         this.x *= scale;
@@ -182,7 +183,7 @@ export class Vec4 {
     /**
      * Makes vector affinity. Thereby fourh component becomes to 1.0.
      * @public
-     * @returns {math.Vec4}
+     * @returns {Vec4}
      */
     affinity() {
         var iw = 1 / this.w;
@@ -206,7 +207,7 @@ export class Vec4 {
     /**
      * Vector's edge function that returns vector where each component is 0.0 if it's smaller then edge and otherwise 1.0.
      * @public
-     * @returns {math.Vec4}
+     * @returns {Vec4}
      */
     getStep(edge) {
         return new Vec4(
@@ -220,15 +221,10 @@ export class Vec4 {
     /**
      * The vector fract function returns the vector of fractional parts of each value, i.e. x minus floor(x).
      * @public
-     * @returns {math.Vec4}
+     * @returns {Vec4}
      */
     getFrac(v) {
-        return new Vec4(
-            og.math.frac(v.x),
-            og.math.frac(v.y),
-            og.math.frac(v.z),
-            og.math.frac(v.w)
-        );
+        return new Vec4(frac(v.x), frac(v.y), frac(v.z), frac(v.w));
     }
 
     /**
@@ -258,8 +254,8 @@ export class Vec4 {
  * @param {number} [y] - Second value.
  * @param {number} [z] - Third value.
  * @param {number} [w] - Fourth value.
- * @returns {math.Vec4}
+ * @returns {Vec4}
  */
 export function vec4(x, y, z, w) {
-    return new og.math.Vec4(x, y, z, w);
+    return new Vec4(x, y, z, w);
 }

@@ -11,6 +11,7 @@ import { Sphere } from "../bv/Sphere.js";
 import { Box } from "../bv/Box.js";
 import { Vec3 } from "../math/Vec3.js";
 import * as segmentHelper from "../segment/segmentHelper.js";
+import { getMatrixSubArray } from "../utils/shared.js";
 
 export const MAX_NORMAL_ZOOM = 7;
 
@@ -376,8 +377,8 @@ class Segment {
     }
 
     /**
-     * 
-     * @param {boolean} forceLoading 
+     *
+     * @param {boolean} forceLoading
      */
     loadTerrain(forceLoading) {
         if (this.tileZoom < this.planet.terrain.minZoom) {

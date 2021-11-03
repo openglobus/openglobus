@@ -1,23 +1,21 @@
-import { Handler } from "./Handler";
-import { Program } from "./Program";
+import { Handler } from "./Handler.js";
+import { Program } from "./Program.js";
 
-'use strict';
+("use strict");
 
 /**
- * This is shader program controller that used by hadler object to access the shader 
+ * This is shader program controller that used by hadler object to access the shader
  * program capabilities, like switching program during the rendering.
  * Get access to the program from ...handler.programs.<program name> etc.
  * @class
  */
 export class ProgramController {
-
     /**
-     * 
+     *
      * @param {Handler} handler - Handler.
      * @param {Program} program - Shader program.
      */
     constructor(handler, program) {
-
         /**
          * Shader program.
          * @private

@@ -2,21 +2,21 @@
  * @module og/entity/Entity
  */
 
-'use strict';
+"use strict";
 
-import * as mercator from '../mercator.js';
-import * as utils from '../utils/shared.js';
-import { Billboard } from './Billboard.js';
-import { Strip } from './Strip.js';
-import { Extent } from '../Extent.js';
-import { Geometry } from './Geometry.js';
-import { Label } from './Label.js';
-import { LonLat } from '../LonLat.js';
-import { Polyline } from './Polyline.js';
-import { Ray } from './Ray.js';
-import { PointCloud } from './PointCloud.js';
-import { Sphere } from '../shapes/Sphere.js';
-import { Vec3 } from '../math/Vec3.js';
+import * as mercator from "../mercator.js";
+import * as utils from "../utils/shared.js";
+import { Billboard } from "./Billboard.js";
+import { Strip } from "./Strip.js";
+import { Extent } from "../Extent.js";
+import { Geometry } from "./Geometry.js";
+import { Label } from "./Label.js";
+import { LonLat } from "../LonLat.js";
+import { Polyline } from "./Polyline.js";
+import { Ray } from "./Ray.js";
+import { PointCloud } from "./PointCloud.js";
+import { Sphere } from "../shapes/Sphere.js";
+import { Vec3 } from "../math/Vec3.js";
 
 /**
  * Entity instances aggregate multiple forms of visualization into a single high-level object.
@@ -41,7 +41,6 @@ import { Vec3 } from '../math/Vec3.js';
  */
 class Entity {
     constructor(options) {
-
         options = options || {};
 
         options.properties = options.properties || {};
@@ -168,56 +167,56 @@ class Entity {
          * @public
          * @type {Billboard}
          */
-        this.billboard = this._createOptionFeature('billboard', options.billboard);
+        this.billboard = this._createOptionFeature("billboard", options.billboard);
 
         /**
          * Text label entity.
          * @public
          * @type {Label}
          */
-        this.label = this._createOptionFeature('label', options.label);
+        this.label = this._createOptionFeature("label", options.label);
 
         /**
          * Shape entity.
          * @public
          * @type {shape.BaseShape}
          */
-        this.shape = this._createOptionFeature('sphere', options.sphere || options.box);
+        this.shape = this._createOptionFeature("sphere", options.sphere || options.box);
 
         /**
          * Polyline entity.
          * @public
          * @type {Polyline}
          */
-        this.polyline = this._createOptionFeature('polyline', options.polyline);
+        this.polyline = this._createOptionFeature("polyline", options.polyline);
 
         /**
          * Ray entity.
          * @public
          * @type {ray}
          */
-        this.ray = this._createOptionFeature('ray', options.ray);
+        this.ray = this._createOptionFeature("ray", options.ray);
 
         /**
          * PointCloud entity.
          * @public
          * @type {PointCloud}
          */
-        this.pointCloud = this._createOptionFeature('pointCloud', options.pointCloud);
+        this.pointCloud = this._createOptionFeature("pointCloud", options.pointCloud);
 
         /**
          * Geometry entity(available for vector layer only).
          * @public
          * @type {Geometry}
          */
-        this.geometry = this._createOptionFeature('geometry', options.geometry);
+        this.geometry = this._createOptionFeature("geometry", options.geometry);
 
         /**
          * Strip entity.
          * @public
          * @type {Strip}
          */
-        this.strip = this._createOptionFeature('strip', options.strip);
+        this.strip = this._createOptionFeature("strip", options.strip);
     }
 
     static get _staticCounter() {
@@ -325,7 +324,6 @@ class Entity {
      * @param {number} z - 3d space Z - position.
      */
     setCartesian(x, y, z) {
-
         var p = this._cartesian;
 
         p.x = x;
@@ -348,7 +346,6 @@ class Entity {
         var ec = this._entityCollection;
 
         if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
-
             this._lonlat = ec.renderNode.ellipsoid.cartesianToLonLat(p);
 
             if (Math.abs(this._lonlat.lat) < mercator.MAX_LAT) {
@@ -368,7 +365,6 @@ class Entity {
      * @param {boolean} skipLonLat - skip geodetic calculation.
      */
     _setCartesian3vSilent(cartesian, skipLonLat) {
-
         var p = this._cartesian;
 
         p.x = cartesian.x;
@@ -385,13 +381,12 @@ class Entity {
         this.shape && this.shape.setPosition3v(p);
 
         for (var i = 0; i < this.childrenNodes.length; i++) {
-            this.childrenNodes[i].setCartesian(x, y, z);
+            this.childrenNodes[i].setCartesian(p.x, p.y, p.z);
         }
 
         var ec = this._entityCollection;
 
         if (!skipLonLat && ec && ec.renderNode && ec.renderNode.ellipsoid) {
-
             this._lonlat = ec.renderNode.ellipsoid.cartesianToLonLat(p);
 
             if (Math.abs(this._lonlat.lat) < mercator.MAX_LAT) {
@@ -425,7 +420,6 @@ class Entity {
 
         var ec = this._entityCollection;
         if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
-
             if (Math.abs(lonlat.lat) < mercator.MAX_LAT) {
                 this._lonlatMerc = lonlat.forwardMercator();
             } else {
@@ -613,6 +607,7 @@ class Entity {
         } else if (this._entityCollection) {
             return this._entityCollection.events;
         }
+        return null;
     }
 
     /**
@@ -633,7 +628,6 @@ class Entity {
      * @public
      */
     setPickingColor() {
-
         var c = this._pickingColor;
 
         // billboard

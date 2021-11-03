@@ -2,16 +2,16 @@
  * @module og/webgl/callbacks
  */
 
-'use strict';
+"use strict";
 
-import { types } from './types.js';
+import { types } from "./types.js";
 
 /*=========================
    Uniforms callbacks
  =========================*/
 export const callbacks = {
-    'u': [],
-    'a': []
+    u: [],
+    a: []
 };
 
 callbacks.u[types.MAT4] = function (program, variable) {
@@ -71,7 +71,7 @@ callbacks.u[types.SAMPLER2DARRAY] = function (program, variable) {
 };
 
 callbacks.u[types.INTXX] = function (program, variable) {
-    pgl.uniform1iv(variable._pName, variable.value);
+    program.gl.uniform1iv(variable._pName, variable.value);
 };
 
 callbacks.u[types.FLOATXX] = function (program, variable) {

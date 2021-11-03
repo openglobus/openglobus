@@ -31,9 +31,9 @@ window.dZ = 1.1;
  */
 class LabelHandler extends BillboardHandler {
     /**
-     * 
-     * @param {*} entityCollection 
-     * @param {*} maxLetters 
+     *
+     * @param {*} entityCollection
+     * @param {*} maxLetters
      */
     constructor(entityCollection, maxLetters = 21) {
         super(entityCollection);
@@ -1156,8 +1156,6 @@ class LabelHandler extends BillboardHandler {
     }
 
     setFontIndexArr(index, fontIndex) {
-        fontIndex = fontIndex;
-
         var i = index * 6 * this._maxLetters;
         var a = this._fontIndexArr;
 

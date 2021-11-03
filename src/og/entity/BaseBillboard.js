@@ -2,10 +2,10 @@
  * @module og/entity/BaseBillboard
  */
 
-'use strict';
+"use strict";
 
-import * as utils from '../utils/shared.js';
-import { Vec3 } from '../math/Vec3.js';
+import * as utils from "../utils/shared.js";
+import { Vec3 } from "../math/Vec3.js";
 
 /**
  * Base prototype for billboard and label classes.
@@ -38,9 +38,9 @@ class BaseBillboard {
         this._position = utils.createVector3(options.position);
 
         this._positionHigh = new Vec3();
-        
+
         this._positionLow = new Vec3();
-        
+
         Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
 
         /**
@@ -121,9 +121,10 @@ class BaseBillboard {
     setPosition(x, y, z) {
         this._position.x = x;
         this._position.y = y;
-        this._position.z = z;        
-        Vec3.doubleToTwoFloats(position, this._positionHigh, this._positionLow);
-        this._handler && this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
+        this._position.z = z;
+        Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
+        this._handler &&
+            this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
     }
 
     /**
@@ -136,7 +137,8 @@ class BaseBillboard {
         this._position.y = position.y;
         this._position.z = position.z;
         Vec3.doubleToTwoFloats(position, this._positionHigh, this._positionLow);
-        this._handler && this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
+        this._handler &&
+            this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
     }
 
     /**
@@ -158,7 +160,7 @@ class BaseBillboard {
     setOffset(x, y, z) {
         this._offset.x = x;
         this._offset.y = y;
-        (z != undefined) && (this._offset.z = z);
+        z != undefined && (this._offset.z = z);
         this._handler && this._handler.setOffsetArr(this._handlerIndex, this._offset);
     }
 
@@ -170,7 +172,7 @@ class BaseBillboard {
     setOffset3v(offset) {
         this._offset.x = offset.x;
         this._offset.y = offset.y;
-        (offset.z != undefined) && (this._offset.z = offset.z);
+        offset.z != undefined && (this._offset.z = offset.z);
         this._handler && this._handler.setOffsetArr(this._handlerIndex, offset);
     }
 
@@ -224,7 +226,7 @@ class BaseBillboard {
         this._color.x = r;
         this._color.y = g;
         this._color.z = b;
-        (a != undefined) && (this._color.w = a);
+        a != undefined && (this._color.w = a);
         this._handler && this._handler.setRgbaArr(this._handlerIndex, this._color);
     }
 
@@ -237,7 +239,7 @@ class BaseBillboard {
         this._color.x = color.x;
         this._color.y = color.y;
         this._color.z = color.z;
-        (color.w != undefined) && (this._color.w = color.w);
+        color.w != undefined && (this._color.w = color.w);
         this._handler && this._handler.setRgbaArr(this._handlerIndex, color);
     }
 
