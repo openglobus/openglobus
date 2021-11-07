@@ -118,15 +118,14 @@ class ZoomControl extends Control {
         this.planet.terrainLock.lock(this._keyLock);
         this.planet._normalMapCreator.lock(this._keyLock);
 
-        var ms = this.renderer.events.mouseState;
         this.stepsForward = MouseNavigation.getMovePointsFromPixelTerrain(
             this.renderer.activeCamera,
             this.planet,
             this.stepsCount,
             this.distDiff,
-            ms,
+            this.renderer.getCenter(),
             true,
-            ms.direction
+           null
         );
         if (this.stepsForward) {
             this.stepIndex = this.stepsCount;
@@ -154,16 +153,15 @@ class ZoomControl extends Control {
         this.planet.layerLock.lock(this._keyLock);
         this.planet.terrainLock.lock(this._keyLock);
         this.planet._normalMapCreator.lock(this._keyLock);
-
-        var ms = this.renderer.events.mouseState;
+        
         this.stepsForward = MouseNavigation.getMovePointsFromPixelTerrain(
             this.renderer.activeCamera,
             this.planet,
             this.stepsCount,
             this.distDiff,
-            ms,
+            this.renderer.getCenter(),
             false,
-            ms.direction
+           null
         );
         if (this.stepsForward) {
             this.stepIndex = this.stepsCount;
@@ -214,9 +212,6 @@ class ZoomControl extends Control {
                 let minAlt = cam.minAltitude + this.planet.ellipsoid._a;
                 const camAlt = sf.eye.length();
                 if (camAlt > maxAlt || camAlt < minAlt) {
-                    return;
-                }
-                if (sf.eye.length() > maxAlt) {
                     return;
                 }
 
