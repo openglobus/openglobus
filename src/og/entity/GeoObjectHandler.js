@@ -245,18 +245,14 @@ class GeoObjectHandler {
 
         if (!alreadyAdded) {
             this._instancedTags.set(tag, {
-                vCounts: geoObject._verticesCount * itemSize,
                 iCounts: 1,
-                iSize: geoObject._indices.length,
                 index: this._instancedTags.size
             });
         } else {
             const prevState = this._instancedTags.get(tag),
                 nextCount = prevState.iCounts + 1;
             this._instancedTags.set(tag, {
-                vCounts: geoObject._verticesCount * itemSize,
                 iCounts: nextCount,
-                iSize: prevState.iSize,
                 index: prevState.index
             });
         }
@@ -1031,9 +1027,7 @@ class GeoObjectHandler {
             prevState = this._instancedTags.get(tag);
 
         this._instancedTags.set(tag, {
-            vCounts: geoObject._verticesCount * 3,
             iCounts: prevState.iCounts - 1,
-            iSize: geoObject._indicesCount,
             index: prevState.index
         });
 
