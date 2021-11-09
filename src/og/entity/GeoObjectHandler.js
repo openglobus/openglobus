@@ -75,9 +75,7 @@ class GeoObjectHandler {
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
         this._instancedTags = new Map();
-        this._instancedTags.set("none", {
-            index: 0
-        });
+
     }
 
     getObjectByIndex(index) {
@@ -237,7 +235,7 @@ class GeoObjectHandler {
         super.setRenderer(planet);
     }
 
-    _addInstancedGeoObjectToArray(geoObject) {
+    _addGeoObjectToArray(geoObject) {
         let itemSize = 3;
 
         const tag = geoObject.tag,
@@ -356,110 +354,6 @@ class GeoObjectHandler {
             setParametersToArray([], 0, itemSize, itemSize, geoObject.scale)
         );
         this._recalculateIndices();
-    }
-
-    _addGeoObjectToArrays(geoObject) {
-        let itemSize = 3;
-        if (geoObject._visibility) {
-            this._vertexArr[0] = concatArrays(
-                this._vertexArr[0],
-                setParametersToArray(
-                    [],
-                    0,
-                    geoObject._verticesCount * itemSize,
-                    geoObject._verticesCount * itemSize,
-                    ...geoObject._vertices
-                )
-            );
-        } else {
-            this._vertexArr[0] = concatArrays(
-                this._vertexArr[0],
-                setParametersToArray([], 0, geoObject._verticesCount * itemSize, 1, 0)
-            );
-        }
-
-        let x = geoObject._positionHigh.x,
-            y = geoObject._positionHigh.y,
-            z = geoObject._positionHigh.z,
-            w;
-
-        this._positionHighArr[0] = concatArrays(
-            this._positionHighArr[0],
-            setParametersToArray([], 0, geoObject._verticesCount * itemSize, itemSize, x, y, z)
-        );
-
-        x = geoObject._positionLow.x;
-        y = geoObject._positionLow.y;
-        z = geoObject._positionLow.z;
-        this._positionLowArr[0] = concatArrays(
-            this._positionLowArr[0],
-            setParametersToArray([], 0, geoObject._verticesCount * itemSize, itemSize, x, y, z)
-        );
-
-        x = geoObject._entity._pickingColor.x / 255;
-        y = geoObject._entity._pickingColor.y / 255;
-        z = geoObject._entity._pickingColor.z / 255;
-        this._pickingColorArr[0] = concatArrays(this._pickingColorArr[0], [x, y, z]);
-
-        x = geoObject._direction.x;
-        y = geoObject._direction.y;
-        z = geoObject._direction.z;
-        this._directionArr[0] = concatArrays(
-            this._directionArr[0],
-            setParametersToArray(
-                [],
-                geoObject._handlerIndex,
-                geoObject._verticesCount * itemSize,
-                itemSize,
-                x,
-                y,
-                z
-            )
-        );
-
-        this._normalsArr[0] = concatArrays(
-            this._normalsArr[0],
-            setParametersToArray(
-                [],
-                0,
-                geoObject._verticesCount * itemSize,
-                geoObject._verticesCount * itemSize,
-                ...geoObject._normals
-            )
-        );
-
-        itemSize = 4;
-
-        x = geoObject._color.x;
-        y = geoObject._color.y;
-        z = geoObject._color.z;
-        w = geoObject._color.w;
-        this._rgbaArr[0] = concatArrays(
-            this._rgbaArr[0],
-            setParametersToArray([], 0, geoObject._verticesCount * itemSize, itemSize, x, y, z, w)
-        );
-
-        this._indicesArr[0] = concatArrays(this._indicesArr[0], geoObject._indices);
-
-        x = geoObject._pitch;
-        y = geoObject._roll;
-        itemSize = 6;
-        this._pitchRollArr[0] = concatArrays(
-            this._pitchRollArr[0],
-            setParametersToArray([], 0, geoObject._verticesCount * itemSize, itemSize, x, y)
-        );
-
-        itemSize = 3;
-        this._sizeArr[0] = concatArrays(
-            this._sizeArr[0],
-            setParametersToArray(
-                [],
-                0,
-                geoObject._verticesCount * itemSize,
-                itemSize,
-                geoObject.scale
-            )
-        );
     }
 
     _displayPASS() {
@@ -986,26 +880,18 @@ class GeoObjectHandler {
             geoObject._handler = this;
             geoObject._handlerIndex = this._geoObjects.length;
             this._geoObjects.push(geoObject);
-            if (geoObject.instanced) {
-                this._addInstancedGeoObjectToArray(geoObject);
-            } else {
-                this._addGeoObjectToArrays(geoObject);
-            }
+            this._addGeoObjectToArray(geoObject);
             this.refresh();
         }
     }
 
     remove(geoObject) {
         if (geoObject._handler && this.__staticId == geoObject._handler.__staticId) {
-            if (geoObject.instanced) {
-                this._removeInstancedGeoObject(geoObject);
-            } else {
-                this._removeGeoObject(geoObject);
-            }
+            this._removeGeoObject(geoObject);
         }
     }
 
-    _removeInstancedGeoObject(geoObject) {
+    _removeGeoObject(geoObject) {
         const gi = geoObject._handlerIndex,
             tag = geoObject.tag,
             ti = this.getTagIndexByObjectIndex(gi),
@@ -1049,34 +935,6 @@ class GeoObjectHandler {
         geoObject._handler = null;
     }
 
-    _removeGeoObject(geoObject) {
-        const gi = geoObject._handlerIndex;
-
-        this._geoObjects.splice(gi, 1);
-
-        let i = gi * 12;
-        this._rgbaArr[0] = spliceArray(this._rgbaArr[0], i, 12);
-
-        i = gi * 9;
-        this._vertexArr[0] = spliceArray(this._vertexArr[0], i, 9);
-        this._positionHighArr[0] = spliceArray(this._positionHighArr[0], i, 9);
-        this._positionLowArr[0] = spliceArray(this._positionLowArr[0], i, 9);
-        this._directionArr[0] = spliceArray(this._directionArr[0], i, 9);
-        this._normalsArr[0] = spliceArray(this._normalsArr[0], i, 9);
-        this._pickingColorArr[0] = spliceArray(this._pickingColorArr[0], i, 9);
-
-        i = gi * 6;
-        this._pitchRollArr[0] = spliceArray(this._pitchRollArr[0], i, 6);
-        this._indicesArr[0] = spliceArray(this._indicesArr[0], i, 6);
-        i = gi * 3;
-        this._sizeArr[0] = spliceArray(this._sizeArr[0], i, 3);
-
-        this.reindexGeoObjects(gi);
-        this.refresh();
-
-        geoObject._handlerIndex = -1;
-        geoObject._handler = null;
-    }
 }
 
 export { GeoObjectHandler };
