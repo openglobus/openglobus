@@ -86,7 +86,7 @@ class GeoObjectHandler {
 
     //Create buffers
     createVertexBuffer() {
-        var h = this._renderer.handler;
+        const h = this._renderer.handler;
         for (let i = 0, len = this._vertexArr.length; i < len; i++) {
             this._vertexBuffer && h.gl.deleteBuffer(this._vertexBuffer[i]);
             this._vertexArr[i] = makeArrayTyped(this._vertexArr[i]);
@@ -99,7 +99,7 @@ class GeoObjectHandler {
     }
 
     createPitchRollBuffer() {
-        var h = this._renderer.handler;
+        const h = this._renderer.handler;
         for (let i = 0, len = this._pitchRollArr.length; i < len; i++) {
             this._pitchRollBuffer && h.gl.deleteBuffer(this._pitchRollBuffer[i]);
             this._pitchRollArr[i] = makeArrayTyped(this._pitchRollArr[i]);
@@ -112,7 +112,7 @@ class GeoObjectHandler {
     }
 
     createSizeBuffer() {
-        var h = this._renderer.handler;
+        const h = this._renderer.handler;
         for (let i = 0, len = this._sizeArr.length; i < len; i++) {
             this._sizeBuffer && h.gl.deleteBuffer(this._sizeBuffer[i]);
             this._sizeArr[i] = makeArrayTyped(this._sizeArr[i]);
@@ -141,7 +141,7 @@ class GeoObjectHandler {
     }
 
     createRgbaBuffer() {
-        var h = this._renderer.handler;
+        const h = this._renderer.handler;
         for (let i = 0, len = this._rgbaArr.length; i < len; i++) {
             this._rgbaBuffer && h.gl.deleteBuffer(this._rgbaBuffer[i]);
             this._rgbaArr[i] = makeArrayTyped(this._rgbaArr[i]);
@@ -154,7 +154,7 @@ class GeoObjectHandler {
     }
 
     createDirectionBuffer() {
-        var h = this._renderer.handler;
+        const h = this._renderer.handler;
         for (let i = 0, len = this._directionArr.length; i < len; i++) {
             this._directionBuffer && h.gl.deleteBuffer(this._directionBuffer[i]);
             this._directionArr[i] = makeArrayTyped(this._directionArr[i]);
@@ -167,7 +167,7 @@ class GeoObjectHandler {
     }
 
     createNormalsBuffer() {
-        var h = this._renderer.handler;
+        const h = this._renderer.handler;
         for (let i = 0, len = this._normalsArr.length; i < len; i++) {
             this._normalsBuffer && h.gl.deleteBuffer(this._normalsBuffer[i]);
             this._normalsArr[i] = makeArrayTyped(this._normalsArr[i]);
@@ -180,7 +180,7 @@ class GeoObjectHandler {
     }
 
     createIndicesBuffer() {
-        var h = this._renderer.handler;
+        const h = this._renderer.handler;
         for (let i = 0, len = this._indicesArr.length; i < len; i++) {
             this._indicesBuffer && h.gl.deleteBuffer(this._indicesBuffer[i]);
             this._indicesArr[i] = makeArrayTyped(this._indicesArr[i], Uint16Array);
@@ -193,7 +193,7 @@ class GeoObjectHandler {
     }
 
     createPickingColorBuffer() {
-        var h = this._renderer.handler;
+        const h = this._renderer.handler;
         for (let i = 0, len = this._pickingColorArr.length; i < len; i++) {
             this._pickingColorBuffer && h.gl.deleteBuffer(this._pickingColorBuffer[i]);
             this._pickingColorArr[i] = makeArrayTyped(this._pickingColorArr[i]);
@@ -238,9 +238,9 @@ class GeoObjectHandler {
     }
 
     _addInstancedGeoObjectToArray(geoObject) {
-        var itemSize = 3;
+        let itemSize = 3;
 
-        var tag = geoObject.tag,
+        const tag = geoObject.tag,
             alreadyAdded = this._instancedTags.has(tag);
 
         if (!alreadyAdded) {
@@ -293,7 +293,7 @@ class GeoObjectHandler {
                 setParametersToArray([], 0, geoObject._verticesCount * itemSize, 1, 0)
             );
         }
-        var x = geoObject._positionHigh.x,
+        let x = geoObject._positionHigh.x,
             y = geoObject._positionHigh.y,
             z = geoObject._positionHigh.z,
             w;
@@ -378,7 +378,7 @@ class GeoObjectHandler {
             );
         }
 
-        var x = geoObject._positionHigh.x,
+        let x = geoObject._positionHigh.x,
             y = geoObject._positionHigh.y,
             z = geoObject._positionHigh.z,
             w;
@@ -727,20 +727,6 @@ class GeoObjectHandler {
 
     //todo refactor for support instancing
     setVertexArr(index, vertexArr) {
-        // var i = index * 9;
-        // var a = this._vertexArr;
-        //
-        // a[i] = vertexArr[0];
-        // a[i + 1] = vertexArr[1];
-        // a[i + 2] = vertexArr[2];
-        //
-        // a[i + 3] = vertexArr[3];
-        // a[i + 4] = vertexArr[4];
-        // a[i + 5] = vertexArr[5];
-        //
-        // a[i + 6] = vertexArr[6];
-        // a[i + 7] = vertexArr[7];
-        // a[i + 8] = vertexArr[8];
         this._vertexArr = [-0.5, 0.0, 0.5, -0.5, 0.0, -0.5, 0.5, 0.0, -0.5, 0.5, 0.0, 0.5];
         this._changedBuffers[VERTEX_BUFFER] = true;
     }
@@ -768,9 +754,8 @@ class GeoObjectHandler {
     }
 
     setVisibility(index, visibility) {
-        const ob = this.getObjectByIndex(index),
-            ti = this.getTagIndexByObjectIndex(index);
-        var vArr;
+        const ob = this.getObjectByIndex(index);
+        let vArr;
         if (visibility) {
             vArr = ob._vertices;
         } else {
@@ -892,16 +877,16 @@ class GeoObjectHandler {
     }
 
     refresh() {
-        var i = this._changedBuffers.length;
+        let i = this._changedBuffers.length;
         while (i--) {
             this._changedBuffers[i] = true;
         }
     }
 
     _removeGeoObjects() {
-        var i = this._geoObjects.length;
+        let i = this._geoObjects.length;
         while (i--) {
-            var bi = this._geoObjects[i];
+            const bi = this._geoObjects[i];
             bi._handlerIndex = -1;
             bi._handler = null;
         }
@@ -939,7 +924,7 @@ class GeoObjectHandler {
 
     _deleteBuffers() {
         if (this._renderer) {
-            var gl = this._renderer.handler.gl;
+            const gl = this._renderer.handler.gl;
             gl.deleteBuffer(this._sizeBuffer);
             gl.deleteBuffer(this._pitchRollBuffer);
             gl.deleteBuffer(this._vertexBuffer);
@@ -966,7 +951,7 @@ class GeoObjectHandler {
 
     update() {
         if (this._renderer) {
-            var i = this._changedBuffers.length;
+            let i = this._changedBuffers.length;
             while (i--) {
                 if (this._changedBuffers[i]) {
                     this._buffersUpdateCallbacks[i].call(this);
@@ -984,9 +969,9 @@ class GeoObjectHandler {
     }
 
     _reindexGeoObjects(startIndex, tag) {
-        var b = this._geoObjects;
+        const b = this._geoObjects;
 
-        for (var i = startIndex; i < b.length; i++) {
+        for (let i = startIndex; i < b.length; i++) {
             const go = b[i];
 
             b[i]._handlerIndex = i;
@@ -1021,7 +1006,7 @@ class GeoObjectHandler {
     }
 
     _removeInstancedGeoObject(geoObject) {
-        var gi = geoObject._handlerIndex,
+        const gi = geoObject._handlerIndex,
             tag = geoObject.tag,
             ti = this.getTagIndexByObjectIndex(gi),
             prevState = this._instancedTags.get(tag);
@@ -1033,7 +1018,7 @@ class GeoObjectHandler {
 
         this._geoObjects.splice(gi, 1);
 
-        var i = gi * 4;
+        let i = gi * 4;
         this._rgbaArr[ti] = spliceArray(this._rgbaArr[ti], i, 4);
 
         i = gi * 3;
@@ -1065,11 +1050,11 @@ class GeoObjectHandler {
     }
 
     _removeGeoObject(geoObject) {
-        var gi = geoObject._handlerIndex;
+        const gi = geoObject._handlerIndex;
 
         this._geoObjects.splice(gi, 1);
 
-        var i = gi * 12;
+        let i = gi * 12;
         this._rgbaArr[0] = spliceArray(this._rgbaArr[0], i, 12);
 
         i = gi * 9;
