@@ -38,25 +38,54 @@ export class Vec3 {
     }
 
     /** @const */
-    static get UP() { return new Vec3(0, 1, 0) }
+    static get UP() {
+        return new Vec3(0, 1, 0)
+    }
+
     /** @const */
-    static get DOWN() { return new Vec3(0, -1, 0) }
+    static get DOWN() {
+        return new Vec3(0, -1, 0)
+    }
+
     /** @const */
-    static get RIGHT() { return new Vec3(1, 0, 0) }
+    static get RIGHT() {
+        return new Vec3(1, 0, 0)
+    }
+
     /** @const */
-    static get LEFT() { return new Vec3(-1, 0, 0) }
+    static get LEFT() {
+        return new Vec3(-1, 0, 0)
+    }
+
     /** @const */
-    static get FORWARD() { return new Vec3(0, 0, -1) }
+    static get FORWARD() {
+        return new Vec3(0, 0, -1)
+    }
+
     /** @const */
-    static get BACKWARD() { return new Vec3(0, 0, 1) }
+    static get BACKWARD() {
+        return new Vec3(0, 0, 1)
+    }
+
     /** @const */
-    static get ZERO() { return new Vec3() }
+    static get ZERO() {
+        return new Vec3()
+    }
+
     /** @const */
-    static get UNIT_X() { return new Vec3(1, 0, 0) }
+    static get UNIT_X() {
+        return new Vec3(1, 0, 0)
+    }
+
     /** @const */
-    static get UNIT_Y() { return new Vec3(0, 1, 0) }
+    static get UNIT_Y() {
+        return new Vec3(0, 1, 0)
+    }
+
     /** @const */
-    static get UNIT_Z() { return new Vec3(0, 0, 1) }
+    static get UNIT_Z() {
+        return new Vec3(0, 0, 1)
+    }
 
     /**
      * Separate 63 bit Vec3 to two Vec3 32 bit float values.
@@ -245,7 +274,7 @@ export class Vec3 {
      * @static
      * @param {Vec3} b - Vector to project.
      * @param {Vec3} n - Plane normal.
-    * @param {Vec3} [def] - Default value for non existed result.
+     * @param {Vec3} [def] - Default value for non existed result.
      * @returns {Vec3} -
      */
     static proj_b_to_plane(b, n, def) {
@@ -645,8 +674,14 @@ export class Vec3 {
      * @returns {Vec3} -
      */
     normalize() {
-        var length = 1.0 / this.length();
-
+        const vLen = this.length();
+        if (vLen === 0) {
+            this.x = 0;
+            this.y = 0;
+            this.z = 0;
+            return this;
+        }
+        const length = 1.0 / vLen
         this.x *= length;
         this.y *= length;
         this.z *= length;
@@ -765,15 +800,17 @@ export class Vec3 {
         return new Vec3(this.x * t + v2.x * one_d, this.y * t + v2.y * one_d, this.z * t + v2.z * one_d);
     }
 
-    static get LERP_DELTA() { return 1e-6 }
+    static get LERP_DELTA() {
+        return 1e-6
+    }
 
     /**
      * Spherically interpolates between two vectors.
-     * Interpolates between current and v2 vector by amount t. The difference between this and linear interpolation (aka, "lerp") is that 
-     * the vectors are treated as directions rather than points in space. The direction of the returned vector is interpolated 
+     * Interpolates between current and v2 vector by amount t. The difference between this and linear interpolation (aka, "lerp") is that
+     * the vectors are treated as directions rather than points in space. The direction of the returned vector is interpolated
      * by the angle and its magnitude is interpolated between the magnitudes of from and to.
      * @public
-     * @param {Vec3} v2 - 
+     * @param {Vec3} v2 -
      * @param {number} t - The parameter t is clamped to the range [0, 1].
      * @returns {Vec3} -
      */
