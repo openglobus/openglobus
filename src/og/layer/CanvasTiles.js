@@ -30,7 +30,7 @@ const EVENT_NAMES = [
 /**
  * Layer used to rendering each tile as a separate canvas object.
  * @class
- * @extends {og.Layer}
+ * @extends {Layer}
  * //TODO: make asynchronous handler.
  * @param {String} [name="noname"] - Layer name.
  * @param {Object} options:
@@ -41,7 +41,7 @@ const EVENT_NAMES = [
  * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
  * @param {boolean} [options.isBaseLayer=false] - Base layer flag.
  * @param {boolean} [options.visibility=true] - Layer visibility.
- * @param {og.layer.CanvasTiles~drawTileCallback} [options.drawTile] - Draw tile callback.
+ * @param {layer.CanvasTiles~drawTileCallback} [options.drawTile] - Draw tile callback.
  * @fires og.layer.CanvasTiles#load
  * @fires og.layer.CanvasTiles#loadend
  */
@@ -63,13 +63,13 @@ class CanvasTiles extends Layer {
         /**
          * Tile pending queue that waiting for create.
          * @protected
-         * @type {Array.<og.planetSegment.Material>}
+         * @type {Array.<planetSegment.Material>}
          */
         this._pendingsQueue = []; // new og.QueueArray();
 
         /**
          * Draw tile callback.
-         * @type {og.layer.CanvasTiles~drawTileCallback}
+         * @type {layer.CanvasTiles~drawTileCallback}
          * @public
          */
         this.drawTile = options.drawTile || null;
@@ -116,7 +116,7 @@ class CanvasTiles extends Layer {
      * Start to load tile material.
      * @public
      * @virtual
-     * @param {og.planetSegment.Material} material -
+     * @param {Material} material -
      */
     loadMaterial(material) {
         var seg = material.segment;
@@ -143,7 +143,7 @@ class CanvasTiles extends Layer {
     /**
      * Loads material image and apply it to the planet segment.
      * @protected
-     * @param {og.planetSegment.Material} material - Loads material image.
+     * @param {Material} material - Loads material image.
      */
     _exec(material) {
         CanvasTiles.__requestsCounter++;
@@ -153,7 +153,7 @@ class CanvasTiles extends Layer {
             /**
              * Tile custom draw function.
              * @callback og.layer.CanvasTiles~drawTileCallback
-             * @param {og.planetSegment.Material} material
+             * @param {Material} material
              * @param {applyCanvasCallback} applyCanvasCallback
              */
             var e = that.events.load;
@@ -186,7 +186,7 @@ class CanvasTiles extends Layer {
     /**
      * Abort exact material loading.
      * @public
-     * @param {og.planetSegment.Material} material - Segment material.
+     * @param {Material} material - Segment material.
      */
     abortMaterialLoading(material) {
         if (material.isLoading && material.image) {

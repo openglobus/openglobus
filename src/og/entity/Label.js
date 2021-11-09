@@ -28,13 +28,13 @@ const STR2ALIGN = {
 /**
  * Billboard text label.
  * @class
- * @extends {og.BaseBillboard}
+ * @extends {BaseBillboard}
  * @param {Object} [options] - Label options:
- * @param {og.Vec3|Array.<number>} [options.position] - Billboard spatial position.
+ * @param {Vec3|Array.<number>} [options.position] - Billboard spatial position.
  * @param {number} [options.rotation] - Screen angle rotaion.
- * @param {og.Vec4|string|Array.<number>} [options.color] - Billboard color.
- * @param {og.Vec3|Array.<number>} [options.alignedAxis] - Billboard aligned vector.
- * @param {og.Vec3|Array.<number>} [options.offset] - Billboard center screen offset.
+ * @param {Vec4|string|Array.<number>} [options.color] - Billboard color.
+ * @param {Vec3|Array.<number>} [options.alignedAxis] - Billboard aligned vector.
+ * @param {Vec3|Array.<number>} [options.offset] - Billboard center screen offset.
  * @param {boolean} [options.visibility] - Visibility.
  * @param {string} [options.text] - Text string.
  * @param {string} [options.face] - HTML5 font face.
@@ -42,8 +42,8 @@ const STR2ALIGN = {
  * @param {string} [options.style] - HTML5 font style. Example 'normal', 'italic'.
  * @param {string} [options.weight] - HTML5 font weight. Example 'normal', 'bold'.
  * @param {number} [options.outline] - Text outline size. 0 - no outline, 1 - maximum outline. Default 0.58.
- * @param {og.Vec4|string|Array.<number>} [options.outlineColor] - Outline color.
- * @param {og.Label.ALIGN} [options.align] - Text horizontal align: "left", "right" and "center".
+ * @param {Vec4|string|Array.<number>} [options.outlineColor] - Outline color.
+ * @param {Label.ALIGN} [options.align] - Text horizontal align: "left", "right" and "center".
  */
 class Label extends BaseBillboard {
     constructor(options) {
@@ -82,14 +82,14 @@ class Label extends BaseBillboard {
         /**
          * Label outline color.
          * @private
-         * @type {og.Vec4}
+         * @type {Vec4}
          */
         this._outlineColor = utils.createColorRGBA(options.outlineColor, new Vec4(0.0, 0.0, 0.0, 1.0));
 
         /**
          * Text horizontal align: "left", "right" and "center".
          * @private
-         * @type {og.Label.ALIGN}
+         * @type {Label.ALIGN}
          */
         this._align = options.align ? STR2ALIGN[options.align.trim().toLowerCase()] || ALIGN.RIGHT : ALIGN.RIGHT;
 
@@ -103,7 +103,7 @@ class Label extends BaseBillboard {
         /**
          * Font atlas pointer.
          * @private
-         * @type {og.utils.FontAtlas}
+         * @type {utils.FontAtlas}
          */
         this._fontAtlas = null;
     }
@@ -131,7 +131,7 @@ class Label extends BaseBillboard {
     /**
      * Sets label text align. Could be center, left or right. Left is default.
      * @public
-     * @param {og.Label.ALIGN} align - Text align.
+     * @param {Label.ALIGN} align - Text align.
      */
     setAlign(align) {
         this._align = STR2ALIGN[align.trim().toLowerCase()];
@@ -141,7 +141,7 @@ class Label extends BaseBillboard {
     /**
      * Gets label text current alignment.
      * @public
-     * @returns {og.Label.ALIGN}
+     * @returns {Label.ALIGN}
      */
     getAlign() {
         return this._align;
@@ -235,7 +235,7 @@ class Label extends BaseBillboard {
     /**
      * Sets text outline color.
      * @public
-     * @param {og.Vec4} rgba - Color vector.
+     * @param {Vec4} rgba - Color vector.
      */
     setOutlineColor4v(rgba) {
         this._outlineColor.x = rgba.x;
@@ -257,7 +257,7 @@ class Label extends BaseBillboard {
     /**
      * Gets outline color vector.
      * @public
-     * @returns {og.Vec4}
+     * @returns {Vec4}
      */
     getOutlineColor() {
         return this._outlineColor;
@@ -286,11 +286,10 @@ class Label extends BaseBillboard {
      * Updates label parameters.
      * @public
      */
-    update() {
+    async update() {
         if (this._fontAtlas) {
-            this._fontAtlas.getFontIndex(this._face).then((fontIndex) => {
-                this._applyFontIndex(fontIndex);
-            });
+            const fontIndex = await this._fontAtlas.getFontIndex(this._face);
+            this._applyFontIndex(fontIndex);
         }
     }
 
@@ -305,7 +304,7 @@ class Label extends BaseBillboard {
     /**
      * Assigns font atlas and update.
      * @public
-     * @param {og.utils.FontAtlas} fontAtlas - Font atlas.
+     * @param {utils.FontAtlas} fontAtlas - Font atlas.
      */
     assignFontAtlas(fontAtlas) {
         !this._fontAtlas && (this._fontAtlas = fontAtlas);

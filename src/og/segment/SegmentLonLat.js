@@ -19,16 +19,16 @@ let _tempHigh = new Vec3(),
 /**
  * Planet segment Web Mercator tile class that stored and rendered with quad tree.
  * @class
- * @extends {og.planetSegment.Segment}
- * @param {og.quadNode.Node} node - Quad tree segment node.
- * @param {og.scene.Planet} planet - Scene planet.
+ * @extends {Segment}
+ * @param {quadNode.Node} node - Quad tree segment node.
+ * @param {Planet} planet - Scene planet.
  * @param {Number} tileZoom - Segment tile zoom index.
- * @param {og.Extent} extent - Segment WGS84 extent.
+ * @param {Extent} extent - Segment WGS84 extent.
  */
 class SegmentLonLat extends Segment {
     /**
      * @param {quadTree.Node} node - Segment node.
-     * @param {scene.Planet} planet - Current planet scene.
+     * @param {Planet} planet - Current planet scene.
      * @param {number} tileZoom - Zoom index.
      * @param {Extent} extent - Segment extent.
      */

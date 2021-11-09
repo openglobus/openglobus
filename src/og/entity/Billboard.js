@@ -9,13 +9,13 @@ import { BaseBillboard } from './BaseBillboard.js';
 /**
  * Represents basic quad billboard image.
  * @class
- * @extends {og.BaseBillboard}
+ * @extends {BaseBillboard}
  * @param {Object} [options] - Options:
- * @param {og.Vec3|Array.<number>} [options.position] - Billboard spatial position.
+ * @param {Vec3|Array.<number>} [options.position] - Billboard spatial position.
  * @param {number} [options.rotation] - Screen angle rotaion.
- * @param {og.Vec4|string|Array.<number>} [options.color] - Billboard color.
- * @param {og.Vec3|Array.<number>} [options.alignedAxis] - Billboard aligned vector.
- * @param {og.Vec3|Array.<number>} [options.offset] - Billboard center screen offset.
+ * @param {Vec4|string|Array.<number>} [options.color] - Billboard color.
+ * @param {Vec3|Array.<number>} [options.alignedAxis] - Billboard aligned vector.
+ * @param {Vec3|Array.<number>} [options.offset] - Billboard center screen offset.
  * @param {boolean} [options.visibility] - Visibility.
  * @param {string} [options.src] - Billboard image url source.
  * @param {Image} [options.image] - Billboard image object.

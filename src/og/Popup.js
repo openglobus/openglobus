@@ -20,6 +20,11 @@ const TEMPLATE =
     </div>`;
 
 class Popup {
+
+    /**
+     * 
+     * @param {*} options 
+     */
     constructor(options) {
 
         this._id = Popup._staticCounter++;

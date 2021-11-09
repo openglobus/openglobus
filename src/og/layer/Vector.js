@@ -38,7 +38,7 @@ function _entitiesConstructor(entities) {
  * Vector layer represents alternative entities store. Used for geospatial data rendering like
  * points, lines, polygons, geometry objects etc.
  * @class
- * @extends {og.Layer}
+ * @extends {Layer}
  * @param {string} [name="noname"] - Layer name.
  * @param {Object} [options] - Layer options:
  * @param {number} [options.minZoom=0] - Minimal visible zoom. 0 is default
@@ -47,7 +47,7 @@ function _entitiesConstructor(entities) {
  * @param {string} [options.zIndex=0] - Layer Z-order index. 0 is default.
  * @param {boolean} [options.visibility=true] - Layer visibility. True is default.
  * @param {boolean} [options.isBaseLayer=false] - Layer base layer. False is default.
- * @param {Array.<og.Entity>} [options.entities] - Entities array.
+ * @param {Array.<Entity>} [options.entities] - Entities array.
  * @param {Array.<number>} [options.scaleByDistance] - Scale by distance parameters. (exactly 3 entries)
  *      First index - near distance to the entity, after entity becomes full scale.
  *      Second index - far distance to the entity, when entity becomes zero scale.
@@ -183,8 +183,8 @@ class Vector extends Layer {
     /**
      * Adds layer to the planet.
      * @public
-     * @param {og.Planet} planet - Planet scene object.
-     * @returns {og.layer.Vector} -
+     * @param {Planet} planet - Planet scene object.
+     * @returns {layer.Vector} -
      */
     addTo(planet) {
         if (!this._planet) {
@@ -200,7 +200,7 @@ class Vector extends Layer {
     /**
      * Returns stored entities.
      * @public
-     * @returns {Array.<og.Entity>} -
+     * @returns {Array.<Entity>} -
      */
     getEntities() {
         return [].concat(this._entities);
@@ -237,9 +237,9 @@ class Vector extends Layer {
     /**
      * Adds entity to the layer.
      * @public
-     * @param {og.Entity} entity - Entity.
+     * @param {Entity} entity - Entity.
      * @param {boolean} [rightNow] - Entity insertion option. False is deafult.
-     * @returns {og.layer.Vector} - Returns this layer.
+     * @returns {layer.Vector} - Returns this layer.
      */
     add(entity, rightNow) {
         if (!(entity._layer || entity._entityCollection)) {
@@ -255,10 +255,10 @@ class Vector extends Layer {
     /**
      * Adds entity to the layer in the index position.
      * @public
-     * @param {og.Entity} entity - Entity.
+     * @param {Entity} entity - Entity.
      * @param {Number} index - Index position.
      * @param {boolean} [rightNow] - Entity insertion option. False is deafult.
-     * @returns {og.layer.Vector} - Returns this layer.
+     * @returns {layer.Vector} - Returns this layer.
      */
     insert(entity, index, rightNow) {
         if (!(entity._layer || entity._entityCollection)) {
@@ -334,9 +334,9 @@ class Vector extends Layer {
     /**
      * Adds entity array to the layer.
      * @public
-     * @param {Array.<og.Entity>} entities - Entities array.
+     * @param {Array.<Entity>} entities - Entities array.
      * @param {boolean} [rightNow] - Entity insertion option. False is deafult.
-     * @returns {og.layer.Vector} - Returns this layer.
+     * @returns {layer.Vector} - Returns this layer.
      */
     addEntities(entities, rightNow) {
         var i = entities.length;
@@ -350,8 +350,8 @@ class Vector extends Layer {
      * Remove entity from layer.
      * TODO: memory leaks.
      * @public
-     * @param {og.Entity} entity - Entity to remove.
-     * @returns {og.layer.Vector} - Returns this layer.
+     * @param {Entity} entity - Entity to remove.
+     * @returns {layer.Vector} - Returns this layer.
      */
     removeEntity(entity) {
         if (entity._layer && this.isEqual(entity._layer)) {
@@ -447,8 +447,8 @@ class Vector extends Layer {
     /**
      * Removes entities from layer.
      * @public
-     * @param {Array.<og.Entity>} entities - Entity array.
-     * @returns {og.layer.Vector} - Returns this layer.
+     * @param {Array.<Entity>} entities - Entity array.
+     * @returns {layer.Vector} - Returns this layer.
      */
     removeEntities(entities) {
         var i = entities.length;
@@ -464,7 +464,7 @@ class Vector extends Layer {
      * @param {number} near - Full scale entity distance.
      * @param {number} far - Zerol scale entity distance.
      * @param {number} [farInvisible] - Entity visibility distance.
-     * @returns {og.layer.Vector} -
+     * @returns {layer.Vector} -
      */
     setScaleByDistance(near, far, farInvisible) {
         this.scaleByDistance[0] = near;
@@ -517,8 +517,8 @@ class Vector extends Layer {
     /**
      * Removes current entities from layer and adds new entities.
      * @public
-     * @param {Array.<og.Entity>} entities - New entity array.
-     * @returns {og.layer.Vector} - Returns layer instance.
+     * @param {Array.<Entity>} entities - New entity array.
+     * @returns {layer.Vector} - Returns layer instance.
      */
     setEntities(entities) {
 
@@ -823,7 +823,7 @@ class Vector extends Layer {
      * Start to load tile material.
      * @public
      * @virtual
-     * @param {og.Segment.Material} material - Current material.
+     * @param {Segment.Material} material - Current material.
      */
     loadMaterial(material) {
 
@@ -845,7 +845,7 @@ class Vector extends Layer {
     /**
      * Abort exact material loading.
      * @public
-     * @param {og.planetSegment.Material} material - Segment material.
+     * @param {Material} material - Segment material.
      */
     abortMaterialLoading(material) {
         material.isLoading = false;

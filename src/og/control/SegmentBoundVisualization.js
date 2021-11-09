@@ -7,7 +7,7 @@ import { Entity } from '../entity/Entity.js';
 /**
  * Frame per second(FPS) display control.
  * @class
- * @extends {og.control.Control}
+ * @extends {Control}
  * @param {Object} [options] - Control options.
  */
 class SegmentBoundVisualization extends Control {

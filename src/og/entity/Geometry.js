@@ -2,12 +2,12 @@
  * @module og/entity/Geometry
  */
 
-'use strict';
+"use strict";
 
-import * as utils from '../utils/shared.js';
-import { Extent } from '../Extent.js';
-import { Vec4 } from '../math/Vec4.js';
-import { LonLat } from '../LonLat.js';
+import * as utils from "../utils/shared.js";
+import { Extent } from "../Extent.js";
+import { Vec4 } from "../math/Vec4.js";
+import { LonLat } from "../LonLat.js";
 
 const GeometryType = {
     POINT: 1,
@@ -27,7 +27,7 @@ class Geometry {
         /**
          * Entity instance that holds this geometry.
          * @protected
-         * @type {og.Entity}
+         * @type {Entity}
          */
         this._entity = null;
 
@@ -58,15 +58,27 @@ class Geometry {
 
         this._type = (options.type && Geometry.getType(options.type)) || GeometryType.POINT;
         this._coordinates = [];
-        this._extent = Geometry.getExtent({
-            type: options.type || "Point",
-            coordinates: options.coordinates || []
-        }, this._coordinates);
+        this._extent = Geometry.getExtent(
+            {
+                type: options.type || "Point",
+                coordinates: options.coordinates || []
+            },
+            this._coordinates
+        );
 
         this._style = options.style || {};
-        this._style.fillColor = utils.createColorRGBA(options.style.fillColor, new Vec4(0.19, 0.62, 0.85, 0.4));
-        this._style.lineColor = utils.createColorRGBA(options.style.lineColor, new Vec4(0.19, 0.62, 0.85, 1));
-        this._style.strokeColor = utils.createColorRGBA(options.style.strokeColor, new Vec4(1, 1, 1, 0.95));
+        this._style.fillColor = utils.createColorRGBA(
+            options.style.fillColor,
+            new Vec4(0.19, 0.62, 0.85, 0.4)
+        );
+        this._style.lineColor = utils.createColorRGBA(
+            options.style.lineColor,
+            new Vec4(0.19, 0.62, 0.85, 1)
+        );
+        this._style.strokeColor = utils.createColorRGBA(
+            options.style.strokeColor,
+            new Vec4(1, 1, 1, 0.95)
+        );
         this._style.lineWidth = options.style.lineWidth || 3;
         this._style.strokeWidth = options.style.strokeWidth || 0;
 
@@ -96,7 +108,7 @@ class Geometry {
      @static
      @param {Object} geometryObj - GeoJSON style geometry feature.
      @param {LonLat[]} outCoordinates - Geometry feature coordinates clone.
-     @returns {og.Extent} -
+     @returns {Extent} -
      */
     static getExtent(geometryObj, outCoordinates) {
         var res = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
@@ -110,9 +122,7 @@ class Geometry {
             res.northEast.lon = lon;
             res.northEast.lat = lat;
             outCoordinates && (outCoordinates[0] = lon) && (outCoordinates[1] = lat);
-
         } else if (t === GeometryType.LINESTRING) {
-
             let c = geometryObj.coordinates;
             for (let i = 0; i < c.length; i++) {
                 let lon = c[i][0],
@@ -123,9 +133,7 @@ class Geometry {
                 if (lat > res.northEast.lat) res.northEast.lat = lat;
                 outCoordinates && (outCoordinates[i] = [lon, lat]);
             }
-
         } else if (t === GeometryType.POLYGON) {
-
             let c = geometryObj.coordinates;
             for (let i = 0; i < c.length; i++) {
                 let ci = c[i];
@@ -141,9 +149,7 @@ class Geometry {
                     outCoordinates && (outCoordinates[i][j] = [lon, lat]);
                 }
             }
-
         } else if (t === GeometryType.MULTIPOLYGON) {
-
             let p = geometryObj.coordinates;
             for (let i = 0; i < p.length; i++) {
                 let pi = p[i];
@@ -163,9 +169,7 @@ class Geometry {
                     }
                 }
             }
-
         } else if (t === GeometryType.MULTILINESTRING) {
-
             let c = geometryObj.coordinates;
             for (let i = 0; i < c.length; i++) {
                 let ci = c[i];
@@ -181,10 +185,9 @@ class Geometry {
                     outCoordinates && (outCoordinates[i][j] = [lon, lat]);
                 }
             }
-
         } else {
             res.southWest.lon = res.southWest.lat = res.northEast.lon = res.northEast.lat = 0.0;
-            outCoordinates && (outCoordinates[0] = lon) && (outCoordinates[1] = lat);
+            outCoordinates && (outCoordinates[0] = 0) && (outCoordinates[1] = 0);
         }
         return res;
     }

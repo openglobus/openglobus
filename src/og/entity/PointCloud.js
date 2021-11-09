@@ -68,14 +68,14 @@ class PointCloud {
         /**
          * Parent collection render node.
          * @private
-         * @type {og.scene.RenderNode}
+         * @type {RenderNode}
          */
         this._renderNode = null;
 
         /**
          * Entity instance that holds this point cloud.
          * @private
-         * @type {og.Entity}
+         * @type {Entity}
          */
         this._entity = null;
 
@@ -114,7 +114,7 @@ class PointCloud {
         /**
          * Handler that stores and renders this object.
          * @private
-         * @type {og.PointCloudHandler}
+         * @type {PointCloudHandler}
          */
         this._handler = null;
         this._handlerIndex = -1;
@@ -189,7 +189,7 @@ class PointCloud {
     /**
      * Assign rendering scene node.
      * @public
-     * @param {og.scene.RenderNode}  renderNode - Assigned render node.
+     * @param {RenderNode}  renderNode - Assigned render node.
      */
     setRenderNode(renderNode) {
         this._renderNode = renderNode;

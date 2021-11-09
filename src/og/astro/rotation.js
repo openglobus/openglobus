@@ -2,20 +2,29 @@
  * @module og/astro/rotation
  */
 
-'use strict';
+"use strict";
 
-export function getRotationMatrix(rightAscension, declination) {
-    xAxis.x = Math.cos(rightAscension + og.math.PI_TWO);
-    xAxis.y = Math.sin(rightAscension + og.math.PI_TWO);
+import { Vec3 } from "../math/Vec3.js";
+import { Mat3 } from "../math/Mat3.js";
+import { PI_TWO } from "../math.js";
+
+export function getRotationMatrix(rightAscension, declination, res) {
+    let xAxis = new Vec3(),
+        zAxis = new Vec3();
+
+    res = res || new Mat3();
+
+    xAxis.x = Math.cos(rightAscension + PI_TWO);
+    xAxis.y = Math.sin(rightAscension + PI_TWO);
     xAxis.z = 0.0;
 
-    var cosDec = Math.cos(declination);
+    let cosDec = Math.cos(declination);
 
     zAxis.x = cosDec * Math.cos(rightAscension);
     zAxis.y = cosDec * Math.sin(rightAscension);
     zAxis.z = Math.sin(declination);
 
-    var yAxis = zAxis.cross(xAxis);
+    let yAxis = zAxis.cross(xAxis);
 
     res._m[0] = xAxis.x;
     res._m[1] = yAxis.x;
@@ -27,5 +36,5 @@ export function getRotationMatrix(rightAscension, declination) {
     res._m[7] = yAxis.z;
     res._m[8] = zAxis.z;
 
-    return result;
+    return res;
 }

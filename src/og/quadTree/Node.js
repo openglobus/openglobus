@@ -55,13 +55,13 @@ let BOUNDS = {
 /**
  * Quad tree planet segment node.
  * @constructor
- * @param {og.planetSegment.Segment|og.planetSegment.SegmentLonLat} segmentPrototype - Planet segment node constructor.
- * @param {og.scene.RenderNode} planet - Planet render node.
+ * @param {Segment|og.planetSegment.SegmentLonLat} segmentPrototype - Planet segment node constructor.
+ * @param {RenderNode} planet - Planet render node.
  * @param {number} partId - NorthEast, SouthWest etc.
- * @param {og.quadTree.Node} parent - Parent of this node.
+ * @param {quadTree.Node} parent - Parent of this node.
  * @param {number} id - Tree node identifier (id * 4 + 1);
  * @param {number} tileZoom - Deep index of the quad tree.
- * @param {og.Extent} extent - Planet segment extent.
+ * @param {Extent} extent - Planet segment extent.
  */
 class Node {
 
@@ -173,7 +173,7 @@ class Node {
      * Returns the same deep existent neighbour node.
      * @public
      * @param {Number} side - Neighbour side index e.g. og.quadTree.N, og.quadTree.W etc.
-     * @returns {og.quadTree.Node} -
+     * @returns {quadTree.Node} -
      */
     getEqualNeighbor(side) {
         var pn = this;

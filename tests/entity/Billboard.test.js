@@ -10,6 +10,4 @@ test('Testing Billboard', () => {
     billboard.setHeight(200);
     billboard.setWidth(200);
     expect(billboard.getSize()).toStrictEqual({ 'width': 200, 'height': 200 });
-
-
 });

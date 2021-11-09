@@ -53,7 +53,7 @@ export class Extent {
      * Creates extent instance from values in array.
      * @static
      * @param {Array.<number>} arr - South west and north east longitude and latidudes packed in array. (exactly 4 entries)
-     * @return {og.Extent} Extent object.
+     * @return {Extent} Extent object.
      */
     static createFromArray(arr) {
         return new Extent(new LonLat(arr[0], arr[1]), new LonLat(arr[2], arr[3]));
@@ -82,7 +82,7 @@ export class Extent {
      * Creates bound extent instance by coordinate array.
      * @static
      * @param {Array.<Array<number>>} arr - Coordinate array. (exactly 2 entries)
-     * @return {og.Extent} Extent object.
+     * @return {Extent} Extent object.
      */
     static createByCoordinatesArr(arr) {
         let lonmin = math.MAX, lonmax = math.MIN,
@@ -105,7 +105,7 @@ export class Extent {
      * @param {number} z -
      * @param {number} width -
      * @param {number} height -
-     * @returns {og.Extent} -
+     * @returns {Extent} -
      */
     static fromTile(x, y, z, width, height) {
         width = width || mercator.POLE_DOUBLE;
@@ -127,7 +127,7 @@ export class Extent {
      * Sets current bounding extent object by coordinate array.
      * @public
      * @param {Array.<LonLat>} arr - Coordinate array.
-     * @return {og.Extent} Current extent.
+     * @return {Extent} Current extent.
      */
     setByCoordinates(arr) {
         let lonmin = math.MAX, lonmax = math.MIN,
@@ -193,7 +193,7 @@ export class Extent {
     /**
      * Creates clone instance of the current extent.
      * @public
-     * @return {og.Extent} Extent clone.
+     * @return {Extent} Extent clone.
      */
     clone() {
         return new Extent(this.southWest.clone(), this.northEast.clone());
@@ -261,7 +261,7 @@ export class Extent {
 
     /**
      * Returns extents are equals.
-     * @param {og.Extent} extent - Extent.
+     * @param {Extent} extent - Extent.
      * @returns {boolean} -
      */
     equals(extent) {
@@ -272,7 +272,7 @@ export class Extent {
     /**
      * Converts extent coordinates to mercator projection coordinates.
      * @public
-     * @return {og.Extent} New instance of the current extent.
+     * @return {Extent} New instance of the current extent.
      */
     forwardMercator() {
         return new Extent(this.southWest.forwardMercator(), this.northEast.forwardMercator());
@@ -281,7 +281,7 @@ export class Extent {
     /**
      * Converts extent coordinates from mercator projection to degrees.
      * @public
-     * @return {og.Extent} New instance of the current extent.
+     * @return {Extent} New instance of the current extent.
      */
     inverseMercator() {
         return new Extent(this.southWest.inverseMercator(), this.northEast.inverseMercator());
@@ -290,7 +290,7 @@ export class Extent {
     /**
      * Gets cartesian bounding bounds of the current ellipsoid.
      * @public
-     * @param {og.Ellipsoid} ellipsoid - Ellipsoid.
+     * @param {Ellipsoid} ellipsoid - Ellipsoid.
      * @return {Array.<number>} Cartesian 3d coordinate array. (exactly 6 entries)
      */
     getCartesianBounds(ellipsoid) {

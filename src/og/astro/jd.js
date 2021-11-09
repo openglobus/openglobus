@@ -2,9 +2,9 @@
  * @module og/astro/jd
  */
 
-'use strict';
+"use strict";
 
-import { binarySearch } from '../utils/shared.js';
+import { binarySearch } from "../utils/shared.js";
 
 /**
  * Seconds in millisecond.
@@ -172,8 +172,13 @@ export function T(jd) {
 export function getDayNumber(year, month, day) {
     var a = ((month - 14) / 12) | 0;
     var b = year + 4800 + a;
-    return (((1461 * b) / 4) | 0) + (((367 * (month - 2 - 12 * a)) / 12) | 0) -
-        (((3 * (((b + 100) / 100) | 0)) / 4) | 0) + day - 32075;
+    return (
+        (((1461 * b) / 4) | 0) +
+        (((367 * (month - 2 - 12 * a)) / 12) | 0) -
+        (((3 * (((b + 100) / 100) | 0)) / 4) | 0) +
+        day -
+        32075
+    );
 }
 
 /**
@@ -190,7 +195,8 @@ export function DateToUTC(date) {
     }
 
     var secondsOfDay =
-        date.getUTCSeconds() + hour * SECONDS_PER_HOUR +
+        date.getUTCSeconds() +
+        hour * SECONDS_PER_HOUR +
         date.getUTCMinutes() * SECONDS_PER_MINUTE +
         date.getUTCMilliseconds() * SECONDS_PER_MILLISECOND;
 
@@ -198,7 +204,7 @@ export function DateToUTC(date) {
         dayNumber--;
     }
 
-    var extraDays = secondsOfDay * ONE_BY_SECONDS_PER_DAY | 0;
+    var extraDays = (secondsOfDay * ONE_BY_SECONDS_PER_DAY) | 0;
     dayNumber += extraDays;
     secondsOfDay -= SECONDS_PER_DAY * extraDays;
 
@@ -300,7 +306,7 @@ export function UTCtoDate(utc) {
     }
 
     var L = (julianDayNumber + 68569) | 0;
-    var N = (4 * L / 146097) | 0;
+    var N = ((4 * L) / 146097) | 0;
     L = (L - (((146097 * N + 3) / 4) | 0)) | 0;
     var I = ((4000 * (L + 1)) / 1461001) | 0;
     L = (L - (((1461 * I) / 4) | 0) + 31) | 0;
@@ -310,12 +316,12 @@ export function UTCtoDate(utc) {
     var month = (J + 2 - 12 * L) | 0;
     var year = (100 * (N - 49) + I + L) | 0;
 
-    var hour = secondsOfDay * ONE_BY_SECONDS_PER_HOUR | 0;
+    var hour = (secondsOfDay * ONE_BY_SECONDS_PER_HOUR) | 0;
     var remainingSeconds = secondsOfDay - hour * SECONDS_PER_HOUR;
-    var minute = remainingSeconds * ONE_BY_SECONDS_PER_MINUTE | 0;
+    var minute = (remainingSeconds * ONE_BY_SECONDS_PER_MINUTE) | 0;
     remainingSeconds = remainingSeconds - minute * SECONDS_PER_MINUTE;
     var second = remainingSeconds | 0;
-    var millisecond = (remainingSeconds - second) * MILLISECONDS_PER_SECOND | 0;
+    var millisecond = ((remainingSeconds - second) * MILLISECONDS_PER_SECOND) | 0;
 
     hour += 12;
     if (hour > 23) {
@@ -331,11 +337,10 @@ export function UTCtoDate(utc) {
  * @returns {Date} JavaScript Date object
  */
 export function TAItoDate(tai) {
-
     var utc = TAItoUTC(tai);
     if (!utc) {
         utc = TAItoUTC(addSeconds(tai, -1));
-        og.console.logWrn("TAItoDate:336 - can't conv utc.");
+        console.warn("TAItoDate:336 - can't conv utc.");
     }
 
     return UTCtoDate(utc);
@@ -399,7 +404,7 @@ export function addDays(jd, days) {
 export function getMilliseconds(jd) {
     var s = jd - (jd | 0);
     s *= SECONDS_PER_DAY;
-    return (s - (s | 0)) * MILLISECONDS_PER_SECOND | 0;
+    return ((s - (s | 0)) * MILLISECONDS_PER_SECOND) | 0;
 }
 
 /**
@@ -421,12 +426,12 @@ export function getHours(jd) {
     var julianDayNumber = jd | 0;
     var secondsOfDay = (jd - julianDayNumber) * SECONDS_PER_DAY;
 
-    var hour = secondsOfDay * ONE_BY_SECONDS_PER_HOUR | 0;
+    var hour = (secondsOfDay * ONE_BY_SECONDS_PER_HOUR) | 0;
     var remainingSeconds = secondsOfDay - hour * SECONDS_PER_HOUR;
-    var minute = remainingSeconds * ONE_BY_SECONDS_PER_MINUTE | 0;
+    var minute = (remainingSeconds * ONE_BY_SECONDS_PER_MINUTE) | 0;
     remainingSeconds = remainingSeconds - minute * SECONDS_PER_MINUTE;
     var second = remainingSeconds | 0;
-    var millisecond = (remainingSeconds - second) * MILLISECONDS_PER_SECOND | 0;
+    var millisecond = ((remainingSeconds - second) * MILLISECONDS_PER_SECOND) | 0;
 
     hour += 12 + minute / 60 + second / 3600 + millisecond / 1000;
     if (hour > 23) {
@@ -443,7 +448,7 @@ export function getHours(jd) {
  */
 export function getMinutes(jd) {
     var s = jd - (jd | 0);
-    return s * MINUTES_PER_DAY | 0;
+    return (s * MINUTES_PER_DAY) | 0;
 }
 
 /**
@@ -507,7 +512,7 @@ const leapSecondsTable = [
     __ls(2453736.5, 33.0), // 2006-01-01T00:00:00.000Z
     __ls(2454832.5, 34.0), // 2009-01-01T00:00:00.000Z
     __ls(2456109.5, 35.0), // 2012-07-01T00:00:00.000Z
-    __ls(2457204.5, 36.0)  // 2015-07-01T00:00:00.000Z
+    __ls(2457204.5, 36.0) // 2015-07-01T00:00:00.000Z
 ];
 
 export const J2000TAI = UTCtoTAI(J2000);

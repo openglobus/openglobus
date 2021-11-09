@@ -1,17 +1,9 @@
-import { Entity } from './Entity';
-import { EntityCollection } from './EntityCollection';
-import { Billboard } from './Billboard';
-import { Geometry } from './Geometry';
-import { Label } from './Label';
-import { PointCloud } from './PointCloud';
-import { Polyline } from './Polyline';
+import { Entity } from "./Entity.js";
+import { EntityCollection } from "./EntityCollection.js";
+import { Billboard } from "./Billboard.js";
+import { Geometry } from "./Geometry.js";
+import { Label } from "./Label.js";
+import { PointCloud } from "./PointCloud.js";
+import { Polyline } from "./Polyline.js";
 
-export {
-    Entity,
-    EntityCollection,
-    Billboard,
-    Geometry,
-    Label,
-    PointCloud,
-    Polyline
-};
+export { Entity, EntityCollection, Billboard, Geometry, Label, PointCloud, Polyline };

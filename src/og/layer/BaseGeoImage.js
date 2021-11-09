@@ -12,7 +12,7 @@ import { LonLat } from '../LonLat.js';
 /**
  * BaseGeoImage layer represents square imagery layer that could be an static image, or animated video or webgl buffer object displayed on the globe.
  * @class
- * @extends {og.Layer}
+ * @extends {Layer}
  */
 class BaseGeoImage extends Layer {
     constructor(name, options) {
@@ -154,7 +154,7 @@ class BaseGeoImage extends Layer {
 
     /**
      * @virtual
-     * @param {og.planetSegment.Material} material - GeoImage material.
+     * @param {Material} material - GeoImage material.
      */
     abortMaterialLoading(material) {
         this._creationProceeding = false;
@@ -215,7 +215,7 @@ class BaseGeoImage extends Layer {
     /**
      * @virtual
      * @protected
-     * @param {og.planetSegment.Material} material - GeoImage material.
+     * @param {Material} material - GeoImage material.
      */
     clearMaterial(material) {
         material.image = null;
@@ -227,7 +227,7 @@ class BaseGeoImage extends Layer {
     /**
      * @virtual
      * @protected
-     * @param {og.planetSegment.Material} material - GeoImage material.
+     * @param {Material} material - GeoImage material.
      * @returns {Array<number> } -
      */
     applyMaterial(material) {

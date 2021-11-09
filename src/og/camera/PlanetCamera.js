@@ -17,8 +17,8 @@ import { Mat4 } from "../math/Mat4.js";
 /**
  * Planet camera.
  * @class
- * @extends {og.Camera}
- * @param {og.RenderNode} planet - Planet render node.
+ * @extends {Camera}
+ * @param {RenderNode} planet - Planet render node.
  * @param {Object} [options] - Planet camera options:
  * @param {Object} [options.name] - Camera name.
  * @param {number} [options.viewAngle=37] - Camera angle of view. Default is 35.0
@@ -26,11 +26,16 @@ import { Mat4 } from "../math/Mat4.js";
  * @param {number} [options.far] - Camera far plane distance. Deafult is og.math.MAX
  * @param {number} [options.minAltitude] - Minimal altitude for the camera. Deafult is 1
  * @param {number} [options.maxAltitude] - Maximal altitude for the camera. Deafult is 20000000
- * @param {og.Vec3} [options.eye] - Camera eye position. Default (0,0,0)
- * @param {og.Vec3} [options.look] - Camera look position. Default (0,0,0)
- * @param {og.Vec3} [options.up] - Camera eye position. Default (0,1,0)
+ * @param {Vec3} [options.eye] - Camera eye position. Default (0,0,0)
+ * @param {Vec3} [options.look] - Camera look position. Default (0,0,0)
+ * @param {Vec3} [options.up] - Camera eye position. Default (0,1,0)
  */
 class PlanetCamera extends Camera {
+
+    /**
+     * @param {RenderNode} planet - Planet render node.
+     * @param {Object} [options] - Planet camera options:
+     */
     constructor(planet, options) {
         super(
             planet.renderer,
@@ -50,7 +55,7 @@ class PlanetCamera extends Camera {
         /**
          * Assigned camera's planet.
          * @public
-         * @type {og.scene.Planet}
+         * @type {Planet}
          */
         this.planet = planet;
 
@@ -92,14 +97,14 @@ class PlanetCamera extends Camera {
         /**
          * Cartesian coordinates on the terrain.
          * @protected
-         * @type {og.Vec3}
+         * @type {Vec3}
          */
         this._terrainPoint = new Vec3();
 
         /**
          * Quad node that camera flies over.
          * @protected
-         * @type {og.quadTree.Node}
+         * @type {quadTree.Node}
          */
         this._insideSegment = null;
 
@@ -178,7 +183,7 @@ class PlanetCamera extends Camera {
      * @public
      * @param {LonLat} lonlat - New camera and camera view position.
      * @param {LonLat} [lookLonLat] - Look up coordinates.
-     * @param {og.Vec3} [up] - Camera UP vector. Default (0,1,0)
+     * @param {Vec3} [up] - Camera UP vector. Default (0,1,0)
      */
     setLonLat(lonlat, lookLonLat, up) {
         this.stopFlying();
@@ -211,9 +216,9 @@ class PlanetCamera extends Camera {
     /**
      * Gets position by viewable extent.
      * @public
-     * @param {og.Extent} extent - Viewable extent.
+     * @param {Extent} extent - Viewable extent.
      * @param {Number} height - Camera height
-     * @returns {og.Vec3}
+     * @returns {Vec3}
      */
     getExtentPosition(extent, height) {
         var north = extent.getNorth();
@@ -281,7 +286,7 @@ class PlanetCamera extends Camera {
     /**
      * View current extent.
      * @public
-     * @param {og.Extent} extent - Current extent.
+     * @param {Extent} extent - Current extent.
      */
     viewExtent(extent, height) {
         this.stopFlying();
@@ -292,8 +297,8 @@ class PlanetCamera extends Camera {
     /**
      * Flies to the current extent.
      * @public
-     * @param {og.Extent} extent - Current extent.
-     * @param {og.Vec3} [up] - Camera UP in the end of flying. Default - (0,1,0)
+     * @param {Extent} extent - Current extent.
+     * @param {Vec3} [up] - Camera UP in the end of flying. Default - (0,1,0)
      * @param {Number} [ampl] - Altitude amplitude factor.
      * @param {cameraCallback} [completeCallback] - Callback that calls after flying when flying is finished.
      * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
@@ -356,9 +361,9 @@ class PlanetCamera extends Camera {
     /**
      * Flies to the cartesian coordinates.
      * @public
-     * @param {og.Vec3} cartesian - Finish cartesian coordinates.
-     * @param {og.Vec3} [look] - Camera LOOK in the end of flying. Default - (0,0,0)
-     * @param {og.Vec3} [up] - Camera UP vector in the end of flying. Default - (0,1,0)
+     * @param {Vec3} cartesian - Finish cartesian coordinates.
+     * @param {Vec3} [look] - Camera LOOK in the end of flying. Default - (0,0,0)
+     * @param {Vec3} [up] - Camera UP vector in the end of flying. Default - (0,1,0)
      * @param {Number} [ampl=1.0] - Altitude amplitude factor.
      * @param {cameraCallback} [completeCallback] - Callback that calls after flying when flying is finished.
      * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
@@ -453,8 +458,8 @@ class PlanetCamera extends Camera {
      * Flies to the geo coordiantes.
      * @public
      * @param {LonLat} lonlat - Finish coordinates.
-     * @param {og.Vec3} [look] - Camera LOOK in the end of flying. Default - (0,0,0)
-     * @param {og.Vec3} [up] - Camera UP vector in the end of flying. Default - (0,1,0)
+     * @param {Vec3} [look] - Camera LOOK in the end of flying. Default - (0,0,0)
+     * @param {Vec3} [up] - Camera UP vector in the end of flying. Default - (0,1,0)
      * @param {Number} [ampl] - Altitude amplitude factor.
      * @param {cameraCallback} [completeCallback] - Callback that calls after flying when flying is finished.
      * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.

@@ -12,7 +12,7 @@ import { XYZ } from './XYZ.js';
 /**
  * Used to display WMS services as tile layers on the globe.
  * @class
- * @extends {og.layer.XYZ}
+ * @extends {XYZ}
  * //TODO: WMS version, format, and custom srs cpecification.
  * @param {string} name - Layer name.
  * @param {Object} options - Options:

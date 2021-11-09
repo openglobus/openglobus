@@ -6,8 +6,8 @@ import { Vec3 } from './Vec3.js';
 /**
  * Plane class.
  * @constructor
- * @param {og.Vec3} [p] - Plane point.
- * @param {og.Vec3} [n] - Planet normal.
+ * @param {Vec3} [p] - Plane point.
+ * @param {Vec3} [n] - Planet normal.
  */
 class Plane {
     constructor(p, n) {

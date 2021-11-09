@@ -17,7 +17,7 @@ class TextureAtlas {
         /**
          * Atlas nodes where input images store. It can be access by image.__nodeIndex.
          * @public
-         * @type {Array.<og.utils.TextureAtlasNode >}
+         * @type {Array.<utils.TextureAtlasNode >}
          */
         this.nodes = [];
 
@@ -71,7 +71,7 @@ class TextureAtlas {
     /**
      * Sets openglobus gl handler that creates gl texture.
      * @public
-     * @param {og.webgl.Handler} handler - WebGL handler.
+     * @param {Handler} handler - WebGL handler.
      */
     assignHandler(handler) {
         this._handler = handler;
@@ -95,7 +95,7 @@ class TextureAtlas {
      * @param {Object} image - Input javascript image object.
      * @param {boolean} [fastInsert] - If it's true atlas doesnt restore all images again 
      * and store image in the curent atlas sheme.
-     * @returns {og.utils.TextureAtlasNode} -
+     * @returns {utils.TextureAtlasNode} -
      */
     addImage(image, fastInsert) {
 
@@ -215,7 +215,7 @@ class TextureAtlas {
 /**
  * Atlas binary tree node.
  * @class
- * @param {og.Rectangle} rect - Node image rectangle.
+ * @param {Rectangle} rect - Node image rectangle.
  */
 class TextureAtlasNode {
     constructor(rect, texCoords) {

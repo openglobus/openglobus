@@ -9,6 +9,13 @@
  * @param {number} [bottom] - Bottom coordinate. 0 - default.
 */
 class Rectangle {
+
+    /**
+     * @param {number} [left] - Left coordinate. 0 - default.
+     * @param {number} [top] - Top coordinate. 0 - default.
+     * @param {number} [right] - Right coordinate. 0 - default.
+     * @param {number} [bottom] - Bottom coordinate. 0 - default.
+     */
     constructor(left, top, right, bottom) {
 
         /**
@@ -43,7 +50,7 @@ class Rectangle {
     /**
      * Clone rectangle object.
      * @public
-     * @returns {og.Rectangle}
+     * @returns {Rectangle}
      */
     clone() {
         return new Rectangle(this.left, this.top, this.right, this.bottom);

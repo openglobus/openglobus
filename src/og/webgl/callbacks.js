@@ -71,28 +71,28 @@ callbacks.u[types.SAMPLER2DARRAY] = function (program, variable) {
 };
 
 callbacks.u[types.INTXX] = function (program, variable) {
-    pgl.uniform1iv(variable._pName, variable.value);
+    program.gl.uniform1iv(variable._pName, variable.value);
 };
 
 callbacks.u[types.FLOATXX] = function (program, variable) {
     program.gl.uniform1fv(variable._pName, variable.value);
 };
 
-///*========================
-//   Attributes callbacks
-// ========================*/
-//callbacks.a[types.FLOAT] = function (program, variable) {
-//    program.gl.vertexAttrib1f(variable._pName, variable.value);
-//};
+/*========================
+   Attributes callbacks
+ ========================*/
+callbacks.a[types.FLOAT] = function (program, variable) {
+    program.gl.vertexAttrib1f(variable._pName, variable.value);
+};
 
-//callbacks.a[types.VEC2] = function (program, variable) {
-//    program.gl.vertexAttrib2fv(variable._pName, variable.value);
-//};
+callbacks.a[types.VEC2] = function (program, variable) {
+    program.gl.vertexAttrib2fv(variable._pName, variable.value);
+};
 
-//callbacks.a[types.VEC3] = function (program, variable) {
-//    program.gl.vertexAttrib3fv(variable._pName, variable.value);
-//};
+callbacks.a[types.VEC3] = function (program, variable) {
+    program.gl.vertexAttrib3fv(variable._pName, variable.value);
+};
 
-//callbacks.a[types.VEC4] = function (program, variable) {
-//    program.gl.vertexAttrib4fv(variable._pName, variable.value);
-//};
+callbacks.a[types.VEC4] = function (program, variable) {
+    program.gl.vertexAttrib4fv(variable._pName, variable.value);
+};

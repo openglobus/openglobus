@@ -14,7 +14,7 @@ const ACTIVATION_HEIGHT = 12079000.0;
 /**
  * Real Sun geocentric position control that place the Sun on the right place by the Earth.
  * @class
- * @extends {og.control.Control}
+ * @extends {Control}
  * @param {Object} [options] - Control options.
  */
 class Sun extends Control {
@@ -28,7 +28,7 @@ class Sun extends Control {
         /**
          * Earth planet node.
          * @public
-         * @type {og.scene.Planet}
+         * @type {Planet}
          */
         this.planet = null;
 
@@ -46,7 +46,7 @@ class Sun extends Control {
         /**
          * Light source.
          * @public
-         * @type {og.LightSource}
+         * @type {LightSource}
          */
         this.sunlight = null;
 

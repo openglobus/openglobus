@@ -1,9 +1,9 @@
-'use strict';
+"use strict";
 
-import * as math from '../math.js';
-import { Mat3 } from './Mat3.js';
-import { Mat4 } from './Mat4.js';
-import { Vec3 } from './Vec3.js';
+import * as math from "../math.js";
+import { Mat3 } from "./Mat3.js";
+import { Mat4 } from "./Mat4.js";
+import { Vec3 } from "./Vec3.js";
 
 /**
  * A set of 4-dimensional coordinates used to represent rotation in 3-dimensional space.
@@ -14,7 +14,6 @@ import { Vec3 } from './Vec3.js';
  * @param {Number} [w=0.0] The W component.
  */
 export class Quat {
-
     /**
      * @param {Number} [x=0.0] The X component.
      * @param {Number} [y=0.0] The Y component.
@@ -58,7 +57,7 @@ export class Quat {
     /**
      * Identity Quat.
      * @const
-     * @type {og.Quat}
+     * @type {Quat}
      */
     static get IDENTITY() {
         return new Quat(0.0, 0.0, 0.0, 1.0);
@@ -68,7 +67,7 @@ export class Quat {
      * Returns a Quat represents rotation around X axis.
      * @static
      * @param {number} a - The angle in radians to rotate around the axis.
-     * @returns {og.Quat} -
+     * @returns {Quat} -
      */
     static xRotation(a) {
         a *= 0.5;
@@ -79,7 +78,7 @@ export class Quat {
      * Returns a Quat represents rotation around Y axis.
      * @static
      * @param {number} a - The angle in radians to rotate around the axis.
-     * @returns {og.Quat} -
+     * @returns {Quat} -
      */
     static yRotation(a) {
         a *= 0.5;
@@ -90,7 +89,7 @@ export class Quat {
      * Returns a Quat represents rotation around Z axis.
      * @static
      * @param {number} a - The angle in radians to rotate around the axis.
-     * @returns {og.Quat} -
+     * @returns {Quat} -
      */
     static zRotation(a) {
         a *= 0.5;
@@ -100,90 +99,65 @@ export class Quat {
     /**
      * Computes a Quat representing a rotation around an axis.
      * @static
-     * @param {og.Vec3} axis - The axis of rotation.
+     * @param {Vec3} axis - The axis of rotation.
      * @param {number} [angle=0.0] The angle in radians to rotate around the axis.
-     * @returns {og.Quat} -
+     * @returns {Quat} -
      */
     static axisAngleToQuat(axis, angle) {
         angle = angle || 0.0;
         var v = axis.normal();
         var half_angle = angle * 0.5;
         var sin_a = Math.sin(half_angle);
-        return new Quat(
-            v.x * sin_a,
-            v.y * sin_a,
-            v.z * sin_a,
-            Math.cos(half_angle));
+        return new Quat(v.x * sin_a, v.y * sin_a, v.z * sin_a, Math.cos(half_angle));
     }
 
     /**
      * Computes a rotation from the given heading and up vector.
      * @static
-     * @param {og.Vec3} forward - Heading target coordinates.
-     * @param {og.Vec3} up - Up vector.
-     * @returns {og.Quat} -
+     * @param {Vec3} forward - Heading target coordinates.
+     * @param {Vec3} up - Up vector.
+     * @returns {Quat} -
      */
     static getLookRotation(forward, up) {
-
         var f = forward.normal().negate();
-        var s = (up.cross(f)).normalize();
+        var s = up.cross(f).normalize();
         var u = f.cross(s);
 
         var z = 1.0 + s.x + u.y + f.z;
 
         if (z > 0.000001) {
             let fd = 1.0 / (2.0 * Math.sqrt(z));
-            return new Quat(
-                (f.y - u.z) * fd,
-                (s.z - f.x) * fd,
-                (u.x - s.y) * fd,
-                0.25 / fd
-            );
+            return new Quat((f.y - u.z) * fd, (s.z - f.x) * fd, (u.x - s.y) * fd, 0.25 / fd);
         }
 
         if (s.x > u.y && s.x > f.z) {
             let fd = 1.0 / (2.0 * Math.sqrt(1.0 + s.x - u.y - f.z));
-            return new Quat(
-                0.25 / fd,
-                (u.x + s.y) * fd,
-                (s.z + f.x) * fd,
-                (f.y - u.z) * fd
-            );
+            return new Quat(0.25 / fd, (u.x + s.y) * fd, (s.z + f.x) * fd, (f.y - u.z) * fd);
         }
 
         if (u.y > f.z) {
             let fd = 1.0 / (2.0 * Math.sqrt(1.0 + u.y - s.x - f.z));
-            return new Quat(
-                (u.x + s.y) * fd,
-                0.25 / fd,
-                (f.y + u.z) * fd,
-                (s.z - f.x) * fd
-            );
+            return new Quat((u.x + s.y) * fd, 0.25 / fd, (f.y + u.z) * fd, (s.z - f.x) * fd);
         }
 
         let fd = 1.0 / (2.0 * Math.sqrt(1.0 + f.z - s.x - u.y));
-        return new Quat(
-            (s.z + f.x) * fd,
-            (f.y + u.z) * fd,
-            0.25 / fd,
-            (u.x - s.y) * fd
-        );
+        return new Quat((s.z + f.x) * fd, (f.y + u.z) * fd, 0.25 / fd, (u.x - s.y) * fd);
     }
 
     /**
      * Computes a Quat from from source point heading to the destination point.
      * @static
-     * @param {og.Vec3} sourcePoint - Source coordinate.
-     * @param {og.Vec3} destPoint - Destination coordinate.
-     * @returns {og.Quat} -
+     * @param {Vec3} sourcePoint - Source coordinate.
+     * @param {Vec3} destPoint - Destination coordinate.
+     * @returns {Quat} -
      */
     static getLookAtSourceDest(sourcePoint, destPoint) {
         var forwardVector = destPoint.subA(sourcePoint).normalize();
         var dot = Vec3.FORWARD.dot(forwardVector);
-        if (Math.abs(dot - (-1.0)) < 0.000001) {
+        if (Math.abs(dot - -1.0) < 0.000001) {
             return Quat.axisAngleToQuat(Vec3.UP, Math.PI);
         }
-        if (Math.abs(dot - (1.0)) < 0.000001) {
+        if (Math.abs(dot - 1.0) < 0.000001) {
             return new Quat(0.0, 0.0, 0.0, 1.0);
         }
         var rotAngle = Math.acos(dot);
@@ -194,9 +168,9 @@ export class Quat {
     /**
      * Compute rotation between two vectors.
      * @static
-     * @param {og.Vec3} u - First vector.
-     * @param {og.Vec3} v - Second vector.
-     * @returns {og.Quat} -
+     * @param {Vec3} u - First vector.
+     * @param {Vec3} v - Second vector.
+     * @returns {Quat} -
      */
     static getRotationBetweenVectors(u, v) {
         var w = u.cross(v);
@@ -207,10 +181,10 @@ export class Quat {
     /**
      * Compute rotation between two vectors.
      * @static
-     * @param {og.Vec3} u - First vector.
-     * @param {og.Vec3} v - Second vector.
+     * @param {Vec3} u - First vector.
+     * @param {Vec3} v - Second vector.
      * @param {Quat} res
-     * @returns {og.Quat} -
+     * @returns {Quat} -
      */
     static getRotationBetweenVectorsRes(u, v, res) {
         var w = u.cross(v);
@@ -219,19 +193,19 @@ export class Quat {
     }
 
     /**
-     * Compute rotation between two vectors with around vector up 
+     * Compute rotation between two vectors with around vector up
      * for exactly opposite vectors. If vectors exaclty in the same
      * direction than returns identity Quat.
      * @static
-     * @param {og.Vec3} source - First vector.
-     * @param {og.Vec3} dest - Second vector.
-     * @param {og.Vec3} up - Up vector.
-     * @returns {og.Quat} -
+     * @param {Vec3} source - First vector.
+     * @param {Vec3} dest - Second vector.
+     * @param {Vec3} up - Up vector.
+     * @returns {Quat} -
      */
     static getRotationBetweenVectorsUp(source, dest, up) {
         var dot = source.dot(dest);
         if (Math.abs(dot + 1.0) < 0.000001) {
-            // vector source and dest point exactly in the opposite direction, 
+            // vector source and dest point exactly in the opposite direction,
             // so it is a 180 degrees turn around the up-axis
             return Quat.axisAngleToQuat(up, Math.PI);
         }
@@ -244,12 +218,12 @@ export class Quat {
         var rotAxis = source.cross(dest).normalize();
         return Quat.axisAngleToQuat(rotAxis, rotAngle);
     }
-  
+
     /**
      * Returns true if the components are zero.
      * @public
-     * @param {og.Quat} q - Quat to subtract.
-     * @returns {og.Quat} -
+     * @param {Quat} q - Quat to subtract.
+     * @returns {Quat} -
      */
     isZero() {
         return this.x === 0.0 && this.y === 0.0 && this.z === 0.0 && this.w === 0.0;
@@ -258,7 +232,7 @@ export class Quat {
     /**
      * Clear Quat. Sets zeroes.
      * @public
-     * @returns {og.Quat} -
+     * @returns {Quat} -
      */
     clear() {
         this.x = this.y = this.z = this.w = 0;
@@ -272,7 +246,7 @@ export class Quat {
      * @param {Number} [y=0.0] The Y component.
      * @param {Number} [z=0.0] The Z component.
      * @param {Number} [w=0.0] The W component.
-     * @returns {og.Quat} -
+     * @returns {Quat} -
      */
     set(x, y, z, w) {
         this.x = x;
@@ -285,8 +259,8 @@ export class Quat {
     /**
      * Copy Quat values.
      * @public
-     * @param {og.Quat} q - Copy Quat.
-     * @returns {og.Quat} -
+     * @param {Quat} q - Copy Quat.
+     * @returns {Quat} -
      */
     copy(q) {
         this.x = q.x;
@@ -299,7 +273,7 @@ export class Quat {
     /**
      * Set current Quat instance to identity Quat.
      * @public
-     * @returns {og.Quat} -
+     * @returns {Quat} -
      */
     setIdentity() {
         this.x = 0.0;
@@ -312,7 +286,7 @@ export class Quat {
     /**
      * Duplicates a Quat instance.
      * @public
-     * @returns {og.Quat} -
+     * @returns {Quat} -
      */
     clone() {
         return new Quat(this.x, this.y, this.z, this.w);
@@ -321,8 +295,8 @@ export class Quat {
     /**
      * Computes the componentwise sum of two Quats.
      * @public
-     * @param {og.Quat} q - Quat to add.
-     * @returns {og.Quat} -
+     * @param {Quat} q - Quat to add.
+     * @returns {Quat} -
      */
     add(q) {
         return new Quat(this.x + q.x, this.y + q.y, this.z + q.z, this.w + q.w);
@@ -331,8 +305,8 @@ export class Quat {
     /**
      * Computes the componentwise difference of two Quats.
      * @public
-     * @param {og.Quat} q - Quat to subtract.
-     * @returns {og.Quat} -
+     * @param {Quat} q - Quat to subtract.
+     * @returns {Quat} -
      */
     sub(q) {
         return new Quat(this.x - q.x, this.y - q.y, this.z - q.z, this.w - q.w);
@@ -342,7 +316,7 @@ export class Quat {
      * Multiplies the provided Quat componentwise by the provided scalar.
      * @public
      * @param {Number} scale - The scalar to multiply with.
-     * @returns {og.Quat} -
+     * @returns {Quat} -
      */
     scaleTo(scale) {
         return new Quat(this.x * scale, this.y * scale, this.z * scale, this.w * scale);
@@ -352,10 +326,13 @@ export class Quat {
      * Multiplies the provided Quat componentwise.
      * @public
      * @param {Number} scale - The scalar to multiply with.
-     * @returns {og.Quat} -
+     * @returns {Quat} -
      */
     scale(scale) {
-        this.x *= scale; this.y *= scale; this.z *= scale; this.w *= scale;
+        this.x *= scale;
+        this.y *= scale;
+        this.z *= scale;
+        this.w *= scale;
         return this;
     }
 
@@ -374,7 +351,7 @@ export class Quat {
      * @param {number} lat - Latitude.
      * @param {number} lon - Longitude.
      * @param {number} angle - Angle in radians.
-     * @returns {og.Quat} -
+     * @returns {Quat} -
      */
     setFromSphericalCoords(lat, lon, angle) {
         var sin_a = Math.sin(angle / 2);
@@ -393,14 +370,13 @@ export class Quat {
     /**
      * Sets rotation with the given heading and up vectors.
      * @static
-     * @param {og.Vec3} forward - Heading target coordinates.
-     * @param {og.Vec3} up - Up vector.
-     * @returns {og.Quat} -
+     * @param {Vec3} forward - Heading target coordinates.
+     * @param {Vec3} up - Up vector.
+     * @returns {Quat} -
      */
     setLookRotation(forward, up) {
-
         var f = forward.normal().negate();
-        var s = (up.cross(f)).normalize();
+        var s = up.cross(f).normalize();
         var u = f.cross(s);
 
         var z = 1.0 + s.x + u.y + f.z;
@@ -437,7 +413,7 @@ export class Quat {
     /**
      * Gets spherical coordinates.
      * @public
-     * @returns {Object} Returns object with latitude, longitude and alpha. 
+     * @returns {Object} Returns object with latitude, longitude and alpha.
      */
     toSphericalCoords() {
         var cos_a = this.w;
@@ -450,7 +426,8 @@ export class Quat {
         var ty = this.y / sin_a;
         var tz = this.z / sin_a;
 
-        var lon, lat = -Math.asin(ty);
+        var lon,
+            lat = -Math.asin(ty);
         if (tx * tx + tz * tz < 0.0005) {
             lon = 0;
         } else {
@@ -466,9 +443,9 @@ export class Quat {
     /**
      * Sets current Quat representing a rotation around an axis.
      * @public
-     * @param {og.Vec3} axis - The axis of rotation.
+     * @param {Vec3} axis - The axis of rotation.
      * @param {number} angle The angle in radians to rotate around the axis.
-     * @returns {og.Quat} -
+     * @returns {Quat} -
      */
     setFromAxisAngle(axis, angle) {
         var v = axis.normal();
@@ -484,15 +461,19 @@ export class Quat {
      * @returns {Object} -
      */
     getAxisAngle() {
-        var vl = Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+        let x = this.x,
+            y = this.y,
+            z = this.z,
+            w = this.w;
+        var vl = Math.sqrt(x * x + y * y + z * z);
         var axis, angle;
         if (vl > 0.0000001) {
             var ivl = 1.0 / vl;
             axis = new Vec3(x * ivl, y * ivl, z * ivl);
-            if (this.w < 0) {
-                angle = 2.0 * Math.atan2(-vl, -w); // -PI,0 
+            if (w < 0) {
+                angle = 2.0 * Math.atan2(-vl, -w); // -PI,0
             } else {
-                angle = 2.0 * Math.atan2(vl, w); // 0,PI 
+                angle = 2.0 * Math.atan2(vl, w); // 0,PI
             }
         } else {
             axis = new Vec3(0, 0, 0);
@@ -507,7 +488,7 @@ export class Quat {
      * @param {number} pitch - Pitch angle in degrees.
      * @param {number} yaw - Yaw angle in degrees.
      * @param {number} roll - Roll angle in degrees.
-     * @returns {og.Quat} -
+     * @returns {Quat} -
      */
     setFromEulerAngles(pitch, yaw, roll) {
         var ex = pitch * math.RADIANS_HALF,
@@ -539,8 +520,10 @@ export class Quat {
      * @returns {Object} -
      */
     getEulerAngles() {
-
-        let x = this.x, y = this.y, z = this.z, w = this.w;
+        let x = this.x,
+            y = this.y,
+            z = this.z,
+            w = this.w;
 
         let sqy = y * y;
 
@@ -563,11 +546,13 @@ export class Quat {
     /**
      * Computes a Quat from the provided 4x4 matrix instance.
      * @public
-     * @param {og.Mat4} m - The rotation matrix.
-     * @returns {og.Quat} -
+     * @param {Mat4} m - The rotation matrix.
+     * @returns {Quat} -
      */
     setFromMatrix4(m) {
-        var tr, s, q = [];
+        var tr,
+            s,
+            q = [];
         var i, j, k;
         m = m._m;
 
@@ -589,7 +574,7 @@ export class Quat {
             j = nxt[i];
             k = nxt[j];
 
-            s = Math.sqrt((m[i * 5] - (m[j * 5] + m[k * 5])) + 1.0);
+            s = Math.sqrt(m[i * 5] - (m[j * 5] + m[k * 5]) + 1.0);
 
             q[i] = s * 0.5;
 
@@ -610,7 +595,7 @@ export class Quat {
     /**
      * Converts current Quat to the rotation 4x4 matrix.
      * @public
-     * @returns {og.Mat4} -
+     * @returns {Mat4} -
      */
     getMat4(out) {
         var xs = this.x + this.x;
@@ -626,13 +611,30 @@ export class Quat {
         var yz = this.y * zs;
         var zz = this.z * zs;
         var m = out || new Mat4();
-        return m.set([1 - (yy + zz), xy - wz, xz + wy, 0, xy + wz, 1 - (xx + zz), yz - wx, 0, xz - wy, yz + wx, 1 - (xx + yy), 0, 0, 0, 0, 1]);
+        return m.set([
+            1 - (yy + zz),
+            xy - wz,
+            xz + wy,
+            0,
+            xy + wz,
+            1 - (xx + zz),
+            yz - wx,
+            0,
+            xz - wy,
+            yz + wx,
+            1 - (xx + yy),
+            0,
+            0,
+            0,
+            0,
+            1
+        ]);
     }
 
     /**
      * Converts current Quat to the rotation 3x3 matrix.
      * @public
-     * @returns {og.Mat3} -
+     * @returns {Mat3} -
      * @todo NOT TESTED
      */
     getMat3() {
@@ -658,9 +660,15 @@ export class Quat {
         h = g * h;
         g = g * i;
 
-        mx[0] = 1 - (l + e); mx[1] = k - g; mx[2] = c + h;
-        mx[3] = k + g; mx[4] = 1 - (j + e); mx[5] = d - f;
-        mx[6] = c - h; mx[7] = d + f; mx[8] = 1 - (j + l);
+        mx[0] = 1 - (l + e);
+        mx[1] = k - g;
+        mx[2] = c + h;
+        mx[3] = k + g;
+        mx[4] = 1 - (j + e);
+        mx[5] = d - f;
+        mx[6] = c - h;
+        mx[7] = d + f;
+        mx[8] = 1 - (j + l);
 
         return m;
     }
@@ -668,11 +676,10 @@ export class Quat {
     /**
      * Returns quatrenion and vector production.
      * @public
-     * @param {og.Vec3} v - 3d Vector.
-     * @returns {og.Vec3} -
+     * @param {Vec3} v - 3d Vector.
+     * @returns {Vec3} -
      */
     mulVec3(v) {
-
         // t = 2 * cross(q.xyz, v)
         // v' = v + q.w * t + cross(q.xyz, t)
 
@@ -694,34 +701,48 @@ export class Quat {
         return new Vec3(
             i * a + d * -b + j * -h - k * -f,
             j * a + d * -f + k * -b - i * -h,
-            k * a + d * -h + i * -f - j * -b);
+            k * a + d * -h + i * -f - j * -b
+        );
     }
 
     /**
      * Computes the product of two Quats.
      * @public
-     * @param {og.Quat} q - Quat to multiply.
-     * @returns {og.Quat} -
+     * @param {Quat} q - Quat to multiply.
+     * @returns {Quat} -
      */
     mul(q) {
-        var d = this.x, e = this.y, g = this.z, a = this.w;
-        var f = q.x, h = q.y, i = q.z, b = q.w;
+        var d = this.x,
+            e = this.y,
+            g = this.z,
+            a = this.w;
+        var f = q.x,
+            h = q.y,
+            i = q.z,
+            b = q.w;
         return new Quat(
             d * b + a * f + e * i - g * h,
             e * b + a * h + g * f - d * i,
             g * b + a * i + d * h - e * f,
-            a * b - d * f - e * h - g * i);
+            a * b - d * f - e * h - g * i
+        );
     }
 
     /**
      * Computes the product of two Quats.
      * @public
-     * @param {og.Quat} q - Quat to multiply.
-     * @returns {og.Quat} -
+     * @param {Quat} q - Quat to multiply.
+     * @returns {Quat} -
      */
     mulA(q) {
-        var d = this.x, e = this.y, g = this.z, a = this.w;
-        var f = q.x, h = q.y, i = q.z, b = q.w;
+        var d = this.x,
+            e = this.y,
+            g = this.z,
+            a = this.w;
+        var f = q.x,
+            h = q.y,
+            i = q.z,
+            b = q.w;
         this.x = d * b + a * f + e * i - g * h;
         this.y = e * b + a * h + g * f - d * i;
         this.z = g * b + a * i + d * h - e * f;
@@ -732,16 +753,16 @@ export class Quat {
     /**
      * Gets the conjugate of the Quat.
      * @public
-     * @returns {og.Quat} -
+     * @returns {Quat} -
      */
     conjugate() {
         return new Quat(-this.x, -this.y, -this.z, this.w);
     }
 
-    /** 
+    /**
      * Computes the inverse of the Quat.
      * @public
-     * @returns {og.Quat} -
+     * @returns {Quat} -
      */
     inverse() {
         var n = 1 / this.magnitude2();
@@ -754,7 +775,10 @@ export class Quat {
      * @returns {number} -
      */
     magnitude() {
-        var b = this.x, c = this.y, d = this.z, a = this.w;
+        var b = this.x,
+            c = this.y,
+            d = this.z,
+            a = this.w;
         return Math.sqrt(b * b + c * c + d * d + a * a);
     }
 
@@ -764,14 +788,17 @@ export class Quat {
      * @returns {number} -
      */
     magnitude2() {
-        var b = this.x, c = this.y, d = this.z, a = this.w;
+        var b = this.x,
+            c = this.y,
+            d = this.z,
+            a = this.w;
         return b * b + c * c + d * d + a * a;
     }
 
     /**
      * Computes the dot (scalar) product of two Quats.
      * @public
-     * @param {og.Quat} q - Second quatrnion.
+     * @param {Quat} q - Second quatrnion.
      * @returns {number} -
      */
     dot(q) {
@@ -781,10 +808,13 @@ export class Quat {
     /**
      * Current Quat normalization.
      * @public
-     * @returns {og.Quat} -
+     * @returns {Quat} -
      */
     normalize() {
-        var c = this.x, d = this.y, e = this.z, g = this.w,
+        var c = this.x,
+            d = this.y,
+            e = this.z,
+            g = this.w,
             f = Math.sqrt(c * c + d * d + e * e + g * g);
         if (f === 0.0) {
             this.x = 0;
@@ -804,7 +834,7 @@ export class Quat {
     /**
      * Compares two Quats.
      * @public
-     * @param {og.Quat} q - Second quatrnion.
+     * @param {Quat} q - Second quatrnion.
      * @returns {Boolean} -
      */
     isEqual(q) {
@@ -818,14 +848,19 @@ export class Quat {
     /**
      * Performs a spherical linear interpolation between two Quats.
      * @public
-     * @param {og.Quat} b - The end rotation Quat.
+     * @param {Quat} b - The end rotation Quat.
      * @param {number} t - interpolation amount between the two Quats.
-     * @returns {og.Quat} -
+     * @returns {Quat} -
      */
     slerp(b, t) {
-
-        var ax = this.x, ay = this.y, az = this.z, aw = this.w,
-            bx = b.x, by = b.y, bz = b.z, bw = b.w;
+        var ax = this.x,
+            ay = this.y,
+            az = this.z,
+            aw = this.w,
+            bx = b.x,
+            by = b.y,
+            bz = b.z,
+            bw = b.w;
 
         var omega, cosom, sinom, scale0, scale1;
 
@@ -839,7 +874,7 @@ export class Quat {
             bw = -bw;
         }
 
-        if ((1.0 - cosom) > 0.000001) {
+        if (1.0 - cosom > 0.000001) {
             omega = Math.acos(cosom);
             sinom = Math.sin(omega);
             scale0 = Math.sin((1.0 - t) * omega) / sinom;
@@ -864,7 +899,10 @@ export class Quat {
      * @returns {Number} -
      */
     getRoll(reprojectAxis) {
-        var x = this.x, y = this.y, z = this.z, w = this.w;
+        var x = this.x,
+            y = this.y,
+            z = this.z,
+            w = this.w;
         if (reprojectAxis) {
             var fTy = 2.0 * y;
             var fTz = 2.0 * z;
@@ -885,7 +923,10 @@ export class Quat {
      * @returns {number} -
      */
     getPitch(reprojectAxis) {
-        var x = this.x, y = this.y, z = this.z, w = this.w;
+        var x = this.x,
+            y = this.y,
+            z = this.z,
+            w = this.w;
         if (reprojectAxis) {
             var fTx = 2.0 * x;
             var fTz = 2.0 * z;
@@ -906,7 +947,10 @@ export class Quat {
      * @returns {number} -
      */
     getYaw(reprojectAxis) {
-        var x = this.x, y = this.y, z = this.z, w = this.w;
+        var x = this.x,
+            y = this.y,
+            z = this.z,
+            w = this.w;
         if (reprojectAxis) {
             var fTx = 2.0 * x;
             var fTy = 2.0 * y;
@@ -929,9 +973,8 @@ export class Quat {
  * @param {Number} [y=0.0] The Y component.
  * @param {Number} [z=0.0] The Z component.
  * @param {Number} [w=0.0] The W component.
- * @returns {og.Quat} -
+ * @returns {Quat} -
  */
 export function quat(x, y, z, w) {
     return new Quat(x, y, z, w);
 }
-

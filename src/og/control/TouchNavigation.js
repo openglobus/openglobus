@@ -29,7 +29,7 @@ class Touch {
 /**
  * Touch pad planet camera dragging control.
  * @class
- * @extends {og.control.Control}
+ * @extends {Control}
  * @param {Object} [options] - Control options.
  */
 class TouchNavigation extends Control {

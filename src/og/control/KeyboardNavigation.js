@@ -12,7 +12,7 @@ import { Vec3 } from '../math/Vec3.js';
 /**
  * Planet camera keyboard navigation. Use W,S,A,D and left shift key for fly around a planet.
  * @class
- * @extends {og.control.Control}
+ * @extends {Control}
  * @param {Object} [options] - Control options.
  */
 

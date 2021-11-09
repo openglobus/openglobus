@@ -2,26 +2,31 @@
  * @module og/control/EarthCoordinates
  */
 
-'use strict';
+"use strict";
 
-import { Control } from './Control.js';
+import { Control } from "./Control.js";
 
 function dec2deg(base) {
     var t;
     var degrees = base < 0 ? Math.ceil(base) : Math.floor(base);
-    var minutes = Math.floor(t = Math.abs((base - degrees)) * 60);
+    var minutes = Math.floor((t = Math.abs(base - degrees) * 60));
     var seconds = Math.floor((t - minutes) * 6000);
-    seconds = seconds / 100.00;
-    return (numToFixedString(degrees, 3) + "\u00B0" +
-        numToFixedString(minutes, 2) + "\u0027" +
-        numToFixedString(seconds.toFixed(2), 2) + "\u0022");
+    seconds = seconds / 100.0;
+    return (
+        numToFixedString(degrees, 3) +
+        "\u00B0" +
+        numToFixedString(minutes, 2) +
+        "\u0027" +
+        numToFixedString(seconds.toFixed(2), 2) +
+        "\u0022"
+    );
 }
 
 function numToFixedString(num, fixed) {
-    var dl = num.toString().split('.')[0].length;
+    var dl = num.toString().split(".")[0].length;
     var white = "&nbsp;";
     for (var i = dl; i < fixed; i++) {
-        white += '&nbsp;&nbsp;';
+        white += "&nbsp;&nbsp;";
     }
     return white + num.toString();
 }
@@ -39,21 +44,21 @@ function toMercator(ll) {
     return m.lat.toFixed(5) + ", " + m.lon.toFixed(5);
 }
 
-const DisplayTypesConverters = [
-    toDecimal,
-    toDegrees,
-    toMercator
-];
+const DisplayTypesConverters = [toDecimal, toDegrees, toMercator];
 
 /**
  * Control displays mouse or screen center Earth coordinates.
  * @class
- * @extends {og.control.Control}
+ * @extends {Control}
  * @param {Object} [options] - Options:
  * @param {Boolean} [options.center] - Earth coordiantes by screen center otherwise mouse pointer. False is default.
  * @param {Boolean} [options.type] - Coordinates shown: 0 - is decimal degrees, 1 - degrees, 2 - mercator geodetic coordinates.
  */
 class EarthCoordinates extends Control {
+    /**
+     *
+     * @param {Object} [options] - Options:
+     */
     constructor(options) {
         super(options);
 
@@ -87,27 +92,32 @@ class EarthCoordinates extends Control {
          */
 
         var pad = false;
-        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        if (
+            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                navigator.userAgent
+            )
+        ) {
             pad = true;
         }
 
         this._center = options.center || pad;
 
+        this._centerDiv = null;
+
         /**
          * Current position.
          * @public
-         * @type {og.Vec3}
+         * @type {Vec3}
          */
         this.position = null;
     }
 
     oninit() {
-        this._display = document.createElement('div');
-        this._display.className = 'ogEarthCoordinatesControl';
+        this._display = document.createElement("div");
+        this._display.className = "ogEarthCoordinatesControl";
         var that = this;
 
         function _refresh(el) {
-
             if (that._displayType >= DisplayTypesConverters.length) {
                 that._displayType = 0;
             }
@@ -132,19 +142,19 @@ class EarthCoordinates extends Control {
 
         _refresh(this._display);
 
-        let centerDiv = document.createElement('div');
-        centerDiv.className = 'ogCenterIcon';
-        centerDiv.innerHTML = '<svg width="12" height="12"><g><path stroke-width="1" stroke-opacity="1" d="M6 0L6 12M0 6L12 6" stroke="#009DFF"></path></g></svg>';
-        this.renderer.div.appendChild(centerDiv);
+        this._centerDiv = document.createElement("div");
+        this._centerDiv.className = "ogCenterIcon";
+        this._centerDiv.innerHTML =
+            '<svg width="12" height="12"><g><path stroke-width="1" stroke-opacity="1" d="M6 0L6 12M0 6L12 6" stroke="#009DFF"></path></g></svg>';
+        this.renderer.div.appendChild(this._centerDiv);
 
         if (this._center) {
             this.renderer.activeCamera.events.on("moveend", this._grabCoordinates, this);
-            centerDiv.style.display = "block";
+            this._centerDiv.style.display = "block";
         } else {
             this.renderer.events.on("mousemove", this._onMouseMove, this);
-            centerDiv.style.display = "none";
+            this._centerDiv.style.display = "none";
         }
-
     }
 
     /**
@@ -158,19 +168,28 @@ class EarthCoordinates extends Control {
             if (center) {
                 this.renderer.events.off("mousemove", this._onMouseMove);
                 this.renderer.activeCamera.events.on("moveend", this._grabCoordinates, this);
-                centerDiv.style.display = "block";
+                this._centerDiv.style.display = "block";
             } else {
                 this.renderer.events.off("draw", this._draw);
                 this.renderer.events.on("mousemove", this._onMouseMove, this);
-                centerDiv.style.display = "none";
+                this._centerDiv.style.display = "none";
             }
         }
     }
 
     _showPosition() {
         if (this.position) {
-            this.position.height = ((this.position.height > 10000 || this.position.height < -10000) ? 0 : this.position.height);
-            this._display.innerHTML = "Lat/Lon: " + this._converter(this.position) + " h(m): " + (this.position.height > 0 ? "~" + (Math.round(this.position.height) / 1000).toFixed(3) * 1000 : "-");
+            this.position.height =
+                this.position.height > 10000 || this.position.height < -10000
+                    ? 0
+                    : this.position.height;
+            this._display.innerHTML =
+                "Lat/Lon: " +
+                this._converter(this.position) +
+                " h(m): " +
+                (this.position.height > 0
+                    ? "~" + (Math.round(this.position.height) / 1000).toFixed(3) * 1000
+                    : "-");
         } else {
             this._display.innerHTML = "Lat/Lon: " + "_____________________";
         }
@@ -185,9 +204,11 @@ class EarthCoordinates extends Control {
     _onMouseMove() {
         var r = this.renderer;
         var ms = r.events.mouseState;
-        if (!(ms.leftButtonDown || ms.rightButtonDown) &&
+        if (
+            !(ms.leftButtonDown || ms.rightButtonDown) &&
             r.controlsBag.scaleRot <= 0 &&
-            !r.activeCamera._flying) {
+            !r.activeCamera._flying
+        ) {
             this.position = this.planet.getLonLatFromPixelTerrain(ms, true);
             this._showPosition();
         }

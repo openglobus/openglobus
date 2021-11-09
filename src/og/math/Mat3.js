@@ -26,7 +26,7 @@ export class Mat3 {
      * Sets column-major order array matrix.
      * @public
      * @param {Array.<number>} m - Matrix array.
-     * @returns {og.Mat3}
+     * @returns {Mat3}
      */
     set(m) {
         this._m[0] = m[0];
@@ -44,7 +44,7 @@ export class Mat3 {
     /**
      * Duplicates a Mat3 instance.
      * @public
-     * @returns {og.Mat3}
+     * @returns {Mat3}
      */
     clone() {
         var res = new Mat3();
@@ -55,8 +55,8 @@ export class Mat3 {
     /**
      * Copy matrix.
      * @public
-     * @param {og.Mat3} a - Matrix to copy.
-     * @returns {og.Mat3}
+     * @param {Mat3} a - Matrix to copy.
+     * @returns {Mat3}
      */
     copy(a) {
         return this.set(a._m);
@@ -65,7 +65,7 @@ export class Mat3 {
     /**
      * Creates trasposed matrix from the current.
      * @public
-     * @returns {og.Mat3}
+     * @returns {Mat3}
      */
     transposeTo() {
         var res = new Mat3();
@@ -79,7 +79,7 @@ export class Mat3 {
     /**
      * Sets matrix to identity.
      * @public
-     * @returns {og.Mat3}
+     * @returns {Mat3}
      */
     setIdentity() {
         this._m[0] = 1; this._m[1] = 0; this._m[2] = 0;
@@ -91,8 +91,8 @@ export class Mat3 {
     /**
      * Multiply to 3d vector.
      * @public
-     * @params {og.Vec3} p - 3d vector.
-     * @returns {og.Vec3}
+     * @params {Vec3} p - 3d vector.
+     * @returns {Vec3}
      */
     mulVec(p) {
         var d = p.x, e = p.y, g = p.z;
@@ -107,7 +107,7 @@ export class Mat3 {
     /**
      * Converts to 4x4 matrix.
      * @public
-     * @returns {og.Mat4}
+     * @returns {Mat4}
      */
     toMatrix4() {
         var res = new Mat4();
@@ -137,7 +137,7 @@ export class Mat3 {
 /**
  * Mat3 factory.
  * @static
- * @return {og.Mat3}
+ * @return {Mat3}
  */
 export function mat3() {
     return new Mat3();

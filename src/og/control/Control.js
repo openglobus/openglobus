@@ -12,6 +12,10 @@
  * @param {Boolean} [options.autoActivated=true] - If true - calls initialize function after the renderer assigning.
  */
 class Control {
+
+    /**
+     * @param {Object} [options] - Control activation options:
+     */
     constructor(options) {
         options = options || {};
 
@@ -29,7 +33,7 @@ class Control {
         /**
          * Assigned renderer.
          * @public
-         * @type {og.Renderer}
+         * @type {Renderer}
          */
         this.renderer = null;
 
@@ -106,7 +110,7 @@ class Control {
     /**
      * Assign renderer to the control.
      * @public
-     * @type {og.Renderer}
+     * @type {Renderer}
      */
     addTo(renderer) {
         if (renderer) {

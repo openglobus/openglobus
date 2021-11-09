@@ -10,7 +10,7 @@ import { Vec3 } from '../math/Vec3.js';
  * Bounding sphere class.
  * @class
  * @param {Number} [radius] - Bounding sphere radius.
- * @param {og.Vec3} [center] - Bounding sphere coordiantes.
+ * @param {Vec3} [center] - Bounding sphere coordiantes.
  */
 class Sphere {
     /**
@@ -30,7 +30,7 @@ class Sphere {
         /**
          * Sphere coordiantes.
          * @public
-         * @type {og.Vec3}
+         * @type {Vec3}
          */
         this.center = center ? center.clone() : new Vec3();
     }
@@ -47,8 +47,8 @@ class Sphere {
 
     /**
      * Sets bounding sphere coordiantes by ellipsoid geodetic extend.
-     * @param {og.Ellipsoid} ellipsoid - Ellipsoid.
-     * @param {og.Extent} extent - Geodetic extent.
+     * @param {Ellipsoid} ellipsoid - Ellipsoid.
+     * @param {Extent} extent - Geodetic extent.
      */
     setFromExtent(ellipsoid, extent) {
         this.setFromBounds(extent.getCartesianBounds(ellipsoid));

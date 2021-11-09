@@ -1,6 +1,6 @@
-'use strict';
+"use strict";
 
-import * as jd from './jd.js';
+import * as jd from "./jd.js";
 
 /**
  * Angle between J2000 mean equator and the ecliptic plane.
@@ -16,7 +16,7 @@ export const J2000_OBLIQUITY = 23.4392911;
  * @const
  * @type{Number}
  */
-export const AU_TO_METERS = 1.49597870e+11;
+export const AU_TO_METERS = 1.4959787e11;
 
 /**
  * Terestrial and atomic time difference.
@@ -45,7 +45,7 @@ export const SUN_GRAVITATIONAL_PARAMETER = 1.32712440018e20;
  * @returns {Number} - returns barycentric dynamical time.
  */
 export function TAItoTDB(tai) {
-    tai += og.astro.TDT_TAI * jd.ONE_BY_SECONDS_PER_DAY;
+    tai += TDT_TAI * jd.ONE_BY_SECONDS_PER_DAY;
     var g = 6.239996 + 0.0172019696544 * (tai - jd.J2000);
     return tai + 0.001658 * Math.sin(g + 1.671e-2 * Math.sin(g)) * jd.ONE_BY_SECONDS_PER_DAY;
 }

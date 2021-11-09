@@ -22,9 +22,9 @@ const INV_PI_BY_180_HALF_PI = INV_PI_BY_180 * HALF_PI;
 export class LonLat {
 
     /**
-     * @param {number} [lon] 
-     * @param {number} [lat] 
-     * @param {number} [height] 
+     * @param {number} [lon] - Longitude.
+     * @param {number} [lat] - Latitude.
+     * @param {number} [height] - Height over the surface.
      */
     constructor(lon, lat, height) {
 

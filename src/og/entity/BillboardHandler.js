@@ -23,6 +23,10 @@ const ALIGNEDAXIS_BUFFER = 8;
  *
  */
 class BillboardHandler {
+    /**
+     * 
+     * @param {*} entityCollection 
+     */
     constructor(entityCollection) {
 
         /**

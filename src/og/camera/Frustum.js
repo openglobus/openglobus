@@ -15,6 +15,10 @@ function planeNormalize(plane) {
  * @class
  */
 class Frustum {
+
+    /**
+     * @param {*} options 
+     */
     constructor(options = {}) {
         /**
          * Frustum planes.
@@ -29,28 +33,28 @@ class Frustum {
         /**
          * Camera projection matrix.
          * @protected
-         * @type {og.Mat4}
+         * @type {Mat4}
          */
         this._projectionMatrix = new Mat4();
 
         /**
          * Camera inverse projection matrix.
          * @protected
-         * @type {og.Mat4}
+         * @type {Mat4}
          */
         this._inverseProjectionMatrix = new Mat4();
 
         /**
          * Product of projection and view matrices.
          * @protected
-         * @type {og.Mat4}
+         * @type {Mat4}
          */
         this._projectionViewMatrix = new Mat4();
 
         /**
          * Inverse projectionView Matrix.
          * @protected
-         * @type {og.Mat4}
+         * @type {Mat4}
          */
         this._inverseProjectionViewMatrix = new Mat4();
 
@@ -210,7 +214,7 @@ class Frustum {
     /**
      * Returns true if a point in the frustum.
      * @public
-     * @param {og.Vec3} point - Cartesian point.
+     * @param {Vec3} point - Cartesian point.
      * @returns {boolean} -
      */
     containsPoint(point) {
@@ -227,7 +231,7 @@ class Frustum {
     /**
      * Returns true if the frustum contains a bonding sphere, but bottom plane exclude.
      * @public
-     * @param {og.bv.Sphere} sphere - Bounding sphere.
+     * @param {Sphere} sphere - Bounding sphere.
      * @returns {boolean} -
      */
     containsSphereBottomExc(sphere) {
@@ -251,7 +255,7 @@ class Frustum {
     /**
      * Returns true if the frustum contains a bonding sphere.
      * @public
-     * @param {og.bv.Sphere} sphere - Bounding sphere.
+     * @param {Sphere} sphere - Bounding sphere.
      * @returns {boolean} -
      */
     containsSphere(sphere) {
@@ -287,7 +291,7 @@ class Frustum {
     /**
      * Returns true if the frustum contains a bounding box.
      * @public
-     * @param {og.bv.Box} box - Bounding box.
+     * @param {Box} box - Bounding box.
      * @returns {boolean} -
      */
     containsBox(box) {

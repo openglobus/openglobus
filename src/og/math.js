@@ -77,7 +77,7 @@ export const EPSILON20 = 1e-20;
  * @param {number} base - Base value.
  * @returns {number} -
  * @example
- * og.math.log(64, 2)
+ * log(64, 2)
  * //returns 6
  */
 export function log(n, base) {
@@ -92,7 +92,7 @@ export function log(n, base) {
  * @param {number} max - Maximal edge.
  * @returns {number} -
  * @example
- * og.math.clamp(12, 1, 5)
+ * clamp(12, 1, 5)
  * //returns 5
  */
 export function clamp(number, min, max) {
@@ -200,9 +200,9 @@ export function mod(m, n) {
  * @returns {number} -
  */
 export function zeroTwoPI(a) {
-    var mod = og.math.mod(a, og.math.TWO_PI);
-    if (Math.abs(mod) < og.math.EPSILON14 && Math.abs(a) > og.math.EPSILON14) {
-        return og.math.TWO_PI;
+    var mod = mod(a, TWO_PI);
+    if (Math.abs(mod) < EPSILON14 && Math.abs(a) > EPSILON14) {
+        return TWO_PI;
     }
     return mod;
 }
@@ -235,7 +235,7 @@ export function frac(x) {
  * @returns {number} -
  */
 export function log2(x) {
-    return Math.log(x) / og.math.LOG2;
+    return Math.log(x) / LOG2;
 }
 
 /**
@@ -299,11 +299,11 @@ export function bezier1v(t, p0, p1, p2, p3) {
  * Performs a 3D bezier interpolation.
  * @function
  * @param {number} t - Interpolation value.
- * @param {og.Vec3} p0 - First control point.
- * @param {og.Vec3} p1 - Second control point.
- * @param {og.Vec3} p2 - Third control point.
- * @param {og.Vec3} p3 - Fourth control point.
- * @returns {og.Vec3} -
+ * @param {Vec3} p0 - First control point.
+ * @param {Vec3} p1 - Second control point.
+ * @param {Vec3} p2 - Third control point.
+ * @param {Vec3} p3 - Fourth control point.
+ * @returns {Vec3} -
  */
 export function bezier3v(t, p0, p1, p2, p3) {
     var u = 1 - t;
@@ -346,7 +346,7 @@ export function norm_lon(lon) {
  * @returns {number} -
  */
 export function negativePItoPI(a) {
-    return og.math.zeroTwoPI(a + Math.PI) - Math.PI;
+    return zeroTwoPI(a + Math.PI) - Math.PI;
 }
 
 /**

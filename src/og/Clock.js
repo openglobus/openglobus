@@ -10,7 +10,7 @@ import * as jd from './astro/jd.js';
 /**
  * Class represents application timer that stores custom current julian datetime, and time speed multiplier.
  * @class
- * @param {Object} [params]: - Clock parameters:
+ * @param {Object} [params] - Clock parameters:
  * @param {number} [params.startDate=0.0] - Julian start date.
  * @param {number} [params.endDate=0.0] - Julian end date.
  * @param {number} [params.currentDate] - Julian current date. Default: current date.
@@ -29,6 +29,10 @@ class Clock {
         this._counter = n;
     }
 
+    /**
+     * 
+     * @param {Object} [params] - Clock parameters:
+     */
     constructor(params) {
         params = params || {};
 

@@ -6,7 +6,7 @@ import { input } from '../input/input.js';
 /**
  * Simple keyboard camera navigation with W,S,A,D and shift keys to fly around the scene.
  * @class
- * @extends {og.control.Control}
+ * @extends {Control}
  * @param {Object} [options] - Control options.
  */
 class SimpleNavigation extends Control {

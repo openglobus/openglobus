@@ -7,10 +7,13 @@
 /**
  * Usefull class for working with JS canvas object.
  * @class
- * @param {number} [width] - Canvas width. Default 256.
- * @param {number} [height] - Canvas height. Default 256.
  */
 class ImageCanvas {
+    
+    /**
+     * @param {number} [width] - Canvas width. Default 256.
+     * @param {number} [height] - Canvas height. Default 256.
+     */
     constructor(width, height) {
         /**
          * Canvas object.
