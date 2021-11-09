@@ -87,51 +87,49 @@ class GeoObjectHandler {
     //Create buffers
     createVertexBuffer() {
         var h = this._renderer.handler;
-        for (let i = 0; i < this._vertexArr.length; i++) {
+        for (let i = 0, len = this._vertexArr.length; i < len; i++) {
             this._vertexBuffer && h.gl.deleteBuffer(this._vertexBuffer[i]);
             this._vertexArr[i] = makeArrayTyped(this._vertexArr[i]);
             this._vertexBuffer[i] = h.createArrayBuffer(
                 this._vertexArr[i],
                 3,
-                this._vertexArr[i].length / 3
+                len / 3
             );
         }
     }
 
     createPitchRollBuffer() {
         var h = this._renderer.handler;
-        for (let i = 0; i < this._pitchRollArr.length; i++) {
+        for (let i = 0, len = this._pitchRollArr.length; i < len; i++) {
             this._pitchRollBuffer && h.gl.deleteBuffer(this._pitchRollBuffer[i]);
             this._pitchRollArr[i] = makeArrayTyped(this._pitchRollArr[i]);
             this._pitchRollBuffer[i] = h.createArrayBuffer(
                 this._pitchRollArr[i],
                 2,
-                this._pitchRollArr[i].length / 2
+                len / 2
             );
         }
     }
 
     createSizeBuffer() {
         var h = this._renderer.handler;
-        for (let i = 0; i < this._sizeArr.length; i++) {
+        for (let i = 0, len = this._sizeArr.length; i < len; i++) {
             this._sizeBuffer && h.gl.deleteBuffer(this._sizeBuffer[i]);
             this._sizeArr[i] = makeArrayTyped(this._sizeArr[i]);
-            this._sizeBuffer[i] = h.createArrayBuffer(this._sizeArr[i], 1, this._sizeArr[i].length);
+            this._sizeBuffer[i] = h.createArrayBuffer(this._sizeArr[i], 1, len);
         }
     }
 
     createPositionBuffer() {
         let h = this._renderer.handler;
-        for (let i = 0; i < this._positionHighArr.length; i++) {
+        for (let i = 0, len = this._positionHighArr.length; i < len; i++) {
             this._positionHighBuffer && h.gl.deleteBuffer(this._positionHighBuffer[i]);
             this._positionHighArr[i] = makeArrayTyped(this._positionHighArr[i]);
             this._positionHighBuffer[i] = h.createArrayBuffer(
                 this._positionHighArr[i],
                 3,
-                this._positionHighArr[i].length / 3
+                len / 3
             );
-        }
-        for (let i = 0; i < this._positionLowArr.length; i++) {
             this._positionLowBuffer && h.gl.deleteBuffer(this._positionLowBuffer[i]);
             this._positionLowArr[i] = makeArrayTyped(this._positionLowArr[i]);
             this._positionLowBuffer[i] = h.createArrayBuffer(
@@ -144,46 +142,46 @@ class GeoObjectHandler {
 
     createRgbaBuffer() {
         var h = this._renderer.handler;
-        for (let i = 0; i < this._rgbaArr.length; i++) {
+        for (let i = 0, len = this._rgbaArr.length; i < len; i++) {
             this._rgbaBuffer && h.gl.deleteBuffer(this._rgbaBuffer[i]);
             this._rgbaArr[i] = makeArrayTyped(this._rgbaArr[i]);
             this._rgbaBuffer[i] = h.createArrayBuffer(
                 this._rgbaArr[i],
                 4,
-                this._rgbaArr[i].length / 4
+                len / 4
             );
         }
     }
 
     createDirectionBuffer() {
         var h = this._renderer.handler;
-        for (let i = 0; i < this._directionArr.length; i++) {
+        for (let i = 0, len = this._directionArr.length; i < len; i++) {
             this._directionBuffer && h.gl.deleteBuffer(this._directionBuffer[i]);
             this._directionArr[i] = makeArrayTyped(this._directionArr[i]);
             this._directionBuffer[i] = h.createArrayBuffer(
                 this._directionArr[i],
                 3,
-                this._directionArr[i].length / 3
+                len / 3
             );
         }
     }
 
     createNormalsBuffer() {
         var h = this._renderer.handler;
-        for (let i = 0; i < this._normalsArr.length; i++) {
+        for (let i = 0, len = this._normalsArr.length; i < len; i++) {
             this._normalsBuffer && h.gl.deleteBuffer(this._normalsBuffer[i]);
             this._normalsArr[i] = makeArrayTyped(this._normalsArr[i]);
             this._normalsBuffer[i] = h.createArrayBuffer(
                 this._normalsArr[i],
                 3,
-                this._normalsArr[i].length / 3
+                len / 3
             );
         }
     }
 
     createIndicesBuffer() {
         var h = this._renderer.handler;
-        for (let i = 0; i < this._indicesArr.length; i++) {
+        for (let i = 0, len = this._indicesArr.length; i < len; i++) {
             this._indicesBuffer && h.gl.deleteBuffer(this._indicesBuffer[i]);
             this._indicesArr[i] = makeArrayTyped(this._indicesArr[i], Uint16Array);
             this._indicesBuffer[i] = h.createElementArrayBuffer(
@@ -196,13 +194,13 @@ class GeoObjectHandler {
 
     createPickingColorBuffer() {
         var h = this._renderer.handler;
-        for (let i = 0; i < this._pickingColorArr.length; i++) {
+        for (let i = 0, len = this._pickingColorArr.length; i < len; i++) {
             this._pickingColorBuffer && h.gl.deleteBuffer(this._pickingColorBuffer[i]);
             this._pickingColorArr[i] = makeArrayTyped(this._pickingColorArr[i]);
             this._pickingColorBuffer[i] = h.createArrayBuffer(
                 this._pickingColorArr[i],
                 3,
-                this._pickingColorArr[i].length / 3
+                len / 3
             );
         }
     }
