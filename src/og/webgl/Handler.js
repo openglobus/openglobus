@@ -199,26 +199,6 @@ class Handler {
     }
 
     /**
-     * Creates NEAREST filter texture.
-     * @public
-     * @param {Object} image - Image or Canvas object.
-     * @returns {Object} - WebGL texture object.
-     */
-    createTexture_n(image) {
-        var gl = this.gl;
-        var texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.bindTexture(gl.TEXTURE_2D, null);
-        return texture;
-    }
-
-    /**
      * Creates empty texture.
      * @public
      * @param {Number} [width=1] - Specifies the width of the texture image..
@@ -350,13 +330,33 @@ class Handler {
     }
 
     /**
+     * Creates NEAREST filter texture.
+     * @public
+     * @param {Object} image - Image or Canvas object.
+     * @returns {Object} - WebGL texture object.
+     */
+    static createTexture_n(handler, image) {
+        var gl = handler.gl;
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        return texture;
+    }
+
+    /**
      * Creates LINEAR filter texture.
      * @public
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_l(image) {
-        var gl = this.gl;
+    static createTexture_l(handler, image) {
+        var gl = handler.gl;
         var texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
@@ -374,8 +374,8 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_mm(image) {
-        var gl = this.gl;
+    static createTexture_mm(handler, image) {
+        var gl = handler.gl;
         var texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
@@ -394,8 +394,8 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_a(image) {
-        var gl = this.gl;
+    static createTexture_a(handler, image) {
+        var gl = handler.gl;
         var texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
@@ -404,8 +404,8 @@ class Handler {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
         gl.texParameterf(
             gl.TEXTURE_2D,
-            this.extensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT,
-            this._params.anisotropy
+            handler.extensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT,
+            handler._params.anisotropy
         );
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -420,7 +420,23 @@ class Handler {
      * @returns {Object} - WebGL texture object.
      */
     createTexture(image) {
-        return this.createTexture_a(image);
+        return Handler.createTexture_a(this, image);
+    }
+
+    createTexture_n(image) {
+        return Handler.createTexture_n(this, image);
+    }
+
+    createTexture_l(image) {
+        return Handler.createTexture_l(this, image);
+    }
+
+    createTexture_mm(image) {
+        return Handler.createTexture_mm(this, image);
+    }
+
+    createTexture_a(image) {
+        return Handler.createTexture_a(this, image);
     }
 
     /**
@@ -578,7 +594,6 @@ class Handler {
      * @public
      */
     initialize() {
-
         if (this._id) {
             this.canvas = document.getElementById(this._id);
         } else {
@@ -770,7 +785,6 @@ class Handler {
      * @param {number} h - Canvas height.
      */
     setSize(w, h) {
-
         if (w > MAX_SIZE) {
             w = MAX_SIZE;
         }
@@ -905,7 +919,7 @@ class Handler {
         if (params && params.color) {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor(params.color);
-            texture = this.createTexture_n(imgCnv._canvas);
+            texture = Handler.createTexture_n(this, imgCnv._canvas);
             texture.default = true;
             success(texture);
         } else if (params && params.url) {
@@ -920,7 +934,7 @@ class Handler {
         } else {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor("#C5C5C5");
-            texture = this.createTexture_n(imgCnv._canvas);
+            texture = Handler.createTexture_n(this, imgCnv._canvas);
             texture.default = true;
             success(texture);
         }
@@ -1018,5 +1032,12 @@ class Handler {
         }
     }
 }
+
+export const createTexture = {
+    NEAREST: Handler.createTexture_n,
+    LINEAR: Handler.createTexture_l,
+    MIPMAP: Handler.createTexture_mm,
+    ANISOTROPHIC: Handler.createTexture_a
+};
 
 export { Handler };

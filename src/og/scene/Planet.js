@@ -90,9 +90,12 @@ const EVENT_NAMES = [
  * Main class for rendering planet
  * @class
  * @extends {RenderNode}
- * @param {string} name - Planet name(Earth by default)
- * @param {Ellipsoid} ellipsoid - Planet ellipsoid(WGS84 by default)
- * @param {Number} [maxGridSize=128] - Segment maximal grid size
+ * @param {string} [options.name="Earth"] - Planet name(Earth by default)
+ * @param {Ellipsoid} [options.ellipsoid] - Planet ellipsoid(WGS84 by default)
+ * @param {Number} [options.maxGridSize=128] - Segment maximal grid size
+ * @param {Number} [options.maxEqualZoomAltitude=850000.0] - Maximal altitude since segments on the screen bacame the same zoom level
+ * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen bacame the same zoom level
+ * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen bacame the same zoom level
  * @fires og.scene.Planet#draw
  * @fires og.scene.Planet#layeradd
  * @fires og.scene.Planet#baselayerchange
@@ -176,6 +179,10 @@ export class Planet extends RenderNode {
 
         this._minAltitude = options.minAltitude;
         this._maxAltitude = options.maxAltitude;
+
+        this.maxEqualZoomAltitude = options.maxEqualZoomAltitude || 850000.0;
+        this.minEqualZoomAltitude = options.minEqualZoomAltitude || 10000.0;
+        this.minEqualZoomCameraSlope = options.minEqualZoomCameraSlope || 0.8;
 
         /**
          * Screen mouse pointer projected to planet cartesian position.
@@ -427,6 +434,7 @@ export class Planet extends RenderNode {
         if (minLod) {
             this._minLodRatio = minLod;
         }
+        this._renderCompletedActivated = false;
     }
 
     /**
@@ -543,6 +551,8 @@ export class Planet extends RenderNode {
      * @param {number} factor - Elevation scale.
      */
     setHeightFactor(factor) {
+        this._renderCompletedActivated = false;
+
         if (this._heightFactor !== factor) {
             this._heightFactor = factor;
             this._quadTree.destroyBranches();
@@ -986,13 +996,15 @@ export class Planet extends RenderNode {
      * @protected
      */
     _collectRenderNodes() {
+        let cam = this.camera;
+
         this._lodRatio = math.lerp(
-            this.camera.slope < 0.0 ? 0.0 : this.camera.slope,
+            cam.slope < 0.0 ? 0.0 : cam.slope,
             this._maxLodRatio,
             this._minLodRatio
         );
 
-        this.camera._insideSegment = null;
+        cam._insideSegment = null;
 
         this._nodeCounterError_ = 0;
 
@@ -1008,12 +1020,12 @@ export class Planet extends RenderNode {
         this.minCurrZoom = math.MAX;
         this.maxCurrZoom = math.MIN;
 
-        this._quadTree.renderTree(this.camera, 0, null);
+        this._quadTree.renderTree(cam, 0, null);
 
         if (
-            this.renderer.activeCamera.slope > 0.8 &&
-            this.renderer.activeCamera._lonLat.height < 850000.0 &&
-            this.renderer.activeCamera._lonLat.height > 10000.0
+            cam.slope > this.minEqualZoomCameraSlope &&
+            cam._lonLat.height < this.maxEqualZoomAltitude &&
+            cam._lonLat.height > this.minEqualZoomAltitude
         ) {
             this.minCurrZoom = this.maxCurrZoom;
 
@@ -1048,18 +1060,20 @@ export class Planet extends RenderNode {
             }
 
             for (let i = 0, len = temp2.length; i < len; i++) {
-                temp2[i].renderTree(this.camera, this.maxCurrZoom, null);
+                temp2[i].renderTree(cam, this.maxCurrZoom, null);
             }
         }
 
-        this._quadTreeNorth.renderTree(this.camera, 0, null);
-        this._quadTreeSouth.renderTree(this.camera, 0, null);
+        this._quadTreeNorth.renderTree(cam, 0, null);
+        this._quadTreeSouth.renderTree(cam, 0, null);
     }
 
     _globalPreDraw() {
-        this._distBeforeMemClear += this._prevCamEye.distance(this.camera.eye);
-        this._prevCamEye.copy(this.camera.eye);
-        this.renderer.activeCamera.checkFly();
+        let cam = this.camera;
+
+        this._distBeforeMemClear += this._prevCamEye.distance(cam.eye);
+        this._prevCamEye.copy(cam.eye);
+        cam.checkFly();
 
         // free memory
         if (this._createdNodesCount > MAX_NODES && this._distBeforeMemClear > 1000.0) {
@@ -1110,7 +1124,7 @@ export class Planet extends RenderNode {
         gl.disable(gl.POLYGON_OFFSET_FILL);
 
         if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
-            if (this._skipPreRender && (!this._renderCompletedActivated || cam._moved)) {
+            if (this._skipPreRender && (!this._renderCompletedActivated || cam.isMoved)) {
                 this._collectRenderNodes();
             }
             this._skipPreRender = true;
@@ -1134,7 +1148,9 @@ export class Planet extends RenderNode {
         }
 
         gl.blendEquation(gl.FUNC_ADD);
+
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
         gl.enable(gl.BLEND);
         gl.enable(gl.CULL_FACE);
 

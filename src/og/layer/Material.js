@@ -2,14 +2,13 @@
  * @module og/layer/Material
  */
 
-'use strict';
+"use strict";
 
 class Material {
-
     /**
-     * 
-     * @param {*} segment 
-     * @param {*} layer 
+     *
+     * @param {*} segment
+     * @param {*} layer
      */
     constructor(segment, layer) {
         this.segment = segment;
@@ -30,29 +29,33 @@ class Material {
         this.pickingReady = false;
     }
 
-    /**
-     * @param {*} layer 
-     */
-    assignLayer(layer) {
-        this.layer = layer;
-    }
+    ///**
+    // * @param {*} layer
+    // */
+    //assignLayer(layer) {
+    //    this.layer = layer;
+    //}
 
     /**
-     * 
+     *
      */
     abortLoading() {
         this.layer.abortMaterialLoading(this);
     }
 
+    _createTexture(img) {
+        return this.layer.createTexture(this.segment.handler, img);
+    }
+
     /**
-     * 
-     * @param {*} img 
+     *
+     * @param {*} img
      */
     applyImage(img) {
         if (this.segment.initialized) {
             this._updateTexture = null;
             //this.image = img;
-            this.texture = this.segment.handler.createTexture(img);
+            this.texture = this._createTexture(img);
             this.appliedNodeId = this.segment.node.nodeId;
             this.isReady = true;
             this.pickingReady = true;
@@ -63,9 +66,9 @@ class Material {
     }
 
     /**
-     * 
-     * @param {*} texture 
-     * @param {*} pickingMask 
+     *
+     * @param {*} texture
+     * @param {*} pickingMask
      */
     applyTexture(texture, pickingMask) {
         if (this.segment.initialized) {
@@ -83,7 +86,7 @@ class Material {
     }
 
     /**
-     * 
+     *
      */
     textureNotExists() {
         if (this.segment.initialized) {
@@ -95,7 +98,7 @@ class Material {
     }
 
     /**
-     * 
+     *
      */
     clear() {
         this.loadingAttempts = 0;
