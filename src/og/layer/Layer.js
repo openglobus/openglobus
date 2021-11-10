@@ -11,6 +11,7 @@ import { Extent } from "../Extent.js";
 import { LonLat } from "../LonLat.js";
 import { Material } from "./Material.js";
 import { Vec3 } from "../math/Vec3.js";
+import { createTexture } from "../webgl/Handler.js";
 
 export const FADING_FACTOR = 0.29;
 
@@ -182,6 +183,14 @@ class Layer {
          * @type {Extent}
          */
         this._extent = null;
+
+        if (options.textureFilter) {
+            this.createTexture =
+                createTexture[options.textureFilter.trim().toUpperCase()] ||
+                createTexture[textureFilter.LINEAR];
+        } else {
+            this.createTexture = createTexture.ANISOTROPHIC;
+        }
 
         /**
          * Visible mercator extent.

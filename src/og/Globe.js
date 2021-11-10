@@ -61,12 +61,14 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {Number} [options.maxGridSize] = Maximal segment grid size. 128 is default
  * @param {boolean} [options.useSpecularTexture] - use specular water mask
  * @param {boolean} [options.useNightTexture] - show night cities
+ * @param {Number} [options.maxEqualZoomAltitude=850000.0] - Maximal altitude since segments on the screen bacame the same zoom level
+ * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen bacame the same zoom level
+ * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen bacame the same zoom level
  */
 
 class Globe {
-
     /**
-     * @param {*} options 
+     * @param {*} options
      */
     constructor(options) {
         // Canvas creation
@@ -163,7 +165,10 @@ class Globe {
                 useNightTexture: options.useNightTexture,
                 useSpecularTexture: options.useSpecularTexture,
                 minAltitude: options.minAltitude,
-                maxAltitude: options.maxAltitude
+                maxAltitude: options.maxAltitude,
+                maxEqualZoomAltitude: options.maxEqualZoomAltitude,
+                minEqualZoomAltitude: options.minEqualZoomAltitude,
+                minEqualZoomCameraSlope: options.minEqualZoomCameraSlope
             });
         }
 
@@ -185,8 +190,8 @@ class Globe {
                 options.useEarthNavigation
                     ? new EarthNavigation()
                     : new MouseNavigation({
-                        minSlope: options.minSlope
-                    }),
+                          minSlope: options.minSlope
+                      }),
                 new TouchNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),

@@ -24,7 +24,7 @@ export class Mat4 {
      * @static
      * @returns {Mat4} -
      */
-    static get identity() {
+    static identity() {
         var res = new Mat4();
         res._m[0] = 1;
         res._m[1] = 0;
