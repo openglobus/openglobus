@@ -33,7 +33,7 @@ export const FADING_FACTOR = 0.29;
  * @param {Vec3} [options.ambient=[0.1, 0.1, 0.21]] - Ambient RGB color.
  * @param {Vec3} [options.diffuse=[1.0, 1.0, 1.0]] - Diffuse RGB color.
  * @param {Vec3} [options.specular=[0.00025, 0.00015, 0.0001]] - Specular RGB color.
- * @param {string} [options.textureFilter=["anisotropic"]] - Image texture filter. Available values: "nearest", "linear", "mipmap" and "anisotropic".
+ * @param {string} [options.textureFilter="anisotropic"] - Image texture filter. Available values: "nearest", "linear", "mipmap" and "anisotropic".
  * @param {Number} [options.shininess=100] - Shininess.
  *
  * @fires og.Layer#visibilitychange
