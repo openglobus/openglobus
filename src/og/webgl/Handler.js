@@ -27,10 +27,9 @@ const vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
  * @param {string} id - Canvas element id that WebGL handler assing with. If it's null
  * or undefined creates hidden canvas and handler bacomes hidden.
  * @param {Object} [params] - Handler options:
- * @param {number} [params.anisotropy] - Anisitropy filter degree. 8 is default.
+ * @param {number} [params.anisotropy] - Anisotropy filter degree. 8 is default.
  * @param {number} [params.width] - Hidden handler width. 256 is default.
  * @param {number} [params.height] - Hidden handler height. 256 is default.
- * @param {Object} [param.scontext] - Native WebGL context attributes. See https://www.khronos.org/registry/webgl/specs/latest/1.0/#WEBGLCONTEXTATTRIBUTES
  * @param {Array.<string>} [params.extensions] - Additional WebGL extension list. Available by default: EXT_texture_filter_anisotropic.
  */
 class Handler {
@@ -1037,7 +1036,7 @@ export const createTexture = {
     NEAREST: Handler.createTexture_n,
     LINEAR: Handler.createTexture_l,
     MIPMAP: Handler.createTexture_mm,
-    ANISOTROPHIC: Handler.createTexture_a
+    ANISOTROPIC: Handler.createTexture_a
 };
 
 export { Handler };
