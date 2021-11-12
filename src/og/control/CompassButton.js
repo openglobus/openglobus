@@ -86,9 +86,8 @@ let svg = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
  * @params {Object} [options] - Control options.
  */
 class CompassButton extends Control {
-
     /**
-     * 
+     *
      * @params {Object} [options] - Control options.
      */
     constructor(options) {

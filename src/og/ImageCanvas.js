@@ -2,14 +2,13 @@
  * @module og/ImageCanvas
  */
 
-'use strict';
+"use strict";
 
 /**
  * Usefull class for working with JS canvas object.
  * @class
  */
 class ImageCanvas {
-    
     /**
      * @param {number} [width] - Canvas width. Default 256.
      * @param {number} [height] - Canvas height. Default 256.
@@ -29,7 +28,7 @@ class ImageCanvas {
          * @protected
          * @type {Object}
          */
-        this._context = this._canvas.getContext('2d');
+        this._context = this._canvas.getContext("2d");
     }
 
     /**
@@ -103,7 +102,7 @@ class ImageCanvas {
     resize(width, height) {
         this._canvas.width = width;
         this._canvas.height = height;
-        this._context = this._canvas.getContext('2d');
+        this._context = this._canvas.getContext("2d");
     }
 
     /**
@@ -116,7 +115,7 @@ class ImageCanvas {
      * @param {number} [height] - Image height slice. Image height is default.
      */
     drawImage(img, x, y, width, height) {
-        this._context = this._canvas.getContext('2d');
+        this._context = this._canvas.getContext("2d");
         this._context.drawImage(img, x || 0, y || 0, width || img.width, height || img.height);
     }
 
@@ -154,8 +153,8 @@ class ImageCanvas {
      * @param {string} [color] - Css font color.
      */
     drawText(text, x, y, font, color) {
-        this._context.fillStyle = color || 'black';
-        this._context.font = font || 'normal 14px Verdana';
+        this._context.fillStyle = color || "black";
+        this._context.font = font || "normal 14px Verdana";
         this._context.fillText(text, x || 0, y || 14);
     }
 
@@ -201,14 +200,18 @@ class ImageCanvas {
     openImage() {
         var img = this.getImage();
         var dataUrl = img.src;
-        var windowContent = '<!DOCTYPE html>';
-        windowContent += '<html>';
-        windowContent += '<head><title>Print</title></head>';
-        windowContent += '<body>';
+        var windowContent = "<!DOCTYPE html>";
+        windowContent += "<html>";
+        windowContent += "<head><title>Print</title></head>";
+        windowContent += "<body>";
         windowContent += '<img src="' + dataUrl + '">';
-        windowContent += '</body>';
-        windowContent += '</html>';
-        var printWin = window.open('', '', 'width=' + img.width + 'px ,height=' + img.height + 'px');
+        windowContent += "</body>";
+        windowContent += "</html>";
+        var printWin = window.open(
+            "",
+            "",
+            "width=" + img.width + "px ,height=" + img.height + "px"
+        );
         printWin.document.open();
         printWin.document.write(windowContent);
         printWin.document.close();

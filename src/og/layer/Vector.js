@@ -2,19 +2,22 @@
  * @module og/layer/Vector
  */
 
-'use strict';
+"use strict";
 
-import * as math from '../math.js';
-import * as mercator from '../mercator.js';
-import * as quadTree from '../quadTree/quadTree.js';
-import { Entity } from '../entity/Entity.js';
-import { EntityCollection } from '../entity/EntityCollection.js';
-import { Extent } from '../Extent.js';
-import { EntityCollectionNode, EntityCollectionNodeWGS84 } from '../quadTree/EntityCollectionNode.js';
-import { GeometryHandler } from '../entity/GeometryHandler.js';
-import { Layer } from './Layer.js';
-import { QueueArray } from '../QueueArray.js';
-import { Vec3 } from '../math/Vec3.js';
+import * as math from "../math.js";
+import * as mercator from "../mercator.js";
+import * as quadTree from "../quadTree/quadTree.js";
+import { Entity } from "../entity/Entity.js";
+import { EntityCollection } from "../entity/EntityCollection.js";
+import { Extent } from "../Extent.js";
+import {
+    EntityCollectionNode,
+    EntityCollectionNodeWGS84
+} from "../quadTree/EntityCollectionNode.js";
+import { GeometryHandler } from "../entity/GeometryHandler.js";
+import { Layer } from "./Layer.js";
+import { QueueArray } from "../QueueArray.js";
+import { Vec3 } from "../math/Vec3.js";
 
 /**
  * Creates entity instance array.
@@ -68,13 +71,11 @@ function _entitiesConstructor(entities) {
  * @fires og.layer.Vector#visibilitychange
  */
 class Vector extends Layer {
-
     /**
-     * @param {string} name 
+     * @param {string} name
      * @param {*} [options]
      */
     constructor(name, options = {}) {
-
         super(name, options);
 
         this.events.registerNames(EVENT_NAMES);
@@ -160,14 +161,16 @@ class Vector extends Layer {
          * @public
          * @type {Number}
          */
-        this.polygonOffsetFactor = options.polygonOffsetFactor != undefined ? options.polygonOffsetFactor : 0.0;
+        this.polygonOffsetFactor =
+            options.polygonOffsetFactor != undefined ? options.polygonOffsetFactor : 0.0;
 
         /**
          * Specifies the scale Units for gl.polygonOffset function to calculate depth values, 0.0 is default.
          * @public
          * @type {Number}
          */
-        this.polygonOffsetUnits = options.polygonOffsetUnits != undefined ? options.polygonOffsetUnits : -637000.0;
+        this.polygonOffsetUnits =
+            options.polygonOffsetUnits != undefined ? options.polygonOffsetUnits : -637000.0;
 
         this.pickingEnabled = this._pickingEnabled;
     }
@@ -277,7 +280,6 @@ class Vector extends Layer {
     }
 
     _proceedEntity(entity, rightNow) {
-
         let temp = this._hasImageryTiles;
 
         //
@@ -302,9 +304,10 @@ class Vector extends Layer {
 
         if (entity.billboard || entity.label) {
             if (this._planet) {
-
                 if (entity._cartesian.isZero() && !entity._lonlat.isZero()) {
-                    entity._setCartesian3vSilent(this._planet.ellipsoid.lonLatToCartesian(entity._lonlat));
+                    entity._setCartesian3vSilent(
+                        this._planet.ellipsoid.lonLatToCartesian(entity._lonlat)
+                    );
                 } else {
                     entity._lonlat = this._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
                 }
@@ -367,15 +370,17 @@ class Vector extends Layer {
                     node.count--;
                     node = node.parentNode;
                 }
-                if (entity._nodePtr && entity._nodePtr.count === 0 &&
-                    entity._nodePtr.deferredEntities.length === 0) {
+                if (
+                    entity._nodePtr &&
+                    entity._nodePtr.count === 0 &&
+                    entity._nodePtr.deferredEntities.length === 0
+                ) {
                     entity._nodePtr.entityCollection = null;
                     //
                     // ...
                     //
                 }
-            } else if (entity._nodePtr &&
-                entity._nodePtr.deferredEntities.length) {
+            } else if (entity._nodePtr && entity._nodePtr.deferredEntities.length) {
                 var defEntities = entity._nodePtr.deferredEntities;
                 var j = defEntities.length;
                 while (j--) {
@@ -478,7 +483,6 @@ class Vector extends Layer {
      * @public
      */
     clear() {
-
         let temp = new Array(this._entities.length);
 
         for (let i = 0; i < temp.length; i++) {
@@ -521,7 +525,6 @@ class Vector extends Layer {
      * @returns {layer.Vector} - Returns layer instance.
      */
     setEntities(entities) {
-
         let temp = new Array(entities.length);
         for (let i = 0, len = entities.length; i < len; i++) {
             temp[i] = entities[i];
@@ -573,12 +576,33 @@ class Vector extends Layer {
 
     _createEntityCollectionsTree(entitiesForTree) {
         if (this._planet) {
-            this._entityCollectionsTree = new EntityCollectionNode(this, quadTree.NW, null, 0,
-                Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]), this._planet, 0);
-            this._entityCollectionsTreeNorth = new EntityCollectionNodeWGS84(this, quadTree.NW, null, 0,
-                Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90]), this._planet, 0);
-            this._entityCollectionsTreeSouth = new EntityCollectionNodeWGS84(this, quadTree.NW, null, 0,
-                Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT]), this._planet, 0);
+            this._entityCollectionsTree = new EntityCollectionNode(
+                this,
+                quadTree.NW,
+                null,
+                0,
+                Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]),
+                this._planet,
+                0
+            );
+            this._entityCollectionsTreeNorth = new EntityCollectionNodeWGS84(
+                this,
+                quadTree.NW,
+                null,
+                0,
+                Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90]),
+                this._planet,
+                0
+            );
+            this._entityCollectionsTreeSouth = new EntityCollectionNodeWGS84(
+                this,
+                quadTree.NW,
+                null,
+                0,
+                Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT]),
+                this._planet,
+                0
+            );
 
             for (let i = 0, len = entitiesForTree.length; i < len; i++) {
                 let entity = entitiesForTree[i];
@@ -682,7 +706,6 @@ class Vector extends Layer {
     }
 
     _collectStripCollectionPASS(outArr) {
-
         var ec = this._stripEntityCollection;
 
         ec._fadingOpacity = this._fadingOpacity;
@@ -699,7 +722,6 @@ class Vector extends Layer {
     }
 
     _collectPolylineCollectionPASS(outArr) {
-
         var ec = this._polylineEntityCollection;
 
         ec._fadingOpacity = this._fadingOpacity;
@@ -737,7 +759,12 @@ class Vector extends Layer {
                                 if (seg._extent.isInside(ll)) {
                                     let cart = p._path3v[c_j][c_j_h];
                                     seg.getTerrainPoint(cart, ll, res);
-                                    p.setPoint3v(res.addA(res.normal().scale((rtg && p.altitude) || 0.0)), c_j_h, c_j, true);
+                                    p.setPoint3v(
+                                        res.addA(res.normal().scale((rtg && p.altitude) || 0.0)),
+                                        c_j_h,
+                                        c_j,
+                                        true
+                                    );
                                     break;
                                 }
                             }
@@ -751,9 +778,10 @@ class Vector extends Layer {
     collectVisibleCollections(outArr) {
         var p = this._planet;
 
-        if ((this._fading && this._fadingOpacity > 0.0) ||
-            (this.minZoom <= this._planet.maxCurrZoom && this.maxZoom >= p.maxCurrZoom)) {
-
+        if (
+            (this._fading && this._fadingOpacity > 0.0) ||
+            (this.minZoom <= this._planet.maxCurrZoom && this.maxZoom >= p.maxCurrZoom)
+        ) {
             this._renderingNodes = {};
             this._renderingNodesNorth = {};
             this._renderingNodesSouth = {};
@@ -768,23 +796,41 @@ class Vector extends Layer {
             this._entityCollectionsTree.collectRenderCollectionsPASS1(p._visibleNodes, outArr);
             var i = this._secondPASS.length;
             while (i--) {
-                this._secondPASS[i].collectRenderCollectionsPASS2(p._visibleNodes, outArr, this._secondPASS[i].nodeId);
+                this._secondPASS[i].collectRenderCollectionsPASS2(
+                    p._visibleNodes,
+                    outArr,
+                    this._secondPASS[i].nodeId
+                );
             }
 
             // North nodes
             this._secondPASS = [];
-            this._entityCollectionsTreeNorth.collectRenderCollectionsPASS1(p._visibleNodesNorth, outArr);
+            this._entityCollectionsTreeNorth.collectRenderCollectionsPASS1(
+                p._visibleNodesNorth,
+                outArr
+            );
             i = this._secondPASS.length;
             while (i--) {
-                this._secondPASS[i].collectRenderCollectionsPASS2(p._visibleNodesNorth, outArr, this._secondPASS[i].nodeId);
+                this._secondPASS[i].collectRenderCollectionsPASS2(
+                    p._visibleNodesNorth,
+                    outArr,
+                    this._secondPASS[i].nodeId
+                );
             }
 
             // South nodes
             this._secondPASS = [];
-            this._entityCollectionsTreeSouth.collectRenderCollectionsPASS1(p._visibleNodesSouth, outArr);
+            this._entityCollectionsTreeSouth.collectRenderCollectionsPASS1(
+                p._visibleNodesSouth,
+                outArr
+            );
             i = this._secondPASS.length;
             while (i--) {
-                this._secondPASS[i].collectRenderCollectionsPASS2(p._visibleNodesSouth, outArr, this._secondPASS[i].nodeId);
+                this._secondPASS[i].collectRenderCollectionsPASS2(
+                    p._visibleNodesSouth,
+                    outArr,
+                    this._secondPASS[i].nodeId
+                );
             }
         }
     }
@@ -826,11 +872,12 @@ class Vector extends Layer {
      * @param {Segment.Material} material - Current material.
      */
     loadMaterial(material) {
-
         var seg = material.segment;
 
         if (this._isBaseLayer) {
-            material.texture = seg._isNorth ? seg.planet.solidTextureOne : seg.planet.solidTextureTwo;
+            material.texture = seg._isNorth
+                ? seg.planet.solidTextureOne
+                : seg.planet.solidTextureTwo;
         } else {
             material.texture = seg.planet.transparentTexture;
         }
@@ -856,7 +903,6 @@ class Vector extends Layer {
         if (material.isReady) {
             return [0, 0, 1, 1];
         } else {
-
             !material.isLoading && this.loadMaterial(material);
 
             var segment = material.segment;

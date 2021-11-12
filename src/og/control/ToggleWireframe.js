@@ -2,10 +2,10 @@
  * @module og/control/ToggleWireframe
  */
 
-'use strict';
+"use strict";
 
-import { Control } from './Control.js';
-import { input } from '../input/input.js';
+import { Control } from "./Control.js";
+import { input } from "../input/input.js";
 
 /**
  * Planet GL draw mode(TRIANGLE_STRIP/LINE_STRING) changer.

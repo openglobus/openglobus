@@ -2,13 +2,13 @@
  * @module og/control/Sun
  */
 
-'use strict';
+"use strict";
 
-import { Control } from './Control.js';
-import { getSunPosition } from '../astro/earth.js';
-import { LightSource } from '../light/LightSource.js';
-import { Quat } from '../math/Quat.js';
-import { Vec3 } from '../math/Vec3.js';
+import { Control } from "./Control.js";
+import { getSunPosition } from "../astro/earth.js";
+import { LightSource } from "../light/LightSource.js";
+import { Quat } from "../math/Quat.js";
+import { Vec3 } from "../math/Vec3.js";
 
 const ACTIVATION_HEIGHT = 12079000.0;
 /**
@@ -72,7 +72,6 @@ class Sun extends Control {
     }
 
     oninit() {
-
         this.planet.lightEnabled = true;
 
         // sunlight initialization
@@ -120,12 +119,17 @@ class Sun extends Control {
                 }
 
                 var tu = Vec3.proj_b_to_plane(u, n, u).normalize().scale(this.offsetVertical);
-                var tr = Vec3.proj_b_to_plane(cam._u, n, cam._u).normalize().scale(this.offsetHorizontal); // right
+                var tr = Vec3.proj_b_to_plane(cam._u, n, cam._u)
+                    .normalize()
+                    .scale(this.offsetHorizontal); // right
                 var d = tu.add(tr);
                 var pos = cam.eye.add(d);
                 if (this._k > 0) {
                     this._k -= 0.01;
-                    let rot = Quat.getRotationBetweenVectors(this.sunlight._position.normal(), pos.normal());
+                    let rot = Quat.getRotationBetweenVectors(
+                        this.sunlight._position.normal(),
+                        pos.normal()
+                    );
                     let r = rot.slerp(Quat.IDENTITY, this._k).normalize();
                     this.sunlight.setPosition3v(r.mulVec3(this.sunlight._position));
                 } else {
@@ -135,11 +139,17 @@ class Sun extends Control {
                 this._k = 1;
                 if (this._f > 0) {
                     this._f -= 0.01;
-                    let rot = Quat.getRotationBetweenVectors(this.sunlight._position.normal(), getSunPosition(this._currDate).normal());
+                    let rot = Quat.getRotationBetweenVectors(
+                        this.sunlight._position.normal(),
+                        getSunPosition(this._currDate).normal()
+                    );
                     let r = rot.slerp(Quat.IDENTITY, this._f).normalize();
                     this.sunlight.setPosition3v(r.mulVec3(this.sunlight._position));
                 } else {
-                    if ((Math.abs(this._currDate - this._prevDate) > 0.00034 && this._active) || this._lightOn) {
+                    if (
+                        (Math.abs(this._currDate - this._prevDate) > 0.00034 && this._active) ||
+                        this._lightOn
+                    ) {
                         this._lightOn = false;
                         this._prevDate = this._currDate;
                         this.sunlight.setPosition3v(getSunPosition(this._currDate));

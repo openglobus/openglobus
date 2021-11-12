@@ -2,9 +2,9 @@
  * @module og/shape/BaseShape
  */
 
-'use strict';
+"use strict";
 
-import { BaseShape } from './BaseShape.js';
+import { BaseShape } from "./BaseShape.js";
 
 /**
  * @class
@@ -21,11 +21,9 @@ import { BaseShape } from './BaseShape.js';
  * @param {number} [options.lonBands=16] - Number of longitude bands.
  */
 class Sphere extends BaseShape {
-
     constructor(options) {
-
         super(options);
-        
+
         /**
          * Sphere radius.
          * @protected
@@ -57,20 +55,19 @@ class Sphere extends BaseShape {
      * @virtual
      */
     _createData() {
-
         for (let latNumber = 0; latNumber <= this._latBands; latNumber++) {
-            var theta = latNumber * Math.PI / this._latBands;
+            var theta = (latNumber * Math.PI) / this._latBands;
             var sinTheta = Math.sin(theta);
             var cosTheta = Math.cos(theta);
 
             for (let longNumber = 0; longNumber <= this._lonBands; longNumber++) {
-                var phi = longNumber * 2 * Math.PI / this._lonBands;
+                var phi = (longNumber * 2 * Math.PI) / this._lonBands;
                 var sinPhi = Math.sin(phi);
                 var cosPhi = Math.cos(phi);
                 var x = cosPhi * sinTheta;
                 var y = cosTheta;
                 var z = sinPhi * sinTheta;
-                var u = 1 - (longNumber / this._lonBands);
+                var u = 1 - longNumber / this._lonBands;
                 var v = latNumber / this._latBands;
                 this._normalData.push(x);
                 this._normalData.push(y);
@@ -85,7 +82,7 @@ class Sphere extends BaseShape {
 
         for (let latNumber = 0; latNumber < this._latBands; latNumber++) {
             for (let longNumber = 0; longNumber < this._lonBands; longNumber++) {
-                var first = (latNumber * (this._lonBands + 1)) + longNumber;
+                var first = latNumber * (this._lonBands + 1) + longNumber;
                 var second = first + this._lonBands + 1;
 
                 this._indexData.push(first);

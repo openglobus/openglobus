@@ -2,7 +2,7 @@
  * @module og/control/Control
  */
 
-'use strict';
+"use strict";
 
 /**
  * Base control class for implementing renderer controls.
@@ -12,7 +12,6 @@
  * @param {Boolean} [options.autoActivated=true] - If true - calls initialize function after the renderer assigning.
  */
 class Control {
-
     /**
      * @param {Object} [options] - Control activation options:
      */
@@ -77,35 +76,35 @@ class Control {
      * @public
      * @virtual
      */
-    oninit() { }
+    oninit() {}
 
     /**
      * Control renderer assigning function have to be overriden.
      * @public
      * @virtual
      */
-    onadd() { }
+    onadd() {}
 
     /**
      * Control remove function have to be overriden.
      * @public
      * @virtual
      */
-    onremove() { }
+    onremove() {}
 
     /**
      * Control activation function have to be overriden.
      * @public
      * @virtual
      */
-    onactivate() { }
+    onactivate() {}
 
     /**
      * Control deactivation function have to be overriden.
      * @public
      * @virtual
      */
-    ondeactivate() { }
+    ondeactivate() {}
 
     /**
      * Assign renderer to the control.
@@ -130,7 +129,6 @@ class Control {
      * @public
      */
     remove() {
-
         this.onremove && this.onremove();
 
         let r = this.renderer,

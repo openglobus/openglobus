@@ -13,7 +13,6 @@ import { Control } from "./Control.js";
  * @param {Object} [options] - Control options.
  */
 class DebugInfo extends Control {
-
     /**
      * @param {Object} [options] - Control options.
      */

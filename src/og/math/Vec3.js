@@ -2,10 +2,10 @@
  * @module og/math/Vec3
  */
 
-'use strict';
+"use strict";
 
-import { Vec4 } from './Vec4.js';
-import { Quat } from './Quat.js';
+import { Vec4 } from "./Vec4.js";
+import { Quat } from "./Quat.js";
 
 /**
  * Class represents a 3d vector.
@@ -15,9 +15,7 @@ import { Quat } from './Quat.js';
  * @param {number} [z] - Third value.
  */
 export class Vec3 {
-
     constructor(x, y, z) {
-
         /**
          * @public
          * @type {number}
@@ -38,25 +36,45 @@ export class Vec3 {
     }
 
     /** @const */
-    static get UP() { return new Vec3(0, 1, 0) }
+    static get UP() {
+        return new Vec3(0, 1, 0);
+    }
     /** @const */
-    static get DOWN() { return new Vec3(0, -1, 0) }
+    static get DOWN() {
+        return new Vec3(0, -1, 0);
+    }
     /** @const */
-    static get RIGHT() { return new Vec3(1, 0, 0) }
+    static get RIGHT() {
+        return new Vec3(1, 0, 0);
+    }
     /** @const */
-    static get LEFT() { return new Vec3(-1, 0, 0) }
+    static get LEFT() {
+        return new Vec3(-1, 0, 0);
+    }
     /** @const */
-    static get FORWARD() { return new Vec3(0, 0, -1) }
+    static get FORWARD() {
+        return new Vec3(0, 0, -1);
+    }
     /** @const */
-    static get BACKWARD() { return new Vec3(0, 0, 1) }
+    static get BACKWARD() {
+        return new Vec3(0, 0, 1);
+    }
     /** @const */
-    static get ZERO() { return new Vec3() }
+    static get ZERO() {
+        return new Vec3();
+    }
     /** @const */
-    static get UNIT_X() { return new Vec3(1, 0, 0) }
+    static get UNIT_X() {
+        return new Vec3(1, 0, 0);
+    }
     /** @const */
-    static get UNIT_Y() { return new Vec3(0, 1, 0) }
+    static get UNIT_Y() {
+        return new Vec3(0, 1, 0);
+    }
     /** @const */
-    static get UNIT_Z() { return new Vec3(0, 0, 1) }
+    static get UNIT_Z() {
+        return new Vec3(0, 0, 1);
+    }
 
     /**
      * Separate 63 bit Vec3 to two Vec3 32 bit float values.
@@ -67,8 +85,9 @@ export class Vec3 {
      * @returns {Array.<number>} Encoded array. (exactly 2 entries)
      */
     static doubleToTwoFloats(v, high, low) {
-
-        let x = v.x, y = v.y, z = v.z;
+        let x = v.x,
+            y = v.y,
+            z = v.z;
 
         if (x >= 0.0) {
             let doubleHigh = Math.floor(x / 65536.0) * 65536.0;
@@ -110,8 +129,9 @@ export class Vec3 {
      * @returns {Array.<number>} Encoded array. (exactly 2 entries)
      */
     static doubleToTwoFloat32Array(v, high, low) {
-
-        let x = v.x, y = v.y, z = v.z;
+        let x = v.x,
+            y = v.y,
+            z = v.z;
 
         if (x >= 0.0) {
             let doubleHigh = Math.floor(x / 65536.0) * 65536.0;
@@ -245,7 +265,7 @@ export class Vec3 {
      * @static
      * @param {Vec3} b - Vector to project.
      * @param {Vec3} n - Plane normal.
-    * @param {Vec3} [def] - Default value for non existed result.
+     * @param {Vec3} [def] - Default value for non existed result.
      * @returns {Vec3} -
      */
     static proj_b_to_plane(b, n, def) {
@@ -750,7 +770,11 @@ export class Vec3 {
      * @returns {Vec3} -
      */
     lerp(v2, l) {
-        return new Vec3(this.x + (v2.x - this.x) * l, this.y + (v2.y - this.y) * l, this.z + (v2.z - this.z) * l);
+        return new Vec3(
+            this.x + (v2.x - this.x) * l,
+            this.y + (v2.y - this.y) * l,
+            this.z + (v2.z - this.z) * l
+        );
     }
 
     /**
@@ -762,18 +786,24 @@ export class Vec3 {
      */
     smerp(v2, t) {
         var one_d = 1 - t;
-        return new Vec3(this.x * t + v2.x * one_d, this.y * t + v2.y * one_d, this.z * t + v2.z * one_d);
+        return new Vec3(
+            this.x * t + v2.x * one_d,
+            this.y * t + v2.y * one_d,
+            this.z * t + v2.z * one_d
+        );
     }
 
-    static get LERP_DELTA() { return 1e-6 }
+    static get LERP_DELTA() {
+        return 1e-6;
+    }
 
     /**
      * Spherically interpolates between two vectors.
-     * Interpolates between current and v2 vector by amount t. The difference between this and linear interpolation (aka, "lerp") is that 
-     * the vectors are treated as directions rather than points in space. The direction of the returned vector is interpolated 
+     * Interpolates between current and v2 vector by amount t. The difference between this and linear interpolation (aka, "lerp") is that
+     * the vectors are treated as directions rather than points in space. The direction of the returned vector is interpolated
      * by the angle and its magnitude is interpolated between the magnitudes of from and to.
      * @public
-     * @param {Vec3} v2 - 
+     * @param {Vec3} v2 -
      * @param {number} t - The parameter t is clamped to the range [0, 1].
      * @returns {Vec3} -
      */
@@ -791,7 +821,7 @@ export class Vec3 {
         var omega, sinom, scale0, scale1;
         var cosom = this.dot(v2);
 
-        if ((1.0 - cosom) > Vec3.LERP_DELTA) {
+        if (1.0 - cosom > Vec3.LERP_DELTA) {
             omega = Math.acos(cosom);
             sinom = Math.sin(omega);
             scale0 = Math.sin((1.0 - t) * omega) / sinom;
@@ -825,14 +855,15 @@ export class Vec3 {
             return Quat.IDENTITY.clone();
         }
 
-        if (d < (1e-6 - 1.0)) {
+        if (d < 1e-6 - 1.0) {
             if (!fallbackAxis.isEqual(Vec3.ZERO)) {
                 // rotate 180 degrees about the fallback axis
                 return Quat.axisAngleToQuat(Math.PI, fallbackAxis);
             } else {
                 // Generate an axis
                 let axis = Vec3.UNIT_X.cross(v0);
-                if (axis.isZero()) { // pick another if colinear
+                if (axis.isZero()) {
+                    // pick another if colinear
                     axis = Vec3.UNIT_Y.cross(v0);
                 }
                 axis.normalize();
@@ -862,4 +893,3 @@ export class Vec3 {
 export function vec3(x, y, z) {
     return new Vec3(x, y, z);
 }
-

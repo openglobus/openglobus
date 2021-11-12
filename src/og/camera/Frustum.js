@@ -1,6 +1,6 @@
-'use strict';
+"use strict";
 
-import { Mat4 } from '../math/Mat4.js';
+import { Mat4 } from "../math/Mat4.js";
 
 function planeNormalize(plane) {
     var t = 1.0 / Math.sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);
@@ -15,9 +15,8 @@ function planeNormalize(plane) {
  * @class
  */
 class Frustum {
-
     /**
-     * @param {*} options 
+     * @param {*} options
      */
     constructor(options = {}) {
         /**
@@ -89,7 +88,8 @@ class Frustum {
          */
         this.far = 0.0;
 
-        this._cameraFrustumIndex = options.cameraFrustumIndex != undefined ? options.cameraFrustumIndex : -1;
+        this._cameraFrustumIndex =
+            options.cameraFrustumIndex != undefined ? options.cameraFrustumIndex : -1;
 
         this.setProjectionMatrix(
             options.fov || 30.0,
@@ -144,15 +144,21 @@ class Frustum {
      * @param {number} far - Far camera distance.
      */
     setProjectionMatrix(angle, aspect, near, far) {
-
-        this.top = near * Math.tan(angle * Math.PI / 360);
+        this.top = near * Math.tan((angle * Math.PI) / 360);
         this.bottom = -this.top;
         this.right = this.top * aspect;
         this.left = -this.right;
         this.near = near;
         this.far = far;
 
-        this._projectionMatrix.setPerspective(this.left, this.right, this.bottom, this.top, near, far);
+        this._projectionMatrix.setPerspective(
+            this.left,
+            this.right,
+            this.bottom,
+            this.top,
+            near,
+            far
+        );
         this._projectionMatrix.inverseTo(this._inverseProjectionMatrix);
     }
 
@@ -162,7 +168,6 @@ class Frustum {
      * @param {Mat4} projectionView - projectionView matrix.
      */
     setViewMatrix(viewMatrix) {
-
         this._projectionViewMatrix = this._projectionMatrix.mul(viewMatrix);
         this._projectionViewMatrix.inverseTo(this._inverseProjectionViewMatrix);
 
@@ -295,11 +300,13 @@ class Frustum {
      * @returns {boolean} -
      */
     containsBox(box) {
-        var result = true, cout, cin;
+        var result = true,
+            cout,
+            cin;
 
         for (var i = 0; i < 6; i++) {
-
-            cout = 0; cin = 0;
+            cout = 0;
+            cin = 0;
 
             for (var k = 0; k < 8 && (cin === 0 || cout === 0); k++) {
                 var d = box.vertices[k].dotArr(this._f[i]) + this._f[i][3];

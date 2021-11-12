@@ -2,17 +2,18 @@
  * @module og/entity/EntityCollection
  */
 
-'use strict';
+"use strict";
 
-import * as math from '../math.js';
-import { BillboardHandler } from './BillboardHandler.js';
-import { Events } from '../Events.js';
-import { LabelHandler } from './LabelHandler.js';
-import { PolylineHandler } from './PolylineHandler.js';
-import { RayHandler } from './RayHandler.js';
-import { PointCloudHandler } from './PointCloudHandler.js';
-import { StripHandler } from './StripHandler.js';
-import { ShapeHandler } from './ShapeHandler.js';
+import * as math from "../math.js";
+import { BillboardHandler } from "./BillboardHandler.js";
+import { Events } from "../Events.js";
+import { LabelHandler } from "./LabelHandler.js";
+import { PolylineHandler } from "./PolylineHandler.js";
+import { RayHandler } from "./RayHandler.js";
+import { PointCloudHandler } from "./PointCloudHandler.js";
+import { StripHandler } from "./StripHandler.js";
+import { ShapeHandler } from "./ShapeHandler.js";
+import { GeoObjectHandler } from "./GeoObjectHandler.js";
 
 /**
  * An observable collection of og.Entity instances where each entity has a unique id.
@@ -65,7 +66,6 @@ import { ShapeHandler } from './ShapeHandler.js';
  */
 class EntityCollection {
     constructor(options) {
-
         options = options || {};
 
         /**
@@ -101,14 +101,16 @@ class EntityCollection {
          * @public
          * @type {Number}
          */
-        this.polygonOffsetFactor = options.polygonOffsetFactor != undefined ? options.polygonOffsetFactor : 0.0;
+        this.polygonOffsetFactor =
+            options.polygonOffsetFactor != undefined ? options.polygonOffsetFactor : 0.0;
 
         /**
          * Specifies the scale Units for gl.polygonOffset function to calculate depth values, 0.0 is default.
          * @public
          * @type {Number}
          */
-        this.polygonOffsetUnits = options.polygonOffsetUnits != undefined ? options.polygonOffsetUnits : 0.0;
+        this.polygonOffsetUnits =
+            options.polygonOffsetUnits != undefined ? options.polygonOffsetUnits : 0.0;
 
         /**
          * Billboards handler
@@ -158,6 +160,13 @@ class EntityCollection {
          * @type {StripHandler}
          */
         this.stripHandler = new StripHandler(this);
+
+        /**
+         * Geo object handler
+         * @public
+         * @type {og.GeoObjectHandler}
+         */
+        this.geoObjectHandler = new GeoObjectHandler(this);
 
         if (options.pickingEnabled != undefined) {
             this.setPickingEnabled(options.pickingEnabled);
@@ -268,6 +277,7 @@ class EntityCollection {
         this.shapeHandler.pickingEnabled = enable;
         this.pointCloudHandler.pickingEnabled = enable;
         this.stripHandler.pickingEnabled = enable;
+        this.geoObjectHandler.pickingEnabled = enable;
     }
 
     /**
@@ -293,7 +303,6 @@ class EntityCollection {
     }
 
     _addRecursively(entity) {
-
         // billboard
         entity.billboard && this.billboardHandler.add(entity.billboard);
 
@@ -314,6 +323,9 @@ class EntityCollection {
 
         // strip
         entity.strip && this.stripHandler.add(entity.strip);
+
+        //geoObject
+        entity.geoObject && this.geoObjectHandler.add(entity.geoObject);
 
         this.events.dispatch(this.events.entityadd, entity);
 
@@ -369,7 +381,10 @@ class EntityCollection {
      * @returns {boolean} -
      */
     belongs(entity) {
-        return (entity._entityCollection && this._renderNodeIndex === entity._entityCollection._renderNodeIndex);
+        return (
+            entity._entityCollection &&
+            this._renderNodeIndex === entity._entityCollection._renderNodeIndex
+        );
     }
 
     _removeRecursively(entity) {
@@ -396,6 +411,9 @@ class EntityCollection {
 
         // strip
         entity.strip && this.stripHandler.remove(entity.strip);
+
+        // geoObject
+        entity.geoObject && this.geoObjectHandler.remove(entity.geoObject);
 
         for (var i = 0; i < entity.childrenNodes.length; i++) {
             this._removeRecursively(entity.childrenNodes[i]);
@@ -493,12 +511,12 @@ class EntityCollection {
      * @param {RenderNode} renderNode
      */
     bindRenderNode(renderNode) {
-
         if (renderNode.renderer) {
-
             this.billboardHandler.setRenderer(renderNode.renderer);
             this.labelHandler.setRenderer(renderNode.renderer);
             this.rayHandler.setRenderer(renderNode.renderer);
+
+            this.geoObjectHandler.setRenderNode(renderNode);
 
             this.shapeHandler.setRenderNode(renderNode);
             this.polylineHandler.setRenderNode(renderNode);
@@ -558,7 +576,11 @@ class EntityCollection {
             if (this._renderNodeIndex !== -1) {
                 this.renderNode.entityCollections.splice(this._renderNodeIndex, 1);
                 // reindex in the renderNode
-                for (var i = this._renderNodeIndex; i < this.renderNode.entityCollections.length; i++) {
+                for (
+                    var i = this._renderNodeIndex;
+                    i < this.renderNode.entityCollections.length;
+                    i++
+                ) {
                     this.renderNode.entityCollections._renderNodeIndex = i;
                 }
             }
@@ -595,7 +617,6 @@ class EntityCollection {
      * @public
      */
     clear() {
-
         // TODO: Optimize by replace delete
         // code to the clearEntity function.
         this.billboardHandler.clear();
@@ -605,6 +626,7 @@ class EntityCollection {
         this.rayHandler.clear();
         this.pointCloudHandler.clear();
         this.stripHandler.clear();
+        this.geoObjectHandler.clear();
 
         var i = this._entities.length;
         while (i--) {

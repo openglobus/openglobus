@@ -93,6 +93,6 @@ callbacks.a[types.VEC3] = function (program, variable) {
     program.gl.vertexAttrib3fv(variable._pName, variable.value);
 };
 
-callbacks.a[types.VEC4] = function (program, variable) {
-    program.gl.vertexAttrib4fv(variable._pName, variable.value);
-};
+//callbacks.a[types.VEC4] = function (program, variable) {
+//    program.gl.vertexAttrib4fv(variable._pName, variable.value);
+//};

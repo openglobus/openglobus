@@ -2,11 +2,11 @@
  * @module og/ellipsoid/Ellipsoid
  */
 
-'use strict';
+"use strict";
 
-import * as math from '../math.js';
-import { Vec3 } from '../math/Vec3.js';
-import { LonLat } from '../LonLat.js';
+import * as math from "../math.js";
+import { Vec3 } from "../math/Vec3.js";
+import { LonLat } from "../LonLat.js";
 
 /**
  * Class represents a plant ellipsoid.
@@ -44,8 +44,10 @@ class Ellipsoid {
     }
 
     static getRelativeBearing(a, b) {
-        let a_y = Math.cos(a), a_x = Math.sin(a),
-            b_y = Math.cos(b), b_x = Math.sin(b);
+        let a_y = Math.cos(a),
+            a_x = Math.sin(a),
+            b_y = Math.cos(b),
+            b_x = Math.sin(b);
         let c = a_y * b_x - b_y * a_x,
             d = a_x * b_x + a_y * b_y;
         if (c > 0.0) {
@@ -75,7 +77,7 @@ class Ellipsoid {
 
         var l3 = l1 + Math.atan2(By, Math.cos(f1) + Bx);
 
-        return new LonLat((l3 * math.DEGREES + 540) % 360 - 180, f3 * math.DEGREES);
+        return new LonLat(((l3 * math.DEGREES + 540) % 360) - 180, f3 * math.DEGREES);
     }
 
     /**
@@ -86,15 +88,25 @@ class Ellipsoid {
      * @returns {LonLat} Intermediate point between points.
      */
     static getIntermediatePointOnGreatCircle(lonLat1, lonLat2, fraction) {
-        var f1 = lonLat1.lat * math.RADIANS, l1 = lonLat1.lon * math.RADIANS;
-        var f2 = lonLat2.lat * math.RADIANS, l2 = lonLat2.lon * math.RADIANS;
+        var f1 = lonLat1.lat * math.RADIANS,
+            l1 = lonLat1.lon * math.RADIANS;
+        var f2 = lonLat2.lat * math.RADIANS,
+            l2 = lonLat2.lon * math.RADIANS;
 
-        var sinf1 = Math.sin(f1), cosf1 = Math.cos(f1), sinl1 = Math.sin(l1), cosl1 = Math.cos(l1);
-        var sinf2 = Math.sin(f2), cosf2 = Math.cos(f2), sinl2 = Math.sin(l2), cosl2 = Math.cos(l2);
+        var sinf1 = Math.sin(f1),
+            cosf1 = Math.cos(f1),
+            sinl1 = Math.sin(l1),
+            cosl1 = Math.cos(l1);
+        var sinf2 = Math.sin(f2),
+            cosf2 = Math.cos(f2),
+            sinl2 = Math.sin(l2),
+            cosl2 = Math.cos(l2);
 
         var df = f2 - f1,
             dl = l2 - l1;
-        var a = Math.sin(df / 2) * Math.sin(df / 2) + Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+        var a =
+            Math.sin(df / 2) * Math.sin(df / 2) +
+            Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2);
         var d = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
         var A = Math.sin((1 - fraction) * d) / Math.sin(d);
@@ -107,12 +119,15 @@ class Ellipsoid {
         var f3 = Math.atan2(z, Math.sqrt(x * x + y * y));
         var l3 = Math.atan2(y, x);
 
-        return new LonLat((l3 * math.DEGREES + 540) % 360 - 180, f3 * math.DEGREES);
+        return new LonLat(((l3 * math.DEGREES + 540) % 360) - 180, f3 * math.DEGREES);
     }
 
     static getRhumbBearing(lonLat1, lonLat2) {
         var dLon = (lonLat2.lon - lonLat1.lon) * math.RADIANS;
-        var dPhi = Math.log(Math.tan(lonLat2.lat * math.RADIANS / 2 + Math.PI / 4) / Math.tan(lonLat1.lat * math.RADIANS / 2 + Math.PI / 4));
+        var dPhi = Math.log(
+            Math.tan((lonLat2.lat * math.RADIANS) / 2 + Math.PI / 4) /
+                Math.tan((lonLat1.lat * math.RADIANS) / 2 + Math.PI / 4)
+        );
         if (Math.abs(dLon) > Math.PI) {
             if (dLon > 0) {
                 dLon = (2 * Math.PI - dLon) * -1;
@@ -124,8 +139,10 @@ class Ellipsoid {
     }
 
     static getBearing(lonLat1, lonLat2) {
-        var f1 = lonLat1.lat * math.RADIANS, l1 = lonLat1.lon * math.RADIANS;
-        var f2 = lonLat2.lat * math.RADIANS, l2 = lonLat2.lon * math.RADIANS;
+        var f1 = lonLat1.lat * math.RADIANS,
+            l1 = lonLat1.lon * math.RADIANS;
+        var f2 = lonLat2.lat * math.RADIANS,
+            l2 = lonLat2.lon * math.RADIANS;
         var y = Math.sin(l2 - l1) * Math.cos(f2);
         var x = Math.cos(f1) * Math.sin(f2) - Math.sin(f1) * Math.cos(f2) * Math.cos(l2 - l1);
         return Math.atan2(y, x) * math.DEGREES;
@@ -142,8 +159,7 @@ class Ellipsoid {
             f2 = lonLat2.lat * math.RADIANS;
         var dl = (lonLat2.lon - lonLat1.lon) * math.RADIANS;
         var y = Math.sin(dl) * Math.cos(f2);
-        var x = Math.cos(f1) * Math.sin(f2) -
-            Math.sin(f1) * Math.cos(f2) * Math.cos(dl);
+        var x = Math.cos(f1) * Math.sin(f2) - Math.sin(f1) * Math.cos(f2) * Math.cos(dl);
         var D = Math.atan2(y, x);
         return (D * math.DEGREES + 360) % 360;
     }
@@ -166,19 +182,30 @@ class Ellipsoid {
         var df = f2 - f1,
             dl = l2 - l1;
 
-        var d12 = 2 * Math.asin(Math.sqrt(Math.sin(df / 2) * Math.sin(df / 2) + Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2)));
+        var d12 =
+            2 *
+            Math.asin(
+                Math.sqrt(
+                    Math.sin(df / 2) * Math.sin(df / 2) +
+                        Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2)
+                )
+            );
         if (d12 == 0) return null;
 
         // initial/final bearings between points
-        var Da = Math.acos((Math.sin(f2) - Math.sin(f1) * Math.cos(d12)) / (Math.sin(d12) * Math.cos(f1)));
+        var Da = Math.acos(
+            (Math.sin(f2) - Math.sin(f1) * Math.cos(d12)) / (Math.sin(d12) * Math.cos(f1))
+        );
         if (isNaN(Da)) Da = 0; // protect against rounding
-        var Db = Math.acos((Math.sin(f1) - Math.sin(f2) * Math.cos(d12)) / (Math.sin(d12) * Math.cos(f2)));
+        var Db = Math.acos(
+            (Math.sin(f1) - Math.sin(f2) * Math.cos(d12)) / (Math.sin(d12) * Math.cos(f2))
+        );
 
         var D12 = Math.sin(l2 - l1) > 0 ? Da : 2 * Math.PI - Da;
         var D21 = Math.sin(l2 - l1) > 0 ? 2 * Math.PI - Db : Db;
 
-        var a1 = (D13 - D12 + Math.PI) % (2 * Math.PI) - Math.PI;
-        var a2 = (D21 - D23 + Math.PI) % (2 * Math.PI) - Math.PI;
+        var a1 = ((D13 - D12 + Math.PI) % (2 * Math.PI)) - Math.PI;
+        var a2 = ((D21 - D23 + Math.PI) % (2 * Math.PI)) - Math.PI;
 
         if (Math.sin(a1) == 0 && Math.sin(a2) == 0) return null; // infinite intersections
         if (Math.sin(a1) * Math.sin(a2) < 0) return null; // ambiguous intersection
@@ -187,13 +214,23 @@ class Ellipsoid {
         // a2 = Math.abs(a2);
         // ... Ed Williams takes abs of a1/a2, but seems to break calculation?
 
-        var a3 = Math.acos(-Math.cos(a1) * Math.cos(a2) + Math.sin(a1) * Math.sin(a2) * Math.cos(d12));
-        var d13 = Math.atan2(Math.sin(d12) * Math.sin(a1) * Math.sin(a2), Math.cos(a2) + Math.cos(a1) * Math.cos(a3));
-        var f3 = Math.asin(Math.sin(f1) * Math.cos(d13) + Math.cos(f1) * Math.sin(d13) * Math.cos(D13));
-        var dl13 = Math.atan2(Math.sin(D13) * Math.sin(d13) * Math.cos(f1), Math.cos(d13) - Math.sin(f1) * Math.sin(f3));
+        var a3 = Math.acos(
+            -Math.cos(a1) * Math.cos(a2) + Math.sin(a1) * Math.sin(a2) * Math.cos(d12)
+        );
+        var d13 = Math.atan2(
+            Math.sin(d12) * Math.sin(a1) * Math.sin(a2),
+            Math.cos(a2) + Math.cos(a1) * Math.cos(a3)
+        );
+        var f3 = Math.asin(
+            Math.sin(f1) * Math.cos(d13) + Math.cos(f1) * Math.sin(d13) * Math.cos(D13)
+        );
+        var dl13 = Math.atan2(
+            Math.sin(D13) * Math.sin(d13) * Math.cos(f1),
+            Math.cos(d13) - Math.sin(f1) * Math.sin(f3)
+        );
         var l3 = l1 + dl13;
 
-        return new LonLat((l3 * math.DEGREES + 540) % 360 - 180, f3 * math.DEGREES);
+        return new LonLat(((l3 * math.DEGREES + 540) % 360) - 180, f3 * math.DEGREES);
     }
 
     /**
@@ -244,7 +281,8 @@ class Ellipsoid {
         return new Vec3(
             nc * Math.sin(lonrad),
             (N * (1.0 - this._e2) + lonlat.height) * slt,
-            nc * Math.cos(lonrad));
+            nc * Math.cos(lonrad)
+        );
     }
 
     /**
@@ -252,7 +290,7 @@ class Ellipsoid {
      * @public
      * @param {LonLat} lonlat - Degrees geodetic coordiantes.
      * @param {Vec3} res - Output result.
-     * @returns {Vec3} - 
+     * @returns {Vec3} -
      */
     lonLatToCartesianRes(lonlat, res) {
         var latrad = math.RADIANS * lonlat.lat,
@@ -290,7 +328,8 @@ class Ellipsoid {
         return new Vec3(
             nc * Math.sin(lonrad),
             (N * (1 - this._e2) + height) * slt,
-            nc * Math.cos(lonrad));
+            nc * Math.cos(lonrad)
+        );
     }
 
     /**
@@ -300,7 +339,9 @@ class Ellipsoid {
      * @returns {LonLat} -
      */
     cartesianToLonLat(cartesian) {
-        var x = cartesian.z, y = cartesian.x, z = cartesian.y;
+        var x = cartesian.z,
+            y = cartesian.x,
+            z = cartesian.y;
         var ecc2 = this._e2;
         var ecc22 = this._e22;
         var r2 = x * x + y * y;
@@ -309,17 +350,30 @@ class Ellipsoid {
         var f = 54.0 * this._b2 * z2;
         var g = r2 + (1.0 - ecc2) * z2 + ecc2 * (this._a2 - this._b2);
         var g2 = g * g;
-        var c = ecc22 * f * r2 / (g2 * g);
-        var s = Math.pow((1.0 + c + Math.sqrt(c * (c + 2.0))), 0.33333333333333333);
-        var p = f / (3.0 * Math.pow((1.0 + s + 1.0 / s), 2.0) * g2);
+        var c = (ecc22 * f * r2) / (g2 * g);
+        var s = Math.pow(1.0 + c + Math.sqrt(c * (c + 2.0)), 0.33333333333333333);
+        var p = f / (3.0 * Math.pow(1.0 + s + 1.0 / s, 2.0) * g2);
         var q = Math.sqrt(1.0 + 2.0 * ecc22 * p);
-        var recc2r0 = r - ecc2 * (-(p * ecc2 * r) / 1 + q + Math.sqrt(0.5 * this._a2 * (1.0 + 1.0 / q) - p * (1.0 - ecc2) * z2 / (q * (1.0 + q)) - 0.5 * p * r2));
+        var recc2r0 =
+            r -
+            ecc2 *
+                (-(p * ecc2 * r) / 1 +
+                    q +
+                    Math.sqrt(
+                        0.5 * this._a2 * (1.0 + 1.0 / q) -
+                            (p * (1.0 - ecc2) * z2) / (q * (1.0 + q)) -
+                            0.5 * p * r2
+                    ));
         var recc2r02 = recc2r0 * recc2r0;
         var v = Math.sqrt(recc2r02 + (1.0 - ecc2) * z2);
-        var z0 = this._b2 * z / (this._a * v);
+        var z0 = (this._b2 * z) / (this._a * v);
         var lat = Math.atan((z + this._k2 * z0) / r) * math.DEGREES;
         var lon = Math.atan2(y, x) * math.DEGREES;
-        return new LonLat(lon, lat, cartesian.length() - this.geodeticToCartesian(lon, lat).length());
+        return new LonLat(
+            lon,
+            lat,
+            cartesian.length() - this.geodeticToCartesian(lon, lat).length()
+        );
     }
 
     /**
@@ -339,11 +393,22 @@ class Ellipsoid {
 
     getBearingDestination(lonLat1, bearing, distance) {
         bearing = bearing * math.RADIANS;
-        var nlon = (lonLat1.lon + 540) % 360 - 180;
-        var f1 = lonLat1.lat * math.RADIANS, l1 = nlon * math.RADIANS;
+        var nlon = ((lonLat1.lon + 540) % 360) - 180;
+        var f1 = lonLat1.lat * math.RADIANS,
+            l1 = nlon * math.RADIANS;
         var dR = distance / this._a;
-        var f2 = Math.asin(Math.sin(f1) * Math.cos(dR) + Math.cos(f1) * Math.sin(dR) * Math.cos(bearing));
-        return new LonLat((l1 + Math.atan2(Math.sin(bearing) * Math.sin(dR) * Math.cos(f1), Math.cos(dR) - Math.sin(f1) * Math.sin(f2))) * math.DEGREES, f2 * math.DEGREES);
+        var f2 = Math.asin(
+            Math.sin(f1) * Math.cos(dR) + Math.cos(f1) * Math.sin(dR) * Math.cos(bearing)
+        );
+        return new LonLat(
+            (l1 +
+                Math.atan2(
+                    Math.sin(bearing) * Math.sin(dR) * Math.cos(f1),
+                    Math.cos(dR) - Math.sin(f1) * Math.sin(f2)
+                )) *
+                math.DEGREES,
+            f2 * math.DEGREES
+        );
     }
 
     /**
@@ -355,8 +420,12 @@ class Ellipsoid {
     getGreatCircleDistance(lonLat1, lonLat2) {
         var dLat = (lonLat2.lat - lonLat1.lat) * math.RADIANS;
         var dLon = (lonLat2.lon - lonLat1.lon) * math.RADIANS;
-        var a = Math.sin(dLat / 2.0) * Math.sin(dLat / 2.0) +
-            Math.sin(dLon / 2.0) * Math.sin(dLon / 2) * Math.cos(lonLat1.lat * math.RADIANS) * Math.cos(lonLat2.lat * math.RADIANS);
+        var a =
+            Math.sin(dLat / 2.0) * Math.sin(dLat / 2.0) +
+            Math.sin(dLon / 2.0) *
+                Math.sin(dLon / 2) *
+                Math.cos(lonLat1.lat * math.RADIANS) *
+                Math.cos(lonLat2.lat * math.RADIANS);
         return this._a * 2.0 * Math.atan2(Math.sqrt(a), Math.sqrt(1.0 - a));
     }
 
@@ -377,28 +446,52 @@ class Ellipsoid {
             sinAlpha1 = Math.sin(alpha1),
             cosAlpha1 = Math.cos(alpha1),
             tanU1 = (1 - f) * Math.tan(lat1 * math.RADIANS),
-            cosU1 = 1 / Math.sqrt((1 + tanU1 * tanU1)), sinU1 = tanU1 * cosU1,
+            cosU1 = 1 / Math.sqrt(1 + tanU1 * tanU1),
+            sinU1 = tanU1 * cosU1,
             sigma1 = Math.atan2(tanU1, cosAlpha1),
             sinAlpha = cosU1 * sinAlpha1,
             cosSqAlpha = 1 - sinAlpha * sinAlpha,
-            uSq = cosSqAlpha * (a * a - b * b) / (b * b),
-            A = 1 + uSq / 16384 * (4096 + uSq * (-768 + uSq * (320 - 175 * uSq))),
-            B = uSq / 1024 * (256 + uSq * (-128 + uSq * (74 - 47 * uSq))),
+            uSq = (cosSqAlpha * (a * a - b * b)) / (b * b),
+            A = 1 + (uSq / 16384) * (4096 + uSq * (-768 + uSq * (320 - 175 * uSq))),
+            B = (uSq / 1024) * (256 + uSq * (-128 + uSq * (74 - 47 * uSq))),
             sigma = s / (b * A),
             sigmaP = 2 * Math.PI;
         while (Math.abs(sigma - sigmaP) > 1e-12) {
             var cos2SigmaM = Math.cos(2 * sigma1 + sigma),
                 sinSigma = Math.sin(sigma),
                 cosSigma = Math.cos(sigma),
-                deltaSigma = B * sinSigma * (cos2SigmaM + B / 4 * (cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM) - B / 6 * cos2SigmaM * (-3 + 4 * sinSigma * sinSigma) * (-3 + 4 * cos2SigmaM * cos2SigmaM)));
+                deltaSigma =
+                    B *
+                    sinSigma *
+                    (cos2SigmaM +
+                        (B / 4) *
+                            (cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM) -
+                                (B / 6) *
+                                    cos2SigmaM *
+                                    (-3 + 4 * sinSigma * sinSigma) *
+                                    (-3 + 4 * cos2SigmaM * cos2SigmaM)));
             sigmaP = sigma;
             sigma = s / (b * A) + deltaSigma;
         }
         var tmp = sinU1 * sinSigma - cosU1 * cosSigma * cosAlpha1,
-            lat2 = Math.atan2(sinU1 * cosSigma + cosU1 * sinSigma * cosAlpha1, (1 - f) * Math.sqrt(sinAlpha * sinAlpha + tmp * tmp)),
-            lambda = Math.atan2(sinSigma * sinAlpha1, cosU1 * cosSigma - sinU1 * sinSigma * cosAlpha1),
-            C = f / 16 * cosSqAlpha * (4 + f * (4 - 3 * cosSqAlpha)),
-            L = lambda - (1 - C) * f * sinAlpha * (sigma + C * sinSigma * (cos2SigmaM + C * cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM))),
+            lat2 = Math.atan2(
+                sinU1 * cosSigma + cosU1 * sinSigma * cosAlpha1,
+                (1 - f) * Math.sqrt(sinAlpha * sinAlpha + tmp * tmp)
+            ),
+            lambda = Math.atan2(
+                sinSigma * sinAlpha1,
+                cosU1 * cosSigma - sinU1 * sinSigma * cosAlpha1
+            ),
+            C = (f / 16) * cosSqAlpha * (4 + f * (4 - 3 * cosSqAlpha)),
+            L =
+                lambda -
+                (1 - C) *
+                    f *
+                    sinAlpha *
+                    (sigma +
+                        C *
+                            sinSigma *
+                            (cos2SigmaM + C * cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM))),
             revAz = Math.atan2(sinAlpha, -tmp); // final bearing
         return new LonLat(lon1 + L * math.DEGREES, lat2 * math.DEGREES);
     }
@@ -412,7 +505,6 @@ class Ellipsoid {
      * @returns {Vec3} -
      */
     hitRay(origin, direction) {
-
         var q = this._invRadii.mul(origin);
         var w = this._invRadii.mul(direction);
 

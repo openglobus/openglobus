@@ -2,9 +2,9 @@
  * @module og/control/LayerSwitcher
  */
 
-'use strict';
+"use strict";
 
-import { Control } from './Control.js';
+import { Control } from "./Control.js";
 
 /**
  * Simple(OpenLayers like)layer switcher, includes base layers, overlays, geo images etc. groups.
@@ -56,16 +56,16 @@ class LayerSwitcher extends Control {
     }
 
     addSwitcher(type, obj, container, id) {
-        var lineDiv = document.createElement('div');
+        var lineDiv = document.createElement("div");
 
         var that = this;
-        var center = document.createElement('div');
-        center.classList.add('ogViewExtentBtn');
+        var center = document.createElement("div");
+        center.classList.add("ogViewExtentBtn");
         center.onclick = function () {
             that.planet.flyExtent(obj.getExtent());
         };
 
-        var inp = document.createElement('input');
+        var inp = document.createElement("input");
         inp.type = type;
         inp.name = "ogBaseLayerRadiosId" + (id || "");
         inp.checked = obj.getVisibility();
@@ -74,11 +74,12 @@ class LayerSwitcher extends Control {
             obj.setVisibility(this.checked);
         };
 
-        obj.events && obj.events.on("visibilitychange", function (e) {
-            inp.checked = e.getVisibility();
-        });
+        obj.events &&
+            obj.events.on("visibilitychange", function (e) {
+                inp.checked = e.getVisibility();
+            });
 
-        var lbl = document.createElement('label');
+        var lbl = document.createElement("label");
         lbl.className = "ogLayerSwitcherLabel";
         lbl.innerHTML = (obj.name || obj.src || "noname") + "</br>";
 
@@ -94,35 +95,35 @@ class LayerSwitcher extends Control {
     }
 
     createBaseLayersContainer() {
-        var layersDiv = document.createElement('div');
+        var layersDiv = document.createElement("div");
         layersDiv.className = "layersDiv";
         this.dialog.appendChild(layersDiv);
 
-        var baseLayersLbl = document.createElement('div');
+        var baseLayersLbl = document.createElement("div");
         baseLayersLbl.className = "layersDiv";
         baseLayersLbl.innerHTML = "Base Layer";
         layersDiv.appendChild(baseLayersLbl);
 
-        this.baseLayersDiv = document.createElement('div');
+        this.baseLayersDiv = document.createElement("div");
         layersDiv.appendChild(this.baseLayersDiv);
     }
 
     createOverlaysContainer() {
-        var overlaysDiv = document.createElement('div');
+        var overlaysDiv = document.createElement("div");
         overlaysDiv.className = "layersDiv";
         this.dialog.appendChild(overlaysDiv);
 
-        var overlaysLbl = document.createElement('div');
+        var overlaysLbl = document.createElement("div");
         overlaysLbl.className = "layersDiv";
         overlaysLbl.innerHTML = "Overlays";
         overlaysDiv.appendChild(overlaysLbl);
 
-        this.overlaysDiv = document.createElement('div');
+        this.overlaysDiv = document.createElement("div");
         overlaysDiv.appendChild(this.overlaysDiv);
     }
 
     createDialog() {
-        this.dialog = document.createElement('div');
+        this.dialog = document.createElement("div");
         this.dialog.id = "ogLayerSwitcherDialog";
         this.dialog.className = "displayNone";
         this.renderer.div.appendChild(this.dialog);
@@ -138,8 +139,8 @@ class LayerSwitcher extends Control {
     }
 
     createSwitcher() {
-        var button = document.createElement('div');
-        button.className = 'ogLayerSwitcherButton';
+        var button = document.createElement("div");
+        button.className = "ogLayerSwitcherButton";
         button.id = "ogLayerSwitcherButtonMaximize";
         var that = this;
         button.onclick = function (e) {

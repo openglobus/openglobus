@@ -1,9 +1,8 @@
-'use strict';
+"use strict";
 
 class QueueArray {
-
     /**
-     * 
+     *
      * @param {number} [size]
      */
     constructor(size) {

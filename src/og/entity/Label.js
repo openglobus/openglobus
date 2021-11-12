@@ -2,11 +2,11 @@
  * @module og/entity/Label
  */
 
-'use strict';
+"use strict";
 
-import * as utils from '../utils/shared.js';
-import { BaseBillboard } from './BaseBillboard.js';
-import { Vec4 } from '../math/Vec4.js';
+import * as utils from "../utils/shared.js";
+import { BaseBillboard } from "./BaseBillboard.js";
+import { Vec4 } from "../math/Vec4.js";
 
 const ALIGN = {
     RIGHT: 0,
@@ -84,14 +84,19 @@ class Label extends BaseBillboard {
          * @private
          * @type {Vec4}
          */
-        this._outlineColor = utils.createColorRGBA(options.outlineColor, new Vec4(0.0, 0.0, 0.0, 1.0));
+        this._outlineColor = utils.createColorRGBA(
+            options.outlineColor,
+            new Vec4(0.0, 0.0, 0.0, 1.0)
+        );
 
         /**
          * Text horizontal align: "left", "right" and "center".
          * @private
          * @type {Label.ALIGN}
          */
-        this._align = options.align ? STR2ALIGN[options.align.trim().toLowerCase()] || ALIGN.RIGHT : ALIGN.RIGHT;
+        this._align = options.align
+            ? STR2ALIGN[options.align.trim().toLowerCase()] || ALIGN.RIGHT
+            : ALIGN.RIGHT;
 
         /**
          * Label font atlas index.
@@ -111,12 +116,13 @@ class Label extends BaseBillboard {
     /**
      * Sets lablel text.
      * @public
-     * @param {string} text - Text string. 
+     * @param {string} text - Text string.
      * It can't be bigger than maximum labelHandler _maxLetters value.
      */
     setText(text) {
         this._text = text.toString();
-        this._handler && this._handler.setText(this._handlerIndex, text, this._fontIndex, this._align);
+        this._handler &&
+            this._handler.setText(this._handlerIndex, text, this._fontIndex, this._align);
     }
 
     /**
@@ -135,7 +141,8 @@ class Label extends BaseBillboard {
      */
     setAlign(align) {
         this._align = STR2ALIGN[align.trim().toLowerCase()];
-        this._handler && this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align);
+        this._handler &&
+            this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align);
     }
 
     /**

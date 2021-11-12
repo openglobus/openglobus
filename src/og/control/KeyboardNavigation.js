@@ -2,12 +2,12 @@
  * @module og/control/KeyboardNavigation
  */
 
-'use strict';
+"use strict";
 
-import * as math from '../math.js';
-import { Control } from './Control.js';
-import { input } from '../input/input.js';
-import { Vec3 } from '../math/Vec3.js';
+import * as math from "../math.js";
+import { Control } from "./Control.js";
+import { input } from "../input/input.js";
+import { Vec3 } from "../math/Vec3.js";
 
 /**
  * Planet camera keyboard navigation. Use W,S,A,D and left shift key for fly around a planet.
@@ -69,7 +69,7 @@ class KeyboardNavigation extends Control {
         if (this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
             cam.pitch(15 / this.renderer.handler.deltaTime);
         } else {
-            cam.rotateVertical(cam._lonLat.height / 3000000 * math.RADIANS, Vec3.ZERO);
+            cam.rotateVertical((cam._lonLat.height / 3000000) * math.RADIANS, Vec3.ZERO);
         }
         cam.update();
     }
@@ -79,7 +79,7 @@ class KeyboardNavigation extends Control {
         if (this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
             cam.pitch(-15 / this.renderer.handler.deltaTime);
         } else {
-            cam.rotateVertical(-cam._lonLat.height / 3000000 * math.RADIANS, Vec3.ZERO);
+            cam.rotateVertical((-cam._lonLat.height / 3000000) * math.RADIANS, Vec3.ZERO);
         }
         cam.update();
     }
@@ -89,7 +89,7 @@ class KeyboardNavigation extends Control {
         if (this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
             cam.yaw(15 / this.renderer.handler.deltaTime);
         } else {
-            cam.rotateHorizontal(cam._lonLat.height / 3000000 * math.RADIANS, false, Vec3.ZERO);
+            cam.rotateHorizontal((cam._lonLat.height / 3000000) * math.RADIANS, false, Vec3.ZERO);
         }
         cam.update();
     }
@@ -99,7 +99,7 @@ class KeyboardNavigation extends Control {
         if (this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
             cam.yaw(-15 / this.renderer.handler.deltaTime);
         } else {
-            cam.rotateHorizontal(-cam._lonLat.height / 3000000 * math.RADIANS, false, Vec3.ZERO);
+            cam.rotateHorizontal((-cam._lonLat.height / 3000000) * math.RADIANS, false, Vec3.ZERO);
         }
         cam.update();
     }

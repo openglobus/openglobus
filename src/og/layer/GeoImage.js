@@ -2,9 +2,9 @@
  * @module og/layer/GeoImage
  */
 
-'use strict';
+"use strict";
 
-import { BaseGeoImage } from './BaseGeoImage.js';
+import { BaseGeoImage } from "./BaseGeoImage.js";
 
 /**
  * Used to load and display a single image over specific corner coordinates on the globe, implements og.layer.BaseGeoImage interface.
@@ -95,14 +95,14 @@ class GeoImage extends BaseGeoImage {
                     this._onLoad(this._image);
                 } else if (this._image.src) {
                     let that = this;
-                    this._image.addEventListener('load', function (e) {
+                    this._image.addEventListener("load", function (e) {
                         that._onLoad(this);
                     });
                 }
             } else {
                 let that = this;
                 this._image = new Image();
-                this._image.addEventListener('load', function (e) {
+                this._image.addEventListener("load", function (e) {
                     that._onLoad(this);
                 });
                 this._image.src = this._src;
@@ -117,7 +117,7 @@ class GeoImage extends BaseGeoImage {
      * @param {Material} material - GeoImage material.
      */
     abortMaterialLoading(material) {
-        this._image && (this._image.src = '');
+        this._image && (this._image.src = "");
         this._creationProceeding = false;
         material.isLoading = false;
         material.isReady = false;

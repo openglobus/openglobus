@@ -2,9 +2,9 @@
  * @module og/math/Vec2
  */
 
-'use strict';
+"use strict";
 
-import { Vec3 } from './Vec3.js';
+import { Vec3 } from "./Vec3.js";
 
 /**
  * Class represents a 3d vector.
@@ -13,9 +13,7 @@ import { Vec3 } from './Vec3.js';
  * @param {number} [y] - Second value.
  */
 export class Vec2 {
-
     constructor(x, y) {
-
         /**
          * @public
          * @type {number}
@@ -29,15 +27,25 @@ export class Vec2 {
         this.y = y || 0.0;
     }
     /** @const */
-    static get UP() { return new Vec2(0, 1) }
+    static get UP() {
+        return new Vec2(0, 1);
+    }
     /** @const */
-    static get DOWN() { return new Vec2(0, -1) }
+    static get DOWN() {
+        return new Vec2(0, -1);
+    }
     /** @const */
-    static get RIGHT() { return new Vec2(1, 0) }
+    static get RIGHT() {
+        return new Vec2(1, 0);
+    }
     /** @const */
-    static get LEFT() { return new Vec2(-1, 0) }
+    static get LEFT() {
+        return new Vec2(-1, 0);
+    }
     /** @const */
-    static get ZERO() { return new Vec2() }
+    static get ZERO() {
+        return new Vec2();
+    }
 
     /**
      * Returns summary vector.
@@ -462,15 +470,17 @@ export class Vec2 {
         return res;
     }
 
-    static get LERP_DELTA() { return 1e-6 }
+    static get LERP_DELTA() {
+        return 1e-6;
+    }
 
     /**
      * Spherically interpolates between two vectors.
-     * Interpolates between current and v2 vector by amount t. The difference between this and linear interpolation (aka, "lerp") is that 
-     * the vectors are treated as directions rather than points in space. The direction of the returned vector is interpolated 
+     * Interpolates between current and v2 vector by amount t. The difference between this and linear interpolation (aka, "lerp") is that
+     * the vectors are treated as directions rather than points in space. The direction of the returned vector is interpolated
      * by the angle and its magnitude is interpolated between the magnitudes of from and to.
      * @public
-     * @param {math.Vec2} v2 - 
+     * @param {math.Vec2} v2 -
      * @param {number} t - The parameter t is clamped to the range [0, 1].
      * @returns {math.Vec2}
      */
@@ -488,7 +498,7 @@ export class Vec2 {
         var omega, sinom, scale0, scale1;
         var cosom = this.dot(v2);
 
-        if ((1.0 - cosom) > Vec2.LERP_DELTA) {
+        if (1.0 - cosom > Vec2.LERP_DELTA) {
             omega = Math.acos(cosom);
             sinom = Math.sin(omega);
             scale0 = Math.sin((1.0 - t) * omega) / sinom;

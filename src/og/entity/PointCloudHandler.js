@@ -2,13 +2,12 @@
  * @module og/entity/PointCloudHandler
  */
 
-'use strict';
+"use strict";
 
-import * as shaders from '../shaders/pointCloud.js';
+import * as shaders from "../shaders/pointCloud.js";
 
 class PointCloudHandler {
     constructor(entityCollection) {
-
         /**
          * Picking rendering option.
          * @public
@@ -72,7 +71,8 @@ class PointCloudHandler {
             pointCloud._handler = this;
             pointCloud._handlerIndex = this._pointClouds.length;
             this._pointClouds.push(pointCloud);
-            this._entityCollection && this._entityCollection.renderNode &&
+            this._entityCollection &&
+                this._entityCollection.renderNode &&
                 pointCloud.setRenderNode(this._entityCollection.renderNode);
         }
     }

@@ -2,9 +2,9 @@
  * @module og/light/LightSource
  */
 
-'use strict';
+"use strict";
 
-import { Vec3 } from '../math/Vec3.js';
+import { Vec3 } from "../math/Vec3.js";
 
 /**
  * Represents basic light source.
@@ -37,7 +37,7 @@ class LightSource {
          * @protected
          * @type {string}
          */
-        this._name = name || ("light_" + LightSource._staticCounter++);
+        this._name = name || "light_" + LightSource._staticCounter++;
 
         /**
          * Render node where light is shines.
@@ -221,11 +221,11 @@ class LightSource {
     }
 
     /**
- * Set ambient color.
- * @public
- * @param {Vec3} rgb - Ambient color.
- * @returns {LightSource}
- */
+     * Set ambient color.
+     * @public
+     * @param {Vec3} rgb - Ambient color.
+     * @returns {LightSource}
+     */
     setAmbient(r, g, b) {
         this._ambient.set(r, g, b);
         var rn = this._renderNode;
@@ -309,9 +309,16 @@ class LightSource {
         if (rn) {
             var index = 9 * rn._lightsNames.indexOf(this._name);
             if (index != -1) {
-                rn._lightsParamsv[index] = rn._lightsParamsv[index + 1] = rn._lightsParamsv[index + 2] =
-                    rn._lightsParamsv[index + 3] = rn._lightsParamsv[index + 4] = rn._lightsParamsv[index + 5] =
-                    rn._lightsParamsv[index + 6] = rn._lightsParamsv[index + 7] = rn._lightsParamsv[index + 8] = 0;
+                rn._lightsParamsv[index] =
+                    rn._lightsParamsv[index + 1] =
+                    rn._lightsParamsv[index + 2] =
+                    rn._lightsParamsv[index + 3] =
+                    rn._lightsParamsv[index + 4] =
+                    rn._lightsParamsv[index + 5] =
+                    rn._lightsParamsv[index + 6] =
+                    rn._lightsParamsv[index + 7] =
+                    rn._lightsParamsv[index + 8] =
+                        0;
             }
         }
         return this;

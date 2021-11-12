@@ -2,20 +2,13 @@
  * @module og/webgl/Program
  */
 
-'use strict';
+"use strict";
 
-import { callbacks } from './callbacks.js';
-import { cons } from '../cons.js';
-import { typeStr } from './types.js';
+import { callbacks } from "./callbacks.js";
+import { cons } from "../cons.js";
+import { typeStr, types } from "./types.js";
 
-const itemTypes = [
-    "BYTE",
-    "SHORT",
-    "UNSIGNED_BYTE",
-    "UNSIGNED_SHORT",
-    "FLOAT",
-    "HALF_FLOAT"
-];
+const itemTypes = ["BYTE", "SHORT", "UNSIGNED_BYTE", "UNSIGNED_SHORT", "FLOAT", "HALF_FLOAT"];
 
 /**
  * Represents more comfortable using WebGL shader program.
@@ -46,9 +39,11 @@ class Program {
          */
         this._attributes = {};
         for (let t in material.attributes) {
-            if (typeof (material.attributes[t]) === "string" ||
-                typeof (material.attributes[t]) === "number") {
-                this._attributes[t] = { 'type': material.attributes[t] };
+            if (
+                typeof material.attributes[t] === "string" ||
+                typeof material.attributes[t] === "number"
+            ) {
+                this._attributes[t] = { type: material.attributes[t] };
             } else {
                 this._attributes[t] = material.attributes[t];
             }
@@ -61,9 +56,11 @@ class Program {
          */
         this._uniforms = {};
         for (let t in material.uniforms) {
-            if (typeof (material.uniforms[t]) === "string" ||
-                typeof (material.uniforms[t]) === "number") {
-                this._uniforms[t] = { 'type': material.uniforms[t] };
+            if (
+                typeof material.uniforms[t] === "string" ||
+                typeof material.uniforms[t] === "number"
+            ) {
+                this._uniforms[t] = { type: material.uniforms[t] };
             } else {
                 this._uniforms[t] = material.uniforms[t];
             }
@@ -117,6 +114,13 @@ class Program {
          * @type {Array.<Object>}
          */
         this._attribArrays = [];
+
+        /**
+         * Program attributes divisor.
+         * @private
+         * @type {Array.<Object>}
+         */
+        this._attribDivisor = [];
     }
 
     /**
@@ -128,7 +132,14 @@ class Program {
     static bindBuffer(program, variable) {
         var gl = program.gl;
         gl.bindBuffer(gl.ARRAY_BUFFER, variable.value);
-        gl.vertexAttribPointer(variable._pName, variable.value.itemSize, variable.itemType, variable.normalized, 0, 0);
+        gl.vertexAttribPointer(
+            variable._pName,
+            variable.value.itemSize,
+            variable.itemType,
+            variable.normalized,
+            0,
+            0
+        );
     }
 
     /**
@@ -196,7 +207,9 @@ class Program {
         this.gl.shaderSource(shader, src);
         this.gl.compileShader(shader);
         if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-            cons.logErr("og/Program/Program:" + this.name + " - " + this.gl.getShaderInfoLog(shader) + ".");
+            cons.logErr(
+                "og/Program/Program:" + this.name + " - " + this.gl.getShaderInfoLog(shader) + "."
+            );
             return false;
         }
         return true;
@@ -237,9 +250,9 @@ class Program {
     disableAttribArrays() {
         var gl = this.gl;
         var a = this._attribArrays;
-        var i = a.length;
-        while (i--) {
+        for (let i = 0, len = a.length; i < len; i++) {
             gl.disableVertexAttribArray(a[i]);
+            gl.vertexAttribDivisor(a[i], 0);
         }
     }
 
@@ -250,9 +263,10 @@ class Program {
     enableAttribArrays() {
         var gl = this.gl;
         var a = this._attribArrays;
-        var i = a.length;
-        while (i--) {
+        var d = this._attribDivisor;
+        for (let i = 0, len = a.length; i < len; i++) {
             gl.enableVertexAttribArray(a[i]);
+            gl.vertexAttribDivisor(a[i], d[i]);
         }
     }
 
@@ -280,7 +294,13 @@ class Program {
         gl.linkProgram(this._p);
 
         if (!gl.getProgramParameter(this._p, gl.LINK_STATUS)) {
-            cons.logErr("og/Program/Program:" + this.name + " - couldn't initialise shaders. " + gl.getProgramInfoLog(this._p) + ".");
+            cons.logErr(
+                "og/Program/Program:" +
+                    this.name +
+                    " - couldn't initialise shaders. " +
+                    gl.getProgramInfoLog(this._p) +
+                    "."
+            );
             gl.deleteProgram(this._p);
             return;
         }
@@ -293,25 +313,47 @@ class Program {
 
             this._attributes[a]._callback = Program.bindBuffer;
 
-            let itemTypeStr = this._attributes[a].itemType ? this._attributes[a].itemType.trim().toUpperCase() : "FLOAT";
+            let itemTypeStr = this._attributes[a].itemType
+                ? this._attributes[a].itemType.trim().toUpperCase()
+                : "FLOAT";
+
             if (itemTypes.indexOf(itemTypeStr) == -1) {
-                cons.logErr(`og/Program/Program: ${this.name}- attribute '${a}', item type ${this._attributes[a].itemType} not exists.`);
+                cons.logErr(
+                    `og/Program/Program: ${this.name}- attribute '${a}', item type ${this._attributes[a].itemType} not exists.`
+                );
                 this._attributes[a].itemType = gl.FLOAT;
             } else {
                 this._attributes[a].itemType = gl[itemTypeStr];
             }
 
             this._attributes[a].normalized = this._attributes[a].normalized || false;
+            this._attributes[a].divisor = this._attributes[a].divisor || 0;
 
             this._p[a] = gl.getAttribLocation(this._p, a);
 
             if (this._p[a] == undefined) {
-                cons.logErr("og/Program/Program:" + this.name + " - attribute '" + a + "' is not exists.");
+                cons.logErr(
+                    "og/Program/Program:" + this.name + " - attribute '" + a + "' is not exists."
+                );
                 gl.deleteProgram(this._p);
                 return;
             }
 
-            this._attribArrays.push(this._p[a]);
+            let type = this._attributes[a].type;
+            if (typeof type === "string") {
+                type = typeStr[type.trim().toLowerCase()];
+            }
+
+            let d = this._attributes[a].divisor;
+            if (type === types.MAT4) {
+                let loc = this._p[a];
+                this._attribArrays.push(loc, loc + 1, loc + 2, loc + 3);
+                this._attribDivisor.push(d, d, d, d);
+            } else {
+                this._attribArrays.push(this._p[a]);
+                this._attribDivisor.push(d);
+            }
+
             gl.enableVertexAttribArray(this._p[a]);
 
             this._attributes[a]._pName = this._p[a];
@@ -321,8 +363,9 @@ class Program {
         for (var u in this._uniforms) {
             //this.uniforms[u]._name = u;
 
-            if (typeof (this._uniforms[u].type) === "string") {
-                this._uniforms[u]._callback = callbacks.u[typeStr[this._uniforms[u].type.trim().toLowerCase()]];
+            if (typeof this._uniforms[u].type === "string") {
+                this._uniforms[u]._callback =
+                    callbacks.u[typeStr[this._uniforms[u].type.trim().toLowerCase()]];
             } else {
                 this._uniforms[u]._callback = callbacks.u[this._uniforms[u].type];
             }
@@ -331,7 +374,9 @@ class Program {
             this._p[u] = gl.getUniformLocation(this._p, u);
 
             if (this._p[u] == undefined) {
-                cons.logErr("og/Program/Program:" + this.name + " - uniform '" + u + "' is not exists.");
+                cons.logErr(
+                    "og/Program/Program:" + this.name + " - uniform '" + u + "' is not exists."
+                );
                 gl.deleteProgram(this._p);
                 return;
             }

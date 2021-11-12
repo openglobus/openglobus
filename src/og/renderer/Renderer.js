@@ -55,7 +55,6 @@ let __depthCallbackCounter__ = 0;
  * @fires og.RendererEvents#touchenter
  */
 class Renderer {
-
     constructor(handler, params) {
         params = params || {};
 
@@ -441,7 +440,7 @@ class Renderer {
             useDepth: false
         }).init();
 
-        this.readPixels = () => { };
+        this.readPixels = () => {};
 
         if (this.handler.gl.type === "webgl") {
             this.sceneFramebuffer = new Framebuffer(this.handler);
@@ -538,7 +537,8 @@ class Renderer {
             );
         this.toneMappingFramebuffer &&
             this.toneMappingFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
-        this.depthFramebuffer && this.depthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
+        this.depthFramebuffer &&
+            this.depthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
         this.screenDepthFramebuffer &&
             this.screenDepthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
 
@@ -610,7 +610,11 @@ class Renderer {
 
     getMaxMSAA(internalFormat) {
         var gl = this.handler.gl;
-        let samples = gl.getInternalformatParameter(gl.RENDERBUFFER, gl[internalFormat], gl.SAMPLES);
+        let samples = gl.getInternalformatParameter(
+            gl.RENDERBUFFER,
+            gl[internalFormat],
+            gl.SAMPLES
+        );
         return samples[0];
     }
 
@@ -669,6 +673,12 @@ class Renderer {
             i = ec.length;
             while (i--) {
                 ec[i]._fadingOpacity && ec[i].labelHandler.draw();
+            }
+
+            //geoObject
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].geoObjectHandler.draw();
             }
 
             // rays
@@ -735,7 +745,12 @@ class Renderer {
 
         let h = this.handler;
 
-        h.gl.clearColor(this.backgroundColor.x, this.backgroundColor.y, this.backgroundColor.z, 1.0);
+        h.gl.clearColor(
+            this.backgroundColor.x,
+            this.backgroundColor.y,
+            this.backgroundColor.z,
+            1.0
+        );
         h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
 
         e.dispatch(e.draw, this);
@@ -964,7 +979,6 @@ class Renderer {
     start() {
         this.handler.start();
     }
-
 }
 
 export { Renderer };

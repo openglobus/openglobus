@@ -752,7 +752,7 @@ export function concatTypedArrays(a, b) {
  * @param {TypedArray | Array} a
  * @param {TypedArray | Array} b
  */
-export function concatArrays(a, b) {
+export function concatArrays(a = [], b) {
     if (ArrayBuffer.isView(a)) {
         return concatTypedArrays(a, b);
     } else {
