@@ -71,7 +71,7 @@ callbacks.u[types.SAMPLER2DARRAY] = function (program, variable) {
 };
 
 callbacks.u[types.INTXX] = function (program, variable) {
-    pgl.uniform1iv(variable._pName, variable.value);
+    program.gl.uniform1iv(variable._pName, variable.value);
 };
 
 callbacks.u[types.FLOATXX] = function (program, variable) {

@@ -2,51 +2,58 @@
  * @module og/math/Ray
  */
 
-'use strict';
+"use strict";
 
-import * as math from '../math.js';
-import { Vec3 } from './Vec3.js';
+import * as math from "../math.js";
+import { Vec3 } from "./Vec3.js";
 
 /**
  * Represents a ray that extends infinitely from the provided origin in the provided direction.
  * @class
- * @param {og.Vec3} origin - The origin of the ray.
- * @param {og.Vec3} direction - The direction of the ray.
+ * @param {Vec3} origin - The origin of the ray.
+ * @param {Vec3} direction - The direction of the ray.
  */
 export class Ray {
     constructor(origin, direction) {
-
         /**
          * The origin of the ray.
          * @public
-         * @type {og.Vec3}
+         * @type {Vec3}
          */
         this.origin = origin || new Vec3();
 
         /**
          * The direction of the ray.
          * @public
-         * @type {og.Vec3}
+         * @type {Vec3}
          */
         this.direction = direction || new Vec3();
     }
 
     /** @const */
-    static get OUTSIDE() { return 0; }
+    static get OUTSIDE() {
+        return 0;
+    }
 
     /** @const */
-    static get INSIDE() { return 1; }
+    static get INSIDE() {
+        return 1;
+    }
     /** @const */
-    static get INPLANE() { return 2; }
+    static get INPLANE() {
+        return 2;
+    }
     /** @const */
-    static get AWAY() { return 3; }
+    static get AWAY() {
+        return 3;
+    }
 
     /**
      * Sets a ray parameters.
      * @public
-     * @param {og.Vec3} origin - The origin of the ray.
-     * @param {og.Vec3} direction - The direction of the ray.
-     * @returns {og.Ray}
+     * @param {Vec3} origin - The origin of the ray.
+     * @param {Vec3} direction - The direction of the ray.
+     * @returns {Ray}
      */
     set(origin, direction) {
         this.origin = origin;
@@ -58,7 +65,7 @@ export class Ray {
      * Computes the point along the ray on the distance.
      * @public
      * @param {number} distance - Point distance.
-     * @returns {og.Vec3}
+     * @returns {Vec3}
      */
     getPoint(distance) {
         return Vec3.add(this.origin, this.direction.scaleTo(distance));
@@ -67,11 +74,11 @@ export class Ray {
     /**
      * Returns ray hit a triange result.
      * @public
-     * @param {og.Vec3} v0 - First triangle corner coordinate.
-     * @param {og.Vec3} v1 - Second triangle corner coordinate.
-     * @param {og.Vec3} v2 - Third triangle corner coordinate.
-     * @param {og.Vec3} res - Hit point object pointer that stores hit result.
-     * @returns {number} - Hit code, could 0 - og.Ray.OUTSIDE, 1 - og.Ray.INSIDE, 
+     * @param {Vec3} v0 - First triangle corner coordinate.
+     * @param {Vec3} v1 - Second triangle corner coordinate.
+     * @param {Vec3} v2 - Third triangle corner coordinate.
+     * @param {Vec3} res - Hit point object pointer that stores hit result.
+     * @returns {number} - Hit code, could 0 - og.Ray.OUTSIDE, 1 - og.Ray.INSIDE,
      *      2 - og.Ray.INPLANE and 3 - og.Ray.AWAY(ray goes away from triangle).
      */
     hitTriangle(v0, v1, v2, res, normal) {
@@ -120,7 +127,7 @@ export class Ray {
         }
 
         var t = (uv * wu - uu * wv) / D;
-        if (t < 0.0 || (s + t) > 1.0) {
+        if (t < 0.0 || s + t > 1.0) {
             return Ray.OUTSIDE;
         }
 
@@ -130,10 +137,10 @@ export class Ray {
     /**
      * Gets a ray hit a plane result. If the ray cross the plane returns 1 - og.Ray.INSIDE otherwise returns 0 - og.Ray.OUTSIDE.
      * @public
-     * @param {og.Vec3} v0 - First plane point.
-     * @param {og.Vec3} v1 - Second plane point.
-     * @param {og.Vec3} v2 - Third plane point.
-     * @param {og.Vec3} res - Hit point object pointer that stores hit result.
+     * @param {Vec3} v0 - First plane point.
+     * @param {Vec3} v1 - Second plane point.
+     * @param {Vec3} v2 - Third plane point.
+     * @param {Vec3} res - Hit point object pointer that stores hit result.
      * @returns {number}
      */
     hitPlane(v0, v1, v2, res) {
@@ -171,8 +178,8 @@ export class Ray {
     /**
      * Returns a ray hit sphere coordiante. If there isn't hit returns null.
      * @public
-     * @param {og.bv.Sphere} sphere - Sphere object.
-     * @returns {og.Vec3}
+     * @param {Sphere} sphere - Sphere object.
+     * @returns {Vec3}
      */
     hitSphere(sphere) {
         var r = sphere.radius,
@@ -218,17 +225,15 @@ export class Ray {
         // TODO
         //
     }
-
 }
 
 /**
  * Ray object creator.
  * @function
- * @param {og.Vec3} origin - The origin of the ray.
- * @param {og.Vec3} direction - The direction of the ray.
- * @returns {og.Ray}
+ * @param {Vec3} origin - The origin of the ray.
+ * @param {Vec3} direction - The direction of the ray.
+ * @returns {Ray}
  */
 export function ray(origin, direction) {
     return new Ray(origin, direction);
 }
-

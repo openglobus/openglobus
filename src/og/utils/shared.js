@@ -56,7 +56,7 @@ export function readTextFile(fileUrl) {
  * Convert html color string to the RGBA number vector.
  * @param {string} htmlColor - HTML string("#C6C6C6" or "#EF5" or "rgb(8,8,8)" or "rgba(8,8,8)") color.
  * @param {number} [opacity] - Opacity for the output vector.
- * @returns {og.math.Vec4} -
+ * @returns {math.Vec4} -
  */
 export function htmlColorToRgba(htmlColor, opacity) {
     var hColor = colorTable[htmlColor];
@@ -99,7 +99,7 @@ export function htmlColorToFloat32Array(htmlColor, opacity) {
  * Convert html color string to the RGB number vector.
  * @param {string} htmlColor - HTML string("#C6C6C6" or "#EF5" or "rgb(8,8,8)" or "rgba(8,8,8)") color.
  * @param {number} [opacity] - Opacity for the output vector.
- * @returns {og.Vec3} -
+ * @returns {Vec3} -
  */
 export function htmlColorToRgb(htmlColor) {
     var hColor = colorTable[htmlColor];
@@ -283,7 +283,7 @@ export function binarySearchFast(arr, x) {
  * Finds an item in a sorted array.
  * @param {Array} ar The sorted array to search.
  * @param {Object} el The item to find in the array.
- * @param {og.utils.binarySearch~compare_fn} compare_fn comparator The function to use to compare the item to
+ * @param {utils.binarySearch~compare_fn} compare_fn comparator The function to use to compare the item to
  *        elements in the array.
  * @returns {Number} a negative number  if a is less than b; 0 if a is equal to b;a positive number of a is greater than b.
  *
@@ -316,7 +316,7 @@ export function binarySearch(ar, el, compare_fn) {
  * Binary insertion that uses binarySearch algorithm.
  * @param {Array} ar - The sorted array to insert.
  * @param {Object} el - The item to insert.
- * @param {og.utils.binarySearch~compare_fn} compare_fn - comparator The function to use to compare the item to
+ * @param {utils.binarySearch~compare_fn} compare_fn - comparator The function to use to compare the item to
  *        elements in the array.
  * @returns {Number} Array index position in which item inserted in.
  */
@@ -332,12 +332,12 @@ export function binaryInsert(ar, el, compare_fn) {
 /**
  * Returns two segment lines intersection coordinate.
  * @static
- * @param {og.math.Vec2} start1 - First line first coordinate.
- * @param {og.math.Vec2} end1 - First line second coordinate.
- * @param {og.math.Vec2} start2 - Second line first coordinate.
- * @param {og.math.Vec2} end2 - Second line second coordinate.
+ * @param {math.Vec2} start1 - First line first coordinate.
+ * @param {math.Vec2} end1 - First line second coordinate.
+ * @param {math.Vec2} start2 - Second line first coordinate.
+ * @param {math.Vec2} end2 - Second line second coordinate.
  * @param {boolean} [isSegment] - Lines are segments.
- * @return {og.math.Vec2} - Intersection coordinate.
+ * @return {math.Vec2} - Intersection coordinate.
  */
 export function getLinesIntersection2v(start1, end1, start2, end2, isSegment) {
     var dir1 = end1.sub(start1);
@@ -372,12 +372,12 @@ export function getLinesIntersection2v(start1, end1, start2, end2, isSegment) {
 /**
  * Returns two segment lines intersection coordinate.
  * @static
- * @param {og.math.Vec2} start1 - First line first coordinate.
- * @param {og.math.Vec2} end1 - First line second coordinate.
- * @param {og.math.Vec2} start2 - Second line first coordinate.
- * @param {og.math.Vec2} end2 - Second line second coordinate.
+ * @param {math.Vec2} start1 - First line first coordinate.
+ * @param {math.Vec2} end1 - First line second coordinate.
+ * @param {math.Vec2} start2 - Second line first coordinate.
+ * @param {math.Vec2} end2 - Second line second coordinate.
  * @param {boolean} [isSegment] - Lines are segments.
- * @return {og.math.Vec2} - Intersection coordinate.
+ * @return {math.Vec2} - Intersection coordinate.
  */
 export function getLinesIntersectionLonLat(start1, end1, start2, end2, isSegment) {
     var dir1 = new LonLat(end1.lon - start1.lon, end1.lat - start1.lat);

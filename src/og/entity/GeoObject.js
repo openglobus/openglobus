@@ -160,7 +160,7 @@ class GeoObject {
         this._position.x = x;
         this._position.y = y;
         this._position.z = z;
-        Vec3.doubleToTwoFloats(position, this._positionHigh, this._positionLow);
+        Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
         this._handler &&
             this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
         this.updateDirection();

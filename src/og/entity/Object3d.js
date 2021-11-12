@@ -1,21 +1,20 @@
 /* eslint-disable no-param-reassign */
-'use strict';
+"use strict";
 
-import { htmlColorToFloat32Array } from '../utils/shared.js';
-import { Vec3 } from '../math/Vec3.js';
+import { htmlColorToFloat32Array } from "../utils/shared.js";
+import { Vec3 } from "../math/Vec3.js";
 
 function getColor(color) {
     if (color instanceof Array) {
         return color;
-    } else if (typeof color === 'string') {
+    } else if (typeof color === "string") {
         return htmlColorToFloat32Array(color);
     }
     return [1.0, 1.0, 1.0, 1.0];
-};
+}
 
 class Object3d {
     constructor(data) {
-
         this._name = data.name || "noname";
         this._vertices = data.vertices || [];
         this._texCoords = [];
@@ -58,11 +57,15 @@ class Object3d {
         for (let i = 0; i < vertices.length; i++) {
             vertices[i] *= s;
         }
-    };
+    }
 
     static centroid(vertices) {
-        let minX = 1000.0, minY = 1000.0, minZ = 1000.0,
-            maxX = -1000.0, maxY = -1000.0, maxZ = -1000.0;
+        let minX = 1000.0,
+            minY = 1000.0,
+            minZ = 1000.0,
+            maxX = -1000.0,
+            maxY = -1000.0,
+            maxZ = -1000.0;
 
         for (let i = 0; i < vertices.length; i += 3) {
             let x = vertices[i],
@@ -76,12 +79,8 @@ class Object3d {
             if (z > maxZ) maxZ = z;
         }
 
-        return [
-            minX + (maxX - minX) * 0.5,
-            minY + (maxY - minY) * 0.5,
-            minZ + (maxZ - minZ) * 0.5
-        ];
-    };
+        return [minX + (maxX - minX) * 0.5, minY + (maxY - minY) * 0.5, minZ + (maxZ - minZ) * 0.5];
+    }
 
     static translate(vertices, v) {
         for (let i = 0; i < vertices.length; i += 3) {
@@ -89,13 +88,12 @@ class Object3d {
             vertices[i + 1] -= v[1];
             vertices[i + 2] -= v[2];
         }
-    };
+    }
 
     static getNormals(vertices) {
         let res = new Array(vertices.length);
 
         for (var i = 0; i < vertices.length; i += 9) {
-
             let t03 = i,
                 t13 = i + 3,
                 t23 = i + 6,
@@ -140,19 +138,25 @@ class Object3d {
         return res;
     }
 
-    static createSphere(lonBands = 16, latBands = 16, radius = 1.0, offsetX = 0, offsetY = 0, offsetZ = 0) {
-
+    static createSphere(
+        lonBands = 16,
+        latBands = 16,
+        radius = 1.0,
+        offsetX = 0,
+        offsetY = 0,
+        offsetZ = 0
+    ) {
         let vertices = [],
             indexes = [],
             normals = [];
 
         for (let latNumber = 0; latNumber <= latBands; latNumber++) {
-            var theta = latNumber * Math.PI / latBands;
+            var theta = (latNumber * Math.PI) / latBands;
             var sinTheta = Math.sin(theta);
             var cosTheta = Math.cos(theta);
 
             for (let longNumber = 0; longNumber <= lonBands; longNumber++) {
-                var phi = longNumber * 2 * Math.PI / lonBands;
+                var phi = (longNumber * 2 * Math.PI) / lonBands;
                 var sinPhi = Math.sin(phi);
                 var cosPhi = Math.cos(phi);
                 var x = cosPhi * sinTheta + offsetX;
@@ -173,7 +177,7 @@ class Object3d {
 
         for (let latNumber = 0; latNumber < latBands; latNumber++) {
             for (let longNumber = 0; longNumber < lonBands; longNumber++) {
-                var first = (latNumber * (lonBands + 1)) + longNumber;
+                var first = latNumber * (lonBands + 1) + longNumber;
                 var second = first + lonBands + 1;
 
                 indexes.push(first);
@@ -187,14 +191,22 @@ class Object3d {
         }
 
         return new Object3d({
-            'vertices': vertices,
-            'normals': normals,
-            'indexes': indexes
+            vertices: vertices,
+            normals: normals,
+            indexes: indexes
         });
     }
 
-    static createDisc(radius = 1.0, height = 0.0, radialSegments = 8, isTop = true, startIndex = 0, offsetX = 0, offsetY, offsetZ = 0) {
-
+    static createDisc(
+        radius = 1.0,
+        height = 0.0,
+        radialSegments = 8,
+        isTop = true,
+        startIndex = 0,
+        offsetX = 0,
+        offsetY,
+        offsetZ = 0
+    ) {
         let vertices = [],
             indexes = [],
             normals = [];
@@ -202,7 +214,7 @@ class Object3d {
         let thetaStart = 0.0,
             thetaLength = Math.PI * 2;
 
-        let sign = (isTop === true) ? 1.0 : -1.0;
+        let sign = isTop === true ? 1.0 : -1.0;
 
         let centerIndexStart = startIndex;
 
@@ -216,14 +228,17 @@ class Object3d {
         let centerIndexEnd = startIndex;
 
         for (let x = 0; x <= radialSegments; x++) {
-
             let u = x / radialSegments;
             let theta = u * thetaLength + thetaStart;
 
             let cosTheta = Math.cos(theta);
             let sinTheta = Math.sin(theta);
 
-            vertices.push(radius * sinTheta + offsetX, height * sign + offsetY, radius * cosTheta + offsetZ);
+            vertices.push(
+                radius * sinTheta + offsetX,
+                height * sign + offsetY,
+                radius * cosTheta + offsetZ
+            );
             normals.push(0, sign, 0);
             //texCoords.push((cosTheta * 0.5) + 0.5, (sinTheta * 0.5 * sign) + 0.5);
 
@@ -241,14 +256,24 @@ class Object3d {
         }
 
         return new Object3d({
-            'vertices': vertices,
-            'normals': normals,
-            'indexes': indexes
+            vertices: vertices,
+            normals: normals,
+            indexes: indexes
         });
     }
 
-    static createCylinder(radiusTop = 1.0, radiusBottom = 1.0, height = 1.0, radialSegments = 32, heightSegments = 1.0, isTop = true, isBottom = true, offsetX = 0, offsetY = 0, offsetZ = 0) {
-
+    static createCylinder(
+        radiusTop = 1.0,
+        radiusBottom = 1.0,
+        height = 1.0,
+        radialSegments = 32,
+        heightSegments = 1.0,
+        isTop = true,
+        isBottom = true,
+        offsetX = 0,
+        offsetY = 0,
+        offsetZ = 0
+    ) {
         let vertices = [],
             indexes = [],
             normals = [];
@@ -264,7 +289,6 @@ class Object3d {
         var slope = (radiusBottom - radiusTop) / height;
 
         for (let y = 0; y <= heightSegments; y++) {
-
             let indexRow = [];
 
             let v = y / heightSegments;
@@ -272,7 +296,6 @@ class Object3d {
             let radius = v * (radiusBottom - radiusTop) + radiusTop;
 
             for (let x = 0; x <= radialSegments; x++) {
-
                 let u = x / radialSegments;
 
                 let theta = u * thetaLength + thetaStart;
@@ -280,7 +303,11 @@ class Object3d {
                 let sinTheta = Math.sin(theta),
                     cosTheta = Math.cos(theta);
 
-                vertices.push(radius * sinTheta + offsetX, -v * height + height + offsetY, radius * cosTheta + offsetZ);
+                vertices.push(
+                    radius * sinTheta + offsetX,
+                    -v * height + height + offsetY,
+                    radius * cosTheta + offsetZ
+                );
 
                 normal.set(sinTheta, slope, cosTheta).normalize();
                 normals.push(normal.x, normal.y, normal.z);
@@ -294,7 +321,6 @@ class Object3d {
 
         for (let x = 0; x < radialSegments; x++) {
             for (let y = 0; y < heightSegments; y++) {
-
                 let a = indexArray[y][x],
                     b = indexArray[y + 1][x],
                     c = indexArray[y + 1][x + 1],
@@ -306,23 +332,41 @@ class Object3d {
         }
 
         if (radiusTop !== 0.0 && isTop) {
-            let cap = Object3d.createDisc(radiusTop, height, radialSegments, true, index, offsetX, offsetY, offsetZ);
+            let cap = Object3d.createDisc(
+                radiusTop,
+                height,
+                radialSegments,
+                true,
+                index,
+                offsetX,
+                offsetY,
+                offsetZ
+            );
             vertices.push(...cap.vertices);
             normals.push(...cap.normals);
             indexes.push(...cap.indexes);
         }
 
         if (radiusBottom !== 0.0 && isBottom) {
-            let cap = Object3d.createDisc(radiusBottom, 0, radialSegments, false, index + (isTop ? (1 + 2 * radialSegments) : 0), offsetX, offsetY, offsetZ);
+            let cap = Object3d.createDisc(
+                radiusBottom,
+                0,
+                radialSegments,
+                false,
+                index + (isTop ? 1 + 2 * radialSegments : 0),
+                offsetX,
+                offsetY,
+                offsetZ
+            );
             vertices.push(...cap.vertices);
             normals.push(...cap.normals);
             indexes.push(...cap.indexes);
         }
 
         return new Object3d({
-            'vertices': vertices,
-            'normals': normals,
-            'indexes': indexes
+            vertices: vertices,
+            normals: normals,
+            indexes: indexes
         });
     }
 
@@ -334,52 +378,124 @@ class Object3d {
         return new Object3d({
             vertices: [
                 //bottom
-                -l, -h, d,
-                l, -h, -d,
-                l, -h, d,
-                -l, -h, d,
-                -l, -h, -d,
-                l, -h, -d,
+                -l,
+                -h,
+                d,
+                l,
+                -h,
+                -d,
+                l,
+                -h,
+                d,
+                -l,
+                -h,
+                d,
+                -l,
+                -h,
+                -d,
+                l,
+                -h,
+                -d,
 
                 //top
-                -l, h, d,
-                l, h, d,
-                l, h, -d,
-                -l, h, d,
-                l, h, -d,
-                -l, h, -d,
+                -l,
+                h,
+                d,
+                l,
+                h,
+                d,
+                l,
+                h,
+                -d,
+                -l,
+                h,
+                d,
+                l,
+                h,
+                -d,
+                -l,
+                h,
+                -d,
 
                 //front
-                -l, -h, d,
-                l, -h, d,
-                -l, h, d,
-                -l, h, d,
-                l, -h, d,
-                l, h, d,
+                -l,
+                -h,
+                d,
+                l,
+                -h,
+                d,
+                -l,
+                h,
+                d,
+                -l,
+                h,
+                d,
+                l,
+                -h,
+                d,
+                l,
+                h,
+                d,
 
                 //back
-                -l, -h, -d,
-                -l, h, -d,
-                l, -h, -d,
-                -l, h, -d,
-                l, h, -d,
-                l, -h, -d,
+                -l,
+                -h,
+                -d,
+                -l,
+                h,
+                -d,
+                l,
+                -h,
+                -d,
+                -l,
+                h,
+                -d,
+                l,
+                h,
+                -d,
+                l,
+                -h,
+                -d,
 
                 //left
-                l, -h, d,
-                l, -h, -d,
-                l, h, d,
-                l, h, d,
-                l, -h, -d,
-                l, h, -d,
+                l,
+                -h,
+                d,
+                l,
+                -h,
+                -d,
+                l,
+                h,
+                d,
+                l,
+                h,
+                d,
+                l,
+                -h,
+                -d,
+                l,
+                h,
+                -d,
 
                 //right
-                -l, -h, d,
-                -l, h, d,
-                -l, -h, -d,
-                -l, h, d,
-                -l, h, -d,
-                -l, -h, -d
+                -l,
+                -h,
+                d,
+                -l,
+                h,
+                d,
+                -l,
+                -h,
+                -d,
+                -l,
+                h,
+                d,
+                -l,
+                h,
+                -d,
+                -l,
+                -h,
+                -d
             ]
         });
     }

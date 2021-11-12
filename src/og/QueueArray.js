@@ -1,6 +1,10 @@
-'use strict';
+"use strict";
 
 class QueueArray {
+    /**
+     *
+     * @param {number} [size]
+     */
     constructor(size) {
         this._size = size || 2048;
         this._array = new Array(this._size);

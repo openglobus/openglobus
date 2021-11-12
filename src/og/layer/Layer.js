@@ -11,6 +11,7 @@ import { Extent } from "../Extent.js";
 import { LonLat } from "../LonLat.js";
 import { Material } from "./Material.js";
 import { Vec3 } from "../math/Vec3.js";
+import { createTexture } from "../webgl/Handler.js";
 
 export const FADING_FACTOR = 0.29;
 
@@ -28,10 +29,11 @@ export const FADING_FACTOR = 0.29;
  * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
  * @param {boolean} [options.isBaseLayer=false] - This is a base layer.
  * @param {boolean} [options.visibility=true] - Layer visibility.
- * @param {og.Extent} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
- * @param {og.Vec3} [options.ambient=[0.1, 0.1, 0.21]] - Ambient RGB color.
- * @param {og.Vec3} [options.diffuse=[1.0, 1.0, 1.0]] - Diffuse RGB color.
- * @param {og.Vec3} [options.specular=[0.00025, 0.00015, 0.0001]] - Specular RGB color.
+ * @param {Extent} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
+ * @param {Vec3} [options.ambient=[0.1, 0.1, 0.21]] - Ambient RGB color.
+ * @param {Vec3} [options.diffuse=[1.0, 1.0, 1.0]] - Diffuse RGB color.
+ * @param {Vec3} [options.specular=[0.00025, 0.00015, 0.0001]] - Specular RGB color.
+ * @param {string} [options.textureFilter="anisotropic"] - Image texture filter. Available values: "nearest", "linear", "mipmap" and "anisotropic".
  * @param {Number} [options.shininess=100] - Shininess.
  *
  * @fires og.Layer#visibilitychange
@@ -118,7 +120,7 @@ class Layer {
         /**
          * Planet node.
          * @protected
-         * @type {og.scene.Planet}
+         * @type {Planet}
          */
         this._planet = null;
 
@@ -179,14 +181,22 @@ class Layer {
         /**
          * Visible degrees extent.
          * @protected
-         * @type {og.Extent}
+         * @type {Extent}
          */
         this._extent = null;
+
+        if (options.textureFilter) {
+            this.createTexture =
+                createTexture[options.textureFilter.trim().toUpperCase()] ||
+                createTexture.ANISOTROPIC;
+        } else {
+            this.createTexture = createTexture.ANISOTROPIC;
+        }
 
         /**
          * Visible mercator extent.
          * @protected
-         * @type {og.Extent}
+         * @type {Extent}
          */
         this._extentMerc = null;
 
@@ -201,7 +211,7 @@ class Layer {
         /**
          * Layer picking color. Assign when added to the planet.
          * @protected
-         * @type {og.Vec3}
+         * @type {Vec3}
          */
         this._pickingColor = new Vec3();
 
@@ -210,7 +220,7 @@ class Layer {
         /**
          * Events handler.
          * @public
-         * @type {og.Events}
+         * @type {Events}
          */
         this.events = new Events(EVENT_NAMES, this);
     }
@@ -310,7 +320,7 @@ class Layer {
     /**
      * Compares layers instances.
      * @public
-     * @param {og.Layer} layer - Layer instance to compare.
+     * @param {Layer} layer - Layer instance to compare.
      * @returns {boolean} - Returns true if the layers is the same instance of the input.
      */
     isEqual(layer) {
@@ -321,7 +331,7 @@ class Layer {
      * Assign the planet.
      * @protected
      * @virtual
-     * @param {og.scene.Planet} planet - Planet render node.
+     * @param {Planet} planet - Planet render node.
      */
     _assignPlanet(planet) {
         planet.layers.push(this);
@@ -348,7 +358,7 @@ class Layer {
     /**
      * Adds layer to the planet.
      * @public
-     * @param {og.scene.Planet} planet - Adds layer to the planet.
+     * @param {Planet} planet - Adds layer to the planet.
      */
     addTo(planet) {
         if (!this._planet) {
@@ -360,7 +370,7 @@ class Layer {
     /**
      * Removes from planet.
      * @public
-     * @returns {og.Layer} -This layer.
+     * @returns {Layer} -This layer.
      */
     remove() {
         var p = this._planet;
@@ -514,7 +524,7 @@ class Layer {
     /**
      * Sets visible geographical extent.
      * @public
-     * @param {og.Extent} extent - Layer visible geographical extent.
+     * @param {Extent} extent - Layer visible geographical extent.
      */
     setExtent(extent) {
         var sw = extent.southWest.clone(),
@@ -533,7 +543,7 @@ class Layer {
     /**
      * Gets layer extent.
      * @public
-     * @return {og.Extent} - Layer geodetic extent.
+     * @return {Extent} - Layer geodetic extent.
      */
     getExtent() {
         return this._extent;

@@ -2,9 +2,9 @@
  * @module og/LonLat
  */
 
-'use strict';
+"use strict";
 
-import * as mercator from './mercator.js';
+import * as mercator from "./mercator.js";
 
 const HALF_PI = Math.PI * 0.5;
 const INV_PI_BY_180 = 180.0 / Math.PI;
@@ -20,14 +20,12 @@ const INV_PI_BY_180_HALF_PI = INV_PI_BY_180 * HALF_PI;
  * @param {number} [height] - Height over the surface.
  */
 export class LonLat {
-
     /**
-     * @param {number} [lon] 
-     * @param {number} [lat] 
-     * @param {number} [height] 
+     * @param {number} [lon] - Longitude.
+     * @param {number} [lat] - Latitude.
+     * @param {number} [height] - Height over the surface.
      */
     constructor(lon, lat, height) {
-
         /**
          * Longitude.
          * @public
@@ -88,9 +86,11 @@ export class LonLat {
      * @returns {LonLat} -
      */
     static forwardMercator(lon, lat, height) {
-        return new LonLat(lon * mercator.POLE_BY_180,
+        return new LonLat(
+            lon * mercator.POLE_BY_180,
             Math.log(Math.tan((90.0 + lat) * PI_BY_360)) * mercator.POLE_BY_PI,
-            height);
+            height
+        );
     }
 
     /**
@@ -102,9 +102,11 @@ export class LonLat {
      * @returns {LonLat} -
      */
     static inverseMercator(x, y, height) {
-        return new LonLat(x * mercator.INV_POLE_BY_180,
+        return new LonLat(
+            x * mercator.INV_POLE_BY_180,
             INV_PI_BY_360 * Math.atan(Math.exp(y * mercator.PI_BY_POLE)) - INV_PI_BY_180_HALF_PI,
-            height);
+            height
+        );
     }
 
     /**
@@ -162,7 +164,8 @@ export class LonLat {
         }
         return new LonLat(
             this.lon * mercator.POLE_BY_180,
-            Math.log(Math.tan((90.0 + lat) * PI_BY_360)) * mercator.POLE_BY_PI);
+            Math.log(Math.tan((90.0 + lat) * PI_BY_360)) * mercator.POLE_BY_PI
+        );
     }
 
     /**

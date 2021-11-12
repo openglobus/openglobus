@@ -18,7 +18,7 @@ import { Vec3 } from "../math/Vec3.js";
 /**
  * Mouse planet camera dragging control.
  * @class
- * @extends {og.control.Control}
+ * @extends {Control}
  * @param {Object} [options] - Control options.
  */
 class MouseNavigation extends Control {

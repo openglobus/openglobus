@@ -19,7 +19,7 @@ const MB_M = 0b0100;
 /**
  * Renderer events handler.
  * @class
- * @param {og.Renderer} renderer - Renderer object, events that works for.
+ * @param {Renderer} renderer - Renderer object, events that works for.
  */
 class RendererEvents extends Events {
     constructor(renderer) {
@@ -28,28 +28,28 @@ class RendererEvents extends Events {
         /**
          * Assigned renderer.
          * @public
-         * @type {og.Renderer}
+         * @type {Renderer}
          */
         this.renderer = renderer;
 
         /**
          * Low level touch events handler.
          * @private
-         * @type {og.input.TouchHandler}
+         * @type {input.TouchHandler}
          */
         this._touchHandler = new TouchHandler(renderer.handler.canvas);
 
         /**
          * Low level mouse events handler.
          * @private
-         * @type {og.input.MouseHandler}
+         * @type {input.MouseHandler}
          */
         this._mouseHandler = new MouseHandler(renderer.handler.canvas);
 
         /**
          * Low level keyboard events handler.
          * @private
-         * @type {og.input.KeyboardHandler}
+         * @type {input.KeyboardHandler}
          */
         this._keyboardHandler = new KeyboardHandler();
 
@@ -190,6 +190,9 @@ class RendererEvents extends Events {
         this._dblTchCoords = new Vec2();
         this._oneTouchStart = false;
         this._dblTchBegins = 0;
+        /**
+         * @type {number}
+         */
         this._mousestopThread = null;
         this._ldblClkBegins = 0;
         this._rdblClkBegins = 0;
@@ -332,7 +335,7 @@ class RendererEvents extends Events {
      */
     onMouseMove(event, sys) {
         var ms = this.mouseState;
-        this.updateButtonsStates(sys.buttons)
+        this.updateButtonsStates(sys.buttons);
         ms.sys = event;
 
         let ex = event.clientX,

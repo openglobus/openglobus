@@ -1,10 +1,9 @@
-'use strict';
+"use strict";
 
-import { Program } from '../webgl/Program.js';
+import { Program } from "../webgl/Program.js";
 
 class StripHandler {
     constructor(entityCollection) {
-
         /**
          * Picking rendering option.
          * @public
@@ -15,21 +14,21 @@ class StripHandler {
         /**
          * Parent collection
          * @private
-         * @type {og.EntityCollection}
+         * @type {EntityCollection}
          */
         this._entityCollection = entityCollection;
 
         /**
          * Renderer
          * @private
-         * @type {og.Renderer}
+         * @type {Renderer}
          */
         this._renderer = null;
 
         /**
          * Point cloud array
          * @private
-         * @type {Array.<og.Strip>}
+         * @type {Array.<Strip>}
          */
         this._strips = [];
 
@@ -50,21 +49,21 @@ class StripHandler {
     _initProgram() {
         if (this._renderer.handler) {
             !this._renderer.handler.programs.strip &&
-                this._renderer.handler.addProgram(new Program("strip", {
-                    uniforms: {
-                        projectionMatrix: { type: 'mat4' },
-                        viewMatrix: { type: 'mat4' },
-                        eyePositionHigh: "vec3",
-                        eyePositionLow: "vec3",
-                        uColor: { type: 'vec4' },
-                        uOpacity: { type: 'float' }
-                    },
-                    attributes: {
-                        aVertexPositionHigh: { type: 'vec3' },
-                        aVertexPositionLow: { type: 'vec3' }
-                    },
-                    vertexShader:
-                        `attribute vec3 aVertexPositionHigh;
+                this._renderer.handler.addProgram(
+                    new Program("strip", {
+                        uniforms: {
+                            projectionMatrix: { type: "mat4" },
+                            viewMatrix: { type: "mat4" },
+                            eyePositionHigh: "vec3",
+                            eyePositionLow: "vec3",
+                            uColor: { type: "vec4" },
+                            uOpacity: { type: "float" }
+                        },
+                        attributes: {
+                            aVertexPositionHigh: { type: "vec3" },
+                            aVertexPositionLow: { type: "vec3" }
+                        },
+                        vertexShader: `attribute vec3 aVertexPositionHigh;
                         attribute vec3 aVertexPositionLow;
                         uniform mat4 projectionMatrix;
                         uniform mat4 viewMatrix;
@@ -80,14 +79,14 @@ class StripHandler {
 
                             gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
                         }`,
-                    fragmentShader:
-                        `precision highp float;
+                        fragmentShader: `precision highp float;
                         uniform vec4 uColor;
                         uniform float uOpacity;
                         void main(void) {
                             gl_FragColor = vec4(uColor.rgb, uColor.a * uOpacity);
                         }`
-                }));
+                    })
+                );
         }
     }
 
@@ -104,7 +103,8 @@ class StripHandler {
             strip._handler = this;
             strip._handlerIndex = this._strips.length;
             this._strips.push(strip);
-            this._entityCollection && this._entityCollection.renderNode &&
+            this._entityCollection &&
+                this._entityCollection.renderNode &&
                 strip.setRenderNode(this._entityCollection.renderNode);
         }
     }

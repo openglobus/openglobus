@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /**
  * 2D Rectangle class.
@@ -7,10 +7,15 @@
  * @param {number} [top] - Top coordinate. 0 - default.
  * @param {number} [right] - Right coordinate. 0 - default.
  * @param {number} [bottom] - Bottom coordinate. 0 - default.
-*/
+ */
 class Rectangle {
+    /**
+     * @param {number} [left] - Left coordinate. 0 - default.
+     * @param {number} [top] - Top coordinate. 0 - default.
+     * @param {number} [right] - Right coordinate. 0 - default.
+     * @param {number} [bottom] - Bottom coordinate. 0 - default.
+     */
     constructor(left, top, right, bottom) {
-
         /**
          * Left coordinate.
          * @public
@@ -43,7 +48,7 @@ class Rectangle {
     /**
      * Clone rectangle object.
      * @public
-     * @returns {og.Rectangle}
+     * @returns {Rectangle}
      */
     clone() {
         return new Rectangle(this.left, this.top, this.right, this.bottom);
@@ -95,7 +100,7 @@ class Rectangle {
      * @type {boolean}
      */
     fit(width, height) {
-        return (this.getWidth() == width && this.getHeight() == height);
+        return this.getWidth() == width && this.getHeight() == height;
     }
 
     isInside(x, y) {

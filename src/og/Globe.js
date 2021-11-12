@@ -50,20 +50,26 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  *
  * @param {object} options - Options:
  * @param {string} options.target - HTML element id where planet canvas have to be created.
- * @param {og.scene.RenderNode} [options.skybox] - Render skybox. null - default.
+ * @param {RenderNode} [options.skybox] - Render skybox. null - default.
  * @param {string} [options.name] - Planet name. Default is unic identifier.
- * @param {og.terrain.Terrain} [options.terrain] - Terrain provider. Default no terrain - og.terrain.EmptyTerrain.
- * @param {Array.<og.control.Control>} [options.controls] - Renderer controls array.
- * @param {Array.<og.Layer>} [options.layers] - Planet layers.
- * @param {og.Extent} [options.viewExtent] - Viewable starting extent.
+ * @param {Terrain} [options.terrain] - Terrain provider. Default no terrain - og.terrain.EmptyTerrain.
+ * @param {Array.<control.Control>} [options.controls] - Renderer controls array.
+ * @param {Array.<Layer>} [options.layers] - Planet layers.
+ * @param {Extent} [options.viewExtent] - Viewable starting extent.
  * @param {boolean} [options.autoActivate] - Globe rendering auto activation flag. True is default.
  * @param {DOMElement} [options.attributionContainer] - Container for attribution list.
  * @param {Number} [options.maxGridSize] = Maximal segment grid size. 128 is default
  * @param {boolean} [options.useSpecularTexture] - use specular water mask
  * @param {boolean} [options.useNightTexture] - show night cities
+ * @param {Number} [options.maxEqualZoomAltitude=850000.0] - Maximal altitude since segments on the screen bacame the same zoom level
+ * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen bacame the same zoom level
+ * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen bacame the same zoom level
  */
 
 class Globe {
+    /**
+     * @param {*} options
+     */
     constructor(options) {
         // Canvas creation
         var _canvasId = CANVAS_ID_PREFIX + Globe._staticCounter++;
@@ -108,7 +114,7 @@ class Globe {
         /**
          * Interface for the renderer context(events, input states, renderer nodes etc.)
          * @public
-         * @type {og.Renderer}
+         * @type {Renderer}
          */
         this.renderer = new Renderer(
             new Handler(_canvasId, {
@@ -148,7 +154,7 @@ class Globe {
             /**
              * Render node renders a planet.
              * @public
-             * @type {og.scene.Planet|og.scene.PlanetAtmosphere}
+             * @type {Planet|og.scene.PlanetAtmosphere}
              */
             // TODO:
         } else {
@@ -159,7 +165,10 @@ class Globe {
                 useNightTexture: options.useNightTexture,
                 useSpecularTexture: options.useSpecularTexture,
                 minAltitude: options.minAltitude,
-                maxAltitude: options.maxAltitude
+                maxAltitude: options.maxAltitude,
+                maxEqualZoomAltitude: options.maxEqualZoomAltitude,
+                minEqualZoomAltitude: options.minEqualZoomAltitude,
+                minEqualZoomCameraSlope: options.minEqualZoomCameraSlope
             });
         }
 
@@ -181,8 +190,8 @@ class Globe {
                 options.useEarthNavigation
                     ? new EarthNavigation()
                     : new MouseNavigation({
-                        minSlope: options.minSlope
-                    }),
+                          minSlope: options.minSlope
+                      }),
                 new TouchNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),

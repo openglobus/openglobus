@@ -27,10 +27,9 @@ const vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
  * @param {string} id - Canvas element id that WebGL handler assing with. If it's null
  * or undefined creates hidden canvas and handler bacomes hidden.
  * @param {Object} [params] - Handler options:
- * @param {number} [params.anisotropy] - Anisitropy filter degree. 8 is default.
+ * @param {number} [params.anisotropy] - Anisotropy filter degree. 8 is default.
  * @param {number} [params.width] - Hidden handler width. 256 is default.
  * @param {number} [params.height] - Hidden handler height. 256 is default.
- * @param {Object} [param.scontext] - Native WebGL context attributes. See https://www.khronos.org/registry/webgl/specs/latest/1.0/#WEBGLCONTEXTATTRIBUTES
  * @param {Array.<string>} [params.extensions] - Additional WebGL extension list. Available by default: EXT_texture_filter_anisotropic.
  */
 class Handler {
@@ -40,14 +39,14 @@ class Handler {
         /**
          * Application default timer.
          * @public
-         * @type {og.Clock}
+         * @type {Clock}
          */
         this.defaultClock = new Clock();
 
         /**
          * Custom timers.
          * @protected
-         * @type{og.Clock[]}
+         * @type{Clock[]}
          */
         this._clocks = [];
 
@@ -83,7 +82,7 @@ class Handler {
         /**
          * Current active shader program controller.
          * @public
-         * @type {og.webgl.ProgramController}
+         * @type {ProgramController}
          */
         this.activeProgram = null;
 
@@ -197,26 +196,6 @@ class Handler {
      */
     setFrameCallback(callback) {
         callback && (this._frameCallback = callback);
-    }
-
-    /**
-     * Creates NEAREST filter texture.
-     * @public
-     * @param {Object} image - Image or Canvas object.
-     * @returns {Object} - WebGL texture object.
-     */
-    createTexture_n(image) {
-        let gl = this.gl;
-        let texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.bindTexture(gl.TEXTURE_2D, null);
-        return texture;
     }
 
     /**
@@ -351,13 +330,33 @@ class Handler {
     }
 
     /**
+     * Creates NEAREST filter texture.
+     * @public
+     * @param {Object} image - Image or Canvas object.
+     * @returns {Object} - WebGL texture object.
+     */
+    static createTexture_n(handler, image) {
+        var gl = handler.gl;
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        return texture;
+    }
+
+    /**
      * Creates LINEAR filter texture.
      * @public
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_l(image) {
-        let gl = this.gl;
+    static createTexture_l(handler, image) {
+        let gl = handler.gl;
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
@@ -375,8 +374,8 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_mm(image) {
-        let gl = this.gl;
+    static createTexture_mm(handler, image) {
+        let gl = handler.gl;
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
@@ -395,8 +394,8 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_a(image) {
-        let gl = this.gl;
+    static createTexture_a(handler, image) {
+        let gl = handler.gl;
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
@@ -405,8 +404,8 @@ class Handler {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
         gl.texParameterf(
             gl.TEXTURE_2D,
-            this.extensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT,
-            this._params.anisotropy
+            handler.extensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT,
+            handler._params.anisotropy
         );
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -421,7 +420,23 @@ class Handler {
      * @returns {Object} - WebGL texture object.
      */
     createTexture(image) {
-        return this.createTexture_a(image);
+        return Handler.createTexture_a(this, image);
+    }
+
+    createTexture_n(image) {
+        return Handler.createTexture_n(this, image);
+    }
+
+    createTexture_l(image) {
+        return Handler.createTexture_l(this, image);
+    }
+
+    createTexture_mm(image) {
+        return Handler.createTexture_mm(this, image);
+    }
+
+    createTexture_a(image) {
+        return Handler.createTexture_a(this, image);
     }
 
     /**
@@ -484,9 +499,9 @@ class Handler {
     /**
      * Adds shader program to the handler.
      * @public
-     * @param {og.webgl.Program} program - Shader program.
+     * @param {Program} program - Shader program.
      * @param {boolean} [notActivate] - If it's true program will not compile.
-     * @return {og.webgl.Program} -
+     * @return {Program} -
      */
     addProgram(program, notActivate) {
         if (!this.programs[program.name]) {
@@ -516,7 +531,7 @@ class Handler {
     /**
      * Adds shader programs to the handler.
      * @public
-     * @param {Array.<og.webgl.Program>} programsArr - Shader program array.
+     * @param {Array.<Program>} programsArr - Shader program array.
      */
     addPrograms(programsArr) {
         for (let i = 0; i < programsArr.length; i++) {
@@ -527,7 +542,7 @@ class Handler {
     /**
      * Used in addProgram
      * @private
-     * @param {og.webgl.ProgramController} sc - Program controller
+     * @param {ProgramController} sc - Program controller
      */
     _initProgramController(sc) {
         if (this._initialized) {
@@ -923,7 +938,7 @@ class Handler {
         if (params && params.color) {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor(params.color);
-            texture = this.createTexture_n(imgCnv._canvas);
+            texture = Handler.createTexture_n(this, imgCnv._canvas);
             texture.default = true;
             success(texture);
         } else if (params && params.url) {
@@ -938,7 +953,7 @@ class Handler {
         } else {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor("#C5C5C5");
-            texture = this.createTexture_n(imgCnv._canvas);
+            texture = Handler.createTexture_n(this, imgCnv._canvas);
             texture.default = true;
             success(texture);
         }
@@ -1036,5 +1051,12 @@ class Handler {
         }
     }
 }
+
+export const createTexture = {
+    NEAREST: Handler.createTexture_n,
+    LINEAR: Handler.createTexture_l,
+    MIPMAP: Handler.createTexture_mm,
+    ANISOTROPIC: Handler.createTexture_a
+};
 
 export { Handler };

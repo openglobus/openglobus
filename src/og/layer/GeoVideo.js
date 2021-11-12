@@ -9,7 +9,7 @@ import { BaseGeoImage } from "./BaseGeoImage.js";
 /**
  * Used to load and display a video stream by specific corners coordinates on the globe, implements og.layer.BaseGeoImage interface.
  * @class
- * @extends {og.layer.BaseGeoImage}
+ * @extends {BaseGeoImage}
  */
 class GeoVideo extends BaseGeoImage {
     constructor(name, options) {
@@ -139,7 +139,7 @@ class GeoVideo extends BaseGeoImage {
      * Loads planet segment material. In this case - GeoImage source video.
      * @virtual
      * @public
-     * @param {og.planetSegment.Material} material - GeoImage planet material.
+     * @param {Material} material - GeoImage planet material.
      */
     loadMaterial(material) {
         material.isLoading = true;
@@ -177,7 +177,7 @@ class GeoVideo extends BaseGeoImage {
 
     /**
      * @virtual
-     * @param {og.planetSegment.Material} material - GeoImage material.
+     * @param {Material} material - GeoImage material.
      */
     abortMaterialLoading(material) {
         this._video && (this._video.src = "");

@@ -11,11 +11,15 @@ import { Vec3 } from "../math/Vec3.js";
  * @class
  */
 class Box {
+    /**
+     *
+     * @param {*} boundsArr
+     */
     constructor(boundsArr) {
         /**
          * Vertices array.
          * @public
-         * @type{Array.<og.Vec3>}
+         * @type{Array.<Vec3>}
          */
         this.vertices = [
             new Vec3(),
@@ -65,8 +69,8 @@ class Box {
 
     /**
      * Sets bounding box coordiantes by ellipsoid geodetic extend.
-     * @param {og.Ellipsoid} ellipsoid - Ellipsoid.
-     * @param {og.Extent} extent - Geodetic extent.
+     * @param {Ellipsoid} ellipsoid - Ellipsoid.
+     * @param {Extent} extent - Geodetic extent.
      */
     setFromExtent(ellipsoid, extent) {
         this.setFromBoundsArr(extent.getCartesianBounds(ellipsoid));

@@ -24,7 +24,7 @@ let __depthCallbackCounter__ = 0;
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
  * @class
- * @param {og.webgl.Handler} handler - WebGL handler context.
+ * @param {Handler} handler - WebGL handler context.
  * @param {Object} [params] - Renderer parameters:
  * @fires og.RendererEvents#draw
  * @fires og.RendererEvents#resize
@@ -55,7 +55,6 @@ let __depthCallbackCounter__ = 0;
  * @fires og.RendererEvents#touchenter
  */
 class Renderer {
-
     constructor(handler, params) {
         params = params || {};
 
@@ -69,7 +68,7 @@ class Renderer {
         /**
          * WebGL handler context.
          * @public
-         * @type {og.webgl.Handler}
+         * @type {Handler}
          */
         this.handler = handler;
 
@@ -86,7 +85,7 @@ class Renderer {
         /**
          * Render nodes drawing queue.
          * @private
-         * @type {Array.<og.scene.RenderNode>}
+         * @type {Array.<scene.RenderNode>}
          */
         this._renderNodesArr = [];
 
@@ -100,14 +99,14 @@ class Renderer {
         /**
          * Current active camera.
          * @public
-         * @type {og.Camera}
+         * @type {Camera}
          */
         this.activeCamera = null;
 
         /**
          * Renderer events. Represents interface for setting events like mousemove, draw, keypress etc.
          * @public
-         * @type {og.RendererEvents}
+         * @type {RendererEvents}
          */
         this.events = new RendererEvents(this);
 
@@ -140,20 +139,20 @@ class Renderer {
 
         /**
          * Color picking objects rendering queue.
-         * @type {Array.<og.Renderer~pickingCallback>}
+         * @type {Array.<Renderer~pickingCallback>}
          */
         this._pickingCallbacks = [];
 
         /**
          * Picking objects(labels and billboards) framebuffer.
          * @public
-         * @type {og.webgl.Framebuffer}
+         * @type {Framebuffer}
          */
         this.pickingFramebuffer = null;
 
         /**
          * Depth objects rendering queue.
-         * @type {Array.<og.Renderer~depthCallback>}
+         * @type {Array.<Renderer~depthCallback>}
          */
         this._depthCallbacks = [];
 
@@ -193,14 +192,14 @@ class Renderer {
         /**
          * Texture atlas for the billboards images. One atlas per node.
          * @protected
-         * @type {og.utils.TextureAtlas}
+         * @type {utils.TextureAtlas}
          */
         this.billboardsTextureAtlas = new TextureAtlas();
 
         /**
          * Texture font atlas for the font families and styles. One atlas per node.
          * @public
-         * @type {og.utils.FontAtlas}
+         * @type {utils.FontAtlas}
          */
         this.fontAtlas = new FontAtlas();
 
@@ -249,7 +248,7 @@ class Renderer {
     /**
      * Adds picking rendering callback function.
      * @param {object} sender - Callback context.
-     * @param {og.Renderer~pickingCallback} callback - Rendering callback.
+     * @param {Renderer~pickingCallback} callback - Rendering callback.
      * @returns {Number} Handler id
      */
     addPickingCallback(sender, callback) {
@@ -346,7 +345,7 @@ class Renderer {
     /**
      * Get center of the screen
      * @public
-     * @returns {og.math.Vec2} -
+     * @returns {math.Vec2} -
      */
     getCenter() {
         var cnv = this.handler.canvas;
@@ -355,7 +354,7 @@ class Renderer {
 
     /**
      * Add the given control to the renderer.
-     * @param {og.control.Control} control - Control.
+     * @param {control.Control} control - Control.
      */
     addControl(control) {
         control.addTo(this);
@@ -363,7 +362,7 @@ class Renderer {
 
     /**
      * Add the given controls array to the planet node.
-     * @param {Array.<og.control.Control>} cArr - Control array.
+     * @param {Array.<control.Control>} cArr - Control array.
      */
     addControls(cArr) {
         for (var i = 0; i < cArr.length; i++) {
@@ -373,7 +372,7 @@ class Renderer {
 
     /**
      * Remove control from the renderer.
-     * @param {og.control.Control} control  - Control.
+     * @param {control.Control} control  - Control.
      */
     removeControl(control) {
         control.remove();
@@ -441,7 +440,7 @@ class Renderer {
             useDepth: false
         }).init();
 
-        this.readPixels = () => { };
+        this.readPixels = () => {};
 
         if (this.handler.gl.type === "webgl") {
             this.sceneFramebuffer = new Framebuffer(this.handler);
@@ -538,7 +537,8 @@ class Renderer {
             );
         this.toneMappingFramebuffer &&
             this.toneMappingFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
-        this.depthFramebuffer && this.depthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
+        this.depthFramebuffer &&
+            this.depthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
         this.screenDepthFramebuffer &&
             this.screenDepthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
 
@@ -564,7 +564,7 @@ class Renderer {
     /**
      * Adds render node to the renderer.
      * @public
-     * @param {og.scene.RenderNode} renderNode - Render node.
+     * @param {RenderNode} renderNode - Render node.
      */
     addNode(renderNode) {
         if (!this.renderNodes[renderNode.name]) {
@@ -579,7 +579,7 @@ class Renderer {
     /**
      * Adds render node to the renderer before specific node.
      * @public
-     * @param {og.scene.RenderNode} renderNode - Render node.
+     * @param {RenderNode} renderNode - Render node.
      */
     addNodeBefore(renderNode, renderNodeBefore) {
         if (!this.renderNodes[renderNode.name]) {
@@ -600,7 +600,7 @@ class Renderer {
     /**
      * Adds render nodes array to the renderer.
      * @public
-     * @param {Array.<og.scene.RenderNode>} nodesArr - Render nodes array.
+     * @param {Array.<scene.RenderNode>} nodesArr - Render nodes array.
      */
     addNodes(nodesArr) {
         for (var i = 0; i < nodesArr.length; i++) {
@@ -610,7 +610,11 @@ class Renderer {
 
     getMaxMSAA(internalFormat) {
         var gl = this.handler.gl;
-        let samples = gl.getInternalformatParameter(gl.RENDERBUFFER, gl[internalFormat], gl.SAMPLES);
+        let samples = gl.getInternalformatParameter(
+            gl.RENDERBUFFER,
+            gl[internalFormat],
+            gl.SAMPLES
+        );
         return samples[0];
     }
 
@@ -741,7 +745,12 @@ class Renderer {
 
         let h = this.handler;
 
-        h.gl.clearColor(this.backgroundColor.x, this.backgroundColor.y, this.backgroundColor.z, 1.0);
+        h.gl.clearColor(
+            this.backgroundColor.x,
+            this.backgroundColor.y,
+            this.backgroundColor.z,
+            1.0
+        );
         h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
 
         e.dispatch(e.draw, this);
@@ -970,7 +979,6 @@ class Renderer {
     start() {
         this.handler.start();
     }
-
 }
 
 export { Renderer };

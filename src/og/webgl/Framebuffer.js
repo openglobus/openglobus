@@ -2,14 +2,14 @@
  * @module og/webgl/Framebuffer
  */
 
-'use strict';
+"use strict";
 
-import { ImageCanvas } from '../ImageCanvas.js';
+import { ImageCanvas } from "../ImageCanvas.js";
 
 /**
  * Class represents framebuffer.
  * @class
- * @param {og.webgl.Handler} handler - WebGL handler.
+ * @param {Handler} handler - WebGL handler.
  * @param {Object} [options] - Framebuffer options:
  * @param {number} [options.width] - Framebuffer width. Default is handler canvas width.
  * @param {number} [options.height] - Framebuffer height. Default is handler canvas height.
@@ -21,13 +21,11 @@ import { ImageCanvas } from '../ImageCanvas.js';
  * @param {Boolean} [options.useDepth] - Using depth buffer during the rendering.
  */
 export class Framebuffer {
-
     constructor(handler, options = {}) {
-
         /**
          * WebGL handler.
          * @public
-         * @type {og.webgl.Handler}
+         * @type {Handler}
          */
         this.handler = handler;
 
@@ -49,20 +47,27 @@ export class Framebuffer {
 
         this._filter = options.filter || "NEAREST";
 
-        this._internalFormatArr = options.internalFormat instanceof Array ? options.internalFormat : [options.internalFormat || "RGBA"];
+        this._internalFormatArr =
+            options.internalFormat instanceof Array
+                ? options.internalFormat
+                : [options.internalFormat || "RGBA"];
 
-        this._formatArr = options.format instanceof Array ? options.format : [options.format || "RGBA"];
+        this._formatArr =
+            options.format instanceof Array ? options.format : [options.format || "RGBA"];
 
-        this._typeArr = options.type instanceof Array ? options.type : [options.type || "UNSIGNED_BYTE"];
+        this._typeArr =
+            options.type instanceof Array ? options.type : [options.type || "UNSIGNED_BYTE"];
 
-        this._attachmentArr = options.attachment instanceof Array ?
-            options.attachment.map((a, i) => {
-                let res = a.toUpperCase();
-                if (res === "COLOR_ATTACHMENT") {
-                    return `${res}${i.toString()}`;
-                }
-                return res;
-            }) : [options.attachment || "COLOR_ATTACHMENT0"];
+        this._attachmentArr =
+            options.attachment instanceof Array
+                ? options.attachment.map((a, i) => {
+                      let res = a.toUpperCase();
+                      if (res === "COLOR_ATTACHMENT") {
+                          return `${res}${i.toString()}`;
+                      }
+                      return res;
+                  })
+                : [options.attachment || "COLOR_ATTACHMENT0"];
 
         /**
          * Framebuffer width.
@@ -78,12 +83,13 @@ export class Framebuffer {
          */
         this._height = options.height || handler.canvas.height;
 
-        this._depthComponent = options.depthComponent != undefined ? options.depthComponent : "DEPTH_COMPONENT16";
+        this._depthComponent =
+            options.depthComponent != undefined ? options.depthComponent : "DEPTH_COMPONENT16";
 
         this._useDepth = options.useDepth != undefined ? options.useDepth : true;
 
         /**
-         * Framebuffer activity. 
+         * Framebuffer activity.
          * @private
          * @type {boolean}
          */
@@ -100,19 +106,25 @@ export class Framebuffer {
     }
 
     static blit(sourceFramebuffer, destFramebuffer, glAttachment, glMask, glFilter) {
-
         let gl = sourceFramebuffer.handler.gl;
 
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, sourceFramebuffer._fbo);
-        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebuffer._fbo);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, destFramebuffer._fbo);
         gl.readBuffer(glAttachment);
 
         gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 1.0]);
 
         gl.blitFramebuffer(
-            0, 0, sourceFramebuffer._width, sourceFramebuffer._height,
-            0, 0, destFramebuffer._width, destFramebuffer._height,
-            glMask, glFilter
+            0,
+            0,
+            sourceFramebuffer._width,
+            sourceFramebuffer._height,
+            0,
+            0,
+            destFramebuffer._width,
+            destFramebuffer._height,
+            glMask,
+            glFilter
         );
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -151,8 +163,8 @@ export class Framebuffer {
         if (!this._isBare) {
             let attachmentArr = [];
             for (var i = 0; i < this.textures.length; i++) {
-
-                let ti = this.textures[i] ||
+                let ti =
+                    this.textures[i] ||
                     this.handler.createEmptyTexture2DExt(
                         this._width,
                         this._height,
@@ -178,8 +190,18 @@ export class Framebuffer {
         if (this._useDepth) {
             this._depthRenderbuffer = gl.createRenderbuffer();
             gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthRenderbuffer);
-            gl.renderbufferStorage(gl.RENDERBUFFER, gl[this._depthComponent], this._width, this._height);
-            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this._depthRenderbuffer);
+            gl.renderbufferStorage(
+                gl.RENDERBUFFER,
+                gl[this._depthComponent],
+                this._width,
+                this._height
+            );
+            gl.framebufferRenderbuffer(
+                gl.FRAMEBUFFER,
+                gl.DEPTH_ATTACHMENT,
+                gl.RENDERBUFFER,
+                this._depthRenderbuffer
+            );
             gl.bindRenderbuffer(gl.RENDERBUFFER, null);
         }
 
@@ -197,7 +219,13 @@ export class Framebuffer {
     bindOutputTexture(texture, glAttachment) {
         var gl = this.handler.gl;
         gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, glAttachment || gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+        gl.framebufferTexture2D(
+            gl.FRAMEBUFFER,
+            glAttachment || gl.COLOR_ATTACHMENT0,
+            gl.TEXTURE_2D,
+            texture,
+            0
+        );
         gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
@@ -248,7 +276,15 @@ export class Framebuffer {
         var gl = this.handler.gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
         gl.readBuffer && gl.readBuffer(gl.COLOR_ATTACHMENT0 + index || 0);
-        gl.readPixels(nx * this._width, ny * this._height, w, h, gl.RGBA, gl[this._typeArr[index]], res);
+        gl.readPixels(
+            nx * this._width,
+            ny * this._height,
+            w,
+            h,
+            gl.RGBA,
+            gl[this._typeArr[index]],
+            res
+        );
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
@@ -262,14 +298,22 @@ export class Framebuffer {
         var gl = this.handler.gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
         gl.readBuffer && gl.readBuffer(gl.COLOR_ATTACHMENT0 + attachmentIndex);
-        gl.readPixels(0, 0, this._width, this._height, gl.RGBA, gl[this._typeArr[attachmentIndex]], res);
+        gl.readPixels(
+            0,
+            0,
+            this._width,
+            this._height,
+            gl.RGBA,
+            gl[this._typeArr[attachmentIndex]],
+            res
+        );
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
     /**
      * Activate framebuffer frame to draw.
      * @public
-     * @returns {og.webgl.Framebuffer} Returns Current framebuffer.
+     * @returns {Framebuffer} Returns Current framebuffer.
      */
     activate() {
         var gl = this.handler.gl;
@@ -323,14 +367,18 @@ export class Framebuffer {
     openImage() {
         var img = this.getImage();
         var dataUrl = img.src;
-        var windowContent = '<!DOCTYPE html>';
-        windowContent += '<html>';
-        windowContent += '<head><title>Print</title></head>';
-        windowContent += '<body>';
+        var windowContent = "<!DOCTYPE html>";
+        windowContent += "<html>";
+        windowContent += "<head><title>Print</title></head>";
+        windowContent += "<body>";
         windowContent += '<img src="' + dataUrl + '">';
-        windowContent += '</body>';
-        windowContent += '</html>';
-        var printWin = window.open('', '', 'width=' + img.width + 'px ,height=' + img.height + 'px');
+        windowContent += "</body>";
+        windowContent += "</html>";
+        var printWin = window.open(
+            "",
+            "",
+            "width=" + img.width + "px ,height=" + img.height + "px"
+        );
         printWin.document.open();
         printWin.document.write(windowContent);
         printWin.document.close();

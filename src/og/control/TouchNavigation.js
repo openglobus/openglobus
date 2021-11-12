@@ -2,16 +2,16 @@
  * @module og/control/TouchNavigation
  */
 
-'use strict';
+"use strict";
 
-import * as math from '../math.js';
-import { Control } from './Control.js';
-import { Key } from '../Lock.js';
-import { LonLat } from '../LonLat.js';
-import { Quat } from '../math/Quat.js';
-import { Ray } from '../math/Ray.js';
-import { Sphere } from '../bv/Sphere.js';
-import { Vec3 } from '../math/Vec3.js';
+import * as math from "../math.js";
+import { Control } from "./Control.js";
+import { Key } from "../Lock.js";
+import { LonLat } from "../LonLat.js";
+import { Quat } from "../math/Quat.js";
+import { Ray } from "../math/Ray.js";
+import { Sphere } from "../bv/Sphere.js";
+import { Vec3 } from "../math/Vec3.js";
 
 class Touch {
     constructor() {
@@ -21,15 +21,19 @@ class Touch {
         this.prev_y = 0;
         this.grabbedPoint = new Vec3();
         this.grabbedSpheroid = new Sphere();
-        this.dX = function () { return this.x - this.prev_x; };
-        this.dY = function () { return this.y - this.prev_y; };
+        this.dX = function () {
+            return this.x - this.prev_x;
+        };
+        this.dY = function () {
+            return this.y - this.prev_y;
+        };
     }
 }
 
 /**
  * Touch pad planet camera dragging control.
  * @class
- * @extends {og.control.Control}
+ * @extends {Control}
  * @param {Object} [options] - Control options.
  */
 class TouchNavigation extends Control {
@@ -69,11 +73,9 @@ class TouchNavigation extends Control {
     }
 
     onTouchStart(e) {
-
         this._touching = true;
 
         if (e.sys.touches.length === 2) {
-
             var t0 = this.touches[0],
                 t1 = this.touches[1];
 
@@ -90,7 +92,10 @@ class TouchNavigation extends Control {
             t1.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t1, true);
 
             // this.planet._viewChanged = true;
-            this.pointOnEarth = this.planet.getCartesianFromPixelTerrain(this.renderer.handler.getCenter(), true);
+            this.pointOnEarth = this.planet.getCartesianFromPixelTerrain(
+                this.renderer.handler.getCenter(),
+                true
+            );
 
             if (this.pointOnEarth) {
                 this.earthUp = this.pointOnEarth.normal();
@@ -101,7 +106,6 @@ class TouchNavigation extends Control {
                 t1.grabbedSpheroid.radius = t1.grabbedPoint.length();
                 this.stopRotation();
             }
-
         } else if (e.sys.touches.length === 1) {
             this._startTouchOne(e);
         }
@@ -141,12 +145,13 @@ class TouchNavigation extends Control {
         var p = this.planet.getCartesianFromPixelTerrain(this.touches[0], true);
         if (p) {
             var g = this.planet.ellipsoid.cartesianToLonLat(p);
-            this.planet.flyLonLat(new LonLat(g.lon, g.lat, this.renderer.activeCamera.eye.distance(p) * 0.57));
+            this.planet.flyLonLat(
+                new LonLat(g.lon, g.lat, this.renderer.activeCamera.eye.distance(p) * 0.57)
+            );
         }
     }
 
     onTouchEnd(e) {
-
         if (e.sys.touches.length === 0) {
             this._touching = false;
         }
@@ -155,21 +160,20 @@ class TouchNavigation extends Control {
             this._startTouchOne(e);
         }
 
-        if ((Math.abs(this.touches[0].x - this.touches[0].prev_x) < 3) &&
-            (Math.abs(this.touches[0].y - this.touches[0].prev_y) < 3)) {
+        if (
+            Math.abs(this.touches[0].x - this.touches[0].prev_x) < 3 &&
+            Math.abs(this.touches[0].y - this.touches[0].prev_y) < 3
+        ) {
             this.scaleRot = 0;
         }
     }
 
-    onTouchCancel(e) {
-    }
+    onTouchCancel(e) {}
 
     onTouchMove(e) {
-
         var cam = this.renderer.activeCamera;
 
         if (e.sys.touches.length === 2) {
-
             this.renderer.controlsBag.scaleRot = 1;
 
             var t0 = this.touches[0],
@@ -191,9 +195,14 @@ class TouchNavigation extends Control {
             t1.x = e.sys.touches.item(1).clientX - e.sys.offsetLeft;
             t1.y = e.sys.touches.item(1).clientY - e.sys.offsetTop;
 
-            if ((t0.dY() > 0 && t1.dY() > 0) || (t0.dY() < 0 && t1.dY() < 0) ||
-                (t0.dX() > 0 && t1.dX() > 0) || (t0.dX() < 0 && t1.dX() < 0)) {
-                var l = 0.5 / cam.eye.distance(this.pointOnEarth) * cam._lonLat.height * math.RADIANS;
+            if (
+                (t0.dY() > 0 && t1.dY() > 0) ||
+                (t0.dY() < 0 && t1.dY() < 0) ||
+                (t0.dX() > 0 && t1.dX() > 0) ||
+                (t0.dX() < 0 && t1.dX() < 0)
+            ) {
+                var l =
+                    (0.5 / cam.eye.distance(this.pointOnEarth)) * cam._lonLat.height * math.RADIANS;
                 if (l > 0.007) l = 0.007;
                 cam.rotateHorizontal(l * t0.dX(), false, this.pointOnEarth, this.earthUp);
                 cam.rotateVertical(l * t0.dY(), this.pointOnEarth, true);
@@ -202,9 +211,7 @@ class TouchNavigation extends Control {
             }
 
             this.scaleRot = 0;
-
         } else if (e.sys.touches.length === 1) {
-
             var t = this.touches[0];
 
             t.prev_x = t.x;
@@ -223,7 +230,10 @@ class TouchNavigation extends Control {
 
             if (targetPoint) {
                 if (cam.slope > 0.2) {
-                    this.qRot = Quat.getRotationBetweenVectors(targetPoint.normal(), t.grabbedPoint.normal());
+                    this.qRot = Quat.getRotationBetweenVectors(
+                        targetPoint.normal(),
+                        t.grabbedPoint.normal()
+                    );
                     var rot = this.qRot;
                     cam.eye = rot.mulVec3(cam.eye);
                     cam._v = rot.mulVec3(cam._v);
@@ -250,7 +260,6 @@ class TouchNavigation extends Control {
     }
 
     onDraw(e) {
-
         this.renderer.controlsBag.scaleRot = this.scaleRot;
 
         if (this._touching) {
@@ -281,7 +290,9 @@ class TouchNavigation extends Control {
             this.scaleRot = 0;
         } else {
             r.controlsBag.scaleRot = this.scaleRot;
-            var rot = this.qRot.slerp(Quat.IDENTITY, 1 - this.scaleRot * this.scaleRot * this.scaleRot).normalize();
+            var rot = this.qRot
+                .slerp(Quat.IDENTITY, 1 - this.scaleRot * this.scaleRot * this.scaleRot)
+                .normalize();
             if (!(rot.x || rot.y || rot.z)) {
                 this.scaleRot = 0;
             }

@@ -1,11 +1,10 @@
-'use strict';
+"use strict";
 
-import { Events } from './Events.js';
-import { Vec3 } from './math/Vec3.js';
-import { getHTML, parseHTML, createLonLat } from './utils/shared.js';
+import { Events } from "./Events.js";
+import { Vec3 } from "./math/Vec3.js";
+import { getHTML, parseHTML, createLonLat } from "./utils/shared.js";
 
-const TEMPLATE =
-    `<div class="og-popup {className}">
+const TEMPLATE = `<div class="og-popup {className}">
       <div class="og-popup-content-wrapper">
         <div class="og-popup-content"></div>
       </div>
@@ -20,8 +19,11 @@ const TEMPLATE =
     </div>`;
 
 class Popup {
+    /**
+     *
+     * @param {*} options
+     */
     constructor(options) {
-
         this._id = Popup._staticCounter++;
 
         this.events = new Events(["open", "close"]);
@@ -72,7 +74,12 @@ class Popup {
 
     setScreen(p) {
         if (this._planet) {
-            this.el.style.transform = "translate(" + (p.x - this.clientWidth * 0.5) + "px, " + (p.y - this._planet.renderer.handler.canvas.height - this._tipEl.clientHeight) + "px)"
+            this.el.style.transform =
+                "translate(" +
+                (p.x - this.clientWidth * 0.5) +
+                "px, " +
+                (p.y - this._planet.renderer.handler.canvas.height - this._tipEl.clientHeight) +
+                "px)";
         }
     }
 
@@ -97,8 +104,8 @@ class Popup {
     render(params) {
         this.el = this._renderTemplate(params);
         this._contentEl = this.el.querySelector(".og-popup-content");
-        this._titleEl = this.el.querySelector(".og-popup-title")
-        this._tipEl = this.el.querySelector(".og-popup-tip-container")
+        this._titleEl = this.el.querySelector(".og-popup-title");
+        this._tipEl = this.el.querySelector(".og-popup-tip-container");
         this.setOffset(this._offset[0], this._offset[1]);
         this.setContent(this._content);
         this.setTitle(this._title);
@@ -148,7 +155,6 @@ class Popup {
     }
 
     setCartesian3v(cart, height = 0) {
-
         this._cartPos = cart;
 
         if (this._planet) {
@@ -187,10 +193,10 @@ class Popup {
         if (content) {
             this.clear();
             this._content = content;
-            if (typeof content === 'string') {
+            if (typeof content === "string") {
                 this._contentEl.innerHTML = content;
             } else {
-                this._contentEl.appendChild(content)
+                this._contentEl.appendChild(content);
             }
         }
         return this;

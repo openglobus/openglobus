@@ -2,10 +2,10 @@
  * @module og/entity/BillboardHandler
  */
 
-'use strict';
+"use strict";
 
-import * as shaders from '../shaders/billboard.js';
-import { concatTypedArrays, spliceTypedArray } from '../utils/shared.js';
+import * as shaders from "../shaders/billboard.js";
+import { concatTypedArrays, spliceTypedArray } from "../utils/shared.js";
 
 const PICKINGCOLOR_BUFFER = 0;
 const POSITION_BUFFER = 1;
@@ -23,8 +23,11 @@ const ALIGNEDAXIS_BUFFER = 8;
  *
  */
 class BillboardHandler {
+    /**
+     *
+     * @param {*} entityCollection
+     */
     constructor(entityCollection) {
-
         /**
          * Picking rendering option.
          * @public
@@ -96,7 +99,6 @@ class BillboardHandler {
 
     initProgram() {
         if (this._renderer.handler) {
-
             if (!this._renderer.handler.programs.billboard) {
                 this._renderer.handler.addProgram(shaders.billboard_screen());
             }
@@ -131,7 +133,6 @@ class BillboardHandler {
     }
 
     clear() {
-
         this._texCoordArr = null;
         this._vertexArr = null;
         this._positionHighArr = null;
@@ -211,36 +212,180 @@ class BillboardHandler {
 
     _addBillboardToArrays(billboard) {
         if (billboard._visibility) {
-            this._vertexArr = concatTypedArrays(this._vertexArr, [-0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5]);
+            this._vertexArr = concatTypedArrays(
+                this._vertexArr,
+                [-0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5]
+            );
         } else {
-            this._vertexArr = concatTypedArrays(this._vertexArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+            this._vertexArr = concatTypedArrays(
+                this._vertexArr,
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            );
         }
 
-        this._texCoordArr = concatTypedArrays(this._texCoordArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        this._texCoordArr = concatTypedArrays(
+            this._texCoordArr,
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        );
 
-        var x = billboard._positionHigh.x, y = billboard._positionHigh.y, z = billboard._positionHigh.z, w;
-        this._positionHighArr = concatTypedArrays(this._positionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        var x = billboard._positionHigh.x,
+            y = billboard._positionHigh.y,
+            z = billboard._positionHigh.z,
+            w;
+        this._positionHighArr = concatTypedArrays(this._positionHighArr, [
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z
+        ]);
 
-        x = billboard._positionLow.x; y = billboard._positionLow.y; z = billboard._positionLow.z;
-        this._positionLowArr = concatTypedArrays(this._positionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        x = billboard._positionLow.x;
+        y = billboard._positionLow.y;
+        z = billboard._positionLow.z;
+        this._positionLowArr = concatTypedArrays(this._positionLowArr, [
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z
+        ]);
 
-        x = billboard._width; y = billboard._height;
+        x = billboard._width;
+        y = billboard._height;
         this._sizeArr = concatTypedArrays(this._sizeArr, [x, y, x, y, x, y, x, y, x, y, x, y]);
 
-        x = billboard._offset.x; y = billboard._offset.y; z = billboard._offset.z;
-        this._offsetArr = concatTypedArrays(this._offsetArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        x = billboard._offset.x;
+        y = billboard._offset.y;
+        z = billboard._offset.z;
+        this._offsetArr = concatTypedArrays(this._offsetArr, [
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z
+        ]);
 
-        x = billboard._color.x; y = billboard._color.y; z = billboard._color.z; w = billboard._color.w;
-        this._rgbaArr = concatTypedArrays(this._rgbaArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
+        x = billboard._color.x;
+        y = billboard._color.y;
+        z = billboard._color.z;
+        w = billboard._color.w;
+        this._rgbaArr = concatTypedArrays(this._rgbaArr, [
+            x,
+            y,
+            z,
+            w,
+            x,
+            y,
+            z,
+            w,
+            x,
+            y,
+            z,
+            w,
+            x,
+            y,
+            z,
+            w,
+            x,
+            y,
+            z,
+            w,
+            x,
+            y,
+            z,
+            w
+        ]);
 
         x = billboard._rotation;
         this._rotationArr = concatTypedArrays(this._rotationArr, [x, x, x, x, x, x]);
 
-        x = billboard._alignedAxis.x; y = billboard._alignedAxis.y; z = billboard._alignedAxis.z;
-        this._alignedAxisArr = concatTypedArrays(this._alignedAxisArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        x = billboard._alignedAxis.x;
+        y = billboard._alignedAxis.y;
+        z = billboard._alignedAxis.z;
+        this._alignedAxisArr = concatTypedArrays(this._alignedAxisArr, [
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z
+        ]);
 
-        x = billboard._entity._pickingColor.x / 255; y = billboard._entity._pickingColor.y / 255; z = billboard._entity._pickingColor.z / 255;
-        this._pickingColorArr = concatTypedArrays(this._pickingColorArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        x = billboard._entity._pickingColor.x / 255;
+        y = billboard._entity._pickingColor.y / 255;
+        z = billboard._entity._pickingColor.z / 255;
+        this._pickingColorArr = concatTypedArrays(this._pickingColorArr, [
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z,
+            x,
+            y,
+            z
+        ]);
     }
 
     _displayPASS() {
@@ -268,19 +413,43 @@ class BillboardHandler {
 
         gl.uniform1f(shu.uOpacity, ec._fadingOpacity);
 
-        gl.uniform2fv(shu.uFloatParams, [ec.renderNode._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
+        gl.uniform2fv(shu.uFloatParams, [
+            ec.renderNode._planetRadius2 || 0,
+            r.activeCamera._tanViewAngle_hradOneByHeight
+        ]);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
-        gl.vertexAttribPointer(sha.a_texCoord, this._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_texCoord,
+            this._texCoordBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer);
-        gl.vertexAttribPointer(sha.a_positionsHigh, this._positionHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_positionsHigh,
+            this._positionHighBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer);
-        gl.vertexAttribPointer(sha.a_positionsLow, this._positionLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_positionsLow,
+            this._positionLowBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
         gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -292,10 +461,24 @@ class BillboardHandler {
         gl.vertexAttribPointer(sha.a_offset, this._offsetBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer);
-        gl.vertexAttribPointer(sha.a_rotation, this._rotationBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_rotation,
+            this._rotationBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._alignedAxisBuffer);
-        gl.vertexAttribPointer(sha.a_alignedAxis, this._alignedAxisBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_alignedAxis,
+            this._alignedAxisBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
     }
@@ -325,19 +508,43 @@ class BillboardHandler {
 
         gl.uniform1f(shu.pickingScale, ec.pickingScale);
 
-        gl.uniform2fv(shu.uFloatParams, [ec.renderNode._planetRadius2 || 0, r.activeCamera._tanViewAngle_hradOneByHeight]);
+        gl.uniform2fv(shu.uFloatParams, [
+            ec.renderNode._planetRadius2 || 0,
+            r.activeCamera._tanViewAngle_hradOneByHeight
+        ]);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer);
-        gl.vertexAttribPointer(sha.a_positionsHigh, this._positionHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_positionsHigh,
+            this._positionHighBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer);
-        gl.vertexAttribPointer(sha.a_positionsLow, this._positionLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_positionsLow,
+            this._positionLowBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingColorBuffer);
-        gl.vertexAttribPointer(sha.a_pickingColor, this._pickingColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_pickingColor,
+            this._pickingColorBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
         gl.vertexAttribPointer(sha.a_size, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -346,10 +553,24 @@ class BillboardHandler {
         gl.vertexAttribPointer(sha.a_offset, this._offsetBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer);
-        gl.vertexAttribPointer(sha.a_rotation, this._rotationBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_rotation,
+            this._rotationBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._alignedAxisBuffer);
-        gl.vertexAttribPointer(sha.a_alignedAxis, this._alignedAxisBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            sha.a_alignedAxis,
+            this._alignedAxisBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
     }
@@ -411,11 +632,13 @@ class BillboardHandler {
     }
 
     setPositionArr(index, positionHigh, positionLow) {
-
         var i = index * 18;
 
         // High
-        var a = this._positionHighArr, x = positionHigh.x, y = positionHigh.y, z = positionHigh.z;
+        var a = this._positionHighArr,
+            x = positionHigh.x,
+            y = positionHigh.y,
+            z = positionHigh.z;
 
         a[i] = x;
         a[i + 1] = y;
@@ -442,7 +665,10 @@ class BillboardHandler {
         a[i + 17] = z;
 
         // Low
-        a = this._positionLowArr; x = positionLow.x; y = positionLow.y; z = positionLow.z;
+        a = this._positionLowArr;
+        x = positionLow.x;
+        y = positionLow.y;
+        z = positionLow.z;
 
         a[i] = x;
         a[i + 1] = y;
@@ -472,9 +698,11 @@ class BillboardHandler {
     }
 
     setPickingColorArr(index, color) {
-
         var i = index * 18;
-        var a = this._pickingColorArr, x = color.x / 255, y = color.y / 255, z = color.z / 255;
+        var a = this._pickingColorArr,
+            x = color.x / 255,
+            y = color.y / 255,
+            z = color.z / 255;
 
         a[i] = x;
         a[i + 1] = y;
@@ -504,9 +732,10 @@ class BillboardHandler {
     }
 
     setSizeArr(index, width, height) {
-
         var i = index * 12;
-        var a = this._sizeArr, x = width, y = height;
+        var a = this._sizeArr,
+            x = width,
+            y = height;
 
         a[i] = x;
         a[i + 1] = y;
@@ -530,9 +759,11 @@ class BillboardHandler {
     }
 
     setOffsetArr(index, offset) {
-
         var i = index * 18;
-        var a = this._offsetArr, x = offset.x, y = offset.y, z = offset.z;
+        var a = this._offsetArr,
+            x = offset.x,
+            y = offset.y,
+            z = offset.z;
 
         a[i] = x;
         a[i + 1] = y;
@@ -562,9 +793,12 @@ class BillboardHandler {
     }
 
     setRgbaArr(index, rgba) {
-
         var i = index * 24;
-        var a = this._rgbaArr, x = rgba.x, y = rgba.y, z = rgba.z, w = rgba.w;
+        var a = this._rgbaArr,
+            x = rgba.x,
+            y = rgba.y,
+            z = rgba.z,
+            w = rgba.w;
 
         a[i] = x;
         a[i + 1] = y;
@@ -600,7 +834,6 @@ class BillboardHandler {
     }
 
     setRotationArr(index, rotation) {
-
         var i = index * 6;
         var a = this._rotationArr;
 
@@ -615,7 +848,6 @@ class BillboardHandler {
     }
 
     setTexCoordArr(index, tcoordArr) {
-
         var i = index * 12;
         var a = this._texCoordArr;
 
@@ -651,7 +883,6 @@ class BillboardHandler {
     }
 
     setVertexArr(index, vertexArr) {
-
         var i = index * 12;
         var a = this._vertexArr;
 
@@ -675,9 +906,11 @@ class BillboardHandler {
     }
 
     setAlignedAxisArr(index, alignedAxis) {
-
         var i = index * 18;
-        var a = this._alignedAxisArr, x = alignedAxis.x, y = alignedAxis.y, z = alignedAxis.z;
+        var a = this._alignedAxisArr,
+            x = alignedAxis.x,
+            y = alignedAxis.y,
+            z = alignedAxis.z;
 
         a[i] = x;
         a[i + 1] = y;
@@ -759,19 +992,31 @@ class BillboardHandler {
     createTexCoordBuffer() {
         var h = this._renderer.handler;
         h.gl.deleteBuffer(this._texCoordBuffer);
-        this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr, 2, this._texCoordArr.length / 2);
+        this._texCoordBuffer = h.createArrayBuffer(
+            this._texCoordArr,
+            2,
+            this._texCoordArr.length / 2
+        );
     }
 
     createAlignedAxisBuffer() {
         var h = this._renderer.handler;
         h.gl.deleteBuffer(this._alignedAxisBuffer);
-        this._alignedAxisBuffer = h.createArrayBuffer(this._alignedAxisArr, 3, this._alignedAxisArr.length / 3);
+        this._alignedAxisBuffer = h.createArrayBuffer(
+            this._alignedAxisArr,
+            3,
+            this._alignedAxisArr.length / 3
+        );
     }
 
     createPickingColorBuffer() {
         var h = this._renderer.handler;
         h.gl.deleteBuffer(this._pickingColorBuffer);
-        this._pickingColorBuffer = h.createArrayBuffer(this._pickingColorArr, 3, this._pickingColorArr.length / 3);
+        this._pickingColorBuffer = h.createArrayBuffer(
+            this._pickingColorArr,
+            3,
+            this._pickingColorArr.length / 3
+        );
     }
 
     refreshTexCoordsArr() {

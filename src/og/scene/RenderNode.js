@@ -1,7 +1,7 @@
-'use strict';
+"use strict";
 
-import { BaseNode } from './BaseNode.js';
-import { Events } from '../Events.js';
+import { BaseNode } from "./BaseNode.js";
+import { Events } from "../Events.js";
 
 /**
  * Render node is a logical part of a render mechanism. Represents scene rendering.
@@ -10,7 +10,7 @@ import { Events } from '../Events.js';
  * There are collections of ligh sources, entities and so on in the node.
  * Access to the node is renderer.renderNodes["Earth"]
  * @class
- * @extends {og.RenderNode}
+ * @extends {RenderNode}
  * @param {string} name - Node name.
  */
 class RenderNode extends BaseNode {
@@ -20,7 +20,7 @@ class RenderNode extends BaseNode {
         /**
          * Renderer that calls frame() callback.
          * @public
-         * @type {og.Renderer}
+         * @type {Renderer}
          */
         this.renderer = null;
 
@@ -43,7 +43,7 @@ class RenderNode extends BaseNode {
         /**
          * Point light array.
          * @private
-         * @type {Array.<og.LightSource>}
+         * @type {Array.<LightSource>}
          */
         this._lights = [];
         this._lightsTransformedPositions = [];
@@ -54,7 +54,7 @@ class RenderNode extends BaseNode {
         /**
          * Entity collection array.
          * @public
-         * @type {Array.<og.EntityCollection>}
+         * @type {Array.<EntityCollection>}
          */
         this.entityCollections = [];
 
@@ -66,7 +66,7 @@ class RenderNode extends BaseNode {
     /**
      * Adds node to the current hierarchy.
      * @public
-     * @type {og.RenderNode}
+     * @type {RenderNode}
      */
     addNode(node) {
         super.addNode(node);
@@ -76,7 +76,7 @@ class RenderNode extends BaseNode {
     /**
      * Assign render node with renderer.
      * @public
-     * @param {og.Renderer} renderer - Redner node's renderer.
+     * @param {Renderer} renderer - Redner node's renderer.
      */
     assign(renderer) {
         this.renderer = renderer;
@@ -98,8 +98,7 @@ class RenderNode extends BaseNode {
             n = this.name;
 
         if (r) {
-            if (r.renderNodes[n] &&
-                r.renderNodes[n].isEqual(this)) {
+            if (r.renderNodes[n] && r.renderNodes[n].isEqual(this)) {
                 r.renderNodes[n] = null;
                 delete r.renderNodes[n];
             }
@@ -119,9 +118,9 @@ class RenderNode extends BaseNode {
     /**
      * Adds entity collection.
      * @public
-     * @param {og.EntityCollection} entityCollection - Entity collection.
+     * @param {EntityCollection} entityCollection - Entity collection.
      * @param {boolean} [isHidden] - If it's true that this collection has specific rendering.
-     * @returns {og.scene.RenderNode} -
+     * @returns {RenderNode} -
      */
     addEntityCollection(entityCollection, isHidden) {
         entityCollection.addTo(this, isHidden);
@@ -131,7 +130,7 @@ class RenderNode extends BaseNode {
     /**
      * Removes entity collection.
      * @public
-     * @param {og.EntityCollection} entityCollection - Entity collection for remove.
+     * @param {EntityCollection} entityCollection - Entity collection for remove.
      */
     removeEntityCollection(entityCollection) {
         entityCollection.remove();
@@ -140,8 +139,8 @@ class RenderNode extends BaseNode {
     /**
      * Adds point light source.
      * @public
-     * @param {og.LightSource} light - Light source.
-     * @returns {og.scene.RenderNode}
+     * @param {LightSource} light - Light source.
+     * @returns {RenderNode}
      */
     addLight(light) {
         light.addTo(this);
@@ -152,7 +151,7 @@ class RenderNode extends BaseNode {
      * Gets light object by its name.
      * @public
      * @param {string} name - Point light name.
-     * @returns {og.LightSource}
+     * @returns {LightSource}
      */
     getLightByName(name) {
         var li = this._lightsNames.indexOf(name);
@@ -162,7 +161,7 @@ class RenderNode extends BaseNode {
     /**
      * Removes light source.
      * @public
-     * @param {og.LightSource} light - Light source object.
+     * @param {LightSource} light - Light source object.
      */
     removeLight(light) {
         light.remove();
@@ -195,7 +194,10 @@ class RenderNode extends BaseNode {
 
         if (this.renderer) {
             if (this._isActive && this._pickingId === -1) {
-                this._pickingId = this.renderer.addPickingCallback(this, this._entityCollectionPickingCallback);
+                this._pickingId = this.renderer.addPickingCallback(
+                    this,
+                    this._entityCollectionPickingCallback
+                );
             } else if (!this._isActive && this._pickingId !== -1) {
                 this.renderer.removePickingCallback(this._pickingId);
                 this._pickingId = -1;
@@ -277,7 +279,6 @@ class RenderNode extends BaseNode {
      */
     drawPickingEntityCollections(ec) {
         if (ec.length) {
-
             var gl = this.renderer.handler.gl;
 
             gl.disable(gl.CULL_FACE);

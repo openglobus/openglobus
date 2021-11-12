@@ -82,10 +82,14 @@ let svg = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 /**
  * Planet compass button
  * @class
- * @extends {og.control.Control}
+ * @extends {Control}
  * @params {Object} [options] - Control options.
  */
 class CompassButton extends Control {
+    /**
+     *
+     * @params {Object} [options] - Control options.
+     */
     constructor(options) {
         super(options);
 

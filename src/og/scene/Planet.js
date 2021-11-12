@@ -89,10 +89,13 @@ const EVENT_NAMES = [
 /**
  * Main class for rendering planet
  * @class
- * @extends {og.scene.RenderNode}
- * @param {string} name - Planet name(Earth by default)
- * @param {og.Ellipsoid} ellipsoid - Planet ellipsoid(WGS84 by default)
- * @param {Number} [maxGridSize=128] - Segment maximal grid size
+ * @extends {RenderNode}
+ * @param {string} [options.name="Earth"] - Planet name(Earth by default)
+ * @param {Ellipsoid} [options.ellipsoid] - Planet ellipsoid(WGS84 by default)
+ * @param {Number} [options.maxGridSize=128] - Segment maximal grid size
+ * @param {Number} [options.maxEqualZoomAltitude=850000.0] - Maximal altitude since segments on the screen bacame the same zoom level
+ * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen bacame the same zoom level
+ * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen bacame the same zoom level
  * @fires og.scene.Planet#draw
  * @fires og.scene.Planet#layeradd
  * @fires og.scene.Planet#baselayerchange
@@ -106,7 +109,7 @@ export class Planet extends RenderNode {
 
         /**
          * @public
-         * @type {og.Ellipsoid}
+         * @type {Ellipsoid}
          */
         this.ellipsoid = options.ellipsoid || wgs84;
 
@@ -126,21 +129,21 @@ export class Planet extends RenderNode {
         /**
          * All layers array.
          * @public
-         * @type {Array.<og.Layer>}
+         * @type {Array.<Layer>}
          */
         this.layers = [];
 
         /**
          * Current visible imagery tile layers array.
          * @public
-         * @type {Array.<og.Layer>}
+         * @type {Array.<Layer>}
          */
         this.visibleTileLayers = [];
 
         /**
          * Current visible vector layers array.
          * @protected
-         * @type {Array.<og.layer.Vector>}
+         * @type {Array.<layer.Vector>}
          */
         this.visibleVectorLayers = [];
 
@@ -149,38 +152,42 @@ export class Planet extends RenderNode {
         /**
          * Vector layers visible nodes with collections.
          * @protected
-         * @type {Array.<og.EntityCollection>}
+         * @type {Array.<EntityCollection>}
          */
         this._frustumEntityCollections = [];
 
         /**
          * There is only one base layer on the globe when layer.isBaseLayer is true.
          * @public
-         * @type {og.Layer}
+         * @type {Layer}
          */
         this.baseLayer = null;
 
         /**
          * Terrain provider.
          * @public
-         * @type {og.terrain.Terrain}
+         * @type {Terrain}
          */
         this.terrain = null;
 
         /**
          * Camera is this.renderer.activeCamera pointer.
          * @public
-         * @type {og.PlanetCamera}
+         * @type {PlanetCamera}
          */
         this.camera = null;
 
         this._minAltitude = options.minAltitude;
         this._maxAltitude = options.maxAltitude;
 
+        this.maxEqualZoomAltitude = options.maxEqualZoomAltitude || 850000.0;
+        this.minEqualZoomAltitude = options.minEqualZoomAltitude || 10000.0;
+        this.minEqualZoomCameraSlope = options.minEqualZoomCameraSlope || 0.8;
+
         /**
          * Screen mouse pointer projected to planet cartesian position.
          * @public
-         * @type {og.Vec3}
+         * @type {Vec3}
          */
         this.mousePositionOnEarth = new Vec3();
 
@@ -212,7 +219,7 @@ export class Planet extends RenderNode {
         /**
          * Planet's segments collected for rendering frame.
          * @protected
-         * @type {og.quadTree.Node}
+         * @type {quadTree.Node}
          */
         this._renderedNodes = [];
         this._renderedNodesInFrustum = [];
@@ -220,42 +227,42 @@ export class Planet extends RenderNode {
         /**
          * Created nodes cache
          * @protected
-         * @type {og.quadTree.Node}
+         * @type {quadTree.Node}
          */
         this._quadTreeNodesCacheMerc = {};
 
         /**
          * Current visible mercator segments tree nodes array.
          * @protected
-         * @type {og.quadTree.Node}
+         * @type {quadTree.Node}
          */
         this._visibleNodes = {};
 
         /**
          * Current visible north pole nodes tree nodes array.
          * @protected
-         * @type {og.quadTree.Node}
+         * @type {quadTree.Node}
          */
         this._visibleNodesNorth = {};
 
         /**
          * Current visible south pole nodes tree nodes array.
          * @protected
-         * @type {og.quadTree.Node}
+         * @type {quadTree.Node}
          */
         this._visibleNodesSouth = {};
 
         /**
          * Layers activity lock.
          * @public
-         * @type {og.idle.Lock}
+         * @type {idle.Lock}
          */
         this.layerLock = new Lock();
 
         /**
          * Terrain providers activity lock.
          * @public
-         * @type {og.idle.Lock}
+         * @type {idle.Lock}
          */
         this.terrainLock = new Lock();
 
@@ -298,21 +305,21 @@ export class Planet extends RenderNode {
         /**
          * Mercator grid tree.
          * @protected
-         * @type {og.quadTree.Node}
+         * @type {quadTree.Node}
          */
         this._quadTree = null;
 
         /**
          * North grid tree.
          * @protected
-         * @type {og.quadTree.Node}
+         * @type {quadTree.Node}
          */
         this._quadTreeNorth = null;
 
         /**
          * South grid tree.
          * @protected
-         * @type {og.quadTree.Node}
+         * @type {quadTree.Node}
          */
         this._quadTreeSouth = null;
 
@@ -378,7 +385,7 @@ export class Planet extends RenderNode {
         /**
          * GeoImage creator.
          * @protected
-         * @type{og.utils.GeoImageCreator}
+         * @type{utils.GeoImageCreator}
          */
         this._geoImageCreator = null;
 
@@ -415,7 +422,7 @@ export class Planet extends RenderNode {
 
     /**
      * Add the given control to the renderer of the planet scene.
-     * @param {og.control.Control} control - Control.
+     * @param {control.Control} control - Control.
      */
     addControl(control) {
         control.planet = this;
@@ -427,11 +434,12 @@ export class Planet extends RenderNode {
         if (minLod) {
             this._minLodRatio = minLod;
         }
+        this._renderCompletedActivated = false;
     }
 
     /**
      * Add the given controls array to the renderer of the planet.
-     * @param {Array.<og.control.Control>} cArr - Control array.
+     * @param {Array.<control.Control>} cArr - Control array.
      */
     addControls(cArr) {
         for (var i = 0; i < cArr.length; i++) {
@@ -443,7 +451,7 @@ export class Planet extends RenderNode {
      * Return layer by it name
      * @param {string} name - Name of the layer. og.Layer.prototype.name
      * @public
-     * @returns {og.Layer} -
+     * @returns {Layer} -
      */
     getLayerByName(name) {
         var i = this.layers.length;
@@ -456,7 +464,7 @@ export class Planet extends RenderNode {
 
     /**
      * Adds the given layer to the planet.
-     * @param {og.Layer} layer - Layer object.
+     * @param {Layer} layer - Layer object.
      * @public
      */
     addLayer(layer) {
@@ -465,7 +473,7 @@ export class Planet extends RenderNode {
 
     /**
      * Dispatch layer visibility changing event.
-     * @param {og.Layer} layer - Changed layer.
+     * @param {Layer} layer - Changed layer.
      * @protected
      */
     _onLayerVisibilityChanged(layer) {
@@ -474,7 +482,7 @@ export class Planet extends RenderNode {
 
     /**
      * Adds the given layers array to the planet.
-     * @param {Array.<og.Layer>} layers - Layers array.
+     * @param {Array.<Layer>} layers - Layers array.
      * @public
      */
     addLayers(layers) {
@@ -485,8 +493,8 @@ export class Planet extends RenderNode {
 
     /**
      * Removes the given layer from the planet.
-     * @param {og.Layer} layer - Layer to remove.
-     * @return {og.Layer|undefined} The removed layer or undefined if the layer was not found.
+     * @param {Layer} layer - Layer to remove.
+     * @return {Layer|undefined} The removed layer or undefined if the layer was not found.
      * @public
      */
     removeLayer(layer) {
@@ -496,7 +504,7 @@ export class Planet extends RenderNode {
     /**
      *
      * @protected
-     * @param {og.Layer} layer - Material layer.
+     * @param {Layer} layer - Material layer.
      */
     _clearLayerMaterial(layer) {
         var lid = layer._id;
@@ -511,7 +519,7 @@ export class Planet extends RenderNode {
 
     /**
      * Get the collection of layers associated with this planet.
-     * @return {Array.<og.Layer>} Layers array.
+     * @return {Array.<Layer>} Layers array.
      * @public
      */
     getLayers() {
@@ -520,7 +528,7 @@ export class Planet extends RenderNode {
 
     /**
      * Sets base layer coverage to the planet.
-     * @param {og.Layer} layer - Layer object.
+     * @param {Layer} layer - Layer object.
      * @public
      */
     setBaseLayer(layer) {
@@ -543,6 +551,8 @@ export class Planet extends RenderNode {
      * @param {number} factor - Elevation scale.
      */
     setHeightFactor(factor) {
+        this._renderCompletedActivated = false;
+
         if (this._heightFactor !== factor) {
             this._heightFactor = factor;
             this._quadTree.destroyBranches();
@@ -560,7 +570,7 @@ export class Planet extends RenderNode {
     /**
      * Sets terrain provider
      * @public
-     * @param {og.terrain.Terrain} terrain - Terrain provider.
+     * @param {Terrain} terrain - Terrain provider.
      */
     setTerrain(terrain) {
         this._renderCompletedActivated = false;
@@ -811,7 +821,7 @@ export class Planet extends RenderNode {
         this._quadTree.renderNode(true);
         this._normalMapCreator.drawSingle(this._quadTree.segment);
 
-        for (var i = 0; i < this._quadTree.nodes.length; i++) {
+        for (let i = 0; i < this._quadTree.nodes.length; i++) {
             this._quadTree.nodes[i].segment.createPlainSegment();
             this._quadTree.nodes[i].renderNode(true);
             this._normalMapCreator.drawSingle(this._quadTree.nodes[i].segment);
@@ -822,7 +832,7 @@ export class Planet extends RenderNode {
         this._quadTreeNorth.renderNode(true);
         this._normalMapCreator.drawSingle(this._quadTreeNorth.segment);
 
-        for (var i = 0; i < this._quadTreeNorth.nodes.length; i++) {
+        for (let i = 0; i < this._quadTreeNorth.nodes.length; i++) {
             this._quadTreeNorth.nodes[i].segment.createPlainSegment();
             this._quadTreeNorth.nodes[i].renderNode(true);
             this._normalMapCreator.drawSingle(this._quadTreeNorth.nodes[i].segment);
@@ -833,7 +843,7 @@ export class Planet extends RenderNode {
         this._quadTreeSouth.renderNode(true);
         this._normalMapCreator.drawSingle(this._quadTreeSouth.segment);
 
-        for (var i = 0; i < this._quadTreeSouth.nodes.length; i++) {
+        for (let i = 0; i < this._quadTreeSouth.nodes.length; i++) {
             this._quadTreeSouth.nodes[i].segment.createPlainSegment();
             this._quadTreeSouth.nodes[i].renderNode(true);
             this._normalMapCreator.drawSingle(this._quadTreeSouth.nodes[i].segment);
@@ -986,13 +996,15 @@ export class Planet extends RenderNode {
      * @protected
      */
     _collectRenderNodes() {
+        let cam = this.camera;
+
         this._lodRatio = math.lerp(
-            this.camera.slope < 0.0 ? 0.0 : this.camera.slope,
+            cam.slope < 0.0 ? 0.0 : cam.slope,
             this._maxLodRatio,
             this._minLodRatio
         );
 
-        this.camera._insideSegment = null;
+        cam._insideSegment = null;
 
         this._nodeCounterError_ = 0;
 
@@ -1008,12 +1020,12 @@ export class Planet extends RenderNode {
         this.minCurrZoom = math.MAX;
         this.maxCurrZoom = math.MIN;
 
-        this._quadTree.renderTree(this.camera, 0, null);
+        this._quadTree.renderTree(cam, 0, null);
 
         if (
-            this.renderer.activeCamera.slope > 0.8 &&
-            this.renderer.activeCamera._lonLat.height < 850000.0 &&
-            this.renderer.activeCamera._lonLat.height > 10000.0
+            cam.slope > this.minEqualZoomCameraSlope &&
+            cam._lonLat.height < this.maxEqualZoomAltitude &&
+            cam._lonLat.height > this.minEqualZoomAltitude
         ) {
             this.minCurrZoom = this.maxCurrZoom;
 
@@ -1048,18 +1060,20 @@ export class Planet extends RenderNode {
             }
 
             for (let i = 0, len = temp2.length; i < len; i++) {
-                temp2[i].renderTree(this.camera, this.maxCurrZoom, null);
+                temp2[i].renderTree(cam, this.maxCurrZoom, null);
             }
         }
 
-        this._quadTreeNorth.renderTree(this.camera, 0, null);
-        this._quadTreeSouth.renderTree(this.camera, 0, null);
+        this._quadTreeNorth.renderTree(cam, 0, null);
+        this._quadTreeSouth.renderTree(cam, 0, null);
     }
 
     _globalPreDraw() {
-        this._distBeforeMemClear += this._prevCamEye.distance(this.camera.eye);
-        this._prevCamEye.copy(this.camera.eye);
-        this.renderer.activeCamera.checkFly();
+        let cam = this.camera;
+
+        this._distBeforeMemClear += this._prevCamEye.distance(cam.eye);
+        this._prevCamEye.copy(cam.eye);
+        cam.checkFly();
 
         // free memory
         if (this._createdNodesCount > MAX_NODES && this._distBeforeMemClear > 1000.0) {
@@ -1110,7 +1124,7 @@ export class Planet extends RenderNode {
         gl.disable(gl.POLYGON_OFFSET_FILL);
 
         if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
-            if (this._skipPreRender && (!this._renderCompletedActivated || cam._moved)) {
+            if (this._skipPreRender && (!this._renderCompletedActivated || cam.isMoved)) {
                 this._collectRenderNodes();
             }
             this._skipPreRender = true;
@@ -1134,7 +1148,9 @@ export class Planet extends RenderNode {
         }
 
         gl.blendEquation(gl.FUNC_ADD);
+
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
         gl.enable(gl.BLEND);
         gl.enable(gl.CULL_FACE);
 
@@ -1457,8 +1473,8 @@ export class Planet extends RenderNode {
      * Returns ray vector hit ellipsoid coordinates.
      * If the ray doesn't hit ellipsoit returns null.
      * @public
-     * @param {og.Ray} ray - Ray 3d.
-     * @returns {og.Vec3} -
+     * @param {Ray} ray - Ray 3d.
+     * @returns {Vec3} -
      */
     getRayIntersectionEllipsoid(ray) {
         return this.ellipsoid.hitRay(ray.origin, ray.direction);
@@ -1467,8 +1483,8 @@ export class Planet extends RenderNode {
     /**
      * Returns 2d screen coordanates projection point to the planet ellipsoid 3d coordinates.
      * @public
-     * @param {og.math.Pixel} px - 2D sreen coordinates.
-     * @returns {og.Vec3} -
+     * @param {math.Pixel} px - 2D sreen coordinates.
+     * @returns {Vec3} -
      */
     getCartesianFromPixelEllipsoid(px) {
         var cam = this.renderer.activeCamera;
@@ -1478,7 +1494,7 @@ export class Planet extends RenderNode {
     /**
      * Returns 2d screen coordanates projection point to the planet ellipsoid geographical coordinates.
      * @public
-     * @param {og.math.Pixel} px - 2D screen coordinates.
+     * @param {math.Pixel} px - 2D screen coordinates.
      * @returns {LonLat} -
      */
     getLonLatFromPixelEllipsoid(px) {
@@ -1494,7 +1510,7 @@ export class Planet extends RenderNode {
      * position or null if mouse cursor is outside the planet.
      * @public
      * @param {Boolean} [force=false] - Force framebuffer rendering.
-     * @returns {og.Vec3} -
+     * @returns {Vec3} -
      */
     getCartesianFromMouseTerrain(force) {
         var ms = this.renderer.events.mouseState;
@@ -1509,9 +1525,9 @@ export class Planet extends RenderNode {
      * Returns 3d cartesian coordinates on the relief planet by 2d screen coordinates.
      * position or null if input coordinates is outside the planet.
      * @public
-     * @param {og.Vec2} px - Pixel screen 2d coordinates.
+     * @param {Vec2} px - Pixel screen 2d coordinates.
      * @param {Boolean} [force=false] - Force framebuffer rendering.
-     * @returns {og.Vec3} -
+     * @returns {Vec3} -
      */
     getCartesianFromPixelTerrain(px, force) {
         var distance = this.getDistanceFromPixel(px, force);
@@ -1526,7 +1542,7 @@ export class Planet extends RenderNode {
      * Returns geographical coordinates on the relief planet by 2d screen coordinates.
      * position or null if input coordinates is outside the planet.
      * @public
-     * @param {og.Vec2} px - Pixel screen 2d coordinates.
+     * @param {Vec2} px - Pixel screen 2d coordinates.
      * @param {Boolean} [force=false] - Force framebuffer rendering.
      * @returns {LonLat} -
      */
@@ -1541,8 +1557,8 @@ export class Planet extends RenderNode {
     /**
      * Returns projected 2d screen coordinates by 3d cartesian coordiantes.
      * @public
-     * @param {og.Vec3} coords - Cartesian coordinates.
-     * @returns {og.Vec2} -
+     * @param {Vec3} coords - Cartesian coordinates.
+     * @returns {Vec2} -
      */
     getPixelFromCartesian(coords) {
         return this.renderer.activeCamera.project(coords);
@@ -1552,7 +1568,7 @@ export class Planet extends RenderNode {
      * Returns projected 2d screen coordinates by geographical coordinates.
      * @public
      * @param {LonLat} lonlat - Geographical coordinates.
-     * @returns {og.Vec2} -
+     * @returns {Vec2} -
      */
     getPixelFromLonLat(lonlat) {
         var coords = this.ellipsoid.lonLatToCartesian(lonlat);
@@ -1566,7 +1582,7 @@ export class Planet extends RenderNode {
      * Returns distance from active camera to the the planet ellipsoid
      * coordiantes unprojected by 2d screen coordiantes, or null if screen coordinates outside the planet.
      * @public
-     * @param {og.Vec2} px - Screen coordinates.
+     * @param {Vec2} px - Screen coordinates.
      * @returns {number} -
      */
     getDistanceFromPixelEllipsoid(px) {
@@ -1580,7 +1596,7 @@ export class Planet extends RenderNode {
      * If screen coordinates inside the planet but relief is not exists in the
      * point than function returns distance to the planet ellipsoid.
      * @public
-     * @param {og.Vec2} px - Screen coordinates.
+     * @param {Vec2} px - Screen coordinates.
      * @param {Boolean} [force=false] - Force framebuffer rendering.
      * @returns {number} -
      */
@@ -1624,7 +1640,7 @@ export class Planet extends RenderNode {
     /**
      * Sets camera to the planet geographical extent.
      * @public
-     * @param {og.Extent} extent - Geographical extent.
+     * @param {Extent} extent - Geographical extent.
      */
     viewExtent(extent) {
         this.renderer.activeCamera.viewExtent(extent);
@@ -1648,7 +1664,7 @@ export class Planet extends RenderNode {
     /**
      * Gets current viewing geographical extent.
      * @public
-     * @returns {og.Extent} -
+     * @returns {Extent} -
      */
     getViewExtent() {
         return this._viewExtent;
@@ -1680,7 +1696,7 @@ export class Planet extends RenderNode {
      * Sets camera to the planet geographical position.
      * @public
      * @param {LonLat} lonlat - New geographical position.
-     * @param {og.Vec3} [up] - Camera UP vector.
+     * @param {Vec3} [up] - Camera UP vector.
      */
     viewLonLat(lonlat, up) {
         this.renderer.activeCamera.setLonLat(lonlat, up);
@@ -1689,9 +1705,9 @@ export class Planet extends RenderNode {
     /**
      * Fly camera to the planet geographical extent.
      * @public
-     * @param {og.Extent} extent - Geographical extent.
+     * @param {Extent} extent - Geographical extent.
      * @param {Number} [height] - Height on the end of the flight route.
-     * @param {og.Vec3} [up] - Camera UP vector on the end of a flying.
+     * @param {Vec3} [up] - Camera UP vector on the end of a flying.
      * @param {Number} [ampl] - Altitude amplitude factor.
      * @param {cameraCallback} [startCallback] - Callback that calls after flying when flying is finished.
      * @param {cameraCallback} [completeCallback] - Callback that calls befor the flying begins.
@@ -1710,9 +1726,9 @@ export class Planet extends RenderNode {
     /**
      * Fly camera to the new point.
      * @public
-     * @param {og.Vec3} cartesian - Fly coordiantes.
-     * @param {og.Vec3} [look] - Camera "look at" point.
-     * @param {og.Vec3} [up] - Camera UP vector on the end of a flying.
+     * @param {Vec3} cartesian - Fly coordiantes.
+     * @param {Vec3} [look] - Camera "look at" point.
+     * @param {Vec3} [up] - Camera UP vector on the end of a flying.
      * @param {Number} [ampl] - Altitude amplitude factor.
      * @param [completeCallback]
      * @param [startCallback]
@@ -1734,8 +1750,8 @@ export class Planet extends RenderNode {
      * Fly camera to the new geographical position.
      * @public
      * @param {LonLat} lonlat - Fly geographical coordiantes.
-     * @param {og.Vec3} [look] - Camera "look at" point on the end of a flying.
-     * @param {og.Vec3} [up] - Camera UP vector on the end of a flying.
+     * @param {Vec3} [look] - Camera "look at" point on the end of a flying.
+     * @param {Vec3} [up] - Camera UP vector on the end of a flying.
      * @param {Number} [ampl] - Altitude amplitude factor.
      * @param [completeCallback]
      * @param [startCallback]

@@ -58,7 +58,7 @@ class EmptyTerrain {
         /**
          * Planet node.
          * @protected
-         * @type {og.scene.Planet}
+         * @type {Planet}
          */
         this._planet = null;
 
@@ -117,7 +117,7 @@ class EmptyTerrain {
      * Loads or creates segment elevation data.
      * @public
      * @virtual
-     * @param {og.planetSegment.Segment} segment - Segment to create elevation data.
+     * @param {Segment} segment - Segment to create elevation data.
      */
     handleSegmentTerrain(segment) {
         segment.terrainIsLoading = false;

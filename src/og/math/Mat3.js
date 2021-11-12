@@ -2,17 +2,16 @@
  * @module og/math/Mat3
  */
 
-'use strict';
+"use strict";
 
-import { Mat4 } from './Mat4.js';
-import { Vec3 } from './Vec3.js';
+import { Mat4 } from "./Mat4.js";
+import { Vec3 } from "./Vec3.js";
 
 /**
  * Class represents a 3x3 matrix.
  * @class
  */
 export class Mat3 {
-
     constructor() {
         /**
          * A 3x3 matrix, indexable as a column-major order array.
@@ -26,7 +25,7 @@ export class Mat3 {
      * Sets column-major order array matrix.
      * @public
      * @param {Array.<number>} m - Matrix array.
-     * @returns {og.Mat3}
+     * @returns {Mat3}
      */
     set(m) {
         this._m[0] = m[0];
@@ -44,7 +43,7 @@ export class Mat3 {
     /**
      * Duplicates a Mat3 instance.
      * @public
-     * @returns {og.Mat3}
+     * @returns {Mat3}
      */
     clone() {
         var res = new Mat3();
@@ -55,8 +54,8 @@ export class Mat3 {
     /**
      * Copy matrix.
      * @public
-     * @param {og.Mat3} a - Matrix to copy.
-     * @returns {og.Mat3}
+     * @param {Mat3} a - Matrix to copy.
+     * @returns {Mat3}
      */
     copy(a) {
         return this.set(a._m);
@@ -65,37 +64,51 @@ export class Mat3 {
     /**
      * Creates trasposed matrix from the current.
      * @public
-     * @returns {og.Mat3}
+     * @returns {Mat3}
      */
     transposeTo() {
         var res = new Mat3();
         var m = this._m;
-        res._m[0] = m[0]; res._m[1] = m[3]; res._m[2] = m[6];
-        res._m[3] = m[1]; res._m[4] = m[4]; res._m[5] = m[7];
-        res._m[6] = m[2]; res._m[7] = m[5]; res._m[8] = m[8];
+        res._m[0] = m[0];
+        res._m[1] = m[3];
+        res._m[2] = m[6];
+        res._m[3] = m[1];
+        res._m[4] = m[4];
+        res._m[5] = m[7];
+        res._m[6] = m[2];
+        res._m[7] = m[5];
+        res._m[8] = m[8];
         return res;
     }
 
     /**
      * Sets matrix to identity.
      * @public
-     * @returns {og.Mat3}
+     * @returns {Mat3}
      */
     setIdentity() {
-        this._m[0] = 1; this._m[1] = 0; this._m[2] = 0;
-        this._m[3] = 0; this._m[4] = 1; this._m[5] = 0;
-        this._m[6] = 0; this._m[7] = 0; this._m[8] = 1;
+        this._m[0] = 1;
+        this._m[1] = 0;
+        this._m[2] = 0;
+        this._m[3] = 0;
+        this._m[4] = 1;
+        this._m[5] = 0;
+        this._m[6] = 0;
+        this._m[7] = 0;
+        this._m[8] = 1;
         return this;
     }
 
     /**
      * Multiply to 3d vector.
      * @public
-     * @params {og.Vec3} p - 3d vector.
-     * @returns {og.Vec3}
+     * @params {Vec3} p - 3d vector.
+     * @returns {Vec3}
      */
     mulVec(p) {
-        var d = p.x, e = p.y, g = p.z;
+        var d = p.x,
+            e = p.y,
+            g = p.z;
         var m = this._m;
         return new Vec3(
             m[0] * d + m[3] * e + m[6] * g,
@@ -107,7 +120,7 @@ export class Mat3 {
     /**
      * Converts to 4x4 matrix.
      * @public
-     * @returns {og.Mat4}
+     * @returns {Mat4}
      */
     toMatrix4() {
         var res = new Mat4();
@@ -131,13 +144,12 @@ export class Mat3 {
         b[15] = 1;
         return res;
     }
-
 }
 
 /**
  * Mat3 factory.
  * @static
- * @return {og.Mat3}
+ * @return {Mat3}
  */
 export function mat3() {
     return new Mat3();

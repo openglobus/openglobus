@@ -2,17 +2,17 @@
  * @module og/layer/WMS
  */
 
-'use strict';
+"use strict";
 
-import * as mercator from '../mercator.js';
-import { Extent } from '../Extent.js';
-import { LonLat } from '../LonLat.js';
-import { XYZ } from './XYZ.js';
+import * as mercator from "../mercator.js";
+import { Extent } from "../Extent.js";
+import { LonLat } from "../LonLat.js";
+import { XYZ } from "./XYZ.js";
 
 /**
  * Used to display WMS services as tile layers on the globe.
  * @class
- * @extends {og.layer.XYZ}
+ * @extends {XYZ}
  * //TODO: WMS version, format, and custom srs cpecification.
  * @param {string} name - Layer name.
  * @param {Object} options - Options:
@@ -29,20 +29,20 @@ import { XYZ } from './XYZ.js';
  * @param {string} options.layers - WMS layers string.
  * @param {string} [options.version="1.1.1"] - WMS version.
  * @example:
- * new og.layer.WMS("USA States", { 
+ * new og.layer.WMS("USA States", {
  *     isBaseLayer: false,
- *     url: "http://openglobus.org/geoserver/", 
- *     layers: "topp:states", 
- *     opacity: 0.5, 
- *     zIndex: 50, 
- *     attribution: 'USA states - geoserver WMS example', 
+ *     url: "http://openglobus.org/geoserver/",
+ *     layers: "topp:states",
+ *     opacity: 0.5,
+ *     zIndex: 50,
+ *     attribution: 'USA states - geoserver WMS example',
  *     transparentColor: [1.0, 1.0, 1.0],
  *     version: "1.1.1",
  *     visibility: false }
  * );
  *
  * @fires og.layer.XYZ#load
- * @fires og.layer.XYZ#loadend 
+ * @fires og.layer.XYZ#loadend
  */
 class WMS extends XYZ {
     constructor(name, options) {
@@ -87,17 +87,34 @@ class WMS extends XYZ {
         srs,
         bbox,
         width = 256,
-        height = 256) {
+        height = 256
+    ) {
         return `${url}/wms?LAYERS=${layers}&FORMAT=${format}&SERVICE=WMS&VERSION=${version}&REQUEST=${request}
         &SRS=${srs}&BBOX=${bbox}&WIDTH=${width}&HEIGHT=${height}`;
     }
 
     static get_bbox_v1_1_1(extent) {
-        return extent.getWest() + "," + extent.getSouth() + "," + extent.getEast() + "," + extent.getNorth();
+        return (
+            extent.getWest() +
+            "," +
+            extent.getSouth() +
+            "," +
+            extent.getEast() +
+            "," +
+            extent.getNorth()
+        );
     }
 
     static get_bbox_v1_3_0(extent) {
-        return extent.getSouth() + "," + extent.getWest() + "," + extent.getNorth() + "," + extent.getEast();
+        return (
+            extent.getSouth() +
+            "," +
+            extent.getWest() +
+            "," +
+            extent.getNorth() +
+            "," +
+            extent.getEast()
+        );
     }
 
     _checkSegment(segment) {

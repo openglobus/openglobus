@@ -2,18 +2,18 @@
  * @module og/layer/XYZ
  */
 
-'use strict';
+"use strict";
 
-import * as mercator from '../mercator.js';
-import { EPSG3857 } from '../proj/EPSG3857.js';
-import { Layer } from './Layer.js';
-import { stringTemplate } from '../utils/shared.js';
-import { RENDERING } from '../quadTree/quadTree.js';
+import * as mercator from "../mercator.js";
+import { EPSG3857 } from "../proj/EPSG3857.js";
+import { Layer } from "./Layer.js";
+import { stringTemplate } from "../utils/shared.js";
+import { RENDERING } from "../quadTree/quadTree.js";
 
 /**
  * Represents an imagery tiles source provider.
  * @class
- * @extends {og.Layer}
+ * @extends {Layer}
  * @param {string} name - Layer name.
  * @param {Object} options:
  * @param {number} [options.opacity=1.0] - Layer opacity.
@@ -28,7 +28,8 @@ import { RENDERING } from '../quadTree/quadTree.js';
  * @param {boolean} [options.visibility=true] - Layer visibility.
  * @param {string} [options.crossOrigin=true] - If true, all tiles will have their crossOrigin attribute set to ''.
  * @param {string} options.url - Tile url source template(see example below).
- * @param {og.layer.XYZ~_urlRewriteCallback} options.urlRewrite - Url rewrite function.
+ * @param {string} options.textureFilter - texture gl filter. NEAREST, LINEAR, MIPMAP, ANISOTROPHIC.
+ * @param {layer.XYZ~_urlRewriteCallback} options.urlRewrite - Url rewrite function.
  * @fires og.layer.XYZ#load
  * @fires og.layer.XYZ#loadend
  *
@@ -41,7 +42,6 @@ import { RENDERING } from '../quadTree/quadTree.js';
  * });
  */
 class XYZ extends Layer {
-
     /**
      * @param {string} name - Layer name.
      * @param {*} options
@@ -63,7 +63,7 @@ class XYZ extends Layer {
         /**
          * @protected
          */
-        this._s = options.subdomains || ['a', 'b', 'c'];
+        this._s = options.subdomains || ["a", "b", "c"];
 
         /**
          * Minimal native zoom level when tiles are available.
@@ -82,13 +82,13 @@ class XYZ extends Layer {
         /**
          * @protected
          */
-        this._crossOrigin = options.crossOrigin === undefined ? '' : options.crossOrigin;
+        this._crossOrigin = options.crossOrigin === undefined ? "" : options.crossOrigin;
 
         /**
          * Rewrites imagery tile url query.
          * @private
          * @callback og.layer.XYZ~_urlRewriteCallback
-         * @param {og.planetSegment.Segment} segment - Segment to load.
+         * @param {Segment} segment - Segment to load.
          * @param {string} url - Created url.
          * @returns {string} - Url query string.
          */
@@ -114,7 +114,6 @@ class XYZ extends Layer {
      */
     setVisibility(visibility) {
         if (visibility !== this._visibility) {
-
             super.setVisibility(visibility);
 
             if (!visibility) {
@@ -143,10 +142,9 @@ class XYZ extends Layer {
      * Start to load tile material.
      * @public
      * @virtual
-     * @param {og.planetSegment.Material} material - Loads current material.
+     * @param {Material} material - Loads current material.
      */
     loadMaterial(material, forceLoading) {
-
         let seg = material.segment;
 
         if (this._isBaseLayer) {
@@ -156,37 +154,39 @@ class XYZ extends Layer {
         }
 
         if (this._planet.layerLock.isFree()) {
-
             material.isReady = false;
             material.isLoading = true;
 
             if (this._checkSegment(seg)) {
-
                 material.loadingAttempts++;
 
-                this._planet._tileLoader.load({
-                    src: this._getHTTPRequestString(material.segment),
-                    type: 'imageBitmap',
-                    filter: () => (seg.initialized && seg.node.getState() === RENDERING) || forceLoading,
-                    options: {}
-                }, (response) => {
-                    if (response.status === "ready") {
-                        if (material.isLoading) {
-                            let e = this.events.load;
-                            if (e.handlers.length) {
-                                this.events.dispatch(e, material);
+                this._planet._tileLoader.load(
+                    {
+                        src: this._getHTTPRequestString(material.segment),
+                        type: "imageBitmap",
+                        filter: () =>
+                            (seg.initialized && seg.node.getState() === RENDERING) || forceLoading,
+                        options: {}
+                    },
+                    (response) => {
+                        if (response.status === "ready") {
+                            if (material.isLoading) {
+                                let e = this.events.load;
+                                if (e.handlers.length) {
+                                    this.events.dispatch(e, material);
+                                }
+                                material.applyImage(response.data);
+                                response.data = null;
                             }
-                            material.applyImage(response.data);
-                            response.data = null;
-                        }
-                    } else if (response.status === "abort") {
-                        material.isLoading = false;
-                    } else if (response.status === "error") {
-                        if (material.isLoading) {
-                            material.textureNotExists();
+                        } else if (response.status === "abort") {
+                            material.isLoading = false;
+                        } else if (response.status === "error") {
+                            if (material.isLoading) {
+                                material.textureNotExists();
+                            }
                         }
                     }
-                });
+                );
             } else {
                 material.textureNotExists();
             }
@@ -197,7 +197,7 @@ class XYZ extends Layer {
      * Creates query url.
      * @protected
      * @virtual
-     * @param {og.planetSegment.Segment} segment - Creates specific url for current segment.
+     * @param {Segment} segment - Creates specific url for current segment.
      * @returns {String} - Returns url string.
      */
     _createUrl(segment) {
@@ -216,28 +216,28 @@ class XYZ extends Layer {
     /**
      * Returns actual url query string.
      * @protected
-     * @param {og.planetSegment.Segment} segment - Segment that loads image data.
+     * @param {Segment} segment - Segment that loads image data.
      * @returns {string} - Url string.
      */
     _getHTTPRequestString(segment) {
-        return this._urlRewriteCallback ? this._urlRewriteCallback(segment, this.url) : this._createUrl(segment);
+        return this._urlRewriteCallback
+            ? this._urlRewriteCallback(segment, this.url)
+            : this._createUrl(segment);
     }
 
     /**
      * Sets url rewrite callback, used for custom url rewriting for every tile laoding.
      * @public
-     * @param {og.layer.XYZ~_urlRewriteCallback} ur - The callback that returns tile custom created url.
+     * @param {layer.XYZ~_urlRewriteCallback} ur - The callback that returns tile custom created url.
      */
     setUrlRewriteCallback(ur) {
         this._urlRewriteCallback = ur;
     }
 
     applyMaterial(material) {
-
         if (material.isReady) {
             return material.texOffset;
         } else {
-
             // if (material.loadingAttempts > 20) {
             //     debugger;
             // }
@@ -272,7 +272,9 @@ class XYZ extends Layer {
                 if (pnm) {
                     !pnm.isLoading && !pnm.isReady && this.loadMaterial(pnm, true);
                 } else {
-                    pnm = pn.segment.materials[material.layer._id] = material.layer.createMaterial(pn.segment);
+                    pnm = pn.segment.materials[material.layer._id] = material.layer.createMaterial(
+                        pn.segment
+                    );
                     this.loadMaterial(pnm, true);
                 }
             }
@@ -305,7 +307,7 @@ class XYZ extends Layer {
             material.texture = null;
 
             if (material.image) {
-                material.image.src = '';
+                material.image.src = "";
                 material.image = null;
             }
         }

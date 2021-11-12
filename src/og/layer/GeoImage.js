@@ -2,14 +2,14 @@
  * @module og/layer/GeoImage
  */
 
-'use strict';
+"use strict";
 
-import { BaseGeoImage } from './BaseGeoImage.js';
+import { BaseGeoImage } from "./BaseGeoImage.js";
 
 /**
  * Used to load and display a single image over specific corner coordinates on the globe, implements og.layer.BaseGeoImage interface.
  * @class
- * @extends {og.layer.BaseGeoImage}
+ * @extends {BaseGeoImage}
  */
 class GeoImage extends BaseGeoImage {
     constructor(name, options) {
@@ -84,7 +84,7 @@ class GeoImage extends BaseGeoImage {
      * Loads planet segment material. In this case - GeoImage source image.
      * @virtual
      * @public
-     * @param {og.planetSegment.Material} material - GeoImage planet material.
+     * @param {Material} material - GeoImage planet material.
      */
     loadMaterial(material) {
         material.isLoading = true;
@@ -95,14 +95,14 @@ class GeoImage extends BaseGeoImage {
                     this._onLoad(this._image);
                 } else if (this._image.src) {
                     let that = this;
-                    this._image.addEventListener('load', function (e) {
+                    this._image.addEventListener("load", function (e) {
                         that._onLoad(this);
                     });
                 }
             } else {
                 let that = this;
                 this._image = new Image();
-                this._image.addEventListener('load', function (e) {
+                this._image.addEventListener("load", function (e) {
                     that._onLoad(this);
                 });
                 this._image.src = this._src;
@@ -114,10 +114,10 @@ class GeoImage extends BaseGeoImage {
 
     /**
      * @virtual
-     * @param {og.planetSegment.Material} material - GeoImage material.
+     * @param {Material} material - GeoImage material.
      */
     abortMaterialLoading(material) {
-        this._image && (this._image.src = '');
+        this._image && (this._image.src = "");
         this._creationProceeding = false;
         material.isLoading = false;
         material.isReady = false;

@@ -2,12 +2,12 @@
  * @module og/webgl/Multisample
  */
 
-'use strict';
+"use strict";
 
 /**
  * Class represents multisample framebuffer.
  * @class
- * @param {og.webgl.Handler} handler - WebGL handler.
+ * @param {Handler} handler - WebGL handler.
  * @param {Object} [options] - Framebuffer options:
  * @param {number} [options.width] - Framebuffer width. Default is handler canvas width.
  * @param {number} [options.height] - Framebuffer height. Default is handler canvas height.
@@ -16,19 +16,19 @@
  * @param {Boolean} [options.useDepth] - Using depth buffer during the rendering.
  */
 export class Multisample {
-
     constructor(handler, options) {
-
         options = options || {};
 
         /**
          * WebGL handler.
          * @public
-         * @type {og.webgl.Handler}
+         * @type {Handler}
          */
         this.handler = handler;
 
-        this._internalFormat = options.internalFormat ? options.internalFormat.toUpperCase() : "RGBA8";
+        this._internalFormat = options.internalFormat
+            ? options.internalFormat.toUpperCase()
+            : "RGBA8";
 
         /**
          * Framebuffer object.
@@ -62,10 +62,11 @@ export class Multisample {
 
         this._useDepth = options.useDepth != undefined ? options.useDepth : true;
 
-        this._depthComponent = options.depthComponent != undefined ? options.depthComponent : "DEPTH_COMPONENT16";
+        this._depthComponent =
+            options.depthComponent != undefined ? options.depthComponent : "DEPTH_COMPONENT16";
 
         /**
-         * Framebuffer activity. 
+         * Framebuffer activity.
          * @private
          * @type {boolean}
          */
@@ -102,7 +103,6 @@ export class Multisample {
      * @private
      */
     init() {
-
         var gl = this.handler.gl;
 
         this._glFilter = gl[this._filter];
@@ -115,8 +115,19 @@ export class Multisample {
         for (var i = 0; i < this.renderbuffers.length; i++) {
             let rb = gl.createRenderbuffer();
             gl.bindRenderbuffer(gl.RENDERBUFFER, rb);
-            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this._msaa, gl[this._internalFormat], this._width, this._height);
-            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.RENDERBUFFER, rb);
+            gl.renderbufferStorageMultisample(
+                gl.RENDERBUFFER,
+                this._msaa,
+                gl[this._internalFormat],
+                this._width,
+                this._height
+            );
+            gl.framebufferRenderbuffer(
+                gl.FRAMEBUFFER,
+                gl.COLOR_ATTACHMENT0 + i,
+                gl.RENDERBUFFER,
+                rb
+            );
             colorAttachments.push(gl.COLOR_ATTACHMENT0 + i);
             this.renderbuffers[i] = rb;
             gl.bindRenderbuffer(gl.RENDERBUFFER, null);
@@ -126,8 +137,19 @@ export class Multisample {
         if (this._useDepth) {
             this._depthRenderbuffer = gl.createRenderbuffer();
             gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthRenderbuffer);
-            gl.renderbufferStorageMultisample(gl.RENDERBUFFER, this._msaa, gl[this._depthComponent], this._width, this._height);
-            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this._depthRenderbuffer);
+            gl.renderbufferStorageMultisample(
+                gl.RENDERBUFFER,
+                this._msaa,
+                gl[this._depthComponent],
+                this._width,
+                this._height
+            );
+            gl.framebufferRenderbuffer(
+                gl.FRAMEBUFFER,
+                gl.DEPTH_ATTACHMENT,
+                gl.RENDERBUFFER,
+                this._depthRenderbuffer
+            );
             gl.bindRenderbuffer(gl.RENDERBUFFER, null);
         }
 
@@ -137,7 +159,6 @@ export class Multisample {
     }
 
     blitTo(framebuffer, attachmentIndex = 0) {
-
         let gl = this.handler.gl;
 
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._fbo);
@@ -147,9 +168,16 @@ export class Multisample {
         gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 1.0]);
 
         gl.blitFramebuffer(
-            0, 0, this._width, this._height,
-            0, 0, framebuffer._width, framebuffer._height,
-            gl.COLOR_BUFFER_BIT, this._glFilter
+            0,
+            0,
+            this._width,
+            this._height,
+            0,
+            0,
+            framebuffer._width,
+            framebuffer._height,
+            gl.COLOR_BUFFER_BIT,
+            this._glFilter
         );
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -193,7 +221,7 @@ export class Multisample {
     /**
      * Activate framebuffer frame to draw.
      * @public
-     * @returns {og.webgl.Framebuffer} Returns Current framebuffer.
+     * @returns {Framebuffer} Returns Current framebuffer.
      */
     activate() {
         var gl = this.handler.gl;

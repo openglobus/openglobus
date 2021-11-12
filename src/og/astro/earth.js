@@ -2,18 +2,18 @@
  * @module og/astro/earth
  */
 
-'use strict';
+"use strict";
 
-import * as jd from './jd.js';
-import * as math from '../math.js';
-import * as astro from './astro.js';
-import { Quat } from '../math/Quat.js';
-import { Vec3 } from '../math/Vec3.js';
+import * as jd from "./jd.js";
+import * as math from "../math.js";
+import * as astro from "./astro.js";
+import { Quat } from "../math/Quat.js";
+import { Vec3 } from "../math/Vec3.js";
 
 /**
  * Returns Sun position in the geocentric coordinate system by the time.
  * @param {Number} jDate - Julian date time.
- * @returns {og.Vec3} - Sun geocentric coordinates.
+ * @returns {Vec3} - Sun geocentric coordinates.
  */
 export function getSunPosition(jDate) {
     // http://stjarnhimlen.se/comp/tutorial.html
@@ -21,7 +21,7 @@ export function getSunPosition(jDate) {
     // e  Eccentricity
     // T  Time at perihelion
 
-    // q  Perihelion distance  = a * (1 - e)    
+    // q  Perihelion distance  = a * (1 - e)
     // Q  Aphelion distance    = a * (1 + e)
 
     // i  Inclination, i.e. the "tilt" of the orbit relative to the
@@ -70,16 +70,17 @@ export function getSunPosition(jDate) {
 
     var d = jDate - jd.J2000;
 
-    var w = 282.9404 + 4.70935E-5 * d; // longitude of perihelion
+    var w = 282.9404 + 4.70935e-5 * d; // longitude of perihelion
     // var a = 1.000000; // mean distance, a.u.
-    var e = 0.016709 - 1.151E-9 * d; // eccentricity
-    var M = math.rev(356.0470 + 0.9856002585 * d); // mean anomaly
+    var e = 0.016709 - 1.151e-9 * d; // eccentricity
+    var M = math.rev(356.047 + 0.9856002585 * d); // mean anomaly
 
-    var oblecl = astro.J2000_OBLIQUITY - 3.563E-7 * d; // obliquity of the ecliptic
+    var oblecl = astro.J2000_OBLIQUITY - 3.563e-7 * d; // obliquity of the ecliptic
 
     // var L = math.rev(w + M); // Sun's mean longitude
 
-    var E = M + math.DEGREES * e * Math.sin(M * math.RADIANS) * (1 + e * Math.cos(M * math.RADIANS)); // eccentric anomaly
+    var E =
+        M + math.DEGREES * e * Math.sin(M * math.RADIANS) * (1 + e * Math.cos(M * math.RADIANS)); // eccentric anomaly
 
     // Sun rectangular coordiantes, where the X axis points towards the perihelion
     var x = Math.cos(E * math.RADIANS) - e;
@@ -99,10 +100,15 @@ export function getSunPosition(jDate) {
     var yequat = y * Math.cos(oblecl * math.RADIANS);
     var zequat = y * Math.sin(oblecl * math.RADIANS);
 
-    var theta = math.TWO_PI * (d * 24.0 / 23.9344694 - 259.853 / 360.0); // Siderial spin time
+    var theta = math.TWO_PI * ((d * 24.0) / 23.9344694 - 259.853 / 360.0); // Siderial spin time
 
-    return Quat.yRotation(-theta).mulVec3(new Vec3(-yequat * astro.AU_TO_METERS,
-        zequat * astro.AU_TO_METERS, -xequat * astro.AU_TO_METERS));
+    return Quat.yRotation(-theta).mulVec3(
+        new Vec3(
+            -yequat * astro.AU_TO_METERS,
+            zequat * astro.AU_TO_METERS,
+            -xequat * astro.AU_TO_METERS
+        )
+    );
 
     // Convert to RA and Decl
     // var RA = Math.atan2(yequat, xequat) * math.DEGREES;

@@ -1,11 +1,11 @@
-'use strict';
+"use strict";
 
-import { ImageCanvas } from '../ImageCanvas.js';
-import { Rectangle } from '../Rectangle.js';
-import { ImagesCacheManager } from './ImagesCacheManager.js';
+import { ImageCanvas } from "../ImageCanvas.js";
+import { Rectangle } from "../Rectangle.js";
+import { ImagesCacheManager } from "./ImagesCacheManager.js";
 
 /**
- * Texture atlas stores images in one texture. Each image has its own 
+ * Texture atlas stores images in one texture. Each image has its own
  * atlas texture coordinates.
  * @class
  * @param {number} [width] - Texture atlas width, if it hasn't 1024 default.
@@ -13,11 +13,10 @@ import { ImagesCacheManager } from './ImagesCacheManager.js';
  */
 class TextureAtlas {
     constructor(width, height) {
-
         /**
          * Atlas nodes where input images store. It can be access by image.__nodeIndex.
          * @public
-         * @type {Array.<og.utils.TextureAtlasNode >}
+         * @type {Array.<utils.TextureAtlasNode >}
          */
         this.nodes = [];
 
@@ -71,7 +70,7 @@ class TextureAtlas {
     /**
      * Sets openglobus gl handler that creates gl texture.
      * @public
-     * @param {og.webgl.Handler} handler - WebGL handler.
+     * @param {Handler} handler - WebGL handler.
      */
     assignHandler(handler) {
         this._handler = handler;
@@ -93,12 +92,11 @@ class TextureAtlas {
      * Adds image to the atlas and returns creted node with texture coordinates of the stored image.
      * @public
      * @param {Object} image - Input javascript image object.
-     * @param {boolean} [fastInsert] - If it's true atlas doesnt restore all images again 
+     * @param {boolean} [fastInsert] - If it's true atlas doesnt restore all images again
      * and store image in the curent atlas sheme.
-     * @returns {og.utils.TextureAtlasNode} -
+     * @returns {utils.TextureAtlasNode} -
      */
     addImage(image, fastInsert) {
-
         if (!(image.width && image.height)) {
             return;
         }
@@ -145,11 +143,10 @@ class TextureAtlas {
     /**
      * Main atlas making function.
      * @private
-     * @param {boolean} [fastInsert] - If it's true atlas doesnt restore all images again 
+     * @param {boolean} [fastInsert] - If it's true atlas doesnt restore all images again
      * and store image in the curent atlas sheme.
      */
     _makeAtlas(fastInsert) {
-
         if (fastInsert && this._btree) {
             let im = this._images[this._images.length - 1];
             this._completeNode(this.nodes, this._btree.insert(im));
@@ -157,10 +154,15 @@ class TextureAtlas {
             let im = this._images.slice(0);
 
             im.sort(function (b, a) {
-                return ((a.atlasWidth || a.width) - (b.atlasWidth || b.width)) || ((a.atlasHeight || a.height) - (b.atlasHeight || b.height));
+                return (
+                    (a.atlasWidth || a.width) - (b.atlasWidth || b.width) ||
+                    (a.atlasHeight || a.height) - (b.atlasHeight || b.height)
+                );
             });
 
-            this._btree = new TextureAtlasNode(new Rectangle(0, 0, this.canvas.getWidth(), this.canvas.getHeight()));
+            this._btree = new TextureAtlasNode(
+                new Rectangle(0, 0, this.canvas.getWidth(), this.canvas.getHeight())
+            );
             this._btree.atlas = this;
 
             this.clearCanvas();
@@ -190,7 +192,7 @@ class TextureAtlas {
     }
 
     /**
-     * Image handler callback. 
+     * Image handler callback.
      * @callback Object~successCallback
      * @param {Image} img - Loaded image.
      */
@@ -215,7 +217,7 @@ class TextureAtlas {
 /**
  * Atlas binary tree node.
  * @class
- * @param {og.Rectangle} rect - Node image rectangle.
+ * @param {Rectangle} rect - Node image rectangle.
  */
 class TextureAtlasNode {
     constructor(rect, texCoords) {
@@ -227,9 +229,7 @@ class TextureAtlasNode {
     }
 
     insert(img) {
-
         if (this.childNodes) {
-
             var newNode = this.childNodes[0].insert(img);
 
             if (newNode != null) {
@@ -237,9 +237,7 @@ class TextureAtlasNode {
             }
 
             return this.childNodes[1].insert(img);
-
         } else {
-
             if (this.image != null) {
                 return null;
             }
