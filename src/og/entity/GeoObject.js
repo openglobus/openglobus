@@ -12,16 +12,8 @@ import { Planet } from "../scene/Planet.js";
 
 /**
  * @class
- * @param {Object} options - Sphere parameters:
- * @param {og.Vec3} [options.position] - Sphere position.
- * @param {og.Quat} [options.orientation] - Sphere orientation(rotation).
- * @param {number} [options.scale] - Scale
- * @param {Array.<number,number,number,number>} [options.color] - Sphere RGBA color.
- * @param {string} [options.src] - Texture image url source.
- * @param {boolean} [options.visibility] - Sphere visibility.
- * @param {number} [options.radius=100] - Sphere radius.
- * @param {number} [options.latBands=16] - Number of latitude bands.
- * @param {number} [options.lonBands=16] - Number of longitude bands.
+ * @param {Object} options -  Geo object parameters:
+ * @param {og.Vec3} [options.position] - Geo object position.
  */
 
 class GeoObject {
