@@ -160,24 +160,24 @@ class CanvasTiles extends Layer {
             if (e.handlers.length) {
                 that.events.dispatch(e, material);
             }
-            that.drawTile(
-                material,
-                /**
-                 * Apply canvas.
-                 * @callback applyCanvasCallback
-                 * @param {Object} canvas -
-                 */
-                function (canvas) {
-                    that._counter--;
-                    CanvasTiles.__requestsCounter--;
-                    if (material.isLoading) {
-                        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                that.drawTile(
+                    material,
+                    /**
+                     * Apply canvas.
+                     * @callback applyCanvasCallback
+                     * @param {Object} canvas -
+                     */
+                    function (canvas) {
+                        that._counter--;
+                        CanvasTiles.__requestsCounter--;
+                        if (material.isLoading) {
                             material.applyImage(canvas);
-                        });
+                        }
+                        that._dequeueRequest();
                     }
-                    that._dequeueRequest();
-                }
-            );
+                );
+            });
         } else {
             material.textureNotExists();
         }
