@@ -1124,10 +1124,10 @@ export class Planet extends RenderNode {
         gl.disable(gl.POLYGON_OFFSET_FILL);
 
         if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
-            if (this._skipPreRender && (!this._renderCompletedActivated || cam.isMoved)) {
-                this._collectRenderNodes();
-            }
-            this._skipPreRender = true;
+            //if (this._skipPreRender && (!this._renderCompletedActivated || cam.isMoved)) {
+            this._collectRenderNodes();
+            //}
+            //this._skipPreRender = true;
 
             // Here is the planet node dispatches a draw event before
             // rendering begins and we have got render nodes.
