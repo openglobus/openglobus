@@ -8,25 +8,25 @@ class LabelWorker {
         this._labelHandler = {};
 
         this._workerQueue = []; //new QueueArray(numWorkers);
-        var labelBufferProgramm = new Blob([_programm], { type: "application/javascript" });
+        var labelProgramm = new Blob([_programm], { type: "application/javascript" });
 
         var that = this;
 
         for (let i = 0; i < numWorkers; i++) {
-            var w = new Worker(URL.createObjectURL(labelBufferProgramm));
+            var w = new Worker(URL.createObjectURL(labelProgramm));
             w.onmessage = function (e) {
-                that._labelHandler[e.data.id]._terrainWorkerCallback(e.data);
-                that._labelHandler[e.data.id] = null;
+                //that._labelHandler[e.data.id]._terrainWorkerCallback(e.data);
+                //that._labelHandler[e.data.id] = null;
 
-                e.data.normalMapNormals = null;
-                e.data.normalMapVertices = null;
-                e.data.normalMapVerticesHigh = null;
-                e.data.normalMapVerticesLow = null;
-                e.data.terrainVertices = null;
-                e.data.terrainVerticesHigh = null;
-                e.data.terrainVerticesLow = null;
+                //e.data.normalMapNormals = null;
+                //e.data.normalMapVertices = null;
+                //e.data.normalMapVerticesHigh = null;
+                //e.data.normalMapVerticesLow = null;
+                //e.data.terrainVertices = null;
+                //e.data.terrainVerticesHigh = null;
+                //e.data.terrainVerticesLow = null;
 
-                delete that._labelHandler[e.data.id];
+                //delete that._labelHandler[e.data.id];
 
                 that._workerQueue.unshift(this);
                 that.check();
@@ -45,164 +45,151 @@ class LabelWorker {
         }
     }
 
-    make(handler, data) {
-        if (true) {
-            if (this._workerQueue.length) {
-                var w = this._workerQueue.pop();
+    make(handler, label) {
+        if (this._workerQueue.length) {
+            var w = this._workerQueue.pop();
 
-                this._labelHandler[this._id] = handler;
+            this._labelHandler[this._id] = handler;
 
-                w.postMessage(
-                    {
-                        elevations: _elevations,
-                        this_plainVertices: segment.plainVertices,
-                        this_plainNormals: segment.plainNormals,
-                        this_normalMapVertices: segment.normalMapVertices,
-                        this_normalMapNormals: segment.normalMapNormals,
-                        heightFactor: segment.planet._heightFactor,
-                        gridSize: segment.planet.terrain.gridSizeByZoom[segment.tileZoom],
-                        noDataValues: segment.planet.terrain.noDataValues,
-                        id: this._id++
-                    },
-                    [
-                        _elevations.buffer,
-                        segment.plainVertices.buffer,
-                        segment.plainNormals.buffer,
-                        segment.normalMapVertices.buffer,
-                        segment.normalMapNormals.buffer
-                    ]
-                );
-            } else {
-                this._pendingQueue.push({ handler: handler, data: data });
-            }
+            let labelData = new Float32Array([
+                this._id++,
+                handler._maxLetters,
+                label.getVisibility() ? 1 : 0,
+                label._positionHigh.x, label._positionHigh.y, label._positionHigh.z,
+                label._positionLow.x, label._positionLow.y, label._positionLow.z,
+                label._size,
+                label._offset.x, label._offset.y, label._offset.z,
+                label._color.x, label._color.y, label._color.z, label._color.w,
+                label._rotation,
+                label._alignedAxis.x, label._alignedAxis.y, label._alignedAxis.z,
+                label._fontIndex,
+                label._outline,
+                label._outlineColor.x, label._outlineColor.y, label._outlineColor.z, label._outlineColor.w,
+                label._entity._pickingColor.x, label._entity._pickingColor.y, label._entity._pickingColor.z
+            ]);
+
+            w.postMessage({
+                labelData: labelData
+            }, [
+                labelData.buffer,
+            ]);
         } else {
-            this.check();
+            this._pendingQueue.push({ handler: handler, label: label });
         }
     }
 }
 
 const _programm = `'use strict';
 
-    var Vec3 = function(x, y, z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    };
-
-    var doubleToTwoFloats = function(v, high, low) {
-
-        let x = v.x, y = v.y, z = v.z;
-    
-        if (x >= 0.0) {
-            var doubleHigh = Math.floor(x / 65536.0) * 65536.0;
-            high.x = Math.fround(doubleHigh);
-            low.x = Math.fround(x - doubleHigh);
-        } else {
-            var doubleHigh = Math.floor(-x / 65536.0) * 65536.0;
-            high.x = Math.fround(-doubleHigh);
-            low.x = Math.fround(x + doubleHigh);
-        }
-
-        if (y >= 0.0) {
-            var doubleHigh = Math.floor(y / 65536.0) * 65536.0;
-            high.y = Math.fround(doubleHigh);
-            low.y = Math.fround(y - doubleHigh);
-        } else {
-            var doubleHigh = Math.floor(-y / 65536.0) * 65536.0;
-            high.y = Math.fround(-doubleHigh);
-            low.y = Math.fround(y + doubleHigh);
-        }
-
-        if (z >= 0.0) {
-            var doubleHigh = Math.floor(z / 65536.0) * 65536.0;
-            high.z = Math.fround(doubleHigh);
-            low.z = Math.fround(z - doubleHigh);
-        } else {
-            var doubleHigh = Math.floor(-z / 65536.0) * 65536.0;
-            high.z = Math.fround(-doubleHigh);
-            low.z = Math.fround(z + doubleHigh);
-        }
-    };
-
-    Vec3.prototype.sub = function(v) {
-        return new Vec3(this.x - v.x, this.y - v.y, this.z - v.z);
-    };
-
-    Vec3.prototype.add = function(v) {
-        return new Vec3(this.x + v.x, this.y + v.y, this.z + v.z);
-    };
-
-    Vec3.prototype.cross = function(v) {
-        return new Vec3(
-            this.y * v.z - this.z * v.y,
-            this.z * v.x - this.x * v.z,
-            this.x * v.y - this.y * v.x
-        );
-    };
-
-    Vec3.prototype.normalize = function(v) {
-        var x = this.x, y = this.y, z = this.z;
-        var length = 1.0 / Math.sqrt(x * x + y * y + z * z);
-        this.x = x * length;
-        this.y = y * length;
-        this.z = z * length;
-        return this;
-    };
-
-    Vec3.prototype.distance = function(v) {
-        return this.sub(v).length();
-    };
-
-    Vec3.prototype.length = function () {
-        return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
-    };
-
-    var blerp = function(x, y, fQ11, fQ21, fQ12, fQ22) {
-        return (fQ11 * (1.0 - x) * (1.0 - y) + fQ21 * x * (1.0 - y) + fQ12 * (1.0 - x) * y + fQ22 * x * y);
-    };
-    
-    var slice = function (t, h1, h0) {
-      return t * (h1 - h0);
-    };
-
-    var _tempVec = new Vec3(0.0, 0.0, 0.0);
-
-    var _tempHigh = new Vec3(0.0, 0.0, 0.0),
-        _tempLow = new Vec3(0.0, 0.0, 0.0);
+    function concatTypedArrays(a, b) {
+        var c = new a.constructor(a.length + b.length);
+        c.set(a, 0);
+        c.set(b, a.length);
+        return c;
+    }
 
     self.onmessage = function (e) {
-        var elevations = e.data.elevations,
-            this_plainVertices = e.data.this_plainVertices,
-            this_plainNormals = e.data.this_plainNormals,
-            this_normalMapVertices = e.data.this_normalMapVertices,
-            this_normalMapNormals = e.data.this_normalMapNormals,
-            heightFactor =  e.data.heightFactor,
-            gridSize = e.data.gridSize,
-            noDataValues = e.data.noDataValues,
-            id = e.data.id;
+        var labelData = e.data.labelData,
+            id = labelData[0],
+            maxLetters = labelData[1],
+            isVisible = labelData[2];
+
+        let _vertexArr = new Float32Array(),
+            _texCoordArr = new Float32Array(),
+            _gliphParamArr = new Float32Array(),
+            _positionHighArr = new Float32Array(),
+            _positionLowArr = new Float32Array(),
+            _sizeArr = new Float32Array(),
+            _offsetArr = new Float32Array(),
+            _rgbaArr = new Float32Array(),
+            _rotationArr = new Float32Array(),
+            _alignedAxisArr = new Float32Array(),
+            _fontIndexArr = new Float32Array(),
+            _outlineArr = new Float32Array(),
+            _noOutlineArr = new Float32Array(),
+            _outlineColorArr = new Float32Array(),
+            _pickingColorArr = new Float32Array();
         
-//...
+        for (var i = 0; i < maxLetters; i++) {
+            if (isVisible !== 0) {
+                _vertexArr = concatTypedArrays(_vertexArr, [0, 0, 0, -1, 1, -1, 1, -1, 1, 0, 0, 0]);
+            } else {
+                _vertexArr = concatTypedArrays(_vertexArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+            }
+
+            _texCoordArr = concatTypedArrays(_texCoordArr, [0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0]);
+            _gliphParamArr = concatTypedArrays(_gliphParamArr, [1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0]);
+
+            var x = label._positionHigh.x, y = label._positionHigh.y, z = label._positionHigh.z, w;
+            _positionHighArr = concatTypedArrays(_positionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+
+            x = label._positionLow.x; y = label._positionLow.y; z = label._positionLow.z;
+            _positionLowArr = concatTypedArrays(_positionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+
+            x = label._size;
+            _sizeArr = concatTypedArrays(_sizeArr, [x, x, x, x, x, x]);
+
+            x = label._offset.x; y = label._offset.y; z = label._offset.z;
+            _offsetArr = concatTypedArrays(_offsetArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+
+            x = label._color.x; y = label._color.y; z = label._color.z; w = label._color.w;
+            _rgbaArr = concatTypedArrays(_rgbaArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
+
+            x = label._rotation;
+            _rotationArr = concatTypedArrays(_rotationArr, [x, x, x, x, x, x]);
+
+            x = label._alignedAxis.x; y = label._alignedAxis.y; z = label._alignedAxis.z;
+            _alignedAxisArr = concatTypedArrays(_alignedAxisArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+
+            x = label._fontIndex;
+            _fontIndexArr = concatTypedArrays(_fontIndexArr, [x, x, x, x, x, x]);
+
+            x = label._outline;
+            _outlineArr = concatTypedArrays(_outlineArr, [x, x, x, x, x, x]);
+
+            w = 0.001;
+            _noOutlineArr = concatTypedArrays(_noOutlineArr, [w, w, w, w, w, w]);
+
+            x = label._outlineColor.x; y = label._outlineColor.y; z = label._outlineColor.z; w = label._outlineColor.w;
+            _outlineColorArr = concatTypedArrays(_outlineColorArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
+
+            x = label._entity._pickingColor.x / 255; y = label._entity._pickingColor.y / 255; z = label._entity._pickingColor.z / 255;
+            _pickingColorArr = concatTypedArrays(_pickingColorArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        }
+
         self.postMessage({
                 id: id,
-                normalMapNormals: normalMapNormals,
-                normalMapVertices: normalMapVertices,
-                normalMapVerticesHigh: normalMapVerticesHigh,
-                normalMapVerticesLow: normalMapVerticesLow,
-                terrainVertices: terrainVertices,
-                terrainVerticesHigh: terrainVerticesHigh,
-                terrainVerticesLow: terrainVerticesLow,
-                noDataVertices: noDataVertices,
-                //bounds: [xmin, xmax, ymin, ymax, zmin, zmax]
-                bounds: [xmin, ymin, zmin, xmax, ymax, zmax]
+                vertexArr: _vertexArr,
+                texCoordArr: _texCoordArr,
+                gliphParamArr: _gliphParamArr,
+                positionHighArr: _positionHighArr,
+                positionLowArr: _positionLowArr,
+                sizeArr: _sizeArr,
+                offsetArr: _offsetArr,
+                rgbaArr: _rgbaArr,
+                rotationArr: _rotationArr,
+                alignedAxisArr: _alignedAxisArr,
+                fontIndexArr: _fontIndexArr,
+                outlineArr: _outlineArr,
+                noOutlineArr: _noOutlineArr,
+                outlineColorArr: _outlineColorArr,
+                pickingColorArr: _pickingColorArr
              }, [
-                    normalMapNormals.buffer, 
-                    normalMapVertices.buffer, 
-                    normalMapVerticesHigh.buffer, 
-                    normalMapVerticesLow.buffer, 
-                    terrainVertices.buffer,
-                    terrainVerticesHigh.buffer,
-                    terrainVerticesLow.buffer,
-                    noDataVertices.buffer
+                    _vertexArr.buffer,
+                    _texCoordArr.buffer,
+                    _gliphParamArr.buffer,
+                    _positionHighArr.buffer,
+                    _positionLowArr.buffer,
+                    _sizeArr.buffer,
+                    _offsetArr.buffer,
+                    _rgbaArr.buffer,
+                    _rotationArr.buffer,
+                    _alignedAxisArr.buffer,
+                    _fontIndexArr.buffer,
+                    _outlineArr.buffer,
+                    _noOutlineArr.buffer,
+                    _outlineColorArr.buffer,
+                    _pickingColorArr.buffer
             ]);
     }`;
 

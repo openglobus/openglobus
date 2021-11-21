@@ -80,7 +80,7 @@ class LabelHandler extends BillboardHandler {
             label._handler = this;
             label._handlerIndex = this._billboards.length;
             this._billboards.push(label);
-            this._addBillboardToArrays(label);
+            this._addLabelToArrays(label);
             this.refresh();
             this.assignFontAtlas(label);
         }
@@ -168,53 +168,56 @@ class LabelHandler extends BillboardHandler {
         }
     }
 
-    _addBillboardToArrays(label) {
-        for (var i = 0; i < this._maxLetters; i++) {
-            if (label._visibility) {
-                this._vertexArr = concatTypedArrays(this._vertexArr, [0, 0, 0, -1, 1, -1, 1, -1, 1, 0, 0, 0]);
-            } else {
-                this._vertexArr = concatTypedArrays(this._vertexArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-            }
+    _addLabelToArrays(label) {
+        label._inTheQueue = true;
+        this._renderer.labelWorker.make(this, label);
 
-            this._texCoordArr = concatTypedArrays(this._texCoordArr, [0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0]);
-            this._gliphParamArr = concatTypedArrays(this._gliphParamArr, [1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0]);
+        //for (var i = 0; i < this._maxLetters; i++) {
+        //    if (label._visibility) {
+        //        this._vertexArr = concatTypedArrays(this._vertexArr, [0, 0, 0, -1, 1, -1, 1, -1, 1, 0, 0, 0]);
+        //    } else {
+        //        this._vertexArr = concatTypedArrays(this._vertexArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        //    }
 
-            var x = label._positionHigh.x, y = label._positionHigh.y, z = label._positionHigh.z, w;
-            this._positionHighArr = concatTypedArrays(this._positionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        //    this._texCoordArr = concatTypedArrays(this._texCoordArr, [0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0]);
+        //    this._gliphParamArr = concatTypedArrays(this._gliphParamArr, [1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0]);
 
-            x = label._positionLow.x; y = label._positionLow.y; z = label._positionLow.z;
-            this._positionLowArr = concatTypedArrays(this._positionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        //    var x = label._positionHigh.x, y = label._positionHigh.y, z = label._positionHigh.z, w;
+        //    this._positionHighArr = concatTypedArrays(this._positionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-            x = label._size;
-            this._sizeArr = concatTypedArrays(this._sizeArr, [x, x, x, x, x, x]);
+        //    x = label._positionLow.x; y = label._positionLow.y; z = label._positionLow.z;
+        //    this._positionLowArr = concatTypedArrays(this._positionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-            x = label._offset.x; y = label._offset.y; z = label._offset.z;
-            this._offsetArr = concatTypedArrays(this._offsetArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        //    x = label._size;
+        //    this._sizeArr = concatTypedArrays(this._sizeArr, [x, x, x, x, x, x]);
 
-            x = label._color.x; y = label._color.y; z = label._color.z; w = label._color.w;
-            this._rgbaArr = concatTypedArrays(this._rgbaArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
+        //    x = label._offset.x; y = label._offset.y; z = label._offset.z;
+        //    this._offsetArr = concatTypedArrays(this._offsetArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-            x = label._rotation;
-            this._rotationArr = concatTypedArrays(this._rotationArr, [x, x, x, x, x, x]);
+        //    x = label._color.x; y = label._color.y; z = label._color.z; w = label._color.w;
+        //    this._rgbaArr = concatTypedArrays(this._rgbaArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
 
-            x = label._alignedAxis.x; y = label._alignedAxis.y; z = label._alignedAxis.z;
-            this._alignedAxisArr = concatTypedArrays(this._alignedAxisArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        //    x = label._rotation;
+        //    this._rotationArr = concatTypedArrays(this._rotationArr, [x, x, x, x, x, x]);
 
-            x = label._fontIndex;
-            this._fontIndexArr = concatTypedArrays(this._fontIndexArr, [x, x, x, x, x, x]);
+        //    x = label._alignedAxis.x; y = label._alignedAxis.y; z = label._alignedAxis.z;
+        //    this._alignedAxisArr = concatTypedArrays(this._alignedAxisArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-            x = label._outline;
-            this._outlineArr = concatTypedArrays(this._outlineArr, [x, x, x, x, x, x]);
+        //    x = label._fontIndex;
+        //    this._fontIndexArr = concatTypedArrays(this._fontIndexArr, [x, x, x, x, x, x]);
 
-            w = 0.001;
-            this._noOutlineArr = concatTypedArrays(this._noOutlineArr, [w, w, w, w, w, w]);
+        //    x = label._outline;
+        //    this._outlineArr = concatTypedArrays(this._outlineArr, [x, x, x, x, x, x]);
 
-            x = label._outlineColor.x; y = label._outlineColor.y; z = label._outlineColor.z; w = label._outlineColor.w;
-            this._outlineColorArr = concatTypedArrays(this._outlineColorArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
+        //    w = 0.001;
+        //    this._noOutlineArr = concatTypedArrays(this._noOutlineArr, [w, w, w, w, w, w]);
 
-            x = label._entity._pickingColor.x / 255; y = label._entity._pickingColor.y / 255; z = label._entity._pickingColor.z / 255;
-            this._pickingColorArr = concatTypedArrays(this._pickingColorArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
-        }
+        //    x = label._outlineColor.x; y = label._outlineColor.y; z = label._outlineColor.z; w = label._outlineColor.w;
+        //    this._outlineColorArr = concatTypedArrays(this._outlineColorArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
+
+        //    x = label._entity._pickingColor.x / 255; y = label._entity._pickingColor.y / 255; z = label._entity._pickingColor.z / 255;
+        //    this._pickingColorArr = concatTypedArrays(this._pickingColorArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+        //}
     }
 
     _displayPASS() {
@@ -485,6 +488,7 @@ class LabelHandler extends BillboardHandler {
 
         label._handlerIndex = -1;
         label._handler = null;
+        label._inTheQueue = false;
     }
 
     setText(index, text, fontIndex, align) {
