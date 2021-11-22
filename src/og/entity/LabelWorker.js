@@ -5,7 +5,7 @@
 class LabelWorker {
     constructor(numWorkers = 4) {
         this._id = 0;
-        this._labelHandler = {};
+        this._source = {};
 
         this._workerQueue = []; //new QueueArray(numWorkers);
         var labelProgramm = new Blob([_programm], { type: "application/javascript" });
@@ -15,19 +15,10 @@ class LabelWorker {
         for (let i = 0; i < numWorkers; i++) {
             var w = new Worker(URL.createObjectURL(labelProgramm));
             w.onmessage = function (e) {
-                //that._labelHandler[e.data.id]._terrainWorkerCallback(e.data);
-                //that._labelHandler[e.data.id] = null;
-
-                //e.data.normalMapNormals = null;
-                //e.data.normalMapVertices = null;
-                //e.data.normalMapVerticesHigh = null;
-                //e.data.normalMapVerticesLow = null;
-                //e.data.terrainVertices = null;
-                //e.data.terrainVerticesHigh = null;
-                //e.data.terrainVerticesLow = null;
-
-                //delete that._labelHandler[e.data.id];
-
+                let s = that._source[e.data.id];
+                s.handler.workerCallback(e.data, s.label);
+                that._source[e.data.id] = null;
+                delete that._source[e.data.id];
                 that._workerQueue.unshift(this);
                 that.check();
             };
@@ -41,7 +32,7 @@ class LabelWorker {
     check() {
         if (this._pendingQueue.length) {
             var p = this._pendingQueue.pop();
-            this.make(p.handler, p.data);
+            this.make(p.handler, p.label);
         }
     }
 
@@ -49,7 +40,9 @@ class LabelWorker {
         if (this._workerQueue.length) {
             var w = this._workerQueue.pop();
 
-            this._labelHandler[this._id] = handler;
+            let source = { handler: handler, label: label }
+
+            this._source[this._id] = source;
 
             let labelData = new Float32Array([
                 /*0*/this._id++,
@@ -74,7 +67,7 @@ class LabelWorker {
                 labelData.buffer,
             ]);
         } else {
-            this._pendingQueue.push({ handler: handler, label: label });
+            this._pendingQueue.push(source);
         }
     }
 }
