@@ -37,10 +37,11 @@ class LabelWorker {
     }
 
     make(handler, label) {
+
+        let source = { handler: handler, label: label };
+
         if (this._workerQueue.length) {
             var w = this._workerQueue.pop();
-
-            let source = { handler: handler, label: label }
 
             this._source[this._id] = source;
 

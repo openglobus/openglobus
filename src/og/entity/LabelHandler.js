@@ -84,27 +84,34 @@ class LabelHandler extends BillboardHandler {
         }
     }
 
+    _addLabelToArrays(label) {
+        label._inTheQueue = true;
+        this._renderer.labelWorker.make(this, label);
+    }
+
     workerCallback(data, label) {
         if (label._inTheQueue) {
             label._inTheQueue = false;
             label._handlerIndex = this._billboards.length;
             this._billboards.push(label);
 
-            this._vertexArr = concatTypedArrays(this._vertexArr, data._vertexArr);
-            this._texCoordArr = concatTypedArrays(this._texCoordArr, data._texCoordArr);
-            this._gliphParamArr = concatTypedArrays(this._gliphParamArr, data._gliphParamArr);
-            this._positionHighArr = concatTypedArrays(this._positionHighArr, data._positionHighArr);
-            this._positionLowArr = concatTypedArrays(this._positionLowArr, data._positionLowArr);
-            this._sizeArr = concatTypedArrays(this._sizeArr, data._sizeArr);
-            this._offsetArr = concatTypedArrays(this._offsetArr, data._offsetArr);
-            this._rgbaArr = concatTypedArrays(this._rgbaArr, data._rgbaArr);
-            this._rotationArr = concatTypedArrays(this._rotationArr, data._rotationArr);
-            this._alignedAxisArr = concatTypedArrays(this._alignedAxisArr, data._alignedAxisArr);
-            this._fontIndexArr = concatTypedArrays(this._fontIndexArr, data._fontIndexArr);
-            this._outlineArr = concatTypedArrays(this._outlineArr, data._outlineArr);
-            this._noOutlineArr = concatTypedArrays(this._noOutlineArr, data._noOutlineArr);
-            this._outlineColorArr = concatTypedArrays(this._outlineColorArr, data._outlineColorArr);
-            this._pickingColorArr = concatTypedArrays(this._pickingColorArr, data._pickingColorArr);
+            this._vertexArr = concatTypedArrays(this._vertexArr, data.vertexArr);
+            this._texCoordArr = concatTypedArrays(this._texCoordArr, data.texCoordArr);
+            this._gliphParamArr = concatTypedArrays(this._gliphParamArr, data.gliphParamArr);
+            this._positionHighArr = concatTypedArrays(this._positionHighArr, data.positionHighArr);
+            this._positionLowArr = concatTypedArrays(this._positionLowArr, data.positionLowArr);
+            this._sizeArr = concatTypedArrays(this._sizeArr, data.sizeArr);
+            this._offsetArr = concatTypedArrays(this._offsetArr, data.offsetArr);
+            this._rgbaArr = concatTypedArrays(this._rgbaArr, data.rgbaArr);
+            this._rotationArr = concatTypedArrays(this._rotationArr, data.rotationArr);
+            this._alignedAxisArr = concatTypedArrays(this._alignedAxisArr, data.alignedAxisArr);
+            this._fontIndexArr = concatTypedArrays(this._fontIndexArr, data.fontIndexArr);
+            this._outlineArr = concatTypedArrays(this._outlineArr, data.outlineArr);
+            this._noOutlineArr = concatTypedArrays(this._noOutlineArr, data.noOutlineArr);
+            this._outlineColorArr = concatTypedArrays(this._outlineColorArr, data.outlineColorArr);
+            this._pickingColorArr = concatTypedArrays(this._pickingColorArr, data.pickingColorArr);
+
+            label.update();
 
             this.refresh();
         }
@@ -190,11 +197,6 @@ class LabelHandler extends BillboardHandler {
             this._alignedAxisBuffer = null;
             this._pickingColorBuffer = null;
         }
-    }
-
-    _addLabelToArrays(label) {
-        label._inTheQueue = true;
-        this._renderer.labelWorker.make(this, label);
     }
 
     _displayPASS() {
@@ -491,12 +493,6 @@ class LabelHandler extends BillboardHandler {
             let tc = n.texCoords;
 
             let m = n.metrics;
-
-            //m.nWidth;
-            //m.nHeight;
-            //m.nAdvance;
-            //m.nXOffset;
-            //m.nYOffset;
 
             a[j] = tc[0];
             a[j + 1] = tc[1];
