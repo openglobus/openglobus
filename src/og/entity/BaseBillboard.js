@@ -98,6 +98,13 @@ class BaseBillboard {
          * @type {number}
          */
         this._handlerIndex = -1;
+
+        /**
+         * An indication that the object is in the worker queue for processing
+         * @protected
+         * @type {number}
+         */
+        this._inTheQueue = false;
     }
 
     static get _staticCounter() {

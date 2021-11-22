@@ -52,20 +52,20 @@ class LabelWorker {
             this._labelHandler[this._id] = handler;
 
             let labelData = new Float32Array([
-                this._id++,
-                handler._maxLetters,
-                label.getVisibility() ? 1 : 0,
-                label._positionHigh.x, label._positionHigh.y, label._positionHigh.z,
-                label._positionLow.x, label._positionLow.y, label._positionLow.z,
-                label._size,
-                label._offset.x, label._offset.y, label._offset.z,
-                label._color.x, label._color.y, label._color.z, label._color.w,
-                label._rotation,
-                label._alignedAxis.x, label._alignedAxis.y, label._alignedAxis.z,
-                label._fontIndex,
-                label._outline,
-                label._outlineColor.x, label._outlineColor.y, label._outlineColor.z, label._outlineColor.w,
-                label._entity._pickingColor.x, label._entity._pickingColor.y, label._entity._pickingColor.z
+                /*0*/this._id++,
+                /*1*/handler._maxLetters,
+                /*2*/label.getVisibility() ? 1 : 0,
+                /*3, 4, 5*/label._positionHigh.x, label._positionHigh.y, label._positionHigh.z,
+                /*6, 7, 8*/label._positionLow.x, label._positionLow.y, label._positionLow.z,
+                /*9*/label._size,
+                /*10, 11, 12*/label._offset.x, label._offset.y, label._offset.z,
+                /*13, 14, 15, 16*/label._color.x, label._color.y, label._color.z, label._color.w,
+                /*17*/label._rotation,
+                /*18, 19, 20*/label._alignedAxis.x, label._alignedAxis.y, label._alignedAxis.z,
+                /*21*/label._fontIndex,
+                /*22*/label._outline,
+                /*23, 24, 25, 26*/label._outlineColor.x, label._outlineColor.y, label._outlineColor.z, label._outlineColor.w,
+                /*27, 28, 29*/label._entity._pickingColor.x, label._entity._pickingColor.y, label._entity._pickingColor.z
             ]);
 
             w.postMessage({
@@ -92,7 +92,19 @@ const _programm = `'use strict';
         var labelData = e.data.labelData,
             id = labelData[0],
             maxLetters = labelData[1],
-            isVisible = labelData[2];
+            isVisible = labelData[2],
+            /*3, 4, 5*/_positionHigh_x = labelData[3], _positionHigh_y = labelData[4], _positionHigh_z = labelData[5],
+            /*6, 7, 8*/_positionLow_x = labelData[6], _positionLow_y = labelData[7], _positionLow_z = labelData[8],
+            /*9*/_size = labelData[9],
+            /*10, 11, 12*/_offset_x = labelData[10], _offset_y = labelData[11], _offset_z = labelData[12],
+            /*13, 14, 15, 16*/_color_x = labelData[13], _color_y = labelData[14], _color_z = labelData[15], _color_w = labelData[16],
+            /*17*/_rotation = labelData[17],
+            /*18, 19, 20*/_alignedAxis_x = labelData[18], _alignedAxis_y = labelData[19], _alignedAxis_z = labelData[20],
+            /*21*/_fontIndex = labelData[21],
+            /*22*/_outline = labelData[22],
+            /*23, 24, 25, 26*/_outlineColor_x = labelData[23], _outlineColor_y = labelData[24], _outlineColor_z = labelData[25], _outlineColor_w = labelData[26],
+            /*27, 28, 29*/_pickingColor_x = labelData[27], _pickingColor_y = labelData[28], _pickingColor_z = labelData[29]
+         
 
         let _vertexArr = new Float32Array(),
             _texCoordArr = new Float32Array(),
@@ -120,40 +132,40 @@ const _programm = `'use strict';
             _texCoordArr = concatTypedArrays(_texCoordArr, [0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0]);
             _gliphParamArr = concatTypedArrays(_gliphParamArr, [1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0]);
 
-            var x = label._positionHigh.x, y = label._positionHigh.y, z = label._positionHigh.z, w;
+            var x = _positionHigh_x, y = _positionHigh_y, z = _positionHigh_z, w;
             _positionHighArr = concatTypedArrays(_positionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-            x = label._positionLow.x; y = label._positionLow.y; z = label._positionLow.z;
+            x = _positionLow_x; y = _positionLow_y; z = _positionLow_z;
             _positionLowArr = concatTypedArrays(_positionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-            x = label._size;
+            x = _size;
             _sizeArr = concatTypedArrays(_sizeArr, [x, x, x, x, x, x]);
 
-            x = label._offset.x; y = label._offset.y; z = label._offset.z;
+            x = _offset_x; y = _offset_y; z = _offset_z;
             _offsetArr = concatTypedArrays(_offsetArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-            x = label._color.x; y = label._color.y; z = label._color.z; w = label._color.w;
+            x = _color_x; y = _color_y; z = _color_z; w = _color_w;
             _rgbaArr = concatTypedArrays(_rgbaArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
 
-            x = label._rotation;
+            x = _rotation;
             _rotationArr = concatTypedArrays(_rotationArr, [x, x, x, x, x, x]);
 
-            x = label._alignedAxis.x; y = label._alignedAxis.y; z = label._alignedAxis.z;
+            x = _alignedAxis_x; y = _alignedAxis_y; z = _alignedAxis_z;
             _alignedAxisArr = concatTypedArrays(_alignedAxisArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-            x = label._fontIndex;
+            x = _fontIndex;
             _fontIndexArr = concatTypedArrays(_fontIndexArr, [x, x, x, x, x, x]);
 
-            x = label._outline;
+            x = _outline;
             _outlineArr = concatTypedArrays(_outlineArr, [x, x, x, x, x, x]);
 
             w = 0.001;
             _noOutlineArr = concatTypedArrays(_noOutlineArr, [w, w, w, w, w, w]);
 
-            x = label._outlineColor.x; y = label._outlineColor.y; z = label._outlineColor.z; w = label._outlineColor.w;
+            x = _outlineColor_x; y = _outlineColor_y; z = _outlineColor_z; w = _outlineColor_w;
             _outlineColorArr = concatTypedArrays(_outlineColorArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
 
-            x = label._entity._pickingColor.x / 255; y = label._entity._pickingColor.y / 255; z = label._entity._pickingColor.z / 255;
+            x = _pickingColor_x / 255; y = _pickingColor_y / 255; z = _pickingColor_z / 255;
             _pickingColorArr = concatTypedArrays(_pickingColorArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
         }
 
