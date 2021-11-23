@@ -340,7 +340,9 @@ class Label extends BaseBillboard {
      * @param {utils.FontAtlas} fontAtlas - Font atlas.
      */
     assignFontAtlas(fontAtlas) {
-        !this._fontAtlas && (this._fontAtlas = fontAtlas);
+        if (!this._fontAtlas) {
+            this._fontAtlas = fontAtlas;
+        }
         this.update();
     }
 }

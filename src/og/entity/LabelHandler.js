@@ -76,16 +76,24 @@ class LabelHandler extends BillboardHandler {
     }
 
     add(label) {
-        if (!label.__handler) {
+        if (!label._handler) {
             label._handler = this;
-            this._addLabelToArrays(label);
-            this.refresh();
             this.assignFontAtlas(label);
+            this.refresh();
         }
     }
 
     _addLabelToArrays(label) {
         this._renderer.labelWorker.make(this, label);
+    }
+
+    assignFontAtlas(label) {
+        if (this._entityCollection && this._renderer) {
+            label.assignFontAtlas(this._renderer.fontAtlas);
+            this._addLabelToArrays(label);
+        } else {
+            this._billboards.push(label);
+        }
     }
 
     workerCallback(data, label) {
@@ -114,12 +122,6 @@ class LabelHandler extends BillboardHandler {
             label.update();
 
             this.refresh();
-        }
-    }
-
-    assignFontAtlas(label) {
-        if (this._entityCollection && this._renderer) {
-            label.assignFontAtlas(this._renderer.fontAtlas);
         }
     }
 
