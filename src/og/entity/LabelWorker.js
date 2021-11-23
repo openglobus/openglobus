@@ -75,11 +75,12 @@ class LabelWorker {
 
 const _programm = `'use strict';
 
-    function concatTypedArrays(a, b) {
-        var c = new a.constructor(a.length + b.length);
-        c.set(a, 0);
-        c.set(b, a.length);
-        return c;
+    function concatTypedArrays(dest, index, source) {
+        let len = source.length,
+            offset = index * len;
+        for(let i = 0; i < len; i++) {
+            dest[offset + i] = source[i];
+        }
     }
 
     self.onmessage = function (e) {
@@ -100,67 +101,67 @@ const _programm = `'use strict';
             /*27, 28, 29*/_pickingColor_x = labelData[27], _pickingColor_y = labelData[28], _pickingColor_z = labelData[29]
          
 
-        let _vertexArr = new Float32Array(),
-            _texCoordArr = new Float32Array(),
-            _gliphParamArr = new Float32Array(),
-            _positionHighArr = new Float32Array(),
-            _positionLowArr = new Float32Array(),
-            _sizeArr = new Float32Array(),
-            _offsetArr = new Float32Array(),
-            _rgbaArr = new Float32Array(),
-            _rotationArr = new Float32Array(),
-            _alignedAxisArr = new Float32Array(),
-            _fontIndexArr = new Float32Array(),
-            _outlineArr = new Float32Array(),
-            _noOutlineArr = new Float32Array(),
-            _outlineColorArr = new Float32Array(),
-            _pickingColorArr = new Float32Array();
+        let _vertexArr = new Float32Array(maxLetters * 12),
+            _texCoordArr = new Float32Array(maxLetters * 24),
+            _gliphParamArr = new Float32Array(maxLetters * 24),
+            _positionHighArr = new Float32Array(maxLetters * 18),
+            _positionLowArr = new Float32Array(maxLetters * 18),
+            _sizeArr = new Float32Array(maxLetters * 6),
+            _offsetArr = new Float32Array(maxLetters * 18),
+            _rgbaArr = new Float32Array(maxLetters * 24),
+            _rotationArr = new Float32Array(maxLetters * 6),
+            _alignedAxisArr = new Float32Array(maxLetters * 18),
+            _fontIndexArr = new Float32Array(maxLetters * 6),
+            _outlineArr = new Float32Array(maxLetters * 6),
+            _noOutlineArr = new Float32Array(maxLetters * 6),
+            _outlineColorArr = new Float32Array(maxLetters * 24),
+            _pickingColorArr = new Float32Array(maxLetters * 18);
         
         for (var i = 0; i < maxLetters; i++) {
             if (isVisible !== 0) {
-                _vertexArr = concatTypedArrays(_vertexArr, [0, 0, 0, -1, 1, -1, 1, -1, 1, 0, 0, 0]);
+                concatTypedArrays(_vertexArr, i, [0, 0, 0, -1, 1, -1, 1, -1, 1, 0, 0, 0]);
             } else {
-                _vertexArr = concatTypedArrays(_vertexArr, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+                concatTypedArrays(_vertexArr, i, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
             }
 
-            _texCoordArr = concatTypedArrays(_texCoordArr, [0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0]);
-            _gliphParamArr = concatTypedArrays(_gliphParamArr, [1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0]);
+            concatTypedArrays(_texCoordArr, i, [0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0]);
+            concatTypedArrays(_gliphParamArr, i, [1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0]);
 
             var x = _positionHigh_x, y = _positionHigh_y, z = _positionHigh_z, w;
-            _positionHighArr = concatTypedArrays(_positionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+            concatTypedArrays(_positionHighArr, i, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
             x = _positionLow_x; y = _positionLow_y; z = _positionLow_z;
-            _positionLowArr = concatTypedArrays(_positionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+            concatTypedArrays(_positionLowArr, i, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
             x = _size;
-            _sizeArr = concatTypedArrays(_sizeArr, [x, x, x, x, x, x]);
+            concatTypedArrays(_sizeArr, i, [x, x, x, x, x, x]);
 
             x = _offset_x; y = _offset_y; z = _offset_z;
-            _offsetArr = concatTypedArrays(_offsetArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+            concatTypedArrays(_offsetArr, i, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
             x = _color_x; y = _color_y; z = _color_z; w = _color_w;
-            _rgbaArr = concatTypedArrays(_rgbaArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
+            concatTypedArrays(_rgbaArr, i, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
 
             x = _rotation;
-            _rotationArr = concatTypedArrays(_rotationArr, [x, x, x, x, x, x]);
+            concatTypedArrays(_rotationArr, i, [x, x, x, x, x, x]);
 
             x = _alignedAxis_x; y = _alignedAxis_y; z = _alignedAxis_z;
-            _alignedAxisArr = concatTypedArrays(_alignedAxisArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+            concatTypedArrays(_alignedAxisArr, i, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
             x = _fontIndex;
-            _fontIndexArr = concatTypedArrays(_fontIndexArr, [x, x, x, x, x, x]);
+            concatTypedArrays(_fontIndexArr, i, [x, x, x, x, x, x]);
 
             x = _outline;
-            _outlineArr = concatTypedArrays(_outlineArr, [x, x, x, x, x, x]);
+            concatTypedArrays(_outlineArr, i, [x, x, x, x, x, x]);
 
             w = 0.001;
-            _noOutlineArr = concatTypedArrays(_noOutlineArr, [w, w, w, w, w, w]);
+            concatTypedArrays(_noOutlineArr, i, [w, w, w, w, w, w]);
 
             x = _outlineColor_x; y = _outlineColor_y; z = _outlineColor_z; w = _outlineColor_w;
-            _outlineColorArr = concatTypedArrays(_outlineColorArr, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
+            concatTypedArrays(_outlineColorArr, i, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
 
             x = _pickingColor_x / 255; y = _pickingColor_y / 255; z = _pickingColor_z / 255;
-            _pickingColorArr = concatTypedArrays(_pickingColorArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
+            concatTypedArrays(_pickingColorArr, i, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
         }
 
         self.postMessage({
