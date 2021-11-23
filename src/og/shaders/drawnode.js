@@ -431,7 +431,7 @@ export function drawnode_screen_wl_webgl2() {
 
                 t = texture( samplerArr[0], tileOffsetArr[0].xy + vTextureCoord.xy * tileOffsetArr[0].zw ) * insideBox(visibleExtentOffsetArr[0].xy + vTextureCoord.xy * visibleExtentOffsetArr[0].zw, BOTTOMLEFT, TOPRIGHT);
                 float emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[0].rgb ));
-                fragColor = mix( fragColor, vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[0].a * t.a * emptiness);
+                fragColor = mix( fragColor, vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[0].a * emptiness);
                 if( samplerCount == 1 ) return;
 
 
@@ -441,7 +441,7 @@ export function drawnode_screen_wl_webgl2() {
 
                 t = texture( samplerArr[1], tileOffsetArr[1].xy + vTextureCoord.xy * tileOffsetArr[1].zw ) * insideBox(visibleExtentOffsetArr[1].xy + vTextureCoord.xy * visibleExtentOffsetArr[1].zw, BOTTOMLEFT, TOPRIGHT);
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[1].rgb ));
-                fragColor = mix( fragColor, vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[1].a * t.a * emptiness);
+                fragColor = mix( fragColor, vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[1].a * emptiness);
                 if( samplerCount == 2 ) return;
 
 
@@ -451,7 +451,7 @@ export function drawnode_screen_wl_webgl2() {
 
                 t = texture( samplerArr[2], tileOffsetArr[2].xy + vTextureCoord.xy * tileOffsetArr[2].zw ) * insideBox(visibleExtentOffsetArr[2].xy + vTextureCoord.xy * visibleExtentOffsetArr[2].zw, BOTTOMLEFT, TOPRIGHT);
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[2].rgb ));
-                fragColor = mix( fragColor, vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[2].a * t.a * emptiness);
+                fragColor = mix( fragColor, vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[2].a * emptiness);
                 if( samplerCount == 3 ) return;
 
 
@@ -461,7 +461,7 @@ export function drawnode_screen_wl_webgl2() {
 
                 t = texture( samplerArr[3], tileOffsetArr[3].xy + vTextureCoord.xy * tileOffsetArr[3].zw ) * insideBox(visibleExtentOffsetArr[3].xy + vTextureCoord.xy * visibleExtentOffsetArr[3].zw, BOTTOMLEFT, TOPRIGHT);
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[3].rgb ));
-                fragColor = mix( fragColor, vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[3].a * t.a * emptiness);
+                fragColor = mix( fragColor, vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[3].a * emptiness);
                 if( samplerCount == 4 ) return;
 
 
@@ -471,7 +471,7 @@ export function drawnode_screen_wl_webgl2() {
 
                 t = texture( samplerArr[4], tileOffsetArr[4].xy + vTextureCoord.xy * tileOffsetArr[4].zw ) * insideBox(visibleExtentOffsetArr[4].xy + vTextureCoord.xy * visibleExtentOffsetArr[4].zw, BOTTOMLEFT, TOPRIGHT);
                 emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[4].rgb ));
-                fragColor = mix( fragColor, vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[4].a * t.a * emptiness);
+                fragColor = mix( fragColor, vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[4].a * emptiness);
             }`
     });
 }
