@@ -105,6 +105,8 @@ class BaseBillboard {
          * @type {number}
          */
         this._isReady = false;
+
+        this._lockId = -1;
     }
 
     static get _staticCounter() {
@@ -130,7 +132,11 @@ class BaseBillboard {
         this._position.y = y;
         this._position.z = z;
         Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
-        this._isReady && this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
+        if (this._isReady) {
+            this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
+        } else if (this._lockId !== -1) {
+            this._lockId = -2;
+        }
     }
 
     /**
@@ -143,7 +149,11 @@ class BaseBillboard {
         this._position.y = position.y;
         this._position.z = position.z;
         Vec3.doubleToTwoFloats(position, this._positionHigh, this._positionLow);
-        this._isReady && this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
+        if (this._isReady) {
+            this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
+        } else if (this._lockId !== -1) {
+            this._lockId = -2;
+        }
     }
 
     /**
@@ -166,7 +176,11 @@ class BaseBillboard {
         this._offset.x = x;
         this._offset.y = y;
         z != undefined && (this._offset.z = z);
-        this._isReady && this._handler.setOffsetArr(this._handlerIndex, this._offset);
+        if (this._isReady) {
+            this._handler.setOffsetArr(this._handlerIndex, this._offset);
+        } else if (this._lockId !== -1) {
+            this._lockId = -2;
+        }
     }
 
     /**
@@ -178,7 +192,11 @@ class BaseBillboard {
         this._offset.x = offset.x;
         this._offset.y = offset.y;
         offset.z != undefined && (this._offset.z = offset.z);
-        this._isReady && this._handler.setOffsetArr(this._handlerIndex, offset);
+        if (this._isReady) {
+            this._handler.setOffsetArr(this._handlerIndex, offset);
+        } else if (this._lockId !== -1) {
+            this._lockId = -2;
+        }
     }
 
     /**
@@ -197,7 +215,11 @@ class BaseBillboard {
      */
     setRotation(rotation) {
         this._rotation = rotation;
-        this._isReady && this._handler.setRotationArr(this._handlerIndex, rotation);
+        if (this._isReady) {
+            this._handler.setRotationArr(this._handlerIndex, rotation);
+        } else if (this._lockId !== -1) {
+            this._lockId = -2;
+        }
     }
 
     /**
@@ -232,7 +254,11 @@ class BaseBillboard {
         this._color.y = g;
         this._color.z = b;
         a != undefined && (this._color.w = a);
-        this._isReady && this._handler.setRgbaArr(this._handlerIndex, this._color);
+        if (this._isReady) {
+            this._handler.setRgbaArr(this._handlerIndex, this._color);
+        } else if (this._lockId !== -1) {
+            this._lockId = -2;
+        }
     }
 
     /**
@@ -245,7 +271,11 @@ class BaseBillboard {
         this._color.y = color.y;
         this._color.z = color.z;
         color.w != undefined && (this._color.w = color.w);
-        this._isReady && this._handler.setRgbaArr(this._handlerIndex, color);
+        if (this._isReady) {
+            this._handler.setRgbaArr(this._handlerIndex, color);
+        } else if (this._lockId !== -1) {
+            this._lockId = -2;
+        }
     }
 
     /**
@@ -273,7 +303,11 @@ class BaseBillboard {
      */
     setVisibility(visibility) {
         this._visibility = visibility;
-        this._isReady && this._handler.setVisibility(this._handlerIndex, visibility);
+        if (this._isReady) {
+            this._handler.setVisibility(this._handlerIndex, visibility);
+        } else if (this._lockId !== -1) {
+            this._lockId = -2;
+        }
     }
 
     /**
@@ -296,7 +330,11 @@ class BaseBillboard {
         this._alignedAxis.x = x;
         this._alignedAxis.y = y;
         this._alignedAxis.z = z;
-        this._isReady && this._handler.setAlignedAxisArr(this._handlerIndex, this._alignedAxis);
+        if (this._isReady) {
+            this._handler.setAlignedAxisArr(this._handlerIndex, this._alignedAxis);
+        } else if (this._lockId !== -1) {
+            this._lockId = -2;
+        }
     }
 
     /**
@@ -308,7 +346,11 @@ class BaseBillboard {
         this._alignedAxis.x = alignedAxis.x;
         this._alignedAxis.y = alignedAxis.y;
         this._alignedAxis.z = alignedAxis.z;
-        this._isReady && this._handler.setAlignedAxisArr(this._handlerIndex, alignedAxis);
+        if (this._isReady) {
+            this._handler.setAlignedAxisArr(this._handlerIndex, alignedAxis);
+        } else if (this._lockId !== -1) {
+            this._lockId = -2;
+        }
     }
 
     /**
@@ -335,7 +377,11 @@ class BaseBillboard {
      * @param {Vec3} color - Picking color.
      */
     setPickingColor3v(color) {
-        this._isReady && this._handler.setPickingColorArr(this._handlerIndex, color);
+        if (this._isReady) {
+            this._handler.setPickingColorArr(this._handlerIndex, color);
+        } else if (this._lockId !== -1) {
+            this._lockId = -2;
+        }
     }
 }
 

@@ -7,7 +7,7 @@ class LabelWorker {
         this._id = 0;
         this._source = {};
 
-        this._workerQueue = []; //new QueueArray(numWorkers);
+        this._freeWorkerQueue = []; //new QueueArray(numWorkers);
         var labelProgramm = new Blob([_programm], { type: "application/javascript" });
 
         var that = this;
@@ -15,15 +15,23 @@ class LabelWorker {
         for (let i = 0; i < numWorkers; i++) {
             var w = new Worker(URL.createObjectURL(labelProgramm));
             w.onmessage = function (e) {
+
                 let s = that._source[e.data.id];
-                s.handler.workerCallback(e.data, s.label);
+
+                if (s.label._lockId === -2) {
+                    that.make(s.handler, s.label);
+                } else {
+                    s.handler.workerCallback(e.data, s.label);
+                }
+
                 that._source[e.data.id] = null;
                 delete that._source[e.data.id];
-                that._workerQueue.unshift(this);
+                that._freeWorkerQueue.unshift(this);
+
                 that.check();
             };
 
-            this._workerQueue.push(w);
+            this._freeWorkerQueue.push(w);
         }
 
         this._pendingQueue = []; //new QueueArray(512);
@@ -40,8 +48,8 @@ class LabelWorker {
 
         let source = { handler: handler, label: label };
 
-        if (this._workerQueue.length) {
-            var w = this._workerQueue.pop();
+        if (this._freeWorkerQueue.length) {
+            var w = this._freeWorkerQueue.pop();
 
             this._source[this._id] = source;
 
@@ -61,6 +69,8 @@ class LabelWorker {
                 /*23, 24, 25, 26*/label._outlineColor.x, label._outlineColor.y, label._outlineColor.z, label._outlineColor.w,
                 /*27, 28, 29*/label._entity._pickingColor.x, label._entity._pickingColor.y, label._entity._pickingColor.z
             ]);
+
+            label._lockId = this._id;
 
             w.postMessage({
                 labelData: labelData

@@ -89,8 +89,9 @@ class LabelHandler extends BillboardHandler {
     }
 
     workerCallback(data, label) {
-        if (!label._isReady) {
+        if (label._lockId !== -1) {
             label._isReady = true;
+            label._lockId = -1;
             label._handlerIndex = this._billboards.length;
             this._billboards.push(label);
 
