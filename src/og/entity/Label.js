@@ -121,8 +121,7 @@ class Label extends BaseBillboard {
      */
     setText(text) {
         this._text = text.toString();
-        this._handler &&
-            this._handler.setText(this._handlerIndex, text, this._fontIndex, this._align);
+        this._isReady && this._handler.setText(this._handlerIndex, text, this._fontIndex, this._align);
     }
 
     /**
@@ -141,8 +140,7 @@ class Label extends BaseBillboard {
      */
     setAlign(align) {
         this._align = STR2ALIGN[align.trim().toLowerCase()];
-        this._handler &&
-            this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align);
+        this._isReady && this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align);
     }
 
     /**
@@ -180,7 +178,7 @@ class Label extends BaseBillboard {
      */
     setSize(size) {
         this._size = size;
-        this._handler && this._handler.setSizeArr(this._handlerIndex, size);
+        this._isReady && this._handler.setSizeArr(this._handlerIndex, size);
     }
 
     /**
@@ -199,7 +197,7 @@ class Label extends BaseBillboard {
      */
     setOutline(outline) {
         this._outline = outline;
-        this._handler && this._handler.setOutlineArr(this._handlerIndex, outline);
+        this._isReady && this._handler.setOutlineArr(this._handlerIndex, outline);
     }
 
     /**
@@ -236,7 +234,7 @@ class Label extends BaseBillboard {
         this._outlineColor.y = g;
         this._outlineColor.z = b;
         this._outlineColor.w = a;
-        this._handler && this._handler.setOutlineColorArr(this._handlerIndex, this._outlineColor);
+        this._isReady && this._handler.setOutlineColorArr(this._handlerIndex, this._outlineColor);
     }
 
     /**
@@ -249,7 +247,7 @@ class Label extends BaseBillboard {
         this._outlineColor.y = rgba.y;
         this._outlineColor.z = rgba.z;
         this._outlineColor.w = rgba.w;
-        this._handler && this._handler.setOutlineColorArr(this._handlerIndex, rgba);
+        this._isReady && this._handler.setOutlineColorArr(this._handlerIndex, rgba);
     }
 
     /**
@@ -277,7 +275,7 @@ class Label extends BaseBillboard {
      */
     setOutlineOpacity(opacity) {
         this._outlineColor.w = opacity;
-        this._handler && this._handler.setOutlineColorArr(this._handlerIndex, this._outlineColor);
+        this._isReady && this._handler.setOutlineColorArr(this._handlerIndex, this._outlineColor);
     }
 
     /**
@@ -302,7 +300,7 @@ class Label extends BaseBillboard {
 
     _applyFontIndex(fontIndex) {
         this._fontIndex = fontIndex;
-        if (this._handler) {
+        if (this._isReady) {
             this._handler.setFontIndexArr(this._handlerIndex, this._fontIndex);
             this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align);
         }

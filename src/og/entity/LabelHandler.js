@@ -85,13 +85,12 @@ class LabelHandler extends BillboardHandler {
     }
 
     _addLabelToArrays(label) {
-        label._inTheQueue = true;
         this._renderer.labelWorker.make(this, label);
     }
 
     workerCallback(data, label) {
-        if (label._inTheQueue) {
-            label._inTheQueue = false;
+        if (!label._isReady) {
+            label._isReady = true;
             label._handlerIndex = this._billboards.length;
             this._billboards.push(label);
 
@@ -467,7 +466,7 @@ class LabelHandler extends BillboardHandler {
 
         label._handlerIndex = -1;
         label._handler = null;
-        label._inTheQueue = false;
+        label._isReady = false;
     }
 
     setText(index, text, fontIndex, align) {

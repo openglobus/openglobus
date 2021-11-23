@@ -100,11 +100,11 @@ class BaseBillboard {
         this._handlerIndex = -1;
 
         /**
-         * An indication that the object is in the worker queue for processing
+         * An indication that the object is ready to draw
          * @protected
          * @type {number}
          */
-        this._inTheQueue = false;
+        this._isReady = false;
     }
 
     static get _staticCounter() {
@@ -130,8 +130,7 @@ class BaseBillboard {
         this._position.y = y;
         this._position.z = z;
         Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
-        this._handler &&
-            this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
+        this._isReady && this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
     }
 
     /**
@@ -144,8 +143,7 @@ class BaseBillboard {
         this._position.y = position.y;
         this._position.z = position.z;
         Vec3.doubleToTwoFloats(position, this._positionHigh, this._positionLow);
-        this._handler &&
-            this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
+        this._isReady && this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
     }
 
     /**
@@ -168,7 +166,7 @@ class BaseBillboard {
         this._offset.x = x;
         this._offset.y = y;
         z != undefined && (this._offset.z = z);
-        this._handler && this._handler.setOffsetArr(this._handlerIndex, this._offset);
+        this._isReady && this._handler.setOffsetArr(this._handlerIndex, this._offset);
     }
 
     /**
@@ -180,7 +178,7 @@ class BaseBillboard {
         this._offset.x = offset.x;
         this._offset.y = offset.y;
         offset.z != undefined && (this._offset.z = offset.z);
-        this._handler && this._handler.setOffsetArr(this._handlerIndex, offset);
+        this._isReady && this._handler.setOffsetArr(this._handlerIndex, offset);
     }
 
     /**
@@ -199,7 +197,7 @@ class BaseBillboard {
      */
     setRotation(rotation) {
         this._rotation = rotation;
-        this._handler && this._handler.setRotationArr(this._handlerIndex, rotation);
+        this._isReady && this._handler.setRotationArr(this._handlerIndex, rotation);
     }
 
     /**
@@ -234,7 +232,7 @@ class BaseBillboard {
         this._color.y = g;
         this._color.z = b;
         a != undefined && (this._color.w = a);
-        this._handler && this._handler.setRgbaArr(this._handlerIndex, this._color);
+        this._isReady && this._handler.setRgbaArr(this._handlerIndex, this._color);
     }
 
     /**
@@ -247,7 +245,7 @@ class BaseBillboard {
         this._color.y = color.y;
         this._color.z = color.z;
         color.w != undefined && (this._color.w = color.w);
-        this._handler && this._handler.setRgbaArr(this._handlerIndex, color);
+        this._isReady && this._handler.setRgbaArr(this._handlerIndex, color);
     }
 
     /**
@@ -275,7 +273,7 @@ class BaseBillboard {
      */
     setVisibility(visibility) {
         this._visibility = visibility;
-        this._handler && this._handler.setVisibility(this._handlerIndex, visibility);
+        this._isReady && this._handler.setVisibility(this._handlerIndex, visibility);
     }
 
     /**
@@ -298,7 +296,7 @@ class BaseBillboard {
         this._alignedAxis.x = x;
         this._alignedAxis.y = y;
         this._alignedAxis.z = z;
-        this._handler && this._handler.setAlignedAxisArr(this._handlerIndex, this._alignedAxis);
+        this._isReady && this._handler.setAlignedAxisArr(this._handlerIndex, this._alignedAxis);
     }
 
     /**
@@ -310,7 +308,7 @@ class BaseBillboard {
         this._alignedAxis.x = alignedAxis.x;
         this._alignedAxis.y = alignedAxis.y;
         this._alignedAxis.z = alignedAxis.z;
-        this._handler && this._handler.setAlignedAxisArr(this._handlerIndex, alignedAxis);
+        this._isReady && this._handler.setAlignedAxisArr(this._handlerIndex, alignedAxis);
     }
 
     /**
@@ -337,7 +335,7 @@ class BaseBillboard {
      * @param {Vec3} color - Picking color.
      */
     setPickingColor3v(color) {
-        this._handler && this._handler.setPickingColorArr(this._handlerIndex, color);
+        this._isReady && this._handler.setPickingColorArr(this._handlerIndex, color);
     }
 }
 
