@@ -21,6 +21,28 @@ export default [
         plugins: [terser(), json()]
     },
     {
+        input: `src/og/utils/workers/Terrain.js`,
+        output: [
+            {
+                file: `${OUTPUT_NAME}Terrain.js`,
+                name: "og",
+                sourcemap: true
+            }
+        ],
+        plugins: [terser(), json()]
+    },
+    {
+        input: `src/og/utils/workers/PlainSegment.js`,
+        output: [
+            {
+                file: `${OUTPUT_NAME}PlainSegment.js`,
+                name: "og",
+                sourcemap: true
+            }
+        ],
+        plugins: [terser(), json()]
+    },
+    {
         input: `src/og/index${LIB_SUFFIX}.js`,
         output: [
             {
