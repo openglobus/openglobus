@@ -1147,12 +1147,13 @@ export class Planet extends RenderNode {
             this._vectorTileCreator.frame();
         }
 
-        gl.blendEquation(gl.FUNC_ADD);
 
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.CULL_FACE);
 
         gl.enable(gl.BLEND);
-        gl.enable(gl.CULL_FACE);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        //gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ZERO);
 
         if (this.lightEnabled) {
             h.programs.drawnode_screen_wl.activate();
