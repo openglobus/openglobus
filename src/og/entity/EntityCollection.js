@@ -560,9 +560,10 @@ class EntityCollection {
      */
     updateLabelsFontAtlas() {
         if (this.renderNode) {
-            var l = this.labelHandler._billboards;
+            var l = [].concat(this.labelHandler._billboards);
+            this.labelHandler._billboards = [];
             for (var i = 0; i < l.length; i++) {
-                l[i].assignFontAtlas(this.renderNode.renderer.fontAtlas);
+                this.labelHandler.assignFontAtlas(l[i]);
             }
         }
     }

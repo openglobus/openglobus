@@ -127,6 +127,8 @@ class BillboardHandler {
             var bi = this._billboards[i];
             bi._handlerIndex = -1;
             bi._handler = null;
+            bi._isReady = false;
+            bi._lockId = -1;
         }
         this._billboards.length = 0;
         this._billboards = [];
@@ -201,6 +203,7 @@ class BillboardHandler {
 
     add(billboard) {
         if (billboard._handlerIndex == -1) {
+            billboard._isReady = true;
             billboard._handler = this;
             billboard._handlerIndex = this._billboards.length;
             this._billboards.push(billboard);
@@ -623,10 +626,12 @@ class BillboardHandler {
 
         billboard._handlerIndex = -1;
         billboard._handler = null;
+        billboard._isReady = false;
+        billboard._lockId = -1;
     }
 
     remove(billboard) {
-        if (billboard._handler && this.__staticId == billboard._handler.__staticId) {
+        if (billboard._isReady && this.__staticId == billboard._handler.__staticId) {
             this._removeBillboard(billboard);
         }
     }

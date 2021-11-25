@@ -16,6 +16,7 @@ import { TextureAtlas } from "../utils/TextureAtlas.js";
 import * as arial from "../arial.js";
 import { depth } from "../shaders/depth.js";
 import { ARIAL_FONT_B64 } from "../res/images.js";
+import { LabelWorker } from "../entity/LabelWorker.js";
 
 let __pickingCallbackCounter__ = 0;
 
@@ -211,6 +212,8 @@ class Renderer {
         }
 
         this._currentOutput = "screen";
+
+        this.labelWorker = new LabelWorker();
     }
 
     /**
