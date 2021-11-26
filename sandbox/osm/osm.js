@@ -53,11 +53,11 @@ const tg = new CanvasTiles("Tile grid", {
         }
 
         //Draw border
-        ctx.beginPath();
-        ctx.rect(0, 0, cnv.width, cnv.height);
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "black";
-        ctx.stroke();
+        //ctx.beginPath();
+        //ctx.rect(0, 0, cnv.width, cnv.height);
+        //ctx.lineWidth = 2;
+        //ctx.strokeStyle = "black";
+        //ctx.stroke();
 
         //Draw canvas tile
         applyCanvas(cnv);
@@ -76,7 +76,7 @@ function toQuadKey(x, y, z) {
     return index;
 };
 
-var borders = new XYZ("OpenStreetMap", {
+var borders = new XYZ("borders", {
     isBaseLayer: false,
     textureFilter:"mipmap",
     url: "//t.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{quad}?mkt=en-us&it=Z,GF,L&shading=t&og=1638&n=z&ur=US&o=PNG&st=me|lv:0;v:0_wt|v:1_trs|v:1;lv:0;sc:FF6B6B6B;fc:FF6B6B6B;strokeWidthScale:0.2_cst|v:1;fc:FF000000;strokeWidthScale:0.5&cstl=weather&shdw=1&rs=1&dpi=d1",
