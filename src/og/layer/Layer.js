@@ -30,8 +30,8 @@ export const FADING_FACTOR = 0.29;
  * @param {boolean} [options.isBaseLayer=false] - This is a base layer.
  * @param {boolean} [options.visibility=true] - Layer visibility.
  * @param {Extent} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
- * @param {Vec3} [options.ambient=[0.1, 0.1, 0.21]] - Ambient RGB color.
- * @param {Vec3} [options.diffuse=[1.0, 1.0, 1.0]] - Diffuse RGB color.
+ * @param {Vec3} [options.ambient=[0.3, 0.3, 0.3]] - Ambient RGB color.
+ * @param {Vec3} [options.diffuse=[0.9, 0.9, 0.9]] - Diffuse RGB color.
  * @param {Vec3} [options.specular=[0.00025, 0.00015, 0.0001]] - Specular RGB color.
  * @param {string} [options.textureFilter="anisotropic"] - Image texture filter. Available values: "nearest", "linear", "mipmap" and "anisotropic".
  * @param {Number} [options.shininess=100] - Shininess.
@@ -112,9 +112,9 @@ class Layer {
          * @public
          * @type {Object}
          */
-        this.ambient = utils.createColorRGB(options.ambient, new Vec3(0.1, 0.1, 0.21));
-        this.diffuse = utils.createColorRGB(options.diffuse, new Vec3(0.5, 0.5, 0.35));
-        this.specular = utils.createColorRGB(options.specular, new Vec3(0.0003, 0.00012, 0.00001));
+        this.ambient = utils.createColorRGB(options.ambient, new Vec3(0.15, 0.15, 0.2));
+        this.diffuse = utils.createColorRGB(options.diffuse, new Vec3(0.9, 0.9, 0.9));
+        this.specular = utils.createColorRGB(options.specular, new Vec3(0.0003, 0.0003, 0.0003));
         this.shininess = options.shininess || 20.0;
 
         /**
