@@ -183,11 +183,13 @@ class Label extends BaseBillboard {
      * @param {number} size - Label size in pixels.
      */
     setSize(size) {
-        this._size = size;
-        if (this._isReady) {
-            this._handler.setSizeArr(this._handlerIndex, size);
-        } else if (this._lockId !== -1) {
-            this._lockId = -2;
+        if (size !== this._size) {
+            this._size = size;
+            if (this._isReady) {
+                this._handler.setSizeArr(this._handlerIndex, size);
+            } else if (this._lockId !== -1) {
+                this._lockId = -2;
+            }
         }
     }
 
@@ -229,10 +231,8 @@ class Label extends BaseBillboard {
      * @param {number} a - Label opacity.
      */
     setOpacity(a) {
-        this._color.w = a;
-        this.setColor4v(this._color);
-        this._outlineColor.w = a;
-        this.setOutlineColor4v(this._outlineColor);
+        this.setOpacity(a);
+        this.setOutlineOpacity(a);
     }
 
     /**
@@ -244,14 +244,16 @@ class Label extends BaseBillboard {
      * @param {number} a - Alpha.
      */
     setOutlineColor(r, g, b, a) {
-        this._outlineColor.x = r;
-        this._outlineColor.y = g;
-        this._outlineColor.z = b;
-        this._outlineColor.w = a;
-        if (this._isReady) {
-            this._handler.setOutlineColorArr(this._handlerIndex, this._outlineColor);
-        } else if (this._lockId !== -1) {
-            this._lockId = -2;
+        if (a !== this._outlineColor.w || r !== this._outlineColor.x || g !== this._outlineColor.y || b !== this._outlineColor.z) {
+            this._outlineColor.x = r;
+            this._outlineColor.y = g;
+            this._outlineColor.z = b;
+            this._outlineColor.w = a;
+            if (this._isReady) {
+                this._handler.setOutlineColorArr(this._handlerIndex, this._outlineColor);
+            } else if (this._lockId !== -1) {
+                this._lockId = -2;
+            }
         }
     }
 
@@ -261,15 +263,7 @@ class Label extends BaseBillboard {
      * @param {Vec4} rgba - Color vector.
      */
     setOutlineColor4v(rgba) {
-        this._outlineColor.x = rgba.x;
-        this._outlineColor.y = rgba.y;
-        this._outlineColor.z = rgba.z;
-        this._outlineColor.w = rgba.w;
-        if (this._isReady) {
-            this._handler.setOutlineColorArr(this._handlerIndex, rgba);
-        } else if (this._lockId !== -1) {
-            this._lockId = -2;
-        }
+        this.setColor(rgba.x, rgba.y, rgba.z, rgba.w);
     }
 
     /**
@@ -296,11 +290,13 @@ class Label extends BaseBillboard {
      * @param {number} opacity - Outline opacity.
      */
     setOutlineOpacity(opacity) {
-        this._outlineColor.w = opacity;
-        if (this._isReady) {
-            this._handler.setOutlineColorArr(this._handlerIndex, this._outlineColor);
-        } else if (this._lockId !== -1) {
-            this._lockId = -2;
+        if (opacity !== this._outlineColor.w) {
+            this._outlineColor.w = opacity;
+            if (this._isReady) {
+                this._handler.setOutlineColorArr(this._handlerIndex, this._outlineColor);
+            } else if (this._lockId !== -1) {
+                this._lockId = -2;
+            }
         }
     }
 

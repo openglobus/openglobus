@@ -479,7 +479,7 @@ class Renderer {
                 internalFormat: this._internalFormat,
                 format: this._format,
                 type: this._type,
-                filter: "LINEAR"
+                filter: "NEAREST"
             }).init();
 
             this.toneMappingFramebuffer = new Framebuffer(this.handler, {
@@ -526,24 +526,21 @@ class Renderer {
     }
 
     _resize() {
-        let obj = this.handler.canvas;
-        this.activeCamera.setAspectRatio(obj.clientWidth / obj.clientHeight);
-        this.sceneFramebuffer.setSize(
-            obj.clientWidth * this._screenScale,
-            obj.clientHeight * this._screenScale
-        );
+        let c = this.handler.canvas;
+        this.activeCamera.setAspectRatio(c.width / c.height);
+        this.sceneFramebuffer.setSize(c.width * this._screenScale, c.height * this._screenScale);
+
         this.blitFramebuffer &&
-            this.blitFramebuffer.setSize(
-                obj.clientWidth * this._screenScale,
-                obj.clientHeight * this._screenScale,
-                true
-            );
+            this.blitFramebuffer.setSize(c.width * this._screenScale, c.height * this._screenScale, true);
+
         this.toneMappingFramebuffer &&
-            this.toneMappingFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
+            this.toneMappingFramebuffer.setSize(c.width, c.height, true);
+
         this.depthFramebuffer &&
-            this.depthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
+            this.depthFramebuffer.setSize(c.width, c.height, true);
+
         this.screenDepthFramebuffer &&
-            this.screenDepthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
+            this.screenDepthFramebuffer.setSize(c.width, c.height, true);
 
         if (this.handler.gl.type === "webgl") {
             this.screenTexture.screen = this.sceneFramebuffer.textures[0];

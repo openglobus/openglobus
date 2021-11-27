@@ -941,3 +941,30 @@ export function cloneArray(items) {
 export function isUndef(obj) {
     return obj === void 0;
 }
+
+export function getPixelRatio() {
+    let ctx = document.createElement("canvas").getContext("2d"),
+        dpr = window.devicePixelRatio || 1,
+        bsr = ctx.webkitBackingStorePixelRatio ||
+            ctx.mozBackingStorePixelRatio ||
+            ctx.msBackingStorePixelRatio ||
+            ctx.oBackingStorePixelRatio ||
+            ctx.backingStorePixelRatio || 1;
+
+    return dpr / bsr;
+}
+
+export function createHiDPICanvas(w, h, ratio, use2dContext) {
+    if (!ratio) {
+        ratio = getPixelRatio();
+    }
+    let can = document.createElement("canvas");
+    can.width = w * ratio;
+    can.height = h * ratio;
+    can.style.width = w + "px";
+    can.style.height = h + "px";
+    if (use2dContext) {
+        can.getContext("2d").setTransform(ratio, 0, 0, ratio, 0, 0);
+    }
+    return can;
+}

@@ -9,6 +9,7 @@ import { EmptyTerrain } from "../../src/og/terrain/EmptyTerrain.js";
 //import { labelXYZ } from "./labelXYZ_new.js";
 import { stringTemplate } from "../../src/og/utils/shared.js";
 import { Lighting } from "../../src/og/control/Lighting.js";
+import { LayerSwitcher } from "../../src/og/control/LayerSwitcher.js";
 
 const tg = new CanvasTiles("Tile grid", {
     visibility: true,
@@ -81,9 +82,33 @@ var borders = new XYZ("borders", {
     textureFilter:"mipmap",
     url: "//t.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{quad}?mkt=en-us&it=Z,GF,L&shading=t&og=1638&n=z&ur=US&o=PNG&st=me|lv:0;v:0_wt|v:1_trs|v:1;lv:0;sc:FF6B6B6B;fc:FF6B6B6B;strokeWidthScale:0.2_cst|v:1;fc:FF000000;strokeWidthScale:0.5&cstl=weather&shdw=1&rs=1&dpi=d1",
     visibility: true,
-    attribution: "Data @ OpenStreetMap contributors, ODbL",
     urlRewrite: function (s, u) {
         return stringTemplate(u, {
+            'quad': toQuadKey(s.tileX, s.tileY, s.tileZoom)
+        });
+    }
+});
+
+let osm = new XYZ("osm", {
+    isBaseLayer: true,
+    url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    visibility: true,
+    attribution: 'Data @ OpenStreetMap contributors, ODbL',
+    maxNativeZoom: 19,
+    defaultTextures: [{ color: "#AAD3DF" }, { color: "#F2EFE9" }],
+});
+
+let sat = new XYZ("sat", {
+    isBaseLayer: true,
+    subdomains: ['t0', 't1', 't2', 't3'],
+    url: "https://ecn.{s}.tiles.virtualearth.net/tiles/a{quad}.jpeg?n=z&g=7146",
+    visibility: false,
+    attribution: `<div style="transform: scale(0.8); margin-top:-2px;"><a href="http://www.bing.com" target="_blank"><img title="Bing Imagery" src="https://sandcastle.cesium.com/CesiumUnminified/Assets/Images/bing_maps_credit.png"></a> © 2021 Microsoft Corporation</div>`,
+    maxNativeZoom: 19,
+    defaultTextures: [{ color: "#001522" }, { color: "#E4E6F3" }],
+    urlRewrite: function (s, u) {
+        return stringTemplate(u, {
+            's': this._getSubdomain(),
             'quad': toQuadKey(s.tileX, s.tileY, s.tileZoom)
         });
     }
@@ -98,11 +123,13 @@ var globus = new Globe({
         gridSizeByZoom: [32, 32, 32, 32, 16, 8, 8, 8, 8, 8, 8, 8, 8, 8]
     }),
     maxEqualZoomAltitude: 15000000,
-    layers: [tg, borders],
+    layers: [osm, sat, tg, borders],
     useNightTexture: false,
     useSpecularTexture: false
 });
 
 globus.planet.addControl(new Lighting());
+
+globus.planet.addControl(new LayerSwitcher());
 
 window.globus = globus;

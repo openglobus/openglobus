@@ -106,7 +106,7 @@ class Handler {
         this._params.height = h || 256;
         this._params.context = this._params.context || {};
         this._params.extensions = this._params.extensions || [];
-        this._oneByHeight = 1 / this._params.height;
+        this._oneByHeight = 1.0 / this._params.height;
 
         /**
          * Current WebGL extensions. Becomes here after context initialization.
