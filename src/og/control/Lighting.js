@@ -10,6 +10,11 @@ import { parseHTML } from "../utils/shared.js";
 const TEMPLATE = `<div class="og-lighing">
 
        <div class="og-screen-options">
+
+         <div class="og-option">
+          <div class="og-caption">Lighting enabled<input type="checkbox" id="lighting" name="light"/></div>
+         </div>
+
          <div class="og-option">
             <div class="og-caption">Gamma</div>
             <div class="og-slider">
@@ -175,6 +180,12 @@ class Lighting extends Control {
 
         var _this = this;
 
+        document.getElementById("lighting").checked = this.planet.lightEnabled;
+
+        document.getElementById("lighting").addEventListener("change", (e) => {
+            _this.planet.lightEnabled = e.target.checked;
+        });
+
         document.getElementById("layers").addEventListener("change", (e) => {
             //this._selectedLayer = _this.planet.getLayerByName(e.target.value);
             this.bindLayer(_this.planet.getLayerByName(e.target.value));
@@ -292,7 +303,7 @@ class Lighting extends Control {
         document.getElementById("layers").value = e.name;
     }
 
-    _onLayerRemove(e) {}
+    _onLayerRemove(e) { }
 }
 
 export function lighting(options) {

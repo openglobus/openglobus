@@ -96,6 +96,7 @@ let osm = new XYZ("osm", {
     attribution: 'Data @ OpenStreetMap contributors, ODbL',
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#AAD3DF" }, { color: "#F2EFE9" }],
+    //textureFilter: "linear"
 });
 
 let sat = new XYZ("sat", {
@@ -106,6 +107,7 @@ let sat = new XYZ("sat", {
     attribution: `<div style="transform: scale(0.8); margin-top:-2px;"><a href="http://www.bing.com" target="_blank"><img title="Bing Imagery" src="https://sandcastle.cesium.com/CesiumUnminified/Assets/Images/bing_maps_credit.png"></a> © 2021 Microsoft Corporation</div>`,
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#001522" }, { color: "#E4E6F3" }],
+    //textureFilter: "linear",
     urlRewrite: function (s, u) {
         return stringTemplate(u, {
             's': this._getSubdomain(),

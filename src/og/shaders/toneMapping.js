@@ -80,6 +80,7 @@ export function toneMapping() {
                 float oneByGamma = gamma / gamma;
                 float oneByWhitePoint = whitepoint / whitepoint;
                 vec3 mapped = ReinhardToneMapping2(hdrColor) * oneByGamma * oneByWhitePoint;
+                //vec3 mapped = ACESFilmicToneMapping(hdrColor) * oneByGamma * oneByWhitePoint;
 
                 mapped = pow(mapped, vec3(1.0 / gamma));
 

@@ -93,7 +93,7 @@ const EVENT_NAMES = [
  * @param {string} [options.name="Earth"] - Planet name(Earth by default)
  * @param {Ellipsoid} [options.ellipsoid] - Planet ellipsoid(WGS84 by default)
  * @param {Number} [options.maxGridSize=128] - Segment maximal grid size
- * @param {Number} [options.maxEqualZoomAltitude=850000.0] - Maximal altitude since segments on the screen bacame the same zoom level
+ * @param {Number} [options.maxEqualZoomAltitude=15000000.0] - Maximal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen bacame the same zoom level
  * @fires og.scene.Planet#draw
@@ -180,7 +180,7 @@ export class Planet extends RenderNode {
         this._minAltitude = options.minAltitude;
         this._maxAltitude = options.maxAltitude;
 
-        this.maxEqualZoomAltitude = options.maxEqualZoomAltitude || 850000.0;
+        this.maxEqualZoomAltitude = options.maxEqualZoomAltitude || 15000000.0;
         this.minEqualZoomAltitude = options.minEqualZoomAltitude || 10000.0;
         this.minEqualZoomCameraSlope = options.minEqualZoomCameraSlope || 0.8;
 
