@@ -282,38 +282,24 @@ class Node {
             let h = cam._lonLat.height;
 
             let altVis =
-                cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius <
-                    VISIBLE_DISTANCE * Math.sqrt(h) ||
-                (seg.tileZoom < 4 && !seg.terrainReady) ||
-                seg.tileZoom < 2;
+                cam.eye.distance(seg.bsphere.center) - seg._plainRadius < VISIBLE_DISTANCE * Math.sqrt(h) ||
+                /*(seg.tileZoom < 4 && !seg.terrainReady) ||*/ seg.tileZoom < 2;
 
-            if ((this.inFrustum && (altVis || h > 10000.0)) || this._cameraInside) {
+            if ((this.inFrustum && altVis) || this._cameraInside) {
                 seg._collectVisibleNodes();
             }
 
             if (seg.tileZoom < 2 && seg.normalMapReady) {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
             } else if ((!maxZoom && seg.acceptForRendering(cam)) || seg.tileZoom === maxZoom) {
-                this.prepareForRendering(
-                    cam,
-                    altVis,
-                    this.inFrustum,
-                    terrainReadySegment,
-                    stopLoading
-                );
+                this.prepareForRendering(cam, altVis, this.inFrustum, terrainReadySegment, stopLoading);
             } else if (seg.tileZoom < planet.terrain._maxNodeZoom && seg.terrainReady) {
                 // Deleting terrainReady here, you have to remove
                 // this.appliedTerrainNodeId !== pn.nodeId in whileTerrainLoading,
                 // also have to fix createBoundsByParent(*)
                 this.traverseNodes(cam, maxZoom, seg, stopLoading);
             } else {
-                this.prepareForRendering(
-                    cam,
-                    altVis,
-                    this.inFrustum,
-                    terrainReadySegment,
-                    stopLoading
-                );
+                this.prepareForRendering(cam, altVis, this.inFrustum, terrainReadySegment, stopLoading);
             }
         } else {
             this.state = NOTRENDERING;
