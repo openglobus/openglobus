@@ -10,6 +10,8 @@ import { EmptyTerrain } from "../../src/og/terrain/EmptyTerrain.js";
 import { stringTemplate } from "../../src/og/utils/shared.js";
 import { Lighting } from "../../src/og/control/Lighting.js";
 import { LayerSwitcher } from "../../src/og/control/LayerSwitcher.js";
+import { DebugInfo } from "../../src/og/control/DebugInfo.js";
+import { ToggleWireframe } from "../../src/og/control/ToggleWireframe.js";
 
 const tg = new CanvasTiles("Tile grid", {
     visibility: true,
@@ -121,10 +123,9 @@ var globus = new Globe({
     name: "Earth",
     maxAltitude: 15000000,
     minAltitude: 1,
-    terrain: new EmptyTerrain({
-        gridSizeByZoom: [32, 32, 32, 32, 16, 8, 8, 8, 8, 8, 8, 8, 8, 8]
+    terrain: new GlobusTerrain({
+        gridSizeByZoom: [32, 32, 32, 32, 16, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8]
     }),
-    maxEqualZoomAltitude: 15000000,
     layers: [osm, sat, tg, borders],
     useNightTexture: false,
     useSpecularTexture: false
@@ -133,5 +134,10 @@ var globus = new Globe({
 globus.planet.addControl(new Lighting());
 
 globus.planet.addControl(new LayerSwitcher());
+
+globus.planet.addControl(new DebugInfo());
+
+globus.planet.addControl(new ToggleWireframe());
+
 
 window.globus = globus;

@@ -333,7 +333,7 @@ class Renderer {
      * @returns {number} -
      */
     getWidth() {
-        return this.handler.canvas.width;
+        return this.handler.canvas.clientWidth;
     }
 
     /**
@@ -342,7 +342,7 @@ class Renderer {
      * @returns {number} -
      */
     getHeight() {
-        return this.handler.canvas.height;
+        return this.handler.canvas.clientHeight;
     }
 
     /**
@@ -352,7 +352,7 @@ class Renderer {
      */
     getCenter() {
         var cnv = this.handler.canvas;
-        return new Vec2(Math.round(cnv.width * 0.5), Math.round(cnv.height * 0.5));
+        return new Vec2(Math.round(cnv.clientWidth * 0.5), Math.round(cnv.clientHeight * 0.5));
     }
 
     /**
@@ -862,7 +862,7 @@ class Renderer {
     getPickingObject(x, y) {
         let cnv = this.renderer.handler.canvas,
             c = new Uint8Array(3);
-        this.readPixels(c, x / cnv.width, (cnv.height - y) / cnv.height, 1);
+        this.readPixels(c, x / cnv.clientWidth, (cnv.clientHeight - y) / cnv.clientHeight, 1);
         return this.colorObjects[c[0] + "_" + c[1] + "_" + c[2]];
     }
 

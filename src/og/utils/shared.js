@@ -954,6 +954,8 @@ export function getPixelRatio() {
     return dpr / bsr;
 }
 
+export const PIXEL_RATIO = getPixelRatio();
+
 export function createHiDPICanvas(w, h, ratio, use2dContext) {
     if (!ratio) {
         ratio = getPixelRatio();

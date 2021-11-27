@@ -357,12 +357,12 @@ class RendererEvents extends Events {
             this._mClkBegins = 0;
         }
 
-        if (ms.x === event.clientX && ms.y === event.clientY) {
+        if (ms.x === event.clientX * this.renderer.handler.pixelRatio && ms.y === event.clientY * this.renderer.handler.pixelRatio) {
             return;
         }
 
-        ms.x = event.clientX;
-        ms.y = event.clientY;
+        ms.x = event.clientX * this.renderer.handler.pixelRatio;
+        ms.y = event.clientY * this.renderer.handler.pixelRatio;
 
         var cnv = this.renderer.handler.canvas;
         ms.nx = ms.x / cnv.width;

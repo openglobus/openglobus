@@ -104,9 +104,10 @@ class Handler {
             h = MAX_SIZE;
         }
         this._params.height = h || 256;
+        this._params.pixelRatio = this._params.pixelRatio || 1.0;
         this._params.context = this._params.context || {};
         this._params.extensions = this._params.extensions || [];
-        this._oneByHeight = 1.0 / this._params.height;
+        this._oneByHeight = 1.0 / (this._params.height * this._params.pixelRatio);
 
         /**
          * Current WebGL extensions. Becomes here after context initialization.
@@ -399,10 +400,10 @@ class Handler {
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA/*gl.SRGB8_ALPHA8*/, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA/*gl.SRGB8_ALPHA8*/, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
-        gl.texStorage2D(gl.TEXTURE_2D, 2, gl.SRGB8_ALPHA8, image.width, image.height);
-        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        //gl.texStorage2D(gl.TEXTURE_2D, 2, gl.SRGB8_ALPHA8, image.width, image.height);
+        //gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
         gl.generateMipmap(gl.TEXTURE_2D);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
@@ -814,12 +815,22 @@ class Handler {
 
         this._params.width = w;
         this._params.height = h;
-        this.canvas.width = w;
-        this.canvas.height = h;
-        this._oneByHeight = 1 / h;
+        this.canvas.width = w * this._params.pixelRatio;
+        this.canvas.height = h * this._params.pixelRatio;
+
+        this._oneByHeight = 1.0 / this.canvas.height;
 
         this.gl && this.gl.viewport(0, 0, w, h);
         this.onCanvasResize && this.onCanvasResize(this.canvas);
+    }
+
+    get pixelRatio() {
+        return this._params.pixelRatio;
+    }
+
+    set pixelRatio(pr) {
+        this._params.pixelRatio = pr;
+        this.setSize(this._params.width, this._params.height);
     }
 
     /**
@@ -878,7 +889,8 @@ class Handler {
 
         /** Canvas resize checking */
         let canvas = this.canvas;
-        if (canvas.clientWidth !== canvas.width || canvas.clientHeight !== canvas.height) {
+
+        if (canvas.clientWidth * this._params.pixelRatio !== canvas.width || canvas.clientHeight * this._params.pixelRatio !== canvas.height) {
             this.setSize(canvas.clientWidth, canvas.clientHeight);
         }
 
