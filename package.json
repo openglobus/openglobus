@@ -17,7 +17,7 @@
     "test": "jest --env=jsdom",
     "test_watch": "jest --env=jsdom --watch",
     "lint": "eslint src/og",
-    "generate_types": "rm -rf types; tsc src/**/*.js --declaration --allowJs --emitDeclarationOnly --outDir types; exit 0",
+    "generate_types": "rm -rf types; tsc src/**/*.js --declaration --allowJs --emitDeclarationOnly --outDir types",
     "compile_js_as_ts": "tsc src/og/index.js --AllowJs --checkJs --outDir dist/@openglobus/src/"
   },
   "repository": {
@@ -43,24 +43,24 @@
     "./css/og.css": "./css/og.css"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.16.0",
+    "@babel/preset-env": "^7.16.4",
     "@rollup/plugin-json": "^4.1.0",
-    "@types/jest": "^27.0.2",
-    "eslint": "^8.2.0",
+    "@types/jest": "^27.0.3",
+    "eslint": "^8.3.0",
     "jaguarjs-jsdoc": "^1.1.0",
     "jest": "^27.3.1",
     "jest-canvas-mock": "^2.3.1",
     "jest-webgl-canvas-mock": "^0.2.3",
     "jsdoc": "^3.6.7",
-    "lint-staged": "^11.2.6",
+    "lint-staged": "^12.1.2",
     "local-web-server": "^5.1.1",
     "msdf-bmfont-xml": "^2.5.4",
-    "postcss": "^8.3.11",
-    "prettier": "^2.4.1",
-    "rollup": "^2.60.0",
-    "rollup-plugin-postcss": "^4.0.1",
+    "postcss": "^8.4.1",
+    "prettier": "^2.5.0",
+    "rollup": "^2.60.1",
+    "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-terser": "^7.0.2",
-    "typescript": "^4.4.4"
+    "typescript": "^4.5.2"
   },
   "lint-staged": {
     "*.{js,ts}": [
