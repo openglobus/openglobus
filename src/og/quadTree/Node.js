@@ -64,6 +64,7 @@ let BOUNDS = {
  * @param {Extent} extent - Planet segment extent.
  */
 class Node {
+
     constructor(SegmentPrototype, planet, partId, parent, id, tileZoom, extent) {
         this.SegmentPrototype = SegmentPrototype;
         this.planet = planet;
@@ -101,20 +102,43 @@ class Node {
         var c = new LonLat(sw.lon + size_x, sw.lat + size_y);
         var nd = this.nodes;
 
-        nd[NW] = new Node(this.SegmentPrototype, p, NW, this, id, z,
+        nd[NW] = new Node(
+            this.SegmentPrototype,
+            p,
+            NW,
+            this,
+            id,
+            z,
             new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat))
         );
 
-        nd[NE] = new Node(this.SegmentPrototype, p, NE, this, id, z,
+        nd[NE] = new Node(
+            this.SegmentPrototype,
+            p,
+            NE,
+            this,
+            id,
+            z,
             new Extent(c, new LonLat(ne.lon, ne.lat))
         );
 
-        nd[SW] = new Node(this.SegmentPrototype, p, SW, this, id, z,
+        nd[SW] = new Node(
+            this.SegmentPrototype,
+            p,
+            SW,
+            this,
+            id,
+            z,
             new Extent(new LonLat(sw.lon, sw.lat), c)
         );
 
         nd[SE] = new Node(
-            this.SegmentPrototype, p, SE, this, id, z,
+            this.SegmentPrototype,
+            p,
+            SE,
+            this,
+            id,
+            z,
             new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y))
         );
     }
@@ -255,14 +279,16 @@ class Node {
             }
         }
 
-        if (this.inFrustum || this._cameraInside || seg.tileZoom < 3) {
-            let h = cam._lonLat.height;
+    if (this.inFrustum || this._cameraInside || seg.tileZoom < 3) {
+        let h = cam._lonLat.height;
 
             let altVis =
-                cam.eye.distance(seg.bsphere.center) - seg._plainRadius < VISIBLE_DISTANCE * Math.sqrt(h) ||
-                /*(seg.tileZoom < 4 && !seg.terrainReady) ||*/ seg.tileZoom < 2;
+                cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius <
+                VISIBLE_DISTANCE * Math.sqrt(h) ||
+                (seg.tileZoom < 4 && !seg.terrainReady) ||
+                seg.tileZoom < 2;
 
-            if ((this.inFrustum && altVis) || this._cameraInside) {
+            if ((this.inFrustum && (altVis || h > 10000.0)) || this._cameraInside) {
                 seg._collectVisibleNodes();
             }
 
@@ -296,7 +322,13 @@ class Node {
         n[3].renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
     }
 
-    prepareForRendering(cam, altVis, inFrustum, terrainReadySegment, stopLoading) {
+    prepareForRendering(
+        cam,
+        altVis,
+        inFrustum,
+        terrainReadySegment,
+        stopLoading
+    ) {
         let seg = this.segment;
 
         if (cam._lonLat.height < VISIBLE_HEIGHT) {
@@ -344,7 +376,7 @@ class Node {
         }
 
         // Create normal map texture
-        if (seg.planet.lightEnabled && !seg.normalMapReady /* && !seg.parentNormalMapReady*/) {
+        if (seg.planet.lightEnabled && !seg.normalMapReady && !seg.parentNormalMapReady) {
             this.whileNormalMapCreating();
         }
 
@@ -737,16 +769,8 @@ class Node {
                 let v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
                     v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
 
-                let vn = new Vec3(
-                        bigOne[3] - bigOne[0],
-                        bigOne[4] - bigOne[1],
-                        bigOne[5] - bigOne[2]
-                    ),
-                    vw = new Vec3(
-                        bigOne[6] - bigOne[0],
-                        bigOne[7] - bigOne[1],
-                        bigOne[8] - bigOne[2]
-                    ),
+                let vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
+                    vw = new Vec3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
                     ve = new Vec3(
                         bigOne[3] - bigOne[9],
                         bigOne[4] - bigOne[10],
@@ -959,8 +983,7 @@ class Node {
             offset = 0;
 
         while (pNode.segment.tileZoom > neighbourZoom) {
-            offset +=
-                PARTOFFSET[pNode.partId][side] / (1 << (pNode.segment.tileZoom - neighbourZoom));
+            offset += PARTOFFSET[pNode.partId][side] / (1 << (pNode.segment.tileZoom - neighbourZoom));
             pNode = pNode.parentNode;
         }
 
