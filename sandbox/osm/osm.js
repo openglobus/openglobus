@@ -127,7 +127,7 @@ var globus = new Globe({
     terrain: new GlobusTerrain({
         gridSizeByZoom: [32, 32, 32, 32, 16, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8]
     }),
-    maxEqualZoomAltitude: 1,
+    //maxEqualZoomAltitude: 1,
     layers: [osm, sat, tg, borders],
     useNightTexture: false,
     useSpecularTexture: false

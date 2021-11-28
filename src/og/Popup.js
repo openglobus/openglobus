@@ -78,7 +78,7 @@ class Popup {
                 "translate(" +
                 (p.x - this.clientWidth * 0.5) +
                 "px, " +
-                (p.y - this._planet.renderer.handler.canvas.height - this._tipEl.clientHeight) +
+                (p.y - this._planet.renderer.handler.canvas.clientHeight - this._tipEl.clientHeight) +
                 "px)";
         }
     }

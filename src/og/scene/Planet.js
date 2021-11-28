@@ -1605,8 +1605,8 @@ export class Planet extends RenderNode {
         let r = this.renderer,
             cnv = this.renderer.handler.canvas;
 
-        let spx = px.x / cnv.width,
-            spy = (cnv.height - px.y) / cnv.height;
+        let spx = px.nx,//px.x / cnv.width,
+            spy = 1 - px.ny;//(cnv.height - px.y) / cnv.height;
 
         // HEIGHT
         this._heightPickingFramebuffer.activate();
