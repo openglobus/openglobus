@@ -13,6 +13,7 @@ import { SimpleNavigation } from "./SimpleNavigation.js";
 import { ShowFps } from "./ShowFps.js";
 import { Sun } from "./Sun.js";
 import { ZoomControl } from "./ZoomControl.js";
+import { MouseWheelZoomControl } from "./MouseWheelZoomControl.js";
 import { Lighting } from "./Lighting.js";
 
 export {
@@ -31,5 +32,6 @@ export {
     ShowFps,
     Sun,
     ZoomControl,
+    MouseWheelZoomControl,
     Lighting
 };

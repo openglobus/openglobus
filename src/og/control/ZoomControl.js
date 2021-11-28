@@ -6,10 +6,6 @@
 
 import { Control } from "./Control.js";
 import { Key } from "../Lock.js";
-import { Quat } from "../math/Quat.js";
-import { Sphere } from "../bv/Sphere.js";
-import { Vec3 } from "../math/Vec3.js";
-import { MouseNavigation } from "./MouseNavigation.js";
 
 /**
  * Planet zoom buttons control.
@@ -21,30 +17,13 @@ class ZoomControl extends Control {
     constructor(options) {
         super(options);
 
-        this._name = "zoomControl";
-
         options = options || {};
 
-        this.grabbedPoint = new Vec3();
-        this._eye0 = new Vec3();
-        this.pointOnEarth = new Vec3();
-        this.earthUp = new Vec3();
-        this.inertia = 0.007;
-        this.grabbedSpheroid = new Sphere();
-        this.planet = null;
-        this.qRot = new Quat();
-        this.scaleRot = 0.0;
-
-        this.distDiff = 0.3;
-        this.stepsCount = 8;
-        this.stepsForward = null;
-        this.stepIndex = 0;
-
-        this._lmbDoubleClickActive = true;
-
-        this.minSlope = options.minSlope || 0.1;
-
         this._keyLock = new Key();
+
+        this.planet = null;
+
+        this._move = 0;
     }
 
     oninit() {
@@ -101,35 +80,13 @@ class ZoomControl extends Control {
      * @public
      */
     zoomIn() {
-<<<<<<< HEAD
-=======
-        if (this.stepIndex) {
-            return;
-        }
-
-        this.planet.stopFlying();
-
-        this.stopRotation();
-
-        this._deactivate = true;
-
->>>>>>> 71cd57f7 (fix zoom control too grandular)
         this.planet.layerLock.lock(this._keyLock);
         this.planet.terrainLock.lock(this._keyLock);
         this.planet._normalMapCreator.lock(this._keyLock);
 
-        this.stepsForward = MouseNavigation.getMovePointsFromPixelTerrain(
-            this.renderer.activeCamera,
-            this.planet,
-            this.stepsCount,
-            this.distDiff,
-            this.renderer.getCenter(),
-            true,
-           null
-        );
-        if (this.stepsForward) {
-            this.stepIndex = this.stepsCount;
-        }
+        this._targetPoint = this.renderer.getCenter();
+
+        this._move = 1;
     }
 
     /**
@@ -137,47 +94,14 @@ class ZoomControl extends Control {
      * @public
      */
     zoomOut() {
-<<<<<<< HEAD
-=======
-        if (this.stepIndex) {
-            return;
-        }
-
-        this.planet.stopFlying();
-
-        this.stopRotation();
-
-        this._deactivate = true;
-
->>>>>>> 71cd57f7 (fix zoom control too grandular)
         this.planet.layerLock.lock(this._keyLock);
         this.planet.terrainLock.lock(this._keyLock);
         this.planet._normalMapCreator.lock(this._keyLock);
-        
-        this.stepsForward = MouseNavigation.getMovePointsFromPixelTerrain(
-            this.renderer.activeCamera,
-            this.planet,
-            this.stepsCount,
-            this.distDiff,
-            this.renderer.getCenter(),
-            false,
-           null
-        );
-        if (this.stepsForward) {
-            this.stepIndex = this.stepsCount;
-        }
+
+        this._targetPoint = this.renderer.getCenter();
+        this._move = -1;
     }
 
-<<<<<<< HEAD
-=======
-    stopRotation() {
-        this.qRot.clear();
-        this.planet.layerLock.free(this._keyLock);
-        this.planet.terrainLock.free(this._keyLock);
-        this.planet._normalMapCreator.free(this._keyLock);
-    }
-
->>>>>>> 71cd57f7 (fix zoom control too grandular)
     stopZoom() {
         this._move = 0;
 
@@ -187,7 +111,6 @@ class ZoomControl extends Control {
     }
 
     _draw(e) {
-<<<<<<< HEAD
         var cam = this.renderer.activeCamera;
 
         if (this._move !== 0) {
@@ -198,76 +121,6 @@ class ZoomControl extends Control {
             cam.eye.addA(cam.getForward().scale(this._move * d));
             cam.checkTerrainCollision();
             cam.update();
-=======
-        if (this._active) {
-            var r = this.renderer;
-            var cam = r.activeCamera;
-            var prevEye = cam.eye.clone();
-
-            if (this.stepIndex) {
-                r.controlsBag.scaleRot = 1.0;
-                var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
-
-                let maxAlt = cam.maxAltitude + this.planet.ellipsoid._a;
-                let minAlt = cam.minAltitude + this.planet.ellipsoid._a;
-                const camAlt = sf.eye.length();
-                if (camAlt > maxAlt || camAlt < minAlt) {
-                    return;
-                }
-
-                cam.eye = sf.eye;
-                cam._v = sf.v;
-                cam._u = sf.u;
-                cam._n = sf.n;
-
-                cam.checkTerrainCollision();
-
-                cam.update();
-            } else {
-                if (this._deactivate) {
-                    this._deactivate = false;
-
-                    this.planet.layerLock.free(this._keyLock);
-                    this.planet.terrainLock.free(this._keyLock);
-                    this.planet._normalMapCreator.free(this._keyLock);
-                }
-            }
-
-            if (r.events.mouseState.leftButtonDown || !this.scaleRot) {
-                return;
-            }
-
-            this.scaleRot -= this.inertia;
-            if (this.scaleRot <= 0.0) {
-                this.scaleRot = 0.0;
-            } else {
-                r.controlsBag.scaleRot = this.scaleRot;
-                var rot = this.qRot
-                    .slerp(Quat.IDENTITY, 1.0 - this.scaleRot * this.scaleRot * this.scaleRot)
-                    .normalize();
-                if (!(rot.x || rot.y || rot.z)) {
-                    this.scaleRot = 0.0;
-                }
-                cam.eye = rot.mulVec3(cam.eye);
-                cam._v = rot.mulVec3(cam._v);
-                cam._u = rot.mulVec3(cam._u);
-                cam._n = rot.mulVec3(cam._n);
-
-                cam.checkTerrainCollision();
-
-                cam.update();
-            }
-
-            if (cam.eye.distance(prevEye) / cam._terrainAltitude > 0.01) {
-                this.planet.layerLock.lock(this._keyLock);
-                this.planet.terrainLock.lock(this._keyLock);
-                this.planet._normalMapCreator.lock(this._keyLock);
-            } else {
-                this.planet.layerLock.free(this._keyLock);
-                this.planet.terrainLock.free(this._keyLock);
-                this.planet._normalMapCreator.free(this._keyLock);
-            }
->>>>>>> 71cd57f7 (fix zoom control too grandular)
         }
     }
 }
