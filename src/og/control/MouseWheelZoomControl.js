@@ -1,5 +1,5 @@
 /**
- * @module og/control/ZoomControl
+ * @module og/control/MouseWheelZoomControl
  */
 
 "use strict";
