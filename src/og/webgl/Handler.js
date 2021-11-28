@@ -12,13 +12,6 @@ import { ProgramController } from "./ProgramController.js";
 import { Stack } from "../Stack.js";
 import { Vec2 } from "../math/Vec2.js";
 
-/**
- * Maximum texture image size.
- * @const
- * @type {number}
- */
-const MAX_SIZE = 4096;
-
 const vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
 
 /**
@@ -92,18 +85,9 @@ class Handler {
          * @type {Object}
          */
         this._params = params || {};
-        this._params.anisotropy = this._params.anisotropy || 8;
-        let w = this._params.width;
-        if (w > MAX_SIZE) {
-            w = MAX_SIZE;
-        }
-        this._params.width = w || 256;
-
-        let h = this._params.height;
-        if (h > MAX_SIZE) {
-            h = MAX_SIZE;
-        }
-        this._params.height = h || 256;
+        this._params.anisotropy = this._params.anisotropy || 4;
+        this._params.width = this._params.width || 256;
+        this._params.height = this._params.height || 256;
         this._params.pixelRatio = this._params.pixelRatio || 1.0;
         this._params.context = this._params.context || {};
         this._params.extensions = this._params.extensions || [];
@@ -805,14 +789,6 @@ class Handler {
      * @param {number} h - Canvas height.
      */
     setSize(w, h) {
-        if (w > MAX_SIZE) {
-            w = MAX_SIZE;
-        }
-
-        if (h > MAX_SIZE) {
-            h = MAX_SIZE;
-        }
-
         this._params.width = w;
         this._params.height = h;
         this.canvas.width = w * this._params.pixelRatio;

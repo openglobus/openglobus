@@ -159,12 +159,10 @@ class Renderer {
 
         this.depthFramebuffer = null;
 
-        this._msaa = params.msaa || 8;
+        this._msaa = params.msaa || 4;
         this._internalFormat = "RGBA16F";
         this._format = "RGBA";
         this._type = "FLOAT";
-
-        this._screenScale = params.screenScale || 1.0;
 
         this.sceneFramebuffer = null;
 
@@ -222,11 +220,6 @@ class Renderer {
      */
     setEventsActivity(activity) {
         this.events.active = activity;
-    }
-
-    setScreenScale(scale) {
-        this._screenScale = scale;
-        this._resize();
     }
 
     addDepthCallback(sender, callback) {
@@ -528,10 +521,10 @@ class Renderer {
     _resize() {
         let c = this.handler.canvas;
         this.activeCamera.setAspectRatio(c.width / c.height);
-        this.sceneFramebuffer.setSize(c.width * this._screenScale, c.height * this._screenScale);
+        this.sceneFramebuffer.setSize(c.width, c.height);
 
         this.blitFramebuffer &&
-            this.blitFramebuffer.setSize(c.width * this._screenScale, c.height * this._screenScale, true);
+            this.blitFramebuffer.setSize(c.width, c.height, true);
 
         this.toneMappingFramebuffer &&
             this.toneMappingFramebuffer.setSize(c.width, c.height, true);
