@@ -35,24 +35,25 @@ const tg = new CanvasTiles("Tile grid", {
 
             ctx.fillStyle = "rgb(81, 127, 86)";
             ctx.fillRect(0, 0, 256, 256);
-            //ctx.font = 'normal ' + 29 + 'px Verdana';
-            //ctx.textAlign = 'center';
-            //ctx.fillText(`${ext.northEast.lon.toFixed(3)} ${ext.northEast.lat.toFixed(3)}`, cnv.width / 2, cnv.height / 2 + 20);
-            //ctx.fillText(`${ext.southWest.lon.toFixed(3)} ${ext.southWest.lat.toFixed(3)}`, cnv.width / 2, cnv.height / 2 - 20);
+
+            ctx.font = 'normal ' + 29 + 'px Verdana';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${ext.northEast.lon.toFixed(3)} ${ext.northEast.lat.toFixed(3)}`, cnv.width / 2, cnv.height / 2 + 20);
+            ctx.fillText(`${ext.southWest.lon.toFixed(3)} ${ext.southWest.lat.toFixed(3)}`, cnv.width / 2, cnv.height / 2 - 20);
         } else {
 
             ctx.fillStyle = "rgb(81, 127, 86)";
             ctx.fillRect(0, 0, 256, 256);
-            //Draw text
-            //    if (material.segment.tileZoom > 14) {
-            //        size = "26";
-            //    } else {
-            //        size = "32";
-            //    }
-            //    ctx.fillStyle = 'black';
-            //    ctx.font = 'normal ' + size + 'px Verdana';
-            //    ctx.textAlign = 'center';
-            //    ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+
+            if (material.segment.tileZoom > 14) {
+                size = "26";
+            } else {
+                size = "32";
+            }
+            ctx.fillStyle = 'black';
+            ctx.font = 'normal ' + size + 'px Verdana';
+            ctx.textAlign = 'center';
+            ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
         }
 
         //Draw border
@@ -81,7 +82,7 @@ function toQuadKey(x, y, z) {
 
 var borders = new XYZ("borders", {
     isBaseLayer: false,
-    textureFilter:"mipmap",
+    textureFilter: "mipmap",
     url: "//t.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{quad}?mkt=en-us&it=Z,GF,L&shading=t&og=1638&n=z&ur=US&o=PNG&st=me|lv:0;v:0_wt|v:1_trs|v:1;lv:0;sc:FF6B6B6B;fc:FF6B6B6B;strokeWidthScale:0.2_cst|v:1;fc:FF000000;strokeWidthScale:0.5&cstl=weather&shdw=1&rs=1&dpi=d1",
     visibility: true,
     urlRewrite: function (s, u) {
@@ -126,6 +127,7 @@ var globus = new Globe({
     terrain: new GlobusTerrain({
         gridSizeByZoom: [32, 32, 32, 32, 16, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8]
     }),
+    maxEqualZoomAltitude: 1,
     layers: [osm, sat, tg, borders],
     useNightTexture: false,
     useSpecularTexture: false

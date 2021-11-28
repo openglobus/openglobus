@@ -231,7 +231,7 @@ class Label extends BaseBillboard {
      * @param {number} a - Label opacity.
      */
     setOpacity(a) {
-        this.setOpacity(a);
+        super.setOpacity(a);
         this.setOutlineOpacity(a);
     }
 

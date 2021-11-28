@@ -63,7 +63,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {boolean} [options.useNightTexture] - show night cities
  * @param {Number} [options.maxAltitude=15000000.0] - Maximal camera altitude above terrain
  * @param {Number} [options.minAltitude=1.0] - Minimal camera altitude above terrain
- * @param {Number} [options.maxEqualZoomAltitude=850000.0] - Maximal altitude since segments on the screen bacame the same zoom level
+ * @param {Number} [options.maxEqualZoomAltitude=15000000.0] - Maximal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen bacame the same zoom level
  */

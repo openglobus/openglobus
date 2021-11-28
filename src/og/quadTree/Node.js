@@ -101,43 +101,20 @@ class Node {
         var c = new LonLat(sw.lon + size_x, sw.lat + size_y);
         var nd = this.nodes;
 
-        nd[NW] = new Node(
-            this.SegmentPrototype,
-            p,
-            NW,
-            this,
-            id,
-            z,
+        nd[NW] = new Node(this.SegmentPrototype, p, NW, this, id, z,
             new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat))
         );
 
-        nd[NE] = new Node(
-            this.SegmentPrototype,
-            p,
-            NE,
-            this,
-            id,
-            z,
+        nd[NE] = new Node(this.SegmentPrototype, p, NE, this, id, z,
             new Extent(c, new LonLat(ne.lon, ne.lat))
         );
 
-        nd[SW] = new Node(
-            this.SegmentPrototype,
-            p,
-            SW,
-            this,
-            id,
-            z,
+        nd[SW] = new Node(this.SegmentPrototype, p, SW, this, id, z,
             new Extent(new LonLat(sw.lon, sw.lat), c)
         );
 
         nd[SE] = new Node(
-            this.SegmentPrototype,
-            p,
-            SE,
-            this,
-            id,
-            z,
+            this.SegmentPrototype, p, SE, this, id, z,
             new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y))
         );
     }

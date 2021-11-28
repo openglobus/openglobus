@@ -443,7 +443,7 @@ export function drawnode_screen_wl_webgl2() {
             const vec3 nightStep = 10.0 * vec3(0.58, 0.48, 0.25);
 
             void blend(
-                out vec4 prevColor,
+                out vec4 dest,
                 in sampler2D sampler,
                 in vec4 tileOffset,
                 in vec4 visibleExtentOffset,
@@ -455,12 +455,12 @@ export function drawnode_screen_wl_webgl2() {
                 vec3 spec = specular.rgb * pow(reflection, specular.w) * (1.0 + shininess);
                 vec3 lightWeighting = ambient + diffuse * diffuseLightWeighting + spec;
 
-                vec4 t = texture( sampler, tileOffset.xy + vTextureCoord.xy * tileOffset.zw );
+                vec4 src = texture( sampler, tileOffset.xy + vTextureCoord.xy * tileOffset.zw );
 
-                float emptiness = smoothstep(0.35, 0.5, distance( t.rgb, transparentColor.rgb )) *
+                float emptiness = smoothstep(0.35, 0.5, distance( src.rgb, transparentColor.rgb )) *
                     insideBox(visibleExtentOffset.xy + vTextureCoord.xy * visibleExtentOffset.zw, BOTTOMLEFT, TOPRIGHT);
 
-                prevColor = prevColor * (1.0 - t.a * transparentColor.a * emptiness) + vec4(t.rgb * lightWeighting + night + spec * t.a, t.a) * transparentColor.a * emptiness;
+                dest = dest * (1.0 - src.a * transparentColor.a * emptiness) + vec4(src.rgb * lightWeighting + night + spec * src.a, src.a) * transparentColor.a * emptiness;
             }
 
             void main(void) {
