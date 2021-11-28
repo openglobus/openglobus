@@ -17,6 +17,7 @@ import { Ray } from "./Ray.js";
 import { PointCloud } from "./PointCloud.js";
 import { Sphere } from "../shapes/Sphere.js";
 import { Vec3 } from "../math/Vec3.js";
+import { GeoObject } from "./GeoObject.js";
 
 /**
  * Entity instances aggregate multiple forms of visualization into a single high-level object.
@@ -158,6 +159,7 @@ class Entity {
             polyline: [Polyline, this.setPolyline],
             pointCloud: [PointCloud, this.setPointCloud],
             geometry: [Geometry, this.setGeometry],
+            geoObject: [GeoObject, this.setGeoObject],
             strip: [Strip, this.setStrip],
             ray: [Ray, this.setRay]
         };
@@ -212,6 +214,13 @@ class Entity {
         this.geometry = this._createOptionFeature("geometry", options.geometry);
 
         /**
+         * Geo object entity
+         * @public
+         * @type {og.Geometry}
+         */
+        this.geoObject = this._createOptionFeature("geoObject", options.geoObject);
+
+        /**
          * Strip entity.
          * @public
          * @type {Strip}
@@ -249,7 +258,7 @@ class Entity {
     /**
      * Adds current entity into the specified entity collection.
      * @public
-     * @param {EntityCollection|og.layer.Vector} collection - Specified entity collection or vector layer.
+     * @param {EntityCollection|Vector} collection - Specified entity collection or vector layer.
      * @param {Boolean} [rightNow=false] - Entity insertion option for vector layer.
      * @returns {Entity} - This object.
      */
@@ -277,6 +286,9 @@ class Entity {
 
         // billboards
         this.billboard && this.billboard.setVisibility(visibility);
+
+        // billboards
+        this.geoObject && this.geoObject.setVisibility(visibility);
 
         // labels
         this.label && this.label.setVisibility(visibility);
@@ -333,6 +345,9 @@ class Entity {
         // billboards
         this.billboard && this.billboard.setPosition3v(p);
 
+        // geoObject
+        this.geoObject && this.geoObject.setPosition3v(p);
+
         // labels
         this.label && this.label.setPosition3v(p);
 
@@ -373,6 +388,9 @@ class Entity {
 
         // billboards
         this.billboard && this.billboard.setPosition3v(p);
+
+        // geoObject
+        this.geoObject && this.geoObject.setPosition3v(p);
 
         // labels
         this.label && this.label.setPosition3v(p);
@@ -581,6 +599,24 @@ class Entity {
     }
 
     /**
+     * Sets entity geoObject.
+     * @public
+     * @param {GeoObject} geoObject - GeoObject.
+     * @returns {GeoObject} -
+     */
+    setGeoObject(geoObject) {
+        if (this.geoObject) {
+            this.geoObject.remove();
+        }
+        this.geoObject = geoObject;
+        this.geoObject._entity = this;
+        this.geoObject.setPosition3v(this._cartesian);
+        this.geoObject.setVisibility(this._visibility);
+        this._entityCollection && this._entityCollection._geoObjectHandler.add(geoObject);
+        return geoObject;
+    }
+
+    /**
      * Sets entity strip.
      * @public
      * @param {Strip} strip - Strip object.
@@ -648,6 +684,8 @@ class Entity {
         // strip
         this.strip && this.strip.setPickingColor3v(c);
 
+        // billboard
+        this.geoObject && this.geoObject.setPickingColor3v(c);
         for (var i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i].setPickingColor();
         }

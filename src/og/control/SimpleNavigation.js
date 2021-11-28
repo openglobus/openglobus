@@ -1,7 +1,7 @@
-'use strict';
+"use strict";
 
-import { Control } from './Control.js';
-import { input } from '../input/input.js';
+import { Control } from "./Control.js";
+import { input } from "../input/input.js";
 
 /**
  * Simple keyboard camera navigation with W,S,A,D and shift keys to fly around the scene.
@@ -18,11 +18,9 @@ class SimpleNavigation extends Control {
         this.speed = options.speed || 1.0;
     }
 
-    onactivate() {
-    }
+    onactivate() {}
 
-    ondeactivate() {
-    }
+    ondeactivate() {}
 
     oninit() {
         this.camera = this.renderer.activeCamera;

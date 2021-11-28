@@ -1,7 +1,7 @@
-'use strict';
+"use strict";
 
-import { BaseNode } from './BaseNode.js';
-import { Events } from '../Events.js';
+import { BaseNode } from "./BaseNode.js";
+import { Events } from "../Events.js";
 
 /**
  * Render node is a logical part of a render mechanism. Represents scene rendering.
@@ -98,8 +98,7 @@ class RenderNode extends BaseNode {
             n = this.name;
 
         if (r) {
-            if (r.renderNodes[n] &&
-                r.renderNodes[n].isEqual(this)) {
+            if (r.renderNodes[n] && r.renderNodes[n].isEqual(this)) {
                 r.renderNodes[n] = null;
                 delete r.renderNodes[n];
             }
@@ -195,7 +194,10 @@ class RenderNode extends BaseNode {
 
         if (this.renderer) {
             if (this._isActive && this._pickingId === -1) {
-                this._pickingId = this.renderer.addPickingCallback(this, this._entityCollectionPickingCallback);
+                this._pickingId = this.renderer.addPickingCallback(
+                    this,
+                    this._entityCollectionPickingCallback
+                );
             } else if (!this._isActive && this._pickingId !== -1) {
                 this.renderer.removePickingCallback(this._pickingId);
                 this._pickingId = -1;
@@ -277,7 +279,6 @@ class RenderNode extends BaseNode {
      */
     drawPickingEntityCollections(ec) {
         if (ec.length) {
-
             var gl = this.renderer.handler.gl;
 
             gl.disable(gl.CULL_FACE);
@@ -290,6 +291,12 @@ class RenderNode extends BaseNode {
             var i = ec.length;
             while (i--) {
                 ec[i]._fadingOpacity && ec[i].billboardHandler.drawPicking();
+            }
+
+            // geoObject pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].geoObjectHandler.drawPicking();
             }
 
             // label pass

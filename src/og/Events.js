@@ -2,20 +2,19 @@
  * @module og/Events
  */
 
-'use strict';
+"use strict";
 
-import { stamp, binaryInsert } from './utils/shared.js';
+import { stamp, binaryInsert } from "./utils/shared.js";
 
 /**
  * Base events class to handle custom events.
  * @class
  */
 class Events {
-
     /**
-     * 
+     *
      * @param {Array.<string>} [eventNames] - Event names that could be dispatched.
-     * @param {*} [sender] 
+     * @param {*} [sender]
      */
     constructor(eventNames, sender) {
         /**
@@ -80,7 +79,6 @@ class Events {
      * @return {boolean} -
      */
     _stamp(name, obj) {
-
         var ogid = stamp(obj);
 
         var st = this._getStamp(name, this.__id, ogid);

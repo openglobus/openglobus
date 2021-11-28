@@ -2,10 +2,10 @@
  * @module og/math/Ray
  */
 
-'use strict';
+"use strict";
 
-import * as math from '../math.js';
-import { Vec3 } from './Vec3.js';
+import * as math from "../math.js";
+import { Vec3 } from "./Vec3.js";
 
 /**
  * Represents a ray that extends infinitely from the provided origin in the provided direction.
@@ -15,7 +15,6 @@ import { Vec3 } from './Vec3.js';
  */
 export class Ray {
     constructor(origin, direction) {
-
         /**
          * The origin of the ray.
          * @public
@@ -32,14 +31,22 @@ export class Ray {
     }
 
     /** @const */
-    static get OUTSIDE() { return 0; }
+    static get OUTSIDE() {
+        return 0;
+    }
 
     /** @const */
-    static get INSIDE() { return 1; }
+    static get INSIDE() {
+        return 1;
+    }
     /** @const */
-    static get INPLANE() { return 2; }
+    static get INPLANE() {
+        return 2;
+    }
     /** @const */
-    static get AWAY() { return 3; }
+    static get AWAY() {
+        return 3;
+    }
 
     /**
      * Sets a ray parameters.
@@ -71,7 +78,7 @@ export class Ray {
      * @param {Vec3} v1 - Second triangle corner coordinate.
      * @param {Vec3} v2 - Third triangle corner coordinate.
      * @param {Vec3} res - Hit point object pointer that stores hit result.
-     * @returns {number} - Hit code, could 0 - og.Ray.OUTSIDE, 1 - og.Ray.INSIDE, 
+     * @returns {number} - Hit code, could 0 - og.Ray.OUTSIDE, 1 - og.Ray.INSIDE,
      *      2 - og.Ray.INPLANE and 3 - og.Ray.AWAY(ray goes away from triangle).
      */
     hitTriangle(v0, v1, v2, res, normal) {
@@ -120,7 +127,7 @@ export class Ray {
         }
 
         var t = (uv * wu - uu * wv) / D;
-        if (t < 0.0 || (s + t) > 1.0) {
+        if (t < 0.0 || s + t > 1.0) {
             return Ray.OUTSIDE;
         }
 
@@ -218,7 +225,6 @@ export class Ray {
         // TODO
         //
     }
-
 }
 
 /**
@@ -231,4 +237,3 @@ export class Ray {
 export function ray(origin, direction) {
     return new Ray(origin, direction);
 }
-

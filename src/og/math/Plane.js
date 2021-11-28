@@ -1,7 +1,7 @@
-'use strict';
+"use strict";
 
-import * as math from '../math.js';
-import { Vec3 } from './Vec3.js';
+import * as math from "../math.js";
+import { Vec3 } from "./Vec3.js";
 
 /**
  * Plane class.
@@ -11,8 +11,8 @@ import { Vec3 } from './Vec3.js';
  */
 class Plane {
     constructor(p, n) {
-        this.p = (p ? p.clone() : new Vec3());
-        this.n = (n ? n.clone() : this.p.normal());
+        this.p = p ? p.clone() : new Vec3();
+        this.n = n ? n.clone() : this.p.normal();
     }
 
     set(p, n) {
@@ -47,27 +47,28 @@ class Plane {
     }
 
     getIntersection(Pn1, Pn2, L) {
-
         var u = Pn1.n.cross(Pn2.n);
 
-        var ax = (u.x >= 0 ? u.x : -u.x);
-        var ay = (u.y >= 0 ? u.y : -u.y);
-        var az = (u.z >= 0 ? u.z : -u.z);
+        var ax = u.x >= 0 ? u.x : -u.x;
+        var ay = u.y >= 0 ? u.y : -u.y;
+        var az = u.z >= 0 ? u.z : -u.z;
 
         // test if the two planes are parallel
-        if ((ax + ay + az) < math.EPSILON5) {  // Pn1 and Pn2 are near parallel
+        if (ax + ay + az < math.EPSILON5) {
+            // Pn1 and Pn2 are near parallel
             // test if disjoint or coincide
             var v = Pn2.p.sub(Pn1.p);
-            if (Pn1.n.dot(v) == 0) {    // Pn2.V0 lies in Pn1
-                return 1;               // Pn1 and Pn2 coincide
+            if (Pn1.n.dot(v) == 0) {
+                // Pn2.V0 lies in Pn1
+                return 1; // Pn1 and Pn2 coincide
             } else {
-                return 0;               // Pn1 and Pn2 are disjoint
+                return 0; // Pn1 and Pn2 are disjoint
             }
         }
 
         // Pn1 and Pn2 intersect in a line
         // first determine max abs coordinate of cross product
-        var maxc;                       // max coordinate
+        var maxc; // max coordinate
         if (ax > ay) {
             if (ax > az) {
                 maxc = 1;
@@ -86,9 +87,9 @@ class Plane {
         // zero the max coord, and solve for the other two
         var iP = new Vec3(); // intersect point
 
-        var d1, d2;                     // the constants in the 2 plane equations
-        d1 = -Pn1.n.dot(Pn1.p);         // note: could be pre-stored  with plane
-        d2 = -Pn2.n.dot(Pn2.p);         // ditto
+        var d1, d2; // the constants in the 2 plane equations
+        d1 = -Pn1.n.dot(Pn1.p); // note: could be pre-stored  with plane
+        d2 = -Pn2.n.dot(Pn2.p); // ditto
 
         // select max coordinate
         if (maxc === 1) {

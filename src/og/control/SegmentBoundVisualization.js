@@ -1,8 +1,8 @@
-'use strict';
+"use strict";
 
-import { Control } from './Control.js';
-import { EntityCollection } from '../entity/EntityCollection.js';
-import { Entity } from '../entity/Entity.js';
+import { Control } from "./Control.js";
+import { EntityCollection } from "../entity/EntityCollection.js";
+import { Entity } from "../entity/Entity.js";
 
 /**
  * Frame per second(FPS) display control.
@@ -18,7 +18,6 @@ class SegmentBoundVisualization extends Control {
     }
 
     oninit() {
-
         this.planet.addEntityCollection(this._boundingSphereCollection);
 
         this.renderer.events.on("draw", this._predraw, this);
@@ -28,7 +27,7 @@ class SegmentBoundVisualization extends Control {
     _predraw() {
         this._boundingSphereCollection.clear();
     }
-    
+
     _draw() {
         for (let i = 0; i < this.planet._renderedNodes.length; i++) {
             let si = this.planet._renderedNodes[i].segment;

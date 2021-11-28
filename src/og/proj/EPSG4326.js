@@ -2,9 +2,9 @@
  * @module og/proj/EPSG4326
  */
 
-'use strict';
+"use strict";
 
-import { Units, Proj } from './Proj.js';
+import { Units, Proj } from "./Proj.js";
 
 /**
  * EPSG:4326 projection object.

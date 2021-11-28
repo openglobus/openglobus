@@ -2,12 +2,12 @@
  * @module og/layer/BaseGeoImage
  */
 
-'use strict';
+"use strict";
 
-import * as mercator from '../mercator.js';
-import { Extent } from '../Extent.js';
-import { Layer } from './Layer.js';
-import { LonLat } from '../LonLat.js';
+import * as mercator from "../mercator.js";
+import { Extent } from "../Extent.js";
+import { Layer } from "./Layer.js";
+import { LonLat } from "../LonLat.js";
 
 /**
  * BaseGeoImage layer represents square imagery layer that could be an static image, or animated video or webgl buffer object displayed on the globe.
@@ -58,8 +58,12 @@ class BaseGeoImage extends Layer {
      */
     getCornersLonLat() {
         var c = this._cornersWgs84;
-        return [new LonLat(c[0].lon, c[0].lat), new LonLat(c[1].lon, c[1].lat),
-        new LonLat(c[2].lon, c[2].lat), new LonLat(c[3].lon, c[3].lat)];
+        return [
+            new LonLat(c[0].lon, c[0].lat),
+            new LonLat(c[1].lon, c[1].lat),
+            new LonLat(c[2].lon, c[2].lat),
+            new LonLat(c[3].lon, c[3].lat)
+        ];
     }
 
     /**
@@ -69,7 +73,12 @@ class BaseGeoImage extends Layer {
      */
     getCorners() {
         var c = this._cornersWgs84;
-        return [[c[0].lon, c[0].lat], [c[1].lon, c[1].lat], [c[2].lon, c[2].lat], [c[3].lon, c[3].lat]];
+        return [
+            [c[0].lon, c[0].lat],
+            [c[1].lon, c[1].lat],
+            [c[2].lon, c[2].lat],
+            [c[3].lon, c[3].lat]
+        ];
     }
 
     /**
@@ -92,7 +101,12 @@ class BaseGeoImage extends Layer {
      */
     setCornersLonLat(corners) {
         this._refreshFrame = true;
-        this._cornersWgs84 = [corners[0].clone(), corners[1].clone(), corners[2].clone(), corners[3].clone()] || [0, 0, 0, 0];
+        this._cornersWgs84 = [
+            corners[0].clone(),
+            corners[1].clone(),
+            corners[2].clone(),
+            corners[3].clone()
+        ] || [0, 0, 0, 0];
 
         for (var i = 0; i < this._cornersWgs84.length; i++) {
             if (this._cornersWgs84[i].lat >= 89.9) {
@@ -105,8 +119,7 @@ class BaseGeoImage extends Layer {
         this._extent.setByCoordinates(this._cornersWgs84);
 
         var me = this._extent;
-        if (me.southWest.lat > mercator.MAX_LAT ||
-            me.northEast.lat < mercator.MIN_LAT) {
+        if (me.southWest.lat > mercator.MAX_LAT || me.northEast.lat < mercator.MIN_LAT) {
             this._projType = 0;
             this.rendering = this._renderingProjType0;
         } else {
@@ -126,15 +139,32 @@ class BaseGeoImage extends Layer {
     _createFrame() {
         this._extentWgs84 = this._extent.clone();
 
-        this._cornersMerc = [this._cornersWgs84[0].forwardMercatorEPS01(), this._cornersWgs84[1].forwardMercatorEPS01(),
-        this._cornersWgs84[2].forwardMercatorEPS01(), this._cornersWgs84[3].forwardMercatorEPS01()];
+        this._cornersMerc = [
+            this._cornersWgs84[0].forwardMercatorEPS01(),
+            this._cornersWgs84[1].forwardMercatorEPS01(),
+            this._cornersWgs84[2].forwardMercatorEPS01(),
+            this._cornersWgs84[3].forwardMercatorEPS01()
+        ];
 
-        this._extentMerc = new Extent(this._extentWgs84.southWest.forwardMercatorEPS01(), this._extentWgs84.northEast.forwardMercatorEPS01());
+        this._extentMerc = new Extent(
+            this._extentWgs84.southWest.forwardMercatorEPS01(),
+            this._extentWgs84.northEast.forwardMercatorEPS01()
+        );
 
         if (this._projType === 0) {
-            this._extentWgs84Params = [this._extentWgs84.southWest.lon, this._extentWgs84.southWest.lat, 2.0 / this._extentWgs84.getWidth(), 2.0 / this._extentWgs84.getHeight()];
+            this._extentWgs84Params = [
+                this._extentWgs84.southWest.lon,
+                this._extentWgs84.southWest.lat,
+                2.0 / this._extentWgs84.getWidth(),
+                2.0 / this._extentWgs84.getHeight()
+            ];
         } else {
-            this._extentMercParams = [this._extentMerc.southWest.lon, this._extentMerc.southWest.lat, 2.0 / this._extentMerc.getWidth(), 2.0 / this._extentMerc.getHeight()];
+            this._extentMercParams = [
+                this._extentMerc.southWest.lon,
+                this._extentMerc.southWest.lat,
+                2.0 / this._extentMerc.getWidth(),
+                2.0 / this._extentMerc.getHeight()
+            ];
         }
 
         // creates material frame textures
@@ -146,7 +176,10 @@ class BaseGeoImage extends Layer {
             gl.deleteTexture(this._materialTexture);
             this._materialTexture = h.createEmptyTexture_l(this._frameWidth, this._frameHeight);
 
-            this._gridBuffer = this._planet._geoImageCreator.createGridBuffer(this._cornersWgs84, this._projType);
+            this._gridBuffer = this._planet._geoImageCreator.createGridBuffer(
+                this._cornersWgs84,
+                this._projType
+            );
 
             this._refreshFrame = false;
         }
@@ -200,7 +233,6 @@ class BaseGeoImage extends Layer {
      */
     setVisibility(visibility) {
         if (visibility !== this._visibility) {
-
             super.setVisibility(visibility);
 
             // remove from creator
@@ -231,7 +263,6 @@ class BaseGeoImage extends Layer {
      * @returns {Array<number> } -
      */
     applyMaterial(material) {
-
         var segment = material.segment;
 
         if (this._ready) {

@@ -1124,7 +1124,7 @@ export class Planet extends RenderNode {
         gl.disable(gl.POLYGON_OFFSET_FILL);
 
         if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
-            if (this._skipPreRender && (!this._renderCompletedActivated || cam.isMoved)) {
+            if (this._skipPreRender/* && (!this._renderCompletedActivated || cam.isMoved)*/) {
                 this._collectRenderNodes();
             }
             this._skipPreRender = true;
@@ -1171,7 +1171,7 @@ export class Planet extends RenderNode {
                 gl.TEXTURE_2D,
                 (this.camera._lonLat.height > 329958.0 &&
                     (this._nightTexture || this.transparentTexture)) ||
-                    this.transparentTexture
+                this.transparentTexture
             );
             gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
 

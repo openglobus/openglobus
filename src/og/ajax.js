@@ -2,7 +2,7 @@
  * @module og/ajax
  */
 
-'use strict';
+"use strict";
 
 /**
  * Ajax parameters.
@@ -13,8 +13,7 @@ const ajax = {
      * Ajax ready state result.
      * @enum
      */
-    ReadyState:
-    {
+    ReadyState: {
         Uninitialized: 0,
         Loading: 1,
         Loaded: 2,
@@ -25,8 +24,7 @@ const ajax = {
      * Ajax status code.
      * @enum
      */
-    Status:
-    {
+    Status: {
         OK: 200,
         Created: 201,
         Accepted: 202,
@@ -104,10 +102,10 @@ const defaultParams = {
  * @returns {ajax.Xhr} - Returns object that could be aborted.
  */
 ajax.request = function (url, params) {
-
     params = params || {};
 
-    var p = {}, i;
+    var p = {},
+        i;
 
     for (i in defaultParams) {
         p[i] = defaultParams[i];
@@ -123,14 +121,19 @@ ajax.request = function (url, params) {
 
     var customXhr = new Xhr(xhr);
 
-    var body = null, d;
+    var body = null,
+        d;
 
     if (p.type === ajax.Method.Post) {
         if (p.data) {
             body = "";
             for (let key in p.data) {
                 d = p.data[key];
-                body += key + "=" + encodeURIComponent(d instanceof Object ? JSON.stringify(d) : d) + "&";
+                body +=
+                    key +
+                    "=" +
+                    encodeURIComponent(d instanceof Object ? JSON.stringify(d) : d) +
+                    "&";
             }
             body = body.slice(0, -1);
         }
@@ -140,7 +143,8 @@ ajax.request = function (url, params) {
         var tail = "?";
         for (let key in p.data) {
             d = p.data[key];
-            tail += key + "=" + encodeURIComponent(d instanceof Object ? JSON.stringify(d) : d) + "&";
+            tail +=
+                key + "=" + encodeURIComponent(d instanceof Object ? JSON.stringify(d) : d) + "&";
         }
         tail = tail.slice(0, -1);
         xhr.open(p.type, url + tail, p.async);
@@ -172,7 +176,8 @@ ajax.request = function (url, params) {
                  * @param {Object} Response data
                  * @param {Object} Status object
                  */
-                params.abort && params.abort.call(params.sender || customXhr, xhr.response, xhr.status);
+                params.abort &&
+                    params.abort.call(params.sender || customXhr, xhr.response, xhr.status);
             } else {
                 /**
                  * Error callback.
@@ -180,9 +185,10 @@ ajax.request = function (url, params) {
                  * @param {Object} Response data
                  * @param {Object} Status object
                  */
-                params.error && params.error.call(params.sender || customXhr, xhr.response, xhr.status);
+                params.error &&
+                    params.error.call(params.sender || customXhr, xhr.response, xhr.status);
             }
-            delete xhr['onreadystatechange'];
+            delete xhr["onreadystatechange"];
             xhr.onreadystatechange = null;
             xhr = null;
         } else {

@@ -2,9 +2,9 @@
  * @module og/bv/Sphere
  */
 
-'use strict';
+"use strict";
 
-import { Vec3 } from '../math/Vec3.js';
+import { Vec3 } from "../math/Vec3.js";
 
 /**
  * Bounding sphere class.
@@ -14,12 +14,11 @@ import { Vec3 } from '../math/Vec3.js';
  */
 class Sphere {
     /**
-     * 
-     * @param {number} radius 
-     * @param {Vec3} center 
+     *
+     * @param {number} radius
+     * @param {Vec3} center
      */
     constructor(radius, center) {
-
         /**
          * Sphere radius.
          * @public
@@ -41,7 +40,11 @@ class Sphere {
      */
     setFromBounds(bounds) {
         let m = new Vec3(bounds[0], bounds[1], bounds[2]);
-        this.center.set(m.x + (bounds[3] - m.x) * 0.5, m.y + (bounds[3] - m.y) * 0.5, m.z + (bounds[5] - m.z) * 0.5);
+        this.center.set(
+            m.x + (bounds[3] - m.x) * 0.5,
+            m.y + (bounds[3] - m.y) * 0.5,
+            m.z + (bounds[5] - m.z) * 0.5
+        );
         this.radius = this.center.distance(m);
     }
 

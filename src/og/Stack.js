@@ -2,7 +2,7 @@
  * @module og/Stack
  */
 
-'use strict';
+"use strict";
 
 class Node {
     constructor() {
@@ -13,13 +13,11 @@ class Node {
 }
 
 class Stack {
-
     /**
-     * 
+     *
      * @param {number} [size]
      */
     constructor(size = 256) {
-
         this._current = new Node();
         this._head = this._current;
 

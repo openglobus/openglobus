@@ -11,10 +11,9 @@ import { Vec3 } from "../math/Vec3.js";
  * @class
  */
 class Box {
-
     /**
-     * 
-     * @param {*} boundsArr 
+     *
+     * @param {*} boundsArr
      */
     constructor(boundsArr) {
         /**

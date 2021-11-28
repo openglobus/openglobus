@@ -31,7 +31,6 @@ import { Mat4 } from "../math/Mat4.js";
  * @param {Vec3} [options.up] - Camera eye position. Default (0,1,0)
  */
 class PlanetCamera extends Camera {
-
     /**
      * @param {RenderNode} planet - Planet render node.
      * @param {Object} [options] - Planet camera options:

@@ -2,9 +2,9 @@
  * @module og/entity/Billboard
  */
 
-'use strict';
+"use strict";
 
-import { BaseBillboard } from './BaseBillboard.js';
+import { BaseBillboard } from "./BaseBillboard.js";
 
 /**
  * Represents basic quad billboard image.
@@ -76,7 +76,10 @@ class Billboard extends BaseBillboard {
                 ta.loadImage(src, function (img) {
                     if (ta.nodes[img.__nodeIndex]) {
                         that._image = img;
-                        bh.setTexCoordArr(that._handlerIndex, ta.nodes[that._image.__nodeIndex].texCoords);
+                        bh.setTexCoordArr(
+                            that._handlerIndex,
+                            ta.nodes[that._image.__nodeIndex].texCoords
+                        );
                     } else {
                         ta.addImage(img);
                         ta.createTexture();
@@ -106,7 +109,8 @@ class Billboard extends BaseBillboard {
     setSize(width, height) {
         this._width = width;
         this._height = height;
-        this._handler && this._handler.setSizeArr(this._handlerIndex, width * this._scale, height * this._scale);
+        this._handler &&
+            this._handler.setSizeArr(this._handlerIndex, width * this._scale, height * this._scale);
     }
 
     /**

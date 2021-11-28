@@ -1,6 +1,6 @@
-import { Extent } from '../src/og/Extent';
+import { Extent } from "../src/og/Extent";
 
-test('Testing Extent', () => {
+test("Testing Extent", () => {
     const extent = new Extent();
     Extent.createByCoordinates([]);
     Extent.FULL_MERC;

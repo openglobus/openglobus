@@ -2,10 +2,10 @@
  * @module og/Clock
  */
 
-'use strict';
+"use strict";
 
-import { Events } from './Events.js';
-import * as jd from './astro/jd.js';
+import { Events } from "./Events.js";
+import * as jd from "./astro/jd.js";
 
 /**
  * Class represents application timer that stores custom current julian datetime, and time speed multiplier.
@@ -17,7 +17,6 @@ import * as jd from './astro/jd.js';
  * @param {number} [params.multiplier=1.0] - Time speed multiolier.
  */
 class Clock {
-
     static get _staticCounter() {
         if (!this._counter && this._counter !== 0) {
             this._counter = 0;
@@ -30,7 +29,7 @@ class Clock {
     }
 
     /**
-     * 
+     *
      * @param {Object} [params] - Clock parameters:
      */
     constructor(params) {
@@ -50,10 +49,7 @@ class Clock {
          * @public
          * @type {Events}
          */
-        this.events = new Events([
-            "tick",
-            "end"
-        ], this);
+        this.events = new Events(["tick", "end"], this);
 
         /**
          * Start julian date clock loop.

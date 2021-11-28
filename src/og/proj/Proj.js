@@ -2,7 +2,7 @@
  * @module og/proj/Proj
  */
 
-'use strict';
+"use strict";
 
 /**
  * Projection units: 'degrees', 'ft', 'm' or 'km'.
@@ -28,9 +28,7 @@ METERS_PER_UNIT[Units.KILOMETERS] = 1000;
 
 let _counter = 0;
 class Proj {
-
     constructor(options) {
-
         /**
          * @public
          * @type {string}

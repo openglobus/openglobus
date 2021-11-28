@@ -2,7 +2,7 @@
  * @module og/scene/BaseNode
  */
 
-'use strict';
+"use strict";
 
 /**
  * Scene node base class.
@@ -11,7 +11,6 @@
  */
 class BaseNode {
     constructor(name) {
-
         /**
          * Node name.
          * @public
