@@ -81,8 +81,8 @@ function toQuadKey(x, y, z) {
 };
 
 let temp = new XYZ("temp", {
-    ambient: [0.02, 0.02, 0.02],
-    diffuse: [0.85, 0.85, 0.85],
+    ambient: [0.05, 0.05, 0.05],
+    diffuse: [0.8, 0.9, 0.9],
     isBaseLayer: true,
     url: "//assets.msn.com/weathermapdata/1/temperaturerendered/112818/{x}_{y}_{z}_2021112903.jpg",
     visibility: true,
