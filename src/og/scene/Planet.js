@@ -32,7 +32,7 @@ import { NIGHT, SPECULAR } from "../res/images.js";
 import { Geoid } from "../terrain/Geoid.js";
 import { isUndef } from "../utils/shared.js";
 
-const MAX_LOD = 0.9;
+const MAX_LOD = 1.0;
 const MIN_LOD = 0.75;
 
 let _tempPickingPix_ = new Uint8Array(4),
