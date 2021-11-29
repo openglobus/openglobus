@@ -180,14 +180,14 @@ class TextureAtlas {
      * Creates atlas gl texture.
      * @public
      */
-    createTexture(img) {
+    createTexture(img, internalFormat) {
         if (this._handler) {
             this._handler.gl.deleteTexture(this.texture);
             if (img) {
                 this.canvas.resize(img.width, img.height);
                 this.canvas.drawImage(img, 0, 0, img.width, img.height);
             }
-            this.texture = this._handler.createTexture_l(this.canvas._canvas);
+            this.texture = this._handler.createTexture_l(this.canvas._canvas, internalFormat);
         }
     }
 

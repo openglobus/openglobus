@@ -73,9 +73,9 @@ class Renderer {
          */
         this.handler = handler;
 
-        this.exposure = 2.0;
+        this.exposure = 3.3;
 
-        this.gamma = 1.7;
+        this.gamma = 1.1;
 
         this.whitepoint = 1.0;
 

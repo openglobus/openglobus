@@ -382,7 +382,7 @@ class Handler {
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
 
-        gl.texStorage2D(gl.TEXTURE_2D, 1, internalFormat || gl.RGBA8, image.width, image.height);
+        gl.texStorage2D(gl.TEXTURE_2D, 1, internalFormat || gl.SRGB8_ALPHA8, image.width, image.height);
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -404,7 +404,7 @@ class Handler {
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
 
-        gl.texStorage2D(gl.TEXTURE_2D, 1, internalFormat || gl.RGBA8, image.width, image.height);
+        gl.texStorage2D(gl.TEXTURE_2D, 1, internalFormat || gl.SRGB8_ALPHA8, image.width, image.height);
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -427,7 +427,7 @@ class Handler {
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
 
-        gl.texStorage2D(gl.TEXTURE_2D, MAX_LEVELS, internalFormat || gl.RGBA8, image.width, image.height);
+        gl.texStorage2D(gl.TEXTURE_2D, MAX_LEVELS, internalFormat || gl.SRGB8_ALPHA8, image.width, image.height);
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
         gl.generateMipmap(gl.TEXTURE_2D);
@@ -450,7 +450,7 @@ class Handler {
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
 
-        gl.texStorage2D(gl.TEXTURE_2D, MAX_LEVELS, internalFormat || gl.RGBA8, image.width, image.height);
+        gl.texStorage2D(gl.TEXTURE_2D, MAX_LEVELS, internalFormat || gl.SRGB8_ALPHA8, image.width, image.height);
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
         gl.generateMipmap(gl.TEXTURE_2D);
