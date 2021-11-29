@@ -15,6 +15,8 @@ import { Program } from "../webgl/Program.js";
 const CORNERS = `const vec2 BOTTOMLEFT = vec2(-0.01);
                 const vec2 TOPRIGHT = vec2(1.01);`;
 
+const NIGHT = `const vec3 nightStep = 10.0 * vec3(0.58, 0.48, 0.25);`;
+
 export function drawnode_screen_nl() {
     return new Program("drawnode_screen_nl", {
         uniforms: {
@@ -114,30 +116,6 @@ export function drawnode_screen_nl() {
                 if( samplerCount == 4 ) return;
 
                 blend(gl_FragColor, samplerArr[4], tileOffsetArr[4], visibleExtentOffsetArr[4], transparentColorArr[4]);
-
-                //vec4 t = texture2D( samplerArr[0], tileOffsetArr[0].xy + vTextureCoord * tileOffsetArr[0].zw ) * insideBox(visibleExtentOffsetArr[0].xy + vTextureCoord * visibleExtentOffsetArr[0].zw, BOTTOMLEFT, TOPRIGHT);
-                //float emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[0].rgb ));
-                //gl_FragColor = mix( gl_FragColor, vec4(t.rgb, 1.0), transparentColorArr[0].a * t.a * emptiness);
-                //if( samplerCount == 1 ) return;
-
-                //t = texture2D( samplerArr[1], tileOffsetArr[1].xy + vTextureCoord * tileOffsetArr[1].zw ) * insideBox(visibleExtentOffsetArr[1].xy + vTextureCoord * visibleExtentOffsetArr[1].zw, BOTTOMLEFT, TOPRIGHT);
-                //emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[1].rgb ));
-                //gl_FragColor = mix( gl_FragColor, vec4(t.rgb, 1.0), transparentColorArr[1].a * t.a * emptiness);
-                //if( samplerCount == 2 ) return;
-
-                //t = texture2D( samplerArr[2], tileOffsetArr[2].xy + vTextureCoord * tileOffsetArr[2].zw ) * insideBox(visibleExtentOffsetArr[2].xy + vTextureCoord * visibleExtentOffsetArr[2].zw, BOTTOMLEFT, TOPRIGHT);
-                //emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[2].rgb ));
-                //gl_FragColor = mix( gl_FragColor, vec4(t.rgb, 1.0), transparentColorArr[2].a * t.a * emptiness);
-                //if( samplerCount == 3 ) return;
-
-                //t = texture2D( samplerArr[3], tileOffsetArr[3].xy + vTextureCoord * tileOffsetArr[3].zw ) * insideBox(visibleExtentOffsetArr[3].xy + vTextureCoord * visibleExtentOffsetArr[3].zw, BOTTOMLEFT, TOPRIGHT);
-                //emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[3].rgb ));
-                //gl_FragColor = mix( gl_FragColor, vec4(t.rgb, 1.0), transparentColorArr[3].a * t.a * emptiness);
-                //if( samplerCount == 4 ) return;
-
-                //t = texture2D( samplerArr[4], tileOffsetArr[4].xy + vTextureCoord * tileOffsetArr[4].zw ) * insideBox(visibleExtentOffsetArr[4].xy + vTextureCoord * visibleExtentOffsetArr[4].zw, BOTTOMLEFT, TOPRIGHT);
-                //emptiness = t.a * smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[4].rgb ));
-                //gl_FragColor = mix( gl_FragColor, vec4(t.rgb, 1.0), transparentColorArr[4].a * t.a * emptiness);
             }`
     });
 }
@@ -247,7 +225,22 @@ export function drawnode_screen_wl() {
 
             ${CORNERS}
 
-            const vec3 nightStep = 10.0 * vec3(0.58, 0.48, 0.25);
+            ${NIGHT}
+
+            void blend(
+                out vec4 prevColor,
+                in sampler2D sampler,
+                in vec4 tileOffset,
+                in vec4 visibleExtentOffset,
+                in vec4 transparentColor)
+            {
+                vec4 t = texture2D( sampler, tileOffset.xy + vTextureCoord.xy * tileOffset.zw );
+
+                float emptiness = smoothstep(0.35, 0.5, distance( t.rgb, transparentColor.rgb )) *
+                    insideBox(visibleExtentOffset.xy + vTextureCoord.xy * visibleExtentOffset.zw, BOTTOMLEFT, TOPRIGHT);
+
+                prevColor = prevColor * (1.0 - t.a * transparentColor.a * emptiness) + vec4(t.rgb, t.a) * transparentColor.a * emptiness;
+            }
 
             void main(void) {
 
@@ -272,54 +265,24 @@ export function drawnode_screen_wl() {
                 gl_FragColor = vec4(t.rgb * lightWeighting + night + spec, t.a);
                 if( samplerCount == 0 ) return;
 
-
-
-                spec = specularMaterial[1].rgb * pow( reflection, specularMaterial[1].w) * (1.0 + shininess);
-                lightWeighting = ambientMaterial[1] + diffuseMaterial[1] * diffuseLightWeighting + spec;
-
-                t = texture2D( samplerArr[0], tileOffsetArr[0].xy + vTextureCoord.xy * tileOffsetArr[0].zw ) * insideBox(visibleExtentOffsetArr[0].xy + vTextureCoord.xy * visibleExtentOffsetArr[0].zw, BOTTOMLEFT, TOPRIGHT);
-                float emptiness = smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[0].rgb ));
-                gl_FragColor = mix( gl_FragColor, vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[0].a * t.a * emptiness);
+                blend(gl_FragColor, samplerArr[0], tileOffsetArr[0], visibleExtentOffsetArr[0], transparentColorArr[0],
+                    specularMaterial[1], ambientMaterial[1], diffuseMaterial[1]);
                 if( samplerCount == 1 ) return;
 
-
-
-                spec = specularMaterial[2].rgb * pow( reflection, specularMaterial[2].w);
-                lightWeighting = ambientMaterial[2] + diffuseMaterial[2] * diffuseLightWeighting + spec;
-
-                t = texture2D( samplerArr[1], tileOffsetArr[1].xy + vTextureCoord.xy * tileOffsetArr[1].zw ) * insideBox(visibleExtentOffsetArr[1].xy + vTextureCoord.xy * visibleExtentOffsetArr[1].zw, BOTTOMLEFT, TOPRIGHT);
-                emptiness = smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[1].rgb ));
-                gl_FragColor = mix( gl_FragColor, vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[1].a * t.a * emptiness);
+                blend(gl_FragColor, samplerArr[1], tileOffsetArr[1], visibleExtentOffsetArr[1], transparentColorArr[1],
+                    specularMaterial[2], ambientMaterial[2], diffuseMaterial[2]);
                 if( samplerCount == 2 ) return;
 
-
-
-                spec = specularMaterial[3].rgb * pow( reflection, specularMaterial[3].w);
-                lightWeighting = ambientMaterial[3] + diffuseMaterial[3] * diffuseLightWeighting + spec;
-
-                t = texture2D( samplerArr[2], tileOffsetArr[2].xy + vTextureCoord.xy * tileOffsetArr[2].zw ) * insideBox(visibleExtentOffsetArr[2].xy + vTextureCoord.xy * visibleExtentOffsetArr[2].zw, BOTTOMLEFT, TOPRIGHT);
-                emptiness = smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[2].rgb ));
-                gl_FragColor = mix( gl_FragColor, vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[2].a * t.a * emptiness);
+                blend(gl_FragColor, samplerArr[2], tileOffsetArr[2], visibleExtentOffsetArr[2], transparentColorArr[2],
+                    specularMaterial[3], ambientMaterial[3], diffuseMaterial[3]);
                 if( samplerCount == 3 ) return;
 
-
-
-                spec = specularMaterial[4].rgb * pow( reflection, specularMaterial[4].w);
-                lightWeighting = ambientMaterial[4] + diffuseMaterial[4] * diffuseLightWeighting + spec;
-
-                t = texture2D( samplerArr[3], tileOffsetArr[3].xy + vTextureCoord.xy * tileOffsetArr[3].zw ) * insideBox(visibleExtentOffsetArr[3].xy + vTextureCoord.xy * visibleExtentOffsetArr[3].zw, BOTTOMLEFT, TOPRIGHT);
-                emptiness = smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[3].rgb ));
-                gl_FragColor = mix( gl_FragColor, vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[3].a * t.a * emptiness);
+                blend(gl_FragColor, samplerArr[3], tileOffsetArr[3], visibleExtentOffsetArr[3], transparentColorArr[3],
+                    specularMaterial[4], ambientMaterial[4], diffuseMaterial[4]);
                 if( samplerCount == 4 ) return;
 
-
-
-                spec = specularMaterial[5].rgb * pow( reflection, specularMaterial[5].w);
-                lightWeighting = ambientMaterial[5] + diffuseMaterial[5] * diffuseLightWeighting + spec;
-
-                t = texture2D( samplerArr[4], tileOffsetArr[4].xy + vTextureCoord.xy * tileOffsetArr[4].zw ) * insideBox(visibleExtentOffsetArr[4].xy + vTextureCoord.xy * visibleExtentOffsetArr[4].zw, BOTTOMLEFT, TOPRIGHT);
-                emptiness = smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[4].rgb ));
-                gl_FragColor = mix( gl_FragColor, vec4(t.rgb * lightWeighting + night + spec, 1.0), transparentColorArr[4].a * t.a * emptiness);
+                blend(gl_FragColor, samplerArr[4], tileOffsetArr[4], visibleExtentOffsetArr[4], transparentColorArr[4],
+                    specularMaterial[5], ambientMaterial[5], diffuseMaterial[5]);
             }`
     });
 }
@@ -440,7 +403,7 @@ export function drawnode_screen_wl_webgl2() {
 
             ${CORNERS}
 
-            const vec3 nightStep = 10.0 * vec3(0.58, 0.48, 0.25);
+            ${NIGHT}
 
             void blend(
                 out vec4 dest,
@@ -502,42 +465,6 @@ export function drawnode_screen_wl_webgl2() {
 
                 blend(fragColor, samplerArr[4], tileOffsetArr[4], visibleExtentOffsetArr[4], transparentColorArr[4],
                     specularMaterial[5], ambientMaterial[5], diffuseMaterial[5]);
-
-
-                //spec = specularMaterial[1].rgb * pow( reflection, specularMaterial[1].w) * (1.0 + shininess);
-                //lightWeighting = ambientMaterial[1] + diffuseMaterial[1] * diffuseLightWeighting + spec;
-
-                //t = texture( samplerArr[1], tileOffsetArr[1].xy + vTextureCoord.xy * tileOffsetArr[1].zw );
-                //float emptiness = smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[1].rgb )) * insideBox(visibleExtentOffsetArr[1].xy + vTextureCoord.xy * visibleExtentOffsetArr[1].zw, BOTTOMLEFT, TOPRIGHT);;
-                //fragColor = fragColor * (1.0 - t.a * transparentColorArr[1].a * emptiness) + vec4(t.rgb * lightWeighting + night + spec, t.a) * transparentColorArr[1].a * emptiness;;
-                //if( samplerCount == 1 ) return;
-                //
-                //spec = specularMaterial[2].rgb * pow( reflection, specularMaterial[2].w);
-                //lightWeighting = ambientMaterial[2] + diffuseMaterial[2] * diffuseLightWeighting + spec;
-                //t = texture( samplerArr[2], tileOffsetArr[2].xy + vTextureCoord.xy * tileOffsetArr[2].zw );
-                //emptiness = smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[2].rgb )) * insideBox(visibleExtentOffsetArr[2].xy + vTextureCoord.xy * visibleExtentOffsetArr[2].zw, BOTTOMLEFT, TOPRIGHT);
-                //fragColor = fragColor * (1.0 - t.a * transparentColorArr[2].a * emptiness) + vec4(t.rgb * lightWeighting + night + spec, t.a) * transparentColorArr[2].a * emptiness;
-                //if( samplerCount == 2 ) return;
-                //
-                //spec = specularMaterial[2].rgb * pow( reflection, specularMaterial[2].w);
-                //lightWeighting = ambientMaterial[2] + diffuseMaterial[2] * diffuseLightWeighting + spec;
-                //t = texture( samplerArr[2], tileOffsetArr[2].xy + vTextureCoord.xy * tileOffsetArr[2].zw );
-                //emptiness = smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[2].rgb )) * insideBox(visibleExtentOffsetArr[2].xy + vTextureCoord.xy * visibleExtentOffsetArr[2].zw, BOTTOMLEFT, TOPRIGHT);
-                //fragColor = fragColor * (1.0 - t.a * transparentColorArr[2].a * emptiness) + vec4(t.rgb * lightWeighting + night + spec, t.a) * transparentColorArr[2].a * emptiness;
-                //if( samplerCount == 3 ) return;
-                //
-                //spec = specularMaterial[3].rgb * pow( reflection, specularMaterial[3].w);
-                //lightWeighting = ambientMaterial[3] + diffuseMaterial[3] * diffuseLightWeighting + spec;
-                //t = texture( samplerArr[3], tileOffsetArr[3].xy + vTextureCoord.xy * tileOffsetArr[3].zw );
-                //emptiness = smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[3].rgb )) * insideBox(visibleExtentOffsetArr[3].xy + vTextureCoord.xy * visibleExtentOffsetArr[3].zw, BOTTOMLEFT, TOPRIGHT);
-                //fragColor = fragColor * (1.0 - t.a * transparentColorArr[3].a * emptiness) + vec4(t.rgb * lightWeighting + night + spec, t.a) * transparentColorArr[3].a * emptiness;
-                //if( samplerCount == 4 ) return;
-                //
-                //spec = specularMaterial[4].rgb * pow( reflection, specularMaterial[4].w);
-                //lightWeighting = ambientMaterial[4] + diffuseMaterial[4] * diffuseLightWeighting + spec;
-                //t = texture( samplerArr[4], tileOffsetArr[4].xy + vTextureCoord.xy * tileOffsetArr[4].zw );
-                //emptiness = smoothstep(0.35, 0.5, distance( t.rgb, transparentColorArr[4].rgb )) * insideBox(visibleExtentOffsetArr[4].xy + vTextureCoord.xy * visibleExtentOffsetArr[4].zw, BOTTOMLEFT, TOPRIGHT);
-                //fragColor = fragColor * (1.0 - t.a * transparentColorArr[4].a * emptiness) + vec4(t.rgb * lightWeighting + night + spec, t.a) * transparentColorArr[4].a * emptiness;
             }`
     });
 }
