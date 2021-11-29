@@ -11,7 +11,6 @@ import { Extent } from "../Extent.js";
 import { LonLat } from "../LonLat.js";
 import { Material } from "./Material.js";
 import { Vec3 } from "../math/Vec3.js";
-import { createTexture } from "../webgl/Handler.js";
 
 export const FADING_FACTOR = 0.29;
 
@@ -29,6 +28,7 @@ export const FADING_FACTOR = 0.29;
  * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
  * @param {boolean} [options.isBaseLayer=false] - This is a base layer.
  * @param {boolean} [options.visibility=true] - Layer visibility.
+ * @param {boolean} [options.isSRGB=true] - Layer image webgl nternal format.
  * @param {Extent} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
  * @param {Vec3} [options.ambient=[0.3, 0.3, 0.3]] - Ambient RGB color.
  * @param {Vec3} [options.diffuse=[0.9, 0.9, 0.9]] - Diffuse RGB color.
@@ -185,13 +185,13 @@ class Layer {
          */
         this._extent = null;
 
-        if (options.textureFilter) {
-            this.createTexture =
-                createTexture[options.textureFilter.trim().toUpperCase()] ||
-                createTexture.ANISOTROPIC;
-        } else {
-            this.createTexture = createTexture.ANISOTROPIC;
-        }
+        this.createTexture = null;
+
+        this._textureFilter = options.textureFilter ? options.textureFilter.trim().toUpperCase() : "MIPMAP";
+
+        this._isSRGB = options.isSRGB != undefined ? options.isSRGB : true;
+
+        this._internalFormat = null;
 
         /**
          * Visible mercator extent.
@@ -334,6 +334,15 @@ class Layer {
      * @param {Planet} planet - Planet render node.
      */
     _assignPlanet(planet) {
+        // TODO: webgl1
+        if (this._isSRGB) {
+            this._internalFormat = planet.renderer.handler.gl.SRGB8_ALPHA8;
+        } else {
+            this._internalFormat = planet.renderer.handler.gl.RGBA8;
+        }
+
+        this.createTexture = planet.renderer.handler.createTexture[this._textureFilter];
+
         planet.layers.push(this);
         this._planet = planet;
         this.events.on("visibilitychange", planet._onLayerVisibilityChanged, planet);
@@ -396,7 +405,11 @@ class Layer {
      * @virtual
      */
     clear() {
-        this._planet && this._planet._clearLayerMaterial(this);
+        if (this._planet) {
+            this._planet._clearLayerMaterial(this);
+            this._internalFormat = null;
+            this.createTexture = null;
+        }
     }
 
     /**

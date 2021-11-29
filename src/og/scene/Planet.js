@@ -731,31 +731,13 @@ export class Planet extends RenderNode {
         }
 
         // Creating quad trees nodes
-        this._quadTree = new Node(
-            Segment,
-            this,
-            quadTree.NW,
-            null,
-            0,
-            0,
+        this._quadTree = new Node(Segment, this, quadTree.NW, null, 0, 0,
             Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34])
         );
-        this._quadTreeNorth = new Node(
-            SegmentLonLat,
-            this,
-            quadTree.NW,
-            null,
-            0,
-            0,
+        this._quadTreeNorth = new Node(SegmentLonLat, this, quadTree.NW, null, 0, 0,
             Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90])
         );
-        this._quadTreeSouth = new Node(
-            SegmentLonLat,
-            this,
-            quadTree.NW,
-            null,
-            0,
-            0,
+        this._quadTreeSouth = new Node(SegmentLonLat, this, quadTree.NW, null, 0, 0,
             Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT])
         );
 
@@ -771,7 +753,7 @@ export class Planet extends RenderNode {
         // loading Earth night glowing texture
         if (this._useNightTexture) {
             createImageBitmap(NIGHT).then(
-                (e) => (this._nightTexture = this.renderer.handler.createTexture(e))
+                (e) => (this._nightTexture = this.renderer.handler.createTextureDefault(e))
             );
         }
 
@@ -1152,7 +1134,7 @@ export class Planet extends RenderNode {
 
         gl.enable(gl.BLEND);
         gl.blendEquation(gl.FUNC_ADD);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         //gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ZERO);
 
         if (this.lightEnabled) {

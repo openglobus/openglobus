@@ -33,7 +33,7 @@ const tg = new CanvasTiles("Tile grid", {
         if (material.segment.isPole) {
             let ext = material.segment.getExtentLonLat();
 
-            ctx.fillStyle = "rgb(81, 127, 86)";
+            ctx.fillStyle = "#888888";
             ctx.fillRect(0, 0, 256, 256);
 
             ctx.font = 'normal ' + 29 + 'px Verdana';
@@ -42,7 +42,7 @@ const tg = new CanvasTiles("Tile grid", {
             ctx.fillText(`${ext.southWest.lon.toFixed(3)} ${ext.southWest.lat.toFixed(3)}`, cnv.width / 2, cnv.height / 2 - 20);
         } else {
 
-            ctx.fillStyle = "rgb(81, 127, 86)";
+            ctx.fillStyle = "#888888";
             ctx.fillRect(0, 0, 256, 256);
 
             if (material.segment.tileZoom > 14) {
@@ -85,6 +85,7 @@ var borders = new XYZ("borders", {
     textureFilter: "mipmap",
     url: "//t.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{quad}?mkt=en-us&it=Z,GF,L&shading=t&og=1638&n=z&ur=US&o=PNG&st=me|lv:0;v:0_wt|v:1_trs|v:1;lv:0;sc:FF6B6B6B;fc:FF6B6B6B;strokeWidthScale:0.2_cst|v:1;fc:FF000000;strokeWidthScale:0.5&cstl=weather&shdw=1&rs=1&dpi=d1",
     visibility: true,
+    isSRGB: false,
     urlRewrite: function (s, u) {
         return stringTemplate(u, {
             'quad': toQuadKey(s.tileX, s.tileY, s.tileZoom)
@@ -110,7 +111,7 @@ let sat = new XYZ("sat", {
     attribution: `<div style="transform: scale(0.8); margin-top:-2px;"><a href="http://www.bing.com" target="_blank"><img title="Bing Imagery" src="https://sandcastle.cesium.com/CesiumUnminified/Assets/Images/bing_maps_credit.png"></a> © 2021 Microsoft Corporation</div>`,
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#001522" }, { color: "#E4E6F3" }],
-    //textureFilter: "linear",
+    textureFilter: "linear",
     urlRewrite: function (s, u) {
         return stringTemplate(u, {
             's': this._getSubdomain(),
@@ -128,7 +129,7 @@ var globus = new Globe({
         gridSizeByZoom: [32, 32, 32, 32, 16, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8]
     }),
     //maxEqualZoomAltitude: 1,
-    layers: [osm, sat, tg, borders],
+    layers: [osm, tg, borders],
     useNightTexture: false,
     useSpecularTexture: false
 });

@@ -304,7 +304,7 @@ class BaseShape {
             var img = new Image();
             var that = this;
             img.onload = function () {
-                that.texture = renderNode.renderer.handler.createTexture(this);
+                that.texture = renderNode.renderer.handler.createTextureDefault(this);
             };
             img.src = this._src;
         }

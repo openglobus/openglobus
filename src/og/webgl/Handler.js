@@ -14,6 +14,9 @@ import { Vec2 } from "../math/Vec2.js";
 
 const vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
 
+// Maximal mipmap levels
+const MAX_LEVELS = 2;
+
 /**
  * A WebGL handler for accessing low-level WebGL capabilities.
  * @class
@@ -116,11 +119,20 @@ class Handler {
          * @private
          * @type {frameCallback}
          */
-        this._frameCallback = function () {};
+        this._frameCallback = function () { };
 
         this.transparentTexture = null;
 
         this.framebufferStack = new Stack();
+
+        this.createTexture = {
+            "NEAREST": null,
+            "LINEAR": null,
+            "MIPMAP": null,
+            "ANISOTROPIC": null
+        };
+
+        this.createTextureDefault = null;
 
         if (params.autoActivate || isEmpty(params.autoActivate)) {
             this.initialize();
@@ -230,48 +242,6 @@ class Handler {
         return texture;
     }
 
-    ///**
-    // * Creates Empty half float texture.
-    // * @public
-    // * @param {number} width - Empty texture width.
-    // * @param {number} height - Empty texture height.
-    // * @returns {Object} - WebGL half float texture object.
-    // */
-    //createEmptyTexture_hf(width, height) {
-    //    var gl = this.gl;
-    //    var texture = gl.createTexture();
-    //    gl.bindTexture(gl.TEXTURE_2D, texture);
-    //    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    //    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.HALF_FLOAT_OES, null);
-    //    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    //    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    //    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    //    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    //    gl.bindTexture(gl.TEXTURE_2D, null);
-    //    return texture;
-    //}
-
-    ///**
-    // * Creates Empty float texture.
-    // * @public
-    // * @param {number} width - Empty texture width.
-    // * @param {number} height - Empty texture height.
-    // * @returns {Object} - WebGL float texture object.
-    // */
-    //createEmptyTexture_f(width, height) {
-    //    var gl = this.gl;
-    //    var texture = gl.createTexture();
-    //    gl.bindTexture(gl.TEXTURE_2D, texture);
-    //    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    //    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.FLOAT, null);
-    //    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    //    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    //    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    //    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    //    gl.bindTexture(gl.TEXTURE_2D, null);
-    //    return texture;
-    //}
-
     /**
      * Creates Empty NEAREST filtered texture.
      * @public
@@ -279,12 +249,12 @@ class Handler {
      * @param {number} height - Empty texture height.
      * @returns {Object} - WebGL texture object.
      */
-    createEmptyTexture_n(width, height) {
+    createEmptyTexture_n(width, height, internalFormat) {
         let gl = this.gl;
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -300,12 +270,12 @@ class Handler {
      * @param {number} height - Empty texture height.
      * @returns {Object} - WebGL texture object.
      */
-    createEmptyTexture_l(width, height) {
+    createEmptyTexture_l(width, height, internalFormat) {
         let gl = this.gl;
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -320,14 +290,99 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    static createTexture_n(handler, image) {
-        var gl = handler.gl;
+    createTexture_n_webgl1(image, internalFormat) {
+        var gl = this.gl;
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        return texture;
+    }
+
+    /**
+     * Creates LINEAR filter texture.
+     * @public
+     * @param {Object} image - Image or Canvas object.
+     * @returns {Object} - WebGL texture object.
+     */
+    createTexture_l_webgl1(image, internalFormat) {
+        let gl = this.gl;
+        let texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        return texture;
+    }
+
+    /**
+     * Creates MIPMAP filter texture.
+     * @public
+     * @param {Object} image - Image or Canvas object.
+     * @returns {Object} - WebGL texture object.
+     */
+    createTexture_mm_webgl1(image, internalFormat) {
+        let gl = this.gl;
+        let texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+
+        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        return texture;
+    }
+
+    /**
+     * Creates ANISOTROPY filter texture.
+     * @public
+     * @param {Object} image - Image or Canvas object.
+     * @returns {Object} - WebGL texture object.
+     */
+    createTexture_a_webgl1(image, internalFormat) {
+        let gl = this.gl;
+        let texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+
+        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameterf(gl.TEXTURE_2D, this.extensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this._params.anisotropy);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        return texture;
+    }
+
+    /**
+     * Creates NEAREST filter texture.
+     * @public
+     * @param {Object} image - Image or Canvas object.
+     * @returns {Object} - WebGL texture object.
+     */
+    createTexture_n_webgl2(image, internalFormat) {
+        var gl = this.gl;
         var texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
 
-        //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-        gl.texStorage2D(gl.TEXTURE_2D, 2, gl.SRGB8_ALPHA8, image.width, image.height);
+        gl.texStorage2D(gl.TEXTURE_2D, 1, internalFormat || gl.RGBA8, image.width, image.height);
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -344,13 +399,12 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    static createTexture_l(handler, image) {
-        let gl = handler.gl;
+    createTexture_l_webgl2(image, internalFormat) {
+        let gl = this.gl;
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
 
-        //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-        gl.texStorage2D(gl.TEXTURE_2D, 2, gl.SRGB8_ALPHA8, image.width, image.height);
+        gl.texStorage2D(gl.TEXTURE_2D, 1, internalFormat || gl.RGBA8, image.width, image.height);
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -367,14 +421,13 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    static createTexture_mm(handler, image) {
-        let gl = handler.gl;
+    createTexture_mm_webgl2(image, internalFormat) {
+        let gl = this.gl;
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
 
-        //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-        gl.texStorage2D(gl.TEXTURE_2D, 2, gl.SRGB8_ALPHA8, image.width, image.height);
+        gl.texStorage2D(gl.TEXTURE_2D, MAX_LEVELS, internalFormat || gl.RGBA8, image.width, image.height);
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
         gl.generateMipmap(gl.TEXTURE_2D);
@@ -391,49 +444,22 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    static createTexture_a(handler, image) {
-        let gl = handler.gl;
+    createTexture_a_webgl2(image, internalFormat) {
+        let gl = this.gl;
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
 
-        //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA/*gl.SRGB8_ALPHA8*/, gl.RGBA, gl.UNSIGNED_BYTE, image);
-        gl.texStorage2D(gl.TEXTURE_2D, 2, gl.SRGB8_ALPHA8, image.width, image.height);
+        gl.texStorage2D(gl.TEXTURE_2D, MAX_LEVELS, internalFormat || gl.RGBA8, image.width, image.height);
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
         gl.generateMipmap(gl.TEXTURE_2D);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-        gl.texParameterf(gl.TEXTURE_2D, handler.extensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT, handler._params.anisotropy);
+        gl.texParameterf(gl.TEXTURE_2D, this.extensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this._params.anisotropy);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.bindTexture(gl.TEXTURE_2D, null);
         return texture;
-    }
-
-    /**
-     * Creates DEFAULT filter texture, ANISOTROPY is default.
-     * @public
-     * @param {Object} image - Image or Canvas object.
-     * @returns {Object} - WebGL texture object.
-     */
-    createTexture(image) {
-        return Handler.createTexture_a(this, image);
-    }
-
-    createTexture_n(image) {
-        return Handler.createTexture_n(this, image);
-    }
-
-    createTexture_l(image) {
-        return Handler.createTexture_l(this, image);
-    }
-
-    createTexture_mm(image) {
-        return Handler.createTexture_mm(this, image);
-    }
-
-    createTexture_a(image) {
-        return Handler.createTexture_a(this, image);
     }
 
     /**
@@ -620,8 +646,23 @@ class Handler {
             this.initializeExtension(this._params.extensions[i], true);
         }
 
+        //
+        //TODO: webgl1 case
+        //
+        this.createTexture_n = this.createTexture_n_webgl2.bind(this);
+        this.createTexture_l = this.createTexture_l_webgl2.bind(this);
+        this.createTexture_mm = this.createTexture_mm_webgl2.bind(this);
+        this.createTexture_a = this.createTexture_a_webgl2.bind(this);
+
+        this.createTexture["NEAREST"] = this.createTexture_n;
+        this.createTexture["LINEAR"] = this.createTexture_l;
+        this.createTexture["MIPMAP"] = this.createTexture_mm;
+        this.createTexture["ANISOTROPIC"] = this.createTexture_a;
+
         if (!this.extensions.EXT_texture_filter_anisotropic) {
-            this.createTexture = this.createTexture_mm;
+            this.createTextureDefault = this.createTexture_mm;
+        } else {
+            this.createTextureDefault = this.createTexture_a;
         }
 
         /** Initilalize shaders and rendering parameters*/
@@ -938,7 +979,7 @@ class Handler {
         if (params && params.color) {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor(params.color);
-            texture = Handler.createTexture_n(this, imgCnv._canvas);
+            texture = this.createTexture_n_webgl2(imgCnv._canvas, this.gl.SRGB8_ALPHA8);
             texture.default = true;
             success(texture);
         } else if (params && params.url) {
@@ -953,7 +994,7 @@ class Handler {
         } else {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor("#C5C5C5");
-            texture = Handler.createTexture_n(this, imgCnv._canvas);
+            texture = this.createTexture_n_webgl2(imgCnv._canvas, this.gl.SRGB8_ALPHA8);
             texture.default = true;
             success(texture);
         }
@@ -1050,13 +1091,6 @@ class Handler {
             }
         }
     }
-}
-
-export const createTexture = {
-    NEAREST: Handler.createTexture_n,
-    LINEAR: Handler.createTexture_l,
-    MIPMAP: Handler.createTexture_mm,
-    ANISOTROPIC: Handler.createTexture_a
 };
 
 export { Handler };
