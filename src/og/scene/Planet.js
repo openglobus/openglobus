@@ -32,7 +32,7 @@ import { NIGHT, SPECULAR } from "../res/images.js";
 import { Geoid } from "../terrain/Geoid.js";
 import { isUndef } from "../utils/shared.js";
 
-const MAX_LOD = 1.0;
+const MAX_LOD = 0.9;
 const MIN_LOD = 0.75;
 
 let _tempPickingPix_ = new Uint8Array(4),
@@ -93,7 +93,7 @@ const EVENT_NAMES = [
  * @param {string} [options.name="Earth"] - Planet name(Earth by default)
  * @param {Ellipsoid} [options.ellipsoid] - Planet ellipsoid(WGS84 by default)
  * @param {Number} [options.maxGridSize=128] - Segment maximal grid size
- * @param {Number} [options.maxEqualZoomAltitude=15000000.0] - Maximal altitude since segments on the screen bacame the same zoom level
+ * @param {Number} [options.maxEqualZoomAltitude=850000.0] - Maximal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen bacame the same zoom level
  * @fires og.scene.Planet#draw
@@ -180,7 +180,7 @@ export class Planet extends RenderNode {
         this._minAltitude = options.minAltitude;
         this._maxAltitude = options.maxAltitude;
 
-        this.maxEqualZoomAltitude = options.maxEqualZoomAltitude || 15000000.0;
+        this.maxEqualZoomAltitude = options.maxEqualZoomAltitude || 850000.0;
         this.minEqualZoomAltitude = options.minEqualZoomAltitude || 10000.0;
         this.minEqualZoomCameraSlope = options.minEqualZoomCameraSlope || 0.8;
 
@@ -731,13 +731,31 @@ export class Planet extends RenderNode {
         }
 
         // Creating quad trees nodes
-        this._quadTree = new Node(Segment, this, quadTree.NW, null, 0, 0,
+        this._quadTree = new Node(
+            Segment,
+            this,
+            quadTree.NW,
+            null,
+            0,
+            0,
             Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34])
         );
-        this._quadTreeNorth = new Node(SegmentLonLat, this, quadTree.NW, null, 0, 0,
+        this._quadTreeNorth = new Node(
+            SegmentLonLat,
+            this,
+            quadTree.NW,
+            null,
+            0,
+            0,
             Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90])
         );
-        this._quadTreeSouth = new Node(SegmentLonLat, this, quadTree.NW, null, 0, 0,
+        this._quadTreeSouth = new Node(
+            SegmentLonLat,
+            this,
+            quadTree.NW,
+            null,
+            0,
+            0,
             Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT])
         );
 
@@ -753,7 +771,7 @@ export class Planet extends RenderNode {
         // loading Earth night glowing texture
         if (this._useNightTexture) {
             createImageBitmap(NIGHT).then(
-                (e) => (this._nightTexture = this.renderer.handler.createTextureDefault(e))
+                (e) => (this._nightTexture = this.renderer.handler.createTexture(e))
             );
         }
 
@@ -1129,13 +1147,12 @@ export class Planet extends RenderNode {
             this._vectorTileCreator.frame();
         }
 
+        gl.blendEquation(gl.FUNC_ADD);
 
-        gl.enable(gl.CULL_FACE);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
         gl.enable(gl.BLEND);
-        gl.blendEquation(gl.FUNC_ADD);
-        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-        //gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ZERO);
+        gl.enable(gl.CULL_FACE);
 
         if (this.lightEnabled) {
             h.programs.drawnode_screen_wl.activate();

@@ -217,6 +217,8 @@ export class VectorTileCreator {
 
             // var prevLayerId = -1;
 
+            var extentParams = new Float32Array(4);
+
             var extentParamsHigh = new Float32Array(4);
             var extentParamsLow = new Float32Array(4);
 
@@ -243,7 +245,7 @@ export class VectorTileCreator {
 
                     f.bindOutputTexture(texture);
 
-                    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+                    gl.clearColor(1.0, 1.0, 1.0, 0.0);
                     gl.clear(gl.COLOR_BUFFER_BIT);
 
                     var extent = material.segment.getExtentMerc();

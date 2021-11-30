@@ -64,7 +64,6 @@ let BOUNDS = {
  * @param {Extent} extent - Planet segment extent.
  */
 class Node {
-
     constructor(SegmentPrototype, planet, partId, parent, id, tileZoom, extent) {
         this.SegmentPrototype = SegmentPrototype;
         this.planet = planet;
@@ -284,7 +283,7 @@ class Node {
 
             let altVis =
                 cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius <
-                VISIBLE_DISTANCE * Math.sqrt(h) ||
+                    VISIBLE_DISTANCE * Math.sqrt(h) ||
                 (seg.tileZoom < 4 && !seg.terrainReady) ||
                 seg.tileZoom < 2;
 
@@ -292,22 +291,29 @@ class Node {
                 seg._collectVisibleNodes();
             }
 
-            //if (!altVis && maxZoom) {
-            //    this.state = NOTRENDERING;
-            //    return;
-            //}
-
             if (seg.tileZoom < 2 && seg.normalMapReady) {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
-            } else if ((!maxZoom && seg.acceptForRendering(cam)) || seg.tileZoom === maxZoom /*|| !altVis && maxZoom*/) {
-                this.prepareForRendering(cam, altVis, this.inFrustum, terrainReadySegment, stopLoading);
+            } else if ((!maxZoom && seg.acceptForRendering(cam)) || seg.tileZoom === maxZoom) {
+                this.prepareForRendering(
+                    cam,
+                    altVis,
+                    this.inFrustum,
+                    terrainReadySegment,
+                    stopLoading
+                );
             } else if (seg.tileZoom < planet.terrain._maxNodeZoom && seg.terrainReady) {
                 // Deleting terrainReady here, you have to remove
                 // this.appliedTerrainNodeId !== pn.nodeId in whileTerrainLoading,
                 // also have to fix createBoundsByParent(*)
                 this.traverseNodes(cam, maxZoom, seg, stopLoading);
             } else {
-                this.prepareForRendering(cam, altVis, this.inFrustum, terrainReadySegment, stopLoading);
+                this.prepareForRendering(
+                    cam,
+                    altVis,
+                    this.inFrustum,
+                    terrainReadySegment,
+                    stopLoading
+                );
             }
         } else {
             this.state = NOTRENDERING;
@@ -327,13 +333,7 @@ class Node {
         n[3].renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
     }
 
-    prepareForRendering(
-        cam,
-        altVis,
-        inFrustum,
-        terrainReadySegment,
-        stopLoading
-    ) {
+    prepareForRendering(cam, altVis, inFrustum, terrainReadySegment, stopLoading) {
         let seg = this.segment;
 
         if (cam._lonLat.height < VISIBLE_HEIGHT) {
@@ -381,7 +381,7 @@ class Node {
         }
 
         // Create normal map texture
-        if (seg.planet.lightEnabled && !seg.normalMapReady && !seg.parentNormalMapReady) {
+        if (seg.planet.lightEnabled && !seg.normalMapReady /* && !seg.parentNormalMapReady*/) {
             this.whileNormalMapCreating();
         }
 
@@ -774,8 +774,16 @@ class Node {
                 let v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
                     v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
 
-                let vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
-                    vw = new Vec3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
+                let vn = new Vec3(
+                        bigOne[3] - bigOne[0],
+                        bigOne[4] - bigOne[1],
+                        bigOne[5] - bigOne[2]
+                    ),
+                    vw = new Vec3(
+                        bigOne[6] - bigOne[0],
+                        bigOne[7] - bigOne[1],
+                        bigOne[8] - bigOne[2]
+                    ),
                     ve = new Vec3(
                         bigOne[3] - bigOne[9],
                         bigOne[4] - bigOne[10],
@@ -988,7 +996,8 @@ class Node {
             offset = 0;
 
         while (pNode.segment.tileZoom > neighbourZoom) {
-            offset += PARTOFFSET[pNode.partId][side] / (1 << (pNode.segment.tileZoom - neighbourZoom));
+            offset +=
+                PARTOFFSET[pNode.partId][side] / (1 << (pNode.segment.tileZoom - neighbourZoom));
             pNode = pNode.parentNode;
         }
 

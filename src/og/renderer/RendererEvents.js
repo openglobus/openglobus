@@ -85,13 +85,9 @@ class RendererEvents extends Events {
                     ms.justStopped
                 );
             },
-            /** Current screen mouse X position. */
-            clientX: 0,
-            /** Current screen mouse Y position. */
-            clientY: 0,
-            /** Current viewport mouse X position. */
+            /** Current mouse X position. */
             x: 0,
-            /** Current viewport mouse Y position. */
+            /** Current mouse Y position. */
             y: 0,
             /** Current mouse X position from 0 to 1 */
             nx: 0,
@@ -361,20 +357,16 @@ class RendererEvents extends Events {
             this._mClkBegins = 0;
         }
 
-        if (ms.clientX === event.clientX && ms.clientY === event.clientY) {
+        if (ms.x === event.clientX && ms.y === event.clientY) {
             return;
         }
 
-        ms.clientX = event.clientX;
-        ms.clientY = event.clientY;
+        ms.x = event.clientX;
+        ms.y = event.clientY;
 
-        let h = this.renderer.handler;
-
-        ms.x = event.clientX * h.pixelRatio;
-        ms.y = event.clientY * h.pixelRatio;
-
-        ms.nx = ms.x / h.canvas.width;
-        ms.ny = ms.y / h.canvas.height;
+        var cnv = this.renderer.handler.canvas;
+        ms.nx = ms.x / cnv.width;
+        ms.ny = ms.y / cnv.height;
 
         ms.moving = true;
 
@@ -501,17 +493,11 @@ class RendererEvents extends Events {
     onTouchStart(event) {
         var ts = this.touchState;
         ts.sys = event;
-
-        ts.clienX = event.touches.item(0).clientX - event.offsetLeft;
-        ts.clientY = event.touches.item(0).clientY - event.offsetTop;
-
-        let h = this.renderer.handler;
-
-        ts.x = ts.clientX * h.pixelRatio;
-        ts.y = ts.clientY * h.pixelRatio;
-
-        ts.nx = ts.x / h.canvas.width;
-        ts.ny = ts.y / h.canvas.height;
+        ts.x = event.touches.item(0).clientX - event.offsetLeft;
+        ts.y = event.touches.item(0).clientY - event.offsetTop;
+        var cnv = this.renderer.handler.canvas;
+        ts.nx = ts.x / cnv.width;
+        ts.ny = ts.y / cnv.height;
         ts.prev_x = ts.x;
         ts.prev_y = ts.y;
         ts.touchStart = true;
@@ -565,17 +551,11 @@ class RendererEvents extends Events {
      */
     onTouchMove(event) {
         var ts = this.touchState;
-        ts.clientX = event.touches.item(0).clientX - event.offsetLeft;
-        ts.clientY = event.touches.item(0).clientY - event.offsetTop;
-
-        var h = this.renderer.handler;
-
-        ts.x = ts.clientX * h.pixelRatio;
-        ts.y = ts.clientY * h.pixelRatio;
-
-        ts.nx = ts.x / h.canvas.width;
-        ts.ny = ts.y / h.canvas.height;
-
+        ts.x = event.touches.item(0).clientX - event.offsetLeft;
+        ts.y = event.touches.item(0).clientY - event.offsetTop;
+        var cnv = this.renderer.handler.canvas;
+        ts.nx = ts.x / cnv.width;
+        ts.ny = ts.y / cnv.height;
         ts.sys = event;
         ts.moving = true;
         this._dblTchBegins = 0;
