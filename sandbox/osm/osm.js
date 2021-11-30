@@ -141,6 +141,7 @@ var globus = new Globe({
     //maxEqualZoomAltitude: 1,
     layers: [sat, osm, temp, borders],
     useNightTexture: false,
+    //useEarthNavigation: true,
     useSpecularTexture: false
 });
 
