@@ -3,7 +3,7 @@
 // import { QueueArray } from '../QueueArray.js';
 
 export const LOCK_UPDATE = -2;
-export const LOCKE_FREE = -1;
+export const LOCK_FREE = -1;
 
 class LabelWorker {
     constructor(numWorkers = 4) {

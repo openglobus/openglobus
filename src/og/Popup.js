@@ -74,11 +74,12 @@ class Popup {
 
     setScreen(p) {
         if (this._planet) {
+            let r = this._planet.renderer.handler.pixelRatio;
             this.el.style.transform =
                 "translate(" +
-                (p.x - this.clientWidth * 0.5) +
+                (p.x / r - this.clientWidth * 0.5) +
                 "px, " +
-                (p.y - this._planet.renderer.handler.canvas.height - this._tipEl.clientHeight) +
+                (p.y / r - this._planet.renderer.handler.canvas.clientHeight - this._tipEl.clientHeight) +
                 "px)";
         }
     }

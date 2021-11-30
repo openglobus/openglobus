@@ -10,6 +10,11 @@ import { parseHTML } from "../utils/shared.js";
 const TEMPLATE = `<div class="og-lighing">
 
        <div class="og-screen-options">
+
+         <div class="og-option">
+          <div class="og-caption">Lighting enabled<input type="checkbox" id="lighting" name="light"/></div>
+         </div>
+
          <div class="og-option">
             <div class="og-caption">Gamma</div>
             <div class="og-slider">
@@ -32,6 +37,14 @@ const TEMPLATE = `<div class="og-lighing">
        </div>
       
        <div class="og-color-options">
+         <div class="og-caption">Opacity</div>
+         <div class="og-option">
+            <div class="og-label">A</div>
+            <div class="og-slider">
+                <input type="range" id="opacity" name="opacity" value="0.0" min="0.0" max="2.0" step="0.01" />
+            </div>
+            <div class="og-value opacity"></div>
+         </div>
          <div class="og-caption">Ambient</div>
          <div class="og-option">
             <div class="og-label">R</div>
@@ -128,6 +141,8 @@ class Lighting extends Control {
     bindLayer(layer) {
         this._selectedLayer = layer;
 
+        document.getElementById("opacity").value = layer.opacity;
+
         document.getElementById("ambient-r").value = layer.ambient.x;
         document.getElementById("ambient-g").value = layer.ambient.y;
         document.getElementById("ambient-b").value = layer.ambient.z;
@@ -141,6 +156,8 @@ class Lighting extends Control {
         document.getElementById("specular-b").value = layer.specular.z;
 
         document.getElementById("shininess").value = layer.shininess;
+
+        document.querySelector(".og-value.opacity").innerHTML = layer.opacity.toString();
 
         document.querySelector(".og-value.ambient-r").innerHTML = layer.ambient.x.toString();
         document.querySelector(".og-value.ambient-g").innerHTML = layer.ambient.y.toString();
@@ -163,8 +180,15 @@ class Lighting extends Control {
 
         var _this = this;
 
+        document.getElementById("lighting").checked = this.planet.lightEnabled;
+
+        document.getElementById("lighting").addEventListener("change", (e) => {
+            _this.planet.lightEnabled = e.target.checked;
+        });
+
         document.getElementById("layers").addEventListener("change", (e) => {
-            this._selectedLayer = _this.planet.getLayerByName(e.target.value);
+            //this._selectedLayer = _this.planet.getLayerByName(e.target.value);
+            this.bindLayer(_this.planet.getLayerByName(e.target.value));
         });
 
         document.getElementById("gamma").addEventListener("input", function (e) {
@@ -182,6 +206,13 @@ class Lighting extends Control {
 
         document.getElementById("gamma").value = this.planet.renderer.gamma;
         document.getElementById("exposure").value = this.planet.renderer.exposure;
+
+        document.getElementById("opacity").addEventListener("input", function (e) {
+            if (_this._selectedLayer) {
+                _this._selectedLayer.opacity = Number(this.value);
+            }
+            document.querySelector(".og-value.opacity").innerHTML = this.value;
+        });
 
         document.getElementById("ambient-r").addEventListener("input", function (e) {
             if (_this._selectedLayer) {
@@ -272,7 +303,7 @@ class Lighting extends Control {
         document.getElementById("layers").value = e.name;
     }
 
-    _onLayerRemove(e) {}
+    _onLayerRemove(e) { }
 }
 
 export function lighting(options) {
