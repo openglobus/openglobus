@@ -30,7 +30,7 @@ export const FADING_FACTOR = 0.29;
  * @param {boolean} [options.visibility=true] - Layer visibility.
  * @param {boolean} [options.isSRGB=false] - Layer image webgl nternal format.
  * @param {Extent} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
- * @param {Vec3} [options.ambient=[0.3, 0.3, 0.3]] - Ambient RGB color.
+ * @param {Vec3} [options.ambient=[0.1, 0.1, 0.1]] - Ambient RGB color.
  * @param {Vec3} [options.diffuse=[0.9, 0.9, 0.9]] - Diffuse RGB color.
  * @param {Vec3} [options.specular=[0.00025, 0.00015, 0.0001]] - Specular RGB color.
  * @param {string} [options.textureFilter="anisotropic"] - Image texture filter. Available values: "nearest", "linear", "mipmap" and "anisotropic".
@@ -112,8 +112,8 @@ class Layer {
          * @public
          * @type {Object}
          */
-        this.ambient = utils.createColorRGB(options.ambient, new Vec3(0.03, 0.03, 0.03));
-        this.diffuse = utils.createColorRGB(options.diffuse, new Vec3(0.7, 0.7, 0.7));
+        this.ambient = utils.createColorRGB(options.ambient, new Vec3(0.1, 0.1, 0.1));
+        this.diffuse = utils.createColorRGB(options.diffuse, new Vec3(0.73, 0.73, 0.73));
         this.specular = utils.createColorRGB(options.specular, new Vec3(0.0003, 0.0003, 0.0003));
         this.shininess = options.shininess || 20.0;
 

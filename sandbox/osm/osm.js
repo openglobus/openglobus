@@ -143,7 +143,7 @@ var globus = new Globe({
         gridSizeByZoom: [32, 32, 32, 32, 16, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8]
     }),
     //maxEqualZoomAltitude: 1,
-    layers: [osm, temp, borders],
+    layers: [sat, osm, temp, borders],
     useNightTexture: false,
     useSpecularTexture: false
 });
