@@ -263,7 +263,7 @@ class Label extends BaseBillboard {
      * @param {Vec4} rgba - Color vector.
      */
     setOutlineColor4v(rgba) {
-        this.setColor(rgba.x, rgba.y, rgba.z, rgba.w);
+        this.setOutlineColor(rgba.x, rgba.y, rgba.z, rgba.w);
     }
 
     /**
