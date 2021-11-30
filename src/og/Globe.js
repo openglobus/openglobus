@@ -15,7 +15,7 @@ import { ZoomControl } from "./control/ZoomControl.js";
 import { Renderer } from "./renderer/Renderer.js";
 import { Planet } from "./scene/Planet.js";
 import { EmptyTerrain } from "./terrain/EmptyTerrain.js";
-import { isEmpty, PIXEL_RATIO } from "./utils/shared.js";
+import { isEmpty } from "./utils/shared.js";
 import { Handler } from "./webgl/Handler.js";
 
 /** @const {string} */
@@ -120,7 +120,7 @@ class Globe {
          */
         this.renderer = new Renderer(
             new Handler(_canvasId, {
-                pixelRatio: PIXEL_RATIO,
+                pixelRatio: window.devicePixelRatio,
                 context: {
                     alpha: false,
                     antialias: false,

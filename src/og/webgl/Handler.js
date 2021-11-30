@@ -1091,6 +1091,6 @@ class Handler {
             }
         }
     }
-};
+}
 
 export { Handler };

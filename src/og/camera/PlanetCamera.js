@@ -649,7 +649,7 @@ class PlanetCamera extends Camera {
 
     isVisible(poi) {
         let e = this.eye.length();
-        return eye.distance(poi) < Math.sqrt(e * e - this.planet.ellipsoid._a2);
+        return this.eye.distance(poi) < Math.sqrt(e * e - this.planet.ellipsoid._a2);
     }
 }
 
