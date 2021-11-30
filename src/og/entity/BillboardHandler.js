@@ -6,7 +6,6 @@
 
 import * as shaders from "../shaders/billboard.js";
 import { concatTypedArrays, spliceTypedArray } from "../utils/shared.js";
-import { LOCK_UPDATE, LOCK_FREE } from "./LabelWorker.js";
 
 const PICKINGCOLOR_BUFFER = 0;
 const POSITION_BUFFER = 1;
@@ -81,10 +80,6 @@ class BillboardHandler {
         this.__staticId = BillboardHandler._staticCounter++;
     }
 
-    isEqual(handler) {
-        return handler && (handler.__staticId === this.__staticId);
-    }
-
     static get _staticCounter() {
         if (!this._counter && this._counter !== 0) {
             this._counter = 0;
@@ -133,7 +128,7 @@ class BillboardHandler {
             bi._handlerIndex = -1;
             bi._handler = null;
             bi._isReady = false;
-            bi._lockId = LOCK_FREE;
+            bi._lockId = -1;
         }
         this._billboards.length = 0;
         this._billboards = [];
@@ -632,14 +627,12 @@ class BillboardHandler {
         billboard._handlerIndex = -1;
         billboard._handler = null;
         billboard._isReady = false;
-        billboard._lockId = LOCK_FREE;
+        billboard._lockId = -1;
     }
 
     remove(billboard) {
         if (billboard._isReady && this.__staticId == billboard._handler.__staticId) {
             this._removeBillboard(billboard);
-        } else {
-            billboard._handler = null;
         }
     }
 
