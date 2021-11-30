@@ -81,8 +81,6 @@ function toQuadKey(x, y, z) {
 };
 
 let temp = new XYZ("temp", {
-    ambient: [0.15, 0.15, 0.15],
-    diffuse: [0.75, 0.75, 0.75],
     isBaseLayer: true,
     url: "//assets.msn.com/weathermapdata/1/temperaturerendered/112818/{x}_{y}_{z}_2021113007.jpg",
     visibility: true,
@@ -92,8 +90,6 @@ let temp = new XYZ("temp", {
 });
 
 var borders = new XYZ("borders", {
-    diffuse: [1.0, 1.0, 1.0],
-    ambient: [0, 0, 0],
     opacity: 1.0,
     isBaseLayer: false,
     textureFilter: "mipmap",
