@@ -41,7 +41,7 @@ class PlanetCamera extends Camera {
             Object.assign(
                 {},
                 {
-                    frustums: /*[[100, 10000000]]*/ [
+                    frustums: /*[[100, 10000000]]*/[
                         [1, 100 + 0.075],
                         [100, 1000 + 0.075],
                         [1000, 1e6 + 10000],
@@ -636,15 +636,20 @@ class PlanetCamera extends Camera {
     getHeading() {
         let u = this.eye.normal();
         let f = Vec3.proj_b_to_plane(
-                this.slope >= 0.97 ? this.getUp() : this.getForward(),
-                u
-            ).normalize(),
+            this.slope >= 0.97 ? this.getUp() : this.getForward(),
+            u
+        ).normalize(),
             n = Vec3.proj_b_to_plane(Vec3.UP, u).normalize();
         let res = Math.sign(u.dot(f.cross(n))) * Math.acos(f.dot(n)) * math.DEGREES;
         if (res < 0.0) {
             return 360.0 + res;
         }
         return res;
+    }
+
+    isVisible(poi) {
+        let e = this.eye.length();
+        return this.eye.distance(poi) < Math.sqrt(e * e - this.planet.ellipsoid._a2);
     }
 }
 
