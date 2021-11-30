@@ -2,6 +2,9 @@
 
 // import { QueueArray } from '../QueueArray.js';
 
+export const LOCK_UPDATE = -2;
+export const LOCKE_FREE = -1;
+
 class LabelWorker {
     constructor(numWorkers = 4) {
         this._id = 0;
@@ -18,7 +21,7 @@ class LabelWorker {
 
                 let s = that._source[e.data.id];
 
-                if (s.label._lockId === -2) {
+                if (s.label._lockId === LOCK_UPDATE) {
                     that.make(s.handler, s.label);
                 } else {
                     s.handler.workerCallback(e.data, s.label);
@@ -46,14 +49,15 @@ class LabelWorker {
 
     make(handler, label) {
 
-        let source = { handler: handler, label: label };
+        if (handler._entityCollection) {
+            let source = { handler: handler, label: label };
 
-        if (this._freeWorkerQueue.length) {
-            var w = this._freeWorkerQueue.pop();
+            if (this._freeWorkerQueue.length) {
+                var w = this._freeWorkerQueue.pop();
 
-            this._source[this._id] = source;
+                this._source[this._id] = source;
 
-            let labelData = new Float32Array([
+                let labelData = new Float32Array([
                 /*0*/this._id++,
                 /*1*/handler._maxLetters,
                 /*2*/label.getVisibility() ? 1 : 0,
@@ -68,17 +72,18 @@ class LabelWorker {
                 /*22*/label._outline,
                 /*23, 24, 25, 26*/label._outlineColor.x, label._outlineColor.y, label._outlineColor.z, label._outlineColor.w,
                 /*27, 28, 29*/label._entity._pickingColor.x, label._entity._pickingColor.y, label._entity._pickingColor.z
-            ]);
+                ]);
 
-            label._lockId = this._id;
+                label._lockId = this._id;
 
-            w.postMessage({
-                labelData: labelData
-            }, [
-                labelData.buffer,
-            ]);
-        } else {
-            this._pendingQueue.push(source);
+                w.postMessage({
+                    labelData: labelData
+                }, [
+                    labelData.buffer,
+                ]);
+            } else {
+                this._pendingQueue.push(source);
+            }
         }
     }
 }

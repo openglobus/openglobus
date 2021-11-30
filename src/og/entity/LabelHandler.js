@@ -8,6 +8,7 @@ import * as shaders from "../shaders/label.js";
 import { ALIGN } from "./Label.js";
 import { BillboardHandler } from "./BillboardHandler.js";
 import { concatTypedArrays, spliceTypedArray } from "../utils/shared.js";
+import { LOCK_FREE } from "./LabelWorker.js";
 
 const PICKINGCOLOR_BUFFER = 0;
 const POSITION_BUFFER = 1;
@@ -97,9 +98,9 @@ class LabelHandler extends BillboardHandler {
     }
 
     workerCallback(data, label) {
-        if (label._lockId !== -1) {
+        if (label._lockId !== LOCK_FREE && this.isEqual(label._handler)) {
             label._isReady = true;
-            label._lockId = -1;
+            label._lockId = LOCK_FREE;
             label._handlerIndex = this._billboards.length;
             this._billboards.push(label);
 
@@ -469,7 +470,6 @@ class LabelHandler extends BillboardHandler {
 
         label._handlerIndex = -1;
         label._handler = null;
-        label._isReady = false;
     }
 
     setText(index, text, fontIndex, align) {

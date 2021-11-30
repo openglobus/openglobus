@@ -6,6 +6,7 @@
 
 import * as utils from "../utils/shared.js";
 import { Vec3 } from "../math/Vec3.js";
+import { LOCK_FREE, LOCK_UPDATE } from "./LabelWorker.js";
 
 /**
  * Base prototype for billboard and label classes.
@@ -106,7 +107,7 @@ class BaseBillboard {
          */
         this._isReady = false;
 
-        this._lockId = -1;
+        this._lockId = LOCK_FREE;
     }
 
     static get _staticCounter() {
@@ -134,8 +135,8 @@ class BaseBillboard {
         Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
         if (this._isReady) {
             this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
-        } else if (this._lockId !== -1) {
-            this._lockId = -2;
+        } else if (this._lockId !== LOCK_FREE) {
+            this._lockId = LOCK_UPDATE;
         }
     }
 
@@ -151,8 +152,8 @@ class BaseBillboard {
         Vec3.doubleToTwoFloats(position, this._positionHigh, this._positionLow);
         if (this._isReady) {
             this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
-        } else if (this._lockId !== -1) {
-            this._lockId = -2;
+        } else if (this._lockId !== LOCK_FREE) {
+            this._lockId = LOCK_UPDATE;
         }
     }
 
@@ -178,8 +179,8 @@ class BaseBillboard {
         z != undefined && (this._offset.z = z);
         if (this._isReady) {
             this._handler.setOffsetArr(this._handlerIndex, this._offset);
-        } else if (this._lockId !== -1) {
-            this._lockId = -2;
+        } else if (this._lockId !== LOCK_FREE) {
+            this._lockId = LOCK_UPDATE;
         }
     }
 
@@ -211,8 +212,8 @@ class BaseBillboard {
             this._rotation = rotation;
             if (this._isReady) {
                 this._handler.setRotationArr(this._handlerIndex, rotation);
-            } else if (this._lockId !== -1) {
-                this._lockId = -2;
+            } else if (this._lockId !== LOCK_FREE) {
+                this._lockId = LOCK_UPDATE;
             }
         }
     }
@@ -236,8 +237,8 @@ class BaseBillboard {
             a != undefined && (this._color.w = a);
             if (this._isReady) {
                 this._handler.setRgbaArr(this._handlerIndex, this._color);
-            } else if (this._lockId !== -1) {
-                this._lockId = -2;
+            } else if (this._lockId !== LOCK_FREE) {
+                this._lockId = LOCK_UPDATE;
             }
         }
     }
@@ -258,8 +259,8 @@ class BaseBillboard {
             a != undefined && (this._color.w = a);
             if (this._isReady) {
                 this._handler.setRgbaArr(this._handlerIndex, this._color);
-            } else if (this._lockId !== -1) {
-                this._lockId = -2;
+            } else if (this._lockId !== LOCK_FREE) {
+                this._lockId = LOCK_UPDATE;
             }
         }
     }
@@ -301,8 +302,8 @@ class BaseBillboard {
             this._visibility = visibility;
             if (this._isReady) {
                 this._handler.setVisibility(this._handlerIndex, visibility);
-            } else if (this._lockId !== -1) {
-                this._lockId = -2;
+            } else if (this._lockId !== LOCK_FREE) {
+                this._lockId = LOCK_UPDATE;
             }
         }
     }
@@ -329,8 +330,8 @@ class BaseBillboard {
         this._alignedAxis.z = z;
         if (this._isReady) {
             this._handler.setAlignedAxisArr(this._handlerIndex, this._alignedAxis);
-        } else if (this._lockId !== -1) {
-            this._lockId = -2;
+        } else if (this._lockId !== LOCK_FREE) {
+            this._lockId = LOCK_UPDATE;
         }
     }
 
@@ -369,8 +370,8 @@ class BaseBillboard {
     setPickingColor3v(color) {
         if (this._isReady) {
             this._handler.setPickingColorArr(this._handlerIndex, color);
-        } else if (this._lockId !== -1) {
-            this._lockId = -2;
+        } else if (this._lockId !== LOCK_FREE) {
+            this._lockId = LOCK_UPDATE;
         }
     }
 }

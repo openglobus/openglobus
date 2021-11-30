@@ -7,6 +7,7 @@
 import * as utils from "../utils/shared.js";
 import { BaseBillboard } from "./BaseBillboard.js";
 import { Vec4 } from "../math/Vec4.js";
+import { LOCK_FREE, LOCK_UPDATE } from "./LabelWorker.js";
 
 const ALIGN = {
     RIGHT: 0,
@@ -144,8 +145,8 @@ class Label extends BaseBillboard {
         this._align = STR2ALIGN[align.trim().toLowerCase()];
         if (this._isReady) {
             this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align);
-        } else if (this._lockId !== -1) {
-            this._lockId = -2;
+        } else if (this._lockId !== LOCK_FREE) {
+            this._lockId = LOCK_UPDATE;
         }
     }
 
@@ -187,8 +188,8 @@ class Label extends BaseBillboard {
             this._size = size;
             if (this._isReady) {
                 this._handler.setSizeArr(this._handlerIndex, size);
-            } else if (this._lockId !== -1) {
-                this._lockId = -2;
+            } else if (this._lockId !== LOCK_FREE) {
+                this._lockId = LOCK_UPDATE;
             }
         }
     }
@@ -211,8 +212,8 @@ class Label extends BaseBillboard {
         this._outline = outline;
         if (this._isReady) {
             this._handler.setOutlineArr(this._handlerIndex, outline);
-        } else if (this._lockId !== -1) {
-            this._lockId = -2;
+        } else if (this._lockId !== LOCK_FREE) {
+            this._lockId = LOCK_UPDATE;
         }
     }
 
@@ -251,8 +252,8 @@ class Label extends BaseBillboard {
             this._outlineColor.w = a;
             if (this._isReady) {
                 this._handler.setOutlineColorArr(this._handlerIndex, this._outlineColor);
-            } else if (this._lockId !== -1) {
-                this._lockId = -2;
+            } else if (this._lockId !== LOCK_FREE) {
+                this._lockId = LOCK_UPDATE;
             }
         }
     }
@@ -294,8 +295,8 @@ class Label extends BaseBillboard {
             this._outlineColor.w = opacity;
             if (this._isReady) {
                 this._handler.setOutlineColorArr(this._handlerIndex, this._outlineColor);
-            } else if (this._lockId !== -1) {
-                this._lockId = -2;
+            } else if (this._lockId !== LOCK_FREE) {
+                this._lockId = LOCK_UPDATE;
             }
         }
     }
@@ -325,8 +326,8 @@ class Label extends BaseBillboard {
         if (this._isReady) {
             this._handler.setFontIndexArr(this._handlerIndex, this._fontIndex);
             this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align);
-        } else if (this._lockId !== -1) {
-            this._lockId = -2;
+        } else if (this._lockId !== LOCK_FREE) {
+            this._lockId = LOCK_UPDATE;
         }
     }
 
