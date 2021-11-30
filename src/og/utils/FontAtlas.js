@@ -145,7 +145,7 @@ class FontAtlas {
     }
 
     _createTexture(atlas, img) {
-        atlas.createTexture(img, this._handler.gl.RGBA8);
+        atlas.createTexture(img);
     }
 
     loadFont(faceName, srcDir, atlasUrl) {

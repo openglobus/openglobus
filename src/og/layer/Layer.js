@@ -28,7 +28,7 @@ export const FADING_FACTOR = 0.29;
  * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
  * @param {boolean} [options.isBaseLayer=false] - This is a base layer.
  * @param {boolean} [options.visibility=true] - Layer visibility.
- * @param {boolean} [options.isSRGB=true] - Layer image webgl nternal format.
+ * @param {boolean} [options.isSRGB=false] - Layer image webgl nternal format.
  * @param {Extent} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
  * @param {Vec3} [options.ambient=[0.3, 0.3, 0.3]] - Ambient RGB color.
  * @param {Vec3} [options.diffuse=[0.9, 0.9, 0.9]] - Diffuse RGB color.
@@ -189,7 +189,7 @@ class Layer {
 
         this._textureFilter = options.textureFilter ? options.textureFilter.trim().toUpperCase() : "MIPMAP";
 
-        this._isSRGB = options.isSRGB != undefined ? options.isSRGB : true;
+        this._isSRGB = options.isSRGB != undefined ? options.isSRGB : false;
 
         this._internalFormat = null;
 

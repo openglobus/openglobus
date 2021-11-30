@@ -81,26 +81,24 @@ function toQuadKey(x, y, z) {
 };
 
 let temp = new XYZ("temp", {
-    ambient: [0.05, 0.05, 0.05],
-    diffuse: [0.8, 0.9, 0.9],
+    ambient: [0.15, 0.15, 0.15],
+    diffuse: [0.75, 0.75, 0.75],
     isBaseLayer: true,
-    url: "//assets.msn.com/weathermapdata/1/temperaturerendered/112818/{x}_{y}_{z}_2021112903.jpg",
+    url: "//assets.msn.com/weathermapdata/1/temperaturerendered/112818/{x}_{y}_{z}_2021113007.jpg",
     visibility: true,
     attribution: 'Temperature',
     maxNativeZoom: 19,
-    isSRGB: true,
     textureFilter: "mipmap"
 });
 
 var borders = new XYZ("borders", {
-    diffuse: [0.6, 0.7, 0.7],
+    diffuse: [1.0, 1.0, 1.0],
     ambient: [0, 0, 0],
-    opacity: 1.4,
+    opacity: 1.0,
     isBaseLayer: false,
     textureFilter: "mipmap",
     url: "//t.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{quad}?mkt=en-us&it=Z,GF,L&shading=t&og=1638&n=z&ur=US&o=PNG&st=me|lv:0;v:0_wt|v:1_trs|v:1;lv:0;sc:FF6B6B6B;fc:FF6B6B6B;strokeWidthScale:0.2_cst|v:1;fc:FF000000;strokeWidthScale:0.5&cstl=weather&shdw=1&rs=1&dpi=d1",
     visibility: true,
-    isSRGB: false,
     urlRewrite: function (s, u) {
         return stringTemplate(u, {
             'quad': toQuadKey(s.tileX, s.tileY, s.tileZoom)
@@ -115,6 +113,7 @@ let osm = new XYZ("osm", {
     attribution: 'Data @ OpenStreetMap contributors, ODbL',
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#AAD3DF" }, { color: "#F2EFE9" }],
+    isSRGB: false
     //textureFilter: "linear"
 });
 
