@@ -113,7 +113,7 @@ class Layer {
          * @type {Object}
          */
         this.ambient = utils.createColorRGB(options.ambient, new Vec3(0.1, 0.1, 0.1));
-        this.diffuse = utils.createColorRGB(options.diffuse, new Vec3(0.73, 0.73, 0.73));
+        this.diffuse = utils.createColorRGB(options.diffuse, new Vec3(0.9, 0.9, 0.9));
         this.specular = utils.createColorRGB(options.specular, new Vec3(0.0003, 0.0003, 0.0003));
         this.shininess = options.shininess || 20.0;
 
