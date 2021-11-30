@@ -30,6 +30,10 @@
         import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
 
         var sat = new XYZ("MapQuest Satellite", {
+            shininess: 20,
+            specular: [0.00048, 0.00037, 0.00035],
+            diffuse: [0.88, 0.85, 0.8],
+            ambient: [0.15, 0.1, 0.23],
             isBaseLayer: false,
             url: "//tileproxy.cloud.mapquest.com/tiles/1.0.0/sat/{z}/{x}/{y}.png",
             visibility: true,
@@ -39,13 +43,16 @@
         });
 
         var osm = new XYZ("OpenStreetMap", {
+            specular: [0.0003, 0.00012, 0.00001],
             extent: [[42.3, 43.21], [42.6, 43.42]],
+            shininess: 20,
+            diffuse: [0.89, 0.9, 0.83],
             isBaseLayer: false,
             url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             visibility: true,
             attribution: 'Data @ OpenStreetMap contributors, ODbL',
             zIndex: 1,
-            opacity: 0.3
+            opacity: 0.7
         });
 
 
@@ -53,6 +60,8 @@
             fading: true,
             'visibility': true,
             'isBaseLayer': false,
+            'diffuse': [0, 0, 0],
+            'ambient': [1, 1, 1],
             'zIndex': 2,
             'pickingEnabled': false,
             'entities': [{
@@ -87,8 +96,6 @@
         });
 
         globus.planet.flyExtent(osm.getExtent());
-
-
     </script>
 </body>
 

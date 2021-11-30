@@ -1,4 +1,4 @@
-<html>
+﻿<html>
 
 <head>
     <title>OpenGlobus - Earth planet</title>
@@ -44,20 +44,10 @@
             window.globus1.planet.setTerrain(mapboxTerrain);
         };
 
-        let rastTerrain = new og.terrain.MapboxTerrain(null, {
-            maxZoom: 19,
-            url: /*"//terrain.openglobus.org/public/ma/{z}/{x}/{y}.png"//terrain.openglobus.org/public/oahu/{z}/{x}/{y}.png",*/ "//terrain.openglobus.org/public/waikato/{z}/{x}/{y}.png",
-            gridSizeByZoom: [
-                64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 16, 8, 4
-                //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 64, 64, 128, 128, 128, 128, 128, 128, 64, 32
-                //8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4
-            ]
-        });
-
         window.globus1 = new og.Globe({
             "target": "globus1",
             "name": "Earth One",
-            "terrain": rastTerrain,
+            "terrain": globusTerrain,
             "layers": [osm1],
             "viewExtent": EXTENT
         });
@@ -76,7 +66,7 @@
             attribution: 'Data @ OpenStreetMap contributors, ODbL'
         });
 
-        var highResTerrain = new og.terrain.MapboxTerrain(/*null, {
+        var highResTerrain = new og.terrain.MapboxTerrain(null, {
             maxZoom: 19,
             url: "//terrain.openglobus.org/public/256/{z}/{x}/{y}.png",
             //imageSize: 129,
@@ -85,7 +75,7 @@
                 64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 16, 8, 4
                 //8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4
             ]
-        }*/);
+        });
 
         window.globus2 = new og.Globe({
             "target": "globus2",

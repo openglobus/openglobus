@@ -16,7 +16,6 @@ import { LayerSwitcher } from "../../src/og/control/LayerSwitcher.js";
 //import { Vec3 } from '../../src/og/math/Vec3.js';
 import { SegmentBoundVisualization } from "../../src/og/control/SegmentBoundVisualization.js";
 import { stringTemplate } from "../../src/og/utils/shared.js";
-import { Lighting } from "../../src/og/control/Lighting.js";
 
 function toQuadKey(x, y, z) {
     var index = "";
@@ -32,7 +31,7 @@ function toQuadKey(x, y, z) {
 
 let bing = new XYZ("sat", {
     shininess: 20,
-    isBaseLayer: true,
+    isBaseLayer: false,
     subdomains: ["t0", "t1", "t2", "t3"],
     url: "https://ecn.{s}.tiles.virtualearth.net/tiles/a{quad}.jpeg?n=z&g=7146",
     visibility: true,
@@ -114,22 +113,12 @@ let osm = new XYZ("OSM", {
     attribution: "Data @ OpenStreetMap contributors, ODbL"
 });
 
-let ma = new XYZ("microavia", {
-    isBaseLayer: false,
-    opacity: 0.5,
-    url: "//openglobus.org/ma/{z}/{x}/{y}.png",
-    visibility: true,
-    attribution: "Data @ Microavia - 18.11.2021",
-    diffuse: [2, 2, 2],
-    ambient: [0, 0, 0],
-});
-
 let sat = new XYZ("Google Satellite", {
     shininess: 20,
-    isBaseLayer: true,
     specular: [0.00048, 0.00037, 0.00035],
     diffuse: [0.88, 0.85, 0.8],
     ambient: [0.15, 0.1, 0.23],
+    isBaseLayer: true,
     url: "https://khms1.googleapis.com/kh?v=894&hl=en-GB&x={x}&y={y}&z={z}",
     visibility: false,
     attribution: ``
@@ -151,12 +140,11 @@ let emptyTerrain = new EmptyTerrain(),
     }),
     rastTerrain = new MapboxTerrain(null, {
         maxZoom: 19,
-        url: "//terrain.openglobus.org/public/ma/{z}/{x}/{y}.png" /*"//terrain.openglobus.org/public/oahu/{z}/{x}/{y}.png", "//terrain.openglobus.org/public/waikato/{z}/{x}/{y}.png"*/,
+        url: /*"//terrain.openglobus.org/public/oahu/{z}/{x}/{y}.png",/*/ "//terrain.openglobus.org/public/256/{z}/{x}/{y}.png",
         //imageSize: 129,
         //plainGridSize: 128,
         gridSizeByZoom: [
-            //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 16, 8, 4
-            64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 64, 64, 128, 128, 128, 128, 128, 128, 64, 32
+            64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 16, 8, 4
             //8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4
         ]
         // urlRewrite: function (s, u) {
@@ -168,21 +156,11 @@ let emptyTerrain = new EmptyTerrain(),
         // }
     });
 
-let mat = new XYZ("MA RASTER", {
-    isBaseLayer: false,
-    url: "//terrain.openglobus.org/public/ma/{z}/{x}/{y}.png",
-    visibility: true,
-    attribution: "",
-    diffuse: [2, 2, 2],
-    ambient: [0, 0, 0],
-    opacity: 0.5
-});
-
 window.globe = new Globe({
     name: "Earth",
     target: "earth",
     terrain: rastTerrain,
-    layers: [osm, tg, ma, bing, sat, mat],
+    layers: [osm, tg],
     viewExtent: [-113.159, 37.176, -112.77, 37.32],
     maxGridSize: 256
     //useNightTexture: false,
@@ -209,4 +187,3 @@ globe.planet.addControl(
 //globe.planet.addControl(new SegmentBoundVisualization());
 globe.planet.addControl(new KeyboardNavigation());
 globe.planet.addControl(new LayerSwitcher());
-//globe.planet.addControl(new Lighting());

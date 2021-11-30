@@ -73,9 +73,9 @@ class Renderer {
          */
         this.handler = handler;
 
-        this.exposure = 3.01;
+        this.exposure = 4;
 
-        this.gamma = 0.47;
+        this.gamma = 0.5;
 
         this.whitepoint = 1.0;
 
@@ -159,10 +159,12 @@ class Renderer {
 
         this.depthFramebuffer = null;
 
-        this._msaa = params.msaa || 4;
+        this._msaa = params.msaa || 8;
         this._internalFormat = "RGBA16F";
         this._format = "RGBA";
         this._type = "FLOAT";
+
+        this._screenScale = params.screenScale || 1.0;
 
         this.sceneFramebuffer = null;
 
@@ -220,6 +222,11 @@ class Renderer {
      */
     setEventsActivity(activity) {
         this.events.active = activity;
+    }
+
+    setScreenScale(scale) {
+        this._screenScale = scale;
+        this._resize();
     }
 
     addDepthCallback(sender, callback) {
@@ -326,7 +333,7 @@ class Renderer {
      * @returns {number} -
      */
     getWidth() {
-        return this.handler.canvas.clientWidth;
+        return this.handler.canvas.width;
     }
 
     /**
@@ -335,7 +342,7 @@ class Renderer {
      * @returns {number} -
      */
     getHeight() {
-        return this.handler.canvas.clientHeight;
+        return this.handler.canvas.height;
     }
 
     /**
@@ -345,7 +352,7 @@ class Renderer {
      */
     getCenter() {
         var cnv = this.handler.canvas;
-        return new Vec2(Math.round(cnv.clientWidth * 0.5), Math.round(cnv.clientHeight * 0.5));
+        return new Vec2(Math.round(cnv.width * 0.5), Math.round(cnv.height * 0.5));
     }
 
     /**
@@ -472,7 +479,7 @@ class Renderer {
                 internalFormat: this._internalFormat,
                 format: this._format,
                 type: this._type,
-                filter: "NEAREST"
+                filter: "LINEAR"
             }).init();
 
             this.toneMappingFramebuffer = new Framebuffer(this.handler, {
@@ -519,21 +526,24 @@ class Renderer {
     }
 
     _resize() {
-        let c = this.handler.canvas;
-        this.activeCamera.setAspectRatio(c.width / c.height);
-        this.sceneFramebuffer.setSize(c.width, c.height);
-
+        let obj = this.handler.canvas;
+        this.activeCamera.setAspectRatio(obj.clientWidth / obj.clientHeight);
+        this.sceneFramebuffer.setSize(
+            obj.clientWidth * this._screenScale,
+            obj.clientHeight * this._screenScale
+        );
         this.blitFramebuffer &&
-            this.blitFramebuffer.setSize(c.width, c.height, true);
-
+            this.blitFramebuffer.setSize(
+                obj.clientWidth * this._screenScale,
+                obj.clientHeight * this._screenScale,
+                true
+            );
         this.toneMappingFramebuffer &&
-            this.toneMappingFramebuffer.setSize(c.width, c.height, true);
-
+            this.toneMappingFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
         this.depthFramebuffer &&
-            this.depthFramebuffer.setSize(c.width, c.height, true);
-
+            this.depthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
         this.screenDepthFramebuffer &&
-            this.screenDepthFramebuffer.setSize(c.width, c.height, true);
+            this.screenDepthFramebuffer.setSize(obj.clientWidth, obj.clientHeight, true);
 
         if (this.handler.gl.type === "webgl") {
             this.screenTexture.screen = this.sceneFramebuffer.textures[0];
@@ -855,7 +865,7 @@ class Renderer {
     getPickingObject(x, y) {
         let cnv = this.renderer.handler.canvas,
             c = new Uint8Array(3);
-        this.readPixels(c, x / cnv.clientWidth, (cnv.clientHeight - y) / cnv.clientHeight, 1);
+        this.readPixels(c, x / cnv.width, (cnv.height - y) / cnv.height, 1);
         return this.colorObjects[c[0] + "_" + c[1] + "_" + c[2]];
     }
 
