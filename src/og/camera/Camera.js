@@ -504,7 +504,7 @@ class Camera {
     project(v) {
         var r = this.frustums[0]._projectionViewMatrix.mulVec4(v.toVec4()),
             c = this.renderer.handler.canvas;
-        return new Vec2((1 + r.x / r.w) * c.clientWidth * 0.5, (1 - r.y / r.w) * c.clientHeight * 0.5);
+        return new Vec2((1 + r.x / r.w) * c.width * 0.5, (1 - r.y / r.w) * c.height * 0.5);
     }
 
     /**
