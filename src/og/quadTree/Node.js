@@ -292,14 +292,9 @@ class Node {
                 seg._collectVisibleNodes();
             }
 
-            //if (!altVis && maxZoom) {
-            //    this.state = NOTRENDERING;
-            //    return;
-            //}
-
             if (seg.tileZoom < 2 && seg.normalMapReady) {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
-            } else if ((!maxZoom && seg.acceptForRendering(cam)) || seg.tileZoom === maxZoom /*|| !altVis && maxZoom*/) {
+            } else if ((!maxZoom && seg.acceptForRendering(cam)) || seg.tileZoom === maxZoom || !altVis && maxZoom) {
                 this.prepareForRendering(cam, altVis, this.inFrustum, terrainReadySegment, stopLoading);
             } else if (seg.tileZoom < planet.terrain._maxNodeZoom && seg.terrainReady) {
                 // Deleting terrainReady here, you have to remove
