@@ -50,7 +50,7 @@
     height: 19px;
     position: absolute;
     background-color: rgba(22, 76, 155, 1) !important;
-    z-index: 20000;
+    z-index: 12000;
 }
 
 .ogAttribution {
@@ -153,7 +153,7 @@
     right: 0px;
     width: 17em;
     background-color: rgba(22, 76, 155, 0.4);
-    z-index: 15000;
+    z-index: 5000;
     padding: 0 0 0 10px;
     font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
     border-radius: 2px;

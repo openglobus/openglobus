@@ -189,7 +189,14 @@ class BaseBillboard {
      * @param {Vec2} offset - Offset size.
      */
     setOffset3v(offset) {
-        this.setOffset(offset.x, offset.y, offset.z);
+        this._offset.x = offset.x;
+        this._offset.y = offset.y;
+        offset.z != undefined && (this._offset.z = offset.z);
+        if (this._isReady) {
+            this._handler.setOffsetArr(this._handlerIndex, offset);
+        } else if (this._lockId !== -1) {
+            this._lockId = -2;
+        }
     }
 
     /**
@@ -207,13 +214,11 @@ class BaseBillboard {
      * @param {number} rotation - Screen space rotation in radians.
      */
     setRotation(rotation) {
-        if (rotation !== this._rotation) {
-            this._rotation = rotation;
-            if (this._isReady) {
-                this._handler.setRotationArr(this._handlerIndex, rotation);
-            } else if (this._lockId !== -1) {
-                this._lockId = -2;
-            }
+        this._rotation = rotation;
+        if (this._isReady) {
+            this._handler.setRotationArr(this._handlerIndex, rotation);
+        } else if (this._lockId !== -1) {
+            this._lockId = -2;
         }
     }
 
@@ -232,14 +237,8 @@ class BaseBillboard {
      * @param {number} a - Billboard opacity.
      */
     setOpacity(a) {
-        if (a !== this._color.w) {
-            a != undefined && (this._color.w = a);
-            if (this._isReady) {
-                this._handler.setRgbaArr(this._handlerIndex, this._color);
-            } else if (this._lockId !== -1) {
-                this._lockId = -2;
-            }
-        }
+        this._color.w = a;
+        this.setColor(this._color.x, this._color.y, this._color.z, a);
     }
 
     /**
@@ -251,16 +250,14 @@ class BaseBillboard {
      * @param {number} a - Alpha.
      */
     setColor(r, g, b, a) {
-        if (a !== this._color.w || r !== this._color.x || g !== this._color.y || this._color.z !== b) {
-            this._color.x = r;
-            this._color.y = g;
-            this._color.z = b;
-            a != undefined && (this._color.w = a);
-            if (this._isReady) {
-                this._handler.setRgbaArr(this._handlerIndex, this._color);
-            } else if (this._lockId !== -1) {
-                this._lockId = -2;
-            }
+        this._color.x = r;
+        this._color.y = g;
+        this._color.z = b;
+        a != undefined && (this._color.w = a);
+        if (this._isReady) {
+            this._handler.setRgbaArr(this._handlerIndex, this._color);
+        } else if (this._lockId !== -1) {
+            this._lockId = -2;
         }
     }
 
@@ -270,7 +267,15 @@ class BaseBillboard {
      * @param {Vec4} color - RGBA vector.
      */
     setColor4v(color) {
-        this.setColor(color.x, color.y, color.z, color.w);
+        this._color.x = color.x;
+        this._color.y = color.y;
+        this._color.z = color.z;
+        color.w != undefined && (this._color.w = color.w);
+        if (this._isReady) {
+            this._handler.setRgbaArr(this._handlerIndex, color);
+        } else if (this._lockId !== -1) {
+            this._lockId = -2;
+        }
     }
 
     /**
@@ -297,13 +302,11 @@ class BaseBillboard {
      * @param {boolean} visibility - Visibility flag.
      */
     setVisibility(visibility) {
-        if (visibility !== this._visibility) {
-            this._visibility = visibility;
-            if (this._isReady) {
-                this._handler.setVisibility(this._handlerIndex, visibility);
-            } else if (this._lockId !== -1) {
-                this._lockId = -2;
-            }
+        this._visibility = visibility;
+        if (this._isReady) {
+            this._handler.setVisibility(this._handlerIndex, visibility);
+        } else if (this._lockId !== -1) {
+            this._lockId = -2;
         }
     }
 
@@ -340,7 +343,14 @@ class BaseBillboard {
      * @param {math.Vecto3} alignedAxis - Vector to align.
      */
     setAlignedAxis3v(alignedAxis) {
-        this.setAlignedAxis(alignedAxis.x, alignedAxis.y, alignedAxis.z);
+        this._alignedAxis.x = alignedAxis.x;
+        this._alignedAxis.y = alignedAxis.y;
+        this._alignedAxis.z = alignedAxis.z;
+        if (this._isReady) {
+            this._handler.setAlignedAxisArr(this._handlerIndex, alignedAxis);
+        } else if (this._lockId !== -1) {
+            this._lockId = -2;
+        }
     }
 
     /**

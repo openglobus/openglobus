@@ -138,14 +138,10 @@ class FontAtlas {
 
         let img = new Image();
         img.onload = () => {
-            this._createTexture(atlas, img);
+            atlas.createTexture(img);
             def.resolve(index);
         };
         img.src = ARIAL_FONT_B64;
-    }
-
-    _createTexture(atlas, img) {
-        atlas.createTexture(img);
     }
 
     loadFont(faceName, srcDir, atlasUrl) {
@@ -187,7 +183,7 @@ class FontAtlas {
 
                 let img = new Image();
                 img.onload = () => {
-                    this._createTexture(atlas, img);
+                    atlas.createTexture(img);
                     def.resolve(index);
                 };
 
