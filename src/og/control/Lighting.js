@@ -32,14 +32,6 @@ const TEMPLATE = `<div class="og-lighing">
        </div>      
       
        <div class="og-color-options">
-         <div class="og-caption">Opacity</div>
-         <div class="og-option">
-            <div class="og-label">A</div>
-            <div class="og-slider">
-                <input type="range" id="opacity" name="opacity" value="0.0" min="0.0" max="2.0" step="0.01" />
-            </div>
-            <div class="og-value opacity"></div>
-         </div>
          <div class="og-caption">Ambient</div>
          <div class="og-option">
             <div class="og-label">R</div>
@@ -123,6 +115,15 @@ const TEMPLATE = `<div class="og-lighing">
          <div class="og-caption">Select layer:</div>
          <select id="layers"></select>
        </div>
+
+        <div class="og-caption">Opacity</div>
+            <div class="og-option">
+            <div class="og-label">A</div>
+            <div class="og-slider">
+                <input type="range" id="opacity" name="opacity" value="0.0" min="0.0" max="2.0" step="0.01" />
+            </div>
+            <div class="og-value opacity"></div>
+        </div>
 
     </div>`;
 

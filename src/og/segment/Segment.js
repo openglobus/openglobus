@@ -22,11 +22,13 @@ var _RenderingSlice = function (p) {
     this.layers = [];
     this.tileOffsetArr = new Float32Array(p.SLICE_SIZE_4);
     this.visibleExtentOffsetArr = new Float32Array(p.SLICE_SIZE_4);
+    this.layerOpacityArr = new Float32Array(p.SLICE_SIZE);
 
     this.clear = function () {
         this.layers = null;
         this.tileOffsetArr = null;
         this.visibleExtentOffsetArr = null;
+        this.layerOpacityArr = null;
     };
 };
 
@@ -988,9 +990,6 @@ class Segment {
         this.vertexPositionBufferLow = null;
         this.vertexTextureCoordBuffer = null;
 
-        this._tileOffsetArr = null;
-        this._visibleExtentOffsetArr = null;
-
         this._projection = null;
         this._appliedNeighborsZoom = null;
 
@@ -1511,8 +1510,7 @@ class Segment {
 
                 slice.layers.push(li);
 
-                var n4 = n * 4,
-                    n3 = n * 3;
+                var n4 = n * 4;
 
                 var arr = li.applyMaterial(m);
                 slice.tileOffsetArr[n4] = arr[0];
@@ -1525,6 +1523,8 @@ class Segment {
                 slice.visibleExtentOffsetArr[n4 + 1] = arr[1];
                 slice.visibleExtentOffsetArr[n4 + 2] = arr[2];
                 slice.visibleExtentOffsetArr[n4 + 3] = arr[3];
+
+                slice.layerOpacityArr[n] = li.opacity;
 
                 p._samplerArr[n] = n;
 
@@ -1543,6 +1543,7 @@ class Segment {
             gl.uniform1iv(shu.samplerArr, p._samplerArr);
             gl.uniform4fv(shu.tileOffsetArr, slice.tileOffsetArr);
             gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
+            gl.uniform1fv(shu.layerOpacityArr, slice.layerOpacityArr);
 
             // bind normalmap texture
             if (p.lightEnabled) {
@@ -1622,6 +1623,7 @@ class Segment {
             gl.uniform1iv(shu.samplerArr, p._samplerArr);
             gl.uniform4fv(shu.tileOffsetArr, slice.tileOffsetArr);
             gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
+            gl.uniform1fv(shu.layerOpacityArr, slice.layerOpacityArr);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
             gl.vertexAttribPointer(
@@ -1697,6 +1699,7 @@ class Segment {
             gl.uniform1iv(shu.pickingMaskArr, p._pickingMaskArr);
             gl.uniform4fv(shu.tileOffsetArr, slice.tileOffsetArr);
             gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
+            gl.uniform1fv(shu.layerOpacityArr, slice.layerOpacityArr);
             gl.uniform4fv(shu.pickingColorArr, p._pickingColorArr);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
@@ -1765,6 +1768,7 @@ class Segment {
             gl.uniform1iv(shu.samplerArr, p._samplerArr);
             gl.uniform4fv(shu.tileOffsetArr, slice.tileOffsetArr);
             gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
+            gl.uniform1fv(shu.layerOpacityArr, slice.layerOpacityArr);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
             gl.vertexAttribPointer(

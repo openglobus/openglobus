@@ -382,8 +382,6 @@ export class Planet extends RenderNode {
         this._maxLodRatio = MAX_LOD;
         this._minLodRatio = MIN_LOD;
 
-        this._tileOffsetArr = new Float32Array(this.SLICE_SIZE_4);
-        this._visibleExtentOffsetArr = new Float32Array(this.SLICE_SIZE_4);
         this._pickingColorArr = new Float32Array(this.SLICE_SIZE_3);
         this._samplerArr = new Int32Array(this.SLICE_SIZE);
         this._pickingMaskArr = new Int32Array(this.SLICE_SIZE);
