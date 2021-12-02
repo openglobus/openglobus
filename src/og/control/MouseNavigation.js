@@ -48,6 +48,8 @@ class MouseNavigation extends Control {
 
         this.minSlope = options.minSlope || 0.1;
 
+        this._wheelDirection = +1;
+
         this._keyLock = new Key();
     }
 
@@ -225,6 +227,9 @@ class MouseNavigation extends Control {
             event.wheelDelta > 0,
             ms.direction
         );
+
+        this._wheelDirection = event.wheelDelta;
+
         if (this.stepsForward) {
             this.stepIndex = this.stepsCount;
         }
@@ -385,10 +390,11 @@ class MouseNavigation extends Control {
                 r.controlsBag.scaleRot = 1.0;
                 var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
 
-                let maxAlt = cam.maxAltitude + this.planet.ellipsoid._a;
-                let minAlt = cam.minAltitude + this.planet.ellipsoid._a;
+                let maxAlt = cam.maxAltitude + this.planet.ellipsoid._b;
+                let minAlt = cam.minAltitude + this.planet.ellipsoid._b;
                 const camAlt = sf.eye.length();
-                if (camAlt > maxAlt || camAlt < minAlt) {
+                if (camAlt > maxAlt || camAlt < minAlt && this._wheelDirection > 0) {
+                    this._wheelDirection = +1;
                     return;
                 }
 
