@@ -600,22 +600,24 @@ export function drawnode_heightPicking() {
 
                 vec4 t = texture2D( samplerArr[0], tileOffsetArr[0].xy + vTextureCoord * tileOffsetArr[0].zw );
                 gl_FragColor = mix( gl_FragColor, vec4(encode24(range), 1.0), 1.0);
-                if( samplerCount == 1 ) return;
+                //
+                // TODO: Seems to be it is not necessary
+                //if( samplerCount == 1 ) return;
 
-                t = texture2D( samplerArr[1], tileOffsetArr[1].xy + vTextureCoord * tileOffsetArr[1].zw );
-                gl_FragColor = mix( gl_FragColor, vec4(encode24(range), 1.0), 1.0);
-                if( samplerCount == 2 ) return;
+                //t = texture2D( samplerArr[1], tileOffsetArr[1].xy + vTextureCoord * tileOffsetArr[1].zw );
+                //gl_FragColor = mix( gl_FragColor, vec4(encode24(range), 1.0), 1.0);
+                //if( samplerCount == 2 ) return;
 
-                t = texture2D( samplerArr[2], tileOffsetArr[2].xy + vTextureCoord * tileOffsetArr[2].zw );
-                gl_FragColor = mix( gl_FragColor, vec4(encode24(range), 1.0), 1.0);
-                if( samplerCount == 3 ) return;
+                //t = texture2D( samplerArr[2], tileOffsetArr[2].xy + vTextureCoord * tileOffsetArr[2].zw );
+                //gl_FragColor = mix( gl_FragColor, vec4(encode24(range), 1.0), 1.0);
+                //if( samplerCount == 3 ) return;
 
-                t = texture2D( samplerArr[3], tileOffsetArr[3].xy + vTextureCoord * tileOffsetArr[3].zw );
-                gl_FragColor = mix( gl_FragColor, vec4(encode24(range), 1.0), 1.0);
-                if( samplerCount == 4 ) return;
+                //t = texture2D( samplerArr[3], tileOffsetArr[3].xy + vTextureCoord * tileOffsetArr[3].zw );
+                //gl_FragColor = mix( gl_FragColor, vec4(encode24(range), 1.0), 1.0);
+                //if( samplerCount == 4 ) return;
 
-                t = texture2D( samplerArr[4], tileOffsetArr[4].xy + vTextureCoord * tileOffsetArr[4].zw );
-                gl_FragColor = mix( gl_FragColor, vec4(encode24(range), 1.0), 1.0);
+                //t = texture2D( samplerArr[4], tileOffsetArr[4].xy + vTextureCoord * tileOffsetArr[4].zw );
+                //gl_FragColor = mix( gl_FragColor, vec4(encode24(range), 1.0), 1.0);
             }`
     });
 }
@@ -688,22 +690,25 @@ export function drawnode_depth() {
 
             vec4 t = texture(samplerArr[0], tileOffsetArr[0].xy + vTextureCoord * tileOffsetArr[0].zw);
             frustumColor = mix(frustumColor, vec4(frustumPickingColor, 1.0), 1.0);
-            if (samplerCount == 1) return;
 
-            t = texture(samplerArr[1], tileOffsetArr[1].xy + vTextureCoord * tileOffsetArr[1].zw);
-            frustumColor = mix(frustumColor, vec4(frustumPickingColor, 1.0), 1.0);
-            if (samplerCount == 2) return;
+            //
+            // TODO: Seems to be it is not necessary
+            //if (samplerCount == 1) return;
 
-            t = texture(samplerArr[2], tileOffsetArr[2].xy + vTextureCoord * tileOffsetArr[2].zw);
-            frustumColor = mix(frustumColor, vec4(frustumPickingColor, 1.0), 1.0);
-            if (samplerCount == 3) return;
+            //t = texture(samplerArr[1], tileOffsetArr[1].xy + vTextureCoord * tileOffsetArr[1].zw);
+            //frustumColor = mix(frustumColor, vec4(frustumPickingColor, 1.0), 1.0);
+            //if (samplerCount == 2) return;
 
-            t = texture(samplerArr[3], tileOffsetArr[3].xy + vTextureCoord * tileOffsetArr[3].zw);
-            frustumColor = mix(frustumColor, vec4(frustumPickingColor, 1.0), 1.0);
-            if (samplerCount == 4) return;
+            //t = texture(samplerArr[2], tileOffsetArr[2].xy + vTextureCoord * tileOffsetArr[2].zw);
+            //frustumColor = mix(frustumColor, vec4(frustumPickingColor, 1.0), 1.0);
+            //if (samplerCount == 3) return;
 
-            t = texture(samplerArr[4], tileOffsetArr[4].xy + vTextureCoord * tileOffsetArr[4].zw);
-            frustumColor = mix(frustumColor, vec4(frustumPickingColor, 1.0), 1.0);
+            //t = texture(samplerArr[3], tileOffsetArr[3].xy + vTextureCoord * tileOffsetArr[3].zw);
+            //frustumColor = mix(frustumColor, vec4(frustumPickingColor, 1.0), 1.0);
+            //if (samplerCount == 4) return;
+
+            //t = texture(samplerArr[4], tileOffsetArr[4].xy + vTextureCoord * tileOffsetArr[4].zw);
+            //frustumColor = mix(frustumColor, vec4(frustumPickingColor, 1.0), 1.0);
         } `
     });
 }
