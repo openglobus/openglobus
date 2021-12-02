@@ -73,7 +73,7 @@ class MouseNavigation extends Control {
             var d = a ? (delta * cam.eye.distance(a)) / stepsCount : 1000;
 
             if (forward) {
-                d = -d;
+                d = -1.25*d;
             } else {
                 d *= 2;
             }
@@ -386,8 +386,9 @@ class MouseNavigation extends Control {
                 var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
 
                 let maxAlt = cam.maxAltitude + this.planet.ellipsoid._a;
-
-                if (sf.eye.length() > maxAlt) {
+                let minAlt = cam.minAltitude + this.planet.ellipsoid._a;
+                const camAlt = sf.eye.length();
+                if (camAlt > maxAlt || camAlt < minAlt) {
                     return;
                 }
 
