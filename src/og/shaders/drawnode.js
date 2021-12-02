@@ -520,39 +520,41 @@ export function drawnode_colorPicking() {
                 gl_FragColor = vec4(0.0);
                 if( samplerCount == 0 ) return;
 
+                vec3 transparentColorArr = vec3(-1.0);
+
                 vec2 tc = tileOffsetArr[0].xy + vTextureCoord.xy * tileOffsetArr[0].zw;
                 float ins = insideBox(visibleExtentOffsetArr[0].xy + vTextureCoord.xy * visibleExtentOffsetArr[0].zw);
                 vec4 t = texture2D( samplerArr[0], tc ) * ins;
                 vec4 p = texture2D( pickingMaskArr[0], tc ) * ins;
-                gl_FragColor = mix( gl_FragColor, vec4(max(pickingColorArr[0].rgb, p.rgb), 1.0), pickingColorArr[0].a);
+                gl_FragColor = mix( gl_FragColor, vec4(max(pickingColorArr[0].rgb, p.rgb), 1.0), t.a * pickingColorArr[0].a);
                 if( samplerCount == 1 ) return;
 
                 tc = tileOffsetArr[1].xy + vTextureCoord.xy * tileOffsetArr[1].zw;
                 ins = insideBox(visibleExtentOffsetArr[1].xy + vTextureCoord.xy * visibleExtentOffsetArr[1].zw);
                 t = texture2D( samplerArr[1], tc ) * ins;
                 p = texture2D( pickingMaskArr[1], tc ) * ins;
-                gl_FragColor = mix( gl_FragColor, vec4(max(pickingColorArr[1].rgb, p.rgb), 1.0), pickingColorArr[1].a);
+                gl_FragColor = mix( gl_FragColor, vec4(max(pickingColorArr[1].rgb, p.rgb), 1.0), t.a * pickingColorArr[1].a);
                 if( samplerCount == 2 ) return;
 
                 tc = tileOffsetArr[2].xy + vTextureCoord.xy * tileOffsetArr[2].zw;
                 ins = insideBox(visibleExtentOffsetArr[2].xy + vTextureCoord.xy * visibleExtentOffsetArr[2].zw);
                 t = texture2D( samplerArr[2], tc ) * ins;
                 p = texture2D( pickingMaskArr[2], tc ) * ins;
-                gl_FragColor = mix( gl_FragColor, vec4(max(pickingColorArr[2].rgb, p.rgb), 1.0), pickingColorArr[2].a);
+                gl_FragColor = mix( gl_FragColor, vec4(max(pickingColorArr[2].rgb, p.rgb), 1.0), t.a * pickingColorArr[2].a);
                 if( samplerCount == 3 ) return;
 
                 tc = tileOffsetArr[3].xy + vTextureCoord.xy * tileOffsetArr[3].zw;
                 ins = insideBox(visibleExtentOffsetArr[3].xy + vTextureCoord.xy * visibleExtentOffsetArr[3].zw);
                 t = texture2D( samplerArr[3], tc ) * ins;
                 p = texture2D( pickingMaskArr[3], tc ) * ins;
-                gl_FragColor = mix( gl_FragColor, vec4(max(pickingColorArr[3].rgb, p.rgb), 1.0), pickingColorArr[3].a);
+                gl_FragColor = mix( gl_FragColor, vec4(max(pickingColorArr[3].rgb, p.rgb), 1.0), t.a * pickingColorArr[3].a);
                 if( samplerCount == 4 ) return;
 
                 tc = tileOffsetArr[4].xy + vTextureCoord.xy * tileOffsetArr[4].zw;
                 ins = insideBox(visibleExtentOffsetArr[4].xy + vTextureCoord.xy * visibleExtentOffsetArr[4].zw);
                 t = texture2D( samplerArr[4], tc ) * ins;
                 p = texture2D( pickingMaskArr[4], tc ) * ins;
-                gl_FragColor = mix( gl_FragColor, vec4(max(pickingColorArr[4].rgb, p.rgb), 1.0), pickingColorArr[4].a);
+                gl_FragColor = mix( gl_FragColor, vec4(max(pickingColorArr[4].rgb, p.rgb), 1.0), t.a * pickingColorArr[4].a);
             }`
     });
 }

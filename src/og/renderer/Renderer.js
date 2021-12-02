@@ -864,7 +864,7 @@ class Renderer {
      * @private
      */
     _drawPickingBuffer(frustumIndex) {
-        if (this.events.mouseState.anyEvent()) {
+        if (/*this.events.mouseState.anyEvent()*/true) {
             this.pickingFramebuffer.activate();
 
             var h = this.handler;
