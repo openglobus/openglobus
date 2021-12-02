@@ -382,7 +382,7 @@ export class Planet extends RenderNode {
         this._maxLodRatio = MAX_LOD;
         this._minLodRatio = MIN_LOD;
 
-        this._pickingColorArr = new Float32Array(this.SLICE_SIZE_3);
+        this._pickingColorArr = new Float32Array(this.SLICE_SIZE_4);
         this._samplerArr = new Int32Array(this.SLICE_SIZE);
         this._pickingMaskArr = new Int32Array(this.SLICE_SIZE);
 
@@ -623,11 +623,8 @@ export class Planet extends RenderNode {
         var h = this.renderer.handler;
 
         h.addProgram(shaders.drawnode_screen_nl(), true);
-
         //h.addProgram(shaders.drawnode_screen_wl(), true);
-
         h.addProgram(shaders.drawnode_screen_wl_webgl2(), true);
-
         h.addProgram(shaders.drawnode_colorPicking(), true);
         h.addProgram(shaders.drawnode_depth(), true);
         h.addProgram(shaders.drawnode_heightPicking(), true);

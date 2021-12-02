@@ -101,7 +101,9 @@ class XYZ extends Layer {
      * @public
      */
     abortLoading() {
-        this._planet._tileLoader.abort();
+        if (this._planet) {
+            this._planet._tileLoader.abort();
+        }
     }
 
     /**

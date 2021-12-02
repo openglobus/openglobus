@@ -133,7 +133,7 @@ class BaseBillboard {
         this._position.y = y;
         this._position.z = z;
         Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
-        if (this._isReady) {
+        if (this._isReady && this._handler) {
             this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
         } else if (this._lockId !== LOCK_FREE) {
             this._lockId = LOCK_UPDATE;
@@ -150,7 +150,7 @@ class BaseBillboard {
         this._position.y = position.y;
         this._position.z = position.z;
         Vec3.doubleToTwoFloats(position, this._positionHigh, this._positionLow);
-        if (this._isReady) {
+        if (this._isReady && this._handler) {
             this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
         } else if (this._lockId !== LOCK_FREE) {
             this._lockId = LOCK_UPDATE;
@@ -177,7 +177,7 @@ class BaseBillboard {
         this._offset.x = x;
         this._offset.y = y;
         z != undefined && (this._offset.z = z);
-        if (this._isReady) {
+        if (this._isReady && this._handler) {
             this._handler.setOffsetArr(this._handlerIndex, this._offset);
         } else if (this._lockId !== LOCK_FREE) {
             this._lockId = LOCK_UPDATE;
@@ -210,7 +210,7 @@ class BaseBillboard {
     setRotation(rotation) {
         if (rotation !== this._rotation) {
             this._rotation = rotation;
-            if (this._isReady) {
+            if (this._isReady && this._handler) {
                 this._handler.setRotationArr(this._handlerIndex, rotation);
             } else if (this._lockId !== LOCK_FREE) {
                 this._lockId = LOCK_UPDATE;
@@ -235,7 +235,7 @@ class BaseBillboard {
     setOpacity(a) {
         if (a !== this._color.w) {
             a != undefined && (this._color.w = a);
-            if (this._isReady) {
+            if (this._isReady && this._handler) {
                 this._handler.setRgbaArr(this._handlerIndex, this._color);
             } else if (this._lockId !== LOCK_FREE) {
                 this._lockId = LOCK_UPDATE;
@@ -257,7 +257,7 @@ class BaseBillboard {
             this._color.y = g;
             this._color.z = b;
             a != undefined && (this._color.w = a);
-            if (this._isReady) {
+            if (this._isReady && this._handler) {
                 this._handler.setRgbaArr(this._handlerIndex, this._color);
             } else if (this._lockId !== LOCK_FREE) {
                 this._lockId = LOCK_UPDATE;
@@ -300,7 +300,7 @@ class BaseBillboard {
     setVisibility(visibility) {
         if (visibility !== this._visibility) {
             this._visibility = visibility;
-            if (this._isReady) {
+            if (this._isReady && this._handler) {
                 this._handler.setVisibility(this._handlerIndex, visibility);
             } else if (this._lockId !== LOCK_FREE) {
                 this._lockId = LOCK_UPDATE;
@@ -328,7 +328,7 @@ class BaseBillboard {
         this._alignedAxis.x = x;
         this._alignedAxis.y = y;
         this._alignedAxis.z = z;
-        if (this._isReady) {
+        if (this._isReady && this._handler) {
             this._handler.setAlignedAxisArr(this._handlerIndex, this._alignedAxis);
         } else if (this._lockId !== LOCK_FREE) {
             this._lockId = LOCK_UPDATE;
@@ -368,7 +368,7 @@ class BaseBillboard {
      * @param {Vec3} color - Picking color.
      */
     setPickingColor3v(color) {
-        if (this._isReady) {
+        if (this._isReady && this._handler) {
             this._handler.setPickingColorArr(this._handlerIndex, color);
         } else if (this._lockId !== LOCK_FREE) {
             this._lockId = LOCK_UPDATE;

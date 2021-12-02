@@ -12,12 +12,25 @@ import { Box } from "../bv/Box.js";
 import { Vec3 } from "../math/Vec3.js";
 import * as segmentHelper from "../segment/segmentHelper.js";
 import { getMatrixSubArray } from "../utils/shared.js";
-import { Slice } from "./Slice.js";
 
 export const MAX_NORMAL_ZOOM = 7;
 
 var _tempHigh = new Vec3();
 var _tempLow = new Vec3();
+
+var _RenderingSlice = function (p) {
+    this.layers = [];
+    this.tileOffsetArr = new Float32Array(p.SLICE_SIZE_4);
+    this.visibleExtentOffsetArr = new Float32Array(p.SLICE_SIZE_4);
+    this.layerOpacityArr = new Float32Array(p.SLICE_SIZE);
+
+    this.clear = function () {
+        this.layers = null;
+        this.tileOffsetArr = null;
+        this.visibleExtentOffsetArr = null;
+        this.layerOpacityArr = null;
+    };
+};
 
 let _v0 = new Vec3(),
     _v1 = new Vec3(),
@@ -228,7 +241,7 @@ class Segment {
         this._inTheQueue = false;
         this._appliedNeighborsZoom = [0, 0, 0, 0];
 
-        this._slices = [];
+        this._renderingSlices = [];
 
         this._indexBuffer = null;
 
@@ -933,12 +946,12 @@ class Segment {
 
         this.clearSegment();
 
-        var i = this._slices.length;
+        var i = this._renderingSlices.length;
         while (i--) {
-            this._slices[i].clear();
+            this._renderingSlices[i].clear();
         }
 
-        this._slices = null;
+        this._renderingSlices = null;
 
         this.node = null;
 
@@ -1088,10 +1101,10 @@ class Segment {
                     v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
 
                 let vn = new Vec3(
-                    bigOne[3] - bigOne[0],
-                    bigOne[4] - bigOne[1],
-                    bigOne[5] - bigOne[2]
-                ),
+                        bigOne[3] - bigOne[0],
+                        bigOne[4] - bigOne[1],
+                        bigOne[5] - bigOne[2]
+                    ),
                     vw = new Vec3(
                         bigOne[6] - bigOne[0],
                         bigOne[7] - bigOne[1],
@@ -1275,13 +1288,13 @@ class Segment {
             n.sideSize[2] =
             n.sideSize[3] =
             this.gridSize =
-            p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize;
+                p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize;
 
         n.sideSizeLog2[0] =
             n.sideSizeLog2[1] =
             n.sideSizeLog2[2] =
             n.sideSizeLog2[3] =
-            Math.log2(p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize);
+                Math.log2(p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize);
 
         if (this.tileZoom <= p.terrain.maxZoom) {
             var nmc = this.planet._normalMapCreator;
@@ -1468,12 +1481,11 @@ class Segment {
 
         var notEmpty = false;
 
-        var slice = this._slices[sliceIndex];
+        var slice = this._renderingSlices[sliceIndex];
 
         if (!slice) {
-            slice = this._slices[sliceIndex] = new Slice(this);
+            slice = this._renderingSlices[sliceIndex] = new _RenderingSlice(p);
         } else {
-            //TODO: optimization!!!
             slice.layers = [];
         }
 
@@ -1496,7 +1508,23 @@ class Segment {
                     this.planet._renderCompleted = false;
                 }
 
-                slice.append(li, m);
+                slice.layers.push(li);
+
+                var n4 = n * 4;
+
+                var arr = li.applyMaterial(m);
+                slice.tileOffsetArr[n4] = arr[0];
+                slice.tileOffsetArr[n4 + 1] = arr[1];
+                slice.tileOffsetArr[n4 + 2] = arr[2];
+                slice.tileOffsetArr[n4 + 3] = arr[3];
+
+                arr = this._getLayerExtentOffset(li);
+                slice.visibleExtentOffsetArr[n4] = arr[0];
+                slice.visibleExtentOffsetArr[n4 + 1] = arr[1];
+                slice.visibleExtentOffsetArr[n4 + 2] = arr[2];
+                slice.visibleExtentOffsetArr[n4 + 3] = arr[3];
+
+                slice.layerOpacityArr[n] = li.opacity;
 
                 p._samplerArr[n] = n;
 
@@ -1513,12 +1541,9 @@ class Segment {
             gl.uniform1i(shu.samplerCount, n);
             gl.uniform1f(shu.height, currHeight);
             gl.uniform1iv(shu.samplerArr, p._samplerArr);
-
-            //slice.uniform(gl, shu);
-
             gl.uniform4fv(shu.tileOffsetArr, slice.tileOffsetArr);
+            gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
             gl.uniform1fv(shu.layerOpacityArr, slice.layerOpacityArr);
-            //gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
 
             // bind normalmap texture
             if (p.lightEnabled) {
@@ -1533,9 +1558,23 @@ class Segment {
             }
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
-            gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh.itemSize, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(
+                sha.aVertexPositionHigh,
+                this.vertexPositionBufferHigh.itemSize,
+                gl.FLOAT,
+                false,
+                0,
+                0
+            );
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferLow);
-            gl.vertexAttribPointer(sha.aVertexPositionLow, this.vertexPositionBufferLow.itemSize, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(
+                sha.aVertexPositionLow,
+                this.vertexPositionBufferLow.itemSize,
+                gl.FLOAT,
+                false,
+                0,
+                0
+            );
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
             gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
@@ -1565,13 +1604,13 @@ class Segment {
             currHeight = 0;
         }
 
-        var slice = this._slices[sliceIndex];
+        var n = 0;
+
+        var slice = this._renderingSlices[sliceIndex];
 
         var notEmpty = false;
 
-        let len = slice.layers.length;
-
-        for (let n = 0; n < len; n++) {
+        for (n = 0; n < slice.layers.length; n++) {
             notEmpty = true;
             p._samplerArr[n] = n;
             gl.activeTexture(gl.TEXTURE0 + n);
@@ -1579,21 +1618,32 @@ class Segment {
         }
 
         if (notEmpty || !isOverlay) {
-            gl.uniform1i(shu.samplerCount, len);
+            gl.uniform1i(shu.samplerCount, n);
             gl.uniform1f(shu.height, currHeight);
             gl.uniform1iv(shu.samplerArr, p._samplerArr);
-
-            //slice.uniform(gl, shu);
-
             gl.uniform4fv(shu.tileOffsetArr, slice.tileOffsetArr);
+            gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
             gl.uniform1fv(shu.layerOpacityArr, slice.layerOpacityArr);
-            //gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
-            gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh.itemSize, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(
+                sha.aVertexPositionHigh,
+                this.vertexPositionBufferHigh.itemSize,
+                gl.FLOAT,
+                false,
+                0,
+                0
+            );
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferLow);
-            gl.vertexAttribPointer(sha.aVertexPositionLow, this.vertexPositionBufferLow.itemSize, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(
+                sha.aVertexPositionLow,
+                this.vertexPositionBufferLow.itemSize,
+                gl.FLOAT,
+                false,
+                0,
+                0
+            );
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
             gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
@@ -1620,11 +1670,9 @@ class Segment {
 
         var notEmpty = false;
 
-        var slice = this._slices[sliceIndex];
+        var slice = this._renderingSlices[sliceIndex];
 
-        let len = slice.layers.length;
-
-        for (let n = 0; n < len; n++) {
+        for (var n = 0; n < slice.layers.length; n++) {
             notEmpty = true;
 
             var li = slice.layers[n];
@@ -1645,22 +1693,33 @@ class Segment {
         }
 
         if (notEmpty || !isOverlay) {
-            gl.uniform1i(shu.samplerCount, len);
+            gl.uniform1i(shu.samplerCount, n);
             gl.uniform1f(shu.height, currHeight);
             gl.uniform1iv(shu.samplerArr, p._samplerArr);
             gl.uniform1iv(shu.pickingMaskArr, p._pickingMaskArr);
+            gl.uniform4fv(shu.tileOffsetArr, slice.tileOffsetArr);
+            gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
+            gl.uniform1fv(shu.layerOpacityArr, slice.layerOpacityArr);
             gl.uniform4fv(shu.pickingColorArr, p._pickingColorArr);
 
-            //slice.uniform(gl, shu);
-
-            gl.uniform4fv(shu.tileOffsetArr, slice.tileOffsetArr);
-            gl.uniform1fv(shu.layerOpacityArr, slice.layerOpacityArr);
-            //gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
-
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
-            gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh.itemSize, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(
+                sha.aVertexPositionHigh,
+                this.vertexPositionBufferHigh.itemSize,
+                gl.FLOAT,
+                false,
+                0,
+                0
+            );
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferLow);
-            gl.vertexAttribPointer(sha.aVertexPositionLow, this.vertexPositionBufferLow.itemSize, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(
+                sha.aVertexPositionLow,
+                this.vertexPositionBufferLow.itemSize,
+                gl.FLOAT,
+                false,
+                0,
+                0
+            );
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
             gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
@@ -1690,13 +1749,13 @@ class Segment {
             currHeight = 0;
         }
 
-        var slice = this._slices[sliceIndex];
+        var n = 0;
+
+        var slice = this._renderingSlices[sliceIndex];
 
         var notEmpty = false;
 
-        let len = slice.layers.length;
-
-        for (let n = 0; n < len; n++) {
+        for (n = 0; n < slice.layers.length; n++) {
             notEmpty = true;
             p._samplerArr[n] = n;
             gl.activeTexture(gl.TEXTURE0 + n);
@@ -1704,21 +1763,32 @@ class Segment {
         }
 
         if (notEmpty || !isOverlay) {
-            gl.uniform1i(shu.samplerCount, len);
+            gl.uniform1i(shu.samplerCount, n);
             gl.uniform1f(shu.height, currHeight);
             gl.uniform1iv(shu.samplerArr, p._samplerArr);
-
-            //slice.uniform(gl, shu);
-
             gl.uniform4fv(shu.tileOffsetArr, slice.tileOffsetArr);
+            gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
             gl.uniform1fv(shu.layerOpacityArr, slice.layerOpacityArr);
-            //gl.uniform4fv(shu.visibleExtentOffsetArr, slice.visibleExtentOffsetArr);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh);
-            gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh.itemSize, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(
+                sha.aVertexPositionHigh,
+                this.vertexPositionBufferHigh.itemSize,
+                gl.FLOAT,
+                false,
+                0,
+                0
+            );
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferLow);
-            gl.vertexAttribPointer(sha.aVertexPositionLow, this.vertexPositionBufferLow.itemSize, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(
+                sha.aVertexPositionLow,
+                this.vertexPositionBufferLow.itemSize,
+                gl.FLOAT,
+                false,
+                0,
+                0
+            );
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
             gl.vertexAttribPointer(sha.aTextureCoord, 2, gl.UNSIGNED_SHORT, true, 0, 0);
@@ -1732,7 +1802,9 @@ class Segment {
         var s = this.node.sideSizeLog2;
         var cache = this.planet._indexesCache[Math.log2(this.gridSize)][s[0]][s[1]][s[2]][s[3]];
         if (!cache.buffer) {
-            let indexes = segmentHelper.getInstance().createSegmentIndexes(Math.log2(this.gridSize), [s[0], s[1], s[2], s[3]]);
+            let indexes = segmentHelper
+                .getInstance()
+                .createSegmentIndexes(Math.log2(this.gridSize), [s[0], s[1], s[2], s[3]]);
             cache.buffer = this.planet.renderer.handler.createElementArrayBuffer(indexes, 1);
             this.planet._indexesCacheToRemoveCounter++;
             indexes = null;

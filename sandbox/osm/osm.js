@@ -12,6 +12,7 @@ import { Lighting } from "../../src/og/control/Lighting.js";
 import { LayerSwitcher } from "../../src/og/control/LayerSwitcher.js";
 import { DebugInfo } from "../../src/og/control/DebugInfo.js";
 import { ToggleWireframe } from "../../src/og/control/ToggleWireframe.js";
+import { VisibleExtent } from "../../src/og/control/visibleExtent/VisibleExtent.js";
 
 const tg = new CanvasTiles("Tile grid", {
     visibility: true,
@@ -130,6 +131,8 @@ let sat = new XYZ("sat", {
     }
 });
 
+//let visExtent = new VisibleExtent();
+
 var globus = new Globe({
     target: "earth",
     name: "Earth",
@@ -154,6 +157,7 @@ globus.planet.addControl(new LayerSwitcher());
 globus.planet.addControl(new DebugInfo());
 
 globus.planet.addControl(new ToggleWireframe());
+
 
 
 window.globus = globus;
