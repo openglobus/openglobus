@@ -188,66 +188,46 @@ class Lighting extends Control {
         });
 
         document.getElementById("ambient-r").addEventListener("input", function (e) {
-            if (_this._selectedLayer) {
-                _this._selectedLayer.ambient.x = Number(this.value);
-            }
+            _this.planet._ambient[0] = Number(this.value);
             document.querySelector(".og-value.ambient-r").innerHTML = this.value;
         });
         document.getElementById("ambient-g").addEventListener("input", function (e) {
-            if (_this._selectedLayer) {
-                _this._selectedLayer.ambient.y = Number(this.value);
-            }
+            _this.planet._ambient[1] = Number(this.value);
             document.querySelector(".og-value.ambient-g").innerHTML = this.value;
         });
         document.getElementById("ambient-b").addEventListener("input", function (e) {
-            if (_this._selectedLayer) {
-                _this._selectedLayer.ambient.z = Number(this.value);
-            }
+            _this.planet._ambient[2] = Number(this.value);
             document.querySelector(".og-value.ambient-b").innerHTML = this.value;
         });
 
         document.getElementById("diffuse-r").addEventListener("input", function (e) {
-            if (_this._selectedLayer) {
-                _this._selectedLayer.diffuse.x = Number(this.value);
-            }
+            _this.planet._diffuse[0] = Number(this.value);
             document.querySelector(".og-value.diffuse-r").innerHTML = this.value;
         });
         document.getElementById("diffuse-g").addEventListener("input", function (e) {
-            if (_this._selectedLayer) {
-                _this._selectedLayer.diffuse.y = Number(this.value);
-            }
+            _this.planet._diffuse[1] = Number(this.value);
             document.querySelector(".og-value.diffuse-g").innerHTML = this.value;
         });
         document.getElementById("diffuse-b").addEventListener("input", function (e) {
-            if (_this._selectedLayer) {
-                _this._selectedLayer.diffuse.z = Number(this.value);
-            }
+            _this.planet._diffuse[2] = Number(this.value);
             document.querySelector(".og-value.diffuse-b").innerHTML = this.value;
         });
 
         document.getElementById("specular-r").addEventListener("input", function (e) {
-            if (_this._selectedLayer) {
-                _this._selectedLayer.specular.x = Number(this.value);
-            }
+            _this.planet._specular[0] = Number(this.value);
             document.querySelector(".og-value.specular-r").innerHTML = this.value;
         });
         document.getElementById("specular-g").addEventListener("input", function (e) {
-            if (_this._selectedLayer) {
-                _this._selectedLayer.specular.y = Number(this.value);
-            }
+            _this.planet._specular[1] = Number(this.value);
             document.querySelector(".og-value.specular-g").innerHTML = this.value;
         });
         document.getElementById("specular-b").addEventListener("input", function (e) {
-            if (_this._selectedLayer) {
-                _this._selectedLayer.specular.z = Number(this.value);
-            }
+            _this.planet._specular[2] = Number(this.value);
             document.querySelector(".og-value.specular-b").innerHTML = this.value;
         });
 
         document.getElementById("shininess").addEventListener("input", function (e) {
-            if (_this._selectedLayer) {
-                _this._selectedLayer.shininess = Number(this.value);
-            }
+            _this.planet._specular[3] = Number(this.value);
             document.querySelector(".og-value.shininess").innerHTML = this.value;
         });
 

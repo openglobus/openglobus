@@ -448,6 +448,7 @@
 
     .og-lighing .og-value {
         float: left;
+	width: 50px;
     }
 
     .og-lighing #layers {

@@ -82,7 +82,7 @@ function toQuadKey(x, y, z) {
 
 let temp = new XYZ("temp", {
     isBaseLayer: true,
-    url: "//assets.msn.com/weathermapdata/1/temperaturerendered/112818/{x}_{y}_{z}_2021113007.jpg",
+    url: "//assets.msn.com/weathermapdata/1/temperaturerendered/120118/{x}_{y}_{z}_2021120204.jpg",
     visibility: true,
     attribution: 'Temperature',
     maxNativeZoom: 19,
