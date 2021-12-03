@@ -151,7 +151,11 @@ export class GeoImageCreator {
                 `precision highp float;
                         uniform sampler2D sourceTexture;
                         varying vec2 v_texCoords;
-                        void main () { 
+                        void main () {
+                            if(v_texCoords.x <= 0.001 || v_texCoords.x >= 0.999 ||
+                                v_texCoords.y <= 0.001 || v_texCoords.y >= 0.999) {
+                                discard;
+                            }
                             gl_FragColor = texture2D(sourceTexture, v_texCoords);
                         }`
         }));

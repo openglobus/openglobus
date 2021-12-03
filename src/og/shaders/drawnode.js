@@ -15,6 +15,29 @@ import { Program } from "../webgl/Program.js";
 
 const NIGHT = `const vec3 nightStep = 10.0 * vec3(0.58, 0.48, 0.25);`;
 
+const BLEND = `
+            void blend(
+                out vec4 dest,
+                in sampler2D sampler,
+                in vec4 tileOffset,
+                in float opacity)
+            {
+                vec4 src = texture( sampler, tileOffset.xy + vTextureCoord.xy * tileOffset.zw );
+                //dest = dest * (1.0 - src.a * opacity) + src * opacity;
+                dest = vec4(mix(dest.rgb, src.rgb, src.a * opacity), 1.0);
+            }`;
+
+const BLEND1 =
+            `void blend(
+                out vec4 dest,
+                in sampler2D sampler,
+                in vec4 tileOffset,
+                in float opacity)
+            {
+                vec4 src = texture2D(sampler, tileOffset.xy + vTextureCoord.xy * tileOffset.zw);
+                dest = vec4(mix(dest.rgb, src.rgb, src.a * opacity), 1.0);
+            }`
+
 const SLICE_SIZE = 4;
 
 export function drawnode_screen_nl() {
@@ -71,15 +94,7 @@ export function drawnode_screen_nl() {
             uniform int samplerCount;
             varying vec2 vTextureCoord;
 
-            void blend(
-                out vec4 prevColor,
-                in sampler2D sampler,
-                in vec4 tileOffset,
-                in float opacity)
-            {
-                vec4 t = texture2D( sampler, tileOffset.xy + vTextureCoord.xy * tileOffset.zw );
-                prevColor = prevColor * (1.0 - t.a * opacity) + vec4(t.rgb, t.a) * opacity;
-            }
+            ${BLEND1}
 
             void main(void) {
                 gl_FragColor = texture2D( defaultTexture, vTextureCoord );
@@ -198,18 +213,7 @@ export function drawnode_screen_wl() {
 
             ${NIGHT}
 
-            void blend(
-                out vec4 dest,
-                in sampler2D sampler,
-                in vec4 tileOffset,
-                in float opacity,
-                in vec4 specular,
-                in vec3 ambient,
-                in vec3 diffuse)
-            {
-                vec4 src = texture( sampler, tileOffset.xy + vTextureCoord.xy * tileOffset.zw );
-                dest = dest * (1.0 - src.a * opacity) + src * opacity;
-            }
+            ${BLEND}
 
 
             void main(void) {
@@ -372,16 +376,7 @@ export function drawnode_screen_wl_webgl2() {
 
             ${NIGHT}
 
-            void blend(
-                out vec4 dest,
-                in sampler2D sampler,
-                in vec4 tileOffset,
-                in float opacity)
-            {
-                vec4 src = texture( sampler, tileOffset.xy + vTextureCoord.xy * tileOffset.zw );
-                //dest = dest * (1.0 - src.a * opacity) + src * opacity;
-                dest = vec4(mix(dest.rgb, src.rgb, src.a * opacity), 1.0);
-            }
+            ${BLEND}
 
             void main(void) {
 
