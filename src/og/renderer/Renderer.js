@@ -182,7 +182,9 @@ class Renderer {
          * @private
          * @type {Array.<number>} - (exactly 3 entries)
          */
-        this._prevPickingColor = [0, 0, 0];
+        this._prevPickingColor = new Uint8Array(4);
+
+        this._pickingDepthColor = new Uint8Array(4);
 
         this._tempPickingColor_ = new Uint8Array(4);
 
@@ -436,8 +438,6 @@ class Renderer {
             useDepth: false
         }).init();
 
-        this.readPixels = () => {};
-
         if (this.handler.gl.type === "webgl") {
             this.sceneFramebuffer = new Framebuffer(this.handler);
             this.sceneFramebuffer.init();
@@ -530,10 +530,10 @@ class Renderer {
             this.toneMappingFramebuffer.setSize(c.width, c.height, true);
 
         this.depthFramebuffer &&
-            this.depthFramebuffer.setSize(c.width, c.height, true);
+            this.depthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
 
         this.screenDepthFramebuffer &&
-            this.screenDepthFramebuffer.setSize(c.width, c.height, true);
+            this.screenDepthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
 
         if (this.handler.gl.type === "webgl") {
             this.screenTexture.screen = this.sceneFramebuffer.textures[0];
@@ -753,6 +753,8 @@ class Renderer {
 
         let frustums = this.activeCamera.frustums;
 
+        let anyEvent = this.events.mouseState.anyEvent();
+
         // Rendering scene nodes and entityCollections
         let rn = this._renderNodesArr;
         let k = frustums.length;
@@ -767,8 +769,9 @@ class Renderer {
 
             this._drawDepthBuffer(k);
 
-            // Rendering picking callbacks and refresh pickingColor
+            //if (anyEvent) {
             this._drawPickingBuffer(k);
+            //}
         }
 
         sfb.deactivate();
@@ -777,6 +780,7 @@ class Renderer {
 
         if (e.mouseState.anyEvent()) {
             this._readPickingColor();
+            this._readDistanceColor();
         }
 
         // Tone mapping followed by rendering on the screen
@@ -847,50 +851,35 @@ class Renderer {
     }
 
     /**
-     * Returns picking object by screen coordinates
-     * @param {number} x - X position
-     * @param {number} y - Y position
-     * @return {Object} -
-     */
-    getPickingObject(x, y) {
-        let cnv = this.renderer.handler.canvas,
-            c = new Uint8Array(3);
-        this.readPixels(c, x / cnv.clientWidth, (cnv.clientHeight - y) / cnv.clientHeight, 1);
-        return this.colorObjects[c[0] + "_" + c[1] + "_" + c[2]];
-    }
-
-    /**
      * Draw picking objects framebuffer.
      * @private
      */
     _drawPickingBuffer(frustumIndex) {
-        if (/*this.events.mouseState.anyEvent()*/true) {
-            this.pickingFramebuffer.activate();
+        this.pickingFramebuffer.activate();
 
-            var h = this.handler;
-            var gl = h.gl;
+        var h = this.handler;
+        var gl = h.gl;
 
-            if (frustumIndex === this.activeCamera.FARTHEST_FRUSTUM_INDEX) {
-                gl.clearColor(0.0, 0.0, 0.0, 1.0);
-                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            } else {
-                gl.clear(gl.DEPTH_BUFFER_BIT);
-            }
-
-            gl.disable(h.gl.BLEND);
-
-            var dp = this._pickingCallbacks;
-            var i = dp.length;
-            while (i--) {
-                /**
-                 * This callback renders picking frame.
-                 * @callback og.Renderer~pickingCallback
-                 */
-                dp[i].callback.call(dp[i].sender);
-            }
-
-            this.pickingFramebuffer.deactivate();
+        if (frustumIndex === this.activeCamera.FARTHEST_FRUSTUM_INDEX) {
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        } else {
+            gl.clear(gl.DEPTH_BUFFER_BIT);
         }
+
+        gl.disable(h.gl.BLEND);
+
+        var dp = this._pickingCallbacks;
+        var i = dp.length;
+        while (i--) {
+            /**
+             * This callback renders picking frame.
+             * @callback og.Renderer~pickingCallback
+             */
+            dp[i].callback.call(dp[i].sender);
+        }
+
+        this.pickingFramebuffer.deactivate();
     }
 
     _drawDepthBuffer(frustumIndex) {
@@ -919,6 +908,7 @@ class Renderer {
 
             //
             // PASS to depth visualization
+            this.screenDepthFramebuffer.activate();
             var sh = h.programs.depth,
                 p = sh._program;
 
@@ -927,13 +917,11 @@ class Renderer {
             gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
             gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
-            this.screenDepthFramebuffer.activate();
-
             sh.activate();
 
-            gl.activeTexture(gl.TEXTURE1);
+            gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer.textures[1]);
-            gl.uniform1i(p.uniforms.depthTexture, 1);
+            gl.uniform1i(p.uniforms.depthTexture, 0);
 
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
@@ -952,17 +940,22 @@ class Renderer {
 
             var pc = this._currPickingColor;
             if (ts.x || ts.y) {
+                this.pickingFramebuffer.activate();
                 this.pickingFramebuffer.readPixels(pc, ts.nx, 1.0 - ts.ny);
-                if (!(pc[0] || pc[1] || pc[2])) {
-                    this.readPixels(pc, ts.nx, 1.0 - ts.ny, 1);
-                }
+                this.pickingFramebuffer.deactivate();
             } else {
+                this.pickingFramebuffer.activate();
                 this.pickingFramebuffer.readPixels(pc, ms.nx, 1.0 - ms.ny);
-                if (!(pc[0] || pc[1] || pc[2])) {
-                    this.readPixels(pc, ms.nx, 1.0 - ms.ny, 1);
-                }
+                this.pickingFramebuffer.deactivate();
             }
         }
+    }
+
+    _readDistanceColor() {
+        var ms = this.events.mouseState;
+        this.screenDepthFramebuffer.activate();
+        this.screenDepthFramebuffer.readPixels(this._pickingDepthColor, ms.nx, 1.0 - ms.ny, 0);
+        this.screenDepthFramebuffer.deactivate();
     }
 
     /**

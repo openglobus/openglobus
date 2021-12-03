@@ -245,7 +245,7 @@ class MouseNavigation extends Control {
     onMouseLeftButtonDoubleClick() {
         this.planet.stopFlying();
         this.stopRotation();
-        var p = this.planet.getCartesianFromPixelTerrain(this.renderer.events.mouseState, true);
+        var p = this.planet.getCartesianFromPixelTerrain(this.renderer.events.mouseState);
         if (p) {
             var g = this.planet.ellipsoid.cartesianToLonLat(p);
             if (this.renderer.events.isKeyPressed(input.KEY_ALT)) {
@@ -263,7 +263,7 @@ class MouseNavigation extends Control {
     onMouseLeftButtonClick() {
         if (this._active) {
             this.renderer.handler.canvas.classList.add("ogGrabbingPoiner");
-            this.grabbedPoint = this.planet.getCartesianFromMouseTerrain(true);
+            this.grabbedPoint = this.planet.getCartesianFromMouseTerrain();
             if (this.grabbedPoint) {
                 this._eye0.copy(this.renderer.activeCamera.eye);
                 this.grabbedSpheroid.radius = this.grabbedPoint.length();

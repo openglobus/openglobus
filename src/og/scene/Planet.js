@@ -1136,7 +1136,6 @@ export class Planet extends RenderNode {
         gl.enable(gl.BLEND);
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-        //gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ZERO);
 
         if (this.lightEnabled) {
             h.programs.drawnode_screen_wl.activate();
@@ -1345,6 +1344,7 @@ export class Planet extends RenderNode {
         let cam = renderer.activeCamera;
 
         gl.disable(gl.BLEND);
+        gl.disable(gl.POLYGON_OFFSET_FILL);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
@@ -1363,7 +1363,6 @@ export class Planet extends RenderNode {
             rn[i].segment.depthRendering(sh, sl[0], 0);
         }
 
-        gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1, len = sl.length; j < len; j++) {
             i = rn.length;
             gl.polygonOffset(0, -j);
@@ -1469,12 +1468,11 @@ export class Planet extends RenderNode {
      * Returns 3d cartesian coordinates on the relief planet by mouse cursor
      * position or null if mouse cursor is outside the planet.
      * @public
-     * @param {Boolean} [force=false] - Force framebuffer rendering.
      * @returns {Vec3} -
      */
-    getCartesianFromMouseTerrain(force) {
+    getCartesianFromMouseTerrain() {
         var ms = this.renderer.events.mouseState;
-        var distance = this.getDistanceFromPixel(ms, force);
+        var distance = this.getDistanceFromPixel(ms);
         if (distance) {
             return ms.direction.scaleTo(distance).addA(this.renderer.activeCamera.eye);
         }
@@ -1489,8 +1487,8 @@ export class Planet extends RenderNode {
      * @param {Boolean} [force=false] - Force framebuffer rendering.
      * @returns {Vec3} -
      */
-    getCartesianFromPixelTerrain(px, force) {
-        var distance = this.getDistanceFromPixel(px, force);
+    getCartesianFromPixelTerrain(px) {
+        var distance = this.getDistanceFromPixel(px);
         if (distance) {
             var direction = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
             return direction.scaleTo(distance).addA(this.renderer.activeCamera.eye);
@@ -1569,7 +1567,9 @@ export class Planet extends RenderNode {
 
         // HEIGHT
         this._heightPickingFramebuffer.activate();
-        this._heightPickingFramebuffer.readPixels(_tempPickingPix_, spx, spy);
+        if (this._heightPickingFramebuffer.isComplete()) {
+            this._heightPickingFramebuffer.readPixels(_tempPickingPix_, spx, spy);
+        }
         this._heightPickingFramebuffer.deactivate();
 
         let dist = decodeFloatFromRGBAArr(_tempPickingPix_);
@@ -1578,20 +1578,23 @@ export class Planet extends RenderNode {
             dist = this.getDistanceFromPixelEllipsoid(px) || 0;
         } else if (dist < DEPTH_DISTANCE) {
             r.screenDepthFramebuffer.activate();
-            r.screenDepthFramebuffer.readPixels(_tempDepthColor_, spx, spy, 0);
-            r.screenDepthFramebuffer.deactivate();
+            if (r.screenDepthFramebuffer.isComplete()) {
+                // TODO: I COMPLETELY DO NOT UNDERSTAND WHY IT IS NOT WORKING WITH _tempDepthColor_!
+                // So I use readPixel from this.renderer._pickingDepthColor
+                //r.screenDepthFramebuffer.readPixels(_tempDepthColor_, spx, spy);
+                //console.log(_tempDepthColor_, this.renderer._pickingDepthColor);
 
-            let screenPos = new Vec4(
-                spx * 2.0 - 1.0,
-                spy * 2.0 - 1.0,
-                (_tempDepthColor_[0] / 255.0) * 2.0 - 1.0,
-                1.0 * 2.0 - 1.0
-            );
-            let viewPosition = this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
-            let dir = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
-            dist =
-                -(viewPosition.z / viewPosition.w) /
-                dir.dot(this.renderer.activeCamera.getForward());
+                let screenPos = new Vec4(
+                    spx * 2.0 - 1.0,
+                    spy * 2.0 - 1.0,
+                    (this.renderer._pickingDepthColor[0] / 255.0) * 2.0 - 1.0,
+                    1.0 * 2.0 - 1.0
+                );
+                let viewPosition = this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
+                let dir = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
+                dist = -(viewPosition.z / viewPosition.w) / dir.dot(this.renderer.activeCamera.getForward());
+            }
+            r.screenDepthFramebuffer.deactivate();
         }
 
         return dist;
