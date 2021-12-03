@@ -379,7 +379,8 @@ export function drawnode_screen_wl_webgl2() {
                 in float opacity)
             {
                 vec4 src = texture( sampler, tileOffset.xy + vTextureCoord.xy * tileOffset.zw );
-                dest = dest * (1.0 - src.a * opacity) + src * opacity;
+                //dest = dest * (1.0 - src.a * opacity) + src * opacity;
+                dest = vec4(mix(dest.rgb, src.rgb, src.a * opacity), 1.0);
             }
 
             void main(void) {
@@ -501,7 +502,7 @@ export function drawnode_colorPicking() {
                 vec2 tc = tileOffset.xy + vTextureCoord.xy * tileOffset.zw;
                 vec4 t = texture2D( sampler, tc );
                 vec4 p = texture2D( pickingMask, tc );
-                dest = mix( dest, vec4(max(pickingColor.rgb, p.rgb), opacity), t.a * pickingColor.a);
+                dest = mix( dest, vec4(max(pickingColor.rgb, p.rgb), opacity), (t.a == 0.0 ? 0.0 : 1.0) * pickingColor.a);
             }
 
             void main(void) {
