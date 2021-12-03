@@ -1076,7 +1076,9 @@ export class Planet extends RenderNode {
     frame() {
         this._renderScreenNodesPASS();
 
-        this._renderHeightPickingFramebufferPASS();
+        if (this.renderer.isActiveBackbuffers) {
+            this._renderHeightPickingFramebufferPASS();
+        }
 
         this.drawEntityCollections(this._frustumEntityCollections);
     }
