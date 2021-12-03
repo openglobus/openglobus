@@ -919,7 +919,7 @@ class Handler {
         /** Canvas resize checking */
         let canvas = this.canvas;
 
-        if (canvas.clientWidth * this._params.pixelRatio !== canvas.width || canvas.clientHeight * this._params.pixelRatio !== canvas.height) {
+        if (Math.floor(canvas.clientWidth * this._params.pixelRatio) !== canvas.width || Math.floor(canvas.clientHeight * this._params.pixelRatio) !== canvas.height) {
             this.setSize(canvas.clientWidth, canvas.clientHeight);
         }
 

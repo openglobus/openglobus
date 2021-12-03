@@ -183,9 +183,6 @@ class Renderer {
          * @type {Array.<number>} - (exactly 3 entries)
          */
         this._prevPickingColor = new Uint8Array(4);
-
-        this._pickingDepthColor = new Uint8Array(4);
-
         this._tempPickingColor_ = new Uint8Array(4);
 
         this._initialized = false;
@@ -775,7 +772,6 @@ class Renderer {
             this._drawDepthBuffer();
 
             this._readPickingColor();
-            this._readDistanceColor();
         }
 
         // Tone mapping followed by rendering on the screen
@@ -942,13 +938,6 @@ class Renderer {
                 this.pickingFramebuffer.deactivate();
             }
         }
-    }
-
-    _readDistanceColor() {
-        var ms = this.events.mouseState;
-        this.screenDepthFramebuffer.activate();
-        this.screenDepthFramebuffer.readPixels(this._pickingDepthColor, ms.nx, 1.0 - ms.ny, 0);
-        this.screenDepthFramebuffer.deactivate();
     }
 
     /**

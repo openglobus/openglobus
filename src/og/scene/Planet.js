@@ -1581,15 +1581,11 @@ export class Planet extends RenderNode {
         } else if (dist < DEPTH_DISTANCE) {
             r.screenDepthFramebuffer.activate();
             if (r.screenDepthFramebuffer.isComplete()) {
-                // TODO: I COMPLETELY DO NOT UNDERSTAND WHY IT IS NOT WORKING WITH _tempDepthColor_!
-                // So I use readPixel from this.renderer._pickingDepthColor
-                //r.screenDepthFramebuffer.readPixels(_tempDepthColor_, spx, spy);
-                //console.log(_tempDepthColor_, this.renderer._pickingDepthColor);
-
+                r.screenDepthFramebuffer.readPixels(_tempDepthColor_, spx, spy);
                 let screenPos = new Vec4(
                     spx * 2.0 - 1.0,
                     spy * 2.0 - 1.0,
-                    (this.renderer._pickingDepthColor[0] / 255.0) * 2.0 - 1.0,
+                    (_tempDepthColor_[0] / 255.0) * 2.0 - 1.0,
                     1.0 * 2.0 - 1.0
                 );
                 let viewPosition = this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
