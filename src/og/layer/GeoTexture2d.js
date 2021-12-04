@@ -67,14 +67,10 @@ class GeoTexture2d extends BaseGeoImage {
         var sha = sh.attributes,
             shu = sh.uniforms;
 
-        var tr = this.transparentColor[0],
-            tg = this.transparentColor[1],
-            tb = this.transparentColor[2];
-
         gl.disable(gl.CULL_FACE);
 
         f.bindOutputTexture(this._materialTexture);
-        gl.clearColor(tr, tg, tb, 0.0);
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer);
         
@@ -117,14 +113,10 @@ class GeoTexture2d extends BaseGeoImage {
         var sha = sh.attributes,
             shu = sh.uniforms;
 
-        var tr = this.transparentColor[0],
-            tg = this.transparentColor[1],
-            tb = this.transparentColor[2];
-
         gl.disable(gl.CULL_FACE);
 
         f.bindOutputTexture(this._materialTexture);
-        gl.clearColor(tr, tg, tb, 0.0);
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer);
 

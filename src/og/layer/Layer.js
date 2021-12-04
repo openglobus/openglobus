@@ -22,7 +22,6 @@ export const FADING_FACTOR = 0.29;
  * @param {String} [name="noname"] - Layer name.
  * @param {Object} [options] - Layer options:
  * @param {number} [options.opacity=1.0] - Layer opacity.
- * @param {Array.<number>} [options.transparentColor=[-1,-1,-1]] - RGB color that defines transparent color. (exactly 3 entries)
  * @param {number} [options.minZoom=0] - Minimal visibility zoom level.
  * @param {number} [options.maxZoom=0] - Maximal visibility zoom level.
  * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
@@ -30,11 +29,7 @@ export const FADING_FACTOR = 0.29;
  * @param {boolean} [options.visibility=true] - Layer visibility.
  * @param {boolean} [options.isSRGB=false] - Layer image webgl nternal format.
  * @param {Extent} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
- * @param {Vec3} [options.ambient=[0.1, 0.1, 0.1]] - Ambient RGB color.
- * @param {Vec3} [options.diffuse=[0.9, 0.9, 0.9]] - Diffuse RGB color.
- * @param {Vec3} [options.specular=[0.00025, 0.00015, 0.0001]] - Specular RGB color.
  * @param {string} [options.textureFilter="anisotropic"] - Image texture filter. Available values: "nearest", "linear", "mipmap" and "anisotropic".
- * @param {Number} [options.shininess=100] - Shininess.
  *
  * @fires og.Layer#visibilitychange
  * @fires og.Layer#add
@@ -87,13 +82,6 @@ class Layer {
         this._opacity = options.opacity || 1.0;
 
         /**
-         * Transparent RGB color mask.
-         * @public
-         * @type {Array.<number>} - (exactly 3 entries)
-         */
-        this.transparentColor = options.transparentColor || [-1, -1, -1];
-
-        /**
          * Minimal zoom level when layer is visibile.
          * @public
          * @type {number}
@@ -106,16 +94,6 @@ class Layer {
          * @type {number}
          */
         this.maxZoom = options.maxZoom || 50;
-
-        /**
-         * Layer light material parameters.
-         * @public
-         * @type {Object}
-         */
-        this.ambient = utils.createColorRGB(options.ambient, new Vec3(0.2, 0.2, 0.2));
-        this.diffuse = utils.createColorRGB(options.diffuse, new Vec3(0.8, 0.8, 0.8));
-        this.specular = utils.createColorRGB(options.specular, new Vec3(0.0003, 0.0003, 0.0003));
-        this.shininess = options.shininess || 20.0;
 
         /**
          * Planet node.

@@ -4,6 +4,7 @@
 
 "use strict";
 
+import * as utils from "../utils/shared.js";
 import * as shaders from "../shaders/drawnode.js";
 import * as math from "../math.js";
 import * as mercator from "../mercator.js";
@@ -335,6 +336,16 @@ export class Planet extends RenderNode {
          */
         this._specularTexture = null;
 
+        //TODO: replace to a function
+        let a = utils.createColorRGB(options.ambient, new Vec3(0.2, 0.2, 0.2));
+        let d = utils.createColorRGB(options.diffuse, new Vec3(0.8, 0.8, 0.8));
+        let s = utils.createColorRGB(options.specular, new Vec3(0.0003, 0.0003, 0.0003));
+        let shininess = options.shininess || 20.0;
+
+        this._ambient = new Float32Array([a.x, a.y, a.z]);
+        this._diffuse = new Float32Array([d.x, d.y, d.z]);
+        this._specular = new Float32Array([s.x, s.y, s.z, shininess]);
+
         /**
          * True for rendering night glowing texture.
          * @protected
@@ -371,14 +382,7 @@ export class Planet extends RenderNode {
         this._maxLodRatio = MAX_LOD;
         this._minLodRatio = MIN_LOD;
 
-        this._diffuseMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
-        this._ambientMaterialArr = new Float32Array(this.SLICE_SIZE_3 + 3);
-        this._specularMaterialArr = new Float32Array(this.SLICE_SIZE_4 + 4);
-
-        this._tileOffsetArr = new Float32Array(this.SLICE_SIZE_4);
-        this._visibleExtentOffsetArr = new Float32Array(this.SLICE_SIZE_4);
-        this._transparentColorArr = new Float32Array(this.SLICE_SIZE_4);
-        this._pickingColorArr = new Float32Array(this.SLICE_SIZE_3);
+        this._pickingColorArr = new Float32Array(this.SLICE_SIZE_4);
         this._samplerArr = new Int32Array(this.SLICE_SIZE);
         this._pickingMaskArr = new Int32Array(this.SLICE_SIZE);
 
@@ -619,11 +623,8 @@ export class Planet extends RenderNode {
         var h = this.renderer.handler;
 
         h.addProgram(shaders.drawnode_screen_nl(), true);
-
         //h.addProgram(shaders.drawnode_screen_wl(), true);
-
         h.addProgram(shaders.drawnode_screen_wl_webgl2(), true);
-
         h.addProgram(shaders.drawnode_colorPicking(), true);
         h.addProgram(shaders.drawnode_depth(), true);
         h.addProgram(shaders.drawnode_heightPicking(), true);
@@ -1075,7 +1076,9 @@ export class Planet extends RenderNode {
     frame() {
         this._renderScreenNodesPASS();
 
-        this._renderHeightPickingFramebufferPASS();
+        if (this.renderer.isActiveBackbuffers) {
+            this._renderHeightPickingFramebufferPASS();
+        }
 
         this.drawEntityCollections(this._frustumEntityCollections);
     }
@@ -1135,7 +1138,6 @@ export class Planet extends RenderNode {
         gl.enable(gl.BLEND);
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-        //gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ZERO);
 
         if (this.lightEnabled) {
             h.programs.drawnode_screen_wl.activate();
@@ -1147,6 +1149,10 @@ export class Planet extends RenderNode {
             gl.uniformMatrix3fv(shu.normalMatrix, false, cam.getNormalMatrix());
             gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
             gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+
+            gl.uniform3fv(shu.diffuse, this._diffuse);
+            gl.uniform3fv(shu.ambient, this._ambient);
+            gl.uniform4fv(shu.specular, this._specular);
 
             // bind night glowing material
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
@@ -1163,34 +1169,6 @@ export class Planet extends RenderNode {
             gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
             gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
 
-            var b = this.baseLayer;
-            if (b) {
-                this._diffuseMaterialArr[0] = b.diffuse.x;
-                this._diffuseMaterialArr[1] = b.diffuse.y;
-                this._diffuseMaterialArr[2] = b.diffuse.z;
-
-                this._ambientMaterialArr[0] = b.ambient.x;
-                this._ambientMaterialArr[1] = b.ambient.y;
-                this._ambientMaterialArr[2] = b.ambient.z;
-
-                this._specularMaterialArr[0] = b.specular.x;
-                this._specularMaterialArr[1] = b.specular.y;
-                this._specularMaterialArr[2] = b.specular.z;
-                this._specularMaterialArr[3] = b.shininess;
-            } else {
-                this._diffuseMaterialArr[0] = 0.89;
-                this._diffuseMaterialArr[1] = 0.9;
-                this._diffuseMaterialArr[2] = 0.83;
-
-                this._ambientMaterialArr[0] = 0.0;
-                this._ambientMaterialArr[1] = 0.0;
-                this._ambientMaterialArr[2] = 0.0;
-
-                this._specularMaterialArr[0] = 0.0003;
-                this._specularMaterialArr[1] = 0.00012;
-                this._specularMaterialArr[2] = 0.00001;
-                this._specularMaterialArr[3] = 20.0;
-            }
         } else {
             h.programs.drawnode_screen_nl.activate();
             sh = h.programs.drawnode_screen_nl._program;
@@ -1368,6 +1346,7 @@ export class Planet extends RenderNode {
         let cam = renderer.activeCamera;
 
         gl.disable(gl.BLEND);
+        gl.disable(gl.POLYGON_OFFSET_FILL);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
         gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
@@ -1386,7 +1365,6 @@ export class Planet extends RenderNode {
             rn[i].segment.depthRendering(sh, sl[0], 0);
         }
 
-        gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1, len = sl.length; j < len; j++) {
             i = rn.length;
             gl.polygonOffset(0, -j);
@@ -1492,12 +1470,11 @@ export class Planet extends RenderNode {
      * Returns 3d cartesian coordinates on the relief planet by mouse cursor
      * position or null if mouse cursor is outside the planet.
      * @public
-     * @param {Boolean} [force=false] - Force framebuffer rendering.
      * @returns {Vec3} -
      */
-    getCartesianFromMouseTerrain(force) {
+    getCartesianFromMouseTerrain() {
         var ms = this.renderer.events.mouseState;
-        var distance = this.getDistanceFromPixel(ms, force);
+        var distance = this.getDistanceFromPixel(ms);
         if (distance) {
             return ms.direction.scaleTo(distance).addA(this.renderer.activeCamera.eye);
         }
@@ -1512,8 +1489,8 @@ export class Planet extends RenderNode {
      * @param {Boolean} [force=false] - Force framebuffer rendering.
      * @returns {Vec3} -
      */
-    getCartesianFromPixelTerrain(px, force) {
-        var distance = this.getDistanceFromPixel(px, force);
+    getCartesianFromPixelTerrain(px) {
+        var distance = this.getDistanceFromPixel(px);
         if (distance) {
             var direction = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
             return direction.scaleTo(distance).addA(this.renderer.activeCamera.eye);
@@ -1592,7 +1569,9 @@ export class Planet extends RenderNode {
 
         // HEIGHT
         this._heightPickingFramebuffer.activate();
-        this._heightPickingFramebuffer.readPixels(_tempPickingPix_, spx, spy);
+        if (this._heightPickingFramebuffer.isComplete()) {
+            this._heightPickingFramebuffer.readPixels(_tempPickingPix_, spx, spy);
+        }
         this._heightPickingFramebuffer.deactivate();
 
         let dist = decodeFloatFromRGBAArr(_tempPickingPix_);
@@ -1601,20 +1580,19 @@ export class Planet extends RenderNode {
             dist = this.getDistanceFromPixelEllipsoid(px) || 0;
         } else if (dist < DEPTH_DISTANCE) {
             r.screenDepthFramebuffer.activate();
-            r.screenDepthFramebuffer.readPixels(_tempDepthColor_, spx, spy, 0);
+            if (r.screenDepthFramebuffer.isComplete()) {
+                r.screenDepthFramebuffer.readPixels(_tempDepthColor_, spx, spy);
+                let screenPos = new Vec4(
+                    spx * 2.0 - 1.0,
+                    spy * 2.0 - 1.0,
+                    (_tempDepthColor_[0] / 255.0) * 2.0 - 1.0,
+                    1.0 * 2.0 - 1.0
+                );
+                let viewPosition = this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
+                let dir = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
+                dist = -(viewPosition.z / viewPosition.w) / dir.dot(this.renderer.activeCamera.getForward());
+            }
             r.screenDepthFramebuffer.deactivate();
-
-            let screenPos = new Vec4(
-                spx * 2.0 - 1.0,
-                spy * 2.0 - 1.0,
-                (_tempDepthColor_[0] / 255.0) * 2.0 - 1.0,
-                1.0 * 2.0 - 1.0
-            );
-            let viewPosition = this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
-            let dir = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
-            dist =
-                -(viewPosition.z / viewPosition.w) /
-                dir.dot(this.renderer.activeCamera.getForward());
         }
 
         return dist;

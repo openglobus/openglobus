@@ -12,6 +12,7 @@ import { Lighting } from "../../src/og/control/Lighting.js";
 import { LayerSwitcher } from "../../src/og/control/LayerSwitcher.js";
 import { DebugInfo } from "../../src/og/control/DebugInfo.js";
 import { ToggleWireframe } from "../../src/og/control/ToggleWireframe.js";
+import { VisibleExtent } from "../../src/og/control/visibleExtent/VisibleExtent.js";
 
 const tg = new CanvasTiles("Tile grid", {
     visibility: true,
@@ -82,7 +83,7 @@ function toQuadKey(x, y, z) {
 
 let temp = new XYZ("temp", {
     isBaseLayer: true,
-    url: "//assets.msn.com/weathermapdata/1/temperaturerendered/112818/{x}_{y}_{z}_2021113007.jpg",
+    url: "//assets.msn.com/weathermapdata/1/temperaturerendered/120118/{x}_{y}_{z}_2021120204.jpg",
     visibility: true,
     attribution: 'Temperature',
     maxNativeZoom: 19,
@@ -130,6 +131,8 @@ let sat = new XYZ("sat", {
     }
 });
 
+//let visExtent = new VisibleExtent();
+
 var globus = new Globe({
     target: "earth",
     name: "Earth",
@@ -154,6 +157,7 @@ globus.planet.addControl(new LayerSwitcher());
 globus.planet.addControl(new DebugInfo());
 
 globus.planet.addControl(new ToggleWireframe());
+
 
 
 window.globus = globus;

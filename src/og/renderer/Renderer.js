@@ -182,8 +182,7 @@ class Renderer {
          * @private
          * @type {Array.<number>} - (exactly 3 entries)
          */
-        this._prevPickingColor = [0, 0, 0];
-
+        this._prevPickingColor = new Uint8Array(4);
         this._tempPickingColor_ = new Uint8Array(4);
 
         this._initialized = false;
@@ -210,6 +209,8 @@ class Renderer {
         }
 
         this._currentOutput = "screen";
+
+        this.isActiveBackbuffers = true;
 
         this.labelWorker = new LabelWorker();
     }
@@ -424,19 +425,9 @@ class Renderer {
             useDepth: false
         }).init();
 
-        //this.depthFramebuffer = new Framebuffer(this.handler, {
-        //    size: 2,
-        //    internalFormat: ["RGBA", "RGBA"],
-        //    format: ["RGBA", "RGBA"],
-        //    type: ["UNSIGNED_BYTE", "UNSIGNED_BYTE"],
-        //    attachment: ["COLOR_ATTACHMENT", "COLOR_ATTACHMENT"],
-        //    useDepth: true
-        //}).init();
         this.screenDepthFramebuffer = new Framebuffer(this.handler, {
             useDepth: false
         }).init();
-
-        this.readPixels = () => {};
 
         if (this.handler.gl.type === "webgl") {
             this.sceneFramebuffer = new Framebuffer(this.handler);
@@ -530,10 +521,10 @@ class Renderer {
             this.toneMappingFramebuffer.setSize(c.width, c.height, true);
 
         this.depthFramebuffer &&
-            this.depthFramebuffer.setSize(c.width, c.height, true);
+            this.depthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
 
         this.screenDepthFramebuffer &&
-            this.screenDepthFramebuffer.setSize(c.width, c.height, true);
+            this.screenDepthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
 
         if (this.handler.gl.type === "webgl") {
             this.screenTexture.screen = this.sceneFramebuffer.textures[0];
@@ -753,6 +744,8 @@ class Renderer {
 
         let frustums = this.activeCamera.frustums;
 
+        let anyEvent = this.events.mouseState.anyEvent() && this.isActiveBackbuffers;
+
         // Rendering scene nodes and entityCollections
         let rn = this._renderNodesArr;
         let k = frustums.length;
@@ -765,17 +758,19 @@ class Renderer {
             }
             this._drawEntityCollections();
 
-            this._drawDepthBuffer(k);
-
-            // Rendering picking callbacks and refresh pickingColor
-            this._drawPickingBuffer(k);
+            if (anyEvent) {
+                this._drawPickingBuffer(k);
+            }
         }
 
         sfb.deactivate();
 
         this.blitFramebuffer && sfb.blitTo(this.blitFramebuffer);
 
-        if (e.mouseState.anyEvent()) {
+        if (anyEvent) {
+            // It works ONLY for 0 (closest) frustum
+            this._drawDepthBuffer();
+
             this._readPickingColor();
         }
 
@@ -847,98 +842,80 @@ class Renderer {
     }
 
     /**
-     * Returns picking object by screen coordinates
-     * @param {number} x - X position
-     * @param {number} y - Y position
-     * @return {Object} -
-     */
-    getPickingObject(x, y) {
-        let cnv = this.renderer.handler.canvas,
-            c = new Uint8Array(3);
-        this.readPixels(c, x / cnv.clientWidth, (cnv.clientHeight - y) / cnv.clientHeight, 1);
-        return this.colorObjects[c[0] + "_" + c[1] + "_" + c[2]];
-    }
-
-    /**
      * Draw picking objects framebuffer.
      * @private
      */
     _drawPickingBuffer(frustumIndex) {
-        if (this.events.mouseState.anyEvent()) {
-            this.pickingFramebuffer.activate();
+        this.pickingFramebuffer.activate();
 
-            var h = this.handler;
-            var gl = h.gl;
+        var h = this.handler;
+        var gl = h.gl;
 
-            if (frustumIndex === this.activeCamera.FARTHEST_FRUSTUM_INDEX) {
-                gl.clearColor(0.0, 0.0, 0.0, 1.0);
-                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            } else {
-                gl.clear(gl.DEPTH_BUFFER_BIT);
-            }
-
-            gl.disable(h.gl.BLEND);
-
-            var dp = this._pickingCallbacks;
-            var i = dp.length;
-            while (i--) {
-                /**
-                 * This callback renders picking frame.
-                 * @callback og.Renderer~pickingCallback
-                 */
-                dp[i].callback.call(dp[i].sender);
-            }
-
-            this.pickingFramebuffer.deactivate();
-        }
-    }
-
-    _drawDepthBuffer(frustumIndex) {
-        if (frustumIndex === 0) {
-            this.depthFramebuffer.activate();
-
-            var h = this.handler;
-            var gl = h.gl;
-
+        if (frustumIndex === this.activeCamera.FARTHEST_FRUSTUM_INDEX) {
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-            gl.enable(gl.DEPTH_TEST);
-
-            var dp = this._depthCallbacks;
-            var i = dp.length;
-            while (i--) {
-                /**
-                 * This callback renders depth frame.
-                 * @callback og.Renderer~depthCallback
-                 */
-                dp[i].callback.call(dp[i].sender);
-            }
-
-            this.depthFramebuffer.deactivate();
-
-            //
-            // PASS to depth visualization
-            var sh = h.programs.depth,
-                p = sh._program;
-
-            gl = h.gl;
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
-            gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-
-            this.screenDepthFramebuffer.activate();
-
-            sh.activate();
-
-            gl.activeTexture(gl.TEXTURE1);
-            gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer.textures[1]);
-            gl.uniform1i(p.uniforms.depthTexture, 1);
-
-            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-            this.screenDepthFramebuffer.deactivate();
+        } else {
+            gl.clear(gl.DEPTH_BUFFER_BIT);
         }
+
+        gl.disable(h.gl.BLEND);
+
+        var dp = this._pickingCallbacks;
+        var i = dp.length;
+        while (i--) {
+            /**
+             * This callback renders picking frame.
+             * @callback og.Renderer~pickingCallback
+             */
+            dp[i].callback.call(dp[i].sender);
+        }
+
+        this.pickingFramebuffer.deactivate();
+    }
+
+    _drawDepthBuffer() {
+        this.depthFramebuffer.activate();
+
+        var h = this.handler;
+        var gl = h.gl;
+
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        gl.enable(gl.DEPTH_TEST);
+
+        var dp = this._depthCallbacks;
+        var i = dp.length;
+        while (i--) {
+            /**
+             * This callback renders depth frame.
+             * @callback og.Renderer~depthCallback
+             */
+            dp[i].callback.call(dp[i].sender);
+        }
+
+        this.depthFramebuffer.deactivate();
+
+        //
+        // PASS to depth visualization
+        this.screenDepthFramebuffer.activate();
+        var sh = h.programs.depth,
+            p = sh._program;
+
+        gl = h.gl;
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
+        gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+
+        sh.activate();
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer.textures[1]);
+        gl.uniform1i(p.uniforms.depthTexture, 0);
+
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        this.screenDepthFramebuffer.deactivate();
     }
 
     _readPickingColor() {
@@ -952,15 +929,13 @@ class Renderer {
 
             var pc = this._currPickingColor;
             if (ts.x || ts.y) {
+                this.pickingFramebuffer.activate();
                 this.pickingFramebuffer.readPixels(pc, ts.nx, 1.0 - ts.ny);
-                if (!(pc[0] || pc[1] || pc[2])) {
-                    this.readPixels(pc, ts.nx, 1.0 - ts.ny, 1);
-                }
+                this.pickingFramebuffer.deactivate();
             } else {
+                this.pickingFramebuffer.activate();
                 this.pickingFramebuffer.readPixels(pc, ms.nx, 1.0 - ms.ny);
-                if (!(pc[0] || pc[1] || pc[2])) {
-                    this.readPixels(pc, ms.nx, 1.0 - ms.ny, 1);
-                }
+                this.pickingFramebuffer.deactivate();
             }
         }
     }

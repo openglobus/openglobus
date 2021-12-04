@@ -17,7 +17,6 @@ import { RENDERING } from "../quadTree/quadTree.js";
  * @param {string} name - Layer name.
  * @param {Object} options:
  * @param {number} [options.opacity=1.0] - Layer opacity.
- * @param {Array.<number>} [options.transparentColor=[-1,-1,-1]] - RGB color that defines transparent color. (exactly 3 entries)
  * @param {Array.<string>} [options.subdomains=['a','b','c']] - Subdomains of the tile service.
  * @param {number} [options.minZoom=0] - Minimal visibility zoom level.
  * @param {number} [options.maxZoom=0] - Maximal visibility zoom level.
@@ -50,8 +49,6 @@ class XYZ extends Layer {
         super(name, options);
 
         this.events.registerNames(EVENT_NAMES);
-
-        this.transparentColor = options.transparentColor || [-1, -1, -1];
 
         /**
          * Tile url source template.
@@ -104,7 +101,9 @@ class XYZ extends Layer {
      * @public
      */
     abortLoading() {
-        this._planet._tileLoader.abort();
+        if (this._planet) {
+            this._planet._tileLoader.abort();
+        }
     }
 
     /**
