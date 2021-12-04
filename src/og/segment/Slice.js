@@ -16,7 +16,7 @@ class Slice {
         this.tileOffsetArr = null;
         this.layerOpacityArr = null;
         //this.visibleExtentOffsetArr = null;
-    };
+    }
 
     append(layer, material) {
         let n = this.layers.length;
@@ -40,6 +40,6 @@ class Slice {
         //slice.visibleExtentOffsetArr[n4 + 3] = arr[3];
 
     }
-};
+}
 
 export { Slice }
