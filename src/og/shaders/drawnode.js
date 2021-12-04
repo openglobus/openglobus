@@ -23,8 +23,8 @@ const BLEND = `
                 in float opacity)
             {
                 vec4 src = texture( sampler, tileOffset.xy + vTextureCoord.xy * tileOffset.zw );
-                //dest = dest * (1.0 - src.a * opacity) + src * opacity;
-                dest = vec4(mix(dest.rgb, src.rgb, src.a * opacity), 1.0);
+                dest = dest * (1.0 - src.a * opacity) + src * opacity;
+                //dest = vec4(mix(dest.rgb, src.rgb, src.a * opacity), 1.0);
             }`;
 
 const BLEND1 =
@@ -35,7 +35,8 @@ const BLEND1 =
                 in float opacity)
             {
                 vec4 src = texture2D(sampler, tileOffset.xy + vTextureCoord.xy * tileOffset.zw);
-                dest = vec4(mix(dest.rgb, src.rgb, src.a * opacity), 1.0);
+                dest = dest * (1.0 - src.a * opacity) + src * opacity;
+                //dest = vec4(mix(dest.rgb, src.rgb, src.a * opacity), 1.0);
             }`
 
 const SLICE_SIZE = 4;
