@@ -163,6 +163,7 @@ class Globe {
         } else {
             this.planet = new Planet({
                 name: this._planetName,
+                frustums:options.frustums,
                 ellipsoid: options.ellipsoid,
                 maxGridSize: options.maxGridSize,
                 useNightTexture: options.useNightTexture,

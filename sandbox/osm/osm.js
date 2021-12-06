@@ -5,26 +5,23 @@ import { CanvasTiles } from "../../src/og/layer/CanvasTiles.js";
 import { Vector } from "../../src/og/layer/Vector.js";
 import { GlobusTerrain } from "../../src/og/terrain/GlobusTerrain.js";
 import { EmptyTerrain } from "../../src/og/terrain/EmptyTerrain.js";
-//import { labelXYZ } from "./labelXYZ.js";
-//import { labelXYZ } from "./labelXYZ_new.js";
 import { stringTemplate } from "../../src/og/utils/shared.js";
 import { Lighting } from "../../src/og/control/Lighting.js";
 import { LayerSwitcher } from "../../src/og/control/LayerSwitcher.js";
 import { DebugInfo } from "../../src/og/control/DebugInfo.js";
 import { ToggleWireframe } from "../../src/og/control/ToggleWireframe.js";
 import { VisibleExtent } from "../../src/og/control/visibleExtent/VisibleExtent.js";
+import { labelXYZ } from "./labelXYZ.js";
+
+let cnv = document.createElement("canvas");
+let ctx = cnv.getContext("2d");
+cnv.width = 256;
+cnv.height = 256;
 
 const tg = new CanvasTiles("Tile grid", {
     visibility: true,
     isBaseLayer: false,
     drawTile: function (material, applyCanvas) {
-        //
-        // This is important create canvas here!
-        //
-        let cnv = document.createElement("canvas");
-        let ctx = cnv.getContext("2d");
-        cnv.width = 256;
-        cnv.height = 256;
 
         //Clear canvas
         ctx.clearRect(0, 0, cnv.width, cnv.height);
@@ -34,16 +31,21 @@ const tg = new CanvasTiles("Tile grid", {
         if (material.segment.isPole) {
             let ext = material.segment.getExtentLonLat();
 
-            ctx.fillStyle = "#888888";
+            ctx.fillStyle = "rgba(0,0,0,0)";
             ctx.fillRect(0, 0, 256, 256);
 
-            ctx.font = 'normal ' + 29 + 'px Verdana';
+            if (material.segment.tileZoom > 14) {
+                size = "26";
+            } else {
+                size = "32";
+            }
+            ctx.fillStyle = 'black';
+            ctx.font = 'normal ' + size + 'px Verdana';
             ctx.textAlign = 'center';
-            ctx.fillText(`${ext.northEast.lon.toFixed(3)} ${ext.northEast.lat.toFixed(3)}`, cnv.width / 2, cnv.height / 2 + 20);
-            ctx.fillText(`${ext.southWest.lon.toFixed(3)} ${ext.southWest.lat.toFixed(3)}`, cnv.width / 2, cnv.height / 2 - 20);
+            ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
         } else {
 
-            ctx.fillStyle = "#888888";
+            ctx.fillStyle = "rgba(0,0,0,0)";
             ctx.fillRect(0, 0, 256, 256);
 
             if (material.segment.tileZoom > 14) {
@@ -86,7 +88,7 @@ let temp = new XYZ("temp", {
     url: "//assets.msn.com/weathermapdata/1/temperaturerendered/120118/{x}_{y}_{z}_2021120204.jpg",
     visibility: true,
     attribution: 'Temperature',
-    maxNativeZoom: 19,
+    maxNativeZoom: 5,
     textureFilter: "mipmap"
 });
 
@@ -131,21 +133,44 @@ let sat = new XYZ("sat", {
     }
 });
 
+const labelLayer = new labelXYZ("labelLayer", {
+    isBaseLayer: false,
+    visibility: true,
+    zIndex: 3,
+    url: "//t.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{quad}?mkt=zh-cn&it=Z%2CGF%2CL&shading=hill&og=1471&n=z&ur=JP&js=1&cstl=in&st=me|lv:0_pp|lv:1_cr|lv:1_ad|lv:1&nvlos=1&vpt=e,p&pll=1&ell=1",
+    countryLayerData: "//assets.msn.com/weathermapdata/1/static/3d/label.0.1/country-{}.json",
+    cityLabelZ3Path: "//assets.msn.com/weathermapdata/1/static/3d/label.0.1/cities_level3.5.json",
+    //height: 16,
+    size: 11.5,
+    color: "white",
+    //labelFace: "seguisb",
+    zoomLevelMinAltitude: [13400000, 13400000, 13400000, 12000000, 8000000, 5000000, 4200000, 3500000],
+    maxNativeZoom: 5,
+    //clickLabelCallBack: option.onGlobeClick,
+    urlRewrite: function (segment, url) {
+        return stringTemplate(url, {
+            s: this._getSubdomain(),
+            quad: toQuadKey(segment.tileX, segment.tileY, segment.tileZoom)
+        });
+    }
+});
+
 //let visExtent = new VisibleExtent();
 
 var globus = new Globe({
     target: "earth",
     name: "Earth",
+    //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
     terrain: new GlobusTerrain({
-        gridSizeByZoom: [32, 32, 32, 32, 16, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8]
+        //gridSizeByZoom: [32, 32, 16, 8, 8, 4, 4, 2]
     }),
     //maxEqualZoomAltitude: 1,
-    layers: [sat, osm, temp, borders],
-    useNightTexture: false,
+    layers: [osm, labelLayer, borders],
+    //useNightTexture: false,
     //useEarthNavigation: true,
-    useSpecularTexture: false
+    //useSpecularTexture: false
 });
 
 globus.planet.setRatioLod(1.0, 0.7);
