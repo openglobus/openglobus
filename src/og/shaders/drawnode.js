@@ -15,44 +15,14 @@ import { Program } from "../webgl/Program.js";
 
 const NIGHT = `const vec3 nightStep = 10.0 * vec3(0.58, 0.48, 0.25);`;
 
-const __BLEND__ = `
-            void blend(
-                out vec4 dest,
-                in sampler2D sampler,
-                in vec4 tileOffset,
-                in float opacity)
-            {
-                vec4 src = texture( sampler, tileOffset.xy + vTextureCoord.xy * tileOffset.zw );
-                dest = dest * (1.0 - src.a * opacity) + src * opacity;
-            }`;
+const DEF_BLEND = `#define blend(DEST, SAMPLER, OFFSET, OPACITY) \
+                    src = texture( SAMPLER, OFFSET.xy + vTextureCoord.xy * OFFSET.zw ); \
+                    DEST = DEST * (1.0 - src.a * OPACITY) + src * OPACITY;`;
 
-const __BLEND1__ =
-    `void blend(
-                out vec4 dest,
-                in sampler2D sampler,
-                in vec4 tileOffset,
-                in float opacity)
-            {
-                vec4 src = texture2D(sampler, tileOffset.xy + vTextureCoord.xy * tileOffset.zw);
-                dest = dest * (1.0 - src.a * opacity) + src * opacity;
-            }`
+const DEF_BLEND_WEBGL1 = `#define blend(DEST, SAMPLER, OFFSET, OPACITY) \
+                            src = texture2D( SAMPLER, OFFSET.xy + vTextureCoord.xy * OFFSET.zw ); \
+                            DEST = DEST * (1.0 - src.a * OPACITY) + src * OPACITY;`;
 
-const DEF_BLEND = `#define blend(DEST, SAMPLER, OFFSET, OPACITY) src = texture( SAMPLER, OFFSET.xy + vTextureCoord.xy * OFFSET.zw ); DEST = DEST * (1.0 - src.a * OPACITY) + src * OPACITY;`;
-const DEF_BLEND_WEBGL1 = `#define blend(DEST, SAMPLER, OFFSET, OPACITY) src = texture2D( SAMPLER, OFFSET.xy + vTextureCoord.xy * OFFSET.zw ); DEST = DEST * (1.0 - src.a * OPACITY) + src * OPACITY;`;
-
-const __BLEND_PICKING__ = `void blendPicking(
-    out vec4 dest,
-                in vec4 tileOffset,
-                in sampler2D sampler,
-                in sampler2D pickingMask,
-                in vec4 pickingColor,
-                in float opacity)
-{
-    vec2 tc = tileOffset.xy + vTextureCoord.xy * tileOffset.zw;
-    vec4 t = texture2D(sampler, tc);
-    vec4 p = texture2D(pickingMask, tc);
-    dest = mix(dest, vec4(max(pickingColor.rgb, p.rgb), opacity), (t.a == 0.0 ? 0.0 : 1.0) * pickingColor.a);
-}`
 
 const DEF_BLEND_PICKING = `#define blendPicking(DEST, OFFSET, SAMPLER, MASK, COLOR, OPACITY) \
     tc = OFFSET.xy + vTextureCoord.xy * OFFSET.zw; \
