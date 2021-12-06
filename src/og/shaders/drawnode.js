@@ -40,6 +40,27 @@ const __BLEND1__ =
 const DEF_BLEND = `#define blend(DEST, SAMPLER, OFFSET, OPACITY) src = texture( SAMPLER, OFFSET.xy + vTextureCoord.xy * OFFSET.zw ); DEST = DEST * (1.0 - src.a * OPACITY) + src * OPACITY;`;
 const DEF_BLEND_WEBGL1 = `#define blend(DEST, SAMPLER, OFFSET, OPACITY) src = texture2D( SAMPLER, OFFSET.xy + vTextureCoord.xy * OFFSET.zw ); DEST = DEST * (1.0 - src.a * OPACITY) + src * OPACITY;`;
 
+const __BLEND_PICKING__ = `void blendPicking(
+    out vec4 dest,
+                in vec4 tileOffset,
+                in sampler2D sampler,
+                in sampler2D pickingMask,
+                in vec4 pickingColor,
+                in float opacity)
+{
+    vec2 tc = tileOffset.xy + vTextureCoord.xy * tileOffset.zw;
+    vec4 t = texture2D(sampler, tc);
+    vec4 p = texture2D(pickingMask, tc);
+    dest = mix(dest, vec4(max(pickingColor.rgb, p.rgb), opacity), (t.a == 0.0 ? 0.0 : 1.0) * pickingColor.a);
+}`
+
+const BLEND_PICKING = `#define blendPicking(DEST, OFFSET, SAMPLER, MASK, COLOR, OPACITY) \
+    tc = OFFSET.xy + vTextureCoord.xy * OFFSET.zw; \
+    t = texture2D(SAMPLER, tc); \
+    p = texture2D(MASK, tc); \
+    DEST = mix(DEST, vec4(max(COLOR.rgb, p.rgb), OPACITY), (t.a == 0.0 ? 0.0 : 1.0) * COLOR.a);`
+
+
 const SLICE_SIZE = 4;
 
 export function drawnode_screen_nl() {
@@ -494,23 +515,15 @@ export function drawnode_colorPicking() {
             uniform int samplerCount;
             varying vec2 vTextureCoord;
 
-            void blendPicking(
-                out vec4 dest,
-                in vec4 tileOffset,
-                in sampler2D sampler,
-                in sampler2D pickingMask,
-                in vec4 pickingColor,
-                in float opacity)
-            {
-                vec2 tc = tileOffset.xy + vTextureCoord.xy * tileOffset.zw;
-                vec4 t = texture2D( sampler, tc );
-                vec4 p = texture2D( pickingMask, tc );
-                dest = mix( dest, vec4(max(pickingColor.rgb, p.rgb), opacity), (t.a == 0.0 ? 0.0 : 1.0) * pickingColor.a);
-            }
+            ${BLEND_PICKING}
 
             void main(void) {
                 gl_FragColor = vec4(0.0);
                 if( samplerCount == 0 ) return;
+
+                vec2 tc;
+                vec4 t;
+                vec4 p;
 
                 blendPicking(gl_FragColor, tileOffsetArr[0], samplerArr[0], pickingMaskArr[0], pickingColorArr[0], 1.0);
                 if( samplerCount == 1 ) return;
