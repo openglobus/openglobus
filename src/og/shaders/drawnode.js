@@ -525,23 +525,17 @@ export function drawnode_heightPicking() {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
-            samplerCount: "int",
-            tileOffsetArr: "vec4",
-            samplerArr: "sampler2darray",
-            defaultTexture: "sampler2d",
             height: "float",
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3"
         },
         attributes: {
             aVertexPositionHigh: "vec3",
-            aVertexPositionLow: "vec3",
-            aTextureCoord: "vec2"
+            aVertexPositionLow: "vec3"
         },
 
         vertexShader: `attribute vec3 aVertexPositionHigh;
             attribute vec3 aVertexPositionLow;
-            attribute vec2 aTextureCoord;
 
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
@@ -549,7 +543,6 @@ export function drawnode_heightPicking() {
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
 
-            varying vec2 vTextureCoord;
             varying float range;
 
             void main(void) {
@@ -564,17 +557,11 @@ export function drawnode_heightPicking() {
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
                 range = distance(cameraPosition, aVertexPosition + normalize(aVertexPosition) * height);
-                vTextureCoord = aTextureCoord;
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
             }`,
 
         fragmentShader: `precision highp float;
-            #define SLICE_SIZE ${SLICE_SIZE + 1}
-            uniform sampler2D defaultTexture;
-            uniform vec4 tileOffsetArr[SLICE_SIZE];
-            uniform sampler2D samplerArr[SLICE_SIZE];
-            uniform int samplerCount;
-            varying vec2 vTextureCoord;
+
             varying float range;
 
             vec3 encode24(highp float f) {
@@ -590,29 +577,7 @@ export function drawnode_heightPicking() {
             }
 
             void main(void) {
-                gl_FragColor = vec4(encode24(range), texture2D( defaultTexture, vTextureCoord ).a);
-                if( samplerCount == 0 ) return;
-
-                vec4 t = texture2D( samplerArr[0], tileOffsetArr[0].xy + vTextureCoord * tileOffsetArr[0].zw );
-                gl_FragColor = mix( gl_FragColor, vec4(encode24(range), 1.0), 1.0);
-                //
-                // TODO: Seems to be it is not necessary
-                //if( samplerCount == 1 ) return;
-
-                //t = texture2D( samplerArr[1], tileOffsetArr[1].xy + vTextureCoord * tileOffsetArr[1].zw );
-                //gl_FragColor = mix( gl_FragColor, vec4(encode24(range), 1.0), 1.0);
-                //if( samplerCount == 2 ) return;
-
-                //t = texture2D( samplerArr[2], tileOffsetArr[2].xy + vTextureCoord * tileOffsetArr[2].zw );
-                //gl_FragColor = mix( gl_FragColor, vec4(encode24(range), 1.0), 1.0);
-                //if( samplerCount == 3 ) return;
-
-                //t = texture2D( samplerArr[3], tileOffsetArr[3].xy + vTextureCoord * tileOffsetArr[3].zw );
-                //gl_FragColor = mix( gl_FragColor, vec4(encode24(range), 1.0), 1.0);
-                //if( samplerCount == 4 ) return;
-
-                //t = texture2D( samplerArr[4], tileOffsetArr[4].xy + vTextureCoord * tileOffsetArr[4].zw );
-                //gl_FragColor = mix( gl_FragColor, vec4(encode24(range), 1.0), 1.0);
+                gl_FragColor = vec4(encode24(range), 1.0);
             }`
     });
 }

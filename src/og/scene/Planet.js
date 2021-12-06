@@ -1251,21 +1251,12 @@ export class Planet extends RenderNode {
             gl.clear(gl.DEPTH_BUFFER_BIT);
         }
 
-        gl.enable(gl.CULL_FACE);
-        gl.blendEquation(gl.FUNC_ADD);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.enable(gl.BLEND);
-
         h.programs.drawnode_heightPicking.activate();
         sh = h.programs.drawnode_heightPicking._program;
         let shu = sh.uniforms;
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera.getViewMatrix());
-        gl.uniformMatrix4fv(
-            shu.projectionMatrix,
-            false,
-            renderer.activeCamera.getProjectionMatrix()
-        );
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, renderer.activeCamera.getProjectionMatrix());
 
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
@@ -1276,20 +1267,8 @@ export class Planet extends RenderNode {
 
         let i = rn.length;
         while (i--) {
-            rn[i].segment.heightPickingRendering(sh, sl[0], 0);
+            rn[i].segment.heightPickingRendering(sh, sl[0]);
         }
-
-        //gl.enable(gl.POLYGON_OFFSET_FILL);
-        for (let j = 1, len = sl.length; j < len; j++) {
-            i = rn.length;
-            //gl.polygonOffset(0, -j);
-            while (i--) {
-                rn[i].segment.heightPickingRendering(sh, sl[j], j, this.transparentTexture, true);
-            }
-        }
-        //gl.disable(gl.POLYGON_OFFSET_FILL);
-
-        gl.disable(gl.BLEND);
 
         this._heightPickingFramebuffer.deactivate();
     }
