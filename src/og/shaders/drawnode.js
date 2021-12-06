@@ -15,7 +15,7 @@ import { Program } from "../webgl/Program.js";
 
 const NIGHT = `const vec3 nightStep = 10.0 * vec3(0.58, 0.48, 0.25);`;
 
-const BLEND = `
+const __BLEND__ = `
             void blend(
                 out vec4 dest,
                 in sampler2D sampler,
@@ -25,6 +25,9 @@ const BLEND = `
                 vec4 src = texture( sampler, tileOffset.xy + vTextureCoord.xy * tileOffset.zw );
                 dest = dest * (1.0 - src.a * opacity) + src * opacity;
             }`;
+
+const DEF_BLEND = `#define blend(DEST, SAMPLER, OFFSET, OPACITY) src = texture( SAMPLER, OFFSET.xy + vTextureCoord.xy * OFFSET.zw ); DEST = DEST * (1.0 - src.a * OPACITY) + src * OPACITY;`;
+
 
 const BLEND1 =
             `void blend(
@@ -212,7 +215,7 @@ export function drawnode_screen_wl() {
 
             ${NIGHT}
 
-            ${BLEND}
+            ${DEF_BLEND}
 
 
             void main(void) {
@@ -375,9 +378,11 @@ export function drawnode_screen_wl_webgl2() {
 
             ${NIGHT}
 
-            ${BLEND}
+            ${DEF_BLEND}
 
             void main(void) {
+
+                vec4 src;
 
                 float overGround = 1.0 - step(0.1, v_height);
                 vec3 normal = normalize(normalMatrix * ((texture(uNormalMap, vTextureCoord.zw).rgb - 0.5) * 2.0));

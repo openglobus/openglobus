@@ -1164,11 +1164,8 @@ export class Planet extends RenderNode {
 
             // bind night glowing material
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
-            gl.bindTexture(
-                gl.TEXTURE_2D,
-                (this.camera._lonLat.height > 329958.0 &&
-                    (this._nightTexture || this.transparentTexture)) ||
-                this.transparentTexture
+            gl.bindTexture(gl.TEXTURE_2D,
+                (this.camera._lonLat.height > 329958.0 && (this._nightTexture || this.transparentTexture)) || this.transparentTexture
             );
             gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
 

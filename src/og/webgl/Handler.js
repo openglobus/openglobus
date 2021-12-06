@@ -646,13 +646,17 @@ class Handler {
             this.initializeExtension(this._params.extensions[i], true);
         }
 
-        //
-        //TODO: webgl1 case
-        //
-        this.createTexture_n = this.createTexture_n_webgl2.bind(this);
-        this.createTexture_l = this.createTexture_l_webgl2.bind(this);
-        this.createTexture_mm = this.createTexture_mm_webgl2.bind(this);
-        this.createTexture_a = this.createTexture_a_webgl2.bind(this);
+        if (this.gl.type === "webgl") {
+            this.createTexture_n = this.createTexture_n_webgl1.bind(this);
+            this.createTexture_l = this.createTexture_l_webgl1.bind(this);
+            this.createTexture_mm = this.createTexture_mm_webgl1.bind(this);
+            this.createTexture_a = this.createTexture_a_webgl1.bind(this);
+        } else {
+            this.createTexture_n = this.createTexture_n_webgl2.bind(this);
+            this.createTexture_l = this.createTexture_l_webgl2.bind(this);
+            this.createTexture_mm = this.createTexture_mm_webgl2.bind(this);
+            this.createTexture_a = this.createTexture_a_webgl2.bind(this);
+        }
 
         this.createTexture["NEAREST"] = this.createTexture_n;
         this.createTexture["LINEAR"] = this.createTexture_l;
@@ -979,7 +983,7 @@ class Handler {
         if (params && params.color) {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor(params.color);
-            texture = this.createTexture_n_webgl2(imgCnv._canvas, this.gl.RGBA8);
+            texture = this.createTexture_n_webgl2(imgCnv._canvas);
             texture.default = true;
             success(texture);
         } else if (params && params.url) {
@@ -994,7 +998,7 @@ class Handler {
         } else {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor("#C5C5C5");
-            texture = this.createTexture_n_webgl2(imgCnv._canvas, this.gl.RGBA8);
+            texture = this.createTexture_n_webgl2(imgCnv._canvas);
             texture.default = true;
             success(texture);
         }
