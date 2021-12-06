@@ -108,6 +108,13 @@ export class Planet extends RenderNode {
     constructor(options = {}) {
         super(options.name);
 
+        this._cameraFrustums = options.frustums || [
+            [1, 100 + 0.075],
+            [100, 1000 + 0.075],
+            [1000, 1e6 + 10000],
+            [1e6, 1e9]
+        ];
+
         /**
          * @public
          * @type {Ellipsoid}
@@ -717,6 +724,7 @@ export class Planet extends RenderNode {
         this.transparentTexture = this.renderer.handler.transparentTexture;
 
         this.camera = this.renderer.activeCamera = new PlanetCamera(this, {
+            frustums: this._cameraFrustums,
             eye: new Vec3(0, 0, 28000000),
             look: new Vec3(0, 0, 0),
             up: new Vec3(0, 1, 0),
@@ -1362,15 +1370,7 @@ export class Planet extends RenderNode {
 
         let i = rn.length;
         while (i--) {
-            rn[i].segment.depthRendering(sh, sl[0], 0);
-        }
-
-        for (let j = 1, len = sl.length; j < len; j++) {
-            i = rn.length;
-            gl.polygonOffset(0, -j);
-            while (i--) {
-                rn[i].segment.depthRendering(sh, sl[j], j, this.transparentTexture, true);
-            }
+            rn[i].segment.depthRendering(sh, sl[0]);
         }
     }
 

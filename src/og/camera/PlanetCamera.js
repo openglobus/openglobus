@@ -36,20 +36,15 @@ class PlanetCamera extends Camera {
      * @param {Object} [options] - Planet camera options:
      */
     constructor(planet, options) {
-        super(
-            planet.renderer,
-            Object.assign(
-                {},
-                {
-                    frustums: /*[[100, 10000000]]*/[
-                        [1, 100 + 0.075],
-                        [100, 1000 + 0.075],
-                        [1000, 1e6 + 10000],
-                        [1e6, 1e9]
-                    ] //[[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]]*/
-                },
-                options
-            )
+        super(planet.renderer, {
+            frustums: [
+                [1, 100 + 0.075],
+                [100, 1000 + 0.075],
+                [1000, 1e6 + 10000],
+                [1e6, 1e9]
+            ], //[[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]]*/
+            ...options
+        }
         );
         /**
          * Assigned camera's planet.

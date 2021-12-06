@@ -24,7 +24,6 @@ const BLEND = `
             {
                 vec4 src = texture( sampler, tileOffset.xy + vTextureCoord.xy * tileOffset.zw );
                 dest = dest * (1.0 - src.a * opacity) + src * opacity;
-                //dest = vec4(mix(dest.rgb, src.rgb, src.a * opacity), 1.0);
             }`;
 
 const BLEND1 =
@@ -36,7 +35,6 @@ const BLEND1 =
             {
                 vec4 src = texture2D(sampler, tileOffset.xy + vTextureCoord.xy * tileOffset.zw);
                 dest = dest * (1.0 - src.a * opacity) + src * opacity;
-                //dest = vec4(mix(dest.rgb, src.rgb, src.a * opacity), 1.0);
             }`
 
 const SLICE_SIZE = 4;
@@ -624,10 +622,6 @@ export function drawnode_depth() {
         uniforms: {
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
-            samplerCount: "int",
-            tileOffsetArr: "vec4",
-            samplerArr: "sampler2darray",
-            defaultTexture: "sampler2d",
             height: "float",
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
@@ -635,22 +629,17 @@ export function drawnode_depth() {
         },
         attributes: {
             aVertexPositionHigh: "vec3",
-            aVertexPositionLow: "vec3",
-            aTextureCoord: "vec2"
+            aVertexPositionLow: "vec3"
         },
 
-        vertexShader: `#version 300 es
-            in vec3 aVertexPositionHigh;
-            in vec3 aVertexPositionLow;
-            in vec2 aTextureCoord;
+        vertexShader: `attribute vec3 aVertexPositionHigh;
+            attribute vec3 aVertexPositionLow;
 
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
             uniform float height;
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
-
-            out vec2 vTextureCoord;
 
             void main(void) {
 
@@ -663,49 +652,14 @@ export function drawnode_depth() {
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
-                vTextureCoord = aTextureCoord;
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
             }`,
 
-        fragmentShader: `#version 300 es
-            #define SLICE_SIZE ${SLICE_SIZE + 1}
-            precision highp float;
-            uniform sampler2D defaultTexture;
-            uniform vec4 tileOffsetArr[SLICE_SIZE];
-            uniform sampler2D samplerArr[SLICE_SIZE];
-            uniform int samplerCount;
+        fragmentShader: `precision highp float;
             uniform vec3 frustumPickingColor;
 
-            in vec2 vTextureCoord;
-
-            layout(location = 0) out vec4 frustumColor;
-
             void main(void) {
-
-            frustumColor = vec4(frustumPickingColor, texture(defaultTexture, vTextureCoord).a);
-            if(samplerCount == 0) return;
-
-            vec4 t = texture(samplerArr[0], tileOffsetArr[0].xy + vTextureCoord * tileOffsetArr[0].zw);
-            frustumColor = mix(frustumColor, vec4(frustumPickingColor, 1.0), 1.0);
-
-            //
-            // TODO: Seems to be it is not necessary
-            //if (samplerCount == 1) return;
-
-            //t = texture(samplerArr[1], tileOffsetArr[1].xy + vTextureCoord * tileOffsetArr[1].zw);
-            //frustumColor = mix(frustumColor, vec4(frustumPickingColor, 1.0), 1.0);
-            //if (samplerCount == 2) return;
-
-            //t = texture(samplerArr[2], tileOffsetArr[2].xy + vTextureCoord * tileOffsetArr[2].zw);
-            //frustumColor = mix(frustumColor, vec4(frustumPickingColor, 1.0), 1.0);
-            //if (samplerCount == 3) return;
-
-            //t = texture(samplerArr[3], tileOffsetArr[3].xy + vTextureCoord * tileOffsetArr[3].zw);
-            //frustumColor = mix(frustumColor, vec4(frustumPickingColor, 1.0), 1.0);
-            //if (samplerCount == 4) return;
-
-            //t = texture(samplerArr[4], tileOffsetArr[4].xy + vTextureCoord * tileOffsetArr[4].zw);
-            //frustumColor = mix(frustumColor, vec4(frustumPickingColor, 1.0), 1.0);
-        } `
+                gl_FragColor = vec4(frustumPickingColor, 1.0);
+            } `
     });
 }
