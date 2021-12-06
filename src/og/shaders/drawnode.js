@@ -26,11 +26,8 @@ const __BLEND__ = `
                 dest = dest * (1.0 - src.a * opacity) + src * opacity;
             }`;
 
-const DEF_BLEND = `#define blend(DEST, SAMPLER, OFFSET, OPACITY) src = texture( SAMPLER, OFFSET.xy + vTextureCoord.xy * OFFSET.zw ); DEST = DEST * (1.0 - src.a * OPACITY) + src * OPACITY;`;
-
-
-const BLEND1 =
-            `void blend(
+const __BLEND1__ =
+    `void blend(
                 out vec4 dest,
                 in sampler2D sampler,
                 in vec4 tileOffset,
@@ -39,6 +36,9 @@ const BLEND1 =
                 vec4 src = texture2D(sampler, tileOffset.xy + vTextureCoord.xy * tileOffset.zw);
                 dest = dest * (1.0 - src.a * opacity) + src * opacity;
             }`
+
+const DEF_BLEND = `#define blend(DEST, SAMPLER, OFFSET, OPACITY) src = texture( SAMPLER, OFFSET.xy + vTextureCoord.xy * OFFSET.zw ); DEST = DEST * (1.0 - src.a * OPACITY) + src * OPACITY;`;
+const DEF_BLEND_WEBGL1 = `#define blend(DEST, SAMPLER, OFFSET, OPACITY) src = texture2D( SAMPLER, OFFSET.xy + vTextureCoord.xy * OFFSET.zw ); DEST = DEST * (1.0 - src.a * OPACITY) + src * OPACITY;`;
 
 const SLICE_SIZE = 4;
 
@@ -96,11 +96,13 @@ export function drawnode_screen_nl() {
             uniform int samplerCount;
             varying vec2 vTextureCoord;
 
-            ${BLEND1}
+            ${DEF_BLEND_WEBGL1}
 
             void main(void) {
                 gl_FragColor = texture2D( defaultTexture, vTextureCoord );
                 if( samplerCount == 0 ) return;
+
+                vec4 src;
 
                 blend(gl_FragColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
                 if( samplerCount == 1 ) return;
@@ -240,6 +242,8 @@ export function drawnode_screen_wl() {
                     gl_FragColor *= lightWeighting;
                     return;
                 }
+    
+                vec4 src;
 
                 blend(gl_FragColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
                 if( samplerCount == 1 ) {
@@ -382,8 +386,6 @@ export function drawnode_screen_wl_webgl2() {
 
             void main(void) {
 
-                vec4 src;
-
                 float overGround = 1.0 - step(0.1, v_height);
                 vec3 normal = normalize(normalMatrix * ((texture(uNormalMap, vTextureCoord.zw).rgb - 0.5) * 2.0));
                 vec3 lightDirection = normalize(lightsPositions[0].xyz - v_vertex.xyz * lightsPositions[0].w);
@@ -405,6 +407,8 @@ export function drawnode_screen_wl_webgl2() {
                     fragColor *= lightWeighting;
                     return;
                 }
+
+                vec4 src;
 
                 blend(fragColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
                 if( samplerCount == 1 ) {
