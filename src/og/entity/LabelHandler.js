@@ -470,6 +470,7 @@ class LabelHandler extends BillboardHandler {
 
         label._handlerIndex = -1;
         label._handler = null;
+        label._isReady = false;
     }
 
     setText(index, text, fontIndex, align) {
