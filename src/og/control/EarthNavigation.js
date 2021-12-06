@@ -211,7 +211,7 @@ class EarthNavigation extends Control {
                 cam.set(rot.mulVec3(cam.eye), Vec3.ZERO, rot.mulVec3(cam.getUp()));
                 //cam.update();
 
-                var rot = this._vRot;
+                rot = this._vRot;
 
                 var state = this.positionState[this.currState];
                 var lim = rot.mulVec3(cam.eye).normal().dot(Vec3.UP);
