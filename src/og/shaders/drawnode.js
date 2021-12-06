@@ -54,7 +54,7 @@ const __BLEND_PICKING__ = `void blendPicking(
     dest = mix(dest, vec4(max(pickingColor.rgb, p.rgb), opacity), (t.a == 0.0 ? 0.0 : 1.0) * pickingColor.a);
 }`
 
-const BLEND_PICKING = `#define blendPicking(DEST, OFFSET, SAMPLER, MASK, COLOR, OPACITY) \
+const DEF_BLEND_PICKING = `#define blendPicking(DEST, OFFSET, SAMPLER, MASK, COLOR, OPACITY) \
     tc = OFFSET.xy + vTextureCoord.xy * OFFSET.zw; \
     t = texture2D(SAMPLER, tc); \
     p = texture2D(MASK, tc); \
@@ -515,7 +515,7 @@ export function drawnode_colorPicking() {
             uniform int samplerCount;
             varying vec2 vTextureCoord;
 
-            ${BLEND_PICKING}
+            ${DEF_BLEND_PICKING}
 
             void main(void) {
                 gl_FragColor = vec4(0.0);
