@@ -233,7 +233,6 @@ class GeoObjectHandler {
          */
         geoObject._tagIndex = tagData.iCounts - 1;
         if (geoObject._visibility) {
-            if (!alreadyAdded) {
                 this._vertexArr[ti] = concatArrays(
                     this._vertexArr[ti],
                     setParametersToArray(
@@ -255,7 +254,6 @@ class GeoObjectHandler {
                         // ...getTriangleNormals(geoObject._vertices, geoObject._indices)
                     )
                 );
-            }
         } else {
             this._vertexArr[ti] = concatArrays(
                 this._vertexArr[ti],
