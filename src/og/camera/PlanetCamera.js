@@ -139,7 +139,7 @@ class PlanetCamera extends Camera {
         super.update();
         this.updateGeodeticPosition();
         this.eyeNorm = this.eye.normal();
-        this.slope = this._n.dot(this.eyeNorm);
+        this.slope = this._b.dot(this.eyeNorm);
         this.events.dispatch(this.events.viewchange, this);
     }
 
@@ -382,8 +382,8 @@ class PlanetCamera extends Camera {
         var ground_a = this.planet.ellipsoid.lonLatToCartesian(
             new LonLat(this._lonLat.lon, this._lonLat.lat)
         );
-        var v_a = this._v,
-            n_a = this._n;
+        var v_a = this._u,
+            n_a = this._b;
 
         var lonlat_b = this.planet.ellipsoid.cartesianToLonLat(cartesian);
         var up_b = up || Vec3.UP;
@@ -538,18 +538,18 @@ class PlanetCamera extends Camera {
     }
 
     rotateVertical(angle, center, minSlope = 0) {
-        var rot = new Mat4().setRotation(this._u, angle);
+        var rot = new Mat4().setRotation(this._r, angle);
         var tr = new Mat4().setIdentity().translate(center);
         var ntr = new Mat4().setIdentity().translate(center.negateTo());
         var trm = tr.mul(rot).mul(ntr);
 
         let eye = trm.mulVec3(this.eye);
-        let v = rot.mulVec3(this._v).normalize();
         let u = rot.mulVec3(this._u).normalize();
-        let n = rot.mulVec3(this._n).normalize();
+        let r = rot.mulVec3(this._r).normalize();
+        let b = rot.mulVec3(this._b).normalize();
 
         let eyeNorm = eye.normal();
-        let slope = n.dot(eyeNorm);
+        let slope = b.dot(eyeNorm);
 
         if (minSlope) {
             let dSlope = slope - this.slope;
@@ -557,20 +557,20 @@ class PlanetCamera extends Camera {
             if (slope < minSlope && dSlope < 0) return;
 
             if (
-                (slope > 0.1 && v.dot(eyeNorm) > 0) ||
+                (slope > 0.1 && u.dot(eyeNorm) > 0) ||
                 this.slope <= 0.1 ||
-                this._v.dot(this.eye.normal()) <= 0.0
+                this._u.dot(this.eye.normal()) <= 0.0
             ) {
                 this.eye = eye;
-                this._v = v;
                 this._u = u;
-                this._n = n;
+                this._r = r;
+                this._b = b;
             }
         } else {
             this.eye = eye;
-            this._v = v;
             this._u = u;
-            this._n = n;
+            this._r = r;
+            this._b = b;
         }
     }
 
@@ -587,9 +587,9 @@ class PlanetCamera extends Camera {
             this.planet._normalMapCreator.lock(this._keyLock);
 
             this.eye = this._framesArr[c].eye;
-            this._u = this._framesArr[c].u;
-            this._v = this._framesArr[c].v;
-            this._n = this._framesArr[c].n;
+            this._r = this._framesArr[c].u;
+            this._u = this._framesArr[c].v;
+            this._b = this._framesArr[c].n;
 
             if (this._frameCallback) {
                 this._frameCallback();

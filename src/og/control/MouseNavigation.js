@@ -57,9 +57,9 @@ class MouseNavigation extends Control {
         var steps = [];
 
         var eye = cam.eye.clone(),
-            n = cam._n.clone(),
-            u = cam._u.clone(),
-            v = cam._v.clone();
+            n = cam._b.clone(),
+            u = cam._r.clone(),
+            v = cam._u.clone();
 
         var a = planet.getCartesianFromPixelTerrain(point, true);
 
@@ -309,9 +309,9 @@ class MouseNavigation extends Control {
                         );
                         var rot = this.qRot;
                         cam.eye = rot.mulVec3(cam.eye);
-                        cam._v = rot.mulVec3(cam._v);
                         cam._u = rot.mulVec3(cam._u);
-                        cam._n = rot.mulVec3(cam._n);
+                        cam._r = rot.mulVec3(cam._r);
+                        cam._b = rot.mulVec3(cam._b);
 
                         cam.checkTerrainCollision();
 
@@ -319,7 +319,7 @@ class MouseNavigation extends Control {
                     }
                 } else {
                     var p0 = this.grabbedPoint,
-                        p1 = Vec3.add(p0, cam._u),
+                        p1 = Vec3.add(p0, cam._r),
                         p2 = Vec3.add(p0, p0.normal());
 
                     var px = new Vec3();
@@ -395,9 +395,9 @@ class MouseNavigation extends Control {
                 }
 
                 cam.eye = sf.eye;
-                cam._v = sf.v;
-                cam._u = sf.u;
-                cam._n = sf.n;
+                cam._u = sf.v;
+                cam._r = sf.u;
+                cam._b = sf.n;
 
                 cam.checkTerrainCollision();
 
@@ -428,9 +428,9 @@ class MouseNavigation extends Control {
                     this.scaleRot = 0.0;
                 }
                 cam.eye = rot.mulVec3(cam.eye);
-                cam._v = rot.mulVec3(cam._v);
                 cam._u = rot.mulVec3(cam._u);
-                cam._n = rot.mulVec3(cam._n);
+                cam._r = rot.mulVec3(cam._r);
+                cam._b = rot.mulVec3(cam._b);
 
                 cam.checkTerrainCollision();
 

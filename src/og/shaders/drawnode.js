@@ -23,7 +23,6 @@ const DEF_BLEND_WEBGL1 = `#define blend(DEST, SAMPLER, OFFSET, OPACITY) \
                             src = texture2D( SAMPLER, OFFSET.xy + vTextureCoord.xy * OFFSET.zw ); \
                             DEST = DEST * (1.0 - src.a * OPACITY) + src * OPACITY;`;
 
-
 const DEF_BLEND_PICKING = `#define blendPicking(DEST, OFFSET, SAMPLER, MASK, COLOR, OPACITY) \
     tc = OFFSET.xy + vTextureCoord.xy * OFFSET.zw; \
     t = texture2D(SAMPLER, tc); \
