@@ -87,7 +87,7 @@ class GeoObjectHandler {
         for (let i = 0, len = this._vertexArr.length; i < len; i++) {
             this._vertexBuffer && h.gl.deleteBuffer(this._vertexBuffer[i]);
             this._vertexArr[i] = makeArrayTyped(this._vertexArr[i]);
-            this._vertexBuffer[i] = h.createArrayBuffer(this._vertexArr[i], 3, len / 3);
+            this._vertexBuffer[i] = h.createArrayBuffer(this._vertexArr[i], 3, this._vertexArr[i].length / 3);
         }
     }
 
@@ -96,7 +96,7 @@ class GeoObjectHandler {
         for (let i = 0, len = this._pitchRollArr.length; i < len; i++) {
             this._pitchRollBuffer && h.gl.deleteBuffer(this._pitchRollBuffer[i]);
             this._pitchRollArr[i] = makeArrayTyped(this._pitchRollArr[i]);
-            this._pitchRollBuffer[i] = h.createArrayBuffer(this._pitchRollArr[i], 2, len / 2);
+            this._pitchRollBuffer[i] = h.createArrayBuffer(this._pitchRollArr[i], 2, this._pitchRollArr[i].length / 2);
         }
     }
 
@@ -105,7 +105,7 @@ class GeoObjectHandler {
         for (let i = 0, len = this._sizeArr.length; i < len; i++) {
             this._sizeBuffer && h.gl.deleteBuffer(this._sizeBuffer[i]);
             this._sizeArr[i] = makeArrayTyped(this._sizeArr[i]);
-            this._sizeBuffer[i] = h.createArrayBuffer(this._sizeArr[i], 1, len);
+            this._sizeBuffer[i] = h.createArrayBuffer(this._sizeArr[i], 1, this._sizeArr[i].length);
         }
     }
 
@@ -114,14 +114,10 @@ class GeoObjectHandler {
         for (let i = 0, len = this._positionHighArr.length; i < len; i++) {
             this._positionHighBuffer && h.gl.deleteBuffer(this._positionHighBuffer[i]);
             this._positionHighArr[i] = makeArrayTyped(this._positionHighArr[i]);
-            this._positionHighBuffer[i] = h.createArrayBuffer(this._positionHighArr[i], 3, len / 3);
+            this._positionHighBuffer[i] = h.createArrayBuffer(this._positionHighArr[i], 3, this._positionHighArr[i].length / 3);
             this._positionLowBuffer && h.gl.deleteBuffer(this._positionLowBuffer[i]);
             this._positionLowArr[i] = makeArrayTyped(this._positionLowArr[i]);
-            this._positionLowBuffer[i] = h.createArrayBuffer(
-                this._positionLowArr[i],
-                3,
-                this._positionLowArr[i].length / 3
-            );
+            this._positionLowBuffer[i] = h.createArrayBuffer(this._positionLowArr[i], 3, this._positionLowArr[i].length / 3);
         }
     }
 
@@ -130,7 +126,7 @@ class GeoObjectHandler {
         for (let i = 0, len = this._rgbaArr.length; i < len; i++) {
             this._rgbaBuffer && h.gl.deleteBuffer(this._rgbaBuffer[i]);
             this._rgbaArr[i] = makeArrayTyped(this._rgbaArr[i]);
-            this._rgbaBuffer[i] = h.createArrayBuffer(this._rgbaArr[i], 4, len / 4);
+            this._rgbaBuffer[i] = h.createArrayBuffer(this._rgbaArr[i], 4, this._rgbaArr[i].length / 4);
         }
     }
 
@@ -139,7 +135,7 @@ class GeoObjectHandler {
         for (let i = 0, len = this._directionArr.length; i < len; i++) {
             this._directionBuffer && h.gl.deleteBuffer(this._directionBuffer[i]);
             this._directionArr[i] = makeArrayTyped(this._directionArr[i]);
-            this._directionBuffer[i] = h.createArrayBuffer(this._directionArr[i], 3, len / 3);
+            this._directionBuffer[i] = h.createArrayBuffer(this._directionArr[i], 3, this._directionArr[i].length / 3);
         }
     }
 
@@ -148,7 +144,7 @@ class GeoObjectHandler {
         for (let i = 0, len = this._normalsArr.length; i < len; i++) {
             this._normalsBuffer && h.gl.deleteBuffer(this._normalsBuffer[i]);
             this._normalsArr[i] = makeArrayTyped(this._normalsArr[i]);
-            this._normalsBuffer[i] = h.createArrayBuffer(this._normalsArr[i], 3, len / 3);
+            this._normalsBuffer[i] = h.createArrayBuffer(this._normalsArr[i], 3, this._normalsArr[i].length / 3);
         }
     }
 
@@ -157,11 +153,7 @@ class GeoObjectHandler {
         for (let i = 0, len = this._indicesArr.length; i < len; i++) {
             this._indicesBuffer && h.gl.deleteBuffer(this._indicesBuffer[i]);
             this._indicesArr[i] = makeArrayTyped(this._indicesArr[i], Uint16Array);
-            this._indicesBuffer[i] = h.createElementArrayBuffer(
-                this._indicesArr[i],
-                1,
-                this._indicesArr[i].length
-            );
+            this._indicesBuffer[i] = h.createElementArrayBuffer(this._indicesArr[i], 1, this._indicesArr[i].length);
         }
     }
 
@@ -170,7 +162,7 @@ class GeoObjectHandler {
         for (let i = 0, len = this._pickingColorArr.length; i < len; i++) {
             this._pickingColorBuffer && h.gl.deleteBuffer(this._pickingColorBuffer[i]);
             this._pickingColorArr[i] = makeArrayTyped(this._pickingColorArr[i]);
-            this._pickingColorBuffer[i] = h.createArrayBuffer(this._pickingColorArr[i], 3, len / 3);
+            this._pickingColorBuffer[i] = h.createArrayBuffer(this._pickingColorArr[i], 3, this._pickingColorArr[i].length / 3);
         }
     }
 
@@ -233,29 +225,27 @@ class GeoObjectHandler {
          */
         geoObject._tagIndex = tagData.iCounts - 1;
         if (geoObject._visibility) {
-            if (!alreadyAdded) {
-                this._vertexArr[ti] = concatArrays(
-                    this._vertexArr[ti],
-                    setParametersToArray(
-                        [],
-                        0,
-                        geoObject._verticesCount * itemSize,
-                        geoObject._verticesCount * itemSize,
-                        ...geoObject._vertices
-                    )
-                );
-                this._normalsArr[ti] = concatArrays(
-                    this._normalsArr[ti],
-                    setParametersToArray(
-                        [],
-                        0,
-                        geoObject._verticesCount * itemSize,
-                        geoObject._verticesCount * itemSize,
-                        ...geoObject._normals
-                        // ...getTriangleNormals(geoObject._vertices, geoObject._indices)
-                    )
-                );
-            }
+            this._vertexArr[ti] = concatArrays(
+                this._vertexArr[ti],
+                setParametersToArray(
+                    [],
+                    0,
+                    geoObject._verticesCount * itemSize,
+                    geoObject._verticesCount * itemSize,
+                    ...geoObject._vertices
+                )
+            );
+            this._normalsArr[ti] = concatArrays(
+                this._normalsArr[ti],
+                setParametersToArray(
+                    [],
+                    0,
+                    geoObject._verticesCount * itemSize,
+                    geoObject._verticesCount * itemSize,
+                    ...geoObject._normals
+                    // ...getTriangleNormals(geoObject._vertices, geoObject._indices)
+                )
+            );
         } else {
             this._vertexArr[ti] = concatArrays(
                 this._vertexArr[ti],
@@ -357,47 +347,19 @@ class GeoObjectHandler {
                 ti = tagData.index;
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._normalsBuffer[ti]);
-            gl.vertexAttribPointer(
-                a.aVertexNormal,
-                this._normalsBuffer[ti].itemSize,
-                gl.FLOAT,
-                false,
-                0,
-                0
-            );
+            gl.vertexAttribPointer(a.aVertexNormal, this._normalsBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer[ti]);
-            gl.vertexAttribPointer(
-                a.aVertexPosition,
-                this._vertexBuffer[ti].itemSize,
-                gl.FLOAT,
-                false,
-                0,
-                0
-            );
+            gl.vertexAttribPointer(a.aVertexPosition, this._vertexBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._directionBuffer[ti]);
-            gl.vertexAttribPointer(
-                a.aDirection,
-                this._directionBuffer[ti].itemSize,
-                gl.FLOAT,
-                false,
-                0,
-                0
-            );
+            gl.vertexAttribPointer(a.aDirection, this._directionBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer[ti]);
             gl.vertexAttribPointer(a.aScale, this._sizeBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._pitchRollBuffer[ti]);
-            gl.vertexAttribPointer(
-                a.aPitchRoll,
-                this._pitchRollBuffer[ti].itemSize,
-                gl.FLOAT,
-                false,
-                0,
-                0
-            );
+            gl.vertexAttribPointer(a.aPitchRoll, this._pitchRollBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer[ti]);
             gl.vertexAttribPointer(a.aColor, this._rgbaBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
@@ -606,15 +568,7 @@ class GeoObjectHandler {
             length = itemSize;
         }
 
-        setParametersToArray(
-            this._directionArr[ti],
-            ob._tagIndex,
-            length,
-            itemSize,
-            direction.x,
-            direction.y,
-            direction.z
-        );
+        setParametersToArray(this._directionArr[ti], ob._tagIndex, length, itemSize, direction.x, direction.y, direction.z);
         this._changedBuffers[DIRECTION_BUFFER] = true;
     }
 
@@ -639,26 +593,10 @@ class GeoObjectHandler {
             length = itemSize;
         }
 
-        setParametersToArray(
-            this._positionHighArr[ti],
-            ob._tagIndex,
-            length,
-            itemSize,
-            positionHigh.x,
-            positionHigh.y,
-            positionHigh.z
-        );
+        setParametersToArray(this._positionHighArr[ti], ob._tagIndex, length, itemSize, positionHigh.x, positionHigh.y, positionHigh.z);
 
         // Low
-        setParametersToArray(
-            this._positionLowArr[ti],
-            ob._tagIndex,
-            length,
-            itemSize,
-            positionLow.x,
-            positionLow.y,
-            positionLow.z
-        );
+        setParametersToArray(this._positionLowArr[ti], ob._tagIndex, length, itemSize, positionLow.x, positionLow.y, positionLow.z);
 
         this._changedBuffers[POSITION_BUFFER] = true;
     }
@@ -673,16 +611,7 @@ class GeoObjectHandler {
             length = itemSize;
         }
 
-        setParametersToArray(
-            this._rgbaArr[ti],
-            ob._tagIndex,
-            length,
-            itemSize,
-            rgba.x,
-            rgba.y,
-            rgba.z,
-            rgba.w
-        );
+        setParametersToArray(this._rgbaArr[ti], ob._tagIndex, length, itemSize, rgba.x, rgba.y, rgba.z, rgba.w);
 
         this._changedBuffers[RGBA_BUFFER] = true;
     }

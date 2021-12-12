@@ -98,26 +98,26 @@ class Camera {
          * @protected
          * @type {Vec3}
          */
-        this._u = new Vec3(0.0, 1.0, 0.0); // up x n
+        this._r = new Vec3(1.0, 0.0, 0.0); // up x n
 
         /**
          * Camera up vector.
          * @protected
          * @type {Vec3}
          */
-        this._v = new Vec3(1.0, 0.0, 0.0); // n x u - UP
+        this._u = new Vec3(0.0, 1.0, 0.0); // n x u - UP
 
         /**
          * Camera forward vector.
          * @protected
          * @type {Vec3}
          */
-        this._n = new Vec3(0.0, 0.0, 1.0); // eye - look - FORWARD
+        this._b = new Vec3(0.0, 0.0, 1.0); // eye - look - FORWARD
 
         // Previous frame values
-        this._pu = this._u.clone();
-        this._pv = this._v.clone();
-        this._pn = this._n.clone();
+        this._pu = this._r.clone();
+        this._pv = this._u.clone();
+        this._pn = this._b.clone();
         this._peye = this.eye.clone();
         this.isMoved = false;
 
@@ -173,9 +173,9 @@ class Camera {
     }
 
     checkMoveEnd() {
-        var u = this._u,
-            v = this._v,
-            n = this._n,
+        var u = this._r,
+            v = this._u,
+            n = this._b,
             eye = this.eye;
 
         if (this._peye.equal(eye) && this._pu.equal(u) && this._pv.equal(v) && this._pn.equal(n)) {
@@ -216,27 +216,27 @@ class Camera {
     }
 
     getUp() {
-        return this._v.clone();
-    }
-
-    getDown() {
-        return this._v.negateTo();
-    }
-
-    getRight() {
         return this._u.clone();
     }
 
-    getLeft() {
+    getDown() {
         return this._u.negateTo();
     }
 
+    getRight() {
+        return this._r.clone();
+    }
+
+    getLeft() {
+        return this._r.negateTo();
+    }
+
     getForward() {
-        return this._n.negateTo();
+        return this._b.negateTo();
     }
 
     getBackward() {
-        return this._n.clone();
+        return this._b.clone();
     }
 
     /**
@@ -245,9 +245,9 @@ class Camera {
      * @virtual
      */
     update() {
-        var u = this._u,
-            v = this._v,
-            n = this._n,
+        var u = this._r,
+            v = this._u,
+            n = this._b,
             eye = this.eye;
 
         Vec3.doubleToTwoFloat32Array(eye, this.eyeHigh, this.eyeLow);
@@ -368,15 +368,15 @@ class Camera {
         this.eye.x = eye.x;
         this.eye.y = eye.y;
         this.eye.z = eye.z;
-        look = look || this._n;
-        up = up || this._v;
-        this._n.x = eye.x - look.x;
-        this._n.y = eye.y - look.y;
-        this._n.z = eye.z - look.z;
-        this._u.copy(up.cross(this._n));
-        this._n.normalize();
-        this._u.normalize();
-        this._v.copy(this._n.cross(this._u));
+        look = look || this._b;
+        up = up || this._u;
+        this._b.x = eye.x - look.x;
+        this._b.y = eye.y - look.y;
+        this._b.z = eye.z - look.z;
+        this._r.copy(up.cross(this._b));
+        this._b.normalize();
+        this._r.normalize();
+        this._u.copy(this._b.cross(this._r));
         return this;
     }
 
@@ -384,14 +384,14 @@ class Camera {
      * Sets camera look point
      * @public
      * @param {Vec3} look - Look point
-     * @param {Vec3} [up] - Camera up vector otherwise camera current up vector(this._v)
+     * @param {Vec3} [up] - Camera up vector otherwise camera current up vector(this._u)
      */
     look(look, up) {
-        this._n.set(this.eye.x - look.x, this.eye.y - look.y, this.eye.z - look.z);
-        this._u.copy((up || this._v).cross(this._n));
-        this._n.normalize();
-        this._u.normalize();
-        this._v.copy(this._n.cross(this._u));
+        this._b.set(this.eye.x - look.x, this.eye.y - look.y, this.eye.z - look.z);
+        this._r.copy((up || this._u).cross(this._b));
+        this._b.normalize();
+        this._r.normalize();
+        this._u.copy(this._b.cross(this._r));
     }
 
     /**
@@ -402,9 +402,9 @@ class Camera {
      * @param {number} dn - delta Z
      */
     slide(du, dv, dn) {
-        this.eye.x += du * this._u.x + dv * this._v.x + dn * this._n.x;
-        this.eye.y += du * this._u.y + dv * this._v.y + dn * this._n.y;
-        this.eye.z += du * this._u.z + dv * this._v.z + dn * this._n.z;
+        this.eye.x += du * this._r.x + dv * this._u.x + dn * this._b.x;
+        this.eye.y += du * this._r.y + dv * this._u.y + dn * this._b.y;
+        this.eye.z += du * this._r.z + dv * this._u.z + dn * this._b.z;
     }
 
     /**
@@ -415,16 +415,16 @@ class Camera {
     roll(angle) {
         var cs = Math.cos(math.RADIANS * angle);
         var sn = Math.sin(math.RADIANS * angle);
-        var t = this._u.clone();
-        this._u.set(
-            cs * t.x - sn * this._v.x,
-            cs * t.y - sn * this._v.y,
-            cs * t.z - sn * this._v.z
+        var t = this._r.clone();
+        this._r.set(
+            cs * t.x - sn * this._u.x,
+            cs * t.y - sn * this._u.y,
+            cs * t.z - sn * this._u.z
         );
-        this._v.set(
-            sn * t.x + cs * this._v.x,
-            sn * t.y + cs * this._v.y,
-            sn * t.z + cs * this._v.z
+        this._u.set(
+            sn * t.x + cs * this._u.x,
+            sn * t.y + cs * this._u.y,
+            sn * t.z + cs * this._u.z
         );
     }
 
@@ -436,16 +436,16 @@ class Camera {
     pitch(angle) {
         var cs = Math.cos(math.RADIANS * angle);
         var sn = Math.sin(math.RADIANS * angle);
-        var t = this._n.clone();
-        this._n.set(
-            cs * t.x - sn * this._v.x,
-            cs * t.y - sn * this._v.y,
-            cs * t.z - sn * this._v.z
+        var t = this._b.clone();
+        this._b.set(
+            cs * t.x - sn * this._u.x,
+            cs * t.y - sn * this._u.y,
+            cs * t.z - sn * this._u.z
         );
-        this._v.set(
-            sn * t.x + cs * this._v.x,
-            sn * t.y + cs * this._v.y,
-            sn * t.z + cs * this._v.z
+        this._u.set(
+            sn * t.x + cs * this._u.x,
+            sn * t.y + cs * this._u.y,
+            sn * t.z + cs * this._u.z
         );
     }
 
@@ -457,16 +457,16 @@ class Camera {
     yaw(angle) {
         var cs = Math.cos(math.RADIANS * angle);
         var sn = Math.sin(math.RADIANS * angle);
-        var t = this._u.clone();
-        this._u.set(
-            cs * t.x - sn * this._n.x,
-            cs * t.y - sn * this._n.y,
-            cs * t.z - sn * this._n.z
+        var t = this._r.clone();
+        this._r.set(
+            cs * t.x - sn * this._b.x,
+            cs * t.y - sn * this._b.y,
+            cs * t.z - sn * this._b.z
         );
-        this._n.set(
-            sn * t.x + cs * this._n.x,
-            sn * t.y + cs * this._n.y,
-            sn * t.z + cs * this._n.z
+        this._b.set(
+            sn * t.x + cs * this._b.x,
+            sn * t.y + cs * this._b.y,
+            sn * t.z + cs * this._b.z
         );
     }
 
@@ -520,16 +520,16 @@ class Camera {
         center = center || Vec3.ZERO;
         up = up || Vec3.UP;
 
-        var rot = new Mat4().setRotation(isArc ? this._v : up, angle);
+        var rot = new Mat4().setRotation(isArc ? this._u : up, angle);
         var tr = new Mat4().setIdentity().translate(center);
         var ntr = new Mat4().setIdentity().translate(center.negateTo());
 
         var trm = tr.mul(rot).mul(ntr);
 
         this.eye = trm.mulVec3(this.eye);
-        this._v = rot.mulVec3(this._v).normalize();
         this._u = rot.mulVec3(this._u).normalize();
-        this._n = rot.mulVec3(this._n).normalize();
+        this._r = rot.mulVec3(this._r).normalize();
+        this._b = rot.mulVec3(this._b).normalize();
     }
 
     /**
@@ -551,7 +551,7 @@ class Camera {
      * @param {Vec3} center - Point that the camera rotates around.
      */
     rotateVertical(angle, center) {
-        this.rotateAround(angle, false, center, this._u);
+        this.rotateAround(angle, false, center, this._r);
     }
 
     /**

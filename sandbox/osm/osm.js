@@ -160,7 +160,7 @@ const labelLayer = new labelXYZ("labelLayer", {
 var globus = new Globe({
     target: "earth",
     name: "Earth",
-    //frustums: [[100, 100000000]],
+    frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
     terrain: new GlobusTerrain({
@@ -169,7 +169,7 @@ var globus = new Globe({
     //maxEqualZoomAltitude: 1,
     layers: [osm, labelLayer, borders],
     //useNightTexture: false,
-    //useEarthNavigation: true,
+    useEarthNavigation: true,
     //useSpecularTexture: false
 });
 

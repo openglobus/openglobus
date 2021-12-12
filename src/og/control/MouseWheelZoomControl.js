@@ -195,9 +195,9 @@ class MouseWheelZoomControl extends Control {
                 }
 
                 cam.eye = sf.eye;
-                cam._v = sf.v;
-                cam._u = sf.u;
-                cam._n = sf.n;
+                cam._u = sf.v;
+                cam._r = sf.u;
+                cam._b = sf.n;
 
                 cam.checkTerrainCollision();
 
@@ -228,9 +228,9 @@ class MouseWheelZoomControl extends Control {
                     this.scaleRot = 0.0;
                 }
                 cam.eye = rot.mulVec3(cam.eye);
-                cam._v = rot.mulVec3(cam._v);
                 cam._u = rot.mulVec3(cam._u);
-                cam._n = rot.mulVec3(cam._n);
+                cam._r = rot.mulVec3(cam._r);
+                cam._b = rot.mulVec3(cam._b);
 
                 cam.checkTerrainCollision();
 

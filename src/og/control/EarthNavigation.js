@@ -6,6 +6,7 @@ import { Quat } from "../math/Quat.js";
 import { Ray } from "../math/Ray.js";
 import { Vec3 } from "../math/Vec3.js";
 import { Control } from "./Control.js";
+import { Mat4 } from "../math/Mat4.js";
 
 class Touch {
     constructor() {
@@ -29,6 +30,7 @@ class EarthNavigation extends Control {
         super(options);
 
         this.grabbedPoint = new Vec3();
+        this.grabbedDir = new Vec3();
         this.inertia = 0.007;
         this.grabbedSpheroid = new Sphere();
         this.planet = null;
@@ -39,11 +41,11 @@ class EarthNavigation extends Control {
         this.currState = 0;
 
         this.positionState = [
-            { h: 17119745.303455353, max: 0.999, min: -0.999 },
-            { h: 6866011, max: 0.999, min: -0.999 },
-            { h: 3000000, max: 0.999, min: -0.999 },
-            { h: 1000000, max: 0.999, min: -0.999 },
-            { h: 500000, max: 0.999, min: -0.999 }
+            { h: 17119745.303455353, max: 0.98, min: -0.98 },
+            { h: 6866011, max: 0.98, min: -0.98 },
+            { h: 3000000, max: 0.98, min: -0.98 },
+            { h: 1000000, max: 0.98, min: -0.98 },
+            { h: 500000, max: 0.98, min: -0.98 }
         ];
 
         this.touches = [new Touch(), new Touch()];
@@ -163,9 +165,10 @@ class EarthNavigation extends Control {
         }
     }
 
-    onMouseLeftButtonClick() {
+    onMouseLeftButtonClick(e) {
         this.renderer.handler.gl.canvas.classList.add("ogGrabbingPoiner");
         this.grabbedPoint = this.planet.getCartesianFromMouseTerrain(true);
+        this.grabbedDir.copy(e.direction);
         if (this.grabbedPoint) {
             this.grabbedSpheroid.radius = this.grabbedPoint.length();
             this.stopRotation();
@@ -195,32 +198,30 @@ class EarthNavigation extends Control {
             var targetPoint = new Ray(cam.eye, e.direction).hitSphere(this.grabbedSpheroid);
 
             if (targetPoint) {
-                this._a =
-                    Math.acos(this.grabbedPoint.y / this.grabbedSpheroid.radius) -
+
+                this._a = Math.acos(this.grabbedPoint.y / this.grabbedSpheroid.radius) -
                     Math.acos(targetPoint.y / this.grabbedSpheroid.radius);
 
-                //console.log(this._a)
-
-                this._vRot = Quat.axisAngleToQuat(cam._u, this._a);
-                this._hRot = Quat.getRotationBetweenVectors(
-                    new Vec3(targetPoint.x, 0.0, targetPoint.z).normal(),
-                    new Vec3(this.grabbedPoint.x, 0.0, this.grabbedPoint.z).normal()
-                );
-                var rot = this._hRot;
+                let rot = this._vRot = Quat.axisAngleToQuat(cam._u, this._a);
 
                 cam.set(rot.mulVec3(cam.eye), Vec3.ZERO, rot.mulVec3(cam.getUp()));
                 //cam.update();
 
-                rot = this._vRot;
+                this._hRot = Quat.getRotationBetweenVectors(
+                    new Vec3(targetPoint.x, 0.0, targetPoint.z).normal(),
+                    new Vec3(this.grabbedPoint.x, 0.0, this.grabbedPoint.z).normal()
+                );
 
-                var state = this.positionState[this.currState];
-                var lim = rot.mulVec3(cam.eye).normal().dot(Vec3.UP);
+                rot = this._hRot;
 
-                if (lim > state.max || lim < state.min) {
-                    rot = Quat.yRotation(rot.getYaw());
-                }
-                cam.set(rot.mulVec3(cam.eye), Vec3.ZERO, rot.mulVec3(cam.getUp()));
-                cam.update();
+                //var state = this.positionState[this.currState];
+                //var lim = cam.eye.normal().dot(Vec3.UP);
+
+                //if (lim > state.max || lim < state.min) {
+                //    rot = Quat.yRotation(rot.getYaw());
+                    cam.set(rot.mulVec3(cam.eye), Vec3.ZERO, rot.mulVec3(cam.getUp()));
+                    cam.update();
+                //}
             }
         } else {
             this.scaleRot = 0;

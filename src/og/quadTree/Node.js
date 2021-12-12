@@ -343,10 +343,10 @@ class Node {
             } else if (seg.tileZoom > MAX_NORMAL_ZOOM) {
                 this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
             } else if (
-                seg._swNorm.dot(cam._n) > 0.0 ||
-                seg._nwNorm.dot(cam._n) > 0.0 ||
-                seg._neNorm.dot(cam._n) > 0.0 ||
-                seg._seNorm.dot(cam._n) > 0.0
+                seg._swNorm.dot(cam._b) > 0.0 ||
+                seg._nwNorm.dot(cam._b) > 0.0 ||
+                seg._neNorm.dot(cam._b) > 0.0 ||
+                seg._seNorm.dot(cam._b) > 0.0
             ) {
                 this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
             } else {
