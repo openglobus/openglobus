@@ -1543,14 +1543,17 @@ export class Planet extends RenderNode {
         let spx = px.x / cnv.width,
             spy = (cnv.height - px.y) / cnv.height;
 
+        _tempPickingPix_[0] = _tempPickingPix_[1] = _tempPickingPix_[2] = 0.0;
+
+        let dist = 0;
+
         // HEIGHT
         this._heightPickingFramebuffer.activate();
         if (this._heightPickingFramebuffer.isComplete()) {
             this._heightPickingFramebuffer.readPixels(_tempPickingPix_, spx, spy);
+            dist = decodeFloatFromRGBAArr(_tempPickingPix_);
         }
         this._heightPickingFramebuffer.deactivate();
-
-        let dist = decodeFloatFromRGBAArr(_tempPickingPix_);
 
         if (!(_tempPickingPix_[0] || _tempPickingPix_[1] || _tempPickingPix_[2])) {
             dist = this.getDistanceFromPixelEllipsoid(px) || 0;

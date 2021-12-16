@@ -66,6 +66,8 @@ class GlobusTerrain extends EmptyTerrain {
          */
         this.events = new Events(EVENT_NAMES, this);
 
+        this.skipTerrainReady = false;
+
         this.equalizeNormals = true;
 
         /**
