@@ -207,14 +207,15 @@ class GeoObjectHandler {
         if (!alreadyAdded) {
             this._instancedTags.set(tag, {
                 iCounts: 1,
+                maxIndex: Math.max(...geoObject._indices),
                 index: this._instancedTags.size
             });
         } else {
             const prevState = this._instancedTags.get(tag),
                 nextCount = prevState.iCounts + 1;
             this._instancedTags.set(tag, {
-                iCounts: nextCount,
-                index: prevState.index
+                ...prevState,
+                iCounts: nextCount
             });
         }
         const tagData = this._instancedTags.get(tag),
@@ -225,27 +226,30 @@ class GeoObjectHandler {
          */
         geoObject._tagIndex = tagData.iCounts - 1;
         if (geoObject._visibility) {
-            this._vertexArr[ti] = concatArrays(
-                this._vertexArr[ti],
-                setParametersToArray(
-                    [],
-                    0,
-                    geoObject._verticesCount * itemSize,
-                    geoObject._verticesCount * itemSize,
-                    ...geoObject._vertices
-                )
-            );
-            this._normalsArr[ti] = concatArrays(
-                this._normalsArr[ti],
-                setParametersToArray(
-                    [],
-                    0,
-                    geoObject._verticesCount * itemSize,
-                    geoObject._verticesCount * itemSize,
-                    ...geoObject._normals
-                    // ...getTriangleNormals(geoObject._vertices, geoObject._indices)
-                )
-            );
+            if (!this._vertexArr[ti] || this._vertexArr[ti].length !== geoObject._vertices.length) {
+
+                this._vertexArr[ti] = concatArrays(
+                    this._vertexArr[ti],
+                    setParametersToArray(
+                        [],
+                        0,
+                        geoObject._verticesCount * itemSize,
+                        geoObject._verticesCount * itemSize,
+                        ...geoObject._vertices
+                    )
+                );
+                this._normalsArr[ti] = concatArrays(
+                    this._normalsArr[ti],
+                    setParametersToArray(
+                        [],
+                        0,
+                        geoObject._verticesCount * itemSize,
+                        geoObject._verticesCount * itemSize,
+                        ...geoObject._normals
+                        // ...getTriangleNormals(geoObject._vertices, geoObject._indices)
+                    )
+                );
+            }
         } else {
             this._vertexArr[ti] = concatArrays(
                 this._vertexArr[ti],
@@ -296,8 +300,6 @@ class GeoObjectHandler {
             setParametersToArray([], 0, itemSize, itemSize, x, y, z, w)
         );
 
-        this._indicesArr[ti] = concatArrays(this._indicesArr[ti], geoObject._indices);
-
         x = geoObject._pitch;
         y = geoObject._roll;
 
@@ -314,7 +316,7 @@ class GeoObjectHandler {
             this._sizeArr[ti],
             setParametersToArray([], 0, itemSize, itemSize, geoObject.scale)
         );
-        this._recalculateIndices();
+        this._addIndices(geoObject);
     }
 
     _displayPASS() {
@@ -523,7 +525,7 @@ class GeoObjectHandler {
         gl.disable(gl.CULL_FACE);
     }
 
-    _recalculateIndices() {
+    _recalculateIndices(startIndex) {
         const allIndices = this._indicesArr,
             goArr = this._geoObjects,
             maxIndicesByTags = new Array(this._instancedTags.size).fill(0);
@@ -550,6 +552,64 @@ class GeoObjectHandler {
                 }
             }
         }
+    }
+
+    _addIndices(g) {
+        let i = g._handlerIndex;
+        const allIndices = this._indicesArr,
+            gArr = this._geoObjects,
+            iLen = g._indices.length,
+            tagData = this._instancedTags.get(g.tag),
+            maxIndex = tagData.maxIndex,
+            ti = tagData.index;
+
+        allIndices[ti] = concatArrays(allIndices[ti], g._indices);
+
+        while (gArr[i]) {
+            const g = gArr[i];
+
+            if (g._tagIndex > 0) {
+                setParametersToArray(allIndices[ti], g._tagIndex, iLen, iLen, ...g._indices.reduce((acc, cur) => {
+                    acc.push(cur + ((maxIndex + 1) * g._tagIndex));
+                    return acc;
+                }, []));
+            }
+            i++;
+
+        }
+
+    }
+
+    _removeIndices(geoObject) {
+        const allIndices = this._indicesArr,
+            gArr = this._geoObjects,
+            iLen = geoObject._indices.length,
+            tagData = this._instancedTags.get(geoObject.tag),
+            maxIndex = tagData.maxIndex,
+            ti = tagData.index,
+            count = tagData.iCounts;
+
+        let i = geoObject._handlerIndex;
+
+        this._indicesArr[ti] = spliceArray(this._indicesArr[ti], geoObject._tagIndex * geoObject._indicesCount, geoObject._indicesCount);
+
+        while (gArr[i]) {
+            if (geoObject.tag === gArr[i].tag) {
+                if (count !== 0) {
+                    const startI = (gArr[i]._tagIndex - 1) * iLen;
+                    let stopI = startI + geoObject._indicesCount;
+                    while (stopI > startI) {
+                        this._indicesArr[ti][stopI - 1] = allIndices[ti][stopI - 1] - maxIndex - 1;
+                        stopI--;
+                    }
+                } else {
+                    allIndices[ti] = geoObject._indices;
+                }
+            }
+            i++;
+
+        }
+
     }
 
     //todo refactor for support instancing
@@ -700,16 +760,16 @@ class GeoObjectHandler {
         this._indicesArr = null;
         this._pickingColorArr = null;
 
-        this._pitchRollArr = new Float32Array();
-        this._sizeArr = new Float32Array();
-        this._vertexArr = new Float32Array();
-        this._positionHighArr = new Float32Array();
-        this._positionLowArr = new Float32Array();
-        this._rgbaArr = new Float32Array();
-        this._directionArr = new Float32Array();
-        this._normalsArr = new Float32Array();
-        this._indicesArr = new Uint16Array();
-        this._pickingColorArr = new Float32Array();
+        this._pitchRollArr = [new Float32Array()];
+        this._sizeArr = [new Float32Array()];
+        this._vertexArr = [new Float32Array()];
+        this._positionHighArr = [new Float32Array()];
+        this._positionLowArr = [new Float32Array()];
+        this._rgbaArr = [new Float32Array()];
+        this._directionArr = [new Float32Array()];
+        this._normalsArr = [new Float32Array()];
+        this._indicesArr = [new Uint16Array()];
+        this._pickingColorArr = [new Float32Array()];
 
         this._removeGeoObjects();
         this._deleteBuffers();
@@ -795,19 +855,20 @@ class GeoObjectHandler {
         const gi = geoObject._handlerIndex,
             tag = geoObject.tag,
             ti = this.getTagIndexByObjectIndex(gi),
-            prevState = this._instancedTags.get(tag);
+            prevState = this._instancedTags.get(tag),
+            iCount = prevState.iCounts - 1;
 
         this._instancedTags.set(tag, {
-            iCounts: prevState.iCounts - 1,
-            index: prevState.index
+            ...prevState,
+            iCounts: iCount
         });
 
         this._geoObjects.splice(gi, 1);
 
-        let i = gi * 4;
+        let i = geoObject._tagIndex * 4;
         this._rgbaArr[ti] = spliceArray(this._rgbaArr[ti], i, 4);
 
-        i = gi * 3;
+        i = geoObject._tagIndex * 3;
         if (prevState.iCounts <= 1) {
             this._vertexArr[ti] = spliceArray(this._vertexArr[ti], 0, geoObject._verticesCount * 3);
             this._normalsArr[ti] = spliceArray(
@@ -821,14 +882,15 @@ class GeoObjectHandler {
         this._directionArr[ti] = spliceArray(this._directionArr[ti], i, 3);
         this._pickingColorArr[ti] = spliceArray(this._pickingColorArr[ti], i, 3);
 
-        i = gi * 2;
+        i = geoObject._tagIndex * 2;
         this._pitchRollArr[ti] = spliceArray(this._pitchRollArr[ti], i, 2);
-        this._indicesArr[ti] = spliceArray(this._indicesArr[ti], i, geoObject._indicesCount);
-        i = gi * 1;
+        i = geoObject._tagIndex;
         this._sizeArr[ti] = spliceArray(this._sizeArr[ti], i, 1);
 
+        this._removeIndices(geoObject);
+
         this._reindexGeoObjects(gi, tag);
-        this._recalculateIndices();
+
         this.refresh();
 
         geoObject._handlerIndex = -1;
