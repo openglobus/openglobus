@@ -513,7 +513,7 @@ class Node {
                     return S;
                 } else if (
                     bs.tileX === 0 &&
-                    as.tileX === (1 << bs.tileZoom - 1) &&
+                    as.tileX === (1 << as.tileZoom - 1) &&
                     ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
                         (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
                 ) {
