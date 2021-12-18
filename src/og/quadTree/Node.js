@@ -420,7 +420,7 @@ class Node {
                 if (this.neighbors[cs].length === 0 || ni.neighbors[opcs].length === 0) {
                     var ap = this.segment;
                     var bp = ni.segment;
-                    var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.tileZoom - ap.tileZoom));
+                    var ld = ap.gridSize / (bp.gridSize * (1 << (bp.tileZoom - ap.tileZoom)));
 
                     let cs_size = ap.gridSize,
                         opcs_size = bp.gridSize;
@@ -513,14 +513,14 @@ class Node {
                     return S;
                 } else if (
                     bs.tileX === 0 &&
-                    as.tileX === Math.pow(2, as.tileZoom) - 1 &&
+                    as.tileX === (1 << bs.tileZoom - 1) &&
                     ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
                         (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
                 ) {
                     return E;
                 } else if (
                     as.tileX === 0 &&
-                    bs.tileX === Math.pow(2, bs.tileZoom) - 1 &&
+                    bs.tileX === (1 << bs.tileZoom - 1) &&
                     ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
                         (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
                 ) {
@@ -532,7 +532,7 @@ class Node {
                 as._tileGroup === 0 &&
                 bs._tileGroup === 1 &&
                 as.tileY === 0 &&
-                bs.tileY === Math.pow(2, bs.tileZoom) - 1 &&
+                bs.tileY === (1 << bs.tileZoom - 1) &&
                 ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
                     (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
             ) {
@@ -541,7 +541,7 @@ class Node {
                 as._tileGroup === 2 &&
                 bs._tileGroup === 0 &&
                 as.tileY === 0 &&
-                bs.tileY === Math.pow(2, bs.tileZoom) - 1 &&
+                bs.tileY === (1 << bs.tileZoom - 1) &&
                 ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
                     (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
             ) {
@@ -549,7 +549,7 @@ class Node {
             } else if (
                 bs._tileGroup === 1 &&
                 as._tileGroup === 0 &&
-                as.tileY === Math.pow(2, as.tileZoom) - 1 &&
+                as.tileY === (1 << as.tileZoom - 1) &&
                 bs.tileY === 0 &&
                 ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
                     (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
@@ -558,7 +558,7 @@ class Node {
             } else if (
                 as._tileGroup === 1 &&
                 bs._tileGroup === 0 &&
-                as.tileY === Math.pow(2, as.tileZoom) - 1 &&
+                as.tileY === (1 << as.tileZoom - 1) &&
                 bs.tileY === 0 &&
                 ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
                     (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
