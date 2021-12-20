@@ -612,12 +612,6 @@ class GeoObjectHandler {
 
     }
 
-    //todo refactor for support instancing
-    setVertexArr(index, vertexArr) {
-        this._vertexArr = [-0.5, 0.0, 0.5, -0.5, 0.0, -0.5, 0.5, 0.0, -0.5, 0.5, 0.0, 0.5];
-        this._changedBuffers[VERTEX_BUFFER] = true;
-    }
-
     setDirectionArr(index, direction) {
         const itemSize = 3,
             ob = this.getObjectByIndex(index),
