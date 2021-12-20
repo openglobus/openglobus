@@ -12,7 +12,7 @@ let COUNT = 10,
     ENTITY = {},
     ENTITY_OPTIONS = new Map([
         ['farmplane', {
-            count: 20,
+            countRation: 20,
             cb: (options) => {
                 options.geoObject.scale = 100;
                 options.geoObject.yaw = -50;
@@ -23,7 +23,7 @@ let COUNT = 10,
             }
         }],
         ['satellite', {
-            count: 1,
+            countRation: 1,
             cb: (options) => {
                 return {
                     ...options,
@@ -32,7 +32,7 @@ let COUNT = 10,
             }
         }],
         ['airplane', {
-            count: 80,
+            countRation: 80,
             cb: (options) => {
                 options.geoObject.yaw = 75;
                 return {
@@ -150,7 +150,7 @@ window.globus = globus;
 window.ENTITY_OPTIONS = ENTITY_OPTIONS;
 
 const types = [...ENTITY_OPTIONS.keys()].reduce((acc, name) => {
-    return [...acc, ...new Array(ENTITY_OPTIONS.get(name).count).fill(name)];
+    return [...acc, ...new Array(ENTITY_OPTIONS.get(name).countRation).fill(name)];
 }, []);
 globus.planet.events.on("draw", () => {
     const entities = geoObjects._entities;
