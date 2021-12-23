@@ -160,22 +160,22 @@ const labelLayer = new labelXYZ("labelLayer", {
 var globus = new Globe({
     target: "earth",
     name: "Earth",
-    frustums: [[100, 100000000]],
+    //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
-    terrain: new GlobusTerrain({
-        //gridSizeByZoom: [32, 32, 16, 8, 8, 4, 4, 2]
+    terrain: new EmptyTerrain({
+        gridSizeByZoom: [32, 16, 16, 8, 8, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2]
     }),
     //maxEqualZoomAltitude: 1,
-    layers: [osm, labelLayer, borders],
+    layers: [osm, /*labelLayer,*/ borders],
     //useNightTexture: false,
-    useEarthNavigation: true,
+    //useEarthNavigation: true,
     //useSpecularTexture: false
 });
 
 globus.planet.setRatioLod(1.0, 0.7);
 
-globus.planet.addControl(new Lighting());
+//globus.planet.addControl(new Lighting());
 
 globus.planet.addControl(new LayerSwitcher());
 

@@ -1084,9 +1084,7 @@ export class Planet extends RenderNode {
     frame() {
         this._renderScreenNodesPASS();
 
-        if (this.renderer.isActiveBackbuffers) {
-            this._renderHeightPickingFramebufferPASS();
-        }
+        this._renderHeightPickingFramebufferPASS();
 
         this.drawEntityCollections(this._frustumEntityCollections);
     }
@@ -1232,42 +1230,45 @@ export class Planet extends RenderNode {
      * @protected
      */
     _renderHeightPickingFramebufferPASS() {
-        this._heightPickingFramebuffer.activate();
+        if (!this.terrain.isEmpty) {
 
-        let sh;
-        let renderer = this.renderer;
-        let h = renderer.handler;
-        let gl = h.gl;
-        let cam = renderer.activeCamera;
-        let frustumIndex = cam.getCurrentFrustum();
+            this._heightPickingFramebuffer.activate();
 
-        if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        } else {
-            gl.clear(gl.DEPTH_BUFFER_BIT);
+            let sh;
+            let renderer = this.renderer;
+            let h = renderer.handler;
+            let gl = h.gl;
+            let cam = renderer.activeCamera;
+            let frustumIndex = cam.getCurrentFrustum();
+
+            if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
+                gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            } else {
+                gl.clear(gl.DEPTH_BUFFER_BIT);
+            }
+
+            h.programs.drawnode_heightPicking.activate();
+            sh = h.programs.drawnode_heightPicking._program;
+            let shu = sh.uniforms;
+
+            gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera.getViewMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, renderer.activeCamera.getProjectionMatrix());
+
+            gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
+            gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+
+            // drawing planet nodes
+            var rn = this._renderedNodesInFrustum[frustumIndex],
+                sl = this._visibleTileLayerSlices;
+
+            let i = rn.length;
+            while (i--) {
+                rn[i].segment.heightPickingRendering(sh, sl[0]);
+            }
+
+            this._heightPickingFramebuffer.deactivate();
         }
-
-        h.programs.drawnode_heightPicking.activate();
-        sh = h.programs.drawnode_heightPicking._program;
-        let shu = sh.uniforms;
-
-        gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera.getViewMatrix());
-        gl.uniformMatrix4fv(shu.projectionMatrix, false, renderer.activeCamera.getProjectionMatrix());
-
-        gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
-        gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
-
-        // drawing planet nodes
-        var rn = this._renderedNodesInFrustum[frustumIndex],
-            sl = this._visibleTileLayerSlices;
-
-        let i = rn.length;
-        while (i--) {
-            rn[i].segment.heightPickingRendering(sh, sl[0]);
-        }
-
-        this._heightPickingFramebuffer.deactivate();
     }
 
     /**
@@ -1537,44 +1538,48 @@ export class Planet extends RenderNode {
      * @returns {number} -
      */
     getDistanceFromPixel(px) {
-        let r = this.renderer,
-            cnv = this.renderer.handler.canvas;
+        if (this.terrain.isEmpty) {
+            return this.getDistanceFromPixelEllipsoid(px) || 0;
+        } else {
 
-        let spx = px.x / cnv.width,
-            spy = (cnv.height - px.y) / cnv.height;
+            let r = this.renderer,
+                cnv = this.renderer.handler.canvas;
 
-        _tempPickingPix_[0] = _tempPickingPix_[1] = _tempPickingPix_[2] = 0.0;
+            let spx = px.x / cnv.width,
+                spy = (cnv.height - px.y) / cnv.height;
 
-        let dist = 0;
+            _tempPickingPix_[0] = _tempPickingPix_[1] = _tempPickingPix_[2] = 0.0;
 
-        // HEIGHT
-        this._heightPickingFramebuffer.activate();
-        if (this._heightPickingFramebuffer.isComplete()) {
-            this._heightPickingFramebuffer.readPixels(_tempPickingPix_, spx, spy);
-            dist = decodeFloatFromRGBAArr(_tempPickingPix_);
-        }
-        this._heightPickingFramebuffer.deactivate();
+            let dist = 0;
 
-        if (!(_tempPickingPix_[0] || _tempPickingPix_[1] || _tempPickingPix_[2])) {
-            dist = this.getDistanceFromPixelEllipsoid(px) || 0;
-        } else if (dist < DEPTH_DISTANCE) {
-            r.screenDepthFramebuffer.activate();
-            if (r.screenDepthFramebuffer.isComplete()) {
-                r.screenDepthFramebuffer.readPixels(_tempDepthColor_, spx, spy);
-                let screenPos = new Vec4(
-                    spx * 2.0 - 1.0,
-                    spy * 2.0 - 1.0,
-                    (_tempDepthColor_[0] / 255.0) * 2.0 - 1.0,
-                    1.0 * 2.0 - 1.0
-                );
-                let viewPosition = this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
-                let dir = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
-                dist = -(viewPosition.z / viewPosition.w) / dir.dot(this.renderer.activeCamera.getForward());
+            // HEIGHT
+            this._heightPickingFramebuffer.activate();
+            if (this._heightPickingFramebuffer.isComplete()) {
+                this._heightPickingFramebuffer.readPixels(_tempPickingPix_, spx, spy);
+                dist = decodeFloatFromRGBAArr(_tempPickingPix_);
             }
-            r.screenDepthFramebuffer.deactivate();
-        }
+            this._heightPickingFramebuffer.deactivate();
 
-        return dist;
+            if (!(_tempPickingPix_[0] || _tempPickingPix_[1] || _tempPickingPix_[2])) {
+                dist = this.getDistanceFromPixelEllipsoid(px) || 0;
+            } else if (dist < DEPTH_DISTANCE) {
+                r.screenDepthFramebuffer.activate();
+                if (r.screenDepthFramebuffer.isComplete()) {
+                    r.screenDepthFramebuffer.readPixels(_tempDepthColor_, spx, spy);
+                    let screenPos = new Vec4(
+                        spx * 2.0 - 1.0,
+                        spy * 2.0 - 1.0,
+                        (_tempDepthColor_[0] / 255.0) * 2.0 - 1.0,
+                        1.0 * 2.0 - 1.0
+                    );
+                    let viewPosition = this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
+                    let dir = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
+                    dist = -(viewPosition.z / viewPosition.w) / dir.dot(this.renderer.activeCamera.getForward());
+                }
+                r.screenDepthFramebuffer.deactivate();
+            }
+            return dist;
+        }
     }
 
     /**

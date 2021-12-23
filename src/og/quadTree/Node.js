@@ -296,7 +296,7 @@ class Node {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
             } else if ((!maxZoom && seg.acceptForRendering(cam)) || seg.tileZoom === maxZoom || !altVis && maxZoom) {
                 this.prepareForRendering(cam, altVis, this.inFrustum, terrainReadySegment, stopLoading);
-            } else if (seg.tileZoom < planet.terrain._maxNodeZoom && (seg.terrainReady || planet.terrain.skipTerrainReady)) {
+            } else if (seg.tileZoom < planet.terrain._maxNodeZoom && (seg.terrainReady || planet.terrain.isEmpty)) {
                 // Deleting terrainReady here, you have to remove
                 // this.appliedTerrainNodeId !== pn.nodeId in whileTerrainLoading,
                 // also have to fix createBoundsByParent(*)

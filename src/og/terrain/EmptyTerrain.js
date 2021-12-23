@@ -16,7 +16,7 @@ class EmptyTerrain {
 
         this.equalizeNormals = false;
 
-        this.skipTerrainReady = true;
+        this.isEmpty = true;
 
         /**
          * Provider name is "empty"
