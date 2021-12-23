@@ -245,7 +245,7 @@ class Entity {
 
     _createOptionFeature(featureName, options) {
         if (options) {
-            var c = this._featureConstructorArray[featureName];
+            let c = this._featureConstructorArray[featureName];
             return c[1].call(this, new c[0](options));
         }
         return null;
@@ -287,7 +287,7 @@ class Entity {
         // billboards
         this.billboard && this.billboard.setVisibility(visibility);
 
-        // billboards
+        // geoObject
         this.geoObject && this.geoObject.setVisibility(visibility);
 
         // labels
@@ -305,7 +305,7 @@ class Entity {
         // geometry
         this.geometry && this.geometry.setVisibility(visibility);
 
-        for (var i = 0; i < this.childrenNodes.length; i++) {
+        for (let i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i].setVisibility(visibility);
         }
     }
@@ -336,7 +336,7 @@ class Entity {
      * @param {number} z - 3d space Z - position.
      */
     setCartesian(x, y, z) {
-        var p = this._cartesian;
+        let p = this._cartesian;
 
         p.x = x;
         p.y = y;
@@ -354,11 +354,11 @@ class Entity {
         // shape
         this.shape && this.shape.setPosition3v(p);
 
-        for (var i = 0; i < this.childrenNodes.length; i++) {
+        for (let i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i].setCartesian(x, y, z);
         }
 
-        var ec = this._entityCollection;
+        let ec = this._entityCollection;
 
         if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
             this._lonlat = ec.renderNode.ellipsoid.cartesianToLonLat(p);
@@ -380,7 +380,7 @@ class Entity {
      * @param {boolean} skipLonLat - skip geodetic calculation.
      */
     _setCartesian3vSilent(cartesian, skipLonLat) {
-        var p = this._cartesian;
+        let p = this._cartesian;
 
         p.x = cartesian.x;
         p.y = cartesian.y;
@@ -398,11 +398,11 @@ class Entity {
         // shape
         this.shape && this.shape.setPosition3v(p);
 
-        for (var i = 0; i < this.childrenNodes.length; i++) {
+        for (let i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i].setCartesian(p.x, p.y, p.z);
         }
 
-        var ec = this._entityCollection;
+        let ec = this._entityCollection;
 
         if (!skipLonLat && ec && ec.renderNode && ec.renderNode.ellipsoid) {
             this._lonlat = ec.renderNode.ellipsoid.cartesianToLonLat(p);
@@ -430,13 +430,13 @@ class Entity {
      * @param {LonLat} lonlat - WGS84 coordinates.
      */
     setLonLat(lonlat) {
-        var l = this._lonlat;
+        let l = this._lonlat;
 
         l.lon = lonlat.lon;
         l.lat = lonlat.lat;
         l.height = lonlat.height;
 
-        var ec = this._entityCollection;
+        let ec = this._entityCollection;
         if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
             if (Math.abs(lonlat.lat) < mercator.MAX_LAT) {
                 this._lonlatMerc = lonlat.forwardMercator();
@@ -664,7 +664,7 @@ class Entity {
      * @public
      */
     setPickingColor() {
-        var c = this._pickingColor;
+        let c = this._pickingColor;
 
         // billboard
         this.billboard && this.billboard.setPickingColor3v(c);
@@ -686,7 +686,7 @@ class Entity {
 
         // billboard
         this.geoObject && this.geoObject.setPickingColor3v(c);
-        for (var i = 0; i < this.childrenNodes.length; i++) {
+        for (let i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i].setPickingColor();
         }
     }
@@ -696,15 +696,15 @@ class Entity {
      * @returns {Extent} -
      */
     getExtent() {
-        var res;
-        var c = this._lonlat;
+        let res;
+        let c = this._lonlat;
         if (this.billboard || this.label) {
             res = new Extent(new LonLat(c.lon, c.lat), new LonLat(c.lon, c.lat));
         } else {
             res = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
         }
 
-        var sw = res.southWest,
+        let sw = res.southWest,
             ne = res.northEast;
 
         if (this.polyline) {
@@ -723,7 +723,7 @@ class Entity {
             if (e.northEast.lat > ne.lat) ne.lat = e.northEast.lat;
         }
 
-        for (var i = 0; i < this.childrenNodes.length; i++) {
+        for (let i = 0; i < this.childrenNodes.length; i++) {
             let e = this.childrenNodes[i].getExtent();
             if (e.southWest.lon < sw.lon) sw.lon = e.southWest.lon;
             if (e.southWest.lat < sw.lat) sw.lat = e.southWest.lat;

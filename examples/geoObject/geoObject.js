@@ -10,29 +10,38 @@ import * as utils from "../../src/og/utils/shared.js";
 
 let COUNT = 10,
     ENTITY = {},
-    ENTITY_DEFAULT_OPTIONS = {
-        farmplane: (options) => {
-            options.geoObject.scale = 100;
-            options.geoObject.yaw = -50;
-            return {
-                ...options,
-                lonlat: [rnd(-180, 180), rnd(-180, 180), 20000]
-            };
-        },
-        satellite: (options) => {
-            return {
-                ...options,
-                lonlat: [rnd(-180, 180), rnd(-180, 180), 2000000]
-            };
-        },
-        airplane: (options) => {
-            options.geoObject.yaw = 75;
-            return {
-                ...options,
-                lonlat: [rnd(-180, 180), rnd(-180, 180), 20000]
-            };
-        }
-    };
+    ENTITY_OPTIONS = new Map([
+        ['farmplane', {
+            countRation: 20,
+            cb: (options) => {
+                options.geoObject.scale = 100;
+                options.geoObject.yaw = -50;
+                return {
+                    ...options,
+                    lonlat: [rnd(-180, 180), rnd(-180, 180), 20000]
+                };
+            }
+        }],
+        ['satellite', {
+            countRation: 1,
+            cb: (options) => {
+                return {
+                    ...options,
+                    lonlat: [rnd(-180, 180), rnd(-180, 180), 2000000]
+                };
+            }
+        }],
+        ['airplane', {
+            countRation: 80,
+            cb: (options) => {
+                options.geoObject.yaw = 75;
+                return {
+                    ...options,
+                    lonlat: [rnd(-180, 180), rnd(-180, 180), 20000]
+                };
+            }
+        }]
+    ]);
 
 const div = document.createElement('div');
 div.style.setProperty('display', 'flex');
@@ -83,9 +92,7 @@ let geoObjects = new EntityCollection({
     scaleByDistance: [600000, 24000000, 10000000000]
 });
 
-const instancesTypes = [...new Array(80).fill('airplane'), ...new Array(20).fill('farmplane'), 'satellite'];
-
-const addInstance = (name, options = {}) => {
+for (const [name, entity_opt] of ENTITY_OPTIONS) {
     fetch(`./${name}.json`)
         .then((response) => {
             return response.json();
@@ -93,7 +100,7 @@ const addInstance = (name, options = {}) => {
         .then((data) => {
             const entities = [];
             const { vertices, indices, normals } = data,
-                options = (i) => ({
+                defaultOptions = (i) => ({
                     name: "sat-" + i,
                     geoObject: {
                         scale: 100000,
@@ -109,10 +116,10 @@ const addInstance = (name, options = {}) => {
                     }
                 });
             ENTITY[name] = (i) => {
-                const o = options(i);
+                const o = defaultOptions(i);
                 return {
                     ...o,
-                    ...(ENTITY_DEFAULT_OPTIONS[name] ? ENTITY_DEFAULT_OPTIONS[name](o, i) : {})
+                    ...(entity_opt && entity_opt.cb ? entity_opt.cb(o, i) : {})
                 };
             };
 
@@ -121,14 +128,9 @@ const addInstance = (name, options = {}) => {
             }
             geoObjects.addEntities(entities);
         });
-};
-
-instancesTypes.forEach((type) => {
-    addInstance(type);
-});
+}
 
 geoObjects.events.on("lclick", function (e) {
-    // COUNT--;
     e.pickingObject.geoObject.remove();
 });
 
@@ -145,7 +147,11 @@ geoObjects.addTo(globus.planet);
 
 // globus.planet.flyLonLat(new LonLat(0, 0, 2000000));
 window.globus = globus;
+window.ENTITY_OPTIONS = ENTITY_OPTIONS;
 
+const types = [...ENTITY_OPTIONS.keys()].reduce((acc, name) => {
+    return [...acc, ...new Array(ENTITY_OPTIONS.get(name).countRation).fill(name)];
+}, []);
 globus.planet.events.on("draw", () => {
     const entities = geoObjects._entities;
     if (entities.length > 0) {
@@ -155,7 +161,7 @@ globus.planet.events.on("draw", () => {
             }
         } else if (entities.length < COUNT) {
             while (entities.length < COUNT) {
-                geoObjects.add(new Entity(ENTITY[instancesTypes[entities.length % (instancesTypes.length)]](entities.length - 1)));
+                    geoObjects.add(new Entity(ENTITY[types[entities.length % (types.length)]](entities.length - 1)));
             }
         }
     }
