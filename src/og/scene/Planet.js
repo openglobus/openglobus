@@ -34,7 +34,7 @@ import { Geoid } from "../terrain/Geoid.js";
 import { isUndef } from "../utils/shared.js";
 
 const MAX_LOD = 256; //px
-const MIN_LOD = 512; //px
+const MIN_LOD = 312; //px
 
 let _tempPickingPix_ = new Uint8Array(4),
     _tempDepthColor_ = new Uint8Array(4);
