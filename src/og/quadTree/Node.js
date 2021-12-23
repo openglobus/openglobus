@@ -7,7 +7,6 @@ import { Vec3 } from "../math/Vec3.js";
 import { MAX_LAT } from "../mercator.js";
 import { EPSG3857 } from "../proj/EPSG3857.js";
 import { EPSG4326 } from "../proj/EPSG4326.js";
-import { MAX_NORMAL_ZOOM } from "../segment/Segment.js";
 import { getMatrixSubArray, getMatrixSubArrayBoundsExt } from "../utils/shared.js";
 import {
     COMSIDE,
@@ -51,6 +50,11 @@ let BOUNDS = {
     ymax: 0.0,
     zmax: 0.0
 };
+
+function _x(eye, poi, r) {
+    let e = eye.length();
+    return eye.distance(poi) < Math.sqrt(e * e - r * r);
+}
 
 /**
  * Quad tree planet segment node.
@@ -282,11 +286,16 @@ class Node {
         if (this.inFrustum || this._cameraInside || seg.tileZoom < 3) {
             let h = cam._lonLat.height;
 
+            let r = this.planet.ellipsoid._b;
+
             let altVis =
-                cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius <
-                VISIBLE_DISTANCE * Math.sqrt(h) ||
-                (seg.tileZoom < 4 && !seg.terrainReady) ||
-                seg.tileZoom < 2;
+                seg.tileZoom < 2
+                || seg.tileZoom > 19
+                || _x(cam.eye, seg._sw, r)
+                || _x(cam.eye, seg._nw, r)
+                || _x(cam.eye, seg._ne, r)
+                || _x(cam.eye, seg._se, r)
+                || (seg.tileZoom < 4 && !seg.terrainReady);
 
             if ((this.inFrustum && (altVis || h > 10000.0)) || this._cameraInside) {
                 seg._collectVisibleNodes();
@@ -295,14 +304,25 @@ class Node {
             if (seg.tileZoom < 2 && seg.normalMapReady) {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
             } else if ((!maxZoom && seg.acceptForRendering(cam)) || seg.tileZoom === maxZoom || !altVis && maxZoom) {
-                this.prepareForRendering(cam, altVis, this.inFrustum, terrainReadySegment, stopLoading);
+
+                if (altVis) {
+                    this.renderNode(this.inFrustum, !this.inFrustum, terrainReadySegment, stopLoading);
+                } else {
+                    this.state = NOTRENDERING;
+                }
+
             } else if (seg.tileZoom < planet.terrain._maxNodeZoom && (seg.terrainReady || planet.terrain.isEmpty)) {
                 // Deleting terrainReady here, you have to remove
                 // this.appliedTerrainNodeId !== pn.nodeId in whileTerrainLoading,
                 // also have to fix createBoundsByParent(*)
                 this.traverseNodes(cam, maxZoom, seg, stopLoading);
             } else {
-                this.prepareForRendering(cam, altVis, this.inFrustum, terrainReadySegment, stopLoading);
+
+                if (altVis) {
+                    this.renderNode(this.inFrustum, !this.inFrustum, terrainReadySegment, stopLoading);
+                } else {
+                    this.state = NOTRENDERING;
+                }
             }
         } else {
             this.state = NOTRENDERING;
@@ -322,38 +342,19 @@ class Node {
         n[3].renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
     }
 
-    prepareForRendering(
-        cam,
-        altVis,
-        inFrustum,
-        terrainReadySegment,
-        stopLoading
-    ) {
-        let seg = this.segment;
-
-        if (cam._lonLat.height < VISIBLE_HEIGHT) {
-            if (altVis) {
-                this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
-            } else {
-                this.state = NOTRENDERING;
-            }
-        } else {
-            if (seg.tileZoom < 2) {
-                this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
-            } else if (seg.tileZoom > MAX_NORMAL_ZOOM) {
-                this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
-            } else if (
-                seg._swNorm.dot(cam._b) > 0.0 ||
-                seg._nwNorm.dot(cam._b) > 0.0 ||
-                seg._neNorm.dot(cam._b) > 0.0 ||
-                seg._seNorm.dot(cam._b) > 0.0
-            ) {
-                this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
-            } else {
-                this.state = NOTRENDERING;
-            }
-        }
-    }
+    //prepareForRendering(
+    //    cam,
+    //    altVis,
+    //    inFrustum,
+    //    terrainReadySegment,
+    //    stopLoading
+    //) {
+    //    if (altVis) {
+    //        this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
+    //    } else {
+    //        this.state = NOTRENDERING;
+    //    }
+    //}
 
     renderNode(inFrustum, onlyTerrain, terrainReadySegment, stopLoading) {
         var seg = this.segment;

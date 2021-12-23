@@ -33,8 +33,8 @@ import { NIGHT, SPECULAR } from "../res/images.js";
 import { Geoid } from "../terrain/Geoid.js";
 import { isUndef } from "../utils/shared.js";
 
-const MAX_LOD = 1.0;
-const MIN_LOD = 0.75;
+const MAX_LOD = 256; //px
+const MIN_LOD = 512; //px
 
 let _tempPickingPix_ = new Uint8Array(4),
     _tempDepthColor_ = new Uint8Array(4);
@@ -989,11 +989,7 @@ export class Planet extends RenderNode {
     _collectRenderNodes() {
         let cam = this.camera;
 
-        this._lodRatio = math.lerp(
-            cam.slope < 0.0 ? 0.0 : cam.slope,
-            this._maxLodRatio,
-            this._minLodRatio
-        );
+        this._lodRatio = math.lerp(cam.slope < 0.0 ? 0.0 : cam.slope, this._maxLodRatio, this._minLodRatio);
 
         cam._insideSegment = null;
 

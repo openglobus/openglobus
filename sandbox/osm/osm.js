@@ -163,17 +163,13 @@ var globus = new Globe({
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
-    terrain: new EmptyTerrain({
-        gridSizeByZoom: [32, 16, 16, 8, 8, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2]
-    }),
+    terrain: new GlobusTerrain(),//new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
-    layers: [osm, /*labelLayer,*/ borders],
+    layers: [osm, /*labelLayer,*/ tg, borders],
     //useNightTexture: false,
     //useEarthNavigation: true,
     //useSpecularTexture: false
 });
-
-globus.planet.setRatioLod(1.0, 0.7);
 
 //globus.planet.addControl(new Lighting());
 

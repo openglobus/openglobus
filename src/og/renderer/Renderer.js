@@ -479,8 +479,8 @@ class Renderer {
         }
 
         this.handler.onCanvasResize = () => {
+            this.resize();
             this.events.dispatch(this.events.resize, this.handler.canvas);
-            this._resize();
         };
 
         this._screenFrameCornersBuffer = this.handler.createArrayBuffer(
@@ -507,7 +507,7 @@ class Renderer {
         }
     }
 
-    _resize() {
+    resize() {
         let c = this.handler.canvas;
         this.activeCamera.setAspectRatio(c.width / c.height);
         this.sceneFramebuffer.setSize(c.width, c.height);

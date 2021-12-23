@@ -99,6 +99,15 @@ class Globe {
         this.div.appendChild(this._canvas);
         this.div.classList.add("ogViewport");
 
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === 'visible') {
+                this.renderer.handler.start();
+                this.renderer && this.renderer.resize();
+            } else {
+                this.renderer.handler.stop();
+            }
+        });
+
         function _disableWheel(e) {
             e.preventDefault();
         }
@@ -163,7 +172,7 @@ class Globe {
         } else {
             this.planet = new Planet({
                 name: this._planetName,
-                frustums:options.frustums,
+                frustums: options.frustums,
                 ellipsoid: options.ellipsoid,
                 maxGridSize: options.maxGridSize,
                 useNightTexture: options.useNightTexture,
@@ -194,8 +203,8 @@ class Globe {
                 options.useEarthNavigation
                     ? new EarthNavigation()
                     : new MouseNavigation({
-                          minSlope: options.minSlope
-                      }),
+                        minSlope: options.minSlope
+                    }),
                 new TouchNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),

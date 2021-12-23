@@ -321,12 +321,7 @@ class Camera {
         this._tanViewAngle_hradOneByHeight =
             this._tanViewAngle_hrad * this.renderer.handler._oneByHeight;
         var c = this.renderer.handler.canvas;
-        this._projSizeConst =
-            Math.min(
-                c.clientWidth < 256 ? 256 : c.clientWidth,
-                c.clientHeight < 256 ? 256 : c.clientHeight
-            ) /
-            (angle * math.RADIANS);
+        this._projSizeConst = Math.min(c.clientWidth < 256 ? 256 : c.clientWidth, c.clientHeight < 256 ? 256 : c.clientHeight) / (angle * math.RADIANS);
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             this.frustums[i].setProjectionMatrix(
                 angle,
@@ -485,12 +480,8 @@ class Camera {
         var px = (x - w) / w,
             py = -(y - h) / h;
 
-        var world1 = this.frustums[0]._inverseProjectionViewMatrix
-                .mulVec4(new Vec4(px, py, -1.0, 1.0))
-                .affinity(),
-            world2 = this.frustums[0]._inverseProjectionViewMatrix
-                .mulVec4(new Vec4(px, py, 0.0, 1.0))
-                .affinity();
+        var world1 = this.frustums[0]._inverseProjectionViewMatrix.mulVec4(new Vec4(px, py, -1.0, 1.0)).affinity(),
+            world2 = this.frustums[0]._inverseProjectionViewMatrix.mulVec4(new Vec4(px, py, 0.0, 1.0)).affinity();
 
         return world2.subA(world1).toVec3().normalize();
     }

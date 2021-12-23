@@ -108,7 +108,6 @@ class EmptyTerrain {
 
     set geoid(geoid) {
         this._geoid = geoid;
-        //...this._planet
     }
 
     get geoid() {

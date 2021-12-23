@@ -14,8 +14,6 @@ import * as segmentHelper from "../segment/segmentHelper.js";
 import { getMatrixSubArray } from "../utils/shared.js";
 import { Slice } from "./Slice.js";
 
-export const MAX_NORMAL_ZOOM = 7;
-
 var _tempHigh = new Vec3();
 var _tempLow = new Vec3();
 
@@ -40,8 +38,6 @@ _V[N] = false;
 _V[E] = true;
 _V[S] = false;
 _V[W] = true;
-
-window.BBSC = 100;
 
 /**
  * Planet segment Web Mercator tile class that stored and rendered with quad tree.
@@ -97,10 +93,15 @@ class Segment {
          */
         this.bbox = new Box();
 
-        this._swNorm = null;
-        this._nwNorm = null;
-        this._seNorm = null;
-        this._neNorm = null;
+        //this._swNorm = null;
+        //this._nwNorm = null;
+        //this._seNorm = null;
+        //this._neNorm = null;
+
+        this._sw = new Vec3();
+        this._nw = new Vec3();
+        this._se = new Vec3();
+        this._ne = new Vec3();
 
         /**
          * Geographical extent.
@@ -244,10 +245,7 @@ class Segment {
      * @returns {boolean} -
      */
     acceptForRendering(camera) {
-        return (
-            camera.projectedSize(this.bsphere.center, this._plainRadius) <
-            256 / this.planet._lodRatio
-        );
+        return camera.projectedSize(this.bsphere.center, this._plainRadius) < this.planet._lodRatio
     }
 
     /**
@@ -997,22 +995,19 @@ class Segment {
         var coord_sw = ellipsoid.geodeticToCartesian(extent.southWest.lon, extent.southWest.lat);
         var coord_ne = ellipsoid.geodeticToCartesian(extent.northEast.lon, extent.northEast.lat);
 
-        // check for zoom
-        if (this.tileZoom <= MAX_NORMAL_ZOOM) {
-            var coord_nw = ellipsoid.geodeticToCartesian(
-                extent.southWest.lon,
-                extent.northEast.lat
-            );
-            var coord_se = ellipsoid.geodeticToCartesian(
-                extent.northEast.lon,
-                extent.southWest.lat
-            );
+        var coord_nw = ellipsoid.geodeticToCartesian(
+            extent.southWest.lon,
+            extent.northEast.lat
+        );
+        var coord_se = ellipsoid.geodeticToCartesian(
+            extent.northEast.lon,
+            extent.southWest.lat
+        );
 
-            this._swNorm = coord_sw.normal();
-            this._nwNorm = coord_nw.normal();
-            this._neNorm = coord_ne.normal();
-            this._seNorm = coord_se.normal();
-        }
+        this._sw.copy(coord_sw);
+        this._nw.copy(coord_nw);
+        this._ne.copy(coord_ne);
+        this._se.copy(coord_se);
 
         this.setBoundingVolume3v(coord_sw, coord_ne);
     }
@@ -1041,31 +1036,30 @@ class Segment {
                 this.bsphere.center.z = pn.segment.bsphere.center.z;
                 this.bsphere.radius = pn.segment.bsphere.radius;
 
-                if (this.tileZoom <= MAX_NORMAL_ZOOM) {
-                    let i0 = gridSize * offsetY;
-                    let j0 = gridSize * offsetX;
+                let i0 = gridSize * offsetY;
+                let j0 = gridSize * offsetX;
 
-                    let pnGsOne = pn.segment.gridSize + 1;
+                let pnGsOne = pn.segment.gridSize + 1;
 
-                    let ind_sw = 3 * ((i0 + gridSize) * pnGsOne + j0),
-                        ind_nw = 3 * (i0 * pnGsOne + j0),
-                        ind_ne = 3 * (i0 * pnGsOne + j0 + gridSize),
-                        ind_se = 3 * ((i0 + gridSize) * pnGsOne + j0 + gridSize);
+                let ind_sw = 3 * ((i0 + gridSize) * pnGsOne + j0),
+                    ind_nw = 3 * (i0 * pnGsOne + j0),
+                    ind_ne = 3 * (i0 * pnGsOne + j0 + gridSize),
+                    ind_se = 3 * ((i0 + gridSize) * pnGsOne + j0 + gridSize);
 
-                    let pVerts = pn.segment.tempVertices;
+                let pVerts = pn.segment.tempVertices;
 
-                    let v_sw = new Vec3(pVerts[ind_sw], pVerts[ind_sw + 1], pVerts[ind_sw + 2]),
-                        v_ne = new Vec3(pVerts[ind_ne], pVerts[ind_ne + 1], pVerts[ind_ne + 2]);
+                let v_sw = new Vec3(pVerts[ind_sw], pVerts[ind_sw + 1], pVerts[ind_sw + 2]),
+                    v_ne = new Vec3(pVerts[ind_ne], pVerts[ind_ne + 1], pVerts[ind_ne + 2]);
 
-                    // check for segment zoom
-                    let v_nw = new Vec3(pVerts[ind_nw], pVerts[ind_nw + 1], pVerts[ind_nw + 2]),
-                        v_se = new Vec3(pVerts[ind_se], pVerts[ind_se + 1], pVerts[ind_se + 2]);
+                // check for segment zoom
+                let v_nw = new Vec3(pVerts[ind_nw], pVerts[ind_nw + 1], pVerts[ind_nw + 2]),
+                    v_se = new Vec3(pVerts[ind_se], pVerts[ind_se + 1], pVerts[ind_se + 2]);
 
-                    this._swNorm = v_sw.normal();
-                    this._nwNorm = v_nw.normal();
-                    this._neNorm = v_ne.normal();
-                    this._seNorm = v_se.normal();
-                }
+                this._sw.copy(v_sw);
+                this._nw.copy(v_nw);
+                this._ne.copy(v_ne);
+                this._se.copy(v_se);
+
             } else {
                 let pseg = pn.segment;
 

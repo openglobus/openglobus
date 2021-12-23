@@ -152,23 +152,8 @@ class EarthCoordinates extends Control {
             this.renderer.activeCamera.events.on("moveend", this._grabCoordinates, this);
             this._centerDiv.style.display = "block";
         } else {
-            //this.renderer.events.on("mousemove", this._onMouseMove, this);
-            this.renderer.events.on("mousestop", this._onMouseStop, this);
+            this.renderer.events.on("mousemove", this._onMouseMove, this);
             this._centerDiv.style.display = "none";
-        }
-    }
-
-    _onMouseStop(e) {
-        let ll = this.planet.getLonLatFromPixelTerrain(e);
-        let pp = this.planet.getCartesianFromMouseTerrain();
-
-        if (pp && ll) {
-            pp = this.planet.ellipsoid.cartesianToLonLat(pp);
-            console.log(`lat=${ll.lat}, lon=${ll.lon}`);
-            console.log(`lat=${pp.lat}, lon=${pp.lon}`);
-            if (ll.lat - pp.lat !== 0 || ll.lon - pp.lon !== 0) {
-                debugger;
-            }
         }
     }
 
