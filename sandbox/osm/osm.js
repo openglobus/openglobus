@@ -163,7 +163,7 @@ var globus = new Globe({
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
-    terrain: new GlobusTerrain(),//new EmptyTerrain(),
+    terrain: /*new GlobusTerrain(),/*/new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
     layers: [osm, /*labelLayer,*/ tg, borders],
     //useNightTexture: false,

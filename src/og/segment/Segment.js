@@ -103,6 +103,8 @@ class Segment {
         this._se = new Vec3();
         this._ne = new Vec3();
 
+        this.centerNormal = new Vec3();
+
         /**
          * Geographical extent.
          * @type {Extent}

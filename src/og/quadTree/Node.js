@@ -71,6 +71,7 @@ class Node {
 
     constructor(SegmentPrototype, planet, partId, parent, id, tileZoom, extent) {
         this.SegmentPrototype = SegmentPrototype;
+        planet._createdNodesCount++;
         this.planet = planet;
         this.parentNode = parent;
         this.partId = partId;
@@ -88,7 +89,6 @@ class Node {
         this._cameraInside = false;
         this.inFrustum = 0;
         this.createBounds();
-        this.planet._createdNodesCount++;
     }
 
     createChildrenNodes() {
@@ -106,45 +106,10 @@ class Node {
         var c = new LonLat(sw.lon + size_x, sw.lat + size_y);
         var nd = this.nodes;
 
-        nd[NW] = new Node(
-            this.SegmentPrototype,
-            p,
-            NW,
-            this,
-            id,
-            z,
-            new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat))
-        );
-
-        nd[NE] = new Node(
-            this.SegmentPrototype,
-            p,
-            NE,
-            this,
-            id,
-            z,
-            new Extent(c, new LonLat(ne.lon, ne.lat))
-        );
-
-        nd[SW] = new Node(
-            this.SegmentPrototype,
-            p,
-            SW,
-            this,
-            id,
-            z,
-            new Extent(new LonLat(sw.lon, sw.lat), c)
-        );
-
-        nd[SE] = new Node(
-            this.SegmentPrototype,
-            p,
-            SE,
-            this,
-            id,
-            z,
-            new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y))
-        );
+        nd[NW] = new Node(this.SegmentPrototype, p, NW, this, id, z, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)));
+        nd[NE] = new Node(this.SegmentPrototype, p, NE, this, id, z, new Extent(c, new LonLat(ne.lon, ne.lat)));
+        nd[SW] = new Node(this.SegmentPrototype, p, SW, this, id, z, new Extent(new LonLat(sw.lon, sw.lat), c));
+        nd[SE] = new Node(this.SegmentPrototype, p, SE, this, id, z, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)));
     }
 
     createBounds() {
@@ -157,6 +122,15 @@ class Node {
         } else {
             seg.createBoundsByParent();
         }
+
+        let x = seg.bsphere.center.x,
+            y = seg.bsphere.center.y,
+            z = seg.bsphere.center.z;
+
+        let length = 1.0 / Math.sqrt(x * x + y * y + z * z);
+        seg.centerNormal.x = x * length;
+        seg.centerNormal.y = y * length;
+        seg.centerNormal.z = z * length;
     }
 
     getState() {
@@ -208,14 +182,9 @@ class Node {
     }
 
     renderTree(cam, maxZoom, terrainReadySegment, stopLoading) {
-        if (
-            this.planet._renderedNodes.length >= MAX_RENDERED_NODES ||
-            this.planet._nodeCounterError_ > 2000
-        ) {
+        if (this.planet._renderedNodes.length >= MAX_RENDERED_NODES) {
             return;
         }
-
-        this.planet._nodeCounterError_++;
 
         this.state = WALKTHROUGH;
 
@@ -303,7 +272,7 @@ class Node {
 
             if (seg.tileZoom < 2 && seg.normalMapReady) {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
-            } else if ((!maxZoom && seg.acceptForRendering(cam)) || seg.tileZoom === maxZoom || !altVis && maxZoom) {
+            } else if ((!maxZoom && seg.acceptForRendering(cam)) || (seg.tileZoom === maxZoom) || !altVis && maxZoom) {
 
                 if (altVis) {
                     this.renderNode(this.inFrustum, !this.inFrustum, terrainReadySegment, stopLoading);
@@ -341,20 +310,6 @@ class Node {
         n[2].renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
         n[3].renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
     }
-
-    //prepareForRendering(
-    //    cam,
-    //    altVis,
-    //    inFrustum,
-    //    terrainReadySegment,
-    //    stopLoading
-    //) {
-    //    if (altVis) {
-    //        this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
-    //    } else {
-    //        this.state = NOTRENDERING;
-    //    }
-    //}
 
     renderNode(inFrustum, onlyTerrain, terrainReadySegment, stopLoading) {
         var seg = this.segment;

@@ -32,6 +32,7 @@ import { wgs84 } from "../ellipsoid/wgs84.js";
 import { NIGHT, SPECULAR } from "../res/images.js";
 import { Geoid } from "../terrain/Geoid.js";
 import { isUndef } from "../utils/shared.js";
+import { MAX_RENDERED_NODES } from "../quadTree/quadTree.js";
 
 const MAX_LOD = 256; //px
 const MIN_LOD = 312; //px
@@ -48,6 +49,8 @@ const DEPTH_DISTANCE = 11;
  * @default
  */
 const MAX_NODES = 200;
+
+const CODIR = 0.81;
 
 const EVENT_NAMES = [
     /**
@@ -993,8 +996,6 @@ export class Planet extends RenderNode {
 
         cam._insideSegment = null;
 
-        this._nodeCounterError_ = 0;
-
         // clear first
         this._clearRenderedNodeList();
 
@@ -1030,7 +1031,8 @@ export class Planet extends RenderNode {
 
             for (var i = 0, len = temp.length; i < len; i++) {
                 var ri = temp[i];
-                if (ri.segment.tileZoom === this.maxCurrZoom) {
+                let codir = ri.segment.centerNormal.dot(cam._b);
+                if (ri.segment.tileZoom === this.maxCurrZoom || codir < CODIR) {
                     this._renderedNodes.push(ri);
                     let k = 0,
                         inFrustum = ri.inFrustum;
