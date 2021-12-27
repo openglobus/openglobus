@@ -407,11 +407,11 @@ export class Planet extends RenderNode {
 
         this._normalMapCreator = null;
 
-        this._terrainWorker = new TerrainWorker(2);
+        this._terrainWorker = new TerrainWorker(3);
 
-        this._plainSegmentWorker = new PlainSegmentWorker(2);
+        this._plainSegmentWorker = new PlainSegmentWorker(3);
 
-        this._tileLoader = new Loader(14);
+        this._tileLoader = new Loader(22);
 
         this._memKey = new Key();
 

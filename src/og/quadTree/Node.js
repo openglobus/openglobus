@@ -29,8 +29,6 @@ import {
     WALKTHROUGH
 } from "./quadTree.js";
 
-const VISIBLE_HEIGHT = 1400000.0;
-
 let _tempHigh = new Vec3(),
     _tempLow = new Vec3();
 
@@ -50,11 +48,6 @@ let BOUNDS = {
     ymax: 0.0,
     zmax: 0.0
 };
-
-function _x(eye, poi, r) {
-    let e = eye.length();
-    return eye.distance(poi) < Math.sqrt(e * e - r * r);
-}
 
 /**
  * Quad tree planet segment node.
@@ -255,15 +248,16 @@ class Node {
         if (this.inFrustum || this._cameraInside || seg.tileZoom < 3) {
             let h = cam._lonLat.height;
 
-            let r = this.planet.ellipsoid._b;
+            let eye = cam.eye;
+            let eyeLength = eye.length();
+            let horizonDist = Math.sqrt(eyeLength * eyeLength - this.planet.ellipsoid._b2);
 
-            let altVis =
-                seg.tileZoom < 2
+            let altVis = seg.tileZoom < 2
                 || seg.tileZoom > 19
-                || _x(cam.eye, seg._sw, r)
-                || _x(cam.eye, seg._nw, r)
-                || _x(cam.eye, seg._ne, r)
-                || _x(cam.eye, seg._se, r)
+                || eye.distance(seg._sw) < horizonDist
+                || eye.distance(seg._nw) < horizonDist
+                || eye.distance(seg._ne) < horizonDist
+                || eye.distance(seg._se) < horizonDist
                 || (seg.tileZoom < 4 && !seg.terrainReady);
 
             if ((this.inFrustum && (altVis || h > 10000.0)) || this._cameraInside) {
@@ -272,7 +266,7 @@ class Node {
 
             if (seg.tileZoom < 2 && seg.normalMapReady) {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
-            } else if ((!maxZoom && seg.acceptForRendering(cam)) || (seg.tileZoom === maxZoom) || !altVis && maxZoom) {
+            } else if ((!maxZoom && seg.acceptForRendering(cam)) || maxZoom && ((seg.tileZoom === maxZoom) || !altVis)) {
 
                 if (altVis) {
                     this.renderNode(this.inFrustum, !this.inFrustum, terrainReadySegment, stopLoading);
@@ -285,13 +279,10 @@ class Node {
                 // this.appliedTerrainNodeId !== pn.nodeId in whileTerrainLoading,
                 // also have to fix createBoundsByParent(*)
                 this.traverseNodes(cam, maxZoom, seg, stopLoading);
+            } else if (altVis) {
+                this.renderNode(this.inFrustum, !this.inFrustum, terrainReadySegment, stopLoading);
             } else {
-
-                if (altVis) {
-                    this.renderNode(this.inFrustum, !this.inFrustum, terrainReadySegment, stopLoading);
-                } else {
-                    this.state = NOTRENDERING;
-                }
+                this.state = NOTRENDERING;
             }
         } else {
             this.state = NOTRENDERING;
