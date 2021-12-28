@@ -237,9 +237,6 @@ class XYZ extends Layer {
         if (material.isReady) {
             return material.texOffset;
         } else {
-            // if (material.loadingAttempts > 20) {
-            //     debugger;
-            // }
 
             let segment = material.segment,
                 pn = segment.node,

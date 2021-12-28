@@ -40,7 +40,9 @@ const MIN_LOD = 312; //px
 let _tempPickingPix_ = new Uint8Array(4),
     _tempDepthColor_ = new Uint8Array(4);
 
-const DEPTH_DISTANCE = 11;
+const DEPTH_DISTANCE = 11;//m
+
+window.CURRENT_LOD = 256;//px
 
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
