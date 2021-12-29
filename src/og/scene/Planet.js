@@ -34,7 +34,7 @@ import { Geoid } from "../terrain/Geoid.js";
 import { isUndef } from "../utils/shared.js";
 import { MAX_RENDERED_NODES } from "../quadTree/quadTree.js";
 
-const MAX_LOD = 256; //px
+const MAX_LOD = 250; //px
 const MIN_LOD = 312; //px
 
 let _tempPickingPix_ = new Uint8Array(4),
@@ -42,7 +42,7 @@ let _tempPickingPix_ = new Uint8Array(4),
 
 const DEPTH_DISTANCE = 11;//m
 
-window.CURRENT_LOD = 256;//px
+window.CURRENT_LOD = 190;//px
 
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
