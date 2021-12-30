@@ -94,7 +94,7 @@ class DebugInfo extends Control {
                 },
                 {
                     label: "lodSize",
-                    frame: () => p.lodSize.toFixed(1)
+                    frame: () => Math.round(p.lodSize)
                 },
                 {
                     label: "deltaTime/FPS",
