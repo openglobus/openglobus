@@ -165,9 +165,9 @@ var globus = new Globe({
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
-    terrain: new GlobusTerrain(),/*new EmptyTerrain({
+    terrain: /*new GlobusTerrain(),/*/new EmptyTerrain({
         //gridSizeByZoom: [32, 32, 32, 16, 4, 4, 4, 4, 4]
-    })*/
+    }),
     //maxEqualZoomAltitude: 1,
     layers: [osm, /*labelLayer,*/ tg, borders],
     //useNightTexture: false,
