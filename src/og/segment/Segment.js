@@ -241,13 +241,13 @@ class Segment {
     }
 
     /**
-     * Returns that segment good for rendering with camera by current lod ratio.
+     * Returns that segment good for rendering in a camera viewspace.
      * @public
      * @param {Camera} camera - Camera object.
      * @returns {boolean} -
      */
     acceptForRendering(camera) {
-        return camera.projectedSize(this.bsphere.center, this._plainRadius) < this.planet._lodRatio
+        return camera.projectedSize(this.bsphere.center, this._plainRadius) < this.planet._lodSize
     }
 
     /**

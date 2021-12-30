@@ -34,15 +34,14 @@ import { Geoid } from "../terrain/Geoid.js";
 import { isUndef } from "../utils/shared.js";
 import { MAX_RENDERED_NODES } from "../quadTree/quadTree.js";
 
-const MAX_LOD = 250; //px
-const MIN_LOD = 312; //px
+const CUR_LOD_SIZE = 250; //px
+const MIN_LOD_SIZE = 312; //px
+const MAX_LOD_SIZE = 190; //px
 
 let _tempPickingPix_ = new Uint8Array(4),
     _tempDepthColor_ = new Uint8Array(4);
 
 const DEPTH_DISTANCE = 11;//m
-
-window.CURRENT_LOD = 190;//px
 
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
@@ -52,7 +51,7 @@ window.CURRENT_LOD = 190;//px
  */
 const MAX_NODES = 200;
 
-const CODIR = 0.81;
+window.HORIZON_TANGENT = 0.81;
 
 const EVENT_NAMES = [
     /**
@@ -390,9 +389,10 @@ export class Planet extends RenderNode {
          * @public
          * @type {number}
          */
-        this._lodRatio = MAX_LOD;
-        this._maxLodRatio = MAX_LOD;
-        this._minLodRatio = MIN_LOD;
+        this._lodSize = CUR_LOD_SIZE;
+        this._curLodSize = CUR_LOD_SIZE;
+        this._minLodSize = MIN_LOD_SIZE;
+        this._maxLodSize = MAX_LOD_SIZE;
 
         this._pickingColorArr = new Float32Array(this.SLICE_SIZE_4);
         this._samplerArr = new Int32Array(this.SLICE_SIZE);
@@ -445,11 +445,14 @@ export class Planet extends RenderNode {
         control.addTo(this.renderer);
     }
 
-    setRatioLod(maxLod, minLod) {
-        this._maxLodRatio = maxLod;
-        if (minLod) {
-            this._minLodRatio = minLod;
-        }
+    get lodSize() {
+        return this._lodSize;
+    }
+
+    setLodSize(currentLodSize, minLodSize, maxLodSize) {
+        this._maxLodSize = maxLodSize || this._maxLodSize;
+        this._minLodSize = minLodSize || this._minLodSize;
+        this._curLodSize = currentLodSize || this._curLodSize;
         this._renderCompletedActivated = false;
     }
 
@@ -994,7 +997,7 @@ export class Planet extends RenderNode {
     _collectRenderNodes() {
         let cam = this.camera;
 
-        this._lodRatio = math.lerp(cam.slope < 0.0 ? 0.0 : cam.slope, this._maxLodRatio, this._minLodRatio);
+        this._lodSize = math.lerp(cam.slope < 0.0 ? 0.0 : cam.slope, this._curLodSize, this._minLodSize);
 
         cam._insideSegment = null;
 
@@ -1033,8 +1036,8 @@ export class Planet extends RenderNode {
 
             for (var i = 0, len = temp.length; i < len; i++) {
                 var ri = temp[i];
-                let codir = ri.segment.centerNormal.dot(cam._b);
-                if (ri.segment.tileZoom === this.maxCurrZoom || codir < CODIR) {
+                let ht = ri.segment.centerNormal.dot(cam._b);
+                if (ri.segment.tileZoom === this.maxCurrZoom || ht < HORIZON_TANGENT) {
                     this._renderedNodes.push(ri);
                     let k = 0,
                         inFrustum = ri.inFrustum;

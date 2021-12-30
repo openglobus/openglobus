@@ -264,6 +264,8 @@ class Node {
                 seg._collectVisibleNodes();
             }
 
+            let isReadyToMoveDown = seg.terrainReady || planet.terrain.isEmpty;
+
             if (seg.tileZoom < 2 && seg.normalMapReady) {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
             } else if (
@@ -276,7 +278,10 @@ class Node {
                     this.state = NOTRENDERING;
                 }
 
-            } else if (seg.tileZoom < planet.terrain._maxNodeZoom && (seg.terrainReady || planet.terrain.isEmpty) && (!maxZoom || maxZoom && cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > window.CURRENT_LOD)) {
+            } else if (
+                isReadyToMoveDown &&
+                seg.tileZoom < planet.terrain._maxNodeZoom &&                
+                (!maxZoom || maxZoom && cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.planet._maxLodSize)) {
                 // Deleting terrainReady here, you have to remove
                 // this.appliedTerrainNodeId !== pn.nodeId in whileTerrainLoading,
                 // also have to fix createBoundsByParent(*)
