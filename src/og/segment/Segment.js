@@ -241,16 +241,6 @@ class Segment {
     }
 
     /**
-     * Returns that segment good for rendering in a camera viewspace.
-     * @public
-     * @param {Camera} camera - Camera object.
-     * @returns {boolean} -
-     */
-    acceptForRendering(camera) {
-        return camera.projectedSize(this.bsphere.center, this._plainRadius) < this.planet._lodSize
-    }
-
-    /**
      * Returns entity terrain point.
      * @public
      * @param {Entity} entity - Entity.

@@ -74,6 +74,7 @@ const tg = new CanvasTiles("Tile grid", {
 
 function toQuadKey(x, y, z) {
     var index = '';
+    console.log(z);
     for (var i = z; i > 0; i--) {
         var b = 0;
         var mask = 1 << (i - 1);
@@ -165,15 +166,13 @@ var globus = new Globe({
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
-    terrain: /*new GlobusTerrain(),/*/new EmptyTerrain({
-        //gridSizeByZoom: [32, 32, 32, 16, 4, 4, 4, 4, 4]
-    }),
+    //terrain: new GlobusTerrain(),
+    terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
-    layers: [/*labelLayer,*/ tg, borders],
+    layers: [tg, borders],
     //useNightTexture: false,
     //useEarthNavigation: true,
     //useSpecularTexture: false
-    loadingBatchSize: 55
 });
 
 //globus.planet.addControl(new Lighting());
@@ -184,6 +183,7 @@ globus.planet.addControl(new DebugInfo());
 
 globus.planet.addControl(new ToggleWireframe());
 
+globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
 
 
 window.globus = globus;

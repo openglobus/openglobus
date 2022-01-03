@@ -268,15 +268,16 @@ class Node {
                 seg._collectVisibleNodes();
             }
 
-            let isReadyToTraverse = seg.terrainReady || planet.terrain.isEmpty;
+            let isReadyToTraverse = seg.terrainReady;// || planet.terrain.isEmpty;
 
             if (seg.tileZoom < 2 && seg.normalMapReady) {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
-            } else if (
-                !maxZoom && seg.acceptForRendering(cam) ||
-                maxZoom && ((seg.tileZoom === maxZoom) || !altVis)) {
+            } else if (seg.terrainReady && (
+                !maxZoom && cam.projectedSize(seg.bsphere.center, seg._plainRadius) < planet._lodSize ||
+                maxZoom && ((seg.tileZoom === maxZoom) || !altVis))) {
 
                 if (altVis) {
+                    seg.loadTile = true;
                     this.renderNode(this.inFrustum, !this.inFrustum, terrainReadySegment, stopLoading);
                 } else {
                     this.state = NOTRENDERING;
@@ -286,11 +287,9 @@ class Node {
                 isReadyToTraverse &&
                 seg.tileZoom < planet.terrain._maxNodeZoom &&
                 (!maxZoom || maxZoom && cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.planet._maxLodSize)) {
-                // Deleting terrainReady here, you have to remove
-                // this.appliedTerrainNodeId !== pn.nodeId in whileTerrainLoading,
-                // also have to fix createBoundsByParent(*)
                 this.traverseNodes(cam, maxZoom, seg, stopLoading);
             } else if (altVis) {
+                seg.loadTile = false;
                 this.renderNode(this.inFrustum, !this.inFrustum, terrainReadySegment, stopLoading);
             } else {
                 this.state = NOTRENDERING;
