@@ -251,13 +251,18 @@ class Node {
             let eye = cam.eye;
             let horizonDist = eye.length2() - this.planet.ellipsoid._b2;
 
-            let altVis = seg.tileZoom < 2
-                || seg.tileZoom > 19
-                || eye.distance2(seg._sw) < horizonDist
-                || eye.distance2(seg._nw) < horizonDist
-                || eye.distance2(seg._ne) < horizonDist
-                || eye.distance2(seg._se) < horizonDist
-                || (seg.tileZoom < 4 && !seg.terrainReady);
+            let altVis = seg.tileZoom > 19 ||
+                (seg.tileZoom < 4 && !seg.terrainReady) ||
+                seg.tileZoom < 2;
+
+            if (h > 10000) {
+                altVis = altVis || eye.distance2(seg._sw) < horizonDist
+                    || eye.distance2(seg._nw) < horizonDist
+                    || eye.distance2(seg._ne) < horizonDist
+                    || eye.distance2(seg._se) < horizonDist;
+            } else {
+                altVis = altVis || cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius < VISIBLE_DISTANCE * Math.sqrt(h);
+            }
 
             if ((this.inFrustum && (altVis || h > 10000.0)) || this._cameraInside) {
                 seg._collectVisibleNodes();
@@ -279,7 +284,7 @@ class Node {
 
             } else if (
                 isReadyToTraverse &&
-                seg.tileZoom < planet.terrain._maxNodeZoom &&                
+                seg.tileZoom < planet.terrain._maxNodeZoom &&
                 (!maxZoom || maxZoom && cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.planet._maxLodSize)) {
                 // Deleting terrainReady here, you have to remove
                 // this.appliedTerrainNodeId !== pn.nodeId in whileTerrainLoading,
