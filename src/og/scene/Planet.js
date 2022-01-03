@@ -415,7 +415,7 @@ export class Planet extends RenderNode {
 
         this._plainSegmentWorker = new PlainSegmentWorker(3);
 
-        this._tileLoader = new Loader(12);
+        this._tileLoader = new Loader(options.loadingBatchSize || 12);
 
         this._memKey = new Key();
 

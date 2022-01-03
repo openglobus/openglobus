@@ -173,6 +173,7 @@ var globus = new Globe({
     //useNightTexture: false,
     //useEarthNavigation: true,
     //useSpecularTexture: false
+    loadingBatchSize: 55
 });
 
 //globus.planet.addControl(new Lighting());
