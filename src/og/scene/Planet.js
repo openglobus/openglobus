@@ -221,6 +221,8 @@ export class Planet extends RenderNode {
          */
         this.maxCurrZoom = math.MIN;
 
+        this._oneZoom = false;
+
         this._viewExtent = null;
 
         /**
@@ -1013,13 +1015,14 @@ export class Planet extends RenderNode {
         this.minCurrZoom = math.MAX;
         this.maxCurrZoom = math.MIN;
 
-        this._quadTree.renderTree(cam, 0, null);
-
-        if (
-            cam.slope > this.minEqualZoomCameraSlope &&
+        this._oneZoom = cam.slope > this.minEqualZoomCameraSlope &&
             cam._lonLat.height < this.maxEqualZoomAltitude &&
             cam._lonLat.height > this.minEqualZoomAltitude
-        ) {
+
+        this._quadTree.renderTree(cam, 0, null);
+
+        if (this._oneZoom) {
+            this._oneZoom = false;
             this.minCurrZoom = this.maxCurrZoom;
 
             let temp = this._renderedNodes,

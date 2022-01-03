@@ -255,23 +255,25 @@ class XYZ extends Layer {
 
             let maxNativeZoom = material.layer.maxNativeZoom;
 
-            if (pn.segment.tileZoom === maxNativeZoom) {
-                material.textureNotExists();
-            } else if (material.segment.tileZoom <= maxNativeZoom) {
-                !material.isLoading && !material.isReady && this.loadMaterial(material);
-            } else {
-                let pn = segment.node;
-                while (pn.segment.tileZoom > material.layer.maxNativeZoom) {
-                    pn = pn.parentNode;
-                }
-                let pnm = pn.segment.materials[material.layer._id];
-                if (pnm) {
-                    !pnm.isLoading && !pnm.isReady && this.loadMaterial(pnm, true);
+            if (!this._planet._oneZoom) {
+                if (pn.segment.tileZoom === maxNativeZoom) {
+                    material.textureNotExists();
+                } else if (material.segment.tileZoom <= maxNativeZoom) {
+                    !material.isLoading && !material.isReady && this.loadMaterial(material);
                 } else {
-                    pnm = pn.segment.materials[material.layer._id] = material.layer.createMaterial(
-                        pn.segment
-                    );
-                    this.loadMaterial(pnm, true);
+                    let pn = segment.node;
+                    while (pn.segment.tileZoom > material.layer.maxNativeZoom) {
+                        pn = pn.parentNode;
+                    }
+                    let pnm = pn.segment.materials[material.layer._id];
+                    if (pnm) {
+                        !pnm.isLoading && !pnm.isReady && this.loadMaterial(pnm, true);
+                    } else {
+                        pnm = pn.segment.materials[material.layer._id] = material.layer.createMaterial(
+                            pn.segment
+                        );
+                        this.loadMaterial(pnm, true);
+                    }
                 }
             }
 
