@@ -255,7 +255,7 @@ class XYZ extends Layer {
 
             let maxNativeZoom = material.layer.maxNativeZoom;
 
-            if (/*!this._planet._oneZoom && */segment.loadTile) {
+            if (segment.loadTile) {
                 if (pn.segment.tileZoom === maxNativeZoom) {
                     material.textureNotExists();
                 } else if (material.segment.tileZoom <= maxNativeZoom) {

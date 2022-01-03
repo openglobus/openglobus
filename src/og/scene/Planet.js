@@ -51,7 +51,7 @@ const DEPTH_DISTANCE = 11;//m
  */
 const MAX_NODES = 200;
 
-window.HORIZON_TANGENT = 0.81;
+const HORIZON_TANGENT = 0.81;
 
 const EVENT_NAMES = [
     /**
@@ -220,8 +220,6 @@ export class Planet extends RenderNode {
          * @type {number}
          */
         this.maxCurrZoom = math.MIN;
-
-        this._oneZoom = false;
 
         this._viewExtent = null;
 
@@ -1015,14 +1013,13 @@ export class Planet extends RenderNode {
         this.minCurrZoom = math.MAX;
         this.maxCurrZoom = math.MIN;
 
-        this._oneZoom = cam.slope > this.minEqualZoomCameraSlope &&
-            cam._lonLat.height < this.maxEqualZoomAltitude &&
-            cam._lonLat.height > this.minEqualZoomAltitude
-
         this._quadTree.renderTree(cam, 0, null);
 
-        if (this._oneZoom) {
-            this._oneZoom = false;
+        if (cam.slope > this.minEqualZoomCameraSlope &&
+            cam._lonLat.height < this.maxEqualZoomAltitude &&
+            cam._lonLat.height > this.minEqualZoomAltitude
+        ) {
+
             this.minCurrZoom = this.maxCurrZoom;
 
             let temp = this._renderedNodes,
