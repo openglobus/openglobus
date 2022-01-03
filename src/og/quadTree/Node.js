@@ -255,7 +255,7 @@ class Node {
                 (seg.tileZoom < 4 && !seg.terrainReady) ||
                 seg.tileZoom < 2;
 
-            if (h > 10000) {
+            if (h > 21000) {
                 altVis = altVis || eye.distance2(seg._sw) < horizonDist
                     || eye.distance2(seg._nw) < horizonDist
                     || eye.distance2(seg._ne) < horizonDist
@@ -267,8 +267,6 @@ class Node {
             if ((this.inFrustum && (altVis || h > 10000.0)) || this._cameraInside) {
                 seg._collectVisibleNodes();
             }
-
-            let isReadyToTraverse = seg.terrainReady;// || planet.terrain.isEmpty;
 
             if (seg.tileZoom < 2 && seg.normalMapReady) {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
@@ -284,7 +282,7 @@ class Node {
                 }
 
             } else if (
-                isReadyToTraverse &&
+                seg.terrainReady &&
                 seg.tileZoom < planet.terrain._maxNodeZoom &&
                 (!maxZoom || maxZoom && cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.planet._maxLodSize)) {
                 this.traverseNodes(cam, maxZoom, seg, stopLoading);
