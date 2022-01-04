@@ -7,7 +7,6 @@ import { Vec3 } from "../math/Vec3.js";
 import { MAX_LAT } from "../mercator.js";
 import { EPSG3857 } from "../proj/EPSG3857.js";
 import { EPSG4326 } from "../proj/EPSG4326.js";
-import { MAX_NORMAL_ZOOM } from "../segment/Segment.js";
 import { getMatrixSubArray, getMatrixSubArrayBoundsExt } from "../utils/shared.js";
 import {
     COMSIDE,
@@ -29,8 +28,6 @@ import {
     W,
     WALKTHROUGH
 } from "./quadTree.js";
-
-const VISIBLE_HEIGHT = 1400000.0;
 
 let _tempHigh = new Vec3(),
     _tempLow = new Vec3();
@@ -67,6 +64,7 @@ class Node {
 
     constructor(SegmentPrototype, planet, partId, parent, id, tileZoom, extent) {
         this.SegmentPrototype = SegmentPrototype;
+        planet._createdNodesCount++;
         this.planet = planet;
         this.parentNode = parent;
         this.partId = partId;
@@ -84,7 +82,6 @@ class Node {
         this._cameraInside = false;
         this.inFrustum = 0;
         this.createBounds();
-        this.planet._createdNodesCount++;
     }
 
     createChildrenNodes() {
@@ -102,45 +99,10 @@ class Node {
         var c = new LonLat(sw.lon + size_x, sw.lat + size_y);
         var nd = this.nodes;
 
-        nd[NW] = new Node(
-            this.SegmentPrototype,
-            p,
-            NW,
-            this,
-            id,
-            z,
-            new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat))
-        );
-
-        nd[NE] = new Node(
-            this.SegmentPrototype,
-            p,
-            NE,
-            this,
-            id,
-            z,
-            new Extent(c, new LonLat(ne.lon, ne.lat))
-        );
-
-        nd[SW] = new Node(
-            this.SegmentPrototype,
-            p,
-            SW,
-            this,
-            id,
-            z,
-            new Extent(new LonLat(sw.lon, sw.lat), c)
-        );
-
-        nd[SE] = new Node(
-            this.SegmentPrototype,
-            p,
-            SE,
-            this,
-            id,
-            z,
-            new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y))
-        );
+        nd[NW] = new Node(this.SegmentPrototype, p, NW, this, id, z, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)));
+        nd[NE] = new Node(this.SegmentPrototype, p, NE, this, id, z, new Extent(c, new LonLat(ne.lon, ne.lat)));
+        nd[SW] = new Node(this.SegmentPrototype, p, SW, this, id, z, new Extent(new LonLat(sw.lon, sw.lat), c));
+        nd[SE] = new Node(this.SegmentPrototype, p, SE, this, id, z, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)));
     }
 
     createBounds() {
@@ -153,6 +115,15 @@ class Node {
         } else {
             seg.createBoundsByParent();
         }
+
+        let x = seg.bsphere.center.x,
+            y = seg.bsphere.center.y,
+            z = seg.bsphere.center.z;
+
+        let length = 1.0 / Math.sqrt(x * x + y * y + z * z);
+        seg.centerNormal.x = x * length;
+        seg.centerNormal.y = y * length;
+        seg.centerNormal.z = z * length;
     }
 
     getState() {
@@ -204,14 +175,9 @@ class Node {
     }
 
     renderTree(cam, maxZoom, terrainReadySegment, stopLoading) {
-        if (
-            this.planet._renderedNodes.length >= MAX_RENDERED_NODES ||
-            this.planet._nodeCounterError_ > 2000
-        ) {
+        if (this.planet._renderedNodes.length >= MAX_RENDERED_NODES) {
             return;
         }
-
-        this.planet._nodeCounterError_++;
 
         this.state = WALKTHROUGH;
 
@@ -282,11 +248,21 @@ class Node {
         if (this.inFrustum || this._cameraInside || seg.tileZoom < 3) {
             let h = cam._lonLat.height;
 
-            let altVis =
-                cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius <
-                VISIBLE_DISTANCE * Math.sqrt(h) ||
+            let eye = cam.eye;
+            let horizonDist = eye.length2() - this.planet.ellipsoid._b2;
+
+            let altVis = seg.tileZoom > 19 ||
                 (seg.tileZoom < 4 && !seg.terrainReady) ||
                 seg.tileZoom < 2;
+
+            if (h > 21000) {
+                altVis = altVis || eye.distance2(seg._sw) < horizonDist
+                    || eye.distance2(seg._nw) < horizonDist
+                    || eye.distance2(seg._ne) < horizonDist
+                    || eye.distance2(seg._se) < horizonDist;
+            } else {
+                altVis = altVis || cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius < VISIBLE_DISTANCE * Math.sqrt(h);
+            }
 
             if ((this.inFrustum && (altVis || h > 10000.0)) || this._cameraInside) {
                 seg._collectVisibleNodes();
@@ -294,15 +270,27 @@ class Node {
 
             if (seg.tileZoom < 2 && seg.normalMapReady) {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
-            } else if ((!maxZoom && seg.acceptForRendering(cam)) || seg.tileZoom === maxZoom || !altVis && maxZoom) {
-                this.prepareForRendering(cam, altVis, this.inFrustum, terrainReadySegment, stopLoading);
-            } else if (seg.tileZoom < planet.terrain._maxNodeZoom && seg.terrainReady) {
-                // Deleting terrainReady here, you have to remove
-                // this.appliedTerrainNodeId !== pn.nodeId in whileTerrainLoading,
-                // also have to fix createBoundsByParent(*)
+            } else if (seg.terrainReady && (
+                !maxZoom && cam.projectedSize(seg.bsphere.center, seg._plainRadius) < planet._lodSize ||
+                maxZoom && ((seg.tileZoom === maxZoom) || !altVis))) {
+
+                if (altVis) {
+                    seg.loadTile = true;
+                    this.renderNode(this.inFrustum, !this.inFrustum, terrainReadySegment, stopLoading);
+                } else {
+                    this.state = NOTRENDERING;
+                }
+
+            } else if (
+                seg.terrainReady &&
+                seg.tileZoom < planet.terrain._maxNodeZoom &&
+                (!maxZoom || maxZoom && cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.planet._maxLodSize)) {
                 this.traverseNodes(cam, maxZoom, seg, stopLoading);
+            } else if (altVis) {
+                seg.loadTile = false;
+                this.renderNode(this.inFrustum, !this.inFrustum, terrainReadySegment, stopLoading);
             } else {
-                this.prepareForRendering(cam, altVis, this.inFrustum, terrainReadySegment, stopLoading);
+                this.state = NOTRENDERING;
             }
         } else {
             this.state = NOTRENDERING;
@@ -320,39 +308,6 @@ class Node {
         n[1].renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
         n[2].renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
         n[3].renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
-    }
-
-    prepareForRendering(
-        cam,
-        altVis,
-        inFrustum,
-        terrainReadySegment,
-        stopLoading
-    ) {
-        let seg = this.segment;
-
-        if (cam._lonLat.height < VISIBLE_HEIGHT) {
-            if (altVis) {
-                this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
-            } else {
-                this.state = NOTRENDERING;
-            }
-        } else {
-            if (seg.tileZoom < 2) {
-                this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
-            } else if (seg.tileZoom > MAX_NORMAL_ZOOM) {
-                this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
-            } else if (
-                seg._swNorm.dot(cam._b) > 0.0 ||
-                seg._nwNorm.dot(cam._b) > 0.0 ||
-                seg._neNorm.dot(cam._b) > 0.0 ||
-                seg._seNorm.dot(cam._b) > 0.0
-            ) {
-                this.renderNode(inFrustum, !inFrustum, terrainReadySegment, stopLoading);
-            } else {
-                this.state = NOTRENDERING;
-            }
-        }
     }
 
     renderNode(inFrustum, onlyTerrain, terrainReadySegment, stopLoading) {
@@ -376,7 +331,7 @@ class Node {
         }
 
         // Create normal map texture
-        if (seg.planet.lightEnabled && !seg.normalMapReady && !seg.parentNormalMapReady) {
+        if (seg.planet.lightEnabled && !seg.normalMapReady /*&& !seg.parentNormalMapReady*/) {
             this.whileNormalMapCreating();
         }
 

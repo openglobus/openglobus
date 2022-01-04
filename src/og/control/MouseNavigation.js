@@ -265,7 +265,6 @@ class MouseNavigation extends Control {
             this.renderer.handler.canvas.classList.add("ogGrabbingPoiner");
             this.grabbedPoint = this.planet.getCartesianFromMouseTerrain();
             if (this.grabbedPoint) {
-                this.renderer.isActiveBackBuffers = false;
                 this._eye0.copy(this.renderer.activeCamera.eye);
                 this.grabbedSpheroid.radius = this.grabbedPoint.length();
                 this.stopRotation();
@@ -281,7 +280,6 @@ class MouseNavigation extends Control {
     }
 
     onMouseLeftButtonUp(e) {
-        this.renderer.isActiveBackBuffers = true;
         this.renderer.handler.canvas.classList.remove("ogGrabbingPoiner");
         if (e.x === e.prev_x && e.y === e.prev_y) {
             this.scaleRot = 0.0;

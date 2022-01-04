@@ -16,6 +16,8 @@ class EmptyTerrain {
 
         this.equalizeNormals = false;
 
+        this.isEmpty = true;
+
         /**
          * Provider name is "empty"
          * @public
@@ -106,7 +108,6 @@ class EmptyTerrain {
 
     set geoid(geoid) {
         this._geoid = geoid;
-        //...this._planet
     }
 
     get geoid() {

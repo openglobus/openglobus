@@ -700,7 +700,23 @@ export class Vec3 {
      * @returns {number} -
      */
     distance(point3) {
-        return Vec3.sub(this, point3).length();
+        let dx = this.x - point3.x,
+            dy = this.y - point3.y,
+            dz = this.z - point3.z;
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+
+    /**
+     * Gets square distance to point.
+     * @public
+     * @param {Vec3} point3 - Distant point.
+     * @returns {number} -
+     */
+    distance2(point3) {
+        let dx = this.x - point3.x,
+            dy = this.y - point3.y,
+            dz = this.z - point3.z;
+        return dx * dx + dy * dy + dz * dz;
     }
 
     /**

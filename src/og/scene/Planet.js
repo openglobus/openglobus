@@ -32,14 +32,16 @@ import { wgs84 } from "../ellipsoid/wgs84.js";
 import { NIGHT, SPECULAR } from "../res/images.js";
 import { Geoid } from "../terrain/Geoid.js";
 import { isUndef } from "../utils/shared.js";
+import { MAX_RENDERED_NODES } from "../quadTree/quadTree.js";
 
-const MAX_LOD = 1.0;
-const MIN_LOD = 0.75;
+const CUR_LOD_SIZE = 250; //px
+const MIN_LOD_SIZE = 312; //px
+const MAX_LOD_SIZE = 190; //px
 
 let _tempPickingPix_ = new Uint8Array(4),
     _tempDepthColor_ = new Uint8Array(4);
 
-const DEPTH_DISTANCE = 11;
+const DEPTH_DISTANCE = 11;//m
 
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
@@ -48,6 +50,8 @@ const DEPTH_DISTANCE = 11;
  * @default
  */
 const MAX_NODES = 200;
+
+const HORIZON_TANGENT = 0.81;
 
 const EVENT_NAMES = [
     /**
@@ -385,9 +389,10 @@ export class Planet extends RenderNode {
          * @public
          * @type {number}
          */
-        this._lodRatio = MAX_LOD;
-        this._maxLodRatio = MAX_LOD;
-        this._minLodRatio = MIN_LOD;
+        this._lodSize = CUR_LOD_SIZE;
+        this._curLodSize = CUR_LOD_SIZE;
+        this._minLodSize = MIN_LOD_SIZE;
+        this._maxLodSize = MAX_LOD_SIZE;
 
         this._pickingColorArr = new Float32Array(this.SLICE_SIZE_4);
         this._samplerArr = new Int32Array(this.SLICE_SIZE);
@@ -404,11 +409,11 @@ export class Planet extends RenderNode {
 
         this._normalMapCreator = null;
 
-        this._terrainWorker = new TerrainWorker(2);
+        this._terrainWorker = new TerrainWorker(3);
 
-        this._plainSegmentWorker = new PlainSegmentWorker(2);
+        this._plainSegmentWorker = new PlainSegmentWorker(4);
 
-        this._tileLoader = new Loader(14);
+        this._tileLoader = new Loader(options.loadingBatchSize || 12);
 
         this._memKey = new Key();
 
@@ -440,11 +445,14 @@ export class Planet extends RenderNode {
         control.addTo(this.renderer);
     }
 
-    setRatioLod(maxLod, minLod) {
-        this._maxLodRatio = maxLod;
-        if (minLod) {
-            this._minLodRatio = minLod;
-        }
+    get lodSize() {
+        return this._lodSize;
+    }
+
+    setLodSize(currentLodSize, minLodSize, maxLodSize) {
+        this._maxLodSize = maxLodSize || this._maxLodSize;
+        this._minLodSize = minLodSize || this._minLodSize;
+        this._curLodSize = currentLodSize || this._curLodSize;
         this._renderCompletedActivated = false;
     }
 
@@ -989,15 +997,9 @@ export class Planet extends RenderNode {
     _collectRenderNodes() {
         let cam = this.camera;
 
-        this._lodRatio = math.lerp(
-            cam.slope < 0.0 ? 0.0 : cam.slope,
-            this._maxLodRatio,
-            this._minLodRatio
-        );
+        this._lodSize = math.lerp(cam.slope < 0.0 ? 0.0 : cam.slope, this._curLodSize, this._minLodSize);
 
         cam._insideSegment = null;
-
-        this._nodeCounterError_ = 0;
 
         // clear first
         this._clearRenderedNodeList();
@@ -1013,11 +1015,11 @@ export class Planet extends RenderNode {
 
         this._quadTree.renderTree(cam, 0, null);
 
-        if (
-            cam.slope > this.minEqualZoomCameraSlope &&
+        if (cam.slope > this.minEqualZoomCameraSlope &&
             cam._lonLat.height < this.maxEqualZoomAltitude &&
             cam._lonLat.height > this.minEqualZoomAltitude
         ) {
+
             this.minCurrZoom = this.maxCurrZoom;
 
             let temp = this._renderedNodes,
@@ -1034,7 +1036,8 @@ export class Planet extends RenderNode {
 
             for (var i = 0, len = temp.length; i < len; i++) {
                 var ri = temp[i];
-                if (ri.segment.tileZoom === this.maxCurrZoom) {
+                let ht = ri.segment.centerNormal.dot(cam._b);
+                if (ri.segment.tileZoom === this.maxCurrZoom || ht < HORIZON_TANGENT) {
                     this._renderedNodes.push(ri);
                     let k = 0,
                         inFrustum = ri.inFrustum;
@@ -1084,9 +1087,7 @@ export class Planet extends RenderNode {
     frame() {
         this._renderScreenNodesPASS();
 
-        if (this.renderer.isActiveBackbuffers) {
-            this._renderHeightPickingFramebufferPASS();
-        }
+        this._renderHeightPickingFramebufferPASS();
 
         this.drawEntityCollections(this._frustumEntityCollections);
     }
@@ -1232,42 +1233,45 @@ export class Planet extends RenderNode {
      * @protected
      */
     _renderHeightPickingFramebufferPASS() {
-        this._heightPickingFramebuffer.activate();
+        if (!this.terrain.isEmpty) {
 
-        let sh;
-        let renderer = this.renderer;
-        let h = renderer.handler;
-        let gl = h.gl;
-        let cam = renderer.activeCamera;
-        let frustumIndex = cam.getCurrentFrustum();
+            this._heightPickingFramebuffer.activate();
 
-        if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        } else {
-            gl.clear(gl.DEPTH_BUFFER_BIT);
+            let sh;
+            let renderer = this.renderer;
+            let h = renderer.handler;
+            let gl = h.gl;
+            let cam = renderer.activeCamera;
+            let frustumIndex = cam.getCurrentFrustum();
+
+            if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
+                gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            } else {
+                gl.clear(gl.DEPTH_BUFFER_BIT);
+            }
+
+            h.programs.drawnode_heightPicking.activate();
+            sh = h.programs.drawnode_heightPicking._program;
+            let shu = sh.uniforms;
+
+            gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera.getViewMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, renderer.activeCamera.getProjectionMatrix());
+
+            gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
+            gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+
+            // drawing planet nodes
+            var rn = this._renderedNodesInFrustum[frustumIndex],
+                sl = this._visibleTileLayerSlices;
+
+            let i = rn.length;
+            while (i--) {
+                rn[i].segment.heightPickingRendering(sh, sl[0]);
+            }
+
+            this._heightPickingFramebuffer.deactivate();
         }
-
-        h.programs.drawnode_heightPicking.activate();
-        sh = h.programs.drawnode_heightPicking._program;
-        let shu = sh.uniforms;
-
-        gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera.getViewMatrix());
-        gl.uniformMatrix4fv(shu.projectionMatrix, false, renderer.activeCamera.getProjectionMatrix());
-
-        gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
-        gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
-
-        // drawing planet nodes
-        var rn = this._renderedNodesInFrustum[frustumIndex],
-            sl = this._visibleTileLayerSlices;
-
-        let i = rn.length;
-        while (i--) {
-            rn[i].segment.heightPickingRendering(sh, sl[0]);
-        }
-
-        this._heightPickingFramebuffer.deactivate();
     }
 
     /**
@@ -1537,41 +1541,48 @@ export class Planet extends RenderNode {
      * @returns {number} -
      */
     getDistanceFromPixel(px) {
-        let r = this.renderer,
-            cnv = this.renderer.handler.canvas;
+        if (this.terrain.isEmpty) {
+            return this.getDistanceFromPixelEllipsoid(px) || 0;
+        } else {
 
-        let spx = px.x / cnv.width,
-            spy = (cnv.height - px.y) / cnv.height;
+            let r = this.renderer,
+                cnv = this.renderer.handler.canvas;
 
-        // HEIGHT
-        this._heightPickingFramebuffer.activate();
-        if (this._heightPickingFramebuffer.isComplete()) {
-            this._heightPickingFramebuffer.readPixels(_tempPickingPix_, spx, spy);
-        }
-        this._heightPickingFramebuffer.deactivate();
+            let spx = px.x / cnv.width,
+                spy = (cnv.height - px.y) / cnv.height;
 
-        let dist = decodeFloatFromRGBAArr(_tempPickingPix_);
+            _tempPickingPix_[0] = _tempPickingPix_[1] = _tempPickingPix_[2] = 0.0;
 
-        if (!(_tempPickingPix_[0] || _tempPickingPix_[1] || _tempPickingPix_[2])) {
-            dist = this.getDistanceFromPixelEllipsoid(px) || 0;
-        } else if (dist < DEPTH_DISTANCE) {
-            r.screenDepthFramebuffer.activate();
-            if (r.screenDepthFramebuffer.isComplete()) {
-                r.screenDepthFramebuffer.readPixels(_tempDepthColor_, spx, spy);
-                let screenPos = new Vec4(
-                    spx * 2.0 - 1.0,
-                    spy * 2.0 - 1.0,
-                    (_tempDepthColor_[0] / 255.0) * 2.0 - 1.0,
-                    1.0 * 2.0 - 1.0
-                );
-                let viewPosition = this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
-                let dir = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
-                dist = -(viewPosition.z / viewPosition.w) / dir.dot(this.renderer.activeCamera.getForward());
+            let dist = 0;
+
+            // HEIGHT
+            this._heightPickingFramebuffer.activate();
+            if (this._heightPickingFramebuffer.isComplete()) {
+                this._heightPickingFramebuffer.readPixels(_tempPickingPix_, spx, spy);
+                dist = decodeFloatFromRGBAArr(_tempPickingPix_);
             }
-            r.screenDepthFramebuffer.deactivate();
-        }
+            this._heightPickingFramebuffer.deactivate();
 
-        return dist;
+            if (!(_tempPickingPix_[0] || _tempPickingPix_[1] || _tempPickingPix_[2])) {
+                dist = this.getDistanceFromPixelEllipsoid(px) || 0;
+            } else if (dist < DEPTH_DISTANCE) {
+                r.screenDepthFramebuffer.activate();
+                if (r.screenDepthFramebuffer.isComplete()) {
+                    r.screenDepthFramebuffer.readPixels(_tempDepthColor_, spx, spy);
+                    let screenPos = new Vec4(
+                        spx * 2.0 - 1.0,
+                        spy * 2.0 - 1.0,
+                        (_tempDepthColor_[0] / 255.0) * 2.0 - 1.0,
+                        1.0 * 2.0 - 1.0
+                    );
+                    let viewPosition = this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
+                    let dir = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
+                    dist = -(viewPosition.z / viewPosition.w) / dir.dot(this.renderer.activeCamera.getForward());
+                }
+                r.screenDepthFramebuffer.deactivate();
+            }
+            return dist;
+        }
     }
 
     /**

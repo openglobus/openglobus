@@ -66,6 +66,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {Number} [options.maxEqualZoomAltitude=15000000.0] - Maximal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen bacame the same zoom level
+ * @param {Number} [options.loadingBatchSize=12] - 
  */
 
 class Globe {
@@ -99,6 +100,15 @@ class Globe {
         this.div.appendChild(this._canvas);
         this.div.classList.add("ogViewport");
 
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === 'visible') {
+                this.renderer.handler.start();
+                this.renderer && this.renderer.resize();
+            } else {
+                this.renderer.handler.stop();
+            }
+        });
+
         function _disableWheel(e) {
             e.preventDefault();
         }
@@ -120,7 +130,7 @@ class Globe {
          */
         this.renderer = new Renderer(
             new Handler(_canvasId, {
-                pixelRatio: window.devicePixelRatio,
+                pixelRatio: window.devicePixelRatio + 0.15,
                 context: {
                     alpha: false,
                     antialias: false,
@@ -163,7 +173,7 @@ class Globe {
         } else {
             this.planet = new Planet({
                 name: this._planetName,
-                frustums:options.frustums,
+                frustums: options.frustums,
                 ellipsoid: options.ellipsoid,
                 maxGridSize: options.maxGridSize,
                 useNightTexture: options.useNightTexture,
@@ -172,7 +182,8 @@ class Globe {
                 maxAltitude: options.maxAltitude || 15000000,
                 maxEqualZoomAltitude: options.maxEqualZoomAltitude,
                 minEqualZoomAltitude: options.minEqualZoomAltitude,
-                minEqualZoomCameraSlope: options.minEqualZoomCameraSlope
+                minEqualZoomCameraSlope: options.minEqualZoomCameraSlope,
+                loadingBatchSize: options.loadingBatchSize
             });
         }
 
@@ -194,8 +205,8 @@ class Globe {
                 options.useEarthNavigation
                     ? new EarthNavigation()
                     : new MouseNavigation({
-                          minSlope: options.minSlope
-                      }),
+                        minSlope: options.minSlope
+                    }),
                 new TouchNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),

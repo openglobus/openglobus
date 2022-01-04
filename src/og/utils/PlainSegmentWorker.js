@@ -222,19 +222,6 @@ const _programm = `
         res.x = nc * Math.sin(lonrad);
         res.y = (N * (1.0 - E2) + h) * slt;
         res.z = nc * Math.cos(lonrad);
-
-        //let cosLat = Math.cos(lat * RADIANS)
-        //let sinLat = Math.sin(lat * RADIANS)
-
-        //let cosLong = Math.cos(lon * RADIANS)
-        //let sinLong = Math.sin(lon * RADIANS)
-
-        //let c = 1.0 / Math.sqrt(cosLat * cosLat + (1 - f) * (1 - f) * sinLat * sinLat)
-        //s = (1 - f) * (1 - f) * c
-
-        //x = (R*c + altitude) * cosLat * cosLong
-        //y = (R*c + altitude) * cosLat * sinLong
-        //z = (R*s + altitude) * sinLat
     };
 
     var lonLatToCartesianInverse = function (lon, lat, heightFactor, res){

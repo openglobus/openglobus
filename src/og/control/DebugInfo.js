@@ -93,8 +93,8 @@ class DebugInfo extends Control {
                     frame: () => p.camera.slope.toFixed(3)
                 },
                 {
-                    label: "lodRatio",
-                    frame: () => p._lodRatio.toFixed(3)
+                    label: "lodSize",
+                    frame: () => Math.round(p.lodSize)
                 },
                 {
                     label: "deltaTime/FPS",

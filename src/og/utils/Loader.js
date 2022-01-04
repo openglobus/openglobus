@@ -16,7 +16,7 @@ if (window && !('createImageBitmap' in window)) {
 
 export class Loader {
 
-    constructor(maxRequests = 12) {
+    constructor(maxRequests = 24) {
 
         this.MAX_REQUESTS = maxRequests;
 

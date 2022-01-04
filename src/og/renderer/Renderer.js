@@ -210,8 +210,6 @@ class Renderer {
 
         this._currentOutput = "screen";
 
-        this.isActiveBackbuffers = true;
-
         this.labelWorker = new LabelWorker();
     }
 
@@ -481,8 +479,8 @@ class Renderer {
         }
 
         this.handler.onCanvasResize = () => {
+            this.resize();
             this.events.dispatch(this.events.resize, this.handler.canvas);
-            this._resize();
         };
 
         this._screenFrameCornersBuffer = this.handler.createArrayBuffer(
@@ -509,7 +507,7 @@ class Renderer {
         }
     }
 
-    _resize() {
+    resize() {
         let c = this.handler.canvas;
         this.activeCamera.setAspectRatio(c.width / c.height);
         this.sceneFramebuffer.setSize(c.width, c.height);
@@ -744,7 +742,7 @@ class Renderer {
 
         let frustums = this.activeCamera.frustums;
 
-        let anyEvent = this.events.mouseState.anyEvent() && this.isActiveBackbuffers;
+        let anyEvent = this.events.mouseState.anyEvent();
 
         // Rendering scene nodes and entityCollections
         let rn = this._renderNodesArr;

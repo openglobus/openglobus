@@ -21,6 +21,7 @@ cnv.height = 256;
 const tg = new CanvasTiles("Tile grid", {
     visibility: true,
     isBaseLayer: false,
+    maxNativeZoom: 5,
     drawTile: function (material, applyCanvas) {
 
         //Clear canvas
@@ -73,6 +74,7 @@ const tg = new CanvasTiles("Tile grid", {
 
 function toQuadKey(x, y, z) {
     var index = '';
+    console.log(z);
     for (var i = z; i > 0; i--) {
         var b = 0;
         var mask = 1 << (i - 1);
@@ -98,6 +100,7 @@ var borders = new XYZ("borders", {
     textureFilter: "mipmap",
     url: "//t.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{quad}?mkt=en-us&it=Z,GF,L&shading=t&og=1638&n=z&ur=US&o=PNG&st=me|lv:0;v:0_wt|v:1_trs|v:1;lv:0;sc:FF6B6B6B;fc:FF6B6B6B;strokeWidthScale:0.2_cst|v:1;fc:FF000000;strokeWidthScale:0.5&cstl=weather&shdw=1&rs=1&dpi=d1",
     visibility: true,
+    maxNativeZoom: 14,
     urlRewrite: function (s, u) {
         return stringTemplate(u, {
             'quad': toQuadKey(s.tileX, s.tileY, s.tileZoom)
@@ -160,22 +163,19 @@ const labelLayer = new labelXYZ("labelLayer", {
 var globus = new Globe({
     target: "earth",
     name: "Earth",
-    frustums: [[100, 100000000]],
+    //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
-    terrain: new GlobusTerrain({
-        //gridSizeByZoom: [32, 32, 16, 8, 8, 4, 4, 2]
-    }),
+    //terrain: new GlobusTerrain(),
+    terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
-    layers: [osm, labelLayer, borders],
+    layers: [osm, tg, borders],
     //useNightTexture: false,
-    useEarthNavigation: true,
+    //useEarthNavigation: true,
     //useSpecularTexture: false
 });
 
-globus.planet.setRatioLod(1.0, 0.7);
-
-globus.planet.addControl(new Lighting());
+//globus.planet.addControl(new Lighting());
 
 globus.planet.addControl(new LayerSwitcher());
 
@@ -183,6 +183,7 @@ globus.planet.addControl(new DebugInfo());
 
 globus.planet.addControl(new ToggleWireframe());
 
+globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
 
 
 window.globus = globus;
