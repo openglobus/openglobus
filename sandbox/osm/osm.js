@@ -169,7 +169,7 @@ var globus = new Globe({
     //terrain: new GlobusTerrain(),
     terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
-    layers: [osm, tg, borders],
+    layers: [tg, borders],
     //useNightTexture: false,
     //useEarthNavigation: true,
     //useSpecularTexture: false
