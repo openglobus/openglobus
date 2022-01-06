@@ -245,12 +245,12 @@ class XYZ extends Layer {
             let mId = this._id;
             let psegm = material;
             while (pn.parentNode) {
+                pn = pn.parentNode;
+                psegm = pn.segment.materials[mId];
                 if (psegm && psegm.textureExists) {
                     notEmpty = true;
                     break;
                 }
-                pn = pn.parentNode;
-                psegm = pn.segment.materials[mId];
             }
 
             let maxNativeZoom = material.layer.maxNativeZoom;

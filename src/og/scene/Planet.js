@@ -817,33 +817,56 @@ export class Planet extends RenderNode {
     _preRender() {
         this._quadTree.createChildrenNodes();
         this._quadTree.segment.createPlainSegment();
-        this._quadTree.renderNode(true);
-        this._normalMapCreator.drawSingle(this._quadTree.segment);
 
-        for (let i = 0; i < this._quadTree.nodes.length; i++) {
-            this._quadTree.nodes[i].segment.createPlainSegment();
-            this._quadTree.nodes[i].renderNode(true);
-            this._normalMapCreator.drawSingle(this._quadTree.nodes[i].segment);
-        }
+
+        //for (let i = 0; i < this._quadTree.nodes.length; i++) {
+        //    this._quadTree.nodes[i].segment.createPlainSegment();
+        //}
 
         this._quadTreeNorth.createChildrenNodes();
         this._quadTreeNorth.segment.createPlainSegment();
-        this._quadTreeNorth.renderNode(true);
-        this._normalMapCreator.drawSingle(this._quadTreeNorth.segment);
+
 
         for (let i = 0; i < this._quadTreeNorth.nodes.length; i++) {
             this._quadTreeNorth.nodes[i].segment.createPlainSegment();
-            this._quadTreeNorth.nodes[i].renderNode(true);
-            this._normalMapCreator.drawSingle(this._quadTreeNorth.nodes[i].segment);
         }
 
         this._quadTreeSouth.createChildrenNodes();
         this._quadTreeSouth.segment.createPlainSegment();
+
+        for (let i = 0; i < this._quadTreeSouth.nodes.length; i++) {
+            this._quadTreeSouth.nodes[i].segment.createPlainSegment();
+        }
+
+        this._preLoad();
+    }
+
+    _preLoad() {
+        this._skipPreRender = false;
+
+        this._quadTree.segment.loadTile = true;
+        this._quadTree.renderNode(true);
+        this._normalMapCreator.drawSingle(this._quadTree.segment);
+
+        //for (let i = 0; i < this._quadTree.nodes.length; i++) {
+        //    this._quadTree.nodes[i].renderNode(true);
+        //    this._normalMapCreator.drawSingle(this._quadTree.nodes[i].segment);
+        //}
+
+        this._quadTreeNorth.segment.loadTile = true;
+        this._quadTreeNorth.renderNode(true);
+        this._normalMapCreator.drawSingle(this._quadTreeNorth.segment);
+
+        for (let i = 0; i < this._quadTreeNorth.nodes.length; i++) {
+            this._quadTreeNorth.nodes[i].renderNode(true);
+            this._normalMapCreator.drawSingle(this._quadTreeNorth.nodes[i].segment);
+        }
+
+        this._quadTreeSouth.segment.loadTile = true;
         this._quadTreeSouth.renderNode(true);
         this._normalMapCreator.drawSingle(this._quadTreeSouth.segment);
 
         for (let i = 0; i < this._quadTreeSouth.nodes.length; i++) {
-            this._quadTreeSouth.nodes[i].segment.createPlainSegment();
             this._quadTreeSouth.nodes[i].renderNode(true);
             this._normalMapCreator.drawSingle(this._quadTreeSouth.nodes[i].segment);
         }
@@ -924,6 +947,9 @@ export class Planet extends RenderNode {
                 if (li._attribution.length) {
                     html += "<li>" + li._attribution + "</li>";
                 }
+
+                this._preLoad();
+
             } else if (li._fading && li._fadingOpacity > 0) {
                 if (li.hasImageryTiles()) {
                     this.visibleTileLayers.push(li);

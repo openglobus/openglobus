@@ -240,12 +240,12 @@ class CanvasTiles extends Layer {
             var mId = this._id;
             var psegm = material;
             while (pn.parentNode) {
+                pn = pn.parentNode;
+                psegm = pn.segment.materials[mId];
                 if (psegm && psegm.isReady) {
                     notEmpty = true;
                     break;
                 }
-                pn = pn.parentNode;
-                psegm = pn.segment.materials[mId];
             }
 
             if (notEmpty) {
