@@ -199,6 +199,12 @@ class Segment {
          */
         this.terrainExists = false;
 
+        /**
+         * Means that tree passage reach the segment, and the segment terrain is ready.
+         * @type {boolean}
+         */
+        this.passReady = false;
+
         this.plainVertices = null;
         this.plainVerticesHigh = null;
         this.plainVerticesLow = null;

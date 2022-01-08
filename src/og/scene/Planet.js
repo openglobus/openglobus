@@ -815,17 +815,18 @@ export class Planet extends RenderNode {
     }
 
     _preRender() {
+        // Zoom 0
         this._quadTree.createChildrenNodes();
-        this._quadTree.segment.createPlainSegment();
+        this._quadTree.segment.createPlainSegment();        
 
+        // Zoom 1
+        for (let i = 0; i < this._quadTree.nodes.length; i++) {
+            this._quadTree.nodes[i].segment.createPlainSegment();
+        }
 
-        //for (let i = 0; i < this._quadTree.nodes.length; i++) {
-        //    this._quadTree.nodes[i].segment.createPlainSegment();
-        //}
-
+        // same for poles
         this._quadTreeNorth.createChildrenNodes();
         this._quadTreeNorth.segment.createPlainSegment();
-
 
         for (let i = 0; i < this._quadTreeNorth.nodes.length; i++) {
             this._quadTreeNorth.nodes[i].segment.createPlainSegment();
@@ -844,29 +845,35 @@ export class Planet extends RenderNode {
     _preLoad() {
         this._skipPreRender = false;
 
-        this._quadTree.segment.loadTile = true;
+        // Zoom 0
+        this._quadTree.segment.passReady = true;
         this._quadTree.renderNode(true);
         this._normalMapCreator.drawSingle(this._quadTree.segment);
 
-        //for (let i = 0; i < this._quadTree.nodes.length; i++) {
-        //    this._quadTree.nodes[i].renderNode(true);
-        //    this._normalMapCreator.drawSingle(this._quadTree.nodes[i].segment);
-        //}
+        // Zoom 1
+        for (let i = 0; i < this._quadTree.nodes.length; i++) {
+            this._quadTree.nodes[i].segment.passReady = true;
+            this._quadTree.nodes[i].renderNode(true);
+            this._normalMapCreator.drawSingle(this._quadTree.nodes[i].segment);
+        }
 
-        this._quadTreeNorth.segment.loadTile = true;
+        // Same for poles
+        this._quadTreeNorth.segment.passReady = true;
         this._quadTreeNorth.renderNode(true);
         this._normalMapCreator.drawSingle(this._quadTreeNorth.segment);
 
         for (let i = 0; i < this._quadTreeNorth.nodes.length; i++) {
+            this._quadTreeNorth.nodes[i].segment.passReady = true;
             this._quadTreeNorth.nodes[i].renderNode(true);
             this._normalMapCreator.drawSingle(this._quadTreeNorth.nodes[i].segment);
         }
 
-        this._quadTreeSouth.segment.loadTile = true;
+        this._quadTreeSouth.segment.passReady = true;
         this._quadTreeSouth.renderNode(true);
         this._normalMapCreator.drawSingle(this._quadTreeSouth.segment);
 
         for (let i = 0; i < this._quadTreeSouth.nodes.length; i++) {
+            this._quadTreeSouth.nodes[i].segment.passReady = true;
             this._quadTreeSouth.nodes[i].renderNode(true);
             this._normalMapCreator.drawSingle(this._quadTreeSouth.nodes[i].segment);
         }
