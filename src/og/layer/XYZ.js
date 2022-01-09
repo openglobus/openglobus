@@ -253,9 +253,8 @@ class XYZ extends Layer {
                 }
             }
 
-            let maxNativeZoom = material.layer.maxNativeZoom;
-
             if (segment.passReady) {
+                let maxNativeZoom = material.layer.maxNativeZoom;
                 if (pn.segment.tileZoom === maxNativeZoom) {
                     material.textureNotExists();
                 } else if (material.segment.tileZoom <= maxNativeZoom) {
@@ -312,7 +311,7 @@ class XYZ extends Layer {
 
         material.isReady = false;
         material.textureExists = false;
-        material.isLoading = false;
+        material.isLoading = false;        
     }
 
     /**
