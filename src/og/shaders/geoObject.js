@@ -30,7 +30,8 @@ export const geo_object = () =>
             aDirection: { type: "vec3", divisor: 1 },
             aPitchRoll: { type: "vec2", divisor: 1 },
             aColor: { type: "vec4", divisor: 1 },
-            aScale: { type: "float", divisor: 1 }
+            aScale: { type: "float", divisor: 1 },
+            aDispose: { type: "float", divisor: 1 }
         },
         vertexShader: `precision highp float;
 
@@ -42,6 +43,7 @@ export const geo_object = () =>
             attribute vec2 aPitchRoll;
             attribute vec4 aColor;
             attribute float aScale;
+            attribute float aDispose;
             
             uniform vec3 uScaleByDistance;
             uniform mat4 projectionMatrix;
@@ -54,11 +56,13 @@ export const geo_object = () =>
             varying vec3 vNormal;
             varying vec4 vPosition;           
             varying vec4 vColor;
+            varying float vDispose;
             
             const float RADIANS = 3.141592653589793 / 180.0;
 
             void main(void) {
             
+                vDispose = aDispose;
                 vColor = aColor;
                 float roll = aPitchRoll.y * RADIANS;
                 mat3 rotZ = mat3(
@@ -91,7 +95,7 @@ export const geo_object = () =>
 
                 vPosition = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
 
-                gl_Position = projectionMatrix * vPosition;
+                gl_Position = mix(vec4(0.0, 0.0, 0.0, 0.0), projectionMatrix * vPosition, aDispose);
             }`,
         fragmentShader: `precision highp float;
 
@@ -135,7 +139,7 @@ export const geo_object_picking = () =>
 
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
-            pickingScale: "float",
+            pickingScale: "float"
 
         },
         attributes: {
@@ -145,7 +149,8 @@ export const geo_object_picking = () =>
             aDirection: { type: "vec3", divisor: 1 },
             aPitchRoll: { type: "vec2", divisor: 1 },
             aPickingColor: { type: "vec3", divisor: 1 },
-            aScale: { type: "float", divisor: 1 }
+            aScale: { type: "float", divisor: 1 },
+            aDispose: { type: "float", divisor: 1 }
         },
         vertexShader: `precision highp float;
 
@@ -156,6 +161,7 @@ export const geo_object_picking = () =>
             attribute vec2 aPitchRoll;
             attribute vec3 aPickingColor;
             attribute float aScale;
+            attribute float aDispose;
             
             uniform vec3 uScaleByDistance;
             uniform mat4 projectionMatrix;
@@ -165,12 +171,14 @@ export const geo_object_picking = () =>
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
 
+            varying float vDispose;
             varying vec3 vColor;
             
             const float RADIANS = 3.141592653589793 / 180.0;
 
             void main(void) {
             
+                vDispose = aDispose;
                 vColor = aPickingColor;
                 float roll = aPitchRoll.y * RADIANS;
                 mat3 rotZ = mat3(
@@ -200,12 +208,13 @@ export const geo_object_picking = () =>
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
-                gl_Position = projectionMatrix *viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+                gl_Position = mix(vec4(0.0, 0.0, 0.0, 0.0),  projectionMatrix *viewMatrixRTE * vec4(highDiff + lowDiff, 1.0), aDispose);
             }`,
         fragmentShader:
             `precision highp float;
             varying vec3 vColor;
+            varying float vDispose;
             void main () {
-                gl_FragColor = vec4(vColor, 1.0);
+                gl_FragColor = vec4(vColor, vDispose);
             }`
     });
