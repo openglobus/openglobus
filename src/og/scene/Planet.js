@@ -955,8 +955,6 @@ export class Planet extends RenderNode {
                     html += "<li>" + li._attribution + "</li>";
                 }
 
-                this._preLoad();
-
             } else if (li._fading && li._fadingOpacity > 0) {
                 if (li.hasImageryTiles()) {
                     this.visibleTileLayers.push(li);

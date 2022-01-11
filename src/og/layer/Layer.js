@@ -498,6 +498,9 @@ class Layer {
                     this._planet.setBaseLayer(this);
                 }
                 this._planet.updateVisibleLayers();
+                if (visibility) {
+                    this._planet._preLoad();
+                }
             }
             this.events.dispatch(this.events.visibilitychange, this);
         }
