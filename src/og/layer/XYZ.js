@@ -152,7 +152,8 @@ class XYZ extends Layer {
             material.texture = seg.planet.transparentTexture;
         }
 
-        if (this._planet.layerLock.isFree()) {
+        // Q: Maybe we should change "<2" to material.segment.tileZoom < (material.layer.minZoom + 1)
+        if (this._planet.layerLock.isFree() || material.segment.tileZoom < 2) {
             material.isReady = false;
             material.isLoading = true;
 

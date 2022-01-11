@@ -125,7 +125,7 @@ class CanvasTiles extends Layer {
             material.texture = seg.planet.transparentTexture;
         }
 
-        if (this._planet.layerLock.isFree()) {
+        if (this._planet.layerLock.isFree() || material.segment.tileZoom < 2) {
             material.isReady = false;
             material.isLoading = true;
             if (CanvasTiles.__requestsCounter >= CanvasTiles.MAX_REQUESTS && this._counter) {

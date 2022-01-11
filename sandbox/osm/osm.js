@@ -32,7 +32,7 @@ const tg = new CanvasTiles("Tile grid", {
         if (material.segment.isPole) {
             let ext = material.segment.getExtentLonLat();
 
-            ctx.fillStyle = "rgba(0,0,0,0)";
+            ctx.fillStyle = "rgba(0,0,0,255)";
             ctx.fillRect(0, 0, 256, 256);
 
             if (material.segment.tileZoom > 14) {
@@ -46,7 +46,7 @@ const tg = new CanvasTiles("Tile grid", {
             ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
         } else {
 
-            ctx.fillStyle = "rgba(0,0,0,0)";
+            ctx.fillStyle = "rgba(0,0,0,255)";
             ctx.fillRect(0, 0, 256, 256);
 
             if (material.segment.tileZoom > 14) {
