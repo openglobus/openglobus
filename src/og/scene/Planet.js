@@ -843,19 +843,9 @@ export class Planet extends RenderNode {
     }
 
     _preLoad() {
+        this._clearRenderedNodeList();
+
         this._skipPreRender = false;
-
-        // Zoom 0
-        this._quadTree.segment.passReady = true;
-        this._quadTree.renderNode(true);
-        this._normalMapCreator.drawSingle(this._quadTree.segment);
-
-        // Zoom 1
-        for (let i = 0; i < this._quadTree.nodes.length; i++) {
-            this._quadTree.nodes[i].segment.passReady = true;
-            this._quadTree.nodes[i].renderNode(true);
-            this._normalMapCreator.drawSingle(this._quadTree.nodes[i].segment);
-        }
 
         // Same for poles
         this._quadTreeNorth.segment.passReady = true;
@@ -877,6 +867,18 @@ export class Planet extends RenderNode {
             this._quadTreeSouth.nodes[i].renderNode(true);
             this._normalMapCreator.drawSingle(this._quadTreeSouth.nodes[i].segment);
         }
+
+        // Zoom 1
+        for (let i = 0; i < this._quadTree.nodes.length; i++) {
+            this._quadTree.nodes[i].segment.passReady = true;
+            this._quadTree.nodes[i].renderNode(true);
+            this._normalMapCreator.drawSingle(this._quadTree.nodes[i].segment);
+        }
+
+        // Zoom 0
+        this._quadTree.segment.passReady = true;
+        this._quadTree.renderNode(true);
+        this._normalMapCreator.drawSingle(this._quadTree.segment);
     }
 
     /**

@@ -46,6 +46,8 @@ const tg = new CanvasTiles("Tile grid", {
             ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
         } else {
 
+            console.log(material.segment.tileZoom);
+
             ctx.fillStyle = "rgba(0,0,0,255)";
             ctx.fillRect(0, 0, 256, 256);
 
@@ -74,7 +76,6 @@ const tg = new CanvasTiles("Tile grid", {
 
 function toQuadKey(x, y, z) {
     var index = '';
-    console.log(z);
     for (var i = z; i > 0; i--) {
         var b = 0;
         var mask = 1 << (i - 1);
@@ -99,9 +100,10 @@ var borders = new XYZ("borders", {
     isBaseLayer: false,
     textureFilter: "mipmap",
     url: "//t.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{quad}?mkt=en-us&it=Z,GF,L&shading=t&og=1638&n=z&ur=US&o=PNG&st=me|lv:0;v:0_wt|v:1_trs|v:1;lv:0;sc:FF6B6B6B;fc:FF6B6B6B;strokeWidthScale:0.2_cst|v:1;fc:FF000000;strokeWidthScale:0.5&cstl=weather&shdw=1&rs=1&dpi=d1",
-    visibility: true,
+    visibility: false,
     maxNativeZoom: 14,
     urlRewrite: function (s, u) {
+        console.log(s.tileZoom);
         return stringTemplate(u, {
             'quad': toQuadKey(s.tileX, s.tileY, s.tileZoom)
         });
@@ -166,8 +168,8 @@ var globus = new Globe({
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
-    terrain: new GlobusTerrain(),
-    //terrain: new EmptyTerrain(),
+    //terrain: new GlobusTerrain(),
+    terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
     layers: [osm, tg, borders],
     //useNightTexture: false,
