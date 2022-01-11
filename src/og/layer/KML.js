@@ -39,7 +39,7 @@ export class KML extends Vector {
     /**
      * @private
      */
-     _extractCoordonatesFromKml(xmlDoc) {
+    _extractCoordonatesFromKml(xmlDoc) {
         const raw = Array.from(xmlDoc.getElementsByTagName("coordinates"));
         const rawText = raw.map(item => item.textContent.trim());
         const coordinates = rawText.map(item => 
