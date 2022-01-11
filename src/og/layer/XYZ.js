@@ -152,7 +152,8 @@ class XYZ extends Layer {
             material.texture = seg.planet.transparentTexture;
         }
 
-        if (this._planet.layerLock.isFree()) {
+        // Q: Maybe we should change "<2" to material.segment.tileZoom < (material.layer.minZoom + 1)
+        if (this._planet.layerLock.isFree() || material.segment.tileZoom < 2) {
             material.isReady = false;
             material.isLoading = true;
 
@@ -245,17 +246,16 @@ class XYZ extends Layer {
             let mId = this._id;
             let psegm = material;
             while (pn.parentNode) {
+                pn = pn.parentNode;
+                psegm = pn.segment.materials[mId];
                 if (psegm && psegm.textureExists) {
                     notEmpty = true;
                     break;
                 }
-                pn = pn.parentNode;
-                psegm = pn.segment.materials[mId];
             }
 
-            let maxNativeZoom = material.layer.maxNativeZoom;
-
-            if (segment.loadTile) {
+            if (segment.passReady) {
+                let maxNativeZoom = material.layer.maxNativeZoom;
                 if (pn.segment.tileZoom === maxNativeZoom) {
                     material.textureNotExists();
                 } else if (material.segment.tileZoom <= maxNativeZoom) {
@@ -312,7 +312,7 @@ class XYZ extends Layer {
 
         material.isReady = false;
         material.textureExists = false;
-        material.isLoading = false;
+        material.isLoading = false;        
     }
 
     /**

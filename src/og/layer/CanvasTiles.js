@@ -100,14 +100,11 @@ class CanvasTiles extends Layer {
      */
     setVisibility(visibility) {
         if (visibility !== this._visibility) {
-            this._visibility = visibility;
-            if (this._isBaseLayer && visibility) {
-                this._planet.setBaseLayer(this);
-            } else if (!visibility) {
+            super.setVisibility(visibility);
+
+            if (!visibility) {
                 this.abortLoading();
             }
-            this._planet.updateVisibleLayers();
-            this.events.dispatch(this.events.visibilitychange, this);
         }
     }
 
@@ -128,7 +125,7 @@ class CanvasTiles extends Layer {
             material.texture = seg.planet.transparentTexture;
         }
 
-        if (this._planet.layerLock.isFree()) {
+        if (this._planet.layerLock.isFree() || material.segment.tileZoom < 2) {
             material.isReady = false;
             material.isLoading = true;
             if (CanvasTiles.__requestsCounter >= CanvasTiles.MAX_REQUESTS && this._counter) {
@@ -240,12 +237,12 @@ class CanvasTiles extends Layer {
             var mId = this._id;
             var psegm = material;
             while (pn.parentNode) {
+                pn = pn.parentNode;
+                psegm = pn.segment.materials[mId];
                 if (psegm && psegm.isReady) {
                     notEmpty = true;
                     break;
                 }
-                pn = pn.parentNode;
-                psegm = pn.segment.materials[mId];
             }
 
             if (notEmpty) {
