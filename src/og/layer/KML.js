@@ -3,6 +3,7 @@
  */
 
 "use strict";
+import { Billboard } from "../entity/Billboard.js";
 import { Entity } from "../entity/Entity.js";
 import { Extent } from "../Extent.js";
 import { LonLat } from "../LonLat.js";
@@ -40,12 +41,14 @@ export class KML extends Vector {
      */
     _extractCoordonatesFromKml(xmlDoc) {
         const raw = Array.from(xmlDoc.getElementsByTagName("coordinates"));
-        const coordinates = raw.map((item) =>
-            item.textContent
-                .trim()
-                .replace(/\n/g, " ")
-                .split(" ")
-                .map((co) => co.split(",").map(parseFloat))
+        const rawText = raw.map(item => item.textContent.trim());
+        const coordinates = rawText.map(item => 
+            item
+             .replace(/\n/g, " ")
+             .replace(/\t/g, " ")
+             .replace(/ +/g," ")
+             .split(" ")
+             .map((co) => co.split(",").map(parseFloat))
         );
         return coordinates;
     }
@@ -121,15 +124,17 @@ export class KML extends Vector {
     /**
      * @public
      * @param {File[]} kmls
+     * @param {string} [color]
+     * @param {Billboard} [billboard]
      * @returns {Promise<{entities: Entity[], extent: Extent}>}
      */
-    async addKmlFromFiles(kmls) {
+    async addKmlFromFiles(kmls, color = null, billboard = null) {
         const kmlObjs = await Promise.all(kmls.map(this._getXmlContent));
         const coordonates = kmlObjs.map(this._extractCoordonatesFromKml);
         const { entities, extent } = this._convertCoordonatesIntoEntities(
             coordonates,
-            this._color,
-            this._billboard
+            color || this._color,
+            billboard || this._billboard
         );
         this._extent = this._expandExtents(this._extent, extent);
         entities.forEach(this.add.bind(this));
@@ -168,15 +173,17 @@ export class KML extends Vector {
     /**
      * @public
      * @param {string} url - Url of the KML to display. './myFile.kml' or 'http://mySite/myFile.kml' for example.
+     * @param {string} [color]
+     * @param {Billboard} [billboard]
      * @returns {Promise<{entities: Entity[], extent: Extent}>}
      */
-    async addKmlFromUrl(url) {
+    async addKmlFromUrl(url, color = null, billboard = null) {
         const kml = await this._getKmlFromUrl(url);
         const coordonates = this._extractCoordonatesFromKml(kml);
         const { entities, extent } = this._convertCoordonatesIntoEntities(
             [coordonates],
-            this._color,
-            this._billboard
+            color || this._color,
+            billboard || this._billboard
         );
         this._extent = this._expandExtents(this._extent, extent);
         entities.forEach(this.add.bind(this));
