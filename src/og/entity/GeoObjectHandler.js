@@ -14,7 +14,8 @@ const VERTEX_BUFFER = 0,
     DIRECTION_BUFFER = 5,
     PITCH_ROLL_BUFFER = 6,
     SIZE_BUFFER = 7,
-    PICKINGCOLOR_BUFFER = 8;
+    PICKINGCOLOR_BUFFER = 8,
+    VISIBLE_BUFFER = 9;
 
 const setParametersToArray = (arr = [], index = 0, length, itemSize, ...params) => {
     const currIndex = index * length;
@@ -48,6 +49,7 @@ class GeoObjectHandler {
         this._normalsArr = [[]];
         this._indicesArr = [[]];
         this._pickingColorArr = [[]];
+        this._vehicleVisibleArr = [[]];
 
         this._pitchRollBuffer = [];
         this._sizeBuffer = [];
@@ -59,6 +61,7 @@ class GeoObjectHandler {
         this._normalsBuffer = [];
         this._indicesBuffer = [];
         this._pickingColorBuffer = [];
+        this._vehicleVisibleBuffer = [];
 
         this.__staticId = GeoObjectHandler._staticCounter++;
         this._buffersUpdateCallbacks = [];
@@ -71,6 +74,7 @@ class GeoObjectHandler {
         this._buffersUpdateCallbacks[VERTEX_BUFFER] = this.createVertexBuffer;
         this._buffersUpdateCallbacks[SIZE_BUFFER] = this.createSizeBuffer;
         this._buffersUpdateCallbacks[PITCH_ROLL_BUFFER] = this.createPitchRollBuffer;
+        this._buffersUpdateCallbacks[VISIBLE_BUFFER] = this.createVisibleBuffer;
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
@@ -97,6 +101,15 @@ class GeoObjectHandler {
             this._pitchRollBuffer && h.gl.deleteBuffer(this._pitchRollBuffer[i]);
             this._pitchRollArr[i] = makeArrayTyped(this._pitchRollArr[i]);
             this._pitchRollBuffer[i] = h.createArrayBuffer(this._pitchRollArr[i], 2, this._pitchRollArr[i].length / 2);
+        }
+    }
+
+    createVisibleBuffer() {
+        const h = this._renderer.handler;
+        for (let i = 0, len = this._vehicleVisibleArr.length; i < len; i++) {
+            this._vehicleVisibleBuffer && h.gl.deleteBuffer(this._vehicleVisibleBuffer[i]);
+            this._vehicleVisibleArr[i] = makeArrayTyped(this._vehicleVisibleArr[i]);
+            this._vehicleVisibleBuffer[i] = h.createArrayBuffer(this._vehicleVisibleArr[i], 1, this._vehicleVisibleArr[i].length);
         }
     }
 
@@ -225,7 +238,7 @@ class GeoObjectHandler {
          * mark object by index for recalc indices array
          */
         geoObject._tagIndex = tagData.iCounts - 1;
-        if (geoObject._visibility) {
+
             if (!this._vertexArr[ti] || this._vertexArr[ti].length !== geoObject._vertices.length) {
 
                 this._vertexArr[ti] = concatArrays(
@@ -250,12 +263,11 @@ class GeoObjectHandler {
                     )
                 );
             }
-        } else {
-            this._vertexArr[ti] = concatArrays(
-                this._vertexArr[ti],
-                setParametersToArray([], 0, geoObject._verticesCount * itemSize, 1, 0)
-            );
-        }
+        this._vehicleVisibleArr[ti] = concatArrays(
+            this._vehicleVisibleArr[ti],
+            setParametersToArray([], 0, 1, 1, geoObject._visibility ? 1 : 0)
+        );
+
         let x = geoObject._positionHigh.x,
             y = geoObject._positionHigh.y,
             z = geoObject._positionHigh.z,
@@ -365,6 +377,9 @@ class GeoObjectHandler {
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer[ti]);
             gl.vertexAttribPointer(a.aColor, this._rgbaBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._vehicleVisibleBuffer[ti]);
+            gl.vertexAttribPointer(a.aDispose, this._vehicleVisibleBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer[ti]);
             gl.vertexAttribPointer(
@@ -503,6 +518,9 @@ class GeoObjectHandler {
                 0
             );
 
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._vehicleVisibleBuffer[ti]);
+            gl.vertexAttribPointer(a.aDispose, this._vehicleVisibleBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
+
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer[ti]);
 
             if (tagData.iCounts) {
@@ -627,14 +645,12 @@ class GeoObjectHandler {
     }
 
     setVisibility(index, visibility) {
-        const ob = this.getObjectByIndex(index);
-        let vArr;
-        if (visibility) {
-            vArr = ob._vertices;
-        } else {
-            vArr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        }
-        this.setVertexArr(index, vArr);
+        const ob = this.getObjectByIndex(index),
+            ti = this.getTagIndexByObjectIndex(index);
+
+        setParametersToArray(this._vehicleVisibleArr[ti], ob._tagIndex, 1, 1, visibility ? 1 : 0);
+
+        this._changedBuffers[VISIBLE_BUFFER] = true;
     }
 
     setPositionArr(index, positionHigh, positionLow) {
@@ -753,6 +769,7 @@ class GeoObjectHandler {
         this._normalsArr = null;
         this._indicesArr = null;
         this._pickingColorArr = null;
+        this._vehicleVisibleArr = null;
 
         this._pitchRollArr = [new Float32Array()];
         this._sizeArr = [new Float32Array()];
@@ -764,6 +781,7 @@ class GeoObjectHandler {
         this._normalsArr = [new Float32Array()];
         this._indicesArr = [new Uint16Array()];
         this._pickingColorArr = [new Float32Array()];
+        this._vehicleVisibleArr = [new Int8Array()];
 
         this._removeGeoObjects();
         this._deleteBuffers();
@@ -880,6 +898,7 @@ class GeoObjectHandler {
         this._pitchRollArr[ti] = spliceArray(this._pitchRollArr[ti], i, 2);
         i = geoObject._tagIndex;
         this._sizeArr[ti] = spliceArray(this._sizeArr[ti], i, 1);
+        this._vehicleVisibleArr[ti] = spliceArray(this._vehicleVisibleArr[ti], i, 1);
 
         this._removeIndices(geoObject);
 

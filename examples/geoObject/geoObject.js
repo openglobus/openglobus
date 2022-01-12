@@ -137,9 +137,12 @@ geoObjects.events.on("lclick", function (e) {
 geoObjects.events.on("mouseenter", function (e) {
     let b = e.pickingObject.geoObject;
     b.setColor(1, 1, 1);
+    b.setVisibility(false);
+    b.setColor(1, 1, 1);
 });
 geoObjects.events.on("mouseleave", function (e) {
     let b = e.pickingObject;
+    b.setVisibility(true);
     b.geoObject.setColor4v(utils.htmlColorToRgba(b.properties.color));
 });
 
