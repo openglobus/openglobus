@@ -195,6 +195,8 @@ class Layer {
 
         this._pickingEnabled = options.pickingEnabled !== undefined ? options.pickingEnabled : true;
 
+        this._isPreloadDone = false;
+
         /**
          * Events handler.
          * @public
@@ -498,7 +500,9 @@ class Layer {
                     this._planet.setBaseLayer(this);
                 }
                 this._planet.updateVisibleLayers();
-                if (visibility) {
+                if (visibility && !this._isPreloadDone && !this.isVector) {
+                    this._isPreloadDone = true;
+                    //TODO: make individual preload
                     this._planet._preLoad();
                 }
             }
