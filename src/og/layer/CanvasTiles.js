@@ -228,11 +228,14 @@ class CanvasTiles extends Layer {
         if (material.isReady) {
             return [0, 0, 1, 1];
         } else {
-            !material.isLoading && this.loadMaterial(material);
 
             var segment = material.segment;
             var pn = segment.node,
                 notEmpty = false;
+
+            if (segment.passReady && !material.isLoading) {
+                this.loadMaterial(material);
+            }
 
             var mId = this._id;
             var psegm = material;
