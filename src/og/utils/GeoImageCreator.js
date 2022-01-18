@@ -136,8 +136,8 @@ export class GeoImageCreator {
                 extentParams: { type: types.VEC4 }
             },
             attributes: {
-                corners: { type: types.VEC2, enableArray: true },
-                texCoords: { type: types.VEC2, enableArray: true }
+                corners: "vec2",
+                texCoords: "vec2"
             },
             vertexShader: `attribute vec2 corners; 
                       attribute vec2 texCoords; 
@@ -160,5 +160,4 @@ export class GeoImageCreator {
                         }`
         }));
     }
-
 }

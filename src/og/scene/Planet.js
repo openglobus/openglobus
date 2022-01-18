@@ -411,7 +411,7 @@ export class Planet extends RenderNode {
 
         this._terrainWorker = new TerrainWorker(3);
 
-        this._plainSegmentWorker = new PlainSegmentWorker(4);
+        this._plainSegmentWorker = new PlainSegmentWorker(3);
 
         this._tileLoader = new Loader(options.loadingBatchSize || 12);
 

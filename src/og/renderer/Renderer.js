@@ -210,7 +210,7 @@ class Renderer {
 
         this._currentOutput = "screen";
 
-        this.labelWorker = new LabelWorker();
+        this.labelWorker = new LabelWorker(4);
     }
 
     /**
