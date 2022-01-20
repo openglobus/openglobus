@@ -6,6 +6,16 @@
 
 import { Program } from '../webgl/Program.js';
 
+const PROJECT = `vec2 project(vec4 p) {
+                    return (0.5 * p.xyz / p.w + 0.5).xy * viewport;
+                }`;
+
+const ROTATE2D =
+    `mat2 rotate2d(float angle) {
+        return mat2(cos(angle), -sin(angle),
+           sin(angle), cos(angle));
+     }`;
+
 export function label_webgl2() {
 
     return new Program("label", {
@@ -29,7 +39,7 @@ export function label_webgl2() {
             a_positionsHigh: "vec3",
             a_positionsLow: "vec3",
             a_size: "float",
-            //a_rotation: "float",
+            a_rotation: "float",
             a_rgba: "vec4",
             a_offset: "vec3",
             a_fontIndex: "float"
@@ -45,7 +55,7 @@ export function label_webgl2() {
             in vec3 a_positionsLow;
             in vec3 a_offset;
             in float a_size;
-            //in float a_rotation;
+            in float a_rotation;
             in vec4 a_rgba;
             in float a_fontIndex;
 
@@ -66,9 +76,9 @@ export function label_webgl2() {
 
             const vec3 ZERO3 = vec3(0.0);
 
-            vec2 project(vec4 p) {
-                return (0.5 * p.xyz / p.w + 0.5).xy * viewport;
-            }
+            ${PROJECT}
+
+            ${ROTATE2D}
 
             void main() {
 
@@ -103,7 +113,7 @@ export function label_webgl2() {
                 vec4 projPos = projectionMatrix * posRTE;
                 vec2 screenPos = project(projPos);
 
-                vec2 v = screenPos + (a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size * scd + a_offset.xy;
+                vec2 v = screenPos + rotate2d(a_rotation) * ((a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size * scd + a_offset.xy);
 
                 gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z + a_offset.z + uZ, projPos.w);
             }`,
@@ -196,7 +206,7 @@ export function labelPicking() {
             a_positionsLow: "vec3",
             a_offset: "vec3",
             a_size: "float",
-            //a_rotation: "float",
+            a_rotation: "float",
             a_rgba: "vec4"
         },
         vertexShader:
@@ -208,7 +218,7 @@ export function labelPicking() {
             attribute vec3 a_positionsLow;
             attribute vec3 a_offset;
             attribute float a_size;
-            //attribute float a_rotation;
+            attribute float a_rotation;
             attribute vec4 a_rgba;
 
             varying vec4 v_rgba;
@@ -224,9 +234,9 @@ export function labelPicking() {
 
             const vec3 ZERO3 = vec3(0.0);
 
-            vec2 project(vec4 p) {
-                return (0.5 * p.xyz / p.w + 0.5).xy * viewport;
-            }
+            ${PROJECT}
+
+            ${ROTATE2D}
 
             void main() {
                 vec3 a_positions = a_positionsHigh + a_positionsLow;
@@ -256,7 +266,7 @@ export function labelPicking() {
                 vec4 projPos = projectionMatrix * posRTE;
                 vec2 screenPos = project(projPos);
 
-                vec2 v = screenPos + (a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size * scd + a_offset.xy;
+                vec2 v = screenPos + rotate2d(a_rotation) * ((a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size * scd + a_offset.xy);
 
                 gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z + a_offset.z, projPos.w);
             }`,
@@ -338,9 +348,9 @@ export function label_screen() {
 
             const vec3 ZERO3 = vec3(0.0);
 
-            vec2 project(vec4 p) {
-                return (0.5 * p.xyz / p.w + 0.5).xy * viewport;
-            }
+            ${PROJECT}
+
+            ${ROTATE2D}
 
             void main() {
 
@@ -375,7 +385,7 @@ export function label_screen() {
                 vec4 projPos = projectionMatrix * posRTE;
                 vec2 screenPos = project(projPos);
 
-                vec2 v = screenPos + (a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size * scd + a_offset.xy;
+                vec2 v = screenPos + rotate2d(a_rotation) * ((a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size * scd + a_offset.xy);
 
                 gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z + a_offset.z + uZ, projPos.w);
             }`,

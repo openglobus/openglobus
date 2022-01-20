@@ -6,6 +6,16 @@
 
 import { Program } from '../webgl/Program.js';
 
+const PROJECT = `vec2 project(vec4 p) {
+                    return (0.5 * p.xyz / p.w + 0.5).xy * viewport;
+                }`;
+
+const ROTATE2D =
+    `mat2 rotate2d(float angle) {
+        return mat2(cos(angle), -sin(angle),
+           sin(angle), cos(angle));
+     }`;
+
 export function billboardPicking() {
     return new Program("billboardPicking", {
         uniforms: {
@@ -24,7 +34,7 @@ export function billboardPicking() {
             a_positionsLow: "vec3",
             a_offset: "vec3",
             a_size: "vec2",
-            //a_rotation: "float",
+            a_rotation: "float",
             a_rgba: "vec4"
         },
         vertexShader:
@@ -34,7 +44,7 @@ export function billboardPicking() {
             attribute vec3 a_positionsLow;
             attribute vec3 a_offset;
             attribute vec2 a_size;
-            //attribute float a_rotation;
+            attribute float a_rotation;
             attribute vec4 a_rgba;
 
             varying vec3 v_rgb;
@@ -50,9 +60,9 @@ export function billboardPicking() {
 
             const vec3 ZERO3 = vec3(0.0);
 
-            vec2 project(vec4 p) {
-                return (0.5 * p.xyz / p.w + 0.5).xy * viewport;
-            }
+            ${PROJECT}
+
+            ${ROTATE2D}
 
             void main() {
 
@@ -81,7 +91,7 @@ export function billboardPicking() {
                 vec4 projPos = projectionMatrix * posRTE;
                 vec2 screenPos = project(projPos);
 
-                vec2 v = screenPos + a_vertices * a_size * scd + a_offset.xy;
+                vec2 v =  screenPos + rotate2d(a_rotation) * (a_vertices * a_size * scd + a_offset.xy);
 
                 gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z + a_offset.z, projPos.w);
             }`,
@@ -114,7 +124,7 @@ export function billboard_screen() {
             a_positionsLow: "vec3",
             a_offset: "vec3",
             a_size: "vec2",
-            //a_rotation: "float",
+            a_rotation: "float",
             a_rgba: "vec4",
         },
         vertexShader:
@@ -125,7 +135,7 @@ export function billboard_screen() {
             attribute vec3 a_positionsLow;
             attribute vec3 a_offset;
             attribute vec2 a_size;
-            //attribute float a_rotation;
+            attribute float a_rotation;
             attribute vec4 a_rgba;
 
             varying vec2 v_texCoords;
@@ -142,9 +152,9 @@ export function billboard_screen() {
 
             const vec3 ZERO3 = vec3(0.0);
 
-            vec2 project(vec4 p) {
-                return (0.5 * p.xyz / p.w + 0.5).xy * viewport;
-            }
+            ${PROJECT}
+
+            ${ROTATE2D}
 
             void main() {
                 
@@ -174,7 +184,7 @@ export function billboard_screen() {
                 vec4 projPos = projectionMatrix * posRTE;
                 vec2 screenPos = project(projPos);
 
-                vec2 v = screenPos + a_vertices * a_size * scd + a_offset.xy;
+                vec2 v = screenPos + rotate2d(a_rotation) * (a_vertices * a_size * scd + a_offset.xy);
 
                 gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z + a_offset.z, projPos.w);
             }`,

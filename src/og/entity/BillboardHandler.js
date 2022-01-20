@@ -386,8 +386,8 @@ class BillboardHandler {
 
         gl.uniform2fv(shu.viewport, [h.canvas.clientWidth, h.canvas.clientHeight]);
 
-        //gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer);
-        //gl.vertexAttribPointer(sha.a_rotation, this._rotationBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer);
+        gl.vertexAttribPointer(sha.a_rotation, this._rotationBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
     }
@@ -436,8 +436,8 @@ class BillboardHandler {
 
         gl.uniform2fv(shu.viewport, [h.canvas.clientWidth, h.canvas.clientHeight]);
 
-        //gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer);
-        //gl.vertexAttribPointer(sha.a_rotation, this._rotationBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer);
+        gl.vertexAttribPointer(sha.a_rotation, this._rotationBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
     }
