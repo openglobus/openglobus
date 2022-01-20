@@ -32,8 +32,7 @@ export function label_webgl2() {
             //a_rotation: "float",
             a_rgba: "vec4",
             a_offset: "vec3",
-            //a_alignedAxis: "vec3",
-            a_fontIndex: "float",
+            a_fontIndex: "float"
         },
         vertexShader:
             `#version 300 es
@@ -48,7 +47,6 @@ export function label_webgl2() {
             in float a_size;
             //in float a_rotation;
             in vec4 a_rgba;
-            //in vec3 a_alignedAxis;
             in float a_fontIndex;
 
             out vec2 v_uv;
@@ -199,8 +197,7 @@ export function labelPicking() {
             a_offset: "vec3",
             a_size: "float",
             //a_rotation: "float",
-            a_rgba: "vec4",
-            //a_alignedAxis: "vec3"
+            a_rgba: "vec4"
         },
         vertexShader:
             `
@@ -213,7 +210,6 @@ export function labelPicking() {
             attribute float a_size;
             //attribute float a_rotation;
             attribute vec4 a_rgba;
-            //attribute vec3 a_alignedAxis;
 
             varying vec4 v_rgba;
 
@@ -309,7 +305,6 @@ export function label_screen() {
             a_size: "float",
             //a_rotation: "float",
             a_rgba: "vec4",
-            //a_alignedAxis: "vec3",
             a_fontIndex: "float",
         },
         vertexShader:
@@ -324,7 +319,6 @@ export function label_screen() {
             attribute float a_size;
             //attribute float a_rotation;
             attribute vec4 a_rgba;
-            //attribute vec3 a_alignedAxis;
             attribute float a_fontIndex;
 
             varying vec2 v_uv;
