@@ -20,31 +20,33 @@ const INV_PI_BY_180_HALF_PI = INV_PI_BY_180 * HALF_PI;
  * @param {number} [height] - Height over the surface.
  */
 export class LonLat {
+    static SW_MERC; // LatLng
+    static NE_MERC; // LatLng
+    static NW_MERC_DEG; // LatLng
+    static SE_MERC_DEG; // LatLng
+
+    /**
+     * Longitude.
+     */
+    lon = 0;
+    /**
+     * Latitude.
+     */
+    lat = 0;
+
+    /**
+     * Height.
+     */
+    height = 0;
+
     /**
      * @param {number} [lon] - Longitude.
      * @param {number} [lat] - Latitude.
      * @param {number} [height] - Height over the surface.
      */
-    constructor(lon, lat, height) {
-        /**
-         * Longitude.
-         * @public
-         * @type {number}
-         */
+    constructor(lon = 0, lat = 0, height = 0) {
         this.lon = lon || 0;
-
-        /**
-         * Latitude.
-         * @public
-         * @type {number}
-         */
         this.lat = lat || 0;
-
-        /**
-         * Height.
-         * @public
-         * @type {number}
-         */
         this.height = height || 0;
     }
 

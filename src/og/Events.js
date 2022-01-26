@@ -11,29 +11,34 @@ import { stamp, binaryInsert } from "./utils/shared.js";
  * @class
  */
 class Events {
+
     /**
-     *
+     * Registered event names.
+     * @protected
+     * @type {Array.<string>}
+     */
+    _eventNames;
+    _sender;
+    /**
+     * Stop propagation flag
+     * @protected
+     * @type {boolean}
+     */
+    _stopPropagation = false;
+    _stampCache;
+    __id = 0;
+    static __counter__ = 0;
+
+    /**
      * @param {Array.<string>} [eventNames] - Event names that could be dispatched.
      * @param {*} [sender]
      */
     constructor(eventNames, sender) {
-        /**
-         * Registered event names.
-         * @protected
-         * @type {Array.<string>}
-         */
         this._eventNames = [];
 
         eventNames && this.registerNames(eventNames);
 
         this._sender = sender || this;
-
-        /**
-         * Stop propagation flag
-         * @protected
-         * @type {boolean}
-         */
-        this._stopPropagation = false;
 
         this._stampCache = {};
 

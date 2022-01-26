@@ -5,6 +5,8 @@
  * @class
  */
 export class Cons {
+    _container; // HTMLDivElement
+    _visibility = false;
     constructor() {
         this._container = document.createElement("div");
         this._container.classList.add("ogConsole");

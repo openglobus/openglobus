@@ -803,10 +803,7 @@ class Handler {
 
     /**
      * Creates ARRAY buffer specific length.
-     * @public
-     * @param {Array.<number>} array - Input array.
-     * @param {number} itemSize - Array item size.
-     * @param {number} numItems - Items quantity.
+     * @param {number} size - Array item size.
      * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
      * @return {Object} -
      */

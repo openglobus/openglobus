@@ -17,6 +17,7 @@ import * as jd from "./astro/jd.js";
  * @param {number} [params.multiplier=1.0] - Time speed multiolier.
  */
 class Clock {
+    static _counter = 0;
     static get _staticCounter() {
         if (!this._counter && this._counter !== 0) {
             this._counter = 0;
@@ -28,41 +29,69 @@ class Clock {
         this._counter = n;
     }
 
+    _id = 0;
+    /**
+     * Clock name.
+     */
+    name = "";
+
+    /**
+    * Clock events.
+    * @public
+    * @type {Events}
+    */
+    events;
+    /**
+     * Start julian date clock loop.
+     * @public
+     * @type {number}
+     */
+    startDate = 0;
+    /**
+     * End julian date clock loop.
+     * @public
+     * @type {number}
+     */
+    endDate = 0;
+    /**
+     * Current julian datetime.
+     * @public
+     * @type {number}
+     */
+    currentDate = 0;
+    /**
+     * Timer speed multiplier.
+     * @public
+     * @type {number}
+     */
+    multiplier = 1.0;
+    /**
+     * Animation frame delta time.
+     * @public
+     * @readonly
+     * @type {number}
+     */
+    deltaTicks = 0;
+    /**
+     * Timer activity.
+     * @public
+     * @type {boolean}
+     */
+    active = true;
+    _intervalDelay = 0;
+    _intervalStart = 0;
+    _intervalCallback = null;
+
     /**
      *
      * @param {Object} [params] - Clock parameters:
      */
     constructor(params) {
         params = params || {};
-
         this._id = Clock._staticCounter++;
-
-        /**
-         * Clock name.
-         * @public
-         * @type {string}
-         */
         this.name = params.name || "";
-
-        /**
-         * Clock events.
-         * @public
-         * @type {Events}
-         */
         this.events = new Events(["tick", "end"], this);
-
-        /**
-         * Start julian date clock loop.
-         * @public
-         * @type {number}
-         */
         this.startDate = params.startDate || 0;
-
-        /**
-         * End julian date clock loop.
-         * @public
-         * @type {number}
-         */
         this.endDate = params.endDate || 0;
 
         var currentDate = params.currentDate || jd.DateToUTC(new Date());
@@ -72,39 +101,8 @@ class Clock {
         if (params.endDate && currentDate > params.endDate) {
             currentDate = params.endDate;
         }
-
-        /**
-         * Current julian datetime.
-         * @public
-         * @type {number}
-         */
         this.currentDate = currentDate;
-
-        /**
-         * Timer speed multiplier.
-         * @public
-         * @type {number}
-         */
         this.multiplier = params.multiplier !== undefined ? params.multiplier : 1.0;
-
-        /**
-         * Animation frame delta time.
-         * @public
-         * @readonly
-         * @type {number}
-         */
-        this.deltaTicks = 0;
-
-        /**
-         * Timer activity.
-         * @public
-         * @type {boolean}
-         */
-        this.active = true;
-
-        this._intervalDelay = 0;
-        this._intervalStart = 0;
-        this._intervalCallback = null;
     }
 
     clearInterval() {

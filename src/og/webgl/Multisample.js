@@ -221,7 +221,7 @@ export class Multisample {
     /**
      * Activate framebuffer frame to draw.
      * @public
-     * @returns {Framebuffer} Returns Current framebuffer.
+     * @returns Returns Current framebuffer.
      */
     activate() {
         var gl = this.handler.gl;

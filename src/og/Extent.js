@@ -15,6 +15,8 @@ import { LonLat } from "./LonLat.js";
  * @param {LonLat} [ne] - North East extent corner coordiantes.
  */
 export class Extent {
+    southWest;
+    northEast;
     /**
      * @param {LonLat} [sw] - South West extent corner coordiantes.
      * @param {LonLat} [ne] - North East extent corner coordiantes.
