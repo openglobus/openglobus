@@ -17,6 +17,8 @@ import { Planet } from "./scene/Planet.js";
 import { EmptyTerrain } from "./terrain/EmptyTerrain.js";
 import { isEmpty } from "./utils/shared.js";
 import { Handler } from "./webgl/Handler.js";
+import { createColorRGB } from "./utils/shared.js";
+import { Vec3 } from "./math/Vec3.js";
 
 /** @const {string} */
 const CANVAS_ID_PREFIX = "globus_viewport_";
@@ -136,10 +138,10 @@ class Globe {
                     antialias: false,
                     powerPreference: "high-performance"
                 }
-            }),
-            {
-                autoActivate: false
-            }
+            }), {
+            autoActivate: false,
+            backgroundColor: createColorRGB(options.backgroundColor, new Vec3(115 / 255, 203 / 255, 249 / 255))
+        }
         );
         this.renderer.initialize();
         this.renderer.div = this.div;
