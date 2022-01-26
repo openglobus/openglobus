@@ -11,16 +11,19 @@ import { Vec3 } from "../math/Vec3.js";
  * @class
  */
 class Box {
+
+    /**
+     * Vertices array.
+     * @public
+     * @type{Array.<Vec3>}
+     */
+    vertices; // Vec3[]
+
     /**
      *
      * @param {*} boundsArr
      */
     constructor(boundsArr) {
-        /**
-         * Vertices array.
-         * @public
-         * @type{Array.<Vec3>}
-         */
         this.vertices = [
             new Vec3(),
             new Vec3(),

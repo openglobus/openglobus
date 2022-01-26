@@ -14,23 +14,26 @@ import { Vec3 } from "../math/Vec3.js";
  */
 class Sphere {
     /**
+     * Sphere radius.
+     * @public
+     * @type {Number}
+     */
+    radius = 0;
+
+    /**
+     * Sphere coordiantes.
+     * @public
+     * @type {Vec3}
+     */
+    center;
+
+    /**
      *
      * @param {number} radius
      * @param {Vec3} center
      */
     constructor(radius, center) {
-        /**
-         * Sphere radius.
-         * @public
-         * @type {Number}
-         */
         this.radius = radius || 0;
-
-        /**
-         * Sphere coordiantes.
-         * @public
-         * @type {Vec3}
-         */
         this.center = center ? center.clone() : new Vec3();
     }
 

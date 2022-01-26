@@ -12,12 +12,15 @@ import { Vec3 } from "./Vec3.js";
  * @class
  */
 export class Mat3 {
+
+    /**
+     * A 3x3 matrix, indexable as a column-major order array.
+     * @public
+     * @type {Array.<number>}
+     */
+    _m;
+    
     constructor() {
-        /**
-         * A 3x3 matrix, indexable as a column-major order array.
-         * @public
-         * @type {Array.<number>}
-         */
         this._m = new Array(9);
     }
 

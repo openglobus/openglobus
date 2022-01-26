@@ -14,13 +14,21 @@ import { Vec3 } from "./Vec3.js";
  * @param {Number} [w=0.0] The W component.
  */
 export class Quat {
+    x = 0;
+    y = 0;
+    z = 0;
+    w = 0;
+
+    normalise() {
+        throw new Error("Method not implemented.");
+    }
     /**
      * @param {Number} [x=0.0] The X component.
      * @param {Number} [y=0.0] The Y component.
      * @param {Number} [z=0.0] The Z component.
      * @param {Number} [w=0.0] The W component.
      */
-    constructor(x, y, z, w) {
+    constructor(x = 0, y = 0, z = 0, w = 0) {
         /**
          * The X component.
          * @public
