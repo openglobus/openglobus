@@ -14,7 +14,7 @@ import { Vec3 } from "./Vec3.js";
  * @param {Vec3} direction - The direction of the ray.
  */
 export class Ray {
-    constructor(origin, direction) {
+    constructor(origin = Vec3.ZERO, direction = Vec3.ZERO) {
         /**
          * The origin of the ray.
          * @public

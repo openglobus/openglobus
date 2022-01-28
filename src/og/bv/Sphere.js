@@ -18,7 +18,7 @@ class Sphere {
      * @param {number} radius
      * @param {Vec3} center
      */
-    constructor(radius, center) {
+    constructor(radius = 0, center = Vec3.ZERO) {
         /**
          * Sphere radius.
          * @public

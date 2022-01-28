@@ -20,7 +20,7 @@ export class Quat {
      * @param {Number} [z=0.0] The Z component.
      * @param {Number} [w=0.0] The W component.
      */
-    constructor(x, y, z, w) {
+    constructor(x = 0.0, y = 0.0, z = 0.0, w = 0.0) {
         /**
          * The X component.
          * @public
@@ -946,7 +946,7 @@ export class Quat {
      * @param {Boolean} [reprojectAxis] -
      * @returns {number} -
      */
-    getYaw(reprojectAxis) {
+    getYaw(reprojectAxis = false) {
         var x = this.x,
             y = this.y,
             z = this.z,

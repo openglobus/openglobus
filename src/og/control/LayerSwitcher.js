@@ -55,7 +55,7 @@ class LayerSwitcher extends Control {
         layer._removeCallback = null;
     }
 
-    addSwitcher(type, obj, container, id) {
+    addSwitcher(type, obj, container, id = "") {
         var lineDiv = document.createElement("div");
 
         var that = this;

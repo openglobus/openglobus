@@ -532,7 +532,7 @@ class Camera {
      * @param {Vec3} center - Point that the camera rotates around.
      * @param {Vec3} [up] - Camera up vector.
      */
-    rotateHorizontal(angle, isArc, center, up) {
+    rotateHorizontal(angle, isArc, center, up = Vec3.ZERO) {
         this.rotateAround(angle, isArc, center, up);
     }
 
