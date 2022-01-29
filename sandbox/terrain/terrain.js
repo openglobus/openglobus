@@ -139,8 +139,9 @@ let emptyTerrain = new EmptyTerrain(),
         //extent: [[8.9, 44.0], [10.0, 45]]
     }),
     rastTerrain = new MapboxTerrain(null, {
-        maxZoom: 19,
-        url: /*"//terrain.openglobus.org/public/oahu/{z}/{x}/{y}.png",/*/ "//terrain.openglobus.org/public/256/{z}/{x}/{y}.png",
+        maxZoom: 15,
+        //url: /*"//terrain.openglobus.org/public/oahu/{z}/{x}/{y}.png",/*/ "//terrain.openglobus.org/public/256/{z}/{x}/{y}.png",
+        url: /*"//terrain.openglobus.org/public/oahu/{z}/{x}/{y}.png",/*/ "//terrain.openglobus.org/public/spain20m/{z}/{x}/{y}.png",
         //imageSize: 129,
         //plainGridSize: 128,
         gridSizeByZoom: [

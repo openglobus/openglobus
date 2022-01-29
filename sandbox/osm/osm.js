@@ -174,7 +174,8 @@ var globus = new Globe({
     layers: [osm, tg, borders],
     //useNightTexture: false,
     //useEarthNavigation: true,
-    //useSpecularTexture: false
+    //useSpecularTexture: false,
+    backgroundColor: "red"
 });
 
 //globus.planet.addControl(new Lighting());

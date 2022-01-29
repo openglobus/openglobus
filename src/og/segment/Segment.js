@@ -1479,7 +1479,9 @@ class Segment {
                         (li.minZoom <= p.maxCurrZoom || li.maxZoom <= p.maxCurrZoom)))
             ) {
                 notEmpty = true;
+
                 var m = pm[li._id];
+
                 if (!m) {
                     m = pm[li._id] = li.createMaterial(this);
                 }

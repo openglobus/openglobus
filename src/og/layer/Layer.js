@@ -502,11 +502,49 @@ class Layer {
                 this._planet.updateVisibleLayers();
                 if (visibility && !this._isPreloadDone && !this.isVector) {
                     this._isPreloadDone = true;
-                    //TODO: make individual preload
-                    this._planet._preLoad();
+                    this._preLoad();
                 }
             }
             this.events.dispatch(this.events.visibilitychange, this);
+        }
+    }
+
+    _forceMaterialApply(segment){
+        let pm = segment.materials,
+            m = pm[this._id];
+
+        if (!m) {
+            m = pm[this._id] = this.createMaterial(segment);
+        }
+
+        if (!m.isReady) {
+            this._planet._renderCompleted = false;
+        }
+
+        this.applyMaterial(m);
+    }
+
+    _preLoad() {
+
+        if(this._planet) {
+
+            let p = this._planet;
+
+            for (let i = 0; i < p._quadTreeNorth.nodes.length; i++) {
+                this._forceMaterialApply(p._quadTreeNorth.nodes[i].segment);
+            }
+            this._forceMaterialApply(p._quadTreeNorth.segment);
+
+            for (let i = 0; i < p._quadTreeSouth.nodes.length; i++) {
+                this._forceMaterialApply(p._quadTreeSouth.nodes[i].segment);
+            }
+            this._forceMaterialApply(p._quadTreeSouth.segment);
+
+            for (let i = 0; i < p._quadTree.nodes.length; i++) {
+                this._forceMaterialApply(p._quadTree.nodes[i].segment);
+            }
+            
+            this._forceMaterialApply(p._quadTree.segment)
         }
     }
 
