@@ -363,7 +363,8 @@ class PlanetCamera extends Camera {
      * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
      * @param [frameCallback]
      */
-    flyCartesian(cartesian, look, up, ampl = 1.0, completeCallback, startCallback, frameCallback) {
+    flyCartesian(cartesian, look, up, ampl = 1.0, completeCallback = () => { }, startCallback = () => { }, frameCallback = () => { }) {
+
         this.stopFlying();
 
         this._completeCallback = completeCallback;

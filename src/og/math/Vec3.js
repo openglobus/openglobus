@@ -15,7 +15,7 @@ import { Quat } from "./Quat.js";
  * @param {number} [z] - Third value.
  */
 export class Vec3 {
-    constructor(x, y, z) {
+    constructor(x = 0.0 , y = 0.0, z = 0.0) {
         /**
          * @public
          * @type {number}

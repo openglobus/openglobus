@@ -25,7 +25,7 @@ export class LonLat {
      * @param {number} [lat] - Latitude.
      * @param {number} [height] - Height over the surface.
      */
-    constructor(lon, lat, height) {
+    constructor(lon = 0 , lat = 0, height = 0) {
         /**
          * Longitude.
          * @public
@@ -101,7 +101,7 @@ export class LonLat {
      * @param {number} [height] - Height.
      * @returns {LonLat} -
      */
-    static inverseMercator(x, y, height) {
+    static inverseMercator(x, y, height = 0) {
         return new LonLat(
             x * mercator.INV_POLE_BY_180,
             INV_PI_BY_360 * Math.atan(Math.exp(y * mercator.PI_BY_POLE)) - INV_PI_BY_180_HALF_PI,

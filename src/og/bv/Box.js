@@ -15,7 +15,7 @@ class Box {
      *
      * @param {*} boundsArr
      */
-    constructor(boundsArr) {
+    constructor(boundsArr = [0, 0, 0, 0, 0, 0]) {
         /**
          * Vertices array.
          * @public
