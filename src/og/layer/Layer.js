@@ -547,7 +547,7 @@ class Layer {
     }
 
     _preLoad() {
-        if (this._planet) {
+        if (this._planet && this._preLoadZoomLevels.length) {
 
             let p = this._planet,
                 maxZoom = Math.max(...this._preLoadZoomLevels);

@@ -22,6 +22,7 @@ const tg = new CanvasTiles("Tile grid", {
     visibility: false,
     isBaseLayer: false,
     maxNativeZoom: 5,
+    preLoadZoomLevels: [0],
     drawTile: function (material, applyCanvas) {
 
         //Clear canvas
@@ -102,6 +103,7 @@ var borders = new XYZ("borders", {
     url: "//t.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{quad}?mkt=en-us&it=Z,GF,L&shading=t&og=1638&n=z&ur=US&o=PNG&st=me|lv:0;v:0_wt|v:1_trs|v:1;lv:0;sc:FF6B6B6B;fc:FF6B6B6B;strokeWidthScale:0.2_cst|v:1;fc:FF000000;strokeWidthScale:0.5&cstl=weather&shdw=1&rs=1&dpi=d1",
     visibility: false,
     maxNativeZoom: 14,
+    preLoadZoomLevels: [],
     urlRewrite: function (s, u) {
         console.log(s.tileZoom);
         return stringTemplate(u, {
