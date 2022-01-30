@@ -10,6 +10,12 @@ import { Deferred } from '../Deferred.js';
 import { ARIAL_FONT_B64 } from '../res/images.js';
 
 class FontAtlas {
+    atlasesArr: any[];
+    atlasIndexes: {};
+    atlasIndexesDeferred: any[];
+    tokenImageSize: number;
+    samplerArr: number[];
+    _handler: any;
     constructor() {
         this.atlasesArr = [];
         this.atlasIndexes = {};

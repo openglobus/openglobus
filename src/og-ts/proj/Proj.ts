@@ -28,6 +28,7 @@ METERS_PER_UNIT[Units.KILOMETERS] = 1000;
 
 let _counter = 0;
 class Proj {
+    id: any;
     constructor(options) {
         /**
          * @public

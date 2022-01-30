@@ -26,6 +26,9 @@ let _tempHigh = new Vec3(),
  * @param {Extent} extent - Segment WGS84 extent.
  */
 class SegmentLonLat extends Segment {
+    _extentMerc: Extent;
+    _isNorth: any;
+    normalMapNormalsRaw: Float32Array;
     /**
      * @param {quadTree.Node} node - Segment node.
      * @param {Planet} planet - Current planet scene.

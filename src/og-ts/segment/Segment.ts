@@ -113,6 +113,7 @@ class Segment {
     readyToEngage: boolean;
     plainProcessing: boolean;
     normalMapTexturePtr: any;
+    acceptForRendering: any;
     /**
      * @param {quadTree.Node} node - Segment node.
      * @param {Planet} planet - Current planet scene.

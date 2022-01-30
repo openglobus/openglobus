@@ -87,7 +87,7 @@ export class Ray {
      * @returns {number} - Hit code, could 0 - og.Ray.OUTSIDE, 1 - og.Ray.INSIDE,
      *      2 - og.Ray.INPLANE and 3 - og.Ray.AWAY(ray goes away from triangle).
      */
-    hitTriangle(v0, v1, v2, res, normal) {
+    hitTriangle(v0, v1, v2, res) {
         var u = v1.sub(v0);
         var v = v2.sub(v0);
         var n = u.cross(v);

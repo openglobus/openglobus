@@ -20,7 +20,12 @@ class TextureAtlas {
     _btree: any;
     _imagesCacheManager: ImagesCacheManager;
     borderSize: number;
-    constructor(width, height) {
+    height: number;
+    width: number;
+    gliphSize: number;
+    distanceRange: number;
+    kernings: {};
+    constructor(width = 1024, height = 1024) {
         /**
          * Atlas nodes where input images store. It can be access by image.__nodeIndex.
          * @public
@@ -233,11 +238,11 @@ class TextureAtlasNode {
     rect: any;
     texCoords: any;
     atlas: any;
-    constructor(rect, texCoords) {
+    constructor(rect, texCoords = []) {
         this.childNodes = null;
         this.image = null;
         this.rect = rect;
-        this.texCoords = texCoords || [];
+        this.texCoords = texCoords;
         this.atlas = null;
     }
 

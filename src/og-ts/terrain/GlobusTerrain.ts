@@ -50,6 +50,15 @@ const EVENT_NAMES = [
  * @fires og.terrain.GlobusTerrain#loadend
  */
 class GlobusTerrain extends EmptyTerrain {
+    events: Events;
+    url: any;
+    noDataValues: any;
+    _extent: any;
+    _dataType: string;
+    _elevationCache: {};
+    _fetchCache: {};
+    _loader: Loader;
+    _urlRewriteCallback: any;
     /**
      * @param {string} [name]
      * @param {*} [options]

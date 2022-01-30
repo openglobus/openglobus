@@ -12,6 +12,19 @@ import { types } from "../webgl/types.js";
 import { QueueArray } from "../QueueArray.js";
 
 export class NormalMapCreator {
+    _minTabelSize: any;
+    _maxTableSize: any;
+    _planet: any;
+    _handler: any;
+    _verticesBufferArray: any[];
+    _indexBufferArray: any[];
+    _positionBuffer: any;
+    _framebuffer: any;
+    _normalMapVerticesTexture: any;
+    _width: any;
+    _height: any;
+    _queue: QueueArray;
+    _lock: Lock;
 
     constructor(planet, options) {
         options = options || {};

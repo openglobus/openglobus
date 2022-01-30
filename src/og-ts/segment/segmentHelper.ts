@@ -169,6 +169,9 @@ function createTextureCoords(size) {
 }
 
 class SegmentHelper {
+    _maxGridSize: number;
+    centerIndexesTable: any[];
+    skirtsIndexesTable: any[];
     constructor(maxGridSize = 0) {
         this._maxGridSize = maxGridSize;
     }
