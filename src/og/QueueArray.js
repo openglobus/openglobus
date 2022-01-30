@@ -5,8 +5,8 @@ class QueueArray {
      *
      * @param {number} [size]
      */
-    constructor(size) {
-        this._size = size || 2048;
+    constructor(size = 2048) {
+        this._size = size;
         this._array = new Array(this._size);
         this._popIndex = parseInt(this._size * 0.5);
         this._shiftIndex = this._popIndex;

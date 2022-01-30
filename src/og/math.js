@@ -377,8 +377,8 @@ export function solve_iteration_fixed(f, x0, maxIter) {
  * @param {number} maxIter - Maximum iterations.
  * @returns {number} -
  */
-export function solve_iteration(f, x0, err, maxIter) {
-    maxIter = maxIter || 50;
+export function solve_iteration(f, x0, err, maxIter = 50) {
+    maxIter = maxIter;
     var x = 0;
     var x2 = x0;
     for (var i = 0; i < maxIter; i++) {

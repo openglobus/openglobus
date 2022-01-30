@@ -13,15 +13,15 @@ class ImageCanvas {
      * @param {number} [width] - Canvas width. Default 256.
      * @param {number} [height] - Canvas height. Default 256.
      */
-    constructor(width, height) {
+    constructor(width = 256, height = 256) {
         /**
          * Canvas object.
          * @protected
          * @type {Object}
          */
         this._canvas = document.createElement("canvas");
-        this._canvas.width = width || 256;
-        this._canvas.height = height || 256;
+        this._canvas.width = width;
+        this._canvas.height = height;
 
         /**
          * Canvas context.

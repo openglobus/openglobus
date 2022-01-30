@@ -12,7 +12,7 @@ import { ImagesCacheManager } from "./ImagesCacheManager.js";
  * @param {number} [height] - Texture atlas height, if it hasn't 1024 default..
  */
 class TextureAtlas {
-    constructor(width, height) {
+    constructor(width = 1024, height = 1024) {
         /**
          * Atlas nodes where input images store. It can be access by image.__nodeIndex.
          * @public
@@ -31,7 +31,7 @@ class TextureAtlas {
          * @public
          * @type {canvas}
          */
-        this.canvas = new ImageCanvas(width || 1024, height || 1024);
+        this.canvas = new ImageCanvas(width, height);
         this.clearCanvas();
 
         this._handler = null;

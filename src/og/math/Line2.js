@@ -7,10 +7,10 @@
 import { Vec2 } from './Vec2.js';
 
 export class Line2 {
-    constructor(a, b, c) {
-        this.a = a || 0;
-        this.b = b || 0;
-        this.c = c || 0;
+    constructor(a = 0, b = 0, c = 0) {
+        this.a = a;
+        this.b = b;
+        this.c = c;
     }
 
     static get(p0, p1) {

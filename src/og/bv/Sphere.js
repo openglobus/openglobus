@@ -24,7 +24,7 @@ class Sphere {
          * @public
          * @type {Number}
          */
-        this.radius = radius || 0;
+        this.radius = radius;
 
         /**
          * Sphere coordiantes.
