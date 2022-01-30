@@ -197,6 +197,8 @@ class Layer {
 
         this._isPreloadDone = false;
 
+        this._preLoadZoomLevels = options.preLoadZoomLevels || [0, 1];
+
         /**
          * Events handler.
          * @public
@@ -524,27 +526,38 @@ class Layer {
         this.applyMaterial(m);
     }
 
+    _preLoadRecursive(node, maxZoom){
+        this._forceMaterialApply(node.segment);
+        for (let i = 0; i < p._quadTreeNorth.nodes.length; i++) {
+            this._forceMaterialApply(node.nodes[i], maxZoom);
+        }
+    }
+
     _preLoad() {
 
         if(this._planet) {
 
             let p = this._planet;
 
-            for (let i = 0; i < p._quadTreeNorth.nodes.length; i++) {
-                this._forceMaterialApply(p._quadTreeNorth.nodes[i].segment);
-            }
-            this._forceMaterialApply(p._quadTreeNorth.segment);
+            let maxZoom = Math.max(...this._preLoadZoomLevels);
 
-            for (let i = 0; i < p._quadTreeSouth.nodes.length; i++) {
-                this._forceMaterialApply(p._quadTreeSouth.nodes[i].segment);
-            }
-            this._forceMaterialApply(p._quadTreeSouth.segment);
+            this._preLoadRecursive(p._quadTree, maxZoom);
 
-            for (let i = 0; i < p._quadTree.nodes.length; i++) {
-                this._forceMaterialApply(p._quadTree.nodes[i].segment);
-            }
-            
-            this._forceMaterialApply(p._quadTree.segment)
+            // for (let i = 0; i < p._quadTreeNorth.nodes.length; i++) {
+            //     this._forceMaterialApply(p._quadTreeNorth.nodes[i].segment);
+            // }
+            // this._forceMaterialApply(p._quadTreeNorth.segment);
+            //
+            // for (let i = 0; i < p._quadTreeSouth.nodes.length; i++) {
+            //     this._forceMaterialApply(p._quadTreeSouth.nodes[i].segment);
+            // }
+            // this._forceMaterialApply(p._quadTreeSouth.segment);
+            //
+            // for (let i = 0; i < p._quadTree.nodes.length; i++) {
+            //     this._forceMaterialApply(p._quadTree.nodes[i].segment);
+            // }
+            //
+            // this._forceMaterialApply(p._quadTree.segment)
         }
     }
 
