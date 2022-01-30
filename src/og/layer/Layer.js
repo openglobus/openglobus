@@ -331,6 +331,11 @@ class Layer {
         if (this._isBaseLayer && this._visibility) {
             planet.setBaseLayer(this);
         }
+
+        if (this._visibility) {
+            this._preLoad();
+        }
+
         planet.events.dispatch(planet.events.layeradd, this);
         this.events.dispatch(this.events.add, planet);
         planet.updateVisibleLayers();
@@ -511,7 +516,7 @@ class Layer {
         }
     }
 
-    _forceMaterialApply(segment){
+    _forceMaterialApply(segment) {
         let pm = segment.materials,
             m = pm[this._id];
 
@@ -526,38 +531,30 @@ class Layer {
         this.applyMaterial(m);
     }
 
-    _preLoadRecursive(node, maxZoom){
-        this._forceMaterialApply(node.segment);
-        for (let i = 0; i < p._quadTreeNorth.nodes.length; i++) {
-            this._forceMaterialApply(node.nodes[i], maxZoom);
+    _preLoadRecursive(node, maxZoom) {
+        if (node.segment.tileZoom > maxZoom) {
+            return;
+        }
+        if (this._preLoadZoomLevels.includes(node.segment.tileZoom)) {
+            this._forceMaterialApply(node.segment);
+        }
+
+        for (let i = 0, len = node.nodes.length; i < len; i++) {
+            if (node.nodes[i]) {
+                this._preLoadRecursive(node.nodes[i], maxZoom);
+            }
         }
     }
 
     _preLoad() {
+        if (this._planet) {
 
-        if(this._planet) {
+            let p = this._planet,
+                maxZoom = Math.max(...this._preLoadZoomLevels);
 
-            let p = this._planet;
-
-            let maxZoom = Math.max(...this._preLoadZoomLevels);
-
+            this._preLoadRecursive(p._quadTreeSouth, maxZoom);
+            this._preLoadRecursive(p._quadTreeNorth, maxZoom);
             this._preLoadRecursive(p._quadTree, maxZoom);
-
-            // for (let i = 0; i < p._quadTreeNorth.nodes.length; i++) {
-            //     this._forceMaterialApply(p._quadTreeNorth.nodes[i].segment);
-            // }
-            // this._forceMaterialApply(p._quadTreeNorth.segment);
-            //
-            // for (let i = 0; i < p._quadTreeSouth.nodes.length; i++) {
-            //     this._forceMaterialApply(p._quadTreeSouth.nodes[i].segment);
-            // }
-            // this._forceMaterialApply(p._quadTreeSouth.segment);
-            //
-            // for (let i = 0; i < p._quadTree.nodes.length; i++) {
-            //     this._forceMaterialApply(p._quadTree.nodes[i].segment);
-            // }
-            //
-            // this._forceMaterialApply(p._quadTree.segment)
         }
     }
 
