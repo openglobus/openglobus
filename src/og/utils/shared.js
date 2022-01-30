@@ -250,7 +250,7 @@ export function createExtent(e, def) {
     return new Extent();
 }
 
-export function createLonLat(l, def) {
+export function createLonLat(l, def = null) {
     if (l) {
         if (l instanceof Array) {
             return new LonLat(l[0], l[1], l[2]);

@@ -75,7 +75,7 @@ export class Vec4 {
      * @public
      * @returns {Vec4}
      */
-    clone(v) {
+    clone() {
         return new Vec4(this.x, this.y, this.z, this.w);
     }
 

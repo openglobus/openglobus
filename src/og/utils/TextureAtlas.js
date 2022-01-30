@@ -220,11 +220,11 @@ class TextureAtlas {
  * @param {Rectangle} rect - Node image rectangle.
  */
 class TextureAtlasNode {
-    constructor(rect, texCoords) {
+    constructor(rect, texCoords = []) {
         this.childNodes = null;
         this.image = null;
         this.rect = rect;
-        this.texCoords = texCoords || [];
+        this.texCoords = texCoords;
         this.atlas = null;
     }
 
