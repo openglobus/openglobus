@@ -104,7 +104,7 @@ var borders = new XYZ("borders", {
     visibility: true,
     maxNativeZoom: 14,
     preLoadZoomLevels: [],
-    minZoom: 2,
+    minNativeZoom: 1,
     urlRewrite: function (s, u) {
         console.log(s.tileZoom);
         return stringTemplate(u, {
@@ -189,7 +189,7 @@ globus.planet.addControl(new DebugInfo());
 
 globus.planet.addControl(new ToggleWireframe());
 
-globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
+//globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
 
 
 window.globus = globus;
