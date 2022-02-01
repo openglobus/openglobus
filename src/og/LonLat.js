@@ -31,21 +31,21 @@ export class LonLat {
          * @public
          * @type {number}
          */
-        this.lon = lon || 0;
+        this.lon = lon;
 
         /**
          * Latitude.
          * @public
          * @type {number}
          */
-        this.lat = lat || 0;
+        this.lat = lat;
 
         /**
          * Height.
          * @public
          * @type {number}
          */
-        this.height = height || 0;
+        this.height = height;
     }
 
     isZero() {
@@ -117,10 +117,10 @@ export class LonLat {
      * @param {number} [height] - Height.
      * @returns {LonLat} -
      */
-    set(lon, lat, height) {
-        this.lon = lon || 0;
-        this.lat = lat || 0;
-        this.height = height || 0;
+    set(lon = 0, lat = 0, height = 0) {
+        this.lon = lon;
+        this.lat = lat;
+        this.height = height;
         return this;
     }
 

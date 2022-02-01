@@ -363,7 +363,7 @@ class PlanetCamera extends Camera {
      * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
      * @param [frameCallback]
      */
-    flyCartesian(cartesian, look, up, ampl = 1.0, completeCallback = () => { }, startCallback = () => { }, frameCallback = () => { }) {
+    flyCartesian(cartesian, look = Vec3.ZERO, up = Vec3.UP, ampl = 1.0, completeCallback = () => { }, startCallback = () => { }, frameCallback = () => { }) {
 
         this.stopFlying();
 
@@ -375,7 +375,7 @@ class PlanetCamera extends Camera {
             startCallback.call(this);
         }
 
-        look = look || Vec3.ZERO;
+        look = look;
         if (look instanceof LonLat) {
             look = this.planet.ellipsoid.lonLatToCartesian(look);
         }
@@ -387,7 +387,7 @@ class PlanetCamera extends Camera {
             n_a = this._b;
 
         var lonlat_b = this.planet.ellipsoid.cartesianToLonLat(cartesian);
-        var up_b = up || Vec3.UP;
+        var up_b = up;
         var ground_b = this.planet.ellipsoid.lonLatToCartesian(
             new LonLat(lonlat_b.lon, lonlat_b.lat, 0)
         );

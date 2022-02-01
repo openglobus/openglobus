@@ -19,15 +19,15 @@ export class Extent {
      * @param {LonLat} [sw] - South West extent corner coordiantes.
      * @param {LonLat} [ne] - North East extent corner coordiantes.
      */
-    constructor(sw, ne) {
+    constructor(sw = new LonLat(), ne = new LonLat()) {
         /**
          * @public
          */
-        this.southWest = sw || new LonLat();
+        this.southWest = sw;
         /**
          * @public
          */
-        this.northEast = ne || new LonLat();
+        this.northEast = ne;
     }
 
     /**

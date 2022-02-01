@@ -15,34 +15,34 @@ class Rectangle {
      * @param {number} [right] - Right coordinate. 0 - default.
      * @param {number} [bottom] - Bottom coordinate. 0 - default.
      */
-    constructor(left, top, right, bottom) {
+    constructor(left = 0, top = 0, right = 0, bottom = 0) {
         /**
          * Left coordinate.
          * @public
          * @type {number}
          */
-        this.left = left || 0;
+        this.left = left;
 
         /**
          * Right coordinate.
          * @public
          * @type {number}
          */
-        this.right = right || 0;
+        this.right = right;
 
         /**
          * Top coordinate.
          * @public
          * @type {number}
          */
-        this.top = top || 0;
+        this.top = top;
 
         /**
          * Top coordinate.
          * @public
          * @type {number}
          */
-        this.bottom = bottom || 0;
+        this.bottom = bottom;
     }
 
     /**

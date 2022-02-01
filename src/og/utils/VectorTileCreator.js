@@ -13,14 +13,14 @@ let tempArr = new Float32Array(2);
 
 export class VectorTileCreator {
 
-    constructor(planet, maxFrames, width, height) {
+    constructor(planet, maxFrames = 5, width = 256, height = 256) {
 
-        this._width = width || 256;
-        this._height = height || 256;
+        this._width = width;
+        this._height = height;
         this._handler = planet.renderer.handler;
         this._planet = planet;
         this._framebuffer = null;
-        this.MAX_FRAMES = maxFrames || 5;
+        this.MAX_FRAMES = maxFrames;
         this._currentFrame = 0;
         this._queue = [];
         this._initialize();

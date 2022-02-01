@@ -1349,8 +1349,8 @@ class Polyline {
         }
     }
 
-    setPoint3v(coordinates, index, segmentIndex, skipLonLat) {
-        segmentIndex = segmentIndex || 0;
+    setPoint3v(coordinates, index = 0, segmentIndex = 0, skipLonLat = false) {
+        segmentIndex = segmentIndex;
 
         if (this._renderNode) {
             var v_high = new Vec3(),

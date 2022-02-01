@@ -52,8 +52,8 @@ class Strip extends RenderNode {
         this.color[3] = a;
     }
 
-    setOpacity(opacity) {
-        this.color[3] = opacity || 0;
+    setOpacity(opacity = 0) {
+        this.color[3] = opacity;
     }
 
     setVisibility(visibility) {
