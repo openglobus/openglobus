@@ -237,6 +237,8 @@ class XYZ extends Layer {
     applyMaterial(material) {
         if (material.isReady) {
             return material.texOffset;
+        } else if (material.segment.tileZoom <= this.minNativeZoom) {
+            material.textureNotExists();
         } else {
 
             let segment = material.segment,
@@ -301,7 +303,7 @@ class XYZ extends Layer {
     clearMaterial(material) {
         if (material.isReady && material.textureExists) {
             !material.texture.default &&
-                material.segment.handler.gl.deleteTexture(material.texture);
+            material.segment.handler.gl.deleteTexture(material.texture);
             material.texture = null;
 
             if (material.image) {
@@ -312,7 +314,7 @@ class XYZ extends Layer {
 
         material.isReady = false;
         material.textureExists = false;
-        material.isLoading = false;        
+        material.isLoading = false;
     }
 
     /**

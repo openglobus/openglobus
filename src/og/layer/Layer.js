@@ -197,6 +197,8 @@ class Layer {
 
         this._isPreloadDone = false;
 
+        this._preLoadZoomLevels = options.preLoadZoomLevels || [0, 1];
+
         /**
          * Events handler.
          * @public
@@ -329,6 +331,11 @@ class Layer {
         if (this._isBaseLayer && this._visibility) {
             planet.setBaseLayer(this);
         }
+
+        if (this._visibility) {
+            this._preLoad();
+        }
+
         planet.events.dispatch(planet.events.layeradd, this);
         this.events.dispatch(this.events.add, planet);
         planet.updateVisibleLayers();
@@ -502,11 +509,52 @@ class Layer {
                 this._planet.updateVisibleLayers();
                 if (visibility && !this._isPreloadDone && !this.isVector) {
                     this._isPreloadDone = true;
-                    //TODO: make individual preload
-                    this._planet._preLoad();
+                    this._preLoad();
                 }
             }
             this.events.dispatch(this.events.visibilitychange, this);
+        }
+    }
+
+    _forceMaterialApply(segment) {
+        let pm = segment.materials,
+            m = pm[this._id];
+
+        if (!m) {
+            m = pm[this._id] = this.createMaterial(segment);
+        }
+
+        if (!m.isReady) {
+            this._planet._renderCompleted = false;
+        }
+
+        this.applyMaterial(m);
+    }
+
+    _preLoadRecursive(node, maxZoom) {
+        if (node.segment.tileZoom > maxZoom) {
+            return;
+        }
+        if (this._preLoadZoomLevels.includes(node.segment.tileZoom)) {
+            this._forceMaterialApply(node.segment);
+        }
+
+        for (let i = 0, len = node.nodes.length; i < len; i++) {
+            if (node.nodes[i]) {
+                this._preLoadRecursive(node.nodes[i], maxZoom);
+            }
+        }
+    }
+
+    _preLoad() {
+        if (this._planet && this._preLoadZoomLevels.length) {
+
+            let p = this._planet,
+                maxZoom = Math.max(...this._preLoadZoomLevels);
+
+            this._preLoadRecursive(p._quadTreeSouth, maxZoom);
+            this._preLoadRecursive(p._quadTreeNorth, maxZoom);
+            this._preLoadRecursive(p._quadTree, maxZoom);
         }
     }
 

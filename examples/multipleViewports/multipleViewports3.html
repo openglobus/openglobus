@@ -44,10 +44,31 @@
             window.globus1.planet.setTerrain(mapboxTerrain);
         };
 
+        let highResTerrain1 = new og.terrain.MapboxTerrain(null, {
+            maxZoom: 18,
+            //url: "//terrain.openglobus.org/public/256/{z}/{x}/{y}.png",
+            //url: "//terrain.openglobus.org/public/spain20m/{z}/{x}/{y}.png",
+            //url: "//terrain.openglobus.org/public/austria10m/{z}/{x}/{y}.png",
+	    url: "//terrain.openglobus.org/public/auckland/dem/{z}/{x}/{y}.png",
+            //imageSize: 129,
+            //plainGridSize: 128,
+            gridSizeByZoom: [
+                64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 16, 8, 4
+                //8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4
+            ]
+            // urlRewrite: function (s, u) {
+            //     let z = s.tileZoom,
+            //         ymax = 1 << z,
+            //         y = ymax - s.tileY - 1;
+            //
+            //     return stringTemplate(u, XYZ.getTMS(s.tileX, s.tileY, s.tileZoom));
+            // }
+        });
+
         window.globus1 = new og.Globe({
             "target": "globus1",
             "name": "Earth One",
-            "terrain": globusTerrain,
+            "terrain": highResTerrain1,
             "layers": [osm1],
             "viewExtent": EXTENT
         });
@@ -66,24 +87,35 @@
             attribution: 'Data @ OpenStreetMap contributors, ODbL'
         });
 
-        var highResTerrain = new og.terrain.MapboxTerrain(null, {
-            maxZoom: 19,
-            url: "//terrain.openglobus.org/public/256/{z}/{x}/{y}.png",
-            //imageSize: 129,
-            //plainGridSize: 128,
-            gridSizeByZoom: [
-                64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 16, 8, 4
-            ]
-        });
+        //var highResTerrain = new og.terrain.MapboxTerrain(null, {
+        //    maxZoom: 19,
+        //    url: "//terrain.openglobus.org/public/256/{z}/{x}/{y}.png",
+        //    //imageSize: 129,
+        //    //plainGridSize: 128,
+        //    gridSizeByZoom: [
+        //        64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 16, 8, 4
+        //    ]
+        //});
 
-        var highResTerrain2 = new og.terrain.MapboxTerrain(null, {
-            maxZoom: 19,
-            url: "//terrain.openglobus.org/public/matanushka/dsm/{z}/{x}/{y}.png",
+        highResTerrain = new og.terrain.MapboxTerrain(null, {
+            maxZoom: 18,
+            //url: "//terrain.openglobus.org/public/256/{z}/{x}/{y}.png",
+            //url: "//terrain.openglobus.org/public/spain20m/{z}/{x}/{y}.png",
+            //url: "//terrain.openglobus.org/public/austria10m/{z}/{x}/{y}.png",
+	    url: "//terrain.openglobus.org/public/auckland/dsm/{z}/{x}/{y}.png",
             //imageSize: 129,
             //plainGridSize: 128,
             gridSizeByZoom: [
                 64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 16, 8, 4
+                //8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4
             ]
+            // urlRewrite: function (s, u) {
+            //     let z = s.tileZoom,
+            //         ymax = 1 << z,
+            //         y = ymax - s.tileY - 1;
+            //
+            //     return stringTemplate(u, XYZ.getTMS(s.tileX, s.tileY, s.tileZoom));
+            // }
         });
 
         window.globus2 = new og.Globe({

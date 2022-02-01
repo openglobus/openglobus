@@ -44,7 +44,7 @@ class MapboxTerrain extends GlobusTerrain {
     }
 
     isBlur(segment) {
-        if (segment.tileZoom >= 18) {
+        if (segment.tileZoom >= 13) {
             return true;
         }
         return false;
