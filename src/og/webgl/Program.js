@@ -252,7 +252,7 @@ class Program {
         var a = this._attribArrays;
         for (let i = 0, len = a.length; i < len; i++) {
             gl.disableVertexAttribArray(a[i]);
-            gl.vertexAttribDivisor(a[i], 0);
+            this.vertexAttribDivisor(a[i], 0);
         }
     }
 
@@ -266,8 +266,18 @@ class Program {
         var d = this._attribDivisor;
         for (let i = 0, len = a.length; i < len; i++) {
             gl.enableVertexAttribArray(a[i]);
-            gl.vertexAttribDivisor(a[i], d[i]);
+            this.vertexAttribDivisor(a[i], d[i]);
         }
+    }
+
+    vertexAttribDivisor(index, divisor) {
+        const gl = this.gl;
+        gl.vertexAttribDivisor ? gl.vertexAttribDivisor(index, divisor) : gl.getExtension('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(index, divisor);
+    }
+
+    drawElementsInstanced(...args) {
+        const gl = this.gl;
+        gl.drawElementsInstanced ? gl.drawElementsInstanced(...args) : gl.getExtension('ANGLE_instanced_arrays').drawElementsInstancedANGLE(...args);
     }
 
     /**
@@ -296,10 +306,10 @@ class Program {
         if (!gl.getProgramParameter(this._p, gl.LINK_STATUS)) {
             cons.logErr(
                 "og/Program/Program:" +
-                    this.name +
-                    " - couldn't initialise shaders. " +
-                    gl.getProgramInfoLog(this._p) +
-                    "."
+                this.name +
+                " - couldn't initialise shaders. " +
+                gl.getProgramInfoLog(this._p) +
+                "."
             );
             gl.deleteProgram(this._p);
             return;

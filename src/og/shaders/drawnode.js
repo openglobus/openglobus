@@ -207,7 +207,7 @@ export function drawnode_screen_wl() {
 
             ${NIGHT}
 
-            ${DEF_BLEND}
+            ${DEF_BLEND_WEBGL1}
 
 
             void main(void) {
@@ -229,7 +229,7 @@ export function drawnode_screen_wl() {
 
                 gl_FragColor = texture2D( defaultTexture, vTextureCoord.xy );
                 if( samplerCount == 0 ) {
-                    gl_FragColor *= lightWeighting;
+                    gl_FragColor *= vec4(lightWeighting, 1);
                     return;
                 }
     
@@ -237,30 +237,30 @@ export function drawnode_screen_wl() {
 
                 blend(gl_FragColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
                 if( samplerCount == 1 ) {
-                    gl_FragColor *= lightWeighting;
+                    gl_FragColor *= vec4(lightWeighting, 1);
                     return;
                 }
 
                 blend(gl_FragColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
                 if( samplerCount == 2 ) {
-                    gl_FragColor *= lightWeighting;
+                    gl_FragColor *= vec4(lightWeighting, 1);
                     return;
                 }
 
                 blend(gl_FragColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
                 if( samplerCount == 3 ) {
-                    gl_FragColor *= lightWeighting;
+                    gl_FragColor *= vec4(lightWeighting, 1);
                     return;
                 }
 
                 blend(gl_FragColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
                 if( samplerCount == 4 ) {
-                    gl_FragColor *= lightWeighting;
+                    gl_FragColor *= vec4(lightWeighting, 1);
                     return;
                 }
 
                 blend(gl_FragColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
-                gl_FragColor *= lightWeighting;
+                gl_FragColor *= vec4(lightWeighting, 1);
             }`
     });
 }
