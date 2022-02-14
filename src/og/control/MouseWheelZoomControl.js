@@ -120,7 +120,7 @@ class MouseWheelZoomControl extends Control {
             this.planet,
             this.stepsCount,
             this.distDiff,
-            this.renderer.getCenter(),
+            this.renderer.handler.getCenter(),
             true,
            null
         );
@@ -153,7 +153,7 @@ class MouseWheelZoomControl extends Control {
             this.planet,
             this.stepsCount,
             this.distDiff,
-            this.renderer.getCenter(),
+            this.renderer.handler.getCenter(),
             false,
            null
         );
