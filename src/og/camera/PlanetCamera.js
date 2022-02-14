@@ -375,7 +375,6 @@ class PlanetCamera extends Camera {
             startCallback.call(this);
         }
 
-        look = look;
         if (look instanceof LonLat) {
             look = this.planet.ellipsoid.lonLatToCartesian(look);
         }
