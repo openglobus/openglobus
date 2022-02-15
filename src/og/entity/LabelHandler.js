@@ -813,6 +813,16 @@ class LabelHandler extends BillboardHandler {
         this._changedBuffers[ROTATION_BUFFER] = true;
     }
 
+    setVisibility(index, visibility) {
+        var vArr;
+        if (visibility) {
+            vArr = [0, 0, 0, -1, 1, -1, 1, -1, 1, 0, 0, 0];
+        } else {
+            vArr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        }
+        this.setVertexArr(index, vArr);
+    }
+
     setVertexArr(index, vertexArr) {
         var i = index * 12 * this._maxLetters;
         var a = this._vertexArr;
