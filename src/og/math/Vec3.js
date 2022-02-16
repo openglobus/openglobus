@@ -20,19 +20,19 @@ export class Vec3 {
          * @public
          * @type {number}
          */
-        this.x = x || 0.0;
+        this.x = x;
 
         /**
          * @public
          * @type {number}
          */
-        this.y = y || 0.0;
+        this.y = y;
 
         /**
          * @public
          * @type {number}
          */
-        this.z = z || 0.0;
+        this.z = z;
     }
 
     /** @const */

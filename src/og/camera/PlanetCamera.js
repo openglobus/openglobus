@@ -367,6 +367,9 @@ class PlanetCamera extends Camera {
 
         this.stopFlying();
 
+        look = look || Vec3.ZERO;
+        up = up || Vec3.UP;
+
         this._completeCallback = completeCallback;
 
         this._frameCallback = frameCallback;
