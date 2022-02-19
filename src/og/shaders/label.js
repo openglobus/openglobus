@@ -42,7 +42,9 @@ export function label_webgl2() {
             a_rotation: "float",
             a_rgba: "vec4",
             a_offset: "vec3",
-            a_fontIndex: "float"
+            a_fontIndex: "float",
+            a_noOutline: "float",
+            a_outlineColor: "vec4"
         },
         vertexShader:
             `#version 300 es
@@ -58,11 +60,17 @@ export function label_webgl2() {
             in float a_rotation;
             in vec4 a_rgba;
             in float a_fontIndex;
+            in float a_noOutline;
+            in vec4 a_outlineColor;
 
             out vec2 v_uv;
             out vec4 v_rgba;
-            flat out float v_weight;
             flat out int v_fontIndex;
+            
+            out vec4 v_outlineColor;
+
+            flat out float v_outline;
+            flat out float v_noOutline;
 
             uniform vec2 viewport;
             uniform mat4 viewMatrix;
@@ -82,7 +90,7 @@ export function label_webgl2() {
 
             void main() {
 
-                if(a_texCoord.z == -1.0 || a_outline == 0.0) {
+                if(a_texCoord.z == -1.0/* || a_outline == 0.0*/) {
                     gl_Position = vec4(0.0);
                     return;
                 }
@@ -90,12 +98,15 @@ export function label_webgl2() {
                 vec3 a_positions = a_positionsHigh + a_positionsLow;
                 vec3 cameraPos = eyePositionHigh + eyePositionLow;
 
-                v_weight = a_outline;
+                v_noOutline = a_noOutline;
+                v_outline = a_outline;
 
                 v_fontIndex = int(a_fontIndex);
                 v_uv = vec2(a_texCoord.xy);
                 float lookDist = length(a_positions - cameraPos);
                 v_rgba = a_rgba;
+                v_outlineColor = a_outlineColor;
+                
                 if(opacity * step(lookDist, sqrt(dot(cameraPos,cameraPos) - planetRadius) + sqrt(dot(a_positions,a_positions) - planetRadius)) == 0.0){
                     return;
                 }
@@ -126,10 +137,14 @@ export function label_webgl2() {
 
             uniform sampler2D fontTextureArr[MAX_SIZE];
 
-            flat in float v_weight;
             flat in int v_fontIndex;
             in vec2 v_uv;
             in vec4 v_rgba;
+            
+            in vec4 v_outlineColor;
+
+            flat in float v_outline;
+            flat in float v_noOutline;
 
             in vec3 v_pickingColor;
 
@@ -172,10 +187,10 @@ export function label_webgl2() {
             void main () {
 
                 vec2 dxdy = fwidth(v_uv) * sdfParams.xy;
-                float dist = getDistance() + min(v_weight, 0.5 - 1.0 / sdfParams.w) - 0.5;
+                float dist = getDistance() + min(v_noOutline + v_outline * 0.0, 0.5 - 1.0 / sdfParams.w) - 0.5;
                 float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
 
-                vec4 color = v_rgba;
+                vec4 color = v_rgba + v_outlineColor * 0.0;
                 color.a *= opacity;
                 if (color.a < 0.01) {
                     discard;
@@ -290,172 +305,172 @@ export function labelPicking() {
     });
 }
 
-export function label_screen() {
-    return new Program("label", {
-        uniforms: {
-            viewport: "vec2",
-            fontTextureArr: "sampler2darray",
-            projectionMatrix: "mat4",
-            viewMatrix: "mat4",
-            eyePositionHigh: "vec3",
-            eyePositionLow: "vec3",
-            planetRadius: "float",
-            uZ: "float",
-            scaleByDistance: "vec3",
-            opacity: "float"
-        },
-        attributes: {
-            a_outline: "float",
-            a_gliphParam: "vec4",
-            a_vertices: "vec2",
-            a_texCoord: "vec4",
-            a_positionsHigh: "vec3",
-            a_positionsLow: "vec3",
-            a_offset: "vec3",
-            a_size: "float",
-            //a_rotation: "float",
-            a_rgba: "vec4",
-            a_fontIndex: "float",
-        },
-        vertexShader:
-            `
-            attribute float a_outline;
-            attribute vec4 a_gliphParam;
-            attribute vec2 a_vertices;
-            attribute vec4 a_texCoord;
-            attribute vec3 a_positionsHigh;
-            attribute vec3 a_positionsLow;
-            attribute vec3 a_offset;
-            attribute float a_size;
-            //attribute float a_rotation;
-            attribute vec4 a_rgba;
-            attribute float a_fontIndex;
-
-            varying vec2 v_uv;
-            varying vec4 v_rgba;
-            varying float v_weight;
-            varying float v_fontIndex;
-
-            uniform vec2 viewport;
-            uniform mat4 viewMatrix;
-            uniform mat4 projectionMatrix;
-            uniform vec3 eyePositionHigh;
-            uniform vec3 eyePositionLow;
-            uniform float planetRadius;
-            uniform float uZ;
-            uniform vec3 scaleByDistance;
-            uniform float opacity;
-
-            const vec3 ZERO3 = vec3(0.0);
-
-            ${PROJECT}
-
-            ${ROTATE2D}
-
-            void main() {
-
-                if(a_texCoord.z == -1.0 || a_outline == 0.0) {
-                    gl_Position = vec4(0.0);
-                    return;
-                }
-
-                v_weight = a_outline;
-                v_fontIndex = a_fontIndex;
-                v_uv = vec2(a_texCoord.xy);
-
-                vec3 a_positions = a_positionsHigh + a_positionsLow;
-                vec3 cameraPos = eyePositionHigh + eyePositionLow;
-
-                float lookDist = length(a_positions - cameraPos);
-                v_rgba = a_rgba;
-                if(opacity * step(lookDist, sqrt(dot(cameraPos,cameraPos) - planetRadius) + sqrt(dot(a_positions,a_positions) - planetRadius)) == 0.0){
-                    return;
-                }
-
-                float scd = (1.0 - smoothstep(scaleByDistance[0], scaleByDistance[1], lookDist)) * (1.0 - step(scaleByDistance[2], lookDist));
-
-                v_rgba.a *= opacity;
-
-                mat4 viewMatrixRTE = viewMatrix;
-                viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
-
-                vec3 highDiff = a_positionsHigh - eyePositionHigh;
-                vec3 lowDiff = a_positionsLow - eyePositionLow;
-                vec4 posRTE = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
-                vec4 projPos = projectionMatrix * posRTE;
-                vec2 screenPos = project(projPos);
-
-                vec2 v = screenPos + rotate2d(a_rotation) * ((a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size * scd + a_offset.xy);
-
-                gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z + a_offset.z + uZ, projPos.w);
-            }`,
-        fragmentShader:
-            `#extension GL_OES_standard_derivatives : enable
-
-            precision highp float;
-
-            const int MAX_SIZE = 11;
-
-            uniform sampler2D fontTextureArr[MAX_SIZE];
-
-            varying float v_fontIndex;
-            varying float v_weight;
-            varying vec2 v_uv;
-            varying vec4 v_rgba;
-
-            varying vec3 v_pickingColor;
-
-            float fontIndex;
-
-            vec4 sdfParams = vec4(512.0, 512.0, 32.0, 8.0);
-
-            float median(float r, float g, float b) {
-                return max(min(r, g), min(max(r, g), b));
-            }
-
-            float getDistance() {
-                vec3 msdf;
-                if(fontIndex >= 0.0 && fontIndex < 1.0) {
-                    msdf = texture2D(fontTextureArr[0], v_uv).rgb;
-                } else if(fontIndex >= 1.0 && fontIndex < 2.0){
-                    msdf = texture2D(fontTextureArr[1], v_uv).rgb;
-                } else if(fontIndex >= 2.0 && fontIndex < 3.0){
-                    msdf = texture2D(fontTextureArr[2], v_uv).rgb;
-                } else if(fontIndex >= 3.0 && fontIndex < 4.0){
-                    msdf = texture2D(fontTextureArr[3], v_uv).rgb;
-                } else if(fontIndex >= 4.0 && fontIndex < 5.0){
-                    msdf = texture2D(fontTextureArr[4], v_uv).rgb;
-                } else if(fontIndex >= 5.0 && fontIndex < 6.0){
-                    msdf = texture2D(fontTextureArr[5], v_uv).rgb;
-                } else if(fontIndex >= 6.0 && fontIndex < 7.0){
-                    msdf = texture2D(fontTextureArr[6], v_uv).rgb;
-                } else if(fontIndex >= 7.0 && fontIndex < 8.0){
-                    msdf = texture2D(fontTextureArr[7], v_uv).rgb;
-                } else if(fontIndex >= 8.0 && fontIndex < 9.0){
-                    msdf = texture2D(fontTextureArr[8], v_uv).rgb;
-                } else if(fontIndex >= 9.0 && fontIndex < 10.0){
-                    msdf = texture2D(fontTextureArr[9], v_uv).rgb;
-                } else if(fontIndex >= 10.0 && fontIndex < 11.0){
-                    msdf = texture2D(fontTextureArr[10], v_uv).rgb;
-                }
-                return median(msdf.r, msdf.g, msdf.b);
-            }
-
-            void main () {
-
-                fontIndex = v_fontIndex + 0.1;
-
-                vec2 dxdy = fwidth(v_uv) * sdfParams.xy;
-                float dist = getDistance() + min(v_weight, 0.5 - 1.0 / sdfParams.w) - 0.5;
-                float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
-
-                vec4 color = v_rgba;
-                color.a *= opacity;
-                if (color.a < 0.01) {
-                    discard;
-                }
-
-                gl_FragColor = vec4(v_rgba.rgb, opacity * v_rgba.a);
-            }`
-    });
-}
+// export function label_screen() {
+//     return new Program("label", {
+//         uniforms: {
+//             viewport: "vec2",
+//             fontTextureArr: "sampler2darray",
+//             projectionMatrix: "mat4",
+//             viewMatrix: "mat4",
+//             eyePositionHigh: "vec3",
+//             eyePositionLow: "vec3",
+//             planetRadius: "float",
+//             uZ: "float",
+//             scaleByDistance: "vec3",
+//             opacity: "float"
+//         },
+//         attributes: {
+//             a_outline: "float",
+//             a_gliphParam: "vec4",
+//             a_vertices: "vec2",
+//             a_texCoord: "vec4",
+//             a_positionsHigh: "vec3",
+//             a_positionsLow: "vec3",
+//             a_offset: "vec3",
+//             a_size: "float",
+//             //a_rotation: "float",
+//             a_rgba: "vec4",
+//             a_fontIndex: "float",
+//         },
+//         vertexShader:
+//             `
+//             attribute float a_outline;
+//             attribute vec4 a_gliphParam;
+//             attribute vec2 a_vertices;
+//             attribute vec4 a_texCoord;
+//             attribute vec3 a_positionsHigh;
+//             attribute vec3 a_positionsLow;
+//             attribute vec3 a_offset;
+//             attribute float a_size;
+//             //attribute float a_rotation;
+//             attribute vec4 a_rgba;
+//             attribute float a_fontIndex;
+//
+//             varying vec2 v_uv;
+//             varying vec4 v_rgba;
+//             varying float v_weight;
+//             varying float v_fontIndex;
+//
+//             uniform vec2 viewport;
+//             uniform mat4 viewMatrix;
+//             uniform mat4 projectionMatrix;
+//             uniform vec3 eyePositionHigh;
+//             uniform vec3 eyePositionLow;
+//             uniform float planetRadius;
+//             uniform float uZ;
+//             uniform vec3 scaleByDistance;
+//             uniform float opacity;
+//
+//             const vec3 ZERO3 = vec3(0.0);
+//
+//             ${PROJECT}
+//
+//             ${ROTATE2D}
+//
+//             void main() {
+//
+//                 if(a_texCoord.z == -1.0 || a_outline == 0.0) {
+//                     gl_Position = vec4(0.0);
+//                     return;
+//                 }
+//
+//                 v_weight = a_outline;
+//                 v_fontIndex = a_fontIndex;
+//                 v_uv = vec2(a_texCoord.xy);
+//
+//                 vec3 a_positions = a_positionsHigh + a_positionsLow;
+//                 vec3 cameraPos = eyePositionHigh + eyePositionLow;
+//
+//                 float lookDist = length(a_positions - cameraPos);
+//                 v_rgba = a_rgba;
+//                 if(opacity * step(lookDist, sqrt(dot(cameraPos,cameraPos) - planetRadius) + sqrt(dot(a_positions,a_positions) - planetRadius)) == 0.0){
+//                     return;
+//                 }
+//
+//                 float scd = (1.0 - smoothstep(scaleByDistance[0], scaleByDistance[1], lookDist)) * (1.0 - step(scaleByDistance[2], lookDist));
+//
+//                 v_rgba.a *= opacity;
+//
+//                 mat4 viewMatrixRTE = viewMatrix;
+//                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
+//
+//                 vec3 highDiff = a_positionsHigh - eyePositionHigh;
+//                 vec3 lowDiff = a_positionsLow - eyePositionLow;
+//                 vec4 posRTE = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+//                 vec4 projPos = projectionMatrix * posRTE;
+//                 vec2 screenPos = project(projPos);
+//
+//                 vec2 v = screenPos + rotate2d(a_rotation) * ((a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size * scd + a_offset.xy);
+//
+//                 gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z + a_offset.z + uZ, projPos.w);
+//             }`,
+//         fragmentShader:
+//             `#extension GL_OES_standard_derivatives : enable
+//
+//             precision highp float;
+//
+//             const int MAX_SIZE = 11;
+//
+//             uniform sampler2D fontTextureArr[MAX_SIZE];
+//
+//             varying float v_fontIndex;
+//             varying float v_weight;
+//             varying vec2 v_uv;
+//             varying vec4 v_rgba;
+//
+//             varying vec3 v_pickingColor;
+//
+//             float fontIndex;
+//
+//             vec4 sdfParams = vec4(512.0, 512.0, 32.0, 8.0);
+//
+//             float median(float r, float g, float b) {
+//                 return max(min(r, g), min(max(r, g), b));
+//             }
+//
+//             float getDistance() {
+//                 vec3 msdf;
+//                 if(fontIndex >= 0.0 && fontIndex < 1.0) {
+//                     msdf = texture2D(fontTextureArr[0], v_uv).rgb;
+//                 } else if(fontIndex >= 1.0 && fontIndex < 2.0){
+//                     msdf = texture2D(fontTextureArr[1], v_uv).rgb;
+//                 } else if(fontIndex >= 2.0 && fontIndex < 3.0){
+//                     msdf = texture2D(fontTextureArr[2], v_uv).rgb;
+//                 } else if(fontIndex >= 3.0 && fontIndex < 4.0){
+//                     msdf = texture2D(fontTextureArr[3], v_uv).rgb;
+//                 } else if(fontIndex >= 4.0 && fontIndex < 5.0){
+//                     msdf = texture2D(fontTextureArr[4], v_uv).rgb;
+//                 } else if(fontIndex >= 5.0 && fontIndex < 6.0){
+//                     msdf = texture2D(fontTextureArr[5], v_uv).rgb;
+//                 } else if(fontIndex >= 6.0 && fontIndex < 7.0){
+//                     msdf = texture2D(fontTextureArr[6], v_uv).rgb;
+//                 } else if(fontIndex >= 7.0 && fontIndex < 8.0){
+//                     msdf = texture2D(fontTextureArr[7], v_uv).rgb;
+//                 } else if(fontIndex >= 8.0 && fontIndex < 9.0){
+//                     msdf = texture2D(fontTextureArr[8], v_uv).rgb;
+//                 } else if(fontIndex >= 9.0 && fontIndex < 10.0){
+//                     msdf = texture2D(fontTextureArr[9], v_uv).rgb;
+//                 } else if(fontIndex >= 10.0 && fontIndex < 11.0){
+//                     msdf = texture2D(fontTextureArr[10], v_uv).rgb;
+//                 }
+//                 return median(msdf.r, msdf.g, msdf.b);
+//             }
+//
+//             void main () {
+//
+//                 fontIndex = v_fontIndex + 0.1;
+//
+//                 vec2 dxdy = fwidth(v_uv) * sdfParams.xy;
+//                 float dist = getDistance() + min(v_weight, 0.5 - 1.0 / sdfParams.w) - 0.5;
+//                 float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
+//
+//                 vec4 color = v_rgba;
+//                 color.a *= opacity;
+//                 if (color.a < 0.01) {
+//                     discard;
+//                 }
+//
+//                 gl_FragColor = vec4(v_rgba.rgb, opacity * v_rgba.a);
+//             }`
+//     });
+// }

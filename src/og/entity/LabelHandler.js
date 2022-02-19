@@ -252,24 +252,22 @@ class LabelHandler extends BillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._fontIndexBuffer);
         gl.vertexAttribPointer(sha.a_fontIndex, this._fontIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        //
-        // outline
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer);
-        gl.vertexAttribPointer(sha.a_rgba, this._outlineColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer);
+        gl.vertexAttribPointer(sha.a_outlineColor, this._outlineColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        //
         gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer);
         gl.vertexAttribPointer(sha.a_outline, this._outlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.uniform1f(shu.uZ, window.uZ + window.dZ);
-        gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
-        //
-        // nooutline
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
         gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._noOutlineBuffer);
-        gl.vertexAttribPointer(sha.a_outline, this._noOutlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.a_noOutline, this._noOutlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
 
         gl.uniform1f(shu.uZ, window.uZ);
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
@@ -906,21 +904,13 @@ class LabelHandler extends BillboardHandler {
         this._outlineBuffer = h.createArrayBuffer(this._outlineArr, 1, this._outlineArr.length);
 
         h.gl.deleteBuffer(this._noOutlineBuffer);
-        this._noOutlineBuffer = h.createArrayBuffer(
-            this._noOutlineArr,
-            1,
-            this._noOutlineArr.length
-        );
+        this._noOutlineBuffer = h.createArrayBuffer(this._noOutlineArr, 1, this._noOutlineArr.length);
     }
 
     createOutlineColorBuffer() {
         var h = this._renderer.handler;
         h.gl.deleteBuffer(this._outlineColorBuffer);
-        this._outlineColorBuffer = h.createArrayBuffer(
-            this._outlineColorArr,
-            4,
-            this._outlineColorArr.length / 4
-        );
+        this._outlineColorBuffer = h.createArrayBuffer(this._outlineColorArr, 4, this._outlineColorArr.length / 4);
     }
 
     setMaxLetters(c) {
