@@ -39,7 +39,7 @@ class FontAtlas {
         return face.trim().toLowerCase();
     }
 
-    _applyFontDataToAtlas(atlas, data) {
+    _applyFontDataToAtlas(atlas, data, index = 0) {
         let chars = data.chars;
 
         atlas.height = data.common.scaleH;
@@ -50,6 +50,11 @@ class FontAtlas {
         let w = atlas.width,
             h = atlas.height,
             s = atlas.gliphSize;
+
+        this.sdfParamsArr[index * 4] = w;
+        this.sdfParamsArr[index * 4 + 1] = h;
+        this.sdfParamsArr[index * 4 + 2] = s;
+        this.sdfParamsArr[index * 4 + 3] = atlas.distanceRange;
 
         let idToChar = {};
 
@@ -125,11 +130,6 @@ class FontAtlas {
 
         this.samplerArr[this.atlasesArr.length] = index;
 
-        this.sdfParamsArr[this.atlasesArr.length * 4] = 512.0;
-        this.sdfParamsArr[this.atlasesArr.length * 4 + 1] = 512.0;
-        this.sdfParamsArr[this.atlasesArr.length * 4 + 2] = 32.0;
-        this.sdfParamsArr[this.atlasesArr.length * 4 + 3] = 8.0;
-
         // TODO: FontTextureAtlas();
         let atlas = new TextureAtlas();
 
@@ -143,7 +143,7 @@ class FontAtlas {
 
         this.atlasesArr[index] = atlas;
 
-        this._applyFontDataToAtlas(atlas, dataJson);
+        this._applyFontDataToAtlas(atlas, dataJson, index);
 
         let img = new Image();
         img.onload = () => {
@@ -171,11 +171,6 @@ class FontAtlas {
 
         this.samplerArr[this.atlasesArr.length] = index;
 
-        this.sdfParamsArr[this.atlasesArr.length * 4] = 512.0;
-        this.sdfParamsArr[this.atlasesArr.length * 4 + 1] = 512.0;
-        this.sdfParamsArr[this.atlasesArr.length * 4 + 2] = 32.0;
-        this.sdfParamsArr[this.atlasesArr.length * 4 + 3] = 8.0;
-
         // TODO: FontTextureAtlas();
         let atlas = new TextureAtlas();
 
@@ -197,7 +192,7 @@ class FontAtlas {
             })
             .then(data => {
 
-                this._applyFontDataToAtlas(atlas, data);
+                this._applyFontDataToAtlas(atlas, data, index);
 
                 let img = new Image();
                 img.onload = () => {
