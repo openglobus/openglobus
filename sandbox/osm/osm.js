@@ -186,6 +186,7 @@ var globus = new Globe({
     //terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
     layers: [red, tg, labelLayer, borders],
+    frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]]
     //useNightTexture: false,
     //useEarthNavigation: true,
     //useSpecularTexture: false

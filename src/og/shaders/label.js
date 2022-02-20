@@ -22,6 +22,7 @@ export function label_webgl2() {
         uniforms: {
             viewport: "vec2",
             fontTextureArr: "sampler2darray",
+            sdfParamsArr: "vec4",
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
             eyePositionHigh: "vec3",
@@ -135,7 +136,13 @@ export function label_webgl2() {
 
             const int MAX_SIZE = 11;
 
+            // x - ATLAS_WIDTH = 512.0;
+            // y - ATLAS_HEIGHT = 512.0;
+            // z - ATLAS_GLYPH_SIZE = 32.0;
+            // w - ATLAS_FIELD_RANGE = 8.0;
+
             uniform sampler2D fontTextureArr[MAX_SIZE];
+            uniform vec4 sdfParamsArr[MAX_SIZE];
 
             flat in int v_fontIndex;
             in vec2 v_uv;
@@ -149,13 +156,6 @@ export function label_webgl2() {
             in vec3 v_pickingColor;
 
             layout(location = 0) out vec4 outScreen;
-
-            const float ATLAS_WIDTH = 2048.0;
-            const float ATLAS_HEIGHT = 2048.0;
-            const float ATLAS_GLYPH_SIZE = 32.0;
-            const float ATLAS_FIELD_RANGE = 8.0;
-            
-            vec4 sdfParams = vec4(ATLAS_WIDTH, ATLAS_HEIGHT, ATLAS_GLYPH_SIZE, ATLAS_FIELD_RANGE);
 
             float median(float r, float g, float b) {
                 return max(min(r, g), min(max(r, g), b));
@@ -189,19 +189,41 @@ export function label_webgl2() {
                 return median(msdf.r, msdf.g, msdf.b);
             }
 
+            vec4 getSDFParams() {
+                if(v_fontIndex == 0) {
+                    return sdfParamsArr[0];
+                } else if(v_fontIndex == 1){
+                    return sdfParamsArr[1];
+                } else if(v_fontIndex == 2){
+                    return sdfParamsArr[2];
+                } else if(v_fontIndex == 3){
+                    return sdfParamsArr[3];
+                } else if(v_fontIndex == 4){
+                    return sdfParamsArr[4];
+                } else if(v_fontIndex == 5){
+                    return sdfParamsArr[5];
+                } else if(v_fontIndex == 6){
+                    return sdfParamsArr[6];
+                } else if(v_fontIndex == 7){
+                    return sdfParamsArr[7];
+                } else if(v_fontIndex == 8){
+                    return sdfParamsArr[8];
+                } else if(v_fontIndex == 9){
+                    return sdfParamsArr[9];
+                } else if(v_fontIndex == 10){
+                    return sdfParamsArr[10];
+                }
+            }
+            
             void main () {
 
                 float sd = getDistance();
                 
+                vec4 sdfParams = getSDFParams();
+                
                 vec2 dxdy = fwidth(v_uv) * sdfParams.xy;
                 float dist = sd + min(v_noOutline, 0.5 - 1.0 / sdfParams.w) - 0.5;
                 float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
-
-                // vec4 color = v_rgba;
-                // color.a *= opacity;
-                // if (color.a < 0.01) {
-                //     discard;
-                // }
                 
                 float strokeDist = sd + min(v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
                 float strokeAlpha = v_rgba.a * clamp(strokeDist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
@@ -210,23 +232,7 @@ export function label_webgl2() {
                     discard;
                 } 
                 
-                vec4 color = v_rgba * opacity * v_rgba.a + v_outlineColor * v_outlineColor.a * strokeAlpha * (1.0 - opacity);
-                outScreen = color;
-                
-                
-                // float sigDist = getDistance();
-                //
-                // // spread field range over 1px for antialiasing
-                // float fillAlpha = clamp((sigDist - 0.5) * vFieldRangeDisplay_px + 0.5, 0.0, 1.0);
-                // float strokeDistThreshold = clamp(v_outline * 2. / vFieldRangeDisplay_px, 0.0, 1.0);
-                // float strokeDistScale = 1. / (1.0 - strokeDistThreshold);
-                // float _offset = 0.5 / strokeDistScale;
-                // float strokeAlpha = clamp((sigDist - _offset) * vFieldRangeDisplay_px + _offset, 0.0, 1.0);
-                //
-                // outScreen = (
-                //     rgba * fillAlpha * rgba.a
-                //     + outlineColor * outlineColor.a * strokeAlpha * (1.0 - fillAlpha)
-                // );
+                outScreen = v_rgba * opacity * v_rgba.a + v_outlineColor * v_outlineColor.a * strokeAlpha * (1.0 - opacity);
             }`
     });
 }

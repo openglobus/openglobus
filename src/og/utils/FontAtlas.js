@@ -9,13 +9,17 @@ import { TextureAtlas, TextureAtlasNode } from './TextureAtlas.js';
 import { Deferred } from '../Deferred.js';
 import { ARIAL_FONT_B64 } from '../res/images.js';
 
+//TODO: get the value from shader module
+const MAX_SIZE = 11;
+
 class FontAtlas {
     constructor() {
         this.atlasesArr = [];
         this.atlasIndexes = {};
         this.atlasIndexesDeferred = [];
         this.tokenImageSize = 64;
-        this.samplerArr = [0];
+        this.samplerArr = new Uint32Array(MAX_SIZE);
+        this.sdfParamsArr = new Float32Array(MAX_SIZE * 4);
         this._handler = null;
     }
 
@@ -121,6 +125,11 @@ class FontAtlas {
 
         this.samplerArr[this.atlasesArr.length] = index;
 
+        this.sdfParamsArr[this.atlasesArr.length * 4] = 512.0;
+        this.sdfParamsArr[this.atlasesArr.length * 4 + 1] = 512.0;
+        this.sdfParamsArr[this.atlasesArr.length * 4 + 2] = 32.0;
+        this.sdfParamsArr[this.atlasesArr.length * 4 + 3] = 8.0;
+
         // TODO: FontTextureAtlas();
         let atlas = new TextureAtlas();
 
@@ -161,6 +170,11 @@ class FontAtlas {
         }
 
         this.samplerArr[this.atlasesArr.length] = index;
+
+        this.sdfParamsArr[this.atlasesArr.length * 4] = 512.0;
+        this.sdfParamsArr[this.atlasesArr.length * 4 + 1] = 512.0;
+        this.sdfParamsArr[this.atlasesArr.length * 4 + 2] = 32.0;
+        this.sdfParamsArr[this.atlasesArr.length * 4 + 3] = 8.0;
 
         // TODO: FontTextureAtlas();
         let atlas = new TextureAtlas();

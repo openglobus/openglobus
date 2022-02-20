@@ -212,6 +212,7 @@ class LabelHandler extends BillboardHandler {
         gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
 
         gl.uniform1iv(shu.fontTextureArr, r.fontAtlas.samplerArr);
+        gl.uniform4fv(shu.sdfParamsArr, r.fontAtlas.sdfParamsArr);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
