@@ -22,7 +22,7 @@ const FONTINDEX_BUFFER = 8;
 const OUTLINE_BUFFER = 9;
 const OUTLINECOLOR_BUFFER = 10;
 
-window.uZ = -2.0;
+window.uZ = 0.0;
 window.dZ = 1.1;
 /*
  * og.LabelHandler

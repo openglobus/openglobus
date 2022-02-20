@@ -153,7 +153,7 @@ export function label_webgl2() {
             const float ATLAS_WIDTH = 2048.0;
             const float ATLAS_HEIGHT = 2048.0;
             const float ATLAS_GLYPH_SIZE = 32.0;
-            const float ATLAS_FIELD_RANGE = 12.0;
+            const float ATLAS_FIELD_RANGE = 8.0;
             
             vec4 sdfParams = vec4(ATLAS_WIDTH, ATLAS_HEIGHT, ATLAS_GLYPH_SIZE, ATLAS_FIELD_RANGE);
 
@@ -204,16 +204,14 @@ export function label_webgl2() {
                 // }
                 
                 float strokeDist = sd + min(v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
-                float strokeAlpha = clamp(strokeDist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
+                float strokeAlpha = v_rgba.a * clamp(strokeDist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
                 
                 if (strokeAlpha < 0.01) {
                     discard;
                 } 
                 
-                outScreen = (
-                    v_rgba * opacity * v_rgba.a
-                    + v_outlineColor * v_outlineColor.a * strokeAlpha * (1.0 - opacity)
-                );
+                vec4 color = v_rgba * opacity * v_rgba.a + v_outlineColor * v_outlineColor.a * strokeAlpha * (1.0 - opacity);
+                outScreen = color;
                 
                 
                 // float sigDist = getDistance();
