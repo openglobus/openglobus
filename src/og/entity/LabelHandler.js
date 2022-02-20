@@ -40,13 +40,11 @@ class LabelHandler extends BillboardHandler {
 
         this._gliphParamBuffer = null;
         this._fontIndexBuffer = null;
-        this._noOutlineBuffer = null;
         this._outlineBuffer = null;
         this._outlineColorBuffer = null;
 
         this._gliphParamArr = new Float32Array();
         this._fontIndexArr = new Float32Array();
-        this._noOutlineArr = new Float32Array();
         this._outlineArr = new Float32Array();
         this._outlineColorArr = new Float32Array();
 
@@ -114,7 +112,6 @@ class LabelHandler extends BillboardHandler {
             this._rotationArr = concatTypedArrays(this._rotationArr, data.rotationArr);
             this._fontIndexArr = concatTypedArrays(this._fontIndexArr, data.fontIndexArr);
             this._outlineArr = concatTypedArrays(this._outlineArr, data.outlineArr);
-            this._noOutlineArr = concatTypedArrays(this._noOutlineArr, data.noOutlineArr);
             this._outlineColorArr = concatTypedArrays(this._outlineColorArr, data.outlineColorArr);
             this._pickingColorArr = concatTypedArrays(this._pickingColorArr, data.pickingColorArr);
 
@@ -135,7 +132,6 @@ class LabelHandler extends BillboardHandler {
         this._rgbaArr = null;
         this._rotationArr = null;
         this._fontIndexArr = null;
-        this._noOutlineArr = null;
         this._outlineArr = null;
         this._outlineColorArr = null;
 
@@ -149,7 +145,6 @@ class LabelHandler extends BillboardHandler {
         this._rgbaArr = new Float32Array();
         this._rotationArr = new Float32Array();
         this._fontIndexArr = new Float32Array();
-        this._noOutlineArr = new Float32Array();
         this._outlineArr = new Float32Array();
         this._outlineColorArr = new Float32Array();
 
@@ -166,7 +161,6 @@ class LabelHandler extends BillboardHandler {
             gl.deleteBuffer(this._fontIndexBuffer);
             gl.deleteBuffer(this._texCoordBuffer);
             gl.deleteBuffer(this._outlineBuffer);
-            gl.deleteBuffer(this._noOutlineBuffer);
             gl.deleteBuffer(this._outlineColorBuffer);
             gl.deleteBuffer(this._positionHighBuffer);
             gl.deleteBuffer(this._positionLowBuffer);
@@ -207,26 +201,19 @@ class LabelHandler extends BillboardHandler {
         var gl = h.gl,
             ec = this._entityCollection;
 
-        //gl.depthFunc(gl.ALWAYS);
-
         gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
 
         gl.uniform1iv(shu.fontTextureArr, r.fontAtlas.samplerArr);
         gl.uniform4fv(shu.sdfParamsArr, r.fontAtlas.sdfParamsArr);
-
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
-
         gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
-
         gl.uniform3fv(shu.scaleByDistance, ec.scaleByDistance);
-
         gl.uniform1f(shu.opacity, ec._fadingOpacity);
-
         gl.uniform1f(shu.planetRadius, ec.renderNode._planetRadius2 || 0);
-
         gl.uniform2fv(shu.viewport, [h.canvas.clientWidth, h.canvas.clientHeight]);
+        gl.uniform1f(shu.uZ, window.uZ);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
         gl.vertexAttribPointer(sha.a_texCoord, this._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -255,27 +242,16 @@ class LabelHandler extends BillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._fontIndexBuffer);
         gl.vertexAttribPointer(sha.a_fontIndex, this._fontIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-
-
         gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer);
         gl.vertexAttribPointer(sha.a_outlineColor, this._outlineColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        //
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer);
         gl.vertexAttribPointer(sha.a_outline, this._outlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
         gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._noOutlineBuffer);
-        gl.vertexAttribPointer(sha.a_noOutline, this._noOutlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-
-        gl.uniform1f(shu.uZ, window.uZ);
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
-
-        //gl.depthFunc(gl.LESS);
     }
 
     _pickingPASS() {
@@ -295,16 +271,11 @@ class LabelHandler extends BillboardHandler {
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
-
         gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
-
         gl.uniform3fv(shu.scaleByDistance, ec.scaleByDistance);
-
         gl.uniform1f(shu.opacity, ec._fadingOpacity);
-
         gl.uniform1f(shu.planetRadius, rn._planetRadius2 || 0);
-
         gl.uniform2fv(shu.viewport, [h.canvas.clientWidth, h.canvas.clientHeight]);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
@@ -317,24 +288,10 @@ class LabelHandler extends BillboardHandler {
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer);
-        gl.vertexAttribPointer(
-            sha.a_positionsHigh,
-            this._positionHighBuffer.itemSize,
-            gl.FLOAT,
-            false,
-            0,
-            0
-        );
+        gl.vertexAttribPointer(sha.a_positionsHigh, this._positionHighBuffer.itemSize, gl.FLOAT, false, 0,0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer);
-        gl.vertexAttribPointer(
-            sha.a_positionsLow,
-            this._positionLowBuffer.itemSize,
-            gl.FLOAT,
-            false,
-            0,
-            0
-        );
+        gl.vertexAttribPointer(sha.a_positionsLow, this._positionLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer);
         gl.vertexAttribPointer(sha.a_size, this._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -345,16 +302,8 @@ class LabelHandler extends BillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._offsetBuffer);
         gl.vertexAttribPointer(sha.a_offset, this._offsetBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        // no outline
         gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingColorBuffer);
-        gl.vertexAttribPointer(
-            sha.a_rgba,
-            this._pickingColorBuffer.itemSize,
-            gl.FLOAT,
-            false,
-            0,
-            0
-        );
+        gl.vertexAttribPointer(sha.a_rgba, this._pickingColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
     }
@@ -388,7 +337,6 @@ class LabelHandler extends BillboardHandler {
         this._rotationArr = spliceTypedArray(this._rotationArr, i, ml);
         this._fontIndexArr = spliceTypedArray(this._fontIndexArr, i, ml);
         this._outlineArr = spliceTypedArray(this._outlineArr, i, ml);
-        this._noOutlineArr = spliceTypedArray(this._noOutlineArr, i, ml);
 
         this.reindexBillbordsArray(li);
         this.refresh();
@@ -904,12 +852,8 @@ class LabelHandler extends BillboardHandler {
 
     createOutlineBuffer() {
         var h = this._renderer.handler;
-
         h.gl.deleteBuffer(this._outlineBuffer);
         this._outlineBuffer = h.createArrayBuffer(this._outlineArr, 1, this._outlineArr.length);
-
-        h.gl.deleteBuffer(this._noOutlineBuffer);
-        this._noOutlineBuffer = h.createArrayBuffer(this._noOutlineArr, 1, this._noOutlineArr.length);
     }
 
     createOutlineColorBuffer() {
