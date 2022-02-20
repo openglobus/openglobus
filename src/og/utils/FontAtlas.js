@@ -9,13 +9,17 @@ import { TextureAtlas, TextureAtlasNode } from './TextureAtlas.js';
 import { Deferred } from '../Deferred.js';
 import { ARIAL_FONT_B64 } from '../res/images.js';
 
+//TODO: get the value from shader module
+const MAX_SIZE = 11;
+
 class FontAtlas {
     constructor() {
         this.atlasesArr = [];
         this.atlasIndexes = {};
         this.atlasIndexesDeferred = [];
         this.tokenImageSize = 64;
-        this.samplerArr = [0];
+        this.samplerArr = new Uint32Array(MAX_SIZE);
+        this.sdfParamsArr = new Float32Array(MAX_SIZE * 4);
         this._handler = null;
     }
 
@@ -35,7 +39,7 @@ class FontAtlas {
         return face.trim().toLowerCase();
     }
 
-    _applyFontDataToAtlas(atlas, data) {
+    _applyFontDataToAtlas(atlas, data, index = 0) {
         let chars = data.chars;
 
         atlas.height = data.common.scaleH;
@@ -46,6 +50,11 @@ class FontAtlas {
         let w = atlas.width,
             h = atlas.height,
             s = atlas.gliphSize;
+
+        this.sdfParamsArr[index * 4] = w;
+        this.sdfParamsArr[index * 4 + 1] = h;
+        this.sdfParamsArr[index * 4 + 2] = s;
+        this.sdfParamsArr[index * 4 + 3] = atlas.distanceRange;
 
         let idToChar = {};
 
@@ -134,7 +143,7 @@ class FontAtlas {
 
         this.atlasesArr[index] = atlas;
 
-        this._applyFontDataToAtlas(atlas, dataJson);
+        this._applyFontDataToAtlas(atlas, dataJson, index);
 
         let img = new Image();
         img.onload = () => {
@@ -183,7 +192,7 @@ class FontAtlas {
             })
             .then(data => {
 
-                this._applyFontDataToAtlas(atlas, data);
+                this._applyFontDataToAtlas(atlas, data, index);
 
                 let img = new Image();
                 img.onload = () => {

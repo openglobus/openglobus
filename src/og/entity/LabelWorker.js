@@ -128,7 +128,6 @@ const _programm = `'use strict';
             _alignedAxisArr = new Float32Array(maxLetters * 18),
             _fontIndexArr = new Float32Array(maxLetters * 6),
             _outlineArr = new Float32Array(maxLetters * 6),
-            _noOutlineArr = new Float32Array(maxLetters * 6),
             _outlineColorArr = new Float32Array(maxLetters * 24),
             _pickingColorArr = new Float32Array(maxLetters * 18);
         
@@ -169,9 +168,6 @@ const _programm = `'use strict';
             x = _outline;
             concatTypedArrays(_outlineArr, i, [x, x, x, x, x, x]);
 
-            w = 0.001;
-            concatTypedArrays(_noOutlineArr, i, [w, w, w, w, w, w]);
-
             x = _outlineColor_x; y = _outlineColor_y; z = _outlineColor_z; w = _outlineColor_w;
             concatTypedArrays(_outlineColorArr, i, [x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w]);
 
@@ -193,7 +189,6 @@ const _programm = `'use strict';
                 alignedAxisArr: _alignedAxisArr,
                 fontIndexArr: _fontIndexArr,
                 outlineArr: _outlineArr,
-                noOutlineArr: _noOutlineArr,
                 outlineColorArr: _outlineColorArr,
                 pickingColorArr: _pickingColorArr
              }, [
@@ -209,7 +204,6 @@ const _programm = `'use strict';
                     _alignedAxisArr.buffer,
                     _fontIndexArr.buffer,
                     _outlineArr.buffer,
-                    _noOutlineArr.buffer,
                     _outlineColorArr.buffer,
                     _pickingColorArr.buffer
             ]);
