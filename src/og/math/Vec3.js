@@ -15,24 +15,24 @@ import { Quat } from "./Quat.js";
  * @param {number} [z] - Third value.
  */
 export class Vec3 {
-    constructor(x = 0.0 , y = 0.0, z = 0.0) {
+    constructor(x = 0.0, y = 0.0, z = 0.0) {
         /**
          * @public
          * @type {number}
          */
-        this.x = x;
+        this.x = x || 0.0;
 
         /**
          * @public
          * @type {number}
          */
-        this.y = y;
+        this.y = y || 0.0;
 
         /**
          * @public
          * @type {number}
          */
-        this.z = z;
+        this.z = z || 0.0;
     }
 
     /** @const */

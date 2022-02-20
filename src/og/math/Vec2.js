@@ -13,7 +13,7 @@ import { Vec3 } from "./Vec3.js";
  * @param {number} [y] - Second value.
  */
 export class Vec2 {
-    constructor(x = 0, y = 0) {
+    constructor(x = 0.0, y = 0.0) {
         /**
          * @public
          * @type {number}
