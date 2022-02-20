@@ -207,6 +207,8 @@ class LabelHandler extends BillboardHandler {
         var gl = h.gl,
             ec = this._entityCollection;
 
+        //gl.depthFunc(gl.ALWAYS);
+
         gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
 
         gl.uniform1iv(shu.fontTextureArr, r.fontAtlas.samplerArr);
@@ -271,6 +273,8 @@ class LabelHandler extends BillboardHandler {
 
         gl.uniform1f(shu.uZ, window.uZ);
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
+
+        //gl.depthFunc(gl.LESS);
     }
 
     _pickingPASS() {

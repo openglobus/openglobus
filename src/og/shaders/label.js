@@ -150,7 +150,12 @@ export function label_webgl2() {
 
             layout(location = 0) out vec4 outScreen;
 
-            vec4 sdfParams = vec4(512.0, 512.0, 32.0, 8.0);
+            const float ATLAS_WIDTH = 2048.0;
+            const float ATLAS_HEIGHT = 2048.0;
+            const float ATLAS_GLYPH_SIZE = 32.0;
+            const float ATLAS_FIELD_RANGE = 12.0;
+            
+            vec4 sdfParams = vec4(ATLAS_WIDTH, ATLAS_HEIGHT, ATLAS_GLYPH_SIZE, ATLAS_FIELD_RANGE);
 
             float median(float r, float g, float b) {
                 return max(min(r, g), min(max(r, g), b));
@@ -186,17 +191,44 @@ export function label_webgl2() {
 
             void main () {
 
+                float sd = getDistance();
+                
                 vec2 dxdy = fwidth(v_uv) * sdfParams.xy;
-                float dist = getDistance() + min(v_noOutline + v_outline * 0.0, 0.5 - 1.0 / sdfParams.w) - 0.5;
+                float dist = sd + min(v_noOutline, 0.5 - 1.0 / sdfParams.w) - 0.5;
                 float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
 
-                vec4 color = v_rgba + v_outlineColor * 0.0;
-                color.a *= opacity;
-                if (color.a < 0.01) {
+                // vec4 color = v_rgba;
+                // color.a *= opacity;
+                // if (color.a < 0.01) {
+                //     discard;
+                // }
+                
+                float strokeDist = sd + min(v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
+                float strokeAlpha = clamp(strokeDist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
+                
+                if (strokeAlpha < 0.01) {
                     discard;
-                }
-
-                outScreen = vec4(v_rgba.rgb, opacity * v_rgba.a);
+                } 
+                
+                outScreen = (
+                    v_rgba * opacity * v_rgba.a
+                    + v_outlineColor * v_outlineColor.a * strokeAlpha * (1.0 - opacity)
+                );
+                
+                
+                // float sigDist = getDistance();
+                //
+                // // spread field range over 1px for antialiasing
+                // float fillAlpha = clamp((sigDist - 0.5) * vFieldRangeDisplay_px + 0.5, 0.0, 1.0);
+                // float strokeDistThreshold = clamp(v_outline * 2. / vFieldRangeDisplay_px, 0.0, 1.0);
+                // float strokeDistScale = 1. / (1.0 - strokeDistThreshold);
+                // float _offset = 0.5 / strokeDistScale;
+                // float strokeAlpha = clamp((sigDist - _offset) * vFieldRangeDisplay_px + _offset, 0.0, 1.0);
+                //
+                // outScreen = (
+                //     rgba * fillAlpha * rgba.a
+                //     + outlineColor * outlineColor.a * strokeAlpha * (1.0 - fillAlpha)
+                // );
             }`
     });
 }

@@ -33,8 +33,6 @@ const tg = new CanvasTiles("Tile grid", {
         if (material.segment.isPole) {
             let ext = material.segment.getExtentLonLat();
 
-            ctx.fillStyle = "rgba(0,0,0,255)";
-            ctx.fillRect(0, 0, 256, 256);
 
             if (material.segment.tileZoom > 14) {
                 size = "26";
@@ -46,11 +44,6 @@ const tg = new CanvasTiles("Tile grid", {
             ctx.textAlign = 'center';
             ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
         } else {
-
-            console.log(material.segment.tileZoom);
-
-            ctx.fillStyle = "rgba(0,0,0,255)";
-            ctx.fillRect(0, 0, 256, 256);
 
             if (material.segment.tileZoom > 14) {
                 size = "26";
@@ -113,6 +106,23 @@ var borders = new XYZ("borders", {
     }
 });
 
+var red = new XYZ("borders", {
+    opacity: 1.0,
+    isBaseLayer: true,
+    textureFilter: "mipmap",
+    url: "//dynamic.t3.tiles.ditu.live.com/comp/ch/{quad}?mkt=zh-cn,en-us&it=Z,GF,L&ur=CN&og=649&n=z&shading=t&o=PNG&st=me|lv:0_wt|v:1_trs|v:1;lv:0;sc:FF6B6B6B;fc:FF6B6B6B;strokeWidthScale:0.2_cst|v:1;fc:FF000000;strokeWidthScale:0.5&cstl=weather&shdw=1",
+    visibility: true,
+    maxNativeZoom: 14,
+    preLoadZoomLevels: [],
+    minNativeZoom: 1,
+    urlRewrite: function (s, u) {
+        console.log(s.tileZoom);
+        return stringTemplate(u, {
+            'quad': toQuadKey(s.tileX, s.tileY, s.tileZoom)
+        });
+    }
+});
+
 let osm = new XYZ("osm", {
     isBaseLayer: true,
     url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -145,15 +155,16 @@ const labelLayer = new labelXYZ("labelLayer", {
     isBaseLayer: false,
     visibility: true,
     zIndex: 3,
-    url: "//t.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{quad}?mkt=zh-cn&it=Z%2CGF%2CL&shading=hill&og=1471&n=z&ur=JP&js=1&cstl=in&st=me|lv:0_pp|lv:1_cr|lv:1_ad|lv:1&nvlos=1&vpt=e,p&pll=1&ell=1",
-    countryLayerData: "//assets.msn.com/weathermapdata/1/static/3d/label.0.1/country-{}.json",
-    cityLabelZ3Path: "//assets.msn.com/weathermapdata/1/static/3d/label.0.1/cities_level3.5.json",
+    url: "https://t.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{quad}?mkt=zh-cn&it=Z%2CGF%2CL&shading=hill&og=1471&n=z&ur=JP&js=1&cstl=in&st=me|lv:0_pp|lv:1_cr|lv:1_ad|lv:1&nvlos=1&vpt=e,p&pll=1&ell=1",
+    countryLayerData: "https://assets.msn.com/weathermapdata/1/static/3d/label.0.1/country-{}.json",
+    cityLabelZ3Path: "https://assets.msn.com/weathermapdata/1/static/3d/label.0.1/cities_level3.5.json",
     //height: 16,
     size: 11.5,
     color: "white",
-    //labelFace: "seguisb",
+    labelFace: "chinese.msyh",
     zoomLevelMinAltitude: [13400000, 13400000, 13400000, 12000000, 8000000, 5000000, 4200000, 3500000],
     maxNativeZoom: 5,
+    isZhcnMarket: true,
     //clickLabelCallBack: option.onGlobeClick,
     urlRewrite: function (segment, url) {
         return stringTemplate(url, {
@@ -171,15 +182,16 @@ var globus = new Globe({
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
-    //terrain: new GlobusTerrain(),
-    terrain: new EmptyTerrain(),
+    terrain: new GlobusTerrain(),
+    //terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
-    layers: [osm, tg, borders],
+    layers: [red, tg, labelLayer, borders],
     //useNightTexture: false,
     //useEarthNavigation: true,
-    //useSpecularTexture: false,
-    backgroundColor: "red"
+    //useSpecularTexture: false
 });
+
+globus.renderer.fontAtlas.loadFont("chinese.msyh", "//assets.msn.com/weathermapdata/1/static/3d/label/zh-cn/font-v2.2/", "chinese.msyh.json");
 
 //globus.planet.addControl(new Lighting());
 
