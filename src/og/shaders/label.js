@@ -30,7 +30,8 @@ export function label_webgl2() {
             planetRadius: "float",
             uZ: "float",
             scaleByDistance: "vec3",
-            opacity: "float"
+            opacity: "float",
+            isOutlinePass: "int"
         },
         attributes: {
             a_outline: "float",
@@ -43,8 +44,7 @@ export function label_webgl2() {
             a_rotation: "float",
             a_rgba: "vec4",
             a_offset: "vec3",
-            a_fontIndex: "float",
-            a_outlineColor: "vec4"
+            a_fontIndex: "float"
         },
         vertexShader:
             `#version 300 es
@@ -60,7 +60,6 @@ export function label_webgl2() {
             in float a_rotation;
             in vec4 a_rgba;
             in float a_fontIndex;
-            in vec4 a_outlineColor;
 
             out vec2 v_uv;
             out vec4 v_rgba;
@@ -100,7 +99,6 @@ export function label_webgl2() {
                 v_uv = vec2(a_texCoord.xy);
                 float lookDist = length(a_positions - cameraPos);
                 v_rgba = a_rgba;
-                v_outlineColor = a_outlineColor;
                 
                 if(opacity * step(lookDist, sqrt(dot(cameraPos,cameraPos) - planetRadius) + sqrt(dot(a_positions,a_positions) - planetRadius)) == 0.0){
                     return;
@@ -127,6 +125,7 @@ export function label_webgl2() {
             `#version 300 es
 
             precision highp float;
+            precision highp int;
 
             const int MAX_SIZE = 11;
 
@@ -137,12 +136,11 @@ export function label_webgl2() {
 
             uniform sampler2D fontTextureArr[MAX_SIZE];
             uniform vec4 sdfParamsArr[MAX_SIZE];
+            uniform int isOutlinePass;
 
             flat in int v_fontIndex;
             in vec2 v_uv;
-            in vec4 v_rgba;
-            
-            in vec4 v_outlineColor;
+            in vec4 v_rgba;           
 
             flat in float v_outline;
 
@@ -208,25 +206,44 @@ export function label_webgl2() {
                 }
             }
             
+            // void main () {
+            //
+            //     float sd = getDistance();
+            //    
+            //     vec4 sdfParams = getSDFParams();
+            //    
+            //     vec2 dxdy = fwidth(v_uv) * sdfParams.xy;
+            //     float dist = sd + min(0.001, 0.5 - 1.0 / sdfParams.w) - 0.5;
+            //     float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
+            //    
+            //     float strokeDist = sd + min(v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
+            //     float strokeAlpha = v_rgba.a * clamp(strokeDist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
+            //    
+            //     if (strokeAlpha < 0.01) {
+            //         discard;
+            //     } 
+            //    
+            //     outScreen = v_rgba * opacity * v_rgba.a + v_outlineColor * v_outlineColor.a * strokeAlpha * (1.0 - opacity);
+            // }
+            
             void main () {
 
-                float sd = getDistance();
-                
                 vec4 sdfParams = getSDFParams();
                 
                 vec2 dxdy = fwidth(v_uv) * sdfParams.xy;
-                float dist = sd + min(0.001, 0.5 - 1.0 / sdfParams.w) - 0.5;
+                float dist = getDistance() + min(isOutlinePass == 0 ? 0.001 : v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
                 float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
-                
-                float strokeDist = sd + min(v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
-                float strokeAlpha = v_rgba.a * clamp(strokeDist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
-                
-                if (strokeAlpha < 0.01) {
+
+                vec4 color = v_rgba;
+                color.a *= opacity;
+                if (color.a < 0.01) {
                     discard;
-                } 
-                
-                outScreen = v_rgba * opacity * v_rgba.a + v_outlineColor * v_outlineColor.a * strokeAlpha * (1.0 - opacity);
-            }`
+                }
+
+                outScreen = vec4(v_rgba.rgb, opacity * v_rgba.a);
+            }
+            
+            `
     });
 }
 

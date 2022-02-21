@@ -22,7 +22,7 @@ const FONTINDEX_BUFFER = 8;
 const OUTLINE_BUFFER = 9;
 const OUTLINECOLOR_BUFFER = 10;
 
-window.uZ = 0.0;
+window.uZ = -2.0;
 window.dZ = 1.1;
 /*
  * og.LabelHandler
@@ -242,15 +242,26 @@ class LabelHandler extends BillboardHandler {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._fontIndexBuffer);
         gl.vertexAttribPointer(sha.a_fontIndex, this._fontIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
+        //
+        // outline PASS
         gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer);
-        gl.vertexAttribPointer(sha.a_outlineColor, this._outlineColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(sha.a_rgba, this._outlineColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer);
         gl.vertexAttribPointer(sha.a_outline, this._outlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
+        gl.uniform1i(shu.isOutlinePass, 1);
+        gl.uniform1f(shu.uZ, window.uZ + window.dZ);
+        gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
+
+        //
+        // no outline PASS
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
         gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
+        gl.uniform1i(shu.isOutlinePass, 0);
+        gl.uniform1f(shu.uZ, window.uZ);
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
     }
 
