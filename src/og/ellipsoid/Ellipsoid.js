@@ -391,7 +391,14 @@ class Ellipsoid {
         return new Vec3(nx * l, ny * l, nz * l);
     }
 
-    getBearingDestination(lonLat1, bearing, distance) {
+    /**
+     * 
+     * @param {LonLat} lonLat1 
+     * @param {number} [bearing] 
+     * @param {number} [distance] 
+     * @returns 
+     */
+    getBearingDestination(lonLat1, bearing = 0.0, distance = 0) {
         bearing = bearing * math.RADIANS;
         var nlon = ((lonLat1.lon + 540) % 360) - 180;
         var f1 = lonLat1.lat * math.RADIANS,
