@@ -61,7 +61,7 @@ returns.forEach(function (ret, i) {
             }
     ?>
         <tr>
-            <?js if (ret.name) { ?><td class="name"><code><?js= ret.name ?></code></td><?js } ?>
+            <?js if (ret?.name) { ?><td class="name"><code><?js= ret.name ?></code></td><?js } ?>
             <td class="type">
             <?js
                 if (ret.type && ret.type.names) {
