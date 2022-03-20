@@ -42,7 +42,7 @@ export class KML extends Vector {
     _extractCoordonatesFromKml(xmlDoc) {
         const raw = Array.from(xmlDoc.getElementsByTagName("coordinates"));
         const rawText = raw.map(item => item.textContent.trim());
-        const coordinates = rawText.map(item => 
+        const coordinates = rawText.map(item =>
             item
              .replace(/\n/g, " ")
              .replace(/\t/g, " ")
@@ -54,12 +54,187 @@ export class KML extends Vector {
     }
 
     /**
+     * @private
+     */
+    _xml2json(xml) {
+      // https://davidwalsh.name/convert-xml-json
+
+      // Create the return object
+      var obj = {};
+
+      if (xml.nodeType == 1) { // element
+          // do attributes
+          if (xml.attributes.length > 0) {
+          obj["@attributes"] = {};
+              for (var j = 0; j < xml.attributes.length; j++) {
+                  var attribute = xml.attributes.item(j);
+                  obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
+              }
+          }
+      } else if (xml.nodeType == 3) { // text
+          obj = xml.nodeValue;
+      }
+
+      // do children
+      if (xml.hasChildNodes()) {
+          for(var i = 0; i < xml.childNodes.length; i++) {
+              var item = xml.childNodes.item(i);
+              var nodeName = item.nodeName;
+              if (typeof(obj[nodeName]) == "undefined") {
+                  obj[nodeName] = this._xml2json(item);
+              } else {
+                  if (typeof(obj[nodeName].push) == "undefined") {
+                      var old = obj[nodeName];
+                      obj[nodeName] = [];
+                      obj[nodeName].push(old);
+                  }
+                  obj[nodeName].push(this._xml2json(item));
+              }
+          }
+      }
+      return obj;
+      }
+
+    /**
+     * @private
+     */
+    _parseKMLcoordinates(jobj) {
+      // returns longitude, latitude, altitude
+      let coordinates = jobj["#text"].trim()
+        .replace(/\n/g, ' ')
+        .replace(/\t/g, ' ')
+        .replace(/ +/g, ' ')
+        .split(" ")
+        .map((co) => co.split(",").map(parseFloat))
+
+      return(coordinates[0]);
+      }
+
+    /**
+     * @private
+     */
+    _parseKMLstyle(jobj) {
+      }
+
+    /**
+     * @private
+     */
+    _kmlPlacemarkToEntity(jobj) {
+      if (jobj === undefined)
+        return(undefined);
+
+      let name = jobj["name"];
+      if (name !== undefined)
+        name = name["#text"];
+
+      let point = jobj["Point"];
+      if (point === undefined)
+        return(undefined);
+
+      let coordinates = point["coordinates"];
+      if (coordinates === undefined)
+        return(undefined);
+
+      var iconURL;
+      let style = jobj["Style"];
+      if (style !== undefined) {
+        let iconstyle = style["IconStyle"];
+        if (iconstyle !== undefined) {
+          let icon = iconstyle["Icon"];
+          if (icon !== undefined) {
+            let href = icon["href"];
+            if (href !== undefined) {
+              iconURL = href["#text"];
+              };
+            };
+          };
+        };
+      if (iconURL === undefined) {
+        iconURL = "https://openglobus.org/examples/billboards/carrot.png";
+        };
+
+      let lonlatalt = this._parseKMLcoordinates(coordinates);
+      if (lonlatalt === undefined) {
+        lonlatalt = [ 0, 0, 0];
+      };
+
+      const addToExtent = (c) => {
+          const lon = c[0],
+              lat = c[1];
+          if (lon < extent.southWest.lon) extent.southWest.lon = lon;
+          if (lat < extent.southWest.lat) extent.southWest.lat = lat;
+          if (lon > extent.northEast.lon) extent.northEast.lon = lon;
+          if (lat > extent.northEast.lat) extent.northEast.lat = lat;
+      };
+
+      console.dir(name, iconURL, lonlatalt[0], lonlatalt[1], lonlatalt[2]);
+
+      let entity = new Entity({
+        'name': name,
+        //'lonlat': [lonlatalt[0], lonlatalt[1], lonlatalt[2]],
+        'lonlat': lonlatalt,
+        'billboard': {
+          'src': iconURL,
+          'size': [24, 24],
+          'color': '#6689db',
+          'rotation': 0
+          },
+        'properties': {
+          'bearing': 0,
+          'color': '#6689db'
+          }
+        });
+
+      return(entity);
+      }
+
+    /**
+     * @private
+     */
+    _parseJSONKML(jobj, entities=undefined) {
+      if (entities === undefined)
+        entities = [];
+
+      for (var key in jobj) {
+        if (key == "Placemark") {
+          for (var index in jobj[key]) {
+            let entity = this._kmlPlacemarkToEntity(jobj[key][index]);
+            if (entity !== undefined) {
+              entities.push(entity);
+              };
+            };
+          };
+        if (jobj[key] !== null && typeof(jobj[key]) == "object") {
+          this._parseJSONKML(jobj[key], entities);
+          };
+        };
+
+      return(entities);
+      }
+
+    /**
+     * @private
+     */
+    _convertKMLintoEntities(xml) {
+      const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
+      let jobj = this._xml2json(xml);
+
+      let entities = this._parseJSONKML(jobj);
+
+      console.log("ENTITIES");
+      console.dir(entities);
+
+      return(entities);
+      }
+
+    /**
      * Creates billboards or polylines from array of lonlat.
      * @private
      * @param {Array} coordonates
      * @param {string} color
      * @returns {Array<Entity>}
      */
+/*
     _convertCoordonatesIntoEntities(coordinates, color, billboard) {
         const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
         const addToExtent = (c) => {
@@ -91,6 +266,7 @@ export class KML extends Vector {
         });
         return { entities, extent };
     }
+*/
 
     /**
      * @private
@@ -129,6 +305,8 @@ export class KML extends Vector {
      * @returns {Promise<{entities: Entity[], extent: Extent}>}
      */
     async addKmlFromFiles(kmls, color = null, billboard = null) {
+        const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
+/*
         const kmlObjs = await Promise.all(kmls.map(this._getXmlContent));
         const coordonates = kmlObjs.map(this._extractCoordonatesFromKml);
         const { entities, extent } = this._convertCoordonatesIntoEntities(
@@ -136,6 +314,9 @@ export class KML extends Vector {
             color || this._color,
             billboard || this._billboard
         );
+*/
+        const entities = this._convertKMLintoEntities(kml);
+
         this._extent = this._expandExtents(this._extent, extent);
         entities.forEach(this.add.bind(this));
         return { entities, extent };
@@ -178,13 +359,18 @@ export class KML extends Vector {
      * @returns {Promise<{entities: Entity[], extent: Extent}>}
      */
     async addKmlFromUrl(url, color = null, billboard = null) {
+        const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
         const kml = await this._getKmlFromUrl(url);
+/*
         const coordonates = this._extractCoordonatesFromKml(kml);
         const { entities, extent } = this._convertCoordonatesIntoEntities(
             [coordonates],
             color || this._color,
             billboard || this._billboard
         );
+*/
+        const entities = this._convertKMLintoEntities(kml);
+
         this._extent = this._expandExtents(this._extent, extent);
         entities.forEach(this.add.bind(this));
         return { entities, extent };

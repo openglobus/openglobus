@@ -21,54 +21,117 @@
 				</LineString>
 			</Placemark>
 			<Placemark>
+				<Style>
+					<IconStyle>
+						<Icon>
+							<href>./plane.png</href>
+						</Icon>
+					</IconStyle>
+				</Style>
 				<name>LFPT</name>
 				<Point>
 					<coordinates>2.039,49.090</coordinates>
 				</Point>
 			</Placemark>
 			<Placemark>
+				<Style>
+					<IconStyle>
+						<Icon>
+							<href>./plane.png</href>
+						</Icon>
+					</IconStyle>
+				</Style>
 				<name>Travers Gisors</name>
 				<Point>
 					<coordinates>1.779,49.279</coordinates>
 				</Point>
 			</Placemark>
 			<Placemark>
+				<Style>
+					<IconStyle>
+						<Icon>
+							<href>./plane.png</href>
+						</Icon>
+					</IconStyle>
+				</Style>
 				<name>Forges-les-Eaux</name>
 				<Point>
 					<coordinates>1.5456,49.6129</coordinates>
 				</Point>
 			</Placemark>
 			<Placemark>
+				<Style>
+					<IconStyle>
+						<Icon>
+							<href>./plane.png</href>
+						</Icon>
+					</IconStyle>
+				</Style>
 				<name>vor DPE (Dieppe) 115.8</name>
 				<Point>
 					<coordinates>1.168,49.935</coordinates>
 				</Point>
 			</Placemark>
 			<Placemark>
+				<Style>
+					<IconStyle>
+						<Icon>
+							<href>./plane.png</href>
+						</Icon>
+					</IconStyle>
+				</Style>
 				<name>Dieppe (LFAB)</name>
 				<Point>
 					<coordinates>1.0813,49.88518</coordinates>
 				</Point>
 			</Placemark>
 			<Placemark>
+				<Style>
+					<IconStyle>
+						<Icon>
+							<href>./plane.png</href>
+						</Icon>
+					</IconStyle>
+				</Style>
 				<name>vor Rouen</name>
 				<Point>
 					<coordinates>1.289,49.4585</coordinates>
 				</Point>
 			</Placemark>
 			<Placemark>
+				<Style>
+					<IconStyle>
+						<Icon>
+							<href>./plane.png</href>
+						</Icon>
+					</IconStyle>
+				</Style>
 				<name>Rouen (LFOP)</name>
 				<Point>
 					<coordinates>1.1814,49.3875</coordinates>
 				</Point>
 			</Placemark>
 			<Placemark>
+				<Style>
+					<IconStyle>
+						<Icon>
+							<href>./plane.png</href>
+						</Icon>
+					</IconStyle>
+				</Style>
 				<name>E Rouen</name>
 				<Point>
 					<coordinates>1.3061,49.3862</coordinates>
 				</Point>
 			</Placemark>
 			<Placemark>
+				<Style>
+					<IconStyle>
+						<Icon>
+							<href>./plane.png</href>
+						</Icon>
+					</IconStyle>
+				</Style>
 				<name>Saint-Clair-sur-Epte</name>
 				<Point>
 					<coordinates>1.6786,49.2066</coordinates>
