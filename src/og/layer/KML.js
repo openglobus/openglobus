@@ -119,7 +119,7 @@ export class KML extends Vector {
     /**
      * @private
      */
-    _kmlPlacemarkToEntity(jobj) {
+    _kmlPlacemarkToEntity(jobj, extent) {
       if (jobj === undefined)
         return(undefined);
 
@@ -166,6 +166,7 @@ export class KML extends Vector {
           if (lon > extent.northEast.lon) extent.northEast.lon = lon;
           if (lat > extent.northEast.lat) extent.northEast.lat = lat;
       };
+      addToExtent(lonlatalt);
 
       console.dir(name, iconURL, lonlatalt[0], lonlatalt[1], lonlatalt[2]);
 
@@ -191,21 +192,21 @@ export class KML extends Vector {
     /**
      * @private
      */
-    _parseJSONKML(jobj, entities=undefined) {
+    _parseJSONKML(jobj, extent, entities=undefined) {
       if (entities === undefined)
         entities = [];
 
       for (var key in jobj) {
         if (key == "Placemark") {
           for (var index in jobj[key]) {
-            let entity = this._kmlPlacemarkToEntity(jobj[key][index]);
+            let entity = this._kmlPlacemarkToEntity(jobj[key][index], extent);
             if (entity !== undefined) {
               entities.push(entity);
               };
             };
           };
         if (jobj[key] !== null && typeof(jobj[key]) == "object") {
-          this._parseJSONKML(jobj[key], entities);
+          this._parseJSONKML(jobj[key], extent, entities);
           };
         };
 
@@ -219,12 +220,13 @@ export class KML extends Vector {
       const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
       let jobj = this._xml2json(xml);
 
-      let entities = this._parseJSONKML(jobj);
+      let entities = this._parseJSONKML(jobj, extent);
 
       console.log("ENTITIES");
       console.dir(entities);
+      console.dir(extent);
 
-      return(entities);
+      return({entities, extent});
       }
 
     /**
@@ -305,7 +307,6 @@ export class KML extends Vector {
      * @returns {Promise<{entities: Entity[], extent: Extent}>}
      */
     async addKmlFromFiles(kmls, color = null, billboard = null) {
-        const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
 /*
         const kmlObjs = await Promise.all(kmls.map(this._getXmlContent));
         const coordonates = kmlObjs.map(this._extractCoordonatesFromKml);
@@ -315,7 +316,7 @@ export class KML extends Vector {
             billboard || this._billboard
         );
 */
-        const entities = this._convertKMLintoEntities(kml);
+        const {entities, extent} = this._convertKMLintoEntities(kml);
 
         this._extent = this._expandExtents(this._extent, extent);
         entities.forEach(this.add.bind(this));
@@ -359,7 +360,6 @@ export class KML extends Vector {
      * @returns {Promise<{entities: Entity[], extent: Extent}>}
      */
     async addKmlFromUrl(url, color = null, billboard = null) {
-        const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
         const kml = await this._getKmlFromUrl(url);
 /*
         const coordonates = this._extractCoordonatesFromKml(kml);
@@ -369,7 +369,7 @@ export class KML extends Vector {
             billboard || this._billboard
         );
 */
-        const entities = this._convertKMLintoEntities(kml);
+        const {entities, extent} = this._convertKMLintoEntities(kml);
 
         this._extent = this._expandExtents(this._extent, extent);
         entities.forEach(this.add.bind(this));
