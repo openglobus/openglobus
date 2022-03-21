@@ -37,7 +37,7 @@ export class KML extends Vector {
     }
 
     /**
-     * @private
+     * @public
      */
     _extractCoordonatesFromKml(xmlDoc) {
         const raw = Array.from(xmlDoc.getElementsByTagName("coordinates"));
@@ -55,7 +55,7 @@ export class KML extends Vector {
 
     /**
      * Creates billboards or polylines from array of lonlat.
-     * @private
+     * @public
      * @param {Array} coordonates
      * @param {string} color
      * @returns {Array<Entity>}
@@ -93,7 +93,7 @@ export class KML extends Vector {
     }
 
     /**
-     * @private
+     * @public
      * @returns {Document}
      */
     _getXmlContent(file) {
@@ -106,7 +106,7 @@ export class KML extends Vector {
     }
 
     /**
-     * @private
+     * @public
      */
     _expandExtents(extent1, extent2) {
         if (!extent1) return extent2;
@@ -151,7 +151,7 @@ export class KML extends Vector {
     }
 
     /**
-     * @private
+     * @public
      */
     _getKmlFromUrl(url) {
         return new Promise((resolve, reject) => {

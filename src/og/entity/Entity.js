@@ -262,7 +262,7 @@ class Entity {
      * @param {Boolean} [rightNow=false] - Entity insertion option for vector layer.
      * @returns {Entity} - This object.
      */
-    addTo(collection, rightNow) {
+    addTo(collection, rightNow = false) {
         collection.add(this, rightNow);
         return this;
     }
