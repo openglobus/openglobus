@@ -380,7 +380,7 @@ class Ellipsoid {
      * Gets ellipsoid surface normal.
      * @public
      * @param {Vec3} coord - Spatial coordiantes.
-     * @returns {Vec3} -
+     * @return {Vec3} -
      */
     getSurfaceNormal3v(coord) {
         var r2 = this._invRadii2;
@@ -396,7 +396,7 @@ class Ellipsoid {
      * @param {LonLat} lonLat1 
      * @param {number} [bearing] 
      * @param {number} [distance] 
-     * @returns 
+     * @return {LonLat} -
      */
     getBearingDestination(lonLat1, bearing = 0.0, distance = 0) {
         bearing = bearing * math.RADIANS;
