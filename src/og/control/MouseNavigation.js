@@ -75,7 +75,7 @@ class MouseNavigation extends Control {
             var d = a ? (delta * cam.eye.distance(a)) / stepsCount : 1000;
 
             if (forward) {
-                d = -1.25*d;
+                d = -1.25 * d;
             } else {
                 d *= 2;
             }
@@ -214,7 +214,7 @@ class MouseNavigation extends Control {
         this._deactivate = true;
 
         this.planet.layerLock.lock(this._keyLock);
-        this.planet.terrainLock.lock(this._keyLock);
+        //this.planet.terrainLock.lock(this._keyLock);
         this.planet._normalMapCreator.lock(this._keyLock);
 
         var ms = this.renderer.events.mouseState;
@@ -249,13 +249,13 @@ class MouseNavigation extends Control {
         if (p) {
             var cam = this.renderer.activeCamera;
             let maxAlt = cam.maxAltitude + this.planet.ellipsoid._b;
-                let minAlt = cam.minAltitude + this.planet.ellipsoid._b;
-                const camAlt = cam.eye.length();
-                var g = this.planet.ellipsoid.cartesianToLonLat(p);
-                if (camAlt > maxAlt || camAlt < minAlt) {
-                    this.planet.flyLonLat(new LonLat(g.lon, g.lat))
-                    return;
-                }
+            let minAlt = cam.minAltitude + this.planet.ellipsoid._b;
+            const camAlt = cam.eye.length();
+            var g = this.planet.ellipsoid.cartesianToLonLat(p);
+            if (camAlt > maxAlt || camAlt < minAlt) {
+                this.planet.flyLonLat(new LonLat(g.lon, g.lat))
+                return;
+            }
 
             if (this.renderer.events.isKeyPressed(input.KEY_ALT)) {
                 this.planet.flyLonLat(
