@@ -101,7 +101,6 @@ export class KML extends Vector {
     _AGBRtoRGBA(agbr) {
       if (agbr === undefined)
         return(undefined);
-console.dir("YYYY", agbr, agbr.length);
       if (agbr.length != 8)
         return(undefined);
 
