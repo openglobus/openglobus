@@ -23,6 +23,7 @@
 			<Placemark>
 				<Style>
 					<IconStyle>
+						<color>FFDB8966</color>
 						<Icon>
 							<href>./plane.png</href>
 						</Icon>
@@ -36,6 +37,7 @@
 			<Placemark>
 				<Style>
 					<IconStyle>
+						<color>FFDB8966</color>
 						<Icon>
 							<href>./plane.png</href>
 						</Icon>
@@ -49,6 +51,7 @@
 			<Placemark>
 				<Style>
 					<IconStyle>
+						<color>FFDB8966</color>
 						<Icon>
 							<href>./plane.png</href>
 						</Icon>
@@ -62,6 +65,7 @@
 			<Placemark>
 				<Style>
 					<IconStyle>
+						<color>FFDB8966</color>
 						<Icon>
 							<href>./plane.png</href>
 						</Icon>
@@ -75,6 +79,7 @@
 			<Placemark>
 				<Style>
 					<IconStyle>
+						<color>FFDB8966</color>
 						<Icon>
 							<href>./plane.png</href>
 						</Icon>
@@ -88,6 +93,7 @@
 			<Placemark>
 				<Style>
 					<IconStyle>
+						<color>FFDB8966</color>
 						<Icon>
 							<href>./plane.png</href>
 						</Icon>
@@ -101,6 +107,7 @@
 			<Placemark>
 				<Style>
 					<IconStyle>
+						<color>FFDB8966</color>
 						<Icon>
 							<href>./plane.png</href>
 						</Icon>
@@ -114,6 +121,7 @@
 			<Placemark>
 				<Style>
 					<IconStyle>
+						<color>FFDB8966</color>
 						<Icon>
 							<href>./plane.png</href>
 						</Icon>
@@ -127,6 +135,7 @@
 			<Placemark>
 				<Style>
 					<IconStyle>
+						<color>FFDB8966</color>
 						<Icon>
 							<href>./plane.png</href>
 						</Icon>

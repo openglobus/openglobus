@@ -98,6 +98,29 @@ export class KML extends Vector {
     /**
      * @private
      */
+    _AGBRtoRGBA(agbr) {
+      if (agbr === undefined)
+        return(undefined);
+console.dir("YYYY", agbr, agbr.length);
+      if (agbr.length != 8)
+        return(undefined);
+
+      var a;
+      var r;
+      var g;
+      var b;
+
+      a = parseInt(agbr.slice(0, 2), 16) / 255;
+      b = parseInt(agbr.slice(2, 4), 16);
+      g = parseInt(agbr.slice(4, 6), 16);
+      r = parseInt(agbr.slice(6, 8), 16);
+
+      return("rgba(" + r + "," + g + "," + b + "," + a + ")");
+      }
+
+    /**
+     * @private
+     */
     _parseKMLcoordinates(jobj) {
       // returns longitude, latitude, altitude
       let coordinates = jobj["#text"].trim()
@@ -136,10 +159,14 @@ export class KML extends Vector {
         return(undefined);
 
       var iconURL;
+      var iconColor;
       let style = jobj["Style"];
       if (style !== undefined) {
         let iconstyle = style["IconStyle"];
         if (iconstyle !== undefined) {
+          let color = iconstyle["color"];
+          if (color !== undefined)
+            iconColor = this._AGBRtoRGBA(color["#text"])
           let icon = iconstyle["Icon"];
           if (icon !== undefined) {
             let href = icon["href"];
@@ -149,6 +176,10 @@ export class KML extends Vector {
             };
           };
         };
+      if (iconColor === undefined) {
+        iconColor = "#FFFFFF";
+        };
+console.log(iconColor);
       if (iconURL === undefined) {
         iconURL = "https://openglobus.org/examples/billboards/carrot.png";
         };
@@ -168,21 +199,20 @@ export class KML extends Vector {
       };
       addToExtent(lonlatalt);
 
-      console.dir(name, iconURL, lonlatalt[0], lonlatalt[1], lonlatalt[2]);
+      //console.dir(name, iconURL, lonlatalt[0], lonlatalt[1], lonlatalt[2]);
 
       let entity = new Entity({
         'name': name,
-        //'lonlat': [lonlatalt[0], lonlatalt[1], lonlatalt[2]],
         'lonlat': lonlatalt,
         'billboard': {
           'src': iconURL,
           'size': [24, 24],
-          'color': '#6689db',
+          'color': iconColor,
           'rotation': 0
           },
         'properties': {
           'bearing': 0,
-          'color': '#6689db'
+          'color': iconColor
           }
         });
 
@@ -222,9 +252,9 @@ export class KML extends Vector {
 
       let entities = this._parseJSONKML(jobj, extent);
 
-      console.log("ENTITIES");
-      console.dir(entities);
-      console.dir(extent);
+//      console.log("ENTITIES");
+//      console.dir(entities);
+//      console.dir(extent);
 
       return({entities, extent});
       }
