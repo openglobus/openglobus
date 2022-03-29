@@ -6,6 +6,12 @@
 			<name>Les 4 CH... CHAMBORD, CHEVERNY, CHAUMONT-SUR-LOIRE et CHENONCEAU.</name>
 			<open>1</open>
 			<Placemark>
+				<Style>
+					<LineStyle>
+						<color>FFDB8966</color>
+						<width>4</width>
+					</LineStyle>
+				</Style>
 				<name>La navigation</name>
 				<LineString>
 					<tessellate>0</tessellate>

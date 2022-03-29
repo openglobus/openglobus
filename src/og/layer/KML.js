@@ -129,7 +129,7 @@ export class KML extends Vector {
         .split(" ")
         .map((co) => co.split(",").map(parseFloat))
 
-      return(coordinates[0]);
+      return(coordinates);
       }
 
     /**
@@ -150,15 +150,25 @@ export class KML extends Vector {
         name = name["#text"];
 
       let point = jobj["Point"];
-      if (point === undefined)
+      let linestring = jobj["LineString"];
+
+      if (point === undefined && linestring === undefined)
         return(undefined);
 
-      let coordinates = point["coordinates"];
-      if (coordinates === undefined)
+      var coordinates;
+
+      if (point !== undefined)
+        coordinates = point["coordinates"];
+      else if (linestring !== undefined)
+        coordinates = linestring["coordinates"];
+      else
         return(undefined);
 
       var iconURL;
       var iconColor;
+      var lineColor;
+      var lineWidth;
+
       let style = jobj["Style"];
       if (style !== undefined) {
         let iconstyle = style["IconStyle"];
@@ -174,46 +184,79 @@ export class KML extends Vector {
               };
             };
           };
+
+        let linestyle = style["LineStyle"];
+        if (linestyle !== undefined) {
+          let color = linestyle["color"];
+          if (color !== undefined)
+            lineColor = this._AGBRtoRGBA(color["#text"])
+          let width = linestyle["width"];
+          if (width !== undefined)
+            lineWidth = parseInt(width["#text"]);
+          };
         };
+
       if (iconColor === undefined) {
         iconColor = "#FFFFFF";
         };
-console.log(iconColor);
       if (iconURL === undefined) {
         iconURL = "https://openglobus.org/examples/billboards/carrot.png";
         };
 
-      let lonlatalt = this._parseKMLcoordinates(coordinates);
-      if (lonlatalt === undefined) {
-        lonlatalt = [ 0, 0, 0];
-      };
+      if (lineColor === undefined)
+        lineColor = "#FFFFFF";
+      if (lineWidth === undefined)
+        lineWidth = 1;
 
-      const addToExtent = (c) => {
-          const lon = c[0],
-              lat = c[1];
-          if (lon < extent.southWest.lon) extent.southWest.lon = lon;
-          if (lat < extent.southWest.lat) extent.southWest.lat = lat;
-          if (lon > extent.northEast.lon) extent.northEast.lon = lon;
-          if (lat > extent.northEast.lat) extent.northEast.lat = lat;
-      };
-      addToExtent(lonlatalt);
+      let lonlatalts = this._parseKMLcoordinates(coordinates);
+      if (lonlatalts === undefined)
+        lonlatalts = [ 0, 0, 0 ];
 
-      //console.dir(name, iconURL, lonlatalt[0], lonlatalt[1], lonlatalt[2]);
+      var LonLats=[];
+      for (var index=0; index < lonlatalts.length; ++index)
+        {
+        var lon = lonlatalts[index][0];
+        var lat = lonlatalts[index][1];
+        var alt = lonlatalts[index][2];
+        LonLats.push(new LonLat(lon, lat, alt));
+        if (lon < extent.southWest.lon) extent.southWest.lon = lon;
+        if (lat < extent.southWest.lat) extent.southWest.lat = lat;
+        if (lon > extent.northEast.lon) extent.northEast.lon = lon;
+        if (lat > extent.northEast.lat) extent.northEast.lat = lat;
+        };
 
-      let entity = new Entity({
-        'name': name,
-        'lonlat': lonlatalt,
-        'billboard': {
-          'src': iconURL,
-          'size': [24, 24],
-          'color': iconColor,
-          'rotation': 0
-          },
-        'properties': {
-          'bearing': 0,
-          'color': iconColor
+      //console.log(name, iconURL, lonlatalts[0], lonlatalts[1], lonlatalts[2]);
+
+      var entity;
+
+      if (LonLats.length === 1)
+        {
+        entity = new Entity({
+          'name': name,
+          'lonlat': LonLats[0],
+          'billboard': {
+            'src': iconURL,
+            'size': [24, 24],
+            'color': iconColor,
+            'rotation': 0
+            },
+          'properties': {
+            'bearing': 0,
+            'color': iconColor
+            }
+          });
+        }
+      else
+        {
+        entity = new Entity({
+          'polyline': {
+            'pathLonLat': [LonLats],
+            'thickness': lineWidth,
+            'color': lineColor,
+            'isClosed': false
           }
         });
+        };
 
       return(entity);
       }
@@ -250,10 +293,6 @@ console.log(iconColor);
       let jobj = this._xml2json(xml);
 
       let entities = this._parseJSONKML(jobj, extent);
-
-//      console.log("ENTITIES");
-//      console.dir(entities);
-//      console.dir(extent);
 
       return({entities, extent});
       }
