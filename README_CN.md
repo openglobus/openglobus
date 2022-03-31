@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/openglobus/openglobus.svg?branch=master)](https://travis-ci.com/openglobus/openglobus)[![Join the chat at https://gitter.im/openglobus/og](https://badges.gitter.im/openglobus/og.svg)](https://gitter.im/openglobus/og?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/openglobus/og](https://badges.gitter.im/openglobus/og.svg)](https://gitter.im/openglobus/og?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 # OpenGlobus
 
@@ -134,7 +134,6 @@ npm run build
 - 帮助我们在[谷歌 OpenGlobus 社区](https://groups.google.com/d/forum/openglobus)回答问题以及在 Gitter 上[交流](https://gitter.im/openglobus/og)
 - 为 GitHub 上的仓库打个 ⭐
 - 在社交媒体上传播 OpenGlobus，推特：[点我](https://twitter.com/openglobus)
-- [捐助](https://donorbox.org/openglobus)
 - 成为一名贡献者
 
 
