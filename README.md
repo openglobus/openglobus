@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.com/openglobus/openglobus.svg?branch=master)](https://travis-ci.com/openglobus/openglobus)
 [![Join the chat at https://gitter.im/openglobus/og](https://badges.gitter.im/openglobus/og.svg)](https://gitter.im/openglobus/og?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 # OpenGlobus
@@ -138,7 +137,6 @@ There are many ways to contribute back to the project:
   and [chat](https://gitter.im/openglobus/og)
 - ⭐️ us on GitHub
 - Spread the word about OpenGlobus on [social media](https://twitter.com/openglobus)
-- [Send donations](https://donorbox.org/openglobus)
 - Become a contributor
 
 ## License
