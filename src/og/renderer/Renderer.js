@@ -60,7 +60,7 @@ class Renderer {
         params = params || {};
 
         /**
-         * Div element with WebGL canvas.
+         * Div element with WebGL canvas. Assigned in Globe class.
          * @public
          * @type {object}
          */

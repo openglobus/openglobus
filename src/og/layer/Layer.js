@@ -332,7 +332,7 @@ class Layer {
             planet.setBaseLayer(this);
         }
 
-        if (this._visibility) {
+        if (this._visibility && this.hasImageryTiles()) {
             this._preLoad();
         }
 
