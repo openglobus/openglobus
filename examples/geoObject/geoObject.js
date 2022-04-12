@@ -12,7 +12,7 @@ let COUNT = 10,
     ENTITY = {},
     ENTITY_OPTIONS = new Map([
         ['farmplane', {
-            countRation: 20,
+            countRation: 50,
             cb: (options) => {
                 options.geoObject.scale = 100;
                 options.geoObject.yaw = -50;
@@ -22,22 +22,24 @@ let COUNT = 10,
                 };
             }
         }],
-        ['satellite', {
-            countRation: 1,
+        ['sputnik', {
+            countRation: 10,
             cb: (options) => {
+                options.geoObject.scale = 2000;
                 return {
                     ...options,
                     lonlat: [rnd(-180, 180), rnd(-180, 180), 2000000]
                 };
             }
         }],
-        ['airplane', {
-            countRation: 80,
+        ['zeppelin', {
+            countRation: 1,
             cb: (options) => {
-                options.geoObject.yaw = 75;
+                options.geoObject.scale = 2000;
+                options.geoObject.pitch = -90;
                 return {
                     ...options,
-                    lonlat: [rnd(-180, 180), rnd(-180, 180), 20000]
+                    lonlat: [rnd(-180, 180), rnd(-180, 180), 200000]
                 };
             }
         }]
@@ -62,7 +64,7 @@ const range = document.createElement('input');
 range.setAttribute('type', 'range');
 range.setAttribute('min', '1');
 range.setAttribute('value', '1');
-range.setAttribute('max', '5000');
+range.setAttribute('max', '2000');
 range.addEventListener('input', () => {
     COUNT = parseInt(range.value);
 });
@@ -135,15 +137,12 @@ geoObjects.events.on("lclick", function (e) {
 });
 
 geoObjects.events.on("mouseenter", function (e) {
-    let b = e.pickingObject.geoObject;
-    b.setColor(1, 1, 1);
-    b.setVisibility(false);
+    let en = e.pickingObject,b = en.geoObject;
     b.setColor(1, 1, 1);
 });
 geoObjects.events.on("mouseleave", function (e) {
-    let b = e.pickingObject;
-    b.setVisibility(true);
-    b.geoObject.setColor4v(utils.htmlColorToRgba(b.properties.color));
+    let en = e.pickingObject, b = en.geoObject;
+    b.setColor4v(utils.htmlColorToRgba(en.properties.color));
 });
 
 geoObjects.addTo(globus.planet);
@@ -164,7 +163,7 @@ globus.planet.events.on("draw", () => {
             }
         } else if (entities.length < COUNT) {
             while (entities.length < COUNT) {
-                    geoObjects.add(new Entity(ENTITY[types[entities.length % (types.length)]](entities.length - 1)));
+                geoObjects.add(new Entity(ENTITY[types[entities.length % (types.length)]](entities.length - 1)));
             }
         }
     }
