@@ -138,6 +138,8 @@ class Handler {
         if (params.autoActivate || isEmpty(params.autoActivate)) {
             this.initialize();
         }
+
+        this.createTexture_n = this.gl.type === "webgl2" ? this.createTexture_n_webgl2 : this.createTexture_n_webgl1;
     }
 
     /**
@@ -974,14 +976,6 @@ class Handler {
     }
 
     /**
-     * Check is gl context type equals webgl2
-     * @public
-     */
-    isWebGl2() {
-        return this.gl.type === "webgl2"
-    }
-
-    /**
      * Creates default texture object
      * @public
      * @param {Object} [params] - Texture parameters:
@@ -995,7 +989,7 @@ class Handler {
         if (params && params.color) {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor(params.color);
-            texture = is2 ? this.createTexture_n_webgl2(imgCnv._canvas) : this.createTexture_n_webgl1(imgCnv._canvas);
+            texture = this.createTexture_n(imgCnv._canvas);
             texture.default = true;
             success(texture);
         } else if (params && params.url) {

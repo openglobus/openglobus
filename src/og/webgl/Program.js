@@ -121,6 +121,8 @@ class Program {
          * @type {Array.<Object>}
          */
         this._attribDivisor = [];
+
+        this.drawElementsInstanced = this.gl.drawElementsInstanced ? this.gl.drawElementsInstanced : this.gl.getExtension('ANGLE_instanced_arrays').drawElementsInstancedANGLE;
     }
 
     /**
@@ -273,11 +275,6 @@ class Program {
     vertexAttribDivisor(index, divisor) {
         const gl = this.gl;
         gl.vertexAttribDivisor ? gl.vertexAttribDivisor(index, divisor) : gl.getExtension('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(index, divisor);
-    }
-
-    drawElementsInstanced(...args) {
-        const gl = this.gl;
-        gl.drawElementsInstanced ? gl.drawElementsInstanced(...args) : gl.getExtension('ANGLE_instanced_arrays').drawElementsInstancedANGLE(...args);
     }
 
     /**
