@@ -16,30 +16,30 @@ import { frac } from "../math.js";
  * @param {number} [w] - Fourth value.
  */
 export class Vec4 {
-    constructor(x = 0, y = 0, z = 0, w = 0) {
+    constructor(x = 0.0, y = 0.0, z = 0.0, w = 0.0) {
         /**
          * @public
          * @type {number}
          */
-        this.x = x;
+        this.x = x || 0.0;
 
         /**
          * @public
          * @type {number}
          */
-        this.y = y;
+        this.y = y || 0.0;
 
         /**
          * @public
          * @type {number}
          */
-        this.z = z;
+        this.z = z || 0.0;
 
         /**
          * @public
          * @type {number}
          */
-        this.w = w;
+        this.w = w || 0.0;
     }
 
     /**

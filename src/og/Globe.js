@@ -147,10 +147,10 @@ class Globe {
         this.renderer.div = this.div;
         this.renderer.div.attributions = document.createElement("div");
         if (options.attributionContainer) {
-            options.attributionContainer.appendChild(this.renderer.div.attributions);
+            options.attributionContainer.appendChild(this.div.attributions);
         } else {
-            this.renderer.div.attributions.classList.add("ogAttribution");
-            this.div.appendChild(this.renderer.div.attributions);
+            this.div.attributions.classList.add("ogAttribution");
+            this.div.appendChild(this.div.attributions);
         }
 
         // Skybox

@@ -24,7 +24,7 @@ import { Mat4 } from "../math/Mat4.js";
  * @param {number} [options.viewAngle=37] - Camera angle of view. Default is 35.0
  * @param {number} [options.near] - Camera near plane distance. Default is 1.0
  * @param {number} [options.far] - Camera far plane distance. Deafult is og.math.MAX
- * @param {number} [options.minAltitude] - Minimal altitude for the camera. Deafult is 1
+ * @param {number} [options.minAltitude] - Minimal altitude for the camera. Deafult is 5
  * @param {number} [options.maxAltitude] - Maximal altitude for the camera. Deafult is 20000000
  * @param {Vec3} [options.eye] - Camera eye position. Default (0,0,0)
  * @param {Vec3} [options.look] - Camera look position. Default (0,0,0)
@@ -58,7 +58,7 @@ class PlanetCamera extends Camera {
          * @public
          * @type {number}
          */
-        this.minAltitude = options.minAltitude || 1;
+        this.minAltitude = options.minAltitude || 5;
 
         /**
          * Maximal alltitude that camera can reach over the globe.
@@ -367,6 +367,9 @@ class PlanetCamera extends Camera {
 
         this.stopFlying();
 
+        look = look || Vec3.ZERO;
+        up = up || Vec3.UP;
+
         this._completeCallback = completeCallback;
 
         this._frameCallback = frameCallback;
@@ -375,7 +378,6 @@ class PlanetCamera extends Camera {
             startCallback.call(this);
         }
 
-        look = look;
         if (look instanceof LonLat) {
             look = this.planet.ellipsoid.lonLatToCartesian(look);
         }

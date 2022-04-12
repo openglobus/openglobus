@@ -22,6 +22,7 @@ export function label_webgl2() {
         uniforms: {
             viewport: "vec2",
             fontTextureArr: "sampler2darray",
+            sdfParamsArr: "vec4",
             projectionMatrix: "mat4",
             viewMatrix: "mat4",
             eyePositionHigh: "vec3",
@@ -29,7 +30,8 @@ export function label_webgl2() {
             planetRadius: "float",
             uZ: "float",
             scaleByDistance: "vec3",
-            opacity: "float"
+            opacity: "float",
+            isOutlinePass: "int"
         },
         attributes: {
             a_outline: "float",
@@ -61,8 +63,9 @@ export function label_webgl2() {
 
             out vec2 v_uv;
             out vec4 v_rgba;
-            flat out float v_weight;
-            flat out int v_fontIndex;
+            flat out int v_fontIndex;            
+            out vec4 v_outlineColor;
+            flat out float v_outline;
 
             uniform vec2 viewport;
             uniform mat4 viewMatrix;
@@ -82,7 +85,7 @@ export function label_webgl2() {
 
             void main() {
 
-                if(a_texCoord.z == -1.0 || a_outline == 0.0) {
+                if(a_texCoord.z == -1.0/* || a_outline == 0.0*/) {
                     gl_Position = vec4(0.0);
                     return;
                 }
@@ -90,12 +93,13 @@ export function label_webgl2() {
                 vec3 a_positions = a_positionsHigh + a_positionsLow;
                 vec3 cameraPos = eyePositionHigh + eyePositionLow;
 
-                v_weight = a_outline;
+                v_outline = a_outline;
 
                 v_fontIndex = int(a_fontIndex);
                 v_uv = vec2(a_texCoord.xy);
                 float lookDist = length(a_positions - cameraPos);
                 v_rgba = a_rgba;
+                
                 if(opacity * step(lookDist, sqrt(dot(cameraPos,cameraPos) - planetRadius) + sqrt(dot(a_positions,a_positions) - planetRadius)) == 0.0){
                     return;
                 }
@@ -121,21 +125,28 @@ export function label_webgl2() {
             `#version 300 es
 
             precision highp float;
+            precision highp int;
 
             const int MAX_SIZE = 11;
 
-            uniform sampler2D fontTextureArr[MAX_SIZE];
+            // x - ATLAS_WIDTH = 512.0;
+            // y - ATLAS_HEIGHT = 512.0;
+            // z - ATLAS_GLYPH_SIZE = 32.0;
+            // w - ATLAS_FIELD_RANGE = 8.0;
 
-            flat in float v_weight;
+            uniform sampler2D fontTextureArr[MAX_SIZE];
+            uniform vec4 sdfParamsArr[MAX_SIZE];
+            uniform int isOutlinePass;
+
             flat in int v_fontIndex;
             in vec2 v_uv;
-            in vec4 v_rgba;
+            in vec4 v_rgba;           
+
+            flat in float v_outline;
 
             in vec3 v_pickingColor;
 
             layout(location = 0) out vec4 outScreen;
-
-            vec4 sdfParams = vec4(512.0, 512.0, 32.0, 8.0);
 
             float median(float r, float g, float b) {
                 return max(min(r, g), min(max(r, g), b));
@@ -169,10 +180,58 @@ export function label_webgl2() {
                 return median(msdf.r, msdf.g, msdf.b);
             }
 
+            vec4 getSDFParams() {
+                if(v_fontIndex == 0) {
+                    return sdfParamsArr[0];
+                } else if(v_fontIndex == 1){
+                    return sdfParamsArr[1];
+                } else if(v_fontIndex == 2){
+                    return sdfParamsArr[2];
+                } else if(v_fontIndex == 3){
+                    return sdfParamsArr[3];
+                } else if(v_fontIndex == 4){
+                    return sdfParamsArr[4];
+                } else if(v_fontIndex == 5){
+                    return sdfParamsArr[5];
+                } else if(v_fontIndex == 6){
+                    return sdfParamsArr[6];
+                } else if(v_fontIndex == 7){
+                    return sdfParamsArr[7];
+                } else if(v_fontIndex == 8){
+                    return sdfParamsArr[8];
+                } else if(v_fontIndex == 9){
+                    return sdfParamsArr[9];
+                } else if(v_fontIndex == 10){
+                    return sdfParamsArr[10];
+                }
+            }
+            
+            // void main () {
+            //
+            //     float sd = getDistance();
+            //    
+            //     vec4 sdfParams = getSDFParams();
+            //    
+            //     vec2 dxdy = fwidth(v_uv) * sdfParams.xy;
+            //     float dist = sd + min(0.001, 0.5 - 1.0 / sdfParams.w) - 0.5;
+            //     float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
+            //    
+            //     float strokeDist = sd + min(v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
+            //     float strokeAlpha = v_rgba.a * clamp(strokeDist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
+            //    
+            //     if (strokeAlpha < 0.01) {
+            //         discard;
+            //     } 
+            //    
+            //     outScreen = v_rgba * opacity * v_rgba.a + v_outlineColor * v_outlineColor.a * strokeAlpha * (1.0 - opacity);
+            // }
+            
             void main () {
 
+                vec4 sdfParams = getSDFParams();
+                
                 vec2 dxdy = fwidth(v_uv) * sdfParams.xy;
-                float dist = getDistance() + min(v_weight, 0.5 - 1.0 / sdfParams.w) - 0.5;
+                float dist = getDistance() + min(isOutlinePass == 0 ? 0.001 : v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
                 float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
 
                 vec4 color = v_rgba;
@@ -182,7 +241,9 @@ export function label_webgl2() {
                 }
 
                 outScreen = vec4(v_rgba.rgb, opacity * v_rgba.a);
-            }`
+            }
+            
+            `
     });
 }
 
