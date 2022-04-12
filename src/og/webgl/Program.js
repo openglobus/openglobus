@@ -300,11 +300,11 @@ class Program {
         gl.linkProgram(this._p);
 
         if (!this.drawElementsInstanced) {
-            this.drawElementsInstanced = gl.drawElementsInstanced ? gl.drawElementsInstanced.bind(gl) : gl.getExtension('ANGLE_instanced_arrays').drawElementsInstancedANGLE.bind(gl);
+            this.drawElementsInstanced = gl.drawElementsInstanced ? gl.drawElementsInstanced.bind(gl) : gl.getExtension('ANGLE_instanced_arrays').drawElementsInstancedANGLE.bind(gl.getExtension('ANGLE_instanced_arrays'));
         }
 
         if (!this.vertexAttribDivisor) {
-            this.vertexAttribDivisor = gl.vertexAttribDivisor ? gl.vertexAttribDivisor.bind(gl) : gl.getExtension('ANGLE_instanced_arrays').vertexAttribDivisorANGLE.bind(gl);
+            this.vertexAttribDivisor = gl.vertexAttribDivisor ? gl.vertexAttribDivisor.bind(gl) : gl.getExtension('ANGLE_instanced_arrays').vertexAttribDivisorANGLE.bind(gl.getExtension('ANGLE_instanced_arrays'));
         }
 
 
