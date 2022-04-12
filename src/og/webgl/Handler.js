@@ -965,6 +965,14 @@ class Handler {
     }
 
     /**
+     * Check is gl context type equals webgl2
+     * @public
+     */
+    isWebGl2() {
+        return this.gl.type === "webgl2"
+    }
+
+    /**
      * Make animation.
      * @private
      */
@@ -1004,7 +1012,7 @@ class Handler {
         } else {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor("#C5C5C5");
-            texture = is2 ? this.createTexture_n_webgl2(imgCnv._canvas) : this.createTexture_n_webgl1(imgCnv._canvas);
+            texture = this.createTexture_n(imgCnv._canvas) ;
             texture.default = true;
             success(texture);
         }

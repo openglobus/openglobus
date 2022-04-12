@@ -122,7 +122,6 @@ class Program {
          */
         this._attribDivisor = [];
 
-        this.drawElementsInstanced = this.gl.drawElementsInstanced ? this.gl.drawElementsInstanced : this.gl.getExtension('ANGLE_instanced_arrays').drawElementsInstancedANGLE;
     }
 
     /**
@@ -299,6 +298,15 @@ class Program {
         gl.attachShader(this._p, fs);
         gl.attachShader(this._p, vs);
         gl.linkProgram(this._p);
+
+        if (!this.drawElementsInstanced) {
+            this.drawElementsInstanced = gl.drawElementsInstanced ? gl.drawElementsInstanced.bind(gl) : gl.getExtension('ANGLE_instanced_arrays').drawElementsInstancedANGLE.bind(gl);
+        }
+
+        if (!this.vertexAttribDivisor) {
+            this.vertexAttribDivisor = gl.vertexAttribDivisor ? gl.vertexAttribDivisor.bind(gl) : gl.getExtension('ANGLE_instanced_arrays').vertexAttribDivisorANGLE.bind(gl);
+        }
+
 
         if (!gl.getProgramParameter(this._p, gl.LINK_STATUS)) {
             cons.logErr(
