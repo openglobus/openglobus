@@ -225,10 +225,9 @@ export class KML extends Vector {
         if (lat > extent.northEast.lat) extent.northEast.lat = lat;
         };
 
-      //console.log(name, iconURL, lonlatalts[0], lonlatalts[1], lonlatalts[2]);
-
       var entity;
 
+      // Point
       if (LonLats.length === 1)
         {
         entity = new Entity({
@@ -246,7 +245,7 @@ export class KML extends Vector {
             }
           });
         }
-      else
+      else // LineString
         {
         entity = new Entity({
           'polyline': {
@@ -440,7 +439,9 @@ export class KML extends Vector {
         const {entities, extent} = this._convertKMLintoEntities(kml);
 
         this._extent = this._expandExtents(this._extent, extent);
+
         entities.forEach(this.add.bind(this));
+
         return { entities, extent };
     }
 }
