@@ -374,7 +374,7 @@ export function label_screen() {
             a_positionsLow: "vec3",
             a_offset: "vec3",
             a_size: "float",
-            //a_rotation: "float",
+            a_rotation: "float",
             a_rgba: "vec4",
             a_fontIndex: "float",
         },
@@ -388,7 +388,7 @@ export function label_screen() {
             attribute vec3 a_positionsLow;
             attribute vec3 a_offset;
             attribute float a_size;
-            //attribute float a_rotation;
+            attribute float a_rotation;
             attribute vec4 a_rgba;
             attribute float a_fontIndex;
 

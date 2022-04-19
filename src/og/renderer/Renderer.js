@@ -767,7 +767,9 @@ class Renderer {
 
         if (anyEvent) {
             // It works ONLY for 0 (closest) frustum
-            this._drawDepthBuffer();
+            if (this.handler.isWebGl2()) {
+                this._drawDepthBuffer();
+            }
 
             this._readPickingColor();
         }
