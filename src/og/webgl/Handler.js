@@ -119,7 +119,8 @@ class Handler {
          * @private
          * @type {frameCallback}
          */
-        this._frameCallback = function () { };
+        this._frameCallback = function () {
+        };
 
         this.transparentTexture = null;
 
@@ -137,6 +138,8 @@ class Handler {
         if (params.autoActivate || isEmpty(params.autoActivate)) {
             this.initialize();
         }
+
+        this.createTexture_n = this.gl.type === "webgl2" ? this.createTexture_n_webgl2 : this.createTexture_n_webgl1;
     }
 
     /**
@@ -635,6 +638,7 @@ class Handler {
             this._params.extensions.push("OES_standard_derivatives");
             this._params.extensions.push("OES_element_index_uint");
             this._params.extensions.push("WEBGL_depth_texture");
+            this._params.extensions.push("ANGLE_instanced_arrays");
             //this._params.extensions.push("EXT_frag_depth");
         } else {
             this._params.extensions.push("EXT_color_buffer_float");
@@ -961,6 +965,14 @@ class Handler {
     }
 
     /**
+     * Check is gl context type equals webgl2
+     * @public
+     */
+    isWebGl2() {
+        return this.gl.type === "webgl2"
+    }
+
+    /**
      * Make animation.
      * @private
      */
@@ -980,10 +992,12 @@ class Handler {
     createDefaultTexture(params, success) {
         let imgCnv;
         let texture;
+        const is2 = this.isWebGl2();
+
         if (params && params.color) {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor(params.color);
-            texture = this.createTexture_n_webgl2(imgCnv._canvas);
+            texture = this.createTexture_n(imgCnv._canvas);
             texture.default = true;
             success(texture);
         } else if (params && params.url) {
@@ -998,7 +1012,7 @@ class Handler {
         } else {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor("#C5C5C5");
-            texture = this.createTexture_n_webgl2(imgCnv._canvas);
+            texture = this.createTexture_n(imgCnv._canvas) ;
             texture.default = true;
             success(texture);
         }

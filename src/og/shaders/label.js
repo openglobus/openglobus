@@ -28,6 +28,7 @@ export function label_webgl2() {
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
             planetRadius: "float",
+            uZ: "float",
             scaleByDistance: "vec3",
             opacity: "float",
             isOutlinePass: "int"
@@ -65,7 +66,6 @@ export function label_webgl2() {
             flat out int v_fontIndex;            
             out vec4 v_outlineColor;
             flat out float v_outline;
-            flat out int vvisOutlinePass;
 
             uniform vec2 viewport;
             uniform mat4 viewMatrix;
@@ -73,10 +73,9 @@ export function label_webgl2() {
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
             uniform float planetRadius;
+            uniform float uZ;
             uniform vec3 scaleByDistance;
             uniform float opacity;
-            uniform int isOutlinePass;
-
 
             const vec3 ZERO3 = vec3(0.0);
 
@@ -86,7 +85,7 @@ export function label_webgl2() {
 
             void main() {
 
-                if(a_texCoord.z == -1.0) {
+                if(a_texCoord.z == -1.0/* || a_outline == 0.0*/) {
                     gl_Position = vec4(0.0);
                     return;
                 }
@@ -95,7 +94,6 @@ export function label_webgl2() {
                 vec3 cameraPos = eyePositionHigh + eyePositionLow;
 
                 v_outline = a_outline;
-                vvisOutlinePass = isOutlinePass;
 
                 v_fontIndex = int(a_fontIndex);
                 v_uv = vec2(a_texCoord.xy);
@@ -121,7 +119,7 @@ export function label_webgl2() {
 
                 vec2 v = screenPos + rotate2d(a_rotation) * ((a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size * scd + a_offset.xy);
 
-                gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z + a_offset.z, projPos.w);
+                gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z + a_offset.z + uZ, projPos.w);
             }`,
         fragmentShader:
             `#version 300 es
@@ -138,8 +136,7 @@ export function label_webgl2() {
 
             uniform sampler2D fontTextureArr[MAX_SIZE];
             uniform vec4 sdfParamsArr[MAX_SIZE];
-            
-            flat in int vvisOutlinePass;
+            uniform int isOutlinePass;
 
             flat in int v_fontIndex;
             in vec2 v_uv;
@@ -209,12 +206,32 @@ export function label_webgl2() {
                 }
             }
             
+            // void main () {
+            //
+            //     float sd = getDistance();
+            //    
+            //     vec4 sdfParams = getSDFParams();
+            //    
+            //     vec2 dxdy = fwidth(v_uv) * sdfParams.xy;
+            //     float dist = sd + min(0.001, 0.5 - 1.0 / sdfParams.w) - 0.5;
+            //     float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
+            //    
+            //     float strokeDist = sd + min(v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
+            //     float strokeAlpha = v_rgba.a * clamp(strokeDist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
+            //    
+            //     if (strokeAlpha < 0.01) {
+            //         discard;
+            //     } 
+            //    
+            //     outScreen = v_rgba * opacity * v_rgba.a + v_outlineColor * v_outlineColor.a * strokeAlpha * (1.0 - opacity);
+            // }
+            
             void main () {
 
                 vec4 sdfParams = getSDFParams();
                 
                 vec2 dxdy = fwidth(v_uv) * sdfParams.xy;
-                float dist = getDistance() + min(vvisOutlinePass == 0 ? 0.001 : v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
+                float dist = getDistance() + min(isOutlinePass == 0 ? 0.001 : v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
                 float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
 
                 vec4 color = v_rgba;
