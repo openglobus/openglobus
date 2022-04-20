@@ -259,6 +259,8 @@ class LabelHandler extends BillboardHandler {
         //gl.polygonOffset(0.0, polygonOffsetUnits + window.OUTLINE_Z_OFFSET);
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
+        gl.depthFunc(gl.EQUAL);
+
         //
         // no outline PASS
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
@@ -269,7 +271,9 @@ class LabelHandler extends BillboardHandler {
         //gl.polygonOffset(0.0, polygonOffsetUnits);
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
-        gl.disable(gl.POLYGON_OFFSET_FILL);
+        gl.depthFunc(gl.LESS);
+
+        //gl.disable(gl.POLYGON_OFFSET_FILL);
     }
 
     _pickingPASS() {

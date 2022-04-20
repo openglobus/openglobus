@@ -63,7 +63,7 @@ export class Multisample {
         this._useDepth = options.useDepth != undefined ? options.useDepth : true;
 
         this._depthComponent =
-            options.depthComponent != undefined ? options.depthComponent : "DEPTH_COMPONENT24";
+            options.depthComponent != undefined ? options.depthComponent : "DEPTH_COMPONENT16";
 
         /**
          * Framebuffer activity.

@@ -683,67 +683,20 @@ class Handler {
      * @private
      */
     _setDefaults() {
-        this.activateDepthTest();
+        let gl = this.gl;
+        gl.depthFunc(gl.LESS);
+        gl.enable(gl.DEPTH_TEST);
         this.setSize(
             this.canvas.clientWidth || this._params.width,
             this.canvas.clientHeight || this._params.height
         );
-        this.gl.frontFace(this.gl.CCW);
-        this.gl.cullFace(this.gl.BACK);
-        this.activateFaceCulling();
-        this.deactivateBlending();
-        let that = this;
-        this.createDefaultTexture({ color: "rgba(0,0,0,0.0)" }, function (t) {
-            that.transparentTexture = t;
+        gl.frontFace(gl.CCW);
+        gl.cullFace(gl.BACK);
+        gl.enable(gl.CULL_FACE);
+        gl.disable(gl.BLEND);
+        this.createDefaultTexture({ color: "rgba(0,0,0,0.0)" }, (t) => {
+            this.transparentTexture = t;
         });
-    }
-
-    /**
-     * Activate depth test.
-     * @public
-     */
-    activateDepthTest() {
-        this.gl.enable(this.gl.DEPTH_TEST);
-    }
-
-    /**
-     * Deactivate depth test.
-     * @public
-     */
-    deactivateDepthTest() {
-        this.gl.disable(this.gl.DEPTH_TEST);
-    }
-
-    /**
-     * Activate face culling.
-     * @public
-     */
-    activateFaceCulling() {
-        this.gl.enable(this.gl.CULL_FACE);
-    }
-
-    /**
-     * Deactivate face cullting.
-     * @public
-     */
-    deactivateFaceCulling() {
-        this.gl.disable(this.gl.CULL_FACE);
-    }
-
-    /**
-     * Activate blending.
-     * @public
-     */
-    activateBlending() {
-        this.gl.enable(this.gl.BLEND);
-    }
-
-    /**
-     * Deactivate blending.
-     * @public
-     */
-    deactivateBlending() {
-        this.gl.disable(this.gl.BLEND);
     }
 
     /**
@@ -1012,7 +965,7 @@ class Handler {
         } else {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor("#C5C5C5");
-            texture = this.createTexture_n(imgCnv._canvas) ;
+            texture = this.createTexture_n(imgCnv._canvas);
             texture.default = true;
             success(texture);
         }

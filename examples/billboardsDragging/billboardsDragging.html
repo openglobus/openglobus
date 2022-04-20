@@ -24,14 +24,14 @@
 
     let points = [];
 
-    for (let i = -180; i < 180; i += 10) {
-        for (let j = -90; j < 90; j += 10) {
+    for (let i = -180; i < 180; i += 5) {
+        for (let j = -90; j < 90; j += 5) {
             points.push({
                 'name': 'label',
                 'lonlat': [i, j],
                 'label': {
                     face: "arial",
-                    text: `${i.toString()}, ${j.toString()}`,
+                    text: "I Love Dubai, Hello!",//`${i.toString()}, ${j.toString()}`,
                     size: 12,
                     color: "rgba(355,355,355,1)",
                     outlineColor: "rgba(0,0,0,0.7)",
@@ -46,7 +46,7 @@
         'clampToGround': true,
         'entities': points,
         'async': false,
-        //nodeCapacity: 10000000
+        nodeCapacity: 10000000
     });
 
     let pickingObject = null;
