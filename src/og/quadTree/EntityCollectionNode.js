@@ -91,7 +91,7 @@ class EntityCollectionNode {
 
         this.count += entities.length;
 
-        if (entities.length > this.layer._nodeCapacity || this.zoom > this.layer.minZoom) {
+        if (entities.length > this.layer._nodeCapacity) {
             var cn = this.childrenNodes;
             if (!cn.length) {
                 this.createChildrenNodes();
@@ -131,7 +131,11 @@ class EntityCollectionNode {
     }
 
     isInside(entity) {
-        return this.extent.isInside(entity._lonlatMerc);
+        if (entity._lonlatMerc) {
+            return this.extent.isInside(entity._lonlatMerc);
+        } else {
+            return false;
+        }
     }
 
     createChildrenNodes() {
@@ -355,10 +359,10 @@ class EntityCollectionNodeWGS84 extends EntityCollectionNode {
     }
 
     /**
-     * 
-     * @param {*} outArr 
-     * @param {*} visibleNodes 
-     * @param {*} renderingNode 
+     *
+     * @param {*} outArr
+     * @param {*} visibleNodes
+     * @param {*} renderingNode
      */
     renderCollection(outArr, visibleNodes, renderingNode) {
 

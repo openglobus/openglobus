@@ -22,8 +22,9 @@ const FONTINDEX_BUFFER = 8;
 const OUTLINE_BUFFER = 9;
 const OUTLINECOLOR_BUFFER = 10;
 
-window.uZ = -2.0;
-window.dZ = 1.1;
+window.LABEL_Z_OFFSET = -0;
+window.OUTLINE_Z_OFFSET = 1.1;//600000; //1.1;
+
 /*
  * og.LabelHandler
  *
@@ -213,7 +214,6 @@ class LabelHandler extends BillboardHandler {
         gl.uniform1f(shu.opacity, ec._fadingOpacity);
         gl.uniform1f(shu.planetRadius, ec.renderNode._planetRadius2 || 0);
         gl.uniform2fv(shu.viewport, [h.canvas.clientWidth, h.canvas.clientHeight]);
-        gl.uniform1f(shu.uZ, window.uZ);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
         gl.vertexAttribPointer(sha.a_texCoord, this._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -251,18 +251,25 @@ class LabelHandler extends BillboardHandler {
         gl.vertexAttribPointer(sha.a_outline, this._outlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.uniform1i(shu.isOutlinePass, 1);
-        gl.uniform1f(shu.uZ, window.uZ + window.dZ);
+
+        gl.enable(gl.POLYGON_OFFSET_FILL);
+
+        let polygonOffsetUnits = this._entityCollection.polygonOffsetUnits + window.LABEL_Z_OFFSET;
+
+        gl.polygonOffset(0.0, polygonOffsetUnits + window.OUTLINE_Z_OFFSET);
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
         //
         // no outline PASS
-
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
         gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.uniform1i(shu.isOutlinePass, 0);
-        gl.uniform1f(shu.uZ, window.uZ);
+
+        gl.polygonOffset(0.0, polygonOffsetUnits);
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
+
+        gl.disable(gl.POLYGON_OFFSET_FILL);
     }
 
     _pickingPASS() {
@@ -299,7 +306,7 @@ class LabelHandler extends BillboardHandler {
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer);
-        gl.vertexAttribPointer(sha.a_positionsHigh, this._positionHighBuffer.itemSize, gl.FLOAT, false, 0,0);
+        gl.vertexAttribPointer(sha.a_positionsHigh, this._positionHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer);
         gl.vertexAttribPointer(sha.a_positionsLow, this._positionLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
