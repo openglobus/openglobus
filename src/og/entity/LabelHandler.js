@@ -202,7 +202,7 @@ class LabelHandler extends BillboardHandler {
         var gl = h.gl,
             ec = this._entityCollection;
 
-        gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
+        //gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
 
         gl.uniform1iv(shu.fontTextureArr, r.fontAtlas.samplerArr);
         gl.uniform4fv(shu.sdfParamsArr, r.fontAtlas.sdfParamsArr);
@@ -252,11 +252,11 @@ class LabelHandler extends BillboardHandler {
 
         gl.uniform1i(shu.isOutlinePass, 1);
 
-        gl.enable(gl.POLYGON_OFFSET_FILL);
+        //gl.enable(gl.POLYGON_OFFSET_FILL);
 
         let polygonOffsetUnits = this._entityCollection.polygonOffsetUnits + window.LABEL_Z_OFFSET;
 
-        gl.polygonOffset(0.0, polygonOffsetUnits + window.OUTLINE_Z_OFFSET);
+        //gl.polygonOffset(0.0, polygonOffsetUnits + window.OUTLINE_Z_OFFSET);
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
         //
@@ -266,7 +266,7 @@ class LabelHandler extends BillboardHandler {
 
         gl.uniform1i(shu.isOutlinePass, 0);
 
-        gl.polygonOffset(0.0, polygonOffsetUnits);
+        //gl.polygonOffset(0.0, polygonOffsetUnits);
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
         gl.disable(gl.POLYGON_OFFSET_FILL);

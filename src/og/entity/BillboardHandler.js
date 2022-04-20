@@ -347,7 +347,7 @@ class BillboardHandler {
         var gl = h.gl,
             ec = this._entityCollection;
 
-        gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
+        //gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
 
         gl.uniform1i(shu.u_texture, 0);
 
@@ -403,7 +403,7 @@ class BillboardHandler {
         var gl = h.gl,
             ec = this._entityCollection;
 
-        gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
+        //gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());

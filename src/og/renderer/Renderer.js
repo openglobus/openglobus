@@ -628,8 +628,8 @@ class Renderer {
             gl.disable(gl.CULL_FACE);
 
             // Z-buffer offset
-            gl.enable(gl.POLYGON_OFFSET_FILL);
-            gl.polygonOffset(0.0, 0.0);
+            //gl.enable(gl.POLYGON_OFFSET_FILL);
+            //gl.polygonOffset(0.0, 0.0);
 
             // billboards pass
             gl.activeTexture(gl.TEXTURE0);
@@ -705,7 +705,7 @@ class Renderer {
             }
 
             // gl.polygonOffset(0.0, 0.0);
-            gl.disable(gl.POLYGON_OFFSET_FILL);
+            //gl.disable(gl.POLYGON_OFFSET_FILL);
 
             this._entityCollections.length = 0;
             this._entityCollections = [];

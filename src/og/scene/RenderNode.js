@@ -284,8 +284,8 @@ class RenderNode extends BaseNode {
             gl.disable(gl.CULL_FACE);
 
             // Z-buffer offset
-            gl.enable(gl.POLYGON_OFFSET_FILL);
-            gl.polygonOffset(0.0, 0.0);
+            //gl.enable(gl.POLYGON_OFFSET_FILL);
+            //gl.polygonOffset(0.0, 0.0);
 
             // billoard pass
             var i = ec.length;
@@ -311,7 +311,7 @@ class RenderNode extends BaseNode {
                 ec[i]._fadingOpacity && ec[i].rayHandler.drawPicking();
             }
 
-            gl.polygonOffset(0.0, 0.0);
+            //gl.polygonOffset(0.0, 0.0);
 
             gl.disable(gl.POLYGON_OFFSET_FILL);
             gl.enable(gl.CULL_FACE);

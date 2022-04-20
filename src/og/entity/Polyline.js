@@ -1992,10 +1992,10 @@ class Polyline {
 
             sh.activate();
 
-            gl.polygonOffset(
-                this._handler._entityCollection.polygonOffsetFactor,
-                this._handler._entityCollection.polygonOffsetUnits
-            );
+            // gl.polygonOffset(
+            //     this._handler._entityCollection.polygonOffsetFactor,
+            //     this._handler._entityCollection.polygonOffsetUnits
+            // );
 
             gl.enable(gl.BLEND);
             gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
@@ -2058,10 +2058,10 @@ class Polyline {
 
             sh.activate();
 
-            gl.polygonOffset(
-                this._handler._entityCollection.polygonOffsetFactor,
-                this._handler._entityCollection.polygonOffsetUnits
-            );
+            // gl.polygonOffset(
+            //     this._handler._entityCollection.polygonOffsetFactor,
+            //     this._handler._entityCollection.polygonOffsetUnits
+            // );
 
             gl.enable(gl.BLEND);
             gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
