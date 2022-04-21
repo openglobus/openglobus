@@ -26,7 +26,8 @@ export function billboardPicking() {
             eyePositionLow: "vec3",
             planetRadius: "float",
             uScaleByDistance: "vec3",
-            opacity: "float"
+            opacity: "float",
+            depthOffset: "float"
         },
         attributes: {
             a_vertices: "vec2",
@@ -57,6 +58,7 @@ export function billboardPicking() {
             uniform float opacity;
             uniform float planetRadius;
             uniform vec2 viewport;
+            uniform float depthOffset;
 
             const vec3 ZERO3 = vec3(0.0);
 
@@ -89,11 +91,14 @@ export function billboardPicking() {
                 vec3 lowDiff = a_positionsLow - eyePositionLow;
                 vec4 posRTE = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
                 vec4 projPos = projectionMatrix * posRTE;
+                                
+                projPos.z += depthOffset + a_offset.z;
+                                
                 vec2 screenPos = project(projPos);
 
                 vec2 v =  screenPos + rotate2d(a_rotation) * (a_vertices * a_size * scd + a_offset.xy);
 
-                gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z + a_offset.z, projPos.w);
+                gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
             }`,
         fragmentShader:
             `precision highp float;
@@ -115,7 +120,8 @@ export function billboard_screen() {
             eyePositionLow: "vec3",
             planetRadius: "float",
             uScaleByDistance: "vec3",
-            opacity: "float"
+            opacity: "float",
+            depthOffset: "float"
         },
         attributes: {
             a_vertices: "vec2",
@@ -149,6 +155,7 @@ export function billboard_screen() {
             uniform float opacity;
             uniform float planetRadius;
             uniform vec2 viewport;
+            uniform float depthOffset;
 
             const vec3 ZERO3 = vec3(0.0);
 
@@ -182,11 +189,14 @@ export function billboard_screen() {
                 vec3 lowDiff = a_positionsLow - eyePositionLow;
                 vec4 posRTE = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
                 vec4 projPos = projectionMatrix * posRTE;
+                                
+                projPos.z += depthOffset + a_offset.z;
+                
                 vec2 screenPos = project(projPos);
 
                 vec2 v = screenPos + rotate2d(a_rotation) * (a_vertices * a_size * scd + a_offset.xy);
 
-                gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z + a_offset.z, projPos.w);
+                gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
             }`,
         fragmentShader:
             `precision highp float;

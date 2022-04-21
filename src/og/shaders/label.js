@@ -30,7 +30,8 @@ export function label_webgl2() {
             planetRadius: "float",
             scaleByDistance: "vec3",
             opacity: "float",
-            isOutlinePass: "int"
+            isOutlinePass: "int",
+            depthOffset: "float"
         },
         attributes: {
             a_outline: "float",
@@ -76,6 +77,7 @@ export function label_webgl2() {
             uniform vec3 scaleByDistance;
             uniform float opacity;
             uniform int isOutlinePass;
+            uniform float depthOffset;
 
             const vec3 ZERO3 = vec3(0.0);
 
@@ -116,7 +118,13 @@ export function label_webgl2() {
                 vec3 lowDiff = a_positionsLow - eyePositionLow;
                 vec4 posRTE = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
                 vec4 projPos = projectionMatrix * posRTE;
-                projPos.z -= 100000.0;
+                projPos.z += depthOffset + a_offset.z;
+                
+                //vec3 lookVec = vec3(viewMatrix[2], viewMatrix[6], viewMatrix[10]);
+                
+                // if(lookDist>100000.0){
+                //     projPos.z -= 100000.0;
+                // }
                                
                 vec2 screenPos = project(projPos);
 
@@ -260,7 +268,8 @@ export function labelPicking() {
             eyePositionLow: "vec3",
             planetRadius: "float",
             scaleByDistance: "vec3",
-            opacity: "float"
+            opacity: "float",
+            depthOffset: "float"
         },
         attributes: {
             a_gliphParam: "vec4",
@@ -295,6 +304,7 @@ export function labelPicking() {
             uniform float planetRadius;
             uniform vec3 scaleByDistance;
             uniform float opacity;
+            uniform float depthOffset;
 
             const vec3 ZERO3 = vec3(0.0);
 
@@ -328,11 +338,14 @@ export function labelPicking() {
                 vec3 lowDiff = a_positionsLow - eyePositionLow;
                 vec4 posRTE = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
                 vec4 projPos = projectionMatrix * posRTE;
+                
+                projPos.z += depthOffset + a_offset.z;
+                
                 vec2 screenPos = project(projPos);
 
                 vec2 v = screenPos + rotate2d(a_rotation) * ((a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size * scd + a_offset.xy);
 
-                gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z + a_offset.z, projPos.w);
+                gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
             }`,
         fragmentShader:
             `

@@ -21,11 +21,16 @@
     import {Entity} from '../../src/og/entity/Entity.js';
     import {ToggleWireframe} from '../../src/og/control/ToggleWireframe.js';
     import {DebugInfo} from '../../src/og/control/DebugInfo.js';
+    import {Vec3} from '../../src/og/math/Vec3.js';
+    import {Quat} from '../../src/og/math/Quat.js';
+    import * as math from '../../src/og/math.js';
+    import {LonLat} from '../../src/og/LonLat.js';
 
-    let points = [];
+    let points = [],
+            markers = [];
 
-    for (let i = -180; i < 180; i += 5) {
-        for (let j = -90; j < 90; j += 5) {
+    for (let i = -180; i < 180; i += 10) {
+        for (let j = -90; j < 90; j += 10) {
             points.push({
                 'name': 'label',
                 'lonlat': [i, j],
@@ -38,7 +43,17 @@
                     outline: 0.7,
                     align: "center"
                 }
-            })
+            });
+
+            markers.push({
+                'name': 'Blue Marker',
+                'lonlat': [i, j],
+                'billboard': {
+                    'src': 'marker.png',
+                    'size': [29, 48],
+                    'offset': [0, 24]
+                }
+            });
         }
     }
 
@@ -49,30 +64,87 @@
         nodeCapacity: 10000000
     });
 
-    let pickingObject = null;
-    let startClick = new Vec2(),
-            startPos;
-
-    pointLayer.events.on("mouseenter", function (e) {
-        e.renderer.handler.canvas.style.cursor = "pointer";
+    let markerLayer = new Vector("markers", {
+        'clampToGround': true,
+        'entities': markers,
+        'async': false,
+        nodeCapacity: 10000000
     });
 
-    pointLayer.events.on("mouseleave", function (e) {
-        e.renderer.handler.canvas.style.cursor = "default";
-    });
 
-    pointLayer.events.on("ldown", function (e) {
-        //pointLayer.clampToGround = false;
-        e.renderer.controls.mouseNavigation.deactivate();
-        startClick.set(e.x, e.y);
-        pickingObject = e.pickingObject;
-        startPos = e.pickingObject.layer.planet.getPixelFromCartesian(pickingObject.getCartesian());
-    });
+    //
+    // Orbit circles
+    //
+    var size = 5.0;
+    var greenOrbit = [];
+    var p = new Vec3(0, 0, 6378137.0 + 3000000.0);
+    var q = Quat.axisAngleToQuat(new Vec3(1, 1, 0).normalize(), size * math.RADIANS);
 
-    pointLayer.events.on("lup", function (e) {
-        //pointLayer.clampToGround = true;
-        e.renderer.controls.mouseNavigation.activate();
-        pickingObject = null;
+    var redOrbit = [];
+    var p2 = new Vec3(0, 0, 6378137.0 + 5000000.0);
+    var q2 = Quat.axisAngleToQuat(new Vec3(-0.1, 1, 0.1).normalize(), size * math.RADIANS);
+
+    for (var i = 0; i < 360; i += size) {
+        p = q.mulVec3(p);
+        greenOrbit.push(p);
+
+        p2 = q2.mulVec3(p2);
+        redOrbit.push(p2);
+    }
+
+    //
+    // Geodetic grid
+    //
+    var grid = [];
+    //meridians
+    for (var i = -180; i < 180; i += 10) {
+        var mer = [];
+        for (var j = -90; j <= 90; j++) {
+            mer.push(new LonLat(i, j, 20000));
+        }
+        grid.push(mer);
+    }
+
+    //parallels
+    for (var i = -90; i < 90; i += 10) {
+        var mer = [];
+        for (var j = -180; j <= 180; j++) {
+            mer.push(new LonLat(j, i, 20000));
+        }
+        grid.push(mer);
+    }
+
+    var collection = new Vector("Collection", {
+        'entities':
+                [{
+                    'polyline': {
+                        'pathLonLat': grid,
+                        'thickness': 1,
+                        'color': "rgba(68, 157, 205, 0.92)"
+                    }
+                }, {
+                    'polyline': {
+                        'path3v': [greenOrbit],
+                        'thickness': 5.5,
+                        'color': "#39b739",
+                        'isClosed': true
+                    }
+                }, {
+                    'polyline': {
+                        'path3v': [redOrbit],
+                        'thickness': 2.5,
+                        'color': "#ff3b3b",
+                        'isClosed': true
+                    }
+                }, {
+                    'polyline': {
+                        'pathLonLat': [[[55, 2.3510, 200000], [52, 17, 200000], [50, 35, 300000]]],
+                        'pathColors': [[[1, 1, 1, 1], [1, 1, 0, 1], [1, 0, 0, 1]]],
+                        'thickness': 5.5,
+                        'color': "red",
+                        'isClosed': false
+                    }
+                }]
     });
 
     let osm = new XYZ("OSM", {
@@ -86,7 +158,7 @@
         "target": "earth",
         "name": "Earth",
         "terrain": new GlobusTerrain(),
-        "layers": [osm, pointLayer]
+        "layers": [osm, pointLayer, markerLayer, collection]
     });
 
     //globe.renderer.fontAtlas.initFont("arial", data, base64);

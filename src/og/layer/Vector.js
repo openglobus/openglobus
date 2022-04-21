@@ -60,7 +60,7 @@ function _entitiesConstructor(entities) {
  * @param {boolean} [options.clampToGround = false] - Clamp vector data to the ground.
  * @param {boolean} [options.relativeToGround = false] - Place vector data relative to the ground relief.
  * @param {Number} [options.polygonOffsetFactor=0.0] - The scale factor for the variable depth offset. The default value is 0.
- * @param {Number} [options.polygonOffsetUnits=-637000.0] - The multiplier by which an implementation-specific value is multiplied with to create a constant depth offset.
+ * @param {Number} [options.polygonOffsetUnits=0.0] - The multiplier by which an implementation-specific value is multiplied with to create a constant depth offset.
  *
  * @fires og.layer.Vector#entitymove
  * @fires og.layer.Vector#draw
@@ -170,7 +170,7 @@ class Vector extends Layer {
          * @type {Number}
          */
         this.polygonOffsetUnits =
-            options.polygonOffsetUnits != undefined ? options.polygonOffsetUnits : -637000.0;
+            options.polygonOffsetUnits != undefined ? options.polygonOffsetUnits : 0.0;
 
         this.pickingEnabled = this._pickingEnabled;
     }
