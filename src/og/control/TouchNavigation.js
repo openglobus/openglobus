@@ -236,9 +236,12 @@ class TouchNavigation extends Control {
                     );
                     var rot = this.qRot;
                     cam.eye = rot.mulVec3(cam.eye);
-                    cam._v = rot.mulVec3(cam._v);
+                    // cam._v = rot.mulVec3(cam._v);
+                    // cam._u = rot.mulVec3(cam._u);
+                    // cam._n = rot.mulVec3(cam._n);
                     cam._u = rot.mulVec3(cam._u);
-                    cam._n = rot.mulVec3(cam._n);
+                    cam._r = rot.mulVec3(cam._r);
+                    cam._b = rot.mulVec3(cam._b);
                     cam.checkTerrainCollision();
                     cam.update();
                     this.scaleRot = 1;
@@ -297,9 +300,12 @@ class TouchNavigation extends Control {
                 this.scaleRot = 0;
             }
             cam.eye = rot.mulVec3(cam.eye);
-            cam._v = rot.mulVec3(cam._v);
+            // cam._v = rot.mulVec3(cam._v);
+            // cam._u = rot.mulVec3(cam._u);
+            // cam._n = rot.mulVec3(cam._n);
             cam._u = rot.mulVec3(cam._u);
-            cam._n = rot.mulVec3(cam._n);
+            cam._r = rot.mulVec3(cam._r);
+            cam._b = rot.mulVec3(cam._b);
             cam.checkTerrainCollision();
             cam.update();
         }
