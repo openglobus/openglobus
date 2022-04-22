@@ -118,13 +118,15 @@ export function label_webgl2() {
                 vec3 lowDiff = a_positionsLow - eyePositionLow;
                 vec4 posRTE = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
                 vec4 projPos = projectionMatrix * posRTE;
+                                
+                float camSlope = dot(vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]), normalize(cameraPos));                
+                if(camSlope > 0.5) {                
+                    projPos.z += -lookDist * 0.05;                    
+                }else{
+                    projPos.z += -(abs(projPos.z)) * 0.002;                 
+                }
+                        
                 projPos.z += depthOffset + a_offset.z;
-                
-                //vec3 lookVec = vec3(viewMatrix[2], viewMatrix[6], viewMatrix[10]);
-                
-                // if(lookDist>100000.0){
-                //     projPos.z -= 100000.0;
-                // }
                                
                 vec2 screenPos = project(projPos);
 

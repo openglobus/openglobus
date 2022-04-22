@@ -764,7 +764,7 @@ class Renderer {
 
         if (pointerEvent) {
             // It works ONLY for 0 (closest) frustum
-            if (this.handler.isWebGl2()) {
+            if (h.isWebGl2()) {
                 this._drawDepthBuffer();
             }
 
@@ -776,9 +776,9 @@ class Renderer {
 
         e.dispatch(e.postdraw, this);
 
-        e.mouseState.moving = false;
         e.mouseState.wheelDelta = 0;
         e.mouseState.justStopped = false;
+        e.mouseState.moving = false;
         e.touchState.moving = false;
     }
 

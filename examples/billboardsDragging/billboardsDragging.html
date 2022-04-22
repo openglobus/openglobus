@@ -38,8 +38,8 @@
                     face: "arial",
                     text: "I Love Dubai, Hello!",//`${i.toString()}, ${j.toString()}`,
                     size: 12,
-                    color: "rgba(355,355,355,1)",
-                    outlineColor: "rgba(0,0,0,0.7)",
+                    color: "rgba(355,355,355,1.0)",
+                    outlineColor: "rgba(0,0,0,0.8)",
                     outline: 0.7,
                     align: "center"
                 }
@@ -170,6 +170,15 @@
     globe.planet.addControl(new ToggleWireframe());
     globe.planet.addControl(new DebugInfo());
 
+    markerLayer.events.on("mouseenter", function (e) {
+        e.renderer.handler.canvas.style.cursor = "pointer";
+        console.log(e.pickingObject.getCartesian().distance(e.renderer.activeCamera.eye));
+    });
+
+    markerLayer.events.on("mouseleave", function (e) {
+        e.renderer.handler.canvas.style.cursor = "default";
+    });
+
     // globe.planet.renderer.events.on("mousemove", function (e) {
     //     if (pickingObject) {
     //         var d = new Vec2(e.x, e.y).sub(startClick);
@@ -183,25 +192,9 @@
 
     //globe.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
 
-    // globe.renderer.events.on("lclick", function (e) {
-    //
-    //     var ll = globe.planet.getLonLatFromPixelTerrain(e, true);
-    //
-    //     pointLayer.add(new Entity({
-    //         'name': 'New Marker',
-    //         //'lonlat': ll,
-    //         cartesian: globe.planet.getCartesianFromPixelTerrain(e, true),
-    //         'billboard': {
-    //             'src': 'marker.png',
-    //             'size': [29, 48],
-    //             'offset': [0, 24]
-    //         }
-    //     }));
-    // });
-    //
-    // pointLayer.events.on("rclick", function (e) {
-    //     e.pickingObject.remove();
-    // });
+    globe.renderer.events.on("lclick", function (e) {
+
+    });
 
     window.globe = globe;
 

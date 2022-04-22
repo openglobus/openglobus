@@ -17,6 +17,8 @@ const ROTATION_BUFFER = 5;
 const TEXCOORD_BUFFER = 6;
 const VERTEX_BUFFER = 7;
 
+window.BILLBOARD_DEPTH_OFFSET = 0.0;
+
 /*
  * og.BillboardHandler
  *
@@ -348,7 +350,7 @@ class BillboardHandler {
             ec = this._entityCollection;
 
         //gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
-        gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits + window.LABEL_Z_OFFSET);
+        gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits + window.BILLBOARD_DEPTH_OFFSET);
 
         gl.uniform1i(shu.u_texture, 0);
 
@@ -404,8 +406,7 @@ class BillboardHandler {
         var gl = h.gl,
             ec = this._entityCollection;
 
-        //gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
-        gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits + window.LABEL_Z_OFFSET);
+        gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits + window.BILLBOARD_DEPTH_OFFSET);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
