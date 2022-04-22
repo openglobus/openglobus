@@ -100,6 +100,7 @@ export function label_webgl2() {
 
                 v_fontIndex = int(a_fontIndex);
                 v_uv = vec2(a_texCoord.xy);
+                vec3 look = a_positions - cameraPos;
                 float lookDist = length(a_positions - cameraPos);
                 v_rgba = a_rgba;
                 
@@ -121,10 +122,8 @@ export function label_webgl2() {
                                 
                 float camSlope = dot(vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]), normalize(cameraPos));                
                 if(camSlope > 0.5) {
-                    vec3 v = a_positions - cameraPos;
-                    vec3 n = -normalize(cameraPos);
-                    float dist = dot(v, n);
-                    projPos.z += -dist * 0.01;                    
+                    float dist = dot(look, normalize(cameraPos));
+                    projPos.z += dist * 0.01;                  
                 }else{
                     projPos.z += -(abs(projPos.z)) * 0.002;                 
                 }
