@@ -191,10 +191,13 @@ export function billboard_screen() {
                 vec4 projPos = projectionMatrix * posRTE;
                                                 
                 float camSlope = dot(vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]), normalize(cameraPos));                
-                if(camSlope > 0.5) {                
-                    projPos.z += -lookDist * 0.05;                    
+                if(camSlope > 0.5) {
+                    vec3 v = a_positions - cameraPos;
+                    vec3 n = -normalize(cameraPos);
+                    float dist = dot(v, n);
+                    projPos.z += -dist * 0.01;                 
                 }else{
-                    projPos.z += -(abs(projPos.z)) * 0.002;                
+                    projPos.z += -(abs(projPos.z)) * 0.002;                 
                 }
                 
                 projPos.z += depthOffset + a_offset.z;
