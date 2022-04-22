@@ -123,7 +123,7 @@ export function label_webgl2() {
                 float camSlope = dot(vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]), normalize(cameraPos));                
                 if(camSlope > 0.5) {
                     float dist = dot(look, normalize(cameraPos));
-                    projPos.z += dist * 0.01;                  
+                    projPos.z += dist * 0.02;                  
                 }else{
                     projPos.z += -(abs(projPos.z)) * 0.002;                 
                 }
