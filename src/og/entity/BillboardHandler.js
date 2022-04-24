@@ -348,8 +348,7 @@ class BillboardHandler {
 
         var gl = h.gl,
             ec = this._entityCollection;
-
-        //gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
+        
         gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits + window.BILLBOARD_DEPTH_OFFSET);
 
         gl.uniform1i(shu.u_texture, 0);

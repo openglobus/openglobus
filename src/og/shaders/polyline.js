@@ -16,7 +16,8 @@ export function polyline_screen() {
             eyePositionLow: "vec3",
             uFloatParams: "vec2",
             thickness: "float",
-            opacity: "float"
+            opacity: "float",
+            depthOffset: "float"
         },
         attributes: {
             prevHigh: "vec3",
@@ -54,6 +55,7 @@ export function polyline_screen() {
                 uniform vec3 eyePositionHigh;
                 uniform vec3 eyePositionLow;
                 uniform float opacity;
+                uniform float depthOffset;
 
                 varying vec4 vColor;
                 varying vec3 vPos;
@@ -167,8 +169,8 @@ export function polyline_screen() {
                             m = sCurrent + normalNext * d;
                         }
                     }
-
-                    gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z, dCurrent.w);
+                                            
+                    gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z + depthOffset, dCurrent.w);
                 }`,
 
         fragmentShader:
@@ -196,7 +198,8 @@ export function polyline_picking() {
             eyePositionLow: "vec3",
             uFloatParams: "vec2",
             color: "vec4",
-            thickness: "float"
+            thickness: "float",
+            depthOffset: "float"
         },
         attributes: {
             prevHigh: "vec3",
@@ -230,6 +233,7 @@ export function polyline_picking() {
                 uniform vec2 viewport;
                 uniform vec3 eyePositionHigh;
                 uniform vec3 eyePositionLow;
+                uniform float depthOffset;
 
                 varying vec4 vColor;
                 varying vec3 vPos;
@@ -343,7 +347,7 @@ export function polyline_picking() {
                             m = sCurrent + normalNext * d;
                         }
                     }
-                    gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z, dCurrent.w);
+                    gl_Position = vec4((2.0 * m / viewport - 1.0) * dCurrent.w, dCurrent.z + depthOffset, dCurrent.w);
                 }`,
 
         fragmentShader:
