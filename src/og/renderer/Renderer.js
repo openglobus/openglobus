@@ -627,10 +627,6 @@ class Renderer {
             gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
             gl.disable(gl.CULL_FACE);
 
-            // Z-buffer offset
-            //gl.enable(gl.POLYGON_OFFSET_FILL);
-            //gl.polygonOffset(0.0, 0.0);
-
             // billboards pass
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture);
@@ -703,9 +699,6 @@ class Renderer {
                     eci.events.dispatch(eci.events.drawend, eci);
                 }
             }
-
-            // gl.polygonOffset(0.0, 0.0);
-            //gl.disable(gl.POLYGON_OFFSET_FILL);
 
             this._entityCollections.length = 0;
             this._entityCollections = [];

@@ -322,6 +322,7 @@ class LabelHandler extends BillboardHandler {
 
         gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits + window.LABEL_DEPTH_OFFSET);
 
+
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
     }
 
