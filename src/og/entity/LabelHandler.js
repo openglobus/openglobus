@@ -201,8 +201,6 @@ class LabelHandler extends BillboardHandler {
         var gl = h.gl,
             ec = this._entityCollection;
 
-        //gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
-
         gl.uniform1iv(shu.fontTextureArr, r.fontAtlas.samplerArr);
         gl.uniform4fv(shu.sdfParamsArr, r.fontAtlas.sdfParamsArr);
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
@@ -279,8 +277,6 @@ class LabelHandler extends BillboardHandler {
 
         var gl = h.gl,
             ec = this._entityCollection;
-
-        gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
 
         var rn = ec.renderNode;
 

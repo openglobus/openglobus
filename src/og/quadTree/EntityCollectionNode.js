@@ -247,8 +247,6 @@ class EntityCollectionNode {
         ec._fadingOpacity = l._fadingOpacity;
         ec.scaleByDistance = l.scaleByDistance;
         ec.pickingScale = l.pickingScale;
-
-        ec.polygonOffsetFactor = l.polygonOffsetFactor;
         ec.polygonOffsetUnits = l.polygonOffsetUnits;
 
         outArr.push(ec);

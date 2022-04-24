@@ -59,7 +59,6 @@ function _entitiesConstructor(entities) {
  * @param {boolean} [options.async=true] - Asynchronous vector data handling before rendering. True for optimization huge data.
  * @param {boolean} [options.clampToGround = false] - Clamp vector data to the ground.
  * @param {boolean} [options.relativeToGround = false] - Place vector data relative to the ground relief.
- * @param {Number} [options.polygonOffsetFactor=0.0] - The scale factor for the variable depth offset. The default value is 0.
  * @param {Number} [options.polygonOffsetUnits=0.0] - The multiplier by which an implementation-specific value is multiplied with to create a constant depth offset.
  *
  * @fires og.layer.Vector#entitymove
@@ -155,14 +154,6 @@ class Vector extends Layer {
 
         // Creates collections tree
         this.setEntities(this._entities);
-
-        /**
-         * Specifies the scale factor for gl.polygonOffset function to calculate depth values, 0.0 is default.
-         * @public
-         * @type {Number}
-         */
-        this.polygonOffsetFactor =
-            options.polygonOffsetFactor != undefined ? options.polygonOffsetFactor : 0.0;
 
         /**
          * Specifies the scale Units for gl.polygonOffset function to calculate depth values, 0.0 is default.
@@ -711,8 +702,6 @@ class Vector extends Layer {
         ec._fadingOpacity = this._fadingOpacity;
         ec.scaleByDistance = this.scaleByDistance;
         ec.pickingScale = this.pickingScale;
-
-        ec.polygonOffsetFactor = this.polygonOffsetFactor;
         ec.polygonOffsetUnits = this.polygonOffsetUnits;
 
         outArr.push(ec);
@@ -727,8 +716,6 @@ class Vector extends Layer {
         ec._fadingOpacity = this._fadingOpacity;
         ec.scaleByDistance = this.scaleByDistance;
         ec.pickingScale = this.pickingScale;
-
-        ec.polygonOffsetFactor = this.polygonOffsetFactor;
         ec.polygonOffsetUnits = this.polygonOffsetUnits;
 
         outArr.push(ec);
