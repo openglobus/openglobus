@@ -304,10 +304,10 @@ export function label_screen() {
 
             varying vec2 v_uv;
             varying vec4 v_rgba;
-            flat varying int v_fontIndex;            
+            varying float v_fontIndex;            
             varying vec4 v_outlineColor;
-            flat varying float v_outline;
-            flat varying int v_isOutlinePass;
+            varying float v_outline;
+            varying float v_isOutlinePass;
 
             uniform vec2 viewport;
             uniform mat4 viewMatrix;
@@ -337,9 +337,9 @@ export function label_screen() {
                 vec3 cameraPos = eyePositionHigh + eyePositionLow;
 
                 v_outline = a_outline;
-                v_isOutlinePass = isOutlinePass;
+                v_isOutlinePass = float(isOutlinePass);
 
-                v_fontIndex = int(a_fontIndex);
+                v_fontIndex = a_fontIndex;
                 v_uv = vec2(a_texCoord.xy);
                 vec3 look = a_positions - cameraPos;
                 float lookDist = length(look);
@@ -393,13 +393,13 @@ export function label_screen() {
             uniform sampler2D fontTextureArr[MAX_SIZE];
             uniform vec4 sdfParamsArr[MAX_SIZE];
             
-            flat varying int v_isOutlinePass;
+            varying float v_isOutlinePass;
 
-            flat varying int v_fontIndex;
+            varying float v_fontIndex;
             varying vec2 v_uv;
             varying vec4 v_rgba;           
 
-            flat varying float v_outline;
+            varying float v_outline;
 
             varying vec3 v_pickingColor;
 
@@ -409,54 +409,55 @@ export function label_screen() {
 
             float getDistance() {
                 vec3 msdf;
-                if(v_fontIndex == 0) {
-                    msdf = texture(fontTextureArr[0], v_uv).rgb;
-                } else if(v_fontIndex == 1){
-                    msdf = texture(fontTextureArr[1], v_uv).rgb;
-                } else if(v_fontIndex == 2){
-                    msdf = texture(fontTextureArr[2], v_uv).rgb;
-                } else if(v_fontIndex == 3){
-                    msdf = texture(fontTextureArr[3], v_uv).rgb;
-                } else if(v_fontIndex == 4){
-                    msdf = texture(fontTextureArr[4], v_uv).rgb;
-                } else if(v_fontIndex == 5){
-                    msdf = texture(fontTextureArr[5], v_uv).rgb;
-                } else if(v_fontIndex == 6){
-                    msdf = texture(fontTextureArr[6], v_uv).rgb;
-                } else if(v_fontIndex == 7){
-                    msdf = texture(fontTextureArr[7], v_uv).rgb;
-                } else if(v_fontIndex == 8){
-                    msdf = texture(fontTextureArr[8], v_uv).rgb;
-                } else if(v_fontIndex == 9){
-                    msdf = texture(fontTextureArr[9], v_uv).rgb;
-                } else if(v_fontIndex == 10){
-                    msdf = texture(fontTextureArr[10], v_uv).rgb;
+                if(v_fontIndex >= 0.0 && v_fontIndex < 1.0) {
+                    msdf = texture2D(fontTextureArr[0], v_uv).rgb;
+                } else if(v_fontIndex >= 1.0 && v_fontIndex < 2.0){
+                    msdf = texture2D(fontTextureArr[1], v_uv).rgb;
+                } else if(v_fontIndex >= 2.0 && v_fontIndex < 3.0){
+                    msdf = texture2D(fontTextureArr[2], v_uv).rgb;
+                } else if(v_fontIndex >= 3.0 && v_fontIndex < 4.0){
+                    msdf = texture2D(fontTextureArr[3], v_uv).rgb;
+                } else if(v_fontIndex >= 4.0 && v_fontIndex < 5.0){
+                    msdf = texture2D(fontTextureArr[4], v_uv).rgb;
+                } else if(v_fontIndex >= 5.0 && v_fontIndex < 6.0){
+                    msdf = texture2D(fontTextureArr[5], v_uv).rgb;
+                } else if(v_fontIndex >= 6.0 && v_fontIndex < 7.0){
+                    msdf = texture2D(fontTextureArr[6], v_uv).rgb;
+                } else if(v_fontIndex >= 7.0 && v_fontIndex < 8.0){
+                    msdf = texture2D(fontTextureArr[7], v_uv).rgb;
+                } else if(v_fontIndex >= 8.0 && v_fontIndex < 9.0){
+                    msdf = texture2D(fontTextureArr[8], v_uv).rgb;
+                } else if(v_fontIndex >= 9.0 && v_fontIndex < 10.0){
+                    msdf = texture2D(fontTextureArr[9], v_uv).rgb;
+                } else if(v_fontIndex >= 10.0 && v_fontIndex < 11.0){
+                    msdf = texture2D(fontTextureArr[10], v_uv).rgb;
                 }
                 return median(msdf.r, msdf.g, msdf.b);
             }
 
+
             vec4 getSDFParams() {
-                if(v_fontIndex == 0) {
+                if(v_fontIndex >= 0.0 && v_fontIndex < 1.0) {
                     return sdfParamsArr[0];
-                } else if(v_fontIndex == 1){
+                } else if(v_fontIndex >= 1.0 && v_fontIndex < 2.0){
                     return sdfParamsArr[1];
-                } else if(v_fontIndex == 2){
+                } else if(v_fontIndex >= 2.0 && v_fontIndex < 3.0){
                     return sdfParamsArr[2];
-                } else if(v_fontIndex == 3){
+                } else if(v_fontIndex >= 3.0 && v_fontIndex < 4.0){
                     return sdfParamsArr[3];
-                } else if(v_fontIndex == 4){
+                } else if(v_fontIndex >= 4.0 && v_fontIndex < 5.0){
                     return sdfParamsArr[4];
-                } else if(v_fontIndex == 5){
+                } else if(v_fontIndex >= 5.0 && v_fontIndex < 6.0){
                     return sdfParamsArr[5];
-                } else if(v_fontIndex == 6){
+                } else if(v_fontIndex >= 6.0 && v_fontIndex < 7.0){
                     return sdfParamsArr[6];
-                } else if(v_fontIndex == 7){
+                } else if(v_fontIndex >= 7.0 && v_fontIndex < 8.0){
                     return sdfParamsArr[7];
-                } else if(v_fontIndex == 8){
+                } else if(v_fontIndex >= 8.0 && v_fontIndex < 9.0){
                     return sdfParamsArr[8];
-                } else if(v_fontIndex == 9){
+                } else if(v_fontIndex >= 9.0 && v_fontIndex < 10.0){
                     return sdfParamsArr[9];
-                } else if(v_fontIndex == 10){
+                } else if(v_fontIndex >= 10.0 && v_fontIndex < 11.0){
                     return sdfParamsArr[10];
                 }
             }
@@ -466,7 +467,7 @@ export function label_screen() {
                 vec4 sdfParams = getSDFParams();
                 
                 vec2 dxdy = fwidth(v_uv) * sdfParams.xy;
-                float dist = getDistance() + min(v_isOutlinePass == 0 ? 0.001 : v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
+                float dist = getDistance() + min(v_isOutlinePass == 0.0 ? 0.001 : v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
                 float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
 
                 vec4 color = v_rgba;

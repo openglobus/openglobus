@@ -14,6 +14,8 @@ import { Vec2 } from "../math/Vec2.js";
 
 const vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
 
+const CONTEXT_TYPE = [/*"webgl2",*/ "webgl"];
+
 // Maximal mipmap levels
 const MAX_LEVELS = 2;
 
@@ -166,7 +168,6 @@ class Handler {
      * @returns {Object} -
      */
     static getContext(canvas, contextAttributes) {
-        const CONTEXT_TYPE = ["webgl2", "webgl"];
         let ctx = null;
 
         try {
