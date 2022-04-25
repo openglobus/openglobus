@@ -252,10 +252,9 @@ class LabelHandler extends BillboardHandler {
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
-        gl.depthFunc(gl.EQUAL);
-
         //
         // no outline PASS
+        gl.depthFunc(gl.EQUAL);
         gl.uniform1i(shu.isOutlinePass, 0);
         gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits + window.LABEL_DEPTH_OFFSET);
 
