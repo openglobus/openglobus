@@ -241,13 +241,13 @@ class LabelHandler extends BillboardHandler {
 
         //
         // outline PASS
+        gl.uniform1i(shu.isOutlinePass, 1);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer);
         gl.vertexAttribPointer(sha.a_rgba, this._outlineColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer);
         gl.vertexAttribPointer(sha.a_outline, this._outlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.uniform1i(shu.isOutlinePass, 1);
 
         gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits + window.LABEL_DEPTH_OFFSET);
 
@@ -257,10 +257,10 @@ class LabelHandler extends BillboardHandler {
 
         //
         // no outline PASS
+        gl.uniform1i(shu.isOutlinePass, 0);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
         gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.uniform1i(shu.isOutlinePass, 0);
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
