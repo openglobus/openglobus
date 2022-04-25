@@ -158,7 +158,7 @@ export function drawnode_screen_wl() {
             varying vec4 vTextureCoord;
             varying vec2 vGlobalTextureCoord;
             varying vec4 v_vertex;
-            varying float v_height;
+            varying float v_height;           
 
             void main(void) {
 
@@ -209,27 +209,31 @@ export function drawnode_screen_wl() {
 
             ${DEF_BLEND_WEBGL1}
 
+            float shininess;
+            float reflection;
+            float diffuseLightWeighting;
+            vec3 night;
 
             void main(void) {
-
+            
                 float overGround = 1.0 - step(0.1, v_height);
                 vec3 normal = normalize(normalMatrix * ((texture2D(uNormalMap, vTextureCoord.zw).rgb - 0.5) * 2.0));
                 vec3 lightDirection = normalize(lightsPositions[0].xyz - v_vertex.xyz * lightsPositions[0].w);
                 vec3 eyeDirection = normalize(-v_vertex.xyz);
                 vec3 reflectionDirection = reflect(-lightDirection, normal);
                 vec4 nightImageColor = texture2D( nightTexture, vGlobalTextureCoord.st );
-                float shininess = texture2D( specularTexture, vGlobalTextureCoord.st ).r * 255.0 * overGround;
-                float reflection = max( dot(reflectionDirection, eyeDirection), 0.0);
-                float diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
-                vec3 night = nightStep * (0.3 - diffuseLightWeighting) * nightImageColor.rgb;
+                shininess = texture2D( specularTexture, vGlobalTextureCoord.st ).r * 255.0 * overGround;
+                reflection = max( dot(reflectionDirection, eyeDirection), 0.0);
+                diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
+                night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb;
                 night *= overGround * step(0.0, night);
 
                 vec3 spec = specular.rgb * pow( reflection, specular.w) * shininess;
-                vec3 lightWeighting = ambient + diffuse * diffuseLightWeighting + spec + night;
+                vec4 lightWeighting = vec4(ambient + diffuse * diffuseLightWeighting + spec + night, 1.0);
 
                 gl_FragColor = texture2D( defaultTexture, vTextureCoord.xy );
                 if( samplerCount == 0 ) {
-                    gl_FragColor *= vec4(lightWeighting, 1);
+                    gl_FragColor *= lightWeighting;
                     return;
                 }
     
@@ -237,30 +241,30 @@ export function drawnode_screen_wl() {
 
                 blend(gl_FragColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
                 if( samplerCount == 1 ) {
-                    gl_FragColor *= vec4(lightWeighting, 1);
+                    gl_FragColor *= lightWeighting;
                     return;
                 }
 
                 blend(gl_FragColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
                 if( samplerCount == 2 ) {
-                    gl_FragColor *= vec4(lightWeighting, 1);
+                    gl_FragColor *= lightWeighting;
                     return;
                 }
 
                 blend(gl_FragColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
                 if( samplerCount == 3 ) {
-                    gl_FragColor *= vec4(lightWeighting, 1);
+                    gl_FragColor *= lightWeighting;
                     return;
                 }
 
                 blend(gl_FragColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
                 if( samplerCount == 4 ) {
-                    gl_FragColor *= vec4(lightWeighting, 1);
+                    gl_FragColor *= lightWeighting;
                     return;
                 }
 
                 blend(gl_FragColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
-                gl_FragColor *= vec4(lightWeighting, 1);
+                gl_FragColor *= lightWeighting;
             }`
     });
 }

@@ -82,7 +82,7 @@ function toQuadKey(x, y, z) {
 
 let temp = new XYZ("temp", {
     isBaseLayer: true,
-    url: "//assets.msn.com/weathermapdata/1/temperaturerendered/120118/{x}_{y}_{z}_2021120204.jpg",
+    url: "https://assets.msn.com/weathermapdata/1/temperaturerendered/042500/{x}_{y}_{z}_2022042514.jpg",
     visibility: true,
     attribution: 'Temperature',
     maxNativeZoom: 5,
@@ -93,7 +93,7 @@ var borders = new XYZ("borders", {
     opacity: 1.0,
     isBaseLayer: false,
     textureFilter: "mipmap",
-    url: "//t.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{quad}?mkt=en-us&it=Z,GF,L&shading=t&og=1638&n=z&ur=US&o=PNG&st=me|lv:0;v:0_wt|v:1_trs|v:1;lv:0;sc:FF6B6B6B;fc:FF6B6B6B;strokeWidthScale:0.2_cst|v:1;fc:FF000000;strokeWidthScale:0.5&cstl=weather&shdw=1&rs=1&dpi=d1",
+    url: "https://t.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{quad}?mkt=en-us&it=Z,GF,L&shading=t&og=1631&n=z&ur=RU&o=PNG&st=me|lv:0;v:0_wt|v:1_trs|v:1;lv:0;sc:FF6B6B6B;fc:FF6B6B6B;strokeWidthScale:0.2_cst|v:1;fc:FF000000;strokeWidthScale:0.2&cstl=weather&shdw=1",
     visibility: true,
     maxNativeZoom: 14,
     preLoadZoomLevels: [],
@@ -188,22 +188,22 @@ var globus = new Globe({
     terrain: new GlobusTerrain(),
     //terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
-    layers: [sat/*, red, tg, labelLayer, borders*/],
-    frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
+    layers: [temp, borders/*, red, tg, labelLayer, borders*/],
+    //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
     useNightTexture: false,
     //useEarthNavigation: true,
     useSpecularTexture: false
 });
 
-globus.renderer.fontAtlas.loadFont("chinese.msyh", "//assets.msn.com/weathermapdata/1/static/3d/label/zh-cn/font-v2.2/", "chinese.msyh.json");
+//globus.renderer.fontAtlas.loadFont("chinese.msyh", "//assets.msn.com/weathermapdata/1/static/3d/label/zh-cn/font-v2.2/", "chinese.msyh.json");
 
-//globus.planet.addControl(new Lighting());
+globus.planet.addControl(new Lighting());
 
 globus.planet.addControl(new LayerSwitcher());
 
-globus.planet.addControl(new DebugInfo());
+//globus.planet.addControl(new DebugInfo());
 
-globus.planet.addControl(new ToggleWireframe());
+//globus.planet.addControl(new ToggleWireframe());
 
 //globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
 
