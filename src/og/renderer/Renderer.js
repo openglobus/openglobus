@@ -513,16 +513,16 @@ class Renderer {
         this.sceneFramebuffer.setSize(c.width, c.height);
 
         this.blitFramebuffer &&
-            this.blitFramebuffer.setSize(c.width, c.height, true);
+        this.blitFramebuffer.setSize(c.width, c.height, true);
 
         this.toneMappingFramebuffer &&
-            this.toneMappingFramebuffer.setSize(c.width, c.height, true);
+        this.toneMappingFramebuffer.setSize(c.width, c.height, true);
 
         this.depthFramebuffer &&
-            this.depthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
+        this.depthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
 
         this.screenDepthFramebuffer &&
-            this.screenDepthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
+        this.screenDepthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
 
         if (this.handler.gl.type === "webgl") {
             this.screenTexture.screen = this.sceneFramebuffer.textures[0];
@@ -627,10 +627,6 @@ class Renderer {
             gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
             gl.disable(gl.CULL_FACE);
 
-            // Z-buffer offset
-            gl.enable(gl.POLYGON_OFFSET_FILL);
-            gl.polygonOffset(0.0, 0.0);
-
             // billboards pass
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture);
@@ -704,9 +700,6 @@ class Renderer {
                 }
             }
 
-            // gl.polygonOffset(0.0, 0.0);
-            gl.disable(gl.POLYGON_OFFSET_FILL);
-
             this._entityCollections.length = 0;
             this._entityCollections = [];
         }
@@ -737,12 +730,9 @@ class Renderer {
 
         e.dispatch(e.draw, this);
 
-        //h.gl.activeTexture(h.gl.TEXTURE0);
-        //h.gl.bindTexture(h.gl.TEXTURE_2D, h.transparentTexture);
-
         let frustums = this.activeCamera.frustums;
 
-        let anyEvent = this.events.mouseState.anyEvent();
+        let pointerEvent = e.pointerEvent() || this.activeCamera.isMoved;
 
         // Rendering scene nodes and entityCollections
         let rn = this._renderNodesArr;
@@ -756,7 +746,7 @@ class Renderer {
             }
             this._drawEntityCollections();
 
-            if (anyEvent) {
+            if (pointerEvent) {
                 this._drawPickingBuffer(k);
             }
         }
@@ -765,9 +755,9 @@ class Renderer {
 
         this.blitFramebuffer && sfb.blitTo(this.blitFramebuffer);
 
-        if (anyEvent) {
+        if (pointerEvent) {
             // It works ONLY for 0 (closest) frustum
-            if (this.handler.isWebGl2()) {
+            if (h.isWebGl2()) {
                 this._drawDepthBuffer();
             }
 
@@ -779,6 +769,8 @@ class Renderer {
 
         e.dispatch(e.postdraw, this);
 
+        e.mouseState.wheelDelta = 0;
+        e.mouseState.justStopped = false;
         e.mouseState.moving = false;
         e.touchState.moving = false;
     }

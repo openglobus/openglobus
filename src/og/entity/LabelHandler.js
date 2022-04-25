@@ -22,8 +22,8 @@ const FONTINDEX_BUFFER = 8;
 const OUTLINE_BUFFER = 9;
 const OUTLINECOLOR_BUFFER = 10;
 
-window.uZ = -2.0;
-window.dZ = 1.1;
+window.LABEL_DEPTH_OFFSET = -0;
+
 /*
  * og.LabelHandler
  *
@@ -201,8 +201,6 @@ class LabelHandler extends BillboardHandler {
         var gl = h.gl,
             ec = this._entityCollection;
 
-        gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
-
         gl.uniform1iv(shu.fontTextureArr, r.fontAtlas.samplerArr);
         gl.uniform4fv(shu.sdfParamsArr, r.fontAtlas.sdfParamsArr);
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
@@ -213,7 +211,6 @@ class LabelHandler extends BillboardHandler {
         gl.uniform1f(shu.opacity, ec._fadingOpacity);
         gl.uniform1f(shu.planetRadius, ec.renderNode._planetRadius2 || 0);
         gl.uniform2fv(shu.viewport, [h.canvas.clientWidth, h.canvas.clientHeight]);
-        gl.uniform1f(shu.uZ, window.uZ);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer);
         gl.vertexAttribPointer(sha.a_texCoord, this._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -244,25 +241,30 @@ class LabelHandler extends BillboardHandler {
 
         //
         // outline PASS
+        gl.uniform1i(shu.isOutlinePass, 1);
+        gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits + window.LABEL_DEPTH_OFFSET);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer);
         gl.vertexAttribPointer(sha.a_rgba, this._outlineColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer);
         gl.vertexAttribPointer(sha.a_outline, this._outlineBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.uniform1i(shu.isOutlinePass, 1);
-        gl.uniform1f(shu.uZ, window.uZ + window.dZ);
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
+
+        gl.depthFunc(gl.EQUAL);
 
         //
         // no outline PASS
+        gl.uniform1i(shu.isOutlinePass, 0);
+        gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits + window.LABEL_DEPTH_OFFSET);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer);
         gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.uniform1i(shu.isOutlinePass, 0);
-        gl.uniform1f(shu.uZ, window.uZ);
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
+
+        gl.depthFunc(gl.LESS);
     }
 
     _pickingPASS() {
@@ -275,8 +277,6 @@ class LabelHandler extends BillboardHandler {
 
         var gl = h.gl,
             ec = this._entityCollection;
-
-        gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
 
         var rn = ec.renderNode;
 
@@ -299,7 +299,7 @@ class LabelHandler extends BillboardHandler {
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer);
-        gl.vertexAttribPointer(sha.a_positionsHigh, this._positionHighBuffer.itemSize, gl.FLOAT, false, 0,0);
+        gl.vertexAttribPointer(sha.a_positionsHigh, this._positionHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer);
         gl.vertexAttribPointer(sha.a_positionsLow, this._positionLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -315,6 +315,9 @@ class LabelHandler extends BillboardHandler {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingColorBuffer);
         gl.vertexAttribPointer(sha.a_rgba, this._pickingColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits + window.LABEL_DEPTH_OFFSET);
+
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
     }

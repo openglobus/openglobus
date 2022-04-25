@@ -1343,15 +1343,15 @@ export class Planet extends RenderNode {
             rn[i].segment.colorPickingRendering(sh, sl[0], 0);
         }
 
-        gl.enable(gl.POLYGON_OFFSET_FILL);
+        //gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1, len = sl.length; j < len; j++) {
             i = rn.length;
-            gl.polygonOffset(0, -j);
+            //gl.polygonOffset(0, -j);
             while (i--) {
                 rn[i].segment.colorPickingRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
-        gl.disable(gl.POLYGON_OFFSET_FILL);
+        //gl.disable(gl.POLYGON_OFFSET_FILL);
 
         gl.disable(gl.BLEND);
     }

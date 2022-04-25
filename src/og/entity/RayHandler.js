@@ -374,7 +374,7 @@ class RayHandler {
         var gl = h.gl,
             ec = this._entityCollection;
 
-        gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
+        //gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
 
         gl.uniform1f(shu.uOpacity, ec._fadingOpacity);
 
