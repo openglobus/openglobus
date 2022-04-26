@@ -52,7 +52,7 @@ class ScaleControl extends Control {
         this.renderer.div.appendChild(this.el);
 
         this.renderer.events.on("draw", (e) => {
-            if (e.events.mouseState.anyEvent()) {
+            if (e.events.pointerEvent()) {
                 this._draw();
             }
         });

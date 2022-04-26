@@ -638,8 +638,11 @@ export class Planet extends RenderNode {
         var h = this.renderer.handler;
 
         h.addProgram(shaders.drawnode_screen_nl(), true);
-        //h.addProgram(shaders.drawnode_screen_wl(), true);
-        h.addProgram(shaders.drawnode_screen_wl_webgl2(), true);
+        if (h.isWebGl2()) {
+            h.addProgram(shaders.drawnode_screen_wl_webgl2(), true);
+        } else {
+            h.addProgram(shaders.drawnode_screen_wl(), true);
+        }
         h.addProgram(shaders.drawnode_colorPicking(), true);
         h.addProgram(shaders.drawnode_depth(), true);
         h.addProgram(shaders.drawnode_heightPicking(), true);
@@ -674,10 +677,10 @@ export class Planet extends RenderNode {
                 !this._indexesCache[i][j] && (this._indexesCache[i][j] = new Array(TABLESIZE));
                 for (var k = 0; k <= TABLESIZE; k++) {
                     !this._indexesCache[i][j][k] &&
-                        (this._indexesCache[i][j][k] = new Array(TABLESIZE));
+                    (this._indexesCache[i][j][k] = new Array(TABLESIZE));
                     for (var m = 0; m <= TABLESIZE; m++) {
                         !this._indexesCache[i][j][k][m] &&
-                            (this._indexesCache[i][j][k][m] = new Array(TABLESIZE));
+                        (this._indexesCache[i][j][k][m] = new Array(TABLESIZE));
                         for (var q = 0; q <= TABLESIZE; q++) {
                             let ptr = {
                                 buffer: null
@@ -817,7 +820,7 @@ export class Planet extends RenderNode {
     _preRender() {
         // Zoom 0
         this._quadTree.createChildrenNodes();
-        this._quadTree.segment.createPlainSegment();        
+        this._quadTree.segment.createPlainSegment();
 
         // Zoom 1
         for (let i = 0; i < this._quadTree.nodes.length; i++) {
@@ -1340,15 +1343,15 @@ export class Planet extends RenderNode {
             rn[i].segment.colorPickingRendering(sh, sl[0], 0);
         }
 
-        gl.enable(gl.POLYGON_OFFSET_FILL);
+        //gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1, len = sl.length; j < len; j++) {
             i = rn.length;
-            gl.polygonOffset(0, -j);
+            //gl.polygonOffset(0, -j);
             while (i--) {
                 rn[i].segment.colorPickingRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
-        gl.disable(gl.POLYGON_OFFSET_FILL);
+        //gl.disable(gl.POLYGON_OFFSET_FILL);
 
         gl.disable(gl.BLEND);
     }

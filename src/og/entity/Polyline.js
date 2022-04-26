@@ -15,6 +15,8 @@ import { Extent } from "../Extent.js";
 import { LonLat } from "../LonLat.js";
 import { Vec3 } from "../math/Vec3.js";
 
+window.POLYLINE_DEPTH_OFFSET = 0.0;
+
 const VERTICES_BUFFER = 0;
 const INDEX_BUFFER = 1;
 const COLORS_BUFFER = 2;
@@ -1988,14 +1990,10 @@ class Polyline {
             var p = sh._program;
             var gl = r.handler.gl,
                 sha = p.attributes,
-                shu = p.uniforms;
+                shu = p.uniforms,
+                ec = this._handler._entityCollection;
 
             sh.activate();
-
-            gl.polygonOffset(
-                this._handler._entityCollection.polygonOffsetFactor,
-                this._handler._entityCollection.polygonOffsetUnits
-            );
 
             gl.enable(gl.BLEND);
             gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
@@ -2006,6 +2004,8 @@ class Polyline {
                 gl.ONE_MINUS_SRC_ALPHA
             );
             gl.disable(gl.CULL_FACE);
+
+            gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits + window.POLYLINE_DEPTH_OFFSET);
 
             gl.uniformMatrix4fv(shu.proj, false, r.activeCamera.getProjectionMatrix());
             gl.uniformMatrix4fv(shu.view, false, r.activeCamera.getViewMatrix());
@@ -2021,7 +2021,7 @@ class Polyline {
             ]);
             gl.uniform2fv(shu.viewport, [r.handler.canvas.width, r.handler.canvas.height]);
             gl.uniform1f(shu.thickness, this.thickness * 0.5);
-            gl.uniform1f(shu.opacity, this._handler._entityCollection._fadingOpacity);
+            gl.uniform1f(shu.opacity, ec._fadingOpacity);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._colorsBuffer);
             gl.vertexAttribPointer(sha.color, this._colorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -2058,11 +2058,6 @@ class Polyline {
 
             sh.activate();
 
-            gl.polygonOffset(
-                this._handler._entityCollection.polygonOffsetFactor,
-                this._handler._entityCollection.polygonOffsetUnits
-            );
-
             gl.enable(gl.BLEND);
             gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
             gl.blendFuncSeparate(
@@ -2072,6 +2067,8 @@ class Polyline {
                 gl.ONE_MINUS_SRC_ALPHA
             );
             gl.disable(gl.CULL_FACE);
+
+            gl.uniform1f(shu.depthOffset, this._handler._entityCollection.polygonOffsetUnits + window.POLYLINE_DEPTH_OFFSET);
 
             gl.uniformMatrix4fv(shu.proj, false, r.activeCamera.getProjectionMatrix());
             gl.uniformMatrix4fv(shu.view, false, r.activeCamera.getViewMatrix());

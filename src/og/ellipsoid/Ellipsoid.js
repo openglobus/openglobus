@@ -7,6 +7,7 @@
 import * as math from "../math.js";
 import { Vec3 } from "../math/Vec3.js";
 import { LonLat } from "../LonLat.js";
+import { EPSILON10 } from "../math.js";
 
 /**
  * Class represents a plant ellipsoid.
@@ -126,7 +127,7 @@ class Ellipsoid {
         var dLon = (lonLat2.lon - lonLat1.lon) * math.RADIANS;
         var dPhi = Math.log(
             Math.tan((lonLat2.lat * math.RADIANS) / 2 + Math.PI / 4) /
-                Math.tan((lonLat1.lat * math.RADIANS) / 2 + Math.PI / 4)
+            Math.tan((lonLat1.lat * math.RADIANS) / 2 + Math.PI / 4)
         );
         if (Math.abs(dLon) > Math.PI) {
             if (dLon > 0) {
@@ -187,7 +188,7 @@ class Ellipsoid {
             Math.asin(
                 Math.sqrt(
                     Math.sin(df / 2) * Math.sin(df / 2) +
-                        Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2)
+                    Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2)
                 )
             );
         if (d12 == 0) return null;
@@ -357,13 +358,13 @@ class Ellipsoid {
         var recc2r0 =
             r -
             ecc2 *
-                (-(p * ecc2 * r) / 1 +
-                    q +
-                    Math.sqrt(
-                        0.5 * this._a2 * (1.0 + 1.0 / q) -
-                            (p * (1.0 - ecc2) * z2) / (q * (1.0 + q)) -
-                            0.5 * p * r2
-                    ));
+            (-(p * ecc2 * r) / 1 +
+                q +
+                Math.sqrt(
+                    0.5 * this._a2 * (1.0 + 1.0 / q) -
+                    (p * (1.0 - ecc2) * z2) / (q * (1.0 + q)) -
+                    0.5 * p * r2
+                ));
         var recc2r02 = recc2r0 * recc2r0;
         var v = Math.sqrt(recc2r02 + (1.0 - ecc2) * z2);
         var z0 = (this._b2 * z) / (this._a * v);
@@ -392,10 +393,10 @@ class Ellipsoid {
     }
 
     /**
-     * 
-     * @param {LonLat} lonLat1 
-     * @param {number} [bearing] 
-     * @param {number} [distance] 
+     *
+     * @param {LonLat} lonLat1
+     * @param {number} [bearing]
+     * @param {number} [distance]
      * @return {LonLat} -
      */
     getBearingDestination(lonLat1, bearing = 0.0, distance = 0) {
@@ -413,7 +414,7 @@ class Ellipsoid {
                     Math.sin(bearing) * Math.sin(dR) * Math.cos(f1),
                     Math.cos(dR) - Math.sin(f1) * Math.sin(f2)
                 )) *
-                math.DEGREES,
+            math.DEGREES,
             f2 * math.DEGREES
         );
     }
@@ -430,9 +431,9 @@ class Ellipsoid {
         var a =
             Math.sin(dLat / 2.0) * Math.sin(dLat / 2.0) +
             Math.sin(dLon / 2.0) *
-                Math.sin(dLon / 2) *
-                Math.cos(lonLat1.lat * math.RADIANS) *
-                Math.cos(lonLat2.lat * math.RADIANS);
+            Math.sin(dLon / 2) *
+            Math.cos(lonLat1.lat * math.RADIANS) *
+            Math.cos(lonLat2.lat * math.RADIANS);
         return this._a * 2.0 * Math.atan2(Math.sqrt(a), Math.sqrt(1.0 - a));
     }
 
@@ -472,11 +473,11 @@ class Ellipsoid {
                     sinSigma *
                     (cos2SigmaM +
                         (B / 4) *
-                            (cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM) -
-                                (B / 6) *
-                                    cos2SigmaM *
-                                    (-3 + 4 * sinSigma * sinSigma) *
-                                    (-3 + 4 * cos2SigmaM * cos2SigmaM)));
+                        (cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM) -
+                            (B / 6) *
+                            cos2SigmaM *
+                            (-3 + 4 * sinSigma * sinSigma) *
+                            (-3 + 4 * cos2SigmaM * cos2SigmaM)));
             sigmaP = sigma;
             sigma = s / (b * A) + deltaSigma;
         }
@@ -493,12 +494,12 @@ class Ellipsoid {
             L =
                 lambda -
                 (1 - C) *
-                    f *
-                    sinAlpha *
-                    (sigma +
-                        C *
-                            sinSigma *
-                            (cos2SigmaM + C * cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM))),
+                f *
+                sinAlpha *
+                (sigma +
+                    C *
+                    sinSigma *
+                    (cos2SigmaM + C * cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM))),
             revAz = Math.atan2(sinAlpha, -tmp); // final bearing
         return new LonLat(lon1 + L * math.DEGREES, lat2 * math.DEGREES);
     }
@@ -533,7 +534,9 @@ class Ellipsoid {
             w2 = w.dot(w);
             product = w2 * difference;
 
-            if (qw2 < product) {
+            let eps = Math.abs(qw2 - product);
+
+            if (eps > math.EPSILON10 && qw2 < product) {
                 // Imaginary roots (0 intersections).
                 return null;
             } else if (qw2 > product) {

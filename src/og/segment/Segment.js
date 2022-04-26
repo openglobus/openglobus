@@ -259,7 +259,7 @@ class Segment {
     }
 
     isEntityInside(e) {
-        return this._extent.isInside(e._lonlatMerc);
+        return this._extentLonLat.isInside(e._lonlat);
     }
 
     /**

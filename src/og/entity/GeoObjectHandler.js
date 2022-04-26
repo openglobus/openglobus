@@ -404,7 +404,7 @@ class GeoObjectHandler {
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer[ti]);
 
             if (tagData.iCounts) {
-                gl.drawElementsInstanced(
+                p.drawElementsInstanced(
                     gl.TRIANGLES,
                     this._indicesBuffer[ti].numItems / tagData.iCounts,
                     gl.UNSIGNED_SHORT,
@@ -524,7 +524,7 @@ class GeoObjectHandler {
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer[ti]);
 
             if (tagData.iCounts) {
-                gl.drawElementsInstanced(
+                p.drawElementsInstanced(
                     gl.TRIANGLES,
                     this._indicesBuffer[ti].numItems / tagData.iCounts,
                     gl.UNSIGNED_SHORT,

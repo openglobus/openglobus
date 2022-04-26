@@ -28,7 +28,6 @@ import { GeoObjectHandler } from "./GeoObjectHandler.js";
  * Third index - far distance to the entity, when entity becomes invisible.
  * @param {number} [options.opacity] - Entity global opacity.
  * @param {boolean} [options.pickingEnabled=true] - Entity picking enable.
- * @param {Number} [options.polygonOffsetFactor=0.0] - The scale factor for the variable depth offset. The default value is 0.
  * @param {Number} [options.polygonOffsetUnits=0.0] - The multiplier by which an implementation-specific value is multiplied with to create a constant depth offset. The default value is 0.
  * @fires og.EntityCollection#entitymove
  * @fires og.EntityCollection#draw
@@ -95,14 +94,6 @@ class EntityCollection {
          * @type {boolean}
          */
         this._visibility = options.visibility == undefined ? true : options.visibility;
-
-        /**
-         * Specifies the scale factor for gl.polygonOffset function to calculate depth values, 0.0 is default.
-         * @public
-         * @type {Number}
-         */
-        this.polygonOffsetFactor =
-            options.polygonOffsetFactor != undefined ? options.polygonOffsetFactor : 0.0;
 
         /**
          * Specifies the scale Units for gl.polygonOffset function to calculate depth values, 0.0 is default.
@@ -230,10 +221,9 @@ class EntityCollection {
         this._counter = n;
     }
 
-    setPolygonOffset(factor, units) {
-        this.polygonOffsetFactor = factor;
-        this.polygonOffsetUnits = units;
-    }
+    // setPolygonOffset(factor, units) {
+    //     this.polygonOffsetUnits = units;
+    // }
 
     /**
      * Sets collection visibility.

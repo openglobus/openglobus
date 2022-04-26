@@ -40,6 +40,7 @@ class SegmentLonLat extends Segment {
         // this._isNorth = false;
 
         this._projection = EPSG4326;
+
         this._extentMerc = new Extent(
             extent.southWest.forwardMercatorEPS01(),
             extent.northEast.forwardMercatorEPS01()
@@ -247,10 +248,6 @@ class SegmentLonLat extends Segment {
         } else {
             this.planet._visibleNodesSouth[this.node.nodeId] = this.node;
         }
-    }
-
-    isEntityInside(e) {
-        return this._extent.isInside(e._lonlat);
     }
 
     _getLayerExtentOffset(layer) {
