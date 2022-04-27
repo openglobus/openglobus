@@ -234,8 +234,8 @@ export function label_webgl2() {
                     if(strokeAlpha < 0.1){
                         discard;
                     }
-                    outScreen = v_rgba * v_rgba.a * strokeAlpha * (0.5 - opacity) * 2.0;
-                }
+                    outScreen = v_rgba * strokeAlpha * (0.5 - opacity) * 2.0;
+                }                
             }`
     });
 }
@@ -455,7 +455,7 @@ export function label_screen() {
                     if(strokeAlpha < 0.1){
                         discard;
                     }
-                    gl_FragColor = v_rgba * v_rgba.a * strokeAlpha * (0.5 - opacity) * 2.0;
+                    gl_FragColor = v_rgba * strokeAlpha * (0.5 - opacity) * 2.0;
                 }
             }`
     });
