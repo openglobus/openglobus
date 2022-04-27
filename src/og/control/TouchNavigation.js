@@ -257,9 +257,9 @@ class TouchNavigation extends Control {
                     );
                     var rot = this.qRot;
                     cam.eye = rot.mulVec3(cam.eye);
-                    cam._v = rot.mulVec3(cam._v);
+                    cam._r = rot.mulVec3(cam._r);
                     cam._u = rot.mulVec3(cam._u);
-                    cam._n = rot.mulVec3(cam._n);
+                    cam._b = rot.mulVec3(cam._b);
                     cam.checkTerrainCollision();
                     cam.update();
                     this.scaleRot = 1;
@@ -295,9 +295,9 @@ class TouchNavigation extends Control {
             r.controlsBag.scaleRot = 1;
             var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
             cam.eye = sf.eye;
-            cam._v = sf.v;
+            cam._r = sf.v;
             cam._u = sf.u;
-            cam._n = sf.n;
+            cam._b = sf.n;
             cam.checkTerrainCollision();
             cam.update();
         }
@@ -318,9 +318,9 @@ class TouchNavigation extends Control {
                 this.scaleRot = 0;
             }
             cam.eye = rot.mulVec3(cam.eye);
-            cam._v = rot.mulVec3(cam._v);
+            cam._r = rot.mulVec3(cam._r);
             cam._u = rot.mulVec3(cam._u);
-            cam._n = rot.mulVec3(cam._n);
+            cam._b = rot.mulVec3(cam._b);
             cam.checkTerrainCollision();
             cam.update();
         }
