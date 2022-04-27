@@ -193,6 +193,10 @@ class GeoObject {
         this._handler && this._handler.setScaleArr(this._handlerIndex, scale);
     }
 
+    getScale() {
+        return this.scale;
+    }
+
     /**
      * Removes geo object from handler.
      * @public
