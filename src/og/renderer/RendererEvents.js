@@ -63,6 +63,28 @@ class RendererEvents extends Events {
          * @enum {Object}
          */
         this.mouseState = {
+            anyEvent: () => {
+                let ms = this.mouseState;
+                return (
+                    ms.leftButtonUp ||
+                    ms.rightButtonUp ||
+                    ms.middleButtonUp ||
+                    ms.leftButtonDown ||
+                    ms.rightButtonDown ||
+                    ms.middleButtonDown ||
+                    ms.leftButtonHold ||
+                    ms.rightButtonHold ||
+                    ms.middleButtonHold ||
+                    ms.leftButtonDoubleClick ||
+                    ms.rightButtonDoubleClick ||
+                    ms.middleButtonDoubleClick ||
+                    ms.leftButtonClick ||
+                    ms.rightButtonClick ||
+                    ms.middleButtonClick ||
+                    ms.moving ||
+                    ms.justStopped
+                );
+            },
             /** Current screen mouse X position. */
             clientX: 0,
             /** Current screen mouse Y position. */
@@ -188,19 +210,6 @@ class RendererEvents extends Events {
         this._rclickY = 0;
         this._mclickX = 0;
         this._mclickY = 0;
-    }
-
-    pointerEvent() {
-        let ms = this.mouseState,
-            ts = this.touchState;
-        return (
-            ms.moving ||
-            ms.justStopped ||
-            ms.wheelDelta ||
-            ts.moving ||
-            ts.touchStart ||
-            ts.touchEnd
-        )
     }
 
     get active() {
@@ -569,8 +578,8 @@ class RendererEvents extends Events {
 
         ts.sys = event;
         ts.moving = true;
-        this._dblTchBegins = 0;
-        this._oneTouchStart = false;
+        // this._dblTchBegins = 0;
+        // this._oneTouchStart = false;
     }
 
     /**
@@ -784,6 +793,7 @@ class RendererEvents extends Events {
                 pe && pe.dispatch(pe.mousewheel, ms);
             }
             this.dispatch(this.mousewheel, ms);
+            ms.wheelDelta = 0;
         }
 
         if (ms.moving) {
@@ -798,6 +808,7 @@ class RendererEvents extends Events {
 
         if (ms.justStopped) {
             this.dispatch(this.mousestop, ms);
+            ms.justStopped = false;
         }
     }
 
