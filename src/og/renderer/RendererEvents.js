@@ -569,8 +569,8 @@ class RendererEvents extends Events {
 
         ts.sys = event;
         ts.moving = true;
-        this._dblTchBegins = 0;
-        this._oneTouchStart = false;
+        // this._dblTchBegins = 0;
+        // this._oneTouchStart = false;
     }
 
     /**
