@@ -195,6 +195,27 @@ class TouchNavigation extends Control {
             t1.x = e.sys.touches.item(1).clientX - e.sys.offsetLeft;
             t1.y = e.sys.touches.item(1).clientY - e.sys.offsetTop;
 
+            // distance = Math.sqrt((t0.prev_x-t1.prev_x)**2+(t0.prev_y-t1.prev_y)**2) - Math.sqrt((t0.x-t1.x)**2 + (t0.y-t1.y)**2))
+            // distance < 0 --> zoomIn; distance > 0 --> zoomOut
+            var t0t1Distance = Math.abs(t0.prev_x - t1.prev_x) + Math.abs(t0.prev_y - t1.prev_y)  - (Math.abs(t0.x - t1.x)  + Math.abs(t0.y - t1.y))
+            var _move = 0
+            var _targetPoint = this.renderer.getCenter()
+            var d =
+                cam.eye.distance(
+                    this.planet.getCartesianFromPixelTerrain(_targetPoint, true)
+                ) * 0.075;
+            if (t0t1Distance < 0) {
+                _move = 1
+            }
+            if (t0t1Distance > 0) {
+                _move = -1
+            }
+            if (_move !== 0) {
+                cam.eye.addA(cam.getForward().scale(_move * d));
+                cam.checkTerrainCollision();
+                cam.update();
+            }
+
             if (
                 (t0.dY() > 0 && t1.dY() > 0) ||
                 (t0.dY() < 0 && t1.dY() < 0) ||
