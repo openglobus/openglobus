@@ -18,7 +18,7 @@ class TextureAtlas {
          * @public
          * @type {Array.<utils.TextureAtlasNode >}
          */
-        this.nodes = [];
+        this.nodes = new Map();
 
         /**
          * Created gl texture.
@@ -105,7 +105,7 @@ class TextureAtlas {
 
         this._makeAtlas(fastInsert);
 
-        return this.nodes[image.__nodeIndex];
+        return this.nodes.get(image.__nodeIndex);
     }
 
     _completeNode(nodes, node) {
@@ -136,7 +136,7 @@ class TextureAtlas {
             tc[10] = (r.left + bs) / w;
             tc[11] = (r.top + bs) / h;
 
-            nodes[im.__nodeIndex] = node;
+            nodes.set(im.__nodeIndex, node);
         }
     }
 
@@ -167,11 +167,11 @@ class TextureAtlas {
 
             this.clearCanvas();
 
-            var newNodes = [];
+            var newNodes = new Map();
             for (var i = 0; i < im.length; i++) {
                 this._completeNode(newNodes, this._btree.insert(im[i]));
             }
-            this.nodes = [];
+            this.nodes = null;
             this.nodes = newNodes;
         }
     }
@@ -208,8 +208,11 @@ class TextureAtlas {
     }
 
     getImageTexCoordinates(img) {
-        if (img.__nodeIndex != null && this.nodes[img.__nodeIndex]) {
-            return this.nodes[img.__nodeIndex].texCoords;
+        if (img.__nodeIndex != null) {
+            let n = this.nodes.get(img.__nodeIndex)
+            if (n) {
+                return n.texCoords;
+            }
         }
     }
 }

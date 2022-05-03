@@ -359,7 +359,10 @@ class LabelHandler extends BillboardHandler {
         label._isReady = false;
     }
 
-    setText(index, text, fontIndex, align) {
+    setText(index, text, fontIndex, align, isRTL = false) {
+
+        text = text.normalize('NFKC');
+
         var fa = this._renderer.fontAtlas.atlasesArr[fontIndex];
 
         if (!fa) return;
@@ -370,15 +373,19 @@ class LabelHandler extends BillboardHandler {
 
         let c = 0;
 
-        let n = fa.nodes[text[c]];
-        let offset = 0.0;
         let len = Math.min(this._maxLetters, text.length);
+        let rtl = 1;
+        if (isRTL) {
+            rtl = -1;
+        }
+        let n = fa.nodes.get(text[c].charCodeAt());
+        let offset = 0.0;
         let kern = fa.kernings;
 
         for (c = 0; c < len; c++) {
             let j = i + c * 24;
             let char = text[c];
-            n = fa.nodes[char] || fa.nodes[" "];
+            n = fa.nodes.get(char.charCodeAt()) || fa.nodes.get(" ".charCodeAt());
             let tc = n.texCoords;
 
             let m = n.metrics;
@@ -448,20 +455,20 @@ class LabelHandler extends BillboardHandler {
 
             let k = kern[char];
             if (k) {
-                k = k[text[c + 1]];
+                k = k[text[c + 1].charCodeAt()];
                 if (k) {
-                    offset += m.nAdvance + k;
+                    offset += rtl * (m.nAdvance + k);
                 } else {
-                    offset += m.nAdvance;
+                    offset += rtl * m.nAdvance;
                 }
             } else {
-                offset += m.nAdvance;
+                offset += rtl * m.nAdvance;
             }
         }
 
         // 49/512 - font atlas left border letter offset
         if (align === ALIGN.CENTER) {
-            offset *= -0.5;
+            offset *= -0.5 * rtl;
             for (c = 0; c < len; c++) {
                 let j = i + c * 24;
                 a[j + 3] = offset;

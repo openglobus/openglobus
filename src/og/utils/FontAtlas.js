@@ -86,16 +86,20 @@ class FontAtlas {
             tc[10] = r.left / w;
             tc[11] = r.top / h;
 
-            atlas.nodes[ti] = new TextureAtlasNode(r, tc);
-            atlas.nodes[ti].metrics = ci;
+            let taNode = new TextureAtlasNode(r, tc);
+            let ciNorm = ci.char.normalize('NFKC');
+            let ciCode = ciNorm.charCodeAt();
+            taNode.metrics = ci;
+            taNode.metrics.nChar = ciNorm;
+            taNode.metrics.nCode = ciCode;
+            taNode.metrics.nWidth = taNode.metrics.width / s;
+            taNode.metrics.nHeight = taNode.metrics.height / s;
+            taNode.metrics.nAdvance = taNode.metrics.xadvance / s;
+            taNode.metrics.nXOffset = taNode.metrics.xoffset / s;
+            taNode.metrics.nYOffset = 1.0 - taNode.metrics.yoffset / s;
+            taNode.emptySize = 1;
 
-            atlas.nodes[ti].metrics.nWidth = atlas.nodes[ti].metrics.width / s;
-            atlas.nodes[ti].metrics.nHeight = atlas.nodes[ti].metrics.height / s;
-            atlas.nodes[ti].metrics.nAdvance = atlas.nodes[ti].metrics.xadvance / s;
-            atlas.nodes[ti].metrics.nXOffset = atlas.nodes[ti].metrics.xoffset / s;
-            atlas.nodes[ti].metrics.nYOffset = 1.0 - atlas.nodes[ti].metrics.yoffset / s;
-
-            atlas.nodes[ti].emptySize = 1;
+            atlas.nodes.set(ciNorm.charCodeAt(), taNode);
         }
 
         atlas.kernings = {};

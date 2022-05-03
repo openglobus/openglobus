@@ -128,7 +128,7 @@ export function label_webgl2() {
                                
                 vec2 screenPos = project(projPos);
 
-                vec2 v = screenPos + rotate2d(a_rotation) * ((a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size * scd + a_offset.xy);
+                vec2 v = screenPos + rotate2d(a_rotation) * ((a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z + a_texCoord.w, 0.0)) * a_size * scd + a_offset.xy);
 
                 gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
             }`,
