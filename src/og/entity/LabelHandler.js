@@ -453,7 +453,7 @@ class LabelHandler extends BillboardHandler {
             g[j + 22] = m.nXOffset;
             g[j + 23] = m.nYOffset;
 
-            let k = kern[char];
+            let k = kern[char.charCodeAt()];
             if (k) {
                 k = k[text[c + 1].charCodeAt()];
                 if (k) {

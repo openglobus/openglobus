@@ -110,14 +110,20 @@ class FontAtlas {
             let first = ki.first,
                 second = ki.second;
 
-            let charFirst = idToChar[first],
-                charSecond = idToChar[second];
+            //let charFirst = idToChar[first],
+            //    charSecond = idToChar[second];
 
-            if (!atlas.kernings[charFirst]) {
-                atlas.kernings[charFirst] = {};
+            // if (!atlas.kernings[charFirst]) {
+            //     atlas.kernings[charFirst] = {};
+            // }
+            //
+            // atlas.kernings[charFirst][charSecond] = ki.amount / s;
+
+            if (!atlas.kernings[first]) {
+                atlas.kernings[first] = {};
             }
 
-            atlas.kernings[charFirst][charSecond] = ki.amount / s;
+            atlas.kernings[first][second] = ki.amount / s;
         }
     }
 
