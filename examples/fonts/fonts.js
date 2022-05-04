@@ -33,7 +33,7 @@ class MyScene extends RenderNode {
                     'cartesian': new Vec3(0, 0, 0),
                     'label': {
                         'isRTL': true,
-                        'text': "ליסבון",
+                        'text': "סיודד ריאל",
                         'color': "black",
                         //'face': "NotoSansArabic-Regular",
                         //'face': "Arabic",
@@ -53,16 +53,18 @@ class MyScene extends RenderNode {
                         'size': size
                     }
                 }),
+                new Entity({
+                    'cartesian': new Vec3(0, 40, 0),
+                    'label': {
+                        'isRTL': true,
+                        'text': "قطة",
+                        'color': "black",
+                        'face': "NotoSansArabic-Regular",
+                        'outlineColor': "rgba(255, 255, 255, 0.75)",
+                        'size': size
+                    }
+                }),
                 // new Entity({
-                //     'cartesian': new Vec3(5, 30, 0),
-                //     'label': {
-                //         'text': "0.75 - Sacramento-Regular",
-                //         'color': "black",
-                //         'face': "Sacramento-Regular",
-                //         'outlineColor': "rgba(255, 255, 255, 0.75)",
-                //         'size': size
-                //     }
-                // }), new Entity({
                 //     'cartesian': new Vec3(5, 40, 0),
                 //     'label': {
                 //         'text': "0.9 - Notable-Regular",
@@ -145,7 +147,7 @@ class MyScene extends RenderNode {
         //this.renderer.fontAtlas.loadFont("Audiowide-Regular", "./fonts/", "Audiowide-Regular.json");
         //this.renderer.fontAtlas.loadFont("ArchitectsDaughter-Regular", "./fonts/", "ArchitectsDaughter-Regular.json");
         //this.renderer.fontAtlas.loadFont("NotoSansArabic-Regular", "./fonts/", "NotoSansArabic-Regular.json");
-        //this.renderer.fontAtlas.loadFont("Arabic", "./fonts/", "Arabic.json");
+        this.renderer.fontAtlas.loadFont("NotoSansArabic-Regular", "./fonts/", "NotoSansArabic-Regular.json");
         this.renderer.fontAtlas.loadFont("Segoe", "./fonts/", "segoeui.json");
         this.ec.addTo(this);
 
