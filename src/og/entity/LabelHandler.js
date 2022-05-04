@@ -24,6 +24,8 @@ const OUTLINECOLOR_BUFFER = 10;
 
 window.LABEL_DEPTH_OFFSET = -0;
 
+const EMPTY = -1.0;
+const RTL = 1.0;
 /*
  * og.LabelHandler
  *
@@ -378,11 +380,9 @@ class LabelHandler extends BillboardHandler {
         let c = 0;
 
         let len = Math.min(this._maxLetters, text.length);
-        let rtl = 1,
-            rtlOffset = 0;
+        let _rtl_ = 0.0;
         if (isRTL) {
-            rtl = -1;
-            rtlOffset = 1;
+            _rtl_ = RTL;
         }
         let n = fa.nodes.get(text[c].charCodeAt());
         let offset = 0.0;
@@ -399,32 +399,32 @@ class LabelHandler extends BillboardHandler {
             a[j] = tc[0];
             a[j + 1] = tc[1];
             a[j + 2] = offset;
-            a[j + 3] = 0.0;
+            a[j + 3] = _rtl_;
 
             a[j + 4] = tc[2];
             a[j + 5] = tc[3];
             a[j + 6] = offset;
-            a[j + 7] = 0.0;
+            a[j + 7] = _rtl_;
 
             a[j + 8] = tc[4];
             a[j + 9] = tc[5];
             a[j + 10] = offset;
-            a[j + 11] = 0.0;
+            a[j + 11] = _rtl_;
 
             a[j + 12] = tc[6];
             a[j + 13] = tc[7];
             a[j + 14] = offset;
-            a[j + 15] = 0.0;
+            a[j + 15] = _rtl_;
 
             a[j + 16] = tc[8];
             a[j + 17] = tc[9];
             a[j + 18] = offset;
-            a[j + 19] = 0.0;
+            a[j + 19] = _rtl_;
 
             a[j + 20] = tc[10];
             a[j + 21] = tc[11];
             a[j + 22] = offset;
-            a[j + 23] = 0.0;
+            a[j + 23] = _rtl_;
 
             //
             // Gliph
@@ -477,33 +477,23 @@ class LabelHandler extends BillboardHandler {
             offset *= -0.5;
             for (c = 0; c < len; c++) {
                 let j = i + c * 24;
-                a[j + 3] = offset;
-                a[j + 7] = offset;
-                a[j + 11] = offset;
-                a[j + 15] = offset;
-                a[j + 19] = offset;
-                a[j + 23] = offset;
-            }
-        } else if (align === ALIGN.LEFT) {
-            for (c = 0; c < len; c++) {
-                let j = i + c * 24;
-                a[j + 3] = 0;
-                a[j + 7] = 0;
-                a[j + 11] = 0;
-                a[j + 15] = 0;
-                a[j + 19] = 0;
-                a[j + 23] = 0;
+                a[j + 2] += offset;
+                a[j + 6] += offset;
+                a[j + 10] += offset;
+                a[j + 14] += offset;
+                a[j + 18] += offset;
+                a[j + 22] += offset;
             }
         }
 
         for (; c < this._maxLetters; c++) {
             let j = i + c * 24;
-            a[j + 2] = -1.0;
-            a[j + 6] = -1.0;
-            a[j + 10] = -1.0;
-            a[j + 14] = -1.0;
-            a[j + 18] = -1.0;
-            a[j + 17] = -1.0;
+            a[j + 3] = EMPTY;
+            a[j + 7] = EMPTY;
+            a[j + 11] = EMPTY;
+            a[j + 15] = EMPTY;
+            a[j + 19] = EMPTY;
+            a[j + 23] = EMPTY;
         }
 
         this._changedBuffers[TEXCOORD_BUFFER] = true;

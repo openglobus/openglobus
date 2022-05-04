@@ -33,7 +33,7 @@ class MyScene extends RenderNode {
                     'cartesian': new Vec3(0, 0, 0),
                     'label': {
                         'isRTL': true,
-                        'text': "אלבאייד",
+                        'text': "ליסבון",
                         'color': "black",
                         //'face': "NotoSansArabic-Regular",
                         //'face': "Arabic",
@@ -42,17 +42,18 @@ class MyScene extends RenderNode {
                         'outlineColor': "rgba(255, 255, 255, 1.0)",
                         'size': size
                     }
-                })
-                // , new Entity({
-                //     'cartesian': new Vec3(5, 20, 0),
-                //     'label': {
-                //         'text': "0.5 - VastShadow-Regular",
-                //         'color': "black",
-                //         'face': "VastShadow-Regular",
-                //         'outlineColor': "rgba(255, 255, 255, 0.5)",
-                //         'size': size
-                //     }
-                // }), new Entity({
+                }), new Entity({
+                    'cartesian': new Vec3(0, 20, 0),
+                    'label': {
+                        'text': "0.5 - VastShadow-Regular",
+                        'color': "black",
+                        'face': "VastShadow-Regular",
+                        'outlineColor': "rgba(255, 255, 255, 0.8)",
+                        //align: "center",
+                        'size': size
+                    }
+                }),
+                // new Entity({
                 //     'cartesian': new Vec3(5, 30, 0),
                 //     'label': {
                 //         'text': "0.75 - Sacramento-Regular",
@@ -137,7 +138,7 @@ class MyScene extends RenderNode {
         });
 
         //this.renderer.fontAtlas.loadFont("PressStart2P-Regular", "./fonts/", "PressStart2P-Regular.json");
-        //this.renderer.fontAtlas.loadFont("VastShadow-Regular", "./fonts/", "VastShadow-Regular.json");
+        this.renderer.fontAtlas.loadFont("VastShadow-Regular", "./fonts/", "VastShadow-Regular.json");
         //this.renderer.fontAtlas.loadFont("Sacramento-Regular", "./fonts/", "Sacramento-Regular.json");
         //this.renderer.fontAtlas.loadFont("Notable-Regular", "./fonts/", "Notable-Regular.json");
         //this.renderer.fontAtlas.loadFont("MrDeHaviland-Regular", "./fonts/", "MrDeHaviland-Regular.json");
