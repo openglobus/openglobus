@@ -227,7 +227,7 @@ class Geometry {
         c.y = g;
         c.z = b;
         c.w = a;
-        this._handler && this._handler.setStrokeColorArr(this, c);
+        this._handler && this._handler.setLineStrokeColorArr(this, c);
         return this;
     }
 
