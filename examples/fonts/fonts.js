@@ -30,13 +30,15 @@ class MyScene extends RenderNode {
             'labelMaxLetters': 33,
             'entities': [
                 new Entity({
-                    'cartesian': new Vec3(5, 10, 0),
+                    'cartesian': new Vec3(0, 0, 0),
                     'label': {
                         'isRTL': true,
-                        'text': "دبي",
+                        'text': "אלבאייד",
                         'color': "black",
-                        'face': "NotoSansArabic-Regular",
+                        //'face': "NotoSansArabic-Regular",
                         //'face': "Arabic",
+                        'face': "Segoe",
+                        //align: "center",
                         'outlineColor': "rgba(255, 255, 255, 1.0)",
                         'size': size
                     }
@@ -141,8 +143,9 @@ class MyScene extends RenderNode {
         //this.renderer.fontAtlas.loadFont("MrDeHaviland-Regular", "./fonts/", "MrDeHaviland-Regular.json");
         //this.renderer.fontAtlas.loadFont("Audiowide-Regular", "./fonts/", "Audiowide-Regular.json");
         //this.renderer.fontAtlas.loadFont("ArchitectsDaughter-Regular", "./fonts/", "ArchitectsDaughter-Regular.json");
-        this.renderer.fontAtlas.loadFont("NotoSansArabic-Regular", "./fonts/", "NotoSansArabic-Regular.json");
+        //this.renderer.fontAtlas.loadFont("NotoSansArabic-Regular", "./fonts/", "NotoSansArabic-Regular.json");
         //this.renderer.fontAtlas.loadFont("Arabic", "./fonts/", "Arabic.json");
+        this.renderer.fontAtlas.loadFont("Segoe", "./fonts/", "segoeui.json");
         this.ec.addTo(this);
 
         this.renderer.activeCamera.eye.set(57, 36, 120);

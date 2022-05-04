@@ -201,6 +201,8 @@ class LabelHandler extends BillboardHandler {
         var gl = h.gl,
             ec = this._entityCollection;
 
+        gl.disable(gl.CULL_FACE);
+
         gl.uniform1iv(shu.fontTextureArr, r.fontAtlas.samplerArr);
         gl.uniform4fv(shu.sdfParamsArr, r.fontAtlas.sdfParamsArr);
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
@@ -264,6 +266,8 @@ class LabelHandler extends BillboardHandler {
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
         gl.depthFunc(gl.LESS);
+
+        gl.enable(gl.CULL_FACE);
     }
 
     _pickingPASS() {
@@ -374,9 +378,11 @@ class LabelHandler extends BillboardHandler {
         let c = 0;
 
         let len = Math.min(this._maxLetters, text.length);
-        let rtl = 1;
+        let rtl = 1,
+            rtlOffset = 0;
         if (isRTL) {
             rtl = -1;
+            rtlOffset = 1;
         }
         let n = fa.nodes.get(text[c].charCodeAt());
         let offset = 0.0;
@@ -457,18 +463,18 @@ class LabelHandler extends BillboardHandler {
             if (k) {
                 k = k[text[c + 1].charCodeAt()];
                 if (k) {
-                    offset += rtl * (m.nAdvance + k);
+                    offset += m.nAdvance + k;
                 } else {
-                    offset += rtl * m.nAdvance;
+                    offset += m.nAdvance;
                 }
             } else {
-                offset += rtl * m.nAdvance;
+                offset += m.nAdvance;
             }
         }
 
         // 49/512 - font atlas left border letter offset
         if (align === ALIGN.CENTER) {
-            offset *= -0.5 * rtl;
+            offset *= -0.5;
             for (c = 0; c < len; c++) {
                 let j = i + c * 24;
                 a[j + 3] = offset;
@@ -800,19 +806,22 @@ class LabelHandler extends BillboardHandler {
 
         for (var q = 0; q < this._maxLetters; q++) {
             var j = i + q * 12;
+
             a[j] = vertexArr[0];
             a[j + 1] = vertexArr[1];
-            a[j + 2] = vertexArr[2];
 
+            a[j + 2] = vertexArr[2];
             a[j + 3] = vertexArr[3];
+
             a[j + 4] = vertexArr[4];
             a[j + 5] = vertexArr[5];
 
             a[j + 6] = vertexArr[6];
             a[j + 7] = vertexArr[7];
-            a[j + 8] = vertexArr[8];
 
+            a[j + 8] = vertexArr[8];
             a[j + 9] = vertexArr[9];
+
             a[j + 10] = vertexArr[10];
             a[j + 11] = vertexArr[11];
         }

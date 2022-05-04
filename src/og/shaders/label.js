@@ -95,7 +95,7 @@ export function label_webgl2() {
                 v_outline = a_outline;
 
                 v_fontIndex = int(a_fontIndex);
-                v_uv = vec2(a_texCoord.xy);
+                v_uv = a_texCoord.xy;
                 vec3 look = a_positions - cameraPos;
                 float lookDist = length(look);
                 v_rgba = a_rgba;
@@ -127,8 +127,17 @@ export function label_webgl2() {
                 projPos.z += depthOffset + a_offset.z;
                                
                 vec2 screenPos = project(projPos);
-
-                vec2 v = screenPos + rotate2d(a_rotation) * ((a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z + a_texCoord.w, 0.0)) * a_size * scd + a_offset.xy);
+                
+                float x = a_vertices.x;
+                if(x==0.0){
+                    x = 1.0;
+                }else{
+                    x = 0.0;
+                }
+                
+                vec4 gp = vec4(-a_gliphParam.x, a_gliphParam.y, -a_gliphParam.z, a_gliphParam.w);
+                
+                vec2 v = screenPos + rotate2d(a_rotation) * ((vec2(x, a_vertices.y) * gp.xy + gp.zw + vec2(-a_texCoord.z + a_texCoord.w, 0.0)) * a_size * scd + a_offset.xy);
 
                 gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
             }`,
