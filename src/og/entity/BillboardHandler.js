@@ -866,7 +866,7 @@ class BillboardHandler {
                 var bi = this._billboards[i];
                 var img = bi._image;
                 if (img) {
-                    var imageNode = ta.nodes[bi._image.__nodeIndex];
+                    var imageNode = ta.get(bi._image.__nodeIndex);
                     if (imageNode) {
                         this.setTexCoordArr(bi._handlerIndex, imageNode.texCoords);
                     }

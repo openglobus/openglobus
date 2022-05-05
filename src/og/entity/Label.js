@@ -112,6 +112,8 @@ class Label extends BaseBillboard {
          * @type {utils.FontAtlas}
          */
         this._fontAtlas = null;
+
+        this._isRTL = options.isRTL || false;
     }
 
     /**
@@ -123,7 +125,7 @@ class Label extends BaseBillboard {
     setText(text) {
         this._text = text.toString();
         if (this._isReady && this._handler) {
-            this._handler.setText(this._handlerIndex, text, this._fontIndex, this._align);
+            this._handler.setText(this._handlerIndex, text, this._fontIndex, this._align, this._isRTL);
         }
     }
 
@@ -144,7 +146,7 @@ class Label extends BaseBillboard {
     setAlign(align) {
         this._align = STR2ALIGN[align.trim().toLowerCase()];
         if (this._isReady && this._handler) {
-            this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align);
+            this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align, this._isRTL);
         } else if (this._lockId !== LOCK_FREE) {
             this._lockId = LOCK_UPDATE;
         }
@@ -325,7 +327,7 @@ class Label extends BaseBillboard {
         this._fontIndex = fontIndex;
         if (this._isReady && this._handler) {
             this._handler.setFontIndexArr(this._handlerIndex, this._fontIndex);
-            this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align);
+            this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align, this._isRTL);
         } else if (this._lockId !== LOCK_FREE) {
             this._lockId = LOCK_UPDATE;
         }

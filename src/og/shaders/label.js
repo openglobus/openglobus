@@ -6,6 +6,10 @@
 
 import { Program } from '../webgl/Program.js';
 
+const DEFINE = `
+#define EMPTY -1.0
+#define RTL 1.0`;
+
 const PROJECT = `vec2 project(vec4 p) {
                     return (0.5 * p.xyz / p.w + 0.5).xy * viewport;
                 }`;
@@ -47,7 +51,9 @@ export function label_webgl2() {
         },
         vertexShader:
             `#version 300 es
-
+            
+            ${DEFINE}
+            
             in float a_outline;
             in vec4 a_gliphParam;
             in vec2 a_vertices;
@@ -77,14 +83,14 @@ export function label_webgl2() {
             uniform float depthOffset;
 
             const vec3 ZERO3 = vec3(0.0);
-
+           
             ${PROJECT}
 
             ${ROTATE2D}
 
             void main() {
 
-                if(a_texCoord.z == -1.0) {
+                if(a_texCoord.w == EMPTY) {
                     gl_Position = vec4(0.0);
                     return;
                 }
@@ -95,7 +101,7 @@ export function label_webgl2() {
                 v_outline = a_outline;
 
                 v_fontIndex = int(a_fontIndex);
-                v_uv = vec2(a_texCoord.xy);
+                v_uv = a_texCoord.xy;
                 vec3 look = a_positions - cameraPos;
                 float lookDist = length(look);
                 v_rgba = a_rgba;
@@ -127,8 +133,18 @@ export function label_webgl2() {
                 projPos.z += depthOffset + a_offset.z;
                                
                 vec2 screenPos = project(projPos);
-
-                vec2 v = screenPos + rotate2d(a_rotation) * ((a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size * scd + a_offset.xy);
+                
+                vec2 vert = a_vertices;                
+                vec4 gp = a_gliphParam;                                
+                if(a_texCoord.w == RTL){
+                    vert.x = step(vert.x * 0.5 + 1.0, 1.0);
+                    gp.x = -a_gliphParam.x;
+                    gp.z = -(a_gliphParam.z + a_texCoord.z);
+                }else{
+                    gp.z = a_gliphParam.z + a_texCoord.z;
+                }
+                                
+                vec2 v = screenPos + rotate2d(a_rotation) * ((vert * gp.xy + gp.zw) * a_size * scd + a_offset.xy);
 
                 gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
             }`,
@@ -270,7 +286,9 @@ export function label_screen() {
             a_fontIndex: "float"
         },
         vertexShader:
-            `
+            `            
+            ${DEFINE}
+                        
             attribute float a_outline;
             attribute vec4 a_gliphParam;
             attribute vec2 a_vertices;
@@ -306,7 +324,7 @@ export function label_screen() {
 
             void main() {
 
-                if(a_texCoord.z == -1.0) {
+                if(a_texCoord.w == EMPTY) {
                     gl_Position = vec4(0.0);
                     return;
                 }
@@ -349,9 +367,19 @@ export function label_screen() {
                 projPos.z += depthOffset + a_offset.z;
                                
                 vec2 screenPos = project(projPos);
-
-                vec2 v = screenPos + rotate2d(a_rotation) * ((a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size * scd + a_offset.xy);
-
+                
+                vec2 vert = a_vertices;                
+                vec4 gp = a_gliphParam;                                
+                if(a_texCoord.w == RTL){
+                    vert.x = step(vert.x * 0.5 + 1.0, 1.0);
+                    gp.x = -a_gliphParam.x;
+                    gp.z = -(a_gliphParam.z + a_texCoord.z);
+                }else{
+                    gp.z = a_gliphParam.z + a_texCoord.z;
+                }
+                                
+                vec2 v = screenPos + rotate2d(a_rotation) * ((vert * gp.xy + gp.zw) * a_size * scd + a_offset.xy);
+                
                 gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
             }`,
         fragmentShader:
@@ -487,6 +515,9 @@ export function labelPicking() {
         },
         vertexShader:
             `
+            
+            ${DEFINE}
+            
             attribute vec4 a_gliphParam;
             attribute vec2 a_vertices;
             attribute vec4 a_texCoord;
@@ -519,7 +550,7 @@ export function labelPicking() {
                 vec3 a_positions = a_positionsHigh + a_positionsLow;
                 vec3 cameraPos = eyePositionHigh + eyePositionLow;
 
-                if(a_texCoord.z == -1.0){
+                if(a_texCoord.w == EMPTY) {
                     gl_Position = vec4(0.0);
                     return;
                 }
@@ -554,7 +585,19 @@ export function labelPicking() {
                 projPos.z += depthOffset + a_offset.z;
                 
                 vec2 screenPos = project(projPos);
-                vec2 v = screenPos + rotate2d(a_rotation) * ((a_vertices * a_gliphParam.xy + a_gliphParam.zw + vec2(a_texCoord.z, 0.0) + vec2(a_texCoord.w, 0.0)) * a_size * scd + a_offset.xy);
+                
+                vec2 vert = a_vertices;                
+                vec4 gp = a_gliphParam;                                
+                if(a_texCoord.w == RTL){
+                    vert.x = step(vert.x * 0.5 + 1.0, 1.0);
+                    gp.x = -a_gliphParam.x;
+                    gp.z = -(a_gliphParam.z + a_texCoord.z);
+                }else{
+                    gp.z = a_gliphParam.z + a_texCoord.z;
+                }
+                                
+                vec2 v = screenPos + rotate2d(a_rotation) * ((vert * gp.xy + gp.zw) * a_size * scd + a_offset.xy);
+                                
                 gl_Position = vec4((2.0 * v / viewport - 1.0) * projPos.w, projPos.z, projPos.w);
             }`,
         fragmentShader:

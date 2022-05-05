@@ -24,6 +24,9 @@ const OUTLINECOLOR_BUFFER = 10;
 
 window.LABEL_DEPTH_OFFSET = -0;
 
+const EMPTY = -1.0;
+const RTL = 1.0;
+
 /*
  * og.LabelHandler
  *
@@ -201,6 +204,8 @@ class LabelHandler extends BillboardHandler {
         var gl = h.gl,
             ec = this._entityCollection;
 
+        gl.disable(gl.CULL_FACE);
+
         gl.uniform1iv(shu.fontTextureArr, r.fontAtlas.samplerArr);
         gl.uniform4fv(shu.sdfParamsArr, r.fontAtlas.sdfParamsArr);
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
@@ -264,6 +269,8 @@ class LabelHandler extends BillboardHandler {
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
 
         gl.depthFunc(gl.LESS);
+
+        gl.enable(gl.CULL_FACE);
     }
 
     _pickingPASS() {
@@ -359,7 +366,10 @@ class LabelHandler extends BillboardHandler {
         label._isReady = false;
     }
 
-    setText(index, text, fontIndex, align) {
+    setText(index, text, fontIndex, align, isRTL = false) {
+
+        text = text.normalize('NFKC');
+
         var fa = this._renderer.fontAtlas.atlasesArr[fontIndex];
 
         if (!fa) return;
@@ -370,15 +380,19 @@ class LabelHandler extends BillboardHandler {
 
         let c = 0;
 
-        let n = fa.nodes[text[c]];
-        let offset = 0.0;
         let len = Math.min(this._maxLetters, text.length);
+        let _rtl_ = 0.0;
+        if (isRTL) {
+            _rtl_ = RTL;
+        }
+        let n = fa.get(text[c].charCodeAt());
+        let offset = 0.0;
         let kern = fa.kernings;
 
         for (c = 0; c < len; c++) {
             let j = i + c * 24;
             let char = text[c];
-            n = fa.nodes[char] || fa.nodes[" "];
+            n = fa.get(char.charCodeAt()) || fa.get(" ".charCodeAt());
             let tc = n.texCoords;
 
             let m = n.metrics;
@@ -386,32 +400,32 @@ class LabelHandler extends BillboardHandler {
             a[j] = tc[0];
             a[j + 1] = tc[1];
             a[j + 2] = offset;
-            a[j + 3] = 0.0;
+            a[j + 3] = _rtl_;
 
             a[j + 4] = tc[2];
             a[j + 5] = tc[3];
             a[j + 6] = offset;
-            a[j + 7] = 0.0;
+            a[j + 7] = _rtl_;
 
             a[j + 8] = tc[4];
             a[j + 9] = tc[5];
             a[j + 10] = offset;
-            a[j + 11] = 0.0;
+            a[j + 11] = _rtl_;
 
             a[j + 12] = tc[6];
             a[j + 13] = tc[7];
             a[j + 14] = offset;
-            a[j + 15] = 0.0;
+            a[j + 15] = _rtl_;
 
             a[j + 16] = tc[8];
             a[j + 17] = tc[9];
             a[j + 18] = offset;
-            a[j + 19] = 0.0;
+            a[j + 19] = _rtl_;
 
             a[j + 20] = tc[10];
             a[j + 21] = tc[11];
             a[j + 22] = offset;
-            a[j + 23] = 0.0;
+            a[j + 23] = _rtl_;
 
             //
             // Gliph
@@ -446,9 +460,9 @@ class LabelHandler extends BillboardHandler {
             g[j + 22] = m.nXOffset;
             g[j + 23] = m.nYOffset;
 
-            let k = kern[char];
-            if (k) {
-                k = k[text[c + 1]];
+            let k = kern[char.charCodeAt()];
+            if (k && text[c + 1]) {
+                k = k[text[c + 1].charCodeAt()];
                 if (k) {
                     offset += m.nAdvance + k;
                 } else {
@@ -464,33 +478,23 @@ class LabelHandler extends BillboardHandler {
             offset *= -0.5;
             for (c = 0; c < len; c++) {
                 let j = i + c * 24;
-                a[j + 3] = offset;
-                a[j + 7] = offset;
-                a[j + 11] = offset;
-                a[j + 15] = offset;
-                a[j + 19] = offset;
-                a[j + 23] = offset;
-            }
-        } else if (align === ALIGN.LEFT) {
-            for (c = 0; c < len; c++) {
-                let j = i + c * 24;
-                a[j + 3] = 0;
-                a[j + 7] = 0;
-                a[j + 11] = 0;
-                a[j + 15] = 0;
-                a[j + 19] = 0;
-                a[j + 23] = 0;
+                a[j + 2] += offset;
+                a[j + 6] += offset;
+                a[j + 10] += offset;
+                a[j + 14] += offset;
+                a[j + 18] += offset;
+                a[j + 22] += offset;
             }
         }
 
         for (; c < this._maxLetters; c++) {
             let j = i + c * 24;
-            a[j + 2] = -1.0;
-            a[j + 6] = -1.0;
-            a[j + 10] = -1.0;
-            a[j + 14] = -1.0;
-            a[j + 18] = -1.0;
-            a[j + 17] = -1.0;
+            a[j + 3] = EMPTY;
+            a[j + 7] = EMPTY;
+            a[j + 11] = EMPTY;
+            a[j + 15] = EMPTY;
+            a[j + 19] = EMPTY;
+            a[j + 23] = EMPTY;
         }
 
         this._changedBuffers[TEXCOORD_BUFFER] = true;
@@ -793,19 +797,22 @@ class LabelHandler extends BillboardHandler {
 
         for (var q = 0; q < this._maxLetters; q++) {
             var j = i + q * 12;
+
             a[j] = vertexArr[0];
             a[j + 1] = vertexArr[1];
-            a[j + 2] = vertexArr[2];
 
+            a[j + 2] = vertexArr[2];
             a[j + 3] = vertexArr[3];
+
             a[j + 4] = vertexArr[4];
             a[j + 5] = vertexArr[5];
 
             a[j + 6] = vertexArr[6];
             a[j + 7] = vertexArr[7];
-            a[j + 8] = vertexArr[8];
 
+            a[j + 8] = vertexArr[8];
             a[j + 9] = vertexArr[9];
+
             a[j + 10] = vertexArr[10];
             a[j + 11] = vertexArr[11];
         }
