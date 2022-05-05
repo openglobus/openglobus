@@ -74,11 +74,11 @@ class Billboard extends BaseBillboard {
                 var ta = rn.renderer.billboardsTextureAtlas;
                 var that = this;
                 ta.loadImage(src, function (img) {
-                    if (ta.nodes.get(img.__nodeIndex)) {
+                    if (ta.get(img.__nodeIndex)) {
                         that._image = img;
                         bh.setTexCoordArr(
                             that._handlerIndex,
-                            ta.nodes.get(that._image.__nodeIndex).texCoords
+                            ta.get(that._image.__nodeIndex).texCoords
                         );
                     } else {
                         ta.addImage(img);

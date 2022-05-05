@@ -384,14 +384,14 @@ class LabelHandler extends BillboardHandler {
         if (isRTL) {
             _rtl_ = RTL;
         }
-        let n = fa.nodes.get(text[c].charCodeAt());
+        let n = fa.get(text[c].charCodeAt());
         let offset = 0.0;
         let kern = fa.kernings;
 
         for (c = 0; c < len; c++) {
             let j = i + c * 24;
             let char = text[c];
-            n = fa.nodes.get(char.charCodeAt()) || fa.nodes.get(" ".charCodeAt());
+            n = fa.get(char.charCodeAt()) || fa.get(" ".charCodeAt());
             let tc = n.texCoords;
 
             let m = n.metrics;

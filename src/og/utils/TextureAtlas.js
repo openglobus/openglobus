@@ -105,7 +105,7 @@ class TextureAtlas {
 
         this._makeAtlas(fastInsert);
 
-        return this.nodes.get(image.__nodeIndex);
+        return this.get(image.__nodeIndex);
     }
 
     _completeNode(nodes, node) {
@@ -176,6 +176,14 @@ class TextureAtlas {
         }
     }
 
+    get(key) {
+        return this.nodes.get(key);
+    }
+
+    set(key, value) {
+        this.nodes.set(key, value);
+    }
+
     /**
      * Creates atlas gl texture.
      * @public
@@ -209,7 +217,7 @@ class TextureAtlas {
 
     getImageTexCoordinates(img) {
         if (img.__nodeIndex != null) {
-            let n = this.nodes.get(img.__nodeIndex)
+            let n = this.get(img.__nodeIndex);
             if (n) {
                 return n.texCoords;
             }
