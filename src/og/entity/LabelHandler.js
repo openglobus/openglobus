@@ -26,6 +26,7 @@ window.LABEL_DEPTH_OFFSET = -0;
 
 const EMPTY = -1.0;
 const RTL = 1.0;
+
 /*
  * og.LabelHandler
  *
@@ -460,7 +461,7 @@ class LabelHandler extends BillboardHandler {
             g[j + 23] = m.nYOffset;
 
             let k = kern[char.charCodeAt()];
-            if (k) {
+            if (k && text[c + 1]) {
                 k = k[text[c + 1].charCodeAt()];
                 if (k) {
                     offset += m.nAdvance + k;
