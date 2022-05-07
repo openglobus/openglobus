@@ -493,7 +493,7 @@ class RendererEvents extends Events {
         var ts = this.touchState;
         ts.sys = event;
 
-        ts.clienX = event.touches.item(0).clientX - event.offsetLeft;
+        ts.clientX = event.touches.item(0).clientX - event.offsetLeft;
         ts.clientY = event.touches.item(0).clientY - event.offsetTop;
 
         let h = this.renderer.handler;
@@ -569,8 +569,13 @@ class RendererEvents extends Events {
 
         ts.sys = event;
         ts.moving = true;
-        // this._dblTchBegins = 0;
-        // this._oneTouchStart = false;
+        
+        var dX = ts.x - ts.prev_x
+        var dY = ts.y - ts.prev_y
+        if (Math.abs(dX) > 9 || Math.abs(dY) > 9) {
+            this._dblTchBegins = 0;
+            this._oneTouchStart = false;
+        }
     }
 
     /**

@@ -142,7 +142,13 @@ class TouchNavigation extends Control {
 
         this.planet.stopFlying();
         this.stopRotation();
-        var p = this.planet.getCartesianFromPixelTerrain(this.touches[0], true);
+        
+        let h = this.renderer.handler;
+        var touchCoordinate = {
+            x: this.touches[0].x * h.pixelRatio,
+            y: this.touches[0].y * h.pixelRatio
+        }
+        var p = this.planet.getCartesianFromPixelTerrain(touchCoordinate);
         if (p) {
             var g = this.planet.ellipsoid.cartesianToLonLat(p);
             this.planet.flyLonLat(
