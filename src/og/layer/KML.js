@@ -56,48 +56,6 @@ export class KML extends Vector {
     /**
      * @private
      */
-    _xml2json(xml) {
-      // https://davidwalsh.name/convert-xml-json
-
-      // Create the return object
-      var obj = {};
-
-      if (xml.nodeType == 1) { // element
-          // do attributes
-          if (xml.attributes.length > 0) {
-          obj["@attributes"] = {};
-              for (var j = 0; j < xml.attributes.length; j++) {
-                  var attribute = xml.attributes.item(j);
-                  obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
-              }
-          }
-      } else if (xml.nodeType == 3) { // text
-          obj = xml.nodeValue;
-      }
-
-      // do children
-      if (xml.hasChildNodes()) {
-          for(var i = 0; i < xml.childNodes.length; i++) {
-              var item = xml.childNodes.item(i);
-              var nodeName = item.nodeName;
-              if (typeof(obj[nodeName]) == "undefined") {
-                  obj[nodeName] = this._xml2json(item);
-              } else {
-                  if (typeof(obj[nodeName].push) == "undefined") {
-                      var old = obj[nodeName];
-                      obj[nodeName] = [];
-                      obj[nodeName].push(old);
-                  }
-                  obj[nodeName].push(this._xml2json(item));
-              }
-          }
-      }
-      return obj;
-      }
-
-    /**
-     * @private
-     */
     _AGBRtoRGBA(agbr) {
       if (agbr === undefined)
         return(undefined);
@@ -119,10 +77,10 @@ export class KML extends Vector {
 
     /**
      * @private
+     returns array of longitude, latitude, altitude (altitude optional)
      */
-    _parseKMLcoordinates(jobj) {
-      // returns longitude, latitude, altitude
-      let coordinates = jobj["#text"].trim()
+    _parseKMLcoordinates(coords) {
+      let coordinates = coords.innerHTML.trim()
         .replace(/\n/g, ' ')
         .replace(/\t/g, ' ')
         .replace(/ +/g, ' ')
@@ -141,88 +99,78 @@ export class KML extends Vector {
     /**
      * @private
      */
-    _kmlPlacemarkToEntity(jobj, extent) {
-      if (jobj === undefined)
+    _kmlPlacemarkToEntity(placemark, extent) {
+      if (placemark === undefined)
         return(undefined);
 
-      let name = jobj["name"];
-      if (name !== undefined)
-        name = name["#text"];
+      // TODO error check if tags below exist (before trying [0])
 
-      let point = jobj["Point"];
-      let linestring = jobj["LineString"];
+      let name = placemark.getElementsByTagName("name")[0].innerHTML.trim();
+      if (name === undefined)
+        name = "";
 
-      if (point === undefined && linestring === undefined)
-        return(undefined);
-
-      var coordinates;
-
-      if (point !== undefined)
-        coordinates = point["coordinates"];
-      else if (linestring !== undefined)
-        coordinates = linestring["coordinates"];
-      else
-        return(undefined);
-
-      var iconURL;
       var iconColor;
+      var iconURL;
       var lineColor;
       var lineWidth;
 
-      let style = jobj["Style"];
+      let style = placemark.getElementsByTagName("Style")[0];
       if (style !== undefined) {
-        let iconstyle = style["IconStyle"];
+        let iconstyle = style.getElementsByTagName("IconStyle")[0];
         if (iconstyle !== undefined) {
-          let color = iconstyle["color"];
+          let color = iconstyle.getElementsByTagName("color")[0];
           if (color !== undefined)
-            iconColor = this._AGBRtoRGBA(color["#text"])
-          let icon = iconstyle["Icon"];
+            iconColor = this._AGBRtoRGBA(color.innerHTML.trim());
+          let icon = iconstyle.getElementsByTagName("Icon")[0];
           if (icon !== undefined) {
-            let href = icon["href"];
+            let href = icon.getElementsByTagName("href")[0];
             if (href !== undefined) {
-              iconURL = href["#text"];
+              iconURL = href.innerHTML.trim();
               };
             };
           };
 
-        let linestyle = style["LineStyle"];
+        let linestyle = style.getElementsByTagName("LineStyle")[0];
         if (linestyle !== undefined) {
-          let color = linestyle["color"];
+          let color = linestyle.getElementsByTagName("color")[0];
           if (color !== undefined)
-            lineColor = this._AGBRtoRGBA(color["#text"])
-          let width = linestyle["width"];
+            lineColor = this._AGBRtoRGBA(color.innerHTML.trim());
+          let width = linestyle.getElementsByTagName("width")[0];
           if (width !== undefined)
-            lineWidth = parseInt(width["#text"]);
+            lineWidth = parseInt(width.innerHTML.trim());
           };
         };
 
-      if (iconColor === undefined) {
+      if (iconColor === undefined)
         iconColor = "#FFFFFF";
-        };
-      if (iconURL === undefined) {
+      if (iconURL === undefined)
         iconURL = "https://openglobus.org/examples/billboards/carrot.png";
-        };
 
       if (lineColor === undefined)
         lineColor = "#FFFFFF";
       if (lineWidth === undefined)
         lineWidth = 1;
 
-      let lonlatalts = this._parseKMLcoordinates(coordinates);
-      if (lonlatalts === undefined)
-        lonlatalts = [ 0, 0, 0 ];
+      // TODO handle MultiGeometry
 
       var LonLats=[];
-      for (var index=0; index < lonlatalts.length; ++index)
-        {
-        var lon = lonlatalts[index][0];
-        var lat = lonlatalts[index][1];
-        var alt = lonlatalts[index][2];
-        LonLats.push(new LonLat(lon, lat, alt));
-        if (lon < extent.southWest.lon) extent.southWest.lon = lon;
-        if (lat < extent.southWest.lat) extent.southWest.lat = lat;
-        if (lon > extent.northEast.lon) extent.northEast.lon = lon;
-        if (lat > extent.northEast.lat) extent.northEast.lat = lat;
+      for (const coord of placemark.getElementsByTagName("coordinates")) {
+        let coordinates = this._parseKMLcoordinates(coord);
+        if (coordinates === undefined)
+          coordinates = [[0, 0, 0]];
+
+        for (const lonlatalt of coordinates) {
+          let lon = lonlatalt[0];
+          let lat = lonlatalt[1];
+          let alt = lonlatalt[2];
+
+          LonLats.push(new LonLat(lon, lat, alt));
+
+          if (lon < extent.southWest.lon) extent.southWest.lon = lon;
+          if (lat < extent.southWest.lat) extent.southWest.lat = lat;
+          if (lon > extent.northEast.lon) extent.northEast.lon = lon;
+          if (lat > extent.northEast.lat) extent.northEast.lat = lat;
+          };
         };
 
       var entity;
@@ -253,8 +201,8 @@ export class KML extends Vector {
             'thickness': lineWidth,
             'color': lineColor,
             'isClosed': false
-          }
-        });
+            }
+          });
         };
 
       return(entity);
@@ -263,22 +211,17 @@ export class KML extends Vector {
     /**
      * @private
      */
-    _parseJSONKML(jobj, extent, entities=undefined) {
+    _parseKML(xml, extent, entities=undefined) {
       if (entities === undefined)
         entities = [];
 
-      for (var key in jobj) {
-        if (key == "Placemark") {
-          for (var index in jobj[key]) {
-            let entity = this._kmlPlacemarkToEntity(jobj[key][index], extent);
-            if (entity !== undefined) {
-              entities.push(entity);
-              };
-            };
-          };
-        if (jobj[key] !== null && typeof(jobj[key]) == "object") {
-          this._parseJSONKML(jobj[key], extent, entities);
-          };
+      if (xml.documentElement.nodeName != "kml")
+        return(entities);
+
+      for (const placemark of xml.getElementsByTagName("Placemark")) {
+        let entity = this._kmlPlacemarkToEntity(placemark, extent);
+        if (entity !== undefined)
+          entities.push(entity);
         };
 
       return(entities);
@@ -289,9 +232,7 @@ export class KML extends Vector {
      */
     _convertKMLintoEntities(xml) {
       const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
-      let jobj = this._xml2json(xml);
-
-      let entities = this._parseJSONKML(jobj, extent);
+      let entities = this._parseKML(xml, extent);
 
       return({entities, extent});
       }
