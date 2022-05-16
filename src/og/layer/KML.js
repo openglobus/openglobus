@@ -110,6 +110,7 @@ export class KML extends Vector {
         name = "";
 
       var iconColor;
+      var iconHeading;
       var iconURL;
       var lineColor;
       var lineWidth;
@@ -121,6 +122,16 @@ export class KML extends Vector {
           let color = iconstyle.getElementsByTagName("color")[0];
           if (color !== undefined)
             iconColor = this._AGBRtoRGBA(color.innerHTML.trim());
+
+          let heading = iconstyle.getElementsByTagName("heading")[0];
+          if (heading !== undefined) {
+            var hdg;
+
+            hdg = parseFloat(heading.innerHTML.trim());
+            if (hdg >= 0 && hdg <= 360)
+              iconHeading = hdg % 360;
+            };
+
           let icon = iconstyle.getElementsByTagName("Icon")[0];
           if (icon !== undefined) {
             let href = icon.getElementsByTagName("href")[0];
@@ -137,12 +148,14 @@ export class KML extends Vector {
             lineColor = this._AGBRtoRGBA(color.innerHTML.trim());
           let width = linestyle.getElementsByTagName("width")[0];
           if (width !== undefined)
-            lineWidth = parseInt(width.innerHTML.trim());
+            lineWidth = parseFloat(width.innerHTML.trim());
           };
         };
 
       if (iconColor === undefined)
         iconColor = "#FFFFFF";
+      if (iconHeading === undefined)
+        iconHeading = 0;
       if (iconURL === undefined)
         iconURL = "https://openglobus.org/examples/billboards/carrot.png";
 
@@ -178,6 +191,9 @@ export class KML extends Vector {
       // Point
       if (LonLats.length === 1)
         {
+        var hdgrad;
+
+        hdgrad = iconHeading * 0.01745329; // radians
         entity = new Entity({
           'name': name,
           'lonlat': LonLats[0],
@@ -185,11 +201,11 @@ export class KML extends Vector {
             'src': iconURL,
             'size': [24, 24],
             'color': iconColor,
-            'rotation': 0
+            'rotation': hdgrad
             },
           'properties': {
-            'bearing': 0,
-            'color': iconColor
+            'color': iconColor,
+            'heading': iconHeading
             }
           });
         }

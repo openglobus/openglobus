@@ -44,6 +44,7 @@
 				<Style>
 					<IconStyle>
 						<color>FFDB8966</color>
+						<heading>130</heading>
 						<Icon>
 							<href>./plane.png</href>
 						</Icon>
@@ -58,6 +59,7 @@
 				<Style>
 					<IconStyle>
 						<color>FFDB8966</color>
+						<heading>160</heading>
 						<Icon>
 							<href>./plane.png</href>
 						</Icon>
@@ -72,6 +74,7 @@
 				<Style>
 					<IconStyle>
 						<color>FFDB8966</color>
+						<heading>45</heading>
 						<Icon>
 							<href>./plane.png</href>
 						</Icon>
@@ -128,6 +131,7 @@
 				<Style>
 					<IconStyle>
 						<color>FFDB8966</color>
+						<heading>270</heading>
 						<Icon>
 							<href>./plane.png</href>
 						</Icon>
@@ -142,6 +146,7 @@
 				<Style>
 					<IconStyle>
 						<color>FFDB8966</color>
+						<heading>320</heading>
 						<Icon>
 							<href>./plane.png</href>
 						</Icon>
