@@ -40,23 +40,26 @@ export class KML extends Vector {
      * @public
      */
     _extractCoordonatesFromKml(xmlDoc) {
-        const raw = Array.from(xmlDoc.getElementsByTagName("coordinates"));
-        const rawText = raw.map(item => item.textContent.trim());
-        const coordinates = rawText.map(item => 
-            item
-             .replace(/\n/g, " ")
-             .replace(/\t/g, " ")
-             .replace(/ +/g," ")
-             .split(" ")
-             .map((co) => co.split(",").map(parseFloat))
-        );
-        return coordinates;
+        const placemarks = Array.from(xmlDoc.getElementsByTagName("Placemark"));
+        const clean = str => str?.trim().replace(/\n/g, " ").replace(/\t/g, " ").replace(/ +/g, " ")
+        return placemarks.map(placemark => {
+            const coordinatesRaw = Array.from(placemark.getElementsByTagName("coordinates")).at(0);
+            const coordinates = clean(coordinatesRaw.textContent).split(" ").map((co) => co.split(",").map(parseFloat))
+            const style = Array.from(placemark.getElementsByTagName("Style")).at(0);
+            if (style) {
+                const color = Array.from(style.getElementsByTagName("color"))?.at(0)?.textContent?.trim();
+                const width = Array.from(style.getElementsByTagName("width")).at(0)?.textContent?.trim();
+                return { coordinates, color, width }
+            } else {
+                return { coordinates }
+            }
+        })
     }
 
     /**
      * Creates billboards or polylines from array of lonlat.
      * @public
-     * @param {Array} coordonates
+     * @param {Array} coordonates: { coordinates: []; color: string; width: string;}[][]
      * @param {string} color
      * @returns {Array<Entity>}
      */
@@ -72,19 +75,21 @@ export class KML extends Vector {
         };
         const _pathes = [];
         coordinates.forEach((kmlFile) => kmlFile.forEach((p) => _pathes.push(p)));
-        const entities = _pathes.map((path) => {
-            if (path.length === 1) {
-                const lonlat = path[0];
+        const entities = _pathes.map((placemark) => {
+            if (placemark.coordinates.length === 1) {
+                const lonlat = placemark.coordinates[0];
                 const _entity = new Entity({ lonlat, billboard });
                 addToExtent(lonlat);
                 return _entity;
-            } else if (path.length > 1) {
-                const pathLonLat = path.map((item) => {
+            } else if (placemark.coordinates.length > 1) {
+                color = placemark.color || color;
+                const thickness = placemark.width || 3;
+                const pathLonLat = placemark.coordinates.map((item) => {
                     addToExtent(item);
                     return new LonLat(item[0], item[1], item[2]);
                 });
                 const _entity = new Entity({
-                    polyline: { pathLonLat: [pathLonLat], thickness: 3, color, isClosed: false }
+                    polyline: { pathLonLat: [pathLonLat], thickness, color, isClosed: false }
                 });
                 return _entity;
             }
