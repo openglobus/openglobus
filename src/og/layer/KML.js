@@ -40,15 +40,17 @@ export class KML extends Vector {
      * @public
      */
     _extractCoordonatesFromKml(xmlDoc) {
-        const placemarks = Array.from(xmlDoc.getElementsByTagName("Placemark"));
         const clean = str => str?.trim().replace(/\n/g, " ").replace(/\t/g, " ").replace(/ +/g, " ")
+        const byTagName = (xml, tag) => Array.from(xml.getElementsByTagName(tag))
+        const extractFirst = (xml, tag) => byTagName(xml, tag)?.at(0)?.textContent?.trim()
+        const placemarks = byTagName(xmlDoc, "Placemark");
         return placemarks.map(placemark => {
-            const coordinatesRaw = Array.from(placemark.getElementsByTagName("coordinates")).at(0);
-            const coordinates = clean(coordinatesRaw.textContent).split(" ").map((co) => co.split(",").map(parseFloat))
-            const style = Array.from(placemark.getElementsByTagName("Style")).at(0);
+            const coordinatesRaw = extractFirst(placemark, "coordinates")
+            const coordinates = clean(coordinatesRaw).split(" ").map((co) => co.split(",").map(parseFloat))
+            const style = byTagName(placemark, "Style").at(0);
             if (style) {
-                const color = Array.from(style.getElementsByTagName("color"))?.at(0)?.textContent?.trim();
-                const width = Array.from(style.getElementsByTagName("width")).at(0)?.textContent?.trim();
+                const color = extractFirst(style, "color")
+                const width = extractFirst(style, "width")
                 return { coordinates, color, width }
             } else {
                 return { coordinates }
