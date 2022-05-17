@@ -6,6 +6,7 @@
 import { Billboard } from "../entity/Billboard.js";
 import { Entity } from "../entity/Entity.js";
 import { Extent } from "../Extent.js";
+import { Label } from "../entity/Label.js";
 import { LonLat } from "../LonLat.js";
 import { Vector } from "./Vector.js";
 
@@ -106,8 +107,6 @@ export class KML extends Vector {
       // TODO error check if tags below exist (before trying [0])
 
       let name = placemark.getElementsByTagName("name")[0].innerHTML.trim();
-      if (name === undefined)
-        name = "";
 
       var iconColor;
       var iconHeading;
@@ -194,6 +193,7 @@ export class KML extends Vector {
         var hdgrad;
 
         hdgrad = iconHeading * 0.01745329; // radians
+
         entity = new Entity({
           'name': name,
           'lonlat': LonLats[0],
@@ -208,6 +208,22 @@ export class KML extends Vector {
             'heading': iconHeading
             }
           });
+
+/*
+        TODO Label rendering doesn't appear to work!
+        if (name !== undefined)
+          {
+          var label = new Label({
+                        'text': "PressStart2P-Regular",
+                        'color': "black",
+                        'face': "PressStart2P-Regular",
+                        'outlineColor': "white",
+                        'size': 24
+            });
+          entity.setLabel(label);
+          };
+*/
+
         }
       else // LineString
         {
