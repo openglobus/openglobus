@@ -6,7 +6,7 @@ document.getElementById('upload').onchange = async e => {
   const color = document.getElementById('color').value;
   dieppeRouen.setColor(color);
   const KMLs = Array.from(e.target.files);
-  const { extent } = await dieppeRouen.addKmlFromFiles(KMLs);
+  const { entities, extent } = await dieppeRouen.addKmlFromFiles(KMLs);
   globus.planet.flyExtent(extent);
 };
 
@@ -16,10 +16,9 @@ document.getElementById('viewExtent').onclick = () => {
 
 (async () => {
   dieppeRouen = new KML('dieppeRouenVector', {
-    billboard: { src: './plane.png', color: '#6689db' },
-    color: '#6689db'
   });
-  const { extent } = await dieppeRouen.addKmlFromUrl('./dieppe-rouen.kml');
+  const { entities, extent } = await dieppeRouen.addKmlFromUrl('./dieppe-rouen.kml');
+
   const osm = new og.layer.XYZ('osm', { isBaseLayer: true, url: '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' });
   globus = new og.Globe({ target: 'globus', terrain: new og.terrain.GlobusTerrain(), layers: [osm] });
   globus.planet.addLayer(dieppeRouen);
