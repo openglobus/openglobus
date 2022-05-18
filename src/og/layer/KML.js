@@ -45,11 +45,11 @@ export class KML extends Vector {
         const rawText = raw.map(item => item.textContent.trim());
         const coordinates = rawText.map(item =>
             item
-             .replace(/\n/g, " ")
-             .replace(/\t/g, " ")
-             .replace(/ +/g," ")
-             .split(" ")
-             .map((co) => co.split(",").map(parseFloat))
+                .replace(/\n/g, " ")
+                .replace(/\t/g, " ")
+                .replace(/ +/g, " ")
+                .split(" ")
+                .map((co) => co.split(",").map(parseFloat))
         );
         return coordinates;
     }
@@ -58,216 +58,202 @@ export class KML extends Vector {
      * @private
      */
     _AGBRtoRGBA(agbr) {
-      if (agbr === undefined)
-        return(undefined);
-      if (agbr.length != 8)
-        return(undefined);
+        if (!agbr || agbr.length != 8) return
 
-      var a;
-      var r;
-      var g;
-      var b;
+        const a = parseInt(agbr.slice(0, 2), 16) / 255;
+        const b = parseInt(agbr.slice(2, 4), 16);
+        const g = parseInt(agbr.slice(4, 6), 16);
+        const r = parseInt(agbr.slice(6, 8), 16);
 
-      a = parseInt(agbr.slice(0, 2), 16) / 255;
-      b = parseInt(agbr.slice(2, 4), 16);
-      g = parseInt(agbr.slice(4, 6), 16);
-      r = parseInt(agbr.slice(6, 8), 16);
-
-      return("rgba(" + r + "," + g + "," + b + "," + a + ")");
-      }
+        return `rgba(${r},${g},${b},${a})`;
+    }
 
     /**
      * @private
      returns array of longitude, latitude, altitude (altitude optional)
      */
     _parseKMLcoordinates(coords) {
-      let coordinates = coords.innerHTML.trim()
-        .replace(/\n/g, ' ')
-        .replace(/\t/g, ' ')
-        .replace(/ +/g, ' ')
-        .split(" ")
-        .map((co) => co.split(",").map(parseFloat))
+        const coordinates = coords.innerHTML.trim()
+            .replace(/\n/g, ' ')
+            .replace(/\t/g, ' ')
+            .replace(/ +/g, ' ')
+            .split(" ")
+            .map((co) => co.split(",").map(parseFloat))
 
-      return(coordinates);
-      }
+        return coordinates;
+    }
 
     /**
      * @private
      */
     _parseKMLstyle(jobj) {
-      }
+    }
 
     /**
      * @private
      */
     _kmlPlacemarkToEntity(placemark, extent) {
-      if (placemark === undefined)
-        return(undefined);
+        if (!placemark) return;
 
-      // TODO error check if tags below exist (before trying [0])
+        // TODO error check if tags below exist (before trying [0])
 
-      let name = placemark.getElementsByTagName("name")[0].innerHTML.trim();
+        let name = placemark.getElementsByTagName("name")[0].innerHTML.trim();
 
-      var iconColor;
-      var iconHeading;
-      var iconURL;
-      var lineColor;
-      var lineWidth;
+        let iconColor;
+        let iconHeading;
+        let iconURL;
+        let lineColor;
+        let lineWidth;
 
-      let style = placemark.getElementsByTagName("Style")[0];
-      if (style !== undefined) {
-        let iconstyle = style.getElementsByTagName("IconStyle")[0];
-        if (iconstyle !== undefined) {
-          let color = iconstyle.getElementsByTagName("color")[0];
-          if (color !== undefined)
-            iconColor = this._AGBRtoRGBA(color.innerHTML.trim());
+        let style = placemark.getElementsByTagName("Style")[0];
+        if (style) {
+            let iconstyle = style.getElementsByTagName("IconStyle")[0];
+            if (iconstyle) {
+                let color = iconstyle.getElementsByTagName("color")[0];
+                if (color)
+                    iconColor = this._AGBRtoRGBA(color.innerHTML.trim());
 
-          let heading = iconstyle.getElementsByTagName("heading")[0];
-          if (heading !== undefined) {
-            var hdg;
+                let heading = iconstyle.getElementsByTagName("heading")[0];
+                if (heading) {
+                    const hdg = parseFloat(heading.innerHTML.trim());
+                    if (hdg >= 0 && hdg <= 360)
+                        iconHeading = hdg % 360;
+                };
 
-            hdg = parseFloat(heading.innerHTML.trim());
-            if (hdg >= 0 && hdg <= 360)
-              iconHeading = hdg % 360;
+                let icon = iconstyle.getElementsByTagName("Icon")[0];
+                if (icon !== undefined) {
+                    let href = icon.getElementsByTagName("href")[0];
+                    if (href !== undefined) {
+                        iconURL = href.innerHTML.trim();
+                    };
+                };
             };
 
-          let icon = iconstyle.getElementsByTagName("Icon")[0];
-          if (icon !== undefined) {
-            let href = icon.getElementsByTagName("href")[0];
-            if (href !== undefined) {
-              iconURL = href.innerHTML.trim();
-              };
+            let linestyle = style.getElementsByTagName("LineStyle")[0];
+            if (linestyle !== undefined) {
+                let color = linestyle.getElementsByTagName("color")[0];
+                if (color !== undefined)
+                    lineColor = this._AGBRtoRGBA(color.innerHTML.trim());
+                let width = linestyle.getElementsByTagName("width")[0];
+                if (width !== undefined)
+                    lineWidth = parseFloat(width.innerHTML.trim());
             };
-          };
-
-        let linestyle = style.getElementsByTagName("LineStyle")[0];
-        if (linestyle !== undefined) {
-          let color = linestyle.getElementsByTagName("color")[0];
-          if (color !== undefined)
-            lineColor = this._AGBRtoRGBA(color.innerHTML.trim());
-          let width = linestyle.getElementsByTagName("width")[0];
-          if (width !== undefined)
-            lineWidth = parseFloat(width.innerHTML.trim());
-          };
         };
 
-      if (iconColor === undefined)
-        iconColor = "#FFFFFF";
-      if (iconHeading === undefined)
-        iconHeading = 0;
-      if (iconURL === undefined)
-        iconURL = "https://openglobus.org/examples/billboards/carrot.png";
+        if (iconColor === undefined)
+            iconColor = "#FFFFFF";
+        if (iconHeading === undefined)
+            iconHeading = 0;
+        if (iconURL === undefined)
+            iconURL = "https://openglobus.org/examples/billboards/carrot.png";
 
-      if (lineColor === undefined)
-        lineColor = "#FFFFFF";
-      if (lineWidth === undefined)
-        lineWidth = 1;
+        if (lineColor === undefined)
+            lineColor = "#FFFFFF";
+        if (lineWidth === undefined)
+            lineWidth = 1;
 
-      // TODO handle MultiGeometry
+        // TODO handle MultiGeometry
 
-      var LonLats=[];
-      for (const coord of placemark.getElementsByTagName("coordinates")) {
-        let coordinates = this._parseKMLcoordinates(coord);
-        if (coordinates === undefined)
-          coordinates = [[0, 0, 0]];
+        const LonLats = [];
+        for (const coord of placemark.getElementsByTagName("coordinates")) {
+            let coordinates = this._parseKMLcoordinates(coord);
+            if (coordinates === undefined)
+                coordinates = [[0, 0, 0]];
 
-        for (const lonlatalt of coordinates) {
-          let lon = lonlatalt[0];
-          let lat = lonlatalt[1];
-          let alt = lonlatalt[2];
+            for (const lonlatalt of coordinates) {
+                let lon = lonlatalt[0];
+                let lat = lonlatalt[1];
+                let alt = lonlatalt[2];
 
-          LonLats.push(new LonLat(lon, lat, alt));
+                LonLats.push(new LonLat(lon, lat, alt));
 
-          if (lon < extent.southWest.lon) extent.southWest.lon = lon;
-          if (lat < extent.southWest.lat) extent.southWest.lat = lat;
-          if (lon > extent.northEast.lon) extent.northEast.lon = lon;
-          if (lat > extent.northEast.lat) extent.northEast.lat = lat;
-          };
+                if (lon < extent.southWest.lon) extent.southWest.lon = lon;
+                if (lat < extent.southWest.lat) extent.southWest.lat = lat;
+                if (lon > extent.northEast.lon) extent.northEast.lon = lon;
+                if (lat > extent.northEast.lat) extent.northEast.lat = lat;
+            };
         };
 
-      var entity;
+        let entity;
 
-      // Point
-      if (LonLats.length === 1)
-        {
-        var hdgrad;
+        // Point
+        if (LonLats.length === 1) {
+            const hdgrad = iconHeading * 0.01745329; // radians
 
-        hdgrad = iconHeading * 0.01745329; // radians
-
-        entity = new Entity({
-          'name': name,
-          'lonlat': LonLats[0],
-          'billboard': {
-            'src': iconURL,
-            'size': [24, 24],
-            'color': iconColor,
-            'rotation': hdgrad
-            },
-          'properties': {
-            'color': iconColor,
-            'heading': iconHeading
-            }
-          });
-
-/*
-        TODO Label rendering doesn't appear to work!
-        if (name !== undefined)
-          {
-          var label = new Label({
-                        'text': "PressStart2P-Regular",
-                        'color': "black",
-                        'face': "PressStart2P-Regular",
-                        'outlineColor': "white",
-                        'size': 24
+            entity = new Entity({
+                name,
+                lonlat: LonLats[0],
+                billboard: {
+                    src: iconURL,
+                    size: [24, 24],
+                    color: iconColor,
+                    rotation: hdgrad
+                },
+                properties: {
+                    color: iconColor,
+                    heading: iconHeading
+                }
             });
-          entity.setLabel(label);
-          };
-*/
+
+            /*
+                    TODO Label rendering doesn't appear to work!
+                    if (name !== undefined)
+                      {
+                      var label = new Label({
+                                    'text': "PressStart2P-Regular",
+                                    'color': "black",
+                                    'face': "PressStart2P-Regular",
+                                    'outlineColor': "white",
+                                    'size': 24
+                        });
+                      entity.setLabel(label);
+                      };
+            */
 
         }
-      else // LineString
+        else // LineString
         {
-        entity = new Entity({
-          'polyline': {
-            'pathLonLat': [LonLats],
-            'thickness': lineWidth,
-            'color': lineColor,
-            'isClosed': false
-            }
-          });
+            entity = new Entity({
+                polyline: {
+                    pathLonLat: [LonLats],
+                    thickness: lineWidth,
+                    color: lineColor,
+                    isClosed: false
+                }
+            });
         };
 
-      return(entity);
-      }
+        return entity;
+    }
 
     /**
      * @private
      */
-    _parseKML(xml, extent, entities=undefined) {
-      if (entities === undefined)
-        entities = [];
+    _parseKML(xml, extent, entities = undefined) {
+        if (!entities)
+            entities = [];
 
-      if (xml.documentElement.nodeName != "kml")
-        return(entities);
+        if (xml.documentElement.nodeName != "kml")
+            return entities;
 
-      for (const placemark of xml.getElementsByTagName("Placemark")) {
-        let entity = this._kmlPlacemarkToEntity(placemark, extent);
-        if (entity !== undefined)
-          entities.push(entity);
+        for (const placemark of xml.getElementsByTagName("Placemark")) {
+            const entity = this._kmlPlacemarkToEntity(placemark, extent);
+            if (!entity)
+                entities.push(entity);
         };
 
-      return(entities);
-      }
+        return entities;
+    }
 
     /**
      * @private
      */
     _convertKMLintoEntities(xml) {
-      const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
-      let entities = this._parseKML(xml, extent);
+        const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
+        const entities = this._parseKML(xml, extent);
 
-      return({entities, extent});
-      }
+        return ({ entities, extent });
+    }
 
     /**
      * Creates billboards or polylines from array of lonlat.
@@ -276,39 +262,39 @@ export class KML extends Vector {
      * @param {string} color
      * @returns {Array<Entity>}
      */
-/*
-    _convertCoordonatesIntoEntities(coordinates, color, billboard) {
-        const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
-        const addToExtent = (c) => {
-            const lon = c[0],
-                lat = c[1];
-            if (lon < extent.southWest.lon) extent.southWest.lon = lon;
-            if (lat < extent.southWest.lat) extent.southWest.lat = lat;
-            if (lon > extent.northEast.lon) extent.northEast.lon = lon;
-            if (lat > extent.northEast.lat) extent.northEast.lat = lat;
-        };
-        const _pathes = [];
-        coordinates.forEach((kmlFile) => kmlFile.forEach((p) => _pathes.push(p)));
-        const entities = _pathes.map((path) => {
-            if (path.length === 1) {
-                const lonlat = path[0];
-                const _entity = new Entity({ lonlat, billboard });
-                addToExtent(lonlat);
-                return _entity;
-            } else if (path.length > 1) {
-                const pathLonLat = path.map((item) => {
-                    addToExtent(item);
-                    return new LonLat(item[0], item[1], item[2]);
-                });
-                const _entity = new Entity({
-                    polyline: { pathLonLat: [pathLonLat], thickness: 3, color, isClosed: false }
-                });
-                return _entity;
-            }
-        });
-        return { entities, extent };
-    }
-*/
+    /*
+        _convertCoordonatesIntoEntities(coordinates, color, billboard) {
+            const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
+            const addToExtent = (c) => {
+                const lon = c[0],
+                    lat = c[1];
+                if (lon < extent.southWest.lon) extent.southWest.lon = lon;
+                if (lat < extent.southWest.lat) extent.southWest.lat = lat;
+                if (lon > extent.northEast.lon) extent.northEast.lon = lon;
+                if (lat > extent.northEast.lat) extent.northEast.lat = lat;
+            };
+            const _pathes = [];
+            coordinates.forEach((kmlFile) => kmlFile.forEach((p) => _pathes.push(p)));
+            const entities = _pathes.map((path) => {
+                if (path.length === 1) {
+                    const lonlat = path[0];
+                    const _entity = new Entity({ lonlat, billboard });
+                    addToExtent(lonlat);
+                    return _entity;
+                } else if (path.length > 1) {
+                    const pathLonLat = path.map((item) => {
+                        addToExtent(item);
+                        return new LonLat(item[0], item[1], item[2]);
+                    });
+                    const _entity = new Entity({
+                        polyline: { pathLonLat: [pathLonLat], thickness: 3, color, isClosed: false }
+                    });
+                    return _entity;
+                }
+            });
+            return { entities, extent };
+        }
+    */
 
     /**
      * @public
@@ -347,16 +333,16 @@ export class KML extends Vector {
      * @returns {Promise<{entities: Entity[], extent: Extent}>}
      */
     async addKmlFromFiles(kmls, color = null, billboard = null) {
-/*
-        const kmlObjs = await Promise.all(kmls.map(this._getXmlContent));
-        const coordonates = kmlObjs.map(this._extractCoordonatesFromKml);
-        const { entities, extent } = this._convertCoordonatesIntoEntities(
-            coordonates,
-            color || this._color,
-            billboard || this._billboard
-        );
-*/
-        const {entities, extent} = this._convertKMLintoEntities(kml);
+        /*
+                const kmlObjs = await Promise.all(kmls.map(this._getXmlContent));
+                const coordonates = kmlObjs.map(this._extractCoordonatesFromKml);
+                const { entities, extent } = this._convertCoordonatesIntoEntities(
+                    coordonates,
+                    color || this._color,
+                    billboard || this._billboard
+                );
+        */
+        const { entities, extent } = this._convertKMLintoEntities(kml);
 
         this._extent = this._expandExtents(this._extent, extent);
         entities.forEach(this.add.bind(this));
@@ -401,15 +387,15 @@ export class KML extends Vector {
      */
     async addKmlFromUrl(url, color = null, billboard = null) {
         const kml = await this._getKmlFromUrl(url);
-/*
-        const coordonates = this._extractCoordonatesFromKml(kml);
-        const { entities, extent } = this._convertCoordonatesIntoEntities(
-            [coordonates],
-            color || this._color,
-            billboard || this._billboard
-        );
-*/
-        const {entities, extent} = this._convertKMLintoEntities(kml);
+        /*
+                const coordonates = this._extractCoordonatesFromKml(kml);
+                const { entities, extent } = this._convertCoordonatesIntoEntities(
+                    [coordonates],
+                    color || this._color,
+                    billboard || this._billboard
+                );
+        */
+        const { entities, extent } = this._convertKMLintoEntities(kml);
 
         this._extent = this._expandExtents(this._extent, extent);
 
