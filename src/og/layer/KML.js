@@ -58,7 +58,7 @@ export class KML extends Vector {
      * @private
      */
     _AGBRtoRGBA(agbr) {
-        if (agbr?.length != 8) return
+        if (!agbr || agbr.length != 8) return
 
         const a = parseInt(agbr.slice(0, 2), 16) / 255;
         const b = parseInt(agbr.slice(2, 4), 16);
