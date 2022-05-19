@@ -161,7 +161,7 @@ class RendererEvents extends Events {
             prev_x: 0,
             /** Previous touch Y coordinate. */
             prev_y: 0,
-            /** Screen mouse position world direction. */
+            /** Screen touch position world direction. */
             direction: new Vec3(),
             /** JavaScript touching system event message. */
             sys: null,
