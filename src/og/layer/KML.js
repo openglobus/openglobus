@@ -238,8 +238,7 @@ export class KML extends Vector {
 
         for (const placemark of xml.getElementsByTagName("Placemark")) {
             const entity = this._kmlPlacemarkToEntity(placemark, extent);
-            if (!entity)
-                entities.push(entity);
+            if (entity) entities.push(entity);
         };
 
         return entities;
