@@ -6,7 +6,6 @@
 import { Billboard } from "../entity/Billboard.js";
 import { Entity } from "../entity/Entity.js";
 import { Extent } from "../Extent.js";
-import { Label } from "../entity/Label.js";
 import { LonLat } from "../LonLat.js";
 import { Vector } from "./Vector.js";
 
@@ -97,7 +96,8 @@ export class KML extends Vector {
 
         // TODO error check if tags below exist (before trying [0])
 
-        let name = placemark.getElementsByTagName("name")[0].innerHTML.trim();
+        const nameTags = Array.from(placemark.getElementsByTagName("name"))
+        const name = nameTags?.at(0)?.innerHTML?.trim() || '';
 
         let iconColor;
         let iconHeading;
@@ -251,7 +251,7 @@ export class KML extends Vector {
         const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
         const entities = this._parseKML(xml, extent);
 
-        return ({ entities, extent });
+        return { entities, extent }
     }
 
     /**
@@ -332,7 +332,7 @@ export class KML extends Vector {
      * @returns {Promise<{entities: Entity[], extent: Extent}>}
      */
     async addKmlFromFiles(kmls, color = null, billboard = null) {
-        if(!Array.isArray(kmls)) return null
+        if (!Array.isArray(kmls)) return null
         const kmlObjs = await Promise.all(kmls.map(this._getXmlContent));
         const coordonates = kmlObjs.map(this._extractCoordonatesFromKml);
         const { entities, extent } = this._convertCoordonatesIntoEntities(

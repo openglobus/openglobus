@@ -1,26 +1,28 @@
-import { KML } from "../../src/og/layer/KML";
-import fs from 'fs';
+import fs from 'fs'
+import { KML } from '../../src/og/layer/KML'
 
 const readFile = (name) => {
     return new Promise((resolve) => {
-        fs.readFile(name, 'utf8', (err, data) => {
-            resolve(data)
-        });
-    });
+        fs.readFile(name, 'utf8', (err, xmlString) => {
+            const parser = new DOMParser();
+            resolve(parser.parseFromString(xmlString, 'text/xml'))
+        })
+    })
 }
 
 describe('kml files', () => {
 
     it('no kml files', async () => {
-        const kml = new KML("name", {});
+        const kml = new KML('name', {})
         const result = await kml.addKmlFromFiles()
-        expect(result).toBeFalsy();
-    });
+        expect(result).toBeFalsy()
+    })
 
     it('styled kml', async () => {
-        const kml = new KML("name", {});
-        const file = await readFile('./tests/layer/KML.styled.kml')
-        expect(file).toBeTruthy();
-    });
+        const kml = new KML('name', {})
+        const xmlDoc = await readFile('./tests/layer/KML.styled.kml')
+        const { entities, extent } = kml._convertKMLintoEntities(xmlDoc)
+        expect(entities.length).toBe(1)
+    })
 
 })
