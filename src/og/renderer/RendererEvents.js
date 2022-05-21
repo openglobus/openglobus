@@ -161,6 +161,8 @@ class RendererEvents extends Events {
             prev_x: 0,
             /** Previous touch Y coordinate. */
             prev_y: 0,
+            /** Screen touch position world direction. */
+            direction: new Vec3(),
             /** JavaScript touching system event message. */
             sys: null,
             /** Current touched(picking) object. */
@@ -221,6 +223,10 @@ class RendererEvents extends Events {
             this.mouseState.direction = this.renderer.activeCamera.unproject(
                 this.mouseState.x,
                 this.mouseState.y
+            );
+            this.touchState.direction = this.renderer.activeCamera.unproject(
+                this.touchState.x,
+                this.touchState.y
             );
             this.entityPickingEvents();
             this._keyboardHandler.handleEvents();

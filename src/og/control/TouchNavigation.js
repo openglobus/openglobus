@@ -119,7 +119,7 @@ class TouchNavigation extends Control {
         t.prev_x = e.sys.touches.item(0).clientX - e.sys.offsetLeft;
         t.prev_y = e.sys.touches.item(0).clientY - e.sys.offsetTop;
 
-        t.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t, true);
+        t.grabbedPoint = this.planet.getCartesianFromPixelTerrain(e, true);
         this._eye0.copy(this.renderer.activeCamera.eye);
 
         if (t.grabbedPoint) {
@@ -142,13 +142,8 @@ class TouchNavigation extends Control {
 
         this.planet.stopFlying();
         this.stopRotation();
-        
-        let h = this.renderer.handler;
-        var touchCoordinate = {
-            x: this.touches[0].x * h.pixelRatio,
-            y: this.touches[0].y * h.pixelRatio
-        }
-        var p = this.planet.getCartesianFromPixelTerrain(touchCoordinate);
+
+        var p = this.planet.getCartesianFromPixelTerrain(e);
         if (p) {
             var g = this.planet.ellipsoid.cartesianToLonLat(p);
             this.planet.flyLonLat(
@@ -252,7 +247,7 @@ class TouchNavigation extends Control {
 
             this.planet.stopFlying();
 
-            var direction = cam.unproject(t.x, t.y);
+            var direction = e.direction
             var targetPoint = new Ray(cam.eye, direction).hitSphere(t.grabbedSpheroid);
 
             if (targetPoint) {
