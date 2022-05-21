@@ -224,6 +224,9 @@ class RendererEvents extends Events {
                 this.mouseState.x,
                 this.mouseState.y
             );
+            //
+            // TODO: Replace in some other place with a thought that we do            
+            // not need to make unproject when we do not make touching
             this.touchState.direction = this.renderer.activeCamera.unproject(
                 this.touchState.x,
                 this.touchState.y
@@ -575,7 +578,7 @@ class RendererEvents extends Events {
 
         ts.sys = event;
         ts.moving = true;
-        
+
         var dX = ts.x - ts.prev_x
         var dY = ts.y - ts.prev_y
         if (Math.abs(dX) > 9 || Math.abs(dY) > 9) {
