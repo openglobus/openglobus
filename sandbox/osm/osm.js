@@ -11,7 +11,6 @@ import { LayerSwitcher } from "../../src/og/control/LayerSwitcher.js";
 import { DebugInfo } from "../../src/og/control/DebugInfo.js";
 import { ToggleWireframe } from "../../src/og/control/ToggleWireframe.js";
 import { VisibleExtent } from "../../src/og/control/visibleExtent/VisibleExtent.js";
-import { labelXYZ } from "./labelXYZ.js";
 
 let cnv = document.createElement("canvas");
 let ctx = cnv.getContext("2d");
@@ -152,29 +151,6 @@ let sat = new XYZ("sat", {
     //         'quad': toQuadKey(s.tileX, s.tileY, s.tileZoom)
     //     });
     // }
-});
-
-const labelLayer = new labelXYZ("labelLayer", {
-    isBaseLayer: false,
-    visibility: true,
-    zIndex: 3,
-    url: "https://t.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{quad}?mkt=zh-cn&it=Z%2CGF%2CL&shading=hill&og=1471&n=z&ur=JP&js=1&cstl=in&st=me|lv:0_pp|lv:1_cr|lv:1_ad|lv:1&nvlos=1&vpt=e,p&pll=1&ell=1",
-    countryLayerData: "https://assets.msn.com/weathermapdata/1/static/3d/label.0.1/country-{}.json",
-    cityLabelZ3Path: "https://assets.msn.com/weathermapdata/1/static/3d/label.0.1/cities_level3.5.json",
-    //height: 16,
-    size: 11.5,
-    color: "white",
-    labelFace: "chinese.msyh",
-    zoomLevelMinAltitude: [13400000, 13400000, 13400000, 12000000, 8000000, 5000000, 4200000, 3500000],
-    maxNativeZoom: 5,
-    isZhcnMarket: true,
-    //clickLabelCallBack: option.onGlobeClick,
-    urlRewrite: function (segment, url) {
-        return stringTemplate(url, {
-            s: this._getSubdomain(),
-            quad: toQuadKey(segment.tileX, segment.tileY, segment.tileZoom)
-        });
-    }
 });
 
 //let visExtent = new VisibleExtent();

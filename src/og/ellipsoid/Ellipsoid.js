@@ -536,7 +536,7 @@ class Ellipsoid {
 
             let eps = Math.abs(qw2 - product);
 
-            if (eps > math.EPSILON10 && qw2 < product) {
+            if (eps > math.EPSILON15 && qw2 < product) {
                 // Imaginary roots (0 intersections).
                 return null;
             } else if (qw2 > product) {
