@@ -413,8 +413,10 @@ class Layer {
      * @param {string} html - HTML code that represents layer attribution, it could be just a text.
      */
     setAttribution(html) {
-        this._attribution = html;
-        this._planet && this._planet.updateAttributionsList();
+        if (this._attribution !== html) {
+            this._attribution = html;
+            this._planet && this._planet.updateAttributionsList();
+        }
     }
 
     /**
