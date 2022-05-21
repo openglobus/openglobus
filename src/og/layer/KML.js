@@ -118,16 +118,16 @@ export class KML extends Vector {
                     const hdg = parseFloat(heading.innerHTML.trim());
                     if (hdg >= 0 && hdg <= 360)
                         iconHeading = hdg % 360;
-                };
+                }
 
                 let icon = iconstyle.getElementsByTagName("Icon")[0];
                 if (icon !== undefined) {
                     let href = icon.getElementsByTagName("href")[0];
                     if (href !== undefined) {
                         iconURL = href.innerHTML.trim();
-                    };
-                };
-            };
+                    }
+                }
+            }
 
             let linestyle = style.getElementsByTagName("LineStyle")[0];
             if (linestyle !== undefined) {
@@ -137,8 +137,8 @@ export class KML extends Vector {
                 let width = linestyle.getElementsByTagName("width")[0];
                 if (width !== undefined)
                     lineWidth = parseFloat(width.innerHTML.trim());
-            };
-        };
+            }
+        }
 
         if (iconColor === undefined)
             iconColor = "#FFFFFF";
@@ -171,8 +171,8 @@ export class KML extends Vector {
                 if (lat < extent.southWest.lat) extent.southWest.lat = lat;
                 if (lon > extent.northEast.lon) extent.northEast.lon = lon;
                 if (lat > extent.northEast.lat) extent.northEast.lat = lat;
-            };
-        };
+            }
+        }
 
         let entity;
 
@@ -221,7 +221,7 @@ export class KML extends Vector {
                     isClosed: false
                 }
             });
-        };
+        }
 
         return entity;
     }
@@ -239,7 +239,7 @@ export class KML extends Vector {
         for (const placemark of xml.getElementsByTagName("Placemark")) {
             const entity = this._kmlPlacemarkToEntity(placemark, extent);
             if (entity) entities.push(entity);
-        };
+        }
 
         return entities;
     }
