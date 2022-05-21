@@ -332,17 +332,14 @@ export class KML extends Vector {
      * @returns {Promise<{entities: Entity[], extent: Extent}>}
      */
     async addKmlFromFiles(kmls, color = null, billboard = null) {
-        /*
-                const kmlObjs = await Promise.all(kmls.map(this._getXmlContent));
-                const coordonates = kmlObjs.map(this._extractCoordonatesFromKml);
-                const { entities, extent } = this._convertCoordonatesIntoEntities(
-                    coordonates,
-                    color || this._color,
-                    billboard || this._billboard
-                );
-        */
-        const { entities, extent } = this._convertKMLintoEntities(kml);
-
+        if(!Array.isArray(kmls)) return null
+        const kmlObjs = await Promise.all(kmls.map(this._getXmlContent));
+        const coordonates = kmlObjs.map(this._extractCoordonatesFromKml);
+        const { entities, extent } = this._convertCoordonatesIntoEntities(
+            coordonates,
+            color || this._color,
+            billboard || this._billboard
+        );
         this._extent = this._expandExtents(this._extent, extent);
         entities.forEach(this.add.bind(this));
         return { entities, extent };
