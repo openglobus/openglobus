@@ -917,15 +917,7 @@ export class Planet extends RenderNode {
             }
         }
 
-        if (this.renderer) {
-            if (html.length) {
-                this.renderer.div.attributions.style.display = "block";
-                this.renderer.div.attributions.innerHTML = "<ul>" + html + "</ul>";
-            } else {
-                this.renderer.div.attributions.style.display = "none";
-                this.renderer.div.attributions.innerHTML = "";
-            }
-        }
+        this._applyAttribution(html)
     }
 
     /**
@@ -971,17 +963,28 @@ export class Planet extends RenderNode {
             }
         }
 
+        this._applyAttribution(html);
+
+        this._sortLayers();
+    }
+
+    /**
+     * Apply to render list of layer attributions
+     * @private
+     */
+    _applyAttribution(html) {
         if (this.renderer) {
             if (html.length) {
-                this.renderer.div.attributions.style.display = "block";
-                this.renderer.div.attributions.innerHTML = "<ul>" + html + "</ul>";
+                html = "<ul>" + html + "</ul>";
+                if (this.renderer.div.attributions.innerHTML !== html) {
+                    this.renderer.div.attributions.style.display = "block";
+                    this.renderer.div.attributions.innerHTML = html;
+                }
             } else {
                 this.renderer.div.attributions.style.display = "none";
                 this.renderer.div.attributions.innerHTML = "";
             }
         }
-
-        this._sortLayers();
     }
 
     /**
