@@ -6,7 +6,6 @@
 import { Billboard } from "../entity/Billboard.js";
 import { Entity } from "../entity/Entity.js";
 import { Extent } from "../Extent.js";
-import { Label } from "../entity/Label.js";
 import { LonLat } from "../LonLat.js";
 import { Vector } from "./Vector.js";
 
@@ -95,9 +94,8 @@ export class KML extends Vector {
     _kmlPlacemarkToEntity(placemark, extent) {
         if (!placemark) return;
 
-        // TODO error check if tags below exist (before trying [0])
-
-        let name = placemark.getElementsByTagName("name")[0].innerHTML.trim();
+        const nameTags = Array.from(placemark.getElementsByTagName("name"))
+        const name = nameTags?.at(0)?.innerHTML?.trim() || '';
 
         let iconColor;
         let iconHeading;
@@ -154,7 +152,7 @@ export class KML extends Vector {
 
         // TODO handle MultiGeometry
 
-        const LonLats = [];
+        const lonLats = [];
         for (const coord of placemark.getElementsByTagName("coordinates")) {
             let coordinates = this._parseKMLcoordinates(coord);
             if (coordinates === undefined)
@@ -165,7 +163,7 @@ export class KML extends Vector {
                 let lat = lonlatalt[1];
                 let alt = lonlatalt[2];
 
-                LonLats.push(new LonLat(lon, lat, alt));
+                lonLats.push(new LonLat(lon, lat, alt));
 
                 if (lon < extent.southWest.lon) extent.southWest.lon = lon;
                 if (lat < extent.southWest.lat) extent.southWest.lat = lat;
@@ -177,12 +175,12 @@ export class KML extends Vector {
         let entity;
 
         // Point
-        if (LonLats.length === 1) {
+        if (lonLats.length === 1) {
             const hdgrad = iconHeading * 0.01745329; // radians
 
             entity = new Entity({
                 name,
-                lonlat: LonLats[0],
+                lonlat: lonLats[0],
                 billboard: {
                     src: iconURL,
                     size: [24, 24],
@@ -215,7 +213,7 @@ export class KML extends Vector {
         {
             entity = new Entity({
                 polyline: {
-                    pathLonLat: [LonLats],
+                    pathLonLat: [lonLats],
                     thickness: lineWidth,
                     color: lineColor,
                     isClosed: false
@@ -233,7 +231,7 @@ export class KML extends Vector {
         if (!entities)
             entities = [];
 
-        if (xml.documentElement.nodeName != "kml")
+        if (xml.documentElement.nodeName !== "kml")
             return entities;
 
         for (const placemark of xml.getElementsByTagName("Placemark")) {
@@ -251,7 +249,7 @@ export class KML extends Vector {
         const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
         const entities = this._parseKML(xml, extent);
 
-        return ({ entities, extent });
+        return { entities, extent }
     }
 
     /**
@@ -332,17 +330,14 @@ export class KML extends Vector {
      * @returns {Promise<{entities: Entity[], extent: Extent}>}
      */
     async addKmlFromFiles(kmls, color = null, billboard = null) {
-        /*
-                const kmlObjs = await Promise.all(kmls.map(this._getXmlContent));
-                const coordonates = kmlObjs.map(this._extractCoordonatesFromKml);
-                const { entities, extent } = this._convertCoordonatesIntoEntities(
-                    coordonates,
-                    color || this._color,
-                    billboard || this._billboard
-                );
-        */
-        const { entities, extent } = this._convertKMLintoEntities(kml);
-
+        if (!Array.isArray(kmls)) return null
+        const kmlObjs = await Promise.all(kmls.map(this._getXmlContent));
+        const coordonates = kmlObjs.map(this._extractCoordonatesFromKml);
+        const { entities, extent } = this._convertCoordonatesIntoEntities(
+            coordonates,
+            color || this._color,
+            billboard || this._billboard
+        );
         this._extent = this._expandExtents(this._extent, extent);
         entities.forEach(this.add.bind(this));
         return { entities, extent };
