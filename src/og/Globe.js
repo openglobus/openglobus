@@ -211,7 +211,6 @@ class Globe {
                         minSlope: options.minSlope
                     }),
                 new TouchNavigation(),
-                new KeyboardNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),
                 new CompassButton(options)
