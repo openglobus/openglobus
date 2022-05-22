@@ -24,16 +24,22 @@ class KeyboardNavigation extends Control {
     }
 
     oninit() {
+        this.renderer.events.on("keypress", input.KEY_PGUP, this.onCameraMoveForward, this);
+        this.renderer.events.on("keypress", input.KEY_PGDN, this.onCameraMoveBackward, this);
+        this.renderer.events.on("keypress", input.KEY_PLUS, this.onCameraMoveForward, this);
+        this.renderer.events.on("keypress", input.KEY_EQUALS, this.onCameraMoveForward, this);
+        this.renderer.events.on("keypress", input.KEY_MINUS, this.onCameraMoveBackward, this);
         this.renderer.events.on("keypress", input.KEY_W, this.onCameraMoveForward, this);
         this.renderer.events.on("keypress", input.KEY_S, this.onCameraMoveBackward, this);
         this.renderer.events.on("keypress", input.KEY_A, this.onCameraStrifeLeft, this);
         this.renderer.events.on("keypress", input.KEY_D, this.onCameraStrifeRight, this);
         this.renderer.events.on("keypress", input.KEY_UP, this.onCameraLookUp, this);
         this.renderer.events.on("keypress", input.KEY_DOWN, this.onCameraLookDown, this);
-        this.renderer.events.on("keypress", input.KEY_LEFT, this.onCameraTurnLeft, this);
-        this.renderer.events.on("keypress", input.KEY_RIGHT, this.onCameraTurnRight, this);
+        this.renderer.events.on("keypress", input.KEY_LEFT, this.onCameraLookLeft, this);
+        this.renderer.events.on("keypress", input.KEY_RIGHT, this.onCameraLookRight, this);
         this.renderer.events.on("keypress", input.KEY_Q, this.onCameraRollLeft, this);
         this.renderer.events.on("keypress", input.KEY_E, this.onCameraRollRight, this);
+        this.renderer.events.on("keypress", input.KEY_N, this.onCameraRollNorth, this);
     }
 
     onCameraMoveForward(event) {
@@ -84,6 +90,26 @@ class KeyboardNavigation extends Control {
         cam.update();
     }
 
+    onCameraLookLeft(event) {
+        var cam = this.renderer.activeCamera;
+        if (this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
+            cam.roll(15 / this.renderer.handler.deltaTime);
+        } else {
+            cam.rotateHorizontal((cam._lonLat.height / 3000000) * math.RADIANS, Vec3.ZERO);
+        }
+        cam.update();
+    }
+
+    onCameraLookRight(event) {
+        var cam = this.renderer.activeCamera;
+        if (this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
+            cam.roll(-15 / this.renderer.handler.deltaTime);
+        } else {
+            cam.rotateHorizontal((-cam._lonLat.height / 3000000) * math.RADIANS, Vec3.ZERO);
+        }
+        cam.update();
+    }
+
     onCameraTurnLeft(event) {
         var cam = this.renderer.activeCamera;
         if (this.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
@@ -102,6 +128,26 @@ class KeyboardNavigation extends Control {
             cam.rotateHorizontal((-cam._lonLat.height / 3000000) * math.RADIANS, false, Vec3.ZERO);
         }
         cam.update();
+    }
+
+    // from CompassButton._onClick()
+    onCameraRollNorth(event) {
+      let c = this.planet.getCartesianFromPixelTerrain(this.renderer.handler.getCenter());
+      if (c) {
+        this.planet.flyCartesian(
+          c.normal().scaleTo(c.length() + c.distance(this.planet.camera.eye)),
+          null,
+          null,
+          0,
+          null,
+          null,
+          () => {
+            this.planet.camera.look(c);
+          }
+          );
+      } else {
+        this.planet.flyCartesian(this.planet.camera.eye);
+      }
     }
 
     onCameraRollLeft(event) {

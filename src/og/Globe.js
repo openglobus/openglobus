@@ -8,6 +8,7 @@ import { CompassButton } from "./control/CompassButton.js";
 import { EarthCoordinates } from "./control/EarthCoordinates.js";
 import { EarthNavigation } from "./control/EarthNavigation.js";
 import { MouseNavigation } from "./control/MouseNavigation.js";
+import { KeyboardNavigation } from "./control/KeyboardNavigation.js";
 import { ScaleControl } from "./control/ScaleControl.js";
 import { Sun } from "./control/Sun.js";
 import { TouchNavigation } from "./control/TouchNavigation.js";
@@ -210,6 +211,7 @@ class Globe {
                         minSlope: options.minSlope
                     }),
                 new TouchNavigation(),
+                new KeyboardNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),
                 new CompassButton(options)
