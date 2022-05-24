@@ -114,7 +114,7 @@ class ZoomControl extends Control {
         var cam = this.renderer.activeCamera;
 
         if (this._move !== 0) {
-            let pos = this.planet.getCartesianFromPixelTerrain(this._targetPoint);
+            let pos = this.planet.getCartesianFromPixelTerrain(e);
             if (pos) {
                 let d = cam.eye.distance(pos) * 0.035;
                 cam.eye.addA(cam.getForward().scale(this._move * d));
