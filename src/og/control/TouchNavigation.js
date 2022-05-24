@@ -83,13 +83,13 @@ class TouchNavigation extends Control {
             t0.y = e.sys.touches.item(0).clientY - e.sys.offsetTop;
             t0.prev_x = e.sys.touches.item(0).clientX - e.sys.offsetLeft;
             t0.prev_y = e.sys.touches.item(0).clientY - e.sys.offsetTop;
-            t0.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t0, true);
+            t0.grabbedPoint = this.planet.getCartesianFromPixelTerrain(e, true);
 
             t1.x = e.sys.touches.item(1).clientX - e.sys.offsetLeft;
             t1.y = e.sys.touches.item(1).clientY - e.sys.offsetTop;
             t1.prev_x = e.sys.touches.item(1).clientX - e.sys.offsetLeft;
             t1.prev_y = e.sys.touches.item(1).clientY - e.sys.offsetTop;
-            t1.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t1, true);
+            t1.grabbedPoint = this.planet.getCartesianFromPixelTerrain(e, true);
 
             // this.planet._viewChanged = true;
             this.pointOnEarth = this.planet.getCartesianFromPixelTerrain(
@@ -200,11 +200,6 @@ class TouchNavigation extends Control {
             // distance < 0 --> zoomIn; distance > 0 --> zoomOut
             var t0t1Distance = Math.abs(t0.prev_x - t1.prev_x) + Math.abs(t0.prev_y - t1.prev_y)  - (Math.abs(t0.x - t1.x)  + Math.abs(t0.y - t1.y))
             var _move = 0
-            var _targetPoint = this.renderer.getCenter()
-            var d =
-                cam.eye.distance(
-                    this.planet.getCartesianFromPixelTerrain(_targetPoint, true)
-                ) * 0.075;
             if (t0t1Distance < 0) {
                 _move = 1
             }
@@ -212,9 +207,13 @@ class TouchNavigation extends Control {
                 _move = -1
             }
             if (_move !== 0) {
-                cam.eye.addA(cam.getForward().scale(_move * d));
-                cam.checkTerrainCollision();
-                cam.update();
+                let pos = this.planet.getCartesianFromPixelTerrain(e);
+                if (pos) {
+                    let d = cam.eye.distance(pos) * 0.075;
+                    cam.eye.addA(cam.getForward().scale(_move * d));
+                    cam.checkTerrainCollision();
+                    cam.update();
+                }
             }
 
             if (
