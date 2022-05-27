@@ -85,25 +85,72 @@ export class KML extends Vector {
     /**
      * @private
      */
-    _parseKMLstyle(jobj) {
-    }
-
-    /**
-     * @private
-     */
     _kmlPlacemarkToEntity(placemark, extent) {
         if (!placemark) return;
 
         const nameTags = Array.from(placemark.getElementsByTagName("name"))
         const name = nameTags?.at(0)?.innerHTML?.trim() || '';
 
+        const { iconHeading, iconURL, iconColor, lineWidth, lineColor } = this._extractStyle(placemark);
+
+        // TODO handle MultiGeometry
+
+        const lonLats = [];
+        for (const coord of placemark.getElementsByTagName("coordinates")) {
+            const coordinates = this._parseKMLcoordinates(coord) || [[0, 0, 0]]
+
+            for (const lonlatalt of coordinates) {
+                const lon = lonlatalt[0];
+                const lat = lonlatalt[1];
+                const alt = lonlatalt[2];
+
+                lonLats.push(new LonLat(lon, lat, alt));
+
+                if (lon < extent.southWest.lon) extent.southWest.lon = lon;
+                if (lat < extent.southWest.lat) extent.southWest.lat = lat;
+                if (lon > extent.northEast.lon) extent.northEast.lon = lon;
+                if (lat > extent.northEast.lat) extent.northEast.lat = lat;
+            }
+        }
+
+        if (lonLats.length === 1) {
+            const hdgrad = iconHeading * 0.01745329; // radians
+
+            return new Entity({
+                name,
+                lonlat: lonLats[0],
+                billboard: {
+                    src: iconURL,
+                    size: [24, 24],
+                    color: iconColor,
+                    rotation: hdgrad
+                },
+                properties: {
+                    color: iconColor,
+                    heading: iconHeading
+                }
+            });
+
+        } else {
+            return new Entity({
+                polyline: {
+                    pathLonLat: [lonLats],
+                    thickness: lineWidth,
+                    color: lineColor,
+                    isClosed: false
+                }
+            });
+        }
+    }
+
+    _extractStyle(placemark) {
         let iconColor;
         let iconHeading;
         let iconURL;
         let lineColor;
         let lineWidth;
 
-        let style = placemark.getElementsByTagName("Style")[0];
+        const style = placemark.getElementsByTagName("Style")[0];
         if (style) {
             let iconstyle = style.getElementsByTagName("IconStyle")[0];
             if (iconstyle) {
@@ -119,18 +166,18 @@ export class KML extends Vector {
                 }
 
                 let icon = iconstyle.getElementsByTagName("Icon")[0];
-                if (icon !== undefined) {
+                if (icon) {
                     let href = icon.getElementsByTagName("href")[0];
-                    if (href !== undefined) {
+                    if (href) {
                         iconURL = href.innerHTML.trim();
                     }
                 }
             }
 
             let linestyle = style.getElementsByTagName("LineStyle")[0];
-            if (linestyle !== undefined) {
+            if (linestyle) {
                 let color = linestyle.getElementsByTagName("color")[0];
-                if (color !== undefined)
+                if (color)
                     lineColor = this._AGBRtoRGBA(color.innerHTML.trim());
                 let width = linestyle.getElementsByTagName("width")[0];
                 if (width !== undefined)
@@ -138,95 +185,16 @@ export class KML extends Vector {
             }
         }
 
-        if (iconColor === undefined)
-            iconColor = "#FFFFFF";
-        if (iconHeading === undefined)
-            iconHeading = 0;
-        if (iconURL === undefined)
-            iconURL = "https://openglobus.org/examples/billboards/carrot.png";
+        if (!iconColor) iconColor = "#FFFFFF"
+        if (!iconHeading) iconHeading = 0
+        if (!iconURL) iconURL = "https://openglobus.org/examples/billboards/carrot.png"
 
-        if (lineColor === undefined)
-            lineColor = "#FFFFFF";
-        if (lineWidth === undefined)
-            lineWidth = 1;
+        if (!lineColor) lineColor = "#FFFFFF"
+        if (!lineWidth) lineWidth = 1
 
-        // TODO handle MultiGeometry
-
-        const lonLats = [];
-        for (const coord of placemark.getElementsByTagName("coordinates")) {
-            let coordinates = this._parseKMLcoordinates(coord);
-            if (coordinates === undefined)
-                coordinates = [[0, 0, 0]];
-
-            for (const lonlatalt of coordinates) {
-                let lon = lonlatalt[0];
-                let lat = lonlatalt[1];
-                let alt = lonlatalt[2];
-
-                lonLats.push(new LonLat(lon, lat, alt));
-
-                if (lon < extent.southWest.lon) extent.southWest.lon = lon;
-                if (lat < extent.southWest.lat) extent.southWest.lat = lat;
-                if (lon > extent.northEast.lon) extent.northEast.lon = lon;
-                if (lat > extent.northEast.lat) extent.northEast.lat = lat;
-            }
-        }
-
-        let entity;
-
-        // Point
-        if (lonLats.length === 1) {
-            const hdgrad = iconHeading * 0.01745329; // radians
-
-            entity = new Entity({
-                name,
-                lonlat: lonLats[0],
-                billboard: {
-                    src: iconURL,
-                    size: [24, 24],
-                    color: iconColor,
-                    rotation: hdgrad
-                },
-                properties: {
-                    color: iconColor,
-                    heading: iconHeading
-                }
-            });
-
-            /*
-                    TODO Label rendering doesn't appear to work!
-                    if (name !== undefined)
-                      {
-                      var label = new Label({
-                                    'text': "PressStart2P-Regular",
-                                    'color': "black",
-                                    'face': "PressStart2P-Regular",
-                                    'outlineColor': "white",
-                                    'size': 24
-                        });
-                      entity.setLabel(label);
-                      };
-            */
-
-        }
-        else // LineString
-        {
-            entity = new Entity({
-                polyline: {
-                    pathLonLat: [lonLats],
-                    thickness: lineWidth,
-                    color: lineColor,
-                    isClosed: false
-                }
-            });
-        }
-
-        return entity;
+        return { iconHeading, iconURL, iconColor, lineWidth, lineColor };
     }
 
-    /**
-     * @private
-     */
     _parseKML(xml, extent, entities = undefined) {
         if (!entities)
             entities = [];
@@ -242,9 +210,6 @@ export class KML extends Vector {
         return entities;
     }
 
-    /**
-     * @private
-     */
     _convertKMLintoEntities(xml) {
         const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
         const entities = this._parseKML(xml, extent);
@@ -259,39 +224,37 @@ export class KML extends Vector {
      * @param {string} color
      * @returns {Array<Entity>}
      */
-    /*
-        _convertCoordonatesIntoEntities(coordinates, color, billboard) {
-            const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
-            const addToExtent = (c) => {
-                const lon = c[0],
-                    lat = c[1];
-                if (lon < extent.southWest.lon) extent.southWest.lon = lon;
-                if (lat < extent.southWest.lat) extent.southWest.lat = lat;
-                if (lon > extent.northEast.lon) extent.northEast.lon = lon;
-                if (lat > extent.northEast.lat) extent.northEast.lat = lat;
-            };
-            const _pathes = [];
-            coordinates.forEach((kmlFile) => kmlFile.forEach((p) => _pathes.push(p)));
-            const entities = _pathes.map((path) => {
-                if (path.length === 1) {
-                    const lonlat = path[0];
-                    const _entity = new Entity({ lonlat, billboard });
-                    addToExtent(lonlat);
-                    return _entity;
-                } else if (path.length > 1) {
-                    const pathLonLat = path.map((item) => {
-                        addToExtent(item);
-                        return new LonLat(item[0], item[1], item[2]);
-                    });
-                    const _entity = new Entity({
-                        polyline: { pathLonLat: [pathLonLat], thickness: 3, color, isClosed: false }
-                    });
-                    return _entity;
-                }
-            });
-            return { entities, extent };
-        }
-    */
+    _convertCoordonatesIntoEntities(coordinates, color, billboard) {
+        const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
+        const addToExtent = (c) => {
+            const lon = c[0],
+                lat = c[1];
+            if (lon < extent.southWest.lon) extent.southWest.lon = lon;
+            if (lat < extent.southWest.lat) extent.southWest.lat = lat;
+            if (lon > extent.northEast.lon) extent.northEast.lon = lon;
+            if (lat > extent.northEast.lat) extent.northEast.lat = lat;
+        };
+        const _pathes = [];
+        coordinates.forEach((kmlFile) => kmlFile.forEach((p) => _pathes.push(p)));
+        const entities = _pathes.map((path) => {
+            if (path.length === 1) {
+                const lonlat = path[0];
+                const _entity = new Entity({ lonlat, billboard });
+                addToExtent(lonlat);
+                return _entity;
+            } else if (path.length > 1) {
+                const pathLonLat = path.map((item) => {
+                    addToExtent(item);
+                    return new LonLat(item[0], item[1], item[2]);
+                });
+                const _entity = new Entity({
+                    polyline: { pathLonLat: [pathLonLat], thickness: 3, color, isClosed: false }
+                });
+                return _entity;
+            }
+        });
+        return { entities, extent };
+    }
 
     /**
      * @public
