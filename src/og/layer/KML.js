@@ -100,9 +100,7 @@ export class KML extends Vector {
             const coordinates = this._parseKMLcoordinates(coord) || [[0, 0, 0]]
 
             for (const lonlatalt of coordinates) {
-                const lon = lonlatalt[0];
-                const lat = lonlatalt[1];
-                const alt = lonlatalt[2];
+                const [lon, lat, alt] = lonlatalt
 
                 lonLats.push(new LonLat(lon, lat, alt));
 
