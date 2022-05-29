@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<kml xmlns='http://www.opengis.net/kml/2.2'>
+	<Document>
+		<open>1</open>
+		<Folder>
+			<open>1</open>
+			<Placemark>
+				<Style>
+					<IconStyle>
+						<color>FFDB8966</color>
+						<Icon>
+							<href>./plane.png</href>
+						</Icon>
+					</IconStyle>
+				</Style>
+				<name>LFPT</name>
+				<Point>
+					<coordinates>2.039,49.090</coordinates>
+				</Point>
+			</Placemark>
+		</Folder>
+	</Document>
+</kml>

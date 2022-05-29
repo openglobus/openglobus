@@ -8,16 +8,15 @@
             <Placemark>
                 <Style>
                     <LineStyle>
-                        <color>ff000000</color>
+                        <color>7f9f7fe0</color>
+                        <width>5</width>
                     </LineStyle>
                     <PolyStyle>
-                        <color>7f9f7fe0</color>
+                        <color>ff000000</color>
+                        <width>6</width>
                     </PolyStyle>
                 </Style>
                 <MultiGeometry>
-                    <Point>
-                        <coordinates>138.600000,-34.910000</coordinates>
-                    </Point>
                     <Polygon>
                         <outerBoundaryIs>
                             <LinearRing>

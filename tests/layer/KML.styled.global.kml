@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+	<name>notmar</name>
+	<open>1</open>
+	<Style id="yellowLineGreenPoly20">
+		<LineStyle>
+			<color>7fffffff</color>
+			<width>4</width>
+		</LineStyle>
+		<PolyStyle>
+			<color>7f00ff00</color>
+		</PolyStyle>
+	</Style>
+	<Style id="yellowLineGreenPoly000">
+		<LineStyle>
+			<color>7fffffff</color>
+			<width>4</width>
+		</LineStyle>
+		<PolyStyle>
+			<color>7f00ff00</color>
+		</PolyStyle>
+	</Style>
+	<StyleMap id="yellowLineGreenPoly100">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#yellowLineGreenPoly20</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#yellowLineGreenPoly000</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Placemark>
+		<name>Absolute Extruded</name>
+		<description>Transparent green wall with yellow outlines</description>
+		<styleUrl>#yellowLineGreenPoly100</styleUrl>
+		<LineString>
+			<extrude>1</extrude>
+			<tessellate>1</tessellate>
+			<gx:altitudeMode>clampToSeaFloor</gx:altitudeMode>
+			<coordinates>
+				-80.533,28.483,0 -80.117,28.617,0 -78.867,28.833,0 -75.283,29.5,0 -71.433,29.867,0 -63.633,30.233,0 -56.067,30.3,0 -47.05,29.15,0 -47.033,28.85,0 -56.083,29.883,0 -63.43299999999999,30.017,0 -68.333,29.833,0 -71.083,29.483,0 -75.583,29,0 -80.383,28.383,0 -80.566,28.417,0 
+			</coordinates>
+		</LineString>
+	</Placemark>
+</Document>
+</kml>
