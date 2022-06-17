@@ -216,17 +216,20 @@ class GlobusTerrain extends EmptyTerrain {
             }
 
             this._fetchCache[tileIndex].then((response) => {
+
+                let extent = mercator.getTileExtent(x, y, z);
+
                 if (response.status === "ready") {
                     let cache = {
-                        heights: this._createHeights(response.data),
-                        extent: mercator.getTileExtent(x, y, z)
+                        heights: this._createHeights(response.data, tileIndex, x, y, z, extent),
+                        extent: extent
                     };
                     this._elevationCache[tileIndex] = cache;
                     callback(this._getGroundHeightMerc(merc, cache));
                 } else if (response.status === "error") {
                     let cache = {
                         heights: null,
-                        extent: mercator.getTileExtent(x, y, z)
+                        extent: extent
                     };
                     this._elevationCache[tileIndex] = cache;
                     callback(this._geoid.getHeightLonLat(lonLat));
@@ -374,12 +377,20 @@ class GlobusTerrain extends EmptyTerrain {
                         },
                         (response) => {
                             if (response.status === "ready") {
-                                let heights = this._createHeights(response.data, segment);
+
+                                let heights = this._createHeights(response.data,
+                                    segment.tileIndex,
+                                    segment.tileX, segment.tileY, segment.tileZoom,
+                                    segment.getExtent()
+                                );
+
                                 this._elevationCache[segment.tileIndex] = {
                                     heights: heights,
                                     extent: segment.getExtent()
                                 };
+
                                 this._applyElevationsData(segment, heights);
+
                             } else if (response.status === "abort") {
                                 segment.terrainIsLoading = false;
                             } else if (response.status === "error") {
