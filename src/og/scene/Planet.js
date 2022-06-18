@@ -615,15 +615,20 @@ export class Planet extends RenderNode {
 
         //if (terrain._geoid) {
 
-        Geoid.loadModel(terrain._geoid.src)
-            .then((m) => {
-                terrain.getGeoid().setModel(m);
-                this._plainSegmentWorker.setGeoid(terrain.getGeoid());
-                terrain._isReady = true;
-            })
-            .catch((err) => {
-                console.log(err);
-            });
+        if (terrain._geoid.model) {
+            this._plainSegmentWorker.setGeoid(terrain.getGeoid());
+            terrain._isReady = true;
+        } else {
+            Geoid.loadModel(terrain._geoid.src)
+                .then((m) => {
+                    terrain.getGeoid().setModel(m);
+                    this._plainSegmentWorker.setGeoid(terrain.getGeoid());
+                    terrain._isReady = true;
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
+        }
 
         // if (!terrain._geoid.model) {
         //     Geoid.loadModel(terrain._geoid.src)
