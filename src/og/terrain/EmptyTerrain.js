@@ -5,6 +5,7 @@
 "use strict";
 
 import { binarySearchFast } from "../utils/shared.js";
+import { Geoid } from "./Geoid.js";
 
 /**
  * Class represents terrain provider without elevation data.
@@ -64,7 +65,13 @@ class EmptyTerrain {
          */
         this._planet = null;
 
-        this._geoid = null;
+        this._geoid =
+            options.geoid ||
+            new Geoid({
+                src: options.geoidSrc || "//openglobus.org/geoid/egm84-30.pgm"
+            });
+
+        this._isReady = false;
 
         // const _ellToAltFn = [
         //     (lon, lat, alt, callback) => callback(alt),
@@ -127,7 +134,7 @@ class EmptyTerrain {
     }
 
     isReady() {
-        return (this._geoid && this._geoid.model) || !this._geoid;
+        return this._isReady;
     }
 
     /**
@@ -135,14 +142,16 @@ class EmptyTerrain {
      * @public
      * @abstract
      */
-    abortLoading() {}
+    abortLoading() {
+    }
 
     /**
      * Abstract function
      * @public
      * @abstract
      */
-    clearCache() {}
+    clearCache() {
+    }
 }
 
 export { EmptyTerrain };

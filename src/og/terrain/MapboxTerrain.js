@@ -7,10 +7,8 @@ const KEY =
     "pk.eyJ1IjoiZm94bXVsZGVyODMiLCJhIjoiY2pqYmR3dG5oM2Z1bzNrczJqYm5pODhuNSJ9.Y4DRmEPhb-XSlCR9CAXACQ";
 
 class MapboxTerrain extends GlobusTerrain {
-    constructor(name, options) {
+    constructor(name, options = {}) {
         super(name, options);
-
-        options = options || {};
 
         this.equalizeVertices =
             options.equalizeVertices != undefined ? options.equalizeVertices : true;

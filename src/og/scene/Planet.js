@@ -613,21 +613,31 @@ export class Planet extends RenderNode {
             this._quadTree.destroyBranches();
         }
 
-        if (terrain._geoid) {
-            if (!terrain._geoid.model) {
-                terrain._geoid.model = null;
-                Geoid.loadModel(terrain._geoid.src)
-                    .then((m) => {
-                        terrain.getGeoid().setModel(m);
-                        this._plainSegmentWorker.setGeoid(terrain.getGeoid());
-                    })
-                    .catch((err) => {
-                        console.log(err);
-                    });
-            } else {
+        //if (terrain._geoid) {
+
+        Geoid.loadModel(terrain._geoid.src)
+            .then((m) => {
+                terrain.getGeoid().setModel(m);
                 this._plainSegmentWorker.setGeoid(terrain.getGeoid());
-            }
-        }
+                terrain._isReady = true;
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+
+        // if (!terrain._geoid.model) {
+        //     Geoid.loadModel(terrain._geoid.src)
+        //         .then((m) => {
+        //             terrain.getGeoid().setModel(m);
+        //             this._plainSegmentWorker.setGeoid(terrain.getGeoid());
+        //         })
+        //         .catch((err) => {
+        //             console.log(err);
+        //         });
+        // } else {
+        //     this._plainSegmentWorker.setGeoid(terrain.getGeoid());
+        // }
+        //}
     }
 
     /**

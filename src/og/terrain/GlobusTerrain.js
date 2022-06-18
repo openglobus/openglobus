@@ -54,10 +54,8 @@ class GlobusTerrain extends EmptyTerrain {
      * @param {string} [name]
      * @param {*} [options]
      */
-    constructor(name, options) {
-        super();
-
-        options = options || {};
+    constructor(name, options = {}) {
+        super(options);
 
         /**
          * Events handler.
@@ -115,12 +113,6 @@ class GlobusTerrain extends EmptyTerrain {
          * @type {number}
          */
         this.plainGridSize = options.plainGridSize || 32;
-
-        this._geoid =
-            options.geoid ||
-            new Geoid({
-                src: options.geoidSrc || "//openglobus.org/geoid/egm84-30.pgm"
-            });
 
         this._extent = createExtent(
             options.extent,
