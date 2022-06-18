@@ -68,7 +68,7 @@ class EmptyTerrain {
         this._geoid =
             options.geoid ||
             new Geoid({
-                src: options.geoidSrc || "//openglobus.org/geoid/egm84-30.pgm"
+                src: options.geoidSrc || null
             });
 
         this._isReady = false;

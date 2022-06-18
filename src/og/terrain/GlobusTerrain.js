@@ -55,7 +55,7 @@ class GlobusTerrain extends EmptyTerrain {
      * @param {*} [options]
      */
     constructor(name, options = {}) {
-        super(options);
+        super({ geoidSrc: "//openglobus.org/geoid/egm84-30.pgm", ...options });
 
         /**
          * Events handler.
