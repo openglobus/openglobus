@@ -121,6 +121,10 @@ class EmptyTerrain {
         return this._geoid;
     }
 
+    getGeoid() {
+        return this._geoid;
+    }
+
     /**
      * Loads or creates segment elevation data.
      * @public

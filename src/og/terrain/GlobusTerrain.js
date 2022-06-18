@@ -159,10 +159,6 @@ class GlobusTerrain extends EmptyTerrain {
         this._fetchCache = {};
     }
 
-    getGeoid() {
-        return this._geoid;
-    }
-
     isBlur(segment) {
         if (segment.tileZoom >= 8) {
             return true;
