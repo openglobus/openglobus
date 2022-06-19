@@ -27,7 +27,7 @@ describe('kml files', () => {
         expect(extent.northEast.lat).toBe(-34.93)
         expect(extent.southWest.lon).toBe(138.62)
         expect(extent.southWest.lat).toBe(-34.94)
-        const entity = entities.at(0)
+        const entity = entities[0]
         expect(entity.properties.name).toBe('')
         expect(entity.polyline.thickness).toBe(5)
         const [c0, c1, c2, c3] = entity.polyline._defaultColor

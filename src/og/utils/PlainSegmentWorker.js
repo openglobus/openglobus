@@ -49,30 +49,42 @@ class PlainSegmentWorker {
     }
 
     setGeoid(geoid) {
-        let m = geoid.model;
 
-        let model = {
-            scale: m.scale,
-            offset: m.offset,
-            width: m.width,
-            height: m.height,
-            rlonres: m.rlonres,
-            rlatres: m.rlatres,
-            i: m.i
-        };
+        let model = null;
 
-        this._workerQueue.forEach((w) => {
-            let rawfile = new Uint8Array(m.rawfile.length);
-            rawfile.set(m.rawfile);
+        if (geoid.model) {
+            let m = geoid.model;
+            model = {
+                scale: m.scale,
+                offset: m.offset,
+                width: m.width,
+                height: m.height,
+                rlonres: m.rlonres,
+                rlatres: m.rlatres,
+                i: m.i
+            };
 
-            w.postMessage(
-                {
-                    model: model,
-                    rawfile: rawfile
-                },
-                [rawfile.buffer]
-            );
-        });
+            this._workerQueue.forEach((w) => {
+                let rawfile = new Uint8Array(m.rawfile.length);
+                rawfile.set(m.rawfile);
+
+                w.postMessage(
+                    {
+                        model: model,
+                        rawfile: rawfile
+                    },
+                    [rawfile.buffer]
+                );
+            });
+        } else {
+            this._workerQueue.forEach((w) => {
+                w.postMessage(
+                    {
+                        model: null
+                    }
+                );
+            });
+        }
     }
 
     make(segment) {
@@ -116,6 +128,8 @@ class PlainSegmentWorker {
 
 const _programm = `
     'use strict';
+    
+    let model = null;
 
     let cached_ix = null;
     let cached_iy = null;
@@ -184,8 +198,6 @@ const _programm = `
 
         return model.offset + model.scale * h;
     };
-
-    let model = null;
 
     const HALF_PI = Math.PI * 0.5;
     const POLE = 20037508.34;
