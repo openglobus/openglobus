@@ -2,76 +2,59 @@
 
 // import { QueueArray } from '../QueueArray.js';
 
+import { BaseWorker } from "../utils/BaseWorker.js";
+
 export const LOCK_UPDATE = -2;
 export const LOCK_FREE = -1;
 
-class LabelWorker {
+class LabelWorker extends BaseWorker {
     constructor(numWorkers = 4) {
-        this._id = 0;
+        super(numWorkers, _programm);
         this._source = {};
-
-        this._freeWorkerQueue = []; //new QueueArray(numWorkers);
-        var labelProgramm = new Blob([_programm], { type: "application/javascript" });
-
-        var that = this;
-
-        for (let i = 0; i < numWorkers; i++) {
-            var w = new Worker(URL.createObjectURL(labelProgramm));
-            w.onmessage = function (e) {
-
-                let s = that._source[e.data.id];
-
-                if (s.label._lockId === LOCK_UPDATE) {
-                    that.make(s.handler, s.label);
-                } else {
-                    s.handler.workerCallback(e.data, s.label);
-                }
-
-                that._source[e.data.id] = null;
-                delete that._source[e.data.id];
-                that._freeWorkerQueue.unshift(this);
-
-                that.check();
-            };
-
-            this._freeWorkerQueue.push(w);
-        }
-
-        this._pendingQueue = []; //new QueueArray(512);
     }
 
-    check() {
-        if (this._pendingQueue.length) {
-            var p = this._pendingQueue.pop();
-            this.make(p.handler, p.label);
+    _onMessage(e) {
+
+        let s = this._source[e.data.id];
+
+        if (s.label._lockId === LOCK_UPDATE) {
+            this.make(s);
+        } else {
+            s.handler.workerCallback(e.data, s.label);
         }
+
+        this._source[e.data.id] = null;
+        delete this._source[e.data.id];
+        super._onMessage(e)
+
+        this.check();
     }
 
-    make(handler, label) {
 
+    make({ handler, label }) {
         if (handler._entityCollection) {
             let source = { handler: handler, label: label };
 
-            if (this._freeWorkerQueue.length) {
-                var w = this._freeWorkerQueue.pop();
+            if (this._workerQueue.length) {
+                var w = this._workerQueue.pop();
 
                 this._source[this._id] = source;
 
                 let labelData = new Float32Array([
-                /*0*/this._id++,
-                /*1*/handler._maxLetters,
-                /*2*/label.getVisibility() ? 1 : 0,
-                /*3, 4, 5*/label._positionHigh.x, label._positionHigh.y, label._positionHigh.z,
-                /*6, 7, 8*/label._positionLow.x, label._positionLow.y, label._positionLow.z,
-                /*9*/label._size,
-                /*10, 11, 12*/label._offset.x, label._offset.y, label._offset.z,
-                /*13, 14, 15, 16*/label._color.x, label._color.y, label._color.z, label._color.w,
-                /*17*/label._rotation,
-                /*18, 19, 20*/label._alignedAxis.x, label._alignedAxis.y, label._alignedAxis.z,
-                /*21*/label._fontIndex,
-                /*22*/label._outline,
-                /*23, 24, 25, 26*/label._outlineColor.x, label._outlineColor.y, label._outlineColor.z, label._outlineColor.w,
-                /*27, 28, 29*/label._entity._pickingColor.x, label._entity._pickingColor.y, label._entity._pickingColor.z
+                    /*0*/this._id++,
+                    /*1*/handler._maxLetters,
+                    /*2*/label.getVisibility() ? 1 : 0,
+                    /*3, 4, 5*/label._positionHigh.x, label._positionHigh.y, label._positionHigh.z,
+                    /*6, 7, 8*/label._positionLow.x, label._positionLow.y, label._positionLow.z,
+                    /*9*/label._size,
+                    /*10, 11, 12*/label._offset.x, label._offset.y, label._offset.z,
+                    /*13, 14, 15, 16*/label._color.x, label._color.y, label._color.z, label._color.w,
+                    /*17*/label._rotation,
+                    /*18, 19, 20*/label._alignedAxis.x, label._alignedAxis.y, label._alignedAxis.z,
+                    /*21*/label._fontIndex,
+                    /*22*/label._outline,
+                    /*23, 24, 25, 26*/label._outlineColor.x, label._outlineColor.y, label._outlineColor.z, label._outlineColor.w,
+                    /*27, 28, 29*/label._entity._pickingColor.x, label._entity._pickingColor.y, label._entity._pickingColor.z
                 ]);
 
                 label._lockId = this._id;

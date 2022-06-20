@@ -2,50 +2,32 @@
 
 // import { QueueArray } from '../QueueArray.js';
 import { EPSG4326 } from "../proj/EPSG4326.js";
+import { BaseWorker } from "./BaseWorker.js";
 
-class PlainSegmentWorker {
+class PlainSegmentWorker extends BaseWorker {
     constructor(numWorkers = 2) {
-        this._id = 0;
-        this._segments = {};
-
-        this._workerQueue = [];
-
-        var elevationProgramm = new Blob([_programm], { type: "application/javascript" });
-
-        let _this = this;
-
-        for (let i = 0; i < numWorkers; i++) {
-            let w = new Worker(URL.createObjectURL(elevationProgramm));
-
-            w.onmessage = function (e) {
-                _this._segments[e.data.id]._plainSegmentWorkerCallback(e.data);
-
-                e.data.plainVertices = null;
-                e.data.plainVerticesHigh = null;
-                e.data.plainVerticesLow = null;
-                e.data.plainNormals = null;
-                e.data.normalMapNormals = null;
-                e.data.normalMapVertices = null;
-                e.data.normalMapVerticesHigh = null;
-                e.data.normalMapVerticesLow = null;
-
-                _this._segments[e.data.id] = null;
-                delete _this._segments[e.data.id];
-
-                _this._workerQueue.unshift(this);
-                _this.check();
-            };
-
-            this._workerQueue.push(w);
-        }
-
-        this._pendingQueue = [];
+        super(numWorkers, _programm);
+        this._segments = [];
     }
 
-    check() {
-        if (this._pendingQueue.length) {
-            this.make(this._pendingQueue.pop());
-        }
+    _onMessage(e) {
+        this._segments[e.data.id]._plainSegmentWorkerCallback(e.data);
+
+        e.data.plainVertices = null;
+        e.data.plainVerticesHigh = null;
+        e.data.plainVerticesLow = null;
+        e.data.plainNormals = null;
+        e.data.normalMapNormals = null;
+        e.data.normalMapVertices = null;
+        e.data.normalMapVerticesHigh = null;
+        e.data.normalMapVerticesLow = null;
+
+        this._segments[e.data.id] = null;
+        delete this._segments[e.data.id];
+
+        super._onMessage(e)
+        this.check();
+
     }
 
     setGeoid(geoid) {
