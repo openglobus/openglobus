@@ -156,6 +156,15 @@ class EmptyTerrain {
      */
     clearCache() {
     }
+
+    /**
+     * template
+     * @public
+     * @virtual
+     */
+    getHeightAsync() {
+
+    }
 }
 
 export { EmptyTerrain };
