@@ -112,6 +112,10 @@ class DebugInfo extends Control {
                     frame: () => `${p._renderCompleted} / ${p._renderCompletedActivated}`
                 },
                 {
+                    label: "_terrainCompleted / terrainCompletedActivated",
+                    frame: () => `${p._terrainCompleted} / ${p._terrainCompletedActivated}`
+                },
+                {
                     label: "PlainWorker",
                     frame: () => p._plainSegmentWorker._pendingQueue.length
                 },
