@@ -75,8 +75,7 @@ export class Loader {
     }
 
     _checkLoadend(request, sender) {
-        if (request.counter <= 0 && sender._planet._renderCompletedActivated) {
-            request.counter = 0;
+        if (request.counter === 0 && sender._planet._terrainCompletedActivated) {
             sender.events.dispatch(sender.events.loadend);
             request.__requestCounterFrame__ = null;
         } else {

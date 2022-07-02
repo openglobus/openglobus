@@ -132,7 +132,7 @@ let osm = new XYZ("osm", {
     //textureFilter: "linear"
 });
 
-//osm.events.on("loadend", () => console.log("osm loadend"));
+osm.events.on("loadend", () => console.log("osm loadend"));
 borders.events.on("loadend", () => console.log("borders loadend"));
 
 let sat = new XYZ("sat", {

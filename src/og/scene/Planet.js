@@ -88,7 +88,13 @@ const EVENT_NAMES = [
      * Triggered when all data is loaded
      * @event og.scene.Planet#rendercompleted
      */
-    "rendercompleted"
+    "rendercompleted",
+
+    /**
+     * Triggered when all data is loaded
+     * @event og.scene.Planet#terraincompleted
+     */
+    "terraincompleted"
 ];
 
 /**
@@ -428,6 +434,10 @@ export class Planet extends RenderNode {
         this.always = [];
 
         this._renderCompleted = false;
+        this._renderCompletedActivated = false;
+
+        this._terrainCompleted = false;
+        this._terrainCompletedActivated = false;
     }
 
     static getBearingNorthRotationQuat(cartesian) {
@@ -454,6 +464,7 @@ export class Planet extends RenderNode {
         this._minLodSize = minLodSize || this._minLodSize;
         this._curLodSize = currentLodSize || this._curLodSize;
         this._renderCompletedActivated = false;
+        this._terrainCompletedActivated = false;
     }
 
     /**
@@ -571,6 +582,7 @@ export class Planet extends RenderNode {
      */
     setHeightFactor(factor) {
         this._renderCompletedActivated = false;
+        this._terrainCompletedActivated = false;
 
         if (this._heightFactor !== factor) {
             this._heightFactor = factor;
@@ -593,6 +605,7 @@ export class Planet extends RenderNode {
      */
     setTerrain(terrain) {
         this._renderCompletedActivated = false;
+        this._terrainCompletedActivated = false;
 
         if (this._initialized) {
             this.memClear();
@@ -692,10 +705,10 @@ export class Planet extends RenderNode {
                 !this._indexesCache[i][j] && (this._indexesCache[i][j] = new Array(TABLESIZE));
                 for (var k = 0; k <= TABLESIZE; k++) {
                     !this._indexesCache[i][j][k] &&
-                    (this._indexesCache[i][j][k] = new Array(TABLESIZE));
+                        (this._indexesCache[i][j][k] = new Array(TABLESIZE));
                     for (var m = 0; m <= TABLESIZE; m++) {
                         !this._indexesCache[i][j][k][m] &&
-                        (this._indexesCache[i][j][k][m] = new Array(TABLESIZE));
+                            (this._indexesCache[i][j][k][m] = new Array(TABLESIZE));
                         for (var q = 0; q <= TABLESIZE; q++) {
                             let ptr = {
                                 buffer: null
@@ -723,6 +736,7 @@ export class Planet extends RenderNode {
 
         this.renderer.events.on("resize", () => {
             this._renderCompletedActivated = false;
+            this._terrainCompletedActivated = false;
         });
 
         // Initialize texture coordinates buffer pool
@@ -1156,6 +1170,17 @@ export class Planet extends RenderNode {
             this._renderCompletedActivated = false;
         }
         this._renderCompleted = true;
+
+        if (this._terrainCompleted) {
+            if (!this._terrainCompletedActivated) {
+                this._terrainCompletedActivated = true;
+                this.events.dispatch(this.events.terraincompleted, true);
+            }
+        } else {
+            this._terrainCompletedActivated = false;
+        }
+
+        this._terrainCompleted = true;
     }
 
     /**
