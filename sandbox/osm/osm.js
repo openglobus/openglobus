@@ -133,6 +133,8 @@ let osm = new XYZ("osm", {
     //textureFilter: "linear"
 });
 
+osm.events.on("loadend", () => console.log("osm loadend"));
+
 let sat = new XYZ("sat", {
     isBaseLayer: true,
     subdomains: ['t0', 't1', 't2', 't3'],
@@ -164,7 +166,7 @@ var globus = new Globe({
     terrain: new GlobusTerrain(),
     //terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
-    layers: [temp, borders/*, red, tg, labelLayer, borders*/],
+    layers: [osm],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
     useNightTexture: false,
     //useEarthNavigation: true,
@@ -173,11 +175,9 @@ var globus = new Globe({
 
 //globus.renderer.fontAtlas.loadFont("chinese.msyh", "//assets.msn.com/weathermapdata/1/static/3d/label/zh-cn/font-v2.2/", "chinese.msyh.json");
 
-globus.planet.addControl(new Lighting());
-
 globus.planet.addControl(new LayerSwitcher());
 
-//globus.planet.addControl(new DebugInfo());
+globus.planet.addControl(new DebugInfo());
 
 //globus.planet.addControl(new ToggleWireframe());
 
