@@ -77,12 +77,12 @@ export class Loader {
             let request = this._senderRequestCounter[sender._id];
             if (request) {
                 request.counter--;
-                clearTimeout(this._requestCounterTimeout);
-                this._requestCounterTimeout = setTimeout(() => {
+                cancelAnimationFrame(this._requestCounterFrame);
+                this._requestCounterFrame = requestAnimationFrame(() => {
                     if (request.counter === 0 && sender._planet._renderCompletedActivated) {
                         sender.events.dispatch(sender.events.loadend);
                     }
-                }, 20);
+                });
             }
         }
         this._exec();
