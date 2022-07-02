@@ -40,7 +40,11 @@ export class Loader {
     load(params, callback) {
         if (params.sender) {
             if (!this._senderRequestCounter[params.sender._id]) {
-                this._senderRequestCounter[params.sender._id] = { sender: params.sender, counter: 0 };
+                this._senderRequestCounter[params.sender._id] = {
+                    sender: params.sender,
+                    counter: 0,
+                    __requestCounterFrame__: null
+                };
             }
             this._senderRequestCounter[params.sender._id].counter++;
         }
@@ -70,18 +74,28 @@ export class Loader {
             });
     }
 
+    _checkLoadend(request, sender) {
+        if (request.counter <= 0 && sender._planet._renderCompletedActivated) {
+            request.counter = 0;
+            sender.events.dispatch(sender.events.loadend);
+            request.__requestCounterFrame__ = null;
+        } else {
+            request.__requestCounterFrame__ = requestAnimationFrame(() => {
+                this._checkLoadend(request, sender);
+            });
+        }
+    }
+
     _handleResponse(q, response) {
         q.callback(response);
         let sender = q.params.sender;
-        if (sender) {
+        if (sender && sender.events.loadend.handlers.length) {
             let request = this._senderRequestCounter[sender._id];
-            if (request) {
+            if (request && request.counter > 0) {
                 request.counter--;
-                cancelAnimationFrame(this._requestCounterFrame);
-                this._requestCounterFrame = requestAnimationFrame(() => {
-                    if (request.counter === 0 && sender._planet._renderCompletedActivated) {
-                        sender.events.dispatch(sender.events.loadend);
-                    }
+                cancelAnimationFrame(request.__requestCounterFrame__);
+                request.__requestCounterFrame__ = requestAnimationFrame(() => {
+                    this._checkLoadend(request, sender);
                 });
             }
         }
@@ -129,6 +143,8 @@ export class Loader {
             let sender = qi.params.sender;
             if (sender && this._senderRequestCounter[sender._id]) {
                 this._senderRequestCounter[sender._id].counter = 0;
+                cancelAnimationFrame(this._senderRequestCounter[sender._id].__requestCounterFrame__);
+                this._senderRequestCounter[sender._id].__requestCounterFrame__ = null;
             }
             qi.callback({ 'status': "abort" });
             this._queue[i] = null;

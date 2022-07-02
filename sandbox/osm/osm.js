@@ -98,7 +98,6 @@ var borders = new XYZ("borders", {
     preLoadZoomLevels: [],
     minNativeZoom: 1,
     urlRewrite: function (s, u) {
-        console.log(s.tileZoom);
         return stringTemplate(u, {
             'quad': toQuadKey(s.tileX, s.tileY, s.tileZoom)
         });
@@ -133,7 +132,8 @@ let osm = new XYZ("osm", {
     //textureFilter: "linear"
 });
 
-osm.events.on("loadend", () => console.log("osm loadend"));
+//osm.events.on("loadend", () => console.log("osm loadend"));
+borders.events.on("loadend", () => console.log("borders loadend"));
 
 let sat = new XYZ("sat", {
     isBaseLayer: true,
@@ -163,10 +163,10 @@ var globus = new Globe({
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
-    terrain: new GlobusTerrain(),
+    terrain: new EmptyTerrain(),//new GlobusTerrain(),
     //terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
-    layers: [osm],
+    layers: [osm, borders],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
     useNightTexture: false,
     //useEarthNavigation: true,
