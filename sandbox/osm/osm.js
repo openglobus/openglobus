@@ -24,46 +24,48 @@ const tg = new CanvasTiles("Tile grid", {
     preLoadZoomLevels: [0],
     drawTile: function (material, applyCanvas) {
 
-        //Clear canvas
-        ctx.clearRect(0, 0, cnv.width, cnv.height);
+        setTimeout(() => {
+            //Clear canvas
+            ctx.clearRect(0, 0, cnv.width, cnv.height);
 
-        let size;
+            let size;
 
-        if (material.segment.isPole) {
-            let ext = material.segment.getExtentLonLat();
+            if (material.segment.isPole) {
+                let ext = material.segment.getExtentLonLat();
 
 
-            if (material.segment.tileZoom > 14) {
-                size = "26";
+                if (material.segment.tileZoom > 14) {
+                    size = "26";
+                } else {
+                    size = "32";
+                }
+                ctx.fillStyle = 'black';
+                ctx.font = 'normal ' + size + 'px Verdana';
+                ctx.textAlign = 'center';
+                ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
             } else {
-                size = "32";
+
+                if (material.segment.tileZoom > 14) {
+                    size = "26";
+                } else {
+                    size = "32";
+                }
+                ctx.fillStyle = 'black';
+                ctx.font = 'normal ' + size + 'px Verdana';
+                ctx.textAlign = 'center';
+                ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
             }
-            ctx.fillStyle = 'black';
-            ctx.font = 'normal ' + size + 'px Verdana';
-            ctx.textAlign = 'center';
-            ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
-        } else {
 
-            if (material.segment.tileZoom > 14) {
-                size = "26";
-            } else {
-                size = "32";
-            }
-            ctx.fillStyle = 'black';
-            ctx.font = 'normal ' + size + 'px Verdana';
-            ctx.textAlign = 'center';
-            ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
-        }
+            //Draw border
+            //ctx.beginPath();
+            //ctx.rect(0, 0, cnv.width, cnv.height);
+            //ctx.lineWidth = 2;
+            //ctx.strokeStyle = "black";
+            //ctx.stroke();
 
-        //Draw border
-        //ctx.beginPath();
-        //ctx.rect(0, 0, cnv.width, cnv.height);
-        //ctx.lineWidth = 2;
-        //ctx.strokeStyle = "black";
-        //ctx.stroke();
-
-        //Draw canvas tile
-        applyCanvas(cnv);
+            //Draw canvas tile
+            applyCanvas(cnv);
+        }, 1000);
     }
 });
 
@@ -132,8 +134,9 @@ let osm = new XYZ("osm", {
     //textureFilter: "linear"
 });
 
-osm.events.on("loadend", () => console.log("osm loadend"));
-borders.events.on("loadend", () => console.log("borders loadend"));
+//osm.events.on("loadend", () => console.log("osm loadend"));
+//borders.events.on("loadend", () => console.log("borders loadend"));
+tg.events.on("loadend", () => console.log("tilegrid loadend"));
 
 let sat = new XYZ("sat", {
     isBaseLayer: true,
@@ -166,7 +169,7 @@ var globus = new Globe({
     terrain: new EmptyTerrain(),//new GlobusTerrain(),
     //terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
-    layers: [osm, borders],
+    layers: [osm, tg],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
     useNightTexture: false,
     //useEarthNavigation: true,
