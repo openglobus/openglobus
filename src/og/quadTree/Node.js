@@ -404,6 +404,7 @@ class Node {
 
         if (!this.segment.terrainReady) {
             this.planet._renderCompleted = false;
+            this.planet._terrainCompleted = false;
         }
 
         let k = 0,

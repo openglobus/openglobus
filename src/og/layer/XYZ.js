@@ -162,6 +162,7 @@ class XYZ extends Layer {
 
                 this._planet._tileLoader.load(
                     {
+                        sender: this,
                         src: this._getHTTPRequestString(material.segment),
                         type: "imageBitmap",
                         filter: () =>
@@ -185,7 +186,8 @@ class XYZ extends Layer {
                                 material.textureNotExists();
                             }
                         }
-                    }
+                    },
+                    this._id
                 );
             } else {
                 material.textureNotExists();
@@ -303,7 +305,7 @@ class XYZ extends Layer {
     clearMaterial(material) {
         if (material.isReady && material.textureExists) {
             !material.texture.default &&
-            material.segment.handler.gl.deleteTexture(material.texture);
+                material.segment.handler.gl.deleteTexture(material.texture);
             material.texture = null;
 
             if (material.image) {

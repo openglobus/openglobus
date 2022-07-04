@@ -82,10 +82,9 @@ class DebugInfo extends Control {
                 {
                     label: "height/alt (km)",
                     frame: () =>
-                        `<div style="width:190px">${
-                            (p.camera._lonLat.height / 1000.0).toFixed(2) +
-                            " / " +
-                            (p.camera.getAltitude() / 1000.0).toFixed(2)
+                        `<div style="width:190px">${(p.camera._lonLat.height / 1000.0).toFixed(2) +
+                        " / " +
+                        (p.camera.getAltitude() / 1000.0).toFixed(2)
                         }</div>`
                 },
                 {
@@ -107,6 +106,14 @@ class DebugInfo extends Control {
                 },
                 {
                     label: "-------------------------"
+                },
+                {
+                    label: "_renderCompleted / renderCompletedActivated",
+                    frame: () => `${p._renderCompleted} / ${p._renderCompletedActivated}`
+                },
+                {
+                    label: "_terrainCompleted / terrainCompletedActivated",
+                    frame: () => `${p._terrainCompleted} / ${p._terrainCompletedActivated}`
                 },
                 {
                     label: "PlainWorker",

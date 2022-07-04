@@ -1488,6 +1488,7 @@ class Segment {
 
                 if (!m.isReady) {
                     this.planet._renderCompleted = false;
+                    this.planet._terrainReady = false;
                 }
 
                 slice.append(li, m);
