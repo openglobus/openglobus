@@ -80,6 +80,10 @@ class DebugInfo extends Control {
                     frame: () => p.maxCurrZoom + " / " + p.minCurrZoom
                 },
                 {
+                    label: "viewExtent",
+                    frame: () => p.getViewExtent().toString()
+                },
+                {
                     label: "height/alt (km)",
                     frame: () =>
                         `<div style="width:190px">${(p.camera._lonLat.height / 1000.0).toFixed(2) +

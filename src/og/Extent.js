@@ -350,15 +350,7 @@ export class Extent {
 
     toString() {
         return (
-            "[" +
-            this.southWest.lon +
-            ", " +
-            this.southWest.lat +
-            ", " +
-            this.northEast.lon +
-            ", " +
-            this.northEast.lat +
-            "]"
+            `[${this.southWest.lon.toFixed(5)}, ${this.southWest.lat.toFixed(5)}, ${this.northEast.lon.toFixed(5)}, ${this.northEast.lat.toFixed(5)}]`
         );
     }
 }
