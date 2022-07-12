@@ -164,7 +164,7 @@ class Sun extends Control {
 }
 
 export function sun(options) {
-    return Sun(options);
+    return new Sun(options);
 }
 
 export { Sun };
