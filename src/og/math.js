@@ -200,15 +200,15 @@ export function mod(m, n) {
  * @returns {number} -
  */
 export function zeroTwoPI(a) {
-    var mod = mod(a, TWO_PI);
-    if (Math.abs(mod) < EPSILON14 && Math.abs(a) > EPSILON14) {
+    const res = mod(a, TWO_PI);
+    if (Math.abs(res) < EPSILON14 && Math.abs(a) > EPSILON14) {
         return TWO_PI;
     }
-    return mod;
+    return res;
 }
 
 /**
- * Returns 0.0 if x is smaller then edge and otherwise 1.0.
+ * Returns 0.0 if x is smaller than edge and otherwise 1.0.
  * @function
  * @param {number} edge -
  * @param {number} x - Value to edge.
