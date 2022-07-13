@@ -17,8 +17,6 @@ class ZoomControl extends Control {
     constructor(options) {
         super(options);
 
-        options = options || {};
-
         this._keyLock = new Key();
 
         this.planet = null;
