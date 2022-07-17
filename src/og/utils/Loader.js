@@ -74,8 +74,14 @@ export class Loader {
             });
     }
 
+    isIdle(sender) {
+        let request = this._senderRequestCounter[sender._id];
+        return request && request.counter === 0 && (!sender._planet || sender._planet._terrainCompletedActivated);
+
+    }
+
     _checkLoadend(request, sender) {
-        if (request.counter === 0 && sender._planet._terrainCompletedActivated) {
+        if (request.counter === 0 && (sender._planet._terrainCompletedActivated || !sender._planet)) {
             sender.events.dispatch(sender.events.loadend);
             request.__requestCounterFrame__ = null;
         } else {

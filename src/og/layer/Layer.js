@@ -34,29 +34,29 @@ export const FADING_FACTOR = 0.29;
  * @fires og.Layer#visibilitychange
  * @fires og.Layer#add
  * @fires og.Layer#remove
- * @fires og.layer.Vector#mousemove
- * @fires og.layer.Vector#mouseenter
- * @fires og.layer.Vector#mouseleave
- * @fires og.layer.Vector#lclick
- * @fires og.layer.Vector#rclick
- * @fires og.layer.Vector#mclick
- * @fires og.layer.Vector#ldblclick
- * @fires og.layer.Vector#rdblclick
- * @fires og.layer.Vector#mdblclick
- * @fires og.layer.Vector#lup
- * @fires og.layer.Vector#rup
- * @fires og.layer.Vector#mup
- * @fires og.layer.Vector#ldown
- * @fires og.layer.Vector#rdown
- * @fires og.layer.Vector#mdown
- * @fires og.layer.Vector#lhold
- * @fires og.layer.Vector#rhold
- * @fires og.layer.Vector#mhold
- * @fires og.layer.Vector#mousewheel
- * @fires og.layer.Vector#touchmove
- * @fires og.layer.Vector#touchstart
- * @fires og.layer.Vector#touchend
- * @fires og.layer.Vector#doubletouch
+ * @fires og.layer.Layer#mousemove
+ * @fires og.layer.Layer#mouseenter
+ * @fires og.layer.Layer#mouseleave
+ * @fires og.layer.Layer#lclick
+ * @fires og.layer.Layer#rclick
+ * @fires og.layer.Layer#mclick
+ * @fires og.layer.Layer#ldblclick
+ * @fires og.layer.Layer#rdblclick
+ * @fires og.layer.Layer#mdblclick
+ * @fires og.layer.Layer#lup
+ * @fires og.layer.Layer#rup
+ * @fires og.layer.Layer#mup
+ * @fires og.layer.Layer#ldown
+ * @fires og.layer.Layer#rdown
+ * @fires og.layer.Layer#mdown
+ * @fires og.layer.Layer#lhold
+ * @fires og.layer.Layer#rhold
+ * @fires og.layer.Layer#mhold
+ * @fires og.layer.Layer#mousewheel
+ * @fires og.layer.Layer#touchmove
+ * @fires og.layer.Layer#touchstart
+ * @fires og.layer.Layer#touchend
+ * @fires og.layer.Layer#doubletouch
  */
 class Layer {
     constructor(name, options = {}) {
@@ -228,23 +228,6 @@ class Layer {
 
     static set __layersCounter(n) {
         this.__lcounter = n;
-    }
-
-    static get __requestsCounter() {
-        return this.__reqcounter;
-    }
-
-    static set __requestsCounter(v) {
-        this.__reqcounter = v;
-    }
-
-    /**
-     * Maximum loading queries at one time.
-     * @const
-     * @type {number}
-     */
-    static get MAX_REQUESTS() {
-        return 7;
     }
 
     get instanceName() {

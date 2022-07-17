@@ -92,6 +92,10 @@ class XYZ extends Layer {
         this._urlRewriteCallback = options.urlRewrite || null;
     }
 
+    get isIdle() {
+        return !this._planet || this._planet._tileLoader.isIdle(this);
+    }
+
     get instanceName() {
         return "XYZ";
     }
