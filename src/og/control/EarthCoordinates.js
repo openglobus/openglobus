@@ -65,6 +65,8 @@ class EarthCoordinates extends Control {
 
         this._altUnit = units[this._altUnitVal];
         this._heightMode = heightMode[this._heightModeVal];
+
+        this._centerMode = options.centerMode || false;
     }
 
     _SHOW_DECIMAL(ll) {
@@ -111,12 +113,12 @@ class EarthCoordinates extends Control {
             let deg = lat < 0 ? Math.ceil(lat) : Math.floor(lat);
             let min = Math.floor(t = Math.abs((lat - deg)) * 60);
             let sec = Math.floor((t - min) * 6000) / 100.0;
-            this._latValEl.innerHTML = deg + '°' + min + "'" + sec.toFixed(0) + '"';
+            this._latValEl.innerHTML = Math.abs(deg) + '°' + min + "'" + sec.toFixed(0) + '"';
 
             deg = lon < 0 ? Math.ceil(lon) : Math.floor(lon);
             min = Math.floor(t = Math.abs((lon - deg)) * 60);
             sec = Math.floor((t - min) * 6000) / 100.0;
-            this._lonValEl.innerHTML = deg + '°' + min + "'" + sec.toFixed(0) + '"';
+            this._lonValEl.innerHTML = Math.abs(deg) + '°' + min + "'" + sec.toFixed(0) + '"';
         }
     }
 
@@ -165,25 +167,36 @@ class EarthCoordinates extends Control {
             this._showHeight();
         });
 
-        this.renderer.div.appendChild(this._createCenterEl());
-
-        this.renderer.activeCamera.events.on("moveend", this._grabCoordinates, this);
-        this.renderer.activeCamera.events.on("moveend", throttle((e) => this._showHeight(), 800, true), this);
+        if (this._centerMode) {
+            this.renderer.div.appendChild(this._createCenterEl());
+            this.renderer.activeCamera.events.on("moveend", this._grabCoordinates, this);
+            this.renderer.activeCamera.events.on("moveend", throttle((e) => this._showHeight(), 400, true), this);
+        } else {
+            this.renderer.events.on("mousemove", this._grabCoordinates, this);
+            this.renderer.events.on("mousestop", throttle((e) => this._showHeight(), 400, true), this);
+        }
 
         this._refreshCoordinates();
 
         this._updateUnits();
     }
 
-    _grabCoordinates() {
+    _grabCoordinates(px) {
+        let scrPx;
+        if (this._centerMode) {
+            scrPx = r.handler.getCenter();
+        } else {
+            scrPx = px;
+        }
         let r = this.renderer;
-        this._lonLat = this.planet.getLonLatFromPixelTerrain(r.handler.getCenter());
+        this._lonLat = this.planet.getLonLatFromPixelTerrain(scrPx);
         this._showFn(this._lonLat);
     }
 
     async _showHeight() {
         if (this._lonLat) {
             let alt = 0;
+            this._heightEl.style.opacity = 0.7;
             if (this._heightMode === heightMode.ell) {
                 alt = await this.planet.getHeightAboveELL(this._lonLat);
                 alt = units.convertExt(true, units.m, this._altUnit, alt);
@@ -191,6 +204,7 @@ class EarthCoordinates extends Control {
                 alt = await this.planet.getHeightDefault(this._lonLat);
                 alt = units.convertExt(true, units.m, this._altUnit, alt);
             }
+            this._heightEl.style.opacity = 1.0;
             this._heightEl.innerHTML = alt.toString();
         }
     }
