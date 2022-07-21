@@ -182,27 +182,6 @@
     font-size: 0.8em;
 }
 
-.ogEarthCoordinatesControl {
-    color: white;
-    cursor: pointer;
-    font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
-    background-color: rgba(64, 59, 59, 0.85);
-    bottom: 28px;
-    right: 12px;
-    font-size: 0.9em;
-    position: absolute;
-    z-index: 5000;
-    padding: 3px 7px 3px 7px;
-    /* text-shadow: 0 0 5px #fff; */
-    border-radius: 2px;
-    box-shadow: 0px 1px 4px rgba(64, 59, 59, 0.17);
-    font-size: 14px;
-    overflow: hidden;
-    text-overflow: clip;
-    height: 20px;
-}
-
-
 .ogConsole {
     position: absolute;
     top: 0;
@@ -463,3 +442,64 @@
         width: 240px;
         margin-left: 21px;
     }
+
+
+.og-coordinates{
+    position: absolute;
+    top: 332px;
+    right: 12px;
+    float: right;
+    text-align: right;
+    overflow: hidden;
+    font-family: monospace;
+    font-size: 1.0em;
+    cursor: pointer;
+    float: left;
+    background-color: rgba(64, 59, 59, 0.85);
+    color: white;
+    padding: 3px;
+}
+
+.og-coordinates div{
+    float: left;
+}
+
+.og-lat-side,
+.og-lon-side {
+    width: 10px;
+    padding-right: 3px;
+}
+
+.og-lat-val,
+.og-lon-val {
+    width: 65px;
+    padding-right: 3px;
+    text-align: left;
+    text-overflow: unset;
+    overflow: hidden;
+}
+
+.og-height {
+    width: 36px;
+    text-align: right;
+    text-overflow: ellipsis;
+    padding-left: 3px;
+    overflow: hidden;
+}
+
+.og-units-height {
+    width: 15px;
+    text-align: left;
+    padding-left: 3px;
+}
+
+.og-center-icon {
+    height: 12px;
+    width: 12px;
+    margin-bottom: -3.5px;
+    margin-right: -7.5px;
+    bottom: 50%;
+    right: 50%;
+    position: absolute;
+    pointer-events: none;
+}
