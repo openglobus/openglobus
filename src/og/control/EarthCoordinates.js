@@ -183,12 +183,12 @@ class EarthCoordinates extends Control {
 
     _grabCoordinates(px) {
         let scrPx;
+        let r = this.renderer;
         if (this._centerMode) {
             scrPx = r.handler.getCenter();
         } else {
             scrPx = px;
         }
-        let r = this.renderer;
         this._lonLat = this.planet.getLonLatFromPixelTerrain(scrPx);
         this._showFn(this._lonLat);
     }

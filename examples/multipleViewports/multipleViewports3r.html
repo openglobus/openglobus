@@ -4,7 +4,8 @@
     <title>OpenGlobus - Earth planet</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="utf-8">
-    <link rel="stylesheet" href="../../css/og.css" type="text/css" />
+    <link rel="stylesheet" href="//openglobus.org/og.css" type="text/css" />
+    <script src="//openglobus.org/og.umd.js"></script>
     <style>
         .coordinates {
             position: absolute;
@@ -57,16 +58,7 @@
 
     <input style="position:absolute; top:60px; left: 20px;" type="file" id="myFile">
 
-    <script type="module">
-
-        import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
-        import { MapboxTerrain } from '../../src/og/terrain/MapboxTerrain.js';
-        import { Globe } from '../../src/og/Globe.js';
-        import { XYZ } from '../../src/og/layer/XYZ.js';
-        import { MouseNavigation } from '../../src/og/control/MouseNavigation.js';
-        import { EarthCoordinates } from '../../src/og/control/EarthCoordinates.js';
-        import { Sun } from '../../src/og/control/Sun.js';
-        import { LonLat } from '../../src/og/LonLat.js';
+    <script>
 
         const EXTENT = [109.49057, 49.95169, 113.99417, 51.81737];
 
@@ -78,15 +70,15 @@
             dst.update();
         }
 
-        let globusTerrain = new GlobusTerrain({
-            geoidSrc: "./egm2008-1.pgm"
+        let globusTerrain = new og.terrain.GlobusTerrain({
+            //geoidSrc: "./egm2008-1.pgm"
         });
 
-        let mapboxTerrain = new MapboxTerrain({
-            geoidSrc: "./egm2008-1.pgm"
+        let mapboxTerrain = new og.terrain.MapboxTerrain({
+            //geoidSrc: "./egm2008-1.pgm"
         });
 
-        var osm1 = new XYZ("OpenStreetMap", {
+        var osm1 = new og.layer.XYZ("OpenStreetMap", {
             isBaseLayer: true,
             url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             visibility: true,
@@ -101,16 +93,16 @@
             window.globus1.planet.setTerrain(mapboxTerrain);
         };
 
-        window.globus1 = new Globe({
+        window.globus1 = new og.Globe({
             "target": "globus1",
             "name": "Earth One",
             "terrain": globusTerrain,
             "layers": [osm1],
             "viewExtent": EXTENT,
             controls: [
-                new MouseNavigation(),
-                new EarthCoordinates({ centerMode: true }),
-                new Sun()
+                new og.control.MouseNavigation(),
+                new og.control.EarthCoordinates({ centerMode: true }),
+                new og.control.Sun()
             ]
         });
 
@@ -121,14 +113,14 @@
             );
         });
 
-        var osm2 = new XYZ("OpenStreetMap", {
+        var osm2 = new og.layer.XYZ("OpenStreetMap", {
             isBaseLayer: true,
             url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             visibility: true,
             attribution: 'Data @ OpenStreetMap contributors, ODbL'
         });
 
-        var highResTerrain = new MapboxTerrain(null, {
+        var highResTerrain = new og.terrain.MapboxTerrain(null, {
             maxZoom: 15,
             url: "//terrain.openglobus.org/public/bur/{z}/{x}/{y}.png",
             //imageSize: 129,
@@ -140,16 +132,16 @@
             geoidSrc: "./egm2008-1.pgm"
         });
 
-        window.globus2 = new Globe({
+        window.globus2 = new og.Globe({
             "target": "globus2",
             "name": "Earth Two",
             "terrain": highResTerrain,
             "layers": [osm2],
             "viewExtent": EXTENT,
             controls: [
-                new MouseNavigation(),
-                new EarthCoordinates({ centerMode: true }),
-                new Sun()
+                new og.control.MouseNavigation(),
+                new og.control.EarthCoordinates({ centerMode: true }),
+                new og.control.Sun()
             ]
         });
 
@@ -219,7 +211,7 @@
 
             var longitude = ((zone > 0) && (6 * zone - 183.0) || 3.0) - _a3;
 
-            return new LonLat(longitude, latitude);
+            return new og.LonLat(longitude, latitude);
         }
 
         let $elev = document.querySelector(".elev");
@@ -284,30 +276,6 @@
                                     }
                                 }
                             });
-
-
-
-                            // .then((alt) => {
-                            //     console.log(`${_x},${_y},${Math.round(_elv)}, ${Math.round(alt)}, ${Math.round(alt - _elv)}`);
-                            //     csvText += `${_x},${_y},${Math.round(_elv)}, ${Math.round(alt - _elv)}` + "\r\n";
-                            //     done++;
-                            //     if (done >= lines.length - 2) {
-                            //         console.log('done.');
-                            //         var blob = new Blob([csvText], { type: 'text/csv;charset=utf-8;' });
-                            //         var link = document.createElement("a");
-                            //         if (link.download !== undefined) { // feature detection
-                            //             // Browsers that support HTML5 download attribute
-                            //             var url = URL.createObjectURL(blob);
-                            //             link.setAttribute("href", url);
-                            //             link.setAttribute("download", "output.csv");
-                            //             link.style.visibility = 'hidden';
-                            //             document.body.appendChild(link);
-                            //             link.click();
-                            //             document.body.removeChild(link);
-                            //         }
-                            //     }
-                            // });
-
 
                         })(x, y, elv);
                     }
