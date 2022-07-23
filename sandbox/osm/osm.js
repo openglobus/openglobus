@@ -182,7 +182,7 @@ var globus = new Globe({
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
-    terrain: new EmptyTerrain(),//new GlobusTerrain(),
+    terrain: new EmptyTerrain(),//new GlobusTerrain(),    
     //terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
     layers: [osm, tg],

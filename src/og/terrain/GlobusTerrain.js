@@ -185,7 +185,7 @@ class GlobusTerrain extends EmptyTerrain {
 
         if (cache) {
             if (!cache.heights) {
-                callback(this._geoid.getHeightLonLat(lonLat));
+                callback(0);
             } else {
                 callback(this._getGroundHeightMerc(merc, cache));
             }
@@ -220,7 +220,7 @@ class GlobusTerrain extends EmptyTerrain {
                         extent: extent
                     };
                     this._elevationCache[tileIndex] = cache;
-                    callback(this._geoid.getHeightLonLat(lonLat));
+                    callback(0);
                 } else {
                     this._fetchCache[tileIndex] = null;
                     delete this._fetchCache[tileIndex];
@@ -279,10 +279,10 @@ class GlobusTerrain extends EmptyTerrain {
             h3 = tileData.heights[v3Ind];
 
         let v0 = new Vec3(
-                tileData.extent.southWest.lon + size * j,
-                h0,
-                tileData.extent.northEast.lat - size * i - size
-            ),
+            tileData.extent.southWest.lon + size * j,
+            h0,
+            tileData.extent.northEast.lat - size * i - size
+        ),
             v1 = new Vec3(v0.x + size, h1, v0.z),
             v2 = new Vec3(v0.x, h2, v0.z + size),
             v3 = new Vec3(v0.x + size, h3, v0.z + size);

@@ -156,6 +156,11 @@ class EmptyTerrain {
      */
     clearCache() {
     }
+
+    getHeightAsync(lonLat, callback) {
+        callback(0);
+        return true;
+    }
 }
 
 export { EmptyTerrain };

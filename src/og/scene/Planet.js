@@ -1833,4 +1833,20 @@ export class Planet extends RenderNode {
             }
         }
     }
+
+    async getHeightDefault(lonLat) {
+        return new Promise((resolve, reject) => {
+            this.terrain.getHeightAsync(lonLat.clone(), (alt) => {
+                resolve(alt);
+            });
+        });
+    }
+
+    async getHeightAboveELL(lonLat) {
+        return new Promise((resolve, reject) => {
+            this.terrain.getHeightAsync(lonLat.clone(), (alt) => {
+                resolve(alt + this.terrain.geoid.getHeightLonLat(lonLat));
+            });
+        });
+    }
 }
