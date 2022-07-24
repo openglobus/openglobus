@@ -20,7 +20,7 @@ export class Loader {
 
         this.MAX_REQUESTS = maxRequests;
 
-        this.events = new Events(["loadend"]);
+        this.events = new Events(["loadend", "layerloadend"]);
 
         this._loading = 0;
 
@@ -82,7 +82,8 @@ export class Loader {
 
     _checkLoadend(request, sender) {
         if (request.counter === 0 && (sender._planet._terrainCompletedActivated || !sender._planet)) {
-            sender.events.dispatch(sender.events.loadend);
+            sender.events.dispatch(sender.events.loadend, sender);
+            this.events.dispatch(this.events.layerloadend, sender);
             request.__requestCounterFrame__ = null;
         } else {
             request.__requestCounterFrame__ = requestAnimationFrame(() => {
@@ -94,7 +95,7 @@ export class Loader {
     _handleResponse(q, response) {
         q.callback(response);
         let sender = q.params.sender;
-        if (sender && sender.events.loadend.handlers.length) {
+        if (sender && (sender.events.loadend.handlers.length || this.events.layerloadend.handlers.length)) {
             let request = this._senderRequestCounter[sender._id];
             if (request && request.counter > 0) {
                 request.counter--;
