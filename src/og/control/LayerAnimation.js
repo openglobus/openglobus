@@ -38,7 +38,7 @@ class LayerAnimation extends Control {
         }
 
 
-            this._onLayerLoadend_ = this._onLayerLoadend.bind(this);
+        this._onLayerLoadend_ = this._onLayerLoadend.bind(this);
         this.planet._tileLoader.events.on("layerloadend", this._onLayerLoadend_, this);
 
         this.setCurrentIndex(0);
@@ -62,8 +62,15 @@ class LayerAnimation extends Control {
     }
 
     _onLayerLoadend(layer) {
-        if (this._layersIndexesArr.indexOf(layer._id) !== -1) {
-            console.log("loadend", layer);
+        let currLayer = this._layersArr[this._currentIndex];
+        if (currLayer.isEqual(layer)) {
+            console.log("current layer is visible now");
+            currLayer.opacity = 1.0;
+            let prevLayer = this._layersArr[this._prevIndex];
+            if (prevLayer) {
+                prevLayer.setVisibility(false);
+                prevLayer.opacity = 0.0;
+            }
         }
     }
 
@@ -77,22 +84,26 @@ class LayerAnimation extends Control {
 
     setCurrentIndex(index) {
         if (index != this._currentIndex && index >= 0 && index < this._layersArr.length) {
-            let prevIndex = this._currentIndex;
+            this._prevIndex = this._currentIndex;
             this._currentIndex = index;
 
-            let prevLayer = this._layersArr[prevIndex],
+            let prevLayer = this._layersArr[this._prevIndex],
                 currLayer = this._layersArr[index];
 
-            if (prevLayer) {
-                prevLayer.setVisibility(false);
-                prevLayer.opacity = 0.0;
-            }
-
             if (currLayer) {
+                currLayer.opacity = 0.0;
                 currLayer.setVisibility(true);
-                currLayer.opacity = 1.0;
+                requestAnimationFrame(() => {
+                    if (currLayer.isIdle) {
+                        currLayer.opacity = 1.0;
+                        if (prevLayer) {
+                            prevLayer.setVisibility(false);
+                            prevLayer.opacity = 0.0;
+                        }
+                    }
+                });
             }
-            this.events.dispatch(this.events.change, index, prevIndex);
+            this.events.dispatch(this.events.change, this._currentIndex, this._prevIndex);
         }
     }
 }

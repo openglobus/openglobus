@@ -13,7 +13,6 @@ let osm1 = new XYZ("osm-1", {
     isBaseLayer: false,
     url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     diffuse: [1, 1, 1],
-    attribution: 'Data @ OpenStreetMap contributors, ODbL',
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#AAD3DF" }, { color: "#F2EFE9" }],
     isSRGB: false
@@ -24,7 +23,6 @@ let osm2 = new XYZ("osm-2", {
     diffuse: [1, 0, 0],
     isBaseLayer: false,
     url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    attribution: 'Data @ OpenStreetMap contributors, ODbL',
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#FF0000" }, { color: "#FF0000" }],
     isSRGB: false
@@ -35,7 +33,6 @@ let osm3 = new XYZ("osm-3", {
     diffuse: [0, 1, 0],
     isBaseLayer: false,
     url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    attribution: 'Data @ OpenStreetMap contributors, ODbL',
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#00FF00" }, { color: "#00FF00" }],
     isSRGB: false
@@ -46,7 +43,6 @@ let osm4 = new XYZ("osm-4", {
     diffuse: [0, 0, 1],
     isBaseLayer: false,
     url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    attribution: 'Data @ OpenStreetMap contributors, ODbL',
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#0000FF" }, { color: "#0000FF" }],
     isSRGB: false
