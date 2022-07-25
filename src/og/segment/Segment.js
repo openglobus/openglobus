@@ -1209,14 +1209,6 @@ class Segment {
     _addViewExtent() {
         var ext = this._extentLonLat;
 
-        if (!this.planet._viewExtent) {
-            this.planet._viewExtent = new Extent(
-                new LonLat(ext.southWest.lon, ext.southWest.lat),
-                new LonLat(ext.northEast.lon, ext.northEast.lat)
-            );
-            return;
-        }
-
         var viewExt = this.planet._viewExtent;
 
         if (ext.southWest.lon < viewExt.southWest.lon) {

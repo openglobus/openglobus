@@ -106,6 +106,22 @@ var borders = new XYZ("borders", {
     }
 });
 
+var clouds = new XYZ("clouds", {
+    opacity: 1.0,
+    isBaseLayer: false,
+    textureFilter: "mipmap",
+    url: "https://assets.msn.com/weathermapdata/1/cloudforeca/202207030000/{z}_{x}_{y}_202207031100.png",
+    visibility: true,
+    maxNativeZoom: 14,
+    preLoadZoomLevels: [],
+    minNativeZoom: 1,
+    urlRewrite: function (s, u) {
+        return stringTemplate(u, {
+            'quad': toQuadKey(s.tileX, s.tileY, s.tileZoom)
+        });
+    }
+});
+
 var red = new XYZ("borders", {
     opacity: 1.0,
     isBaseLayer: true,
@@ -166,7 +182,7 @@ var globus = new Globe({
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
-    terrain: new EmptyTerrain(),//new GlobusTerrain(),
+    terrain: new EmptyTerrain(),//new GlobusTerrain(),    
     //terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
     layers: [osm, tg],
