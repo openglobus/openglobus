@@ -532,16 +532,16 @@ export function labelPicking() {
             void main() {
                 vec3 a_positions = a_positionsHigh + a_positionsLow;
                 vec3 cameraPos = eyePositionHigh + eyePositionLow;
-
+                v_rgba = a_rgba;
+                
                 if(a_texCoord.w == EMPTY) {
-                    color.a = 0.0;
+                    v_rgba.a = 0.0;
                     gl_Position = vec4(0.0);
                     return;
                 }
 
                 vec3 look = a_positions - cameraPos;
                 float lookDist = length(look);
-                v_rgba = a_rgba;
                 if(opacity * step(lookDist, sqrt(dot(cameraPos,cameraPos) - planetRadius) + sqrt(dot(a_positions,a_positions) - planetRadius)) == 0.0){
                     return;
                 }
