@@ -227,7 +227,7 @@ export class Planet extends RenderNode {
          */
         this.maxCurrZoom = math.MIN;
 
-        this._viewExtent = null;
+        this._viewExtent = new Extent(new LonLat(180, 180), new LonLat(-180, -180));
 
         /**
          * @protected
@@ -1072,7 +1072,8 @@ export class Planet extends RenderNode {
         // clear first
         this._clearRenderedNodeList();
 
-        this._viewExtent = null;
+        this._viewExtent.southWest.set(180, 180);
+        this._viewExtent.northEast.set(-180, -180);
 
         this._visibleNodes = {};
         this._visibleNodesNorth = {};
