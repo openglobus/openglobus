@@ -20,12 +20,12 @@ class RullerScene extends RenderNode {
         this._planet = options.planet || null;
 
         this._startPos = null;
-        this._startClick = new Vec2();
+        this._startLonLat = null;
 
         this._trackEntity = new Entity({
             polyline: {
                 path3v: [],
-                thickness: 3,
+                thickness: 3.4,
                 color: "yellow",
                 isClosed: false
             }
@@ -62,116 +62,33 @@ class RullerScene extends RenderNode {
         this._planet.addLayer(this._trackLayer);
     }
 
-    _updateGhostOutlinePointer(groundPos) {
-
-        // let size = this._cornersArr.length;
-        //
-        // if (size > 0) {
-        //
-        //     let cartNext = this._cornersArr[this._cornersArr.length - 1].getCartesian();
-        //     let vecNext = this._ghostCorner.getCartesian().sub(cartNext);
-        //     let distNext = vecNext.length();
-        //
-        //     vecNext.normalize();
-        //
-        //     let pathNext = [];
-        //
-        //     for (let i = 0; i <= OUTLINE_COUNT; i++) {
-        //         let f = vecNext.scaleTo(i * distNext / OUTLINE_COUNT).addA(cartNext);
-        //         pathNext.push(f);
-        //     }
-        //
-        //     this._ghostOutlineLayer.getEntities()[0].polyline.setPath3v([pathNext]);
-        // }
-    }
-
     _onLclick(e) {
-
-        console.log("click");
-
-        // e.renderer.controls.mouseNavigation.deactivate();
-        // this._startClick.set(e.x, e.y);
-        // let coords = e.pickingObject.getCartesian();
-        // this._startPos = this._planet.getPixelFromCartesian(coords);
-        //
-        // if (e.pickingObject instanceof AreaCenter) {
-        //     this._pickedCenter = e.pickingObject;
-        // } else if (e.pickingObject instanceof AreaCorner) {
-        //     this._pickedCorner = e.pickingObject;
-        // }
+        if (!this._startPos) {
+            this._startLonLat = this._planet.getLonLatFromPixelTerrain(e);
+            this._startPos = this._planet.ellipsoid.lonLatToCartesian(this._startLonLat);
+        } else {
+            this._startPos = null;
+            this._startLonLat = null;
+        }
     }
 
     _onMouseMove(e) {
+        if(this._startPos) {
+            let endLonLat = this._planet.getLonLatFromPixelTerrain(e);
+            let endPos = this._planet.ellipsoid.lonLatToCartesian(endLonLat);
+            let dir = endPos.sub(this._startPos);
+            let dist = dir.length();
+            dir.normalize();
 
-        // if (this._pickedCorner) {
-        //
-        //     let d = new Vec2(e.x, e.y).sub(this._startClick),
-        //         p = this._startPos.add(d);
-        //
-        //     let groundCoords = this._planet.getCartesianFromPixelTerrain(p, true);
-        //
-        //     if (groundCoords) {
-        //
-        //         this._pickedCorner.setCartesian(groundCoords);
-        //
-        //         if (this._cornersArr.length) {
-        //             let ind = this._pickedCorner.index;
-        //             let size = this._cornersArr.length;
-        //
-        //             let cPrev = this._cornersArr[ind - 1],
-        //                 cNext = this._cornersArr[ind + 1];
-        //
-        //             let entities = this._outlineLayer.getEntities();
-        //
-        //             if (cPrev) {
-        //                 let cartPrev = cPrev.getCartesian();
-        //                 let vecPrev = this._pickedCorner.getCartesian().sub(cartPrev);
-        //                 let distPrev = vecPrev.length();
-        //                 vecPrev.normalize();
-        //
-        //                 let pathPrev = [];
-        //                 for (let i = 0; i <= OUTLINE_COUNT; i++) {
-        //                     let p = vecPrev.scaleTo(i * distPrev / OUTLINE_COUNT).addA(cartPrev);
-        //                     pathPrev.push(p);
-        //                 }
-        //
-        //                 let prevPolyline = entities[ind].polyline;
-        //                 prevPolyline.setPath3v([pathPrev]);
-        //
-        //                 //
-        //                 // Move center points
-        //                 let prevCenter = this._centersArr[ind - 1];
-        //                 let prevCenterCart = vecPrev.scaleTo(distPrev * 0.5).addA(cartPrev);
-        //
-        //                 prevCenter.setCartesian(prevCenterCart);
-        //                 prevCenter.checkTerrainCollision();
-        //             }
-        //
-        //             if (cNext) {
-        //                 let cartNext = cNext.getCartesian();
-        //                 let vecNext = this._pickedCorner.getCartesian().sub(cartNext);
-        //                 let distNext = vecNext.length();
-        //                 vecNext.normalize();
-        //
-        //                 let pathNext = [];
-        //                 for (let i = 0; i <= OUTLINE_COUNT; i++) {
-        //                     let f = vecNext.scaleTo(i * distNext / OUTLINE_COUNT).addA(cartNext);
-        //                     pathNext.push(f);
-        //                 }
-        //
-        //                 let nextPolyline = entities[(ind + 1) % size].polyline;
-        //                 nextPolyline.setPath3v([pathNext]);
-        //
-        //                 //
-        //                 // Move center points
-        //                 let nextCenter = this._centersArr[ind];
-        //                 let nextCenterCart = vecNext.scaleTo(distNext * 0.5).addA(cartNext);
-        //                 nextCenter.setCartesian(nextCenterCart);
-        //                 nextCenter.checkTerrainCollision();
-        //             }
-        //         }
-        //     }
-        // }
+            let path = [];
+
+            for (let i = 0; i <= OUTLINE_COUNT; i++) {
+                let f = dir.scaleTo(i * dist / OUTLINE_COUNT).addA(this._startPos);
+                path.push(f);
+            }
+
+            this._trackEntity.polyline.setPath3v([path]);
+        }
     }
 
     onremove() {
@@ -188,18 +105,6 @@ class RullerScene extends RenderNode {
     frame() {
         //this._drawGhostCorner();
     }
-
-    // setActive(active) {
-    //     if (this._isActive != active) {
-    //         super.setActive(active);
-    //         if (this._isActive && this._pickingCallbackId === -1) {
-    //             this._pickingCallbackId = this.renderer.addPickingCallback(this, this._drawPicking);
-    //         } else if (!this._isActive && this._pickingCallbackId !== -1) {
-    //             this.renderer.removePickingCallback(this._pickingCallbackId);
-    //             this._pickingCallbackId = -1;
-    //         }
-    //     }
-    // }
 
     get ellipsoid() {
         return this._planet ? this._planet.ellipsoid : null;
