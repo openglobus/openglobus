@@ -32,7 +32,7 @@ class RullerScene extends RenderNode {
                 size: 12,
                 color: "rgba(355,355,355,1.0)",
                 outlineColor: "rgba(0,0,0,1.0)",
-                outline: 0.0,
+                outline: 0.32,
                 align: "center",
                 offset: [0, -15]
             }
