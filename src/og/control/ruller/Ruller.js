@@ -24,7 +24,6 @@ class Ruller extends Control {
 
     oninit() {
         this._rullerScene.bindPlanet(this.planet);
-        this.activate();
     }
 
     onactivate() {
