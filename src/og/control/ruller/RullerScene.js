@@ -27,11 +27,12 @@ class RullerScene extends RenderNode {
             'name': 'propsLabel',
             'label': {
                 text: "123 m, 320 deg",
-                size: 11,
-                color: "rgba(355,355,0,1.0)",
+                size: 12,
+                color: "rgba(355,355,355,1.0)",
                 outlineColor: "rgba(0,0,0,1.0)",
                 outline: 0.0,
-                align: "center"
+                align: "center",
+                offset: [0, -15]
             }
         });
 
@@ -73,7 +74,7 @@ class RullerScene extends RenderNode {
     onremove() {
         this._deactivate();
     }
-    
+
     _activate() {
         this._propsLabel.label.setVisibility(false);
         this._onLclick_ = this._onLclick.bind(this);
@@ -96,6 +97,10 @@ class RullerScene extends RenderNode {
 
     _onLclick(e) {
         if (!this._startPos) {
+
+            this._propsLabel.label.setVisibility(false);
+            this._trackEntity.polyline.setPath3v([]);
+
             this._startLonLat = this._planet.getLonLatFromPixelTerrain(e);
             this._startPos = this._planet.ellipsoid.lonLatToCartesian(this._startLonLat);
         } else {
