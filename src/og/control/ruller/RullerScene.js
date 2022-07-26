@@ -22,6 +22,8 @@ class RullerScene extends RenderNode {
 
         this._startPos = null;
         this._startLonLat = null;
+        this._preventClick = false;
+        this._stopDrawing = false;
 
         this._propsLabel = new Entity({
             'name': 'propsLabel',
@@ -90,6 +92,8 @@ class RullerScene extends RenderNode {
     _deactivate() {
         this._startPos = null;
         this._startLonLat = null;
+        this._preventClick = false;
+        this._stopDrawing = false;
         this._trackLayer.remove();
         this.renderer.events.off("lclick", this._onLclick_);
         this.renderer.events.off("mousemove", this._onMouseMove_);
@@ -107,7 +111,7 @@ class RullerScene extends RenderNode {
         this._timeout = setTimeout(() => {
             if (!this._preventClick) {
                 if (!this._startPos) {
-
+                    this._stopDrawing = false;
                     this._propsLabel.label.setVisibility(false);
                     this._trackEntity.polyline.setPath3v([]);
 
@@ -119,16 +123,17 @@ class RullerScene extends RenderNode {
                 }
             }
             this._preventClick = false;
+            this._stopDrawing = false;
             clearTimeout(this._timeout);
         }, 200);
 
-        if (!this._startPos) {
-            this._startPos = null;
+        if (this._startPos) {
+            this._stopDrawing = true;
         }
     }
 
     _onMouseMove(e) {
-        if (this._startPos) {
+        if (this._startPos && !this._stopDrawing) {
             this._propsLabel.label.setVisibility(true);
             let endLonLat = this._planet.getLonLatFromPixelTerrain(e);
             if (!endLonLat) return;
