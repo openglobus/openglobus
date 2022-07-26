@@ -81,6 +81,9 @@ class RullerScene extends RenderNode {
         this.renderer.events.on("lclick", this._onLclick_, this);
         this._onMouseMove_ = this._onMouseMove.bind(this);
         this.renderer.events.on("mousemove", this._onMouseMove_, this);
+        this._onLdblclick_ = this._onLdblclick.bind(this);
+        this.renderer.events.on("ldblclick", this._onLdblclick_, this);
+
         this._planet.addLayer(this._trackLayer);
     }
 
@@ -95,17 +98,32 @@ class RullerScene extends RenderNode {
         this._onMouseMove_ = null;
     }
 
+    _onLdblclick() {
+        this._preventClick = true;
+    }
+
     _onLclick(e) {
+        let startLonLat = this._planet.getLonLatFromPixelTerrain(e);
+        this._timeout = setTimeout(() => {
+            if (!this._preventClick) {
+                if (!this._startPos) {
+
+                    this._propsLabel.label.setVisibility(false);
+                    this._trackEntity.polyline.setPath3v([]);
+
+                    this._startLonLat = startLonLat;
+                    this._startPos = this._planet.ellipsoid.lonLatToCartesian(this._startLonLat);
+                } else {
+                    this._startPos = null;
+                    this._startLonLat = null;
+                }
+            }
+            this._preventClick = false;
+            clearTimeout(this._timeout);
+        }, 200);
+
         if (!this._startPos) {
-
-            this._propsLabel.label.setVisibility(false);
-            this._trackEntity.polyline.setPath3v([]);
-
-            this._startLonLat = this._planet.getLonLatFromPixelTerrain(e);
-            this._startPos = this._planet.ellipsoid.lonLatToCartesian(this._startLonLat);
-        } else {
             this._startPos = null;
-            this._startLonLat = null;
         }
     }
 
