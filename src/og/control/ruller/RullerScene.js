@@ -84,6 +84,8 @@ class RullerScene extends RenderNode {
     }
 
     _deactivate() {
+        this._startPos = null;
+        this._startLonLat = null;
         this._trackLayer.remove();
         this.renderer.events.off("lclick", this._onLclick_);
         this.renderer.events.off("mousemove", this._onMouseMove_);
