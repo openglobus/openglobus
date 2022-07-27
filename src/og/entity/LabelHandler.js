@@ -205,6 +205,7 @@ class LabelHandler extends BillboardHandler {
             ec = this._entityCollection;
 
         gl.disable(gl.CULL_FACE);
+        //gl.disable(gl.DEPTH_TEST);
 
         gl.uniform1iv(shu.fontTextureArr, r.fontAtlas.samplerArr);
         gl.uniform4fv(shu.sdfParamsArr, r.fontAtlas.sdfParamsArr);

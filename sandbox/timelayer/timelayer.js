@@ -65,7 +65,7 @@ globus.planet.addControl(new LayerSwitcher());
 //globus.planet.addControl(la);
 let ruller = new Ruller();
 globus.planet.addControl(ruller);
-
+ruller.activate();
 
 window.globus = globus;
 //window.layerAnimation = la;

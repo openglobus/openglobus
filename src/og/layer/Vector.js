@@ -137,6 +137,11 @@ class Vector extends Layer {
         });
         this._bindEventsDefault(this._polylineEntityCollection);
 
+        this._geoObjectEntityCollection = new EntityCollection({
+            pickingEnabled: this.pickingEnabled
+        });
+        this._bindEventsDefault(this._geoObjectEntityCollection);
+
         this._geometryHandler = new GeometryHandler(this);
 
         this._entityCollectionsTree = null;
@@ -186,6 +191,7 @@ class Vector extends Layer {
             this._geometryHandler.assignHandler(planet.renderer.handler);
             this._polylineEntityCollection.addTo(planet, true);
             this._stripEntityCollection.addTo(planet, true);
+            this._geoObjectEntityCollection.addTo(planet, true);
             this.setEntities(this._entities);
         }
         return this;
@@ -283,6 +289,10 @@ class Vector extends Layer {
 
         if (entity.polyline || entity.ray) {
             this._polylineEntityCollection.add(entity);
+        }
+
+        if (entity.geoObject) {
+            this._geoObjectEntityCollection.add(entity);
         }
 
         if (entity.geometry) {
@@ -412,20 +422,22 @@ class Vector extends Layer {
 
         this._polylineEntityCollection.setPickingEnabled(picking);
 
+        this._geoObjectEntityCollection.setPickingEnabled(picking);
+
         this._entityCollectionsTree &&
-            this._entityCollectionsTree.traverseTree(function (node) {
-                node.entityCollection.setPickingEnabled(picking);
-            });
+        this._entityCollectionsTree.traverseTree(function (node) {
+            node.entityCollection.setPickingEnabled(picking);
+        });
 
         this._entityCollectionsTreeNorth &&
-            this._entityCollectionsTreeNorth.traverseTree(function (node) {
-                node.entityCollection.setPickingEnabled(picking);
-            });
+        this._entityCollectionsTreeNorth.traverseTree(function (node) {
+            node.entityCollection.setPickingEnabled(picking);
+        });
 
         this._entityCollectionsTreeSouth &&
-            this._entityCollectionsTreeSouth.traverseTree(function (node) {
-                node.entityCollection.setPickingEnabled(picking);
-            });
+        this._entityCollectionsTreeSouth.traverseTree(function (node) {
+            node.entityCollection.setPickingEnabled(picking);
+        });
     }
 
     /**
@@ -527,10 +539,10 @@ class Vector extends Layer {
 
         this._entities = new Array(temp.length);
 
-        var entitiesForTree = [];
+        let entitiesForTree = [];
 
-        for (var i = 0; i < temp.length; i++) {
-            var ei = temp[i];
+        for (let i = 0; i < temp.length; i++) {
+            let ei = temp[i];
 
             ei._layer = this;
             ei._layerIndex = i;
@@ -539,6 +551,8 @@ class Vector extends Layer {
                 this._stripEntityCollection.add(ei);
             } else if (ei.polyline || ei.ray) {
                 this._polylineEntityCollection.add(ei);
+            } else if (ei.geoObject) {
+                this._geoObjectEntityCollection.add(ei);
             } else if (ei.billboard || ei.label || ei.shape) {
                 entitiesForTree.push(ei);
             }
@@ -711,7 +725,7 @@ class Vector extends Layer {
     }
 
     _collectPolylineCollectionPASS(outArr) {
-        var ec = this._polylineEntityCollection;
+        let ec = this._polylineEntityCollection;
 
         ec._fadingOpacity = this._fadingOpacity;
         ec.scaleByDistance = this.scaleByDistance;
@@ -762,6 +776,58 @@ class Vector extends Layer {
         }
     }
 
+    _collectGeoObjectCollectionPASS(outArr) {
+        let ec = this._geoObjectEntityCollection;
+
+        ec._fadingOpacity = this._fadingOpacity;
+        ec.scaleByDistance = this.scaleByDistance;
+        ec.pickingScale = this.pickingScale;
+        ec.polygonOffsetUnits = this.polygonOffsetUnits;
+
+        outArr.push(ec);
+
+        // if (this.clampToGround || this.relativeToGround) {
+        //     let rtg = Number(this.relativeToGround);
+        //
+        //     var nodes = this._planet._renderedNodes;
+        //     var visibleExtent = this._planet.getViewExtent();
+        //     var e = ec._entities;
+        //     var e_i = e.length;
+        //     let res = new Vec3();
+        //
+        //     while (e_i--) {
+        //         var p = e[e_i].polyline;
+        //         if (visibleExtent.overlaps(p._extent)) {
+        //             // TODO:this works only for mercator area.
+        //             // needs to be working on poles.
+        //             let coords = p._pathLonLatMerc,
+        //                 c_j = coords.length;
+        //             while (c_j--) {
+        //                 var c_j_h = coords[c_j].length;
+        //                 while (c_j_h--) {
+        //                     let ll = coords[c_j][c_j_h],
+        //                         n_k = nodes.length;
+        //                     while (n_k--) {
+        //                         var seg = nodes[n_k].segment;
+        //                         if (seg._extent.isInside(ll)) {
+        //                             let cart = p._path3v[c_j][c_j_h];
+        //                             seg.getTerrainPoint(cart, ll, res);
+        //                             p.setPoint3v(
+        //                                 res.addA(res.normal().scale((rtg && p.altitude) || 0.0)),
+        //                                 c_j_h,
+        //                                 c_j,
+        //                                 true
+        //                             );
+        //                             break;
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+    }
+
     collectVisibleCollections(outArr) {
         var p = this._planet;
 
@@ -775,8 +841,8 @@ class Vector extends Layer {
 
             // Common collections first
             this._collectStripCollectionPASS(outArr);
-
             this._collectPolylineCollectionPASS(outArr);
+            this._collectGeoObjectCollectionPASS(outArr);
 
             // Merc nodes
             this._secondPASS = [];

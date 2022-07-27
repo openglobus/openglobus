@@ -7,7 +7,6 @@
 import { Rectangle } from '../Rectangle.js';
 import { TextureAtlas, TextureAtlasNode } from './TextureAtlas.js';
 import { Deferred } from '../Deferred.js';
-import { ARIAL_FONT_B64 } from '../res/images.js';
 
 //TODO: get the value from shader module
 const MAX_SIZE = 11;
@@ -160,7 +159,7 @@ class FontAtlas {
             this._createTexture(atlas, img);
             def.resolve(index);
         };
-        img.src = ARIAL_FONT_B64;
+        img.src = imageBase64;
     }
 
     _createTexture(atlas, img) {

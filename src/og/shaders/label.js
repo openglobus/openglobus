@@ -217,18 +217,22 @@ export function label_webgl2() {
                 vec4 sdfParams = sdfParamsArr[v_fontIndex];
                 float sd = getDistance();             
                 vec2 dxdy = fwidth(v_uv) * sdfParams.xy;
-                float dist = sd + min(0.001, 0.5 - 1.0 / sdfParams.w) - 0.5;
-                float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
 
                 if(isOutlinePass == 0){                             
-                    outScreen = vec4(v_rgba.rgb, opacity * v_rgba.a);
-                } else {                
-                    float strokeDist = sd + min(v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
-                    float strokeAlpha = v_rgba.a * clamp(strokeDist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);                    
-                    if(strokeAlpha < 0.1){
+                    float dist = sd + min(0.001, 0.5 - 1.0 / sdfParams.w) - 0.5;
+                    float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
+                    if(opacity <= 0.1){
                         discard;
                     }
-                    outScreen = v_rgba * strokeAlpha * (0.5 - opacity) * 2.0;
+                    outScreen = vec4(v_rgba.rgb, opacity * v_rgba.a);
+                } else {             
+                    float dist = sd + min(v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
+                    float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);                       
+                    if(opacity <= 0.1){
+                        discard;
+                    }
+                    outScreen = vec4(v_rgba.rgb, opacity * v_rgba.a);
+                    //outScreen = v_rgba * strokeAlpha * (0.5 - opacity) * 2.0;
                 }         
             }`
     });
@@ -459,14 +463,14 @@ export function label_screen() {
                 float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
 
                 if(isOutlinePass == 0){                             
-                    gl_FragColor = vec4(v_rgba.rgb, opacity * v_rgba.a);
+                    //gl_FragColor = vec4(v_rgba.rgb, opacity * v_rgba.a);
                 } else {                
                     float strokeDist = sd + min(v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
                     float strokeAlpha = v_rgba.a * clamp(strokeDist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);                    
                     if(strokeAlpha < 0.1){
                         discard;
                     }
-                    gl_FragColor = v_rgba * strokeAlpha * (0.5 - opacity) * 2.0;
+                    //gl_FragColor = v_rgba * strokeAlpha * (0.5 - opacity) * 2.0;
                 }
             }`
     });
