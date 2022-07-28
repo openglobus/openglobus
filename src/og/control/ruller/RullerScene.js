@@ -56,7 +56,7 @@ class RullerScene extends RenderNode {
 
         this._trackEntity.polyline.altitude = 2;
 
-        let obj3d = Object3d.createCylinder(1.5, 0, 5, 5, 1, true, false, 0, -3.5, 0)
+        let obj3d = Object3d.createCylinder(1.5, 0, 5, 20, 1, true, false, 0, -3.5, 0)
 
         this._cornerEntity = [
             new Entity({
@@ -64,7 +64,7 @@ class RullerScene extends RenderNode {
                     scale: 1,
                     instanced: true,
                     tag: "ruller",
-                    color: "green",
+                    color: "rgb(0,305,0)",
                     vertices: obj3d.vertices,
                     indices: obj3d.indexes,
                     normals: obj3d.normals
@@ -78,7 +78,7 @@ class RullerScene extends RenderNode {
                     scale: 1,
                     instanced: true,
                     tag: "ruller",
-                    color: "red",
+                    color: "rgb(455,0,0)",
                     vertices: obj3d.vertices,
                     indices: obj3d.indexes,
                     normals: obj3d.normals
