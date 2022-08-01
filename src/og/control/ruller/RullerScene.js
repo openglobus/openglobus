@@ -10,15 +10,31 @@ import { Vector } from '../../layer/Vector.js';
 import { Entity } from '../../entity/Entity.js';
 import { Ellipsoid } from '../../ellipsoid/Ellipsoid.js';
 import { Object3d } from '../../Object3d.js';
-import * as utils from "../../utils/shared.js";
 
 const OUTLINE_COUNT = 120;
+
+const MAX_SCALE = 0.005;
+const MIN_SCALE = 0.001;
+const MAX_SCALE_HEIGHT = 3000.0;
+const MIN_SCALE_HEIGHT = 19000000.0;
+
+function distanceFormat(v) {
+    if (v > 1000) {
+        return `${(v / 1000).toFixed(1)} km`;
+    } else if (v > 9) {
+        return `${Math.round(v)} m`;
+    } else {
+        return `${v.toFixed(1)} m`;
+    }
+}
 
 class RullerScene extends RenderNode {
     constructor(options = {}) {
         super(options.name);
 
         this.events = new Events(EVENT_NAMES);
+
+        this._ignoreTerrain = options.ignoreTerrain != undefined ? options.ignoreTerrain : true;
 
         this._planet = options.planet || null;
 
@@ -29,6 +45,8 @@ class RullerScene extends RenderNode {
         this._pickedCorner = null;
         this._startPos = null;
         this._startClick = new Vec2();
+
+        this._heading = 0;
 
         this._propsLabel = new Entity({
             'name': 'propsLabel',
@@ -54,9 +72,9 @@ class RullerScene extends RenderNode {
             }
         });
 
-        this._trackEntity.polyline.altitude = 2;
+        this._trackEntity.polyline.altitude = 0.01;
 
-        let obj3d = Object3d.createCylinder(1.5, 0, 5, 20, 1, true, false, 0, -3.5, 0)
+        let obj3d = Object3d.createCylinder(1.1, 0, 2.7, 20, 1, true, false, 0, 0, 0)
 
         this._cornerEntity = [
             new Entity({
@@ -93,7 +111,7 @@ class RullerScene extends RenderNode {
         this._trackLayer = new Vector("track", {
             entities: [this._trackEntity, this._propsLabel],
             pickingEnabled: false,
-            polygonOffsetUnits: 0,
+            polygonOffsetUnits: -1.0,
             relativeToGround: true
         });
 
@@ -101,6 +119,13 @@ class RullerScene extends RenderNode {
             entities: [this._cornerEntity[0], this._cornerEntity[1]],
             pickingEnabled: true
         });
+    }
+
+    set ignoreTerrain(v) {
+        this._ignoreTerrain = v;
+        if (v) {
+            //...redraw line
+        }
     }
 
     bindPlanet(planet) {
@@ -233,7 +258,7 @@ class RullerScene extends RenderNode {
         let endPos = this._planet.ellipsoid.lonLatToCartesian(endLonLat);
 
         let length = this._planet.ellipsoid.getGreatCircleDistance(startLonLat, endLonLat);
-        let heading = Ellipsoid.getRhumbBearing(startLonLat, endLonLat);
+        this._heading = Ellipsoid.getRhumbBearing(startLonLat, endLonLat);
 
         let path = [];
         let dir = endPos.sub(startPos);
@@ -247,8 +272,11 @@ class RullerScene extends RenderNode {
         path.push(endPos);
 
         this._trackEntity.polyline.setPath3v([path]);
-        this._propsLabel.setCartesian3v(path[Math.floor(path.length / 2)]);
-        this._propsLabel.label.setText(`${Math.round(length)} m, ${Math.round(heading)} deg`);
+
+        if (this._ignoreTerrain) {
+            this._propsLabel.setCartesian3v(path[Math.floor(path.length / 2)]);
+            this._propsLabel.label.setText(`${distanceFormat(length)}, ${Math.round(this._heading)} deg`);
+        }
     }
 
     _onMouseMove(e) {
@@ -277,11 +305,6 @@ class RullerScene extends RenderNode {
     }
 
     getScale(cart) {
-        const MAX_SCALE = 0.005;
-        const MIN_SCALE = 0.001;
-        const MAX_SCALE_HEIGHT = 3000.0;
-        const MIN_SCALE_HEIGHT = 1900000.0;
-
         let r = this.renderer;
         let t = 1.0 - (r.activeCamera._lonLat.height - MAX_SCALE_HEIGHT) / (MIN_SCALE_HEIGHT - MAX_SCALE_HEIGHT);
         let _distanceToCamera = cart.distance(r.activeCamera.eye);
@@ -296,6 +319,16 @@ class RullerScene extends RenderNode {
 
             this._cornerEntity[0].geoObject.setScale(this.getScale(this._cornerEntity[0].getCartesian()));
             this._cornerEntity[1].geoObject.setScale(this.getScale(this._cornerEntity[1].getCartesian()));
+
+            if (!this._ignoreTerrain) {
+                let res = 0;
+                for (let i = 0, len = t.length - 1; i < len; i++) {
+                    res += t[i + 1].distance(t[i]);
+                }
+
+                this._propsLabel.setCartesian3v(t[Math.floor(t.length / 2)]);
+                this._propsLabel.label.setText(`${distanceFormat(res)}, ${Math.round(this._heading)} deg`);
+            }
         }
     }
 
