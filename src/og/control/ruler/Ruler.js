@@ -22,6 +22,10 @@ class Ruler extends Control {
         });
     }
 
+    set ignoreTerrain(v) {
+        this._rulerScene.ignoreTerrain = v;
+    }
+
     oninit() {
         this._rulerScene.bindPlanet(this.planet);
     }
