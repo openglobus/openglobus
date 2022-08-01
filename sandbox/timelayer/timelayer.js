@@ -7,7 +7,7 @@ import { EmptyTerrain } from "../../src/og/terrain/EmptyTerrain.js";
 import { LayerSwitcher } from "../../src/og/control/LayerSwitcher.js";
 import { DebugInfo } from "../../src/og/control/DebugInfo.js";
 //import { LayerAnimation } from "../../src/og/control/LayerAnimation.js";
-import { Ruller } from "../../src/og/control/ruller/Ruller.js";
+import { Ruler } from "../../src/og/control/ruler/Ruler.js";
 
 
 let osm1 = new XYZ("osm-1", {
@@ -63,10 +63,10 @@ var globus = new Globe({
 
 globus.planet.addControl(new LayerSwitcher());
 //globus.planet.addControl(la);
-let ruller = new Ruller();
-globus.planet.addControl(ruller);
-ruller.activate();
+let ruler = new Ruler();
+globus.planet.addControl(ruler);
+ruler.activate();
 
 window.globus = globus;
 //window.layerAnimation = la;
-window.ruller = ruller;
+window.ruler = ruler;

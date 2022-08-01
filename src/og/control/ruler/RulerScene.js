@@ -28,7 +28,7 @@ function distanceFormat(v) {
     }
 }
 
-class RullerScene extends RenderNode {
+class RulerScene extends RenderNode {
     constructor(options = {}) {
         super(options.name);
 
@@ -81,7 +81,7 @@ class RullerScene extends RenderNode {
                 geoObject: {
                     scale: 1,
                     instanced: true,
-                    tag: "ruller",
+                    tag: "ruler",
                     color: "rgb(0,305,0)",
                     vertices: obj3d.vertices,
                     indices: obj3d.indexes,
@@ -95,7 +95,7 @@ class RullerScene extends RenderNode {
                 geoObject: {
                     scale: 1,
                     instanced: true,
-                    tag: "ruller",
+                    tag: "ruler",
                     color: "rgb(455,0,0)",
                     vertices: obj3d.vertices,
                     indices: obj3d.indexes,
@@ -367,4 +367,4 @@ const EVENT_NAMES = [
     "touchenter"
 ];
 
-export { RullerScene };
+export { RulerScene };
