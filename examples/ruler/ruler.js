@@ -1,7 +1,6 @@
 import { Globe } from "../../src/og/Globe.js";
 import { XYZ } from "../../src/og/layer/XYZ.js";
 import { GlobusTerrain } from "../../src/og/terrain/GlobusTerrain.js";
-import { LayerSwitcher } from "../../src/og/control/LayerSwitcher.js";
 import { Ruler } from "../../src/og/control/ruler/Ruler.js";
 
 let osm = new XYZ("osm-1", {
@@ -20,6 +19,8 @@ var globus = new Globe({
     layers: [osm]
 });
 
-let ruler = new Ruler()
+let ruler = new Ruler({
+    ignoreTerrain: false
+})
 globus.planet.addControl(ruler);
 ruler.activate();

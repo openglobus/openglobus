@@ -19,6 +19,7 @@ class Ruler extends Control {
 
         this._rulerScene = new RulerScene({
             name: `rulerScene:${this._id}`,
+            ignoreTerrain: options.ignoreTerrain
         });
     }
 
