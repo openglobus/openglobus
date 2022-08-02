@@ -17,7 +17,7 @@ class LayerAnimation extends Control {
     constructor(options = {}) {
         super(options);
 
-        this.events = new Events(["change"])
+        this.events = new Events(["change", "idle"])
 
         this._name = `layerAnimation ${this._id}`;
 
@@ -36,7 +36,6 @@ class LayerAnimation extends Control {
             li.opacity = 0.0;
             this.planet.addLayer(li);
         }
-
 
         this._onLayerLoadend_ = this._onLayerLoadend.bind(this);
         this.planet._tileLoader.events.on("layerloadend", this._onLayerLoadend_, this);
@@ -61,16 +60,14 @@ class LayerAnimation extends Control {
         this._onLayerLoadend_ = null;
     }
 
-    _onLayerLoadend(layer) {
-        let currLayer = this._layersArr[this._currentIndex];
-        if (currLayer.isEqual(layer)) {
-            console.log("current layer is visible now");
-            currLayer.opacity = 1.0;
-            let prevLayer = this._layersArr[this._prevIndex];
-            if (prevLayer) {
-                prevLayer.setVisibility(false);
-                prevLayer.opacity = 0.0;
-            }
+    clear() {
+        this._currentIndex = -1;
+        this._prevIndex = -1;
+        let layersToRemove = this._layersArr;
+        this._layersArr = [];
+        this._layersIndexesArr = [];
+        for (let i = 0; i < layersToRemove.length; i++) {
+            layersToRemove[i].remove();
         }
     }
 
@@ -80,6 +77,25 @@ class LayerAnimation extends Control {
 
     appendLayer(layer) {
 
+    }
+
+    get isIdle() {
+        let currLayer = this._layersArr[this._currentIndex];
+        return currLayer && currLayer.isIdle || !currLayer;
+    }
+
+    _onLayerLoadend(layer) {
+        let currLayer = this._layersArr[this._currentIndex];
+        if (currLayer.isEqual(layer)) {
+            // * CURRENT Layer is VISIBLE NOW *
+            currLayer.opacity = 1.0;
+            let prevLayer = this._layersArr[this._prevIndex];
+            if (prevLayer) {
+                prevLayer.setVisibility(false);
+                prevLayer.opacity = 0.0;
+            }
+            this.events.dispatch(this.events.idle, currLayer, prevLayer, this._currentIndex, this._prevIndex);
+        }
     }
 
     setCurrentIndex(index) {
@@ -100,11 +116,14 @@ class LayerAnimation extends Control {
                             prevLayer.setVisibility(false);
                             prevLayer.opacity = 0.0;
                         }
+                        this.events.dispatch(this.events.idle, currLayer, prevLayer, this._currentIndex, this._prevIndex);
                     }
                 });
             }
             this.events.dispatch(this.events.change, this._currentIndex, this._prevIndex);
         }
+
+        return this.isIdle;
     }
 }
 

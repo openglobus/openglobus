@@ -6,67 +6,50 @@ import { GlobusTerrain } from "../../src/og/terrain/GlobusTerrain.js";
 import { EmptyTerrain } from "../../src/og/terrain/EmptyTerrain.js";
 import { LayerSwitcher } from "../../src/og/control/LayerSwitcher.js";
 import { DebugInfo } from "../../src/og/control/DebugInfo.js";
-//import { LayerAnimation } from "../../src/og/control/LayerAnimation.js";
-import { Ruler } from "../../src/og/control/ruler/Ruler.js";
+import { LayerAnimation } from "../../src/og/control/LayerAnimation.js";
 
 
 let osm1 = new XYZ("osm-1", {
-    isBaseLayer: false,
+    isBaseLayer: true,
     url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    diffuse: [1, 1, 1],
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#AAD3DF" }, { color: "#F2EFE9" }],
     isSRGB: false
     //textureFilter: "linear"
 });
 
-let osm2 = new XYZ("osm-2", {
-    diffuse: [1, 0, 0],
-    isBaseLayer: false,
-    url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    maxNativeZoom: 19,
-    defaultTextures: [{ color: "#FF0000" }, { color: "#FF0000" }],
-    isSRGB: false
-    //textureFilter: "linear"
-});
+let timeLayers = [];
+let min = 8,
+    max = 20;
+for (let i = min; i <= max; i++) {
+    let h = i.toString().padStart(2, "0");
+    let l = new XYZ(`clouds-${i}`, {
+        isBaseLayer: false,
+        url: `//assets.msn.com/weathermapdata/1/cloudforeca/202207300000/{x}_{y}_{z}_20220730${h}00.png`,
+        maxNativeZoom: 15,
+        isSRGB: false,
+        //textureFilter: "linear"
+        height: 10000
+    });
 
-let osm3 = new XYZ("osm-3", {
-    diffuse: [0, 1, 0],
-    isBaseLayer: false,
-    url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    maxNativeZoom: 19,
-    defaultTextures: [{ color: "#00FF00" }, { color: "#00FF00" }],
-    isSRGB: false
-    //textureFilter: "linear"
-});
+    timeLayers.push(l);
+}
 
-let osm4 = new XYZ("osm-4", {
-    diffuse: [0, 0, 1],
-    isBaseLayer: false,
-    url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    maxNativeZoom: 19,
-    defaultTextures: [{ color: "#0000FF" }, { color: "#0000FF" }],
-    isSRGB: false
-    //textureFilter: "linear"
-});
 
 var globus = new Globe({
     target: "earth",
     name: "Earth",
-    terrain: new GlobusTerrain(),
+    terrain: new EmptyTerrain(),
     layers: [osm1]
 });
 
-// let la = new LayerAnimation({
-//     layers: [osm1, osm2, osm3, osm4]
-// });
+let la = new LayerAnimation({
+    layers: timeLayers
+});
 
 globus.planet.addControl(new LayerSwitcher());
-//globus.planet.addControl(la);
-let ruler = new Ruler();
-globus.planet.addControl(ruler);
-ruler.activate();
+globus.planet.addControl(la);
+
+window.la = la;
 
 window.globus = globus;
-//window.layerAnimation = la;
-window.ruler = ruler;
