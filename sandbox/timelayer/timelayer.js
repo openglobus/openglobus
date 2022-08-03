@@ -28,7 +28,7 @@ for (let i = min; i <= max; i++) {
         isBaseLayer: false,
         //url: `//assets.msn.com/weathermapdata/1/cloudforeca/202207300000/{x}_{y}_{z}_20220730${h}00.png`,
         url: `//assets.msn.com/weathermapdata/1/cloudforeca/202208021200/{x}_{y}_{z}_20220803${h}00.png`,
-        maxNativeZoom: 7,
+        maxNativeZoom: 6,
         isSRGB: false,
         //textureFilter: "linear"
         height: 10000,

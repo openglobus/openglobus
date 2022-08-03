@@ -25,6 +25,10 @@ class LayerAnimation extends Control {
         this._layersIndexesArr = this._layersArr.map((l) => l._id);
 
         this._currentIndex = -1;
+
+        this._playInterval = 150;
+        this._playIntervalHandler = -1;
+        this._playIndex = 0;
     }
 
     oninit() {
@@ -96,6 +100,48 @@ class LayerAnimation extends Control {
             }
             this.events.dispatch(this.events.idle, currLayer, prevLayer, this._currentIndex, this._prevIndex);
         }
+    }
+
+    get playInterval() {
+        return this._playInterval;
+    }
+
+    set playInterval(val) {
+        if (val !== this._playInterval) {
+            this._playInterval = val;
+            if (this.isPlaying) {
+                this.pause();
+                this.play();
+            }
+        }
+    }
+
+    get isPlaying() {
+        return this._playIntervalHandler !== -1;
+    }
+
+    play() {
+        if (!this.isPlaying) {
+            this._playIntervalHandler = setInterval(() => {
+                if (this._playIndex > this._layersArr.length) {
+                    this._playIndex = 0;
+                }
+                if (this.setCurrentIndex(this._playIndex)) {
+                    this._playIndex++;
+                }
+            }, this._playInterval);
+        }
+    }
+
+    stop() {
+        this.pause();
+        this._playIndex = 0;
+        this.setCurrentIndex(0);
+    }
+
+    pause() {
+        clearInterval(this._playIntervalHandler);
+        this._playIntervalHandler = -1;
     }
 
     setCurrentIndex(index) {
