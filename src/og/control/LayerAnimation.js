@@ -19,31 +19,23 @@ class LayerAnimation extends Control {
 
         this.events = new Events(["change", "idle"])
 
-        this._name = `layerAnimation ${this._id}`;
+        this._name = `layerAnimation-${this._id}`;
 
-        this._layersArr = options.layers || [];
-        this._layersIndexesArr = this._layersArr.map((l) => l._id);
-
+        this._layersArr = options.layers ? [].concat(options.layers) : [];
         this._currentIndex = -1;
 
         this._playInterval = 150;
         this._playIntervalHandler = -1;
         this._playIndex = 0;
+
+        this.repeat = options.repeat != undefined ? options.repeat : true;
     }
 
     oninit() {
         super.oninit();
-
-        for (let i = 0; i < this._layersArr.length; i++) {
-            let li = this._layersArr[i];
-            li.setVisibility(false);
-            li.opacity = 0.0;
-            this.planet.addLayer(li);
-        }
-
+        this._initLayers();
         this._onLayerLoadend_ = this._onLayerLoadend.bind(this);
         this.planet._tileLoader.events.on("layerloadend", this._onLayerLoadend_, this);
-
         this.setCurrentIndex(0);
     }
 
@@ -57,7 +49,6 @@ class LayerAnimation extends Control {
 
         for (let i = 0; i < this._layersArr.length; i++) {
             this._layersArr[i].setVisibility(false);
-            this._layersArr[i].opacity = 1.0;
         }
 
         this.planet._tileLoader.events.off("layerloadend", this._onLayerLoadend_);
@@ -65,22 +56,40 @@ class LayerAnimation extends Control {
     }
 
     clear() {
+        this.stop();
         this._currentIndex = -1;
         this._prevIndex = -1;
         let layersToRemove = this._layersArr;
         this._layersArr = [];
-        this._layersIndexesArr = [];
         for (let i = 0; i < layersToRemove.length; i++) {
             layersToRemove[i].remove();
         }
     }
 
-    setLayers(layers) {
+    _initLayers() {
+        if (this.planet) {
+            for (let i = 0; i < this._layersArr.length; i++) {
+                let li = this._layersArr[i];
+                li.setVisibility(false);
+                li.opacity = 0.0;
+                this.planet.addLayer(li);
+            }
+        }
+    }
 
+    setLayers(layers) {
+        this.clear();
+        this._layersArr = [].concat(layers);
+        this._initLayers();
     }
 
     appendLayer(layer) {
-
+        this._layersArr.push(layer);
+        layer.setVisibility(false);
+        layer.opacity = 0.0;
+        if (this.planet) {
+            this.planet.addLayer(layer);
+        }
     }
 
     get isIdle() {
@@ -124,7 +133,11 @@ class LayerAnimation extends Control {
         if (!this.isPlaying) {
             this._playIntervalHandler = setInterval(() => {
                 if (this._playIndex > this._layersArr.length) {
-                    this._playIndex = 0;
+                    if (this.repeat) {
+                        this._playIndex = 0;
+                    } else {
+                        this.pause();
+                    }
                 }
                 if (this.setCurrentIndex(this._playIndex)) {
                     this._playIndex++;

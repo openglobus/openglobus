@@ -148,6 +148,7 @@ class XYZ extends Layer {
      * @param {Material} material - Loads current material.
      */
     loadMaterial(material, forceLoading) {
+
         let seg = material.segment;
 
         if (this._isBaseLayer) {
