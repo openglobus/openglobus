@@ -12,7 +12,7 @@ import { LonLat } from "../LonLat.js";
 import { Material } from "./Material.js";
 import { Vec3 } from "../math/Vec3.js";
 
-export const FADING_FACTOR = 0.29;
+const FADING_RATIO = 15.8;
 
 /**
  * @classdesc
@@ -141,7 +141,7 @@ class Layer {
 
         this._fading = options.fading || false;
 
-        this._fadingFactor = FADING_FACTOR;
+        this._fadingFactor = this._opacity / FADING_RATIO;
 
         if (this._fading) {
             this._fadingOpacity = this._visibility ? this._opacity : 0.0;
@@ -239,20 +239,18 @@ class Layer {
     }
 
     set opacity(opacity) {
-        if (this._fading) {
-            if (opacity > this._opacity) {
-                this._fadingFactor = (opacity - this._opacity) / 2.8;
-            } else if (opacity < this._opacity) {
-                this._fadingFactor = (opacity - this._opacity) / 2.8;
+        if (opacity !== this._opacity) {
+            if (this._fading) {
+                if (opacity > this._opacity) {
+                    this._fadingFactor = (opacity - this._opacity) / FADING_RATIO;
+                } else if (opacity < this._opacity) {
+                    this._fadingFactor = (opacity - this._opacity) / FADING_RATIO;
+                }
+            } else {
+                this._fadingOpacity = opacity;
             }
-        } else {
-            this._fadingOpacity = opacity;
+            this._opacity = opacity;
         }
-        this._opacity = opacity;
-    }
-
-    get opacity() {
-        return this._opacity;
     }
 
     set pickingEnabled(picking) {
@@ -603,6 +601,14 @@ class Layer {
         // }
     }
 
+    get opacity() {
+        return this._opacity;
+    }
+
+    get screenOpacity() {
+        return this._fading ? this._fadingOpacity : this._opacity;
+    }
+
     _refreshFadingOpacity() {
         var p = this._planet;
         if (
@@ -620,14 +626,15 @@ class Layer {
             ) {
                 this._fadingOpacity = this._opacity;
             }
+
             return false;
         } else {
-            this._fadingOpacity -= FADING_FACTOR;
+            //this._fadingOpacity -= this._opacity / FADING_RATIO;
 
-            if (this._fadingOpacity < 0.0) {
-                this._fadingOpacity = 0.0;
-                return !this._visibility;
-            }
+            //if (this._fadingOpacity < 0.0) {
+            //    this._fadingOpacity = 0.0;
+            return !this._visibility;
+            //}
         }
     }
 

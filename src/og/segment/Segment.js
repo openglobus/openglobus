@@ -1435,7 +1435,7 @@ class Segment {
             p = this.planet;
 
         var currHeight, li;
-        if (layerSlice) {
+        if (layerSlice.length) {
             li = layerSlice[0];
             currHeight = li._height;
         } else {
@@ -1541,7 +1541,7 @@ class Segment {
             p = this.planet;
 
         var currHeight;
-        if (layerSlice) {
+        if (layerSlice.length) {
             currHeight = layerSlice[0]._height;
         } else {
             currHeight = 0;
@@ -1568,7 +1568,7 @@ class Segment {
             p = this.planet;
 
         var currHeight;
-        if (layerSlice) {
+        if (layerSlice.length) {
             currHeight = layerSlice[0]._height;
         } else {
             currHeight = 0;
@@ -1632,7 +1632,7 @@ class Segment {
             shu = sh.uniforms;
 
         var currHeight;
-        if (layerSlice) {
+        if (layerSlice.length) {
             currHeight = layerSlice[0]._height;
         } else {
             currHeight = 0;
