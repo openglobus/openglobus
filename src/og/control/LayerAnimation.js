@@ -92,6 +92,10 @@ class LayerAnimation extends Control {
         }
     }
 
+    /**
+     * @warning Use XYZ.isIdle in requesAnimationFrame(after setVisibility)
+     * @returns {*|(function(*): *)|(function(*): *)|boolean}
+     */
     get isIdle() {
         let currLayer = this._layersArr[this._currentIndex];
         return currLayer && currLayer.isIdle || !currLayer;
@@ -129,8 +133,15 @@ class LayerAnimation extends Control {
         return this._playIntervalHandler !== -1;
     }
 
+    get layers() {
+        return this._layersArr;
+    }
+
     play() {
         if (!this.isPlaying) {
+            if (this._currentIndex >= this._layersArr.length - 1) {
+                this.stop();
+            }
             this._playIntervalHandler = setInterval(() => {
                 if (this._playIndex > this._layersArr.length) {
                     if (this.repeat) {
@@ -139,9 +150,13 @@ class LayerAnimation extends Control {
                         this.pause();
                     }
                 }
-                if (this.setCurrentIndex(this._playIndex)) {
-                    this._playIndex++;
-                }
+                this.setCurrentIndex(this._playIndex);
+
+                requestAnimationFrame(() => {
+                    if (this.isIdle) {
+                        this._playIndex++;
+                    }
+                });
             }, this._playInterval);
         }
     }
@@ -175,14 +190,11 @@ class LayerAnimation extends Control {
                             prevLayer.setVisibility(false);
                             prevLayer.opacity = 0.0;
                         }
-                        this.events.dispatch(this.events.idle, currLayer, prevLayer, this._currentIndex, this._prevIndex);
                     }
                 });
             }
             this.events.dispatch(this.events.change, this._currentIndex, this._prevIndex);
         }
-
-        return this.isIdle;
     }
 }
 

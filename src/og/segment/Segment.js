@@ -735,6 +735,7 @@ class Segment {
             this.terrainExists = false;
         }
     }
+
     _normalMapEdgeEqualize(side) {
         let nn = this.node.neighbors;
         let n = nn[side][0];
@@ -1080,10 +1081,10 @@ class Segment {
                     v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
 
                 let vn = new Vec3(
-                    bigOne[3] - bigOne[0],
-                    bigOne[4] - bigOne[1],
-                    bigOne[5] - bigOne[2]
-                ),
+                        bigOne[3] - bigOne[0],
+                        bigOne[4] - bigOne[1],
+                        bigOne[5] - bigOne[2]
+                    ),
                     vw = new Vec3(
                         bigOne[6] - bigOne[0],
                         bigOne[7] - bigOne[1],
@@ -1256,16 +1257,16 @@ class Segment {
 
         n.sideSize[0] =
             n.sideSize[1] =
-            n.sideSize[2] =
-            n.sideSize[3] =
-            this.gridSize =
-            p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize;
+                n.sideSize[2] =
+                    n.sideSize[3] =
+                        this.gridSize =
+                            p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize;
 
         n.sideSizeLog2[0] =
             n.sideSizeLog2[1] =
-            n.sideSizeLog2[2] =
-            n.sideSizeLog2[3] =
-            Math.log2(p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize);
+                n.sideSizeLog2[2] =
+                    n.sideSizeLog2[3] =
+                        Math.log2(p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize);
 
         if (this.tileZoom <= p.terrain.maxZoom) {
             var nmc = this.planet._normalMapCreator;
@@ -1709,4 +1710,5 @@ class Segment {
         return -1;
     }
 }
+
 export { Segment };

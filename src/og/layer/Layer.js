@@ -511,7 +511,7 @@ class Layer {
             this._planet._renderCompleted = false;
         }
 
-        this.applyMaterial(m);
+        this.applyMaterial(m, true);
     }
 
     _preLoadRecursive(node, maxZoom) {

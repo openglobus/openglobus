@@ -47,11 +47,37 @@ var globus = new Globe({
 });
 
 let la = new LayerAnimation({
-    layers: timeLayers
+    layers: timeLayers,
+    repeat: true
 });
 
 globus.planet.addControl(new LayerSwitcher());
 globus.planet.addControl(la);
+
+let $slider = document.querySelector(".pl-slider");
+
+document.querySelector(".pl-button__play").addEventListener("click", (e) => {
+    if (e.target.innerText === "PLAY") {
+        e.target.innerText = "PAUSE";
+        la.play();
+    } else {
+        e.target.innerText = "PLAY";
+        la.pause();
+    }
+});
+
+document.querySelector(".pl-button__stop").addEventListener("click", () => {
+    document.querySelector(".pl-button__play").innerText = "PLAY";
+    la.stop();
+});
+
+$slider.addEventListener("input", (e) => {
+    let val = Number(e.target.value);
+    let index = Math.round(val * la.layers.length / 100);
+    la.pause();
+    la.setCurrentIndex(index);
+});
+
 
 window.la = la;
 

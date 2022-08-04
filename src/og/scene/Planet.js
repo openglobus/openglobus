@@ -1291,7 +1291,6 @@ export class Planet extends RenderNode {
             s.screenRendering(sh, sl[0], 0);
         }
 
-        //gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1, len = sl.length; j < len; j++) {
             let slj = sl[j];
             for (i = slj.length - 1; i >= 0; --i) {
@@ -1302,7 +1301,6 @@ export class Planet extends RenderNode {
             }
 
             i = rn.length;
-            //gl.polygonOffset(0, -j);
             while (i--) {
                 rn[i].segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
             }
@@ -1476,7 +1474,7 @@ export class Planet extends RenderNode {
 
         this._normalMapCreator.clear();
         this.terrain.abortLoading();
-        this._tileLoader.abort();
+        //this._tileLoader.abort();
 
         var that = this;
         // setTimeout(function () {
