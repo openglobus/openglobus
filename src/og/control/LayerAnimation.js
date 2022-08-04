@@ -180,7 +180,7 @@ class LayerAnimation extends Control {
         this._playIntervalHandler = -1;
     }
 
-    setCurrentIndex(index) {
+    setCurrentIndex(index, forceVisibility, stopPropagation) {
         if (index != this._currentIndex && index >= 0 && index < this._layersArr.length) {
             this._prevIndex = this._currentIndex;
             this._currentIndex = index;
@@ -189,19 +189,31 @@ class LayerAnimation extends Control {
                 currLayer = this._layersArr[index];
 
             if (currLayer) {
-                currLayer.opacity = 0.0;
-                currLayer.setVisibility(true);
-                requestAnimationFrame(() => {
-                    if (currLayer.isIdle) {
-                        currLayer.opacity = 1.0;
-                        if (prevLayer) {
-                            prevLayer.setVisibility(false);
-                            prevLayer.opacity = 0.0;
-                        }
+                if (forceVisibility) {
+                    this._playIndex = index;
+                    currLayer.opacity = 1.0;
+                    currLayer.setVisibility(true);
+                    if (prevLayer) {
+                        prevLayer.setVisibility(false);
+                        prevLayer.opacity = 0.0;
                     }
-                });
+                } else {
+                    currLayer.opacity = 0.0;
+                    currLayer.setVisibility(true);
+                    requestAnimationFrame(() => {
+                        if (currLayer.isIdle) {
+                            currLayer.opacity = 1.0;
+                            if (prevLayer) {
+                                prevLayer.setVisibility(false);
+                                prevLayer.opacity = 0.0;
+                            }
+                        }
+                    });
+                }
+                if (!stopPropagation) {
+                    this.events.dispatch(this.events.change, this._currentIndex, this._prevIndex);
+                }
             }
-            this.events.dispatch(this.events.change, this._currentIndex, this._prevIndex);
         }
     }
 }

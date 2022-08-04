@@ -54,9 +54,10 @@ let la = new LayerAnimation({
 globus.planet.addControl(new LayerSwitcher());
 globus.planet.addControl(la);
 
-let $slider = document.querySelector(".pl-slider");
+let $slider = document.querySelector(".pl-slider"),
+    $play = document.querySelector(".pl-button__play");
 
-document.querySelector(".pl-button__play").addEventListener("click", (e) => {
+$play.addEventListener("click", (e) => {
     if (e.target.innerText === "PLAY") {
         e.target.innerText = "PAUSE";
         la.play();
@@ -72,10 +73,16 @@ document.querySelector(".pl-button__stop").addEventListener("click", () => {
 });
 
 $slider.addEventListener("input", (e) => {
+    $play.innerText = "PLAY";
     let val = Number(e.target.value);
     let index = Math.round(val * la.layers.length / 100);
     la.pause();
-    la.setCurrentIndex(index);
+    la.setCurrentIndex(index, true, true);
+});
+
+la.events.on("change", (currIndex) => {
+    console.log(currIndex);
+    $slider.value = Math.round(currIndex * 100 / la.layers.length);
 });
 
 
