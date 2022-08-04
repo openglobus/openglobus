@@ -93,8 +93,8 @@ class LayerAnimation extends Control {
     }
 
     /**
-     * @warning Use XYZ.isIdle in requesAnimationFrame(after setVisibility)
-     * @returns {*|(function(*): *)|(function(*): *)|boolean}
+     * warning: Use XYZ.isIdle in requesAnimationFrame(after setVisibility)
+     * @returns {boolean} Returns truw if current layer is idle
      */
     get isIdle() {
         let currLayer = this._layersArr[this._currentIndex];
