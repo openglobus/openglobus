@@ -17,7 +17,7 @@ class LayerAnimation extends Control {
     constructor(options = {}) {
         super(options);
 
-        this.events = new Events(["change", "idle"])
+        this.events = new Events(["change", "idle", "play", "pause", "stop"])
 
         this._name = `layerAnimation-${this._id}`;
 
@@ -158,16 +158,24 @@ class LayerAnimation extends Control {
                     }
                 });
             }, this._playInterval);
+
+            this.events.dispatch(this.events.play);
         }
     }
 
     stop() {
-        this.pause();
+        this._clearInterval();
         this._playIndex = 0;
         this.setCurrentIndex(0);
+        this.events.dispatch(this.events.stop);
     }
 
     pause() {
+        this._clearInterval();
+        this.events.dispatch(this.events.pause);
+    }
+
+    _clearInterval() {
         clearInterval(this._playIntervalHandler);
         this._playIntervalHandler = -1;
     }
