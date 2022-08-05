@@ -35,7 +35,7 @@ class LayerAnimation extends Control {
         super.oninit();
         this._initLayers();
         this._onLayerLoadend_ = this._onLayerLoadend.bind(this);
-        this.planet._tileLoader.events.on("layerloadend", this._onLayerLoadend_, this);
+        this.planet.events.on("layerloadend", this._onLayerLoadend_, this);
         this.setCurrentIndex(0);
     }
 
@@ -51,7 +51,7 @@ class LayerAnimation extends Control {
             this._layersArr[i].setVisibility(false);
         }
 
-        this.planet._tileLoader.events.off("layerloadend", this._onLayerLoadend_);
+        this.planet.events.off("layerloadend", this._onLayerLoadend_);
         this._onLayerLoadend_ = null;
     }
 
@@ -103,7 +103,7 @@ class LayerAnimation extends Control {
 
     _onLayerLoadend(layer) {
         let currLayer = this._layersArr[this._currentIndex];
-        if (currLayer.isEqual(layer)) {
+        if (currLayer && currLayer.isEqual(layer)) {
             // * CURRENT Layer is VISIBLE NOW *
             currLayer.opacity = 1.0;
             let prevLayer = this._layersArr[this._prevIndex];

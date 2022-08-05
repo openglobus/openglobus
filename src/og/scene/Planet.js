@@ -94,7 +94,13 @@ const EVENT_NAMES = [
      * Triggered when all data is loaded
      * @event og.scene.Planet#terraincompleted
      */
-    "terraincompleted"
+    "terraincompleted",
+
+    /**
+     * Triggered when layer data is laded
+     * @event og.scene.Planet#terraincompleted
+     */
+    "layerloadend"
 ];
 
 /**
@@ -689,11 +695,18 @@ export class Planet extends RenderNode {
         this.renderer.screenTexture.height = this._heightPickingFramebuffer.textures[0];
     }
 
+    _onLayerLoadend(layer) {
+        this.events.dispatch(this.events.layerloadend, layer);
+    }
+
     /**
      * @virtual
      * @public
      */
     init() {
+
+        this._tileLoader.events.on("layerloadend", this._onLayerLoadend, this);
+
         // Initialization indexes table
         segmentHelper.getInstance().setMaxGridSize(this._maxGridSize);
         const TABLESIZE = this._maxGridSize;
