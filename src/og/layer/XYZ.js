@@ -92,8 +92,11 @@ class XYZ extends Layer {
         this._urlRewriteCallback = options.urlRewrite || null;
     }
 
+    /**
+     * @warning Use XYZ.isIdle in requesAnimationFrame(after setVisibility)
+     */
     get isIdle() {
-        return !this._planet || this._planet._tileLoader.isIdle(this);
+        return this._planet ? this._planet._tileLoader.isIdle(this) : false;
     }
 
     get instanceName() {
@@ -106,7 +109,7 @@ class XYZ extends Layer {
      */
     abortLoading() {
         if (this._planet) {
-            this._planet._tileLoader.abort();
+            this._planet._tileLoader.abort(this);
         }
     }
 
@@ -118,11 +121,20 @@ class XYZ extends Layer {
     setVisibility(visibility) {
         if (visibility !== this._visibility) {
             super.setVisibility(visibility);
-
             if (!visibility) {
                 this.abortLoading();
             }
         }
+    }
+
+    remove() {
+        this.abortLoading();
+        //
+        // TODO: remove request from loader
+        //
+
+
+        super.remove();
     }
 
     /**
@@ -148,6 +160,7 @@ class XYZ extends Layer {
      * @param {Material} material - Loads current material.
      */
     loadMaterial(material, forceLoading) {
+
         let seg = material.segment;
 
         if (this._isBaseLayer) {
@@ -240,7 +253,7 @@ class XYZ extends Layer {
         this._urlRewriteCallback = ur;
     }
 
-    applyMaterial(material) {
+    applyMaterial(material, forceLoading) {
         if (material.isReady) {
             return material.texOffset;
         } else if (material.segment.tileZoom <= this.minNativeZoom) {
@@ -267,7 +280,7 @@ class XYZ extends Layer {
                 if (pn.segment.tileZoom === maxNativeZoom) {
                     material.textureNotExists();
                 } else if (material.segment.tileZoom <= maxNativeZoom) {
-                    !material.isLoading && !material.isReady && this.loadMaterial(material);
+                    !material.isLoading && !material.isReady && this.loadMaterial(material, forceLoading);
                 } else {
                     let pn = segment.node;
                     while (pn.segment.tileZoom > material.layer.maxNativeZoom) {
@@ -309,7 +322,7 @@ class XYZ extends Layer {
     clearMaterial(material) {
         if (material.isReady && material.textureExists) {
             !material.texture.default &&
-                material.segment.handler.gl.deleteTexture(material.texture);
+            material.segment.handler.gl.deleteTexture(material.texture);
             material.texture = null;
 
             if (material.image) {

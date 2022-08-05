@@ -94,7 +94,13 @@ const EVENT_NAMES = [
      * Triggered when all data is loaded
      * @event og.scene.Planet#terraincompleted
      */
-    "terraincompleted"
+    "terraincompleted",
+
+    /**
+     * Triggered when layer data is laded
+     * @event og.scene.Planet#terraincompleted
+     */
+    "layerloadend"
 ];
 
 /**
@@ -689,11 +695,18 @@ export class Planet extends RenderNode {
         this.renderer.screenTexture.height = this._heightPickingFramebuffer.textures[0];
     }
 
+    _onLayerLoadend(layer) {
+        this.events.dispatch(this.events.layerloadend, layer);
+    }
+
     /**
      * @virtual
      * @public
      */
     init() {
+
+        this._tileLoader.events.on("layerloadend", this._onLayerLoadend, this);
+
         // Initialization indexes table
         segmentHelper.getInstance().setMaxGridSize(this._maxGridSize);
         const TABLESIZE = this._maxGridSize;
@@ -705,10 +718,10 @@ export class Planet extends RenderNode {
                 !this._indexesCache[i][j] && (this._indexesCache[i][j] = new Array(TABLESIZE));
                 for (var k = 0; k <= TABLESIZE; k++) {
                     !this._indexesCache[i][j][k] &&
-                        (this._indexesCache[i][j][k] = new Array(TABLESIZE));
+                    (this._indexesCache[i][j][k] = new Array(TABLESIZE));
                     for (var m = 0; m <= TABLESIZE; m++) {
                         !this._indexesCache[i][j][k][m] &&
-                            (this._indexesCache[i][j][k][m] = new Array(TABLESIZE));
+                        (this._indexesCache[i][j][k][m] = new Array(TABLESIZE));
                         for (var q = 0; q <= TABLESIZE; q++) {
                             let ptr = {
                                 buffer: null
@@ -1188,16 +1201,18 @@ export class Planet extends RenderNode {
      * @protected
      */
     _renderScreenNodesPASS() {
+
         let sh, shu;
         let renderer = this.renderer;
         let h = renderer.handler;
         let gl = h.gl;
         let cam = renderer.activeCamera;
-        let frustumIndex = cam.getCurrentFrustum();
+        let frustumIndex = cam.getCurrentFrustum(),
+            firstPass = frustumIndex === cam.FARTHEST_FRUSTUM_INDEX;
 
         gl.disable(gl.POLYGON_OFFSET_FILL);
 
-        if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
+        if (firstPass) {
             if (this._skipPreRender/* && (!this._renderCompletedActivated || cam.isMoved)*/) {
                 this._collectRenderNodes();
             }
@@ -1274,7 +1289,7 @@ export class Planet extends RenderNode {
             let sli = sl[0];
             for (var i = sli.length - 1; i >= 0; --i) {
                 let li = sli[i];
-                if (li._fading && li._refreshFadingOpacity()) {
+                if (li._fading && firstPass && li._refreshFadingOpacity()) {
                     sli.splice(i, 1);
                 }
             }
@@ -1289,18 +1304,16 @@ export class Planet extends RenderNode {
             s.screenRendering(sh, sl[0], 0);
         }
 
-        //gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1, len = sl.length; j < len; j++) {
             let slj = sl[j];
             for (i = slj.length - 1; i >= 0; --i) {
                 let li = slj[i];
-                if (li._fading && li._refreshFadingOpacity()) {
+                if (li._fading && firstPass && li._refreshFadingOpacity()) {
                     slj.splice(i, 1);
                 }
             }
 
             i = rn.length;
-            //gl.polygonOffset(0, -j);
             while (i--) {
                 rn[i].segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
             }
@@ -1474,7 +1487,7 @@ export class Planet extends RenderNode {
 
         this._normalMapCreator.clear();
         this.terrain.abortLoading();
-        this._tileLoader.abort();
+        //this._tileLoader.abort();
 
         var that = this;
         // setTimeout(function () {

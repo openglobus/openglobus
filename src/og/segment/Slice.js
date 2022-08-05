@@ -23,7 +23,7 @@ class Slice {
 
         this.layers.push(layer);
 
-        this.layerOpacityArr[n] = layer.opacity;
+        this.layerOpacityArr[n] = layer.screenOpacity;
 
         let n4 = n * 4;
 

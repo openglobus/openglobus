@@ -41,9 +41,7 @@ export class Loader {
         if (params.sender) {
             if (!this._senderRequestCounter[params.sender._id]) {
                 this._senderRequestCounter[params.sender._id] = {
-                    sender: params.sender,
-                    counter: 0,
-                    __requestCounterFrame__: null
+                    sender: params.sender, counter: 0, __requestCounterFrame__: null
                 };
             }
             this._senderRequestCounter[params.sender._id].counter++;
@@ -53,10 +51,7 @@ export class Loader {
     }
 
     fetch(params) {
-        return fetch(
-            params.src,
-            params.options || {}
-        )
+        return fetch(params.src, params.options || {})
             .then(response => {
                 if (!response.ok) {
                     throw Error(`Unable to load '${params.src}'`);
@@ -76,7 +71,7 @@ export class Loader {
 
     isIdle(sender) {
         let request = this._senderRequestCounter[sender._id];
-        return request && request.counter === 0 && (!sender._planet || sender._planet._terrainCompletedActivated);
+        return request && request.counter === 0 && sender._planet && sender._planet._terrainCompletedActivated;
 
     }
 
@@ -112,8 +107,11 @@ export class Loader {
 
         if (this._queue.length > 0 && this._loading < this.MAX_REQUESTS) {
 
-            let q = this._queue.pop(),
-                p = q.params;
+            let q = this._queue.pop();
+
+            if (!q) return;
+
+            let p = q.params;
 
             if (!p.filter || p.filter(p)) {
 
@@ -143,7 +141,24 @@ export class Loader {
         }
     }
 
-    abort() {
+    abort(sender) {
+
+        if (this._senderRequestCounter[sender._id]) {
+            this._senderRequestCounter[sender._id].counter = 0;
+            cancelAnimationFrame(this._senderRequestCounter[sender._id].__requestCounterFrame__);
+            this._senderRequestCounter[sender._id].__requestCounterFrame__ = null;
+        }
+
+        for (let i = 0, len = this._queue.length; i < len; i++) {
+            let qi = this._queue[i];
+            if (qi && sender.isEqual(qi.params.sender)) {
+                qi.callback({ 'status': "abort" });
+                this._queue[i] = null;
+            }
+        }
+    }
+
+    abortAll() {
         for (let i = 0, len = this._queue.length; i < len; i++) {
             let qi = this._queue[i];
             let sender = qi.params.sender;

@@ -74,8 +74,30 @@ class CanvasTiles extends Layer {
         this.drawTile = options.drawTile || null;
     }
 
+    addTo(planet) {
+        this._onLoadend_ = this._onLoadend.bind(this);
+        this.events.on("loadend", this._onLoadend_, this);
+        return super.addTo(planet);
+    }
+
+    remove() {
+        this.events.off("loadend", this._onLoadend_);
+        this._onLoadend_ = null;
+        return super.remove();
+    }
+
+    _onLoadend() {
+        if (this._planet) {
+            this._planet.events.dispatch(this._planet.events.layerloadend, this);
+        }
+    }
+
     get instanceName() {
         return "CanvasTiles";
+    }
+
+    get isIdle() {
+        return this._planet ? this._counter === 0 : false;
     }
 
     /**
@@ -270,7 +292,7 @@ class CanvasTiles extends Layer {
             material.isReady = false;
 
             !material.texture.default &&
-                material.segment.handler.gl.deleteTexture(material.texture);
+            material.segment.handler.gl.deleteTexture(material.texture);
 
             material.texture = null;
         }
