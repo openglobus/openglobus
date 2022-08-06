@@ -9,6 +9,14 @@ import { Extent } from "../Extent.js";
 import { Layer } from "./Layer.js";
 import { LonLat } from "../LonLat.js";
 
+const EVENT_NAMES = [
+    /**
+     * Triggered when image data is loaded
+     * @event og.layer.BaseGeoImage#loadend
+     */
+    "loadend"
+];
+
 /**
  * BaseGeoImage layer represents square imagery layer that could be an static image, or animated video or webgl buffer object displayed on the globe.
  * @class
@@ -16,7 +24,7 @@ import { LonLat } from "../LonLat.js";
  */
 class BaseGeoImage extends Layer {
     constructor(name, options) {
-        super(name, options);
+        super(name, { ...options, events: EVENT_NAMES });
 
         this._projType = 0;
 
@@ -42,9 +50,36 @@ class BaseGeoImage extends Layer {
         this._extentWgs84 = new Extent();
         this._cornersWgs84 = null;
 
+        this._isFullExtent = options.fullExtent || false;
+
+        /**
+         * rendering function pointer
+         */
         this.rendering = null;
 
         options.corners && this.setCorners(options.corners);
+    }
+
+    get isIdle() {
+        return this._planet && this._ready;
+    }
+
+    addTo(planet) {
+        this._onLoadend_ = this._onLoadend.bind(this);
+        this.events.on("loadend", this._onLoadend_, this);
+        return super.addTo(planet);
+    }
+
+    _onLoadend() {
+        if (this._planet) {
+            this._planet.events.dispatch(this._planet.events.layerloadend, this);
+        }
+    }
+
+    remove() {
+        this.events.off("loadend", this._onLoadend_);
+        this._onLoadend_ = null;
+        return super.remove();
     }
 
     get instanceName() {
@@ -259,7 +294,7 @@ class BaseGeoImage extends Layer {
     /**
      * @virtual
      * @protected
-     * @param {Material} material - GeoImage material.
+     * @param {Material} material - GeoImage segment material.
      * @returns {Array<number> } -
      */
     applyMaterial(material) {

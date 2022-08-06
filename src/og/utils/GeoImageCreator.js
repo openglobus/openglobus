@@ -70,6 +70,7 @@ export class GeoImageCreator {
             var q = this._queue.shift();
             q._isRendering = false;
             q.rendering();
+            q.events.dispatch(q.events.loadend);
         }
 
         i = this._animate.length;
@@ -132,8 +133,9 @@ export class GeoImageCreator {
 
         this._planet.renderer.handler.addProgram(new Program("geoImageTransform", {
             uniforms: {
-                sourceTexture: { type: types.SAMPLER2D },
-                extentParams: { type: types.VEC4 }
+                sourceTexture: "sampler2d",
+                extentParams: "vec4",
+                isFullExtent: "bool"
             },
             attributes: {
                 corners: "vec2",
@@ -150,10 +152,11 @@ export class GeoImageCreator {
             fragmentShader:
                 `precision highp float;
                         uniform sampler2D sourceTexture;
+                        uniform bool isFullExtent;
                         varying vec2 v_texCoords;
                         void main () {
-                            if(v_texCoords.x <= 0.001 || v_texCoords.x >= 0.999 ||
-                                v_texCoords.y <= 0.001 || v_texCoords.y >= 0.999) {
+                            if(!isFullExtent && (v_texCoords.x <= 0.001 || v_texCoords.x >= 0.999 ||
+                                v_texCoords.y <= 0.001 || v_texCoords.y >= 0.999)) {
                                 discard;
                             }
                             gl_FragColor = texture2D(sourceTexture, v_texCoords);

@@ -7,6 +7,7 @@ import { EmptyTerrain } from "../../src/og/terrain/EmptyTerrain.js";
 import { LayerSwitcher } from "../../src/og/control/LayerSwitcher.js";
 import { DebugInfo } from "../../src/og/control/DebugInfo.js";
 import { LayerAnimation } from "../../src/og/control/LayerAnimation.js";
+import { GeoImage } from '../../src/og/layer/GeoImage.js';
 
 
 let osm1 = new XYZ("osm-1", {
@@ -15,31 +16,14 @@ let osm1 = new XYZ("osm-1", {
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#AAD3DF" }, { color: "#F2EFE9" }],
     isSRGB: false,
-    //textureFilter: "linear",
-    //fading: true
 });
 
 var globus = new Globe({
     target: "earth",
     name: "Earth",
     terrain: new EmptyTerrain(),
-    layers: [osm1]
+    layers: [osm1],
 });
-
-function getCloudLayers(min = 0, max = 10) {
-    let res = [];
-    for (let i = min; i <= max; i++) {
-        let h = i.toString().padStart(2, "0");
-        let l = new XYZ(`clouds-${i}`, {
-            isBaseLayer: false,
-            url: `//assets.msn.com/weathermapdata/1/cloudforeca/202208021200/{x}_{y}_{z}_20220803${h}00.png`,
-            maxNativeZoom: 6,
-            isSRGB: false
-        });
-        res.push(l);
-    }
-    return res;
-}
 
 function createCanvasTilesLayer(id) {
     return new CanvasTiles(`cnv-${id}`, {
@@ -121,10 +105,8 @@ $slider.addEventListener("input", (e) => {
 });
 
 la.events.on("change", (currIndex) => {
-    console.log(currIndex);
     $slider.value = Math.round(currIndex * 100 / la.layers.length);
 });
-
 
 window.la = la;
 

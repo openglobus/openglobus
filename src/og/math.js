@@ -135,12 +135,12 @@ export function isPowerOfTwo(x) {
  * @param {number} x - Input value.
  * @returns {number} -
  */
-export function nextHighestPowerOfTwo(x) {
+export function nextHighestPowerOfTwo(x, maxValue = 4096) {
     --x;
     for (var i = 1; i < 32; i <<= 1) {
         x = x | (x >> i);
     }
-    return x + 1;
+    return (x + 1) > maxValue ? maxValue : x + 1
 }
 
 /**

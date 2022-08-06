@@ -45,9 +45,7 @@ const EVENT_NAMES = [
  * @fires og.layer.CanvasTiles#loadend
  */
 class CanvasTiles extends Layer {
-    constructor(name, options) {
-        options = options || {};
-
+    constructor(name, options = {}) {
         super(name, options);
 
         this.events.registerNames(EVENT_NAMES);

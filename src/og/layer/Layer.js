@@ -204,7 +204,7 @@ class Layer {
          * @public
          * @type {Events}
          */
-        this.events = new Events(EVENT_NAMES, this);
+        this.events = new Events(options.events ? [...EVENT_NAMES, ...options.events] : EVENT_NAMES, this);
     }
 
     static getTMS(x, y, z) {

@@ -5,6 +5,7 @@
 "use strict";
 
 import { BaseGeoImage } from "./BaseGeoImage.js";
+import { nextHighestPowerOfTwo } from "../math.js";
 
 /**
  * Used to load and display a single image over specific corner coordinates on the globe, implements og.layer.BaseGeoImage interface.
@@ -64,7 +65,7 @@ class GeoImage extends BaseGeoImage {
      */
     _createSourceTexture() {
         if (!this._sourceCreated) {
-            this._sourceTexture = this._planet.renderer.handler.createTexture_n(this._image);
+            this._sourceTexture = this._planet.renderer.handler.createTexture_l(this._image);
             this._sourceCreated = true;
         }
     }
@@ -74,8 +75,8 @@ class GeoImage extends BaseGeoImage {
      * @param {Image} img
      */
     _onLoad(img) {
-        this._frameWidth = img.width;
-        this._frameHeight = img.height;
+        this._frameWidth = nextHighestPowerOfTwo(img.width * 2, 4096);
+        this._frameHeight = nextHighestPowerOfTwo(img.height * 3, 4096);
         this._sourceReady = true;
         this._planet._geoImageCreator.add(this);
     }
@@ -146,6 +147,9 @@ class GeoImage extends BaseGeoImage {
         f.bindOutputTexture(this._materialTexture);
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
+
+        gl.uniform1i(shu.isFullExtent, this._isFullExtent);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer);
 
         gl.vertexAttribPointer(sha.texCoords, 2, gl.UNSIGNED_SHORT, true, 0, 0);
