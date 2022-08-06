@@ -16,6 +16,7 @@ import { Sun } from "./Sun.js";
 import { ZoomControl } from "./ZoomControl.js";
 import { MouseWheelZoomControl } from "./MouseWheelZoomControl.js";
 import { Lighting } from "./Lighting.js";
+import { LayerAnimation } from "./LayerAnimation.js";
 
 export {
     Control,
@@ -35,5 +36,6 @@ export {
     ZoomControl,
     MouseWheelZoomControl,
     Lighting,
-    Ruler
+    Ruler,
+    LayerAnimation
 };
