@@ -308,7 +308,7 @@ class GlobusTerrain extends EmptyTerrain {
      * @public
      */
     abortLoading() {
-        this._loader.abort();
+        this._loader.abortAll();
     }
 
     /**

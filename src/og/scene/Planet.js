@@ -1487,7 +1487,7 @@ export class Planet extends RenderNode {
 
         this._normalMapCreator.clear();
         this.terrain.abortLoading();
-        //this._tileLoader.abort();
+        this._tileLoader.abortAll();
 
         var that = this;
         // setTimeout(function () {
