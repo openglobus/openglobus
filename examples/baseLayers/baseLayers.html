@@ -10,7 +10,7 @@
 <div id="globus" style="width:100%;height:100%"></div>
 <div style="position: absolute; left:0; padding:10px;">
     <button id="btnOSM" style="float:left; margin: 3px;">OSM</button>
-    <button id="btnMQS" style="float:left; margin: 3px;">MapQuest Sat.</button>
+    <button id="btnMQS" style="float:left; margin: 3px;">SAT</button>
 </div>
 <script type="module">
 
@@ -37,7 +37,7 @@
         isBaseLayer: true,
         url: "https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoibWdldmxpY2hzY2FuZXgiLCJhIjoiY2pwcGdsaXlnMDQzdDQybXhsOWZlbXBvdSJ9.fR2YE-ehJA4iajaJBAPKvw",
         visibility: false,
-        attribution: `MapQuest Sattelite`
+        attribution: `Mapbox Sattelite`
     });
 
     let globus = new Globe({
