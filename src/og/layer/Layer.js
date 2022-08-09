@@ -67,6 +67,8 @@ class Layer {
          */
         this.name = name || "noname";
 
+        this.properties = options.properties || {};
+
         this._labelMaxLetters = options.labelMaxLetters;
 
         this.displayInLayerSwitcher =
