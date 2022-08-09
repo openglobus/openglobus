@@ -27,7 +27,8 @@ var globus = new Globe({
 
 function createCanvasTilesLayer(id) {
     return new CanvasTiles(`cnv-${id}`, {
-        isBaseLayer: false,
+        visibility: true,
+        isBaseLayer: true,
         drawTile: function (material, applyCanvas) {
 
             //
@@ -68,7 +69,7 @@ function getCanvasLayers(num) {
     return res;
 }
 
-let timeLayers = getCanvasLayers(10);
+let timeLayers = getCanvasLayers(100);
 
 let la = new LayerAnimation({
     layers: timeLayers,

@@ -71,6 +71,7 @@ class LayerAnimation extends Control {
             for (let i = 0; i < this._layersArr.length; i++) {
                 let li = this._layersArr[i];
                 li.setVisibility(false);
+                li.setBaseLayer(false);
                 li.opacity = 0.0;
                 this.planet.addLayer(li);
             }
