@@ -11,7 +11,6 @@ import { Loader } from "../utils/Loader.js";
 import { NOTRENDERING } from "../quadTree/quadTree.js";
 // import { QueueArray } from '../QueueArray.js';
 import { stringTemplate, createExtent } from "../utils/shared.js";
-import { Geoid } from "./Geoid.js";
 import { Layer } from "../layer/Layer.js";
 import { Vec3 } from "../math/Vec3.js";
 import { Ray } from "../math/Ray.js";
