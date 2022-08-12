@@ -179,13 +179,14 @@
 
 .layersDiv {
     margin-left: 3px;
-    margin-bottom: 5px;
+    margin-bottom: 24px;
     color: white;
     font-size: 1em;
 }
 
 .layersDivLabel{
-    padding: 6px;;
+    padding: 8px;
+
 }
 
 .layersEntry {
@@ -195,7 +196,6 @@
 
  
 }
-
 
 .ogLayerSwitcherInput {
     height: 16px;
@@ -210,6 +210,7 @@
 .ogLayerSwitcherLabel {
     font-size: 0.8em;
     line-height: 24px;
+    cursor: pointer;
     
 }
 /* =============================== */
@@ -252,6 +253,9 @@
 .ogConsole-warning {
     color: yellow;
 }
+
+/* Is this class used elsewhere??? */
+/* if not we can delete it */
 
 .ogViewExtentBtn {
     margin-left: 12px;
