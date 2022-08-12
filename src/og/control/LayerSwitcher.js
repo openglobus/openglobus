@@ -59,13 +59,6 @@ class LayerSwitcher extends Control {
         var lineDiv = document.createElement("div");
         lineDiv.className = "layersEntry"
         var that = this;
-        // var center = document.createElement("div");
-        // center.classList.add("ogViewExtentBtn");
-        // center.onclick = function () {
-        //     that.planet.flyExtent(obj.getExtent());
-        // };
-
-
         var inp = document.createElement("input");
         inp.type = type;
         inp.name = "ogBaseLayerRadiosId" + (id || "");
@@ -94,7 +87,6 @@ class LayerSwitcher extends Control {
             container.removeChild(lineDiv);
         };
 
-        // lineDiv.appendChild(center);
         lineDiv.appendChild(inp);
         lineDiv.appendChild(lbl);
 
