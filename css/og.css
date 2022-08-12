@@ -164,7 +164,7 @@
 
 #ogLayerSwitcherDialog {
     overflow: auto;
-    /* height: 70%; */
+    max-height: calc(100% - 250px);
     position: absolute;
     top: 56px;
     right: 12px;
