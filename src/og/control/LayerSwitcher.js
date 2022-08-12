@@ -57,7 +57,7 @@ class LayerSwitcher extends Control {
 
     addSwitcher(type, obj, container, id = "") {
         var lineDiv = document.createElement("div");
-
+        lineDiv.className = "layersEntry"
         var that = this;
         var center = document.createElement("div");
         center.classList.add("ogViewExtentBtn");
@@ -81,7 +81,7 @@ class LayerSwitcher extends Control {
 
         var lbl = document.createElement("label");
         lbl.className = "ogLayerSwitcherLabel";
-        lbl.innerHTML = (obj.name || obj.src || "noname") + "</br>";
+        lbl.innerHTML = (obj.name || obj.src || "noname");
 
         obj._removeCallback = function () {
             container.removeChild(lineDiv);
@@ -100,8 +100,8 @@ class LayerSwitcher extends Control {
         this.dialog.appendChild(layersDiv);
 
         var baseLayersLbl = document.createElement("div");
-        baseLayersLbl.className = "layersDiv";
-        baseLayersLbl.innerHTML = "Base Layer";
+        baseLayersLbl.className = "layersDivLabel";
+        baseLayersLbl.innerHTML = "Base Layers";
         layersDiv.appendChild(baseLayersLbl);
 
         this.baseLayersDiv = document.createElement("div");
@@ -114,7 +114,7 @@ class LayerSwitcher extends Control {
         this.dialog.appendChild(overlaysDiv);
 
         var overlaysLbl = document.createElement("div");
-        overlaysLbl.className = "layersDiv";
+        overlaysLbl.className = "layersDivLabel";
         overlaysLbl.innerHTML = "Overlays";
         overlaysDiv.appendChild(overlaysLbl);
 
