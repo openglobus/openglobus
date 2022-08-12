@@ -57,14 +57,8 @@ class LayerSwitcher extends Control {
 
     addSwitcher(type, obj, container, id = "") {
         var lineDiv = document.createElement("div");
-
+        lineDiv.className = "layersEntry"
         var that = this;
-        var center = document.createElement("div");
-        center.classList.add("ogViewExtentBtn");
-        center.onclick = function () {
-            that.planet.flyExtent(obj.getExtent());
-        };
-
         var inp = document.createElement("input");
         inp.type = type;
         inp.name = "ogBaseLayerRadiosId" + (id || "");
@@ -74,6 +68,9 @@ class LayerSwitcher extends Control {
             obj.setVisibility(this.checked);
         };
 
+       
+        
+
         obj.events &&
             obj.events.on("visibilitychange", function (e) {
                 inp.checked = e.getVisibility();
@@ -81,13 +78,15 @@ class LayerSwitcher extends Control {
 
         var lbl = document.createElement("label");
         lbl.className = "ogLayerSwitcherLabel";
-        lbl.innerHTML = (obj.name || obj.src || "noname") + "</br>";
+        lbl.innerHTML = (obj.name || obj.src || "noname");
 
+        lbl.ondblclick = function () {
+            that.planet.flyExtent(obj.getExtent());
+        }
         obj._removeCallback = function () {
             container.removeChild(lineDiv);
         };
 
-        lineDiv.appendChild(center);
         lineDiv.appendChild(inp);
         lineDiv.appendChild(lbl);
 
@@ -100,8 +99,8 @@ class LayerSwitcher extends Control {
         this.dialog.appendChild(layersDiv);
 
         var baseLayersLbl = document.createElement("div");
-        baseLayersLbl.className = "layersDiv";
-        baseLayersLbl.innerHTML = "Base Layer";
+        baseLayersLbl.className = "layersDivLabel";
+        baseLayersLbl.innerHTML = "Base Layers";
         layersDiv.appendChild(baseLayersLbl);
 
         this.baseLayersDiv = document.createElement("div");
@@ -114,7 +113,7 @@ class LayerSwitcher extends Control {
         this.dialog.appendChild(overlaysDiv);
 
         var overlaysLbl = document.createElement("div");
-        overlaysLbl.className = "layersDiv";
+        overlaysLbl.className = "layersDivLabel";
         overlaysLbl.innerHTML = "Overlays";
         overlaysDiv.appendChild(overlaysLbl);
 
