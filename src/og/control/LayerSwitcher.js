@@ -59,11 +59,12 @@ class LayerSwitcher extends Control {
         var lineDiv = document.createElement("div");
         lineDiv.className = "layersEntry"
         var that = this;
-        var center = document.createElement("div");
-        center.classList.add("ogViewExtentBtn");
-        center.onclick = function () {
-            that.planet.flyExtent(obj.getExtent());
-        };
+        // var center = document.createElement("div");
+        // center.classList.add("ogViewExtentBtn");
+        // center.onclick = function () {
+        //     that.planet.flyExtent(obj.getExtent());
+        // };
+
 
         var inp = document.createElement("input");
         inp.type = type;
@@ -74,6 +75,9 @@ class LayerSwitcher extends Control {
             obj.setVisibility(this.checked);
         };
 
+       
+        
+
         obj.events &&
             obj.events.on("visibilitychange", function (e) {
                 inp.checked = e.getVisibility();
@@ -83,11 +87,14 @@ class LayerSwitcher extends Control {
         lbl.className = "ogLayerSwitcherLabel";
         lbl.innerHTML = (obj.name || obj.src || "noname");
 
+        lbl.ondblclick = function () {
+            that.planet.flyExtent(obj.getExtent());
+        }
         obj._removeCallback = function () {
             container.removeChild(lineDiv);
         };
 
-        lineDiv.appendChild(center);
+        // lineDiv.appendChild(center);
         lineDiv.appendChild(inp);
         lineDiv.appendChild(lbl);
 
