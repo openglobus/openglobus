@@ -308,7 +308,9 @@ class Layer {
 
         this.createTexture = planet.renderer.handler.createTexture[this._textureFilter];
 
-        planet.layers.push(this);
+        // TODO: replace to planet
+        planet._layers.push(this);
+
         this._planet = planet;
         this.events.on("visibilitychange", planet._onLayerVisibilityChanged, planet);
         if (this._isBaseLayer && this._visibility) {
@@ -352,12 +354,13 @@ class Layer {
      * @returns {Layer} -This layer.
      */
     remove() {
-        var p = this._planet;
+        let p = this._planet;
         if (p) {
-            for (var i = 0; i < p.layers.length; i++) {
-                if (this.isEqual(p.layers[i])) {
+            //TODO: replace to planet
+            for (let i = 0; i < p._layers.length; i++) {
+                if (this.isEqual(p._layers[i])) {
                     p.renderer.clearPickingColor(this);
-                    p.layers.splice(i, 1);
+                    p._layers.splice(i, 1);
                     p.updateVisibleLayers();
                     this.clear();
                     p.events.dispatch(p.events.layerremove, this);

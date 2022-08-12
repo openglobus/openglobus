@@ -151,11 +151,18 @@ export class Planet extends RenderNode {
         this._planetRadius2 = this.ellipsoid.getPolarSize() * this.ellipsoid.getPolarSize();
 
         /**
-         * All layers array.
-         * @public
+         * Layers array.
+         * @protected
          * @type {Array.<Layer>}
          */
-        this.layers = [];
+        this._layers = [];
+
+        /**
+         * Flag to trigger layer update in a next frame
+         * @type {boolean}
+         * @private
+         */
+        this._updateLayer = false;
 
         /**
          * Current visible imagery tile layers array.
@@ -452,6 +459,10 @@ export class Planet extends RenderNode {
         return Quat.getLookRotation(t, n);
     }
 
+    get layers() {
+        return [...this._layers];
+    }
+
     /**
      * Add the given control to the renderer of the planet scene.
      * @param {control.Control} control - Control.
@@ -490,10 +501,9 @@ export class Planet extends RenderNode {
      * @returns {Layer} -
      */
     getLayerByName(name) {
-        var i = this.layers.length;
-        while (i--) {
-            if (this.layers[i].name === name) {
-                return this.layers[i];
+        for (let i = 0, len = this._layers.length; i < len; i++) {
+            if (name === this._layers[i].name) {
+                return this._layers[i];
             }
         }
     }
@@ -522,7 +532,7 @@ export class Planet extends RenderNode {
      * @public
      */
     addLayers(layers) {
-        for (var i = 0; i < layers.length; i++) {
+        for (let i = 0, len = layers.length; i < len; i++) {
             this.addLayer(layers[i]);
         }
     }
@@ -808,7 +818,7 @@ export class Planet extends RenderNode {
         // Applying shaders
         this._initializeShaders();
 
-        this.updateVisibleLayers();
+        this._updateVisibleLayers();
 
         this.renderer.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
 
@@ -949,9 +959,9 @@ export class Planet extends RenderNode {
      * @public
      */
     updateAttributionsList() {
-        var html = "";
-        for (var i = 0; i < this.layers.length; i++) {
-            var li = this.layers[i];
+        let html = "";
+        for (let i = 0, len = this._layers.length; i < len; i++) {
+            let li = this._layers[i];
             if (li._visibility) {
                 if (li._attribution.length) {
                     html += "<li>" + li._attribution + "</li>";
@@ -962,20 +972,24 @@ export class Planet extends RenderNode {
         this._applyAttribution(html)
     }
 
+    updateVisibleLayers() {
+        this._updateLayer = true;
+    }
+
     /**
      * Updates visible layers.
      * @public
      */
-    updateVisibleLayers() {
+    _updateVisibleLayers() {
         this.visibleTileLayers = [];
         this.visibleTileLayers.length = 0;
 
         this.visibleVectorLayers = [];
         this.visibleVectorLayers.length = 0;
 
-        var html = "";
-        for (var i = 0; i < this.layers.length; i++) {
-            var li = this.layers[i];
+        let html = "";
+        for (let i = 0, len = this._layers.length; i < len; i++) {
+            let li = this._layers[i];
             if (li._visibility) {
                 if (li._isBaseLayer) {
                     this.createDefaultTextures(li._defaultTextures[0], li._defaultTextures[1]);
@@ -1034,21 +1048,21 @@ export class Planet extends RenderNode {
      * @protected
      */
     _sortLayers() {
-        this.visibleVectorLayers.sort(function (a, b) {
-            return a._zIndex - b._zIndex || a._height - b._height;
-        });
+        this.visibleVectorLayers.sort(
+            (a, b) => (a._zIndex - b._zIndex) || (a._height - b._height)
+        );
 
         this._visibleTileLayerSlices = [];
         this._visibleTileLayerSlices.length = 0;
 
         if (this.visibleTileLayers.length) {
-            this.visibleTileLayers.sort(function (a, b) {
-                return a._height - b._height || a._zIndex - b._zIndex;
-            });
+            this.visibleTileLayers.sort((a, b) =>
+                (a._height - b._height) || (a._zIndex - b._zIndex)
+            );
 
             var k = -1;
             var currHeight = this.visibleTileLayers[0]._height;
-            for (var i = 0; i < this.visibleTileLayers.length; i++) {
+            for (let i = 0, len = this.visibleTileLayers.length; i < len; i++) {
                 if (i % this.SLICE_SIZE === 0 || this.visibleTileLayers[i]._height !== currHeight) {
                     k++;
                     this._visibleTileLayerSlices[k] = [];
@@ -1167,6 +1181,12 @@ export class Planet extends RenderNode {
      * @public
      */
     frame() {
+
+        if (this._updateLayer) {
+            this._updateLayer = false;
+            this._updateVisibleLayers();
+        }
+
         this._renderScreenNodesPASS();
 
         this._renderHeightPickingFramebufferPASS();
@@ -1451,7 +1471,7 @@ export class Planet extends RenderNode {
         this._frustumEntityCollections.length = 0;
         this._frustumEntityCollections = [];
 
-        var i = this.visibleVectorLayers.length;
+        let i = this.visibleVectorLayers.length;
         while (i--) {
             let vi = this.visibleVectorLayers[i];
 
@@ -1824,8 +1844,8 @@ export class Planet extends RenderNode {
         }
 
         let readyCollections = {};
-        for (let i = 0; i < this.layers.length; i++) {
-            let li = this.layers[i];
+        for (let i = 0; i < this._layers.length; i++) {
+            let li = this._layers[i];
             if (li instanceof Vector) {
                 li.each(function (e) {
                     if (e._entityCollection && !readyCollections[e._entityCollection.id]) {
