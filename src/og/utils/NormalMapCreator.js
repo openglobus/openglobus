@@ -45,10 +45,10 @@ export class NormalMapCreator {
          *=================================================================================*/
         var normalMapBlur = new Program("normalMapBlur", {
             attributes: {
-                a_position: { type: types.VEC2, enableArray: true }
+                a_position: "vec2"
             },
             uniforms: {
-                s_texture: { type: types.SAMPLER2D }
+                s_texture: "sampler2d"
             },
             vertexShader:
                 `attribute vec2 a_position;
@@ -57,28 +57,19 @@ export class NormalMapCreator {
                       varying vec2 blurCoordinates[5];
 
                       void main() {
-                          vec2 vt = a_position * 0.5 + 0.5;` +
-                (isWebkit ? "vt.y = 1.0 - vt.y; " : " ") +
-                `gl_Position = vec4(a_position, 0.0, 1.0);
+                          vec2 vt = a_position * 0.5 + 0.5; 
+                          ${isWebkit ? "vt.y = 1.0 - vt.y; " : " " }
+                          gl_Position = vec4(a_position, 0.0, 1.0);
                           blurCoordinates[0] = vt;
-                          blurCoordinates[1] = vt + ` +
-                (1.0 / this._width) * 1.407333 +
-                ";" +
-                "blurCoordinates[2] = vt - " +
-                (1.0 / this._height) * 1.407333 +
-                ";" +
-                "blurCoordinates[3] = vt + " +
-                (1.0 / this._width) * 3.294215 +
-                ";" +
-                "blurCoordinates[4] = vt - " +
-                (1.0 / this._height) * 3.294215 +
-                ";" +
-                "}",
+                          blurCoordinates[1] = vt + ${(1.0 / this._width) * 1.407333 };
+                          blurCoordinates[2] = vt - ${(1.0 / this._height) * 1.407333};
+                          blurCoordinates[3] = vt + ${(1.0 / this._width) * 3.294215};
+                          blurCoordinates[4] = vt - ${(1.0 / this._height) * 3.294215};
+                }`,
             fragmentShader: `precision lowp float;
-                        uniform sampler2D s_texture;
-                        
-                        varying vec2 blurCoordinates[5];
-                        
+                        uniform sampler2D s_texture;                        
+                        varying vec2 blurCoordinates[5];                        
+
                         void main() {
                             lowp vec4 sum = vec4(0.0);
                             //if(blurCoordinates[0].x <= 0.01 || blurCoordinates[0].x >= 0.99 ||
@@ -97,8 +88,8 @@ export class NormalMapCreator {
 
         var normalMap = new Program("normalMap", {
             attributes: {
-                a_position: { type: types.VEC2, enableArray: true },
-                a_normal: { type: types.VEC3, enableArray: true }
+                a_position: "vec2",
+                a_normal: "vec3"
             },
             vertexShader: `attribute vec2 a_position;
                       attribute vec3 a_normal;
