@@ -131,7 +131,6 @@
 /* =============================== */
 /* LAYER SWITCHER */
 .ogLayerSwitcherButton {
-    /* background-clip: padding-box; */
     height: 40px;
     width: 40px;
     box-shadow: 0px 1px 4px rgba(15, 15, 15, 0.17);
@@ -217,9 +216,49 @@
     cursor: pointer;
     
 }
+
 /* =============================== */
+/* GEO IMAGE DRAGGER */
+.ogGeoImageDraggerButton{
+    height: 40px;
+    width: 40px;
+    box-shadow: 0px 1px 4px rgba(15, 15, 15, 0.17);
+    z-index: 0;
+    position: absolute;
+    outline: none;
+    cursor: pointer;
+    top: 60px;
+    right: 12px;
+    border-radius: 2px;
+    background-size: 20px !important;
+    background-position: 10px 10px !important;
+}
 
+#ogGeoImageDraggerButtonOFF {
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAAAhCAMAAABp0ZInAAAACXBIWXMAAAsSAAALEgHS3X78AAABEVBMVEX///+1t7n///+1t7n////p6uteX2F0dXeho6a0trm1t7n///9NTU90dXdBQUK/wMO0trm1t7m5u72ys7a1t7mBg4a0trlKSkxJSUu1t7m1t7mUlpm1t7m1t7m1t7musLPExcfGx8m1t7mPkZS1t7laWlxFRUfz8/S1t7lxcnW0trm1t7kmJieRk5a1t7kzMzW1t7m1t7mdn6K1t7mjpai1t7lRUVNLS021t7m1t7m1t7m1t7k+PkC1t7m1t7m1t7m1t7lhYmSAgYSGiIu1t7kqKiy1t7llZmiFholpam21t7l9foEUFBW1t7l8fX8SEhK1t7m1t7m1t7kEBAW1t7m1t7m1t7kAAAByc3a1t7m1t7kvyilLAAAAWnRSTlMAAgIDCAsNDQ4PEBATExscHiAqKzAxNjg6OkBFS1BRU1xcYGlwdnd3gIKNjY+PkJWZnKCgoqatsrK5u7y+wMfJysvOz8/Q0NTX4ODj5eXm6Oru8Pf5+vz9/v57yPeUAAAA/ElEQVQ4y8XTV1cCMRCG4QGxsKtiQVHsiAXLCvaGYFvsZRXR9///EC9AT8Bkw5V8l3OeM5lkTsRbdcSeDOyk7SwA7rK2hh4AZMLVMPB1mLQdWQSCpH3+Pb8NFqSdNtiMiOPjja4YMhf5kU5WLjFlWWlZLeS1KXCkKGL6gWIUQ9X06fmkVU3U4NigouPxRmELeNGrrn1ue+uFNeBJqwbPgO16YWCz7C9q1S4AufA7jr0D8DkfphIPjdd+S4mIiLsx9Vf1XP8u5XlIRNwS9/2tqvtA2V2lT9wSUEm0qIumFd8sPALwut6sjOms+jCqE0VdGdWSokZMv2M2Iv+eb4lEiyioL+UQAAAAAElFTkSuQmCC) top left no-repeat,  rgba(64, 59, 59, 0.85);
+   
+   }
 
+#ogGeoImageDraggerButtonON {
+   background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAdCAMAAAD1qz7PAAAACXBIWXMAAAsSAAALEgHS3X78AAAAPFBMVEX///////////////////////////////////////////////////////////////////////////////8gsV51AAAAE3RSTlMAECAwQFBgcICQoKawssDQ4PD+MwHizQAAAMRJREFUOMuN0cluxSAQRNHCTG3iwHPu//9rFo4l4yG4d6AjaFVpNqfhJChhqFbgkwfPzQCQ/kUT8PPtB/9VYPXD1b/aWK3BjVWUXGMex+WyNAWzGG7m4PzKw3SBrXZ6ItncelTJD7116Nzhtk45IjujBShSvkEu721XoEnhiqYPtE1FwKR4RQ2g/oViSZJdkG3JWHffHSb5PT9/3L9DFtuOmpMUlpqk1qPjFCkBLJFnRC133RmvCn6B6hu0vEH5DXKP//0C/ugaj66ol3gAAAAASUVORK5CYII=) top left no-repeat,  rgba(64, 59, 59, 0.85);
+
+} 
+
+@media (hover: hover) {
+   #ogGeoImageDraggerButtonOFF:hover {
+       background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAdCAMAAAD1qz7PAAAACXBIWXMAAAsSAAALEgHS3X78AAAAPFBMVEX///////////////////////////////////////////////////////////////////////////////8gsV51AAAAE3RSTlMAECAwQFBgcICQoKawssDQ4PD+MwHizQAAAMRJREFUOMuN0cluxSAQRNHCTG3iwHPu//9rFo4l4yG4d6AjaFVpNqfhJChhqFbgkwfPzQCQ/kUT8PPtB/9VYPXD1b/aWK3BjVWUXGMex+WyNAWzGG7m4PzKw3SBrXZ6ItncelTJD7116Nzhtk45IjujBShSvkEu721XoEnhiqYPtE1FwKR4RQ2g/oViSZJdkG3JWHffHSb5PT9/3L9DFtuOmpMUlpqk1qPjFCkBLJFnRC133RmvCn6B6hu0vEH5DXKP//0C/ugaj66ol3gAAAAASUVORK5CYII=) top left no-repeat,  rgba(64, 59, 59, 0.85);
+}
+
+}
+
+.ogGeoImageHandle{
+    height: 30px;
+    width: 30px;
+    color: black;
+    display: none;
+}
+
+/* =============================== */
 .displayNone {
     display: none;
 }

@@ -8,7 +8,7 @@
 
 <body>
     <div id="globus" style="width:100%;height:80%"></div>
-    Grab the corners and drag!
+    <!-- Grab the corners and drag! -->
     <script type="module">
         'use strict';
 
@@ -16,6 +16,7 @@
         import { XYZ } from '../../src/og/layer/XYZ.js';
         import { GeoImage } from '../../src/og/layer/GeoImage.js';
         import { GeoImageDragControl } from '../../src/og/control/GeoImageDragControl.js';
+        import { LayerSwitcher } from '../../src/og/control/LayerSwitcher.js';
         import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
 
         let osm = new XYZ("OpenStreetMap", {
@@ -41,7 +42,7 @@
         });
 
         globus.planet.addControl(new GeoImageDragControl());
-
+        globus.planet.addControl(new LayerSwitcher());
         globus.planet.flyExtent(img.getExtent());
     </script>
 </body>
