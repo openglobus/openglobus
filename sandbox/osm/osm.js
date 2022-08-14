@@ -24,7 +24,8 @@ const tg = new CanvasTiles("Tile grid", {
     preLoadZoomLevels: [0],
     drawTile: function (material, applyCanvas) {
 
-        setTimeout(() => {
+            console.log("REDRAW");
+
             //Clear canvas
             ctx.clearRect(0, 0, cnv.width, cnv.height);
 
@@ -65,7 +66,6 @@ const tg = new CanvasTiles("Tile grid", {
 
             //Draw canvas tile
             applyCanvas(cnv);
-        }, 1000);
     }
 });
 
@@ -201,6 +201,5 @@ globus.planet.addControl(new DebugInfo());
 //globus.planet.addControl(new ToggleWireframe());
 
 //globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
-
 
 window.globus = globus;

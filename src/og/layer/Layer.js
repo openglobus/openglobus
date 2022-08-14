@@ -646,6 +646,31 @@ class Layer {
     createMaterial(segment) {
         return new Material(segment, this);
     }
+
+    redraw() {
+        if (this._planet) {
+            this._planet._quadTree.traverseTree((n) => {
+                    if (n.segment.materials[this._id]) {
+                        n.segment.materials[this._id].clear();
+                    }
+                }
+            );
+
+            this._planet._quadTreeNorth.traverseTree((n) => {
+                    if (n.segment.materials[this._id]) {
+                        n.segment.materials[this._id].clear();
+                    }
+                }
+            );
+
+            this._planet._quadTreeSouth.traverseTree((n) => {
+                    if (n.segment.materials[this._id]) {
+                        n.segment.materials[this._id].clear();
+                    }
+                }
+            );
+        }
+    }
 }
 
 const EVENT_NAMES = [

@@ -883,9 +883,7 @@ class Node {
     clearTree() {
         var state = this.getState();
 
-        if (state === NOTRENDERING) {
-            this.destroyBranches();
-        } else if (state === RENDERING) {
+        if (state === NOTRENDERING || state === RENDERING) {
             this.destroyBranches();
         } else {
             for (var i = 0; i < this.nodes.length; i++) {
