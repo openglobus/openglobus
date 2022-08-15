@@ -161,7 +161,7 @@
             });
 
     document.querySelector("#fontOutline").addEventListener("input", (e) => {
-        let entities = this.ec.getEntities();
+        let entities = townLabels.getEntities();
         for (let i = 0; i < entities.length; i++) {
             entities[i].label.setOutline(Number(e.target.value));
         }
