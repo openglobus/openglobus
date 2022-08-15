@@ -635,11 +635,10 @@ class Layer {
             return false;
         } else {
             //this._fadingOpacity -= this._opacity / FADING_RATIO;
-
             //if (this._fadingOpacity < 0.0) {
-            //    this._fadingOpacity = 0.0;
-            return !this._visibility;
+            this._fadingOpacity = 0.0;
             //}
+            return !this._visibility;
         }
     }
 
