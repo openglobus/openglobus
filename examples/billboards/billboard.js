@@ -24,7 +24,7 @@ for (let i = 0; i < 5000; i++) {
             'src': './carrot.png',
             'size': [24, 24],
             'color': colors[i % 7],
-            'rotation': rnd(0, 360)
+            'rotation': rnd(0, 180)
         },
         'properties': {
             'bearing': rnd(0, 360),
