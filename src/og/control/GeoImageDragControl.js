@@ -67,21 +67,21 @@ class GeoImageDragControl extends Control {
                 if (this._active && buttonState) { // active layer and button ON
 
                     if (this._catchCorner) {// mouse is catching a corner
-
+                        
                         var corners = layer.getCornersLonLat();
                         corners[this._cornerIndex] = p.getLonLatFromPixelTerrain(ms, true);
                         layer.setCornersLonLat(corners);
 
-                    } else { // mouse is anywhere else
+                    } else { // mouse isn't catching
                         this._cornerIndex = -1;
 
                         for (var i = 0; i < layer._cornersWgs84.length; i++) {
                             var ground = p.getLonLatFromPixelTerrain(ms, true);
                             // mouse is near
                             if (ground && p.ellipsoid.getGreatCircleDistance(layer._cornersWgs84[i], ground) / p.getDistanceFromPixel(ms, true) <= 0.05) {
-                                
                                 this._cornerIndex = i;
                                 document.body.style.cursor = 'move';
+                              
                                 break;
                             // mouse is far
                             } else { 
@@ -115,7 +115,7 @@ class GeoImageDragControl extends Control {
             }, this);
 
             layer.events.on('rdblclick', function(){
-                alert('options...');
+                alert(layer.getID());
             })
 
         }

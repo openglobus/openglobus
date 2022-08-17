@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+
+elFactory = (type, attributes, ...children) => {
+        const el = document.createElement(type)
+      
+        for (key in attributes) {
+          el.setAttribute(key, attributes[key])
+        }
+      
+        children.forEach(child => {
+    if (typeof child === 'string') {
+      el.appendChild(document.createTextNode(child))
+    } else {
+      el.appendChild(child)
+    }
+  })
+        return el
+      }
+
+
+let markup = elFactory('div', {class: 'myClass', id: 'myID'});
+document.body.appendChild(markup);
+
+
+    </script>
+    
+</body>
+</html>

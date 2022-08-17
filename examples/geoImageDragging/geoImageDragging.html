@@ -26,24 +26,37 @@
             attribution: 'Data @ OpenStreetMap contributors, ODbL'
         });
 
-        let img = new GeoImage("001m--l32.jpg", {
+        let img1 = new GeoImage("South", {
             src: "001m--l32.jpg",
             corners: [[5.635392096391909, 48.12285230763866], [12.40298532820745, 48.11462482358326], [12.214647470795295, 43.81172338809331], [5.805669171925254, 43.97030327540555]],
             visibility: true,
             isBaseLayer: false,
-            opacity: 1.0
+            opacity: 1.0,
+            zIndex: 9.9
+           
+        });
+
+        let img2 = new GeoImage("North", {
+            src: "001m--l32.jpg",
+            corners: [[6.635392096391909, 49.12285230763866], [13.40298532820745, 49.11462482358326], [13.214647470795295, 44.81172338809331], [6.805669171925254, 44.97030327540555]],
+            visibility: true,
+            isBaseLayer: false,
+            opacity: 1.0,
+            zIndex: 10
+       
         });
 
         let globus = new Globe({
             "target": "globus",
             "name": "Earth",
             "terrain": new GlobusTerrain(),
-            "layers": [osm, img]
+            "layers": [osm, img1, img2]
         });
-
         globus.planet.addControl(new GeoImageDragControl());
         globus.planet.addControl(new LayerSwitcher());
-        globus.planet.flyExtent(img.getExtent());
+        globus.planet.flyExtent(img1.getExtent());
+        
+
     </script>
 </body>
 

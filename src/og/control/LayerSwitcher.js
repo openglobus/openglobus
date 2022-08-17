@@ -36,7 +36,7 @@ class LayerSwitcher extends Control {
     oninit() {
         this.planet.events.on("layeradd", this.onLayerAdded, this);
         this.planet.events.on("layerremove", this.onLayerRemoved, this);
-        this.createSwitcher();
+        this.createMainMenuBtn();
         this.createDialog();
     }
 
@@ -58,6 +58,19 @@ class LayerSwitcher extends Control {
     addSwitcher(type, obj, container, id = "") {
         var lineDiv = document.createElement("div");
         lineDiv.className = "layersEntry"
+
+
+        // lineDiv.setAttribute('draggable', true); // Make the whole entry draggable
+        // lineDiv.addEventListener('dragstart', dragStart)
+        // lineDiv.addEventListener('dragend', dragEnd)
+        // function dragStart() {
+        //     console.log('drag started');
+        // }
+        // function dragEnd() {
+        //     console.log('drag ended');
+        // }
+
+
         var that = this;
         var inp = document.createElement("input");
         inp.type = type;
@@ -68,8 +81,7 @@ class LayerSwitcher extends Control {
             obj.setVisibility(this.checked);
         };
 
-       
-        
+
 
         obj.events &&
             obj.events.on("visibilitychange", function (e) {
@@ -92,6 +104,38 @@ class LayerSwitcher extends Control {
 
         container.appendChild(lineDiv);
     }
+
+
+
+    createElementAndChildren = (type, attributes, ...children) => {
+        const el = document.createElement(type);
+
+        for (key in attributes) {
+            el.setAttribute(key, attributes[key])
+        }
+
+        children.forEach(child => {
+            if (typeof child === 'string') {
+                el.appendChild(document.createTextNode(child))
+            } else {
+                el.appendChild(child)
+            }
+        })
+        return el
+    }
+
+
+    createBaseLayers(){
+        
+    }
+
+
+
+
+
+
+
+
 
     createBaseLayersContainer() {
         var layersDiv = document.createElement("div");
@@ -131,13 +175,17 @@ class LayerSwitcher extends Control {
         this.createOverlaysContainer();
 
         if (this.planet) {
+            let layers = this.planet.layers;
+            layers.sort((a, b) => (a._zIndex < b._zIndex) ? 1 : -1) // Sort by zIndex, so I get the highest first
+
+
             for (var i = 0; i < this.planet.layers.length; i++) {
-                this.onLayerAdded(this.planet.layers[i]);
+                this.onLayerAdded(layers[i]);
             }
         }
     }
 
-    createSwitcher() {
+    createMainMenuBtn() {
         var button = document.createElement("div");
         button.className = "ogLayerSwitcherButton";
         button.id = "ogLayerSwitcherButtonMaximize";
