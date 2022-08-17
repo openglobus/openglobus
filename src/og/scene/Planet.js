@@ -1230,8 +1230,6 @@ export class Planet extends RenderNode {
         let frustumIndex = cam.getCurrentFrustum(),
             firstPass = frustumIndex === cam.FARTHEST_FRUSTUM_INDEX;
 
-        gl.disable(gl.POLYGON_OFFSET_FILL);
-
         if (firstPass) {
             if (this._skipPreRender/* && (!this._renderCompletedActivated || cam.isMoved)*/) {
                 this._collectRenderNodes();
@@ -1324,6 +1322,7 @@ export class Planet extends RenderNode {
             s.screenRendering(sh, sl[0], 0);
         }
 
+        gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1, len = sl.length; j < len; j++) {
             let slj = sl[j];
             for (i = slj.length - 1; i >= 0; --i) {
@@ -1333,11 +1332,13 @@ export class Planet extends RenderNode {
                 }
             }
 
+            gl.polygonOffset(0, -j);
             i = rn.length;
             while (i--) {
                 rn[i].segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
+        gl.disable(gl.POLYGON_OFFSET_FILL);
 
         gl.disable(gl.BLEND);
     }
@@ -1375,7 +1376,7 @@ export class Planet extends RenderNode {
             gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
             // drawing planet nodes
-            var rn = this._renderedNodesInFrustum[frustumIndex],
+            let rn = this._renderedNodesInFrustum[frustumIndex],
                 sl = this._visibleTileLayerSlices;
 
             let i = rn.length;
@@ -1420,15 +1421,15 @@ export class Planet extends RenderNode {
             rn[i].segment.colorPickingRendering(sh, sl[0], 0);
         }
 
-        //gl.enable(gl.POLYGON_OFFSET_FILL);
+        gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1, len = sl.length; j < len; j++) {
             i = rn.length;
-            //gl.polygonOffset(0, -j);
+            gl.polygonOffset(0, -j);
             while (i--) {
                 rn[i].segment.colorPickingRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
-        //gl.disable(gl.POLYGON_OFFSET_FILL);
+        gl.disable(gl.POLYGON_OFFSET_FILL);
 
         gl.disable(gl.BLEND);
     }
