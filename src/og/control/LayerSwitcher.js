@@ -5,9 +5,11 @@
 "use strict";
 
 import { Control } from "./Control.js";
+import { elementFactory } from '../utils/elementFactory.js'
 
 /**
- * Simple(OpenLayers like)layer switcher, includes base layers, overlays, geo images etc. groups.
+ * Advanced :) layer switcher, includes base layers, overlays, geo images etc. groups.
+ * Double click for zoom, drag-and-drop to change zIndex
  * @class
  * @extends {Control}
  * @param {Object} [options] - Control options.
@@ -15,10 +17,9 @@ import { Control } from "./Control.js";
 class LayerSwitcher extends Control {
     constructor(options) {
         super(options);
-
         this.dialog = null;
-        this.baseLayersDiv = null;
-        this.overlaysDiv = null;
+        this.baseLayersContainer = null;
+        this.overlaysContainer = null;
         this._id = LayerSwitcher.numSwitches++;
     }
 
@@ -36,16 +37,16 @@ class LayerSwitcher extends Control {
     oninit() {
         this.planet.events.on("layeradd", this.onLayerAdded, this);
         this.planet.events.on("layerremove", this.onLayerRemoved, this);
-        this.createMainMenuBtn();
+        this.createMenuBtn();
         this.createDialog();
     }
 
     onLayerAdded(layer) {
         if (layer.displayInLayerSwitcher) {
             if (layer.isBaseLayer()) {
-                this.addSwitcher("radio", layer, this.baseLayersDiv);
+                this.createContainerRecord("radio", layer, this.baseLayersContainer);
             } else {
-                this.addSwitcher("checkbox", layer, this.overlaysDiv, this._id);
+                this.createContainerRecord("checkbox", layer, this.overlaysContainer, this._id);
             }
         }
     }
@@ -55,152 +56,102 @@ class LayerSwitcher extends Control {
         layer._removeCallback = null;
     }
 
-    addSwitcher(type, obj, container, id = "") {
-        var lineDiv = document.createElement("div");
-        lineDiv.className = "layersEntry"
-
-
-        // lineDiv.setAttribute('draggable', true); // Make the whole entry draggable
-        // lineDiv.addEventListener('dragstart', dragStart)
-        // lineDiv.addEventListener('dragend', dragEnd)
-        // function dragStart() {
-        //     console.log('drag started');
-        // }
-        // function dragEnd() {
-        //     console.log('drag ended');
-        // }
-
-
+    createContainerRecord(type, obj, container, id = "") {
         var that = this;
-        var inp = document.createElement("input");
-        inp.type = type;
-        inp.name = "ogBaseLayerRadiosId" + (id || "");
-        inp.checked = obj.getVisibility();
-        inp.className = "ogLayerSwitcherInput";
-        inp.onclick = function () {
-            obj.setVisibility(this.checked);
+        var layer_record = elementFactory('div', { class: 'layer-record' })
+        var input = elementFactory('input', { type: type, class: 'layer-switcher-input' });
+        input.checked = obj.getVisibility();
+        var label = elementFactory('span', { class: 'layer-record-label' }, obj.name || obj.src || "noname");
+
+        layer_record.appendChild(input);
+        layer_record.appendChild(label);
+        container.appendChild(layer_record);
+
+        // Events
+        input.onclick = function () {
+            obj.setVisibility(input.checked);
         };
-
-
 
         obj.events &&
             obj.events.on("visibilitychange", function (e) {
-                inp.checked = e.getVisibility();
+                input.checked = e.getVisibility();
             });
 
-        var lbl = document.createElement("label");
-        lbl.className = "ogLayerSwitcherLabel";
-        lbl.innerHTML = (obj.name || obj.src || "noname");
-
-        lbl.ondblclick = function () {
+        label.ondblclick = function () {
             that.planet.flyExtent(obj.getExtent());
         }
+
         obj._removeCallback = function () {
-            container.removeChild(lineDiv);
+            container.removeChild(layer_record);
         };
-
-        lineDiv.appendChild(inp);
-        lineDiv.appendChild(lbl);
-
-        container.appendChild(lineDiv);
-    }
-
-
-
-    createElementAndChildren = (type, attributes, ...children) => {
-        const el = document.createElement(type);
-
-        for (key in attributes) {
-            el.setAttribute(key, attributes[key])
-        }
-
-        children.forEach(child => {
-            if (typeof child === 'string') {
-                el.appendChild(document.createTextNode(child))
-            } else {
-                el.appendChild(child)
-            }
-        })
-        return el
-    }
-
-
-    createBaseLayers(){
-        
-    }
-
-
-
-
-
-
-
-
-
-    createBaseLayersContainer() {
-        var layersDiv = document.createElement("div");
-        layersDiv.className = "layersDiv";
-        this.dialog.appendChild(layersDiv);
-
-        var baseLayersLbl = document.createElement("div");
-        baseLayersLbl.className = "layersDivLabel";
-        baseLayersLbl.innerHTML = "Base Layers";
-        layersDiv.appendChild(baseLayersLbl);
-
-        this.baseLayersDiv = document.createElement("div");
-        layersDiv.appendChild(this.baseLayersDiv);
-    }
-
-    createOverlaysContainer() {
-        var overlaysDiv = document.createElement("div");
-        overlaysDiv.className = "layersDiv";
-        this.dialog.appendChild(overlaysDiv);
-
-        var overlaysLbl = document.createElement("div");
-        overlaysLbl.className = "layersDivLabel";
-        overlaysLbl.innerHTML = "Overlays";
-        overlaysDiv.appendChild(overlaysLbl);
-
-        this.overlaysDiv = document.createElement("div");
-        overlaysDiv.appendChild(this.overlaysDiv);
     }
 
     createDialog() {
-        this.dialog = document.createElement("div");
-        this.dialog.id = "ogLayerSwitcherDialog";
-        this.dialog.className = "displayNone";
+        this.baseLayersContainer = elementFactory('div', { class: 'layer-switcher-base-layer-container layer-container' }, 'Base Layers');
+        this.overlaysContainer = elementFactory('div', { class: 'layer-switcher-overlay-container layer-container' }, 'Overlays');
+        this.dialog = elementFactory('div', {class: 'layer-switcher-dialog dialog hide' });
         this.renderer.div.appendChild(this.dialog);
-
-        this.createBaseLayersContainer();
-        this.createOverlaysContainer();
+        this.dialog.appendChild(this.baseLayersContainer);
+        this.dialog.appendChild(this.overlaysContainer);
 
         if (this.planet) {
             let layers = this.planet.layers;
             layers.sort((a, b) => (a._zIndex < b._zIndex) ? 1 : -1) // Sort by zIndex, so I get the highest first
-
-
             for (var i = 0; i < this.planet.layers.length; i++) {
-                this.onLayerAdded(layers[i]);
+                this.onLayerAdded(this.planet.layers[i]);
             }
         }
+
     }
 
-    createMainMenuBtn() {
-        var button = document.createElement("div");
-        button.className = "ogLayerSwitcherButton";
-        button.id = "ogLayerSwitcherButtonMaximize";
-        var that = this;
-        button.onclick = function (e) {
-            if (this.id === "ogLayerSwitcherButtonMaximize") {
-                this.id = "ogLayerSwitcherButtonMinimize";
-                that.dialog.className = "displayBlock";
-            } else {
-                this.id = "ogLayerSwitcherButtonMaximize";
-                that.dialog.className = "displayNone";
-            }
-        };
-        this.renderer.div.appendChild(button);
+    createMenuBtn() {
+        let that = this;
+        let btn = elementFactory('div', { id: 'layer-switcher-menu-btn', class: 'menu-btn OFF' },
+            elementFactory('div', { id: 'layer-switcher-menu-icon',class: 'icon-holder' }));
+        this.renderer.div.appendChild(btn);
+
+        // Button ON/OFF listener
+        btn.addEventListener('click', e => {
+            if (btn.classList == 'menu-btn OFF'){ // If I am OFF
+                let buttons = document.querySelectorAll('.menu-btn');// select all buttons
+                buttons = Array.from(buttons);
+                buttons.map(x => x.classList.add('OFF')); // set all buttons to OFF
+                
+                let dialogs = document.querySelectorAll('.dialog');// select all dialogs
+                dialogs = Array.from(dialogs);
+                dialogs.map(x => x.classList.add('hide')); // set ll dialogs to hide
+          
+                btn.classList.remove('OFF'); // set myself to ON
+                that.dialog.classList.remove('hide');
+            }else{ // If I am ON
+            btn.classList.toggle('OFF');
+            that.dialog.classList.toggle('hide');
+        }
+        })
     }
+
+
+    // dialogClickHandler() {
+    //     document.addEventListener('click', e => {
+    //         let dialog =  document.getElementById('the-dialog');
+    //         let btn = document.getElementById('layer-switcher-menu-btn');
+    //         if ( e.target.matches('#layer-switcher-menu-btn, #layer-switcher-menu-icon')) {
+    //             // Clicked button --> toggle
+    //             btn.classList.toggle('OFF');
+    //             dialog.classList.toggle('hide');
+    //         } else if (e.target.matches('.layer-switcher-dialog *')) {
+    //             // Clicked dialog --> do nothing
+    //             return;  
+    //         } else if (e.target.matches('.menu-btn') || e.target.matches('.menu-btn *')) {
+    //             // Clicked another button --> set that to active
+    //             btn.classList.add('OFF');
+    //         }  else {
+    //             // Clicked outside dialog --> hide dialog 
+    //             btn.classList.add('OFF');
+    //             dialog.classList.add('hide');
+    //         }
+    //     })
+    // }
 }
 
 export { LayerSwitcher };
