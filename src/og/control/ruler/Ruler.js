@@ -6,6 +6,8 @@
 
 import { Control } from "../Control.js";
 import { RulerScene } from "./RulerScene.js";
+import { elementFactory, allMenuBtnOFF,  allDialogsHide, btnClickHandler} from "../UIhelpers.js";
+
 
 /**
  * Activate ruler
@@ -21,6 +23,8 @@ class Ruler extends Control {
             name: `rulerScene:${this._id}`,
             ignoreTerrain: options.ignoreTerrain
         });
+
+        this.dialog = null;
     }
 
     set ignoreTerrain(v) {
@@ -29,6 +33,10 @@ class Ruler extends Control {
 
     oninit() {
         this._rulerScene.bindPlanet(this.planet);
+        this. createMenuBtn();
+        this.createDialog();
+        btnClickHandler('ruler-menu-btn', 'ruler-dialog', '.layer.dialog *', '#ruler-menu-icon'); // btn_id, dialog_id, dialog_selector, icon_id
+    
     }
 
     onactivate() {
@@ -37,6 +45,18 @@ class Ruler extends Control {
 
     ondeactivate() {
         this.renderer.removeNode(this._rulerScene);
+    }
+
+    createDialog() {
+        this.dialog = elementFactory('div', { id: 'ruler-dialog',class: 'ruler dialog hide' });
+        this.renderer.div.appendChild(this.dialog);
+       
+    }
+
+    createMenuBtn() {
+        let btn = elementFactory('div', { id: 'ruler-menu-btn', class: 'ruler has-dialog menu-btn OFF' },
+            elementFactory('div', { id: 'ruler-menu-icon', class: 'icon-holder' }));
+        this.renderer.div.appendChild(btn);
     }
 }
 

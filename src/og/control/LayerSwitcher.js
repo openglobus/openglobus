@@ -5,7 +5,7 @@
 "use strict";
 
 import { Control } from "./Control.js";
-import { elementFactory } from '../utils/elementFactory.js'
+import { elementFactory, allMenuBtnOFF,  allDialogsHide, btnClickHandler} from "./UIhelpers.js";
 
 /**
  * Advanced :) layer switcher, includes base layers, overlays, geo images etc. groups.
@@ -39,6 +39,7 @@ class LayerSwitcher extends Control {
         this.planet.events.on("layerremove", this.onLayerRemoved, this);
         this.createMenuBtn();
         this.createDialog();
+        btnClickHandler('layer-switcher-menu-btn', 'layer-switcher-dialog', '.layer-switcher.dialog *', '#layer-switcher-menu-icon'); // btn_id, dialog_id, dialog_selector, icon_id
     }
 
     onLayerAdded(layer) {
@@ -89,7 +90,7 @@ class LayerSwitcher extends Control {
     createDialog() {
         this.baseLayersContainer = elementFactory('div', { class: 'layer-switcher-base-layer-container layer-container' }, 'Base Layers');
         this.overlaysContainer = elementFactory('div', { class: 'layer-switcher-overlay-container layer-container' }, 'Overlays');
-        this.dialog = elementFactory('div', {class: 'layer-switcher-dialog dialog hide' });
+        this.dialog = elementFactory('div', { id: 'layer-switcher-dialog',class: 'layer-switcher dialog hide' });
         this.renderer.div.appendChild(this.dialog);
         this.dialog.appendChild(this.baseLayersContainer);
         this.dialog.appendChild(this.overlaysContainer);
@@ -101,57 +102,13 @@ class LayerSwitcher extends Control {
                 this.onLayerAdded(this.planet.layers[i]);
             }
         }
-
     }
 
     createMenuBtn() {
-        let that = this;
-        let btn = elementFactory('div', { id: 'layer-switcher-menu-btn', class: 'menu-btn OFF' },
-            elementFactory('div', { id: 'layer-switcher-menu-icon',class: 'icon-holder' }));
+        let btn = elementFactory('div', { id: 'layer-switcher-menu-btn', class: 'layer-switcher has-dialog menu-btn OFF' },
+            elementFactory('div', { id: 'layer-switcher-menu-icon', class: 'icon-holder' }));
         this.renderer.div.appendChild(btn);
-
-        // Button ON/OFF listener
-        btn.addEventListener('click', e => {
-            if (btn.classList == 'menu-btn OFF'){ // If I am OFF
-                let buttons = document.querySelectorAll('.menu-btn');// select all buttons
-                buttons = Array.from(buttons);
-                buttons.map(x => x.classList.add('OFF')); // set all buttons to OFF
-                
-                let dialogs = document.querySelectorAll('.dialog');// select all dialogs
-                dialogs = Array.from(dialogs);
-                dialogs.map(x => x.classList.add('hide')); // set ll dialogs to hide
-          
-                btn.classList.remove('OFF'); // set myself to ON
-                that.dialog.classList.remove('hide');
-            }else{ // If I am ON
-            btn.classList.toggle('OFF');
-            that.dialog.classList.toggle('hide');
-        }
-        })
     }
-
-
-    // dialogClickHandler() {
-    //     document.addEventListener('click', e => {
-    //         let dialog =  document.getElementById('the-dialog');
-    //         let btn = document.getElementById('layer-switcher-menu-btn');
-    //         if ( e.target.matches('#layer-switcher-menu-btn, #layer-switcher-menu-icon')) {
-    //             // Clicked button --> toggle
-    //             btn.classList.toggle('OFF');
-    //             dialog.classList.toggle('hide');
-    //         } else if (e.target.matches('.layer-switcher-dialog *')) {
-    //             // Clicked dialog --> do nothing
-    //             return;  
-    //         } else if (e.target.matches('.menu-btn') || e.target.matches('.menu-btn *')) {
-    //             // Clicked another button --> set that to active
-    //             btn.classList.add('OFF');
-    //         }  else {
-    //             // Clicked outside dialog --> hide dialog 
-    //             btn.classList.add('OFF');
-    //             dialog.classList.add('hide');
-    //         }
-    //     })
-    // }
 }
 
 export { LayerSwitcher };

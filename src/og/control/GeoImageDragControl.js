@@ -6,9 +6,7 @@
 
 import { Control } from './Control.js';
 import { BaseGeoImage } from '../layer/BaseGeoImage.js';
-import { elementFactory } from '../utils/elementFactory.js'
-
-
+import { elementFactory, allMenuBtnOFF,  allDialogsHide, btnClickHandler} from "./UIhelpers.js";
 
 class GeoImageDragControl extends Control {
     constructor(options) {
@@ -34,30 +32,17 @@ class GeoImageDragControl extends Control {
                 this._bindLayer(p.layers[i]);
             }
         }
-        this.clickHandler();
+        btnClickHandler('geo-image-dragger-menu-btn', null , null, '#geo-image-dragger-menu-icon'); // btn_id, dialog_id, dialog_selector, icon_id
     }
 
     // Create a button to activate-deactivate control
     createDraggerButton() {
-        let btn = elementFactory('div', {id: 'geo-image-dragger-menu-btn',class: 'menu-btn OFF' },
-        elementFactory('div', {id: 'geo-image-dragger-icon',class: 'icon-holder'}));
-        // btn.onclick = function (e) { this.classList.toggle('OFF')};
+        let btn = elementFactory('div', {id: 'geo-image-dragger-menu-btn',class: 'geo-image-dragger menu-btn OFF' },
+        elementFactory('div', {id: 'geo-image-dragger-menu-icon',class: 'icon-holder'}));
         this.renderer.div.appendChild(btn);
     }
 
-    clickHandler() {
-        document.addEventListener('click', e => {
-            let that = this;
-            let btn = document.getElementById('geo-image-dragger-menu-btn');
-            if ( e.target.matches('#geo-image-dragger-menu-btn, #geo-image-dragger-icon')) {
-                // Clicked button --> toggle
-                btn.classList.toggle('OFF');
-                // Clicked other button --> set this OFF
-            } else if (e.target.matches('.menu-btn')) {
-                btn.classList.add('OFF');
-            }
-        })
-    }
+
 
     _bindLayer(layer) {
         if (layer instanceof BaseGeoImage) { // if the layer is a geoImage layer
@@ -66,8 +51,8 @@ class GeoImageDragControl extends Control {
 
             layer.events.on('mousemove', function (ms) {
                 var btn = document.getElementById('geo-image-dragger-menu-btn');
-                var btn_class = btn.className;
-                if (this._active && btn_class == "menu-btn") { // active layer and button ON
+                var btn_class = btn.classList.contains('OFF');
+                if (this._active && !btn_class) { // active layer and button ON
 
                     if (this._catchCorner) {// mouse is catching a corner
                         
