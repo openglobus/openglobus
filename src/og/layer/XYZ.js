@@ -129,11 +129,6 @@ class XYZ extends Layer {
 
     remove() {
         this.abortLoading();
-        //
-        // TODO: remove request from loader
-        //
-
-
         super.remove();
     }
 

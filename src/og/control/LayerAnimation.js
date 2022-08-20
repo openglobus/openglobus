@@ -28,7 +28,37 @@ class LayerAnimation extends Control {
         this._playIntervalHandler = -1;
         this._playIndex = 0;
 
+        this._frameSize = 3;
+
         this.repeat = options.repeat != undefined ? options.repeat : true;
+    }
+
+    _getFrameIndex(layerIndex) {
+        return Math.floor(layerIndex / this._frameSize);
+    }
+
+    _appendFrameToPlanet(frameIndex) {
+        if (this.planet) {
+            for (let i = frameIndex * this._frameSize, len = i + this._frameSize; i < len; i++) {
+                if (this._layersArr[i]) {
+                    this.planet.addLayer(this._layersArr[i]);
+                }
+            }
+        }
+    }
+
+    _removeFrameFromPlanet(frameIndex) {
+        if (this.planet) {
+            for (let i = frameIndex * this._frameSize, len = i + this._frameSize; i < len; i++) {
+                if (this._layersArr[i]) {
+                    this._layersArr[i].remove();
+                }
+            }
+        }
+    }
+
+    _isInsideFrame(){
+
     }
 
     oninit() {
@@ -73,7 +103,8 @@ class LayerAnimation extends Control {
                 li.setVisibility(false);
                 li.setBaseLayer(false);
                 li.opacity = 0.0;
-                this.planet.addLayer(li);
+                this._appendFrameToPlanet(0);
+                //this.planet.addLayer(li);
             }
         }
     }
@@ -87,8 +118,10 @@ class LayerAnimation extends Control {
     appendLayer(layer) {
         this._layersArr.push(layer);
         layer.setVisibility(false);
+        layer.setBaseLayer(false);
         layer.opacity = 0.0;
         if (this.planet) {
+            //check current frame
             this.planet.addLayer(layer);
         }
     }
@@ -219,8 +252,12 @@ class LayerAnimation extends Control {
     }
 }
 
-export function layerAnimation(options) {
+export function
+
+layerAnimation(options) {
     return LayerAnimation(options);
 }
 
-export { LayerAnimation };
+export {
+    LayerAnimation
+};
