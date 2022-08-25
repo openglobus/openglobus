@@ -11,13 +11,13 @@ import { GeoImage } from '../../src/og/layer/GeoImage.js';
 
 
 let osm1 = new XYZ("osm-1", {
-    isBaseLayer: false,
+    isBaseLayer: true,
     url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#AAD3DF" }, { color: "#F2EFE9" }],
     isSRGB: false,
-    zIndex: 1000,
-    opacity: 0.5
+    //zIndex: 0,
+    opacity: 1.0
 });
 
 var globus = new Globe({
