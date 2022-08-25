@@ -28,7 +28,7 @@ class LayerAnimation extends Control {
         this._playIntervalHandler = -1;
         this._playIndex = 0;
 
-        this._frameSize = options.frameSize || 40;
+        this._frameSize = options.frameSize || 20;
 
         this.repeat = options.repeat != undefined ? options.repeat : true;
     }
@@ -130,6 +130,12 @@ class LayerAnimation extends Control {
         return currLayer && currLayer.isIdle || !currLayer;
     }
 
+    /**
+     * Waiting for the current index layer loadend and make it non transparent,
+     * and make prev layer transparent, also check previous frame index to cleanup.
+     * @param {Layer} layer
+     * @private
+     */
     _onLayerLoadend(layer) {
         let currLayer = this._layersArr[this._currentIndex];
         if (currLayer && currLayer.isEqual(layer)) {
@@ -137,9 +143,15 @@ class LayerAnimation extends Control {
             currLayer.opacity = 1.0;
             let prevLayer = this._layersArr[this._prevIndex];
             if (prevLayer) {
-                prevLayer.setVisibility(false);
                 prevLayer.opacity = 0.0;
+                prevLayer.setVisibility(false);
+                // If frame is changed - remove it from the planet
+                let prevFrame = this._getFrameIndex(this._prevIndex);
+                if (this._getFrameIndex(this._currentIndex) !== prevFrame) {
+                    this._removeFrameFromPlanet(prevFrame);
+                }
             }
+
             this.events.dispatch(this.events.idle, currLayer, prevLayer, this._currentIndex, this._prevIndex);
         }
     }
@@ -166,19 +178,25 @@ class LayerAnimation extends Control {
         return this._layersArr;
     }
 
+    _checkEnd() {
+        if (this._playIndex > this._layersArr.length) {
+            if (this.repeat) {
+                this._playIndex = 0;
+            } else {
+                this.pause();
+            }
+        }
+    }
+
     play() {
         if (!this.isPlaying) {
+
             if (this._currentIndex >= this._layersArr.length - 1) {
                 this.stop();
             }
+
             this._playIntervalHandler = setInterval(() => {
-                if (this._playIndex > this._layersArr.length) {
-                    if (this.repeat) {
-                        this._playIndex = 0;
-                    } else {
-                        this.pause();
-                    }
-                }
+                this._checkEnd();
                 this.setCurrentIndex(this._playIndex);
 
                 requestAnimationFrame(() => {
@@ -186,6 +204,7 @@ class LayerAnimation extends Control {
                         this._playIndex++;
                     }
                 });
+
             }, this._playInterval);
 
             this.events.dispatch(this.events.play);
@@ -209,6 +228,14 @@ class LayerAnimation extends Control {
         this._playIntervalHandler = -1;
     }
 
+    /**
+     * Function sets layer index visible. If the layer is idle (all visible tiles loaded), sets opacity to one,
+     * otherwise to ZERO it means that when all visible tiles will be loaded the opacity becomes ONE. So, previous
+     * layer remains non transparent (opacity = 1) till current layer is loading.
+     * @param {number} index
+     * @param {boolean} [forceVisibility]
+     * @param {boolean} [stopPropagation]
+     */
     setCurrentIndex(index, forceVisibility, stopPropagation) {
         if (index != this._currentIndex && index >= 0 && index < this._layersArr.length) {
             this._prevIndex = this._currentIndex;
@@ -231,9 +258,10 @@ class LayerAnimation extends Control {
                     currLayer.opacity = 1.0;
                     currLayer.setVisibility(true);
                     if (prevLayer) {
-                        prevLayer.setVisibility(false);
                         prevLayer.opacity = 0.0;
+                        prevLayer.setVisibility(false);
                     }
+                    // If frame is changed - remove it from the planet
                     if (frameChanged) {
                         this._removeFrameFromPlanet(prevFrame);
                     }
@@ -244,9 +272,11 @@ class LayerAnimation extends Control {
                         if (currLayer.isIdle) {
                             currLayer.opacity = 1.0;
                             if (prevLayer) {
-                                prevLayer.setVisibility(false);
                                 prevLayer.opacity = 0.0;
+                                prevLayer.setVisibility(false);
                             }
+
+                            // If frame is changed - remove it from the planet
                             if (frameChanged) {
                                 this._removeFrameFromPlanet(prevFrame);
                             }
