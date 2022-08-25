@@ -366,6 +366,8 @@ class Layer {
                     p.events.dispatch(p.events.layerremove, this);
                     this.events.dispatch(this.events.remove, p);
                     this._planet = null;
+                    this._internalFormat = null;
+                    this.createTexture = null;
                     return this;
                 }
             }
@@ -380,8 +382,6 @@ class Layer {
     clear() {
         if (this._planet) {
             this._planet._clearLayerMaterial(this);
-            this._internalFormat = null;
-            this.createTexture = null;
         }
     }
 

@@ -44,7 +44,7 @@ class Material {
     }
 
     _createTexture(img) {
-        return this.layer.createTexture(img, this.layer._internalFormat);
+        return this.layer._planet && this.layer.createTexture(img, this.layer._internalFormat);
     }
 
     /**

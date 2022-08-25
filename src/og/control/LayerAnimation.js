@@ -19,16 +19,16 @@ class LayerAnimation extends Control {
 
         this.events = new Events(["change", "idle", "play", "pause", "stop"])
 
-        this._name = `layerAnimation-${this._id}`;
+        this._name = options.name || `layerAnimation-${this._id}`;
 
         this._layersArr = options.layers ? [].concat(options.layers) : [];
         this._currentIndex = -1;
 
-        this._playInterval = 150;
+        this._playInterval = options.playInterval || 150;
         this._playIntervalHandler = -1;
         this._playIndex = 0;
 
-        this._frameSize = 3;
+        this._frameSize = options.frameSize || 40;
 
         this.repeat = options.repeat != undefined ? options.repeat : true;
     }
@@ -39,26 +39,22 @@ class LayerAnimation extends Control {
 
     _appendFrameToPlanet(frameIndex) {
         if (this.planet) {
-            for (let i = frameIndex * this._frameSize, len = i + this._frameSize; i < len; i++) {
-                if (this._layersArr[i]) {
-                    this.planet.addLayer(this._layersArr[i]);
-                }
+            let minIndex = frameIndex * this._frameSize;
+            let maxIndex = minIndex + this._frameSize;
+            for (let i = minIndex, len = maxIndex > this._layersArr.length ? this._layersArr.length : maxIndex; i < len; i++) {
+                this.planet.addLayer(this._layersArr[i]);
             }
         }
     }
 
     _removeFrameFromPlanet(frameIndex) {
         if (this.planet) {
-            for (let i = frameIndex * this._frameSize, len = i + this._frameSize; i < len; i++) {
-                if (this._layersArr[i]) {
-                    this._layersArr[i].remove();
-                }
+            let minIndex = frameIndex * this._frameSize;
+            let maxIndex = minIndex + this._frameSize;
+            for (let i = minIndex, len = maxIndex > this._layersArr.length ? this._layersArr.length : maxIndex; i < len; i++) {
+                this._layersArr[i].remove();
             }
         }
-    }
-
-    _isInsideFrame(){
-
     }
 
     oninit() {
@@ -66,7 +62,7 @@ class LayerAnimation extends Control {
         this._initLayers();
         this._onLayerLoadend_ = this._onLayerLoadend.bind(this);
         this.planet.events.on("layerloadend", this._onLayerLoadend_, this);
-        this.setCurrentIndex(0);
+        this.setCurrentIndex(0, false, true);
     }
 
     onactivate() {
@@ -98,14 +94,13 @@ class LayerAnimation extends Control {
 
     _initLayers() {
         if (this.planet) {
-            for (let i = 0; i < this._layersArr.length; i++) {
+            for (let i = 0, len = this._layersArr.length; i < len; i++) {
                 let li = this._layersArr[i];
                 li.setVisibility(false);
                 li.setBaseLayer(false);
                 li.opacity = 0.0;
-                this._appendFrameToPlanet(0);
-                //this.planet.addLayer(li);
             }
+            this._appendFrameToPlanet(0);
         }
     }
 
@@ -219,8 +214,16 @@ class LayerAnimation extends Control {
             this._prevIndex = this._currentIndex;
             this._currentIndex = index;
 
+            let prevFrame = this._getFrameIndex(this._prevIndex);
+            let currFrame = this._getFrameIndex(this._currentIndex);
+
             let prevLayer = this._layersArr[this._prevIndex],
                 currLayer = this._layersArr[index];
+
+            let frameChanged = currFrame != prevFrame && this._prevIndex !== -1;
+            if (frameChanged) {
+                this._appendFrameToPlanet(currFrame);
+            }
 
             if (currLayer) {
                 if (forceVisibility) {
@@ -231,6 +234,9 @@ class LayerAnimation extends Control {
                         prevLayer.setVisibility(false);
                         prevLayer.opacity = 0.0;
                     }
+                    if (frameChanged) {
+                        this._removeFrameFromPlanet(prevFrame);
+                    }
                 } else {
                     currLayer.opacity = 0.0;
                     currLayer.setVisibility(true);
@@ -240,6 +246,9 @@ class LayerAnimation extends Control {
                             if (prevLayer) {
                                 prevLayer.setVisibility(false);
                                 prevLayer.opacity = 0.0;
+                            }
+                            if (frameChanged) {
+                                this._removeFrameFromPlanet(prevFrame);
                             }
                         }
                     });
