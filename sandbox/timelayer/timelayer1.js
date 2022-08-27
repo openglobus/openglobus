@@ -16,6 +16,9 @@ let osm1 = new XYZ("osm-1", {
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#AAD3DF" }, { color: "#F2EFE9" }],
     isSRGB: false,
+    visibility: true,
+    //zIndex: 0,
+    opacity: 1.0
 });
 
 var globus = new Globe({

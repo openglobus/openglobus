@@ -223,7 +223,7 @@ class CanvasTiles extends Layer {
                     this._exec(pmat);
                 }
             }
-        } else if (this._counter === 0 && this._planet._terrainCompletedActivated) {
+        } else if (this._counter === 0 && this._planet && this._planet._terrainCompletedActivated) {
             this.events.dispatch(this.events.loadend);
         }
     }
