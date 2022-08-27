@@ -112,12 +112,14 @@ class RulerScene extends RenderNode {
             entities: [this._trackEntity, this._propsLabel],
             pickingEnabled: false,
             polygonOffsetUnits: -1.0,
-            relativeToGround: true
+            relativeToGround: true,
+            displayInLayerSwitcher: false
         });
 
         this._cornersLayer = new Vector("corners", {
             entities: [this._cornerEntity[0], this._cornerEntity[1]],
-            pickingEnabled: true
+            pickingEnabled: true,
+            displayInLayerSwitcher: false
         });
     }
 
@@ -141,6 +143,7 @@ class RulerScene extends RenderNode {
     }
 
     _activate() {
+       
         this._propsLabel.label.setVisibility(false);
         this._onLclick_ = this._onLclick.bind(this);
         this.renderer.events.on("lclick", this._onLclick_, this);
@@ -163,6 +166,7 @@ class RulerScene extends RenderNode {
 
         this._planet.addLayer(this._trackLayer);
         this._planet.addLayer(this._cornersLayer);
+        
     }
 
     _deactivate() {

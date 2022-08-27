@@ -1,5 +1,13 @@
 'use strict';
 
+
+/* 
+* Helper functions for UI/UX
+*/
+
+
+
+// Creates new DOM elements and assigns attributes
 export function elementFactory(type, attributes, ...children) {
     const el = document.createElement(type)
     let key = null;
@@ -18,18 +26,26 @@ export function elementFactory(type, attributes, ...children) {
     return el
 }
 
-export function getAllnodes(CSSclass) { return document.querySelectorAll(CSSclass) };
-export function nodesToArray(nodeList) { return Array.from(nodeList) };
-export function setAllCSSclass(CSSclass, nodeArray) { return nodeArray.forEach(x => x.classList.add(CSSclass)) };
 
+export function getAllnodes(CSSclass) { return document.querySelectorAll(CSSclass) }; // Get all nodes of a class
+
+export function nodesToArray(nodeList) { return Array.from(nodeList) }; // Convert nodelist to an Array
+
+export function setAllCSSclass(CSSclass, nodeArray) { return nodeArray.forEach(x => x.classList.add(CSSclass)) }; // Adds a class to all elements selected
+
+
+// Sets all menu buttons to off
 export function allMenuBtnOFF() {
     setAllCSSclass('OFF', nodesToArray(getAllnodes('.menu-btn')));
 }
 
+// Hides all dialoges of main menu
 export function allDialogsHide() {
     setAllCSSclass('hide', nodesToArray(getAllnodes('.dialog')));
 }
 
+
+// Handles the click inside/outside a dialog - closes dialog when click outside
 export function btnClickHandler(btn_id, dialog_id, dialog_selector, btn_icon_id) {
     let btn = document.getElementById(btn_id);
     let dialog = document.getElementById(dialog_id);
@@ -42,20 +58,20 @@ export function btnClickHandler(btn_id, dialog_id, dialog_selector, btn_icon_id)
             if(dialog){dialog.classList.remove('hide')};
 
             if (this.classList.contains('has-dialog')) {
-                let listener = document.addEventListener('click', e => {
+                let listener = document.addEventListener('click', (e) => {
                     if (e.target.matches(dialog_selector) || e.target.matches(btn_icon_id)) { //inside
                         return;
                     } else {//outside    
                         btn.classList.add('OFF');
                         if(dialog){dialog.classList.add('hide')};
-                        this.removeEventListener('click', arguments.callee); // TODO needs fix
+                        // this.removeEventListener('click', arguments.callee); // TODO needs fix
                     }
                 })
             }
         } else {
             // Turn to OFF
             this.classList.add('OFF');
-            dialog.classList.add('hide');
+            if(dialog){dialog.classList.add('hide')};
         }
     }
 }

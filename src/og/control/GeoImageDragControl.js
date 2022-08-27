@@ -42,8 +42,6 @@ class GeoImageDragControl extends Control {
         this.renderer.div.appendChild(btn);
     }
 
-
-
     _bindLayer(layer) {
         if (layer instanceof BaseGeoImage) { // if the layer is a geoImage layer
 
@@ -51,25 +49,20 @@ class GeoImageDragControl extends Control {
 
             layer.events.on('mousemove', function (ms) {
                 var btn = document.getElementById('geo-image-dragger-menu-btn');
-                var btn_class = btn.classList.contains('OFF');
-                if (this._active && !btn_class) { // active layer and button ON
-
+                var btn_off = btn.classList.contains('OFF');
+                if (this._active && !btn_off) { // active layer and button ON
                     if (this._catchCorner) {// mouse is catching a corner
-                        
                         var corners = layer.getCornersLonLat();
                         corners[this._cornerIndex] = p.getLonLatFromPixelTerrain(ms, true);
                         layer.setCornersLonLat(corners);
-
                     } else { // mouse isn't catching
                         this._cornerIndex = -1;
-
                         for (var i = 0; i < layer._cornersWgs84.length; i++) {
                             var ground = p.getLonLatFromPixelTerrain(ms, true);
                             // mouse is near
                             if (ground && p.ellipsoid.getGreatCircleDistance(layer._cornersWgs84[i], ground) / p.getDistanceFromPixel(ms, true) <= 0.05) {
                                 this._cornerIndex = i;
                                 document.body.style.cursor = 'move';
-                              
                                 break;
                             // mouse is far
                             } else { 
@@ -78,7 +71,6 @@ class GeoImageDragControl extends Control {
                             }
                         }
                     }
-
                 }
 
                 layer.events.on("mouseleave", function (
