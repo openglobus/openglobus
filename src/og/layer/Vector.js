@@ -83,6 +83,7 @@ class Vector extends Layer {
 
         this._hasImageryTiles = false;
 
+
         /**
          * First index - near distance to the entity, after that entity becomes full scale.
          * Second index - far distance to the entity, when entity becomes zero scale.

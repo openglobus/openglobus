@@ -201,6 +201,13 @@ export class Planet extends RenderNode {
          */
         this.terrain = null;
 
+         /**
+         * Terrain provider Pool.
+         * @public
+         * @type {Terrain}
+         */
+          this._terrainPool = null;
+
         /**
          * Camera is this.renderer.activeCamera pointer.
          * @public
