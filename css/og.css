@@ -232,6 +232,8 @@ border-radius: 4px;
 }
 
 .og-layer-record > input{
+    position: relative;
+    vertical-align: middle;
     height: 16px;
     width: 30px;
     padding: 0px;
@@ -242,8 +244,11 @@ border-radius: 4px;
 
 .og-layer-record > span {
     display: inline-block;
+    position: relative;
+    vertical-align: middle;
+    line-height: 16px;
+    height: 16px;
     font-size: 1em;
-    line-height: 24px;
     cursor: pointer;  
     padding-left: 8px;
     margin: 0px; 
