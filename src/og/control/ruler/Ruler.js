@@ -34,7 +34,7 @@ class Ruler extends Control {
     oninit() {
         this._rulerScene.bindPlanet(this.planet);
         this. createMenuBtn();
-        btnClickHandler('ruler-menu-btn', null, null, '#ruler-menu-icon'); // btn_id, dialog_id, dialog_selector, icon_id
+        btnClickHandler('og-ruler-menu-btn', null, null, '#ruler-menu-icon'); // btn_id, dialog_id, dialog_selector, icon_id
     
     }
 
