@@ -201,7 +201,7 @@ class LayerSwitcher extends Control {
     }
 
     createMenuVbar() {
-        let menuBar = elementFactory('div', { class: 'menu-bar-vertical' });
+        let menuBar = elementFactory('div', { class: 'og-menu-bar-vertical' });
         this.renderer.div.appendChild(menuBar);
     }
 }
