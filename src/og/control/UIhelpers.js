@@ -85,3 +85,12 @@ export function btnClickHandler(btn_id, dialog_id, dialog_selector, btn_icon_id)
         }
     }
 }
+
+// Shorten a long label
+export function shortenLabel(text, theLength){
+    if(text.length > theLength){
+        return text.substring(0, theLength) + " ...";
+    }else{
+        return text
+    }
+}

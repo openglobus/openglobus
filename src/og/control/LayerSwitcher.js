@@ -5,7 +5,7 @@
 "use strict";
 
 import { Control } from "./Control.js";
-import { elementFactory, allMenuBtnOFF, allDialogsHide, btnClickHandler } from "./UIhelpers.js";
+import { elementFactory, allMenuBtnOFF, allDialogsHide, btnClickHandler, shortenLabel } from "./UIhelpers.js";
 
 /**
  * Advanced :) layer switcher, includes base layers, overlays, geo images etc. groups.
@@ -78,7 +78,7 @@ class LayerSwitcher extends Control {
         this.layerRecord = thelayerRecord; // export to global variable, to access onLayerAdded
         var input = elementFactory('input', { type: type, class: 'og-layer-switcher-input' });
         input.checked = obj.getVisibility();
-        var label = elementFactory('span', { class: 'og-layer-record-label' }, obj.name || obj.src || "noname");
+        var label = elementFactory('span', { class: 'og-layer-record-label' }, shortenLabel(obj.name,26) || shortenLabel(obj.src, 26) || "noname");
         var info = elementFactory('img', { class: 'og-layer-record-info' });
 
         this.layerRecord.appendChild(input);
@@ -170,7 +170,7 @@ class LayerSwitcher extends Control {
        
         let terrainRecord = elementFactory('div', { id: id, class: 'og-layer-record' });
         var input = elementFactory('input', { type: "radio", class: 'og-layer-switcher-input' });
-        var label = elementFactory('span', { class: 'og-layer-record-label' }, obj.name || obj.src || "noname");
+        var label = elementFactory('span', { class: 'og-layer-record-label' }, shortenLabel(obj.name,26) || shortenLabel(obj.src,26) || "noname");
         var info = elementFactory('img', { class: 'og-layer-record-info' });
 
         terrainRecord.appendChild(input);
@@ -224,12 +224,12 @@ class LayerSwitcher extends Control {
             }
 
             // Create terrain records
-            let terrainPool = this.planet._terrainPool;
+            let terrainPool = [...this.planet._terrainPool];
             
             if(terrainPool){
-                terrainPool.forEach((terrain, index) => {
-                    this.createTerrainRecord(index, terrain);
-                })
+                for (let i = 0; i < terrainPool.length ; i++){
+                    this.createTerrainRecord(i, terrainPool[i]);
+                }
             }
 
         }

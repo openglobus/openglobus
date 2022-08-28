@@ -81,7 +81,7 @@
             transparentColor: [1.0, 1.0, 1.0]
         });
 
-        var colorado = new GeoImage("Colorado Lagoon from ISS", {
+        var colorado = new GeoImage("Colorado Lagoon from International Space Station (this is a very long label)", {
             src: "colorado-lagoon.jpg",
             corners: [[-67.53063210679933, -22.148203215209232], [-67.76790919786042, -22.472194951833597], [-67.98127275782282, -22.331289122713546], [-67.74288424259892, -21.991520350954644]],
             visibility: false,
@@ -142,11 +142,12 @@
         let globus = new Globe({
             "target": "globus",
             "name": "Earth",
-            "terrain": new GlobusTerrain("OpenGlobus"),
+            "terrain": new GlobusTerrain("OpenGlobus Terrain"),
             "layers": [osm, sat1, sat2, light, dark, states, colorado, vector]
         });
 
         globus.planet.addControl(new LayerSwitcher());
+        console.log(globus.planet)
 
         window.planet = globus.planet;
 

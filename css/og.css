@@ -132,7 +132,7 @@
 /* =============================== */
 
 .og-menu-bar-vertical {
-    position: fixed;
+    position: absolute;
     right: 12px;
     top: 12px;
     width: 40px;
@@ -253,7 +253,7 @@
     cursor: pointer;
     padding-left: 8px;
     margin: 0px;
-    width: 160px;
+    width: 200px;
 }
 
 .og-layer-record-drop-zone {
