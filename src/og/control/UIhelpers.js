@@ -36,12 +36,12 @@ export function setAllCSSclass(CSSclass, nodeArray) { return nodeArray.forEach(x
 
 // Sets all menu buttons to off
 export function allMenuBtnOFF() {
-    setAllCSSclass('OFF', nodesToArray(getAllnodes('.menu-btn')));
+    setAllCSSclass('og-OFF', nodesToArray(getAllnodes('.og-menu-btn')));
 }
 
 // Hides all dialoges of main menu
 export function allDialogsHide() {
-    setAllCSSclass('hide', nodesToArray(getAllnodes('.dialog')));
+    setAllCSSclass('og-hide', nodesToArray(getAllnodes('.og-dialog')));
 }
 
 
@@ -50,28 +50,28 @@ export function btnClickHandler(btn_id, dialog_id, dialog_selector, btn_icon_id)
     let btn = document.getElementById(btn_id);
     let dialog = document.getElementById(dialog_id);
     btn.onclick = function (e) {
-        if (this.classList.contains('OFF')) {
+        if (this.classList.contains('og-OFF')) {
             // Turn to ON
             allMenuBtnOFF();
             allDialogsHide();
-            this.classList.remove('OFF');
-            if(dialog){dialog.classList.remove('hide')};
+            this.classList.remove('og-OFF');
+            if(dialog){dialog.classList.remove('og-hide')};
 
-            if (this.classList.contains('has-dialog')) {
+            if (this.classList.contains('og-has-dialog')) {
                 let listener = document.addEventListener('click', (e) => {
                     if (e.target.matches(dialog_selector) || e.target.matches(btn_icon_id)) { //inside
                         return;
                     } else {//outside    
-                        btn.classList.add('OFF');
-                        if(dialog){dialog.classList.add('hide')};
+                        btn.classList.add('og-OFF');
+                        if(dialog){dialog.classList.add('og-hide')};
                         // this.removeEventListener('click', arguments.callee); // TODO needs fix
                     }
                 })
             }
         } else {
             // Turn to OFF
-            this.classList.add('OFF');
-            if(dialog){dialog.classList.add('hide')};
+            this.classList.add('og-OFF');
+            if(dialog){dialog.classList.add('og-hide')};
         }
     }
 }

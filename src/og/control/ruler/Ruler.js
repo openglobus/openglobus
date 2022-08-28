@@ -34,7 +34,7 @@ class Ruler extends Control {
     oninit() {
         this._rulerScene.bindPlanet(this.planet);
         this. createMenuBtn();
-        btnClickHandler('og-ruler-menu-btn', null, null, '#ruler-menu-icon'); // btn_id, dialog_id, dialog_selector, icon_id
+        btnClickHandler('og-ruler-menu-btn', null, null, '#og-ruler-menu-icon'); // btn_id, dialog_id, dialog_selector, icon_id
     
     }
 
@@ -48,11 +48,11 @@ class Ruler extends Control {
 
 
     createMenuBtn() {
-        let btn = elementFactory('div', { id: 'og-ruler-menu-btn', class: 'ruler menu-btn OFF' },
-            elementFactory('div', { id: 'ruler-menu-icon', class: 'icon-holder' }));
+        let btn = elementFactory('div', { id: 'og-ruler-menu-btn', class: 'og-ruler og-menu-btn og-OFF' },
+            elementFactory('div', { id: 'og-ruler-menu-icon', class: 'og-icon-holder' }));
         this.renderer.div.appendChild(btn);
         btn.addEventListener('click', () => {
-            if(btn.classList.contains('OFF')){
+            if(btn.classList.contains('og-OFF')){
                 this.onactivate();
             }
             else{

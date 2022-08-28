@@ -32,13 +32,13 @@ class GeoImageDragControl extends Control {
                 this._bindLayer(p.layers[i]);
             }
         }
-        btnClickHandler('geo-image-dragger-menu-btn', null , null, '#geo-image-dragger-menu-icon'); // btn_id, dialog_id, dialog_selector, icon_id
+        btnClickHandler('og-geo-image-dragger-menu-btn', null , null, '#og-geo-image-dragger-menu-icon'); // btn_id, dialog_id, dialog_selector, icon_id
     }
 
     // Create a button to activate-deactivate control
     createDraggerButton() {
-        let btn = elementFactory('div', {id: 'geo-image-dragger-menu-btn',class: 'geo-image-dragger menu-btn OFF' },
-        elementFactory('div', {id: 'geo-image-dragger-menu-icon',class: 'icon-holder'}));
+        let btn = elementFactory('div', {id: 'og-geo-image-dragger-menu-btn',class: 'og-geo-image-dragger og-menu-btn og-OFF' },
+        elementFactory('div', {id: 'og-geo-image-dragger-menu-icon',class: 'og-icon-holder'}));
         this.renderer.div.appendChild(btn);
     }
 
@@ -48,8 +48,8 @@ class GeoImageDragControl extends Control {
             var p = this.planet;
 
             layer.events.on('mousemove', function (ms) {
-                var btn = document.getElementById('geo-image-dragger-menu-btn');
-                var btn_off = btn.classList.contains('OFF');
+                var btn = document.getElementById('og-geo-image-dragger-menu-btn');
+                var btn_off = btn.classList.contains('og-OFF');
                 if (this._active && !btn_off) { // active layer and button ON
                     if (this._catchCorner) {// mouse is catching a corner
                         var corners = layer.getCornersLonLat();

@@ -150,7 +150,7 @@
 /* =============================== */
 
 /* All buttons have this class + OFF if they are OFF */
-.menu-btn{
+.og-menu-btn{
     height: 40px;
     width: 40px;
     position: absolute;
@@ -161,7 +161,7 @@
 } 
 
 /* All buttons have a div inside to hold the background base64 image */
-.menu-btn > div {
+.og-menu-btn > div {
     width: 40px;
     height: 40px;
     background-size: 24px !important;
@@ -169,23 +169,23 @@
     filter: invert(95%) drop-shadow(4px 4px 3px  black);  
 }
 
-.menu-btn.OFF{
+.og-menu-btn.og-OFF{
     border: none;
 }
 
-.menu-btn.OFF > div {
+.og-menu-btn.og-OFF > div {
     filter: invert(75%)
  }
 
-.menu-btn.OFF > div:hover {
+.og-menu-btn.og-OFF > div:hover {
     filter: invert(100%)
  }
 
-.hide {
+.og-hide {
     display: none;
 }
 
-.dialog {
+.og-dialog {
     overflow: auto;
     position: absolute;
     right: 46px;
@@ -203,35 +203,35 @@
 
 /* =============================== */
 /* 1 - LAYER SWITCHER */
-#layer-switcher-menu-btn {
+#og-layer-switcher-menu-btn {
     top: 12px;
     right: 12px;  
 }
 
-#layer-switcher-menu-btn > div{
+#og-layer-switcher-menu-btn > div{
     background: url('data:image/png;base64,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') top left no-repeat} 
 
-.layer-switcher.dialog { 
+.og-layer-switcher.og-dialog { 
     top: 32px; 
 }
 
-.layer-container{
+.og-layer-container{
     color: white;
     margin: 0px; /* I want the parent div to have no space around childer to click into */
     padding: 12px;
     font-size: 14px;
 }
 
-.layer-container> div:first-child{
+.og-layer-container> div:first-child{
     margin-top: 8px;
 }
 
-.layer-record {
+.og-layer-record {
 height: 28px;
 border-radius: 4px;
 }
 
-.layer-record > input{
+.og-layer-record > input{
     height: 16px;
     width: 30px;
     padding: 0px;
@@ -240,7 +240,7 @@ border-radius: 4px;
     cursor: pointer;   
 }
 
-.layer-record > span {
+.og-layer-record > span {
     display: inline-block;
     font-size: 1em;
     line-height: 24px;
@@ -250,7 +250,7 @@ border-radius: 4px;
     width: 160px;
 }
 
-.layer-record-drop-zone {
+.og-layer-record-drop-zone {
     padding: 0px;
     margin: 0px;
     width: 100%;
@@ -259,12 +259,12 @@ border-radius: 4px;
   
 }
 
-.layer-record-drop-zone.drag-over{
+.og-layer-record-drop-zone.og-drag-over{
     height: 6px;
     background-color: rgba(0, 0, 0, 0.3);
 }
 
-.layer-record.dragging{
+.og-center-icon.og-dragging{
     /* background-color: white; */
     color: #705affee;
     /* opacity: 0.5; */
@@ -276,20 +276,13 @@ border-radius: 4px;
 
 /* Just set position and background url */
 
-#geo-image-dragger-menu-btn{
+#og-geo-image-dragger-menu-btn{
     top: 112px;
     right: 12px;
 } 
 
-#geo-image-dragger-menu-btn > div {
+#og-geo-image-dragger-menu-btn > div {
     background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAIuSURBVHgB7ZjvVcIwFMWvHr9bN4gTyAZ2A92AOIFu4Ai4AWygToAbiBNQJwAnwDz6QkNs/tgAhXPyO+eeQJuS+5q8lD4gk8lkMpkTZ6S0Uhor3SsVOF7IG3kkrwul6Rlq8zYfSl/ckpboB6E0UCqVbrjdwhWADQUwQx3UXOmbj1WsVJMFG73kVnBbePysz5kBPLBJuvDO+KFYKqv1GQYbiF2uZPiD9Y56JmgZ4cLqOGNNjMEGrBv+LhwDC6vtgp5V8vBt+KlcF1zAT8V6s45TAMJoaeqv+Ptl4Dd/2OjC+Fyx/p1roQBc6JzonXOcODmAHUG584w6L/RDVcRevGJJ9McEjQ+tqae/1P2OYQbo7g9bjpeot28vhwiA/rsIz/mi47k1+w6A1vUry2WmQvuDio5FbdX7yoER4tc0LZW50XcR8CONvjsPgO70FH+TkjTyXCdQLzeJ8NKRSAxgiPbEE9i+k216RjoSCQEMjWvGaBK0RLOPh/SENCQ6BjBoMUl3/AVxxk0N0R2JDgG0mU/RAhH7fCiA2G1UwL8VdkEnu0ACMQGIXQzkIDmIUAAC+zNvj/GIjuO4csB+uBxKn2hKPK4XewlHElPnEu4HUZ+aG9psJmZVYlOqOCVi60IhlmheyKtA38JSErEv9RWaUsecWzqmKwopCDTBUOnmmltd7PLSNgO64vCGuhI3Q3+lRR1EqXSLltIiMUWdFGPucOx5QLvTBM2OlclkMpnM6fILH2AieAQ9pX8AAAAASUVORK5CYII=') top left no-repeat}
-
-.ogGeoImageHandle{
-    height: 30px;
-    width: 30px;
-    color: black;
-    display: none;
-}
 
 /* =============================== */
 .displayNone {
@@ -312,7 +305,7 @@ border-radius: 4px;
 #og-ruler-menu-btn > div {
     background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAoCAYAAAC4h3lxAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAJVSURBVHgB1ZhrdcMwDEbvGBSCIRSCIJRBx2BlUDNYh2BlMAiFEAiBMAhbfDqfuo78yKNp9p2jH3EcW3GuJTmwLklnTWc/nR35R9p2duHqeGjCyrXp7J2+494urFhvnX2Tdt7bnpVJOmtJO/ytXG9YgQw6597c5hWuzsYvYXminENH8it+iJ6xSh/DE1Ti/ISOh2uLMVt0Qwt5XNw9UzHG4mHVdPZF2vF2oBPxIjQ8SJ7zFC6u3TJcW2WsAzNrRz4spjiv1YkHhVWhzLkwXVpYfWeCSunffY0d07SJxjgo82wZoRrOp35e8zdWHPsbJoRVIc/5F/MmmpPipDAirBoez7kvpW3QFnIvQVu8iMmwWuJcS/9jJejRxQZOHkmj21Mu/c/F+Wt07ZPfZ9ReKrdt2Fnob5QYF8MwCdcFCeWRDL+g4R4ZwwB0S50bxnGucexfKodMbtVVdJshnQfKooc8v2BhQjpSxkVFV+s8Nf17hZFjH7SbYC7XPgndM/2Vn+K8cJ8ld+SRSVlLJbpzHuFeySNjqatcB6NrlUEMw1Wzccec0KombumzV5LDw/FrgjZfeLXcnJGC426uUcVZKFEGlsIzWs0C91HmzAyc1+pCPweE2kQTppDZkd+gc2X0nnJHOMON4VTN4iTkK9dPHvyjKneES9Us3uFSPBcWUO4IZ9DL3DN5XPYsLO0IZ/7uWW4rukTlOloxxz7SaF9Iw8XwZAl9xxwKF1bAea1yzsa4zP7DaQ4Zys5bVvL/PiXLijmvUVwnzZ7+p+ilsp/hWio71j9YkX4Byx4UVaJRe+4AAAAASUVORK5CYII=')top left no-repeat}
 
-.ruler.dialog {
+.og-ruler.og-dialog {
     height: 80px;
     top: 174px;
 }

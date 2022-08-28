@@ -23,7 +23,7 @@ class LayerSwitcher extends Control {
         this.overlaysContainer = null;
         this.layerRecord = null;
         // Each layer record has it's own dropzone to the top of the div. We need a final one to the very end.
-        this.lastDropZone = elementFactory('div', { id: 'last-layer-drop-zone', class: 'layer-record-drop-zone' });
+        this.lastDropZone = elementFactory('div', { id: 'og-last-layer-drop-zone', class: 'og-layer-record-drop-zone' });
         this._id = LayerSwitcher.numSwitches++;
     }
 
@@ -45,7 +45,7 @@ class LayerSwitcher extends Control {
         this.createMenuBtn();
         this.createDialog();
 
-        btnClickHandler('layer-switcher-menu-btn', 'layer-switcher-dialog', '.layer-switcher.dialog *', '#layer-switcher-menu-icon'); // btn_id, dialog_id, dialog_selector, icon_id
+        btnClickHandler('og-layer-switcher-menu-btn', 'og-layer-switcher-dialog', '.og-layer-switcher.og-dialog *', '#og-layer-switcher-menu-icon'); // btn_id, dialog_id, dialog_selector, icon_id
     }
 
     onLayerAdded(layer) {
@@ -55,7 +55,7 @@ class LayerSwitcher extends Control {
             } else {
                 this.createContainerRecord("checkbox", layer, this.overlaysContainer, layer._id);
 
-                var dropZone = elementFactory('div', { class: 'layer-record-drop-zone' }); // create and append dropZone element
+                var dropZone = elementFactory('div', { class: 'og-layer-record-drop-zone' }); // create and append dropZone element
                 this.layerRecord.insertBefore(dropZone, this.layerRecord.firstChild); // Insert drop zone to the top of layer-record div
                 this.layerRecord.setAttribute('draggable', 'true'); // make this record draggable
                 this.overlaysContainer.appendChild(this.lastDropZone); // each time append  lastDropZone so that we make sure it is the last child
@@ -74,12 +74,12 @@ class LayerSwitcher extends Control {
 
     createContainerRecord(type, obj, container, id = "") {
         var that = this;
-        let thelayerRecord = elementFactory('div', { id: id, class: 'layer-record' });
+        let thelayerRecord = elementFactory('div', { id: id, class: 'og-layer-record' });
         this.layerRecord = thelayerRecord; // export to global variable, to access onLayerAdded
-        var input = elementFactory('input', { type: type, class: 'layer-switcher-input' });
+        var input = elementFactory('input', { type: type, class: 'og-layer-switcher-input' });
         input.checked = obj.getVisibility();
-        var label = elementFactory('span', { class: 'layer-record-label' }, obj.name || obj.src || "noname");
-        var info = elementFactory('img', { class: 'layer-record-info' });
+        var label = elementFactory('span', { class: 'og-layer-record-label' }, obj.name || obj.src || "noname");
+        var info = elementFactory('img', { class: 'og-layer-record-info' });
 
         this.layerRecord.appendChild(input);
         this.layerRecord.appendChild(label);
@@ -89,11 +89,11 @@ class LayerSwitcher extends Control {
 
         // Drag events for the layer-record (for CSS styling)
         thelayerRecord.addEventListener('dragstart', () => {
-            thelayerRecord.classList.add('dragging');
+            thelayerRecord.classList.add('og-dragging');
         })
 
         thelayerRecord.addEventListener('dragend', () => {
-            thelayerRecord.classList.remove('dragging');
+            thelayerRecord.classList.remove('og-dragging');
         })
 
         // Events of input click and label double click
@@ -116,7 +116,7 @@ class LayerSwitcher extends Control {
     }
 
     assignZindexesPerDialogOrder() { // See how user has placed overlays in switcher and change ZIndexes accordingly (start 10000, go down 100)
-        let dialog_layer_records = [...document.querySelectorAll('#overlay-container .layer-record')];
+        let dialog_layer_records = [...document.querySelectorAll('#og-overlay-container .og-layer-record')];
         let dialog_layer_ids = dialog_layer_records.map(x => x.id);
         let layers = this.planet.layers;
         let overlays = layers.filter(x => !x.isBaseLayer());
@@ -131,23 +131,23 @@ class LayerSwitcher extends Control {
     dropZonedragOver(dropZone) {
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
-            dropZone.classList.add('drag-over');
+            dropZone.classList.add('og-drag-over');
         });
     }
 
     dropZonedragLeave(dropZone) {
         dropZone.addEventListener('dragleave', (e) => {
             e.preventDefault();
-            dropZone.classList.remove('drag-over');
+            dropZone.classList.remove('og-drag-over');
         })
     }
 
     dropZonedrop(dropZone) {
-        let dropZones = [...document.querySelectorAll('.layer-record-drop-zone')];
+        let dropZones = [...document.querySelectorAll('.og-layer-record-drop-zone')];
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
-            dropZone.classList.remove('drag-over');
-            let selectedLayerRecord = document.querySelector('.dragging');
+            dropZone.classList.remove('og-drag-over');
+            let selectedLayerRecord = document.querySelector('.og-dragging');
             // Get position of drop zone - last is a special case
             let pos = dropZones.indexOf(dropZone);
             if (pos < dropZones.length - 1) { // not last 
@@ -168,10 +168,10 @@ class LayerSwitcher extends Control {
     createTerrainRecord(id, obj){
         var that = this;
        
-        let terrainRecord = elementFactory('div', { id: id, class: 'layer-record' });
-        var input = elementFactory('input', { type: "radio", class: 'layer-switcher-input' });
-        var label = elementFactory('span', { class: 'layer-record-label' }, obj.name || obj.src || "noname");
-        var info = elementFactory('img', { class: 'layer-record-info' });
+        let terrainRecord = elementFactory('div', { id: id, class: 'og-layer-record' });
+        var input = elementFactory('input', { type: "radio", class: 'og-layer-switcher-input' });
+        var label = elementFactory('span', { class: 'og-layer-record-label' }, obj.name || obj.src || "noname");
+        var info = elementFactory('img', { class: 'og-layer-record-info' });
 
         terrainRecord.appendChild(input);
         terrainRecord.appendChild(label);
@@ -185,7 +185,7 @@ class LayerSwitcher extends Control {
         // Events of input click and label double click
         input.onclick = function () {
             
-            let inputs = document.querySelectorAll('.terrain-switcher-container input');
+            let inputs = document.querySelectorAll('.og-terrain-switcher-container input');
             
             inputs.forEach(input => {
                 input.checked = false;
@@ -194,26 +194,13 @@ class LayerSwitcher extends Control {
             input.checked = true;
             that.planet.setTerrain(obj);
         };
-
-        // obj.events &&
-        //     obj.events.on("visibilitychange", function (e) {
-        //         input.checked = e.getVisibility();
-        //     });
-
-        // label.ondblclick = function () {
-        //     that.planet.flyExtent(obj.getExtent());
-        // }
-
-        // obj._removeCallback = function () {
-        //     container.removeChild(thelayerRecord);
-        // };
     }
 
     createDialog() {
-        this.terrainContainer = elementFactory('div', { class: 'terrain-switcher-container layer-container' }, 'Terrain Providers')
-        this.baseLayersContainer = elementFactory('div', { class: 'layer-switcher-base-layer-container layer-container' }, 'Base Layers');
-        this.overlaysContainer = elementFactory('div', { id: 'overlay-container', class: 'layer-switcher-overlay-container layer-container' }, 'Overlays');
-        this.dialog = elementFactory('div', { id: 'layer-switcher-dialog', class: 'layer-switcher dialog hide' });
+        this.terrainContainer = elementFactory('div', { class: 'og-terrain-switcher-container og-layer-container' }, 'Terrain Providers')
+        this.baseLayersContainer = elementFactory('div', { class: 'og-layer-switcher-base-layer-container og-layer-container' }, 'Base Layers');
+        this.overlaysContainer = elementFactory('div', { id: 'og-overlay-container', class: 'og-layer-switcher-overlay-container og-layer-container' }, 'Overlays');
+        this.dialog = elementFactory('div', { id: 'og-layer-switcher-dialog', class: 'og-layer-switcher og-dialog og-hide' });
         this.renderer.div.appendChild(this.dialog);
         this.dialog.appendChild(this.terrainContainer);
         this.dialog.appendChild(this.baseLayersContainer);
@@ -252,8 +239,8 @@ class LayerSwitcher extends Control {
     }
 
     createMenuBtn() {
-        let btn = elementFactory('div', { id: 'layer-switcher-menu-btn', class: 'layer-switcher has-dialog menu-btn OFF' },
-            elementFactory('div', { id: 'layer-switcher-menu-icon', class: 'icon-holder' }));
+        let btn = elementFactory('div', { id: 'og-layer-switcher-menu-btn', class: 'og-layer-switcher og-has-dialog og-menu-btn og-OFF' },
+            elementFactory('div', { id: 'og-layer-switcher-menu-icon', class: 'og-icon-holder' }));
         this.renderer.div.appendChild(btn);
     }
 
