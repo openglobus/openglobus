@@ -1,11 +1,8 @@
 'use strict';
 
-
 /* 
 * Helper functions for UI/UX
 */
-
-
 
 // Creates new DOM elements and assigns attributes
 export function elementFactory(type, attributes, ...children) {
@@ -26,13 +23,20 @@ export function elementFactory(type, attributes, ...children) {
     return el
 }
 
+// Get all nodes of a class
+export function getAllnodes(CSSclass) {
+    return document.querySelectorAll(CSSclass)
+}
 
-export function getAllnodes(CSSclass) { return document.querySelectorAll(CSSclass) }; // Get all nodes of a class
+// Convert nodelist to an Array
+export function nodesToArray(nodeList) {
+    return Array.from(nodeList)
+}
 
-export function nodesToArray(nodeList) { return Array.from(nodeList) }; // Convert nodelist to an Array
-
-export function setAllCSSclass(CSSclass, nodeArray) { return nodeArray.forEach(x => x.classList.add(CSSclass)) }; // Adds a class to all elements selected
-
+// Adds a class to all elements selected
+export function setAllCSSclass(CSSclass, nodeArray) {
+    return nodeArray.forEach(x => x.classList.add(CSSclass))
+}
 
 // Sets all menu buttons to off
 export function allMenuBtnOFF() {
@@ -44,7 +48,6 @@ export function allDialogsHide() {
     setAllCSSclass('og-hide', nodesToArray(getAllnodes('.og-dialog')));
 }
 
-
 // Handles the click inside/outside a dialog - closes dialog when click outside
 export function btnClickHandler(btn_id, dialog_id, dialog_selector, btn_icon_id) {
     let btn = document.getElementById(btn_id);
@@ -55,7 +58,9 @@ export function btnClickHandler(btn_id, dialog_id, dialog_selector, btn_icon_id)
             allMenuBtnOFF();
             allDialogsHide();
             this.classList.remove('og-OFF');
-            if(dialog){dialog.classList.remove('og-hide')};
+            if (dialog) {
+                dialog.classList.remove('og-hide')
+            }
 
             if (this.classList.contains('og-has-dialog')) {
                 let listener = document.addEventListener('click', (e) => {
@@ -63,15 +68,20 @@ export function btnClickHandler(btn_id, dialog_id, dialog_selector, btn_icon_id)
                         return;
                     } else {//outside    
                         btn.classList.add('og-OFF');
-                        if(dialog){dialog.classList.add('og-hide')};
-                        // this.removeEventListener('click', arguments.callee); // TODO needs fix
+                        if (dialog) {
+                            dialog.classList.add('og-hide')
+                        }
+                        // TODO needs fix
+                        // this.removeEventListener('click', arguments.callee);
                     }
                 })
             }
         } else {
             // Turn to OFF
             this.classList.add('og-OFF');
-            if(dialog){dialog.classList.add('og-hide')};
+            if (dialog) {
+                dialog.classList.add('og-hide')
+            }
         }
     }
 }

@@ -216,15 +216,14 @@ class LayerSwitcher extends Control {
                 return overlay;
             })
 
-            for (var i = 0; i < baseLayers.length; i++) { // Loop baselayers and add them, running the function
+            for (let i = 0; i < baseLayers.length; i++) { // Loop baselayers and add them, running the function
                 this.onLayerAdded(baseLayers[i]);
             }
-            for (var i = 0; i < overlays_new_zIndex.length; i++) { // Loop overlays - with new zIndexes - and add them, running the function
+            for (let i = 0; i < overlays_new_zIndex.length; i++) { // Loop overlays - with new zIndexes - and add them, running the function
                 this.onLayerAdded(overlays_new_zIndex[i]);
             }
 
             // Create terrain records
-
             let terrainPool = this.planet._terrainPool;
             
             if(terrainPool){
