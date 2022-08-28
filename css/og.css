@@ -132,7 +132,7 @@
 /* =============================== */
 
 .og-menu-bar-vertical {
-    position: fixed;
+    position: absolute;
     right: 12px;
     top: 12px;
     width: 40px;

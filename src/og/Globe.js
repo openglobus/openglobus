@@ -194,11 +194,12 @@ class Globe {
         if (options.terrain) {
             if (Array.isArray(options.terrain)){
                 this.planet.setTerrain(options.terrain[0]); // If array get the terrain from 1st element
-                this.planet._terrainPool = options.terrain;  
+                this.planet._terrainPool = options.terrain;
             }else{
                 this.planet.setTerrain(options.terrain);
+                this.planet._terrainPool = [options.terrain]; 
             } 
-             
+            
         } else {
             this.planet.setTerrain(new EmptyTerrain());
         }
