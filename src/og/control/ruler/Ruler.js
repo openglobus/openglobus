@@ -48,7 +48,7 @@ class Ruler extends Control {
 
 
     createMenuBtn() {
-        let btn = elementFactory('div', { id: 'ruler-menu-btn', class: 'ruler menu-btn OFF' },
+        let btn = elementFactory('div', { id: 'og-ruler-menu-btn', class: 'ruler menu-btn OFF' },
             elementFactory('div', { id: 'ruler-menu-icon', class: 'icon-holder' }));
         this.renderer.div.appendChild(btn);
         btn.addEventListener('click', () => {
