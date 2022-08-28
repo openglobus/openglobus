@@ -6,8 +6,7 @@
 
 import { Control } from "../Control.js";
 import { RulerScene } from "./RulerScene.js";
-import { elementFactory, allMenuBtnOFF,  allDialogsHide, btnClickHandler} from "../UIhelpers.js";
-
+import { elementFactory, allMenuBtnOFF, allDialogsHide, btnClickHandler } from "../UIhelpers.js";
 
 /**
  * Activate ruler
@@ -33,9 +32,9 @@ class Ruler extends Control {
 
     oninit() {
         this._rulerScene.bindPlanet(this.planet);
-        this. createMenuBtn();
+        this.createMenuBtn();
         btnClickHandler('og-ruler-menu-btn', null, null, '#og-ruler-menu-icon'); // btn_id, dialog_id, dialog_selector, icon_id
-    
+
     }
 
     onactivate() {
@@ -46,25 +45,18 @@ class Ruler extends Control {
         this.renderer.removeNode(this._rulerScene);
     }
 
-
     createMenuBtn() {
         let btn = elementFactory('div', { id: 'og-ruler-menu-btn', class: 'og-ruler og-menu-btn og-OFF' },
             elementFactory('div', { id: 'og-ruler-menu-icon', class: 'og-icon-holder' }));
         this.renderer.div.appendChild(btn);
         btn.addEventListener('click', () => {
-            if(btn.classList.contains('og-OFF')){
+            if (btn.classList.contains('og-OFF')) {
                 this.onactivate();
-            }
-            else{
+            } else {
                 this.ondeactivate();
             }
         })
-        }   
     }
-
-
-
-
-
+}
 
 export { Ruler };

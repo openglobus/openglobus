@@ -143,7 +143,7 @@ class RulerScene extends RenderNode {
     }
 
     _activate() {
-       
+
         this._propsLabel.label.setVisibility(false);
         this._onLclick_ = this._onLclick.bind(this);
         this.renderer.events.on("lclick", this._onLclick_, this);
@@ -166,7 +166,7 @@ class RulerScene extends RenderNode {
 
         this._planet.addLayer(this._trackLayer);
         this._planet.addLayer(this._cornersLayer);
-        
+
     }
 
     _deactivate() {

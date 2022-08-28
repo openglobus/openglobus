@@ -23,4 +23,3 @@ let ruler = new Ruler({
     ignoreTerrain: false
 })
 globus.planet.addControl(ruler);
-ruler.activate();
