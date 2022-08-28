@@ -18,7 +18,8 @@ class LayerSwitcher extends Control {
     constructor(options) {
         super(options);
         this.dialog = null;
-        this.baseLayersContainer = null;
+        this.terrainContainer = null;
+        this.baseLayersContainer = null
         this.overlaysContainer = null;
         this.layerRecord = null;
         // Each layer record has it's own dropzone to the top of the div. We need a final one to the very end.
@@ -164,11 +165,57 @@ class LayerSwitcher extends Control {
         this.dropZonedrop(dropZone);
     }
 
+    createTerrainRecord(id, obj){
+        var that = this;
+       
+        let terrainRecord = elementFactory('div', { id: id, class: 'layer-record' });
+        var input = elementFactory('input', { type: "radio", class: 'layer-switcher-input' });
+        var label = elementFactory('span', { class: 'layer-record-label' }, obj.name || obj.src || "noname");
+        var info = elementFactory('img', { class: 'layer-record-info' });
+
+        terrainRecord.appendChild(input);
+        terrainRecord.appendChild(label);
+        terrainRecord.appendChild(info);
+        this.terrainContainer.appendChild(terrainRecord);
+
+        if(id ==0){
+            input.checked = true;
+        }
+
+        // Events of input click and label double click
+        input.onclick = function () {
+            
+            let inputs = document.querySelectorAll('.terrain-switcher-container input');
+            
+            inputs.forEach(input => {
+                input.checked = false;
+            })
+
+            input.checked = true;
+            that.planet.setTerrain(obj);
+        };
+
+        // obj.events &&
+        //     obj.events.on("visibilitychange", function (e) {
+        //         input.checked = e.getVisibility();
+        //     });
+
+        // label.ondblclick = function () {
+        //     that.planet.flyExtent(obj.getExtent());
+        // }
+
+        // obj._removeCallback = function () {
+        //     container.removeChild(thelayerRecord);
+        // };
+    }
+
     createDialog() {
+        this.terrainContainer = elementFactory('div', { class: 'terrain-switcher-container layer-container' }, 'Terrain Providers')
         this.baseLayersContainer = elementFactory('div', { class: 'layer-switcher-base-layer-container layer-container' }, 'Base Layers');
         this.overlaysContainer = elementFactory('div', { id: 'overlay-container', class: 'layer-switcher-overlay-container layer-container' }, 'Overlays');
         this.dialog = elementFactory('div', { id: 'layer-switcher-dialog', class: 'layer-switcher dialog hide' });
         this.renderer.div.appendChild(this.dialog);
+        this.dialog.appendChild(this.terrainContainer);
         this.dialog.appendChild(this.baseLayersContainer);
         this.dialog.appendChild(this.overlaysContainer);
 
@@ -187,6 +234,16 @@ class LayerSwitcher extends Control {
             }
             for (var i = 0; i < overlays_new_zIndex.length; i++) { // Loop overlays - with new zIndexes - and add them, running the function
                 this.onLayerAdded(overlays_new_zIndex[i]);
+            }
+
+            // Create terrain records
+
+            let terrainPool = this.planet._terrainPool;
+            
+            if(terrainPool){
+                terrainPool.forEach((terrain, index) => {
+                    this.createTerrainRecord(index, terrain);
+                })
             }
 
         }

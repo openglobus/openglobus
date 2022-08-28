@@ -26,6 +26,7 @@
             import { GeoImageDragControl } from '../../src/og/control/GeoImageDragControl.js';
             import { LayerSwitcher } from '../../src/og/control/LayerSwitcher.js';
             import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
+            import { MapboxTerrain } from '../../src/og/terrain/MapboxTerrain.js';
             import { Ruler } from "../../src/og/control/ruler/Ruler.js";
             import { Vec3 } from '../../src/og/math/Vec3.js';
             import { LonLat } from '../../src/og/LonLat.js';
@@ -110,17 +111,19 @@
                 'zIndex': 10
             });
 
-
-
+  
             let globus = new Globe({
                 "target": "globus",
                 "name": "Earth",
-                "terrain": new GlobusTerrain(),
+                "terrain": [new GlobusTerrain('Globus Terrain'),
+                            new MapboxTerrain('My map-box Terrain', {})
+                        ],
+        
                 "layers": [osm, sat1, sat2, img1, img2, pointLayer]
             });
 
             window.globus = globus;
-
+   
             fetch("./countries.json")
                 .then(r => {
                     return r.json();
