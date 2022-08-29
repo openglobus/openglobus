@@ -48,9 +48,13 @@ export function allDialogsHide() {
     setAllCSSclass('og-hide', nodesToArray(getAllnodes('.og-dialog')));
 }
 
+function isString(v) {
+    return typeof v === 'string' || v instanceof String;
+}
+
 // Handles the click inside/outside a dialog - closes dialog when click outside
 export function btnClickHandler(btn_id, dialog_id, dialog_selector, btn_icon_id) {
-    let btn = document.getElementById(btn_id);
+    let btn = isString(btn_id) ? document.getElementById(btn_id) : btn_id;
     let dialog = document.getElementById(dialog_id);
     btn.onclick = function (e) {
         if (this.classList.contains('og-OFF')) {
@@ -87,10 +91,10 @@ export function btnClickHandler(btn_id, dialog_id, dialog_selector, btn_icon_id)
 }
 
 // Shorten a long label
-export function shortenLabel(text, theLength){
-    if(text.length > theLength){
+export function shortenLabel(text, theLength) {
+    if (text.length > theLength) {
         return text.substring(0, theLength) + " ...";
-    }else{
+    } else {
         return text
     }
 }
