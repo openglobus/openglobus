@@ -76,13 +76,14 @@ class LayerSwitcher extends Control {
     }
 
     createContainerRecord(type, obj, container, id = "") {
-        var that = this;
         let thelayerRecord = elementFactory('div', { id: id, class: 'og-layer-record' });
         this.layerRecord = thelayerRecord; // export to global variable, to access onLayerAdded
-        var input = elementFactory('input', { type: type, class: 'og-layer-switcher-input' });
+
+        let input = elementFactory('input', { type: type, class: 'og-layer-switcher-input' });
         input.checked = obj.getVisibility();
-        var label = elementFactory('span', { class: 'og-layer-record-label' }, shortenLabel(obj.name, 26) || shortenLabel(obj.src, 26) || "noname");
-        var info = elementFactory('img', { class: 'og-layer-record-info' });
+
+        let label = elementFactory('span', { class: 'og-layer-record-label' }, shortenLabel(obj.name, 26) || shortenLabel(obj.src, 26) || "noname");
+        let info = elementFactory('img', { class: 'og-layer-record-info' });
 
         this.layerRecord.appendChild(input);
         this.layerRecord.appendChild(label);
@@ -108,8 +109,8 @@ class LayerSwitcher extends Control {
             input.checked = e.getVisibility();
         });
 
-        label.ondblclick = function () {
-            that.planet.flyExtent(obj.getExtent());
+        label.ondblclick = () => {
+            this.planet.flyExtent(obj.getExtent());
         }
 
         obj._removeCallback = function () {
@@ -123,7 +124,7 @@ class LayerSwitcher extends Control {
         let layers = this.planet.layers;
         let overlays = layers.filter(x => !x.isBaseLayer());
         let visible_overlays = [...overlays.filter(x => x.displayInLayerSwitcher)];
-        for (var i = 0; i < dialog_layer_ids.length; i++) {
+        for (let i = 0; i < dialog_layer_ids.length; i++) {
             let the_layer = visible_overlays.filter(x => x.getID() == dialog_layer_ids[i]);
             the_layer[0].setZIndex(10000 - i * 100);
         }
@@ -167,7 +168,6 @@ class LayerSwitcher extends Control {
     }
 
     createTerrainRecord(id, obj) {
-        var that = this;
 
         let terrainRecord = elementFactory('div', { id: id, class: 'og-layer-record' });
         var input = elementFactory('input', { type: "radio", class: 'og-layer-switcher-input' });
@@ -184,7 +184,7 @@ class LayerSwitcher extends Control {
         }
 
         // Events of input click and label double click
-        input.onclick = function () {
+        input.onclick = () => {
 
             let inputs = document.querySelectorAll('.og-terrain-switcher-container input');
 
@@ -193,7 +193,7 @@ class LayerSwitcher extends Control {
             })
 
             input.checked = true;
-            that.planet.setTerrain(obj);
+            this.planet.setTerrain(obj);
         };
     }
 
@@ -235,8 +235,8 @@ class LayerSwitcher extends Control {
                     this.createTerrainRecord(i, terrainPool[i]);
                 }
             }
-
         }
+
         // Last dropZone events - haven't been attached before
         this.dropZoneBehaviour(this.lastDropZone);
     }
