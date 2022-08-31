@@ -48,7 +48,10 @@ class LayerAnimation extends Control {
             let minIndex = frameIndex * this._frameSize;
             let maxIndex = minIndex + this._frameSize;
             for (let i = minIndex, len = maxIndex > this._layersArr.length ? this._layersArr.length : maxIndex; i < len; i++) {
-                this.planet.addLayer(this._layersArr[i]);
+                let li = this._layersArr[i];
+                li.opacity = 0;
+                li.setVisibility(false);
+                this.planet.addLayer(li);
             }
         }
     }
