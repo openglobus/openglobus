@@ -39,6 +39,22 @@ class LayerAnimation extends Control {
         this._timeoutStart = 0;
     }
 
+    _setFrame(frameIndex) {
+        if (this._getFrameIndex(this._currentIndex) !== frameIndex) {
+            for (let i = 0, len = this._getFramesNum(); i < len; i++) {
+                if (i !== frameIndex) {
+                    this._removeFrameFromPlanet(i);
+                } else {
+                    this._appendFrameToPlanet(i);
+                }
+            }
+        }
+    }
+
+    _getFramesNum() {
+        return Math.ceil(this._layersArr.length / this._frameSize);
+    }
+
     _getFrameIndex(layerIndex) {
         return Math.floor(layerIndex / this._frameSize);
     }
@@ -184,6 +200,7 @@ class LayerAnimation extends Control {
         if (this._playIndex !== 0) {
             this._clearInterval();
             this._playIndex = 0;
+            this._setFrame(0);
             this.setCurrentIndex(0);
             this.events.dispatch(this.events.stop);
         }
