@@ -5,7 +5,7 @@
 "use strict";
 
 import { Control } from "./Control.js";
-import { elementFactory, allMenuBtnOFF, allDialogsHide, btnClickHandler, shortenLabel } from "./UIhelpers.js";
+import { elementFactory, btnClickHandler, shortenLabel } from "./UIhelpers.js";
 
 /**
  * Advanced :) layer switcher, includes base layers, overlays, geo images etc. groups.
