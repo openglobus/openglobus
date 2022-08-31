@@ -289,7 +289,7 @@ class CanvasTiles extends Layer {
         if (material.isReady) {
             material.isReady = false;
 
-            !material.texture.default &&
+            material.texture && !material.texture.default &&
             material.segment.handler.gl.deleteTexture(material.texture);
 
             material.texture = null;
