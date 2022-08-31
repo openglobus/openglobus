@@ -111,7 +111,7 @@ $slider.addEventListener("input", (e) => {
     let val = Number(e.target.value);
     let index = Math.round(val * la.layers.length / 100);
     la.pause();
-    la.setCurrentIndex(index, true, true);
+    la.setCurrentIndex(index, false, true);
 });
 
 la.events.on("change", (currIndex) => {
