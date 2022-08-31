@@ -217,10 +217,14 @@ class LayerSwitcher extends Control {
             let layers = this.planet.layers;
             let baseLayers = layers.filter(x => x.isBaseLayer());
             let overlays = layers.filter(x => !x.isBaseLayer());
-            let overlays_sorted = overlays.sort((a, b) => (a._zIndex < b._zIndex) ? 1 : -1) // Sort by zIndex, so I get the highest first
+            let overlays_sorted = overlays.sort((a, b) => (a.getZIndex() < b.getZIndex()) ? 1 : -1) // Sort by zIndex, so I get the highest first
 
             for (let i = 0; i < baseLayers.length; i++) { // Loop baselayers and add them, running the function
                 this.onLayerAdded(baseLayers[i]);
+            }
+
+            for (let i = 0; i < overlays_sorted.length; i++) { // Loop overlays - with new zIndexes - and add them, running the function
+                this.onLayerAdded(overlays_sorted[i]);
             }
 
             // Create terrain records
@@ -231,8 +235,8 @@ class LayerSwitcher extends Control {
                     this.createTerrainRecord(i, terrainPool[i]);
                 }
             }
-        }
 
+        }
         // Last dropZone events - haven't been attached before
         this.dropZoneBehaviour(this.lastDropZone);
     }
