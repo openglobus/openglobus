@@ -214,6 +214,7 @@
 
 .og-layer-switcher.og-dialog {
     top: 32px;
+    max-height: calc(100% - 100px);
 }
 
 .og-layer-container {
@@ -228,15 +229,13 @@
 }
 
 .og-layer-record {
-    height: 28px;
-    border-radius: 4px;
 }
 
 .og-layer-record > input {
     position: relative;
     vertical-align: middle;
-    height: 16px;
-    width: 30px;
+    height: 14px;
+    width: 14px;
     padding: 0px;
     margin: 0px;
     accent-color: #705affee;
@@ -257,23 +256,21 @@
 }
 
 .og-layer-record-drop-zone {
+    position: relative;
     padding: 0px;
     margin: 0px;
     width: 100%;
-    height: 6px;
+    height: 15px;
     background-color: rgba(136, 136, 136, 0);
 
 }
 
 .og-layer-record-drop-zone.og-drag-over {
-    height: 6px;
     background-color: rgba(0, 0, 0, 0.3);
 }
 
 .og-center-icon.og-dragging {
-    /* background-color: white; */
     color: #705affee;
-    /* opacity: 0.5; */
 }
 
 

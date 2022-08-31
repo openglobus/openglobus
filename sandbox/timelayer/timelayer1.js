@@ -58,8 +58,14 @@ function createCanvasTilesLayer(id) {
             ctx.textAlign = 'center';
             ctx.fillText(id.toString(), cnv.width / 2, cnv.height / 2);
 
-            //Draw canvas tile
-            applyCanvas(cnv);
+            if (this.name === "cnv-5" || this.name === "cnv-6" || this.name === "cnv-7") {
+                setTimeout(() => {
+                    applyCanvas(cnv);
+                }, 25000)
+            } else {
+                //Draw canvas tile
+                applyCanvas(cnv);
+            }
         }
     });
 }
