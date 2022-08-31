@@ -234,8 +234,7 @@ class LayerAnimation extends Control {
                         this._playIndex++;
                         this._timeoutStart = performance.now();
                         this._layersArr[this._currentIndex].setVisibility(false);
-                    }
-                    if (this.isIdle) {
+                    } else if (this.isIdle) {
                         this._playIndex++;
                         this._timeoutStart = performance.now();
                     }
