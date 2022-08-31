@@ -31,6 +31,10 @@ class LayerAnimation extends Control {
         this._frameSize = options.frameSize || 20;
 
         this.repeat = options.repeat != undefined ? options.repeat : true;
+
+        this._skipTimeout = options.skipTimeout || 3000;
+
+        this._timeoutStart = 0;
     }
 
     _getFrameIndex(layerIndex) {
@@ -200,8 +204,9 @@ class LayerAnimation extends Control {
                 this.setCurrentIndex(this._playIndex);
 
                 requestAnimationFrame(() => {
-                    if (this.isIdle) {
+                    if (this.isIdle || (performance.now() - this._timeoutStart) > this._skipTimeout) {
                         this._playIndex++;
+                        this._timeoutStart = performance.now();
                     }
                 });
 
@@ -212,15 +217,19 @@ class LayerAnimation extends Control {
     }
 
     stop() {
-        this._clearInterval();
-        this._playIndex = 0;
-        this.setCurrentIndex(0);
-        this.events.dispatch(this.events.stop);
+        if (this.isPlaying) {
+            this._clearInterval();
+            this._playIndex = 0;
+            this.setCurrentIndex(0);
+            this.events.dispatch(this.events.stop);
+        }
     }
 
     pause() {
-        this._clearInterval();
-        this.events.dispatch(this.events.pause);
+        if (this.isPlaying) {
+            this._clearInterval();
+            this.events.dispatch(this.events.pause);
+        }
     }
 
     _clearInterval() {
@@ -254,6 +263,7 @@ class LayerAnimation extends Control {
 
             if (currLayer) {
                 if (forceVisibility) {
+                    this.pause();
                     this._playIndex = index;
                     currLayer.opacity = 1.0;
                     currLayer.setVisibility(true);
