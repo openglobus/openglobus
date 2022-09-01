@@ -28,9 +28,17 @@ class LayerAnimation extends Control {
         this._playIntervalHandler = -1;
         this._playIndex = 0;
 
-        this._frameSize = options.frameSize || 20;
+        this._frameSize = options.frameSize || 5;
 
         this.repeat = options.repeat != undefined ? options.repeat : true;
+
+        this.skipTimeout = options.skipTimeout || 5000;
+
+        this._timeoutStart = 0;
+    }
+
+    _onViewchange() {
+        this._timeoutStart = performance.now();
     }
 
     _getFrameIndex(layerIndex) {
@@ -52,6 +60,7 @@ class LayerAnimation extends Control {
             let minIndex = frameIndex * this._frameSize;
             let maxIndex = minIndex + this._frameSize;
             for (let i = minIndex, len = maxIndex > this._layersArr.length ? this._layersArr.length : maxIndex; i < len; i++) {
+                this._layersArr[i].abortLoading();
                 this._layersArr[i].remove();
             }
         }
@@ -67,11 +76,15 @@ class LayerAnimation extends Control {
 
     onactivate() {
         super.onactivate();
+        this._onViewchange_ = this._onViewchange.bind(this);
+        this.planet.camera.events.on("viewchange", this._onViewchange_, this)
         //...
     }
 
     ondeactivate() {
         super.ondeactivate();
+        this.planet.camera.events.off("viewchange", this._onViewchange_);
+        this._onViewchange_ = null;
 
         for (let i = 0; i < this._layersArr.length; i++) {
             this._layersArr[i].setVisibility(false);
@@ -84,7 +97,7 @@ class LayerAnimation extends Control {
     clear() {
         this.stop();
         this._currentIndex = -1;
-        this._prevIndex = -1;
+        this._currVisibleIndex = -1;
         let layersToRemove = this._layersArr;
         this._layersArr = [];
         for (let i = 0; i < layersToRemove.length; i++) {
@@ -130,32 +143,6 @@ class LayerAnimation extends Control {
         return currLayer && currLayer.isIdle || !currLayer;
     }
 
-    /**
-     * Waiting for the current index layer loadend and make it non transparent,
-     * and make prev layer transparent, also check previous frame index to cleanup.
-     * @param {Layer} layer
-     * @private
-     */
-    _onLayerLoadend(layer) {
-        let currLayer = this._layersArr[this._currentIndex];
-        if (currLayer && currLayer.isEqual(layer)) {
-            // * CURRENT Layer is VISIBLE NOW *
-            currLayer.opacity = 1.0;
-            let prevLayer = this._layersArr[this._prevIndex];
-            if (prevLayer) {
-                prevLayer.opacity = 0.0;
-                prevLayer.setVisibility(false);
-                // If frame is changed - remove it from the planet
-                let prevFrame = this._getFrameIndex(this._prevIndex);
-                if (this._getFrameIndex(this._currentIndex) !== prevFrame) {
-                    this._removeFrameFromPlanet(prevFrame);
-                }
-            }
-
-            this.events.dispatch(this.events.idle, currLayer, prevLayer, this._currentIndex, this._prevIndex);
-        }
-    }
-
     get playInterval() {
         return this._playInterval;
     }
@@ -195,13 +182,16 @@ class LayerAnimation extends Control {
                 this.stop();
             }
 
+            this._timeoutStart = performance.now();
+
             this._playIntervalHandler = setInterval(() => {
                 this._checkEnd();
                 this.setCurrentIndex(this._playIndex);
 
                 requestAnimationFrame(() => {
-                    if (this.isIdle) {
+                    if (this.isIdle || (performance.now() - this._timeoutStart > this.skipTimeout)) {
                         this._playIndex++;
+                        this._timeoutStart = performance.now();
                     }
                 });
 
@@ -214,7 +204,7 @@ class LayerAnimation extends Control {
     stop() {
         this._clearInterval();
         this._playIndex = 0;
-        this.setCurrentIndex(0);
+        this.setCurrentIndex(0, true);
         this.events.dispatch(this.events.stop);
     }
 
@@ -229,6 +219,35 @@ class LayerAnimation extends Control {
     }
 
     /**
+     * Waiting for the current index layer loadend and make it non transparent,
+     * and make prev layer transparent, also check previous frame index to cleanup.
+     * @param {Layer} layer
+     * @private
+     */
+    _onLayerLoadend(layer) {
+        let currLayer = this._layersArr[this._currentIndex];
+        if (currLayer && currLayer.isEqual(layer)) {
+
+            // * CURRENT Layer is VISIBLE NOW *
+            currLayer.opacity = 1.0;
+
+            let currVisibleLayer = this._layersArr[this._currVisibleIndex];
+            if (currVisibleLayer) {
+                currVisibleLayer.opacity = 0.0;
+                currVisibleLayer.setVisibility(false);
+
+                // If frame is changed - remove it from the planet
+                let prevFrame = this._getFrameIndex(this._currVisibleIndex);
+                if (this._getFrameIndex(this._currentIndex) !== prevFrame) {
+                    this._removeFrameFromPlanet(prevFrame);
+                }
+            }
+
+            this.events.dispatch(this.events.idle, currLayer, currVisibleLayer, this._currentIndex, this._currVisibleIndex);
+        }
+    }
+
+    /**
      * Function sets layer index visible. If the layer is idle (all visible tiles loaded), sets opacity to one,
      * otherwise to ZERO it means that when all visible tiles will be loaded the opacity becomes ONE. So, previous
      * layer remains non transparent (opacity = 1) till current layer is loading.
@@ -238,53 +257,60 @@ class LayerAnimation extends Control {
      */
     setCurrentIndex(index, forceVisibility, stopPropagation) {
         if (index != this._currentIndex && index >= 0 && index < this._layersArr.length) {
-            this._prevIndex = this._currentIndex;
+
+            let prevCurrIndex = this._currentIndex;
             this._currentIndex = index;
 
-            let prevFrame = this._getFrameIndex(this._prevIndex);
+            let prevCurrFrame = this._getFrameIndex(prevCurrIndex);
             let currFrame = this._getFrameIndex(this._currentIndex);
 
-            let prevLayer = this._layersArr[this._prevIndex],
-                currLayer = this._layersArr[index];
+            let prevCurrLayer = this._layersArr[prevCurrIndex], currLayer = this._layersArr[index];
 
-            let frameChanged = currFrame != prevFrame && this._prevIndex !== -1;
+            let frameChanged = currFrame != prevCurrFrame && prevCurrIndex !== -1;
             if (frameChanged) {
                 this._appendFrameToPlanet(currFrame);
             }
 
-            if (currLayer) {
-                if (forceVisibility) {
-                    this._playIndex = index;
-                    currLayer.opacity = 1.0;
-                    currLayer.setVisibility(true);
-                    if (prevLayer) {
-                        prevLayer.opacity = 0.0;
-                        prevLayer.setVisibility(false);
-                    }
-                    // If frame is changed - remove it from the planet
-                    if (frameChanged) {
-                        this._removeFrameFromPlanet(prevFrame);
-                    }
+            if (prevCurrLayer) {
+                if (prevCurrLayer.isIdle) {
+                    this._currVisibleIndex = prevCurrIndex;
                 } else {
-                    currLayer.opacity = 0.0;
-                    currLayer.setVisibility(true);
-                    requestAnimationFrame(() => {
-                        if (currLayer.isIdle) {
-                            currLayer.opacity = 1.0;
-                            if (prevLayer) {
-                                prevLayer.opacity = 0.0;
-                                prevLayer.setVisibility(false);
-                            }
-
-                            // If frame is changed - remove it from the planet
-                            if (frameChanged) {
-                                this._removeFrameFromPlanet(prevFrame);
-                            }
-                        }
-                    });
+                    prevCurrLayer.opacity = 0;
+                    prevCurrLayer.setVisibility(false);
+                    prevCurrLayer.abortLoading();
                 }
+            }
+
+            // if (frameChanged) {
+            //     this._removeFrameFromPlanet(prevCurrFrame);
+            // }
+
+
+            if (currLayer) {
+
+                currLayer.opacity = 0.0;
+                currLayer.setVisibility(true);
+
+                requestAnimationFrame(() => {
+                    if (currLayer.isIdle) {
+
+                        currLayer.opacity = 1.0;
+
+                        // If frame is changed - remove it from the planet
+                        if (frameChanged) {
+                            this._removeFrameFromPlanet(prevCurrFrame);
+                        }
+
+                        if (prevCurrLayer) {
+                            prevCurrLayer.opacity = 0.0;
+                            prevCurrLayer.setVisibility(false);
+                            prevCurrLayer.abortLoading();
+                        }
+                    }
+                });
+
                 if (!stopPropagation) {
-                    this.events.dispatch(this.events.change, this._currentIndex, this._prevIndex);
+                    this.events.dispatch(this.events.change, this._currentIndex, prevCurrIndex);
                 }
             }
         }
