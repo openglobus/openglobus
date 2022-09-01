@@ -98,8 +98,6 @@ class LayerSwitcher extends Control {
                 ...(obj.getVisibility() ? { checked: true } : null)
             });
 
-        //input.checked = obj.getVisibility();
-
         let caption = obj.name || obj.url;
 
         let label = elementFactory(
