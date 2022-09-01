@@ -20,22 +20,22 @@ export function elementFactory(type, attributes, ...children) {
         }
     })
 
-    return el
+    return el;
 }
 
 // Get all nodes of a class
 export function getAllnodes(CSSclass) {
-    return document.querySelectorAll(CSSclass)
+    return document.querySelectorAll(CSSclass);
 }
 
 // Convert nodelist to an Array
 export function nodesToArray(nodeList) {
-    return Array.from(nodeList)
+    return Array.from(nodeList);
 }
 
 // Adds a class to all elements selected
 export function setAllCSSclass(CSSclass, nodeArray) {
-    return nodeArray.forEach(x => x.classList.add(CSSclass))
+    return nodeArray.forEach(x => x.classList.add(CSSclass));
 }
 
 // Sets all menu buttons to off
@@ -63,7 +63,7 @@ export function btnClickHandler(btn_id, dialog_id, dialog_selector, btn_icon_id)
             allDialogsHide();
             this.classList.remove('og-OFF');
             if (dialog) {
-                dialog.classList.remove('og-hide')
+                dialog.classList.remove('og-hide');
             }
 
             if (this.classList.contains('og-has-dialog')) {
@@ -84,7 +84,7 @@ export function btnClickHandler(btn_id, dialog_id, dialog_selector, btn_icon_id)
             // Turn to OFF
             this.classList.add('og-OFF');
             if (dialog) {
-                dialog.classList.add('og-hide')
+                dialog.classList.add('og-hide');
             }
         }
     }

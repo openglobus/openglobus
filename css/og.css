@@ -217,6 +217,7 @@
 }
 
 .og-layer-container {
+    position: relative;
     color: white;
     margin: 0px; /* I want the parent div to have no space around childer to click into */
     padding: 12px;
