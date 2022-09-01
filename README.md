@@ -2,7 +2,7 @@
 
 # OpenGlobus
 
-English | [简体中文](README_CN.md)
+English | [简体中文](README_CN.md) | [Portuguese-BR](README_pt-BR.md)
 
 [OpenGlobus](http://www.openglobus.org/) is a javascript library designed to display interactive 3d maps and planets
 with map tiles, imagery and vector data, markers and 3d objects. It uses the WebGL technology, open source and
