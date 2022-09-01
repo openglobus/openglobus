@@ -28,7 +28,7 @@ class LayerAnimation extends Control {
         this._playIntervalHandler = -1;
         this._playIndex = 0;
 
-        this._frameSize = options.frameSize || 5;
+        this._frameSize = options.frameSize || 50;
 
         this.repeat = options.repeat != undefined ? options.repeat : true;
 
@@ -39,6 +39,22 @@ class LayerAnimation extends Control {
 
     _onViewchange() {
         this._timeoutStart = performance.now();
+    }
+
+    _getFramesNum() {
+        return Math.ceil(this._layersArr.length / this._frameSize);
+    }
+
+    _setFrame(frameIndex) {
+        if (this._getFrameIndex(this._currentIndex) !== frameIndex) {
+            for (let i = 0, len = this._getFramesNum(); i < len; i++) {
+                if (i !== frameIndex) {
+                    this._removeFrameFromPlanet(i);
+                } else {
+                    this._appendFrameToPlanet(i);
+                }
+            }
+        }
     }
 
     _getFrameIndex(layerIndex) {

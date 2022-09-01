@@ -80,7 +80,7 @@ function getCanvasLayers(num) {
     return res;
 }
 
-let timeLayers = getCanvasLayers(120);
+let timeLayers = getCanvasLayers(10000);
 
 let la = new LayerAnimation({
     layers: timeLayers,
