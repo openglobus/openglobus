@@ -28,7 +28,7 @@ class LayerAnimation extends Control {
         this._playIntervalHandler = -1;
         this._playIndex = 0;
 
-        this._frameSize = options.frameSize || 30;
+        this._frameSize = options.frameSize || 50;
 
         this.repeat = options.repeat != undefined ? options.repeat : true;
 
@@ -300,7 +300,7 @@ class LayerAnimation extends Control {
 
             let prevCurrLayer = this._layersArr[prevCurrIndex], currLayer = this._layersArr[index];
 
-            let frameChanged = currFrame != prevCurrFrame && prevCurrIndex !== -1;
+            let frameChanged = currFrame != prevCurrFrame;
             if (frameChanged) {
                 this._appendFrameToPlanet(currFrame);
             }
