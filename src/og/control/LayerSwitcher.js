@@ -109,7 +109,11 @@ class LayerSwitcher extends Control {
             caption
         );
 
-        let info = elementFactory('img', { class: 'og-layer-record-info' });
+        let info = elementFactory(
+            'img',
+            {
+                class: 'og-layer-record-info'
+            });
 
         this.layerRecord.appendChild(input);
         this.layerRecord.appendChild(label);
