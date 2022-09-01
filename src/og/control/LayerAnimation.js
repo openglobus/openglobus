@@ -87,7 +87,7 @@ class LayerAnimation extends Control {
         this._initLayers();
         this._onLayerLoadend_ = this._onLayerLoadend.bind(this);
         this.planet.events.on("layerloadend", this._onLayerLoadend_, this);
-        this.setCurrentIndex(0, false, true);
+        this._setCurrentIndexAsync(0, false, true);
     }
 
     onactivate() {
@@ -202,7 +202,7 @@ class LayerAnimation extends Control {
 
             this._playIntervalHandler = setInterval(() => {
                 this._checkEnd();
-                this.setCurrentIndex(this._playIndex);
+                this._setCurrentIndexAsync(this._playIndex);
 
                 requestAnimationFrame(() => {
                     if (this.isIdle || (performance.now() - this._timeoutStart > this.skipTimeout)) {
@@ -218,15 +218,19 @@ class LayerAnimation extends Control {
     }
 
     stop() {
-        this._clearInterval();
-        this._playIndex = 0;
-        this.setCurrentIndex(0, true);
-        this.events.dispatch(this.events.stop);
+        if (this._playIndex > 0) {
+            this._clearInterval();
+            this._playIndex = 0;
+            this.setCurrentIndex(0);
+            this.events.dispatch(this.events.stop);
+        }
     }
 
     pause() {
-        this._clearInterval();
-        this.events.dispatch(this.events.pause);
+        if (this.isPlaying) {
+            this._clearInterval();
+            this.events.dispatch(this.events.pause);
+        }
     }
 
     _clearInterval() {
@@ -241,10 +245,12 @@ class LayerAnimation extends Control {
      * @private
      */
     _onLayerLoadend(layer) {
+
         let currLayer = this._layersArr[this._currentIndex];
+
         if (currLayer && currLayer.isEqual(layer)) {
 
-            // * CURRENT Layer is VISIBLE NOW *
+            // * Make CURRENT Layer VISIBLE *
             currLayer.opacity = 1.0;
 
             let currVisibleLayer = this._layersArr[this._currVisibleIndex];
@@ -264,6 +270,15 @@ class LayerAnimation extends Control {
     }
 
     /**
+     * Function sets layer index visible.
+     * @param {number} index
+     * @param {boolean} [stopPropagation]
+     */
+    setCurrentIndex(index, stopPropagation) {
+        this._setCurrentIndexAsync(index, true, stopPropagation);
+    }
+
+    /**
      * Function sets layer index visible. If the layer is idle (all visible tiles loaded), sets opacity to one,
      * otherwise to ZERO it means that when all visible tiles will be loaded the opacity becomes ONE. So, previous
      * layer remains non transparent (opacity = 1) till current layer is loading.
@@ -271,7 +286,8 @@ class LayerAnimation extends Control {
      * @param {boolean} [forceVisibility]
      * @param {boolean} [stopPropagation]
      */
-    setCurrentIndex(index, forceVisibility, stopPropagation) {
+    _setCurrentIndexAsync(index, forceVisibility, stopPropagation) {
+
         if (index != this._currentIndex && index >= 0 && index < this._layersArr.length) {
 
             let prevCurrIndex = this._currentIndex;
