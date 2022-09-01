@@ -72,7 +72,7 @@ class GlobusTerrain extends EmptyTerrain {
          * @public
          * @type {string}
          */
-        this.name = name || "";
+        this.name = name || "openglobus";
 
         /**
          * Minimal visible zoom index when terrain handler works.

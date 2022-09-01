@@ -5,7 +5,7 @@
 "use strict";
 
 import { Control } from "./Control.js";
-import { elementFactory, btnClickHandler, shortenLabel } from "./UIhelpers.js";
+import { elementFactory, btnClickHandler } from "./UIhelpers.js";
 
 /**
  * Advanced :) layer switcher, includes base layers, overlays, geo images etc. groups.
@@ -82,7 +82,8 @@ class LayerSwitcher extends Control {
         let input = elementFactory('input', { type: type, class: 'og-layer-switcher-input' });
         input.checked = obj.getVisibility();
 
-        let label = elementFactory('span', { class: 'og-layer-record-label' }, shortenLabel(obj.name, 26) || shortenLabel(obj.url, 26) || "noname");
+        let caption = obj.name || obj.url;
+        let label = elementFactory('span', { class: 'og-layer-record-label', title: caption }, caption);
         let info = elementFactory('img', { class: 'og-layer-record-info' });
 
         this.layerRecord.appendChild(input);
@@ -170,9 +171,10 @@ class LayerSwitcher extends Control {
     createTerrainRecord(id, obj) {
 
         let terrainRecord = elementFactory('div', { id: id, class: 'og-layer-record' });
-        var input = elementFactory('input', { type: "radio", class: 'og-layer-switcher-input' });
-        var label = elementFactory('span', { class: 'og-layer-record-label' }, shortenLabel(obj.name, 26) || shortenLabel(obj.url, 26) || "noname");
-        var info = elementFactory('img', { class: 'og-layer-record-info' });
+        let input = elementFactory('input', { type: "radio", class: 'og-layer-switcher-input' });
+        let caption = obj.name || obj.url;
+        let label = elementFactory('span', { class: 'og-layer-record-label', title: caption }, caption);
+        let info = elementFactory('img', { class: 'og-layer-record-info' });
 
         terrainRecord.appendChild(input);
         terrainRecord.appendChild(label);

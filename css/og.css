@@ -190,7 +190,6 @@
     position: absolute;
     right: 46px;
     width: 17em;
-    border: 3px solid rgba(255, 255, 255, 0.7);
     border-radius: 4px;
     box-shadow: 0px 1px 4px rgba(15, 15, 15, 0.17);
     background-color: rgba(64, 59, 59, 0.85);
@@ -253,6 +252,8 @@
     padding-left: 8px;
     margin: 0px;
     width: 200px;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .og-layer-record-drop-zone {
