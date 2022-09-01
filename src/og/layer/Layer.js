@@ -290,7 +290,7 @@ class Layer {
      * @returns {boolean} - Returns true if the layers is the same instance of the input.
      */
     isEqual(layer) {
-        return layer._id === this._id;
+        return layer && (layer._id === this._id);
     }
 
     /**
@@ -326,6 +326,10 @@ class Layer {
         this.events.dispatch(this.events.add, planet);
         planet.updateVisibleLayers();
         this._bindPicking();
+    }
+
+    get isIdle() {
+        return this._planet && this._planet._terrainCompletedActivated;
     }
 
     /**

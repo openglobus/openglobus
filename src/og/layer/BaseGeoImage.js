@@ -61,7 +61,7 @@ class BaseGeoImage extends Layer {
     }
 
     get isIdle() {
-        return this._planet && this._ready;
+        return super.isIdle && this._ready;
     }
 
     addTo(planet) {

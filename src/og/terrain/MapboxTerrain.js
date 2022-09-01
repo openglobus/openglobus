@@ -8,7 +8,7 @@ const KEY =
 
 class MapboxTerrain extends GlobusTerrain {
     constructor(name, options = {}) {
-        super(name, options);
+        super(name || "mapbox", options);
 
         this.equalizeVertices =
             options.equalizeVertices != undefined ? options.equalizeVertices : true;

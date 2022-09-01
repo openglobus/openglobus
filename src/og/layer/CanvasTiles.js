@@ -85,7 +85,7 @@ class CanvasTiles extends Layer {
     }
 
     _onLoadend() {
-        if (this._planet) {
+        if (this._planet && this._planet._terrainCompletedActivated) {
             this._planet.events.dispatch(this._planet.events.layerloadend, this);
         }
     }
@@ -95,7 +95,7 @@ class CanvasTiles extends Layer {
     }
 
     get isIdle() {
-        return this._planet ? this._counter === 0 : false;
+        return super.isIdle && this._counter === 0;
     }
 
     /**

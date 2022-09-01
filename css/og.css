@@ -165,7 +165,7 @@
     width: 40px;
     height: 40px;
     background-size: 24px !important;
-    background-position: 7.5px 10px !important;
+    background-position: 8px 8px !important;
     filter: invert(95%) drop-shadow(4px 4px 3px black);
 }
 
@@ -190,7 +190,6 @@
     position: absolute;
     right: 46px;
     width: 17em;
-    border: 3px solid rgba(255, 255, 255, 0.7);
     border-radius: 4px;
     box-shadow: 0px 1px 4px rgba(15, 15, 15, 0.17);
     background-color: rgba(64, 59, 59, 0.85);
@@ -218,6 +217,7 @@
 }
 
 .og-layer-container {
+    position: relative;
     color: white;
     margin: 0px; /* I want the parent div to have no space around childer to click into */
     padding: 12px;
@@ -253,6 +253,8 @@
     padding-left: 8px;
     margin: 0px;
     width: 200px;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .og-layer-record-drop-zone {

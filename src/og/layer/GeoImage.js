@@ -35,6 +35,10 @@ class GeoImage extends BaseGeoImage {
         return "GeoImage";
     }
 
+    abortLoading() {
+        this._image.src = "";
+    }
+
     /**
      * Sets image source url path.
      * @public

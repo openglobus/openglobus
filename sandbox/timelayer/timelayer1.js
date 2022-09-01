@@ -24,7 +24,7 @@ let osm1 = new XYZ("osm-1", {
 var globus = new Globe({
     target: "earth",
     name: "Earth",
-    terrain: new EmptyTerrain(),
+    terrain: new GlobusTerrain(),
     layers: [osm1],
 });
 
@@ -58,16 +58,16 @@ function createCanvasTilesLayer(id) {
             ctx.textAlign = 'center';
             ctx.fillText(id.toString(), cnv.width / 2, cnv.height / 2);
 
-            // if (this.name === "cnv-5" || this.name === "cnv-6" || this.name === "cnv-7") {
-            //     setTimeout(() => {
-            //         applyCanvas(cnv);
-            //     }, 25000)
-            // } else {
-            //Draw canvas tile
-            setTimeout(() => {
-                applyCanvas(cnv);
-            }, 800);
-            //}
+            if (this.name === "cnv-5"/* || this.name === "cnv-6" || this.name === "cnv-7"*/) {
+                setTimeout(() => {
+                    applyCanvas(cnv);
+                }, 10000)
+            } else {
+                //Draw canvas tile
+                setTimeout(() => {
+                    applyCanvas(cnv);
+                }, 800);
+            }
         }
     });
 }
@@ -80,13 +80,14 @@ function getCanvasLayers(num) {
     return res;
 }
 
-let timeLayers = getCanvasLayers(100);
+let timeLayers = getCanvasLayers(75);
 
 let la = new LayerAnimation({
     layers: timeLayers,
     repeat: true
 });
 
+globus.planet.addControl(new DebugInfo());
 globus.planet.addControl(new LayerSwitcher());
 globus.planet.addControl(la);
 
@@ -113,7 +114,7 @@ $slider.addEventListener("input", (e) => {
     let val = Number(e.target.value);
     let index = Math.round(val * la.layers.length / 100);
     la.pause();
-    la.setCurrentIndex(index, false, true);
+    la.setCurrentIndex(index, true);
 });
 
 la.events.on("change", (currIndex) => {

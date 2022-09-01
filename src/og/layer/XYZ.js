@@ -96,7 +96,7 @@ class XYZ extends Layer {
      * @warning Use XYZ.isIdle in requesAnimationFrame(after setVisibility)
      */
     get isIdle() {
-        return this._planet ? this._planet._tileLoader.isIdle(this) : false;
+        return this.isIdle && this._planet._tileLoader.getRequestCounter(this);
     }
 
     get instanceName() {

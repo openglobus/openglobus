@@ -69,10 +69,12 @@ export class Loader {
             });
     }
 
-    isIdle(sender) {
-        let request = this._senderRequestCounter[sender._id];
-        return request && request.counter === 0 && sender._planet && sender._planet._terrainCompletedActivated;
+    getRequestCounter(sender) {
+        return sender && this._senderRequestCounter[sender._id];
+    }
 
+    isIdle(sender) {
+        return sender.isIdle;
     }
 
     _checkLoadend(request, sender) {

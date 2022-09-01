@@ -72,7 +72,7 @@ class GlobusTerrain extends EmptyTerrain {
          * @public
          * @type {string}
          */
-        this.name = name || "";
+        this.name = name || "openglobus";
 
         /**
          * Minimal visible zoom index when terrain handler works.
@@ -355,6 +355,7 @@ class GlobusTerrain extends EmptyTerrain {
                 } else {
                     this._loader.load(
                         {
+                            sender: this,
                             src: this._getHTTPRequestString(segment),
                             segment: segment,
                             type: this._dataType,
