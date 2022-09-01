@@ -82,7 +82,7 @@ class LayerSwitcher extends Control {
         let input = elementFactory('input', { type: type, class: 'og-layer-switcher-input' });
         input.checked = obj.getVisibility();
 
-        let label = elementFactory('span', { class: 'og-layer-record-label' }, shortenLabel(obj.name, 26) || shortenLabel(obj.src, 26) || "noname");
+        let label = elementFactory('span', { class: 'og-layer-record-label' }, shortenLabel(obj.name, 26) || shortenLabel(obj.url, 26) || "noname");
         let info = elementFactory('img', { class: 'og-layer-record-info' });
 
         this.layerRecord.appendChild(input);
@@ -171,7 +171,7 @@ class LayerSwitcher extends Control {
 
         let terrainRecord = elementFactory('div', { id: id, class: 'og-layer-record' });
         var input = elementFactory('input', { type: "radio", class: 'og-layer-switcher-input' });
-        var label = elementFactory('span', { class: 'og-layer-record-label' }, shortenLabel(obj.name, 26) || shortenLabel(obj.src, 26) || "noname");
+        var label = elementFactory('span', { class: 'og-layer-record-label' }, shortenLabel(obj.name, 26) || shortenLabel(obj.url, 26) || "noname");
         var info = elementFactory('img', { class: 'og-layer-record-info' });
 
         terrainRecord.appendChild(input);
