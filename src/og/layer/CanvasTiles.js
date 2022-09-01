@@ -95,8 +95,7 @@ class CanvasTiles extends Layer {
     }
 
     get isIdle() {
-        //return this._planet ? this._counter === 0 : false;
-        return this._counter === 0 && this._planet && this._planet._terrainCompletedActivated;
+        return super.isIdle && this._counter === 0;
     }
 
     /**

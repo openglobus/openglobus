@@ -24,7 +24,7 @@ let osm1 = new XYZ("osm-1", {
 var globus = new Globe({
     target: "earth",
     name: "Earth",
-    terrain: new GlobusTerrain(),
+    terrain: new EmptyTerrain(),
     layers: [osm1],
 });
 

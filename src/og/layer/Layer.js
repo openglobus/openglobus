@@ -328,6 +328,10 @@ class Layer {
         this._bindPicking();
     }
 
+    get isIdle() {
+        return this._planet && this._planet._terrainCompletedActivated;
+    }
+
     /**
      * Assign picking color to the layer.
      * @protected
