@@ -24,7 +24,7 @@ let osm1 = new XYZ("osm-1", {
 var globus = new Globe({
     target: "earth",
     name: "Earth",
-    terrain: new EmptyTerrain(),
+    terrain: new GlobusTerrain(),
     layers: [osm1],
 });
 
@@ -80,7 +80,7 @@ function getCanvasLayers(num) {
     return res;
 }
 
-let timeLayers = getCanvasLayers(20);
+let timeLayers = getCanvasLayers(75);
 
 let la = new LayerAnimation({
     layers: timeLayers,

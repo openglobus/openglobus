@@ -202,10 +202,12 @@ class LayerAnimation extends Control {
                 this._checkEnd();
                 this._setCurrentIndexAsync(this._playIndex);
 
-                if (this.isIdle || (performance.now() - this._timeoutStart > this.skipTimeout)) {
-                    this._playIndex++;
-                    this._timeoutStart = performance.now();
-                }
+                requestAnimationFrame(() => {
+                    if (this.isIdle || (performance.now() - this._timeoutStart > this.skipTimeout)) {
+                        this._playIndex++;
+                        this._timeoutStart = performance.now();
+                    }
+                });
 
             }, this._playInterval);
 
