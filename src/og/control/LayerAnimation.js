@@ -260,6 +260,8 @@ class LayerAnimation extends Control {
 
             let prevCurrIndex = this._currentIndex;
             this._currentIndex = index;
+            this._playIndex = index;
+
 
             let prevCurrFrame = this._getFrameIndex(prevCurrIndex);
             let currFrame = this._getFrameIndex(this._currentIndex);
@@ -281,10 +283,9 @@ class LayerAnimation extends Control {
                 }
             }
 
-            // if (frameChanged) {
-            //     this._removeFrameFromPlanet(prevCurrFrame);
-            // }
-
+            if (frameChanged && forceVisibility) {
+                this._removeFrameFromPlanet(prevCurrFrame);
+            }
 
             if (currLayer) {
 
@@ -305,6 +306,13 @@ class LayerAnimation extends Control {
                             prevCurrLayer.opacity = 0.0;
                             prevCurrLayer.setVisibility(false);
                             prevCurrLayer.abortLoading();
+                        }
+
+                        let currVisibleLayer = this._layersArr[this._currVisibleIndex];
+                        if (currVisibleLayer) {
+                            currVisibleLayer.opacity = 0.0;
+                            currVisibleLayer.setVisibility(false);
+                            currVisibleLayer.abortLoading();
                         }
                     }
                 });
