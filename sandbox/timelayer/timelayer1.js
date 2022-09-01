@@ -24,7 +24,7 @@ let osm1 = new XYZ("osm-1", {
 var globus = new Globe({
     target: "earth",
     name: "Earth",
-    terrain: new GlobusTerrain(),
+    terrain: new EmptyTerrain(),
     layers: [osm1],
 });
 
@@ -80,13 +80,14 @@ function getCanvasLayers(num) {
     return res;
 }
 
-let timeLayers = getCanvasLayers(50);
+let timeLayers = getCanvasLayers(20);
 
 let la = new LayerAnimation({
     layers: timeLayers,
     repeat: true
 });
 
+globus.planet.addControl(new DebugInfo());
 globus.planet.addControl(new LayerSwitcher());
 globus.planet.addControl(la);
 

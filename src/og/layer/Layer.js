@@ -290,7 +290,7 @@ class Layer {
      * @returns {boolean} - Returns true if the layers is the same instance of the input.
      */
     isEqual(layer) {
-        return layer._id === this._id;
+        return layer && (layer._id === this._id);
     }
 
     /**

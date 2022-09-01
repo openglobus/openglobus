@@ -355,6 +355,7 @@ class GlobusTerrain extends EmptyTerrain {
                 } else {
                     this._loader.load(
                         {
+                            sender: this,
                             src: this._getHTTPRequestString(segment),
                             segment: segment,
                             type: this._dataType,
