@@ -28,7 +28,7 @@ class LayerAnimation extends Control {
         this._playIntervalHandler = -1;
         this._playIndex = 0;
 
-        this._frameSize = options.frameSize || 50;
+        this._frameSize = options.frameSize || 30;
 
         this.repeat = options.repeat != undefined ? options.repeat : true;
 
@@ -315,17 +315,13 @@ class LayerAnimation extends Control {
                 }
             }
 
-            if (frameChanged && forceVisibility) {
-                this._removeFrameFromPlanet(prevCurrFrame);
-            }
-
             if (currLayer) {
 
                 currLayer.opacity = 0.0;
                 currLayer.setVisibility(true);
 
                 requestAnimationFrame(() => {
-                    if (currLayer.isIdle) {
+                    if (currLayer.isIdle || forceVisibility) {
 
                         currLayer.opacity = 1.0;
 
