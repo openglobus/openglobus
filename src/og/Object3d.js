@@ -31,6 +31,10 @@ class Object3d {
             this._normals = data.normals || [];
         } else {
             this._normals = Object3d.getNormals(this._vertices);
+            this._indexes = new Array(this._vertices.length);
+            for (let i = 0, len = this._indexes.length; i < len; i++) {
+                this._indexes[i] = i;
+            }
         }
     }
 
@@ -376,6 +380,35 @@ class Object3d {
                 -l, h, d,
                 -l, h, -d,
                 -l, -h, -d
+            ]
+        });
+    }
+
+    static createArrow(back = 0.0, height = 2.1, front = -15) {
+        return new Object3d({
+            vertices: [
+                0, height, 0,
+                7, 0, 6,
+                0, 0, front,
+
+                0, 0, back,
+                7, 0, 6,
+                0, height, 0,
+
+                -7, 0, 6,
+                0, 0, back,
+                0, height, 0,
+
+                -7, 0, 6,
+                0, height, 0,
+                0, 0, front,
+
+                -7, 0, 6,
+                0, 0, front,
+                0, 0, back,
+                0, 0, back,
+                0, 0, front,
+                7, 0, 6
             ]
         });
     }
