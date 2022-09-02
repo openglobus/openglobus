@@ -10,11 +10,13 @@ import { MouseNavigation } from "./MouseNavigation.js";
 import { ToggleWireframe } from "./ToggleWireframe.js";
 import { TouchNavigation } from "./TouchNavigation.js";
 import { SimpleNavigation } from "./SimpleNavigation.js";
+import { Ruler } from "./ruler/Ruler.js";
 import { ShowFps } from "./ShowFps.js";
 import { Sun } from "./Sun.js";
 import { ZoomControl } from "./ZoomControl.js";
 import { MouseWheelZoomControl } from "./MouseWheelZoomControl.js";
 import { Lighting } from "./Lighting.js";
+import { LayerAnimation } from "./LayerAnimation.js";
 
 export {
     Control,
@@ -33,5 +35,7 @@ export {
     Sun,
     ZoomControl,
     MouseWheelZoomControl,
-    Lighting
+    Lighting,
+    Ruler,
+    LayerAnimation
 };

@@ -18,7 +18,9 @@ class LabelWorker extends BaseWorker {
         let s = this._source[e.data.id];
 
         if (s.label._lockId === LOCK_UPDATE) {
-            this.make(s);
+            requestAnimationFrame(() => {
+                this.make(s);
+            });
         } else {
             s.handler.workerCallback(e.data, s.label);
         }

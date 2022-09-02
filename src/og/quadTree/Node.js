@@ -284,7 +284,7 @@ class Node {
             } else if (
                 seg.terrainReady &&
                 seg.tileZoom < planet.terrain._maxNodeZoom &&
-                (!maxZoom || maxZoom && cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.planet._maxLodSize)) {
+                (!maxZoom || cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.planet._maxLodSize)) {
                 this.traverseNodes(cam, maxZoom, seg, stopLoading);
             } else if (altVis) {
                 seg.passReady = maxZoom ? seg.terrainReady : false;
@@ -404,6 +404,7 @@ class Node {
 
         if (!this.segment.terrainReady) {
             this.planet._renderCompleted = false;
+            this.planet._terrainCompleted = false;
         }
 
         let k = 0,
@@ -882,9 +883,7 @@ class Node {
     clearTree() {
         var state = this.getState();
 
-        if (state === NOTRENDERING) {
-            this.destroyBranches();
-        } else if (state === RENDERING) {
+        if (state === NOTRENDERING || state === RENDERING) {
             this.destroyBranches();
         } else {
             for (var i = 0; i < this.nodes.length; i++) {

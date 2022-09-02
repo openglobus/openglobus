@@ -24,46 +24,48 @@ const tg = new CanvasTiles("Tile grid", {
     preLoadZoomLevels: [0],
     drawTile: function (material, applyCanvas) {
 
-        //Clear canvas
-        ctx.clearRect(0, 0, cnv.width, cnv.height);
+            console.log("REDRAW");
 
-        let size;
+            //Clear canvas
+            ctx.clearRect(0, 0, cnv.width, cnv.height);
 
-        if (material.segment.isPole) {
-            let ext = material.segment.getExtentLonLat();
+            let size;
+
+            if (material.segment.isPole) {
+                let ext = material.segment.getExtentLonLat();
 
 
-            if (material.segment.tileZoom > 14) {
-                size = "26";
+                if (material.segment.tileZoom > 14) {
+                    size = "26";
+                } else {
+                    size = "32";
+                }
+                ctx.fillStyle = 'black';
+                ctx.font = 'normal ' + size + 'px Verdana';
+                ctx.textAlign = 'center';
+                ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
             } else {
-                size = "32";
+
+                if (material.segment.tileZoom > 14) {
+                    size = "26";
+                } else {
+                    size = "32";
+                }
+                ctx.fillStyle = 'black';
+                ctx.font = 'normal ' + size + 'px Verdana';
+                ctx.textAlign = 'center';
+                ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
             }
-            ctx.fillStyle = 'black';
-            ctx.font = 'normal ' + size + 'px Verdana';
-            ctx.textAlign = 'center';
-            ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
-        } else {
 
-            if (material.segment.tileZoom > 14) {
-                size = "26";
-            } else {
-                size = "32";
-            }
-            ctx.fillStyle = 'black';
-            ctx.font = 'normal ' + size + 'px Verdana';
-            ctx.textAlign = 'center';
-            ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
-        }
+            //Draw border
+            //ctx.beginPath();
+            //ctx.rect(0, 0, cnv.width, cnv.height);
+            //ctx.lineWidth = 2;
+            //ctx.strokeStyle = "black";
+            //ctx.stroke();
 
-        //Draw border
-        //ctx.beginPath();
-        //ctx.rect(0, 0, cnv.width, cnv.height);
-        //ctx.lineWidth = 2;
-        //ctx.strokeStyle = "black";
-        //ctx.stroke();
-
-        //Draw canvas tile
-        applyCanvas(cnv);
+            //Draw canvas tile
+            applyCanvas(cnv);
     }
 });
 
@@ -98,7 +100,22 @@ var borders = new XYZ("borders", {
     preLoadZoomLevels: [],
     minNativeZoom: 1,
     urlRewrite: function (s, u) {
-        console.log(s.tileZoom);
+        return stringTemplate(u, {
+            'quad': toQuadKey(s.tileX, s.tileY, s.tileZoom)
+        });
+    }
+});
+
+var clouds = new XYZ("clouds", {
+    opacity: 1.0,
+    isBaseLayer: false,
+    textureFilter: "mipmap",
+    url: "https://assets.msn.com/weathermapdata/1/cloudforeca/202207030000/{z}_{x}_{y}_202207031100.png",
+    visibility: true,
+    maxNativeZoom: 14,
+    preLoadZoomLevels: [],
+    minNativeZoom: 1,
+    urlRewrite: function (s, u) {
         return stringTemplate(u, {
             'quad': toQuadKey(s.tileX, s.tileY, s.tileZoom)
         });
@@ -133,6 +150,10 @@ let osm = new XYZ("osm", {
     //textureFilter: "linear"
 });
 
+//osm.events.on("loadend", () => console.log("osm loadend"));
+//borders.events.on("loadend", () => console.log("borders loadend"));
+tg.events.on("loadend", () => console.log("tilegrid loadend"));
+
 let sat = new XYZ("sat", {
     isBaseLayer: true,
     subdomains: ['t0', 't1', 't2', 't3'],
@@ -164,7 +185,7 @@ var globus = new Globe({
     terrain: new GlobusTerrain(),
     //terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
-    layers: [temp, borders/*, red, tg, labelLayer, borders*/],
+    layers: [osm, tg],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
     useNightTexture: false,
     //useEarthNavigation: true,
@@ -173,15 +194,12 @@ var globus = new Globe({
 
 //globus.renderer.fontAtlas.loadFont("chinese.msyh", "//assets.msn.com/weathermapdata/1/static/3d/label/zh-cn/font-v2.2/", "chinese.msyh.json");
 
-globus.planet.addControl(new Lighting());
-
 globus.planet.addControl(new LayerSwitcher());
 
-//globus.planet.addControl(new DebugInfo());
+globus.planet.addControl(new DebugInfo());
 
 //globus.planet.addControl(new ToggleWireframe());
 
 //globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
-
 
 window.globus = globus;

@@ -6,6 +6,7 @@
 
 import { Control } from './Control.js';
 import { BaseGeoImage } from '../layer/BaseGeoImage.js';
+import { elementFactory, allMenuBtnOFF,  allDialogsHide, btnClickHandler} from "./UIhelpers.js";
 
 class GeoImageDragControl extends Control {
     constructor(options) {
@@ -20,6 +21,7 @@ class GeoImageDragControl extends Control {
 
     oninit() {
         let p = this.planet;
+        this.createDraggerButton();
 
         p.events.on('layeradd', function (e) {
             this._bindLayer(e);
@@ -30,30 +32,52 @@ class GeoImageDragControl extends Control {
                 this._bindLayer(p.layers[i]);
             }
         }
+        btnClickHandler('og-geo-image-dragger-menu-btn', null , null, '#og-geo-image-dragger-menu-icon'); // btn_id, dialog_id, dialog_selector, icon_id
+    }
+
+    // Create a button to activate-deactivate control
+    createDraggerButton() {
+        let btn = elementFactory('div', {id: 'og-geo-image-dragger-menu-btn',class: 'og-geo-image-dragger og-menu-btn og-OFF' },
+        elementFactory('div', {id: 'og-geo-image-dragger-menu-icon',class: 'og-icon-holder'}));
+        this.renderer.div.appendChild(btn);
     }
 
     _bindLayer(layer) {
-        if (layer instanceof BaseGeoImage) {
+        if (layer instanceof BaseGeoImage) { // if the layer is a geoImage layer
 
             var p = this.planet;
 
             layer.events.on('mousemove', function (ms) {
-                if (this._active) {
-                    if (this._catchCorner) {
+                var btn = document.getElementById('og-geo-image-dragger-menu-btn');
+                var btn_off = btn.classList.contains('og-OFF');
+                if (this._active && !btn_off) { // active layer and button ON
+                    if (this._catchCorner) {// mouse is catching a corner
                         var corners = layer.getCornersLonLat();
                         corners[this._cornerIndex] = p.getLonLatFromPixelTerrain(ms, true);
                         layer.setCornersLonLat(corners);
-                    } else {
+                    } else { // mouse isn't catching
                         this._cornerIndex = -1;
                         for (var i = 0; i < layer._cornersWgs84.length; i++) {
                             var ground = p.getLonLatFromPixelTerrain(ms, true);
+                            // mouse is near
                             if (ground && p.ellipsoid.getGreatCircleDistance(layer._cornersWgs84[i], ground) / p.getDistanceFromPixel(ms, true) <= 0.05) {
                                 this._cornerIndex = i;
+                                document.body.style.cursor = 'move';
                                 break;
+                            // mouse is far
+                            } else { 
+                                document.body.style.cursor = 'auto';
+                         
                             }
                         }
                     }
                 }
+
+                layer.events.on("mouseleave", function (
+                ) {
+                    document.body.style.cursor = 'auto';
+                });
+
             }, this);
 
             layer.events.on('ldown', function (ms) {
@@ -69,6 +93,11 @@ class GeoImageDragControl extends Control {
                     ms.renderer.controls.mouseNavigation.activate();
                 }
             }, this);
+
+            layer.events.on('rdblclick', function(){
+                alert(layer.getID());
+            })
+
         }
     }
 }

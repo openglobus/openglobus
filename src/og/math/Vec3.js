@@ -194,7 +194,7 @@ export class Vec3 {
      * @returns {Vec3} -
      */
     static lerp(v1, v2, l) {
-        return Vec3(v1.x + (v2.x - v1.x) * l, v1.y + (v2.y - v1.y) * l, v1.z + (v2.z - v1.z) * l);
+        return new Vec3(v1.x + (v2.x - v1.x) * l, v1.y + (v2.y - v1.y) * l, v1.z + (v2.z - v1.z) * l);
     }
 
     /**

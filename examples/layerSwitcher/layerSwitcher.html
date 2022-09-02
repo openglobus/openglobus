@@ -20,7 +20,6 @@
         import { LayerSwitcher } from '../../src/og/control/LayerSwitcher.js';
 
         var osm = new XYZ("OpenStreetMap", {
-            fading: true,
             isBaseLayer: true,
             url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             visibility: true,
@@ -28,7 +27,6 @@
         });
 
         var sat1 = new XYZ("MapQuest Satellite", {
-            fading: true,
             shininess: 20,
             specular: [0.00048, 0.00037, 0.00035],
             diffuse: [0.88, 0.85, 0.8],
@@ -36,13 +34,10 @@
             isBaseLayer: true,
             url: "https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWdldmxpY2hzY2FuZXgiLCJhIjoiY2pwcGdsaXlnMDQzdDQybXhsOWZlbXBvdSJ9.fR2YE-ehJA4iajaJBAPKvw",
             visibility: false,
-            attribution: `@2014 MapQuest - Portions @2014 "Map data @
-            <a target="_blank" href="//www.openstreetmap.org/">OpenStreetMap</a> and contributors,
-            <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
+            attribution: `© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a>`
         });
 
         var sat2 = new XYZ("MapQuest Satellite With Labels", {
-            fading: true,
             shininess: 20,
             specular: [0.00048, 0.00037, 0.00035],
             diffuse: [0.88, 0.85, 0.8],
@@ -50,13 +45,10 @@
             isBaseLayer: true,
             url: "https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWdldmxpY2hzY2FuZXgiLCJhIjoiY2pwcGdsaXlnMDQzdDQybXhsOWZlbXBvdSJ9.fR2YE-ehJA4iajaJBAPKvw",
             visibility: false,
-            attribution: `@2014 MapQuest - Portions @2014 "Map data @
-            <a target="_blank" href="//www.openstreetmap.org/">OpenStreetMap</a> and contributors,
-            <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
+            attribution: `© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a>`
         });
 
         var dark = new XYZ("MapQuest Dark", {
-            fading: true,
             shininess: 20,
             specular: [0.00048, 0.00037, 0.00035],
             diffuse: [0.88, 0.85, 0.8],
@@ -64,13 +56,10 @@
             isBaseLayer: true,
             url: "https://api.mapbox.com/styles/v1/mapbox/dark-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWdldmxpY2hzY2FuZXgiLCJhIjoiY2pwcGdsaXlnMDQzdDQybXhsOWZlbXBvdSJ9.fR2YE-ehJA4iajaJBAPKvw",
             visibility: false,
-            attribution: `@2014 MapQuest - Portions @2014 "Map data @
-            <a target="_blank" href="//www.openstreetmap.org/">OpenStreetMap</a> and contributors,
-            <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
+            attribution: `© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a>`
         });
 
         var light = new XYZ("MapQuest Light", {
-            fading: true,
             shininess: 20,
             specular: [0.00048, 0.00037, 0.00035],
             diffuse: [0.88, 0.85, 0.8],
@@ -78,25 +67,21 @@
             isBaseLayer: true,
             url: "https://api.mapbox.com/styles/v1/mapbox/light-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWdldmxpY2hzY2FuZXgiLCJhIjoiY2pwcGdsaXlnMDQzdDQybXhsOWZlbXBvdSJ9.fR2YE-ehJA4iajaJBAPKvw",
             visibility: false,
-            attribution: `@2014 MapQuest - Portions @2014 "Map data @
-            <a target="_blank" href="//www.openstreetmap.org/">OpenStreetMap</a> and contributors,
-            <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
+            attribution: `© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a>`
         });
 
         var states = new WMS("USA Population", {
-            fading: true,
             extent: [[-128, 24], [-66, 49]],
             visibility: false,
             isBaseLayer: false,
             url: "//openglobus.org:8080/geoserver/",
             layers: "topp:states",
             opacity: 0.4,
-            attribution: 'Hi!',
+            attribution: 'USA Population',
             transparentColor: [1.0, 1.0, 1.0]
         });
 
-        var colorado = new GeoImage("Colorado Lagoon from ISS", {
-            fading: true,
+        var colorado = new GeoImage("Colorado Lagoon from International Space Station (this is a very long label)", {
             src: "colorado-lagoon.jpg",
             corners: [[-67.53063210679933, -22.148203215209232], [-67.76790919786042, -22.472194951833597], [-67.98127275782282, -22.331289122713546], [-67.74288424259892, -21.991520350954644]],
             visibility: false,
@@ -107,7 +92,6 @@
         });
 
         var vector = new Vector("Vector Green Area", {
-            fading: true,
             'visibility': false,
             'isBaseLayer': false,
             'diffuse': [0, 0, 0],
@@ -126,11 +110,10 @@
                 'lonlat': [14, 25],
                 'label': {
                     'text': "Green Area",
-                    'outline': 0.5,
-                    'outlineColor': "rgba(0,0,0,0.55)",
+                    'outline': 0.1,
+                    'outlineColor': "rgba(0,0,0,0.15)",
                     'size': 43,
                     'color': "#00ff00",
-                    'face': "verdana",
                     'align': "center"
                 }
             }, {
@@ -148,23 +131,23 @@
                 'label': {
                     'text': "Red Area",
                     'outline': 0.2,
-                    'outlineColor': "rgba(0,0,0,0.45)",
+                    'outlineColor': "rgba(0,0,0,0.25)",
                     'size': 23,
                     'color': "#ff0000",
-                    'face': "verdana",
                     'align': "center"
                 }
             }]
         });
 
-        var globus = new Globe({
+        let globus = new Globe({
             "target": "globus",
             "name": "Earth",
-            "terrain": new GlobusTerrain("OpenGlobus"),
+            "terrain": new GlobusTerrain("OpenGlobus Terrain"),
             "layers": [osm, sat1, sat2, light, dark, states, colorado, vector]
         });
 
         globus.planet.addControl(new LayerSwitcher());
+        console.log(globus.planet)
 
         window.planet = globus.planet;
 

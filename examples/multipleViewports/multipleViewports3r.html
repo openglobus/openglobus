@@ -1,0 +1,293 @@
+<html>
+
+<head>
+    <title>OpenGlobus - Earth planet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="//openglobus.org/og.css" type="text/css" />
+    <script src="//openglobus.org/og.umd.js"></script>
+    <style>
+        .coordinates {
+            position: absolute;
+            display: inline-block;
+            background-color: white;
+            top: 20px;
+            right: calc(50% - 366px);
+            padding: 10px;
+            border-radius: 3px;
+        }
+
+        .coordinates input {
+            float: left;
+            padding: 3px;
+            font-size: 18px;
+            width: 270px;
+        }
+
+        .elev {
+            float: left;
+            padding-left: 11px;
+            font-family: monospace;
+            font-size: 21px;
+            margin-top: 3px;
+            width: 70px;
+            text-align: right;
+        }
+
+        .coordinates button {
+            float: left;
+            margin-left: 14px;
+            padding: 5px 15px;
+            font-size: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="globus1" style="width:50%;height:100%"></div>
+    <div id="globus2" style="width:50%;height:100%"></div>
+    <div style="position: absolute; top: 0; left: 0; padding: 20px">
+        <button id="btnGlobus" style="float:left; margin: 3px;">OpenGlobus</button>
+        <button id="btnMapbox" style="float:left; margin: 3px;">Mapbox</button>
+    </div>
+    <div class="coordinates">
+        <input type="text" />
+        <div class="elev">--</div>
+        <button>GET</button>
+    </div>
+
+    <input style="position:absolute; top:60px; left: 20px;" type="file" id="myFile">
+
+    <script>
+
+        const EXTENT = [109.49057, 49.95169, 113.99417, 51.81737];
+
+        function copyCamera(src, dst) {
+            let e = src.eye.clone(),
+                f = src.getForward().clone(),
+                u = src.getUp().clone();
+            dst.set(e, e.add(f), u);
+            dst.update();
+        }
+
+        let globusTerrain = new og.terrain.GlobusTerrain({
+            //geoidSrc: "./egm2008-1.pgm"
+        });
+
+        let mapboxTerrain = new og.terrain.MapboxTerrain({
+            //geoidSrc: "./egm2008-1.pgm"
+        });
+
+        var osm1 = new og.layer.XYZ("OpenStreetMap", {
+            isBaseLayer: true,
+            url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            visibility: true,
+            attribution: 'Data @ OpenStreetMap contributors, ODbL'
+        });
+
+        document.getElementById("btnGlobus").onclick = function () {
+            window.globus1.planet.setTerrain(globusTerrain);
+        };
+
+        document.getElementById("btnMapbox").onclick = function () {
+            window.globus1.planet.setTerrain(mapboxTerrain);
+        };
+
+        window.globus1 = new og.Globe({
+            "target": "globus1",
+            "name": "Earth One",
+            "terrain": globusTerrain,
+            "layers": [osm1],
+            "viewExtent": EXTENT,
+            controls: [
+                new og.control.MouseNavigation(),
+                new og.control.EarthCoordinates({ centerMode: true }),
+                new og.control.Sun()
+            ]
+        });
+
+        window.globus1.renderer.events.on("draw", () => {
+            copyCamera(
+                window.globus1.planet.camera,
+                window.globus2.planet.camera
+            );
+        });
+
+        var osm2 = new og.layer.XYZ("OpenStreetMap", {
+            isBaseLayer: true,
+            url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            visibility: true,
+            attribution: 'Data @ OpenStreetMap contributors, ODbL'
+        });
+
+        var highResTerrain = new og.terrain.MapboxTerrain(null, {
+            maxZoom: 15,
+            url: "//terrain.openglobus.org/public/bur/{z}/{x}/{y}.png",
+            //imageSize: 129,
+            //plainGridSize: 128,
+            gridSizeByZoom: [
+                64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 64, 128, 128, 64, 32, 16, 8, 4
+                //8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4
+            ],
+            geoidSrc: "./egm2008-1.pgm"
+        });
+
+        window.globus2 = new og.Globe({
+            "target": "globus2",
+            "name": "Earth Two",
+            "terrain": highResTerrain,
+            "layers": [osm2],
+            "viewExtent": EXTENT,
+            controls: [
+                new og.control.MouseNavigation(),
+                new og.control.EarthCoordinates({ centerMode: true }),
+                new og.control.Sun()
+            ]
+        });
+
+        window.globus2.renderer.events.on("draw", () => {
+            copyCamera(
+                window.globus2.planet.camera,
+                window.globus1.planet.camera
+            );
+        });
+
+
+        function parseXY(val) {
+            var b = val.split('\t').map(Number);
+            return [b[0], b[1]];
+            //var parts = val.match(/^((\-?|\+?)?\d+(\.\d+)?),\s*((\-?|\+?)?\d+(\.\d+)?)$/);
+            //if (parts) return [parts[1], parts[2]];
+        }
+
+        function utmToLatLng(zone, easting, northing, northernHemisphere) {
+            if (!northernHemisphere) {
+                northing = 10000000 - northing;
+            }
+
+            var a = 6378137;
+            var e = 0.081819191;
+            var e1sq = 0.006739497;
+            var k0 = 0.9996;
+
+            var arc = northing / k0;
+            var mu = arc / (a * (1 - Math.pow(e, 2) / 4.0 - 3 * Math.pow(e, 4) / 64.0 - 5 * Math.pow(e, 6) / 256.0));
+
+            var ei = (1 - Math.pow((1 - e * e), (1 / 2.0))) / (1 + Math.pow((1 - e * e), (1 / 2.0)));
+
+            var ca = 3 * ei / 2 - 27 * Math.pow(ei, 3) / 32.0;
+
+            var cb = 21 * Math.pow(ei, 2) / 16 - 55 * Math.pow(ei, 4) / 32;
+            var cc = 151 * Math.pow(ei, 3) / 96;
+            var cd = 1097 * Math.pow(ei, 4) / 512;
+            var phi1 = mu + ca * Math.sin(2 * mu) + cb * Math.sin(4 * mu) + cc * Math.sin(6 * mu) + cd * Math.sin(8 * mu);
+
+            var n0 = a / Math.pow((1 - Math.pow((e * Math.sin(phi1)), 2)), (1 / 2.0));
+
+            var r0 = a * (1 - e * e) / Math.pow((1 - Math.pow((e * Math.sin(phi1)), 2)), (3 / 2.0));
+            var fact1 = n0 * Math.tan(phi1) / r0;
+
+            var _a1 = 500000 - easting;
+            var dd0 = _a1 / (n0 * k0);
+            var fact2 = dd0 * dd0 / 2;
+
+            var t0 = Math.pow(Math.tan(phi1), 2);
+            var Q0 = e1sq * Math.pow(Math.cos(phi1), 2);
+            var fact3 = (5 + 3 * t0 + 10 * Q0 - 4 * Q0 * Q0 - 9 * e1sq) * Math.pow(dd0, 4) / 24;
+
+            var fact4 = (61 + 90 * t0 + 298 * Q0 + 45 * t0 * t0 - 252 * e1sq - 3 * Q0 * Q0) * Math.pow(dd0, 6) / 720;
+
+            var lof1 = _a1 / (n0 * k0);
+            var lof2 = (1 + 2 * t0 + Q0) * Math.pow(dd0, 3) / 6.0;
+            var lof3 = (5 - 2 * Q0 + 28 * t0 - 3 * Math.pow(Q0, 2) + 8 * e1sq + 24 * Math.pow(t0, 2)) * Math.pow(dd0, 5) / 120;
+            var _a2 = (lof1 - lof2 + lof3) / Math.cos(phi1);
+            var _a3 = _a2 * 180 / Math.PI;
+
+            var latitude = 180 * (phi1 - fact1 * (fact2 + fact3 + fact4)) / Math.PI;
+
+            if (!northernHemisphere) {
+                latitude = -latitude;
+            }
+
+            var longitude = ((zone > 0) && (6 * zone - 183.0) || 3.0) - _a3;
+
+            return new og.LonLat(longitude, latitude);
+        }
+
+        let $elev = document.querySelector(".elev");
+        let $input = document.querySelector(".coordinates input");
+
+        document.querySelector(".coordinates button").addEventListener("click", (e) => {
+            $elev.innerHTML = '...';
+            let coords = parseXY($input.value);
+            let lonLat = utmToLatLng(49, coords[0], coords[1], true);
+            window.globus2.planet.getHeightAboveELL(lonLat).then((alt) => {
+                $elev.innerHTML = `${Math.round(alt)} m`;
+                window.globus2.planet.flyLonLat(lonLat);
+            });
+        });
+
+        var input = document.getElementById("myFile");
+
+        input.addEventListener("change", function () {
+            if (this.files && this.files[0]) {
+                var myFile = this.files[0];
+                var reader = new FileReader();
+
+                reader.addEventListener('load', function (e) {
+                    let text = e.target.result;
+                    let lines = text.split('\n');
+                    let csvText = "X,Y,elv,delta_left,delta_right\r\n";
+                    let done = 0;
+                    for (let i = 1; i < lines.length - 1; i++) {
+                        let li = lines[i].split(',');
+                        let x = parseFloat(li[0]),
+                            y = parseFloat(li[1]),
+                            elv = parseFloat(li[2]);
+                        ((_x, _y, _elv) => {
+                            let lonLat = utmToLatLng(49, _x, _y, true);
+
+                            let g1 = window.globus1.planet.getHeightAboveELL(lonLat);
+                            let g2 = window.globus2.planet.getHeightAboveELL(lonLat);
+
+                            Promise.all([g1, g2]).then((data) => {
+
+                                let alt1 = data[0],
+                                    alt2 = data[1];
+
+                                console.log(`${_x},${_y},${Math.round(_elv)}, ${Math.round(alt1 - _elv)}, ${Math.round(alt2 - _elv)}`);
+                                csvText += `${_x},${_y},${Math.round(_elv)}, ${Math.round(alt1 - _elv)}, ${Math.round(alt2 - _elv)}` + "\r\n";
+
+                                done++;
+
+                                if (done >= lines.length - 2) {
+                                    console.log('done.');
+                                    var blob = new Blob([csvText], { type: 'text/csv;charset=utf-8;' });
+                                    var link = document.createElement("a");
+                                    if (link.download !== undefined) { // feature detection
+                                        // Browsers that support HTML5 download attribute
+                                        var url = URL.createObjectURL(blob);
+                                        link.setAttribute("href", url);
+                                        link.setAttribute("download", "output.csv");
+                                        link.style.visibility = 'hidden';
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                    }
+                                }
+                            });
+
+                        })(x, y, elv);
+                    }
+                });
+
+                reader.readAsBinaryString(myFile);
+            }
+        });
+
+        window.utmToLatLng = utmToLatLng;
+
+    </script>
+</body>
+
+</html>

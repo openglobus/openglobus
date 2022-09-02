@@ -34,21 +34,21 @@ class MyScene extends RenderNode {
                     'label': {
                         'isRTL': true,
                         'text': "סיודד ריאל",
-                        'color': "black",
+                        'color': "white",
                         //'face': "NotoSansArabic-Regular",
                         //'face': "Arabic",
                         'face': "Segoe",
                         //align: "center",
-                        'outlineColor': "rgba(255, 255, 255, 1.0)",
+                        'outlineColor': "black",
                         'size': size
                     }
                 }), new Entity({
                     'cartesian': new Vec3(0, 20, 0),
                     'label': {
                         'text': "0.5 - VastShadow-Regular",
-                        'color': "black",
+                        'color': "white",
                         'face': "VastShadow-Regular",
-                        'outlineColor': "rgba(255, 255, 255, 0.8)",
+                        'outlineColor': "black",
                         //align: "center",
                         'size': size
                     }
@@ -60,7 +60,7 @@ class MyScene extends RenderNode {
                         'text': "قطة",
                         'color': "black",
                         'face': "NotoSansArabic-Regular",
-                        'outlineColor': "rgba(255, 255, 255, 0.75)",
+                        'outlineColor': "white",
                         'size': size
                     }
                 }),
@@ -131,6 +131,22 @@ class MyScene extends RenderNode {
             }
         });
 
+        document.querySelector("#labelOpacity").addEventListener("input", (e) => {
+            let entities = this.ec.getEntities();
+            for (let i = 0; i < entities.length; i++) {
+                entities[i].label.setOpacity(Number(e.target.value));
+            }
+            document.querySelector("#valLabelOpacity").innerText = e.target.value;
+        });
+
+        document.querySelector("#outlineOpacity").addEventListener("input", (e) => {
+            let entities = this.ec.getEntities();
+            for (let i = 0; i < entities.length; i++) {
+                entities[i].label.setOutlineOpacity(Number(e.target.value));
+            }
+            document.querySelector("#valOutlineOpacity").innerText = e.target.value;
+        });
+
         document.querySelector("#text").addEventListener("focus", () => {
             this.renderer.controls.SimpleNav.deactivate();
         });
@@ -139,14 +155,13 @@ class MyScene extends RenderNode {
             this.renderer.controls.SimpleNav.activate();
         });
 
-        //this.renderer.fontAtlas.loadFont("PressStart2P-Regular", "./fonts/", "PressStart2P-Regular.json");
+        this.renderer.fontAtlas.loadFont("PressStart2P-Regular", "./fonts/", "PressStart2P-Regular.json");
         this.renderer.fontAtlas.loadFont("VastShadow-Regular", "./fonts/", "VastShadow-Regular.json");
-        //this.renderer.fontAtlas.loadFont("Sacramento-Regular", "./fonts/", "Sacramento-Regular.json");
-        //this.renderer.fontAtlas.loadFont("Notable-Regular", "./fonts/", "Notable-Regular.json");
-        //this.renderer.fontAtlas.loadFont("MrDeHaviland-Regular", "./fonts/", "MrDeHaviland-Regular.json");
-        //this.renderer.fontAtlas.loadFont("Audiowide-Regular", "./fonts/", "Audiowide-Regular.json");
-        //this.renderer.fontAtlas.loadFont("ArchitectsDaughter-Regular", "./fonts/", "ArchitectsDaughter-Regular.json");
-        //this.renderer.fontAtlas.loadFont("NotoSansArabic-Regular", "./fonts/", "NotoSansArabic-Regular.json");
+        this.renderer.fontAtlas.loadFont("Sacramento-Regular", "./fonts/", "Sacramento-Regular.json");
+        this.renderer.fontAtlas.loadFont("Notable-Regular", "./fonts/", "Notable-Regular.json");
+        this.renderer.fontAtlas.loadFont("MrDeHaviland-Regular", "./fonts/", "MrDeHaviland-Regular.json");
+        this.renderer.fontAtlas.loadFont("Audiowide-Regular", "./fonts/", "Audiowide-Regular.json");
+        this.renderer.fontAtlas.loadFont("ArchitectsDaughter-Regular", "./fonts/", "ArchitectsDaughter-Regular.json");
         this.renderer.fontAtlas.loadFont("NotoSansArabic-Regular", "./fonts/", "NotoSansArabic-Regular.json");
         this.renderer.fontAtlas.loadFont("Segoe", "./fonts/", "segoeui.json");
         this.ec.addTo(this);

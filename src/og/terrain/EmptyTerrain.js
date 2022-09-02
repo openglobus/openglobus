@@ -157,13 +157,9 @@ class EmptyTerrain {
     clearCache() {
     }
 
-    /**
-     * template
-     * @public
-     * @virtual
-     */
-    getHeightAsync() {
-
+    getHeightAsync(lonLat, callback) {
+        callback(0);
+        return true;
     }
 }
 

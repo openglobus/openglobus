@@ -45,9 +45,7 @@ const EVENT_NAMES = [
  * @fires og.layer.CanvasTiles#loadend
  */
 class CanvasTiles extends Layer {
-    constructor(name, options) {
-        options = options || {};
-
+    constructor(name, options = {}) {
         super(name, options);
 
         this.events.registerNames(EVENT_NAMES);
@@ -74,8 +72,30 @@ class CanvasTiles extends Layer {
         this.drawTile = options.drawTile || null;
     }
 
+    addTo(planet) {
+        this._onLoadend_ = this._onLoadend.bind(this);
+        this.events.on("loadend", this._onLoadend_, this);
+        return super.addTo(planet);
+    }
+
+    remove() {
+        this.events.off("loadend", this._onLoadend_);
+        this._onLoadend_ = null;
+        return super.remove();
+    }
+
+    _onLoadend() {
+        if (this._planet && this._planet._terrainCompletedActivated) {
+            this._planet.events.dispatch(this._planet.events.layerloadend, this);
+        }
+    }
+
     get instanceName() {
         return "CanvasTiles";
+    }
+
+    get isIdle() {
+        return super.isIdle && this._counter === 0;
     }
 
     /**
@@ -203,7 +223,7 @@ class CanvasTiles extends Layer {
                     this._exec(pmat);
                 }
             }
-        } else if (this._counter === 0) {
+        } else if (this._counter === 0 && this._planet && this._planet._terrainCompletedActivated) {
             this.events.dispatch(this.events.loadend);
         }
     }
@@ -269,8 +289,8 @@ class CanvasTiles extends Layer {
         if (material.isReady) {
             material.isReady = false;
 
-            !material.texture.default &&
-                material.segment.handler.gl.deleteTexture(material.texture);
+            material.texture && !material.texture.default &&
+            material.segment.handler.gl.deleteTexture(material.texture);
 
             material.texture = null;
         }

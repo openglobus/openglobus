@@ -12,7 +12,7 @@ import { LonLat } from "../LonLat.js";
 import { Material } from "./Material.js";
 import { Vec3 } from "../math/Vec3.js";
 
-export const FADING_FACTOR = 0.29;
+const FADING_RATIO = 15.8;
 
 /**
  * @classdesc
@@ -27,6 +27,7 @@ export const FADING_FACTOR = 0.29;
  * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
  * @param {boolean} [options.isBaseLayer=false] - This is a base layer.
  * @param {boolean} [options.visibility=true] - Layer visibility.
+ * @param {boolean} [options.displayInLayerSwitcher=true] - Presence of layer in dialog window of LayerSwitcher control.
  * @param {boolean} [options.isSRGB=false] - Layer image webgl nternal format.
  * @param {Extent} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
  * @param {string} [options.textureFilter="anisotropic"] - Image texture filter. Available values: "nearest", "linear", "mipmap" and "anisotropic".
@@ -34,29 +35,29 @@ export const FADING_FACTOR = 0.29;
  * @fires og.Layer#visibilitychange
  * @fires og.Layer#add
  * @fires og.Layer#remove
- * @fires og.layer.Vector#mousemove
- * @fires og.layer.Vector#mouseenter
- * @fires og.layer.Vector#mouseleave
- * @fires og.layer.Vector#lclick
- * @fires og.layer.Vector#rclick
- * @fires og.layer.Vector#mclick
- * @fires og.layer.Vector#ldblclick
- * @fires og.layer.Vector#rdblclick
- * @fires og.layer.Vector#mdblclick
- * @fires og.layer.Vector#lup
- * @fires og.layer.Vector#rup
- * @fires og.layer.Vector#mup
- * @fires og.layer.Vector#ldown
- * @fires og.layer.Vector#rdown
- * @fires og.layer.Vector#mdown
- * @fires og.layer.Vector#lhold
- * @fires og.layer.Vector#rhold
- * @fires og.layer.Vector#mhold
- * @fires og.layer.Vector#mousewheel
- * @fires og.layer.Vector#touchmove
- * @fires og.layer.Vector#touchstart
- * @fires og.layer.Vector#touchend
- * @fires og.layer.Vector#doubletouch
+ * @fires og.layer.Layer#mousemove
+ * @fires og.layer.Layer#mouseenter
+ * @fires og.layer.Layer#mouseleave
+ * @fires og.layer.Layer#lclick
+ * @fires og.layer.Layer#rclick
+ * @fires og.layer.Layer#mclick
+ * @fires og.layer.Layer#ldblclick
+ * @fires og.layer.Layer#rdblclick
+ * @fires og.layer.Layer#mdblclick
+ * @fires og.layer.Layer#lup
+ * @fires og.layer.Layer#rup
+ * @fires og.layer.Layer#mup
+ * @fires og.layer.Layer#ldown
+ * @fires og.layer.Layer#rdown
+ * @fires og.layer.Layer#mdown
+ * @fires og.layer.Layer#lhold
+ * @fires og.layer.Layer#rhold
+ * @fires og.layer.Layer#mhold
+ * @fires og.layer.Layer#mousewheel
+ * @fires og.layer.Layer#touchmove
+ * @fires og.layer.Layer#touchstart
+ * @fires og.layer.Layer#touchend
+ * @fires og.layer.Layer#doubletouch
  */
 class Layer {
     constructor(name, options = {}) {
@@ -66,6 +67,8 @@ class Layer {
          * @type {string}
          */
         this.name = name || "noname";
+
+        this.properties = options.properties || {};
 
         this._labelMaxLetters = options.labelMaxLetters;
 
@@ -141,7 +144,7 @@ class Layer {
 
         this._fading = options.fading || false;
 
-        this._fadingFactor = FADING_FACTOR;
+        this._fadingFactor = this._opacity / FADING_RATIO;
 
         if (this._fading) {
             this._fadingOpacity = this._visibility ? this._opacity : 0.0;
@@ -204,7 +207,7 @@ class Layer {
          * @public
          * @type {Events}
          */
-        this.events = new Events(EVENT_NAMES, this);
+        this.events = new Events(options.events ? [...EVENT_NAMES, ...options.events] : EVENT_NAMES, this);
     }
 
     static getTMS(x, y, z) {
@@ -230,23 +233,6 @@ class Layer {
         this.__lcounter = n;
     }
 
-    static get __requestsCounter() {
-        return this.__reqcounter;
-    }
-
-    static set __requestsCounter(v) {
-        this.__reqcounter = v;
-    }
-
-    /**
-     * Maximum loading queries at one time.
-     * @const
-     * @type {number}
-     */
-    static get MAX_REQUESTS() {
-        return 7;
-    }
-
     get instanceName() {
         return "Layer";
     }
@@ -256,20 +242,18 @@ class Layer {
     }
 
     set opacity(opacity) {
-        if (this._fading) {
-            if (opacity > this._opacity) {
-                this._fadingFactor = (opacity - this._opacity) / 2.8;
-            } else if (opacity < this._opacity) {
-                this._fadingFactor = (opacity - this._opacity) / 2.8;
+        if (opacity !== this._opacity) {
+            if (this._fading) {
+                if (opacity > this._opacity) {
+                    this._fadingFactor = (opacity - this._opacity) / FADING_RATIO;
+                } else if (opacity < this._opacity) {
+                    this._fadingFactor = (opacity - this._opacity) / FADING_RATIO;
+                }
+            } else {
+                this._fadingOpacity = opacity;
             }
-        } else {
-            this._fadingOpacity = opacity;
+            this._opacity = opacity;
         }
-        this._opacity = opacity;
-    }
-
-    get opacity() {
-        return this._opacity;
     }
 
     set pickingEnabled(picking) {
@@ -306,7 +290,7 @@ class Layer {
      * @returns {boolean} - Returns true if the layers is the same instance of the input.
      */
     isEqual(layer) {
-        return layer._id === this._id;
+        return layer && (layer._id === this._id);
     }
 
     /**
@@ -325,7 +309,9 @@ class Layer {
 
         this.createTexture = planet.renderer.handler.createTexture[this._textureFilter];
 
-        planet.layers.push(this);
+        // TODO: replace to planet
+        planet._layers.push(this);
+
         this._planet = planet;
         this.events.on("visibilitychange", planet._onLayerVisibilityChanged, planet);
         if (this._isBaseLayer && this._visibility) {
@@ -340,6 +326,10 @@ class Layer {
         this.events.dispatch(this.events.add, planet);
         planet.updateVisibleLayers();
         this._bindPicking();
+    }
+
+    get isIdle() {
+        return this._planet && this._planet._terrainCompletedActivated;
     }
 
     /**
@@ -369,17 +359,20 @@ class Layer {
      * @returns {Layer} -This layer.
      */
     remove() {
-        var p = this._planet;
+        let p = this._planet;
         if (p) {
-            for (var i = 0; i < p.layers.length; i++) {
-                if (this.isEqual(p.layers[i])) {
+            //TODO: replace to planet
+            for (let i = 0; i < p._layers.length; i++) {
+                if (this.isEqual(p._layers[i])) {
                     p.renderer.clearPickingColor(this);
-                    p.layers.splice(i, 1);
+                    p._layers.splice(i, 1);
                     p.updateVisibleLayers();
                     this.clear();
                     p.events.dispatch(p.events.layerremove, this);
                     this.events.dispatch(this.events.remove, p);
                     this._planet = null;
+                    this._internalFormat = null;
+                    this.createTexture = null;
                     return this;
                 }
             }
@@ -394,8 +387,6 @@ class Layer {
     clear() {
         if (this._planet) {
             this._planet._clearLayerMaterial(this);
-            this._internalFormat = null;
-            this.createTexture = null;
         }
     }
 
@@ -530,7 +521,7 @@ class Layer {
             this._planet._renderCompleted = false;
         }
 
-        this.applyMaterial(m);
+        this.applyMaterial(m, true);
     }
 
     _preLoadRecursive(node, maxZoom) {
@@ -620,6 +611,14 @@ class Layer {
         // }
     }
 
+    get opacity() {
+        return this._opacity;
+    }
+
+    get screenOpacity() {
+        return this._fading ? this._fadingOpacity : this._opacity;
+    }
+
     _refreshFadingOpacity() {
         var p = this._planet;
         if (
@@ -637,19 +636,44 @@ class Layer {
             ) {
                 this._fadingOpacity = this._opacity;
             }
+
             return false;
         } else {
-            this._fadingOpacity -= FADING_FACTOR;
-
-            if (this._fadingOpacity < 0.0) {
-                this._fadingOpacity = 0.0;
-                return !this._visibility;
-            }
+            //this._fadingOpacity -= this._opacity / FADING_RATIO;
+            //if (this._fadingOpacity < 0.0) {
+            this._fadingOpacity = 0.0;
+            //}
+            return !this._visibility;
         }
     }
 
     createMaterial(segment) {
         return new Material(segment, this);
+    }
+
+    redraw() {
+        if (this._planet) {
+            this._planet._quadTree.traverseTree((n) => {
+                    if (n.segment.materials[this._id]) {
+                        n.segment.materials[this._id].clear();
+                    }
+                }
+            );
+
+            this._planet._quadTreeNorth.traverseTree((n) => {
+                    if (n.segment.materials[this._id]) {
+                        n.segment.materials[this._id].clear();
+                    }
+                }
+            );
+
+            this._planet._quadTreeSouth.traverseTree((n) => {
+                    if (n.segment.materials[this._id]) {
+                        n.segment.materials[this._id].clear();
+                    }
+                }
+            );
+        }
     }
 }
 

@@ -92,6 +92,7 @@ export function label_webgl2() {
 
                 if(a_texCoord.w == EMPTY) {
                     gl_Position = vec4(0.0);
+                    v_fontIndex = -1;
                     return;
                 }
                
@@ -154,7 +155,6 @@ export function label_webgl2() {
             uniform int isOutlinePass;
             
             precision highp float;
-            precision highp int;
 
             const int MAX_SIZE = 11;
 
@@ -207,51 +207,33 @@ export function label_webgl2() {
                 }
                 return median(msdf.r, msdf.g, msdf.b);
             }
-
-            vec4 getSDFParams() {
-                if(v_fontIndex == 0) {
-                    return sdfParamsArr[0];
-                } else if(v_fontIndex == 1){
-                    return sdfParamsArr[1];
-                } else if(v_fontIndex == 2){
-                    return sdfParamsArr[2];
-                } else if(v_fontIndex == 3){
-                    return sdfParamsArr[3];
-                } else if(v_fontIndex == 4){
-                    return sdfParamsArr[4];
-                } else if(v_fontIndex == 5){
-                    return sdfParamsArr[5];
-                } else if(v_fontIndex == 6){
-                    return sdfParamsArr[6];
-                } else if(v_fontIndex == 7){
-                    return sdfParamsArr[7];
-                } else if(v_fontIndex == 8){
-                    return sdfParamsArr[8];
-                } else if(v_fontIndex == 9){
-                    return sdfParamsArr[9];
-                } else if(v_fontIndex == 10){
-                    return sdfParamsArr[10];
-                }
-            }
                         
             void main () {
-
-                vec4 sdfParams = getSDFParams();
+            
+                if(v_fontIndex == -1) {
+                    return;
+                }
+                
+                vec4 sdfParams = sdfParamsArr[v_fontIndex];
                 float sd = getDistance();             
                 vec2 dxdy = fwidth(v_uv) * sdfParams.xy;
-                float dist = sd + min(0.001, 0.5 - 1.0 / sdfParams.w) - 0.5;
-                float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
 
                 if(isOutlinePass == 0){                             
-                    outScreen = vec4(v_rgba.rgb, opacity * v_rgba.a);
-                } else {                
-                    float strokeDist = sd + min(v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
-                    float strokeAlpha = v_rgba.a * clamp(strokeDist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);                    
-                    if(strokeAlpha < 0.1){
+                    float dist = sd + min(0.001, 0.5 - 1.0 / sdfParams.w) - 0.5;
+                    float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
+                    if(opacity <= 0.1){
                         discard;
                     }
-                    outScreen = v_rgba * strokeAlpha * (0.5 - opacity) * 2.0;
-                }                
+                    outScreen = vec4(v_rgba.rgb, opacity * v_rgba.a);
+                } else {             
+                    float dist = sd + min(v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
+                    float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);                       
+                    if(opacity <= 0.1){
+                        discard;
+                    }
+                    outScreen = vec4(v_rgba.rgb, opacity * v_rgba.a);
+                    //outScreen = v_rgba * strokeAlpha * (0.5 - opacity) * 2.0;
+                }         
             }`
     });
 }
@@ -326,6 +308,7 @@ export function label_screen() {
 
                 if(a_texCoord.w == EMPTY) {
                     gl_Position = vec4(0.0);
+                    v_fontIndex = -1.0;
                     return;
                 }
                
@@ -469,6 +452,10 @@ export function label_screen() {
 
                 fontIndex = v_fontIndex + 0.1;
                 
+                if(v_fontIndex < 0.0){
+                    return;
+                }
+                
                 vec4 sdfParams = getSDFParams();
                 float sd = getDistance();             
                 vec2 dxdy = fwidth(v_uv) * sdfParams.xy;
@@ -476,14 +463,14 @@ export function label_screen() {
                 float opacity = clamp(dist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);
 
                 if(isOutlinePass == 0){                             
-                    gl_FragColor = vec4(v_rgba.rgb, opacity * v_rgba.a);
+                    //gl_FragColor = vec4(v_rgba.rgb, opacity * v_rgba.a);
                 } else {                
                     float strokeDist = sd + min(v_outline, 0.5 - 1.0 / sdfParams.w) - 0.5;
                     float strokeAlpha = v_rgba.a * clamp(strokeDist * sdfParams.w / length(dxdy) + 0.5, 0.0, 1.0);                    
                     if(strokeAlpha < 0.1){
                         discard;
                     }
-                    gl_FragColor = v_rgba * strokeAlpha * (0.5 - opacity) * 2.0;
+                    //gl_FragColor = v_rgba * strokeAlpha * (0.5 - opacity) * 2.0;
                 }
             }`
     });
@@ -549,15 +536,16 @@ export function labelPicking() {
             void main() {
                 vec3 a_positions = a_positionsHigh + a_positionsLow;
                 vec3 cameraPos = eyePositionHigh + eyePositionLow;
-
+                v_rgba = a_rgba;
+                
                 if(a_texCoord.w == EMPTY) {
+                    v_rgba.a = 0.0;
                     gl_Position = vec4(0.0);
                     return;
                 }
 
                 vec3 look = a_positions - cameraPos;
                 float lookDist = length(look);
-                v_rgba = a_rgba;
                 if(opacity * step(lookDist, sqrt(dot(cameraPos,cameraPos) - planetRadius) + sqrt(dot(a_positions,a_positions) - planetRadius)) == 0.0){
                     return;
                 }
@@ -611,7 +599,7 @@ export function labelPicking() {
 
                 vec4 color = v_rgba;
                 if (color.a < 0.05) {
-                    discard;
+                    return;
                 }
 
                 gl_FragColor = vec4(v_rgba.rgb, v_rgba.a);
