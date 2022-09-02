@@ -16,7 +16,10 @@ import { elementFactory, btnClickHandler } from "./UIhelpers.js";
  */
 class LayerSwitcher extends Control {
     constructor(options) {
-        super(options);
+        super({
+            name: "LayerSwitcher",
+            ...options
+        });
         this.dialog = null;
         this.terrainContainer = null;
         this.baseLayersContainer = null
