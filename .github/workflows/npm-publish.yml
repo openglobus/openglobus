@@ -3,21 +3,36 @@ name: Build and publish package to npmjs everytime a new release is created
 # The workflow below runs anytime the release event with type created occurs.
 on:
   release:
-    types: [created]
+    types: [ created ]
 
 jobs:
   publish-npm:
+    
+    permissions:
+      contents: write
+    
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: 16
-          registry-url: https://registry.npmjs.org/
-      - run: npm ci
-      - run: npm run api 
-      - run: npm run generate_types
+      - uses: ./.github/actions/main
       - run: npm run build
-      - run: npm publish
+
+      - uses: papeloto/action-zip@v1
+        with:
+          files: dist
+          dest: .zip
+
+      - name: Zip Folder
+        run: zip -r ${{ github.event.repository.name }}.zip ./dist/@openglobus -x "*.map"
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ${{ github.event.repository.name }}.zip
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+#       - run: npm publish
+#         env:
+#           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
