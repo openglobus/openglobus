@@ -17,7 +17,7 @@
         import { Vector } from '../../src/og/layer/Vector.js';
         import { GeoImage } from '../../src/og/layer/GeoImage.js';
         import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
-        import { LayerSwitcher } from '../../src/og/control/LayerSwitcher.js';
+        import { LayerSwitcher } from '../../src/og/control/LayerSwitcher2.js';
 
         var osm = new XYZ("OpenStreetMap", {
             isBaseLayer: true,
@@ -147,7 +147,6 @@
         });
 
         globus.planet.addControl(new LayerSwitcher());
-        console.log(globus.planet.getLayers())
 
 
         window.planet = globus.planet;

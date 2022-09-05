@@ -7,13 +7,6 @@
 import { Control } from "./Control.js";
 import { elementFactory, btnClickHandler } from "./UIhelpers.js";
 
-const HTML_SETTINGS = [
-    {name: 'Terrain Providers', input: 'radio', records: this.planet._terrainPool, depth: 1},
-    {name: 'Base Layers', input: 'checkbox', records: this.planet.getLayers(), depth: 2},
-    {name: 'Overlays', input: 'checkbox', records: this.planet.getLayers(), depth:2}       
-]
-
-
 /**
  * Advanced :) layer switcher, includes base layers, overlays, geo images etc. groups.
  * Double click for zoom, drag-and-drop to change zIndex
@@ -25,17 +18,11 @@ class LayerSwitcher extends Control {
     constructor(options) {
         super({
             name: "LayerSwitcher",
-            ...options
+            options
         });
 
         // Options and default values
-        this.terrainProviders = options.terrainProviders || true;
-        
-        this.baseLayers = options.baseLayers || true;
-        
-        this.overlays = options.overlays || true;
-        
-        this.popupType = options.popupType ||' dialog';
+        // this.popupType = options.popupType ||' dialog';
 
         // Each layer record has it's own dropzone to the top of the div. We need a final one to the very end.
         this.lastDropZone = elementFactory('div', {
@@ -62,6 +49,7 @@ class LayerSwitcher extends Control {
         this.createMenuVbar(); // no need ????
         this.createMenuBtn();
         this.createDialog();
+        this.createDOM();
 
         btnClickHandler(
             'og-layer-switcher-menu-btn',
@@ -95,22 +83,90 @@ class LayerSwitcher extends Control {
         }
     }
 
+    objectDOM() {
+        let terrainPool = this.planet._terrainPool;
+        let layers = this.planet.getLayers();
+        let baseLayers = layers.filter(x => x.isBaseLayer());
+        let overlays = layers.filter(x => !x.isBaseLayer());
 
-   createDOM(){
-        let wrapper = elementFactory('div', {class: 'og-layer-switcher-wrapper og-hide'});
-  
-        HTML_SETTINGS.forEach(x => {
-            // Wrapper Section
-            let el = elementFactory('details', {class: 'og-layer-switcher-section'}, 
-            elementFactory('summary', {class: 'og-layer-switcher-summary'}, x.name ));
-            wrapper.appendChild(el); 
-            
-            // Section children
+        const HTML_SETTINGS = [
+            {
+                name: 'Terrain Providers',
+                children:
+                {
+                    data: terrainPool,
+                    input: 'radio'
+                }
+            },
+            {
+                name: 'Base Layers',
+                children:
+                {
+                    data: baseLayers,
+                    input: 'radio'
+                }
+            },
+            {
+                name: 'Overlays',
+                children:
+                {
+                    data: overlays,
+                    input: 'checkbox',
+                    grandchildren: true
+
+                }
+
+            }
+        ]
+
+        return HTML_SETTINGS;
+    }
+
+    createDOM() {
+        let theEntities = (overlay) => overlay._entities;
+        let wrapper = elementFactory('div', { class: 'og-layer-switcher-wrapper' });
+
+        this.objectDOM().forEach(parent => {
+
+            // Create Section/Parent
+            var theParent = elementFactory('details', { class: 'og-layer-switcher-section' },
+                elementFactory('summary', { class: 'og-layer-switcher-summary' }, parent.name));
+            wrapper.appendChild(theParent);
+
+            // Create Section's children
+            let children = parent.children.data;
+
+            children.forEach(child => {
+
+                if (parent.children.grandchildren && theEntities(child)) {
+                    var theChild = elementFactory('details', { class: 'og-layer-switcher-section' },
+                        elementFactory('summary', { class: 'og-layer-switcher-summary' }, child.name));
+
+                        // Create grandchildren
+               
+                    let grandchildren = theEntities(child);
+                    grandchildren.forEach(grandchild => {
+                        let theGrandchild = elementFactory('label', { class: 'child' }, grandchild.name);
+                        theChild.appendChild(theGrandchild);
+                    })
+                } else {
+                    var theChild = elementFactory('div', { class: 'child' });
+                    let input = elementFactory('input', { class: 'child', type: parent.children.input });
+                    let label = elementFactory('label', { class: 'child' }, child.name);
+                    theChild.appendChild(input);
+                    theChild.appendChild(label);
+                }
+
+                theParent.appendChild(theChild);
+
+                
+                
+            })
 
         })
-       
-       document.body.appendChild(wrapper)       
-}
+
+        document.body.appendChild(wrapper)
+    }
 
 
     createContainerRecord(type, obj, container, id = "") {
