@@ -24,23 +24,26 @@ let osm1 = new XYZ("osm-1", {
 var globus = new Globe({
     target: "earth",
     name: "Earth",
-    terrain: new GlobusTerrain(),
+    terrain: new EmptyTerrain(),
     layers: [osm1],
 });
+
+//
+// This is important create canvas here!
+//
+let cnv = document.createElement("canvas");
+let ctx = cnv.getContext("2d");
+cnv.width = 256;
+cnv.height = 256;
 
 function createCanvasTilesLayer(id) {
     return new CanvasTiles(`cnv-${id}`, {
         visibility: true,
         isBaseLayer: true,
+        textureFilter: "linear",
         drawTile: function (material, applyCanvas) {
 
-            //
-            // This is important create canvas here!
-            //
-            let cnv = document.createElement("canvas");
-            let ctx = cnv.getContext("2d");
-            cnv.width = 256;
-            cnv.height = 256;
+
 
             //Clear canvas
             ctx.clearRect(0, 0, cnv.width, cnv.height);
@@ -59,14 +62,14 @@ function createCanvasTilesLayer(id) {
             ctx.fillText(id.toString(), cnv.width / 2, cnv.height / 2);
 
             if (this.name === "cnv-5"/* || this.name === "cnv-6" || this.name === "cnv-7"*/) {
-                setTimeout(() => {
-                    applyCanvas(cnv);
-                }, 10000)
+                //setTimeout(() => {
+                applyCanvas(cnv);
+                // }, 10000)
             } else {
                 //Draw canvas tile
-                setTimeout(() => {
-                    applyCanvas(cnv);
-                }, 800);
+                //setTimeout(() => {
+                applyCanvas(cnv);
+                //}, 800);
             }
         }
     });
@@ -80,15 +83,16 @@ function getCanvasLayers(num) {
     return res;
 }
 
-let timeLayers = getCanvasLayers(75);
+let timeLayers = getCanvasLayers(10000);
 
 let la = new LayerAnimation({
     layers: timeLayers,
-    repeat: true
+    repeat: false,
+    playInterval: 20
 });
 
-globus.planet.addControl(new DebugInfo());
-globus.planet.addControl(new LayerSwitcher());
+//globus.planet.addControl(new DebugInfo());
+//globus.planet.addControl(new LayerSwitcher());
 globus.planet.addControl(la);
 
 let $slider = document.querySelector(".pl-slider"),

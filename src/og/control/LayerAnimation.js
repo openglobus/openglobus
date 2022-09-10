@@ -24,11 +24,11 @@ class LayerAnimation extends Control {
         this._layersArr = options.layers ? [].concat(options.layers) : [];
         this._currentIndex = -1;
 
-        this._playInterval = options.playInterval || 150;
+        this._playInterval = options.playInterval || 120;
         this._playIntervalHandler = -1;
         this._playIndex = 0;
 
-        this._frameSize = options.frameSize || 50;
+        this._frameSize = options.frameSize || 75;
 
         this.repeat = options.repeat != undefined ? options.repeat : true;
 

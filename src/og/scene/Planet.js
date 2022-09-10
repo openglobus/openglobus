@@ -201,12 +201,12 @@ export class Planet extends RenderNode {
          */
         this.terrain = null;
 
-         /**
+        /**
          * Terrain provider Pool.
          * @public
          * @type {Terrain}
          */
-          this._terrainPool = null;
+        this._terrainPool = null;
 
         /**
          * Camera is this.renderer.activeCamera pointer.
@@ -566,9 +566,29 @@ export class Planet extends RenderNode {
             if (mats[lid]) {
                 mats[lid].clear();
                 mats[lid] = null;
+                delete mats[lid];
+            }
+        });
+
+        this._quadTreeNorth.traverseTree(function (node) {
+            var mats = node.segment.materials;
+            if (mats[lid]) {
+                mats[lid].clear();
+                mats[lid] = null;
+                delete mats[lid];
+            }
+        });
+
+        this._quadTreeSouth.traverseTree(function (node) {
+            var mats = node.segment.materials;
+            if (mats[lid]) {
+                mats[lid].clear();
+                mats[lid] = null;
+                delete mats[lid];
             }
         });
     }
+
 
     /**
      * Get the collection of layers associated with this planet.
