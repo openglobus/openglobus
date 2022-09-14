@@ -173,6 +173,5 @@ export class Loader {
             this._queue[i] = null;
         }
         this._queue = [];
-        this._loading = 0;
     }
 }
