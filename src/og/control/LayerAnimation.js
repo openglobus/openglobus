@@ -76,6 +76,7 @@ class LayerAnimation extends Control {
             for (let i = minIndex, len = maxIndex > this._layersArr.length ? this._layersArr.length : maxIndex; i < len; i++) {
                 this._layersArr[i].abortLoading();
                 this._layersArr[i].remove();
+                this._layersArr[i].setVisibility(false);
             }
         }
     }
