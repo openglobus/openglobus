@@ -103,15 +103,6 @@ class Globe {
         this.div.appendChild(this._canvas);
         this.div.classList.add("ogViewport");
 
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === 'visible') {
-                this.renderer.handler.start();
-                this.renderer && this.renderer.resize();
-            } else {
-                this.renderer.handler.stop();
-            }
-        });
-
         function _disableWheel(e) {
             e.preventDefault();
         }

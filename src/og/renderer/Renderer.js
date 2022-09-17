@@ -477,7 +477,7 @@ class Renderer {
             };
         }
 
-        this.handler.onCanvasResize = () => {
+        this.handler.ONCANVASRESIZE = () => {
             this.resize();
             this.events.dispatch(this.events.resize, this.handler.canvas);
         };

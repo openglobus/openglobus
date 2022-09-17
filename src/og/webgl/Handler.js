@@ -137,6 +137,8 @@ class Handler {
 
         this.createTextureDefault = null;
 
+        this.ONCANVASRESIZE = null;
+
         if (params.autoActivate || isEmpty(params.autoActivate)) {
             this.initialize();
         }
@@ -677,6 +679,15 @@ class Handler {
         /** Initilalize shaders and rendering parameters*/
         this._initPrograms();
         this._setDefaults();
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === 'visible') {
+                this.start();
+                this.ONCANVASRESIZE && this.ONCANVASRESIZE();
+            } else {
+                this.stop();
+            }
+        });
     }
 
     /**
@@ -812,7 +823,7 @@ class Handler {
         this._oneByHeight = 1.0 / this.canvas.height;
 
         this.gl && this.gl.viewport(0, 0, w, h);
-        this.onCanvasResize && this.onCanvasResize(this.canvas);
+        this.ONCANVASRESIZE && this.ONCANVASRESIZE(this.canvas);
     }
 
     get pixelRatio() {
@@ -882,7 +893,12 @@ class Handler {
         let canvas = this.canvas;
 
         if (Math.floor(canvas.clientWidth * this._params.pixelRatio) !== canvas.width || Math.floor(canvas.clientHeight * this._params.pixelRatio) !== canvas.height) {
-            this.setSize(canvas.clientWidth, canvas.clientHeight);
+            if (canvas.clientWidth === 0 || canvas.clientHeight === 0) {
+                this.stop();
+            } else if (!document.hidden) {
+                this.start();
+                this.setSize(canvas.clientWidth, canvas.clientHeight);
+            }
         }
 
         /** Draw frame */
