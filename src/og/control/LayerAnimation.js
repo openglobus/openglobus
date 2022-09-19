@@ -28,7 +28,7 @@ class LayerAnimation extends Control {
         this._playIntervalHandler = -1;
         this._playIndex = 0;
 
-        this._frameSize = options.frameSize || 75;
+        this._frameSize = options.frameSize || 50;
 
         this.repeat = options.repeat != undefined ? options.repeat : true;
 
