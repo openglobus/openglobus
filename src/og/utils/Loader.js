@@ -70,7 +70,13 @@ export class Loader {
     }
 
     getRequestCounter(sender) {
-        return sender && this._senderRequestCounter[sender._id];
+        if (sender) {
+            let r = this._senderRequestCounter[sender._id];
+            if (r) {
+                return r.counter;
+            }
+        }
+        return 0;
     }
 
     isIdle(sender) {
