@@ -407,7 +407,7 @@ class LayerSwitcher extends Control {
                 let pos = dropZones.indexOf(dropZone)
                 if (pos < dropZones.length - 1) { // not last 
                     overlayContainer.insertBefore(selectedLayerRecord, dropZone.parentElement);  // Appear before the parent element     
-                    
+
                 } else { // last
                     overlayContainer.insertBefore(selectedLayerRecord, dropZone); // Appear before last (fixed) dropzone element
                 }
@@ -419,7 +419,7 @@ class LayerSwitcher extends Control {
             let records = [...document.querySelectorAll('.og-layer-switcher-record.og-depth-1.Overlays')]
             let ids = records.map(x => x.id)
             let layers = planet.layers
-    
+
             let overlays = layers.filter(x => !x.isBaseLayer());
             let visible_overlays = [...overlays.filter(x => x.displayInLayerSwitcher)];
             for (let i = 0; i < ids.length; i++) {
