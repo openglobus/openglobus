@@ -163,14 +163,16 @@ export class Loader {
     abortAll() {
         for (let i = 0, len = this._queue.length; i < len; i++) {
             let qi = this._queue[i];
-            let sender = qi.params.sender;
-            if (sender && this._senderRequestCounter[sender._id]) {
-                this._senderRequestCounter[sender._id].counter = 0;
-                cancelAnimationFrame(this._senderRequestCounter[sender._id].__requestCounterFrame__);
-                this._senderRequestCounter[sender._id].__requestCounterFrame__ = null;
+            if (qi) {
+                let sender = qi.params.sender;
+                if (sender && this._senderRequestCounter[sender._id]) {
+                    this._senderRequestCounter[sender._id].counter = 0;
+                    cancelAnimationFrame(this._senderRequestCounter[sender._id].__requestCounterFrame__);
+                    this._senderRequestCounter[sender._id].__requestCounterFrame__ = null;
+                }
+                qi.callback({ 'status': "abort" });
+                this._queue[i] = null;
             }
-            qi.callback({ 'status': "abort" });
-            this._queue[i] = null;
         }
         this._queue = [];
     }
