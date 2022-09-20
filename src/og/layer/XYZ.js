@@ -77,11 +77,6 @@ class XYZ extends Layer {
         this.maxNativeZoom = options.maxNativeZoom || 19;
 
         /**
-         * @protected
-         */
-        this._crossOrigin = options.crossOrigin === undefined ? "" : options.crossOrigin;
-
-        /**
          * Rewrites imagery tile url query.
          * @private
          * @callback og.layer.XYZ~_urlRewriteCallback

@@ -2,17 +2,17 @@
 
 import { Events } from '../Events.js';
 
-if (window && !('createImageBitmap' in window)) {
-    window.createImageBitmap = function (blob) {
-        return new Promise((resolve, reject) => {
-            let img = document.createElement('img');
-            img.addEventListener('load', function () {
-                resolve(this);
-            });
-            img.src = URL.createObjectURL(blob);
-        });
-    };
-}
+// if (window && !('createImageBitmap' in window)) {
+//     window.createImageBitmap = function (blob) {
+//         return new Promise((resolve, reject) => {
+//             let img = document.createElement('img');
+//             img.addEventListener('load', function () {
+//                 resolve(this);
+//             });
+//             img.src = URL.createObjectURL(blob);
+//         });
+//     };
+// }
 
 export class Loader {
 
