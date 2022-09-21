@@ -10,11 +10,19 @@
                 padding: 0px;
             }
 
+            button {
+                position: fixed;
+                top: 10px;
+                left: 10px;
+
+            }
+
         </style>
     </head>
 
     <body>
         <div id="globus" style="width:100%;height:100%"></div>
+        <button id="deactivate-btn">TOGGLE SWITCHER ACTIVATION</button>
         <script type="module">
             'use strict';
 
@@ -25,7 +33,7 @@
             import { GeoImage } from '../../src/og/layer/GeoImage.js';
             import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
             import { MapboxTerrain } from '../../src/og/terrain/MapboxTerrain.js';
-            import { LayerSwitcher } from '../../src/og/control/LayerSwitcherv2.js';
+            import { LayerSwitcher } from '../../src/og/control/LayerSwitcher.js';
 
             var osm = new XYZ("OpenStreetMap", {
                 isBaseLayer: true,
@@ -153,7 +161,7 @@
             });
 
 
-            var colorado2 = new GeoImage("Fractal", {
+            var fractal = new GeoImage("Fractal", {
                 src: "fractal.png",
                 corners: [[-67.54063210679933, -22.258203215209232],
                 [-67.77790919786042, -22.582194951833597],
@@ -174,12 +182,30 @@
                 "layers": [osm, sat1, sat2, light, dark, states, colorado, vector]
             });
 
-            const showLayer = () => colorado2.addTo(globus.planet)
+            let layerSwitcher = new LayerSwitcher({ switcherDependent: true })
+
+            const showLayer = () => fractal.addTo(globus.planet)
             setTimeout(showLayer, 3000)
 
-            let layerSwitcher = new LayerSwitcher({ switcherDependent: true })
+
+            function toggle() {
+                if (layerSwitcher._active === true) {
+                    return layerSwitcher.deactivate()
+                }
+
+                return layerSwitcher.activate()
+
+            }
+
+            let btn = document.getElementById('deactivate-btn')
+            btn.addEventListener('click', (e) => toggle())
+
+            console.log(layerSwitcher)
             globus.planet.addControl(layerSwitcher);
             window.planet = globus.planet;
+
+
+
 
         </script>
     </body>
