@@ -6,7 +6,7 @@
 
 import { Control } from "./Control.js";
 import { Ruler } from "./ruler/Ruler.js";
-import { elementFactory, allMenuBtnOFF, allDialogsHide, btnClickHandler } from "./UIhelpers.js";
+import { elementFactory, btnClickHandler } from "./UIhelpers.js";
 
 /**
  * Activate ruler
