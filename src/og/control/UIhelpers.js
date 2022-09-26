@@ -23,69 +23,57 @@ export function elementFactory(type, attributes, ...children) {
     return el;
 }
 
-// Get all nodes of a class
-export function getAllnodes(CSSclass) {
-    return document.querySelectorAll(CSSclass);
+// Appends array of children to parent
+export function appendChildren(parent, childrenArray) {
+    childrenArray.forEach(child => parent.appendChild(child))
 }
 
-// Convert nodelist to an Array
-export function nodesToArray(nodeList) {
-    return Array.from(nodeList);
+// Cycles an array of text and outputs next
+export function toggleText(elementText, textArray) {
+    let textIndex = textArray.indexOf(elementText)
+    var nextIndex = 0
+    textIndex >= 0 && textIndex < textArray.length - 1 ?
+        nextIndex = textIndex + 1 :
+        nextIndex = 0
+    return textArray[nextIndex]
 }
 
-// Adds a class to all elements selected
-export function setAllCSSclass(CSSclass, nodeArray) {
-    return nodeArray.forEach(x => x.classList.add(CSSclass));
-}
+// Enables a movement of a DOM element. Also disables/enables mouse navigations for og-planet
+export function enableElmovement(el, planet) {
 
-// Sets all menu buttons to off
-export function allMenuBtnOFF() {
-    setAllCSSclass('og-OFF', nodesToArray(getAllnodes('.og-menu-btn')));
-}
+    let newPosX = 0,
+        newPosY = 0,
+        startPosX = 0,
+        startPosY = 0;
 
-// Hides all dialoges of main menu
-export function allDialogsHide() {
-    setAllCSSclass('og-hide', nodesToArray(getAllnodes('.og-dialog')));
-}
+    const behaviour = (e) => {
+        e.preventDefault();
+        planet.renderer.controls.mouseNavigation.deactivate()
+        // get the starting position of the cursor
+        startPosX = e.clientX;
+        startPosY = e.clientY;
 
-function isString(v) {
-    return typeof v === 'string' || v instanceof String;
-}
+        document.addEventListener('mousemove', mouseMove);
 
-// Handles the click inside/outside a dialog - closes dialog when click outside
-export function btnClickHandler(btn_id, dialog_id, dialog_selector, btn_icon_id) {
-    let btn = isString(btn_id) ? document.getElementById(btn_id) : btn_id;
-    let dialog = document.getElementById(dialog_id);
-    btn.onclick = function (e) {
-        if (this.classList.contains('og-OFF')) {
-            // Turn to ON
-            allMenuBtnOFF();
-            allDialogsHide();
-            this.classList.remove('og-OFF');
-            if (dialog) {
-                dialog.classList.remove('og-hide');
-            }
-
-            if (this.classList.contains('og-has-dialog')) {
-                let listener = document.addEventListener('click', (e) => {
-                    if (e.target.matches(dialog_selector) || e.target.matches(btn_icon_id)) { //inside
-                        return;
-                    } else {//outside    
-                        btn.classList.add('og-OFF');
-                        if (dialog) {
-                            dialog.classList.add('og-hide')
-                        }
-                        // TODO needs fix
-                        // this.removeEventListener('click', arguments.callee);
-                    }
-                })
-            }
-        } else {
-            // Turn to OFF
-            this.classList.add('og-OFF');
-            if (dialog) {
-                dialog.classList.add('og-hide');
-            }
-        }
+        document.addEventListener('mouseup', function (e) {
+            document.removeEventListener('mousemove', mouseMove)
+            planet.renderer.controls.mouseNavigation.activate()
+        });
     }
+
+    const mouseMove = (e) => {
+        // calculate the new position
+        newPosX = startPosX - e.clientX;
+        newPosY = startPosY - e.clientY;
+
+        // with each move we also want to update the start X and Y
+        startPosX = e.clientX;
+        startPosY = e.clientY;
+
+        // set the element's new position:
+        el.style.top = (el.offsetTop - newPosY) + "px";
+        el.style.left = (el.offsetLeft - newPosX) + "px";
+    }
+
+    return {behaviour, mouseMove}
 }
