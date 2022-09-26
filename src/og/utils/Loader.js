@@ -32,7 +32,10 @@ export class Loader {
             'json': r => r.json(),
             'blob': r => r.blob(),
             'arrayBuffer': r => r.arrayBuffer(),
-            'imageBitmap': r => r.blob().then(createImageBitmap),
+            'imageBitmap': r => r.blob().then(
+                (r) => createImageBitmap(r, {
+                    premultiplyAlpha: "premultiply"
+                })),
             'text': r => r.text()
         };
     }
