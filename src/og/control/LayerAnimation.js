@@ -83,6 +83,7 @@ class LayerAnimation extends Control {
 
     oninit() {
         super.oninit();
+        this.onactivate();
         this._initLayers();
         this._onLayerLoadend_ = this._onLayerLoadend.bind(this);
         this.planet.events.on("layerloadend", this._onLayerLoadend_, this);
@@ -92,8 +93,10 @@ class LayerAnimation extends Control {
     onactivate() {
         super.onactivate();
         this._onViewchange_ = this._onViewchange.bind(this);
-        this.planet.camera.events.on("viewchange", this._onViewchange_, this)
-        //...
+        this.planet.camera.events.on("viewchange", this._onViewchange_, this);
+
+        this._onVisibityChange_ = this._onVisibityChange.bind(this);
+        this.planet.renderer.handler.events.on("visibilitychange", this._onVisibityChange_, this);
     }
 
     ondeactivate() {
@@ -107,6 +110,15 @@ class LayerAnimation extends Control {
 
         this.planet.events.off("layerloadend", this._onLayerLoadend_);
         this._onLayerLoadend_ = null;
+
+        this.planet.renderer.handler.events.off("visibilitychange", this._onVisibityChange_);
+        this._onVisibityChange_ = null;
+    }
+
+    _onVisibityChange(isVisible) {
+        if (!isVisible) {
+            this.pause();
+        }
     }
 
     clear() {
