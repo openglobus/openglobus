@@ -11,6 +11,7 @@ import { isEmpty } from "../utils/shared.js";
 import { ProgramController } from "./ProgramController.js";
 import { Stack } from "../Stack.js";
 import { Vec2 } from "../math/Vec2.js";
+import { Events } from "../Events.js";
 
 const vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
 
@@ -31,9 +32,9 @@ const MAX_LEVELS = 2;
  * @param {Array.<string>} [params.extensions] - Additional WebGL extension list. Available by default: EXT_texture_filter_anisotropic.
  */
 class Handler {
-    constructor(id, params) {
-        params = params || {};
+    constructor(id, params = {}) {
 
+        this.events = new Events(["visibilitychange", "resize"]);
         /**
          * Application default timer.
          * @public
@@ -666,7 +667,9 @@ class Handler {
             if (document.visibilityState === 'visible') {
                 this.start();
                 this.ONCANVASRESIZE && this.ONCANVASRESIZE();
+                this.events.dispatch(this.events.visibilitychange, true);
             } else {
+                this.events.dispatch(this.events.visibilitychange, false);
                 this.stop();
             }
         });
@@ -806,6 +809,7 @@ class Handler {
 
         this.gl && this.gl.viewport(0, 0, w, h);
         this.ONCANVASRESIZE && this.ONCANVASRESIZE(this.canvas);
+        this.events.dispatch(this.events.resize, this);
     }
 
     get pixelRatio() {
