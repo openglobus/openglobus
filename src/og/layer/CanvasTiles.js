@@ -50,6 +50,7 @@ class CanvasTiles extends Layer {
 
         this.events.registerNames(EVENT_NAMES);
 
+        this.minNativeZoom = options.minNativeZoom;
         /**
          * Current creating tiles couter.
          * @protected
@@ -247,7 +248,9 @@ class CanvasTiles extends Layer {
     applyMaterial(material) {
         if (material.isReady) {
             return [0, 0, 1, 1];
-        } else {
+        } else if (material.segment.tileZoom <= this.minNativeZoom) {
+            material.textureNotExists();
+        }else {
 
             var segment = material.segment;
             var pn = segment.node,
