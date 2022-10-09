@@ -45,18 +45,6 @@
         }
     });
 
-    let number = new Entity({
-        'name': 'number',
-        'label': {
-            'align': "center",
-            'offset': [0, -20],
-            'text': '123',
-            'size': [14],
-            'outlineColor': "rgba(0,0,0,.5)",
-            'outline': 0.14
-        }
-    });
-
     let pickingObject = null;
     let startClick = new Vec2(),
             startPos;
@@ -108,8 +96,6 @@
 
     pointLayer.add(label);
 
-    label.appendChild(number);
-
     globe.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
 
     globe.renderer.events.on("lclick", function (e) {
@@ -131,6 +117,34 @@
     pointLayer.events.on("rclick", function (e) {
         e.pickingObject.remove();
     });
+
+    window.test = function(){
+        let number = new Entity({
+            'name': 'number',
+            'label': {
+                'align': "center",
+                'offset': [0, -20],
+                'text': '123',
+                'size': [14],
+                'outlineColor': "rgba(0,0,0,.5)",
+                'outline': 0.14
+            }
+        });
+
+        let blb = new Entity({
+            'name': 'New Marker',
+            //'lonlat': ll,
+            'billboard': {
+                'src': 'marker.png',
+                'size': [29, 48],
+                'offset': [0, 24]
+            }
+        })
+
+        label.appendChild(number);
+
+        label.appendChild(blb);
+    }
 
 </script>
 </body>
