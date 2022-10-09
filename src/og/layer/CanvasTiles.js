@@ -50,7 +50,7 @@ class CanvasTiles extends Layer {
 
         this.events.registerNames(EVENT_NAMES);
 
-        this.minNativeZoom = options.minNativeZoom;
+        this.minNativeZoom = options.minNativeZoom || 0;
         /**
          * Current creating tiles couter.
          * @protected
