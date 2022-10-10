@@ -20,6 +20,7 @@ import { isEmpty } from "./utils/shared.js";
 import { Handler } from "./webgl/Handler.js";
 import { createColorRGB } from "./utils/shared.js";
 import { Vec3 } from "./math/Vec3.js";
+import { QuadTreeStrategyFactory } from "./quadTree/QuadTreeStrategyFactory.js";
 
 /** @const {string} */
 const CANVAS_ID_PREFIX = "globus_viewport_";
@@ -186,7 +187,8 @@ class Globe {
                 maxEqualZoomAltitude: options.maxEqualZoomAltitude,
                 minEqualZoomAltitude: options.minEqualZoomAltitude,
                 minEqualZoomCameraSlope: options.minEqualZoomCameraSlope,
-                loadingBatchSize: options.loadingBatchSize
+                loadingBatchSize: options.loadingBatchSize,
+                quadTreeStrategyFactory: new QuadTreeStrategyFactory()
             });
         }
 

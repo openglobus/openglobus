@@ -554,9 +554,14 @@ class Layer {
             let p = this._planet,
                 maxZoom = Math.max(...this._preLoadZoomLevels);
 
+            /*    
             this._preLoadRecursive(p._quadTreeSouth, maxZoom);
             this._preLoadRecursive(p._quadTreeNorth, maxZoom);
             this._preLoadRecursive(p._quadTree, maxZoom);
+            */
+            p.quadTreeStrategy.quadTreeList.forEach(quadTree => {
+                this._preLoadRecursive(quadTree, maxZoom);
+            });
         }
     }
 

@@ -33,6 +33,7 @@ import { NIGHT, SPECULAR } from "../res/images.js";
 import { Geoid } from "../terrain/Geoid.js";
 import { isUndef } from "../utils/shared.js";
 import { MAX_RENDERED_NODES } from "../quadTree/quadTree.js";
+import { EarthQuadTreeStrategy } from "../quadTree/EarthQuadTreeStrategy.js";
 
 const CUR_LOD_SIZE = 250; //px
 const MIN_LOD_SIZE = 312; //px
@@ -314,6 +315,8 @@ export class Planet extends RenderNode {
          */
         this._heightPickingFramebuffer = null;
 
+
+        this.quadTreeStrategy = options.quadTreeStrategyFactory.create(this, options.name);
         /**
          * Mercator grid tree.
          * @protected
@@ -436,6 +439,9 @@ export class Planet extends RenderNode {
         return Quat.getLookRotation(t, n);
     }
 
+    get normalMapCreator() {
+        return this._normalMapCreator;
+    }
     /**
      * Add the given control to the renderer of the planet scene.
      * @param {control.Control} control - Control.
@@ -677,10 +683,10 @@ export class Planet extends RenderNode {
                 !this._indexesCache[i][j] && (this._indexesCache[i][j] = new Array(TABLESIZE));
                 for (var k = 0; k <= TABLESIZE; k++) {
                     !this._indexesCache[i][j][k] &&
-                    (this._indexesCache[i][j][k] = new Array(TABLESIZE));
+                        (this._indexesCache[i][j][k] = new Array(TABLESIZE));
                     for (var m = 0; m <= TABLESIZE; m++) {
                         !this._indexesCache[i][j][k][m] &&
-                        (this._indexesCache[i][j][k][m] = new Array(TABLESIZE));
+                            (this._indexesCache[i][j][k][m] = new Array(TABLESIZE));
                         for (var q = 0; q <= TABLESIZE; q++) {
                             let ptr = {
                                 buffer: null
@@ -750,7 +756,9 @@ export class Planet extends RenderNode {
             this._renderedNodesInFrustum[i] = [];
         }
 
+
         // Creating quad trees nodes
+        /*
         this._quadTree = new Node(Segment, this, quadTree.NW, null, 0, 0,
             Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34])
         );
@@ -760,6 +768,8 @@ export class Planet extends RenderNode {
         this._quadTreeSouth = new Node(SegmentLonLat, this, quadTree.NW, null, 0, 0,
             Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT])
         );
+        */
+        this.quadTreeStrategy.init();
 
         this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
 
@@ -818,6 +828,7 @@ export class Planet extends RenderNode {
     }
 
     _preRender() {
+        /*
         // Zoom 0
         this._quadTree.createChildrenNodes();
         this._quadTree.segment.createPlainSegment();
@@ -841,6 +852,8 @@ export class Planet extends RenderNode {
         for (let i = 0; i < this._quadTreeSouth.nodes.length; i++) {
             this._quadTreeSouth.nodes[i].segment.createPlainSegment();
         }
+        */
+        this.quadTreeStrategy.preRender();
 
         this._preLoad();
     }
@@ -850,6 +863,7 @@ export class Planet extends RenderNode {
 
         this._skipPreRender = false;
 
+        /*
         // Same for poles
         this._quadTreeNorth.segment.passReady = true;
         this._quadTreeNorth.renderNode(true);
@@ -882,6 +896,8 @@ export class Planet extends RenderNode {
         this._quadTree.segment.passReady = true;
         this._quadTree.renderNode(true);
         this._normalMapCreator.drawSingle(this._quadTree.segment);
+        */
+        this.quadTreeStrategy.preLoad();
     }
 
     /**
@@ -1052,7 +1068,7 @@ export class Planet extends RenderNode {
         this.minCurrZoom = math.MAX;
         this.maxCurrZoom = math.MIN;
 
-        this._quadTree.renderTree(cam, 0, null);
+        //this._quadTree.renderTree(cam, 0, null);
 
         if (cam.slope > this.minEqualZoomCameraSlope &&
             cam._lonLat.height < this.maxEqualZoomAltitude &&
@@ -1097,8 +1113,9 @@ export class Planet extends RenderNode {
             }
         }
 
-        this._quadTreeNorth.renderTree(cam, 0, null);
-        this._quadTreeSouth.renderTree(cam, 0, null);
+        this.quadTreeStrategy.collectRenderNodes();
+        //this._quadTreeNorth.renderTree(cam, 0, null);
+        //this._quadTreeSouth.renderTree(cam, 0, null);
     }
 
     _globalPreDraw() {
@@ -1437,9 +1454,13 @@ export class Planet extends RenderNode {
 
         var that = this;
         // setTimeout(function () {
+
+        /*
         that._quadTree.clearTree();
         that._quadTreeNorth.clearTree();
         that._quadTreeSouth.clearTree();
+        */
+        that.quadTreeStrategy.clear();
 
         that.layerLock.free(that._memKey);
         that.terrainLock.free(that._memKey);
