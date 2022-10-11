@@ -89,8 +89,21 @@ class SegmentLonLat extends Segment {
             Math.abs(-180.0 - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon)
         );
 
-        var lat = extent.northEast.lat;
+        this._assignTileYIndexes(extent);
 
+
+        var p2 = 1 << tileZoom;
+        this.tileXE = (this.tileX + 1) % p2;
+        this.tileXW = (p2 + this.tileX - 1) % p2;
+
+        this.tileYN = this.tileY - 1;
+        this.tileYS = this.tileY + 1;
+
+        this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom);
+    }
+
+    _assignTileYIndexes(extent) {
+        var lat = extent.northEast.lat;
         if (lat > 0) {
             //north pole
             this._isNorth = true;
@@ -103,16 +116,8 @@ class SegmentLonLat extends Segment {
                 (mercator.MIN_LAT - lat) / (extent.northEast.lat - extent.southWest.lat)
             );
         }
-
-        var p2 = 1 << tileZoom;
-        this.tileXE = (this.tileX + 1) % p2;
-        this.tileXW = (p2 + this.tileX - 1) % p2;
-
-        this.tileYN = this.tileY - 1;
-        this.tileYS = this.tileY + 1;
-
-        this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom);
     }
+
 
     _createPlainVertices() {
         var gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];

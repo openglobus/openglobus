@@ -9,6 +9,7 @@ import { EPSG3857 } from "../proj/EPSG3857.js";
 import { Layer } from "./Layer.js";
 import { stringTemplate } from "../utils/shared.js";
 import { RENDERING } from "../quadTree/quadTree.js";
+import { EPSG4326 } from "../proj/EPSG4326.js";
 
 /**
  * Represents an imagery tiles source provider.
@@ -134,7 +135,7 @@ class XYZ extends Layer {
     }
 
     _checkSegment(segment) {
-        return segment._projection.id === EPSG3857.id;
+        return segment._projection.id === this._planet.quadTreeStrategy.projection.id;// EPSG4326.id;// EPSG3857.id;
     }
 
     /**
@@ -303,7 +304,7 @@ class XYZ extends Layer {
     clearMaterial(material) {
         if (material.isReady && material.textureExists) {
             !material.texture.default &&
-            material.segment.handler.gl.deleteTexture(material.texture);
+                material.segment.handler.gl.deleteTexture(material.texture);
             material.texture = null;
 
             if (material.image) {

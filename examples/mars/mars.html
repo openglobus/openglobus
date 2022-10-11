@@ -26,10 +26,12 @@
             'shininess': 20,
             'diffuse': [0.89, 0.9, 0.83],
             'isBaseLayer': true,
-            'url': "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            'url': "https://astro.arcgis.com/arcgis/rest/services/OnMars/MDIM/MapServer/tile/{z}/{y}/{x}?blankTile=false",
             'visibility': true,
             'attribution': 'Data @ OpenStreetMap contributors, ODbL'
         });
+        ////{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
+        //'url': "https://astro.arcgis.com/arcgis/rest/services/OnMars/MDIM/MapServer/tile/{z}/{x}/{y}?blankTile=false",
 
         const tg = new CanvasTiles("Tile grid", {
             visibility: true,
@@ -58,13 +60,13 @@
 
                 if (material.segment.isPole) {
                     let ext = material.segment.getExtentLonLat();
-
+                    let seg = material.segment;
                     ctx.fillStyle = 'black';
                     ctx.font = 'normal ' + 29 + 'px Verdana';
 
                     ctx.textAlign = 'center';
-                    ctx.fillText(`${ext.northEast.lon.toFixed(3)} ${ext.northEast.lat.toFixed(3)}`, cnv.width / 2, cnv.height / 2 + 20);
-                    ctx.fillText(`${ext.southWest.lon.toFixed(3)} ${ext.southWest.lat.toFixed(3)}`, cnv.width / 2, cnv.height / 2 - 20);
+                    ctx.fillText(`x: ${seg.tileX},y: ${seg.tileY}, z: ${seg.tileZoom}`, cnv.width / 2, cnv.height / 2 + 20);
+                    ctx.fillText(`x: ${seg.tileX},y: ${seg.tileY}, z: ${seg.tileZoom}`, cnv.width / 2, cnv.height / 2 - 20);
                 } else {
                     //Draw text
                     if (material.segment.tileZoom > 14) {
@@ -75,7 +77,8 @@
                     ctx.fillStyle = 'black';
                     ctx.font = 'normal ' + size + 'px Verdana';
                     ctx.textAlign = 'center';
-                    ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+                    ctx.fillText(`x: ${material.segment.tileX}, y: ${material.segment.tileY}, z: ${material.segment.tileZoom}`, cnv.width / 2, cnv.height / 2);
+                    //ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
                 }
 
                 //Draw canvas tile
@@ -84,10 +87,10 @@
         });
 
         window.globe = new Globe({
-            'name': "Earth",
+            'name': "mars",
             'target': "globus",
             'terrain': new EmptyTerrain(),
-            'layers': [tg],
+            'layers': [osm, tg],
             "sun": {
                 "active": false
             }
@@ -96,8 +99,3 @@
         window.globe.planet.addControl(new ToggleWireframe());
     </script>
 </body>
-
-<!--
-https://astro.arcgis.com/arcgis/rest/services/OnMars/MDIM/MapServer/tile/0/0/0?blankTile=false
-https://astro.arcgis.com/arcgis/rest/services/OnMars/MDIM/MapServer/tile/0/0/0?blankTile=false
--->

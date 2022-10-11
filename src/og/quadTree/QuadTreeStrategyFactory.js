@@ -1,6 +1,7 @@
 "use strict";
 
 import { EarthQuadTreeStrategy } from "./EarthQuadTreeStrategy.js";
+import { MarsQuadTreeStrategy } from "./MarsQuadTreeStrategy.js";
 
 export class QuadTreeStrategyFactory {
 
@@ -8,7 +9,7 @@ export class QuadTreeStrategyFactory {
         switch (planetKey) {
             case 'Mars':
             case 'mars':
-                return new EarthQuadTreeStrategy({ planet: planet });
+                return new MarsQuadTreeStrategy({ planet: planet });
             case 'Earth':
             default:
                 return new EarthQuadTreeStrategy({ planet: planet });

@@ -1,9 +1,11 @@
 "use strict";
+import { EPSG3857 } from "../proj/EPSG3857.js";
 
 export class QuadTreeStrategy {
     constructor(options = {}) {
         this.name = "";
         this._planet = options.planet;
+        this.projection = EPSG3857;
 
         /**
          * grid tree list.
