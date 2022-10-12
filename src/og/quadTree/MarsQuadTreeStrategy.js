@@ -19,31 +19,15 @@ export class MarsQuadTreeStrategy extends QuadTreeStrategy {
 
     init() {
 
-        /*
-                let earthQuadTree = new Node(Segment, this.planet, quadTree.NW, null, 0, 0,
-                    Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34])
-                );
-                
-                let earthQuadTreeNorth = new Node(SegmentLonLat, this.planet, quadTree.NW, null, 0, 0,
-                    Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90])
-                );
-                let earthQuadTreeSouth = new Node(SegmentLonLat, this.planet, quadTree.NW, null, 0, 0,
-                    Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT])
-                );
-                */
-
-
         let earthQuadTreeSouth = new Node(SegmentLonLatWgs84, this.planet, quadTree.NW, null, 0, 0,
             Extent.createFromArray([-180, -90, 0, 90])
         );
         let earthQuadTreeWest = new Node(SegmentLonLatWgs84, this.planet, quadTree.NW, null, 0, 0,
-            Extent.createFromArray([-180, -90, 0, 90])
+            Extent.createFromArray([0, -90, 180, 90])
         );
 
 
-
-        //this._quadTreeList.push(earthQuadTree);
-        // this._quadTreeList.push(earthQuadTreeSouth);
+        this._quadTreeList.push(earthQuadTreeSouth);
         this._quadTreeList.push(earthQuadTreeWest);
     }
 }
