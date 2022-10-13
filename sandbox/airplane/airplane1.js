@@ -33,7 +33,7 @@ let planes = [
         lonlat: new LonLat(0, 0, 10000),
         geoObject: {
             scale: 10000,
-            instanced: true,
+            instanced: false,
             tag: "plane",
             color: "rgb(0,305,0)",
             vertices: obj3d.vertices,
@@ -48,8 +48,8 @@ let planes = [
         lonlat: new LonLat(10, 10, 15000),
         geoObject: {
             scale: 10000,
-            instanced: true,
-            tag: "plane",
+            instanced: false,
+            tag: "plane2",
             color: "rgb(255,0,0)",
             vertices: obj3d.vertices,
             indices: obj3d.indexes,

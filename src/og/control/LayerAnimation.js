@@ -24,7 +24,7 @@ class LayerAnimation extends Control {
         this._layersArr = options.layers ? [].concat(options.layers) : [];
         this._currentIndex = -1;
 
-        this._playInterval = options.playInterval || 150;
+        this._playInterval = options.playInterval || 120;
         this._playIntervalHandler = -1;
         this._playIndex = 0;
 
@@ -76,12 +76,14 @@ class LayerAnimation extends Control {
             for (let i = minIndex, len = maxIndex > this._layersArr.length ? this._layersArr.length : maxIndex; i < len; i++) {
                 this._layersArr[i].abortLoading();
                 this._layersArr[i].remove();
+                this._layersArr[i].setVisibility(false);
             }
         }
     }
 
     oninit() {
         super.oninit();
+        this.onactivate();
         this._initLayers();
         this._onLayerLoadend_ = this._onLayerLoadend.bind(this);
         this.planet.events.on("layerloadend", this._onLayerLoadend_, this);
@@ -91,8 +93,10 @@ class LayerAnimation extends Control {
     onactivate() {
         super.onactivate();
         this._onViewchange_ = this._onViewchange.bind(this);
-        this.planet.camera.events.on("viewchange", this._onViewchange_, this)
-        //...
+        this.planet.camera.events.on("viewchange", this._onViewchange_, this);
+
+        this._onVisibityChange_ = this._onVisibityChange.bind(this);
+        this.planet.renderer.handler.events.on("visibilitychange", this._onVisibityChange_, this);
     }
 
     ondeactivate() {
@@ -106,6 +110,15 @@ class LayerAnimation extends Control {
 
         this.planet.events.off("layerloadend", this._onLayerLoadend_);
         this._onLayerLoadend_ = null;
+
+        this.planet.renderer.handler.events.off("visibilitychange", this._onVisibityChange_);
+        this._onVisibityChange_ = null;
+    }
+
+    _onVisibityChange(isVisible) {
+        if (!isVisible) {
+            this.pause();
+        }
     }
 
     clear() {
@@ -249,21 +262,17 @@ class LayerAnimation extends Control {
         if (currLayer && currLayer.isEqual(layer)) {
 
             // BRUTE
-            // let currFrame = this._getFrameIndex(this._currentIndex);
-            //
-            // this._setFrame(currFrame);
-            //
-            // let from = currFrame * this._frameSize,
-            //     to = from + this._frameSize > this._layersArr.length ? this._layersArr.length : from + this._frameSize;
-            // for (let i = from; i < to; i++) {
-            //     this._layersArr[i].opacity = 0;
-            //     this._layersArr[i].setVisibility(false);
-            //     this._layersArr[i].abortLoading();
-            // }
+            let currFrame = this._getFrameIndex(this._currentIndex);
+            let from = currFrame * this._frameSize,
+                to = this._currentIndex;
+            for (let i = from; i < to; i++) {
+                let li = this._layersArr[i];
+                li.opacity = 0;
+                li.setVisibility(false);
+            }
 
             // * Make CURRENT Layer VISIBLE *
             currLayer.opacity = 1.0;
-            //currLayer.setVisibility(true);
 
             let currVisibleLayer = this._layersArr[this._currVisibleIndex];
             if (currVisibleLayer) {
@@ -277,14 +286,10 @@ class LayerAnimation extends Control {
                 }
             }
 
-            this.events.dispatch(this.events.idle, currLayer, currVisibleLayer, this._currentIndex, this._currVisibleIndex);
+            this.events.dispatch(this.events.idle, currLayer);
         }
-
-        // let currVisibleLayer = this._layersArr[this._currVisibleIndex];
-        // if (layer.isEqual(currVisibleLayer)) {
-        //     debugger;
-        // }
     }
+
 
     /**
      * Function sets layer index visible.
@@ -311,11 +316,11 @@ class LayerAnimation extends Control {
             this._currentIndex = index;
             this._playIndex = index;
 
-
             let prevCurrFrame = this._getFrameIndex(prevCurrIndex);
             let currFrame = this._getFrameIndex(this._currentIndex);
 
-            let prevCurrLayer = this._layersArr[prevCurrIndex], currLayer = this._layersArr[index];
+            let prevCurrLayer = this._layersArr[prevCurrIndex],
+                currLayer = this._layersArr[index];
 
             let frameChanged = currFrame != prevCurrFrame;
             if (frameChanged) {
@@ -328,7 +333,6 @@ class LayerAnimation extends Control {
                 } else {
                     prevCurrLayer.opacity = 0;
                     prevCurrLayer.setVisibility(false);
-                    prevCurrLayer.abortLoading();
                 }
             }
 
@@ -350,14 +354,12 @@ class LayerAnimation extends Control {
                         if (prevCurrLayer) {
                             prevCurrLayer.opacity = 0.0;
                             prevCurrLayer.setVisibility(false);
-                            prevCurrLayer.abortLoading();
                         }
 
                         let currVisibleLayer = this._layersArr[this._currVisibleIndex];
                         if (currVisibleLayer) {
                             currVisibleLayer.opacity = 0.0;
                             currVisibleLayer.setVisibility(false);
-                            currVisibleLayer.abortLoading();
                         }
                     }
                 });

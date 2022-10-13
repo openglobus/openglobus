@@ -2,17 +2,17 @@
 
 import { Events } from '../Events.js';
 
-if (window && !('createImageBitmap' in window)) {
-    window.createImageBitmap = function (blob) {
-        return new Promise((resolve, reject) => {
-            let img = document.createElement('img');
-            img.addEventListener('load', function () {
-                resolve(this);
-            });
-            img.src = URL.createObjectURL(blob);
-        });
-    };
-}
+// if (window && !('createImageBitmap' in window)) {
+//     window.createImageBitmap = function (blob) {
+//         return new Promise((resolve, reject) => {
+//             let img = document.createElement('img');
+//             img.addEventListener('load', function () {
+//                 resolve(this);
+//             });
+//             img.src = URL.createObjectURL(blob);
+//         });
+//     };
+// }
 
 export class Loader {
 
@@ -32,7 +32,10 @@ export class Loader {
             'json': r => r.json(),
             'blob': r => r.blob(),
             'arrayBuffer': r => r.arrayBuffer(),
-            'imageBitmap': r => r.blob().then(createImageBitmap),
+            'imageBitmap': r => r.blob().then(
+                (r) => createImageBitmap(r, {
+                    premultiplyAlpha: "premultiply"
+                })),
             'text': r => r.text()
         };
     }
@@ -70,7 +73,13 @@ export class Loader {
     }
 
     getRequestCounter(sender) {
-        return sender && this._senderRequestCounter[sender._id];
+        if (sender) {
+            let r = this._senderRequestCounter[sender._id];
+            if (r) {
+                return r.counter;
+            }
+        }
+        return 0;
     }
 
     isIdle(sender) {
@@ -163,16 +172,17 @@ export class Loader {
     abortAll() {
         for (let i = 0, len = this._queue.length; i < len; i++) {
             let qi = this._queue[i];
-            let sender = qi.params.sender;
-            if (sender && this._senderRequestCounter[sender._id]) {
-                this._senderRequestCounter[sender._id].counter = 0;
-                cancelAnimationFrame(this._senderRequestCounter[sender._id].__requestCounterFrame__);
-                this._senderRequestCounter[sender._id].__requestCounterFrame__ = null;
+            if (qi) {
+                let sender = qi.params.sender;
+                if (sender && this._senderRequestCounter[sender._id]) {
+                    this._senderRequestCounter[sender._id].counter = 0;
+                    cancelAnimationFrame(this._senderRequestCounter[sender._id].__requestCounterFrame__);
+                    this._senderRequestCounter[sender._id].__requestCounterFrame__ = null;
+                }
+                qi.callback({ 'status': "abort" });
+                this._queue[i] = null;
             }
-            qi.callback({ 'status': "abort" });
-            this._queue[i] = null;
         }
         this._queue = [];
-        this._loading = 0;
     }
 }

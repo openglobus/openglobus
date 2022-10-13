@@ -77,11 +77,6 @@ class XYZ extends Layer {
         this.maxNativeZoom = options.maxNativeZoom || 19;
 
         /**
-         * @protected
-         */
-        this._crossOrigin = options.crossOrigin === undefined ? "" : options.crossOrigin;
-
-        /**
          * Rewrites imagery tile url query.
          * @private
          * @callback og.layer.XYZ~_urlRewriteCallback
@@ -96,7 +91,7 @@ class XYZ extends Layer {
      * @warning Use XYZ.isIdle in requesAnimationFrame(after setVisibility)
      */
     get isIdle() {
-        return this.isIdle && this._planet._tileLoader.getRequestCounter(this);
+        return super.isIdle && this._planet._tileLoader.getRequestCounter(this) === 0;
     }
 
     get instanceName() {

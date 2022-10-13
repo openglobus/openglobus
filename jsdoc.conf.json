@@ -7,9 +7,6 @@
     "includePattern": ".+\\.js(doc)?$",
     "excludePattern": "(^|\\/|\\\\)_"
   },
-  "plugins": [
-    "./plugins/events"
-  ],
   "templates": {
     "cleverLinks": true,
     "monospaceLinks": true,
@@ -37,5 +34,13 @@
     "parser": "gfm",
     "hardwrap": true,
     "tags": [ "examples" ]
+  },
+  "opts": {
+    "encoding": "utf8",
+    "recurse": true,
+    "private": false,
+    "lenient": true,
+    "destination": "./api",
+    "template": "./node_modules/jaguarjs-jsdoc"
   }
 }

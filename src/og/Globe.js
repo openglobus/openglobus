@@ -69,7 +69,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {Number} [options.maxEqualZoomAltitude=15000000.0] - Maximal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen bacame the same zoom level
- * @param {Number} [options.loadingBatchSize=12] - 
+ * @param {Number} [options.loadingBatchSize=12] -
  */
 
 class Globe {
@@ -103,15 +103,6 @@ class Globe {
         this.div.appendChild(this._canvas);
         this.div.classList.add("ogViewport");
 
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === 'visible') {
-                this.renderer.handler.start();
-                this.renderer && this.renderer.resize();
-            } else {
-                this.renderer.handler.stop();
-            }
-        });
-
         function _disableWheel(e) {
             e.preventDefault();
         }
@@ -137,12 +128,13 @@ class Globe {
                 context: {
                     alpha: false,
                     antialias: false,
-                    powerPreference: "high-performance"
+                    powerPreference: "high-performance",
+                    premultipliedAlpha: true
                 }
             }), {
-            autoActivate: false,
-            backgroundColor: createColorRGB(options.backgroundColor, new Vec3(115 / 255, 203 / 255, 249 / 255))
-        }
+                autoActivate: false,
+                backgroundColor: createColorRGB(options.backgroundColor, new Vec3(115 / 255, 203 / 255, 249 / 255))
+            }
         );
         this.renderer.initialize();
         this.renderer.div = this.div;
@@ -192,14 +184,14 @@ class Globe {
 
         // Attach terrain provider (can be one object or array)
         if (options.terrain) {
-            if (Array.isArray(options.terrain)){
+            if (Array.isArray(options.terrain)) {
                 this.planet.setTerrain(options.terrain[0]); // If array get the terrain from 1st element
                 this.planet._terrainPool = options.terrain;
-            }else{
+            } else {
                 this.planet.setTerrain(options.terrain);
-                this.planet._terrainPool = [options.terrain]; 
-            } 
-            
+                this.planet._terrainPool = [options.terrain];
+            }
+
         } else {
             this.planet.setTerrain(new EmptyTerrain());
         }

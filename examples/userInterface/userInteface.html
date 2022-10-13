@@ -43,17 +43,15 @@
 
             });
 
-            var sat1 = new XYZ("MapQuest Satellite", {
+            var sat1 = new XYZ("Mapbox Satellite", {
                 fading: true,
                 isBaseLayer: true,
                 url: "https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWdldmxpY2hzY2FuZXgiLCJhIjoiY2pwcGdsaXlnMDQzdDQybXhsOWZlbXBvdSJ9.fR2YE-ehJA4iajaJBAPKvw",
                 visibility: false,
-                attribution: `@2014 MapQuest - Portions @2014 "Map data @
-            <a target="_blank" href="//www.openstreetmap.org/">OpenStreetMap</a> and contributors,
-            <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
+                attribution: `<a href="https://www.mapbox.com/about/maps/" target="_blank" title="Mapbox">©Mapbox</a> satellite`
             });
 
-            var sat2 = new XYZ("MapQuest Sat Labels", {
+            var sat2 = new XYZ("Mapbox Sat Labels", {
                 fading: true,
                 shininess: 20,
                 specular: [0.00048, 0.00037, 0.00035],
@@ -62,9 +60,7 @@
                 isBaseLayer: true,
                 url: "https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWdldmxpY2hzY2FuZXgiLCJhIjoiY2pwcGdsaXlnMDQzdDQybXhsOWZlbXBvdSJ9.fR2YE-ehJA4iajaJBAPKvw",
                 visibility: false,
-                attribution: `@2014 MapQuest - Portions @2014 "Map data @
-            <a target="_blank" href="//www.openstreetmap.org/">OpenStreetMap</a> and contributors,
-            <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
+                attribution: `<a href="https://www.mapbox.com/about/maps/" target="_blank" title="Mapbox">©Mapbox</a> satellite`
             });
             let img1 = new GeoImage("Geo-image", {
                 src: "001m--l32.jpg",

@@ -288,17 +288,18 @@ class CanvasTiles extends Layer {
     clearMaterial(material) {
         if (material.isReady) {
             material.isReady = false;
-
-            material.texture && !material.texture.default &&
-            material.segment.handler.gl.deleteTexture(material.texture);
-
-            material.texture = null;
+            if (material.texture && !material.texture.default) {
+                material.segment.handler.gl.deleteTexture(material.texture);
+                material.texture = null;
+            }
         }
 
         this.abortMaterialLoading(material);
-
         material.isLoading = false;
         material.textureExists = false;
+
+        material.layer = null;
+        material.segment = null;
 
         if (material.image) {
             material.image.src = "";

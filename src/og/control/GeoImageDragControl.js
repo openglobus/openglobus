@@ -6,17 +6,13 @@
 
 import { Control } from './Control.js';
 import { BaseGeoImage } from '../layer/BaseGeoImage.js';
-import { elementFactory, allMenuBtnOFF,  allDialogsHide, btnClickHandler} from "./UIhelpers.js";
+import { elementFactory, btnClickHandler } from "./UIhelpers.js";
 
 class GeoImageDragControl extends Control {
-    constructor(options) {
+    constructor(options = {}) {
         super(options);
-
-        options = options || {};
-
         this._cornerIndex = -1;
         this._catchCorner = false;
-
     }
 
     oninit() {
@@ -32,13 +28,16 @@ class GeoImageDragControl extends Control {
                 this._bindLayer(p.layers[i]);
             }
         }
-        btnClickHandler('og-geo-image-dragger-menu-btn', null , null, '#og-geo-image-dragger-menu-icon'); // btn_id, dialog_id, dialog_selector, icon_id
+        btnClickHandler('og-geo-image-dragger-menu-btn', null, null, '#og-geo-image-dragger-menu-icon'); // btn_id, dialog_id, dialog_selector, icon_id
     }
 
     // Create a button to activate-deactivate control
     createDraggerButton() {
-        let btn = elementFactory('div', {id: 'og-geo-image-dragger-menu-btn',class: 'og-geo-image-dragger og-menu-btn og-OFF' },
-        elementFactory('div', {id: 'og-geo-image-dragger-menu-icon',class: 'og-icon-holder'}));
+        let btn = elementFactory('div', {
+                id: 'og-geo-image-dragger-menu-btn',
+                class: 'og-geo-image-dragger og-menu-btn og-OFF'
+            },
+            elementFactory('div', { id: 'og-geo-image-dragger-menu-icon', class: 'og-icon-holder' }));
         this.renderer.div.appendChild(btn);
     }
 
@@ -64,24 +63,23 @@ class GeoImageDragControl extends Control {
                                 this._cornerIndex = i;
                                 document.body.style.cursor = 'move';
                                 break;
-                            // mouse is far
-                            } else { 
+                                // mouse is far
+                            } else {
                                 document.body.style.cursor = 'auto';
-                         
+
                             }
                         }
                     }
                 }
 
-                layer.events.on("mouseleave", function (
-                ) {
+                layer.events.on("mouseleave", function () {
                     document.body.style.cursor = 'auto';
                 });
 
             }, this);
 
             layer.events.on('ldown', function (ms) {
-                if (this._active && this._cornerIndex != -1) {
+                if (this._active && this._cornerIndex !== -1) {
                     this._catchCorner = true;
                     ms.renderer.controls.mouseNavigation.deactivate();
                 }
@@ -94,7 +92,7 @@ class GeoImageDragControl extends Control {
                 }
             }, this);
 
-            layer.events.on('rdblclick', function(){
+            layer.events.on('rdblclick', function () {
                 alert(layer.getID());
             })
 
