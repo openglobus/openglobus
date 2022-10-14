@@ -1,15 +1,4 @@
 export class BaseWorker {
-    destroy() {
-        for (let i = 0; i < this._workerQueue.length; i++) {
-            const w = this._workerQueue[i];
-            w.onmessage = undefined;
-            w.terminate();
-        }
-        this._pendingQueue = undefined;
-        this._numWorkers = undefined;
-        this._workerQueue = undefined;
-    }
-
     constructor(numWorkers = 2, program) {
         this._id = 0;
         this._pendingQueue = [];
@@ -43,5 +32,16 @@ export class BaseWorker {
         }
 
         elevationProgramm = undefined;
+    }
+
+    destroy() {
+        for (let i = 0; i < this._workerQueue.length; i++) {
+            const w = this._workerQueue[i];
+            w.onmessage = undefined;
+            w.terminate();
+        }
+        this._pendingQueue = undefined;
+        this._numWorkers = undefined;
+        this._workerQueue = undefined;
     }
 }

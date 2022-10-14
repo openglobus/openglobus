@@ -10,37 +10,37 @@ export const LOCK_FREE = -1;
 class LabelWorker extends BaseWorker {
     constructor(numWorkers = 4) {
         super(numWorkers, _programm);
-        this._source = {};
+        this._source = new Map();
     }
 
     _onMessage(e) {
 
-        let s = this._source[e.data.id];
+        let label = this._source.get(e.data.id);
 
-        if (s.label._lockId === LOCK_UPDATE) {
+        if (label._lockId === LOCK_UPDATE) {
             requestAnimationFrame(() => {
-                this.make(s);
+                this.make(label);
             });
         } else {
-            s.handler.workerCallback(e.data, s.label);
+            label._handler.workerCallback(e.data, label);
         }
 
-        this._source[e.data.id] = null;
-        delete this._source[e.data.id];
+        this._source.delete(e.data.id);
         super._onMessage(e)
 
         this.check();
     }
 
 
-    make({ handler, label }) {
+    make() {
+        const label = arguments[0],
+        handler = label._handler;
         if (handler._entityCollection) {
-            let source = { handler: handler, label: label };
 
             if (this._workerQueue.length) {
                 var w = this._workerQueue.pop();
 
-                this._source[this._id] = source;
+                this._source.set(this._id, label);
 
                 let labelData = new Float32Array([
                     /*0*/this._id++,
@@ -67,7 +67,7 @@ class LabelWorker extends BaseWorker {
                     labelData.buffer,
                 ]);
             } else {
-                this._pendingQueue.push(source);
+                this._pendingQueue.push(label);
             }
         }
     }
