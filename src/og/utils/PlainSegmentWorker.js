@@ -7,11 +7,11 @@ import { BaseWorker } from "./BaseWorker.js";
 class PlainSegmentWorker extends BaseWorker {
     constructor(numWorkers = 2) {
         super(numWorkers, _programm);
-        this._segments = [];
+        this._segments = new Map();
     }
 
     _onMessage(e) {
-        this._segments[e.data.id]._plainSegmentWorkerCallback(e.data);
+        this._segments.get(e.data.id)._plainSegmentWorkerCallback(e.data);
 
         e.data.plainVertices = null;
         e.data.plainVerticesHigh = null;
@@ -22,8 +22,7 @@ class PlainSegmentWorker extends BaseWorker {
         e.data.normalMapVerticesHigh = null;
         e.data.normalMapVerticesLow = null;
 
-        this._segments[e.data.id] = null;
-        delete this._segments[e.data.id];
+        this._segments.delete(e.data.id)
 
         super._onMessage(e)
         this.check();
@@ -74,7 +73,7 @@ class PlainSegmentWorker extends BaseWorker {
             if (this._workerQueue.length) {
                 let w = this._workerQueue.pop();
 
-                this._segments[this._id] = segment;
+                this._segments.set(this._id, segment);
 
                 let params = new Float64Array([
                     this._id++,
