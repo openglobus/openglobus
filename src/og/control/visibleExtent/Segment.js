@@ -402,7 +402,7 @@ class Segment {
     elevationsExists(elevations) {
         const segment = this;
         if (this.plainReady && this.terrainIsLoading) {
-            this.planet._terrainWorker.make({segment, elevations});
+            this.planet._terrainWorker.make(segment, elevations);
 
             this.plainVerticesHigh = null;
             this.plainVerticesLow = null;

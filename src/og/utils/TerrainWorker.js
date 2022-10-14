@@ -7,13 +7,13 @@ import { BaseWorker } from "./BaseWorker.js";
 class TerrainWorker extends BaseWorker {
     constructor(numWorkers = 2) {
         super(numWorkers, _programm);
-        this._segments = {};
+        this._segments = new Map();
     }
 
     _onMessage(e) {
 
-        this._segments[e.data.id]._terrainWorkerCallback(e.data);
-        this._segments[e.data.id] = null;
+        this._segments.get(e.data.id)._terrainWorkerCallback(e.data);
+        this._segments.delete(e.data.id);
 
         e.data.normalMapNormals = null;
         e.data.normalMapVertices = null;
@@ -23,14 +23,19 @@ class TerrainWorker extends BaseWorker {
         e.data.terrainVerticesHigh = null;
         e.data.terrainVerticesLow = null;
 
-        delete this._segments[e.data.id];
 
         super._onMessage(e)
         this.check();
     }
 
-    make({ segment, elevations }) {
+    check() {
+        if (this._pendingQueue.length) {
+            var p = this._pendingQueue.pop();
+            this.make(p.segment, p.elevations);
+        }
+    }
 
+    make(segment, elevations) {
         if (segment.plainReady && segment.terrainIsLoading) {
 
             var _elevations = new Float32Array(elevations.length);
@@ -40,7 +45,7 @@ class TerrainWorker extends BaseWorker {
 
                 var w = this._workerQueue.pop();
 
-                this._segments[this._id] = segment;
+                this._segments.set(this._id, segment);
 
                 w.postMessage({
                     'elevations': _elevations,
@@ -61,7 +66,7 @@ class TerrainWorker extends BaseWorker {
                 ]);
 
             } else {
-                this._pendingQueue.push({ 'segment': segment, 'elevations': _elevations });
+                this._pendingQueue.push({ segment, elevations });
             }
         } else {
             this.check();
