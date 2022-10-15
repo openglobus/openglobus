@@ -20,16 +20,37 @@
         import { CanvasTiles } from '../../src/og/layer/CanvasTiles.js';
         import { ToggleWireframe } from '../../src/og/control/ToggleWireframe.js';
         import { SegmentLonLat } from '../../src/og/segment/SegmentLonLat.js';
+        import { SegmentLonLatWgs84 } from '../../src/og/segment/SegmentLonLatWgs84.js';
+        import { quadTreeType } from '../../src/og/utils/quadTreeType.js';
+        import { Extent } from "../../src/og/Extent.js";
+        import * as quadTree from "../../src/og/quadTree/quadTree.js";
+        import { Node } from "../../src/og/quadTree/Node.js";
+        import { QuadTreeStrategy } from '../../src/og/quadTree/QuadTreeStrategy.js';
+        import { EPSG4326 } from "../../src/og/proj/EPSG4326.js";
 
         const osm = new XYZ("OSM", {
             'specular': [0.0003, 0.00012, 0.00001],
             'shininess': 20,
             'diffuse': [0.89, 0.9, 0.83],
             'isBaseLayer': true,
-            'url': "https://astro.arcgis.com/arcgis/rest/services/OnMars/MDIM/MapServer/tile/{z}/{y}/{x}?blankTile=false",
+            'url': "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             'visibility': true,
             'attribution': 'Data @ OpenStreetMap contributors, ODbL'
         });
+        const osm2 = new XYZ("OSM", {
+            'specular': [0.0003, 0.00012, 0.00001],
+            'shininess': 20,
+            'diffuse': [0.89, 0.9, 0.83],
+            'isBaseLayer': true,
+            'url': "http://s3-eu-west-1.amazonaws.com/whereonmars.cartodb.net/celestia_mars-shaded-16k_global/{z}/{x}/{y}.png",
+            'visibility': true,
+            'attribution': 'Data @ OpenStreetMap contributors, ODbL'
+        });
+        //https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0/default/default028mm/{z}/{x}/{y}.jpg
+        //https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-moon-basemap-v0-1/all/{z}/{x}/{y}.png
+        //https://tiles.arcgis.com/tiles/v01gqwM5QqNysAAi/arcgis/rest/services/JezeroNomenclature_WebTile/MapServer
+        //https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/Mars_Nomenclature_All/FeatureServer
+        //https://astro.arcgis.com/arcgis/rest/services/OnMars/MColorDEM/MapServer
         ////{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
         //'url': "https://astro.arcgis.com/arcgis/rest/services/OnMars/MDIM/MapServer/tile/{z}/{x}/{y}?blankTile=false",
 
@@ -86,11 +107,44 @@
             }
         });
 
+        class CustomQuadTreeStrategy extends QuadTreeStrategy {
+            constructor(options = {}) {
+                super(options);
+                this.name = "custom";
+                this.projection = EPSG4326;
+            }
+
+            init() {
+
+                let earthQuadTreeTop = new Node(SegmentLonLatWgs84, this.planet, quadTree.NW, null, 0, 0,
+                    Extent.createFromArray([-180, -90, 180, 0])
+                );
+                let earthQuadTreeBottom = new Node(SegmentLonLatWgs84, this.planet, quadTree.NW, null, 0, 0,
+                    Extent.createFromArray([-180, 0, 180, 90])
+                );
+
+
+                this._quadTreeList.push(earthQuadTreeTop);
+                this._quadTreeList.push(earthQuadTreeBottom);
+            }
+        }
+
+        class QuadTreeFactory {
+
+            create(planet) {
+                return new CustomQuadTreeStrategy({ planet: planet });
+            }
+        }
+
+        const quadTreeFactory = new QuadTreeFactory();
+
         window.globe = new Globe({
-            'name': "mars",
+            'name': "wgs84",
+            'quadTreeType': quadTreeType.wgs84,
+            'quadTreeStrategyFactory': quadTreeFactory,
             'target': "globus",
             'terrain': new EmptyTerrain(),
-            'layers': [osm, tg],
+            'layers': [tg],
             "sun": {
                 "active": false
             }

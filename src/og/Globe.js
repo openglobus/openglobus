@@ -71,6 +71,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen bacame the same zoom level
  * @param {Number} [options.loadingBatchSize=12] - 
+ * @param {Number} [option.quadTreeType=0] - Type of quadTree. Default the earth type.
  */
 
 class Globe {
@@ -167,6 +168,13 @@ class Globe {
          */
         this._planetName = options.name ? options.name : PLANET_NAME_PREFIX + Globe._staticCounter;
 
+        /**
+         * quad tree type.
+         * @private
+         * @type {Number}
+         */
+        this._quadTreeType = options.quadTreeType;
+
         if (options.atmosphere) {
             /**
              * Render node renders a planet.
@@ -188,7 +196,7 @@ class Globe {
                 minEqualZoomAltitude: options.minEqualZoomAltitude,
                 minEqualZoomCameraSlope: options.minEqualZoomCameraSlope,
                 loadingBatchSize: options.loadingBatchSize,
-                quadTreeStrategyFactory: new QuadTreeStrategyFactory()
+                quadTreeStrategyFactory: options.quadTreeStrategyFactory || new QuadTreeStrategyFactory({ quadTreeType: this._quadTreeType })
             });
         }
 

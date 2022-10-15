@@ -1,8 +1,5 @@
 "use strict";
 import { QuadTreeStrategy } from "./QuadTreeStrategy.js"
-import * as mercator from "../mercator.js";
-import { Segment } from "../segment/Segment.js";
-import { SegmentLonLat } from "../segment/SegmentLonLat.js";
 import { SegmentLonLatWgs84 } from "../segment/SegmentLonLatWgs84.js";
 import * as quadTree from "../quadTree/quadTree.js";
 import { Extent } from "../Extent.js";

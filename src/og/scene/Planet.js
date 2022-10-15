@@ -316,7 +316,7 @@ export class Planet extends RenderNode {
         this._heightPickingFramebuffer = null;
 
 
-        this.quadTreeStrategy = options.quadTreeStrategyFactory.create(this, options.name);
+        this.quadTreeStrategy = options.quadTreeStrategyFactory.create(this);
         /**
          * Mercator grid tree.
          * @protected
