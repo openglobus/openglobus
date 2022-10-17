@@ -17,16 +17,8 @@
         import { Globe } from '../../src/og/Globe.js';
         import { EmptyTerrain } from '../../src/og/terrain/EmptyTerrain.js';
         import { XYZ } from '../../src/og/layer/XYZ.js';
-        import { CanvasTiles } from '../../src/og/layer/CanvasTiles.js';
-        import { ToggleWireframe } from '../../src/og/control/ToggleWireframe.js';
-        import { SegmentLonLat } from '../../src/og/segment/SegmentLonLat.js';
-        import { SegmentLonLatWgs84 } from '../../src/og/segment/SegmentLonLatWgs84.js';
         import { quadTreeStrategyType } from '../../src/og/utils/quadTreeType.js';
-        import { Extent } from "../../src/og/Extent.js";
-        import * as quadTree from "../../src/og/quadTree/quadTree.js";
-        import { Node } from "../../src/og/quadTree/Node.js";
-        import { QuadTreeStrategy } from '../../src/og/quadTree/QuadTreeStrategy.js';
-        import { EPSG4326 } from "../../src/og/proj/EPSG4326.js";
+
 
         const osm = new XYZ("OSM", {
             'specular': [0.0003, 0.00012, 0.00001],
@@ -35,90 +27,15 @@
             'isBaseLayer': true,
             'url': "https://astro.arcgis.com/arcgis/rest/services/OnMars/MDIM/MapServer/tile/{z}/{y}/{x}?blankTile=false",
             'visibility': true,
-            'attribution': 'Data @ OpenStreetMap contributors, ODbL'
+            'attribution': 'Data @ USGS Astrogeology Science Center, NASA, JPL, Esri'
         });
-
-        const tg = new CanvasTiles("Tile grid", {
-            visibility: true,
-            isBaseLayer: false,
-            drawTile: function (material, applyCanvas) {
-
-                //
-                // This is important create canvas here!
-                //
-                let cnv = document.createElement("canvas");
-                let ctx = cnv.getContext("2d");
-                cnv.width = 256;
-                cnv.height = 256;
-
-                //Clear canvas
-                ctx.clearRect(0, 0, cnv.width, cnv.height);
-
-                //Draw border
-                ctx.beginPath();
-                ctx.rect(0, 0, cnv.width, cnv.height);
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = 'black';
-                ctx.stroke();
-
-                let size;
-
-                if (material.segment.isPole) {
-                    let ext = material.segment.getExtentLonLat();
-                    let seg = material.segment;
-                    ctx.fillStyle = 'black';
-                    ctx.font = 'normal ' + 29 + 'px Verdana';
-
-                    ctx.textAlign = 'center';
-                    ctx.fillText(`x: ${seg.tileX},y: ${seg.tileY}, z: ${seg.tileZoom}`, cnv.width / 2, cnv.height / 2 + 20);
-                    ctx.fillText(`x: ${seg.tileX},y: ${seg.tileY}, z: ${seg.tileZoom}`, cnv.width / 2, cnv.height / 2 - 20);
-                } else {
-                    //Draw text
-                    if (material.segment.tileZoom > 14) {
-                        size = "26";
-                    } else {
-                        size = "32";
-                    }
-                    ctx.fillStyle = 'black';
-                    ctx.font = 'normal ' + size + 'px Verdana';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(`x: ${material.segment.tileX}, y: ${material.segment.tileY}, z: ${material.segment.tileZoom}`, cnv.width / 2, cnv.height / 2);
-                    //ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
-                }
-
-                //Draw canvas tile
-                applyCanvas(cnv);
-            }
-        });
-
-        class CustomQuadTreeStrategy extends QuadTreeStrategy {
-            constructor(options = {}) {
-                super(options);
-                this.name = "custom";
-                this.projection = EPSG4326;
-            }
-
-            init() {
-
-                let earthQuadTreeTop = new Node(SegmentLonLatWgs84, this.planet, quadTree.NW, null, 0, 0,
-                    Extent.createFromArray([-180, -90, 180, 0])
-                );
-                let earthQuadTreeBottom = new Node(SegmentLonLatWgs84, this.planet, quadTree.NW, null, 0, 0,
-                    Extent.createFromArray([-180, 0, 180, 90])
-                );
-
-
-                this._quadTreeList.push(earthQuadTreeTop);
-                this._quadTreeList.push(earthQuadTreeBottom);
-            }
-        }
 
         window.globe = new Globe({
             'name': "mars",
             'quadTreeStrategyPrototype': quadTreeStrategyType.mars,
             'target': "globus",
             'terrain': new EmptyTerrain(),
-            'layers': [osm, tg],
+            'layers': [osm],
             "sun": {
                 "active": false
             }
