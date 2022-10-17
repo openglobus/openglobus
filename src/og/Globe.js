@@ -20,7 +20,6 @@ import { isEmpty } from "./utils/shared.js";
 import { Handler } from "./webgl/Handler.js";
 import { createColorRGB } from "./utils/shared.js";
 import { Vec3 } from "./math/Vec3.js";
-import { QuadTreeStrategyFactory } from "./quadTree/QuadTreeStrategyFactory.js";
 
 /** @const {string} */
 const CANVAS_ID_PREFIX = "globus_viewport_";
@@ -71,7 +70,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen bacame the same zoom level
  * @param {Number} [options.loadingBatchSize=12] - 
- * @param {Number} [option.quadTreeType=0] - Type of quadTree. Default the earth type.
+ * @param {Number} [option.quadTreeStrategyPrototype] - Prototype of quadTree. QuadTreeStrategy for Earth is default.
  */
 
 class Globe {
@@ -196,7 +195,7 @@ class Globe {
                 minEqualZoomAltitude: options.minEqualZoomAltitude,
                 minEqualZoomCameraSlope: options.minEqualZoomCameraSlope,
                 loadingBatchSize: options.loadingBatchSize,
-                quadTreeStrategyFactory: options.quadTreeStrategyFactory || new QuadTreeStrategyFactory({ quadTreeType: this._quadTreeType })
+                quadTreeStrategyPrototype: options.quadTreeStrategyPrototype
             });
         }
 
