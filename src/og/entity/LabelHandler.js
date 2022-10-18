@@ -85,7 +85,8 @@ class LabelHandler extends BillboardHandler {
     }
 
     _addLabelToArrays(label) {
-        this._renderer.labelWorker.make(this, label);
+        this._renderer.labelWorker.make(label);
+        console.time(`label${label.id}`)
     }
 
     assignFontAtlas(label) {
@@ -121,6 +122,8 @@ class LabelHandler extends BillboardHandler {
             label.update();
 
             this.refresh();
+            console.timeEnd(`label${label.id}`)
+            console.log(label)
         }
     }
 
@@ -386,7 +389,7 @@ class LabelHandler extends BillboardHandler {
         if (isRTL) {
             _rtl_ = RTL;
         }
-        
+
         let offset = 0.0;
         let kern = fa.kernings;
 

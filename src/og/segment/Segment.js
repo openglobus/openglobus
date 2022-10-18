@@ -386,8 +386,9 @@ class Segment {
      * @param {Float32Array} elevations - Elevation data.
      */
     elevationsExists(elevations) {
+        const segment = this;
         if (this.plainReady && this.terrainIsLoading) {
-            this.planet._terrainWorker.make(this, elevations);
+            this.planet._terrainWorker.make(segment, elevations);
 
             this.plainVerticesHigh = null;
             this.plainVerticesLow = null;
