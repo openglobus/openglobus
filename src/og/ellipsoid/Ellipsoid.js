@@ -58,6 +58,25 @@ class Ellipsoid {
     }
 
     /**
+     * Returns the distance travelling from ‘this’ point to destination point along a rhumb line.
+     *
+     * @param   {LonLat} start coordinates.
+     * @param   {LonLat} end coordinates
+     * @returns {number} Distance in m between this point and destination point (same units as radius).
+     */
+    rhumbDistanceTo(startLonLat, endLonLat) {
+        const f1 = startLonLat.lat * math.RADIANS;
+        const f2 = endLonLat.lat * math.RADIANS;
+        const df = f2 - f1;
+        let d = Math.abs(endLonLat.lon - startLonLat.lon) * math.RADIANS;
+        if (Math.abs(d) > Math.PI) d = d > 0 ? -(2 * Math.PI - d) : (2 * Math.PI + d);
+        const dd = Math.log(Math.tan(f2 / 2 + Math.PI / 4) / Math.tan(f1 / 2 + Math.PI / 4));
+        const q = Math.abs(dd) > 10e-12 ? df / dd : Math.cos(f1);
+        const t = Math.sqrt(df * df + q * q * d * d); // angular distance in radians
+        return t * this._a;
+    }
+
+    /**
      * Returns the midpoint between two points on the great circle.
      * @param   {LonLat} lonLat1 - Longitude/latitude of first point.
      * @param   {LonLat} lonLat2 - Longitude/latitude of second point.

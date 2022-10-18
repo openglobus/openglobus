@@ -403,19 +403,8 @@ class Segment {
     }
 
     _checkEqualization(neighborSide, neigborNode) {
-        return (
-            neigborNode && this.tileZoom >= neigborNode.segment.tileZoom
-
-            //&&
-            //(
-            //    this.node.equalizedNeighborId[neighborSide] !== neigborNode.appliedTerrainNodeId ||
-            //    this.node.equalizedNeighborGridSize[neighborSide] !== neigborNode.segment.gridSize
-            //||
-
-            //    neigborNode.equalizedNeighborId[OPSIDE[neighborSide]] !== this.node.appliedTerrainNodeId ||
-            //    neigborNode.equalizedNeighborGridSize[OPSIDE[neighborSide]] !== this.gridSize
-            //)
-        );
+        return neigborNode && this.tileZoom >= neigborNode.segment.tileZoom &&
+            this.node.equalizedSideWithNodeId[neighborSide] !== neigborNode.equalizedSideWithNodeId[OPSIDE[neighborSide]];
     }
 
     equalize() {
@@ -433,11 +422,8 @@ class Segment {
 
         let n = nn[N][0];
         if (this._checkEqualization(N, n)) {
-            //this.node.equalizedNeighborId[N] = n.appliedTerrainNodeId;
-            //this.node.equalizedNeighborGridSize[N] = n.segment.gridSize;
 
-            //n.equalizedNeighborId[OPSIDE[N]] = this.node.appliedTerrainNodeId;
-            //n.equalizedNeighborGridSize[OPSIDE[N]] = this.gridSize;
+            this.node.equalizedSideWithNodeId[N] = n.equalizedSideWithNodeId[S];
 
             this.readyToEngage = true;
 
@@ -476,11 +462,8 @@ class Segment {
 
         n = nn[E][0];
         if (this._checkEqualization(E, n)) {
-            //this.node.equalizedNeighborId[E] = n.appliedTerrainNodeId;
-            //this.node.equalizedNeighborGridSize[E] = n.segment.gridSize;
 
-            //n.equalizedNeighborId[OPSIDE[E]] = this.node.appliedTerrainNodeId;
-            //n.equalizedNeighborGridSize[OPSIDE[E]] = this.gridSize;
+            this.node.equalizedSideWithNodeId[E] = n.equalizedSideWithNodeId[W];
 
             this.readyToEngage = true;
 
@@ -519,11 +502,8 @@ class Segment {
 
         n = nn[S][0];
         if (this._checkEqualization(S, n)) {
-            //this.node.equalizedNeighborId[S] = n.appliedTerrainNodeId;
-            //this.node.equalizedNeighborGridSize[S] = n.segment.gridSize;
 
-            //n.equalizedNeighborId[OPSIDE[S]] = this.node.appliedTerrainNodeId;
-            //n.equalizedNeighborGridSize[OPSIDE[S]] = this.gridSize;
+            this.node.equalizedSideWithNodeId[S] = n.equalizedSideWithNodeId[N];
 
             this.readyToEngage = true;
 
@@ -561,11 +541,8 @@ class Segment {
 
         n = nn[W][0];
         if (this._checkEqualization(W, n)) {
-            //this.node.equalizedNeighborId[W] = n.appliedTerrainNodeId;
-            //this.node.equalizedNeighborGridSize[W] = n.segment.gridSize;
 
-            //n.equalizedNeighborId[OPSIDE[W]] = this.node.appliedTerrainNodeId;
-            //n.equalizedNeighborGridSize[OPSIDE[W]] = this.gridSize;
+            this.node.equalizedSideWithNodeId[W] = n.equalizedSideWithNodeId[E];
 
             this.readyToEngage = true;
 
@@ -671,17 +648,12 @@ class Segment {
 
             this.setBoundingVolumeArr(data.bounds);
 
-            //var b = data.bounds;
-
-            //this.setBoundingSphere(
-            //    b[0] + (b[1] - b[0]) * 0.5,
-            //    b[2] + (b[3] - b[2]) * 0.5,
-            //    b[4] + (b[5] - b[4]) * 0.5,
-            //    new Vec3(b[0], b[2], b[4])
-            //);
-
             this.gridSize = Math.sqrt(this.terrainVertices.length / 3) - 1;
-            this.node.appliedTerrainNodeId = this.node.nodeId;
+
+            let n = this.node;
+            n.appliedTerrainNodeId = n.nodeId;
+            n.equalizedSideWithNodeId[N] = n.equalizedSideWithNodeId[E] = n.equalizedSideWithNodeId[S] =
+                n.equalizedSideWithNodeId[W] = n.appliedTerrainNodeId;
 
             this.terrainReady = true;
             this.terrainIsLoading = false;
@@ -710,7 +682,10 @@ class Segment {
             if (this.plainReady && this.terrainIsLoading) {
                 this.terrainIsLoading = false;
 
-                this.node.appliedTerrainNodeId = this.node.nodeId;
+                let n = this.node;
+                n.appliedTerrainNodeId = this.node.nodeId;
+                n.equalizedSideWithNodeId[N] = n.equalizedSideWithNodeId[E] = n.equalizedSideWithNodeId[S] =
+                    n.equalizedSideWithNodeId[W] = n.appliedTerrainNodeId;
 
                 if (this.planet.lightEnabled && !this._inTheQueue) {
                     this.planet._normalMapCreator.queue(this);
@@ -735,6 +710,7 @@ class Segment {
             this.terrainExists = false;
         }
     }
+
     _normalMapEdgeEqualize(side) {
         let nn = this.node.neighbors;
         let n = nn[side][0];
@@ -1080,10 +1056,10 @@ class Segment {
                     v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
 
                 let vn = new Vec3(
-                    bigOne[3] - bigOne[0],
-                    bigOne[4] - bigOne[1],
-                    bigOne[5] - bigOne[2]
-                ),
+                        bigOne[3] - bigOne[0],
+                        bigOne[4] - bigOne[1],
+                        bigOne[5] - bigOne[2]
+                    ),
                     vw = new Vec3(
                         bigOne[6] - bigOne[0],
                         bigOne[7] - bigOne[1],
@@ -1209,14 +1185,6 @@ class Segment {
     _addViewExtent() {
         var ext = this._extentLonLat;
 
-        if (!this.planet._viewExtent) {
-            this.planet._viewExtent = new Extent(
-                new LonLat(ext.southWest.lon, ext.southWest.lat),
-                new LonLat(ext.northEast.lon, ext.northEast.lat)
-            );
-            return;
-        }
-
         var viewExt = this.planet._viewExtent;
 
         if (ext.southWest.lon < viewExt.southWest.lon) {
@@ -1264,16 +1232,16 @@ class Segment {
 
         n.sideSize[0] =
             n.sideSize[1] =
-            n.sideSize[2] =
-            n.sideSize[3] =
-            this.gridSize =
-            p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize;
+                n.sideSize[2] =
+                    n.sideSize[3] =
+                        this.gridSize =
+                            p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize;
 
         n.sideSizeLog2[0] =
             n.sideSizeLog2[1] =
-            n.sideSizeLog2[2] =
-            n.sideSizeLog2[3] =
-            Math.log2(p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize);
+                n.sideSizeLog2[2] =
+                    n.sideSizeLog2[3] =
+                        Math.log2(p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize);
 
         if (this.tileZoom <= p.terrain.maxZoom) {
             var nmc = this.planet._normalMapCreator;
@@ -1443,7 +1411,7 @@ class Segment {
             p = this.planet;
 
         var currHeight, li;
-        if (layerSlice) {
+        if (layerSlice && layerSlice.length) {
             li = layerSlice[0];
             currHeight = li._height;
         } else {
@@ -1488,6 +1456,7 @@ class Segment {
 
                 if (!m.isReady) {
                     this.planet._renderCompleted = false;
+                    this.planet._terrainReady = false;
                 }
 
                 slice.append(li, m);
@@ -1548,7 +1517,7 @@ class Segment {
             p = this.planet;
 
         var currHeight;
-        if (layerSlice) {
+        if (layerSlice && layerSlice.length) {
             currHeight = layerSlice[0]._height;
         } else {
             currHeight = 0;
@@ -1575,7 +1544,7 @@ class Segment {
             p = this.planet;
 
         var currHeight;
-        if (layerSlice) {
+        if (layerSlice && layerSlice.length) {
             currHeight = layerSlice[0]._height;
         } else {
             currHeight = 0;
@@ -1639,7 +1608,7 @@ class Segment {
             shu = sh.uniforms;
 
         var currHeight;
-        if (layerSlice) {
+        if (layerSlice.length) {
             currHeight = layerSlice[0]._height;
         } else {
             currHeight = 0;
@@ -1716,4 +1685,5 @@ class Segment {
         return -1;
     }
 }
+
 export { Segment };

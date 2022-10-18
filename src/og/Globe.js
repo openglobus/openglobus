@@ -104,15 +104,6 @@ class Globe {
         this.div.appendChild(this._canvas);
         this.div.classList.add("ogViewport");
 
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === 'visible') {
-                this.renderer.handler.start();
-                this.renderer && this.renderer.resize();
-            } else {
-                this.renderer.handler.stop();
-            }
-        });
-
         function _disableWheel(e) {
             e.preventDefault();
         }
@@ -138,7 +129,8 @@ class Globe {
                 context: {
                     alpha: false,
                     antialias: false,
-                    powerPreference: "high-performance"
+                    powerPreference: "high-performance",
+                    premultipliedAlpha: true
                 }
             }), {
             autoActivate: false,
@@ -199,9 +191,16 @@ class Globe {
             });
         }
 
-        // Attach terrain provider
+        // Attach terrain provider (can be one object or array)
         if (options.terrain) {
-            this.planet.setTerrain(options.terrain);
+            if (Array.isArray(options.terrain)) {
+                this.planet.setTerrain(options.terrain[0]); // If array get the terrain from 1st element
+                this.planet._terrainPool = options.terrain;
+            } else {
+                this.planet.setTerrain(options.terrain);
+                this.planet._terrainPool = [options.terrain];
+            }
+
         } else {
             this.planet.setTerrain(new EmptyTerrain());
         }

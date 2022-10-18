@@ -20,7 +20,7 @@ class GeoObject {
     constructor(options) {
         options = options || {};
 
-        this.scale = options.scale || 0.02;
+        this.scale = options.scale || 1.0;
         this.scaleByDistance = new Float32Array(options.scaleByDistance || [MAX32, MAX32, MAX32]);
 
         /**

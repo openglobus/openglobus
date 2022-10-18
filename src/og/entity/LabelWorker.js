@@ -22,7 +22,9 @@ class LabelWorker {
                 let s = that._source[e.data.id];
 
                 if (s.label._lockId === LOCK_UPDATE) {
-                    that.make(s.handler, s.label);
+                    requestAnimationFrame(() => {
+                        that.make(s.handler, s.label);
+                    });
                 } else {
                     s.handler.workerCallback(e.data, s.label);
                 }
@@ -58,20 +60,20 @@ class LabelWorker {
                 this._source[this._id] = source;
 
                 let labelData = new Float32Array([
-                /*0*/this._id++,
-                /*1*/handler._maxLetters,
-                /*2*/label.getVisibility() ? 1 : 0,
-                /*3, 4, 5*/label._positionHigh.x, label._positionHigh.y, label._positionHigh.z,
-                /*6, 7, 8*/label._positionLow.x, label._positionLow.y, label._positionLow.z,
-                /*9*/label._size,
-                /*10, 11, 12*/label._offset.x, label._offset.y, label._offset.z,
-                /*13, 14, 15, 16*/label._color.x, label._color.y, label._color.z, label._color.w,
-                /*17*/label._rotation,
-                /*18, 19, 20*/label._alignedAxis.x, label._alignedAxis.y, label._alignedAxis.z,
-                /*21*/label._fontIndex,
-                /*22*/label._outline,
-                /*23, 24, 25, 26*/label._outlineColor.x, label._outlineColor.y, label._outlineColor.z, label._outlineColor.w,
-                /*27, 28, 29*/label._entity._pickingColor.x, label._entity._pickingColor.y, label._entity._pickingColor.z
+                    /*0*/this._id++,
+                    /*1*/handler._maxLetters,
+                    /*2*/label.getVisibility() ? 1 : 0,
+                    /*3, 4, 5*/label._positionHigh.x, label._positionHigh.y, label._positionHigh.z,
+                    /*6, 7, 8*/label._positionLow.x, label._positionLow.y, label._positionLow.z,
+                    /*9*/label._size,
+                    /*10, 11, 12*/label._offset.x, label._offset.y, label._offset.z,
+                    /*13, 14, 15, 16*/label._color.x, label._color.y, label._color.z, label._color.w,
+                    /*17*/label._rotation,
+                    /*18, 19, 20*/label._alignedAxis.x, label._alignedAxis.y, label._alignedAxis.z,
+                    /*21*/label._fontIndex,
+                    /*22*/label._outline,
+                    /*23, 24, 25, 26*/label._outlineColor.x, label._outlineColor.y, label._outlineColor.z, label._outlineColor.w,
+                    /*27, 28, 29*/label._entity._pickingColor.x, label._entity._pickingColor.y, label._entity._pickingColor.z
                 ]);
 
                 label._lockId = this._id;

@@ -45,13 +45,12 @@ const EVENT_NAMES = [
  * @fires og.layer.CanvasTiles#loadend
  */
 class CanvasTiles extends Layer {
-    constructor(name, options) {
-        options = options || {};
-
+    constructor(name, options = {}) {
         super(name, options);
 
         this.events.registerNames(EVENT_NAMES);
 
+        this.minNativeZoom = options.minNativeZoom || 0;
         /**
          * Current creating tiles couter.
          * @protected
@@ -74,8 +73,30 @@ class CanvasTiles extends Layer {
         this.drawTile = options.drawTile || null;
     }
 
+    addTo(planet) {
+        this._onLoadend_ = this._onLoadend.bind(this);
+        this.events.on("loadend", this._onLoadend_, this);
+        return super.addTo(planet);
+    }
+
+    remove() {
+        this.events.off("loadend", this._onLoadend_);
+        this._onLoadend_ = null;
+        return super.remove();
+    }
+
+    _onLoadend() {
+        if (this._planet && this._planet._terrainCompletedActivated) {
+            this._planet.events.dispatch(this._planet.events.layerloadend, this);
+        }
+    }
+
     get instanceName() {
         return "CanvasTiles";
+    }
+
+    get isIdle() {
+        return super.isIdle && this._counter === 0;
     }
 
     /**
@@ -115,12 +136,10 @@ class CanvasTiles extends Layer {
      * @param {Material} material -
      */
     loadMaterial(material) {
-        var seg = material.segment;
+        let seg = material.segment;
 
         if (this._isBaseLayer) {
-            material.texture = seg._isNorth
-                ? seg.planet.solidTextureOne
-                : seg.planet.solidTextureTwo;
+            material.texture = seg._isNorth ? seg.planet.solidTextureOne : seg.planet.solidTextureTwo;
         } else {
             material.texture = seg.planet.transparentTexture;
         }
@@ -203,7 +222,7 @@ class CanvasTiles extends Layer {
                     this._exec(pmat);
                 }
             }
-        } else if (this._counter === 0) {
+        } else if (this._counter === 0 && this._planet && this._planet._terrainCompletedActivated) {
             this.events.dispatch(this.events.loadend);
         }
     }
@@ -227,18 +246,20 @@ class CanvasTiles extends Layer {
     applyMaterial(material) {
         if (material.isReady) {
             return [0, 0, 1, 1];
+        } else if (material.segment.tileZoom < this.minNativeZoom) {
+            material.textureNotExists();
         } else {
 
-            var segment = material.segment;
-            var pn = segment.node,
+            let segment = material.segment;
+            let pn = segment.node,
                 notEmpty = false;
 
             if (segment.passReady && !material.isLoading) {
                 this.loadMaterial(material);
             }
 
-            var mId = this._id;
-            var psegm = material;
+            let mId = this._id;
+            let psegm = material;
             while (pn.parentNode) {
                 pn = pn.parentNode;
                 psegm = pn.segment.materials[mId];
@@ -251,7 +272,7 @@ class CanvasTiles extends Layer {
             if (notEmpty) {
                 material.appliedNodeId = pn.nodeId;
                 material.texture = psegm.texture;
-                var dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
+                let dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
                 return [
                     segment.tileX * dZ2 - pn.segment.tileX,
                     segment.tileY * dZ2 - pn.segment.tileY,
@@ -268,17 +289,18 @@ class CanvasTiles extends Layer {
     clearMaterial(material) {
         if (material.isReady) {
             material.isReady = false;
-
-            !material.texture.default &&
+            if (material.texture && !material.texture.default) {
                 material.segment.handler.gl.deleteTexture(material.texture);
-
-            material.texture = null;
+                material.texture = null;
+            }
         }
 
         this.abortMaterialLoading(material);
-
         material.isLoading = false;
         material.textureExists = false;
+
+        material.layer = null;
+        material.segment = null;
 
         if (material.image) {
             material.image.src = "";

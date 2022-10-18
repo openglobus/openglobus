@@ -65,7 +65,7 @@ class Entity {
          * @public
          * @type {string}
          */
-        this.properties.name = this.properties.name || options.name || "";
+        this.properties.name = this.properties.name != undefined ? this.properties.name : "";
 
         /**
          * Children entities.

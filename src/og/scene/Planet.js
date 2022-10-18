@@ -89,7 +89,19 @@ const EVENT_NAMES = [
      * Triggered when all data is loaded
      * @event og.scene.Planet#rendercompleted
      */
-    "rendercompleted"
+    "rendercompleted",
+
+    /**
+     * Triggered when all data is loaded
+     * @event og.scene.Planet#terraincompleted
+     */
+    "terraincompleted",
+
+    /**
+     * Triggered when layer data is laded
+     * @event og.scene.Planet#terraincompleted
+     */
+    "layerloadend"
 ];
 
 /**
@@ -140,11 +152,18 @@ export class Planet extends RenderNode {
         this._planetRadius2 = this.ellipsoid.getPolarSize() * this.ellipsoid.getPolarSize();
 
         /**
-         * All layers array.
-         * @public
+         * Layers array.
+         * @protected
          * @type {Array.<Layer>}
          */
-        this.layers = [];
+        this._layers = [];
+
+        /**
+         * Flag to trigger layer update in a next frame
+         * @type {boolean}
+         * @private
+         */
+        this._updateLayer = false;
 
         /**
          * Current visible imagery tile layers array.
@@ -182,6 +201,13 @@ export class Planet extends RenderNode {
          * @type {Terrain}
          */
         this.terrain = null;
+
+        /**
+         * Terrain provider Pool.
+         * @public
+         * @type {Terrain}
+         */
+        this._terrainPool = null;
 
         /**
          * Camera is this.renderer.activeCamera pointer.
@@ -222,7 +248,7 @@ export class Planet extends RenderNode {
          */
         this.maxCurrZoom = math.MIN;
 
-        this._viewExtent = null;
+        this._viewExtent = new Extent(new LonLat(180, 180), new LonLat(-180, -180));
 
         /**
          * @protected
@@ -431,6 +457,10 @@ export class Planet extends RenderNode {
         this.always = [];
 
         this._renderCompleted = false;
+        this._renderCompletedActivated = false;
+
+        this._terrainCompleted = false;
+        this._terrainCompletedActivated = false;
     }
 
     static getBearingNorthRotationQuat(cartesian) {
@@ -442,6 +472,10 @@ export class Planet extends RenderNode {
     get normalMapCreator() {
         return this._normalMapCreator;
     }
+    get layers() {
+        return [...this._layers];
+    }
+
     /**
      * Add the given control to the renderer of the planet scene.
      * @param {control.Control} control - Control.
@@ -460,6 +494,7 @@ export class Planet extends RenderNode {
         this._minLodSize = minLodSize || this._minLodSize;
         this._curLodSize = currentLodSize || this._curLodSize;
         this._renderCompletedActivated = false;
+        this._terrainCompletedActivated = false;
     }
 
     /**
@@ -479,10 +514,9 @@ export class Planet extends RenderNode {
      * @returns {Layer} -
      */
     getLayerByName(name) {
-        var i = this.layers.length;
-        while (i--) {
-            if (this.layers[i].name === name) {
-                return this.layers[i];
+        for (let i = 0, len = this._layers.length; i < len; i++) {
+            if (name === this._layers[i].name) {
+                return this._layers[i];
             }
         }
     }
@@ -511,7 +545,7 @@ export class Planet extends RenderNode {
      * @public
      */
     addLayers(layers) {
-        for (var i = 0; i < layers.length; i++) {
+        for (let i = 0, len = layers.length; i < len; i++) {
             this.addLayer(layers[i]);
         }
     }
@@ -538,9 +572,29 @@ export class Planet extends RenderNode {
             if (mats[lid]) {
                 mats[lid].clear();
                 mats[lid] = null;
+                delete mats[lid];
+            }
+        });
+
+        this._quadTreeNorth.traverseTree(function (node) {
+            var mats = node.segment.materials;
+            if (mats[lid]) {
+                mats[lid].clear();
+                mats[lid] = null;
+                delete mats[lid];
+            }
+        });
+
+        this._quadTreeSouth.traverseTree(function (node) {
+            var mats = node.segment.materials;
+            if (mats[lid]) {
+                mats[lid].clear();
+                mats[lid] = null;
+                delete mats[lid];
             }
         });
     }
+
 
     /**
      * Get the collection of layers associated with this planet.
@@ -577,6 +631,7 @@ export class Planet extends RenderNode {
      */
     setHeightFactor(factor) {
         this._renderCompletedActivated = false;
+        this._terrainCompletedActivated = false;
 
         if (this._heightFactor !== factor) {
             this._heightFactor = factor;
@@ -599,6 +654,7 @@ export class Planet extends RenderNode {
      */
     setTerrain(terrain) {
         this._renderCompletedActivated = false;
+        this._terrainCompletedActivated = false;
 
         if (this._initialized) {
             this.memClear();
@@ -619,21 +675,36 @@ export class Planet extends RenderNode {
             this._quadTree.destroyBranches();
         }
 
-        if (terrain._geoid) {
-            if (!terrain._geoid.model) {
-                terrain._geoid.model = null;
-                Geoid.loadModel(terrain._geoid.src)
-                    .then((m) => {
-                        terrain.getGeoid().setModel(m);
-                        this._plainSegmentWorker.setGeoid(terrain.getGeoid());
-                    })
-                    .catch((err) => {
-                        console.log(err);
-                    });
-            } else {
-                this._plainSegmentWorker.setGeoid(terrain.getGeoid());
-            }
+        //if (terrain._geoid) {
+
+        if (terrain._geoid.model) {
+            this._plainSegmentWorker.setGeoid(terrain.getGeoid());
+            terrain._isReady = true;
+        } else {
+            Geoid.loadModel(terrain._geoid.src)
+                .then((m) => {
+                    terrain.getGeoid().setModel(m);
+                    this._plainSegmentWorker.setGeoid(terrain.getGeoid());
+                    terrain._isReady = true;
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
         }
+
+        // if (!terrain._geoid.model) {
+        //     Geoid.loadModel(terrain._geoid.src)
+        //         .then((m) => {
+        //             terrain.getGeoid().setModel(m);
+        //             this._plainSegmentWorker.setGeoid(terrain.getGeoid());
+        //         })
+        //         .catch((err) => {
+        //             console.log(err);
+        //         });
+        // } else {
+        //     this._plainSegmentWorker.setGeoid(terrain.getGeoid());
+        // }
+        //}
     }
 
     /**
@@ -667,11 +738,18 @@ export class Planet extends RenderNode {
         this.renderer.screenTexture.height = this._heightPickingFramebuffer.textures[0];
     }
 
+    _onLayerLoadend(layer) {
+        this.events.dispatch(this.events.layerloadend, layer);
+    }
+
     /**
      * @virtual
      * @public
      */
     init() {
+
+        this._tileLoader.events.on("layerloadend", this._onLayerLoadend, this);
+
         // Initialization indexes table
         segmentHelper.getInstance().setMaxGridSize(this._maxGridSize);
         const TABLESIZE = this._maxGridSize;
@@ -714,6 +792,7 @@ export class Planet extends RenderNode {
 
         this.renderer.events.on("resize", () => {
             this._renderCompletedActivated = false;
+            this._terrainCompletedActivated = false;
         });
 
         // Initialize texture coordinates buffer pool
@@ -765,7 +844,7 @@ export class Planet extends RenderNode {
         // Applying shaders
         this._initializeShaders();
 
-        this.updateVisibleLayers();
+        this._updateVisibleLayers();
 
         this.renderer.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
 
@@ -853,9 +932,9 @@ export class Planet extends RenderNode {
      * @public
      */
     updateAttributionsList() {
-        var html = "";
-        for (var i = 0; i < this.layers.length; i++) {
-            var li = this.layers[i];
+        let html = "";
+        for (let i = 0, len = this._layers.length; i < len; i++) {
+            let li = this._layers[i];
             if (li._visibility) {
                 if (li._attribution.length) {
                     html += "<li>" + li._attribution + "</li>";
@@ -866,20 +945,24 @@ export class Planet extends RenderNode {
         this._applyAttribution(html)
     }
 
+    updateVisibleLayers() {
+        this._updateLayer = true;
+    }
+
     /**
      * Updates visible layers.
      * @public
      */
-    updateVisibleLayers() {
+    _updateVisibleLayers() {
         this.visibleTileLayers = [];
         this.visibleTileLayers.length = 0;
 
         this.visibleVectorLayers = [];
         this.visibleVectorLayers.length = 0;
 
-        var html = "";
-        for (var i = 0; i < this.layers.length; i++) {
-            var li = this.layers[i];
+        let html = "";
+        for (let i = 0, len = this._layers.length; i < len; i++) {
+            let li = this._layers[i];
             if (li._visibility) {
                 if (li._isBaseLayer) {
                     this.createDefaultTextures(li._defaultTextures[0], li._defaultTextures[1]);
@@ -938,21 +1021,21 @@ export class Planet extends RenderNode {
      * @protected
      */
     _sortLayers() {
-        this.visibleVectorLayers.sort(function (a, b) {
-            return a._zIndex - b._zIndex || a._height - b._height;
-        });
+        this.visibleVectorLayers.sort(
+            (a, b) => (a._zIndex - b._zIndex) || (a._height - b._height)
+        );
 
         this._visibleTileLayerSlices = [];
         this._visibleTileLayerSlices.length = 0;
 
         if (this.visibleTileLayers.length) {
-            this.visibleTileLayers.sort(function (a, b) {
-                return a._height - b._height || a._zIndex - b._zIndex;
-            });
+            this.visibleTileLayers.sort((a, b) =>
+                (a._height - b._height) || (a._zIndex - b._zIndex)
+            );
 
             var k = -1;
             var currHeight = this.visibleTileLayers[0]._height;
-            for (var i = 0; i < this.visibleTileLayers.length; i++) {
+            for (let i = 0, len = this.visibleTileLayers.length; i < len; i++) {
                 if (i % this.SLICE_SIZE === 0 || this.visibleTileLayers[i]._height !== currHeight) {
                     k++;
                     this._visibleTileLayerSlices[k] = [];
@@ -989,7 +1072,8 @@ export class Planet extends RenderNode {
         // clear first
         this._clearRenderedNodeList();
 
-        this._viewExtent = null;
+        this._viewExtent.southWest.set(180, 180);
+        this._viewExtent.northEast.set(-180, -180);
 
         this._visibleNodes = {};
         this._visibleNodesNorth = {};
@@ -1067,6 +1151,12 @@ export class Planet extends RenderNode {
      * @public
      */
     frame() {
+
+        if (this._updateLayer) {
+            this._updateLayer = false;
+            this._updateVisibleLayers();
+        }
+
         this._renderScreenNodesPASS();
 
         this._renderHeightPickingFramebufferPASS();
@@ -1084,22 +1174,33 @@ export class Planet extends RenderNode {
             this._renderCompletedActivated = false;
         }
         this._renderCompleted = true;
+
+        if (this._terrainCompleted) {
+            if (!this._terrainCompletedActivated) {
+                this._terrainCompletedActivated = true;
+                this.events.dispatch(this.events.terraincompleted, true);
+            }
+        } else {
+            this._terrainCompletedActivated = false;
+        }
+
+        this._terrainCompleted = true;
     }
 
     /**
      * @protected
      */
     _renderScreenNodesPASS() {
+
         let sh, shu;
         let renderer = this.renderer;
         let h = renderer.handler;
         let gl = h.gl;
         let cam = renderer.activeCamera;
-        let frustumIndex = cam.getCurrentFrustum();
+        let frustumIndex = cam.getCurrentFrustum(),
+            firstPass = frustumIndex === cam.FARTHEST_FRUSTUM_INDEX;
 
-        gl.disable(gl.POLYGON_OFFSET_FILL);
-
-        if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
+        if (firstPass) {
             if (this._skipPreRender/* && (!this._renderCompletedActivated || cam.isMoved)*/) {
                 this._collectRenderNodes();
             }
@@ -1176,7 +1277,7 @@ export class Planet extends RenderNode {
             let sli = sl[0];
             for (var i = sli.length - 1; i >= 0; --i) {
                 let li = sli[i];
-                if (li._fading && li._refreshFadingOpacity()) {
+                if (li._fading && firstPass && li._refreshFadingOpacity()) {
                     sli.splice(i, 1);
                 }
             }
@@ -1191,22 +1292,23 @@ export class Planet extends RenderNode {
             s.screenRendering(sh, sl[0], 0);
         }
 
-        //gl.enable(gl.POLYGON_OFFSET_FILL);
+        gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1, len = sl.length; j < len; j++) {
             let slj = sl[j];
             for (i = slj.length - 1; i >= 0; --i) {
                 let li = slj[i];
-                if (li._fading && li._refreshFadingOpacity()) {
+                if (li._fading && firstPass && li._refreshFadingOpacity()) {
                     slj.splice(i, 1);
                 }
             }
 
+            gl.polygonOffset(0, -j);
             i = rn.length;
-            //gl.polygonOffset(0, -j);
             while (i--) {
                 rn[i].segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
+        gl.disable(gl.POLYGON_OFFSET_FILL);
 
         gl.disable(gl.BLEND);
     }
@@ -1244,7 +1346,7 @@ export class Planet extends RenderNode {
             gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
             // drawing planet nodes
-            var rn = this._renderedNodesInFrustum[frustumIndex],
+            let rn = this._renderedNodesInFrustum[frustumIndex],
                 sl = this._visibleTileLayerSlices;
 
             let i = rn.length;
@@ -1289,15 +1391,15 @@ export class Planet extends RenderNode {
             rn[i].segment.colorPickingRendering(sh, sl[0], 0);
         }
 
-        //gl.enable(gl.POLYGON_OFFSET_FILL);
+        gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1, len = sl.length; j < len; j++) {
             i = rn.length;
-            //gl.polygonOffset(0, -j);
+            gl.polygonOffset(0, -j);
             while (i--) {
                 rn[i].segment.colorPickingRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
-        //gl.disable(gl.POLYGON_OFFSET_FILL);
+        gl.disable(gl.POLYGON_OFFSET_FILL);
 
         gl.disable(gl.BLEND);
     }
@@ -1340,7 +1442,7 @@ export class Planet extends RenderNode {
         this._frustumEntityCollections.length = 0;
         this._frustumEntityCollections = [];
 
-        var i = this.visibleVectorLayers.length;
+        let i = this.visibleVectorLayers.length;
         while (i--) {
             let vi = this.visibleVectorLayers[i];
 
@@ -1376,7 +1478,7 @@ export class Planet extends RenderNode {
 
         this._normalMapCreator.clear();
         this.terrain.abortLoading();
-        this._tileLoader.abort();
+        this._tileLoader.abortAll();
 
         var that = this;
         // setTimeout(function () {
@@ -1712,8 +1814,8 @@ export class Planet extends RenderNode {
         }
 
         let readyCollections = {};
-        for (let i = 0; i < this.layers.length; i++) {
-            let li = this.layers[i];
+        for (let i = 0; i < this._layers.length; i++) {
+            let li = this._layers[i];
             if (li instanceof Vector) {
                 li.each(function (e) {
                     if (e._entityCollection && !readyCollections[e._entityCollection.id]) {
@@ -1733,5 +1835,21 @@ export class Planet extends RenderNode {
                 return n[i].segment.getEntityTerrainPoint(entity, res);
             }
         }
+    }
+
+    async getHeightDefault(lonLat) {
+        return new Promise((resolve, reject) => {
+            this.terrain.getHeightAsync(lonLat.clone(), (alt) => {
+                resolve(alt);
+            });
+        });
+    }
+
+    async getHeightAboveELL(lonLat) {
+        return new Promise((resolve, reject) => {
+            this.terrain.getHeightAsync(lonLat.clone(), (alt) => {
+                resolve(alt + this.terrain.geoid.getHeightLonLat(lonLat));
+            });
+        });
     }
 }

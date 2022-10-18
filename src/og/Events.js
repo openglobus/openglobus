@@ -150,7 +150,7 @@ class Events {
     dispatch(event, ...args) {
         let result = true;
         if (event && event.active && !this._stopPropagation) {
-            let h = event.handlers,
+            let h = event.handlers.slice(0),
                 i = h.length;
             while (i--) {
                 if (h[i](...args) === false) {

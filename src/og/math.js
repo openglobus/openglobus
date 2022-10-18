@@ -135,12 +135,12 @@ export function isPowerOfTwo(x) {
  * @param {number} x - Input value.
  * @returns {number} -
  */
-export function nextHighestPowerOfTwo(x) {
+export function nextHighestPowerOfTwo(x, maxValue = 4096) {
     --x;
     for (var i = 1; i < 32; i <<= 1) {
         x = x | (x >> i);
     }
-    return x + 1;
+    return (x + 1) > maxValue ? maxValue : x + 1
 }
 
 /**
@@ -200,15 +200,15 @@ export function mod(m, n) {
  * @returns {number} -
  */
 export function zeroTwoPI(a) {
-    var mod = mod(a, TWO_PI);
-    if (Math.abs(mod) < EPSILON14 && Math.abs(a) > EPSILON14) {
+    const res = mod(a, TWO_PI);
+    if (Math.abs(res) < EPSILON14 && Math.abs(a) > EPSILON14) {
         return TWO_PI;
     }
-    return mod;
+    return res;
 }
 
 /**
- * Returns 0.0 if x is smaller then edge and otherwise 1.0.
+ * Returns 0.0 if x is smaller than edge and otherwise 1.0.
  * @function
  * @param {number} edge -
  * @param {number} x - Value to edge.

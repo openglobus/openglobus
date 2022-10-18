@@ -338,6 +338,7 @@ class LightSource {
         renderNode._lightsParamsv.push.apply(renderNode._lightsParamsv, this._ambient.toVec());
         renderNode._lightsParamsv.push.apply(renderNode._lightsParamsv, this._diffuse.toVec());
         renderNode._lightsParamsv.push.apply(renderNode._lightsParamsv, this._specular.toVec());
+        renderNode.transformLights();
         return this;
     }
 

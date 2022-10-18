@@ -34,18 +34,17 @@
         osm.setZIndex(++maxZIndex);
         });
 
-        var sat = new XYZ("MapQuest Satellite", {
+        var sat = new XYZ("Mapbox Satellite", {
         isBaseLayer: false,
         extent: [[-12, 38], [8, 53]],
         url: "https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoibWdldmxpY2hzY2FuZXgiLCJhIjoiY2pwcGdsaXlnMDQzdDQybXhsOWZlbXBvdSJ9.fR2YE-ehJA4iajaJBAPKvw",
         visibility: true,
-        attribution: `2014 MapQuest - Portions 2014 "Map data @
-        <a target="_blank" href="//www.openstreetmap.org/">OpenStreetMap</a> and contributors,
-        <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
+        attribution: `<a href="https://www.mapbox.com/about/maps/" target="_blank" title="Mapbox">©Mapbox</a> satellite`
         });
 
         sat.events.on("lclick", function () {
         sat.setZIndex(++maxZIndex);
+        console.log(sat.getZIndex());
         });
 
         sat.events.on("touchstart", function () {
@@ -64,6 +63,7 @@
 
         img.events.on("lclick", function () {
         img.setZIndex(++maxZIndex);
+        console.log(img.getZIndex());
         });
 
         img.events.on("touchstart", function () {
@@ -80,6 +80,8 @@
         globus.planet.viewExtent(osm.getExtent());
 
         window.globus = globus;
+
+        
 
     </script>
 </body>

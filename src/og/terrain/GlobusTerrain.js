@@ -11,7 +11,6 @@ import { Loader } from "../utils/Loader.js";
 import { NOTRENDERING } from "../quadTree/quadTree.js";
 // import { QueueArray } from '../QueueArray.js';
 import { stringTemplate, createExtent } from "../utils/shared.js";
-import { Geoid } from "./Geoid.js";
 import { Layer } from "../layer/Layer.js";
 import { Vec3 } from "../math/Vec3.js";
 import { Ray } from "../math/Ray.js";
@@ -54,10 +53,8 @@ class GlobusTerrain extends EmptyTerrain {
      * @param {string} [name]
      * @param {*} [options]
      */
-    constructor(name, options) {
-        super();
-
-        options = options || {};
+    constructor(name, options = {}) {
+        super({ geoidSrc: "//openglobus.org/geoid/egm84-30.pgm", ...options });
 
         /**
          * Events handler.
@@ -75,7 +72,7 @@ class GlobusTerrain extends EmptyTerrain {
          * @public
          * @type {string}
          */
-        this.name = name || "";
+        this.name = name || "openglobus";
 
         /**
          * Minimal visible zoom index when terrain handler works.
@@ -115,12 +112,6 @@ class GlobusTerrain extends EmptyTerrain {
          * @type {number}
          */
         this.plainGridSize = options.plainGridSize || 32;
-
-        this._geoid =
-            options.geoid ||
-            new Geoid({
-                src: options.geoidSrc || "//openglobus.org/geoid/egm84-30.pgm"
-            });
 
         this._extent = createExtent(
             options.extent,
@@ -167,10 +158,6 @@ class GlobusTerrain extends EmptyTerrain {
         this._fetchCache = {};
     }
 
-    getGeoid() {
-        return this._geoid;
-    }
-
     isBlur(segment) {
         if (segment.tileZoom >= 8) {
             return true;
@@ -197,7 +184,7 @@ class GlobusTerrain extends EmptyTerrain {
 
         if (cache) {
             if (!cache.heights) {
-                callback(this._geoid.getHeightLonLat(lonLat));
+                callback(0);
             } else {
                 callback(this._getGroundHeightMerc(merc, cache));
             }
@@ -216,20 +203,23 @@ class GlobusTerrain extends EmptyTerrain {
             }
 
             this._fetchCache[tileIndex].then((response) => {
+
+                let extent = mercator.getTileExtent(x, y, z);
+
                 if (response.status === "ready") {
                     let cache = {
-                        heights: this._createHeights(response.data),
-                        extent: mercator.getTileExtent(x, y, z)
+                        heights: this._createHeights(response.data, tileIndex, x, y, z, extent),
+                        extent: extent
                     };
                     this._elevationCache[tileIndex] = cache;
                     callback(this._getGroundHeightMerc(merc, cache));
                 } else if (response.status === "error") {
                     let cache = {
                         heights: null,
-                        extent: mercator.getTileExtent(x, y, z)
+                        extent: extent
                     };
                     this._elevationCache[tileIndex] = cache;
-                    callback(this._geoid.getHeightLonLat(lonLat));
+                    callback(0);
                 } else {
                     this._fetchCache[tileIndex] = null;
                     delete this._fetchCache[tileIndex];
@@ -288,10 +278,10 @@ class GlobusTerrain extends EmptyTerrain {
             h3 = tileData.heights[v3Ind];
 
         let v0 = new Vec3(
-                tileData.extent.southWest.lon + size * j,
-                h0,
-                tileData.extent.northEast.lat - size * i - size
-            ),
+            tileData.extent.southWest.lon + size * j,
+            h0,
+            tileData.extent.northEast.lat - size * i - size
+        ),
             v1 = new Vec3(v0.x + size, h1, v0.z),
             v2 = new Vec3(v0.x, h2, v0.z + size),
             v3 = new Vec3(v0.x + size, h3, v0.z + size);
@@ -317,7 +307,7 @@ class GlobusTerrain extends EmptyTerrain {
      * @public
      */
     abortLoading() {
-        this._loader.abort();
+        this._loader.abortAll();
     }
 
     /**
@@ -365,6 +355,7 @@ class GlobusTerrain extends EmptyTerrain {
                 } else {
                     this._loader.load(
                         {
+                            sender: this,
                             src: this._getHTTPRequestString(segment),
                             segment: segment,
                             type: this._dataType,
@@ -374,12 +365,20 @@ class GlobusTerrain extends EmptyTerrain {
                         },
                         (response) => {
                             if (response.status === "ready") {
-                                let heights = this._createHeights(response.data, segment);
+
+                                let heights = this._createHeights(response.data,
+                                    segment.tileIndex,
+                                    segment.tileX, segment.tileY, segment.tileZoom,
+                                    segment.getExtent()
+                                );
+
                                 this._elevationCache[segment.tileIndex] = {
                                     heights: heights,
                                     extent: segment.getExtent()
                                 };
+
                                 this._applyElevationsData(segment, heights);
+
                             } else if (response.status === "abort") {
                                 segment.terrainIsLoading = false;
                             } else if (response.status === "error") {

@@ -257,10 +257,7 @@ class Segment {
      * @returns {boolean} -
      */
     acceptForRendering(camera) {
-        return (
-            camera.projectedSize(this.bsphere.center, this._plainRadius) <
-            256 / this.planet._lodRatio
-        );
+        return camera.projectedSize(this.bsphere.center, this._plainRadius) < (256 / this.planet._lodRatio);
     }
 
     /**

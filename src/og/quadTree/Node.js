@@ -75,8 +75,7 @@ class Node {
         this.sideSizeLog2 = [0, 0, 0, 0];
         this.ready = false;
         this.neighbors = [[], [], [], []];
-        this.equalizedNeighborId = [-1, -1, -1, -1];
-        this.equalizedNeighborGridSize = [-1, -1, -1, -1];
+        this.equalizedSideWithNodeId = [this.nodeId, this.nodeId, this.nodeId, this.nodeId];
         this.nodes = [null, null, null, null];
         this.segment = new SegmentPrototype(this, planet, tileZoom, extent);
         this._cameraInside = false;
@@ -284,7 +283,7 @@ class Node {
             } else if (
                 seg.terrainReady &&
                 seg.tileZoom < planet.terrain._maxNodeZoom &&
-                (!maxZoom || maxZoom && cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.planet._maxLodSize)) {
+                (!maxZoom || cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.planet._maxLodSize)) {
                 this.traverseNodes(cam, maxZoom, seg, stopLoading);
             } else if (altVis) {
                 seg.passReady = maxZoom ? seg.terrainReady : false;
@@ -404,6 +403,7 @@ class Node {
 
         if (!this.segment.terrainReady) {
             this.planet._renderCompleted = false;
+            this.planet._terrainCompleted = false;
         }
 
         let k = 0,
@@ -638,6 +638,9 @@ class Node {
             let tempVertices, tempVerticesHigh, tempVerticesLow, noDataVertices;
 
             this.appliedTerrainNodeId = pn.nodeId;
+            this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] =
+                this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
+
 
             let gridSize = pn.segment.gridSize / dZ2,
                 gridSizeExt = pn.segment.fileGridSize / dZ2;
@@ -818,6 +821,8 @@ class Node {
                     seg.terrainVerticesLow = tempVerticesLow;
 
                     this.appliedTerrainNodeId = this.nodeId;
+                    this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] =
+                        this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
 
                     if (pn.segment.terrainExists) {
                         seg.terrainExists = true;
@@ -882,9 +887,7 @@ class Node {
     clearTree() {
         var state = this.getState();
 
-        if (state === NOTRENDERING) {
-            this.destroyBranches();
-        } else if (state === RENDERING) {
+        if (state === NOTRENDERING || state === RENDERING) {
             this.destroyBranches();
         } else {
             for (var i = 0; i < this.nodes.length; i++) {

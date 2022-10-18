@@ -144,7 +144,7 @@ class Lighting extends Control {
         this._selectedLayer = layer;
 
         document.getElementById("opacity").value = layer.opacity;
-        document.querySelector(".og-value.opacity").innerHTML = layer.opacity.toString();
+        document.querySelector(".og-value.opacity").innerText = layer.opacity.toString();
     }
 
     oninit() {
@@ -166,15 +166,15 @@ class Lighting extends Control {
 
         document.getElementById("gamma").addEventListener("input", function (e) {
             _this.planet.renderer.gamma = Number(this.value);
-            document.querySelector(".og-value.gamma").innerHTML = this.value;
+            document.querySelector(".og-value.gamma").innerText = this.value;
         });
         document.getElementById("exposure").addEventListener("input", function (e) {
             _this.planet.renderer.exposure = Number(this.value);
-            document.querySelector(".og-value.exposure").innerHTML = this.value;
+            document.querySelector(".og-value.exposure").innerText = this.value;
         });
 
-        document.querySelector(".og-value.gamma").innerHTML = this.planet.renderer.gamma.toString();
-        document.querySelector(".og-value.exposure").innerHTML =
+        document.querySelector(".og-value.gamma").innerText = this.planet.renderer.gamma.toString();
+        document.querySelector(".og-value.exposure").innerText =
             this.planet.renderer.exposure.toString();
 
         document.getElementById("gamma").value = this.planet.renderer.gamma;
@@ -184,51 +184,51 @@ class Lighting extends Control {
             if (_this._selectedLayer) {
                 _this._selectedLayer.opacity = Number(this.value);
             }
-            document.querySelector(".og-value.opacity").innerHTML = this.value;
+            document.querySelector(".og-value.opacity").innerText = this.value;
         });
 
         document.getElementById("ambient-r").addEventListener("input", function (e) {
             _this.planet._ambient[0] = Number(this.value);
-            document.querySelector(".og-value.ambient-r").innerHTML = this.value;
+            document.querySelector(".og-value.ambient-r").innerText = this.value;
         });
         document.getElementById("ambient-g").addEventListener("input", function (e) {
             _this.planet._ambient[1] = Number(this.value);
-            document.querySelector(".og-value.ambient-g").innerHTML = this.value;
+            document.querySelector(".og-value.ambient-g").innerText = this.value;
         });
         document.getElementById("ambient-b").addEventListener("input", function (e) {
             _this.planet._ambient[2] = Number(this.value);
-            document.querySelector(".og-value.ambient-b").innerHTML = this.value;
+            document.querySelector(".og-value.ambient-b").innerText = this.value;
         });
 
         document.getElementById("diffuse-r").addEventListener("input", function (e) {
             _this.planet._diffuse[0] = Number(this.value);
-            document.querySelector(".og-value.diffuse-r").innerHTML = this.value;
+            document.querySelector(".og-value.diffuse-r").innerText = this.value;
         });
         document.getElementById("diffuse-g").addEventListener("input", function (e) {
             _this.planet._diffuse[1] = Number(this.value);
-            document.querySelector(".og-value.diffuse-g").innerHTML = this.value;
+            document.querySelector(".og-value.diffuse-g").innerText = this.value;
         });
         document.getElementById("diffuse-b").addEventListener("input", function (e) {
             _this.planet._diffuse[2] = Number(this.value);
-            document.querySelector(".og-value.diffuse-b").innerHTML = this.value;
+            document.querySelector(".og-value.diffuse-b").innerText = this.value;
         });
 
         document.getElementById("specular-r").addEventListener("input", function (e) {
             _this.planet._specular[0] = Number(this.value);
-            document.querySelector(".og-value.specular-r").innerHTML = this.value;
+            document.querySelector(".og-value.specular-r").innerText = this.value;
         });
         document.getElementById("specular-g").addEventListener("input", function (e) {
             _this.planet._specular[1] = Number(this.value);
-            document.querySelector(".og-value.specular-g").innerHTML = this.value;
+            document.querySelector(".og-value.specular-g").innerText = this.value;
         });
         document.getElementById("specular-b").addEventListener("input", function (e) {
             _this.planet._specular[2] = Number(this.value);
-            document.querySelector(".og-value.specular-b").innerHTML = this.value;
+            document.querySelector(".og-value.specular-b").innerText = this.value;
         });
 
         document.getElementById("shininess").addEventListener("input", function (e) {
             _this.planet._specular[3] = Number(this.value);
-            document.querySelector(".og-value.shininess").innerHTML = this.value;
+            document.querySelector(".og-value.shininess").innerText = this.value;
         });
 
         if (this.planet) {
@@ -248,18 +248,18 @@ class Lighting extends Control {
             document.getElementById("specular-b").value = this.planet._specular[2];
             document.getElementById("shininess").value = this.planet._specular[3];
 
-            document.querySelector(".og-value.ambient-r").innerHTML = this.planet._ambient[0].toString();
-            document.querySelector(".og-value.ambient-g").innerHTML = this.planet._ambient[1].toString();
-            document.querySelector(".og-value.ambient-b").innerHTML = this.planet._ambient[2].toString();
+            document.querySelector(".og-value.ambient-r").innerText = this.planet._ambient[0].toString();
+            document.querySelector(".og-value.ambient-g").innerText = this.planet._ambient[1].toString();
+            document.querySelector(".og-value.ambient-b").innerText = this.planet._ambient[2].toString();
 
-            document.querySelector(".og-value.diffuse-r").innerHTML = this.planet._diffuse[0].toString();
-            document.querySelector(".og-value.diffuse-g").innerHTML = this.planet._diffuse[1].toString();
-            document.querySelector(".og-value.diffuse-b").innerHTML = this.planet._diffuse[2].toString();
+            document.querySelector(".og-value.diffuse-r").innerText = this.planet._diffuse[0].toString();
+            document.querySelector(".og-value.diffuse-g").innerText = this.planet._diffuse[1].toString();
+            document.querySelector(".og-value.diffuse-b").innerText = this.planet._diffuse[2].toString();
 
-            document.querySelector(".og-value.specular-r").innerHTML = this.planet._specular[0].toString();
-            document.querySelector(".og-value.specular-g").innerHTML = this.planet._specular[1].toString();
-            document.querySelector(".og-value.specular-b").innerHTML = this.planet._specular[2].toString();
-            document.querySelector(".og-value.shininess").innerHTML = this.planet._specular[3].toString();
+            document.querySelector(".og-value.specular-r").innerText = this.planet._specular[0].toString();
+            document.querySelector(".og-value.specular-g").innerText = this.planet._specular[1].toString();
+            document.querySelector(".og-value.specular-b").innerText = this.planet._specular[2].toString();
+            document.querySelector(".og-value.shininess").innerText = this.planet._specular[3].toString();
         }
 
         this._fetchLayers();
@@ -277,7 +277,7 @@ class Lighting extends Control {
         this.bindLayer(e);
         let opt = document.createElement("option");
         opt.value = e.name;
-        opt.innerHTML = e.name;
+        opt.innerText = e.name;
         document.getElementById("layers").appendChild(opt);
         document.getElementById("layers").value = e.name;
     }

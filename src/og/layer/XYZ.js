@@ -78,11 +78,6 @@ class XYZ extends Layer {
         this.maxNativeZoom = options.maxNativeZoom || 19;
 
         /**
-         * @protected
-         */
-        this._crossOrigin = options.crossOrigin === undefined ? "" : options.crossOrigin;
-
-        /**
          * Rewrites imagery tile url query.
          * @private
          * @callback og.layer.XYZ~_urlRewriteCallback
@@ -91,6 +86,13 @@ class XYZ extends Layer {
          * @returns {string} - Url query string.
          */
         this._urlRewriteCallback = options.urlRewrite || null;
+    }
+
+    /**
+     * @warning Use XYZ.isIdle in requesAnimationFrame(after setVisibility)
+     */
+    get isIdle() {
+        return super.isIdle && this._planet._tileLoader.getRequestCounter(this) === 0;
     }
 
     get instanceName() {
@@ -103,7 +105,7 @@ class XYZ extends Layer {
      */
     abortLoading() {
         if (this._planet) {
-            this._planet._tileLoader.abort();
+            this._planet._tileLoader.abort(this);
         }
     }
 
@@ -115,11 +117,15 @@ class XYZ extends Layer {
     setVisibility(visibility) {
         if (visibility !== this._visibility) {
             super.setVisibility(visibility);
-
             if (!visibility) {
                 this.abortLoading();
             }
         }
+    }
+
+    remove() {
+        this.abortLoading();
+        super.remove();
     }
 
     /**
@@ -145,6 +151,7 @@ class XYZ extends Layer {
      * @param {Material} material - Loads current material.
      */
     loadMaterial(material, forceLoading) {
+
         let seg = material.segment;
 
         if (this._isBaseLayer) {
@@ -163,6 +170,7 @@ class XYZ extends Layer {
 
                 this._planet._tileLoader.load(
                     {
+                        sender: this,
                         src: this._getHTTPRequestString(material.segment),
                         type: "imageBitmap",
                         filter: () =>
@@ -186,7 +194,8 @@ class XYZ extends Layer {
                                 material.textureNotExists();
                             }
                         }
-                    }
+                    },
+                    this._id
                 );
             } else {
                 material.textureNotExists();
@@ -235,7 +244,7 @@ class XYZ extends Layer {
         this._urlRewriteCallback = ur;
     }
 
-    applyMaterial(material) {
+    applyMaterial(material, forceLoading) {
         if (material.isReady) {
             return material.texOffset;
         } else if (material.segment.tileZoom <= this.minNativeZoom) {
@@ -262,7 +271,7 @@ class XYZ extends Layer {
                 if (pn.segment.tileZoom === maxNativeZoom) {
                     material.textureNotExists();
                 } else if (material.segment.tileZoom <= maxNativeZoom) {
-                    !material.isLoading && !material.isReady && this.loadMaterial(material);
+                    !material.isLoading && !material.isReady && this.loadMaterial(material, forceLoading);
                 } else {
                     let pn = segment.node;
                     while (pn.segment.tileZoom > material.layer.maxNativeZoom) {

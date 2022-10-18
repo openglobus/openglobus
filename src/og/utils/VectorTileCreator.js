@@ -237,7 +237,7 @@ export class VectorTileCreator {
                         height = _h;
                     }
 
-                    texture = (material._updateTexture && material._updateTexture) || h.createEmptyTexture_l(width, height);
+                    texture = material._updateTexture || h.createEmptyTexture_l(width, height);
 
                     f.setSize(width, height);
 

@@ -2,22 +2,37 @@ Contributing to OpenGlobus
 ==========================
 
 1. [Contributing Code](#contributing-code)
-2. [Reporting Bugs](#reporting-bugs)
-3. [Improving Documentation](#improving-documentation)
+2. [Making Pull Requests](#making-pr)
+3. [Reporting Bugs](#reporting-bugs)
+4. [Improving Documentation](#improving-documentation)
 
 ## Contributing Code
 
 Everyone is welcome to contribute to OpenGlobus.
 
-+
-+ TODO Code style, simplicity and performance.
-+
+Please use an editor config from here:
+https://github.com/openglobus/openglobus/blob/master/.editorconfig
+
+## Making pull requests
+
+1) Branch must looks like this:
+`feature/<issue_id>_<custom_name>` or `bugfix/<issue_id>_<custom_name>`
+
+2) Each commit must start with an issue ID like this `#<issue_id>`, so be sure that the issue is exists.
+
+3) Finally, all checks in PR must be approved and PR link must be added in the issue comments.
+
+4) Please, make all checks are fine:
+
+    - [x] `npm test` passes
+    - [x] `npm run api` passes
+    - [x] `npm run lint` passes
+    - [x] `npm run build` still works
+
 
 ## Reporting Bugs
 
-+
-+ TODO how to report bugs
-+
+Feel free to report bug in the issues, please be more specific in the description. No need to put a point in the end of an issue sentence, it is a header!
 
 ## Improving Documentation
 

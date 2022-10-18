@@ -3,33 +3,33 @@
 <head>
     <title>OpenGlobus - Earth planet</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../css/og.css" type="text/css" />
+    <link rel="stylesheet" href="../../css/og.css" type="text/css"/>
 </head>
 
 <body>
-    <div id="globus" style="width:100%;height:100%"></div>
-    <div style="position:absolute;padding:10px;left:0;">
-        <button id="btnFlyImergac" style="float:left;margin:5px;">Precipitation</button>
-        <button id="btnFlyLV" style="float:left;margin:5px;">Las Vegas</button>
-    </div>
-    <script type="module">
-        'use strict';
+<div id="globus" style="width:100%;height:100%"></div>
+<div style="position:absolute;padding:10px;left:0;">
+    <button id="btnFlyImergac" style="float:left;margin:5px;">Precipitation</button>
+    <button id="btnFlyLV" style="float:left;margin:5px;">Las Vegas</button>
+</div>
+<script type="module">
+    'use strict';
 
-        import { Globe } from '../../src/og/Globe.js';
-        import { XYZ } from '../../src/og/layer/XYZ.js';
-        import { GeoVideo } from '../../src/og/layer/GeoVideo.js';
-        import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
+    import {Globe} from '../../src/og/Globe.js';
+    import {XYZ} from '../../src/og/layer/XYZ.js';
+    import {GeoVideo} from '../../src/og/layer/GeoVideo.js';
+    import {GlobusTerrain} from '../../src/og/terrain/GlobusTerrain.js';
 
 
-        document.getElementById("btnFlyImergac").onclick = function () {
+    document.getElementById("btnFlyImergac").onclick = function () {
         globus.planet.flyExtent(imergac.getExtent());
-        };
+    };
 
-        document.getElementById("btnFlyLV").onclick = function () {
+    document.getElementById("btnFlyLV").onclick = function () {
         globus.planet.flyExtent(lv.getExtent());
-        };
+    };
 
-        let sat = new XYZ("MapQuest Satellite", {
+    let sat = new XYZ("Mapbox Satellite", {
         shininess: 20,
         specular: [0.00048, 0.00037, 0.00035],
         diffuse: [0.88, 0.85, 0.8],
@@ -37,12 +37,10 @@
         isBaseLayer: true,
         url: "https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWdldmxpY2hzY2FuZXgiLCJhIjoiY2pwcGdsaXlnMDQzdDQybXhsOWZlbXBvdSJ9.fR2YE-ehJA4iajaJBAPKvw",
         visibility: true,
-        attribution: `�2014 MapQuest - Portions �2014 "Map data �
-        <a target="_blank" href="//www.openstreetmap.org/">OpenStreetMap</a> and contributors,
-        <a target="_blank" href="//opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"`
-        });
+        attribution:`<a href="https://www.mapbox.com/about/maps/" target="_blank" title="Mapbox">©Mapbox</a> satellite`
+    });
 
-        let imergac = new GeoVideo("USA precipitation 08.05.2016", {
+    let imergac = new GeoVideo("USA precipitation 08.05.2016", {
         minZoom: 0,
         maxZoom: 10,
         src: "imergac_20160508_NASA.mp4",
@@ -51,9 +49,9 @@
         isBaseLayer: false,
         attribution: 'USA precipitation 08.05.2016, nasasearch.nasa.gov',
         opacity: 0.7
-        });
+    });
 
-        let lv = new GeoVideo("Las Vegas", {
+    let lv = new GeoVideo("Las Vegas", {
         minZoom: 10,
         src: "SkyBox-LasVegas.mp4",
         corners: [[-115.18254616355969, 36.110055739189924], [-115.16604079376724, 36.10771264333345], [-115.16801916927308, 36.10038576099672], [-115.18457379699841, 36.102812078782755]],
@@ -62,18 +60,18 @@
         attribution: 'SkyBox Imaging Inc.',
         opacity: 1.0,
         diffuse: [1.2, 1.2, 1.2]
-        });
+    });
 
 
-        let globus = new Globe({
+    let globus = new Globe({
         "target": "globus",
         "name": "Earth",
         "terrain": new GlobusTerrain(),
         "layers": [sat, imergac, lv]
-        });
+    });
 
-        globus.planet.flyExtent(imergac.getExtent());
-    </script>
+    globus.planet.flyExtent(imergac.getExtent());
+</script>
 </body>
 
 </html>

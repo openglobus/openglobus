@@ -72,7 +72,7 @@ class MouseNavigation extends Control {
                 dir = Vec3.sub(a, cam.eye).normalize();
             }
 
-            var d = a ? (delta * cam.eye.distance(a)) / stepsCount : 1000;
+            var d = (delta * cam.eye.distance(a)) / stepsCount;
 
             if (forward) {
                 d = -1.25 * d;
@@ -84,7 +84,7 @@ class MouseNavigation extends Control {
 
             let slope = dir.dot(cam.eye.normal().negate());
 
-            if (a && slope >= 0.1) {
+            if (slope >= 0.1) {
                 var grabbedSpheroid = new Sphere();
                 grabbedSpheroid.radius = a.length();
 
