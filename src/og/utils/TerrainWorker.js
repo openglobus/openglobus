@@ -11,7 +11,6 @@ class TerrainWorker extends BaseWorker {
     }
 
     _onMessage(e) {
-
         this._segments.get(e.data.id)._terrainWorkerCallback(e.data);
         this._segments.delete(e.data.id);
 
@@ -22,10 +21,6 @@ class TerrainWorker extends BaseWorker {
         e.data.terrainVertices = null;
         e.data.terrainVerticesHigh = null;
         e.data.terrainVerticesLow = null;
-
-
-        super._onMessage(e)
-        this.check();
     }
 
     check() {
@@ -66,7 +61,7 @@ class TerrainWorker extends BaseWorker {
                 ]);
 
             } else {
-                this._pendingQueue.push({ segment, elevations });
+                this._pendingQueue.push({ segment: segment, elevations: _elevations });
             }
         } else {
             this.check();

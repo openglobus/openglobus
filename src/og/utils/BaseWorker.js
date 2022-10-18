@@ -7,6 +7,9 @@ export class BaseWorker {
         if (program) this.setProgram(program);
     }
 
+    /**
+     * @virtual
+     */
     make() {
     }
 
@@ -16,22 +19,18 @@ export class BaseWorker {
         }
     }
 
-    _onMessage(e) {
-        this._workerQueue && this._workerQueue.unshift(e.target);
-    }
-
     setProgram(program) {
-        var elevationProgramm = new Blob([program], { type: "application/javascript" });
+        let elevationProgramm = new Blob([program], { type: "application/javascript" });
 
         for (let i = 0; i < this._numWorkers; i++) {
             let w = new Worker(URL.createObjectURL(elevationProgramm));
-            this._onMessage = this._onMessage.bind(this);
-            w.onmessage = this._onMessage
-
+            w.onmessage = (e) => {
+                this._onMessage(e);
+                this._workerQueue && this._workerQueue.unshift(e.target);
+                this.check();
+            }
             this._workerQueue.push(w);
         }
-
-        elevationProgramm = undefined;
     }
 
     destroy() {

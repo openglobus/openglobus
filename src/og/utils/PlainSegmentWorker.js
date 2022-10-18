@@ -23,10 +23,6 @@ class PlainSegmentWorker extends BaseWorker {
         e.data.normalMapVerticesLow = null;
 
         this._segments.delete(e.data.id)
-
-        super._onMessage(e)
-        this.check();
-
     }
 
     setGeoid(geoid) {
@@ -49,21 +45,19 @@ class PlainSegmentWorker extends BaseWorker {
                 let rawfile = new Uint8Array(m.rawfile.length);
                 rawfile.set(m.rawfile);
 
-                w.postMessage(
-                    {
+                w.postMessage({
                         model: model,
                         rawfile: rawfile
-                    },
-                    [rawfile.buffer]
+                    }, [
+                        rawfile.buffer
+                    ]
                 );
             });
         } else {
             this._workerQueue.forEach((w) => {
-                w.postMessage(
-                    {
-                        model: null
-                    }
-                );
+                w.postMessage({
+                    model: null
+                });
             });
         }
     }
@@ -92,12 +86,11 @@ class PlainSegmentWorker extends BaseWorker {
                     segment.planet._heightFactor
                 ]);
 
-                w.postMessage(
-                    {
-                        params: params
-                    },
-                    [params.buffer]
-                );
+                w.postMessage({
+                    params: params
+                }, [
+                    params.buffer
+                ]);
             } else {
                 this._pendingQueue.push(segment);
             }
