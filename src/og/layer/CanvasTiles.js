@@ -50,6 +50,7 @@ class CanvasTiles extends Layer {
 
         this.events.registerNames(EVENT_NAMES);
 
+        this.minNativeZoom = options.minNativeZoom || 0;
         /**
          * Current creating tiles couter.
          * @protected
@@ -135,12 +136,10 @@ class CanvasTiles extends Layer {
      * @param {Material} material -
      */
     loadMaterial(material) {
-        var seg = material.segment;
+        let seg = material.segment;
 
         if (this._isBaseLayer) {
-            material.texture = seg._isNorth
-                ? seg.planet.solidTextureOne
-                : seg.planet.solidTextureTwo;
+            material.texture = seg._isNorth ? seg.planet.solidTextureOne : seg.planet.solidTextureTwo;
         } else {
             material.texture = seg.planet.transparentTexture;
         }
@@ -247,18 +246,20 @@ class CanvasTiles extends Layer {
     applyMaterial(material) {
         if (material.isReady) {
             return [0, 0, 1, 1];
+        } else if (material.segment.tileZoom < this.minNativeZoom) {
+            material.textureNotExists();
         } else {
 
-            var segment = material.segment;
-            var pn = segment.node,
+            let segment = material.segment;
+            let pn = segment.node,
                 notEmpty = false;
 
             if (segment.passReady && !material.isLoading) {
                 this.loadMaterial(material);
             }
 
-            var mId = this._id;
-            var psegm = material;
+            let mId = this._id;
+            let psegm = material;
             while (pn.parentNode) {
                 pn = pn.parentNode;
                 psegm = pn.segment.materials[mId];
@@ -271,7 +272,7 @@ class CanvasTiles extends Layer {
             if (notEmpty) {
                 material.appliedNodeId = pn.nodeId;
                 material.texture = psegm.texture;
-                var dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
+                let dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
                 return [
                     segment.tileX * dZ2 - pn.segment.tileX,
                     segment.tileY * dZ2 - pn.segment.tileY,

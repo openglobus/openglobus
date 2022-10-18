@@ -404,19 +404,8 @@ class Segment {
     }
 
     _checkEqualization(neighborSide, neigborNode) {
-        return (
-            neigborNode && this.tileZoom >= neigborNode.segment.tileZoom
-
-            //&&
-            //(
-            //    this.node.equalizedNeighborId[neighborSide] !== neigborNode.appliedTerrainNodeId ||
-            //    this.node.equalizedNeighborGridSize[neighborSide] !== neigborNode.segment.gridSize
-            //||
-
-            //    neigborNode.equalizedNeighborId[OPSIDE[neighborSide]] !== this.node.appliedTerrainNodeId ||
-            //    neigborNode.equalizedNeighborGridSize[OPSIDE[neighborSide]] !== this.gridSize
-            //)
-        );
+        return neigborNode && this.tileZoom >= neigborNode.segment.tileZoom &&
+            this.node.equalizedSideWithNodeId[neighborSide] !== neigborNode.equalizedSideWithNodeId[OPSIDE[neighborSide]];
     }
 
     equalize() {
@@ -434,11 +423,8 @@ class Segment {
 
         let n = nn[N][0];
         if (this._checkEqualization(N, n)) {
-            //this.node.equalizedNeighborId[N] = n.appliedTerrainNodeId;
-            //this.node.equalizedNeighborGridSize[N] = n.segment.gridSize;
 
-            //n.equalizedNeighborId[OPSIDE[N]] = this.node.appliedTerrainNodeId;
-            //n.equalizedNeighborGridSize[OPSIDE[N]] = this.gridSize;
+            this.node.equalizedSideWithNodeId[N] = n.equalizedSideWithNodeId[S];
 
             this.readyToEngage = true;
 
@@ -477,11 +463,8 @@ class Segment {
 
         n = nn[E][0];
         if (this._checkEqualization(E, n)) {
-            //this.node.equalizedNeighborId[E] = n.appliedTerrainNodeId;
-            //this.node.equalizedNeighborGridSize[E] = n.segment.gridSize;
 
-            //n.equalizedNeighborId[OPSIDE[E]] = this.node.appliedTerrainNodeId;
-            //n.equalizedNeighborGridSize[OPSIDE[E]] = this.gridSize;
+            this.node.equalizedSideWithNodeId[E] = n.equalizedSideWithNodeId[W];
 
             this.readyToEngage = true;
 
@@ -520,11 +503,8 @@ class Segment {
 
         n = nn[S][0];
         if (this._checkEqualization(S, n)) {
-            //this.node.equalizedNeighborId[S] = n.appliedTerrainNodeId;
-            //this.node.equalizedNeighborGridSize[S] = n.segment.gridSize;
 
-            //n.equalizedNeighborId[OPSIDE[S]] = this.node.appliedTerrainNodeId;
-            //n.equalizedNeighborGridSize[OPSIDE[S]] = this.gridSize;
+            this.node.equalizedSideWithNodeId[S] = n.equalizedSideWithNodeId[N];
 
             this.readyToEngage = true;
 
@@ -562,11 +542,8 @@ class Segment {
 
         n = nn[W][0];
         if (this._checkEqualization(W, n)) {
-            //this.node.equalizedNeighborId[W] = n.appliedTerrainNodeId;
-            //this.node.equalizedNeighborGridSize[W] = n.segment.gridSize;
 
-            //n.equalizedNeighborId[OPSIDE[W]] = this.node.appliedTerrainNodeId;
-            //n.equalizedNeighborGridSize[OPSIDE[W]] = this.gridSize;
+            this.node.equalizedSideWithNodeId[W] = n.equalizedSideWithNodeId[E];
 
             this.readyToEngage = true;
 
@@ -672,17 +649,12 @@ class Segment {
 
             this.setBoundingVolumeArr(data.bounds);
 
-            //var b = data.bounds;
-
-            //this.setBoundingSphere(
-            //    b[0] + (b[1] - b[0]) * 0.5,
-            //    b[2] + (b[3] - b[2]) * 0.5,
-            //    b[4] + (b[5] - b[4]) * 0.5,
-            //    new Vec3(b[0], b[2], b[4])
-            //);
-
             this.gridSize = Math.sqrt(this.terrainVertices.length / 3) - 1;
-            this.node.appliedTerrainNodeId = this.node.nodeId;
+
+            let n = this.node;
+            n.appliedTerrainNodeId = n.nodeId;
+            n.equalizedSideWithNodeId[N] = n.equalizedSideWithNodeId[E] = n.equalizedSideWithNodeId[S] =
+                n.equalizedSideWithNodeId[W] = n.appliedTerrainNodeId;
 
             this.terrainReady = true;
             this.terrainIsLoading = false;
@@ -711,7 +683,10 @@ class Segment {
             if (this.plainReady && this.terrainIsLoading) {
                 this.terrainIsLoading = false;
 
-                this.node.appliedTerrainNodeId = this.node.nodeId;
+                let n = this.node;
+                n.appliedTerrainNodeId = this.node.nodeId;
+                n.equalizedSideWithNodeId[N] = n.equalizedSideWithNodeId[E] = n.equalizedSideWithNodeId[S] =
+                    n.equalizedSideWithNodeId[W] = n.appliedTerrainNodeId;
 
                 if (this.planet.lightEnabled && !this._inTheQueue) {
                     this.planet._normalMapCreator.queue(this);

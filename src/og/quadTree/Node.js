@@ -75,8 +75,7 @@ class Node {
         this.sideSizeLog2 = [0, 0, 0, 0];
         this.ready = false;
         this.neighbors = [[], [], [], []];
-        this.equalizedNeighborId = [-1, -1, -1, -1];
-        this.equalizedNeighborGridSize = [-1, -1, -1, -1];
+        this.equalizedSideWithNodeId = [this.nodeId, this.nodeId, this.nodeId, this.nodeId];
         this.nodes = [null, null, null, null];
         this.segment = new SegmentPrototype(this, planet, tileZoom, extent);
         this._cameraInside = false;
@@ -639,6 +638,9 @@ class Node {
             let tempVertices, tempVerticesHigh, tempVerticesLow, noDataVertices;
 
             this.appliedTerrainNodeId = pn.nodeId;
+            this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] =
+                this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
+
 
             let gridSize = pn.segment.gridSize / dZ2,
                 gridSizeExt = pn.segment.fileGridSize / dZ2;
@@ -819,6 +821,8 @@ class Node {
                     seg.terrainVerticesLow = tempVerticesLow;
 
                     this.appliedTerrainNodeId = this.nodeId;
+                    this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] =
+                        this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
 
                     if (pn.segment.terrainExists) {
                         seg.terrainExists = true;
