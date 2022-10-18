@@ -85,6 +85,9 @@ class XYZ extends Layer {
          * @returns {string} - Url query string.
          */
         this._urlRewriteCallback = options.urlRewrite || null;
+
+        this._requestsPeerSubdomian = 4;
+        this._requestCount = 0;
     }
 
     /**
@@ -219,7 +222,10 @@ class XYZ extends Layer {
     }
 
     _getSubdomain() {
-        return this._s[Math.floor(Math.random() * this._s.length)];
+        console.time('sub')
+        this._requestCount++;
+        return this._s[Math.floor(this._requestCount % (this._requestsPeerSubdomian * this._s.length) / this._requestsPeerSubdomian)];
+
     }
 
     /**
