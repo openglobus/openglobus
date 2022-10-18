@@ -222,7 +222,6 @@ class XYZ extends Layer {
     }
 
     _getSubdomain() {
-        console.time('sub')
         this._requestCount++;
         return this._s[Math.floor(this._requestCount % (this._requestsPeerSubdomian * this._s.length) / this._requestsPeerSubdomian)];
 
