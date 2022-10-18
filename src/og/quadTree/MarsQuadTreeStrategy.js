@@ -12,7 +12,6 @@ export class MarsQuadTreeStrategy extends QuadTreeStrategy {
         super(options);
         this.name = "mars";
         this.projection = EPSG4326;
-        console.log('MarsQuadTreeStrategy ');
     }
 
     init() {

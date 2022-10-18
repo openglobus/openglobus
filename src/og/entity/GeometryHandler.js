@@ -1030,11 +1030,6 @@ class GeometryHandler {
     _updatePlanet() {
         var p = this._layer._planet;
         if (p) {
-            /*
-            this._refreshPlanetNode(p._quadTree);
-            this._refreshPlanetNode(p._quadTreeNorth);
-            this._refreshPlanetNode(p._quadTreeSouth);
-            */
             p.quadTreeStrategy.quadTreeList.forEach(quadTree => {
                 this._refreshPlanetNode(quadTree);
             });

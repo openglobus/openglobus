@@ -758,17 +758,6 @@ export class Planet extends RenderNode {
 
 
         // Creating quad trees nodes
-        /*
-        this._quadTree = new Node(Segment, this, quadTree.NW, null, 0, 0,
-            Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34])
-        );
-        this._quadTreeNorth = new Node(SegmentLonLat, this, quadTree.NW, null, 0, 0,
-            Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90])
-        );
-        this._quadTreeSouth = new Node(SegmentLonLat, this, quadTree.NW, null, 0, 0,
-            Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT])
-        );
-        */
         this.quadTreeStrategy.init();
 
         this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
@@ -828,31 +817,6 @@ export class Planet extends RenderNode {
     }
 
     _preRender() {
-        /*
-        // Zoom 0
-        this._quadTree.createChildrenNodes();
-        this._quadTree.segment.createPlainSegment();
-
-        // Zoom 1
-        for (let i = 0; i < this._quadTree.nodes.length; i++) {
-            this._quadTree.nodes[i].segment.createPlainSegment();
-        }
-
-        // same for poles
-        this._quadTreeNorth.createChildrenNodes();
-        this._quadTreeNorth.segment.createPlainSegment();
-
-        for (let i = 0; i < this._quadTreeNorth.nodes.length; i++) {
-            this._quadTreeNorth.nodes[i].segment.createPlainSegment();
-        }
-
-        this._quadTreeSouth.createChildrenNodes();
-        this._quadTreeSouth.segment.createPlainSegment();
-
-        for (let i = 0; i < this._quadTreeSouth.nodes.length; i++) {
-            this._quadTreeSouth.nodes[i].segment.createPlainSegment();
-        }
-        */
         this.quadTreeStrategy.preRender();
 
         this._preLoad();
@@ -863,40 +827,6 @@ export class Planet extends RenderNode {
 
         this._skipPreRender = false;
 
-        /*
-        // Same for poles
-        this._quadTreeNorth.segment.passReady = true;
-        this._quadTreeNorth.renderNode(true);
-        this._normalMapCreator.drawSingle(this._quadTreeNorth.segment);
-
-        for (let i = 0; i < this._quadTreeNorth.nodes.length; i++) {
-            this._quadTreeNorth.nodes[i].segment.passReady = true;
-            this._quadTreeNorth.nodes[i].renderNode(true);
-            this._normalMapCreator.drawSingle(this._quadTreeNorth.nodes[i].segment);
-        }
-
-        this._quadTreeSouth.segment.passReady = true;
-        this._quadTreeSouth.renderNode(true);
-        this._normalMapCreator.drawSingle(this._quadTreeSouth.segment);
-
-        for (let i = 0; i < this._quadTreeSouth.nodes.length; i++) {
-            this._quadTreeSouth.nodes[i].segment.passReady = true;
-            this._quadTreeSouth.nodes[i].renderNode(true);
-            this._normalMapCreator.drawSingle(this._quadTreeSouth.nodes[i].segment);
-        }
-
-        // Zoom 1
-        for (let i = 0; i < this._quadTree.nodes.length; i++) {
-            this._quadTree.nodes[i].segment.passReady = true;
-            this._quadTree.nodes[i].renderNode(true);
-            this._normalMapCreator.drawSingle(this._quadTree.nodes[i].segment);
-        }
-
-        // Zoom 0
-        this._quadTree.segment.passReady = true;
-        this._quadTree.renderNode(true);
-        this._normalMapCreator.drawSingle(this._quadTree.segment);
-        */
         this.quadTreeStrategy.preLoad();
     }
 
@@ -1068,8 +998,6 @@ export class Planet extends RenderNode {
         this.minCurrZoom = math.MAX;
         this.maxCurrZoom = math.MIN;
 
-        //this._quadTree.renderTree(cam, 0, null);
-
         if (cam.slope > this.minEqualZoomCameraSlope &&
             cam._lonLat.height < this.maxEqualZoomAltitude &&
             cam._lonLat.height > this.minEqualZoomAltitude
@@ -1114,8 +1042,6 @@ export class Planet extends RenderNode {
         }
 
         this.quadTreeStrategy.collectRenderNodes();
-        //this._quadTreeNorth.renderTree(cam, 0, null);
-        //this._quadTreeSouth.renderTree(cam, 0, null);
     }
 
     _globalPreDraw() {
@@ -1455,11 +1381,6 @@ export class Planet extends RenderNode {
         var that = this;
         // setTimeout(function () {
 
-        /*
-        that._quadTree.clearTree();
-        that._quadTreeNorth.clearTree();
-        that._quadTreeSouth.clearTree();
-        */
         that.quadTreeStrategy.clear();
 
         that.layerLock.free(that._memKey);
