@@ -85,8 +85,7 @@ class LabelHandler extends BillboardHandler {
     }
 
     _addLabelToArrays(label) {
-        this._renderer.labelWorker.make(label);
-        console.time(`label${label.id}`)
+        this._renderer.labelWorker.make({ handler: this, label: label });
     }
 
     assignFontAtlas(label) {

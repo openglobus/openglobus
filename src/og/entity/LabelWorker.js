@@ -14,30 +14,30 @@ class LabelWorker extends BaseWorker {
     }
 
     _onMessage(e) {
+        let s = this._source.get(e.data.id);
 
-        let label = this._source.get(e.data.id);
-
-        if (label._lockId === LOCK_UPDATE) {
+        if (s.label._lockId === LOCK_UPDATE) {
             requestAnimationFrame(() => {
-                this.make(label);
+                this.make({ handler: s.handler, label: s.label });
             });
         } else {
-            label._handler.workerCallback(e.data, label);
+            s.handler.workerCallback(e.data, s.label);
         }
 
         this._source.delete(e.data.id);
     }
 
 
-    make() {
-        const label = arguments[0],
-        handler = label._handler;
+    make(data) {
+        let label = data.label,
+            handler = data.handler;
+
         if (handler._entityCollection) {
 
             if (this._workerQueue.length) {
                 var w = this._workerQueue.pop();
 
-                this._source.set(this._id, label);
+                this._source.set(this._id, data);
 
                 let labelData = new Float32Array([
                     /*0*/this._id++,
@@ -64,7 +64,7 @@ class LabelWorker extends BaseWorker {
                     labelData.buffer,
                 ]);
             } else {
-                this._pendingQueue.push(label);
+                this._pendingQueue.push(data);
             }
         }
     }
