@@ -86,7 +86,6 @@ class LabelHandler extends BillboardHandler {
 
     _addLabelToArrays(label) {
         this._renderer.labelWorker.make(label);
-        console.time(`label${label.id}`)
     }
 
     assignFontAtlas(label) {
@@ -122,8 +121,6 @@ class LabelHandler extends BillboardHandler {
             label.update();
 
             this.refresh();
-            console.timeEnd(`label${label.id}`)
-            console.log(label)
         }
     }
 
@@ -364,6 +361,8 @@ class LabelHandler extends BillboardHandler {
 
         this.reindexBillbordsArray(li);
         this.refresh();
+
+        this._renderer.labelWorker.make(label);
 
         label._handlerIndex = -1;
         label._handler = null;
