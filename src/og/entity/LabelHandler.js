@@ -121,7 +121,6 @@ class LabelHandler extends BillboardHandler {
             label.update();
 
             this.refresh();
-            console.timeEnd(`label${label.id}`)
             console.log(label)
         }
     }
