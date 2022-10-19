@@ -26,9 +26,6 @@ class LabelWorker extends BaseWorker {
         }
 
         this._source.delete(e.data.id);
-        super._onMessage(e)
-
-        this.check();
     }
 
 
