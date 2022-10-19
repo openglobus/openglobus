@@ -177,7 +177,6 @@ class Handler {
             for (let i = 0; i < CONTEXT_TYPE.length; i++) {
                 ctx = canvas.getContext(CONTEXT_TYPE[i], contextAttributes);
                 if (ctx) {
-                    console.log(CONTEXT_TYPE[i]);
                     ctx.type = CONTEXT_TYPE[i];
                     break;
                 }

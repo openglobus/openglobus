@@ -10,7 +10,7 @@ import { Events } from "../Events.js";
 import { Loader } from "../utils/Loader.js";
 import { NOTRENDERING } from "../quadTree/quadTree.js";
 // import { QueueArray } from '../QueueArray.js';
-import { stringTemplate, createExtent } from "../utils/shared.js";
+import { createExtent, stringTemplate } from "../utils/shared.js";
 import { Layer } from "../layer/Layer.js";
 import { Vec3 } from "../math/Vec3.js";
 import { Ray } from "../math/Ray.js";
@@ -55,13 +55,17 @@ class GlobusTerrain extends EmptyTerrain {
      */
     constructor(name, options = {}) {
         super({ geoidSrc: "//openglobus.org/geoid/egm84-30.pgm", ...options });
-
+        this._s = options.subdomains || ["a", "b", "c"];
         /**
          * Events handler.
          * @public
          * @type {Events}
          */
         this.events = new Events(EVENT_NAMES, this);
+
+        this._requestCount = 0;
+
+        this._requestsPeerSubdomian = 4;
 
         this.isEmpty = false;
 
@@ -93,7 +97,7 @@ class GlobusTerrain extends EmptyTerrain {
          * @public
          * @type {string}
          */
-        this.url = options.url || "//srtm3.openglobus.org/{z}/{y}/{x}.ddm";
+        this.url = options.url || "//{s}.srtm3.openglobus.org/{z}/{y}/{x}.ddm";
 
         /**
          * Array of segment triangulation grid sizes where array index agreed to the segment zoom index.
@@ -191,11 +195,7 @@ class GlobusTerrain extends EmptyTerrain {
             return true;
         } else {
             if (!this._fetchCache[tileIndex]) {
-                let url = stringTemplate(this.url, {
-                    x: x,
-                    y: y,
-                    z: z
-                });
+                let url = this._buildURL(x, y, z);
                 this._fetchCache[tileIndex] = this._loader.fetch({
                     src: url,
                     type: this._dataType
@@ -278,10 +278,10 @@ class GlobusTerrain extends EmptyTerrain {
             h3 = tileData.heights[v3Ind];
 
         let v0 = new Vec3(
-            tileData.extent.southWest.lon + size * j,
-            h0,
-            tileData.extent.northEast.lat - size * i - size
-        ),
+                tileData.extent.southWest.lon + size * j,
+                h0,
+                tileData.extent.northEast.lat - size * i - size
+            ),
             v1 = new Vec3(v0.x + size, h1, v0.z),
             v2 = new Vec3(v0.x, h2, v0.z + size),
             v3 = new Vec3(v0.x + size, h3, v0.z + size);
@@ -397,6 +397,17 @@ class GlobusTerrain extends EmptyTerrain {
         }
     }
 
+    _getSubdomain() {
+        this._requestCount++;
+        return  this._s[Math.floor(this._requestCount % (this._requestsPeerSubdomian * this._s.length) / this._requestsPeerSubdomian)];
+    }
+
+    _buildURL(x, y, z) {
+        return stringTemplate(this.url, {
+            s: this._getSubdomain(), x, y, z
+        });
+    }
+
     /**
      * Creates query url.
      * @protected
@@ -405,11 +416,11 @@ class GlobusTerrain extends EmptyTerrain {
      * @returns {string} -
      */
     _createUrl(segment) {
-        return stringTemplate(this.url, {
-            x: segment.tileX.toString(),
-            y: segment.tileY.toString(),
-            z: segment.tileZoom.toString()
-        });
+        return this._buildURL(
+            segment.tileX.toString(),
+            segment.tileY.toString(),
+            segment.tileZoom.toString()
+        )
     }
 
     /**
