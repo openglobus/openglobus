@@ -1231,18 +1231,11 @@ class Segment {
         var p = this.planet;
         var n = this.node;
 
-        n.sideSize[0] =
-            n.sideSize[1] =
-                n.sideSize[2] =
-                    n.sideSize[3] =
-                        this.gridSize =
-                            p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize;
+        this.gridSize =
+            p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize;
 
-        n.sideSizeLog2[0] =
-            n.sideSizeLog2[1] =
-                n.sideSizeLog2[2] =
-                    n.sideSizeLog2[3] =
-                        Math.log2(p.terrain.gridSizeByZoom[this.tileZoom] || p.terrain.plainGridSize);
+        n.sideSizeLog2[0] = n.sideSizeLog2[1] = n.sideSizeLog2[2] = n.sideSizeLog2[3] =
+            Math.log2(this.gridSize);
 
         if (this.tileZoom <= p.terrain.maxZoom) {
             var nmc = this.planet._normalMapCreator;
@@ -1628,8 +1621,8 @@ class Segment {
     }
 
     _getIndexBuffer() {
-        var s = this.node.sideSizeLog2;
-        var cache = this.planet._indexesCache[Math.log2(this.gridSize)][s[0]][s[1]][s[2]][s[3]];
+        let s = this.node.sideSizeLog2;
+        let cache = this.planet._indexesCache[Math.log2(this.gridSize)][s[0]][s[1]][s[2]][s[3]];
         if (!cache.buffer) {
             let indexes = segmentHelper.getInstance().createSegmentIndexes(Math.log2(this.gridSize), [s[0], s[1], s[2], s[3]]);
             cache.buffer = this.planet.renderer.handler.createElementArrayBuffer(indexes, 1);
