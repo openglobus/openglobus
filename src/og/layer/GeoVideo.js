@@ -156,6 +156,7 @@ class GeoVideo extends BaseGeoImage {
                 }
             } else {
                 this._video = document.createElement("video");
+                this._video.crossOrigin = "Anonymous";
                 let that = this;
                 this._video.addEventListener("canplay", function () {
                     that._onCanPlay(this);

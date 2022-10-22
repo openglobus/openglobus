@@ -251,7 +251,7 @@ class XYZ extends Layer {
     applyMaterial(material, forceLoading) {
         if (material.isReady) {
             return material.texOffset;
-        } else if (material.segment.tileZoom <= this.minNativeZoom) {
+        } else if (material.segment.tileZoom < this.minNativeZoom) {
             material.textureNotExists();
         } else {
 
