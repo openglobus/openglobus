@@ -1,5 +1,3 @@
-[![Join the chat at https://gitter.im/openglobus/og](https://badges.gitter.im/openglobus/og.svg)](https://gitter.im/openglobus/og?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
 # OpenGlobus
 
 English | [简体中文](README_CN.md) | [Portuguese-BR](README_pt-BR.md)
@@ -141,5 +139,4 @@ There are many ways to contribute back to the project:
 
 ## License
 
-MIT
-=======
+### MIT
