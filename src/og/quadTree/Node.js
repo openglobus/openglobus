@@ -71,7 +71,6 @@ class Node {
         this.nodeId = partId + id;
         this.state = null;
         this.appliedTerrainNodeId = -1;
-        this.sideSize = [1, 1, 1, 1];
         this.sideSizeLog2 = [0, 0, 0, 0];
         this.ready = false;
         this.neighbors = [[], [], [], []];
@@ -386,9 +385,6 @@ class Node {
                         cs_size = ap.gridSize;
                         opcs_size = Math.ceil(bp.gridSize * ld);
                     }
-
-                    this.sideSize[cs] = cs_size;
-                    ni.sideSize[opcs] = opcs_size;
 
                     this.sideSizeLog2[cs] = Math.log2(cs_size);
                     ni.sideSizeLog2[opcs] = Math.log2(opcs_size);
@@ -879,7 +875,6 @@ class Node {
         n[W] && n[W].neighbors && (n[W].neighbors[E] = []);
         this.neighbors = null;
         this.parentNode = null;
-        this.sideSize = null;
         this.sideSizeLog2 = null;
         this.segment = null;
     }

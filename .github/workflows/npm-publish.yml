@@ -33,6 +33,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-#       - run: npm publish
-#         env:
-#           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+      - run: npm run generate_types
+
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}

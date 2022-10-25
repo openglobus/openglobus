@@ -69,8 +69,8 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {Number} [options.maxEqualZoomAltitude=15000000.0] - Maximal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen bacame the same zoom level
- * @param {Number} [options.loadingBatchSize=12] - 
  * @param {Number} [option.quadTreeStrategyPrototype] - Prototype of quadTree. QuadTreeStrategy for Earth is default.
+ * @param {Number} [options.maxLoadingRequests=12] -
  */
 
 class Globe {
@@ -186,8 +186,8 @@ class Globe {
                 maxEqualZoomAltitude: options.maxEqualZoomAltitude,
                 minEqualZoomAltitude: options.minEqualZoomAltitude,
                 minEqualZoomCameraSlope: options.minEqualZoomCameraSlope,
-                loadingBatchSize: options.loadingBatchSize,
                 quadTreeStrategyPrototype: options.quadTreeStrategyPrototype
+                maxLoadingRequests: options.maxLoadingRequests
             });
         }
 
