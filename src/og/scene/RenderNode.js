@@ -249,6 +249,12 @@ class RenderNode extends BaseNode {
         }
     }
 
+    updateGeoObjectsTexCoords() {
+        for (var i = 0; i < this.entityCollections.length; i++) {
+            this.entityCollections[i].geoObjectHandler.refreshTexCoordsArr();
+        }
+    }
+
     /**
      * @private
      */

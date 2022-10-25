@@ -20,11 +20,15 @@ export const geo_object = () =>
 
             lightsPositions: "vec4",
             lightsParamsv: "vec3",
-            lightsParamsf: "float"
+            lightsParamsf: "float",
+
+            uTexture: "sampler2d",
         },
         attributes: {
             aVertexPosition: "vec3",
             aVertexNormal: "vec3",
+            aTexCoord: "vec2",
+
             aPositionHigh: { type: "vec3", divisor: 1 },
             aPositionLow: { type: "vec3", divisor: 1 },
             aDirection: { type: "vec3", divisor: 1 },
@@ -44,6 +48,7 @@ export const geo_object = () =>
             attribute vec4 aColor;
             attribute float aScale;
             attribute float aDispose;
+            attribute vec2 aTexCoord;
             
             uniform vec3 uScaleByDistance;
             uniform mat4 projectionMatrix;
@@ -57,13 +62,17 @@ export const geo_object = () =>
             varying vec4 vPosition;           
             varying vec4 vColor;
             varying float vDispose;
+            varying vec2 vTexCoords;
             
             const float RADIANS = 3.141592653589793 / 180.0;
-
+           
             void main(void) {
             
                 vDispose = aDispose;
                 vColor = aColor;
+                
+                vTexCoords = aTexCoord;
+              
                 float roll = aPitchRoll.y * RADIANS;
                 mat3 rotZ = mat3(
                      vec3(cos(roll), sin(roll), 0.0),
@@ -106,6 +115,9 @@ export const geo_object = () =>
                 uniform vec3 lightsParamsv[MAX_POINT_LIGHTS * 3];
                 uniform float lightsParamsf[MAX_POINT_LIGHTS];
                 
+                uniform sampler2D uTexture;
+                varying vec2 vTexCoords;
+                
                 varying vec3 vNormal;
                 varying vec4 vPosition;
                 
@@ -125,7 +137,8 @@ export const geo_object = () =>
                     specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), lightsParamsf[0]);
                     diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
                     lightWeighting = lightsParamsv[0] + lightsParamsv[1] * diffuseLightWeighting + lightsParamsv[2] * specularLightWeighting;
-                    gl_FragColor = vec4(lightWeighting, 1.0) * vColor;
+                    vec4 tColor = texture2D(uTexture, vTexCoords);
+                    gl_FragColor = vec4(lightWeighting , 1.0) * mix(vColor, tColor,  1.0);
                 }`
     });
 

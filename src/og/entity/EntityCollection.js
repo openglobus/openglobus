@@ -514,6 +514,7 @@ class EntityCollection {
             this.stripHandler.setRenderNode(renderNode);
 
             this.updateBillboardsTextureAtlas();
+            this.updateGeoObjectTextureAtlas();
             this.updateLabelsFontAtlas();
             this.createPickingColors();
         }
@@ -539,6 +540,16 @@ class EntityCollection {
      */
     updateBillboardsTextureAtlas() {
         var b = this.billboardHandler._billboards;
+        for (var i = 0; i < b.length; i++) {
+            b[i].setSrc(b[i]._src);
+        }
+    }
+    /**
+     * Updates billboard texture atlas.
+     * @public
+     */
+    updateGeoObjectTextureAtlas() {
+        var b = this.geoObjectHandler._geoObjects;
         for (var i = 0; i < b.length; i++) {
             b[i].setSrc(b[i]._src);
         }

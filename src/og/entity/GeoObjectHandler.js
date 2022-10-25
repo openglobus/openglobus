@@ -4,7 +4,7 @@
  * @module og/entity/ShapeHandler
  */
 import * as shaders from "../shaders/geoObject.js";
-import { concatArrays, makeArrayTyped, spliceArray } from "../utils/shared.js";
+import { concatArrays, loadImage, makeArrayTyped, spliceArray } from "../utils/shared.js";
 
 const VERTEX_BUFFER = 0,
     POSITION_BUFFER = 1,
@@ -15,7 +15,8 @@ const VERTEX_BUFFER = 0,
     PITCH_ROLL_BUFFER = 6,
     SIZE_BUFFER = 7,
     PICKINGCOLOR_BUFFER = 8,
-    VISIBLE_BUFFER = 9;
+    VISIBLE_BUFFER = 9,
+    TEXCOORD_BUFFER = 10;
 
 const setParametersToArray = (arr = [], index = 0, length, itemSize, ...params) => {
     const currIndex = index * length;
@@ -38,6 +39,8 @@ class GeoObjectHandler {
         this._renderer = null;
         this._planet = null;
 
+        this._textures = []
+
         this._geoObjects = [];
         this._pitchRollArr = [[]];
         this._sizeArr = [[]];
@@ -50,6 +53,8 @@ class GeoObjectHandler {
         this._indicesArr = [[]];
         this._pickingColorArr = [[]];
         this._vehicleVisibleArr = [[]];
+        this._texCoordArr = [[]];
+        this._tcoordIndicesArr = [[]];
 
         this._pitchRollBuffer = [];
         this._sizeBuffer = [];
@@ -62,6 +67,8 @@ class GeoObjectHandler {
         this._indicesBuffer = [];
         this._pickingColorBuffer = [];
         this._vehicleVisibleBuffer = [];
+        this._texCoordBuffer = [];
+        // this._tcoordIndicesBuffer = [];
 
         this.__staticId = GeoObjectHandler._staticCounter++;
         this._buffersUpdateCallbacks = [];
@@ -75,6 +82,7 @@ class GeoObjectHandler {
         this._buffersUpdateCallbacks[SIZE_BUFFER] = this.createSizeBuffer;
         this._buffersUpdateCallbacks[PITCH_ROLL_BUFFER] = this.createPitchRollBuffer;
         this._buffersUpdateCallbacks[VISIBLE_BUFFER] = this.createVisibleBuffer;
+        this._buffersUpdateCallbacks[TEXCOORD_BUFFER] = this.createTexCoordBuffer;
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
@@ -90,7 +98,8 @@ class GeoObjectHandler {
         const h = this._renderer.handler;
         for (let i = 0, len = this._vertexArr.length; i < len; i++) {
             this._vertexBuffer && h.gl.deleteBuffer(this._vertexBuffer[i]);
-            this._vertexBuffer[i] = h.createArrayBuffer(new Float32Array(this._vertexArr[i]), 3, this._vertexArr[i].length / 3);
+            this._vertexArr[i] = makeArrayTyped(this._vertexArr[i]);
+            this._vertexBuffer[i] = h.createArrayBuffer(this._vertexArr[i], 3, this._vertexArr[i].length / 3);
         }
     }
 
@@ -98,7 +107,8 @@ class GeoObjectHandler {
         const h = this._renderer.handler;
         for (let i = 0, len = this._pitchRollArr.length; i < len; i++) {
             this._pitchRollBuffer && h.gl.deleteBuffer(this._pitchRollBuffer[i]);
-            this._pitchRollBuffer[i] = h.createArrayBuffer(new Float32Array(this._pitchRollArr[i]), 2, this._pitchRollArr[i].length / 2);
+            this._pitchRollArr[i] = makeArrayTyped(this._pitchRollArr[i]);
+            this._pitchRollBuffer[i] = h.createArrayBuffer(this._pitchRollArr[i], 2, this._pitchRollArr[i].length / 2);
         }
     }
 
@@ -106,7 +116,8 @@ class GeoObjectHandler {
         const h = this._renderer.handler;
         for (let i = 0, len = this._vehicleVisibleArr.length; i < len; i++) {
             this._vehicleVisibleBuffer && h.gl.deleteBuffer(this._vehicleVisibleBuffer[i]);
-            this._vehicleVisibleBuffer[i] = h.createArrayBuffer(new Float32Array(this._vehicleVisibleArr[i]), 1, this._vehicleVisibleArr[i].length);
+            this._vehicleVisibleArr[i] = makeArrayTyped(this._vehicleVisibleArr[i]);
+            this._vehicleVisibleBuffer[i] = h.createArrayBuffer(this._vehicleVisibleArr[i], 1, this._vehicleVisibleArr[i].length);
         }
     }
 
@@ -114,7 +125,20 @@ class GeoObjectHandler {
         const h = this._renderer.handler;
         for (let i = 0, len = this._sizeArr.length; i < len; i++) {
             this._sizeBuffer && h.gl.deleteBuffer(this._sizeBuffer[i]);
-            this._sizeBuffer[i] = h.createArrayBuffer(new Float32Array(this._sizeArr[i]), 1, this._sizeArr[i].length);
+            this._sizeArr[i] = makeArrayTyped(this._sizeArr[i]);
+            this._sizeBuffer[i] = h.createArrayBuffer(this._sizeArr[i], 1, this._sizeArr[i].length);
+        }
+    }
+
+    createTexCoordBuffer() {
+        const h = this._renderer.handler;
+        for (let i = 0, len = this._texCoordArr.length; i < len; i++) {
+            this._texCoordBuffer && h.gl.deleteBuffer(this._texCoordBuffer[i]);
+            // this._tcoordIndicesBuffer && h.gl.deleteBuffer(this._tcoordIndicesBuffer[i]);
+            // this._tcoordIndicesBuffer[i] = h.createArrayBuffer(new Float32Array(this._tcoordIndicesArr[i]), 2, this._tcoordIndicesArr[i].length);
+
+            this._texCoordArr[i] = makeArrayTyped(this._texCoordArr[i]);
+            this._texCoordBuffer[i] = h.createArrayBuffer(this._texCoordArr[i], 2, this._texCoordArr[i].length / 2);
         }
     }
 
@@ -122,9 +146,11 @@ class GeoObjectHandler {
         let h = this._renderer.handler;
         for (let i = 0, len = this._positionHighArr.length; i < len; i++) {
             this._positionHighBuffer && h.gl.deleteBuffer(this._positionHighBuffer[i]);
-            this._positionHighBuffer[i] = h.createArrayBuffer(new Float32Array(this._positionHighArr[i]), 3, this._positionHighArr[i].length / 3);
+            this._positionHighArr[i] = makeArrayTyped(this._positionHighArr[i]);
+            this._positionHighBuffer[i] = h.createArrayBuffer(this._positionHighArr[i], 3, this._positionHighArr[i].length / 3);
             this._positionLowBuffer && h.gl.deleteBuffer(this._positionLowBuffer[i]);
-            this._positionLowBuffer[i] = h.createArrayBuffer(new Float32Array(this._positionLowArr[i]), 3, this._positionLowArr[i].length / 3);
+            this._positionLowArr[i] = makeArrayTyped(this._positionLowArr[i]);
+            this._positionLowBuffer[i] = h.createArrayBuffer(this._positionLowArr[i], 3, this._positionLowArr[i].length / 3);
         }
     }
 
@@ -132,7 +158,8 @@ class GeoObjectHandler {
         const h = this._renderer.handler;
         for (let i = 0, len = this._rgbaArr.length; i < len; i++) {
             this._rgbaBuffer && h.gl.deleteBuffer(this._rgbaBuffer[i]);
-            this._rgbaBuffer[i] = h.createArrayBuffer(new Float32Array(this._rgbaArr[i]), 4, this._rgbaArr[i].length / 4);
+            this._rgbaArr[i] = makeArrayTyped(this._rgbaArr[i]);
+            this._rgbaBuffer[i] = h.createArrayBuffer(this._rgbaArr[i], 4, this._rgbaArr[i].length / 4);
         }
     }
 
@@ -140,7 +167,8 @@ class GeoObjectHandler {
         const h = this._renderer.handler;
         for (let i = 0, len = this._directionArr.length; i < len; i++) {
             this._directionBuffer && h.gl.deleteBuffer(this._directionBuffer[i]);
-            this._directionBuffer[i] = h.createArrayBuffer(new Float32Array(this._directionArr[i]), 3, this._directionArr[i].length / 3);
+            this._directionArr[i] = makeArrayTyped(this._directionArr[i]);
+            this._directionBuffer[i] = h.createArrayBuffer(this._directionArr[i], 3, this._directionArr[i].length / 3);
         }
     }
 
@@ -148,7 +176,8 @@ class GeoObjectHandler {
         const h = this._renderer.handler;
         for (let i = 0, len = this._normalsArr.length; i < len; i++) {
             this._normalsBuffer && h.gl.deleteBuffer(this._normalsBuffer[i]);
-            this._normalsBuffer[i] = h.createArrayBuffer(new Float32Array(this._normalsArr[i]), 3, this._normalsArr[i].length / 3);
+            this._normalsArr[i] = makeArrayTyped(this._normalsArr[i]);
+            this._normalsBuffer[i] = h.createArrayBuffer(this._normalsArr[i], 3, this._normalsArr[i].length / 3);
         }
     }
 
@@ -156,7 +185,8 @@ class GeoObjectHandler {
         const h = this._renderer.handler;
         for (let i = 0, len = this._indicesArr.length; i < len; i++) {
             this._indicesBuffer && h.gl.deleteBuffer(this._indicesBuffer[i]);
-            this._indicesBuffer[i] = h.createElementArrayBuffer(new Uint16Array(this._indicesArr[i]), 1, this._indicesArr[i].length);
+            this._indicesArr[i] = makeArrayTyped(this._indicesArr[i], Uint16Array);
+            this._indicesBuffer[i] = h.createElementArrayBuffer(this._indicesArr[i], 1, this._indicesArr[i].length);
         }
     }
 
@@ -164,7 +194,8 @@ class GeoObjectHandler {
         const h = this._renderer.handler;
         for (let i = 0, len = this._pickingColorArr.length; i < len; i++) {
             this._pickingColorBuffer && h.gl.deleteBuffer(this._pickingColorBuffer[i]);
-            this._pickingColorBuffer[i] = h.createArrayBuffer(new Float32Array(this._pickingColorArr[i]), 3, this._pickingColorArr[i].length / 3);
+            this._pickingColorArr[i] = makeArrayTyped(this._pickingColorArr[i]);
+            this._pickingColorBuffer[i] = h.createArrayBuffer(this._pickingColorArr[i], 3, this._pickingColorArr[i].length / 3);
         }
     }
 
@@ -187,6 +218,29 @@ class GeoObjectHandler {
             if (!this._renderer.handler.programs.geo_object_picking) {
                 this._renderer.handler.addProgram(shaders.geo_object_picking());
             }
+        }
+    }
+
+    async setTexture(geoObject) {
+        const src = geoObject._src,
+            ti = this._instancedTags.get(geoObject.tag).index;
+
+        if (this._texCoordArr[ti].length !== geoObject._texCoords.length) {
+            this._texCoordArr[ti] = concatArrays(
+                this._texCoordArr[ti],
+                setParametersToArray(
+                    [],
+                    0,
+                    geoObject._texCoords.length,
+                    geoObject._texCoords.length,
+                    ...geoObject._texCoords
+                )
+            );
+
+            this._textures[ti] = this._renderer.handler.createEmptyTexture_l();
+            const image = await loadImage(src);
+            this._textures[ti] = this._renderer.handler.createTexture_l(image);
+
         }
     }
 
@@ -228,30 +282,31 @@ class GeoObjectHandler {
          */
         geoObject._tagIndex = tagData.iCounts - 1;
 
-            if (!this._vertexArr[ti] || this._vertexArr[ti].length !== geoObject._vertices.length) {
+        if (!this._vertexArr[ti] || this._vertexArr[ti].length !== geoObject._vertices.length) {
+            // this._renderer.handler.gl.getExtension('OES_texture_float');
+            this._vertexArr[ti] = concatArrays(
+                this._vertexArr[ti],
+                setParametersToArray(
+                    [],
+                    0,
+                    geoObject._verticesCount * itemSize,
+                    geoObject._verticesCount * itemSize,
+                    ...geoObject._vertices
+                )
+            );
+            this._normalsArr[ti] = concatArrays(
+                this._normalsArr[ti],
+                setParametersToArray(
+                    [],
+                    0,
+                    geoObject._verticesCount * itemSize,
+                    geoObject._verticesCount * itemSize,
+                    ...geoObject._normals
+                )
+            );
+            this.setTexture(geoObject)
 
-                this._vertexArr[ti] = concatArrays(
-                    this._vertexArr[ti],
-                    setParametersToArray(
-                        [],
-                        0,
-                        geoObject._verticesCount * itemSize,
-                        geoObject._verticesCount * itemSize,
-                        ...geoObject._vertices
-                    )
-                );
-                this._normalsArr[ti] = concatArrays(
-                    this._normalsArr[ti],
-                    setParametersToArray(
-                        [],
-                        0,
-                        geoObject._verticesCount * itemSize,
-                        geoObject._verticesCount * itemSize,
-                        ...geoObject._normals
-                        // ...getTriangleNormals(geoObject._vertices, geoObject._indices)
-                    )
-                );
-            }
+        }
         this._vehicleVisibleArr[ti] = concatArrays(
             this._vehicleVisibleArr[ti],
             setParametersToArray([], 0, 1, 1, geoObject._visibility ? 1 : 0)
@@ -349,11 +404,21 @@ class GeoObjectHandler {
             const tagData = tag[1],
                 ti = tagData.index;
 
+            gl.activeTexture(gl.TEXTURE0); // some problem with int+string, don't look at it
+            gl.bindTexture(gl.TEXTURE_2D, this._textures[ti] || this._planet.transparentTexture);
+            gl.uniform1i(u.uTexture, 0);
+
             gl.bindBuffer(gl.ARRAY_BUFFER, this._normalsBuffer[ti]);
             gl.vertexAttribPointer(a.aVertexNormal, this._normalsBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer[ti]);
             gl.vertexAttribPointer(a.aVertexPosition, this._vertexBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer[ti]);
+            gl.vertexAttribPointer(a.aTexCoord, this._texCoordBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
+
+            // gl.bindBuffer(gl.ARRAY_BUFFER, this._tcoordIndicesBuffer[ti]);
+            // gl.vertexAttribPointer(a.aTexCoordIndices, this._tcoordIndicesBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._directionBuffer[ti]);
             gl.vertexAttribPointer(a.aDirection, this._directionBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
@@ -759,18 +824,22 @@ class GeoObjectHandler {
         this._indicesArr = null;
         this._pickingColorArr = null;
         this._vehicleVisibleArr = null;
+        this._texCoordArr = null;
+        // this._tcoordIndicesArr = null;
 
-        this._pitchRollArr = [];
-        this._sizeArr = [];
-        this._vertexArr = [];
-        this._positionHighArr = [];
-        this._positionLowArr = [];
-        this._rgbaArr = [];
-        this._directionArr = [];
-        this._normalsArr = [];
-        this._indicesArr = [];
-        this._pickingColorArr = [];
-        this._vehicleVisibleArr = [];
+        this._pitchRollArr = [new Float32Array()];
+        this._sizeArr = [new Float32Array()];
+        this._vertexArr = [new Float32Array()];
+        this._positionHighArr = [new Float32Array()];
+        this._positionLowArr = [new Float32Array()];
+        this._rgbaArr = [new Float32Array()];
+        this._directionArr = [new Float32Array()];
+        this._normalsArr = [new Float32Array()];
+        this._indicesArr = [new Uint16Array()];
+        this._pickingColorArr = [new Float32Array()];
+        this._vehicleVisibleArr = [new Int8Array()];
+        this._texCoordArr = [new Float32Array()];
+        // this._tcoordIndicesArr = [new Float32Array()];
 
         this._removeGeoObjects();
         this._deleteBuffers();
@@ -790,6 +859,8 @@ class GeoObjectHandler {
             gl.deleteBuffer(this._normalsBuffer);
             gl.deleteBuffer(this._directionBuffer);
             gl.deleteBuffer(this._pickingColorBuffer);
+            gl.deleteBuffer(this._texCoordBuffer);
+            // gl.deleteBuffer(this._tcoordIndicesBuffer);
         }
 
         this._pitchRollBuffer = null;
@@ -802,6 +873,8 @@ class GeoObjectHandler {
         this._normalsBuffer = null;
         this._directionBuffer = null;
         this._pickingColorBuffer = null;
+        this._texCoordBuffer = null;
+        // this._tcoordIndicesArr = null;
     }
 
     update() {
@@ -843,6 +916,7 @@ class GeoObjectHandler {
             this._geoObjects.push(geoObject);
             this._addGeoObjectToArray(geoObject);
             this.refresh();
+            geoObject.setSrc(geoObject._src || (geoObject._image && geoObject._image.src));
         }
     }
 
@@ -877,6 +951,16 @@ class GeoObjectHandler {
                 0,
                 geoObject._verticesCount * 3
             );
+            this._texCoordArr[ti] = spliceArray(
+                this._texCoordArr[ti],
+                0,
+                geoObject._texCoords.length
+            );
+            // this._tcoordIndicesArr[ti] = spliceArray(
+            //     this._tcoordIndicesArr[ti],
+            //     0,
+            //     geoObject._texCoordsIndices.length
+            // );
         }
         this._positionHighArr[ti] = spliceArray(this._positionHighArr[ti], i, 3);
         this._positionLowArr[ti] = spliceArray(this._positionLowArr[ti], i, 3);
@@ -898,6 +982,35 @@ class GeoObjectHandler {
         geoObject._handlerIndex = -1;
         geoObject._handler = null;
     }
+
+    refreshTexCoordsArr() {
+        var bc = this._entityCollection;
+        if (bc && this._renderer) {
+            for (var i = 0; i < this._geoObjects.length; i++) {
+                var bi = this._geoObjects[i];
+                this.setTexCoordArr(bi._handlerIndex,
+                    bi._texCoords,
+                    bi._texCoordsIndices,
+                );
+            }
+        }
+    }
+
+    setTexCoordArr(index, tcoordArr, tcoordIndices) {
+
+        const itemSize = 4,
+            ti = this.getTagIndexByObjectIndex(index),
+            ob = this.getObjectByIndex(index);
+        let length = tcoordArr.length;
+
+        if (this._texCoordArr[ti].length !== length) {
+            setParametersToArray(this._texCoordArr[ti], ob._tagIndex, length, length, ...tcoordArr);
+        }
+        // setParametersToArray(this._tcoordIndicesArr[ti], ob._tagIndex, length, length, ...tcoordIndices);
+
+        this._changedBuffers[TEXCOORD_BUFFER] = true;
+    }
+
 }
 
 export { GeoObjectHandler };
