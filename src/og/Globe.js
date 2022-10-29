@@ -70,7 +70,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen bacame the same zoom level
  * @param {Number} [options.loadingBatchSize=12] - 
- * @param {Number} [option.quadTreeStrategyPrototype] - Prototype of quadTree. QuadTreeStrategy for Earth is default.
+ * @param {Number} [options.quadTreeStrategyPrototype] - Prototype of quadTree. QuadTreeStrategy for Earth is default.
  */
 
 class Globe {
