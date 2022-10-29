@@ -186,8 +186,8 @@ class Globe {
                 maxEqualZoomAltitude: options.maxEqualZoomAltitude,
                 minEqualZoomAltitude: options.minEqualZoomAltitude,
                 minEqualZoomCameraSlope: options.minEqualZoomCameraSlope,
-                loadingBatchSize: options.loadingBatchSize,
-                quadTreeStrategyPrototype: options.quadTreeStrategyPrototype
+                quadTreeStrategyPrototype: options.quadTreeStrategyPrototype,
+                maxLoadingRequests: options.maxLoadingRequests
             });
         }
 

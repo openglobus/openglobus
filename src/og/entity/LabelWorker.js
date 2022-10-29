@@ -2,62 +2,42 @@
 
 // import { QueueArray } from '../QueueArray.js';
 
+import { BaseWorker } from "../utils/BaseWorker.js";
+
 export const LOCK_UPDATE = -2;
 export const LOCK_FREE = -1;
 
-class LabelWorker {
+class LabelWorker extends BaseWorker {
     constructor(numWorkers = 4) {
-        this._id = 0;
-        this._source = {};
-
-        this._freeWorkerQueue = []; //new QueueArray(numWorkers);
-        var labelProgramm = new Blob([_programm], { type: "application/javascript" });
-
-        var that = this;
-
-        for (let i = 0; i < numWorkers; i++) {
-            var w = new Worker(URL.createObjectURL(labelProgramm));
-            w.onmessage = function (e) {
-
-                let s = that._source[e.data.id];
-
-                if (s.label._lockId === LOCK_UPDATE) {
-                    requestAnimationFrame(() => {
-                        that.make(s.handler, s.label);
-                    });
-                } else {
-                    s.handler.workerCallback(e.data, s.label);
-                }
-
-                that._source[e.data.id] = null;
-                delete that._source[e.data.id];
-                that._freeWorkerQueue.unshift(this);
-
-                that.check();
-            };
-
-            this._freeWorkerQueue.push(w);
-        }
-
-        this._pendingQueue = []; //new QueueArray(512);
+        super(numWorkers, _programm);
+        this._source = new Map();
     }
 
-    check() {
-        if (this._pendingQueue.length) {
-            var p = this._pendingQueue.pop();
-            this.make(p.handler, p.label);
+    _onMessage(e) {
+        let s = this._source.get(e.data.id);
+
+        if (s.label._lockId === LOCK_UPDATE) {
+            requestAnimationFrame(() => {
+                this.make({ handler: s.handler, label: s.label });
+            });
+        } else {
+            s.handler.workerCallback(e.data, s.label);
         }
+
+        this._source.delete(e.data.id);
     }
 
-    make(handler, label) {
+
+    make(data) {
+        let label = data.label,
+            handler = data.handler;
 
         if (handler._entityCollection) {
-            let source = { handler: handler, label: label };
 
-            if (this._freeWorkerQueue.length) {
-                var w = this._freeWorkerQueue.pop();
+            if (this._workerQueue.length) {
+                var w = this._workerQueue.pop();
 
-                this._source[this._id] = source;
+                this._source.set(this._id, data);
 
                 let labelData = new Float32Array([
                     /*0*/this._id++,
@@ -84,7 +64,7 @@ class LabelWorker {
                     labelData.buffer,
                 ]);
             } else {
-                this._pendingQueue.push(source);
+                this._pendingQueue.push(data);
             }
         }
     }

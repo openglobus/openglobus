@@ -86,6 +86,9 @@ class XYZ extends Layer {
          * @returns {string} - Url query string.
          */
         this._urlRewriteCallback = options.urlRewrite || null;
+
+        this._requestsPeerSubdomian = 4;
+        this._requestCount = 0;
     }
 
     /**
@@ -220,7 +223,9 @@ class XYZ extends Layer {
     }
 
     _getSubdomain() {
-        return this._s[Math.floor(Math.random() * this._s.length)];
+        this._requestCount++;
+        return this._s[Math.floor(this._requestCount % (this._requestsPeerSubdomian * this._s.length) / this._requestsPeerSubdomian)];
+
     }
 
     /**
@@ -247,7 +252,7 @@ class XYZ extends Layer {
     applyMaterial(material, forceLoading) {
         if (material.isReady) {
             return material.texOffset;
-        } else if (material.segment.tileZoom <= this.minNativeZoom) {
+        } else if (material.segment.tileZoom < this.minNativeZoom) {
             material.textureNotExists();
         } else {
 
