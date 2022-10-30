@@ -635,7 +635,7 @@ export class Planet extends RenderNode {
 
         if (this._heightFactor !== factor) {
             this._heightFactor = factor;
-            this._quadTree.destroyBranches();
+            //this._quadTree.destroyBranches();
         }
     }
 
