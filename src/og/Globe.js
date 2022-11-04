@@ -128,7 +128,6 @@ class Globe {
                 context: {
                     alpha: false,
                     antialias: false,
-                    powerPreference: "high-performance",
                     premultipliedAlpha: true
                 }
             }), {
