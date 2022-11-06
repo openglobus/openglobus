@@ -1,13 +1,28 @@
 "use strict";
 
-import { SegmentLonLat } from "./SegmentLonLat.js";
-import { TILEGROUP_COMMON } from "./Segment.js";
+import { POLE_PIECE_SIZE, SegmentLonLat } from "./SegmentLonLat.js";
+import { Segment, TILEGROUP_COMMON } from "./Segment.js";
+import * as mercator from "../mercator.js";
 
 export class SegmentLonLatWgs84 extends SegmentLonLat {
     constructor(node, planet, tileZoom, extent) {
         super(node, planet, tileZoom, extent);
         this.isPole = false;
         this._tileGroup = TILEGROUP_COMMON;
+    }
+
+    acceptForRendering(camera) {
+        let maxPoleZoom = 0;
+        if (this._isNorth) {
+            //north pole limits
+            let Yz = Math.floor((90.0 - this._extent.northEast.lat) / POLE_PIECE_SIZE);
+            maxPoleZoom = Math.floor(Yz / 16) + 7;
+        } else {
+            //south pole limits
+            let Yz = Math.floor((mercator.MIN_LAT - this._extent.northEast.lat) / POLE_PIECE_SIZE);
+            maxPoleZoom = 12 - Math.floor(Yz / 16);
+        }
+        return super.acceptForRendering(camera) || this.tileZoom >= maxPoleZoom;
     }
 
     _assignTileYIndexes(extent) {
