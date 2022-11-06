@@ -258,7 +258,7 @@ class Node {
                     this.state = NOTRENDERING;
                 }
 
-            } else if (seg.terrainReady && seg.tileZoom < planet.terrain._maxNodeZoom && (!maxZoom || cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.planet._maxLodSize)) {
+            } else if (seg.terrainReady && seg.checkZoom() && (!maxZoom || cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.planet._maxLodSize)) {
                 this.traverseNodes(cam, maxZoom, seg, stopLoading);
             } else if (altVis) {
                 seg.passReady = maxZoom ? seg.terrainReady : false;

@@ -11,18 +11,16 @@ export class SegmentLonLatWgs84 extends SegmentLonLat {
         this._tileGroup = TILEGROUP_COMMON;
     }
 
-    acceptForRendering(camera) {
-        let maxPoleZoom = 0;
-        if (this._isNorth) {
-            //north pole limits
-            let Yz = Math.floor((90.0 - this._extent.northEast.lat) / POLE_PIECE_SIZE);
-            maxPoleZoom = Math.floor(Yz / 16) + 7;
-        } else {
-            //south pole limits
-            let Yz = Math.floor((mercator.MIN_LAT - this._extent.northEast.lat) / POLE_PIECE_SIZE);
-            maxPoleZoom = 12 - Math.floor(Yz / 16);
-        }
-        return super.acceptForRendering(camera) || this.tileZoom >= maxPoleZoom;
+    _getMaxZoom() {
+        return 150;
+        // let lat = 0;
+        // if (this._isNorth) {
+        //     lat = this._extent.northEast.lat;
+        // } else {
+        //     lat = Math.abs(this._extent.southWest.lat);
+        // }
+        // let Yz = Math.floor((90 - lat) / POLE_PIECE_SIZE);
+        // return Math.floor(Yz / 16) + 7;
     }
 
     _assignTileYIndexes(extent) {

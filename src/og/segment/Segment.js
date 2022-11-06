@@ -250,6 +250,10 @@ class Segment {
         this.plainProcessing = false;
     }
 
+    checkZoom() {
+        return this.tileZoom < this.planet.terrain._maxNodeZoom;
+    }
+
     /**
      * Returns entity terrain point.
      * @public

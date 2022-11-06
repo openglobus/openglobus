@@ -43,7 +43,7 @@ class SegmentLonLat extends Segment {
 
         if (this._extent.northEast.lat > 0) {
             this._isNorth = true;
-        }else{
+        } else {
             this._isNorth = false;
         }
 
@@ -66,7 +66,7 @@ class SegmentLonLat extends Segment {
         return xyz.length() - res.length();
     }
 
-    acceptForRendering(camera) {
+    _getMaxZoom() {
         let maxPoleZoom = 0;
         if (this._isNorth) {
             //north pole limits
@@ -77,7 +77,11 @@ class SegmentLonLat extends Segment {
             let Yz = Math.floor((mercator.MIN_LAT - this._extent.northEast.lat) / POLE_PIECE_SIZE);
             maxPoleZoom = 12 - Math.floor(Yz / 16);
         }
-        return super.acceptForRendering(camera) || this.tileZoom >= maxPoleZoom;
+        return maxPoleZoom;
+    }
+
+    checkZoom() {
+        return super.checkZoom() && this.tileZoom <= this._getMaxZoom();
     }
 
     _assignTileIndexes() {
