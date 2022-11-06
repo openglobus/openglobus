@@ -45,6 +45,7 @@ class SegmentLonLat extends Segment {
             extent.southWest.forwardMercatorEPS01(),
             extent.northEast.forwardMercatorEPS01()
         );
+
         this.isPole = true;
     }
 

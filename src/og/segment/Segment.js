@@ -891,18 +891,9 @@ class Segment {
     }
 
     /**
-     * Removes cache records.
-     */
-    _freeCache() {
-        this.planet._quadTreeNodesCacheMerc[this.tileIndex] = null;
-        delete this.planet._quadTreeNodesCacheMerc[this.tileIndex];
-    }
-
-    /**
      * Clear and destroy all segment data.
      */
     destroySegment() {
-        this._freeCache();
 
         this.clearSegment();
 
@@ -1224,7 +1215,6 @@ class Segment {
         this.tileYS = this.tileY + 1;
 
         this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom);
-        this.planet._quadTreeNodesCacheMerc[this.tileIndex] = this.node;
     }
 
     initialize() {

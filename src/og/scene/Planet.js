@@ -8,7 +8,6 @@ import * as utils from "../utils/shared.js";
 import * as shaders from "../shaders/drawnode.js";
 import * as math from "../math.js";
 import * as mercator from "../mercator.js";
-import * as quadTree from "../quadTree/quadTree.js";
 import * as segmentHelper from "../segment/segmentHelper.js";
 import { decodeFloatFromRGBAArr } from "../math/coder.js";
 import { Extent } from "../Extent.js";
@@ -264,13 +263,6 @@ export class Planet extends RenderNode {
         this._renderedNodesInFrustum = [];
 
         /**
-         * Created nodes cache
-         * @protected
-         * @type {quadTree.Node}
-         */
-        this._quadTreeNodesCacheMerc = {};
-
-        /**
          * Current visible mercator segments tree nodes array.
          * @protected
          * @type {quadTree.Node}
@@ -342,27 +334,6 @@ export class Planet extends RenderNode {
         this._heightPickingFramebuffer = null;
 
         this.quadTreeStrategy = options.quadTreeStrategyPrototype ? new options.quadTreeStrategyPrototype({ planet: this }) : new EarthQuadTreeStrategy({ planet: this });
-
-        /**
-         * Mercator grid tree.
-         * @protected
-         * @type {quadTree.Node}
-         */
-        this._quadTree = null;
-
-        /**
-         * North grid tree.
-         * @protected
-         * @type {quadTree.Node}
-         */
-        this._quadTreeNorth = null;
-
-        /**
-         * South grid tree.
-         * @protected
-         * @type {quadTree.Node}
-         */
-        this._quadTreeSouth = null;
 
         /**
          * Night glowing gl texture.
@@ -472,6 +443,7 @@ export class Planet extends RenderNode {
     get normalMapCreator() {
         return this._normalMapCreator;
     }
+
     get layers() {
         return [...this._layers];
     }
@@ -566,33 +538,7 @@ export class Planet extends RenderNode {
      * @param {Layer} layer - Material layer.
      */
     _clearLayerMaterial(layer) {
-        var lid = layer._id;
-        this._quadTree.traverseTree(function (node) {
-            var mats = node.segment.materials;
-            if (mats[lid]) {
-                mats[lid].clear();
-                mats[lid] = null;
-                delete mats[lid];
-            }
-        });
-
-        this._quadTreeNorth.traverseTree(function (node) {
-            var mats = node.segment.materials;
-            if (mats[lid]) {
-                mats[lid].clear();
-                mats[lid] = null;
-                delete mats[lid];
-            }
-        });
-
-        this._quadTreeSouth.traverseTree(function (node) {
-            var mats = node.segment.materials;
-            if (mats[lid]) {
-                mats[lid].clear();
-                mats[lid] = null;
-                delete mats[lid];
-            }
-        });
+        this.quadTreeStrategy.clearLayerMaterial(layer);
     }
 
 
@@ -635,7 +581,7 @@ export class Planet extends RenderNode {
 
         if (this._heightFactor !== factor) {
             this._heightFactor = factor;
-            //this._quadTree.destroyBranches();
+            this.quadTreeStrategy.destroyBranches();
         }
     }
 
@@ -669,13 +615,7 @@ export class Planet extends RenderNode {
         this.terrain = terrain;
         this.terrain._planet = this;
 
-        //this._normalMapCreator && this._normalMapCreator.setBlur(terrain.blur != undefined ? terrain.blur : true);
-
-        if (this._quadTree) {
-            this._quadTree.destroyBranches();
-        }
-
-        //if (terrain._geoid) {
+        this.quadTreeStrategy.destroyBranches();
 
         if (terrain._geoid.model) {
             this._plainSegmentWorker.setGeoid(terrain.getGeoid());
@@ -691,20 +631,6 @@ export class Planet extends RenderNode {
                     console.log(err);
                 });
         }
-
-        // if (!terrain._geoid.model) {
-        //     Geoid.loadModel(terrain._geoid.src)
-        //         .then((m) => {
-        //             terrain.getGeoid().setModel(m);
-        //             this._plainSegmentWorker.setGeoid(terrain.getGeoid());
-        //         })
-        //         .catch((err) => {
-        //             console.log(err);
-        //         });
-        // } else {
-        //     this._plainSegmentWorker.setGeoid(terrain.getGeoid());
-        // }
-        //}
     }
 
     /**
@@ -761,10 +687,10 @@ export class Planet extends RenderNode {
                 !this._indexesCache[i][j] && (this._indexesCache[i][j] = new Array(TABLESIZE));
                 for (var k = 0; k <= TABLESIZE; k++) {
                     !this._indexesCache[i][j][k] &&
-                        (this._indexesCache[i][j][k] = new Array(TABLESIZE));
+                    (this._indexesCache[i][j][k] = new Array(TABLESIZE));
                     for (var m = 0; m <= TABLESIZE; m++) {
                         !this._indexesCache[i][j][k][m] &&
-                            (this._indexesCache[i][j][k][m] = new Array(TABLESIZE));
+                        (this._indexesCache[i][j][k][m] = new Array(TABLESIZE));
                         for (var q = 0; q <= TABLESIZE; q++) {
                             let ptr = {
                                 buffer: null
@@ -1480,15 +1406,11 @@ export class Planet extends RenderNode {
         this.terrain.abortLoading();
         this._tileLoader.abortAll();
 
-        var that = this;
-        // setTimeout(function () {
 
-        that.quadTreeStrategy.clear();
-
-        that.layerLock.free(that._memKey);
-        that.terrainLock.free(that._memKey);
-        that._normalMapCreator.free(that._memKey);
-        // }, 0);
+        this.quadTreeStrategy.clear();
+        this.layerLock.free(this._memKey);
+        this.terrainLock.free(this._memKey);
+        this._normalMapCreator.free(this._memKey);
 
         this._createdNodesCount = 0;
     }

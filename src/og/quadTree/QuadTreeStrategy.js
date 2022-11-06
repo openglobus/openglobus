@@ -13,7 +13,26 @@ export class QuadTreeStrategy {
          * @type {quadTree.Node[]}
          */
         this._quadTreeList = [];
+    }
 
+    destroyBranches() {
+        for (let i = 0, len = this._quadTreeList.length; i < len; i++) {
+            this._quadTreeList[i].destroyBranches();
+        }
+    }
+
+    clearLayerMaterial(layer) {
+        let lid = layer._id;
+        for (let i = 0, len = this._quadTreeList.length; i < len; i++) {
+            this._quadTreeList[i].traverseTree(function (node) {
+                let mats = node.segment.materials;
+                if (mats[lid]) {
+                    mats[lid].clear();
+                    mats[lid] = null;
+                    delete mats[lid];
+                }
+            });
+        }
     }
 
     get planet() {
