@@ -545,9 +545,10 @@ class Layer {
             let p = this._planet,
                 maxZoom = Math.max(...this._preLoadZoomLevels);
 
-            this._preLoadRecursive(p._quadTreeSouth, maxZoom);
-            this._preLoadRecursive(p._quadTreeNorth, maxZoom);
-            this._preLoadRecursive(p._quadTree, maxZoom);
+            for (let i = 0, len = p.quadTreeStrategy.quadTreeList.length; i < len; i++) {
+                this._preLoadRecursive(p.quadTreeStrategy.quadTreeList[i], maxZoom);
+            }
+
         }
     }
 
@@ -654,24 +655,24 @@ class Layer {
     redraw() {
         if (this._planet) {
             this._planet._quadTree.traverseTree((n) => {
-                    if (n.segment.materials[this._id]) {
-                        n.segment.materials[this._id].clear();
-                    }
+                if (n.segment.materials[this._id]) {
+                    n.segment.materials[this._id].clear();
                 }
+            }
             );
 
             this._planet._quadTreeNorth.traverseTree((n) => {
-                    if (n.segment.materials[this._id]) {
-                        n.segment.materials[this._id].clear();
-                    }
+                if (n.segment.materials[this._id]) {
+                    n.segment.materials[this._id].clear();
                 }
+            }
             );
 
             this._planet._quadTreeSouth.traverseTree((n) => {
-                    if (n.segment.materials[this._id]) {
-                        n.segment.materials[this._id].clear();
-                    }
+                if (n.segment.materials[this._id]) {
+                    n.segment.materials[this._id].clear();
                 }
+            }
             );
         }
     }

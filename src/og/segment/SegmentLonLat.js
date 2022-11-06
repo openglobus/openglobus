@@ -7,11 +7,10 @@ import { Vec3 } from "../math/Vec3.js";
 import * as mercator from "../mercator.js";
 import { EPSG4326 } from "../proj/EPSG4326.js";
 import * as quadTree from "../quadTree/quadTree.js";
-import { Segment } from "./Segment.js";
+import { Segment, TILEGROUP_NORTH, TILEGROUP_SOUTH } from "./Segment.js";
 
-const _heightLat = 90.0 - mercator.MAX_LAT;
-const _maxPoleZoom = 7;
-const _pieceSize = _heightLat / Math.pow(2, _maxPoleZoom);
+const MAX_POLE_ZOOM = 7;
+export const POLE_PIECE_SIZE = (90.0 - mercator.MAX_LAT) / Math.pow(2, MAX_POLE_ZOOM);
 
 let _tempHigh = new Vec3(),
     _tempLow = new Vec3();
@@ -35,16 +34,19 @@ class SegmentLonLat extends Segment {
     constructor(node, planet, tileZoom, extent) {
         super(node, planet, tileZoom, extent);
 
-        // TODO:
-        // be carefull with functions in constructor _assignTileIndexes
-        // this._isNorth = false;
-
         this._projection = EPSG4326;
 
         this._extentMerc = new Extent(
             extent.southWest.forwardMercatorEPS01(),
             extent.northEast.forwardMercatorEPS01()
         );
+
+        if (this._extent.northEast.lat > 0) {
+            this._isNorth = true;
+        } else {
+            this._isNorth = false;
+        }
+
         this.isPole = true;
     }
 
@@ -64,55 +66,55 @@ class SegmentLonLat extends Segment {
         return xyz.length() - res.length();
     }
 
-    acceptForRendering(camera) {
-        var maxPoleZoom;
-        var lat = this._extent.northEast.lat;
+    _getMaxZoom() {
+        let maxPoleZoom = 0;
         if (this._isNorth) {
             //north pole limits
-            let Yz = Math.floor((90.0 - lat) / _pieceSize);
+            let Yz = Math.floor((90.0 - this._extent.northEast.lat) / POLE_PIECE_SIZE);
             maxPoleZoom = Math.floor(Yz / 16) + 7;
         } else {
             //south pole limits
-            let Yz = Math.floor((mercator.MIN_LAT - lat) / _pieceSize);
+            let Yz = Math.floor((mercator.MIN_LAT - this._extent.northEast.lat) / POLE_PIECE_SIZE);
             maxPoleZoom = 12 - Math.floor(Yz / 16);
         }
-        return (
-            Segment.prototype.acceptForRendering.call(this, camera) || this.tileZoom >= maxPoleZoom
-        );
+        return maxPoleZoom;
+    }
+
+    checkZoom() {
+        return super.checkZoom() && this.tileZoom <= this._getMaxZoom();
     }
 
     _assignTileIndexes() {
-        var tileZoom = this.tileZoom;
-        var extent = this._extent;
+        this._assignTileXIndexes(this._extent);
+        this._assignTileYIndexes(this._extent);
+        this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, this.tileZoom);
+    }
 
+    _assignTileXIndexes(extent) {
         this.tileX = Math.round(
             Math.abs(-180.0 - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon)
         );
 
-        var lat = extent.northEast.lat;
+        let p2 = 1 << this.tileZoom;
+        this.tileXE = (this.tileX + 1) % p2;
+        this.tileXW = (p2 + this.tileX - 1) % p2;
+    }
 
+    _assignTileYIndexes(extent) {
+        var lat = extent.northEast.lat;
         if (lat > 0) {
-            //north pole
-            this._isNorth = true;
-            this._tileGroup = 1;
+            this._tileGroup = TILEGROUP_NORTH;
             this.tileY = Math.round((90.0 - lat) / (extent.northEast.lat - extent.southWest.lat));
         } else {
-            //south pole
-            this._tileGroup = 2;
+            this._tileGroup = TILEGROUP_SOUTH;
             this.tileY = Math.round(
                 (mercator.MIN_LAT - lat) / (extent.northEast.lat - extent.southWest.lat)
             );
         }
-
-        var p2 = 1 << tileZoom;
-        this.tileXE = (this.tileX + 1) % p2;
-        this.tileXW = (p2 + this.tileX - 1) % p2;
-
         this.tileYN = this.tileY - 1;
         this.tileYS = this.tileY + 1;
-
-        this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom);
     }
+
 
     _createPlainVertices() {
         var gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
@@ -292,4 +294,5 @@ class SegmentLonLat extends Segment {
         //empty for a time
     }
 }
+
 export { SegmentLonLat };

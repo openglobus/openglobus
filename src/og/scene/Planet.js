@@ -8,7 +8,6 @@ import * as utils from "../utils/shared.js";
 import * as shaders from "../shaders/drawnode.js";
 import * as math from "../math.js";
 import * as mercator from "../mercator.js";
-import * as quadTree from "../quadTree/quadTree.js";
 import * as segmentHelper from "../segment/segmentHelper.js";
 import { decodeFloatFromRGBAArr } from "../math/coder.js";
 import { Extent } from "../Extent.js";
@@ -33,6 +32,7 @@ import { NIGHT, SPECULAR } from "../res/images.js";
 import { Geoid } from "../terrain/Geoid.js";
 import { isUndef } from "../utils/shared.js";
 import { MAX_RENDERED_NODES } from "../quadTree/quadTree.js";
+import { EarthQuadTreeStrategy } from "../quadTree/EarthQuadTreeStrategy.js";
 
 const CUR_LOD_SIZE = 250; //px
 const MIN_LOD_SIZE = 312; //px
@@ -263,13 +263,6 @@ export class Planet extends RenderNode {
         this._renderedNodesInFrustum = [];
 
         /**
-         * Created nodes cache
-         * @protected
-         * @type {quadTree.Node}
-         */
-        this._quadTreeNodesCacheMerc = {};
-
-        /**
          * Current visible mercator segments tree nodes array.
          * @protected
          * @type {quadTree.Node}
@@ -340,26 +333,7 @@ export class Planet extends RenderNode {
          */
         this._heightPickingFramebuffer = null;
 
-        /**
-         * Mercator grid tree.
-         * @protected
-         * @type {quadTree.Node}
-         */
-        this._quadTree = null;
-
-        /**
-         * North grid tree.
-         * @protected
-         * @type {quadTree.Node}
-         */
-        this._quadTreeNorth = null;
-
-        /**
-         * South grid tree.
-         * @protected
-         * @type {quadTree.Node}
-         */
-        this._quadTreeSouth = null;
+        this.quadTreeStrategy = options.quadTreeStrategyPrototype ? new options.quadTreeStrategyPrototype({ planet: this }) : new EarthQuadTreeStrategy({ planet: this });
 
         /**
          * Night glowing gl texture.
@@ -466,6 +440,10 @@ export class Planet extends RenderNode {
         return Quat.getLookRotation(t, n);
     }
 
+    get normalMapCreator() {
+        return this._normalMapCreator;
+    }
+
     get layers() {
         return [...this._layers];
     }
@@ -560,33 +538,7 @@ export class Planet extends RenderNode {
      * @param {Layer} layer - Material layer.
      */
     _clearLayerMaterial(layer) {
-        var lid = layer._id;
-        this._quadTree.traverseTree(function (node) {
-            var mats = node.segment.materials;
-            if (mats[lid]) {
-                mats[lid].clear();
-                mats[lid] = null;
-                delete mats[lid];
-            }
-        });
-
-        this._quadTreeNorth.traverseTree(function (node) {
-            var mats = node.segment.materials;
-            if (mats[lid]) {
-                mats[lid].clear();
-                mats[lid] = null;
-                delete mats[lid];
-            }
-        });
-
-        this._quadTreeSouth.traverseTree(function (node) {
-            var mats = node.segment.materials;
-            if (mats[lid]) {
-                mats[lid].clear();
-                mats[lid] = null;
-                delete mats[lid];
-            }
-        });
+        this.quadTreeStrategy.clearLayerMaterial(layer);
     }
 
 
@@ -629,7 +581,7 @@ export class Planet extends RenderNode {
 
         if (this._heightFactor !== factor) {
             this._heightFactor = factor;
-            this._quadTree.destroyBranches();
+            this.quadTreeStrategy.destroyBranches();
         }
     }
 
@@ -663,13 +615,7 @@ export class Planet extends RenderNode {
         this.terrain = terrain;
         this.terrain._planet = this;
 
-        //this._normalMapCreator && this._normalMapCreator.setBlur(terrain.blur != undefined ? terrain.blur : true);
-
-        if (this._quadTree) {
-            this._quadTree.destroyBranches();
-        }
-
-        //if (terrain._geoid) {
+        this.quadTreeStrategy.destroyBranches();
 
         if (terrain._geoid.model) {
             this._plainSegmentWorker.setGeoid(terrain.getGeoid());
@@ -685,20 +631,6 @@ export class Planet extends RenderNode {
                     console.log(err);
                 });
         }
-
-        // if (!terrain._geoid.model) {
-        //     Geoid.loadModel(terrain._geoid.src)
-        //         .then((m) => {
-        //             terrain.getGeoid().setModel(m);
-        //             this._plainSegmentWorker.setGeoid(terrain.getGeoid());
-        //         })
-        //         .catch((err) => {
-        //             console.log(err);
-        //         });
-        // } else {
-        //     this._plainSegmentWorker.setGeoid(terrain.getGeoid());
-        // }
-        //}
     }
 
     /**
@@ -829,16 +761,9 @@ export class Planet extends RenderNode {
             this._renderedNodesInFrustum[i] = [];
         }
 
+
         // Creating quad trees nodes
-        this._quadTree = new Node(Segment, this, quadTree.NW, null, 0, 0,
-            Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34])
-        );
-        this._quadTreeNorth = new Node(SegmentLonLat, this, quadTree.NW, null, 0, 0,
-            Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90])
-        );
-        this._quadTreeSouth = new Node(SegmentLonLat, this, quadTree.NW, null, 0, 0,
-            Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT])
-        );
+        this.quadTreeStrategy.init();
 
         this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
 
@@ -897,29 +822,7 @@ export class Planet extends RenderNode {
     }
 
     _preRender() {
-        // Zoom 0
-        this._quadTree.createChildrenNodes();
-        this._quadTree.segment.createPlainSegment();
-
-        // Zoom 1
-        for (let i = 0; i < this._quadTree.nodes.length; i++) {
-            this._quadTree.nodes[i].segment.createPlainSegment();
-        }
-
-        // same for poles
-        this._quadTreeNorth.createChildrenNodes();
-        this._quadTreeNorth.segment.createPlainSegment();
-
-        for (let i = 0; i < this._quadTreeNorth.nodes.length; i++) {
-            this._quadTreeNorth.nodes[i].segment.createPlainSegment();
-        }
-
-        this._quadTreeSouth.createChildrenNodes();
-        this._quadTreeSouth.segment.createPlainSegment();
-
-        for (let i = 0; i < this._quadTreeSouth.nodes.length; i++) {
-            this._quadTreeSouth.nodes[i].segment.createPlainSegment();
-        }
+        this.quadTreeStrategy.preRender();
 
         this._preLoad();
     }
@@ -929,38 +832,7 @@ export class Planet extends RenderNode {
 
         this._skipPreRender = false;
 
-        // Same for poles
-        this._quadTreeNorth.segment.passReady = true;
-        this._quadTreeNorth.renderNode(true);
-        this._normalMapCreator.drawSingle(this._quadTreeNorth.segment);
-
-        for (let i = 0; i < this._quadTreeNorth.nodes.length; i++) {
-            this._quadTreeNorth.nodes[i].segment.passReady = true;
-            this._quadTreeNorth.nodes[i].renderNode(true);
-            this._normalMapCreator.drawSingle(this._quadTreeNorth.nodes[i].segment);
-        }
-
-        this._quadTreeSouth.segment.passReady = true;
-        this._quadTreeSouth.renderNode(true);
-        this._normalMapCreator.drawSingle(this._quadTreeSouth.segment);
-
-        for (let i = 0; i < this._quadTreeSouth.nodes.length; i++) {
-            this._quadTreeSouth.nodes[i].segment.passReady = true;
-            this._quadTreeSouth.nodes[i].renderNode(true);
-            this._normalMapCreator.drawSingle(this._quadTreeSouth.nodes[i].segment);
-        }
-
-        // Zoom 1
-        for (let i = 0; i < this._quadTree.nodes.length; i++) {
-            this._quadTree.nodes[i].segment.passReady = true;
-            this._quadTree.nodes[i].renderNode(true);
-            this._normalMapCreator.drawSingle(this._quadTree.nodes[i].segment);
-        }
-
-        // Zoom 0
-        this._quadTree.segment.passReady = true;
-        this._quadTree.renderNode(true);
-        this._normalMapCreator.drawSingle(this._quadTree.segment);
+        this.quadTreeStrategy.preLoad();
     }
 
     /**
@@ -1136,8 +1008,6 @@ export class Planet extends RenderNode {
         this.minCurrZoom = math.MAX;
         this.maxCurrZoom = math.MIN;
 
-        this._quadTree.renderTree(cam, 0, null);
-
         if (cam.slope > this.minEqualZoomCameraSlope &&
             cam._lonLat.height < this.maxEqualZoomAltitude &&
             cam._lonLat.height > this.minEqualZoomAltitude
@@ -1181,8 +1051,7 @@ export class Planet extends RenderNode {
             }
         }
 
-        this._quadTreeNorth.renderTree(cam, 0, null);
-        this._quadTreeSouth.renderTree(cam, 0, null);
+        this.quadTreeStrategy.collectRenderNodes();
     }
 
     _globalPreDraw() {
@@ -1537,16 +1406,11 @@ export class Planet extends RenderNode {
         this.terrain.abortLoading();
         this._tileLoader.abortAll();
 
-        var that = this;
-        // setTimeout(function () {
-        that._quadTree.clearTree();
-        that._quadTreeNorth.clearTree();
-        that._quadTreeSouth.clearTree();
 
-        that.layerLock.free(that._memKey);
-        that.terrainLock.free(that._memKey);
-        that._normalMapCreator.free(that._memKey);
-        // }, 0);
+        this.quadTreeStrategy.clear();
+        this.layerLock.free(this._memKey);
+        this.terrainLock.free(this._memKey);
+        this._normalMapCreator.free(this._memKey);
 
         this._createdNodesCount = 0;
     }
