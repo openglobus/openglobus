@@ -4,6 +4,7 @@ import { XYZ } from "../../src/og/layer/XYZ.js";
 import { CanvasTiles } from "../../src/og/layer/CanvasTiles.js";
 import { Vector } from "../../src/og/layer/Vector.js";
 import { GlobusTerrain } from "../../src/og/terrain/GlobusTerrain.js";
+import { MapboxTerrain } from "../../src/og/terrain/MapboxTerrain.js";
 import { EmptyTerrain } from "../../src/og/terrain/EmptyTerrain.js";
 import { stringTemplate } from "../../src/og/utils/shared.js";
 import { Lighting } from "../../src/og/control/Lighting.js";
@@ -24,48 +25,48 @@ const tg = new CanvasTiles("Tile grid", {
     preLoadZoomLevels: [0],
     drawTile: function (material, applyCanvas) {
 
-            console.log("REDRAW");
+        console.log("REDRAW");
 
-            //Clear canvas
-            ctx.clearRect(0, 0, cnv.width, cnv.height);
+        //Clear canvas
+        ctx.clearRect(0, 0, cnv.width, cnv.height);
 
-            let size;
+        let size;
 
-            if (material.segment.isPole) {
-                let ext = material.segment.getExtentLonLat();
+        if (material.segment.isPole) {
+            let ext = material.segment.getExtentLonLat();
 
 
-                if (material.segment.tileZoom > 14) {
-                    size = "26";
-                } else {
-                    size = "32";
-                }
-                ctx.fillStyle = 'black';
-                ctx.font = 'normal ' + size + 'px Verdana';
-                ctx.textAlign = 'center';
-                ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+            if (material.segment.tileZoom > 14) {
+                size = "26";
             } else {
-
-                if (material.segment.tileZoom > 14) {
-                    size = "26";
-                } else {
-                    size = "32";
-                }
-                ctx.fillStyle = 'black';
-                ctx.font = 'normal ' + size + 'px Verdana';
-                ctx.textAlign = 'center';
-                ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+                size = "32";
             }
+            ctx.fillStyle = 'black';
+            ctx.font = 'normal ' + size + 'px Verdana';
+            ctx.textAlign = 'center';
+            ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+        } else {
 
-            //Draw border
-            //ctx.beginPath();
-            //ctx.rect(0, 0, cnv.width, cnv.height);
-            //ctx.lineWidth = 2;
-            //ctx.strokeStyle = "black";
-            //ctx.stroke();
+            if (material.segment.tileZoom > 14) {
+                size = "26";
+            } else {
+                size = "32";
+            }
+            ctx.fillStyle = 'black';
+            ctx.font = 'normal ' + size + 'px Verdana';
+            ctx.textAlign = 'center';
+            ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+        }
 
-            //Draw canvas tile
-            applyCanvas(cnv);
+        //Draw border
+        //ctx.beginPath();
+        //ctx.rect(0, 0, cnv.width, cnv.height);
+        //ctx.lineWidth = 2;
+        //ctx.strokeStyle = "black";
+        //ctx.stroke();
+
+        //Draw canvas tile
+        applyCanvas(cnv);
     }
 });
 
@@ -176,16 +177,28 @@ let sat = new XYZ("sat", {
 
 //let visExtent = new VisibleExtent();
 
+var highResTerrain = new MapboxTerrain(null, {
+    maxZoom: 19,
+    url: "//terrain.openglobus.org/public/nz/{z}/{x}/{y}.png",
+    //url: "//127.0.0.1/terrain/andorra/dest/{z}/{x}/{y}.png",
+    //imageSize: 129,
+    //plainGridSize: 128,
+    gridSizeByZoom: [
+        64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 16, 8, 4
+        //8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4
+    ]
+});
+
 var globus = new Globe({
     target: "earth",
     name: "Earth",
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
-    terrain: new GlobusTerrain(),
-    //terrain: new EmptyTerrain(),
+    terrain: highResTerrain,
+    //terrain: new GlobusTerrain(),
     //maxEqualZoomAltitude: 1,
-    layers: [osm, tg],
+    layers: [osm, tg, sat],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
     useNightTexture: false,
     //useEarthNavigation: true,
@@ -196,9 +209,9 @@ var globus = new Globe({
 
 globus.planet.addControl(new LayerSwitcher());
 
-globus.planet.addControl(new DebugInfo());
+//globus.planet.addControl(new DebugInfo());
 
-//globus.planet.addControl(new ToggleWireframe());
+globus.planet.addControl(new ToggleWireframe());
 
 //globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
 
