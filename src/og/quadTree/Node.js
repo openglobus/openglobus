@@ -29,24 +29,15 @@ import {
     WALKTHROUGH
 } from "./quadTree.js";
 
-let _tempHigh = new Vec3(),
-    _tempLow = new Vec3();
+import { TILEGROUP_COMMON, TILEGROUP_NORTH, TILEGROUP_SOUTH } from "../segment/Segment.js";
 
-const _vertOrder = [
-    { x: 0, y: 0 },
-    { x: 1, y: 0 },
-    { x: 0, y: 1 },
-    { x: 1, y: 1 }
-];
+let _tempHigh = new Vec3(), _tempLow = new Vec3();
+
+const _vertOrder = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }];
 const _neGridSize = Math.sqrt(_vertOrder.length) - 1;
 
 let BOUNDS = {
-    xmin: 0.0,
-    ymin: 0.0,
-    zmin: 0.0,
-    xmax: 0.0,
-    ymax: 0.0,
-    zmax: 0.0
+    xmin: 0.0, ymin: 0.0, zmin: 0.0, xmax: 0.0, ymax: 0.0, zmax: 0.0
 };
 
 /**
@@ -90,8 +81,7 @@ class Node {
         var ext = ps._extent;
         var size_x = ext.getWidth() * 0.5;
         var size_y = ext.getHeight() * 0.5;
-        var ne = ext.northEast,
-            sw = ext.southWest;
+        var ne = ext.northEast, sw = ext.southWest;
         var z = ps.tileZoom + 1;
         var id = this.nodeId * 4 + 1;
         var c = new LonLat(sw.lon + size_x, sw.lat + size_y);
@@ -114,9 +104,7 @@ class Node {
             seg.createBoundsByParent();
         }
 
-        let x = seg.bsphere.center.x,
-            y = seg.bsphere.center.y,
-            z = seg.bsphere.center.z;
+        let x = seg.bsphere.center.x, y = seg.bsphere.center.y, z = seg.bsphere.center.z;
 
         let length = 1.0 / Math.sqrt(x * x + y * y + z * z);
         seg.centerNormal.x = x * length;
@@ -189,8 +177,7 @@ class Node {
         this.neighbors[2] = [];
         this.neighbors[3] = [];
 
-        let seg = this.segment,
-            planet = this.planet;
+        let seg = this.segment, planet = this.planet;
 
         this._cameraInside = false;
 
@@ -217,8 +204,7 @@ class Node {
 
         this.inFrustum = 0;
 
-        let frustums = cam.frustums,
-            numFrustums = frustums.length;
+        let frustums = cam.frustums, numFrustums = frustums.length;
 
         if (seg.tileZoom < 6) {
             for (let i = 0; i < numFrustums; i++) {
@@ -249,15 +235,10 @@ class Node {
             let eye = cam.eye;
             let horizonDist = eye.length2() - this.planet.ellipsoid._b2;
 
-            let altVis = seg.tileZoom > 19 ||
-                (seg.tileZoom < 4 && !seg.terrainReady) ||
-                seg.tileZoom < 2;
+            let altVis = seg.tileZoom > 19 || (seg.tileZoom < 4 && !seg.terrainReady) || seg.tileZoom < 2;
 
             if (h > 21000) {
-                altVis = altVis || eye.distance2(seg._sw) < horizonDist
-                    || eye.distance2(seg._nw) < horizonDist
-                    || eye.distance2(seg._ne) < horizonDist
-                    || eye.distance2(seg._se) < horizonDist;
+                altVis = altVis || eye.distance2(seg._sw) < horizonDist || eye.distance2(seg._nw) < horizonDist || eye.distance2(seg._ne) < horizonDist || eye.distance2(seg._se) < horizonDist;
             } else {
                 altVis = altVis || cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius < VISIBLE_DISTANCE * Math.sqrt(h);
             }
@@ -268,9 +249,7 @@ class Node {
 
             if (seg.tileZoom < 2 && seg.normalMapReady) {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
-            } else if (seg.terrainReady && (
-                !maxZoom && cam.projectedSize(seg.bsphere.center, seg._plainRadius) < planet._lodSize ||
-                maxZoom && ((seg.tileZoom === maxZoom) || !altVis))) {
+            } else if (seg.terrainReady && (!maxZoom && cam.projectedSize(seg.bsphere.center, seg._plainRadius) < planet._lodSize || maxZoom && ((seg.tileZoom === maxZoom) || !altVis))) {
 
                 if (altVis) {
                     seg.passReady = true;
@@ -279,10 +258,7 @@ class Node {
                     this.state = NOTRENDERING;
                 }
 
-            } else if (
-                seg.terrainReady &&
-                seg.tileZoom < planet.terrain._maxNodeZoom &&
-                (!maxZoom || cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.planet._maxLodSize)) {
+            } else if (seg.terrainReady && seg.checkZoom() && (!maxZoom || cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.planet._maxLodSize)) {
                 this.traverseNodes(cam, maxZoom, seg, stopLoading);
             } else if (altVis) {
                 seg.passReady = maxZoom ? seg.terrainReady : false;
@@ -375,8 +351,7 @@ class Node {
                     var bp = ni.segment;
                     var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.tileZoom - ap.tileZoom));
 
-                    let cs_size = ap.gridSize,
-                        opcs_size = bp.gridSize;
+                    let cs_size = ap.gridSize, opcs_size = bp.gridSize;
 
                     if (ld > 1) {
                         cs_size = Math.ceil(ap.gridSize / ld);
@@ -402,8 +377,7 @@ class Node {
             this.planet._terrainCompleted = false;
         }
 
-        let k = 0,
-            rf = this.planet._renderedNodesInFrustum;
+        let k = 0, rf = this.planet._renderedNodesInFrustum;
         while (inFrustum) {
             if (inFrustum & 1) {
                 rf[k].push(this);
@@ -414,106 +388,41 @@ class Node {
     }
 
     getCommonSide(node) {
-        var as = this.segment,
-            bs = node.segment;
+        var as = this.segment, bs = node.segment;
 
         if (as.tileZoom === bs.tileZoom && as._tileGroup === bs._tileGroup) {
             return as.getNeighborSide(bs);
         } else {
-            var a = as._extentLonLat,
-                b = bs._extentLonLat;
+            var a = as._extentLonLat, b = bs._extentLonLat;
 
-            var a_ne = a.northEast,
-                a_sw = a.southWest,
-                b_ne = b.northEast,
-                b_sw = b.southWest;
+            var a_ne = a.northEast, a_sw = a.southWest, b_ne = b.northEast, b_sw = b.southWest;
 
-            var a_ne_lon = a_ne.lon,
-                a_ne_lat = a_ne.lat,
-                a_sw_lon = a_sw.lon,
-                a_sw_lat = a_sw.lat,
-                b_ne_lon = b_ne.lon,
-                b_ne_lat = b_ne.lat,
-                b_sw_lon = b_sw.lon,
-                b_sw_lat = b_sw.lat;
+            var a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat, a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat, b_ne_lon = b_ne.lon,
+                b_ne_lat = b_ne.lat, b_sw_lon = b_sw.lon, b_sw_lat = b_sw.lat;
 
             if (as._tileGroup === bs._tileGroup) {
-                if (
-                    a_ne_lon === b_sw_lon &&
-                    ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
-                        (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
-                ) {
+                if (a_ne_lon === b_sw_lon && ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))) {
                     return E;
-                } else if (
-                    a_sw_lon === b_ne_lon &&
-                    ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
-                        (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
-                ) {
+                } else if (a_sw_lon === b_ne_lon && ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))) {
                     return W;
-                } else if (
-                    a_ne_lat === b_sw_lat &&
-                    ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
-                        (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
-                ) {
+                } else if (a_ne_lat === b_sw_lat && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
                     return N;
-                } else if (
-                    a_sw_lat === b_ne_lat &&
-                    ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
-                        (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
-                ) {
+                } else if (a_sw_lat === b_ne_lat && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
                     return S;
-                } else if (
-                    bs.tileX === 0 &&
-                    as.tileX === Math.pow(2, as.tileZoom) - 1 &&
-                    ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
-                        (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
-                ) {
+                } else if (bs.tileX === 0 && as.tileX === Math.pow(2, as.tileZoom) - 1 && ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))) {
                     return E;
-                } else if (
-                    as.tileX === 0 &&
-                    bs.tileX === Math.pow(2, bs.tileZoom) - 1 &&
-                    ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) ||
-                        (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))
-                ) {
+                } else if (as.tileX === 0 && bs.tileX === Math.pow(2, bs.tileZoom) - 1 && ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))) {
                     return W;
                 }
             }
 
-            if (
-                as._tileGroup === 0 &&
-                bs._tileGroup === 1 &&
-                as.tileY === 0 &&
-                bs.tileY === Math.pow(2, bs.tileZoom) - 1 &&
-                ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
-                    (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
-            ) {
+            if (as._tileGroup === TILEGROUP_COMMON && bs._tileGroup === TILEGROUP_NORTH && as.tileY === 0 && bs.tileY === Math.pow(2, bs.tileZoom) - 1 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
                 return N;
-            } else if (
-                as._tileGroup === 2 &&
-                bs._tileGroup === 0 &&
-                as.tileY === 0 &&
-                bs.tileY === Math.pow(2, bs.tileZoom) - 1 &&
-                ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
-                    (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
-            ) {
+            } else if (as._tileGroup === TILEGROUP_SOUTH && bs._tileGroup === TILEGROUP_COMMON && as.tileY === 0 && bs.tileY === Math.pow(2, bs.tileZoom) - 1 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
                 return N;
-            } else if (
-                bs._tileGroup === 1 &&
-                as._tileGroup === 0 &&
-                as.tileY === Math.pow(2, as.tileZoom) - 1 &&
-                bs.tileY === 0 &&
-                ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
-                    (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
-            ) {
+            } else if (bs._tileGroup === TILEGROUP_NORTH && as._tileGroup === TILEGROUP_COMMON && as.tileY === Math.pow(2, as.tileZoom) - 1 && bs.tileY === 0 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
                 return S;
-            } else if (
-                as._tileGroup === 1 &&
-                bs._tileGroup === 0 &&
-                as.tileY === Math.pow(2, as.tileZoom) - 1 &&
-                bs.tileY === 0 &&
-                ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) ||
-                    (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))
-            ) {
+            } else if (as._tileGroup === TILEGROUP_NORTH && bs._tileGroup === TILEGROUP_COMMON && as.tileY === Math.pow(2, as.tileZoom) - 1 && bs.tileY === 0 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
                 return S;
             }
         }
@@ -523,16 +432,12 @@ class Node {
 
     // TODO: test test test
     ___getCommonSide___(b) {
-        var a = this,
-            as = a.segment,
-            bs = b.segment;
+        var a = this, as = a.segment, bs = b.segment;
 
         if (as.tileZoom === bs.tileZoom) {
             return as.getNeighborSide(bs);
         } else if (as.tileZoom > bs.tileZoom) {
-            let dz = as.tileZoom - bs.tileZoom,
-                i = dz,
-                p = this;
+            let dz = as.tileZoom - bs.tileZoom, i = dz, p = this;
 
             while (i--) {
                 p = p.parentNode;
@@ -554,9 +459,7 @@ class Node {
                 }
             }
         } else {
-            let dz = bs.tileZoom - as.tileZoom,
-                i = dz,
-                p = b;
+            let dz = bs.tileZoom - as.tileZoom, i = dz, p = b;
 
             while (i--) {
                 p = p.parentNode;
@@ -625,8 +528,7 @@ class Node {
         }
 
         if (pn.segment.terrainReady && this.appliedTerrainNodeId !== pn.nodeId) {
-            let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1),
-                offsetX = seg.tileX - pn.segment.tileX * dZ2,
+            let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1), offsetX = seg.tileX - pn.segment.tileX * dZ2,
                 offsetY = seg.tileY - pn.segment.tileY * dZ2;
 
             let pseg = pn.segment;
@@ -634,12 +536,10 @@ class Node {
             let tempVertices, tempVerticesHigh, tempVerticesLow, noDataVertices;
 
             this.appliedTerrainNodeId = pn.nodeId;
-            this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] =
-                this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
+            this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] = this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
 
 
-            let gridSize = pn.segment.gridSize / dZ2,
-                gridSizeExt = pn.segment.fileGridSize / dZ2;
+            let gridSize = pn.segment.gridSize / dZ2, gridSizeExt = pn.segment.fileGridSize / dZ2;
 
             BOUNDS.xmin = MAX;
             BOUNDS.xmax = MIN;
@@ -660,21 +560,7 @@ class Node {
                     noDataVertices = new Uint8Array(len / 3);
                 }
 
-                getMatrixSubArrayBoundsExt(
-                    pseg.terrainVertices,
-                    pseg.terrainVerticesHigh,
-                    pseg.terrainVerticesLow,
-                    pseg.noDataVertices,
-                    pseg.gridSize,
-                    gridSize * offsetY,
-                    gridSize * offsetX,
-                    gridSize,
-                    tempVertices,
-                    tempVerticesHigh,
-                    tempVerticesLow,
-                    BOUNDS,
-                    noDataVertices
-                );
+                getMatrixSubArrayBoundsExt(pseg.terrainVertices, pseg.terrainVerticesHigh, pseg.terrainVerticesLow, pseg.noDataVertices, pseg.gridSize, gridSize * offsetY, gridSize * offsetX, gridSize, tempVertices, tempVerticesHigh, tempVerticesLow, BOUNDS, noDataVertices);
             } else if (gridSizeExt >= 1) {
                 seg.gridSize = gridSizeExt;
 
@@ -687,26 +573,11 @@ class Node {
                     noDataVertices = new Uint8Array(len / 3);
                 }
 
-                getMatrixSubArrayBoundsExt(
-                    pseg.normalMapVertices,
-                    pseg.normalMapVerticesHigh,
-                    pseg.normalMapVerticesLow,
-                    pseg.noDataVertices,
-                    pn.segment.fileGridSize,
-                    gridSizeExt * offsetY,
-                    gridSizeExt * offsetX,
-                    gridSizeExt,
-                    tempVertices,
-                    tempVerticesHigh,
-                    tempVerticesLow,
-                    BOUNDS,
-                    noDataVertices
-                );
+                getMatrixSubArrayBoundsExt(pseg.normalMapVertices, pseg.normalMapVerticesHigh, pseg.normalMapVerticesLow, pseg.noDataVertices, pn.segment.fileGridSize, gridSizeExt * offsetY, gridSizeExt * offsetX, gridSizeExt, tempVertices, tempVerticesHigh, tempVerticesLow, BOUNDS, noDataVertices);
             } else {
                 seg.gridSize = _neGridSize;
 
-                let i0 = Math.floor(gridSize * offsetY),
-                    j0 = Math.floor(gridSize * offsetX);
+                let i0 = Math.floor(gridSize * offsetY), j0 = Math.floor(gridSize * offsetX);
 
                 let bigOne;
                 if (pseg.gridSize === 1) {
@@ -717,24 +588,15 @@ class Node {
 
                 let insideSize = 1.0 / gridSize;
 
-                let t_i0 = offsetY - insideSize * i0,
-                    t_j0 = offsetX - insideSize * j0;
+                let t_i0 = offsetY - insideSize * i0, t_j0 = offsetX - insideSize * j0;
 
                 let v_lt = new Vec3(bigOne[0], bigOne[1], bigOne[2]),
                     v_rb = new Vec3(bigOne[9], bigOne[10], bigOne[11]);
 
                 let vn = new Vec3(bigOne[3] - bigOne[0], bigOne[4] - bigOne[1], bigOne[5] - bigOne[2]),
                     vw = new Vec3(bigOne[6] - bigOne[0], bigOne[7] - bigOne[1], bigOne[8] - bigOne[2]),
-                    ve = new Vec3(
-                        bigOne[3] - bigOne[9],
-                        bigOne[4] - bigOne[10],
-                        bigOne[5] - bigOne[11]
-                    ),
-                    vs = new Vec3(
-                        bigOne[6] - bigOne[9],
-                        bigOne[7] - bigOne[10],
-                        bigOne[8] - bigOne[11]
-                    );
+                    ve = new Vec3(bigOne[3] - bigOne[9], bigOne[4] - bigOne[10], bigOne[5] - bigOne[11]),
+                    vs = new Vec3(bigOne[6] - bigOne[9], bigOne[7] - bigOne[10], bigOne[8] - bigOne[11]);
 
                 let coords = new Vec3();
 
@@ -743,11 +605,9 @@ class Node {
                 tempVerticesLow = new Float32Array(3 * _vertOrder.length);
 
                 for (var i = 0; i < _vertOrder.length; i++) {
-                    let vi_y = _vertOrder[i].y + t_i0,
-                        vi_x = _vertOrder[i].x + t_j0;
+                    let vi_y = _vertOrder[i].y + t_i0, vi_x = _vertOrder[i].x + t_j0;
 
-                    let vi_x_is = vi_x * gridSize,
-                        vi_y_is = vi_y * gridSize;
+                    let vi_x_is = vi_x * gridSize, vi_y_is = vi_y * gridSize;
 
                     if (vi_y + vi_x < insideSize) {
                         coords = vn.scaleTo(vi_x_is).addA(vw.scaleTo(vi_y_is)).addA(v_lt);
@@ -795,14 +655,7 @@ class Node {
 
             seg.noDataVertices = noDataVertices;
 
-            seg.setBoundingVolume(
-                BOUNDS.xmin,
-                BOUNDS.ymin,
-                BOUNDS.zmin,
-                BOUNDS.xmax,
-                BOUNDS.ymax,
-                BOUNDS.zmax
-            );
+            seg.setBoundingVolume(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin, BOUNDS.xmax, BOUNDS.ymax, BOUNDS.zmax);
 
             if (seg.tileZoom > terrain.maxZoom) {
                 if (pn.segment.tileZoom >= terrain.maxZoom) {
@@ -817,25 +670,17 @@ class Node {
                     seg.terrainVerticesLow = tempVerticesLow;
 
                     this.appliedTerrainNodeId = this.nodeId;
-                    this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] =
-                        this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
+                    this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] = this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
 
                     if (pn.segment.terrainExists) {
                         seg.terrainExists = true;
                         seg.normalMapVertices = tempVertices;
                         seg.fileGridSize = Math.sqrt(tempVertices.length / 3) - 1;
 
-                        let fgs = Math.sqrt(pseg.normalMapNormals.length / 3) - 1,
-                            fgsZ = fgs / dZ2;
+                        let fgs = Math.sqrt(pseg.normalMapNormals.length / 3) - 1, fgsZ = fgs / dZ2;
 
                         if (fgs > 1) {
-                            seg.normalMapNormals = getMatrixSubArray(
-                                pseg.normalMapNormals,
-                                fgs,
-                                fgsZ * offsetY,
-                                fgsZ * offsetX,
-                                fgsZ
-                            );
+                            seg.normalMapNormals = getMatrixSubArray(pseg.normalMapNormals, fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);
                         } else {
                             // TODO: interpolation
                             seg.normalMapNormals = pseg.normalMapNormals;
@@ -900,8 +745,7 @@ class Node {
 
     destroyBranches() {
         if (this.ready) {
-            var nodesToRemove = [],
-                i;
+            var nodesToRemove = [], i;
 
             for (i = 0; i < this.nodes.length; i++) {
                 nodesToRemove[i] = this.nodes[i];
@@ -931,9 +775,7 @@ class Node {
     }
 
     getOffsetOppositeNeighbourSide(neighbourNode, side) {
-        let pNode = this,
-            neighbourZoom = neighbourNode.segment.tileZoom,
-            offset = 0;
+        let pNode = this, neighbourZoom = neighbourNode.segment.tileZoom, offset = 0;
 
         while (pNode.segment.tileZoom > neighbourZoom) {
             offset += PARTOFFSET[pNode.partId][side] / (1 << (pNode.segment.tileZoom - neighbourZoom));

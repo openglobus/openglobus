@@ -69,7 +69,8 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {Number} [options.maxEqualZoomAltitude=15000000.0] - Maximal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen bacame the same zoom level
- * @param {Number} [options.maxLoadingRequests=12] -
+ * @param {Number} [options.loadingBatchSize=12] - 
+ * @param {Number} [options.quadTreeStrategyPrototype] - Prototype of quadTree. QuadTreeStrategy for Earth is default.
  */
 
 class Globe {
@@ -131,9 +132,9 @@ class Globe {
                     premultipliedAlpha: true
                 }
             }), {
-                autoActivate: false,
-                backgroundColor: createColorRGB(options.backgroundColor, new Vec3(115 / 255, 203 / 255, 249 / 255))
-            }
+            autoActivate: false,
+            backgroundColor: createColorRGB(options.backgroundColor, new Vec3(115 / 255, 203 / 255, 249 / 255))
+        }
         );
         this.renderer.initialize();
         this.renderer.div = this.div;
@@ -157,6 +158,13 @@ class Globe {
          */
         this._planetName = options.name ? options.name : PLANET_NAME_PREFIX + Globe._staticCounter;
 
+        /**
+         * quad tree type.
+         * @private
+         * @type {Number}
+         */
+        this._quadTreeType = options.quadTreeType;
+
         if (options.atmosphere) {
             /**
              * Render node renders a planet.
@@ -177,6 +185,7 @@ class Globe {
                 maxEqualZoomAltitude: options.maxEqualZoomAltitude,
                 minEqualZoomAltitude: options.minEqualZoomAltitude,
                 minEqualZoomCameraSlope: options.minEqualZoomCameraSlope,
+                quadTreeStrategyPrototype: options.quadTreeStrategyPrototype,
                 maxLoadingRequests: options.maxLoadingRequests
             });
         }
