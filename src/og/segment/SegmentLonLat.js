@@ -7,7 +7,7 @@ import { Vec3 } from "../math/Vec3.js";
 import * as mercator from "../mercator.js";
 import { EPSG4326 } from "../proj/EPSG4326.js";
 import * as quadTree from "../quadTree/quadTree.js";
-import { Segment } from "./Segment.js";
+import { Segment, TILEGROUP_NORTH, TILEGROUP_SOUTH } from "./Segment.js";
 
 const _heightLat = 90.0 - mercator.MAX_LAT;
 const _maxPoleZoom = 7;
@@ -83,24 +83,19 @@ class SegmentLonLat extends Segment {
     }
 
     _assignTileIndexes() {
-        var tileZoom = this.tileZoom;
-        var extent = this._extent;
+        this._assignTileXIndexes(this._extent);
+        this._assignTileYIndexes(this._extent);
+        this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, this.tileZoom);
+    }
 
+    _assignTileXIndexes(extent) {
         this.tileX = Math.round(
             Math.abs(-180.0 - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon)
         );
 
-        this._assignTileYIndexes(extent);
-
-
-        var p2 = 1 << tileZoom;
+        let p2 = 1 << this.tileZoom;
         this.tileXE = (this.tileX + 1) % p2;
         this.tileXW = (p2 + this.tileX - 1) % p2;
-
-        this.tileYN = this.tileY - 1;
-        this.tileYS = this.tileY + 1;
-
-        this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom);
     }
 
     _assignTileYIndexes(extent) {
@@ -108,15 +103,17 @@ class SegmentLonLat extends Segment {
         if (lat > 0) {
             //north pole
             this._isNorth = true;
-            this._tileGroup = 1;
+            this._tileGroup = TILEGROUP_NORTH;
             this.tileY = Math.round((90.0 - lat) / (extent.northEast.lat - extent.southWest.lat));
         } else {
             //south pole
-            this._tileGroup = 2;
+            this._tileGroup = TILEGROUP_SOUTH;
             this.tileY = Math.round(
                 (mercator.MIN_LAT - lat) / (extent.northEast.lat - extent.southWest.lat)
             );
         }
+        this.tileYN = this.tileY - 1;
+        this.tileYS = this.tileY + 1;
     }
 
 
@@ -298,4 +295,5 @@ class SegmentLonLat extends Segment {
         //empty for a time
     }
 }
+
 export { SegmentLonLat };

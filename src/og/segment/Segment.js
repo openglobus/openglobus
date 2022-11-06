@@ -14,6 +14,10 @@ import * as segmentHelper from "../segment/segmentHelper.js";
 import { getMatrixSubArray } from "../utils/shared.js";
 import { Slice } from "./Slice.js";
 
+export const TILEGROUP_COMMON = 0;
+export const TILEGROUP_NORTH = 1;
+export const TILEGROUP_SOUTH = 2;
+
 var _tempHigh = new Vec3();
 var _tempLow = new Vec3();
 
@@ -57,7 +61,7 @@ class Segment {
     constructor(node, planet, tileZoom, extent) {
         this.isPole = false;
 
-        this._tileGroup = 0;
+        this._tileGroup = TILEGROUP_COMMON;
 
         this._projection = EPSG3857;
 
@@ -1197,7 +1201,9 @@ class Segment {
     }
 
     _assignTileIndexes() {
-        this._tileGroup = 0;
+
+        this._tileGroup = TILEGROUP_COMMON;
+
         var tileZoom = this.tileZoom;
         var extent = this._extent;
         var pole = mercator.POLE;
