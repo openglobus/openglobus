@@ -198,7 +198,7 @@ class Camera {
      * @public
      * @param {Renderer} renderer - OpenGlobus renderer object.
      * @param {Object} [options] - Camera options:
-     * @param {number} [options.viewAngle] - Camera angle of view. Default is 30.0
+     * @param {number} [options.viewAngle] - Camera angle of view.
      * @param {number} [options.near] - Camera near plane distance. Default is 1.0
      * @param {number} [options.far] - Camera far plane distance. Deafult is og.math.MAX
      * @param {Vec3} [options.eye] - Camera eye position. Default (0,0,0)
