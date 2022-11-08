@@ -21,7 +21,7 @@ import { Mat4 } from "../math/Mat4.js";
  * @param {RenderNode} planet - Planet render node.
  * @param {Object} [options] - Planet camera options:
  * @param {Object} [options.name] - Camera name.
- * @param {number} [options.viewAngle=47] - Camera angle of view. Default is 47.0
+ * @param {number} [options.viewAngle] - Camera angle of view.
  * @param {number} [options.near] - Camera near plane distance. Default is 1.0
  * @param {number} [options.far] - Camera far plane distance. Deafult is og.math.MAX
  * @param {number} [options.minAltitude] - Minimal altitude for the camera. Deafult is 5
