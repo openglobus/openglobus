@@ -59,7 +59,10 @@ class MapboxTerrain extends GlobusTerrain {
         let canvas = document.createElement("canvas");
         canvas.width = size;
         canvas.height = size;
-        return canvas.getContext("2d");
+        return canvas.getContext("2d",
+            {
+                willReadFrequently: true
+            });
     }
 
     _createHeights(data, tileIndex, tileX, tileY, tileZoom, extent, preventChildren) {
@@ -151,8 +154,7 @@ class MapboxTerrain extends GlobusTerrain {
         }
 
         let z = zoom || this.maxZoom,
-            z2 = Math.pow(2, z),
-            size = mercator.POLE2 / z2,
+            size = mercator.POLE2 / Math.pow(2, z),
             merc = mercator.forward(lonLat),
             x = Math.floor((mercator.POLE + merc.lon) / size),
             y = Math.floor((mercator.POLE - merc.lat) / size);
@@ -160,13 +162,12 @@ class MapboxTerrain extends GlobusTerrain {
         let tileIndex = Layer.getTileIndex(x, y, z),
             extent = mercator.getTileExtent(x, y, z);
 
-        let w = extent.getWidth(),
-            gs = this._imageSize;
-        let sizeImg = w / (gs - 1);
+        let sizeImgW = extent.getWidth() / (this._imageSize - 1),
+            sizeImgH = extent.getHeight() / (this._imageSize - 1);
 
-        let i = this._imageSize - Math.ceil((merc.lat - extent.southWest.lat) / sizeImg) - 1,
-            j = Math.floor((merc.lon - extent.southWest.lon) / sizeImg);
-        let index = (i * gs + j) * 4;
+        let i = this._imageSize - Math.ceil((merc.lat - extent.southWest.lat) / sizeImgH) - 1,
+            j = Math.floor((merc.lon - extent.southWest.lon) / sizeImgW);
+        let index = (i * this._imageSize + j) * 4;
 
         if (this._imageDataCache[tileIndex]) {
             let data = this._imageDataCache[tileIndex];
