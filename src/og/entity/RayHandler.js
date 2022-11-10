@@ -6,10 +6,9 @@ import { concatArrays, makeArrayTyped, spliceArray } from "../utils/shared.js";
 const PICKINGCOLOR_BUFFER = 0;
 const START_POSITION_BUFFER = 1;
 const END_POSITION_BUFFER = 2;
-const LENGTH_BUFFER = 3;
-const RGBA_BUFFER = 4;
-const THICKNESS_BUFFER = 5;
-const VERTEX_BUFFER = 6;
+const RGBA_BUFFER = 3;
+const THICKNESS_BUFFER = 4;
+const VERTEX_BUFFER = 5;
 
 /*
  * og.RayHandler
@@ -36,7 +35,6 @@ class RayHandler {
         this._startPositionLowBuffer = null;
         this._endPositionHighBuffer = null;
         this._endPositionLowBuffer = null;
-        this._lengthBuffer = null;
         this._thicknessBuffer = null;
         this._rgbaBuffer = null;
 
@@ -45,7 +43,6 @@ class RayHandler {
         this._startPositionLowArr = [];
         this._endPositionHighArr = [];
         this._endPositionLowArr = [];
-        this._lengthArr = [];
         this._thicknessArr = [];
         this._rgbaArr = [];
 
@@ -56,7 +53,6 @@ class RayHandler {
         this._buffersUpdateCallbacks[VERTEX_BUFFER] = this.createVertexBuffer;
         this._buffersUpdateCallbacks[START_POSITION_BUFFER] = this.createStartPositionBuffer;
         this._buffersUpdateCallbacks[END_POSITION_BUFFER] = this.createEndPositionBuffer;
-        this._buffersUpdateCallbacks[LENGTH_BUFFER] = this.createLengthBuffer;
         this._buffersUpdateCallbacks[THICKNESS_BUFFER] = this.createThicknessBuffer;
         this._buffersUpdateCallbacks[RGBA_BUFFER] = this.createRgbaBuffer;
         this._buffersUpdateCallbacks[PICKINGCOLOR_BUFFER] = this.createPickingColorBuffer;
@@ -124,7 +120,6 @@ class RayHandler {
         this._startPositionLowArr = null;
         this._endPositionHighArr = null;
         this._endPositionLowArr = null;
-        this._lengthArr = null;
         this._thicknessArr = null;
         this._rgbaArr = null;
 
@@ -133,7 +128,6 @@ class RayHandler {
         this._startPositionLowArr = new Float32Array();
         this._endPositionHighArr = new Float32Array();
         this._endPositionLowArr = new Float32Array();
-        this._lengthArr = new Float32Array();
         this._thicknessArr = new Float32Array();
         this._rgbaArr = new Float32Array();
 
@@ -150,7 +144,6 @@ class RayHandler {
             gl.deleteBuffer(this._startPositionLowBuffer);
             gl.deleteBuffer(this._endPositionHighBuffer);
             gl.deleteBuffer(this._endPositionLowBuffer);
-            gl.deleteBuffer(this._lengthBuffer);
             gl.deleteBuffer(this._thicknessBuffer);
             gl.deleteBuffer(this._rgbaBuffer);
             gl.deleteBuffer(this._vertexBuffer);
@@ -159,7 +152,6 @@ class RayHandler {
             this._startPositionLowBuffer = null;
             this._endPositionHighBuffer = null;
             this._endPositionLowBuffer = null;
-            this._lengthBuffer = null;
             this._thicknessBuffer = null;
             this._rgbaBuffer = null;
             this._vertexBuffer = null;
@@ -300,9 +292,6 @@ class RayHandler {
         x = ray._thickness;
         this._thicknessArr = concatArrays(this._thicknessArr, [x, x, x, x, x, x]);
 
-        x = ray._length;
-        this._lengthArr = concatArrays(this._lengthArr, [x, x, x, x, x, x]);
-
         let r0 = ray._startColor.x,
             g0 = ray._startColor.y,
             b0 = ray._startColor.z,
@@ -439,9 +428,6 @@ class RayHandler {
             0
         );
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._lengthBuffer);
-        gl.vertexAttribPointer(sha.a_length, this._lengthBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -492,7 +478,6 @@ class RayHandler {
 
         i = ri * 6;
         this._thicknessArr = spliceArray(this._thicknessArr, i, 6);
-        this._lengthArr = spliceArray(this._lengthArr, i, 6);
 
         this.reindexRaysArray(ri);
         this.refresh();
@@ -732,20 +717,6 @@ class RayHandler {
         this._changedBuffers[THICKNESS_BUFFER] = true;
     }
 
-    setLengthArr(index, length) {
-        var i = index * 6;
-        var a = this._lengthArr;
-
-        a[i] = length;
-        a[i + 1] = length;
-        a[i + 2] = length;
-        a[i + 3] = length;
-        a[i + 4] = length;
-        a[i + 5] = length;
-
-        this._changedBuffers[LENGTH_BUFFER] = true;
-    }
-
     setVisibility(index, visibility) {
         var vArr;
         if (visibility) {
@@ -835,18 +806,6 @@ class RayHandler {
             this._thicknessArr,
             1,
             this._thicknessArr.length,
-            h.gl.DYNAMIC_DRAW
-        );
-    }
-
-    createLengthBuffer() {
-        var h = this._renderer.handler;
-        h.gl.deleteBuffer(this._lengthBuffer);
-        this._lengthArr = makeArrayTyped(this._lengthArr);
-        this._lengthBuffer = h.createArrayBuffer(
-            this._lengthArr,
-            1,
-            this._lengthArr.length,
             h.gl.DYNAMIC_DRAW
         );
     }

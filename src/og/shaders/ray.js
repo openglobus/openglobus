@@ -22,7 +22,6 @@ export function rayScreen() {
             a_startPosLow: "vec3",
             a_endPosHigh: "vec3",
             a_endPosLow: "vec3",
-            a_length: "float",
             a_thickness: "float",
             a_rgba: "vec4"
         },
@@ -34,7 +33,6 @@ export function rayScreen() {
             attribute vec3 a_endPosHigh;
             attribute vec3 a_endPosLow;
             attribute float a_thickness;
-            attribute float a_length;
             attribute vec4 a_rgba;
 
             varying vec4 v_rgba;
@@ -53,8 +51,9 @@ export function rayScreen() {
                 vec3 camPos = eyePositionHigh + eyePositionLow;
 
                 vec3 startPos = a_startPosHigh + a_startPosLow;
+                float length = length((a_endPosHigh + a_endPosLow) - startPos);
                 vec3 direction = normalize((a_endPosHigh + a_endPosLow) - startPos);
-                vec3 vertPos = startPos + a_vertices.y * direction * a_length;
+                vec3 vertPos = startPos + a_vertices.y * direction * length;
 
                 vec3 look = vertPos - camPos;
                 vec3 up = normalize(direction);
@@ -62,10 +61,18 @@ export function rayScreen() {
  
                 float dist = dot(camPos - vertPos, vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]));
                 float focalSize = 2.0 * dist * resolution;
-                vec3 rr = right * a_thickness * focalSize * a_vertices.x + up * a_length * a_vertices.y;
+                vec3 rr = right * a_thickness * focalSize * a_vertices.x;
 
-                vec3 highDiff = a_startPosHigh - eyePositionHigh;
-                vec3 lowDiff = a_startPosLow + rr - eyePositionLow;
+                vec3 highDiff = -eyePositionHigh;
+                vec3 lowDiff = rr - eyePositionLow;
+
+                if(a_vertices.y == 0.0){
+                    highDiff += a_startPosHigh;
+                    lowDiff += a_startPosLow;
+                }else{
+                    highDiff += a_endPosHigh;
+                    lowDiff += a_endPosLow;
+                }
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
