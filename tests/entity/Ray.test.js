@@ -16,7 +16,6 @@ test('Testing Ray', () => {
     expect(ray.getStartPosition()).toStrictEqual(new Vec3(1, 1, 1));
     expect(ray.getEndPosition()).toStrictEqual(new Vec3(0, 0, 0));
 
-    ray.setLength(10);
     ray.setThickness(1);
 
     ray.setColors4v({ x: 1, y: 1, z: 1, w: 1 }, { x: 0, y: 1, z: 0, w: 1 });
