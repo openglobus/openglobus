@@ -210,6 +210,10 @@ class Renderer {
 
         this._currentOutput = "screen";
 
+        this._fnDrawBackground = null;
+
+        this._fnScreenFrame = null;
+
         this.labelWorker = new LabelWorker(4);
     }
 
@@ -428,6 +432,8 @@ class Renderer {
         this.screenDepthFramebuffer = new Framebuffer(this.handler, {
             useDepth: false
         }).init();
+
+        this._fnDrawBackground = this._drawBackgroundDefault;
 
         if (this.handler.gl.type === "webgl") {
             this.sceneFramebuffer = new Framebuffer(this.handler);
@@ -720,13 +726,16 @@ class Renderer {
         let sfb = this.sceneFramebuffer;
         sfb.activate();
 
-        let h = this.handler;
+        let h = this.handler,
+            gl = h.gl;
 
-        h.gl.blendEquation(h.gl.FUNC_ADD);
-        h.gl.blendFunc(h.gl.ONE, h.gl.ONE_MINUS_SRC_ALPHA);
-        h.gl.enable(h.gl.BLEND);
-        h.gl.clearColor(0.0,0.0,0.0,0.0);
-        h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.BLEND);
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        this._fnDrawBackground();
 
         e.dispatch(e.draw, this);
 
@@ -739,7 +748,7 @@ class Renderer {
         let k = frustums.length;
         while (k--) {
             this.activeCamera.setCurrentFrustum(k);
-            h.gl.clear(h.gl.DEPTH_BUFFER_BIT);
+            gl.clear(gl.DEPTH_BUFFER_BIT);
             let i = rn.length;
             while (i--) {
                 rn[i].drawNode();
@@ -790,12 +799,6 @@ class Renderer {
 
         sh.activate();
 
-        h.gl.blendEquation(gl.FUNC_ADD);
-        h.gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-        h.gl.enable(gl.BLEND);
-        h.gl.clearColor(0.0, 0.0, 0.0, 0.0);
-        h.gl.clear(h.gl.COLOR_BUFFER_BIT);
-
         // screen texture
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.blitFramebuffer.textures[0]);
@@ -807,14 +810,6 @@ class Renderer {
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         this.toneMappingFramebuffer.deactivate();
-
-        //
-        // BACKGROUND PASS
-        sh = h.programs.backgroundFrame;
-        p = sh._program;
-        gl = h.gl;
-        sh.activate();
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         // SCREEN PASS
         sh = h.programs.screenFrame;
@@ -829,7 +824,20 @@ class Renderer {
         gl.enable(gl.DEPTH_TEST);
     }
 
+    setBackgroundFrameFn(fn){
+        this._fnDrawBackground = fn;
+    }
+
+    _drawBackgroundDefault() {
+        let h = this.handler;
+        h.programs.backgroundFrame.activate();
+        h.gl.drawArrays(h.gl.TRIANGLE_STRIP, 0, 4);
+    }
+
     _screenFrameNoMSAA() {
+
+        this._fnDrawBackground();
+
         var h = this.handler;
         var sh = h.programs.screenFrame,
             p = sh._program,
