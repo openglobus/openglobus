@@ -33,6 +33,7 @@ import { Geoid } from "../terrain/Geoid.js";
 import { isUndef } from "../utils/shared.js";
 import { MAX_RENDERED_NODES } from "../quadTree/quadTree.js";
 import { EarthQuadTreeStrategy } from "../quadTree/EarthQuadTreeStrategy.js";
+import { backgroundOSMFrame } from "../shaders/backgroundOSMFrame.js";
 
 const CUR_LOD_SIZE = 250; //px
 const MIN_LOD_SIZE = 312; //px
@@ -808,6 +809,29 @@ export class Planet extends RenderNode {
         this.renderer.events.on("postdraw", () => {
             this._checkRendercompleted();
         });
+
+        this.renderer.handler.addProgram(backgroundOSMFrame());
+
+        this.renderer.setBackgroundFrame(this._drawBackground.bind(this));
+    }
+
+    _drawBackground() {
+        let h = this.renderer.handler;
+        let sh = h.programs.backgroundOSMFrame,
+            p = sh._program,
+            gl = h.gl;
+
+        sh.activate();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.renderer._screenFrameCornersBuffer);
+        gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+
+        // gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+        // gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+        //
+        // gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
+        // gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
 
     clearIndexesCache() {

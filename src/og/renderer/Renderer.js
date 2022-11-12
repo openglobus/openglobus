@@ -824,19 +824,23 @@ class Renderer {
         gl.enable(gl.DEPTH_TEST);
     }
 
-    setBackgroundFrameFn(fn){
+    setBackgroundFrame(fn){
         this._fnDrawBackground = fn;
     }
 
     _drawBackgroundDefault() {
         let h = this.handler;
-        h.programs.backgroundFrame.activate();
-        h.gl.drawArrays(h.gl.TRIANGLE_STRIP, 0, 4);
+        let sh = h.programs.backgroundFrame,
+            p = sh._program,
+            gl = h.gl;
+
+        sh.activate();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
+        gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
 
     _screenFrameNoMSAA() {
-
-        this._fnDrawBackground();
 
         var h = this.handler;
         var sh = h.programs.screenFrame,

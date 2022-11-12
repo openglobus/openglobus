@@ -2,8 +2,8 @@
 
 import { Program } from '../webgl/Program.js';
 
-export function backgroundFrame() {
-    return new Program("backgroundFrame", {
+export function backgroundOSMFrame() {
+    return new Program("backgroundOSMFrame", {
         uniforms: {},
         attributes: {
             corners: "vec3"
