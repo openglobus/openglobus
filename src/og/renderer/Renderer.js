@@ -10,6 +10,7 @@ import { cons } from "../cons.js";
 import { input } from "../input/input.js";
 import { isEmpty } from "../utils/shared.js";
 import { toneMapping } from "../shaders/toneMapping.js";
+import { backgroundFrame } from "../shaders/backgroundFrame.js";
 import { screenFrame } from "../shaders/screenFrame.js";
 import { FontAtlas } from "../utils/FontAtlas.js";
 import { TextureAtlas } from "../utils/TextureAtlas.js";
@@ -408,6 +409,8 @@ class Renderer {
 
         this.handler.addProgram(screenFrame());
 
+        this.handler.addProgram(backgroundFrame());
+
         this.pickingFramebuffer = new Framebuffer(this.handler, {
             width: 640,
             height: 480
@@ -719,12 +722,10 @@ class Renderer {
 
         let h = this.handler;
 
-        h.gl.clearColor(
-            this.backgroundColor.x,
-            this.backgroundColor.y,
-            this.backgroundColor.z,
-            1.0
-        );
+        h.gl.blendEquation(h.gl.FUNC_ADD);
+        h.gl.blendFunc(h.gl.ONE, h.gl.ONE_MINUS_SRC_ALPHA);
+        h.gl.enable(h.gl.BLEND);
+        h.gl.clearColor(0.0,0.0,0.0,0.0);
         h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
 
         e.dispatch(e.draw, this);
@@ -759,7 +760,6 @@ class Renderer {
             if (h.isWebGl2()) {
                 this._drawDepthBuffer();
             }
-
             this._readPickingColor();
         }
 
@@ -790,6 +790,12 @@ class Renderer {
 
         sh.activate();
 
+        h.gl.blendEquation(gl.FUNC_ADD);
+        h.gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        h.gl.enable(gl.BLEND);
+        h.gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        h.gl.clear(h.gl.COLOR_BUFFER_BIT);
+
         // screen texture
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.blitFramebuffer.textures[0]);
@@ -802,10 +808,18 @@ class Renderer {
 
         this.toneMappingFramebuffer.deactivate();
 
+        //
+        // BACKGROUND PASS
+        sh = h.programs.backgroundFrame;
+        p = sh._program;
+        gl = h.gl;
+        sh.activate();
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        // SCREEN PASS
         sh = h.programs.screenFrame;
         p = sh._program;
         gl = h.gl;
-
         sh.activate();
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);

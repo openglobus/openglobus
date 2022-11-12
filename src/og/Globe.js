@@ -127,9 +127,9 @@ class Globe {
             new Handler(_canvasId, {
                 pixelRatio: window.devicePixelRatio + 0.15,
                 context: {
-                    alpha: false,
+                    alpha: true,
                     antialias: false,
-                    premultipliedAlpha: true
+                    premultipliedAlpha: false
                 }
             }), {
             autoActivate: false,
