@@ -9,6 +9,7 @@ import { EmptyTerrain } from "../../src/og/terrain/EmptyTerrain.js";
 import { stringTemplate } from "../../src/og/utils/shared.js";
 import { Lighting } from "../../src/og/control/Lighting.js";
 import { LayerSwitcher } from "../../src/og/control/LayerSwitcher.js";
+import { KeyboardNavigation } from "../../src/og/control/KeyboardNavigation.js";
 import { DebugInfo } from "../../src/og/control/DebugInfo.js";
 import { ToggleWireframe } from "../../src/og/control/ToggleWireframe.js";
 import { VisibleExtent } from "../../src/og/control/visibleExtent/VisibleExtent.js";
@@ -212,6 +213,7 @@ globus.planet.addControl(new LayerSwitcher());
 //globus.planet.addControl(new DebugInfo());
 
 globus.planet.addControl(new ToggleWireframe());
+globus.planet.addControl(new KeyboardNavigation());
 
 //globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
 
