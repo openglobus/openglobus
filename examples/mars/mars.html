@@ -18,6 +18,7 @@
     import {EmptyTerrain} from '../../src/og/terrain/EmptyTerrain.js';
     import {XYZ} from '../../src/og/layer/XYZ.js';
     import {ToggleWireframe} from '../../src/og/control/ToggleWireframe.js';
+    import {KeyboardNavigation} from '../../src/og/control/KeyboardNavigation.js';
     import {quadTreeStrategyType} from '../../src/og/utils/quadTreeType.js';
     import {CanvasTiles} from '../../src/og/layer/CanvasTiles.js';
 
@@ -95,5 +96,6 @@
     });
 
     globe.planet.addControl(new ToggleWireframe());
+    globe.planet.addControl(new KeyboardNavigation());
 </script>
 </body>

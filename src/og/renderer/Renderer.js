@@ -10,6 +10,7 @@ import { cons } from "../cons.js";
 import { input } from "../input/input.js";
 import { isEmpty } from "../utils/shared.js";
 import { toneMapping } from "../shaders/toneMapping.js";
+import { backgroundFrame } from "../shaders/backgroundFrame.js";
 import { screenFrame } from "../shaders/screenFrame.js";
 import { FontAtlas } from "../utils/FontAtlas.js";
 import { TextureAtlas } from "../utils/TextureAtlas.js";
@@ -208,6 +209,10 @@ class Renderer {
         }
 
         this._currentOutput = "screen";
+
+        this._fnDrawBackground = null;
+
+        this._fnScreenFrame = null;
 
         this.labelWorker = new LabelWorker(4);
     }
@@ -408,6 +413,8 @@ class Renderer {
 
         this.handler.addProgram(screenFrame());
 
+        this.handler.addProgram(backgroundFrame());
+
         this.pickingFramebuffer = new Framebuffer(this.handler, {
             width: 640,
             height: 480
@@ -425,6 +432,8 @@ class Renderer {
         this.screenDepthFramebuffer = new Framebuffer(this.handler, {
             useDepth: false
         }).init();
+
+        this._fnDrawBackground = this._drawBackgroundDefault;
 
         if (this.handler.gl.type === "webgl") {
             this.sceneFramebuffer = new Framebuffer(this.handler);
@@ -717,15 +726,16 @@ class Renderer {
         let sfb = this.sceneFramebuffer;
         sfb.activate();
 
-        let h = this.handler;
+        let h = this.handler,
+            gl = h.gl;
 
-        h.gl.clearColor(
-            this.backgroundColor.x,
-            this.backgroundColor.y,
-            this.backgroundColor.z,
-            1.0
-        );
-        h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.BLEND);
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        this._fnDrawBackground();
 
         e.dispatch(e.draw, this);
 
@@ -738,7 +748,7 @@ class Renderer {
         let k = frustums.length;
         while (k--) {
             this.activeCamera.setCurrentFrustum(k);
-            h.gl.clear(h.gl.DEPTH_BUFFER_BIT);
+            gl.clear(gl.DEPTH_BUFFER_BIT);
             let i = rn.length;
             while (i--) {
                 rn[i].drawNode();
@@ -759,7 +769,6 @@ class Renderer {
             if (h.isWebGl2()) {
                 this._drawDepthBuffer();
             }
-
             this._readPickingColor();
         }
 
@@ -802,10 +811,10 @@ class Renderer {
 
         this.toneMappingFramebuffer.deactivate();
 
+        // SCREEN PASS
         sh = h.programs.screenFrame;
         p = sh._program;
         gl = h.gl;
-
         sh.activate();
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
@@ -815,7 +824,24 @@ class Renderer {
         gl.enable(gl.DEPTH_TEST);
     }
 
+    setBackgroundFrame(fn){
+        this._fnDrawBackground = fn;
+    }
+
+    _drawBackgroundDefault() {
+        let h = this.handler;
+        let sh = h.programs.backgroundFrame,
+            p = sh._program,
+            gl = h.gl;
+
+        sh.activate();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
+        gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+
     _screenFrameNoMSAA() {
+
         var h = this.handler;
         var sh = h.programs.screenFrame,
             p = sh._program,

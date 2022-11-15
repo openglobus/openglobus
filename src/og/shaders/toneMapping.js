@@ -75,16 +75,16 @@ export function toneMapping() {
             layout(location = 0) out vec4 fragColor;
             
             void main(void) {
-                vec3 hdrColor = texture(hdrBuffer, tc).rgb;
+                vec4 hdrColor = texture(hdrBuffer, tc).rgba;
                 
                 float oneByGamma = gamma / gamma;
                 float oneByWhitePoint = whitepoint / whitepoint;
-                vec3 mapped = ReinhardToneMapping2(hdrColor) * oneByGamma * oneByWhitePoint;
-                //vec3 mapped = ACESFilmicToneMapping(hdrColor) * oneByGamma * oneByWhitePoint;
+                vec3 mapped = ReinhardToneMapping2(hdrColor.rgb) * oneByGamma * oneByWhitePoint;
+                //vec3 mapped = ACESFilmicToneMapping(hdrColor.rgb) * oneByGamma * oneByWhitePoint;
 
                 mapped = pow(mapped, vec3(1.0 / gamma));
-
-                fragColor = vec4(mapped, 1.0);
+        
+                fragColor = vec4(mapped, hdrColor.a);
             }`
     });
 }
