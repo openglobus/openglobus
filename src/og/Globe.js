@@ -20,6 +20,7 @@ import { isEmpty } from "./utils/shared.js";
 import { Handler } from "./webgl/Handler.js";
 import { createColorRGB } from "./utils/shared.js";
 import { Vec3 } from "./math/Vec3.js";
+import { SimpleSkyBackground } from "./control/SimpleSkyBackground.js";
 
 /** @const {string} */
 const CANVAS_ID_PREFIX = "globus_viewport_";
@@ -69,7 +70,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {Number} [options.maxEqualZoomAltitude=15000000.0] - Maximal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen bacame the same zoom level
- * @param {Number} [options.loadingBatchSize=12] - 
+ * @param {Number} [options.loadingBatchSize=12] -
  * @param {Number} [options.quadTreeStrategyPrototype] - Prototype of quadTree. QuadTreeStrategy for Earth is default.
  */
 
@@ -127,14 +128,14 @@ class Globe {
             new Handler(_canvasId, {
                 pixelRatio: window.devicePixelRatio + 0.15,
                 context: {
-                    alpha: true,
+                    alpha: false,
                     antialias: false,
                     premultipliedAlpha: false
                 }
             }), {
-            autoActivate: false,
-            backgroundColor: createColorRGB(options.backgroundColor, new Vec3(115 / 255, 203 / 255, 249 / 255))
-        }
+                autoActivate: false,
+                backgroundColor: createColorRGB(options.backgroundColor, new Vec3(115 / 255, 203 / 255, 249 / 255))
+            }
         );
         this.renderer.initialize();
         this.renderer.div = this.div;
@@ -220,7 +221,8 @@ class Globe {
                 new TouchNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),
-                new CompassButton(options)
+                new CompassButton(options),
+                new SimpleSkyBackground()
             ]);
         }
 
