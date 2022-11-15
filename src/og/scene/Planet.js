@@ -809,13 +809,6 @@ export class Planet extends RenderNode {
         gl.uniform1f(shu.earthRadius, this.ellipsoid.getPolarSize() + 1);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam._viewMatrix._m);
-        //gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.frustums[3]._projectionMatrix._m);
-
-        //gl.uniformMatrix4fv(shu.invProjViewMatrix, false, cam.frustums[3]._inverseProjectionViewMatrix._m);
-
-        //
-        // gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
-        // gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }

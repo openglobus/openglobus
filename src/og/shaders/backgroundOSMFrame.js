@@ -32,6 +32,9 @@ export function backgroundOSMFrame() {
             #define rad(x) x * PI / 180.
             #define ZERO vec3(0.0)
            
+            const vec3 START_COLOR = vec3(1.0);
+            const vec3 END_COLOR = vec3(0.0, 153.0/255.0, 221.0/255.0);
+           
             #define RED vec4(1.0, 0.0, 0.0, 1.0)
             #define GREEN vec4(0.0, 1.0, 0.0, 1.0)         
             
@@ -39,7 +42,6 @@ export function backgroundOSMFrame() {
             uniform vec2 iResolution;
             uniform float fov;
             uniform float earthRadius;
-            //uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
                          
             varying vec2 tc;
@@ -49,16 +51,6 @@ export function backgroundOSMFrame() {
                 float w_h_ratio = iResolution.x / iResolution.y;   
                 float h = tan(rad(fov/2.));
                 return normalize(vec3(-w_h_ratio * h, -h, -1.) + vec3(uv.x * 2. * h * w_h_ratio, uv.y*2.*h, 0.));
-            }
-
-            vec2 computeIntersection(vec3 origin, vec3 ray, float radius){
-                float factor = pow(dot(origin, ray), 2.) - (dot(origin, origin) - radius * radius);
-                if(factor >= 0.){
-                    float t1 = -dot(origin, ray) - sqrt(factor);
-                    float t2 = -dot(origin, ray) + sqrt(factor);
-                    return vec2(t1, t2);
-                }
-                return vec2(MAX, -MAX);
             }
 
             // sphere of size ra centered at point ce
@@ -72,35 +64,6 @@ export function backgroundOSMFrame() {
                 h = sqrt( h );
                 return vec2( -b-h, -b+h );
             }
-
-            vec2 sphDistances( vec3 ro, vec3 rd, vec4 sph )
-            {
-                vec3 oc = ro - sph.xyz;
-                float b = dot( oc, rd );
-                float c = dot( oc, oc ) - sph.w*sph.w;
-                float h = b*b - c;
-                float d = sqrt( max(0.0,sph.w*sph.w-h)) - sph.w;
-                return vec2( d, -b - sqrt(max(h,0.0)) );
-            }
-            
-            float sphDistance( in vec3 ro, in vec3 rd, in vec4 sph )
-            {
-                vec3 oc = ro - sph.xyz;
-                float b = dot( oc, rd );
-                float h = dot( oc, oc ) - b*b;
-                return sqrt( max(0.0,h)) - sph.w;
-            }
-            
-            vec4 affinity(in vec4 v){
-                float iw = 1.0 / v.w;
-                return vec4(v.x * iw, v.y * iw, v.z * iw, 1.0);
-            }
-            
-            // vec3 unproject(in vec2 p) {                            
-            //     vec4 world1 = affinity(invProjViewMatrix * vec4(p.x, p.y, -1.0, 1.0));
-            //     vec4 world2 = affinity(invProjViewMatrix * vec4(p.x, p.y, 0.0, 1.0));        
-            //     return normalize(world2 - world1).xyz;
-            // }
             
             mat3 transpose(mat3 matrix) {
                 vec3 row0 = matrix[0];
@@ -152,20 +115,15 @@ export function backgroundOSMFrame() {
                 vec2 ER = sphIntersect(camPos, dir, vec3(0.0), earthRadius);
                 
                 float bigRadius = earthRadius * 3.0;
-                vec3 bigCenter = normalize(camPos) * bigRadius;                
+                vec3 bigCenter = normalize(camPos) * bigRadius * 1.3;                
                                
-                vec2 BIG = sphIntersect(camPos, dir, bigCenter, bigRadius);                
+                vec2 BIG = sphIntersect(camPos, dir, bigCenter, bigRadius);
                 
-                float Ix = distance(camPos + dir * BIG.y, ZERO);
+                float Ix = distance(camPos + dir * BIG.y, ZERO);               
                 
-                if(BIG.y > ER.x) {
-                    gl_FragColor = RED;
-                    return;
-                }
-                
-                float maxI = sqrt(bigRadius * bigRadius + bigRadius * bigRadius) * 0.04;
+                float maxI = sqrt(bigRadius * bigRadius + bigRadius * bigRadius);
                                    
-                gl_FragColor = vec4(mix(vec3(1.0), vec3(0.0), Ix / maxI), 1.0);
+                gl_FragColor = vec4(mix(START_COLOR, END_COLOR, Ix / maxI), 1.0);
             }`
     });
 }
