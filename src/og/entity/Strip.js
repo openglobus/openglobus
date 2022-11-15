@@ -203,9 +203,6 @@ class Strip {
                 shu = p.uniforms;
 
             gl.disable(gl.CULL_FACE);
-            gl.blendEquation(gl.FUNC_ADD);
-            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-            gl.enable(gl.BLEND);
             sh.activate();
 
             gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera.getViewMatrix());
@@ -257,9 +254,7 @@ class Strip {
                 shu = p.uniforms;
 
             gl.disable(gl.CULL_FACE);
-            gl.blendEquation(gl.FUNC_ADD);
-            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-            gl.enable(gl.BLEND);
+
             sh.activate();
 
             gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera.getViewMatrix());
