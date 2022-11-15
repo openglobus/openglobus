@@ -1,9 +1,56 @@
-'use strict';
+/**
+ * @module og/control/SimpleSkyBackground
+ */
 
+"use strict";
+
+import { Control } from "./Control.js";
 import { Program } from '../webgl/Program.js';
+/**
+ * Frame per second(FPS) display control.
+ * @class
+ * @extends {Control}
+ * @param {Object} [options] - Control options.
+ */
+class SimpleSkyBackground extends Control {
+    constructor(options) {
+        super(options);
+    }
 
-export function backgroundOSMFrame() {
-    return new Program("backgroundOSMFrame", {
+    oninit() {
+        this.renderer.handler.addProgram(simpleSkyBackgroundShader());
+        this.renderer.setBackgroundFrame(this._drawBackground.bind(this));
+    }
+
+    _drawBackground() {
+        let h = this.renderer.handler;
+        let sh = h.programs.simpleSkyBackground,
+            p = sh._program,
+            shu = p.uniforms,
+            gl = h.gl;
+        let cam = this.renderer.activeCamera;
+
+        sh.activate();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.renderer._screenFrameCornersBuffer);
+        gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+
+        gl.uniform3fv(shu.camPos, [cam.eye.x, cam.eye.y, cam.eye.z]);
+        gl.uniform2fv(shu.iResolution, [h.getWidth(), h.getHeight()]);
+        gl.uniform1f(shu.fov, cam.getViewAngle());
+        gl.uniform1f(shu.earthRadius, this.planet.ellipsoid.getPolarSize() + 1);
+
+        gl.uniformMatrix4fv(shu.viewMatrix, false, cam._viewMatrix._m);
+
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+}
+
+export function simpleSkyBackground(options) {
+    return new SimpleSkyBackground(options);
+}
+
+function simpleSkyBackgroundShader() {
+    return new Program("simpleSkyBackground", {
         uniforms: {
             iResolution: "vec2",
             fov: "float",
@@ -127,3 +174,5 @@ export function backgroundOSMFrame() {
             }`
     });
 }
+
+export { SimpleSkyBackground };
