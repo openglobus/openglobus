@@ -1168,9 +1168,9 @@ export class Planet extends RenderNode {
             gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
             if (this.baseLayer) {
-                gl.uniform3fv(shu.diffuse, this.baseLayer._diffuse);
-                gl.uniform3fv(shu.ambient, this.baseLayer._ambient);
-                gl.uniform4fv(shu.specular, this.baseLayer._specular);
+                gl.uniform3fv(shu.diffuse, this.baseLayer._diffuse || this._diffuse);
+                gl.uniform3fv(shu.ambient, this.baseLayer._ambient || this._ambient);
+                gl.uniform4fv(shu.specular, this.baseLayer._specular || this._specular);
             } else {
                 gl.uniform3fv(shu.diffuse, this._diffuse);
                 gl.uniform3fv(shu.ambient, this._ambient);

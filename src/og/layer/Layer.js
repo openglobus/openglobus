@@ -210,49 +210,58 @@ class Layer {
          */
         this.events = new Events(options.events ? [...EVENT_NAMES, ...options.events] : EVENT_NAMES, this);
 
-        let a = utils.createColorRGB(options.ambient, new Vec3(0.2, 0.2, 0.2));
-        let d = utils.createColorRGB(options.diffuse, new Vec3(0.8, 0.8, 0.8));
-        let s = utils.createColorRGB(options.specular, new Vec3(0.0003, 0.0003, 0.0003));
-        let shininess = options.shininess || 20.0;
+        this._ambient = null;
+        this._diffuse = null;
+        this._specular = null;
 
-        this._ambient = new Float32Array([a.x, a.y, a.z]);
-        this._diffuse = new Float32Array([d.x, d.y, d.z]);
-        this._specular = new Float32Array([s.x, s.y, s.z, shininess]);
-    }
+        if (options.ambient) {
+            let a = utils.createColorRGB(options.ambient, new Vec3(0.2, 0.2, 0.2));
+            this._ambient = new Float32Array([a.x, a.y, a.z]);
+        }
 
-    get diffuse() {
-        return Vec3.fromVec(this._diffuse);
-    }
+        if (this._diffuse) {
+            let d = utils.createColorRGB(options.diffuse, new Vec3(0.8, 0.8, 0.8));
+            this._diffuse = new Float32Array([d.x, d.y, d.z]);
+        }
 
-    get ambient() {
-        return Vec3.fromVec(this._ambient);
-    }
-
-    get specular() {
-        return Vec3.fromVec(this._ambient);
-    }
-
-    get shininess() {
-        return this._specular[3];
+        if (this._specular) {
+            let s = utils.createColorRGB(options.specular, new Vec3(0.0003, 0.0003, 0.0003));
+            let shininess = options.shininess || 20.0;
+            this._specular = new Float32Array([s.x, s.y, s.z, shininess]);
+        }
     }
 
     set diffuse(rgb) {
-        let vec = createColorRGB(rgb);
-        this._diffuse = new Float32Array(vec.toArray3());
+        if (rgb) {
+            let vec = createColorRGB(rgb);
+            this._diffuse = new Float32Array(vec.toArray3());
+        } else {
+            this._diffuse = null;
+        }
     }
 
     set ambient(rgb) {
-        let vec = createColorRGB(rgb);
-        this._ambient = new Float32Array(vec.toArray3());
+        if (rgb) {
+            let vec = createColorRGB(rgb);
+            this._ambient = new Float32Array(vec.toArray3());
+        } else {
+            this._ambient = null;
+        }
     }
 
     set specular(rgb) {
-        let vec = createColorRGB(rgb);
-        this._specular = new Float32Array([vec.x, vec.y, vec.y, this._specular[3]]);
+        if (rgb) {
+            let vec = createColorRGB(rgb);
+            this._specular = new Float32Array([vec.x, vec.y, vec.y, this._specular[3]]);
+        } else {
+            this._specular = null;
+        }
     }
 
     set shininess(v) {
-        this._specular[3] = v;
+        if (this._specular) {
+            this._specular[3] = v;
+        }
     }
 
     get normalMapCreator() {
