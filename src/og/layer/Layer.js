@@ -11,6 +11,7 @@ import { Extent } from "../Extent.js";
 import { LonLat } from "../LonLat.js";
 import { Material } from "./Material.js";
 import { Vec3 } from "../math/Vec3.js";
+import { createColorRGB } from "../utils/shared.js";
 
 const FADING_RATIO = 15.8;
 
@@ -208,6 +209,58 @@ class Layer {
          * @type {Events}
          */
         this.events = new Events(options.events ? [...EVENT_NAMES, ...options.events] : EVENT_NAMES, this);
+
+        let a = utils.createColorRGB(options.ambient, new Vec3(0.2, 0.2, 0.2));
+        let d = utils.createColorRGB(options.diffuse, new Vec3(0.8, 0.8, 0.8));
+        let s = utils.createColorRGB(options.specular, new Vec3(0.0003, 0.0003, 0.0003));
+        let shininess = options.shininess || 20.0;
+
+        this._ambient = new Float32Array([a.x, a.y, a.z]);
+        this._diffuse = new Float32Array([d.x, d.y, d.z]);
+        this._specular = new Float32Array([s.x, s.y, s.z, shininess]);
+    }
+
+    get diffuse() {
+        return Vec3.fromVec(this._diffuse);
+    }
+
+    get ambient() {
+        return Vec3.fromVec(this._ambient);
+    }
+
+    get specular() {
+        return Vec3.fromVec(this._ambient);
+    }
+
+    get shininess() {
+        return this._specular[3];
+    }
+
+    set diffuse(rgb) {
+        let vec = createColorRGB(rgb);
+        this._diffuse = new Float32Array(vec.toArray3());
+    }
+
+    set ambient(rgb) {
+        let vec = createColorRGB(rgb);
+        this._ambient = new Float32Array(vec.toArray3());
+    }
+
+    set specular(rgb) {
+        let vec = createColorRGB(rgb);
+        this._specular = new Float32Array([vec.x, vec.y, vec.y, this._specular[3]]);
+    }
+
+    set shininess(v) {
+        this._specular[3] = v;
+    }
+
+    get normalMapCreator() {
+        return this._normalMapCreator;
+    }
+
+    get layers() {
+        return [...this._layers];
     }
 
     static getTMS(x, y, z) {
@@ -655,24 +708,24 @@ class Layer {
     redraw() {
         if (this._planet) {
             this._planet._quadTree.traverseTree((n) => {
-                if (n.segment.materials[this._id]) {
-                    n.segment.materials[this._id].clear();
+                    if (n.segment.materials[this._id]) {
+                        n.segment.materials[this._id].clear();
+                    }
                 }
-            }
             );
 
             this._planet._quadTreeNorth.traverseTree((n) => {
-                if (n.segment.materials[this._id]) {
-                    n.segment.materials[this._id].clear();
+                    if (n.segment.materials[this._id]) {
+                        n.segment.materials[this._id].clear();
+                    }
                 }
-            }
             );
 
             this._planet._quadTreeSouth.traverseTree((n) => {
-                if (n.segment.materials[this._id]) {
-                    n.segment.materials[this._id].clear();
+                    if (n.segment.materials[this._id]) {
+                        n.segment.materials[this._id].clear();
+                    }
                 }
-            }
             );
         }
     }
