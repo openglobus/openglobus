@@ -6,6 +6,7 @@
 
 import { Control } from "./Control.js";
 import { Program } from '../webgl/Program.js';
+
 /**
  * Frame per second(FPS) display control.
  * @class
@@ -14,21 +15,33 @@ import { Program } from '../webgl/Program.js';
  */
 class SimpleSkyBackground extends Control {
     constructor(options) {
-        super(options);
+        super({
+            name: "SimpleSkyBackground",
+            ...options
+        });
     }
 
     oninit() {
         this.renderer.handler.addProgram(simpleSkyBackgroundShader());
-        this.renderer.setBackgroundFrame(this._drawBackground.bind(this));
+        this.planet.events.on("draw", this._drawBackground, this);
+    }
+
+    onactivate() {
+        super.onactivate();
+        this.planet.events.on("draw", this._drawBackground, this);
+    }
+
+    ondeactivate() {
+        super.ondeactivate();
+        this.planet.events.off("draw", this._drawBackground);
     }
 
     _drawBackground() {
         let h = this.renderer.handler;
-        let sh = h.programs.simpleSkyBackground,
-            p = sh._program,
-            shu = p.uniforms,
-            gl = h.gl;
+        let sh = h.programs.simpleSkyBackground, p = sh._program, shu = p.uniforms, gl = h.gl;
         let cam = this.renderer.activeCamera;
+
+        gl.disable(gl.DEPTH_TEST);
 
         sh.activate();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.renderer._screenFrameCornersBuffer);
@@ -42,6 +55,8 @@ class SimpleSkyBackground extends Control {
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam._viewMatrix._m);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        gl.enable(gl.DEPTH_TEST);
     }
 }
 
@@ -52,27 +67,18 @@ export function simpleSkyBackground(options) {
 function simpleSkyBackgroundShader() {
     return new Program("simpleSkyBackground", {
         uniforms: {
-            iResolution: "vec2",
-            fov: "float",
-            camPos: "vec3",
-            earthRadius: "float",
-            //projectionMatrix: "mat4",
+            iResolution: "vec2", fov: "float", camPos: "vec3", earthRadius: "float", //projectionMatrix: "mat4",
             viewMatrix: "mat4"
-        },
-        attributes: {
+        }, attributes: {
             corners: "vec3"
-        },
-        vertexShader:
-            `attribute vec2 corners;
+        }, vertexShader: `attribute vec2 corners;
             
             varying vec2 tc;
             
             void main(void) {
                 gl_Position = vec4(corners, 0.0, 1.0);
                 tc = corners * 0.5 + 0.5;
-            }`,
-        fragmentShader:
-            `precision highp float;
+            }`, fragmentShader: `precision highp float;
             
             #define MAX 10e10
             #define PI 3.14159265359

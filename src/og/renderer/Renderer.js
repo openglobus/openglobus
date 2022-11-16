@@ -10,7 +10,6 @@ import { cons } from "../cons.js";
 import { input } from "../input/input.js";
 import { isEmpty } from "../utils/shared.js";
 import { toneMapping } from "../shaders/toneMapping.js";
-import { backgroundFrame } from "../shaders/backgroundFrame.js";
 import { screenFrame } from "../shaders/screenFrame.js";
 import { FontAtlas } from "../utils/FontAtlas.js";
 import { TextureAtlas } from "../utils/TextureAtlas.js";
@@ -209,8 +208,6 @@ class Renderer {
         }
 
         this._currentOutput = "screen";
-
-        this._fnDrawBackground = null;
 
         this._fnScreenFrame = null;
 
@@ -413,8 +410,6 @@ class Renderer {
 
         this.handler.addProgram(screenFrame());
 
-        this.handler.addProgram(backgroundFrame());
-
         this.pickingFramebuffer = new Framebuffer(this.handler, {
             width: 640,
             height: 480
@@ -432,8 +427,6 @@ class Renderer {
         this.screenDepthFramebuffer = new Framebuffer(this.handler, {
             useDepth: false
         }).init();
-
-        this._fnDrawBackground = this._drawBackgroundDefault;
 
         if (this.handler.gl.type === "webgl") {
             this.sceneFramebuffer = new Framebuffer(this.handler);
@@ -735,8 +728,6 @@ class Renderer {
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        this._fnDrawBackground();
-
         e.dispatch(e.draw, this);
 
         let frustums = this.activeCamera.frustums;
@@ -822,22 +813,6 @@ class Renderer {
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         gl.enable(gl.DEPTH_TEST);
-    }
-
-    setBackgroundFrame(fn){
-        this._fnDrawBackground = fn;
-    }
-
-    _drawBackgroundDefault() {
-        let h = this.handler;
-        let sh = h.programs.backgroundFrame,
-            p = sh._program,
-            gl = h.gl;
-
-        sh.activate();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
-        gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
 
     _screenFrameNoMSAA() {
