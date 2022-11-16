@@ -1167,15 +1167,15 @@ export class Planet extends RenderNode {
             gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
             gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
-            // if (this.baseLayer) {
-            //     gl.uniform3fv(shu.diffuse, this.baseLayer._diffuse);
-            //     gl.uniform3fv(shu.ambient, this.baseLayer._ambient);
-            //     gl.uniform4fv(shu.specular, this.baseLayer._specular);
-            // } else {
+            if (this.baseLayer) {
+                gl.uniform3fv(shu.diffuse, this.baseLayer._diffuse);
+                gl.uniform3fv(shu.ambient, this.baseLayer._ambient);
+                gl.uniform4fv(shu.specular, this.baseLayer._specular);
+            } else {
                 gl.uniform3fv(shu.diffuse, this._diffuse);
                 gl.uniform3fv(shu.ambient, this._ambient);
                 gl.uniform4fv(shu.specular, this._specular);
-            //}
+            }
 
             // bind night glowing material
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
