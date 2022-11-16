@@ -30,7 +30,7 @@ import { VectorTileCreator } from "../utils/VectorTileCreator.js";
 import { wgs84 } from "../ellipsoid/wgs84.js";
 import { NIGHT, SPECULAR } from "../res/images.js";
 import { Geoid } from "../terrain/Geoid.js";
-import { isUndef } from "../utils/shared.js";
+import { createColorRGB, isUndef } from "../utils/shared.js";
 import { MAX_RENDERED_NODES } from "../quadTree/quadTree.js";
 import { EarthQuadTreeStrategy } from "../quadTree/EarthQuadTreeStrategy.js";
 
@@ -428,6 +428,41 @@ export class Planet extends RenderNode {
         let n = cartesian.normal();
         let t = Vec3.proj_b_to_plane(Vec3.UNIT_Y, n);
         return Quat.getLookRotation(t, n);
+    }
+
+    get diffuse() {
+        return Vec3.fromVec(this._diffuse);
+    }
+
+    get ambient() {
+        return Vec3.fromVec(this._ambient);
+    }
+
+    get specular() {
+        return Vec3.fromVec(this._ambient);
+    }
+
+    get shininess() {
+        return this._specular[3];
+    }
+
+    set diffuse(rgb) {
+        let vec = createColorRGB(rgb);
+        this._diffuse = new Float32Array(vec.toArray3());
+    }
+
+    set ambient(rgb) {
+        let vec = createColorRGB(rgb);
+        this._ambient = new Float32Array(vec.toArray3());
+    }
+
+    set specular(rgb) {
+        let vec = createColorRGB(rgb);
+        this._specular = new Float32Array([vec.x, vec.y, vec.y, this._specular[3]]);
+    }
+
+    set shininess(v) {
+        this._specular[3] = v;
     }
 
     get normalMapCreator() {
