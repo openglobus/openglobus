@@ -732,7 +732,7 @@ class Renderer {
 
         let frustums = this.activeCamera.frustums;
 
-        let pointerEvent = e.pointerEvent() || this.activeCamera.isMoved;
+        let pointerEvent = e.pointerEvent() || this.activeCamera.isMoving;
 
         // Rendering scene nodes and entityCollections
         let rn = this._renderNodesArr;

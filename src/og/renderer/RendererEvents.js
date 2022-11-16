@@ -192,10 +192,6 @@ class RendererEvents extends Events {
         this._mclickY = 0;
     }
 
-    get cameraMoving() {
-        return this.renderer.activeCamera.isMoved;
-    }
-
     pointerEvent() {
         let ms = this.mouseState,
             ts = this.touchState;

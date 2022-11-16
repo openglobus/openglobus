@@ -119,7 +119,7 @@ class Camera {
         this._pv = this._u.clone();
         this._pn = this._b.clone();
         this._peye = this.eye.clone();
-        this.isMoved = false;
+        this.isMoving = false;
 
         this._tanViewAngle_hrad = 0.0;
         this._tanViewAngle_hradOneByHeight = 0.0;
@@ -179,12 +179,12 @@ class Camera {
             eye = this.eye;
 
         if (this._peye.equal(eye) && this._pu.equal(u) && this._pv.equal(v) && this._pn.equal(n)) {
-            if (this.isMoved) {
+            if (this.isMoving) {
                 this.events.dispatch(this.events.moveend, this);
             }
-            this.isMoved = false;
+            this.isMoving = false;
         } else {
-            this.isMoved = true;
+            this.isMoving = true;
         }
 
         this._pu.copy(u);

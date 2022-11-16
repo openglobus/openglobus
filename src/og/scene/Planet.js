@@ -1091,7 +1091,7 @@ export class Planet extends RenderNode {
         let frustumIndex = cam.getCurrentFrustum(), firstPass = frustumIndex === cam.FARTHEST_FRUSTUM_INDEX;
 
         if (firstPass) {
-            if (this._skipPreRender/* && (!this._renderCompletedActivated || cam.isMoved)*/) {
+            if (this._skipPreRender) {
                 this._collectRenderNodes();
             }
             this._skipPreRender = true;

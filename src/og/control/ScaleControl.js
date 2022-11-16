@@ -7,6 +7,7 @@
 import { Control } from "./Control.js";
 import { RADIANS } from "../math.js";
 import { binarySearch, parseHTML } from "../utils/shared.js";
+import { Vec3 } from "../math/Vec3.js";
 
 const scale = [
     1, 2, 3, 5, 10, 20, 30, 50, 100, 200, 300, 500, 1e3, 2e3, 3e3, 5e3, 10e3, 20e3, 30e3, 50e3,
@@ -38,6 +39,8 @@ class ScaleControl extends Control {
 
         this._minWidth = 100;
         this._maxWidth = 150;
+
+        this._isCenter = options.isCenter || false;
     }
 
     _renderTemplate() {
@@ -51,25 +54,38 @@ class ScaleControl extends Control {
 
         this.renderer.div.appendChild(this.el);
 
-        this.renderer.events.on("draw", (e) => {
-            if (e.events.cameraMoving) {
-                this._draw();
-            }
-        });
+        if (this._isCenter) {
+            this.renderer.activeCamera.events.on("moveend", (e) => {
+                this._drawScreen(this.planet.renderer.handler.getCenter());
+            });
 
-        this.renderer.activeCamera.events.on("moveend", (e) => {
-            this._draw(e);
-        });
+            this.planet.terrain.events.on("loadend", (e) => {
+                this._drawScreen(this.planet.renderer.handler.getCenter());
+            });
+        } else {
+            this.renderer.events.on("mousemove", (e) => {
+                if (!e.leftButtonHold && !e.rightButtonHold) {
+                    this._drawScreen(e);
+                }
+            });
 
-        this.planet.terrain.events.on("loadend", (e) => {
-            this._draw();
-        })
+            this.renderer.activeCamera.events.on("moveend", (e) => {
+                let ms = this.renderer.events.mouseState;
+                if (!ms.leftButtonHold && !ms.rightButtonHold) {
+                    this._drawScreen(ms);
+                }
+            });
+        }
     }
 
-    _draw(e) {
+    _drawScreen(px) {
         let cam = this.renderer.activeCamera;
-        let s0 = this.planet.renderer.handler.getCenter();
+        let s0 = px;
         let dist = this.planet.getDistanceFromPixel(s0);
+        if (dist === 0) {
+            s0 = cam.project(Vec3.ZERO);
+            dist = this.planet.getDistanceFromPixel(s0);
+        }
         let p0 = cam.getForward().scaleTo(dist).addA(cam.eye);
         let tempSize = dist * Math.tan(cam._viewAngle * RADIANS);
         let p1 = p0.add(cam.getRight().scaleTo(tempSize));
