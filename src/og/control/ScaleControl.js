@@ -52,7 +52,7 @@ class ScaleControl extends Control {
         this.renderer.div.appendChild(this.el);
 
         this.renderer.events.on("draw", (e) => {
-            if (e.events.pointerEvent()) {
+            if (e.events.cameraMoving) {
                 this._draw();
             }
         });
@@ -60,6 +60,10 @@ class ScaleControl extends Control {
         this.renderer.activeCamera.events.on("moveend", (e) => {
             this._draw(e);
         });
+
+        this.planet.terrain.events.on("loadend", (e) => {
+            this._draw();
+        })
     }
 
     _draw(e) {
