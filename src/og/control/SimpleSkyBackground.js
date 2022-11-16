@@ -167,7 +167,7 @@ function simpleSkyBackgroundShader() {
                 
                 vec2 ER = sphIntersect(camPos, dir, vec3(0.0), earthRadius);
                 
-                float bigRadius = earthRadius * 3.0;
+                float bigRadius = earthRadius * 2.5;
                 vec3 bigCenter = normalize(camPos) * bigRadius * 1.3;                
                                
                 vec2 BIG = sphIntersect(camPos, dir, bigCenter, bigRadius);
