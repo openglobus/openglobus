@@ -219,12 +219,12 @@ class Layer {
             this._ambient = new Float32Array([a.x, a.y, a.z]);
         }
 
-        if (this._diffuse) {
+        if (options.diffuse) {
             let d = utils.createColorRGB(options.diffuse, new Vec3(0.8, 0.8, 0.8));
             this._diffuse = new Float32Array([d.x, d.y, d.z]);
         }
 
-        if (this._specular) {
+        if (options.specular) {
             let s = utils.createColorRGB(options.specular, new Vec3(0.0003, 0.0003, 0.0003));
             let shininess = options.shininess || 20.0;
             this._specular = new Float32Array([s.x, s.y, s.z, shininess]);
