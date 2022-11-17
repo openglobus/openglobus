@@ -430,30 +430,14 @@ export class Planet extends RenderNode {
         return Quat.getLookRotation(t, n);
     }
 
-    get diffuse() {
-        return Vec3.fromVec(this._diffuse);
-    }
-
-    get ambient() {
-        return Vec3.fromVec(this._ambient);
-    }
-
-    get specular() {
-        return Vec3.fromVec(this._ambient);
-    }
-
-    get shininess() {
-        return this._specular[3];
-    }
-
     set diffuse(rgb) {
         let vec = createColorRGB(rgb);
-        this._diffuse = new Float32Array(vec.toArray3());
+        this._diffuse = new Float32Array(vec.toArray());
     }
 
     set ambient(rgb) {
         let vec = createColorRGB(rgb);
-        this._ambient = new Float32Array(vec.toArray3());
+        this._ambient = new Float32Array(vec.toArray());
     }
 
     set specular(rgb) {

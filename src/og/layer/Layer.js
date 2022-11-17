@@ -234,7 +234,7 @@ class Layer {
     set diffuse(rgb) {
         if (rgb) {
             let vec = createColorRGB(rgb);
-            this._diffuse = new Float32Array(vec.toArray3());
+            this._diffuse = new Float32Array(vec.toArray());
         } else {
             this._diffuse = null;
         }
@@ -243,7 +243,7 @@ class Layer {
     set ambient(rgb) {
         if (rgb) {
             let vec = createColorRGB(rgb);
-            this._ambient = new Float32Array(vec.toArray3());
+            this._ambient = new Float32Array(vec.toArray());
         } else {
             this._ambient = null;
         }
