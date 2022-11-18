@@ -49,7 +49,7 @@ class MapboxTerrain extends GlobusTerrain {
     }
 
     isBlur(segment) {
-        if (segment.tileZoom >= 13) {
+        if (segment.tileZoom >= 16) {
             return true;
         }
         return false;
@@ -82,19 +82,36 @@ class MapboxTerrain extends GlobusTerrain {
             return outCurrenElevations;
         }
 
-        // TODO:
-        //if (this._imageSize === this.plainGridSize) {
-        //    let elevationsSize = (this.plainGridSize + 1) * (this.plainGridSize + 1);
-        //    let d = SIZE / this.plainGridSize;
+        if (this._imageSize === this.plainGridSize) {
+            let elevationsSize = (this.plainGridSize + 1) * (this.plainGridSize + 1);
+            let outCurrenElevations = new Float32Array(elevationsSize);
+            for (let k = 0, len = this._imageSize * this._imageSize; k < len; k++) {
+                let j = k % this._imageSize,
+                    i = Math.floor(k / this._imageSize);
+                let fromInd4 = k * 4;
+                let h = rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
+                outCurrenElevations[i * (this._imageSize + 1) + j] = h;
+            }
 
-        //    let outCurrenElevations = new Float32Array(elevationsSize);
+            for (let i = 0, len = this._imageSize; i < len; i++) {
+                let j = this._imageSize - 1;
+                let fromInd4 = (i * this._imageSize + j) * 4;
+                let h = rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
+                outCurrenElevations[i * (this._imageSize + 1) + this._imageSize] = h;
+            }
 
-        //    for (let i = 0, len = outCurrenElevations.length; i < len; i++) {
-        //        let i4 = i * 4;
-        //        outCurrenElevations[i] = -10000 + 0.1 * (rgbaData[i4] * 256 * 256 + rgbaData[i4 + 1] * 256 + rgbaData[i4 + 2]);
-        //    }
-        //    return outCurrenElevations;
-        //}
+            for (let j = 0, len = this._imageSize; j < len; j++) {
+                let i = this._imageSize - 1;
+                let fromInd4 = (i * this._imageSize + j) * 4;
+                let h = rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
+                outCurrenElevations[this._imageSize * (this._imageSize + 1) + j] = h;
+            }
+
+            let h = rgb2Height(rgbaData[rgbaData.length - 4], rgbaData[rgbaData.length - 3], rgbaData[rgbaData.length - 2]);
+            outCurrenElevations[outCurrenElevations.length - 1] = h;
+
+            return outCurrenElevations;
+        }
 
         //
         // Power of two images
