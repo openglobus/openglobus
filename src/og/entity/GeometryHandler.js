@@ -539,6 +539,7 @@ class GeometryHandler {
         if (geometry._handlerIndex === -1) {
             geometry._handler = this;
             geometry._handlerIndex = this._geometries.length;
+
             this._geometries.push(geometry);
 
             let pickingColor = geometry._entity._pickingColor.scaleTo(1 / 255);
@@ -548,129 +549,66 @@ class GeometryHandler {
             geometry._lineVerticesHighMerc = [];
             geometry._lineVerticesLowMerc = [];
 
-            if (geometry._type === GeometryType.POLYGON) {
-                let coordinates = geometry._coordinates;
-                let ci = [];
-                for (let j = 0; j < coordinates.length; j++) {
-                    ci[j] = [];
-                    for (var k = 0; k < coordinates[j].length; k++) {
-                        ci[j][k] = [
-                            mercator.forward_lon(coordinates[j][k][0]),
-                            mercator.forward_lat(coordinates[j][k][1])
-                        ];
-                    }
-                }
-
-                let data = flatten(ci);
-                let indexes = earcut(data.vertices, data.holes, 2);
-
-                geometry._polyVerticesHandlerIndex = this._polyVerticesHighMerc.length;
-                geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
-
-                for (let i = 0; i < indexes.length; i++) {
-                    this._polyIndexes.push(indexes[i] + geometry._polyVerticesHandlerIndex * 0.5);
-                }
-
-                var color = geometry._style.fillColor;
-
-                let verticesHigh = [],
-                    verticesLow = [];
-
-                for (let i = 0; i < data.vertices.length * 0.5; i++) {
-                    this._polyColors.push(color.x, color.y, color.z, color.w);
-                    this._polyPickingColors.push(
-                        pickingColor.x,
-                        pickingColor.y,
-                        pickingColor.z,
-                        1.0
-                    );
-                }
-
-                for (let i = 0; i < data.vertices.length; i++) {
-                    doubleToTwoFloatsV2(data.vertices[i], tempHighLow);
-                    verticesHigh[i] = tempHighLow.x;
-                    verticesLow[i] = tempHighLow.y;
-                }
-
-                geometry._polyVerticesHighMerc = verticesHigh;
-                geometry._polyVerticesLowMerc = verticesLow;
-
-                this._polyVerticesHighMerc.push.apply(this._polyVerticesHighMerc, verticesHigh);
-                this._polyVerticesLowMerc.push.apply(this._polyVerticesLowMerc, verticesLow);
-
-                geometry._polyVerticesLength = data.vertices.length;
-                geometry._polyIndexesLength = indexes.length;
-
-                // Creates polygon stroke data
-                geometry._lineVerticesHandlerIndex = this._lineVerticesHighMerc.length;
-                geometry._lineOrdersHandlerIndex = this._lineOrders.length;
-                geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
-                geometry._lineColorsHandlerIndex = this._lineColors.length;
-                geometry._lineThicknessHandlerIndex = this._lineThickness.length;
-
-                GeometryHandler.appendLineData(
-                    ci,
-                    true,
-                    geometry._style.lineColor,
-                    pickingColor,
-                    geometry._style.lineWidth,
-                    geometry._style.strokeColor,
-                    geometry._style.strokeWidth,
-                    this._lineVerticesHighMerc,
-                    this._lineVerticesLowMerc,
-                    this._lineOrders,
-                    this._lineIndexes,
-                    this._lineColors,
-                    this._linePickingColors,
-                    this._lineThickness,
-                    this._lineStrokeColors,
-                    this._lineStrokes,
-                    geometry._lineVerticesHighMerc,
-                    geometry._lineVerticesLowMerc
-                );
-
-                geometry._lineVerticesLength =
-                    this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
-                geometry._lineOrdersLength =
-                    this._lineOrders.length - geometry._lineOrdersHandlerIndex;
-                geometry._lineIndexesLength =
-                    this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
-                geometry._lineColorsLength =
-                    this._lineColors.length - geometry._lineColorsHandlerIndex;
-                geometry._lineThicknessLength =
-                    this._lineThickness.length - geometry._lineThicknessHandlerIndex;
-            } else if (geometry._type === GeometryType.MULTIPOLYGON) {
-                let coordinates = geometry._coordinates;
-                let vertices = [],
-                    indexes = [];
-
-                // Creates polygon stroke data
-                geometry._lineVerticesHandlerIndex = this._lineVerticesHighMerc.length;
-                geometry._lineOrdersHandlerIndex = this._lineOrders.length;
-                geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
-                geometry._lineColorsHandlerIndex = this._lineColors.length;
-                geometry._lineThicknessHandlerIndex = this._lineThickness.length;
-
-                for (var i = 0; i < coordinates.length; i++) {
-                    let cci = coordinates[i];
+            if (geometry._coordinates[0].length) {
+                if (geometry._type === GeometryType.POLYGON) {
+                    let coordinates = geometry._coordinates;
                     let ci = [];
-                    for (let j = 0; j < cci.length; j++) {
+                    for (let j = 0; j < coordinates.length; j++) {
                         ci[j] = [];
-                        for (let k = 0; k < coordinates[i][j].length; k++) {
+                        for (var k = 0; k < coordinates[j].length; k++) {
                             ci[j][k] = [
-                                mercator.forward_lon(cci[j][k][0]),
-                                mercator.forward_lat(cci[j][k][1])
+                                mercator.forward_lon(coordinates[j][k][0]),
+                                mercator.forward_lat(coordinates[j][k][1])
                             ];
                         }
                     }
-                    let data = flatten(ci);
-                    let dataIndexes = earcut(data.vertices, data.holes, 2);
 
-                    for (let j = 0; j < dataIndexes.length; j++) {
-                        indexes.push(dataIndexes[j] + vertices.length * 0.5);
+                    let data = flatten(ci);
+                    let indexes = earcut(data.vertices, data.holes, 2);
+
+                    geometry._polyVerticesHandlerIndex = this._polyVerticesHighMerc.length;
+                    geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
+
+                    for (let i = 0; i < indexes.length; i++) {
+                        this._polyIndexes.push(indexes[i] + geometry._polyVerticesHandlerIndex * 0.5);
                     }
 
-                    vertices.push.apply(vertices, data.vertices);
+                    var color = geometry._style.fillColor;
+
+                    let verticesHigh = [],
+                        verticesLow = [];
+
+                    for (let i = 0; i < data.vertices.length * 0.5; i++) {
+                        this._polyColors.push(color.x, color.y, color.z, color.w);
+                        this._polyPickingColors.push(
+                            pickingColor.x,
+                            pickingColor.y,
+                            pickingColor.z,
+                            1.0
+                        );
+                    }
+
+                    for (let i = 0; i < data.vertices.length; i++) {
+                        doubleToTwoFloatsV2(data.vertices[i], tempHighLow);
+                        verticesHigh[i] = tempHighLow.x;
+                        verticesLow[i] = tempHighLow.y;
+                    }
+
+                    geometry._polyVerticesHighMerc = verticesHigh;
+                    geometry._polyVerticesLowMerc = verticesLow;
+
+                    this._polyVerticesHighMerc.push.apply(this._polyVerticesHighMerc, verticesHigh);
+                    this._polyVerticesLowMerc.push.apply(this._polyVerticesLowMerc, verticesLow);
+
+                    geometry._polyVerticesLength = data.vertices.length;
+                    geometry._polyIndexesLength = indexes.length;
+
+                    // Creates polygon stroke data
+                    geometry._lineVerticesHandlerIndex = this._lineVerticesHighMerc.length;
+                    geometry._lineOrdersHandlerIndex = this._lineOrders.length;
+                    geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
+                    geometry._lineColorsHandlerIndex = this._lineColors.length;
+                    geometry._lineThicknessHandlerIndex = this._lineThickness.length;
 
                     GeometryHandler.appendLineData(
                         ci,
@@ -692,154 +630,220 @@ class GeometryHandler {
                         geometry._lineVerticesHighMerc,
                         geometry._lineVerticesLowMerc
                     );
-                }
 
-                geometry._polyVerticesHandlerIndex = this._polyVerticesHighMerc.length;
-                geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
+                    geometry._lineVerticesLength =
+                        this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
+                    geometry._lineOrdersLength =
+                        this._lineOrders.length - geometry._lineOrdersHandlerIndex;
+                    geometry._lineIndexesLength =
+                        this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
+                    geometry._lineColorsLength =
+                        this._lineColors.length - geometry._lineColorsHandlerIndex;
+                    geometry._lineThicknessLength =
+                        this._lineThickness.length - geometry._lineThicknessHandlerIndex;
 
-                for (let i = 0; i < indexes.length; i++) {
-                    this._polyIndexes.push(indexes[i] + geometry._polyVerticesHandlerIndex * 0.5);
-                }
+                } else if (geometry._type === GeometryType.MULTIPOLYGON) {
+                    let coordinates = geometry._coordinates;
+                    let vertices = [],
+                        indexes = [];
 
-                let color = geometry._style.fillColor;
+                    // Creates polygon stroke data
+                    geometry._lineVerticesHandlerIndex = this._lineVerticesHighMerc.length;
+                    geometry._lineOrdersHandlerIndex = this._lineOrders.length;
+                    geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
+                    geometry._lineColorsHandlerIndex = this._lineColors.length;
+                    geometry._lineThicknessHandlerIndex = this._lineThickness.length;
 
-                let verticesHigh = [],
-                    verticesLow = [];
+                    for (var i = 0; i < coordinates.length; i++) {
+                        let cci = coordinates[i];
+                        let ci = [];
+                        for (let j = 0; j < cci.length; j++) {
+                            ci[j] = [];
+                            for (let k = 0; k < coordinates[i][j].length; k++) {
+                                ci[j][k] = [
+                                    mercator.forward_lon(cci[j][k][0]),
+                                    mercator.forward_lat(cci[j][k][1])
+                                ];
+                            }
+                        }
+                        let data = flatten(ci);
+                        let dataIndexes = earcut(data.vertices, data.holes, 2);
 
-                for (let i = 0; i < vertices.length * 0.5; i++) {
-                    this._polyColors.push(color.x, color.y, color.z, color.w);
-                    this._polyPickingColors.push(
-                        pickingColor.x,
-                        pickingColor.y,
-                        pickingColor.z,
-                        1.0
-                    );
-                }
+                        for (let j = 0; j < dataIndexes.length; j++) {
+                            indexes.push(dataIndexes[j] + vertices.length * 0.5);
+                        }
 
-                for (let i = 0; i < vertices.length; i++) {
-                    doubleToTwoFloatsV2(vertices[i], tempHighLow);
-                    verticesHigh[i] = tempHighLow.x;
-                    verticesLow[i] = tempHighLow.y;
-                }
+                        vertices.push.apply(vertices, data.vertices);
 
-                geometry._polyVerticesHighMerc = verticesHigh;
-                geometry._polyVerticesLowMerc = verticesLow;
+                        GeometryHandler.appendLineData(
+                            ci,
+                            true,
+                            geometry._style.lineColor,
+                            pickingColor,
+                            geometry._style.lineWidth,
+                            geometry._style.strokeColor,
+                            geometry._style.strokeWidth,
+                            this._lineVerticesHighMerc,
+                            this._lineVerticesLowMerc,
+                            this._lineOrders,
+                            this._lineIndexes,
+                            this._lineColors,
+                            this._linePickingColors,
+                            this._lineThickness,
+                            this._lineStrokeColors,
+                            this._lineStrokes,
+                            geometry._lineVerticesHighMerc,
+                            geometry._lineVerticesLowMerc
+                        );
+                    }
 
-                this._polyVerticesHighMerc.push.apply(this._polyVerticesHighMerc, verticesHigh);
-                this._polyVerticesLowMerc.push.apply(this._polyVerticesLowMerc, verticesLow);
+                    geometry._polyVerticesHandlerIndex = this._polyVerticesHighMerc.length;
+                    geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
 
-                geometry._polyVerticesLength = vertices.length;
-                geometry._polyIndexesLength = indexes.length;
+                    for (let i = 0; i < indexes.length; i++) {
+                        this._polyIndexes.push(indexes[i] + geometry._polyVerticesHandlerIndex * 0.5);
+                    }
 
-                geometry._lineVerticesLength =
-                    this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
-                geometry._lineOrdersLength =
-                    this._lineOrders.length - geometry._lineOrdersHandlerIndex;
-                geometry._lineIndexesLength =
-                    this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
-                geometry._lineColorsLength =
-                    this._lineColors.length - geometry._lineColorsHandlerIndex;
-                geometry._lineThicknessLength =
-                    this._lineThickness.length - geometry._lineThicknessHandlerIndex;
-            } else if (geometry._type === GeometryType.LINESTRING) {
-                let coordinates = geometry._coordinates;
-                let ci = new Array(coordinates.length);
-                for (let j = 0; j < coordinates.length; j++) {
-                    ci[j] = [
-                        mercator.forward_lon(coordinates[j][0]),
-                        mercator.forward_lat(coordinates[j][1])
-                    ];
-                }
+                    let color = geometry._style.fillColor;
 
-                // Creates polygon stroke data
-                geometry._lineVerticesHandlerIndex = this._lineVerticesHighMerc.length;
-                geometry._lineOrdersHandlerIndex = this._lineOrders.length;
-                geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
-                geometry._lineColorsHandlerIndex = this._lineColors.length;
-                geometry._lineThicknessHandlerIndex = this._lineThickness.length;
+                    let verticesHigh = [],
+                        verticesLow = [];
 
-                GeometryHandler.appendLineData(
-                    [ci],
-                    false,
-                    geometry._style.lineColor,
-                    pickingColor,
-                    geometry._style.lineWidth,
-                    geometry._style.strokeColor,
-                    geometry._style.strokeWidth,
-                    this._lineVerticesHighMerc,
-                    this._lineVerticesLowMerc,
-                    this._lineOrders,
-                    this._lineIndexes,
-                    this._lineColors,
-                    this._linePickingColors,
-                    this._lineThickness,
-                    this._lineStrokeColors,
-                    this._lineStrokes,
-                    geometry._lineVerticesHighMerc,
-                    geometry._lineVerticesLowMerc
-                );
+                    for (let i = 0; i < vertices.length * 0.5; i++) {
+                        this._polyColors.push(color.x, color.y, color.z, color.w);
+                        this._polyPickingColors.push(
+                            pickingColor.x,
+                            pickingColor.y,
+                            pickingColor.z,
+                            1.0
+                        );
+                    }
 
-                geometry._lineVerticesLength =
-                    this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
-                geometry._lineOrdersLength =
-                    this._lineOrders.length - geometry._lineOrdersHandlerIndex;
-                geometry._lineIndexesLength =
-                    this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
-                geometry._lineColorsLength =
-                    this._lineColors.length - geometry._lineColorsHandlerIndex;
-                geometry._lineThicknessLength =
-                    this._lineThickness.length - geometry._lineThicknessHandlerIndex;
-            } else if (geometry._type === GeometryType.MULTILINESTRING) {
-                let coordinates = geometry._coordinates;
-                let ci = [];
-                for (let j = 0; j < coordinates.length; j++) {
-                    ci[j] = [];
-                    for (let k = 0; k < coordinates[j].length; k++) {
-                        ci[j][k] = [
-                            mercator.forward_lon(coordinates[j][k][0]),
-                            mercator.forward_lat(coordinates[j][k][1])
+                    for (let i = 0; i < vertices.length; i++) {
+                        doubleToTwoFloatsV2(vertices[i], tempHighLow);
+                        verticesHigh[i] = tempHighLow.x;
+                        verticesLow[i] = tempHighLow.y;
+                    }
+
+                    geometry._polyVerticesHighMerc = verticesHigh;
+                    geometry._polyVerticesLowMerc = verticesLow;
+
+                    this._polyVerticesHighMerc.push.apply(this._polyVerticesHighMerc, verticesHigh);
+                    this._polyVerticesLowMerc.push.apply(this._polyVerticesLowMerc, verticesLow);
+
+                    geometry._polyVerticesLength = vertices.length;
+                    geometry._polyIndexesLength = indexes.length;
+
+                    geometry._lineVerticesLength =
+                        this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
+                    geometry._lineOrdersLength =
+                        this._lineOrders.length - geometry._lineOrdersHandlerIndex;
+                    geometry._lineIndexesLength =
+                        this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
+                    geometry._lineColorsLength =
+                        this._lineColors.length - geometry._lineColorsHandlerIndex;
+                    geometry._lineThicknessLength =
+                        this._lineThickness.length - geometry._lineThicknessHandlerIndex;
+                } else if (geometry._type === GeometryType.LINESTRING) {
+                    let coordinates = geometry._coordinates;
+                    let ci = new Array(coordinates.length);
+                    for (let j = 0; j < coordinates.length; j++) {
+                        ci[j] = [
+                            mercator.forward_lon(coordinates[j][0]),
+                            mercator.forward_lat(coordinates[j][1])
                         ];
                     }
+
+                    // Creates polygon stroke data
+                    geometry._lineVerticesHandlerIndex = this._lineVerticesHighMerc.length;
+                    geometry._lineOrdersHandlerIndex = this._lineOrders.length;
+                    geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
+                    geometry._lineColorsHandlerIndex = this._lineColors.length;
+                    geometry._lineThicknessHandlerIndex = this._lineThickness.length;
+
+                    GeometryHandler.appendLineData(
+                        [ci],
+                        false,
+                        geometry._style.lineColor,
+                        pickingColor,
+                        geometry._style.lineWidth,
+                        geometry._style.strokeColor,
+                        geometry._style.strokeWidth,
+                        this._lineVerticesHighMerc,
+                        this._lineVerticesLowMerc,
+                        this._lineOrders,
+                        this._lineIndexes,
+                        this._lineColors,
+                        this._linePickingColors,
+                        this._lineThickness,
+                        this._lineStrokeColors,
+                        this._lineStrokes,
+                        geometry._lineVerticesHighMerc,
+                        geometry._lineVerticesLowMerc
+                    );
+
+                    geometry._lineVerticesLength =
+                        this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
+                    geometry._lineOrdersLength =
+                        this._lineOrders.length - geometry._lineOrdersHandlerIndex;
+                    geometry._lineIndexesLength =
+                        this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
+                    geometry._lineColorsLength =
+                        this._lineColors.length - geometry._lineColorsHandlerIndex;
+                    geometry._lineThicknessLength =
+                        this._lineThickness.length - geometry._lineThicknessHandlerIndex;
+                } else if (geometry._type === GeometryType.MULTILINESTRING) {
+                    let coordinates = geometry._coordinates;
+                    let ci = [];
+                    for (let j = 0; j < coordinates.length; j++) {
+                        ci[j] = [];
+                        for (let k = 0; k < coordinates[j].length; k++) {
+                            ci[j][k] = [
+                                mercator.forward_lon(coordinates[j][k][0]),
+                                mercator.forward_lat(coordinates[j][k][1])
+                            ];
+                        }
+                    }
+
+                    // Creates polygon stroke data
+                    geometry._lineVerticesHandlerIndex = this._lineVerticesHighMerc.length;
+                    geometry._lineOrdersHandlerIndex = this._lineOrders.length;
+                    geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
+                    geometry._lineColorsHandlerIndex = this._lineColors.length;
+                    geometry._lineThicknessHandlerIndex = this._lineThickness.length;
+
+                    GeometryHandler.appendLineData(
+                        ci,
+                        false,
+                        geometry._style.lineColor,
+                        pickingColor,
+                        geometry._style.lineWidth,
+                        geometry._style.strokeColor,
+                        geometry._style.strokeWidth,
+                        this._lineVerticesHighMerc,
+                        this._lineVerticesLowMerc,
+                        this._lineOrders,
+                        this._lineIndexes,
+                        this._lineColors,
+                        this._linePickingColors,
+                        this._lineThickness,
+                        this._lineStrokeColors,
+                        this._lineStrokes,
+                        geometry._lineVerticesHighMerc,
+                        geometry._lineVerticesLowMerc
+                    );
+
+                    geometry._lineVerticesLength =
+                        this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
+                    geometry._lineOrdersLength =
+                        this._lineOrders.length - geometry._lineOrdersHandlerIndex;
+                    geometry._lineIndexesLength =
+                        this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
+                    geometry._lineColorsLength =
+                        this._lineColors.length - geometry._lineColorsHandlerIndex;
+                    geometry._lineThicknessLength =
+                        this._lineThickness.length - geometry._lineThicknessHandlerIndex;
                 }
-
-                // Creates polygon stroke data
-                geometry._lineVerticesHandlerIndex = this._lineVerticesHighMerc.length;
-                geometry._lineOrdersHandlerIndex = this._lineOrders.length;
-                geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
-                geometry._lineColorsHandlerIndex = this._lineColors.length;
-                geometry._lineThicknessHandlerIndex = this._lineThickness.length;
-
-                GeometryHandler.appendLineData(
-                    ci,
-                    false,
-                    geometry._style.lineColor,
-                    pickingColor,
-                    geometry._style.lineWidth,
-                    geometry._style.strokeColor,
-                    geometry._style.strokeWidth,
-                    this._lineVerticesHighMerc,
-                    this._lineVerticesLowMerc,
-                    this._lineOrders,
-                    this._lineIndexes,
-                    this._lineColors,
-                    this._linePickingColors,
-                    this._lineThickness,
-                    this._lineStrokeColors,
-                    this._lineStrokes,
-                    geometry._lineVerticesHighMerc,
-                    geometry._lineVerticesLowMerc
-                );
-
-                geometry._lineVerticesLength =
-                    this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
-                geometry._lineOrdersLength =
-                    this._lineOrders.length - geometry._lineOrdersHandlerIndex;
-                geometry._lineIndexesLength =
-                    this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
-                geometry._lineColorsLength =
-                    this._lineColors.length - geometry._lineColorsHandlerIndex;
-                geometry._lineThicknessLength =
-                    this._lineThickness.length - geometry._lineThicknessHandlerIndex;
             }
 
             // Refresh visibility
@@ -962,7 +966,7 @@ class GeometryHandler {
             geometry._lineColorsHandlerIndex = -1;
 
             !this._removeGeometryExtents[geometry._id] &&
-                this._removeGeometryExtentArr.push(geometry.getExtent());
+            this._removeGeometryExtentArr.push(geometry.getExtent());
             this._removeGeometryExtents[geometry._id] = true;
 
             this.refresh();
