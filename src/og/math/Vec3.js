@@ -39,38 +39,47 @@ export class Vec3 {
     static get UP() {
         return new Vec3(0, 1, 0);
     }
+
     /** @const */
     static get DOWN() {
         return new Vec3(0, -1, 0);
     }
+
     /** @const */
     static get RIGHT() {
         return new Vec3(1, 0, 0);
     }
+
     /** @const */
     static get LEFT() {
         return new Vec3(-1, 0, 0);
     }
+
     /** @const */
     static get FORWARD() {
         return new Vec3(0, 0, -1);
     }
+
     /** @const */
     static get BACKWARD() {
         return new Vec3(0, 0, 1);
     }
+
     /** @const */
     static get ZERO() {
         return new Vec3();
     }
+
     /** @const */
     static get UNIT_X() {
         return new Vec3(1, 0, 0);
     }
+
     /** @const */
     static get UNIT_Y() {
         return new Vec3(0, 1, 0);
     }
+
     /** @const */
     static get UNIT_Z() {
         return new Vec3(0, 0, 1);
@@ -231,9 +240,7 @@ export class Vec3 {
      * @returns {Vec3} -
      */
     static scale(a, scale) {
-        var res = new Vec3(a.x, a.y, a.z);
-        res.scale(scale);
-        return res;
+        return a.scaleTo(scale);
     }
 
     /**
@@ -314,6 +321,18 @@ export class Vec3 {
         return res;
     }
 
+    static length2(a) {
+        return a.length2();
+    }
+
+    static length(a) {
+        return a.length();
+    }
+
+    static dot(a, b) {
+        return a.dot(b);
+    }
+
     /**
      * Converts to 4d vector, Fourth value is 1.0.
      * @public
@@ -372,13 +391,13 @@ export class Vec3 {
 
     /**
      * Copy input vector's values.
-     * @param {Vec3} point3 - Vector to copy.
+     * @param {Vec3} p - Vector to copy.
      * @returns {Vec3} -
      */
-    copy(point3) {
-        this.x = point3.x;
-        this.y = point3.y;
-        this.z = point3.z;
+    copy(p) {
+        this.x = p.x;
+        this.y = p.y;
+        this.z = p.z;
         return this;
     }
 
@@ -412,47 +431,47 @@ export class Vec3 {
     /**
      * Adds vector to the current.
      * @public
-     * @param {Vec3} point3 - Point to add.
+     * @param {Vec3} p - Point to add.
      * @returns {Vec3} -
      */
-    addA(point3) {
-        this.x += point3.x;
-        this.y += point3.y;
-        this.z += point3.z;
+    addA(p) {
+        this.x += p.x;
+        this.y += p.y;
+        this.z += p.z;
         return this;
     }
 
     /**
      * Gets two vectors summarization.
      * @public
-     * @param {Vec3} point3 - Vector to add.
+     * @param {Vec3} p - Vector to add.
      * @returns {Vec3} Returns a sum vector.
      */
-    add(point3) {
-        return new Vec3(this.x + point3.x, this.y + point3.y, this.z + point3.z);
+    add(p) {
+        return new Vec3(this.x + p.x, this.y + p.y, this.z + p.z);
     }
 
     /**
      * Subtract vector from the current.
      * @public
-     * @param {Vec3} point3 - Subtract vector.
+     * @param {Vec3} p - Subtract vector.
      * @returns {Vec3} -
      */
-    subA(point3) {
-        this.x -= point3.x;
-        this.y -= point3.y;
-        this.z -= point3.z;
+    subA(p) {
+        this.x -= p.x;
+        this.y -= p.y;
+        this.z -= p.z;
         return this;
     }
 
     /**
      * Gets vector subtraction.
      * @public
-     * @param {Vec3} point3 - Subtract vector.
+     * @param {Vec3} p - Subtract vector.
      * @return {Vec3} Returns new instance of a subtraction
      */
-    sub(point3) {
-        return new Vec3(this.x - point3.x, this.y - point3.y, this.z - point3.z);
+    sub(p) {
+        return new Vec3(this.x - p.x, this.y - p.y, this.z - p.z);
     }
 
     /**
@@ -527,11 +546,11 @@ export class Vec3 {
     /**
      * Gets vectors dot production.
      * @public
-     * @param {Vec3} point3 - Another vector.
+     * @param {Vec3} a - Another vector.
      * @returns {number} -
      */
-    dot(point3) {
-        return point3.x * this.x + point3.y * this.y + point3.z * this.z;
+    dot(a) {
+        return a.x * this.x + a.y * this.y + a.z * this.z;
     }
 
     /**
@@ -696,26 +715,26 @@ export class Vec3 {
     /**
      * Gets distance to point.
      * @public
-     * @param {Vec3} point3 - Distant point.
+     * @param {Vec3} p - Distant point.
      * @returns {number} -
      */
-    distance(point3) {
-        let dx = this.x - point3.x,
-            dy = this.y - point3.y,
-            dz = this.z - point3.z;
+    distance(p) {
+        let dx = this.x - p.x,
+            dy = this.y - p.y,
+            dz = this.z - p.z;
         return Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
     /**
      * Gets square distance to point.
      * @public
-     * @param {Vec3} point3 - Distant point.
+     * @param {Vec3} p - Distant point.
      * @returns {number} -
      */
-    distance2(point3) {
-        let dx = this.x - point3.x,
-            dy = this.y - point3.y,
-            dz = this.z - point3.z;
+    distance2(p) {
+        let dx = this.x - p.x,
+            dy = this.y - p.y,
+            dz = this.z - p.z;
         return dx * dx + dy * dy + dz * dz;
     }
 
