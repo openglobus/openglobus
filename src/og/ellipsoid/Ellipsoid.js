@@ -404,7 +404,7 @@ class Ellipsoid {
 
             lambda += 0.5 * func / (x2 * m_X3 * invRadii2X + y2 * m_Y3 * invRadii2Y + z2 * m_Z3 * invRadii2Z);
 
-        } while (true);
+        } while (true); // eslint-disable-line
 
         return new Vec3(pX * m_X, pY * m_Y, pZ * m_Z);
     }
