@@ -30,7 +30,7 @@ import { VectorTileCreator } from "../utils/VectorTileCreator.js";
 import { wgs84 } from "../ellipsoid/wgs84.js";
 import { NIGHT, SPECULAR } from "../res/images.js";
 import { Geoid } from "../terrain/Geoid.js";
-import { isUndef } from "../utils/shared.js";
+import { createColorRGB, isUndef } from "../utils/shared.js";
 import { MAX_RENDERED_NODES } from "../quadTree/quadTree.js";
 import { EarthQuadTreeStrategy } from "../quadTree/EarthQuadTreeStrategy.js";
 
@@ -428,6 +428,25 @@ export class Planet extends RenderNode {
         let n = cartesian.normal();
         let t = Vec3.proj_b_to_plane(Vec3.UNIT_Y, n);
         return Quat.getLookRotation(t, n);
+    }
+
+    set diffuse(rgb) {
+        let vec = createColorRGB(rgb);
+        this._diffuse = new Float32Array(vec.toArray());
+    }
+
+    set ambient(rgb) {
+        let vec = createColorRGB(rgb);
+        this._ambient = new Float32Array(vec.toArray());
+    }
+
+    set specular(rgb) {
+        let vec = createColorRGB(rgb);
+        this._specular = new Float32Array([vec.x, vec.y, vec.y, this._specular[3]]);
+    }
+
+    set shininess(v) {
+        this._specular[3] = v;
     }
 
     get normalMapCreator() {
@@ -1091,7 +1110,7 @@ export class Planet extends RenderNode {
         let frustumIndex = cam.getCurrentFrustum(), firstPass = frustumIndex === cam.FARTHEST_FRUSTUM_INDEX;
 
         if (firstPass) {
-            if (this._skipPreRender/* && (!this._renderCompletedActivated || cam.isMoved)*/) {
+            if (this._skipPreRender) {
                 this._collectRenderNodes();
             }
             this._skipPreRender = true;
@@ -1132,9 +1151,15 @@ export class Planet extends RenderNode {
             gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
             gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
-            gl.uniform3fv(shu.diffuse, this._diffuse);
-            gl.uniform3fv(shu.ambient, this._ambient);
-            gl.uniform4fv(shu.specular, this._specular);
+            if (this.baseLayer) {
+                gl.uniform3fv(shu.diffuse, this.baseLayer._diffuse || this._diffuse);
+                gl.uniform3fv(shu.ambient, this.baseLayer._ambient || this._ambient);
+                gl.uniform4fv(shu.specular, this.baseLayer._specular || this._specular);
+            } else {
+                gl.uniform3fv(shu.diffuse, this._diffuse);
+                gl.uniform3fv(shu.ambient, this._ambient);
+                gl.uniform4fv(shu.specular, this._specular);
+            }
 
             // bind night glowing material
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);

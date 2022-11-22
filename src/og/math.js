@@ -49,26 +49,26 @@ export const DEGREES_TO_HOURS = 1.0 / 15.0;
 /** @const */
 export const SQRT_HALF = Math.sqrt(0.5);
 
-export const EPSILON1 = 0.1;
-export const EPSILON2 = 0.01;
-export const EPSILON3 = 0.001;
-export const EPSILON4 = 0.0001;
-export const EPSILON5 = 0.00001;
-export const EPSILON6 = 0.000001;
-export const EPSILON7 = 1e-7;
-export const EPSILON8 = 1e-8;
-export const EPSILON9 = 1e-9;
-export const EPSILON10 = 1e-10;
-export const EPSILON11 = 1e-11;
-export const EPSILON12 = 1e-12;
-export const EPSILON13 = 1e-13;
-export const EPSILON14 = 1e-14;
-export const EPSILON15 = 1e-15;
-export const EPSILON16 = 1e-16;
-export const EPSILON17 = 1e-17;
-export const EPSILON18 = 1e-18;
-export const EPSILON19 = 1e-19;
-export const EPSILON20 = 1e-20;
+export const EPS1 = 0.1;
+export const EPS2 = 0.01;
+export const EPS3 = 0.001;
+export const EPS4 = 0.0001;
+export const EPS5 = 0.00001;
+export const EPS6 = 0.000001;
+export const EPS7 = 1e-7;
+export const EPS8 = 1e-8;
+export const EPS9 = 1e-9;
+export const EPS10 = 1e-10;
+export const EPS11 = 1e-11;
+export const EPS12 = 1e-12;
+export const EPS13 = 1e-13;
+export const EPS14 = 1e-14;
+export const EPS15 = 1e-15;
+export const EPS16 = 1e-16;
+export const EPS17 = 1e-17;
+export const EPS18 = 1e-18;
+export const EPS19 = 1e-19;
+export const EPS20 = 1e-20;
 
 /**
  * The log function returns the power to which the base value has to be raised to produce n.
@@ -201,7 +201,7 @@ export function mod(m, n) {
  */
 export function zeroTwoPI(a) {
     const res = mod(a, TWO_PI);
-    if (Math.abs(res) < EPSILON14 && Math.abs(a) > EPSILON14) {
+    if (Math.abs(res) < EPS14 && Math.abs(a) > EPS14) {
         return TWO_PI;
     }
     return res;

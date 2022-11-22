@@ -230,7 +230,7 @@ class Node {
         }
 
         if (this.inFrustum || this._cameraInside || seg.tileZoom < 3) {
-            let h = cam._lonLat.height;
+            let h = Math.abs(cam._lonLat.height);
 
             let eye = cam.eye;
             let horizonDist = eye.length2() - this.planet.ellipsoid._b2;
