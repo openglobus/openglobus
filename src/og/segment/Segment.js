@@ -97,11 +97,6 @@ class Segment {
          */
         this.bbox = new Box();
 
-        //this._swNorm = null;
-        //this._nwNorm = null;
-        //this._seNorm = null;
-        //this._neNorm = null;
-
         this._sw = new Vec3();
         this._nw = new Vec3();
         this._se = new Vec3();
