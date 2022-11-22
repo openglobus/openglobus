@@ -1,6 +1,7 @@
 'use strict';
 
 import * as math from '../math.js';
+import { EPS10 } from '../math.js';
 import { Vec3 } from './Vec3.js';
 
 export class Line3 {
@@ -69,13 +70,13 @@ export class Line3 {
         let p13 = this.p0.sub(line.p0),
             p43 = line.p1.sub(line.p0);
 
-        if (Math.abs(p43.x) < math.EPSILON10 && Math.abs(p43.y) < math.EPSILON10 && Math.abs(p43.z) < math.EPSILON10) {
+        if (Math.abs(p43.x) < EPS10 && Math.abs(p43.y) < EPS10 && Math.abs(p43.z) < EPS10) {
             return false;
         }
 
         let p21 = this.p1.sub(this.p0);
 
-        if (Math.abs(p21.x) < math.EPSILON10 && Math.abs(p21.y) < math.EPSILON10 && Math.abs(p21.z) < math.EPSILON10) {
+        if (Math.abs(p21.x) < EPS10 && Math.abs(p21.y) < EPS10 && Math.abs(p21.z) < EPS10) {
             return false;
         }
 
@@ -87,7 +88,7 @@ export class Line3 {
 
         let denom = d2121 * d4343 - d4321 * d4321;
 
-        if (Math.abs(denom) < math.EPSILON10) {
+        if (Math.abs(denom) < EPS10) {
             return false;
         }
 

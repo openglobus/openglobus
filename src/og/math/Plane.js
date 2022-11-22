@@ -1,6 +1,7 @@
 "use strict";
 
 import * as math from "../math.js";
+import { EPS5 } from "../math.js";
 import { Vec3 } from "./Vec3.js";
 
 /**
@@ -54,7 +55,7 @@ class Plane {
         var az = u.z >= 0 ? u.z : -u.z;
 
         // test if the two planes are parallel
-        if (ax + ay + az < math.EPSILON5) {
+        if (ax + ay + az < EPS5) {
             // Pn1 and Pn2 are near parallel
             // test if disjoint or coincide
             var v = Pn2.p.sub(Pn1.p);
