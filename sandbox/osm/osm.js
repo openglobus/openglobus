@@ -183,9 +183,9 @@ var highResTerrain = new MapboxTerrain(null, {
     url: "//terrain.openglobus.org/public/nz/{z}/{x}/{y}.png",
     //url: "//127.0.0.1/terrain/andorra/dest/{z}/{x}/{y}.png",
     //imageSize: 129,
-    //plainGridSize: 128,
+    //plainGridSize: 256,
     gridSizeByZoom: [
-        64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 16, 8, 4
+        64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 64, 64, 64, 64, 32, 16, 8
         //8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4
     ]
 });

@@ -19,7 +19,7 @@ let ellipsoid = wgs84;
 //coordinates of Bochum in lonlat
 let lonlatBochum = new LonLat(7, 51.5, 0);
 //coordinate above Bochum to allow a upwards direction of ray
-let lonlatBochumAir = new LonLat(7, 51.5, 1000);
+let lonlatBochumAir = new LonLat(7, 51.5, 2000000);
 //coordinates of Bochum in Cartesian
 let cartBochum = ellipsoid.lonLatToCartesian(lonlatBochum);
 let cartBochumAir = ellipsoid.lonLatToCartesian(lonlatBochumAir);
@@ -28,7 +28,6 @@ let entityBochum = new Entity({
     ray: {
         startPosition: cartBochum,
         endPosition: cartBochumAir,
-        length: 2000000,
         startColor: "blue",
         endColor: "green",
         thickness: 5
@@ -38,7 +37,7 @@ let entityBochum = new Entity({
 //coordinates of Moscow in lonlat
 let lonlatMoscow = new LonLat(37.6, 55.75, 0);
 //coordinate above Moscow to allow a upwards direction of ray
-let lonlatMoscowAir = new LonLat(37.6, 55.75, 1000);
+let lonlatMoscowAir = new LonLat(37.6, 55.75, 1000000);
 //coordinates of Moscow in Cartesian
 let cartMoscow = ellipsoid.lonLatToCartesian(lonlatMoscow);
 let cartMoscowAir = ellipsoid.lonLatToCartesian(lonlatMoscowAir);
@@ -47,7 +46,6 @@ let entityMoscow = new Entity({
     ray: {
         startPosition: cartMoscow,
         endPosition: cartMoscowAir,
-        length: 1000000,
         startColor: "red",
         endColor: "green",
         thickness: 10
