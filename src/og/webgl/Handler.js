@@ -662,16 +662,25 @@ class Handler {
         this._initPrograms();
         this._setDefaults();
 
+        this.observer = new IntersectionObserver((entries) => {
+            this._toggleVisibilityChange(entries[0].isIntersecting === true);
+        }, { threshold: 0 });
+        this.observer.observe(this.canvas);
+
         document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === 'visible') {
-                this.start();
-                this.ONCANVASRESIZE && this.ONCANVASRESIZE();
-                this.events.dispatch(this.events.visibilitychange, true);
-            } else {
-                this.events.dispatch(this.events.visibilitychange, false);
-                this.stop();
-            }
+            this._toggleVisibilityChange(document.visibilityState === 'visible');
         });
+    }
+
+    _toggleVisibilityChange(visibility) {
+        if (visibility) {
+            this.start();
+            this.ONCANVASRESIZE && this.ONCANVASRESIZE();
+            this.events.dispatch(this.events.visibilitychange, true);
+        } else {
+            this.events.dispatch(this.events.visibilitychange, false);
+            this.stop();
+        }
     }
 
     /**
@@ -919,6 +928,10 @@ class Handler {
         }
     }
 
+    isStopped() {
+        return !this._requestAnimationFrameId;
+    }
+
     /**
      * Check is gl context type equals webgl2
      * @public
@@ -934,7 +947,7 @@ class Handler {
     _animationFrameCallback() {
         this._requestAnimationFrameId = window.requestAnimationFrame(() => {
             this.drawFrame();
-            this._animationFrameCallback();
+            this._requestAnimationFrameId && this._animationFrameCallback();
         });
     }
 
