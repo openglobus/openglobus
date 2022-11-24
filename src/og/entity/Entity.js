@@ -338,9 +338,9 @@ class Entity {
     setCartesian(x, y, z) {
         let p = this._cartesian;
 
-        p.x = x;
-        p.y = y;
-        p.z = z;
+        p.x = isNaN(x) ? 0 : x;
+        p.y = isNaN(y) ? 0 : y;
+        p.z = isNaN(z) ? 0 : z;
 
         // billboards
         this.billboard && this.billboard.setPosition3v(p);
