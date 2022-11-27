@@ -48,7 +48,7 @@ import { XYZ } from "./XYZ.js";
 class WMS extends XYZ {
 
 
-    constructor(name, options,extra ) {
+    constructor(name, options, extra) {
         super(name, options);
 
         this.extra = new URLSearchParams(extra).toString();
