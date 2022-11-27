@@ -58,9 +58,6 @@ class WMS extends XYZ {
             this.setExtent(new Extent(new LonLat(-180.0, -90), new LonLat(180.0, 90)));
         }
 
-	if (options.srid){
-		this.srid = options.srid;
-	}
         /**
          * WMS layers string.
          * @public
@@ -143,7 +140,7 @@ class WMS extends XYZ {
             "image/png",
             this._version,
             "GetMap",
-            this.srid?this.srid:segment._projection.code,
+            segment._projection.code,
             this._getBbox(segment.getExtent()),
             this.imageWidth,
             this.imageHeight,
