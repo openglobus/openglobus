@@ -51,7 +51,7 @@ class WMS extends XYZ {
     constructor(name, options,extra ) {
         super(name, options);
 
-	this.extra = new URLSearchParams(extra).toString();
+        this.extra = new URLSearchParams(extra).toString();
 
 
         if (!options.extent) {
@@ -94,7 +94,7 @@ class WMS extends XYZ {
         bbox,
         width = 256,
         height = 256,
-	extra
+        extra
 
     ) {
         return `${url}/wms?LAYERS=${layers}&FORMAT=${format}&SERVICE=WMS&VERSION=${version}&REQUEST=${request}
