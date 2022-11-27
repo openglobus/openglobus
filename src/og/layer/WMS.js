@@ -51,7 +51,7 @@ class WMS extends XYZ {
     constructor(name, options, extra) {
         super(name, options);
 
-        this.extra = new URLSearchParams(extra).toString();
+        this._extra = new URLSearchParams(extra).toString();
 
 
         if (!options.extent) {
@@ -144,7 +144,7 @@ class WMS extends XYZ {
             this._getBbox(segment.getExtent()),
             this.imageWidth,
             this.imageHeight,
-            this.extra
+            this._extra
         );
     }
 
