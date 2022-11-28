@@ -1006,14 +1006,6 @@ export class Planet extends RenderNode {
 
             let temp = this._renderedNodes, rf = this._renderedNodesInFrustum, temp2 = [];
 
-            this._renderedNodes = [];
-
-            // clearing nodes in frustums
-            for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
-                this._renderedNodesInFrustum[i].length = 0;
-                this._renderedNodesInFrustum[i] = [];
-            }
-
             for (var i = 0, len = temp.length; i < len; i++) {
                 var ri = temp[i];
                 let ht = ri.segment.centerNormal.dot(cam._b);
