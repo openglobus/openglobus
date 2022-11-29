@@ -108,12 +108,16 @@ function isString(v) {
 }
 
 // Handles the click inside/outside a dialog - closes dialog when click outside
-export function btnClickHandler(btn_id, dialog_id, dialog_selector, btn_icon_id) {
+export function btnClickHandler(btn_id, dialog_id, dialog_selector, btn_icon_id, callback) {
     let btn = isString(btn_id) ? document.getElementById(btn_id) : btn_id;
     let dialog = document.getElementById(dialog_id);
     btn.onclick = function (e) {
+        
+        let off = true;
+        
         if (this.classList.contains('og-OFF')) {
             // Turn to ON
+            off = false;
             allMenuBtnOFF();
             allDialogsHide();
             this.classList.remove('og-OFF');
@@ -137,10 +141,17 @@ export function btnClickHandler(btn_id, dialog_id, dialog_selector, btn_icon_id)
             }
         } else {
             // Turn to OFF
+            off = true;
             this.classList.add('og-OFF');
             if (dialog) {
                 dialog.classList.add('og-hide');
             }
         }
+        
+        if (callback && typeof callback == 'function'){
+            callback(off);
+        }
     }
 }
+
+
