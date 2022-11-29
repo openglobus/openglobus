@@ -278,8 +278,8 @@ class SelectionScene extends RenderNode {
         this._trackEntity.polyline.setPath3v([path]);
 
         if (this._ignoreTerrain) {
-            this._propsLabel.setCartesian3v(path[Math.floor(path.length / 2)]);
-            this._propsLabel.label.setText(`${distanceFormat(length)}, ${Math.round(this._heading)} deg`);
+//            this._propsLabel.setCartesian3v(path[Math.floor(path.length / 2)]);
+//            this._propsLabel.label.setText(`${distanceFormat(length)}, ${Math.round(this._heading)} deg`);
         }
     }
 
@@ -318,8 +318,8 @@ class SelectionScene extends RenderNode {
                     res += t[i + 1].distance(t[i]);
                 }
 
-                this._propsLabel.setCartesian3v(t[Math.floor(t.length / 2)]);
-                this._propsLabel.label.setText(`${distanceFormat(res)}, ${Math.round(this._heading)} deg`);
+//                this._propsLabel.setCartesian3v(t[Math.floor(t.length / 2)]);
+//                this._propsLabel.label.setText(`${distanceFormat(res)}, ${Math.round(this._heading)} deg`);
             }
 
 
