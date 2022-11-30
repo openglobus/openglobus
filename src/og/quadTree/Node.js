@@ -235,7 +235,7 @@ class Node {
             let eye = cam.eye;
             let horizonDist = eye.length2() - this.planet.ellipsoid._b2;
 
-            let altVis = seg.tileZoom > 19 || (seg.tileZoom < 4 && !seg.terrainReady) || seg.tileZoom < 2;
+            let altVis = seg.tileZoom > 19 || (seg.tileZoom < 5 && !seg.terrainReady) || seg.tileZoom < 2;
 
             if (h > 21000) {
                 altVis = altVis || eye.distance2(seg._sw) < horizonDist || eye.distance2(seg._nw) < horizonDist || eye.distance2(seg._ne) < horizonDist || eye.distance2(seg._se) < horizonDist;
