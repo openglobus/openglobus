@@ -321,7 +321,7 @@ class Camera {
         this._tanViewAngle_hradOneByHeight =
             this._tanViewAngle_hrad * this.renderer.handler._oneByHeight;
         var c = this.renderer.handler.canvas;
-        this._projSizeConst = Math.min(c.clientWidth < 256 ? 256 : c.clientWidth, c.clientHeight < 256 ? 256 : c.clientHeight) / (angle * math.RADIANS);
+        this._projSizeConst = Math.min(c.clientWidth < 512 ? 512 : c.clientWidth, c.clientHeight < 512 ? 512 : c.clientHeight) / (angle * math.RADIANS);
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             this.frustums[i].setProjectionMatrix(
                 angle,
