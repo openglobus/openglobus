@@ -967,7 +967,10 @@ export class Planet extends RenderNode {
         this._renderedNodes.length = 0;
         this._renderedNodes = [];
 
-        // clearing nodes in frustums
+        this._clearRenderNodesInFrustum();
+    }
+
+    _clearRenderNodesInFrustum() {
         for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
             this._renderedNodesInFrustum[i].length = 0;
             this._renderedNodesInFrustum[i] = [];
@@ -998,19 +1001,17 @@ export class Planet extends RenderNode {
         this.minCurrZoom = math.MAX;
         this.maxCurrZoom = math.MIN;
 
+        this.quadTreeStrategy.collectRenderNodes();
+
         if (cam.slope > this.minEqualZoomCameraSlope && cam._lonLat.height < this.maxEqualZoomAltitude && cam._lonLat.height > this.minEqualZoomAltitude) {
 
             this.minCurrZoom = this.maxCurrZoom;
 
-            let temp = this._renderedNodes, rf = this._renderedNodesInFrustum, temp2 = [];
+            let temp = this._renderedNodes,
+                rf = this._renderedNodesInFrustum,
+                temp2 = [];
 
-            this._renderedNodes = [];
-
-            // clearing nodes in frustums
-            for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
-                this._renderedNodesInFrustum[i].length = 0;
-                this._renderedNodesInFrustum[i] = [];
-            }
+            this._clearRenderNodesInFrustum();
 
             for (var i = 0, len = temp.length; i < len; i++) {
                 var ri = temp[i];
@@ -1035,7 +1036,6 @@ export class Planet extends RenderNode {
             }
         }
 
-        this.quadTreeStrategy.collectRenderNodes();
     }
 
     _globalPreDraw() {
