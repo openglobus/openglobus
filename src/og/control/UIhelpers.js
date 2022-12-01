@@ -148,10 +148,8 @@ export function btnClickHandler(btn_id, dialog_id, dialog_selector, btn_icon_id,
             }
         }
         
-        if (callback && typeof callback == 'function'){
+        if (callback && typeof callback === 'function'){
             callback(off);
         }
     }
 }
-
-
