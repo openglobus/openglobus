@@ -268,10 +268,6 @@ class Layer {
         return this._normalMapCreator;
     }
 
-    get layers() {
-        return [...this._layers];
-    }
-
     static getTMS(x, y, z) {
         return {
             x: x,

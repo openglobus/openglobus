@@ -966,8 +966,9 @@ export class Planet extends RenderNode {
         // clearing all node list
         this._renderedNodes.length = 0;
         this._renderedNodes = [];
+    }
 
-        // clearing nodes in frustums
+    _clearRenderNodesInFrustum() {
         for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
             this._renderedNodesInFrustum[i].length = 0;
             this._renderedNodesInFrustum[i] = [];
@@ -980,13 +981,12 @@ export class Planet extends RenderNode {
      */
     _collectRenderNodes() {
         let cam = this.camera;
-
         this._lodSize = math.lerp(cam.slope < 0.0 ? 0.0 : cam.slope, this._curLodSize, this._minLodSize);
-
         cam._insideSegment = null;
 
         // clear first
         this._clearRenderedNodeList();
+        this._clearRenderNodesInFrustum();
 
         this._viewExtent.southWest.set(180, 180);
         this._viewExtent.northEast.set(-180, -180);
@@ -998,19 +998,17 @@ export class Planet extends RenderNode {
         this.minCurrZoom = math.MAX;
         this.maxCurrZoom = math.MIN;
 
+        this.quadTreeStrategy.collectRenderNodes();
+
         if (cam.slope > this.minEqualZoomCameraSlope && cam._lonLat.height < this.maxEqualZoomAltitude && cam._lonLat.height > this.minEqualZoomAltitude) {
 
             this.minCurrZoom = this.maxCurrZoom;
 
-            let temp = this._renderedNodes, rf = this._renderedNodesInFrustum, temp2 = [];
+            let temp = this._renderedNodes,
+                rf = this._renderedNodesInFrustum,
+                temp2 = [];
 
-            this._renderedNodes = [];
-
-            // clearing nodes in frustums
-            for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
-                this._renderedNodesInFrustum[i].length = 0;
-                this._renderedNodesInFrustum[i] = [];
-            }
+            this._clearRenderNodesInFrustum();
 
             for (var i = 0, len = temp.length; i < len; i++) {
                 var ri = temp[i];
@@ -1034,8 +1032,6 @@ export class Planet extends RenderNode {
                 temp2[i].renderTree(cam, this.maxCurrZoom, null);
             }
         }
-
-        this.quadTreeStrategy.collectRenderNodes();
     }
 
     _globalPreDraw() {
