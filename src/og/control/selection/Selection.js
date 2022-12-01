@@ -49,13 +49,16 @@ import { SelectionScene } from "./SelectionScene.js";
 class Selection extends Control {
     constructor(options = {}) {
         super(options);
-
+        this._activationButtonClasses = options.activationButtonClasses || null;
+      
         this._selectorScene = new SelectionScene({
             name: `selectionScene:${this._id}`,
             ignoreTerrain: options.ignoreTerrain,
             onSelect: options.onSelect,
             autoSelectionHide: options.autoSelectionHide
         });
+        
+        
         
     }
 
@@ -68,8 +71,8 @@ class Selection extends Control {
 
 
         
-        btnClickHandler('og-geo-image-dragger-menu-btn', null, null, 
-            '#og-geo-image-dragger-menu-icon',
+        btnClickHandler('og-selection-menu-btn', null, null, 
+            '#og-selection-menu-icon',
             (off) => {
                 if (off){
                     this.deactivate();
@@ -90,12 +93,28 @@ class Selection extends Control {
     }
 
     createSelectorButton() {
+        let btnIcon  = 
+                elementFactory('div',
+                    {id: 'og-selection-menu-icon', class: 'og-icon-holder'});
+                    
+       btnIcon.setAttribute("style", "font-size:24px; display: flex; justify-content: center; align-items: center; background: none !important");
+       
+        if (this._activationButtonClasses){
+            btnIcon.classList.add(... this._activationButtonClasses);
+        } else {
+            let defaultIcon = document.createElement("span");
+            defaultIcon.setAttribute("style", "width: 24px;height: 24px;border: 1px solid black;");
+            btnIcon.appendChild(defaultIcon);
+        }
+        
         let btn = elementFactory('div', {
-            id: 'og-geo-image-dragger-menu-btn',
+            id: 'og-selection-menu-btn',
             class: 'og-geo-image-dragger og-menu-btn og-OFF'
-        },
-                elementFactory('div', {id: 'og-geo-image-dragger-menu-icon', class: 'og-icon-holder'}));
-               
+        },btnIcon);
+        
+        btn.setAttribute("style", "top: 116px; right: 12px");
+      
+        
         this.renderer.div.appendChild(btn);
     }
 
