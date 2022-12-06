@@ -18,6 +18,8 @@ import { ZoomControl } from "./ZoomControl.js";
 import { MouseWheelZoomControl } from "./MouseWheelZoomControl.js";
 import { Lighting } from "./Lighting.js";
 import { LayerAnimation } from "./LayerAnimation.js";
+import { ScaleControl } from "./ScaleControl.js";
+import { SimpleSkyBackground } from "./SimpleSkyBackground.js";
 
 export {
     Control,
@@ -33,11 +35,13 @@ export {
     TouchNavigation,
     SimpleNavigation,
     ShowFps,
+    ScaleControl,
     Sun,
     ZoomControl,
     MouseWheelZoomControl,
     Lighting,
     Ruler,
+    SimpleSkyBackground,
     Selection,
     LayerAnimation
 };
