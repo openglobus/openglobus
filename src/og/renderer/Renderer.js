@@ -488,9 +488,8 @@ class Renderer {
             clearTimeout(__resizeTimeout);
             __resizeTimeout = setTimeout(() => {
                 this._resizeEnd();
-                //this.resize();
                 this.events.dispatch(this.events.resizeend, this.handler.canvas);
-            }, 20);
+            }, 500);
         };
 
         this._screenFrameCornersBuffer = this.handler.createArrayBuffer(
@@ -508,6 +507,10 @@ class Renderer {
         this.outputTexture = this.screenTexture.screen;
 
         this.fontAtlas.initFont("arial", arial.data, arial.image);
+    }
+
+    resize() {
+        this._resizeEnd();
     }
 
     setCurrentScreen(screenName) {
