@@ -422,6 +422,10 @@ export class Planet extends RenderNode {
 
         this._terrainCompleted = false;
         this._terrainCompletedActivated = false;
+
+        this._collectRenderNodesIsActive = true;
+
+        this._skipPreRender = false;
     }
 
     static getBearingNorthRotationQuat(cartesian) {
@@ -720,6 +724,11 @@ export class Planet extends RenderNode {
         }
 
         this.renderer.events.on("resize", () => {
+            this._renderCompletedActivated = false;
+            this._terrainCompletedActivated = false;
+        });
+
+        this.renderer.events.on("resizeend", () => {
             this._renderCompletedActivated = false;
             this._terrainCompletedActivated = false;
         });
@@ -1093,6 +1102,16 @@ export class Planet extends RenderNode {
         this._terrainCompleted = true;
     }
 
+    lockQuadTree() {
+        this._collectRenderNodesIsActive = false;
+        this.camera.setTerrainCollisionActivity(false);
+    }
+
+    unlockQuadTree() {
+        this._collectRenderNodesIsActive = true;
+        this.camera.setTerrainCollisionActivity(true);
+    }
+
     /**
      * @protected
      */
@@ -1106,7 +1125,7 @@ export class Planet extends RenderNode {
         let frustumIndex = cam.getCurrentFrustum(), firstPass = frustumIndex === cam.FARTHEST_FRUSTUM_INDEX;
 
         if (firstPass) {
-            if (this._skipPreRender) {
+            if (this._skipPreRender && this._collectRenderNodesIsActive) {
                 this._collectRenderNodes();
             }
             this._skipPreRender = true;

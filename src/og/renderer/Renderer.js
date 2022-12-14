@@ -54,6 +54,9 @@ let __depthCallbackCounter__ = 0;
  * @fires og.RendererEvents#touchleave
  * @fires og.RendererEvents#touchenter
  */
+
+let __resizeTimeout;
+
 class Renderer {
     constructor(handler, params) {
         params = params || {};
@@ -480,8 +483,13 @@ class Renderer {
         }
 
         this.handler.ONCANVASRESIZE = () => {
-            this.resize();
+            this._resizeStart();
             this.events.dispatch(this.events.resize, this.handler.canvas);
+            clearTimeout(__resizeTimeout);
+            __resizeTimeout = setTimeout(() => {
+                this._resizeEnd();
+                this.events.dispatch(this.events.resizeend, this.handler.canvas);
+            }, 500);
         };
 
         this._screenFrameCornersBuffer = this.handler.createArrayBuffer(
@@ -501,6 +509,10 @@ class Renderer {
         this.fontAtlas.initFont("arial", arial.data, arial.image);
     }
 
+    resize() {
+        this._resizeEnd();
+    }
+
     setCurrentScreen(screenName) {
         this._currentOutput = screenName;
         if (this.screenTexture[screenName]) {
@@ -508,22 +520,24 @@ class Renderer {
         }
     }
 
-    resize() {
+    _resizeStart() {
         let c = this.handler.canvas;
+
+        this.activeCamera.setAspectRatio(c.width / c.height);
+        this.sceneFramebuffer.setSize(c.width * 0.5, c.height * 0.5);
+        this.blitFramebuffer && this.blitFramebuffer.setSize(c.width * 0.5, c.height * 0.5, true);
+    }
+
+    _resizeEnd() {
+        let c = this.handler.canvas;
+
         this.activeCamera.setAspectRatio(c.width / c.height);
         this.sceneFramebuffer.setSize(c.width, c.height);
+        this.blitFramebuffer && this.blitFramebuffer.setSize(c.width, c.height, true);
 
-        this.blitFramebuffer &&
-        this.blitFramebuffer.setSize(c.width, c.height, true);
-
-        this.toneMappingFramebuffer &&
-        this.toneMappingFramebuffer.setSize(c.width, c.height, true);
-
-        this.depthFramebuffer &&
-        this.depthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
-
-        this.screenDepthFramebuffer &&
-        this.screenDepthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
+        this.toneMappingFramebuffer && this.toneMappingFramebuffer.setSize(c.width, c.height, true);
+        this.depthFramebuffer && this.depthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
+        this.screenDepthFramebuffer && this.screenDepthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
 
         if (this.handler.gl.type === "webgl") {
             this.screenTexture.screen = this.sceneFramebuffer.textures[0];
@@ -539,6 +553,36 @@ class Renderer {
 
         this.setCurrentScreen(this._currentOutput);
     }
+
+    // resize() {
+    //     let c = this.handler.canvas;
+    //
+    //     this.activeCamera.setAspectRatio(c.width / c.height);
+    //
+    //     this.sceneFramebuffer.setSize(c.width, c.height);
+    //
+    //     this.blitFramebuffer && this.blitFramebuffer.setSize(c.width, c.height, true);
+    //
+    //     this.toneMappingFramebuffer && this.toneMappingFramebuffer.setSize(c.width, c.height, true);
+    //
+    //     this.depthFramebuffer && this.depthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
+    //
+    //     this.screenDepthFramebuffer && this.screenDepthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
+    //
+    //     if (this.handler.gl.type === "webgl") {
+    //         this.screenTexture.screen = this.sceneFramebuffer.textures[0];
+    //         this.screenTexture.picking = this.pickingFramebuffer.textures[0];
+    //         this.screenTexture.depth = this.screenDepthFramebuffer.textures[0];
+    //         this.screenTexture.frustum = this.depthFramebuffer.textures[0];
+    //     } else {
+    //         this.screenTexture.screen = this.toneMappingFramebuffer.textures[0];
+    //         this.screenTexture.picking = this.pickingFramebuffer.textures[0];
+    //         this.screenTexture.depth = this.screenDepthFramebuffer.textures[0];
+    //         this.screenTexture.frustum = this.depthFramebuffer.textures[0];
+    //     }
+    //
+    //     this.setCurrentScreen(this._currentOutput);
+    // }
 
     removeNode(renderNode) {
         renderNode.remove();
