@@ -144,7 +144,7 @@ var red = new XYZ("borders", {
 let osm = new XYZ("osm", {
     isBaseLayer: true,
     url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    visibility: true,
+    visibility: false,
     attribution: 'Data @ OpenStreetMap contributors, ODbL',
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#AAD3DF" }, { color: "#F2EFE9" }],
@@ -159,21 +159,23 @@ tg.events.on("loadend", () => console.log("tilegrid loadend"));
 let sat = new XYZ("sat", {
     isBaseLayer: true,
     subdomains: ['t0', 't1', 't2', 't3'],
-    //url: "https://ecn.{s}.tiles.virtualearth.net/tiles/a{quad}.jpeg?n=z&g=7146",
-    url: "https://astro.arcgis.com/arcgis/rest/services/OnMars/MDIM/MapServer/tile/{z}/{y}/{x}?blankTile=false",
+    url: "https://ecn.{s}.tiles.virtualearth.net/tiles/a{quad}.jpeg?n=z&g=7146",
+    //url: "https://astro.arcgis.com/arcgis/rest/services/OnMars/MDIM/MapServer/tile/{z}/{y}/{x}?blankTile=false",
     //url: "//127.0.0.1/whereonmars.cartodb.net/celestia_mars-shaded-16k_global/{z}/{y}/{x}.png",
     //url: "https://trek.nasa.gov/tiles/Mars/EQ/Mars_Viking_MDIM21_ClrMosaic_global_232m/1.0.0//default/default028mm/{z}/{y}/{x}.jpg",
-    visibility: false,
+    visibility: true,
     attribution: `<div style="transform: scale(0.8); margin-top:-2px;"><a href="http://www.bing.com" target="_blank"><img title="Bing Imagery" src="https://sandcastle.cesium.com/CesiumUnminified/Assets/Images/bing_maps_credit.png"></a> © 2021 Microsoft Corporation</div>`,
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#001522" }, { color: "#E4E6F3" }],
     textureFilter: "linear",
-    // urlRewrite: function (s, u) {
-    //     return stringTemplate(u, {
-    //         's': this._getSubdomain(),
-    //         'quad': toQuadKey(s.tileX, s.tileY, s.tileZoom)
-    //     });
-    // }
+    diffuse: "rgb(325,325,355)",
+    ambient: "rgb(75,75,105)",
+    urlRewrite: function (s, u) {
+        return stringTemplate(u, {
+            's': this._getSubdomain(),
+            'quad': toQuadKey(s.tileX, s.tileY, s.tileZoom)
+        });
+    }
 });
 
 //let visExtent = new VisibleExtent();
@@ -196,14 +198,14 @@ var globus = new Globe({
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
-    terrain: highResTerrain,
-    //terrain: new GlobusTerrain(),
+    //terrain: highResTerrain,
+    terrain: new GlobusTerrain(),
     //maxEqualZoomAltitude: 1,
-    layers: [osm, tg, sat],
+    layers: [sat, tg, osm],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
-    useNightTexture: false,
+    useNightTexture: true,
     //useEarthNavigation: true,
-    useSpecularTexture: false
+    useSpecularTexture: true
 });
 
 //globus.renderer.fontAtlas.loadFont("chinese.msyh", "//assets.msn.com/weathermapdata/1/static/3d/label/zh-cn/font-v2.2/", "chinese.msyh.json");
