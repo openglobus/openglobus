@@ -676,9 +676,11 @@ export class Planet extends RenderNode {
     }
 
     _drawTransmittance() {
+
+
         this._transmittanceBuffer = new Framebuffer(this.renderer.handler, {
-            width: 512,
-            height: 512,
+            width: 256,
+            height: 256,
             useDepth: false
         });
 
@@ -695,11 +697,22 @@ export class Planet extends RenderNode {
 
         p.activate();
 
-        gl.uniform2fv(shu.iResolution, [512, 512]);
+        this._transmittanceBuffer.activate();
+
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        gl.uniform2fv(shu.iResolution, [this._transmittanceBuffer.width, this._transmittanceBuffer.height]);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
         gl.vertexAttribPointer(sha.a_position, positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer.numItems);
+
+        let img = this._transmittanceBuffer.getImage();
+
+        this._transmittanceBuffer.deactivate();
+
+        document.body.appendChild(img);
     }
 
     _drawScattering() {

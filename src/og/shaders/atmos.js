@@ -116,7 +116,7 @@ export function transmittance() {
                 vec2 uv = gl_FragCoord.xy / iResolution.xy;
                 float height = uv.y * (topRadius - bottomRadius);
                 float angle = uv.x * 2.0 - 1.0;
-                gl_FragColor = vec4(transmittance(height, angle), 0.0);
+                gl_FragColor = vec4(transmittance(height, angle), 1.0);
             }`
     });
 }
