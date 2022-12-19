@@ -37,14 +37,14 @@ class PlanetCamera extends Camera {
      */
     constructor(planet, options) {
         super(planet.renderer, {
-            frustums: [
-                [1, 100 + 0.075],
-                [100, 1000 + 0.075],
-                [1000, 1e6 + 10000],
-                [1e6, 1e9]
-            ], //[[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]]*/
-            ...options
-        }
+                frustums: [
+                    [1, 100 + 0.075],
+                    [100, 1000 + 0.075],
+                    [1000, 1e6 + 10000],
+                    [1e6, 1e9]
+                ], //[[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]]*/
+                ...options
+            }
         );
         /**
          * Assigned camera's planet.
@@ -120,6 +120,11 @@ class PlanetCamera extends Camera {
         this._numFrames = 50;
         this._completeCallback = null;
         this._flying = false;
+        this._checkTerrainCollision = true;
+    }
+
+    setTerrainCollisionActivity(isActive) {
+        this._checkTerrainCollision = isActive;
     }
 
     /**
@@ -363,7 +368,10 @@ class PlanetCamera extends Camera {
      * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
      * @param [frameCallback]
      */
-    flyCartesian(cartesian, look = Vec3.ZERO, up = Vec3.UP, ampl = 1.0, completeCallback = () => { }, startCallback = () => { }, frameCallback = () => { }) {
+    flyCartesian(cartesian, look = Vec3.ZERO, up = Vec3.UP, ampl = 1.0, completeCallback = () => {
+    }, startCallback = () => {
+    }, frameCallback = () => {
+    }) {
 
         this.stopFlying();
 
@@ -620,7 +628,7 @@ class PlanetCamera extends Camera {
                 this._insideSegmentPosition,
                 this._terrainPoint
             );
-            if (this._terrainAltitude < this.minAltitude) {
+            if (this._terrainAltitude < this.minAltitude && this._checkTerrainCollision) {
                 this.setAltitude(this.minAltitude);
             }
         }
@@ -634,9 +642,9 @@ class PlanetCamera extends Camera {
     getHeading() {
         let u = this.eye.normal();
         let f = Vec3.proj_b_to_plane(
-            this.slope >= 0.97 ? this.getUp() : this.getForward(),
-            u
-        ).normalize(),
+                this.slope >= 0.97 ? this.getUp() : this.getForward(),
+                u
+            ).normalize(),
             n = Vec3.proj_b_to_plane(Vec3.UP, u).normalize();
         let res = Math.sign(u.dot(f.cross(n))) * Math.acos(f.dot(n)) * math.DEGREES;
         if (res < 0.0) {

@@ -900,6 +900,12 @@ const EVENT_NAMES = [
     "resize",
 
     /**
+     * Triggered when screen is resized.
+     * @event og.RendererEvents#resizeend
+     */
+    "resizeend",
+
+    /**
      * Mouse enters the work screen
      * @event og.RendererEvents#mouseenter
      */
