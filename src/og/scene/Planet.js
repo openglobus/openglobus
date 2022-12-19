@@ -6,6 +6,7 @@
 
 import * as utils from "../utils/shared.js";
 import * as shaders from "../shaders/drawnode.js";
+import * as atmos from "../shaders/atmos.js";
 import * as math from "../math.js";
 import * as mercator from "../mercator.js";
 import * as segmentHelper from "../segment/segmentHelper.js";
@@ -422,10 +423,6 @@ export class Planet extends RenderNode {
 
         this._terrainCompleted = false;
         this._terrainCompletedActivated = false;
-
-        this._collectRenderNodesIsActive = true;
-
-        this._skipPreRender = false;
     }
 
     static getBearingNorthRotationQuat(cartesian) {
@@ -674,6 +671,48 @@ export class Planet extends RenderNode {
         this._heightPickingFramebuffer.init();
 
         this.renderer.screenTexture.height = this._heightPickingFramebuffer.textures[0];
+
+        h.addProgram(atmos.transmittance(), true);
+    }
+
+    _drawTransmittance() {
+        this._transmittanceBuffer = new Framebuffer(this.renderer.handler, {
+            width: 512,
+            height: 512,
+            useDepth: false
+        });
+
+        this._transmittanceBuffer.init();
+
+        var positions = new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0]);
+        let positionBuffer = this.renderer.handler.createArrayBuffer(positions, 2, positions.length / 2);
+
+        let h = this.renderer.handler;
+        let gl = h.gl;
+        let p = h.programs.transmittance;
+        let sha = p._program.attributes;
+        let shu = p._program.uniforms;
+
+        p.activate();
+
+        gl.uniform2fv(shu.iResolution, [512, 512]);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.vertexAttribPointer(sha.a_position, positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer.numItems);
+    }
+
+    _drawScattering() {
+        this._scatteringBuffer = new Framebuffer(this.renderer.handler, {
+            width: this._width,
+            height: this._height,
+            useDepth: false
+        });
+
+        this._scatteringBuffer.init();
+
+        var positions = new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0]);
+        this._screenCoords = this.renderer.handler.createArrayBuffer(positions, 2, positions.length / 2);
     }
 
     _onLayerLoadend(layer) {
@@ -728,11 +767,6 @@ export class Planet extends RenderNode {
             this._terrainCompletedActivated = false;
         });
 
-        this.renderer.events.on("resizeend", () => {
-            this._renderCompletedActivated = false;
-            this._terrainCompletedActivated = false;
-        });
-
         // Initialize texture coordinates buffer pool
         this._textureCoordsBufferCache = [];
 
@@ -768,7 +802,6 @@ export class Planet extends RenderNode {
         for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
             this._renderedNodesInFrustum[i] = [];
         }
-
 
         // Creating quad trees nodes
         this.quadTreeStrategy.init();
@@ -812,6 +845,8 @@ export class Planet extends RenderNode {
         this.renderer.events.on("postdraw", () => {
             this._checkRendercompleted();
         });
+
+        this._drawTransmittance();
     }
 
     clearIndexesCache() {
@@ -1102,16 +1137,6 @@ export class Planet extends RenderNode {
         this._terrainCompleted = true;
     }
 
-    lockQuadTree() {
-        this._collectRenderNodesIsActive = false;
-        this.camera.setTerrainCollisionActivity(false);
-    }
-
-    unlockQuadTree() {
-        this._collectRenderNodesIsActive = true;
-        this.camera.setTerrainCollisionActivity(true);
-    }
-
     /**
      * @protected
      */
@@ -1125,7 +1150,7 @@ export class Planet extends RenderNode {
         let frustumIndex = cam.getCurrentFrustum(), firstPass = frustumIndex === cam.FARTHEST_FRUSTUM_INDEX;
 
         if (firstPass) {
-            if (this._skipPreRender && this._collectRenderNodesIsActive) {
+            if (this._skipPreRender) {
                 this._collectRenderNodes();
             }
             this._skipPreRender = true;
