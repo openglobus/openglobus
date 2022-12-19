@@ -80,8 +80,6 @@ class Renderer {
 
         this.brightThreshold = 0.9;
 
-        this.backgroundColor = params.backgroundColor || new Vec3(115 / 255, 203 / 255, 249 / 255);
-
         /**
          * Render nodes drawing queue.
          * @private
