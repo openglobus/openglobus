@@ -27,6 +27,7 @@ import { XYZ } from "./XYZ.js";
  * @param {number} [options.height=256] - Tile height.
  * @param {string} options.layers - WMS layers string.
  * @param {string} [options.version="1.1.1"] - WMS version.
+ * @param {Object} extra  - Extra parameters (by WMS rreference or by WMS service vendors) to pass to WMS service.
  * @example:
  * new og.layer.WMS("USA States", {
  *     isBaseLayer: false,
@@ -36,15 +37,22 @@ import { XYZ } from "./XYZ.js";
  *     zIndex: 50,
  *     attribution: 'USA states - geoserver WMS example',
  *     version: "1.1.1",
- *     visibility: false }
+ *     visibility: false }, {
+ *     transparent: true,
+ *     sld: "style.sld"}	   
  * );
  *
  * @fires og.layer.XYZ#load
  * @fires og.layer.XYZ#loadend
  */
 class WMS extends XYZ {
-    constructor(name, options) {
+
+
+    constructor(name, options, extra) {
         super(name, options);
+
+        this._extra = new URLSearchParams(extra).toString();
+
 
         if (!options.extent) {
             this.setExtent(new Extent(new LonLat(-180.0, -90), new LonLat(180.0, 90)));
@@ -85,10 +93,12 @@ class WMS extends XYZ {
         srs,
         bbox,
         width = 256,
-        height = 256
+        height = 256,
+        extra
+
     ) {
         return `${url}/wms?LAYERS=${layers}&FORMAT=${format}&SERVICE=WMS&VERSION=${version}&REQUEST=${request}
-        &SRS=${srs}&BBOX=${bbox}&WIDTH=${width}&HEIGHT=${height}`;
+        &SRS=${srs}&BBOX=${bbox}&WIDTH=${width}&HEIGHT=${height}&` + extra;
     }
 
     static get_bbox_v1_1_1(extent) {
@@ -133,7 +143,8 @@ class WMS extends XYZ {
             segment._projection.code,
             this._getBbox(segment.getExtent()),
             this.imageWidth,
-            this.imageHeight
+            this.imageHeight,
+            this._extra
         );
     }
 

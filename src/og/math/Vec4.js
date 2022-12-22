@@ -106,9 +106,8 @@ export class Vec4 {
      * Converts vector to a number array.
      * @public
      * @returns {Array.<number>} - (exactly 4 entries)
-     * @deprecated
      */
-    toVec() {
+    toArray() {
         return [this.x, this.y, this.z, this.w];
     }
 
@@ -117,8 +116,8 @@ export class Vec4 {
      * @public
      * @returns {Array.<number>} - (exactly 4 entries)
      */
-    toArray() {
-        return [this.x, this.y, this.z, this.w];
+    toArray3() {
+        return [this.x, this.y, this.z];
     }
 
     /**

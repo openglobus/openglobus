@@ -8,7 +8,6 @@ import * as utils from "../utils/shared.js";
 import * as shaders from "../shaders/drawnode.js";
 import * as math from "../math.js";
 import * as mercator from "../mercator.js";
-import * as quadTree from "../quadTree/quadTree.js";
 import * as segmentHelper from "../segment/segmentHelper.js";
 import { decodeFloatFromRGBAArr } from "../math/coder.js";
 import { Extent } from "../Extent.js";
@@ -31,15 +30,15 @@ import { VectorTileCreator } from "../utils/VectorTileCreator.js";
 import { wgs84 } from "../ellipsoid/wgs84.js";
 import { NIGHT, SPECULAR } from "../res/images.js";
 import { Geoid } from "../terrain/Geoid.js";
-import { isUndef } from "../utils/shared.js";
+import { createColorRGB, isUndef } from "../utils/shared.js";
 import { MAX_RENDERED_NODES } from "../quadTree/quadTree.js";
+import { EarthQuadTreeStrategy } from "../quadTree/EarthQuadTreeStrategy.js";
 
 const CUR_LOD_SIZE = 250; //px
 const MIN_LOD_SIZE = 312; //px
 const MAX_LOD_SIZE = 190; //px
 
-let _tempPickingPix_ = new Uint8Array(4),
-    _tempDepthColor_ = new Uint8Array(4);
+let _tempPickingPix_ = new Uint8Array(4), _tempDepthColor_ = new Uint8Array(4);
 
 const DEPTH_DISTANCE = 11;//m
 
@@ -53,11 +52,10 @@ const MAX_NODES = 200;
 
 const HORIZON_TANGENT = 0.81;
 
-const EVENT_NAMES = [
-    /**
-     * Triggered before globe frame begins to render.
-     * @event og.scene.Planet#draw
-     */
+const EVENT_NAMES = [/**
+ * Triggered before globe frame begins to render.
+ * @event og.scene.Planet#draw
+ */
     "draw",
 
     /**
@@ -100,8 +98,7 @@ const EVENT_NAMES = [
      * Triggered when layer data is laded
      * @event og.scene.Planet#terraincompleted
      */
-    "layerloadend"
-];
+    "layerloadend"];
 
 /**
  * Main class for rendering planet
@@ -124,12 +121,7 @@ export class Planet extends RenderNode {
     constructor(options = {}) {
         super(options.name);
 
-        this._cameraFrustums = options.frustums || [
-            [1, 100 + 0.075],
-            [100, 1000 + 0.075],
-            [1000, 1e6 + 10000],
-            [1e6, 1e9]
-        ];
+        this._cameraFrustums = options.frustums || [[1, 100 + 0.075], [100, 1000 + 0.075], [1000, 1e6 + 10000], [1e6, 1e9]];
 
         /**
          * @public
@@ -263,13 +255,6 @@ export class Planet extends RenderNode {
         this._renderedNodesInFrustum = [];
 
         /**
-         * Created nodes cache
-         * @protected
-         * @type {quadTree.Node}
-         */
-        this._quadTreeNodesCacheMerc = {};
-
-        /**
          * Current visible mercator segments tree nodes array.
          * @protected
          * @type {quadTree.Node}
@@ -340,26 +325,7 @@ export class Planet extends RenderNode {
          */
         this._heightPickingFramebuffer = null;
 
-        /**
-         * Mercator grid tree.
-         * @protected
-         * @type {quadTree.Node}
-         */
-        this._quadTree = null;
-
-        /**
-         * North grid tree.
-         * @protected
-         * @type {quadTree.Node}
-         */
-        this._quadTreeNorth = null;
-
-        /**
-         * South grid tree.
-         * @protected
-         * @type {quadTree.Node}
-         */
-        this._quadTreeSouth = null;
+        this.quadTreeStrategy = options.quadTreeStrategyPrototype ? new options.quadTreeStrategyPrototype({ planet: this }) : new EarthQuadTreeStrategy({ planet: this });
 
         /**
          * Night glowing gl texture.
@@ -395,9 +361,7 @@ export class Planet extends RenderNode {
          * @protected
          * @type {boolean}
          */
-        this._useSpecularTexture = isUndef(options.useSpecularTexture)
-            ? true
-            : options.useSpecularTexture;
+        this._useSpecularTexture = isUndef(options.useSpecularTexture) ? true : options.useSpecularTexture;
 
         this._maxGridSize = Math.log2(options.maxGridSize || 128);
 
@@ -439,7 +403,7 @@ export class Planet extends RenderNode {
 
         this._plainSegmentWorker = new PlainSegmentWorker(3);
 
-        this._tileLoader = new Loader(options.loadingBatchSize || 12);
+        this._tileLoader = new Loader(options.maxLoadingRequests || 12);
 
         this._memKey = new Key();
 
@@ -458,12 +422,39 @@ export class Planet extends RenderNode {
 
         this._terrainCompleted = false;
         this._terrainCompletedActivated = false;
+
+        this._collectRenderNodesIsActive = true;
+
+        this._skipPreRender = false;
     }
 
     static getBearingNorthRotationQuat(cartesian) {
         let n = cartesian.normal();
         let t = Vec3.proj_b_to_plane(Vec3.UNIT_Y, n);
         return Quat.getLookRotation(t, n);
+    }
+
+    set diffuse(rgb) {
+        let vec = createColorRGB(rgb);
+        this._diffuse = new Float32Array(vec.toArray());
+    }
+
+    set ambient(rgb) {
+        let vec = createColorRGB(rgb);
+        this._ambient = new Float32Array(vec.toArray());
+    }
+
+    set specular(rgb) {
+        let vec = createColorRGB(rgb);
+        this._specular = new Float32Array([vec.x, vec.y, vec.y, this._specular[3]]);
+    }
+
+    set shininess(v) {
+        this._specular[3] = v;
+    }
+
+    get normalMapCreator() {
+        return this._normalMapCreator;
     }
 
     get layers() {
@@ -560,33 +551,7 @@ export class Planet extends RenderNode {
      * @param {Layer} layer - Material layer.
      */
     _clearLayerMaterial(layer) {
-        var lid = layer._id;
-        this._quadTree.traverseTree(function (node) {
-            var mats = node.segment.materials;
-            if (mats[lid]) {
-                mats[lid].clear();
-                mats[lid] = null;
-                delete mats[lid];
-            }
-        });
-
-        this._quadTreeNorth.traverseTree(function (node) {
-            var mats = node.segment.materials;
-            if (mats[lid]) {
-                mats[lid].clear();
-                mats[lid] = null;
-                delete mats[lid];
-            }
-        });
-
-        this._quadTreeSouth.traverseTree(function (node) {
-            var mats = node.segment.materials;
-            if (mats[lid]) {
-                mats[lid].clear();
-                mats[lid] = null;
-                delete mats[lid];
-            }
-        });
+        this.quadTreeStrategy.clearLayerMaterial(layer);
     }
 
 
@@ -629,7 +594,7 @@ export class Planet extends RenderNode {
 
         if (this._heightFactor !== factor) {
             this._heightFactor = factor;
-            this._quadTree.destroyBranches();
+            this.quadTreeStrategy.destroyBranches();
         }
     }
 
@@ -663,13 +628,7 @@ export class Planet extends RenderNode {
         this.terrain = terrain;
         this.terrain._planet = this;
 
-        //this._normalMapCreator && this._normalMapCreator.setBlur(terrain.blur != undefined ? terrain.blur : true);
-
-        if (this._quadTree) {
-            this._quadTree.destroyBranches();
-        }
-
-        //if (terrain._geoid) {
+        this.quadTreeStrategy.destroyBranches();
 
         if (terrain._geoid.model) {
             this._plainSegmentWorker.setGeoid(terrain.getGeoid());
@@ -685,20 +644,6 @@ export class Planet extends RenderNode {
                     console.log(err);
                 });
         }
-
-        // if (!terrain._geoid.model) {
-        //     Geoid.loadModel(terrain._geoid.src)
-        //         .then((m) => {
-        //             terrain.getGeoid().setModel(m);
-        //             this._plainSegmentWorker.setGeoid(terrain.getGeoid());
-        //         })
-        //         .catch((err) => {
-        //             console.log(err);
-        //         });
-        // } else {
-        //     this._plainSegmentWorker.setGeoid(terrain.getGeoid());
-        // }
-        //}
     }
 
     /**
@@ -723,8 +668,7 @@ export class Planet extends RenderNode {
         this.renderer.addDepthCallback(this, this._renderDepthFramebufferPASS);
 
         this._heightPickingFramebuffer = new Framebuffer(this.renderer.handler, {
-            width: 320,
-            height: 240
+            width: 320, height: 240
         });
 
         this._heightPickingFramebuffer.init();
@@ -754,11 +698,9 @@ export class Planet extends RenderNode {
             for (var j = 0; j <= TABLESIZE; j++) {
                 !this._indexesCache[i][j] && (this._indexesCache[i][j] = new Array(TABLESIZE));
                 for (var k = 0; k <= TABLESIZE; k++) {
-                    !this._indexesCache[i][j][k] &&
-                    (this._indexesCache[i][j][k] = new Array(TABLESIZE));
+                    !this._indexesCache[i][j][k] && (this._indexesCache[i][j][k] = new Array(TABLESIZE));
                     for (var m = 0; m <= TABLESIZE; m++) {
-                        !this._indexesCache[i][j][k][m] &&
-                        (this._indexesCache[i][j][k][m] = new Array(TABLESIZE));
+                        !this._indexesCache[i][j][k][m] && (this._indexesCache[i][j][k][m] = new Array(TABLESIZE));
                         for (var q = 0; q <= TABLESIZE; q++) {
                             let ptr = {
                                 buffer: null
@@ -768,10 +710,7 @@ export class Planet extends RenderNode {
                                 let indexes = segmentHelper
                                     .getInstance()
                                     .createSegmentIndexes(i, [j, k, m, q]);
-                                ptr.buffer = this.renderer.handler.createElementArrayBuffer(
-                                    indexes,
-                                    1
-                                );
+                                ptr.buffer = this.renderer.handler.createElementArrayBuffer(indexes, 1);
                                 indexes = null;
                             } else {
                                 this._indexesCacheToRemove[kk++] = ptr;
@@ -789,17 +728,18 @@ export class Planet extends RenderNode {
             this._terrainCompletedActivated = false;
         });
 
+        this.renderer.events.on("resizeend", () => {
+            this._renderCompletedActivated = false;
+            this._terrainCompletedActivated = false;
+        });
+
         // Initialize texture coordinates buffer pool
         this._textureCoordsBufferCache = [];
 
         let texCoordCache = segmentHelper.getInstance().initTextureCoordsTable(TABLESIZE + 1);
 
         for (let i = 0; i <= TABLESIZE; i++) {
-            this._textureCoordsBufferCache[i] = this.renderer.handler.createArrayBuffer(
-                texCoordCache[i],
-                2,
-                ((1 << i) + 1) * ((1 << i) + 1)
-            );
+            this._textureCoordsBufferCache[i] = this.renderer.handler.createArrayBuffer(texCoordCache[i], 2, ((1 << i) + 1) * ((1 << i) + 1));
         }
 
         texCoordCache = null;
@@ -829,16 +769,9 @@ export class Planet extends RenderNode {
             this._renderedNodesInFrustum[i] = [];
         }
 
+
         // Creating quad trees nodes
-        this._quadTree = new Node(Segment, this, quadTree.NW, null, 0, 0,
-            Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34])
-        );
-        this._quadTreeNorth = new Node(SegmentLonLat, this, quadTree.NW, null, 0, 0,
-            Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90])
-        );
-        this._quadTreeSouth = new Node(SegmentLonLat, this, quadTree.NW, null, 0, 0,
-            Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT])
-        );
+        this.quadTreeStrategy.init();
 
         this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
 
@@ -851,16 +784,12 @@ export class Planet extends RenderNode {
 
         // loading Earth night glowing texture
         if (this._useNightTexture) {
-            createImageBitmap(NIGHT).then(
-                (e) => (this._nightTexture = this.renderer.handler.createTextureDefault(e))
-            );
+            createImageBitmap(NIGHT).then((e) => (this._nightTexture = this.renderer.handler.createTextureDefault(e)));
         }
 
         // load water specular mask
         if (this._useSpecularTexture) {
-            createImageBitmap(SPECULAR).then(
-                (e) => (this._specularTexture = this.renderer.handler.createTexture_l(e))
-            );
+            createImageBitmap(SPECULAR).then((e) => (this._specularTexture = this.renderer.handler.createTexture_l(e)));
         }
 
         this._geoImageCreator = new GeoImageCreator(this);
@@ -887,8 +816,7 @@ export class Planet extends RenderNode {
 
     clearIndexesCache() {
         this._indexesCacheToRemoveCounter = 0;
-        let c = this._indexesCacheToRemove,
-            gl = this.renderer.handler.gl;
+        let c = this._indexesCacheToRemove, gl = this.renderer.handler.gl;
         for (let i = 0, len = c.length; i < len; i++) {
             let ci = c[i];
             gl.deleteBuffer(ci.buffer);
@@ -897,29 +825,7 @@ export class Planet extends RenderNode {
     }
 
     _preRender() {
-        // Zoom 0
-        this._quadTree.createChildrenNodes();
-        this._quadTree.segment.createPlainSegment();
-
-        // Zoom 1
-        for (let i = 0; i < this._quadTree.nodes.length; i++) {
-            this._quadTree.nodes[i].segment.createPlainSegment();
-        }
-
-        // same for poles
-        this._quadTreeNorth.createChildrenNodes();
-        this._quadTreeNorth.segment.createPlainSegment();
-
-        for (let i = 0; i < this._quadTreeNorth.nodes.length; i++) {
-            this._quadTreeNorth.nodes[i].segment.createPlainSegment();
-        }
-
-        this._quadTreeSouth.createChildrenNodes();
-        this._quadTreeSouth.segment.createPlainSegment();
-
-        for (let i = 0; i < this._quadTreeSouth.nodes.length; i++) {
-            this._quadTreeSouth.nodes[i].segment.createPlainSegment();
-        }
+        this.quadTreeStrategy.preRender();
 
         this._preLoad();
     }
@@ -929,38 +835,7 @@ export class Planet extends RenderNode {
 
         this._skipPreRender = false;
 
-        // Same for poles
-        this._quadTreeNorth.segment.passReady = true;
-        this._quadTreeNorth.renderNode(true);
-        this._normalMapCreator.drawSingle(this._quadTreeNorth.segment);
-
-        for (let i = 0; i < this._quadTreeNorth.nodes.length; i++) {
-            this._quadTreeNorth.nodes[i].segment.passReady = true;
-            this._quadTreeNorth.nodes[i].renderNode(true);
-            this._normalMapCreator.drawSingle(this._quadTreeNorth.nodes[i].segment);
-        }
-
-        this._quadTreeSouth.segment.passReady = true;
-        this._quadTreeSouth.renderNode(true);
-        this._normalMapCreator.drawSingle(this._quadTreeSouth.segment);
-
-        for (let i = 0; i < this._quadTreeSouth.nodes.length; i++) {
-            this._quadTreeSouth.nodes[i].segment.passReady = true;
-            this._quadTreeSouth.nodes[i].renderNode(true);
-            this._normalMapCreator.drawSingle(this._quadTreeSouth.nodes[i].segment);
-        }
-
-        // Zoom 1
-        for (let i = 0; i < this._quadTree.nodes.length; i++) {
-            this._quadTree.nodes[i].segment.passReady = true;
-            this._quadTree.nodes[i].renderNode(true);
-            this._normalMapCreator.drawSingle(this._quadTree.nodes[i].segment);
-        }
-
-        // Zoom 0
-        this._quadTree.segment.passReady = true;
-        this._quadTree.renderNode(true);
-        this._normalMapCreator.drawSingle(this._quadTree.segment);
+        this.quadTreeStrategy.preLoad();
     }
 
     /**
@@ -1075,17 +950,13 @@ export class Planet extends RenderNode {
      * @protected
      */
     _sortLayers() {
-        this.visibleVectorLayers.sort(
-            (a, b) => (a._zIndex - b._zIndex) || (a._height - b._height)
-        );
+        this.visibleVectorLayers.sort((a, b) => (a._zIndex - b._zIndex) || (a._height - b._height));
 
         this._visibleTileLayerSlices = [];
         this._visibleTileLayerSlices.length = 0;
 
         if (this.visibleTileLayers.length) {
-            this.visibleTileLayers.sort((a, b) =>
-                (a._height - b._height) || (a._zIndex - b._zIndex)
-            );
+            this.visibleTileLayers.sort((a, b) => (a._height - b._height) || (a._zIndex - b._zIndex));
 
             var k = -1;
             var currHeight = this.visibleTileLayers[0]._height;
@@ -1104,8 +975,9 @@ export class Planet extends RenderNode {
         // clearing all node list
         this._renderedNodes.length = 0;
         this._renderedNodes = [];
+    }
 
-        // clearing nodes in frustums
+    _clearRenderNodesInFrustum() {
         for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
             this._renderedNodesInFrustum[i].length = 0;
             this._renderedNodesInFrustum[i] = [];
@@ -1118,13 +990,12 @@ export class Planet extends RenderNode {
      */
     _collectRenderNodes() {
         let cam = this.camera;
-
         this._lodSize = math.lerp(cam.slope < 0.0 ? 0.0 : cam.slope, this._curLodSize, this._minLodSize);
-
         cam._insideSegment = null;
 
         // clear first
         this._clearRenderedNodeList();
+        this._clearRenderNodesInFrustum();
 
         this._viewExtent.southWest.set(180, 180);
         this._viewExtent.northEast.set(-180, -180);
@@ -1136,12 +1007,9 @@ export class Planet extends RenderNode {
         this.minCurrZoom = math.MAX;
         this.maxCurrZoom = math.MIN;
 
-        this._quadTree.renderTree(cam, 0, null);
+        this.quadTreeStrategy.collectRenderNodes();
 
-        if (cam.slope > this.minEqualZoomCameraSlope &&
-            cam._lonLat.height < this.maxEqualZoomAltitude &&
-            cam._lonLat.height > this.minEqualZoomAltitude
-        ) {
+        if (cam.slope > this.minEqualZoomCameraSlope && cam._lonLat.height < this.maxEqualZoomAltitude && cam._lonLat.height > this.minEqualZoomAltitude) {
 
             this.minCurrZoom = this.maxCurrZoom;
 
@@ -1149,21 +1017,14 @@ export class Planet extends RenderNode {
                 rf = this._renderedNodesInFrustum,
                 temp2 = [];
 
-            this._renderedNodes = [];
-
-            // clearing nodes in frustums
-            for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
-                this._renderedNodesInFrustum[i].length = 0;
-                this._renderedNodesInFrustum[i] = [];
-            }
+            this._clearRenderNodesInFrustum();
 
             for (var i = 0, len = temp.length; i < len; i++) {
                 var ri = temp[i];
                 let ht = ri.segment.centerNormal.dot(cam._b);
                 if (ri.segment.tileZoom === this.maxCurrZoom || ht < HORIZON_TANGENT) {
                     this._renderedNodes.push(ri);
-                    let k = 0,
-                        inFrustum = ri.inFrustum;
+                    let k = 0, inFrustum = ri.inFrustum;
                     while (inFrustum) {
                         if (inFrustum & 1) {
                             rf[k].push(ri);
@@ -1180,9 +1041,6 @@ export class Planet extends RenderNode {
                 temp2[i].renderTree(cam, this.maxCurrZoom, null);
             }
         }
-
-        this._quadTreeNorth.renderTree(cam, 0, null);
-        this._quadTreeSouth.renderTree(cam, 0, null);
     }
 
     _globalPreDraw() {
@@ -1244,6 +1102,16 @@ export class Planet extends RenderNode {
         this._terrainCompleted = true;
     }
 
+    lockQuadTree() {
+        this._collectRenderNodesIsActive = false;
+        this.camera.setTerrainCollisionActivity(false);
+    }
+
+    unlockQuadTree() {
+        this._collectRenderNodesIsActive = true;
+        this.camera.setTerrainCollisionActivity(true);
+    }
+
     /**
      * @protected
      */
@@ -1254,11 +1122,10 @@ export class Planet extends RenderNode {
         let h = renderer.handler;
         let gl = h.gl;
         let cam = renderer.activeCamera;
-        let frustumIndex = cam.getCurrentFrustum(),
-            firstPass = frustumIndex === cam.FARTHEST_FRUSTUM_INDEX;
+        let frustumIndex = cam.getCurrentFrustum(), firstPass = frustumIndex === cam.FARTHEST_FRUSTUM_INDEX;
 
         if (firstPass) {
-            if (this._skipPreRender/* && (!this._renderCompletedActivated || cam.isMoved)*/) {
+            if (this._skipPreRender && this._collectRenderNodesIsActive) {
                 this._collectRenderNodes();
             }
             this._skipPreRender = true;
@@ -1299,15 +1166,19 @@ export class Planet extends RenderNode {
             gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
             gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
-            gl.uniform3fv(shu.diffuse, this._diffuse);
-            gl.uniform3fv(shu.ambient, this._ambient);
-            gl.uniform4fv(shu.specular, this._specular);
+            if (this.baseLayer) {
+                gl.uniform3fv(shu.diffuse, this.baseLayer._diffuse || this._diffuse);
+                gl.uniform3fv(shu.ambient, this.baseLayer._ambient || this._ambient);
+                gl.uniform4fv(shu.specular, this.baseLayer._specular || this._specular);
+            } else {
+                gl.uniform3fv(shu.diffuse, this._diffuse);
+                gl.uniform3fv(shu.ambient, this._ambient);
+                gl.uniform4fv(shu.specular, this._specular);
+            }
 
             // bind night glowing material
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
-            gl.bindTexture(gl.TEXTURE_2D,
-                (this.camera._lonLat.height > 329958.0 && (this._nightTexture || this.transparentTexture)) || this.transparentTexture
-            );
+            gl.bindTexture(gl.TEXTURE_2D, (this.camera._lonLat.height > 329958.0 && (this._nightTexture || this.transparentTexture)) || this.transparentTexture);
             gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
 
             // bind specular material
@@ -1327,8 +1198,7 @@ export class Planet extends RenderNode {
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
         // drawing planet nodes
-        var rn = this._renderedNodesInFrustum[frustumIndex],
-            sl = this._visibleTileLayerSlices;
+        var rn = this._renderedNodesInFrustum[frustumIndex], sl = this._visibleTileLayerSlices;
 
         if (sl.length) {
             let sli = sl[0];
@@ -1403,8 +1273,7 @@ export class Planet extends RenderNode {
             gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
             // drawing planet nodes
-            let rn = this._renderedNodesInFrustum[frustumIndex],
-                sl = this._visibleTileLayerSlices;
+            let rn = this._renderedNodesInFrustum[frustumIndex], sl = this._visibleTileLayerSlices;
 
             let i = rn.length;
             while (i--) {
@@ -1440,8 +1309,7 @@ export class Planet extends RenderNode {
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
         // drawing planet nodes
-        var rn = this._renderedNodesInFrustum[cam.getCurrentFrustum()],
-            sl = this._visibleTileLayerSlices;
+        var rn = this._renderedNodesInFrustum[cam.getCurrentFrustum()], sl = this._visibleTileLayerSlices;
 
         let i = rn.length;
         while (i--) {
@@ -1486,8 +1354,7 @@ export class Planet extends RenderNode {
         gl.uniform3fv(shu.frustumPickingColor, cam.frustum._pickingColorU);
 
         // drawing planet nodes
-        var rn = this._renderedNodesInFrustum[cam.getCurrentFrustum()],
-            sl = this._visibleTileLayerSlices;
+        var rn = this._renderedNodesInFrustum[cam.getCurrentFrustum()], sl = this._visibleTileLayerSlices;
 
         let i = rn.length;
         while (i--) {
@@ -1537,16 +1404,11 @@ export class Planet extends RenderNode {
         this.terrain.abortLoading();
         this._tileLoader.abortAll();
 
-        var that = this;
-        // setTimeout(function () {
-        that._quadTree.clearTree();
-        that._quadTreeNorth.clearTree();
-        that._quadTreeSouth.clearTree();
 
-        that.layerLock.free(that._memKey);
-        that.terrainLock.free(that._memKey);
-        that._normalMapCreator.free(that._memKey);
-        // }, 0);
+        this.quadTreeStrategy.clear();
+        this.layerLock.free(this._memKey);
+        this.terrainLock.free(this._memKey);
+        this._normalMapCreator.free(this._memKey);
 
         this._createdNodesCount = 0;
     }
@@ -1686,11 +1548,9 @@ export class Planet extends RenderNode {
             return this.getDistanceFromPixelEllipsoid(px) || 0;
         } else {
 
-            let r = this.renderer,
-                cnv = this.renderer.handler.canvas;
+            let r = this.renderer, cnv = this.renderer.handler.canvas;
 
-            let spx = px.x / cnv.width,
-                spy = (cnv.height - px.y) / cnv.height;
+            let spx = px.x / cnv.width, spy = (cnv.height - px.y) / cnv.height;
 
             _tempPickingPix_[0] = _tempPickingPix_[1] = _tempPickingPix_[2] = 0.0;
 
@@ -1710,12 +1570,7 @@ export class Planet extends RenderNode {
                 r.screenDepthFramebuffer.activate();
                 if (r.screenDepthFramebuffer.isComplete()) {
                     r.screenDepthFramebuffer.readPixels(_tempDepthColor_, spx, spy);
-                    let screenPos = new Vec4(
-                        spx * 2.0 - 1.0,
-                        spy * 2.0 - 1.0,
-                        (_tempDepthColor_[0] / 255.0) * 2.0 - 1.0,
-                        1.0 * 2.0 - 1.0
-                    );
+                    let screenPos = new Vec4(spx * 2.0 - 1.0, spy * 2.0 - 1.0, (_tempDepthColor_[0] / 255.0) * 2.0 - 1.0, 1.0 * 2.0 - 1.0);
                     let viewPosition = this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
                     let dir = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
                     dist = -(viewPosition.z / viewPosition.w) / dir.dot(this.renderer.activeCamera.getForward());
@@ -1742,12 +1597,7 @@ export class Planet extends RenderNode {
      * where index 0 - southwest longitude, 1 - latitude southwest, 2 - longitude northeast, 3 - latitude northeast.
      */
     viewExtentArr(extentArr) {
-        this.renderer.activeCamera.viewExtent(
-            new Extent(
-                new LonLat(extentArr[0], extentArr[1]),
-                new LonLat(extentArr[2], extentArr[3])
-            )
-        );
+        this.renderer.activeCamera.viewExtent(new Extent(new LonLat(extentArr[0], extentArr[1]), new LonLat(extentArr[2], extentArr[3])));
     }
 
     /**
@@ -1802,14 +1652,7 @@ export class Planet extends RenderNode {
      * @param {cameraCallback} [completeCallback] - Callback that calls befor the flying begins.
      */
     flyExtent(extent, height, up, ampl, completeCallback, startCallback) {
-        this.renderer.activeCamera.flyExtent(
-            extent,
-            height,
-            up,
-            ampl,
-            completeCallback,
-            startCallback
-        );
+        this.renderer.activeCamera.flyExtent(extent, height, up, ampl, completeCallback, startCallback);
     }
 
     /**
@@ -1824,15 +1667,7 @@ export class Planet extends RenderNode {
      * @param [frameCallback]
      */
     flyCartesian(cartesian, look, up, ampl, completeCallback, startCallback, frameCallback) {
-        this.renderer.activeCamera.flyCartesian(
-            cartesian,
-            look,
-            up,
-            ampl,
-            completeCallback,
-            startCallback,
-            frameCallback
-        );
+        this.renderer.activeCamera.flyCartesian(cartesian, look, up, ampl, completeCallback, startCallback, frameCallback);
     }
 
     /**
@@ -1847,15 +1682,7 @@ export class Planet extends RenderNode {
      * @param [frameCallback]
      */
     flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback, frameCallback) {
-        this.renderer.activeCamera.flyLonLat(
-            lonlat,
-            look,
-            up,
-            ampl,
-            completeCallback,
-            startCallback,
-            frameCallback
-        );
+        this.renderer.activeCamera.flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback, frameCallback);
     }
 
     /**
@@ -1886,8 +1713,7 @@ export class Planet extends RenderNode {
     }
 
     getEntityTerrainPoint(entity, res) {
-        let n = this._renderedNodes,
-            i = n.length;
+        let n = this._renderedNodes, i = n.length;
         while (i--) {
             if (n[i].segment.isEntityInside(entity)) {
                 return n[i].segment.getEntityTerrainPoint(entity, res);

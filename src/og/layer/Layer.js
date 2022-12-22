@@ -11,6 +11,7 @@ import { Extent } from "../Extent.js";
 import { LonLat } from "../LonLat.js";
 import { Material } from "./Material.js";
 import { Vec3 } from "../math/Vec3.js";
+import { createColorRGB } from "../utils/shared.js";
 
 const FADING_RATIO = 15.8;
 
@@ -208,6 +209,63 @@ class Layer {
          * @type {Events}
          */
         this.events = new Events(options.events ? [...EVENT_NAMES, ...options.events] : EVENT_NAMES, this);
+
+        this._ambient = null;
+        this._diffuse = null;
+        this._specular = null;
+
+        if (options.ambient) {
+            let a = utils.createColorRGB(options.ambient, new Vec3(0.2, 0.2, 0.2));
+            this._ambient = new Float32Array([a.x, a.y, a.z]);
+        }
+
+        if (options.diffuse) {
+            let d = utils.createColorRGB(options.diffuse, new Vec3(0.8, 0.8, 0.8));
+            this._diffuse = new Float32Array([d.x, d.y, d.z]);
+        }
+
+        if (options.specular) {
+            let s = utils.createColorRGB(options.specular, new Vec3(0.0003, 0.0003, 0.0003));
+            let shininess = options.shininess || 20.0;
+            this._specular = new Float32Array([s.x, s.y, s.z, shininess]);
+        }
+    }
+
+    set diffuse(rgb) {
+        if (rgb) {
+            let vec = createColorRGB(rgb);
+            this._diffuse = new Float32Array(vec.toArray());
+        } else {
+            this._diffuse = null;
+        }
+    }
+
+    set ambient(rgb) {
+        if (rgb) {
+            let vec = createColorRGB(rgb);
+            this._ambient = new Float32Array(vec.toArray());
+        } else {
+            this._ambient = null;
+        }
+    }
+
+    set specular(rgb) {
+        if (rgb) {
+            let vec = createColorRGB(rgb);
+            this._specular = new Float32Array([vec.x, vec.y, vec.y, this._specular[3]]);
+        } else {
+            this._specular = null;
+        }
+    }
+
+    set shininess(v) {
+        if (this._specular) {
+            this._specular[3] = v;
+        }
+    }
+
+    get normalMapCreator() {
+        return this._normalMapCreator;
     }
 
     static getTMS(x, y, z) {
@@ -545,9 +603,10 @@ class Layer {
             let p = this._planet,
                 maxZoom = Math.max(...this._preLoadZoomLevels);
 
-            this._preLoadRecursive(p._quadTreeSouth, maxZoom);
-            this._preLoadRecursive(p._quadTreeNorth, maxZoom);
-            this._preLoadRecursive(p._quadTree, maxZoom);
+            for (let i = 0, len = p.quadTreeStrategy.quadTreeList.length; i < len; i++) {
+                this._preLoadRecursive(p.quadTreeStrategy.quadTreeList[i], maxZoom);
+            }
+
         }
     }
 

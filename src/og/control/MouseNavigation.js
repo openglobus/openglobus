@@ -356,7 +356,7 @@ class MouseNavigation extends Control {
 
         if (this.pointOnEarth && this.renderer.events.mouseState.moving) {
             this.renderer.controlsBag.scaleRot = 1.0;
-            var l = (0.5 / cam.eye.distance(this.pointOnEarth)) * cam._lonLat.height * math.RADIANS;
+            var l = (0.5 / cam.eye.distance(this.pointOnEarth)) * (cam._lonLat.height < 5.0 ? 5.0 : cam._lonLat.height) * math.RADIANS;
             if (l > 0.007) l = 0.007;
             cam.rotateHorizontal(l * (e.x - e.prev_x), false, this.pointOnEarth, this.earthUp);
 

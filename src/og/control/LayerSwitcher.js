@@ -7,6 +7,7 @@
 import { Control } from "./Control.js";
 import { elementFactory, appendChildren, toggleText, enableElmovement } from "./UIhelpers.js";
 import { compose } from "../utils/functionComposition.js"
+
 /**
  * Advanced :) layer switcher, includes base layers, overlays, geo images etc. groups.
  * Double click for zoom, drag-and-drop to change zIndex
@@ -46,14 +47,14 @@ class LayerSwitcher extends Control {
 
     }
 
-    setupSwitcher () {
+    setupSwitcher() {
         const myData = this.getRecords(this.planet)
         const { $mainContainer } = this.buildBasicDOM()
         this.buildRecords(myData, $mainContainer, 0)
-        
+
     }
-   
-    onactivate() { 
+
+    onactivate() {
         this.setupSwitcher()
     }
 
@@ -87,9 +88,8 @@ class LayerSwitcher extends Control {
         const classifyObject = (object) => {
             let r = object.isBaseLayer()
             if (r === true || r === false) {
-                return r === true ? 'BaseLayers' : 'Overlays'
-            }
-            else {
+                return r === true ? 'Base Layers' : 'Overlays'
+            } else {
                 return 'Terrain Providers'
             }
         }
@@ -117,8 +117,10 @@ class LayerSwitcher extends Control {
     // OUTPOUT TERRAINS, BASELAYERS, OVERLAYS
     planetDataReturn(planet) {
 
-        const { collectTerrains, collectLayers, pickBaseLayers, pickOverlays,
-            sortByZIndex, serializeZIndices, normalizeOverlay } = this.planetDataBasic()
+        const {
+            collectTerrains, collectLayers, pickBaseLayers, pickOverlays,
+            sortByZIndex, serializeZIndices, normalizeOverlay
+        } = this.planetDataBasic()
 
         const terrains = collectTerrains(planet)
 
@@ -167,26 +169,25 @@ class LayerSwitcher extends Control {
     addNewLayer(layer) {
         // Put the data(layer) to the appropriate recordsStructure section and run the build function
         const $dialog = document.getElementById('og-layer-switcher-dialog')
-        if($dialog){
-        const { classifyObject } = this.planetDataBasic()
-        const targets = [...document.body.querySelectorAll('.og-layer-switcher-record.og-depth-0 > details')]
-        const type = classifyObject(layer)
-        const object = this.recordsStructure().data.filter(x => x.name == type)
-        const index = this.recordsStructure().data.findIndex(x => x.name == type)
-        object[0].data = [layer]
-        this.buildRecords(object[0], targets[index], 1, true)
+        if ($dialog) {
+            const { classifyObject } = this.planetDataBasic()
+            const targets = [...document.body.querySelectorAll('.og-layer-switcher-record.og-depth-0 > details')]
+            const type = classifyObject(layer)
+            const object = this.recordsStructure().data.filter(x => x.name == type)
+            const index = this.recordsStructure().data.findIndex(x => x.name == type)
+            object[0].data = [layer]
+            this.buildRecords(object[0], targets[index], 1, true)
         }
     }
 
     removeLayer(layer) {
-        // TODO...Haven't tested it yet 
         let id = layer.getID()
-        let el = document.body.querySelector('#' + id + ".og-layer-switcher-record.og-depth-1")
-        el.remove()
-
-        if (layer.displayInLayerSwitcher) { // check necessary, or else error with layers not in switcher - e.g rulerScene layers.
-            layer._removeCallback();
-            layer._removeCallback = null
+        let arr = document.body.querySelectorAll(`.og-layer-switcher-record.og-depth-1`)
+        for (let i = 0; i < arr.length; i++) {
+            if (arr[i].id == id) {
+                arr[i].remove();
+                break;
+            }
         }
     }
 
@@ -205,14 +206,26 @@ class LayerSwitcher extends Control {
         // Basic DOM creation
         const $menuBtn = elementFactory('div', { id: 'og-layer-switcher-menu-btn', class: 'og-menu-btn og-OFF' },
             elementFactory('div', { id: 'og-layer-switcher-menu-icon', class: 'og-icon-holder' }))
-        const $dialog = elementFactory('div', { class: 'og-layer-switcher-dialog og-dialog og-not-visible', id: 'og-layer-switcher-dialog' })
+        const $dialog = elementFactory('div', {
+            class: 'og-layer-switcher-dialog og-dialog og-not-visible',
+            id: 'og-layer-switcher-dialog'
+        })
         const $header = elementFactory('div', { class: 'og-layer-switcher-dialog-header' })
-        const $header_close = elementFactory('div', { id: 'og-layer-switcher-dialog-close-btn', class: 'og-dialog-header-btn og-OFF' },
+        const $header_close = elementFactory('div', {
+                id: 'og-layer-switcher-dialog-close-btn',
+                class: 'og-dialog-header-btn og-OFF'
+            },
             elementFactory('div', { class: 'og-icon-holder' }))
-        const $headerMinMax = elementFactory('div', { id: 'og-layer-switcher-dialog-minMax-btn', class: 'og-dialog-header-btn og-OFF' },
+        const $headerMinMax = elementFactory('div', {
+                id: 'og-layer-switcher-dialog-minMax-btn',
+                class: 'og-dialog-header-btn og-OFF'
+            },
             elementFactory('div', { class: 'og-icon-holder' }))
         const $headerTitle = elementFactory('span', { class: 'og-dialog-header-title' }, 'Layer Switcher')
-        const $headerPin = elementFactory('div', { id: 'og-layer-switcher-dialog-pin-btn', class: 'og-dialog-header-btn og-OFF' },
+        const $headerPin = elementFactory('div', {
+                id: 'og-layer-switcher-dialog-pin-btn',
+                class: 'og-dialog-header-btn og-OFF'
+            },
             elementFactory('div', { class: 'og-icon-holder' }))
         const $mainContainer = elementFactory('div', { class: 'og-layer-switcher-main-container' })
 
@@ -234,9 +247,13 @@ class LayerSwitcher extends Control {
 
         // LISTENERS
         const whereClick = (e, wrapper, menuBtn) => {
-            if (wrapper.contains(e.target)) { return 'inside' }
-            else if (menuBtn.contains(e.target)) { return 'on-btn' }
-            else { return 'outside' }
+            if (wrapper.contains(e.target)) {
+                return 'inside'
+            } else if (menuBtn.contains(e.target)) {
+                return 'on-btn'
+            } else {
+                return 'outside'
+            }
         }
 
         var whereClickHandler = null

@@ -37,6 +37,12 @@ import { RenderNode } from './scene/RenderNode.js';
 
 import { Popup } from './Popup.js';
 
+import { QuadTreeStrategy } from './quadTree/QuadTreeStrategy.js';
+import { MarsQuadTreeStrategy } from './quadTree/MarsQuadTreeStrategy.js';
+import { EarthQuadTreeStrategy } from './quadTree/EarthQuadTreeStrategy.js';
+import { Wgs84QuadTreeStrategy } from './quadTree/Wgs84QuadTreeStrategy.js';
+import { quadTreeStrategyType } from './utils/quadTreeType.js';
+
 import pkg from "../../package.json";
 
 const { Handler } = webgl, { Control } = control;
@@ -92,5 +98,10 @@ export {
     entity,
     Entity,
     Geoid,
-    Popup
+    Popup,
+    QuadTreeStrategy,
+    MarsQuadTreeStrategy,
+    EarthQuadTreeStrategy,
+    Wgs84QuadTreeStrategy,
+    quadTreeStrategyType
 };

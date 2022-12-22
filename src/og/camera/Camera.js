@@ -15,7 +15,7 @@ import { Mat4 } from "../math/Mat4.js";
  * @param {Renderer} [renderer] - Renderer uses the camera instance.
  * @param {Object} [options] - Camera options:
  * @param {Object} [options.name] - Camera name.
- * @param {number} [options.viewAngle=38] - Camera angle of view. Default is 30.0
+ * @param {number} [options.viewAngle=47] - Camera angle of view. Default is 47.0
  * @param {number} [options.near=1] - Camera near plane distance. Default is 1.0
  * @param {number} [options.far=og.math.MAX] - Camera far plane distance. Deafult is og.math.MAX
  * @param {Vec3} [options.eye=[0,0,0]] - Camera eye position. Default (0,0,0)
@@ -77,7 +77,7 @@ class Camera {
          * @protected
          * @type {Number}
          */
-        this._viewAngle = options.viewAngle || 38.0;
+        this._viewAngle = options.viewAngle || 47.0;
 
         /**
          * Camera normal matrix.
@@ -119,7 +119,7 @@ class Camera {
         this._pv = this._u.clone();
         this._pn = this._b.clone();
         this._peye = this.eye.clone();
-        this.isMoved = false;
+        this.isMoving = false;
 
         this._tanViewAngle_hrad = 0.0;
         this._tanViewAngle_hradOneByHeight = 0.0;
@@ -179,12 +179,12 @@ class Camera {
             eye = this.eye;
 
         if (this._peye.equal(eye) && this._pu.equal(u) && this._pv.equal(v) && this._pn.equal(n)) {
-            if (this.isMoved) {
+            if (this.isMoving) {
                 this.events.dispatch(this.events.moveend, this);
             }
-            this.isMoved = false;
+            this.isMoving = false;
         } else {
-            this.isMoved = true;
+            this.isMoving = true;
         }
 
         this._pu.copy(u);
@@ -198,7 +198,7 @@ class Camera {
      * @public
      * @param {Renderer} renderer - OpenGlobus renderer object.
      * @param {Object} [options] - Camera options:
-     * @param {number} [options.viewAngle] - Camera angle of view. Default is 30.0
+     * @param {number} [options.viewAngle] - Camera angle of view.
      * @param {number} [options.near] - Camera near plane distance. Default is 1.0
      * @param {number} [options.far] - Camera far plane distance. Deafult is og.math.MAX
      * @param {Vec3} [options.eye] - Camera eye position. Default (0,0,0)
@@ -321,7 +321,7 @@ class Camera {
         this._tanViewAngle_hradOneByHeight =
             this._tanViewAngle_hrad * this.renderer.handler._oneByHeight;
         var c = this.renderer.handler.canvas;
-        this._projSizeConst = Math.min(c.clientWidth < 256 ? 256 : c.clientWidth, c.clientHeight < 256 ? 256 : c.clientHeight) / (angle * math.RADIANS);
+        this._projSizeConst = Math.min(c.clientWidth < 512 ? 512 : c.clientWidth, c.clientHeight < 512 ? 512 : c.clientHeight) / (angle * math.RADIANS);
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             this.frustums[i].setProjectionMatrix(
                 angle,

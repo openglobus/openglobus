@@ -20,6 +20,7 @@ import { isEmpty } from "./utils/shared.js";
 import { Handler } from "./webgl/Handler.js";
 import { createColorRGB } from "./utils/shared.js";
 import { Vec3 } from "./math/Vec3.js";
+import { SimpleSkyBackground } from "./control/SimpleSkyBackground.js";
 
 /** @const {string} */
 const CANVAS_ID_PREFIX = "globus_viewport_";
@@ -70,6 +71,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen bacame the same zoom level
  * @param {Number} [options.loadingBatchSize=12] -
+ * @param {Number} [options.quadTreeStrategyPrototype] - Prototype of quadTree. QuadTreeStrategy for Earth is default.
  */
 
 class Globe {
@@ -128,8 +130,7 @@ class Globe {
                 context: {
                     alpha: false,
                     antialias: false,
-                    powerPreference: "high-performance",
-                    premultipliedAlpha: true
+                    premultipliedAlpha: false
                 }
             }), {
                 autoActivate: false,
@@ -158,6 +159,13 @@ class Globe {
          */
         this._planetName = options.name ? options.name : PLANET_NAME_PREFIX + Globe._staticCounter;
 
+        /**
+         * quad tree type.
+         * @private
+         * @type {Number}
+         */
+        this._quadTreeType = options.quadTreeType;
+
         if (options.atmosphere) {
             /**
              * Render node renders a planet.
@@ -178,7 +186,8 @@ class Globe {
                 maxEqualZoomAltitude: options.maxEqualZoomAltitude,
                 minEqualZoomAltitude: options.minEqualZoomAltitude,
                 minEqualZoomCameraSlope: options.minEqualZoomCameraSlope,
-                loadingBatchSize: options.loadingBatchSize
+                quadTreeStrategyPrototype: options.quadTreeStrategyPrototype,
+                maxLoadingRequests: options.maxLoadingRequests
             });
         }
 
@@ -212,7 +221,8 @@ class Globe {
                 new TouchNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),
-                new CompassButton(options)
+                new CompassButton(options),
+                new SimpleSkyBackground()
             ]);
         }
 

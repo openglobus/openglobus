@@ -5,6 +5,7 @@
 "use strict";
 
 import * as math from "../math.js";
+import { EPS10 } from "../math.js";
 import { Vec3 } from "./Vec3.js";
 
 /**
@@ -39,10 +40,12 @@ export class Ray {
     static get INSIDE() {
         return 1;
     }
+
     /** @const */
     static get INPLANE() {
         return 2;
     }
+
     /** @const */
     static get AWAY() {
         return 3;
@@ -91,7 +94,7 @@ export class Ray {
         var b = n.dot(this.direction);
 
         // ray is  parallel to triangle plane
-        if (Math.abs(b) < math.EPSILON10) {
+        if (Math.abs(b) < EPS10) {
             if (a === 0) {
                 res.copy(this.origin);
                 // ray lies in triangle plane
@@ -153,7 +156,7 @@ export class Ray {
         var b = n.dot(this.direction);
 
         // ray is  parallel to the plane
-        if (Math.abs(b) < math.EPSILON10) {
+        if (Math.abs(b) < EPS10) {
             if (a === 0) {
                 return Ray.OUTSIDE;
             }

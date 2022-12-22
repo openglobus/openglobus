@@ -4,10 +4,12 @@ import { XYZ } from "../../src/og/layer/XYZ.js";
 import { CanvasTiles } from "../../src/og/layer/CanvasTiles.js";
 import { Vector } from "../../src/og/layer/Vector.js";
 import { GlobusTerrain } from "../../src/og/terrain/GlobusTerrain.js";
+import { MapboxTerrain } from "../../src/og/terrain/MapboxTerrain.js";
 import { EmptyTerrain } from "../../src/og/terrain/EmptyTerrain.js";
 import { stringTemplate } from "../../src/og/utils/shared.js";
 import { Lighting } from "../../src/og/control/Lighting.js";
 import { LayerSwitcher } from "../../src/og/control/LayerSwitcher.js";
+import { KeyboardNavigation } from "../../src/og/control/KeyboardNavigation.js";
 import { DebugInfo } from "../../src/og/control/DebugInfo.js";
 import { ToggleWireframe } from "../../src/og/control/ToggleWireframe.js";
 import { VisibleExtent } from "../../src/og/control/visibleExtent/VisibleExtent.js";
@@ -24,48 +26,48 @@ const tg = new CanvasTiles("Tile grid", {
     preLoadZoomLevels: [0],
     drawTile: function (material, applyCanvas) {
 
-            console.log("REDRAW");
+        console.log("REDRAW");
 
-            //Clear canvas
-            ctx.clearRect(0, 0, cnv.width, cnv.height);
+        //Clear canvas
+        ctx.clearRect(0, 0, cnv.width, cnv.height);
 
-            let size;
+        let size;
 
-            if (material.segment.isPole) {
-                let ext = material.segment.getExtentLonLat();
+        if (material.segment.isPole) {
+            let ext = material.segment.getExtentLonLat();
 
 
-                if (material.segment.tileZoom > 14) {
-                    size = "26";
-                } else {
-                    size = "32";
-                }
-                ctx.fillStyle = 'black';
-                ctx.font = 'normal ' + size + 'px Verdana';
-                ctx.textAlign = 'center';
-                ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+            if (material.segment.tileZoom > 14) {
+                size = "26";
             } else {
-
-                if (material.segment.tileZoom > 14) {
-                    size = "26";
-                } else {
-                    size = "32";
-                }
-                ctx.fillStyle = 'black';
-                ctx.font = 'normal ' + size + 'px Verdana';
-                ctx.textAlign = 'center';
-                ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+                size = "32";
             }
+            ctx.fillStyle = 'black';
+            ctx.font = 'normal ' + size + 'px Verdana';
+            ctx.textAlign = 'center';
+            ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+        } else {
 
-            //Draw border
-            //ctx.beginPath();
-            //ctx.rect(0, 0, cnv.width, cnv.height);
-            //ctx.lineWidth = 2;
-            //ctx.strokeStyle = "black";
-            //ctx.stroke();
+            if (material.segment.tileZoom > 14) {
+                size = "26";
+            } else {
+                size = "32";
+            }
+            ctx.fillStyle = 'black';
+            ctx.font = 'normal ' + size + 'px Verdana';
+            ctx.textAlign = 'center';
+            ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+        }
 
-            //Draw canvas tile
-            applyCanvas(cnv);
+        //Draw border
+        //ctx.beginPath();
+        //ctx.rect(0, 0, cnv.width, cnv.height);
+        //ctx.lineWidth = 2;
+        //ctx.strokeStyle = "black";
+        //ctx.stroke();
+
+        //Draw canvas tile
+        applyCanvas(cnv);
     }
 });
 
@@ -142,7 +144,7 @@ var red = new XYZ("borders", {
 let osm = new XYZ("osm", {
     isBaseLayer: true,
     url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    visibility: true,
+    visibility: false,
     attribution: 'Data @ OpenStreetMap contributors, ODbL',
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#AAD3DF" }, { color: "#F2EFE9" }],
@@ -157,24 +159,38 @@ tg.events.on("loadend", () => console.log("tilegrid loadend"));
 let sat = new XYZ("sat", {
     isBaseLayer: true,
     subdomains: ['t0', 't1', 't2', 't3'],
-    //url: "https://ecn.{s}.tiles.virtualearth.net/tiles/a{quad}.jpeg?n=z&g=7146",
-    url: "https://astro.arcgis.com/arcgis/rest/services/OnMars/MDIM/MapServer/tile/{z}/{y}/{x}?blankTile=false",
+    url: "https://ecn.{s}.tiles.virtualearth.net/tiles/a{quad}.jpeg?n=z&g=7146",
+    //url: "https://astro.arcgis.com/arcgis/rest/services/OnMars/MDIM/MapServer/tile/{z}/{y}/{x}?blankTile=false",
     //url: "//127.0.0.1/whereonmars.cartodb.net/celestia_mars-shaded-16k_global/{z}/{y}/{x}.png",
     //url: "https://trek.nasa.gov/tiles/Mars/EQ/Mars_Viking_MDIM21_ClrMosaic_global_232m/1.0.0//default/default028mm/{z}/{y}/{x}.jpg",
-    visibility: false,
+    visibility: true,
     attribution: `<div style="transform: scale(0.8); margin-top:-2px;"><a href="http://www.bing.com" target="_blank"><img title="Bing Imagery" src="https://sandcastle.cesium.com/CesiumUnminified/Assets/Images/bing_maps_credit.png"></a> © 2021 Microsoft Corporation</div>`,
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#001522" }, { color: "#E4E6F3" }],
     textureFilter: "linear",
-    // urlRewrite: function (s, u) {
-    //     return stringTemplate(u, {
-    //         's': this._getSubdomain(),
-    //         'quad': toQuadKey(s.tileX, s.tileY, s.tileZoom)
-    //     });
-    // }
+    diffuse: "rgb(325,325,355)",
+    ambient: "rgb(75,75,105)",
+    urlRewrite: function (s, u) {
+        return stringTemplate(u, {
+            's': this._getSubdomain(),
+            'quad': toQuadKey(s.tileX, s.tileY, s.tileZoom)
+        });
+    }
 });
 
 //let visExtent = new VisibleExtent();
+
+var highResTerrain = new MapboxTerrain(null, {
+    maxZoom: 19,
+    url: "//terrain.openglobus.org/public/nz/{z}/{x}/{y}.png",
+    //url: "//127.0.0.1/terrain/andorra/dest/{z}/{x}/{y}.png",
+    //imageSize: 129,
+    //plainGridSize: 256,
+    gridSizeByZoom: [
+        64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 64, 64, 64, 64, 32, 16, 8
+        //8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4
+    ]
+});
 
 var globus = new Globe({
     target: "earth",
@@ -182,23 +198,24 @@ var globus = new Globe({
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
+    //terrain: highResTerrain,
     terrain: new GlobusTerrain(),
-    //terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
-    layers: [osm, tg],
+    layers: [sat, tg, osm],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
-    useNightTexture: false,
+    useNightTexture: true,
     //useEarthNavigation: true,
-    useSpecularTexture: false
+    useSpecularTexture: true
 });
 
 //globus.renderer.fontAtlas.loadFont("chinese.msyh", "//assets.msn.com/weathermapdata/1/static/3d/label/zh-cn/font-v2.2/", "chinese.msyh.json");
 
 globus.planet.addControl(new LayerSwitcher());
 
-globus.planet.addControl(new DebugInfo());
+//globus.planet.addControl(new DebugInfo());
 
-//globus.planet.addControl(new ToggleWireframe());
+globus.planet.addControl(new ToggleWireframe());
+globus.planet.addControl(new KeyboardNavigation());
 
 //globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
 

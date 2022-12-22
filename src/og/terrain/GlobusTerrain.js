@@ -369,7 +369,8 @@ class GlobusTerrain extends EmptyTerrain {
                                 let heights = this._createHeights(response.data,
                                     segment.tileIndex,
                                     segment.tileX, segment.tileY, segment.tileZoom,
-                                    segment.getExtent()
+                                    segment.getExtent(),
+                                    segment.tileZoom === this.maxZoom
                                 );
 
                                 this._elevationCache[segment.tileIndex] = {
@@ -399,7 +400,7 @@ class GlobusTerrain extends EmptyTerrain {
 
     _getSubdomain() {
         this._requestCount++;
-        return  this._s[Math.floor(this._requestCount % (this._requestsPeerSubdomian * this._s.length) / this._requestsPeerSubdomian)];
+        return this._s[Math.floor(this._requestCount % (this._requestsPeerSubdomian * this._s.length) / this._requestsPeerSubdomian)];
     }
 
     _buildURL(x, y, z) {

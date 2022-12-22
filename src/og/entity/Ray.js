@@ -34,11 +34,6 @@ class Ray {
         // Thickenss
         this._thickness = options.thickness || 2.0;
 
-        // RTE length
-        this._length = options.length || 0.0;
-        this._lengthHighLow = new Float32Array(2);
-        doubleToTwoFloats2(this._length, this._lengthHighLow);
-
         // RTE start position
         this._startPosition = utils.createVector3(options.startPosition);
         this._startPositionHigh = new Vec3();
@@ -170,11 +165,6 @@ class Ray {
                 this._endPositionHigh,
                 this._endPositionLow
             );
-    }
-
-    setLength(length) {
-        this._length = length;
-        this._handler && this._handler.setLengthArr(this._handlerIndex, length);
     }
 
     setThickness(thickness) {

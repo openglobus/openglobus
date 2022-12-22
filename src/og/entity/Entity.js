@@ -338,9 +338,9 @@ class Entity {
     setCartesian(x, y, z) {
         let p = this._cartesian;
 
-        p.x = x;
-        p.y = y;
-        p.z = z;
+        p.x = x || 0.0;
+        p.y = y || 0.0;
+        p.z = z || 0.0;
 
         // billboards
         this.billboard && this.billboard.setPosition3v(p);
@@ -382,9 +382,9 @@ class Entity {
     _setCartesian3vSilent(cartesian, skipLonLat) {
         let p = this._cartesian;
 
-        p.x = cartesian.x;
-        p.y = cartesian.y;
-        p.z = cartesian.z;
+        p.x = cartesian.x || 0.0;
+        p.y = cartesian.y || 0.0;
+        p.z = cartesian.z || 0.0;
 
         // billboards
         this.billboard && this.billboard.setPosition3v(p);

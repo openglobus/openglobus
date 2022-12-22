@@ -54,6 +54,9 @@ let __depthCallbackCounter__ = 0;
  * @fires og.RendererEvents#touchleave
  * @fires og.RendererEvents#touchenter
  */
+
+let __resizeTimeout;
+
 class Renderer {
     constructor(handler, params) {
         params = params || {};
@@ -79,8 +82,6 @@ class Renderer {
         this.whitepoint = 1.0;
 
         this.brightThreshold = 0.9;
-
-        this.backgroundColor = params.backgroundColor || new Vec3(115 / 255, 203 / 255, 249 / 255);
 
         /**
          * Render nodes drawing queue.
@@ -215,6 +216,8 @@ class Renderer {
         }
 
         this._currentOutput = "screen";
+
+        this._fnScreenFrame = null;
 
         this.labelWorker = new LabelWorker(4);
     }
@@ -486,8 +489,13 @@ class Renderer {
         }
 
         this.handler.ONCANVASRESIZE = () => {
-            this.resize();
+            this._resizeStart();
             this.events.dispatch(this.events.resize, this.handler.canvas);
+            clearTimeout(__resizeTimeout);
+            __resizeTimeout = setTimeout(() => {
+                this._resizeEnd();
+                this.events.dispatch(this.events.resizeend, this.handler.canvas);
+            }, 500);
         };
 
         this._screenFrameCornersBuffer = this.handler.createArrayBuffer(
@@ -507,6 +515,10 @@ class Renderer {
         this.fontAtlas.initFont("arial", arial.data, arial.image);
     }
 
+    resize() {
+        this._resizeEnd();
+    }
+
     setCurrentScreen(screenName) {
         this._currentOutput = screenName;
         if (this.screenTexture[screenName]) {
@@ -514,22 +526,24 @@ class Renderer {
         }
     }
 
-    resize() {
+    _resizeStart() {
         let c = this.handler.canvas;
+
+        this.activeCamera.setAspectRatio(c.width / c.height);
+        this.sceneFramebuffer.setSize(c.width * 0.5, c.height * 0.5);
+        this.blitFramebuffer && this.blitFramebuffer.setSize(c.width * 0.5, c.height * 0.5, true);
+    }
+
+    _resizeEnd() {
+        let c = this.handler.canvas;
+
         this.activeCamera.setAspectRatio(c.width / c.height);
         this.sceneFramebuffer.setSize(c.width, c.height);
+        this.blitFramebuffer && this.blitFramebuffer.setSize(c.width, c.height, true);
 
-        this.blitFramebuffer &&
-        this.blitFramebuffer.setSize(c.width, c.height, true);
-
-        this.toneMappingFramebuffer &&
-        this.toneMappingFramebuffer.setSize(c.width, c.height, true);
-
-        this.depthFramebuffer &&
-        this.depthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
-
-        this.screenDepthFramebuffer &&
-        this.screenDepthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
+        this.toneMappingFramebuffer && this.toneMappingFramebuffer.setSize(c.width, c.height, true);
+        this.depthFramebuffer && this.depthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
+        this.screenDepthFramebuffer && this.screenDepthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
 
         if (this.handler.gl.type === "webgl") {
             this.screenTexture.screen = this.sceneFramebuffer.textures[0];
@@ -545,6 +559,36 @@ class Renderer {
 
         this.setCurrentScreen(this._currentOutput);
     }
+
+    // resize() {
+    //     let c = this.handler.canvas;
+    //
+    //     this.activeCamera.setAspectRatio(c.width / c.height);
+    //
+    //     this.sceneFramebuffer.setSize(c.width, c.height);
+    //
+    //     this.blitFramebuffer && this.blitFramebuffer.setSize(c.width, c.height, true);
+    //
+    //     this.toneMappingFramebuffer && this.toneMappingFramebuffer.setSize(c.width, c.height, true);
+    //
+    //     this.depthFramebuffer && this.depthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
+    //
+    //     this.screenDepthFramebuffer && this.screenDepthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
+    //
+    //     if (this.handler.gl.type === "webgl") {
+    //         this.screenTexture.screen = this.sceneFramebuffer.textures[0];
+    //         this.screenTexture.picking = this.pickingFramebuffer.textures[0];
+    //         this.screenTexture.depth = this.screenDepthFramebuffer.textures[0];
+    //         this.screenTexture.frustum = this.depthFramebuffer.textures[0];
+    //     } else {
+    //         this.screenTexture.screen = this.toneMappingFramebuffer.textures[0];
+    //         this.screenTexture.picking = this.pickingFramebuffer.textures[0];
+    //         this.screenTexture.depth = this.screenDepthFramebuffer.textures[0];
+    //         this.screenTexture.frustum = this.depthFramebuffer.textures[0];
+    //     }
+    //
+    //     this.setCurrentScreen(this._currentOutput);
+    // }
 
     removeNode(renderNode) {
         renderNode.remove();
@@ -725,28 +769,27 @@ class Renderer {
         let sfb = this.sceneFramebuffer;
         sfb.activate();
 
-        let h = this.handler;
+        let h = this.handler,
+            gl = h.gl;
 
-        h.gl.clearColor(
-            this.backgroundColor.x,
-            this.backgroundColor.y,
-            this.backgroundColor.z,
-            1.0
-        );
-        h.gl.clear(h.gl.COLOR_BUFFER_BIT | h.gl.DEPTH_BUFFER_BIT);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.BLEND);
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         e.dispatch(e.draw, this);
 
         let frustums = this.activeCamera.frustums;
 
-        let pointerEvent = e.pointerEvent() || this.activeCamera.isMoved;
+        let pointerEvent = e.pointerEvent() || this.activeCamera.isMoving;
 
         // Rendering scene nodes and entityCollections
         let rn = this._renderNodesArr;
         let k = frustums.length;
         while (k--) {
             this.activeCamera.setCurrentFrustum(k);
-            h.gl.clear(h.gl.DEPTH_BUFFER_BIT);
+            gl.clear(gl.DEPTH_BUFFER_BIT);
             let i = rn.length;
             while (i--) {
                 rn[i].drawNode();
@@ -767,7 +810,6 @@ class Renderer {
             if (h.isWebGl2()) {
                 this._drawDepthBuffer();
             }
-
             this._readPickingColor();
         }
 
@@ -810,10 +852,10 @@ class Renderer {
 
         this.toneMappingFramebuffer.deactivate();
 
+        // SCREEN PASS
         sh = h.programs.screenFrame;
         p = sh._program;
         gl = h.gl;
-
         sh.activate();
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
@@ -824,6 +866,7 @@ class Renderer {
     }
 
     _screenFrameNoMSAA() {
+
         var h = this.handler;
         var sh = h.programs.screenFrame,
             p = sh._program,
