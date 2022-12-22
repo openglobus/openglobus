@@ -10,26 +10,13 @@ import * as utils from "../../src/og/utils/shared.js";
 let COUNT = 10,
     ENTITY = {},
     ENTITY_OPTIONS = new Map([
-        // ['penguin', {
-        //     countRation: 20,
-        //     cb: (options) => {
-        //         options.geoObject.scale = 200000;
-        //         options.geoObject.yaw = 50;
-        //         options.geoObject.pitch = 270;
-        //         options.geoObject.src = './penguin.png';
-        //         return {
-        //             ...options,
-        //             lonlat: [rnd(-180, 180), rnd(-180, 180), 200000]
-        //         };
-        //     }
-        // }],
-        ['baloon', {
-            countRation: 20,
+        ['fish', {
+            countRation: 1,
             cb: (options) => {
                 options.geoObject.scale = 200000;
                 options.geoObject.yaw = 50;
-                // options.geoObject.pitch = 270;
-                options.geoObject.src = './sviborg.jpg';
+                options.geoObject.pitch = 270;
+                options.geoObject.src = './fish.png';
                 return {
                     ...options,
                     lonlat: [rnd(-180, 180), rnd(-180, 180), 200000]
@@ -101,7 +88,7 @@ for (const [name, entity_opt] of ENTITY_OPTIONS) {
                         scale: 100000,
                         instanced: true,
                         tag: name,
-                        // color: colors[i % 7],
+                        color: colors[i % 7],
                         vertices,
                         indices,
                         texCoords,
@@ -112,10 +99,6 @@ for (const [name, entity_opt] of ENTITY_OPTIONS) {
                         'color': colors[i % 7]
                     }
                 });
-
-            for (let i = 0; i < indices.length; i++) {
-                console.log(`i: ${indices[i]}, \t v: ${vertices[indices[i]]}, ${vertices[indices[i] + 1]}, ${vertices[indices[i] + 2]}, \t t: ${texCoords[indices[i]]},${texCoords[indices[i] + 1]}`)
-            }
 
 
             ENTITY[name] = (i) => {

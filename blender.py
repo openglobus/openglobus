@@ -34,6 +34,7 @@ def triangulate_object(obj):
     bm = bmesh.new()
     me = obj.data
     bm.from_mesh(me)
+    bpy.ops.object.mode_set(mode='OBJECT')
     bmesh.ops.triangulate(bm, faces=bm.faces[:])
     bm.to_mesh(me)
     bm.free()
@@ -53,8 +54,6 @@ def write_to_json(name, i, v, n, t, ti):
         outfile.write(",".join(str(item) for item in n))
         outfile.write("\n\t],\n\t\"texCoords\": [\n\t\t")
         outfile.write(",".join(str(item) for item in t))
-        outfile.write("\n\t],\n\t\"texCoordsIndices\": [\n\t\t")
-        outfile.write(",".join(str(item) for item in ti))
         outfile.write("\n\t]\n}")
 
 
@@ -67,21 +66,21 @@ for collection in bpy.data.collections:
 
             for vert in obj.data.vertices:
                 gCoords = matrix @ vert.co
-                verts.append(gCoords.xyz[0])
-                verts.append(gCoords.xyz[1])
-                verts.append(gCoords.xyz[2])
-                normals.append(vert.normal[0])
-                normals.append(vert.normal[1])
-                normals.append(vert.normal[2])
+                verts += list(gCoords.xyz)
+                normals += list(vert.normal)
 
             for face in obj.data.polygons:
-                indices.append(face.vertices[0] + maxIndex)
-                indices.append(face.vertices[1] + maxIndex)
-                indices.append(face.vertices[2] + maxIndex)
+                indices += map(lambda x: x + maxIndex, list(face.vertices),)
+
 
                 for vert_idx, loop_idx in zip(face.vertices, face.loop_indices):
-                    uv = obj.data.uv_layers.active.data[loop_idx].uv
-                    print(vert_idx, list(uv), list(face.vertices))
-                    uvs += list(uv)
+                    uvs_map[vert_idx + maxIndex] = list(obj.data.uv_layers.active.data[loop_idx].uv)
+                    print(obj.data.uv_layers)
 
-write_to_json(filename, indices, verts, normals, uvs, uvs_idx)
+        temp_uvs = list(uvs_map.keys())
+        for key, attr in uvs_map.items():
+            temp_uvs[key] = [uvs_map[key][0],1.0 - uvs_map[key][1]]
+
+
+
+write_to_json(filename, indices, verts, normals, sum(temp_uvs,[]), uvs_idx)

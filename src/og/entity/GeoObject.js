@@ -9,7 +9,6 @@ import { MAX32, RADIANS, lerp } from "../math.js";
 import { LonLat } from "../LonLat.js";
 import * as utils from "../utils/shared.js";
 import { Planet } from "../scene/Planet.js";
-import { loadImage } from "../utils/shared.js";
 
 /**
  * @class
@@ -235,21 +234,6 @@ class GeoObject {
             .conjugate();
         this._direction = qq.mulVec3(new Vec3(0.0, 0.0, -1.0)).normalize();
         this._handler && this._handler.setDirectionArr(this._handlerIndex, this._direction);
-    }
-    setSrc(src) {
-        this._src = src;
-        var handler = this._handler;
-        if (handler && src) {
-            handler.setTexture(this)
-        }
-    }
-    /**
-     * Sets image object.
-     * @public
-     * @param {Object} image - JavaScript image object.
-     */
-    setImage(image) {
-        this.setSrc(image.src);
     }
 
 }

@@ -36,8 +36,8 @@ class GeoObjectHandler {
         this.pickingEnabled = true;
 
         this._entityCollection = entityCollection;
-        this._renderer = null;
-        this._planet = null;
+        this._renderer = undefined;
+        this._planet = undefined;
 
         this._textures = []
 
@@ -134,8 +134,6 @@ class GeoObjectHandler {
         const h = this._renderer.handler;
         for (let i = 0, len = this._texCoordArr.length; i < len; i++) {
             this._texCoordBuffer && h.gl.deleteBuffer(this._texCoordBuffer[i]);
-            // this._tcoordIndicesBuffer && h.gl.deleteBuffer(this._tcoordIndicesBuffer[i]);
-            // this._tcoordIndicesBuffer[i] = h.createArrayBuffer(new Float32Array(this._tcoordIndicesArr[i]), 2, this._tcoordIndicesArr[i].length);
 
             this._texCoordArr[i] = makeArrayTyped(this._texCoordArr[i]);
             this._texCoordBuffer[i] = h.createArrayBuffer(this._texCoordArr[i], 2, this._texCoordArr[i].length / 2);
@@ -224,23 +222,14 @@ class GeoObjectHandler {
     async setTexture(geoObject) {
         const src = geoObject._src,
             ti = this._instancedTags.get(geoObject.tag).index;
-
-        if (this._texCoordArr[ti].length !== geoObject._texCoords.length) {
-            this._texCoordArr[ti] = concatArrays(
-                this._texCoordArr[ti],
-                setParametersToArray(
-                    [],
-                    0,
-                    geoObject._texCoords.length,
-                    geoObject._texCoords.length,
-                    ...geoObject._texCoords
-                )
-            );
-
-            this._textures[ti] = this._renderer.handler.createEmptyTexture_l();
-            const image = await loadImage(src);
-            this._textures[ti] = this._renderer.handler.createTexture_l(image);
-
+        if (geoObject._src) {
+            if (!this._texCoordArr[ti]) this._texCoordArr[ti] = [];
+            if (this._texCoordArr[ti].length === 0) {
+                this._texCoordArr[ti] = geoObject._texCoords;
+                this._textures[ti] = this._renderer.handler.transparentTexture;
+                const image = await loadImage(src);
+                this._textures[ti] = this._renderer.handler.createTexture_mm(image);
+            }
         }
     }
 
@@ -283,7 +272,6 @@ class GeoObjectHandler {
         geoObject._tagIndex = tagData.iCounts - 1;
 
         if (!this._vertexArr[ti] || this._vertexArr[ti].length !== geoObject._vertices.length) {
-            // this._renderer.handler.gl.getExtension('OES_texture_float');
             this._vertexArr[ti] = concatArrays(
                 this._vertexArr[ti],
                 setParametersToArray(
@@ -404,15 +392,16 @@ class GeoObjectHandler {
             const tagData = tag[1],
                 ti = tagData.index;
 
-            gl.activeTexture(gl.TEXTURE0); // some problem with int+string, don't look at it
-            gl.bindTexture(gl.TEXTURE_2D, this._textures[ti] || this._planet.transparentTexture);
-            gl.uniform1i(u.uTexture, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._normalsBuffer[ti]);
             gl.vertexAttribPointer(a.aVertexNormal, this._normalsBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer[ti]);
             gl.vertexAttribPointer(a.aVertexPosition, this._vertexBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this._textures[ti] || this._planet.transparentTexture);
+            gl.uniform1i(u.uTexture, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer[ti]);
             gl.vertexAttribPointer(a.aTexCoord, this._texCoordBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
@@ -434,6 +423,8 @@ class GeoObjectHandler {
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._vehicleVisibleBuffer[ti]);
             gl.vertexAttribPointer(a.aDispose, this._vehicleVisibleBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.uniform1f(u.uUseTexture, this._textures[ti] ? 1 : 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer[ti]);
             gl.vertexAttribPointer(
@@ -766,6 +757,24 @@ class GeoObjectHandler {
         this._changedBuffers[PICKINGCOLOR_BUFFER] = true;
     }
 
+    setTexCoordArr(index, tcoordArr) {
+        const itemSize = 2,
+            ti = this.getTagIndexByObjectIndex(index),
+            ob = this.getObjectByIndex(index);
+
+        let length = ob._verticesCount * itemSize;
+
+        if (ob.instanced) {
+            length = itemSize;
+        }
+
+        if (this._texCoordArr[ti].length !== length) {
+            setParametersToArray(this._texCoordArr[ti], ob._tagIndex, length, itemSize, ...tcoordArr);
+        }
+
+        this._changedBuffers[TEXCOORD_BUFFER] = true;
+    }
+
     setPitchRollArr(index, pitch, roll) {
         const itemSize = 2,
             ti = this.getTagIndexByObjectIndex(index),
@@ -806,26 +815,25 @@ class GeoObjectHandler {
         while (i--) {
             const bi = this._geoObjects[i];
             bi._handlerIndex = -1;
-            bi._handler = null;
+            bi._handler = undefined;
         }
         this._geoObjects.length = 0;
         this._geoObjects = [];
     }
 
     clear() {
-        this._sizeArr = null;
-        this._pitchRollArr = null;
-        this._vertexArr = null;
-        this._positionHighArr = null;
-        this._positionLowArr = null;
-        this._directionArr = null;
-        this._rgbaArr = null;
-        this._normalsArr = null;
-        this._indicesArr = null;
-        this._pickingColorArr = null;
-        this._vehicleVisibleArr = null;
-        this._texCoordArr = null;
-        // this._tcoordIndicesArr = null;
+        this._sizeArr = undefined;
+        this._pitchRollArr = undefined;
+        this._vertexArr = undefined;
+        this._positionHighArr = undefined;
+        this._positionLowArr = undefined;
+        this._directionArr = undefined;
+        this._rgbaArr = undefined;
+        this._normalsArr = undefined;
+        this._indicesArr = undefined;
+        this._pickingColorArr = undefined;
+        this._vehicleVisibleArr = undefined;
+        this._texCoordArr = undefined;
 
         this._pitchRollArr = [new Float32Array()];
         this._sizeArr = [new Float32Array()];
@@ -837,9 +845,8 @@ class GeoObjectHandler {
         this._normalsArr = [new Float32Array()];
         this._indicesArr = [new Uint16Array()];
         this._pickingColorArr = [new Float32Array()];
-        this._vehicleVisibleArr = [new Int8Array()];
         this._texCoordArr = [new Float32Array()];
-        // this._tcoordIndicesArr = [new Float32Array()];
+        this._vehicleVisibleArr = [new Int8Array()];
 
         this._removeGeoObjects();
         this._deleteBuffers();
@@ -860,21 +867,19 @@ class GeoObjectHandler {
             gl.deleteBuffer(this._directionBuffer);
             gl.deleteBuffer(this._pickingColorBuffer);
             gl.deleteBuffer(this._texCoordBuffer);
-            // gl.deleteBuffer(this._tcoordIndicesBuffer);
         }
 
-        this._pitchRollBuffer = null;
-        this._sizeBuffer = null;
-        this._vertexBuffer = null;
-        this._positionHighBuffer = null;
-        this._positionLowBuffer = null;
-        this._rgbaBuffer = null;
-        this._indicesBuffer = null;
-        this._normalsBuffer = null;
-        this._directionBuffer = null;
-        this._pickingColorBuffer = null;
-        this._texCoordBuffer = null;
-        // this._tcoordIndicesArr = null;
+        this._pitchRollBuffer = undefined;
+        this._sizeBuffer = undefined;
+        this._vertexBuffer = undefined;
+        this._positionHighBuffer = undefined;
+        this._positionLowBuffer = undefined;
+        this._rgbaBuffer = undefined;
+        this._indicesBuffer = undefined;
+        this._normalsBuffer = undefined;
+        this._directionBuffer = undefined;
+        this._pickingColorBuffer = undefined;
+        this._texCoordBuffer = undefined;
     }
 
     update() {
@@ -916,7 +921,6 @@ class GeoObjectHandler {
             this._geoObjects.push(geoObject);
             this._addGeoObjectToArray(geoObject);
             this.refresh();
-            geoObject.setSrc(geoObject._src || (geoObject._image && geoObject._image.src));
         }
     }
 
@@ -951,16 +955,8 @@ class GeoObjectHandler {
                 0,
                 geoObject._verticesCount * 3
             );
-            this._texCoordArr[ti] = spliceArray(
-                this._texCoordArr[ti],
-                0,
-                geoObject._texCoords.length
-            );
-            // this._tcoordIndicesArr[ti] = spliceArray(
-            //     this._tcoordIndicesArr[ti],
-            //     0,
-            //     geoObject._texCoordsIndices.length
-            // );
+            this._texCoordArr[ti] = []
+            this._useTextureArr[ti] = [];
         }
         this._positionHighArr[ti] = spliceArray(this._positionHighArr[ti], i, 3);
         this._positionLowArr[ti] = spliceArray(this._positionLowArr[ti], i, 3);
@@ -980,35 +976,8 @@ class GeoObjectHandler {
         this.refresh();
 
         geoObject._handlerIndex = -1;
-        geoObject._handler = null;
-    }
-
-    refreshTexCoordsArr() {
-        var bc = this._entityCollection;
-        if (bc && this._renderer) {
-            for (var i = 0; i < this._geoObjects.length; i++) {
-                var bi = this._geoObjects[i];
-                this.setTexCoordArr(bi._handlerIndex,
-                    bi._texCoords,
-                    bi._texCoordsIndices,
-                );
-            }
-        }
-    }
-
-    setTexCoordArr(index, tcoordArr, tcoordIndices) {
-
-        const itemSize = 4,
-            ti = this.getTagIndexByObjectIndex(index),
-            ob = this.getObjectByIndex(index);
-        let length = tcoordArr.length;
-
-        if (this._texCoordArr[ti].length !== length) {
-            setParametersToArray(this._texCoordArr[ti], ob._tagIndex, length, length, ...tcoordArr);
-        }
-        // setParametersToArray(this._tcoordIndicesArr[ti], ob._tagIndex, length, length, ...tcoordIndices);
-
-        this._changedBuffers[TEXCOORD_BUFFER] = true;
+        geoObject._handler = undefined;
+        geoObject = undefined
     }
 
 }
