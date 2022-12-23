@@ -955,8 +955,7 @@ class GeoObjectHandler {
                 0,
                 geoObject._verticesCount * 3
             );
-            this._texCoordArr[ti] = []
-            this._useTextureArr[ti] = [];
+            this._texCoordArr[ti] = [];
         }
         this._positionHighArr[ti] = spliceArray(this._positionHighArr[ti], i, 3);
         this._positionLowArr[ti] = spliceArray(this._positionLowArr[ti], i, 3);
