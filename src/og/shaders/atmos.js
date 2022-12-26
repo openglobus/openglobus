@@ -120,3 +120,121 @@ export function transmittance() {
             }`
     });
 }
+
+export function scattering() {
+    return new Program("scattering", {
+        uniforms: {
+            iResolution: "vec2",
+            transmittanceTexture: "sampler2d"
+        },
+        attributes: {
+            a_position: "vec2"
+        },
+
+        vertexShader:
+            `attribute vec2 a_position;            
+            varying vec2 uv;            
+            void main(void) {
+                gl_Position = vec4(a_position, 0.0, 1.0);
+                //uv = a_position * 0.5 + 0.5;
+            }`,
+
+        fragmentShader:
+            `precision highp float;
+            
+            uniform sampler2D transmittanceTexture;
+            uniform vec2 iResolution;
+
+            ${COMMON}
+            
+            vec3 transmittanceFromTexture(float height, float angle) {
+                float u = (angle + 1.0) * 0.5;
+                float v = height / (topRadius - bottomRadius);
+                return texture2D(transmittanceTexture, vec2(u, v)).xyz;
+            }
+                                   
+            void main(void) {
+                vec2 uv = gl_FragCoord.xy / iResolution.xy;
+                
+                float height = uv.y * (topRadius - bottomRadius);
+                float angle = uv.x * 2.0 - 1.0;
+                
+                vec3 rayOrigin = vec3(0.0, bottomRadius + height, 0.0);                
+                vec3 up = rayOrigin / length(rayOrigin);                
+                vec3 lightDirection = vec3(sqrt(1.0 - angle * angle), angle, 0.0);
+                                
+                float isotropicPhase = 1.0 / (4.0 * pi);
+                
+                const int sqrtSampleCount = 8;
+                
+                vec3 light = vec3(0.0);
+                vec3 lightTransferFactor = vec3(0.0);
+                
+                for (int i = 0; i < sqrtSampleCount; i++) {
+                    for (int j = 0; j < sqrtSampleCount; j++) {    
+                        float u = ((0.5 + float(i)) / float(sqrtSampleCount)) * 2.0 - 1.0;
+                        float v = (0.5 + float(j)) / float(sqrtSampleCount);
+                        float r = sqrt(1.0 - u * u);
+                        float theta = 2.0 * pi * v;
+                        vec3 rayDirection = vec3(cos(theta) * r, sin(theta) * r, u);
+                        
+                        const int sampleCount = 32;
+                        
+                        float rayAngle = dot(up, rayDirection);                        
+                        bool cameraBelow = rayAngle < 0.0;
+                        
+                        vec3 transmittanceFromCameraToSpace = transmittanceFromTexture(height, cameraBelow ? -rayAngle : rayAngle);
+                        
+                        float offset = 0.0;
+                        float distanceToSpace = 0.0;
+                        
+                        intersectSphere(rayOrigin, rayDirection, topRadius, offset, distanceToSpace);
+                        
+                        float distanceToGround = 0.0;
+                        bool hitGround = intersectSphere(rayOrigin, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;                        
+                        float segmentLength = (hitGround ? distanceToGround : distanceToSpace) / float(sampleCount);
+                        float t = segmentLength * 0.5;
+                        
+                        vec3 transmittanceCamera;
+                        vec3 transmittanceLight;
+                         
+                        for (int k = 0; k < sampleCount; k++) {
+                            vec3 position = rayOrigin + t * rayDirection;
+                            float height = length(position) - bottomRadius;
+                            vec3 up = position / length(position);
+                            float rayAngle = dot(up, rayDirection);
+                            float lightAngle = dot(up, lightDirection);
+                            
+                            float distanceToGround;
+                            float shadow = intersectSphere(position, lightDirection, bottomRadius, distanceToGround) && distanceToGround >= 0.0 ? 0.0 : 1.0;
+                            vec3 transmittanceToSpace = transmittanceFromTexture(height, cameraBelow ? -rayAngle : rayAngle);
+                            
+                            transmittanceCamera = cameraBelow ? (transmittanceToSpace / transmittanceFromCameraToSpace) : (transmittanceFromCameraToSpace / transmittanceToSpace);
+                            transmittanceLight = transmittanceFromTexture(height, lightAngle);
+                            
+                            vec2 opticalDensity = exp(-height / vec2(rayleighScaleHeight, mieScaleHeight));        
+                            vec3 scatteredLight = transmittanceLight * (rayleighScatteringCoefficient * opticalDensity.x + mieScatteringCoefficient * opticalDensity.y) * isotropicPhase;
+                            
+                            light += shadow * transmittanceCamera * scatteredLight * segmentLength;
+                            lightTransferFactor += transmittanceCamera * (rayleighScatteringCoefficient * opticalDensity.x + mieScatteringCoefficient * opticalDensity.y) * segmentLength;
+                            
+                            t += segmentLength;
+                        }
+                    
+                        if (hitGround) {
+                            vec3 hitPoint = rayOrigin + rayDirection * distanceToGround;
+                            vec3 normal = normalize(hitPoint);
+                            float diffuseAngle = max(dot(normal, lightDirection), 0.0); 
+                            vec3 earthAlbedo = vec3(0.3);
+                            light += transmittanceCamera * transmittanceLight * (earthAlbedo / pi) * diffuseAngle;
+                        }
+                    }
+                }
+                
+                light /= float(sqrtSampleCount * sqrtSampleCount);
+                lightTransferFactor /= float(sqrtSampleCount * sqrtSampleCount);
+                vec3 color = light / (1.0 - lightTransferFactor);                 
+                gl_FragColor = vec4(color, 1.0);
+            }`
+    });
+}

@@ -673,31 +673,37 @@ export class Planet extends RenderNode {
         this.renderer.screenTexture.height = this._heightPickingFramebuffer.textures[0];
 
         h.addProgram(atmos.transmittance(), true);
+        h.addProgram(atmos.scattering(), true);
     }
 
-    _drawTransmittance() {
-
+    _drawAtmosphereTextures() {
 
         this._transmittanceBuffer = new Framebuffer(this.renderer.handler, {
-            width: 256,
-            height: 256,
-            useDepth: false
+            width: 1024, height: 1024, useDepth: false
         });
 
         this._transmittanceBuffer.init();
 
-        var positions = new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0]);
-        let positionBuffer = this.renderer.handler.createArrayBuffer(positions, 2, positions.length / 2);
+        this._scatteringBuffer = new Framebuffer(this.renderer.handler, {
+            width: 1024, height: 1024, useDepth: false
+        });
+
+        this._scatteringBuffer.init();
+
+        let positionBuffer = this.renderer.screenFramePositionBuffer;
 
         let h = this.renderer.handler;
         let gl = h.gl;
+
+        //
+        // Draw transmittance texture
+        //
+        this._transmittanceBuffer.activate();
+
         let p = h.programs.transmittance;
         let sha = p._program.attributes;
         let shu = p._program.uniforms;
-
         p.activate();
-
-        this._transmittanceBuffer.activate();
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -708,24 +714,43 @@ export class Planet extends RenderNode {
         gl.vertexAttribPointer(sha.a_position, positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer.numItems);
 
-        let img = this._transmittanceBuffer.getImage();
-
         this._transmittanceBuffer.deactivate();
 
-        document.body.appendChild(img);
+        //
+        // Draw scattering texture
+        //
+        this._scatteringBuffer.activate();
+
+        p = h.programs.scattering;
+        sha = p._program.attributes;
+        shu = p._program.uniforms;
+        p.activate();
+
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        gl.uniform2fv(shu.iResolution, [this._scatteringBuffer.width, this._scatteringBuffer.height]);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this._transmittanceBuffer.textures[0]);
+        gl.uniform1i(shu.transmittanceTexture, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.vertexAttribPointer(sha.a_position, positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer.numItems);
+
+        this._scatteringBuffer.deactivate();
     }
 
     _drawScattering() {
         this._scatteringBuffer = new Framebuffer(this.renderer.handler, {
-            width: this._width,
-            height: this._height,
-            useDepth: false
+            width: this._width, height: this._height, useDepth: false
         });
 
         this._scatteringBuffer.init();
 
-        var positions = new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0]);
-        this._screenCoords = this.renderer.handler.createArrayBuffer(positions, 2, positions.length / 2);
+        //var positions = new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0]);
+        //this._screenCoords = this.renderer.handler.createArrayBuffer(positions, 2, positions.length / 2);
     }
 
     _onLayerLoadend(layer) {
@@ -859,7 +884,7 @@ export class Planet extends RenderNode {
             this._checkRendercompleted();
         });
 
-        this._drawTransmittance();
+        this._drawAtmosphereTextures();
     }
 
     clearIndexesCache() {
@@ -1061,9 +1086,7 @@ export class Planet extends RenderNode {
 
             this.minCurrZoom = this.maxCurrZoom;
 
-            let temp = this._renderedNodes,
-                rf = this._renderedNodesInFrustum,
-                temp2 = [];
+            let temp = this._renderedNodes, rf = this._renderedNodesInFrustum, temp2 = [];
 
             this._clearRenderNodesInFrustum();
 

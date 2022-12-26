@@ -269,6 +269,171 @@ export function drawnode_screen_wl() {
     });
 }
 
+// export function drawnode_screen_wl_webgl2() {
+//     return new Program("drawnode_screen_wl", {
+//         uniforms: {
+//             projectionMatrix: "mat4",
+//             viewMatrix: "mat4",
+//             eyePositionHigh: "vec3",
+//             eyePositionLow: "vec3",
+//             height: "float",
+//
+//             uGlobalTextureCoord: "vec4",
+//             uNormalMapBias: "vec3",
+//
+//             samplerCount: "int",
+//             tileOffsetArr: "vec4",
+//             layerOpacityArr: "float",
+//             samplerArr: "sampler2darray",
+//             defaultTexture: "sampler2d",
+//             normalMatrix: "mat3",
+//             uNormalMap: "sampler2d",
+//             nightTexture: "sampler2d",
+//             specularTexture: "sampler2d",
+//             lightsPositions: "vec4",
+//             diffuse: "vec3",
+//             ambient: "vec3",
+//             specular: "vec4"
+//         },
+//         attributes: {
+//             aVertexPositionHigh: "vec3",
+//             aVertexPositionLow: "vec3",
+//             aTextureCoord: "vec2"
+//         },
+//
+//         vertexShader: `#version 300 es
+//
+//             in vec3 aVertexPositionHigh;
+//             in vec3 aVertexPositionLow;
+//             in vec2 aTextureCoord;
+//
+//             uniform mat4 projectionMatrix;
+//             uniform mat4 viewMatrix;
+//             uniform float height;
+//             uniform vec4 uGlobalTextureCoord;
+//             uniform vec3 uNormalMapBias;
+//             uniform vec3 eyePositionHigh;
+//             uniform vec3 eyePositionLow;
+//
+//             out vec4 vTextureCoord;
+//             out vec2 vGlobalTextureCoord;
+//             out vec4 v_vertex;
+//             out float v_height;
+//
+//             void main(void) {
+//
+//                 vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;
+//                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
+//                 vec3 lowDiff = aVertexPositionLow + normalize(aVertexPosition) * height - eyePositionLow;
+//
+//                 mat4 viewMatrixRTE = viewMatrix;
+//                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
+//
+//                 v_height = height;
+//                 vec3 heightVertex = aVertexPosition + normalize(aVertexPosition) * height;
+//                 v_vertex = viewMatrix * vec4(heightVertex, 1.0);
+//                 vTextureCoord.xy = aTextureCoord;
+//                 vGlobalTextureCoord = uGlobalTextureCoord.xy + (uGlobalTextureCoord.zw - uGlobalTextureCoord.xy) * aTextureCoord;
+//                 vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + uNormalMapBias.xy );
+//                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+//             }`,
+//
+//         fragmentShader: `#version 300 es
+//
+//             precision highp float;
+//
+//             #define MAX_POINT_LIGHTS 1
+//             #define SLICE_SIZE ${SLICE_SIZE + 1}
+//
+//             uniform vec3 diffuse;
+//             uniform vec3 ambient;
+//             uniform vec4 specular;
+//
+//             uniform sampler2D uNormalMap;
+//             uniform vec4 lightsPositions[MAX_POINT_LIGHTS];
+//             uniform mat3 normalMatrix;
+//             uniform sampler2D nightTexture;
+//             uniform sampler2D specularTexture;
+//
+//             uniform vec4 tileOffsetArr[SLICE_SIZE];
+//             uniform float layerOpacityArr[SLICE_SIZE];
+//
+//             uniform sampler2D defaultTexture;
+//             uniform sampler2D samplerArr[SLICE_SIZE];
+//             uniform int samplerCount;
+//
+//             in vec4 vTextureCoord;
+//             in vec2 vGlobalTextureCoord;
+//             in vec4 v_vertex;
+//             in float v_height;
+//
+//             float shininess;
+//             float reflection;
+//             float diffuseLightWeighting;
+//             vec3 night;
+//
+//             layout(location = 0) out vec4 fragColor;
+//
+//             ${NIGHT}
+//
+//             ${DEF_BLEND}
+//
+//             void main(void) {
+//
+//                 float overGround = 1.0 - step(0.1, v_height);
+//                 vec3 normal = normalize(normalMatrix * ((texture(uNormalMap, vTextureCoord.zw).rgb - 0.5) * 2.0));
+//                 vec3 lightDirection = normalize(lightsPositions[0].xyz - v_vertex.xyz * lightsPositions[0].w);
+//                 vec3 eyeDirection = normalize(-v_vertex.xyz);
+//                 vec3 reflectionDirection = reflect(-lightDirection, normal);
+//                 vec4 nightImageColor = texture( nightTexture, vGlobalTextureCoord.st );
+//
+//                 shininess = texture( specularTexture, vGlobalTextureCoord.st ).r * 255.0 * overGround;
+//                 reflection = max( dot(reflectionDirection, eyeDirection), 0.0);
+//                 diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
+//                 night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb;
+//                 night *= overGround * step(0.0, night);
+//
+//                 vec3 spec = specular.rgb * pow( reflection, specular.w) * shininess;
+//                 vec4 lightWeighting = vec4(ambient + diffuse * diffuseLightWeighting + spec + night, 1.0);
+//
+//                 fragColor = texture( defaultTexture, vTextureCoord.xy );
+//                 if( samplerCount == 0 ) {
+//                     fragColor *= lightWeighting;
+//                     return;
+//                 }
+//
+//                 vec4 src;
+//
+//                 blend(fragColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
+//                 if( samplerCount == 1 ) {
+//                     fragColor *= lightWeighting;
+//                     return;
+//                 }
+//
+//                 blend(fragColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
+//                 if( samplerCount == 2 ) {
+//                     fragColor *= lightWeighting;
+//                     return;
+//                 }
+//
+//                 blend(fragColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
+//                 if( samplerCount == 3 ) {
+//                     fragColor *= lightWeighting;
+//                     return;
+//                 }
+//
+//                 blend(fragColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
+//                 if( samplerCount == 4 ) {
+//                     fragColor *= lightWeighting;
+//                     return;
+//                 }
+//
+//                 blend(fragColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
+//                 fragColor *= lightWeighting;
+//             }`
+//     });
+// }
+
 export function drawnode_screen_wl_webgl2() {
     return new Program("drawnode_screen_wl", {
         uniforms: {
@@ -372,7 +537,9 @@ export function drawnode_screen_wl_webgl2() {
             float diffuseLightWeighting;
             vec3 night;
 
-            layout(location = 0) out vec4 fragColor;
+            layout(location = 0) out vec4 diffuseColor;
+            layout(location = 1) out vec4 normalColor;
+            layout(location = 2) out vec4 positionColor;
 
             ${NIGHT}
 
@@ -380,8 +547,12 @@ export function drawnode_screen_wl_webgl2() {
 
             void main(void) {
 
+                vec3 nnn = texture(uNormalMap, vTextureCoord.zw).rgb;//(texture(uNormalMap, vTextureCoord.zw).rgb - 0.5) * 2.0;
+                
                 float overGround = 1.0 - step(0.1, v_height);
-                vec3 normal = normalize(normalMatrix * ((texture(uNormalMap, vTextureCoord.zw).rgb - 0.5) * 2.0));
+                vec3 normal = normalize(
+                    normalMatrix * (nnn - 0.5) * 2.0
+                );
                 vec3 lightDirection = normalize(lightsPositions[0].xyz - v_vertex.xyz * lightsPositions[0].w);
                 vec3 eyeDirection = normalize(-v_vertex.xyz);
                 vec3 reflectionDirection = reflect(-lightDirection, normal);
@@ -395,41 +566,44 @@ export function drawnode_screen_wl_webgl2() {
 
                 vec3 spec = specular.rgb * pow( reflection, specular.w) * shininess;
                 vec4 lightWeighting = vec4(ambient + diffuse * diffuseLightWeighting + spec + night, 1.0);
+                
+                normalColor = vec4(nnn, 1.0);
+                distanceColor = vec4(1.0, 1.0, 0.0, 1.0);
 
-                fragColor = texture( defaultTexture, vTextureCoord.xy );
+                diffuseColor = texture( defaultTexture, vTextureCoord.xy );
                 if( samplerCount == 0 ) {
-                    fragColor *= lightWeighting;
+                    diffuseColor *= lightWeighting;
                     return;
                 }
 
                 vec4 src;
 
-                blend(fragColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
+                blend(diffuseColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
                 if( samplerCount == 1 ) {
-                    fragColor *= lightWeighting;
+                    diffuseColor *= lightWeighting;
                     return;
                 }
 
-                blend(fragColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
+                blend(diffuseColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
                 if( samplerCount == 2 ) {
-                    fragColor *= lightWeighting;
+                    diffuseColor *= lightWeighting;
                     return;
                 }
 
-                blend(fragColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
+                blend(diffuseColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
                 if( samplerCount == 3 ) {
-                    fragColor *= lightWeighting;
+                    diffuseColor *= lightWeighting;
                     return;
                 }
 
-                blend(fragColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
+                blend(diffuseColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
                 if( samplerCount == 4 ) {
-                    fragColor *= lightWeighting;
+                    diffuseColor *= lightWeighting;
                     return;
                 }
 
-                blend(fragColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
-                fragColor *= lightWeighting;
+                blend(diffuseColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
+                diffuseColor *= lightWeighting;
             }`
     });
 }

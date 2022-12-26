@@ -222,7 +222,7 @@ class Globe {
                 new EarthCoordinates(),
                 new ScaleControl(),
                 new CompassButton(options),
-                new SimpleSkyBackground()
+                //new SimpleSkyBackground()
             ]);
         }
 

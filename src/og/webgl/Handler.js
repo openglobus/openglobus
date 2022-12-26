@@ -624,10 +624,12 @@ class Handler {
             this._params.extensions.push("OES_element_index_uint");
             this._params.extensions.push("WEBGL_depth_texture");
             this._params.extensions.push("ANGLE_instanced_arrays");
+            //this._params.extensions.push("WEBGL_draw_buffers");
             //this._params.extensions.push("EXT_frag_depth");
         } else {
             this._params.extensions.push("EXT_color_buffer_float");
             this._params.extensions.push("OES_texture_float_linear");
+            //this._params.extensions.push("WEBGL_draw_buffers");
         }
 
         let i = this._params.extensions.length;

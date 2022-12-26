@@ -21,6 +21,10 @@ let __pickingCallbackCounter__ = 0;
 
 let __depthCallbackCounter__ = 0;
 
+const DIFFUSE = 0;
+const NORMAL = 1;
+const DISTANCE = 2;
+
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
  * @class
@@ -452,13 +456,14 @@ class Renderer {
             this.handler.addPrograms([depth()]);
 
             this.sceneFramebuffer = new Multisample(this.handler, {
-                size: 1,
+                size: 3,
                 msaa: this._msaa,
                 internalFormat: this._internalFormat,
                 filter: "LINEAR"
             }).init();
 
             this.blitFramebuffer = new Framebuffer(this.handler, {
+                size: 1,
                 useDepth: false,
                 internalFormat: this._internalFormat,
                 format: this._format,
@@ -487,10 +492,10 @@ class Renderer {
             __resizeTimeout = setTimeout(() => {
                 this._resizeEnd();
                 this.events.dispatch(this.events.resizeend, this.handler.canvas);
-            }, 500);
+            }, 320);
         };
 
-        this._screenFrameCornersBuffer = this.handler.createArrayBuffer(
+        this.screenFramePositionBuffer = this.handler.createArrayBuffer(
             new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]),
             2,
             4
@@ -551,36 +556,6 @@ class Renderer {
 
         this.setCurrentScreen(this._currentOutput);
     }
-
-    // resize() {
-    //     let c = this.handler.canvas;
-    //
-    //     this.activeCamera.setAspectRatio(c.width / c.height);
-    //
-    //     this.sceneFramebuffer.setSize(c.width, c.height);
-    //
-    //     this.blitFramebuffer && this.blitFramebuffer.setSize(c.width, c.height, true);
-    //
-    //     this.toneMappingFramebuffer && this.toneMappingFramebuffer.setSize(c.width, c.height, true);
-    //
-    //     this.depthFramebuffer && this.depthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
-    //
-    //     this.screenDepthFramebuffer && this.screenDepthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
-    //
-    //     if (this.handler.gl.type === "webgl") {
-    //         this.screenTexture.screen = this.sceneFramebuffer.textures[0];
-    //         this.screenTexture.picking = this.pickingFramebuffer.textures[0];
-    //         this.screenTexture.depth = this.screenDepthFramebuffer.textures[0];
-    //         this.screenTexture.frustum = this.depthFramebuffer.textures[0];
-    //     } else {
-    //         this.screenTexture.screen = this.toneMappingFramebuffer.textures[0];
-    //         this.screenTexture.picking = this.pickingFramebuffer.textures[0];
-    //         this.screenTexture.depth = this.screenDepthFramebuffer.textures[0];
-    //         this.screenTexture.frustum = this.depthFramebuffer.textures[0];
-    //     }
-    //
-    //     this.setCurrentScreen(this._currentOutput);
-    // }
 
     removeNode(renderNode) {
         renderNode.remove();
@@ -758,8 +733,8 @@ class Renderer {
         let e = this.events;
         e.handleEvents();
 
-        let sfb = this.sceneFramebuffer;
-        sfb.activate();
+        let sceneFramebuffer = this.sceneFramebuffer;
+        sceneFramebuffer.activate();
 
         let h = this.handler,
             gl = h.gl;
@@ -786,6 +761,7 @@ class Renderer {
             while (i--) {
                 rn[i].drawNode();
             }
+
             this._drawEntityCollections();
 
             if (pointerEvent) {
@@ -793,9 +769,9 @@ class Renderer {
             }
         }
 
-        sfb.deactivate();
+        sceneFramebuffer.deactivate();
 
-        this.blitFramebuffer && sfb.blitTo(this.blitFramebuffer);
+        this.blitFramebuffer && sceneFramebuffer.blitTo(this.blitFramebuffer, 0);
 
         if (pointerEvent) {
             // It works ONLY for 0 (closest) frustum
@@ -825,7 +801,7 @@ class Renderer {
 
         gl.disable(gl.DEPTH_TEST);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
         this.toneMappingFramebuffer.activate();
@@ -869,7 +845,7 @@ class Renderer {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
         gl.uniform1i(p.uniforms.texture, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         gl.enable(gl.DEPTH_TEST);
@@ -938,7 +914,7 @@ class Renderer {
 
         gl = h.gl;
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._screenFrameCornersBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
         sh.activate();
