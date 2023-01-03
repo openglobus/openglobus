@@ -359,9 +359,9 @@ class Ellipsoid {
      */
     projToSurface(p) {
 
-        let pX = p.x,
-            pY = p.y,
-            pZ = p.z;
+        let pX = p.x || 0.0,
+            pY = p.y || 0.0,
+            pZ = p.z || 0.0;
 
         let invRadii2X = this._invRadii2.x,
             invRadii2Y = this._invRadii2.y,
