@@ -771,7 +771,7 @@ class Renderer {
 
         sceneFramebuffer.deactivate();
 
-        this.blitFramebuffer && sceneFramebuffer.blitTo(this.blitFramebuffer, 0);
+        this.blitFramebuffer && sceneFramebuffer.blitTo(this.blitFramebuffer, 1);
 
         if (pointerEvent) {
             // It works ONLY for 0 (closest) frustum
