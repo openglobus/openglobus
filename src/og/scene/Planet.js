@@ -1018,6 +1018,7 @@ export class Planet extends RenderNode {
                 temp2 = [];
 
             this._clearRenderNodesInFrustum();
+            this._renderedNodes = [];
 
             for (var i = 0, len = temp.length; i < len; i++) {
                 var ri = temp[i];
