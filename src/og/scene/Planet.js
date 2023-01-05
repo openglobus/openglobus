@@ -423,6 +423,7 @@ export class Planet extends RenderNode {
 
         this._terrainCompleted = false;
         this._terrainCompletedActivated = false;
+        this._collectRenderNodesIsActive = true;
     }
 
     static getBearingNorthRotationQuat(cartesian) {
@@ -1082,11 +1083,16 @@ export class Planet extends RenderNode {
 
         this.quadTreeStrategy.collectRenderNodes();
 
-        if (cam.slope > this.minEqualZoomCameraSlope && cam._lonLat.height < this.maxEqualZoomAltitude && cam._lonLat.height > this.minEqualZoomAltitude) {
+        if (window.USE_MAX && cam.slope > this.minEqualZoomCameraSlope &&
+            cam._lonLat.height < this.maxEqualZoomAltitude &&
+            cam._lonLat.height > this.minEqualZoomAltitude
+        ) {
 
             this.minCurrZoom = this.maxCurrZoom;
 
-            let temp = this._renderedNodes, rf = this._renderedNodesInFrustum, temp2 = [];
+            let temp = this._renderedNodes,
+                rf = this._renderedNodesInFrustum,
+                temp2 = [];
 
             this._clearRenderNodesInFrustum();
 
@@ -1173,6 +1179,16 @@ export class Planet extends RenderNode {
         this._terrainCompleted = true;
     }
 
+    lockQuadTree() {
+        this._collectRenderNodesIsActive = false;
+        this.camera.setTerrainCollisionActivity(false);
+    }
+
+    unlockQuadTree() {
+        this._collectRenderNodesIsActive = true;
+        this.camera.setTerrainCollisionActivity(true);
+    }
+
     /**
      * @protected
      */
@@ -1186,7 +1202,7 @@ export class Planet extends RenderNode {
         let frustumIndex = cam.getCurrentFrustum(), firstPass = frustumIndex === cam.FARTHEST_FRUSTUM_INDEX;
 
         if (firstPass) {
-            if (this._skipPreRender) {
+            if (this._skipPreRender && this._collectRenderNodesIsActive) {
                 this._collectRenderNodes();
             }
             this._skipPreRender = true;

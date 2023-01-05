@@ -23,7 +23,7 @@ let __depthCallbackCounter__ = 0;
 
 const DIFFUSE = 0;
 const NORMAL = 1;
-const DISTANCE = 2;
+const POSITION = 2;
 
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
