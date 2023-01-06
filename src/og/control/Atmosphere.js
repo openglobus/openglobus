@@ -6,6 +6,8 @@
 
 import { Control } from "./Control.js";
 import { Program } from '../webgl/Program.js';
+import * as atmos from "../shaders/atmos.js";
+import { Framebuffer } from "../webgl/index.js";
 
 /**
  * Frame per second(FPS) display control.
@@ -19,10 +21,18 @@ class Atmosphere extends Control {
             name: "Atmosphere",
             ...options
         });
+
+        this._transmittanceBuffer = null;
+        this._scatteringBuffer = null;
     }
 
     oninit() {
-        this.renderer.handler.addProgram(atmosphereBackgroundShader());
+        this.renderer.handler.addProgram(atmos.transmittance(), true);
+        this.renderer.handler.addProgram(atmos.scattering(), true);
+        this.renderer.handler.addProgram(atmosphereBackgroundShader(), true);
+
+        this._drawAtmosphereTextures();
+
         this.planet.events.on("draw", this._drawBackground, this);
     }
 
@@ -34,6 +44,72 @@ class Atmosphere extends Control {
     ondeactivate() {
         super.ondeactivate();
         this.planet.events.off("draw", this._drawBackground);
+    }
+
+    _drawAtmosphereTextures() {
+
+        this._transmittanceBuffer = new Framebuffer(this.renderer.handler, {
+            width: 1024, height: 1024, useDepth: false
+        });
+
+        this._transmittanceBuffer.init();
+
+        this._scatteringBuffer = new Framebuffer(this.renderer.handler, {
+            width: 1024, height: 1024, useDepth: false
+        });
+
+        this._scatteringBuffer.init();
+
+        let positionBuffer = this.renderer.screenFramePositionBuffer;
+
+        let h = this.renderer.handler;
+        let gl = h.gl;
+
+        //
+        // Draw transmittance texture
+        //
+        this._transmittanceBuffer.activate();
+
+        let p = h.programs.transmittance;
+        let sha = p._program.attributes;
+        let shu = p._program.uniforms;
+        p.activate();
+
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        gl.uniform2fv(shu.iResolution, [this._transmittanceBuffer.width, this._transmittanceBuffer.height]);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.vertexAttribPointer(sha.a_position, positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer.numItems);
+
+        this._transmittanceBuffer.deactivate();
+
+        //
+        // Draw scattering texture
+        //
+        this._scatteringBuffer.activate();
+
+        p = h.programs.scattering;
+        sha = p._program.attributes;
+        shu = p._program.uniforms;
+        p.activate();
+
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        gl.uniform2fv(shu.iResolution, [this._scatteringBuffer.width, this._scatteringBuffer.height]);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this._transmittanceBuffer.textures[0]);
+        gl.uniform1i(shu.transmittanceTexture, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.vertexAttribPointer(sha.a_position, positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer.numItems);
+
+        this._scatteringBuffer.deactivate();
     }
 
     _drawBackground() {
@@ -49,10 +125,21 @@ class Atmosphere extends Control {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.renderer.screenFramePositionBuffer);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this._transmittanceBuffer.textures[0]);
+        gl.uniform1i(shu.transmittanceTexture, 0);
+
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, this._scatteringBuffer.textures[0]);
+        gl.uniform1i(shu.scatteringTexture, 1);
+
         gl.uniform3fv(shu.camPos, [cam.eye.x, cam.eye.y, cam.eye.z]);
         gl.uniform2fv(shu.iResolution, [h.getWidth(), h.getHeight()]);
         gl.uniform1f(shu.fov, cam.getViewAngle());
-        gl.uniform1f(shu.earthRadius, this.planet.ellipsoid.getPolarSize() + 1);
+        //gl.uniform1f(shu.earthRadius, this.planet.ellipsoid.getPolarSize() + 1);
+
+        let sunPos = this.renderer.controls.sun.sunlight.getPosition();
+        gl.uniform3fv(shu.sunPos, [sunPos.x, sunPos.y, sunPos.z]);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam._viewMatrix._m);
 
@@ -68,117 +155,175 @@ function atmosphereBackgroundShader() {
             iResolution: "vec2",
             fov: "float",
             camPos: "vec3",
-            earthRadius: "float",
+            //earthRadius: "float",
             //projectionMatrix: "mat4",
-            viewMatrix: "mat4"
-        }, attributes: {
+            viewMatrix: "mat4",
+            transmittanceTexture: "sampler2D",
+            scatteringTexture: "sampler2D",
+            sunPos: "vec3"
+        },
+        attributes: {
             corners: "vec3"
-        }, vertexShader: `attribute vec2 corners;
+        },
+        vertexShader:
+            `#version 300 es
             
-            varying vec2 tc;
+            in vec2 corners;
+            
+            out vec2 tc;
             
             void main(void) {
                 gl_Position = vec4(corners, 0.0, 1.0);
                 tc = corners * 0.5 + 0.5;
-            }`, fragmentShader: `precision highp float;
+            }`,
+        fragmentShader:
+            `#version 300 es
+                                   
+            precision highp float;
             
-            #define MAX 10e10
-            #define PI 3.14159265359
-            #define rad(x) x * PI / 180.
-            #define ZERO vec3(0.0)
-           
-            const vec3 START_COLOR = vec3(1.0);
-            const vec3 END_COLOR = vec3(0.0, 153.0/255.0, 221.0/255.0);
-           
-            #define RED vec4(1.0, 0.0, 0.0, 1.0)
-            #define GREEN vec4(0.0, 1.0, 0.0, 1.0)         
+            ${atmos.COMMON}
             
-            uniform vec3 camPos;            
+            uniform vec3 camPos;     
             uniform vec2 iResolution;
             uniform float fov;
-            uniform float earthRadius;
+            
+            //uniform float earthRadius;
             uniform mat4 viewMatrix;
-                         
-            varying vec2 tc;
-                        
-            // compute the view ray in the camera coordinate
-            vec3 computeView(vec2 uv){
-                float w_h_ratio = iResolution.x / iResolution.y;   
-                float h = tan(rad(fov/2.));
-                return normalize(vec3(-w_h_ratio * h, -h, -1.) + vec3(uv.x * 2. * h * w_h_ratio, uv.y*2.*h, 0.));
+            
+            uniform sampler2D transmittanceTexture;
+            uniform sampler2D scatteringTexture;
+            
+            uniform vec3 sunPos; 
+                                  
+            in vec2 tc;
+                                   
+            vec3 transmittanceFromTexture(float height, float angle) {
+                float u = (angle + 1.0) * 0.5;
+                float v = height / (topRadius - bottomRadius);
+                return texture(transmittanceTexture, vec2(u, v)).xyz;
             }
 
-            // sphere of size ra centered at point ce
-            vec2 sphIntersect( in vec3 ro, in vec3 rd, in vec3 ce, float ra )
-            {
-                vec3 oc = ro - ce;
-                float b = dot( oc, rd );
-                float c = dot( oc, oc ) - ra * ra;
-                float h = b * b - c;
-                if( h < 0.0 ) return vec2(MAX); // no intersection
-                h = sqrt( h );
-                return vec2( -b-h, -b+h );
+            vec3 multipleScatteringContributionFromTexture(float height, float angle) {
+                float u = (angle + 1.0) * 0.5;
+                float v = height / (topRadius - bottomRadius);
+                return texture(scatteringTexture, vec2(u, v)).xyz; 
             }
+                                                          
+            layout(location = 0) out vec4 diffuseColor;
+            layout(location = 1) out vec4 normalColor;
+            layout(location = 2) out vec4 positionColor;
             
-            mat3 transpose(mat3 matrix) {
-                vec3 row0 = matrix[0];
-                vec3 row1 = matrix[1];
-                vec3 row2 = matrix[2];
-                mat3 result = mat3(
-                    vec3(row0.x, row1.x, row2.x),
-                    vec3(row0.y, row1.y, row2.y),
-                    vec3(row0.z, row1.z, row2.z)
-                );
-                return result;
+            void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+            
+                mat3 cameraOrientation = mat3(1.0);
+                vec3 cameraPosition = camPos; 
+                            
+                vec2 uv = (2.0 * fragCoord - iResolution.xy) / iResolution.y;
+                float fieldOfView = fov;
+                float z = 1.0 / tan(fieldOfView * 0.5 * pi / 180.0);
+                vec3 rayDirection = normalize(vec3(uv, -z));
+                 vec4 rd = transpose(viewMatrix) * vec4(rayDirection, 1.0);
+                 rayDirection = rd.xyz;
+              
+                vec3 lightDirection = normalize(sunPos);
+            
+                int sampleCount = 32;
+                vec3 light = vec3(0.0);
+                vec3 transmittanceFromCameraToSpace = vec3(1.0);
+                float offset = 0.0;
+                float distanceToSpace = 0.0;
+                
+                if (intersectSphere(cameraPosition, rayDirection, topRadius, offset, distanceToSpace)) {
+                
+                    vec3 rayOrigin = cameraPosition;
+                    
+                    if (offset > 0.0) { // above atmosphere
+                        rayOrigin += rayDirection * offset; // intersection of camera ray with atmosphere
+                    }
+                    
+                    float height = length(rayOrigin) - bottomRadius;
+                    float rayAngle = dot(rayOrigin, rayDirection) / length(rayOrigin);
+                    bool cameraBelow = rayAngle < 0.0;
+                    
+                    transmittanceFromCameraToSpace = transmittanceFromTexture(height, cameraBelow ? -rayAngle : rayAngle);
+                    
+                    float phaseAngle = dot(lightDirection, rayDirection);
+                    float rayleighPhase = rayleighPhase(phaseAngle);
+                    float miePhase = miePhase(phaseAngle);
+                    
+                    float distanceToGround = 0.0;
+                    
+                    bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;
+                    
+                    float segmentLength = ((hitGround ? distanceToGround : distanceToSpace) - max(offset, 0.0)) / float(sampleCount);
+                    
+                    float t = segmentLength * 0.5;
+                    
+                    vec3 transmittanceCamera; 
+                    vec3 transmittanceLight; 
+                    
+                    for (int i = 0; i < sampleCount; i++) {
+                        vec3 position = rayOrigin + t * rayDirection;
+                        float height = length(position) - bottomRadius; 
+                        vec3 up = position / length(position);
+                        float rayAngle = dot(up, rayDirection);
+                        float lightAngle = dot(up, lightDirection);
+                        // shadow is ommitted because it can create banding artifacts with low sample counts
+                        // float distanceToGround;
+                        // float shadow = intersectSphere(position, lightDirection, bottomRadius, distanceToGround) && distanceToGround >= 0.0 ? 0.0 : 1.0;         
+                        float shadow = 1.0;
+                        vec3 transmittanceToSpace = transmittanceFromTexture(height, cameraBelow ? -rayAngle : rayAngle);
+                        transmittanceCamera = cameraBelow ? (transmittanceToSpace / transmittanceFromCameraToSpace) : (transmittanceFromCameraToSpace / transmittanceToSpace);
+                        transmittanceLight = transmittanceFromTexture(height, lightAngle);
+                        vec2 opticalDensity = exp(-height / vec2(rayleighScaleHeight, mieScaleHeight));
+                        vec3 scatteredLight = transmittanceLight * (rayleighScatteringCoefficient * opticalDensity.x * rayleighPhase + mieScatteringCoefficient * opticalDensity.y * miePhase);
+                        scatteredLight += multipleScatteringContributionFromTexture(height, lightAngle) * (rayleighScatteringCoefficient * opticalDensity.x + mieScatteringCoefficient * opticalDensity.y);  
+                        light += shadow * transmittanceCamera * scatteredLight * segmentLength;
+                        t += segmentLength;
+                    }
+                    
+                    light *= sunIntensity;
+            
+                    if (hitGround) {
+                        vec3 hitPoint = cameraPosition + rayDirection * distanceToGround;
+                        vec3 up = hitPoint / length(hitPoint);
+                        float diffuseAngle = max(dot(up, lightDirection), 0.0);
+                        float lightAngle = dot(up, lightDirection);
+                        float groundAlbedo = 0.05;
+                        light += transmittanceCamera * (groundAlbedo / pi) * multipleScatteringContributionFromTexture(height, lightAngle) * sunIntensity;
+                        light += transmittanceCamera * transmittanceLight * (groundAlbedo / pi) * diffuseAngle * sunIntensity;
+                    }
+                }     
+                
+                // sun disk
+                /*float distanceToGround;
+                bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;
+                if (!hitGround) {
+                    float angle = dot(rayDirection, lightDirection);
+                    if (angle > cos(sunAngularRadius)) {
+                       light += sunIntensity * transmittanceFromCameraToSpace;
+                    }
+                }*/
+            
+                vec3 color = light;
+                // tone mapping
+                // float exposure = 10.0;
+                // color = (1.0 - exp(color * -exposure));
+                color *= 8.0;
+                //color = aces(color);    
+                color = pow(color, vec3(1.0 / 2.2));
+                fragColor = vec4(color, 1.0);
             }
-            
-            float det(mat2 matrix) {
-                return matrix[0].x * matrix[1].y - matrix[0].y * matrix[1].x;
-            }
-            
-            mat3 inverse(mat3 matrix) {
-                vec3 row0 = matrix[0];
-                vec3 row1 = matrix[1];
-                vec3 row2 = matrix[2];
-            
-                vec3 minors0 = vec3(
-                    det(mat2(row1.y, row1.z, row2.y, row2.z)),
-                    det(mat2(row1.z, row1.x, row2.z, row2.x)),
-                    det(mat2(row1.x, row1.y, row2.x, row2.y))
-                );
-                vec3 minors1 = vec3(
-                    det(mat2(row2.y, row2.z, row0.y, row0.z)),
-                    det(mat2(row2.z, row2.x, row0.z, row0.x)),
-                    det(mat2(row2.x, row2.y, row0.x, row0.y))
-                );
-                vec3 minors2 = vec3(
-                    det(mat2(row0.y, row0.z, row1.y, row1.z)),
-                    det(mat2(row0.z, row0.x, row1.z, row1.x)),
-                    det(mat2(row0.x, row0.y, row1.x, row1.y))
-                );
-            
-                mat3 adj = transpose(mat3(minors0, minors1, minors2));
-            
-                return (1.0 / dot(row0, minors0)) * adj;
-            }
-            
+                                    
             void main(void) {
-            
-                vec3 dir = computeView(tc);
-                dir = inverse(mat3(viewMatrix)) * dir;
+                            
+                vec4 color;                                                                  
+                mainImage(color, gl_FragCoord.xy);
                 
-                vec2 ER = sphIntersect(camPos, dir, vec3(0.0), earthRadius);
+                diffuseColor = color;
                 
-                float bigRadius = earthRadius * 2.5;
-                vec3 bigCenter = normalize(camPos) * bigRadius * 1.3;                
-                               
-                vec2 BIG = sphIntersect(camPos, dir, bigCenter, bigRadius);
-                
-                float Ix = distance(camPos + dir * BIG.y, ZERO);               
-                
-                float maxI = sqrt(bigRadius * bigRadius + bigRadius * bigRadius);
-                                   
-                gl_FragColor = vec4(mix(START_COLOR, END_COLOR, Ix / maxI), 1.0);
+                normalColor = vec4(1.0, 1.0, 0.0, 1.0);
+                positionColor = vec4(1.0, 1.0, 0.0, 1.0);
             }`
     });
 }

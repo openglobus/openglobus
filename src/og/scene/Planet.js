@@ -6,7 +6,6 @@
 
 import * as utils from "../utils/shared.js";
 import * as shaders from "../shaders/drawnode.js";
-import * as atmos from "../shaders/atmos.js";
 import * as math from "../math.js";
 import * as mercator from "../mercator.js";
 import * as segmentHelper from "../segment/segmentHelper.js";
@@ -34,6 +33,8 @@ import { Geoid } from "../terrain/Geoid.js";
 import { createColorRGB, isUndef } from "../utils/shared.js";
 import { MAX_RENDERED_NODES } from "../quadTree/quadTree.js";
 import { EarthQuadTreeStrategy } from "../quadTree/EarthQuadTreeStrategy.js";
+
+import { Atmosphere } from "../control/Atmosphere.js";
 
 const CUR_LOD_SIZE = 250; //px
 const MIN_LOD_SIZE = 312; //px
@@ -672,86 +673,6 @@ export class Planet extends RenderNode {
         this._heightPickingFramebuffer.init();
 
         this.renderer.screenTexture.height = this._heightPickingFramebuffer.textures[0];
-
-        h.addProgram(atmos.transmittance(), true);
-        h.addProgram(atmos.scattering(), true);
-    }
-
-    _drawAtmosphereTextures() {
-
-        this._transmittanceBuffer = new Framebuffer(this.renderer.handler, {
-            width: 1024, height: 1024, useDepth: false
-        });
-
-        this._transmittanceBuffer.init();
-
-        this._scatteringBuffer = new Framebuffer(this.renderer.handler, {
-            width: 1024, height: 1024, useDepth: false
-        });
-
-        this._scatteringBuffer.init();
-
-        let positionBuffer = this.renderer.screenFramePositionBuffer;
-
-        let h = this.renderer.handler;
-        let gl = h.gl;
-
-        //
-        // Draw transmittance texture
-        //
-        this._transmittanceBuffer.activate();
-
-        let p = h.programs.transmittance;
-        let sha = p._program.attributes;
-        let shu = p._program.uniforms;
-        p.activate();
-
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-        gl.uniform2fv(shu.iResolution, [this._transmittanceBuffer.width, this._transmittanceBuffer.height]);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.vertexAttribPointer(sha.a_position, positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer.numItems);
-
-        this._transmittanceBuffer.deactivate();
-
-        //
-        // Draw scattering texture
-        //
-        this._scatteringBuffer.activate();
-
-        p = h.programs.scattering;
-        sha = p._program.attributes;
-        shu = p._program.uniforms;
-        p.activate();
-
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-        gl.uniform2fv(shu.iResolution, [this._scatteringBuffer.width, this._scatteringBuffer.height]);
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this._transmittanceBuffer.textures[0]);
-        gl.uniform1i(shu.transmittanceTexture, 0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.vertexAttribPointer(sha.a_position, positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer.numItems);
-
-        this._scatteringBuffer.deactivate();
-    }
-
-    _drawScattering() {
-        this._scatteringBuffer = new Framebuffer(this.renderer.handler, {
-            width: this._width, height: this._height, useDepth: false
-        });
-
-        this._scatteringBuffer.init();
-
-        //var positions = new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0]);
-        //this._screenCoords = this.renderer.handler.createArrayBuffer(positions, 2, positions.length / 2);
     }
 
     _onLayerLoadend(layer) {
@@ -885,7 +806,7 @@ export class Planet extends RenderNode {
             this._checkRendercompleted();
         });
 
-        this._drawAtmosphereTextures();
+        this.addControl(new Atmosphere());
     }
 
     clearIndexesCache() {
@@ -1083,16 +1004,11 @@ export class Planet extends RenderNode {
 
         this.quadTreeStrategy.collectRenderNodes();
 
-        if (window.USE_MAX && cam.slope > this.minEqualZoomCameraSlope &&
-            cam._lonLat.height < this.maxEqualZoomAltitude &&
-            cam._lonLat.height > this.minEqualZoomAltitude
-        ) {
+        if (window.USE_MAX && cam.slope > this.minEqualZoomCameraSlope && cam._lonLat.height < this.maxEqualZoomAltitude && cam._lonLat.height > this.minEqualZoomAltitude) {
 
             this.minCurrZoom = this.maxCurrZoom;
 
-            let temp = this._renderedNodes,
-                rf = this._renderedNodesInFrustum,
-                temp2 = [];
+            let temp = this._renderedNodes, rf = this._renderedNodesInFrustum, temp2 = [];
 
             this._clearRenderNodesInFrustum();
             this._renderedNodes = [];
