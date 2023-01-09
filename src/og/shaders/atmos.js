@@ -4,8 +4,8 @@ import { Program } from '../webgl/Program.js';
 
 export const COMMON =
     `float pi = 3.141592;
-    float bottomRadius = 6360e3;
-    float topRadius = 6460e3;
+    float bottomRadius = 6358137.0;
+    float topRadius = 6358137.0 + 100000.0;
     float rayleighScaleHeight = 8e3;
     float mieScaleHeight = 1.2e3;
     // rayleightScatteringCoefficient from waveLength

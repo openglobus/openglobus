@@ -5,6 +5,7 @@
 "use strict";
 
 import { Program } from "../webgl/Program.js";
+import * as atmos from "../shaders/atmos.js";
 
 // REMEMBER!
 // src*(1)+dest*(1-src.alpha)
@@ -45,11 +46,8 @@ export function drawnode_screen_nl() {
             samplerArr: "sampler2darray",
             defaultTexture: "sampler2d",
             height: "float"
-        },
-        attributes: {
-            aVertexPositionHigh: "vec3",
-            aVertexPositionLow: "vec3",
-            aTextureCoord: "vec2"
+        }, attributes: {
+            aVertexPositionHigh: "vec3", aVertexPositionLow: "vec3", aTextureCoord: "vec2"
         },
 
         vertexShader: `attribute vec3 aVertexPositionHigh;
@@ -136,11 +134,8 @@ export function drawnode_screen_wl() {
             diffuse: "vec3",
             ambient: "vec3",
             specular: "vec4"
-        },
-        attributes: {
-            aVertexPositionHigh: "vec3",
-            aVertexPositionLow: "vec3",
-            aTextureCoord: "vec2"
+        }, attributes: {
+            aVertexPositionHigh: "vec3", aVertexPositionLow: "vec3", aTextureCoord: "vec2"
         },
 
         vertexShader: `attribute vec3 aVertexPositionHigh;
@@ -453,17 +448,22 @@ export function drawnode_screen_wl_webgl2() {
             defaultTexture: "sampler2d",
             normalMatrix: "mat3",
             uNormalMap: "sampler2d",
-            nightTexture: "sampler2d",
-            specularTexture: "sampler2d",
+            //nightTexture: "sampler2d",
+            //specularTexture: "sampler2d",
             lightsPositions: "vec4",
             diffuse: "vec3",
             ambient: "vec3",
-            specular: "vec4"
-        },
-        attributes: {
-            aVertexPositionHigh: "vec3",
-            aVertexPositionLow: "vec3",
-            aTextureCoord: "vec2"
+            specular: "vec4",
+
+            transmittanceTexture: "sampler2D",
+            scatteringTexture: "sampler2D",
+            //iResolution: "vec2",
+            //camPosOffset: "float"
+            //fov: "float",
+            sunPos: "vec3",
+            camPos: "vec3"
+        }, attributes: {
+            aVertexPositionHigh: "vec3", aVertexPositionLow: "vec3", aTextureCoord: "vec2"
         },
 
         vertexShader: `#version 300 es
@@ -484,12 +484,22 @@ export function drawnode_screen_wl_webgl2() {
             out vec2 vGlobalTextureCoord;
             out vec4 v_vertex;
             out float v_height;
+            //out vec3 v_eyePos;
+            out vec3 v_VertexPosition;
+            
+            out mat4 v_viewMatrix;
 
             void main(void) {
 
                 vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;
+                
+                //v_eyePos = eyePositionHigh + eyePositionLow;
+                v_VertexPosition = aVertexPosition;
+                
                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
                 vec3 lowDiff = aVertexPositionLow + normalize(aVertexPosition) * height - eyePositionLow;
+
+                v_viewMatrix = viewMatrix;
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
@@ -506,7 +516,7 @@ export function drawnode_screen_wl_webgl2() {
         fragmentShader: `#version 300 es
 
             precision highp float;
-
+            
             #define MAX_POINT_LIGHTS 1
             #define SLICE_SIZE ${SLICE_SIZE + 1}
 
@@ -517,8 +527,11 @@ export function drawnode_screen_wl_webgl2() {
             uniform sampler2D uNormalMap;
             uniform vec4 lightsPositions[MAX_POINT_LIGHTS];
             uniform mat3 normalMatrix;
-            uniform sampler2D nightTexture;
-            uniform sampler2D specularTexture;
+            //uniform sampler2D nightTexture;
+            //uniform sampler2D specularTexture;
+
+            uniform sampler2D transmittanceTexture;
+            uniform sampler2D scatteringTexture;
 
             uniform vec4 tileOffsetArr[SLICE_SIZE];
             uniform float layerOpacityArr[SLICE_SIZE];
@@ -526,11 +539,23 @@ export function drawnode_screen_wl_webgl2() {
             uniform sampler2D defaultTexture;
             uniform sampler2D samplerArr[SLICE_SIZE];
             uniform int samplerCount;
+            
+            //uniform vec2 iResolution;
+            //uniform float fov;
+            
+            //uniform float camPosOffset;
 
             in vec4 vTextureCoord;
             in vec2 vGlobalTextureCoord;
             in vec4 v_vertex;
             in float v_height;
+
+            uniform vec3 camPos;
+            uniform vec3 sunPos; 
+            
+            in vec3 v_VertexPosition;
+            
+            in mat4 v_viewMatrix;       
 
             float shininess;
             float reflection;
@@ -544,28 +569,133 @@ export function drawnode_screen_wl_webgl2() {
             ${NIGHT}
 
             ${DEF_BLEND}
+            
+            ${atmos.COMMON}
+            
+            vec3 transmittanceFromTexture(float height, float angle) {
+                float u = (angle + 1.0) * 0.5;
+                float v = height / (topRadius - bottomRadius);
+                return texture(transmittanceTexture, vec2(u, v)).xyz;
+            }
+
+            vec3 multipleScatteringContributionFromTexture(float height, float angle) {
+                float u = (angle + 1.0) * 0.5;
+                float v = height / (topRadius - bottomRadius);
+                return texture(scatteringTexture, vec2(u, v)).xyz; 
+            }
+            
+            void colorGround(out vec4 fragColor) {
+                vec3 cameraPosition = camPos; 
+                vec3 sunPos = sunPos;
+                                            
+                vec3 rayDirection = normalize(v_VertexPosition - cameraPosition);
+              
+                vec3 lightDirection = normalize(sunPos);
+            
+                int sampleCount = 32;
+                vec3 light = vec3(0.0);
+                vec3 transmittanceFromCameraToSpace = vec3(1.0);
+                float offset = 0.0;
+                float distanceToSpace = 0.0;
+                
+                    intersectSphere(cameraPosition, rayDirection, topRadius, offset, distanceToSpace);
+                
+                    vec3 rayOrigin = cameraPosition;
+                    
+                    if (offset > 0.0) { // above atmosphere
+                        rayOrigin += rayDirection * offset; // intersection of camera ray with atmosphere
+                    }
+                    
+                    float height = length(rayOrigin) - bottomRadius;
+                    float rayAngle = dot(rayOrigin, rayDirection) / length(rayOrigin);
+                    bool cameraBelow = rayAngle < 0.0;
+                    
+                    transmittanceFromCameraToSpace = transmittanceFromTexture(height, cameraBelow ? -rayAngle : rayAngle);
+                    
+                    float phaseAngle = dot(lightDirection, rayDirection);
+                    float rayleighPhase = rayleighPhase(phaseAngle);
+                    float miePhase = miePhase(phaseAngle);
+                    
+                    float distanceToGround = 0.0;
+                    
+                    intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround);
+                                                           
+                    distanceToGround = length(cameraPosition - v_VertexPosition);
+                    
+                    float segmentLength = (distanceToGround - max(offset, 0.0)) / float(sampleCount);
+                    
+                    float t = segmentLength * 0.5;
+                    
+                    vec3 transmittanceCamera; 
+                    vec3 transmittanceLight; 
+                    
+                    for (int i = 0; i < sampleCount; i++) {
+                        vec3 position = rayOrigin + t * rayDirection;
+                        float height = length(position) - bottomRadius; 
+                        vec3 up = position / length(position);
+                        float rayAngle = dot(up, rayDirection);
+                        float lightAngle = dot(up, lightDirection);
+                        // shadow is ommitted because it can create banding artifacts with low sample counts
+                        // float distanceToGround;
+                        // float shadow = intersectSphere(position, lightDirection, bottomRadius, distanceToGround) && distanceToGround >= 0.0 ? 0.0 : 1.0;         
+                        float shadow = 1.0;
+                        vec3 transmittanceToSpace = transmittanceFromTexture(height, cameraBelow ? -rayAngle : rayAngle);
+                        transmittanceCamera = cameraBelow ? (transmittanceToSpace / transmittanceFromCameraToSpace) : (transmittanceFromCameraToSpace / transmittanceToSpace);
+                        transmittanceLight = transmittanceFromTexture(height, lightAngle);
+                        vec2 opticalDensity = exp(-height / vec2(rayleighScaleHeight, mieScaleHeight));
+                        vec3 scatteredLight = transmittanceLight * (rayleighScatteringCoefficient * opticalDensity.x * rayleighPhase + mieScatteringCoefficient * opticalDensity.y * miePhase);
+                        scatteredLight += multipleScatteringContributionFromTexture(height, lightAngle) * (rayleighScatteringCoefficient * opticalDensity.x + mieScatteringCoefficient * opticalDensity.y);  
+                        light += shadow * transmittanceCamera * scatteredLight * segmentLength;
+                        t += segmentLength;
+                    }
+                    
+                    light *= sunIntensity;
+            
+                    vec3 hitPoint = cameraPosition + rayDirection * distanceToGround;
+                    vec3 up = hitPoint / length(hitPoint);
+                    float diffuseAngle = max(dot(up, lightDirection), 0.0);
+                    float lightAngle = dot(up, lightDirection);
+                    float groundAlbedo = 0.05;
+                    light += transmittanceCamera * (groundAlbedo / pi) * multipleScatteringContributionFromTexture(height, lightAngle) * sunIntensity;
+                    light += transmittanceCamera * transmittanceLight * (groundAlbedo / pi) * diffuseAngle * sunIntensity;
+                
+                
+                // sun disk
+                // float distanceToGround;
+                // bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;
+                // if (!hitGround) {
+                //     float angle = dot(rayDirection, lightDirection);
+                //     if (angle > cos(sunAngularRadius)) {
+                //        light += sunIntensity * transmittanceFromCameraToSpace;
+                //     }
+                // }
+            
+                vec3 color = light;
+                // tone mapping
+                // float exposure = 10.0;
+                // color = (1.0 - exp(color * -exposure));
+                color *= 8.0;
+                //color = aces(color);    
+                color = pow(color, vec3(1.0 / 2.2));
+                fragColor = vec4(color, 1.0);
+            }
 
             void main(void) {
 
                 vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;//(texture(uNormalMap, vTextureCoord.zw).rgb - 0.5) * 2.0;
                 
-                float overGround = 1.0 - step(0.1, v_height);
                 vec3 normal = normalize(
                     normalMatrix * (texNormal - 0.5) * 2.0
                 );
                 vec3 lightDirection = normalize(lightsPositions[0].xyz - v_vertex.xyz * lightsPositions[0].w);
                 vec3 eyeDirection = normalize(-v_vertex.xyz);
                 vec3 reflectionDirection = reflect(-lightDirection, normal);
-                vec4 nightImageColor = texture( nightTexture, vGlobalTextureCoord.st );
 
-                shininess = texture( specularTexture, vGlobalTextureCoord.st ).r * 255.0 * overGround;
                 reflection = max( dot(reflectionDirection, eyeDirection), 0.0);
                 diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
-                night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb;
-                night *= overGround * step(0.0, night);
 
-                vec3 spec = specular.rgb * pow( reflection, specular.w) * shininess;
-                vec4 lightWeighting = vec4(ambient + diffuse * diffuseLightWeighting + spec + night, 1.0);
+                vec3 spec = specular.rgb * pow( reflection, specular.w);
+                vec4 lightWeighting = vec4(ambient + diffuse * diffuseLightWeighting + spec, 1.0);
                 
                 normalColor = vec4(texNormal, 1.0);
                 positionColor = vec4(1.0, 1.0, 0.0, 1.0);
@@ -581,6 +711,9 @@ export function drawnode_screen_wl_webgl2() {
                 blend(diffuseColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
                 if( samplerCount == 1 ) {
                     diffuseColor *= lightWeighting;
+                    vec4 color;
+                    colorGround(color);
+                    diffuseColor = mix(diffuseColor, color, 1.0);
                     return;
                 }
 
@@ -621,11 +754,8 @@ export function drawnode_colorPicking() {
             pickingMaskArr: "sampler2darray",
             pickingColorArr: "vec4",
             height: "float"
-        },
-        attributes: {
-            aVertexPositionHigh: "vec3",
-            aVertexPositionLow: "vec3",
-            aTextureCoord: "vec2"
+        }, attributes: {
+            aVertexPositionHigh: "vec3", aVertexPositionLow: "vec3", aTextureCoord: "vec2"
         },
 
         vertexShader: `attribute vec3 aVertexPositionHigh;
@@ -697,10 +827,8 @@ export function drawnode_heightPicking() {
             height: "float",
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3"
-        },
-        attributes: {
-            aVertexPositionHigh: "vec3",
-            aVertexPositionLow: "vec3"
+        }, attributes: {
+            aVertexPositionHigh: "vec3", aVertexPositionLow: "vec3"
         },
 
         vertexShader: `attribute vec3 aVertexPositionHigh;
@@ -760,10 +888,8 @@ export function drawnode_depth() {
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
             frustumPickingColor: "vec3"
-        },
-        attributes: {
-            aVertexPositionHigh: "vec3",
-            aVertexPositionLow: "vec3"
+        }, attributes: {
+            aVertexPositionHigh: "vec3", aVertexPositionLow: "vec3"
         },
 
         vertexShader: `attribute vec3 aVertexPositionHigh;

@@ -1171,14 +1171,32 @@ export class Planet extends RenderNode {
             }
 
             // bind night glowing material
-            gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
-            gl.bindTexture(gl.TEXTURE_2D, (this.camera._lonLat.height > 329958.0 && (this._nightTexture || this.transparentTexture)) || this.transparentTexture);
-            gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
+            // gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
+            // gl.bindTexture(gl.TEXTURE_2D, (this.camera._lonLat.height > 329958.0 && (this._nightTexture || this.transparentTexture)) || this.transparentTexture);
+            // gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
+            //
+            // // bind specular material
+            // gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
+            // gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
+            // gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
 
-            // bind specular material
+            //
+            // atmos
+            //
+            gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
+            gl.bindTexture(gl.TEXTURE_2D, this.renderer.controls.Atmosphere._transmittanceBuffer.textures[0]);
+            gl.uniform1i(shu.transmittanceTexture, this.SLICE_SIZE);
+
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
-            gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
-            gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
+            gl.bindTexture(gl.TEXTURE_2D, this.renderer.controls.Atmosphere._scatteringBuffer.textures[0]);
+            gl.uniform1i(shu.scatteringTexture, this.SLICE_SIZE + 1);
+
+            gl.uniform2fv(shu.iResolution, [h.getWidth(), h.getHeight()]);
+            gl.uniform1f(shu.fov, cam.getViewAngle());
+            gl.uniform3fv(shu.camPos, [cam.eye.x, cam.eye.y, cam.eye.z]);
+
+            let sunPos = this.renderer.controls.sun.sunlight.getPosition();
+            gl.uniform3fv(shu.sunPos, [sunPos.x, sunPos.y, sunPos.z]);
 
         } else {
             h.programs.drawnode_screen_nl.activate();
@@ -1191,7 +1209,15 @@ export class Planet extends RenderNode {
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
+
+        //gl.uniform1f(shu.camPosOffset, window.camPosOffset || 0);
+        //gl.uniform2fv(shu.iResolution, [h.getWidth(), h.getHeight()]);
+        //gl.uniform1f(shu.fov, cam.getViewAngle());
+        //gl.uniform1f(shu.earthRadius, this.planet.ellipsoid.getPolarSize() + 1);
+
+        //
         // drawing planet nodes
+        //
         var rn = this._renderedNodesInFrustum[frustumIndex], sl = this._visibleTileLayerSlices;
 
         if (sl.length) {
