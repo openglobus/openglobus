@@ -587,7 +587,7 @@ export function drawnode_screen_wl_webgl2() {
             void colorGround(out vec4 fragColor) {
                 vec3 cameraPosition = camPos; 
                 vec3 sunPos = sunPos;
-                                            
+                                                             
                 vec3 rayDirection = normalize(v_VertexPosition - cameraPosition);
               
                 vec3 lightDirection = normalize(sunPos);
@@ -713,7 +713,7 @@ export function drawnode_screen_wl_webgl2() {
                     diffuseColor *= lightWeighting;
                     vec4 color;
                     colorGround(color);
-                    diffuseColor = mix(diffuseColor, color, 1.0);
+                    diffuseColor = mix(diffuseColor, color, 0.5);
                     return;
                 }
 

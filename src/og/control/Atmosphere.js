@@ -51,14 +51,27 @@ class Atmosphere extends Control {
 
     _drawAtmosphereTextures() {
 
+        let width = 512,//this.renderer.handler.getWidth(),
+            height = 512//this.renderer.handler.getHeight();
+
         this._transmittanceBuffer = new Framebuffer(this.renderer.handler, {
-            width: 1024, height: 1024, useDepth: false
+            width: width,
+            height: height,
+            useDepth: false,
+            filter: "LINEAR",
+            type: "FLOAT",
+            internalFormat: "RGBA16F"
         });
 
         this._transmittanceBuffer.init();
 
         this._scatteringBuffer = new Framebuffer(this.renderer.handler, {
-            width: 1024, height: 1024, useDepth: false
+            width: width,
+            height: height,
+            useDepth: false,
+            filter: "LINEAR",
+            type: "FLOAT",
+            internalFormat: "RGBA16F"
         });
 
         this._scatteringBuffer.init();
@@ -209,13 +222,13 @@ function atmosphereBackgroundShader() {
                 float v = height / (topRadius - bottomRadius);
                 return texture(transmittanceTexture, vec2(u, v)).xyz;
             }
-
+            
             vec3 multipleScatteringContributionFromTexture(float height, float angle) {
                 float u = (angle + 1.0) * 0.5;
                 float v = height / (topRadius - bottomRadius);
                 return texture(scatteringTexture, vec2(u, v)).xyz; 
             }
-                                                          
+                                                         
             layout(location = 0) out vec4 diffuseColor;
             layout(location = 1) out vec4 normalColor;
             layout(location = 2) out vec4 positionColor;
@@ -229,8 +242,8 @@ function atmosphereBackgroundShader() {
                 float fieldOfView = fov;
                 float z = 1.0 / tan(fieldOfView * 0.5 * pi / 180.0);
                 vec3 rayDirection = normalize(vec3(uv, -z));
-                 vec4 rd = transpose(viewMatrix) * vec4(rayDirection, 1.0);
-                 rayDirection = rd.xyz;
+                vec4 rd = transpose(viewMatrix) * vec4(rayDirection, 1.0);
+                rayDirection = rd.xyz;               
               
                 vec3 lightDirection = normalize(sunPos);
             
@@ -261,16 +274,16 @@ function atmosphereBackgroundShader() {
                     float distanceToGround = 0.0;
                     
                     bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;
-                    
-                    distanceToGround = 0.0;
+                    //distanceToGround = 0.0;
                     
                     float segmentLength = ((hitGround ? distanceToGround : distanceToSpace) - max(offset, 0.0)) / float(sampleCount);
-                    
+                            
                     float t = segmentLength * 0.5;
                     
                     vec3 transmittanceCamera; 
                     vec3 transmittanceLight; 
-                    
+            
+                    //if(distanceToGround == 0.0)
                     for (int i = 0; i < sampleCount; i++) {
                         vec3 position = rayOrigin + t * rayDirection;
                         float height = length(position) - bottomRadius; 
@@ -293,7 +306,7 @@ function atmosphereBackgroundShader() {
                     
                     light *= sunIntensity;
             
-                    if (hitGround && distanceToGround != 0.0) {
+                    if (hitGround) {
                         vec3 hitPoint = cameraPosition + rayDirection * distanceToGround;
                         vec3 up = hitPoint / length(hitPoint);
                         float diffuseAngle = max(dot(up, lightDirection), 0.0);
@@ -302,8 +315,7 @@ function atmosphereBackgroundShader() {
                         light += transmittanceCamera * (groundAlbedo / pi) * multipleScatteringContributionFromTexture(height, lightAngle) * sunIntensity;
                         light += transmittanceCamera * transmittanceLight * (groundAlbedo / pi) * diffuseAngle * sunIntensity;
                     }
-                }     
-                
+                }                     
                 // sun disk
                 //float distanceToGround;
                 //bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;
