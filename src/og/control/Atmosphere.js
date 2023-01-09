@@ -274,7 +274,8 @@ function atmosphereBackgroundShader() {
                     float distanceToGround = 0.0;
                     
                     bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;
-                    //distanceToGround = 0.0;
+                    
+                    distanceToGround = 0.0;
                     
                     float segmentLength = ((hitGround ? distanceToGround : distanceToSpace) - max(offset, 0.0)) / float(sampleCount);
                             
@@ -283,7 +284,7 @@ function atmosphereBackgroundShader() {
                     vec3 transmittanceCamera; 
                     vec3 transmittanceLight; 
             
-                    //if(distanceToGround == 0.0)
+                    if(distanceToGround == 0.0)
                     for (int i = 0; i < sampleCount; i++) {
                         vec3 position = rayOrigin + t * rayDirection;
                         float height = length(position) - bottomRadius; 
@@ -306,7 +307,7 @@ function atmosphereBackgroundShader() {
                     
                     light *= sunIntensity;
             
-                    if (hitGround) {
+                    if (hitGround && distanceToGround!=0.0) {
                         vec3 hitPoint = cameraPosition + rayDirection * distanceToGround;
                         vec3 up = hitPoint / length(hitPoint);
                         float diffuseAngle = max(dot(up, lightDirection), 0.0);

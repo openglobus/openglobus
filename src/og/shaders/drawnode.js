@@ -713,7 +713,7 @@ export function drawnode_screen_wl_webgl2() {
                     diffuseColor *= lightWeighting;
                     vec4 color;
                     colorGround(color);
-                    diffuseColor = mix(diffuseColor, color, 0.5);
+                    diffuseColor = mix(diffuseColor, color, 1.0);
                     return;
                 }
 
