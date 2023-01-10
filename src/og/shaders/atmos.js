@@ -4,8 +4,15 @@ import { Program } from '../webgl/Program.js';
 
 export const COMMON =
     `float pi = 3.141592;
+    
+    // Sphere
     float bottomRadius = 6356752.3142451793;
     float topRadius = 6356752.3142451793 + 100000.0;
+    
+    // Ellipsoid
+    vec3 bottomRadii = vec3(6378137.0, 6356752.3142451793, 6378137.0);           
+    vec3 topRadii = vec3(6378137.0 + 100000.0, 6356752.3142451793 + 100000.0, 6378137.0 + 100000.0);
+    
     float rayleighScaleHeight = 8e3;
     float mieScaleHeight = 1.2e3;
     // rayleightScatteringCoefficient from waveLength
@@ -56,6 +63,38 @@ export const COMMON =
             return false;
         }
         t = -b - sqrt(d);
+        return true;
+    }
+    
+    bool intersectEllipsoid( in vec3 ro, in vec3 rd, in vec3 ra, inout float t )
+    {
+        vec3 ocn = ro/ra;
+        vec3 rdn = rd/ra;
+        float a = dot( rdn, rdn );
+        float b = dot( ocn, rdn );
+        float c = dot( ocn, ocn );
+        float h = b*b - a*(c-1.0);               
+        if (h < 0.0) { 
+            return false; 
+        }
+        t = (-b-sqrt(h))/a;
+        return true;
+    }
+    
+    bool intersectEllipsoid( in vec3 ro, in vec3 rd, in vec3 ra, inout float t1, inout float t2)
+    {
+        vec3 ocn = ro/ra;
+        vec3 rdn = rd/ra;
+        float a = dot( rdn, rdn );
+        float b = dot( ocn, rdn );
+        float c = dot( ocn, ocn );
+        float h = b*b - a*(c-1.0);        
+        if (h < 0.0) { 
+            return false; 
+        }
+        h = sqrt(h);
+        t1 = (-b-h)/a;
+        t2 = (-b+h)/a;
         return true;
     }
     

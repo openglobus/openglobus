@@ -44,6 +44,8 @@ let _tempPickingPix_ = new Uint8Array(4), _tempDepthColor_ = new Uint8Array(4);
 
 const DEPTH_DISTANCE = 11;//m
 
+window.camPosOffsetGround = 0;
+
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
  * @const
@@ -458,6 +460,10 @@ export class Planet extends RenderNode {
 
     get layers() {
         return [...this._layers];
+    }
+
+    get sunPos() {
+        return this.renderer.controls.sun.sunlight.getPosition();
     }
 
     /**
@@ -1170,33 +1176,34 @@ export class Planet extends RenderNode {
                 gl.uniform4fv(shu.specular, this._specular);
             }
 
-            // bind night glowing material
-            // gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
-            // gl.bindTexture(gl.TEXTURE_2D, (this.camera._lonLat.height > 329958.0 && (this._nightTexture || this.transparentTexture)) || this.transparentTexture);
-            // gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
             //
-            // // bind specular material
-            // gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
-            // gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
-            // gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
-
-            //
-            // atmos
+            // Night and specular
             //
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
-            gl.bindTexture(gl.TEXTURE_2D, this.renderer.controls.Atmosphere._transmittanceBuffer.textures[0]);
-            gl.uniform1i(shu.transmittanceTexture, this.SLICE_SIZE);
+            gl.bindTexture(gl.TEXTURE_2D, (this.camera._lonLat.height > 329958.0 && (this._nightTexture || this.transparentTexture)) || this.transparentTexture);
+            gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
 
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
-            gl.bindTexture(gl.TEXTURE_2D, this.renderer.controls.Atmosphere._scatteringBuffer.textures[0]);
-            gl.uniform1i(shu.scatteringTexture, this.SLICE_SIZE + 1);
+            gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
+            gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
 
-            gl.uniform2fv(shu.iResolution, [h.getWidth(), h.getHeight()]);
-            gl.uniform1f(shu.fov, cam.getViewAngle());
-            gl.uniform3fv(shu.camPos, [cam.eye.x, cam.eye.y, cam.eye.z]);
+            //
+            // atmos precomputed textures
+            //
+            gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 4);
+            gl.bindTexture(gl.TEXTURE_2D, this.renderer.controls.Atmosphere._transmittanceBuffer.textures[0]);
+            gl.uniform1i(shu.transmittanceTexture, this.SLICE_SIZE + 4);
+
+            gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 5);
+            gl.bindTexture(gl.TEXTURE_2D, this.renderer.controls.Atmosphere._scatteringBuffer.textures[0]);
+            gl.uniform1i(shu.scatteringTexture, this.SLICE_SIZE + 5);
 
             let sunPos = this.renderer.controls.sun.sunlight.getPosition();
             gl.uniform3fv(shu.sunPos, [sunPos.x, sunPos.y, sunPos.z]);
+
+            gl.uniform1f(shu.camPosOffsetGround, window.camPosOffsetGround || 0);
+            gl.uniform1f(shu.camHeight, cam.getHeight());
+            //gl.uniform1f(shu.earthRadius, this.planet.ellipsoid.getPolarSize() + 1);
 
         } else {
             h.programs.drawnode_screen_nl.activate();
@@ -1208,12 +1215,6 @@ export class Planet extends RenderNode {
 
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
-
-
-        //gl.uniform1f(shu.camPosOffset, window.camPosOffset || 0);
-        //gl.uniform2fv(shu.iResolution, [h.getWidth(), h.getHeight()]);
-        //gl.uniform1f(shu.fov, cam.getViewAngle());
-        //gl.uniform1f(shu.earthRadius, this.planet.ellipsoid.getPolarSize() + 1);
 
         //
         // drawing planet nodes

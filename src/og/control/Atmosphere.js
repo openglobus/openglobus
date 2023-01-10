@@ -10,7 +10,7 @@ import * as atmos from "../shaders/atmos.js";
 import { Framebuffer } from "../webgl/index.js";
 
 
-window.camPosOffset = 0;
+window.camPosOffset = 0.0;//25000;
 
 /**
  * Frame per second(FPS) display control.
@@ -153,9 +153,10 @@ class Atmosphere extends Control {
         gl.uniform1f(shu.camPosOffset, window.camPosOffset || 0);
         gl.uniform2fv(shu.iResolution, [h.getWidth(), h.getHeight()]);
         gl.uniform1f(shu.fov, cam.getViewAngle());
+
         //gl.uniform1f(shu.earthRadius, this.planet.ellipsoid.getPolarSize() + 1);
 
-        let sunPos = this.renderer.controls.sun.sunlight.getPosition();
+        let sunPos = this.planet.sunPos;
         gl.uniform3fv(shu.sunPos, [sunPos.x, sunPos.y, sunPos.z]);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam._viewMatrix._m);
@@ -173,7 +174,6 @@ function atmosphereBackgroundShader() {
             fov: "float",
             camPos: "vec3",
             //earthRadius: "float",
-            //projectionMatrix: "mat4",
             viewMatrix: "mat4",
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",
@@ -188,11 +188,8 @@ function atmosphereBackgroundShader() {
             
             in vec2 corners;
             
-            out vec2 tc;
-            
             void main(void) {
                 gl_Position = vec4(corners, 0.0, 1.0);
-                tc = corners * 0.5 + 0.5;
             }`,
         fragmentShader:
             `#version 300 es
@@ -213,9 +210,7 @@ function atmosphereBackgroundShader() {
             
             uniform float camPosOffset;
             
-            uniform vec3 sunPos; 
-                                  
-            in vec2 tc;
+            uniform vec3 sunPos;                                  
                                    
             vec3 transmittanceFromTexture(float height, float angle) {
                 float u = (angle + 1.0) * 0.5;
@@ -236,7 +231,7 @@ function atmosphereBackgroundShader() {
             void mainImage(out vec4 fragColor, in vec2 fragCoord) {
             
                 mat3 cameraOrientation = mat3(1.0);
-                vec3 cameraPosition = camPos + normalize(camPos) * camPosOffset; 
+                vec3 cameraPosition = camPos - normalize(camPos) * camPosOffset; 
                             
                 vec2 uv = (2.0 * fragCoord - iResolution.xy) / iResolution.y;
                 float fieldOfView = fov;
@@ -253,8 +248,10 @@ function atmosphereBackgroundShader() {
                 float offset = 0.0;
                 float distanceToSpace = 0.0;
                 
-                if (intersectSphere(cameraPosition, rayDirection, topRadius, offset, distanceToSpace)) {
-                
+                //if (intersectSphere(cameraPosition, rayDirection, topRadius, offset, distanceToSpace)) {
+
+                if (intersectEllipsoid(cameraPosition, rayDirection, topRadii, offset, distanceToSpace)) {
+                                                    
                     vec3 rayOrigin = cameraPosition;
                     
                     if (offset > 0.0) { // above atmosphere
@@ -273,9 +270,10 @@ function atmosphereBackgroundShader() {
                     
                     float distanceToGround = 0.0;
                     
-                    bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;
+                    //bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;                                        
+                    bool hitGround = intersectEllipsoid(cameraPosition, rayDirection, bottomRadii, distanceToGround) && distanceToGround > 0.0;
                     
-                    distanceToGround = 0.0;
+                    //distanceToGround = 0.0;
                     
                     float segmentLength = ((hitGround ? distanceToGround : distanceToSpace) - max(offset, 0.0)) / float(sampleCount);
                             
@@ -284,7 +282,7 @@ function atmosphereBackgroundShader() {
                     vec3 transmittanceCamera; 
                     vec3 transmittanceLight; 
             
-                    if(distanceToGround == 0.0)
+                    //if(distanceToGround == 0.0)
                     for (int i = 0; i < sampleCount; i++) {
                         vec3 position = rayOrigin + t * rayDirection;
                         float height = length(position) - bottomRadius; 
@@ -307,7 +305,7 @@ function atmosphereBackgroundShader() {
                     
                     light *= sunIntensity;
             
-                    if (hitGround && distanceToGround!=0.0) {
+                    if (hitGround /*&& distanceToGround!=0.0*/) {
                         vec3 hitPoint = cameraPosition + rayDirection * distanceToGround;
                         vec3 up = hitPoint / length(hitPoint);
                         float diffuseAngle = max(dot(up, lightDirection), 0.0);

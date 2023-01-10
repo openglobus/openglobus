@@ -81,7 +81,7 @@ function toQuadKey(x, y, z) {
         index += b.toString();
     }
     return index;
-};
+}
 
 let temp = new XYZ("temp", {
     isBaseLayer: true,
@@ -203,19 +203,21 @@ var globus = new Globe({
     //maxEqualZoomAltitude: 1,
     layers: [sat, tg, osm],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
-    useNightTexture: true,
+    useNightTexture: false,
     //useEarthNavigation: true,
-    useSpecularTexture: true
+    //useSpecularTexture: true
 });
 
 //globus.renderer.fontAtlas.loadFont("chinese.msyh", "//assets.msn.com/weathermapdata/1/static/3d/label/zh-cn/font-v2.2/", "chinese.msyh.json");
 
 globus.planet.addControl(new LayerSwitcher());
 
-//globus.planet.addControl(new DebugInfo());
+globus.planet.addControl(new DebugInfo());
 
 globus.planet.addControl(new ToggleWireframe());
 globus.planet.addControl(new KeyboardNavigation());
+
+globus.planet.renderer.controls.sun.stop()
 
 //globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
 
