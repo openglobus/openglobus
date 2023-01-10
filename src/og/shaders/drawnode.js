@@ -654,8 +654,7 @@ export function drawnode_screen_wl_webgl2() {
                 float groundAlbedo = 0.05;
                 light += transmittanceCamera * (groundAlbedo / pi) * multipleScatteringContributionFromTexture(height, lightAngle) * sunIntensity;
                 light += transmittanceCamera * transmittanceLight * (groundAlbedo / pi) * diffuseAngle * sunIntensity;
-                
-                
+                                
                 // sun disk
                 // float distanceToGround;
                 // bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;
@@ -680,6 +679,9 @@ export function drawnode_screen_wl_webgl2() {
 
                 vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;//(texture(uNormalMap, vTextureCoord.zw).rgb - 0.5) * 2.0;               
                 vec3 normal = normalize(normalMatrix * (texNormal - 0.5) * 2.0);
+                
+                //normal = normalize(normalMatrix * normalEllipsoid(v_VertexPosition, bottomRadii));
+                
                 vec3 lightDirection = normalize(lightsPositions[0].xyz - v_vertex.xyz * lightsPositions[0].w);
                 vec3 eyeDirection = normalize(-v_vertex.xyz);
                 vec3 reflectionDirection = reflect(-lightDirection, normal);

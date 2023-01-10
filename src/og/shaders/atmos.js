@@ -98,6 +98,11 @@ export const COMMON =
         return true;
     }
     
+    vec3 normalEllipsoid( in vec3 pos, in vec3 ra )
+    {
+        return normalize( pos/(ra*ra) );
+    }
+    
     vec3 opticalDepth(float height, float angle) {
         const int sampleCount = 32;
         vec3 rayOrigin = vec3(0.0, bottomRadius + height, 0.0);

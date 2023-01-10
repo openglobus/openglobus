@@ -346,8 +346,8 @@ export class Planet extends RenderNode {
         //TODO: replace to a function
         let a = utils.createColorRGB(options.ambient, new Vec3(0.2, 0.2, 0.2));
         let d = utils.createColorRGB(options.diffuse, new Vec3(0.8, 0.8, 0.8));
-        let s = utils.createColorRGB(options.specular, new Vec3(0.0003, 0.0003, 0.0003));
-        let shininess = options.shininess || 20.0;
+        let s = utils.createColorRGB(options.specular, new Vec3(0.013, 0.005, 0.0));
+        let shininess = options.shininess || 27.0;
 
         this._ambient = new Float32Array([a.x, a.y, a.z]);
         this._diffuse = new Float32Array([d.x, d.y, d.z]);

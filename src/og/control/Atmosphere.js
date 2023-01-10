@@ -248,8 +248,7 @@ function atmosphereBackgroundShader() {
                 float offset = 0.0;
                 float distanceToSpace = 0.0;
                 
-                //if (intersectSphere(cameraPosition, rayDirection, topRadius, offset, distanceToSpace)) {
-
+                 //if (intersectSphere(cameraPosition, rayDirection, topRadius, offset, distanceToSpace)) {
                 if (intersectEllipsoid(cameraPosition, rayDirection, topRadii, offset, distanceToSpace)) {
                                                     
                     vec3 rayOrigin = cameraPosition;
@@ -273,7 +272,7 @@ function atmosphereBackgroundShader() {
                     //bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;                                        
                     bool hitGround = intersectEllipsoid(cameraPosition, rayDirection, bottomRadii, distanceToGround) && distanceToGround > 0.0;
                     
-                    //distanceToGround = 0.0;
+                    distanceToGround = 0.0;
                     
                     float segmentLength = ((hitGround ? distanceToGround : distanceToSpace) - max(offset, 0.0)) / float(sampleCount);
                             
@@ -282,7 +281,7 @@ function atmosphereBackgroundShader() {
                     vec3 transmittanceCamera; 
                     vec3 transmittanceLight; 
             
-                    //if(distanceToGround == 0.0)
+                    if(distanceToGround == 0.0)
                     for (int i = 0; i < sampleCount; i++) {
                         vec3 position = rayOrigin + t * rayDirection;
                         float height = length(position) - bottomRadius; 
@@ -305,7 +304,7 @@ function atmosphereBackgroundShader() {
                     
                     light *= sunIntensity;
             
-                    if (hitGround /*&& distanceToGround!=0.0*/) {
+                    if (hitGround && distanceToGround!=0.0) {
                         vec3 hitPoint = cameraPosition + rayDirection * distanceToGround;
                         vec3 up = hitPoint / length(hitPoint);
                         float diffuseAngle = max(dot(up, lightDirection), 0.0);
