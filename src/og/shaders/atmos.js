@@ -3,15 +3,20 @@
 import { Program } from '../webgl/Program.js';
 
 export const COMMON =
-    `float pi = 3.141592;
+    `    
+    const float pi = 3.1415926538;
     
+    //const vec3 solar_irradiance = vec3(1.474000,1.850400,1.911980);
+    
+    const float atmosHeight = 122000.0;
+
     // Sphere
     float bottomRadius = 6356752.3142451793;
-    float topRadius = 6356752.3142451793 + 100000.0;
-    
+    float topRadius = 6356752.3142451793 + atmosHeight;
+        
     // Ellipsoid
     vec3 bottomRadii = vec3(6378137.0, 6356752.3142451793, 6378137.0);           
-    vec3 topRadii = vec3(6378137.0 + 100000.0, 6356752.3142451793 + 100000.0, 6378137.0 + 100000.0);
+    vec3 topRadii = vec3(6378137.0 + atmosHeight, 6356752.3142451793 + atmosHeight, 6378137.0 + atmosHeight);
     
     float rayleighScaleHeight = 8e3;
     float mieScaleHeight = 1.2e3;
@@ -25,6 +30,99 @@ export const COMMON =
     float sunAngularRadius = 0.004685 * 2.0;
     float sunIntensity = 1.0;
     
+    float lerp(in float min, in float max, in float a){
+        return (clamp(min, max, a) - min) / (max - min);
+    }
+    
+    // float GetTextureCoordFromUnitRange(float x, int texture_size) {
+    //     return 0.5 / float(texture_size) + x * (1.0 - 1.0 / float(texture_size));
+    // }
+    //
+    // float ClampDistance(float d) {
+    //     return max(d, 0.0 * m);
+    // }
+    //
+    // float SafeSqrt(float a) {
+    //     return sqrt(max(a, 0.0 * m2));
+    // }    
+    
+    // float DistanceToTopAtmosphereBoundary(float r, float mu) {
+    //
+    //     //assert(r <= atmosphere.top_radius);
+    //     //assert(mu >= -1.0 && mu <= 1.0);
+    //    
+    //     float discriminant = r * r * (mu * mu - 1.0) + topRadius * topRadius;
+    //     return ClampDistance(-r * mu + SafeSqrt(discriminant));
+    // }
+    
+    // vec2 GetTransmittanceTextureUvFromRMu(
+    //     float r,
+    //     float mu) 
+    // {
+    //     //assert(r >= atmosphere.bottomRadius && r <= topRadius);
+    //     //assert(mu >= -1.0 && mu <= 1.0);
+    //
+    //     float H = sqrt(topRadius * topRadius - bottomRadius * bottomRadius);
+    //     float rho = SafeSqrt(r * r - bottomRadius * bottomRadius);        
+    //     float d = DistanceToTopAtmosphereBoundary(r, mu);       
+    //     float d_min = topRadius - r;
+    //     float d_max = rho + H;
+    //     float x_mu = (d - d_min) / (d_max - d_min);
+    //     float x_r = rho / H;
+    //
+    //     return vec2(
+    //         GetTextureCoordFromUnitRange(x_mu, TRANSMITTANCE_TEXTURE_WIDTH),
+    //         GetTextureCoordFromUnitRange(x_r, TRANSMITTANCE_TEXTURE_HEIGHT)
+    //     );
+    // }     
+    
+    // vec3 GetTransmittanceToTopAtmosphereBoundary(in sampler2D transmittance_texture, float r, float mu) 
+    // {   
+    //     //assert(r >= bottomRadius && r <= topRadius);
+    //    
+    //     vec2 uv = GetTransmittanceTextureUvFromRMu(r, mu);
+    //     return texture(transmittance_texture, uv).xyz;
+    // }
+    
+    // vec3 GetTransmittanceToSun(
+    //     in sampler2D transmittance_texture,
+    //     float r,
+    //     float mu_s)
+    // {
+    //     float sin_theta_h = bottomRadius / r;
+    //     float cos_theta_h = -sqrt(max(1.0 - sin_theta_h * sin_theta_h, 0.0));
+    //
+    //     return GetTransmittanceToTopAtmosphereBoundary(transmittance_texture, r, mu_s) * smoothstep(
+    //         -sin_theta_h * sunAngularRadius / rad, sin_theta_h * sunAngularRadius / rad,
+    //         mu_s - cos_theta_h
+    //     );
+    // }
+    
+    // vec3 GetSunAndSkyIrradiance(
+    //     in sampler2D transmittance_texture,
+    //     in vec3 point,
+    //     in vec3 normal,
+    //     in vec3 sun_direction,
+    //     out vec3 sky_irradiance)
+    // {
+    //     float r = length(point);
+    //     float mu_s = dot(point, sun_direction) / r;
+    //
+    //     sky_irradiance = vec3(0.0);  // GetIrradiance(atmosphere, irradiance_texture, r, mu_s) * (1.0 + dot(normal, point) / r) * 0.5;
+    //
+    //     return solar_irradiance * GetTransmittanceToSun(transmittance_texture, r, mu_s) * max(dot(normal, sun_direction), 0.0);
+    // }
+    
+    
+    vec3 aces(vec3 color) {
+        float a = 2.51;
+        float b = 0.03;
+        float c = 2.43;
+        float d = 0.59;
+        float e = 0.14;
+        return clamp((color * (a * color + b)) / (color * (c * color + d ) + e), 0.0, 1.0);
+    }
+    
     float rayleighPhase(float angle) {
         return 3.0 / (16.0 * pi) * (1.0 + (angle * angle));
     }
@@ -32,15 +130,6 @@ export const COMMON =
     float miePhase(float angle) {
         float g = 0.8;
         return 3.0 / (8.0 * pi) * ((1.0 - g * g) * (1.0 + angle * angle)) / ((2.0 + g * g) * pow(1.0 + g * g - 2.0 * g * angle, 1.5));
-    }
-    
-    mat3 rotationMatrixAxisAngle(vec3 axis, float angle) {
-        float s = sin(angle);
-        float c = cos(angle);
-        vec3 column1 = axis * axis.x * (1.0 - c) + vec3(c, axis.z * s, -axis.y * s);
-        vec3 column2 = axis * axis.y * (1.0 - c) + vec3(-axis.z * s, c, axis.x * s);
-        vec3 column3 = axis * axis.z * (1.0 - c) + vec3(axis.y * s, -axis.x * s, c);
-        return mat3(column1, column2, column3);
     }
     
     bool intersectSphere(vec3 rayOrigin, vec3 rayDirection, float radius, inout float t1, inout float t2) {
@@ -119,7 +208,9 @@ export const COMMON =
             vec3 position = rayOrigin + t * rayDirection;
             float height = length(position) - bottomRadius;
             opticalDepth.xy += exp(-height / vec2(rayleighScaleHeight, mieScaleHeight)) * segmentLength;
-            // density of the ozone layer is modeled as a triangular function that is 30 km wide and centered at 25 km altitude
+            
+            // density of the ozone layer is modeled as a triangular 
+            // function that is 30 km wide and centered at 25 km altitude
             opticalDepth.z += (1.0 - min(abs(height - 25e3) / 15e3, 1.0)) * segmentLength;  
             t += segmentLength;
         }
@@ -141,26 +232,30 @@ export function transmittance() {
         },
 
         vertexShader:
-            `attribute vec2 a_position;            
-            varying vec2 uv;            
+            `#version 300 es
+            
+            in vec2 a_position;
+            
             void main(void) {
                 gl_Position = vec4(a_position, 0.0, 1.0);
-                //uv = a_position * 0.5 + 0.5;
             }`,
 
         fragmentShader:
-            `precision highp float;
+            `#version 300 es
+            
+            precision highp float;
             
             ${COMMON}
                        
             uniform vec2 iResolution;
-            //varying vec2 uv;
+            
+            layout(location = 0) out vec4 fragColor;
             
             void main(void) {
                 vec2 uv = gl_FragCoord.xy / iResolution.xy;
                 float height = uv.y * (topRadius - bottomRadius);
                 float angle = uv.x * 2.0 - 1.0;
-                gl_FragColor = vec4(transmittance(height, angle), 1.0);
+                fragColor = vec4(transmittance(height, angle), 1.0);
             }`
     });
 }
@@ -176,25 +271,30 @@ export function scattering() {
         },
 
         vertexShader:
-            `attribute vec2 a_position;            
-            varying vec2 uv;            
+            `#version 300 es
+            
+            in vec2 a_position;  
+                      
             void main(void) {
                 gl_Position = vec4(a_position, 0.0, 1.0);
-                //uv = a_position * 0.5 + 0.5;
             }`,
 
         fragmentShader:
-            `precision highp float;
+            `#version 300 es
+            
+            precision highp float;
             
             uniform sampler2D transmittanceTexture;
             uniform vec2 iResolution;
+            
+            layout(location = 0) out vec4 fragColor;
 
             ${COMMON}
             
             vec3 transmittanceFromTexture(float height, float angle) {
                 float u = (angle + 1.0) * 0.5;
                 float v = height / (topRadius - bottomRadius);
-                return texture2D(transmittanceTexture, vec2(u, v)).xyz;
+                return texture(transmittanceTexture, vec2(u, v)).xyz;
             }
                                    
             void main(void) {
@@ -278,7 +378,7 @@ export function scattering() {
                 light /= float(sqrtSampleCount * sqrtSampleCount);
                 lightTransferFactor /= float(sqrtSampleCount * sqrtSampleCount);
                 vec3 color = light / (1.0 - lightTransferFactor);                 
-                gl_FragColor = vec4(color, 1.0);
+                fragColor = vec4(color, 1.0);
             }`
     });
 }

@@ -148,7 +148,9 @@ let osm = new XYZ("osm", {
     attribution: 'Data @ OpenStreetMap contributors, ODbL',
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#AAD3DF" }, { color: "#F2EFE9" }],
-    isSRGB: false
+    isSRGB: false,
+    diffuse: "rgb(255,255,255)",
+    ambient: "rgb(0,0,0)",
     //textureFilter: "linear"
 });
 
@@ -167,9 +169,11 @@ let sat = new XYZ("sat", {
     attribution: `<div style="transform: scale(0.8); margin-top:-2px;"><a href="http://www.bing.com" target="_blank"><img title="Bing Imagery" src="https://sandcastle.cesium.com/CesiumUnminified/Assets/Images/bing_maps_credit.png"></a> © 2021 Microsoft Corporation</div>`,
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#001522" }, { color: "#E4E6F3" }],
-    textureFilter: "linear",
-    diffuse: "rgb(325,325,355)",
-    ambient: "rgb(75,75,105)",
+    //textureFilter: "linear",
+    // diffuse: "rgb(325,325,355)",
+    // ambient: "rgb(75,75,105)",
+    diffuse: "rgb(255,255,255)",
+    ambient: "rgb(0,0,0)",
     urlRewrite: function (s, u) {
         return stringTemplate(u, {
             's': this._getSubdomain(),
@@ -203,7 +207,7 @@ var globus = new Globe({
     //maxEqualZoomAltitude: 1,
     layers: [sat, tg, osm],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
-    useNightTexture: false,
+    //useNightTexture: false,
     //useEarthNavigation: true,
     //useSpecularTexture: true
 });
@@ -212,7 +216,7 @@ var globus = new Globe({
 
 globus.planet.addControl(new LayerSwitcher());
 
-globus.planet.addControl(new DebugInfo());
+//globus.planet.addControl(new DebugInfo());
 
 globus.planet.addControl(new ToggleWireframe());
 globus.planet.addControl(new KeyboardNavigation());

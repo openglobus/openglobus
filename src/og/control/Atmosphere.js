@@ -9,6 +9,8 @@ import { Program } from '../webgl/Program.js';
 import * as atmos from "../shaders/atmos.js";
 import { Framebuffer } from "../webgl/index.js";
 
+const TRANSMITTANCE_TEXTURE_WIDTH = 256;
+const TRANSMITTANCE_TEXTURE_HEIGHT = 64;
 
 window.camPosOffset = 0.0;//25000;
 
@@ -37,6 +39,40 @@ class Atmosphere extends Control {
         this._drawAtmosphereTextures();
 
         this.planet.events.on("draw", this._drawBackground, this);
+
+        // var loadTextureData = function(textureName, callback) {
+        //     const xhr = new XMLHttpRequest();
+        //     xhr.open('GET', textureName);
+        //     xhr.responseType = 'arraybuffer';
+        //     xhr.onload = (event) => {
+        //         const data = new DataView(xhr.response);
+        //         const array =
+        //             new Float32Array(data.byteLength / Float32Array.BYTES_PER_ELEMENT);
+        //         for (var i = 0; i < array.length; ++i) {
+        //             array[i] = data.getFloat32(i * Float32Array.BYTES_PER_ELEMENT, true);
+        //         }
+        //         callback(array);
+        //     };
+        //     xhr.send();
+        // }
+
+        // loadTextureData('transmittance.dat', (data) => {
+        //
+        //     let gl = this.renderer.handler.gl;
+        //
+        //     const texture = gl.createTexture();
+        //     gl.activeTexture(gl.TEXTURE0);
+        //     gl.bindTexture(gl.TEXTURE_2D, texture);
+        //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        //     gl.texImage2D(gl.TEXTURE_2D, 0, gl.getExtension('OES_texture_float_linear') ? gl.RGBA32F : gl.RGBA16F,
+        //         TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT, 0, gl.RGBA,
+        //         gl.FLOAT, data);
+        //
+        //     this.transmittanceTextureBrn = texture;
+        // });
     }
 
     onactivate() {
@@ -230,8 +266,11 @@ function atmosphereBackgroundShader() {
             
             void mainImage(out vec4 fragColor, in vec2 fragCoord) {
             
-                mat3 cameraOrientation = mat3(1.0);
-                vec3 cameraPosition = camPos - normalize(camPos) * camPosOffset; 
+                float camEllDist = 0.0;                
+                intersectEllipsoid(camPos, -normalize(camPos), bottomRadii, camEllDist);
+                
+                float camEllOffset = length(camPos) - camEllDist - bottomRadius + camPosOffset;
+                vec3 cameraPosition = camPos - normalize(camPos) * camEllOffset; 
                             
                 vec2 uv = (2.0 * fragCoord - iResolution.xy) / iResolution.y;
                 float fieldOfView = fov;
@@ -248,8 +287,8 @@ function atmosphereBackgroundShader() {
                 float offset = 0.0;
                 float distanceToSpace = 0.0;
                 
-                 //if (intersectSphere(cameraPosition, rayDirection, topRadius, offset, distanceToSpace)) {
-                if (intersectEllipsoid(cameraPosition, rayDirection, topRadii, offset, distanceToSpace)) {
+                 if (intersectSphere(cameraPosition, rayDirection, topRadius, offset, distanceToSpace)) {
+                //if (intersectEllipsoid(cameraPosition, rayDirection, topRadii, offset, distanceToSpace)) {
                                                     
                     vec3 rayOrigin = cameraPosition;
                     
@@ -269,10 +308,10 @@ function atmosphereBackgroundShader() {
                     
                     float distanceToGround = 0.0;
                     
-                    //bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;                                        
-                    bool hitGround = intersectEllipsoid(cameraPosition, rayDirection, bottomRadii, distanceToGround) && distanceToGround > 0.0;
+                    bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;                                        
+                    //bool hitGround = intersectEllipsoid(cameraPosition, rayDirection, bottomRadii, distanceToGround) && distanceToGround > 0.0;
                     
-                    distanceToGround = 0.0;
+                    //distanceToGround = 0.0;
                     
                     float segmentLength = ((hitGround ? distanceToGround : distanceToSpace) - max(offset, 0.0)) / float(sampleCount);
                             
@@ -281,7 +320,7 @@ function atmosphereBackgroundShader() {
                     vec3 transmittanceCamera; 
                     vec3 transmittanceLight; 
             
-                    if(distanceToGround == 0.0)
+                    //if(distanceToGround == 0.0)
                     for (int i = 0; i < sampleCount; i++) {
                         vec3 position = rayOrigin + t * rayDirection;
                         float height = length(position) - bottomRadius; 
@@ -304,7 +343,7 @@ function atmosphereBackgroundShader() {
                     
                     light *= sunIntensity;
             
-                    if (hitGround && distanceToGround!=0.0) {
+                    if (hitGround /*&& distanceToGround!=0.0*/) {
                         vec3 hitPoint = cameraPosition + rayDirection * distanceToGround;
                         vec3 up = hitPoint / length(hitPoint);
                         float diffuseAngle = max(dot(up, lightDirection), 0.0);
@@ -329,7 +368,7 @@ function atmosphereBackgroundShader() {
                 // float exposure = 10.0;
                 // color = (1.0 - exp(color * -exposure));
                 color *= 8.0;
-                //color = aces(color);    
+                //color = aces(color);
                 color = pow(color, vec3(1.0 / 2.2));
                 fragColor = vec4(color, 1.0);
             }

@@ -163,7 +163,7 @@ class GlobusTerrain extends EmptyTerrain {
     }
 
     isBlur(segment) {
-        if (segment.tileZoom >= 8) {
+        if (segment.tileZoom >= 6) {
             return true;
         }
         return false;
