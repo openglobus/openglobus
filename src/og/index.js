@@ -24,6 +24,7 @@ import { Ellipsoid, wgs84 } from './ellipsoid/index.js';
 import { Camera, PlanetCamera } from './camera/index.js';
 
 import { Line2, Line3, Mat3, Mat4, Plane, Quat, Ray, Vec2, Vec3, Vec4 } from './math/index.js';
+import { Object3d } from './Object3d.js';
 
 import { Renderer } from './renderer/Renderer.js';
 
@@ -99,6 +100,7 @@ export {
     Vec2,
     Vec3,
     Vec4,
+    Object3d,
     entity,
     Entity,
     Geoid,
@@ -107,5 +109,5 @@ export {
     MarsQuadTreeStrategy,
     EarthQuadTreeStrategy,
     Wgs84QuadTreeStrategy,
-    quadTreeStrategyType
+    quadTreeStrategyType,
 };
