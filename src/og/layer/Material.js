@@ -98,6 +98,16 @@ class Material {
     }
 
     /**
+     * Called on each frame when rendering animated layers.
+     */
+    frame() {
+        if (!this.segment.initialized || !this.isReady || this.isLoading) return;
+        if (this.layer.drawAnimationFrame) {
+            this.layer.drawAnimationFrame(this);
+        }
+    }
+
+    /**
      *
      */
     clear() {

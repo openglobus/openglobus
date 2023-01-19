@@ -78,6 +78,8 @@ class Layer {
 
         this._hasImageryTiles = true;
 
+        this._animated = false;
+
         /**
          * Layer global opacity.
          * @public
@@ -708,6 +710,14 @@ class Layer {
 
     createMaterial(segment) {
         return new Material(segment, this);
+    }
+
+    frame() {
+        console.log("Rendering animations...")
+        // Only makes sense for animated layers.
+        if (this._planet) {
+            this._planet.quadTreeStrategy.redrawLayerMaterial(this);
+        }        
     }
 
     redraw() {

@@ -1,5 +1,10 @@
 "use strict";
 import { EPSG3857 } from "../proj/EPSG3857.js";
+import {
+    NOTRENDERING,
+    RENDERING,
+    WALKTHROUGH
+} from "./quadTree.js";
 
 export class QuadTreeStrategy {
     constructor(options = {}) {
@@ -33,6 +38,19 @@ export class QuadTreeStrategy {
                 }
             });
         }
+    }
+
+    redrawLayerMaterial(layer) {
+        let lid = layer._id;
+        for (let i = 0, len = this._quadTreeList.length; i < len; i++) {
+            this._quadTreeList[i].traverseTree(function (node) {
+                if (node.state !== RENDERING) { return; }
+                let mats = node.segment.materials;
+                if (mats[lid]) {
+                    mats[lid].frame();
+                }
+            });
+        }        
     }
 
     get planet() {

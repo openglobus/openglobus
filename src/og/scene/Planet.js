@@ -1073,6 +1073,8 @@ export class Planet extends RenderNode {
             this._updateVisibleLayers();
         }
 
+        this._renderAnimatedLayersPASS();
+
         this._renderScreenNodesPASS();
 
         this._renderHeightPickingFramebufferPASS();
@@ -1362,6 +1364,19 @@ export class Planet extends RenderNode {
             rn[i].segment.depthRendering(sh, sl[0]);
         }
     }
+
+    /**
+     * @protected
+     */
+    _renderAnimatedLayersPASS() {
+        for (let i = 0, len = this._layers.length; i < len; i++) {
+            let li = this._layers[i];
+            if (li._visibility && li._animated) {
+                li.frame();
+            }
+        }
+    }
+
 
     _collectVectorLayerCollections() {
         this._frustumEntityCollections.length = 0;

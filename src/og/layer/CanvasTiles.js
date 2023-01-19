@@ -59,6 +59,11 @@ class CanvasTiles extends Layer {
         this._counter = 0;
 
         /**
+         * Whether to animate this tile layer
+         */
+        this._animated = options.animated || false;
+
+        /**
          * Tile pending queue that waiting for create.
          * @protected
          * @type {Array.<planetSegment.Material>}
@@ -241,6 +246,20 @@ class CanvasTiles extends Layer {
             }
         }
         return null;
+    }
+
+    drawAnimationFrame(material) {
+        if (this.drawTile) {
+            const that = this;
+            requestAnimationFrame(() => {
+                that.drawTile(
+                    material,
+                    function (canvas) {
+                        material.applyImage(canvas);
+                    }
+                );
+            });
+        }
     }
 
     applyMaterial(material) {
