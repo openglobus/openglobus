@@ -50,6 +50,8 @@ class CanvasTiles extends Layer {
 
         this.events.registerNames(EVENT_NAMES);
 
+        this.animated = true;
+
         this.minNativeZoom = options.minNativeZoom || 0;
         /**
          * Current creating tiles couter.
@@ -245,6 +247,16 @@ class CanvasTiles extends Layer {
 
     applyMaterial(material) {
         if (material.isReady) {
+            if (material.layer.animated) {
+                requestAnimationFrame(() => {
+                    this.drawTile(
+                        material,
+                        function (canvas) {
+                            material.applyImage(canvas);
+                        }
+                    );
+                });
+            }
             return [0, 0, 1, 1];
         } else if (material.segment.tileZoom < this.minNativeZoom) {
             material.textureNotExists();
@@ -270,8 +282,21 @@ class CanvasTiles extends Layer {
             }
 
             if (notEmpty) {
+
+                if (material.layer.animated) {
+                    requestAnimationFrame(() => {
+                        this.drawTile(
+                            material,
+                            function (canvas) {
+                                material.applyImage(canvas);
+                            }
+                        );
+                    });
+                }
+
                 material.appliedNodeId = pn.nodeId;
                 material.texture = psegm.texture;
+
                 let dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
                 return [
                     segment.tileX * dZ2 - pn.segment.tileX,
