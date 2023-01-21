@@ -6,6 +6,7 @@
 
 import { Control } from "./Control.js";
 import { Program } from '../webgl/Program.js';
+import { htmlColorToRgb } from "../utils/shared.js";
 
 /**
  * Frame per second(FPS) display control.
@@ -19,6 +20,23 @@ class SimpleSkyBackground extends Control {
             name: "SimpleSkyBackground",
             ...options
         });
+
+        this._colorOne = new Float32Array([1.0, 1.0, 1.0]);
+        this._colorTwo = new Float32Array([0.0, 153.0 / 255.0, 221.0 / 255.0]);
+    }
+
+    set colorOne(htmlColor) {
+        let rgb = htmlColorToRgb(htmlColor);
+        this._colorOne[0] = rgb.x;
+        this._colorOne[1] = rgb.y;
+        this._colorOne[2] = rgb.z;
+    }
+
+    set colorTwo(htmlColor) {
+        let rgb = htmlColorToRgb(htmlColor);
+        this._colorTwo[0] = rgb.x;
+        this._colorTwo[1] = rgb.y;
+        this._colorTwo[2] = rgb.z;
     }
 
     oninit() {
@@ -51,6 +69,8 @@ class SimpleSkyBackground extends Control {
         gl.uniform2fv(shu.iResolution, [h.getWidth(), h.getHeight()]);
         gl.uniform1f(shu.fov, cam.getViewAngle());
         gl.uniform1f(shu.earthRadius, this.planet.ellipsoid.getPolarSize() + 1);
+        gl.uniform3fv(shu.colorOne, this._colorOne);
+        gl.uniform3fv(shu.colorTwo, this._colorTwo);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam._viewMatrix._m);
 
@@ -67,26 +87,29 @@ export function simpleSkyBackground(options) {
 function simpleSkyBackgroundShader() {
     return new Program("simpleSkyBackground", {
         uniforms: {
-            iResolution: "vec2", fov: "float", camPos: "vec3", earthRadius: "float", //projectionMatrix: "mat4",
-            viewMatrix: "mat4"
+            iResolution: "vec2", fov: "float",
+            camPos: "vec3",
+            earthRadius: "float",
+            viewMatrix: "mat4",
+            colorOne: "vec3",
+            colorTwo: "vec3"
         }, attributes: {
             corners: "vec3"
-        }, vertexShader: `attribute vec2 corners;
-            
+        }, vertexShader:
+            `attribute vec2 corners;
+                        
             varying vec2 tc;
             
             void main(void) {
                 gl_Position = vec4(corners, 0.0, 1.0);
                 tc = corners * 0.5 + 0.5;
-            }`, fragmentShader: `precision highp float;
+            }`, fragmentShader:
+            `precision highp float;
             
             #define MAX 10e10
             #define PI 3.14159265359
             #define rad(x) x * PI / 180.
-            #define ZERO vec3(0.0)
-           
-            const vec3 START_COLOR = vec3(1.0);
-            const vec3 END_COLOR = vec3(0.0, 153.0/255.0, 221.0/255.0);
+            #define ZERO vec3(0.0)          
            
             #define RED vec4(1.0, 0.0, 0.0, 1.0)
             #define GREEN vec4(0.0, 1.0, 0.0, 1.0)         
@@ -96,6 +119,9 @@ function simpleSkyBackgroundShader() {
             uniform float fov;
             uniform float earthRadius;
             uniform mat4 viewMatrix;
+            
+            uniform vec3 colorOne;
+            uniform vec3 colorTwo;
                          
             varying vec2 tc;
                         
@@ -176,7 +202,7 @@ function simpleSkyBackgroundShader() {
                 
                 float maxI = sqrt(bigRadius * bigRadius + bigRadius * bigRadius);
                                    
-                gl_FragColor = vec4(mix(START_COLOR, END_COLOR, Ix / maxI), 1.0);
+                gl_FragColor = vec4(mix(colorOne, colorTwo, Ix / maxI), 1.0);
             }`
     });
 }
