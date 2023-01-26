@@ -187,7 +187,7 @@ class Atmosphere extends Control {
 
         gl.uniform3fv(shu.camPos, [cam.eye.x, cam.eye.y, cam.eye.z]);
         gl.uniform1f(shu.camPosOffset, window.camPosOffset || 0);
-        gl.uniform2fv(shu.iResolution, [h.getWidth(), h.getHeight()]);
+        gl.uniform2fv(shu.iResolution, [this.renderer.sceneFramebuffer.width, this.renderer.sceneFramebuffer.height]);//[h.getWidth(), h.getHeight()]);
         gl.uniform1f(shu.fov, cam.getViewAngle());
 
         //gl.uniform1f(shu.earthRadius, this.planet.ellipsoid.getPolarSize() + 1);

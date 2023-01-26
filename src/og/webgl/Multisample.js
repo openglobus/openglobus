@@ -81,6 +81,14 @@ export class Multisample {
         this.renderbuffers = new Array(this._size);
     }
 
+    get width() {
+        return this._width;
+    }
+
+    get height() {
+        return this._height;
+    }
+
     destroy() {
         var gl = this.handler.gl;
 

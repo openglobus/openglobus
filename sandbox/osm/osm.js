@@ -172,7 +172,7 @@ let sat = new XYZ("sat", {
     //textureFilter: "linear",
     // diffuse: "rgb(325,325,355)",
     // ambient: "rgb(75,75,105)",
-    diffuse: "rgb(255,255,255)",
+    diffuse: "rgb(500,490,540)",
     ambient: "rgb(0,0,0)",
     urlRewrite: function (s, u) {
         return stringTemplate(u, {
@@ -202,14 +202,14 @@ var globus = new Globe({
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
-    //terrain: highResTerrain,
-    terrain: new GlobusTerrain(),
+    terrain: highResTerrain,
+    //terrain: new GlobusTerrain(),
     //maxEqualZoomAltitude: 1,
     layers: [sat, tg, osm],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
     //useNightTexture: false,
     //useEarthNavigation: true,
-    //useSpecularTexture: true
+    useSpecularTexture: false
 });
 
 //globus.renderer.fontAtlas.loadFont("chinese.msyh", "//assets.msn.com/weathermapdata/1/static/3d/label/zh-cn/font-v2.2/", "chinese.msyh.json");
@@ -221,7 +221,7 @@ globus.planet.addControl(new LayerSwitcher());
 globus.planet.addControl(new ToggleWireframe());
 globus.planet.addControl(new KeyboardNavigation());
 
-globus.planet.renderer.controls.sun.stop()
+//globus.planet.renderer.controls.sun.stop()
 
 //globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
 
