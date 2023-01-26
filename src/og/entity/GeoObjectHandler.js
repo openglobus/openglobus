@@ -220,8 +220,8 @@ class GeoObjectHandler {
     async setTexture(geoObject) {
         const src = geoObject._src,
             ti = this._instancedTags.get(geoObject.tag).index;
+        if (!this._texCoordArr[ti]) this._texCoordArr[ti] = [];
         if (geoObject._src) {
-            if (!this._texCoordArr[ti]) this._texCoordArr[ti] = [];
             if (this._texCoordArr[ti].length === 0) {
                 this._texCoordArr[ti] = geoObject._texCoords;
                 this._textures[ti] = this._renderer.handler.transparentTexture;
