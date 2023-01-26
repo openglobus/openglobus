@@ -63,7 +63,6 @@ class GeoObject {
         this._vertices = options.vertices;
         this._normals = options.normals;
         this._texCoords = options.texCoords || [];
-        // this._texCoordsIndices = options.texCoordsIndices || [];
         this._indices = options.indices;
         this.instanced = options.instanced;
         this.tag = options.tag || "none";

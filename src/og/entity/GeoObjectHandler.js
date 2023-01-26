@@ -54,7 +54,6 @@ class GeoObjectHandler {
         this._pickingColorArr = [[]];
         this._vehicleVisibleArr = [[]];
         this._texCoordArr = [[]];
-        this._tcoordIndicesArr = [[]];
 
         this._pitchRollBuffer = [];
         this._sizeBuffer = [];
@@ -68,7 +67,6 @@ class GeoObjectHandler {
         this._pickingColorBuffer = [];
         this._vehicleVisibleBuffer = [];
         this._texCoordBuffer = [];
-        // this._tcoordIndicesBuffer = [];
 
         this.__staticId = GeoObjectHandler._staticCounter++;
         this._buffersUpdateCallbacks = [];
@@ -405,9 +403,6 @@ class GeoObjectHandler {
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer[ti]);
             gl.vertexAttribPointer(a.aTexCoord, this._texCoordBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
-
-            // gl.bindBuffer(gl.ARRAY_BUFFER, this._tcoordIndicesBuffer[ti]);
-            // gl.vertexAttribPointer(a.aTexCoordIndices, this._tcoordIndicesBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._directionBuffer[ti]);
             gl.vertexAttribPointer(a.aDirection, this._directionBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
