@@ -24,6 +24,12 @@ class GeoObject {
         this.scaleByDistance = new Float32Array(options.scaleByDistance || [MAX32, MAX32, MAX32]);
 
         /**
+         * Image src.
+         * @protected
+         * @type {string}
+         */
+        this._src = options.src || null;
+        /**
          * Geo object center cartesian position.
          * @protected
          * @type {og.Vec3}
@@ -56,6 +62,7 @@ class GeoObject {
         this._handlerIndex = -1;
         this._vertices = options.vertices;
         this._normals = options.normals;
+        this._texCoords = options.texCoords || [];
         this._indices = options.indices;
         this.instanced = options.instanced;
         this.tag = options.tag || "none";
@@ -227,6 +234,7 @@ class GeoObject {
         this._direction = qq.mulVec3(new Vec3(0.0, 0.0, -1.0)).normalize();
         this._handler && this._handler.setDirectionArr(this._handlerIndex, this._direction);
     }
+
 }
 
 export { GeoObject };

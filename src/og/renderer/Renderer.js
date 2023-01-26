@@ -193,6 +193,13 @@ class Renderer {
          * @type {utils.TextureAtlas}
          */
         this.billboardsTextureAtlas = new TextureAtlas();
+        //TODO global texture atlas
+        /**
+         * Texture atlas for the billboards images. One atlas per node.
+         * @protected
+         * @type {utils.TextureAtlas}
+         */
+        this.geoObjectsTextureAtlas = new TextureAtlas();
 
         /**
          * Texture font atlas for the font families and styles. One atlas per node.
@@ -389,6 +396,7 @@ class Renderer {
         var that = this;
 
         this.billboardsTextureAtlas.assignHandler(this.handler);
+        this.geoObjectsTextureAtlas.assignHandler(this.handler);
 
         this.fontAtlas.assignHandler(this.handler);
 

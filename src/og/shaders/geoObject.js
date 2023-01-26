@@ -20,11 +20,16 @@ export const geo_object = () =>
 
             lightsPositions: "vec4",
             lightsParamsv: "vec3",
-            lightsParamsf: "float"
+            lightsParamsf: "float",
+
+            uTexture: "sampler2d",
+            uUseTexture: "float"
         },
         attributes: {
             aVertexPosition: "vec3",
             aVertexNormal: "vec3",
+            aTexCoord: "vec2",
+
             aPositionHigh: { type: "vec3", divisor: 1 },
             aPositionLow: { type: "vec3", divisor: 1 },
             aDirection: { type: "vec3", divisor: 1 },
@@ -44,7 +49,10 @@ export const geo_object = () =>
             attribute vec4 aColor;
             attribute float aScale;
             attribute float aDispose;
+            attribute float aUseTexture;
+            attribute vec2 aTexCoord;
             
+            uniform float uUseTexture;
             uniform vec3 uScaleByDistance;
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
@@ -57,13 +65,18 @@ export const geo_object = () =>
             varying vec4 vPosition;           
             varying vec4 vColor;
             varying float vDispose;
+            varying float vUseTexture;
+            varying vec2 vTexCoords;
             
             const float RADIANS = 3.141592653589793 / 180.0;
-
+           
             void main(void) {
-            
+                vUseTexture = uUseTexture;
                 vDispose = aDispose;
                 vColor = aColor;
+                
+                vTexCoords = aTexCoord;
+              
                 float roll = aPitchRoll.y * RADIANS;
                 mat3 rotZ = mat3(
                      vec3(cos(roll), sin(roll), 0.0),
@@ -106,8 +119,12 @@ export const geo_object = () =>
                 uniform vec3 lightsParamsv[MAX_POINT_LIGHTS * 3];
                 uniform float lightsParamsf[MAX_POINT_LIGHTS];
                 
+                uniform sampler2D uTexture;
+                varying vec2 vTexCoords;
+                
                 varying vec3 vNormal;
                 varying vec4 vPosition;
+                varying float vUseTexture;
                 
                 void main(void) {
                     vec3 lightWeighting;
@@ -125,7 +142,8 @@ export const geo_object = () =>
                     specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), lightsParamsf[0]);
                     diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
                     lightWeighting = lightsParamsv[0] + lightsParamsv[1] * diffuseLightWeighting + lightsParamsv[2] * specularLightWeighting;
-                    gl_FragColor = vec4(lightWeighting, 1.0) * vColor;
+                    vec4 tColor = texture2D(uTexture, vTexCoords);
+                    gl_FragColor = vec4(lightWeighting , 1.0) * mix(vColor, tColor, vUseTexture);
                 }`
     });
 
@@ -208,7 +226,7 @@ export const geo_object_picking = () =>
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
-                gl_Position = mix(vec4(0.0, 0.0, 0.0, 0.0),  projectionMatrix *viewMatrixRTE * vec4(highDiff + lowDiff, 1.0), aDispose);
+                gl_Position = mix(vec4(0.0, 0.0, 0.0, 0.0),  projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0), aDispose);
             }`,
         fragmentShader:
             `precision highp float;
