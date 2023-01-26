@@ -228,7 +228,7 @@ class GeoObject {
         }
         this._qNorthFrame = Planet.getBearingNorthRotationQuat(this._position);
 
-        let qq = Quat.yRotation(this._yaw * RADIANS)
+        let qq = Quat.yRotation(this._yaw)
             .mul(this._qNorthFrame)
             .conjugate();
         this._direction = qq.mulVec3(new Vec3(0.0, 0.0, -1.0)).normalize();
