@@ -13,6 +13,7 @@ import { KeyboardNavigation } from "../../src/og/control/KeyboardNavigation.js";
 import { DebugInfo } from "../../src/og/control/DebugInfo.js";
 import { ToggleWireframe } from "../../src/og/control/ToggleWireframe.js";
 import { VisibleExtent } from "../../src/og/control/visibleExtent/VisibleExtent.js";
+import { TimelineControl } from "../../src/og/control/timeline/TimelineControl.js";
 
 let cnv = document.createElement("canvas");
 let ctx = cnv.getContext("2d");
@@ -202,8 +203,8 @@ var globus = new Globe({
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
-    terrain: highResTerrain,
-    //terrain: new GlobusTerrain(),
+    //terrain: highResTerrain,
+    terrain: new GlobusTerrain(),
     //maxEqualZoomAltitude: 1,
     layers: [sat, tg, osm],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
@@ -220,8 +221,9 @@ globus.planet.addControl(new LayerSwitcher());
 
 globus.planet.addControl(new ToggleWireframe());
 globus.planet.addControl(new KeyboardNavigation());
+globus.planet.addControl(new TimelineControl());
 
-//globus.planet.renderer.controls.sun.stop()
+globus.planet.renderer.controls.sun.stop()
 
 //globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
 

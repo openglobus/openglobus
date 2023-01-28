@@ -762,3 +762,90 @@ details[open] > summary {
     position: absolute;
     pointer-events: none;
 }
+
+/*
+==========================
+ TIMELINE
+==========================
+*/
+
+.og-timeline {
+    background: rgb(45 45 45);
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+.og-timeline-frame {
+    position: relative;
+    width: calc(100% - 20px);
+    margin: 0px 0px 0px 10px;
+    height: 30px;
+}
+
+.og-timeline-scale {
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+.og-timeline-current {
+    position: absolute;
+    left: 0;
+    width: 11px;
+    height: 100%;
+    margin-left: -5px;
+    cursor: pointer;
+    margin-top: -7px;
+}
+
+.og-timeline-current-spin {
+    margin: 0 auto;
+    width: 1px;
+    height: 100%;
+    background-color: #ff3434;;
+    pointer-events: none;
+}
+
+.og-timeline-current-arrow {
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 7px solid #ff3434;;
+    margin-left: -6px;
+}
+
+.og-timeline-bottom {
+    width: 100%;
+    display: flex;
+    position: relative;
+    min-width: 300px;
+    justify-content: center;
+    margin-top: 3px;
+}
+
+.og-timeline-controls {
+    position: relative;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+}
+
+.og-timeline-unselectable {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.og-timeline-top {
+    width: 100%;
+    display: block;
+    height: 15px;
+}
