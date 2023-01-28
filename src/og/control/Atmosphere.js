@@ -259,6 +259,30 @@ function atmosphereBackgroundShader() {
                 float v = height / (topRadius - bottomRadius);
                 return texture(scatteringTexture, vec2(u, v)).xyz; 
             }
+
+            bool intersectEllipsoidToSphere(in vec3 ro, in vec3 rd, in vec3 ellRadii, in float sphereRadius, out float t1, out float t2){
+                float offset = 0.0,
+                      distanceToSpace = 0.0;
+                                                        
+                if(intersectEllipsoid(ro, rd, ellRadii, offset, distanceToSpace)){
+                    vec3 hitEll = ro + rd * offset;
+                    vec3 nEll = normalEllipsoid(hitEll, ellRadii);
+                    float t = 0.0;
+                    bool intersectsSphere = intersectSphere(hitEll, nEll, sphereRadius, t);
+                    vec3 hitSphere = hitEll + nEll * t;
+                    t1 = length(hitSphere - ro);
+                    
+                    hitEll = ro + rd * distanceToSpace;
+                    nEll = normalEllipsoid(hitEll, ellRadii);
+                    t = 0.0;
+                    intersectsSphere = intersectSphere(hitEll, nEll, sphereRadius, t);
+                    hitSphere = hitEll + nEll * t;
+                    t2 = length(hitSphere - ro);
+                    
+                    return true; 
+                }
+                return false; 
+            }
                                                          
             layout(location = 0) out vec4 diffuseColor;
             layout(location = 1) out vec4 normalColor;
@@ -267,11 +291,12 @@ function atmosphereBackgroundShader() {
             void mainImage(out vec4 fragColor, in vec2 fragCoord) {
             
                 float camEllDist = 0.0;                
-                intersectEllipsoid(camPos, -normalize(camPos), bottomRadii, camEllDist);
-                
+                intersectEllipsoid(camPos, -normalize(camPos), bottomRadii2, camEllDist);                
                 float camEllOffset = length(camPos) - camEllDist - bottomRadius + camPosOffset;
-                vec3 cameraPosition = camPos - normalize(camPos) * camEllOffset; 
-                            
+                vec3 cameraPosition = camPos - 0.0 * normalize(camPos) * camEllOffset;
+                
+                vec3 scale = vec3(bottomRadius) / bottomRadii2;
+                             
                 vec2 uv = (2.0 * fragCoord - iResolution.xy) / iResolution.y;
                 float fieldOfView = fov;
                 float z = 1.0 / tan(fieldOfView * 0.5 * pi / 180.0);
@@ -280,20 +305,25 @@ function atmosphereBackgroundShader() {
                 rayDirection = rd.xyz;               
               
                 vec3 lightDirection = normalize(sunPos);
-            
+                            
                 int sampleCount = 32;
                 vec3 light = vec3(0.0);
                 vec3 transmittanceFromCameraToSpace = vec3(1.0);
                 float offset = 0.0;
                 float distanceToSpace = 0.0;
-                
-                 if (intersectSphere(cameraPosition, rayDirection, topRadius, offset, distanceToSpace)) {
-                //if (intersectEllipsoid(cameraPosition, rayDirection, topRadii, offset, distanceToSpace)) {
-                                                    
+                                
+                rayDirection = normalize(rayDirection * scale);
+                cameraPosition *= scale;
+                lightDirection = normalize(lightDirection * scale);
+                                                
+                if (intersectSphere(cameraPosition, rayDirection, topRadius, offset, distanceToSpace)) {
+    
                     vec3 rayOrigin = cameraPosition;
                     
-                    if (offset > 0.0) { // above atmosphere
-                        rayOrigin += rayDirection * offset; // intersection of camera ray with atmosphere
+                    // above atmosphere                    
+                    if (offset > 0.0) {
+                        // intersection of camera ray with atmosphere
+                        rayOrigin = cameraPosition + rayDirection * offset;
                     }
                     
                     float height = length(rayOrigin) - bottomRadius;
@@ -308,11 +338,8 @@ function atmosphereBackgroundShader() {
                     
                     float distanceToGround = 0.0;
                     
-                    bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;                                        
-                    //bool hitGround = intersectEllipsoid(cameraPosition, rayDirection, bottomRadii, distanceToGround) && distanceToGround > 0.0;
-                    
-                    //distanceToGround = 0.0;
-                    
+                    bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;
+
                     float segmentLength = ((hitGround ? distanceToGround : distanceToSpace) - max(offset, 0.0)) / float(sampleCount);
                             
                     float t = segmentLength * 0.5;
@@ -320,7 +347,6 @@ function atmosphereBackgroundShader() {
                     vec3 transmittanceCamera; 
                     vec3 transmittanceLight; 
             
-                    //if(distanceToGround == 0.0)
                     for (int i = 0; i < sampleCount; i++) {
                         vec3 position = rayOrigin + t * rayDirection;
                         float height = length(position) - bottomRadius; 
@@ -343,7 +369,7 @@ function atmosphereBackgroundShader() {
                     
                     light *= sunIntensity;
             
-                    if (hitGround /*&& distanceToGround!=0.0*/) {
+                    if (hitGround) {
                         vec3 hitPoint = cameraPosition + rayDirection * distanceToGround;
                         vec3 up = hitPoint / length(hitPoint);
                         float diffuseAngle = max(dot(up, lightDirection), 0.0);
@@ -370,7 +396,7 @@ function atmosphereBackgroundShader() {
                 color *= 8.0;
                 //color = aces(color);
                 color = pow(color, vec3(1.0 / 2.2));
-                fragColor = vec4(color, 1.0);
+                fragColor = vec4(color, 1.0);               
             }
                                     
             void main(void) {

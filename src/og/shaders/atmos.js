@@ -18,6 +18,9 @@ export const COMMON =
     vec3 bottomRadii = vec3(6378137.0, 6356752.3142451793, 6378137.0);           
     vec3 topRadii = vec3(6378137.0 + atmosHeight, 6356752.3142451793 + atmosHeight, 6378137.0 + atmosHeight);
     
+    vec3 bottomRadii2 = vec3(6378137.0, 6356752.3142451793, 6378137.0);           
+    vec3 topRadii2 = vec3(6378137.0 + atmosHeight, 6356752.3142451793 + atmosHeight, 6378137.0 + atmosHeight);
+    
     float rayleighScaleHeight = 8e3;
     float mieScaleHeight = 1.2e3;
     // rayleightScatteringCoefficient from waveLength

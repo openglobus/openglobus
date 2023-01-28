@@ -1010,7 +1010,7 @@ export class Planet extends RenderNode {
 
         this.quadTreeStrategy.collectRenderNodes();
 
-        if (window.USE_MAX && cam.slope > this.minEqualZoomCameraSlope && cam._lonLat.height < this.maxEqualZoomAltitude && cam._lonLat.height > this.minEqualZoomAltitude) {
+        if (cam.slope > this.minEqualZoomCameraSlope && cam._lonLat.height < this.maxEqualZoomAltitude && cam._lonLat.height > this.minEqualZoomAltitude) {
 
             this.minCurrZoom = this.maxCurrZoom;
 
