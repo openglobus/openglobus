@@ -941,3 +941,20 @@ export function cloneArray(items) {
 export function isUndef(obj) {
     return obj === void 0;
 }
+
+/**
+ * Promise for load images
+ * @function
+ * @param {string} url - link to image.
+ * @returns {Promise<Image>} Returns promise.
+ */
+export async function loadImage(url) {
+    return new  Promise(resolve => {
+        const image = new Image();
+        image.addEventListener('load', () => {
+            resolve(image);
+        });
+        image.src = url;
+        return image;
+    });
+}

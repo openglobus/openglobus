@@ -189,7 +189,7 @@
             //Rendering vector field to geoTexture2d buffer
             frameBuffer.activate();
             let gl = r.handler.gl;
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clearColor(0.0, 0.0, 0.0, 0.0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
             //Actually a better way to replace this function to native gl.

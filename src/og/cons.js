@@ -64,7 +64,7 @@ export class Cons {
         d.classList.add("ogConsole-text");
         d.classList.add("ogConsole-error");
         d.innerHTML = "error: " + str;
-        console.log(d.innerHTML);
+        console.trace(d.innerHTML);
         this._container.appendChild(d);
         this.show();
     }
@@ -79,7 +79,7 @@ export class Cons {
         d.classList.add("ogConsole-text");
         d.classList.add("ogConsole-warning");
         d.innerHTML = "warning: " + str;
-        console.log(d.innerHTML);
+        console.trace(d.innerHTML);
         this._container.appendChild(d);
         this.show();
     }
@@ -99,7 +99,7 @@ export class Cons {
             }
         }
         d.innerHTML = str;
-        console.log(str);
+        console.trace(str);
         this._container.appendChild(d);
         this.show();
     }

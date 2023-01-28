@@ -411,11 +411,10 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_mm_webgl2(image, internalFormat) {
+    createTexture_mm_webgl2(image, internalFormat, texture) {
         let gl = this.gl;
-        let texture = gl.createTexture();
+        texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
-        //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
         gl.texStorage2D(gl.TEXTURE_2D, MAX_LEVELS, internalFormat || gl.RGBA8, image.width, image.height);
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, image.width, image.height, gl.RGBA, gl.UNSIGNED_BYTE, image);

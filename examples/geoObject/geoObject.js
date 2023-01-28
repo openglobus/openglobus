@@ -5,38 +5,18 @@ import { EntityCollection } from "../../src/og/entity/EntityCollection.js";
 import { Globe } from "../../src/og/Globe.js";
 import { XYZ } from "../../src/og/layer/XYZ.js";
 import { GlobusTerrain } from "../../src/og/terrain/GlobusTerrain.js";
-import { LonLat } from '../../src/og/LonLat.js';
 import * as utils from "../../src/og/utils/shared.js";
 
 let COUNT = 10,
     ENTITY = {},
     ENTITY_OPTIONS = new Map([
-        ['farmplane', {
-            countRation: 50,
-            cb: (options) => {
-                options.geoObject.scale = 100;
-                options.geoObject.yaw = -50;
-                return {
-                    ...options,
-                    lonlat: [rnd(-180, 180), rnd(-180, 180), 20000]
-                };
-            }
-        }],
-        ['sputnik', {
-            countRation: 10,
-            cb: (options) => {
-                options.geoObject.scale = 2000;
-                return {
-                    ...options,
-                    lonlat: [rnd(-180, 180), rnd(-180, 180), 2000000]
-                };
-            }
-        }],
-        ['zeppelin', {
+        ['fish', {
             countRation: 1,
             cb: (options) => {
-                options.geoObject.scale = 2000;
-                options.geoObject.pitch = -90;
+                options.geoObject.scale = 200000;
+                options.geoObject.yaw = 50;
+                options.geoObject.pitch = 270;
+                options.geoObject.src = './fish.png';
                 return {
                     ...options,
                     lonlat: [rnd(-180, 180), rnd(-180, 180), 200000]
@@ -101,7 +81,7 @@ for (const [name, entity_opt] of ENTITY_OPTIONS) {
         })
         .then((data) => {
             const entities = [];
-            const { vertices, indices, normals } = data,
+            const { vertices, indices, normals, texCoords, texCoordsIndices } = data,
                 defaultOptions = (i) => ({
                     name: "sat-" + i,
                     geoObject: {
@@ -111,12 +91,16 @@ for (const [name, entity_opt] of ENTITY_OPTIONS) {
                         color: colors[i % 7],
                         vertices,
                         indices,
+                        texCoords,
+                        texCoordsIndices,
                         normals
                     },
                     'properties': {
                         'color': colors[i % 7]
                     }
                 });
+
+
             ENTITY[name] = (i) => {
                 const o = defaultOptions(i);
                 return {
@@ -137,7 +121,7 @@ geoObjects.events.on("lclick", function (e) {
 });
 
 geoObjects.events.on("mouseenter", function (e) {
-    let en = e.pickingObject,b = en.geoObject;
+    let en = e.pickingObject, b = en.geoObject;
     b.setColor(1, 1, 1);
 });
 geoObjects.events.on("mouseleave", function (e) {
@@ -176,18 +160,18 @@ globus.planet.events.on("draw", () => {
         let e = entities[i],
             c = e.getLonLat();
         switch (e.geoObject.tag) {
-            case 'satellite':
-                e.setLonLat(new LonLat(c.lon - 0.03, c.lat < -89 ? 90 : c.lat - 0.03, c.height));
-                e.geoObject.setYaw(e.geoObject._yaw + 0.1);
-                e.geoObject.setPitch(e.geoObject._pitch + 0.1);
-                break;
-            case 'farmplane':
-                e.setLonLat(new LonLat(c.lon - 0.01, c.lat > 89 ? -90 : c.lat + 0.01, c.height));
-                break;
+            //         case 'satellite':
+            //             e.setLonLat(new LonLat(c.lon - 0.03, c.lat < -89 ? 90 : c.lat - 0.03, c.height));
+            //             e.geoObject.setYaw(e.geoObject._yaw + 0.1);
+            //             e.geoObject.setPitch(e.geoObject._pitch + 0.1);
+            //             break;
+            //         case 'farmplane':
+            //             e.setLonLat(new LonLat(c.lon - 0.01, c.lat > 89 ? -90 : c.lat + 0.01, c.height));
+            //             break;
             default :
-                e.setLonLat(new LonLat(c.lon + 0.01, c.lat > 89 ? -90 : c.lat + 0.01, c.height));
+                // e.geoObject.setYaw(e.geoObject._yaw + 0.1);
                 break;
-
+            //
         }
     }
 });
