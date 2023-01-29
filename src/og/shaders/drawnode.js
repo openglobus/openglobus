@@ -576,17 +576,23 @@ export function drawnode_screen_wl_webgl2() {
            
             void colorGround(out vec4 fragColor, in vec3 normal) {
             
+                vec3 scale = vec3(bottomRadius) / bottomRadii2;
+            
                 float camEllDist = 0.0;                
                 intersectEllipsoid(v_eyePos, -normalize(v_eyePos), bottomRadii, camEllDist);
                 
                 float camEllOffset = length(v_eyePos) - camEllDist - bottomRadius + camPosOffsetGround;
-                vec3 cameraPosition = v_eyePos - normalize(v_eyePos) * camEllOffset; 
+                vec3 cameraPosition = v_eyePos - 0.0 * normalize(v_eyePos) * camEllOffset; 
                                        
                 vec3 sunPos = sunPos;
                                                              
                 vec3 rayDirection = normalize(v_VertexPosition - cameraPosition);
               
                 vec3 lightDirection = normalize(sunPos);
+                
+                rayDirection = normalize(rayDirection * scale);
+                cameraPosition *= scale;
+                lightDirection = normalize(lightDirection * scale);
             
                 int sampleCount = 32;
                 vec3 light = vec3(0.0);
@@ -594,8 +600,8 @@ export function drawnode_screen_wl_webgl2() {
                 float offset = 0.0;
                 float distanceToSpace = 0.0;
                 
-                //intersectSphere(cameraPosition, rayDirection, topRadius, offset, distanceToSpace);
-                intersectEllipsoid(cameraPosition, rayDirection, topRadii, offset, distanceToSpace);
+                intersectSphere(cameraPosition, rayDirection, topRadius, offset, distanceToSpace);
+                //intersectEllipsoid(cameraPosition, rayDirection, topRadii, offset, distanceToSpace);
             
                 vec3 rayOrigin = cameraPosition;
                 
@@ -615,12 +621,12 @@ export function drawnode_screen_wl_webgl2() {
                 
                 float distanceToGround = 0.0;
                 
-                //bool hitEll = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround);                
-                bool hitEll = intersectEllipsoid(cameraPosition, rayDirection, bottomRadii, distanceToGround);
+                bool hitEll = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround);                
+                //bool hitEll = intersectEllipsoid(cameraPosition, rayDirection, bottomRadii, distanceToGround);
                 
                 // Fix black dots on the edge of atmosphere                             
                 if(camHeight < 700000.0 || !hitEll){                          
-                    distanceToGround = distance(cameraPosition, v_VertexPosition);
+                    distanceToGround = distance(cameraPosition, v_VertexPosition * scale);
                 }
                                                 
                 //distanceToGround = distance(cameraPosition, v_VertexPosition);

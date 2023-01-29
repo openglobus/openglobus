@@ -288,30 +288,30 @@ function atmosphereBackgroundShader() {
             layout(location = 1) out vec4 normalColor;
             layout(location = 2) out vec4 positionColor;
             
-            void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+            void mainImage(out vec4 fragColor) {
             
                 float camEllDist = 0.0;                
                 intersectEllipsoid(camPos, -normalize(camPos), bottomRadii2, camEllDist);                
                 float camEllOffset = length(camPos) - camEllDist - bottomRadius + camPosOffset;
                 vec3 cameraPosition = camPos - 0.0 * normalize(camPos) * camEllOffset;
                 
+                vec3 lightDirection = normalize(sunPos);
+                
                 vec3 scale = vec3(bottomRadius) / bottomRadii2;
                              
-                vec2 uv = (2.0 * fragCoord - iResolution.xy) / iResolution.y;
+                vec2 uv = (2.0 * gl_FragCoord.xy - iResolution.xy) / iResolution.y;
                 float fieldOfView = fov;
                 float z = 1.0 / tan(fieldOfView * 0.5 * pi / 180.0);
                 vec3 rayDirection = normalize(vec3(uv, -z));
                 vec4 rd = transpose(viewMatrix) * vec4(rayDirection, 1.0);
                 rayDirection = rd.xyz;               
-              
-                vec3 lightDirection = normalize(sunPos);
-                            
+                                          
                 int sampleCount = 32;
                 vec3 light = vec3(0.0);
                 vec3 transmittanceFromCameraToSpace = vec3(1.0);
                 float offset = 0.0;
                 float distanceToSpace = 0.0;
-                                
+                                                
                 rayDirection = normalize(rayDirection * scale);
                 cameraPosition *= scale;
                 lightDirection = normalize(lightDirection * scale);
@@ -378,16 +378,17 @@ function atmosphereBackgroundShader() {
                         light += transmittanceCamera * (groundAlbedo / pi) * multipleScatteringContributionFromTexture(height, lightAngle) * sunIntensity;
                         light += transmittanceCamera * transmittanceLight * (groundAlbedo / pi) * diffuseAngle * sunIntensity;
                     }
-                }                     
+                }
+                                     
                 // sun disk
-                //float distanceToGround;
-                //bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;
-                //if (!hitGround) {
-                //    float angle = dot(rayDirection, lightDirection);
-                //    if (angle > cos(sunAngularRadius)) {
-                //       light += sunIntensity * transmittanceFromCameraToSpace;
-                //    }
-                //}
+                float distanceToGround;
+                bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;
+                if (!hitGround) {
+                   float angle = dot(rayDirection, lightDirection);
+                   if (angle > cos(sunAngularRadius)) {
+                      light += sunIntensity * transmittanceFromCameraToSpace;
+                   }
+                }
             
                 vec3 color = light;
                 // tone mapping
@@ -401,11 +402,10 @@ function atmosphereBackgroundShader() {
                                     
             void main(void) {
                             
-                vec4 color;                                                                  
-                mainImage(color, gl_FragCoord.xy);
+                vec4 color;
+                mainImage(color);
                 
-                diffuseColor = color;
-                
+                diffuseColor = color;                
                 normalColor = vec4(1.0, 1.0, 0.0, 1.0);
                 positionColor = vec4(1.0, 1.0, 0.0, 1.0);
             }`

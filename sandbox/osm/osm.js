@@ -20,8 +20,6 @@ let ctx = cnv.getContext("2d");
 cnv.width = 256;
 cnv.height = 256;
 
-let frameid = 0;
-
 const tg = new CanvasTiles("Tile grid", {
     visibility: false,
     isBaseLayer: false,
@@ -29,21 +27,17 @@ const tg = new CanvasTiles("Tile grid", {
     preLoadZoomLevels: [0],
     drawTile: function (material, applyCanvas) {
 
+        console.log("REDRAW");
+
         //Clear canvas
         ctx.clearRect(0, 0, cnv.width, cnv.height);
-
-        //Draw border
-        ctx.beginPath();
-        ctx.rect(0, 0, cnv.width, cnv.height);
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = 'black';
-        ctx.stroke();
 
         let size;
 
         if (material.segment.isPole) {
-        } else {
-            //Draw text
+            let ext = material.segment.getExtentLonLat();
+
+
             if (material.segment.tileZoom > 14) {
                 size = "26";
             } else {
@@ -52,9 +46,26 @@ const tg = new CanvasTiles("Tile grid", {
             ctx.fillStyle = 'black';
             ctx.font = 'normal ' + size + 'px Verdana';
             ctx.textAlign = 'center';
-            frameid++;
-            ctx.fillText(frameid + ";" + material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+            ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+        } else {
+
+            if (material.segment.tileZoom > 14) {
+                size = "26";
+            } else {
+                size = "32";
+            }
+            ctx.fillStyle = 'black';
+            ctx.font = 'normal ' + size + 'px Verdana';
+            ctx.textAlign = 'center';
+            ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
         }
+
+        //Draw border
+        //ctx.beginPath();
+        //ctx.rect(0, 0, cnv.width, cnv.height);
+        //ctx.lineWidth = 2;
+        //ctx.strokeStyle = "black";
+        //ctx.stroke();
 
         //Draw canvas tile
         applyCanvas(cnv);
@@ -134,7 +145,7 @@ var red = new XYZ("borders", {
 let osm = new XYZ("osm", {
     isBaseLayer: true,
     url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    visibility: true,
+    visibility: false,
     attribution: 'Data @ OpenStreetMap contributors, ODbL',
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#AAD3DF" }, { color: "#F2EFE9" }],
@@ -195,7 +206,7 @@ var globus = new Globe({
     //terrain: highResTerrain,
     terrain: new GlobusTerrain(),
     //maxEqualZoomAltitude: 1,
-    layers: [osm, tg],
+    layers: [sat, tg, osm],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
     //useNightTexture: false,
     //useEarthNavigation: true,
