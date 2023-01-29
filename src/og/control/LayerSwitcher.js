@@ -5,7 +5,7 @@
 "use strict";
 
 import { Control } from "./Control.js";
-import { elementFactory, appendChildren, toggleText, enableElmovement } from "./UIhelpers.js";
+import { elementFactory, appendChildren, toggleText, enableElmovement } from "../ui/UIhelpers.js";
 import { compose } from "../utils/functionComposition.js"
 
 /**

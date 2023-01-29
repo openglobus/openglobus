@@ -1,6 +1,6 @@
 'use strict';
 
-import { View } from './View.js';
+import { View } from '../../ui/View.js';
 import { TimelineModel } from './TimelineModel.js';
 import {
     addSeconds,

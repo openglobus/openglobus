@@ -173,8 +173,8 @@ let sat = new XYZ("sat", {
     //textureFilter: "linear",
     // diffuse: "rgb(325,325,355)",
     // ambient: "rgb(75,75,105)",
-    diffuse: "rgb(500,490,540)",
-    ambient: "rgb(0,0,0)",
+    diffuse: "rgb(500-77,490-77,540-128)",
+    ambient: "rgb(77,77,128)",
     urlRewrite: function (s, u) {
         return stringTemplate(u, {
             's': this._getSubdomain(),

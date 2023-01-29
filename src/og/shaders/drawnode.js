@@ -730,10 +730,8 @@ export function drawnode_screen_wl_webgl2() {
                     colorGround(atmosColor, normalize((texNormal - 0.5) * 2.0));                
                     diffuseColor *= lightWeighting;
                                         
-                    float d = 0.0;//100000.0;
-                    float c = length(v_eyePos);
-                    
-                    float bottomRadius = bottomRadius + d;
+                    float c = length(v_eyePos);                    
+                    float bottomRadius = bottomRadius;
                     float maxDist = sqrt(c * c - bottomRadius * bottomRadius);
                     float minDist = c - bottomRadius;
                     float vertDist = distance(v_eyePos, v_VertexPosition);
