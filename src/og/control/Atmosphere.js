@@ -293,9 +293,9 @@ function atmosphereBackgroundShader() {
                 float cosTheta = dot(rayDir, sunDir);
                 if (cosTheta >= minSunCosTheta) return vec3(1.0);                
                 float offset = minSunCosTheta - cosTheta;
-                float gaussianBloom = exp(-offset*50000.0)*0.5;
-                float invBloom = 1.0/(0.02 + offset*300.0)*0.01;
-                return vec3(gaussianBloom+invBloom);
+                float gaussianBloom = exp(-offset*10000.0)*0.7;
+                float invBloom = 1.0/(0.09 + offset*200.0)*0.01;
+                return vec3(gaussianBloom + invBloom);
             }
             
             void mainImage(out vec4 fragColor) {
@@ -404,11 +404,11 @@ function atmosphereBackgroundShader() {
                 float distanceToGround = 0.0;
                 bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;
                 if(!hitGround){
-                    vec3 sunLum = sunWithBloom(rayDirection, lightDirection);
-                    // Use smoothstep to limit the bloom effect
+                    vec3 sunLum = sunWithBloom(rayDirection, lightDirection) * vec3(0.8,0.72,0.48);
+                    // limit the bloom effect
                     sunLum = smoothstep(0.002, 1.0, sunLum);
-                    light += sunLum * sunIntensity * transmittanceFromCameraToSpace;;
-                }           
+                    light += sunLum * sunIntensity * transmittanceFromCameraToSpace;
+                }
             
                 vec3 color = light;
                 // tone mapping

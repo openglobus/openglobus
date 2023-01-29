@@ -678,16 +678,6 @@ export function drawnode_screen_wl_webgl2() {
                 vec3 diffuseTransmittanceLight = transmittanceLight * diffuseAngle;
                 
                 light += tA * (scatteringLight + diffuseTransmittanceLight);
-
-                // sun disk
-                // float distanceToGround;
-                // bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;
-                // if (!hitGround) {
-                //     float angle = dot(rayDirection, lightDirection);
-                //     if (angle > cos(sunAngularRadius)) {
-                //        light += sunIntensity * transmittanceFromCameraToSpace;
-                //     }
-                // }
             
                 vec3 color = light;
                 // tone mapping
