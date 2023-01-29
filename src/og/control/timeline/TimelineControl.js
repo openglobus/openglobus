@@ -27,6 +27,7 @@ class TimelineControl extends Control {
     }
 
     oninit() {
+
         this._timelineView.appendTo(this.renderer.div);
         this._timelineView.setWidth(600);
         this._timelineView.on("setcurrent", (d) => {
