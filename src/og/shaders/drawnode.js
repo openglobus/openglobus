@@ -616,7 +616,7 @@ export function drawnode_screen_wl_webgl2() {
                 
                 float distanceToGround = 0.0;
                 
-                bool hitEll = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround);                
+                bool hitEll = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;                
                 
                 // Fix black dots on the edge of atmosphere                             
                 if(camHeight < 700000.0 || !hitEll)
