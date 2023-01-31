@@ -22,9 +22,9 @@ export const COMMON =
     const float rayleighScaleHeight = 8e3;
     const float mieScaleHeight = 1.2e3;
     
-    // rayleightScatteringCoefficient from waveLength
+    //rayleightScatteringCoefficient from waveLength
     //vec3 waveLength = vec3(680e-9, 550e-9, 440e-9);
-    //vec3 rayleighScatteringCoefficient = (1.0 / pow(waveLength, vec3(4.0))) * 1.241e-30;
+    //const vec3 rayleighScatteringCoefficient = (1.0 / pow(waveLength, vec3(4.0))) * 1.241e-30;
     
     const vec3 rayleighScatteringCoefficient = vec3(5.8e-6, 13.5e-6, 33.1e-6);
     const float mieScatteringCoefficient = 3.996e-06;
@@ -33,11 +33,13 @@ export const COMMON =
     const float sunAngularRadius = 0.004685 * 2.0;
     const float sunIntensity = 1.0;
         
-    float lerp(in float min, in float max, in float a){
+    float lerp(in float min, in float max, in float a)
+    {
         return (clamp(min, max, a) - min) / (max - min);
     }
     
-    vec3 sunWithBloom(vec3 rayDir, vec3 sunDir) {
+    vec3 sunWithBloom(vec3 rayDir, vec3 sunDir) 
+    {
         float minSunCosTheta = cos(sunAngularRadius);            
         float cosTheta = dot(rayDir, sunDir);
         if (cosTheta >= minSunCosTheta) return vec3(1.0);                
@@ -47,7 +49,8 @@ export const COMMON =
         return vec3(gaussianBloom + invBloom);
     }
     
-    float rayleighPhase(float angle) {
+    float rayleighPhase(float angle) 
+    {
         return 3.0 / (16.0 * PI) * (1.0 + (angle * angle));
     }
     
@@ -68,7 +71,8 @@ export const COMMON =
         float t = segmentLength * 0.5;
         vec3 opticalDepth = vec3(0.0);
         
-        for (int i = 0; i < SAMPLE_COUNT; i++) {
+        for (int i = 0; i < SAMPLE_COUNT; i++) 
+        {
             vec3 position = rayOrigin + t * rayDirection;
             float height = length(position) - BOTTOM_RADIUS;
             opticalDepth.xy += exp(-height / vec2(rayleighScaleHeight, mieScaleHeight)) * segmentLength;
@@ -78,10 +82,12 @@ export const COMMON =
             opticalDepth.z += (1.0 - min(abs(height - 25e3) / 15e3, 1.0)) * segmentLength;  
             t += segmentLength;
         }
+        
         return opticalDepth;
     }
     
-    vec3 transmittance(float height, float angle) {
+    vec3 transmittance(float height, float angle) 
+    {
         vec3 opticalDepth = opticalDepth(height, angle);
         return exp(-(rayleighScatteringCoefficient * opticalDepth.x + mieExtinctionCoefficient * opticalDepth.y + ozoneAbsorptionCoefficient * opticalDepth.z));
     }`;
@@ -99,7 +105,8 @@ export function transmittance() {
             `
             attribute vec2 a_position;
             
-            void main(void) {
+            void main(void) 
+            {
                 gl_Position = vec4(a_position, 0.0, 1.0);
             }`,
 
@@ -111,7 +118,8 @@ export function transmittance() {
                        
             uniform vec2 iResolution;
                         
-            void main(void) {
+            void main(void) 
+            {
                 vec2 uv = gl_FragCoord.xy / iResolution.xy;
                 float height = uv.y * ATMOS_HEIGHT;
                 float angle = uv.x * 2.0 - 1.0;
@@ -134,7 +142,8 @@ export function scattering() {
             `            
             attribute vec2 a_position;  
                       
-            void main(void) {
+            void main(void) 
+            {
                 gl_Position = vec4(a_position, 0.0, 1.0);
             }`,
 
@@ -147,13 +156,15 @@ export function scattering() {
             
             ${COMMON}
             
-            vec3 transmittanceFromTexture(float height, float angle) {
+            vec3 transmittanceFromTexture(float height, float angle) 
+            {
                 float u = (angle + 1.0) * 0.5;
                 float v = height / ATMOS_HEIGHT;
                 return texture2D(transmittanceTexture, vec2(u, v)).xyz;
             }
                                    
-            void main(void) {
+            void main(void) 
+            {
                 vec2 uv = gl_FragCoord.xy / iResolution.xy;
                 
                 float height = uv.y * ATMOS_HEIGHT;
@@ -163,21 +174,23 @@ export function scattering() {
                 vec3 up = rayOrigin / length(rayOrigin);
                 vec3 lightDirection = vec3(sqrt(1.0 - angle * angle), angle, 0.0);
                                 
-                const float isotropicPhase = 1.0 / (4.0 * PI);                
+                const float isotropicPhase = 1.0 / (4.0 * PI);
                 const int sqrtSampleCount = 8;
                 
                 vec3 light = vec3(0.0);
                 vec3 lightTransferFactor = vec3(0.0);
                 
-                for (int i = 0; i < sqrtSampleCount; i++) {
-                    for (int j = 0; j < sqrtSampleCount; j++) {    
+                for (int i = 0; i < sqrtSampleCount; i++) 
+                {
+                    for (int j = 0; j < sqrtSampleCount; j++) 
+                    {
                         float u = ((0.5 + float(i)) / float(sqrtSampleCount)) * 2.0 - 1.0;
                         float v = (0.5 + float(j)) / float(sqrtSampleCount);
                         float r = sqrt(1.0 - u * u);
                         float theta = 2.0 * PI * v;
                         vec3 rayDirection = vec3(cos(theta) * r, sin(theta) * r, u);
                                                 
-                        float rayAngle = dot(up, rayDirection);                        
+                        float rayAngle = dot(up, rayDirection);
                         bool cameraBelow = rayAngle < 0.0;
                         
                         vec3 transmittanceFromCameraToSpace = transmittanceFromTexture(height, cameraBelow ? -rayAngle : rayAngle);
@@ -195,7 +208,8 @@ export function scattering() {
                         vec3 transmittanceCamera;
                         vec3 transmittanceLight;
                          
-                        for (int k = 0; k < SAMPLE_COUNT; k++) {
+                        for (int k = 0; k < SAMPLE_COUNT; k++) 
+                        {
                             vec3 position = rayOrigin + t * rayDirection;
                             float height = length(position) - BOTTOM_RADIUS;
                             vec3 up = position / length(position);
@@ -218,7 +232,8 @@ export function scattering() {
                             t += segmentLength;
                         }
                     
-                        if (hitGround) {
+                        if (hitGround) 
+                        {
                             vec3 hitPoint = rayOrigin + rayDirection * distanceToGround;
                             vec3 normal = normalize(hitPoint);
                             float diffuseAngle = max(dot(normal, lightDirection), 0.0); 

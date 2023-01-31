@@ -42,11 +42,15 @@ export const UTILS = `
         float a = dot( rdn, rdn );
         float b = dot( ocn, rdn );
         float c = dot( ocn, ocn );
-        float h = b*b - a*(c-1.0);               
-        if (h < 0.0) { 
+        float h = b*b - a*(c-1.0);
+                       
+        if (h < 0.0) 
+        { 
             return false; 
         }
+        
         t = (-b-sqrt(h))/a;
+        
         return true;
     }
     
@@ -57,13 +61,17 @@ export const UTILS = `
         float a = dot( rdn, rdn );
         float b = dot( ocn, rdn );
         float c = dot( ocn, ocn );
-        float h = b*b - a*(c-1.0);        
-        if (h < 0.0) { 
+        float h = b*b - a*(c-1.0);
+                
+        if (h < 0.0) 
+        { 
             return false; 
         }
+        
         h = sqrt(h);
         t1 = (-b-h)/a;
         t2 = (-b+h)/a;
+        
         return true;
     }
     

@@ -203,19 +203,22 @@ function atmosphereBackgroundShader() {
                         
             uniform vec3 sunPos;                                  
                                    
-            vec3 transmittanceFromTexture(float height, float angle) {
+            vec3 transmittanceFromTexture(float height, float angle) 
+            {
                 float u = (angle + 1.0) * 0.5;
                 float v = height / ATMOS_HEIGHT;
                 return texture2D(transmittanceTexture, vec2(u, v)).xyz;
             }
             
-            vec3 multipleScatteringContributionFromTexture(float height, float angle) {
+            vec3 multipleScatteringContributionFromTexture(float height, float angle) 
+            {
                 float u = (angle + 1.0) * 0.5;
                 float v = height / ATMOS_HEIGHT;
                 return texture2D(scatteringTexture, vec2(u, v)).xyz; 
             }
 
-            bool intersectEllipsoidToSphere(in vec3 ro, in vec3 rd, in vec3 ellRadii, in float sphereRadius, out float t1, out float t2){
+            bool intersectEllipsoidToSphere(in vec3 ro, in vec3 rd, in vec3 ellRadii, in float sphereRadius, out float t1, out float t2) 
+            {
                 float offset = 0.0,
                       distanceToSpace = 0.0;
                                                         
@@ -239,7 +242,8 @@ function atmosphereBackgroundShader() {
                 return false; 
             }
             
-            mat4 transpose(in mat4 m) {
+            mat4 transpose(in mat4 m) 
+            {
                 vec4 i0 = m[0];
                 vec4 i1 = m[1];
                 vec4 i2 = m[2];
@@ -255,8 +259,8 @@ function atmosphereBackgroundShader() {
                 return outMatrix;
             }
                                                                      
-            void mainImage(out vec4 fragColor) {
-            
+            void mainImage(out vec4 fragColor) 
+            {            
                 vec3 cameraPosition = camPos;
                 
                 vec3 lightDirection = normalize(sunPos);
@@ -279,8 +283,8 @@ function atmosphereBackgroundShader() {
                 cameraPosition *= scale;
                 lightDirection = normalize(lightDirection * scale);
                                                 
-                if (intersectSphere(cameraPosition, rayDirection, TOP_RADIUS, offset, distanceToSpace)) {
-    
+                if (intersectSphere(cameraPosition, rayDirection, TOP_RADIUS, offset, distanceToSpace)) 
+                {    
                     vec3 rayOrigin = cameraPosition;
                     
                     // above atmosphere                    
@@ -310,7 +314,8 @@ function atmosphereBackgroundShader() {
                     vec3 transmittanceCamera; 
                     vec3 transmittanceLight; 
             
-                    for (int i = 0; i < SAMPLE_COUNT; i++) {
+                    for (int i = 0; i < SAMPLE_COUNT; i++) 
+                    {
                         vec3 position = rayOrigin + t * rayDirection;
                         float height = length(position) - BOTTOM_RADIUS; 
                         vec3 up = position / length(position);
@@ -332,7 +337,8 @@ function atmosphereBackgroundShader() {
                     
                     light *= sunIntensity;
             
-                    if (hitGround) {
+                    if (hitGround) 
+                    {
                         vec3 hitPoint = cameraPosition + rayDirection * distanceToGround;
                         vec3 up = hitPoint / length(hitPoint);
                         float diffuseAngle = max(dot(up, lightDirection), 0.0);
@@ -356,7 +362,8 @@ function atmosphereBackgroundShader() {
                 // sun disk
                 float distanceToGround = 0.0;
                 bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
-                if(!hitGround){
+                if(!hitGround)
+                {
                     vec3 sunLum = sunWithBloom(rayDirection, lightDirection) * vec3(0.93,0.82,0.48);
                     // limit the bloom effect
                     sunLum = smoothstep(0.002, 1.0, sunLum);
@@ -373,7 +380,8 @@ function atmosphereBackgroundShader() {
                 fragColor = vec4(color, 1.0);               
             }
                                     
-            void main(void) {                            
+            void main(void) 
+            {                            
                 mainImage(gl_FragColor);            
             }`
     });

@@ -561,28 +561,27 @@ export function drawnode_screen_wl_webgl2() {
             const float ATMOS_OPACITY_MAX = 1.0;
             const float ATMOS_OPACITY_MIN = 0.41;
             
-            vec3 transmittanceFromTexture(float height, float angle) {
+            vec3 transmittanceFromTexture(float height, float angle) 
+            {
                 float u = (angle + 1.0) * 0.5;
                 float v = height / ATMOS_HEIGHT;
                 return texture(transmittanceTexture, vec2(u, v)).xyz;
             }
 
-            vec3 multipleScatteringContributionFromTexture(float height, float angle) {
+            vec3 multipleScatteringContributionFromTexture(float height, float angle) 
+            {
                 float u = (angle + 1.0) * 0.5;
                 float v = height / ATMOS_HEIGHT;
-                return texture(scatteringTexture, vec2(u, v)).xyz; 
+                return texture(scatteringTexture, vec2(u, v)).xyz;
             }
            
-            void atmosGroundColor(out vec4 fragColor, in vec3 normal) {
-            
+            void atmosGroundColor(out vec4 fragColor, in vec3 normal)
+            {
                 vec3 scale = vec3(BOTTOM_RADIUS) / bottomRadii;
                             
-                vec3 cameraPosition = v_eyePos; 
-                                       
-                vec3 sunPos = sunPos;
-                                                             
+                vec3 cameraPosition = v_eyePos;
+                                                                                                    
                 vec3 rayDirection = normalize(v_VertexPosition - cameraPosition);
-              
                 vec3 lightDir = normalize(sunPos);
                 
                 rayDirection = normalize(rayDirection * scale);
@@ -595,12 +594,14 @@ export function drawnode_screen_wl_webgl2() {
                 float distanceToSpace = 0.0;
                 
                 intersectSphere(cameraPosition, rayDirection, TOP_RADIUS, offset, distanceToSpace);
-                //intersectEllipsoid(cameraPosition, rayDirection, topRadii, offset, distanceToSpace);
             
                 vec3 rayOrigin = cameraPosition;
                 
-                if (offset > 0.0) { // above atmosphere
-                    rayOrigin += rayDirection * offset; // intersection of camera ray with atmosphere
+                // above atmosphere
+                if (offset > 0.0) 
+                {
+                    // intersection of camera ray with atmosphere
+                    rayOrigin += rayDirection * offset;
                 }
                 
                 float height = length(rayOrigin) - BOTTOM_RADIUS;
@@ -616,15 +617,13 @@ export function drawnode_screen_wl_webgl2() {
                 float distanceToGround = 0.0;
                 
                 bool hitEll = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround);                
-                //bool hitEll = intersectEllipsoid(cameraPosition, rayDirection, bottomRadii, distanceToGround);
                 
                 // Fix black dots on the edge of atmosphere                             
-                if(camHeight < 700000.0 || !hitEll){                          
+                if(camHeight < 700000.0 || !hitEll)
+                {                          
                     distanceToGround = distance(cameraPosition, v_VertexPosition * scale);
                 }
-                                                
-                //distanceToGround = distance(cameraPosition, v_VertexPosition);
-                
+                                                                
                 float segmentLength = (distanceToGround - max(offset, 0.0)) / float(SAMPLE_COUNT);
                 
                 float t = segmentLength * 0.5;
@@ -632,7 +631,8 @@ export function drawnode_screen_wl_webgl2() {
                 vec3 transmittanceCamera; 
                 vec3 transmittanceLight; 
                 
-                for (int i = 0; i < SAMPLE_COUNT; i++) {
+                for (int i = 0; i < SAMPLE_COUNT; i++) 
+                {
                     vec3 position = rayOrigin + t * rayDirection;
                     float height = length(position) - BOTTOM_RADIUS;
                     vec3 up = position / length(position);
