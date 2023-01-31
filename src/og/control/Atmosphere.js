@@ -9,11 +9,6 @@ import { Program } from '../webgl/Program.js';
 import * as atmos from "../shaders/atmos.js";
 import { Framebuffer } from "../webgl/index.js";
 
-const TRANSMITTANCE_TEXTURE_WIDTH = 256;
-const TRANSMITTANCE_TEXTURE_HEIGHT = 64;
-
-window.camPosOffset = 0.0;//25000;
-
 /**
  * Frame per second(FPS) display control.
  * @class
@@ -39,40 +34,6 @@ class Atmosphere extends Control {
         this._drawAtmosphereTextures();
 
         this.planet.events.on("draw", this._drawBackground, this);
-
-        // var loadTextureData = function(textureName, callback) {
-        //     const xhr = new XMLHttpRequest();
-        //     xhr.open('GET', textureName);
-        //     xhr.responseType = 'arraybuffer';
-        //     xhr.onload = (event) => {
-        //         const data = new DataView(xhr.response);
-        //         const array =
-        //             new Float32Array(data.byteLength / Float32Array.BYTES_PER_ELEMENT);
-        //         for (var i = 0; i < array.length; ++i) {
-        //             array[i] = data.getFloat32(i * Float32Array.BYTES_PER_ELEMENT, true);
-        //         }
-        //         callback(array);
-        //     };
-        //     xhr.send();
-        // }
-
-        // loadTextureData('transmittance.dat', (data) => {
-        //
-        //     let gl = this.renderer.handler.gl;
-        //
-        //     const texture = gl.createTexture();
-        //     gl.activeTexture(gl.TEXTURE0);
-        //     gl.bindTexture(gl.TEXTURE_2D, texture);
-        //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        //     gl.texImage2D(gl.TEXTURE_2D, 0, gl.getExtension('OES_texture_float_linear') ? gl.RGBA32F : gl.RGBA16F,
-        //         TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT, 0, gl.RGBA,
-        //         gl.FLOAT, data);
-        //
-        //     this.transmittanceTextureBrn = texture;
-        // });
     }
 
     onactivate() {
@@ -87,8 +48,8 @@ class Atmosphere extends Control {
 
     _drawAtmosphereTextures() {
 
-        let width = 512,//this.renderer.handler.getWidth(),
-            height = 512//this.renderer.handler.getHeight();
+        let width = 512,
+            height = 512;
 
         this._transmittanceBuffer = new Framebuffer(this.renderer.handler, {
             width: width,
@@ -186,7 +147,6 @@ class Atmosphere extends Control {
         gl.uniform1i(shu.scatteringTexture, 1);
 
         gl.uniform3fv(shu.camPos, [cam.eye.x, cam.eye.y, cam.eye.z]);
-        gl.uniform1f(shu.camPosOffset, window.camPosOffset || 0);
         gl.uniform2fv(shu.iResolution, [this.renderer.sceneFramebuffer.width, this.renderer.sceneFramebuffer.height]);//[h.getWidth(), h.getHeight()]);
         gl.uniform1f(shu.fov, cam.getViewAngle());
 
@@ -213,23 +173,20 @@ function atmosphereBackgroundShader() {
             viewMatrix: "mat4",
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",
-            sunPos: "vec3",
-            camPosOffset: "float"
+            sunPos: "vec3"
         },
         attributes: {
             corners: "vec3"
         },
         vertexShader:
-            `#version 300 es
-            
-            in vec2 corners;
+            `            
+            attribute vec2 corners;
             
             void main(void) {
                 gl_Position = vec4(corners, 0.0, 1.0);
             }`,
         fragmentShader:
-            `#version 300 es
-                                   
+            `                                   
             precision highp float;
             
             ${atmos.COMMON}
@@ -243,21 +200,19 @@ function atmosphereBackgroundShader() {
             
             uniform sampler2D transmittanceTexture;
             uniform sampler2D scatteringTexture;
-            
-            uniform float camPosOffset;
-            
+                        
             uniform vec3 sunPos;                                  
                                    
             vec3 transmittanceFromTexture(float height, float angle) {
                 float u = (angle + 1.0) * 0.5;
-                float v = height / (topRadius - bottomRadius);
-                return texture(transmittanceTexture, vec2(u, v)).xyz;
+                float v = height / ATMOS_HEIGHT;
+                return texture2D(transmittanceTexture, vec2(u, v)).xyz;
             }
             
             vec3 multipleScatteringContributionFromTexture(float height, float angle) {
                 float u = (angle + 1.0) * 0.5;
-                float v = height / (topRadius - bottomRadius);
-                return texture(scatteringTexture, vec2(u, v)).xyz; 
+                float v = height / ATMOS_HEIGHT;
+                return texture2D(scatteringTexture, vec2(u, v)).xyz; 
             }
 
             bool intersectEllipsoidToSphere(in vec3 ro, in vec3 rd, in vec3 ellRadii, in float sphereRadius, out float t1, out float t2){
@@ -283,40 +238,38 @@ function atmosphereBackgroundShader() {
                 }
                 return false; 
             }
-                                                         
-            layout(location = 0) out vec4 diffuseColor;
-            layout(location = 1) out vec4 normalColor;
-            layout(location = 2) out vec4 positionColor;
             
-            vec3 sunWithBloom(vec3 rayDir, vec3 sunDir) {
-                float minSunCosTheta = cos(sunAngularRadius);            
-                float cosTheta = dot(rayDir, sunDir);
-                if (cosTheta >= minSunCosTheta) return vec3(1.0);                
-                float offset = minSunCosTheta - cosTheta;
-                float gaussianBloom = exp(-offset*15000.0)*0.7;
-                float invBloom = 1.0/(0.09 + offset*200.0)*0.01;
-                return vec3(gaussianBloom + invBloom);
+            mat4 transpose(in mat4 m) {
+                vec4 i0 = m[0];
+                vec4 i1 = m[1];
+                vec4 i2 = m[2];
+                vec4 i3 = m[3];
+            
+                mat4 outMatrix = mat4(
+                     vec4(i0.x, i1.x, i2.x, i3.x),
+                     vec4(i0.y, i1.y, i2.y, i3.y),
+                     vec4(i0.z, i1.z, i2.z, i3.z),
+                     vec4(i0.w, i1.w, i2.w, i3.w)
+                     );
+                                 
+                return outMatrix;
             }
-            
+                                                                     
             void mainImage(out vec4 fragColor) {
             
-                float camEllDist = 0.0;                
-                intersectEllipsoid(camPos, -normalize(camPos), bottomRadii2, camEllDist);                
-                float camEllOffset = length(camPos) - camEllDist - bottomRadius + camPosOffset;
-                vec3 cameraPosition = camPos - 0.0 * normalize(camPos) * camEllOffset;
+                vec3 cameraPosition = camPos;
                 
                 vec3 lightDirection = normalize(sunPos);
                 
-                vec3 scale = vec3(bottomRadius) / bottomRadii2;
+                vec3 scale = vec3(BOTTOM_RADIUS) / bottomRadii;
                              
                 vec2 uv = (2.0 * gl_FragCoord.xy - iResolution.xy) / iResolution.y;
                 float fieldOfView = fov;
-                float z = 1.0 / tan(fieldOfView * 0.5 * pi / 180.0);
+                float z = 1.0 / tan(fieldOfView * 0.5 * PI / 180.0);
                 vec3 rayDirection = normalize(vec3(uv, -z));
                 vec4 rd = transpose(viewMatrix) * vec4(rayDirection, 1.0);
                 rayDirection = rd.xyz;               
                                           
-                int sampleCount = 32;
                 vec3 light = vec3(0.0);
                 vec3 transmittanceFromCameraToSpace = vec3(1.0);
                 float offset = 0.0;
@@ -326,7 +279,7 @@ function atmosphereBackgroundShader() {
                 cameraPosition *= scale;
                 lightDirection = normalize(lightDirection * scale);
                                                 
-                if (intersectSphere(cameraPosition, rayDirection, topRadius, offset, distanceToSpace)) {
+                if (intersectSphere(cameraPosition, rayDirection, TOP_RADIUS, offset, distanceToSpace)) {
     
                     vec3 rayOrigin = cameraPosition;
                     
@@ -336,7 +289,7 @@ function atmosphereBackgroundShader() {
                         rayOrigin = cameraPosition + rayDirection * offset;
                     }
                     
-                    float height = length(rayOrigin) - bottomRadius;
+                    float height = length(rayOrigin) - BOTTOM_RADIUS;
                     float rayAngle = dot(rayOrigin, rayDirection) / length(rayOrigin);
                     bool cameraBelow = rayAngle < 0.0;
                     
@@ -348,24 +301,24 @@ function atmosphereBackgroundShader() {
                     
                     float distanceToGround = 0.0;
                     
-                    bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;
+                    bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
 
-                    float segmentLength = ((hitGround ? distanceToGround : distanceToSpace) - max(offset, 0.0)) / float(sampleCount);
+                    float segmentLength = ((hitGround ? distanceToGround : distanceToSpace) - max(offset, 0.0)) / float(SAMPLE_COUNT);
                             
                     float t = segmentLength * 0.5;
                     
                     vec3 transmittanceCamera; 
                     vec3 transmittanceLight; 
             
-                    for (int i = 0; i < sampleCount; i++) {
+                    for (int i = 0; i < SAMPLE_COUNT; i++) {
                         vec3 position = rayOrigin + t * rayDirection;
-                        float height = length(position) - bottomRadius; 
+                        float height = length(position) - BOTTOM_RADIUS; 
                         vec3 up = position / length(position);
                         float rayAngle = dot(up, rayDirection);
                         float lightAngle = dot(up, lightDirection);
                         // shadow is ommitted because it can create banding artifacts with low sample counts
                         // float distanceToGround;
-                        // float shadow = intersectSphere(position, lightDirection, bottomRadius, distanceToGround) && distanceToGround >= 0.0 ? 0.0 : 1.0;         
+                        // float shadow = intersectSphere(position, lightDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround >= 0.0 ? 0.0 : 1.0;         
                         float shadow = 1.0;
                         vec3 transmittanceToSpace = transmittanceFromTexture(height, cameraBelow ? -rayAngle : rayAngle);
                         transmittanceCamera = cameraBelow ? (transmittanceToSpace / transmittanceFromCameraToSpace) : (transmittanceFromCameraToSpace / transmittanceToSpace);
@@ -385,14 +338,14 @@ function atmosphereBackgroundShader() {
                         float diffuseAngle = max(dot(up, lightDirection), 0.0);
                         float lightAngle = dot(up, lightDirection);
                         float groundAlbedo = 0.05;
-                        light += transmittanceCamera * (groundAlbedo / pi) * multipleScatteringContributionFromTexture(height, lightAngle) * sunIntensity;
-                        light += transmittanceCamera * transmittanceLight * (groundAlbedo / pi) * diffuseAngle * sunIntensity;
+                        light += transmittanceCamera * (groundAlbedo / PI) * multipleScatteringContributionFromTexture(height, lightAngle) * sunIntensity;
+                        light += transmittanceCamera * transmittanceLight * (groundAlbedo / PI) * diffuseAngle * sunIntensity;
                     }
                 }
                                      
                 // sun disk
                 // float distanceToGround;
-                // bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;
+                // bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
                 // if (!hitGround) {
                 //    float angle = dot(rayDirection, lightDirection);
                 //    if (angle > cos(sunAngularRadius)) {
@@ -402,7 +355,7 @@ function atmosphereBackgroundShader() {
                 
                 // sun disk
                 float distanceToGround = 0.0;
-                bool hitGround = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround) && distanceToGround > 0.0;
+                bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
                 if(!hitGround){
                     vec3 sunLum = sunWithBloom(rayDirection, lightDirection) * vec3(0.93,0.82,0.48);
                     // limit the bloom effect
@@ -420,14 +373,8 @@ function atmosphereBackgroundShader() {
                 fragColor = vec4(color, 1.0);               
             }
                                     
-            void main(void) {
-                            
-                vec4 color;
-                mainImage(color);
-                
-                diffuseColor = color;                
-                normalColor = vec4(1.0, 1.0, 0.0, 1.0);
-                positionColor = vec4(1.0, 1.0, 0.0, 1.0);
+            void main(void) {                            
+                mainImage(gl_FragColor);            
             }`
     });
 }

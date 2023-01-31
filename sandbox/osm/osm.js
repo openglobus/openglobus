@@ -174,6 +174,8 @@ let sat = new XYZ("sat", {
     // diffuse: "rgb(325,325,355)",
     // ambient: "rgb(75,75,105)",
     diffuse: "rgb(500-77,490-77,540-128)",
+    shininess: 10,
+    specular: "rgb(51,25,3)",
     ambient: "rgb(77,77,128)",
     urlRewrite: function (s, u) {
         return stringTemplate(u, {
@@ -210,7 +212,7 @@ var globus = new Globe({
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
     //useNightTexture: false,
     //useEarthNavigation: true,
-    useSpecularTexture: false
+    //useSpecularTexture: false
 });
 
 //globus.renderer.fontAtlas.loadFont("chinese.msyh", "//assets.msn.com/weathermapdata/1/static/3d/label/zh-cn/font-v2.2/", "chinese.msyh.json");

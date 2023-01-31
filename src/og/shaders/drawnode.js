@@ -213,13 +213,13 @@ export function drawnode_screen_wl() {
             
                 float overGround = 1.0 - step(0.1, v_height);
                 vec3 normal = normalize(normalMatrix * ((texture2D(uNormalMap, vTextureCoord.zw).rgb - 0.5) * 2.0));
-                vec3 lightDirection = normalize(lightsPositions[0].xyz - v_vertex.xyz * lightsPositions[0].w);
+                vec3 lightDir = normalize(lightsPositions[0].xyz - v_vertex.xyz * lightsPositions[0].w);
                 vec3 eyeDirection = normalize(-v_vertex.xyz);
-                vec3 reflectionDirection = reflect(-lightDirection, normal);
+                vec3 reflectionDirection = reflect(-lightDir, normal);
                 vec4 nightImageColor = texture2D( nightTexture, vGlobalTextureCoord.st );
                 shininess = texture2D( specularTexture, vGlobalTextureCoord.st ).r * 255.0 * overGround;
                 reflection = max( dot(reflectionDirection, eyeDirection), 0.0);
-                diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
+                diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
                 night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb;
                 night *= overGround * step(0.0, night);
 
@@ -377,14 +377,14 @@ export function drawnode_screen_wl() {
 //
 //                 float overGround = 1.0 - step(0.1, v_height);
 //                 vec3 normal = normalize(normalMatrix * ((texture(uNormalMap, vTextureCoord.zw).rgb - 0.5) * 2.0));
-//                 vec3 lightDirection = normalize(lightsPositions[0].xyz - v_vertex.xyz * lightsPositions[0].w);
+//                 vec3 lightDir = normalize(lightsPositions[0].xyz - v_vertex.xyz * lightsPositions[0].w);
 //                 vec3 eyeDirection = normalize(-v_vertex.xyz);
-//                 vec3 reflectionDirection = reflect(-lightDirection, normal);
+//                 vec3 reflectionDirection = reflect(-lightDir, normal);
 //                 vec4 nightImageColor = texture( nightTexture, vGlobalTextureCoord.st );
 //
 //                 shininess = texture( specularTexture, vGlobalTextureCoord.st ).r * 255.0 * overGround;
 //                 reflection = max( dot(reflectionDirection, eyeDirection), 0.0);
-//                 diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
+//                 diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
 //                 night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb;
 //                 night *= overGround * step(0.0, night);
 //
@@ -457,7 +457,6 @@ export function drawnode_screen_wl_webgl2() {
 
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",
-            camPosOffsetGround: "float",
             camHeight: "float",
             sunPos: "vec3"
         }, attributes: {
@@ -534,7 +533,6 @@ export function drawnode_screen_wl_webgl2() {
             uniform sampler2D samplerArr[SLICE_SIZE];
             uniform int samplerCount;
                 
-            uniform float camPosOffsetGround;
             uniform float camHeight;
 
             in vec4 vTextureCoord;
@@ -553,8 +551,6 @@ export function drawnode_screen_wl_webgl2() {
             vec3 night;
 
             layout(location = 0) out vec4 diffuseColor;
-            layout(location = 1) out vec4 normalColor;
-            layout(location = 2) out vec4 positionColor;
 
             ${NIGHT}
 
@@ -562,45 +558,43 @@ export function drawnode_screen_wl_webgl2() {
             
             ${atmos.COMMON}
             
+            const float ATMOS_OPACITY_MAX = 1.0;
+            const float ATMOS_OPACITY_MIN = 0.41;
+            
             vec3 transmittanceFromTexture(float height, float angle) {
                 float u = (angle + 1.0) * 0.5;
-                float v = height / (topRadius - bottomRadius);
+                float v = height / ATMOS_HEIGHT;
                 return texture(transmittanceTexture, vec2(u, v)).xyz;
             }
 
             vec3 multipleScatteringContributionFromTexture(float height, float angle) {
                 float u = (angle + 1.0) * 0.5;
-                float v = height / (topRadius - bottomRadius);
+                float v = height / ATMOS_HEIGHT;
                 return texture(scatteringTexture, vec2(u, v)).xyz; 
             }
            
-            void colorGround(out vec4 fragColor, in vec3 normal) {
+            void atmosGroundColor(out vec4 fragColor, in vec3 normal) {
             
-                vec3 scale = vec3(bottomRadius) / bottomRadii2;
-            
-                float camEllDist = 0.0;                
-                intersectEllipsoid(v_eyePos, -normalize(v_eyePos), bottomRadii, camEllDist);
-                
-                float camEllOffset = length(v_eyePos) - camEllDist - bottomRadius + camPosOffsetGround;
-                vec3 cameraPosition = v_eyePos - 0.0 * normalize(v_eyePos) * camEllOffset; 
+                vec3 scale = vec3(BOTTOM_RADIUS) / bottomRadii;
+                            
+                vec3 cameraPosition = v_eyePos; 
                                        
                 vec3 sunPos = sunPos;
                                                              
                 vec3 rayDirection = normalize(v_VertexPosition - cameraPosition);
               
-                vec3 lightDirection = normalize(sunPos);
+                vec3 lightDir = normalize(sunPos);
                 
                 rayDirection = normalize(rayDirection * scale);
                 cameraPosition *= scale;
-                lightDirection = normalize(lightDirection * scale);
+                lightDir = normalize(lightDir * scale);
             
-                int sampleCount = 32;
                 vec3 light = vec3(0.0);
                 vec3 transmittanceFromCameraToSpace = vec3(1.0);
                 float offset = 0.0;
                 float distanceToSpace = 0.0;
                 
-                intersectSphere(cameraPosition, rayDirection, topRadius, offset, distanceToSpace);
+                intersectSphere(cameraPosition, rayDirection, TOP_RADIUS, offset, distanceToSpace);
                 //intersectEllipsoid(cameraPosition, rayDirection, topRadii, offset, distanceToSpace);
             
                 vec3 rayOrigin = cameraPosition;
@@ -609,19 +603,19 @@ export function drawnode_screen_wl_webgl2() {
                     rayOrigin += rayDirection * offset; // intersection of camera ray with atmosphere
                 }
                 
-                float height = length(rayOrigin) - bottomRadius;
+                float height = length(rayOrigin) - BOTTOM_RADIUS;
                 float rayAngle = dot(rayOrigin, rayDirection) / length(rayOrigin);
                 bool cameraBelow = rayAngle < 0.0;
                 
                 transmittanceFromCameraToSpace = transmittanceFromTexture(height, cameraBelow ? -rayAngle : rayAngle);
                 
-                float phaseAngle = dot(lightDirection, rayDirection);
+                float phaseAngle = dot(lightDir, rayDirection);
                 float rayleighPhase = rayleighPhase(phaseAngle);
                 float miePhase = miePhase(phaseAngle);
                 
                 float distanceToGround = 0.0;
                 
-                bool hitEll = intersectSphere(cameraPosition, rayDirection, bottomRadius, distanceToGround);                
+                bool hitEll = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround);                
                 //bool hitEll = intersectEllipsoid(cameraPosition, rayDirection, bottomRadii, distanceToGround);
                 
                 // Fix black dots on the edge of atmosphere                             
@@ -631,23 +625,23 @@ export function drawnode_screen_wl_webgl2() {
                                                 
                 //distanceToGround = distance(cameraPosition, v_VertexPosition);
                 
-                float segmentLength = (distanceToGround - max(offset, 0.0)) / float(sampleCount);
+                float segmentLength = (distanceToGround - max(offset, 0.0)) / float(SAMPLE_COUNT);
                 
                 float t = segmentLength * 0.5;
                 
                 vec3 transmittanceCamera; 
                 vec3 transmittanceLight; 
                 
-                for (int i = 0; i < sampleCount; i++) {
+                for (int i = 0; i < SAMPLE_COUNT; i++) {
                     vec3 position = rayOrigin + t * rayDirection;
-                    float height = length(position) - bottomRadius;
+                    float height = length(position) - BOTTOM_RADIUS;
                     vec3 up = position / length(position);
                     float rayAngle = dot(up, rayDirection);
-                    float lightAngle = dot(up, lightDirection);
+                    float lightAngle = dot(up, lightDir);
                     
                      // shadow is ommitted because it can create banding artifacts with low sample counts
                      //float distanceToGround;
-                     // shadow = intersectEllipsoid(position, lightDirection, bottomRadii, distanceToGround) && distanceToGround >= 0.0 ? 0.0 : 1.0;
+                     // shadow = intersectEllipsoid(position, lightDir, bottomRadii, distanceToGround) && distanceToGround >= 0.0 ? 0.0 : 1.0;
                              
                     float shadow = 1.0;
                     vec3 transmittanceToSpace = transmittanceFromTexture(height, cameraBelow ? -rayAngle : rayAngle);
@@ -664,16 +658,13 @@ export function drawnode_screen_wl_webgl2() {
         
                 vec3 hitPoint = cameraPosition + rayDirection * distanceToGround;
                 vec3 up = normalize(hitPoint);
-                float diffuseAngle = max(dot(up, lightDirection), 0.0);                
-                //float diffuseAngle = max(dot(normal, lightDirection), 0.0);
+                float diffuseAngle = max(dot(up, lightDir), 0.0);                
+                //float diffuseAngle = max(dot(normal, lightDir), 0.0);
                 
-                float lightAngle = dot(normal, lightDirection);
+                float lightAngle = dot(normal, lightDir);
                 float groundAlbedo = 0.05;
-                vec3 tA = transmittanceCamera * (groundAlbedo / pi) * sunIntensity;
-                
-                //light += tA * multipleScatteringContributionFromTexture(height, lightAngle);
-                //light += tA * transmittanceLight * diffuseAngle;
-                               
+                vec3 tA = transmittanceCamera * (groundAlbedo / PI) * sunIntensity;
+                                               
                 vec3 scatteringLight = multipleScatteringContributionFromTexture(height, lightAngle);
                 vec3 diffuseTransmittanceLight = transmittanceLight * diffuseAngle;
                 
@@ -693,29 +684,29 @@ export function drawnode_screen_wl_webgl2() {
 
             void main(void) {
 
-                vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;//(texture(uNormalMap, vTextureCoord.zw).rgb - 0.5) * 2.0;               
-                vec3 normal = normalize(normalMatrix * (texNormal - 0.5) * 2.0);
-                
+                vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
+                               
+                vec3 normal = normalize(normalMatrix * (texNormal - 0.5) * 2.0);                
                 //normal = normalize(normalMatrix * normalEllipsoid(v_VertexPosition, bottomRadii));                
                 
-                vec3 lightDirection = normalize(lightsPositions[0].xyz - v_vertex.xyz * lightsPositions[0].w);
+                vec3 lightDir = normalize(lightsPositions[0].xyz - v_vertex.xyz * lightsPositions[0].w);
                 vec3 eyeDirection = normalize(-v_vertex.xyz);
-                vec3 reflectionDirection = reflect(-lightDirection, normal);
+                vec3 reflectionDirection = reflect(-lightDir, normal);
                 vec4 nightImageColor = texture( nightTexture, vGlobalTextureCoord.st );
 
                 float overGround = 1.0 - step(0.1, v_height);
                 shininess = texture( specularTexture, vGlobalTextureCoord.st ).r * 255.0 * overGround;
                 reflection = max( dot(reflectionDirection, eyeDirection), 0.0);
-                diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
+                diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
                 
                 night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb;
                 night *= overGround * step(0.0, night);
 
                 vec3 spec = specular.rgb * pow( reflection, specular.w) * shininess;
-                vec4 lightWeighting = vec4(ambient + diffuse * diffuseLightWeighting + spec * 2.0 + night * 5.0, 1.0);
+                vec4 lightWeighting = vec4(ambient + diffuse * diffuseLightWeighting + spec + night, 1.0);
                 
-                normalColor = vec4(texNormal, 1.0);
-                positionColor = vec4(1.0, 1.0, 0.0, 1.0);
+                vec4 atmosColor;
+                atmosGroundColor(atmosColor, normalize((texNormal - 0.5) * 2.0));                
 
                 diffuseColor = texture( defaultTexture, vTextureCoord.xy );
                 if( samplerCount == 0 ) {
@@ -726,19 +717,14 @@ export function drawnode_screen_wl_webgl2() {
 
                 blend(diffuseColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
                 if( samplerCount == 1 ) {                
-                    vec4 atmosColor;
-                    colorGround(atmosColor, normalize((texNormal - 0.5) * 2.0));                
                     diffuseColor *= lightWeighting;
                                         
-                    float c = length(v_eyePos);                    
-                    float bottomRadius = bottomRadius;
-                    float maxDist = sqrt(c * c - bottomRadius * bottomRadius);
-                    float minDist = c - bottomRadius;
+                    float c = length(v_eyePos);
+                    float maxDist = sqrt(c * c - BOTTOM_RADIUS * BOTTOM_RADIUS);
+                    float minDist = c - BOTTOM_RADIUS;
                     float vertDist = distance(v_eyePos, v_VertexPosition);
-
-                    float max = 1.0;
-                    float min = 0.41;
-                    float f = min + (max - min) * lerp(minDist, maxDist, vertDist);
+                    
+                    float f = ATMOS_OPACITY_MIN + (ATMOS_OPACITY_MAX - ATMOS_OPACITY_MIN) * lerp(minDist, maxDist, vertDist);
 
                     diffuseColor = mix(diffuseColor, atmosColor, f);
                     return;

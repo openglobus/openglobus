@@ -1078,6 +1078,40 @@ class Handler {
             }
         }
     }
+
+    // var loadTextureData = function(textureName, callback) {
+    //     const xhr = new XMLHttpRequest();
+    //     xhr.open('GET', textureName);
+    //     xhr.responseType = 'arraybuffer';
+    //     xhr.onload = (event) => {
+    //         const data = new DataView(xhr.response);
+    //         const array =
+    //             new Float32Array(data.byteLength / Float32Array.BYTES_PER_ELEMENT);
+    //         for (var i = 0; i < array.length; ++i) {
+    //             array[i] = data.getFloat32(i * Float32Array.BYTES_PER_ELEMENT, true);
+    //         }
+    //         callback(array);
+    //     };
+    //     xhr.send();
+    // }
+
+    // loadTextureData('transmittance.dat', (data) => {
+    //
+    //     let gl = this.renderer.handler.gl;
+    //
+    //     const texture = gl.createTexture();
+    //     gl.activeTexture(gl.TEXTURE0);
+    //     gl.bindTexture(gl.TEXTURE_2D, texture);
+    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    //     gl.texImage2D(gl.TEXTURE_2D, 0, gl.getExtension('OES_texture_float_linear') ? gl.RGBA32F : gl.RGBA16F,
+    //         TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT, 0, gl.RGBA,
+    //         gl.FLOAT, data);
+    //
+    //     this.transmittanceTextureBrn = texture;
+    // });
 }
 
 export { Handler };

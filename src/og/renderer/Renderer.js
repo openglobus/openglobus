@@ -464,7 +464,7 @@ class Renderer {
             this.handler.addPrograms([depth()]);
 
             this.sceneFramebuffer = new Multisample(this.handler, {
-                size: 3,
+                size: 1,
                 msaa: this._msaa,
                 internalFormat: this._internalFormat,
                 filter: "LINEAR"
