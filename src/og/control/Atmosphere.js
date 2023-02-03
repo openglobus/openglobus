@@ -306,7 +306,11 @@ function atmosphereBackgroundShader() {
                     float distanceToGround = 0.0;
                     
                     bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
-
+                    
+                    if(intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS - 15000.0, distanceToGround) && hitGround){
+                        discard;
+                    }
+                    
                     float segmentLength = ((hitGround ? distanceToGround : distanceToSpace) - max(offset, 0.0)) / float(SAMPLE_COUNT);
                             
                     float t = segmentLength * 0.5;
@@ -364,7 +368,7 @@ function atmosphereBackgroundShader() {
                 bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
                 if(!hitGround)
                 {
-                    vec3 sunLum = sunWithBloom(rayDirection, lightDirection) * vec3(0.93,0.82,0.48);
+                    vec3 sunLum = sunWithBloom(rayDirection, lightDirection) * vec3(1.0,1.0,0.8);
                     // limit the bloom effect
                     sunLum = smoothstep(0.002, 1.0, sunLum);
                     light += sunLum * sunIntensity * transmittanceFromCameraToSpace;

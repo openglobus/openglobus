@@ -616,10 +616,10 @@ export function drawnode_screen_wl_webgl2() {
                 
                 float distanceToGround = 0.0;
                 
-                bool hitEll = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;                
+                bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;                
                 
                 // Fix black dots on the edge of atmosphere                             
-                if(camHeight < 700000.0 || !hitEll)
+                if(camHeight < 700000.0 || !hitGround)
                 {                          
                     distanceToGround = distance(cameraPosition, v_VertexPosition * scale);
                 }
@@ -639,9 +639,9 @@ export function drawnode_screen_wl_webgl2() {
                     float rayAngle = dot(up, rayDirection);
                     float lightAngle = dot(up, lightDir);
                     
-                     // shadow is ommitted because it can create banding artifacts with low sample counts
-                     //float distanceToGround;
-                     // shadow = intersectEllipsoid(position, lightDir, bottomRadii, distanceToGround) && distanceToGround >= 0.0 ? 0.0 : 1.0;
+                    //shadow is ommitted because it can create banding artifacts with low sample counts
+                    //float distanceToGround;
+                    //float shadow = intersectSphere(position, lightDir, BOTTOM_RADIUS, distanceToGround) && distanceToGround >= 0.0 ? 0.0 : 1.0;
                              
                     float shadow = 1.0;
                     vec3 transmittanceToSpace = transmittanceFromTexture(height, cameraBelow ? -rayAngle : rayAngle);
@@ -686,7 +686,7 @@ export function drawnode_screen_wl_webgl2() {
 
                 vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
                                
-                vec3 normal = normalize(normalMatrix * (texNormal - 0.5) * 2.0);                
+                vec3 normal = normalize(normalMatrix * (texNormal - 0.5) * 2.0);
                 //normal = normalize(normalMatrix * normalEllipsoid(v_VertexPosition, bottomRadii));                
                 
                 vec3 lightDir = normalize(lightsPositions[0].xyz - v_vertex.xyz * lightsPositions[0].w);
