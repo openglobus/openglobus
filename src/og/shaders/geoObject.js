@@ -38,12 +38,9 @@ export const geo_object = () =>
             aScale: { type: "float", divisor: 1 },
             aDispose: { type: "float", divisor: 1 }
         },
-        vertexShader: `#ifdef GL_FRAGMENT_PRECISION_HIGH
-               precision highp float;
-            #else
-               precision mediump float;
-            #endif
-               precision mediump int;
+        vertexShader:
+            `precision highp float;
+            
             attribute vec3 aVertexPosition;
             attribute vec3 aVertexNormal; 
             attribute vec3 aPositionHigh;
@@ -72,7 +69,9 @@ export const geo_object = () =>
             varying float vUseTexture;
             varying vec2 vTexCoords;
             
-            const float RADIANS = 3.141592653589793 / 180.0;
+            const float PI = 3.141592653589793;
+            
+            const float RADIANS = PI / 180.0;
            
             void main(void) {
             
@@ -101,7 +100,7 @@ export const geo_object = () =>
                 vec3 position = aPositionHigh + aPositionLow;
                 vec3 cameraPosition = eyePositionHigh + eyePositionLow;
                 vec3 r = cross(normalize(-position), aDirection);
-                mat3 modelMatrix = mat3(r, normalize(position), -aDirection) * rotX * rotZ; /*up=-cross(aDirection, r)*/
+                mat3 modelMatrix = mat3(r, normalize(position), -aDirection) * rotX * rotZ;
 
                 float dist = length(cameraPosition);
 
@@ -114,11 +113,22 @@ export const geo_object = () =>
                 vec3 look = cameraPosition - position;
                 float lookLength = length(look);
                 vNormal = normalMatrix * modelMatrix * aVertexNormal;
-                float scd = clamp(1.0 - smoothstep(uScaleByDistance[0], uScaleByDistance[1], lookLength), 0.3, 1.);
+                
+                float scd = 1.0;
+                if(lookLength >= uScaleByDistance[1]) {
+                    scd = uScaleByDistance[1] / uScaleByDistance[0];
+                }else 
+                
+                if(lookLength > uScaleByDistance[0]){
+                    scd = lookLength / uScaleByDistance[0];
+                }
+                
+                //float scd = clamp(1.0, lookLength, lookLength - uScaleByDistance[0]); //clamp(1.0 - smoothstep(uScaleByDistance[0], uScaleByDistance[1], lookLength), 0.3, 1.);
 
-                vPosition = vec4((highDiff + lowDiff) + modelMatrix * aVertexPosition * aScale * lookLength * scd, 1.0);
+                vPosition = vec4((highDiff + lowDiff) + modelMatrix * aVertexPosition * aScale * scd, 1.0);
                 gl_Position = projectionMatrix * viewMatrixRTE  * vPosition;
             }`,
+
         fragmentShader: `precision highp float;
 
                 varying vec4 vColor;
