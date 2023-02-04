@@ -31,7 +31,9 @@ let colors = ["red", "orange", "yellow", "green", "lightblue", "darkblue", "purp
 
 let geoObjects = new EntityCollection({
     entities: [],
-    scaleByDistance: [100, 4000000, MAX32]
+    //scaleByDistance: [1.0, 1.0, MAX32]
+    //scaleByDistance: [1.0, 4000000, 0.01]
+    scaleByDistance: [100, 4000000, 1.0]
 });
 
 
@@ -61,6 +63,7 @@ fetch(`./cube.json`)
                 lonlat: [0, i, 20],
                 name: "obj-" + i,
                 geoObject: {
+                    scale: 1.0,
                     instanced: true,
                     tag: "cube",
                     color: colors[i % 7],

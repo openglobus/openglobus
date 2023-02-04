@@ -113,18 +113,18 @@ export const geo_object = () =>
                 vec3 look = cameraPosition - position;
                 float lookLength = length(look);
                 vNormal = normalMatrix * modelMatrix * aVertexNormal;
+                               
+                // if(lookLength > uScaleByDistance[1])
+                // {
+                //     scd = uScaleByDistance[1] / uScaleByDistance[0];
+                // }
+                // else if(lookLength > uScaleByDistance[0])
+                // {
+                //     scd = lookLength / uScaleByDistance[0];
+                // }
+                // ... is the same math
+                float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
                 
-                float scd = 1.0;
-                if(lookLength >= uScaleByDistance[1]) {
-                    scd = uScaleByDistance[1] / uScaleByDistance[0];
-                }else 
-                
-                if(lookLength > uScaleByDistance[0]){
-                    scd = lookLength / uScaleByDistance[0];
-                }
-                
-                //float scd = clamp(1.0, lookLength, lookLength - uScaleByDistance[0]); //clamp(1.0 - smoothstep(uScaleByDistance[0], uScaleByDistance[1], lookLength), 0.3, 1.);
-
                 vPosition = vec4((highDiff + lowDiff) + modelMatrix * aVertexPosition * aScale * scd, 1.0);
                 gl_Position = projectionMatrix * viewMatrixRTE  * vPosition;
             }`,
@@ -249,10 +249,11 @@ export const geo_object_picking = () =>
              
                 vec3 look = position - (eyePositionHigh + eyePositionLow);
                 float lookLength = length(look);
-                float scd = (1.0 - smoothstep(uScaleByDistance[0], uScaleByDistance[1], lookLength)) * (1.0 - step(uScaleByDistance[2], lookLength));
-
-                vec4 pos = vec4((highDiff + lowDiff) + modelMatrix * aVertexPosition * aScale * pickingScale * lookLength * scd, 1.0);
                 
+                float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
+                
+                vec4 pos = vec4((highDiff + lowDiff) + modelMatrix * aVertexPosition * aScale * pickingScale * scd, 1.0);
+                                
                 gl_Position = projectionMatrix * viewMatrixRTE * pos;
             }`,
         fragmentShader:
