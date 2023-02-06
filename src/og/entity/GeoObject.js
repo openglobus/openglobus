@@ -21,7 +21,7 @@ class GeoObject {
         options = options || {};
 
         this.scale = options.scale || 1.0;
-        this.scaleByDistance = new Float32Array(options.scaleByDistance || [MAX32, MAX32, MAX32]);
+        this.scaleByDistance = new Float32Array(options.scaleByDistance || [1.0, 1.0, 1.0]);
 
         /**
          * Image src.
@@ -47,7 +47,7 @@ class GeoObject {
         this._roll = options.roll || 0.0;
 
         this._planet = options.planet || null;
-        this._lonLatAlt = new LonLat(0, 0, 100000);
+        this._lonLatAlt = new LonLat(0, 0, 0);
 
         /**
          * RGBA color.

@@ -38,8 +38,9 @@ export const geo_object = () =>
             aScale: { type: "float", divisor: 1 },
             aDispose: { type: "float", divisor: 1 }
         },
-        vertexShader: `precision highp float;
-
+        vertexShader:
+            `precision highp float;
+            
             attribute vec3 aVertexPosition;
             attribute vec3 aVertexNormal; 
             attribute vec3 aPositionHigh;
@@ -68,23 +69,28 @@ export const geo_object = () =>
             varying float vUseTexture;
             varying vec2 vTexCoords;
             
-            const float RADIANS = 3.141592653589793 / 180.0;
+            const float PI = 3.141592653589793;
+            
+            const float RADIANS = PI / 180.0;
            
             void main(void) {
+            
+                if (aDispose == 0.0) {
+                   return;
+                }
+            
                 vUseTexture = uUseTexture;
-                vDispose = aDispose;
                 vColor = aColor;
-                
                 vTexCoords = aTexCoord;
               
-                float roll = aPitchRoll.y * RADIANS;
+                float roll = aPitchRoll.y;
                 mat3 rotZ = mat3(
                      vec3(cos(roll), sin(roll), 0.0),
                      vec3(-sin(roll), cos(roll), 0.0), 
                      vec3(0.0, 0.0, 1.0) 
                 );
 
-                float pitch = aPitchRoll.x * RADIANS;
+                float pitch = aPitchRoll.x;
                 mat3 rotX = mat3(
                     vec3(1.0, 0.0, 0.0),
                     vec3(0.0, cos(pitch), sin(pitch)), 
@@ -92,24 +98,37 @@ export const geo_object = () =>
                );
 
                 vec3 position = aPositionHigh + aPositionLow;
+                vec3 cameraPosition = eyePositionHigh + eyePositionLow;
                 vec3 r = cross(normalize(-position), aDirection);
-                mat3 modelMatrix = mat3(r, normalize(position), -aDirection) * rotX * rotZ; /*up=-cross(aDirection, r)*/
+                mat3 modelMatrix = mat3(r, normalize(position), -aDirection) * rotX * rotZ;
 
-                vec3 look = position - (eyePositionHigh + eyePositionLow);
-                float lookLength = length(look);
-                float scd = aScale * (1.0 - smoothstep(uScaleByDistance[0], uScaleByDistance[1], lookLength)) * (1.0 - step(uScaleByDistance[2], lookLength));
-                vNormal = normalMatrix * modelMatrix * aVertexNormal;
-
-                vec3 highDiff = aPositionHigh - eyePositionHigh;
-                vec3 lowDiff = aPositionLow + modelMatrix * (aVertexPosition * scd) - eyePositionLow;
+                float dist = length(cameraPosition);
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
-                vPosition = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
-
-                gl_Position = mix(vec4(0.0, 0.0, 0.0, 0.0), projectionMatrix * vPosition, aDispose);
+                vec3 highDiff = aPositionHigh - eyePositionHigh;
+                vec3 lowDiff = aPositionLow - eyePositionLow;
+             
+                vec3 look = cameraPosition - position;
+                float lookLength = length(look);
+                vNormal = normalMatrix * modelMatrix * aVertexNormal;
+                               
+                // if(lookLength > uScaleByDistance[1])
+                // {
+                //     scd = uScaleByDistance[1] / uScaleByDistance[0];
+                // }
+                // else if(lookLength > uScaleByDistance[0])
+                // {
+                //     scd = lookLength / uScaleByDistance[0];
+                // }
+                // ... is the same math
+                float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
+                
+                vPosition = vec4((highDiff + lowDiff) + modelMatrix * aVertexPosition * aScale * scd, 1.0);
+                gl_Position = projectionMatrix * viewMatrixRTE  * vPosition;
             }`,
+
         fragmentShader: `precision highp float;
 
                 varying vec4 vColor;
@@ -196,7 +215,11 @@ export const geo_object_picking = () =>
 
             void main(void) {
             
-                vDispose = aDispose;
+             
+                if (aDispose == 0.0) {
+                   return;
+                }
+            
                 vColor = aPickingColor;
                 float roll = aPitchRoll.y * RADIANS;
                 mat3 rotZ = mat3(
@@ -216,17 +239,22 @@ export const geo_object_picking = () =>
                 vec3 r = cross(normalize(-position), aDirection);
                 mat3 modelMatrix = mat3(r, normalize(position), -aDirection) * rotX * rotZ; /*up=-cross(aDirection, r)*/
 
-                vec3 look = position - (eyePositionHigh + eyePositionLow);
-                float lookLength = length(look);
-                float scd = aScale * pickingScale * (1.0 - smoothstep(uScaleByDistance[0], uScaleByDistance[1], lookLength)) * (1.0 - step(uScaleByDistance[2], lookLength));
-
-                vec3 highDiff = aPositionHigh - eyePositionHigh;
-                vec3 lowDiff = aPositionLow + modelMatrix * (aVertexPosition * scd) - eyePositionLow;
+                float dist = length(eyePositionHigh + eyePositionLow);
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
-                gl_Position = mix(vec4(0.0, 0.0, 0.0, 0.0),  projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0), aDispose);
+                vec3 highDiff = aPositionHigh - eyePositionHigh;
+                vec3 lowDiff = aPositionLow - eyePositionLow;
+             
+                vec3 look = position - (eyePositionHigh + eyePositionLow);
+                float lookLength = length(look);
+                
+                float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
+                
+                vec4 pos = vec4((highDiff + lowDiff) + modelMatrix * aVertexPosition * aScale * pickingScale * scd, 1.0);
+                                
+                gl_Position = projectionMatrix * viewMatrixRTE * pos;
             }`,
         fragmentShader:
             `precision highp float;
