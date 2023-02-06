@@ -210,9 +210,9 @@ var globus = new Globe({
     //maxEqualZoomAltitude: 1,
     layers: [sat, tg, osm],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
-    //useNightTexture: false,
+    useNightTexture: false,
     //useEarthNavigation: true,
-    //useSpecularTexture: false
+    useSpecularTexture: false
 });
 
 //globus.renderer.fontAtlas.loadFont("chinese.msyh", "//assets.msn.com/weathermapdata/1/static/3d/label/zh-cn/font-v2.2/", "chinese.msyh.json");

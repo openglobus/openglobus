@@ -463,7 +463,8 @@ export function drawnode_screen_wl_webgl2() {
             aVertexPositionHigh: "vec3", aVertexPositionLow: "vec3", aTextureCoord: "vec2"
         },
 
-        vertexShader: `#version 300 es
+        vertexShader:
+            `#version 300 es
 
             in vec3 aVertexPositionHigh;
             in vec3 aVertexPositionLow;
@@ -574,8 +575,15 @@ export function drawnode_screen_wl_webgl2() {
                 float v = height / ATMOS_HEIGHT;
                 return texture(scatteringTexture, vec2(u, v)).xyz;
             }
+            
+            void getSunIlluminance(in vec3 point, in vec3 lightDir, out vec3 sunIlluminance)
+            {
+                float rayAngle = dot(normalize(point), lightDir);
+                float height = length(point) - BOTTOM_RADIUS;
+                sunIlluminance = sunIntensity * transmittanceFromTexture(height, rayAngle);
+            }
            
-            void atmosGroundColor(out vec4 fragColor, in vec3 normal)
+            void atmosGroundColor(out vec4 fragColor, in vec3 normal, out vec3 sunIlluminance)
             {
                 vec3 scale = vec3(BOTTOM_RADIUS) / bottomRadii;
                             
@@ -658,17 +666,17 @@ export function drawnode_screen_wl_webgl2() {
         
                 vec3 hitPoint = cameraPosition + rayDirection * distanceToGround;
                 vec3 up = normalize(hitPoint);
-                float diffuseAngle = max(dot(up, lightDir), 0.0);                
-                //float diffuseAngle = max(dot(normal, lightDir), 0.0);
+                //float diffuseAngle = max(dot(up, lightDir), 0.0);                
+                float diffuseAngle = max(dot(normal, lightDir), 0.0);
                 
                 float lightAngle = dot(normal, lightDir);
                 float groundAlbedo = 0.05;
-                vec3 tA = transmittanceCamera * (groundAlbedo / PI) * sunIntensity;
-                                               
+                vec3 tA = transmittanceCamera * (groundAlbedo / PI) * sunIntensity;                                               
                 vec3 scatteringLight = multipleScatteringContributionFromTexture(height, lightAngle);
-                vec3 diffuseTransmittanceLight = transmittanceLight * diffuseAngle;
-                
+                vec3 diffuseTransmittanceLight = transmittanceLight * diffuseAngle;                
                 light += tA * (scatteringLight + diffuseTransmittanceLight);
+                
+                getSunIlluminance(v_VertexPosition * scale, lightDir, sunIlluminance);
             
                 vec3 color = light;
                 // tone mapping
@@ -702,12 +710,16 @@ export function drawnode_screen_wl_webgl2() {
                 night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb;
                 night *= overGround * step(0.0, night);
 
-                vec3 spec = specular.rgb * pow( reflection, specular.w) * shininess;
-                vec4 lightWeighting = vec4(ambient + diffuse * diffuseLightWeighting + spec + night, 1.0);
-                
                 vec4 atmosColor;
-                atmosGroundColor(atmosColor, normalize((texNormal - 0.5) * 2.0));                
+                vec3 sunIlluminance;
+                
+                atmosGroundColor(atmosColor, normalize((texNormal - 0.5) * 2.0), sunIlluminance);                
 
+
+                vec3 spec = specular.rgb * pow( reflection, specular.w) * shininess;
+                //vec4 lightWeighting = vec4(ambient + diffuse * diffuseLightWeighting + spec + night, 1.0);
+                vec4 lightWeighting = vec4(ambient + sunIlluminance * diffuseLightWeighting * diffuse + night + spec, 1.0);
+                
                 diffuseColor = texture( defaultTexture, vTextureCoord.xy );
                 if( samplerCount == 0 ) {
                     return;

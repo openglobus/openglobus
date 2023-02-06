@@ -354,25 +354,25 @@ function atmosphereBackgroundShader() {
                 }
                                      
                 // sun disk
-                // float distanceToGround;
-                // bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
-                // if (!hitGround) {
-                //    float angle = dot(rayDirection, lightDirection);
-                //    if (angle > cos(sunAngularRadius)) {
-                //       light += sunIntensity * transmittanceFromCameraToSpace;
-                //    }
-                // }
+                float distanceToGround;
+                bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
+                if (!hitGround) {
+                   float angle = dot(rayDirection, lightDirection);
+                   if (angle > cos(sunAngularRadius)) {
+                      light = sunIntensity * transmittanceFromCameraToSpace;
+                   }
+                }
                 
                 // sun disk
-                float distanceToGround = 0.0;
-                bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
-                if(!hitGround)
-                {
-                    vec3 sunLum = sunWithBloom(rayDirection, lightDirection) * vec3(1.0,1.0,0.8);
-                    // limit the bloom effect
-                    sunLum = smoothstep(0.002, 1.0, sunLum);
-                    light += sunLum * sunIntensity * transmittanceFromCameraToSpace;
-                }
+                // float distanceToGround = 0.0;
+                // bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
+                // if(!hitGround)
+                // {
+                //     vec3 sunLum = sunWithBloom(rayDirection, lightDirection) * vec3(1.0,1.0,0.8);
+                //     // limit the bloom effect
+                //     sunLum = smoothstep(0.002, 1.0, sunLum);
+                //     light += sunLum * sunIntensity * transmittanceFromCameraToSpace;
+                // }
             
                 vec3 color = light;
                 // tone mapping
