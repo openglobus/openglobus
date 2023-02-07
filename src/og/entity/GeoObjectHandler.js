@@ -217,7 +217,7 @@ class GeoObjectHandler {
         }
     }
 
-    async setTexture(geoObject) {
+    async _applyTexture(geoObject) {
         const src = geoObject._src,
             tagData = this._instancedTags.get(geoObject.tag),
             ti = tagData.index;
@@ -296,7 +296,7 @@ class GeoObjectHandler {
                     ...geoObject._normals
                 )
             );
-            this.setTexture(geoObject)
+            this._applyTexture(geoObject)
 
         }
         this._vehicleVisibleArr[ti] = concatArrays(
@@ -386,7 +386,7 @@ class GeoObjectHandler {
 
         gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera.getViewMatrix());
-        gl.uniformMatrix3fv(u.normalMatrix, false, r.activeCamera._normalMatrix._m);
+        gl.uniformMatrix3fv(u.normalMatrix, false, r.activeCamera.getNormalMatrix());
 
         gl.uniform4fv(u.lightsPositions, this._planet._lightsTransformedPositions);
         gl.uniform3fv(u.lightsParamsv, this._planet._lightsParamsv);

@@ -6,7 +6,7 @@ import { Globe } from "../../src/og/Globe.js";
 import { XYZ } from "../../src/og/layer/XYZ.js";
 import { GlobusTerrain } from "../../src/og/terrain/GlobusTerrain.js";
 import * as utils from "../../src/og/utils/shared.js";
-import {RADIANS} from "../../src/og/math.js";
+import { RADIANS } from "../../src/og/math.js";
 
 let COUNT = 10,
     ENTITY = {},
@@ -14,8 +14,8 @@ let COUNT = 10,
         ['fish', {
             countRation: 1,
             cb: (options) => {
-                options.geoObject.scale = 2;
-                options.geoObject.yaw = 50;
+                options.geoObject.scale = 20;
+                options.geoObject.yaw = 50 * RADIANS;
                 options.geoObject.pitch = 270 * RADIANS;
                 options.geoObject.src = './fish.png';
                 return {
