@@ -6,6 +6,7 @@ import { Globe } from "../../src/og/Globe.js";
 import { XYZ } from "../../src/og/layer/XYZ.js";
 import { GlobusTerrain } from "../../src/og/terrain/GlobusTerrain.js";
 import * as utils from "../../src/og/utils/shared.js";
+import { RADIANS } from "../../src/og/math.js";
 
 let COUNT = 10,
     ENTITY = {},
@@ -13,9 +14,9 @@ let COUNT = 10,
         ['fish', {
             countRation: 1,
             cb: (options) => {
-                options.geoObject.scale = 200000;
-                options.geoObject.yaw = 50;
-                options.geoObject.pitch = 270;
+                options.geoObject.scale = 20;
+                options.geoObject.yaw = 50 * RADIANS;
+                options.geoObject.pitch = 270 * RADIANS;
                 options.geoObject.src = './fish.png';
                 return {
                     ...options,
@@ -71,7 +72,7 @@ let colors = ["red", "orange", "yellow", "green", "lightblue", "darkblue", "purp
 
 let geoObjects = new EntityCollection({
     entities: [],
-    scaleByDistance: [600000, 24000000, 10000000000]
+    scaleByDistance: [25, 400000, 1]
 });
 
 for (const [name, entity_opt] of ENTITY_OPTIONS) {
@@ -85,7 +86,7 @@ for (const [name, entity_opt] of ENTITY_OPTIONS) {
                 defaultOptions = (i) => ({
                     name: "sat-" + i,
                     geoObject: {
-                        scale: 100000,
+                        scale: 1,
                         instanced: true,
                         tag: name,
                         color: colors[i % 7],
