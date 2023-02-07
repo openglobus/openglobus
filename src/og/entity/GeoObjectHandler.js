@@ -231,7 +231,7 @@ class GeoObjectHandler {
             this._texCoordArr[ti] = geoObject._texCoords;
             this._textures[ti] = this._renderer.handler.transparentTexture;
             const image = await loadImage(src);
-            this._textures[ti] = this._renderer.handler.createTexture_mm(image);
+            this._textures[ti] = this._renderer.handler.createTextureDefault(image);
         }
         this._changedBuffers[TEXCOORD_BUFFER] = true;
     }
