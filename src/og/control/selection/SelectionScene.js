@@ -79,7 +79,7 @@ class SelectionScene extends RenderNode {
                 geoObject: {
                     scale: 1,
                     instanced: true,
-                    tag: "ruler",
+                    tag: "selection",
                     color: "rgb(0,305,0)",
                     vertices: obj3d.vertices,
                     indices: obj3d.indexes,
@@ -93,7 +93,7 @@ class SelectionScene extends RenderNode {
                 geoObject: {
                     scale: 1,
                     instanced: true,
-                    tag: "ruler",
+                    tag: "selection",
                     color: "rgb(455,0,0)",
                     vertices: obj3d.vertices,
                     indices: obj3d.indexes,
@@ -117,7 +117,9 @@ class SelectionScene extends RenderNode {
         this._cornersLayer = new Vector("corners", {
             entities: [this._cornerEntity[0], this._cornerEntity[1]],
             pickingEnabled: true,
-            displayInLayerSwitcher: false
+            displayInLayerSwitcher: false,
+            scaleByDistance: [1.0, 4000000, 0.01],
+            pickingScale: 2
         });
     }
 
@@ -153,6 +155,7 @@ class SelectionScene extends RenderNode {
         this.renderer.events.on("lup", this._onMouseLup_, this);
 
         this._planet.addLayer(this._trackLayer);
+
         this._planet.addLayer(this._cornersLayer);
 
     }
@@ -194,7 +197,7 @@ class SelectionScene extends RenderNode {
 
             this.renderer.controls.mouseNavigation.deactivate();
             this._startLonLat = this._planet.getLonLatFromPixelTerrain(e);
-            
+
             let startPos = this._planet.ellipsoid.lonLatToCartesian(this._startLonLat);
             this._cornerEntity[0].setCartesian3v(startPos);
             this._cornerEntity[1].setCartesian3v(startPos);
@@ -206,6 +209,8 @@ class SelectionScene extends RenderNode {
 
             this._pickedCorner = null;
             this._anchorLonLat = null;
+
+            this._propsLabel.label.setVisibility(true);
 
             if (this._onSelect && typeof this._onSelect === 'function') {
                 let startLonLat = this._cornerEntity[0].getLonLat();
@@ -278,8 +283,8 @@ class SelectionScene extends RenderNode {
         this._trackEntity.polyline.setPath3v([path]);
 
         if (this._ignoreTerrain) {
-//            this._propsLabel.setCartesian3v(path[Math.floor(path.length / 2)]);
-//            this._propsLabel.label.setText(`${distanceFormat(length)}, ${Math.round(this._heading)} deg`);
+            // this._propsLabel.setCartesian3v(path[Math.floor(path.length / 2)]);
+            // this._propsLabel.label.setText(`${distanceFormat(length)}, ${Math.round(this._heading)} deg`);
         }
     }
 
@@ -299,30 +304,18 @@ class SelectionScene extends RenderNode {
         this._cornerEntity[1].geoObject.setVisibility(false);
     }
 
-    getScale(cart) {
-        let r = this.renderer;
-        let t = 1.0 - (r.activeCamera._lonLat.height - MAX_SCALE_HEIGHT) / (MIN_SCALE_HEIGHT - MAX_SCALE_HEIGHT);
-        let _distanceToCamera = cart.distance(r.activeCamera.eye);
-        return math.lerp(t < 0 ? 0 : t, MAX_SCALE, MIN_SCALE) * _distanceToCamera;
-    }
-
     frame() {
         let t = this._trackEntity.polyline.getPath3v()[0];
         if (t) {
-            this._cornerEntity[0].geoObject.setScale(this.getScale(this._cornerEntity[0].getCartesian()));
-            this._cornerEntity[1].geoObject.setScale(this.getScale(this._cornerEntity[1].getCartesian()));
-
             if (!this._ignoreTerrain) {
                 let res = 0;
                 for (let i = 0, len = t.length - 1; i < len; i++) {
                     res += t[i + 1].distance(t[i]);
                 }
 
-//                this._propsLabel.setCartesian3v(t[Math.floor(t.length / 2)]);
-//                this._propsLabel.label.setText(`${distanceFormat(res)}, ${Math.round(this._heading)} deg`);
+                this._propsLabel.setCartesian3v(t[Math.floor(t.length / 2)]);
+                this._propsLabel.label.setText(`${distanceFormat(res)}, ${Math.round(this._heading)} deg`);
             }
-
-
         }
     }
 
