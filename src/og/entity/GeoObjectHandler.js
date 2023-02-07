@@ -219,16 +219,21 @@ class GeoObjectHandler {
 
     async setTexture(geoObject) {
         const src = geoObject._src,
-            ti = this._instancedTags.get(geoObject.tag).index;
-        if (!this._texCoordArr[ti]) this._texCoordArr[ti] = [];
-        if (geoObject._src) {
-            if (this._texCoordArr[ti].length === 0) {
-                this._texCoordArr[ti] = geoObject._texCoords;
-                this._textures[ti] = this._renderer.handler.transparentTexture;
-                const image = await loadImage(src);
-                this._textures[ti] = this._renderer.handler.createTexture_mm(image);
-            }
+            tagData = this._instancedTags.get(geoObject.tag),
+            ti = tagData.index;
+
+        this._texCoordArr[ti] = new Array(geoObject._verticesCount * 2).fill(0);
+        if (geoObject._src && !tagData.texturesApplied) {
+            this._instancedTags.set(geoObject.tag, {
+                ...tagData,
+                texturesApplied: true
+            });
+            this._texCoordArr[ti] = geoObject._texCoords;
+            this._textures[ti] = this._renderer.handler.transparentTexture;
+            const image = await loadImage(src);
+            this._textures[ti] = this._renderer.handler.createTexture_mm(image);
         }
+        this._changedBuffers[TEXCOORD_BUFFER] = true;
     }
 
     setRenderNode(renderNode) {
@@ -250,6 +255,7 @@ class GeoObjectHandler {
         if (!alreadyAdded) {
             this._instancedTags.set(tag, {
                 iCounts: 1,
+                texturesApplied: false,
                 maxIndex: Math.max(...geoObject._indices),
                 index: this._instancedTags.size
             });
