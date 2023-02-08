@@ -14,6 +14,7 @@ import { DebugInfo } from "../../src/og/control/DebugInfo.js";
 import { ToggleWireframe } from "../../src/og/control/ToggleWireframe.js";
 import { VisibleExtent } from "../../src/og/control/visibleExtent/VisibleExtent.js";
 import { TimelineControl } from "../../src/og/control/timeline/TimelineControl.js";
+import { Vec3 } from "../../src/og/math/Vec3.js";
 
 let cnv = document.createElement("canvas");
 let ctx = cnv.getContext("2d");
@@ -173,10 +174,13 @@ let sat = new XYZ("sat", {
     //textureFilter: "linear",
     // diffuse: "rgb(325,325,355)",
     // ambient: "rgb(75,75,105)",
-    diffuse: "rgb(500-77,490-77,540-128)",
-    shininess: 10,
-    specular: "rgb(51,25,3)",
-    ambient: "rgb(77,77,128)",
+    //diffuse: "rgb(500-77,490-77,540-128)",
+    shininess: 17,
+    //specular: "rgb(0.16575, 0.14152, 0.06375)",
+    specular: [0.00065, 0.00055, 0.00025],
+    ambient: "rgb(80,80,80)",
+    diffuse: "rgb(400,400,400)",
+    //ambient: "rgb(77,77,128)",
     urlRewrite: function (s, u) {
         return stringTemplate(u, {
             's': this._getSubdomain(),
@@ -210,9 +214,9 @@ var globus = new Globe({
     //maxEqualZoomAltitude: 1,
     layers: [sat, tg, osm],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
-    useNightTexture: false,
+    //useNightTexture: false,
     //useEarthNavigation: true,
-    useSpecularTexture: false
+    //useSpecularTexture: false
 });
 
 //globus.renderer.fontAtlas.loadFont("chinese.msyh", "//assets.msn.com/weathermapdata/1/static/3d/label/zh-cn/font-v2.2/", "chinese.msyh.json");

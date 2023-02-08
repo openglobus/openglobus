@@ -80,13 +80,6 @@ class Camera {
         this._viewAngle = options.viewAngle || 47.0;
 
         /**
-         * Camera normal matrix.
-         * @protected
-         * @type {Mat3}
-         */
-        this._normalMatrix = new Mat3();
-
-        /**
          * Camera view matrix.
          * @protected
          * @type {Mat4}
@@ -270,8 +263,6 @@ class Camera {
             -eye.dot(n),
             1.0
         ]);
-
-        this._normalMatrix = this._viewMatrix.toMatrix3(); // this._viewMatrix.toInverseMatrix3().transposeTo();
 
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             this.frustums[i].setViewMatrix(this._viewMatrix);
@@ -554,15 +545,6 @@ class Camera {
      */
     projectedSize(p, r) {
         return Math.atan(r / this.eye.distance(p)) * this._projSizeConst;
-    }
-
-    /**
-     * Returns normal matrix.
-     * @public
-     * @returns {Mat3} - Normal matrix.
-     */
-    getNormalMatrix() {
-        return this._normalMatrix._m;
     }
 
     /**

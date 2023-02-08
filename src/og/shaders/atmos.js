@@ -16,22 +16,23 @@ export const COMMON =
     const float TOP_RADIUS = 6356752.3142451793 + ATMOS_HEIGHT;
         
     // Ellipsoid
-    vec3 bottomRadii = vec3(6378137.0, 6356752.3142451793, 6378137.0);           
-    vec3 topRadii = vec3(6378137.0 + ATMOS_HEIGHT, 6356752.3142451793 + ATMOS_HEIGHT, 6378137.0 + ATMOS_HEIGHT);
+    const vec3 bottomRadii = vec3(6378137.0, 6356752.3142451793, 6378137.0);           
+    const vec3 topRadii = vec3(6378137.0 + ATMOS_HEIGHT, 6356752.3142451793 + ATMOS_HEIGHT, 6378137.0 + ATMOS_HEIGHT);
         
     const float rayleighScaleHeight = 8e3;
     const float mieScaleHeight = 1.2e3;
     
     //rayleightScatteringCoefficient from waveLength
     //vec3 waveLength = vec3(680e-9, 550e-9, 440e-9);
-    //const vec3 rayleighScatteringCoefficient = (1.0 / pow(waveLength, vec3(4.0))) * 1.241e-30;
-    
+    //const vec3 rayleighScatteringCoefficient = (1.0 / pow(waveLength, vec3(4.0))) * 1.241e-30;    
     const vec3 rayleighScatteringCoefficient = vec3(5.8e-6, 13.5e-6, 33.1e-6);
+    
     const float mieScatteringCoefficient = 3.996e-06;
     const float mieExtinctionCoefficient = 4.440e-06;
     const vec3 ozoneAbsorptionCoefficient = vec3(0.650e-6, 1.881e-6, 0.085e-6);
-    const float sunAngularRadius = 0.004685 * 2.0;
-    const float sunIntensity = 1.0;
+    
+    const float SUN_ANGULAR_RADIUS = 0.004685 * 2.0;
+    const float SUN_INTENSITY = 1.0;
         
     float lerp(in float min, in float max, in float a)
     {
@@ -40,7 +41,7 @@ export const COMMON =
     
     vec3 sunWithBloom(vec3 rayDir, vec3 sunDir) 
     {
-        float minSunCosTheta = cos(sunAngularRadius);            
+        float minSunCosTheta = cos(SUN_ANGULAR_RADIUS);            
         float cosTheta = dot(rayDir, sunDir);
         if (cosTheta >= minSunCosTheta) return vec3(1.0);                
         float offset = minSunCosTheta - cosTheta;
@@ -311,7 +312,7 @@ export function scattering() {
 //     float cos_theta_h = -sqrt(max(1.0 - sin_theta_h * sin_theta_h, 0.0));
 //
 //     return GetTransmittanceToTopAtmosphereBoundary(transmittance_texture, r, mu_s) * smoothstep(
-//         -sin_theta_h * sunAngularRadius / rad, sin_theta_h * sunAngularRadius / rad,
+//         -sin_theta_h * SUN_ANGULAR_RADIUS / rad, sin_theta_h * SUN_ANGULAR_RADIUS / rad,
 //         mu_s - cos_theta_h
 //     );
 // }

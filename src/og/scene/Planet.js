@@ -1160,9 +1160,7 @@ export class Planet extends RenderNode {
             sh = h.programs.drawnode_screen_wl._program;
             shu = sh.uniforms;
 
-            gl.uniform4fv(shu.lightsPositions, this._lightsTransformedPositions);
-
-            gl.uniformMatrix3fv(shu.normalMatrix, false, cam.getNormalMatrix());
+            gl.uniform3fv(shu.lightsPositions, this._lightsPositions);
             gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
             gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
@@ -1180,7 +1178,8 @@ export class Planet extends RenderNode {
             // Night and specular
             //
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
-            gl.bindTexture(gl.TEXTURE_2D, (this.camera._lonLat.height > 329958.0 && (this._nightTexture || this.transparentTexture)) || this.transparentTexture);
+            //gl.bindTexture(gl.TEXTURE_2D, (this.camera._lonLat.height > 329958.0 && (this._nightTexture || this.transparentTexture)) || this.transparentTexture);
+            gl.bindTexture(gl.TEXTURE_2D, this._nightTexture || this.transparentTexture);
             gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
 
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
@@ -1198,12 +1197,8 @@ export class Planet extends RenderNode {
             gl.bindTexture(gl.TEXTURE_2D, this.renderer.controls.Atmosphere._scatteringBuffer.textures[0]);
             gl.uniform1i(shu.scatteringTexture, this.SLICE_SIZE + 5);
 
-            let sunPos = this.renderer.controls.sun.sunlight.getPosition();
-            gl.uniform3fv(shu.sunPos, [sunPos.x, sunPos.y, sunPos.z]);
-
             gl.uniform1f(shu.camPosOffsetGround, window.camPosOffsetGround || 0);
             gl.uniform1f(shu.camHeight, cam.getHeight());
-            //gl.uniform1f(shu.earthRadius, this.planet.ellipsoid.getPolarSize() + 1);
 
         } else {
             h.programs.drawnode_screen_nl.activate();
@@ -1219,7 +1214,8 @@ export class Planet extends RenderNode {
         //
         // drawing planet nodes
         //
-        var rn = this._renderedNodesInFrustum[frustumIndex], sl = this._visibleTileLayerSlices;
+        var rn = this._renderedNodesInFrustum[frustumIndex],
+            sl = this._visibleTileLayerSlices;
 
         if (sl.length) {
             let sli = sl[0];
