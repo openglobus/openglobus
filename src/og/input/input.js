@@ -42,5 +42,7 @@ export const input = {
     KEY_APOSTROPHE: 192,
     MB_LEFT: 0,
     MB_RIGHT: 2,
-    MB_MIDDLE: 1
+    MB_MIDDLE: 1,
+    KEY_BACK_SLASH: 220,
+    KEY_SINGLE_QUOTE: 222
 };
