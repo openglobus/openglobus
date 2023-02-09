@@ -23,8 +23,24 @@ class Dialog extends View {
         this.$constainer;
     }
 
+    static set __zIndex(n) {
+        this.__zIndex__ = n;
+    }
+
+    static get __zIndex() {
+        if (!this.__zIndex__ && this.__zIndex__ !== 0) {
+            this.__zIndex__ = 0;
+        }
+        return this.__zIndex__;
+    }
+
+    bringToFront() {
+        this.el.style.zIndex = Dialog.__zIndex++;
+    }
+
     render(params) {
         super.render(params);
+        this.bringToFront();
         this.$header = this.select(".og-ddialog-header");
         this.$title = this.select(".og-ddialog-header__title");
         this.$container = this.select(".og-ddialog-container");
@@ -34,11 +50,17 @@ class Dialog extends View {
 
     _initEvents() {
         this.$header.addEventListener("mousedown", this._onMouseDown.bind(this));
+        this.el.addEventListener("mousedown", this._onMouseDownAll.bind(this));
+    }
+
+    _onMouseDownAll() {
+        this.bringToFront();
     }
 
     _onMouseDown(e) {
         e = e || window.event;
         e.preventDefault();
+
         this._startPosX = e.clientX;
         this._startPosY = e.clientY;
 

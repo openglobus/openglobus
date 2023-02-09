@@ -239,5 +239,8 @@ globus.planet.renderer.controls.sun.stop()
 
 window.globus = globus;
 
-let dial = new Dialog();
-dial.appendTo(document.body);
+let dial1 = new Dialog();
+dial1.appendTo(document.body);
+
+let dial2 = new Dialog();
+dial2.appendTo(document.body);
