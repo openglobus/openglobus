@@ -506,7 +506,8 @@ export function drawnode_screen_wl_webgl2() {
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
             }`,
 
-        fragmentShader: `#version 300 es
+        fragmentShader:
+            `#version 300 es
 
             precision highp float;
             
@@ -578,16 +579,14 @@ export function drawnode_screen_wl_webgl2() {
                 sunIlluminance = SUN_INTENSITY * transmittanceFromTexture(height, mu_s);
             }
            
-            void atmosGroundColor(out vec4 fragColor, in vec3 normal, out vec3 sunIlluminance)
-            {
-                vec3 scale = vec3(BOTTOM_RADIUS) / bottomRadii;
-                                                                                                                                
+            void atmosGroundColor(out vec4 fragColor, in vec3 normal)
+            {                                                                                                                                
                 vec3 rayDirection = normalize(v_vertex - cameraPosition);
                 vec3 lightDir = normalize(sunPos);
                 
-                rayDirection = normalize(rayDirection * scale);
-                vec3 camPos = cameraPosition * scale;
-                lightDir = normalize(lightDir * scale);
+                rayDirection = normalize(rayDirection * SPHERE_TO_ELLIPSOID_SCALE);
+                vec3 camPos = cameraPosition * SPHERE_TO_ELLIPSOID_SCALE;
+                lightDir = normalize(lightDir * SPHERE_TO_ELLIPSOID_SCALE);
             
                 vec3 light = vec3(0.0);
                 vec3 transmittanceFromCameraToSpace = vec3(1.0);
@@ -619,10 +618,10 @@ export function drawnode_screen_wl_webgl2() {
                 
                 bool hitGround = intersectSphere(camPos, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;                
                 
-                // Fix black dots on the edge of atmosphere                             
+                // Fix black dots on the edge of atmosphere                        
                 if(camHeight < 700000.0 || !hitGround)
                 {                          
-                    distanceToGround = distance(camPos, v_vertex * scale);
+                    distanceToGround = distance(camPos, v_vertex * SPHERE_TO_ELLIPSOID_SCALE);
                 }
                                                                 
                 float segmentLength = (distanceToGround - max(offset, 0.0)) / float(SAMPLE_COUNT);
@@ -667,19 +666,16 @@ export function drawnode_screen_wl_webgl2() {
                 vec3 scatteringLight = multipleScatteringContributionFromTexture(height, lightAngle);
                 vec3 diffuseTransmittanceLight = transmittanceLight * diffuseAngle;                
                 light += tA * (scatteringLight + diffuseTransmittanceLight);
-                
-                getSunIlluminance(v_vertex * scale, lightDir, sunIlluminance);
-            
-                vec3 color = light;
-                // tone mapping
-                // float exposure = 10.0;
-                // color = (1.0 - exp(color * -exposure));
-                color *= 8.0;
-                //color = aces(color);
-                  
-                color = pow(color, vec3(1.0 / 2.2));
-                                     
-                fragColor = vec4(color, 1.0);
+                                                                
+                fragColor = vec4(pow(light * 8.0, vec3(1.0 / 2.2)), 1.0);
+            }
+
+            void getAtmosFadingOpacity(out float opacity){            
+                float c = length(cameraPosition);
+                float maxDist = sqrt(c * c - BOTTOM_RADIUS * BOTTOM_RADIUS);
+                float minDist = c - BOTTOM_RADIUS;
+                float vertDist = distance(cameraPosition, v_vertex);                    
+                opacity = ATMOS_OPACITY_MIN + (ATMOS_OPACITY_MAX - ATMOS_OPACITY_MIN) * lerp(minDist, maxDist, vertDist);
             }
 
             void main(void) {
@@ -693,26 +689,34 @@ export function drawnode_screen_wl_webgl2() {
                                             
                 vec3 lightDir = normalize(sunPos - v_vertex);                       
                 vec3 viewDir = normalize(cameraPosition - v_vertex);
-                vec3 reflectionDirection = reflect(-lightDir, normal);
-                vec4 nightImageColor = texture( nightTexture, vGlobalTextureCoord.st );
-
+                
+                vec4 atmosColor;
+                atmosGroundColor(atmosColor, normal);
+                
+                vec3 sunIlluminance;                
+                getSunIlluminance(v_vertex * SPHERE_TO_ELLIPSOID_SCALE, lightDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
+                
                 float overGround = 1.0 - step(0.1, v_height);
+                
                 float shininess = texture( specularTexture, vGlobalTextureCoord.st ).r * 255.0 * overGround;
+                vec3 reflectionDirection = reflect(-lightDir, normal);
                 float reflection = max( dot(reflectionDirection, viewDir), 0.0);
+                vec3 spec = sunIlluminance * specular.rgb * pow( reflection, specular.w) * shininess;
+                
                 float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
                 
+                vec4 nightImageColor = texture( nightTexture, vGlobalTextureCoord.st );
                 vec3 night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb;
                 night *= overGround * step(0.0, night);
-
-                vec4 atmosColor;
-                vec3 sunIlluminance;                
-                atmosGroundColor(atmosColor, normal, sunIlluminance);  
                 
-                vec3 spec = specular.rgb * pow( reflection, specular.w) * shininess;
-                vec4 lightWeighting = vec4(ambient + sunIlluminance * diffuse * diffuseLightWeighting + night * 5.0, 1.0);                             
+                vec4 lightWeighting = vec4(ambient + sunIlluminance * diffuse * diffuseLightWeighting + night * 2.5, 1.0);
+                
+                float fadingOpacity;
+                getAtmosFadingOpacity(fadingOpacity);
 
                 diffuseColor = texture( defaultTexture, vTextureCoord.xy );
                 if( samplerCount == 0 ) {
+                    diffuseColor = mix(diffuseColor * lightWeighting, atmosColor, fadingOpacity) + vec4(spec, 0.0);
                     return;
                 }
 
@@ -720,39 +724,30 @@ export function drawnode_screen_wl_webgl2() {
 
                 blend(diffuseColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
                 if( samplerCount == 1 ) {                
-                    diffuseColor *= lightWeighting;
-                                        
-                    float c = length(cameraPosition);
-                    float maxDist = sqrt(c * c - BOTTOM_RADIUS * BOTTOM_RADIUS);
-                    float minDist = c - BOTTOM_RADIUS;
-                    float vertDist = distance(cameraPosition, v_vertex);
-                    
-                    float f = ATMOS_OPACITY_MIN + (ATMOS_OPACITY_MAX - ATMOS_OPACITY_MIN) * lerp(minDist, maxDist, vertDist);
-
-                    diffuseColor = mix(diffuseColor, atmosColor, f) + vec4(spec, 0.0);
+                    diffuseColor = mix(diffuseColor * lightWeighting, atmosColor, fadingOpacity) + vec4(spec, 0.0);
                     return;
                 }
 
                 blend(diffuseColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
                 if( samplerCount == 2 ) {
-                    diffuseColor *= lightWeighting;
+                    diffuseColor = mix(diffuseColor * lightWeighting, atmosColor, fadingOpacity) + vec4(spec, 0.0);
                     return;
                 }
 
                 blend(diffuseColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
                 if( samplerCount == 3 ) {
-                    diffuseColor *= lightWeighting;
+                    diffuseColor = mix(diffuseColor * lightWeighting, atmosColor, fadingOpacity) + vec4(spec, 0.0);
                     return;
                 }
 
                 blend(diffuseColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
                 if( samplerCount == 4 ) {
-                    diffuseColor *= lightWeighting;
+                    diffuseColor = mix(diffuseColor * lightWeighting, atmosColor, fadingOpacity) + vec4(spec, 0.0);
                     return;
                 }
 
                 blend(diffuseColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
-                diffuseColor *= lightWeighting;
+                diffuseColor = mix(diffuseColor * lightWeighting, atmosColor, fadingOpacity) + vec4(spec, 0.0);
             }`
     });
 }

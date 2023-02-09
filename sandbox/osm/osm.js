@@ -15,6 +15,7 @@ import { ToggleWireframe } from "../../src/og/control/ToggleWireframe.js";
 import { VisibleExtent } from "../../src/og/control/visibleExtent/VisibleExtent.js";
 import { TimelineControl } from "../../src/og/control/timeline/TimelineControl.js";
 import { Vec3 } from "../../src/og/math/Vec3.js";
+import { Dialog } from "../../src/og/ui/Dialog.js";
 
 let cnv = document.createElement("canvas");
 let ctx = cnv.getContext("2d");
@@ -151,8 +152,11 @@ let osm = new XYZ("osm", {
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#AAD3DF" }, { color: "#F2EFE9" }],
     isSRGB: false,
-    diffuse: "rgb(255,255,255)",
-    ambient: "rgb(0,0,0)",
+    shininess: 18,
+    //specular: "rgb(0.16575, 0.14152, 0.06375)",
+    specular: [0.00063, 0.00055, 0.00032],
+    ambient: "rgb(100,100,140)",
+    diffuse: "rgb(450,450,450)",
     //textureFilter: "linear"
 });
 
@@ -175,11 +179,11 @@ let sat = new XYZ("sat", {
     // diffuse: "rgb(325,325,355)",
     // ambient: "rgb(75,75,105)",
     //diffuse: "rgb(500-77,490-77,540-128)",
-    shininess: 17,
+    shininess: 18,
     //specular: "rgb(0.16575, 0.14152, 0.06375)",
-    specular: [0.00065, 0.00055, 0.00025],
-    ambient: "rgb(80,80,80)",
-    diffuse: "rgb(400,400,400)",
+    specular: [0.00063, 0.00055, 0.00032],
+    ambient: "rgb(100,100,140)",
+    diffuse: "rgb(450,450,450)",
     //ambient: "rgb(77,77,128)",
     urlRewrite: function (s, u) {
         return stringTemplate(u, {
@@ -210,11 +214,11 @@ var globus = new Globe({
     maxAltitude: 15000000,
     minAltitude: 1,
     //terrain: highResTerrain,
-    terrain: new GlobusTerrain(),
+    terrain: new MapboxTerrain(),
     //maxEqualZoomAltitude: 1,
     layers: [sat, tg, osm],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
-    //useNightTexture: false,
+    useNightTexture: false,
     //useEarthNavigation: true,
     //useSpecularTexture: false
 });
@@ -234,3 +238,6 @@ globus.planet.renderer.controls.sun.stop()
 //globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
 
 window.globus = globus;
+
+let dial = new Dialog();
+dial.appendTo(document.body);

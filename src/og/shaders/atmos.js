@@ -18,6 +18,8 @@ export const COMMON =
     // Ellipsoid
     const vec3 bottomRadii = vec3(6378137.0, 6356752.3142451793, 6378137.0);           
     const vec3 topRadii = vec3(6378137.0 + ATMOS_HEIGHT, 6356752.3142451793 + ATMOS_HEIGHT, 6378137.0 + ATMOS_HEIGHT);
+    
+    const vec3 SPHERE_TO_ELLIPSOID_SCALE = vec3(BOTTOM_RADIUS) / bottomRadii;
         
     const float rayleighScaleHeight = 8e3;
     const float mieScaleHeight = 1.2e3;
