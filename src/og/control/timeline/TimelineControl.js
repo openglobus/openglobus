@@ -2,6 +2,7 @@
 
 import { Control } from '../Control.js';
 import { TimelineView } from './TimelineView.js';
+import { Dialog } from "../../ui/Dialog.js";
 
 function addHours(date, hours) {
     const temp = new Date(date);
@@ -28,7 +29,15 @@ class TimelineControl extends Control {
 
     oninit() {
 
-        this._timelineView.appendTo(this.renderer.div);
+        let dialog = new Dialog({
+            title: "Timeline",
+            useHide: true,
+            width: 600,
+            height: 90,
+            appendTo: document.body
+        });
+
+        this._timelineView.appendTo(dialog.container);
         this._timelineView.setWidth(600);
         this._timelineView.on("setcurrent", (d) => {
             this.renderer.handler.defaultClock.setDate(d);

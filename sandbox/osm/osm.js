@@ -238,14 +238,3 @@ globus.planet.renderer.controls.sun.stop()
 //globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
 
 window.globus = globus;
-
-let dial1 = new Dialog({
-    title: "Hello world",
-    useHide: true
-});
-dial1.appendTo(document.body);
-
-window.dial1 = dial1;
-
-let dial2 = new Dialog();
-dial2.appendTo(document.body);

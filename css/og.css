@@ -3,6 +3,7 @@
     --grey1: #434244; /*dialog header background*/
     --grey2: #3F3F46; /*dialog border*/
     --grey3: #BBBBBB; /*dialog font color*/
+    --grey4: #636363; /*dialog header button hover color*/
 }
 
 .ogCenterIcon {
@@ -226,8 +227,6 @@ input {
 }
 
 .og-ddialog {
-    width: 300px;
-    height: 200px;
     position: absolute;
     display: flex;
     flex-direction: column;
@@ -236,6 +235,7 @@ input {
     border: 1px solid;
     border-color: var(--grey1);
     border-radius: 4px;
+    overflow: auto;
 }
 
 .og-ddialog .og-ddialog-header {
@@ -256,6 +256,9 @@ input {
     color: var(--grey3);
     padding-left: 5px;
     pointer-events: none;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
 }
 
 .og-ddialog .og-ddialog-header .og-ddialog-header__buttons {
@@ -289,12 +292,18 @@ input {
     justify-content: center;
 }
 
+.og-button .og-button-text {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+}
+
 .og-button.og-button__active {
 
 }
 
 .og-button:hover {
-    background-color: #636363;
+    background-color: var(--grey4);
 }
 
 .og-button-size__20 {

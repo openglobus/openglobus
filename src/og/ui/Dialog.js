@@ -4,8 +4,7 @@ import { View } from './View.js';
 import { getDefault, stringTemplate } from '../utils/shared.js';
 import { Button } from './Button.js';
 
-const TEMPLATE =
-    `<div class="og-ddialog" style="display:{display}">
+const TEMPLATE = `<div class="og-ddialog" style="display:{display}; resize:{resize}; width: {width}px; height: {height}px">
        <div class="og-ddialog-header">
          <div class="og-ddialog-header__title">{title}</div>      
          <div class="og-ddialog-header__buttons"></div>      
@@ -13,8 +12,7 @@ const TEMPLATE =
        <div class="og-ddialog-container"></div>
     </div>>`;
 
-const CLOSE_ICON =
-    `<svg className="svg-icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor; overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+const CLOSE_ICON = `<svg className="svg-icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor; overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
     <path d="M777.856 280.192l-33.92-33.952-231.872 231.872-231.84-231.872-33.984 33.888 231.872 231.904-231.84 231.84 33.888 33.984 231.904-231.904 231.84 231.872 33.952-33.888-231.872-231.904z"/>
 </svg>`
 
@@ -23,10 +21,12 @@ class Dialog extends View {
         super({
             template: stringTemplate(TEMPLATE, {
                 title: options.title || "",
-                display: getDefault(options.visibility, true) ? "flex" : "none"
+                display: getDefault(options.visibility, true) ? "flex" : "none",
+                resize: getDefault(options.resizable, true) ? "both" : "none",
+                width: options.width || 300,
+                height: options.height || 200
             }),
-            eventList: ["resize", "focus", "visibility", ...(options.eventList || [])],
-            ...options
+            eventList: ["resize", "focus", "visibility", "startdrag", "enddrag", ...(options.eventList || [])], ...options
         });
 
         this.$header;
@@ -39,6 +39,10 @@ class Dialog extends View {
         this.useHide = options.useHide || false;
 
         this._visibility = getDefault(options.visibility, true);
+
+        if (options.appendTo) {
+            this.appendTo(options.appendTo);
+        }
     }
 
     static set __zIndex(n) {
@@ -50,6 +54,14 @@ class Dialog extends View {
             this.__zIndex__ = 0;
         }
         return this.__zIndex__;
+    }
+
+    setContainer(htmlStr) {
+        this.$constainer.innerHTML = htmlStr;
+    }
+
+    get container() {
+        return this.$container;
     }
 
     bringToFront() {
@@ -103,8 +115,7 @@ class Dialog extends View {
 
     _initButtons() {
         this._closeBtn = new Button({
-            icon: CLOSE_ICON,
-            className: "og-button-size__20"
+            icon: CLOSE_ICON, className: "og-button-size__20"
         });
 
         this._onCloseBtnClick_ = this._onCloseBtnClick.bind(this);
@@ -161,11 +172,17 @@ class Dialog extends View {
     }
 
     _startDragging() {
-        this.el.classList.add("dragging");
+        if (!this.el.classList.contains("dragging")) {
+            this.el.classList.add("dragging");
+            this._events.dispatch(this._events.startdrag, this);
+        }
     }
 
     _clearDragging() {
-        this.el.classList.remove("dragging");
+        if (this.el.classList.contains("dragging")) {
+            this._events.dispatch(this._events.enddrag, this);
+            this.el.classList.remove("dragging");
+        }
     }
 
     _onMouseUp() {
