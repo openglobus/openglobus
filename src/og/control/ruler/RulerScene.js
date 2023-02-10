@@ -13,11 +13,6 @@ import { Object3d } from '../../Object3d.js';
 
 const OUTLINE_COUNT = 120;
 
-const MAX_SCALE = 0.005;
-const MIN_SCALE = 0.001;
-const MAX_SCALE_HEIGHT = 3000.0;
-const MIN_SCALE_HEIGHT = 19000000.0;
-
 function distanceFormat(v) {
     if (v > 1000) {
         return `${(v / 1000).toFixed(1)} km`;
@@ -119,7 +114,9 @@ class RulerScene extends RenderNode {
         this._cornersLayer = new Vector("corners", {
             entities: [this._cornerEntity[0], this._cornerEntity[1]],
             pickingEnabled: true,
-            displayInLayerSwitcher: false
+            displayInLayerSwitcher: false,
+            scaleByDistance: [1.0, 4000000, 0.01],
+            pickingScale: 2
         });
     }
 
@@ -308,21 +305,11 @@ class RulerScene extends RenderNode {
         this._cornerEntity[1].geoObject.setVisibility(false);
     }
 
-    getScale(cart) {
-        let r = this.renderer;
-        let t = 1.0 - (r.activeCamera._lonLat.height - MAX_SCALE_HEIGHT) / (MIN_SCALE_HEIGHT - MAX_SCALE_HEIGHT);
-        let _distanceToCamera = cart.distance(r.activeCamera.eye);
-        return math.lerp(t < 0 ? 0 : t, MAX_SCALE, MIN_SCALE) * _distanceToCamera;
-    }
-
     frame() {
         let t = this._trackEntity.polyline.getPath3v()[0];
         if (t) {
             this._cornerEntity[0].setCartesian3v(t[0].clone());
             this._cornerEntity[1].setCartesian3v(t[t.length - 1].clone());
-
-            this._cornerEntity[0].geoObject.setScale(this.getScale(this._cornerEntity[0].getCartesian()));
-            this._cornerEntity[1].geoObject.setScale(this.getScale(this._cornerEntity[1].getCartesian()));
 
             if (!this._ignoreTerrain) {
                 let res = 0;

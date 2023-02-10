@@ -217,18 +217,23 @@ class GeoObjectHandler {
         }
     }
 
-    async setTexture(geoObject) {
+    async _applyTexture(geoObject) {
         const src = geoObject._src,
-            ti = this._instancedTags.get(geoObject.tag).index;
-        if (!this._texCoordArr[ti]) this._texCoordArr[ti] = [];
-        if (geoObject._src) {
-            if (this._texCoordArr[ti].length === 0) {
-                this._texCoordArr[ti] = geoObject._texCoords;
-                this._textures[ti] = this._renderer.handler.transparentTexture;
-                const image = await loadImage(src);
-                this._textures[ti] = this._renderer.handler.createTexture_mm(image);
-            }
+            tagData = this._instancedTags.get(geoObject.tag),
+            ti = tagData.index;
+
+        this._texCoordArr[ti] = new Array(geoObject._verticesCount * 2).fill(0);
+        if (geoObject._src && !tagData.texturesApplied) {
+            this._instancedTags.set(geoObject.tag, {
+                ...tagData,
+                texturesApplied: true
+            });
+            this._texCoordArr[ti] = geoObject._texCoords;
+            this._textures[ti] = this._renderer.handler.transparentTexture;
+            const image = await loadImage(src);
+            this._textures[ti] = this._renderer.handler.createTextureDefault(image);
         }
+        this._changedBuffers[TEXCOORD_BUFFER] = true;
     }
 
     setRenderNode(renderNode) {
@@ -250,6 +255,7 @@ class GeoObjectHandler {
         if (!alreadyAdded) {
             this._instancedTags.set(tag, {
                 iCounts: 1,
+                texturesApplied: false,
                 maxIndex: Math.max(...geoObject._indices),
                 index: this._instancedTags.size
             });
@@ -290,7 +296,7 @@ class GeoObjectHandler {
                     ...geoObject._normals
                 )
             );
-            this.setTexture(geoObject)
+            this._applyTexture(geoObject)
 
         }
         this._vehicleVisibleArr[ti] = concatArrays(
@@ -380,7 +386,7 @@ class GeoObjectHandler {
 
         gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera.getViewMatrix());
-        gl.uniformMatrix3fv(u.normalMatrix, false, r.activeCamera._normalMatrix._m);
+        gl.uniformMatrix3fv(u.normalMatrix, false, r.activeCamera.getNormalMatrix());
 
         gl.uniform4fv(u.lightsPositions, this._planet._lightsTransformedPositions);
         gl.uniform3fv(u.lightsParamsv, this._planet._lightsParamsv);
