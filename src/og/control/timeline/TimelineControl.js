@@ -31,9 +31,10 @@ class TimelineControl extends Control {
 
         let dialog = new Dialog({
             title: "Timeline",
+            resizable: false,
             useHide: true,
             width: 600,
-            height: 90,
+            height: 88,
             appendTo: document.body
         });
 
