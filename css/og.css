@@ -1,5 +1,8 @@
 :root {
-    --main-bg-color: #1596A7;
+    --grey0: #1E1E1E; /*dialog background*/
+    --grey1: #434244; /*dialog header background*/
+    --grey2: #3F3F46; /*dialog border*/
+    --grey3: #BBBBBB; /*dialog font color*/
 }
 
 .ogCenterIcon {
@@ -225,13 +228,13 @@ input {
 .og-ddialog {
     width: 300px;
     height: 200px;
-    background: #ccc;
     position: absolute;
     display: flex;
     flex-direction: column;
     box-shadow: 3px 3px 4px rgba(15, 15, 15, 0.17);
-    background-color: rgb(64, 59, 59);
-    border: 1px solid #343434;
+    background-color: var(--grey0);
+    border: 1px solid;
+    border-color: var(--grey1);
     border-radius: 4px;
 }
 
@@ -241,12 +244,24 @@ input {
     position: relative;
     padding: 0;
     z-index: 1;
-    background: rgb(45 45 45);
+    background-color: var(--grey2);
     color: #fff;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .og-ddialog .og-ddialog-header .og-ddialog-header__title {
+    color: var(--grey3);
+    padding-left: 5px;
+    pointer-events: none;
+}
 
+.og-ddialog .og-ddialog-header .og-ddialog-header__buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
 }
 
 .og-ddialog .og-ddialog-container {
@@ -264,6 +279,28 @@ input {
     user-select: none;
 }
 
+.og-button {
+    display: flex;
+    align-items: center;
+    align-content: center;
+    padding: 2px;
+    flex-direction: row;
+    cursor: default;
+    justify-content: center;
+}
+
+.og-button.og-button__active {
+
+}
+
+.og-button:hover {
+    background-color: #636363;
+}
+
+.og-button-size__20 {
+    height: 20px;
+    width: 20px;
+}
 
 /* =============================== */
 /*     DIALOG HEADER BTN STYLING   */

@@ -145,6 +145,9 @@ class View {
 
     render(params) {
         this.el = this.renderTemplate(params);
+        if (this.className && this.className != "") {
+            this.el.classList.toggle(this.className);
+        }
         return this;
     }
 

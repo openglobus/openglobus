@@ -20,6 +20,20 @@ export function isEmpty(v) {
     return v == null;
 }
 
+/**
+ * Returns true if the object pointer is undefined.
+ * @function
+ * @param {Object} obj - Object pointer.
+ * @returns {boolean} Returns true if object is undefined.
+ */
+export function isUndef(obj) {
+    return obj === void 0;
+}
+
+export function isUndefExt(obj, defVal) {
+    return isUndef(obj) ? defVal : obj;
+}
+
 let _stampCounter = 0;
 
 export function stamp(obj) {
@@ -933,23 +947,13 @@ export function cloneArray(items) {
 }
 
 /**
- * Returns true if the object pointer is undefined.
- * @function
- * @param {Object} obj - Object pointer.
- * @returns {boolean} Returns true if object is undefined.
- */
-export function isUndef(obj) {
-    return obj === void 0;
-}
-
-/**
  * Promise for load images
  * @function
  * @param {string} url - link to image.
  * @returns {Promise<Image>} Returns promise.
  */
 export async function loadImage(url) {
-    return new  Promise(resolve => {
+    return new Promise(resolve => {
         const image = new Image();
         image.addEventListener('load', () => {
             resolve(image);
