@@ -4,7 +4,6 @@
 
 "use strict";
 
-import { ajax } from "../ajax.js";
 import { colorTable } from "./colorTable.js";
 import { Extent } from "../Extent.js";
 import { LonLat } from "../LonLat.js";
@@ -46,24 +45,6 @@ export function stamp(obj) {
 
 export function isString(s) {
     return typeof s === "string" || s instanceof String;
-}
-
-/**
- * Synchronous text file loading. Returns file text.
- * @param {string} fileUrl - File name path.
- * @returns {string} -
- */
-export function readTextFile(fileUrl) {
-    var res = "";
-
-    ajax.request(fileUrl, {
-        async: false,
-        success: function (data) {
-            res = data;
-        }
-    });
-
-    return res;
 }
 
 /**
