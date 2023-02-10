@@ -285,9 +285,9 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_n_webgl1(image, internalFormat) {
-        var gl = this.gl;
-        var texture = gl.createTexture();
+    createTexture_n_webgl1(image, internalFormat, texture) {
+        let gl = this.gl;
+        texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
@@ -305,13 +305,11 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_l_webgl1(image, internalFormat) {
+    createTexture_l_webgl1(image, internalFormat, texture) {
         let gl = this.gl;
-        let texture = gl.createTexture();
+        texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
-
         gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -326,9 +324,9 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_mm_webgl1(image, internalFormat) {
+    createTexture_mm_webgl1(image, internalFormat, texture) {
         let gl = this.gl;
-        let texture = gl.createTexture();
+        texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
@@ -346,9 +344,9 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_a_webgl1(image, internalFormat) {
+    createTexture_a_webgl1(image, internalFormat, texture) {
         let gl = this.gl;
-        let texture = gl.createTexture();
+        texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
@@ -367,9 +365,9 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_n_webgl2(image, internalFormat) {
-        var gl = this.gl;
-        var texture = gl.createTexture();
+    createTexture_n_webgl2(image, internalFormat, texture) {
+        let gl = this.gl;
+        texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
@@ -389,9 +387,9 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_l_webgl2(image, internalFormat) {
+    createTexture_l_webgl2(image, internalFormat, texture) {
         let gl = this.gl;
-        let texture = gl.createTexture();
+        texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
@@ -432,9 +430,9 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_a_webgl2(image, internalFormat) {
+    createTexture_a_webgl2(image, internalFormat, texture) {
         let gl = this.gl;
-        let texture = gl.createTexture();
+        texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);

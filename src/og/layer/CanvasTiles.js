@@ -13,19 +13,17 @@ import { Layer } from "./Layer.js";
  * @type {number}
  */
 
-const EVENT_NAMES = [
-    /**
-     * Triggered when current tile image has loaded before rendereing.
-     * @event og.layer.CanvasTiles#load
-     */
+const EVENT_NAMES = [/**
+ * Triggered when current tile image has loaded before rendereing.
+ * @event og.layer.CanvasTiles#load
+ */
     "load",
 
     /**
      * Triggered when all tiles have loaded or loading has stopped.
      * @event og.layer.CanvasTiles#loadend
      */
-    "loadend"
-];
+    "loadend"];
 
 /**
  * Layer used to rendering each tile as a separate canvas object.
@@ -50,7 +48,7 @@ class CanvasTiles extends Layer {
 
         this.events.registerNames(EVENT_NAMES);
 
-        this.animated = true;
+        this.animated = options.animated || false;
 
         this.minNativeZoom = options.minNativeZoom || 0;
         /**
@@ -178,22 +176,19 @@ class CanvasTiles extends Layer {
                 that.events.dispatch(e, material);
             }
             requestAnimationFrame(() => {
-                that.drawTile(
-                    material,
-                    /**
-                     * Apply canvas.
-                     * @callback applyCanvasCallback
-                     * @param {Object} canvas -
-                     */
-                    function (canvas) {
-                        that._counter--;
-                        CanvasTiles.__requestsCounter--;
-                        if (material.isLoading) {
-                            material.applyImage(canvas);
-                        }
-                        that._dequeueRequest();
+                that.drawTile(material, /**
+                 * Apply canvas.
+                 * @callback applyCanvasCallback
+                 * @param {Object} canvas -
+                 */
+                function (canvas) {
+                    that._counter--;
+                    CanvasTiles.__requestsCounter--;
+                    if (material.isLoading) {
+                        material.applyImage(canvas);
                     }
-                );
+                    that._dequeueRequest();
+                });
             });
         } else {
             material.textureNotExists();
@@ -233,10 +228,7 @@ class CanvasTiles extends Layer {
         while (this._pendingsQueue.length) {
             var pmat = this._pendingsQueue.pop();
             if (pmat.segment.node) {
-                if (
-                    pmat.segment.initialized &&
-                    pmat.segment.node.getState() === quadTree.RENDERING
-                ) {
+                if (pmat.segment.initialized && pmat.segment.node.getState() === quadTree.RENDERING) {
                     return pmat;
                 }
                 pmat.isLoading = false;
@@ -249,12 +241,9 @@ class CanvasTiles extends Layer {
         if (material.isReady) {
             if (material.layer.animated) {
                 requestAnimationFrame(() => {
-                    this.drawTile(
-                        material,
-                        function (canvas) {
-                            material.applyImage(canvas);
-                        }
-                    );
+                    this.drawTile(material, function (canvas) {
+                        material.applyImage(canvas);
+                    });
                 });
             }
             return [0, 0, 1, 1];
@@ -263,8 +252,7 @@ class CanvasTiles extends Layer {
         } else {
 
             let segment = material.segment;
-            let pn = segment.node,
-                notEmpty = false;
+            let pn = segment.node, notEmpty = false;
 
             if (segment.passReady && !material.isLoading) {
                 this.loadMaterial(material);
@@ -285,12 +273,9 @@ class CanvasTiles extends Layer {
 
                 if (material.layer.animated) {
                     requestAnimationFrame(() => {
-                        this.drawTile(
-                            material,
-                            function (canvas) {
-                                material.applyImage(canvas);
-                            }
-                        );
+                        this.drawTile(material, function (canvas) {
+                            material.applyImage(canvas);
+                        });
                     });
                 }
 
@@ -298,12 +283,7 @@ class CanvasTiles extends Layer {
                 material.texture = psegm.texture;
 
                 let dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
-                return [
-                    segment.tileX * dZ2 - pn.segment.tileX,
-                    segment.tileY * dZ2 - pn.segment.tileY,
-                    dZ2,
-                    dZ2
-                ];
+                return [segment.tileX * dZ2 - pn.segment.tileX, segment.tileY * dZ2 - pn.segment.tileY, dZ2, dZ2];
             } else {
                 material.texture = segment.planet.transparentTexture;
                 return [0, 0, 1, 1];
