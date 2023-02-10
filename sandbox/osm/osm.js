@@ -22,14 +22,17 @@ let ctx = cnv.getContext("2d");
 cnv.width = 256;
 cnv.height = 256;
 
+let frameCounter = 0;
+
 const tg = new CanvasTiles("Tile grid", {
     visibility: false,
     isBaseLayer: false,
     maxNativeZoom: 5,
+    animated: false,
     preLoadZoomLevels: [0],
     drawTile: function (material, applyCanvas) {
 
-        console.log("REDRAW");
+        frameCounter++;
 
         //Clear canvas
         ctx.clearRect(0, 0, cnv.width, cnv.height);
@@ -37,18 +40,18 @@ const tg = new CanvasTiles("Tile grid", {
         let size;
 
         if (material.segment.isPole) {
-            let ext = material.segment.getExtentLonLat();
-
-
-            if (material.segment.tileZoom > 14) {
-                size = "26";
-            } else {
-                size = "32";
-            }
-            ctx.fillStyle = 'black';
-            ctx.font = 'normal ' + size + 'px Verdana';
-            ctx.textAlign = 'center';
-            ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+            // let ext = material.segment.getExtentLonLat();
+            //
+            //
+            // if (material.segment.tileZoom > 14) {
+            //     size = "26";
+            // } else {
+            //     size = "32";
+            // }
+            // ctx.fillStyle = 'black';
+            // ctx.font = 'normal ' + size + 'px Verdana';
+            // ctx.textAlign = 'center';
+            // ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
         } else {
 
             if (material.segment.tileZoom > 14) {
@@ -60,14 +63,15 @@ const tg = new CanvasTiles("Tile grid", {
             ctx.font = 'normal ' + size + 'px Verdana';
             ctx.textAlign = 'center';
             ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+            //ctx.fillText(frameCounter, cnv.width / 2, cnv.height / 2);
         }
 
         //Draw border
-        //ctx.beginPath();
-        //ctx.rect(0, 0, cnv.width, cnv.height);
-        //ctx.lineWidth = 2;
-        //ctx.strokeStyle = "black";
-        //ctx.stroke();
+        ctx.beginPath();
+        ctx.rect(0, 0, cnv.width, cnv.height);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "black";
+        ctx.stroke();
 
         //Draw canvas tile
         applyCanvas(cnv);
@@ -155,8 +159,8 @@ let osm = new XYZ("osm", {
     shininess: 18,
     //specular: "rgb(0.16575, 0.14152, 0.06375)",
     specular: [0.00063, 0.00055, 0.00032],
-    ambient: "rgb(100,100,140)",
-    diffuse: "rgb(450,450,450)",
+    ambient: [0.2,0.2,0.3],
+    diffuse: [0.9,0.9,0.7],
     //textureFilter: "linear"
 });
 
