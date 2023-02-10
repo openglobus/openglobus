@@ -227,8 +227,6 @@ input {
 }
 
 .og-ddialog {
-    top: 0;
-    left: 0;
     position: absolute;
     display: flex;
     flex-direction: column;
@@ -392,6 +390,10 @@ input {
     white-space: nowrap;
     text-overflow: ellipsis;
     padding: 6px 0;
+    color: white;
+    font-size: 14px;
+    font-weight: 250;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .og-layer-switcher-record.og-depth-1,
@@ -400,12 +402,6 @@ input {
     font-size: 14px;
     font-weight: 250;
 }
-
-.og-layer-switcher-record.terrainProviders,
-.og-layer-switcher-record.baselayers {
-    height: 24px;
-}
-
 
 .og-layer-switcher-record.overlays > * {
     display: inline;

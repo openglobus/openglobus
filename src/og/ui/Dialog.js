@@ -4,7 +4,8 @@ import { View } from './View.js';
 import { getDefault, stringTemplate } from '../utils/shared.js';
 import { Button } from './Button.js';
 
-const TEMPLATE = `<div class="og-ddialog" style="display:{display}; resize:{resize}; width: {width}px; height: {height}px">
+const TEMPLATE = `<div class="og-ddialog" 
+        style="display:{display}; resize:{resize}; width: {width}px; {height}; top: {top}px; left: {left}px; right: {right}px">
        <div class="og-ddialog-header">
          <div class="og-ddialog-header__title">{title}</div>      
          <div class="og-ddialog-header__buttons"></div>      
@@ -24,9 +25,12 @@ class Dialog extends View {
                 display: getDefault(options.visible, true) ? "flex" : "none",
                 resize: getDefault(options.resizable, true) ? "both" : "none",
                 width: options.width || 300,
-                height: options.height || 200
+                height: options.height ? `height:${options.height || 200}` : "",
+                left: options.left || 0,
+                top: options.top || 0,
+                right: options.right || 0
             }),
-            eventList: ["resize", "focus", "visibility", "startdrag", "enddrag", ...(options.eventList || [])], ...options
+            eventList: ["resize", "focus", "visibility", "dragstart", "dragend", ...(options.eventList || [])], ...options
         });
 
         this.$header;
@@ -85,7 +89,7 @@ class Dialog extends View {
             this._visibility = true;
             this.el.style.display = "flex";
             this.bringToFront();
-            this._events.dispatch(this._events.visibility, true);
+            this._events.dispatch(this._events.visibility, true, this);
         }
     }
 
@@ -93,7 +97,7 @@ class Dialog extends View {
         if (this._visibility) {
             this._visibility = false;
             this.el.style.display = "none";
-            this._events.dispatch(this._events.visibility, false);
+            this._events.dispatch(this._events.visibility, false, this);
         }
     }
 
@@ -174,13 +178,13 @@ class Dialog extends View {
     _startDragging() {
         if (!this.el.classList.contains("dragging")) {
             this.el.classList.add("dragging");
-            this._events.dispatch(this._events.startdrag, this);
+            this._events.dispatch(this._events.dragstart, this);
         }
     }
 
     _clearDragging() {
         if (this.el.classList.contains("dragging")) {
-            this._events.dispatch(this._events.enddrag, this);
+            this._events.dispatch(this._events.dragend, this);
             this.el.classList.remove("dragging");
         }
     }

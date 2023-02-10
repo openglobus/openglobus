@@ -46,9 +46,20 @@ class LayerSwitcher extends Control {
     oninit() {
         this.dialog = new Dialog({
             title: "Layer switcher",
+            right: 60,
+            top: 15,
             useHide: true,
             appendTo: this.planet.renderer.div,
-            visible: false
+            visible: false,
+            width: 200
+        });
+
+        this.dialog.on("visibility", (v) => {
+            if (v) {
+                document.getElementById('og-layer-switcher-menu-btn').classList.remove("og-OFF");
+            } else {
+                document.getElementById('og-layer-switcher-menu-btn').classList.add("og-OFF");
+            }
         });
 
         this.setupSwitcher()
