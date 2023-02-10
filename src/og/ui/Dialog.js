@@ -21,7 +21,7 @@ class Dialog extends View {
         super({
             template: stringTemplate(TEMPLATE, {
                 title: options.title || "",
-                display: getDefault(options.visibility, true) ? "flex" : "none",
+                display: getDefault(options.visible, true) ? "flex" : "none",
                 resize: getDefault(options.resizable, true) ? "both" : "none",
                 width: options.width || 300,
                 height: options.height || 200
@@ -38,7 +38,7 @@ class Dialog extends View {
 
         this.useHide = options.useHide || false;
 
-        this._visibility = getDefault(options.visibility, true);
+        this._visibility = getDefault(options.visible, true);
 
         if (options.appendTo) {
             this.appendTo(options.appendTo);

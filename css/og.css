@@ -227,6 +227,8 @@ input {
 }
 
 .og-ddialog {
+    top: 0;
+    left: 0;
     position: absolute;
     display: flex;
     flex-direction: column;
@@ -274,10 +276,6 @@ input {
     height: 100%;
 }
 
-.og-ddialog.og-dialog__resizable {
-    resize: both;
-}
-
 .og-ddialog.dragging {
     user-select: none;
 }
@@ -309,44 +307,6 @@ input {
 .og-button-size__20 {
     height: 20px;
     width: 20px;
-}
-
-/* =============================== */
-/*     DIALOG HEADER BTN STYLING   */
-/*         General Settings        */
-/* =============================== */
-
-/* All buttons have this class + OFF if they are OFF */
-.og-dialog-header-btn {
-    height: 24px;
-    width: 24px;
-    cursor: pointer;
-}
-
-/* All buttons have a div inside to hold the background base64 image */
-.og-dialog-header-btn > div {
-    width: 24px;
-    height: 24px;
-    background-size: 14px;
-    background-position: 5px 5px !important;
-    filter: brightness(0) invert(0.6)
-}
-
-
-.og-dialog-header-btn.og-OFF > div:hover {
-    filter: brightness(0) invert(0.75)
-}
-
-.og-dialog-header-btn > div:hover {
-    filter: brightness(0) invert(0.75);
-}
-
-.og-dialog-header-title {
-    margin-left: 4px;
-    line-height: 22px;
-    font-size: 12px;
-    color: #aaaaaa;
-    width: fit-content;
 }
 
 /* =============================== */
@@ -476,11 +436,9 @@ details[open] > summary {
     display: block !important;
     height: 4px;
     margin-left: 4px;
-    /* background-color: #705affee; */
 }
 
 .og-layer-switcher-dropZone.og-drag-over {
-
     background-color: #705affee;
     opacity: 0.5;
 }
