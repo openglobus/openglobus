@@ -32,7 +32,6 @@ class LayerSwitcher extends Control {
             ...options
         });
 
-        this._id = LayerSwitcher.numSwitches++;
         this.switcherDependent = options.switcherDependent
         this.expandedSections = options.expandedSections
         this.docListener = options.docListener
@@ -50,17 +49,6 @@ class LayerSwitcher extends Control {
             classList: ["og-map-button", "og-layerswitcher_button"],
             icon: ICON_BUTTON_SVG
         });
-    }
-
-    static get numSwitches() {
-        if (!this._counter && this._counter !== 0) {
-            this._counter = 0;
-        }
-        return this._counter;
-    }
-
-    static set numSwitches(n) {
-        this._counter = n;
     }
 
     oninit() {

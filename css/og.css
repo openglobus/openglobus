@@ -1,9 +1,9 @@
 :root {
     --grey0: #1E1E1E; /*dialog background*/
-    --grey1: #434244; /*dialog header background*/
-    --grey2: #3F3F46; /*dialog border*/
+    --grey1: #434244; /*dialog border*/
+    --grey2: #3F3F46; /*dialog header*/
     --grey3: #BBBBBB; /*dialog font color*/
-    --grey4: #636363; /*hover color*/
+    --grey4: #5e5e5e; /*hover color*/
     --grey5: rgba(64, 59, 59, 0.85); /*map button background*/
     --grey6: #bfbfbf; /*map button icon color*/
     --blue0: #1700a9ee;
@@ -323,7 +323,7 @@ input {
 }
 
 .og-button:hover {
-    background-color: var(--grey2);
+    background-color: var(--grey4);
 }
 
 .og-button-size__20 {

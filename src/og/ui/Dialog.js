@@ -119,7 +119,8 @@ class Dialog extends View {
 
     _initButtons() {
         this._closeBtn = new Button({
-            icon: CLOSE_ICON, className: "og-button-size__20"
+            icon: CLOSE_ICON,
+            classList: ["og-button-size__20"]
         });
 
         this._onCloseBtnClick_ = this._onCloseBtnClick.bind(this);
