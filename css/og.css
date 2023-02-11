@@ -4,7 +4,19 @@
     --grey2: #3F3F46; /*dialog border*/
     --grey3: #BBBBBB; /*dialog font color*/
     --grey4: #636363; /*dialog header button hover color*/
+    --grey5: rgba(64, 59, 59, 0.85); /*map button*/
     --blue0: #1700a9ee;
+}
+
+.og-map-button {
+    height: 40px;
+    width: 40px;
+    position: absolute;
+    outline: none;
+    cursor: pointer;
+    z-index: 1;
+    border-radius: 4px;
+    background-color: var(--grey5);
 }
 
 .ogCenterIcon {
@@ -306,6 +318,10 @@ input {
 .og-button-size__20 {
     height: 20px;
     width: 20px;
+}
+
+.og-button__active {
+    background: red;
 }
 
 /* =============================== */
@@ -825,6 +841,12 @@ details[open] {
  TIMELINE
 ==========================
 */
+
+.og-timeline_button {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
 
 .og-timeline {
     background: rgb(45 45 45);

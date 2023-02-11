@@ -12,7 +12,7 @@ class View {
         this.model = options.model || null;
         this.template = options.template || "";
         this.parent = options.parent || null;
-        this.className = options.className || "";
+        this._classList = options.classList || [];
     }
 
     static set __staticCounter(n) {
@@ -145,8 +145,8 @@ class View {
 
     render(params) {
         this.el = this.renderTemplate(params);
-        if (this.className && this.className != "") {
-            this.el.classList.toggle(this.className);
+        for (let i = 0, len = this._classList.length; i < len; i++) {
+            this.el.classList.add(this._classList[i]);
         }
         return this;
     }
