@@ -24,12 +24,25 @@ class TimelineControl extends Control {
         let startDate = addHours(currentDate, -12), endDate = addHours(currentDate, 12);
 
         this._timelineView = new TimelineView({
-            width: 0, rangeStart: startDate, rangeEnd: endDate
+            width: 0,
+            rangeStart: startDate,
+            rangeEnd: endDate
         });
 
         this._toggleBtn = new ToggleButton({
             classList: ["og-map-button", "og-timeline_button"],
             icon: "T"
+        });
+
+        this._dialog = new Dialog({
+            title: "Timeline",
+            visible: false,
+            resizable: false,
+            useHide: true,
+            top: 10,
+            left: 60,
+            width: 600,
+            height: 88
         });
     }
 
@@ -38,27 +51,16 @@ class TimelineControl extends Control {
         let $container = this.renderer.div;
 
         this._toggleBtn.appendTo($container);
-
-        let dialog = new Dialog({
-            title: "Timeline",
-            visible: false,
-            resizable: false,
-            useHide: true,
-            top: 10,
-            left: 60,
-            width: 600,
-            height: 88,
-            appendTo: $container
-        });
+        this._dialog.appendTo($container);
 
         this._toggleBtn.on("change", (isActive) => {
-            dialog.setVisibility(isActive);
+            this._dialog.setVisibility(isActive);
             if (isActive) {
                 this._timelineView.resize();
             }
         })
 
-        this._timelineView.appendTo(dialog.container);
+        this._timelineView.appendTo(this._dialog.container);
         this._timelineView.setWidth(600);
         this._timelineView.on("setcurrent", (d) => {
             this.renderer.handler.defaultClock.setDate(d);
@@ -79,7 +81,6 @@ class TimelineControl extends Control {
         this._timelineView.on("stopdragcurrent", () => {
             this.renderer.controls.mouseNavigation.activate();
         });
-
     }
 }
 
