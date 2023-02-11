@@ -8,6 +8,15 @@ import { Control } from "./Control.js";
 import { elementFactory, appendChildren, toggleText, enableElmovement } from "../ui/UIhelpers.js";
 import { compose } from "../utils/functionComposition.js"
 import { Dialog } from "../ui/Dialog.js";
+import { ToggleButton } from "../ui/ToggleButton.js";
+
+const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="utf-8"?>
+<!-- Svg Vector Icons : http://www.onlinewebfonts.com/icon -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 1000 1000" enable-background="new 0 0 1000 1000" xml:space="preserve">
+<metadata> Svg Vector Icons : http://www.onlinewebfonts.com/icon </metadata>
+<g><path d="M500,573.5c-3.2,0-6.5-0.6-9.5-1.9L25,375.6c-9.1-3.8-15-12.7-15-22.6s5.9-18.8,15-22.6l465.5-196c6.1-2.5,12.9-2.5,19,0l465.5,196c9.1,3.8,15,12.7,15,22.6s-5.9,18.8-15,22.6l-465.5,196C506.5,572.9,503.2,573.5,500,573.5L500,573.5z M97.6,353L500,522.4L902.4,353L500,183.6L97.6,353L97.6,353z"/><path d="M500,720.5c-3.2,0-6.5-0.6-9.5-1.9L25,522.6c-12.4-5.2-18.3-19.6-13.1-32.1c5.2-12.5,19.6-18.3,32.1-13.1l456,192l456-192c12.4-5.2,26.9,0.6,32.1,13.1s-0.6,26.9-13.1,32.1l-465.5,196C506.5,719.9,503.2,720.5,500,720.5L500,720.5z"/><path d="M500,867.5c-3.2,0-6.5-0.6-9.5-1.9L25,669.6c-12.4-5.2-18.3-19.6-13.1-32.1c5.2-12.5,19.6-18.3,32.1-13.1l456,192l456-192c12.4-5.2,26.9,0.6,32.1,13.1c5.2,12.5-0.6,26.8-13.1,32.1l-465.5,196C506.5,866.9,503.2,867.5,500,867.5L500,867.5z"/></g>
+</svg>`;
 
 /**
  * Advanced :) layer switcher, includes base layers, overlays, geo images etc. groups.
@@ -26,10 +35,21 @@ class LayerSwitcher extends Control {
         this._id = LayerSwitcher.numSwitches++;
         this.switcherDependent = options.switcherDependent
         this.expandedSections = options.expandedSections
-        this.switcherInMenu = options.switcherInMenu // none (default)
         this.docListener = options.docListener
 
-        this.dialog;
+        this.dialog = new Dialog({
+            title: "Layer Switcher",
+            right: 67,
+            top: 15,
+            useHide: true,
+            visible: false,
+            width: 200
+        });
+
+        this._menuBtn = new ToggleButton({
+            classList: ["og-map-button", "og-layerswitcher_button"],
+            icon: ICON_BUTTON_SVG
+        });
     }
 
     static get numSwitches() {
@@ -44,22 +64,11 @@ class LayerSwitcher extends Control {
     }
 
     oninit() {
-        this.dialog = new Dialog({
-            title: "Layer switcher",
-            right: 60,
-            top: 15,
-            useHide: true,
-            appendTo: this.planet.renderer.div,
-            visible: false,
-            width: 200
-        });
+
+        this.dialog.appendTo(this.planet.renderer.div);
 
         this.dialog.on("visibility", (v) => {
-            if (v) {
-                document.getElementById('og-layer-switcher-menu-btn').classList.remove("og-OFF");
-            } else {
-                document.getElementById('og-layer-switcher-menu-btn').classList.add("og-OFF");
-            }
+            this._menuBtn.setActive(v);
         });
 
         this.setupSwitcher()
@@ -80,8 +89,6 @@ class LayerSwitcher extends Control {
     }
 
     ondeactivate() {
-        const $menuBtn = document.getElementById('og-layer-switcher-menu-btn')
-        $menuBtn.remove()
         this.dialog.hide();
     }
 
@@ -208,64 +215,21 @@ class LayerSwitcher extends Control {
     getUserPrefs() {
         const switcherDependency = this.switcherDependent == undefined ? true : this.switcherDependent
         const sectionsOpening = this.expandedSections == undefined ? true : this.expandedSections
-        const btnInMenu = this.switcherInMenu == undefined ? true : this.switcherInMenu
 
-        return { switcherDependency, sectionsOpening, btnInMenu }
+        return { switcherDependency, sectionsOpening }
     }
 
     buildBasicDOM() {
 
-        const { switcherDependency, sectionsOpening, btnInMenu } = this.getUserPrefs()
+        this._menuBtn.appendTo(this.planet.renderer.div);
 
-        // Basic DOM creation
-        const $menuBtn = elementFactory('div', { id: 'og-layer-switcher-menu-btn', class: 'og-menu-btn og-OFF' },
-            elementFactory('div', { id: 'og-layer-switcher-menu-icon', class: 'og-icon-holder' }))
+        this._menuBtn.on("change", (isActive) => {
+            this.dialog.setVisibility(isActive);
+        });
 
         const $mainContainer = this.dialog.container;
 
-
-        appendChildren(this.planet.renderer.div, [$menuBtn])
-
-        // Behaviour according to dependency on switcher
-        if (switcherDependency == false) {
-            $menuBtn.classList.add('og-hide') // hide menu btn
-            this.dialog.hide();
-        }
-
-        // LISTENERS
-        const whereClick = (e, wrapper, menuBtn) => {
-            if (wrapper.contains(e.target)) {
-                return 'inside'
-            } else if (menuBtn.contains(e.target)) {
-                return 'on-btn'
-            } else {
-                return 'outside'
-            }
-        }
-
-        var whereClickHandler = null
-        whereClickHandler = (e) => {
-            // cannot be a const otherwise cannot be created again in onactivate()
-            // Check where I clicked : in dialog, in button, elsewhere
-            let whereIclicked = $menuBtn ? whereClick(e, this.dialog.el, $menuBtn) : null
-
-            // If I clicked elsewhere and the dialog is unpinned, then hide dialog and set menu btn to OFF
-            if (whereIclicked === 'on-btn') {
-                $menuBtn.classList.toggle('og-OFF');
-                if ($menuBtn.classList.contains('og-OFF')) {
-                    this.dialog.hide();
-                } else {
-                    this.dialog.show();
-                }
-            }
-        }
-
-        this.docListener = whereClickHandler // Function holder so that it is the same during add/remove
-
-        // Document
-        document.addEventListener('click', (e) => this.docListener(e))
-
-        return { $mainContainer, whereClickHandler }
+        return { $mainContainer }
     }
 
     buildRecords(myData, $mainContainer, depth, createLastDropZone) {
