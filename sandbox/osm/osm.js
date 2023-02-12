@@ -236,6 +236,7 @@ globus.planet.addControl(new LayerSwitcher());
 globus.planet.addControl(new ToggleWireframe());
 globus.planet.addControl(new KeyboardNavigation());
 globus.planet.addControl(new TimelineControl());
+globus.planet.addControl(new Lighting());
 
 globus.planet.renderer.controls.sun.stop()
 

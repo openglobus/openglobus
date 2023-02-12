@@ -653,27 +653,32 @@ details[open] {
 /*
     Lighting control
 */
-.og-lighing {
+
+.og-lighting_button {
     position: absolute;
-    top: 0;
-    right: 0;
-    padding: 12px 0 12px 12px;
-    width: 350px;
-    overflow: auto;
+    left: 10px;
+    top: 65px;
+}
+
+.og-lighing {
+    position: relative;
+    padding: 12px;
     height: calc(100% - 30px);
     color: #b6b6b6;
-    background-color: #222222;
     font-family: monospace;
     font-size: 14px;
-    z-index: 10000;
-    overflow-x: hidden;
+}
+
+.og-lighing .og-layers {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 
 .og-lighing .og-color-options {
 }
 
 .og-lighing .og-caption {
-    width: 100%;
     position: relative;
     padding-top: 5px;
     padding-bottom: 5px;
@@ -682,12 +687,15 @@ details[open] {
 .og-lighing .og-option {
     width: 100%;
     position: relative;
-    display: inline-block;
+    display: flex;
+    flex-direction: row;
     padding-bottom: 7px;
+    text-overflow: ellipsis;
+    align-items: center;
+    justify-content: left;
 }
 
 .og-lighing .og-label {
-    float: left;
 }
 
 .og-lighing .og-slider {
@@ -703,18 +711,16 @@ details[open] {
 }
 
 .og-lighing .og-value {
-    float: left;
-    width: 50px;
+    width: 72px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .og-lighing #layers {
-    font-size: 16px;
-    color: #e8e8e8;
-    background-color: #5e5e5e;
     font-family: monospace;
     padding: 5px;
-    width: 240px;
     margin-left: 21px;
+    width: 200px;
 }
 
 
@@ -779,7 +785,7 @@ details[open] {
 
 /*
 ==========================
- TIMELINE
+TIMELINE
 ==========================
 */
 

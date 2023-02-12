@@ -70,7 +70,7 @@ class TimelineControl extends Control {
             if (isActive) {
                 this._timelineView.resize();
             }
-        })
+        });
 
         this._timelineView.appendTo(this._dialog.container);
         this._timelineView.setWidth(600);
