@@ -7,7 +7,7 @@ export const COMMON =
     `    
     ${UTILS}
     
-    const float PI = 3.1415926538;       
+    const float PI = 3.1415926538;
     const float ATMOS_HEIGHT = 122000.0;    
     const int SAMPLE_COUNT = 32;
 
@@ -17,7 +17,7 @@ export const COMMON =
         
     // Ellipsoid
     const vec3 bottomRadii = vec3(6378137.0, 6356752.3142451793, 6378137.0);           
-    const vec3 topRadii = vec3(6378137.0 + ATMOS_HEIGHT, 6356752.3142451793 + ATMOS_HEIGHT, 6378137.0 + ATMOS_HEIGHT);
+    const vec3 topRadii = bottomRadii + ATMOS_HEIGHT;
     
     const vec3 SPHERE_TO_ELLIPSOID_SCALE = vec3(BOTTOM_RADIUS) / bottomRadii;
         

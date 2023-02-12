@@ -29,8 +29,12 @@ class Dialog extends View {
                 left: options.left || 0,
                 top: options.top || 0
             }),
-            eventList: ["resize", "focus", "visibility", "dragstart", "dragend", ...(options.eventList || [])], ...options
+            ...options,
+            eventList: ["resize", "focus", "visibility", "dragstart", "dragend", ...(options.eventList || [])],
         });
+
+        this._startPosX = 0;
+        this._startPosY = 0;
 
         this.$header;
         this.$title;

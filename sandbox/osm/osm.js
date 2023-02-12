@@ -15,7 +15,7 @@ import { ToggleWireframe } from "../../src/og/control/ToggleWireframe.js";
 import { VisibleExtent } from "../../src/og/control/visibleExtent/VisibleExtent.js";
 import { TimelineControl } from "../../src/og/control/timeline/TimelineControl.js";
 import { Vec3 } from "../../src/og/math/Vec3.js";
-import { Dialog } from "../../src/og/ui/Dialog.js";
+import { Slider } from "../../src/og/ui/Slider.js";
 
 let cnv = document.createElement("canvas");
 let ctx = cnv.getContext("2d");
@@ -159,8 +159,8 @@ let osm = new XYZ("osm", {
     shininess: 18,
     //specular: "rgb(0.16575, 0.14152, 0.06375)",
     specular: [0.00063, 0.00055, 0.00032],
-    ambient: [0.2,0.2,0.3],
-    diffuse: [0.9,0.9,0.7],
+    ambient: [0.2, 0.2, 0.3],
+    diffuse: [0.9, 0.9, 0.7],
     //textureFilter: "linear"
 });
 
@@ -222,7 +222,7 @@ var globus = new Globe({
     //maxEqualZoomAltitude: 1,
     layers: [sat, tg, osm],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
-    useNightTexture: false,
+    //useNightTexture: false,
     //useEarthNavigation: true,
     //useSpecularTexture: false
 });
@@ -241,5 +241,9 @@ globus.planet.addControl(new Lighting());
 globus.planet.renderer.controls.sun.stop()
 
 //globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
+
+let s = new Slider();
+window.slider = s;
+s.appendTo(document.body);
 
 window.globus = globus;

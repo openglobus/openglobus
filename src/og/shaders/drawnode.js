@@ -709,7 +709,7 @@ export function drawnode_screen_wl_webgl2() {
                 vec3 night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb;
                 night *= overGround * step(0.0, night);
                 
-                vec4 lightWeighting = vec4(ambient + sunIlluminance * diffuse * diffuseLightWeighting + night * 2.5, 1.0);
+                vec4 lightWeighting = vec4(ambient + sunIlluminance * diffuse * diffuseLightWeighting + night * 7.5, 1.0);
                 
                 float fadingOpacity;
                 getAtmosFadingOpacity(fadingOpacity);

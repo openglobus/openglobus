@@ -265,9 +265,7 @@ function atmosphereBackgroundShader() {
             {            
                 vec3 cameraPosition = camPos;
                 
-                vec3 lightDirection = normalize(sunPos);
-                
-                vec3 scale = vec3(BOTTOM_RADIUS) / bottomRadii;
+                vec3 lightDirection = normalize(sunPos);               
                              
                 vec2 uv = (2.0 * gl_FragCoord.xy - iResolution.xy) / iResolution.y;
                 float fieldOfView = fov;
@@ -281,9 +279,9 @@ function atmosphereBackgroundShader() {
                 float offset = 0.0;
                 float distanceToSpace = 0.0;
                                                 
-                rayDirection = normalize(rayDirection * scale);
-                cameraPosition *= scale;
-                lightDirection = normalize(lightDirection * scale);
+                rayDirection = normalize(rayDirection * SPHERE_TO_ELLIPSOID_SCALE);
+                cameraPosition *= SPHERE_TO_ELLIPSOID_SCALE;
+                lightDirection = normalize(lightDirection * SPHERE_TO_ELLIPSOID_SCALE);
                                                 
                 if (intersectSphere(cameraPosition, rayDirection, TOP_RADIUS, offset, distanceToSpace)) 
                 {    
