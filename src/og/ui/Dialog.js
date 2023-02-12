@@ -5,7 +5,7 @@ import { getDefault, stringTemplate } from '../utils/shared.js';
 import { Button } from './Button.js';
 
 const TEMPLATE = `<div class="og-ddialog" 
-        style="display:{display}; resize:{resize}; width: {width}px; {height}; top: {top}px; left: {left}px; right: {right}px">
+        style="display:{display}; resize:{resize}; width: {width}px; {height}; top: {top}px; left: {left}px;">
        <div class="og-ddialog-header">
          <div class="og-ddialog-header__title">{title}</div>      
          <div class="og-ddialog-header__buttons"></div>      
@@ -27,8 +27,7 @@ class Dialog extends View {
                 width: options.width || 300,
                 height: options.height ? `height:${options.height || 200}` : "",
                 left: options.left || 0,
-                top: options.top || 0,
-                right: options.right || 0
+                top: options.top || 0
             }),
             eventList: ["resize", "focus", "visibility", "dragstart", "dragend", ...(options.eventList || [])], ...options
         });
@@ -66,6 +65,14 @@ class Dialog extends View {
 
     get container() {
         return this.$container;
+    }
+
+    get width() {
+        return this.el ? parseFloat(this.el.style.width) : 0;
+    }
+
+    get height() {
+        return this.el ? parseFloat(this.el.style.height) : 0;
     }
 
     bringToFront() {
@@ -162,8 +169,12 @@ class Dialog extends View {
     }
 
     setPosition(x, y) {
-        this.el.style.left = `${x}px`;
-        this.el.style.top = `${y}px`;
+        if (x != undefined) {
+            this.el.style.left = `${x}px`;
+        }
+        if (y != undefined) {
+            this.el.style.top = `${y}px`;
+        }
     }
 
     _onMouseMove(e) {

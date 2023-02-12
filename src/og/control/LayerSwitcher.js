@@ -38,7 +38,6 @@ class LayerSwitcher extends Control {
 
         this.dialog = new Dialog({
             title: "Layer Switcher",
-            right: 67,
             top: 15,
             useHide: true,
             visible: false,
@@ -54,6 +53,8 @@ class LayerSwitcher extends Control {
     oninit() {
 
         this.dialog.appendTo(this.planet.renderer.div);
+
+        this.dialog.setPosition(this.planet.renderer.div.clientWidth - this.dialog.width - 67)
 
         this.dialog.on("visibility", (v) => {
             this._menuBtn.setActive(v);
