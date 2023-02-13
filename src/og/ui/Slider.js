@@ -1,21 +1,24 @@
 'use strict';
 
 import { View } from './View.js';
+import { stringTemplate } from '../utils/shared.js';
 
 const TEMPLATE =
     `<div class="og-slider">
-      <div class="og-slider-label"></div>
+      <div class="og-slider-label">{label}</div>
       <div class="og-slider-panel">
         <div class="og-slider-progress"></div>      
         <div class="og-slider-pointer"></div>
       </div>
-      <input/>
+      <input type="number"/>
     </div>`;
 
 class Slider extends View {
     constructor(options = {}) {
         super({
-            template: TEMPLATE,
+            template: stringTemplate(TEMPLATE, {
+                label: options.label || ""
+            }),
             ...options,
             eventList: ["change", ...(options.eventList || [])]
         });
@@ -35,6 +38,9 @@ class Slider extends View {
     render(params) {
         super.render(params);
         this.$label = this.select(".og-slider-label");
+        if (this.$label.innerHTML === "") {
+            this.$label.style.display = "none";
+        }
         this.$pointer = this.select(".og-slider-pointer");
         this.$progress = this.select(".og-slider-progress");
         this.$panel = this.select(".og-slider-panel");
@@ -61,16 +67,28 @@ class Slider extends View {
     _initEvents() {
         this._onMouseDown_ = this._onMouseDown.bind(this);
         this.$panel.addEventListener("mousedown", this._onMouseDown_);
+
+        this._onInput_ = this._onInput.bind(this);
+        this.$input.addEventListener("input", this._onInput_);
+    }
+
+    _onInput(e) {
+        e = e || window.event;
+        e.preventDefault();
+        e.stopPropagation();
+        this.value = parseFloat(e.target.value);
     }
 
     _onMouseDown(e) {
         e = e || window.event;
         e.preventDefault();
 
+        this._startPosX = e.clientX;
+
         this._setOffset(e.offsetX);
 
         this._onMouseMove_ = this._onMouseMove.bind(this)
-        this.$panel.addEventListener("mousemove", this._onMouseMove_);
+        document.addEventListener("mousemove", this._onMouseMove_);
 
         this._onMouseUp_ = this._onMouseUp.bind(this);
         document.addEventListener("mouseup", this._onMouseUp_);
@@ -78,22 +96,29 @@ class Slider extends View {
 
     _setOffset(x) {
         if (x >= 0 && x <= this.$panel.clientWidth) {
-            this.$pointer.style.left = `${x}px`;
-            this.$progress.style.width = `${x}px`;
+            this.$pointer.style.left = this.$progress.style.width = `${x}px`;
         }
     }
 
     _onMouseMove(e) {
         e = e || window.event;
         e.preventDefault();
-        this.value = e.offsetX * (this._max - this._min) / this.$panel.clientWidth;
+        e.stopPropagation();
+
+        let rect = this.$panel.getBoundingClientRect();
+
+        if (e.clientX >= rect.left && e.clientX <= rect.right) {
+            let dx = this._startPosX - e.clientX;
+            this._startPosX = e.clientX;
+            this.value = (this.$pointer.offsetLeft - dx) * (this._max - this._min) / this.$panel.clientWidth;
+        }
     }
 
     _onMouseUp() {
         document.removeEventListener("mouseup", this._onMouseUp_);
         this._onMouseUp_ = undefined;
 
-        this.$panel.removeEventListener("mousemove", this._onMouseMove_);
+        document.removeEventListener("mousemove", this._onMouseMove_);
         this._onMouseMove_ = undefined;
     }
 }

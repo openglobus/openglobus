@@ -937,4 +937,21 @@ TIMELINE
     z-index: 0;
     color: var(--grey3);
     padding-left: 5px;
+    width: 60px;
+}
+
+.og-slider input:focus-visible {
+    outline: none;
+}
+
+/* Chrome, Safari, Edge, Opera */
+.og-slider input::-webkit-outer-spin-button,
+.og-slider input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+.og-slider input[type=number] {
+    -moz-appearance: textfield;
 }
