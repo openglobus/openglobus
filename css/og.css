@@ -706,27 +706,6 @@ details[open] {
 }
 
 
-/*.og-lighing .og-label {*/
-/*}*/
-
-/*.og-lighing .og-slider {*/
-/*    float: left;*/
-/*    width: calc(100% - 85px);*/
-/*    margin-left: 10px;*/
-/*    margin-right: 10px;*/
-/*}*/
-
-/*.og-lighing .og-slider input {*/
-/*    width: 100%;*/
-/*    position: relative;*/
-/*}*/
-
-/*.og-lighing .og-value {*/
-/*    width: 72px;*/
-/*    overflow: hidden;*/
-/*    text-overflow: ellipsis;*/
-/*}*/
-
 .og-lighing #layers {
     font-family: monospace;
     padding: 2px;

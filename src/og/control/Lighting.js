@@ -68,6 +68,8 @@ const ICON_BUTTON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="ht
 </g>
 </svg>`;
 
+const MAX_COLOR = 5;
+
 class Lighting extends Control {
     constructor(options = {}) {
         super(options);
@@ -104,72 +106,84 @@ class Lighting extends Control {
         this.$specular;
 
         this._gamma = new Slider({
-            label: "Gamma"
+            label: "Gamma",
+            max: 5
         });
 
         this._exposure = new Slider({
-            label: "Exposure"
+            label: "Exposure",
+            max: 5
         });
 
         this._opacity = new Slider({
-            label: "Opacity"
+            label: "Opacity",
+            max: 1
         });
 
         //
         // Diffuse sliders
         //
         this._diffuse_r = new Slider({
-            label: "Diffuse R"
+            label: "Diffuse R",
+            max: MAX_COLOR
         });
 
         this._diffuse_g = new Slider({
-            label: "Diffuse G"
+            label: "Diffuse G",
+            max: MAX_COLOR
         });
 
         this._diffuse_b = new Slider({
-            label: "Diffuse B"
+            label: "Diffuse B",
+            max: MAX_COLOR
         });
 
         //
         // Ambient sliders
         //
         this._ambient_r = new Slider({
-            label: "Ambient R"
+            label: "Ambient R",
+            max: MAX_COLOR
         });
 
         this._ambient_g = new Slider({
-            label: "Ambient G"
+            label: "Ambient G",
+            max: MAX_COLOR
         });
 
         this._ambient_b = new Slider({
-            label: "Ambient B"
+            label: "Ambient B",
+            max: MAX_COLOR
         });
 
         //
         // Specular sliders
         //
         this._specular_r = new Slider({
-            label: "Specular R"
+            label: "Specular R",
+            max: 0.2
         });
 
         this._specular_g = new Slider({
-            label: "Specular G"
+            label: "Specular G",
+            max: 0.2
         });
 
         this._specular_b = new Slider({
-            label: "Specular B"
+            label: "Specular B",
+            max: 0.2
         });
 
         this._shininess = new Slider({
-            label: "Shininess"
+            label: "Shininess",
+            max: 100
         });
     }
 
     bindLayer(layer) {
         this._selectedLayer = layer;
-
-        //document.getElementById("opacity").value = layer.opacity;
-        //document.querySelector(".og-value.opacity").innerText = layer.opacity.toString();
+        this._opacity.value = layer.opacity;
+        this._update();
     }
 
     oninit() {
@@ -212,110 +226,102 @@ class Lighting extends Control {
         });
 
         document.getElementById("layers").addEventListener("change", (e) => {
-            //this._selectedLayer = _this.planet.getLayerByName(e.target.value);
             this.bindLayer(this.planet.getLayerByName(e.target.value));
         });
 
+        this._gamma.value = this.planet.renderer.gamma;
+        this._exposure.value = this.planet.renderer.exposure;
 
-        // document.getElementById("gamma").addEventListener("input", function (e) {
-        //     _this.planet.renderer.gamma = Number(this.value);
-        //     document.querySelector(".og-value.gamma").innerText = this.value;
-        // });
-        // document.getElementById("exposure").addEventListener("input", function (e) {
-        //     _this.planet.renderer.exposure = Number(this.value);
-        //     document.querySelector(".og-value.exposure").innerText = this.value;
-        // });
-        //
-        // document.querySelector(".og-value.gamma").innerText = this.planet.renderer.gamma.toString();
-        // document.querySelector(".og-value.exposure").innerText =
-        //     this.planet.renderer.exposure.toString();
-        //
-        // document.getElementById("gamma").value = this.planet.renderer.gamma;
-        // document.getElementById("exposure").value = this.planet.renderer.exposure;
-        //
-        // document.getElementById("opacity").addEventListener("input", function (e) {
-        //     if (_this._selectedLayer) {
-        //         _this._selectedLayer.opacity = Number(this.value);
-        //     }
-        //     document.querySelector(".og-value.opacity").innerText = this.value;
-        // });
-        //
-        // document.getElementById("ambient-r").addEventListener("input", function (e) {
-        //     _this._selectedLayer._ambient[0] = Number(this.value);
-        //     document.querySelector(".og-value.ambient-r").innerText = this.value;
-        // });
-        // document.getElementById("ambient-g").addEventListener("input", function (e) {
-        //     _this._selectedLayer._ambient[1] = Number(this.value);
-        //     document.querySelector(".og-value.ambient-g").innerText = this.value;
-        // });
-        // document.getElementById("ambient-b").addEventListener("input", function (e) {
-        //     _this._selectedLayer._ambient[2] = Number(this.value);
-        //     document.querySelector(".og-value.ambient-b").innerText = this.value;
-        // });
-        //
-        // document.getElementById("diffuse-r").addEventListener("input", function (e) {
-        //     _this._selectedLayer._diffuse[0] = Number(this.value);
-        //     document.querySelector(".og-value.diffuse-r").innerText = this.value;
-        // });
-        // document.getElementById("diffuse-g").addEventListener("input", function (e) {
-        //     _this._selectedLayer._diffuse[1] = Number(this.value);
-        //     document.querySelector(".og-value.diffuse-g").innerText = this.value;
-        // });
-        // document.getElementById("diffuse-b").addEventListener("input", function (e) {
-        //     _this._selectedLayer._diffuse[2] = Number(this.value);
-        //     document.querySelector(".og-value.diffuse-b").innerText = this.value;
-        // });
-        //
-        // document.getElementById("specular-r").addEventListener("input", function (e) {
-        //     _this._selectedLayer._specular[0] = Number(this.value);
-        //     document.querySelector(".og-value.specular-r").innerText = this.value;
-        // });
-        // document.getElementById("specular-g").addEventListener("input", function (e) {
-        //     _this._selectedLayer._specular[1] = Number(this.value);
-        //     document.querySelector(".og-value.specular-g").innerText = this.value;
-        // });
-        // document.getElementById("specular-b").addEventListener("input", function (e) {
-        //     _this._selectedLayer._specular[2] = Number(this.value);
-        //     document.querySelector(".og-value.specular-b").innerText = this.value;
-        // });
-        //
-        // document.getElementById("shininess").addEventListener("input", function (e) {
-        //     _selectedLayer._specular[3] = Number(this.value);
-        //     document.querySelector(".og-value.shininess").innerText = this.value;
-        // });
+        this._gamma.on("change", (val) => {
+            this.planet.renderer.gamma = val;
+        });
+
+        this._exposure.on("change", (val) => {
+            this.planet.renderer.exposure = val;
+        });
+
+        this._opacity.on("change", (val) => {
+            if (this._selectedLayer)
+                this._selectedLayer.opacity = val;
+        });
+
+        this._ambient_r.on("change", (val) => {
+            if (this._selectedLayer && this._selectedLayer._ambient)
+                this._selectedLayer._ambient[0] = val
+        });
+
+        this._ambient_g.on("change", (val) => {
+            if (this._selectedLayer && this._selectedLayer._ambient)
+                this._selectedLayer._ambient[1] = val
+        });
+
+        this._ambient_b.on("change", (val) => {
+            if (this._selectedLayer && this._selectedLayer._ambient)
+                this._selectedLayer._ambient[2] = val
+        });
+
+        this._diffuse_r.on("change", (val) => {
+            if (this._selectedLayer && this._selectedLayer._diffuse)
+                this._selectedLayer._diffuse[0] = val
+        });
+
+        this._diffuse_g.on("change", (val) => {
+            if (this._selectedLayer && this._selectedLayer._diffuse)
+                this._selectedLayer._diffuse[1] = val
+        });
+
+        this._diffuse_b.on("change", (val) => {
+            if (this._selectedLayer && this._selectedLayer._diffuse)
+                this._selectedLayer._diffuse[2] = val
+        });
+
+        this._specular_r.on("change", (val) => {
+            if (this._selectedLayer && this._selectedLayer._specular)
+                this._selectedLayer._specular[0] = val
+        });
+
+        this._specular_g.on("change", (val) => {
+            if (this._selectedLayer && this._selectedLayer._specular)
+                this._selectedLayer._specular[1] = val
+        });
+
+        this._specular_b.on("change", (val) => {
+            if (this._selectedLayer && this._selectedLayer._specular)
+                this._selectedLayer._specular[2] = val
+        });
+
+        this._shininess.on("change", (val) => {
+            if (this._selectedLayer && this._selectedLayer._specular)
+                this._selectedLayer._specular[3] = val
+        });
+
 
         if (this.planet) {
             this.planet.events.on("layeradd", this._onLayerAdd, this);
             this.planet.events.on("layerremove", this._onLayerRemove, this);
-
-            // document.getElementById("ambient-r").value = this.planet._ambient[0];
-            // document.getElementById("ambient-g").value = this.planet._ambient[1];
-            // document.getElementById("ambient-b").value = this.planet._ambient[2];
-            //
-            // document.getElementById("diffuse-r").value = this.planet._diffuse[0];
-            // document.getElementById("diffuse-g").value = this.planet._diffuse[1];
-            // document.getElementById("diffuse-b").value = this.planet._diffuse[2];
-            //
-            // document.getElementById("specular-r").value = this.planet._specular[0];
-            // document.getElementById("specular-g").value = this.planet._specular[1];
-            // document.getElementById("specular-b").value = this.planet._specular[2];
-            // document.getElementById("shininess").value = this.planet._specular[3];
-            //
-            // document.querySelector(".og-value.ambient-r").innerText = this.planet._ambient[0].toString();
-            // document.querySelector(".og-value.ambient-g").innerText = this.planet._ambient[1].toString();
-            // document.querySelector(".og-value.ambient-b").innerText = this.planet._ambient[2].toString();
-            //
-            // document.querySelector(".og-value.diffuse-r").innerText = this.planet._diffuse[0].toString();
-            // document.querySelector(".og-value.diffuse-g").innerText = this.planet._diffuse[1].toString();
-            // document.querySelector(".og-value.diffuse-b").innerText = this.planet._diffuse[2].toString();
-            //
-            // document.querySelector(".og-value.specular-r").innerText = this.planet._specular[0].toString();
-            // document.querySelector(".og-value.specular-g").innerText = this.planet._specular[1].toString();
-            // document.querySelector(".og-value.specular-b").innerText = this.planet._specular[2].toString();
-            // document.querySelector(".og-value.shininess").innerText = this.planet._specular[3].toString();
         }
 
         this._fetchLayers();
+    }
+
+    _update() {
+        let l = this._selectedLayer;
+
+        let a = l && l._ambient ? l._ambient : this.planet._ambient;
+        this._ambient_r.value = a[0];
+        this._ambient_g.value = a[1];
+        this._ambient_b.value = a[2];
+
+        let d = l && l._diffuse ? l._diffuse : this.planet._diffuse;
+        this._diffuse_r.value = d[0];
+        this._diffuse_g.value = d[1];
+        this._diffuse_b.value = d[2];
+
+        let s = l && l._specular ? l._specular : this.planet._specular;
+        this._specular_r.value = s[0];
+        this._specular_g.value = s[1];
+        this._specular_b.value = s[2];
+        this._shininess.value = s[3];
     }
 
     _fetchLayers() {

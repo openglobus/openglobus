@@ -26,6 +26,9 @@ class Slider extends View {
         this._max = options.max || 1.0;
         //this._step = options.step || ((this._max - this._min) / 10.0);
 
+        this._onResize_ = this._onResize.bind(this);
+        this._resizeObserver = new ResizeObserver(this._onResize_);
+
         this.$label;
         this.$pointer;
         this.$progress;
@@ -44,15 +47,22 @@ class Slider extends View {
         this.$panel = this.select(".og-slider-panel");
         this.$input = this.select("input");
 
+
+        this._resizeObserver.observe(this.el);
+
         this._initEvents();
 
         return this;
     }
 
+    _onResize(e) {
+        this._setOffset(this._value * this.$panel.clientWidth / (this._max - this._min));
+    }
+
     set value(val) {
         if (val !== this._value) {
             this._value = clamp(val, this._min, this._max);
-            this.$input.value = this._value;
+            this.$input.value = this._value.toString();
             this._setOffset(this._value * this.$panel.clientWidth / (this._max - this._min));
             this._events.dispatch(this._events.change, this._value, this);
         }
@@ -94,7 +104,7 @@ class Slider extends View {
 
     _setOffset(x) {
         if (x >= 0 && x <= this.$panel.clientWidth) {
-            this.$pointer.style.left = this.$progress.style.width = `${x}px`;
+            this.$pointer.style.left = this.$progress.style.width = `${x * 100 / this.$panel.clientWidth}%`;
         }
     }
 
