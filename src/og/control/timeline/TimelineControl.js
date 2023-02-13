@@ -32,7 +32,6 @@ class TimelineControl extends Control {
         let startDate = addHours(currentDate, -12), endDate = addHours(currentDate, 12);
 
         this._timelineView = new TimelineView({
-            width: 0,
             rangeStart: startDate,
             rangeEnd: endDate
         });
@@ -45,7 +44,7 @@ class TimelineControl extends Control {
         this._dialog = new Dialog({
             title: "Timeline",
             visible: false,
-            resizable: false,
+            resizable: true,
             useHide: true,
             top: 10,
             left: 60,
@@ -73,7 +72,7 @@ class TimelineControl extends Control {
         });
 
         this._timelineView.appendTo(this._dialog.container);
-        this._timelineView.setWidth(600);
+
         this._timelineView.on("setcurrent", (d) => {
             this.renderer.handler.defaultClock.setDate(d);
         });

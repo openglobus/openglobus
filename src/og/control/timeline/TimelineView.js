@@ -32,7 +32,7 @@ const SCALE_NOTCH_COLOR = "#bfbfbf";
 const SCALE_TIME_COLOR = "#bfbfbf";
 
 const TEMPLATE =
-    `<div class="og-timeline" style="width:{width}px">
+    `<div class="og-timeline">
 
   <div class="og-timeline-top">
   </div>
@@ -93,7 +93,8 @@ class TimelineView extends View {
         this._clickTime = 0;
         this._clickDelay = 450;
 
-        this._width = options.width || 400;
+        this._onResizeObserver_ = this._onResizeObserver.bind(this);
+        this._resizeObserver = new ResizeObserver(this._onResizeObserver_);
 
         // this._resetBtn = new ButtonView({
         //     icon: "stop",
@@ -130,6 +131,10 @@ class TimelineView extends View {
         this._visibility = null;
     }
 
+    _onResizeObserver() {
+        this.resize();
+    }
+
     get canvasScale() {
         return this._canvasScale;
     }
@@ -139,11 +144,6 @@ class TimelineView extends View {
             this._canvasScale = scale;
             this.resize();
         }
-    }
-
-    setWidth(w) {
-        this.el.style.width = `${w}px`;
-        this.resize();
     }
 
     resize() {
@@ -156,13 +156,13 @@ class TimelineView extends View {
     }
 
     render() {
-        super.render({
-            width: this._width
-        });
+        super.render();
 
         this._frameEl = this.select(".og-timeline-frame");
         this._currentEl = this.select(".og-timeline-current");
         this.select(".og-timeline-frame .og-timeline-scale").appendChild(this._canvasEl);
+
+        this._resizeObserver.observe(this.el);
 
         this.model.on("change", () => {
             this.draw()
