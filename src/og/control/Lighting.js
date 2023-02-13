@@ -8,7 +8,7 @@ import { Control } from "./Control.js";
 import { Dialog } from '../ui/Dialog.js';
 import { View } from '../ui/View.js';
 import { ToggleButton } from "../ui/ToggleButton.js";
-import { Slider } from "../ui/ToggleButton.js";
+import { Slider } from "../ui/Slider.js";
 
 const TEMPLATE =
     `<div class="og-lighing">
@@ -23,9 +23,11 @@ const TEMPLATE =
          <div class="og-option og-exposure">
          </div>
        
+         <div class="og-option">
          <div class="og-layers">
            <div class="og-caption">Select layer:</div>
            <select id="layers"></select>
+         </div>
          </div>
 
          <div class="og-option og-opacity">
@@ -93,13 +95,81 @@ class Lighting extends Control {
         this._panel = new View({
             template: TEMPLATE
         });
+
+        this.$gamma;
+        this.$exposure;
+        this.$opacity;
+        this.$diffuse;
+        this.$ambient;
+        this.$specular;
+
+        this._gamma = new Slider({
+            label: "Gamma"
+        });
+
+        this._exposure = new Slider({
+            label: "Exposure"
+        });
+
+        this._opacity = new Slider({
+            label: "Opacity"
+        });
+
+        //
+        // Diffuse sliders
+        //
+        this._diffuse_r = new Slider({
+            label: "Diffuse R"
+        });
+
+        this._diffuse_g = new Slider({
+            label: "Diffuse G"
+        });
+
+        this._diffuse_b = new Slider({
+            label: "Diffuse B"
+        });
+
+        //
+        // Ambient sliders
+        //
+        this._ambient_r = new Slider({
+            label: "Ambient R"
+        });
+
+        this._ambient_g = new Slider({
+            label: "Ambient G"
+        });
+
+        this._ambient_b = new Slider({
+            label: "Ambient B"
+        });
+
+        //
+        // Specular sliders
+        //
+        this._specular_r = new Slider({
+            label: "Specular R"
+        });
+
+        this._specular_g = new Slider({
+            label: "Specular G"
+        });
+
+        this._specular_b = new Slider({
+            label: "Specular B"
+        });
+
+        this._shininess = new Slider({
+            label: "Shininess"
+        });
     }
 
     bindLayer(layer) {
         this._selectedLayer = layer;
 
-        document.getElementById("opacity").value = layer.opacity;
-        document.querySelector(".og-value.opacity").innerText = layer.opacity.toString();
+        //document.getElementById("opacity").value = layer.opacity;
+        //document.querySelector(".og-value.opacity").innerText = layer.opacity.toString();
     }
 
     oninit() {
@@ -111,17 +181,39 @@ class Lighting extends Control {
             this._dialog.setVisibility(isActive);
         });
 
-        var _this = this;
+        this.$gamma = document.querySelector(".og-option.og-gamma");
+        this.$exposure = document.querySelector(".og-option.og-exposure");
+        this.$opacity = document.querySelector(".og-option.og-opacity");
+        this.$diffuse = document.querySelector(".og-option.og-diffuse");
+        this.$ambient = document.querySelector(".og-option.og-ambient");
+        this.$specular = document.querySelector(".og-option.og-specular");
+
+        this._gamma.appendTo(this.$gamma);
+        this._exposure.appendTo(this.$exposure);
+        this._opacity.appendTo(this.$opacity);
+
+        this._diffuse_r.appendTo(this.$diffuse);
+        this._diffuse_g.appendTo(this.$diffuse);
+        this._diffuse_b.appendTo(this.$diffuse);
+
+        this._ambient_r.appendTo(this.$ambient);
+        this._ambient_g.appendTo(this.$ambient);
+        this._ambient_b.appendTo(this.$ambient);
+
+        this._specular_r.appendTo(this.$specular);
+        this._specular_g.appendTo(this.$specular);
+        this._specular_b.appendTo(this.$specular);
+        this._shininess.appendTo(this.$specular);
 
         document.getElementById("lighting").checked = this.planet.lightEnabled;
 
         document.getElementById("lighting").addEventListener("change", (e) => {
-            _this.planet.lightEnabled = e.target.checked;
+            this.planet.lightEnabled = e.target.checked;
         });
 
         document.getElementById("layers").addEventListener("change", (e) => {
             //this._selectedLayer = _this.planet.getLayerByName(e.target.value);
-            this.bindLayer(_this.planet.getLayerByName(e.target.value));
+            this.bindLayer(this.planet.getLayerByName(e.target.value));
         });
 
 

@@ -2,9 +2,9 @@
 
 import { View } from './View.js';
 import { stringTemplate } from '../utils/shared.js';
+import { clamp } from '../math.js';
 
-const TEMPLATE =
-    `<div class="og-slider">
+const TEMPLATE = `<div class="og-slider">
       <div class="og-slider-label">{label}</div>
       <div class="og-slider-panel">
         <div class="og-slider-progress"></div>      
@@ -18,9 +18,7 @@ class Slider extends View {
         super({
             template: stringTemplate(TEMPLATE, {
                 label: options.label || ""
-            }),
-            ...options,
-            eventList: ["change", ...(options.eventList || [])]
+            }), ...options, eventList: ["change", ...(options.eventList || [])]
         });
 
         this._value = options.value || 0.0;
@@ -52,11 +50,11 @@ class Slider extends View {
     }
 
     set value(val) {
-        if (val !== this._value && val >= this._min && val <= this._max) {
-            this._value = val;
-            this.$input.value = val;
-            this._setOffset(val * this.$panel.clientWidth / (this._max - this._min));
-            this._events.dispatch(this._events.change, val, this);
+        if (val !== this._value) {
+            this._value = clamp(val, this._min, this._max);
+            this.$input.value = this._value;
+            this._setOffset(this._value * this.$panel.clientWidth / (this._max - this._min));
+            this._events.dispatch(this._events.change, this._value, this);
         }
     }
 
@@ -106,12 +104,10 @@ class Slider extends View {
         e.stopPropagation();
 
         let rect = this.$panel.getBoundingClientRect();
-
-        if (e.clientX >= rect.left && e.clientX <= rect.right) {
-            let dx = this._startPosX - e.clientX;
-            this._startPosX = e.clientX;
-            this.value = (this.$pointer.offsetLeft - dx) * (this._max - this._min) / this.$panel.clientWidth;
-        }
+        let clientX = clamp(e.clientX, rect.left, rect.right);
+        let dx = this._startPosX - clientX;
+        this._startPosX = clientX;
+        this.value = (this.$pointer.offsetLeft - dx) * (this._max - this._min) / this.$panel.clientWidth;
     }
 
     _onMouseUp() {
@@ -123,4 +119,6 @@ class Slider extends View {
     }
 }
 
-export { Slider }
+export {
+    Slider
+}
