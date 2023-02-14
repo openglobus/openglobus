@@ -247,8 +247,6 @@ class GeoObjectHandler {
     }
 
     _addGeoObjectToArray(geoObject) {
-        let itemSize = 3;
-
         const tag = geoObject.tag,
             alreadyAdded = this._instancedTags.has(tag);
 
@@ -270,35 +268,17 @@ class GeoObjectHandler {
         const tagData = this._instancedTags.get(tag),
             ti = tagData.index;
 
-        /**
-         * mark object by index for recalc indices array
-         */
         geoObject._tagIndex = tagData.iCounts - 1;
 
-        if (!this._vertexArr[ti] || this._vertexArr[ti].length !== geoObject._vertices.length) {
-            this._vertexArr[ti] = concatArrays(
-                this._vertexArr[ti],
-                setParametersToArray(
-                    [],
-                    0,
-                    geoObject._verticesCount * itemSize,
-                    geoObject._verticesCount * itemSize,
-                    ...geoObject._vertices
-                )
-            );
-            this._normalsArr[ti] = concatArrays(
-                this._normalsArr[ti],
-                setParametersToArray(
-                    [],
-                    0,
-                    geoObject._verticesCount * itemSize,
-                    geoObject._verticesCount * itemSize,
-                    ...geoObject._normals
-                )
-            );
-            this._applyTexture(geoObject)
+        let itemSize = 3;
 
+        if (!this._vertexArr[ti] || this._vertexArr[ti].length !== geoObject._vertices.length) {
+            this._vertexArr[ti] = geoObject._vertices
+            this._normalsArr[ti] = geoObject._normals;
+            this._indicesArr[ti] = geoObject._indices;
+            this._applyTexture(geoObject)
         }
+
         this._vehicleVisibleArr[ti] = concatArrays(
             this._vehicleVisibleArr[ti],
             setParametersToArray([], 0, 1, 1, geoObject._visibility ? 1 : 0)
@@ -308,11 +288,11 @@ class GeoObjectHandler {
             y = geoObject._positionHigh.y,
             z = geoObject._positionHigh.z,
             w;
-
         this._positionHighArr[ti] = concatArrays(
             this._positionHighArr[ti],
             setParametersToArray([], 0, itemSize, itemSize, x, y, z)
         );
+
         x = geoObject._positionLow.x;
         y = geoObject._positionLow.y;
         z = geoObject._positionLow.z;
@@ -364,7 +344,8 @@ class GeoObjectHandler {
             this._sizeArr[ti],
             setParametersToArray([], 0, itemSize, itemSize, geoObject.scale)
         );
-        this._addIndices(geoObject);
+
+        //this._addIndices(geoObject);
     }
 
     _displayPASS() {
@@ -388,14 +369,13 @@ class GeoObjectHandler {
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera.getViewMatrix());
         gl.uniformMatrix3fv(u.normalMatrix, false, r.activeCamera.getNormalMatrix());
 
-        gl.uniform4fv(u.lightsPositions, this._planet._lightsTransformedPositions);
+        gl.uniform3fv(u.lightsPositions, this._planet._lightsPositions);
         gl.uniform3fv(u.lightsParamsv, this._planet._lightsParamsv);
         gl.uniform1fv(u.lightsParamsf, this._planet._lightsParamsf);
 
         for (const tag of this._instancedTags) {
             const tagData = tag[1],
                 ti = tagData.index;
-
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._normalsBuffer[ti]);
             gl.vertexAttribPointer(a.aVertexNormal, this._normalsBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
@@ -452,7 +432,7 @@ class GeoObjectHandler {
             if (tagData.iCounts) {
                 p.drawElementsInstanced(
                     gl.TRIANGLES,
-                    this._indicesBuffer[ti].numItems / tagData.iCounts,
+                    this._indicesBuffer[ti].numItems,
                     gl.UNSIGNED_SHORT,
                     0,
                     tagData.iCounts
@@ -572,7 +552,7 @@ class GeoObjectHandler {
             if (tagData.iCounts) {
                 p.drawElementsInstanced(
                     gl.TRIANGLES,
-                    this._indicesBuffer[ti].numItems / tagData.iCounts,
+                    this._indicesBuffer[ti].numItems,
                     gl.UNSIGNED_SHORT,
                     0,
                     tagData.iCounts
@@ -590,90 +570,87 @@ class GeoObjectHandler {
     }
 
     _recalculateIndices(startIndex) {
-        const allIndices = this._indicesArr,
-            goArr = this._geoObjects,
-            maxIndicesByTags = new Array(this._instancedTags.size).fill(0);
-
-        for (let gi = 0; gi < goArr.length; gi++) {
-            const go = goArr[gi],
-                ti = this.getTagIndexByObjectIndex(go._handlerIndex),
-                gIndices = go._indices;
-
-            for (let ii = 0; ii < gIndices.length; ii++) {
-                const gIndex = gIndices[ii];
-
-                const i = go._indicesCount * go._tagIndex + ii;
-                if (go._tagIndex > 0) {
-                    allIndices[ti][i] = gIndex + maxIndicesByTags[ti];
-                    if (allIndices[ti][i] > maxIndicesByTags[ti]) {
-                        maxIndicesByTags[ti] = allIndices[ti][i] + 1;
-                    }
-                } else {
-                    allIndices[ti][i] = gIndex;
-                    if (gIndex > maxIndicesByTags[ti]) {
-                        maxIndicesByTags[ti] = gIndex + 1;
-                    }
-                }
-            }
-        }
+        // const allIndices = this._indicesArr,
+        //     goArr = this._geoObjects,
+        //     maxIndicesByTags = new Array(this._instancedTags.size).fill(0);
+        //
+        // for (let gi = 0; gi < goArr.length; gi++) {
+        //     const go = goArr[gi],
+        //         ti = this.getTagIndexByObjectIndex(go._handlerIndex),
+        //         gIndices = go._indices;
+        //
+        //     for (let ii = 0; ii < gIndices.length; ii++) {
+        //         const gIndex = gIndices[ii];
+        //
+        //         const i = go._indicesCount * go._tagIndex + ii;
+        //         if (go._tagIndex > 0) {
+        //             allIndices[ti][i] = gIndex + maxIndicesByTags[ti];
+        //             if (allIndices[ti][i] > maxIndicesByTags[ti]) {
+        //                 maxIndicesByTags[ti] = allIndices[ti][i] + 1;
+        //             }
+        //         } else {
+        //             allIndices[ti][i] = gIndex;
+        //             if (gIndex > maxIndicesByTags[ti]) {
+        //                 maxIndicesByTags[ti] = gIndex + 1;
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     _addIndices(g) {
-        let i = g._handlerIndex;
-        const allIndices = this._indicesArr,
-            gArr = this._geoObjects,
-            iLen = g._indices.length,
-            tagData = this._instancedTags.get(g.tag),
-            maxIndex = tagData.maxIndex,
-            ti = tagData.index;
-
-        allIndices[ti] = concatArrays(allIndices[ti], g._indices);
-
-        while (gArr[i]) {
-            const g = gArr[i];
-
-            if (g._tagIndex > 0) {
-                setParametersToArray(allIndices[ti], g._tagIndex, iLen, iLen, ...g._indices.reduce((acc, cur) => {
-                    acc.push(cur + ((maxIndex + 1) * g._tagIndex));
-                    return acc;
-                }, []));
-            }
-            i++;
-
-        }
-
+        // let i = g._handlerIndex;
+        // const allIndices = this._indicesArr,
+        //     gArr = this._geoObjects,
+        //     iLen = g._indices.length,
+        //     tagData = this._instancedTags.get(g.tag),
+        //     maxIndex = tagData.maxIndex,
+        //     ti = tagData.index;
+        //
+        // allIndices[ti] = concatArrays(allIndices[ti], g._indices);
+        //
+        // while (gArr[i]) {
+        //     const g = gArr[i];
+        //
+        //     if (g._tagIndex > 0) {
+        //         setParametersToArray(allIndices[ti], g._tagIndex, iLen, iLen, ...g._indices.reduce((acc, cur) => {
+        //             acc.push(cur + ((maxIndex + 1) * g._tagIndex));
+        //             return acc;
+        //         }, []));
+        //     }
+        //     i++;
+        //
+        // }
     }
 
     _removeIndices(geoObject) {
-        const allIndices = this._indicesArr,
-            gArr = this._geoObjects,
-            iLen = geoObject._indices.length,
-            tagData = this._instancedTags.get(geoObject.tag),
-            maxIndex = tagData.maxIndex,
-            ti = tagData.index,
-            count = tagData.iCounts;
-
-        let i = geoObject._handlerIndex;
-
-        this._indicesArr[ti] = spliceArray(this._indicesArr[ti], geoObject._tagIndex * geoObject._indicesCount, geoObject._indicesCount);
-
-        while (gArr[i]) {
-            if (geoObject.tag === gArr[i].tag) {
-                if (count !== 0) {
-                    const startI = (gArr[i]._tagIndex - 1) * iLen;
-                    let stopI = startI + geoObject._indicesCount;
-                    while (stopI > startI) {
-                        this._indicesArr[ti][stopI - 1] = allIndices[ti][stopI - 1] - maxIndex - 1;
-                        stopI--;
-                    }
-                } else {
-                    allIndices[ti] = geoObject._indices;
-                }
-            }
-            i++;
-
-        }
-
+        // const allIndices = this._indicesArr,
+        //     gArr = this._geoObjects,
+        //     iLen = geoObject._indices.length,
+        //     tagData = this._instancedTags.get(geoObject.tag),
+        //     maxIndex = tagData.maxIndex,
+        //     ti = tagData.index,
+        //     count = tagData.iCounts;
+        //
+        // let i = geoObject._handlerIndex;
+        //
+        // this._indicesArr[ti] = spliceArray(this._indicesArr[ti], geoObject._tagIndex * geoObject._indicesCount, geoObject._indicesCount);
+        //
+        // while (gArr[i]) {
+        //     if (geoObject.tag === gArr[i].tag) {
+        //         if (count !== 0) {
+        //             const startI = (gArr[i]._tagIndex - 1) * iLen;
+        //             let stopI = startI + geoObject._indicesCount;
+        //             while (stopI > startI) {
+        //                 this._indicesArr[ti][stopI - 1] = allIndices[ti][stopI - 1] - maxIndex - 1;
+        //                 stopI--;
+        //             }
+        //         } else {
+        //             allIndices[ti] = geoObject._indices;
+        //         }
+        //     }
+        //     i++;
+        // }
     }
 
     setDirectionArr(index, direction) {

@@ -87,6 +87,13 @@ class Camera {
         this._viewMatrix = new Mat4();
 
         /**
+         * Camera normal matrix.
+         * @protected
+         * @type {Mat3}
+         */
+        this._normalMatrix = new Mat3();
+
+        /**
          * Camera right vector.
          * @protected
          * @type {Vec3}
@@ -263,6 +270,8 @@ class Camera {
             -eye.dot(n),
             1.0
         ]);
+
+        //this._normalMatrix = this._viewMatrix.toMatrix3(); // this._viewMatrix.toInverseMatrix3().transposeTo();
 
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             this.frustums[i].setViewMatrix(this._viewMatrix);
@@ -554,6 +563,15 @@ class Camera {
      */
     getViewMatrix() {
         return this._viewMatrix._m;
+    }
+
+    /**
+     * Returns normal matrix.
+     * @public
+     * @returns {Mat3} - Normal matrix.
+     */
+    getNormalMatrix() {
+        return this._normalMatrix._m;
     }
 
     setCurrentFrustum(k) {

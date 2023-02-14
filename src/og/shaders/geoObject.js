@@ -18,7 +18,7 @@ export const geo_object = () =>
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
 
-            lightsPositions: "vec4",
+            lightsPositions: "vec3",
             lightsParamsv: "vec3",
             lightsParamsf: "float",
 
@@ -134,7 +134,7 @@ export const geo_object = () =>
                 varying vec4 vColor;
                 #define MAX_POINT_LIGHTS 1
                 
-                uniform vec4 lightsPositions[MAX_POINT_LIGHTS];
+                uniform vec3 lightsPositions[MAX_POINT_LIGHTS];
                 uniform vec3 lightsParamsv[MAX_POINT_LIGHTS * 3];
                 uniform float lightsParamsf[MAX_POINT_LIGHTS];
                 
@@ -154,7 +154,7 @@ export const geo_object = () =>
                     float specularLightWeighting;
                     float diffuseLightWeighting;
                 
-                    lightDirection = normalize(lightsPositions[0].xyz - vPosition.xyz * lightsPositions[0].w);
+                    lightDirection = normalize(lightsPositions[0].xyz - vPosition.xyz);
                     normal = normalize(vNormal);
                     eyeDirection = normalize(-vPosition.xyz);
                     reflectionDirection = reflect(-lightDirection, normal);
