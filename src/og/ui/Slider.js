@@ -93,7 +93,7 @@ class Slider extends View {
 
         this._startPosX = e.clientX;
 
-        this._setOffset(e.offsetX);
+        this.value = this._min + (this._max - this._min) * (e.offsetX / this.$panel.clientWidth);
 
         this._onMouseMove_ = this._onMouseMove.bind(this)
         document.addEventListener("mousemove", this._onMouseMove_);
