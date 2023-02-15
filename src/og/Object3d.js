@@ -18,7 +18,8 @@ class Object3d {
 
         this._name = data.name || "noname";
         this._vertices = data.vertices || [];
-        this._texCoords = [];
+        this._numVertices = this._vertices.length / 3;
+        this._texCoords = data.texCoords || new Array(2 * this._numVertices);
 
         this.color = getColor(data.color);
 
@@ -52,6 +53,14 @@ class Object3d {
 
     get indexes() {
         return this._indexes;
+    }
+
+    get texCoords() {
+        return this._texCoords;
+    }
+
+    get numVertices() {
+        return this._numVertices;
     }
 
     static scale(vertices, s) {

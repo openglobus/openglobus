@@ -17,11 +17,10 @@ import { Planet } from "../scene/Planet.js";
  */
 
 class GeoObject {
-    constructor(options) {
-        options = options || {};
+    constructor(options = {}) {
 
         this.scale = options.scale || 1.0;
-        this.scaleByDistance = new Float32Array(options.scaleByDistance || [1.0, 1.0, 1.0]);
+        //this.scaleByDistance = new Float32Array(options.scaleByDistance || [1.0, 1.0, 1.0]);
 
         /**
          * Image src.
@@ -35,18 +34,14 @@ class GeoObject {
          * @type {og.Vec3}
          */
         this._position = utils.createVector3(options.position);
-
         this._positionHigh = new Vec3();
-
         this._positionLow = new Vec3();
-
         Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
 
         this._pitch = options.pitch || 0.0;
         this._yaw = options.yaw || 0.0;
         this._roll = options.roll || 0.0;
 
-        this._planet = options.planet || null;
         this._lonLatAlt = new LonLat(0, 0, 0);
 
         /**
@@ -60,18 +55,37 @@ class GeoObject {
 
         this._handler = null;
         this._handlerIndex = -1;
-        this._vertices = options.vertices;
-        this._normals = options.normals;
-        this._texCoords = options.texCoords || [];
-        this._indices = options.indices;
-        this.instanced = options.instanced;
+
+        // this._vertices = options.vertices;
+        // this._normals = options.normals;
+        // this._texCoords = options.texCoords || [];
+        // this._indices = options.indices;
+
+        this._object3d = options.object3d;
+
+        this.instanced = options.instanced != undefined ? options.instanced : true;
+
         this.tag = options.tag || "none";
-        if (options.indices) {
-            this._indicesCount = options.indices.length;
-        }
-        if (options.vertices) {
-            this._verticesCount = Math.floor(options.vertices.length / 3);
-        }
+    }
+
+    get vertices() {
+        return this._object3d.vertices;
+    }
+
+    get normals() {
+        return this._object3d.normals;
+    }
+
+    get texCoords() {
+        return this._object3d.texCoords;
+    }
+
+    get indexes() {
+        return this._object3d.indexes;
+    }
+
+    get numVertices() {
+        return this._object3d.numVertices;
     }
 
     get planet() {
@@ -161,7 +175,7 @@ class GeoObject {
         this._position.z = z;
         Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
         this._handler &&
-            this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
+        this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
         this.updateDirection();
     }
 
@@ -176,7 +190,7 @@ class GeoObject {
         this._position.z = position.z;
         Vec3.doubleToTwoFloats(position, this._positionHigh, this._positionLow);
         this._handler &&
-            this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
+        this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
         this.updateDirection();
     }
 

@@ -46,10 +46,6 @@ class Dialog extends View {
         this.useHide = options.useHide || false;
 
         this._visibility = getDefault(options.visible, true);
-
-        if (options.appendTo) {
-            this.appendTo(options.appendTo);
-        }
     }
 
     static set __zIndex(n) {

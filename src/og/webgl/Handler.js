@@ -127,6 +127,8 @@ class Handler {
 
         this.transparentTexture = null;
 
+        this.defaultTexture = null;
+
         this.framebufferStack = new Stack();
 
         this.createTexture = {
@@ -701,6 +703,9 @@ class Handler {
         this.createDefaultTexture({ color: "rgba(0,0,0,0.0)" }, (t) => {
             this.transparentTexture = t;
         });
+        this.createDefaultTexture({ color: "rgba(255, 255, 255, 1.0)" }, (t) => {
+            this.defaultTexture = t;
+        });
     }
 
     /**
@@ -999,6 +1004,9 @@ class Handler {
 
         gl.deleteTexture(this.transparentTexture);
         this.transparentTexture = null;
+
+        gl.deleteTexture(this.defaultTexture);
+        this.defaultTexture = null;
 
         this.framebufferStack = null;
         this.framebufferStack = new Stack();

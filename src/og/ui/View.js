@@ -13,6 +13,9 @@ class View {
         this.template = options.template || "";
         this.parent = options.parent || null;
         this._classList = options.classList || [];
+        if (options.appendTo) {
+            this.appendTo(options.appendTo);
+        }
     }
 
     static set __staticCounter(n) {

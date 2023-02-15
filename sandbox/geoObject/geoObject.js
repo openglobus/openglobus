@@ -11,6 +11,7 @@ import { KeyboardNavigation } from "../../src/og/control/KeyboardNavigation.js";
 import { ToggleWireframe } from "../../src/og/control/ToggleWireframe.js";
 import { RulerSwitcher } from "../../src/og/control/RulerSwitcher.js";
 import { DebugInfo } from "../../src/og/control/DebugInfo.js";
+import { Object3d } from "../../src/og/Object3d.js";
 
 
 let globus = new Globe({
@@ -58,6 +59,12 @@ fetch(`./cube.json`)
         const entities = [];
         const { vertices, indices, normals } = data;
 
+        let obj3d = new Object3d({
+            vertices: vertices,
+            indexes: indices,
+            normals: normals
+        });
+
         for (let i = 0; i < 10; i++) {
             let entity = new Entity({
                 lonlat: [0, i, 20],
@@ -67,9 +74,7 @@ fetch(`./cube.json`)
                     instanced: true,
                     tag: "cube",
                     color: colors[i % 7],
-                    vertices,
-                    indices,
-                    normals
+                    object3d: obj3d
                 }
             });
 

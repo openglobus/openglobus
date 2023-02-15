@@ -9,6 +9,7 @@ import { EmptyTerrain } from "../../src/og/terrain/EmptyTerrain.js";
 import { stringTemplate } from "../../src/og/utils/shared.js";
 import { Lighting } from "../../src/og/control/Lighting.js";
 import { LayerSwitcher } from "../../src/og/control/LayerSwitcher.js";
+import { RulerSwitcher } from "../../src/og/control/RulerSwitcher.js";
 import { KeyboardNavigation } from "../../src/og/control/KeyboardNavigation.js";
 import { DebugInfo } from "../../src/og/control/DebugInfo.js";
 import { ToggleWireframe } from "../../src/og/control/ToggleWireframe.js";
@@ -220,9 +221,9 @@ var globus = new Globe({
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
-    terrain: highResTerrain,
+    //terrain: highResTerrain,
     //terrain: new MapboxTerrain(),
-    //terrain: new GlobusTerrain(),
+    terrain: new GlobusTerrain(),
     //maxEqualZoomAltitude: 1,
     layers: [sat, tg, osm],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
@@ -241,13 +242,10 @@ globus.planet.addControl(new ToggleWireframe());
 globus.planet.addControl(new KeyboardNavigation());
 globus.planet.addControl(new TimelineControl());
 globus.planet.addControl(new Lighting());
+globus.planet.addControl(new RulerSwitcher());
 
 globus.planet.renderer.controls.sun.stop()
 
 //globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
-
-let s = new Slider();
-window.slider = s;
-s.appendTo(document.body);
 
 window.globus = globus;

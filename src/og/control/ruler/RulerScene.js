@@ -78,9 +78,7 @@ class RulerScene extends RenderNode {
                     instanced: true,
                     tag: "ruler",
                     color: "rgb(0,305,0)",
-                    vertices: obj3d.vertices,
-                    indices: obj3d.indexes,
-                    normals: obj3d.normals
+                    object3d: obj3d
                 },
                 properties: {
                     name: "start"
@@ -92,14 +90,11 @@ class RulerScene extends RenderNode {
                     instanced: true,
                     tag: "ruler",
                     color: "rgb(455,0,0)",
-                    vertices: obj3d.vertices,
-                    indices: obj3d.indexes,
-                    normals: obj3d.normals
+                    object3d: obj3d
                 },
                 properties: {
                     name: "end"
                 }
-
             })
         ];
 
@@ -115,7 +110,7 @@ class RulerScene extends RenderNode {
             entities: [this._cornerEntity[0], this._cornerEntity[1]],
             pickingEnabled: true,
             displayInLayerSwitcher: false,
-            scaleByDistance: [1.0, 4000000, 0.01],
+            scaleByDistance: [100, 4000000, 1.0],
             pickingScale: 2
         });
     }

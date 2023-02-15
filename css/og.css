@@ -436,22 +436,9 @@ details[open] {
 /* =============================== */
 /* RULER */
 
-/* Just set position and background url */
-#og-ruler-menu-btn {
-    bottom: 193px;
+.og-ruler_button {
+    top: 65px;
     right: 12px;
-    box-shadow: 0 1px 4px rgb(15 15 15 / 17%);
-    background-color: rgba(64, 59, 59, 0.85);
-    border-radius: 2px;
-}
-
-#og-ruler-menu-btn > div {
-    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAoCAYAAAC4h3lxAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAJVSURBVHgB1ZhrdcMwDEbvGBSCIRSCIJRBx2BlUDNYh2BlMAiFEAiBMAhbfDqfuo78yKNp9p2jH3EcW3GuJTmwLklnTWc/nR35R9p2duHqeGjCyrXp7J2+494urFhvnX2Tdt7bnpVJOmtJO/ytXG9YgQw6597c5hWuzsYvYXminENH8it+iJ6xSh/DE1Ti/ISOh2uLMVt0Qwt5XNw9UzHG4mHVdPZF2vF2oBPxIjQ8SJ7zFC6u3TJcW2WsAzNrRz4spjiv1YkHhVWhzLkwXVpYfWeCSunffY0d07SJxjgo82wZoRrOp35e8zdWHPsbJoRVIc/5F/MmmpPipDAirBoez7kvpW3QFnIvQVu8iMmwWuJcS/9jJejRxQZOHkmj21Mu/c/F+Wt07ZPfZ9ReKrdt2Fnob5QYF8MwCdcFCeWRDL+g4R4ZwwB0S50bxnGucexfKodMbtVVdJshnQfKooc8v2BhQjpSxkVFV+s8Nf17hZFjH7SbYC7XPgndM/2Vn+K8cJ8ld+SRSVlLJbpzHuFeySNjqatcB6NrlUEMw1Wzccec0KombumzV5LDw/FrgjZfeLXcnJGC426uUcVZKFEGlsIzWs0C91HmzAyc1+pCPweE2kQTppDZkd+gc2X0nnJHOMON4VTN4iTkK9dPHvyjKneES9Us3uFSPBcWUO4IZ9DL3DN5XPYsLO0IZ/7uWW4rukTlOloxxz7SaF9Iw8XwZAl9xxwKF1bAea1yzsa4zP7DaQ4Zys5bVvL/PiXLijmvUVwnzZ7+p+ilsp/hWio71j9YkX4Byx4UVaJRe+4AAAAASUVORK5CYII=') top left no-repeat
-}
-
-.og-ruler.og-dialog {
-    height: 80px;
-    top: 174px;
 }
 
 /* =============================== */
