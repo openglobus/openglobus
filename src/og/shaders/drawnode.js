@@ -458,7 +458,7 @@ export function drawnode_screen_wl_webgl2() {
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",
             camHeight: "float",
-            //sunPos: "vec3"
+            nightTextureCoefficient: "float"
         }, attributes: {
             aVertexPositionHigh: "vec3",
             aVertexPositionLow: "vec3",
@@ -532,6 +532,7 @@ export function drawnode_screen_wl_webgl2() {
             uniform sampler2D defaultTexture;
             uniform sampler2D samplerArr[SLICE_SIZE];
             uniform int samplerCount;
+            uniform float nightTextureCoefficient;
                 
             uniform float camHeight;
 
@@ -670,12 +671,13 @@ export function drawnode_screen_wl_webgl2() {
                 fragColor = vec4(pow(light * 8.0, vec3(1.0 / 2.2)), 1.0);
             }
 
-            void getAtmosFadingOpacity(out float opacity){            
+            void getAtmosFadingOpacity(out float opacity)
+            {            
                 float c = length(cameraPosition);
                 float maxDist = sqrt(c * c - BOTTOM_RADIUS * BOTTOM_RADIUS);
                 float minDist = c - BOTTOM_RADIUS;
                 float vertDist = distance(cameraPosition, v_vertex);                    
-                opacity = ATMOS_OPACITY_MIN + (ATMOS_OPACITY_MAX - ATMOS_OPACITY_MIN) * lerp(minDist, maxDist, vertDist);
+                opacity = ATMOS_OPACITY_MIN + (ATMOS_OPACITY_MAX - ATMOS_OPACITY_MIN) * getLerpValue(minDist, maxDist, vertDist);
             }
 
             void main(void) {
@@ -685,7 +687,14 @@ export function drawnode_screen_wl_webgl2() {
                 vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;                               
                 vec3 normal = normalize((texNormal - 0.5) * 2.0);
                 
-                //normal = normalize(v_vertex);
+                float minH = 700000.0;
+                float maxH = minH * 3.0;
+                float nightCoef = getLerpValue(minH, maxH, camHeight) * nightTextureCoefficient;
+                                
+                if(camHeight > 700000.0)
+                {
+                    normal = normalize(v_vertex);
+                }
                                             
                 vec3 lightDir = normalize(sunPos - v_vertex);                       
                 vec3 viewDir = normalize(cameraPosition - v_vertex);
@@ -709,7 +718,7 @@ export function drawnode_screen_wl_webgl2() {
                 vec3 night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb;
                 night *= overGround * step(0.0, night);
                 
-                vec4 lightWeighting = vec4(ambient + sunIlluminance * diffuse * diffuseLightWeighting + night * 7.5, 1.0);
+                vec4 lightWeighting = vec4(ambient + sunIlluminance * diffuse * diffuseLightWeighting + night * nightCoef, 1.0);
                 
                 float fadingOpacity;
                 getAtmosFadingOpacity(fadingOpacity);

@@ -427,6 +427,12 @@ export class Planet extends RenderNode {
         this._terrainCompleted = false;
         this._terrainCompletedActivated = false;
         this._collectRenderNodesIsActive = true;
+
+        /**
+         * Night texture brightness coefficient
+         * @type {number}
+         */
+        this.nightTextureCoefficient = 1.5;
     }
 
     static getBearingNorthRotationQuat(cartesian) {
@@ -1168,23 +1174,25 @@ export class Planet extends RenderNode {
                 gl.uniform3fv(shu.diffuse, this.baseLayer._diffuse || this._diffuse);
                 gl.uniform3fv(shu.ambient, this.baseLayer._ambient || this._ambient);
                 gl.uniform4fv(shu.specular, this.baseLayer._specular || this._specular);
+                gl.uniform1f(shu.nightTextureCoefficient, this.baseLayer.nightTextureCoefficient || this.nightTextureCoefficient);
             } else {
                 gl.uniform3fv(shu.diffuse, this._diffuse);
                 gl.uniform3fv(shu.ambient, this._ambient);
                 gl.uniform4fv(shu.specular, this._specular);
+                gl.uniform1f(shu.nightTextureCoefficient, this.nightTextureCoefficient);
             }
 
             //
             // Night and specular
             //
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
-            //gl.bindTexture(gl.TEXTURE_2D, (this.camera._lonLat.height > 329958.0 && (this._nightTexture || this.transparentTexture)) || this.transparentTexture);
             gl.bindTexture(gl.TEXTURE_2D, this._nightTexture || this.transparentTexture);
             gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
 
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
             gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
             gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
+
 
             //
             // atmos precomputed textures

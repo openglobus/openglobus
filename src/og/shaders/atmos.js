@@ -36,9 +36,9 @@ export const COMMON =
     const float SUN_ANGULAR_RADIUS = 0.004685 * 2.0;
     const float SUN_INTENSITY = 1.0;
         
-    float lerp(in float min, in float max, in float a)
+    float getLerpValue(in float min, in float max, in float between)
     {
-        return (clamp(min, max, a) - min) / (max - min);
+        return (clamp(min, max, between) - min) / (max - min);
     }
     
     vec3 sunWithBloom(vec3 rayDir, vec3 sunDir) 

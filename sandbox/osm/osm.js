@@ -188,6 +188,7 @@ let sat = new XYZ("sat", {
     specular: [0.00063, 0.00055, 0.00032],
     ambient: "rgb(100,100,140)",
     diffuse: "rgb(450,450,450)",
+    nightTextureCoefficient: 2.7,
     //ambient: "rgb(77,77,128)",
     urlRewrite: function (s, u) {
         return stringTemplate(u, {
@@ -200,8 +201,10 @@ let sat = new XYZ("sat", {
 //let visExtent = new VisibleExtent();
 
 var highResTerrain = new MapboxTerrain(null, {
-    maxZoom: 19,
-    url: "//terrain.openglobus.org/public/nz/{z}/{x}/{y}.png",
+    maxZoom: 15,
+    //url: "//terrain.openglobus.org/public/eu10/{z}/{x}/{y}.png",
+    url: "//terrain.openglobus.org/public/austria10/{z}/{x}/{y}.png",
+    //url: "//terrain.openglobus.org/public/nz/{z}/{x}/{y}.png",
     //url: "//127.0.0.1/terrain/andorra/dest/{z}/{x}/{y}.png",
     //imageSize: 129,
     //plainGridSize: 256,
@@ -217,8 +220,9 @@ var globus = new Globe({
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
-    //terrain: highResTerrain,
-    terrain: new MapboxTerrain(),
+    terrain: highResTerrain,
+    //terrain: new MapboxTerrain(),
+    //terrain: new GlobusTerrain(),
     //maxEqualZoomAltitude: 1,
     layers: [sat, tg, osm],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
