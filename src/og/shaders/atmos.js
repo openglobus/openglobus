@@ -38,7 +38,7 @@ export const COMMON =
         
     float getLerpValue(in float min, in float max, in float between)
     {
-        return (clamp(min, max, between) - min) / (max - min);
+        return (clamp(between, min, max) - min) / (max - min);
     }
     
     vec3 sunWithBloom(vec3 rayDir, vec3 sunDir) 

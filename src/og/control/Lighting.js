@@ -32,6 +32,9 @@ const TEMPLATE =
 
          <div class="og-option og-opacity">
          </div>
+         
+         <div class="og-option og-night">
+         </div>
 
          <div class="og-option og-diffuse">
          </div>
@@ -100,6 +103,7 @@ class Lighting extends Control {
 
         this.$gamma;
         this.$exposure;
+        this.$night;
         this.$opacity;
         this.$diffuse;
         this.$ambient;
@@ -112,6 +116,11 @@ class Lighting extends Control {
 
         this._exposure = new Slider({
             label: "Exposure",
+            max: 5
+        });
+
+        this._night = new Slider({
+            label: "Nightlight",
             max: 5
         });
 
@@ -201,9 +210,12 @@ class Lighting extends Control {
         this.$diffuse = document.querySelector(".og-option.og-diffuse");
         this.$ambient = document.querySelector(".og-option.og-ambient");
         this.$specular = document.querySelector(".og-option.og-specular");
+        this.$night = document.querySelector(".og-option.og-night");
 
         this._gamma.appendTo(this.$gamma);
         this._exposure.appendTo(this.$exposure);
+
+        this._night.appendTo(this.$night);
         this._opacity.appendTo(this.$opacity);
 
         this._diffuse_r.appendTo(this.$diffuse);
@@ -238,6 +250,11 @@ class Lighting extends Control {
 
         this._exposure.on("change", (val) => {
             this.planet.renderer.exposure = val;
+        });
+
+        this._night.on("change", (val) => {
+            if (this._selectedLayer)
+                this._selectedLayer.nightTextureCoefficient = val;
         });
 
         this._opacity.on("change", (val) => {
@@ -306,6 +323,12 @@ class Lighting extends Control {
 
     _update() {
         let l = this._selectedLayer;
+
+        let o = l && l.opacity ? l.opacity : 0.0;
+        this._opacity.value = o;
+
+        let n = l && l.nightTextureCoefficient ? l.nightTextureCoefficient : this.planet.nightTextureCoefficient;
+        this._night.value = n;
 
         let a = l && l._ambient ? l._ambient : this.planet._ambient;
         this._ambient_r.value = a[0];
