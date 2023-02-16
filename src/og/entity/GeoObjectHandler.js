@@ -26,6 +26,14 @@ const setParametersToArray = (arr = [], index = 0, length, itemSize, ...params) 
     return arr;
 };
 
+const setParametersToArrayArr = (arr = [], index = 0, length, itemSize, paramsArr) => {
+    const currIndex = index * length;
+    for (let i = currIndex, len = currIndex + length; i < len; i++) {
+        arr[i] = paramsArr[i % itemSize];
+    }
+    return arr;
+};
+
 class InstanceData {
     constructor() {
 
@@ -465,7 +473,8 @@ class GeoObjectHandler {
     }
 
     setTexCoordArr(tagData, tagDataIndex, tcoordArr) {
-        setParametersToArray(tagData._texCoordArr, tagDataIndex, 2, 2, ...tcoordArr);
+        //TODO: doesnt work
+        //setParametersToArray(tagData._texCoordArr, tagDataIndex, 2, 2, ...tcoordArr);
         this._changedBuffers[TEXCOORD_BUFFER] = true;
     }
 
@@ -559,37 +568,37 @@ class GeoObjectHandler {
         }
 
         let last = this._geoObjects.splice(-1);
-        if (last) {
-            this._geoObjects[geoObject._handler] = last;
-            last._handlerIndex = geoObject._handlerIndex;
+        if (last[0]) {
+            this._geoObjects[geoObject._handlerIndex] = last[0];
+            last[0]._handlerIndex = geoObject._handlerIndex;
+            last[0]._tagDataIndex = geoObject._tagDataIndex;
         }
 
-        last = tagData._rgbaArr.splice(-4);
-        setParametersToArray(tagData._rgbaArr, geoObject._tagDataIndex, 4, 4, last);
+        last = {};
 
-        last = tagData._positionHighArr.splice(-3);
-        setParametersToArray(tagData._positionHighArr, geoObject._tagDataIndex, 3, 3, last);
+        tagData._rgbaArr = spliceArray(tagData._rgbaArr, -4, null, last);
+        setParametersToArrayArr(tagData._rgbaArr, geoObject._tagDataIndex, 4, 4, last.result);
 
-        last = tagData._positionLowArr.splice(-3);
-        setParametersToArray(tagData._positionLowArr, geoObject._tagDataIndex, 3, 3, last);
+        tagData._positionHighArr = spliceArray(tagData._positionHighArr, -3, null, last);
+        setParametersToArrayArr(tagData._positionHighArr, geoObject._tagDataIndex, 3, 3, last.result);
 
-        last = tagData._directionArr.splice(-3);
-        setParametersToArray(tagData._directionArr, geoObject._tagDataIndex, 3, 3, last);
+        tagData._positionLowArr = spliceArray(tagData._positionLowArr, -3, null, last);
+        setParametersToArrayArr(tagData._positionLowArr, geoObject._tagDataIndex, 3, 3, last.result);
 
-        last = tagData._pickingColorArr.splice(-3);
-        setParametersToArray(tagData._pickingColorArr, geoObject._tagDataIndex, 3, 3, last);
+        tagData._directionArr = spliceArray(tagData._directionArr, -3, null, last);
+        setParametersToArrayArr(tagData._directionArr, geoObject._tagDataIndex, 3, 3, last.result);
 
-        last = tagData._pitchRollArr.splice(-2);
-        setParametersToArray(tagData._pitchRollArr, geoObject._tagDataIndex, 2, 2, last);
+        tagData._pickingColorArr = spliceArray(tagData._pickingColorArr, -3, null, last);
+        setParametersToArrayArr(tagData._pickingColorArr, geoObject._tagDataIndex, 3, 3, last.result);
 
-        last = tagData._pitchRollArr.splice(-2);
-        setParametersToArray(tagData._pitchRollArr, geoObject._tagDataIndex, 2, 2, last);
+        tagData._pitchRollArr = spliceArray(tagData._pitchRollArr, -2, null, last);
+        setParametersToArrayArr(tagData._pitchRollArr, geoObject._tagDataIndex, 2, 2, last.result);
 
-        last = tagData._sizeArr.splice(-1);
-        setParametersToArray(tagData._sizeArr, geoObject._tagDataIndex, 1, 1, last);
+        tagData._sizeArr = spliceArray(tagData._sizeArr, -1, null, last);
+        setParametersToArrayArr(tagData._sizeArr, geoObject._tagDataIndex, 1, 1, last.result);
 
-        last = tagData._visibleArr.splice(-1);
-        setParametersToArray(tagData._visibleArr, geoObject._tagDataIndex, 1, 1, last);
+        tagData._visibleArr = spliceArray(tagData._visibleArr, -1, null, last);
+        setParametersToArrayArr(tagData._visibleArr, geoObject._tagDataIndex, 1, 1, last.result);
 
         geoObject._handlerIndex = -1;
         geoObject._handler = undefined;

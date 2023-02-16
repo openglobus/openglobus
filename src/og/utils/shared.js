@@ -792,34 +792,46 @@ export function makeArray(arr) {
  * @param {TypedArray | Array} arr
  * @param {Number} starting
  * @param {Number} deleteCount
- * @param {Array} elements
+ * @param {Object} outArr
  */
 
-export function spliceArray(arr, starting, deleteCount, elements) {
+export function spliceArray(arr, starting, deleteCount, out) {
     if (ArrayBuffer.isView(arr)) {
-        return spliceTypedArray(arr, starting, deleteCount, elements);
+        if (starting < 0) {
+            deleteCount = Math.abs(starting);
+            starting += arr.length;
+        }
+        return spliceTypedArray(arr, starting, deleteCount, out);
     } else {
-        arr.splice(starting, deleteCount);
+        if (starting < 0) {
+            out.result = arr.splice(starting);
+        } else {
+            out.result = arr.splice(starting, deleteCount);
+        }
         return arr;
     }
 }
+
+window.spliceArray = spliceArray;
 
 /**
  *
  * @param {TypedArray} arr
  * @param {Number} starting
  * @param {Number} deleteCount
- * @param {Array} elements
+ * @param {Array} outArr
  */
-export function spliceTypedArray(arr, starting, deleteCount, elements = []) {
+export function spliceTypedArray(arr, starting, deleteCount, out) {
     if (arr.length === 0) {
         return arr;
     }
-    const newSize = arr.length - deleteCount + elements.length;
+    const newSize = arr.length - deleteCount;
     const splicedArray = new arr.constructor(newSize);
     splicedArray.set(arr.subarray(0, starting));
-    splicedArray.set(elements, starting);
-    splicedArray.set(arr.subarray(starting + deleteCount), starting + elements.length);
+    splicedArray.set(arr.subarray(starting + deleteCount), starting);
+    if (out) {
+        out.result = arr.subarray(starting, starting + deleteCount);
+    }
     return splicedArray;
 }
 
