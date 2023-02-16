@@ -37,6 +37,8 @@ const setParametersToArrayArr = (arr = [], index = 0, length, itemSize, paramsAr
 class InstanceData {
     constructor() {
 
+        this.geoObjects = [];
+
         this.numInstances = 0;
 
         this._texture = null;
@@ -273,6 +275,7 @@ class GeoObjectHandler {
 
         geoObject._tagDataIndex = tagData.numInstances++;
         geoObject._tagData = tagData;
+        tagData.geoObjects.push(geoObject);
 
         let itemSize = 3;
 
@@ -559,46 +562,37 @@ class GeoObjectHandler {
     _removeGeoObject(geoObject) {
 
         let tagData = geoObject._tagData;
+        let tag = geoObject.tag;
 
         tagData.numInstances--;
 
         if (tagData.numInstances === 0) {
             //TODO: tagData clear
-            this._instanceDataMap.delete('tag');
+            this._instanceDataMap.delete(tag);
         }
 
-        let last = this._geoObjects.splice(-1);
-        if (last[0]) {
-            this._geoObjects[geoObject._handlerIndex] = last[0];
-            last[0]._handlerIndex = geoObject._handlerIndex;
-            last[0]._tagDataIndex = geoObject._tagDataIndex;
+        this._geoObjects.splice(geoObject._handlerIndex, 1);
+        for (let i = geoObject._handlerIndex, len = this._geoObjects.length; i < len; i++) {
+            let gi = this._geoObjects[i];
+            gi._handlerIndex = gi._handlerIndex - 1;
         }
 
-        last = {};
+        tagData.geoObjects.splice(geoObject._tagDataIndex, 1);
+        for (let i = geoObject._tagDataIndex, len = tagData.geoObjects.length; i < len; i++) {
+            let gi = tagData.geoObjects[i];
+            gi._tagDataIndex = gi._tagDataIndex - 1;
+        }
 
-        tagData._rgbaArr = spliceArray(tagData._rgbaArr, -4, null, last);
-        setParametersToArrayArr(tagData._rgbaArr, geoObject._tagDataIndex, 4, 4, last.result);
+        let tdi = geoObject._tagDataIndex;
 
-        tagData._positionHighArr = spliceArray(tagData._positionHighArr, -3, null, last);
-        setParametersToArrayArr(tagData._positionHighArr, geoObject._tagDataIndex, 3, 3, last.result);
-
-        tagData._positionLowArr = spliceArray(tagData._positionLowArr, -3, null, last);
-        setParametersToArrayArr(tagData._positionLowArr, geoObject._tagDataIndex, 3, 3, last.result);
-
-        tagData._directionArr = spliceArray(tagData._directionArr, -3, null, last);
-        setParametersToArrayArr(tagData._directionArr, geoObject._tagDataIndex, 3, 3, last.result);
-
-        tagData._pickingColorArr = spliceArray(tagData._pickingColorArr, -3, null, last);
-        setParametersToArrayArr(tagData._pickingColorArr, geoObject._tagDataIndex, 3, 3, last.result);
-
-        tagData._pitchRollArr = spliceArray(tagData._pitchRollArr, -2, null, last);
-        setParametersToArrayArr(tagData._pitchRollArr, geoObject._tagDataIndex, 2, 2, last.result);
-
-        tagData._sizeArr = spliceArray(tagData._sizeArr, -1, null, last);
-        setParametersToArrayArr(tagData._sizeArr, geoObject._tagDataIndex, 1, 1, last.result);
-
-        tagData._visibleArr = spliceArray(tagData._visibleArr, -1, null, last);
-        setParametersToArrayArr(tagData._visibleArr, geoObject._tagDataIndex, 1, 1, last.result);
+        tagData._rgbaArr = spliceArray(tagData._rgbaArr, tdi * 4, 4);
+        tagData._positionHighArr = spliceArray(tagData._positionHighArr, tdi * 3, 3);
+        tagData._positionLowArr = spliceArray(tagData._positionLowArr, tdi * 3, 3);
+        tagData._directionArr = spliceArray(tagData._directionArr, tdi * 3, 3);
+        tagData._pickingColorArr = spliceArray(tagData._pickingColorArr, tdi * 3, 3);
+        tagData._pitchRollArr = spliceArray(tagData._pitchRollArr, tdi * 2, 2);
+        tagData._sizeArr = spliceArray(tagData._sizeArr, tdi, 1);
+        tagData._visibleArr = spliceArray(tagData._visibleArr, tdi, 1);
 
         geoObject._handlerIndex = -1;
         geoObject._handler = undefined;
