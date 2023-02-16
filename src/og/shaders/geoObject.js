@@ -111,7 +111,7 @@ export const geo_object = () =>
              
                 vec3 look = cameraPosition - position;
                 float lookLength = length(look);
-                vNormal = aVertexNormal;
+                vNormal = modelMatrix * aVertexNormal;
                                
                 // if(lookLength > uScaleByDistance[1])
                 // {
@@ -124,7 +124,7 @@ export const geo_object = () =>
                 // ... is the same math
                 float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
                 
-                vec3 vert = aVertexPosition * aScale * scd;
+                vec3 vert = modelMatrix * aVertexPosition * aScale * scd;
                 v_vertex = position + vert;
                                
                 gl_Position = projectionMatrix * viewMatrixRTE  * vec4(highDiff + lowDiff + vert, 1.0);
