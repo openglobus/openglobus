@@ -203,8 +203,8 @@ let sat = new XYZ("sat", {
 
 var highResTerrain = new MapboxTerrain(null, {
     maxZoom: 15,
-    url: "//terrain.openglobus.org/public/eu10/{z}/{x}/{y}.png",
-    //url: "//terrain.openglobus.org/public/austria10/{z}/{x}/{y}.png",
+    //url: "//terrain.openglobus.org/public/eu10/{z}/{x}/{y}.png",
+    url: "//terrain.openglobus.org/public/austria10/{z}/{x}/{y}.png",
     //url: "//terrain.openglobus.org/public/nz/{z}/{x}/{y}.png",
     //url: "//127.0.0.1/terrain/andorra/dest/{z}/{x}/{y}.png",
     //imageSize: 129,

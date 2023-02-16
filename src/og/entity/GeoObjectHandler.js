@@ -6,17 +6,17 @@
 import * as shaders from "../shaders/geoObject.js";
 import { concatArrays, loadImage, makeArrayTyped, spliceArray } from "../utils/shared.js";
 
-const VERTEX_BUFFER = 0,
-    POSITION_BUFFER = 1,
-    RGBA_BUFFER = 2,
-    NORMALS_BUFFER = 3,
-    INDECIES_BUFFER = 4,
-    DIRECTION_BUFFER = 5,
-    PITCH_ROLL_BUFFER = 6,
-    SIZE_BUFFER = 7,
-    PICKINGCOLOR_BUFFER = 8,
-    VISIBLE_BUFFER = 9,
-    TEXCOORD_BUFFER = 10;
+const VERTEX_BUFFER = 0;
+const POSITION_BUFFER = 1;
+const RGBA_BUFFER = 2;
+const NORMALS_BUFFER = 3;
+const INDECIES_BUFFER = 4;
+const DIRECTION_BUFFER = 5;
+const PITCH_ROLL_BUFFER = 6;
+const SIZE_BUFFER = 7;
+const PICKINGCOLOR_BUFFER = 8;
+const VISIBLE_BUFFER = 9;
+const TEXCOORD_BUFFER = 10;
 
 const setParametersToArray = (arr = [], index = 0, length, itemSize, ...params) => {
     const currIndex = index * length;
@@ -26,8 +26,46 @@ const setParametersToArray = (arr = [], index = 0, length, itemSize, ...params) 
     return arr;
 };
 
+class InstanceData {
+    constructor() {
+
+        this.numInstances = 0;
+
+        this._texture = null;
+
+        this._pitchRollArr = [];
+        this._sizeArr = [];
+        this._vertexArr = [];
+        this._positionHighArr = [];
+        this._positionLowArr = [];
+        this._directionArr = [];
+        this._rgbaArr = [];
+        this._normalsArr = [];
+        this._indicesArr = [];
+        this._pickingColorArr = [];
+        this._visibleArr = [];
+        this._texCoordArr = [];
+
+        this._pitchRollBuffer = null;
+        this._sizeBuffer = null;
+        this._vertexBuffer = null;
+        this._positionHighBuffer = null;
+        this._positionLowBuffer = null;
+        this._directionBuffer = null;
+        this._rgbaBuffer = null;
+        this._normalsBuffer = null;
+        this._indicesBuffer = null;
+        this._pickingColorBuffer = null;
+        this._visibleBuffer = null;
+        this._texCoordBuffer = null;
+    }
+}
+
 class GeoObjectHandler {
     constructor(entityCollection) {
+
+        this.__staticId = GeoObjectHandler._staticCounter++;
+
         /**
          * Picking rendering option.
          * @public
@@ -39,36 +77,8 @@ class GeoObjectHandler {
         this._renderer = undefined;
         this._planet = undefined;
 
-        this._textures = []
-
         this._geoObjects = [];
-        this._pitchRollArr = [[]];
-        this._sizeArr = [[]];
-        this._vertexArr = [[]];
-        this._positionHighArr = [[]];
-        this._positionLowArr = [[]];
-        this._directionArr = [[]];
-        this._rgbaArr = [[]];
-        this._normalsArr = [[]];
-        this._indicesArr = [[]];
-        this._pickingColorArr = [[]];
-        this._visibleArr = [[]];
-        this._texCoordArr = [[]];
 
-        this._pitchRollBuffer = [];
-        this._sizeBuffer = [];
-        this._vertexBuffer = [];
-        this._positionHighBuffer = [];
-        this._positionLowBuffer = [];
-        this._directionBuffer = [];
-        this._rgbaBuffer = [];
-        this._normalsBuffer = [];
-        this._indicesBuffer = [];
-        this._pickingColorBuffer = [];
-        this._visibleBuffer = [];
-        this._texCoordBuffer = [];
-
-        this.__staticId = GeoObjectHandler._staticCounter++;
         this._buffersUpdateCallbacks = [];
         this._buffersUpdateCallbacks[PICKINGCOLOR_BUFFER] = this.createPickingColorBuffer;
         this._buffersUpdateCallbacks[POSITION_BUFFER] = this.createPositionBuffer;
@@ -84,116 +94,111 @@ class GeoObjectHandler {
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
-        this._instancedTags = new Map();
-    }
-
-    getObjectByIndex(index) {
-        return this._geoObjects[index];
+        this._instanceDataMap = new Map();
     }
 
     //Create buffers
     createVertexBuffer() {
         const h = this._renderer.handler;
-        for (let i = 0, len = this._vertexArr.length; i < len; i++) {
-            this._vertexBuffer && h.gl.deleteBuffer(this._vertexBuffer[i]);
-            this._vertexArr[i] = makeArrayTyped(this._vertexArr[i]);
-            this._vertexBuffer[i] = h.createArrayBuffer(this._vertexArr[i], 3, this._vertexArr[i].length / 3);
+        for (let tag of this._instanceDataMap.values()) {
+            tag._vertexBuffer && h.gl.deleteBuffer(tag._vertexBuffer);
+            tag._vertexArr = makeArrayTyped(tag._vertexArr);
+            tag._vertexBuffer = h.createArrayBuffer(tag._vertexArr, 3, tag._vertexArr.length / 3);
         }
     }
 
     createPitchRollBuffer() {
         const h = this._renderer.handler;
-        for (let i = 0, len = this._pitchRollArr.length; i < len; i++) {
-            this._pitchRollBuffer && h.gl.deleteBuffer(this._pitchRollBuffer[i]);
-            this._pitchRollArr[i] = makeArrayTyped(this._pitchRollArr[i]);
-            this._pitchRollBuffer[i] = h.createArrayBuffer(this._pitchRollArr[i], 2, this._pitchRollArr[i].length / 2);
+        for (let tag of this._instanceDataMap.values()) {
+            tag._pitchRollBuffer && h.gl.deleteBuffer(tag._pitchRollBuffer);
+            tag._pitchRollArr = makeArrayTyped(tag._pitchRollArr);
+            tag._pitchRollBuffer = h.createArrayBuffer(tag._pitchRollArr, 2, tag._pitchRollArr.length / 2);
         }
     }
 
     createVisibleBuffer() {
         const h = this._renderer.handler;
-        for (let i = 0, len = this._visibleArr.length; i < len; i++) {
-            this._visibleBuffer && h.gl.deleteBuffer(this._visibleBuffer[i]);
-            this._visibleArr[i] = makeArrayTyped(this._visibleArr[i]);
-            this._visibleBuffer[i] = h.createArrayBuffer(this._visibleArr[i], 1, this._visibleArr[i].length);
+        for (let tag of this._instanceDataMap.values()) {
+            tag._visibleBuffer && h.gl.deleteBuffer(tag._visibleBuffer);
+            tag._visibleArr = makeArrayTyped(tag._visibleArr);
+            tag._visibleBuffer = h.createArrayBuffer(tag._visibleArr, 1, tag._visibleArr.length);
         }
     }
 
     createSizeBuffer() {
         const h = this._renderer.handler;
-        for (let i = 0, len = this._sizeArr.length; i < len; i++) {
-            this._sizeBuffer && h.gl.deleteBuffer(this._sizeBuffer[i]);
-            this._sizeArr[i] = makeArrayTyped(this._sizeArr[i]);
-            this._sizeBuffer[i] = h.createArrayBuffer(this._sizeArr[i], 1, this._sizeArr[i].length);
+        for (let tag of this._instanceDataMap.values()) {
+            tag._sizeBuffer && h.gl.deleteBuffer(tag._sizeBuffer);
+            tag._sizeArr = makeArrayTyped(tag._sizeArr);
+            tag._sizeBuffer = h.createArrayBuffer(tag._sizeArr, 1, tag._sizeArr.length);
         }
     }
 
     createTexCoordBuffer() {
         const h = this._renderer.handler;
-        for (let i = 0, len = this._texCoordArr.length; i < len; i++) {
-            this._texCoordBuffer && h.gl.deleteBuffer(this._texCoordBuffer[i]);
-
-            this._texCoordArr[i] = makeArrayTyped(this._texCoordArr[i]);
-            this._texCoordBuffer[i] = h.createArrayBuffer(this._texCoordArr[i], 2, this._texCoordArr[i].length / 2);
+        for (let tag of this._instanceDataMap.values()) {
+            tag._texCoordBuffer && h.gl.deleteBuffer(tag._texCoordBuffer);
+            tag._texCoordArr = makeArrayTyped(tag._texCoordArr);
+            tag._texCoordBuffer = h.createArrayBuffer(tag._texCoordArr, 2, tag._texCoordArr.length / 2);
         }
     }
 
     createPositionBuffer() {
         let h = this._renderer.handler;
-        for (let i = 0, len = this._positionHighArr.length; i < len; i++) {
-            h.gl.deleteBuffer(this._positionHighBuffer[i]);
-            h.gl.deleteBuffer(this._positionLowBuffer[i]);
+        for (let tag of this._instanceDataMap.values()) {
+            h.gl.deleteBuffer(tag._positionHighBuffer);
+            h.gl.deleteBuffer(tag._positionLowBuffer);
 
-            this._positionHighArr[i] = makeArrayTyped(this._positionHighArr[i]);
-            this._positionHighBuffer[i] = h.createArrayBuffer(this._positionHighArr[i], 3, this._positionHighArr[i].length / 3);
+            tag._positionHighArr = makeArrayTyped(tag._positionHighArr);
+            tag._positionHighBuffer = h.createArrayBuffer(tag._positionHighArr, 3, tag._positionHighArr.length / 3);
 
-            this._positionLowArr[i] = makeArrayTyped(this._positionLowArr[i]);
-            this._positionLowBuffer[i] = h.createArrayBuffer(this._positionLowArr[i], 3, this._positionLowArr[i].length / 3);
+            tag._positionLowArr = makeArrayTyped(tag._positionLowArr);
+            tag._positionLowBuffer = h.createArrayBuffer(tag._positionLowArr, 3, tag._positionLowArr.length / 3);
         }
     }
 
     createRgbaBuffer() {
         const h = this._renderer.handler;
-        for (let i = 0, len = this._rgbaArr.length; i < len; i++) {
-            this._rgbaBuffer && h.gl.deleteBuffer(this._rgbaBuffer[i]);
-            this._rgbaArr[i] = makeArrayTyped(this._rgbaArr[i]);
-            this._rgbaBuffer[i] = h.createArrayBuffer(this._rgbaArr[i], 4, this._rgbaArr[i].length / 4);
+        for (let tag of this._instanceDataMap.values()) {
+            tag._rgbaBuffer && h.gl.deleteBuffer(tag._rgbaBuffer);
+            tag._rgbaArr = makeArrayTyped(tag._rgbaArr);
+            tag._rgbaBuffer = h.createArrayBuffer(tag._rgbaArr, 4, tag._rgbaArr.length / 4);
         }
     }
 
     createDirectionBuffer() {
         const h = this._renderer.handler;
-        for (let i = 0, len = this._directionArr.length; i < len; i++) {
-            this._directionBuffer && h.gl.deleteBuffer(this._directionBuffer[i]);
-            this._directionArr[i] = makeArrayTyped(this._directionArr[i]);
-            this._directionBuffer[i] = h.createArrayBuffer(this._directionArr[i], 3, this._directionArr[i].length / 3);
+        for (let tag of this._instanceDataMap.values()) {
+            tag._directionBuffer && h.gl.deleteBuffer(tag._directionBuffer);
+            tag._directionArr = makeArrayTyped(tag._directionArr);
+            tag._directionBuffer = h.createArrayBuffer(tag._directionArr, 3, tag._directionArr.length / 3);
         }
     }
 
     createNormalsBuffer() {
         const h = this._renderer.handler;
-        for (let i = 0, len = this._normalsArr.length; i < len; i++) {
-            this._normalsBuffer && h.gl.deleteBuffer(this._normalsBuffer[i]);
-            this._normalsArr[i] = makeArrayTyped(this._normalsArr[i]);
-            this._normalsBuffer[i] = h.createArrayBuffer(this._normalsArr[i], 3, this._normalsArr[i].length / 3);
+        for (let tag of this._instanceDataMap.values()) {
+            tag._normalsBuffer && h.gl.deleteBuffer(tag._normalsBuffer);
+            tag._normalsArr = makeArrayTyped(tag._normalsArr);
+            tag._normalsBuffer = h.createArrayBuffer(tag._normalsArr, 3, tag._normalsArr.length / 3);
         }
     }
 
     createIndicesBuffer() {
         const h = this._renderer.handler;
-        for (let i = 0, len = this._indicesArr.length; i < len; i++) {
-            this._indicesBuffer && h.gl.deleteBuffer(this._indicesBuffer[i]);
-            this._indicesArr[i] = makeArrayTyped(this._indicesArr[i], Uint16Array);
-            this._indicesBuffer[i] = h.createElementArrayBuffer(this._indicesArr[i], 1, this._indicesArr[i].length);
+        for (let tag of this._instanceDataMap.values()) {
+            tag._indicesBuffer && h.gl.deleteBuffer(tag._indicesBuffer);
+            tag._indicesArr = makeArrayTyped(tag._indicesArr, Uint16Array);
+            tag._indicesBuffer = h.createElementArrayBuffer(tag._indicesArr, 1, tag._indicesArr.length);
         }
     }
 
     createPickingColorBuffer() {
         const h = this._renderer.handler;
-        for (let i = 0, len = this._pickingColorArr.length; i < len; i++) {
-            this._pickingColorBuffer && h.gl.deleteBuffer(this._pickingColorBuffer[i]);
-            this._pickingColorArr[i] = makeArrayTyped(this._pickingColorArr[i]);
-            this._pickingColorBuffer[i] = h.createArrayBuffer(this._pickingColorArr[i], 3, this._pickingColorArr[i].length / 3);
+        for (let tag of this._instanceDataMap.values()) {
+            tag._pickingColorBuffer && h.gl.deleteBuffer(tag._pickingColorBuffer);
+            tag._pickingColorArr = makeArrayTyped(tag._pickingColorArr);
+            tag._pickingColorBuffer = h.createArrayBuffer(tag._pickingColorArr, 3, tag._pickingColorArr.length / 3);
         }
     }
 
@@ -219,20 +224,15 @@ class GeoObjectHandler {
         }
     }
 
-    async _applyTexture(geoObject) {
+    async _applyTexture(geoObject, tagData) {
         const src = geoObject._src;
-        const tagData = this._instancedTags.get(geoObject.tag);
-        const ti = tagData.index;
-
-        if (geoObject._src && !tagData.texturesApplied) {
-            this._instancedTags.set(geoObject.tag, {
-                ...tagData,
-                texturesApplied: true
-            });
-
+        if (src) {
             const image = await loadImage(src);
-            this._textures[ti] = this._renderer.handler.createTextureDefault(image);
+            tagData._texture = this._renderer.handler.createTextureDefault(image);
         }
+        // else {
+        //     tagData._texture = this._renderer.handler.defaultTexture;
+        // }
         this._changedBuffers[TEXCOORD_BUFFER] = true;
     }
 
@@ -247,76 +247,49 @@ class GeoObjectHandler {
     }
 
     _addGeoObjectToArray(geoObject) {
-        const tag = geoObject.tag,
-            alreadyAdded = this._instancedTags.has(tag);
+        const tag = geoObject.tag;
 
-        if (!alreadyAdded) {
-            this._instancedTags.set(tag, {
-                iCounts: 1,
-                texturesApplied: false,
-                index: this._instancedTags.size
-            });
-        } else {
-            const prevState = this._instancedTags.get(tag),
-                nextCount = prevState.iCounts + 1;
-            this._instancedTags.set(tag, {
-                ...prevState,
-                iCounts: nextCount
-            });
+        let tagData = this._instanceDataMap.get(tag);
+
+        if (!tagData) {
+            tagData = new InstanceData();
+            this._instanceDataMap.set(tag, tagData);
+
+            tagData._vertexArr = geoObject.vertices
+            tagData._normalsArr = geoObject.normals;
+            tagData._indicesArr = geoObject.indexes;
+            tagData._texCoordArr = geoObject.texCoords;
+
+            this._applyTexture(geoObject, tagData);
         }
-        const tagData = this._instancedTags.get(tag),
-            ti = tagData.index;
 
-        geoObject._tagIndex = tagData.iCounts - 1;
+        geoObject._tagDataIndex = tagData.numInstances++;
+        geoObject._tagData = tagData;
 
         let itemSize = 3;
 
-        if (!this._vertexArr[ti] || this._vertexArr[ti].length !== geoObject.vertices.length) {
-            this._vertexArr[ti] = geoObject.vertices
-            this._normalsArr[ti] = geoObject.normals;
-            this._indicesArr[ti] = geoObject.indexes;
-            this._texCoordArr[ti] = geoObject.texCoords;
-
-            this._applyTexture(geoObject)
-        }
-
-        this._visibleArr[ti] = concatArrays(
-            this._visibleArr[ti],
-            setParametersToArray([], 0, 1, 1, geoObject._visibility ? 1 : 0)
-        );
+        tagData._visibleArr = concatArrays(tagData._visibleArr, setParametersToArray([], 0, 1, 1, geoObject._visibility ? 1 : 0));
 
         let x = geoObject._positionHigh.x,
             y = geoObject._positionHigh.y,
             z = geoObject._positionHigh.z,
             w;
-        this._positionHighArr[ti] = concatArrays(
-            this._positionHighArr[ti],
-            setParametersToArray([], 0, itemSize, itemSize, x, y, z)
-        );
+        tagData._positionHighArr = concatArrays(tagData._positionHighArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
 
         x = geoObject._positionLow.x;
         y = geoObject._positionLow.y;
         z = geoObject._positionLow.z;
-        this._positionLowArr[ti] = concatArrays(
-            this._positionLowArr[ti],
-            setParametersToArray([], 0, itemSize, itemSize, x, y, z)
-        );
+        tagData._positionLowArr = concatArrays(tagData._positionLowArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
 
         x = geoObject._entity._pickingColor.x / 255;
         y = geoObject._entity._pickingColor.y / 255;
         z = geoObject._entity._pickingColor.z / 255;
-        this._pickingColorArr[ti] = concatArrays(
-            this._pickingColorArr[ti],
-            setParametersToArray([], 0, itemSize, itemSize, x, y, z)
-        );
+        tagData._pickingColorArr = concatArrays(tagData._pickingColorArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
 
         x = geoObject._direction.x;
         y = geoObject._direction.y;
         z = geoObject._direction.z;
-        this._directionArr[ti] = concatArrays(
-            this._directionArr[ti],
-            setParametersToArray([], 0, itemSize, itemSize, x, y, z)
-        );
+        tagData._directionArr = concatArrays(tagData._directionArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
 
         itemSize = 4;
 
@@ -324,31 +297,21 @@ class GeoObjectHandler {
         y = geoObject._color.y;
         z = geoObject._color.z;
         w = geoObject._color.w;
-        this._rgbaArr[ti] = concatArrays(
-            this._rgbaArr[ti],
-            setParametersToArray([], 0, itemSize, itemSize, x, y, z, w)
-        );
-
-        x = geoObject._pitch;
-        y = geoObject._roll;
+        tagData._rgbaArr = concatArrays(tagData._rgbaArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z, w));
 
         itemSize = 2;
 
-        this._pitchRollArr[ti] = concatArrays(
-            this._pitchRollArr[ti],
-            setParametersToArray([], 0, itemSize, itemSize, x, y)
-        );
+        x = geoObject._pitch;
+        y = geoObject._roll;
+        tagData._pitchRollArr = concatArrays(tagData._pitchRollArr, setParametersToArray([], 0, itemSize, itemSize, x, y));
 
         itemSize = 1;
 
-        this._sizeArr[ti] = concatArrays(
-            this._sizeArr[ti],
-            setParametersToArray([], 0, itemSize, itemSize, geoObject.scale)
-        );
+        tagData._sizeArr = concatArrays(tagData._sizeArr, setParametersToArray([], 0, itemSize, itemSize, geoObject.scale));
     }
 
     _displayPASS() {
-        const r = this._renderer,
+        let r = this._renderer,
             sh = r.handler.programs.geo_object,
             p = sh._program,
             u = p.uniforms,
@@ -371,78 +334,46 @@ class GeoObjectHandler {
         gl.uniform3fv(u.lightsParamsv, this._planet._lightsParamsv);
         gl.uniform1fv(u.lightsParamsf, this._planet._lightsParamsf);
 
-        for (const tag of this._instancedTags) {
-            const tagData = tag[1],
-                ti = tagData.index;
+        for (const tagData of this._instanceDataMap.values()) {
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._normalsBuffer[ti]);
-            gl.vertexAttribPointer(a.aVertexNormal, this._normalsBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._normalsBuffer);
+            gl.vertexAttribPointer(a.aVertexNormal, tagData._normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer[ti]);
-            gl.vertexAttribPointer(a.aVertexPosition, this._vertexBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._vertexBuffer);
+            gl.vertexAttribPointer(a.aVertexPosition, tagData._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, this._textures[ti] || r.handler.defaultTexture);
+            gl.bindTexture(gl.TEXTURE_2D, tagData._texture || r.handler.defaultTexture);
             gl.uniform1i(u.uTexture, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer[ti]);
-            gl.vertexAttribPointer(a.aTexCoord, this._texCoordBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._texCoordBuffer);
+            gl.vertexAttribPointer(a.aTexCoord, tagData._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._directionBuffer[ti]);
-            gl.vertexAttribPointer(a.aDirection, this._directionBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._directionBuffer);
+            gl.vertexAttribPointer(a.aDirection, tagData._directionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer[ti]);
-            gl.vertexAttribPointer(a.aScale, this._sizeBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._sizeBuffer);
+            gl.vertexAttribPointer(a.aScale, tagData._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._pitchRollBuffer[ti]);
-            gl.vertexAttribPointer(a.aPitchRoll, this._pitchRollBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._pitchRollBuffer);
+            gl.vertexAttribPointer(a.aPitchRoll, tagData._pitchRollBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer[ti]);
-            gl.vertexAttribPointer(a.aColor, this._rgbaBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._rgbaBuffer);
+            gl.vertexAttribPointer(a.aColor, tagData._rgbaBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._visibleBuffer[ti]);
-            gl.vertexAttribPointer(a.aDispose, this._visibleBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._visibleBuffer);
+            gl.vertexAttribPointer(a.aDispose, tagData._visibleBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.uniform1f(u.uUseTexture, this._textures[ti] ? 1 : 0);
+            gl.uniform1f(u.uUseTexture, tagData._texture ? 1 : 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer[ti]);
-            gl.vertexAttribPointer(
-                a.aPositionHigh,
-                this._positionHighBuffer[ti].itemSize,
-                gl.FLOAT,
-                false,
-                0,
-                0
-            );
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._positionHighBuffer);
+            gl.vertexAttribPointer(a.aPositionHigh, tagData._positionHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer[ti]);
-            gl.vertexAttribPointer(
-                a.aPositionLow,
-                this._positionLowBuffer[ti].itemSize,
-                gl.FLOAT,
-                false,
-                0,
-                0
-            );
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._positionLowBuffer);
+            gl.vertexAttribPointer(a.aPositionLow, tagData._positionLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer[ti]);
-
-            if (tagData.iCounts) {
-                p.drawElementsInstanced(
-                    gl.TRIANGLES,
-                    this._indicesBuffer[ti].numItems,
-                    gl.UNSIGNED_SHORT,
-                    0,
-                    tagData.iCounts
-                );
-            } else {
-                gl.drawElements(
-                    gl.TRIANGLES,
-                    this._indicesBuffer[ti].numItems,
-                    gl.UNSIGNED_SHORT,
-                    0
-                );
-            }
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer);
+            p.drawElementsInstanced(gl.TRIANGLES, tagData._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0, tagData.numInstances);
         }
         gl.disable(gl.CULL_FACE);
     }
@@ -454,7 +385,7 @@ class GeoObjectHandler {
     }
 
     _pickingPASS() {
-        const r = this._renderer,
+        let r = this._renderer,
             sh = r.handler.programs.geo_object_picking,
             p = sh._program,
             u = p.uniforms,
@@ -475,232 +406,76 @@ class GeoObjectHandler {
         gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera.getViewMatrix());
 
-        for (const tag of this._instancedTags) {
-            const tagData = tag[1],
-                ti = tagData.index;
+        for (const tagData of this._instanceDataMap.values()) {
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer[ti]);
-            gl.vertexAttribPointer(
-                a.aVertexPosition,
-                this._vertexBuffer[ti].itemSize,
-                gl.FLOAT,
-                false,
-                0,
-                0
-            );
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._vertexBuffer);
+            gl.vertexAttribPointer(a.aVertexPosition, tagData._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._directionBuffer[ti]);
-            gl.vertexAttribPointer(
-                a.aDirection,
-                this._directionBuffer[ti].itemSize,
-                gl.FLOAT,
-                false,
-                0,
-                0
-            );
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._directionBuffer);
+            gl.vertexAttribPointer(a.aDirection, tagData._directionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer[ti]);
-            gl.vertexAttribPointer(a.aScale, this._sizeBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._sizeBuffer);
+            gl.vertexAttribPointer(a.aScale, tagData._sizeBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._pitchRollBuffer[ti]);
-            gl.vertexAttribPointer(
-                a.aPitchRoll,
-                this._pitchRollBuffer[ti].itemSize,
-                gl.FLOAT,
-                false,
-                0,
-                0
-            );
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._pitchRollBuffer);
+            gl.vertexAttribPointer(a.aPitchRoll, tagData._pitchRollBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingColorBuffer[ti]);
-            gl.vertexAttribPointer(
-                a.aPickingColor,
-                this._pickingColorBuffer[ti].itemSize,
-                gl.FLOAT,
-                false,
-                0,
-                0
-            );
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._pickingColorBuffer);
+            gl.vertexAttribPointer(a.aPickingColor, tagData._pickingColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer[ti]);
-            gl.vertexAttribPointer(
-                a.aPositionHigh,
-                this._positionHighBuffer[ti].itemSize,
-                gl.FLOAT,
-                false,
-                0,
-                0
-            );
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._positionHighBuffer);
+            gl.vertexAttribPointer(a.aPositionHigh, tagData._positionHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer[ti]);
-            gl.vertexAttribPointer(
-                a.aPositionLow,
-                this._positionLowBuffer[ti].itemSize,
-                gl.FLOAT,
-                false,
-                0,
-                0
-            );
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._positionLowBuffer);
+            gl.vertexAttribPointer(a.aPositionLow, tagData._positionLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._visibleBuffer[ti]);
-            gl.vertexAttribPointer(a.aDispose, this._visibleBuffer[ti].itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._visibleBuffer);
+            gl.vertexAttribPointer(a.aDispose, tagData._visibleBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer[ti]);
-
-            if (tagData.iCounts) {
-                p.drawElementsInstanced(
-                    gl.TRIANGLES,
-                    this._indicesBuffer[ti].numItems,
-                    gl.UNSIGNED_SHORT,
-                    0,
-                    tagData.iCounts
-                );
-            } else {
-                gl.drawElements(
-                    gl.TRIANGLES,
-                    this._indicesBuffer[ti].numItems,
-                    gl.UNSIGNED_SHORT,
-                    0
-                );
-            }
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer);
+            p.drawElementsInstanced(gl.TRIANGLES, tagData._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0, tagData.numInstances);
         }
         gl.disable(gl.CULL_FACE);
     }
 
-    _recalculateIndices(startIndex) {
-
-    }
-
-    _addIndices(g) {
-
-    }
-
-
-    setDirectionArr(index, direction) {
-        const itemSize = 3,
-            ob = this.getObjectByIndex(index),
-            ti = this.getTagIndexByObjectIndex(index);
-        let length = ob.numVertices * itemSize;
-
-        if (ob.instanced) {
-            length = itemSize;
-        }
-
-        setParametersToArray(this._directionArr[ti], ob._tagIndex, length, itemSize, direction.x, direction.y, direction.z);
+    setDirectionArr(tagData, tagDataIndex, direction) {
+        setParametersToArray(tagData._directionArr, tagDataIndex, 3, 3, direction.x, direction.y, direction.z);
         this._changedBuffers[DIRECTION_BUFFER] = true;
     }
 
-    setVisibility(index, visibility) {
-        const ob = this.getObjectByIndex(index),
-            ti = this.getTagIndexByObjectIndex(index);
-
-        setParametersToArray(this._visibleArr[ti], ob._tagIndex, 1, 1, visibility ? 1 : 0);
-
+    setVisibility(tagData, tagDataIndex, visibility) {
+        setParametersToArray(tagData._visibleArr, tagDataIndex, 1, 1, visibility ? 1 : 0);
         this._changedBuffers[VISIBLE_BUFFER] = true;
     }
 
-    setPositionArr(index, positionHigh, positionLow) {
-        const itemSize = 3,
-            ob = this.getObjectByIndex(index),
-            ti = this.getTagIndexByObjectIndex(index);
-        let length = ob.numVertices * itemSize;
-
-        if (ob.instanced) {
-            length = itemSize;
-        }
-
-        setParametersToArray(this._positionHighArr[ti], ob._tagIndex, length, itemSize, positionHigh.x, positionHigh.y, positionHigh.z);
-
-        // Low
-        setParametersToArray(this._positionLowArr[ti], ob._tagIndex, length, itemSize, positionLow.x, positionLow.y, positionLow.z);
-
+    setPositionArr(tagData, tagDataIndex, positionHigh, positionLow) {
+        setParametersToArray(tagData._positionHighArr, tagDataIndex, 3, 3, positionHigh.x, positionHigh.y, positionHigh.z);
+        setParametersToArray(tagData._positionLowArr, tagDataIndex, 3, 3, positionLow.x, positionLow.y, positionLow.z);
         this._changedBuffers[POSITION_BUFFER] = true;
     }
 
-    setRgbaArr(index, rgba) {
-        const itemSize = 4,
-            ob = this.getObjectByIndex(index),
-            ti = this.getTagIndexByObjectIndex(index);
-        let length = ob.numVertices * itemSize;
-
-        if (ob.instanced) {
-            length = itemSize;
-        }
-
-        setParametersToArray(this._rgbaArr[ti], ob._tagIndex, length, itemSize, rgba.x, rgba.y, rgba.z, rgba.w);
-
+    setRgbaArr(tagData, tagDataIndex, rgba) {
+        setParametersToArray(tagData._rgbaArr, tagDataIndex, 4, 4, rgba.x, rgba.y, rgba.z, rgba.w);
         this._changedBuffers[RGBA_BUFFER] = true;
     }
 
-    getTagIndexByObjectIndex(index) {
-        return this._instancedTags.get(this.getObjectByIndex(index).tag).index;
-    }
-
-    getTagDataByObjectIndex(index) {
-        return this._instancedTags.get(this.getObjectByIndex(index).tag);
-    }
-
-    setPickingColorArr(index, color) {
-        const itemSize = 3,
-            ti = this.getTagIndexByObjectIndex(index),
-            ob = this.getObjectByIndex(index),
-            x = color.x / 255,
-            y = color.y / 255,
-            z = color.z / 255;
-
-        let length = ob.numVertices * itemSize;
-
-        if (ob.instanced) {
-            length = itemSize;
-        }
-
-        setParametersToArray(this._pickingColorArr[ti], ob._tagIndex, length, itemSize, x, y, z);
+    setPickingColorArr(tagData, tagDataIndex, color) {
+        setParametersToArray(tagData._pickingColorArr, tagDataIndex, 3, 3, color.x / 255, color.y / 255, color.z / 255);
         this._changedBuffers[PICKINGCOLOR_BUFFER] = true;
     }
 
-    setTexCoordArr(index, tcoordArr) {
-        const itemSize = 2,
-            ti = this.getTagIndexByObjectIndex(index),
-            ob = this.getObjectByIndex(index);
-
-        let length = ob.numVertices * itemSize;
-
-        if (ob.instanced) {
-            length = itemSize;
-        }
-
-        if (this._texCoordArr[ti].length !== length) {
-            setParametersToArray(this._texCoordArr[ti], ob._tagIndex, length, itemSize, ...tcoordArr);
-        }
-
+    setTexCoordArr(tagData, tagDataIndex, tcoordArr) {
+        setParametersToArray(tagData._texCoordArr, tagDataIndex, 2, 2, ...tcoordArr);
         this._changedBuffers[TEXCOORD_BUFFER] = true;
     }
 
-    setPitchRollArr(index, pitch, roll) {
-        const itemSize = 2,
-            ti = this.getTagIndexByObjectIndex(index),
-            ob = this.getObjectByIndex(index);
-        let length = ob.numVertices * itemSize;
-
-        if (ob.instanced) {
-            length = itemSize;
-        }
-
-        setParametersToArray(this._pitchRollArr[ti], ob._tagIndex, length, itemSize, pitch, roll);
+    setPitchRollArr(tagData, tagDataIndex, pitch, roll) {
+        setParametersToArray(tagData._pitchRollArr, tagDataIndex, 2, 2, pitch, roll);
         this._changedBuffers[PITCH_ROLL_BUFFER] = true;
     }
 
-    setScaleArr(index, scale) {
-        const itemSize = 1,
-            ti = this.getTagIndexByObjectIndex(index),
-            ob = this.getObjectByIndex(index);
-        let length = ob.numVertices * itemSize;
-
-        if (ob.instanced) {
-            length = itemSize;
-        }
-
-        setParametersToArray(this._sizeArr[ti], ob._tagIndex, length, itemSize, scale);
+    setScaleArr(tagData, tagDataIndex, scale) {
+        setParametersToArray(tagData._sizeArr, tagDataIndex, 1, 1, scale);
         this._changedBuffers[SIZE_BUFFER] = true;
     }
 
@@ -711,10 +486,15 @@ class GeoObjectHandler {
         }
     }
 
-    _removeGeoObjects() {
+    _removeAll() {
         let i = this._geoObjects.length;
         while (i--) {
+
             const bi = this._geoObjects[i];
+
+            bi._tagDataIndex = -1;
+            bi._tagData = undefined;
+
             bi._handlerIndex = -1;
             bi._handler = undefined;
         }
@@ -723,64 +503,13 @@ class GeoObjectHandler {
     }
 
     clear() {
-        this._sizeArr = undefined;
-        this._pitchRollArr = undefined;
-        this._vertexArr = undefined;
-        this._positionHighArr = undefined;
-        this._positionLowArr = undefined;
-        this._directionArr = undefined;
-        this._rgbaArr = undefined;
-        this._normalsArr = undefined;
-        this._indicesArr = undefined;
-        this._pickingColorArr = undefined;
-        this._visibleArr = undefined;
-        this._texCoordArr = undefined;
-
-        this._pitchRollArr = [new Float32Array()];
-        this._sizeArr = [new Float32Array()];
-        this._vertexArr = [new Float32Array()];
-        this._positionHighArr = [new Float32Array()];
-        this._positionLowArr = [new Float32Array()];
-        this._rgbaArr = [new Float32Array()];
-        this._directionArr = [new Float32Array()];
-        this._normalsArr = [new Float32Array()];
-        this._indicesArr = [new Uint16Array()];
-        this._pickingColorArr = [new Float32Array()];
-        this._texCoordArr = [new Float32Array()];
-        this._visibleArr = [new Int8Array()];
-
-        this._removeGeoObjects();
+        this._removeAll();
         this._deleteBuffers();
         this.refresh();
     }
 
     _deleteBuffers() {
-        if (this._renderer) {
-            const gl = this._renderer.handler.gl;
-            gl.deleteBuffer(this._sizeBuffer);
-            gl.deleteBuffer(this._pitchRollBuffer);
-            gl.deleteBuffer(this._vertexBuffer);
-            gl.deleteBuffer(this._positionHighBuffer);
-            gl.deleteBuffer(this._positionLowBuffer);
-            gl.deleteBuffer(this._rgbaBuffer);
-            gl.deleteBuffer(this._indicesBuffer);
-            gl.deleteBuffer(this._normalsBuffer);
-            gl.deleteBuffer(this._directionBuffer);
-            gl.deleteBuffer(this._pickingColorBuffer);
-            gl.deleteBuffer(this._texCoordBuffer);
-        }
 
-        this._pitchRollBuffer = undefined;
-        this._sizeBuffer = undefined;
-        this._vertexBuffer = undefined;
-        this._positionHighBuffer = undefined;
-        this._positionLowBuffer = undefined;
-        this._rgbaBuffer = undefined;
-        this._indicesBuffer = undefined;
-        this._normalsBuffer = undefined;
-        this._directionBuffer = undefined;
-        this._pickingColorBuffer = undefined;
-        this._texCoordBuffer = undefined;
     }
 
     update() {
@@ -802,19 +531,6 @@ class GeoObjectHandler {
         }
     }
 
-    _reindexGeoObjects(startIndex, tag) {
-        const b = this._geoObjects;
-
-        for (let i = startIndex; i < b.length; i++) {
-            const go = b[i];
-
-            b[i]._handlerIndex = i;
-            if (tag === go.tag) {
-                --b[i]._tagIndex;
-            }
-        }
-    }
-
     add(geoObject) {
         if (geoObject._handlerIndex === -1) {
             geoObject._handler = this;
@@ -832,51 +548,57 @@ class GeoObjectHandler {
     }
 
     _removeGeoObject(geoObject) {
-        const gi = geoObject._handlerIndex,
-            tag = geoObject.tag,
-            ti = this.getTagIndexByObjectIndex(gi),
-            prevState = this._instancedTags.get(tag),
-            iCount = prevState.iCounts - 1;
 
-        this._instancedTags.set(tag, {
-            ...prevState,
-            iCounts: iCount
-        });
+        let tagData = geoObject._tagData;
 
-        this._geoObjects.splice(gi, 1);
+        tagData.numInstances--;
 
-        let i = geoObject._tagIndex * 4;
-        this._rgbaArr[ti] = spliceArray(this._rgbaArr[ti], i, 4);
-
-        i = geoObject._tagIndex * 3;
-
-        if (prevState.iCounts <= 1) {
-            this._vertexArr[ti] = [];
-            this._normalsArr[ti] = [];
-            this._texCoordArr[ti] = [];
+        if (tagData.numInstances === 0) {
+            //TODO: tagData clear
+            this._instanceDataMap.delete('tag');
         }
 
-        this._positionHighArr[ti] = spliceArray(this._positionHighArr[ti], i, 3);
-        this._positionLowArr[ti] = spliceArray(this._positionLowArr[ti], i, 3);
-        this._directionArr[ti] = spliceArray(this._directionArr[ti], i, 3);
-        this._pickingColorArr[ti] = spliceArray(this._pickingColorArr[ti], i, 3);
+        let last = this._geoObjects.splice(-1);
+        if (last) {
+            this._geoObjects[geoObject._handler] = last;
+            last._handlerIndex = geoObject._handlerIndex;
+        }
 
-        i = geoObject._tagIndex * 2;
-        this._pitchRollArr[ti] = spliceArray(this._pitchRollArr[ti], i, 2);
+        last = tagData._rgbaArr.splice(-4);
+        setParametersToArray(tagData._rgbaArr, geoObject._tagDataIndex, 4, 4, last);
 
-        i = geoObject._tagIndex;
-        this._sizeArr[ti] = spliceArray(this._sizeArr[ti], i, 1);
-        this._visibleArr[ti] = spliceArray(this._visibleArr[ti], i, 1);
+        last = tagData._positionHighArr.splice(-3);
+        setParametersToArray(tagData._positionHighArr, geoObject._tagDataIndex, 3, 3, last);
 
+        last = tagData._positionLowArr.splice(-3);
+        setParametersToArray(tagData._positionLowArr, geoObject._tagDataIndex, 3, 3, last);
 
-        this._reindexGeoObjects(gi, tag);
+        last = tagData._directionArr.splice(-3);
+        setParametersToArray(tagData._directionArr, geoObject._tagDataIndex, 3, 3, last);
 
-        this.refresh();
+        last = tagData._pickingColorArr.splice(-3);
+        setParametersToArray(tagData._pickingColorArr, geoObject._tagDataIndex, 3, 3, last);
+
+        last = tagData._pitchRollArr.splice(-2);
+        setParametersToArray(tagData._pitchRollArr, geoObject._tagDataIndex, 2, 2, last);
+
+        last = tagData._pitchRollArr.splice(-2);
+        setParametersToArray(tagData._pitchRollArr, geoObject._tagDataIndex, 2, 2, last);
+
+        last = tagData._sizeArr.splice(-1);
+        setParametersToArray(tagData._sizeArr, geoObject._tagDataIndex, 1, 1, last);
+
+        last = tagData._visibleArr.splice(-1);
+        setParametersToArray(tagData._visibleArr, geoObject._tagDataIndex, 1, 1, last);
 
         geoObject._handlerIndex = -1;
         geoObject._handler = undefined;
-    }
 
+        geoObject._tagDataIndex = -1;
+        geoObject._tagData = undefined;
+
+        this.refresh();
+    }
 }
 
 export { GeoObjectHandler };
