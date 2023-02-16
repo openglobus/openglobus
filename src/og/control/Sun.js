@@ -123,8 +123,10 @@ class Sun extends Control {
                 var tr = Vec3.proj_b_to_plane(cam._r, n, cam._r)
                     .normalize()
                     .scale(this.offsetHorizontal); // right
+
                 var d = tu.add(tr);
                 var pos = cam.eye.add(d);
+
                 if (this._k > 0) {
                     this._k -= 0.01;
                     let rot = Quat.getRotationBetweenVectors(

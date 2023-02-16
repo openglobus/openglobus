@@ -235,6 +235,21 @@ class RenderNode extends BaseNode {
             this._lightsPositions[ii + 1] = tp.y;
             this._lightsPositions[ii + 2] = tp.z;
         }
+
+        // for (var i = 0; i < this._lights.length; i++) {
+        //     var ii = i * 4;
+        //     var tp;
+        //     if (this._lights[i].directional) {
+        //         tp = r.activeCamera._normalMatrix.mulVec(this._lights[i]._position);
+        //         this._lightsTransformedPositions[ii + 3] = 0;
+        //     } else {
+        //         tp = r.activeCamera._viewMatrix.mulVec3(this._lights[i]._position);
+        //         this._lightsTransformedPositions[ii + 3] = 1;
+        //     }
+        //     this._lightsTransformedPositions[ii] = tp.x;
+        //     this._lightsTransformedPositions[ii + 1] = tp.y;
+        //     this._lightsTransformedPositions[ii + 2] = tp.z;
+        // }
     }
 
     updateBillboardsTexCoords() {

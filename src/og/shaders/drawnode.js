@@ -500,6 +500,8 @@ export function drawnode_screen_wl_webgl2() {
 
                 v_height = height;
                 v_vertex = aVertexPosition + normalize(aVertexPosition) * height;
+                //v_vertex = viewMatrix * vec4(heightVertex, 1.0);
+                                
                 vTextureCoord.xy = aTextureCoord;
                 vGlobalTextureCoord = uGlobalTextureCoord.xy + (uGlobalTextureCoord.zw - uGlobalTextureCoord.xy) * aTextureCoord;
                 vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + uNormalMapBias.xy );
@@ -517,6 +519,8 @@ export function drawnode_screen_wl_webgl2() {
             uniform vec3 diffuse;
             uniform vec3 ambient;
             uniform vec4 specular;
+            
+            //uniform mat3 normalMatrix;
 
             uniform sampler2D uNormalMap;
             uniform vec3 lightsPositions[MAX_POINT_LIGHTS];
@@ -684,19 +688,19 @@ export function drawnode_screen_wl_webgl2() {
             
                 sunPos = lightsPositions[0];
                                 
-                vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;                               
+                vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
                 vec3 normal = normalize((texNormal - 0.5) * 2.0);
                 
                 float minH = 700000.0;
                 float maxH = minH * 3.0;
                 float nightCoef = getLerpValue(minH, maxH, camHeight) * nightTextureCoefficient;
                                 
-                if(camHeight > 700000.0)
-                {
-                    normal = normalize(v_vertex);
-                }
+                // if(camHeight > 700000.0)
+                // {
+                //     normal = normalize(v_vertex);
+                // }
                                             
-                vec3 lightDir = normalize(sunPos - v_vertex);                       
+                vec3 lightDir = normalize(sunPos);
                 vec3 viewDir = normalize(cameraPosition - v_vertex);
                 
                 vec4 atmosColor;
@@ -706,6 +710,21 @@ export function drawnode_screen_wl_webgl2() {
                 getSunIlluminance(v_vertex * SPHERE_TO_ELLIPSOID_SCALE, lightDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
                 
                 float overGround = 1.0 - step(0.1, v_height);
+                                
+                // vec3 lightDirection = normalize(lightsPositions[0].xyz - v_vertex.xyz * lightsPositions[0].w);
+                // vec3 eyeDirection = normalize(-v_vertex.xyz);
+                // vec3 reflectionDirection = reflect(-lightDirection, normal); //normal = normalize(normalMatrix * normal)
+                // vec4 nightImageColor = texture( nightTexture, vGlobalTextureCoord.st );
+                //
+                // float overGround = 1.0 - step(0.1, v_height);
+                // shininess = texture( specularTexture, vGlobalTextureCoord.st ).r * 255.0 * overGround;
+                // reflection = max( dot(reflectionDirection, eyeDirection), 0.0);
+                // diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
+                // night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb;
+                // night *= overGround * step(0.0, night);
+                //
+                // vec3 spec = specular.rgb * pow( reflection, specular.w) * shininess;
+                // vec4 lightWeighting = vec4(ambient + diffuse * diffuseLightWeighting + spec + night * 3.0, 1.0);
                 
                 float shininess = texture( specularTexture, vGlobalTextureCoord.st ).r * 255.0 * overGround;
                 vec3 reflectionDirection = reflect(-lightDir, normal);

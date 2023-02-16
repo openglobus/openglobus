@@ -358,7 +358,7 @@ class GeoObjectHandler {
 
         sh.activate();
 
-        gl.disable(gl.CULL_FACE);
+        gl.enable(gl.CULL_FACE);
         gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
 
         gl.uniform3fv(u.eyePositionHigh, r.activeCamera.eyeHigh);
@@ -366,7 +366,6 @@ class GeoObjectHandler {
 
         gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera.getViewMatrix());
-        gl.uniformMatrix3fv(u.normalMatrix, false, r.activeCamera.getNormalMatrix());
 
         gl.uniform3fv(u.lightsPositions, this._planet._lightsPositions);
         gl.uniform3fv(u.lightsParamsv, this._planet._lightsParamsv);
