@@ -37,6 +37,46 @@ let geoObjects = new EntityCollection({
     scaleByDistance: [100, 4000000, 1.0]
 });
 
+let obj3d = Object3d.createSphere(16, 16, 5);
+let obj3d2 = Object3d.createCylinder(3, 3, 10, 16, 16);
+
+let entities = [];
+for (let i = 0; i < 10; i++) {
+    let entity = new Entity({
+        lonlat: [1, i, 20],
+        name: "obj-" + i,
+        geoObject: {
+            pitch: Math.random(),
+            yaw: Math.random(),
+            roll: Math.random(),
+            scale: 1.0,
+            instanced: true,
+            tag: "sphere",
+            color: colors[i % 7],
+            object3d: obj3d
+        }
+    });
+    entities.push(entity);
+
+    let entity2 = new Entity({
+        lonlat: [-1, i, 20],
+        name: "obj-" + i,
+        geoObject: {
+            pitch: Math.random(),
+            yaw: Math.random(),
+            roll: Math.random(),
+            scale: 1.0,
+            instanced: true,
+            tag: "bigcube",
+            color: colors[i % 7],
+            object3d: obj3d2
+        }
+    });
+    entities.push(entity, entity2);
+}
+
+geoObjects.addEntities(entities);
+
 
 globus.planet.addControl(new ToggleWireframe());
 globus.planet.addControl(new KeyboardNavigation());
@@ -70,6 +110,9 @@ fetch(`./cube.json`)
                 lonlat: [0, i, 20],
                 name: "obj-" + i,
                 geoObject: {
+                    pitch: Math.random(),
+                    yaw: Math.random(),
+                    roll: Math.random(),
                     scale: 1.0,
                     instanced: true,
                     tag: "cube",
@@ -97,6 +140,18 @@ geoObjects.events.on("mouseleave", function (e) {
         b = en.geoObject;
     //b.setColor4v(utils.htmlColorToRgba(en.properties.color));
 });
+
+let counter = 0;
+globus.planet.renderer.events.on("draw", () => {
+    let e = geoObjects.getEntities();
+    for (let i = 0; i < e.length; i++) {
+        let gi = e[i].geoObject;
+        gi.setYaw(counter * Math.PI / 180);
+        gi.setPitch(counter * Math.PI / 180);
+        gi.setRoll(counter * Math.PI / 180);
+        counter += 0.01;
+    }
+})
 
 geoObjects.addTo(globus.planet);
 

@@ -109,7 +109,7 @@ class InstanceData {
         this._visibleArr = [];
         this._texCoordArr = [];
 
-        let h = this._geoObjectHandler._renderer.handler,
+        let h = this._geoObjectHandler._planet.renderer.handler,
             gl = h.gl;
 
         h.deleteTexture(this._texture);
@@ -141,17 +141,19 @@ class InstanceData {
         this._pickingColorBuffer = null;
         this._visibleBuffer = null;
         this._texCoordBuffer = null;
+
+        this._geoObjectHandler = null;
     }
 
     createVertexBuffer() {
-        const h = this._geoObjectHandler._renderer.handler;
+        const h = this._geoObjectHandler._planet.renderer.handler;
         h.gl.deleteBuffer(this._vertexBuffer);
         this._vertexArr = makeArrayTyped(this._vertexArr);
         this._vertexBuffer = h.createArrayBuffer(this._vertexArr, 3, this._vertexArr.length / 3);
     }
 
     createPitchRollBuffer() {
-        let h = this._geoObjectHandler._renderer.handler, numItems = this._pitchRollArr.length / 2;
+        let h = this._geoObjectHandler._planet.renderer.handler, numItems = this._pitchRollArr.length / 2;
 
         if (!this._pitchRollBuffer || this._pitchRollBuffer.numItems !== numItems) {
             h.gl.deleteBuffer(this._pitchRollBuffer);
@@ -164,7 +166,7 @@ class InstanceData {
     }
 
     createVisibleBuffer() {
-        const h = this._geoObjectHandler._renderer.handler, numItems = this._visibleArr.length;
+        const h = this._geoObjectHandler._planet.renderer.handler, numItems = this._visibleArr.length;
 
         if (!this._visibleBuffer || this._visibleBuffer.numItems !== numItems) {
             h.gl.deleteBuffer(this._visibleBuffer);
@@ -177,7 +179,7 @@ class InstanceData {
     }
 
     createSizeBuffer() {
-        let h = this._geoObjectHandler._renderer.handler, numItems = this._sizeArr.length;
+        let h = this._geoObjectHandler._planet.renderer.handler, numItems = this._sizeArr.length;
 
         if (!this._sizeBuffer || this._sizeBuffer.numItems !== numItems) {
             h.gl.deleteBuffer(this._sizeBuffer);
@@ -190,14 +192,14 @@ class InstanceData {
     }
 
     createTexCoordBuffer() {
-        const h = this._geoObjectHandler._renderer.handler;
+        const h = this._geoObjectHandler._planet.renderer.handler;
         h.gl.deleteBuffer(this._texCoordBuffer);
         this._texCoordArr = makeArrayTyped(this._texCoordArr);
         this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr, 2, this._texCoordArr.length / 2);
     }
 
     createPositionBuffer() {
-        let h = this._geoObjectHandler._renderer.handler, numItems = this._positionHighArr.length / 3;
+        let h = this._geoObjectHandler._planet.renderer.handler, numItems = this._positionHighArr.length / 3;
 
         if (!this._positionHighBuffer || this._positionHighBuffer.numItems !== numItems) {
             h.gl.deleteBuffer(this._positionHighBuffer);
@@ -214,7 +216,7 @@ class InstanceData {
     }
 
     createRgbaBuffer() {
-        let h = this._geoObjectHandler._renderer.handler, numItems = this._rgbaArr.length / 4;
+        let h = this._geoObjectHandler._planet.renderer.handler, numItems = this._rgbaArr.length / 4;
 
         if (!this._rgbaBuffer || this._rgbaBuffer.numItems !== numItems) {
             h.gl.deleteBuffer(this._rgbaBuffer);
@@ -227,7 +229,7 @@ class InstanceData {
     }
 
     createDirectionBuffer() {
-        let h = this._geoObjectHandler._renderer.handler, numItems = this._directionArr.length / 3;
+        let h = this._geoObjectHandler._planet.renderer.handler, numItems = this._directionArr.length / 3;
 
         if (!this._directionBuffer || this._directionBuffer.numItems !== numItems) {
             h.gl.deleteBuffer(this._directionBuffer);
@@ -240,21 +242,21 @@ class InstanceData {
     }
 
     createNormalsBuffer() {
-        const h = this._geoObjectHandler._renderer.handler;
+        const h = this._geoObjectHandler._planet.renderer.handler;
         h.gl.deleteBuffer(this._normalsBuffer);
         this._normalsArr = makeArrayTyped(this._normalsArr);
         this._normalsBuffer = h.createArrayBuffer(this._normalsArr, 3, this._normalsArr.length / 3);
     }
 
     createIndicesBuffer() {
-        const h = this._geoObjectHandler._renderer.handler;
+        const h = this._geoObjectHandler._planet.renderer.handler;
         h.gl.deleteBuffer(this._indicesBuffer);
         this._indicesArr = makeArrayTyped(this._indicesArr, Uint16Array);
         this._indicesBuffer = h.createElementArrayBuffer(this._indicesArr, 1, this._indicesArr.length);
     }
 
     createPickingColorBuffer() {
-        const h = this._geoObjectHandler._renderer.handler;
+        const h = this._geoObjectHandler._planet.renderer.handler;
         h.gl.deleteBuffer(this._pickingColorBuffer);
         this._pickingColorArr = makeArrayTyped(this._pickingColorArr);
         this._pickingColorBuffer = h.createArrayBuffer(this._pickingColorArr, 3, this._pickingColorArr.length / 3);
@@ -268,7 +270,7 @@ class InstanceData {
     }
 
     update() {
-        if (this._geoObjectHandler._renderer) {
+        if (this._geoObjectHandler._planet) {
             let i = this._changedBuffers.length;
             while (i--) {
                 if (this._changedBuffers[i]) {
@@ -294,8 +296,8 @@ class GeoObjectHandler {
         this.pickingEnabled = true;
 
         this._entityCollection = entityCollection;
-        this._renderer = undefined;
-        this._planet = undefined;
+
+        this._planet = null;
 
         this._geoObjects = [];
 
@@ -320,24 +322,19 @@ class GeoObjectHandler {
     }
 
     initProgram() {
-        if (this._renderer.handler) {
-            if (!this._renderer.handler.programs.geo_object) {
-                this._renderer.handler.addProgram(shaders.geo_object());
+        if (this._planet && this._planet.renderer) {
+            if (!this._planet.renderer.handler.programs.geo_object) {
+                this._planet.renderer.handler.addProgram(shaders.geo_object());
             }
-            if (!this._renderer.handler.programs.geo_object_picking) {
-                this._renderer.handler.addProgram(shaders.geo_object_picking());
+            if (!this._planet.renderer.handler.programs.geo_object_picking) {
+                this._planet.renderer.handler.addProgram(shaders.geo_object_picking());
             }
         }
     }
 
     setRenderNode(renderNode) {
-        this._renderer = renderNode.renderer;
         this._planet = renderNode;
         this.initProgram();
-    }
-
-    setRenderer(planet) {
-        super.setRenderer(planet);
     }
 
     _addGeoObjectToArray(geoObject) {
@@ -366,7 +363,10 @@ class GeoObjectHandler {
 
         tagData._visibleArr = concatArrays(tagData._visibleArr, setParametersToArray([], 0, 1, 1, geoObject._visibility ? 1 : 0));
 
-        let x = geoObject._positionHigh.x, y = geoObject._positionHigh.y, z = geoObject._positionHigh.z, w;
+        let x = geoObject._positionHigh.x,
+            y = geoObject._positionHigh.y,
+            z = geoObject._positionHigh.z,
+            w;
         tagData._positionHighArr = concatArrays(tagData._positionHighArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
 
         x = geoObject._positionLow.x;
@@ -404,8 +404,13 @@ class GeoObjectHandler {
     }
 
     _displayPASS() {
-        let r = this._renderer, sh = r.handler.programs.geo_object, p = sh._program, u = p.uniforms, a = p.attributes,
-            gl = r.handler.gl, ec = this._entityCollection;
+        let r = this._planet.renderer,
+            sh = r.handler.programs.geo_object,
+            p = sh._program,
+            u = p.uniforms,
+            a = p.attributes,
+            gl = r.handler.gl,
+            ec = this._entityCollection;
 
         sh.activate();
 
@@ -474,8 +479,13 @@ class GeoObjectHandler {
     }
 
     _pickingPASS() {
-        let r = this._renderer, sh = r.handler.programs.geo_object_picking, p = sh._program, u = p.uniforms,
-            a = p.attributes, gl = r.handler.gl, ec = this._entityCollection;
+        let r = this._planet.renderer,
+            sh = r.handler.programs.geo_object_picking,
+            p = sh._program,
+            u = p.uniforms,
+            a = p.attributes,
+            gl = r.handler.gl,
+            ec = this._entityCollection;
 
         sh.activate();
 
@@ -527,10 +537,13 @@ class GeoObjectHandler {
         const src = geoObject._src;
         if (src) {
             const image = await loadImage(src);
-            tagData._texture = this._renderer.handler.createTextureDefault(image);
+            //
+            //TODO: this._planet could be null
+            //
+            tagData._texture = this._planet.renderer.handler.createTextureDefault(image);
         }
         // else {
-        //     tagData._texture = this._renderer.handler.defaultTexture;
+        //     tagData._texture = this._planet.renderer.handler.defaultTexture;
         // }
         tagData._changedBuffers[TEXCOORD_BUFFER] = true;
         this._updateTag(tagData);

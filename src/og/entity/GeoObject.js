@@ -34,6 +34,13 @@ class GeoObject {
         this._src = options.src || null;
 
         /**
+         * Entity instance that holds this geo object.
+         * @protected
+         * @type {Entity}
+         */
+        this._entity = null;
+
+        /**
          * Geo object center cartesian position.
          * @protected
          * @type {og.Vec3}
@@ -47,8 +54,6 @@ class GeoObject {
         this._pitch = options.pitch || 0.0;
         this._yaw = options.yaw || 0.0;
         this._roll = options.roll || 0.0;
-
-        this._lonLatAlt = new LonLat(0, 0, 0);
 
         /**
          * RGBA color.
@@ -68,6 +73,30 @@ class GeoObject {
         this._object3d = options.object3d;
     }
 
+    getPosition() {
+        return this._position;
+    }
+
+    getPitch() {
+        return this._pitch;
+    }
+
+    getYaw() {
+        return this._yaw;
+    }
+
+    getRoll() {
+        return this._roll;
+    }
+
+    getDirection() {
+        return this._direction;
+    }
+
+    get object3d() {
+        return this._object3d;
+    }
+
     get vertices() {
         return this._object3d.vertices;
     }
@@ -84,18 +113,6 @@ class GeoObject {
         return this._object3d.indexes;
     }
 
-    get numVertices() {
-        return this._object3d.numVertices;
-    }
-
-    get planet() {
-        return this._handler && this._handler._planet;
-    }
-
-    get renderer() {
-        return this.planet && this.planet.renderer;
-    }
-
     /**
      * Sets geo object opacity.
      * @public
@@ -107,7 +124,7 @@ class GeoObject {
     }
 
     /**
-     * Sets RGBA color. Each channel from 0.0 to 1.0.
+     * Sets color.
      * @public
      * @param {number} r - Red.
      * @param {number} g - Green.
@@ -123,7 +140,7 @@ class GeoObject {
     }
 
     /**
-     * Sets RGBA color. Each channel from 0.0 to 1.0.
+     * Sets color.
      * @public
      * @param {og.Vec4} color - RGBA vector.
      */
@@ -146,7 +163,7 @@ class GeoObject {
     }
 
     /**
-     * Returns  geo object visibility.
+     * Returns geo object visibility.
      * @public
      * @returns {boolean}
      */
@@ -154,16 +171,8 @@ class GeoObject {
         return this._visibility;
     }
 
-    setLonLat(lon, lat, alt) {
-        this._lonLatAlt.lon = lon;
-        this._lonLatAlt.lat = lat;
-        this._lonLatAlt.height = alt;
-        this._handler._planet.ellipsoid.lonLatToCartesianRes(this._lonLatAlt, this._position);
-        this.setPosition3v(this._position);
-    }
-
     /**
-     * Sets geoObject position.
+     * Sets geo object position.
      * @public
      * @param {number} x - X coordinate.
      * @param {number} y - Y coordinate.
@@ -180,7 +189,7 @@ class GeoObject {
     }
 
     /**
-     * Sets billboard position.
+     * Sets geo object position.
      * @public
      * @param {og.Vec3} position - Cartesian coordinates.
      */
@@ -236,11 +245,7 @@ class GeoObject {
     }
 
     updateDirection() {
-        if (this._entity && this._entity.renderNode && this._entity.renderNode.ellipsoid) {
-            this._entity.renderNode.ellipsoid.lonLatToCartesianRes(this._lonLatAlt, this._position);
-        }
         this._qNorthFrame = Planet.getBearingNorthRotationQuat(this._position);
-
         let qq = Quat.yRotation(this._yaw).mul(this._qNorthFrame).conjugate();
         this._direction = qq.mulVec3(new Vec3(0.0, 0.0, -1.0)).normalize();
         this._handler && this._handler.setDirectionArr(this._tagData, this._tagDataIndex, this._direction);
