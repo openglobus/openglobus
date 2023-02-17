@@ -990,6 +990,12 @@ class Handler {
         }
     }
 
+    deleteTexture(texture) {
+        if (texture && !texture.default) {
+            this.gl.deleteTexture(texture);
+        }
+    }
+
     /**
      * @public
      */
