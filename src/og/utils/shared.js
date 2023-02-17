@@ -803,10 +803,14 @@ export function spliceArray(arr, starting, deleteCount, out) {
         }
         return spliceTypedArray(arr, starting, deleteCount, out);
     } else {
+        let res;
         if (starting < 0) {
-            out.result = arr.splice(starting);
+            res = arr.splice(starting);
         } else {
-            out.result = arr.splice(starting, deleteCount);
+            res = arr.splice(starting, deleteCount);
+        }
+        if (out) {
+            out.result = res;
         }
         return arr;
     }
