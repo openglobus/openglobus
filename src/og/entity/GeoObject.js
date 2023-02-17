@@ -245,7 +245,6 @@ class GeoObject {
         this._direction = qq.mulVec3(new Vec3(0.0, 0.0, -1.0)).normalize();
         this._handler && this._handler.setDirectionArr(this._tagData, this._tagDataIndex, this._direction);
     }
-
 }
 
 export { GeoObject };

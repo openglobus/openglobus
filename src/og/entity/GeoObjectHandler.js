@@ -91,82 +91,123 @@ class InstanceData {
 
     createVertexBuffer() {
         const h = this._geoObjectHandler._renderer.handler;
-        this._vertexBuffer && h.gl.deleteBuffer(this._vertexBuffer);
+        h.gl.deleteBuffer(this._vertexBuffer);
         this._vertexArr = makeArrayTyped(this._vertexArr);
         this._vertexBuffer = h.createArrayBuffer(this._vertexArr, 3, this._vertexArr.length / 3);
     }
 
     createPitchRollBuffer() {
-        const h = this._geoObjectHandler._renderer.handler;
-        this._pitchRollBuffer && h.gl.deleteBuffer(this._pitchRollBuffer);
+        let h = this._geoObjectHandler._renderer.handler,
+            numItems = this._pitchRollArr.length / 2;
+
+        if (!this._pitchRollBuffer || this._pitchRollBuffer.numItems !== numItems) {
+            h.gl.deleteBuffer(this._pitchRollBuffer);
+            this._pitchRollBuffer = h.createStreamArrayBuffer(2, numItems);
+        }
+
         this._pitchRollArr = makeArrayTyped(this._pitchRollArr);
-        this._pitchRollBuffer = h.createArrayBuffer(this._pitchRollArr, 2, this._pitchRollArr.length / 2);
+
+        h.setStreamArrayBuffer(this._pitchRollBuffer, this._pitchRollArr);
     }
 
     createVisibleBuffer() {
-        const h = this._geoObjectHandler._renderer.handler;
-        this._visibleBuffer && h.gl.deleteBuffer(this._visibleBuffer);
+        const h = this._geoObjectHandler._renderer.handler,
+            numItems = this._visibleArr.length;
+
+        if (!this._visibleBuffer || this._visibleBuffer.numItems !== numItems) {
+            h.gl.deleteBuffer(this._visibleBuffer);
+            this._visibleBuffer = h.createStreamArrayBuffer(1, numItems);
+        }
+
         this._visibleArr = makeArrayTyped(this._visibleArr);
-        this._visibleBuffer = h.createArrayBuffer(this._visibleArr, 1, this._visibleArr.length);
+
+        h.setStreamArrayBuffer(this._visibleBuffer, this._visibleArr);
     }
 
     createSizeBuffer() {
-        const h = this._geoObjectHandler._renderer.handler;
-        this._sizeBuffer && h.gl.deleteBuffer(this._sizeBuffer);
+        let h = this._geoObjectHandler._renderer.handler,
+            numItems = this._sizeArr.length;
+
+        if (!this._sizeBuffer || this._sizeBuffer.numItems !== numItems) {
+            h.gl.deleteBuffer(this._sizeBuffer);
+            this._sizeBuffer = h.createStreamArrayBuffer(1, numItems);
+        }
+
         this._sizeArr = makeArrayTyped(this._sizeArr);
-        this._sizeBuffer = h.createArrayBuffer(this._sizeArr, 1, this._sizeArr.length);
+
+        h.setStreamArrayBuffer(this._sizeBuffer, this._sizeArr);
     }
 
     createTexCoordBuffer() {
         const h = this._geoObjectHandler._renderer.handler;
-        this._texCoordBuffer && h.gl.deleteBuffer(this._texCoordBuffer);
+        h.gl.deleteBuffer(this._texCoordBuffer);
         this._texCoordArr = makeArrayTyped(this._texCoordArr);
         this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr, 2, this._texCoordArr.length / 2);
     }
 
     createPositionBuffer() {
-        let h = this._geoObjectHandler._renderer.handler;
-        h.gl.deleteBuffer(this._positionHighBuffer);
-        h.gl.deleteBuffer(this._positionLowBuffer);
+        let h = this._geoObjectHandler._renderer.handler,
+            numItems = this._positionHighArr.length / 3;
+
+        if (!this._positionHighBuffer || this._positionHighBuffer.numItems !== numItems) {
+            h.gl.deleteBuffer(this._positionHighBuffer);
+            h.gl.deleteBuffer(this._positionLowBuffer);
+            this._positionHighBuffer = h.createStreamArrayBuffer(3, numItems);
+            this._positionLowBuffer = h.createStreamArrayBuffer(3, numItems);
+        }
 
         this._positionHighArr = makeArrayTyped(this._positionHighArr);
-        this._positionHighBuffer = h.createArrayBuffer(this._positionHighArr, 3, this._positionHighArr.length / 3);
-
         this._positionLowArr = makeArrayTyped(this._positionLowArr);
-        this._positionLowBuffer = h.createArrayBuffer(this._positionLowArr, 3, this._positionLowArr.length / 3);
+
+        h.setStreamArrayBuffer(this._positionHighBuffer, this._positionHighArr);
+        h.setStreamArrayBuffer(this._positionLowBuffer, this._positionLowArr);
     }
 
     createRgbaBuffer() {
-        const h = this._geoObjectHandler._renderer.handler;
-        this._rgbaBuffer && h.gl.deleteBuffer(this._rgbaBuffer);
+        let h = this._geoObjectHandler._renderer.handler,
+            numItems = this._rgbaArr.length / 4;
+
+        if (!this._rgbaBuffer || this._rgbaBuffer.numItems !== numItems) {
+            h.gl.deleteBuffer(this._rgbaBuffer);
+            this._rgbaBuffer = h.createStreamArrayBuffer(4, numItems);
+        }
+
         this._rgbaArr = makeArrayTyped(this._rgbaArr);
-        this._rgbaBuffer = h.createArrayBuffer(this._rgbaArr, 4, this._rgbaArr.length / 4);
+
+        h.setStreamArrayBuffer(this._rgbaBuffer, this._rgbaArr);
     }
 
     createDirectionBuffer() {
-        const h = this._geoObjectHandler._renderer.handler;
-        this._directionBuffer && h.gl.deleteBuffer(this._directionBuffer);
+        let h = this._geoObjectHandler._renderer.handler,
+            numItems = this._directionArr.length / 3;
+
+        if (!this._directionBuffer || this._directionBuffer.numItems !== numItems) {
+            h.gl.deleteBuffer(this._directionBuffer);
+            this._directionBuffer = h.createStreamArrayBuffer(3, numItems);
+        }
+
         this._directionArr = makeArrayTyped(this._directionArr);
-        this._directionBuffer = h.createArrayBuffer(this._directionArr, 3, this._directionArr.length / 3);
+
+        h.setStreamArrayBuffer(this._directionBuffer, this._directionArr);
     }
 
     createNormalsBuffer() {
         const h = this._geoObjectHandler._renderer.handler;
-        this._normalsBuffer && h.gl.deleteBuffer(this._normalsBuffer);
+        h.gl.deleteBuffer(this._normalsBuffer);
         this._normalsArr = makeArrayTyped(this._normalsArr);
         this._normalsBuffer = h.createArrayBuffer(this._normalsArr, 3, this._normalsArr.length / 3);
     }
 
     createIndicesBuffer() {
         const h = this._geoObjectHandler._renderer.handler;
-        this._indicesBuffer && h.gl.deleteBuffer(this._indicesBuffer);
+        h.gl.deleteBuffer(this._indicesBuffer);
         this._indicesArr = makeArrayTyped(this._indicesArr, Uint16Array);
         this._indicesBuffer = h.createElementArrayBuffer(this._indicesArr, 1, this._indicesArr.length);
     }
 
     createPickingColorBuffer() {
         const h = this._geoObjectHandler._renderer.handler;
-        this._pickingColorBuffer && h.gl.deleteBuffer(this._pickingColorBuffer);
+        h.gl.deleteBuffer(this._pickingColorBuffer);
         this._pickingColorArr = makeArrayTyped(this._pickingColorArr);
         this._pickingColorBuffer = h.createArrayBuffer(this._pickingColorArr, 3, this._pickingColorArr.length / 3);
     }
