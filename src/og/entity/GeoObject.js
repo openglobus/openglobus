@@ -19,8 +19,6 @@ import { Planet } from "../scene/Planet.js";
 class GeoObject {
     constructor(options = {}) {
 
-        this.scale = options.scale || 1.0;
-
         this.tag = options.tag || "none";
 
         // TODO: not instanced
@@ -54,6 +52,8 @@ class GeoObject {
         this._pitch = options.pitch || 0.0;
         this._yaw = options.yaw || 0.0;
         this._roll = options.roll || 0.0;
+
+        this._scale = options.scale || 1.0;
 
         /**
          * RGBA color.
@@ -218,12 +218,12 @@ class GeoObject {
     }
 
     setScale(scale) {
-        this.scale = scale;
+        this._scale = scale;
         this._handler && this._handler.setScaleArr(this._tagData, this._tagDataIndex, scale);
     }
 
     getScale() {
-        return this.scale;
+        return this._scale;
     }
 
     /**

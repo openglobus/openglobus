@@ -400,7 +400,7 @@ class GeoObjectHandler {
 
         itemSize = 1;
 
-        tagData._sizeArr = concatArrays(tagData._sizeArr, setParametersToArray([], 0, itemSize, itemSize, geoObject.scale));
+        tagData._sizeArr = concatArrays(tagData._sizeArr, setParametersToArray([], 0, itemSize, itemSize, geoObject._scale));
     }
 
     _displayPASS() {

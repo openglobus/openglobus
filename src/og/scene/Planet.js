@@ -436,6 +436,9 @@ export class Planet extends RenderNode {
     }
 
     static getBearingNorthRotationQuat(cartesian) {
+        //
+        // TODO: fix normal for ellipsoid
+        //
         let n = cartesian.normal();
         let t = Vec3.proj_b_to_plane(Vec3.UNIT_Y, n);
         return Quat.getLookRotation(t, n);
