@@ -421,6 +421,9 @@ class GeoObjectHandler {
 
         sh.activate();
 
+        //
+        // Could be in VAO
+        //
         gl.enable(gl.CULL_FACE);
         gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
 
@@ -437,19 +440,9 @@ class GeoObjectHandler {
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             let tagData = this._instanceDataMapValues[i];
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._normalsBuffer);
-            gl.vertexAttribPointer(a.aVertexNormal, tagData._normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._vertexBuffer);
-            gl.vertexAttribPointer(a.aVertexPosition, tagData._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, tagData._texture || r.handler.defaultTexture);
-            gl.uniform1i(u.uTexture, 0);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._texCoordBuffer);
-            gl.vertexAttribPointer(a.aTexCoord, tagData._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
+            //
+            //  Instance individual data
+            //
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._directionBuffer);
             gl.vertexAttribPointer(a.aDirection, tagData._directionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -467,11 +460,28 @@ class GeoObjectHandler {
 
             gl.uniform1f(u.uUseTexture, tagData._texture ? 1 : 0);
 
+            //
+            // Instance common data(could be in VAO)
+            //
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._positionHighBuffer);
             gl.vertexAttribPointer(a.aPositionHigh, tagData._positionHighBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._positionLowBuffer);
             gl.vertexAttribPointer(a.aPositionLow, tagData._positionLowBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._normalsBuffer);
+            gl.vertexAttribPointer(a.aVertexNormal, tagData._normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._vertexBuffer);
+            gl.vertexAttribPointer(a.aVertexPosition, tagData._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, tagData._texture || r.handler.defaultTexture);
+            gl.uniform1i(u.uTexture, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._texCoordBuffer);
+            gl.vertexAttribPointer(a.aTexCoord, tagData._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer);
             p.drawElementsInstanced(gl.TRIANGLES, tagData._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0, tagData.numInstances);
@@ -505,9 +515,9 @@ class GeoObjectHandler {
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             let tagData = this._instanceDataMapValues[i];
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._vertexBuffer);
-            gl.vertexAttribPointer(a.aVertexPosition, tagData._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
+            //
+            // Instance individual data
+            //
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._directionBuffer);
             gl.vertexAttribPointer(a.aDirection, tagData._directionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -528,6 +538,12 @@ class GeoObjectHandler {
 
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._visibleBuffer);
             gl.vertexAttribPointer(a.aDispose, tagData._visibleBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+            //
+            // Instance common data(could be in VAO)
+            //
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._vertexBuffer);
+            gl.vertexAttribPointer(a.aVertexPosition, tagData._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer);
             p.drawElementsInstanced(gl.TRIANGLES, tagData._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0, tagData.numInstances);
