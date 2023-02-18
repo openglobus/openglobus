@@ -90,7 +90,6 @@ class InstanceData {
     }
 
     clear() {
-        this.isFree = true;
 
         this.numInstances = 0;
 
@@ -142,6 +141,7 @@ class InstanceData {
         this._visibleBuffer = null;
         this._texCoordBuffer = null;
 
+        this.isFree = false;
         this._geoObjectHandler = null;
     }
 
@@ -666,6 +666,11 @@ class GeoObjectHandler {
         }
     }
 
+    _clearDataTagQueue() {
+        this._dataTagUpdateQueue = [];
+    }
+
+
     _removeGeoObject(geoObject) {
 
         let tagData = geoObject._tagData;
@@ -673,10 +678,14 @@ class GeoObjectHandler {
 
         tagData.numInstances--;
 
+        let isEmpty = false;
+        // dataTag becomes empty, remove it from the rendering
         if (tagData.numInstances === 0) {
             tagData.clear();
             this._instanceDataMap.delete(tag);
-            this._instanceDataMapValues = Array.from(this._instanceDataMap.values());
+            this._instanceDataMapValues = [];
+            this._clearDataTagQueue();
+            isEmpty = true;
         }
 
         this._geoObjects.splice(geoObject._handlerIndex, 1);
@@ -707,8 +716,10 @@ class GeoObjectHandler {
         geoObject._tagDataIndex = -1;
         geoObject._tagData = undefined;
 
-        tagData.refresh();
-        this._updateTag(tagData);
+        if (!isEmpty) {
+            tagData.refresh();
+            this._updateTag(tagData);
+        }
     }
 }
 
