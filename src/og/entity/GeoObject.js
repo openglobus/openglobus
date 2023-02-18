@@ -25,13 +25,6 @@ class GeoObject {
         this.instanced = true;
 
         /**
-         * Image src.
-         * @protected
-         * @type {string}
-         */
-        this._src = options.src || null;
-
-        /**
          * Entity instance that holds this geo object.
          * @protected
          * @type {Entity}

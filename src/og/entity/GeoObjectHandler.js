@@ -46,6 +46,7 @@ class InstanceData {
         this.numInstances = 0;
 
         this._texture = null;
+        this._textureSrc = null;
 
         this._pitchRollArr = [];
         this._sizeArr = [];
@@ -89,6 +90,12 @@ class InstanceData {
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
     }
 
+    createTexture(image) {
+        if (this._geoObjectHandler && this._geoObjectHandler._planet) {
+            this._texture = this._geoObjectHandler._planet.renderer.handler.createTextureDefault(image);
+        }
+    }
+
     clear() {
 
         this.numInstances = 0;
@@ -108,8 +115,7 @@ class InstanceData {
         this._visibleArr = [];
         this._texCoordArr = [];
 
-        let h = this._geoObjectHandler._planet.renderer.handler,
-            gl = h.gl;
+        let h = this._geoObjectHandler._planet.renderer.handler, gl = h.gl;
 
         h.deleteTexture(this._texture);
 
@@ -335,6 +341,12 @@ class GeoObjectHandler {
     setRenderNode(renderNode) {
         this._planet = renderNode;
         this.initProgram();
+
+        //
+        // in case of lazy initialization loading data here
+        for (let i = 0; i < this._instanceDataMapValues.length; i++) {
+            this._loadDataTagTexture(this._instanceDataMapValues[i]);
+        }
     }
 
     _addGeoObjectToArray(geoObject) {
@@ -347,12 +359,15 @@ class GeoObjectHandler {
             this._instanceDataMap.set(tag, tagData);
             this._instanceDataMapValues = Array.from(this._instanceDataMap.values());
 
+            //
+            // Setting instanced data
             tagData._vertexArr = geoObject.vertices
             tagData._normalsArr = geoObject.normals;
             tagData._indicesArr = geoObject.indexes;
             tagData._texCoordArr = geoObject.texCoords;
+            tagData._textureSrc = geoObject.object3d.src;
 
-            this._applyTexture(geoObject, tagData);
+            this._loadDataTagTexture(tagData);
         }
 
         geoObject._tagDataIndex = tagData.numInstances++;
@@ -363,10 +378,7 @@ class GeoObjectHandler {
 
         tagData._visibleArr = concatArrays(tagData._visibleArr, setParametersToArray([], 0, 1, 1, geoObject._visibility ? 1 : 0));
 
-        let x = geoObject._positionHigh.x,
-            y = geoObject._positionHigh.y,
-            z = geoObject._positionHigh.z,
-            w;
+        let x = geoObject._positionHigh.x, y = geoObject._positionHigh.y, z = geoObject._positionHigh.z, w;
         tagData._positionHighArr = concatArrays(tagData._positionHighArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
 
         x = geoObject._positionLow.x;
@@ -404,13 +416,8 @@ class GeoObjectHandler {
     }
 
     _displayPASS() {
-        let r = this._planet.renderer,
-            sh = r.handler.programs.geo_object,
-            p = sh._program,
-            u = p.uniforms,
-            a = p.attributes,
-            gl = r.handler.gl,
-            ec = this._entityCollection;
+        let r = this._planet.renderer, sh = r.handler.programs.geo_object, p = sh._program, u = p.uniforms,
+            a = p.attributes, gl = r.handler.gl, ec = this._entityCollection;
 
         sh.activate();
 
@@ -479,13 +486,8 @@ class GeoObjectHandler {
     }
 
     _pickingPASS() {
-        let r = this._planet.renderer,
-            sh = r.handler.programs.geo_object_picking,
-            p = sh._program,
-            u = p.uniforms,
-            a = p.attributes,
-            gl = r.handler.gl,
-            ec = this._entityCollection;
+        let r = this._planet.renderer, sh = r.handler.programs.geo_object_picking, p = sh._program, u = p.uniforms,
+            a = p.attributes, gl = r.handler.gl, ec = this._entityCollection;
 
         sh.activate();
 
@@ -533,20 +535,11 @@ class GeoObjectHandler {
         gl.disable(gl.CULL_FACE);
     }
 
-    async _applyTexture(geoObject, tagData) {
-        const src = geoObject._src;
-        if (src) {
-            const image = await loadImage(src);
-            //
-            //TODO: this._planet could be null
-            //
-            tagData._texture = this._planet.renderer.handler.createTextureDefault(image);
+    async _loadDataTagTexture(tagData) {
+        if (this._planet && tagData._textureSrc) {
+            const image = await loadImage(tagData._textureSrc);
+            tagData.createTexture(image);
         }
-        // else {
-        //     tagData._texture = this._planet.renderer.handler.defaultTexture;
-        // }
-        tagData._changedBuffers[TEXCOORD_BUFFER] = true;
-        this._updateTag(tagData);
     }
 
     setDirectionArr(tagData, tagDataIndex, direction) {
@@ -580,12 +573,11 @@ class GeoObjectHandler {
         this._updateTag(tagData);
     }
 
-    setTexCoordArr(tagData, tagDataIndex, tcoordArr) {
-        //TODO: doesnt work
-        //setParametersToArray(tagData._texCoordArr, tagDataIndex, 2, 2, ...tcoordArr);
-        tagData._changedBuffers[TEXCOORD_BUFFER] = true;
-        this._updateTag(tagData);
-    }
+    // setTexCoordArr(tagData, tagDataIndex, tcoordArr) {
+    //     setParametersToArray(tagData._texCoordArr, tagDataIndex, 2, 2, ...tcoordArr);
+    //     tagData._changedBuffers[TEXCOORD_BUFFER] = true;
+    //     this._updateTag(tagData);
+    // }
 
     setPitchRollArr(tagData, tagDataIndex, pitch, roll) {
         setParametersToArray(tagData._pitchRollArr, tagDataIndex, 2, 2, pitch, roll);

@@ -310,27 +310,30 @@ di.addWatch({
     }
 });
 
-fetch(`./cube.json`)
+fetch(`./fish.json`)
     .then((response) => response.json())
     .then((data) => {
         const entities = [];
-        const { vertices, indices, normals } = data;
+        const { vertices, indices, normals, texCoords } = data;
 
         let obj3d = new Object3d({
+            center: true,
             vertices: vertices,
             indexes: indices,
-            normals: normals
+            normals: normals,
+            texCoords: texCoords,
+            src: "./fish.png"
         });
 
         for (let i = 0; i < 10; i++) {
             let entity = new Entity({
-                lonlat: [0, i, 20],
+                lonlat: [0, i, 200000],
                 name: "obj-" + i,
                 geoObject: {
                     pitch: Math.random(),
                     yaw: Math.random(),
                     roll: Math.random(),
-                    scale: 1.0,
+                    scale: 5.0,
                     instanced: true,
                     tag: "cube",
                     color: colors[i % 7],
