@@ -10,7 +10,7 @@ const VERTEX_BUFFER = 0;
 const POSITION_BUFFER = 1;
 const RGBA_BUFFER = 2;
 const NORMALS_BUFFER = 3;
-const INDEXES_BUFFER = 4;
+const INDEX_BUFFER = 4;
 const DIRECTION_BUFFER = 5;
 const PITCH_ROLL_BUFFER = 6;
 const SIZE_BUFFER = 7;
@@ -80,7 +80,7 @@ class InstanceData {
         this._buffersUpdateCallbacks[DIRECTION_BUFFER] = this.createDirectionBuffer;
         this._buffersUpdateCallbacks[NORMALS_BUFFER] = this.createNormalsBuffer;
         this._buffersUpdateCallbacks[RGBA_BUFFER] = this.createRgbaBuffer;
-        this._buffersUpdateCallbacks[INDEXES_BUFFER] = this.createIndicesBuffer;
+        this._buffersUpdateCallbacks[INDEX_BUFFER] = this.createIndicesBuffer;
         this._buffersUpdateCallbacks[VERTEX_BUFFER] = this.createVertexBuffer;
         this._buffersUpdateCallbacks[SIZE_BUFFER] = this.createSizeBuffer;
         this._buffersUpdateCallbacks[PITCH_ROLL_BUFFER] = this.createPitchRollBuffer;
@@ -363,7 +363,7 @@ class GeoObjectHandler {
             // Setting instanced data
             tagData._vertexArr = geoObject.vertices
             tagData._normalsArr = geoObject.normals;
-            tagData._indicesArr = geoObject.indexes;
+            tagData._indicesArr = geoObject.indices;
             tagData._texCoordArr = geoObject.texCoords;
             tagData._textureSrc = geoObject.object3d.src;
 

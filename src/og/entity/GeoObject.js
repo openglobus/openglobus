@@ -102,8 +102,8 @@ class GeoObject {
         return this._object3d.texCoords;
     }
 
-    get indexes() {
-        return this._object3d.indexes;
+    get indices() {
+        return this._object3d.indices;
     }
 
     /**

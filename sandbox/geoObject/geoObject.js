@@ -319,7 +319,7 @@ fetch(`./fish.json`)
         let obj3d = new Object3d({
             center: true,
             vertices: vertices,
-            indexes: indices,
+            indices: indices,
             normals: normals,
             texCoords: texCoords,
             src: "./fish.png"

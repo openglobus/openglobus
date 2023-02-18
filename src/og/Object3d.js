@@ -39,14 +39,14 @@ class Object3d {
             Object3d.scale(this._vertices, data.scale);
         }
 
-        if (data.indexes) {
-            this._indexes = data.indexes || [];
+        if (data.indices) {
+            this._indices = data.indices || [];
             this._normals = data.normals || [];
         } else {
             this._normals = Object3d.getNormals(this._vertices);
-            this._indexes = new Array(this._vertices.length);
-            for (let i = 0, len = this._indexes.length; i < len; i++) {
-                this._indexes[i] = i;
+            this._indices = new Array(this._vertices.length);
+            for (let i = 0, len = this._indices.length; i < len; i++) {
+                this._indices[i] = i;
             }
         }
     }
@@ -90,8 +90,8 @@ class Object3d {
         return this._normals;
     }
 
-    get indexes() {
-        return this._indexes;
+    get indices() {
+        return this._indices;
     }
 
     get texCoords() {
@@ -168,7 +168,7 @@ class Object3d {
 
     static createSphere(lonBands = 16, latBands = 16, radius = 1.0, offsetX = 0, offsetY = 0, offsetZ = 0) {
 
-        let vertices = [], indexes = [], normals = [];
+        let vertices = [], indices = [], normals = [];
 
         for (let latNumber = 0; latNumber <= latBands; latNumber++) {
             var theta = latNumber * Math.PI / latBands;
@@ -200,24 +200,24 @@ class Object3d {
                 var first = (latNumber * (lonBands + 1)) + longNumber;
                 var second = first + lonBands + 1;
 
-                indexes.push(first);
-                indexes.push(first + 1);
-                indexes.push(second);
+                indices.push(first);
+                indices.push(first + 1);
+                indices.push(second);
 
-                indexes.push(second);
-                indexes.push(first + 1);
-                indexes.push(second + 1);
+                indices.push(second);
+                indices.push(first + 1);
+                indices.push(second + 1);
             }
         }
 
         return new Object3d({
-            'vertices': vertices, 'normals': normals, 'indexes': indexes
+            'vertices': vertices, 'normals': normals, 'indices': indices
         });
     }
 
     static createDisc(radius = 1.0, height = 0.0, radialSegments = 8, isTop = true, startIndex = 0, offsetX = 0, offsetY, offsetZ = 0) {
 
-        let vertices = [], indexes = [], normals = [];
+        let vertices = [], indices = [], normals = [];
 
         let thetaStart = 0.0, thetaLength = Math.PI * 2;
 
@@ -252,20 +252,20 @@ class Object3d {
         for (let x = 0; x < radialSegments; x++) {
             let c = centerIndexStart + x, i = centerIndexEnd + x;
             if (isTop === true) {
-                indexes.push(i, i + 1, c);
+                indices.push(i, i + 1, c);
             } else {
-                indexes.push(i + 1, i, c);
+                indices.push(i + 1, i, c);
             }
         }
 
         return new Object3d({
-            'vertices': vertices, 'normals': normals, 'indexes': indexes
+            'vertices': vertices, 'normals': normals, 'indices': indices
         });
     }
 
     static createCylinder(radiusTop = 1.0, radiusBottom = 1.0, height = 1.0, radialSegments = 32, heightSegments = 1.0, isTop = true, isBottom = true, offsetX = 0, offsetY = 0, offsetZ = 0) {
 
-        let vertices = [], indexes = [], normals = [];
+        let vertices = [], indices = [], normals = [];
 
         let thetaStart = 0.0, thetaLength = Math.PI * 2;
 
@@ -310,8 +310,8 @@ class Object3d {
                 let a = indexArray[y][x], b = indexArray[y + 1][x], c = indexArray[y + 1][x + 1],
                     d = indexArray[y][x + 1];
 
-                indexes.push(a, b, d);
-                indexes.push(b, c, d);
+                indices.push(a, b, d);
+                indices.push(b, c, d);
             }
         }
 
@@ -319,18 +319,18 @@ class Object3d {
             let cap = Object3d.createDisc(radiusTop, height, radialSegments, true, index, offsetX, offsetY, offsetZ);
             vertices.push(...cap.vertices);
             normals.push(...cap.normals);
-            indexes.push(...cap.indexes);
+            indices.push(...cap.indices);
         }
 
         if (radiusBottom !== 0.0 && isBottom) {
             let cap = Object3d.createDisc(radiusBottom, 0, radialSegments, false, index + (isTop ? (1 + 2 * radialSegments) : 0), offsetX, offsetY, offsetZ);
             vertices.push(...cap.vertices);
             normals.push(...cap.normals);
-            indexes.push(...cap.indexes);
+            indices.push(...cap.indices);
         }
 
         return new Object3d({
-            'vertices': vertices, 'normals': normals, 'indexes': indexes
+            'vertices': vertices, 'normals': normals, 'indices': indices
         });
     }
 
