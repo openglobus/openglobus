@@ -4,9 +4,9 @@
 
 "use strict";
 
+import * as atmos from "../shaders/atmos.js";
 import { Control } from "./Control.js";
 import { Program } from '../webgl/Program.js';
-import * as atmos from "../shaders/atmos.js";
 import { Framebuffer } from "../webgl/index.js";
 
 /**
@@ -125,8 +125,8 @@ class Atmosphere extends Control {
         this._scatteringBuffer.deactivate();
 
         // remove shaders
-        h.removeProgram("scattering");
-        h.removeProgram("transmittance");
+        // h.removeProgram("scattering");
+        // h.removeProgram("transmittance");
     }
 
     _drawBackground() {

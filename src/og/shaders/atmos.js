@@ -34,12 +34,7 @@ export const COMMON =
     const vec3 ozoneAbsorptionCoefficient = vec3(0.650e-6, 1.881e-6, 0.085e-6);
     
     const float SUN_ANGULAR_RADIUS = 0.004685 * 2.0;
-    const float SUN_INTENSITY = 1.0;
-        
-    float getLerpValue(in float min, in float max, in float between)
-    {
-        return (clamp(between, min, max) - min) / (max - min);
-    }
+    const float SUN_INTENSITY = 1.0;        
     
     vec3 sunWithBloom(vec3 rayDir, vec3 sunDir) 
     {

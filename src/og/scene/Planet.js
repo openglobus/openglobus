@@ -432,7 +432,9 @@ export class Planet extends RenderNode {
          */
         this.nightTextureCoefficient = 1.5;
 
-        this._renderScreenNodesPASS = this._renderScreenNodesPASSAtmos;
+        this._renderScreenNodesPASS = this._renderScreenNodesPASSNoAtmos;
+
+        this._atmosphereEnabled = options.atmosphereEnabled || true;
     }
 
     static getBearingNorthRotationQuat(cartesian) {
@@ -655,9 +657,31 @@ export class Planet extends RenderNode {
                     terrain._isReady = true;
                 })
                 .catch((err) => {
-                    console.log(err);
+                    console.warn(err);
                 });
         }
+    }
+
+    _initializeAtmosphere() {
+        let h = this.renderer.handler;
+
+        if(this._atmosphereEnabled) {
+            if (h.isWebGl2()) {
+                h.addProgram(shaders.drawnode_screen_wl_webgl2Atmos(), true);
+            } else {
+                h.addProgram(shaders.drawnode_screen_wl(), true);
+            }
+            this._renderScreenNodesPASS = this._renderScreenNodesPASSAtmos;
+            this.addControl(new Atmosphere());
+        }else{
+            if (h.isWebGl2()) {
+                h.addProgram(shaders.drawnode_screen_wl_webgl2NoAtmos(), true);
+            } else {
+                h.addProgram(shaders.drawnode_screen_wl(), true);
+            }
+            this._renderScreenNodesPASS = this._renderScreenNodesPASSNoAtmos;
+        }
+
     }
 
     /**
@@ -665,14 +689,9 @@ export class Planet extends RenderNode {
      * @protected
      */
     _initializeShaders() {
-        var h = this.renderer.handler;
+        let h = this.renderer.handler;
 
         h.addProgram(shaders.drawnode_screen_nl(), true);
-        if (h.isWebGl2()) {
-            h.addProgram(shaders.drawnode_screen_wl_webgl2Atmos(), true);
-        } else {
-            h.addProgram(shaders.drawnode_screen_wl(), true);
-        }
         h.addProgram(shaders.drawnode_colorPicking(), true);
         h.addProgram(shaders.drawnode_depth(), true);
         h.addProgram(shaders.drawnode_heightPicking(), true);
@@ -786,6 +805,8 @@ export class Planet extends RenderNode {
         // Applying shaders
         this._initializeShaders();
 
+        this._initializeAtmosphere();
+
         this._updateVisibleLayers();
 
         this.renderer.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
@@ -820,8 +841,6 @@ export class Planet extends RenderNode {
         this.renderer.events.on("postdraw", () => {
             this._checkRendercompleted();
         });
-
-        this.addControl(new Atmosphere());
     }
 
     clearIndexesCache() {
@@ -1197,6 +1216,9 @@ export class Planet extends RenderNode {
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
             gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
             gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
+
+            gl.uniform1f(shu.camHeight, cam.getHeight());
+
         } else {
             h.programs.drawnode_screen_nl.activate();
             sh = h.programs.drawnode_screen_nl._program;

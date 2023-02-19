@@ -1,5 +1,11 @@
 'use strict';
+
 export const UTILS = `
+    float getLerpValue(in float min, in float max, in float between)
+    {
+        return (clamp(between, min, max) - min) / (max - min);
+    }
+    
     vec3 aces(vec3 color) 
     {
         float a = 2.51;
