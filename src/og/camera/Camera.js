@@ -167,7 +167,9 @@ class Camera {
 
         this.FARTHEST_FRUSTUM_INDEX = this.frustums.length - 1;
 
-        this._currentFrustum = 0;
+        this.currentFrustumIndex = 0;
+
+        this.isFirstPass = false;
 
         renderer && this._init(options);
     }
@@ -576,15 +578,16 @@ class Camera {
     }
 
     setCurrentFrustum(k) {
-        this._currentFrustum = k;
+        this.currentFrustumIndex = k;
+        this.isFirstPass = k === this.FARTHEST_FRUSTUM_INDEX;
     }
 
     getCurrentFrustum() {
-        return this._currentFrustum;
+        return this.currentFrustumIndex;
     }
 
     get frustum() {
-        return this.frustums[this._currentFrustum];
+        return this.frustums[this.currentFrustumIndex];
     }
 
     /**
