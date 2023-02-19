@@ -20,14 +20,14 @@ const TEMPLATE =
          <div class="og-option">
            <div class="og-caption">Atmosphere enabled<input type="checkbox" id="atmosphere" name="atmosphere"/></div>
          </div>
-
-
-         <div class="og-option og-gamma">
-         </div>
          
-         <div class="og-option og-exposure">
-         </div>
+        <div class="og-lighting-emptyline"></div>
+
+         <div class="og-option og-gamma"></div>         
+         <div class="og-option og-exposure"></div>
        
+        <div class="og-lighting-emptyline"></div>
+
          <div class="og-option">
          <div class="og-layers">
            <div class="og-caption">Select layer:</div>
@@ -40,6 +40,8 @@ const TEMPLATE =
          
          <div class="og-option og-night">
          </div>
+         
+         <div class="og-lighting-emptyline"></div>
 
          <div class="og-option og-diffuse">
          </div>

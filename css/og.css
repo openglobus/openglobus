@@ -668,8 +668,11 @@ details[open] {
 
 .og-lighing .og-caption {
     position: relative;
-    padding-top: 5px;
-    padding-bottom: 5px;
+}
+
+.og-lighing .og-lighting-emptyline {
+    width: 100%;
+    padding: 3px;
 }
 
 .og-lighing .og-option {
