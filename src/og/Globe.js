@@ -20,7 +20,6 @@ import { isEmpty } from "./utils/shared.js";
 import { Handler } from "./webgl/Handler.js";
 import { createColorRGB } from "./utils/shared.js";
 import { Vec3 } from "./math/Vec3.js";
-import { SimpleSkyBackground } from "./control/SimpleSkyBackground.js";
 
 /** @const {string} */
 const CANVAS_ID_PREFIX = "globus_viewport_";
@@ -221,8 +220,7 @@ class Globe {
                 new TouchNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),
-                new CompassButton(options),
-                //new SimpleSkyBackground()
+                new CompassButton(options)
             ]);
         }
 

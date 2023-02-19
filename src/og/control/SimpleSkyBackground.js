@@ -41,7 +41,7 @@ class SimpleSkyBackground extends Control {
 
     oninit() {
         this.renderer.handler.addProgram(simpleSkyBackgroundShader());
-        this.planet.events.on("draw", this._drawBackground, this);
+        this.activate();
     }
 
     onactivate() {

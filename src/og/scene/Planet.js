@@ -33,7 +33,7 @@ import { Geoid } from "../terrain/Geoid.js";
 import { createColorRGB, isUndef } from "../utils/shared.js";
 import { MAX_RENDERED_NODES } from "../quadTree/quadTree.js";
 import { EarthQuadTreeStrategy } from "../quadTree/EarthQuadTreeStrategy.js";
-
+import { SimpleSkyBackground } from "../control/SimpleSkyBackground.js";
 import { Atmosphere } from "../control/Atmosphere.js";
 
 const CUR_LOD_SIZE = 250; //px
@@ -692,10 +692,21 @@ export class Planet extends RenderNode {
             } else {
                 this.renderer.controls.Atmosphere.activate();
             }
+
+            if (this.renderer.controls.SimpleSkyBackground) {
+                this.renderer.controls.SimpleSkyBackground.deactivate();
+            }
+
         } else {
 
             if (this.renderer.controls.Atmosphere) {
                 this.renderer.controls.Atmosphere.deactivate();
+            }
+
+            if (!this.renderer.controls.SimpleSkyBackground) {
+                this.addControl(new SimpleSkyBackground());
+            } else {
+                this.renderer.controls.SimpleSkyBackground.activate();
             }
 
             if (h.isWebGl2()) {
