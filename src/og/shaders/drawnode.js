@@ -395,10 +395,10 @@ export function drawnode_screen_wl_webgl2NoAtmos() {
                 float maxH = minH * 3.0;
                 float nightCoef = getLerpValue(minH, maxH, camHeight) * nightTextureCoefficient;
                                 
-                // if(camHeight > 700000.0)
-                // {
-                //     normal = normalize(v_vertex);
-                // }
+                if(camHeight > 6000000.0)
+                {
+                    normal = normalize(v_vertex);
+                }
                                             
                 vec3 lightDir = normalize(sunPos);
                 vec3 viewDir = normalize(cameraPosition - v_vertex);
@@ -717,10 +717,10 @@ export function drawnode_screen_wl_webgl2Atmos() {
                 float maxH = minH * 3.0;
                 float nightCoef = getLerpValue(minH, maxH, camHeight) * nightTextureCoefficient;
                                 
-                // if(camHeight > 700000.0)
-                // {
-                //     normal = normalize(v_vertex);
-                // }
+                if(camHeight > 6000000.0)
+                {
+                    normal = normalize(v_vertex);
+                }
                                             
                 vec3 lightDir = normalize(sunPos);
                 vec3 viewDir = normalize(cameraPosition - v_vertex);

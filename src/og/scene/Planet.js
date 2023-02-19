@@ -457,7 +457,6 @@ export class Planet extends RenderNode {
         return this._atmosphereEnabled;
     }
 
-
     set diffuse(rgb) {
         let vec = createColorRGB(rgb);
         this._diffuse = new Float32Array(vec.toArray());
