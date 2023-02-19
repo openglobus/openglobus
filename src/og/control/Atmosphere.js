@@ -123,6 +123,10 @@ class Atmosphere extends Control {
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer.numItems);
 
         this._scatteringBuffer.deactivate();
+
+        // remove shaders
+        h.removeProgram("scattering");
+        h.removeProgram("transmittance");
     }
 
     _drawBackground() {
@@ -151,7 +155,7 @@ class Atmosphere extends Control {
         gl.uniform1i(shu.scatteringTexture, 1);
 
         gl.uniform3fv(shu.camPos, [cam.eye.x, cam.eye.y, cam.eye.z]);
-        gl.uniform2fv(shu.iResolution, [this.renderer.sceneFramebuffer.width, this.renderer.sceneFramebuffer.height]);//[h.getWidth(), h.getHeight()]);
+        gl.uniform2fv(shu.iResolution, [this.renderer.sceneFramebuffer.width, this.renderer.sceneFramebuffer.height]);
         gl.uniform1f(shu.fov, cam.getViewAngle());
 
         let sunPos = this.planet.sunPos;
