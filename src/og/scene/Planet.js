@@ -434,7 +434,7 @@ export class Planet extends RenderNode {
 
         this._renderScreenNodesPASS = this._renderScreenNodesPASSNoAtmos;
 
-        this._atmosphereEnabled = options.atmosphereEnabled || true;
+        this._atmosphereEnabled = options.atmosphereEnabled || false;
     }
 
     static getBearingNorthRotationQuat(cartesian) {
@@ -445,6 +445,18 @@ export class Planet extends RenderNode {
         let t = Vec3.proj_b_to_plane(Vec3.UNIT_Y, n);
         return Quat.getLookRotation(t, n);
     }
+
+    set atmosphereEnabled(enabled) {
+        if (enabled != this._atmosphereEnabled) {
+            this._atmosphereEnabled = enabled;
+            this._initializeAtmosphere();
+        }
+    }
+
+    get atmosphereEnabled() {
+        return this._atmosphereEnabled;
+    }
+
 
     set diffuse(rgb) {
         let vec = createColorRGB(rgb);
@@ -664,21 +676,35 @@ export class Planet extends RenderNode {
 
     _initializeAtmosphere() {
         let h = this.renderer.handler;
+        h.removeProgram("drawnode_screen_wl");
 
-        if(this._atmosphereEnabled) {
+        if (this._atmosphereEnabled) {
+
             if (h.isWebGl2()) {
                 h.addProgram(shaders.drawnode_screen_wl_webgl2Atmos(), true);
             } else {
                 h.addProgram(shaders.drawnode_screen_wl(), true);
             }
+
             this._renderScreenNodesPASS = this._renderScreenNodesPASSAtmos;
-            this.addControl(new Atmosphere());
-        }else{
+
+            if (!this.renderer.controls.Atmosphere) {
+                this.addControl(new Atmosphere());
+            } else {
+                this.renderer.controls.Atmosphere.activate();
+            }
+        } else {
+
+            if (this.renderer.controls.Atmosphere) {
+                this.renderer.controls.Atmosphere.deactivate();
+            }
+
             if (h.isWebGl2()) {
                 h.addProgram(shaders.drawnode_screen_wl_webgl2NoAtmos(), true);
             } else {
                 h.addProgram(shaders.drawnode_screen_wl(), true);
             }
+
             this._renderScreenNodesPASS = this._renderScreenNodesPASSNoAtmos;
         }
 

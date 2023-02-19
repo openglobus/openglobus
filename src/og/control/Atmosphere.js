@@ -33,7 +33,7 @@ class Atmosphere extends Control {
 
         this._drawAtmosphereTextures();
 
-        this.planet.events.on("draw", this._drawBackground, this);
+        this.activate();
     }
 
     onactivate() {

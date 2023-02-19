@@ -16,6 +16,11 @@ const TEMPLATE =
          <div class="og-option">
            <div class="og-caption">Lighting enabled<input type="checkbox" id="lighting" name="light"/></div>
          </div>
+         
+         <div class="og-option">
+           <div class="og-caption">Atmosphere enabled<input type="checkbox" id="atmosphere" name="atmosphere"/></div>
+         </div>
+
 
          <div class="og-option og-gamma">
          </div>
@@ -232,10 +237,15 @@ class Lighting extends Control {
         this._shininess.appendTo(this.$specular);
 
         document.getElementById("lighting").checked = this.planet.lightEnabled;
-
         document.getElementById("lighting").addEventListener("change", (e) => {
             this.planet.lightEnabled = e.target.checked;
         });
+
+        document.getElementById("atmosphere").checked = this.planet.atmosphereEnabled;
+        document.getElementById("atmosphere").addEventListener("change", (e) => {
+            this.planet.atmosphereEnabled = e.target.checked;
+        });
+
 
         document.getElementById("layers").addEventListener("change", (e) => {
             this.bindLayer(this.planet.getLayerByName(e.target.value));
