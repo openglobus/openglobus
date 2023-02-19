@@ -78,6 +78,16 @@ class Slider extends View {
 
         this._onInput_ = this._onInput.bind(this);
         this.$input.addEventListener("input", this._onInput_);
+
+        this._onMouseWheel_ = this._onMouseWheel.bind(this);
+        this.$panel.addEventListener("mousewheel", this._onMouseWheel_);
+    }
+
+    _onMouseWheel(e) {
+        e = e || window.event;
+        e.preventDefault();
+        e.stopPropagation();
+        this.value = this._value + Math.sign(e.wheelDelta) * (this._max - this._min) / 100.0;
     }
 
     _onInput(e) {
