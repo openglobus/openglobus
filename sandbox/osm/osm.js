@@ -9,14 +9,13 @@ import { EmptyTerrain } from "../../src/og/terrain/EmptyTerrain.js";
 import { stringTemplate } from "../../src/og/utils/shared.js";
 import { Lighting } from "../../src/og/control/Lighting.js";
 import { LayerSwitcher } from "../../src/og/control/LayerSwitcher.js";
+import { Selection } from "../../src/og/control/selection/Selection.js";
 import { RulerSwitcher } from "../../src/og/control/RulerSwitcher.js";
 import { KeyboardNavigation } from "../../src/og/control/KeyboardNavigation.js";
 import { DebugInfo } from "../../src/og/control/DebugInfo.js";
 import { ToggleWireframe } from "../../src/og/control/ToggleWireframe.js";
 import { VisibleExtent } from "../../src/og/control/visibleExtent/VisibleExtent.js";
 import { TimelineControl } from "../../src/og/control/timeline/TimelineControl.js";
-import { Vec3 } from "../../src/og/math/Vec3.js";
-import { Slider } from "../../src/og/ui/Slider.js";
 
 let cnv = document.createElement("canvas");
 let ctx = cnv.getContext("2d");
@@ -244,6 +243,7 @@ globus.planet.addControl(new KeyboardNavigation());
 globus.planet.addControl(new TimelineControl());
 globus.planet.addControl(new Lighting());
 globus.planet.addControl(new RulerSwitcher());
+globus.planet.addControl(new Selection());
 
 globus.planet.renderer.controls.sun.stop()
 
