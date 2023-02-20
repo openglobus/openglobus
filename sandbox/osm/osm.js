@@ -16,6 +16,8 @@ import { DebugInfo } from "../../src/og/control/DebugInfo.js";
 import { ToggleWireframe } from "../../src/og/control/ToggleWireframe.js";
 import { VisibleExtent } from "../../src/og/control/visibleExtent/VisibleExtent.js";
 import { TimelineControl } from "../../src/og/control/timeline/TimelineControl.js";
+import { GeoImageDragControl } from "../../src/og/control/GeoImageDragControl.js";
+import { GeoImage } from '../../src/og/layer/GeoImage.js';
 
 let cnv = document.createElement("canvas");
 let ctx = cnv.getContext("2d");
@@ -214,6 +216,26 @@ var highResTerrain = new MapboxTerrain(null, {
     ]
 });
 
+let img = new GeoImage("Kilimanjaro SPOT-7", {
+    src: "./SPOT 7 Satellite Image Kilimanjaro.jpg",
+    corners: [[37.286664453664194, -3.0473247187887442], [37.38444113753977, -3.0468478037959073], [37.384014813048736, -3.0904441121085506], [37.29373990291454, -3.09380219219323]],
+    visibility: true,
+    isBaseLayer: false,
+    attribution: '<a href="//www.satimagingcorp.com/">www.satimagingcorp.com</a> SPOT-7',
+    opacity: 1.0
+});
+
+let colorado = new GeoImage("Colorado Lagoon from International Space Station (this is a very long label)", {
+    src: "colorado-lagoon.jpg",
+    corners: [[-67.53063210679933, -22.148203215209232], [-67.76790919786042, -22.472194951833597], [-67.98127275782282, -22.331289122713546], [-67.74288424259892, -21.991520350954644]],
+    visibility: true,
+    isBaseLayer: false,
+    attribution: `
+            <a href="https://vk.com/olegmks">Oleg Artemjev</a>`,
+    opacity: 1,
+    zIndex: 3
+});
+
 var globus = new Globe({
     target: "earth",
     name: "Earth",
@@ -225,7 +247,7 @@ var globus = new Globe({
     //terrain: new MapboxTerrain(),
     terrain: new GlobusTerrain(),
     //maxEqualZoomAltitude: 1,
-    layers: [sat, tg, osm],
+    layers: [sat, tg, osm, img, colorado],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
     //useNightTexture: false,
     //useEarthNavigation: true,
@@ -244,6 +266,7 @@ globus.planet.addControl(new TimelineControl());
 globus.planet.addControl(new Lighting());
 globus.planet.addControl(new RulerSwitcher());
 globus.planet.addControl(new Selection());
+globus.planet.addControl(new GeoImageDragControl());
 
 globus.planet.renderer.controls.sun.stop()
 

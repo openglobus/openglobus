@@ -5,7 +5,6 @@
 "use strict";
 
 import { Control } from "../Control.js";
-import { elementFactory, btnClickHandler } from "../../ui/UIhelpers.js";
 import { SelectionScene } from "./SelectionScene.js";
 import { ToggleButton } from "../../ui/ToggleButton.js";
 

@@ -311,7 +311,7 @@ class RendererEvents extends Events {
      * @protected
      */
     updateButtonsStates(buttons) {
-        var ms = this.mouseState;
+        let ms = this.mouseState;
         if ((buttons & LB_M) && ms.leftButtonDown) {
             ms.leftButtonDown = true;
         } else {
