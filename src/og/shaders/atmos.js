@@ -9,7 +9,7 @@ export const COMMON =
     
     const float PI = 3.1415926538;
     const float ATMOS_HEIGHT = 122000.0;    
-    const int SAMPLE_COUNT = 32;
+    const int SAMPLE_COUNT = 16;
 
     // Sphere
     const float BOTTOM_RADIUS = 6356752.3142451793;
