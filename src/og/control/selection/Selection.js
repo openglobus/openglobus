@@ -5,7 +5,7 @@
 "use strict";
 
 import { Control } from "../Control.js";
-import { elementFactory, btnClickHandler } from "../UIhelpers.js";
+import { elementFactory, btnClickHandler } from "../../ui/UIhelpers.js";
 import { SelectionScene } from "./SelectionScene.js";
 
 

@@ -6,7 +6,7 @@
 
 import { Control } from './Control.js';
 import { BaseGeoImage } from '../layer/BaseGeoImage.js';
-import { elementFactory, btnClickHandler } from "./UIhelpers.js";
+import { elementFactory, btnClickHandler } from "../ui/UIhelpers.js";
 
 class GeoImageDragControl extends Control {
     constructor(options = {}) {
