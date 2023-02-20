@@ -435,6 +435,7 @@ export class Planet extends RenderNode {
         this._renderScreenNodesPASS = this._renderScreenNodesPASSNoAtmos;
 
         this._atmosphereEnabled = options.atmosphereEnabled || false;
+        this._atmosphereMaxMinOpacity = new Float32Array([1.0, 0.41]);
     }
 
     static getBearingNorthRotationQuat(cartesian) {
@@ -445,6 +446,23 @@ export class Planet extends RenderNode {
         let t = Vec3.proj_b_to_plane(Vec3.UNIT_Y, n);
         return Quat.getLookRotation(t, n);
     }
+
+    set atmosphereMaxOpacity(opacity) {
+        this._atmosphereMaxMinOpacity[0] = opacity;
+    }
+
+    get atmosphereMaxOpacity() {
+        return this._atmosphereMaxMinOpacity[0];
+    }
+
+    set atmosphereMinOpacity(opacity) {
+        this._atmosphereMaxMinOpacity[1] = opacity;
+    }
+
+    get atmosphereMinOpacity() {
+        return this._atmosphereMaxMinOpacity[1];
+    }
+
 
     set atmosphereEnabled(enabled) {
         if (enabled != this._atmosphereEnabled) {
@@ -1352,6 +1370,8 @@ export class Planet extends RenderNode {
                 gl.uniform1f(shu.nightTextureCoefficient, this.nightTextureCoefficient);
             }
 
+            gl.uniform2fv(shu.maxMinOpacity, this._atmosphereMaxMinOpacity);
+
             //
             // Night and specular
             //
@@ -1447,7 +1467,7 @@ export class Planet extends RenderNode {
             let h = renderer.handler;
             let gl = h.gl;
             let cam = renderer.activeCamera;
-            let frustumIndex = cam.getCurrentFrustum();
+            let frustumIndex = cam.currentFrustumIndex;
 
             if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
                 gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -1752,23 +1772,27 @@ export class Planet extends RenderNode {
 
             // HEIGHT
             this._heightPickingFramebuffer.activate();
-            if (this._heightPickingFramebuffer.isComplete()) {
-                this._heightPickingFramebuffer.readPixels(_tempPickingPix_, spx, spy);
-                dist = decodeFloatFromRGBAArr(_tempPickingPix_);
-            }
+
+            //if (this._heightPickingFramebuffer.isComplete()) {
+            this._heightPickingFramebuffer.readPixels(_tempPickingPix_, spx, spy);
+            dist = decodeFloatFromRGBAArr(_tempPickingPix_);
+            //}
+
             this._heightPickingFramebuffer.deactivate();
 
             if (!(_tempPickingPix_[0] || _tempPickingPix_[1] || _tempPickingPix_[2])) {
                 dist = this.getDistanceFromPixelEllipsoid(px) || 0;
             } else if (dist < DEPTH_DISTANCE) {
                 r.screenDepthFramebuffer.activate();
-                if (r.screenDepthFramebuffer.isComplete()) {
-                    r.screenDepthFramebuffer.readPixels(_tempDepthColor_, spx, spy);
-                    let screenPos = new Vec4(spx * 2.0 - 1.0, spy * 2.0 - 1.0, (_tempDepthColor_[0] / 255.0) * 2.0 - 1.0, 1.0 * 2.0 - 1.0);
-                    let viewPosition = this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
-                    let dir = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
-                    dist = -(viewPosition.z / viewPosition.w) / dir.dot(this.renderer.activeCamera.getForward());
-                }
+
+                //if (r.screenDepthFramebuffer.isComplete()) {
+                r.screenDepthFramebuffer.readPixels(_tempDepthColor_, spx, spy);
+                let screenPos = new Vec4(spx * 2.0 - 1.0, spy * 2.0 - 1.0, (_tempDepthColor_[0] / 255.0) * 2.0 - 1.0, 1.0 * 2.0 - 1.0);
+                let viewPosition = this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
+                let dir = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
+                dist = -(viewPosition.z / viewPosition.w) / dir.dot(this.renderer.activeCamera.getForward());
+                //}
+
                 r.screenDepthFramebuffer.deactivate();
             }
             return dist;

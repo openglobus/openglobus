@@ -482,7 +482,8 @@ export function drawnode_screen_wl_webgl2Atmos() {
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",
             camHeight: "float",
-            nightTextureCoefficient: "float"
+            nightTextureCoefficient: "float",
+            maxMinOpacity: "vec2"
         }, attributes: {
             aVertexPositionHigh: "vec3",
             aVertexPositionLow: "vec3",
@@ -498,11 +499,11 @@ export function drawnode_screen_wl_webgl2Atmos() {
 
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
-            uniform float height;
             uniform vec4 uGlobalTextureCoord;
             uniform vec3 uNormalMapBias;
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
+            uniform float height;
 
             out vec4 vTextureCoord;
             out vec2 vGlobalTextureCoord;
@@ -542,7 +543,7 @@ export function drawnode_screen_wl_webgl2Atmos() {
 
             uniform vec3 diffuse;
             uniform vec3 ambient;
-            uniform vec4 specular;     
+            uniform vec4 specular;
 
             uniform sampler2D uNormalMap;
             uniform vec3 lightsPositions[MAX_POINT_LIGHTS];
@@ -559,6 +560,8 @@ export function drawnode_screen_wl_webgl2Atmos() {
             uniform sampler2D samplerArr[SLICE_SIZE];
             uniform int samplerCount;
             uniform float nightTextureCoefficient;
+            
+            uniform vec2 maxMinOpacity;
                 
             uniform float camHeight;
 
@@ -576,10 +579,7 @@ export function drawnode_screen_wl_webgl2Atmos() {
 
             ${DEF_BLEND}
             
-            ${atmos.COMMON}
-            
-            const float ATMOS_OPACITY_MAX = 1.0;
-            const float ATMOS_OPACITY_MIN = 0.41;
+            ${atmos.COMMON}            
             
             vec3 transmittanceFromTexture(float height, float angle) 
             {
@@ -703,7 +703,7 @@ export function drawnode_screen_wl_webgl2Atmos() {
                 float maxDist = sqrt(c * c - BOTTOM_RADIUS * BOTTOM_RADIUS);
                 float minDist = c - BOTTOM_RADIUS;
                 float vertDist = distance(cameraPosition, v_vertex);                    
-                opacity = ATMOS_OPACITY_MIN + (ATMOS_OPACITY_MAX - ATMOS_OPACITY_MIN) * getLerpValue(minDist, maxDist, vertDist);
+                opacity = maxMinOpacity.y + ( maxMinOpacity.x -  maxMinOpacity.y) * getLerpValue(minDist, maxDist, vertDist);
             }
 
             void main(void) {

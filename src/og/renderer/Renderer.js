@@ -869,7 +869,7 @@ class Renderer {
         var h = this.handler;
         var gl = h.gl;
 
-        if (frustumIndex === this.activeCamera.FARTHEST_FRUSTUM_INDEX) {
+        if (this.activeCamera.isFirstPass) {
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         } else {
@@ -878,8 +878,8 @@ class Renderer {
 
         gl.disable(h.gl.BLEND);
 
-        var dp = this._pickingCallbacks;
-        var i = dp.length;
+        let dp = this._pickingCallbacks;
+        let i = dp.length;
         while (i--) {
             /**
              * This callback renders picking frame.

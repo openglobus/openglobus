@@ -21,6 +21,9 @@ const TEMPLATE =
            <div class="og-caption">Atmosphere enabled<input type="checkbox" id="atmosphere" name="atmosphere"/></div>
          </div>
          
+         <div class="og-option og-atmosphere-opacity">
+         </div>
+         
         <div class="og-lighting-emptyline"></div>
 
          <div class="og-option og-gamma"></div>         
@@ -115,6 +118,16 @@ class Lighting extends Control {
         this.$diffuse;
         this.$ambient;
         this.$specular;
+
+        this._atmosphereMaxOpacity = new Slider({
+            label: "Max.opacity",
+            max: 1
+        });
+
+        this._atmosphereMinOpacity = new Slider({
+            label: "Min.opacity",
+            max: 1
+        });
 
         this._gamma = new Slider({
             label: "Gamma",
@@ -211,6 +224,7 @@ class Lighting extends Control {
             this._dialog.setVisibility(isActive);
         });
 
+        this.$atmosphereOpacity = document.querySelector(".og-atmosphere-opacity");
         this.$gamma = document.querySelector(".og-option.og-gamma");
         this.$exposure = document.querySelector(".og-option.og-exposure");
         this.$opacity = document.querySelector(".og-option.og-opacity");
@@ -218,6 +232,9 @@ class Lighting extends Control {
         this.$ambient = document.querySelector(".og-option.og-ambient");
         this.$specular = document.querySelector(".og-option.og-specular");
         this.$night = document.querySelector(".og-option.og-night");
+
+        this._atmosphereMaxOpacity.appendTo(this.$atmosphereOpacity);
+        this._atmosphereMinOpacity.appendTo(this.$atmosphereOpacity);
 
         this._gamma.appendTo(this.$gamma);
         this._exposure.appendTo(this.$exposure);
@@ -243,9 +260,29 @@ class Lighting extends Control {
             this.planet.lightEnabled = e.target.checked;
         });
 
+        if (this.planet.atmosphereEnabled) {
+            this.$atmosphereOpacity.style.display = "block";
+        } else {
+            this.$atmosphereOpacity.style.display = "none";
+        }
         document.getElementById("atmosphere").checked = this.planet.atmosphereEnabled;
         document.getElementById("atmosphere").addEventListener("change", (e) => {
             this.planet.atmosphereEnabled = e.target.checked;
+            if (this.planet.atmosphereEnabled) {
+                this.$atmosphereOpacity.style.display = "block";
+            } else {
+                this.$atmosphereOpacity.style.display = "none";
+            }
+        });
+
+        this._atmosphereMinOpacity.value = this.planet.atmosphereMinOpacity;
+        this._atmosphereMinOpacity.on("change", (val) => {
+            this.planet.atmosphereMinOpacity = val;
+        });
+
+        this._gamma.value = this.planet.renderer.gamma;
+        this._gamma.on("change", (val) => {
+            this.planet.renderer.gamma = val;
         });
 
 
@@ -253,13 +290,13 @@ class Lighting extends Control {
             this.bindLayer(this.planet.getLayerByName(e.target.value));
         });
 
-        this._gamma.value = this.planet.renderer.gamma;
-        this._exposure.value = this.planet.renderer.exposure;
-
-        this._gamma.on("change", (val) => {
-            this.planet.renderer.gamma = val;
+        this._atmosphereMaxOpacity.value = this.planet.atmosphereMaxOpacity;
+        this._atmosphereMaxOpacity.on("change", (val) => {
+            this.planet.atmosphereMaxOpacity = val;
+            this.planet.renderer.controls.Atmosphere.opacity = val;
         });
 
+        this._exposure.value = this.planet.renderer.exposure;
         this._exposure.on("change", (val) => {
             this.planet.renderer.exposure = val;
         });

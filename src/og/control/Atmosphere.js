@@ -24,6 +24,8 @@ class Atmosphere extends Control {
 
         this._transmittanceBuffer = null;
         this._scatteringBuffer = null;
+
+        this.opacity = 1.0;
     }
 
     oninit() {
@@ -48,8 +50,8 @@ class Atmosphere extends Control {
 
     _drawAtmosphereTextures() {
 
-        let width = 512,
-            height = 512;
+        let width = 256,
+            height = 128;
 
         this._transmittanceBuffer = new Framebuffer(this.renderer.handler, {
             width: width,
@@ -124,9 +126,15 @@ class Atmosphere extends Control {
 
         this._scatteringBuffer.deactivate();
 
+        //
         // remove shaders
-        // h.removeProgram("scattering");
-        // h.removeProgram("transmittance");
+        if (this._scatteringBuffer.isComplete()) {
+            h.removeProgram("scattering");
+        }
+
+        if (this._transmittanceBuffer.isComplete()) {
+            h.removeProgram("transmittance");
+        }
     }
 
     _drawBackground() {
@@ -154,14 +162,14 @@ class Atmosphere extends Control {
         gl.bindTexture(gl.TEXTURE_2D, this._scatteringBuffer.textures[0]);
         gl.uniform1i(shu.scatteringTexture, 1);
 
-        gl.uniform3fv(shu.camPos, [cam.eye.x, cam.eye.y, cam.eye.z]);
-        gl.uniform2fv(shu.iResolution, [this.renderer.sceneFramebuffer.width, this.renderer.sceneFramebuffer.height]);
-        gl.uniform1f(shu.fov, cam.getViewAngle());
+        gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
 
         let sunPos = this.planet.sunPos;
         gl.uniform3fv(shu.sunPos, [sunPos.x, sunPos.y, sunPos.z]);
-
-        gl.uniformMatrix4fv(shu.viewMatrix, false, cam._viewMatrix._m);
+        gl.uniform3fv(shu.camPos, [cam.eye.x, cam.eye.y, cam.eye.z]);
+        gl.uniform2fv(shu.iResolution, [this.renderer.sceneFramebuffer.width, this.renderer.sceneFramebuffer.height]);
+        gl.uniform1f(shu.fov, cam.getViewAngle());
+        gl.uniform1f(shu.opacity, this.opacity);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
@@ -176,11 +184,11 @@ function atmosphereBackgroundShader() {
             iResolution: "vec2",
             fov: "float",
             camPos: "vec3",
-            //earthRadius: "float",
             viewMatrix: "mat4",
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",
-            sunPos: "vec3"
+            sunPos: "vec3",
+            opacity: "float"
         },
         attributes: {
             corners: "vec3"
@@ -198,17 +206,16 @@ function atmosphereBackgroundShader() {
             
             ${atmos.COMMON}
             
+            uniform mat4 viewMatrix;
+            uniform vec3 sunPos;
             uniform vec3 camPos;     
             uniform vec2 iResolution;
             uniform float fov;
-            
-            uniform mat4 viewMatrix;
-            
+            uniform float opacity;
+                       
             uniform sampler2D transmittanceTexture;
             uniform sampler2D scatteringTexture;
-                        
-            uniform vec3 sunPos;                                  
-                                   
+                                                           
             vec3 transmittanceFromTexture(float height, float angle) 
             {
                 float u = (angle + 1.0) * 0.5;
@@ -385,7 +392,7 @@ function atmosphereBackgroundShader() {
                 color *= 8.0;
                 //color = aces(color);
                 color = pow(color, vec3(1.0 / 2.2));
-                fragColor = vec4(color, 1.0);               
+                fragColor = vec4(color, opacity);               
             }
                                     
             void main(void) 
