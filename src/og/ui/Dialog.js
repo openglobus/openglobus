@@ -5,7 +5,7 @@ import { getDefault, stringTemplate } from '../utils/shared.js';
 import { Button } from './Button.js';
 
 const TEMPLATE = `<div class="og-ddialog" 
-        style="display:{display}; resize:{resize}; width: {width}px; {height}; top: {top}px; left: {left}px;">
+        style="display:{display}; resize:{resize}; width: {width}px; {height}; top: {top}px; left: {left}px; min-height: {minHeight}; max-height: {maxHeight}; min-width: {minWidth}; max-width: {maxWidth};">
        <div class="og-ddialog-header">
          <div class="og-ddialog-header__title">{title}</div>      
          <div class="og-ddialog-header__buttons"></div>      
@@ -27,7 +27,11 @@ class Dialog extends View {
                 width: options.width || 300,
                 height: options.height ? `height:${options.height || 200}` : "",
                 left: options.left || 0,
-                top: options.top || 0
+                top: options.top || 0,
+                minHeight: options.minHeight ? `${options.minHeight}px` : 'unset',
+                maxHeight: options.maxHeight ? `${options.maxHeight}px` : 'unset',
+                minWidth: options.minWidth ? `${options.minWidth}px` : 'unset',
+                maxWidth: options.maxWidth ? `${options.maxWidth}px` : 'unset',
             }),
             ...options,
             eventList: ["resize", "focus", "visibility", "dragstart", "dragend", ...(options.eventList || [])],
