@@ -716,6 +716,25 @@ TIMELINE
     left: 10px;
 }
 
+.og-timeline-control_button {
+    width: 20px;
+    height: 20px;
+    margin-left: 3px;
+    margin-right: 3px;
+    background: var(--grey7);
+    border-radius: 3px;
+}
+
+.og-button svg,
+.og-button svg path {
+    width: 24px;
+    height: 24px;
+}
+
+.og-timeline-control_button.og-button__active {
+    background: var(--grey3);
+}
+
 .og-timeline {
     width: 100%;
     height: 100%;
@@ -879,7 +898,7 @@ TIMELINE
     right: 12px;
 }
 
-.og-geoimagegrag_button{
+.og-geoimagegrag_button {
     top: 169px;
     right: 12px;
 }

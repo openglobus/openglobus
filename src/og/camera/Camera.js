@@ -273,7 +273,7 @@ class Camera {
             1.0
         ]);
 
-        // someday it will be using
+        // do not cleanup, someday it will be using
         //this._normalMatrix = this._viewMatrix.toMatrix3(); // this._viewMatrix.toInverseMatrix3().transposeTo();
 
         for (let i = 0, len = this.frustums.length; i < len; i++) {

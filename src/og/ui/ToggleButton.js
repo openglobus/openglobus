@@ -12,11 +12,13 @@ class ToggleButton extends Button {
         this._isActive = options.isActive || false;
     }
 
-    setActive(isActive) {
+    setActive(isActive, stopPropagation) {
         if (isActive !== this._isActive) {
             this._isActive = isActive;
             this._toggle();
-            this._events.dispatch(this._events.change, isActive, this);
+            if (!stopPropagation) {
+                this._events.dispatch(this._events.change, isActive, this);
+            }
         }
     }
 

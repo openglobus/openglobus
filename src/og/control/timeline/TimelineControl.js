@@ -49,9 +49,9 @@ class TimelineControl extends Control {
             top: 10,
             left: 60,
             width: 600,
-            height: 88,
-            minHeight: 88,
-            maxHeight: 88
+            height: 115,
+            minHeight: 115,
+            maxHeight: 110
         });
 
         this._dialog.on("visibility", (v) => {

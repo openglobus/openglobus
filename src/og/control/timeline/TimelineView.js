@@ -11,6 +11,9 @@ import {
     getNearestTimeLeft,
     getScale
 } from './timelineUtils.js';
+import { ToggleButton } from "../../ui/ToggleButton.js";
+import { Button } from "../../ui/Button.js";
+import { ButtonGroup } from "../../ui/ButtonGroup.js";
 
 const SECONDS_TO_MILLISECONDS = 1000.0;
 const MILLISECONDS_TO_SECONDS = 1.0 / SECONDS_TO_MILLISECONDS;
@@ -26,6 +29,10 @@ const EVENT_LIST = [
     'pause',
     'visibility'
 ];
+
+const ICON_PLAY_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/><path d="M0 0h24v24H0z" fill="none"/></svg>';
+const ICON_RESET_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 6h12v12H6z"/></svg>';
+const ICON_PAUSE_SVG = '<?xml version="1.0" ?><!DOCTYPE svg  PUBLIC \'-//W3C//DTD SVG 1.1//EN\'  \'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\'><svg enable-background="new 0 0 512 512" height="512px" version="1.1" viewBox="0 0 512 512" width="512px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="Layer_6"><rect fill="#252525" height="320" width="60" x="153" y="96"/><rect fill="#252525" height="320" width="60" x="299" y="96"/></g></svg>';
 
 const SCALE_FILL_COLOR = "rgba(64, 59, 59, 1.0)";
 const SCALE_NOTCH_COLOR = "#bfbfbf";
@@ -70,6 +77,8 @@ class TimelineView extends View {
 
         this.fillStyle = options.fillStyle || SCALE_FILL_COLOR;
 
+        this.$controls;
+
         this._frameEl = null;
         this._currentEl = null;
         this._canvasEl = createCanvasHTML();
@@ -96,37 +105,27 @@ class TimelineView extends View {
         this._onResizeObserver_ = this._onResizeObserver.bind(this);
         this._resizeObserver = new ResizeObserver(this._onResizeObserver_);
 
-        // this._resetBtn = new ButtonView({
-        //     icon: "stop",
-        //     title: "Stop",
-        //     className: "og-timeline-btn og-timeline-reset",
-        // });
+        this._resetBtn = new ToggleButton({
+            classList: ["og-timeline-control_button"],
+            icon: ICON_RESET_SVG,
+            name: "reset"
+        });
 
-        // this._playBackBtn = new ButtonView({
-        //     icon: "play",
-        //     title: "play back",
-        //     tag: "timeline",
-        //     togglable: true,
-        //     className: "og-timeline-btn og-timeline-play_back"
-        // });
+        this._pauseBtn = new ToggleButton({
+            classList: ["og-timeline-control_button"],
+            icon: ICON_PAUSE_SVG,
+            name: "pause"
+        });
 
-        // this._pauseBtn = new ButtonView({
-        //     icon: "pause",
-        //     title: "pause",
-        //     tag: "timeline",
-        //     togglable: true,
-        //     className: "og-timeline-btn og-timeline-pause",
-        //     isAlways: true,
-        //     active: true
-        // });
+        this._playBtn = new ToggleButton({
+            classList: ["og-timeline-control_button"],
+            icon: ICON_PLAY_SVG,
+            name: "play"
+        });
 
-        // this._playBtn = new ButtonView({
-        //     icon: "play",
-        //     title: "Play",
-        //     tag: "timeline",
-        //     togglable: true,
-        //     className: "og-timeline-btn"
-        // });
+        this._buttons = new ButtonGroup({
+            buttons: [this._resetBtn, this._pauseBtn, this._playBtn]
+        })
 
         this._visibility = null;
     }
@@ -158,6 +157,8 @@ class TimelineView extends View {
     render() {
         super.render();
 
+        this.$controls = this.select(".og-timeline-controls");
+
         this._frameEl = this.select(".og-timeline-frame");
         this._currentEl = this.select(".og-timeline-current");
         this.select(".og-timeline-frame .og-timeline-scale").appendChild(this._canvasEl);
@@ -184,36 +185,35 @@ class TimelineView extends View {
         document.body.addEventListener("mouseup", this._onMouseUp.bind(this));
         document.body.addEventListener("mousewheel", this._onMouseWheel.bind(this));
 
-        // this._resetBtn.on("click", (e, btn) => {
-        //     this.reset();
-        // });
+        this._playBtn.appendTo(this.$controls);
+        this._resetBtn.appendTo(this.$controls);
+        this._pauseBtn.appendTo(this.$controls);
 
-        // this._playBackBtn.on("toggle", (e, btn) => {
-        //     if (btn.isActive()) {
-        //         this.playBack();
-        //     } else {
-        //         this._pauseBtn.setActive(true);
-        //     }
-        // });
+        this._buttons.on("change", (btn) => {
+            console.log("change " + btn.name);
+        });
 
-        // this._pauseBtn.on("toggle", (e, btn) => {
+        // this._resetBtn.on("change", (isActive) => {
         //     this.pause();
+        //     if (isActive) {
+        //         this.reset();
+        //     }
         // });
-
-        // this._playBtn.on("toggle", (e, btn) => {
-        //     if (btn.isActive()) {
+        //
+        // this._playBtn.on("change", (isActive) => {
+        //     this.pause();
+        //     if (isActive) {
         //         this.play();
-        //     } else {
-        //         this._pauseBtn.setActive(true);
+        //     }
+        // });
+        //
+        // this._pauseBtn.on("change", (isActive) => {
+        //     this.pause();
+        //     if (isActive) {
+        //         this.pause();
         //     }
         // });
 
-        //let $ctl = this.select(".og-timeline-controls");
-
-        // this._resetBtn.appendTo($ctl);
-        // this._playBackBtn.appendTo($ctl);
-        // this._pauseBtn.appendTo($ctl);
-        // this._playBtn.appendTo($ctl);
 
         // let mltView = new View({
         //     template: `<div class="og-timeline-multiplier">

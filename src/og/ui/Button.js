@@ -20,6 +20,8 @@ class Button extends View {
             eventList: ["click", ...(options.eventList || [])]
         });
 
+        this.name = options.name || "";
+
         this.$icon;
         this.$text;
     }
