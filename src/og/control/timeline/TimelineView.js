@@ -108,7 +108,9 @@ class TimelineView extends View {
         this._resetBtn = new ToggleButton({
             classList: ["og-timeline-control_button"],
             icon: ICON_RESET_SVG,
-            name: "reset"
+            name: "reset",
+            isActive: true,
+            preventClick: true
         });
 
         this._pauseBtn = new ToggleButton({
@@ -190,30 +192,14 @@ class TimelineView extends View {
         this._pauseBtn.appendTo(this.$controls);
 
         this._buttons.on("change", (btn) => {
-            console.log("change " + btn.name);
+            if (btn.name === "play") {
+                this.play();
+            } else if (btn.name === "reset") {
+                this.reset();
+            } else if (btn.name === "pause") {
+                this.pause();
+            }
         });
-
-        // this._resetBtn.on("change", (isActive) => {
-        //     this.pause();
-        //     if (isActive) {
-        //         this.reset();
-        //     }
-        // });
-        //
-        // this._playBtn.on("change", (isActive) => {
-        //     this.pause();
-        //     if (isActive) {
-        //         this.play();
-        //     }
-        // });
-        //
-        // this._pauseBtn.on("change", (isActive) => {
-        //     this.pause();
-        //     if (isActive) {
-        //         this.pause();
-        //     }
-        // });
-
 
         // let mltView = new View({
         //     template: `<div class="og-timeline-multiplier">
@@ -255,7 +241,7 @@ class TimelineView extends View {
     }
 
     reset() {
-        //this._pauseBtn.setActive(true);
+        this.model.stop();
         this._events.dispatch(this._events.reset, this.model);
     }
 

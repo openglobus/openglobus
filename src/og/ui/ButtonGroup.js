@@ -31,14 +31,16 @@ class ButtonGroup {
 
     _onChange(isActive, btn) {
         if (isActive) {
+            btn.preventClick = true;
             for (let i = 0; i < this._buttons.length; i++) {
                 let bi = this._buttons[i];
                 if (!bi.isEqual(btn)) {
                     bi.setActive(false);
+                    bi.preventClick = false;
                 }
             }
+            this._events.dispatch(this._events.change, btn);
         }
-        this._events.dispatch(this._events.change, btn);
     }
 
     remove(button) {

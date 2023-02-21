@@ -717,12 +717,12 @@ TIMELINE
 }
 
 .og-timeline-control_button {
-    width: 20px;
+    width: 25px;
     height: 20px;
     margin-left: 3px;
     margin-right: 3px;
     background: var(--grey7);
-    border-radius: 3px;
+    border-radius: 1px;
 }
 
 .og-button svg,
@@ -789,7 +789,6 @@ TIMELINE
     width: 100%;
     display: flex;
     position: relative;
-    min-width: 300px;
     justify-content: center;
     margin-top: 3px;
 }

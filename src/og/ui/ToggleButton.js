@@ -10,6 +10,8 @@ class ToggleButton extends Button {
         });
 
         this._isActive = options.isActive || false;
+
+        this.preventClick = options.preventClick || false;
     }
 
     setActive(isActive, stopPropagation) {
@@ -39,8 +41,10 @@ class ToggleButton extends Button {
     }
 
     _onMouseClick(e) {
-        super._onMouseClick(e);
-        this.setActive(!this.isActive);
+        if (!this.preventClick) {
+            super._onMouseClick(e);
+            this.setActive(!this.isActive);
+        }
     }
 }
 
