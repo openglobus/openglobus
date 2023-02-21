@@ -4,6 +4,7 @@ import { Control } from '../Control.js';
 import { TimelineView } from './TimelineView.js';
 import { Dialog } from "../../ui/Dialog.js";
 import { ToggleButton } from "../../ui/ToggleButton.js";
+import { UTCtoDate } from "../../astro/jd.js";
 
 function addHours(date, hours) {
     const temp = new Date(date);
@@ -25,8 +26,6 @@ class TimelineControl extends Control {
             options.name = "timeline";
         }
         super(options);
-
-        this.planet = null;
 
         let currentDate = new Date();
         let startDate = addHours(currentDate, -12), endDate = addHours(currentDate, 12);

@@ -105,14 +105,6 @@ class TimelineView extends View {
         this._onResizeObserver_ = this._onResizeObserver.bind(this);
         this._resizeObserver = new ResizeObserver(this._onResizeObserver_);
 
-        this._resetBtn = new ToggleButton({
-            classList: ["og-timeline-control_button"],
-            icon: ICON_RESET_SVG,
-            name: "reset",
-            isActive: true,
-            preventClick: true
-        });
-
         this._pauseBtn = new ToggleButton({
             classList: ["og-timeline-control_button"],
             icon: ICON_PAUSE_SVG,
@@ -122,11 +114,13 @@ class TimelineView extends View {
         this._playBtn = new ToggleButton({
             classList: ["og-timeline-control_button"],
             icon: ICON_PLAY_SVG,
-            name: "play"
+            name: "play",
+            isActive: true,
+            preventClick: true
         });
 
         this._buttons = new ButtonGroup({
-            buttons: [this._resetBtn, this._pauseBtn, this._playBtn]
+            buttons: [this._pauseBtn, this._playBtn]
         })
 
         this._visibility = null;
@@ -188,16 +182,16 @@ class TimelineView extends View {
         document.body.addEventListener("mousewheel", this._onMouseWheel.bind(this));
 
         this._playBtn.appendTo(this.$controls);
-        this._resetBtn.appendTo(this.$controls);
         this._pauseBtn.appendTo(this.$controls);
 
         this._buttons.on("change", (btn) => {
-            if (btn.name === "play") {
-                this.play();
-            } else if (btn.name === "reset") {
-                this.reset();
-            } else if (btn.name === "pause") {
-                this.pause();
+            switch (btn.name) {
+                case "play":
+                    this.play();
+                    break;
+                case "pause":
+                    this.pause();
+                    break;
             }
         });
 
