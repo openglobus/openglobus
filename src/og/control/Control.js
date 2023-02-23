@@ -119,9 +119,6 @@ class Control {
             if (this.autoActivate) {
                 this._initialized = true;
                 this.oninit && this.oninit();
-                //
-                // TODO: BUG! Fix asap.
-                this._active = true;
             }
         }
     }
