@@ -311,22 +311,22 @@ class RendererEvents extends Events {
      * @protected
      */
     updateButtonsStates(buttons) {
-        var ms = this.mouseState;
-        if (buttons & LB_M) {
+        let ms = this.mouseState;
+        if ((buttons & LB_M) && ms.leftButtonDown) {
             ms.leftButtonDown = true;
         } else {
             ms.leftButtonHold = false;
             ms.leftButtonDown = false;
         }
 
-        if (buttons & RB_M) {
+        if ((buttons & RB_M) && ms.rightButtonDown) {
             ms.rightButtonDown = true;
         } else {
             ms.rightButtonHold = false;
             ms.rightButtonDown = false;
         }
 
-        if (buttons & MB_M) {
+        if ((buttons & MB_M) && ms.middleButtonDown) {
             ms.middleButtonDown = true;
         } else {
             ms.middleButtonHold = false;

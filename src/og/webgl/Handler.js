@@ -127,6 +127,8 @@ class Handler {
 
         this.transparentTexture = null;
 
+        this.defaultTexture = null;
+
         this.framebufferStack = new Stack();
 
         this.createTexture = {
@@ -285,9 +287,9 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_n_webgl1(image, internalFormat) {
-        var gl = this.gl;
-        var texture = gl.createTexture();
+    createTexture_n_webgl1(image, internalFormat, texture) {
+        let gl = this.gl;
+        texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
@@ -305,13 +307,11 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_l_webgl1(image, internalFormat) {
+    createTexture_l_webgl1(image, internalFormat, texture) {
         let gl = this.gl;
-        let texture = gl.createTexture();
+        texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
-
         gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -326,9 +326,9 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_mm_webgl1(image, internalFormat) {
+    createTexture_mm_webgl1(image, internalFormat, texture) {
         let gl = this.gl;
-        let texture = gl.createTexture();
+        texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
@@ -346,9 +346,9 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_a_webgl1(image, internalFormat) {
+    createTexture_a_webgl1(image, internalFormat, texture) {
         let gl = this.gl;
-        let texture = gl.createTexture();
+        texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
@@ -367,9 +367,9 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_n_webgl2(image, internalFormat) {
-        var gl = this.gl;
-        var texture = gl.createTexture();
+    createTexture_n_webgl2(image, internalFormat, texture) {
+        let gl = this.gl;
+        texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
@@ -389,9 +389,9 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_l_webgl2(image, internalFormat) {
+    createTexture_l_webgl2(image, internalFormat, texture) {
         let gl = this.gl;
-        let texture = gl.createTexture();
+        texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
@@ -432,9 +432,9 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_a_webgl2(image, internalFormat) {
+    createTexture_a_webgl2(image, internalFormat, texture) {
         let gl = this.gl;
-        let texture = gl.createTexture();
+        texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
         //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
@@ -623,10 +623,12 @@ class Handler {
             this._params.extensions.push("OES_element_index_uint");
             this._params.extensions.push("WEBGL_depth_texture");
             this._params.extensions.push("ANGLE_instanced_arrays");
+            //this._params.extensions.push("WEBGL_draw_buffers");
             //this._params.extensions.push("EXT_frag_depth");
         } else {
             this._params.extensions.push("EXT_color_buffer_float");
             this._params.extensions.push("OES_texture_float_linear");
+            //this._params.extensions.push("WEBGL_draw_buffers");
         }
 
         let i = this._params.extensions.length;
@@ -700,6 +702,9 @@ class Handler {
         gl.disable(gl.BLEND);
         this.createDefaultTexture({ color: "rgba(0,0,0,0.0)" }, (t) => {
             this.transparentTexture = t;
+        });
+        this.createDefaultTexture({ color: "rgba(255, 255, 255, 1.0)" }, (t) => {
+            this.defaultTexture = t;
         });
     }
 
@@ -985,6 +990,12 @@ class Handler {
         }
     }
 
+    deleteTexture(texture) {
+        if (texture && !texture.default) {
+            this.gl.deleteTexture(texture);
+        }
+    }
+
     /**
      * @public
      */
@@ -999,6 +1010,9 @@ class Handler {
 
         gl.deleteTexture(this.transparentTexture);
         this.transparentTexture = null;
+
+        gl.deleteTexture(this.defaultTexture);
+        this.defaultTexture = null;
 
         this.framebufferStack = null;
         this.framebufferStack = new Stack();
@@ -1076,6 +1090,40 @@ class Handler {
             }
         }
     }
+
+    // var loadTextureData = function(textureName, callback) {
+    //     const xhr = new XMLHttpRequest();
+    //     xhr.open('GET', textureName);
+    //     xhr.responseType = 'arraybuffer';
+    //     xhr.onload = (event) => {
+    //         const data = new DataView(xhr.response);
+    //         const array =
+    //             new Float32Array(data.byteLength / Float32Array.BYTES_PER_ELEMENT);
+    //         for (var i = 0; i < array.length; ++i) {
+    //             array[i] = data.getFloat32(i * Float32Array.BYTES_PER_ELEMENT, true);
+    //         }
+    //         callback(array);
+    //     };
+    //     xhr.send();
+    // }
+
+    // loadTextureData('transmittance.dat', (data) => {
+    //
+    //     let gl = this.renderer.handler.gl;
+    //
+    //     const texture = gl.createTexture();
+    //     gl.activeTexture(gl.TEXTURE0);
+    //     gl.bindTexture(gl.TEXTURE_2D, texture);
+    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    //     gl.texImage2D(gl.TEXTURE_2D, 0, gl.getExtension('OES_texture_float_linear') ? gl.RGBA32F : gl.RGBA16F,
+    //         TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT, 0, gl.RGBA,
+    //         gl.FLOAT, data);
+    //
+    //     this.transmittanceTextureBrn = texture;
+    // });
 }
 
 export { Handler };

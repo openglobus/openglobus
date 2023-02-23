@@ -119,7 +119,6 @@ class Control {
             if (this.autoActivate) {
                 this._initialized = true;
                 this.oninit && this.oninit();
-                this._active = true;
             }
         }
     }

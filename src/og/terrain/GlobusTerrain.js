@@ -42,7 +42,7 @@ const EVENT_NAMES = [
  * @param {string} [options.url="//openglobus.org/heights/srtm3/{z}/{y}/{x}.ddm"] - Terrain source path url template. Default is openglobus ddm elevation file.
  * @param {Array.<number>} [options.gridSizeByZoom] - Array of segment triangulation grid sizes where array index agreed to the segment zoom index.
  * @param {number} [options.plainGridSize=32] - Elevation grid size. Default is 32x32. Must be power of two.
- * @param {string} [options.responseType="arraybuffer"] - Ajax responce type.
+ * @param {string} [options.responseType="arraybuffer"] - Responce type.
  * @param {number} [options.MAX_LOADING_TILES] - Maximum at one time loading tiles.
  * @param {Array.<number>} [gridSizeByZoom] - Array of values, where each value corresponds to the size of a tile(or segment) on the globe. Each value must be power of two.
  * @fires og.terrain.GlobusTerrain#load
@@ -163,7 +163,7 @@ class GlobusTerrain extends EmptyTerrain {
     }
 
     isBlur(segment) {
-        if (segment.tileZoom >= 8) {
+        if (segment.tileZoom >= 6) {
             return true;
         }
         return false;

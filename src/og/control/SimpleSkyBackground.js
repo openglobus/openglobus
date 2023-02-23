@@ -41,7 +41,7 @@ class SimpleSkyBackground extends Control {
 
     oninit() {
         this.renderer.handler.addProgram(simpleSkyBackgroundShader());
-        this.planet.events.on("draw", this._drawBackground, this);
+        this.activate();
     }
 
     onactivate() {
@@ -62,7 +62,7 @@ class SimpleSkyBackground extends Control {
         gl.disable(gl.DEPTH_TEST);
 
         sh.activate();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.renderer._screenFrameCornersBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.renderer.screenFramePositionBuffer);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
         gl.uniform3fv(shu.camPos, [cam.eye.x, cam.eye.y, cam.eye.z]);

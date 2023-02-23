@@ -17,18 +17,20 @@ import { Planet } from "../scene/Planet.js";
  */
 
 class GeoObject {
-    constructor(options) {
-        options = options || {};
+    constructor(options = {}) {
 
-        this.scale = options.scale || 1.0;
-        this.scaleByDistance = new Float32Array(options.scaleByDistance || [1.0, 1.0, 1.0]);
+        this.tag = options.tag || "none";
+
+        // TODO: not instanced
+        this.instanced = true;
 
         /**
-         * Image src.
+         * Entity instance that holds this geo object.
          * @protected
-         * @type {string}
+         * @type {Entity}
          */
-        this._src = options.src || null;
+        this._entity = null;
+
         /**
          * Geo object center cartesian position.
          * @protected
@@ -37,17 +39,14 @@ class GeoObject {
         this._position = utils.createVector3(options.position);
 
         this._positionHigh = new Vec3();
-
         this._positionLow = new Vec3();
-
         Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
 
         this._pitch = options.pitch || 0.0;
         this._yaw = options.yaw || 0.0;
         this._roll = options.roll || 0.0;
 
-        this._planet = options.planet || null;
-        this._lonLatAlt = new LonLat(0, 0, 0);
+        this._scale = options.scale || 1.0;
 
         /**
          * RGBA color.
@@ -60,26 +59,51 @@ class GeoObject {
 
         this._handler = null;
         this._handlerIndex = -1;
-        this._vertices = options.vertices;
-        this._normals = options.normals;
-        this._texCoords = options.texCoords || [];
-        this._indices = options.indices;
-        this.instanced = options.instanced;
-        this.tag = options.tag || "none";
-        if (options.indices) {
-            this._indicesCount = options.indices.length;
-        }
-        if (options.vertices) {
-            this._verticesCount = Math.floor(options.vertices.length / 3);
-        }
+
+        this._tagData = null;
+        this._tagDataIndex = -1;
+
+        this._object3d = options.object3d;
     }
 
-    get planet() {
-        return this._handler && this._handler._planet;
+    getPosition() {
+        return this._position;
     }
 
-    get renderer() {
-        return this.planet && this.planet.renderer;
+    getPitch() {
+        return this._pitch;
+    }
+
+    getYaw() {
+        return this._yaw;
+    }
+
+    getRoll() {
+        return this._roll;
+    }
+
+    getDirection() {
+        return this._direction;
+    }
+
+    get object3d() {
+        return this._object3d;
+    }
+
+    get vertices() {
+        return this._object3d.vertices;
+    }
+
+    get normals() {
+        return this._object3d.normals;
+    }
+
+    get texCoords() {
+        return this._object3d.texCoords;
+    }
+
+    get indices() {
+        return this._object3d.indices;
     }
 
     /**
@@ -93,7 +117,7 @@ class GeoObject {
     }
 
     /**
-     * Sets RGBA color. Each channel from 0.0 to 1.0.
+     * Sets color.
      * @public
      * @param {number} r - Red.
      * @param {number} g - Green.
@@ -105,11 +129,11 @@ class GeoObject {
         this._color.y = g;
         this._color.z = b;
         a != undefined && (this._color.w = a);
-        this._handler && this._handler.setRgbaArr(this._handlerIndex, this._color);
+        this._handler && this._handler.setRgbaArr(this._tagData, this._tagDataIndex, this._color);
     }
 
     /**
-     * Sets RGBA color. Each channel from 0.0 to 1.0.
+     * Sets color.
      * @public
      * @param {og.Vec4} color - RGBA vector.
      */
@@ -118,7 +142,7 @@ class GeoObject {
         this._color.y = color.y;
         this._color.z = color.z;
         color.w != undefined && (this._color.w = color.w);
-        this._handler && this._handler.setRgbaArr(this._handlerIndex, color);
+        this._handler && this._handler.setRgbaArr(this._tagData, this._tagDataIndex, color);
     }
 
     /**
@@ -128,11 +152,11 @@ class GeoObject {
      */
     setVisibility(visibility) {
         this._visibility = visibility;
-        this._handler && this._handler.setVisibility(this._handlerIndex, visibility);
+        this._handler && this._handler.setVisibility(this._tagData, this._tagDataIndex, visibility);
     }
 
     /**
-     * Returns  geo object visibility.
+     * Returns geo object visibility.
      * @public
      * @returns {boolean}
      */
@@ -140,16 +164,8 @@ class GeoObject {
         return this._visibility;
     }
 
-    setLonLat(lon, lat, alt) {
-        this._lonLatAlt.lon = lon;
-        this._lonLatAlt.lat = lat;
-        this._lonLatAlt.height = alt;
-        this._handler._planet.ellipsoid.lonLatToCartesianRes(this._lonLatAlt, this._position);
-        this.setPosition3v(this._position);
-    }
-
     /**
-     * Sets geoObject position.
+     * Sets geo object position.
      * @public
      * @param {number} x - X coordinate.
      * @param {number} y - Y coordinate.
@@ -161,12 +177,12 @@ class GeoObject {
         this._position.z = z;
         Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
         this._handler &&
-            this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
+        this._handler.setPositionArr(this._tagData, this._tagDataIndex, this._positionHigh, this._positionLow);
         this.updateDirection();
     }
 
     /**
-     * Sets billboard position.
+     * Sets geo object position.
      * @public
      * @param {og.Vec3} position - Cartesian coordinates.
      */
@@ -175,8 +191,7 @@ class GeoObject {
         this._position.y = position.y;
         this._position.z = position.z;
         Vec3.doubleToTwoFloats(position, this._positionHigh, this._positionLow);
-        this._handler &&
-            this._handler.setPositionArr(this._handlerIndex, this._positionHigh, this._positionLow);
+        this._handler && this._handler.setPositionArr(this._tagData, this._tagDataIndex, this._positionHigh, this._positionLow);
         this.updateDirection();
     }
 
@@ -187,21 +202,21 @@ class GeoObject {
 
     setPitch(pitch) {
         this._pitch = pitch;
-        this._handler && this._handler.setPitchRollArr(this._handlerIndex, pitch, this._roll);
+        this._handler && this._handler.setPitchRollArr(this._tagData, this._tagDataIndex, pitch, this._roll);
     }
 
     setRoll(roll) {
         this._roll = roll;
-        this._handler && this._handler.setPitchRollArr(this._handlerIndex, this._pitch, roll);
+        this._handler && this._handler.setPitchRollArr(this._tagData, this._tagDataIndex, this._pitch, roll);
     }
 
     setScale(scale) {
-        this.scale = scale;
-        this._handler && this._handler.setScaleArr(this._handlerIndex, scale);
+        this._scale = scale;
+        this._handler && this._handler.setScaleArr(this._tagData, this._tagDataIndex, scale);
     }
 
     getScale() {
-        return this.scale;
+        return this._scale;
     }
 
     /**
@@ -219,22 +234,15 @@ class GeoObject {
      * @param {og.Vec3} color - Picking color.
      */
     setPickingColor3v(color) {
-        this._handler && this._handler.setPickingColorArr(this._handlerIndex, color);
+        this._handler && this._handler.setPickingColorArr(this._tagData, this._tagDataIndex, color);
     }
 
     updateDirection() {
-        if (this._entity && this._entity.renderNode && this._entity.renderNode.ellipsoid) {
-            this._entity.renderNode.ellipsoid.lonLatToCartesianRes(this._lonLatAlt, this._position);
-        }
         this._qNorthFrame = Planet.getBearingNorthRotationQuat(this._position);
-
-        let qq = Quat.yRotation(this._yaw)
-            .mul(this._qNorthFrame)
-            .conjugate();
+        let qq = Quat.yRotation(this._yaw).mul(this._qNorthFrame).conjugate();
         this._direction = qq.mulVec3(new Vec3(0.0, 0.0, -1.0)).normalize();
-        this._handler && this._handler.setDirectionArr(this._handlerIndex, this._direction);
+        this._handler && this._handler.setDirectionArr(this._tagData, this._tagDataIndex, this._direction);
     }
-
 }
 
 export { GeoObject };

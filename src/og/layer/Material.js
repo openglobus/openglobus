@@ -29,13 +29,6 @@ class Material {
         this.pickingReady = false;
     }
 
-    ///**
-    // * @param {*} layer
-    // */
-    //assignLayer(layer) {
-    //    this.layer = layer;
-    //}
-
     /**
      *
      */

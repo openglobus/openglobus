@@ -5,125 +5,55 @@
 "use strict";
 
 import { Control } from "./Control.js";
-import { parseHTML } from "../utils/shared.js";
+import { Dialog } from '../ui/Dialog.js';
+import { View } from '../ui/View.js';
+import { ToggleButton } from "../ui/ToggleButton.js";
+import { Slider } from "../ui/Slider.js";
 
-const TEMPLATE = `<div class="og-lighing">
-
-       <div class="og-screen-options">
-
-         <div class="og-option">
-          <div class="og-caption">Lighting enabled<input type="checkbox" id="lighting" name="light"/></div>
-         </div>
+const TEMPLATE =
+    `<div class="og-lighing">
 
          <div class="og-option">
-            <div class="og-caption">Gamma</div>
-            <div class="og-slider">
-                <input type="range" id="gamma" name="gamma" value="0.0" min="0.0" max="5.0" step="0.01" />
-            </div>
-            <div class="og-value gamma"></div>
+           <div class="og-caption">Lighting enabled<input type="checkbox" id="lighting" name="light"/></div>
          </div>
+         
          <div class="og-option">
-            <div class="og-caption">Exposure</div>
-            <div class="og-slider">
-                <input type="range" id="exposure" name="exposure" value="0.0" min="0.0" max="12.0" step="0.01" />
-            </div>
-            <div class="og-value exposure"></div>
+           <div class="og-caption">Atmosphere enabled<input type="checkbox" id="atmosphere" name="atmosphere"/></div>
          </div>
-       </div>      
+         
+         <div class="og-option og-atmosphere-opacity">
+         </div>
+         
+        <div class="og-lighting-emptyline"></div>
+
+         <div class="og-option og-gamma"></div>         
+         <div class="og-option og-exposure"></div>
+       
+        <div class="og-lighting-emptyline"></div>
+
+         <div class="og-option">
+         <div class="og-layers">
+           <div class="og-caption">Select layer:</div>
+           <select id="layers"></select>
+         </div>
+         </div>
+
+         <div class="og-option og-opacity">
+         </div>
+         
+         <div class="og-option og-night">
+         </div>
+         
+         <div class="og-lighting-emptyline"></div>
+
+         <div class="og-option og-diffuse">
+         </div>
       
-       <div class="og-color-options">
-         <div class="og-caption">Ambient</div>
-         <div class="og-option">
-            <div class="og-label">R</div>
-            <div class="og-slider">
-                <input type="range" id="ambient-r" name="ambient-r" value="0.0" min="0.0" max="2.0" step="0.01" />
-            </div>
-            <div class="og-value ambient-r"></div>
-         </div>
-         <div class="og-option">
-            <div class="og-label">G</div>
-            <div class="og-slider">
-                <input type="range" id="ambient-g" name="ambient-g" value="0.0" min="0.0" max="2.0" step="0.01" />
-            </div>
-            <div class="og-value ambient-g"></div>
-         </div>
-         <div class="og-option">
-            <div class="og-label">B</div>
-            <div class="og-slider">
-                <input type="range" id="ambient-b" name="ambient-b" value="0.0" min="0.0" max="2.0" step="0.01" />
-            </div>
-            <div class="og-value ambient-b"></div>
+         <div class="og-option og-ambient">
          </div>
 
-         <div class="og-caption">Diffuse</div>
-         <div class="og-option">
-            <div class="og-label">R</div>
-            <div class="og-slider">
-                <input type="range" id="diffuse-r" name="diffuse-r" value="0.0" min="0.0" max="2.0" step="0.01" />
-            </div>
-            <div class="og-value diffuse-r"></div>
-         </div>
-         <div class="og-option">
-            <div class="og-label">G</div>
-            <div class="og-slider">
-                <input type="range" id="diffuse-g" name="diffuse-g" value="0.0" min="0.0" max="2.0" step="0.01" />
-            </div>
-            <div class="og-value diffuse-g"></div>
-         </div>
-         <div class="og-option">
-            <div class="og-label">B</div>
-            <div class="og-slider">
-                <input type="range" id="diffuse-b" name="diffuse-b" value="0.0" min="0.0" max="2.0" step="0.01" />
-            </div>
-            <div class="og-value diffuse-b"></div>
-         </div>
-
-
-         <div class="og-caption">Specular</div>
-         <div class="og-option">
-            <div class="og-label">R</div>
-            <div class="og-slider">
-                <input type="range" id="specular-r" name="specular-r" value="0.0" min="0.0" max="1.0" step="0.0001" />
-            </div>
-            <div class="og-value specular-r"></div>
-         </div>
-         <div class="og-option">
-            <div class="og-label">G</div>
-            <div class="og-slider">
-                <input type="range" id="specular-g" name="specular-g" value="0.0" min="0.0" max="1.0" step="0.0001" />
-            </div>
-            <div class="og-value specular-g"></div>
-         </div>
-         <div class="og-option">
-            <div class="og-label">B</div>
-            <div class="og-slider">
-                <input type="range" id="specular-b" name="specular-b" value="0.0" min="0.0" max="1.0" step="0.0001" />
-            </div>
-            <div class="og-value specular-b"></div>
-         </div>
-
-         <div class="og-caption">Shininess</div>
-         <div class="og-option" style="margin-left: 8px;">
-            <div class="og-slider">
-                <input type="range" id="shininess" name="shininess" value="0.0" min="0.0" max="1000.0" step="0.1" />
-            </div>
-            <div class="og-value shininess"></div>
-         </div>
-       </div>
-
-       <div class="og-layers">
-         <div class="og-caption">Select layer:</div>
-         <select id="layers"></select>
-       </div>
-
-        <div class="og-caption">Opacity</div>
-            <div class="og-option">
-            <div class="og-label">A</div>
-            <div class="og-slider">
-                <input type="range" id="opacity" name="opacity" value="0.0" min="0.0" max="2.0" step="0.01" />
-            </div>
-            <div class="og-value opacity"></div>
-        </div>
+         <div class="og-option og-specular">
+         </div>        
 
     </div>`;
 
@@ -133,136 +63,337 @@ const TEMPLATE = `<div class="og-lighing">
  * @extends {Control}
  * @param {Object} [options] -
  */
+
+const ICON_BUTTON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="256" height="256" viewBox="0 0 256 256" xml:space="preserve">
+
+<defs>
+</defs>
+<g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)" >
+\t<path d="M 45 68 c -12.682 0 -23 -10.317 -23 -23 c 0 -12.682 10.318 -23 23 -23 c 12.683 0 23 10.318 23 23 C 68 57.683 57.683 68 45 68 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+\t<path d="M 45 17.556 c -1.657 0 -3 -1.343 -3 -3 V 3 c 0 -1.657 1.343 -3 3 -3 c 1.657 0 3 1.343 3 3 v 11.556 C 48 16.212 46.657 17.556 45 17.556 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+\t<path d="M 45 90 c -1.657 0 -3 -1.343 -3 -3 V 75.444 c 0 -1.657 1.343 -3 3 -3 c 1.657 0 3 1.343 3 3 V 87 C 48 88.657 46.657 90 45 90 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+\t<path d="M 14.556 48 H 3 c -1.657 0 -3 -1.343 -3 -3 c 0 -1.657 1.343 -3 3 -3 h 11.556 c 1.657 0 3 1.343 3 3 C 17.556 46.657 16.212 48 14.556 48 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+\t<path d="M 87 48 H 75.444 c -1.657 0 -3 -1.343 -3 -3 c 0 -1.657 1.343 -3 3 -3 H 87 c 1.657 0 3 1.343 3 3 C 90 46.657 88.657 48 87 48 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+\t<path d="M 66.527 26.473 c -0.768 0 -1.535 -0.293 -2.121 -0.878 c -1.172 -1.172 -1.172 -3.071 0 -4.243 l 8.171 -8.171 c 1.172 -1.172 3.07 -1.171 4.242 0 c 1.172 1.172 1.172 3.071 0 4.243 l -8.171 8.171 C 68.063 26.18 67.295 26.473 66.527 26.473 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+\t<path d="M 15.302 77.698 c -0.768 0 -1.536 -0.293 -2.121 -0.879 c -1.172 -1.171 -1.172 -3.071 0 -4.242 l 8.171 -8.171 c 1.171 -1.172 3.071 -1.172 4.242 0 c 1.172 1.171 1.172 3.071 0 4.242 l -8.171 8.171 C 16.837 77.405 16.069 77.698 15.302 77.698 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+\t<path d="M 23.473 26.473 c -0.768 0 -1.536 -0.293 -2.121 -0.878 l -8.171 -8.171 c -1.172 -1.172 -1.172 -3.071 0 -4.243 c 1.172 -1.172 3.072 -1.171 4.243 0 l 8.171 8.171 c 1.172 1.172 1.172 3.071 0 4.243 C 25.008 26.18 24.24 26.473 23.473 26.473 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+\t<path d="M 74.698 77.698 c -0.768 0 -1.535 -0.293 -2.121 -0.879 l -8.171 -8.171 c -1.172 -1.171 -1.172 -3.071 0 -4.242 c 1.172 -1.172 3.07 -1.172 4.242 0 l 8.171 8.171 c 1.172 1.171 1.172 3.071 0 4.242 C 76.233 77.405 75.466 77.698 74.698 77.698 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+</g>
+</svg>`;
+
+const MAX_COLOR = 5;
+
 class Lighting extends Control {
     constructor(options = {}) {
         super(options);
 
         this._selectedLayer = null;
+
+        this._toggleBtn = new ToggleButton({
+            classList: ["og-map-button", "og-lighting_button"],
+            icon: ICON_BUTTON_SVG
+        });
+
+        this._dialog = new Dialog({
+            title: "Lighting Parameters",
+            visible: false,
+            useHide: true,
+            top: 60,
+            left: 60,
+            width: 600
+        });
+
+        this._dialog.on("visibility", (v) => {
+            this._toggleBtn.setActive(v);
+        });
+
+        this._panel = new View({
+            template: TEMPLATE
+        });
+
+        this.$gamma;
+        this.$exposure;
+        this.$night;
+        this.$opacity;
+        this.$diffuse;
+        this.$ambient;
+        this.$specular;
+
+        this._atmosphereMaxOpacity = new Slider({
+            label: "Max.opacity",
+            max: 1
+        });
+
+        this._atmosphereMinOpacity = new Slider({
+            label: "Min.opacity",
+            max: 1
+        });
+
+        this._gamma = new Slider({
+            label: "Gamma",
+            max: 5
+        });
+
+        this._exposure = new Slider({
+            label: "Exposure",
+            max: 5
+        });
+
+        this._night = new Slider({
+            label: "Nightlight",
+            max: 5
+        });
+
+        this._opacity = new Slider({
+            label: "Opacity",
+            max: 1
+        });
+
+        //
+        // Diffuse sliders
+        //
+        this._diffuse_r = new Slider({
+            label: "Diffuse R",
+            max: MAX_COLOR
+        });
+
+        this._diffuse_g = new Slider({
+            label: "Diffuse G",
+            max: MAX_COLOR
+        });
+
+        this._diffuse_b = new Slider({
+            label: "Diffuse B",
+            max: MAX_COLOR
+        });
+
+        //
+        // Ambient sliders
+        //
+        this._ambient_r = new Slider({
+            label: "Ambient R",
+            max: MAX_COLOR
+        });
+
+        this._ambient_g = new Slider({
+            label: "Ambient G",
+            max: MAX_COLOR
+        });
+
+        this._ambient_b = new Slider({
+            label: "Ambient B",
+            max: MAX_COLOR
+        });
+
+        //
+        // Specular sliders
+        //
+        this._specular_r = new Slider({
+            label: "Specular R",
+            max: 0.2
+        });
+
+        this._specular_g = new Slider({
+            label: "Specular G",
+            max: 0.2
+        });
+
+        this._specular_b = new Slider({
+            label: "Specular B",
+            max: 0.2
+        });
+
+        this._shininess = new Slider({
+            label: "Shininess",
+            max: 100
+        });
     }
 
     bindLayer(layer) {
         this._selectedLayer = layer;
-
-        document.getElementById("opacity").value = layer.opacity;
-        document.querySelector(".og-value.opacity").innerText = layer.opacity.toString();
+        this._opacity.value = layer.opacity;
+        this._update();
     }
 
     oninit() {
-        var panel = parseHTML(TEMPLATE);
-        document.body.appendChild(panel[0]);
+        this._toggleBtn.appendTo(this.renderer.div);
+        this._dialog.appendTo(this.renderer.div);
+        this._panel.appendTo(this._dialog.container);
 
-        var _this = this;
+        this._toggleBtn.on("change", (isActive) => {
+            this._dialog.setVisibility(isActive);
+        });
+
+        this.$atmosphereOpacity = document.querySelector(".og-atmosphere-opacity");
+        this.$gamma = document.querySelector(".og-option.og-gamma");
+        this.$exposure = document.querySelector(".og-option.og-exposure");
+        this.$opacity = document.querySelector(".og-option.og-opacity");
+        this.$diffuse = document.querySelector(".og-option.og-diffuse");
+        this.$ambient = document.querySelector(".og-option.og-ambient");
+        this.$specular = document.querySelector(".og-option.og-specular");
+        this.$night = document.querySelector(".og-option.og-night");
+
+        this._atmosphereMaxOpacity.appendTo(this.$atmosphereOpacity);
+        this._atmosphereMinOpacity.appendTo(this.$atmosphereOpacity);
+
+        this._gamma.appendTo(this.$gamma);
+        this._exposure.appendTo(this.$exposure);
+
+        this._night.appendTo(this.$night);
+        this._opacity.appendTo(this.$opacity);
+
+        this._diffuse_r.appendTo(this.$diffuse);
+        this._diffuse_g.appendTo(this.$diffuse);
+        this._diffuse_b.appendTo(this.$diffuse);
+
+        this._ambient_r.appendTo(this.$ambient);
+        this._ambient_g.appendTo(this.$ambient);
+        this._ambient_b.appendTo(this.$ambient);
+
+        this._specular_r.appendTo(this.$specular);
+        this._specular_g.appendTo(this.$specular);
+        this._specular_b.appendTo(this.$specular);
+        this._shininess.appendTo(this.$specular);
 
         document.getElementById("lighting").checked = this.planet.lightEnabled;
-
         document.getElementById("lighting").addEventListener("change", (e) => {
-            _this.planet.lightEnabled = e.target.checked;
+            this.planet.lightEnabled = e.target.checked;
         });
+
+        if (this.planet.atmosphereEnabled) {
+            this.$atmosphereOpacity.style.display = "block";
+        } else {
+            this.$atmosphereOpacity.style.display = "none";
+        }
+        document.getElementById("atmosphere").checked = this.planet.atmosphereEnabled;
+        document.getElementById("atmosphere").addEventListener("change", (e) => {
+            this.planet.atmosphereEnabled = e.target.checked;
+            if (this.planet.atmosphereEnabled) {
+                this.$atmosphereOpacity.style.display = "block";
+            } else {
+                this.$atmosphereOpacity.style.display = "none";
+            }
+        });
+
+        this._atmosphereMinOpacity.value = this.planet.atmosphereMinOpacity;
+        this._atmosphereMinOpacity.on("change", (val) => {
+            this.planet.atmosphereMinOpacity = val;
+        });
+
+        this._gamma.value = this.planet.renderer.gamma;
+        this._gamma.on("change", (val) => {
+            this.planet.renderer.gamma = val;
+        });
+
 
         document.getElementById("layers").addEventListener("change", (e) => {
-            //this._selectedLayer = _this.planet.getLayerByName(e.target.value);
-            this.bindLayer(_this.planet.getLayerByName(e.target.value));
+            this.bindLayer(this.planet.getLayerByName(e.target.value));
         });
 
-        document.getElementById("gamma").addEventListener("input", function (e) {
-            _this.planet.renderer.gamma = Number(this.value);
-            document.querySelector(".og-value.gamma").innerText = this.value;
-        });
-        document.getElementById("exposure").addEventListener("input", function (e) {
-            _this.planet.renderer.exposure = Number(this.value);
-            document.querySelector(".og-value.exposure").innerText = this.value;
+        this._atmosphereMaxOpacity.value = this.planet.atmosphereMaxOpacity;
+        this._atmosphereMaxOpacity.on("change", (val) => {
+            this.planet.atmosphereMaxOpacity = val;
+            this.planet.renderer.controls.Atmosphere.opacity = val;
         });
 
-        document.querySelector(".og-value.gamma").innerText = this.planet.renderer.gamma.toString();
-        document.querySelector(".og-value.exposure").innerText =
-            this.planet.renderer.exposure.toString();
-
-        document.getElementById("gamma").value = this.planet.renderer.gamma;
-        document.getElementById("exposure").value = this.planet.renderer.exposure;
-
-        document.getElementById("opacity").addEventListener("input", function (e) {
-            if (_this._selectedLayer) {
-                _this._selectedLayer.opacity = Number(this.value);
-            }
-            document.querySelector(".og-value.opacity").innerText = this.value;
+        this._exposure.value = this.planet.renderer.exposure;
+        this._exposure.on("change", (val) => {
+            this.planet.renderer.exposure = val;
         });
 
-        document.getElementById("ambient-r").addEventListener("input", function (e) {
-            _this.planet._ambient[0] = Number(this.value);
-            document.querySelector(".og-value.ambient-r").innerText = this.value;
-        });
-        document.getElementById("ambient-g").addEventListener("input", function (e) {
-            _this.planet._ambient[1] = Number(this.value);
-            document.querySelector(".og-value.ambient-g").innerText = this.value;
-        });
-        document.getElementById("ambient-b").addEventListener("input", function (e) {
-            _this.planet._ambient[2] = Number(this.value);
-            document.querySelector(".og-value.ambient-b").innerText = this.value;
+        this._night.on("change", (val) => {
+            if (this._selectedLayer)
+                this._selectedLayer.nightTextureCoefficient = val;
         });
 
-        document.getElementById("diffuse-r").addEventListener("input", function (e) {
-            _this.planet._diffuse[0] = Number(this.value);
-            document.querySelector(".og-value.diffuse-r").innerText = this.value;
-        });
-        document.getElementById("diffuse-g").addEventListener("input", function (e) {
-            _this.planet._diffuse[1] = Number(this.value);
-            document.querySelector(".og-value.diffuse-g").innerText = this.value;
-        });
-        document.getElementById("diffuse-b").addEventListener("input", function (e) {
-            _this.planet._diffuse[2] = Number(this.value);
-            document.querySelector(".og-value.diffuse-b").innerText = this.value;
+        this._opacity.on("change", (val) => {
+            if (this._selectedLayer)
+                this._selectedLayer.opacity = val;
         });
 
-        document.getElementById("specular-r").addEventListener("input", function (e) {
-            _this.planet._specular[0] = Number(this.value);
-            document.querySelector(".og-value.specular-r").innerText = this.value;
-        });
-        document.getElementById("specular-g").addEventListener("input", function (e) {
-            _this.planet._specular[1] = Number(this.value);
-            document.querySelector(".og-value.specular-g").innerText = this.value;
-        });
-        document.getElementById("specular-b").addEventListener("input", function (e) {
-            _this.planet._specular[2] = Number(this.value);
-            document.querySelector(".og-value.specular-b").innerText = this.value;
+        this._ambient_r.on("change", (val) => {
+            if (this._selectedLayer && this._selectedLayer._ambient)
+                this._selectedLayer._ambient[0] = val
         });
 
-        document.getElementById("shininess").addEventListener("input", function (e) {
-            _this.planet._specular[3] = Number(this.value);
-            document.querySelector(".og-value.shininess").innerText = this.value;
+        this._ambient_g.on("change", (val) => {
+            if (this._selectedLayer && this._selectedLayer._ambient)
+                this._selectedLayer._ambient[1] = val
         });
+
+        this._ambient_b.on("change", (val) => {
+            if (this._selectedLayer && this._selectedLayer._ambient)
+                this._selectedLayer._ambient[2] = val
+        });
+
+        this._diffuse_r.on("change", (val) => {
+            if (this._selectedLayer && this._selectedLayer._diffuse)
+                this._selectedLayer._diffuse[0] = val
+        });
+
+        this._diffuse_g.on("change", (val) => {
+            if (this._selectedLayer && this._selectedLayer._diffuse)
+                this._selectedLayer._diffuse[1] = val
+        });
+
+        this._diffuse_b.on("change", (val) => {
+            if (this._selectedLayer && this._selectedLayer._diffuse)
+                this._selectedLayer._diffuse[2] = val
+        });
+
+        this._specular_r.on("change", (val) => {
+            if (this._selectedLayer && this._selectedLayer._specular)
+                this._selectedLayer._specular[0] = val
+        });
+
+        this._specular_g.on("change", (val) => {
+            if (this._selectedLayer && this._selectedLayer._specular)
+                this._selectedLayer._specular[1] = val
+        });
+
+        this._specular_b.on("change", (val) => {
+            if (this._selectedLayer && this._selectedLayer._specular)
+                this._selectedLayer._specular[2] = val
+        });
+
+        this._shininess.on("change", (val) => {
+            if (this._selectedLayer && this._selectedLayer._specular)
+                this._selectedLayer._specular[3] = val
+        });
+
 
         if (this.planet) {
             this.planet.events.on("layeradd", this._onLayerAdd, this);
             this.planet.events.on("layerremove", this._onLayerRemove, this);
-
-            document.getElementById("ambient-r").value = this.planet._ambient[0];
-            document.getElementById("ambient-g").value = this.planet._ambient[1];
-            document.getElementById("ambient-b").value = this.planet._ambient[2];
-
-            document.getElementById("diffuse-r").value = this.planet._diffuse[0];
-            document.getElementById("diffuse-g").value = this.planet._diffuse[1];
-            document.getElementById("diffuse-b").value = this.planet._diffuse[2];
-
-            document.getElementById("specular-r").value = this.planet._specular[0];
-            document.getElementById("specular-g").value = this.planet._specular[1];
-            document.getElementById("specular-b").value = this.planet._specular[2];
-            document.getElementById("shininess").value = this.planet._specular[3];
-
-            document.querySelector(".og-value.ambient-r").innerText = this.planet._ambient[0].toString();
-            document.querySelector(".og-value.ambient-g").innerText = this.planet._ambient[1].toString();
-            document.querySelector(".og-value.ambient-b").innerText = this.planet._ambient[2].toString();
-
-            document.querySelector(".og-value.diffuse-r").innerText = this.planet._diffuse[0].toString();
-            document.querySelector(".og-value.diffuse-g").innerText = this.planet._diffuse[1].toString();
-            document.querySelector(".og-value.diffuse-b").innerText = this.planet._diffuse[2].toString();
-
-            document.querySelector(".og-value.specular-r").innerText = this.planet._specular[0].toString();
-            document.querySelector(".og-value.specular-g").innerText = this.planet._specular[1].toString();
-            document.querySelector(".og-value.specular-b").innerText = this.planet._specular[2].toString();
-            document.querySelector(".og-value.shininess").innerText = this.planet._specular[3].toString();
         }
 
         this._fetchLayers();
+    }
+
+    _update() {
+        let l = this._selectedLayer;
+
+        let o = l && l.opacity ? l.opacity : 0.0;
+        this._opacity.value = o;
+
+        let n = l && l.nightTextureCoefficient ? l.nightTextureCoefficient : this.planet.nightTextureCoefficient;
+        this._night.value = n;
+
+        let a = l && l._ambient ? l._ambient : this.planet._ambient;
+        this._ambient_r.value = a[0];
+        this._ambient_g.value = a[1];
+        this._ambient_b.value = a[2];
+
+        let d = l && l._diffuse ? l._diffuse : this.planet._diffuse;
+        this._diffuse_r.value = d[0];
+        this._diffuse_g.value = d[1];
+        this._diffuse_b.value = d[2];
+
+        let s = l && l._specular ? l._specular : this.planet._specular;
+        this._specular_r.value = s[0];
+        this._specular_g.value = s[1];
+        this._specular_b.value = s[2];
+        this._shininess.value = s[3];
     }
 
     _fetchLayers() {
@@ -282,11 +413,8 @@ class Lighting extends Control {
         document.getElementById("layers").value = e.name;
     }
 
-    _onLayerRemove(e) { }
-}
-
-export function lighting(options) {
-    return new Lighting(options);
+    _onLayerRemove(e) {
+    }
 }
 
 export { Lighting };

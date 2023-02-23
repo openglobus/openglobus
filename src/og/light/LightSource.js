@@ -127,9 +127,11 @@ class LightSource {
                     this._ambient.x = rn._lightsParamsv[index] = this._tempAmbient.x;
                     this._ambient.y = rn._lightsParamsv[index + 1] = this._tempAmbient.y;
                     this._ambient.z = rn._lightsParamsv[index + 2] = this._tempAmbient.z;
+
                     this._diffuse.x = rn._lightsParamsv[index + 3] = this._tempDiffuse.x;
                     this._diffuse.y = rn._lightsParamsv[index + 4] = this._tempDiffuse.y;
                     this._diffuse.z = rn._lightsParamsv[index + 5] = this._tempDiffuse.z;
+
                     this._specular.x = rn._lightsParamsv[index + 6] = this._tempSpecular.x;
                     this._specular.y = rn._lightsParamsv[index + 7] = this._tempSpecular.y;
                     this._specular.z = rn._lightsParamsv[index + 8] = this._tempSpecular.z;

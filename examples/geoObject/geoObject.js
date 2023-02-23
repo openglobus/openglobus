@@ -7,6 +7,7 @@ import { XYZ } from "../../src/og/layer/XYZ.js";
 import { GlobusTerrain } from "../../src/og/terrain/GlobusTerrain.js";
 import * as utils from "../../src/og/utils/shared.js";
 import { RADIANS } from "../../src/og/math.js";
+import { Object3d } from "../../src/og/Object3d.js";
 
 let COUNT = 10,
     ENTITY = {},

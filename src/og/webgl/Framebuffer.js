@@ -47,27 +47,19 @@ export class Framebuffer {
 
         this._filter = options.filter || "NEAREST";
 
-        this._internalFormatArr =
-            options.internalFormat instanceof Array
-                ? options.internalFormat
-                : [options.internalFormat || "RGBA"];
+        this._internalFormatArr = options.internalFormat instanceof Array ? options.internalFormat : [options.internalFormat || "RGBA"];
 
-        this._formatArr =
-            options.format instanceof Array ? options.format : [options.format || "RGBA"];
+        this._formatArr = options.format instanceof Array ? options.format : [options.format || "RGBA"];
 
-        this._typeArr =
-            options.type instanceof Array ? options.type : [options.type || "UNSIGNED_BYTE"];
+        this._typeArr = options.type instanceof Array ? options.type : [options.type || "UNSIGNED_BYTE"];
 
-        this._attachmentArr =
-            options.attachment instanceof Array
-                ? options.attachment.map((a, i) => {
-                      let res = a.toUpperCase();
-                      if (res === "COLOR_ATTACHMENT") {
-                          return `${res}${i.toString()}`;
-                      }
-                      return res;
-                  })
-                : [options.attachment || "COLOR_ATTACHMENT0"];
+        this._attachmentArr = options.attachment instanceof Array ? options.attachment.map((a, i) => {
+            let res = a.toUpperCase();
+            if (res === "COLOR_ATTACHMENT") {
+                return `${res}${i.toString()}`;
+            }
+            return res;
+        }) : [options.attachment || "COLOR_ATTACHMENT0"];
 
         /**
          * Framebuffer width.
@@ -83,8 +75,7 @@ export class Framebuffer {
          */
         this._height = options.height || handler.canvas.height;
 
-        this._depthComponent =
-            options.depthComponent != undefined ? options.depthComponent : "DEPTH_COMPONENT16";
+        this._depthComponent = options.depthComponent != undefined ? options.depthComponent : "DEPTH_COMPONENT16";
 
         this._useDepth = options.useDepth != undefined ? options.useDepth : true;
 
@@ -114,22 +105,19 @@ export class Framebuffer {
 
         gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 1.0]);
 
-        gl.blitFramebuffer(
-            0,
-            0,
-            sourceFramebuffer._width,
-            sourceFramebuffer._height,
-            0,
-            0,
-            destFramebuffer._width,
-            destFramebuffer._height,
-            glMask,
-            glFilter
-        );
+        gl.blitFramebuffer(0, 0, sourceFramebuffer._width, sourceFramebuffer._height, 0, 0, destFramebuffer._width, destFramebuffer._height, glMask, glFilter);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+    }
+
+    get width() {
+        return this._width;
+    }
+
+    get height() {
+        return this._height;
     }
 
     destroy() {
@@ -163,16 +151,7 @@ export class Framebuffer {
         if (!this._isBare) {
             let attachmentArr = [];
             for (var i = 0; i < this.textures.length; i++) {
-                let ti =
-                    this.textures[i] ||
-                    this.handler.createEmptyTexture2DExt(
-                        this._width,
-                        this._height,
-                        this._filter,
-                        this._internalFormatArr[i],
-                        this._formatArr[i],
-                        this._typeArr[i]
-                    );
+                let ti = this.textures[i] || this.handler.createEmptyTexture2DExt(this._width, this._height, this._filter, this._internalFormatArr[i], this._formatArr[i], this._typeArr[i]);
 
                 let att_i = gl[this._attachmentArr[i]];
 
@@ -190,18 +169,8 @@ export class Framebuffer {
         if (this._useDepth) {
             this._depthRenderbuffer = gl.createRenderbuffer();
             gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthRenderbuffer);
-            gl.renderbufferStorage(
-                gl.RENDERBUFFER,
-                gl[this._depthComponent],
-                this._width,
-                this._height
-            );
-            gl.framebufferRenderbuffer(
-                gl.FRAMEBUFFER,
-                gl.DEPTH_ATTACHMENT,
-                gl.RENDERBUFFER,
-                this._depthRenderbuffer
-            );
+            gl.renderbufferStorage(gl.RENDERBUFFER, gl[this._depthComponent], this._width, this._height);
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this._depthRenderbuffer);
             gl.bindRenderbuffer(gl.RENDERBUFFER, null);
         }
 
@@ -219,13 +188,7 @@ export class Framebuffer {
     bindOutputTexture(texture, glAttachment) {
         var gl = this.handler.gl;
         gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.framebufferTexture2D(
-            gl.FRAMEBUFFER,
-            glAttachment || gl.COLOR_ATTACHMENT0,
-            gl.TEXTURE_2D,
-            texture,
-            0
-        );
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, glAttachment || gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
         gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
@@ -276,15 +239,7 @@ export class Framebuffer {
         var gl = this.handler.gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
         gl.readBuffer && gl.readBuffer(gl.COLOR_ATTACHMENT0 + index || 0);
-        gl.readPixels(
-            nx * this._width,
-            ny * this._height,
-            w,
-            h,
-            gl.RGBA,
-            gl[this._typeArr[index]],
-            res
-        );
+        gl.readPixels(nx * this._width, ny * this._height, w, h, gl.RGBA, gl[this._typeArr[index]], res);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
@@ -298,15 +253,7 @@ export class Framebuffer {
         var gl = this.handler.gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
         gl.readBuffer && gl.readBuffer(gl.COLOR_ATTACHMENT0 + attachmentIndex);
-        gl.readPixels(
-            0,
-            0,
-            this._width,
-            this._height,
-            gl.RGBA,
-            gl[this._typeArr[attachmentIndex]],
-            res
-        );
+        gl.readPixels(0, 0, this._width, this._height, gl.RGBA, gl[this._typeArr[attachmentIndex]], res);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
@@ -332,8 +279,7 @@ export class Framebuffer {
      * @public
      */
     deactivate() {
-        var h = this.handler,
-            gl = h.gl;
+        var h = this.handler, gl = h.gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         this._active = false;
 
@@ -358,30 +304,5 @@ export class Framebuffer {
         var imageCanvas = new ImageCanvas(this._width, this._height);
         imageCanvas.setData(data);
         return imageCanvas.getImage();
-    }
-
-    /**
-     * Open dialog window with framebuffer image.
-     * @public
-     */
-    openImage() {
-        var img = this.getImage();
-        var dataUrl = img.src;
-        var windowContent = "<!DOCTYPE html>";
-        windowContent += "<html>";
-        windowContent += "<head><title>Print</title></head>";
-        windowContent += "<body>";
-        windowContent += '<img src="' + dataUrl + '">';
-        windowContent += "</body>";
-        windowContent += "</html>";
-        var printWin = window.open(
-            "",
-            "",
-            "width=" + img.width + "px ,height=" + img.height + "px"
-        );
-        printWin.document.open();
-        printWin.document.write(windowContent);
-        printWin.document.close();
-        printWin.focus();
     }
 }

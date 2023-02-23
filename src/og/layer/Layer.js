@@ -229,6 +229,8 @@ class Layer {
             let shininess = options.shininess || 20.0;
             this._specular = new Float32Array([s.x, s.y, s.z, shininess]);
         }
+
+        this.nightTextureCoefficient = options.nightTextureCoefficient || null;
     }
 
     set diffuse(rgb) {

@@ -438,13 +438,40 @@ class Entity {
 
         let ec = this._entityCollection;
         if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
-            if (Math.abs(lonlat.lat) < mercator.MAX_LAT) {
-                this._lonlatMerc = lonlat.forwardMercator();
+            if (Math.abs(l.lat) < mercator.MAX_LAT) {
+                this._lonlatMerc = l.forwardMercator();
             } else {
                 this._lonlatMerc = null;
             }
 
-            ec.renderNode.ellipsoid.lonLatToCartesianRes(lonlat, this._cartesian);
+            ec.renderNode.ellipsoid.lonLatToCartesianRes(l, this._cartesian);
+            this.setCartesian3v(this._cartesian);
+        }
+    }
+
+    /**
+     * Sets geodetic coordinates of the entity point object.
+     * @public
+     * @param {number} lon - Longitude.
+     * @param {number} lat - Latitude
+     * @param {number} [height] - Height
+     */
+    setLonLat2(lon, lat, height) {
+        let l = this._lonlat;
+
+        l.lon = lon;
+        l.lat = lat;
+        l.height = height != undefined ? height : l.height;
+
+        let ec = this._entityCollection;
+        if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
+            if (Math.abs(l.lat) < mercator.MAX_LAT) {
+                this._lonlatMerc = l.forwardMercator();
+            } else {
+                this._lonlatMerc = null;
+            }
+
+            ec.renderNode.ellipsoid.lonLatToCartesianRes(l, this._cartesian);
             this.setCartesian3v(this._cartesian);
         }
     }

@@ -80,18 +80,18 @@ class Camera {
         this._viewAngle = options.viewAngle || 47.0;
 
         /**
-         * Camera normal matrix.
-         * @protected
-         * @type {Mat3}
-         */
-        this._normalMatrix = new Mat3();
-
-        /**
          * Camera view matrix.
          * @protected
          * @type {Mat4}
          */
         this._viewMatrix = new Mat4();
+
+        /**
+         * Camera normal matrix.
+         * @protected
+         * @type {Mat3}
+         */
+        this._normalMatrix = new Mat3();
 
         /**
          * Camera right vector.
@@ -167,7 +167,9 @@ class Camera {
 
         this.FARTHEST_FRUSTUM_INDEX = this.frustums.length - 1;
 
-        this._currentFrustum = 0;
+        this.currentFrustumIndex = 0;
+
+        this.isFirstPass = false;
 
         renderer && this._init(options);
     }
@@ -271,7 +273,8 @@ class Camera {
             1.0
         ]);
 
-        this._normalMatrix = this._viewMatrix.toMatrix3(); // this._viewMatrix.toInverseMatrix3().transposeTo();
+        // do not cleanup, someday it will be using
+        //this._normalMatrix = this._viewMatrix.toMatrix3(); // this._viewMatrix.toInverseMatrix3().transposeTo();
 
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             this.frustums[i].setViewMatrix(this._viewMatrix);
@@ -557,15 +560,6 @@ class Camera {
     }
 
     /**
-     * Returns normal matrix.
-     * @public
-     * @returns {Mat3} - Normal matrix.
-     */
-    getNormalMatrix() {
-        return this._normalMatrix._m;
-    }
-
-    /**
      * Returns model matrix.
      * @public
      * @returns {Mat4} - View matrix.
@@ -574,16 +568,26 @@ class Camera {
         return this._viewMatrix._m;
     }
 
+    /**
+     * Returns normal matrix.
+     * @public
+     * @returns {Mat3} - Normal matrix.
+     */
+    getNormalMatrix() {
+        return this._normalMatrix._m;
+    }
+
     setCurrentFrustum(k) {
-        this._currentFrustum = k;
+        this.currentFrustumIndex = k;
+        this.isFirstPass = k === this.FARTHEST_FRUSTUM_INDEX;
     }
 
     getCurrentFrustum() {
-        return this._currentFrustum;
+        return this.currentFrustumIndex;
     }
 
     get frustum() {
-        return this.frustums[this._currentFrustum];
+        return this.frustums[this.currentFrustumIndex];
     }
 
     /**

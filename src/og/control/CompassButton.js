@@ -2,8 +2,10 @@
 
 import { Control } from "./Control.js";
 import { parseHTML } from "../utils/shared.js";
+import { Button } from "../ui/Button.js";
+import { ToggleButton } from "../ui/ToggleButton.js";
 
-let svg = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -86,32 +88,23 @@ let svg = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
  * @params {Object} [options] - Control options.
  */
 class CompassButton extends Control {
-    /**
-     *
-     * @params {Object} [options] - Control options.
-     */
-    constructor(options) {
+    constructor(options = {}) {
         super(options);
-
-        options = options || {};
-
-        this.planet = null;
-
-        this.compassSvg = options.compassSvg || svg;
-
         this._heading = null;
-
         this._svg = null;
     }
 
     oninit() {
-        var btnEl = parseHTML(`<div class="og-compass-button">${this.compassSvg}</div>`)[0];
 
-        this._svg = btnEl.querySelector("svg");
+        let btn = new Button({
+            classList: ["og-map-button", "og-compass-button"],
+            icon: ICON_BUTTON_SVG,
+            appendTo: this.renderer.div
+        });
 
-        this.renderer.div.appendChild(btnEl);
+        btn.on("click", this._onClick, this);
 
-        btnEl.addEventListener("click", (e) => this._onClick());
+        this._svg = btn.select("svg");
 
         this.renderer.events.on("draw", this._draw, this);
     }

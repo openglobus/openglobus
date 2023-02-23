@@ -5,8 +5,18 @@
 "use strict";
 
 import { Control } from "./Control.js";
-import { elementFactory, appendChildren, toggleText, enableElmovement } from "./UIhelpers.js";
+import { elementFactory, appendChildren, toggleText, enableElmovement } from "../ui/UIhelpers.js";
 import { compose } from "../utils/functionComposition.js"
+import { Dialog } from "../ui/Dialog.js";
+import { ToggleButton } from "../ui/ToggleButton.js";
+
+const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="utf-8"?>
+<!-- Svg Vector Icons : http://www.onlinewebfonts.com/icon -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 1000 1000" enable-background="new 0 0 1000 1000" xml:space="preserve">
+<metadata> Svg Vector Icons : http://www.onlinewebfonts.com/icon </metadata>
+<g><path d="M500,573.5c-3.2,0-6.5-0.6-9.5-1.9L25,375.6c-9.1-3.8-15-12.7-15-22.6s5.9-18.8,15-22.6l465.5-196c6.1-2.5,12.9-2.5,19,0l465.5,196c9.1,3.8,15,12.7,15,22.6s-5.9,18.8-15,22.6l-465.5,196C506.5,572.9,503.2,573.5,500,573.5L500,573.5z M97.6,353L500,522.4L902.4,353L500,183.6L97.6,353L97.6,353z"/><path d="M500,720.5c-3.2,0-6.5-0.6-9.5-1.9L25,522.6c-12.4-5.2-18.3-19.6-13.1-32.1c5.2-12.5,19.6-18.3,32.1-13.1l456,192l456-192c12.4-5.2,26.9,0.6,32.1,13.1s-0.6,26.9-13.1,32.1l-465.5,196C506.5,719.9,503.2,720.5,500,720.5L500,720.5z"/><path d="M500,867.5c-3.2,0-6.5-0.6-9.5-1.9L25,669.6c-12.4-5.2-18.3-19.6-13.1-32.1c5.2-12.5,19.6-18.3,32.1-13.1l456,192l456-192c12.4-5.2,26.9,0.6,32.1,13.1c5.2,12.5-0.6,26.8-13.1,32.1l-465.5,196C506.5,866.9,503.2,867.5,500,867.5L500,867.5z"/></g>
+</svg>`;
 
 /**
  * Advanced :) layer switcher, includes base layers, overlays, geo images etc. groups.
@@ -22,25 +32,34 @@ class LayerSwitcher extends Control {
             ...options
         });
 
-        this._id = LayerSwitcher.numSwitches++;
         this.switcherDependent = options.switcherDependent
         this.expandedSections = options.expandedSections
-        this.switcherInMenu = options.switcherInMenu // none (default)
         this.docListener = options.docListener
-    }
 
-    static get numSwitches() {
-        if (!this._counter && this._counter !== 0) {
-            this._counter = 0;
-        }
-        return this._counter;
-    }
+        this.dialog = new Dialog({
+            title: "Layer Switcher",
+            top: 15,
+            useHide: true,
+            visible: false,
+            width: 200
+        });
 
-    static set numSwitches(n) {
-        this._counter = n;
+        this._menuBtn = new ToggleButton({
+            classList: ["og-map-button", "og-layerswitcher_button"],
+            icon: ICON_BUTTON_SVG
+        });
     }
 
     oninit() {
+
+        this.dialog.appendTo(this.planet.renderer.div);
+
+        this.dialog.setPosition(this.planet.renderer.div.clientWidth - this.dialog.width - 67)
+
+        this.dialog.on("visibility", (v) => {
+            this._menuBtn.setActive(v);
+        });
+
         this.setupSwitcher()
         this.planet.events.on("layeradd", this.addNewLayer, this)
         this.planet.events.on("layerremove", this.removeLayer, this)
@@ -59,11 +78,7 @@ class LayerSwitcher extends Control {
     }
 
     ondeactivate() {
-        const $menuBtn = document.getElementById('og-layer-switcher-menu-btn')
-        const $dialog = document.getElementById('og-layer-switcher-dialog')
-        $menuBtn.remove()
-        $dialog.remove()
-        document.removeEventListener('click', (e) => this.docListener(e))
+        this.dialog.hide();
     }
 
     // BASIC DATA COLLECTION-PREPARATION FUNCTIONS
@@ -156,7 +171,6 @@ class LayerSwitcher extends Control {
                 this.dialogSectionStructure('Overlays', 'checkbox', overlays),
             ]
         }
-        // console.log(myData) // enable this to have a visual representation of the dialog structure
         return myData
     }
 
@@ -167,17 +181,13 @@ class LayerSwitcher extends Control {
     }
 
     addNewLayer(layer) {
-        // Put the data(layer) to the appropriate recordsStructure section and run the build function
-        const $dialog = document.getElementById('og-layer-switcher-dialog')
-        if ($dialog) {
-            const { classifyObject } = this.planetDataBasic()
-            const targets = [...document.body.querySelectorAll('.og-layer-switcher-record.og-depth-0 > details')]
-            const type = classifyObject(layer)
-            const object = this.recordsStructure().data.filter(x => x.name == type)
-            const index = this.recordsStructure().data.findIndex(x => x.name == type)
-            object[0].data = [layer]
-            this.buildRecords(object[0], targets[index], 1, true)
-        }
+        const { classifyObject } = this.planetDataBasic()
+        const targets = [...document.body.querySelectorAll('.og-layer-switcher-record.og-depth-0 > details')]
+        const type = classifyObject(layer)
+        const object = this.recordsStructure().data.filter(x => x.name == type)
+        const index = this.recordsStructure().data.findIndex(x => x.name == type)
+        object[0].data = [layer]
+        this.buildRecords(object[0], targets[index], 1, true)
     }
 
     removeLayer(layer) {
@@ -194,130 +204,21 @@ class LayerSwitcher extends Control {
     getUserPrefs() {
         const switcherDependency = this.switcherDependent == undefined ? true : this.switcherDependent
         const sectionsOpening = this.expandedSections == undefined ? true : this.expandedSections
-        const btnInMenu = this.switcherInMenu == undefined ? true : this.switcherInMenu
 
-        return { switcherDependency, sectionsOpening, btnInMenu }
+        return { switcherDependency, sectionsOpening }
     }
 
     buildBasicDOM() {
 
-        const { switcherDependency, sectionsOpening, btnInMenu } = this.getUserPrefs()
+        this._menuBtn.appendTo(this.planet.renderer.div);
 
-        // Basic DOM creation
-        const $menuBtn = elementFactory('div', { id: 'og-layer-switcher-menu-btn', class: 'og-menu-btn og-OFF' },
-            elementFactory('div', { id: 'og-layer-switcher-menu-icon', class: 'og-icon-holder' }))
-        const $dialog = elementFactory('div', {
-            class: 'og-layer-switcher-dialog og-dialog og-not-visible',
-            id: 'og-layer-switcher-dialog'
-        })
-        const $header = elementFactory('div', { class: 'og-layer-switcher-dialog-header' })
-        const $header_close = elementFactory('div', {
-                id: 'og-layer-switcher-dialog-close-btn',
-                class: 'og-dialog-header-btn og-OFF'
-            },
-            elementFactory('div', { class: 'og-icon-holder' }))
-        const $headerMinMax = elementFactory('div', {
-                id: 'og-layer-switcher-dialog-minMax-btn',
-                class: 'og-dialog-header-btn og-OFF'
-            },
-            elementFactory('div', { class: 'og-icon-holder' }))
-        const $headerTitle = elementFactory('span', { class: 'og-dialog-header-title' }, 'Layer Switcher')
-        const $headerPin = elementFactory('div', {
-                id: 'og-layer-switcher-dialog-pin-btn',
-                class: 'og-dialog-header-btn og-OFF'
-            },
-            elementFactory('div', { class: 'og-icon-holder' }))
-        const $mainContainer = elementFactory('div', { class: 'og-layer-switcher-main-container' })
+        this._menuBtn.on("change", (isActive) => {
+            this.dialog.setVisibility(isActive);
+        });
 
-        $headerPin.dataset.attachement = 'UNPINNED'
+        const $mainContainer = this.dialog.container;
 
-        // Append children to parents
-        appendChildren(this.planet.renderer.div, [$menuBtn, $dialog])
-        appendChildren($dialog, [$header, $mainContainer])
-        appendChildren($header, [$header_close, $headerMinMax, $headerTitle, $headerPin])
-
-        // Behaviour according to dependency on switcher
-        if (switcherDependency == false) {
-            $menuBtn.classList.add('og-hide') // hide menu btn
-            $dialog.classList.remove('og-not-visible') // Show dialog when opening webpage
-            $headerPin.classList.add('og-not-visible') //  hide the pin that attaches the dialog window    
-        }
-
-        const dialogBoxInitial = $dialog.getBoundingClientRect() // Initial position of the dialog window
-
-        // LISTENERS
-        const whereClick = (e, wrapper, menuBtn) => {
-            if (wrapper.contains(e.target)) {
-                return 'inside'
-            } else if (menuBtn.contains(e.target)) {
-                return 'on-btn'
-            } else {
-                return 'outside'
-            }
-        }
-
-        var whereClickHandler = null
-        whereClickHandler = (e) => { // cannot be a const otherwise cannot be created again in onactivate()
-            // Check where I clicked : in dialog, in button, elsewhere
-            let whereIclicked = $menuBtn ? whereClick(e, $dialog, $menuBtn) : null
-
-            // If I clicked elsewhere and the dialog is unpinned, then hide dialog and set menu btn to OFF
-            if (whereIclicked === 'outside' && $headerPin.dataset.attachement == 'UNPINNED') {
-                $dialog.classList.add('og-not-visible')
-                $menuBtn.classList.add('og-OFF')
-                // If Iclicked on button, toggle dialog and menu btn
-            } else if (whereIclicked === 'on-btn') {
-                $dialog.classList.toggle('og-not-visible')
-                $menuBtn.classList.toggle('og-OFF')
-            }
-        }
-
-        this.docListener = whereClickHandler // Function holder so that it is the same during add/remove
-
-        // Document
-        document.addEventListener('click', (e) => this.docListener(e))
-
-        // Header pin - here I am using instead of CSS classes, the data-* attribute of the DOM element to store the state
-        $headerPin.addEventListener('click', () => {
-            let newText = toggleText($headerPin.dataset.attachement, ['PINNED', 'UNPINNED'])
-            $headerPin.classList.toggle('og-OFF')
-            $headerPin.dataset.attachement = newText
-        })
-
-        // Header double click
-        $header.addEventListener('dblclick', (e) => {
-            if ($header !== e.target) return
-            restoreInitialPos($dialog)
-        }, false)
-
-        const restoreInitialPos = (el) => {
-            el.style.top = dialogBoxInitial.top + "px";
-            el.style.left = dialogBoxInitial.left + "px";
-        }
-
-        // Header mousedown --> move dialog OR nothing
-        const { behaviour, mouseMove } = enableElmovement($dialog, this.planet)
-
-        $header.addEventListener('mousedown', (e) => {
-            if ($headerPin.dataset.attachement == 'UNPINNED') {
-                behaviour(e)
-            } else {
-                document.removeEventListener('mousemove', mouseMove)
-            }
-        })
-
-        $header_close.addEventListener('click', () => {
-            $dialog.classList.add('og-not-visible')
-            $menuBtn.classList.add('og-OFF')
-        })
-
-        $headerMinMax.addEventListener('click', () => {
-            $mainContainer.classList.toggle('og-hide')
-            $mainContainer.classList.toggle('og-minimized')
-            $dialog.classList.toggle('og-minimized')
-        })
-
-        return { $mainContainer, whereClickHandler }
+        return { $mainContainer }
     }
 
     buildRecords(myData, $mainContainer, depth, createLastDropZone) {

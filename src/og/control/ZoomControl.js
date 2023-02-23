@@ -6,6 +6,17 @@
 
 import { Control } from "./Control.js";
 import { Key } from "../Lock.js";
+import { Button } from "../ui/Button.js";
+
+const ICON_PLUS_SVG = '<?xml version="1.0"?>' +
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' +
+    '    <path d="M 11 5 L 11 11 L 5 11 L 5 13 L 11 13 L 11 19 L 13 19 L 13 13 L 19 13 L 19 11 L 13 11 L 13 5 L 11 5 z"/>' +
+    '</svg>';
+
+const ICON_MINUS_SVG = '<?xml version="1.0"?>' +
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' +
+    '    <path d="M 5 11 L 5 13 L 19 13 L 19 11 L 5 11 z"/>' +
+    '</svg>';
 
 /**
  * Planet zoom buttons control.
@@ -19,56 +30,33 @@ class ZoomControl extends Control {
 
         this._keyLock = new Key();
 
-        this.planet = null;
-
         this._move = 0;
     }
 
     oninit() {
-        var zoomDiv = document.createElement("div"),
-            btnZoomIn = document.createElement("button"),
-            btnZoomOut = document.createElement("button");
 
-        zoomDiv.className = "ogZoomControl";
-        btnZoomIn.className = "ogZoomButton ogZoomIn";
-        btnZoomOut.className = "ogZoomButton ogZoomOut";
-
-        zoomDiv.appendChild(btnZoomIn);
-        zoomDiv.appendChild(btnZoomOut);
-
-        this.renderer.div.appendChild(zoomDiv);
-
-        btnZoomIn.addEventListener("mousedown", (e) => this.zoomIn());
-        btnZoomIn.addEventListener("mouseup", (e) => this.stopZoom());
-
-        btnZoomOut.addEventListener("mousedown", (e) => this.zoomOut());
-        btnZoomOut.addEventListener("mouseup", (e) => this.stopZoom());
-
-        btnZoomIn.addEventListener("touchstart", (e) => {
-            e.preventDefault();
-            this.zoomIn();
-        });
-        btnZoomIn.addEventListener("touchend", (e) => {
-            e.preventDefault();
-            this.stopZoom();
-        });
-        btnZoomIn.addEventListener("touchcancel", (e) => {
-            e.preventDefault();
-            this.stopZoom();
+        let zoomInBtn = new Button({
+            classList: ["og-map-button", "og-zoomin-button"],
+            icon: ICON_PLUS_SVG,
+            appendTo: this.renderer.div
         });
 
-        btnZoomOut.addEventListener("touchstart", (e) => {
-            e.preventDefault();
-            this.zoomOut();
+        let zoomOutBtn = new Button({
+            classList: ["og-map-button", "og-zoomout-button"],
+            icon: ICON_MINUS_SVG,
+            appendTo: this.renderer.div
         });
-        btnZoomOut.addEventListener("touchend", (e) => {
-            e.preventDefault();
-            this.stopZoom();
-        });
-        btnZoomOut.addEventListener("touchcancel", (e) => {
-            e.preventDefault();
-            this.stopZoom();
-        });
+
+        zoomInBtn.on("mousedown", (e) => this.zoomIn());
+        zoomInBtn.on("mouseup", (e) => this.stopZoom());
+        zoomOutBtn.on("mousedown", (e) => this.zoomOut());
+        zoomOutBtn.on("mouseup", (e) => this.stopZoom());
+        zoomInBtn.on("touchstart", (e) => this.zoomIn());
+        zoomInBtn.on("touchend", (e) => this.stopZoom());
+        zoomInBtn.on("touchcancel", (e) => this.stopZoom());
+        zoomOutBtn.on("touchstart", (e) => this.zoomOut());
+        zoomOutBtn.on("touchend", (e) => this.stopZoom());
+        zoomOutBtn.on("touchcancel", (e) => this.stopZoom());
 
         this.renderer.events.on("draw", this._draw, this);
     }

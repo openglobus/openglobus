@@ -81,9 +81,7 @@ class SelectionScene extends RenderNode {
                     instanced: true,
                     tag: "selection",
                     color: "rgb(0,305,0)",
-                    vertices: obj3d.vertices,
-                    indices: obj3d.indexes,
-                    normals: obj3d.normals
+                    object3d: obj3d
                 },
                 properties: {
                     name: "start"
@@ -95,14 +93,11 @@ class SelectionScene extends RenderNode {
                     instanced: true,
                     tag: "selection",
                     color: "rgb(455,0,0)",
-                    vertices: obj3d.vertices,
-                    indices: obj3d.indexes,
-                    normals: obj3d.normals
+                    object3d: obj3d
                 },
                 properties: {
                     name: "end"
                 }
-
             })
         ];
 
@@ -185,11 +180,9 @@ class SelectionScene extends RenderNode {
         if (!this._startLonLat) {
 
 
-
             this._propsLabel.label.setVisibility(false);
 
             this._trackEntity.polyline.setPath3v([]);
-
 
 
             this._cornerEntity[0].geoObject.setVisibility(true);

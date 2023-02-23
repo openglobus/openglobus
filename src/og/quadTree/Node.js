@@ -351,7 +351,8 @@ class Node {
                     var bp = ni.segment;
                     var ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.tileZoom - ap.tileZoom));
 
-                    let cs_size = ap.gridSize, opcs_size = bp.gridSize;
+                    let cs_size = ap.gridSize,
+                        opcs_size = bp.gridSize;
 
                     if (ld > 1) {
                         cs_size = Math.ceil(ap.gridSize / ld);

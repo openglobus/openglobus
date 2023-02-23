@@ -505,9 +505,7 @@ class EntityCollection {
             this.billboardHandler.setRenderer(renderNode.renderer);
             this.labelHandler.setRenderer(renderNode.renderer);
             this.rayHandler.setRenderer(renderNode.renderer);
-
             this.geoObjectHandler.setRenderNode(renderNode);
-
             this.shapeHandler.setRenderNode(renderNode);
             this.polylineHandler.setRenderNode(renderNode);
             this.pointCloudHandler.setRenderNode(renderNode);

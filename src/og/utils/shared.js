@@ -4,7 +4,6 @@
 
 "use strict";
 
-import { ajax } from "../ajax.js";
 import { colorTable } from "./colorTable.js";
 import { Extent } from "../Extent.js";
 import { LonLat } from "../LonLat.js";
@@ -20,6 +19,20 @@ export function isEmpty(v) {
     return v == null;
 }
 
+/**
+ * Returns true if the object pointer is undefined.
+ * @function
+ * @param {Object} obj - Object pointer.
+ * @returns {boolean} Returns true if object is undefined.
+ */
+export function isUndef(obj) {
+    return obj === void 0;
+}
+
+export function isUndefExt(obj, defVal) {
+    return isUndef(obj) ? defVal : obj;
+}
+
 let _stampCounter = 0;
 
 export function stamp(obj) {
@@ -32,24 +45,6 @@ export function stamp(obj) {
 
 export function isString(s) {
     return typeof s === "string" || s instanceof String;
-}
-
-/**
- * Synchronous text file loading. Returns file text.
- * @param {string} fileUrl - File name path.
- * @returns {string} -
- */
-export function readTextFile(fileUrl) {
-    var res = "";
-
-    ajax.request(fileUrl, {
-        async: false,
-        success: function (data) {
-            res = data;
-        }
-    });
-
-    return res;
 }
 
 /**
@@ -797,34 +792,50 @@ export function makeArray(arr) {
  * @param {TypedArray | Array} arr
  * @param {Number} starting
  * @param {Number} deleteCount
- * @param {Array} elements
+ * @param {Object} outArr
  */
 
-export function spliceArray(arr, starting, deleteCount, elements) {
+export function spliceArray(arr, starting, deleteCount, out) {
     if (ArrayBuffer.isView(arr)) {
-        return spliceTypedArray(arr, starting, deleteCount, elements);
+        if (starting < 0) {
+            deleteCount = Math.abs(starting);
+            starting += arr.length;
+        }
+        return spliceTypedArray(arr, starting, deleteCount, out);
     } else {
-        arr.splice(starting, deleteCount);
+        let res;
+        if (starting < 0) {
+            res = arr.splice(starting);
+        } else {
+            res = arr.splice(starting, deleteCount);
+        }
+        if (out) {
+            out.result = res;
+        }
         return arr;
     }
 }
+
+window.spliceArray = spliceArray;
 
 /**
  *
  * @param {TypedArray} arr
  * @param {Number} starting
  * @param {Number} deleteCount
- * @param {Array} elements
+ * @param {Array} outArr
  */
-export function spliceTypedArray(arr, starting, deleteCount, elements = []) {
+export function spliceTypedArray(arr, starting, deleteCount, out) {
     if (arr.length === 0) {
         return arr;
     }
-    const newSize = arr.length - deleteCount + elements.length;
+    const newSize = arr.length - deleteCount;
     const splicedArray = new arr.constructor(newSize);
     splicedArray.set(arr.subarray(0, starting));
-    splicedArray.set(elements, starting);
-    splicedArray.set(arr.subarray(starting + deleteCount), starting + elements.length);
+    splicedArray.set(arr.subarray(starting + deleteCount), starting);
+    if (out) {
+        out.result = arr.subarray(starting, starting + deleteCount);
+    }
     return splicedArray;
 }
 
@@ -933,23 +944,13 @@ export function cloneArray(items) {
 }
 
 /**
- * Returns true if the object pointer is undefined.
- * @function
- * @param {Object} obj - Object pointer.
- * @returns {boolean} Returns true if object is undefined.
- */
-export function isUndef(obj) {
-    return obj === void 0;
-}
-
-/**
  * Promise for load images
  * @function
  * @param {string} url - link to image.
  * @returns {Promise<Image>} Returns promise.
  */
 export async function loadImage(url) {
-    return new  Promise(resolve => {
+    return new Promise(resolve => {
         const image = new Image();
         image.addEventListener('load', () => {
             resolve(image);
