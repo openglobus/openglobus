@@ -17,7 +17,7 @@ class Button extends View {
                 text: options.text || ""
             }),
             ...options,
-            eventList: ["click", ...(options.eventList || [])]
+            eventList: ["click", "mousedown", "mouseup", "touchstart", "touchend", "touchcancel", ...(options.eventList || [])]
         });
 
         this.name = options.name || "";
@@ -38,6 +38,52 @@ class Button extends View {
     _initEvents() {
         this._onMouseClick_ = this._onMouseClick.bind(this);
         this.el.addEventListener("click", this._onMouseClick_);
+
+        this._onMouseDown_ = this._onMouseDown.bind(this);
+        this.el.addEventListener("mousedown", this._onMouseDown_);
+
+        this._onMouseUp_ = this._onMouseUp.bind(this);
+        this.el.addEventListener("mouseup", this._onMouseUp_);
+
+        this._onTouchStart_ = this._onTouchStart.bind(this);
+        this.el.addEventListener("touchstart", this._onTouchStart_);
+
+        this._onTouchEnd_ = this._onTouchEnd.bind(this);
+        this.el.addEventListener("touchend", this._onTouchEnd_);
+
+        this._onTouchCancel_ = this._onTouchCancel.bind(this);
+        this.el.addEventListener("touchcancel", this._onTouchCancel_);
+
+    }
+
+    _onMouseDown(e) {
+        e = e || window.event;
+        e.preventDefault();
+        this._events.dispatch(this._events.mousedown, this, e);
+    }
+
+    _onMouseUp(e) {
+        e = e || window.event;
+        e.preventDefault();
+        this._events.dispatch(this._events.mouseup, this, e);
+    }
+
+    _onTouchStart(e) {
+        e = e || window.event;
+        e.preventDefault();
+        this._events.dispatch(this._events.touchstart, this, e);
+    }
+
+    _onTouchEnd(e) {
+        e = e || window.event;
+        e.preventDefault();
+        this._events.dispatch(this._events.touchend, this, e);
+    }
+
+    _onTouchCancel(e) {
+        e = e || window.event;
+        e.preventDefault();
+        this._events.dispatch(this._events.touchcancel, this, e);
     }
 
     _onMouseClick(e) {
