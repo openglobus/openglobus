@@ -7,6 +7,7 @@
     --grey5: rgb(64, 59, 59); /*map button background*/
     --grey6: #bfbfbf; /*map button icon color*/
     --grey7: #707070; /*slider progress color*/
+    --grey8: #e2e2e2; /*text color*/
     --blue0: #1700a9ee;
 }
 
@@ -114,14 +115,14 @@
 }
 
 .og-zoomin-button {
-    bottom: 99px;
+    bottom: 102px;
     right: 12px;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
 }
 
 .og-zoomout-button {
-    bottom: 55px;
+    bottom: 58px;
     right: 12px;
     border-top-left-radius: 0;
     border-top-right-radius: 0;
@@ -535,7 +536,7 @@ details[open] {
 }
 
 .og-compass-button {
-    bottom: 151px;
+    bottom: 153px;
     right: 12px;
 }
 
@@ -617,9 +618,10 @@ details[open] {
     font-size: 1.0em;
     cursor: pointer;
     float: left;
-    background-color: rgba(64, 59, 59, 0.85);
-    color: white;
-    padding: 3px;
+    background-color: var(--grey5);
+    color: var(--grey8);
+    padding: 5px;
+    border-radius: 4px;
 }
 
 .og-coordinates div {
