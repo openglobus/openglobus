@@ -697,13 +697,13 @@ export class Planet extends RenderNode {
 
         if (this._atmosphereEnabled) {
 
+            this._renderScreenNodesPASS = this._renderScreenNodesPASSAtmos;
+
             if (h.isWebGl2()) {
                 h.addProgram(shaders.drawnode_screen_wl_webgl2Atmos(), true);
             } else {
-                h.addProgram(shaders.drawnode_screen_wl(), true);
+                h.addProgram(shaders.drawnode_screen_wl_webgl1NoAtmos(), true);
             }
-
-            this._renderScreenNodesPASS = this._renderScreenNodesPASSAtmos;
 
             if (!this.renderer.controls.Atmosphere) {
                 this.addControl(new Atmosphere());
@@ -716,6 +716,9 @@ export class Planet extends RenderNode {
             }
 
         } else {
+
+            this._renderScreenNodesPASS = this._renderScreenNodesPASSNoAtmos;
+
 
             if (this.renderer.controls.Atmosphere) {
                 this.renderer.controls.Atmosphere.deactivate();
@@ -730,12 +733,9 @@ export class Planet extends RenderNode {
             if (h.isWebGl2()) {
                 h.addProgram(shaders.drawnode_screen_wl_webgl2NoAtmos(), true);
             } else {
-                h.addProgram(shaders.drawnode_screen_wl(), true);
+                h.addProgram(shaders.drawnode_screen_wl_webgl1NoAtmos(), true);
             }
-
-            this._renderScreenNodesPASS = this._renderScreenNodesPASSNoAtmos;
         }
-
     }
 
     /**

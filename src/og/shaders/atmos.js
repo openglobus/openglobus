@@ -4,12 +4,19 @@ import { Program } from '../webgl/Program.js';
 import { UTILS } from './utils.js';
 
 export const COMMON =
-    `    
+    `
+    
     ${UTILS}
     
-    const float PI = 3.1415926538;
-    const float ATMOS_HEIGHT = 122000.0;    
-    const int SAMPLE_COUNT = 16;
+    #define PI 3.1415926538
+    #define ATMOS_HEIGHT 100000.0
+    #define RAYLEIGH_SCALE 0.08
+    #define MIE_SCALE 0.012
+    
+    #define SAMPLE_COUNT 16
+    #define SQRT_SAMPLE_COUNT 4
+            
+    const float GROUND_ALBEDO = 0.05 / PI;
 
     // Sphere
     const float BOTTOM_RADIUS = 6356752.3142451793;
@@ -19,21 +26,17 @@ export const COMMON =
     const vec3 bottomRadii = vec3(6378137.0, 6356752.3142451793, 6378137.0);           
     const vec3 topRadii = bottomRadii + ATMOS_HEIGHT;
     
-    const vec3 SPHERE_TO_ELLIPSOID_SCALE = vec3(BOTTOM_RADIUS) / bottomRadii;
-        
-    const float rayleighScaleHeight = 8e3;
-    const float mieScaleHeight = 1.2e3;
+    const vec3 SPHERE_TO_ELLIPSOID_SCALE = vec3(BOTTOM_RADIUS) / bottomRadii;           
     
-    //rayleightScatteringCoefficient from waveLength
-    //vec3 waveLength = vec3(680e-9, 550e-9, 440e-9);
-    //const vec3 rayleighScatteringCoefficient = (1.0 / pow(waveLength, vec3(4.0))) * 1.241e-30;    
-    const vec3 rayleighScatteringCoefficient = vec3(5.8e-6, 13.5e-6, 33.1e-6);
+    const vec2 rayleighMieHeights = vec2(RAYLEIGH_SCALE, MIE_SCALE) * ATMOS_HEIGHT;
+     
+    const vec3 rayleighScatteringCoefficient = vec3(5.802, 13.558, 33.100) * 1e-6;
     
     const float mieScatteringCoefficient = 3.996e-06;
     const float mieExtinctionCoefficient = 4.440e-06;
-    const vec3 ozoneAbsorptionCoefficient = vec3(0.650e-6, 1.881e-6, 0.085e-6);
+    const vec3 ozoneAbsorptionCoefficient = vec3(0.650, 1.881, 0.085) * 1e-6;
     
-    const float SUN_ANGULAR_RADIUS = 0.004685 * 2.0;
+    const float SUN_ANGULAR_RADIUS = 0.004685;
     const float SUN_INTENSITY = 1.0;        
     
     vec3 sunWithBloom(vec3 rayDir, vec3 sunDir) 
@@ -73,7 +76,7 @@ export const COMMON =
         {
             vec3 position = rayOrigin + t * rayDirection;
             float height = length(position) - BOTTOM_RADIUS;
-            opticalDepth.xy += exp(-height / vec2(rayleighScaleHeight, mieScaleHeight)) * segmentLength;
+            opticalDepth.xy += exp(-height / rayleighMieHeights) * segmentLength;
             
             // density of the ozone layer is modeled as a triangular 
             // function that is 30 km wide and centered at 25 km altitude
@@ -173,17 +176,16 @@ export function scattering() {
                 vec3 lightDirection = vec3(sqrt(1.0 - angle * angle), angle, 0.0);
                                 
                 const float isotropicPhase = 1.0 / (4.0 * PI);
-                const int sqrtSampleCount = 8;
                 
                 vec3 light = vec3(0.0);
                 vec3 lightTransferFactor = vec3(0.0);
                 
-                for (int i = 0; i < sqrtSampleCount; i++) 
+                for (int i = 0; i < SQRT_SAMPLE_COUNT; i++)
                 {
-                    for (int j = 0; j < sqrtSampleCount; j++) 
+                    for (int j = 0; j < SQRT_SAMPLE_COUNT; j++)
                     {
-                        float u = ((0.5 + float(i)) / float(sqrtSampleCount)) * 2.0 - 1.0;
-                        float v = (0.5 + float(j)) / float(sqrtSampleCount);
+                        float u = ((0.5 + float(i)) / float(SQRT_SAMPLE_COUNT)) * 2.0 - 1.0;
+                        float v = (0.5 + float(j)) / float(SQRT_SAMPLE_COUNT);
                         float r = sqrt(1.0 - u * u);
                         float theta = 2.0 * PI * v;
                         vec3 rayDirection = vec3(cos(theta) * r, sin(theta) * r, u);
@@ -221,7 +223,7 @@ export function scattering() {
                             transmittanceCamera = cameraBelow ? (transmittanceToSpace / transmittanceFromCameraToSpace) : (transmittanceFromCameraToSpace / transmittanceToSpace);
                             transmittanceLight = transmittanceFromTexture(height, lightAngle);
                             
-                            vec2 opticalDensity = exp(-height / vec2(rayleighScaleHeight, mieScaleHeight));        
+                            vec2 opticalDensity = exp(-height / rayleighMieHeights);        
                             vec3 scatteredLight = transmittanceLight * (rayleighScatteringCoefficient * opticalDensity.x + mieScatteringCoefficient * opticalDensity.y) * isotropicPhase;
                             
                             light += shadow * transmittanceCamera * scatteredLight * segmentLength;
@@ -235,14 +237,14 @@ export function scattering() {
                             vec3 hitPoint = rayOrigin + rayDirection * distanceToGround;
                             vec3 normal = normalize(hitPoint);
                             float diffuseAngle = max(dot(normal, lightDirection), 0.0); 
-                            vec3 earthAlbedo = vec3(0.3);
+                            float earthAlbedo = 0.05;
                             light += transmittanceCamera * transmittanceLight * (earthAlbedo / PI) * diffuseAngle;
                         }
                     }
                 }
                 
-                light /= float(sqrtSampleCount * sqrtSampleCount);
-                lightTransferFactor /= float(sqrtSampleCount * sqrtSampleCount);
+                light /= float(SAMPLE_COUNT);
+                lightTransferFactor /= float(SAMPLE_COUNT);
                 vec3 color = light / (1.0 - lightTransferFactor);                 
                 gl_FragColor = vec4(color, 1.0);
             }`

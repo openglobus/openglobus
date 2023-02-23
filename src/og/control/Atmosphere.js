@@ -343,7 +343,7 @@ function atmosphereBackgroundShader() {
                         vec3 transmittanceToSpace = transmittanceFromTexture(height, cameraBelow ? -rayAngle : rayAngle);
                         transmittanceCamera = cameraBelow ? (transmittanceToSpace / transmittanceFromCameraToSpace) : (transmittanceFromCameraToSpace / transmittanceToSpace);
                         transmittanceLight = transmittanceFromTexture(height, lightAngle);
-                        vec2 opticalDensity = exp(-height / vec2(rayleighScaleHeight, mieScaleHeight));
+                        vec2 opticalDensity = exp(-height / rayleighMieHeights);
                         vec3 scatteredLight = transmittanceLight * (rayleighScatteringCoefficient * opticalDensity.x * rayleighPhase + mieScatteringCoefficient * opticalDensity.y * miePhase);
                         scatteredLight += multipleScatteringContributionFromTexture(height, lightAngle) * (rayleighScatteringCoefficient * opticalDensity.x + mieScatteringCoefficient * opticalDensity.y);  
                         light += shadow * transmittanceCamera * scatteredLight * segmentLength;
@@ -358,9 +358,8 @@ function atmosphereBackgroundShader() {
                         vec3 up = hitPoint / length(hitPoint);
                         float diffuseAngle = max(dot(up, lightDirection), 0.0);
                         float lightAngle = dot(up, lightDirection);
-                        float groundAlbedo = 0.05;
-                        light += transmittanceCamera * (groundAlbedo / PI) * multipleScatteringContributionFromTexture(height, lightAngle) * SUN_INTENSITY;
-                        light += transmittanceCamera * transmittanceLight * (groundAlbedo / PI) * diffuseAngle * SUN_INTENSITY;
+                        light += transmittanceCamera * GROUND_ALBEDO * multipleScatteringContributionFromTexture(height, lightAngle) * SUN_INTENSITY;
+                        light += transmittanceCamera * transmittanceLight * GROUND_ALBEDO * diffuseAngle * SUN_INTENSITY;
                     }
                 }
                                      
@@ -374,7 +373,6 @@ function atmosphereBackgroundShader() {
                 //    }
                 // }
                 
-                // sun disk
                 float distanceToGround = 0.0;
                 bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
                 if(!hitGround)
@@ -384,15 +382,8 @@ function atmosphereBackgroundShader() {
                     sunLum = smoothstep(0.002, 1.0, sunLum);
                     light += sunLum * SUN_INTENSITY * transmittanceFromCameraToSpace;
                 }
-            
-                vec3 color = light;
-                // tone mapping
-                // float exposure = 10.0;
-                // color = (1.0 - exp(color * -exposure));
-                color *= 8.0;
-                //color = aces(color);
-                color = pow(color, vec3(1.0 / 2.2));
-                fragColor = vec4(color, opacity);               
+                            
+                fragColor = vec4(pow(light * 8.0, vec3(1.0 / 2.2)), opacity);           
             }
                                     
             void main(void) 
