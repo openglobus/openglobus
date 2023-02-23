@@ -759,7 +759,8 @@ export function drawnode_screen_wl_webgl2Atmos() {
                 vec3 reflectionDirection = reflect(-lightDir, normal);
                 float reflection = max( dot(reflectionDirection, viewDir), 0.0);
                 vec3 spec = sunIlluminance * specular.rgb * pow( reflection, specular.w) * shininess;                
-                float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);                
+                float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
+                              
                 vec4 nightImageColor = texture( nightTexture, vGlobalTextureCoord.st );
                 vec3 night = nightStep * (.18 - diffuseLightWeighting * 3.0) * nightImageColor.rgb * nightCoef;
                 night *= overGround * step(0.0, night);                
