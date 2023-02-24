@@ -342,10 +342,10 @@ export class Planet extends RenderNode {
         this._specularTexture = null;
 
         //TODO: replace to a function
-        let a = utils.createColorRGB(options.ambient, new Vec3(0.2, 0.2, 0.2));
-        let d = utils.createColorRGB(options.diffuse, new Vec3(0.8, 0.8, 0.8));
-        let s = utils.createColorRGB(options.specular, new Vec3(0.013, 0.005, 0.0));
-        let shininess = options.shininess || 27.0;
+        let a = utils.createColorRGB(options.ambient, new Vec3(0.2, 0.2, 0.3));
+        let d = utils.createColorRGB(options.diffuse, new Vec3(1.0, 1.0, 1.0));
+        let s = utils.createColorRGB(options.specular, new Vec3(0.00063, 0.00055, 0.00032));
+        let shininess = options.shininess || 18.0;
 
         this._ambient = new Float32Array([a.x, a.y, a.z]);
         this._diffuse = new Float32Array([d.x, d.y, d.z]);
@@ -430,7 +430,7 @@ export class Planet extends RenderNode {
          * Night texture brightness coefficient
          * @type {number}
          */
-        this.nightTextureCoefficient = 1.5;
+        this.nightTextureCoefficient = 2.0;
 
         this._renderScreenNodesPASS = this._renderScreenNodesPASSNoAtmos;
 
