@@ -47,6 +47,7 @@ import {
 
 import pkg from "../../package.json";
 
+import { Object3d } from './Object3d.js';
 const { Handler } = webgl, { Control } = control;
 const { Layer, Vector, XYZ} = layer;
 const {
@@ -107,5 +108,6 @@ export {
     MarsQuadTreeStrategy,
     EarthQuadTreeStrategy,
     Wgs84QuadTreeStrategy,
-    quadTreeStrategyType
+    quadTreeStrategyType,
+    Object3d
 };
