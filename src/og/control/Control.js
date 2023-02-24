@@ -41,7 +41,7 @@ class Control {
          * @public
          * @type {Boolean}
          */
-        this.autoActivate = options.autoActivate != undefined ? options.autoActivate : true;
+        this.autoActivate = options.autoActivate || false;
 
         /**
          * Control activity.
@@ -76,35 +76,40 @@ class Control {
      * @public
      * @virtual
      */
-    oninit() {}
+    oninit() {
+    }
 
     /**
      * Control renderer assigning function have to be overriden.
      * @public
      * @virtual
      */
-    onadd() {}
+    onadd() {
+    }
 
     /**
      * Control remove function have to be overriden.
      * @public
      * @virtual
      */
-    onremove() {}
+    onremove() {
+    }
 
     /**
      * Control activation function have to be overriden.
      * @public
      * @virtual
      */
-    onactivate() {}
+    onactivate() {
+    }
 
     /**
      * Control deactivation function have to be overriden.
      * @public
      * @virtual
      */
-    ondeactivate() {}
+    ondeactivate() {
+    }
 
     /**
      * Assign renderer to the control.
@@ -116,9 +121,10 @@ class Control {
             this.renderer = renderer;
             renderer.controls[this.name] = this;
             this.onadd && this.onadd();
+            this._initialized = true;
+            this.oninit && this.oninit();
             if (this.autoActivate) {
-                this._initialized = true;
-                this.oninit && this.oninit();
+                this.activate();
             }
         }
     }
@@ -154,12 +160,14 @@ class Control {
      * @public
      */
     activate() {
-        if (!this._initialized) {
-            this._initialized = true;
-            this.oninit && this.oninit();
+        if (!this._active) {
+            if (!this._initialized) {
+                this._initialized = true;
+                this.oninit && this.oninit();
+            }
+            this._active = true;
+            this.onactivate && this.onactivate();
         }
-        this._active = true;
-        this.onactivate && this.onactivate();
     }
 
     /**
@@ -167,8 +175,10 @@ class Control {
      * @public
      */
     deactivate() {
-        this._active = false;
-        this.ondeactivate && this.ondeactivate();
+        if (this._active) {
+            this._active = false;
+            this.ondeactivate && this.ondeactivate();
+        }
     }
 
     /**

@@ -18,7 +18,7 @@ import { Vec3 } from "../math/Vec3.js";
  */
 class Sun extends Control {
     constructor(options) {
-        super(options);
+        super({ autoActivate: true, ...options });
 
         this._name = "sun";
 

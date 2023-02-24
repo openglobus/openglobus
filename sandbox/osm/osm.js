@@ -268,7 +268,7 @@ globus.planet.addControl(new RulerSwitcher());
 globus.planet.addControl(new Selection());
 globus.planet.addControl(new GeoImageDragControl());
 
-globus.planet.renderer.controls.sun.stop()
+//globus.planet.renderer.controls.sun.stop()
 
 //globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
 
