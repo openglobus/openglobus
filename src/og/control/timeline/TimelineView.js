@@ -179,6 +179,7 @@ class TimelineView extends View {
         document.body.addEventListener("mousedown", this._onMouseDown.bind(this));
         document.body.addEventListener("mouseup", this._onMouseUp.bind(this));
         document.body.addEventListener("mousewheel", this._onMouseWheel.bind(this));
+        document.body.addEventListener("wheel", this._onMouseWheelFF.bind(this));
 
         this._playBtn.appendTo(this.$controls);
         this._pauseBtn.appendTo(this.$controls);
@@ -266,6 +267,10 @@ class TimelineView extends View {
             let pointerCenterOffsetX = -((this.model.currentTime - this.model.rangeStartTime) / this._millisecondsInPixel - this.clientWidth * 0.5);
             this._zoom(this.model.currentTime, pointerCenterOffsetX, Math.sign(e.wheelDelta));
         }
+    }
+
+    _onMouseWheelFF(e) {
+        this._onMouseWheel(e);
     }
 
     _zoom(pointerTime, pointerCenterOffsetX, dir) {

@@ -81,6 +81,23 @@ class Slider extends View {
 
         this._onMouseWheel_ = this._onMouseWheel.bind(this);
         this.$panel.addEventListener("mousewheel", this._onMouseWheel_);
+
+        this._onMouseWheelFF_ = this._onMouseWheelFF.bind(this);
+        this.$panel.addEventListener("wheel", this._onMouseWheelFF_);
+    }
+
+    _clearEvents() {
+        this.$panel.removeEventListener("mousedown", this._onMouseDown_);
+        this._onMouseDown_ = undefined;
+
+        this.$input.removeEventListener("input", this._onInput_);
+        this._onInput_ = undefined;
+
+        this.$panel.removeEventListener("mousewheel", this._onMouseWheel_);
+        this._onMouseWheel_ = undefined;
+
+        this.$panel.removeEventListener("wheel", this._onMouseWheelFF_);
+        this._onMouseWheelFF_ = undefined;
     }
 
     _onMouseWheel(e) {
@@ -88,6 +105,10 @@ class Slider extends View {
         e.preventDefault();
         e.stopPropagation();
         this.value = this._value + Math.sign(e.wheelDelta) * (this._max - this._min) / 100.0;
+    }
+
+    _onMouseWheelFF(e) {
+        this._onMouseWheel(e);
     }
 
     _onInput(e) {
@@ -136,6 +157,11 @@ class Slider extends View {
 
         document.removeEventListener("mousemove", this._onMouseMove_);
         this._onMouseMove_ = undefined;
+    }
+
+    remove() {
+        this._clearEvents();
+        super.remove();
     }
 }
 
