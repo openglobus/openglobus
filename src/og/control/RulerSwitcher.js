@@ -56,9 +56,10 @@ class RulerSwitcher extends Control {
 
         let btn = new ToggleButton({
             classList: ["og-map-button", "og-ruler_button"],
-            icon: ICON_BUTTON_SVG,
-            appendTo: this.renderer.div
+            icon: ICON_BUTTON_SVG
         });
+
+        btn.appendTo(this.renderer.div);
 
         btn.on("change", (isActive) => {
             if (isActive) {

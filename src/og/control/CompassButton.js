@@ -98,9 +98,10 @@ class CompassButton extends Control {
 
         let btn = new Button({
             classList: ["og-map-button", "og-compass-button"],
-            icon: ICON_BUTTON_SVG,
-            appendTo: this.renderer.div
+            icon: ICON_BUTTON_SVG
         });
+
+        btn.appendTo(this.renderer.div);
 
         btn.on("click", this._onClick, this);
 

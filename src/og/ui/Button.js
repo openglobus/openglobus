@@ -4,7 +4,7 @@ import { View } from './View.js';
 import { stringTemplate } from '../utils/shared.js';
 
 const TEMPLATE =
-    `<div class="og-button">
+    `<div class="og-button" title="{title}">
        <div class="og-button-icon">{icon}</div>
        <div class="og-button-text">{text}</div>
     </div>`;
@@ -14,7 +14,8 @@ class Button extends View {
         super({
             template: stringTemplate(TEMPLATE, {
                 icon: options.icon || "",
-                text: options.text || ""
+                text: options.text || "",
+                title: options.title || ""
             }),
             ...options,
             eventList: ["click", "mousedown", "mouseup", "touchstart", "touchend", "touchcancel", ...(options.eventList || [])]

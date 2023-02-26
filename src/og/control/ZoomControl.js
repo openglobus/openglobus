@@ -37,15 +37,16 @@ class ZoomControl extends Control {
 
         let zoomInBtn = new Button({
             classList: ["og-map-button", "og-zoomin-button"],
-            icon: ICON_PLUS_SVG,
-            appendTo: this.renderer.div
+            icon: ICON_PLUS_SVG
         });
+        zoomInBtn.appendTo(this.renderer.div);
+
 
         let zoomOutBtn = new Button({
             classList: ["og-map-button", "og-zoomout-button"],
-            icon: ICON_MINUS_SVG,
-            appendTo: this.renderer.div
+            icon: ICON_MINUS_SVG
         });
+        zoomOutBtn.appendTo(this.renderer.div);
 
         zoomInBtn.on("mousedown", (e) => this.zoomIn());
         zoomInBtn.on("mouseup", (e) => this.stopZoom());

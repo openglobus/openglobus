@@ -18,20 +18,7 @@
     outline: none;
     cursor: pointer;
     z-index: 1;
-    border-radius: 4px;
     background-color: var(--grey5);
-}
-
-.og-map-button svg,
-.og-map-button svg path {
-    width: 24px;
-    height: 24px;
-    fill: var(--grey6);
-}
-
-.og-button__active.og-map-button svg,
-.og-button__active.og-map-button svg path {
-    fill: white;
 }
 
 .ogCenterIcon {
@@ -239,16 +226,25 @@ input {
     cursor: default;
     justify-content: center;
     color: var(--grey6);
+    border-radius: 4px;
+}
+
+.og-button svg,
+.og-button svg path {
+    width: 24px;
+    height: 24px;
+    fill: var(--grey6);
+}
+
+.og-button__active.og-button svg,
+.og-button__active.og-button svg path {
+    fill: white;
 }
 
 .og-button .og-button-text {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-size: 14px;
     font-weight: 400;
-}
-
-.og-button.og-button__active {
-
 }
 
 .og-button:hover {
@@ -549,6 +545,17 @@ details[open] {
     Lighting control
 */
 
+.og-suncontrol {
+
+}
+
+.og-suncontrol-button {
+    width: 25px;
+    height: 25px;
+    float: left;
+    margin: 3px;
+}
+
 .og-lighting_button {
     position: absolute;
     left: 10px;
@@ -583,7 +590,7 @@ details[open] {
 .og-lighing .og-option {
     width: 100%;
     position: relative;
-    display: block;
+    display: inline-block;
     flex-direction: row;
     padding-bottom: 7px;
     text-overflow: ellipsis;
