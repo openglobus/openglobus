@@ -93,9 +93,16 @@ class Sun extends Control {
 
     stop() {
         this._stopped = true;
+        this.deactivate();
+    }
+
+    start() {
+        this._stopped = false;
+        this.activate();
     }
 
     onactivate() {
+        super.onactivate();
         this._stopped = false;
     }
 
