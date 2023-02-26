@@ -104,15 +104,15 @@
 .og-zoomin-button {
     bottom: 102px;
     right: 12px;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
 }
 
 .og-zoomout-button {
     bottom: 58px;
     right: 12px;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
 }
 
 /* =============================== */
