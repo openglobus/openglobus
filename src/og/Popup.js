@@ -1,8 +1,9 @@
 "use strict";
 
-import { Events } from "./Events.js";
 import { Vec3 } from "./math/Vec3.js";
-import { getHTML, parseHTML, createLonLat } from "./utils/shared.js";
+import { createLonLat, stringTemplate } from "./utils/shared.js";
+import { View } from './ui/View.js';
+import { CLOSE_ICON } from './ui/icons.js';
 
 const TEMPLATE = `<div class="og-popup {className}">
       <div class="og-popup-content-wrapper">
@@ -12,33 +13,27 @@ const TEMPLATE = `<div class="og-popup {className}">
         <div class="og-popup-tip"></div>
       </div>
       <div class="og-popup-toolbar">
-        <div class="og-popup-btn og-popup-close">×</div>
+        <div class="og-popup-btn og-popup-close">${CLOSE_ICON}</div>
       </div>
-      <div class="og-popup-title">
-      </div>
+      <div class="og-popup-title">{title}</div>
     </div>`;
 
-class Popup {
-    /**
-     *
-     * @param {*} options
-     */
-    constructor(options) {
-        this._id = Popup._staticCounter++;
+class Popup extends View {
+    constructor(options = {}) {
+        super({
+            template: stringTemplate(TEMPLATE, {
+                title: options.title || ""
+            }),
+            eventList: ["open", "close"],
+            classList: options.className ? [options.className] : [],
+            ...options
+        });
 
-        this.events = new Events(["open", "close"]);
+        this._content = options.content || "";
 
-        this._template = getHTML(TEMPLATE, { className: options.className });
-
-        this.el = null;
-
-        this._title = options.title || "";
-
-        this._content = options.content || null;
-
-        this._contentEl = null;
-
-        this._titleEl = null;
+        this.$content = null;
+        this.$tip = null;
+        this.$title = null;
 
         this._planet = options.planet;
 
@@ -53,21 +48,6 @@ class Popup {
         this.render();
     }
 
-    static get _staticCounter() {
-        if (!this.__counter__ && this.__counter__ !== 0) {
-            this.__counter__ = 0;
-        }
-        return this.__counter__;
-    }
-
-    static set _staticCounter(n) {
-        this.__counter__ = n;
-    }
-
-    _renderTemplate() {
-        return parseHTML(this._template)[0];
-    }
-
     _updatePosition() {
         this.setCartesian3v(this._cartPos);
     }
@@ -76,11 +56,7 @@ class Popup {
         if (this._planet) {
             let r = this._planet.renderer.handler.pixelRatio;
             this.el.style.transform =
-                "translate(" +
-                (p.x / r - this.clientWidth * 0.5) +
-                "px, " +
-                (p.y / r - this._planet.renderer.handler.canvas.clientHeight - this._tipEl.clientHeight) +
-                "px)";
+                `translate(${p.x / r - this.clientWidth * 0.5}px, ${p.y / r - this._planet.renderer.handler.canvas.clientHeight - this.$tip.clientHeight}px)`;
         }
     }
 
@@ -103,18 +79,20 @@ class Popup {
     }
 
     render(params) {
-        this.el = this._renderTemplate(params);
-        this._contentEl = this.el.querySelector(".og-popup-content");
-        this._titleEl = this.el.querySelector(".og-popup-title");
-        this._tipEl = this.el.querySelector(".og-popup-tip-container");
+        super.render(params);
+
+        this.$content = this.select(".og-popup-content");
+        this.$title = this.select(".og-popup-title");
+        this.$tip = this.select(".og-popup-tip-container");
+
         this.setOffset(this._offset[0], this._offset[1]);
         this.setContent(this._content);
-        this.setTitle(this._title);
         this.setLonLat(this._lonLat);
         this.setVisibility(this._visibility);
-        this.el.querySelector(".og-popup-close").addEventListener("click", () => {
+        this.select(".og-popup-close").addEventListener("click", () => {
             this.hide();
         });
+
         return this;
     }
 
@@ -128,19 +106,20 @@ class Popup {
     }
 
     getContainer() {
-        return this._contentEl;
+        return this.$content;
     }
 
     getToolbarContainer() {
-        return this.el.querySelector(".og-popup-toolbar");
+        return this.select(".og-popup-toolbar");
     }
 
     show() {
         this._visibility = true;
         if (this._planet) {
             this._planet.events.on("draw", this._updatePosition, this);
-            this._planet.renderer.div.appendChild(this.el);
-            this.events.dispatch(this.events.open, this);
+            this.appendTo(this._planet.renderer.div);
+            //this._planet.renderer.div.appendChild(this.el);
+            this._events.dispatch(this._events.open, this);
         }
         return this;
     }
@@ -150,7 +129,7 @@ class Popup {
         if (this.el.parentNode) {
             this._planet.events.off("draw", this._updatePosition);
             this.el.parentNode.removeChild(this.el);
-            this.events.dispatch(this.events.close, this);
+            this._events.dispatch(this._events.close, this);
         }
         return this;
     }
@@ -177,9 +156,7 @@ class Popup {
     }
 
     setTitle(html) {
-        this._title = html;
-        this._titleEl.innerHTML = html;
-        return this;
+        this.$title.innerHTML = html;
     }
 
     setLonLat(lonLat) {
@@ -187,7 +164,6 @@ class Popup {
         if (this._planet) {
             this.setCartesian3v(this._planet.ellipsoid.lonLatToCartesian(lonLat), lonLat.height);
         }
-        return this;
     }
 
     setContent(content) {
@@ -195,17 +171,16 @@ class Popup {
             this.clear();
             this._content = content;
             if (typeof content === "string") {
-                this._contentEl.innerHTML = content;
+                this.$content.innerHTML = content;
             } else {
-                this._contentEl.appendChild(content);
+                this.$content.appendChild(content);
             }
         }
-        return this;
     }
 
     clear() {
         this._content = null;
-        this._contentEl.innerHTML = "";
+        this.$content.innerHTML = "";
     }
 }
 

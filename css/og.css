@@ -204,6 +204,10 @@ input {
     justify-content: flex-end;
 }
 
+.og-ddialog .og-ddialog-header .og-ddialog-header__buttons .og-button {
+    border-radius: 0;
+}
+
 .og-ddialog .og-ddialog-container {
     overflow: auto;
     position: relative;
