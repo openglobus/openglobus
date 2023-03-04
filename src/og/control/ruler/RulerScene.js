@@ -61,8 +61,8 @@ class RulerScene extends RenderNode {
         this._trackEntity = new Entity({
             polyline: {
                 path3v: [],
-                thickness: 3.8,
-                color: "rgb(455,455,455)",
+                thickness: 4.8,
+                color: "rgb(255,131,0)",
                 isClosed: false
             }
         });
