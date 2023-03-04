@@ -144,6 +144,9 @@ class RulerScene extends RenderNode {
         this._onLdblclick_ = this._onLdblclick.bind(this);
         this.renderer.events.on("ldblclick", this._onLdblclick_, this);
 
+        this._onLUp_ = this._onLUp.bind(this);
+        this.renderer.events.on("lup", this._onLUp_, this);
+
         this._onCornerEnter_ = this._onCornerEnter.bind(this);
         this._cornersLayer.events.on("mouseenter", this._onCornerEnter_, this);
 
@@ -168,8 +171,11 @@ class RulerScene extends RenderNode {
         this._pickedCorner = null;
         this._trackLayer.remove();
         this._cornersLayer.remove();
+
         this.renderer.events.off("lclick", this._onLclick_);
         this.renderer.events.off("mousemove", this._onMouseMove_);
+        this.renderer.events.off("lup", this._onLUp_);
+
         this._cornersLayer.events.off("mouseenter", this._onCornerEnter_);
         this._cornersLayer.events.off("mouseleave", this._onCornerLeave_);
         this._cornersLayer.events.off("ldown", this._onCornerLdown_);
@@ -179,6 +185,7 @@ class RulerScene extends RenderNode {
 
         this._onLclick_ = null;
         this._onMouseMove_ = null;
+        this._onLUp_ = null;
         this._onCornerLeave_ = null;
         this._onCornerEnter_ = null;
         this._onCornerLdown_ = null;
@@ -200,12 +207,16 @@ class RulerScene extends RenderNode {
         }
     }
 
-    _onCornerLup(e) {
+    _onLUp() {
         if (this._pickedCorner) {
             this.renderer.controls.mouseNavigation.activate();
             this._pickedCorner = null;
             this._anchorLonLat = null;
         }
+    }
+
+    _onCornerLup() {
+        this._onLUp();
     }
 
     _onCornerEnter(e) {

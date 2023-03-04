@@ -99,6 +99,8 @@ class Handler {
         this._params.extensions = this._params.extensions || [];
         this._oneByHeight = 1.0 / (this._params.height * this._params.pixelRatio);
 
+        this._params.context.stencil = true;
+
         /**
          * Current WebGL extensions. Becomes here after context initialization.
          * @public

@@ -77,6 +77,8 @@ export class Framebuffer {
 
         this._depthComponent = options.depthComponent != undefined ? options.depthComponent : "DEPTH_COMPONENT16";
 
+        this._renderbufferTarget = options.renderbufferTarget != undefined ? options.renderbufferTarget : "DEPTH_ATTACHMENT";
+
         this._useDepth = options.useDepth != undefined ? options.useDepth : true;
 
         /**
@@ -170,7 +172,7 @@ export class Framebuffer {
             this._depthRenderbuffer = gl.createRenderbuffer();
             gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthRenderbuffer);
             gl.renderbufferStorage(gl.RENDERBUFFER, gl[this._depthComponent], this._width, this._height);
-            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this._depthRenderbuffer);
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl[this._renderbufferTarget], gl.RENDERBUFFER, this._depthRenderbuffer);
             gl.bindRenderbuffer(gl.RENDERBUFFER, null);
         }
 

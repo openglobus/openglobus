@@ -16,6 +16,7 @@ import { TextureAtlas } from "../utils/TextureAtlas.js";
 import * as arial from "../arial.js";
 import { depth } from "../shaders/depth.js";
 import { LabelWorker } from "../entity/LabelWorker.js";
+import { pickingMask } from "../shaders/pickingMask.js";
 
 let __pickingCallbackCounter__ = 0;
 
@@ -442,7 +443,9 @@ class Renderer {
 
         this.pickingFramebuffer = new Framebuffer(this.handler, {
             width: 640,
-            height: 480
+            height: 480,
+            depthComponent: "DEPTH_STENCIL",
+            renderbufferTarget: "DEPTH_STENCIL_ATTACHMENT"
         }).init();
 
         this._tempPickingPix_ = new Uint8Array(this.pickingFramebuffer.width * this.pickingFramebuffer.height * 4);
@@ -488,6 +491,8 @@ class Renderer {
             this.handler.addPrograms([toneMapping()]);
 
             this.handler.addPrograms([depth()]);
+
+            this.handler.addProgram(pickingMask());
 
             this.sceneFramebuffer = new Multisample(this.handler, {
                 size: 1,
@@ -545,6 +550,8 @@ class Renderer {
         this.outputTexture = this.screenTexture.screen;
 
         this.fontAtlas.initFont("arial", arial.data, arial.image);
+
+        this._pickingMaskCoordinatesBuffer = this.handler.createArrayBuffer(new Float32Array([0, 0]), 2, 1);
     }
 
     resize() {
@@ -802,7 +809,7 @@ class Renderer {
             this._drawEntityCollections();
 
             if (pointerEvent) {
-                this._drawPickingBuffer(k);
+                this._drawPickingBuffer();
                 this._drawDistanceBuffer();
             }
         }
@@ -894,20 +901,53 @@ class Renderer {
      * Draw picking objects framebuffer.
      * @private
      */
-    _drawPickingBuffer(frustumIndex) {
+    _drawPickingBuffer() {
         this.pickingFramebuffer.activate();
 
-        var h = this.handler;
-        var gl = h.gl;
+        let h = this.handler;
+        let gl = h.gl;
 
         if (this.activeCamera.isFirstPass) {
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
         } else {
-            gl.clear(gl.DEPTH_BUFFER_BIT);
+            gl.clear(gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
         }
 
         gl.disable(h.gl.BLEND);
+
+        //
+        // draw picking mask
+        //
+        h.programs.pickingMask.activate();
+        let sh = h.programs.pickingMask._program;
+        let shu = sh.uniforms,
+            sha = sh.attributes;
+
+        let ts = this.events.touchState,
+            ms = this.events.mouseState;
+
+        gl.disable(gl.DEPTH_TEST);
+
+        gl.enable(gl.STENCIL_TEST);
+        gl.colorMask(false, false, false, false);
+        gl.stencilFunc(gl.ALWAYS, 2, 0xFF);
+        gl.stencilOp(gl.REPLACE, gl.ZERO, gl.REPLACE);
+
+        gl.uniform2f(shu.offset, (ms.nx - 0.5) * 2, (0.5 - ms.ny) * 2);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingMaskCoordinatesBuffer);
+        gl.vertexAttribPointer(sha.coordinates, this._pickingMaskCoordinatesBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.POINTS, 0, this._pickingMaskCoordinatesBuffer.numItems);
+
+        gl.enable(gl.DEPTH_TEST);
+
+        //
+        // draw picking scenes
+        //
+        gl.colorMask(true, true, true, true);
+        gl.stencilFunc(gl.EQUAL, 2, 0xFF);
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
 
         let dp = this._pickingCallbacks;
         let i = dp.length;
@@ -918,6 +958,8 @@ class Renderer {
              */
             dp[i].callback.call(dp[i].sender);
         }
+
+        gl.disable(gl.STENCIL_TEST);
 
         this.pickingFramebuffer.deactivate();
     }
