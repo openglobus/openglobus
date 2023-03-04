@@ -17,6 +17,20 @@ const RB_M = 0b0010;
 const MB_M = 0b0100;
 
 /**
+ * Stores current picking rgb color.
+ * @private
+ * @type {Array.<number>} - (exactly 3 entries)
+ */
+let _currPickingColor = new Uint8Array(4);
+
+/**
+ * Stores previous picked rgb color.
+ * @private
+ * @type {Array.<number>} - (exactly 3 entries)
+ */
+let _prevPickingColor = new Uint8Array(4);
+
+/**
  * Renderer events handler.
  * @class
  * @param {Renderer} renderer - Renderer object, events that works for.
@@ -597,8 +611,8 @@ class RendererEvents extends Events {
         if (!(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
             let r = this.renderer;
             let o = r.colorObjects;
-            let c = r._currPickingColor,
-                p = r._prevPickingColor;
+            let c = _currPickingColor,
+                p = _prevPickingColor;
 
             p[0] = c[0];
             p[1] = c[1];
@@ -841,11 +855,11 @@ class RendererEvents extends Events {
             var r = this.renderer;
 
             r.pickingFramebuffer.activate();
-            r.pickingFramebuffer.readPixels(r._currPickingColor, ts.nx, 1.0 - ts.ny, 1);
+            r.pickingFramebuffer.readPixels(_currPickingColor, ts.nx, 1.0 - ts.ny, 1);
             r.pickingFramebuffer.deactivate();
 
             var o = r.colorObjects;
-            var c = r._currPickingColor;
+            var c = _currPickingColor;
             var co = o[c[0] + "_" + c[1] + "_" + c[2]];
             tpo = ts.pickingObject = co;
             if (tpo) {

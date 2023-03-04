@@ -23,10 +23,6 @@ let __depthCallbackCounter__ = 0;
 
 let __distanceCallbackCounter__ = 0;
 
-const DIFFUSE = 0;
-const NORMAL = 1;
-const POSITION = 2;
-
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
  * @class
@@ -191,20 +187,6 @@ class Renderer {
         this.blitFramebuffer = null;
 
         this.toneMappingFramebuffer = null;
-
-        /**
-         * Stores current picking rgb color.
-         * @private
-         * @type {Array.<number>} - (exactly 3 entries)
-         */
-        this._currPickingColor = new Uint8Array(4);
-
-        /**
-         * Stores previous picked rgb color.
-         * @private
-         * @type {Array.<number>} - (exactly 3 entries)
-         */
-        this._prevPickingColor = new Uint8Array(4);
 
         this._initialized = false;
 
@@ -836,9 +818,6 @@ class Renderer {
             }
             this._readPickingBuffer();
             this._readDistanceBuffer();
-
-            //TODO: replace to event loop
-            //this._readPickingColor();
         }
 
         // Tone mapping followed by rendering on the screen
@@ -1024,23 +1003,6 @@ class Renderer {
         this.pickingFramebuffer.activate();
         this.pickingFramebuffer.readAllPixels(this._tempPickingPix_);
         this.pickingFramebuffer.deactivate();
-    }
-
-    _readPickingColor() {
-        let ms = this.events.mouseState;
-        let ts = this.events.touchState;
-
-        if (!(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
-            this._prevPickingColor[0] = this._currPickingColor[0];
-            this._prevPickingColor[1] = this._currPickingColor[1];
-            this._prevPickingColor[2] = this._currPickingColor[2];
-
-            if (ts.x || ts.y) {
-                this.readPickingColor(ts.nx, 1 - ts.ny, this._currPickingColor);
-            } else {
-                this.readPickingColor(ms.nx, 1 - ms.ny, this._currPickingColor);
-            }
-        }
     }
 
     _readDistanceBuffer() {
