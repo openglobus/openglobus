@@ -123,13 +123,24 @@ export class Multisample {
         for (var i = 0; i < this.renderbuffers.length; i++) {
             let rb = gl.createRenderbuffer();
             gl.bindRenderbuffer(gl.RENDERBUFFER, rb);
-            gl.renderbufferStorageMultisample(
-                gl.RENDERBUFFER,
-                this._msaa,
-                gl[this._internalFormat],
-                this._width,
-                this._height
-            );
+
+            if (this._msaa > 0) {
+                gl.renderbufferStorageMultisample(
+                    gl.RENDERBUFFER,
+                    this._msaa,
+                    gl[this._internalFormat],
+                    this._width,
+                    this._height
+                );
+            } else {
+                gl.renderbufferStorage(
+                    gl.RENDERBUFFER,
+                    gl[this._internalFormat],
+                    this._width,
+                    this._height
+                );
+            }
+
             gl.framebufferRenderbuffer(
                 gl.FRAMEBUFFER,
                 gl.COLOR_ATTACHMENT0 + i,

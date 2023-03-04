@@ -13,6 +13,7 @@ import { LonLat } from "../LonLat.js";
 import { Ray } from "../math/Ray.js";
 import { Quat } from "../math/Quat.js";
 import { Mat4 } from "../math/Mat4.js";
+import { Planet } from "../scene/Planet.js";
 
 /**
  * Planet camera.
@@ -121,6 +122,8 @@ class PlanetCamera extends Camera {
         this._completeCallback = null;
         this._flying = false;
         this._checkTerrainCollision = true;
+
+        this._velCart = new Vec3(0.0,0.0,0.0);
     }
 
     setTerrainCollisionActivity(isActive) {
@@ -657,6 +660,24 @@ class PlanetCamera extends Camera {
         let e = this.eye.length();
         return this.eye.distance(poi) < Math.sqrt(e * e - this.planet.ellipsoid._a2);
     }
+
+    // _calcOrientation() {
+    //     let qq = Quat.yRotation(this.yaw * RADIANS).mul(this._qNorthFrame).conjugate();
+    //     this.orientation = qq.mulVec3(MODEL_FORWARD).normalize();
+    //     this._uOrientation[0] = this.orientation.x;
+    //     this._uOrientation[1] = this.orientation.y;
+    //     this._uOrientation[2] = this.orientation.z;
+    // }
+    //
+    // _updatePrediction(now) {
+    //
+    //     this._qNorthFrame = Planet.getBearingNorthRotationQuat(this.eye);
+    //
+    //     let dt = (now - this._positionTime) * 0.001;
+    //     this._positionTime = now;
+    //
+    //     this._predMapPosCart = this.eye.add(this._velCartesian.scaleTo(dt));
+    // }
 }
 
 export { PlanetCamera };

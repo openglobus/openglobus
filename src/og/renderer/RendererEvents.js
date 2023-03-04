@@ -591,21 +591,29 @@ class RendererEvents extends Events {
      * @private
      */
     entityPickingEvents() {
-        var ts = this.touchState,
+        let ts = this.touchState,
             ms = this.mouseState;
 
         if (!(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
-            var r = this.renderer;
-
-            var o = r.colorObjects;
-
-            var c = r._currPickingColor,
+            let r = this.renderer;
+            let o = r.colorObjects;
+            let c = r._currPickingColor,
                 p = r._prevPickingColor;
+
+            p[0] = c[0];
+            p[1] = c[1];
+            p[2] = c[2];
+
+            if (ts.x || ts.y) {
+                r.readPickingColor(ts.nx, 1 - ts.ny, c);
+            } else {
+                r.readPickingColor(ms.nx, 1 - ms.ny, c);
+            }
 
             ms.pickingObject = null;
             ts.pickingObject = null;
 
-            var co = o && o[c[0] + "_" + c[1] + "_" + c[2]];
+            let co = o && o[c[0] + "_" + c[1] + "_" + c[2]];
 
             ms.pickingObject = co;
             ts.pickingObject = co;
@@ -638,7 +646,7 @@ class RendererEvents extends Events {
                     }
 
                     if (co) {
-                        var ce = co.rendererEvents;
+                        let ce = co.rendererEvents;
                         ms.pickingObject = co;
                         ce && ce.dispatch(ce.mouseenter, ms);
                         ts.pickingObject = co;

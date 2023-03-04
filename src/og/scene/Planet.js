@@ -40,7 +40,8 @@ const CUR_LOD_SIZE = 250; //px
 const MIN_LOD_SIZE = 312; //px
 const MAX_LOD_SIZE = 190; //px
 
-let _tempPickingPix_ = new Uint8Array(4), _tempDepthColor_ = new Uint8Array(4);
+let _tempPickingPix_ = new Uint8Array(4);
+let _tempDepthColor_ = new Uint8Array(4);
 
 const DEPTH_DISTANCE = 11;//m
 
@@ -754,13 +755,15 @@ export class Planet extends RenderNode {
 
         this.renderer.addDepthCallback(this, this._renderDepthFramebufferPASS);
 
-        this._heightPickingFramebuffer = new Framebuffer(this.renderer.handler, {
-            width: 320, height: 240
-        });
+        this.renderer.addDistanceCallback(this, this._renderDistanceFramebufferPASS);
 
-        this._heightPickingFramebuffer.init();
+        // this._heightPickingFramebuffer = new Framebuffer(this.renderer.handler, {
+        //     width: 320, height: 240
+        // });
+        //
+        // this._heightPickingFramebuffer.init();
 
-        this.renderer.screenTexture.height = this._heightPickingFramebuffer.textures[0];
+        //this.renderer.screenTexture.height = this._heightPickingFramebuffer.textures[0];
     }
 
     _onLayerLoadend(layer) {
@@ -1160,7 +1163,7 @@ export class Planet extends RenderNode {
 
         this._renderScreenNodesPASS();
 
-        this._renderHeightPickingFramebufferPASS();
+        //this._renderHeightPickingFramebufferPASS();
 
         this.drawEntityCollections(this._frustumEntityCollections);
     }
@@ -1457,10 +1460,8 @@ export class Planet extends RenderNode {
     /**
      * @protected
      */
-    _renderHeightPickingFramebufferPASS() {
+    _renderDistanceFramebufferPASS() {
         if (!this.terrain.isEmpty) {
-
-            this._heightPickingFramebuffer.activate();
 
             let sh;
             let renderer = this.renderer;
@@ -1469,12 +1470,12 @@ export class Planet extends RenderNode {
             let cam = renderer.activeCamera;
             let frustumIndex = cam.currentFrustumIndex;
 
-            if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
-                gl.clearColor(0.0, 0.0, 0.0, 1.0);
-                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            } else {
-                gl.clear(gl.DEPTH_BUFFER_BIT);
-            }
+            // if (frustumIndex === cam.FARTHEST_FRUSTUM_INDEX) {
+            //     gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            //     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            // } else {
+            //     gl.clear(gl.DEPTH_BUFFER_BIT);
+            // }
 
             h.programs.drawnode_heightPicking.activate();
             sh = h.programs.drawnode_heightPicking._program;
@@ -1487,14 +1488,13 @@ export class Planet extends RenderNode {
             gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
             // drawing planet nodes
-            let rn = this._renderedNodesInFrustum[frustumIndex], sl = this._visibleTileLayerSlices;
+            let rn = this._renderedNodesInFrustum[frustumIndex];
+            let sl = this._visibleTileLayerSlices;
 
             let i = rn.length;
             while (i--) {
                 rn[i].segment.heightPickingRendering(sh, sl[0]);
             }
-
-            this._heightPickingFramebuffer.deactivate();
         }
     }
 
@@ -1523,7 +1523,8 @@ export class Planet extends RenderNode {
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
         // drawing planet nodes
-        var rn = this._renderedNodesInFrustum[cam.getCurrentFrustum()], sl = this._visibleTileLayerSlices;
+        let rn = this._renderedNodesInFrustum[cam.getCurrentFrustum()];
+        let sl = this._visibleTileLayerSlices;
 
         let i = rn.length;
         while (i--) {
@@ -1762,23 +1763,19 @@ export class Planet extends RenderNode {
             return this.getDistanceFromPixelEllipsoid(px) || 0;
         } else {
 
-            let r = this.renderer, cnv = this.renderer.handler.canvas;
+            let r = this.renderer;
+            let cnv = this.renderer.handler.canvas;
 
-            let spx = px.x / cnv.width, spy = (cnv.height - px.y) / cnv.height;
+            let spx = px.x / cnv.width;
+            let spy = (cnv.height - px.y) / cnv.height;
 
             _tempPickingPix_[0] = _tempPickingPix_[1] = _tempPickingPix_[2] = 0.0;
 
             let dist = 0;
 
-            // HEIGHT
-            this._heightPickingFramebuffer.activate();
+            r.readDistanceColor(spx, spy, _tempPickingPix_);
 
-            //if (this._heightPickingFramebuffer.isComplete()) {
-            this._heightPickingFramebuffer.readPixels(_tempPickingPix_, spx, spy);
             dist = decodeFloatFromRGBAArr(_tempPickingPix_);
-            //}
-
-            this._heightPickingFramebuffer.deactivate();
 
             if (!(_tempPickingPix_[0] || _tempPickingPix_[1] || _tempPickingPix_[2])) {
                 dist = this.getDistanceFromPixelEllipsoid(px) || 0;
