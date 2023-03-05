@@ -1116,6 +1116,10 @@ export class Planet extends RenderNode {
     _globalPreDraw() {
         let cam = this.camera;
 
+        // Might be it's better to replace it in setTerrain,
+        // but we have to be sure that setTerrain exists with renderer insttance
+        this.renderer.__useDistanceFramebuffer__ = !this.terrain.isEmpty;
+
         this._distBeforeMemClear += this._prevCamEye.distance(cam.eye);
         this._prevCamEye.copy(cam.eye);
         cam.checkFly();
