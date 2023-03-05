@@ -1,6 +1,6 @@
 # Openglobus
 
-[English](README.md) | [简体中文](README_CN.md)
+[English](README.md) | [简体中文](README_CN.md) | Portuguese-BR
 
 [Openglobus](http://www.openglobus.org/) é uma biblioteca projetada para dispor um mapa 3D para planetas
 por meio de "tiles maps" (mapa ou imagens em ladrilho), imagens e dados em vetores, marcadores e objeto 3D. Usando tecnologia WebGL , de código aberto e completamente livre.
