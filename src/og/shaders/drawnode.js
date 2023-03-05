@@ -725,7 +725,7 @@ export function drawnode_screen_wl_webgl2Atmos() {
                 float maxDist = sqrt(c * c - BOTTOM_RADIUS * BOTTOM_RADIUS);
                 float minDist = c - BOTTOM_RADIUS;
                 float vertDist = distance(cameraPosition, v_vertex);                    
-                opacity = maxMinOpacity.y + ( maxMinOpacity.x -  maxMinOpacity.y) * getLerpValue(minDist, maxDist, vertDist);
+                opacity = clamp(maxMinOpacity.y + ( maxMinOpacity.x -  maxMinOpacity.y) * getLerpValue(minDist, maxDist, vertDist), 0.0, 1.0);
             }
 
             void main(void) {

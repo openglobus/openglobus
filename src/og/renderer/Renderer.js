@@ -224,6 +224,8 @@ class Renderer {
         this._fnScreenFrame = null;
 
         this.labelWorker = new LabelWorker(4);
+
+        this.useDistanceFramebuffer = params.useDistanceFramebuffer != undefined ? params.useDistanceFramebuffer : true;
     }
 
     /**
@@ -810,7 +812,7 @@ class Renderer {
 
             if (pointerEvent) {
                 this._drawPickingBuffer();
-                this._drawDistanceBuffer();
+                this.useDistanceFramebuffer && this._drawDistanceBuffer();
             }
         }
 
@@ -824,7 +826,7 @@ class Renderer {
                 this._drawDepthBuffer();
             }
             this._readPickingBuffer();
-            this._readDistanceBuffer();
+            this.useDistanceFramebuffer && this._readDistanceBuffer();
         }
 
         // Tone mapping followed by rendering on the screen

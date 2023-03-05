@@ -143,12 +143,12 @@ class Lighting extends Control {
 
         this._atmosphereMaxOpacity = new Slider({
             label: "Max.opacity",
-            max: 1
+            max: 5
         });
 
         this._atmosphereMinOpacity = new Slider({
             label: "Min.opacity",
-            max: 1
+            max: 5
         });
 
         this._gamma = new Slider({

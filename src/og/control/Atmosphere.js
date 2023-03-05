@@ -383,7 +383,7 @@ function atmosphereBackgroundShader() {
                     light += sunLum * SUN_INTENSITY * transmittanceFromCameraToSpace;
                 }
                             
-                fragColor = vec4(pow(light * 8.0, vec3(1.0 / 2.2)), opacity);           
+                fragColor = vec4(pow(light * 8.0, vec3(1.0 / 2.2)), clamp(opacity, 0.0, 1.0));           
             }
                                     
             void main(void) 
