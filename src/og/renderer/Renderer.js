@@ -881,8 +881,8 @@ class Renderer {
 
     _screenFrameNoMSAA() {
 
-        var h = this.handler;
-        var sh = h.programs.screenFrame,
+        let h = this.handler;
+        let sh = h.programs.screenFrame,
             p = sh._program,
             gl = h.gl;
 
@@ -914,8 +914,6 @@ class Renderer {
             gl.clear(gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
         }
 
-        gl.disable(h.gl.BLEND);
-
         //
         // draw picking mask
         //
@@ -924,7 +922,7 @@ class Renderer {
         let shu = sh.uniforms,
             sha = sh.attributes;
 
-        let ts = this.events.touchState,
+        let /*ts = this.events.touchState,*/
             ms = this.events.mouseState;
 
         gl.disable(gl.DEPTH_TEST);
@@ -949,6 +947,8 @@ class Renderer {
         gl.stencilFunc(gl.EQUAL, 2, 0xFF);
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
 
+        gl.disable(gl.BLEND);
+
         let dp = this._pickingCallbacks;
         let i = dp.length;
         while (i--) {
@@ -959,6 +959,8 @@ class Renderer {
             dp[i].callback.call(dp[i].sender);
         }
 
+        gl.enable(gl.BLEND);
+
         gl.disable(gl.STENCIL_TEST);
 
         this.pickingFramebuffer.deactivate();
@@ -968,7 +970,7 @@ class Renderer {
      * Draw picking objects framebuffer.
      * @private
      */
-    _drawDistanceBuffer(frustumIndex) {
+    _drawDistanceBuffer() {
         this.distanceFramebuffer.activate();
 
         let h = this.handler;

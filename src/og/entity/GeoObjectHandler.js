@@ -421,10 +421,14 @@ class GeoObjectHandler {
 
         sh.activate();
 
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.BLEND);
+        gl.enable(gl.CULL_FACE);
+
         //
         // Could be in VAO
         //
-        gl.enable(gl.CULL_FACE);
         gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
 
         gl.uniform3fv(u.eyePositionHigh, r.activeCamera.eyeHigh);
@@ -486,7 +490,6 @@ class GeoObjectHandler {
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer);
             p.drawElementsInstanced(gl.TRIANGLES, tagData._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0, tagData.numInstances);
         }
-        gl.disable(gl.CULL_FACE);
     }
 
     drawPicking() {
@@ -496,12 +499,16 @@ class GeoObjectHandler {
     }
 
     _pickingPASS() {
-        let r = this._planet.renderer, sh = r.handler.programs.geo_object_picking, p = sh._program, u = p.uniforms,
-            a = p.attributes, gl = r.handler.gl, ec = this._entityCollection;
+        let r = this._planet.renderer,
+            sh = r.handler.programs.geo_object_picking,
+            p = sh._program,
+            u = p.uniforms,
+            a = p.attributes,
+            gl = r.handler.gl,
+            ec = this._entityCollection;
 
         sh.activate();
 
-        gl.enable(gl.CULL_FACE);
         gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
 
         gl.uniform1f(u.pickingScale, ec.pickingScale);
@@ -548,7 +555,6 @@ class GeoObjectHandler {
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer);
             p.drawElementsInstanced(gl.TRIANGLES, tagData._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0, tagData.numInstances);
         }
-        gl.disable(gl.CULL_FACE);
     }
 
     async _loadDataTagTexture(tagData) {
