@@ -139,7 +139,4 @@ npm run build
 ## 开源许可
 
 MIT
-=======
-
-[![Build Status](https://travis-ci.com/openglobus/openglobus.svg?branch=master)](https://travis-ci.com/openglobus/openglobus) ![Join the chat at https://gitter.im/openglobus/og](https://badges.gitter.im/openglobus/og.svg)
 
