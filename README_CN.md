@@ -1,6 +1,6 @@
 # Openglobus
 
-[English](README.md) | 简体中文
+[English](README.md) | 简体中文 | [Portuguese-BR](README_pt-BR.md)
 
 [Openglobus](http://www.openglobus.org/) 是一个用于展示带有地图瓦片、影像、矢量数据、标注、三维物体的交互式三维地图（地球）的 JavaScript 库。它基于 WebGL 技术，开源且免费。
 
@@ -138,5 +138,4 @@ npm run build
 
 ## 开源许可
 
-MIT
-=======
+### MIT
