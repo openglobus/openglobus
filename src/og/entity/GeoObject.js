@@ -1,5 +1,5 @@
 /**
- * @module og/shape/BaseShape
+ * @module og/entity/GeoObject
  */
 
 "use strict";

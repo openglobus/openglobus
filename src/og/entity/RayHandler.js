@@ -365,6 +365,8 @@ class RayHandler {
 
         //gl.polygonOffset(ec.polygonOffsetFactor, ec.polygonOffsetUnits);
 
+        gl.disable(gl.CULL_FACE);
+
         gl.uniform1f(shu.uOpacity, ec._fadingOpacity);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera.getViewMatrix());
@@ -432,6 +434,8 @@ class RayHandler {
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
+
+        gl.enable(gl.CULL_FACE);
     }
 
     _pickingPASS() {

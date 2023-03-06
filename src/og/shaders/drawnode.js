@@ -768,6 +768,10 @@ export function drawnode_screen_wl_webgl2Atmos() {
                 
                 float fadingOpacity;
                 getAtmosFadingOpacity(fadingOpacity);
+                
+                getSunIlluminance(cameraPosition, viewDir * SPHERE_TO_ELLIPSOID_SCALE, sunIlluminance);
+                
+                spec *= sunIlluminance;
 
                 diffuseColor = texture( defaultTexture, vTextureCoord.xy );
                 if( samplerCount == 0 ) {

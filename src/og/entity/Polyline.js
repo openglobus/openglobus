@@ -2035,6 +2035,8 @@ class Polyline {
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer);
             gl.drawElements(gl.TRIANGLE_STRIP, this._indexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+
+            gl.enable(gl.CULL_FACE);
         }
     }
 
@@ -2091,6 +2093,8 @@ class Polyline {
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer);
             gl.drawElements(gl.TRIANGLE_STRIP, this._indexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+
+            gl.enable(gl.CULL_FACE);
         }
     }
 

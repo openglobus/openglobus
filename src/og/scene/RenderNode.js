@@ -294,12 +294,9 @@ class RenderNode extends BaseNode {
      */
     drawPickingEntityCollections(ec) {
         if (ec.length) {
-            var gl = this.renderer.handler.gl;
-
-            gl.disable(gl.CULL_FACE);
 
             // billoard pass
-            var i = ec.length;
+            let  i = ec.length;
             while (i--) {
                 ec[i]._fadingOpacity && ec[i].billboardHandler.drawPicking();
             }
@@ -322,18 +319,10 @@ class RenderNode extends BaseNode {
                 ec[i]._fadingOpacity && ec[i].rayHandler.drawPicking();
             }
 
-            gl.enable(gl.CULL_FACE);
-
             // polylines pass
             i = ec.length;
             while (i--) {
                 ec[i]._visibility && ec[i].polylineHandler.drawPicking();
-            }
-
-            //shapes pass
-            i = ec.length;
-            while (i--) {
-                ec[i]._visibility && ec[i].shapeHandler.drawPicking();
             }
 
             //Strip pass

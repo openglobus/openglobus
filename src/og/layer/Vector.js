@@ -280,10 +280,6 @@ class Vector extends Layer {
     _proceedEntity(entity, rightNow) {
         let temp = this._hasImageryTiles;
 
-        //
-        // ...pointCloud, shape, model etc.
-        //
-
         if (entity.strip) {
             this._stripEntityCollection.add(entity);
         }
@@ -554,7 +550,7 @@ class Vector extends Layer {
                 this._polylineEntityCollection.add(ei);
             } else if (ei.geoObject) {
                 this._geoObjectEntityCollection.add(ei);
-            } else if (ei.billboard || ei.label || ei.shape) {
+            } else if (ei.billboard || ei.label) {
                 entitiesForTree.push(ei);
             }
 

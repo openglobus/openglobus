@@ -684,12 +684,11 @@ class Renderer {
         let ec = this._entityCollections;
 
         if (ec.length) {
-            var gl = this.handler.gl;
+            let gl = this.handler.gl;
 
             gl.enable(gl.BLEND);
             gl.blendEquation(gl.FUNC_ADD);
             gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
-            gl.disable(gl.CULL_FACE);
 
             // billboards pass
             gl.activeTexture(gl.TEXTURE0);
@@ -735,22 +734,11 @@ class Renderer {
                 ec[i]._fadingOpacity && ec[i].polylineHandler.draw();
             }
 
-            gl.enable(gl.CULL_FACE);
-
             // pointClouds pass
             i = ec.length;
             while (i--) {
                 if (ec[i]._fadingOpacity) {
                     ec[i].pointCloudHandler.draw();
-                }
-            }
-
-            // shapes pass
-            i = ec.length;
-            while (i--) {
-                eci = ec[i];
-                if (eci._fadingOpacity) {
-                    eci.shapeHandler.draw();
                 }
             }
 

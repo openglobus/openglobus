@@ -1,8 +1,9 @@
 "use strict";
 
 /**
- * @module og/entity/ShapeHandler
+ * @module og/entity/GeoObjectHandler
  */
+
 import * as shaders from "../shaders/geoObject.js";
 import { concatArrays, loadImage, makeArrayTyped, spliceArray } from "../utils/shared.js";
 
@@ -424,7 +425,9 @@ class GeoObjectHandler {
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
-        gl.enable(gl.CULL_FACE);
+
+        // By defaul CULL FACE is enabled
+        //gl.enable(gl.CULL_FACE);
 
         //
         // Could be in VAO
@@ -485,7 +488,6 @@ class GeoObjectHandler {
 
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._texCoordBuffer);
             gl.vertexAttribPointer(a.aTexCoord, tagData._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer);
             p.drawElementsInstanced(gl.TRIANGLES, tagData._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0, tagData.numInstances);

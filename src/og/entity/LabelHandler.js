@@ -205,7 +205,6 @@ class LabelHandler extends BillboardHandler {
             ec = this._entityCollection;
 
         gl.disable(gl.CULL_FACE);
-        //gl.disable(gl.DEPTH_TEST);
 
         gl.uniform1iv(shu.fontTextureArr, r.fontAtlas.samplerArr);
         gl.uniform4fv(shu.sdfParamsArr, r.fontAtlas.sdfParamsArr);
@@ -287,6 +286,8 @@ class LabelHandler extends BillboardHandler {
 
         var rn = ec.renderNode;
 
+        gl.disable(gl.CULL_FACE);
+
         gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera._viewMatrix._m);
         gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
         gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
@@ -325,8 +326,9 @@ class LabelHandler extends BillboardHandler {
 
         gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits + window.LABEL_DEPTH_OFFSET);
 
-
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
+
+        gl.enable(gl.CULL_FACE);
     }
 
     _removeBillboard(label) {
