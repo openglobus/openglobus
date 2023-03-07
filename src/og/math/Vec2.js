@@ -50,12 +50,12 @@ export class Vec2 {
     /**
      * Returns summary vector.
      * @static
-     * @param {math.Vec2} a - First vector.
-     * @param {math.Vec2} b - Second vector.
-     * @returns {math.Vec2} - Summary vector.
+     * @param {Vec2} a - First vector.
+     * @param {Vec2} b - Second vector.
+     * @returns {Vec2} - Summary vector.
      */
     static add(a, b) {
-        var res = new Vec2(a.x, a.y);
+        const res = new Vec2(a.x, a.y);
         res.addA(b);
         return res;
     }
@@ -63,9 +63,9 @@ export class Vec2 {
     /**
      * Returns two vectors subtraction.
      * @static
-     * @param {math.Vec2} a - First vector.
-     * @param {math.Vec2} b - Second vector.
-     * @returns {math.Vec2} - Vectors subtraction.
+     * @param {Vec2} a - First vector.
+     * @param {Vec2} b - Second vector.
+     * @returns {Vec2} - Vectors subtraction.
      */
     static sub(a, b) {
         var res = new Vec2(a.x, a.y);
@@ -76,9 +76,9 @@ export class Vec2 {
     /**
      * Returns scaled vector.
      * @static
-     * @param {math.Vec2} a - Input vector.
+     * @param {Vec2} a - Input vector.
      * @param {number} scale - Scale value.
-     * @returns {math.Vec2}
+     * @returns {Vec2}
      */
     static scale(a, scale) {
         var res = new Vec2(a.x, a.y);
@@ -89,9 +89,9 @@ export class Vec2 {
     /**
      * Returns two vectors production.
      * @static
-     * @param {math.Vec2} a - First vector.
-     * @param {math.Vec2} b - Second vector.
-     * @returns {math.Vec2}
+     * @param {Vec2} a - First vector.
+     * @param {Vec2} b - Second vector.
+     * @returns {Vec2}
      */
     static mul(a, b) {
         var res = new Vec2(a.x, a.y);
@@ -102,9 +102,9 @@ export class Vec2 {
     /**
      * Returns vector components division product one to another.
      * @static
-     * @param {math.Vec2} a - First vector.
-     * @param {math.Vec2} b - Second vector.
-     * @returns {math.Vec2}
+     * @param {Vec2} a - First vector.
+     * @param {Vec2} b - Second vector.
+     * @returns {Vec2}
      */
     static div(a, b) {
         var res = new Vec2(a.x, a.y);
@@ -115,9 +115,9 @@ export class Vec2 {
     /**
      * Get projection of the first vector to the second.
      * @static
-     * @param {math.Vec2} b - First vector.
-     * @param {math.Vec2} a - Second vector.
-     * @returns {math.Vec2}
+     * @param {Vec2} b - First vector.
+     * @param {Vec2} a - Second vector.
+     * @returns {Vec2}
      */
     static proj_b_to_a(b, a) {
         return a.scaleTo(a.dot(b) / a.dot(a));
@@ -126,8 +126,8 @@ export class Vec2 {
     /**
      * Gets angle between two vectors.
      * @static
-     * @param {math.Vec2} a - First vector.
-     * @param {math.Vec2} b - Second vector.
+     * @param {Vec2} a - First vector.
+     * @param {Vec2} b - Second vector.
      * @returns {number}
      */
     static angle(a, b) {
@@ -137,9 +137,9 @@ export class Vec2 {
     /**
      * Makes vectors normalized and orthogonal to each other.
      * @static
-     * @param {math.Vec2} normal - Normal vector.
-     * @param {math.Vec2} tangent - Tangent vector.
-     * @returns {math.Vec2}
+     * @param {Vec2} normal - Normal vector.
+     * @param {Vec2} tangent - Tangent vector.
+     * @returns {Vec2}
      */
     static orthoNormalize(normal, tangent) {
         normal = normal.norm();
@@ -159,7 +159,7 @@ export class Vec2 {
     /**
      * Returns clone vector.
      * @public
-     * @returns {math.Vec2}
+     * @returns {Vec2}
      */
     clone() {
         return new Vec2(this.x, this.y);
@@ -168,7 +168,7 @@ export class Vec2 {
     /**
      * Compares with vector. Returns true if it equals another.
      * @public
-     * @param {math.Vec2} p - Vector to compare.
+     * @param {Vec2} p - Vector to compare.
      * @returns {boolean}
      */
     equal(p) {
@@ -177,8 +177,8 @@ export class Vec2 {
 
     /**
      * Copy input vector's values.
-     * @param {math.Vec2} point2 - Vector to copy.
-     * @returns {math.Vec2}
+     * @param {Vec2} point2 - Vector to copy.
+     * @returns {Vec2}
      */
     copy(point2) {
         this.x = point2.x;
@@ -207,8 +207,8 @@ export class Vec2 {
     /**
      * Adds vector to the current.
      * @public
-     * @param {math.Vec2}
-     * @returns {math.Vec2}
+     * @param {Vec2}
+     * @returns {Vec2}
      */
     addA(v) {
         this.x += v.x;
@@ -219,8 +219,8 @@ export class Vec2 {
     /**
      * Summarize two vectors.
      * @public
-     * @param {math.Vec2}
-     * @returns {math.Vec2}
+     * @param {Vec2}
+     * @returns {Vec2}
      */
     add(v) {
         return new Vec2(this.x + v.x, this.y + v.y);
@@ -229,8 +229,8 @@ export class Vec2 {
     /**
      * Subtract vector from the current where results saved on the current instance.
      * @public
-     * @param {math.Vec2} v - Subtract vector.
-     * @returns {math.Vec2}
+     * @param {Vec2} v - Subtract vector.
+     * @returns {Vec2}
      */
     subA(v) {
         this.x -= v.x;
@@ -241,8 +241,8 @@ export class Vec2 {
     /**
      * Subtract vector from the current.
      * @public
-     * @param {math.Vec2} v - Subtract vector.
-     * @returns {math.Vec2}
+     * @param {Vec2} v - Subtract vector.
+     * @returns {Vec2}
      */
     sub(v) {
         return new Vec2(this.x - v.x, this.y - v.y);
@@ -252,7 +252,7 @@ export class Vec2 {
      * Scale current vector.
      * @public
      * @param {number} scale - Scale value.
-     * @returns {math.Vec2}
+     * @returns {Vec2}
      */
     scale(scale) {
         this.x *= scale;
@@ -264,7 +264,7 @@ export class Vec2 {
      * Scale current vector to another instance.
      * @public
      * @param {number} scale - Scale value.
-     * @returns {math.Vec2}
+     * @returns {Vec2}
      */
     scaleTo(scale) {
         return new Vec2(this.x * scale, this.y * scale);
@@ -273,8 +273,8 @@ export class Vec2 {
     /**
      * Multiply current vector object to another and store result in the current instance.
      * @public
-     * @param {math.Vec2} vec - Multiply vector.
-     * @returns {math.Vec2}
+     * @param {Vec2} vec - Multiply vector.
+     * @returns {Vec2}
      */
     mulA(vec) {
         this.x *= vec.x;
@@ -285,8 +285,8 @@ export class Vec2 {
     /**
      * Multiply current vector object to another and returns new vector instance.
      * @public
-     * @param {math.Vec2} vec - Multiply vector.
-     * @returns {math.Vec2}
+     * @param {Vec2} vec - Multiply vector.
+     * @returns {Vec2}
      */
     mul(vec) {
         return new Vec2(this.x * vec.x, this.y * vec.y);
@@ -295,8 +295,8 @@ export class Vec2 {
     /**
      * Divide current vector's components to another. Results stores in the current vector object.
      * @public
-     * @param {math.Vec2}
-     * @returns {math.Vec2}
+     * @param {Vec2}
+     * @returns {Vec2}
      */
     divA(vec) {
         this.x /= vec.x;
@@ -307,7 +307,7 @@ export class Vec2 {
     /**
      * Gets vectors dot production.
      * @public
-     * @param {math.Vec2} v - Another vector.
+     * @param {Vec2} v - Another vector.
      * @returns {number}
      */
     dot(v) {
@@ -327,8 +327,8 @@ export class Vec2 {
     /**
      * Gets vectors cross production.
      * @public
-     * @param {math.Vec2} v - Another vector.
-     * @returns {math.Vec2}
+     * @param {Vec2} v - Another vector.
+     * @returns {Vec2}
      */
     cross(v) {
         return this.x * v.y - this.y * v.x;
@@ -337,7 +337,7 @@ export class Vec2 {
     /**
      * Sets vector to zero.
      * @public
-     * @returns {math.Vec2}
+     * @returns {Vec2}
      */
     clear() {
         this.x = this.y = 0;
@@ -347,7 +347,7 @@ export class Vec2 {
     /**
      * Returns normalized vector.
      * @public
-     * @returns {math.Vec2}
+     * @returns {Vec2}
      */
     normal() {
         var res = new Vec2();
@@ -364,7 +364,7 @@ export class Vec2 {
     /**
      * Normalize current vector.
      * @public
-     * @returns {math.Vec2}
+     * @returns {Vec2}
      */
     normalize() {
         var length = 1.0 / this.length();
@@ -387,7 +387,7 @@ export class Vec2 {
     /**
      * Gets distance to point.
      * @public
-     * @param {math.Vec2} p - Distant point.
+     * @param {Vec2} p - Distant point.
      * @returns {number}
      */
     distance(p) {
@@ -400,7 +400,7 @@ export class Vec2 {
      * @public
      * @param {number} x - Value X.
      * @param {number} y - Value Y.
-     * @returns {math.Vec2}
+     * @returns {Vec2}
      */
     set(x, y) {
         this.x = x;
@@ -411,7 +411,7 @@ export class Vec2 {
     /**
      * Negate current vector.
      * @public
-     * @returns {math.Vec2}
+     * @returns {Vec2}
      */
     negate() {
         this.x = -this.x;
@@ -422,7 +422,7 @@ export class Vec2 {
     /**
      * Negate current vector to another instance.
      * @public
-     * @returns {math.Vec2}
+     * @returns {Vec2}
      */
     negateTo() {
         return new Vec2(-this.x, -this.y);
@@ -431,9 +431,9 @@ export class Vec2 {
     /**
      * Gets projected point coordinates of the current vector on the ray.
      * @public
-     * @param {math.Vec2} pos - Ray position.
-     * @param {math.Vec2} direction - Ray direction.
-     * @returns {math.Vec2}
+     * @param {Vec2} pos - Ray position.
+     * @param {Vec2} direction - Ray direction.
+     * @returns {Vec2}
      */
     projToRay(pos, direction) {
         var v = Vec2.proj_b_to_a(Vec2.sub(this, pos), direction);
@@ -444,7 +444,7 @@ export class Vec2 {
     /**
      * Gets angle between two vectors.
      * @public
-     * @param {math.Vec2} a - Another vector.
+     * @param {Vec2} a - Another vector.
      * @returns {number}
      */
     angle(a) {
@@ -454,9 +454,9 @@ export class Vec2 {
     /**
      * Returns two vectors linear interpolation.
      * @public
-     * @param {math.Vec2} v2 - End vector.
+     * @param {Vec2} v2 - End vector.
      * @param {number} l - Interpolate value.
-     * @returns {math.Vec2}
+     * @returns {Vec2}
      */
     lerp(v1, v2, l) {
         var res = Vec2.clone(this);
@@ -480,9 +480,9 @@ export class Vec2 {
      * the vectors are treated as directions rather than points in space. The direction of the returned vector is interpolated
      * by the angle and its magnitude is interpolated between the magnitudes of from and to.
      * @public
-     * @param {math.Vec2} v2 -
+     * @param {Vec2} v2 -
      * @param {number} t - The parameter t is clamped to the range [0, 1].
-     * @returns {math.Vec2}
+     * @returns {Vec2}
      */
     slerp(v2, t) {
         var res = new Vec2();
@@ -517,7 +517,7 @@ export class Vec2 {
  * @function
  * @param {number} [x] - First cvalue.
  * @param {number} [y] - Second value.
- * @returns {math.Vec2}
+ * @returns {Vec2}
  */
 export function vec2(x, y) {
     return new Vec2(x, y);
