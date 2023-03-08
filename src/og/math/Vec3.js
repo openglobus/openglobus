@@ -4,8 +4,8 @@
 
 "use strict";
 
-import { Vec4 } from "./Vec4.js";
 import { Quat } from "./Quat.js";
+import { Vec4 } from "./Vec4.js";
 
 /**
  * Class represents a 3d vector.

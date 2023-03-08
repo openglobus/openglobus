@@ -6,7 +6,6 @@ import { Quat } from "../math/Quat.js";
 import { Ray } from "../math/Ray.js";
 import { Vec3 } from "../math/Vec3.js";
 import { Control } from "./Control.js";
-import { Mat4 } from "../math/Mat4.js";
 
 class Touch {
     constructor() {

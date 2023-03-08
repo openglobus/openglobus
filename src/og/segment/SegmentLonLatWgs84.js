@@ -1,8 +1,7 @@
 "use strict";
 
-import { POLE_PIECE_SIZE, SegmentLonLat } from "./SegmentLonLat.js";
-import { Segment, TILEGROUP_COMMON } from "./Segment.js";
-import * as mercator from "../mercator.js";
+import { TILEGROUP_COMMON } from "./Segment.js";
+import { SegmentLonLat } from "./SegmentLonLat.js";
 
 export class SegmentLonLatWgs84 extends SegmentLonLat {
     constructor(node, planet, tileZoom, extent) {

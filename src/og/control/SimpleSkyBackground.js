@@ -4,9 +4,9 @@
 
 "use strict";
 
-import { Control } from "./Control.js";
-import { Program } from '../webgl/Program.js';
 import { htmlColorToRgb } from "../utils/shared.js";
+import { Program } from '../webgl/Program.js';
+import { Control } from "./Control.js";
 
 /**
  * Frame per second(FPS) display control.

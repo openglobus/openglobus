@@ -1,9 +1,7 @@
 ﻿"use strict";
 
-import { Control } from "./Control.js";
-import { parseHTML } from "../utils/shared.js";
 import { Button } from "../ui/Button.js";
-import { ToggleButton } from "../ui/ToggleButton.js";
+import { Control } from "./Control.js";
 
 const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg

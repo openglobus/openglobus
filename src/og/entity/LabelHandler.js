@@ -5,9 +5,9 @@
 "use strict";
 
 import * as shaders from "../shaders/label.js";
-import { ALIGN } from "./Label.js";
-import { BillboardHandler } from "./BillboardHandler.js";
 import { concatTypedArrays, spliceTypedArray } from "../utils/shared.js";
+import { BillboardHandler } from "./BillboardHandler.js";
+import { ALIGN } from "./Label.js";
 import { LOCK_FREE } from "./LabelWorker.js";
 
 const PICKINGCOLOR_BUFFER = 0;

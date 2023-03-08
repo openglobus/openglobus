@@ -4,9 +4,9 @@
 
 "use strict";
 
-import { Vec3 } from "../math/Vec3.js";
 import { LonLat } from "../LonLat.js";
-import { EPS1, EPS12, EPS15, RADIANS, DEGREES } from "../math.js";
+import { DEGREES, EPS1, EPS12, EPS15, RADIANS } from "../math.js";
+import { Vec3 } from "../math/Vec3.js";
 
 /**
  * Class represents a plant ellipsoid.

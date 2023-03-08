@@ -9,12 +9,12 @@ import { Sphere } from './bv/Sphere.js';
 
 import { Control } from './control/Control.js';
 import { DebugInfo } from './control/DebugInfo';
-import { SimpleNavigation } from './control/SimpleNavigation.js';
 import { ShowFps } from './control/ShowFps.js';
+import { SimpleNavigation } from './control/SimpleNavigation.js';
 
+import { Billboard } from './entity/Billboard.js';
 import { Entity } from './entity/Entity.js';
 import { EntityCollection } from './entity/EntityCollection.js';
-import { Billboard } from './entity/Billboard.js';
 import { Label } from './entity/Label.js';
 import { PointCloud } from './entity/PointCloud.js';
 import { Polyline } from './entity/Polyline.js';
@@ -37,8 +37,8 @@ import { Vec4 } from './math/Vec4.js';
 import { Framebuffer } from './webgl/Framebuffer.js';
 import { Handler } from './webgl/Handler.js';
 import { Multisample } from './webgl/Multisample.js';
-import { types } from './webgl/types.js';
 import { Program } from './webgl/Program.js';
+import { types } from './webgl/types.js';
 
 import { Renderer } from './renderer/Renderer.js';
 

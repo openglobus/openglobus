@@ -1,11 +1,11 @@
 "use strict";
-import { QuadTreeStrategy } from "./QuadTreeStrategy.js"
+import { Extent } from "../Extent.js";
 import * as mercator from "../mercator.js";
+import { Node } from "../quadTree/Node.js";
+import * as quadTree from "../quadTree/quadTree.js";
 import { Segment } from "../segment/Segment.js";
 import { SegmentLonLat } from "../segment/SegmentLonLat.js";
-import * as quadTree from "../quadTree/quadTree.js";
-import { Extent } from "../Extent.js";
-import { Node } from "../quadTree/Node.js";
+import { QuadTreeStrategy } from "./QuadTreeStrategy.js";
 
 export class EarthQuadTreeStrategy extends QuadTreeStrategy {
     constructor(options = {}) {

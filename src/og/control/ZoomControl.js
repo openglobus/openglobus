@@ -4,9 +4,9 @@
 
 "use strict";
 
-import { Control } from "./Control.js";
 import { Key } from "../Lock.js";
 import { Button } from "../ui/Button.js";
+import { Control } from "./Control.js";
 
 const ICON_PLUS_SVG = '<?xml version="1.0"?>' +
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' +

@@ -4,7 +4,6 @@
 
 "use strict";
 
-import * as math from "../math.js";
 import { EPS10 } from "../math.js";
 import { Vec3 } from "./Vec3.js";
 

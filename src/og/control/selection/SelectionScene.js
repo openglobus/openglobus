@@ -1,15 +1,12 @@
 ﻿'use strict';
 
-import * as math from '../../math.js';
-import { RenderNode } from '../../scene/RenderNode.js';
-import { Events } from '../../Events.js';
-import { LonLat } from '../../LonLat.js';
-import { Vec3 } from '../../math/Vec3.js';
-import { Vec2 } from '../../math/Vec2.js';
-import { Vector } from '../../layer/Vector.js';
-import { Entity } from '../../entity/Entity.js';
 import { Ellipsoid } from '../../ellipsoid/Ellipsoid.js';
+import { Entity } from '../../entity/Entity.js';
+import { Events } from '../../Events.js';
+import { Vector } from '../../layer/Vector.js';
+import { LonLat } from '../../LonLat.js';
 import { Object3d } from '../../Object3d.js';
+import { RenderNode } from '../../scene/RenderNode.js';
 
 const OUTLINE_COUNT = 120;
 

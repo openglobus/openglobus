@@ -1,13 +1,13 @@
 "use strict";
 
-import * as math from "../math.js";
 import { Events } from "../Events.js";
-import { Frustum } from "./Frustum.js";
+import * as math from "../math.js";
+import { Mat3 } from "../math/Mat3.js";
+import { Mat4 } from "../math/Mat4.js";
 import { Vec2 } from "../math/Vec2.js";
 import { Vec3 } from "../math/Vec3.js";
 import { Vec4 } from "../math/Vec4.js";
-import { Mat3 } from "../math/Mat3.js";
-import { Mat4 } from "../math/Mat4.js";
+import { Frustum } from "./Frustum.js";
 
 /**
  * Camera class.

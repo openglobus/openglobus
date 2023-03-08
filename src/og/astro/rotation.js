@@ -4,9 +4,9 @@
 
 "use strict";
 
-import { Vec3 } from "../math/Vec3.js";
-import { Mat3 } from "../math/Mat3.js";
 import { PI_TWO } from "../math.js";
+import { Mat3 } from "../math/Mat3.js";
+import { Vec3 } from "../math/Vec3.js";
 
 export function getRotationMatrix(rightAscension, declination, res) {
     let xAxis = new Vec3(),

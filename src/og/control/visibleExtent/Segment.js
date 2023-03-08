@@ -1,15 +1,15 @@
 "use strict";
 
-import * as mercator from "../../mercator.js";
-import { N, E, S, W, OPSIDE, NOTRENDERING } from "../../quadTree/quadTree.js";
-import { EPSG3857 } from "../../proj/EPSG3857.js";
+import { Box } from "../../bv/Box.js";
+import { Sphere } from "../../bv/Sphere.js";
 import { Extent } from "../../Extent.js";
 import { Layer } from "../../layer/Layer.js";
 import { LonLat } from "../../LonLat.js";
 import { Ray } from "../../math/Ray.js";
-import { Sphere } from "../../bv/Sphere.js";
-import { Box } from "../../bv/Box.js";
 import { Vec3 } from "../../math/Vec3.js";
+import * as mercator from "../../mercator.js";
+import { EPSG3857 } from "../../proj/EPSG3857.js";
+import { E, N, NOTRENDERING, OPSIDE, S, W } from "../../quadTree/quadTree.js";
 import * as segmentHelper from "../../segment/segmentHelper.js";
 import { getMatrixSubArray } from "../../utils/shared.js";
 

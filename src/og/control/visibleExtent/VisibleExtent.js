@@ -1,8 +1,8 @@
 "use strict";
 
+import { Slice } from "../../segment/Slice.js";
 import { Control } from "../Control.js";
 import * as shaders from "./drawnode.js";
-import { Slice } from "../../segment/Slice.js";
 
 function rewriteSlice() {
     Slice.prototype.init = function (segment) {

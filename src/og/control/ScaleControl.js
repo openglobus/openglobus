@@ -4,10 +4,10 @@
 
 "use strict";
 
-import { Control } from "./Control.js";
 import { RADIANS } from "../math.js";
-import { binarySearch, parseHTML } from "../utils/shared.js";
 import { Vec3 } from "../math/Vec3.js";
+import { binarySearch, parseHTML } from "../utils/shared.js";
+import { Control } from "./Control.js";
 
 const scale = [
     1, 2, 3, 5, 10, 20, 30, 50, 100, 200, 300, 500, 1e3, 2e3, 3e3, 5e3, 10e3, 20e3, 30e3, 50e3,

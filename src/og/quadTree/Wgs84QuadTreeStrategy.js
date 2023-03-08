@@ -1,10 +1,10 @@
 "use strict";
-import { QuadTreeStrategy } from "./QuadTreeStrategy.js"
-import { SegmentLonLatWgs84 } from "../segment/SegmentLonLatWgs84.js";
-import * as quadTree from "../quadTree/quadTree.js";
 import { Extent } from "../Extent.js";
-import { Node } from "../quadTree/Node.js";
 import { EPSG4326 } from "../proj/EPSG4326.js";
+import { Node } from "../quadTree/Node.js";
+import * as quadTree from "../quadTree/quadTree.js";
+import { SegmentLonLatWgs84 } from "../segment/SegmentLonLatWgs84.js";
+import { QuadTreeStrategy } from "./QuadTreeStrategy.js";
 
 export class Wgs84QuadTreeStrategy extends QuadTreeStrategy {
     constructor(options = {}) {

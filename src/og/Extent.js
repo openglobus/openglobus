@@ -4,9 +4,9 @@
 
 "use strict";
 
+import { LonLat } from "./LonLat.js";
 import * as math from "./math.js";
 import * as mercator from "./mercator.js";
-import { LonLat } from "./LonLat.js";
 
 /**
  * Represents geographical coordinates extent.

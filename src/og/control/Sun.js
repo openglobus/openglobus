@@ -4,11 +4,11 @@
 
 "use strict";
 
-import { Control } from "./Control.js";
 import { getSunPosition } from "../astro/earth.js";
 import { LightSource } from "../light/LightSource.js";
 import { Quat } from "../math/Quat.js";
 import { Vec3 } from "../math/Vec3.js";
+import { Control } from "./Control.js";
 
 /**
  * Real Sun geocentric position control that place the Sun on the right place by the Earth.

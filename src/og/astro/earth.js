@@ -4,11 +4,11 @@
 
 "use strict";
 
-import * as jd from "./jd.js";
 import * as math from "../math.js";
-import * as astro from "./astro.js";
 import { Quat } from "../math/Quat.js";
 import { Vec3 } from "../math/Vec3.js";
+import * as astro from "./astro.js";
+import * as jd from "./jd.js";
 
 /**
  * Returns Sun position in the geocentric coordinate system by the time.

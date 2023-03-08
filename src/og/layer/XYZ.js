@@ -5,11 +5,9 @@
 "use strict";
 
 import * as mercator from "../mercator.js";
-import { EPSG3857 } from "../proj/EPSG3857.js";
-import { Layer } from "./Layer.js";
-import { stringTemplate } from "../utils/shared.js";
 import { RENDERING } from "../quadTree/quadTree.js";
-import { EPSG4326 } from "../proj/EPSG4326.js";
+import { stringTemplate } from "../utils/shared.js";
+import { Layer } from "./Layer.js";
 
 /**
  * Represents an imagery tiles source provider.

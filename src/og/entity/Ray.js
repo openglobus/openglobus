@@ -4,10 +4,9 @@
 
 "use strict";
 
-import * as utils from "../utils/shared.js";
 import { Vec3 } from "../math/Vec3.js";
+import * as utils from "../utils/shared.js";
 import { Entity } from "./Entity.js";
-import { doubleToTwoFloats2 } from "../math/coder.js";
 
 /**
  * Ray class.

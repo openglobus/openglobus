@@ -4,9 +4,9 @@
 
 "use strict";
 
-import * as mercator from "../mercator.js";
 import { Extent } from "../Extent.js";
 import { LonLat } from "../LonLat.js";
+import * as mercator from "../mercator.js";
 import { XYZ } from "./XYZ.js";
 
 /**
@@ -183,3 +183,4 @@ class WMS extends XYZ {
 }
 
 export { WMS };
+

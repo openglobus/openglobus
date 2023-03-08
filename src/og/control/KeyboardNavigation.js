@@ -4,10 +4,10 @@
 
 "use strict";
 
-import * as math from "../math.js";
-import { Control } from "./Control.js";
 import { input } from "../input/input.js";
+import * as math from "../math.js";
 import { Vec3 } from "../math/Vec3.js";
+import { Control } from "./Control.js";
 
 /**
  * Planet camera keyboard navigation. Use W,S,A,D and left shift key for fly around a planet.
@@ -166,3 +166,4 @@ export function keyboardNavigation(options) {
 }
 
 export { KeyboardNavigation };
+
