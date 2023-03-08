@@ -9,30 +9,15 @@ import { Quat } from "./Quat.js";
 
 /**
  * Class represents a 3d vector.
- * @class
- * @param {number} [x] - First value.
- * @param {number} [y] - Second value.
- * @param {number} [z] - Third value.
  */
 export class Vec3 {
-    constructor(x = 0.0, y = 0.0, z = 0.0) {
-        /**
-         * @public
-         * @type {number}
-         */
-        this.x = x || 0.0;
-
-        /**
-         * @public
-         * @type {number}
-         */
-        this.y = y || 0.0;
-
-        /**
-         * @public
-         * @type {number}
-         */
-        this.z = z || 0.0;
+    x = 0;
+    y = 0;
+    z = 0;
+    constructor(x = 0, y = 0, z = 0) {
+        this.x = x || 0;
+        this.y = y || 0;
+        this.z = z || 0;
     }
 
     /** @const */

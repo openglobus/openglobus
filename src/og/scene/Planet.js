@@ -120,6 +120,89 @@ const EVENT_NAMES = [/**
  * @fires og.scene.Planet#geoimageadd
  */
 export class Planet extends RenderNode {
+    _cameraFrustums;
+    ellipsoid;
+    _planetRadius2 = 0;
+    _layers = [];
+    _updateLayer = false;
+    visibleTileLayers = [];
+    visibleVectorLayers = [];
+    _visibleTileLayerSlices = [];
+    _frustumEntityCollections = [];
+    baseLayer;
+    terrain;
+    _terrainPool;
+    camera;
+    _minAltitude;
+    _maxAltitude;
+    maxEqualZoomAltitude = 0;
+    minEqualZoomAltitude = 0;
+    minEqualZoomCameraSlope = 0;
+    mousePositionOnEarth;
+    emptyTexture;
+    transparentTexture;
+    defaultTexture;
+    minCurrZoom = 0;
+    maxCurrZoom = 0;
+    _viewExtent; // Extent
+    _createdNodesCount = 0;
+    _renderedNodes = [];
+    _renderedNodesInFrustum = [];
+    _visibleNodes;
+    _visibleNodesNorth;
+    _visibleNodesSouth;
+    layerLock;// Lock
+    terrainLock;// Lock;
+    _tcolorArr = [];
+    _heightFactor = 0
+    _indexesCache = [];
+    _indexesCacheToRemove = [];
+    _indexesCacheToRemoveCounter = 0;
+    _textureCoordsBufferCache = [];
+    _heightPickingFramebuffer;
+    quadTreeStrategy;
+    _nightTexture;
+    _specularTexture;
+    _ambient;
+    _diffuse;
+    _specular;
+    _useNightTexture;
+    _useSpecularTexture;
+    _maxGridSize = 0;
+    SLICE_SIZE = 0;
+    SLICE_SIZE_4 = 0;
+    SLICE_SIZE_3 = 0;
+    _lodSize = 0;
+    _curLodSize = 0;
+    _minLodSize = 0;
+    _maxLodSize = 0;
+    _pickingColorArr; // Float32Array;
+    _samplerArr; // Int32Array;
+    _pickingMaskArr; // Int32Array;
+    _geoImageCreator;
+    _vectorTileCreator;
+    _normalMapCreator;
+    _terrainWorker; // TerrainWorker;
+    _plainSegmentWorker; // PlainSegmentWorker;
+    _tileLoader; // Loader;
+    _memKey; // Key;
+    _distBeforeMemClear = 0;
+    _prevCamEye; // Vec3;
+    _initialized = false
+    always = [];
+    _renderCompleted = false;
+    _renderCompletedActivated = false;
+    _terrainCompleted = false;
+    _terrainCompletedActivated = false;
+    _collectRenderNodesIsActive = true;
+    nightTextureCoefficient = 2.0;
+    _renderScreenNodesPASS; // () => void;
+    _atmosphereEnabled;
+    _atmosphereMaxMinOpacity; // Float32Array;
+    solidTextureOne;
+    solidTextureTwo;
+    _skipPreRender = false;
+
     constructor(options = {}) {
         super(options.name);
 
