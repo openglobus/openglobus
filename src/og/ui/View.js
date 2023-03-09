@@ -56,6 +56,10 @@ class View {
         }
     }
 
+    get events() {
+        return this._events;
+    }
+
     on(eventName, callback, sender) {
         return this._events.on(eventName, callback, sender);
     }

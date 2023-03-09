@@ -198,9 +198,10 @@ export class VectorTileCreator {
 
             gl.disable(gl.CULL_FACE);
             gl.disable(gl.DEPTH_TEST);
-            gl.enable(gl.BLEND);
-            gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
-            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+            // gl.enable(gl.BLEND);
+            // gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+            // gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
             var hLine = h.programs.vectorTileLineRasterization,
                 hPoly = h.programs.vectorTilePolygonRasterization;
@@ -396,7 +397,6 @@ export class VectorTileCreator {
                 // prevLayerId = material.layer._id;
             }
 
-            gl.disable(gl.BLEND);
             gl.enable(gl.DEPTH_TEST);
             gl.enable(gl.CULL_FACE);
 

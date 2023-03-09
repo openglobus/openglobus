@@ -348,6 +348,8 @@ class BillboardHandler {
 
         var gl = h.gl,
             ec = this._entityCollection;
+
+        gl.disable(gl.CULL_FACE);
         
         gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits + window.BILLBOARD_DEPTH_OFFSET);
 
@@ -392,6 +394,8 @@ class BillboardHandler {
         gl.vertexAttribPointer(sha.a_rotation, this._rotationBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
+
+        gl.enable(gl.CULL_FACE);
     }
 
     _pickingPASS() {
@@ -404,6 +408,8 @@ class BillboardHandler {
 
         var gl = h.gl,
             ec = this._entityCollection;
+
+        gl.disable(gl.CULL_FACE);
 
         gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits + window.BILLBOARD_DEPTH_OFFSET);
 
@@ -442,6 +448,8 @@ class BillboardHandler {
         gl.vertexAttribPointer(sha.a_rotation, this._rotationBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer.numItems);
+
+        gl.enable(gl.CULL_FACE);
     }
 
     draw() {

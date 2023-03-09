@@ -12,7 +12,6 @@ import { LabelHandler } from "./LabelHandler.js";
 import { PointCloudHandler } from "./PointCloudHandler.js";
 import { PolylineHandler } from "./PolylineHandler.js";
 import { RayHandler } from "./RayHandler.js";
-import { ShapeHandler } from "./ShapeHandler.js";
 import { StripHandler } from "./StripHandler.js";
 
 /**
@@ -116,13 +115,6 @@ class EntityCollection {
          * @type {LabelHandler}
          */
         this.labelHandler = new LabelHandler(this, options.labelMaxLetters);
-
-        /**
-         * Shape handler
-         * @public
-         * @type {ShapeHandler}
-         */
-        this.shapeHandler = new ShapeHandler(this);
 
         /**
          * Polyline handler
@@ -264,7 +256,6 @@ class EntityCollection {
         this.labelHandler.pickingEnabled = enable;
         this.polylineHandler.pickingEnabled = enable;
         this.rayHandler.pickingEnabled = enable;
-        this.shapeHandler.pickingEnabled = enable;
         this.pointCloudHandler.pickingEnabled = enable;
         this.stripHandler.pickingEnabled = enable;
         this.geoObjectHandler.pickingEnabled = enable;
@@ -298,9 +289,6 @@ class EntityCollection {
 
         // label
         entity.label && this.labelHandler.add(entity.label);
-
-        // shape
-        entity.shape && this.shapeHandler.add(entity.shape);
 
         // polyline
         entity.polyline && this.polylineHandler.add(entity.polyline);
@@ -386,9 +374,6 @@ class EntityCollection {
 
         // label
         entity.label && this.labelHandler.remove(entity.label);
-
-        // shape
-        entity.shape && this.shapeHandler.remove(entity.shape);
 
         // polyline
         entity.polyline && this.polylineHandler.remove(entity.polyline);
@@ -506,7 +491,6 @@ class EntityCollection {
             this.labelHandler.setRenderer(renderNode.renderer);
             this.rayHandler.setRenderer(renderNode.renderer);
             this.geoObjectHandler.setRenderNode(renderNode);
-            this.shapeHandler.setRenderNode(renderNode);
             this.polylineHandler.setRenderNode(renderNode);
             this.pointCloudHandler.setRenderNode(renderNode);
             this.stripHandler.setRenderNode(renderNode);
@@ -610,7 +594,6 @@ class EntityCollection {
         // code to the clearEntity function.
         this.billboardHandler.clear();
         this.labelHandler.clear();
-        this.shapeHandler.clear();
         this.polylineHandler.clear();
         this.rayHandler.clear();
         this.pointCloudHandler.clear();

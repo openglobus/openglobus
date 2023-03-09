@@ -99,6 +99,8 @@ class Handler {
         this._params.extensions = this._params.extensions || [];
         this._oneByHeight = 1.0 / (this._params.height * this._params.pixelRatio);
 
+        this._params.context.stencil = true;
+
         /**
          * Current WebGL extensions. Becomes here after context initialization.
          * @public
@@ -176,11 +178,18 @@ class Handler {
         let ctx = null;
 
         try {
-            for (let i = 0; i < CONTEXT_TYPE.length; i++) {
-                ctx = canvas.getContext(CONTEXT_TYPE[i], contextAttributes);
-                if (ctx) {
-                    ctx.type = CONTEXT_TYPE[i];
-                    break;
+            let urlParams = new URLSearchParams(location.search);
+            let ver = urlParams.get('og_ver');
+            if (ver) {
+                ctx = canvas.getContext(ver, contextAttributes);
+                ctx.type = ver;
+            } else {
+                for (let i = 0; i < CONTEXT_TYPE.length; i++) {
+                    ctx = canvas.getContext(CONTEXT_TYPE[i], contextAttributes);
+                    if (ctx) {
+                        ctx.type = CONTEXT_TYPE[i];
+                        break;
+                    }
                 }
             }
         } catch (ex) {

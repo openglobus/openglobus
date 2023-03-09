@@ -8,7 +8,6 @@ import { Extent } from "../Extent.js";
 import { LonLat } from "../LonLat.js";
 import { Vec3 } from "../math/Vec3.js";
 import * as mercator from "../mercator.js";
-import { Sphere } from "../shapes/Sphere.js";
 import * as utils from "../utils/shared.js";
 import { Billboard } from "./Billboard.js";
 import { Geometry } from "./Geometry.js";
@@ -26,14 +25,12 @@ import { Strip } from "./Strip.js";
  * @class
  * @param {Object} [options] - Entity options:
  * @param {string} [options.name] - A human readable name to display to users. It does not have to be unique.
- * @param {Vec3|Array.<number>} [options.cartesian] - Spatial entities like billboard, label, sphere etc. cartesian position.
- * @param {LonLat} [options.lonlat] - Geodetic coordiantes for an entities like billboard, label, sphere etc.
+ * @param {Vec3|Array.<number>} [options.cartesian] - Spatial entities like billboard, label etc. cartesian position.
+ * @param {LonLat} [options.lonlat] - Geodetic coordiantes for an entities like billboard, label etc.
  * @param {boolean} [options.aground] - True for entities that have to be placed on the relief.
  * @param {boolean} [options.visibility] - Entity visibility.
  * @param {*} [options.billboard] - Billboard options(see {@link og.Billboard}).
  * @param {*} [options.label] - Label options(see {@link og.Label}).
- * @param {*} [options.sphere] - Sphere options(see {@link og.shape.Sphere}).
- * @param {*} [options.box] - Sphere options(see {@link og.shape.Box}).
  * @param {*} [options.polyline] - Polyline options(see {@link og.Polyline}).
  * @param {*} [options.ray] - Ray options(see {@link og.Ray}).
  * @param {*} [options.pointCloud] - Point cloud options(see {@link og.PointCloud}).
@@ -154,8 +151,6 @@ class Entity {
         this._featureConstructorArray = {
             billboard: [Billboard, this.setBillboard],
             label: [Label, this.setLabel],
-            sphere: [Sphere, this.setShape],
-            // box: [Box, this.setShape],
             polyline: [Polyline, this.setPolyline],
             pointCloud: [PointCloud, this.setPointCloud],
             geometry: [Geometry, this.setGeometry],
@@ -177,13 +172,6 @@ class Entity {
          * @type {Label}
          */
         this.label = this._createOptionFeature("label", options.label);
-
-        /**
-         * Shape entity.
-         * @public
-         * @type {shape.BaseShape}
-         */
-        this.shape = this._createOptionFeature("sphere", options.sphere || options.box);
 
         /**
          * Polyline entity.
@@ -293,9 +281,6 @@ class Entity {
         // labels
         this.label && this.label.setVisibility(visibility);
 
-        // shape
-        this.shape && this.shape.setVisibility(visibility);
-
         // polyline
         this.polyline && this.polyline.setVisibility(visibility);
 
@@ -351,9 +336,6 @@ class Entity {
         // labels
         this.label && this.label.setPosition3v(p);
 
-        // shape
-        this.shape && this.shape.setPosition3v(p);
-
         for (let i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i].setCartesian(x, y, z);
         }
@@ -394,9 +376,6 @@ class Entity {
 
         // labels
         this.label && this.label.setPosition3v(p);
-
-        // shape
-        this.shape && this.shape.setPosition3v(p);
 
         for (let i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i].setCartesian(p.x, p.y, p.z);
@@ -557,24 +536,6 @@ class Entity {
     }
 
     /**
-     * Sets entity shape.
-     * @public
-     * @param {BaseShape} shape - Shape object.
-     * @returns {Polyline} -
-     */
-    setShape(shape) {
-        if (this.shape) {
-            this.shape.remove();
-        }
-        this.shape = shape;
-        this.shape._entity = this;
-        this.shape.setPosition3v(this._cartesian);
-        this.shape.setVisibility(this._visibility);
-        this._entityCollection && this._entityCollection._shapeHandler.add(shape);
-        return shape;
-    }
-
-    /**
      * Sets entity polyline.
      * @public
      * @param {Polyline} polyline - Polyline object.
@@ -699,9 +660,6 @@ class Entity {
         // label
         this.label && this.label.setPickingColor3v(c);
 
-        // shape
-        this.shape && this.shape.setPickingColor3v(c);
-
         // polyline
         this.polyline && this.polyline.setPickingColor3v(c);
 
@@ -711,8 +669,9 @@ class Entity {
         // strip
         this.strip && this.strip.setPickingColor3v(c);
 
-        // billboard
+        // geoObject
         this.geoObject && this.geoObject.setPickingColor3v(c);
+
         for (let i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i].setPickingColor();
         }

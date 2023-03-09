@@ -1,8 +1,9 @@
 "use strict";
 
 /**
- * @module og/entity/ShapeHandler
+ * @module og/entity/GeoObjectHandler
  */
+
 import * as shaders from "../shaders/geoObject.js";
 import { concatArrays, loadImage, makeArrayTyped, spliceArray } from "../utils/shared.js";
 
@@ -424,7 +425,6 @@ class GeoObjectHandler {
         //
         // Could be in VAO
         //
-        gl.enable(gl.CULL_FACE);
         gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
 
         gl.uniform3fv(u.eyePositionHigh, r.activeCamera.eyeHigh);
@@ -482,11 +482,9 @@ class GeoObjectHandler {
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._texCoordBuffer);
             gl.vertexAttribPointer(a.aTexCoord, tagData._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer);
             p.drawElementsInstanced(gl.TRIANGLES, tagData._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0, tagData.numInstances);
         }
-        gl.disable(gl.CULL_FACE);
     }
 
     drawPicking() {
@@ -496,12 +494,16 @@ class GeoObjectHandler {
     }
 
     _pickingPASS() {
-        let r = this._planet.renderer, sh = r.handler.programs.geo_object_picking, p = sh._program, u = p.uniforms,
-            a = p.attributes, gl = r.handler.gl, ec = this._entityCollection;
+        let r = this._planet.renderer,
+            sh = r.handler.programs.geo_object_picking,
+            p = sh._program,
+            u = p.uniforms,
+            a = p.attributes,
+            gl = r.handler.gl,
+            ec = this._entityCollection;
 
         sh.activate();
 
-        gl.enable(gl.CULL_FACE);
         gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
 
         gl.uniform1f(u.pickingScale, ec.pickingScale);
@@ -548,7 +550,6 @@ class GeoObjectHandler {
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer);
             p.drawElementsInstanced(gl.TRIANGLES, tagData._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0, tagData.numInstances);
         }
-        gl.disable(gl.CULL_FACE);
     }
 
     async _loadDataTagTexture(tagData) {

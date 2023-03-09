@@ -202,8 +202,9 @@ class Strip {
                 sha = p.attributes,
                 shu = p.uniforms;
 
-            gl.disable(gl.CULL_FACE);
             sh.activate();
+
+            gl.disable(gl.CULL_FACE);
 
             gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera.getViewMatrix());
             gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
@@ -238,6 +239,7 @@ class Strip {
                 gl.UNSIGNED_INT,
                 0
             );
+
             gl.enable(gl.CULL_FACE);
         }
     }
@@ -253,9 +255,9 @@ class Strip {
                 sha = p.attributes,
                 shu = p.uniforms;
 
-            gl.disable(gl.CULL_FACE);
-
             sh.activate();
+
+            gl.disable(gl.CULL_FACE);
 
             gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera.getViewMatrix());
             gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
@@ -290,6 +292,7 @@ class Strip {
                 gl.UNSIGNED_INT,
                 0
             );
+
             gl.enable(gl.CULL_FACE);
         }
     }

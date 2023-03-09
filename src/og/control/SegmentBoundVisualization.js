@@ -1,8 +1,8 @@
 "use strict";
 
-import { Entity } from "../entity/Entity.js";
-import { EntityCollection } from "../entity/EntityCollection.js";
 import { Control } from "./Control.js";
+import { EntityCollection } from "../entity/EntityCollection.js";
+import { Entity } from "../entity/Entity.js";
 
 /**
  * Frame per second(FPS) display control.

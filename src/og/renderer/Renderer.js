@@ -3,12 +3,13 @@
 import * as arial from "../arial.js";
 import { Camera } from "../camera/Camera.js";
 import { cons } from "../cons.js";
+import { depth } from "../shaders/depth.js";
 import { LabelWorker } from "../entity/LabelWorker.js";
 import { input } from "../input/input.js";
 import { randomi } from "../math.js";
 import { Vec2 } from "../math/Vec2.js";
 import { Vec3 } from "../math/Vec3.js";
-import { depth } from "../shaders/depth.js";
+import { pickingMask } from "../shaders/pickingMask.js";
 import { screenFrame } from "../shaders/screenFrame.js";
 import { toneMapping } from "../shaders/toneMapping.js";
 import { FontAtlas } from "../utils/FontAtlas.js";
@@ -21,9 +22,7 @@ let __pickingCallbackCounter__ = 0;
 
 let __depthCallbackCounter__ = 0;
 
-const DIFFUSE = 0;
-const NORMAL = 1;
-const POSITION = 2;
+let __distanceCallbackCounter__ = 0;
 
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
@@ -155,6 +154,21 @@ class Renderer {
          */
         this.pickingFramebuffer = null;
 
+        this._tempPickingPix_ = null;
+
+        /**
+         * @public
+         * @type {Framebuffer}
+         */
+        this.distanceFramebuffer = null;
+
+        /**
+         * @type {Array.<Renderer~distanceCallback>}
+         */
+        this._distanceCallbacks = [];
+
+        this._tempDistancePix_ = null;
+
         /**
          * Depth objects rendering queue.
          * @type {Array.<Renderer~depthCallback>}
@@ -163,7 +177,8 @@ class Renderer {
 
         this.depthFramebuffer = null;
 
-        this._msaa = params.msaa || 4;
+        let urlParams = new URLSearchParams(location.search);
+        this._msaa = Number(urlParams.get('og_msaa') || params.msaa || 4);
         this._internalFormat = "RGBA16F";
         this._format = "RGBA";
         this._type = "FLOAT";
@@ -173,21 +188,6 @@ class Renderer {
         this.blitFramebuffer = null;
 
         this.toneMappingFramebuffer = null;
-
-        /**
-         * Stores current picking rgb color.
-         * @private
-         * @type {Array.<number>} - (exactly 3 entries)
-         */
-        this._currPickingColor = new Uint8Array(4);
-
-        /**
-         * Stores previous picked rgb color.
-         * @private
-         * @type {Array.<number>} - (exactly 3 entries)
-         */
-        this._prevPickingColor = new Uint8Array(4);
-        this._tempPickingColor_ = new Uint8Array(4);
 
         this._initialized = false;
 
@@ -224,6 +224,8 @@ class Renderer {
         this._fnScreenFrame = null;
 
         this.labelWorker = new LabelWorker(4);
+
+        this.__useDistanceFramebuffer__ = true;
     }
 
     /**
@@ -252,6 +254,26 @@ class Renderer {
             }
         }
     }
+
+    addDistanceCallback(sender, callback) {
+        var id = __distanceCallbackCounter__++;
+        this._distanceCallbacks.push({
+            id: id,
+            callback: callback,
+            sender: sender
+        });
+        return id;
+    }
+
+    removeDistanceCallback(id) {
+        for (var i = 0; i < this._distanceCallbacks.length; i++) {
+            if (id === this._distanceCallbacks[i].id) {
+                this._distanceCallbacks.splice(i, 1);
+                break;
+            }
+        }
+    }
+
 
     /**
      * Adds picking rendering callback function.
@@ -293,10 +315,8 @@ class Renderer {
      */
     assignPickingColor(obj) {
         if (!obj._pickingColor || obj._pickingColor.isZero()) {
-            var r = 0,
-                g = 0,
-                b = 0;
-            var str = "0_0_0";
+            let r = 0, g = 0, b = 0;
+            let str = "0_0_0";
             while (!(r || g || b) || this.colorObjects[str]) {
                 r = randomi(1, 255);
                 g = randomi(1, 255);
@@ -425,8 +445,18 @@ class Renderer {
 
         this.pickingFramebuffer = new Framebuffer(this.handler, {
             width: 640,
-            height: 480
+            height: 480,
+            depthComponent: "DEPTH_STENCIL",
+            renderbufferTarget: "DEPTH_STENCIL_ATTACHMENT"
         }).init();
+
+        this._tempPickingPix_ = new Uint8Array(this.pickingFramebuffer.width * this.pickingFramebuffer.height * 4);
+
+        this.distanceFramebuffer = new Framebuffer(this.handler, {
+            width: 320, height: 240
+        }).init();
+
+        this._tempDistancePix_ = new Uint8Array(this.distanceFramebuffer.width * this.distanceFramebuffer.height * 4);
 
         this.depthFramebuffer = new Framebuffer(this.handler, {
             size: 2,
@@ -450,6 +480,7 @@ class Renderer {
             this.screenTexture = {
                 screen: this.sceneFramebuffer.textures[0],
                 picking: this.pickingFramebuffer.textures[0],
+                distance: this.distanceFramebuffer.textures[0],
                 depth: this.screenDepthFramebuffer.textures[0]
             };
         } else {
@@ -462,6 +493,8 @@ class Renderer {
             this.handler.addPrograms([toneMapping()]);
 
             this.handler.addPrograms([depth()]);
+
+            this.handler.addProgram(pickingMask());
 
             this.sceneFramebuffer = new Multisample(this.handler, {
                 size: 1,
@@ -488,6 +521,7 @@ class Renderer {
             this.screenTexture = {
                 screen: this.toneMappingFramebuffer.textures[0],
                 picking: this.pickingFramebuffer.textures[0],
+                distance: this.distanceFramebuffer.textures[0],
                 depth: this.screenDepthFramebuffer.textures[0],
                 frustum: this.depthFramebuffer.textures[0]
             };
@@ -518,6 +552,8 @@ class Renderer {
         this.outputTexture = this.screenTexture.screen;
 
         this.fontAtlas.initFont("arial", arial.data, arial.image);
+
+        this._pickingMaskCoordinatesBuffer = this.handler.createArrayBuffer(new Float32Array([0, 0]), 2, 1);
     }
 
     resize() {
@@ -553,11 +589,13 @@ class Renderer {
         if (this.handler.gl.type === "webgl") {
             this.screenTexture.screen = this.sceneFramebuffer.textures[0];
             this.screenTexture.picking = this.pickingFramebuffer.textures[0];
+            this.screenTexture.distance = this.distanceFramebuffer.textures[0];
             this.screenTexture.depth = this.screenDepthFramebuffer.textures[0];
             this.screenTexture.frustum = this.depthFramebuffer.textures[0];
         } else {
             this.screenTexture.screen = this.toneMappingFramebuffer.textures[0];
             this.screenTexture.picking = this.pickingFramebuffer.textures[0];
+            this.screenTexture.distance = this.distanceFramebuffer.textures[0];
             this.screenTexture.depth = this.screenDepthFramebuffer.textures[0];
             this.screenTexture.frustum = this.depthFramebuffer.textures[0];
         }
@@ -646,12 +684,11 @@ class Renderer {
         let ec = this._entityCollections;
 
         if (ec.length) {
-            var gl = this.handler.gl;
+            let gl = this.handler.gl;
 
             gl.enable(gl.BLEND);
             gl.blendEquation(gl.FUNC_ADD);
             gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
-            gl.disable(gl.CULL_FACE);
 
             // billboards pass
             gl.activeTexture(gl.TEXTURE0);
@@ -697,22 +734,11 @@ class Renderer {
                 ec[i]._fadingOpacity && ec[i].polylineHandler.draw();
             }
 
-            gl.enable(gl.CULL_FACE);
-
             // pointClouds pass
             i = ec.length;
             while (i--) {
                 if (ec[i]._fadingOpacity) {
                     ec[i].pointCloudHandler.draw();
-                }
-            }
-
-            // shapes pass
-            i = ec.length;
-            while (i--) {
-                eci = ec[i];
-                if (eci._fadingOpacity) {
-                    eci.shapeHandler.draw();
                 }
             }
 
@@ -747,10 +773,11 @@ class Renderer {
         let h = this.handler,
             gl = h.gl;
 
-        gl.blendEquation(gl.FUNC_ADD);
-        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
-        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         e.dispatch(e.draw, this);
@@ -773,7 +800,8 @@ class Renderer {
             this._drawEntityCollections();
 
             if (pointerEvent) {
-                this._drawPickingBuffer(k);
+                this._drawPickingBuffer();
+                this.__useDistanceFramebuffer__ && this._drawDistanceBuffer();
             }
         }
 
@@ -786,7 +814,8 @@ class Renderer {
             if (h.isWebGl2()) {
                 this._drawDepthBuffer();
             }
-            this._readPickingColor();
+            this._readPickingBuffer();
+            this.__useDistanceFramebuffer__ && this._readDistanceBuffer();
         }
 
         // Tone mapping followed by rendering on the screen
@@ -843,8 +872,8 @@ class Renderer {
 
     _screenFrameNoMSAA() {
 
-        var h = this.handler;
-        var sh = h.programs.screenFrame,
+        let h = this.handler;
+        let sh = h.programs.screenFrame,
             p = sh._program,
             gl = h.gl;
 
@@ -863,20 +892,53 @@ class Renderer {
      * Draw picking objects framebuffer.
      * @private
      */
-    _drawPickingBuffer(frustumIndex) {
+    _drawPickingBuffer() {
         this.pickingFramebuffer.activate();
 
-        var h = this.handler;
-        var gl = h.gl;
+        let h = this.handler;
+        let gl = h.gl;
 
         if (this.activeCamera.isFirstPass) {
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
         } else {
-            gl.clear(gl.DEPTH_BUFFER_BIT);
+            gl.clear(gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
         }
 
-        gl.disable(h.gl.BLEND);
+        //
+        // draw picking mask
+        //
+        h.programs.pickingMask.activate();
+        let sh = h.programs.pickingMask._program;
+        let shu = sh.uniforms,
+            sha = sh.attributes;
+
+        let /*ts = this.events.touchState,*/
+            ms = this.events.mouseState;
+
+        gl.disable(gl.DEPTH_TEST);
+
+        gl.enable(gl.STENCIL_TEST);
+        gl.colorMask(false, false, false, false);
+        gl.stencilFunc(gl.ALWAYS, 2, 0xFF);
+        gl.stencilOp(gl.REPLACE, gl.ZERO, gl.REPLACE);
+
+        gl.uniform2f(shu.offset, (ms.nx - 0.5) * 2, (0.5 - ms.ny) * 2);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingMaskCoordinatesBuffer);
+        gl.vertexAttribPointer(sha.coordinates, this._pickingMaskCoordinatesBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.POINTS, 0, this._pickingMaskCoordinatesBuffer.numItems);
+
+        gl.enable(gl.DEPTH_TEST);
+
+        //
+        // draw picking scenes
+        //
+        gl.colorMask(true, true, true, true);
+        gl.stencilFunc(gl.EQUAL, 2, 0xFF);
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+
+        gl.disable(gl.BLEND);
 
         let dp = this._pickingCallbacks;
         let i = dp.length;
@@ -888,7 +950,45 @@ class Renderer {
             dp[i].callback.call(dp[i].sender);
         }
 
+        gl.enable(gl.BLEND);
+
+        gl.disable(gl.STENCIL_TEST);
+
         this.pickingFramebuffer.deactivate();
+    }
+
+    /**
+     * Draw picking objects framebuffer.
+     * @private
+     */
+    _drawDistanceBuffer() {
+        this.distanceFramebuffer.activate();
+
+        let h = this.handler;
+        let gl = h.gl;
+
+        if (this.activeCamera.isFirstPass) {
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        } else {
+            gl.clear(gl.DEPTH_BUFFER_BIT);
+        }
+
+        gl.disable(gl.BLEND);
+
+        let dp = this._distanceCallbacks;
+        let i = dp.length;
+        while (i--) {
+            /**
+             * This callback renders distance frame.
+             * @callback og.Renderer~distanceCallback
+             */
+            dp[i].callback.call(dp[i].sender);
+        }
+
+        gl.enable(gl.BLEND);
+
+        this.distanceFramebuffer.deactivate();
     }
 
     _drawDepthBuffer() {
@@ -936,26 +1036,45 @@ class Renderer {
         this.screenDepthFramebuffer.deactivate();
     }
 
-    _readPickingColor() {
-        var ms = this.events.mouseState;
-        var ts = this.events.touchState;
+    _readPickingBuffer() {
+        this.pickingFramebuffer.activate();
+        this.pickingFramebuffer.readAllPixels(this._tempPickingPix_);
+        this.pickingFramebuffer.deactivate();
+    }
 
-        if (!(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
-            this._prevPickingColor[0] = this._currPickingColor[0];
-            this._prevPickingColor[1] = this._currPickingColor[1];
-            this._prevPickingColor[2] = this._currPickingColor[2];
+    _readDistanceBuffer() {
+        this.distanceFramebuffer.activate();
+        this.distanceFramebuffer.readAllPixels(this._tempDistancePix_);
+        this.distanceFramebuffer.deactivate();
+    }
 
-            var pc = this._currPickingColor;
-            if (ts.x || ts.y) {
-                this.pickingFramebuffer.activate();
-                this.pickingFramebuffer.readPixels(pc, ts.nx, 1.0 - ts.ny);
-                this.pickingFramebuffer.deactivate();
-            } else {
-                this.pickingFramebuffer.activate();
-                this.pickingFramebuffer.readPixels(pc, ms.nx, 1.0 - ms.ny);
-                this.pickingFramebuffer.deactivate();
-            }
-        }
+    readPickingColor(x, y, outColor) {
+        let w = this.pickingFramebuffer.width;
+        let h = this.pickingFramebuffer.height;
+
+        x = Math.round(x * w);
+        y = Math.round(y * h);
+
+        let ind = (y * w + x) * 4;
+
+        outColor[0] = this._tempPickingPix_[ind];
+        outColor[1] = this._tempPickingPix_[ind + 1];
+        outColor[2] = this._tempPickingPix_[ind + 2];
+    }
+
+    readDistanceColor(x, y, outColor) {
+
+        let w = this.distanceFramebuffer.width;
+        let h = this.distanceFramebuffer.height;
+
+        x = Math.round(x * w);
+        y = Math.round(y * h);
+
+        let ind = (y * w + x) * 4;
+
+        outColor[0] = this._tempDistancePix_[ind];
+        outColor[1] = this._tempDistancePix_[ind + 1];
+        outColor[2] = this._tempDistancePix_[ind + 2];
     }
 
     /**

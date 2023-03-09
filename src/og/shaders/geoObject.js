@@ -176,7 +176,6 @@ export const geo_object_picking = () =>
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
             pickingScale: "float"
-
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -207,14 +206,12 @@ export const geo_object_picking = () =>
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
 
-            varying float vDispose;
             varying vec3 vColor;
             
             const float RADIANS = 3.141592653589793 / 180.0;
 
             void main(void) {
-            
-             
+                         
                 if (aDispose == 0.0) {
                    return;
                 }
@@ -258,8 +255,7 @@ export const geo_object_picking = () =>
         fragmentShader:
             `precision highp float;
             varying vec3 vColor;
-            varying float vDispose;
             void main () {
-                gl_FragColor = vec4(vColor, vDispose);
+                gl_FragColor = vec4(vColor, 1.0);
             }`
     });
