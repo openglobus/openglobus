@@ -312,6 +312,7 @@ export class NormalMapCreator {
 
         gl.disable(gl.CULL_FACE);
         gl.disable(gl.DEPTH_TEST);
+        gl.disable(gl.BLEND);
 
         if (segment.terrainReady && this._drawNormalMap(segment)) {
             segment.normalMapReady = true;
@@ -322,9 +323,9 @@ export class NormalMapCreator {
         }
         segment._inTheQueue = false;
 
-        gl.disable(gl.BLEND);
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
+        gl.enable(gl.BLEND);
 
         this._framebuffer.deactivate();
     }
@@ -338,6 +339,7 @@ export class NormalMapCreator {
 
             gl.disable(gl.CULL_FACE);
             gl.disable(gl.DEPTH_TEST);
+            gl.disable(gl.BLEND);
 
             var deltaTime = 0,
                 startTime = window.performance.now();
@@ -355,7 +357,7 @@ export class NormalMapCreator {
                 deltaTime = window.performance.now() - startTime;
             }
 
-            gl.disable(gl.BLEND);
+            gl.enable(gl.BLEND);
             gl.enable(gl.DEPTH_TEST);
             gl.enable(gl.CULL_FACE);
 

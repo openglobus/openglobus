@@ -773,9 +773,10 @@ class Renderer {
         let h = this.handler,
             gl = h.gl;
 
-        gl.blendEquation(gl.FUNC_ADD);
-        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -973,7 +974,7 @@ class Renderer {
             gl.clear(gl.DEPTH_BUFFER_BIT);
         }
 
-        gl.disable(h.gl.BLEND);
+        gl.disable(gl.BLEND);
 
         let dp = this._distanceCallbacks;
         let i = dp.length;
@@ -984,6 +985,8 @@ class Renderer {
              */
             dp[i].callback.call(dp[i].sender);
         }
+
+        gl.enable(gl.BLEND);
 
         this.distanceFramebuffer.deactivate();
     }

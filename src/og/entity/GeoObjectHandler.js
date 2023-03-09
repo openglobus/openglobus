@@ -422,13 +422,6 @@ class GeoObjectHandler {
 
         sh.activate();
 
-        gl.blendEquation(gl.FUNC_ADD);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.enable(gl.BLEND);
-
-        // By defaul CULL FACE is enabled
-        //gl.enable(gl.CULL_FACE);
-
         //
         // Could be in VAO
         //

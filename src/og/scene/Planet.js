@@ -1313,8 +1313,6 @@ export class Planet extends RenderNode {
             }
         }
         gl.disable(gl.POLYGON_OFFSET_FILL);
-
-        gl.disable(gl.BLEND);
     }
 
     /**
@@ -1437,8 +1435,6 @@ export class Planet extends RenderNode {
             }
         }
         gl.disable(gl.POLYGON_OFFSET_FILL);
-
-        gl.disable(gl.BLEND);
     }
 
     /**
@@ -1490,6 +1486,7 @@ export class Planet extends RenderNode {
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
+
         gl.enable(gl.CULL_FACE);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
@@ -1516,8 +1513,6 @@ export class Planet extends RenderNode {
             }
         }
         gl.disable(gl.POLYGON_OFFSET_FILL);
-
-        gl.disable(gl.BLEND);
     }
 
     /**
@@ -1551,6 +1546,8 @@ export class Planet extends RenderNode {
         while (i--) {
             rn[i].segment.depthRendering(sh, sl[0]);
         }
+
+        gl.enable(gl.BLEND);
     }
 
     _collectVectorLayerCollections() {
