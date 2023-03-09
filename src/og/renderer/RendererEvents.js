@@ -245,10 +245,11 @@ class RendererEvents extends Events {
                 this.touchState.x,
                 this.touchState.y
             );
-            this.entityPickingEvents();
+
             this._keyboardHandler.handleEvents();
             this.handleMouseEvents();
             this.handleTouchEvents();
+            this.entityPickingEvents();
         }
     }
 
@@ -609,6 +610,7 @@ class RendererEvents extends Events {
             ms = this.mouseState;
 
         if (!(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
+
             let r = this.renderer;
             let o = r.colorObjects;
             let c = _currPickingColor,
@@ -634,6 +636,7 @@ class RendererEvents extends Events {
 
             //object changed
             if (c[0] != p[0] || c[1] != p[1] || c[2] != p[2]) {
+
                 //current black
                 if (!(c[0] || c[1] || c[2])) {
                     let po = o[p[0] + "_" + p[1] + "_" + p[2]];
