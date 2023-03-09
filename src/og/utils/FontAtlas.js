@@ -4,9 +4,9 @@
 
 'use strict';
 
+import { Deferred } from '../Deferred.js';
 import { Rectangle } from '../Rectangle.js';
 import { TextureAtlas, TextureAtlasNode } from './TextureAtlas.js';
-import { Deferred } from '../Deferred.js';
 
 //TODO: get the value from shader module
 const MAX_SIZE = 11;

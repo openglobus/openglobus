@@ -4,8 +4,8 @@
 
 'use strict';
 
-import { RenderNode } from './RenderNode.js';
 import { Program } from '../webgl/Program.js';
+import { RenderNode } from './RenderNode.js';
 
 class Axes extends RenderNode {
     constructor(size) {

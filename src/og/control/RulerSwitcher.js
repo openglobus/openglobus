@@ -4,9 +4,9 @@
 
 "use strict";
 
+import { ToggleButton } from "../ui/ToggleButton.js";
 import { Control } from "./Control.js";
 import { Ruler } from "./ruler/Ruler.js";
-import { ToggleButton } from "../ui/ToggleButton.js";
 
 const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="iso-8859-1"?>
 <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->

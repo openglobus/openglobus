@@ -4,9 +4,9 @@
 
 "use strict";
 
-import { Vec3 } from "../math/Vec3.js";
-import { Quat } from "../math/Quat.js";
 import { Mat4 } from "../math/Mat4.js";
+import { Quat } from "../math/Quat.js";
+import { Vec3 } from "../math/Vec3.js";
 
 /**
  * Base geometry shape class.
@@ -555,3 +555,4 @@ class BaseShape {
 }
 
 export { BaseShape };
+

@@ -4,16 +4,16 @@
 
 "use strict";
 
-import * as math from "../math.js";
-import { Control } from "./Control.js";
+import { Sphere } from "../bv/Sphere.js";
 import { input } from "../input/input.js";
 import { Key } from "../Lock.js";
 import { LonLat } from "../LonLat.js";
+import * as math from "../math.js";
 import { Mat4 } from "../math/Mat4.js";
 import { Quat } from "../math/Quat.js";
 import { Ray } from "../math/Ray.js";
-import { Sphere } from "../bv/Sphere.js";
 import { Vec3 } from "../math/Vec3.js";
+import { Control } from "./Control.js";
 
 /**
  * Mouse planet camera dragging control.

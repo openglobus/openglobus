@@ -4,7 +4,7 @@
 
 "use strict";
 
-import { stamp, binaryInsert } from "./utils/shared.js";
+import { binaryInsert, stamp } from "./utils/shared.js";
 
 /**
  * Base events class to handle custom events.

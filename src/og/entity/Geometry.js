@@ -4,10 +4,10 @@
 
 "use strict";
 
-import * as utils from "../utils/shared.js";
 import { Extent } from "../Extent.js";
-import { Vec4 } from "../math/Vec4.js";
 import { LonLat } from "../LonLat.js";
+import { Vec4 } from "../math/Vec4.js";
+import * as utils from "../utils/shared.js";
 
 const GeometryType = {
     POINT: 1,

@@ -4,9 +4,9 @@
 
 "use strict";
 
-import { callbacks } from "./callbacks.js";
 import { cons } from "../cons.js";
-import { typeStr, types } from "./types.js";
+import { callbacks } from "./callbacks.js";
+import { types, typeStr } from "./types.js";
 
 const itemTypes = ["BYTE", "SHORT", "UNSIGNED_BYTE", "UNSIGNED_SHORT", "FLOAT", "HALF_FLOAT"];
 

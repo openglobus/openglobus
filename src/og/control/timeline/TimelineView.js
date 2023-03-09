@@ -1,5 +1,7 @@
 'use strict';
 
+import { ButtonGroup } from "../../ui/ButtonGroup.js";
+import { ToggleButton } from "../../ui/ToggleButton.js";
 import { View } from '../../ui/View.js';
 import { TimelineModel } from './TimelineModel.js';
 import {
@@ -11,9 +13,6 @@ import {
     getNearestTimeLeft,
     getScale
 } from './timelineUtils.js';
-import { ToggleButton } from "../../ui/ToggleButton.js";
-import { Button } from "../../ui/Button.js";
-import { ButtonGroup } from "../../ui/ButtonGroup.js";
 
 const SECONDS_TO_MILLISECONDS = 1000.0;
 const MILLISECONDS_TO_SECONDS = 1.0 / SECONDS_TO_MILLISECONDS;
@@ -451,4 +450,5 @@ class TimelineView extends View {
     }
 }
 
-export { TimelineView }
+export { TimelineView };
+

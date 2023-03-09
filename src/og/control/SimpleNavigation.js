@@ -1,7 +1,7 @@
 "use strict";
 
-import { Control } from "./Control.js";
 import { input } from "../input/input.js";
+import { Control } from "./Control.js";
 
 /**
  * Simple keyboard camera navigation with W,S,A,D and shift keys to fly around the scene.
@@ -125,3 +125,4 @@ export function simpleNavigation(options) {
 }
 
 export { SimpleNavigation };
+

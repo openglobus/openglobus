@@ -1,8 +1,8 @@
 'use strict';
 
-import { View } from './View.js';
-import { stringTemplate } from '../utils/shared.js';
 import { clamp } from '../math.js';
+import { stringTemplate } from '../utils/shared.js';
+import { View } from './View.js';
 
 const TEMPLATE = `<div class="og-slider">
       <div class="og-slider-label">{label}</div>
@@ -167,4 +167,4 @@ class Slider extends View {
 
 export {
     Slider
-}
+};

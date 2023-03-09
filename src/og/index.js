@@ -5,13 +5,13 @@ import * as math from './math.js';
 import * as mercator from './mercator.js';
 import * as utils from './utils/shared.js';
 
-import * as control from './control/index.js';
-import * as layer from './layer/index.js';
 import * as bv from './bv/index.js';
-import * as scene from './scene/index.js';
+import * as control from './control/index.js';
 import * as entity from './entity/index.js';
-import * as webgl from './webgl/index.js';
+import * as layer from './layer/index.js';
+import * as scene from './scene/index.js';
 import * as terrain from './terrain/index.js';
+import * as webgl from './webgl/index.js';
 
 import { Globe } from './Globe.js';
 

@@ -4,12 +4,12 @@
 
 "use strict";
 
-import { colorTable } from "./colorTable.js";
 import { Extent } from "../Extent.js";
 import { LonLat } from "../LonLat.js";
 import { Vec2 } from "../math/Vec2.js";
 import { Vec3 } from "../math/Vec3.js";
 import { Vec4 } from "../math/Vec4.js";
+import { colorTable } from "./colorTable.js";
 
 export function getDefault(param, def) {
     return param != undefined ? param : def;

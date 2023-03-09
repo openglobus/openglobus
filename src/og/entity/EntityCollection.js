@@ -4,16 +4,16 @@
 
 "use strict";
 
+import { Events } from "../Events.js";
 import * as math from "../math.js";
 import { BillboardHandler } from "./BillboardHandler.js";
-import { Events } from "../Events.js";
+import { GeoObjectHandler } from "./GeoObjectHandler.js";
 import { LabelHandler } from "./LabelHandler.js";
+import { PointCloudHandler } from "./PointCloudHandler.js";
 import { PolylineHandler } from "./PolylineHandler.js";
 import { RayHandler } from "./RayHandler.js";
-import { PointCloudHandler } from "./PointCloudHandler.js";
-import { StripHandler } from "./StripHandler.js";
 import { ShapeHandler } from "./ShapeHandler.js";
-import { GeoObjectHandler } from "./GeoObjectHandler.js";
+import { StripHandler } from "./StripHandler.js";
 
 /**
  * An observable collection of og.Entity instances where each entity has a unique id.

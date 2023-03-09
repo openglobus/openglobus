@@ -1,10 +1,10 @@
 "use strict";
 
-import { GlobusTerrain } from "./GlobusTerrain.js";
+import { Layer } from "../layer/Layer.js";
 import { WMS } from "../layer/WMS.js";
 import { isPowerOfTwo, nextHighestPowerOfTwo } from "../math.js";
 import { getTileExtent } from "../mercator.js";
-import { Layer } from "../layer/Layer.js";
+import { GlobusTerrain } from "./GlobusTerrain.js";
 
 class BilTerrain extends GlobusTerrain {
     constructor(options) {
@@ -34,8 +34,8 @@ class BilTerrain extends GlobusTerrain {
             options.plainGridSize != undefined
                 ? options.plainGridSize
                 : isPowerOfTwo(this._imageSize)
-                ? this._imageSize / 2
-                : nextHighestPowerOfTwo(this._imageSize) / 2;
+                    ? this._imageSize / 2
+                    : nextHighestPowerOfTwo(this._imageSize) / 2;
 
         this._dataType = "arrayBuffer";
     }

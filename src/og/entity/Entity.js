@@ -4,20 +4,20 @@
 
 "use strict";
 
+import { Extent } from "../Extent.js";
+import { LonLat } from "../LonLat.js";
+import { Vec3 } from "../math/Vec3.js";
 import * as mercator from "../mercator.js";
+import { Sphere } from "../shapes/Sphere.js";
 import * as utils from "../utils/shared.js";
 import { Billboard } from "./Billboard.js";
-import { Strip } from "./Strip.js";
-import { Extent } from "../Extent.js";
 import { Geometry } from "./Geometry.js";
+import { GeoObject } from "./GeoObject.js";
 import { Label } from "./Label.js";
-import { LonLat } from "../LonLat.js";
+import { PointCloud } from "./PointCloud.js";
 import { Polyline } from "./Polyline.js";
 import { Ray } from "./Ray.js";
-import { PointCloud } from "./PointCloud.js";
-import { Sphere } from "../shapes/Sphere.js";
-import { Vec3 } from "../math/Vec3.js";
-import { GeoObject } from "./GeoObject.js";
+import { Strip } from "./Strip.js";
 
 /**
  * Entity instances aggregate multiple forms of visualization into a single high-level object.

@@ -4,11 +4,11 @@
 
 "use strict";
 
-import { Control } from "./Control.js";
+import { Sphere } from "../bv/Sphere.js";
 import { Key } from "../Lock.js";
 import { Quat } from "../math/Quat.js";
-import { Sphere } from "../bv/Sphere.js";
 import { Vec3 } from "../math/Vec3.js";
+import { Control } from "./Control.js";
 import { MouseNavigation } from "./MouseNavigation.js";
 
 /**

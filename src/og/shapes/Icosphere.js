@@ -177,3 +177,4 @@ class Icosphere extends BaseShape {
 }
 
 export { Icosphere };
+
