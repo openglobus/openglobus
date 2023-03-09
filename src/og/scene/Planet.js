@@ -108,6 +108,7 @@ const EVENT_NAMES = [/**
  * @param {Number} [options.maxEqualZoomAltitude=15000000.0] - Maximal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen bacame the same zoom level
  * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen bacame the same zoom level
+ * @param {Number} [options.zoomOffset=0] - Number to offset the zoom level by a certain amount.
  * @fires og.scene.Planet#draw
  * @fires og.scene.Planet#layeradd
  * @fires og.scene.Planet#baselayerchange
@@ -119,6 +120,7 @@ export class Planet extends RenderNode {
     constructor(options = {}) {
         super(options.name);
 
+        this._zoomOffset = options.zoomOffset || 0;
         this._cameraFrustums = options.frustums || [[1, 100 + 0.075], [100, 1000 + 0.075], [1000, 1e6 + 10000], [1e6, 1e9]];
 
         /**

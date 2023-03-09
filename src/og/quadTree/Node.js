@@ -249,7 +249,7 @@ class Node {
 
             if (seg.tileZoom < 2 && seg.normalMapReady) {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
-            } else if (seg.terrainReady && (!maxZoom && cam.projectedSize(seg.bsphere.center, seg._plainRadius) < planet._lodSize || maxZoom && ((seg.tileZoom === maxZoom) || !altVis))) {
+            } else if (seg.terrainReady && (!maxZoom && cam.projectedSize(seg.bsphere.center, seg._plainRadius) < planet._lodSize / Math.pow(2, planet._zoomOffset) || maxZoom && ((seg.tileZoom === maxZoom) || !altVis))) {
 
                 if (altVis) {
                     seg.passReady = true;
