@@ -1,7 +1,7 @@
 'use strict';
 
-import { addSeconds } from "./timelineUtils.js";
 import { Events } from '../../Events.js';
+import { addSeconds } from "./timelineUtils.js";
 
 class TimelineModel {
     constructor(options = {}) {
@@ -130,4 +130,4 @@ class TimelineModel {
     }
 }
 
-export { TimelineModel }
+export { TimelineModel };

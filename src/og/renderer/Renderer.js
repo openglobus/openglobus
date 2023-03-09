@@ -1,22 +1,22 @@
 "use strict";
 
-import { Camera } from "../camera/Camera.js";
-import { Framebuffer, Multisample } from "../webgl/index.js";
-import { randomi } from "../math.js";
-import { RendererEvents } from "./RendererEvents.js";
-import { Vec2 } from "../math/Vec2.js";
-import { Vec3 } from "../math/Vec3.js";
-import { cons } from "../cons.js";
-import { input } from "../input/input.js";
-import { isEmpty } from "../utils/shared.js";
-import { toneMapping } from "../shaders/toneMapping.js";
-import { screenFrame } from "../shaders/screenFrame.js";
-import { FontAtlas } from "../utils/FontAtlas.js";
-import { TextureAtlas } from "../utils/TextureAtlas.js";
 import * as arial from "../arial.js";
+import { Camera } from "../camera/Camera.js";
+import { cons } from "../cons.js";
 import { depth } from "../shaders/depth.js";
 import { LabelWorker } from "../entity/LabelWorker.js";
+import { input } from "../input/input.js";
+import { randomi } from "../math.js";
+import { Vec2 } from "../math/Vec2.js";
+import { Vec3 } from "../math/Vec3.js";
 import { pickingMask } from "../shaders/pickingMask.js";
+import { screenFrame } from "../shaders/screenFrame.js";
+import { toneMapping } from "../shaders/toneMapping.js";
+import { FontAtlas } from "../utils/FontAtlas.js";
+import { isEmpty } from "../utils/shared.js";
+import { TextureAtlas } from "../utils/TextureAtlas.js";
+import { Framebuffer, Multisample } from "../webgl/index.js";
+import { RendererEvents } from "./RendererEvents.js";
 
 let __pickingCallbackCounter__ = 0;
 

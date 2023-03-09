@@ -4,14 +4,14 @@
 
 "use strict";
 
-import * as utils from "../utils/shared.js";
-import * as mercator from "../mercator.js";
 import { Events } from "../Events.js";
 import { Extent } from "../Extent.js";
 import { LonLat } from "../LonLat.js";
-import { Material } from "./Material.js";
 import { Vec3 } from "../math/Vec3.js";
+import * as mercator from "../mercator.js";
+import * as utils from "../utils/shared.js";
 import { createColorRGB } from "../utils/shared.js";
+import { Material } from "./Material.js";
 
 const FADING_RATIO = 15.8;
 

@@ -4,16 +4,13 @@
 
 "use strict";
 
-import {
-    makeArrayTyped,
-    makeArray,
-    htmlColorToFloat32Array,
-    htmlColorToRgba,
-    cloneArray
-} from "../utils/shared.js";
 import { Extent } from "../Extent.js";
 import { LonLat } from "../LonLat.js";
 import { Vec3 } from "../math/Vec3.js";
+import {
+    cloneArray, htmlColorToFloat32Array,
+    htmlColorToRgba, makeArray, makeArrayTyped
+} from "../utils/shared.js";
 
 window.POLYLINE_DEPTH_OFFSET = 0.0;
 

@@ -4,20 +4,20 @@
 
 "use strict";
 
-import * as math from "../math.js";
-import * as mercator from "../mercator.js";
-import * as quadTree from "../quadTree/quadTree.js";
 import { Entity } from "../entity/Entity.js";
 import { EntityCollection } from "../entity/EntityCollection.js";
+import { GeometryHandler } from "../entity/GeometryHandler.js";
 import { Extent } from "../Extent.js";
+import * as math from "../math.js";
+import { Vec3 } from "../math/Vec3.js";
+import * as mercator from "../mercator.js";
 import {
     EntityCollectionNode,
     EntityCollectionNodeWGS84
 } from "../quadTree/EntityCollectionNode.js";
-import { GeometryHandler } from "../entity/GeometryHandler.js";
-import { Layer } from "./Layer.js";
+import * as quadTree from "../quadTree/quadTree.js";
 import { QueueArray } from "../QueueArray.js";
-import { Vec3 } from "../math/Vec3.js";
+import { Layer } from "./Layer.js";
 
 /**
  * Creates entity instance array.

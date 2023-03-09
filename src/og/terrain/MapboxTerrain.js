@@ -1,8 +1,8 @@
-import { getTileExtent } from "../mercator.js";
 import { Layer } from "../layer/Layer.js";
-import { GlobusTerrain } from "./GlobusTerrain.js";
 import { isPowerOfTwo } from "../math.js";
 import * as mercator from "../mercator.js";
+import { getTileExtent } from "../mercator.js";
+import { GlobusTerrain } from "./GlobusTerrain.js";
 
 const KEY =
     "pk.eyJ1IjoiZm94bXVsZGVyODMiLCJhIjoiY2pqYmR3dG5oM2Z1bzNrczJqYm5pODhuNSJ9.Y4DRmEPhb-XSlCR9CAXACQ";

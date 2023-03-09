@@ -1,10 +1,10 @@
 'use strict';
 
+import { LonLat } from '../LonLat.js';
+import { throttle } from '../utils/shared.js';
 import * as units from '../utils/units.js';
 import { heightMode } from '../utils/units.js';
 import { Control } from './Control.js';
-import { throttle } from '../utils/shared.js';
-import { LonLat } from '../LonLat.js';
 
 const DECIMAL_TEMPLATE =
     `<div class="og-lat-side"></div><div class="og-lat-val"></div>
@@ -211,3 +211,4 @@ class EarthCoordinates extends Control {
 }
 
 export { EarthCoordinates };
+

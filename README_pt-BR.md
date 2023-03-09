@@ -1,13 +1,11 @@
-[![Join the chat at https://gitter.im/openglobus/og](https://badges.gitter.im/openglobus/og.svg)](https://gitter.im/openglobus/og?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+# Openglobus
 
-# OpenGlobus
+[English](README.md) | [简体中文](README_CN.md) | Portuguese-BR
 
-[English](README.md) | [简体中文](README_CN.md)
-
-[OpenGlobus](http://www.openglobus.org/) é uma biblioteca projetada para dispor um mapa 3D para planetas
+[Openglobus](http://www.openglobus.org/) é uma biblioteca projetada para dispor um mapa 3D para planetas
 por meio de "tiles maps" (mapa ou imagens em ladrilho), imagens e dados em vetores, marcadores e objeto 3D. Usando tecnologia WebGL , de código aberto e completamente livre.
 
-O principal objetivo do OpenGlobus é proporcionar um mapa 3D leve e rápido, com boa aparencia, de interface amigável e fácil implementação para qualquer projeto.
+O principal objetivo do Openglobus é proporcionar um mapa 3D leve e rápido, com boa aparencia, de interface amigável e fácil implementação para qualquer projeto.
 
 ## Começando
 
@@ -76,7 +74,7 @@ yarn add @openglobus/og
 
 ## Integrações de Frameworks 
 
-OpenGlobus se integra bem com frameworks como React, Angular ou Vuejs [Read more here](./framework-intergration.md).
+Openglobus se integra bem com frameworks como React, Angular ou Vuejs [Read more here](./framework-intergration.md).
 
 ## Documentação
 

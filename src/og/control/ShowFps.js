@@ -4,8 +4,8 @@
 
 "use strict";
 
-import { Control } from "./Control.js";
 import { print2d } from "../utils/shared.js";
+import { Control } from "./Control.js";
 
 /**
  * Frame per second(FPS) display control.
@@ -41,3 +41,4 @@ export function showFps(options) {
 }
 
 export { ShowFps };
+

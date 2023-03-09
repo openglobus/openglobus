@@ -1,7 +1,7 @@
 'use strict'
 
-import { View } from './View.js';
 import { stringTemplate } from '../utils/shared.js';
+import { View } from './View.js';
 
 const TEMPLATE =
     `<div class="og-button" title="{title}">
@@ -104,4 +104,4 @@ class Button extends View {
     }
 }
 
-export { Button }
+export { Button };

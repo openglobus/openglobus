@@ -4,37 +4,32 @@
 
 "use strict";
 
-import * as utils from "../utils/shared.js";
-import * as shaders from "../shaders/drawnode.js";
-import * as math from "../math.js";
-import * as mercator from "../mercator.js";
-import * as segmentHelper from "../segment/segmentHelper.js";
-import { decodeFloatFromRGBAArr } from "../math/coder.js";
+import { PlanetCamera } from "../camera/PlanetCamera.js";
+import { Atmosphere } from "../control/Atmosphere.js";
+import { SimpleSkyBackground } from "../control/SimpleSkyBackground.js";
+import { wgs84 } from "../ellipsoid/wgs84.js";
 import { Extent } from "../Extent.js";
-import { Framebuffer } from "../webgl/Framebuffer.js";
-import { GeoImageCreator } from "../utils/GeoImageCreator.js";
-import { Quat, Vec3, Vec4 } from "../math/index.js";
 import { Vector } from "../layer/Vector.js";
-import { Loader } from "../utils/Loader.js";
 import { Key, Lock } from "../Lock.js";
 import { LonLat } from "../LonLat.js";
-import { Node } from "../quadTree/Node.js";
+import * as math from "../math.js";
+import { decodeFloatFromRGBAArr } from "../math/coder.js";
+import { Quat, Vec3, Vec4 } from "../math/index.js";
+import { EarthQuadTreeStrategy } from "../quadTree/EarthQuadTreeStrategy.js";
+import { NIGHT, SPECULAR } from "../res/images.js";
+import * as segmentHelper from "../segment/segmentHelper.js";
+import * as shaders from "../shaders/drawnode.js";
+import { Geoid } from "../terrain/Geoid.js";
+import { GeoImageCreator } from "../utils/GeoImageCreator.js";
+import { Loader } from "../utils/Loader.js";
 import { NormalMapCreator } from "../utils/NormalMapCreator.js";
-import { PlanetCamera } from "../camera/PlanetCamera.js";
-import { RenderNode } from "./RenderNode.js";
-import { Segment } from "../segment/Segment.js";
-import { SegmentLonLat } from "../segment/SegmentLonLat.js";
 import { PlainSegmentWorker } from "../utils/PlainSegmentWorker.js";
+import * as utils from "../utils/shared.js";
+import { createColorRGB, isUndef } from "../utils/shared.js";
 import { TerrainWorker } from "../utils/TerrainWorker.js";
 import { VectorTileCreator } from "../utils/VectorTileCreator.js";
-import { wgs84 } from "../ellipsoid/wgs84.js";
-import { NIGHT, SPECULAR } from "../res/images.js";
-import { Geoid } from "../terrain/Geoid.js";
-import { createColorRGB, isUndef } from "../utils/shared.js";
-import { MAX_RENDERED_NODES } from "../quadTree/quadTree.js";
-import { EarthQuadTreeStrategy } from "../quadTree/EarthQuadTreeStrategy.js";
-import { SimpleSkyBackground } from "../control/SimpleSkyBackground.js";
-import { Atmosphere } from "../control/Atmosphere.js";
+import { Framebuffer } from "../webgl/Framebuffer.js";
+import { RenderNode } from "./RenderNode.js";
 
 const CUR_LOD_SIZE = 250; //px
 const MIN_LOD_SIZE = 312; //px

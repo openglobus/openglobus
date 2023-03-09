@@ -4,7 +4,6 @@ import { LonLat } from '../LonLat.js';
 import * as utils from '../utils/shared.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';
 import { Program } from '../webgl/Program.js';
-import { types } from '../webgl/types.js';
 
 export class GeoImageCreator {
 

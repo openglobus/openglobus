@@ -4,14 +4,14 @@
 
 "use strict";
 
-import { cons } from "../cons.js";
 import { Clock } from "../Clock.js";
+import { cons } from "../cons.js";
+import { Events } from "../Events.js";
 import { ImageCanvas } from "../ImageCanvas.js";
+import { Vec2 } from "../math/Vec2.js";
+import { Stack } from "../Stack.js";
 import { isEmpty } from "../utils/shared.js";
 import { ProgramController } from "./ProgramController.js";
-import { Stack } from "../Stack.js";
-import { Vec2 } from "../math/Vec2.js";
-import { Events } from "../Events.js";
 
 const vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
 

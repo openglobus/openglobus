@@ -4,8 +4,8 @@
 
 "use strict";
 
-import { Vec3 } from "./Vec3.js";
 import { frac } from "../math.js";
+import { Vec3 } from "./Vec3.js";
 
 /**
  * Class represents a 4d vector.

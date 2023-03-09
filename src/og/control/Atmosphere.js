@@ -5,9 +5,9 @@
 "use strict";
 
 import * as atmos from "../shaders/atmos.js";
-import { Control } from "./Control.js";
-import { Program } from '../webgl/Program.js';
 import { Framebuffer } from "../webgl/index.js";
+import { Program } from '../webgl/Program.js';
+import { Control } from "./Control.js";
 
 /**
  * Frame per second(FPS) display control.

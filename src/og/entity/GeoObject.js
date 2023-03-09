@@ -5,10 +5,8 @@
 "use strict";
 
 import { Quat, Vec3 } from "../math/index.js";
-import { MAX32, RADIANS, lerp } from "../math.js";
-import { LonLat } from "../LonLat.js";
-import * as utils from "../utils/shared.js";
 import { Planet } from "../scene/Planet.js";
+import * as utils from "../utils/shared.js";
 
 /**
  * @class

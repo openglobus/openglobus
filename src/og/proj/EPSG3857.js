@@ -4,7 +4,7 @@
 
 "use strict";
 
-import { Units, Proj } from "./Proj.js";
+import { Proj, Units } from "./Proj.js";
 
 /**
  * EPSG:3857 projection object.

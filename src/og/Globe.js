@@ -8,18 +8,16 @@ import { CompassButton } from "./control/CompassButton.js";
 import { EarthCoordinates } from "./control/EarthCoordinates.js";
 import { EarthNavigation } from "./control/EarthNavigation.js";
 import { MouseNavigation } from "./control/MouseNavigation.js";
-import { KeyboardNavigation } from "./control/KeyboardNavigation.js";
 import { ScaleControl } from "./control/ScaleControl.js";
 import { Sun } from "./control/Sun.js";
 import { TouchNavigation } from "./control/TouchNavigation.js";
 import { ZoomControl } from "./control/ZoomControl.js";
+import { Vec3 } from "./math/Vec3.js";
 import { Renderer } from "./renderer/Renderer.js";
 import { Planet } from "./scene/Planet.js";
 import { EmptyTerrain } from "./terrain/EmptyTerrain.js";
-import { isEmpty } from "./utils/shared.js";
+import { createColorRGB, isEmpty } from "./utils/shared.js";
 import { Handler } from "./webgl/Handler.js";
-import { createColorRGB } from "./utils/shared.js";
-import { Vec3 } from "./math/Vec3.js";
 
 /** @const {string} */
 const CANVAS_ID_PREFIX = "globus_viewport_";

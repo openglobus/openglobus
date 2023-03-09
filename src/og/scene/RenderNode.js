@@ -1,7 +1,7 @@
 "use strict";
 
-import { BaseNode } from "./BaseNode.js";
 import { Events } from "../Events.js";
+import { BaseNode } from "./BaseNode.js";
 
 /**
  * Render node is a logical part of a render mechanism. Represents scene rendering.

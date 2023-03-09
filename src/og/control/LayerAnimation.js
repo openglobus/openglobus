@@ -4,8 +4,8 @@
 
 "use strict";
 
-import { Control } from "./Control.js";
 import { Events } from '../Events.js';
+import { Control } from "./Control.js";
 
 /**
  *

@@ -4,19 +4,19 @@
 
 "use strict";
 
+import { Extent } from "../Extent.js";
+import { LonLat } from "../LonLat.js";
+import { Vec3 } from "../math/Vec3.js";
 import * as mercator from "../mercator.js";
 import * as utils from "../utils/shared.js";
 import { Billboard } from "./Billboard.js";
-import { Strip } from "./Strip.js";
-import { Extent } from "../Extent.js";
 import { Geometry } from "./Geometry.js";
+import { GeoObject } from "./GeoObject.js";
 import { Label } from "./Label.js";
-import { LonLat } from "../LonLat.js";
+import { PointCloud } from "./PointCloud.js";
 import { Polyline } from "./Polyline.js";
 import { Ray } from "./Ray.js";
-import { PointCloud } from "./PointCloud.js";
-import { Vec3 } from "../math/Vec3.js";
-import { GeoObject } from "./GeoObject.js";
+import { Strip } from "./Strip.js";
 
 /**
  * Entity instances aggregate multiple forms of visualization into a single high-level object.
@@ -25,8 +25,8 @@ import { GeoObject } from "./GeoObject.js";
  * @class
  * @param {Object} [options] - Entity options:
  * @param {string} [options.name] - A human readable name to display to users. It does not have to be unique.
- * @param {Vec3|Array.<number>} [options.cartesian] - Spatial entities like billboard, label, sphere etc. cartesian position.
- * @param {LonLat} [options.lonlat] - Geodetic coordiantes for an entities like billboard, label, sphere etc.
+ * @param {Vec3|Array.<number>} [options.cartesian] - Spatial entities like billboard, label etc. cartesian position.
+ * @param {LonLat} [options.lonlat] - Geodetic coordiantes for an entities like billboard, label etc.
  * @param {boolean} [options.aground] - True for entities that have to be placed on the relief.
  * @param {boolean} [options.visibility] - Entity visibility.
  * @param {*} [options.billboard] - Billboard options(see {@link og.Billboard}).

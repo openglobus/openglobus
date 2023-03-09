@@ -4,8 +4,8 @@
 
 "use strict";
 
-import { BaseGeoImage } from "./BaseGeoImage.js";
 import { nextHighestPowerOfTwo } from "../math.js";
+import { BaseGeoImage } from "./BaseGeoImage.js";
 
 /**
  * Used to load and display a single image over specific corner coordinates on the globe, implements og.layer.BaseGeoImage interface.

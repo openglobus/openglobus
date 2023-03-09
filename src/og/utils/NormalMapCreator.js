@@ -4,12 +4,11 @@
 
 "use strict";
 
-import * as quadTree from "../quadTree/quadTree.js";
-import { Framebuffer } from "../webgl/Framebuffer.js";
 import { Lock } from "../Lock.js";
-import { Program } from "../webgl/Program.js";
-import { types } from "../webgl/types.js";
+import * as quadTree from "../quadTree/quadTree.js";
 import { QueueArray } from "../QueueArray.js";
+import { Framebuffer } from "../webgl/Framebuffer.js";
+import { Program } from "../webgl/Program.js";
 
 export class NormalMapCreator {
 

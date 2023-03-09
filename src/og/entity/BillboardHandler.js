@@ -6,7 +6,7 @@
 
 import * as shaders from "../shaders/billboard.js";
 import { concatTypedArrays, spliceTypedArray } from "../utils/shared.js";
-import { LOCK_UPDATE, LOCK_FREE } from "./LabelWorker.js";
+import { LOCK_FREE } from "./LabelWorker.js";
 
 const PICKINGCOLOR_BUFFER = 0;
 const POSITION_BUFFER = 1;

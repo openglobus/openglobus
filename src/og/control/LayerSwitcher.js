@@ -4,11 +4,11 @@
 
 "use strict";
 
-import { Control } from "./Control.js";
-import { elementFactory, appendChildren, toggleText, enableElmovement } from "../ui/UIhelpers.js";
-import { compose } from "../utils/functionComposition.js"
 import { Dialog } from "../ui/Dialog.js";
 import { ToggleButton } from "../ui/ToggleButton.js";
+import { elementFactory } from "../ui/UIhelpers.js";
+import { compose } from "../utils/functionComposition.js";
+import { Control } from "./Control.js";
 
 const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="utf-8"?>
 <!-- Svg Vector Icons : http://www.onlinewebfonts.com/icon -->
@@ -421,4 +421,5 @@ class LayerSwitcher extends Control {
     }
 }
 
-export { LayerSwitcher }
+export { LayerSwitcher };
+
