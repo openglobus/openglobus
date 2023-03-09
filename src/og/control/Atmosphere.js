@@ -146,10 +146,6 @@ class Atmosphere extends Control {
 
         gl.disable(gl.DEPTH_TEST);
 
-        gl.blendEquation(gl.FUNC_ADD);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.enable(gl.BLEND);
-
         sh.activate();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.renderer.screenFramePositionBuffer);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
@@ -174,7 +170,6 @@ class Atmosphere extends Control {
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         gl.enable(gl.DEPTH_TEST);
-        gl.disable(gl.BLEND);
     }
 }
 

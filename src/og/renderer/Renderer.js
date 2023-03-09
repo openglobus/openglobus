@@ -777,7 +777,7 @@ class Renderer {
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
 
-        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         e.dispatch(e.draw, this);
