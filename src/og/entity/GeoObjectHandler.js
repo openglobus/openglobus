@@ -258,7 +258,7 @@ class InstanceData {
     createIndicesBuffer() {
         const h = this._geoObjectHandler._planet.renderer.handler;
         h.gl.deleteBuffer(this._indicesBuffer);
-        this._indicesArr = makeArrayTyped(this._indicesArr, Uint16Array);
+        this._indicesArr = makeArrayTyped(this._indicesArr, Uint32Array);
         this._indicesBuffer = h.createElementArrayBuffer(this._indicesArr, 1, this._indicesArr.length);
     }
 
@@ -483,7 +483,7 @@ class GeoObjectHandler {
             gl.vertexAttribPointer(a.aTexCoord, tagData._texCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer);
-            p.drawElementsInstanced(gl.TRIANGLES, tagData._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0, tagData.numInstances);
+            p.drawElementsInstanced(gl.TRIANGLES, tagData._indicesBuffer.numItems, gl.UNSIGNED_INT, 0, tagData.numInstances);
         }
     }
 
@@ -548,7 +548,7 @@ class GeoObjectHandler {
             gl.vertexAttribPointer(a.aVertexPosition, tagData._vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer);
-            p.drawElementsInstanced(gl.TRIANGLES, tagData._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0, tagData.numInstances);
+            p.drawElementsInstanced(gl.TRIANGLES, tagData._indicesBuffer.numItems, gl.UNSIGNED_INT, 0, tagData.numInstances);
         }
     }
 
