@@ -678,7 +678,7 @@ class Handler {
         this.intersectionObserver.observe(this.canvas);
 
         this.resizeObserver = new ResizeObserver(entries => {
-            this._toggleVisibilityChange(entries[0].contentRect.width !== 0 && entries[0].contentRect.wheight !== 0);
+            this._toggleVisibilityChange(entries[0].contentRect.width !== 0 && entries[0].contentRect.height !== 0);
         });
         this.resizeObserver.observe(this.canvas);
 
