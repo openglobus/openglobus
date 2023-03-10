@@ -672,10 +672,15 @@ class Handler {
         this._initPrograms();
         this._setDefaults();
 
-        this.observer = new IntersectionObserver((entries) => {
+        this.intersectionObserver = new IntersectionObserver((entries) => {
             this._toggleVisibilityChange(entries[0].isIntersecting === true);
         }, { threshold: 0 });
-        this.observer.observe(this.canvas);
+        this.intersectionObserver.observe(this.canvas);
+
+        this.resizeObserver = new ResizeObserver(entries => {
+            this._toggleVisibilityChange(entries[0].contentRect.width !== 0 && entries[0].contentRect.height !== 0);
+        });
+        this.resizeObserver.observe(this.canvas);
 
         document.addEventListener("visibilitychange", () => {
             this._toggleVisibilityChange(document.visibilityState === 'visible');
