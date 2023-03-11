@@ -203,7 +203,7 @@ let sat = new XYZ("sat", {
 //let visExtent = new VisibleExtent();
 
 var highResTerrain = new MapboxTerrain(null, {
-    maxZoom: 16,
+    maxZoom: 17,
     //url:"//127.0.0.1/og/terrain/eu/{z}/{x}/{y}.png",
     url: "//terrain.openglobus.org/public/eu10/{z}/{x}/{y}.png",
     //url: "//terrain.openglobus.org/public/austria10/{z}/{x}/{y}.png",
@@ -243,10 +243,10 @@ var globus = new Globe({
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     minAltitude: 1,
-    //terrain: highResTerrain,
+    terrain: highResTerrain,
     //terrain: new EmptyTerrain(),
     //terrain: new MapboxTerrain(),
-    terrain: new GlobusTerrain(),
+    //terrain: new GlobusTerrain(),
     //maxEqualZoomAltitude: 1,
     layers: [sat, tg, osm, img, colorado],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
