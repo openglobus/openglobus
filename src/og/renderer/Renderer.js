@@ -494,8 +494,6 @@ class Renderer {
 
             this.handler.addPrograms([depth()]);
 
-            this.handler.addProgram(pickingMask());
-
             this.sceneFramebuffer = new Multisample(this.handler, {
                 size: 1,
                 msaa: this._msaa,
@@ -526,6 +524,8 @@ class Renderer {
                 frustum: this.depthFramebuffer.textures[0]
             };
         }
+
+        this.handler.addProgram(pickingMask());
 
         this.handler.ONCANVASRESIZE = () => {
             this._resizeStart();
