@@ -244,7 +244,7 @@ let obj3d2 = Object3d.createCylinder(3, 3, 10, 16, 16);
 let entities = [];
 for (let i = 0; i < 10; i++) {
     let entity = new Entity({
-        lonlat: [1, i, 20],
+        lonlat: [1, i, 10000],
         name: "obj-" + i,
         geoObject: {
             pitch: Math.random(),
@@ -260,7 +260,7 @@ for (let i = 0; i < 10; i++) {
     entities.push(entity);
 
     let entity2 = new Entity({
-        lonlat: [-1, i, 20],
+        lonlat: [-1, i, 0],
         name: "obj-" + i,
         geoObject: {
             pitch: Math.random(),
@@ -275,7 +275,7 @@ for (let i = 0; i < 10; i++) {
     });
 
     let entity3 = new Entity({
-        lonlat: [2, i, 2000],
+        lonlat: [2, i, 10000 * 2],
         name: "obj-" + i,
         geoObject: {
             pitch: Math.random(),
@@ -327,7 +327,7 @@ fetch(`./fish.json`)
 
         for (let i = 0; i < 10; i++) {
             let entity = new Entity({
-                lonlat: [0, i, 200000],
+                lonlat: [0, i, 0],
                 name: "obj-" + i,
                 geoObject: {
                     pitch: Math.random(),
