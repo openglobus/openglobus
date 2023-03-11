@@ -147,8 +147,6 @@ class Handler {
         if (params.autoActivate || isEmpty(params.autoActivate)) {
             this.initialize();
         }
-
-        this.createTexture_n = this.gl.type === "webgl2" ? this.createTexture_n_webgl2 : this.createTexture_n_webgl1;
     }
 
     /**
@@ -622,69 +620,72 @@ class Handler {
         }
 
         this.gl = Handler.getContext(this.canvas, this._params.context);
-        this._initialized = true;
 
-        /** Sets deafult extensions */
-        this._params.extensions.push("EXT_texture_filter_anisotropic");
+        if(this.gl) {
+            this._initialized = true;
 
-        if (this.gl.type === "webgl") {
-            this._params.extensions.push("OES_standard_derivatives");
-            this._params.extensions.push("OES_element_index_uint");
-            this._params.extensions.push("WEBGL_depth_texture");
-            this._params.extensions.push("ANGLE_instanced_arrays");
-            //this._params.extensions.push("WEBGL_draw_buffers");
-            //this._params.extensions.push("EXT_frag_depth");
-        } else {
-            this._params.extensions.push("EXT_color_buffer_float");
-            this._params.extensions.push("OES_texture_float_linear");
-            //this._params.extensions.push("WEBGL_draw_buffers");
+            /** Sets default extensions */
+            this._params.extensions.push("EXT_texture_filter_anisotropic");
+
+            if (this.gl.type === "webgl") {
+                this._params.extensions.push("OES_standard_derivatives");
+                this._params.extensions.push("OES_element_index_uint");
+                this._params.extensions.push("WEBGL_depth_texture");
+                this._params.extensions.push("ANGLE_instanced_arrays");
+                //this._params.extensions.push("WEBGL_draw_buffers");
+                //this._params.extensions.push("EXT_frag_depth");
+            } else {
+                this._params.extensions.push("EXT_color_buffer_float");
+                this._params.extensions.push("OES_texture_float_linear");
+                //this._params.extensions.push("WEBGL_draw_buffers");
+            }
+
+            let i = this._params.extensions.length;
+            while (i--) {
+                this.initializeExtension(this._params.extensions[i], true);
+            }
+
+            if (this.gl.type === "webgl") {
+                this.createTexture_n = this.createTexture_n_webgl1.bind(this);
+                this.createTexture_l = this.createTexture_l_webgl1.bind(this);
+                this.createTexture_mm = this.createTexture_mm_webgl1.bind(this);
+                this.createTexture_a = this.createTexture_a_webgl1.bind(this);
+            } else {
+                this.createTexture_n = this.createTexture_n_webgl2.bind(this);
+                this.createTexture_l = this.createTexture_l_webgl2.bind(this);
+                this.createTexture_mm = this.createTexture_mm_webgl2.bind(this);
+                this.createTexture_a = this.createTexture_a_webgl2.bind(this);
+            }
+
+            this.createTexture["NEAREST"] = this.createTexture_n;
+            this.createTexture["LINEAR"] = this.createTexture_l;
+            this.createTexture["MIPMAP"] = this.createTexture_mm;
+            this.createTexture["ANISOTROPIC"] = this.createTexture_a;
+
+            if (!this.extensions.EXT_texture_filter_anisotropic) {
+                this.createTextureDefault = this.createTexture_mm;
+            } else {
+                this.createTextureDefault = this.createTexture_a;
+            }
+
+            /** Initilalize shaders and rendering parameters*/
+            this._initPrograms();
+            this._setDefaults();
+
+            this.intersectionObserver = new IntersectionObserver((entries) => {
+                this._toggleVisibilityChange(entries[0].isIntersecting === true);
+            }, { threshold: 0 });
+            this.intersectionObserver.observe(this.canvas);
+
+            this.resizeObserver = new ResizeObserver(entries => {
+                this._toggleVisibilityChange(entries[0].contentRect.width !== 0 && entries[0].contentRect.height !== 0);
+            });
+            this.resizeObserver.observe(this.canvas);
+
+            document.addEventListener("visibilitychange", () => {
+                this._toggleVisibilityChange(document.visibilityState === 'visible');
+            });
         }
-
-        let i = this._params.extensions.length;
-        while (i--) {
-            this.initializeExtension(this._params.extensions[i], true);
-        }
-
-        if (this.gl.type === "webgl") {
-            this.createTexture_n = this.createTexture_n_webgl1.bind(this);
-            this.createTexture_l = this.createTexture_l_webgl1.bind(this);
-            this.createTexture_mm = this.createTexture_mm_webgl1.bind(this);
-            this.createTexture_a = this.createTexture_a_webgl1.bind(this);
-        } else {
-            this.createTexture_n = this.createTexture_n_webgl2.bind(this);
-            this.createTexture_l = this.createTexture_l_webgl2.bind(this);
-            this.createTexture_mm = this.createTexture_mm_webgl2.bind(this);
-            this.createTexture_a = this.createTexture_a_webgl2.bind(this);
-        }
-
-        this.createTexture["NEAREST"] = this.createTexture_n;
-        this.createTexture["LINEAR"] = this.createTexture_l;
-        this.createTexture["MIPMAP"] = this.createTexture_mm;
-        this.createTexture["ANISOTROPIC"] = this.createTexture_a;
-
-        if (!this.extensions.EXT_texture_filter_anisotropic) {
-            this.createTextureDefault = this.createTexture_mm;
-        } else {
-            this.createTextureDefault = this.createTexture_a;
-        }
-
-        /** Initilalize shaders and rendering parameters*/
-        this._initPrograms();
-        this._setDefaults();
-
-        this.intersectionObserver = new IntersectionObserver((entries) => {
-            this._toggleVisibilityChange(entries[0].isIntersecting === true);
-        }, { threshold: 0 });
-        this.intersectionObserver.observe(this.canvas);
-
-        this.resizeObserver = new ResizeObserver(entries => {
-            this._toggleVisibilityChange(entries[0].contentRect.width !== 0 && entries[0].contentRect.height !== 0);
-        });
-        this.resizeObserver.observe(this.canvas);
-
-        document.addEventListener("visibilitychange", () => {
-            this._toggleVisibilityChange(document.visibilityState === 'visible');
-        });
     }
 
     _toggleVisibilityChange(visibility) {

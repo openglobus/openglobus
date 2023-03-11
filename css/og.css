@@ -64,41 +64,29 @@
 }
 
 
-.ogAttribution {
-    background: rgba(255, 255, 255, 0.8);
+.og-attribution {
+    background: rgb(206 206 206);
     text-align: right;
     bottom: 0;
     right: 0;
     position: absolute;
-    height: 20px;
-}
-
-.ogAttribution img {
-    max-height: 2em;
-    width: auto;
-    height: auto;
-    max-width: 100%;
-    vertical-align: middle;
-    border: 0;
-    -ms-interpolation-mode: bicubic;
-}
-
-.ogAttribution ul {
     font-size: .7rem;
-    color: black;
-    /*text-shadow: 0 0 2px #fff;*/
-    margin: 0;
     padding: 1px 0 1px 0;
     line-height: 1.375em;
     font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
+    display: flex;
+    flex-direction: row;
 }
 
-.ogAttribution li {
-    display: inline;
-    list-style: none;
-    line-height: inherit;
+.og-attribution .og-attribution__layer{
     margin-left: 5px;
     margin-right: 5px;
+    align-items: center;
+    display: flex;
+}
+
+.og-attribution img {
+    max-height: 1.3em;
 }
 
 .og-zoomin-button {

@@ -140,7 +140,7 @@ class Globe {
         if (options.attributionContainer) {
             options.attributionContainer.appendChild(this.div.attributions);
         } else {
-            this.div.attributions.classList.add("ogAttribution");
+            this.div.attributions.classList.add("og-attribution");
             this.div.appendChild(this.div.attributions);
         }
 

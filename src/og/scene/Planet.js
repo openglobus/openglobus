@@ -922,6 +922,10 @@ export class Planet extends RenderNode {
         });
     }
 
+    _getLayerAttributionHTML(layer) {
+        return `<div class="og-attribution__layer">${layer._attribution}</div>`;
+    }
+
     /**
      * Updates attribution lists
      * @public
@@ -932,11 +936,10 @@ export class Planet extends RenderNode {
             let li = this._layers[i];
             if (li._visibility) {
                 if (li._attribution.length) {
-                    html += "<li>" + li._attribution + "</li>";
+                    html += this._getLayerAttributionHTML(li);
                 }
             }
         }
-
         this._applyAttribution(html)
     }
 
@@ -973,7 +976,7 @@ export class Planet extends RenderNode {
                 }
 
                 if (li._attribution.length) {
-                    html += "<li>" + li._attribution + "</li>";
+                    html += this._getLayerAttributionHTML(li);
                 }
 
             } else if (li._fading && li._fadingOpacity > 0) {
@@ -999,13 +1002,12 @@ export class Planet extends RenderNode {
     _applyAttribution(html) {
         if (this.renderer) {
             if (html.length) {
-                html = "<ul>" + html + "</ul>";
                 if (this.renderer.div.attributions.innerHTML !== html) {
-                    this.renderer.div.attributions.style.display = "block";
+                    //this.renderer.div.attributions.style.display = "block";
                     this.renderer.div.attributions.innerHTML = html;
                 }
             } else {
-                this.renderer.div.attributions.style.display = "none";
+                //this.renderer.div.attributions.style.display = "none";
                 this.renderer.div.attributions.innerHTML = "";
             }
         }

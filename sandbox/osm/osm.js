@@ -178,7 +178,7 @@ let sat = new XYZ("sat", {
     //url: "//127.0.0.1/whereonmars.cartodb.net/celestia_mars-shaded-16k_global/{z}/{y}/{x}.png",
     //url: "https://trek.nasa.gov/tiles/Mars/EQ/Mars_Viking_MDIM21_ClrMosaic_global_232m/1.0.0//default/default028mm/{z}/{y}/{x}.jpg",
     visibility: true,
-    attribution: `<div style="transform: scale(0.8); margin-top:-2px;"><a href="http://www.bing.com" target="_blank"><img title="Bing Imagery" src="https://sandcastle.cesium.com/CesiumUnminified/Assets/Images/bing_maps_credit.png"></a> © 2021 Microsoft Corporation</div>`,
+    attribution: `<a href="http://www.bing.com" target="_blank"><img title="Bing Imagery" src="https://sandcastle.cesium.com/CesiumUnminified/Assets/Images/bing_maps_credit.png"></a> © 2021 Microsoft Corporation`,
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#001522" }, { color: "#E4E6F3" }],
     //textureFilter: "linear",
