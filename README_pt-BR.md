@@ -1,3 +1,9 @@
+<p align="left">
+  <a href="https://www.npmjs.com/@openglobus/og">
+    <img src="https://img.shields.io/npm/v/@openglobus/og.svg?logo=npm&logoColor=fff&label=NPM+package&color=limegreen" alt="openglobus on npm" />
+  </a>&nbsp;
+</p>
+
 # Openglobus
 
 [English](README.md) | [简体中文](README_CN.md) | Portuguese-BR
