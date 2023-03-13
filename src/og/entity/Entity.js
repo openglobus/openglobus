@@ -531,7 +531,7 @@ class Entity {
         this.ray = ray;
         this.ray._entity = this;
         this.ray.setVisibility(this._visibility);
-        this._entityCollection && this._entityCollection._rayHandler.add(ray);
+        this._entityCollection && this._entityCollection.rayHandler.add(ray);
         return ray;
     }
 
@@ -548,7 +548,7 @@ class Entity {
         this.polyline = polyline;
         this.polyline._entity = this;
         this.polyline.setVisibility(this._visibility);
-        this._entityCollection && this._entityCollection._polylineHandler.add(polyline);
+        this._entityCollection && this._entityCollection.polylineHandler.add(polyline);
         return polyline;
     }
 
@@ -565,7 +565,7 @@ class Entity {
         this.pointCloud = pointCloud;
         this.pointCloud._entity = this;
         this.pointCloud.setVisibility(this._visibility);
-        this._entityCollection && this._entityCollection._pointCloudHandler.add(pointCloud);
+        this._entityCollection && this._entityCollection.pointCloudHandler.add(pointCloud);
         return pointCloud;
     }
 
@@ -600,7 +600,7 @@ class Entity {
         this.geoObject._entity = this;
         this.geoObject.setPosition3v(this._cartesian);
         this.geoObject.setVisibility(this._visibility);
-        this._entityCollection && this._entityCollection._geoObjectHandler.add(geoObject);
+        this._entityCollection && this._entityCollection.geoObjectHandler.add(geoObject);
         return geoObject;
     }
 
@@ -617,7 +617,7 @@ class Entity {
         this.strip = strip;
         this.strip._entity = this;
         this.strip.setVisibility(this._visibility);
-        this._entityCollection && this._entityCollection._stripHandler.add(strip);
+        this._entityCollection && this._entityCollection.stripHandler.add(strip);
         return strip;
     }
 
@@ -644,7 +644,7 @@ class Entity {
         entity._pickingColor = this._pickingColor;
         entity.parent = this;
         this.childrenNodes.push(entity);
-        this._entityCollection && this._entityCollection._addRecursively(entity);
+        this._entityCollection && this._entityCollection.appendChildEntity(entity);
     }
 
     /**

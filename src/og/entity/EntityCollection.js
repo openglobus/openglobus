@@ -283,6 +283,10 @@ class EntityCollection {
         this.scaleByDistance[2] = farInvisible || math.MAX32;
     }
 
+    appendChildEntity(entity) {
+        this._addRecursively(entity);
+    }
+
     _addRecursively(entity) {
         // billboard
         entity.billboard && this.billboardHandler.add(entity.billboard);
