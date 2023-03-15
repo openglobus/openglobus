@@ -316,7 +316,7 @@ class Segment {
                 if (d === Ray.INSIDE) {
                     return xyz.distance(res);
                 } else if (d === Ray.AWAY) {
-                    _rayEx.set(xyz, xyz);
+                    _rayEx.set(xyz, this.planet.ellipsoid.getSurfaceNormal3v(xyz));
                     let d = _rayEx.hitTriangle(_v0, _v1, _v2, res, normal);
                     if (d === Ray.INSIDE) {
                         return -xyz.distance(res);
@@ -329,7 +329,7 @@ class Segment {
                 if (d === Ray.INSIDE) {
                     return xyz.distance(res);
                 } else if (d === Ray.AWAY) {
-                    _rayEx.set(xyz, xyz);
+                    _rayEx.set(xyz, this.planet.ellipsoid.getSurfaceNormal3v(xyz));
                     let d = _rayEx.hitTriangle(_v1, _v3, _v2, res, normal);
                     if (d === Ray.INSIDE) {
                         return -xyz.distance(res);
