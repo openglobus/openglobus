@@ -10,7 +10,7 @@ import { RenderNode } from '../../scene/RenderNode.js';
 
 const OUTLINE_COUNT = 120;
 
-function distanceFormat(v) {
+export function distanceFormat(v) {
     if (v > 1000) {
         return `${(v / 1000).toFixed(1)} km`;
     } else if (v > 9) {
@@ -49,7 +49,7 @@ class RulerScene extends RenderNode {
                 outlineColor: "rgba(0,0,0,0.34)",
                 outline: 0.23,
                 align: "center",
-                offset: [0, 18]
+                offset: [0, 20]
             }
         });
 
@@ -308,20 +308,34 @@ class RulerScene extends RenderNode {
         this._cornerEntity[1].geoObject.setVisibility(false);
     }
 
+    isCornersPositionChanged() {
+        let t = this._trackEntity.polyline.getPath3v()[0];
+        if (t) {
+            const startPos = t[0].clone(),
+                endPos = t[t.length - 1].clone();
+            return this._cornerEntity[0].getCartesian().equal(startPos) &&
+                this._cornerEntity[1].getCartesian().equal(endPos)
+        }
+        return false
+    }
+
     frame() {
         let t = this._trackEntity.polyline.getPath3v()[0];
         if (t) {
-            this._cornerEntity[0].setCartesian3v(t[0].clone());
-            this._cornerEntity[1].setCartesian3v(t[t.length - 1].clone());
+            const startPos = t[0].clone(),
+                endPos = t[t.length - 1].clone();
 
-            if (!this._ignoreTerrain) {
-                let res = 0;
-                for (let i = 0, len = t.length - 1; i < len; i++) {
-                    res += t[i + 1].distance(t[i]);
+            if (!this.isCornersPositionChanged()) {
+                this._cornerEntity[0].setCartesian3v(startPos);
+                this._cornerEntity[1].setCartesian3v(endPos);
+                if (!this._ignoreTerrain) {
+                    let res = 0;
+                    for (let i = 0, len = t.length - 1; i < len; i++) {
+                        res += t[i + 1].distance(t[i]);
+                    }
+                    this._propsLabel.setCartesian3v(t[Math.floor(t.length / 2)]);
+                    this._propsLabel.label.setText(`${distanceFormat(res)}, ${Math.round(this._heading)} deg`);
                 }
-
-                this._propsLabel.setCartesian3v(t[Math.floor(t.length / 2)]);
-                this._propsLabel.label.setText(`${distanceFormat(res)}, ${Math.round(this._heading)} deg`);
             }
         }
     }
