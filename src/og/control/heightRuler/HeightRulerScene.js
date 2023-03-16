@@ -25,7 +25,7 @@ const LABEL_OPTIONS = {
 const RULER_CORNER_OPTIONS = {
     scale: 1,
     instanced: true,
-    tag: "ruler",
+    tag: "height-ruler",
     color: "rgb(255,131,0)",
     object3d: obj3d
 };
@@ -33,23 +33,10 @@ const RULER_CORNER_OPTIONS = {
 class HeightRulerScene extends RulerScene {
     constructor(options = {}) {
         super(options);
-        this._cornerEntity = [
-            new Entity({
-                geoObject: RULER_CORNER_OPTIONS,
-                properties: {
-                    name: "start"
-                }
-            }),
-            new Entity({
-                geoObject: RULER_CORNER_OPTIONS,
-                properties: {
-                    name: "end"
-                }
-            })
-        ];
+
 
         this._cornersLayer = new Vector("corners", {
-            entities: [this._cornerEntity[0], this._cornerEntity[1]],
+            entities: [],
             pickingEnabled: true,
             displayInLayerSwitcher: false,
             scaleByDistance: [100, 4000000, 1.0],
@@ -155,6 +142,8 @@ class HeightRulerScene extends RulerScene {
     clear() {
         this._rayH.remove();
         this._rayV.remove();
+        this.startCorner.remove();
+        this.endCorner.remove();
         this.startLabel.remove();
         this.endLabel.remove();
         this.deltaLabel.remove();
@@ -164,9 +153,27 @@ class HeightRulerScene extends RulerScene {
 
         this._planet.removeLayer(this._geoRulerLayer);
     }
-
+    _createCorners(){
+        this._cornerEntity = [
+            new Entity({
+                geoObject: RULER_CORNER_OPTIONS,
+                properties: {
+                    name: "start"
+                }
+            }),
+            new Entity({
+                geoObject: RULER_CORNER_OPTIONS,
+                properties: {
+                    name: "end"
+                }
+            })
+        ];
+        this._cornersLayer.addEntities(this._cornerEntity)
+    }
     init() {
-        super.init()
+
+        super.init();
+        this._createCorners();
         this._rayV = new Entity({
             'name': 'verticalRay',
             'ray': RAYS_OPTIONS

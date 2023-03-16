@@ -18,7 +18,25 @@ export function distanceFormat(v) {
     } else {
         return `${v.toFixed(1)} m`;
     }
-}
+};
+let obj3d = Object3d.createCylinder(1.1, 0, 2.7, 20, 1, true, false, 0, 0, 0)
+
+const LABEL_OPTIONS = {
+    text: "",
+    size: 11,
+    color: "rgba(455,455,455,1.0)",
+    outlineColor: "rgba(0,0,0,0.34)",
+    outline: 0.23,
+    align: "center",
+    offset: [0, 20]
+};
+const RULER_CORNER_OPTIONS = {
+    scale: 1,
+    instanced: true,
+    tag: "ruler",
+    color: "rgb(0,305,0)",
+    object3d: obj3d
+};
 
 class RulerScene extends RenderNode {
     constructor(options = {}) {
@@ -40,63 +58,8 @@ class RulerScene extends RenderNode {
 
         this._heading = 0;
 
-        this._propsLabel = new Entity({
-            'name': 'propsLabel',
-            'label': {
-                text: "",
-                size: 11,
-                color: "rgba(455,455,455,1.0)",
-                outlineColor: "rgba(0,0,0,0.34)",
-                outline: 0.23,
-                align: "center",
-                offset: [0, 20]
-            }
-        });
-
-        this._propsLabel.label.setVisibility(false);
-
-        this._trackEntity = new Entity({
-            polyline: {
-                path3v: [],
-                thickness: 4.8,
-                color: "rgb(255,131,0)",
-                isClosed: false
-            }
-        });
-
-        this._trackEntity.polyline.altitude = 0.01;
-
-        let obj3d = Object3d.createCylinder(1.1, 0, 2.7, 20, 1, true, false, 0, 0, 0)
-
-        this._cornerEntity = [
-            new Entity({
-                geoObject: {
-                    scale: 1,
-                    instanced: true,
-                    tag: "ruler",
-                    color: "rgb(0,305,0)",
-                    object3d: obj3d
-                },
-                properties: {
-                    name: "start"
-                }
-            }),
-            new Entity({
-                geoObject: {
-                    scale: 1,
-                    instanced: true,
-                    tag: "ruler",
-                    color: "rgb(455,0,0)",
-                    object3d: obj3d
-                },
-                properties: {
-                    name: "end"
-                }
-            })
-        ];
-
         this._trackLayer = new Vector("track", {
-            entities: [this._trackEntity, this._propsLabel],
+            entities: [],
             pickingEnabled: false,
             polygonOffsetUnits: -1.0,
             relativeToGround: true,
@@ -104,7 +67,7 @@ class RulerScene extends RenderNode {
         });
 
         this._cornersLayer = new Vector("corners", {
-            entities: [this._cornerEntity[0], this._cornerEntity[1]],
+            entities: [],
             pickingEnabled: true,
             displayInLayerSwitcher: false,
             scaleByDistance: [100, 4000000, 1.0],
@@ -123,7 +86,48 @@ class RulerScene extends RenderNode {
         this._planet = planet;
     }
 
+    _createCorners() {
+        this._cornerEntity = [
+            new Entity({
+                geoObject: RULER_CORNER_OPTIONS,
+                properties: {
+                    name: "start"
+                }
+            }),
+            new Entity({
+                geoObject: RULER_CORNER_OPTIONS,
+                properties: {
+                    name: "end"
+                }
+            })
+        ];
+        this._cornersLayer.addEntities(this._cornerEntity)
+    }
+
     init() {
+
+        this._propsLabel = new Entity({
+            'name': 'propsLabel',
+            'label': LABEL_OPTIONS
+        });
+
+        // this._propsLabel.label.setVisibility(false);
+
+        this._trackEntity = new Entity({
+            polyline: {
+                path3v: [],
+                thickness: 4.8,
+                color: "rgb(255,131,0)",
+                isClosed: false
+            }
+        });
+
+        this._trackEntity.polyline.altitude = 0.01;
+
+        this._createCorners();
+        this._trackLayer.addEntities([this._trackEntity, this._propsLabel]);
+        this._planet.addLayer(this._trackLayer);
+        this._planet.addLayer(this._cornersLayer);
         this._activate();
     }
 
@@ -156,8 +160,6 @@ class RulerScene extends RenderNode {
         this._onCornerLup_ = this._onCornerLup.bind(this);
         this._cornersLayer.events.on("lup", this._onCornerLup, this);
 
-        this._planet.addLayer(this._trackLayer);
-        this._planet.addLayer(this._cornersLayer);
 
     }
 
@@ -166,8 +168,8 @@ class RulerScene extends RenderNode {
         this._preventClick = false;
         this._stopDrawing = false;
         this._pickedCorner = null;
-        this._trackLayer.remove();
-        this._cornersLayer.remove();
+        // this._trackLayer.remove();
+        // this._cornersLayer.remove();
 
         this.renderer.events.off("lclick", this._onLclick_);
         this.renderer.events.off("mousemove", this._onMouseMove_);
@@ -234,10 +236,10 @@ class RulerScene extends RenderNode {
             if (!this._preventClick) {
                 if (!this._startLonLat) {
                     this._stopDrawing = false;
-                    this._propsLabel.label.setVisibility(false);
+                    this._propsLabel.setVisibility(false);
                     this._trackEntity.polyline.setPath3v([]);
-                    this._cornerEntity[0].geoObject.setVisibility(true);
-                    this._cornerEntity[1].geoObject.setVisibility(true);
+                    this._cornerEntity[0].setVisibility(true);
+                    this._cornerEntity[1].setVisibility(true);
                     this._startLonLat = startLonLat;
                 } else {
                     this._startLonLat = null;
@@ -302,10 +304,12 @@ class RulerScene extends RenderNode {
     }
 
     clear() {
-        // удаляем трек
-        this._trackEntity.polyline.clear();
-        this._cornerEntity[0].geoObject.setVisibility(false);
-        this._cornerEntity[1].geoObject.setVisibility(false);
+        this._trackEntity.remove();
+        this._cornerEntity[0].remove();
+        this._cornerEntity[1].remove();
+        this._propsLabel.remove();
+        this._planet.removeLayer(this._trackLayer);
+        this._planet.removeLayer(this._cornersLayer);
     }
 
     isCornersPositionChanged() {
