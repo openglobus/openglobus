@@ -11,6 +11,7 @@ import { Lighting } from "./Lighting.js";
 import { MouseNavigation } from "./MouseNavigation.js";
 import { MouseWheelZoomControl } from "./MouseWheelZoomControl.js";
 import { Ruler } from "./ruler/Ruler.js";
+import { HeightRuler } from "./heightRuler/HeightRuler.js";
 import { ScaleControl } from "./ScaleControl.js";
 import { Selection } from "./selection/Selection.js";
 import { ShowFps } from "./ShowFps.js";
@@ -41,6 +42,7 @@ export {
     MouseWheelZoomControl,
     Lighting,
     Ruler,
+    HeightRuler,
     SimpleSkyBackground,
     Selection,
     LayerAnimation

@@ -32,7 +32,10 @@ const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="iso-8859-1"?>
  */
 class RulerSwitcher extends Control {
     constructor(options = {}) {
-        super(options);
+        super({
+            name: "RulerSwitcher",
+            ...options
+        });
 
         this.ruler = new Ruler({
             ignoreTerrain: options.ignoreTerrain
