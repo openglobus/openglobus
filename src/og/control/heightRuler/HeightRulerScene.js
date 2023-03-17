@@ -120,7 +120,7 @@ class HeightRulerScene extends RulerScene {
         this._updateHeightRaysAndLabels();
     }
 
-    _updateHeightRaysAndLabels() {
+    async _updateHeightRaysAndLabels() {
         const middleLonLat = this.minHeightCornerLonLat.clone();
         middleLonLat.height = this.maxHeightCornerLonLat.height;
 
@@ -132,11 +132,15 @@ class HeightRulerScene extends RulerScene {
         middleLonLat.height = this.minHeightCornerLonLat.height + this.deltaHeight / 2;
 
         this.deltaLabel.setLonLat(middleLonLat);
-        this.deltaLabel.label.setText(`\u0394 ${this.deltaHeight.toFixed(1)} m`);
         this.startLabel.setLonLat(this.startCornerLonLat);
         this.endLabel.setLonLat(this.endCornerLonLat);
-        this.startLabel.label.setText(`P1 ${this.startCornerHeight.toFixed(1)} m`)
-        this.endLabel.label.setText(`P2 ${this.endCornerHeight.toFixed(1)} m`)
+
+        const startHeight = await this._planet.getHeightDefault(this.startCornerLonLat),
+            endHeight = await this._planet.getHeightDefault(this.endCornerLonLat)
+
+        this.deltaLabel.label.setText(`\u0394 ${Math.abs(startHeight - endHeight).toFixed(1)} m`);
+        this.startLabel.label.setText(`P1 ${startHeight.toFixed(1)} m`)
+        this.endLabel.label.setText(`P2 ${endHeight.toFixed(1)} m`)
     }
 
     clear() {
@@ -153,7 +157,8 @@ class HeightRulerScene extends RulerScene {
 
         this._planet.removeLayer(this._geoRulerLayer);
     }
-    _createCorners(){
+
+    _createCorners() {
         this._cornerEntity = [
             new Entity({
                 geoObject: RULER_CORNER_OPTIONS,
@@ -170,6 +175,7 @@ class HeightRulerScene extends RulerScene {
         ];
         this._cornersLayer.addEntities(this._cornerEntity)
     }
+
     init() {
 
         super.init();
@@ -202,7 +208,8 @@ class HeightRulerScene extends RulerScene {
                 }
             })
         ];
-        this._geoRulerLayer.addEntities([this._rayH, this._rayV, ...this._heightLabels]);
+        this._labelLayer.addEntities(this._heightLabels);
+        this._geoRulerLayer.addEntities([this._rayH, this._rayV]);
 
         this._planet.addLayer(this._geoRulerLayer);
     }

@@ -18,7 +18,7 @@ export function distanceFormat(v) {
     } else {
         return `${v.toFixed(1)} m`;
     }
-};
+}
 let obj3d = Object3d.createCylinder(1.1, 0, 2.7, 20, 1, true, false, 0, 0, 0)
 
 const LABEL_OPTIONS = {
@@ -62,6 +62,13 @@ class RulerScene extends RenderNode {
             entities: [],
             pickingEnabled: false,
             polygonOffsetUnits: -1.0,
+            relativeToGround: true,
+            displayInLayerSwitcher: false
+        });
+        this._labelLayer = new Vector("ruler-label", {
+            entities: [],
+            pickingEnabled: false,
+            polygonOffsetUnits: -100.0,
             relativeToGround: true,
             displayInLayerSwitcher: false
         });
@@ -125,7 +132,9 @@ class RulerScene extends RenderNode {
         this._trackEntity.polyline.altitude = 0.01;
 
         this._createCorners();
-        this._trackLayer.addEntities([this._trackEntity, this._propsLabel]);
+        this._trackLayer.addEntities([this._trackEntity]);
+        this._labelLayer.addEntities([ this._propsLabel]);
+        this._planet.addLayer(this._labelLayer);
         this._planet.addLayer(this._trackLayer);
         this._planet.addLayer(this._cornersLayer);
         this._activate();
