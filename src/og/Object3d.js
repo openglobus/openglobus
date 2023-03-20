@@ -44,7 +44,7 @@ class Object3d {
             this._normals = data.normals || [];
         } else {
             this._normals = Object3d.getNormals(this._vertices);
-            this._indices = new Array(this._vertices.length);
+            this._indices = new Array(this._vertices.length/ 3);
             for (let i = 0, len = this._indices.length; i < len; i++) {
                 this._indices[i] = i;
             }
