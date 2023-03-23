@@ -49,11 +49,11 @@ class Material {
             this._updateTexture = null;
             //this.image = img;
             this.texture = this._createTexture(img);
-            this.appliedNodeId = this.segment.node.nodeId;
             this.isReady = true;
             this.pickingReady = true;
             this.textureExists = true;
             this.isLoading = false;
+            this.appliedNodeId = this.segment.node.nodeId;
             this.texOffset = [0.0, 0.0, 1.0, 1.0];
         }
     }

@@ -5,23 +5,23 @@
 'use strict';
 
 import { doubleToTwoFloats2 } from '../math/coder.js';
-import * as quadTree from '../quadTree/quadTree.js';
+import { RENDERING } from '../quadTree/quadTree.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';
 import { Program } from '../webgl/Program.js';
 
 let tempArr = new Float32Array(2);
 
+const MAX_FRAME_TIME = 25.0;
+
 export class VectorTileCreator {
 
-    constructor(planet, maxFrames = 5, width = 256, height = 256) {
+    constructor(planet, width = 512, height = 512) {
 
         this._width = width;
         this._height = height;
         this._handler = planet.renderer.handler;
         this._planet = planet;
         this._framebuffer = null;
-        this.MAX_FRAMES = maxFrames;
-        this._currentFrame = 0;
         this._queue = [];
         this._initialize();
     }
@@ -193,44 +193,38 @@ export class VectorTileCreator {
 
     frame() {
         if (this._planet.layerLock.isFree() && this._queue.length) {
-            var h = this._handler,
+            let h = this._handler,
                 gl = h.gl;
 
             gl.disable(gl.CULL_FACE);
             gl.disable(gl.DEPTH_TEST);
 
-            // gl.enable(gl.BLEND);
-            // gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
-            // gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-
-            var hLine = h.programs.vectorTileLineRasterization,
+            let hLine = h.programs.vectorTileLineRasterization,
                 hPoly = h.programs.vectorTilePolygonRasterization;
 
-            var _w = this._width,
+            let _w = this._width,
                 _h = this._height,
                 width = _w,
                 height = _h,
                 _w2 = width << 1,
                 _h2 = height << 1;
 
-            var pickingMask = null,
-                texture = null;
-
             // var prevLayerId = -1;
 
-            var extentParamsHigh = new Float32Array(4);
-            var extentParamsLow = new Float32Array(4);
+            let extentParamsHigh = new Float32Array(4);
+            let extentParamsLow = new Float32Array(4);
 
-            var f = this._framebuffer.activate();
+            let f = this._framebuffer.activate();
 
-            var deltaTime = 0,
+            let deltaTime = 0,
                 startTime = window.performance.now();
 
-            while (this._planet.layerLock.isFree() && this._queue.length && deltaTime < 0.25) {
-                var material = this._queue.shift();
-                if (material.isLoading && material.segment.node.getState() === quadTree.RENDERING) {
+            while (this._queue.length && deltaTime < MAX_FRAME_TIME) {
+                let material = this._queue.shift();
+                if (material.isLoading && material.segment.node.getState() === RENDERING) {
+                    let pickingEnabled = material.layer._pickingEnabled;
 
-                    if (material.segment.tileZoom <= 3) {
+                    if (material.segment.tileZoom < 4) {
                         width = _w2;
                         height = _h2;
                     } else {
@@ -238,7 +232,10 @@ export class VectorTileCreator {
                         height = _h;
                     }
 
-                    texture = material._updateTexture || h.createEmptyTexture_l(width, height);
+                    let texture = material._updateTexture || h.createEmptyTexture_l(width, height);
+                    let pickingMask = pickingEnabled ? material._updatePickingMask || h.createEmptyTexture_n(width, height) : null;
+
+                    material.applyTexture(texture, pickingMask);
 
                     f.setSize(width, height);
 
@@ -247,7 +244,7 @@ export class VectorTileCreator {
                     gl.clearColor(0.0, 0.0, 0.0, 0.0);
                     gl.clear(gl.COLOR_BUFFER_BIT);
 
-                    var extent = material.segment.getExtentMerc();
+                    let extent = material.segment.getExtentMerc();
 
                     doubleToTwoFloats2(extent.southWest.lon, tempArr);
                     extentParamsHigh[0] = tempArr[0];
@@ -261,11 +258,11 @@ export class VectorTileCreator {
                     extentParamsHigh[3] = 2.0 / extent.getHeight();
 
                     hPoly.activate();
-                    var sh = hPoly._program;
-                    var sha = sh.attributes,
+                    let sh = hPoly._program;
+                    let sha = sh.attributes,
                         shu = sh.uniforms;
 
-                    var geomHandler = material.layer._geometryHandler;
+                    let geomHandler = material.layer._geometryHandler;
 
                     //=========================================
                     //Polygon rendering
@@ -287,26 +284,16 @@ export class VectorTileCreator {
                     gl.drawElements(gl.TRIANGLES, geomHandler._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
                     //Polygon picking PASS
-                    if (material.layer._pickingEnabled) {
-                        if (!material.pickingReady) {
-                            if (material._updatePickingMask) {
-                                pickingMask = material._updatePickingMask;
-                            } else {
-                                pickingMask = h.createEmptyTexture_n(width, height);
-                            }
+                    if (pickingEnabled) {
+                        f.bindOutputTexture(pickingMask);
 
-                            f.bindOutputTexture(pickingMask);
+                        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+                        gl.clear(gl.COLOR_BUFFER_BIT);
 
-                            gl.clearColor(0.0, 0.0, 0.0, 0.0);
-                            gl.clear(gl.COLOR_BUFFER_BIT);
+                        gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyPickingColorsBuffer);
+                        gl.vertexAttribPointer(sha.colors, geomHandler._polyPickingColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-                            gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyPickingColorsBuffer);
-                            gl.vertexAttribPointer(sha.colors, geomHandler._polyPickingColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-                            gl.drawElements(gl.TRIANGLES, geomHandler._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
-                        } else {
-                            pickingMask = material.pickingMask;
-                        }
+                        gl.drawElements(gl.TRIANGLES, geomHandler._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
                     }
 
                     //=========================================
@@ -379,22 +366,18 @@ export class VectorTileCreator {
                     gl.uniform1f(shu.alpha, 1.0);
                     gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
 
-                    if (material.layer._pickingEnabled && !material.pickingReady) {
+                    if (pickingEnabled) {
                         f.bindOutputTexture(pickingMask);
                         gl.uniform1f(shu.thicknessOutline, 8);
                         gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._linePickingColorsBuffer);
                         gl.vertexAttribPointer(sha.color, geomHandler._linePickingColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
                         gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
                     }
-
-                    material.applyTexture(texture, pickingMask);
-
                 } else {
                     material.isLoading = false;
                 }
 
                 deltaTime = window.performance.now() - startTime;
-                // prevLayerId = material.layer._id;
             }
 
             gl.enable(gl.DEPTH_TEST);

@@ -145,6 +145,10 @@ class DebugInfo extends Control {
                 {
                     label: "NormalMapCreator",
                     frame: () => p._normalMapCreator._queue.length
+                },
+                {
+                    label: "VectorTileCreator",
+                    frame: () => p._vectorTileCreator._queue.length
                 }
             ]);
         }

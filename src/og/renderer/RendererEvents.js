@@ -16,12 +16,19 @@ const LB_M = 0b0001;
 const RB_M = 0b0010;
 const MB_M = 0b0100;
 
+let __skipFrames__ = 0;
+const MAX_SKIP_FRAMES_ON_BLACK = 15;
+
+const ISBLACK = (c) => !(c[0] || c[1] || c[2]);
+const NOTBLACK = (c) => c[0] || c[1] || c[2];
+
 /**
  * Stores current picking rgb color.
  * @private
  * @type {Array.<number>} - (exactly 3 entries)
  */
 let _currPickingColor = new Uint8Array(4);
+let _tempCurrPickingColor = new Uint8Array(4);
 
 /**
  * Stores previous picked rgb color.
@@ -612,34 +619,44 @@ class RendererEvents extends Events {
         if (!(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
 
             let r = this.renderer;
-            let o = r.colorObjects;
             let c = _currPickingColor,
-                p = _prevPickingColor;
+                p = _prevPickingColor,
+                t = _tempCurrPickingColor;
+
+            if (ts.x || ts.y) {
+                r.readPickingColor(ts.nx, 1 - ts.ny, t);
+            } else {
+                r.readPickingColor(ms.nx, 1 - ms.ny, t);
+            }
+
+            // current is black
+            if (ISBLACK(t) && __skipFrames__++ < MAX_SKIP_FRAMES_ON_BLACK) {
+                return;
+            }
+            __skipFrames__ = 0;
 
             p[0] = c[0];
             p[1] = c[1];
             p[2] = c[2];
 
-            if (ts.x || ts.y) {
-                r.readPickingColor(ts.nx, 1 - ts.ny, c);
-            } else {
-                r.readPickingColor(ms.nx, 1 - ms.ny, c);
-            }
+            c[0] = t[0];
+            c[1] = t[1];
+            c[2] = t[2];
 
             ms.pickingObject = null;
             ts.pickingObject = null;
 
-            let co = o && o[c[0] + "_" + c[1] + "_" + c[2]];
+            let co = r.getPickingObjectArr(c);
 
             ms.pickingObject = co;
             ts.pickingObject = co;
 
-            //object changed
-            if (c[0] != p[0] || c[1] != p[1] || c[2] != p[2]) {
+            //object is changed
+            if (c[0] !== p[0] || c[1] !== p[1] || c[2] !== p[2]) {
 
-                //current black
-                if (!(c[0] || c[1] || c[2])) {
-                    let po = o[p[0] + "_" + p[1] + "_" + p[2]];
+                //current is black
+                if (ISBLACK(c)) {
+                    let po = r.getPickingObjectArr(p);
                     if (po) {
                         let pe = po.rendererEvents;
                         ms.pickingObject = po;
@@ -648,11 +665,11 @@ class RendererEvents extends Events {
                         pe && pe.dispatch(pe.touchleave, ts);
                     }
                 } else {
-                    //current not black
+                    //current ia not black
 
-                    //previous not black
-                    if (p[0] || p[1] || p[2]) {
-                        let po = o[p[0] + "_" + p[1] + "_" + p[2]];
+                    //previous is not black
+                    if (NOTBLACK(p)) {
+                        let po = r.getPickingObjectArr(p);
                         if (po) {
                             let pe = po.rendererEvents;
                             ms.pickingObject = po;
@@ -844,9 +861,9 @@ class RendererEvents extends Events {
      * @private
      */
     handleTouchEvents() {
-        var ts = this.touchState;
+        let ts = this.touchState;
 
-        var tpo = ts.pickingObject,
+        let tpo = ts.pickingObject,
             tpe = null;
 
         if (ts.touchCancel) {
@@ -855,15 +872,14 @@ class RendererEvents extends Events {
         }
 
         if (ts.touchStart) {
-            var r = this.renderer;
+            let r = this.renderer;
 
             r.pickingFramebuffer.activate();
             r.pickingFramebuffer.readPixels(_currPickingColor, ts.nx, 1.0 - ts.ny, 1);
             r.pickingFramebuffer.deactivate();
 
-            var o = r.colorObjects;
-            var c = _currPickingColor;
-            var co = o[c[0] + "_" + c[1] + "_" + c[2]];
+            let c = _currPickingColor;
+            let co = r.getPickingObjectArr(c);
             tpo = ts.pickingObject = co;
             if (tpo) {
                 tpe = tpo.rendererEvents;

@@ -1594,7 +1594,6 @@ export class Planet extends RenderNode {
         this.terrain.abortLoading();
         this._tileLoader.abortAll();
 
-
         this.quadTreeStrategy.clear();
         this.layerLock.free(this._memKey);
         this.terrainLock.free(this._memKey);
