@@ -400,6 +400,18 @@ details[open] {
     top: 120px;
 }
 
+.og-debuginfo_controls {
+    padding-bottom: 8px;
+    display: flex;
+}
+
+.og-debuginfo_controls-button {
+    width: 25px;
+    height: 25px;
+    float: left;
+    margin: 3px;
+}
+
 .og-debug-info {
     color: white;
     font-size: 12px;

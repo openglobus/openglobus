@@ -8,6 +8,13 @@ import { Control } from "./Control.js";
 import { ToggleButton } from "../ui/ToggleButton.js";
 import { Dialog } from "../ui/Dialog.js";
 
+const ICON_LOCK_BUTTON_SVG = `<?xml version="1.0" encoding="utf-8"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg fill="#000000" width="800px" height="800px" viewBox="-7.5 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<title>lock</title>
+<path d="M14.625 15.156h2.094c0.281 0 0.5 0.25 0.5 0.531v11c0 0.281-0.219 0.5-0.5 0.5h-16.219c-0.281 0-0.5-0.219-0.5-0.5v-11c0-0.281 0.219-0.531 0.5-0.531h2.031v-5.125c0-2.875 1.844-5.25 4.688-5.25h2.688c2.875 0 4.719 2.375 4.719 5.25v5.125zM5.188 15.156h6.813v-4.875c0-1.594-1.313-2.938-2.938-2.938h-0.969c-1.594 0-2.906 1.344-2.906 2.938v4.875zM7.156 24h2.906l-0.719-3.156c0.5-0.25 0.844-0.781 0.844-1.375 0-0.906-0.719-1.594-1.594-1.594s-1.563 0.688-1.563 1.594c0 0.594 0.344 1.125 0.844 1.375z"></path>
+</svg>`;
+
 const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="iso-8859-1"?>
 <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
@@ -114,6 +121,11 @@ class DebugInfo extends Control {
 
         this.el = document.createElement("div");
         this.el.className = "og-debug-info";
+
+        let $controls = document.createElement("div");
+        $controls.classList.add("og-debuginfo_controls");
+        this.el.appendChild($controls);
+
         var temp = this._watch;
         this._watch = [];
         for (var i = 0; i < temp.length; i++) {
@@ -219,6 +231,21 @@ class DebugInfo extends Control {
                 }
             ]);
         }
+
+        let lockTreeBtn = new ToggleButton({
+            classList: ["og-debuginfo_controls-button"],
+            icon: ICON_LOCK_BUTTON_SVG,
+            title: "Lock/Unlock quad tree"
+        });
+        lockTreeBtn.appendTo($controls);
+
+        lockTreeBtn.on("change", (isActive) => {
+            if (isActive) {
+                p.lockQuadTree();
+            } else {
+                p.unlockQuadTree();
+            }
+        });
     }
 
     _frame() {
