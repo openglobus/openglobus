@@ -491,6 +491,7 @@ class GeoObjectHandler {
 
     drawPicking() {
         if (this._geoObjects.length && this.pickingEnabled) {
+            this.update();
             this._pickingPASS();
         }
     }

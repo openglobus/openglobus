@@ -1146,6 +1146,8 @@ export class Planet extends RenderNode {
         if (this.camera.isFirstPass) {
             this._firstPASS();
         }
+
+        this.drawEntityCollections(this._frustumEntityCollections);
     }
 
     /**
@@ -1154,7 +1156,6 @@ export class Planet extends RenderNode {
      */
     frame() {
         this._renderScreenNodesPASS();
-        this.drawEntityCollections(this._frustumEntityCollections);
     }
 
     _checkRendercompleted() {
