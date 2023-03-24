@@ -21,7 +21,7 @@ class BaseNode {
         /**
          * Top scene tree node pointer.
          * @public
-         * @type {RenderNode}
+         * @type {BaseNode}
          */
         this.topNode = this;
 

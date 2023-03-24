@@ -418,15 +418,13 @@ class Renderer {
             this._initialized = true;
         }
 
-        var that = this;
-
         this.billboardsTextureAtlas.assignHandler(this.handler);
         this.geoObjectsTextureAtlas.assignHandler(this.handler);
 
         this.fontAtlas.assignHandler(this.handler);
 
-        this.handler.setFrameCallback(function () {
-            that.draw();
+        this.handler.setFrameCallback(() => {
+            this.draw();
         });
 
         this.activeCamera = new Camera(this, {
@@ -660,11 +658,6 @@ class Renderer {
         this._entityCollections.push.apply(this._entityCollections, ecArr);
     }
 
-    /**
-     * Draws entity collections.
-     * @public
-     * @param {Array<og.EntityCollection>} ec - Entity collection array.
-     */
     _drawEntityCollections() {
         let ec = this._entityCollections;
 
@@ -676,30 +669,30 @@ class Renderer {
             gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
 
             // billboards pass
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture);
+            // gl.activeTexture(gl.TEXTURE0);
+            // gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture);
 
             var i = ec.length;
-            while (i--) {
-                var eci = ec[i];
-                if (eci._fadingOpacity) {
-                    // first begin draw event
-                    eci.events.dispatch(eci.events.draw, eci);
-                    eci.billboardHandler.draw();
-                }
-            }
-
-            // labels pass
-            var fa = this.fontAtlas.atlasesArr;
-            for (i = 0; i < fa.length; i++) {
-                gl.activeTexture(gl.TEXTURE0 + i);
-                gl.bindTexture(gl.TEXTURE_2D, fa[i].texture);
-            }
-
-            i = ec.length;
-            while (i--) {
-                ec[i]._fadingOpacity && ec[i].labelHandler.draw();
-            }
+            // while (i--) {
+            //     let eci = ec[i];
+            //     if (eci._fadingOpacity) {
+            //         // first begin draw event
+            //         eci.events.dispatch(eci.events.draw, eci);
+            //         eci.billboardHandler.draw();
+            //     }
+            // }
+            //
+            // // labels pass
+            // var fa = this.fontAtlas.atlasesArr;
+            // for (i = 0; i < fa.length; i++) {
+            //     gl.activeTexture(gl.TEXTURE0 + i);
+            //     gl.bindTexture(gl.TEXTURE_2D, fa[i].texture);
+            // }
+            //
+            // i = ec.length;
+            // while (i--) {
+            //     ec[i]._fadingOpacity && ec[i].labelHandler.draw();
+            // }
 
             //geoObject
             i = ec.length;
@@ -730,8 +723,9 @@ class Renderer {
             // Strip pass
             i = ec.length;
             while (i--) {
-                if (ec[i]._fadingOpacity) {
-                    ec[i].stripHandler.draw();
+                let eci = ec[i];
+                if (eci._fadingOpacity) {
+                    eci.stripHandler.draw();
                     // post draw event
                     eci.events.dispatch(eci.events.drawend, eci);
                 }
@@ -740,6 +734,101 @@ class Renderer {
             this._entityCollections.length = 0;
             this._entityCollections = [];
         }
+    }
+
+    /**
+     * Draws entity collections.
+     * @public
+     * @param {Array<og.EntityCollection>} ec - Entity collection array.
+     */
+    _drawOpaqueEntityCollections() {
+        let ec = this._entityCollections;
+
+        if (ec.length) {
+            let gl = this.handler.gl;
+            gl.enable(gl.BLEND);
+            gl.blendEquation(gl.FUNC_ADD);
+            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+
+            //geoObject
+            let i = ec.length;
+            while (i--) {
+                let eci = ec[i];
+                if (ec[i]._fadingOpacity) {
+                    eci.events.dispatch(eci.events.draw, eci);
+                    ec[i].geoObjectHandler.draw();
+                }
+            }
+
+            // rays
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].rayHandler.draw();
+            }
+
+            // polyline pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].polylineHandler.draw();
+            }
+
+            // pointClouds pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].pointCloudHandler.draw();
+            }
+
+            // Strip pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].stripHandler.draw();
+            }
+        }
+    }
+
+
+    /**
+     * Draws entity collections.
+     * @public
+     * @param {Array<og.EntityCollection>} ec - Entity collection array.
+     */
+    _drawTransparentEntityCollections() {
+        let ec = this._entityCollections;
+
+        if (ec.length) {
+            let gl = this.handler.gl;
+
+            gl.enable(gl.BLEND);
+            gl.blendEquation(gl.FUNC_ADD);
+            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+
+            // billboards pass
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture);
+
+            let i = ec.length;
+            while (i--) {
+                var eci = ec[i];
+                eci._fadingOpacity && eci.billboardHandler.draw();
+            }
+
+            // labels pass
+            let fa = this.fontAtlas.atlasesArr;
+            for (i = 0; i < fa.length; i++) {
+                gl.activeTexture(gl.TEXTURE0 + i);
+                gl.bindTexture(gl.TEXTURE_2D, fa[i].texture);
+            }
+
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].labelHandler.draw();
+            }
+        }
+    }
+
+    _clearEntityCollectionQueue() {
+        this._entityCollections.length = 0;
+        this._entityCollections = [];
     }
 
     /**
@@ -776,12 +865,21 @@ class Renderer {
         while (k--) {
             this.activeCamera.setCurrentFrustum(k);
             gl.clear(gl.DEPTH_BUFFER_BIT);
+
             let i = rn.length;
+            while (i--) {
+                rn[i].preDrawNode();
+            }
+
+            this._drawOpaqueEntityCollections();
+
+            i = rn.length;
             while (i--) {
                 rn[i].drawNode();
             }
 
-            this._drawEntityCollections();
+            this._drawTransparentEntityCollections();
+            this._clearEntityCollectionQueue();
 
             if (pointerEvent) {
                 this._drawPickingBuffer();

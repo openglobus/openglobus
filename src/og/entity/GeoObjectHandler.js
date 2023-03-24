@@ -348,6 +348,8 @@ class GeoObjectHandler {
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._loadDataTagTexture(this._instanceDataMapValues[i]);
         }
+
+        this.update();
     }
 
     _addGeoObjectToArray(geoObject) {
