@@ -8,6 +8,7 @@ import { Extent } from "../Extent.js";
 import { LonLat } from "../LonLat.js";
 import * as mercator from "../mercator.js";
 import { Layer } from "./Layer.js";
+import { doubleToTwoFloats2 } from "../math/coder.js";
 
 const EVENT_NAMES = [
     /**
@@ -37,6 +38,12 @@ class BaseGeoImage extends Layer {
 
         this._gridBuffer = null;
         this._extentWgs84Params = null;
+        this._extentWgs84ParamsHigh = new Float32Array(4);
+        this._extentWgs84ParamsLow = new Float32Array(4);
+
+        this._extentMercParams = null;
+        this._extentMercParamsHigh = new Float32Array(4);
+        this._extentMercParamsLow = new Float32Array(4);
 
         this._refreshFrame = true;
         this._frameCreated = false;
@@ -186,20 +193,33 @@ class BaseGeoImage extends Layer {
             this._extentWgs84.northEast.forwardMercatorEPS01()
         );
 
+        let tempArr = new Float32Array(2);
+
         if (this._projType === 0) {
-            this._extentWgs84Params = [
-                this._extentWgs84.southWest.lon,
-                this._extentWgs84.southWest.lat,
-                2.0 / this._extentWgs84.getWidth(),
-                2.0 / this._extentWgs84.getHeight()
-            ];
+
+            doubleToTwoFloats2(this._extentWgs84.southWest.lon, tempArr);
+            this._extentWgs84ParamsHigh[0] = tempArr[0];
+            this._extentWgs84ParamsLow[0] = tempArr[1];
+
+            doubleToTwoFloats2(this._extentWgs84.southWest.lat, tempArr);
+            this._extentWgs84ParamsHigh[1] = tempArr[0];
+            this._extentWgs84ParamsLow[1] = tempArr[1];
+
+            this._extentWgs84ParamsHigh[2] = 2.0 / this._extentWgs84.getWidth();
+            this._extentWgs84ParamsHigh[3] = 2.0 / this._extentWgs84.getHeight();
+
         } else {
-            this._extentMercParams = [
-                this._extentMerc.southWest.lon,
-                this._extentMerc.southWest.lat,
-                2.0 / this._extentMerc.getWidth(),
-                2.0 / this._extentMerc.getHeight()
-            ];
+
+            doubleToTwoFloats2(this._extentMerc.southWest.lon, tempArr);
+            this._extentMercParamsHigh[0] = tempArr[0];
+            this._extentMercParamsLow[0] = tempArr[1];
+
+            doubleToTwoFloats2(this._extentMerc.southWest.lat, tempArr);
+            this._extentMercParamsHigh[1] = tempArr[0];
+            this._extentMercParamsLow[1] = tempArr[1];
+
+            this._extentMercParamsHigh[2] = 2.0 / this._extentMerc.getWidth();
+            this._extentMercParamsHigh[3] = 2.0 / this._extentMerc.getHeight();
         }
 
         // creates material frame textures
@@ -211,10 +231,13 @@ class BaseGeoImage extends Layer {
             gl.deleteTexture(this._materialTexture);
             this._materialTexture = h.createEmptyTexture_l(this._frameWidth, this._frameHeight);
 
-            this._gridBuffer = this._planet._geoImageCreator.createGridBuffer(
+            let gridBufferArr = this._planet._geoImageCreator.createGridBuffer(
                 this._cornersWgs84,
                 this._projType
             );
+
+            this._gridBufferHigh = gridBufferArr[0];
+            this._gridBufferLow = gridBufferArr[1];
 
             this._refreshFrame = false;
         }
@@ -235,10 +258,10 @@ class BaseGeoImage extends Layer {
      * @virtual
      */
     clear() {
-        var p = this._planet;
+        let p = this._planet;
 
         if (p) {
-            var gl = p.renderer.handler.gl;
+            let gl = p.renderer.handler.gl;
             this._creationProceeding && p._geoImageCreator.remove(this);
             p._clearLayerMaterial(this);
 
@@ -307,7 +330,7 @@ class BaseGeoImage extends Layer {
             !this._creationProceeding && this.loadMaterial(material);
         }
 
-        var v0s, v0t;
+        let v0s, v0t;
         if (this._projType === 0) {
             v0s = this._extentWgs84;
             v0t = segment._extent;
@@ -341,6 +364,119 @@ class BaseGeoImage extends Layer {
      */
     get getFrameHeight() {
         return this._frameHeight;
+    }
+
+    /**
+     * Method depends on GeoImage instance
+     * @virtual
+     * @private
+     */
+    _createSourceTexture() {
+        //empty
+    }
+
+    _renderingProjType1() {
+        let p = this._planet,
+            h = p.renderer.handler,
+            gl = h.gl,
+            creator = p._geoImageCreator;
+
+        this._refreshFrame && this._createFrame();
+        this._createSourceTexture();
+
+        let f = creator._framebuffer;
+        f.setSize(this._frameWidth, this._frameHeight);
+        f.activate();
+
+        h.programs.geoImageTransform.activate();
+        var sh = h.programs.geoImageTransform._program;
+        var sha = sh.attributes,
+            shu = sh.uniforms;
+
+        gl.disable(gl.CULL_FACE);
+
+        f.bindOutputTexture(this._materialTexture);
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        gl.uniform1i(shu.isFullExtent, this._isFullExtent);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer);
+
+        gl.vertexAttribPointer(sha.texCoords, 2, gl.UNSIGNED_SHORT, true, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferHigh);
+        gl.vertexAttribPointer(sha.cornersHigh, this._gridBufferHigh.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferLow);
+        gl.vertexAttribPointer(sha.cornersLow, this._gridBufferLow.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.uniform4fv(shu.extentParamsHigh, this._extentMercParamsHigh);
+        gl.uniform4fv(shu.extentParamsLow, this._extentMercParamsLow);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
+        gl.uniform1i(shu.sourceTexture, 0);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, creator._indexBuffer);
+        gl.drawElements(gl.TRIANGLE_STRIP, creator._indexBuffer.numItems, gl.UNSIGNED_INT, 0);
+        f.deactivate();
+
+        gl.enable(gl.CULL_FACE);
+
+        this._ready = true;
+
+        this._creationProceeding = false;
+    }
+
+    _renderingProjType0() {
+        let p = this._planet,
+            h = p.renderer.handler,
+            gl = h.gl,
+            creator = p._geoImageCreator;
+
+        this._refreshFrame && this._createFrame();
+        this._createSourceTexture();
+
+        let f = creator._framebuffer;
+        f.setSize(this._frameWidth, this._frameHeight);
+        f.activate();
+
+        h.programs.geoImageTransform.activate();
+        let sh = h.programs.geoImageTransform._program;
+        let sha = sh.attributes,
+            shu = sh.uniforms;
+
+        gl.disable(gl.CULL_FACE);
+
+        f.bindOutputTexture(this._materialTexture);
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer);
+
+        gl.vertexAttribPointer(sha.texCoords, 2, gl.UNSIGNED_SHORT, true, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferHigh);
+        gl.vertexAttribPointer(sha.cornersHigh, this._gridBufferHigh.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferLow);
+        gl.vertexAttribPointer(sha.cornersLow, this._gridBufferLow.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.uniform4fv(shu.extentParamsHigh, this._extentWgs84ParamsHigh);
+        gl.uniform4fv(shu.extentParamsLow, this._extentWgs84ParamsLow);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
+        gl.uniform1i(shu.sourceTexture, 0);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, creator._indexBuffer);
+        gl.drawElements(gl.TRIANGLE_STRIP, creator._indexBuffer.numItems, gl.UNSIGNED_INT, 0);
+        f.deactivate();
+
+        gl.enable(gl.CULL_FACE);
+
+        this._ready = true;
+
+        this._creationProceeding = false;
     }
 }
 
