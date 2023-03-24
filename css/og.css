@@ -391,37 +391,46 @@ details[open] {
 
 
 /**
-     *DebugInfo
-     */
-.og-debug-info {
+ *DebugInfo
+ */
+
+.og-debuginfo_button {
     position: absolute;
-    top: 0;
-    left: 0;
+    left: 10px;
+    top: 120px;
+}
+
+.og-debuginfo_controls {
+    padding-bottom: 8px;
+    display: flex;
+}
+
+.og-debuginfo_controls-button {
+    width: 25px;
+    height: 25px;
+    float: left;
+    margin: 3px;
+}
+
+.og-debug-info {
     color: white;
-    font-family: Arial;
     font-size: 12px;
-    width: 346px;
-    text-shadow: 0 0 3px #616161;
     padding: 10px;
-    pointer-events: none;
-    transform: scale(1.0);
-    transform-origin: top left;
-    background-color: rgb(55 55 55 / 63%);
 }
 
 .og-debug-info .og-watch-line {
     width: 100%;
     padding-bottom: 5px;
-    display: inline-block;
+    display: flex;
+    flex-direction: row;
 }
 
 .og-watch-line .og-watch-label {
-    float: left;
     color: #cecece;
+    width: 200px;
 }
 
 .og-watch-line .og-watch-value {
-    float: left;
     margin-left: 15px;
 }
 

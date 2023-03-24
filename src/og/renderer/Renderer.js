@@ -139,7 +139,7 @@ class Renderer {
          * @public
          * @type {Object}
          */
-        this.colorObjects = {};
+        this.colorObjects = new Map();
 
         /**
          * Color picking objects rendering queue.
@@ -239,9 +239,7 @@ class Renderer {
     addDepthCallback(sender, callback) {
         var id = __depthCallbackCounter__++;
         this._depthCallbacks.push({
-            id: id,
-            callback: callback,
-            sender: sender
+            id: id, callback: callback, sender: sender
         });
         return id;
     }
@@ -258,9 +256,7 @@ class Renderer {
     addDistanceCallback(sender, callback) {
         var id = __distanceCallbackCounter__++;
         this._distanceCallbacks.push({
-            id: id,
-            callback: callback,
-            sender: sender
+            id: id, callback: callback, sender: sender
         });
         return id;
     }
@@ -284,9 +280,7 @@ class Renderer {
     addPickingCallback(sender, callback) {
         var id = __pickingCallbackCounter__++;
         this._pickingCallbacks.push({
-            id: id,
-            callback: callback,
-            sender: sender
+            id: id, callback: callback, sender: sender
         });
         return id;
     }
@@ -304,8 +298,16 @@ class Renderer {
         }
     }
 
-    getPickingObjectByColor(r, g, b) {
-        return this.colorObjects[r + "_" + g + "_" + b];
+    getPickingObject(r, g, b) {
+        return this.colorObjects.get(`${r}_${g}_${b}`);
+    }
+
+    getPickingObjectArr(arr) {
+        return this.colorObjects.get(`${arr[0]}_${arr[1]}_${arr[2]}`);
+    }
+
+    getPickingObject3v(vec) {
+        return this.colorObjects.get(`${vec.x}_${vec.y}_${vec.z}`);
     }
 
     /**
@@ -317,11 +319,11 @@ class Renderer {
         if (!obj._pickingColor || obj._pickingColor.isZero()) {
             let r = 0, g = 0, b = 0;
             let str = "0_0_0";
-            while (!(r || g || b) || this.colorObjects[str]) {
+            while (!(r || g || b) || this.colorObjects.has(str)) {
                 r = randomi(1, 255);
                 g = randomi(1, 255);
                 b = randomi(1, 255);
-                str = r + "_" + g + "_" + b;
+                str = `${r}_${g}_${b}`;
             }
 
             if (!obj._pickingColor) {
@@ -332,7 +334,7 @@ class Renderer {
 
             obj._pickingColorU = new Float32Array([r / 255, g / 255, b / 255]);
 
-            this.colorObjects[str] = obj;
+            this.colorObjects.set(str, obj);
         }
     }
 
@@ -345,8 +347,7 @@ class Renderer {
         if (!obj._pickingColor.isZero()) {
             var c = obj._pickingColor;
             if (!c.isZero()) {
-                this.colorObjects[c.x + "_" + c.y + "_" + c.z] = null;
-                delete this.colorObjects[c.x + "_" + c.y + "_" + c.z];
+                this.colorObjects.delete(`${c.x}_${c.y}_${c.z}`);
                 c.x = c.y = c.z = 0;
             }
         }
@@ -429,9 +430,7 @@ class Renderer {
         });
 
         this.activeCamera = new Camera(this, {
-            eye: new Vec3(0, 0, 0),
-            look: new Vec3(0, 0, -1),
-            up: new Vec3(0, 1, 0)
+            eye: new Vec3(0, 0, 0), look: new Vec3(0, 0, -1), up: new Vec3(0, 1, 0)
         });
 
         this.events.initialize();
@@ -444,10 +443,7 @@ class Renderer {
         this.handler.addProgram(screenFrame());
 
         this.pickingFramebuffer = new Framebuffer(this.handler, {
-            width: 640,
-            height: 480,
-            depthComponent: "DEPTH_STENCIL",
-            renderbufferTarget: "DEPTH_STENCIL_ATTACHMENT"
+            width: 640, height: 480, depthComponent: "DEPTH_STENCIL", renderbufferTarget: "DEPTH_STENCIL_ATTACHMENT"
         }).init();
 
         this._tempPickingPix_ = new Uint8Array(this.pickingFramebuffer.width * this.pickingFramebuffer.height * 4);
@@ -495,10 +491,7 @@ class Renderer {
             this.handler.addPrograms([depth()]);
 
             this.sceneFramebuffer = new Multisample(this.handler, {
-                size: 1,
-                msaa: this._msaa,
-                internalFormat: this._internalFormat,
-                filter: "LINEAR"
+                size: 1, msaa: this._msaa, internalFormat: this._internalFormat, filter: "LINEAR"
             }).init();
 
             this.blitFramebuffer = new Framebuffer(this.handler, {
@@ -537,11 +530,7 @@ class Renderer {
             }, 320);
         };
 
-        this.screenFramePositionBuffer = this.handler.createArrayBuffer(
-            new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]),
-            2,
-            4
-        );
+        this.screenFramePositionBuffer = this.handler.createArrayBuffer(new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), 2, 4);
 
         let temp = this.controls;
         this.controls = {};
@@ -656,11 +645,7 @@ class Renderer {
 
     getMaxMSAA(internalFormat) {
         var gl = this.handler.gl;
-        let samples = gl.getInternalformatParameter(
-            gl.RENDERBUFFER,
-            gl[internalFormat],
-            gl.SAMPLES
-        );
+        let samples = gl.getInternalformatParameter(gl.RENDERBUFFER, gl[internalFormat], gl.SAMPLES);
         return samples[0];
     }
 
@@ -770,8 +755,7 @@ class Renderer {
         let sceneFramebuffer = this.sceneFramebuffer;
         sceneFramebuffer.activate();
 
-        let h = this.handler,
-            gl = h.gl;
+        let h = this.handler, gl = h.gl;
 
         gl.enable(gl.BLEND);
         gl.blendEquation(gl.FUNC_ADD);
@@ -832,9 +816,7 @@ class Renderer {
     _screenFrameMSAA() {
         var h = this.handler;
 
-        var sh = h.programs.toneMapping,
-            p = sh._program,
-            gl = h.gl;
+        var sh = h.programs.toneMapping, p = sh._program, gl = h.gl;
 
         gl.disable(gl.DEPTH_TEST);
 
@@ -873,9 +855,7 @@ class Renderer {
     _screenFrameNoMSAA() {
 
         let h = this.handler;
-        let sh = h.programs.screenFrame,
-            p = sh._program,
-            gl = h.gl;
+        let sh = h.programs.screenFrame, p = sh._program, gl = h.gl;
 
         gl.disable(gl.DEPTH_TEST);
         sh.activate();
@@ -910,8 +890,7 @@ class Renderer {
         //
         h.programs.pickingMask.activate();
         let sh = h.programs.pickingMask._program;
-        let shu = sh.uniforms,
-            sha = sh.attributes;
+        let shu = sh.uniforms, sha = sh.attributes;
 
         let /*ts = this.events.touchState,*/
             ms = this.events.mouseState;
@@ -1017,8 +996,7 @@ class Renderer {
         //
         // PASS to depth visualization
         this.screenDepthFramebuffer.activate();
-        var sh = h.programs.depth,
-            p = sh._program;
+        var sh = h.programs.depth, p = sh._program;
 
         gl = h.gl;
 

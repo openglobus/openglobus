@@ -990,6 +990,7 @@ class Vector extends Layer {
                     material.texture = segment.planet.transparentTexture;
                     material.pickingMask = segment.planet.transparentTexture;
                 }
+                material.pickingReady = true;
                 return [0, 0, 1, 1];
             }
         }

@@ -214,6 +214,11 @@ export class Framebuffer {
         }
     }
 
+    checkStatus() {
+        let gl = this.handler.gl;
+        return gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+    }
+
     /**
      * Returns framebuffer completed.
      * @public
