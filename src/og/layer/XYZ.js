@@ -44,7 +44,7 @@ class XYZ extends Layer {
      * @param {string} name - Layer name.
      * @param {*} options
      */
-    constructor(name, options) {
+    constructor(name, options = {}) {
         super(name, options);
 
         this.events.registerNames(EVENT_NAMES);
@@ -316,7 +316,7 @@ class XYZ extends Layer {
     clearMaterial(material) {
         if (material.isReady && material.textureExists) {
             !material.texture.default &&
-                material.segment.handler.gl.deleteTexture(material.texture);
+            material.segment.handler.gl.deleteTexture(material.texture);
             material.texture = null;
 
             if (material.image) {
