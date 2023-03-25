@@ -10,17 +10,12 @@ import { Control } from "./Control.js";
  * @param {Object} [options] - Control options.
  */
 class SimpleNavigation extends Control {
-    constructor(options) {
-        options = options || {};
-        super(options);
+    constructor(options = {}) {
+        super({ autoActivate: true, ...options });
 
         this.camera = null;
         this.speed = options.speed || 1.0;
     }
-
-    onactivate() {}
-
-    ondeactivate() {}
 
     oninit() {
         this.camera = this.renderer.activeCamera;
