@@ -134,7 +134,7 @@ Há varias maneiras de contribuir com o projeto:
 - Ajudando a fazer perguntas [forum](https://groups.google.com/d/forum/openglobus)
   e [chat](https://gitter.im/openglobus/og)
 - ⭐️ Estamos no Github
-- Espalhe coisas sobre o OpenGlobus no [social media](https://twitter.com/openglobus)
+- Espalhe coisas sobre o openglobus no [social media](https://twitter.com/openglobus)
 - Se torne um contribuidor
 
 ## Licença
