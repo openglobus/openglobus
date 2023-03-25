@@ -214,11 +214,6 @@ class Renderer {
 
         this._entityCollections = [];
 
-        if (params.autoActivate || isEmpty(params.autoActivate)) {
-            this.initialize();
-            this.start();
-        }
-
         this._currentOutput = "screen";
 
         this._fnScreenFrame = null;
@@ -226,6 +221,11 @@ class Renderer {
         this.labelWorker = new LabelWorker(4);
 
         this.__useDistanceFramebuffer__ = true;
+
+        if (params.autoActivate || isEmpty(params.autoActivate)) {
+            this.initialize();
+            this.start();
+        }
     }
 
     /**
