@@ -940,8 +940,7 @@ class Renderer {
         gl.disable(gl.BLEND);
 
         let dp = this._pickingCallbacks;
-        let i = dp.length;
-        while (i--) {
+        for (let i = 0, len = dp.length; i < len; i++) {
             /**
              * This callback renders picking frame.
              * @callback og.Renderer~pickingCallback
