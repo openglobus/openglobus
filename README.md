@@ -136,7 +136,7 @@ There are many ways to contribute back to the project:
 - Help answer questions on the community [forum](https://groups.google.com/d/forum/openglobus)
   and [chat](https://gitter.im/openglobus/og)
 - ⭐️ us on GitHub
-- Spread the word about OpenGlobus on [social media](https://twitter.com/openglobus)
+- Spread the word about openglobus on [social media](https://twitter.com/openglobus)
 - Become a contributor
 
 ## License
