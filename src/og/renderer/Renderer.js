@@ -61,8 +61,7 @@ let __distanceCallbackCounter__ = 0;
 let __resizeTimeout;
 
 class Renderer {
-    constructor(handler, params) {
-        params = params || {};
+    constructor(handler, params = {}) {
 
         /**
          * Div element with WebGL canvas. Assigned in Globe class.
