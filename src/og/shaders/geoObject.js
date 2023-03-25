@@ -212,19 +212,60 @@ export const geo_object_picking = () =>
 
             void main(void) {
                          
+               //  if (aDispose == 0.0) {
+               //     return;
+               //  }
+               //
+               //  vColor = aPickingColor;
+               //  float roll = aPitchRoll.y * RADIANS;
+               //  mat3 rotZ = mat3(
+               //       vec3(cos(roll), sin(roll), 0.0),
+               //       vec3(-sin(roll), cos(roll), 0.0), 
+               //       vec3(0.0, 0.0, 1.0) 
+               //  );
+               //
+               //  float pitch = aPitchRoll.x * RADIANS;
+               //  mat3 rotX = mat3(
+               //      vec3(1.0, 0.0, 0.0),
+               //      vec3(0.0, cos(pitch), sin(pitch)), 
+               //      vec3(0.0, -sin(pitch), cos(pitch)) 
+               // );
+               //
+               //  vec3 position = aPositionHigh + aPositionLow;
+               //  vec3 r = cross(normalize(-position), aDirection);
+               //  mat3 modelMatrix = mat3(r, normalize(position), -aDirection) * rotX * rotZ; /*up=-cross(aDirection, r)*/
+               //
+               //  float dist = length(eyePositionHigh + eyePositionLow);
+               //
+               //  mat4 viewMatrixRTE = viewMatrix;
+               //  viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
+               //
+               //  vec3 highDiff = aPositionHigh - eyePositionHigh;
+               //  vec3 lowDiff = aPositionLow - eyePositionLow;
+               //
+               //  vec3 look = position - (eyePositionHigh + eyePositionLow);
+               //  float lookLength = length(look);
+               // 
+               //  float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
+               // 
+               //  vec4 pos = vec4((highDiff + lowDiff) + modelMatrix * aVertexPosition * aScale * pickingScale * scd, 1.0);
+               //                 
+               //  gl_Position = projectionMatrix * viewMatrixRTE * pos;
+               
                 if (aDispose == 0.0) {
                    return;
                 }
             
                 vColor = aPickingColor;
-                float roll = aPitchRoll.y * RADIANS;
+              
+                float roll = aPitchRoll.y;
                 mat3 rotZ = mat3(
                      vec3(cos(roll), sin(roll), 0.0),
                      vec3(-sin(roll), cos(roll), 0.0), 
                      vec3(0.0, 0.0, 1.0) 
                 );
 
-                float pitch = aPitchRoll.x * RADIANS;
+                float pitch = aPitchRoll.x;
                 mat3 rotX = mat3(
                     vec3(1.0, 0.0, 0.0),
                     vec3(0.0, cos(pitch), sin(pitch)), 
@@ -232,10 +273,11 @@ export const geo_object_picking = () =>
                );
 
                 vec3 position = aPositionHigh + aPositionLow;
+                vec3 cameraPosition = eyePositionHigh + eyePositionLow;
                 vec3 r = cross(normalize(-position), aDirection);
-                mat3 modelMatrix = mat3(r, normalize(position), -aDirection) * rotX * rotZ; /*up=-cross(aDirection, r)*/
+                mat3 modelMatrix = mat3(r, normalize(position), -aDirection) * rotX * rotZ;
 
-                float dist = length(eyePositionHigh + eyePositionLow);
+                float dist = length(cameraPosition);
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
@@ -243,14 +285,14 @@ export const geo_object_picking = () =>
                 vec3 highDiff = aPositionHigh - eyePositionHigh;
                 vec3 lowDiff = aPositionLow - eyePositionLow;
              
-                vec3 look = position - (eyePositionHigh + eyePositionLow);
+                vec3 look = cameraPosition - position;
                 float lookLength = length(look);
-                
+                               
                 float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
                 
-                vec4 pos = vec4((highDiff + lowDiff) + modelMatrix * aVertexPosition * aScale * pickingScale * scd, 1.0);
-                                
-                gl_Position = projectionMatrix * viewMatrixRTE * pos;
+                vec3 vert = modelMatrix * aVertexPosition * aScale * pickingScale * scd;
+                               
+                gl_Position = projectionMatrix * viewMatrixRTE  * vec4(highDiff + lowDiff + vert, 1.0);
             }`,
         fragmentShader:
             `precision highp float;
