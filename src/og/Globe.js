@@ -1,3 +1,5 @@
+// StandWithUkraine
+
 /**
  * @module og/Globe
  */
