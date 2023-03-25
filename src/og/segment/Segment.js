@@ -1597,7 +1597,7 @@ class Segment {
             shu = sh.uniforms;
 
         var currHeight;
-        if (layerSlice.length) {
+        if (layerSlice && layerSlice.length) {
             currHeight = layerSlice[0]._height;
         } else {
             currHeight = 0;

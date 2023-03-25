@@ -1546,7 +1546,8 @@ export class Planet extends RenderNode {
         gl.uniform3fv(shu.frustumPickingColor, cam.frustum._pickingColorU);
 
         // drawing planet nodes
-        var rn = this._renderedNodesInFrustum[cam.getCurrentFrustum()], sl = this._visibleTileLayerSlices;
+        let rn = this._renderedNodesInFrustum[cam.getCurrentFrustum()],
+            sl = this._visibleTileLayerSlices;
 
         let i = rn.length;
         while (i--) {
