@@ -740,9 +740,7 @@ export class Planet extends RenderNode {
         h.addProgram(shaders.drawnode_heightPicking(), true);
 
         this.renderer.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
-
         this.renderer.addDepthCallback(this, this._renderDepthFramebufferPASS);
-
         this.renderer.addDistanceCallback(this, this._renderDistanceFramebufferPASS);
     }
 

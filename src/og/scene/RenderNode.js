@@ -204,6 +204,8 @@ class RenderNode extends BaseNode {
 
         if (this.renderer) {
             if (this._isActive && this._pickingId === -1) {
+                // This picking callback MUST be the first picking callback
+                // in the rendering queue in the renderer. It affects on blending.
                 this._pickingId = this.renderer.addPickingCallback(
                     this,
                     this._entityCollectionPickingCallback

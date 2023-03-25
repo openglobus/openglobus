@@ -76,6 +76,8 @@ class Globe {
      * @param {*} options
      */
     constructor(options) {
+        window.__globus__ = this;
+
         // Canvas creation
         var _canvasId = CANVAS_ID_PREFIX + Globe._staticCounter++;
 
