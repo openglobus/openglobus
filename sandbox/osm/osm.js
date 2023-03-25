@@ -1,6 +1,10 @@
+import * as math from "../../src/og/math.js";
 import { Globe } from "../../src/og/Globe.js";
+import { Object3d } from "../../src/og/Object3d.js";
 import { Entity } from "../../src/og/entity/Entity.js";
+import { EntityCollection } from "../../src/og/entity/EntityCollection.js";
 import { XYZ } from "../../src/og/layer/XYZ.js";
+import { LonLat } from "../../src/og/LonLat.js";
 import { CanvasTiles } from "../../src/og/layer/CanvasTiles.js";
 import { Vector } from "../../src/og/layer/Vector.js";
 import { GlobusTerrain } from "../../src/og/terrain/GlobusTerrain.js";
@@ -274,3 +278,132 @@ globus.planet.addControl(new GeoImageDragControl());
 //globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
 
 window.globus = globus;
+//
+// // baselayer
+// let sat = new XYZ("sat", {
+//     isBaseLayer: true,
+//     url:
+//         "https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+// });
+//
+// // globus
+// let globus = new Globe({
+//     target: "earth",
+//     name: "Earth",
+//     layers: [sat],
+//     // adding terrain lets you clip through the tiles to see that the 3d object is there
+//     terrain: new GlobusTerrain("OpenGlobus"),
+// });
+//
+// globus.planet.addControl(new LayerSwitcher());
+// globus.planet.flyLonLat(new LonLat(10, -0.001, 500));
+//
+// window.globus = globus;
+//
+// // 3d model
+// const model = {
+//     indices: [
+//         1,
+//         2,
+//         0,
+//         3,
+//         6,
+//         2,
+//         7,
+//         4,
+//         6,
+//         5,
+//         0,
+//         4,
+//         6,
+//         0,
+//         2,
+//         3,
+//         5,
+//         7,
+//         1,
+//         3,
+//         2,
+//         3,
+//         7,
+//         6,
+//         7,
+//         5,
+//         4,
+//         5,
+//         1,
+//         0,
+//         6,
+//         4,
+//         0,
+//         3,
+//         1,
+//         5
+//     ],
+//     vertices: [
+//         -1.5,
+//         -1.0,
+//         0.0,
+//         -1.5,
+//         -1.0,
+//         2.0,
+//         -1.5,
+//         1.0,
+//         0.0,
+//         -1.5,
+//         1.0,
+//         2.0,
+//         1.5,
+//         -1.0,
+//         0.0,
+//         1.5,
+//         -1.0,
+//         2.0,
+//         1.5,
+//         1.0,
+//         0.0,
+//         1.5,
+//         1.0,
+//         2.0
+//     ]
+// };
+//
+// let obj3d = new Object3d(model);
+//
+// const entity = new Entity({
+//     lonlat: [10, 0],
+//     geoObject: {
+//         scale: 100,
+//         instanced: true,
+//         object3d: obj3d
+//     }
+// });
+//
+// let geoObjects = new EntityCollection({
+//     entities: [entity],
+//     scaleByDistance: [math.MAX32, math.MAX32, 1.0]
+// });
+//
+// geoObjects.addTo(globus.planet);
+//
+// // adding a tilelayer with transparent tiles (only a border)
+// const tileLayer = new CanvasTiles(`cnv`, {
+//     isBaseLayer: false,
+//     height: 30,
+//     opacity: 0.5,
+//     drawTile: function (material, applyCanvas) {
+//         const cnv = document.createElement("canvas");
+//         cnv.width = 256;
+//         cnv.height = 256;
+//         const ctx = cnv.getContext("2d");
+//         ctx.beginPath();
+//         ctx.rect(0, 0, 256, 256);
+//         ctx.lineWidth = 3;
+//         ctx.strokeStyle = "black";
+//         ctx.stroke();
+//         ctx.closePath();
+//         applyCanvas(cnv);
+//     },
+// });
+//
+// tileLayer.addTo(globus.planet)

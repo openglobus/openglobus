@@ -5,16 +5,17 @@ import { BaseNode } from "./BaseNode.js";
 
 /**
  * Render node is a logical part of a render mechanism. Represents scene rendering.
- * Forexample one scene node for rendering the Earth, another one for rendering the Moon, another node for rendering stars etc.
+ * For example one scene node for rendering the Earth, another one for rendering the Moon, another node for rendering stars etc.
  * Each render node has own model view space defined with matrices(scale, rotation, translation, transformation).
  * There are collections of ligh sources, entities and so on in the node.
  * Access to the node is renderer.renderNodes["Earth"]
  * @class
- * @extends {RenderNode}
+ * @extends {BaseNode}
  * @param {string} name - Node name.
  */
+
 class RenderNode extends BaseNode {
-    constructor(name) {
+    constructor(name = "") {
         super(name);
 
         /**
@@ -171,6 +172,15 @@ class RenderNode extends BaseNode {
      * Calls render frame node's callback. Used in renderer.
      * @public
      */
+    preDrawNode(frustum, frustumIndex) {
+        this._isActive && this._preDrawNodes(frustum, frustumIndex);
+    }
+
+
+    /**
+     * Calls render frame node's callback. Used in renderer.
+     * @public
+     */
     drawNode(frustum, frustumIndex) {
         this._isActive && this._drawNodes(frustum, frustumIndex);
     }
@@ -194,6 +204,8 @@ class RenderNode extends BaseNode {
 
         if (this.renderer) {
             if (this._isActive && this._pickingId === -1) {
+                // This picking callback MUST be the first picking callback
+                // in the rendering queue in the renderer. It affects on blending.
                 this._pickingId = this.renderer.addPickingCallback(
                     this,
                     this._entityCollectionPickingCallback
@@ -264,6 +276,31 @@ class RenderNode extends BaseNode {
         }
     }
 
+    frame() {
+
+    }
+
+    preFrame() {
+
+    }
+
+    /**
+     * @private
+     */
+    _preDrawNodes() {
+        for (var i = 0; i < this.childNodes.length; i++) {
+            if (this.childNodes[i]._isActive) {
+                this.childNodes[i]._preDrawNodes();
+            }
+        }
+
+        if (this.show) {
+            //this.lightEnabled && this.transformLights();
+            this.preFrame();
+            this.drawEntityCollections(this.entityCollections);
+        }
+    }
+
     /**
      * @private
      */
@@ -275,11 +312,7 @@ class RenderNode extends BaseNode {
         }
 
         if (this.show) {
-            if (this.frame) {
-                //this.lightEnabled && this.transformLights();
-                this.frame();
-            }
-            this.drawEntityCollections(this.entityCollections);
+            this.frame();
         }
     }
 
@@ -296,7 +329,7 @@ class RenderNode extends BaseNode {
         if (ec.length) {
 
             // billoard pass
-            let  i = ec.length;
+            let i = ec.length;
             while (i--) {
                 ec[i]._fadingOpacity && ec[i].billboardHandler.drawPicking();
             }

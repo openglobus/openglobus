@@ -61,8 +61,7 @@ let __distanceCallbackCounter__ = 0;
 let __resizeTimeout;
 
 class Renderer {
-    constructor(handler, params) {
-        params = params || {};
+    constructor(handler, params = {}) {
 
         /**
          * Div element with WebGL canvas. Assigned in Globe class.
@@ -214,11 +213,6 @@ class Renderer {
 
         this._entityCollections = [];
 
-        if (params.autoActivate || isEmpty(params.autoActivate)) {
-            this.initialize();
-            this.start();
-        }
-
         this._currentOutput = "screen";
 
         this._fnScreenFrame = null;
@@ -226,6 +220,11 @@ class Renderer {
         this.labelWorker = new LabelWorker(4);
 
         this.__useDistanceFramebuffer__ = true;
+
+        if (params.autoActivate || isEmpty(params.autoActivate)) {
+            this.initialize();
+            this.start();
+        }
     }
 
     /**
@@ -418,15 +417,13 @@ class Renderer {
             this._initialized = true;
         }
 
-        var that = this;
-
         this.billboardsTextureAtlas.assignHandler(this.handler);
         this.geoObjectsTextureAtlas.assignHandler(this.handler);
 
         this.fontAtlas.assignHandler(this.handler);
 
-        this.handler.setFrameCallback(function () {
-            that.draw();
+        this.handler.setFrameCallback(() => {
+            this.draw();
         });
 
         this.activeCamera = new Camera(this, {
@@ -665,7 +662,40 @@ class Renderer {
      * @public
      * @param {Array<og.EntityCollection>} ec - Entity collection array.
      */
-    _drawEntityCollections() {
+    _drawOpaqueEntityCollections() {
+        let ec = this._entityCollections;
+
+        if (ec.length) {
+            let gl = this.handler.gl;
+            gl.enable(gl.BLEND);
+            gl.blendEquation(gl.FUNC_ADD);
+            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+
+            //geoObject
+            let i = ec.length;
+            while (i--) {
+                let eci = ec[i];
+                if (ec[i]._fadingOpacity) {
+                    eci.events.dispatch(eci.events.draw, eci);
+                    ec[i].geoObjectHandler.draw();
+                }
+            }
+
+            // pointClouds pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].pointCloudHandler.draw();
+            }
+        }
+    }
+
+
+    /**
+     * Draws entity collections.
+     * @public
+     * @param {Array<og.EntityCollection>} ec - Entity collection array.
+     */
+    _drawTransparentEntityCollections() {
         let ec = this._entityCollections;
 
         if (ec.length) {
@@ -679,18 +709,14 @@ class Renderer {
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture);
 
-            var i = ec.length;
+            let i = ec.length;
             while (i--) {
                 var eci = ec[i];
-                if (eci._fadingOpacity) {
-                    // first begin draw event
-                    eci.events.dispatch(eci.events.draw, eci);
-                    eci.billboardHandler.draw();
-                }
+                eci._fadingOpacity && eci.billboardHandler.draw();
             }
 
             // labels pass
-            var fa = this.fontAtlas.atlasesArr;
+            let fa = this.fontAtlas.atlasesArr;
             for (i = 0; i < fa.length; i++) {
                 gl.activeTexture(gl.TEXTURE0 + i);
                 gl.bindTexture(gl.TEXTURE_2D, fa[i].texture);
@@ -699,12 +725,6 @@ class Renderer {
             i = ec.length;
             while (i--) {
                 ec[i]._fadingOpacity && ec[i].labelHandler.draw();
-            }
-
-            //geoObject
-            i = ec.length;
-            while (i--) {
-                ec[i]._fadingOpacity && ec[i].geoObjectHandler.draw();
             }
 
             // rays
@@ -719,27 +739,17 @@ class Renderer {
                 ec[i]._fadingOpacity && ec[i].polylineHandler.draw();
             }
 
-            // pointClouds pass
-            i = ec.length;
-            while (i--) {
-                if (ec[i]._fadingOpacity) {
-                    ec[i].pointCloudHandler.draw();
-                }
-            }
-
             // Strip pass
             i = ec.length;
             while (i--) {
-                if (ec[i]._fadingOpacity) {
-                    ec[i].stripHandler.draw();
-                    // post draw event
-                    eci.events.dispatch(eci.events.drawend, eci);
-                }
+                ec[i]._fadingOpacity && ec[i].stripHandler.draw();
             }
-
-            this._entityCollections.length = 0;
-            this._entityCollections = [];
         }
+    }
+
+    _clearEntityCollectionQueue() {
+        this._entityCollections.length = 0;
+        this._entityCollections = [];
     }
 
     /**
@@ -776,12 +786,21 @@ class Renderer {
         while (k--) {
             this.activeCamera.setCurrentFrustum(k);
             gl.clear(gl.DEPTH_BUFFER_BIT);
+
             let i = rn.length;
+            while (i--) {
+                rn[i].preDrawNode();
+            }
+
+            this._drawOpaqueEntityCollections();
+
+            i = rn.length;
             while (i--) {
                 rn[i].drawNode();
             }
 
-            this._drawEntityCollections();
+            this._drawTransparentEntityCollections();
+            this._clearEntityCollectionQueue();
 
             if (pointerEvent) {
                 this._drawPickingBuffer();
@@ -920,8 +939,7 @@ class Renderer {
         gl.disable(gl.BLEND);
 
         let dp = this._pickingCallbacks;
-        let i = dp.length;
-        while (i--) {
+        for (let i = 0, len = dp.length; i < len; i++) {
             /**
              * This callback renders picking frame.
              * @callback og.Renderer~pickingCallback

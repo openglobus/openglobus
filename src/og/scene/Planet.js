@@ -740,9 +740,7 @@ export class Planet extends RenderNode {
         h.addProgram(shaders.drawnode_heightPicking(), true);
 
         this.renderer.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
-
         this.renderer.addDepthCallback(this, this._renderDepthFramebufferPASS);
-
         this.renderer.addDistanceCallback(this, this._renderDistanceFramebufferPASS);
     }
 
@@ -1136,7 +1134,7 @@ export class Planet extends RenderNode {
      * Render node callback.
      * @public
      */
-    frame() {
+    preFrame() {
 
         if (this._updateLayer) {
             this._updateLayer = false;
@@ -1147,11 +1145,15 @@ export class Planet extends RenderNode {
             this._firstPASS();
         }
 
-        this._renderScreenNodesPASS();
-
-        //this._renderHeightPickingFramebufferPASS();
-
         this.drawEntityCollections(this._frustumEntityCollections);
+    }
+
+    /**
+     * Render node callback.
+     * @public
+     */
+    frame() {
+        this._renderScreenNodesPASS();
     }
 
     _checkRendercompleted() {
@@ -1299,6 +1301,7 @@ export class Planet extends RenderNode {
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
+        //gl.disable(gl.CULL_FACE);
         for (let j = 1, len = sl.length; j < len; j++) {
             let slj = sl[j];
             for (i = slj.length - 1; i >= 0; --i) {
@@ -1314,6 +1317,7 @@ export class Planet extends RenderNode {
                 rn[i].segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
+        //gl.enable(gl.CULL_FACE);
         gl.disable(gl.POLYGON_OFFSET_FILL);
     }
 

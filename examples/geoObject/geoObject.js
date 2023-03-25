@@ -91,11 +91,14 @@ for (const [name, entity_opt] of ENTITY_OPTIONS) {
                         instanced: true,
                         tag: name,
                         color: colors[i % 7],
-                        vertices,
-                        indices,
-                        texCoords,
-                        texCoordsIndices,
-                        normals
+                        object3d: new Object3d({
+                            center: true,
+                            vertices,
+                            indices,
+                            texCoords,
+                            texCoordsIndices,
+                            normals
+                        })
                     },
                     'properties': {
                         'color': colors[i % 7]

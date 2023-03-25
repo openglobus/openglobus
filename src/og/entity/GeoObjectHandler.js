@@ -348,6 +348,8 @@ class GeoObjectHandler {
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._loadDataTagTexture(this._instanceDataMapValues[i]);
         }
+
+        this.update();
     }
 
     _addGeoObjectToArray(geoObject) {
@@ -489,6 +491,7 @@ class GeoObjectHandler {
 
     drawPicking() {
         if (this._geoObjects.length && this.pickingEnabled) {
+            this.update();
             this._pickingPASS();
         }
     }
