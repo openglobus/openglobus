@@ -131,9 +131,9 @@ npm run build
 有多种方式来贡献此项目：
 
 - 帮助我们测试新的或现有的功能，并[提交 bug](https://github.com/openglobus/openglobus/issues)
-- 帮助我们在[谷歌 OpenGlobus 社区](https://groups.google.com/d/forum/openglobus)回答问题以及在 Gitter 上[交流](https://gitter.im/openglobus/og)
+- 帮助我们在[谷歌 openglobus 社区](https://groups.google.com/d/forum/openglobus)回答问题以及在 Gitter 上[交流](https://gitter.im/openglobus/og)
 - 为 GitHub 上的仓库打个 ⭐
-- 在社交媒体上传播 OpenGlobus，推特：[点我](https://twitter.com/openglobus)
+- 在社交媒体上传播 openglobus，推特：[点我](https://twitter.com/openglobus)
 - 成为一名贡献者
 
 
