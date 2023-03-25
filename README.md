@@ -8,7 +8,7 @@ English | [简体中文](README_CN.md) | [Portuguese-BR](README_pt-BR.md)
 with map tiles, imagery and vector data, markers and 3d objects. It uses the WebGL technology, open source and
 completely free.
 
-The Openglobus main goal is to make 3d map features fast, good lookin, user friendly and easy to implement in any
+Openglobus main goal is to make 3d map features fast, good lookin, user friendly and easy to implement in any
 related project.
 
 ## Getting Start
