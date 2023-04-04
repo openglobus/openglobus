@@ -46,28 +46,28 @@ class KeyboardNavigation extends Control {
         var cam = this.renderer.activeCamera;
         cam.slide(0, 0, -cam._lonLat.height / this.step);
         cam.checkTerrainCollision();
-        cam.update();
+        //cam.update();
     }
 
     onCameraMoveBackward(event) {
         var cam = this.renderer.activeCamera;
         cam.slide(0, 0, cam._lonLat.height / this.step);
         cam.checkTerrainCollision();
-        cam.update();
+        //cam.update();
     }
 
     onCameraStrifeLeft(event) {
         var cam = this.renderer.activeCamera;
         cam.slide(-cam._lonLat.height / this.step, 0, 0);
         cam.checkTerrainCollision();
-        cam.update();
+        //cam.update();
     }
 
     onCameraStrifeRight(event) {
         var cam = this.renderer.activeCamera;
         cam.slide(cam._lonLat.height / this.step, 0, 0);
         cam.checkTerrainCollision();
-        cam.update();
+        //cam.update();
     }
 
     onCameraLookUp(event) {
@@ -77,7 +77,7 @@ class KeyboardNavigation extends Control {
         } else {
             cam.rotateVertical((cam._lonLat.height / 3000000) * math.RADIANS, Vec3.ZERO);
         }
-        cam.update();
+        //cam.update();
     }
 
     onCameraLookDown(event) {
@@ -87,7 +87,7 @@ class KeyboardNavigation extends Control {
         } else {
             cam.rotateVertical((-cam._lonLat.height / 3000000) * math.RADIANS, Vec3.ZERO);
         }
-        cam.update();
+        //cam.update();
     }
 
     onCameraLookLeft(event) {
@@ -97,7 +97,7 @@ class KeyboardNavigation extends Control {
         } else {
             cam.rotateHorizontal((cam._lonLat.height / 3000000) * math.RADIANS, Vec3.ZERO);
         }
-        cam.update();
+        //cam.update();
     }
 
     onCameraLookRight(event) {
@@ -107,7 +107,7 @@ class KeyboardNavigation extends Control {
         } else {
             cam.rotateHorizontal((-cam._lonLat.height / 3000000) * math.RADIANS, Vec3.ZERO);
         }
-        cam.update();
+        //cam.update();
     }
 
     onCameraTurnLeft(event) {
@@ -117,7 +117,7 @@ class KeyboardNavigation extends Control {
         } else {
             cam.rotateHorizontal((cam._lonLat.height / 3000000) * math.RADIANS, false, Vec3.ZERO);
         }
-        cam.update();
+        //cam.update();
     }
 
     onCameraTurnRight(event) {
@@ -127,7 +127,7 @@ class KeyboardNavigation extends Control {
         } else {
             cam.rotateHorizontal((-cam._lonLat.height / 3000000) * math.RADIANS, false, Vec3.ZERO);
         }
-        cam.update();
+        //cam.update();
     }
 
     // from CompassButton._onClick()
@@ -152,12 +152,12 @@ class KeyboardNavigation extends Control {
 
     onCameraRollLeft(event) {
         this.renderer.activeCamera.roll(-15 / this.renderer.handler.deltaTime);
-        this.renderer.activeCamera.update();
+        //this.renderer.activeCamera.update();
     }
 
     onCameraRollRight(event) {
         this.renderer.activeCamera.roll(15 / this.renderer.handler.deltaTime);
-        this.renderer.activeCamera.update();
+        //this.renderer.activeCamera.update();
     }
 }
 

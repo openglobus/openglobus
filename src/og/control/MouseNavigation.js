@@ -320,7 +320,7 @@ class MouseNavigation extends Control {
                         cam._r = rot.mulVec3(cam._r);
                         cam._b = rot.mulVec3(cam._b);
 
-                        cam.checkTerrainCollision();
+                        //cam.checkTerrainCollision();
 
                         cam.update();
                     }
@@ -333,7 +333,7 @@ class MouseNavigation extends Control {
                     if (new Ray(cam.eye, e.direction).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
                         cam.eye = this._eye0.addA(px.subA(p0).negate());
 
-                        cam.checkTerrainCollision();
+                        //cam.checkTerrainCollision();
 
                         cam.update();
                     }
@@ -362,7 +362,7 @@ class MouseNavigation extends Control {
 
             cam.rotateVertical(l * (e.y - e.prev_y), this.pointOnEarth, this.minSlope);
 
-            cam.checkTerrainCollision();
+            //cam.checkTerrainCollision();
 
             cam.update();
         }
@@ -406,7 +406,7 @@ class MouseNavigation extends Control {
                 cam._r = sf.u;
                 cam._b = sf.n;
 
-                cam.checkTerrainCollision();
+                //cam.checkTerrainCollision();
 
                 cam.update();
             } else {
@@ -439,7 +439,7 @@ class MouseNavigation extends Control {
                 cam._r = rot.mulVec3(cam._r);
                 cam._b = rot.mulVec3(cam._b);
 
-                cam.checkTerrainCollision();
+                //cam.checkTerrainCollision();
 
                 cam.update();
             }

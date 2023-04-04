@@ -122,7 +122,7 @@ class PlanetCamera extends Camera {
         this._flying = false;
         this._checkTerrainCollision = true;
 
-        this._velCart = new Vec3(0.0,0.0,0.0);
+        this._velCart = new Vec3(0.0, 0.0, 0.0);
     }
 
     setTerrainCollisionActivity(isActive) {
@@ -147,6 +147,7 @@ class PlanetCamera extends Camera {
         this.updateGeodeticPosition();
         this.eyeNorm = this.eye.normal();
         this.slope = this._b.dot(this.eyeNorm);
+
         this.events.dispatch(this.events.viewchange, this);
     }
 
@@ -163,11 +164,15 @@ class PlanetCamera extends Camera {
      * @param {number} alt - Altitude over the terrain.
      */
     setAltitude(alt) {
-        var n = this.eye.normal();
-        var t = this._terrainPoint;
+        //var n = this.eye.normal();
+
+        let t = this._terrainPoint;
+        let n = this.planet.ellipsoid.getSurfaceNormal3v(this.eye);
+
         this.eye.x = n.x * alt + t.x;
         this.eye.y = n.y * alt + t.y;
         this.eye.z = n.z * alt + t.z;
+
         this._terrainAltitude = alt;
     }
 
@@ -633,6 +638,7 @@ class PlanetCamera extends Camera {
             if (this._terrainAltitude < this.minAltitude && this._checkTerrainCollision) {
                 this.setAltitude(this.minAltitude);
             }
+            return this._terrainPoint;
         }
     }
 
