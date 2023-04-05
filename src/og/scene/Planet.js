@@ -1143,10 +1143,7 @@ export class Planet extends RenderNode {
 
         if (this.camera.isFirstPass) {
             this._firstPASS();
-            let tp = this.camera.checkTerrainCollision();
-            if (tp) {
-                //window.marker.setCartesian3v(tp);
-            }
+            this.camera.checkTerrainCollision();
             this.camera.update();
         }
 
