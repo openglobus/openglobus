@@ -164,7 +164,6 @@ class PlanetCamera extends Camera {
      * @param {number} alt - Altitude over the terrain.
      */
     setAltitude(alt) {
-        //var n = this.eye.normal();
 
         let t = this._terrainPoint;
         let n = this.planet.ellipsoid.getSurfaceNormal3v(this.eye);
