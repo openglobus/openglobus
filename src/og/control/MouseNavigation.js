@@ -322,7 +322,7 @@ class MouseNavigation extends Control {
 
                         //cam.checkTerrainCollision();
 
-                        cam.update();
+                        //cam.update();
                     }
                 } else {
                     var p0 = this.grabbedPoint,
@@ -335,7 +335,7 @@ class MouseNavigation extends Control {
 
                         //cam.checkTerrainCollision();
 
-                        cam.update();
+                        //cam.update();
                     }
                 }
             }
@@ -364,7 +364,7 @@ class MouseNavigation extends Control {
 
             //cam.checkTerrainCollision();
 
-            cam.update();
+            //cam.update();
         }
     }
 
@@ -408,7 +408,7 @@ class MouseNavigation extends Control {
 
                 //cam.checkTerrainCollision();
 
-                cam.update();
+                //cam.update();
             } else {
                 if (this._deactivate) {
                     this._deactivate = false;
@@ -441,7 +441,7 @@ class MouseNavigation extends Control {
 
                 //cam.checkTerrainCollision();
 
-                cam.update();
+                //cam.update();
             }
 
             if (cam.eye.distance(prevEye) / cam._terrainAltitude > 0.01) {
