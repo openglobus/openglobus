@@ -13,6 +13,7 @@ import { Ray } from "../math/Ray.js";
 import { Vec3 } from "../math/Vec3.js";
 import * as mercator from "../mercator.js";
 import { Camera } from "./Camera.js";
+import { Ellipsoid } from "../ellipsoid/index.js";
 
 /**
  * Planet camera.
@@ -122,7 +123,7 @@ class PlanetCamera extends Camera {
         this._flying = false;
         this._checkTerrainCollision = true;
 
-        this._velCart = new Vec3(0.0,0.0,0.0);
+        this._velCart = new Vec3(0.0, 0.0, 0.0);
     }
 
     setTerrainCollisionActivity(isActive) {
@@ -144,16 +145,17 @@ class PlanetCamera extends Camera {
         }
 
         super.update();
-        this.updateGeodeticPosition();
+
         this.eyeNorm = this.eye.normal();
         this.slope = this._b.dot(this.eyeNorm);
+
         this.events.dispatch(this.events.viewchange, this);
     }
 
     updateGeodeticPosition() {
-        this._lonLat = this.planet.ellipsoid.cartesianToLonLat(this.eye);
+        this.planet.ellipsoid.cartesianToLonLatRes(this.eye, this._lonLat);
         if (Math.abs(this._lonLat.lat) <= mercator.MAX_LAT) {
-            this._lonLatMerc = this._lonLat.forwardMercator();
+            LonLat.forwardMercatorRes(this._lonLat, this._lonLatMerc);
         }
     }
 
@@ -163,11 +165,14 @@ class PlanetCamera extends Camera {
      * @param {number} alt - Altitude over the terrain.
      */
     setAltitude(alt) {
-        var n = this.eye.normal();
-        var t = this._terrainPoint;
+
+        let t = this._terrainPoint;
+        let n = this.planet.ellipsoid.getSurfaceNormal3v(this.eye);
+
         this.eye.x = n.x * alt + t.x;
         this.eye.y = n.y * alt + t.y;
         this.eye.z = n.z * alt + t.z;
+
         this._terrainAltitude = alt;
     }
 
@@ -633,6 +638,7 @@ class PlanetCamera extends Camera {
             if (this._terrainAltitude < this.minAltitude && this._checkTerrainCollision) {
                 this.setAltitude(this.minAltitude);
             }
+            return this._terrainPoint;
         }
     }
 

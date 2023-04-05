@@ -25,7 +25,7 @@ export class LonLat {
      * @param {number} [lat] - Latitude.
      * @param {number} [height] - Height over the surface.
      */
-    constructor(lon = 0 , lat = 0, height = 0) {
+    constructor(lon = 0, lat = 0, height = 0) {
         /**
          * Longitude.
          * @public
@@ -91,6 +91,20 @@ export class LonLat {
             Math.log(Math.tan((90.0 + lat) * PI_BY_360)) * mercator.POLE_BY_PI,
             height
         );
+    }
+
+    /**
+     * Converts degrees to mercator coordinates.
+     * @static
+     * @param {LonLat} lonLat - Input geodetic degree coordinates
+     * @param {LonLat} res - Output mercator coordinates
+     * @returns {LonLat} - Output mercator coordinates
+     */
+    static forwardMercatorRes(lonLat, res) {
+        res.lon = lonLat.lon * mercator.POLE_BY_180;
+        res.lat = Math.log(Math.tan((90.0 + lonLat.lat) * PI_BY_360)) * mercator.POLE_BY_PI,
+            res.height = lonLat.height;
+        return res;
     }
 
     /**

@@ -757,12 +757,13 @@ class Vector extends Layer {
                                 if (seg._extent.isInside(ll)) {
                                     let cart = p._path3v[c_j][c_j_h];
                                     seg.getTerrainPoint(cart, ll, res);
-                                    p.setPoint3v(
-                                        res.addA(res.normal().scale((rtg && p.altitude) || 0.0)),
-                                        c_j_h,
-                                        c_j,
-                                        true
-                                    );
+                                    let alt = (rtg && p.altitude) || 0.0;
+                                    if (alt) {
+                                        let n = this._planet.ellipsoid.getSurfaceNormal3v(res);
+                                        p.setPoint3v(res.addA(n.scale(alt)), c_j_h, c_j, true);
+                                    } else {
+                                        p.setPoint3v(res, c_j_h, c_j, true);
+                                    }
                                     break;
                                 }
                             }

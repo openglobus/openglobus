@@ -35,7 +35,7 @@ class SimpleNavigation extends Control {
         if (this._active) {
             var camera = this.camera;
             camera.slide(0, 0, -this.speed);
-            camera.update();
+            //camera.update();
         }
     }
 
@@ -43,7 +43,7 @@ class SimpleNavigation extends Control {
         if (this._active) {
             var camera = this.camera;
             camera.slide(0, 0, this.speed);
-            camera.update();
+            //camera.update();
         }
     }
 
@@ -51,7 +51,7 @@ class SimpleNavigation extends Control {
         if (this._active) {
             var camera = this.camera;
             camera.slide(-this.speed, 0, 0);
-            camera.update();
+            //camera.update();
         }
     }
 
@@ -59,7 +59,7 @@ class SimpleNavigation extends Control {
         if (this._active) {
             var camera = this.camera;
             camera.slide(this.speed, 0, 0);
-            camera.update();
+            //camera.update();
         }
     }
 
@@ -67,7 +67,7 @@ class SimpleNavigation extends Control {
         if (this._active) {
             var cam = this.camera;
             cam.pitch(0.5);
-            cam.update();
+            //cam.update();
         }
     }
 
@@ -75,7 +75,7 @@ class SimpleNavigation extends Control {
         if (this._active) {
             var cam = this.camera;
             cam.pitch(-0.5);
-            cam.update();
+            //cam.update();
         }
     }
 
@@ -83,7 +83,7 @@ class SimpleNavigation extends Control {
         if (this._active) {
             var cam = this.camera;
             cam.yaw(0.5);
-            cam.update();
+            //cam.update();
         }
     }
 
@@ -91,7 +91,7 @@ class SimpleNavigation extends Control {
         if (this._active) {
             var cam = this.camera;
             cam.yaw(-0.5);
-            cam.update();
+            //cam.update();
         }
     }
 
@@ -99,7 +99,7 @@ class SimpleNavigation extends Control {
         if (this._active) {
             var cam = this.camera;
             cam.roll(-0.5);
-            cam.update();
+            //cam.update();
         }
     }
 
@@ -107,7 +107,7 @@ class SimpleNavigation extends Control {
         if (this._active) {
             var cam = this.camera;
             cam.roll(0.5);
-            cam.update();
+            //cam.update();
         }
     }
 }

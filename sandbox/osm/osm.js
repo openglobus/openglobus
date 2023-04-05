@@ -46,15 +46,13 @@ const tg = new CanvasTiles("Tile grid", {
         let size;
 
         if (material.segment.isPole) {
-            // let ext = material.segment.getExtentLonLat();
-            //
-            //
-            // if (material.segment.tileZoom > 14) {
-            //     size = "26";
-            // } else {
-            //     size = "32";
-            // }
-            // ctx.fillStyle = 'black';
+            let ext = material.segment.getExtentLonLat();
+            if (material.segment.tileZoom > 14) {
+                size = "26";
+            } else {
+                size = "32";
+            }
+            ctx.fillStyle = 'black';
             // ctx.font = 'normal ' + size + 'px Verdana';
             // ctx.textAlign = 'center';
             // ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
@@ -68,15 +66,16 @@ const tg = new CanvasTiles("Tile grid", {
             ctx.fillStyle = 'black';
             ctx.font = 'normal ' + size + 'px Verdana';
             ctx.textAlign = 'center';
-            ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+            //ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
             //ctx.fillText(frameCounter, cnv.width / 2, cnv.height / 2);
         }
 
         //Draw border
         ctx.beginPath();
-        ctx.rect(0, 0, cnv.width, cnv.height);
+        ctx.fillRect(0, 0, cnv.width, cnv.height);
         ctx.lineWidth = 2;
         ctx.strokeStyle = "black";
+        ctx.fillStyle = 'black';
         ctx.stroke();
 
         //Draw canvas tile
@@ -209,7 +208,8 @@ let sat = new XYZ("sat", {
 var highResTerrain = new MapboxTerrain(null, {
     maxZoom: 17,
     //url:"//127.0.0.1/og/terrain/eu/{z}/{x}/{y}.png",
-    url: "//terrain.openglobus.org/public/eu10/{z}/{x}/{y}.png",
+    //url: "//terrain.openglobus.org/public/eu10/{z}/{x}/{y}.png",
+    url: "https://andorra.utm.microavia.com/Andora_dsm_las/{z}/{x}/{y}.png",
     //url: "//terrain.openglobus.org/public/austria10/{z}/{x}/{y}.png",
     //url: "//terrain.openglobus.org/public/nz/{z}/{x}/{y}.png",
     //url: "//127.0.0.1/terrain/andorra/dest/{z}/{x}/{y}.png",
@@ -248,7 +248,6 @@ var globus = new Globe({
     maxAltitude: 15000000,
     minAltitude: 1,
     terrain: highResTerrain,
-    //terrain: new EmptyTerrain(),
     //terrain: new MapboxTerrain(),
     //terrain: new GlobusTerrain(),
     //maxEqualZoomAltitude: 1,
@@ -273,137 +272,26 @@ globus.planet.addControl(new RulerSwitcher());
 globus.planet.addControl(new Selection());
 globus.planet.addControl(new GeoImageDragControl());
 
-//globus.planet.renderer.controls.sun.stop()
-
-//globus.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
 
 window.globus = globus;
-//
-// // baselayer
-// let sat = new XYZ("sat", {
-//     isBaseLayer: true,
-//     url:
-//         "https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-// });
-//
-// // globus
-// let globus = new Globe({
-//     target: "earth",
-//     name: "Earth",
-//     layers: [sat],
-//     // adding terrain lets you clip through the tiles to see that the 3d object is there
-//     terrain: new GlobusTerrain("OpenGlobus"),
-// });
-//
-// globus.planet.addControl(new LayerSwitcher());
-// globus.planet.flyLonLat(new LonLat(10, -0.001, 500));
-//
-// window.globus = globus;
-//
-// // 3d model
-// const model = {
-//     indices: [
-//         1,
-//         2,
-//         0,
-//         3,
-//         6,
-//         2,
-//         7,
-//         4,
-//         6,
-//         5,
-//         0,
-//         4,
-//         6,
-//         0,
-//         2,
-//         3,
-//         5,
-//         7,
-//         1,
-//         3,
-//         2,
-//         3,
-//         7,
-//         6,
-//         7,
-//         5,
-//         4,
-//         5,
-//         1,
-//         0,
-//         6,
-//         4,
-//         0,
-//         3,
-//         1,
-//         5
-//     ],
-//     vertices: [
-//         -1.5,
-//         -1.0,
-//         0.0,
-//         -1.5,
-//         -1.0,
-//         2.0,
-//         -1.5,
-//         1.0,
-//         0.0,
-//         -1.5,
-//         1.0,
-//         2.0,
-//         1.5,
-//         -1.0,
-//         0.0,
-//         1.5,
-//         -1.0,
-//         2.0,
-//         1.5,
-//         1.0,
-//         0.0,
-//         1.5,
-//         1.0,
-//         2.0
-//     ]
-// };
-//
-// let obj3d = new Object3d(model);
-//
-// const entity = new Entity({
-//     lonlat: [10, 0],
-//     geoObject: {
-//         scale: 100,
-//         instanced: true,
-//         object3d: obj3d
-//     }
-// });
-//
-// let geoObjects = new EntityCollection({
-//     entities: [entity],
-//     scaleByDistance: [math.MAX32, math.MAX32, 1.0]
-// });
-//
-// geoObjects.addTo(globus.planet);
-//
-// // adding a tilelayer with transparent tiles (only a border)
-// const tileLayer = new CanvasTiles(`cnv`, {
-//     isBaseLayer: false,
-//     height: 30,
-//     opacity: 0.5,
-//     drawTile: function (material, applyCanvas) {
-//         const cnv = document.createElement("canvas");
-//         cnv.width = 256;
-//         cnv.height = 256;
-//         const ctx = cnv.getContext("2d");
-//         ctx.beginPath();
-//         ctx.rect(0, 0, 256, 256);
-//         ctx.lineWidth = 3;
-//         ctx.strokeStyle = "black";
-//         ctx.stroke();
-//         ctx.closePath();
-//         applyCanvas(cnv);
-//     },
-// });
-//
-// tileLayer.addTo(globus.planet)
+
+let obj3d = Object3d.createSphere();
+
+const entity = new Entity({
+    lonlat: [10, 0],
+    geoObject: {
+        scale: 1,
+        color: "yellow",
+        instanced: true,
+        object3d: obj3d
+    }
+});
+
+window.marker = entity;
+
+let geoObjects = new EntityCollection({
+    entities: [entity],
+    scaleByDistance: [100, 20000000, 1.0]
+});
+
+geoObjects.addTo(globus.planet);

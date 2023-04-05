@@ -783,6 +783,7 @@ class Renderer {
         // Rendering scene nodes and entityCollections
         let rn = this._renderNodesArr;
         let k = frustums.length;
+
         while (k--) {
             this.activeCamera.setCurrentFrustum(k);
             gl.clear(gl.DEPTH_BUFFER_BIT);

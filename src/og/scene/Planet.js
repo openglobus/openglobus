@@ -1142,7 +1142,14 @@ export class Planet extends RenderNode {
         }
 
         if (this.camera.isFirstPass) {
+            this.camera.updateGeodeticPosition();
             this._firstPASS();
+            this.camera.checkTerrainCollision();
+            this.camera.update();
+
+            // Here is the planet node dispatches a draw event before
+            // rendering begins and we have got render nodes.
+            this.events.dispatch(this.events.draw, this);
         }
 
         this.drawEntityCollections(this._frustumEntityCollections);
@@ -1195,10 +1202,6 @@ export class Planet extends RenderNode {
             this._collectRenderNodes();
         }
         this._skipPreRender = true;
-
-        // Here is the planet node dispatches a draw event before
-        // rendering begins and we have got render nodes.
-        this.events.dispatch(this.events.draw, this);
 
         this.transformLights();
 
