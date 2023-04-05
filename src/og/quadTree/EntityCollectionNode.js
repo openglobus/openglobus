@@ -282,9 +282,15 @@ class EntityCollectionNode {
     }
 
     alignEntityToTheGround(entity, segment) {
-        var res = new Vec3();
+        let res = new Vec3();
         segment.getEntityTerrainPoint(entity, res);
-        entity._setCartesian3vSilent(res.addA(res.normal().scale((Number(this.layer.relativeToGround) && entity._altitude) || 0.0)));
+        let alt = (Number(this.layer.relativeToGround) && entity._altitude) || 0.0;
+        if (alt) {
+            let n = this.layer._planet.ellipsoid.getSurfaceNormal3v(res);
+            entity._setCartesian3vSilent(res.addA(n.scale(alt)));
+        } else {
+            entity._setCartesian3vSilent(res);
+        }
     }
 
     isVisible() {
