@@ -145,7 +145,7 @@ class PlanetCamera extends Camera {
         }
 
         super.update();
-        this.updateGeodeticPosition();
+
         this.eyeNorm = this.eye.normal();
         this.slope = this._b.dot(this.eyeNorm);
 
