@@ -255,22 +255,10 @@ class Camera {
         Vec3.doubleToTwoFloat32Array(eye, this.eyeHigh, this.eyeLow);
 
         this._viewMatrix.set([
-            u.x,
-            v.x,
-            n.x,
-            0.0,
-            u.y,
-            v.y,
-            n.y,
-            0.0,
-            u.z,
-            v.z,
-            n.z,
-            0.0,
-            -eye.dot(u),
-            -eye.dot(v),
-            -eye.dot(n),
-            1.0
+            u.x, v.x, n.x, 0.0,
+            u.y, v.y, n.y, 0.0,
+            u.z, v.z, n.z, 0.0,
+            -eye.dot(u), -eye.dot(v), -eye.dot(n), 1.0
         ]);
 
         // do not cleanup, someday it will be using
