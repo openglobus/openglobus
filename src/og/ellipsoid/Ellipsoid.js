@@ -409,18 +409,35 @@ class Ellipsoid {
         return new Vec3(pX * m_X, pY * m_Y, pZ * m_Z);
     }
 
+    /**
+     * Converts 3d cartesian coordinates to geodetic
+     * @param {Vec3} cart - Cartesian coordiantes
+     * @returns {LonLat} - Geodetic coordinates
+     */
     cartesianToLonLat(cart) {
-
         let p = this.projToSurface(cart);
-
         let n = this.getSurfaceNormal3v(p),
             h = cart.sub(p);
-
         return new LonLat(
             Math.atan2(n.x, n.z) * DEGREES,
             Math.asin(n.y) * DEGREES,
             Math.sign(h.dot(cart)) * h.length()
         );
+    }
+    /**
+     * Converts 3d cartesian coordinates to geodetic
+     * @param {Vec3} cart - Cartesian coordiantes
+     * @param {LonLat} res - Link geodetic coordinates variable
+     * @returns {LonLat} - Geodetic coordinates
+     */
+    cartesianToLonLatRes(cart, res) {
+        let p = this.projToSurface(cart);
+        let n = this.getSurfaceNormal3v(p),
+            h = cart.sub(p);
+        res.lon = Math.atan2(n.x, n.z) * DEGREES;
+        res.lat = Math.asin(n.y) * DEGREES;
+        res.height = Math.sign(h.dot(cart)) * h.length();
+        return res;
     }
 
     /**

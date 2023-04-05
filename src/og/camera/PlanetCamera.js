@@ -13,6 +13,7 @@ import { Ray } from "../math/Ray.js";
 import { Vec3 } from "../math/Vec3.js";
 import * as mercator from "../mercator.js";
 import { Camera } from "./Camera.js";
+import { Ellipsoid } from "../ellipsoid/index.js";
 
 /**
  * Planet camera.
@@ -152,9 +153,9 @@ class PlanetCamera extends Camera {
     }
 
     updateGeodeticPosition() {
-        this._lonLat = this.planet.ellipsoid.cartesianToLonLat(this.eye);
+        this.planet.ellipsoid.cartesianToLonLatRes(this.eye, this._lonLat);
         if (Math.abs(this._lonLat.lat) <= mercator.MAX_LAT) {
-            this._lonLatMerc = this._lonLat.forwardMercator();
+            LonLat.forwardMercatorRes(this._lonLat, this._lonLatMerc);
         }
     }
 
