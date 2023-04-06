@@ -24,6 +24,8 @@ let __depthCallbackCounter__ = 0;
 
 let __distanceCallbackCounter__ = 0;
 
+const MSAA_DEFAULT = 4;
+
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
  * @class
@@ -177,7 +179,13 @@ class Renderer {
         this.depthFramebuffer = null;
 
         let urlParams = new URLSearchParams(location.search);
-        this._msaa = Number(urlParams.get('og_msaa') || params.msaa || 4);
+        let msaaParam = urlParams.get('og_msaa');
+        if (msaaParam) {
+            this._msaa = Number(urlParams.get('og_msaa'));
+        } else {
+            this._msaa = params.msaa != undefined ? params.msaa : MSAA_DEFAULT;
+        }
+
         this._internalFormat = "RGBA16F";
         this._format = "RGBA";
         this._type = "FLOAT";

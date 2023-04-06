@@ -71,6 +71,8 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen bacame the same zoom level
  * @param {Number} [options.loadingBatchSize=12] -
  * @param {Number} [options.quadTreeStrategyPrototype] - Prototype of quadTree. QuadTreeStrategy for Earth is default.
+ * @param {Number} [options.msaa] - MSAA antialiasing parameter: 2,4,8,16. Default is 4.
+ * @param {Number} [options.dpi] - Device pixel ratio. Default is current screen DPI.
  */
 
 class Globe {
@@ -127,7 +129,7 @@ class Globe {
          */
         this.renderer = new Renderer(
             new Handler(_canvasId, {
-                pixelRatio: window.devicePixelRatio + 0.15,
+                pixelRatio: options.dpi || (window.devicePixelRatio + 0.15),
                 context: {
                     alpha: false,
                     antialias: false,
@@ -135,7 +137,8 @@ class Globe {
                 }
             }), {
                 autoActivate: false,
-                backgroundColor: createColorRGB(options.backgroundColor, new Vec3(115 / 255, 203 / 255, 249 / 255))
+                backgroundColor: createColorRGB(options.backgroundColor, new Vec3(115 / 255, 203 / 255, 249 / 255)),
+                msaa: options.msaa
             }
         );
         this.renderer.initialize();
