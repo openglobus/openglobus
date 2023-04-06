@@ -1142,7 +1142,7 @@ export class Planet extends RenderNode {
         }
 
         if (this.camera.isFirstPass) {
-            this.camera.updateGeodeticPosition();
+            this.camera.update();
             this._firstPASS();
             this.camera.checkTerrainCollision();
             this.camera.update();

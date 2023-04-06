@@ -177,26 +177,21 @@ class Node {
         this.neighbors[2] = [];
         this.neighbors[3] = [];
 
-        let seg = this.segment, planet = this.planet;
+        let seg = this.segment,
+            planet = this.planet;
 
         this._cameraInside = false;
-
-        let insideLonLat = null;
 
         // Search a node which the camera is flying over.
         if (!this.parentNode || this.parentNode._cameraInside) {
             let inside;
             if (Math.abs(cam._lonLat.lat) <= MAX_LAT && seg._projection.id === EPSG3857.id) {
                 inside = seg._extent.isInside(cam._lonLatMerc);
-                insideLonLat = cam._lonLatMerc;
             } else if (seg._projection.id === EPSG4326.id) {
                 inside = seg._extent.isInside(cam._lonLat);
-                insideLonLat = cam._lonLat;
             }
 
             if (inside) {
-                cam._insideSegmentPosition.lon = insideLonLat.lon;
-                cam._insideSegmentPosition.lat = insideLonLat.lat;
                 cam._insideSegment = seg;
                 this._cameraInside = true;
             }

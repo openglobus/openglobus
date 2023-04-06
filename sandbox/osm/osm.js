@@ -246,7 +246,7 @@ var globus = new Globe({
     name: "Earth",
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
-    minAltitude: 1,
+    //minAltitude: 1,
     terrain: highResTerrain,
     //terrain: new MapboxTerrain(),
     //terrain: new GlobusTerrain(),

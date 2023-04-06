@@ -24,7 +24,7 @@ let __depthCallbackCounter__ = 0;
 
 let __distanceCallbackCounter__ = 0;
 
-const MSAA_DEFAULT = 4;
+const MSAA_DEFAULT = 0;
 
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.

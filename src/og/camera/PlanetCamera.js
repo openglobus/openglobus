@@ -59,7 +59,7 @@ class PlanetCamera extends Camera {
          * @public
          * @type {number}
          */
-        this.minAltitude = options.minAltitude || 5;
+        this.minAltitude = options.minAltitude || 1;
 
         /**
          * Maximal alltitude that camera can reach over the globe.
@@ -103,14 +103,6 @@ class PlanetCamera extends Camera {
          */
         this._insideSegment = null;
 
-        /**
-         * Coordinates that depends on what segment class we are fling over.
-         * It can be WGS84 or Mercator coordinates. Gets in og.quadTree.Node
-         * @protected
-         * @type {LonLat}
-         */
-        this._insideSegmentPosition = new LonLat();
-
         this.slope = 0;
 
         this._keyLock = new Key();
@@ -145,6 +137,8 @@ class PlanetCamera extends Camera {
         }
 
         super.update();
+
+        this.updateGeodeticPosition();
 
         this.eyeNorm = this.eye.normal();
         this.slope = this._b.dot(this.eyeNorm);
@@ -632,7 +626,7 @@ class PlanetCamera extends Camera {
         if (this._insideSegment && this._insideSegment.planet) {
             this._terrainAltitude = this._insideSegment.getTerrainPoint(
                 this.eye,
-                this._insideSegmentPosition,
+                this._lonLatMerc,
                 this._terrainPoint
             );
             if (this._terrainAltitude < this.minAltitude && this._checkTerrainCollision) {
