@@ -4,6 +4,8 @@ import bpy
 import bmesh
 import os
 import sys
+import json
+import math
 
 filepath = bpy.data.filepath
 [path, name] = os.path.split(filepath)
@@ -21,14 +23,11 @@ except ValueError:
 if len(params) > 0:
     filename = params[0]
 
-verts = []
+vertices = []
 normals = []
 indices = []
-uvs = []
-uvs_uniq = []
-uvs_idx = []
-uvs_map = {}
-
+texcoords = []
+vertex_index_offset = 0
 
 def triangulate_object(obj):
     bm = bmesh.new()
@@ -40,47 +39,37 @@ def triangulate_object(obj):
     bm.free()
 
 
-def flatten(l):
-    return [item for sublist in l for item in sublist]
-
-
-def write_to_json(name, i, v, n, t, ti):
-    with open(name, "w") as outfile:
-        outfile.write("{\n\t\"indices\": [\n\t\t")
-        outfile.write(",".join(str(item) for item in i))
-        outfile.write("\n\t],\n\t\"vertices\": [\n\t\t")
-        outfile.write(",".join(str(item) for item in v))
-        outfile.write("\n\t],\n\t\"normals\": [\n\t\t")
-        outfile.write(",".join(str(item) for item in n))
-        outfile.write("\n\t],\n\t\"texCoords\": [\n\t\t")
-        outfile.write(",".join(str(item) for item in t))
-        outfile.write("\n\t]\n}")
-
-
 for collection in bpy.data.collections:
     for obj in collection.all_objects:
+        obj.rotation_euler[2] += math.radians(-90)
         if obj.type == "MESH":
             triangulate_object(obj)
             matrix = obj.matrix_world
             maxIndex = max(indices) + 1 if len(indices) > 0 else 0
 
-            for vert in obj.data.vertices:
-                gCoords = matrix @ vert.co
-                verts += list(gCoords.xyz)
-                normals += list(vert.normal)
-
             for face in obj.data.polygons:
-                indices += map(lambda x: x + maxIndex, list(face.vertices),)
-
-
                 for vert_idx, loop_idx in zip(face.vertices, face.loop_indices):
-                    uvs_map[vert_idx + maxIndex] = list(obj.data.uv_layers.active.data[loop_idx].uv)
-                    print(obj.data.uv_layers)
+                    indices.append(loop_idx + vertex_index_offset)
+                    vertex = matrix @ obj.data.vertices[vert_idx].co
+                    vertices.append(vertex.x)
+                    vertices.append(vertex.z)
+                    vertices.append(-vertex.y)
+                    normals.append(face.normal.x)
+                    normals.append(face.normal.z)
+                    normals.append(-face.normal.y)
+                    uv_layer = obj.data.uv_layers.active.data[loop_idx]
+                    texcoords.append(uv_layer.uv.x)
+                    texcoords.append(1 - uv_layer.uv.y)
 
-        temp_uvs = list(uvs_map.keys())
-        for key, attr in uvs_map.items():
-            temp_uvs[key] = [uvs_map[key][0],1.0 - uvs_map[key][1]]
+            vertex_index_offset += maxIndex
 
 
+data = {
+    "indices": indices,
+    "vertices": vertices,
+    "normals": normals,
+    "texCoords" : texcoords
+}
 
-write_to_json(filename, indices, verts, normals, sum(temp_uvs,[]), uvs_idx)
+with open(filename, "w") as outfile:
+    json.dump(data, outfile)
