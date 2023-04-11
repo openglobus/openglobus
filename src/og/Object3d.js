@@ -3,7 +3,8 @@
 
 import { htmlColorToFloat32Array } from './utils/shared.js';
 import { Vec3 } from './math/Vec3.js';
-import { MIN, MAX } from './math.js';
+import { MAX, MIN } from './math.js';
+import { convertToWebGLSpace, objParser } from "./utils/objParser.js";
 
 function getColor(color) {
     if (color instanceof Array) {
@@ -44,7 +45,7 @@ class Object3d {
             this._normals = data.normals || [];
         } else {
             this._normals = Object3d.getNormals(this._vertices);
-            this._indices = new Array(this._vertices.length/ 3);
+            this._indices = new Array(this._vertices.length / 3);
             for (let i = 0, len = this._indices.length; i < len; i++) {
                 this._indices[i] = i;
             }
@@ -76,6 +77,10 @@ class Object3d {
 
     get src() {
         return this._src;
+    }
+
+    set src(src) {
+        this._src = src;
     }
 
     get name() {
@@ -370,6 +375,20 @@ class Object3d {
 
                 -7, 0, 6, 0, 0, front, 0, 0, back, 0, 0, back, 0, 0, front, 7, 0, 6]
         });
+    }
+
+
+    static async loadObj(src) {
+        const obj = await fetch(src)
+            .then((response) => response.text())
+            .then((data) => convertToWebGLSpace(objParser(data)))
+            .catch(() => []);
+
+        return obj.geometries.map(({ data: { vertices, normals, textures } }) => new Object3d({
+            vertices,
+            normals,
+            texCoords: textures
+        }));
     }
 }
 
