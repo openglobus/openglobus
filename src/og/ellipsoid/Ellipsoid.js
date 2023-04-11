@@ -283,9 +283,9 @@ class Ellipsoid {
     }
 
     /**
-     * Gets cartesian ECEF from Wgs84 geodetic coordiantes.
+     * Gets cartesian ECEF from Wgs84 geodetic coordinates.
      * @public
-     * @param {LonLat} lonlat - Degrees geodetic coordiantes.
+     * @param {LonLat} lonlat - Degrees geodetic coordinates.
      * @returns {Vec3} -
      */
     lonLatToCartesian(lonlat) {
@@ -305,9 +305,9 @@ class Ellipsoid {
     }
 
     /**
-     * Gets cartesian ECEF from Wgs84 geodetic coordiantes.
+     * Gets cartesian ECEF from Wgs84 geodetic coordinates.
      * @public
-     * @param {LonLat} lonlat - Degrees geodetic coordiantes.
+     * @param {LonLat} lonlat - Degrees geodetic coordinates.
      * @param {Vec3} res - Output result.
      * @returns {Vec3} -
      */
@@ -328,7 +328,7 @@ class Ellipsoid {
     }
 
     /**
-     * Gets cartesian ECEF from Wgs84 geodetic coordiantes.
+     * Gets cartesian ECEF from Wgs84 geodetic coordinates.
      * @public
      * @param {Number} lon - Longitude.
      * @param {Number} lat - Latitude.
@@ -352,7 +352,7 @@ class Ellipsoid {
     }
 
     /**
-     * Gets Wgs84 geodetic coordiantes from cartesian ECEF.
+     * Gets Wgs84 geodetic coordinates from cartesian ECEF.
      * @public
      * @param {Vec3} p - Cartesian coordinates.
      * @returns {LonLat} -
@@ -411,7 +411,7 @@ class Ellipsoid {
 
     /**
      * Converts 3d cartesian coordinates to geodetic
-     * @param {Vec3} cart - Cartesian coordiantes
+     * @param {Vec3} cart - Cartesian coordinates
      * @returns {LonLat} - Geodetic coordinates
      */
     cartesianToLonLat(cart) {
@@ -426,7 +426,7 @@ class Ellipsoid {
     }
     /**
      * Converts 3d cartesian coordinates to geodetic
-     * @param {Vec3} cart - Cartesian coordiantes
+     * @param {Vec3} cart - Cartesian coordinates
      * @param {LonLat} res - Link geodetic coordinates variable
      * @returns {LonLat} - Geodetic coordinates
      */
@@ -443,7 +443,7 @@ class Ellipsoid {
     /**
      * Gets ellipsoid surface normal.
      * @public
-     * @param {Vec3} coord - Spatial coordiantes.
+     * @param {Vec3} coord - Spatial coordinates.
      * @return {Vec3} -
      */
     getSurfaceNormal3v(coord) {

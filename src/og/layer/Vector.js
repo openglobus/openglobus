@@ -239,7 +239,7 @@ class Vector extends Layer {
      * Adds entity to the layer.
      * @public
      * @param {Entity} entity - Entity.
-     * @param {boolean} [rightNow] - Entity insertion option. False is deafult.
+     * @param {boolean} [rightNow] - Entity insertion option. False is default.
      * @returns {layer.Vector} - Returns this layer.
      */
     add(entity, rightNow) {
@@ -258,7 +258,7 @@ class Vector extends Layer {
      * @public
      * @param {Entity} entity - Entity.
      * @param {Number} index - Index position.
-     * @param {boolean} [rightNow] - Entity insertion option. False is deafult.
+     * @param {boolean} [rightNow] - Entity insertion option. False is default.
      * @returns {layer.Vector} - Returns this layer.
      */
     insert(entity, index, rightNow) {
@@ -336,7 +336,7 @@ class Vector extends Layer {
      * Adds entity array to the layer.
      * @public
      * @param {Array.<Entity>} entities - Entities array.
-     * @param {boolean} [rightNow] - Entity insertion option. False is deafult.
+     * @param {boolean} [rightNow] - Entity insertion option. False is default.
      * @returns {layer.Vector} - Returns this layer.
      */
     addEntities(entities, rightNow) {

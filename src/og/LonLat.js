@@ -152,7 +152,7 @@ export class LonLat {
     }
 
     /**
-     * Clone the coordiante.
+     * Clone the coordinates.
      * @public
      * @returns {LonLat} -
      */
