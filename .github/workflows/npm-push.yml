@@ -23,11 +23,11 @@ jobs:
       - uses: ./.github/actions/main
       - run: npm run api
 
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./api
+#       - name: Deploy
+#         uses: peaceiris/actions-gh-pages@v3
+#         with:
+#           github_token: ${{ secrets.GITHUB_TOKEN }}
+#           publish_dir: ./api
 
   generate_types:
     runs-on: ubuntu-latest
