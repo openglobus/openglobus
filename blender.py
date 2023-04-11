@@ -1,11 +1,10 @@
-#!/usr/bin/env python
-# blender --background ~/blender/Landspot.blend -P ~/projects/utm/frontend/external/og/blender.py -- ~/projects/test.json
 import bpy
 import bmesh
 import os
 import sys
 import json
 import math
+import mathutils
 
 filepath = bpy.data.filepath
 [path, name] = os.path.split(filepath)
@@ -34,10 +33,10 @@ def triangulate_object(obj):
     me = obj.data
     bm.from_mesh(me)
     bpy.ops.object.mode_set(mode='OBJECT')
+
     bmesh.ops.triangulate(bm, faces=bm.faces[:])
     bm.to_mesh(me)
     bm.free()
-
 
 for collection in bpy.data.collections:
     for obj in collection.all_objects:
@@ -47,22 +46,32 @@ for collection in bpy.data.collections:
             matrix = obj.matrix_world
             maxIndex = max(indices) + 1 if len(indices) > 0 else 0
 
-            for face in obj.data.polygons:
-                for vert_idx, loop_idx in zip(face.vertices, face.loop_indices):
-                    indices.append(loop_idx + vertex_index_offset)
-                    vertex = matrix @ obj.data.vertices[vert_idx].co
+            bm = bmesh.new()
+            bm.from_mesh(obj.data)
+            bm.normal_update()
+
+            for face in bm.faces:
+                for vert, loop in zip(face.verts, face.loops):
+                    indices.append(loop.index + vertex_index_offset)
+                    vertex = matrix @ vert.co
                     vertices.append(vertex.x)
                     vertices.append(vertex.z)
                     vertices.append(-vertex.y)
-                    normals.append(face.normal.x)
-                    normals.append(face.normal.z)
-                    normals.append(-face.normal.y)
-                    uv_layer = obj.data.uv_layers.active.data[loop_idx]
+                    # average the normals of each adjacent face to get vertex normal
+                    normal = mathutils.Vector()
+                    for other_face in vert.link_faces:
+                        if other_face.normal.dot(face.normal) > 0:
+                            normal += other_face.normal
+                    if normal.length_squared > 0:
+                        normal.normalize()
+                    normals.append(normal.x)
+                    normals.append(normal.z)
+                    normals.append(-normal.y)
+                    uv_layer = obj.data.uv_layers.active.data[loop.index]
                     texcoords.append(uv_layer.uv.x)
                     texcoords.append(1 - uv_layer.uv.y)
 
             vertex_index_offset += maxIndex
-
 
 data = {
     "indices": indices,
