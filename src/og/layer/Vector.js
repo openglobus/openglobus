@@ -844,7 +844,8 @@ class Vector extends Layer {
 
             // Merc nodes
             this._secondPASS = [];
-            this._entityCollectionsTree.collectRenderCollectionsPASS1(p._visibleNodes, outArr);
+            this._entityCollectionsTree &&
+                this._entityCollectionsTree.collectRenderCollectionsPASS1(p._visibleNodes, outArr);
             var i = this._secondPASS.length;
             while (i--) {
                 this._secondPASS[i].collectRenderCollectionsPASS2(
@@ -856,9 +857,10 @@ class Vector extends Layer {
 
             // North nodes
             this._secondPASS = [];
-            this._entityCollectionsTreeNorth.collectRenderCollectionsPASS1(
-                p._visibleNodesNorth,
-                outArr
+            this._entityCollectionsTreeNorth &&
+                this._entityCollectionsTreeNorth.collectRenderCollectionsPASS1(
+                    p._visibleNodesNorth,
+                    outArr
             );
             i = this._secondPASS.length;
             while (i--) {
@@ -871,10 +873,11 @@ class Vector extends Layer {
 
             // South nodes
             this._secondPASS = [];
-            this._entityCollectionsTreeSouth.collectRenderCollectionsPASS1(
-                p._visibleNodesSouth,
-                outArr
-            );
+            this._entityCollectionsTreeSouth &&
+                this._entityCollectionsTreeSouth.collectRenderCollectionsPASS1(
+                    p._visibleNodesSouth,
+                    outArr
+                );
             i = this._secondPASS.length;
             while (i--) {
                 this._secondPASS[i].collectRenderCollectionsPASS2(
