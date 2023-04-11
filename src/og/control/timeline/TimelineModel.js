@@ -45,6 +45,10 @@ class TimelineModel {
         }
     }
 
+    stopped() {
+       return this._requestAnimationFrameId == 0;
+    }
+
     _animationFrameCallback() {
         this._requestAnimationFrameId = window.requestAnimationFrame(() => {
             this._frame();
