@@ -6,19 +6,16 @@ import { Globe } from "../../src/og/Globe.js";
 import { XYZ } from "../../src/og/layer/XYZ.js";
 import { GlobusTerrain } from "../../src/og/terrain/GlobusTerrain.js";
 import * as utils from "../../src/og/utils/shared.js";
-import { RADIANS } from "../../src/og/math.js";
 import { Object3d } from "../../src/og/Object3d.js";
+import { RADIANS } from "../../src/og/math.js";
 
 let COUNT = 10,
     ENTITY = {},
     ENTITY_OPTIONS = new Map([
-        ['fish', {
+        ['penguin', {
             countRation: 1,
             cb: (options) => {
                 options.geoObject.scale = 20;
-                options.geoObject.yaw = 50 * RADIANS;
-                options.geoObject.pitch = 270 * RADIANS;
-                options.geoObject.src = './fish.png';
                 return {
                     ...options,
                     lonlat: [rnd(-180, 180), rnd(-180, 180), 200000]
@@ -83,7 +80,14 @@ for (const [name, entity_opt] of ENTITY_OPTIONS) {
         })
         .then((data) => {
             const entities = [];
-            const { vertices, indices, normals, texCoords, texCoordsIndices } = data,
+            const { vertices, indices, normals, texCoords } = data,
+                object3d = new Object3d({
+                    texCoords,
+                    src: './penguin.png',
+                    vertices,
+                    indices,
+                    normals
+                }),
                 defaultOptions = (i) => ({
                     name: "sat-" + i,
                     geoObject: {
@@ -91,14 +95,7 @@ for (const [name, entity_opt] of ENTITY_OPTIONS) {
                         instanced: true,
                         tag: name,
                         color: colors[i % 7],
-                        object3d: new Object3d({
-                            center: true,
-                            vertices,
-                            indices,
-                            texCoords,
-                            texCoordsIndices,
-                            normals
-                        })
+                        object3d
                     },
                     'properties': {
                         'color': colors[i % 7]
