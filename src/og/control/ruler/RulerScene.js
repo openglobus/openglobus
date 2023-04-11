@@ -245,10 +245,6 @@ class RulerScene extends RenderNode {
             if (!this._preventClick) {
                 if (!this._startLonLat) {
                     this._stopDrawing = false;
-                    this._propsLabel.setVisibility(false);
-                    this._trackEntity.polyline.setPath3v([]);
-                    this._cornerEntity[0].setVisibility(true);
-                    this._cornerEntity[1].setVisibility(true);
                     this._startLonLat = startLonLat;
                 } else {
                     this._startLonLat = null;
