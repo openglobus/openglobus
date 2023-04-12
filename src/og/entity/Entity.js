@@ -26,7 +26,7 @@ import { Strip } from "./Strip.js";
  * @param {Object} [options] - Entity options:
  * @param {string} [options.name] - A human readable name to display to users. It does not have to be unique.
  * @param {Vec3|Array.<number>} [options.cartesian] - Spatial entities like billboard, label etc. cartesian position.
- * @param {LonLat} [options.lonlat] - Geodetic coordiantes for an entities like billboard, label etc.
+ * @param {LonLat} [options.lonlat] - Geodetic coordinates for an entities like billboard, label etc.
  * @param {boolean} [options.aground] - True for entities that have to be placed on the relief.
  * @param {boolean} [options.visibility] - Entity visibility.
  * @param {*} [options.billboard] - Billboard options(see {@link og.Billboard}).
@@ -86,7 +86,7 @@ class Entity {
         this._cartesian = utils.createVector3(options.cartesian);
 
         /**
-         * Geodetic entity coordiantes.
+         * Geodetic entity coordinates.
          * @protected
          * @type {LonLat}
          */
@@ -474,7 +474,7 @@ class Entity {
     }
 
     /**
-     * Returns carteain position.
+     * Returns cartesian position.
      * @public
      * @returns {Vec3} -
      */

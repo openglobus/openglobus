@@ -32,7 +32,7 @@ const STR2ALIGN = {
  * @extends {BaseBillboard}
  * @param {Object} [options] - Label options:
  * @param {Vec3|Array.<number>} [options.position] - Billboard spatial position.
- * @param {number} [options.rotation] - Screen angle rotaion.
+ * @param {number} [options.rotation] - Screen angle rotation.
  * @param {Vec4|string|Array.<number>} [options.color] - Billboard color.
  * @param {Vec3|Array.<number>} [options.alignedAxis] - Billboard aligned vector.
  * @param {Vec3|Array.<number>} [options.offset] - Billboard center screen offset.
