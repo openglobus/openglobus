@@ -4,7 +4,7 @@
 import { htmlColorToFloat32Array } from './utils/shared.js';
 import { Vec3 } from './math/Vec3.js';
 import { MAX, MIN } from './math.js';
-import { convertToWebGLSpace, objParser } from "./utils/objParser.js";
+import { transformLeftToRightCoordinateSystem, objParser } from "./utils/objParser.js";
 
 function getColor(color) {
     if (color instanceof Array) {
@@ -381,7 +381,7 @@ class Object3d {
     static async loadObj(src) {
         const obj = await fetch(src)
             .then((response) => response.text())
-            .then((data) => convertToWebGLSpace(objParser(data)))
+            .then((data) => transformLeftToRightCoordinateSystem(objParser(data)))
             .catch(() => []);
 
         return obj.geometries.map(({ data: { vertices, normals, textures } }) => new Object3d({

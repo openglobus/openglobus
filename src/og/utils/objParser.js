@@ -11,7 +11,7 @@ export function objParser(text){
     ];
 
     // same order as `f` indices
-    let webglVertexData = [
+    let vertexData = [
         [],   // positions
         [],   // texcoords
         [],   // normals
@@ -39,7 +39,7 @@ export function objParser(text){
             const vertices = [];
             const textures = [];
             const normals = [];
-            webglVertexData = [
+            vertexData = [
                 vertices,
                 textures,
                 normals,
@@ -66,7 +66,7 @@ export function objParser(text){
             }
             const objIndex = parseInt(objIndexStr);
             const index = objIndex + (objIndex >= 0 ? 0 : objVertexData[i].length);
-            webglVertexData[i].push(...objVertexData[i][index]);
+            vertexData[i].push(...objVertexData[i][index]);
         });
     }
 
@@ -143,7 +143,7 @@ export function objParser(text){
     };
 }
 
-export function convertToWebGLSpace(objData) {
+export function transformLeftToRightCoordinateSystem(objData) {
     const convertedGeometries = objData.geometries.map(geometry => {
         const vertices = geometry.data.vertices;
         const normals = geometry.data.normals;
