@@ -1121,8 +1121,8 @@ export class Planet extends RenderNode {
 
         // free memory
         if (this._createdNodesCount > MAX_NODES && this._distBeforeMemClear > 1000.0) {
-            this.terrain.clearCache();
-            this.memClear();
+            //this.terrain.clearCache();
+            //this.memClear();
         }
 
         if (this._indexesCacheToRemoveCounter > 600) {
@@ -1231,7 +1231,7 @@ export class Planet extends RenderNode {
 
         gl.enable(gl.BLEND);
         gl.blendEquation(gl.FUNC_ADD);
-        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
         if (this.lightEnabled) {
             h.programs.drawnode_screen_wl.activate();
@@ -1341,7 +1341,7 @@ export class Planet extends RenderNode {
 
         gl.enable(gl.BLEND);
         gl.blendEquation(gl.FUNC_ADD);
-        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
         if (this.lightEnabled) {
             h.programs.drawnode_screen_wl.activate();
