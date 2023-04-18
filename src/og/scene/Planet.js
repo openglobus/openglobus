@@ -1121,8 +1121,8 @@ export class Planet extends RenderNode {
 
         // free memory
         if (this._createdNodesCount > MAX_NODES && this._distBeforeMemClear > 1000.0) {
-            //this.terrain.clearCache();
-            //this.memClear();
+            this.terrain.clearCache();
+            this.memClear();
         }
 
         if (this._indexesCacheToRemoveCounter > 600) {
