@@ -78,6 +78,24 @@ export class LonLat {
     }
 
     /**
+     *  Create array from lonlat
+     * @param lonLat
+     * @returns {[number, number, number]}
+     */
+    static toArray(lonLat) {
+        return [lonLat.lon, lonLat.lat, lonLat.height]
+    }
+
+    /**
+     *  Create array from lonlat
+     * @param lonLat
+     * @returns {[number, number, number]}
+     */
+    toArray() {
+        return LonLat.toArray(this)
+    }
+
+    /**
      * Converts degrees to mercator coordinates.
      * @static
      * @param {number} lon - Degrees longitude.
@@ -152,7 +170,7 @@ export class LonLat {
     }
 
     /**
-     * Clone the coordiante.
+     * Clone the coordinates.
      * @public
      * @returns {LonLat} -
      */

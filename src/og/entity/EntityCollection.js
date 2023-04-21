@@ -506,7 +506,7 @@ class EntityCollection {
     }
 
     /**
-     * Updates coordiantes all lonLat entities in collection after collecction attached to the planet node.
+     * Updates coordinates all lonLat entities in collection after collecction attached to the planet node.
      * @private
      * @param {Ellipsoid} ellipsoid - Globe ellipsoid.
      */
@@ -590,7 +590,7 @@ class EntityCollection {
     }
 
     /**
-     * Removes all entities from colection and clear handlers.
+     * Removes all entities from collection and clear handlers.
      * @public
      */
     clear() {

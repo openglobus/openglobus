@@ -112,9 +112,7 @@ class TimelineView extends View {
         this._playBtn = new ToggleButton({
             classList: ["og-timeline-control_button"],
             icon: ICON_PLAY_SVG,
-            name: "play",
-            isActive: true,
-            preventClick: true
+            name: "play"
         });
 
         this._buttons = new ButtonGroup({
@@ -182,6 +180,15 @@ class TimelineView extends View {
 
         this._playBtn.appendTo(this.$controls);
         this._pauseBtn.appendTo(this.$controls);
+
+        if (this.model.stopped()) {
+            this._pauseBtn.setActive(true, true);
+            this._pauseBtn.preventClick = true;
+        }
+        else {
+            this._playBtn.setActive(true, true);
+            this._playBtn.preventClick = true;
+        }
 
         this._buttons.on("change", (btn) => {
             switch (btn.name) {

@@ -22,6 +22,8 @@ import { ToggleWireframe } from "./ToggleWireframe.js";
 import { TouchNavigation } from "./TouchNavigation.js";
 import { ZoomControl } from "./ZoomControl.js";
 
+import { TimelineControl } from "./timeline/TimelineControl.js";
+
 export {
     Control,
     CompassButton,
@@ -45,5 +47,6 @@ export {
     HeightRuler,
     SimpleSkyBackground,
     Selection,
-    LayerAnimation
+    LayerAnimation,
+    TimelineControl
 };

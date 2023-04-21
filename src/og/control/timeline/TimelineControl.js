@@ -26,12 +26,14 @@ class TimelineControl extends Control {
         }
         super(options);
 
-        let currentDate = new Date();
-        let startDate = addHours(currentDate, -12), endDate = addHours(currentDate, 12);
+        let currentDate = options.current || new Date();
+        let startDate = options.rangeStart || addHours(currentDate, -12);
+        let endDate = options.rangeEnd || addHours(currentDate, 12); 
 
         this._timelineView = new TimelineView({
             rangeStart: startDate,
-            rangeEnd: endDate
+            rangeEnd: endDate,
+            current: currentDate
         });
 
         this._toggleBtn = new ToggleButton({
