@@ -148,7 +148,7 @@ export function transformLeftToRightCoordinateSystem(objData) {
         const vertices = geometry.data.vertices;
         const normals = geometry.data.normals;
         const textures = geometry.data.textures;
-
+        rotateObject(geometry.data, 0)
         const convertedVertices = [];
         const convertedNormals = [];
         const convertedTextures = [];
@@ -191,6 +191,37 @@ export function transformLeftToRightCoordinateSystem(objData) {
     return {
         geometries: convertedGeometries,
         materialLibs: objData.materialLibs
+    };
+}
+
+function rotateObject(obj, angle) {
+    const cosA = Math.cos(angle);
+    const sinA = Math.sin(angle);
+
+    const vertices = obj.vertices;
+    const normals = obj.normals;
+
+    for (let i = 0; i < vertices.length; i += 3) {
+        const x = vertices[i];
+        const y = vertices[i + 1];
+        const z = vertices[i + 2];
+
+        vertices[i] = x * cosA + z * sinA;
+        vertices[i + 1] = y;
+        vertices[i + 2] = -x * sinA + z * cosA;
+
+        const nx = normals[i];
+        const ny = normals[i + 1];
+        const nz = normals[i + 2];
+
+        normals[i] = nx * cosA + nz * sinA;
+        normals[i + 1] = ny;
+        normals[i + 2] = -nx * sinA + nz * cosA;
+    }
+
+    return {
+        vertices: vertices,
+        normals: normals
     };
 }
 
