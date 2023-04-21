@@ -15,4 +15,22 @@ describe('Ray class', () => {
         // expect(item.hitPlane(new Sphere(1, new Vec3()))).toBeTruthy();
         expect(ray()).toBeTruthy();
     });
+
+    test('intersection', () => {
+        let ray = new Ray();
+        let res = new Vec3();
+
+        let v0 = new Vec3(0, 0, 0),
+            v1 = new Vec3(1, 0, 0),
+            v2 = new Vec3(0, 0, 1);
+
+        let orig = new Vec3(02, -1, 0.2),
+            dir = new Vec3(0, -1, 0);
+
+        ray.set(orig, dir);
+
+        ray.hitTriangle(v0, v1, v2, res);
+
+        expect(ray.set(orig, dir.normalize())).toEqual(Ray.AWAY);
+    });
 });
