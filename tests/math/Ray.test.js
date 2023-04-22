@@ -24,13 +24,13 @@ describe('Ray class', () => {
             v1 = new Vec3(1, 0, 0),
             v2 = new Vec3(0, 0, 1);
 
-        let orig = new Vec3(02, -1, 0.2),
+        let orig = new Vec3(0.2, -1, 0.2),
             dir = new Vec3(0, -1, 0);
 
         ray.set(orig, dir);
 
-        ray.hitTriangle(v0, v1, v2, res);
+        let r = ray.hitTriangle(v0, v1, v2, res);
 
-        expect(ray.set(orig, dir.normalize())).toEqual(Ray.AWAY);
+        expect(r).toBe(Ray.AWAY);
     });
 });
