@@ -80,7 +80,7 @@ export class LonLat {
     /**
      *  Create array from lonlat
      * @param lonLat
-     * @returns {[number, number, number]}
+     * @returns {number[]}
      */
     static toArray(lonLat) {
         return [lonLat.lon, lonLat.lat, lonLat.height]
@@ -88,8 +88,7 @@ export class LonLat {
 
     /**
      *  Create array from lonlat
-     * @param lonLat
-     * @returns {[number, number, number]}
+     * @returns {number[]}
      */
     toArray() {
         return LonLat.toArray(this)

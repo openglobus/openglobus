@@ -7,7 +7,6 @@ import { XYZ } from "../../src/og/layer/XYZ.js";
 import { GlobusTerrain } from "../../src/og/terrain/GlobusTerrain.js";
 import * as utils from "../../src/og/utils/shared.js";
 import { Object3d } from "../../src/og/Object3d.js";
-import { RADIANS } from "../../src/og/math.js";
 
 let COUNT = 10,
     ENTITY = {},
@@ -74,48 +73,39 @@ let geoObjects = new EntityCollection({
 });
 
 for (const [name, entity_opt] of ENTITY_OPTIONS) {
-    fetch(`./${name}.json`)
-        .then((response) => {
-            return response.json();
-        })
-        .then((data) => {
-            const entities = [];
-            const { vertices, indices, normals, texCoords } = data,
-                object3d = new Object3d({
-                    texCoords,
-                    src: './penguin.png',
-                    vertices,
-                    indices,
-                    normals
-                }),
-                defaultOptions = (i) => ({
-                    name: "sat-" + i,
-                    geoObject: {
-                        scale: 1,
-                        instanced: true,
-                        tag: name,
-                        color: colors[i % 7],
-                        object3d
-                    },
-                    'properties': {
-                        'color': colors[i % 7]
-                    }
-                });
 
-
-            ENTITY[name] = (i) => {
-                const o = defaultOptions(i);
-                return {
-                    ...o,
-                    ...(entity_opt && entity_opt.cb ? entity_opt.cb(o, i) : {})
-                };
-            };
-
-            for (let i = 0; i < COUNT; i++) {
-                entities.push(new Entity(ENTITY[name](i)));
+    const objs = await Object3d.loadObj(`./${name}.obj`);
+    objs.forEach((object3d) => {
+        const entities = [];
+        object3d.src = './penguin.png'
+        const defaultOptions = (i) => ({
+            name: "sat-" + i,
+            geoObject: {
+                scale: 1,
+                instanced: true,
+                tag: name,
+                color: colors[i % 7],
+                object3d
+            },
+            'properties': {
+                'color': colors[i % 7]
             }
-            geoObjects.addEntities(entities);
         });
+
+
+        ENTITY[name] = (i) => {
+            const o = defaultOptions(i);
+            return {
+                ...o,
+                ...(entity_opt && entity_opt.cb ? entity_opt.cb(o, i) : {})
+            };
+        };
+
+        for (let i = 0; i < COUNT; i++) {
+            entities.push(new Entity(ENTITY[name](i)));
+        }
+        geoObjects.addEntities(entities);
+    });
 }
 
 geoObjects.events.on("lclick", function (e) {
