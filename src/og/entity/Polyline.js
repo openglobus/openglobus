@@ -60,6 +60,8 @@ class Polyline {
          */
         this.thickness = options.thickness || 1.5;
 
+        this._opacity = options.opacity != undefined ? options.opacity : 1.0;
+
         /**
          * Polyline RGBA color.
          * @public
@@ -1708,7 +1710,7 @@ class Polyline {
      * @param {number} opacity - Opacity.
      */
     setOpacity(opacity) {
-        this.color.w = opacity;
+        this._opacity = opacity;
     }
 
     /**
@@ -2010,7 +2012,7 @@ class Polyline {
             ]);
             gl.uniform2fv(shu.viewport, [r.handler.canvas.width, r.handler.canvas.height]);
             gl.uniform1f(shu.thickness, this.thickness * 0.5);
-            gl.uniform1f(shu.opacity, ec._fadingOpacity);
+            gl.uniform1f(shu.opacity, this._opacity * ec._fadingOpacity);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._colorsBuffer);
             gl.vertexAttribPointer(sha.color, this._colorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
