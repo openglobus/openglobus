@@ -1,6 +1,6 @@
 import { CompassButton } from "./CompassButton.js";
 import { Control } from "./Control.js";
-import { DebugInfo } from "./DebugInfo";
+import { DebugInfo } from "./DebugInfo.js";
 import { EarthCoordinates } from "./EarthCoordinates.js";
 import { EarthNavigation } from "./EarthNavigation.js";
 import { GeoImageDragControl } from "./GeoImageDragControl.js";
