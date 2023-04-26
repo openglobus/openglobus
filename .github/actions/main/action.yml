@@ -6,6 +6,8 @@ runs:
       uses: actions/setup-node@v3
       with:
         node-version: 16
+        cache: 'npm'
+        cache-dependency-path: '**/package-lock.json'
         registry-url: https://registry.npmjs.org/
 
     - name: Cache node modules
@@ -16,7 +18,7 @@ runs:
         path: ~/.npm
         key: ${{ runner.OS }}-npm-cache-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
-          ${{ runner.OS }}-npm-cache-
+           ${{ runner.OS }}-npm-cache-
          
     - name: Install dependencies
       shell: bash

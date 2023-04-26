@@ -1,0 +1,36 @@
+name: Release CI
+
+on:
+  release:
+    types: [ created ]
+
+jobs:
+  publish-npm:
+    
+    permissions:
+      contents: write
+    
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/main
+      - run: npm run test
+      - run: npm run build
+      - run: npm run api
+      - name: Deploy to external repository
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          SSH_DEPLOY_KEY : ${{ secrets.SSH_DEPLOY_KEY  }}
+        with:
+          source-directory: api
+          destination-github-username: openglobus
+          destination-repository-name: openglobus.github.io
+          user-email: pvlt.job@gmail.com
+          target-branch: "master"
+          target-directory: "docs"
+
+      - run: npm run generate_types
+
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
