@@ -51,6 +51,7 @@ class CanvasTiles extends Layer {
         this.animated = options.animated || false;
 
         this.minNativeZoom = options.minNativeZoom || 0;
+        this.maxNativeZoom = options.maxNativeZoom || 100;
         /**
          * Current creating tiles couter.
          * @protected
@@ -239,6 +240,7 @@ class CanvasTiles extends Layer {
 
     applyMaterial(material) {
         if (material.isReady) {
+
             if (material.layer.animated) {
                 requestAnimationFrame(() => {
                     this.drawTile(material, function (canvas) {
@@ -246,15 +248,19 @@ class CanvasTiles extends Layer {
                     });
                 });
             }
-            return [0, 0, 1, 1];
+
+            return material.texOffset;
+
         } else if (material.segment.tileZoom < this.minNativeZoom) {
             material.textureNotExists();
         } else {
 
             let segment = material.segment;
-            let pn = segment.node, notEmpty = false;
+            let pn = segment.node,
+                notEmpty = false;
+            let maxNativeZoom = material.layer.maxNativeZoom;
 
-            if (segment.passReady && !material.isLoading) {
+            if (segment.passReady && !material.isLoading && segment.tileZoom <= maxNativeZoom) {
                 this.loadMaterial(material);
             }
 
@@ -263,9 +269,32 @@ class CanvasTiles extends Layer {
             while (pn.parentNode) {
                 pn = pn.parentNode;
                 psegm = pn.segment.materials[mId];
-                if (psegm && psegm.isReady) {
+                if (psegm && psegm.textureExists) {
                     notEmpty = true;
                     break;
+                }
+            }
+
+            if (segment.passReady) {
+                if (pn.segment.tileZoom === maxNativeZoom) {
+                    if (material.segment.tileZoom > maxNativeZoom)
+                        material.textureNotExists();
+                } else if (pn.segment.tileZoom < maxNativeZoom) {
+
+                    let pn = segment.node;
+                    while (pn.segment.tileZoom > maxNativeZoom) {
+                        pn = pn.parentNode;
+                    }
+
+                    let pnm = pn.segment.materials[material.layer._id];
+                    if (pnm) {
+                        !pnm.isLoading && !pnm.isReady && this.loadMaterial(pnm);
+                    } else {
+                        pnm = pn.segment.materials[material.layer._id] = material.layer.createMaterial(
+                            pn.segment
+                        );
+                        this.loadMaterial(pnm);
+                    }
                 }
             }
 
@@ -281,14 +310,21 @@ class CanvasTiles extends Layer {
 
                 material.appliedNodeId = pn.nodeId;
                 material.texture = psegm.texture;
-
                 let dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
-                return [segment.tileX * dZ2 - pn.segment.tileX, segment.tileY * dZ2 - pn.segment.tileY, dZ2, dZ2];
+                material.texOffset[0] = segment.tileX * dZ2 - pn.segment.tileX;
+                material.texOffset[1] = segment.tileY * dZ2 - pn.segment.tileY;
+                material.texOffset[2] = dZ2;
+                material.texOffset[3] = dZ2;
             } else {
                 material.texture = segment.planet.transparentTexture;
-                return [0, 0, 1, 1];
+                material.texOffset[0] = 0.0;
+                material.texOffset[1] = 0.0;
+                material.texOffset[2] = 1.0;
+                material.texOffset[3] = 1.0;
             }
         }
+
+        return material.texOffset;
     }
 
     clearMaterial(material) {
