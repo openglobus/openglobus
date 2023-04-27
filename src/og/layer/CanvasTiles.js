@@ -177,19 +177,21 @@ class CanvasTiles extends Layer {
                 that.events.dispatch(e, material);
             }
             requestAnimationFrame(() => {
-                that.drawTile(material, /**
-                 * Apply canvas.
-                 * @callback applyCanvasCallback
-                 * @param {Object} canvas -
-                 */
-                function (canvas) {
-                    that._counter--;
-                    CanvasTiles.__requestsCounter--;
-                    if (material.isLoading) {
-                        material.applyImage(canvas);
-                    }
-                    that._dequeueRequest();
-                });
+                that.drawTile(
+                    material,
+                    /**
+                     * Apply canvas.
+                     * @callback applyCanvasCallback
+                     * @param {Object} canvas -
+                     */
+                    function (canvas) {
+                        that._counter--;
+                        CanvasTiles.__requestsCounter--;
+                        if (material.isLoading) {
+                            material.applyImage(canvas);
+                        }
+                        that._dequeueRequest();
+                    });
             });
         } else {
             material.textureNotExists();
@@ -257,7 +259,7 @@ class CanvasTiles extends Layer {
 
             let segment = material.segment;
             let pn = segment.node,
-                notEmpty = false;
+                parentTextureExists = false;
             let maxNativeZoom = material.layer.maxNativeZoom;
 
             if (segment.passReady && !material.isLoading && segment.tileZoom <= maxNativeZoom) {
@@ -270,15 +272,16 @@ class CanvasTiles extends Layer {
                 pn = pn.parentNode;
                 psegm = pn.segment.materials[mId];
                 if (psegm && psegm.textureExists) {
-                    notEmpty = true;
+                    parentTextureExists = true;
                     break;
                 }
             }
 
             if (segment.passReady) {
                 if (pn.segment.tileZoom === maxNativeZoom) {
-                    if (material.segment.tileZoom > maxNativeZoom)
+                    if (segment.tileZoom > maxNativeZoom) {
                         material.textureNotExists();
+                    }
                 } else if (pn.segment.tileZoom < maxNativeZoom) {
 
                     let pn = segment.node;
@@ -286,7 +289,7 @@ class CanvasTiles extends Layer {
                         pn = pn.parentNode;
                     }
 
-                    let pnm = pn.segment.materials[material.layer._id];
+                    let pnm = pn.segment.materials[mId];
                     if (pnm) {
                         !pnm.isLoading && !pnm.isReady && this.loadMaterial(pnm);
                     } else {
@@ -298,7 +301,7 @@ class CanvasTiles extends Layer {
                 }
             }
 
-            if (notEmpty) {
+            if (parentTextureExists) {
 
                 if (material.layer.animated) {
                     requestAnimationFrame(() => {
@@ -330,7 +333,7 @@ class CanvasTiles extends Layer {
     clearMaterial(material) {
         if (material.isReady) {
             material.isReady = false;
-            if (material.texture && !material.texture.default) {
+            if (material.textureExists && material.texture && !material.texture.default) {
                 material.segment.handler.gl.deleteTexture(material.texture);
                 material.texture = null;
             }
