@@ -13,7 +13,8 @@ import { Geoid } from "./Geoid.js";
  */
 class EmptyTerrain {
     constructor(options = {}) {
-        this.equalizeVertices = false;
+
+        this.equalizeVertices = options.equalizeVertices || false;
 
         this.equalizeNormals = false;
 
