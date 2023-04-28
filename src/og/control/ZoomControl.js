@@ -9,12 +9,12 @@ import { Button } from "../ui/Button.js";
 import { Control } from "./Control.js";
 
 const ICON_PLUS_SVG = '<?xml version="1.0"?>' +
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' +
+    '<svg width=24 height=24 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' +
     '    <path d="M 11 5 L 11 11 L 5 11 L 5 13 L 11 13 L 11 19 L 13 19 L 13 13 L 19 13 L 19 11 L 13 11 L 13 5 L 11 5 z"/>' +
     '</svg>';
 
 const ICON_MINUS_SVG = '<?xml version="1.0"?>' +
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' +
+    '<svg width=24 height=24 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' +
     '    <path d="M 5 11 L 5 13 L 19 13 L 19 11 L 5 11 z"/>' +
     '</svg>';
 

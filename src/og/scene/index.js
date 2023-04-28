@@ -1,5 +1,5 @@
-import { Axes } from "./Axes";
-import { Planet } from "./Planet";
-import { SkyBox } from "./SkyBox";
+import { Axes } from "./Axes.js";
+import { Planet } from "./Planet.js";
+import { SkyBox } from "./SkyBox.js";
 
 export { Planet, Axes, SkyBox };

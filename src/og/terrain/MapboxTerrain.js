@@ -13,10 +13,10 @@ const rgb2Height = (r, g, b) => {
 
 class MapboxTerrain extends GlobusTerrain {
     constructor(name, options = {}) {
-        super(name || "mapbox", options);
-
-        this.equalizeVertices =
-            options.equalizeVertices != undefined ? options.equalizeVertices : true;
+        super(name || "mapbox", {
+            equalizeVertices: options.equalizeVertices != undefined ? options.equalizeVertices : true,
+            ...options
+        });
 
         this.equalizeNormals = options.equalizeNormals || false;
 
@@ -27,6 +27,8 @@ class MapboxTerrain extends GlobusTerrain {
         this.gridSizeByZoom = options.gridSizeByZoom || [
             64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 16, 32, 16, 32, 16, 32, 16, 8, 4
         ];
+
+        "//{s}.srtm3.openglobus.org/{z}/{y}/{x}.ddm";
 
         this.url =
             options.url != undefined

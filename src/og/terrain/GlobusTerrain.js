@@ -3,19 +3,19 @@
  */
 "use strict";
 
-import { Events } from "../Events.js";
+import {Events} from "../Events.js";
 import * as mercator from "../mercator.js";
-import { EPSG3857 } from "../proj/EPSG3857.js";
-import { NOTRENDERING } from "../quadTree/quadTree.js";
-import { Loader } from "../utils/Loader.js";
-import { EmptyTerrain } from "./EmptyTerrain.js";
+import {EPSG3857} from "../proj/EPSG3857.js";
+import {NOTRENDERING} from "../quadTree/quadTree.js";
+import {Loader} from "../utils/Loader.js";
+import {EmptyTerrain} from "./EmptyTerrain.js";
 // import { QueueArray } from '../QueueArray.js';
-import { Extent } from "../Extent.js";
-import { Layer } from "../layer/Layer.js";
-import { LonLat } from "../LonLat.js";
-import { Ray } from "../math/Ray.js";
-import { Vec3 } from "../math/Vec3.js";
-import { createExtent, stringTemplate } from "../utils/shared.js";
+import {Extent} from "../Extent.js";
+import {Layer} from "../layer/Layer.js";
+import {LonLat} from "../LonLat.js";
+import {Ray} from "../math/Ray.js";
+import {Vec3} from "../math/Vec3.js";
+import {createExtent, stringTemplate} from "../utils/shared.js";
 
 const EVENT_NAMES = [
     /**
@@ -54,8 +54,13 @@ class GlobusTerrain extends EmptyTerrain {
      * @param {*} [options]
      */
     constructor(name, options = {}) {
-        super({ geoidSrc: "//openglobus.org/geoid/egm84-30.pgm", ...options });
+        super({
+            geoidSrc: "//openglobus.org/geoid/egm84-30.pgm",
+            ...options
+        });
+
         this._s = options.subdomains || ["a", "b", "c"];
+
         /**
          * Events handler.
          * @public
@@ -91,6 +96,13 @@ class GlobusTerrain extends EmptyTerrain {
          * @type {number}
          */
         this.maxZoom = options.maxZoom || 14;
+
+        /**
+         * maxNativeZoom.
+         * @public
+         * @type {number}
+         */
+        this.maxNativeZoom = options.maxNativeZoom || this.maxZoom;
 
         /**
          * Terrain source path url template.
@@ -169,13 +181,15 @@ class GlobusTerrain extends EmptyTerrain {
         return false;
     }
 
-    getHeightAsync(lonLat, callback, zoom) {
+    getHeightAsync(lonLat, callback, zoom, firstAttempt) {
         if (!lonLat || lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
             callback(0);
             return true;
         }
 
-        let z = zoom || this.maxZoom,
+        firstAttempt = firstAttempt != undefined ? firstAttempt : true;
+
+        let z = zoom || this.maxNativeZoom,
             z2 = Math.pow(2, z),
             size = mercator.POLE2 / z2,
             merc = mercator.forward(lonLat),
@@ -214,12 +228,22 @@ class GlobusTerrain extends EmptyTerrain {
                     this._elevationCache[tileIndex] = cache;
                     callback(this._getGroundHeightMerc(merc, cache));
                 } else if (response.status === "error") {
+
+                    if (firstAttempt && z > this.maxZoom) {
+                        firstAttempt = false;
+                        this.getHeightAsync(lonLat, callback, this.maxZoom, false);
+                        return;
+                    }
+
                     let cache = {
                         heights: null,
                         extent: extent
                     };
+
                     this._elevationCache[tileIndex] = cache;
+
                     callback(0);
+
                 } else {
                     this._fetchCache[tileIndex] = null;
                     delete this._fetchCache[tileIndex];
@@ -475,4 +499,4 @@ class GlobusTerrain extends EmptyTerrain {
     }
 }
 
-export { GlobusTerrain };
+export {GlobusTerrain};

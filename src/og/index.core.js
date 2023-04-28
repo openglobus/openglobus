@@ -8,7 +8,7 @@ import { Box } from './bv/Box.js';
 import { Sphere } from './bv/Sphere.js';
 
 import { Control } from './control/Control.js';
-import { DebugInfo } from './control/DebugInfo';
+import { DebugInfo } from './control/DebugInfo.js';
 import { ShowFps } from './control/ShowFps.js';
 import { SimpleNavigation } from './control/SimpleNavigation.js';
 
