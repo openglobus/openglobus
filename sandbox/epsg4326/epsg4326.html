@@ -65,19 +65,24 @@
     });
 
 
-    const carte = new XYZ("CarteSHOM", {
-        'isBaseLayer': true,
-        'url': "https://www.tefenua.gov.pf/api/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=TEFENUA:CarteSHOM&STYLE=&FORMAT=image/png8&TILEMATRIXSET=EPSG:4326&TILEMATRIX=EPSG:4326:{z}&TILEROW={y}&TILECOL={x}",
-        'visibility': true,
-        'attribution': ''
+    const carte = new XYZ("Coastline", {
+        isBaseLayer: false,
+        visibility: true,
+        url: "https://geo.vliz.be/geoserver/gwc/service/wmts/rest/MarineRegions:world_countries_coasts/Line_green/EPSG:4326/EPSG:4326:{z}/{y}/{x}?format=image/png"
+    });
+
+    const marble = new XYZ("Blue Marble", {
+        isBaseLayer: true,
+        visibility: true,
+        url: "https://soggy2.zoology.ubc.ca/geoserver/gn/gwc/service/wmts/rest/world/raster/EPSG:4326/EPSG:4326:{z}/{y}/{x}?format=image/png"
     });
 
     window.globe = new Globe({
         'name': "epsg4326",
-        'quadTreeStrategyPrototype': quadTreeStrategyType.mars,
+        'quadTreeStrategyPrototype': quadTreeStrategyType.epsg4326,
         'target': "globus",
         'terrain': new EmptyTerrain(),
-        'layers': [carte, tg],
+        'layers': [carte, marble, tg],
         "sun": {
             "active": false
         },
