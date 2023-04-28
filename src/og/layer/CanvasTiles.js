@@ -243,6 +243,11 @@ class CanvasTiles extends Layer {
     applyMaterial(material) {
         if (material.isReady) {
 
+            // IMPORTANT!
+            // Animated doesn't work withMaxNativeZoom
+            // It could be fixed with call drawTile method only for parent
+            // material (which is rendered on the current segment material),
+            // just for one renderer frame
             if (material.layer.animated) {
                 requestAnimationFrame(() => {
                     this.drawTile(material, function (canvas) {
@@ -303,6 +308,9 @@ class CanvasTiles extends Layer {
 
             if (parentTextureExists) {
 
+                //
+                // Animated doesn't work withMaxNativeZoom
+                //
                 if (material.layer.animated) {
                     requestAnimationFrame(() => {
                         this.drawTile(material, function (canvas) {
