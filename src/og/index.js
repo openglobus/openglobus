@@ -45,7 +45,6 @@ import {
     Wgs84QuadTreeStrategy
 } from './quadTree/index.js';
 
-import pkg from "../../package.json";
 
 import { Object3d } from './Object3d.js';
 const { Handler } = webgl, { Control } = control;
@@ -55,12 +54,7 @@ const {
     Entity
 } = entity;
 
-const version = {
-    version: pkg.version
-};
-
 export {
-    version,
     bv,
     jd,
     math,
