@@ -436,14 +436,24 @@ class Segment {
             this.terrainExists = false;
         } else {
 
-            let n = this.node;
-            n.equalizedSideWithNodeId[N] = n.equalizedSideWithNodeId[E] = n.equalizedSideWithNodeId[S] = n.equalizedSideWithNodeId[W] = n.appliedTerrainNodeId;
-            n.appliedTerrainNodeId = n.nodeId;
-            this.terrainIsLoading = false;
-            this.readyToEngage = true;
-            this.terrainReady = true;
+            if (this.plainReady && this.terrainIsLoading) {
+                this.terrainIsLoading = false;
 
-            this.terrainExists = false;
+                let n = this.node;
+                n.appliedTerrainNodeId = this.node.nodeId;
+                n.equalizedSideWithNodeId[N] = n.equalizedSideWithNodeId[E] = n.equalizedSideWithNodeId[S] =
+                    n.equalizedSideWithNodeId[W] = n.appliedTerrainNodeId;
+
+                // if (this.planet.lightEnabled && !this._inTheQueue) {
+                //     this.planet._normalMapCreator.queue(this);
+                // }
+
+                this.readyToEngage = true;
+                this.terrainReady = true;
+                //this.passReady = true;
+
+                this.terrainExists = false;
+            }
         }
     }
 
