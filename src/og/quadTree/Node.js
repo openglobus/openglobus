@@ -511,7 +511,7 @@ class Node {
 
     whileTerrainLoading(terrainReadySegment, stopLoading) {
         const seg = this.segment;
-        const terrain = this.planet.terrain;
+        //const terrain = this.planet.terrain;
 
         let pn = this;
 
@@ -539,7 +539,8 @@ class Node {
             this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] = this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
 
 
-            let gridSize = pn.segment.gridSize / dZ2, gridSizeExt = pn.segment.fileGridSize / dZ2;
+            let gridSize = pn.segment.gridSize / dZ2,
+                gridSizeExt = pn.segment.fileGridSize / dZ2;
 
             BOUNDS.xmin = MAX;
             BOUNDS.xmax = MIN;
@@ -561,7 +562,7 @@ class Node {
                 }
 
                 getMatrixSubArrayBoundsExt(pseg.terrainVertices, pseg.terrainVerticesHigh, pseg.terrainVerticesLow, pseg.noDataVertices, pseg.gridSize, gridSize * offsetY, gridSize * offsetX, gridSize, tempVertices, tempVerticesHigh, tempVerticesLow, BOUNDS, noDataVertices);
-            } else if (gridSizeExt >= 1) {
+            } else if (gridSizeExt >= 1 && pn.segment.terrainExists) {
                 seg.gridSize = gridSizeExt;
 
                 let len = (gridSizeExt + 1) * (gridSizeExt + 1) * 3;
@@ -703,54 +704,6 @@ class Node {
             //         }
             //     }
             // }
-
-            if (seg.tileZoom > terrain.maxZoom) {
-                if (pn.segment.tileZoom >= terrain.maxZoom) {
-
-                    seg._plainRadius = pn.segment._plainRadius / dZ2;
-
-                    seg.terrainReady = true;
-                    seg.terrainIsLoading = false;
-
-                    seg.terrainVertices = tempVertices;
-                    seg.terrainVerticesHigh = tempVerticesHigh;
-                    seg.terrainVerticesLow = tempVerticesLow;
-
-                    this.appliedTerrainNodeId = this.nodeId;
-                    this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] = this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
-
-                    if (pn.segment.terrainExists) {
-                        seg.terrainExists = true;
-                        seg.normalMapVertices = tempVertices;
-                        seg.fileGridSize = Math.sqrt(tempVertices.length / 3) - 1;
-
-                        let fgs = Math.sqrt(pseg.normalMapNormals.length / 3) - 1,
-                            fgsZ = fgs / dZ2;
-
-                        if (fgs > 1) {
-                            seg.normalMapNormals = getMatrixSubArray(pseg.normalMapNormals, fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);
-                        } else {
-                            seg.normalMapNormals = pseg.normalMapNormals;
-                        }
-                    }
-                } else {
-                    pn = this;
-                    while (pn.parentNode && pn.segment.tileZoom !== terrain.maxZoom) {
-                        pn = pn.parentNode;
-                    }
-
-                    let pns = pn.segment;
-                    if (!pns.initialized) {
-                        pns.initialize();
-                    }
-                    if (!pns.plainProcessing) {
-                        pn.segment.createPlainSegmentAsync();
-                    }
-                    if (pns.plainReady && !stopLoading) {
-                        pns.loadTerrain(true);
-                    }
-                }
-            }
         }
     }
 
