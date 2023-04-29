@@ -524,12 +524,16 @@ class Node {
         }
 
         if (pn.segment.terrainReady && this.appliedTerrainNodeId !== pn.nodeId) {
-            let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1), offsetX = seg.tileX - pn.segment.tileX * dZ2,
+            let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1),
+                offsetX = seg.tileX - pn.segment.tileX * dZ2,
                 offsetY = seg.tileY - pn.segment.tileY * dZ2;
 
             let pseg = pn.segment;
 
-            let tempVertices, tempVerticesHigh, tempVerticesLow, noDataVertices;
+            let tempVertices,
+                tempVerticesHigh,
+                tempVerticesLow,
+                noDataVertices;
 
             this.appliedTerrainNodeId = pn.nodeId;
             this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] = this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
@@ -653,9 +657,56 @@ class Node {
 
             seg.setBoundingVolume(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin, BOUNDS.xmax, BOUNDS.ymax, BOUNDS.zmax);
 
+            // if (seg.tileZoom > terrain.maxZoom) {
+            //     if (pn.segment.tileZoom >= terrain.maxZoom) {
+            //
+            //         seg._plainRadius = pn.segment._plainRadius / dZ2;
+            //
+            //         seg.terrainReady = true;
+            //         seg.terrainIsLoading = false;
+            //
+            //         seg.terrainVertices = tempVertices;
+            //         seg.terrainVerticesHigh = tempVerticesHigh;
+            //         seg.terrainVerticesLow = tempVerticesLow;
+            //
+            //         this.appliedTerrainNodeId = this.nodeId;
+            //         this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] = this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
+            //
+            //         if (pn.segment.terrainExists) {
+            //             seg.terrainExists = true;
+            //             seg.normalMapVertices = tempVertices;
+            //             seg.fileGridSize = Math.sqrt(tempVertices.length / 3) - 1;
+            //
+            //             let fgs = Math.sqrt(pseg.normalMapNormals.length / 3) - 1, fgsZ = fgs / dZ2;
+            //
+            //             if (fgs > 1) {
+            //                 seg.normalMapNormals = getMatrixSubArray(pseg.normalMapNormals, fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);
+            //             } else {
+            //                 seg.normalMapNormals = pseg.normalMapNormals;
+            //             }
+            //         }
+            //     } else {
+            //         pn = this;
+            //         while (pn.parentNode && pn.segment.tileZoom !== terrain.maxZoom) {
+            //             pn = pn.parentNode;
+            //         }
+            //
+            //         let pns = pn.segment;
+            //         if (!pns.initialized) {
+            //             pns.initialize();
+            //         }
+            //         if (!pns.plainProcessing) {
+            //             pn.segment.createPlainSegmentAsync();
+            //         }
+            //         if (pns.plainReady && !stopLoading) {
+            //             pns.loadTerrain(true);
+            //         }
+            //     }
+            // }
+
             if (seg.tileZoom > terrain.maxZoom) {
                 if (pn.segment.tileZoom >= terrain.maxZoom) {
-                    //TODO: find better place for this
+
                     seg._plainRadius = pn.segment._plainRadius / dZ2;
 
                     seg.terrainReady = true;
@@ -673,12 +724,12 @@ class Node {
                         seg.normalMapVertices = tempVertices;
                         seg.fileGridSize = Math.sqrt(tempVertices.length / 3) - 1;
 
-                        let fgs = Math.sqrt(pseg.normalMapNormals.length / 3) - 1, fgsZ = fgs / dZ2;
+                        let fgs = Math.sqrt(pseg.normalMapNormals.length / 3) - 1,
+                            fgsZ = fgs / dZ2;
 
                         if (fgs > 1) {
                             seg.normalMapNormals = getMatrixSubArray(pseg.normalMapNormals, fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);
                         } else {
-                            // TODO: interpolation
                             seg.normalMapNormals = pseg.normalMapNormals;
                         }
                     }
@@ -689,15 +740,12 @@ class Node {
                     }
 
                     let pns = pn.segment;
-
                     if (!pns.initialized) {
                         pns.initialize();
                     }
-
                     if (!pns.plainProcessing) {
                         pn.segment.createPlainSegmentAsync();
                     }
-
                     if (pns.plainReady && !stopLoading) {
                         pns.loadTerrain(true);
                     }

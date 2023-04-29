@@ -369,11 +369,10 @@ class Segment {
                 this.planet._normalMapCreator.queue(this);
             }
         } else {
-            if (this.tileZoom > this.planet.terrain.maxZoom) {
-                this.elevationsNotExists();
-            } else if (!this.terrainIsLoading && !this.terrainReady) {
+            if (!this.terrainIsLoading && !this.terrainReady) {
                 this.planet.terrain.loadTerrain(this, forceLoading);
             }
+
         }
     }
 
@@ -672,7 +671,10 @@ class Segment {
     }
 
     /**
-     * Terrain is not obtained or not exists on the server.
+     * Keep plain elevation segment for rendering
+     *
+     * 'this.tileZoom <= this.planet.terrain.maxZoom' it means, that the segment is plain
+     *
      */
     elevationsNotExists() {
         if (this.planet && this.tileZoom <= this.planet.terrain.maxZoom) {
@@ -691,6 +693,7 @@ class Segment {
                 this.readyToEngage = true;
             }
 
+            // plain terrain only
             this.terrainVertices = this.plainVertices;
             this.terrainVerticesHigh = this.plainVerticesHigh;
             this.terrainVerticesLow = this.plainVerticesLow;
