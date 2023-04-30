@@ -207,11 +207,12 @@ let sat = new XYZ("sat", {
 //let visExtent = new VisibleExtent();
 
 var highResTerrain = new MapboxTerrain(null, {
-    maxZoom: 17,
+    maxZoom: 14,
     //url:"//127.0.0.1/og/terrain/eu/{z}/{x}/{y}.png",
     //url: "//terrain.openglobus.org/public/eu10/{z}/{x}/{y}.png",
     //url: "https://andorra.utm.microavia.com/Andora_dsm_las/{z}/{x}/{y}.png",
-    url: "//terrain.openglobus.org/public/kz/{z}/{x}/{y}.png",
+    url: "//terrain.openglobus.org/public/zion/{z}/{x}/{y}.png",
+    //equalizeVertices: false,
     //url: "//terrain.openglobus.org/public/nz/{z}/{x}/{y}.png",
     //url: "//127.0.0.1/terrain/andorra/dest/{z}/{x}/{y}.png",
     //imageSize: 129,
@@ -248,11 +249,11 @@ var globus = new Globe({
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     //minAltitude: 1,
-    //terrain: highResTerrain,
+    terrain: highResTerrain,
     //terrain: new MapboxTerrain(),
-    terrain: new GlobusTerrain("19", {
-        //maxZoom: 19
-    }),
+    // terrain: new GlobusTerrain("19", {
+    //     //maxZoom: 19
+    // }),
     //terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
     layers: [sat, tg, osm, img, colorado],

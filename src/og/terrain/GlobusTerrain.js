@@ -369,7 +369,7 @@ class GlobusTerrain extends EmptyTerrain {
      * @param {boolean} forceLoading
      */
     loadTerrain(segment, forceLoading) {
-        if (/*this._planet.terrainLock.isFree()*/true) {
+        if (this._planet.terrainLock.isFree()) {
             segment.terrainReady = false;
             segment.terrainIsLoading = true;
             if (this.isReadyToLoad(segment)) {

@@ -657,53 +657,6 @@ class Node {
             seg.noDataVertices = noDataVertices;
 
             seg.setBoundingVolume(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin, BOUNDS.xmax, BOUNDS.ymax, BOUNDS.zmax);
-
-            // if (seg.tileZoom > terrain.maxZoom) {
-            //     if (pn.segment.tileZoom >= terrain.maxZoom) {
-            //
-            //         seg._plainRadius = pn.segment._plainRadius / dZ2;
-            //
-            //         seg.terrainReady = true;
-            //         seg.terrainIsLoading = false;
-            //
-            //         seg.terrainVertices = tempVertices;
-            //         seg.terrainVerticesHigh = tempVerticesHigh;
-            //         seg.terrainVerticesLow = tempVerticesLow;
-            //
-            //         this.appliedTerrainNodeId = this.nodeId;
-            //         this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] = this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
-            //
-            //         if (pn.segment.terrainExists) {
-            //             seg.terrainExists = true;
-            //             seg.normalMapVertices = tempVertices;
-            //             seg.fileGridSize = Math.sqrt(tempVertices.length / 3) - 1;
-            //
-            //             let fgs = Math.sqrt(pseg.normalMapNormals.length / 3) - 1, fgsZ = fgs / dZ2;
-            //
-            //             if (fgs > 1) {
-            //                 seg.normalMapNormals = getMatrixSubArray(pseg.normalMapNormals, fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);
-            //             } else {
-            //                 seg.normalMapNormals = pseg.normalMapNormals;
-            //             }
-            //         }
-            //     } else {
-            //         pn = this;
-            //         while (pn.parentNode && pn.segment.tileZoom !== terrain.maxZoom) {
-            //             pn = pn.parentNode;
-            //         }
-            //
-            //         let pns = pn.segment;
-            //         if (!pns.initialized) {
-            //             pns.initialize();
-            //         }
-            //         if (!pns.plainProcessing) {
-            //             pn.segment.createPlainSegmentAsync();
-            //         }
-            //         if (pns.plainReady && !stopLoading) {
-            //             pns.loadTerrain(true);
-            //         }
-            //     }
-            // }
         }
     }
 

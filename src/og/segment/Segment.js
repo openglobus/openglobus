@@ -444,13 +444,10 @@ class Segment {
                 n.equalizedSideWithNodeId[N] = n.equalizedSideWithNodeId[E] = n.equalizedSideWithNodeId[S] =
                     n.equalizedSideWithNodeId[W] = n.appliedTerrainNodeId;
 
-                // if (this.planet.lightEnabled && !this._inTheQueue) {
-                //     this.planet._normalMapCreator.queue(this);
-                // }
 
                 this.readyToEngage = true;
                 this.terrainReady = true;
-                //this.passReady = true;
+                this.passReady = true;
 
                 this.terrainExists = false;
             }
