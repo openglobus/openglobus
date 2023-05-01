@@ -291,7 +291,7 @@ class Handler {
     /**
      * Creates NEAREST filter texture.
      * @public
-     * @param {Object} image - Image or Canvas object.
+     * @param {HTMLCanvasElement | Image} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
     createTexture_n_webgl1(image, internalFormat, texture) {

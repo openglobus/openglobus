@@ -48,6 +48,7 @@
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-terser": "^0.4.0",
     "@types/jest": "^29.4.0",
+    "clean-jsdoc-theme": "^4.2.7",
     "eslint": "^8.35.0",
     "jaguarjs-jsdoc": "^1.1.0",
     "jest": "^29.5.0",
