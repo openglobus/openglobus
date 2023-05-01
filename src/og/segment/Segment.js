@@ -175,12 +175,6 @@ class Segment {
         this.normalMapReady = false;
 
         /**
-         * Parent normal map is made allready(optimization parameter).
-         * @type {boolean}
-         */
-        this.parentNormalMapReady = false;
-
-        /**
          * Terrain is allready applied flag.
          * @type {boolean}
          */
@@ -360,7 +354,7 @@ class Segment {
      * @param {boolean} forceLoading
      */
     loadTerrain(forceLoading) {
-        if (this.tileZoom < this.planet.terrain.minZoom) {
+        if (this.tileZoom < this.planet.terrain.minZoom || this.planet.terrain.isEmpty) {
             this.terrainIsLoading = true;
 
             this.elevationsNotExists();
@@ -403,7 +397,7 @@ class Segment {
      *
      */
     elevationsNotExists() {
-        if (this.planet && this.tileZoom <= this.planet.terrain.maxZoom) {
+        if (this.planet && this.tileZoom <= this.planet.terrain.maxNativeZoom) {
             if (this.plainReady && this.terrainIsLoading) {
                 this.terrainIsLoading = false;
 
@@ -443,7 +437,6 @@ class Segment {
                 n.appliedTerrainNodeId = this.node.nodeId;
                 n.equalizedSideWithNodeId[N] = n.equalizedSideWithNodeId[E] = n.equalizedSideWithNodeId[S] =
                     n.equalizedSideWithNodeId[W] = n.appliedTerrainNodeId;
-
 
                 this.readyToEngage = true;
                 this.terrainReady = true;
@@ -682,7 +675,6 @@ class Segment {
 
             this.terrainReady = true;
             this.terrainIsLoading = false;
-            this.parentNormalMapReady = true;
             this.terrainExists = true;
 
             if (!this.normalMapTexturePtr) {
@@ -858,7 +850,6 @@ class Segment {
             this.handler.gl.deleteTexture(this.normalMapTexture);
         }
         this.normalMapReady = false;
-        this.parentNormalMapReady = false;
         this._appliedNeighborsZoom = [0, 0, 0, 0];
         this.normalMapTextureBias[0] = 0;
         this.normalMapTextureBias[1] = 0;

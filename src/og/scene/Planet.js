@@ -354,7 +354,7 @@ export class Planet extends RenderNode {
          */
         this._useSpecularTexture = isUndef(options.useSpecularTexture) ? true : options.useSpecularTexture;
 
-        this._maxGridSize = Math.log2(options.maxGridSize || 128);
+        this._maxGridSize = Math.log2(options.maxGridSize || 256);
 
         /**
          * Segment multiple textures size.(4 - convinient value for the most devices)

@@ -56,6 +56,7 @@ class GlobusTerrain extends EmptyTerrain {
     constructor(name, options = {}) {
         super({
             geoidSrc: "//openglobus.org/geoid/egm84-30.pgm",
+            maxNativeZoom: options.maxNativeZoom || 14,
             ...options
         });
 
@@ -82,27 +83,6 @@ class GlobusTerrain extends EmptyTerrain {
          * @type {string}
          */
         this.name = name || "openglobus";
-
-        /**
-         * Minimal visible zoom index when terrain handler works.
-         * @public
-         * @type {number}
-         */
-        this.minZoom = options.minZoom || 2;
-
-        /**
-         * Maximal visible zoom index when terrain handler works.
-         * @public
-         * @type {number}
-         */
-        this.maxZoom = options.maxZoom || 14;
-
-        /**
-         * maxNativeZoom.
-         * @public
-         * @type {number}
-         */
-        this.maxNativeZoom = options.maxNativeZoom || this.maxZoom;
 
         /**
          * Terrain source path url template.

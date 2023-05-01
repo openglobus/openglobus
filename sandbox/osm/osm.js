@@ -157,7 +157,7 @@ var red = new XYZ("borders", {
 let osm = new XYZ("osm", {
     isBaseLayer: true,
     url: "http://tile.openstreetmap.org/{z}/{x}/{y}.png",
-    visibility: false,
+    visibility: true,
     attribution: 'Data @ OpenStreetMap contributors, ODbL',
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#AAD3DF" }, { color: "#F2EFE9" }],
@@ -181,7 +181,7 @@ let sat = new XYZ("sat", {
     //url: "https://astro.arcgis.com/arcgis/rest/services/OnMars/MDIM/MapServer/tile/{z}/{y}/{x}?blankTile=false",
     //url: "//127.0.0.1/whereonmars.cartodb.net/celestia_mars-shaded-16k_global/{z}/{y}/{x}.png",
     //url: "https://trek.nasa.gov/tiles/Mars/EQ/Mars_Viking_MDIM21_ClrMosaic_global_232m/1.0.0//default/default028mm/{z}/{y}/{x}.jpg",
-    visibility: true,
+    visibility: false,
     attribution: `<a href="http://www.bing.com" target="_blank"><img title="Bing Imagery" src="https://sandcastle.cesium.com/CesiumUnminified/Assets/Images/bing_maps_credit.png"></a> © 2021 Microsoft Corporation`,
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#001522" }, { color: "#E4E6F3" }],
@@ -207,7 +207,7 @@ let sat = new XYZ("sat", {
 //let visExtent = new VisibleExtent();
 
 var highResTerrain = new MapboxTerrain(null, {
-    maxZoom: 14,
+    maxZoom: 19,
     //url:"//127.0.0.1/og/terrain/eu/{z}/{x}/{y}.png",
     //url: "//terrain.openglobus.org/public/eu10/{z}/{x}/{y}.png",
     //url: "https://andorra.utm.microavia.com/Andora_dsm_las/{z}/{x}/{y}.png",
@@ -216,7 +216,7 @@ var highResTerrain = new MapboxTerrain(null, {
     //url: "//terrain.openglobus.org/public/nz/{z}/{x}/{y}.png",
     //url: "//127.0.0.1/terrain/andorra/dest/{z}/{x}/{y}.png",
     //imageSize: 129,
-    //plainGridSize: 256,
+    plainGridSize: 256,
     gridSizeByZoom: [
         64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 64, 64, 64, 64, 32, 16, 8
         //8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4
@@ -252,7 +252,7 @@ var globus = new Globe({
     terrain: highResTerrain,
     //terrain: new MapboxTerrain(),
     // terrain: new GlobusTerrain("19", {
-    //     //maxZoom: 19
+    //     maxZoom: 19
     // }),
     //terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,

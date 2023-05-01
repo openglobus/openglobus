@@ -242,7 +242,7 @@ class Node {
                 seg._collectVisibleNodes();
             }
 
-            if (seg.tileZoom < 2 && seg.normalMapReady) {
+            if (seg.tileZoom < 2) {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
             } else if (seg.terrainReady && (!maxZoom && cam.projectedSize(seg.bsphere.center, seg._plainRadius) < planet._lodSize || maxZoom && ((seg.tileZoom === maxZoom) || !altVis))) {
 
@@ -280,7 +280,7 @@ class Node {
     }
 
     renderNode(inFrustum, onlyTerrain, terrainReadySegment, stopLoading) {
-        var seg = this.segment;
+        let seg = this.segment;
 
         // Create and load terrain data
         if (!seg.terrainReady) {
@@ -300,7 +300,7 @@ class Node {
         }
 
         // Create normal map texture
-        if (seg.planet.lightEnabled && !seg.normalMapReady /*&& !seg.parentNormalMapReady*/) {
+        if (seg.planet.lightEnabled && !seg.normalMapReady) {
             this.whileNormalMapCreating();
         }
 
@@ -482,31 +482,24 @@ class Node {
     }
 
     whileNormalMapCreating() {
-        var seg = this.segment;
-        var maxZ = this.planet.terrain.maxZoom;
 
-        if (seg.tileZoom <= maxZ && !seg.terrainIsLoading && seg.terrainReady && !seg._inTheQueue) {
+        let seg = this.segment;
+
+        if (/*seg.tileZoom <= seg.planet.terrain.maxNativeZoom && */!seg.terrainIsLoading && seg.terrainExists && !seg._inTheQueue) {
             seg.planet._normalMapCreator.queue(seg);
         }
 
-        var pn = this;
-
+        let pn = this;
         while (pn.parentNode && !pn.segment.normalMapReady) {
             pn = pn.parentNode;
         }
 
-        var dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1);
+        let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1);
 
         seg.normalMapTexture = pn.segment.normalMapTexture;
         seg.normalMapTextureBias[0] = seg.tileX - pn.segment.tileX * dZ2;
         seg.normalMapTextureBias[1] = seg.tileY - pn.segment.tileY * dZ2;
         seg.normalMapTextureBias[2] = 1.0 / dZ2;
-
-        if (seg.tileZoom > maxZ) {
-            if (pn.segment.tileZoom === maxZ) {
-                seg.parentNormalMapReady = true;
-            }
-        }
     }
 
     whileTerrainLoading(terrainReadySegment, stopLoading) {

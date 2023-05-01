@@ -6,7 +6,7 @@
 
 import { ToggleButton } from "../ui/ToggleButton.js";
 import { Control } from "./Control.js";
-import { Ruler } from "./ruler/Ruler.js";
+import { HeightRuler } from "./heightRuler/HeightRuler.js";
 
 const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="iso-8859-1"?>
 <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
@@ -37,7 +37,7 @@ class RulerSwitcher extends Control {
             ...options
         });
 
-        this.ruler = new Ruler({
+        this.ruler = new HeightRuler({
             ignoreTerrain: options.ignoreTerrain
         });
     }
