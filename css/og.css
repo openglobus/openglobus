@@ -1,5 +1,5 @@
 :root {
-    --grey0: #1E1E1E; /*dialog background*/
+    --grey0: rgb(45 45 45); /*dialog background*/
     --grey1: #434244; /*dialog border*/
     --grey2: #3F3F46; /*dialog header*/
     --grey3: #BBBBBB; /*dialog font color*/
@@ -9,6 +9,7 @@
     --grey7: #707070; /*slider progress color*/
     --grey8: #e2e2e2; /*text color*/
     --blue0: #1700a9ee;
+
 }
 
 .og-map-button {
@@ -203,6 +204,7 @@ input {
     height: 100%;
     font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
     font-size: 14px;
+    background: ;
 }
 
 .og-ddialog.dragging {
