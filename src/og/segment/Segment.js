@@ -363,9 +363,14 @@ class Segment {
                 this.planet._normalMapCreator.queue(this);
             }
         } else {
-            if (!this.terrainIsLoading && !this.terrainReady) {
+            if (this.tileZoom > this.planet.terrain.maxZoom) {
+                this.elevationsNotExists();
+            } else if (!this.terrainIsLoading && !this.terrainReady) {
                 this.planet.terrain.loadTerrain(this, forceLoading);
             }
+            // if (!this.terrainIsLoading && !this.terrainReady) {
+            //     this.planet.terrain.loadTerrain(this, forceLoading);
+            // }
         }
     }
 
@@ -1238,7 +1243,7 @@ class Segment {
         let p = this.planet,
             t = p.terrain;
 
-        if (t.isReady() && !this.plainReady) {
+        if (t.isReady() && !this.plainReady && this.tileZoom <= t.maxZoom) {
             this.plainProcessing = true;
             p._plainSegmentWorker.make(this);
         }

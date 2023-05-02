@@ -504,7 +504,6 @@ class Node {
 
     whileTerrainLoading(terrainReadySegment, stopLoading) {
         const seg = this.segment;
-        //const terrain = this.planet.terrain;
 
         let pn = this;
 
@@ -650,6 +649,59 @@ class Node {
             seg.noDataVertices = noDataVertices;
 
             seg.setBoundingVolume(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin, BOUNDS.xmax, BOUNDS.ymax, BOUNDS.zmax);
+
+            if (seg.tileZoom > seg.planet.terrain.maxZoom) {
+                if (pn.segment.tileZoom >= seg.planet.terrain.maxZoom) {
+
+                    seg._plainRadius = pn.segment._plainRadius / dZ2;
+
+                    seg.terrainReady = true;
+                    seg.terrainIsLoading = false;
+
+                    seg.terrainVertices = tempVertices;
+                    seg.terrainVerticesHigh = tempVerticesHigh;
+                    seg.terrainVerticesLow = tempVerticesLow;
+
+                    seg.passReady = true;
+
+                    this.appliedTerrainNodeId = this.nodeId;
+                    this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] = this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
+
+                    if (pn.segment.terrainExists) {
+                        seg.normalMapVertices = tempVertices;
+                        seg.fileGridSize = Math.sqrt(tempVertices.length / 3) - 1;
+
+                        let fgs = Math.sqrt(pseg.normalMapNormals.length / 3) - 1, fgsZ = fgs / dZ2;
+
+                        if (fgs > 1) {
+                            seg.normalMapNormals = getMatrixSubArray(pseg.normalMapNormals, fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);
+                        } else {
+                            // TODO: interpolation
+                            seg.normalMapNormals = pseg.normalMapNormals;
+                        }
+                    }
+                }
+                // else {
+                //     pn = this;
+                //     while (pn.parentNode && pn.segment.tileZoom !== seg.planet.terrain.maxZoom) {
+                //         pn = pn.parentNode;
+                //     }
+                //
+                //     let pns = pn.segment;
+                //
+                //     if (!pns.initialized) {
+                //         pns.initialize();
+                //     }
+                //
+                //     if (!pns.plainProcessing) {
+                //         pn.segment.createPlainSegmentAsync();
+                //     }
+                //
+                //     if (pns.plainReady && !stopLoading) {
+                //         pns.loadTerrain(true);
+                //     }
+                // }
+            }
         }
     }
 
