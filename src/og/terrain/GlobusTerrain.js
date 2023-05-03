@@ -3,19 +3,19 @@
  */
 "use strict";
 
-import {Events} from "../Events.js";
+import { Events } from "../Events.js";
 import * as mercator from "../mercator.js";
-import {EPSG3857} from "../proj/EPSG3857.js";
-import {NOTRENDERING} from "../quadTree/quadTree.js";
-import {Loader} from "../utils/Loader.js";
-import {EmptyTerrain} from "./EmptyTerrain.js";
+import { EPSG3857 } from "../proj/EPSG3857.js";
+import { NOTRENDERING } from "../quadTree/quadTree.js";
+import { Loader } from "../utils/Loader.js";
+import { EmptyTerrain } from "./EmptyTerrain.js";
 // import { QueueArray } from '../QueueArray.js';
-import {Extent} from "../Extent.js";
-import {Layer} from "../layer/Layer.js";
-import {LonLat} from "../LonLat.js";
-import {Ray} from "../math/Ray.js";
-import {Vec3} from "../math/Vec3.js";
-import {createExtent, stringTemplate} from "../utils/shared.js";
+import { Extent } from "../Extent.js";
+import { Layer } from "../layer/Layer.js";
+import { LonLat } from "../LonLat.js";
+import { Ray } from "../math/Ray.js";
+import { Vec3 } from "../math/Vec3.js";
+import { createExtent, stringTemplate } from "../utils/shared.js";
 
 const EVENT_NAMES = [
     /**
@@ -39,6 +39,7 @@ const EVENT_NAMES = [
  * @param {Object} [options] - Provider options:
  * @param {number} [options.minZoom=3] - Minimal visible zoom index when terrain handler works.
  * @param {number} [options.minZoom=14] - Maximal visible zoom index when terrain handler works.
+ * @param {number} [options.minNativeZoom=14] - Maximal available terrain zoom level.
  * @param {string} [options.url="//openglobus.org/heights/srtm3/{z}/{y}/{x}.ddm"] - Terrain source path url template. Default is openglobus ddm elevation file.
  * @param {Array.<number>} [options.gridSizeByZoom] - Array of segment triangulation grid sizes where array index agreed to the segment zoom index.
  * @param {number} [options.plainGridSize=32] - Elevation grid size. Default is 32x32. Must be power of two.
@@ -56,6 +57,7 @@ class GlobusTerrain extends EmptyTerrain {
     constructor(name, options = {}) {
         super({
             geoidSrc: "//openglobus.org/geoid/egm84-30.pgm",
+            maxNativeZoom: options.maxNativeZoom || 14,
             ...options
         });
 
@@ -82,27 +84,6 @@ class GlobusTerrain extends EmptyTerrain {
          * @type {string}
          */
         this.name = name || "openglobus";
-
-        /**
-         * Minimal visible zoom index when terrain handler works.
-         * @public
-         * @type {number}
-         */
-        this.minZoom = options.minZoom || 2;
-
-        /**
-         * Maximal visible zoom index when terrain handler works.
-         * @public
-         * @type {number}
-         */
-        this.maxZoom = options.maxZoom || 14;
-
-        /**
-         * maxNativeZoom.
-         * @public
-         * @type {number}
-         */
-        this.maxNativeZoom = options.maxNativeZoom || this.maxZoom;
 
         /**
          * Terrain source path url template.
@@ -499,4 +480,4 @@ class GlobusTerrain extends EmptyTerrain {
     }
 }
 
-export {GlobusTerrain};
+export { GlobusTerrain };

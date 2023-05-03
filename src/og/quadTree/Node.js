@@ -242,7 +242,7 @@ class Node {
                 seg._collectVisibleNodes();
             }
 
-            if (seg.tileZoom < 2 && seg.normalMapReady) {
+            if (seg.tileZoom < 2) {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
             } else if (seg.terrainReady && (!maxZoom && cam.projectedSize(seg.bsphere.center, seg._plainRadius) < planet._lodSize || maxZoom && ((seg.tileZoom === maxZoom) || !altVis))) {
 
@@ -280,7 +280,7 @@ class Node {
     }
 
     renderNode(inFrustum, onlyTerrain, terrainReadySegment, stopLoading) {
-        var seg = this.segment;
+        let seg = this.segment;
 
         // Create and load terrain data
         if (!seg.terrainReady) {
@@ -300,7 +300,7 @@ class Node {
         }
 
         // Create normal map texture
-        if (seg.planet.lightEnabled && !seg.normalMapReady /*&& !seg.parentNormalMapReady*/) {
+        if (seg.planet.lightEnabled && !seg.normalMapReady) {
             this.whileNormalMapCreating();
         }
 
@@ -482,36 +482,28 @@ class Node {
     }
 
     whileNormalMapCreating() {
-        var seg = this.segment;
-        var maxZ = this.planet.terrain.maxZoom;
 
-        if (seg.tileZoom <= maxZ && !seg.terrainIsLoading && seg.terrainReady && !seg._inTheQueue) {
+        let seg = this.segment;
+
+        if (/*seg.tileZoom <= seg.planet.terrain.maxNativeZoom && */!seg.terrainIsLoading && seg.terrainExists && !seg._inTheQueue) {
             seg.planet._normalMapCreator.queue(seg);
         }
 
-        var pn = this;
-
+        let pn = this;
         while (pn.parentNode && !pn.segment.normalMapReady) {
             pn = pn.parentNode;
         }
 
-        var dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1);
+        let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1);
 
         seg.normalMapTexture = pn.segment.normalMapTexture;
         seg.normalMapTextureBias[0] = seg.tileX - pn.segment.tileX * dZ2;
         seg.normalMapTextureBias[1] = seg.tileY - pn.segment.tileY * dZ2;
         seg.normalMapTextureBias[2] = 1.0 / dZ2;
-
-        if (seg.tileZoom > maxZ) {
-            if (pn.segment.tileZoom === maxZ) {
-                seg.parentNormalMapReady = true;
-            }
-        }
     }
 
     whileTerrainLoading(terrainReadySegment, stopLoading) {
         const seg = this.segment;
-        const terrain = this.planet.terrain;
 
         let pn = this;
 
@@ -524,18 +516,23 @@ class Node {
         }
 
         if (pn.segment.terrainReady && this.appliedTerrainNodeId !== pn.nodeId) {
-            let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1), offsetX = seg.tileX - pn.segment.tileX * dZ2,
+            let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1),
+                offsetX = seg.tileX - pn.segment.tileX * dZ2,
                 offsetY = seg.tileY - pn.segment.tileY * dZ2;
 
             let pseg = pn.segment;
 
-            let tempVertices, tempVerticesHigh, tempVerticesLow, noDataVertices;
+            let tempVertices,
+                tempVerticesHigh,
+                tempVerticesLow,
+                noDataVertices;
 
             this.appliedTerrainNodeId = pn.nodeId;
             this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] = this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
 
 
-            let gridSize = pn.segment.gridSize / dZ2, gridSizeExt = pn.segment.fileGridSize / dZ2;
+            let gridSize = pn.segment.gridSize / dZ2,
+                gridSizeExt = pn.segment.fileGridSize / dZ2;
 
             BOUNDS.xmin = MAX;
             BOUNDS.xmax = MIN;
@@ -557,7 +554,7 @@ class Node {
                 }
 
                 getMatrixSubArrayBoundsExt(pseg.terrainVertices, pseg.terrainVerticesHigh, pseg.terrainVerticesLow, pseg.noDataVertices, pseg.gridSize, gridSize * offsetY, gridSize * offsetX, gridSize, tempVertices, tempVerticesHigh, tempVerticesLow, BOUNDS, noDataVertices);
-            } else if (gridSizeExt >= 1) {
+            } else if (gridSizeExt >= 1 && pn.segment.terrainExists) {
                 seg.gridSize = gridSizeExt;
 
                 let len = (gridSizeExt + 1) * (gridSizeExt + 1) * 3;
@@ -653,9 +650,9 @@ class Node {
 
             seg.setBoundingVolume(BOUNDS.xmin, BOUNDS.ymin, BOUNDS.zmin, BOUNDS.xmax, BOUNDS.ymax, BOUNDS.zmax);
 
-            if (seg.tileZoom > terrain.maxZoom) {
-                if (pn.segment.tileZoom >= terrain.maxZoom) {
-                    //TODO: find better place for this
+            if (seg.tileZoom > seg.planet.terrain.maxZoom) {
+                if (pn.segment.tileZoom >= seg.planet.terrain.maxZoom) {
+
                     seg._plainRadius = pn.segment._plainRadius / dZ2;
 
                     seg.terrainReady = true;
@@ -665,11 +662,12 @@ class Node {
                     seg.terrainVerticesHigh = tempVerticesHigh;
                     seg.terrainVerticesLow = tempVerticesLow;
 
+                    seg.passReady = true;
+
                     this.appliedTerrainNodeId = this.nodeId;
                     this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] = this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
 
                     if (pn.segment.terrainExists) {
-                        seg.terrainExists = true;
                         seg.normalMapVertices = tempVertices;
                         seg.fileGridSize = Math.sqrt(tempVertices.length / 3) - 1;
 
@@ -682,26 +680,27 @@ class Node {
                             seg.normalMapNormals = pseg.normalMapNormals;
                         }
                     }
-                } else {
-                    pn = this;
-                    while (pn.parentNode && pn.segment.tileZoom !== terrain.maxZoom) {
-                        pn = pn.parentNode;
-                    }
-
-                    let pns = pn.segment;
-
-                    if (!pns.initialized) {
-                        pns.initialize();
-                    }
-
-                    if (!pns.plainProcessing) {
-                        pn.segment.createPlainSegmentAsync();
-                    }
-
-                    if (pns.plainReady && !stopLoading) {
-                        pns.loadTerrain(true);
-                    }
                 }
+                // else {
+                //     pn = this;
+                //     while (pn.parentNode && pn.segment.tileZoom !== seg.planet.terrain.maxZoom) {
+                //         pn = pn.parentNode;
+                //     }
+                //
+                //     let pns = pn.segment;
+                //
+                //     if (!pns.initialized) {
+                //         pns.initialize();
+                //     }
+                //
+                //     if (!pns.plainProcessing) {
+                //         pn.segment.createPlainSegmentAsync();
+                //     }
+                //
+                //     if (pns.plainReady && !stopLoading) {
+                //         pns.loadTerrain(true);
+                //     }
+                // }
             }
         }
     }

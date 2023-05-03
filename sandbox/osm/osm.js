@@ -31,10 +31,10 @@ cnv.height = 256;
 let frameCounter = 0;
 
 const tg = new CanvasTiles("Tile grid", {
-    visibility: false,
+    visibility: true,
     isBaseLayer: false,
-    maxNativeZoom: 5,
-    animated: false,
+    //maxNativeZoom: 7,
+    //animated: true,
     preLoadZoomLevels: [0],
     drawTile: function (material, applyCanvas) {
 
@@ -53,29 +53,30 @@ const tg = new CanvasTiles("Tile grid", {
                 size = "32";
             }
             ctx.fillStyle = 'black';
-            // ctx.font = 'normal ' + size + 'px Verdana';
-            // ctx.textAlign = 'center';
-            // ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+            ctx.font = 'normal ' + size + 'px Verdana';
+            ctx.textAlign = 'center';
+            ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
         } else {
 
             if (material.segment.tileZoom > 14) {
-                size = "26";
+                size = "22";
             } else {
-                size = "32";
+                size = "28";
             }
             ctx.fillStyle = 'black';
             ctx.font = 'normal ' + size + 'px Verdana';
             ctx.textAlign = 'center';
-            //ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+            ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
             //ctx.fillText(frameCounter, cnv.width / 2, cnv.height / 2);
         }
 
         //Draw border
         ctx.beginPath();
-        ctx.fillRect(0, 0, cnv.width, cnv.height);
+        ctx.rect(0, 0, cnv.width, cnv.height);
+        //ctx.fillRect(0, 0, cnv.width, cnv.height);
         ctx.lineWidth = 2;
+        //ctx.fillStyle = "black";
         ctx.strokeStyle = "black";
-        ctx.fillStyle = 'black';
         ctx.stroke();
 
         //Draw canvas tile
@@ -155,8 +156,8 @@ var red = new XYZ("borders", {
 
 let osm = new XYZ("osm", {
     isBaseLayer: true,
-    url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    visibility: false,
+    url: "http://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    visibility: true,
     attribution: 'Data @ OpenStreetMap contributors, ODbL',
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#AAD3DF" }, { color: "#F2EFE9" }],
@@ -180,7 +181,7 @@ let sat = new XYZ("sat", {
     //url: "https://astro.arcgis.com/arcgis/rest/services/OnMars/MDIM/MapServer/tile/{z}/{y}/{x}?blankTile=false",
     //url: "//127.0.0.1/whereonmars.cartodb.net/celestia_mars-shaded-16k_global/{z}/{y}/{x}.png",
     //url: "https://trek.nasa.gov/tiles/Mars/EQ/Mars_Viking_MDIM21_ClrMosaic_global_232m/1.0.0//default/default028mm/{z}/{y}/{x}.jpg",
-    visibility: true,
+    visibility: false,
     attribution: `<a href="http://www.bing.com" target="_blank"><img title="Bing Imagery" src="https://sandcastle.cesium.com/CesiumUnminified/Assets/Images/bing_maps_credit.png"></a> © 2021 Microsoft Corporation`,
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#001522" }, { color: "#E4E6F3" }],
@@ -206,15 +207,16 @@ let sat = new XYZ("sat", {
 //let visExtent = new VisibleExtent();
 
 var highResTerrain = new MapboxTerrain(null, {
-    maxZoom: 17,
+    maxZoom: 19,
     //url:"//127.0.0.1/og/terrain/eu/{z}/{x}/{y}.png",
     //url: "//terrain.openglobus.org/public/eu10/{z}/{x}/{y}.png",
-    url: "https://andorra.utm.microavia.com/Andora_dsm_las/{z}/{x}/{y}.png",
-    //url: "//terrain.openglobus.org/public/austria10/{z}/{x}/{y}.png",
+    //url: "https://andorra.utm.microavia.com/Andora_dsm_las/{z}/{x}/{y}.png",
+    url: "//terrain.openglobus.org/public/zion/{z}/{x}/{y}.png",
+    //equalizeVertices: false,
     //url: "//terrain.openglobus.org/public/nz/{z}/{x}/{y}.png",
     //url: "//127.0.0.1/terrain/andorra/dest/{z}/{x}/{y}.png",
     //imageSize: 129,
-    //plainGridSize: 256,
+    plainGridSize: 256,
     gridSizeByZoom: [
         64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 64, 64, 64, 64, 32, 16, 8
         //8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4
@@ -249,7 +251,10 @@ var globus = new Globe({
     //minAltitude: 1,
     terrain: highResTerrain,
     //terrain: new MapboxTerrain(),
-    //terrain: new GlobusTerrain(),
+    // terrain: new GlobusTerrain("19", {
+    //     maxZoom: 19
+    // }),
+    //terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
     layers: [sat, tg, osm, img, colorado],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
@@ -294,4 +299,4 @@ let geoObjects = new EntityCollection({
     scaleByDistance: [100, 20000000, 1.0]
 });
 
-geoObjects.addTo(globus.planet);
+//geoObjects.addTo(globus.planet);
