@@ -9,7 +9,13 @@ import { Geoid } from "./Geoid.js";
 
 /**
  * Class represents terrain provider without elevation data.
- * @class
+ * @param {Object} [options] - Provider options:
+ * @param {string} [options.name="empty"] - Provider name.
+ * @param {number} [options.minZoom=2] - Minimal visible zoom index when terrain handler works.
+ * @param {number} [options.minZoom=50] - Maximal visible zoom index when terrain handler works.
+ * @param {number} [options.minNativeZoom=50] - Maximal available terrain zoom level.
+ * @param {Array.<number>} [options.gridSizeByZoom] - Array of segment triangulation grid sizes where array index agreed to the segment zoom index.
+ * @param {Array.<number>} [gridSizeByZoom] - Array of values, where each value corresponds to the size of a tile(or segment) on the globe. Each value must be power of two.
  */
 class EmptyTerrain {
     constructor(options = {}) {
@@ -25,7 +31,7 @@ class EmptyTerrain {
          * @public
          * @type {string}
          */
-        this.name = "empty";
+        this.name = options.name || "empty";
 
         /**
          * Minimal z-index value for segment elevation data handling.
@@ -41,6 +47,10 @@ class EmptyTerrain {
          */
         this.maxZoom = options.maxZoom || 50;
 
+        /**
+         * Maximal existent available zoom
+         * @type {number}
+         */
         this.maxNativeZoom = options.maxNativeZoom || this.maxZoom;
 
         /**
@@ -48,9 +58,8 @@ class EmptyTerrain {
          * @type {Array.<number>}
          */
         this.gridSizeByZoom = options.gridSizeByZoom || [
-            32, 16, 16, 8, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
+            64, 32, 16, 8, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
         ];
-        //this.gridSizeByZoom = options.gridSizeByZoom || [32, 16, 16, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2];
 
         this._maxNodeZoom = this.gridSizeByZoom.length - 1;
 

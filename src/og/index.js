@@ -34,6 +34,7 @@ import { Events } from './Events.js';
 import { Extent } from './Extent.js';
 import { LonLat } from './LonLat.js';
 import { RenderNode } from './scene/RenderNode.js';
+import { Planet } from './scene/Planet.js';
 
 import { Popup } from './Popup.js';
 
@@ -73,6 +74,7 @@ export {
     wgs84,
     Camera,
     Ellipsoid,
+    Planet,
     PlanetCamera,
     Globe,
     LightSource,

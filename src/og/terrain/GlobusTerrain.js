@@ -39,6 +39,7 @@ const EVENT_NAMES = [
  * @param {Object} [options] - Provider options:
  * @param {number} [options.minZoom=3] - Minimal visible zoom index when terrain handler works.
  * @param {number} [options.minZoom=14] - Maximal visible zoom index when terrain handler works.
+ * @param {number} [options.minNativeZoom=14] - Maximal available terrain zoom level.
  * @param {string} [options.url="//openglobus.org/heights/srtm3/{z}/{y}/{x}.ddm"] - Terrain source path url template. Default is openglobus ddm elevation file.
  * @param {Array.<number>} [options.gridSizeByZoom] - Array of segment triangulation grid sizes where array index agreed to the segment zoom index.
  * @param {number} [options.plainGridSize=32] - Elevation grid size. Default is 32x32. Must be power of two.
