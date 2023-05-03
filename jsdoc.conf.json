@@ -1,46 +1,24 @@
 {
-  "tags": {
-    "allowUnknownTags": true,
-    "dictionaries": [ "jsdoc", "closure" ]
-  },
   "source": {
-    "includePattern": ".+\\.js(doc)?$",
-    "excludePattern": "(^|\\/|\\\\)_"
+    "include": [ "package.json", "README.md"],
+    "includePattern": ".js$",
+    "excludePattern": "(node_modules/|docs)"
   },
-  "templates": {
-    "cleverLinks": true,
-    "monospaceLinks": true,
-    "default": {
-      "outputSourceFiles": true
-    },
-    "applicationName": "openglobus",
-    "disqus": "",
-    "googleAnalytics": "",
-    "openGraph": {
-      "title": "",
-      "type": "website",
-      "image": "",
-      "site_name": "",
-      "url": ""
-    },
-    "meta": {
-      "title": "",
-      "description": "",
-      "keyword": ""
-    },
-    "linenums": false
-  },
-  "markdown": {
-    "parser": "gfm",
-    "hardwrap": true,
-    "tags": [ "examples" ]
-  },
+  "plugins": ["plugins/markdown"],
   "opts": {
     "encoding": "utf8",
+    "readme": "./README.md",
+    "destination": "./api",
     "recurse": true,
     "private": false,
     "lenient": true,
-    "destination": "./api",
-    "template": "./node_modules/jaguarjs-jsdoc"
+    "template": "./node_modules/clean-jsdoc-theme",
+    "theme_opts": {
+      "default_theme": "dark"
+    }
+  },
+  "markdown": {
+    "hardwrap": false,
+    "idInHeadings": true
   }
 }
