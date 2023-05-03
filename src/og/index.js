@@ -48,7 +48,7 @@ import {
 
 import { Object3d } from './Object3d.js';
 const { Handler } = webgl, { Control } = control;
-const { Layer, Vector, XYZ} = layer;
+const { Layer, Vector, XYZ, CanvasTiles} = layer;
 const {
     EntityCollection,
     Entity
@@ -64,6 +64,7 @@ export {
     Layer,
     XYZ,
     Vector,
+    CanvasTiles,
     layer,
     terrain,
     Control,
