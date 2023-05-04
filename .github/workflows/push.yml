@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/main
-      - run: npm run api
+      - run: npm run docs
 #        Temprorary deploy to check work
       - name: Deploy to openglobus.github.io
         uses: cpina/github-action-push-to-another-repository@main
