@@ -34,6 +34,7 @@ import { Events } from './Events.js';
 import { Extent } from './Extent.js';
 import { LonLat } from './LonLat.js';
 import { RenderNode } from './scene/RenderNode.js';
+import { Planet } from './scene/Planet.js';
 
 import { Popup } from './Popup.js';
 
@@ -45,22 +46,16 @@ import {
     Wgs84QuadTreeStrategy
 } from './quadTree/index.js';
 
-import pkg from "../../package.json";
 
 import { Object3d } from './Object3d.js';
 const { Handler } = webgl, { Control } = control;
-const { Layer, Vector, XYZ} = layer;
+const { Layer, Vector, XYZ, CanvasTiles} = layer;
 const {
     EntityCollection,
     Entity
 } = entity;
 
-const version = {
-    version: pkg.version
-};
-
 export {
-    version,
     bv,
     jd,
     math,
@@ -70,6 +65,7 @@ export {
     Layer,
     XYZ,
     Vector,
+    CanvasTiles,
     layer,
     terrain,
     Control,
@@ -78,6 +74,7 @@ export {
     wgs84,
     Camera,
     Ellipsoid,
+    Planet,
     PlanetCamera,
     Globe,
     LightSource,

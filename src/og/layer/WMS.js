@@ -97,8 +97,8 @@ class WMS extends XYZ {
         extra
 
     ) {
-        return `${url}/wms?LAYERS=${layers}&FORMAT=${format}&SERVICE=WMS&VERSION=${version}&REQUEST=${request}
-        &SRS=${srs}&BBOX=${bbox}&WIDTH=${width}&HEIGHT=${height}&` + extra;
+       return `${url}/?LAYERS=${layers}&FORMAT=${format}&SERVICE=WMS&VERSION=${version}&REQUEST=${request}&SRS=${srs}&BBOX=${bbox}&WIDTH=${width}&HEIGHT=${height}` +
+            (extra ? `&${extra}` : "");
     }
 
     static get_bbox_v1_1_1(extent) {

@@ -1,0 +1,97 @@
+<html>
+
+<head>
+    <title>OpenGlobus - Mars planet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../css/og.css" type="text/css"/>
+</head>
+
+</html>
+
+<body>
+<div id="globus"></div>
+<script type="module">
+
+    'use strict';
+
+    import {Globe} from '../../src/og/Globe.js';
+    import {EmptyTerrain} from '../../src/og/terrain/EmptyTerrain.js';
+    import {XYZ} from '../../src/og/layer/XYZ.js';
+    import {ToggleWireframe} from '../../src/og/control/ToggleWireframe.js';
+    import {KeyboardNavigation} from '../../src/og/control/KeyboardNavigation.js';
+    import {quadTreeStrategyType} from '../../src/og/quadTree/index.js';
+    import {CanvasTiles} from '../../src/og/layer/CanvasTiles.js';
+    import {LayerSwitcher} from "../../src/og/control/LayerSwitcher.js";
+
+    const tg = new CanvasTiles("Tile grid", {
+        visibility: true,
+        isBaseLayer: false,
+        drawTile: function (material, applyCanvas) {
+
+            //
+            // This is important create canvas here!
+            //
+            let cnv = document.createElement("canvas");
+            let ctx = cnv.getContext("2d");
+            cnv.width = 256;
+            cnv.height = 256;
+
+            //Clear canvas
+            ctx.clearRect(0, 0, cnv.width, cnv.height);
+
+            //Draw border
+            ctx.beginPath();
+            ctx.rect(0, 0, cnv.width, cnv.height);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'black';
+            ctx.stroke();
+
+            let size;
+
+            //Draw text
+            if (material.segment.tileZoom > 14) {
+                size = "26";
+            } else {
+                size = "32";
+            }
+            ctx.fillStyle = 'black';
+            ctx.font = 'normal ' + size + 'px Verdana';
+            ctx.textAlign = 'center';
+            ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+
+            //Draw canvas tile
+            applyCanvas(cnv);
+        }
+    });
+
+
+    const carte = new XYZ("Coastline", {
+        isBaseLayer: false,
+        visibility: true,
+        url: "https://geo.vliz.be/geoserver/gwc/service/wmts/rest/MarineRegions:world_countries_coasts/Line_green/EPSG:4326/EPSG:4326:{z}/{y}/{x}?format=image/png"
+    });
+
+    const marble = new XYZ("Blue Marble", {
+        isBaseLayer: true,
+        visibility: true,
+        url: "https://soggy2.zoology.ubc.ca/geoserver/gn/gwc/service/wmts/rest/world/raster/EPSG:4326/EPSG:4326:{z}/{y}/{x}?format=image/png"
+    });
+
+    window.globe = new Globe({
+        'name': "epsg4326",
+        'quadTreeStrategyPrototype': quadTreeStrategyType.epsg4326,
+        'target': "globus",
+        'terrain': new EmptyTerrain(),
+        'layers': [carte, marble, tg],
+        "sun": {
+            "active": false
+        },
+        useNightTexture: false,
+        useSpecularTexture: false
+    });
+
+    globe.planet.addControl(new ToggleWireframe());
+    globe.planet.addControl(new KeyboardNavigation());
+    globe.planet.addControl(new LayerSwitcher());
+</script>
+</body>

@@ -5,7 +5,7 @@
 "use strict";
 
 import { LonLat } from "../LonLat.js";
-import { DEGREES, EPS1, EPS12, EPS15, RADIANS } from "../math.js";
+import { DEGREES, EPS1, EPS12, EPS15, RADIANS, zeroTwoPI } from "../math.js";
 import { Vec3 } from "../math/Vec3.js";
 
 /**
@@ -41,6 +41,18 @@ class Ellipsoid {
         this._radii2 = new Vec3(this._a2, this._b2, this._a2);
         this._invRadii = new Vec3(1.0 / equatorialSize, 1.0 / polarSize, 1.0 / equatorialSize);
         this._invRadii2 = new Vec3(1.0 / this._a2, 1.0 / this._b2, 1.0 / this._a2);
+    }
+
+    /**
+     * Returns angle between to bearin angles
+     * @param {number} a - First bearing angle
+     * @param {number} b - Second bearing angle
+     * @returns {number}
+     */
+    static getAngleBetweenTwoBearings(a, b) {
+        a = zeroTwoPI(a);
+        b = zeroTwoPI(b);
+        return ((((a - b) % 360) + 360 + 180) % 360) - 180;
     }
 
     static getRelativeBearing(a, b) {
@@ -424,6 +436,7 @@ class Ellipsoid {
             Math.sign(h.dot(cart)) * h.length()
         );
     }
+
     /**
      * Converts 3d cartesian coordinates to geodetic
      * @param {Vec3} cart - Cartesian coordinates

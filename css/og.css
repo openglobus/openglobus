@@ -1,5 +1,5 @@
 :root {
-    --grey0: #1E1E1E; /*dialog background*/
+    --grey0: rgb(45 45 45); /*dialog background*/
     --grey1: #434244; /*dialog border*/
     --grey2: #3F3F46; /*dialog header*/
     --grey3: #BBBBBB; /*dialog font color*/

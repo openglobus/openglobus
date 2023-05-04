@@ -175,12 +175,6 @@ class Segment {
         this.normalMapReady = false;
 
         /**
-         * Parent normal map is made allready(optimization parameter).
-         * @type {boolean}
-         */
-        this.parentNormalMapReady = false;
-
-        /**
          * Terrain is allready applied flag.
          * @type {boolean}
          */
@@ -360,7 +354,7 @@ class Segment {
      * @param {boolean} forceLoading
      */
     loadTerrain(forceLoading) {
-        if (this.tileZoom < this.planet.terrain.minZoom) {
+        if (this.tileZoom < this.planet.terrain.minZoom || this.planet.terrain.isEmpty) {
             this.terrainIsLoading = true;
 
             this.elevationsNotExists();
@@ -374,6 +368,9 @@ class Segment {
             } else if (!this.terrainIsLoading && !this.terrainReady) {
                 this.planet.terrain.loadTerrain(this, forceLoading);
             }
+            // if (!this.terrainIsLoading && !this.terrainReady) {
+            //     this.planet.terrain.loadTerrain(this, forceLoading);
+            // }
         }
     }
 
@@ -382,9 +379,8 @@ class Segment {
      * @param {Float32Array} elevations - Elevation data.
      */
     elevationsExists(elevations) {
-        const segment = this;
         if (this.plainReady && this.terrainIsLoading) {
-            this.planet._terrainWorker.make(segment, elevations);
+            this.planet._terrainWorker.make(this, elevations);
 
             this.plainVerticesHigh = null;
             this.plainVerticesLow = null;
@@ -395,6 +391,63 @@ class Segment {
             if (!this.planet.terrain.equalizeVertices) {
                 this.tempVerticesHigh = null;
                 this.tempVerticesLow = null;
+            }
+        }
+    }
+
+    /**
+     * Keep plain elevation segment for rendering
+     *
+     * 'this.tileZoom <= this.planet.terrain.maxZoom' it means, that the segment is plain
+     *
+     */
+    elevationsNotExists() {
+        if (this.planet && this.tileZoom <= this.planet.terrain.maxNativeZoom) {
+            if (this.plainReady && this.terrainIsLoading) {
+                this.terrainIsLoading = false;
+
+                let n = this.node;
+                n.appliedTerrainNodeId = this.node.nodeId;
+                n.equalizedSideWithNodeId[N] = n.equalizedSideWithNodeId[E] = n.equalizedSideWithNodeId[S] =
+                    n.equalizedSideWithNodeId[W] = n.appliedTerrainNodeId;
+
+                if (this.planet.lightEnabled && !this._inTheQueue) {
+                    this.planet._normalMapCreator.queue(this);
+                }
+
+                this.readyToEngage = true;
+            }
+
+            // plain terrain only
+            this.terrainVertices = this.plainVertices;
+            this.terrainVerticesHigh = this.plainVerticesHigh;
+            this.terrainVerticesLow = this.plainVerticesLow;
+
+            this.tempVertices = this.terrainVertices;
+            this.tempVerticesHigh = this.terrainVerticesHigh;
+            this.tempVerticesLow = this.terrainVerticesLow;
+
+            this.noDataVertices = null;
+
+            this.fileGridSize = Math.sqrt(this.terrainVertices.length / 3) - 1;
+            this.gridSize = this.fileGridSize;
+            this.terrainReady = true;
+            this.terrainExists = false;
+        } else {
+
+            if (this.plainReady && this.terrainIsLoading) {
+                this.terrainIsLoading = false;
+
+                let n = this.node;
+                n.appliedTerrainNodeId = this.node.nodeId;
+                n.equalizedSideWithNodeId[N] = n.equalizedSideWithNodeId[E] = n.equalizedSideWithNodeId[S] =
+                    n.equalizedSideWithNodeId[W] = n.appliedTerrainNodeId;
+
+                this.readyToEngage = true;
+                this.terrainReady = true;
+                this.passReady = true;
+
+                this.terrainExists = false;
             }
         }
     }
@@ -582,33 +635,6 @@ class Segment {
         this.createCoordsBuffers(this.tempVerticesHigh, this.tempVerticesLow, this.gridSize);
     }
 
-    _plainSegmentWorkerCallback(data) {
-        this.plainProcessing = false;
-
-        if (this.initialized && !this.terrainReady) {
-            this.plainVertices = data.plainVertices;
-            this.plainVerticesHigh = data.plainVerticesHigh;
-            this.plainVerticesLow = data.plainVerticesLow;
-
-            this.plainNormals = data.plainNormals;
-
-            this.normalMapNormals = data.normalMapNormals;
-            this.normalMapVertices = data.normalMapVertices;
-            this.normalMapVerticesHigh = data.normalMapVerticesHigh;
-            this.normalMapVerticesLow = data.normalMapVerticesLow;
-
-            this.terrainVertices = this.plainVertices;
-            this.terrainVerticesHigh = this.plainVerticesHigh;
-            this.terrainVerticesLow = this.plainVerticesLow;
-
-            this.fileGridSize = Math.sqrt(data.normalMapVertices.length / 3) - 1;
-
-            this._plainRadius = data.plainRadius;
-
-            this.plainReady = true;
-        }
-    }
-
     _terrainWorkerCallback(data) {
         if (this.plainReady) {
             this.readyToEngage = true;
@@ -654,7 +680,6 @@ class Segment {
 
             this.terrainReady = true;
             this.terrainIsLoading = false;
-            this.parentNormalMapReady = true;
             this.terrainExists = true;
 
             if (!this.normalMapTexturePtr) {
@@ -668,43 +693,6 @@ class Segment {
             if (this.planet.lightEnabled) {
                 this.planet._normalMapCreator.queue(this);
             }
-        }
-    }
-
-    /**
-     * Terrain is not obtained or not exists on the server.
-     */
-    elevationsNotExists() {
-        if (this.planet && this.tileZoom <= this.planet.terrain.maxZoom) {
-            if (this.plainReady && this.terrainIsLoading) {
-                this.terrainIsLoading = false;
-
-                let n = this.node;
-                n.appliedTerrainNodeId = this.node.nodeId;
-                n.equalizedSideWithNodeId[N] = n.equalizedSideWithNodeId[E] = n.equalizedSideWithNodeId[S] =
-                    n.equalizedSideWithNodeId[W] = n.appliedTerrainNodeId;
-
-                if (this.planet.lightEnabled && !this._inTheQueue) {
-                    this.planet._normalMapCreator.queue(this);
-                }
-
-                this.readyToEngage = true;
-            }
-
-            this.terrainVertices = this.plainVertices;
-            this.terrainVerticesHigh = this.plainVerticesHigh;
-            this.terrainVerticesLow = this.plainVerticesLow;
-
-            this.tempVertices = this.terrainVertices;
-            this.tempVerticesHigh = this.terrainVerticesHigh;
-            this.tempVerticesLow = this.terrainVerticesLow;
-
-            this.noDataVertices = null;
-
-            this.fileGridSize = Math.sqrt(this.terrainVertices.length / 3) - 1;
-            this.gridSize = this.fileGridSize;
-            this.terrainReady = true;
-            this.terrainExists = false;
         }
     }
 
@@ -867,7 +855,6 @@ class Segment {
             this.handler.gl.deleteTexture(this.normalMapTexture);
         }
         this.normalMapReady = false;
-        this.parentNormalMapReady = false;
         this._appliedNeighborsZoom = [0, 0, 0, 0];
         this.normalMapTextureBias[0] = 0;
         this.normalMapTextureBias[1] = 0;
@@ -1256,9 +1243,34 @@ class Segment {
         let p = this.planet,
             t = p.terrain;
 
-        if (t.isReady() && this.tileZoom <= t.maxZoom && !this.plainReady) {
+        if (t.isReady() && !this.plainReady && this.tileZoom <= t.maxZoom) {
             this.plainProcessing = true;
             p._plainSegmentWorker.make(this);
+        }
+    }
+
+    _plainSegmentWorkerCallback(data) {
+        this.plainProcessing = false;
+
+        if (this.initialized && !this.terrainReady) {
+            this.plainReady = true;
+
+            this.plainVertices = data.plainVertices;
+            this.plainVerticesHigh = data.plainVerticesHigh;
+            this.plainVerticesLow = data.plainVerticesLow;
+            this.plainNormals = data.plainNormals;
+            this._plainRadius = data.plainRadius;
+
+            this.normalMapNormals = data.normalMapNormals;
+            this.normalMapVertices = data.normalMapVertices;
+            this.normalMapVerticesHigh = data.normalMapVerticesHigh;
+            this.normalMapVerticesLow = data.normalMapVerticesLow;
+
+            //this.terrainVertices = this.plainVertices;
+            //this.terrainVerticesHigh = this.plainVerticesHigh;
+            //this.terrainVerticesLow = this.plainVerticesLow;
+
+            this.fileGridSize = Math.sqrt(data.normalMapVertices.length / 3) - 1;
         }
     }
 

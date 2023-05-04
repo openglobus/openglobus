@@ -39,6 +39,7 @@ const EVENT_NAMES = [
  * @param {Object} [options] - Provider options:
  * @param {number} [options.minZoom=3] - Minimal visible zoom index when terrain handler works.
  * @param {number} [options.minZoom=14] - Maximal visible zoom index when terrain handler works.
+ * @param {number} [options.minNativeZoom=14] - Maximal available terrain zoom level.
  * @param {string} [options.url="//openglobus.org/heights/srtm3/{z}/{y}/{x}.ddm"] - Terrain source path url template. Default is openglobus ddm elevation file.
  * @param {Array.<number>} [options.gridSizeByZoom] - Array of segment triangulation grid sizes where array index agreed to the segment zoom index.
  * @param {number} [options.plainGridSize=32] - Elevation grid size. Default is 32x32. Must be power of two.
@@ -54,8 +55,14 @@ class GlobusTerrain extends EmptyTerrain {
      * @param {*} [options]
      */
     constructor(name, options = {}) {
-        super({ geoidSrc: "//openglobus.org/geoid/egm84-30.pgm", ...options });
+        super({
+            geoidSrc: "//openglobus.org/geoid/egm84-30.pgm",
+            maxNativeZoom: options.maxNativeZoom || 14,
+            ...options
+        });
+
         this._s = options.subdomains || ["a", "b", "c"];
+
         /**
          * Events handler.
          * @public
@@ -77,20 +84,6 @@ class GlobusTerrain extends EmptyTerrain {
          * @type {string}
          */
         this.name = name || "openglobus";
-
-        /**
-         * Minimal visible zoom index when terrain handler works.
-         * @public
-         * @type {number}
-         */
-        this.minZoom = options.minZoom || 2;
-
-        /**
-         * Maximal visible zoom index when terrain handler works.
-         * @public
-         * @type {number}
-         */
-        this.maxZoom = options.maxZoom || 14;
 
         /**
          * Terrain source path url template.
@@ -169,13 +162,15 @@ class GlobusTerrain extends EmptyTerrain {
         return false;
     }
 
-    getHeightAsync(lonLat, callback, zoom) {
+    getHeightAsync(lonLat, callback, zoom, firstAttempt) {
         if (!lonLat || lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
             callback(0);
             return true;
         }
 
-        let z = zoom || this.maxZoom,
+        firstAttempt = firstAttempt != undefined ? firstAttempt : true;
+
+        let z = zoom || this.maxNativeZoom,
             z2 = Math.pow(2, z),
             size = mercator.POLE2 / z2,
             merc = mercator.forward(lonLat),
@@ -214,12 +209,22 @@ class GlobusTerrain extends EmptyTerrain {
                     this._elevationCache[tileIndex] = cache;
                     callback(this._getGroundHeightMerc(merc, cache));
                 } else if (response.status === "error") {
+
+                    if (firstAttempt && z > this.maxZoom) {
+                        firstAttempt = false;
+                        this.getHeightAsync(lonLat, callback, this.maxZoom, false);
+                        return;
+                    }
+
                     let cache = {
                         heights: null,
                         extent: extent
                     };
+
                     this._elevationCache[tileIndex] = cache;
+
                     callback(0);
+
                 } else {
                     this._fetchCache[tileIndex] = null;
                     delete this._fetchCache[tileIndex];

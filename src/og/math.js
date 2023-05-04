@@ -225,7 +225,8 @@ export function step(edge, x) {
  * @returns {number} -
  */
 export function frac(x) {
-    return x - Math.floor(x);
+    const mx = Math.abs(x)
+    return  mx - Math.floor(mx);
 }
 
 /**
