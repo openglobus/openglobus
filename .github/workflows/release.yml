@@ -13,11 +13,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - uses: ./.github/actions/main
+
       - run: npm run test
+
       - run: npm run build
+
       - run: npm run api
-      - name: Deploy to external repository
+
+      - name: Deploy to openglobus.github.io
         uses: cpina/github-action-push-to-another-repository@main
         env:
           SSH_DEPLOY_KEY : ${{ secrets.SSH_DEPLOY_KEY  }}
@@ -25,9 +30,10 @@ jobs:
           source-directory: api
           destination-github-username: openglobus
           destination-repository-name: openglobus.github.io
-          user-email: pvlt.job@gmail.com
-          target-branch: "master"
-          target-directory: "docs"
+          user-name: Github Bot
+          user-email: github-actions[bot]@users.noreply.github.com
+          target-branch: master
+          target-directory: docs
 
       - run: npm run generate_types
 

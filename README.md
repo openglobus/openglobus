@@ -122,7 +122,7 @@ All JavaScript files are compressed by `terser` plugin.
 
 `npm run webgl` - build og.webgl (webgl wrap) stand-alone
 
-`npm run api` - build [api documentation](https://www.openglobus.org/api/) into /api folder
+`npm run docs` - build [api documentation](https://www.openglobus.org/api/) into /api folder
 
 `npm run serve` - run local web server for develop and watch examples
 

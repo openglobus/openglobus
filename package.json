@@ -9,7 +9,7 @@
   "style": "./css/og.css",
   "types": "./types/index.d.ts",
   "scripts": {
-    "api": "jsdoc -r ./src/ -c ./jsdoc.conf.json -d ./api",
+    "docs": "jsdoc -r ./src/ -c ./jsdoc.conf.json -d ./docs",
     "serve": "ws",
     "build": "rollup -c --bundleConfigAsCjs",
     "webgl": "rollup -c --environment entry:webgl",
@@ -48,8 +48,8 @@
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-terser": "^0.4.1",
     "@types/jest": "^29.5.1",
-    "eslint": "^8.39.0",
     "clean-jsdoc-theme": "^4.2.7",
+    "eslint": "^8.39.0",
     "jest": "^29.5.0",
     "jest-canvas-mock": "^2.5.0",
     "jest-environment-jsdom": "^29.5.0",
@@ -61,7 +61,6 @@
     "prettier": "^2.8.8",
     "rollup": "^3.21.3",
     "rollup-plugin-postcss": "^4.0.2",
-    "taffydb": "^2.7.3",
     "typescript": "^5.0.4"
   },
   "lint-staged": {
