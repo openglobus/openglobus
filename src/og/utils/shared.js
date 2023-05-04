@@ -959,3 +959,7 @@ export async function loadImage(url) {
         return image;
     });
 }
+
+export function isImageLoaded(image) {
+    return image.complete && image.naturalHeight !== 0;
+}

@@ -6,6 +6,7 @@
 
 import { nextHighestPowerOfTwo } from "../math.js";
 import { BaseGeoImage } from "./BaseGeoImage.js";
+import { isImageLoaded } from "../utils/shared.js";
 
 /**
  * Used to load and display a single image over specific corner coordinates on the globe, implements og.layer.BaseGeoImage interface.
@@ -46,18 +47,13 @@ class GeoImage extends BaseGeoImage {
      */
     setSrc(src) {
         this._planet && this._planet._geoImageCreator.remove(this);
-        this._image = null;
         this._src = src;
         this._sourceReady = false;
         this._sourceCreated = false;
-
-        let that = this;
         this._image = new Image();
-        this._image.addEventListener("load", function (e) {
-            that._onLoad(this);
-        });
-        this._image.src = this._src;
-
+        this._onLoad_ = this._onLoad.bind(this);
+        this._image.addEventListener("load", this._onLoad_);
+        this._image.src = src;
     }
 
     /**
@@ -71,6 +67,12 @@ class GeoImage extends BaseGeoImage {
         this._sourceReady = false;
         this._image = image;
         this._src = image.src;
+        if (isImageLoaded(this._image)) {
+            this._applyImage(this._image);
+        } else {
+            this._onLoad_ = this._onLoad.bind(this);
+            this._image.addEventListener("load", this._onLoad_);
+        }
     }
 
     /**
@@ -87,14 +89,27 @@ class GeoImage extends BaseGeoImage {
 
     /**
      * @private
-     * @param {Image} img
+     * @param {Image} [img]
      */
-    _onLoad(img) {
-        this._frameWidth = nextHighestPowerOfTwo(img.width * 2, 4096);
-        this._frameHeight = nextHighestPowerOfTwo(img.height * 3, 4096);
-        this._sourceReady = true;
-        this._planet._geoImageCreator.add(this);
+    _onLoad() {
+        this._applyImage(this._image);
+        this._image.removeEventListener("load", this._onLoad_);
+        this._onLoad_ = undefined;
     }
+
+    /**
+     * @private
+     * @param {Image} [img]
+     */
+    _applyImage(img) {
+        if (img) {
+            this._frameWidth = nextHighestPowerOfTwo(img.width * 2, 4096);
+            this._frameHeight = nextHighestPowerOfTwo(img.height * 3, 4096);
+            this._sourceReady = true;
+            this._planet._geoImageCreator.add(this);
+        }
+    }
+
 
     /**
      * Loads planet segment material. In this case - GeoImage source image.
@@ -107,20 +122,16 @@ class GeoImage extends BaseGeoImage {
         this._creationProceeding = true;
         if (!this._sourceReady && this._src) {
             if (this._image) {
-                if (this._image.complete) {
-                    this._onLoad(this._image);
-                } else if (this._image.src) {
-                    let that = this;
-                    this._image.addEventListener("load", function (e) {
-                        that._onLoad(this);
-                    });
+                if (isImageLoaded(this._image)) {
+                    this._applyImage(this._image);
+                } else {
+                    this._onLoad_ = this._onLoad.bind(this);
+                    this._image.addEventListener("load", this._onLoad_);
                 }
             } else {
-                let that = this;
                 this._image = new Image();
-                this._image.addEventListener("load", function (e) {
-                    that._onLoad(this);
-                });
+                this._onLoad_ = this._onLoad.bind(this);
+                this._image.addEventListener("load", this._onLoad_);
                 this._image.src = this._src;
             }
         } else {
