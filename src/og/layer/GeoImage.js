@@ -46,8 +46,18 @@ class GeoImage extends BaseGeoImage {
      */
     setSrc(src) {
         this._planet && this._planet._geoImageCreator.remove(this);
+        this._image = null;
         this._src = src;
         this._sourceReady = false;
+        this._sourceCreated = false;
+
+        let that = this;
+        this._image = new Image();
+        this._image.addEventListener("load", function (e) {
+            that._onLoad(this);
+        });
+        this._image.src = this._src;
+
     }
 
     /**
@@ -57,9 +67,10 @@ class GeoImage extends BaseGeoImage {
      */
     setImage(image) {
         this._planet && this._planet._geoImageCreator.remove(this);
+        this._sourceCreated = false;
+        this._sourceReady = false;
         this._image = image;
         this._src = image.src;
-        this._sourceReady = false;
     }
 
     /**
