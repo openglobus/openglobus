@@ -1,0 +1,657 @@
+<!DOCTYPE html><html lang="en" style="font-size:16px"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Source: ellipsoid/Ellipsoid.js</title><!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]--><script src="scripts/third-party/hljs.js" defer="defer"></script><script src="scripts/third-party/hljs-line-num.js" defer="defer"></script><script src="scripts/third-party/popper.js" defer="defer"></script><script src="scripts/third-party/tippy.js" defer="defer"></script><script src="scripts/third-party/tocbot.min.js"></script><script>var baseURL="/",locationPathname="",baseURL=(locationPathname=document.location.pathname).substr(0,locationPathname.lastIndexOf("/")+1)</script><link rel="stylesheet" href="styles/clean-jsdoc-theme.min.css"><svg aria-hidden="true" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display:none"><defs><symbol id="copy-icon" viewbox="0 0 488.3 488.3"><g><path d="M314.25,85.4h-227c-21.3,0-38.6,17.3-38.6,38.6v325.7c0,21.3,17.3,38.6,38.6,38.6h227c21.3,0,38.6-17.3,38.6-38.6V124    C352.75,102.7,335.45,85.4,314.25,85.4z M325.75,449.6c0,6.4-5.2,11.6-11.6,11.6h-227c-6.4,0-11.6-5.2-11.6-11.6V124    c0-6.4,5.2-11.6,11.6-11.6h227c6.4,0,11.6,5.2,11.6,11.6V449.6z"/><path d="M401.05,0h-227c-21.3,0-38.6,17.3-38.6,38.6c0,7.5,6,13.5,13.5,13.5s13.5-6,13.5-13.5c0-6.4,5.2-11.6,11.6-11.6h227    c6.4,0,11.6,5.2,11.6,11.6v325.7c0,6.4-5.2,11.6-11.6,11.6c-7.5,0-13.5,6-13.5,13.5s6,13.5,13.5,13.5c21.3,0,38.6-17.3,38.6-38.6    V38.6C439.65,17.3,422.35,0,401.05,0z"/></g></symbol><symbol id="search-icon" viewBox="0 0 512 512"><g><g><path d="M225.474,0C101.151,0,0,101.151,0,225.474c0,124.33,101.151,225.474,225.474,225.474    c124.33,0,225.474-101.144,225.474-225.474C450.948,101.151,349.804,0,225.474,0z M225.474,409.323    c-101.373,0-183.848-82.475-183.848-183.848S124.101,41.626,225.474,41.626s183.848,82.475,183.848,183.848    S326.847,409.323,225.474,409.323z"/></g></g><g><g><path d="M505.902,476.472L386.574,357.144c-8.131-8.131-21.299-8.131-29.43,0c-8.131,8.124-8.131,21.306,0,29.43l119.328,119.328    c4.065,4.065,9.387,6.098,14.715,6.098c5.321,0,10.649-2.033,14.715-6.098C514.033,497.778,514.033,484.596,505.902,476.472z"/></g></g></symbol><symbol id="font-size-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11.246 15H4.754l-2 5H.6L7 4h2l6.4 16h-2.154l-2-5zm-.8-2L8 6.885 5.554 13h4.892zM21 12.535V12h2v8h-2v-.535a4 4 0 1 1 0-6.93zM19 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></symbol><symbol id="add-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></symbol><symbol id="minus-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M5 11h14v2H5z"/></symbol><symbol id="dark-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></symbol><symbol id="light-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></symbol><symbol id="reset-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M18.537 19.567A9.961 9.961 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 2.136-.67 4.116-1.81 5.74L17 12h3a8 8 0 1 0-2.46 5.772l.997 1.795z"/></symbol><symbol id="down-icon" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path></symbol><symbol id="codepen-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M16.5 13.202L13 15.535v3.596L19.197 15 16.5 13.202zM14.697 12L12 10.202 9.303 12 12 13.798 14.697 12zM20 10.869L18.303 12 20 13.131V10.87zM19.197 9L13 4.869v3.596l3.5 2.333L19.197 9zM7.5 10.798L11 8.465V4.869L4.803 9 7.5 10.798zM4.803 15L11 19.131v-3.596l-3.5-2.333L4.803 15zM4 13.131L5.697 12 4 10.869v2.262zM2 9a1 1 0 0 1 .445-.832l9-6a1 1 0 0 1 1.11 0l9 6A1 1 0 0 1 22 9v6a1 1 0 0 1-.445.832l-9 6a1 1 0 0 1-1.11 0l-9-6A1 1 0 0 1 2 15V9z"/></symbol><symbol id="close-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"/></symbol><symbol id="menu-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/></symbol></defs></svg></head><body class="dark" data-theme="dark"><div class="sidebar-container"><div class="sidebar" id="sidebar"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="sidebar-items-container"><div class="sidebar-section-title with-arrow" data-isopen="false" id="TDK6dKokNsqfiRkzdo6U2"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-og_Clock.html">og/Clock</a></div><div class="sidebar-section-children"><a href="module-og_Events.html">og/Events</a></div><div class="sidebar-section-children"><a href="module-og_Extent.html">og/Extent</a></div><div class="sidebar-section-children"><a href="module-og_Globe.html">og/Globe</a></div><div class="sidebar-section-children"><a href="module-og_ImageCanvas.html">og/ImageCanvas</a></div><div class="sidebar-section-children"><a href="module-og_Lock.html">og/Lock</a></div><div class="sidebar-section-children"><a href="module-og_LonLat.html">og/LonLat</a></div><div class="sidebar-section-children"><a href="module-og_Stack.html">og/Stack</a></div><div class="sidebar-section-children"><a href="module-og_astro_earth.html">og/astro/earth</a></div><div class="sidebar-section-children"><a href="module-og_astro_jd.html">og/astro/jd</a></div><div class="sidebar-section-children"><a href="module-og_astro_orbit.html">og/astro/orbit</a></div><div class="sidebar-section-children"><a href="module-og_astro_rotation.html">og/astro/rotation</a></div><div class="sidebar-section-children"><a href="module-og_bv_Box.html">og/bv/Box</a></div><div class="sidebar-section-children"><a href="module-og_bv_Sphere.html">og/bv/Sphere</a></div><div class="sidebar-section-children"><a href="module-og_camera_PlanetCamera.html">og/camera/PlanetCamera</a></div><div class="sidebar-section-children"><a href="module-og_control_Atmosphere.html">og/control/Atmosphere</a></div><div class="sidebar-section-children"><a href="module-og_control_Control.html">og/control/Control</a></div><div class="sidebar-section-children"><a href="module-og_control_DebugInfo.html">og/control/DebugInfo</a></div><div class="sidebar-section-children"><a href="module-og_control_GeoImageDragControl.html">og/control/GeoImageDragControl</a></div><div class="sidebar-section-children"><a href="module-og_control_KeyboardNavigation.html">og/control/KeyboardNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerAnimation.html">og/control/LayerAnimation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerSwitcher.html">og/control/LayerSwitcher</a></div><div class="sidebar-section-children"><a href="module-og_control_Lighting.html">og/control/Lighting</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseNavigation.html">og/control/MouseNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseWheelZoomControl.html">og/control/MouseWheelZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler.html">og/control/Ruler</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler.html">og/control/Ruler</a></div><div class="sidebar-section-children"><a href="module-og_control_Selector.html">og/control/Selector</a></div><div class="sidebar-section-children"><a href="module-og_control_ShowFps.html">og/control/ShowFps</a></div><div class="sidebar-section-children"><a href="module-og_control_SimpleSkyBackground.html">og/control/SimpleSkyBackground</a></div><div class="sidebar-section-children"><a href="module-og_control_Sun.html">og/control/Sun</a></div><div class="sidebar-section-children"><a href="module-og_control_ToggleWireframe.html">og/control/ToggleWireframe</a></div><div class="sidebar-section-children"><a href="module-og_control_TouchNavigation.html">og/control/TouchNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl.html">og/control/ZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl.html">og/control/ZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_ellipsoid_Ellipsoid.html">og/ellipsoid/Ellipsoid</a></div><div class="sidebar-section-children"><a href="module-og_ellipsoid_wgs84.html">og/ellipsoid/wgs84</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard.html">og/entity/BaseBillboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard.html">og/entity/BaseBillboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_Billboard.html">og/entity/Billboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_BillboardHandler.html">og/entity/BillboardHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Entity.html">og/entity/Entity</a></div><div class="sidebar-section-children"><a href="module-og_entity_EntityCollection.html">og/entity/EntityCollection</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeoObject.html">og/entity/GeoObject</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeoObjectHandler.html">og/entity/GeoObjectHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Geometry.html">og/entity/Geometry</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeometryHandler.html">og/entity/GeometryHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Label.html">og/entity/Label</a></div><div class="sidebar-section-children"><a href="module-og_entity_LabelHandler.html">og/entity/LabelHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_PointCloud.html">og/entity/PointCloud</a></div><div class="sidebar-section-children"><a href="module-og_entity_PointCloudHandler.html">og/entity/PointCloudHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Polyline.html">og/entity/Polyline</a></div><div class="sidebar-section-children"><a href="module-og_entity_PolylineHandler.html">og/entity/PolylineHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_KeyboardHandler.html">og/input/KeyboardHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_MouseHandler.html">og/input/MouseHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_TouchHandler.html">og/input/TouchHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_input.html">og/input/input</a></div><div class="sidebar-section-children"><a href="module-og_layer_BaseGeoImage.html">og/layer/BaseGeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_CanvasTiles.html">og/layer/CanvasTiles</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoImage.html">og/layer/GeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoTexture2d.html">og/layer/GeoTexture2d</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoVideo.html">og/layer/GeoVideo</a></div><div class="sidebar-section-children"><a href="module-og_layer_KML.html">og/layer/KML</a></div><div class="sidebar-section-children"><a href="module-og_layer_Layer.html">og/layer/Layer</a></div><div class="sidebar-section-children"><a href="module-og_layer_Material.html">og/layer/Material</a></div><div class="sidebar-section-children"><a href="module-og_layer_Vector.html">og/layer/Vector</a></div><div class="sidebar-section-children"><a href="module-og_layer_WMS.html">og/layer/WMS</a></div><div class="sidebar-section-children"><a href="module-og_layer_XYZ.html">og/layer/XYZ</a></div><div class="sidebar-section-children"><a href="module-og_light_LightSource.html">og/light/LightSource</a></div><div class="sidebar-section-children"><a href="module-og_math.html">og/math</a></div><div class="sidebar-section-children"><a href="module-og_math_Line2.html">og/math/Line2</a></div><div class="sidebar-section-children"><a href="module-og_math_Mat3.html">og/math/Mat3</a></div><div class="sidebar-section-children"><a href="module-og_math_Ray.html">og/math/Ray</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec2.html">og/math/Vec2</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec3.html">og/math/Vec3</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec4.html">og/math/Vec4</a></div><div class="sidebar-section-children"><a href="module-og_math_coder.html">og/math/coder</a></div><div class="sidebar-section-children"><a href="module-og_mercator.html">og/mercator</a></div><div class="sidebar-section-children"><a href="module-og_proj_EPSG3857.html">og/proj/EPSG3857</a></div><div class="sidebar-section-children"><a href="module-og_proj_EPSG4326.html">og/proj/EPSG4326</a></div><div class="sidebar-section-children"><a href="module-og_proj_Proj.html">og/proj/Proj</a></div><div class="sidebar-section-children"><a href="module-og_quadTree_EntityCollectionNode.html">og/quadTree/EntityCollectionNode</a></div><div class="sidebar-section-children"><a href="module-og_renderer_RendererEvents.html">og/renderer/RendererEvents</a></div><div class="sidebar-section-children"><a href="module-og_scene_Axes.html">og/scene/Axes</a></div><div class="sidebar-section-children"><a href="module-og_scene_BaseNode.html">og/scene/BaseNode</a></div><div class="sidebar-section-children"><a href="module-og_scene_Planet.html">og/scene/Planet</a></div><div class="sidebar-section-children"><a href="module-og_scene_SkyBox.html">og/scene/SkyBox</a></div><div class="sidebar-section-children"><a href="module-og_shaders_billboard.html">og/shaders/billboard</a></div><div class="sidebar-section-children"><a href="module-og_shaders_drawnode.html">og/shaders/drawnode</a></div><div class="sidebar-section-children"><a href="module-og_shaders_drawnode.html">og/shaders/drawnode</a></div><div class="sidebar-section-children"><a href="module-og_shaders_drawnode.html">og/shaders/drawnode</a></div><div class="sidebar-section-children"><a href="module-og_shaders_label.html">og/shaders/label</a></div><div class="sidebar-section-children"><a href="module-og_shaders_pickingMask.html">og/shaders/pickingMask</a></div><div class="sidebar-section-children"><a href="module-og_shaders_pointCloud.html">og/shaders/pointCloud</a></div><div class="sidebar-section-children"><a href="module-og_shaders_polyline.html">og/shaders/polyline</a></div><div class="sidebar-section-children"><a href="module-og_shaders_ray.html">og/shaders/ray</a></div><div class="sidebar-section-children"><a href="module-og_shaders_skybox.html">og/shaders/skybox</a></div><div class="sidebar-section-children"><a href="module-og_terrainProvider_EmptyTerrain.html">og/terrainProvider/EmptyTerrain</a></div><div class="sidebar-section-children"><a href="module-og_utils_FontAtlas.html">og/utils/FontAtlas</a></div><div class="sidebar-section-children"><a href="module-og_utils_NormalMapCreator.html">og/utils/NormalMapCreator</a></div><div class="sidebar-section-children"><a href="module-og_utils_VectorTileCreator.html">og/utils/VectorTileCreator</a></div><div class="sidebar-section-children"><a href="module-og_utils_earcut.html">og/utils/earcut</a></div><div class="sidebar-section-children"><a href="module-og_utils_shared.html">og/utils/shared</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Framebuffer.html">og/webgl/Framebuffer</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Handler.html">og/webgl/Handler</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Multisample.html">og/webgl/Multisample</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Program.html">og/webgl/Program</a></div><div class="sidebar-section-children"><a href="module-og_webgl_callbacks.html">og/webgl/callbacks</a></div><div class="sidebar-section-children"><a href="module-og_webgl_types.html">og/webgl/types</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="_zSyzM5GLJxvA5SOCBl0C"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="Camera.html">Camera</a></div><div class="sidebar-section-children"><a href="CompassButton.html">CompassButton</a></div><div class="sidebar-section-children"><a href="Cons.html">Cons</a></div><div class="sidebar-section-children"><a href="EarthCoordinates.html">EarthCoordinates</a></div><div class="sidebar-section-children"><a href="Frustum.html">Frustum</a></div><div class="sidebar-section-children"><a href="GlobusTerrain.html">GlobusTerrain</a></div><div class="sidebar-section-children"><a href="Mat4.html">Mat4</a></div><div class="sidebar-section-children"><a href="Node.html">Node</a></div><div class="sidebar-section-children"><a href="Plane.html">Plane</a></div><div class="sidebar-section-children"><a href="ProgramController.html">ProgramController</a></div><div class="sidebar-section-children"><a href="Quat.html">Quat</a></div><div class="sidebar-section-children"><a href="QueueArray.html">QueueArray</a></div><div class="sidebar-section-children"><a href="Rectangle.html">Rectangle</a></div><div class="sidebar-section-children"><a href="RenderNode.html">RenderNode</a></div><div class="sidebar-section-children"><a href="Segment.html">Segment</a></div><div class="sidebar-section-children"><a href="Segment.html">Segment</a></div><div class="sidebar-section-children"><a href="SegmentBoundVisualization.html">SegmentBoundVisualization</a></div><div class="sidebar-section-children"><a href="SegmentLonLat.html">SegmentLonLat</a></div><div class="sidebar-section-children"><a href="SimpleNavigation.html">SimpleNavigation</a></div><div class="sidebar-section-children"><a href="Strip.html">Strip</a></div><div class="sidebar-section-children"><a href="TextureAtlas.html">TextureAtlas</a></div><div class="sidebar-section-children"><a href="TextureAtlasNode.html">TextureAtlasNode</a></div><div class="sidebar-section-children"><a href="VisibleExtent.html">VisibleExtent</a></div><div class="sidebar-section-children"><a href="-__resizeTimeout.html">__resizeTimeout</a></div><div class="sidebar-section-children"><a href="module-og_Clock-Clock.html">Clock</a></div><div class="sidebar-section-children"><a href="module-og_Events-Events.html">Events</a></div><div class="sidebar-section-children"><a href="module-og_Extent.Extent.html">Extent</a></div><div class="sidebar-section-children"><a href="module-og_Globe-Globe.html">Globe</a></div><div class="sidebar-section-children"><a href="module-og_ImageCanvas-ImageCanvas.html">ImageCanvas</a></div><div class="sidebar-section-children"><a href="module-og_LonLat.LonLat.html">LonLat</a></div><div class="sidebar-section-children"><a href="module-og_Stack-Stack.html">Stack</a></div><div class="sidebar-section-children"><a href="module-og_bv_Box-Box.html">Box</a></div><div class="sidebar-section-children"><a href="module-og_bv_Sphere-Sphere.html">Sphere</a></div><div class="sidebar-section-children"><a href="module-og_camera_PlanetCamera-PlanetCamera.html">PlanetCamera</a></div><div class="sidebar-section-children"><a href="module-og_control_Atmosphere-Atmosphere.html">Atmosphere</a></div><div class="sidebar-section-children"><a href="module-og_control_Control-Control.html">Control</a></div><div class="sidebar-section-children"><a href="module-og_control_DebugInfo-DebugInfo.html">DebugInfo</a></div><div class="sidebar-section-children"><a href="module-og_control_KeyboardNavigation-KeyboardNavigation.html">KeyboardNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerAnimation-LayerAnimation.html">LayerAnimation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerSwitcher-LayerSwitcher.html">LayerSwitcher</a></div><div class="sidebar-section-children"><a href="module-og_control_Lighting-ICON_BUTTON_SVG.html">ICON_BUTTON_SVG</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseNavigation-MouseNavigation.html">MouseNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseWheelZoomControl-MouseWheelZoomControl.html">MouseWheelZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler-Ruler.html">Ruler</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler-RulerSwitcher.html">RulerSwitcher</a></div><div class="sidebar-section-children"><a href="module-og_control_Selector-Selection.html">Selection</a></div><div class="sidebar-section-children"><a href="module-og_control_ShowFps-ShowFps.html">ShowFps</a></div><div class="sidebar-section-children"><a href="module-og_control_SimpleSkyBackground-SimpleSkyBackground.html">SimpleSkyBackground</a></div><div class="sidebar-section-children"><a href="module-og_control_Sun-Sun.html">Sun</a></div><div class="sidebar-section-children"><a href="module-og_control_ToggleWireframe-ToggleWireframe.html">ToggleWireframe</a></div><div class="sidebar-section-children"><a href="module-og_control_TouchNavigation-TouchNavigation.html">TouchNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl-ScaleControl.html">ScaleControl</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl-ZoomControl.html">ZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_ellipsoid_Ellipsoid-Ellipsoid.html">Ellipsoid</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard-BaseBillboard.html">BaseBillboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard-Ray.html">Ray</a></div><div class="sidebar-section-children"><a href="module-og_entity_BillboardHandler-BillboardHandler.html">BillboardHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Billboard-Billboard.html">Billboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_EntityCollection-EntityCollection.html">EntityCollection</a></div><div class="sidebar-section-children"><a href="module-og_entity_Entity-Entity.html">Entity</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeoObject-GeoObject.html">GeoObject</a></div><div class="sidebar-section-children"><a href="module-og_entity_LabelHandler-LabelHandler.html">LabelHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Label-Label.html">Label</a></div><div class="sidebar-section-children"><a href="module-og_entity_PointCloud-PointCloud.html">PointCloud</a></div><div class="sidebar-section-children"><a href="module-og_entity_Polyline-Polyline.html">Polyline</a></div><div class="sidebar-section-children"><a href="module-og_layer_BaseGeoImage-BaseGeoImage.html">BaseGeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_CanvasTiles-CanvasTiles.html">CanvasTiles</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoImage-GeoImage.html">GeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoVideo-GeoVideo.html">GeoVideo</a></div><div class="sidebar-section-children"><a href="module-og_layer_KML.KML.html">KML</a></div><div class="sidebar-section-children"><a href="module-og_layer_Layer-Layer.html">Layer</a></div><div class="sidebar-section-children"><a href="module-og_layer_Material-Material.html">Material</a></div><div class="sidebar-section-children"><a href="module-og_layer_Vector-Vector.html">Vector</a></div><div class="sidebar-section-children"><a href="module-og_layer_WMS-WMS.html">WMS</a></div><div class="sidebar-section-children"><a href="module-og_layer_XYZ-XYZ.html">XYZ</a></div><div class="sidebar-section-children"><a href="module-og_light_LightSource-LightSource.html">LightSource</a></div><div class="sidebar-section-children"><a href="module-og_math_Mat3.Mat3.html">Mat3</a></div><div class="sidebar-section-children"><a href="module-og_math_Ray.Ray.html">Ray</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec2.Vec2.html">Vec2</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec3.Vec3.html">Vec3</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec4.Vec4.html">Vec4</a></div><div class="sidebar-section-children"><a href="module-og_renderer_RendererEvents-RendererEvents.html">RendererEvents</a></div><div class="sidebar-section-children"><a href="module-og_scene_BaseNode-BaseNode.html">BaseNode</a></div><div class="sidebar-section-children"><a href="module-og_scene_Planet.Planet.html">Planet</a></div><div class="sidebar-section-children"><a href="module-og_terrainProvider_EmptyTerrain-EmptyTerrain.html">EmptyTerrain</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Framebuffer.Framebuffer.html">Framebuffer</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Handler-Handler.html">Handler</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Multisample.Multisample.html">Multisample</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Program-Program.html">Program</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="_mtSCD_-Y8oZXn_4TBH69"><div>Events</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="og.Camera.html#event:moveend">moveend</a></div><div class="sidebar-section-children"><a href="og.Camera.html#event:viewchange">viewchange</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:add">add</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:doubletouch">doubletouch</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:drawend">drawend</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:entityadd">entityadd</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:entitymove">entitymove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:entityremove">entityremove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:lclick">lclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:ldblclick">ldblclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:ldown">ldown</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:lhold">lhold</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:lup">lup</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mclick">mclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mdblclick">mdblclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mdown">mdown</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mhold">mhold</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mouseleave">mouseleave</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mousemove">mousemove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mousewheel">mousewheel</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mup">mup</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rclick">rclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rdblclick">rdblclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rdown">rdown</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:remove">remove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rhold">rhold</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rup">rup</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchend">touchend</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchenter">touchenter</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchleave">touchleave</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchmove">touchmove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchstart">touchstart</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:visibilitychange">visibilitychange</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:add">add</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:doubletouch">doubletouch</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:lclick">lclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:ldblclick">ldblclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:ldown">ldown</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:lhold">lhold</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:lup">lup</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mclick">mclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mdblclick">mdblclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mdown">mdown</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mhold">mhold</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mousemove">mousemove</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mousewheel">mousewheel</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mup">mup</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rclick">rclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rdblclick">rdblclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rdown">rdown</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:remove">remove</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rhold">rhold</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rup">rup</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchend">touchend</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchenter">touchenter</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchleave">touchleave</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchmove">touchmove</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchstart">touchstart</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:visibilitychange">visibilitychange</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:doubletouch">doubletouch</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:lclick">lclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:ldblclick">ldblclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:ldown">ldown</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:lhold">lhold</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:lup">lup</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mclick">mclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mdblclick">mdblclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mdown">mdown</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mhold">mhold</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mouseleave">mouseleave</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mousemove">mousemove</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mousestop">mousestop</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mousewheel">mousewheel</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mup">mup</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:postdraw">postdraw</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rclick">rclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rdblclick">rdblclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rdown">rdown</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:resize">resize</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:resizeend">resizeend</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rhold">rhold</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rup">rup</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchcancel">touchcancel</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchend">touchend</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchenter">touchenter</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchleave">touchleave</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchmove">touchmove</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchstart">touchstart</a></div><div class="sidebar-section-children"><a href="og.layer.BaseGeoImage.html#event:loadend">loadend</a></div><div class="sidebar-section-children"><a href="og.layer.CanvasTiles.html#event:load">load</a></div><div class="sidebar-section-children"><a href="og.layer.CanvasTiles.html#event:loadend">loadend</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:entityadd">entityadd</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:entityremove">entityremove</a></div><div class="sidebar-section-children"><a href="og.layer.XYZ.html#event:load">load</a></div><div class="sidebar-section-children"><a href="og.layer.XYZ.html#event:loadend">loadend</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:baselayerchange">baselayerchange</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:layeradd">layeradd</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:layerremove">layerremove</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:layervisibilitychange">layervisibilitychange</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:rendercompleted">rendercompleted</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:terraincompleted">terraincompleted</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:terraincompleted">terraincompleted</a></div><div class="sidebar-section-children"><a href="og.terrain.GlobusTerrain.html#event:load">load</a></div><div class="sidebar-section-children"><a href="og.terrain.GlobusTerrain.html#event:loadend">loadend</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="v6wPh3JHtlq2x2yaNvv0a"><div>Global</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="global.html#AU_TO_METERS">AU_TO_METERS</a></div><div class="sidebar-section-children"><a href="global.html#COMSIDE">COMSIDE</a></div><div class="sidebar-section-children"><a href="global.html#EARTH_GRAVITATIONAL_PARAMETER">EARTH_GRAVITATIONAL_PARAMETER</a></div><div class="sidebar-section-children"><a href="global.html#J2000_OBLIQUITY">J2000_OBLIQUITY</a></div><div class="sidebar-section-children"><a href="global.html#NEIGHBOUR">NEIGHBOUR</a></div><div class="sidebar-section-children"><a href="global.html#NOPSORD">NOPSORD</a></div><div class="sidebar-section-children"><a href="global.html#OPPART">OPPART</a></div><div class="sidebar-section-children"><a href="global.html#OPSIDE">OPSIDE</a></div><div class="sidebar-section-children"><a href="global.html#PARTOFFSET">PARTOFFSET</a></div><div class="sidebar-section-children"><a href="global.html#SUN_GRAVITATIONAL_PARAMETER">SUN_GRAVITATIONAL_PARAMETER</a></div><div class="sidebar-section-children"><a href="global.html#TAItoTDB">TAItoTDB</a></div><div class="sidebar-section-children"><a href="global.html#TDT_TAI">TDT_TAI</a></div><div class="sidebar-section-children"><a href="global.html#equationCallback">equationCallback</a></div><div class="sidebar-section-children"><a href="global.html#mat4">mat4</a></div><div class="sidebar-section-children"><a href="global.html#quat">quat</a></div><div class="sidebar-section-children"><a href="global.html#simpleNavigation">simpleNavigation</a></div></div></div></div></div><div class="navbar-container" id="VuAckcnZhf"><nav class="navbar"><div class="navbar-left-items"></div><div class="navbar-right-items"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#light-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div><nav></nav></nav></div><div class="toc-container"><div class="toc-content"><span class="bold">On this page</span><div id="eed4d2a0bfd64539bb9df78095dec881"></div></div></div><div class="body-wrapper"><div class="main-content"><div class="main-wrapper"><section id="source-page" class="source-page"><header><h1 id="title" class="has-anchor">ellipsoid_Ellipsoid.js</h1></header><article><pre class="prettyprint source lang-js"><code>/**
+ * @module og/ellipsoid/Ellipsoid
+ */
+
+"use strict";
+
+import { LonLat } from "../LonLat.js";
+import { DEGREES, EPS1, EPS12, EPS15, RADIANS, zeroTwoPI } from "../math.js";
+import { Vec3 } from "../math/Vec3.js";
+
+/**
+ * Class represents a plant ellipsoid.
+ * @class
+ * @param {number} equatorialSize - Equatorial ellipsoid size.
+ * @param {number} polarSize - Polar ellipsoid size.
+ */
+class Ellipsoid {
+    /**
+     * @param {number} equatorialSize - Equatorial ellipsoid size.
+     * @param {number} polarSize - Polar ellipsoid size.
+     */
+    constructor(equatorialSize, polarSize) {
+        this._a = equatorialSize;
+        this._b = polarSize;
+        this._flattening = (equatorialSize - polarSize) / equatorialSize;
+        this._f = 1 / this._flattening;
+
+        this._a2 = equatorialSize * equatorialSize;
+        this._b2 = polarSize * polarSize;
+
+        var qa2b2 = Math.sqrt(this._a2 - this._b2);
+
+        this._e = qa2b2 / equatorialSize;
+        this._e2 = this._e * this._e;
+        this._e22 = this._e2 * this._e2;
+
+        this._k = qa2b2 / polarSize;
+        this._k2 = this._k * this._k;
+
+        this._radii = new Vec3(equatorialSize, polarSize, equatorialSize);
+        this._radii2 = new Vec3(this._a2, this._b2, this._a2);
+        this._invRadii = new Vec3(1.0 / equatorialSize, 1.0 / polarSize, 1.0 / equatorialSize);
+        this._invRadii2 = new Vec3(1.0 / this._a2, 1.0 / this._b2, 1.0 / this._a2);
+    }
+
+    /**
+     * Returns angle between to bearin angles
+     * @param {number} a - First bearing angle
+     * @param {number} b - Second bearing angle
+     * @returns {number}
+     */
+    static getAngleBetweenTwoBearings(a, b) {
+        a = zeroTwoPI(a);
+        b = zeroTwoPI(b);
+        return ((((a - b) % 360) + 360 + 180) % 360) - 180;
+    }
+
+    static getRelativeBearing(a, b) {
+        let a_y = Math.cos(a),
+            a_x = Math.sin(a),
+            b_y = Math.cos(b),
+            b_x = Math.sin(b);
+        let c = a_y * b_x - b_y * a_x,
+            d = a_x * b_x + a_y * b_y;
+        if (c > 0.0) {
+            return Math.acos(d);
+        }
+        return -Math.acos(d);
+    }
+
+    /**
+     * Returns the distance travelling from ‘this’ point to destination point along a rhumb line.
+     *
+     * @param   {LonLat} start coordinates.
+     * @param   {LonLat} end coordinates
+     * @returns {number} Distance in m between this point and destination point (same units as radius).
+     */
+    rhumbDistanceTo(startLonLat, endLonLat) {
+        const f1 = startLonLat.lat * RADIANS;
+        const f2 = endLonLat.lat * RADIANS;
+        const df = f2 - f1;
+        let d = Math.abs(endLonLat.lon - startLonLat.lon) * RADIANS;
+        if (Math.abs(d) > Math.PI) d = d > 0 ? -(2 * Math.PI - d) : (2 * Math.PI + d);
+        const dd = Math.log(Math.tan(f2 / 2 + Math.PI / 4) / Math.tan(f1 / 2 + Math.PI / 4));
+        const q = Math.abs(dd) > 10e-12 ? df / dd : Math.cos(f1);
+        const t = Math.sqrt(df * df + q * q * d * d); // angular distance in radians
+        return t * this._a;
+    }
+
+    /**
+     * Returns the midpoint between two points on the great circle.
+     * @param   {LonLat} lonLat1 - Longitude/latitude of first point.
+     * @param   {LonLat} lonLat2 - Longitude/latitude of second point.
+     * @return {LonLat} Midpoint between points.
+     */
+    static getMiddlePointOnGreatCircle(lonLat1, lonLat2) {
+        var f1 = lonLat1.lat * RADIANS,
+            l1 = lonLat1.lon * RADIANS;
+        var f2 = lonLat2.lat * RADIANS;
+        var dl = (lonLat2.lon - lonLat1.lon) * RADIANS;
+
+        var Bx = Math.cos(f2) * Math.cos(dl);
+        var By = Math.cos(f2) * Math.sin(dl);
+
+        var x = Math.sqrt((Math.cos(f1) + Bx) * (Math.cos(f1) + Bx) + By * By);
+        var y = Math.sin(f1) + Math.sin(f2);
+        var f3 = Math.atan2(y, x);
+
+        var l3 = l1 + Math.atan2(By, Math.cos(f1) + Bx);
+
+        return new LonLat(((l3 * DEGREES + 540) % 360) - 180, f3 * DEGREES);
+    }
+
+    /**
+     * Returns the point at given fraction between two points on the great circle.
+     * @param   {LonLat} lonLat1 - Longitude/Latitude of source point.
+     * @param   {LonLat} lonLat2 - Longitude/Latitude of destination point.
+     * @param   {number} fraction - Fraction between the two points (0 = source point, 1 = destination point).
+     * @returns {LonLat} Intermediate point between points.
+     */
+    static getIntermediatePointOnGreatCircle(lonLat1, lonLat2, fraction) {
+        var f1 = lonLat1.lat * RADIANS,
+            l1 = lonLat1.lon * RADIANS;
+        var f2 = lonLat2.lat * RADIANS,
+            l2 = lonLat2.lon * RADIANS;
+
+        var sinf1 = Math.sin(f1),
+            cosf1 = Math.cos(f1),
+            sinl1 = Math.sin(l1),
+            cosl1 = Math.cos(l1);
+        var sinf2 = Math.sin(f2),
+            cosf2 = Math.cos(f2),
+            sinl2 = Math.sin(l2),
+            cosl2 = Math.cos(l2);
+
+        var df = f2 - f1,
+            dl = l2 - l1;
+        var a =
+            Math.sin(df / 2) * Math.sin(df / 2) +
+            Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+        var d = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        var A = Math.sin((1 - fraction) * d) / Math.sin(d);
+        var B = Math.sin(fraction * d) / Math.sin(d);
+
+        var x = A * cosf1 * cosl1 + B * cosf2 * cosl2;
+        var y = A * cosf1 * sinl1 + B * cosf2 * sinl2;
+        var z = A * sinf1 + B * sinf2;
+
+        var f3 = Math.atan2(z, Math.sqrt(x * x + y * y));
+        var l3 = Math.atan2(y, x);
+
+        return new LonLat(((l3 * DEGREES + 540) % 360) - 180, f3 * DEGREES);
+    }
+
+    static getRhumbBearing(lonLat1, lonLat2) {
+        var dLon = (lonLat2.lon - lonLat1.lon) * RADIANS;
+        var dPhi = Math.log(
+            Math.tan((lonLat2.lat * RADIANS) / 2 + Math.PI / 4) /
+            Math.tan((lonLat1.lat * RADIANS) / 2 + Math.PI / 4)
+        );
+        if (Math.abs(dLon) > Math.PI) {
+            if (dLon > 0) {
+                dLon = (2 * Math.PI - dLon) * -1;
+            } else {
+                dLon = 2 * Math.PI + dLon;
+            }
+        }
+        return (Math.atan2(dLon, dPhi) * DEGREES + 360) % 360;
+    }
+
+    static getBearing(lonLat1, lonLat2) {
+        var f1 = lonLat1.lat * RADIANS,
+            l1 = lonLat1.lon * RADIANS;
+        var f2 = lonLat2.lat * RADIANS,
+            l2 = lonLat2.lon * RADIANS;
+        var y = Math.sin(l2 - l1) * Math.cos(f2);
+        var x = Math.cos(f1) * Math.sin(f2) - Math.sin(f1) * Math.cos(f2) * Math.cos(l2 - l1);
+        return Math.atan2(y, x) * DEGREES;
+    }
+
+    /**
+     * Returns the (initial) bearing from source to destination point on the great circle.
+     * @param {LonLat} lonLat1 - Longitude/latitude of source point.
+     * @param {LonLat} lonLat2 - Longitude/latitude of destination point.
+     * @return {number} Initial bearing in degrees from north.
+     */
+    static getInitialBearing(lonLat1, lonLat2) {
+        var f1 = lonLat1.lat * RADIANS,
+            f2 = lonLat2.lat * RADIANS;
+        var dl = (lonLat2.lon - lonLat1.lon) * RADIANS;
+        var y = Math.sin(dl) * Math.cos(f2);
+        var x = Math.cos(f1) * Math.sin(f2) - Math.sin(f1) * Math.cos(f2) * Math.cos(dl);
+        var D = Math.atan2(y, x);
+        return (D * DEGREES + 360) % 360;
+    }
+
+    /**
+     * Returns the point of intersection of two paths defined by point and bearing.
+     * @param   {LonLat} p1 - First point.
+     * @param   {number} brng1 - Initial bearing from first point.
+     * @param   {LonLat} p2 - Second point.
+     * @param   {number} brng2 - Initial bearing from second point.
+     * @return {LonLat|null} Destination point (null if no unique intersection defined).
+     */
+    static intersection(p1, brng1, p2, brng2) {
+        var f1 = p1.lat * RADIANS,
+            l1 = p1.lon * RADIANS;
+        var f2 = p2.lat * RADIANS,
+            l2 = p2.lon * RADIANS;
+        var D13 = brng1 * RADIANS,
+            D23 = brng2 * RADIANS;
+        var df = f2 - f1,
+            dl = l2 - l1;
+
+        var d12 =
+            2 *
+            Math.asin(
+                Math.sqrt(
+                    Math.sin(df / 2) * Math.sin(df / 2) +
+                    Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2)
+                )
+            );
+        if (d12 == 0) return null;
+
+        // initial/final bearings between points
+        var Da = Math.acos(
+            (Math.sin(f2) - Math.sin(f1) * Math.cos(d12)) / (Math.sin(d12) * Math.cos(f1))
+        );
+        if (isNaN(Da)) Da = 0; // protect against rounding
+        var Db = Math.acos(
+            (Math.sin(f1) - Math.sin(f2) * Math.cos(d12)) / (Math.sin(d12) * Math.cos(f2))
+        );
+
+        var D12 = Math.sin(l2 - l1) > 0 ? Da : 2 * Math.PI - Da;
+        var D21 = Math.sin(l2 - l1) > 0 ? 2 * Math.PI - Db : Db;
+
+        var a1 = ((D13 - D12 + Math.PI) % (2 * Math.PI)) - Math.PI;
+        var a2 = ((D21 - D23 + Math.PI) % (2 * Math.PI)) - Math.PI;
+
+        if (Math.sin(a1) == 0 &amp;&amp; Math.sin(a2) == 0) return null; // infinite intersections
+        if (Math.sin(a1) * Math.sin(a2) &lt; 0) return null; // ambiguous intersection
+
+        // a1 = Math.abs(a1);
+        // a2 = Math.abs(a2);
+        // ... Ed Williams takes abs of a1/a2, but seems to break calculation?
+
+        var a3 = Math.acos(
+            -Math.cos(a1) * Math.cos(a2) + Math.sin(a1) * Math.sin(a2) * Math.cos(d12)
+        );
+        var d13 = Math.atan2(
+            Math.sin(d12) * Math.sin(a1) * Math.sin(a2),
+            Math.cos(a2) + Math.cos(a1) * Math.cos(a3)
+        );
+        var f3 = Math.asin(
+            Math.sin(f1) * Math.cos(d13) + Math.cos(f1) * Math.sin(d13) * Math.cos(D13)
+        );
+        var dl13 = Math.atan2(
+            Math.sin(D13) * Math.sin(d13) * Math.cos(f1),
+            Math.cos(d13) - Math.sin(f1) * Math.sin(f3)
+        );
+        var l3 = l1 + dl13;
+
+        return new LonLat(((l3 * DEGREES + 540) % 360) - 180, f3 * DEGREES);
+    }
+
+    /**
+     * Returns final bearing arriving at destination destination point from lonLat1 point; the final bearing
+     * will differ from the initial bearing by varying degrees according to distance and latitude.
+     * @param {LonLat} lonLat1 - Longitude/latitude of source point.
+     * @param {LonLat} lonLat2 - Longitude/latitude of destination point.
+     * @return {number} Final bearing in degrees from north.
+     */
+    static getFinalBearing(lonLat1, lonLat2) {
+        // get initial bearing from destination lonLat2 to lonLat1 &amp; reverse it by adding 180°
+        return (Ellipsoid.getInitialBearing(lonLat2, lonLat1) + 180) % 360;
+    }
+
+    /**
+     * Gets ellipsoid equatorial size.
+     * @public
+     * @returns {number} -
+     */
+    getEquatorialSize() {
+        return this._a;
+    }
+
+    /**
+     * Gets ellipsoid polar size.
+     * @public
+     * @returns {number} -
+     */
+    getPolarSize() {
+        return this._b;
+    }
+
+    /**
+     * Gets cartesian ECEF from Wgs84 geodetic coordinates.
+     * @public
+     * @param {LonLat} lonlat - Degrees geodetic coordinates.
+     * @returns {Vec3} -
+     */
+    lonLatToCartesian(lonlat) {
+        var latrad = RADIANS * lonlat.lat,
+            lonrad = RADIANS * lonlat.lon;
+
+        var slt = Math.sin(latrad);
+
+        var N = this._a / Math.sqrt(1.0 - this._e2 * slt * slt);
+        var nc = (N + lonlat.height) * Math.cos(latrad);
+
+        return new Vec3(
+            nc * Math.sin(lonrad),
+            (N * (1.0 - this._e2) + lonlat.height) * slt,
+            nc * Math.cos(lonrad)
+        );
+    }
+
+    /**
+     * Gets cartesian ECEF from Wgs84 geodetic coordinates.
+     * @public
+     * @param {LonLat} lonlat - Degrees geodetic coordinates.
+     * @param {Vec3} res - Output result.
+     * @returns {Vec3} -
+     */
+    lonLatToCartesianRes(lonlat, res) {
+        var latrad = RADIANS * lonlat.lat,
+            lonrad = RADIANS * lonlat.lon;
+
+        var slt = Math.sin(latrad);
+
+        var N = this._a / Math.sqrt(1.0 - this._e2 * slt * slt);
+        var nc = (N + lonlat.height) * Math.cos(latrad);
+
+        res.x = nc * Math.sin(lonrad);
+        res.y = (N * (1.0 - this._e2) + lonlat.height) * slt;
+        res.z = nc * Math.cos(lonrad);
+
+        return res;
+    }
+
+    /**
+     * Gets cartesian ECEF from Wgs84 geodetic coordinates.
+     * @public
+     * @param {Number} lon - Longitude.
+     * @param {Number} lat - Latitude.
+     * @param {Number} height - Height.
+     * @returns {Vec3} -
+     */
+    geodeticToCartesian(lon, lat, height = 0) {
+        var latrad = RADIANS * lat,
+            lonrad = RADIANS * lon;
+
+        var slt = Math.sin(latrad);
+
+        var N = this._a / Math.sqrt(1 - this._e2 * slt * slt);
+        var nc = (N + height) * Math.cos(latrad);
+
+        return new Vec3(
+            nc * Math.sin(lonrad),
+            (N * (1 - this._e2) + height) * slt,
+            nc * Math.cos(lonrad)
+        );
+    }
+
+    /**
+     * Gets Wgs84 geodetic coordinates from cartesian ECEF.
+     * @public
+     * @param {Vec3} p - Cartesian coordinates.
+     * @returns {LonLat} -
+     */
+    projToSurface(p) {
+
+        let pX = p.x || 0.0,
+            pY = p.y || 0.0,
+            pZ = p.z || 0.0;
+
+        let invRadii2X = this._invRadii2.x,
+            invRadii2Y = this._invRadii2.y,
+            invRadii2Z = this._invRadii2.z;
+
+        let x2 = pX * pX * invRadii2X,
+            y2 = pY * pY * invRadii2Y,
+            z2 = pZ * pZ * invRadii2Z;
+
+        let norm = x2 + y2 + z2;
+        let ratio = Math.sqrt(1.0 / norm);
+        let first = p.scaleTo(ratio);
+
+        if (norm &lt; EPS1) {
+            return !Number.isFinite(ratio) ? new Vec3() : first
+        }
+
+        let lambda = ((1.0 - ratio) * p.length()) / first.mulA(this._invRadii2).length();
+
+        let m_X, m_Y, m_Z;
+
+        do {
+            m_X = 1.0 / (1.0 + lambda * invRadii2X);
+            m_Y = 1.0 / (1.0 + lambda * invRadii2Y);
+            m_Z = 1.0 / (1.0 + lambda * invRadii2Z);
+
+            let m_X2 = m_X * m_X,
+                m_Y2 = m_Y * m_Y,
+                m_Z2 = m_Z * m_Z;
+
+            let func = x2 * m_X2 + y2 * m_Y2 + z2 * m_Z2 - 1.0;
+
+            if (Math.abs(func) &lt; EPS12) {
+                break;
+            }
+
+            let m_X3 = m_X2 * m_X,
+                m_Y3 = m_Y2 * m_Y,
+                m_Z3 = m_Z2 * m_Z;
+
+            lambda += 0.5 * func / (x2 * m_X3 * invRadii2X + y2 * m_Y3 * invRadii2Y + z2 * m_Z3 * invRadii2Z);
+
+        } while (true); // eslint-disable-line
+
+        return new Vec3(pX * m_X, pY * m_Y, pZ * m_Z);
+    }
+
+    /**
+     * Converts 3d cartesian coordinates to geodetic
+     * @param {Vec3} cart - Cartesian coordinates
+     * @returns {LonLat} - Geodetic coordinates
+     */
+    cartesianToLonLat(cart) {
+        let p = this.projToSurface(cart);
+        let n = this.getSurfaceNormal3v(p),
+            h = cart.sub(p);
+        return new LonLat(
+            Math.atan2(n.x, n.z) * DEGREES,
+            Math.asin(n.y) * DEGREES,
+            Math.sign(h.dot(cart)) * h.length()
+        );
+    }
+
+    /**
+     * Converts 3d cartesian coordinates to geodetic
+     * @param {Vec3} cart - Cartesian coordinates
+     * @param {LonLat} res - Link geodetic coordinates variable
+     * @returns {LonLat} - Geodetic coordinates
+     */
+    cartesianToLonLatRes(cart, res) {
+        let p = this.projToSurface(cart);
+        let n = this.getSurfaceNormal3v(p),
+            h = cart.sub(p);
+        res.lon = Math.atan2(n.x, n.z) * DEGREES;
+        res.lat = Math.asin(n.y) * DEGREES;
+        res.height = Math.sign(h.dot(cart)) * h.length();
+        return res;
+    }
+
+    /**
+     * Gets ellipsoid surface normal.
+     * @public
+     * @param {Vec3} coord - Spatial coordinates.
+     * @return {Vec3} -
+     */
+    getSurfaceNormal3v(coord) {
+        let r2 = this._invRadii2;
+        let nx = coord.x * r2.x,
+            ny = coord.y * r2.y,
+            nz = coord.z * r2.z;
+        let l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+        return new Vec3(nx * l, ny * l, nz * l);
+    }
+
+    /**
+     *
+     * @param {LonLat} lonLat1
+     * @param {number} [bearing]
+     * @param {number} [distance]
+     * @return {LonLat} -
+     */
+    getBearingDestination(lonLat1, bearing = 0.0, distance = 0) {
+        bearing = bearing * RADIANS;
+        var nlon = ((lonLat1.lon + 540) % 360) - 180;
+        var f1 = lonLat1.lat * RADIANS,
+            l1 = nlon * RADIANS;
+        var dR = distance / this._a;
+        var f2 = Math.asin(
+            Math.sin(f1) * Math.cos(dR) + Math.cos(f1) * Math.sin(dR) * Math.cos(bearing)
+        );
+        return new LonLat(
+            (l1 +
+                Math.atan2(
+                    Math.sin(bearing) * Math.sin(dR) * Math.cos(f1),
+                    Math.cos(dR) - Math.sin(f1) * Math.sin(f2)
+                )) *
+            DEGREES,
+            f2 * DEGREES
+        );
+    }
+
+    /**
+     * Returns the distance from one point to another(using haversine formula) on the great circle.
+     * @param   {LonLat} lonLat1 - Longitude/latitude of source point.
+     * @param   {LonLat} lonLat2 - Longitude/latitude of destination point.
+     * @return {number} Distance between points.
+     */
+    getGreatCircleDistance(lonLat1, lonLat2) {
+        var dLat = (lonLat2.lat - lonLat1.lat) * RADIANS;
+        var dLon = (lonLat2.lon - lonLat1.lon) * RADIANS;
+        var a =
+            Math.sin(dLat / 2.0) * Math.sin(dLat / 2.0) +
+            Math.sin(dLon / 2.0) *
+            Math.sin(dLon / 2) *
+            Math.cos(lonLat1.lat * RADIANS) *
+            Math.cos(lonLat2.lat * RADIANS);
+        return this._a * 2.0 * Math.atan2(Math.sqrt(a), Math.sqrt(1.0 - a));
+    }
+
+    /**
+     * Calculates the destination point given start point lat / lon, bearing(deg) and distance (m).
+     *
+     * Taken from http://movable-type.co.uk/scripts/latlong-vincenty-direct.html and optimized / cleaned up by Mathias Bynens &lt;http://mathiasbynens.be/>
+     * Based on the Vincenty direct formula by T. Vincenty, “Direct and Inverse Solutions of Geodesics on the Ellipsoid with application of nested equations”, Survey Review, vol XXII no 176, 1975 &lt;http://www.ngs.noaa.gov/PUBS_LIB/inverse.pdf>
+     */
+    getGreatCircleDestination(lonLat, brng, dist) {
+        var lon1 = lonLat.lon,
+            lat1 = lonLat.lat;
+        var a = this._a,
+            b = this._b,
+            f = 1.0 / this._f,
+            s = dist,
+            alpha1 = brng * RADIANS,
+            sinAlpha1 = Math.sin(alpha1),
+            cosAlpha1 = Math.cos(alpha1),
+            tanU1 = (1 - f) * Math.tan(lat1 * RADIANS),
+            cosU1 = 1 / Math.sqrt(1 + tanU1 * tanU1),
+            sinU1 = tanU1 * cosU1,
+            sigma1 = Math.atan2(tanU1, cosAlpha1),
+            sinAlpha = cosU1 * sinAlpha1,
+            cosSqAlpha = 1 - sinAlpha * sinAlpha,
+            uSq = (cosSqAlpha * (a * a - b * b)) / (b * b),
+            A = 1 + (uSq / 16384) * (4096 + uSq * (-768 + uSq * (320 - 175 * uSq))),
+            B = (uSq / 1024) * (256 + uSq * (-128 + uSq * (74 - 47 * uSq))),
+            sigma = s / (b * A),
+            sigmaP = 2 * Math.PI;
+        while (Math.abs(sigma - sigmaP) > 1e-12) {
+            var cos2SigmaM = Math.cos(2 * sigma1 + sigma),
+                sinSigma = Math.sin(sigma),
+                cosSigma = Math.cos(sigma),
+                deltaSigma =
+                    B *
+                    sinSigma *
+                    (cos2SigmaM +
+                        (B / 4) *
+                        (cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM) -
+                            (B / 6) *
+                            cos2SigmaM *
+                            (-3 + 4 * sinSigma * sinSigma) *
+                            (-3 + 4 * cos2SigmaM * cos2SigmaM)));
+            sigmaP = sigma;
+            sigma = s / (b * A) + deltaSigma;
+        }
+        var tmp = sinU1 * sinSigma - cosU1 * cosSigma * cosAlpha1,
+            lat2 = Math.atan2(
+                sinU1 * cosSigma + cosU1 * sinSigma * cosAlpha1,
+                (1 - f) * Math.sqrt(sinAlpha * sinAlpha + tmp * tmp)
+            ),
+            lambda = Math.atan2(
+                sinSigma * sinAlpha1,
+                cosU1 * cosSigma - sinU1 * sinSigma * cosAlpha1
+            ),
+            C = (f / 16) * cosSqAlpha * (4 + f * (4 - 3 * cosSqAlpha)),
+            L =
+                lambda -
+                (1 - C) *
+                f *
+                sinAlpha *
+                (sigma +
+                    C *
+                    sinSigma *
+                    (cos2SigmaM + C * cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM))),
+            revAz = Math.atan2(sinAlpha, -tmp); // final bearing
+        return new LonLat(lon1 + L * DEGREES, lat2 * DEGREES);
+    }
+
+    /**
+     * Returns ray vector hit ellipsoid coordinates.
+     * If the ray doesn't hit ellipsoid returns null.
+     * @public
+     * @param {Vec3} origin - Ray origin point.
+     * @param {Vec3} direction - Ray direction.
+     * @returns {Vec3} -
+     */
+    hitRay(origin, direction) {
+        var q = this._invRadii.mul(origin);
+        var w = this._invRadii.mul(direction);
+
+        var q2 = q.dot(q);
+        var qw = q.dot(w);
+
+        var difference, w2, product, discriminant, temp;
+
+        if (q2 > 1.0) {
+            // Outside ellipsoid.
+            if (qw >= 0.0) {
+                // Looking outward or tangent (0 intersections).
+                return null;
+            }
+
+            // qw &lt; 0.0.
+            var qw2 = qw * qw;
+            difference = q2 - 1.0; // Positively valued.
+            w2 = w.dot(w);
+            product = w2 * difference;
+
+            let eps = Math.abs(qw2 - product);
+
+            if (eps > EPS15 &amp;&amp; qw2 &lt; product) {
+                // Imaginary roots (0 intersections).
+                return null;
+            } else if (qw2 > product) {
+                // Distinct roots (2 intersections).
+                discriminant = qw * qw - product;
+                temp = -qw + Math.sqrt(discriminant); // Avoid cancellation.
+                var root0 = temp / w2;
+                var root1 = difference / temp;
+                if (root0 &lt; root1) {
+                    return origin.add(direction.scaleTo(root0));
+                }
+                return origin.add(direction.scaleTo(root1));
+            } else {
+                // qw2 == product.  Repeated roots (2 intersections).
+                var root = Math.sqrt(difference / w2);
+                return origin.add(direction.scaleTo(root));
+            }
+        } else if (q2 &lt; 1.0) {
+            // Inside ellipsoid (2 intersections).
+            difference = q2 - 1.0; // Negatively valued.
+            w2 = w.dot(w);
+            product = w2 * difference; // Negatively valued.
+            discriminant = qw * qw - product;
+            temp = -qw + Math.sqrt(discriminant); // Positively valued.
+            return origin.add(direction.scaleTo(temp / w2));
+        } else {
+            // q2 == 1.0. On ellipsoid.
+            if (qw &lt; 0.0) {
+                // Looking inward.
+                w2 = w.dot(w);
+                return origin.add(direction.scaleTo(-qw / w2));
+            }
+            // qw >= 0.0.  Looking outward or tangent.
+            return null;
+        }
+    }
+}
+
+export { Ellipsoid };
+</code></pre></article></section></div></div></div><div class="search-container" id="PkfLWpAbet" style="display:none"><div class="wrapper" id="iCxFxjkHbP"><button class="icon-button search-close-button" id="VjLlGakifb" aria-label="close search"><svg><use xlink:href="#close-icon"></use></svg></button><div class="search-box-c"><svg><use xlink:href="#search-icon"></use></svg> <input type="text" id="vpcKVYIppa" class="search-input" placeholder="Search..." autofocus></div><div class="search-result-c" id="fWwVHRuDuN"><span class="search-result-c-text">Type anything to view search result</span></div></div></div><div class="mobile-menu-icon-container"><button class="icon-button" id="mobile-menu" data-isopen="false" aria-label="menu"><svg><use xlink:href="#menu-icon"></use></svg></button></div><div id="mobile-sidebar" class="mobile-sidebar-container"><div class="mobile-sidebar-wrapper"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="mobile-nav-links"></div><div class="mobile-sidebar-items-c"><div class="sidebar-section-title with-arrow" data-isopen="false" id="TDK6dKokNsqfiRkzdo6U2"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-og_Clock.html">og/Clock</a></div><div class="sidebar-section-children"><a href="module-og_Events.html">og/Events</a></div><div class="sidebar-section-children"><a href="module-og_Extent.html">og/Extent</a></div><div class="sidebar-section-children"><a href="module-og_Globe.html">og/Globe</a></div><div class="sidebar-section-children"><a href="module-og_ImageCanvas.html">og/ImageCanvas</a></div><div class="sidebar-section-children"><a href="module-og_Lock.html">og/Lock</a></div><div class="sidebar-section-children"><a href="module-og_LonLat.html">og/LonLat</a></div><div class="sidebar-section-children"><a href="module-og_Stack.html">og/Stack</a></div><div class="sidebar-section-children"><a href="module-og_astro_earth.html">og/astro/earth</a></div><div class="sidebar-section-children"><a href="module-og_astro_jd.html">og/astro/jd</a></div><div class="sidebar-section-children"><a href="module-og_astro_orbit.html">og/astro/orbit</a></div><div class="sidebar-section-children"><a href="module-og_astro_rotation.html">og/astro/rotation</a></div><div class="sidebar-section-children"><a href="module-og_bv_Box.html">og/bv/Box</a></div><div class="sidebar-section-children"><a href="module-og_bv_Sphere.html">og/bv/Sphere</a></div><div class="sidebar-section-children"><a href="module-og_camera_PlanetCamera.html">og/camera/PlanetCamera</a></div><div class="sidebar-section-children"><a href="module-og_control_Atmosphere.html">og/control/Atmosphere</a></div><div class="sidebar-section-children"><a href="module-og_control_Control.html">og/control/Control</a></div><div class="sidebar-section-children"><a href="module-og_control_DebugInfo.html">og/control/DebugInfo</a></div><div class="sidebar-section-children"><a href="module-og_control_GeoImageDragControl.html">og/control/GeoImageDragControl</a></div><div class="sidebar-section-children"><a href="module-og_control_KeyboardNavigation.html">og/control/KeyboardNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerAnimation.html">og/control/LayerAnimation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerSwitcher.html">og/control/LayerSwitcher</a></div><div class="sidebar-section-children"><a href="module-og_control_Lighting.html">og/control/Lighting</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseNavigation.html">og/control/MouseNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseWheelZoomControl.html">og/control/MouseWheelZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler.html">og/control/Ruler</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler.html">og/control/Ruler</a></div><div class="sidebar-section-children"><a href="module-og_control_Selector.html">og/control/Selector</a></div><div class="sidebar-section-children"><a href="module-og_control_ShowFps.html">og/control/ShowFps</a></div><div class="sidebar-section-children"><a href="module-og_control_SimpleSkyBackground.html">og/control/SimpleSkyBackground</a></div><div class="sidebar-section-children"><a href="module-og_control_Sun.html">og/control/Sun</a></div><div class="sidebar-section-children"><a href="module-og_control_ToggleWireframe.html">og/control/ToggleWireframe</a></div><div class="sidebar-section-children"><a href="module-og_control_TouchNavigation.html">og/control/TouchNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl.html">og/control/ZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl.html">og/control/ZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_ellipsoid_Ellipsoid.html">og/ellipsoid/Ellipsoid</a></div><div class="sidebar-section-children"><a href="module-og_ellipsoid_wgs84.html">og/ellipsoid/wgs84</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard.html">og/entity/BaseBillboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard.html">og/entity/BaseBillboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_Billboard.html">og/entity/Billboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_BillboardHandler.html">og/entity/BillboardHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Entity.html">og/entity/Entity</a></div><div class="sidebar-section-children"><a href="module-og_entity_EntityCollection.html">og/entity/EntityCollection</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeoObject.html">og/entity/GeoObject</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeoObjectHandler.html">og/entity/GeoObjectHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Geometry.html">og/entity/Geometry</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeometryHandler.html">og/entity/GeometryHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Label.html">og/entity/Label</a></div><div class="sidebar-section-children"><a href="module-og_entity_LabelHandler.html">og/entity/LabelHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_PointCloud.html">og/entity/PointCloud</a></div><div class="sidebar-section-children"><a href="module-og_entity_PointCloudHandler.html">og/entity/PointCloudHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Polyline.html">og/entity/Polyline</a></div><div class="sidebar-section-children"><a href="module-og_entity_PolylineHandler.html">og/entity/PolylineHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_KeyboardHandler.html">og/input/KeyboardHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_MouseHandler.html">og/input/MouseHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_TouchHandler.html">og/input/TouchHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_input.html">og/input/input</a></div><div class="sidebar-section-children"><a href="module-og_layer_BaseGeoImage.html">og/layer/BaseGeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_CanvasTiles.html">og/layer/CanvasTiles</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoImage.html">og/layer/GeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoTexture2d.html">og/layer/GeoTexture2d</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoVideo.html">og/layer/GeoVideo</a></div><div class="sidebar-section-children"><a href="module-og_layer_KML.html">og/layer/KML</a></div><div class="sidebar-section-children"><a href="module-og_layer_Layer.html">og/layer/Layer</a></div><div class="sidebar-section-children"><a href="module-og_layer_Material.html">og/layer/Material</a></div><div class="sidebar-section-children"><a href="module-og_layer_Vector.html">og/layer/Vector</a></div><div class="sidebar-section-children"><a href="module-og_layer_WMS.html">og/layer/WMS</a></div><div class="sidebar-section-children"><a href="module-og_layer_XYZ.html">og/layer/XYZ</a></div><div class="sidebar-section-children"><a href="module-og_light_LightSource.html">og/light/LightSource</a></div><div class="sidebar-section-children"><a href="module-og_math.html">og/math</a></div><div class="sidebar-section-children"><a href="module-og_math_Line2.html">og/math/Line2</a></div><div class="sidebar-section-children"><a href="module-og_math_Mat3.html">og/math/Mat3</a></div><div class="sidebar-section-children"><a href="module-og_math_Ray.html">og/math/Ray</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec2.html">og/math/Vec2</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec3.html">og/math/Vec3</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec4.html">og/math/Vec4</a></div><div class="sidebar-section-children"><a href="module-og_math_coder.html">og/math/coder</a></div><div class="sidebar-section-children"><a href="module-og_mercator.html">og/mercator</a></div><div class="sidebar-section-children"><a href="module-og_proj_EPSG3857.html">og/proj/EPSG3857</a></div><div class="sidebar-section-children"><a href="module-og_proj_EPSG4326.html">og/proj/EPSG4326</a></div><div class="sidebar-section-children"><a href="module-og_proj_Proj.html">og/proj/Proj</a></div><div class="sidebar-section-children"><a href="module-og_quadTree_EntityCollectionNode.html">og/quadTree/EntityCollectionNode</a></div><div class="sidebar-section-children"><a href="module-og_renderer_RendererEvents.html">og/renderer/RendererEvents</a></div><div class="sidebar-section-children"><a href="module-og_scene_Axes.html">og/scene/Axes</a></div><div class="sidebar-section-children"><a href="module-og_scene_BaseNode.html">og/scene/BaseNode</a></div><div class="sidebar-section-children"><a href="module-og_scene_Planet.html">og/scene/Planet</a></div><div class="sidebar-section-children"><a href="module-og_scene_SkyBox.html">og/scene/SkyBox</a></div><div class="sidebar-section-children"><a href="module-og_shaders_billboard.html">og/shaders/billboard</a></div><div class="sidebar-section-children"><a href="module-og_shaders_drawnode.html">og/shaders/drawnode</a></div><div class="sidebar-section-children"><a href="module-og_shaders_drawnode.html">og/shaders/drawnode</a></div><div class="sidebar-section-children"><a href="module-og_shaders_drawnode.html">og/shaders/drawnode</a></div><div class="sidebar-section-children"><a href="module-og_shaders_label.html">og/shaders/label</a></div><div class="sidebar-section-children"><a href="module-og_shaders_pickingMask.html">og/shaders/pickingMask</a></div><div class="sidebar-section-children"><a href="module-og_shaders_pointCloud.html">og/shaders/pointCloud</a></div><div class="sidebar-section-children"><a href="module-og_shaders_polyline.html">og/shaders/polyline</a></div><div class="sidebar-section-children"><a href="module-og_shaders_ray.html">og/shaders/ray</a></div><div class="sidebar-section-children"><a href="module-og_shaders_skybox.html">og/shaders/skybox</a></div><div class="sidebar-section-children"><a href="module-og_terrainProvider_EmptyTerrain.html">og/terrainProvider/EmptyTerrain</a></div><div class="sidebar-section-children"><a href="module-og_utils_FontAtlas.html">og/utils/FontAtlas</a></div><div class="sidebar-section-children"><a href="module-og_utils_NormalMapCreator.html">og/utils/NormalMapCreator</a></div><div class="sidebar-section-children"><a href="module-og_utils_VectorTileCreator.html">og/utils/VectorTileCreator</a></div><div class="sidebar-section-children"><a href="module-og_utils_earcut.html">og/utils/earcut</a></div><div class="sidebar-section-children"><a href="module-og_utils_shared.html">og/utils/shared</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Framebuffer.html">og/webgl/Framebuffer</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Handler.html">og/webgl/Handler</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Multisample.html">og/webgl/Multisample</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Program.html">og/webgl/Program</a></div><div class="sidebar-section-children"><a href="module-og_webgl_callbacks.html">og/webgl/callbacks</a></div><div class="sidebar-section-children"><a href="module-og_webgl_types.html">og/webgl/types</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="_zSyzM5GLJxvA5SOCBl0C"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="Camera.html">Camera</a></div><div class="sidebar-section-children"><a href="CompassButton.html">CompassButton</a></div><div class="sidebar-section-children"><a href="Cons.html">Cons</a></div><div class="sidebar-section-children"><a href="EarthCoordinates.html">EarthCoordinates</a></div><div class="sidebar-section-children"><a href="Frustum.html">Frustum</a></div><div class="sidebar-section-children"><a href="GlobusTerrain.html">GlobusTerrain</a></div><div class="sidebar-section-children"><a href="Mat4.html">Mat4</a></div><div class="sidebar-section-children"><a href="Node.html">Node</a></div><div class="sidebar-section-children"><a href="Plane.html">Plane</a></div><div class="sidebar-section-children"><a href="ProgramController.html">ProgramController</a></div><div class="sidebar-section-children"><a href="Quat.html">Quat</a></div><div class="sidebar-section-children"><a href="QueueArray.html">QueueArray</a></div><div class="sidebar-section-children"><a href="Rectangle.html">Rectangle</a></div><div class="sidebar-section-children"><a href="RenderNode.html">RenderNode</a></div><div class="sidebar-section-children"><a href="Segment.html">Segment</a></div><div class="sidebar-section-children"><a href="Segment.html">Segment</a></div><div class="sidebar-section-children"><a href="SegmentBoundVisualization.html">SegmentBoundVisualization</a></div><div class="sidebar-section-children"><a href="SegmentLonLat.html">SegmentLonLat</a></div><div class="sidebar-section-children"><a href="SimpleNavigation.html">SimpleNavigation</a></div><div class="sidebar-section-children"><a href="Strip.html">Strip</a></div><div class="sidebar-section-children"><a href="TextureAtlas.html">TextureAtlas</a></div><div class="sidebar-section-children"><a href="TextureAtlasNode.html">TextureAtlasNode</a></div><div class="sidebar-section-children"><a href="VisibleExtent.html">VisibleExtent</a></div><div class="sidebar-section-children"><a href="-__resizeTimeout.html">__resizeTimeout</a></div><div class="sidebar-section-children"><a href="module-og_Clock-Clock.html">Clock</a></div><div class="sidebar-section-children"><a href="module-og_Events-Events.html">Events</a></div><div class="sidebar-section-children"><a href="module-og_Extent.Extent.html">Extent</a></div><div class="sidebar-section-children"><a href="module-og_Globe-Globe.html">Globe</a></div><div class="sidebar-section-children"><a href="module-og_ImageCanvas-ImageCanvas.html">ImageCanvas</a></div><div class="sidebar-section-children"><a href="module-og_LonLat.LonLat.html">LonLat</a></div><div class="sidebar-section-children"><a href="module-og_Stack-Stack.html">Stack</a></div><div class="sidebar-section-children"><a href="module-og_bv_Box-Box.html">Box</a></div><div class="sidebar-section-children"><a href="module-og_bv_Sphere-Sphere.html">Sphere</a></div><div class="sidebar-section-children"><a href="module-og_camera_PlanetCamera-PlanetCamera.html">PlanetCamera</a></div><div class="sidebar-section-children"><a href="module-og_control_Atmosphere-Atmosphere.html">Atmosphere</a></div><div class="sidebar-section-children"><a href="module-og_control_Control-Control.html">Control</a></div><div class="sidebar-section-children"><a href="module-og_control_DebugInfo-DebugInfo.html">DebugInfo</a></div><div class="sidebar-section-children"><a href="module-og_control_KeyboardNavigation-KeyboardNavigation.html">KeyboardNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerAnimation-LayerAnimation.html">LayerAnimation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerSwitcher-LayerSwitcher.html">LayerSwitcher</a></div><div class="sidebar-section-children"><a href="module-og_control_Lighting-ICON_BUTTON_SVG.html">ICON_BUTTON_SVG</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseNavigation-MouseNavigation.html">MouseNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseWheelZoomControl-MouseWheelZoomControl.html">MouseWheelZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler-Ruler.html">Ruler</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler-RulerSwitcher.html">RulerSwitcher</a></div><div class="sidebar-section-children"><a href="module-og_control_Selector-Selection.html">Selection</a></div><div class="sidebar-section-children"><a href="module-og_control_ShowFps-ShowFps.html">ShowFps</a></div><div class="sidebar-section-children"><a href="module-og_control_SimpleSkyBackground-SimpleSkyBackground.html">SimpleSkyBackground</a></div><div class="sidebar-section-children"><a href="module-og_control_Sun-Sun.html">Sun</a></div><div class="sidebar-section-children"><a href="module-og_control_ToggleWireframe-ToggleWireframe.html">ToggleWireframe</a></div><div class="sidebar-section-children"><a href="module-og_control_TouchNavigation-TouchNavigation.html">TouchNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl-ScaleControl.html">ScaleControl</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl-ZoomControl.html">ZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_ellipsoid_Ellipsoid-Ellipsoid.html">Ellipsoid</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard-BaseBillboard.html">BaseBillboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard-Ray.html">Ray</a></div><div class="sidebar-section-children"><a href="module-og_entity_BillboardHandler-BillboardHandler.html">BillboardHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Billboard-Billboard.html">Billboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_EntityCollection-EntityCollection.html">EntityCollection</a></div><div class="sidebar-section-children"><a href="module-og_entity_Entity-Entity.html">Entity</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeoObject-GeoObject.html">GeoObject</a></div><div class="sidebar-section-children"><a href="module-og_entity_LabelHandler-LabelHandler.html">LabelHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Label-Label.html">Label</a></div><div class="sidebar-section-children"><a href="module-og_entity_PointCloud-PointCloud.html">PointCloud</a></div><div class="sidebar-section-children"><a href="module-og_entity_Polyline-Polyline.html">Polyline</a></div><div class="sidebar-section-children"><a href="module-og_layer_BaseGeoImage-BaseGeoImage.html">BaseGeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_CanvasTiles-CanvasTiles.html">CanvasTiles</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoImage-GeoImage.html">GeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoVideo-GeoVideo.html">GeoVideo</a></div><div class="sidebar-section-children"><a href="module-og_layer_KML.KML.html">KML</a></div><div class="sidebar-section-children"><a href="module-og_layer_Layer-Layer.html">Layer</a></div><div class="sidebar-section-children"><a href="module-og_layer_Material-Material.html">Material</a></div><div class="sidebar-section-children"><a href="module-og_layer_Vector-Vector.html">Vector</a></div><div class="sidebar-section-children"><a href="module-og_layer_WMS-WMS.html">WMS</a></div><div class="sidebar-section-children"><a href="module-og_layer_XYZ-XYZ.html">XYZ</a></div><div class="sidebar-section-children"><a href="module-og_light_LightSource-LightSource.html">LightSource</a></div><div class="sidebar-section-children"><a href="module-og_math_Mat3.Mat3.html">Mat3</a></div><div class="sidebar-section-children"><a href="module-og_math_Ray.Ray.html">Ray</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec2.Vec2.html">Vec2</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec3.Vec3.html">Vec3</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec4.Vec4.html">Vec4</a></div><div class="sidebar-section-children"><a href="module-og_renderer_RendererEvents-RendererEvents.html">RendererEvents</a></div><div class="sidebar-section-children"><a href="module-og_scene_BaseNode-BaseNode.html">BaseNode</a></div><div class="sidebar-section-children"><a href="module-og_scene_Planet.Planet.html">Planet</a></div><div class="sidebar-section-children"><a href="module-og_terrainProvider_EmptyTerrain-EmptyTerrain.html">EmptyTerrain</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Framebuffer.Framebuffer.html">Framebuffer</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Handler-Handler.html">Handler</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Multisample.Multisample.html">Multisample</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Program-Program.html">Program</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="_mtSCD_-Y8oZXn_4TBH69"><div>Events</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="og.Camera.html#event:moveend">moveend</a></div><div class="sidebar-section-children"><a href="og.Camera.html#event:viewchange">viewchange</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:add">add</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:doubletouch">doubletouch</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:drawend">drawend</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:entityadd">entityadd</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:entitymove">entitymove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:entityremove">entityremove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:lclick">lclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:ldblclick">ldblclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:ldown">ldown</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:lhold">lhold</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:lup">lup</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mclick">mclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mdblclick">mdblclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mdown">mdown</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mhold">mhold</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mouseleave">mouseleave</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mousemove">mousemove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mousewheel">mousewheel</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mup">mup</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rclick">rclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rdblclick">rdblclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rdown">rdown</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:remove">remove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rhold">rhold</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rup">rup</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchend">touchend</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchenter">touchenter</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchleave">touchleave</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchmove">touchmove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchstart">touchstart</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:visibilitychange">visibilitychange</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:add">add</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:doubletouch">doubletouch</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:lclick">lclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:ldblclick">ldblclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:ldown">ldown</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:lhold">lhold</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:lup">lup</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mclick">mclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mdblclick">mdblclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mdown">mdown</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mhold">mhold</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mousemove">mousemove</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mousewheel">mousewheel</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mup">mup</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rclick">rclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rdblclick">rdblclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rdown">rdown</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:remove">remove</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rhold">rhold</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rup">rup</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchend">touchend</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchenter">touchenter</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchleave">touchleave</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchmove">touchmove</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchstart">touchstart</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:visibilitychange">visibilitychange</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:doubletouch">doubletouch</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:lclick">lclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:ldblclick">ldblclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:ldown">ldown</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:lhold">lhold</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:lup">lup</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mclick">mclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mdblclick">mdblclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mdown">mdown</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mhold">mhold</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mouseleave">mouseleave</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mousemove">mousemove</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mousestop">mousestop</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mousewheel">mousewheel</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mup">mup</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:postdraw">postdraw</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rclick">rclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rdblclick">rdblclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rdown">rdown</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:resize">resize</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:resizeend">resizeend</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rhold">rhold</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rup">rup</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchcancel">touchcancel</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchend">touchend</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchenter">touchenter</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchleave">touchleave</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchmove">touchmove</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchstart">touchstart</a></div><div class="sidebar-section-children"><a href="og.layer.BaseGeoImage.html#event:loadend">loadend</a></div><div class="sidebar-section-children"><a href="og.layer.CanvasTiles.html#event:load">load</a></div><div class="sidebar-section-children"><a href="og.layer.CanvasTiles.html#event:loadend">loadend</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:entityadd">entityadd</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:entityremove">entityremove</a></div><div class="sidebar-section-children"><a href="og.layer.XYZ.html#event:load">load</a></div><div class="sidebar-section-children"><a href="og.layer.XYZ.html#event:loadend">loadend</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:baselayerchange">baselayerchange</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:layeradd">layeradd</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:layerremove">layerremove</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:layervisibilitychange">layervisibilitychange</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:rendercompleted">rendercompleted</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:terraincompleted">terraincompleted</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:terraincompleted">terraincompleted</a></div><div class="sidebar-section-children"><a href="og.terrain.GlobusTerrain.html#event:load">load</a></div><div class="sidebar-section-children"><a href="og.terrain.GlobusTerrain.html#event:loadend">loadend</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="v6wPh3JHtlq2x2yaNvv0a"><div>Global</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="global.html#AU_TO_METERS">AU_TO_METERS</a></div><div class="sidebar-section-children"><a href="global.html#COMSIDE">COMSIDE</a></div><div class="sidebar-section-children"><a href="global.html#EARTH_GRAVITATIONAL_PARAMETER">EARTH_GRAVITATIONAL_PARAMETER</a></div><div class="sidebar-section-children"><a href="global.html#J2000_OBLIQUITY">J2000_OBLIQUITY</a></div><div class="sidebar-section-children"><a href="global.html#NEIGHBOUR">NEIGHBOUR</a></div><div class="sidebar-section-children"><a href="global.html#NOPSORD">NOPSORD</a></div><div class="sidebar-section-children"><a href="global.html#OPPART">OPPART</a></div><div class="sidebar-section-children"><a href="global.html#OPSIDE">OPSIDE</a></div><div class="sidebar-section-children"><a href="global.html#PARTOFFSET">PARTOFFSET</a></div><div class="sidebar-section-children"><a href="global.html#SUN_GRAVITATIONAL_PARAMETER">SUN_GRAVITATIONAL_PARAMETER</a></div><div class="sidebar-section-children"><a href="global.html#TAItoTDB">TAItoTDB</a></div><div class="sidebar-section-children"><a href="global.html#TDT_TAI">TDT_TAI</a></div><div class="sidebar-section-children"><a href="global.html#equationCallback">equationCallback</a></div><div class="sidebar-section-children"><a href="global.html#mat4">mat4</a></div><div class="sidebar-section-children"><a href="global.html#quat">quat</a></div><div class="sidebar-section-children"><a href="global.html#simpleNavigation">simpleNavigation</a></div></div></div><div class="mobile-navbar-actions"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#light-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div></div></div><script type="text/javascript" src="scripts/core.min.js"></script><script src="scripts/search.min.js" defer="defer"></script><script src="scripts/third-party/fuse.js" defer="defer"></script><script type="text/javascript">var tocbotInstance=tocbot.init({tocSelector:"#eed4d2a0bfd64539bb9df78095dec881",contentSelector:".main-content",headingSelector:"h1, h2, h3",hasInnerContainers:!0,scrollContainer:".main-content",headingsOffset:130,onClick:bringLinkToView})</script></body></html>

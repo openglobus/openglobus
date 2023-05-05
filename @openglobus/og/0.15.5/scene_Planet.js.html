@@ -1,0 +1,1939 @@
+<!DOCTYPE html><html lang="en" style="font-size:16px"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Source: scene/Planet.js</title><!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]--><script src="scripts/third-party/hljs.js" defer="defer"></script><script src="scripts/third-party/hljs-line-num.js" defer="defer"></script><script src="scripts/third-party/popper.js" defer="defer"></script><script src="scripts/third-party/tippy.js" defer="defer"></script><script src="scripts/third-party/tocbot.min.js"></script><script>var baseURL="/",locationPathname="",baseURL=(locationPathname=document.location.pathname).substr(0,locationPathname.lastIndexOf("/")+1)</script><link rel="stylesheet" href="styles/clean-jsdoc-theme.min.css"><svg aria-hidden="true" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display:none"><defs><symbol id="copy-icon" viewbox="0 0 488.3 488.3"><g><path d="M314.25,85.4h-227c-21.3,0-38.6,17.3-38.6,38.6v325.7c0,21.3,17.3,38.6,38.6,38.6h227c21.3,0,38.6-17.3,38.6-38.6V124    C352.75,102.7,335.45,85.4,314.25,85.4z M325.75,449.6c0,6.4-5.2,11.6-11.6,11.6h-227c-6.4,0-11.6-5.2-11.6-11.6V124    c0-6.4,5.2-11.6,11.6-11.6h227c6.4,0,11.6,5.2,11.6,11.6V449.6z"/><path d="M401.05,0h-227c-21.3,0-38.6,17.3-38.6,38.6c0,7.5,6,13.5,13.5,13.5s13.5-6,13.5-13.5c0-6.4,5.2-11.6,11.6-11.6h227    c6.4,0,11.6,5.2,11.6,11.6v325.7c0,6.4-5.2,11.6-11.6,11.6c-7.5,0-13.5,6-13.5,13.5s6,13.5,13.5,13.5c21.3,0,38.6-17.3,38.6-38.6    V38.6C439.65,17.3,422.35,0,401.05,0z"/></g></symbol><symbol id="search-icon" viewBox="0 0 512 512"><g><g><path d="M225.474,0C101.151,0,0,101.151,0,225.474c0,124.33,101.151,225.474,225.474,225.474    c124.33,0,225.474-101.144,225.474-225.474C450.948,101.151,349.804,0,225.474,0z M225.474,409.323    c-101.373,0-183.848-82.475-183.848-183.848S124.101,41.626,225.474,41.626s183.848,82.475,183.848,183.848    S326.847,409.323,225.474,409.323z"/></g></g><g><g><path d="M505.902,476.472L386.574,357.144c-8.131-8.131-21.299-8.131-29.43,0c-8.131,8.124-8.131,21.306,0,29.43l119.328,119.328    c4.065,4.065,9.387,6.098,14.715,6.098c5.321,0,10.649-2.033,14.715-6.098C514.033,497.778,514.033,484.596,505.902,476.472z"/></g></g></symbol><symbol id="font-size-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11.246 15H4.754l-2 5H.6L7 4h2l6.4 16h-2.154l-2-5zm-.8-2L8 6.885 5.554 13h4.892zM21 12.535V12h2v8h-2v-.535a4 4 0 1 1 0-6.93zM19 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></symbol><symbol id="add-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></symbol><symbol id="minus-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M5 11h14v2H5z"/></symbol><symbol id="dark-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></symbol><symbol id="light-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></symbol><symbol id="reset-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M18.537 19.567A9.961 9.961 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 2.136-.67 4.116-1.81 5.74L17 12h3a8 8 0 1 0-2.46 5.772l.997 1.795z"/></symbol><symbol id="down-icon" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path></symbol><symbol id="codepen-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M16.5 13.202L13 15.535v3.596L19.197 15 16.5 13.202zM14.697 12L12 10.202 9.303 12 12 13.798 14.697 12zM20 10.869L18.303 12 20 13.131V10.87zM19.197 9L13 4.869v3.596l3.5 2.333L19.197 9zM7.5 10.798L11 8.465V4.869L4.803 9 7.5 10.798zM4.803 15L11 19.131v-3.596l-3.5-2.333L4.803 15zM4 13.131L5.697 12 4 10.869v2.262zM2 9a1 1 0 0 1 .445-.832l9-6a1 1 0 0 1 1.11 0l9 6A1 1 0 0 1 22 9v6a1 1 0 0 1-.445.832l-9 6a1 1 0 0 1-1.11 0l-9-6A1 1 0 0 1 2 15V9z"/></symbol><symbol id="close-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"/></symbol><symbol id="menu-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/></symbol></defs></svg></head><body class="dark" data-theme="dark"><div class="sidebar-container"><div class="sidebar" id="sidebar"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="sidebar-items-container"><div class="sidebar-section-title with-arrow" data-isopen="false" id="TDK6dKokNsqfiRkzdo6U2"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-og_Clock.html">og/Clock</a></div><div class="sidebar-section-children"><a href="module-og_Events.html">og/Events</a></div><div class="sidebar-section-children"><a href="module-og_Extent.html">og/Extent</a></div><div class="sidebar-section-children"><a href="module-og_Globe.html">og/Globe</a></div><div class="sidebar-section-children"><a href="module-og_ImageCanvas.html">og/ImageCanvas</a></div><div class="sidebar-section-children"><a href="module-og_Lock.html">og/Lock</a></div><div class="sidebar-section-children"><a href="module-og_LonLat.html">og/LonLat</a></div><div class="sidebar-section-children"><a href="module-og_Stack.html">og/Stack</a></div><div class="sidebar-section-children"><a href="module-og_astro_earth.html">og/astro/earth</a></div><div class="sidebar-section-children"><a href="module-og_astro_jd.html">og/astro/jd</a></div><div class="sidebar-section-children"><a href="module-og_astro_orbit.html">og/astro/orbit</a></div><div class="sidebar-section-children"><a href="module-og_astro_rotation.html">og/astro/rotation</a></div><div class="sidebar-section-children"><a href="module-og_bv_Box.html">og/bv/Box</a></div><div class="sidebar-section-children"><a href="module-og_bv_Sphere.html">og/bv/Sphere</a></div><div class="sidebar-section-children"><a href="module-og_camera_PlanetCamera.html">og/camera/PlanetCamera</a></div><div class="sidebar-section-children"><a href="module-og_control_Atmosphere.html">og/control/Atmosphere</a></div><div class="sidebar-section-children"><a href="module-og_control_Control.html">og/control/Control</a></div><div class="sidebar-section-children"><a href="module-og_control_DebugInfo.html">og/control/DebugInfo</a></div><div class="sidebar-section-children"><a href="module-og_control_GeoImageDragControl.html">og/control/GeoImageDragControl</a></div><div class="sidebar-section-children"><a href="module-og_control_KeyboardNavigation.html">og/control/KeyboardNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerAnimation.html">og/control/LayerAnimation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerSwitcher.html">og/control/LayerSwitcher</a></div><div class="sidebar-section-children"><a href="module-og_control_Lighting.html">og/control/Lighting</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseNavigation.html">og/control/MouseNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseWheelZoomControl.html">og/control/MouseWheelZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler.html">og/control/Ruler</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler.html">og/control/Ruler</a></div><div class="sidebar-section-children"><a href="module-og_control_Selector.html">og/control/Selector</a></div><div class="sidebar-section-children"><a href="module-og_control_ShowFps.html">og/control/ShowFps</a></div><div class="sidebar-section-children"><a href="module-og_control_SimpleSkyBackground.html">og/control/SimpleSkyBackground</a></div><div class="sidebar-section-children"><a href="module-og_control_Sun.html">og/control/Sun</a></div><div class="sidebar-section-children"><a href="module-og_control_ToggleWireframe.html">og/control/ToggleWireframe</a></div><div class="sidebar-section-children"><a href="module-og_control_TouchNavigation.html">og/control/TouchNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl.html">og/control/ZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl.html">og/control/ZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_ellipsoid_Ellipsoid.html">og/ellipsoid/Ellipsoid</a></div><div class="sidebar-section-children"><a href="module-og_ellipsoid_wgs84.html">og/ellipsoid/wgs84</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard.html">og/entity/BaseBillboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard.html">og/entity/BaseBillboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_Billboard.html">og/entity/Billboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_BillboardHandler.html">og/entity/BillboardHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Entity.html">og/entity/Entity</a></div><div class="sidebar-section-children"><a href="module-og_entity_EntityCollection.html">og/entity/EntityCollection</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeoObject.html">og/entity/GeoObject</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeoObjectHandler.html">og/entity/GeoObjectHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Geometry.html">og/entity/Geometry</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeometryHandler.html">og/entity/GeometryHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Label.html">og/entity/Label</a></div><div class="sidebar-section-children"><a href="module-og_entity_LabelHandler.html">og/entity/LabelHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_PointCloud.html">og/entity/PointCloud</a></div><div class="sidebar-section-children"><a href="module-og_entity_PointCloudHandler.html">og/entity/PointCloudHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Polyline.html">og/entity/Polyline</a></div><div class="sidebar-section-children"><a href="module-og_entity_PolylineHandler.html">og/entity/PolylineHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_KeyboardHandler.html">og/input/KeyboardHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_MouseHandler.html">og/input/MouseHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_TouchHandler.html">og/input/TouchHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_input.html">og/input/input</a></div><div class="sidebar-section-children"><a href="module-og_layer_BaseGeoImage.html">og/layer/BaseGeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_CanvasTiles.html">og/layer/CanvasTiles</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoImage.html">og/layer/GeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoTexture2d.html">og/layer/GeoTexture2d</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoVideo.html">og/layer/GeoVideo</a></div><div class="sidebar-section-children"><a href="module-og_layer_KML.html">og/layer/KML</a></div><div class="sidebar-section-children"><a href="module-og_layer_Layer.html">og/layer/Layer</a></div><div class="sidebar-section-children"><a href="module-og_layer_Material.html">og/layer/Material</a></div><div class="sidebar-section-children"><a href="module-og_layer_Vector.html">og/layer/Vector</a></div><div class="sidebar-section-children"><a href="module-og_layer_WMS.html">og/layer/WMS</a></div><div class="sidebar-section-children"><a href="module-og_layer_XYZ.html">og/layer/XYZ</a></div><div class="sidebar-section-children"><a href="module-og_light_LightSource.html">og/light/LightSource</a></div><div class="sidebar-section-children"><a href="module-og_math.html">og/math</a></div><div class="sidebar-section-children"><a href="module-og_math_Line2.html">og/math/Line2</a></div><div class="sidebar-section-children"><a href="module-og_math_Mat3.html">og/math/Mat3</a></div><div class="sidebar-section-children"><a href="module-og_math_Ray.html">og/math/Ray</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec2.html">og/math/Vec2</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec3.html">og/math/Vec3</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec4.html">og/math/Vec4</a></div><div class="sidebar-section-children"><a href="module-og_math_coder.html">og/math/coder</a></div><div class="sidebar-section-children"><a href="module-og_mercator.html">og/mercator</a></div><div class="sidebar-section-children"><a href="module-og_proj_EPSG3857.html">og/proj/EPSG3857</a></div><div class="sidebar-section-children"><a href="module-og_proj_EPSG4326.html">og/proj/EPSG4326</a></div><div class="sidebar-section-children"><a href="module-og_proj_Proj.html">og/proj/Proj</a></div><div class="sidebar-section-children"><a href="module-og_quadTree_EntityCollectionNode.html">og/quadTree/EntityCollectionNode</a></div><div class="sidebar-section-children"><a href="module-og_renderer_RendererEvents.html">og/renderer/RendererEvents</a></div><div class="sidebar-section-children"><a href="module-og_scene_Axes.html">og/scene/Axes</a></div><div class="sidebar-section-children"><a href="module-og_scene_BaseNode.html">og/scene/BaseNode</a></div><div class="sidebar-section-children"><a href="module-og_scene_Planet.html">og/scene/Planet</a></div><div class="sidebar-section-children"><a href="module-og_scene_SkyBox.html">og/scene/SkyBox</a></div><div class="sidebar-section-children"><a href="module-og_shaders_billboard.html">og/shaders/billboard</a></div><div class="sidebar-section-children"><a href="module-og_shaders_drawnode.html">og/shaders/drawnode</a></div><div class="sidebar-section-children"><a href="module-og_shaders_drawnode.html">og/shaders/drawnode</a></div><div class="sidebar-section-children"><a href="module-og_shaders_drawnode.html">og/shaders/drawnode</a></div><div class="sidebar-section-children"><a href="module-og_shaders_label.html">og/shaders/label</a></div><div class="sidebar-section-children"><a href="module-og_shaders_pickingMask.html">og/shaders/pickingMask</a></div><div class="sidebar-section-children"><a href="module-og_shaders_pointCloud.html">og/shaders/pointCloud</a></div><div class="sidebar-section-children"><a href="module-og_shaders_polyline.html">og/shaders/polyline</a></div><div class="sidebar-section-children"><a href="module-og_shaders_ray.html">og/shaders/ray</a></div><div class="sidebar-section-children"><a href="module-og_shaders_skybox.html">og/shaders/skybox</a></div><div class="sidebar-section-children"><a href="module-og_terrainProvider_EmptyTerrain.html">og/terrainProvider/EmptyTerrain</a></div><div class="sidebar-section-children"><a href="module-og_utils_FontAtlas.html">og/utils/FontAtlas</a></div><div class="sidebar-section-children"><a href="module-og_utils_NormalMapCreator.html">og/utils/NormalMapCreator</a></div><div class="sidebar-section-children"><a href="module-og_utils_VectorTileCreator.html">og/utils/VectorTileCreator</a></div><div class="sidebar-section-children"><a href="module-og_utils_earcut.html">og/utils/earcut</a></div><div class="sidebar-section-children"><a href="module-og_utils_shared.html">og/utils/shared</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Framebuffer.html">og/webgl/Framebuffer</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Handler.html">og/webgl/Handler</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Multisample.html">og/webgl/Multisample</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Program.html">og/webgl/Program</a></div><div class="sidebar-section-children"><a href="module-og_webgl_callbacks.html">og/webgl/callbacks</a></div><div class="sidebar-section-children"><a href="module-og_webgl_types.html">og/webgl/types</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="_zSyzM5GLJxvA5SOCBl0C"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="Camera.html">Camera</a></div><div class="sidebar-section-children"><a href="CompassButton.html">CompassButton</a></div><div class="sidebar-section-children"><a href="Cons.html">Cons</a></div><div class="sidebar-section-children"><a href="EarthCoordinates.html">EarthCoordinates</a></div><div class="sidebar-section-children"><a href="Frustum.html">Frustum</a></div><div class="sidebar-section-children"><a href="GlobusTerrain.html">GlobusTerrain</a></div><div class="sidebar-section-children"><a href="Mat4.html">Mat4</a></div><div class="sidebar-section-children"><a href="Node.html">Node</a></div><div class="sidebar-section-children"><a href="Plane.html">Plane</a></div><div class="sidebar-section-children"><a href="ProgramController.html">ProgramController</a></div><div class="sidebar-section-children"><a href="Quat.html">Quat</a></div><div class="sidebar-section-children"><a href="QueueArray.html">QueueArray</a></div><div class="sidebar-section-children"><a href="Rectangle.html">Rectangle</a></div><div class="sidebar-section-children"><a href="RenderNode.html">RenderNode</a></div><div class="sidebar-section-children"><a href="Segment.html">Segment</a></div><div class="sidebar-section-children"><a href="Segment.html">Segment</a></div><div class="sidebar-section-children"><a href="SegmentBoundVisualization.html">SegmentBoundVisualization</a></div><div class="sidebar-section-children"><a href="SegmentLonLat.html">SegmentLonLat</a></div><div class="sidebar-section-children"><a href="SimpleNavigation.html">SimpleNavigation</a></div><div class="sidebar-section-children"><a href="Strip.html">Strip</a></div><div class="sidebar-section-children"><a href="TextureAtlas.html">TextureAtlas</a></div><div class="sidebar-section-children"><a href="TextureAtlasNode.html">TextureAtlasNode</a></div><div class="sidebar-section-children"><a href="VisibleExtent.html">VisibleExtent</a></div><div class="sidebar-section-children"><a href="-__resizeTimeout.html">__resizeTimeout</a></div><div class="sidebar-section-children"><a href="module-og_Clock-Clock.html">Clock</a></div><div class="sidebar-section-children"><a href="module-og_Events-Events.html">Events</a></div><div class="sidebar-section-children"><a href="module-og_Extent.Extent.html">Extent</a></div><div class="sidebar-section-children"><a href="module-og_Globe-Globe.html">Globe</a></div><div class="sidebar-section-children"><a href="module-og_ImageCanvas-ImageCanvas.html">ImageCanvas</a></div><div class="sidebar-section-children"><a href="module-og_LonLat.LonLat.html">LonLat</a></div><div class="sidebar-section-children"><a href="module-og_Stack-Stack.html">Stack</a></div><div class="sidebar-section-children"><a href="module-og_bv_Box-Box.html">Box</a></div><div class="sidebar-section-children"><a href="module-og_bv_Sphere-Sphere.html">Sphere</a></div><div class="sidebar-section-children"><a href="module-og_camera_PlanetCamera-PlanetCamera.html">PlanetCamera</a></div><div class="sidebar-section-children"><a href="module-og_control_Atmosphere-Atmosphere.html">Atmosphere</a></div><div class="sidebar-section-children"><a href="module-og_control_Control-Control.html">Control</a></div><div class="sidebar-section-children"><a href="module-og_control_DebugInfo-DebugInfo.html">DebugInfo</a></div><div class="sidebar-section-children"><a href="module-og_control_KeyboardNavigation-KeyboardNavigation.html">KeyboardNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerAnimation-LayerAnimation.html">LayerAnimation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerSwitcher-LayerSwitcher.html">LayerSwitcher</a></div><div class="sidebar-section-children"><a href="module-og_control_Lighting-ICON_BUTTON_SVG.html">ICON_BUTTON_SVG</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseNavigation-MouseNavigation.html">MouseNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseWheelZoomControl-MouseWheelZoomControl.html">MouseWheelZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler-Ruler.html">Ruler</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler-RulerSwitcher.html">RulerSwitcher</a></div><div class="sidebar-section-children"><a href="module-og_control_Selector-Selection.html">Selection</a></div><div class="sidebar-section-children"><a href="module-og_control_ShowFps-ShowFps.html">ShowFps</a></div><div class="sidebar-section-children"><a href="module-og_control_SimpleSkyBackground-SimpleSkyBackground.html">SimpleSkyBackground</a></div><div class="sidebar-section-children"><a href="module-og_control_Sun-Sun.html">Sun</a></div><div class="sidebar-section-children"><a href="module-og_control_ToggleWireframe-ToggleWireframe.html">ToggleWireframe</a></div><div class="sidebar-section-children"><a href="module-og_control_TouchNavigation-TouchNavigation.html">TouchNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl-ScaleControl.html">ScaleControl</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl-ZoomControl.html">ZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_ellipsoid_Ellipsoid-Ellipsoid.html">Ellipsoid</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard-BaseBillboard.html">BaseBillboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard-Ray.html">Ray</a></div><div class="sidebar-section-children"><a href="module-og_entity_BillboardHandler-BillboardHandler.html">BillboardHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Billboard-Billboard.html">Billboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_EntityCollection-EntityCollection.html">EntityCollection</a></div><div class="sidebar-section-children"><a href="module-og_entity_Entity-Entity.html">Entity</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeoObject-GeoObject.html">GeoObject</a></div><div class="sidebar-section-children"><a href="module-og_entity_LabelHandler-LabelHandler.html">LabelHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Label-Label.html">Label</a></div><div class="sidebar-section-children"><a href="module-og_entity_PointCloud-PointCloud.html">PointCloud</a></div><div class="sidebar-section-children"><a href="module-og_entity_Polyline-Polyline.html">Polyline</a></div><div class="sidebar-section-children"><a href="module-og_layer_BaseGeoImage-BaseGeoImage.html">BaseGeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_CanvasTiles-CanvasTiles.html">CanvasTiles</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoImage-GeoImage.html">GeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoVideo-GeoVideo.html">GeoVideo</a></div><div class="sidebar-section-children"><a href="module-og_layer_KML.KML.html">KML</a></div><div class="sidebar-section-children"><a href="module-og_layer_Layer-Layer.html">Layer</a></div><div class="sidebar-section-children"><a href="module-og_layer_Material-Material.html">Material</a></div><div class="sidebar-section-children"><a href="module-og_layer_Vector-Vector.html">Vector</a></div><div class="sidebar-section-children"><a href="module-og_layer_WMS-WMS.html">WMS</a></div><div class="sidebar-section-children"><a href="module-og_layer_XYZ-XYZ.html">XYZ</a></div><div class="sidebar-section-children"><a href="module-og_light_LightSource-LightSource.html">LightSource</a></div><div class="sidebar-section-children"><a href="module-og_math_Mat3.Mat3.html">Mat3</a></div><div class="sidebar-section-children"><a href="module-og_math_Ray.Ray.html">Ray</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec2.Vec2.html">Vec2</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec3.Vec3.html">Vec3</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec4.Vec4.html">Vec4</a></div><div class="sidebar-section-children"><a href="module-og_renderer_RendererEvents-RendererEvents.html">RendererEvents</a></div><div class="sidebar-section-children"><a href="module-og_scene_BaseNode-BaseNode.html">BaseNode</a></div><div class="sidebar-section-children"><a href="module-og_scene_Planet.Planet.html">Planet</a></div><div class="sidebar-section-children"><a href="module-og_terrainProvider_EmptyTerrain-EmptyTerrain.html">EmptyTerrain</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Framebuffer.Framebuffer.html">Framebuffer</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Handler-Handler.html">Handler</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Multisample.Multisample.html">Multisample</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Program-Program.html">Program</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="_mtSCD_-Y8oZXn_4TBH69"><div>Events</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="og.Camera.html#event:moveend">moveend</a></div><div class="sidebar-section-children"><a href="og.Camera.html#event:viewchange">viewchange</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:add">add</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:doubletouch">doubletouch</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:drawend">drawend</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:entityadd">entityadd</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:entitymove">entitymove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:entityremove">entityremove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:lclick">lclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:ldblclick">ldblclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:ldown">ldown</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:lhold">lhold</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:lup">lup</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mclick">mclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mdblclick">mdblclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mdown">mdown</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mhold">mhold</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mouseleave">mouseleave</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mousemove">mousemove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mousewheel">mousewheel</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mup">mup</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rclick">rclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rdblclick">rdblclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rdown">rdown</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:remove">remove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rhold">rhold</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rup">rup</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchend">touchend</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchenter">touchenter</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchleave">touchleave</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchmove">touchmove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchstart">touchstart</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:visibilitychange">visibilitychange</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:add">add</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:doubletouch">doubletouch</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:lclick">lclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:ldblclick">ldblclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:ldown">ldown</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:lhold">lhold</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:lup">lup</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mclick">mclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mdblclick">mdblclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mdown">mdown</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mhold">mhold</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mousemove">mousemove</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mousewheel">mousewheel</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mup">mup</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rclick">rclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rdblclick">rdblclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rdown">rdown</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:remove">remove</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rhold">rhold</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rup">rup</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchend">touchend</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchenter">touchenter</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchleave">touchleave</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchmove">touchmove</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchstart">touchstart</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:visibilitychange">visibilitychange</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:doubletouch">doubletouch</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:lclick">lclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:ldblclick">ldblclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:ldown">ldown</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:lhold">lhold</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:lup">lup</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mclick">mclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mdblclick">mdblclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mdown">mdown</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mhold">mhold</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mouseleave">mouseleave</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mousemove">mousemove</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mousestop">mousestop</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mousewheel">mousewheel</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mup">mup</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:postdraw">postdraw</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rclick">rclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rdblclick">rdblclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rdown">rdown</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:resize">resize</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:resizeend">resizeend</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rhold">rhold</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rup">rup</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchcancel">touchcancel</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchend">touchend</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchenter">touchenter</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchleave">touchleave</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchmove">touchmove</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchstart">touchstart</a></div><div class="sidebar-section-children"><a href="og.layer.BaseGeoImage.html#event:loadend">loadend</a></div><div class="sidebar-section-children"><a href="og.layer.CanvasTiles.html#event:load">load</a></div><div class="sidebar-section-children"><a href="og.layer.CanvasTiles.html#event:loadend">loadend</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:entityadd">entityadd</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:entityremove">entityremove</a></div><div class="sidebar-section-children"><a href="og.layer.XYZ.html#event:load">load</a></div><div class="sidebar-section-children"><a href="og.layer.XYZ.html#event:loadend">loadend</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:baselayerchange">baselayerchange</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:layeradd">layeradd</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:layerremove">layerremove</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:layervisibilitychange">layervisibilitychange</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:rendercompleted">rendercompleted</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:terraincompleted">terraincompleted</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:terraincompleted">terraincompleted</a></div><div class="sidebar-section-children"><a href="og.terrain.GlobusTerrain.html#event:load">load</a></div><div class="sidebar-section-children"><a href="og.terrain.GlobusTerrain.html#event:loadend">loadend</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="v6wPh3JHtlq2x2yaNvv0a"><div>Global</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="global.html#AU_TO_METERS">AU_TO_METERS</a></div><div class="sidebar-section-children"><a href="global.html#COMSIDE">COMSIDE</a></div><div class="sidebar-section-children"><a href="global.html#EARTH_GRAVITATIONAL_PARAMETER">EARTH_GRAVITATIONAL_PARAMETER</a></div><div class="sidebar-section-children"><a href="global.html#J2000_OBLIQUITY">J2000_OBLIQUITY</a></div><div class="sidebar-section-children"><a href="global.html#NEIGHBOUR">NEIGHBOUR</a></div><div class="sidebar-section-children"><a href="global.html#NOPSORD">NOPSORD</a></div><div class="sidebar-section-children"><a href="global.html#OPPART">OPPART</a></div><div class="sidebar-section-children"><a href="global.html#OPSIDE">OPSIDE</a></div><div class="sidebar-section-children"><a href="global.html#PARTOFFSET">PARTOFFSET</a></div><div class="sidebar-section-children"><a href="global.html#SUN_GRAVITATIONAL_PARAMETER">SUN_GRAVITATIONAL_PARAMETER</a></div><div class="sidebar-section-children"><a href="global.html#TAItoTDB">TAItoTDB</a></div><div class="sidebar-section-children"><a href="global.html#TDT_TAI">TDT_TAI</a></div><div class="sidebar-section-children"><a href="global.html#equationCallback">equationCallback</a></div><div class="sidebar-section-children"><a href="global.html#mat4">mat4</a></div><div class="sidebar-section-children"><a href="global.html#quat">quat</a></div><div class="sidebar-section-children"><a href="global.html#simpleNavigation">simpleNavigation</a></div></div></div></div></div><div class="navbar-container" id="VuAckcnZhf"><nav class="navbar"><div class="navbar-left-items"></div><div class="navbar-right-items"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#light-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div><nav></nav></nav></div><div class="toc-container"><div class="toc-content"><span class="bold">On this page</span><div id="eed4d2a0bfd64539bb9df78095dec881"></div></div></div><div class="body-wrapper"><div class="main-content"><div class="main-wrapper"><section id="source-page" class="source-page"><header><h1 id="title" class="has-anchor">scene_Planet.js</h1></header><article><pre class="prettyprint source lang-js"><code>/**
+ * @module og/scene/Planet
+ */
+
+"use strict";
+
+import { PlanetCamera } from "../camera/PlanetCamera.js";
+import { Atmosphere } from "../control/Atmosphere.js";
+import { SimpleSkyBackground } from "../control/SimpleSkyBackground.js";
+import { wgs84 } from "../ellipsoid/wgs84.js";
+import { Extent } from "../Extent.js";
+import { Vector } from "../layer/Vector.js";
+import { Key, Lock } from "../Lock.js";
+import { LonLat } from "../LonLat.js";
+import * as math from "../math.js";
+import { decodeFloatFromRGBAArr } from "../math/coder.js";
+import { Quat, Vec3, Vec4 } from "../math/index.js";
+import { EarthQuadTreeStrategy } from "../quadTree/EarthQuadTreeStrategy.js";
+import { NIGHT, SPECULAR } from "../res/images.js";
+import * as segmentHelper from "../segment/segmentHelper.js";
+import * as shaders from "../shaders/drawnode.js";
+import { Geoid } from "../terrain/Geoid.js";
+import { GeoImageCreator } from "../utils/GeoImageCreator.js";
+import { Loader } from "../utils/Loader.js";
+import { NormalMapCreator } from "../utils/NormalMapCreator.js";
+import { PlainSegmentWorker } from "../utils/PlainSegmentWorker.js";
+import * as utils from "../utils/shared.js";
+import { createColorRGB, isUndef } from "../utils/shared.js";
+import { TerrainWorker } from "../utils/TerrainWorker.js";
+import { VectorTileCreator } from "../utils/VectorTileCreator.js";
+import { Framebuffer } from "../webgl/Framebuffer.js";
+import { RenderNode } from "./RenderNode.js";
+
+const CUR_LOD_SIZE = 250; //px
+const MIN_LOD_SIZE = 312; //px
+const MAX_LOD_SIZE = 190; //px
+
+let _tempPickingPix_ = new Uint8Array(4);
+let _tempDepthColor_ = new Uint8Array(4);
+
+const DEPTH_DISTANCE = 11;//m
+
+/**
+ * Maximum created nodes count. The more nodes count the more memory usage.
+ * @const
+ * @type {number}
+ * @default
+ */
+const MAX_NODES = 200;
+
+const HORIZON_TANGENT = 0.81;
+
+const EVENT_NAMES = [/**
+ * Triggered before globe frame begins to render.
+ * @event og.scene.Planet#draw
+ */
+    "draw",
+
+    /**
+     * Triggered when layer has added to the planet.
+     * @event og.scene.Planet#layeradd
+     */
+    "layeradd",
+
+    /**
+     * Triggered when base layer changed.
+     * @event og.scene.Planet#baselayerchange
+     */
+    "baselayerchange",
+
+    /**
+     * Triggered when layer has removed from the planet.
+     * @event og.scene.Planet#layerremove
+     */
+    "layerremove",
+
+    /**
+     * Triggered when some layer visibility changed.
+     * @event og.scene.Planet#layervisibilitychange
+     */
+    "layervisibilitychange",
+
+    /**
+     * Triggered when all data is loaded
+     * @event og.scene.Planet#rendercompleted
+     */
+    "rendercompleted",
+
+    /**
+     * Triggered when all data is loaded
+     * @event og.scene.Planet#terraincompleted
+     */
+    "terraincompleted",
+
+    /**
+     * Triggered when layer data is laded
+     * @event og.scene.Planet#terraincompleted
+     */
+    "layerloadend"];
+
+/**
+ * Main class for rendering planet
+ * @class
+ * @extends {RenderNode}
+ * @param {string} [options.name="Earth"] - Planet name(Earth by default)
+ * @param {Ellipsoid} [options.ellipsoid] - Planet ellipsoid(WGS84 by default)
+ * @param {Number} [options.maxGridSize=128] - Segment maximal grid size
+ * @param {Number} [options.maxEqualZoomAltitude=15000000.0] - Maximal altitude since segments on the screen bacame the same zoom level
+ * @param {Number} [options.minEqualZoomAltitude=10000.0] - Minimal altitude since segments on the screen bacame the same zoom level
+ * @param {Number} [options.minEqualZoomCameraSlope=0.8] - Minimal camera slope above te globe where segments on the screen bacame the same zoom level
+ * @fires og.scene.Planet#draw
+ * @fires og.scene.Planet#layeradd
+ * @fires og.scene.Planet#baselayerchange
+ * @fires og.scene.Planet#layerremove
+ * @fires og.scene.Planet#layervisibilitychange
+ * @fires og.scene.Planet#geoimageadd
+ */
+export class Planet extends RenderNode {
+    constructor(options = {}) {
+        super(options.name);
+
+        this._cameraFrustums = options.frustums || [[1, 100 + 0.075], [100, 1000 + 0.075], [1000, 1e6 + 10000], [1e6, 1e9]];
+
+        /**
+         * @public
+         * @type {Ellipsoid}
+         */
+        this.ellipsoid = options.ellipsoid || wgs84;
+
+        /**
+         * @public
+         * @type {Boolean}
+         */
+        this.lightEnabled = true;
+
+        /**
+         * Squared ellipsoid radius.
+         * @protected
+         * @type {number}
+         */
+        this._planetRadius2 = this.ellipsoid.getPolarSize() * this.ellipsoid.getPolarSize();
+
+        /**
+         * Layers array.
+         * @protected
+         * @type {Array.&lt;Layer>}
+         */
+        this._layers = [];
+
+        /**
+         * Flag to trigger layer update in a next frame
+         * @type {boolean}
+         * @private
+         */
+        this._updateLayer = false;
+
+        /**
+         * Current visible imagery tile layers array.
+         * @public
+         * @type {Array.&lt;Layer>}
+         */
+        this.visibleTileLayers = [];
+
+        /**
+         * Current visible vector layers array.
+         * @protected
+         * @type {Array.&lt;layer.Vector>}
+         */
+        this.visibleVectorLayers = [];
+
+        this._visibleTileLayerSlices = [];
+
+        /**
+         * Vector layers visible nodes with collections.
+         * @protected
+         * @type {Array.&lt;EntityCollection>}
+         */
+        this._frustumEntityCollections = [];
+
+        /**
+         * There is only one base layer on the globe when layer.isBaseLayer is true.
+         * @public
+         * @type {Layer}
+         */
+        this.baseLayer = null;
+
+        /**
+         * Terrain provider.
+         * @public
+         * @type {Terrain}
+         */
+        this.terrain = null;
+
+        /**
+         * Terrain provider Pool.
+         * @public
+         * @type {Terrain}
+         */
+        this._terrainPool = null;
+
+        /**
+         * Camera is this.renderer.activeCamera pointer.
+         * @public
+         * @type {PlanetCamera}
+         */
+        this.camera = null;
+
+        this._minAltitude = options.minAltitude;
+        this._maxAltitude = options.maxAltitude;
+
+        this.maxEqualZoomAltitude = options.maxEqualZoomAltitude || 15000000.0;
+        this.minEqualZoomAltitude = options.minEqualZoomAltitude || 10000.0;
+        this.minEqualZoomCameraSlope = options.minEqualZoomCameraSlope || 0.8;
+
+        /**
+         * Screen mouse pointer projected to planet cartesian position.
+         * @public
+         * @type {Vec3}
+         */
+        this.mousePositionOnEarth = new Vec3();
+
+        this.emptyTexture = null;
+        this.transparentTexture = null;
+        this.defaultTexture = null;
+
+        /**
+         * Current visible minimal zoom index planet segment.
+         * @public
+         * @type {number}
+         */
+        this.minCurrZoom = math.MAX;
+
+        /**
+         * Current visible maximal zoom index planet segment.
+         * @public
+         * @type {number}
+         */
+        this.maxCurrZoom = math.MIN;
+
+        this._viewExtent = new Extent(new LonLat(180, 180), new LonLat(-180, -180));
+
+        /**
+         * @protected
+         */
+        this._createdNodesCount = 0;
+
+        /**
+         * Planet's segments collected for rendering frame.
+         * @protected
+         * @type {quadTree.Node}
+         */
+        this._renderedNodes = [];
+        this._renderedNodesInFrustum = [];
+
+        /**
+         * Current visible mercator segments tree nodes array.
+         * @protected
+         * @type {quadTree.Node}
+         */
+        this._visibleNodes = {};
+
+        /**
+         * Current visible north pole nodes tree nodes array.
+         * @protected
+         * @type {quadTree.Node}
+         */
+        this._visibleNodesNorth = {};
+
+        /**
+         * Current visible south pole nodes tree nodes array.
+         * @protected
+         * @type {quadTree.Node}
+         */
+        this._visibleNodesSouth = {};
+
+        /**
+         * Layers activity lock.
+         * @public
+         * @type {idle.Lock}
+         */
+        this.layerLock = new Lock();
+
+        /**
+         * Terrain providers activity lock.
+         * @public
+         * @type {idle.Lock}
+         */
+        this.terrainLock = new Lock();
+
+        /**
+         * Layer's transparent colors.
+         * @protected
+         */
+        this._tcolorArr = [];
+
+        /**
+         * Height scale factor. 1 - is normal elevation scale.
+         * @protected
+         * @type {number}
+         */
+        this._heightFactor = 1.0;
+
+        /**
+         * Precomputed indexes array for differrent grid size segments.
+         * @protected
+         * @type {Array.&lt;Array.&lt;number>>}
+         */
+        this._indexesCache = [];
+        this._indexesCacheToRemove = [];
+        this._indexesCacheToRemoveCounter = 0;
+
+        /**
+         * Precomputed texture coordinates buffers for differrent grid size segments.
+         * @protected
+         * @type {Array.&lt;Array.&lt;number>>}
+         */
+        this._textureCoordsBufferCache = [];
+
+        this.quadTreeStrategy = options.quadTreeStrategyPrototype ? new options.quadTreeStrategyPrototype({ planet: this }) : new EarthQuadTreeStrategy({ planet: this });
+
+        /**
+         * Night glowing gl texture.
+         * @protected
+         */
+        this._nightTexture = null;
+
+        /**
+         * Specular mask gl texture.
+         * @protected
+         */
+        this._specularTexture = null;
+
+        //TODO: replace to a function
+        let a = utils.createColorRGB(options.ambient, new Vec3(0.2, 0.2, 0.3));
+        let d = utils.createColorRGB(options.diffuse, new Vec3(1.0, 1.0, 1.0));
+        let s = utils.createColorRGB(options.specular, new Vec3(0.00063, 0.00055, 0.00032));
+        let shininess = options.shininess || 18.0;
+
+        this._ambient = new Float32Array([a.x, a.y, a.z]);
+        this._diffuse = new Float32Array([d.x, d.y, d.z]);
+        this._specular = new Float32Array([s.x, s.y, s.z, shininess]);
+
+        /**
+         * True for rendering night glowing texture.
+         * @protected
+         * @type {boolean}
+         */
+        this._useNightTexture = isUndef(options.useNightTexture) ? true : options.useNightTexture;
+
+        /**
+         * True for rendering specular mask texture.
+         * @protected
+         * @type {boolean}
+         */
+        this._useSpecularTexture = isUndef(options.useSpecularTexture) ? true : options.useSpecularTexture;
+
+        this._maxGridSize = Math.log2(options.maxGridSize || 256);
+
+        /**
+         * Segment multiple textures size.(4 - convinient value for the most devices)
+         * @const
+         * @public
+         */
+        this.SLICE_SIZE = 4;
+        this.SLICE_SIZE_4 = this.SLICE_SIZE * 4;
+        this.SLICE_SIZE_3 = this.SLICE_SIZE * 3;
+
+        /**
+         * Level of the visible segment detalization.
+         * @public
+         * @type {number}
+         */
+        this._lodSize = CUR_LOD_SIZE;
+        this._curLodSize = CUR_LOD_SIZE;
+        this._minLodSize = MIN_LOD_SIZE;
+        this._maxLodSize = MAX_LOD_SIZE;
+
+        this._pickingColorArr = new Float32Array(this.SLICE_SIZE_4);
+        this._samplerArr = new Int32Array(this.SLICE_SIZE);
+        this._pickingMaskArr = new Int32Array(this.SLICE_SIZE);
+
+        /**
+         * GeoImage creator.
+         * @protected
+         * @type{utils.GeoImageCreator}
+         */
+        this._geoImageCreator = null;
+
+        this._vectorTileCreator = null;
+
+        this._normalMapCreator = null;
+
+        this._terrainWorker = new TerrainWorker(3);
+
+        this._plainSegmentWorker = new PlainSegmentWorker(3);
+
+        this._tileLoader = new Loader(options.maxLoadingRequests || 12);
+
+        this._memKey = new Key();
+
+        this.events.registerNames(EVENT_NAMES);
+
+        this._distBeforeMemClear = 0.0;
+
+        this._prevCamEye = new Vec3();
+
+        this._initialized = false;
+
+        this.always = [];
+
+        this._renderCompleted = false;
+        this._renderCompletedActivated = false;
+
+        this._terrainCompleted = false;
+        this._terrainCompletedActivated = false;
+        this._collectRenderNodesIsActive = true;
+
+        /**
+         * Night texture brightness coefficient
+         * @type {number}
+         */
+        this.nightTextureCoefficient = 2.0;
+
+        this._renderScreenNodesPASS = this._renderScreenNodesPASSNoAtmos;
+
+        this._atmosphereEnabled = options.atmosphereEnabled || false;
+        this._atmosphereMaxMinOpacity = new Float32Array([1.0, 0.41]);
+    }
+
+    static getBearingNorthRotationQuat(cartesian) {
+        //
+        // TODO: fix normal for ellipsoid
+        //
+        let n = cartesian.normal();
+        let t = Vec3.proj_b_to_plane(Vec3.UNIT_Y, n);
+        return Quat.getLookRotation(t, n);
+    }
+
+    set atmosphereMaxOpacity(opacity) {
+        this._atmosphereMaxMinOpacity[0] = opacity;
+    }
+
+    get atmosphereMaxOpacity() {
+        return this._atmosphereMaxMinOpacity[0];
+    }
+
+    set atmosphereMinOpacity(opacity) {
+        this._atmosphereMaxMinOpacity[1] = opacity;
+    }
+
+    get atmosphereMinOpacity() {
+        return this._atmosphereMaxMinOpacity[1];
+    }
+
+
+    set atmosphereEnabled(enabled) {
+        if (enabled != this._atmosphereEnabled) {
+            this._atmosphereEnabled = enabled;
+            this._initializeAtmosphere();
+        }
+    }
+
+    get atmosphereEnabled() {
+        return this._atmosphereEnabled;
+    }
+
+    set diffuse(rgb) {
+        let vec = createColorRGB(rgb);
+        this._diffuse = new Float32Array(vec.toArray());
+    }
+
+    set ambient(rgb) {
+        let vec = createColorRGB(rgb);
+        this._ambient = new Float32Array(vec.toArray());
+    }
+
+    set specular(rgb) {
+        let vec = createColorRGB(rgb);
+        this._specular = new Float32Array([vec.x, vec.y, vec.y, this._specular[3]]);
+    }
+
+    set shininess(v) {
+        this._specular[3] = v;
+    }
+
+    get normalMapCreator() {
+        return this._normalMapCreator;
+    }
+
+    get layers() {
+        return [...this._layers];
+    }
+
+    get sunPos() {
+        return this.renderer.controls.sun.sunlight.getPosition();
+    }
+
+    /**
+     * Add the given control to the renderer of the planet scene.
+     * @param {control.Control} control - Control.
+     */
+    addControl(control) {
+        control.planet = this;
+        control.addTo(this.renderer);
+    }
+
+    get lodSize() {
+        return this._lodSize;
+    }
+
+    setLodSize(currentLodSize, minLodSize, maxLodSize) {
+        this._maxLodSize = maxLodSize || this._maxLodSize;
+        this._minLodSize = minLodSize || this._minLodSize;
+        this._curLodSize = currentLodSize || this._curLodSize;
+        this._renderCompletedActivated = false;
+        this._terrainCompletedActivated = false;
+    }
+
+    /**
+     * Add the given controls array to the renderer of the planet.
+     * @param {Array.&lt;control.Control>} cArr - Control array.
+     */
+    addControls(cArr) {
+        for (var i = 0; i &lt; cArr.length; i++) {
+            this.addControl(cArr[i]);
+        }
+    }
+
+    /**
+     * Return layer by it name
+     * @param {string} name - Name of the layer. og.Layer.prototype.name
+     * @public
+     * @returns {Layer} -
+     */
+    getLayerByName(name) {
+        for (let i = 0, len = this._layers.length; i &lt; len; i++) {
+            if (name === this._layers[i].name) {
+                return this._layers[i];
+            }
+        }
+    }
+
+    /**
+     * Adds the given layer to the planet.
+     * @param {Layer} layer - Layer object.
+     * @public
+     */
+    addLayer(layer) {
+        layer.addTo(this);
+    }
+
+    /**
+     * Dispatch layer visibility changing event.
+     * @param {Layer} layer - Changed layer.
+     * @protected
+     */
+    _onLayerVisibilityChanged(layer) {
+        this.events.dispatch(this.events.layervisibilitychange, layer);
+    }
+
+    /**
+     * Adds the given layers array to the planet.
+     * @param {Array.&lt;Layer>} layers - Layers array.
+     * @public
+     */
+    addLayers(layers) {
+        for (let i = 0, len = layers.length; i &lt; len; i++) {
+            this.addLayer(layers[i]);
+        }
+    }
+
+    /**
+     * Removes the given layer from the planet.
+     * @param {Layer} layer - Layer to remove.
+     * @return {Layer|undefined} The removed layer or undefined if the layer was not found.
+     * @public
+     */
+    removeLayer(layer) {
+        return layer.remove();
+    }
+
+    /**
+     *
+     * @protected
+     * @param {Layer} layer - Material layer.
+     */
+    _clearLayerMaterial(layer) {
+        this.quadTreeStrategy.clearLayerMaterial(layer);
+    }
+
+
+    /**
+     * Get the collection of layers associated with this planet.
+     * @return {Array.&lt;Layer>} Layers array.
+     * @public
+     */
+    getLayers() {
+        return this.layers;
+    }
+
+    /**
+     * Sets base layer coverage to the planet.
+     * @param {Layer} layer - Layer object.
+     * @public
+     */
+    setBaseLayer(layer) {
+        if (this.baseLayer) {
+            if (!this.baseLayer.isEqual(layer)) {
+                this.baseLayer.setVisibility(false);
+                this.baseLayer = layer;
+                layer.setVisibility(true);
+                this.events.dispatch(this.events.baselayerchange, layer);
+            }
+        } else {
+            this.baseLayer = layer;
+            this.baseLayer.setVisibility(true);
+            this.events.dispatch(this.events.baselayerchange, layer);
+        }
+    }
+
+    /**
+     * Sets elevation scale. 1.0 is default.
+     * @param {number} factor - Elevation scale.
+     */
+    setHeightFactor(factor) {
+        this._renderCompletedActivated = false;
+        this._terrainCompletedActivated = false;
+
+        if (this._heightFactor !== factor) {
+            this._heightFactor = factor;
+            this.quadTreeStrategy.destroyBranches();
+        }
+    }
+
+    /**
+     * Gets elevation scale.
+     * @returns {number} Terrain elevation scale
+     */
+    getHeightFactor() {
+        return this._heightFactor;
+    }
+
+    /**
+     * Sets terrain provider
+     * @public
+     * @param {Terrain} terrain - Terrain provider.
+     */
+    setTerrain(terrain) {
+        this._renderCompletedActivated = false;
+        this._terrainCompletedActivated = false;
+
+        if (this._initialized) {
+            this.memClear();
+        }
+
+        if (this.terrain) {
+            this.terrain.abortLoading();
+            this.terrain.clearCache();
+            this.terrain._planet = null;
+        }
+
+        this.terrain = terrain;
+        this.terrain._planet = this;
+
+        this.quadTreeStrategy.destroyBranches();
+
+        if (terrain._geoid.model) {
+            this._plainSegmentWorker.setGeoid(terrain.getGeoid());
+            terrain._isReady = true;
+        } else {
+            Geoid.loadModel(terrain._geoid.src)
+                .then((m) => {
+                    terrain.getGeoid().setModel(m);
+                    this._plainSegmentWorker.setGeoid(terrain.getGeoid());
+                    terrain._isReady = true;
+                })
+                .catch((err) => {
+                    console.warn(err);
+                });
+        }
+    }
+
+    _initializeAtmosphere() {
+        let h = this.renderer.handler;
+        h.removeProgram("drawnode_screen_wl");
+
+        if (this._atmosphereEnabled) {
+
+            this._renderScreenNodesPASS = this._renderScreenNodesPASSAtmos;
+
+            if (h.isWebGl2()) {
+                h.addProgram(shaders.drawnode_screen_wl_webgl2Atmos(), true);
+            } else {
+                h.addProgram(shaders.drawnode_screen_wl_webgl1NoAtmos(), true);
+            }
+
+            if (!this.renderer.controls.Atmosphere) {
+                this.addControl(new Atmosphere());
+            } else {
+                this.renderer.controls.Atmosphere.activate();
+            }
+
+            if (this.renderer.controls.SimpleSkyBackground) {
+                this.renderer.controls.SimpleSkyBackground.deactivate();
+            }
+
+        } else {
+
+            this._renderScreenNodesPASS = this._renderScreenNodesPASSNoAtmos;
+
+
+            if (this.renderer.controls.Atmosphere) {
+                this.renderer.controls.Atmosphere.deactivate();
+            }
+
+            if (!this.renderer.controls.SimpleSkyBackground) {
+                this.addControl(new SimpleSkyBackground());
+            } else {
+                this.renderer.controls.SimpleSkyBackground.activate();
+            }
+
+            if (h.isWebGl2()) {
+                h.addProgram(shaders.drawnode_screen_wl_webgl2NoAtmos(), true);
+            } else {
+                h.addProgram(shaders.drawnode_screen_wl_webgl1NoAtmos(), true);
+            }
+        }
+    }
+
+    /**
+     * @virtual
+     * @protected
+     */
+    _initializeShaders() {
+        let h = this.renderer.handler;
+
+        h.addProgram(shaders.drawnode_screen_nl(), true);
+        h.addProgram(shaders.drawnode_colorPicking(), true);
+        h.addProgram(shaders.drawnode_depth(), true);
+        h.addProgram(shaders.drawnode_heightPicking(), true);
+
+        this.renderer.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
+        this.renderer.addDepthCallback(this, this._renderDepthFramebufferPASS);
+        this.renderer.addDistanceCallback(this, this._renderDistanceFramebufferPASS);
+    }
+
+    _onLayerLoadend(layer) {
+        this.events.dispatch(this.events.layerloadend, layer);
+    }
+
+    /**
+     * @virtual
+     * @public
+     */
+    init() {
+
+        this._tileLoader.events.on("layerloadend", this._onLayerLoadend, this);
+
+        // Initialization indexes table
+        segmentHelper.getInstance().setMaxGridSize(this._maxGridSize);
+        const TABLESIZE = this._maxGridSize;
+        let kk = 0;
+        // Initialization indexes buffers cache. It takes about 120mb RAM!
+        for (var i = 0; i &lt;= TABLESIZE; i++) {
+            !this._indexesCache[i] &amp;&amp; (this._indexesCache[i] = new Array(TABLESIZE));
+            for (var j = 0; j &lt;= TABLESIZE; j++) {
+                !this._indexesCache[i][j] &amp;&amp; (this._indexesCache[i][j] = new Array(TABLESIZE));
+                for (var k = 0; k &lt;= TABLESIZE; k++) {
+                    !this._indexesCache[i][j][k] &amp;&amp; (this._indexesCache[i][j][k] = new Array(TABLESIZE));
+                    for (var m = 0; m &lt;= TABLESIZE; m++) {
+                        !this._indexesCache[i][j][k][m] &amp;&amp; (this._indexesCache[i][j][k][m] = new Array(TABLESIZE));
+                        for (var q = 0; q &lt;= TABLESIZE; q++) {
+                            let ptr = {
+                                buffer: null
+                            };
+
+                            if (i >= 1 &amp;&amp; i === j &amp;&amp; i === k &amp;&amp; i === m &amp;&amp; i === q) {
+                                let indexes = segmentHelper
+                                    .getInstance()
+                                    .createSegmentIndexes(i, [j, k, m, q]);
+                                ptr.buffer = this.renderer.handler.createElementArrayBuffer(indexes, 1);
+                                indexes = null;
+                            } else {
+                                this._indexesCacheToRemove[kk++] = ptr;
+                            }
+
+                            this._indexesCache[i][j][k][m][q] = ptr;
+                        }
+                    }
+                }
+            }
+        }
+
+        this.renderer.events.on("resize", () => {
+            this._renderCompletedActivated = false;
+            this._terrainCompletedActivated = false;
+        });
+
+        // Initialize texture coordinates buffer pool
+        this._textureCoordsBufferCache = [];
+
+        let texCoordCache = segmentHelper.getInstance().initTextureCoordsTable(TABLESIZE + 1);
+
+        for (let i = 0; i &lt;= TABLESIZE; i++) {
+            this._textureCoordsBufferCache[i] = this.renderer.handler.createArrayBuffer(texCoordCache[i], 2, ((1 &lt;&lt; i) + 1) * ((1 &lt;&lt; i) + 1));
+        }
+
+        texCoordCache = null;
+
+        // creating empty textures
+        var that = this;
+        this.renderer.handler.createDefaultTexture(null, function (t) {
+            that.solidTextureOne = t;
+            that.solidTextureTwo = t;
+        });
+
+        this.transparentTexture = this.renderer.handler.transparentTexture;
+
+        this.camera = this.renderer.activeCamera = new PlanetCamera(this, {
+            frustums: this._cameraFrustums,
+            eye: new Vec3(0, 0, 28000000),
+            look: new Vec3(0, 0, 0),
+            up: new Vec3(0, 1, 0),
+            minAltitude: this._minAltitude,
+            maxAltitude: this._maxAltitude
+        });
+
+        this.camera.update();
+
+        this._renderedNodesInFrustum = new Array(this.camera.frustums.length);
+        for (let i = 0, len = this._renderedNodesInFrustum.length; i &lt; len; i++) {
+            this._renderedNodesInFrustum[i] = [];
+        }
+
+        // Creating quad trees nodes
+        this.quadTreeStrategy.init();
+
+        this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
+
+        // Applying shaders
+        this._initializeShaders();
+
+        this._initializeAtmosphere();
+
+        this._updateVisibleLayers();
+
+        this.renderer.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
+
+        // loading Earth night glowing texture
+        if (this._useNightTexture) {
+            createImageBitmap(NIGHT).then((e) => (this._nightTexture = this.renderer.handler.createTextureDefault(e)));
+        }
+
+        // load water specular mask
+        if (this._useSpecularTexture) {
+            createImageBitmap(SPECULAR).then((e) => (this._specularTexture = this.renderer.handler.createTexture_l(e)));
+        }
+
+        this._geoImageCreator = new GeoImageCreator(this);
+
+        this._vectorTileCreator = new VectorTileCreator(this);
+
+        this._normalMapCreator = new NormalMapCreator(this, {
+            minTableSize: 1,
+            maxTableSize: TABLESIZE,
+            blur: this.terrain &amp;&amp; (this.terrain.blur != undefined ? this.terrain.blur : true)
+        });
+
+        this.renderer.events.on("draw", this._globalPreDraw, this, -100);
+
+        // Loading first nodes for better viewing if you have started on a lower altitude.
+        this._preRender();
+
+        this._initialized = true;
+
+        this.renderer.events.on("postdraw", () => {
+            this._checkRendercompleted();
+        });
+    }
+
+    clearIndexesCache() {
+        this._indexesCacheToRemoveCounter = 0;
+        let c = this._indexesCacheToRemove, gl = this.renderer.handler.gl;
+        for (let i = 0, len = c.length; i &lt; len; i++) {
+            let ci = c[i];
+            gl.deleteBuffer(ci.buffer);
+            ci.buffer = null;
+        }
+    }
+
+    _preRender() {
+        this.quadTreeStrategy.preRender();
+
+        this._preLoad();
+    }
+
+    _preLoad() {
+        this._clearRenderedNodeList();
+
+        this._skipPreRender = false;
+
+        this.quadTreeStrategy.preLoad();
+    }
+
+    /**
+     * Creates default textures first for nirth pole and whole globe and second for south pole.
+     * @public
+     * @param{Object} param0 -
+     * @param{Object} param1 -
+     */
+    createDefaultTextures(param0, param1) {
+        this.renderer.handler.gl.deleteTexture(this.solidTextureOne);
+        this.renderer.handler.gl.deleteTexture(this.solidTextureTwo);
+        var that = this;
+        this.renderer.handler.createDefaultTexture(param0, function (t) {
+            that.solidTextureOne = t;
+        });
+        this.renderer.handler.createDefaultTexture(param1, function (t) {
+            that.solidTextureTwo = t;
+        });
+    }
+
+    _getLayerAttributionHTML(layer) {
+        return `&lt;div class="og-attribution__layer">${layer._attribution}&lt;/div>`;
+    }
+
+    /**
+     * Updates attribution lists
+     * @public
+     */
+    updateAttributionsList() {
+        let html = "";
+        for (let i = 0, len = this._layers.length; i &lt; len; i++) {
+            let li = this._layers[i];
+            if (li._visibility) {
+                if (li._attribution.length) {
+                    html += this._getLayerAttributionHTML(li);
+                }
+            }
+        }
+        this._applyAttribution(html)
+    }
+
+    updateVisibleLayers() {
+        this._updateLayer = true;
+    }
+
+    /**
+     * Updates visible layers.
+     * @public
+     */
+    _updateVisibleLayers() {
+        this.visibleTileLayers = [];
+        this.visibleTileLayers.length = 0;
+
+        this.visibleVectorLayers = [];
+        this.visibleVectorLayers.length = 0;
+
+        let html = "";
+        for (let i = 0, len = this._layers.length; i &lt; len; i++) {
+            let li = this._layers[i];
+            if (li._visibility) {
+                if (li._isBaseLayer) {
+                    this.createDefaultTextures(li._defaultTextures[0], li._defaultTextures[1]);
+                    this.baseLayer = li;
+                }
+
+                if (li.hasImageryTiles()) {
+                    this.visibleTileLayers.push(li);
+                }
+
+                if (li.isVector) {
+                    this.visibleVectorLayers.push(li);
+                }
+
+                if (li._attribution.length) {
+                    html += this._getLayerAttributionHTML(li);
+                }
+
+            } else if (li._fading &amp;&amp; li._fadingOpacity > 0) {
+                if (li.hasImageryTiles()) {
+                    this.visibleTileLayers.push(li);
+                }
+
+                if (li.isVector) {
+                    this.visibleVectorLayers.push(li);
+                }
+            }
+        }
+
+        this._applyAttribution(html);
+
+        this._sortLayers();
+    }
+
+    /**
+     * Apply to render list of layer attributions
+     * @private
+     */
+    _applyAttribution(html) {
+        if (this.renderer) {
+            if (html.length) {
+                if (this.renderer.div.attributions.innerHTML !== html) {
+                    //this.renderer.div.attributions.style.display = "block";
+                    this.renderer.div.attributions.innerHTML = html;
+                }
+            } else {
+                //this.renderer.div.attributions.style.display = "none";
+                this.renderer.div.attributions.innerHTML = "";
+            }
+        }
+    }
+
+    /**
+     * Sort visible layer - preparing for rendering.
+     * @protected
+     */
+    _sortLayers() {
+        this.visibleVectorLayers.sort((a, b) => (a._zIndex - b._zIndex) || (a._height - b._height));
+
+        this._visibleTileLayerSlices = [];
+        this._visibleTileLayerSlices.length = 0;
+
+        if (this.visibleTileLayers.length) {
+            this.visibleTileLayers.sort((a, b) => (a._height - b._height) || (a._zIndex - b._zIndex));
+
+            var k = -1;
+            var currHeight = this.visibleTileLayers[0]._height;
+            for (let i = 0, len = this.visibleTileLayers.length; i &lt; len; i++) {
+                if (i % this.SLICE_SIZE === 0 || this.visibleTileLayers[i]._height !== currHeight) {
+                    k++;
+                    this._visibleTileLayerSlices[k] = [];
+                    currHeight = this.visibleTileLayers[i]._height;
+                }
+                this._visibleTileLayerSlices[k].push(this.visibleTileLayers[i]);
+            }
+        }
+    }
+
+    _clearRenderedNodeList() {
+        // clearing all node list
+        this._renderedNodes.length = 0;
+        this._renderedNodes = [];
+    }
+
+    _clearRenderNodesInFrustum() {
+        for (let i = 0, len = this._renderedNodesInFrustum.length; i &lt; len; i++) {
+            this._renderedNodesInFrustum[i].length = 0;
+            this._renderedNodesInFrustum[i] = [];
+        }
+    }
+
+    /**
+     * Collects visible quad nodes.
+     * @protected
+     */
+    _collectRenderNodes() {
+        let cam = this.camera;
+        this._lodSize = math.lerp(cam.slope &lt; 0.0 ? 0.0 : cam.slope, this._curLodSize, this._minLodSize);
+        cam._insideSegment = null;
+
+        // clear first
+        this._clearRenderedNodeList();
+        this._clearRenderNodesInFrustum();
+
+        this._viewExtent.southWest.set(180, 180);
+        this._viewExtent.northEast.set(-180, -180);
+
+        this._visibleNodes = {};
+        this._visibleNodesNorth = {};
+        this._visibleNodesSouth = {};
+
+        this.minCurrZoom = math.MAX;
+        this.maxCurrZoom = math.MIN;
+
+        this.quadTreeStrategy.collectRenderNodes();
+
+        if (cam.slope > this.minEqualZoomCameraSlope &amp;&amp; cam._lonLat.height &lt; this.maxEqualZoomAltitude &amp;&amp; cam._lonLat.height > this.minEqualZoomAltitude) {
+
+            this.minCurrZoom = this.maxCurrZoom;
+
+            let temp = this._renderedNodes, rf = this._renderedNodesInFrustum, temp2 = [];
+
+            this._clearRenderNodesInFrustum();
+            this._renderedNodes = [];
+
+            for (var i = 0, len = temp.length; i &lt; len; i++) {
+                var ri = temp[i];
+                let ht = ri.segment.centerNormal.dot(cam._b);
+                if (ri.segment.tileZoom === this.maxCurrZoom || ht &lt; HORIZON_TANGENT) {
+                    this._renderedNodes.push(ri);
+                    let k = 0, inFrustum = ri.inFrustum;
+                    while (inFrustum) {
+                        if (inFrustum &amp; 1) {
+                            rf[k].push(ri);
+                        }
+                        k++;
+                        inFrustum >>= 1;
+                    }
+                } else {
+                    temp2.push(ri);
+                }
+            }
+
+            for (let i = 0, len = temp2.length; i &lt; len; i++) {
+                temp2[i].renderTree(cam, this.maxCurrZoom, null);
+            }
+        }
+    }
+
+    _globalPreDraw() {
+        let cam = this.camera;
+
+        // Might be it's better to replace it in setTerrain,
+        // but we have to be sure that setTerrain exists with renderer insttance
+        this.renderer.__useDistanceFramebuffer__ = !this.terrain.isEmpty;
+
+        this._distBeforeMemClear += this._prevCamEye.distance(cam.eye);
+        this._prevCamEye.copy(cam.eye);
+        cam.checkFly();
+
+        // free memory
+        if (this._createdNodesCount > MAX_NODES &amp;&amp; this._distBeforeMemClear > 1000.0) {
+            this.terrain.clearCache();
+            this.memClear();
+        }
+
+        if (this._indexesCacheToRemoveCounter > 600) {
+            this.clearIndexesCache();
+        }
+    }
+
+    /**
+     * Render node callback.
+     * @public
+     */
+    preFrame() {
+
+        if (this._updateLayer) {
+            this._updateLayer = false;
+            this._updateVisibleLayers();
+        }
+
+        if (this.camera.isFirstPass) {
+            this.camera.update();
+            this._firstPASS();
+            this.camera.checkTerrainCollision();
+            this.camera.update();
+
+            // Here is the planet node dispatches a draw event before
+            // rendering begins and we have got render nodes.
+            this.events.dispatch(this.events.draw, this);
+        }
+
+        this.drawEntityCollections(this._frustumEntityCollections);
+    }
+
+    /**
+     * Render node callback.
+     * @public
+     */
+    frame() {
+        this._renderScreenNodesPASS();
+    }
+
+    _checkRendercompleted() {
+        if (this._renderCompleted) {
+            if (!this._renderCompletedActivated) {
+                this._renderCompletedActivated = true;
+                this.events.dispatch(this.events.rendercompleted, true);
+            }
+        } else {
+            this._renderCompletedActivated = false;
+        }
+        this._renderCompleted = true;
+
+        if (this._terrainCompleted) {
+            if (!this._terrainCompletedActivated) {
+                this._terrainCompletedActivated = true;
+                this.events.dispatch(this.events.terraincompleted, true);
+            }
+        } else {
+            this._terrainCompletedActivated = false;
+        }
+
+        this._terrainCompleted = true;
+    }
+
+    lockQuadTree() {
+        this._collectRenderNodesIsActive = false;
+        this.camera.setTerrainCollisionActivity(false);
+    }
+
+    unlockQuadTree() {
+        this._collectRenderNodesIsActive = true;
+        this.camera.setTerrainCollisionActivity(true);
+    }
+
+    _firstPASS() {
+
+        if (this._skipPreRender &amp;&amp; this._collectRenderNodesIsActive) {
+            this._collectRenderNodes();
+        }
+        this._skipPreRender = true;
+
+        this.transformLights();
+
+        this._normalMapCreator.frame();
+
+        // Creating geoImages textures.
+        this._geoImageCreator.frame();
+
+        // Collect entity collections from vector layers
+        this._collectVectorLayerCollections();
+
+        // Vector tiles rasteriazation
+        this._vectorTileCreator.frame();
+    }
+
+    _renderScreenNodesPASSNoAtmos() {
+
+        let sh, shu;
+        let renderer = this.renderer;
+        let h = renderer.handler;
+        let gl = h.gl;
+        let cam = renderer.activeCamera;
+        let firstPass = cam.isFirstPass;
+        let frustumIndex = cam.currentFrustumIndex;
+
+        gl.enable(gl.CULL_FACE);
+
+        gl.enable(gl.BLEND);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+        if (this.lightEnabled) {
+            h.programs.drawnode_screen_wl.activate();
+            sh = h.programs.drawnode_screen_wl._program;
+            shu = sh.uniforms;
+
+            gl.uniform3fv(shu.lightsPositions, this._lightsPositions);
+            gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+
+            if (this.baseLayer) {
+                gl.uniform3fv(shu.diffuse, this.baseLayer._diffuse || this._diffuse);
+                gl.uniform3fv(shu.ambient, this.baseLayer._ambient || this._ambient);
+                gl.uniform4fv(shu.specular, this.baseLayer._specular || this._specular);
+                gl.uniform1f(shu.nightTextureCoefficient, this.baseLayer.nightTextureCoefficient || this.nightTextureCoefficient);
+            } else {
+                gl.uniform3fv(shu.diffuse, this._diffuse);
+                gl.uniform3fv(shu.ambient, this._ambient);
+                gl.uniform4fv(shu.specular, this._specular);
+                gl.uniform1f(shu.nightTextureCoefficient, this.nightTextureCoefficient);
+            }
+
+            //
+            // Night and specular
+            //
+            gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
+            gl.bindTexture(gl.TEXTURE_2D, this._nightTexture || this.transparentTexture);
+            gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
+
+            gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
+            gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
+            gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
+
+            gl.uniform1f(shu.camHeight, cam.getHeight());
+
+        } else {
+            h.programs.drawnode_screen_nl.activate();
+            sh = h.programs.drawnode_screen_nl._program;
+            shu = sh.uniforms;
+            gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+        }
+
+        gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
+        gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+
+        //
+        // drawing planet nodes
+        //
+        let rn = this._renderedNodesInFrustum[frustumIndex],
+            sl = this._visibleTileLayerSlices;
+
+        if (sl.length) {
+            let sli = sl[0];
+            for (var i = sli.length - 1; i >= 0; --i) {
+                let li = sli[i];
+                if (li._fading &amp;&amp; firstPass &amp;&amp; li._refreshFadingOpacity()) {
+                    sli.splice(i, 1);
+                }
+            }
+        }
+
+        let isEq = this.terrain.equalizeVertices;
+        i = rn.length;
+        while (i--) {
+            let s = rn[i].segment;
+            isEq &amp;&amp; s.equalize();
+            s.readyToEngage &amp;&amp; s.engage();
+            s.screenRendering(sh, sl[0], 0);
+        }
+
+        gl.enable(gl.POLYGON_OFFSET_FILL);
+        //gl.disable(gl.CULL_FACE);
+        for (let j = 1, len = sl.length; j &lt; len; j++) {
+            let slj = sl[j];
+            for (i = slj.length - 1; i >= 0; --i) {
+                let li = slj[i];
+                if (li._fading &amp;&amp; firstPass &amp;&amp; li._refreshFadingOpacity()) {
+                    slj.splice(i, 1);
+                }
+            }
+
+            gl.polygonOffset(0, -j);
+            i = rn.length;
+            while (i--) {
+                rn[i].segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
+            }
+        }
+        //gl.enable(gl.CULL_FACE);
+        gl.disable(gl.POLYGON_OFFSET_FILL);
+    }
+
+    /**
+     * @protected
+     */
+    _renderScreenNodesPASSAtmos() {
+
+        let sh, shu;
+        let renderer = this.renderer;
+        let h = renderer.handler;
+        let gl = h.gl;
+        let cam = renderer.activeCamera;
+        let firstPass = cam.isFirstPass;
+        let frustumIndex = cam.currentFrustumIndex;
+
+        gl.enable(gl.CULL_FACE);
+
+        gl.enable(gl.BLEND);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+        if (this.lightEnabled) {
+            h.programs.drawnode_screen_wl.activate();
+            sh = h.programs.drawnode_screen_wl._program;
+            shu = sh.uniforms;
+
+            gl.uniform3fv(shu.lightsPositions, this._lightsPositions);
+            gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+
+            if (this.baseLayer) {
+                gl.uniform3fv(shu.diffuse, this.baseLayer._diffuse || this._diffuse);
+                gl.uniform3fv(shu.ambient, this.baseLayer._ambient || this._ambient);
+                gl.uniform4fv(shu.specular, this.baseLayer._specular || this._specular);
+                gl.uniform1f(shu.nightTextureCoefficient, this.baseLayer.nightTextureCoefficient || this.nightTextureCoefficient);
+            } else {
+                gl.uniform3fv(shu.diffuse, this._diffuse);
+                gl.uniform3fv(shu.ambient, this._ambient);
+                gl.uniform4fv(shu.specular, this._specular);
+                gl.uniform1f(shu.nightTextureCoefficient, this.nightTextureCoefficient);
+            }
+
+            gl.uniform2fv(shu.maxMinOpacity, this._atmosphereMaxMinOpacity);
+
+            //
+            // Night and specular
+            //
+            gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
+            gl.bindTexture(gl.TEXTURE_2D, this._nightTexture || this.transparentTexture);
+            gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
+
+            gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
+            gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
+            gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
+
+
+            //
+            // atmos precomputed textures
+            //
+            gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 4);
+            gl.bindTexture(gl.TEXTURE_2D, this.renderer.controls.Atmosphere._transmittanceBuffer.textures[0]);
+            gl.uniform1i(shu.transmittanceTexture, this.SLICE_SIZE + 4);
+
+            gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 5);
+            gl.bindTexture(gl.TEXTURE_2D, this.renderer.controls.Atmosphere._scatteringBuffer.textures[0]);
+            gl.uniform1i(shu.scatteringTexture, this.SLICE_SIZE + 5);
+
+            gl.uniform1f(shu.camHeight, cam.getHeight());
+
+        } else {
+            h.programs.drawnode_screen_nl.activate();
+            sh = h.programs.drawnode_screen_nl._program;
+            shu = sh.uniforms;
+            gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+        }
+
+        gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
+        gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+
+        //
+        // drawing planet nodes
+        //
+        let rn = this._renderedNodesInFrustum[frustumIndex],
+            sl = this._visibleTileLayerSlices;
+
+        if (sl.length) {
+            let sli = sl[0];
+            for (var i = sli.length - 1; i >= 0; --i) {
+                let li = sli[i];
+                if (li._fading &amp;&amp; firstPass &amp;&amp; li._refreshFadingOpacity()) {
+                    sli.splice(i, 1);
+                }
+            }
+        }
+
+        let isEq = this.terrain.equalizeVertices;
+        i = rn.length;
+        while (i--) {
+            let s = rn[i].segment;
+            isEq &amp;&amp; s.equalize();
+            s.readyToEngage &amp;&amp; s.engage();
+            s.screenRendering(sh, sl[0], 0);
+        }
+
+        gl.enable(gl.POLYGON_OFFSET_FILL);
+        for (let j = 1, len = sl.length; j &lt; len; j++) {
+            let slj = sl[j];
+            for (i = slj.length - 1; i >= 0; --i) {
+                let li = slj[i];
+                if (li._fading &amp;&amp; firstPass &amp;&amp; li._refreshFadingOpacity()) {
+                    slj.splice(i, 1);
+                }
+            }
+
+            gl.polygonOffset(0, -j);
+            i = rn.length;
+            while (i--) {
+                rn[i].segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
+            }
+        }
+        gl.disable(gl.POLYGON_OFFSET_FILL);
+    }
+
+    /**
+     * @protected
+     */
+    _renderDistanceFramebufferPASS() {
+        if (!this.terrain.isEmpty) {
+
+            let sh;
+            let renderer = this.renderer;
+            let h = renderer.handler;
+            let gl = h.gl;
+            let cam = renderer.activeCamera;
+
+            h.programs.drawnode_heightPicking.activate();
+            sh = h.programs.drawnode_heightPicking._program;
+            let shu = sh.uniforms;
+
+            gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera.getViewMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, renderer.activeCamera.getProjectionMatrix());
+
+            gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
+            gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+
+            // drawing planet nodes
+            let rn = this._renderedNodesInFrustum[cam.currentFrustumIndex];
+            let sl = this._visibleTileLayerSlices;
+
+            let i = rn.length;
+            while (i--) {
+                rn[i].segment.heightPickingRendering(sh, sl[0]);
+            }
+        }
+    }
+
+    /**
+     * @protected
+     */
+    _renderColorPickingFramebufferPASS() {
+        let sh;
+        let renderer = this.renderer;
+        let h = renderer.handler;
+        let gl = h.gl;
+        h.programs.drawnode_colorPicking.activate();
+        sh = h.programs.drawnode_colorPicking._program;
+        let shu = sh.uniforms;
+        let cam = renderer.activeCamera;
+
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.BLEND);
+
+        gl.enable(gl.CULL_FACE);
+
+        gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+
+        gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
+        gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+
+        // drawing planet nodes
+        let rn = this._renderedNodesInFrustum[cam.getCurrentFrustum()];
+        let sl = this._visibleTileLayerSlices;
+
+        let i = rn.length;
+        while (i--) {
+            rn[i].segment.colorPickingRendering(sh, sl[0], 0);
+        }
+
+        gl.enable(gl.POLYGON_OFFSET_FILL);
+        for (let j = 1, len = sl.length; j &lt; len; j++) {
+            i = rn.length;
+            gl.polygonOffset(0, -j);
+            while (i--) {
+                rn[i].segment.colorPickingRendering(sh, sl[j], j, this.transparentTexture, true);
+            }
+        }
+        gl.disable(gl.POLYGON_OFFSET_FILL);
+    }
+
+    /**
+     * @protected
+     */
+    _renderDepthFramebufferPASS() {
+        let sh;
+        let renderer = this.renderer;
+        let h = renderer.handler;
+        let gl = h.gl;
+        h.programs.drawnode_depth.activate();
+        sh = h.programs.drawnode_depth._program;
+        let shu = sh.uniforms;
+        let cam = renderer.activeCamera;
+
+        gl.disable(gl.BLEND);
+        gl.disable(gl.POLYGON_OFFSET_FILL);
+
+        gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+
+        gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
+        gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+
+        gl.uniform3fv(shu.frustumPickingColor, cam.frustum._pickingColorU);
+
+        // drawing planet nodes
+        let rn = this._renderedNodesInFrustum[cam.getCurrentFrustum()],
+            sl = this._visibleTileLayerSlices;
+
+        let i = rn.length;
+        while (i--) {
+            rn[i].segment.depthRendering(sh, sl[0]);
+        }
+
+        gl.enable(gl.BLEND);
+    }
+
+    _collectVectorLayerCollections() {
+        this._frustumEntityCollections.length = 0;
+        this._frustumEntityCollections = [];
+
+        let i = this.visibleVectorLayers.length;
+        while (i--) {
+            let vi = this.visibleVectorLayers[i];
+
+            if (vi._fading &amp;&amp; vi._refreshFadingOpacity()) {
+                this.visibleVectorLayers.splice(i, 1);
+            }
+
+            vi.collectVisibleCollections(this._frustumEntityCollections);
+            vi.update();
+        }
+    }
+
+    /**
+     * Vector layers picking pass.
+     * @protected
+     */
+    _frustumEntityCollectionPickingCallback() {
+        this.drawPickingEntityCollections(this._frustumEntityCollections);
+    }
+
+    /**
+     * Starts clear memory thread.
+     * @public
+     */
+    memClear() {
+        this._distBeforeMemClear = 0;
+
+        this.camera._insideSegment = null;
+
+        this.layerLock.lock(this._memKey);
+        this.terrainLock.lock(this._memKey);
+        this._normalMapCreator.lock(this._memKey);
+
+        this._normalMapCreator.clear();
+        this.terrain.abortLoading();
+        this._tileLoader.abortAll();
+
+        this.quadTreeStrategy.clear();
+        this.layerLock.free(this._memKey);
+        this.terrainLock.free(this._memKey);
+        this._normalMapCreator.free(this._memKey);
+
+        this._createdNodesCount = 0;
+    }
+
+    /**
+     * Returns ray vector hit ellipsoid coordinates.
+     * If the ray doesn't hit ellipsoit returns null.
+     * @public
+     * @param {Ray} ray - Ray 3d.
+     * @returns {Vec3} -
+     */
+    getRayIntersectionEllipsoid(ray) {
+        return this.ellipsoid.hitRay(ray.origin, ray.direction);
+    }
+
+    /**
+     * Returns 2d screen coordanates projection point to the planet ellipsoid 3d coordinates.
+     * @public
+     * @param {math.Pixel} px - 2D sreen coordinates.
+     * @returns {Vec3} -
+     */
+    getCartesianFromPixelEllipsoid(px) {
+        var cam = this.renderer.activeCamera;
+        return this.ellipsoid.hitRay(cam.eye, cam.unproject(px.x, px.y));
+    }
+
+    /**
+     * Returns 2d screen coordanates projection point to the planet ellipsoid geographical coordinates.
+     * @public
+     * @param {math.Pixel} px - 2D screen coordinates.
+     * @returns {LonLat} -
+     */
+    getLonLatFromPixelEllipsoid(px) {
+        var coords = this.getCartesianFromPixelEllipsoid(px);
+        if (coords) {
+            return this.ellipsoid.cartesianToLonLat(coords);
+        }
+        return null;
+    }
+
+    /**
+     * Returns 3d cartesian coordinates on the relief planet by mouse cursor
+     * position or null if mouse cursor is outside the planet.
+     * @public
+     * @returns {Vec3} -
+     */
+    getCartesianFromMouseTerrain() {
+        var ms = this.renderer.events.mouseState;
+        var distance = this.getDistanceFromPixel(ms);
+        if (distance) {
+            return ms.direction.scaleTo(distance).addA(this.renderer.activeCamera.eye);
+        }
+        return null;
+    }
+
+    /**
+     * Returns 3d cartesian coordinates on the relief planet by 2d screen coordinates.
+     * position or null if input coordinates is outside the planet.
+     * @public
+     * @param {Vec2} px - Pixel screen 2d coordinates.
+     * @param {Boolean} [force=false] - Force framebuffer rendering.
+     * @returns {Vec3} -
+     */
+    getCartesianFromPixelTerrain(px) {
+        var distance = this.getDistanceFromPixel(px);
+        if (distance) {
+            var direction = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
+            return direction.scaleTo(distance).addA(this.renderer.activeCamera.eye);
+        }
+        return null;
+    }
+
+    /**
+     * Returns geographical coordinates on the relief planet by 2d screen coordinates.
+     * position or null if input coordinates is outside the planet.
+     * @public
+     * @param {Vec2} px - Pixel screen 2d coordinates.
+     * @param {Boolean} [force=false] - Force framebuffer rendering.
+     * @returns {LonLat} -
+     */
+    getLonLatFromPixelTerrain(px, force) {
+        var coords = this.getCartesianFromPixelTerrain(px, force);
+        if (coords) {
+            return this.ellipsoid.cartesianToLonLat(coords);
+        }
+        return null;
+    }
+
+    /**
+     * Returns projected 2d screen coordinates by 3d cartesian coordiantes.
+     * @public
+     * @param {Vec3} coords - Cartesian coordinates.
+     * @returns {Vec2} -
+     */
+    getPixelFromCartesian(coords) {
+        return this.renderer.activeCamera.project(coords);
+    }
+
+    /**
+     * Returns projected 2d screen coordinates by geographical coordinates.
+     * @public
+     * @param {LonLat} lonlat - Geographical coordinates.
+     * @returns {Vec2} -
+     */
+    getPixelFromLonLat(lonlat) {
+        var coords = this.ellipsoid.lonLatToCartesian(lonlat);
+        if (coords) {
+            return this.renderer.activeCamera.project(coords);
+        }
+        return null;
+    }
+
+    /**
+     * Returns distance from active camera to the the planet ellipsoid
+     * coordiantes unprojected by 2d screen coordiantes, or null if screen coordinates outside the planet.
+     * @public
+     * @param {Vec2} px - Screen coordinates.
+     * @returns {number} -
+     */
+    getDistanceFromPixelEllipsoid(px) {
+        var coords = this.getCartesianFromPixelEllipsoid(px);
+        return coords ? coords.distance(this.renderer.activeCamera.eye) : null;
+    }
+
+    /**
+     * Returns distance from active camera to the the relief planet coordiantes unprojected
+     * by 2d screen coordiantes, or null if screen coordinates outside the planet.
+     * If screen coordinates inside the planet but relief is not exists in the
+     * point than function returns distance to the planet ellipsoid.
+     * @public
+     * @param {Vec2} px - Screen coordinates.
+     * @param {Boolean} [force=false] - Force framebuffer rendering.
+     * @returns {number} -
+     */
+    getDistanceFromPixel(px) {
+        if (this.terrain.isEmpty) {
+            return this.getDistanceFromPixelEllipsoid(px) || 0;
+        } else {
+
+            let r = this.renderer;
+            let cnv = this.renderer.handler.canvas;
+
+            let spx = px.x / cnv.width;
+            let spy = (cnv.height - px.y) / cnv.height;
+
+            _tempPickingPix_[0] = _tempPickingPix_[1] = _tempPickingPix_[2] = 0.0;
+
+            let dist = 0;
+
+            r.readDistanceColor(spx, spy, _tempPickingPix_);
+
+            dist = decodeFloatFromRGBAArr(_tempPickingPix_);
+
+            if (!(_tempPickingPix_[0] || _tempPickingPix_[1] || _tempPickingPix_[2])) {
+                dist = this.getDistanceFromPixelEllipsoid(px) || 0;
+            } else if (dist &lt; DEPTH_DISTANCE) {
+                r.screenDepthFramebuffer.activate();
+
+                //if (r.screenDepthFramebuffer.isComplete()) {
+                r.screenDepthFramebuffer.readPixels(_tempDepthColor_, spx, spy);
+                let screenPos = new Vec4(spx * 2.0 - 1.0, spy * 2.0 - 1.0, (_tempDepthColor_[0] / 255.0) * 2.0 - 1.0, 1.0 * 2.0 - 1.0);
+                let viewPosition = this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
+                let dir = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
+                dist = -(viewPosition.z / viewPosition.w) / dir.dot(this.renderer.activeCamera.getForward());
+                //}
+
+                r.screenDepthFramebuffer.deactivate();
+            }
+            return dist;
+        }
+    }
+
+    /**
+     * Sets camera to the planet geographical extent.
+     * @public
+     * @param {Extent} extent - Geographical extent.
+     */
+    viewExtent(extent) {
+        this.renderer.activeCamera.viewExtent(extent);
+    }
+
+    /**
+     * Sets camera to the planet geographical extent.
+     * @public
+     * @param {Array.&lt;number>} extentArr - Geographical extent array, (exactly 4 entries)
+     * where index 0 - southwest longitude, 1 - latitude southwest, 2 - longitude northeast, 3 - latitude northeast.
+     */
+    viewExtentArr(extentArr) {
+        this.renderer.activeCamera.viewExtent(new Extent(new LonLat(extentArr[0], extentArr[1]), new LonLat(extentArr[2], extentArr[3])));
+    }
+
+    /**
+     * Gets current viewing geographical extent.
+     * @public
+     * @returns {Extent} -
+     */
+    getViewExtent() {
+        return this._viewExtent;
+        // if (this._viewExtentMerc) {
+        //     var ne = this._viewExtentMerc.northEast.inverseMercator(),
+        //         sw = this._viewExtentMerc.southWest.inverseMercator();
+        //     if (this._viewExtentWGS84) {
+        //         var e = this._viewExtentWGS84;
+        //         if (e.northEast.lon > ne.lon) {
+        //             ne.lon = e.northEast.lon;
+        //         }
+        //         if (e.northEast.lat > ne.lat) {
+        //             ne.lat = e.northEast.lat;
+        //         }
+        //         if (e.southWest.lon &lt; sw.lon) {
+        //             sw.lon = e.southWest.lon;
+        //         }
+        //         if (e.southWest.lat &lt; sw.lat) {
+        //             sw.lat = e.southWest.lat;
+        //         }
+        //     }
+        //     return new Extent(sw, ne);
+        // } else if (this._viewExtentWGS84) {
+        //     return this._viewExtentWGS84;
+        // }
+    }
+
+    /**
+     * Sets camera to the planet geographical position.
+     * @public
+     * @param {LonLat} lonlat - New geographical position.
+     * @param {Vec3} [up] - Camera UP vector.
+     */
+    viewLonLat(lonlat, up) {
+        this.renderer.activeCamera.setLonLat(lonlat, up);
+    }
+
+    /**
+     * Fly camera to the planet geographical extent.
+     * @public
+     * @param {Extent} extent - Geographical extent.
+     * @param {Number} [height] - Height on the end of the flight route.
+     * @param {Vec3} [up] - Camera UP vector on the end of a flying.
+     * @param {Number} [ampl] - Altitude amplitude factor.
+     * @param {cameraCallback} [startCallback] - Callback that calls after flying when flying is finished.
+     * @param {cameraCallback} [completeCallback] - Callback that calls befor the flying begins.
+     */
+    flyExtent(extent, height, up, ampl, completeCallback, startCallback) {
+        this.renderer.activeCamera.flyExtent(extent, height, up, ampl, completeCallback, startCallback);
+    }
+
+    /**
+     * Fly camera to the new point.
+     * @public
+     * @param {Vec3} cartesian - Fly coordiantes.
+     * @param {Vec3} [look] - Camera "look at" point.
+     * @param {Vec3} [up] - Camera UP vector on the end of a flying.
+     * @param {Number} [ampl] - Altitude amplitude factor.
+     * @param [completeCallback]
+     * @param [startCallback]
+     * @param [frameCallback]
+     */
+    flyCartesian(cartesian, look, up, ampl, completeCallback, startCallback, frameCallback) {
+        this.renderer.activeCamera.flyCartesian(cartesian, look, up, ampl, completeCallback, startCallback, frameCallback);
+    }
+
+    /**
+     * Fly camera to the new geographical position.
+     * @public
+     * @param {LonLat} lonlat - Fly geographical coordiantes.
+     * @param {Vec3} [look] - Camera "look at" point on the end of a flying.
+     * @param {Vec3} [up] - Camera UP vector on the end of a flying.
+     * @param {Number} [ampl] - Altitude amplitude factor.
+     * @param [completeCallback]
+     * @param [startCallback]
+     * @param [frameCallback]
+     */
+    flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback, frameCallback) {
+        this.renderer.activeCamera.flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback, frameCallback);
+    }
+
+    /**
+     * Breaks the flight.
+     * @public
+     */
+    stopFlying() {
+        this.renderer.activeCamera.stopFlying();
+    }
+
+    updateBillboardsTexCoords() {
+        for (let i = 0; i &lt; this.entityCollections.length; i++) {
+            this.entityCollections[i].billboardHandler.refreshTexCoordsArr();
+        }
+
+        let readyCollections = {};
+        for (let i = 0; i &lt; this._layers.length; i++) {
+            let li = this._layers[i];
+            if (li instanceof Vector) {
+                li.each(function (e) {
+                    if (e._entityCollection &amp;&amp; !readyCollections[e._entityCollection.id]) {
+                        e._entityCollection.billboardHandler.refreshTexCoordsArr();
+                        readyCollections[e._entityCollection.id] = true;
+                    }
+                });
+            }
+        }
+    }
+
+    getEntityTerrainPoint(entity, res) {
+        let n = this._renderedNodes, i = n.length;
+        while (i--) {
+            if (n[i].segment.isEntityInside(entity)) {
+                return n[i].segment.getEntityTerrainPoint(entity, res);
+            }
+        }
+    }
+
+    async getHeightDefault(lonLat) {
+        return new Promise((resolve, reject) => {
+            this.terrain.getHeightAsync(lonLat.clone(), (alt) => {
+                resolve(alt);
+            });
+        });
+    }
+
+    async getHeightAboveELL(lonLat) {
+        return new Promise((resolve, reject) => {
+            this.terrain.getHeightAsync(lonLat.clone(), (alt) => {
+                resolve(alt + this.terrain.geoid.getHeightLonLat(lonLat));
+            });
+        });
+    }
+}
+</code></pre></article></section></div></div></div><div class="search-container" id="PkfLWpAbet" style="display:none"><div class="wrapper" id="iCxFxjkHbP"><button class="icon-button search-close-button" id="VjLlGakifb" aria-label="close search"><svg><use xlink:href="#close-icon"></use></svg></button><div class="search-box-c"><svg><use xlink:href="#search-icon"></use></svg> <input type="text" id="vpcKVYIppa" class="search-input" placeholder="Search..." autofocus></div><div class="search-result-c" id="fWwVHRuDuN"><span class="search-result-c-text">Type anything to view search result</span></div></div></div><div class="mobile-menu-icon-container"><button class="icon-button" id="mobile-menu" data-isopen="false" aria-label="menu"><svg><use xlink:href="#menu-icon"></use></svg></button></div><div id="mobile-sidebar" class="mobile-sidebar-container"><div class="mobile-sidebar-wrapper"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="mobile-nav-links"></div><div class="mobile-sidebar-items-c"><div class="sidebar-section-title with-arrow" data-isopen="false" id="TDK6dKokNsqfiRkzdo6U2"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-og_Clock.html">og/Clock</a></div><div class="sidebar-section-children"><a href="module-og_Events.html">og/Events</a></div><div class="sidebar-section-children"><a href="module-og_Extent.html">og/Extent</a></div><div class="sidebar-section-children"><a href="module-og_Globe.html">og/Globe</a></div><div class="sidebar-section-children"><a href="module-og_ImageCanvas.html">og/ImageCanvas</a></div><div class="sidebar-section-children"><a href="module-og_Lock.html">og/Lock</a></div><div class="sidebar-section-children"><a href="module-og_LonLat.html">og/LonLat</a></div><div class="sidebar-section-children"><a href="module-og_Stack.html">og/Stack</a></div><div class="sidebar-section-children"><a href="module-og_astro_earth.html">og/astro/earth</a></div><div class="sidebar-section-children"><a href="module-og_astro_jd.html">og/astro/jd</a></div><div class="sidebar-section-children"><a href="module-og_astro_orbit.html">og/astro/orbit</a></div><div class="sidebar-section-children"><a href="module-og_astro_rotation.html">og/astro/rotation</a></div><div class="sidebar-section-children"><a href="module-og_bv_Box.html">og/bv/Box</a></div><div class="sidebar-section-children"><a href="module-og_bv_Sphere.html">og/bv/Sphere</a></div><div class="sidebar-section-children"><a href="module-og_camera_PlanetCamera.html">og/camera/PlanetCamera</a></div><div class="sidebar-section-children"><a href="module-og_control_Atmosphere.html">og/control/Atmosphere</a></div><div class="sidebar-section-children"><a href="module-og_control_Control.html">og/control/Control</a></div><div class="sidebar-section-children"><a href="module-og_control_DebugInfo.html">og/control/DebugInfo</a></div><div class="sidebar-section-children"><a href="module-og_control_GeoImageDragControl.html">og/control/GeoImageDragControl</a></div><div class="sidebar-section-children"><a href="module-og_control_KeyboardNavigation.html">og/control/KeyboardNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerAnimation.html">og/control/LayerAnimation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerSwitcher.html">og/control/LayerSwitcher</a></div><div class="sidebar-section-children"><a href="module-og_control_Lighting.html">og/control/Lighting</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseNavigation.html">og/control/MouseNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseWheelZoomControl.html">og/control/MouseWheelZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler.html">og/control/Ruler</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler.html">og/control/Ruler</a></div><div class="sidebar-section-children"><a href="module-og_control_Selector.html">og/control/Selector</a></div><div class="sidebar-section-children"><a href="module-og_control_ShowFps.html">og/control/ShowFps</a></div><div class="sidebar-section-children"><a href="module-og_control_SimpleSkyBackground.html">og/control/SimpleSkyBackground</a></div><div class="sidebar-section-children"><a href="module-og_control_Sun.html">og/control/Sun</a></div><div class="sidebar-section-children"><a href="module-og_control_ToggleWireframe.html">og/control/ToggleWireframe</a></div><div class="sidebar-section-children"><a href="module-og_control_TouchNavigation.html">og/control/TouchNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl.html">og/control/ZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl.html">og/control/ZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_ellipsoid_Ellipsoid.html">og/ellipsoid/Ellipsoid</a></div><div class="sidebar-section-children"><a href="module-og_ellipsoid_wgs84.html">og/ellipsoid/wgs84</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard.html">og/entity/BaseBillboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard.html">og/entity/BaseBillboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_Billboard.html">og/entity/Billboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_BillboardHandler.html">og/entity/BillboardHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Entity.html">og/entity/Entity</a></div><div class="sidebar-section-children"><a href="module-og_entity_EntityCollection.html">og/entity/EntityCollection</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeoObject.html">og/entity/GeoObject</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeoObjectHandler.html">og/entity/GeoObjectHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Geometry.html">og/entity/Geometry</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeometryHandler.html">og/entity/GeometryHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Label.html">og/entity/Label</a></div><div class="sidebar-section-children"><a href="module-og_entity_LabelHandler.html">og/entity/LabelHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_PointCloud.html">og/entity/PointCloud</a></div><div class="sidebar-section-children"><a href="module-og_entity_PointCloudHandler.html">og/entity/PointCloudHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Polyline.html">og/entity/Polyline</a></div><div class="sidebar-section-children"><a href="module-og_entity_PolylineHandler.html">og/entity/PolylineHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_KeyboardHandler.html">og/input/KeyboardHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_MouseHandler.html">og/input/MouseHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_TouchHandler.html">og/input/TouchHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_input.html">og/input/input</a></div><div class="sidebar-section-children"><a href="module-og_layer_BaseGeoImage.html">og/layer/BaseGeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_CanvasTiles.html">og/layer/CanvasTiles</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoImage.html">og/layer/GeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoTexture2d.html">og/layer/GeoTexture2d</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoVideo.html">og/layer/GeoVideo</a></div><div class="sidebar-section-children"><a href="module-og_layer_KML.html">og/layer/KML</a></div><div class="sidebar-section-children"><a href="module-og_layer_Layer.html">og/layer/Layer</a></div><div class="sidebar-section-children"><a href="module-og_layer_Material.html">og/layer/Material</a></div><div class="sidebar-section-children"><a href="module-og_layer_Vector.html">og/layer/Vector</a></div><div class="sidebar-section-children"><a href="module-og_layer_WMS.html">og/layer/WMS</a></div><div class="sidebar-section-children"><a href="module-og_layer_XYZ.html">og/layer/XYZ</a></div><div class="sidebar-section-children"><a href="module-og_light_LightSource.html">og/light/LightSource</a></div><div class="sidebar-section-children"><a href="module-og_math.html">og/math</a></div><div class="sidebar-section-children"><a href="module-og_math_Line2.html">og/math/Line2</a></div><div class="sidebar-section-children"><a href="module-og_math_Mat3.html">og/math/Mat3</a></div><div class="sidebar-section-children"><a href="module-og_math_Ray.html">og/math/Ray</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec2.html">og/math/Vec2</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec3.html">og/math/Vec3</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec4.html">og/math/Vec4</a></div><div class="sidebar-section-children"><a href="module-og_math_coder.html">og/math/coder</a></div><div class="sidebar-section-children"><a href="module-og_mercator.html">og/mercator</a></div><div class="sidebar-section-children"><a href="module-og_proj_EPSG3857.html">og/proj/EPSG3857</a></div><div class="sidebar-section-children"><a href="module-og_proj_EPSG4326.html">og/proj/EPSG4326</a></div><div class="sidebar-section-children"><a href="module-og_proj_Proj.html">og/proj/Proj</a></div><div class="sidebar-section-children"><a href="module-og_quadTree_EntityCollectionNode.html">og/quadTree/EntityCollectionNode</a></div><div class="sidebar-section-children"><a href="module-og_renderer_RendererEvents.html">og/renderer/RendererEvents</a></div><div class="sidebar-section-children"><a href="module-og_scene_Axes.html">og/scene/Axes</a></div><div class="sidebar-section-children"><a href="module-og_scene_BaseNode.html">og/scene/BaseNode</a></div><div class="sidebar-section-children"><a href="module-og_scene_Planet.html">og/scene/Planet</a></div><div class="sidebar-section-children"><a href="module-og_scene_SkyBox.html">og/scene/SkyBox</a></div><div class="sidebar-section-children"><a href="module-og_shaders_billboard.html">og/shaders/billboard</a></div><div class="sidebar-section-children"><a href="module-og_shaders_drawnode.html">og/shaders/drawnode</a></div><div class="sidebar-section-children"><a href="module-og_shaders_drawnode.html">og/shaders/drawnode</a></div><div class="sidebar-section-children"><a href="module-og_shaders_drawnode.html">og/shaders/drawnode</a></div><div class="sidebar-section-children"><a href="module-og_shaders_label.html">og/shaders/label</a></div><div class="sidebar-section-children"><a href="module-og_shaders_pickingMask.html">og/shaders/pickingMask</a></div><div class="sidebar-section-children"><a href="module-og_shaders_pointCloud.html">og/shaders/pointCloud</a></div><div class="sidebar-section-children"><a href="module-og_shaders_polyline.html">og/shaders/polyline</a></div><div class="sidebar-section-children"><a href="module-og_shaders_ray.html">og/shaders/ray</a></div><div class="sidebar-section-children"><a href="module-og_shaders_skybox.html">og/shaders/skybox</a></div><div class="sidebar-section-children"><a href="module-og_terrainProvider_EmptyTerrain.html">og/terrainProvider/EmptyTerrain</a></div><div class="sidebar-section-children"><a href="module-og_utils_FontAtlas.html">og/utils/FontAtlas</a></div><div class="sidebar-section-children"><a href="module-og_utils_NormalMapCreator.html">og/utils/NormalMapCreator</a></div><div class="sidebar-section-children"><a href="module-og_utils_VectorTileCreator.html">og/utils/VectorTileCreator</a></div><div class="sidebar-section-children"><a href="module-og_utils_earcut.html">og/utils/earcut</a></div><div class="sidebar-section-children"><a href="module-og_utils_shared.html">og/utils/shared</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Framebuffer.html">og/webgl/Framebuffer</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Handler.html">og/webgl/Handler</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Multisample.html">og/webgl/Multisample</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Program.html">og/webgl/Program</a></div><div class="sidebar-section-children"><a href="module-og_webgl_callbacks.html">og/webgl/callbacks</a></div><div class="sidebar-section-children"><a href="module-og_webgl_types.html">og/webgl/types</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="_zSyzM5GLJxvA5SOCBl0C"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="Camera.html">Camera</a></div><div class="sidebar-section-children"><a href="CompassButton.html">CompassButton</a></div><div class="sidebar-section-children"><a href="Cons.html">Cons</a></div><div class="sidebar-section-children"><a href="EarthCoordinates.html">EarthCoordinates</a></div><div class="sidebar-section-children"><a href="Frustum.html">Frustum</a></div><div class="sidebar-section-children"><a href="GlobusTerrain.html">GlobusTerrain</a></div><div class="sidebar-section-children"><a href="Mat4.html">Mat4</a></div><div class="sidebar-section-children"><a href="Node.html">Node</a></div><div class="sidebar-section-children"><a href="Plane.html">Plane</a></div><div class="sidebar-section-children"><a href="ProgramController.html">ProgramController</a></div><div class="sidebar-section-children"><a href="Quat.html">Quat</a></div><div class="sidebar-section-children"><a href="QueueArray.html">QueueArray</a></div><div class="sidebar-section-children"><a href="Rectangle.html">Rectangle</a></div><div class="sidebar-section-children"><a href="RenderNode.html">RenderNode</a></div><div class="sidebar-section-children"><a href="Segment.html">Segment</a></div><div class="sidebar-section-children"><a href="Segment.html">Segment</a></div><div class="sidebar-section-children"><a href="SegmentBoundVisualization.html">SegmentBoundVisualization</a></div><div class="sidebar-section-children"><a href="SegmentLonLat.html">SegmentLonLat</a></div><div class="sidebar-section-children"><a href="SimpleNavigation.html">SimpleNavigation</a></div><div class="sidebar-section-children"><a href="Strip.html">Strip</a></div><div class="sidebar-section-children"><a href="TextureAtlas.html">TextureAtlas</a></div><div class="sidebar-section-children"><a href="TextureAtlasNode.html">TextureAtlasNode</a></div><div class="sidebar-section-children"><a href="VisibleExtent.html">VisibleExtent</a></div><div class="sidebar-section-children"><a href="-__resizeTimeout.html">__resizeTimeout</a></div><div class="sidebar-section-children"><a href="module-og_Clock-Clock.html">Clock</a></div><div class="sidebar-section-children"><a href="module-og_Events-Events.html">Events</a></div><div class="sidebar-section-children"><a href="module-og_Extent.Extent.html">Extent</a></div><div class="sidebar-section-children"><a href="module-og_Globe-Globe.html">Globe</a></div><div class="sidebar-section-children"><a href="module-og_ImageCanvas-ImageCanvas.html">ImageCanvas</a></div><div class="sidebar-section-children"><a href="module-og_LonLat.LonLat.html">LonLat</a></div><div class="sidebar-section-children"><a href="module-og_Stack-Stack.html">Stack</a></div><div class="sidebar-section-children"><a href="module-og_bv_Box-Box.html">Box</a></div><div class="sidebar-section-children"><a href="module-og_bv_Sphere-Sphere.html">Sphere</a></div><div class="sidebar-section-children"><a href="module-og_camera_PlanetCamera-PlanetCamera.html">PlanetCamera</a></div><div class="sidebar-section-children"><a href="module-og_control_Atmosphere-Atmosphere.html">Atmosphere</a></div><div class="sidebar-section-children"><a href="module-og_control_Control-Control.html">Control</a></div><div class="sidebar-section-children"><a href="module-og_control_DebugInfo-DebugInfo.html">DebugInfo</a></div><div class="sidebar-section-children"><a href="module-og_control_KeyboardNavigation-KeyboardNavigation.html">KeyboardNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerAnimation-LayerAnimation.html">LayerAnimation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerSwitcher-LayerSwitcher.html">LayerSwitcher</a></div><div class="sidebar-section-children"><a href="module-og_control_Lighting-ICON_BUTTON_SVG.html">ICON_BUTTON_SVG</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseNavigation-MouseNavigation.html">MouseNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseWheelZoomControl-MouseWheelZoomControl.html">MouseWheelZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler-Ruler.html">Ruler</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler-RulerSwitcher.html">RulerSwitcher</a></div><div class="sidebar-section-children"><a href="module-og_control_Selector-Selection.html">Selection</a></div><div class="sidebar-section-children"><a href="module-og_control_ShowFps-ShowFps.html">ShowFps</a></div><div class="sidebar-section-children"><a href="module-og_control_SimpleSkyBackground-SimpleSkyBackground.html">SimpleSkyBackground</a></div><div class="sidebar-section-children"><a href="module-og_control_Sun-Sun.html">Sun</a></div><div class="sidebar-section-children"><a href="module-og_control_ToggleWireframe-ToggleWireframe.html">ToggleWireframe</a></div><div class="sidebar-section-children"><a href="module-og_control_TouchNavigation-TouchNavigation.html">TouchNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl-ScaleControl.html">ScaleControl</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl-ZoomControl.html">ZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_ellipsoid_Ellipsoid-Ellipsoid.html">Ellipsoid</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard-BaseBillboard.html">BaseBillboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard-Ray.html">Ray</a></div><div class="sidebar-section-children"><a href="module-og_entity_BillboardHandler-BillboardHandler.html">BillboardHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Billboard-Billboard.html">Billboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_EntityCollection-EntityCollection.html">EntityCollection</a></div><div class="sidebar-section-children"><a href="module-og_entity_Entity-Entity.html">Entity</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeoObject-GeoObject.html">GeoObject</a></div><div class="sidebar-section-children"><a href="module-og_entity_LabelHandler-LabelHandler.html">LabelHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Label-Label.html">Label</a></div><div class="sidebar-section-children"><a href="module-og_entity_PointCloud-PointCloud.html">PointCloud</a></div><div class="sidebar-section-children"><a href="module-og_entity_Polyline-Polyline.html">Polyline</a></div><div class="sidebar-section-children"><a href="module-og_layer_BaseGeoImage-BaseGeoImage.html">BaseGeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_CanvasTiles-CanvasTiles.html">CanvasTiles</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoImage-GeoImage.html">GeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoVideo-GeoVideo.html">GeoVideo</a></div><div class="sidebar-section-children"><a href="module-og_layer_KML.KML.html">KML</a></div><div class="sidebar-section-children"><a href="module-og_layer_Layer-Layer.html">Layer</a></div><div class="sidebar-section-children"><a href="module-og_layer_Material-Material.html">Material</a></div><div class="sidebar-section-children"><a href="module-og_layer_Vector-Vector.html">Vector</a></div><div class="sidebar-section-children"><a href="module-og_layer_WMS-WMS.html">WMS</a></div><div class="sidebar-section-children"><a href="module-og_layer_XYZ-XYZ.html">XYZ</a></div><div class="sidebar-section-children"><a href="module-og_light_LightSource-LightSource.html">LightSource</a></div><div class="sidebar-section-children"><a href="module-og_math_Mat3.Mat3.html">Mat3</a></div><div class="sidebar-section-children"><a href="module-og_math_Ray.Ray.html">Ray</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec2.Vec2.html">Vec2</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec3.Vec3.html">Vec3</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec4.Vec4.html">Vec4</a></div><div class="sidebar-section-children"><a href="module-og_renderer_RendererEvents-RendererEvents.html">RendererEvents</a></div><div class="sidebar-section-children"><a href="module-og_scene_BaseNode-BaseNode.html">BaseNode</a></div><div class="sidebar-section-children"><a href="module-og_scene_Planet.Planet.html">Planet</a></div><div class="sidebar-section-children"><a href="module-og_terrainProvider_EmptyTerrain-EmptyTerrain.html">EmptyTerrain</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Framebuffer.Framebuffer.html">Framebuffer</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Handler-Handler.html">Handler</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Multisample.Multisample.html">Multisample</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Program-Program.html">Program</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="_mtSCD_-Y8oZXn_4TBH69"><div>Events</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="og.Camera.html#event:moveend">moveend</a></div><div class="sidebar-section-children"><a href="og.Camera.html#event:viewchange">viewchange</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:add">add</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:doubletouch">doubletouch</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:drawend">drawend</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:entityadd">entityadd</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:entitymove">entitymove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:entityremove">entityremove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:lclick">lclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:ldblclick">ldblclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:ldown">ldown</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:lhold">lhold</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:lup">lup</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mclick">mclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mdblclick">mdblclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mdown">mdown</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mhold">mhold</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mouseleave">mouseleave</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mousemove">mousemove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mousewheel">mousewheel</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mup">mup</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rclick">rclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rdblclick">rdblclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rdown">rdown</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:remove">remove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rhold">rhold</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rup">rup</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchend">touchend</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchenter">touchenter</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchleave">touchleave</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchmove">touchmove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchstart">touchstart</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:visibilitychange">visibilitychange</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:add">add</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:doubletouch">doubletouch</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:lclick">lclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:ldblclick">ldblclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:ldown">ldown</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:lhold">lhold</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:lup">lup</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mclick">mclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mdblclick">mdblclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mdown">mdown</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mhold">mhold</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mousemove">mousemove</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mousewheel">mousewheel</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mup">mup</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rclick">rclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rdblclick">rdblclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rdown">rdown</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:remove">remove</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rhold">rhold</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rup">rup</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchend">touchend</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchenter">touchenter</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchleave">touchleave</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchmove">touchmove</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchstart">touchstart</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:visibilitychange">visibilitychange</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:doubletouch">doubletouch</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:lclick">lclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:ldblclick">ldblclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:ldown">ldown</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:lhold">lhold</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:lup">lup</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mclick">mclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mdblclick">mdblclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mdown">mdown</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mhold">mhold</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mouseleave">mouseleave</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mousemove">mousemove</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mousestop">mousestop</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mousewheel">mousewheel</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mup">mup</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:postdraw">postdraw</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rclick">rclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rdblclick">rdblclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rdown">rdown</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:resize">resize</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:resizeend">resizeend</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rhold">rhold</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rup">rup</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchcancel">touchcancel</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchend">touchend</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchenter">touchenter</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchleave">touchleave</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchmove">touchmove</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchstart">touchstart</a></div><div class="sidebar-section-children"><a href="og.layer.BaseGeoImage.html#event:loadend">loadend</a></div><div class="sidebar-section-children"><a href="og.layer.CanvasTiles.html#event:load">load</a></div><div class="sidebar-section-children"><a href="og.layer.CanvasTiles.html#event:loadend">loadend</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:entityadd">entityadd</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:entityremove">entityremove</a></div><div class="sidebar-section-children"><a href="og.layer.XYZ.html#event:load">load</a></div><div class="sidebar-section-children"><a href="og.layer.XYZ.html#event:loadend">loadend</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:baselayerchange">baselayerchange</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:layeradd">layeradd</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:layerremove">layerremove</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:layervisibilitychange">layervisibilitychange</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:rendercompleted">rendercompleted</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:terraincompleted">terraincompleted</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:terraincompleted">terraincompleted</a></div><div class="sidebar-section-children"><a href="og.terrain.GlobusTerrain.html#event:load">load</a></div><div class="sidebar-section-children"><a href="og.terrain.GlobusTerrain.html#event:loadend">loadend</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="v6wPh3JHtlq2x2yaNvv0a"><div>Global</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="global.html#AU_TO_METERS">AU_TO_METERS</a></div><div class="sidebar-section-children"><a href="global.html#COMSIDE">COMSIDE</a></div><div class="sidebar-section-children"><a href="global.html#EARTH_GRAVITATIONAL_PARAMETER">EARTH_GRAVITATIONAL_PARAMETER</a></div><div class="sidebar-section-children"><a href="global.html#J2000_OBLIQUITY">J2000_OBLIQUITY</a></div><div class="sidebar-section-children"><a href="global.html#NEIGHBOUR">NEIGHBOUR</a></div><div class="sidebar-section-children"><a href="global.html#NOPSORD">NOPSORD</a></div><div class="sidebar-section-children"><a href="global.html#OPPART">OPPART</a></div><div class="sidebar-section-children"><a href="global.html#OPSIDE">OPSIDE</a></div><div class="sidebar-section-children"><a href="global.html#PARTOFFSET">PARTOFFSET</a></div><div class="sidebar-section-children"><a href="global.html#SUN_GRAVITATIONAL_PARAMETER">SUN_GRAVITATIONAL_PARAMETER</a></div><div class="sidebar-section-children"><a href="global.html#TAItoTDB">TAItoTDB</a></div><div class="sidebar-section-children"><a href="global.html#TDT_TAI">TDT_TAI</a></div><div class="sidebar-section-children"><a href="global.html#equationCallback">equationCallback</a></div><div class="sidebar-section-children"><a href="global.html#mat4">mat4</a></div><div class="sidebar-section-children"><a href="global.html#quat">quat</a></div><div class="sidebar-section-children"><a href="global.html#simpleNavigation">simpleNavigation</a></div></div></div><div class="mobile-navbar-actions"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#light-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div></div></div><script type="text/javascript" src="scripts/core.min.js"></script><script src="scripts/search.min.js" defer="defer"></script><script src="scripts/third-party/fuse.js" defer="defer"></script><script type="text/javascript">var tocbotInstance=tocbot.init({tocSelector:"#eed4d2a0bfd64539bb9df78095dec881",contentSelector:".main-content",headingSelector:"h1, h2, h3",hasInnerContainers:!0,scrollContainer:".main-content",headingsOffset:130,onClick:bringLinkToView})</script></body></html>

@@ -1,0 +1,2208 @@
+<!DOCTYPE html><html lang="en" style="font-size:16px"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Source: entity/Polyline.js</title><!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]--><script src="scripts/third-party/hljs.js" defer="defer"></script><script src="scripts/third-party/hljs-line-num.js" defer="defer"></script><script src="scripts/third-party/popper.js" defer="defer"></script><script src="scripts/third-party/tippy.js" defer="defer"></script><script src="scripts/third-party/tocbot.min.js"></script><script>var baseURL="/",locationPathname="",baseURL=(locationPathname=document.location.pathname).substr(0,locationPathname.lastIndexOf("/")+1)</script><link rel="stylesheet" href="styles/clean-jsdoc-theme.min.css"><svg aria-hidden="true" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display:none"><defs><symbol id="copy-icon" viewbox="0 0 488.3 488.3"><g><path d="M314.25,85.4h-227c-21.3,0-38.6,17.3-38.6,38.6v325.7c0,21.3,17.3,38.6,38.6,38.6h227c21.3,0,38.6-17.3,38.6-38.6V124    C352.75,102.7,335.45,85.4,314.25,85.4z M325.75,449.6c0,6.4-5.2,11.6-11.6,11.6h-227c-6.4,0-11.6-5.2-11.6-11.6V124    c0-6.4,5.2-11.6,11.6-11.6h227c6.4,0,11.6,5.2,11.6,11.6V449.6z"/><path d="M401.05,0h-227c-21.3,0-38.6,17.3-38.6,38.6c0,7.5,6,13.5,13.5,13.5s13.5-6,13.5-13.5c0-6.4,5.2-11.6,11.6-11.6h227    c6.4,0,11.6,5.2,11.6,11.6v325.7c0,6.4-5.2,11.6-11.6,11.6c-7.5,0-13.5,6-13.5,13.5s6,13.5,13.5,13.5c21.3,0,38.6-17.3,38.6-38.6    V38.6C439.65,17.3,422.35,0,401.05,0z"/></g></symbol><symbol id="search-icon" viewBox="0 0 512 512"><g><g><path d="M225.474,0C101.151,0,0,101.151,0,225.474c0,124.33,101.151,225.474,225.474,225.474    c124.33,0,225.474-101.144,225.474-225.474C450.948,101.151,349.804,0,225.474,0z M225.474,409.323    c-101.373,0-183.848-82.475-183.848-183.848S124.101,41.626,225.474,41.626s183.848,82.475,183.848,183.848    S326.847,409.323,225.474,409.323z"/></g></g><g><g><path d="M505.902,476.472L386.574,357.144c-8.131-8.131-21.299-8.131-29.43,0c-8.131,8.124-8.131,21.306,0,29.43l119.328,119.328    c4.065,4.065,9.387,6.098,14.715,6.098c5.321,0,10.649-2.033,14.715-6.098C514.033,497.778,514.033,484.596,505.902,476.472z"/></g></g></symbol><symbol id="font-size-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11.246 15H4.754l-2 5H.6L7 4h2l6.4 16h-2.154l-2-5zm-.8-2L8 6.885 5.554 13h4.892zM21 12.535V12h2v8h-2v-.535a4 4 0 1 1 0-6.93zM19 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></symbol><symbol id="add-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></symbol><symbol id="minus-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M5 11h14v2H5z"/></symbol><symbol id="dark-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></symbol><symbol id="light-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></symbol><symbol id="reset-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M18.537 19.567A9.961 9.961 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 2.136-.67 4.116-1.81 5.74L17 12h3a8 8 0 1 0-2.46 5.772l.997 1.795z"/></symbol><symbol id="down-icon" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path></symbol><symbol id="codepen-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M16.5 13.202L13 15.535v3.596L19.197 15 16.5 13.202zM14.697 12L12 10.202 9.303 12 12 13.798 14.697 12zM20 10.869L18.303 12 20 13.131V10.87zM19.197 9L13 4.869v3.596l3.5 2.333L19.197 9zM7.5 10.798L11 8.465V4.869L4.803 9 7.5 10.798zM4.803 15L11 19.131v-3.596l-3.5-2.333L4.803 15zM4 13.131L5.697 12 4 10.869v2.262zM2 9a1 1 0 0 1 .445-.832l9-6a1 1 0 0 1 1.11 0l9 6A1 1 0 0 1 22 9v6a1 1 0 0 1-.445.832l-9 6a1 1 0 0 1-1.11 0l-9-6A1 1 0 0 1 2 15V9z"/></symbol><symbol id="close-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"/></symbol><symbol id="menu-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/></symbol></defs></svg></head><body class="dark" data-theme="dark"><div class="sidebar-container"><div class="sidebar" id="sidebar"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="sidebar-items-container"><div class="sidebar-section-title with-arrow" data-isopen="false" id="TDK6dKokNsqfiRkzdo6U2"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-og_Clock.html">og/Clock</a></div><div class="sidebar-section-children"><a href="module-og_Events.html">og/Events</a></div><div class="sidebar-section-children"><a href="module-og_Extent.html">og/Extent</a></div><div class="sidebar-section-children"><a href="module-og_Globe.html">og/Globe</a></div><div class="sidebar-section-children"><a href="module-og_ImageCanvas.html">og/ImageCanvas</a></div><div class="sidebar-section-children"><a href="module-og_Lock.html">og/Lock</a></div><div class="sidebar-section-children"><a href="module-og_LonLat.html">og/LonLat</a></div><div class="sidebar-section-children"><a href="module-og_Stack.html">og/Stack</a></div><div class="sidebar-section-children"><a href="module-og_astro_earth.html">og/astro/earth</a></div><div class="sidebar-section-children"><a href="module-og_astro_jd.html">og/astro/jd</a></div><div class="sidebar-section-children"><a href="module-og_astro_orbit.html">og/astro/orbit</a></div><div class="sidebar-section-children"><a href="module-og_astro_rotation.html">og/astro/rotation</a></div><div class="sidebar-section-children"><a href="module-og_bv_Box.html">og/bv/Box</a></div><div class="sidebar-section-children"><a href="module-og_bv_Sphere.html">og/bv/Sphere</a></div><div class="sidebar-section-children"><a href="module-og_camera_PlanetCamera.html">og/camera/PlanetCamera</a></div><div class="sidebar-section-children"><a href="module-og_control_Atmosphere.html">og/control/Atmosphere</a></div><div class="sidebar-section-children"><a href="module-og_control_Control.html">og/control/Control</a></div><div class="sidebar-section-children"><a href="module-og_control_DebugInfo.html">og/control/DebugInfo</a></div><div class="sidebar-section-children"><a href="module-og_control_GeoImageDragControl.html">og/control/GeoImageDragControl</a></div><div class="sidebar-section-children"><a href="module-og_control_KeyboardNavigation.html">og/control/KeyboardNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerAnimation.html">og/control/LayerAnimation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerSwitcher.html">og/control/LayerSwitcher</a></div><div class="sidebar-section-children"><a href="module-og_control_Lighting.html">og/control/Lighting</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseNavigation.html">og/control/MouseNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseWheelZoomControl.html">og/control/MouseWheelZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler.html">og/control/Ruler</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler.html">og/control/Ruler</a></div><div class="sidebar-section-children"><a href="module-og_control_Selector.html">og/control/Selector</a></div><div class="sidebar-section-children"><a href="module-og_control_ShowFps.html">og/control/ShowFps</a></div><div class="sidebar-section-children"><a href="module-og_control_SimpleSkyBackground.html">og/control/SimpleSkyBackground</a></div><div class="sidebar-section-children"><a href="module-og_control_Sun.html">og/control/Sun</a></div><div class="sidebar-section-children"><a href="module-og_control_ToggleWireframe.html">og/control/ToggleWireframe</a></div><div class="sidebar-section-children"><a href="module-og_control_TouchNavigation.html">og/control/TouchNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl.html">og/control/ZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl.html">og/control/ZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_ellipsoid_Ellipsoid.html">og/ellipsoid/Ellipsoid</a></div><div class="sidebar-section-children"><a href="module-og_ellipsoid_wgs84.html">og/ellipsoid/wgs84</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard.html">og/entity/BaseBillboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard.html">og/entity/BaseBillboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_Billboard.html">og/entity/Billboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_BillboardHandler.html">og/entity/BillboardHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Entity.html">og/entity/Entity</a></div><div class="sidebar-section-children"><a href="module-og_entity_EntityCollection.html">og/entity/EntityCollection</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeoObject.html">og/entity/GeoObject</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeoObjectHandler.html">og/entity/GeoObjectHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Geometry.html">og/entity/Geometry</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeometryHandler.html">og/entity/GeometryHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Label.html">og/entity/Label</a></div><div class="sidebar-section-children"><a href="module-og_entity_LabelHandler.html">og/entity/LabelHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_PointCloud.html">og/entity/PointCloud</a></div><div class="sidebar-section-children"><a href="module-og_entity_PointCloudHandler.html">og/entity/PointCloudHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Polyline.html">og/entity/Polyline</a></div><div class="sidebar-section-children"><a href="module-og_entity_PolylineHandler.html">og/entity/PolylineHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_KeyboardHandler.html">og/input/KeyboardHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_MouseHandler.html">og/input/MouseHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_TouchHandler.html">og/input/TouchHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_input.html">og/input/input</a></div><div class="sidebar-section-children"><a href="module-og_layer_BaseGeoImage.html">og/layer/BaseGeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_CanvasTiles.html">og/layer/CanvasTiles</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoImage.html">og/layer/GeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoTexture2d.html">og/layer/GeoTexture2d</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoVideo.html">og/layer/GeoVideo</a></div><div class="sidebar-section-children"><a href="module-og_layer_KML.html">og/layer/KML</a></div><div class="sidebar-section-children"><a href="module-og_layer_Layer.html">og/layer/Layer</a></div><div class="sidebar-section-children"><a href="module-og_layer_Material.html">og/layer/Material</a></div><div class="sidebar-section-children"><a href="module-og_layer_Vector.html">og/layer/Vector</a></div><div class="sidebar-section-children"><a href="module-og_layer_WMS.html">og/layer/WMS</a></div><div class="sidebar-section-children"><a href="module-og_layer_XYZ.html">og/layer/XYZ</a></div><div class="sidebar-section-children"><a href="module-og_light_LightSource.html">og/light/LightSource</a></div><div class="sidebar-section-children"><a href="module-og_math.html">og/math</a></div><div class="sidebar-section-children"><a href="module-og_math_Line2.html">og/math/Line2</a></div><div class="sidebar-section-children"><a href="module-og_math_Mat3.html">og/math/Mat3</a></div><div class="sidebar-section-children"><a href="module-og_math_Ray.html">og/math/Ray</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec2.html">og/math/Vec2</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec3.html">og/math/Vec3</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec4.html">og/math/Vec4</a></div><div class="sidebar-section-children"><a href="module-og_math_coder.html">og/math/coder</a></div><div class="sidebar-section-children"><a href="module-og_mercator.html">og/mercator</a></div><div class="sidebar-section-children"><a href="module-og_proj_EPSG3857.html">og/proj/EPSG3857</a></div><div class="sidebar-section-children"><a href="module-og_proj_EPSG4326.html">og/proj/EPSG4326</a></div><div class="sidebar-section-children"><a href="module-og_proj_Proj.html">og/proj/Proj</a></div><div class="sidebar-section-children"><a href="module-og_quadTree_EntityCollectionNode.html">og/quadTree/EntityCollectionNode</a></div><div class="sidebar-section-children"><a href="module-og_renderer_RendererEvents.html">og/renderer/RendererEvents</a></div><div class="sidebar-section-children"><a href="module-og_scene_Axes.html">og/scene/Axes</a></div><div class="sidebar-section-children"><a href="module-og_scene_BaseNode.html">og/scene/BaseNode</a></div><div class="sidebar-section-children"><a href="module-og_scene_Planet.html">og/scene/Planet</a></div><div class="sidebar-section-children"><a href="module-og_scene_SkyBox.html">og/scene/SkyBox</a></div><div class="sidebar-section-children"><a href="module-og_shaders_billboard.html">og/shaders/billboard</a></div><div class="sidebar-section-children"><a href="module-og_shaders_drawnode.html">og/shaders/drawnode</a></div><div class="sidebar-section-children"><a href="module-og_shaders_drawnode.html">og/shaders/drawnode</a></div><div class="sidebar-section-children"><a href="module-og_shaders_drawnode.html">og/shaders/drawnode</a></div><div class="sidebar-section-children"><a href="module-og_shaders_label.html">og/shaders/label</a></div><div class="sidebar-section-children"><a href="module-og_shaders_pickingMask.html">og/shaders/pickingMask</a></div><div class="sidebar-section-children"><a href="module-og_shaders_pointCloud.html">og/shaders/pointCloud</a></div><div class="sidebar-section-children"><a href="module-og_shaders_polyline.html">og/shaders/polyline</a></div><div class="sidebar-section-children"><a href="module-og_shaders_ray.html">og/shaders/ray</a></div><div class="sidebar-section-children"><a href="module-og_shaders_skybox.html">og/shaders/skybox</a></div><div class="sidebar-section-children"><a href="module-og_terrainProvider_EmptyTerrain.html">og/terrainProvider/EmptyTerrain</a></div><div class="sidebar-section-children"><a href="module-og_utils_FontAtlas.html">og/utils/FontAtlas</a></div><div class="sidebar-section-children"><a href="module-og_utils_NormalMapCreator.html">og/utils/NormalMapCreator</a></div><div class="sidebar-section-children"><a href="module-og_utils_VectorTileCreator.html">og/utils/VectorTileCreator</a></div><div class="sidebar-section-children"><a href="module-og_utils_earcut.html">og/utils/earcut</a></div><div class="sidebar-section-children"><a href="module-og_utils_shared.html">og/utils/shared</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Framebuffer.html">og/webgl/Framebuffer</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Handler.html">og/webgl/Handler</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Multisample.html">og/webgl/Multisample</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Program.html">og/webgl/Program</a></div><div class="sidebar-section-children"><a href="module-og_webgl_callbacks.html">og/webgl/callbacks</a></div><div class="sidebar-section-children"><a href="module-og_webgl_types.html">og/webgl/types</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="_zSyzM5GLJxvA5SOCBl0C"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="Camera.html">Camera</a></div><div class="sidebar-section-children"><a href="CompassButton.html">CompassButton</a></div><div class="sidebar-section-children"><a href="Cons.html">Cons</a></div><div class="sidebar-section-children"><a href="EarthCoordinates.html">EarthCoordinates</a></div><div class="sidebar-section-children"><a href="Frustum.html">Frustum</a></div><div class="sidebar-section-children"><a href="GlobusTerrain.html">GlobusTerrain</a></div><div class="sidebar-section-children"><a href="Mat4.html">Mat4</a></div><div class="sidebar-section-children"><a href="Node.html">Node</a></div><div class="sidebar-section-children"><a href="Plane.html">Plane</a></div><div class="sidebar-section-children"><a href="ProgramController.html">ProgramController</a></div><div class="sidebar-section-children"><a href="Quat.html">Quat</a></div><div class="sidebar-section-children"><a href="QueueArray.html">QueueArray</a></div><div class="sidebar-section-children"><a href="Rectangle.html">Rectangle</a></div><div class="sidebar-section-children"><a href="RenderNode.html">RenderNode</a></div><div class="sidebar-section-children"><a href="Segment.html">Segment</a></div><div class="sidebar-section-children"><a href="Segment.html">Segment</a></div><div class="sidebar-section-children"><a href="SegmentBoundVisualization.html">SegmentBoundVisualization</a></div><div class="sidebar-section-children"><a href="SegmentLonLat.html">SegmentLonLat</a></div><div class="sidebar-section-children"><a href="SimpleNavigation.html">SimpleNavigation</a></div><div class="sidebar-section-children"><a href="Strip.html">Strip</a></div><div class="sidebar-section-children"><a href="TextureAtlas.html">TextureAtlas</a></div><div class="sidebar-section-children"><a href="TextureAtlasNode.html">TextureAtlasNode</a></div><div class="sidebar-section-children"><a href="VisibleExtent.html">VisibleExtent</a></div><div class="sidebar-section-children"><a href="-__resizeTimeout.html">__resizeTimeout</a></div><div class="sidebar-section-children"><a href="module-og_Clock-Clock.html">Clock</a></div><div class="sidebar-section-children"><a href="module-og_Events-Events.html">Events</a></div><div class="sidebar-section-children"><a href="module-og_Extent.Extent.html">Extent</a></div><div class="sidebar-section-children"><a href="module-og_Globe-Globe.html">Globe</a></div><div class="sidebar-section-children"><a href="module-og_ImageCanvas-ImageCanvas.html">ImageCanvas</a></div><div class="sidebar-section-children"><a href="module-og_LonLat.LonLat.html">LonLat</a></div><div class="sidebar-section-children"><a href="module-og_Stack-Stack.html">Stack</a></div><div class="sidebar-section-children"><a href="module-og_bv_Box-Box.html">Box</a></div><div class="sidebar-section-children"><a href="module-og_bv_Sphere-Sphere.html">Sphere</a></div><div class="sidebar-section-children"><a href="module-og_camera_PlanetCamera-PlanetCamera.html">PlanetCamera</a></div><div class="sidebar-section-children"><a href="module-og_control_Atmosphere-Atmosphere.html">Atmosphere</a></div><div class="sidebar-section-children"><a href="module-og_control_Control-Control.html">Control</a></div><div class="sidebar-section-children"><a href="module-og_control_DebugInfo-DebugInfo.html">DebugInfo</a></div><div class="sidebar-section-children"><a href="module-og_control_KeyboardNavigation-KeyboardNavigation.html">KeyboardNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerAnimation-LayerAnimation.html">LayerAnimation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerSwitcher-LayerSwitcher.html">LayerSwitcher</a></div><div class="sidebar-section-children"><a href="module-og_control_Lighting-ICON_BUTTON_SVG.html">ICON_BUTTON_SVG</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseNavigation-MouseNavigation.html">MouseNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseWheelZoomControl-MouseWheelZoomControl.html">MouseWheelZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler-Ruler.html">Ruler</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler-RulerSwitcher.html">RulerSwitcher</a></div><div class="sidebar-section-children"><a href="module-og_control_Selector-Selection.html">Selection</a></div><div class="sidebar-section-children"><a href="module-og_control_ShowFps-ShowFps.html">ShowFps</a></div><div class="sidebar-section-children"><a href="module-og_control_SimpleSkyBackground-SimpleSkyBackground.html">SimpleSkyBackground</a></div><div class="sidebar-section-children"><a href="module-og_control_Sun-Sun.html">Sun</a></div><div class="sidebar-section-children"><a href="module-og_control_ToggleWireframe-ToggleWireframe.html">ToggleWireframe</a></div><div class="sidebar-section-children"><a href="module-og_control_TouchNavigation-TouchNavigation.html">TouchNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl-ScaleControl.html">ScaleControl</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl-ZoomControl.html">ZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_ellipsoid_Ellipsoid-Ellipsoid.html">Ellipsoid</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard-BaseBillboard.html">BaseBillboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard-Ray.html">Ray</a></div><div class="sidebar-section-children"><a href="module-og_entity_BillboardHandler-BillboardHandler.html">BillboardHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Billboard-Billboard.html">Billboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_EntityCollection-EntityCollection.html">EntityCollection</a></div><div class="sidebar-section-children"><a href="module-og_entity_Entity-Entity.html">Entity</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeoObject-GeoObject.html">GeoObject</a></div><div class="sidebar-section-children"><a href="module-og_entity_LabelHandler-LabelHandler.html">LabelHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Label-Label.html">Label</a></div><div class="sidebar-section-children"><a href="module-og_entity_PointCloud-PointCloud.html">PointCloud</a></div><div class="sidebar-section-children"><a href="module-og_entity_Polyline-Polyline.html">Polyline</a></div><div class="sidebar-section-children"><a href="module-og_layer_BaseGeoImage-BaseGeoImage.html">BaseGeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_CanvasTiles-CanvasTiles.html">CanvasTiles</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoImage-GeoImage.html">GeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoVideo-GeoVideo.html">GeoVideo</a></div><div class="sidebar-section-children"><a href="module-og_layer_KML.KML.html">KML</a></div><div class="sidebar-section-children"><a href="module-og_layer_Layer-Layer.html">Layer</a></div><div class="sidebar-section-children"><a href="module-og_layer_Material-Material.html">Material</a></div><div class="sidebar-section-children"><a href="module-og_layer_Vector-Vector.html">Vector</a></div><div class="sidebar-section-children"><a href="module-og_layer_WMS-WMS.html">WMS</a></div><div class="sidebar-section-children"><a href="module-og_layer_XYZ-XYZ.html">XYZ</a></div><div class="sidebar-section-children"><a href="module-og_light_LightSource-LightSource.html">LightSource</a></div><div class="sidebar-section-children"><a href="module-og_math_Mat3.Mat3.html">Mat3</a></div><div class="sidebar-section-children"><a href="module-og_math_Ray.Ray.html">Ray</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec2.Vec2.html">Vec2</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec3.Vec3.html">Vec3</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec4.Vec4.html">Vec4</a></div><div class="sidebar-section-children"><a href="module-og_renderer_RendererEvents-RendererEvents.html">RendererEvents</a></div><div class="sidebar-section-children"><a href="module-og_scene_BaseNode-BaseNode.html">BaseNode</a></div><div class="sidebar-section-children"><a href="module-og_scene_Planet.Planet.html">Planet</a></div><div class="sidebar-section-children"><a href="module-og_terrainProvider_EmptyTerrain-EmptyTerrain.html">EmptyTerrain</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Framebuffer.Framebuffer.html">Framebuffer</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Handler-Handler.html">Handler</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Multisample.Multisample.html">Multisample</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Program-Program.html">Program</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="_mtSCD_-Y8oZXn_4TBH69"><div>Events</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="og.Camera.html#event:moveend">moveend</a></div><div class="sidebar-section-children"><a href="og.Camera.html#event:viewchange">viewchange</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:add">add</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:doubletouch">doubletouch</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:drawend">drawend</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:entityadd">entityadd</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:entitymove">entitymove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:entityremove">entityremove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:lclick">lclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:ldblclick">ldblclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:ldown">ldown</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:lhold">lhold</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:lup">lup</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mclick">mclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mdblclick">mdblclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mdown">mdown</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mhold">mhold</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mouseleave">mouseleave</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mousemove">mousemove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mousewheel">mousewheel</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mup">mup</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rclick">rclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rdblclick">rdblclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rdown">rdown</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:remove">remove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rhold">rhold</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rup">rup</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchend">touchend</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchenter">touchenter</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchleave">touchleave</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchmove">touchmove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchstart">touchstart</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:visibilitychange">visibilitychange</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:add">add</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:doubletouch">doubletouch</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:lclick">lclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:ldblclick">ldblclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:ldown">ldown</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:lhold">lhold</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:lup">lup</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mclick">mclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mdblclick">mdblclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mdown">mdown</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mhold">mhold</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mousemove">mousemove</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mousewheel">mousewheel</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mup">mup</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rclick">rclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rdblclick">rdblclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rdown">rdown</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:remove">remove</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rhold">rhold</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rup">rup</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchend">touchend</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchenter">touchenter</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchleave">touchleave</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchmove">touchmove</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchstart">touchstart</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:visibilitychange">visibilitychange</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:doubletouch">doubletouch</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:lclick">lclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:ldblclick">ldblclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:ldown">ldown</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:lhold">lhold</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:lup">lup</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mclick">mclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mdblclick">mdblclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mdown">mdown</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mhold">mhold</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mouseleave">mouseleave</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mousemove">mousemove</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mousestop">mousestop</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mousewheel">mousewheel</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mup">mup</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:postdraw">postdraw</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rclick">rclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rdblclick">rdblclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rdown">rdown</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:resize">resize</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:resizeend">resizeend</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rhold">rhold</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rup">rup</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchcancel">touchcancel</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchend">touchend</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchenter">touchenter</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchleave">touchleave</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchmove">touchmove</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchstart">touchstart</a></div><div class="sidebar-section-children"><a href="og.layer.BaseGeoImage.html#event:loadend">loadend</a></div><div class="sidebar-section-children"><a href="og.layer.CanvasTiles.html#event:load">load</a></div><div class="sidebar-section-children"><a href="og.layer.CanvasTiles.html#event:loadend">loadend</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:entityadd">entityadd</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:entityremove">entityremove</a></div><div class="sidebar-section-children"><a href="og.layer.XYZ.html#event:load">load</a></div><div class="sidebar-section-children"><a href="og.layer.XYZ.html#event:loadend">loadend</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:baselayerchange">baselayerchange</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:layeradd">layeradd</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:layerremove">layerremove</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:layervisibilitychange">layervisibilitychange</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:rendercompleted">rendercompleted</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:terraincompleted">terraincompleted</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:terraincompleted">terraincompleted</a></div><div class="sidebar-section-children"><a href="og.terrain.GlobusTerrain.html#event:load">load</a></div><div class="sidebar-section-children"><a href="og.terrain.GlobusTerrain.html#event:loadend">loadend</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="v6wPh3JHtlq2x2yaNvv0a"><div>Global</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="global.html#AU_TO_METERS">AU_TO_METERS</a></div><div class="sidebar-section-children"><a href="global.html#COMSIDE">COMSIDE</a></div><div class="sidebar-section-children"><a href="global.html#EARTH_GRAVITATIONAL_PARAMETER">EARTH_GRAVITATIONAL_PARAMETER</a></div><div class="sidebar-section-children"><a href="global.html#J2000_OBLIQUITY">J2000_OBLIQUITY</a></div><div class="sidebar-section-children"><a href="global.html#NEIGHBOUR">NEIGHBOUR</a></div><div class="sidebar-section-children"><a href="global.html#NOPSORD">NOPSORD</a></div><div class="sidebar-section-children"><a href="global.html#OPPART">OPPART</a></div><div class="sidebar-section-children"><a href="global.html#OPSIDE">OPSIDE</a></div><div class="sidebar-section-children"><a href="global.html#PARTOFFSET">PARTOFFSET</a></div><div class="sidebar-section-children"><a href="global.html#SUN_GRAVITATIONAL_PARAMETER">SUN_GRAVITATIONAL_PARAMETER</a></div><div class="sidebar-section-children"><a href="global.html#TAItoTDB">TAItoTDB</a></div><div class="sidebar-section-children"><a href="global.html#TDT_TAI">TDT_TAI</a></div><div class="sidebar-section-children"><a href="global.html#equationCallback">equationCallback</a></div><div class="sidebar-section-children"><a href="global.html#mat4">mat4</a></div><div class="sidebar-section-children"><a href="global.html#quat">quat</a></div><div class="sidebar-section-children"><a href="global.html#simpleNavigation">simpleNavigation</a></div></div></div></div></div><div class="navbar-container" id="VuAckcnZhf"><nav class="navbar"><div class="navbar-left-items"></div><div class="navbar-right-items"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#light-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div><nav></nav></nav></div><div class="toc-container"><div class="toc-content"><span class="bold">On this page</span><div id="eed4d2a0bfd64539bb9df78095dec881"></div></div></div><div class="body-wrapper"><div class="main-content"><div class="main-wrapper"><section id="source-page" class="source-page"><header><h1 id="title" class="has-anchor">entity_Polyline.js</h1></header><article><pre class="prettyprint source lang-js"><code>/**
+ * @module og/entity/Polyline
+ */
+
+"use strict";
+
+import { Extent } from "../Extent.js";
+import { LonLat } from "../LonLat.js";
+import { Vec3 } from "../math/Vec3.js";
+import {
+    cloneArray, htmlColorToFloat32Array,
+    htmlColorToRgba, makeArray, makeArrayTyped
+} from "../utils/shared.js";
+
+window.POLYLINE_DEPTH_OFFSET = 0.0;
+
+const VERTICES_BUFFER = 0;
+const INDEX_BUFFER = 1;
+const COLORS_BUFFER = 2;
+
+const DEFAULT_COLOR = "#0000FF";
+
+const R = 0;
+const G = 1;
+const B = 2;
+const A = 3;
+
+/**
+ * Polyline object.
+ * @class
+ * @param {Object} [options] - Polyline options:
+ * @param {number} [options.thickness] - Thickness in screen pixels 1.5 is default.
+ * @param {Number} [options.altitude] - Relative to ground layers altitude value.
+ * @param {Vec4} [options.color] - RGBA color.
+ * @param {Boolean} [options.opacity] - Line opacity.
+ * @param {Boolean} [options.visibility] - Polyline visibility. True default.
+ * @param {Boolean} [options.isClosed] - Closed geometry type identificator.
+ * @param {Array.&lt;Array.&lt;number>>} [options.pathLonLat] - Polyline geodetic coordinates array. [[0,0,0], [1,1,1],...]
+ * @param {Array.&lt;Array.&lt;number>>} [options.path3v] - LinesString cartesian coordinates array. [[0,0,0], [1,1,1],...]
+ * @param {Array.&lt;Array.&lt;number>>} [options.pathColors] - Coordinates color. [[1,0,0,1], [0,1,0,1],...] for right and green colors.
+ */
+class Polyline {
+    constructor(options) {
+        options = options || {};
+
+        /**
+         * Object unic identifier.
+         * @public
+         * @readonly
+         * @type {number}
+         */
+        this.id = Polyline._staticCounter++;
+
+        this.altitude = options.altitude || 0.0;
+
+        /**
+         * Polyline thickness in screen pixels.
+         * @public
+         * @type {number}
+         */
+        this.thickness = options.thickness || 1.5;
+
+        this._opacity = options.opacity != undefined ? options.opacity : 1.0;
+
+        /**
+         * Polyline RGBA color.
+         * @public
+         * @type {Array&lt;number>} - (exactly 4 entries)
+         */
+        this._defaultColor = htmlColorToFloat32Array(
+            options.color || DEFAULT_COLOR,
+            options.opacity
+        ); // utils.createColorRGBA(options.color, new Vec4(1.0, 1.0, 1.0, 1.0));
+
+        /**
+         * Polyline visibility.
+         * @public
+         * @type {boolean}
+         */
+        this.visibility = options.visibility != undefined ? options.visibility : true;
+
+        /**
+         * Polyline geometry ring type identificator.
+         * @protected
+         * @type {Boolean}
+         */
+        this._closedLine = options.isClosed || false;
+
+        /**
+         * Polyline cartesian coordinates.
+         * @private
+         * @type {Array.&lt;Vec3>}
+         */
+        this._path3v = [];
+
+        this._pathLengths = [];
+
+        /**
+         * Polyline geodetic degrees coordiantes.
+         * @private
+         * @type {Array.&lt;LonLat>}
+         */
+        this._pathLonLat = [];
+
+        /**
+         * Polyline geodetic mercator coordinates.
+         * @private
+         * @type {Array.&lt;LonLat>}
+         */
+        this._pathLonLatMerc = [];
+
+        this._pathColors = options.pathColors ? cloneArray(options.pathColors) : [];
+
+        /**
+         * Polyline geodetic extent.
+         * @protected
+         * @type {Extent}
+         */
+        this._extent = new Extent();
+
+        this._verticesHigh = [];
+        this._verticesLow = [];
+        this._orders = [];
+        this._indexes = [];
+        this._colors = [];
+
+        this._verticesHighBuffer = null;
+        this._verticesLowBuffer = null;
+        this._ordersBuffer = null;
+        this._indexesBuffer = null;
+        this._colorsBuffer = null;
+
+        this._pickingColor = [0, 0, 0];
+
+        this._renderNode = null;
+
+        /**
+         * Entity instance that holds this Polyline.
+         * @private
+         * @type {Entity}
+         */
+        this._entity = null;
+
+        /**
+         * Handler that stores and renders this Polyline object.
+         * @private
+         * @type {PolylineHandler}
+         */
+        this._handler = null;
+        this._handlerIndex = -1;
+
+        this._buffersUpdateCallbacks = [];
+        this._buffersUpdateCallbacks[VERTICES_BUFFER] = this._createVerticesBuffer;
+        this._buffersUpdateCallbacks[INDEX_BUFFER] = this._createIndexBuffer;
+        this._buffersUpdateCallbacks[COLORS_BUFFER] = this._createColorsBuffer;
+
+        this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
+
+        // create path
+        if (options.pathLonLat) {
+            this.setPathLonLat(options.pathLonLat);
+        } else if (options.path3v) {
+            this.setPath3v(options.path3v);
+        }
+
+        this._refresh();
+    }
+
+    static get _staticCounter() {
+        if (!this._counter &amp;&amp; this._counter !== 0) {
+            this._counter = 0;
+        }
+        return this._counter;
+    }
+
+    static set _staticCounter(n) {
+        this._counter = n;
+    }
+
+    /**
+     * Appends to the line array new cartesian coordinates line data.
+     * @param {Array.&lt;Array.&lt;number>>} path3v - Line coordinates path array. [[0,0,0], [1,1,1],...]
+     * @param {Boolean} isClosed - Identificator for the closed line data creation.
+     * @param {Number[]} outVertices - Out vertices data array.
+     * @param {Number[]} outOrders - Out vertices orders data array.
+     * @param {Number[]} outIndexes - Out vertices indexes data array.
+     * @param {Ellipsoid} [ellipsoid] - Ellipsoid to coordinates transformation.
+     * @param {Array.&lt;Array.&lt;LonLat>>} [outTransformedPathLonLat] - Geodetic coordinates out array.
+     * @param {Array.&lt;Array.&lt;LonLat>>} [outPath3v] - Cartesian coordinates out array.
+     * @param {Array.&lt;Array.&lt;LonLat>>} [outTransformedPathMerc] - Mercator coordinates out array.
+     * @param {Extent} [outExtent] - Geodetic line extent.
+     * @param {Array} [outColors]
+     * @static
+     */
+    static appendLineData3v(
+        path3v,
+        pathColors,
+        defaultColor,
+        isClosed,
+        outVerticesHigh,
+        outVerticesLow,
+        outOrders,
+        outIndexes,
+        ellipsoid,
+        outTransformedPathLonLat,
+        outPath3v,
+        outTransformedPathMerc,
+        outExtent,
+        outColors
+    ) {
+        var index = 0;
+
+        var v_high = new Vec3(),
+            v_low = new Vec3();
+
+        if (outExtent) {
+            outExtent.southWest.set(180.0, 90.0);
+            outExtent.northEast.set(-180.0, -90.0);
+        }
+
+        if (outIndexes.length > 0) {
+            index = outIndexes[outIndexes.length - 5] + 9;
+            outIndexes.push(index, index);
+        } else {
+            outIndexes.push(0, 0);
+        }
+
+        for (var j = 0, len = path3v.length; j &lt; len; j++) {
+            var path = path3v[j],
+                pathColors_j = pathColors[j];
+
+            outTransformedPathLonLat[j] = [];
+            outTransformedPathMerc[j] = [];
+            outPath3v[j] = [];
+
+            if (path.length === 0) {
+                continue;
+            }
+
+            var startIndex = index;
+
+            var last;
+
+            if (isClosed) {
+                last = path[path.length - 1];
+                if (last instanceof Array) {
+                    last = new Vec3(last[0], last[1], last[2]);
+                }
+            } else {
+                var p0 = path[0],
+                    p1 = path[1] || p0;
+                if (p0 instanceof Array) {
+                    p0 = new Vec3(p0[0], p0[1], p0[2]);
+                }
+                if (p1 instanceof Array) {
+                    p1 = new Vec3(p1[0], p1[1], p1[2]);
+                }
+                last = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
+            }
+
+            let color = defaultColor;
+
+            if (pathColors_j &amp;&amp; pathColors_j[0]) {
+                color = pathColors_j[0];
+            }
+
+            Vec3.doubleToTwoFloats(last, v_high, v_low);
+            outVerticesHigh.push(
+                v_high.x,
+                v_high.y,
+                v_high.z,
+                v_high.x,
+                v_high.y,
+                v_high.z,
+                v_high.x,
+                v_high.y,
+                v_high.z,
+                v_high.x,
+                v_high.y,
+                v_high.z
+            );
+            outVerticesLow.push(
+                v_low.x,
+                v_low.y,
+                v_low.z,
+                v_low.x,
+                v_low.y,
+                v_low.z,
+                v_low.x,
+                v_low.y,
+                v_low.z,
+                v_low.x,
+                v_low.y,
+                v_low.z
+            );
+
+            let r = color[R],
+                g = color[G],
+                b = color[B],
+                a = color[A] != undefined ? color[A] : 1.0;
+
+            if (j > 0) {
+                outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
+            }
+
+            outOrders.push(1, -1, 2, -2);
+
+            for (let i = 0, len = path.length; i &lt; len; i++) {
+                var cur = path[i];
+
+                if (cur instanceof Array) {
+                    cur = new Vec3(cur[0], cur[1], cur[2]);
+                }
+
+                outPath3v[j].push(cur);
+
+                if (ellipsoid) {
+                    var lonLat = ellipsoid.cartesianToLonLat(cur);
+                    outTransformedPathLonLat[j].push(lonLat);
+                    outTransformedPathMerc[j].push(lonLat.forwardMercator());
+
+                    if (lonLat.lon &lt; outExtent.southWest.lon) {
+                        outExtent.southWest.lon = lonLat.lon;
+                    }
+                    if (lonLat.lat &lt; outExtent.southWest.lat) {
+                        outExtent.southWest.lat = lonLat.lat;
+                    }
+                    if (lonLat.lon > outExtent.northEast.lon) {
+                        outExtent.northEast.lon = lonLat.lon;
+                    }
+                    if (lonLat.lat > outExtent.northEast.lat) {
+                        outExtent.northEast.lat = lonLat.lat;
+                    }
+                }
+
+                if (pathColors_j &amp;&amp; pathColors_j[i]) {
+                    color = pathColors_j[i];
+                }
+
+                r = color[R];
+                g = color[G];
+                b = color[B];
+                a = color[A] != undefined ? color[A] : 1.0;
+
+                Vec3.doubleToTwoFloats(cur, v_high, v_low);
+                outVerticesHigh.push(
+                    v_high.x,
+                    v_high.y,
+                    v_high.z,
+                    v_high.x,
+                    v_high.y,
+                    v_high.z,
+                    v_high.x,
+                    v_high.y,
+                    v_high.z,
+                    v_high.x,
+                    v_high.y,
+                    v_high.z
+                );
+                outVerticesLow.push(
+                    v_low.x,
+                    v_low.y,
+                    v_low.z,
+                    v_low.x,
+                    v_low.y,
+                    v_low.z,
+                    v_low.x,
+                    v_low.y,
+                    v_low.z,
+                    v_low.x,
+                    v_low.y,
+                    v_low.z
+                );
+
+                outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
+
+                outOrders.push(1, -1, 2, -2);
+                outIndexes.push(index++, index++, index++, index++);
+            }
+
+            var first;
+            if (isClosed) {
+                first = path[0];
+                if (first instanceof Array) {
+                    first = new Vec3(first[0], first[1], first[2]);
+                }
+                outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
+            } else {
+                let p0 = path[path.length - 1],
+                    p1 = path[path.length - 2] || p0;
+                if (p0 instanceof Array) {
+                    p0 = new Vec3(p0[0], p0[1], p0[2]);
+                }
+                if (p1 instanceof Array) {
+                    p1 = new Vec3(p1[0], p1[1], p1[2]);
+                }
+                first = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
+                outIndexes.push(index - 1, index - 1, index - 1, index - 1);
+            }
+
+            if (pathColors_j &amp;&amp; pathColors_j[path.length - 1]) {
+                color = pathColors_j[path.length - 1];
+            }
+
+            r = color[R];
+            g = color[G];
+            b = color[B];
+            a = color[A] != undefined ? color[A] : 1.0;
+
+            Vec3.doubleToTwoFloats(first, v_high, v_low);
+            outVerticesHigh.push(
+                v_high.x,
+                v_high.y,
+                v_high.z,
+                v_high.x,
+                v_high.y,
+                v_high.z,
+                v_high.x,
+                v_high.y,
+                v_high.z,
+                v_high.x,
+                v_high.y,
+                v_high.z
+            );
+            outVerticesLow.push(
+                v_low.x,
+                v_low.y,
+                v_low.z,
+                v_low.x,
+                v_low.y,
+                v_low.z,
+                v_low.x,
+                v_low.y,
+                v_low.z,
+                v_low.x,
+                v_low.y,
+                v_low.z
+            );
+
+            outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
+
+            outOrders.push(1, -1, 2, -2);
+
+            if (j &lt; path3v.length - 1 &amp;&amp; path3v[j + 1].length !== 0) {
+                index += 8;
+                outIndexes.push(index, index);
+            }
+        }
+    }
+
+    /**
+     * Appends to the line new cartesian coordinates point data.
+     * @param {Array.&lt;Array.&lt;number>>} path3v - Line coordinates path array. [[0,0,0], [1,1,1],...]
+     * @param {Boolean} isClosed - Identificator for the closed line data creation.
+     * @param {Number[]} outVertices - Out vertices data array.
+     * @param {Number[]} outOrders - Out vertices orders data array.
+     * @param {Number[]} outIndexes - Out vertices indexes data array.
+     * @param {Ellipsoid} [ellipsoid] - Ellipsoid to coordinates transformation.
+     * @param {Array.&lt;Array.&lt;LonLat>>} [outTransformedPathLonLat] - Geodetic coordinates out array.
+     * @param {Array.&lt;Array.&lt;LonLat>>} [outPath3v] - Cartesian coordinates out array.
+     * @param {Array.&lt;Array.&lt;LonLat>>} [outTransformedPathMerc] - Mercator coordinates out array.
+     * @param {Extent} [outExtent] - Geodetic line extent.
+     * @static
+     */
+    static appendPoint3v(
+        path3v,
+        point3v,
+        pathColors,
+        color,
+        isClosed,
+        outVerticesHigh,
+        outVerticesLow,
+        outColors,
+        outOrders,
+        outIndexes,
+        ellipsoid,
+        outTransformedPathLonLat,
+        outTransformedPathMerc,
+        outExtent
+    ) {
+        var v_high = new Vec3(),
+            v_low = new Vec3();
+
+        var ii = outIndexes.length - 4,
+            index = outIndexes[ii - 1] + 1;
+
+        if (path3v.length === 0) {
+            path3v.push([]);
+            if (!pathColors[0]) {
+                pathColors[0] = [];
+            }
+        } else if (!pathColors[path3v.length - 1]) {
+            pathColors[path3v.length - 1] = [];
+        }
+
+        var path = path3v[path3v.length - 1],
+            len = path.length;
+
+        path.push(point3v);
+
+        let r = color[R],
+            g = color[G],
+            b = color[B],
+            a = color[A] != undefined ? color[A] : 1.0,
+            pathColors_last = pathColors[path3v.length - 1];
+
+        if (pathColors_last[len]) {
+            pathColors_last[len][R] = r;
+            pathColors_last[len][G] = g;
+            pathColors_last[len][B] = b;
+            pathColors_last[len][A] = a;
+        } else {
+            pathColors_last.push(color);
+        }
+
+        if (len === 1) {
+            var last;
+            if (isClosed) {
+                last = path[len - 1];
+                if (last instanceof Array) {
+                    last = new Vec3(last[0], last[1], last[2]);
+                }
+            } else {
+                var p0 = path[0],
+                    p1 = path[1] || p0;
+                if (p0 instanceof Array) {
+                    p0 = new Vec3(p0[0], p0[1], p0[2]);
+                }
+                if (p1 instanceof Array) {
+                    p1 = new Vec3(p1[0], p1[1], p1[2]);
+                }
+                last = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
+            }
+
+            Vec3.doubleToTwoFloats(last, v_high, v_low);
+
+            let vi = outVerticesHigh.length - 3 * 12;
+
+            outVerticesHigh[vi] = v_high.x;
+            outVerticesHigh[vi + 1] = v_high.y;
+            outVerticesHigh[vi + 2] = v_high.z;
+            outVerticesHigh[vi + 3] = v_high.x;
+            outVerticesHigh[vi + 4] = v_high.y;
+            outVerticesHigh[vi + 5] = v_high.z;
+            outVerticesHigh[vi + 6] = v_high.x;
+            outVerticesHigh[vi + 7] = v_high.y;
+            outVerticesHigh[vi + 8] = v_high.z;
+            outVerticesHigh[vi + 9] = v_high.x;
+            outVerticesHigh[vi + 10] = v_high.y;
+            outVerticesHigh[vi + 11] = v_high.z;
+
+            outVerticesLow[vi] = v_low.x;
+            outVerticesLow[vi + 1] = v_low.y;
+            outVerticesLow[vi + 2] = v_low.z;
+            outVerticesLow[vi + 3] = v_low.x;
+            outVerticesLow[vi + 4] = v_low.y;
+            outVerticesLow[vi + 5] = v_low.z;
+            outVerticesLow[vi + 6] = v_low.x;
+            outVerticesLow[vi + 7] = v_low.y;
+            outVerticesLow[vi + 8] = v_low.z;
+            outVerticesLow[vi + 9] = v_low.x;
+            outVerticesLow[vi + 10] = v_low.y;
+            outVerticesLow[vi + 11] = v_low.z;
+        }
+
+        var startIndex = index;
+
+        if (ellipsoid) {
+            if (outTransformedPathLonLat.length === 0) {
+                outTransformedPathLonLat.push([]);
+            }
+
+            if (outTransformedPathMerc.length === 0) {
+                outTransformedPathMerc.push([]);
+            }
+
+            var transformedPathLonLat =
+                    outTransformedPathLonLat[outTransformedPathLonLat.length - 1],
+                transformedPathMerc = outTransformedPathMerc[outTransformedPathMerc.length - 1];
+
+            let lonLat = ellipsoid.cartesianToLonLat(point3v);
+            transformedPathLonLat.push(lonLat);
+            transformedPathMerc.push(lonLat.forwardMercator());
+
+            if (lonLat.lon &lt; outExtent.southWest.lon) {
+                outExtent.southWest.lon = lonLat.lon;
+            }
+            if (lonLat.lat &lt; outExtent.southWest.lat) {
+                outExtent.southWest.lat = lonLat.lat;
+            }
+            if (lonLat.lon > outExtent.northEast.lon) {
+                outExtent.northEast.lon = lonLat.lon;
+            }
+            if (lonLat.lat > outExtent.northEast.lat) {
+                outExtent.northEast.lat = lonLat.lat;
+            }
+        }
+
+        Vec3.doubleToTwoFloats(point3v, v_high, v_low);
+
+        let vi = outVerticesHigh.length - 12;
+
+        outVerticesHigh[vi] = v_high.x;
+        outVerticesHigh[vi + 1] = v_high.y;
+        outVerticesHigh[vi + 2] = v_high.z;
+        outVerticesHigh[vi + 3] = v_high.x;
+        outVerticesHigh[vi + 4] = v_high.y;
+        outVerticesHigh[vi + 5] = v_high.z;
+        outVerticesHigh[vi + 6] = v_high.x;
+        outVerticesHigh[vi + 7] = v_high.y;
+        outVerticesHigh[vi + 8] = v_high.z;
+        outVerticesHigh[vi + 9] = v_high.x;
+        outVerticesHigh[vi + 10] = v_high.y;
+        outVerticesHigh[vi + 11] = v_high.z;
+
+        outVerticesLow[vi] = v_low.x;
+        outVerticesLow[vi + 1] = v_low.y;
+        outVerticesLow[vi + 2] = v_low.z;
+        outVerticesLow[vi + 3] = v_low.x;
+        outVerticesLow[vi + 4] = v_low.y;
+        outVerticesLow[vi + 5] = v_low.z;
+        outVerticesLow[vi + 6] = v_low.x;
+        outVerticesLow[vi + 7] = v_low.y;
+        outVerticesLow[vi + 8] = v_low.z;
+        outVerticesLow[vi + 9] = v_low.x;
+        outVerticesLow[vi + 10] = v_low.y;
+        outVerticesLow[vi + 11] = v_low.z;
+
+        let ci = outColors.length - 16;
+
+        outColors[ci] = r;
+        outColors[ci + 1] = g;
+        outColors[ci + 2] = b;
+        outColors[ci + 3] = a;
+        outColors[ci + 4] = r;
+        outColors[ci + 5] = g;
+        outColors[ci + 6] = b;
+        outColors[ci + 7] = a;
+        outColors[ci + 8] = r;
+        outColors[ci + 9] = g;
+        outColors[ci + 10] = b;
+        outColors[ci + 11] = a;
+        outColors[ci + 12] = r;
+        outColors[ci + 13] = g;
+        outColors[ci + 14] = b;
+        outColors[ci + 15] = a;
+
+        outIndexes[ii] = index++;
+        outIndexes[ii + 1] = index++;
+        outIndexes[ii + 2] = index++;
+        outIndexes[ii + 3] = index++;
+
+        //
+        // Close path
+        //
+        var first;
+        if (isClosed) {
+            first = path[0];
+            outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
+        } else {
+            let p0 = path[path.length - 1],
+                p1 = path[path.length - 2] || p0;
+
+            first = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
+            outIndexes.push(index - 1, index - 1, index - 1, index - 1);
+        }
+
+        Vec3.doubleToTwoFloats(first, v_high, v_low);
+        outVerticesHigh.push(
+            v_high.x,
+            v_high.y,
+            v_high.z,
+            v_high.x,
+            v_high.y,
+            v_high.z,
+            v_high.x,
+            v_high.y,
+            v_high.z,
+            v_high.x,
+            v_high.y,
+            v_high.z
+        );
+        outVerticesLow.push(
+            v_low.x,
+            v_low.y,
+            v_low.z,
+            v_low.x,
+            v_low.y,
+            v_low.z,
+            v_low.x,
+            v_low.y,
+            v_low.z,
+            v_low.x,
+            v_low.y,
+            v_low.z
+        );
+
+        outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
+
+        outOrders.push(1, -1, 2, -2);
+    }
+
+    /**
+     * Appends to the line array new geodetic coordinates line data.
+     * @param {Array.&lt;Array.&lt;number>>} pathLonLat - Line geodetic coordinates path array. [[0,0,0], [1,1,1],...]
+     * @param {Boolean} isClosed - Identificator for the closed line data creation.
+     * @param {Number[]} outVertices - Out vertices data array.
+     * @param {Number[]} outOrders - Out vertices orders data array.
+     * @param {Number[]} outIndexes - Out indexes data array.
+     * @param {Ellipsoid} ellipsoid - Ellipsoid to coordinates transformation.
+     * @param {Array.&lt;Array.&lt;number>>} outTransformedPathCartesian - Cartesian coordinates out array. [[0,0,0], [1,1,1],...]
+     * @param {Array.&lt;Array.&lt;LonLat>>} outPathLonLat - Geographic coordinates out array.
+     * @param {Array.&lt;Array.&lt;LonLat>>} outTransformedPathMerc - Mercator coordinates out array.
+     * @param {Extent} outExtent - Geodetic line extent.
+     * @static
+     */
+    static appendLineDataLonLat(
+        pathLonLat,
+        pathColors,
+        defaultColor,
+        isClosed,
+        outVerticesHigh,
+        outVerticesLow,
+        outOrders,
+        outIndexes,
+        ellipsoid,
+        outTransformedPathCartesian,
+        outPathLonLat,
+        outTransformedPathMerc,
+        outExtent,
+        outColors
+    ) {
+        var index = 0;
+
+        var v_high = new Vec3(),
+            v_low = new Vec3();
+
+        if (outExtent) {
+            outExtent.southWest.set(180.0, 90.0);
+            outExtent.northEast.set(-180.0, -90.0);
+        }
+
+        if (outIndexes.length > 0) {
+            index = outIndexes[outIndexes.length - 5] + 9;
+            outIndexes.push(index, index);
+        } else {
+            outIndexes.push(0, 0);
+        }
+
+        for (var j = 0, len = pathLonLat.length; j &lt; len; j++) {
+            var path = pathLonLat[j],
+                pathColors_j = pathColors[j];
+
+            outTransformedPathCartesian[j] = [];
+            outTransformedPathMerc[j] = [];
+            outPathLonLat[j] = [];
+
+            if (path.length === 0) {
+                continue;
+            }
+
+            var startIndex = index;
+
+            var last;
+
+            if (isClosed) {
+                let pp = path[path.length - 1];
+                if (pp instanceof Array) {
+                    last = ellipsoid.lonLatToCartesian(new LonLat(pp[0], pp[1], pp[2]));
+                } else {
+                    last = ellipsoid.lonLatToCartesian(pp);
+                }
+            } else {
+                let p0, p1;
+                let pp = path[0];
+                if (pp instanceof Array) {
+                    p0 = ellipsoid.lonLatToCartesian(new LonLat(pp[0], pp[1], pp[2]));
+                } else {
+                    p0 = ellipsoid.lonLatToCartesian(pp);
+                }
+
+                pp = path[1];
+
+                if (!pp) {
+                    pp = path[0];
+                }
+
+                if (pp instanceof Array) {
+                    p1 = ellipsoid.lonLatToCartesian(new LonLat(pp[0], pp[1], pp[2]));
+                } else {
+                    p1 = ellipsoid.lonLatToCartesian(pp);
+                }
+
+                last = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
+            }
+
+            let color = defaultColor;
+
+            if (pathColors_j &amp;&amp; pathColors_j[0]) {
+                color = pathColors_j[0];
+            }
+
+            Vec3.doubleToTwoFloats(last, v_high, v_low);
+            outVerticesHigh.push(
+                v_high.x,
+                v_high.y,
+                v_high.z,
+                v_high.x,
+                v_high.y,
+                v_high.z,
+                v_high.x,
+                v_high.y,
+                v_high.z,
+                v_high.x,
+                v_high.y,
+                v_high.z
+            );
+            outVerticesLow.push(
+                v_low.x,
+                v_low.y,
+                v_low.z,
+                v_low.x,
+                v_low.y,
+                v_low.z,
+                v_low.x,
+                v_low.y,
+                v_low.z,
+                v_low.x,
+                v_low.y,
+                v_low.z
+            );
+
+            let r = color[R],
+                g = color[G],
+                b = color[B],
+                a = color[A] != undefined ? color[A] : 1.0;
+
+            if (j > 0) {
+                outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
+            }
+
+            outOrders.push(1, -1, 2, -2);
+
+            for (let i = 0, len = path.length; i &lt; len; i++) {
+                var cur = path[i];
+
+                if (cur instanceof Array) {
+                    cur = new LonLat(cur[0], cur[1], cur[2]);
+                }
+
+                if (pathColors_j &amp;&amp; pathColors_j[i]) {
+                    color = pathColors_j[i];
+                }
+
+                r = color[R];
+                g = color[G];
+                b = color[B];
+                a = color[A] != undefined ? color[A] : 1.0;
+
+                var cartesian = ellipsoid.lonLatToCartesian(cur);
+                outTransformedPathCartesian[j].push(cartesian);
+                outPathLonLat[j].push(cur);
+                outTransformedPathMerc[j].push(cur.forwardMercator());
+
+                Vec3.doubleToTwoFloats(cartesian, v_high, v_low);
+                outVerticesHigh.push(
+                    v_high.x,
+                    v_high.y,
+                    v_high.z,
+                    v_high.x,
+                    v_high.y,
+                    v_high.z,
+                    v_high.x,
+                    v_high.y,
+                    v_high.z,
+                    v_high.x,
+                    v_high.y,
+                    v_high.z
+                );
+                outVerticesLow.push(
+                    v_low.x,
+                    v_low.y,
+                    v_low.z,
+                    v_low.x,
+                    v_low.y,
+                    v_low.z,
+                    v_low.x,
+                    v_low.y,
+                    v_low.z,
+                    v_low.x,
+                    v_low.y,
+                    v_low.z
+                );
+
+                outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
+
+                outOrders.push(1, -1, 2, -2);
+                outIndexes.push(index++, index++, index++, index++);
+
+                if (cur.lon &lt; outExtent.southWest.lon) {
+                    outExtent.southWest.lon = cur.lon;
+                }
+                if (cur.lat &lt; outExtent.southWest.lat) {
+                    outExtent.southWest.lat = cur.lat;
+                }
+                if (cur.lon > outExtent.northEast.lon) {
+                    outExtent.northEast.lon = cur.lon;
+                }
+                if (cur.lat > outExtent.northEast.lat) {
+                    outExtent.northEast.lat = cur.lat;
+                }
+            }
+
+            var first;
+            if (isClosed) {
+                let pp = path[0];
+                if (pp instanceof Array) {
+                    first = ellipsoid.lonLatToCartesian(new LonLat(pp[0], pp[1], pp[2]));
+                } else {
+                    first = ellipsoid.lonLatToCartesian(pp);
+                }
+                outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
+            } else {
+                let p0, p1;
+                let pp = path[path.length - 1];
+                if (pp instanceof Array) {
+                    p0 = ellipsoid.lonLatToCartesian(new LonLat(pp[0], pp[1], pp[2]));
+                } else {
+                    p0 = ellipsoid.lonLatToCartesian(pp);
+                }
+
+                pp = path[path.length - 2];
+
+                if (!pp) {
+                    pp = path[0];
+                }
+
+                if (pp instanceof Array) {
+                    p1 = ellipsoid.lonLatToCartesian(new LonLat(pp[0], pp[1], pp[2]));
+                } else {
+                    p1 = ellipsoid.lonLatToCartesian(pp);
+                }
+                first = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
+                outIndexes.push(index - 1, index - 1, index - 1, index - 1);
+            }
+
+            if (pathColors_j &amp;&amp; pathColors_j[path.length - 1]) {
+                color = pathColors_j[path.length - 1];
+            }
+
+            r = color[R];
+            g = color[G];
+            b = color[B];
+            a = color[A] != undefined ? color[A] : 1.0;
+
+            Vec3.doubleToTwoFloats(first, v_high, v_low);
+            outVerticesHigh.push(
+                v_high.x,
+                v_high.y,
+                v_high.z,
+                v_high.x,
+                v_high.y,
+                v_high.z,
+                v_high.x,
+                v_high.y,
+                v_high.z,
+                v_high.x,
+                v_high.y,
+                v_high.z
+            );
+            outVerticesLow.push(
+                v_low.x,
+                v_low.y,
+                v_low.z,
+                v_low.x,
+                v_low.y,
+                v_low.z,
+                v_low.x,
+                v_low.y,
+                v_low.z,
+                v_low.x,
+                v_low.y,
+                v_low.z
+            );
+
+            outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
+
+            outOrders.push(1, -1, 2, -2);
+
+            if (j &lt; pathLonLat.length - 1 &amp;&amp; pathLonLat[j + 1].length !== 0) {
+                index += 8;
+                outIndexes.push(index, index);
+            }
+        }
+    }
+
+    /**
+     * Sets polyline path with cartesian coordinates.
+     * @protected
+     * @param {pg.math.Vector3[]} path3v - Cartesian coordinates.
+     */
+    _setEqualPath3v(path3v) {
+        var extent = this._extent;
+        extent.southWest.set(180, 90);
+        extent.northEast.set(-180, -90);
+
+        var v_high = new Vec3(),
+            v_low = new Vec3();
+
+        var vh = this._verticesHigh,
+            vl = this._verticesLow,
+            l = this._pathLonLat,
+            m = this._pathLonLatMerc,
+            k = 0;
+
+        var ellipsoid = this._renderNode.ellipsoid;
+
+        for (var j = 0; j &lt; path3v.length; j++) {
+            var path = path3v[j];
+
+            var last;
+            if (this._closedLine) {
+                last = path[path.length - 1];
+            } else {
+                last = new Vec3(
+                    path[0].x + path[0].x - path[1].x,
+                    path[0].y + path[0].y - path[1].y,
+                    path[0].z + path[0].z - path[1].z
+                );
+            }
+
+            Vec3.doubleToTwoFloats(last, v_high, v_low);
+
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+
+            for (var i = 0; i &lt; path.length; i++) {
+                var cur = path[i],
+                    pji = this._path3v[j][i];
+
+                pji.x = cur.x;
+                pji.y = cur.y;
+                pji.z = cur.z;
+
+                if (ellipsoid) {
+                    var lonLat = ellipsoid.cartesianToLonLat(cur);
+
+                    this._pathLonLat[j][i] = lonLat;
+
+                    l[j][i] = lonLat;
+                    m[j][i] = lonLat.forwardMercator();
+
+                    if (lonLat.lon &lt; extent.southWest.lon) {
+                        extent.southWest.lon = lonLat.lon;
+                    }
+                    if (lonLat.lat &lt; extent.southWest.lat) {
+                        extent.southWest.lat = lonLat.lat;
+                    }
+                    if (lonLat.lon > extent.northEast.lon) {
+                        extent.northEast.lon = lonLat.lon;
+                    }
+                    if (lonLat.lat > extent.northEast.lat) {
+                        extent.northEast.lat = lonLat.lat;
+                    }
+                }
+
+                Vec3.doubleToTwoFloats(cur, v_high, v_low);
+
+                vh[k] = v_high.x;
+                vl[k++] = v_low.x;
+                vh[k] = v_high.y;
+                vl[k++] = v_low.y;
+                vh[k] = v_high.z;
+                vl[k++] = v_low.z;
+                vh[k] = v_high.x;
+                vl[k++] = v_low.x;
+                vh[k] = v_high.y;
+                vl[k++] = v_low.y;
+                vh[k] = v_high.z;
+                vl[k++] = v_low.z;
+                vh[k] = v_high.x;
+                vl[k++] = v_low.x;
+                vh[k] = v_high.y;
+                vl[k++] = v_low.y;
+                vh[k] = v_high.z;
+                vl[k++] = v_low.z;
+                vh[k] = v_high.x;
+                vl[k++] = v_low.x;
+                vh[k] = v_high.y;
+                vl[k++] = v_low.y;
+                vh[k] = v_high.z;
+                vl[k++] = v_low.z;
+            }
+
+            var first;
+            if (this._closedLine) {
+                first = path[0];
+            } else {
+                var l1 = path.length - 1;
+                first = new Vec3(
+                    path[l1].x + path[l1].x - path[l1 - 1].x,
+                    path[l1].y + path[l1].y - path[l1 - 1].y,
+                    path[l1].z + path[l1].z - path[l1 - 1].z
+                );
+            }
+
+            Vec3.doubleToTwoFloats(first, v_high, v_low);
+
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+        }
+    }
+
+    /**
+     * Sets polyline with geodetic coordinates.
+     * @protected
+     * @param {LonLat[]} pathLonLat - Geodetic polyline path coordinates.
+     */
+    _setEqualPathLonLat(pathLonLat) {
+        var extent = this._extent;
+        extent.southWest.set(180.0, 90.0);
+        extent.northEast.set(-180.0, -90.0);
+
+        var v_high = new Vec3(),
+            v_low = new Vec3();
+
+        var vh = this._verticesHigh,
+            vl = this._verticesLow,
+            l = this._pathLonLat,
+            m = this._pathLonLatMerc,
+            c = this._path3v,
+            k = 0;
+
+        var ellipsoid = this._renderNode.ellipsoid;
+
+        for (var j = 0; j &lt; pathLonLat.length; j++) {
+            var path = pathLonLat[j];
+
+            var last;
+            if (this._closedLine) {
+                last = ellipsoid.lonLatToCartesian(path[path.length - 1]);
+            } else {
+                let p0 = ellipsoid.lonLatToCartesian(path[0]),
+                    p1 = ellipsoid.lonLatToCartesian(path[1]);
+                last = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
+            }
+
+            Vec3.doubleToTwoFloats(last, v_high, v_low);
+
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+
+            for (var i = 0; i &lt; path.length; i++) {
+                var cur = path[i];
+                var cartesian = ellipsoid.lonLatToCartesian(cur);
+                c[j][i] = cartesian;
+                m[j][i] = cur.forwardMercator();
+                l[j][i] = cur;
+
+                Vec3.doubleToTwoFloats(cartesian, v_high, v_low);
+
+                vh[k] = v_high.x;
+                vl[k++] = v_low.x;
+                vh[k] = v_high.y;
+                vl[k++] = v_low.y;
+                vh[k] = v_high.z;
+                vl[k++] = v_low.z;
+                vh[k] = v_high.x;
+                vl[k++] = v_low.x;
+                vh[k] = v_high.y;
+                vl[k++] = v_low.y;
+                vh[k] = v_high.z;
+                vl[k++] = v_low.z;
+                vh[k] = v_high.x;
+                vl[k++] = v_low.x;
+                vh[k] = v_high.y;
+                vl[k++] = v_low.y;
+                vh[k] = v_high.z;
+                vl[k++] = v_low.z;
+                vh[k] = v_high.x;
+                vl[k++] = v_low.x;
+                vh[k] = v_high.y;
+                vl[k++] = v_low.y;
+                vh[k] = v_high.z;
+                vl[k++] = v_low.z;
+
+                if (cur.lon &lt; extent.southWest.lon) {
+                    extent.southWest.lon = cur.lon;
+                }
+                if (cur.lat &lt; extent.southWest.lat) {
+                    extent.southWest.lat = cur.lat;
+                }
+                if (cur.lon > extent.northEast.lon) {
+                    extent.northEast.lon = cur.lon;
+                }
+                if (cur.lat > extent.northEast.lat) {
+                    extent.northEast.lat = cur.lat;
+                }
+            }
+
+            var first;
+            if (this._closedLine) {
+                first = ellipsoid.lonLatToCartesian(path[0]);
+            } else {
+                let p0 = ellipsoid.lonLatToCartesian(path[path.length - 1]),
+                    p1 = ellipsoid.lonLatToCartesian(path[path.length - 2]);
+                first = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
+            }
+
+            Vec3.doubleToTwoFloats(first, v_high, v_low);
+
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+            vh[k] = v_high.x;
+            vl[k++] = v_low.x;
+            vh[k] = v_high.y;
+            vl[k++] = v_low.y;
+            vh[k] = v_high.z;
+            vl[k++] = v_low.z;
+        }
+    }
+
+    setPointLonLat(lonlat, index, segmentIndex) {
+        if (this._renderNode &amp;&amp; this._renderNode.ellipsoid) {
+            let l = this._pathLonLat,
+                m = this._pathLonLatMerc;
+
+            l[segmentIndex][index] = lonlat;
+            m[segmentIndex][index] = lonlat.forwardMercator();
+
+            //
+            // Apply new extent(TODO: think about optimization)
+            //
+            var extent = this._extent;
+            extent.southWest.set(180.0, 90.0);
+            extent.northEast.set(-180.0, -90.0);
+            for (var i = 0; i &lt; l.length; i++) {
+                var pi = l[i];
+                for (var j = 0; j &lt; pi.length; j++) {
+                    var lon = pi[j].lon,
+                        lat = pi[j].lat;
+                    if (lon > extent.northEast.lon) {
+                        extent.northEast.lon = lon;
+                    }
+                    if (lat > extent.northEast.lat) {
+                        extent.northEast.lat = lat;
+                    }
+                    if (lon &lt; extent.southWest.lon) {
+                        extent.southWest.lon = lon;
+                    }
+                    if (lat &lt; extent.southWest.lat) {
+                        extent.southWest.lat = lat;
+                    }
+                }
+            }
+
+            this.setPoint3v(
+                this._renderNode.ellipsoid.lonLatToCartesian(lonlat),
+                index,
+                segmentIndex,
+                true
+            );
+        } else {
+            let path = this._pathLonLat[segmentIndex];
+            path[index].lon = lonlat.lon;
+            path[index].lat = lonlat.lat;
+            path[index].height = lonlat.height;
+        }
+    }
+
+    setPoint3v(coordinates, index = 0, segmentIndex = 0, skipLonLat = false) {
+
+        if (this._renderNode) {
+            var v_high = new Vec3(),
+                v_low = new Vec3();
+
+            var vh = this._verticesHigh,
+                vl = this._verticesLow,
+                l = this._pathLonLat,
+                m = this._pathLonLatMerc,
+                k = 0,
+                kk = 0;
+
+            //for (var i = 0; i &lt; segmentIndex; i++) {
+            //    kk += this._path3v[i].length * 12 + 24;
+            //}
+            kk = this._pathLengths[segmentIndex] * 12 + 24 * segmentIndex;
+
+            let path = this._path3v[segmentIndex];
+
+            path[index].x = coordinates.x;
+            path[index].y = coordinates.y;
+            path[index].z = coordinates.z;
+
+            let _closedLine = this._closedLine || path.length === 1;
+
+            if (index === 0 || index === 1) {
+                var last;
+                if (_closedLine) {
+                    last = path[path.length - 1];
+                } else {
+                    last = new Vec3(
+                        path[0].x + path[0].x - path[1].x,
+                        path[0].y + path[0].y - path[1].y,
+                        path[0].z + path[0].z - path[1].z
+                    );
+                }
+
+                k = kk;
+
+                Vec3.doubleToTwoFloats(last, v_high, v_low);
+
+                vh[k] = v_high.x;
+                vh[k + 1] = v_high.y;
+                vh[k + 2] = v_high.z;
+                vh[k + 3] = v_high.x;
+                vh[k + 4] = v_high.y;
+                vh[k + 5] = v_high.z;
+                vh[k + 6] = v_high.x;
+                vh[k + 7] = v_high.y;
+                vh[k + 8] = v_high.z;
+                vh[k + 9] = v_high.x;
+                vh[k + 10] = v_high.y;
+                vh[k + 11] = v_high.z;
+
+                vl[k] = v_low.x;
+                vl[k + 1] = v_low.y;
+                vl[k + 2] = v_low.z;
+                vl[k + 3] = v_low.x;
+                vl[k + 4] = v_low.y;
+                vl[k + 5] = v_low.z;
+                vl[k + 6] = v_low.x;
+                vl[k + 7] = v_low.y;
+                vl[k + 8] = v_low.z;
+                vl[k + 9] = v_low.x;
+                vl[k + 10] = v_low.y;
+                vl[k + 11] = v_low.z;
+            }
+
+            if (!skipLonLat &amp;&amp; this._renderNode.ellipsoid) {
+                var lonLat = this._renderNode.ellipsoid.cartesianToLonLat(coordinates);
+                l[segmentIndex][index] = lonLat;
+                m[segmentIndex][index] = lonLat.forwardMercator();
+
+                //
+                // Apply new extent(TODO: think about optimization)
+                //
+                var extent = this._extent;
+                extent.southWest.set(180.0, 90.0);
+                extent.northEast.set(-180.0, -90.0);
+                for (let i = 0; i &lt; l.length; i++) {
+                    var pi = l[i];
+                    for (var j = 0; j &lt; pi.length; j++) {
+                        var lon = pi[j].lon,
+                            lat = pi[j].lat;
+                        if (lon > extent.northEast.lon) {
+                            extent.northEast.lon = lon;
+                        }
+                        if (lat > extent.northEast.lat) {
+                            extent.northEast.lat = lat;
+                        }
+                        if (lon &lt; extent.southWest.lon) {
+                            extent.southWest.lon = lon;
+                        }
+                        if (lat &lt; extent.southWest.lat) {
+                            extent.southWest.lat = lat;
+                        }
+                    }
+                }
+            }
+
+            k = kk + index * 12 + 12;
+
+            Vec3.doubleToTwoFloats(coordinates, v_high, v_low);
+
+            vh[k] = v_high.x;
+            vh[k + 1] = v_high.y;
+            vh[k + 2] = v_high.z;
+            vh[k + 3] = v_high.x;
+            vh[k + 4] = v_high.y;
+            vh[k + 5] = v_high.z;
+            vh[k + 6] = v_high.x;
+            vh[k + 7] = v_high.y;
+            vh[k + 8] = v_high.z;
+            vh[k + 9] = v_high.x;
+            vh[k + 10] = v_high.y;
+            vh[k + 11] = v_high.z;
+
+            vl[k] = v_low.x;
+            vl[k + 1] = v_low.y;
+            vl[k + 2] = v_low.z;
+            vl[k + 3] = v_low.x;
+            vl[k + 4] = v_low.y;
+            vl[k + 5] = v_low.z;
+            vl[k + 6] = v_low.x;
+            vl[k + 7] = v_low.y;
+            vl[k + 8] = v_low.z;
+            vl[k + 9] = v_low.x;
+            vl[k + 10] = v_low.y;
+            vl[k + 11] = v_low.z;
+
+            if (index === path.length - 1 || index === path.length - 2) {
+                var first;
+                if (_closedLine) {
+                    first = path[0];
+                } else {
+                    var l1 = path.length - 1;
+                    first = new Vec3(
+                        path[l1].x + path[l1].x - path[l1 - 1].x,
+                        path[l1].y + path[l1].y - path[l1 - 1].y,
+                        path[l1].z + path[l1].z - path[l1 - 1].z
+                    );
+                }
+
+                k = kk + path.length * 12 + 12;
+
+                Vec3.doubleToTwoFloats(first, v_high, v_low);
+
+                vh[k] = v_high.x;
+                vh[k + 1] = v_high.y;
+                vh[k + 2] = v_high.z;
+                vh[k + 3] = v_high.x;
+                vh[k + 4] = v_high.y;
+                vh[k + 5] = v_high.z;
+                vh[k + 6] = v_high.x;
+                vh[k + 7] = v_high.y;
+                vh[k + 8] = v_high.z;
+                vh[k + 9] = v_high.x;
+                vh[k + 10] = v_high.y;
+                vh[k + 11] = v_high.z;
+
+                vl[k] = v_low.x;
+                vl[k + 1] = v_low.y;
+                vl[k + 2] = v_low.z;
+                vl[k + 3] = v_low.x;
+                vl[k + 4] = v_low.y;
+                vl[k + 5] = v_low.z;
+                vl[k + 6] = v_low.x;
+                vl[k + 7] = v_low.y;
+                vl[k + 8] = v_low.z;
+                vl[k + 9] = v_low.x;
+                vl[k + 10] = v_low.y;
+                vl[k + 11] = v_low.z;
+            }
+
+            this._changedBuffers[VERTICES_BUFFER] = true;
+        } else {
+            let path = this._path3v[segmentIndex];
+            path[index].x = coordinates.x;
+            path[index].y = coordinates.y;
+            path[index].z = coordinates.z;
+        }
+    }
+
+    _resizePathLengths(index = 0) {
+        this._pathLengths[0] = 0;
+        for (let i = index + 1, len = this._path3v.length; i &lt;= len; i++) {
+            this._pathLengths[i] = this._pathLengths[i - 1] + this._path3v[i - 1].length;
+        }
+    }
+
+    removeSegment(index) {
+        this._path3v.splice(index, 1);
+        this.setPath3v([].concat(this._path3v));
+    }
+
+    removePoint(index, multiLineIndex = 0) {
+        this._path3v[multiLineIndex].splice(index, 1);
+        if (this._path3v[multiLineIndex].length === 0) {
+            this._path3v.splice(multiLineIndex, 1);
+        }
+        this.setPath3v([].concat(this._path3v));
+    }
+
+    insertPoint3v(point3v, index = 0, color, multilineIndex = 0) {
+        let p = [].concat(this._path3v),
+            pp = p[multilineIndex];
+        if (pp) {
+            let c = [].concat(this._pathColors);
+
+            pp.splice(index, 0, point3v);
+
+            if (color) {
+                let cc = c[multilineIndex];
+                if (!cc) {
+                    cc = new Array(pp.length);
+                }
+                cc.splice(index, 0, color);
+            }
+
+            this.setPath3v(p, c);
+        } else {
+            this.addPoint3v(point3v, multilineIndex);
+        }
+    }
+
+    /**
+     * Adds a new cartesian point in the end of the path in a last line segment.
+     * @public
+     * @param {Vec3} point3v - New coordinate.
+     */
+    appendPoint3v(point3v, color, skipEllipsoid) {
+        if (this._path3v.length === 0) {
+            this._pathColors.push([color || this._defaultColor]);
+            this.addPoint3v(point3v);
+        } else {
+            //
+            // Making typedArrays suitable for appendPoint function
+            //
+            this._verticesHigh = makeArray(this._verticesHigh);
+            this._verticesLow = makeArray(this._verticesLow);
+            this._colors = makeArray(this._colors);
+            this._orders = makeArray(this._orders);
+            this._indexes = makeArray(this._indexes);
+
+            Polyline.appendPoint3v(
+                this._path3v,
+                point3v,
+                this._pathColors,
+                color || this._defaultColor,
+                this._closedLine,
+                this._verticesHigh,
+                this._verticesLow,
+                this._colors,
+                this._orders,
+                this._indexes,
+                !skipEllipsoid &amp;&amp; this._renderNode.ellipsoid,
+                this._pathLonLat,
+                this._pathLonLatMerc,
+                this._extent
+            );
+
+            this._pathLengths[this._path3v.length] += 1;
+
+            this._changedBuffers[VERTICES_BUFFER] = true;
+            this._changedBuffers[COLORS_BUFFER] = true;
+            this._changedBuffers[INDEX_BUFFER] = true;
+        }
+    }
+
+    /**
+     * Adds a new cartesian point in the end of the path.
+     * @public
+     * @param {Vec3} point3v - New coordinate.
+     * @param {number} [multiLineIndex=0] - Path part index, first by default.
+     */
+    addPoint3v(point3v, multiLineIndex = 0) {
+        //
+        // TODO: could be optimized
+        //
+        if (multiLineIndex >= this._path3v.length) {
+            this._path3v.push([]);
+        }
+        this._path3v[multiLineIndex].push(point3v);
+        this.setPath3v([].concat(this._path3v));
+    }
+
+    /**
+     * Adds a new geodetic point in the end of the path.
+     * @public
+     * @param {LonLat} lonLat - New coordinate.
+     * @param {number} [multiLineIndex=0] - Path part index, first by default.
+     */
+    addPointLonLat(lonLat, multiLineIndex = 0) {
+        //
+        // TODO: could be optimized
+        //
+        if (multiLineIndex >= this._pathLonLat.length) {
+            this._pathLonLat.push([]);
+        }
+        this._pathLonLat[multiLineIndex].push(lonLat);
+        this.setPathLonLat([].concat(this._pathLonLat));
+    }
+
+    /**
+     * Clear Polyline object data.
+     * @public
+     */
+    clear() {
+        this._clearData();
+    }
+
+    setPointColor(color, index = 0, segmentIndex = 0) {
+        if (this._renderNode &amp;&amp; index &lt; this._path3v[segmentIndex].length) {
+            let colors = this._pathColors[segmentIndex];
+
+            if (!colors) {
+                if (this._path3v[segmentIndex] &amp;&amp; index &lt; this._path3v[segmentIndex].length) {
+                    this._pathColors[segmentIndex] = new Array(this._path3v[segmentIndex].length);
+                } else {
+                    return;
+                }
+            }
+
+            if (!colors[index]) {
+                colors[index] = [color[R], color[G], color[B], color[A] || 1.0];
+            } else {
+                colors[index][R] = color[R];
+                colors[index][G] = color[G];
+                colors[index][B] = color[B];
+                colors[index][A] = color[A] || 1.0;
+            }
+
+            let c = this._colors;
+
+            //optimized with this._pathLengths
+            //for (var i = 0; i &lt; segmentIndex; i++) {
+            //    kk += this._path3v[i].length * 16 + 32;
+            //}
+
+            let k = index * 16 + this._pathLengths[segmentIndex] * 16 + 32 * segmentIndex;
+
+            c[k] = c[k + 4] = c[k + 8] = c[k + 12] = color[R];
+            c[k + 1] = c[k + 5] = c[k + 9] = c[k + 13] = color[G];
+            c[k + 2] = c[k + 6] = c[k + 10] = c[k + 14] = color[B];
+            c[k + 3] = c[k + 7] = c[k + 11] = c[k + 15] = color[A] || 1.0;
+
+            this._changedBuffers[COLORS_BUFFER] = true;
+        } else {
+            let pathColors = this._pathColors[segmentIndex];
+            pathColors[index] = color;
+        }
+    }
+
+    /**
+     * Sets Polyline opacity.
+     * @public
+     * @param {number} opacity - Opacity.
+     */
+    setOpacity(opacity) {
+        this._opacity = opacity;
+    }
+
+    /**
+     * Sets Polyline thickness in screen pixels.
+     * @public
+     * @param {number} thickness - Thickness.
+     */
+    setThickness(thickness) {
+        this.thickness = thickness;
+    }
+
+    /**
+     * Returns thickness.
+     * @public
+     * @return {number} Thickness in screen pixels.
+     */
+    getThickness() {
+        return this.thickness;
+    }
+
+    /**
+     * Sets visibility.
+     * @public
+     * @param {boolean} visibility - Polyline visibility.
+     */
+    setVisibility(visibility) {
+        this.visibility = visibility;
+    }
+
+    /**
+     * Gets Polyline visibility.
+     * @public
+     * @return {boolean} Polyline visibility.
+     */
+    getVisibility() {
+        return this.visibility;
+    }
+
+    /**
+     * Assign with render node.
+     * @public
+     * @param {RenderNode} renderNode -
+     */
+    setRenderNode(renderNode) {
+        if (renderNode) {
+            this._renderNode = renderNode;
+            if (this._pathLonLat.length) {
+                this._createDataLonLat([].concat(this._pathLonLat));
+            } else {
+                this._createData3v([].concat(this._path3v));
+            }
+            this._refresh();
+            this._update();
+        }
+    }
+
+    /**
+     * @protected
+     */
+    _clearData() {
+        this._verticesHigh = null;
+        this._verticesLow = null;
+        this._orders = null;
+        this._indexes = null;
+        this._colors = null;
+
+        this._verticesHigh = [];
+        this._verticesLow = [];
+        this._orders = [];
+        this._indexes = [];
+        this._colors = [];
+
+        this._path3v.length = 0;
+        this._pathLonLat.length = 0;
+        this._pathLonLatMerc.length = 0;
+
+        this._path3v = [];
+        this._pathLonLat = [];
+        this._pathLonLatMerc = [];
+    }
+
+    _createData3v(path3v) {
+        this._clearData();
+        Polyline.appendLineData3v(
+            path3v,
+            this._pathColors,
+            this._defaultColor,
+            this._closedLine,
+            this._verticesHigh,
+            this._verticesLow,
+            this._orders,
+            this._indexes,
+            this._renderNode.ellipsoid,
+            this._pathLonLat,
+            this._path3v,
+            this._pathLonLatMerc,
+            this._extent,
+            this._colors
+        );
+        this._resizePathLengths(0);
+    }
+
+    _createDataLonLat(pathLonlat) {
+        this._clearData();
+        Polyline.appendLineDataLonLat(
+            pathLonlat,
+            this._pathColors,
+            this._defaultColor,
+            this._closedLine,
+            this._verticesHigh,
+            this._verticesLow,
+            this._orders,
+            this._indexes,
+            this._renderNode.ellipsoid,
+            this._path3v,
+            this._pathLonLat,
+            this._pathLonLatMerc,
+            this._extent,
+            this._colors
+        );
+        this._resizePathLengths(0);
+    }
+
+    /**
+     * Removes from an entity.
+     * @public
+     */
+    remove() {
+        this._entity = null;
+
+        this._pathColors.length = 0;
+        this._pathColors = [];
+
+        this._verticesHigh = null;
+        this._verticesLow = null;
+        this._orders = null;
+        this._indexes = null;
+        this._colors = null;
+
+        this._verticesHigh = [];
+        this._verticesLow = [];
+        this._orders = [];
+        this._indexes = [];
+        this._colors = [];
+
+        this._deleteBuffers();
+
+        this._handler &amp;&amp; this._handler.remove(this);
+    }
+
+    setPickingColor3v(color) {
+        this._pickingColor[0] = color.x / 255.0;
+        this._pickingColor[1] = color.y / 255.0;
+        this._pickingColor[2] = color.z / 255.0;
+    }
+
+    /**
+     * Returns polyline geodetic extent.
+     * @public
+     * @returns {Extent} - Geodetic extent
+     */
+    getExtent() {
+        return this._extent.clone();
+    }
+
+    /**
+     * Returns path cartesian coordinates.
+     * @return {Array.&lt;Vec3>} Polyline path.
+     */
+    getPath3v() {
+        return this._path3v;
+    }
+
+    /**
+     * Returns geodetic path coordinates.
+     * @return {Array.&lt;LonLat>} Polyline path.
+     */
+    getPathLonLat() {
+        return this._pathLonLat;
+    }
+
+    getPathColors() {
+        return this._pathColors;
+    }
+
+    setPathColors(pathColors) {
+        if (this._renderNode) {
+            // ...
+        }
+    }
+
+    setColorHTML(htmlColor) {
+        this._defaultColor = htmlColorToFloat32Array(htmlColor);
+
+        let color = htmlColorToRgba(htmlColor),
+            p = this._pathColors;
+
+        for (let i = 0, len = p.length; i &lt; len; i++) {
+            let s = p[i];
+            for (let j = 0, slen = s.length; j &lt; slen; j++) {
+                s[j][0] = color.x;
+                s[j][1] = color.y;
+                s[j][2] = color.z;
+                s[j][3] = color.w;
+            }
+        }
+
+        let c = this._colors;
+        for (let i = 0, len = c.length; i &lt; len; i += 4) {
+            c[i] = color.x;
+            c[i + 1] = color.y;
+            c[i + 2] = color.z;
+            c[i + 3] = color.w;
+        }
+
+        this._changedBuffers[COLORS_BUFFER] = true;
+    }
+
+    /**
+     * Sets geodetic coordinates.
+     * @public
+     * @param {Array.&lt;Array.&lt;number>>} pathLonLat - Polyline path cartesian coordinates. (exactly 3 entries)
+     * @param {Boolean} [forceEqual=false] - Makes assigning faster for size equal coordinates array.
+     */
+    setPathLonLat(pathLonLat, forceEqual) {
+        if (this._renderNode &amp;&amp; this._renderNode.ellipsoid) {
+            if (forceEqual) {
+                this._setEqualPathLonLat(pathLonLat);
+                this._changedBuffers[VERTICES_BUFFER] = true;
+                this._changedBuffers[COLORS_BUFFER] = true;
+            } else {
+                this._createDataLonLat(pathLonLat);
+                this._changedBuffers[VERTICES_BUFFER] = true;
+                this._changedBuffers[INDEX_BUFFER] = true;
+                this._changedBuffers[COLORS_BUFFER] = true;
+            }
+        } else {
+            this._pathLonLat = [].concat(pathLonLat);
+        }
+    }
+
+    /**
+     * Sets Polyline cartesian coordinates.
+     * @public
+     * @param {Array.&lt;Array.&lt;number>>} path3v - Polyline path cartesian coordinates. (exactly 3 entries)
+     * @param {Boolean} [forceEqual=false] - Makes assigning faster for size equal coordinates array.
+     */
+    setPath3v(path3v, pathColors, forceEqual) {
+        if (pathColors) {
+            this._pathColors = [].concat(pathColors);
+        }
+
+        if (this._renderNode) {
+            if (forceEqual) {
+                this._setEqualPath3v(path3v);
+                this._changedBuffers[VERTICES_BUFFER] = true;
+                this._changedBuffers[COLORS_BUFFER] = true;
+            } else {
+                this._createData3v(path3v);
+                this._changedBuffers[VERTICES_BUFFER] = true;
+                this._changedBuffers[INDEX_BUFFER] = true;
+                this._changedBuffers[COLORS_BUFFER] = true;
+            }
+        } else {
+            this._path3v = [].concat(path3v);
+        }
+    }
+
+    draw() {
+        if (this.visibility &amp;&amp; this._path3v.length) {
+            this._update();
+
+            var rn = this._renderNode;
+            var r = rn.renderer;
+            var sh = r.handler.programs.polyline_screen;
+            var p = sh._program;
+            var gl = r.handler.gl,
+                sha = p.attributes,
+                shu = p.uniforms,
+                ec = this._handler._entityCollection;
+
+            sh.activate();
+
+            gl.disable(gl.CULL_FACE);
+
+            gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits + window.POLYLINE_DEPTH_OFFSET);
+
+            gl.uniformMatrix4fv(shu.proj, false, r.activeCamera.getProjectionMatrix());
+            gl.uniformMatrix4fv(shu.view, false, r.activeCamera.getViewMatrix());
+
+            // gl.uniform4fv(shu.color, [this.color.x, this.color.y, this.color.z, this.color.w * this._handler._entityCollection._fadingOpacity]);
+
+            gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
+            gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
+
+            gl.uniform2fv(shu.uFloatParams, [
+                rn._planetRadius2 || 0.0,
+                r.activeCamera._tanViewAngle_hradOneByHeight
+            ]);
+            gl.uniform2fv(shu.viewport, [r.handler.canvas.width, r.handler.canvas.height]);
+            gl.uniform1f(shu.thickness, this.thickness * 0.5);
+            gl.uniform1f(shu.opacity, this._opacity * ec._fadingOpacity);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._colorsBuffer);
+            gl.vertexAttribPointer(sha.color, this._colorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+            var v = this._verticesHighBuffer;
+            gl.bindBuffer(gl.ARRAY_BUFFER, v);
+            gl.vertexAttribPointer(sha.prevHigh, v.itemSize, gl.FLOAT, false, 12, 0);
+            gl.vertexAttribPointer(sha.currentHigh, v.itemSize, gl.FLOAT, false, 12, 48);
+            gl.vertexAttribPointer(sha.nextHigh, v.itemSize, gl.FLOAT, false, 12, 96);
+
+            v = this._verticesLowBuffer;
+            gl.bindBuffer(gl.ARRAY_BUFFER, v);
+            gl.vertexAttribPointer(sha.prevLow, v.itemSize, gl.FLOAT, false, 12, 0);
+            gl.vertexAttribPointer(sha.currentLow, v.itemSize, gl.FLOAT, false, 12, 48);
+            gl.vertexAttribPointer(sha.nextLow, v.itemSize, gl.FLOAT, false, 12, 96);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._ordersBuffer);
+            gl.vertexAttribPointer(sha.order, this._ordersBuffer.itemSize, gl.FLOAT, false, 4, 0);
+
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer);
+            gl.drawElements(gl.TRIANGLE_STRIP, this._indexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+
+            gl.enable(gl.CULL_FACE);
+        }
+    }
+
+    drawPicking() {
+        if (this.visibility &amp;&amp; this._path3v.length) {
+            var rn = this._renderNode;
+            var r = rn.renderer;
+            var sh = r.handler.programs.polyline_picking;
+            var p = sh._program;
+            var gl = r.handler.gl,
+                sha = p.attributes,
+                shu = p.uniforms;
+
+            sh.activate();
+
+            gl.disable(gl.CULL_FACE);
+
+            gl.uniform1f(shu.depthOffset, this._handler._entityCollection.polygonOffsetUnits + window.POLYLINE_DEPTH_OFFSET);
+
+            gl.uniformMatrix4fv(shu.proj, false, r.activeCamera.getProjectionMatrix());
+            gl.uniformMatrix4fv(shu.view, false, r.activeCamera.getViewMatrix());
+
+            gl.uniform4fv(shu.color, [
+                this._pickingColor[0],
+                this._pickingColor[1],
+                this._pickingColor[2],
+                1.0
+            ]);
+
+            gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
+            gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
+
+            gl.uniform2fv(shu.uFloatParams, [
+                rn._planetRadius2 || 0.0,
+                r.activeCamera._tanViewAngle_hradOneByHeight
+            ]);
+            gl.uniform2fv(shu.viewport, [r.handler.canvas.width, r.handler.canvas.height]);
+            gl.uniform1f(shu.thickness, this.thickness * 0.5);
+
+            var v = this._verticesHighBuffer;
+            gl.bindBuffer(gl.ARRAY_BUFFER, v);
+            gl.vertexAttribPointer(sha.prevHigh, v.itemSize, gl.FLOAT, false, 12, 0);
+            gl.vertexAttribPointer(sha.currentHigh, v.itemSize, gl.FLOAT, false, 12, 48);
+            gl.vertexAttribPointer(sha.nextHigh, v.itemSize, gl.FLOAT, false, 12, 96);
+
+            v = this._verticesLowBuffer;
+            gl.bindBuffer(gl.ARRAY_BUFFER, v);
+            gl.vertexAttribPointer(sha.prevLow, v.itemSize, gl.FLOAT, false, 12, 0);
+            gl.vertexAttribPointer(sha.currentLow, v.itemSize, gl.FLOAT, false, 12, 48);
+            gl.vertexAttribPointer(sha.nextLow, v.itemSize, gl.FLOAT, false, 12, 96);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._ordersBuffer);
+            gl.vertexAttribPointer(sha.order, this._ordersBuffer.itemSize, gl.FLOAT, false, 4, 0);
+
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer);
+            gl.drawElements(gl.TRIANGLE_STRIP, this._indexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+
+            gl.enable(gl.CULL_FACE);
+        }
+    }
+
+    /**
+     * Refresh buffers.
+     * @protected
+     */
+    _refresh() {
+        var i = this._changedBuffers.length;
+        while (i--) {
+            this._changedBuffers[i] = true;
+        }
+    }
+
+    /**
+     * Updates render buffers.
+     * @protected
+     */
+    _update() {
+        if (this._renderNode) {
+            var i = this._changedBuffers.length;
+            while (i--) {
+                if (this._changedBuffers[i]) {
+                    this._buffersUpdateCallbacks[i].call(this);
+                    this._changedBuffers[i] = false;
+                }
+            }
+        }
+    }
+
+    /**
+     * Clear GL buffers.
+     * @protected
+     */
+    _deleteBuffers() {
+        if (this._renderNode) {
+            var r = this._renderNode.renderer,
+                gl = r.handler.gl;
+
+            gl.deleteBuffer(this._verticesHighBuffer);
+            gl.deleteBuffer(this._verticesLowBuffer);
+            gl.deleteBuffer(this._ordersBuffer);
+            gl.deleteBuffer(this._indexesBuffer);
+            gl.deleteBuffer(this._colorsBuffer);
+
+            this._verticesHighBuffer = null;
+            this._verticesLowBuffer = null;
+            this._ordersBuffer = null;
+            this._indexesBuffer = null;
+            this._colorsBuffer = null;
+        }
+    }
+
+    /**
+     * Creates gl main data buffer.
+     * @protected
+     */
+    _createVerticesBuffer() {
+        var h = this._renderNode.renderer.handler;
+
+        let numItems = this._verticesHigh.length / 3;
+
+        if (!this._verticesHighBuffer || this._verticesHighBuffer.numItems !== numItems) {
+            h.gl.deleteBuffer(this._verticesHighBuffer);
+            h.gl.deleteBuffer(this._verticesLowBuffer);
+            this._verticesHighBuffer = h.createStreamArrayBuffer(3, numItems);
+            this._verticesLowBuffer = h.createStreamArrayBuffer(3, numItems);
+        }
+
+        this._verticesHigh = makeArrayTyped(this._verticesHigh);
+        this._verticesLow = makeArrayTyped(this._verticesLow);
+
+        h.setStreamArrayBuffer(this._verticesHighBuffer, this._verticesHigh);
+        h.setStreamArrayBuffer(this._verticesLowBuffer, this._verticesLow);
+    }
+
+    /**
+     * Creates gl index and order buffer.
+     * @protected
+     */
+    _createIndexBuffer() {
+        var h = this._renderNode.renderer.handler;
+        h.gl.deleteBuffer(this._ordersBuffer);
+        h.gl.deleteBuffer(this._indexesBuffer);
+
+        this._orders = makeArrayTyped(this._orders);
+
+        this._ordersBuffer = h.createArrayBuffer(this._orders, 1, this._orders.length / 2);
+
+        this._indexes = makeArrayTyped(this._indexes, Uint32Array);
+
+        this._indexesBuffer = h.createElementArrayBuffer(this._indexes, 1, this._indexes.length);
+    }
+
+    _createColorsBuffer() {
+        var h = this._renderNode.renderer.handler;
+        h.gl.deleteBuffer(this._colorsBuffer);
+
+        this._colors = makeArrayTyped(this._colors);
+
+        this._colorsBuffer = h.createArrayBuffer(
+            new Float32Array(this._colors),
+            4,
+            this._colors.length / 4
+        );
+    }
+}
+
+export { Polyline };
+</code></pre></article></section></div></div></div><div class="search-container" id="PkfLWpAbet" style="display:none"><div class="wrapper" id="iCxFxjkHbP"><button class="icon-button search-close-button" id="VjLlGakifb" aria-label="close search"><svg><use xlink:href="#close-icon"></use></svg></button><div class="search-box-c"><svg><use xlink:href="#search-icon"></use></svg> <input type="text" id="vpcKVYIppa" class="search-input" placeholder="Search..." autofocus></div><div class="search-result-c" id="fWwVHRuDuN"><span class="search-result-c-text">Type anything to view search result</span></div></div></div><div class="mobile-menu-icon-container"><button class="icon-button" id="mobile-menu" data-isopen="false" aria-label="menu"><svg><use xlink:href="#menu-icon"></use></svg></button></div><div id="mobile-sidebar" class="mobile-sidebar-container"><div class="mobile-sidebar-wrapper"><a href="/" class="sidebar-title sidebar-title-anchor">Home</a><div class="mobile-nav-links"></div><div class="mobile-sidebar-items-c"><div class="sidebar-section-title with-arrow" data-isopen="false" id="TDK6dKokNsqfiRkzdo6U2"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-og_Clock.html">og/Clock</a></div><div class="sidebar-section-children"><a href="module-og_Events.html">og/Events</a></div><div class="sidebar-section-children"><a href="module-og_Extent.html">og/Extent</a></div><div class="sidebar-section-children"><a href="module-og_Globe.html">og/Globe</a></div><div class="sidebar-section-children"><a href="module-og_ImageCanvas.html">og/ImageCanvas</a></div><div class="sidebar-section-children"><a href="module-og_Lock.html">og/Lock</a></div><div class="sidebar-section-children"><a href="module-og_LonLat.html">og/LonLat</a></div><div class="sidebar-section-children"><a href="module-og_Stack.html">og/Stack</a></div><div class="sidebar-section-children"><a href="module-og_astro_earth.html">og/astro/earth</a></div><div class="sidebar-section-children"><a href="module-og_astro_jd.html">og/astro/jd</a></div><div class="sidebar-section-children"><a href="module-og_astro_orbit.html">og/astro/orbit</a></div><div class="sidebar-section-children"><a href="module-og_astro_rotation.html">og/astro/rotation</a></div><div class="sidebar-section-children"><a href="module-og_bv_Box.html">og/bv/Box</a></div><div class="sidebar-section-children"><a href="module-og_bv_Sphere.html">og/bv/Sphere</a></div><div class="sidebar-section-children"><a href="module-og_camera_PlanetCamera.html">og/camera/PlanetCamera</a></div><div class="sidebar-section-children"><a href="module-og_control_Atmosphere.html">og/control/Atmosphere</a></div><div class="sidebar-section-children"><a href="module-og_control_Control.html">og/control/Control</a></div><div class="sidebar-section-children"><a href="module-og_control_DebugInfo.html">og/control/DebugInfo</a></div><div class="sidebar-section-children"><a href="module-og_control_GeoImageDragControl.html">og/control/GeoImageDragControl</a></div><div class="sidebar-section-children"><a href="module-og_control_KeyboardNavigation.html">og/control/KeyboardNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerAnimation.html">og/control/LayerAnimation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerSwitcher.html">og/control/LayerSwitcher</a></div><div class="sidebar-section-children"><a href="module-og_control_Lighting.html">og/control/Lighting</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseNavigation.html">og/control/MouseNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseWheelZoomControl.html">og/control/MouseWheelZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler.html">og/control/Ruler</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler.html">og/control/Ruler</a></div><div class="sidebar-section-children"><a href="module-og_control_Selector.html">og/control/Selector</a></div><div class="sidebar-section-children"><a href="module-og_control_ShowFps.html">og/control/ShowFps</a></div><div class="sidebar-section-children"><a href="module-og_control_SimpleSkyBackground.html">og/control/SimpleSkyBackground</a></div><div class="sidebar-section-children"><a href="module-og_control_Sun.html">og/control/Sun</a></div><div class="sidebar-section-children"><a href="module-og_control_ToggleWireframe.html">og/control/ToggleWireframe</a></div><div class="sidebar-section-children"><a href="module-og_control_TouchNavigation.html">og/control/TouchNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl.html">og/control/ZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl.html">og/control/ZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_ellipsoid_Ellipsoid.html">og/ellipsoid/Ellipsoid</a></div><div class="sidebar-section-children"><a href="module-og_ellipsoid_wgs84.html">og/ellipsoid/wgs84</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard.html">og/entity/BaseBillboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard.html">og/entity/BaseBillboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_Billboard.html">og/entity/Billboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_BillboardHandler.html">og/entity/BillboardHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Entity.html">og/entity/Entity</a></div><div class="sidebar-section-children"><a href="module-og_entity_EntityCollection.html">og/entity/EntityCollection</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeoObject.html">og/entity/GeoObject</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeoObjectHandler.html">og/entity/GeoObjectHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Geometry.html">og/entity/Geometry</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeometryHandler.html">og/entity/GeometryHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Label.html">og/entity/Label</a></div><div class="sidebar-section-children"><a href="module-og_entity_LabelHandler.html">og/entity/LabelHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_PointCloud.html">og/entity/PointCloud</a></div><div class="sidebar-section-children"><a href="module-og_entity_PointCloudHandler.html">og/entity/PointCloudHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Polyline.html">og/entity/Polyline</a></div><div class="sidebar-section-children"><a href="module-og_entity_PolylineHandler.html">og/entity/PolylineHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_KeyboardHandler.html">og/input/KeyboardHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_MouseHandler.html">og/input/MouseHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_TouchHandler.html">og/input/TouchHandler</a></div><div class="sidebar-section-children"><a href="module-og_input_input.html">og/input/input</a></div><div class="sidebar-section-children"><a href="module-og_layer_BaseGeoImage.html">og/layer/BaseGeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_CanvasTiles.html">og/layer/CanvasTiles</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoImage.html">og/layer/GeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoTexture2d.html">og/layer/GeoTexture2d</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoVideo.html">og/layer/GeoVideo</a></div><div class="sidebar-section-children"><a href="module-og_layer_KML.html">og/layer/KML</a></div><div class="sidebar-section-children"><a href="module-og_layer_Layer.html">og/layer/Layer</a></div><div class="sidebar-section-children"><a href="module-og_layer_Material.html">og/layer/Material</a></div><div class="sidebar-section-children"><a href="module-og_layer_Vector.html">og/layer/Vector</a></div><div class="sidebar-section-children"><a href="module-og_layer_WMS.html">og/layer/WMS</a></div><div class="sidebar-section-children"><a href="module-og_layer_XYZ.html">og/layer/XYZ</a></div><div class="sidebar-section-children"><a href="module-og_light_LightSource.html">og/light/LightSource</a></div><div class="sidebar-section-children"><a href="module-og_math.html">og/math</a></div><div class="sidebar-section-children"><a href="module-og_math_Line2.html">og/math/Line2</a></div><div class="sidebar-section-children"><a href="module-og_math_Mat3.html">og/math/Mat3</a></div><div class="sidebar-section-children"><a href="module-og_math_Ray.html">og/math/Ray</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec2.html">og/math/Vec2</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec3.html">og/math/Vec3</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec4.html">og/math/Vec4</a></div><div class="sidebar-section-children"><a href="module-og_math_coder.html">og/math/coder</a></div><div class="sidebar-section-children"><a href="module-og_mercator.html">og/mercator</a></div><div class="sidebar-section-children"><a href="module-og_proj_EPSG3857.html">og/proj/EPSG3857</a></div><div class="sidebar-section-children"><a href="module-og_proj_EPSG4326.html">og/proj/EPSG4326</a></div><div class="sidebar-section-children"><a href="module-og_proj_Proj.html">og/proj/Proj</a></div><div class="sidebar-section-children"><a href="module-og_quadTree_EntityCollectionNode.html">og/quadTree/EntityCollectionNode</a></div><div class="sidebar-section-children"><a href="module-og_renderer_RendererEvents.html">og/renderer/RendererEvents</a></div><div class="sidebar-section-children"><a href="module-og_scene_Axes.html">og/scene/Axes</a></div><div class="sidebar-section-children"><a href="module-og_scene_BaseNode.html">og/scene/BaseNode</a></div><div class="sidebar-section-children"><a href="module-og_scene_Planet.html">og/scene/Planet</a></div><div class="sidebar-section-children"><a href="module-og_scene_SkyBox.html">og/scene/SkyBox</a></div><div class="sidebar-section-children"><a href="module-og_shaders_billboard.html">og/shaders/billboard</a></div><div class="sidebar-section-children"><a href="module-og_shaders_drawnode.html">og/shaders/drawnode</a></div><div class="sidebar-section-children"><a href="module-og_shaders_drawnode.html">og/shaders/drawnode</a></div><div class="sidebar-section-children"><a href="module-og_shaders_drawnode.html">og/shaders/drawnode</a></div><div class="sidebar-section-children"><a href="module-og_shaders_label.html">og/shaders/label</a></div><div class="sidebar-section-children"><a href="module-og_shaders_pickingMask.html">og/shaders/pickingMask</a></div><div class="sidebar-section-children"><a href="module-og_shaders_pointCloud.html">og/shaders/pointCloud</a></div><div class="sidebar-section-children"><a href="module-og_shaders_polyline.html">og/shaders/polyline</a></div><div class="sidebar-section-children"><a href="module-og_shaders_ray.html">og/shaders/ray</a></div><div class="sidebar-section-children"><a href="module-og_shaders_skybox.html">og/shaders/skybox</a></div><div class="sidebar-section-children"><a href="module-og_terrainProvider_EmptyTerrain.html">og/terrainProvider/EmptyTerrain</a></div><div class="sidebar-section-children"><a href="module-og_utils_FontAtlas.html">og/utils/FontAtlas</a></div><div class="sidebar-section-children"><a href="module-og_utils_NormalMapCreator.html">og/utils/NormalMapCreator</a></div><div class="sidebar-section-children"><a href="module-og_utils_VectorTileCreator.html">og/utils/VectorTileCreator</a></div><div class="sidebar-section-children"><a href="module-og_utils_earcut.html">og/utils/earcut</a></div><div class="sidebar-section-children"><a href="module-og_utils_shared.html">og/utils/shared</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Framebuffer.html">og/webgl/Framebuffer</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Handler.html">og/webgl/Handler</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Multisample.html">og/webgl/Multisample</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Program.html">og/webgl/Program</a></div><div class="sidebar-section-children"><a href="module-og_webgl_callbacks.html">og/webgl/callbacks</a></div><div class="sidebar-section-children"><a href="module-og_webgl_types.html">og/webgl/types</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="_zSyzM5GLJxvA5SOCBl0C"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="Camera.html">Camera</a></div><div class="sidebar-section-children"><a href="CompassButton.html">CompassButton</a></div><div class="sidebar-section-children"><a href="Cons.html">Cons</a></div><div class="sidebar-section-children"><a href="EarthCoordinates.html">EarthCoordinates</a></div><div class="sidebar-section-children"><a href="Frustum.html">Frustum</a></div><div class="sidebar-section-children"><a href="GlobusTerrain.html">GlobusTerrain</a></div><div class="sidebar-section-children"><a href="Mat4.html">Mat4</a></div><div class="sidebar-section-children"><a href="Node.html">Node</a></div><div class="sidebar-section-children"><a href="Plane.html">Plane</a></div><div class="sidebar-section-children"><a href="ProgramController.html">ProgramController</a></div><div class="sidebar-section-children"><a href="Quat.html">Quat</a></div><div class="sidebar-section-children"><a href="QueueArray.html">QueueArray</a></div><div class="sidebar-section-children"><a href="Rectangle.html">Rectangle</a></div><div class="sidebar-section-children"><a href="RenderNode.html">RenderNode</a></div><div class="sidebar-section-children"><a href="Segment.html">Segment</a></div><div class="sidebar-section-children"><a href="Segment.html">Segment</a></div><div class="sidebar-section-children"><a href="SegmentBoundVisualization.html">SegmentBoundVisualization</a></div><div class="sidebar-section-children"><a href="SegmentLonLat.html">SegmentLonLat</a></div><div class="sidebar-section-children"><a href="SimpleNavigation.html">SimpleNavigation</a></div><div class="sidebar-section-children"><a href="Strip.html">Strip</a></div><div class="sidebar-section-children"><a href="TextureAtlas.html">TextureAtlas</a></div><div class="sidebar-section-children"><a href="TextureAtlasNode.html">TextureAtlasNode</a></div><div class="sidebar-section-children"><a href="VisibleExtent.html">VisibleExtent</a></div><div class="sidebar-section-children"><a href="-__resizeTimeout.html">__resizeTimeout</a></div><div class="sidebar-section-children"><a href="module-og_Clock-Clock.html">Clock</a></div><div class="sidebar-section-children"><a href="module-og_Events-Events.html">Events</a></div><div class="sidebar-section-children"><a href="module-og_Extent.Extent.html">Extent</a></div><div class="sidebar-section-children"><a href="module-og_Globe-Globe.html">Globe</a></div><div class="sidebar-section-children"><a href="module-og_ImageCanvas-ImageCanvas.html">ImageCanvas</a></div><div class="sidebar-section-children"><a href="module-og_LonLat.LonLat.html">LonLat</a></div><div class="sidebar-section-children"><a href="module-og_Stack-Stack.html">Stack</a></div><div class="sidebar-section-children"><a href="module-og_bv_Box-Box.html">Box</a></div><div class="sidebar-section-children"><a href="module-og_bv_Sphere-Sphere.html">Sphere</a></div><div class="sidebar-section-children"><a href="module-og_camera_PlanetCamera-PlanetCamera.html">PlanetCamera</a></div><div class="sidebar-section-children"><a href="module-og_control_Atmosphere-Atmosphere.html">Atmosphere</a></div><div class="sidebar-section-children"><a href="module-og_control_Control-Control.html">Control</a></div><div class="sidebar-section-children"><a href="module-og_control_DebugInfo-DebugInfo.html">DebugInfo</a></div><div class="sidebar-section-children"><a href="module-og_control_KeyboardNavigation-KeyboardNavigation.html">KeyboardNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerAnimation-LayerAnimation.html">LayerAnimation</a></div><div class="sidebar-section-children"><a href="module-og_control_LayerSwitcher-LayerSwitcher.html">LayerSwitcher</a></div><div class="sidebar-section-children"><a href="module-og_control_Lighting-ICON_BUTTON_SVG.html">ICON_BUTTON_SVG</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseNavigation-MouseNavigation.html">MouseNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_MouseWheelZoomControl-MouseWheelZoomControl.html">MouseWheelZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler-Ruler.html">Ruler</a></div><div class="sidebar-section-children"><a href="module-og_control_Ruler-RulerSwitcher.html">RulerSwitcher</a></div><div class="sidebar-section-children"><a href="module-og_control_Selector-Selection.html">Selection</a></div><div class="sidebar-section-children"><a href="module-og_control_ShowFps-ShowFps.html">ShowFps</a></div><div class="sidebar-section-children"><a href="module-og_control_SimpleSkyBackground-SimpleSkyBackground.html">SimpleSkyBackground</a></div><div class="sidebar-section-children"><a href="module-og_control_Sun-Sun.html">Sun</a></div><div class="sidebar-section-children"><a href="module-og_control_ToggleWireframe-ToggleWireframe.html">ToggleWireframe</a></div><div class="sidebar-section-children"><a href="module-og_control_TouchNavigation-TouchNavigation.html">TouchNavigation</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl-ScaleControl.html">ScaleControl</a></div><div class="sidebar-section-children"><a href="module-og_control_ZoomControl-ZoomControl.html">ZoomControl</a></div><div class="sidebar-section-children"><a href="module-og_ellipsoid_Ellipsoid-Ellipsoid.html">Ellipsoid</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard-BaseBillboard.html">BaseBillboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_BaseBillboard-Ray.html">Ray</a></div><div class="sidebar-section-children"><a href="module-og_entity_BillboardHandler-BillboardHandler.html">BillboardHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Billboard-Billboard.html">Billboard</a></div><div class="sidebar-section-children"><a href="module-og_entity_EntityCollection-EntityCollection.html">EntityCollection</a></div><div class="sidebar-section-children"><a href="module-og_entity_Entity-Entity.html">Entity</a></div><div class="sidebar-section-children"><a href="module-og_entity_GeoObject-GeoObject.html">GeoObject</a></div><div class="sidebar-section-children"><a href="module-og_entity_LabelHandler-LabelHandler.html">LabelHandler</a></div><div class="sidebar-section-children"><a href="module-og_entity_Label-Label.html">Label</a></div><div class="sidebar-section-children"><a href="module-og_entity_PointCloud-PointCloud.html">PointCloud</a></div><div class="sidebar-section-children"><a href="module-og_entity_Polyline-Polyline.html">Polyline</a></div><div class="sidebar-section-children"><a href="module-og_layer_BaseGeoImage-BaseGeoImage.html">BaseGeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_CanvasTiles-CanvasTiles.html">CanvasTiles</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoImage-GeoImage.html">GeoImage</a></div><div class="sidebar-section-children"><a href="module-og_layer_GeoVideo-GeoVideo.html">GeoVideo</a></div><div class="sidebar-section-children"><a href="module-og_layer_KML.KML.html">KML</a></div><div class="sidebar-section-children"><a href="module-og_layer_Layer-Layer.html">Layer</a></div><div class="sidebar-section-children"><a href="module-og_layer_Material-Material.html">Material</a></div><div class="sidebar-section-children"><a href="module-og_layer_Vector-Vector.html">Vector</a></div><div class="sidebar-section-children"><a href="module-og_layer_WMS-WMS.html">WMS</a></div><div class="sidebar-section-children"><a href="module-og_layer_XYZ-XYZ.html">XYZ</a></div><div class="sidebar-section-children"><a href="module-og_light_LightSource-LightSource.html">LightSource</a></div><div class="sidebar-section-children"><a href="module-og_math_Mat3.Mat3.html">Mat3</a></div><div class="sidebar-section-children"><a href="module-og_math_Ray.Ray.html">Ray</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec2.Vec2.html">Vec2</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec3.Vec3.html">Vec3</a></div><div class="sidebar-section-children"><a href="module-og_math_Vec4.Vec4.html">Vec4</a></div><div class="sidebar-section-children"><a href="module-og_renderer_RendererEvents-RendererEvents.html">RendererEvents</a></div><div class="sidebar-section-children"><a href="module-og_scene_BaseNode-BaseNode.html">BaseNode</a></div><div class="sidebar-section-children"><a href="module-og_scene_Planet.Planet.html">Planet</a></div><div class="sidebar-section-children"><a href="module-og_terrainProvider_EmptyTerrain-EmptyTerrain.html">EmptyTerrain</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Framebuffer.Framebuffer.html">Framebuffer</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Handler-Handler.html">Handler</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Multisample.Multisample.html">Multisample</a></div><div class="sidebar-section-children"><a href="module-og_webgl_Program-Program.html">Program</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="_mtSCD_-Y8oZXn_4TBH69"><div>Events</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="og.Camera.html#event:moveend">moveend</a></div><div class="sidebar-section-children"><a href="og.Camera.html#event:viewchange">viewchange</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:add">add</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:doubletouch">doubletouch</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:drawend">drawend</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:entityadd">entityadd</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:entitymove">entitymove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:entityremove">entityremove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:lclick">lclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:ldblclick">ldblclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:ldown">ldown</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:lhold">lhold</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:lup">lup</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mclick">mclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mdblclick">mdblclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mdown">mdown</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mhold">mhold</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mouseleave">mouseleave</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mousemove">mousemove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mousewheel">mousewheel</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:mup">mup</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rclick">rclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rdblclick">rdblclick</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rdown">rdown</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:remove">remove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rhold">rhold</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:rup">rup</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchend">touchend</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchenter">touchenter</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchleave">touchleave</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchmove">touchmove</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:touchstart">touchstart</a></div><div class="sidebar-section-children"><a href="og.EntityCollection.html#event:visibilitychange">visibilitychange</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:add">add</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:doubletouch">doubletouch</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:lclick">lclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:ldblclick">ldblclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:ldown">ldown</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:lhold">lhold</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:lup">lup</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mclick">mclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mdblclick">mdblclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mdown">mdown</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mhold">mhold</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mousemove">mousemove</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mousewheel">mousewheel</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:mup">mup</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rclick">rclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rdblclick">rdblclick</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rdown">rdown</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:remove">remove</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rhold">rhold</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:rup">rup</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchend">touchend</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchenter">touchenter</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchleave">touchleave</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchmove">touchmove</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:touchstart">touchstart</a></div><div class="sidebar-section-children"><a href="og.Layer.html#event:visibilitychange">visibilitychange</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:doubletouch">doubletouch</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:lclick">lclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:ldblclick">ldblclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:ldown">ldown</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:lhold">lhold</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:lup">lup</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mclick">mclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mdblclick">mdblclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mdown">mdown</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mhold">mhold</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mouseenter">mouseenter</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mouseleave">mouseleave</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mousemove">mousemove</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mousestop">mousestop</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mousewheel">mousewheel</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:mup">mup</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:postdraw">postdraw</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rclick">rclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rdblclick">rdblclick</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rdown">rdown</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:resize">resize</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:resizeend">resizeend</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rhold">rhold</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:rup">rup</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchcancel">touchcancel</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchend">touchend</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchenter">touchenter</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchleave">touchleave</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchmove">touchmove</a></div><div class="sidebar-section-children"><a href="og.RendererEvents.html#event:touchstart">touchstart</a></div><div class="sidebar-section-children"><a href="og.layer.BaseGeoImage.html#event:loadend">loadend</a></div><div class="sidebar-section-children"><a href="og.layer.CanvasTiles.html#event:load">load</a></div><div class="sidebar-section-children"><a href="og.layer.CanvasTiles.html#event:loadend">loadend</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:entityadd">entityadd</a></div><div class="sidebar-section-children"><a href="og.layer.Vector.html#event:entityremove">entityremove</a></div><div class="sidebar-section-children"><a href="og.layer.XYZ.html#event:load">load</a></div><div class="sidebar-section-children"><a href="og.layer.XYZ.html#event:loadend">loadend</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:baselayerchange">baselayerchange</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:draw">draw</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:layeradd">layeradd</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:layerremove">layerremove</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:layervisibilitychange">layervisibilitychange</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:rendercompleted">rendercompleted</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:terraincompleted">terraincompleted</a></div><div class="sidebar-section-children"><a href="og.scene.Planet.html#event:terraincompleted">terraincompleted</a></div><div class="sidebar-section-children"><a href="og.terrain.GlobusTerrain.html#event:load">load</a></div><div class="sidebar-section-children"><a href="og.terrain.GlobusTerrain.html#event:loadend">loadend</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="v6wPh3JHtlq2x2yaNvv0a"><div>Global</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="global.html#AU_TO_METERS">AU_TO_METERS</a></div><div class="sidebar-section-children"><a href="global.html#COMSIDE">COMSIDE</a></div><div class="sidebar-section-children"><a href="global.html#EARTH_GRAVITATIONAL_PARAMETER">EARTH_GRAVITATIONAL_PARAMETER</a></div><div class="sidebar-section-children"><a href="global.html#J2000_OBLIQUITY">J2000_OBLIQUITY</a></div><div class="sidebar-section-children"><a href="global.html#NEIGHBOUR">NEIGHBOUR</a></div><div class="sidebar-section-children"><a href="global.html#NOPSORD">NOPSORD</a></div><div class="sidebar-section-children"><a href="global.html#OPPART">OPPART</a></div><div class="sidebar-section-children"><a href="global.html#OPSIDE">OPSIDE</a></div><div class="sidebar-section-children"><a href="global.html#PARTOFFSET">PARTOFFSET</a></div><div class="sidebar-section-children"><a href="global.html#SUN_GRAVITATIONAL_PARAMETER">SUN_GRAVITATIONAL_PARAMETER</a></div><div class="sidebar-section-children"><a href="global.html#TAItoTDB">TAItoTDB</a></div><div class="sidebar-section-children"><a href="global.html#TDT_TAI">TDT_TAI</a></div><div class="sidebar-section-children"><a href="global.html#equationCallback">equationCallback</a></div><div class="sidebar-section-children"><a href="global.html#mat4">mat4</a></div><div class="sidebar-section-children"><a href="global.html#quat">quat</a></div><div class="sidebar-section-children"><a href="global.html#simpleNavigation">simpleNavigation</a></div></div></div><div class="mobile-navbar-actions"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#light-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div></div></div><script type="text/javascript" src="scripts/core.min.js"></script><script src="scripts/search.min.js" defer="defer"></script><script src="scripts/third-party/fuse.js" defer="defer"></script><script type="text/javascript">var tocbotInstance=tocbot.init({tocSelector:"#eed4d2a0bfd64539bb9df78095dec881",contentSelector:".main-content",headingSelector:"h1, h2, h3",hasInnerContainers:!0,scrollContainer:".main-content",headingsOffset:130,onClick:bringLinkToView})</script></body></html>
