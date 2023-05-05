@@ -959,3 +959,12 @@ export async function loadImage(url) {
         return image;
     });
 }
+
+/**
+ * Gets image is loaded
+ * @param {HTMLImageElement} image
+ * @returns {boolean} Returns true is the image is loaded
+ */
+export function isImageLoaded(image) {
+    return image.complete && image.naturalHeight !== 0;
+}
