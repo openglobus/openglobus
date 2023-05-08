@@ -9,7 +9,7 @@
   "style": "./css/og.css",
   "types": "./types/index.d.ts",
   "scripts": {
-    "api": "jsdoc -r ./src/ -c ./jsdoc.conf.json -d ./api",
+    "docs": "jsdoc -r ./src/ -c ./jsdoc.conf.json -d ./docs",
     "serve": "ws",
     "build": "rollup -c --bundleConfigAsCjs",
     "webgl": "rollup -c --environment entry:webgl",
@@ -44,26 +44,24 @@
     "./css/og.css": "./css/og.css"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.20.2",
+    "@babel/preset-env": "^7.21.5",
     "@rollup/plugin-json": "^6.0.0",
-    "@rollup/plugin-terser": "^0.4.0",
-    "@types/jest": "^29.4.0",
+    "@rollup/plugin-terser": "^0.4.1",
+    "@types/jest": "^29.5.1",
     "clean-jsdoc-theme": "^4.2.7",
-    "eslint": "^8.35.0",
-    "jaguarjs-jsdoc": "^1.1.0",
+    "eslint": "^8.39.0",
     "jest": "^29.5.0",
-    "jest-canvas-mock": "^2.4.0",
+    "jest-canvas-mock": "^2.5.0",
     "jest-environment-jsdom": "^29.5.0",
     "jest-webgl-canvas-mock": "^0.2.3",
     "jsdoc": "^4.0.2",
-    "lint-staged": "^13.1.2",
+    "lint-staged": "^13.2.2",
     "local-web-server": "^5.3.0",
-    "postcss": "^8.4.21",
-    "prettier": "^2.8.4",
-    "rollup": "^3.18.0",
+    "postcss": "^8.4.23",
+    "prettier": "^2.8.8",
+    "rollup": "^3.21.3",
     "rollup-plugin-postcss": "^4.0.2",
-    "taffydb": "^2.7.3",
-    "typescript": "^4.9.5"
+    "typescript": "^5.0.4"
   },
   "lint-staged": {
     "*.{js,ts}": [

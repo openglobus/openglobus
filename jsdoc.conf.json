@@ -1,24 +1,32 @@
 {
-  "source": {
-    "include": [ "package.json", "README.md"],
-    "includePattern": ".js$",
-    "excludePattern": "(node_modules/|docs)"
+  "source" : {
+    "include" : [
+      "README.md"
+    ],
+    "includePattern" : ".js$",
+    "excludePattern" : "(node_modules/|docs)"
   },
-  "plugins": ["plugins/markdown"],
-  "opts": {
-    "encoding": "utf8",
-    "readme": "./README.md",
-    "destination": "./api",
-    "recurse": true,
-    "private": false,
-    "lenient": true,
-    "template": "./node_modules/clean-jsdoc-theme",
-    "theme_opts": {
-      "default_theme": "dark"
+  "plugins" : [
+    "plugins/markdown"
+  ],
+  "opts" : {
+    "encoding" : "utf8",
+    "readme" : "./README.md",
+    "destination" : "./docs",
+    "recurse" : true,
+    "private" : false,
+    "lenient" : true,
+    "template" : "./node_modules/clean-jsdoc-theme",
+    "theme_opts" : {
+      "default_theme" : "dark",
+      "base_url": "https://openglobus.github.io/docs/",
+      "favicon": "https://openglobus.github.io/favicon.ico",
+      "homepageTitle": "Openglobus",
+      "title": "Openglobus"
     }
   },
-  "markdown": {
-    "hardwrap": false,
-    "idInHeadings": true
+  "markdown" : {
+    "hardwrap" : false,
+    "idInHeadings" : true
   }
 }
