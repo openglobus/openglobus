@@ -51,7 +51,11 @@ class HeightRulerScene extends RulerScene {
             relativeToGround: false,
             displayInLayerSwitcher: false
         });
+    }
 
+    setVisibility(visibility) {
+        super.setVisibility(visibility);
+        this._geoRulerLayer.setVisibility(visibility);
     }
 
     get deltaLabel() {
@@ -115,7 +119,6 @@ class HeightRulerScene extends RulerScene {
     }
 
     _drawLine(startLonLat, endLonLat, startPos) {
-
         super._drawLine(startLonLat, endLonLat, startPos);
         this._updateHeightRaysAndLabels();
     }
@@ -173,7 +176,8 @@ class HeightRulerScene extends RulerScene {
                 }
             })
         ];
-        this._cornersLayer.addEntities(this._cornerEntity)
+
+        this._cornersLayer.setEntities(this._cornerEntity);
     }
 
     init() {

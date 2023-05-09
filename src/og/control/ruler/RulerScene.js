@@ -19,6 +19,7 @@ export function distanceFormat(v) {
         return `${v.toFixed(1)} m`;
     }
 }
+
 let obj3d = Object3d.createCylinder(1.1, 0, 2.7, 20, 1, true, false, 0, 0, 0)
 
 const LABEL_OPTIONS = {
@@ -65,6 +66,7 @@ class RulerScene extends RenderNode {
             relativeToGround: true,
             displayInLayerSwitcher: false
         });
+
         this._labelLayer = new Vector("ruler-label", {
             entities: [],
             pickingEnabled: false,
@@ -118,8 +120,6 @@ class RulerScene extends RenderNode {
             'label': LABEL_OPTIONS
         });
 
-        // this._propsLabel.label.setVisibility(false);
-
         this._trackEntity = new Entity({
             polyline: {
                 path3v: [],
@@ -133,7 +133,7 @@ class RulerScene extends RenderNode {
 
         this._createCorners();
         this._trackLayer.addEntities([this._trackEntity]);
-        this._labelLayer.addEntities([ this._propsLabel]);
+        this._labelLayer.addEntities([this._propsLabel]);
         this._planet.addLayer(this._labelLayer);
         this._planet.addLayer(this._trackLayer);
         this._planet.addLayer(this._cornersLayer);
@@ -169,7 +169,7 @@ class RulerScene extends RenderNode {
         this._onCornerLup_ = this._onCornerLup.bind(this);
         this._cornersLayer.events.on("lup", this._onCornerLup, this);
 
-
+        this.setVisibility(false);
     }
 
     _deactivate() {
@@ -239,11 +239,18 @@ class RulerScene extends RenderNode {
         this._preventClick = true;
     }
 
+    setVisibility(visibility) {
+        this._cornersLayer.setVisibility(visibility);
+        this._trackLayer.setVisibility(visibility);
+        this._labelLayer.setVisibility(visibility);
+    }
+
     _onLclick(e) {
         let startLonLat = this._planet.getLonLatFromPixelTerrain(e);
         this._timeout = setTimeout(() => {
             if (!this._preventClick) {
                 if (!this._startLonLat) {
+                    this.setVisibility(true);
                     this._stopDrawing = false;
                     this._startLonLat = startLonLat;
                 } else {
