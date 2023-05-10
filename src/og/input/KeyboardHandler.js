@@ -32,10 +32,26 @@ class KeyboardHandler {
             return a.priority < b.priority;
         };
 
-        this.removeEvent = function (events, callback) {
-            //
-            // TODO:...
-            //
+        this.removeEvent = function (name, keyCode, id) {
+            switch (name) {
+                case "keyfree":
+                    _unpressedKeysCallbacks[keyCode] = _unpressedKeysCallbacks[keyCode].filter(function (event) {
+                        return event.id != id;
+                    });
+                    break;
+
+                case "keypress":
+                    _pressedKeysCallbacks[keyCode] = _pressedKeysCallbacks[keyCode].filter(function (event) {
+                        return event.id != id;
+                    });
+                    break;
+
+                case "charkeypress":
+                    _charkeysCallbacks[keyCode] = _charkeysCallbacks[keyCode].filter(function (event) {
+                        return event.id != id;
+                    });
+                    break;
+            }
         };
 
         this.setActivity = function (activity) {
@@ -45,17 +61,16 @@ class KeyboardHandler {
         this.releaseKeys = function () {
             _currentlyPressedKeys = {};
         }
-
-        this.addEvent = function (event, sender, callback, keyCode, priority) {
+        this.addEvent = function (name, callback, keyCode, sender, priority, id) {
             if (priority === undefined) {
                 priority = 1600;
             }
-            switch (event) {
+            switch (name) {
                 case "keyfree":
                     if (!_unpressedKeysCallbacks[keyCode]) {
                         _unpressedKeysCallbacks[keyCode] = [];
                     }
-                    _unpressedKeysCallbacks[keyCode].push({ callback: callback, sender: sender, priority: priority });
+                    _unpressedKeysCallbacks[keyCode].push({ id: id, callback: callback, sender: sender, priority: priority });
                     _unpressedKeysCallbacks[keyCode].sort(_sortByPriority);
                     break;
 
@@ -66,7 +81,7 @@ class KeyboardHandler {
                         if (!_pressedKeysCallbacks[keyCode]) {
                             _pressedKeysCallbacks[keyCode] = [];
                         }
-                        _pressedKeysCallbacks[keyCode].push({ callback: callback, sender: sender, priority: priority });
+                        _pressedKeysCallbacks[keyCode].push({ id: id, callback: callback, sender: sender, priority: priority });
                         _pressedKeysCallbacks[keyCode].sort(_sortByPriority);
                     }
                     break;
@@ -75,7 +90,7 @@ class KeyboardHandler {
                     if (!_charkeysCallbacks[keyCode]) {
                         _charkeysCallbacks[keyCode] = [];
                     }
-                    _charkeysCallbacks[keyCode].push({ callback: callback, sender: sender, priority: priority });
+                    _charkeysCallbacks[keyCode].push({ id: id, callback: callback, sender: sender, priority: priority });
                     _charkeysCallbacks[keyCode].sort(_sortByPriority);
                     break;
             }

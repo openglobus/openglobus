@@ -24,22 +24,22 @@ class KeyboardNavigation extends Control {
     }
 
     oninit() {
-        this.renderer.events.on("keypress", input.KEY_PGUP, this.onCameraMoveForward, this);
-        this.renderer.events.on("keypress", input.KEY_PGDN, this.onCameraMoveBackward, this);
-        this.renderer.events.on("keypress", input.KEY_PLUS, this.onCameraMoveForward, this);
-        this.renderer.events.on("keypress", input.KEY_EQUALS, this.onCameraMoveForward, this);
-        this.renderer.events.on("keypress", input.KEY_MINUS, this.onCameraMoveBackward, this);
-        this.renderer.events.on("keypress", input.KEY_W, this.onCameraMoveForward, this);
-        this.renderer.events.on("keypress", input.KEY_S, this.onCameraMoveBackward, this);
-        this.renderer.events.on("keypress", input.KEY_A, this.onCameraStrifeLeft, this);
-        this.renderer.events.on("keypress", input.KEY_D, this.onCameraStrifeRight, this);
-        this.renderer.events.on("keypress", input.KEY_UP, this.onCameraLookUp, this);
-        this.renderer.events.on("keypress", input.KEY_DOWN, this.onCameraLookDown, this);
-        this.renderer.events.on("keypress", input.KEY_LEFT, this.onCameraLookLeft, this);
-        this.renderer.events.on("keypress", input.KEY_RIGHT, this.onCameraLookRight, this);
-        this.renderer.events.on("keypress", input.KEY_Q, this.onCameraRollLeft, this);
-        this.renderer.events.on("keypress", input.KEY_E, this.onCameraRollRight, this);
-        this.renderer.events.on("keypress", input.KEY_N, this.onCameraRollNorth, this);
+        this.renderer.events.on("keypress", input.KEY_PGUP, this.onCameraMoveForward, this, 'KEY_PGUP');
+        this.renderer.events.on("keypress", input.KEY_PGDN, this.onCameraMoveBackward, this, 'KEY_PGDN');
+        this.renderer.events.on("keypress", input.KEY_PLUS, this.onCameraMoveForward, this, 'KEY_PLUS');
+        this.renderer.events.on("keypress", input.KEY_EQUALS, this.onCameraMoveForward, this, 'KEY_EQUALS');
+        this.renderer.events.on("keypress", input.KEY_MINUS, this.onCameraMoveBackward, this, 'KEY_MINUS');
+        this.renderer.events.on("keypress", input.KEY_W, this.onCameraMoveForward, this, 'KEY_W');
+        this.renderer.events.on("keypress", input.KEY_S, this.onCameraMoveBackward, this, 'KEY_S');
+        this.renderer.events.on("keypress", input.KEY_A, this.onCameraStrifeLeft, this, 'KEY_A');
+        this.renderer.events.on("keypress", input.KEY_D, this.onCameraStrifeRight, this, 'KEY_D');
+        this.renderer.events.on("keypress", input.KEY_UP, this.onCameraLookUp, this, 'KEY_UP');
+        this.renderer.events.on("keypress", input.KEY_DOWN, this.onCameraLookDown, this, 'KEY_DOWN');
+        this.renderer.events.on("keypress", input.KEY_LEFT, this.onCameraLookLeft, this, 'KEY_LEFT');
+        this.renderer.events.on("keypress", input.KEY_RIGHT, this.onCameraLookRight, this, 'KEY_RIGHT');
+        this.renderer.events.on("keypress", input.KEY_Q, this.onCameraRollLeft, this, 'KEY_Q');
+        this.renderer.events.on("keypress", input.KEY_E, this.onCameraRollRight, this, 'KEY_E');
+        this.renderer.events.on("keypress", input.KEY_N, this.onCameraRollNorth, this, 'KEY_N');
     }
 
     onCameraMoveForward(event) {
@@ -118,22 +118,22 @@ class KeyboardNavigation extends Control {
 
     // from CompassButton._onClick()
     onCameraRollNorth(event) {
-      let c = this.planet.getCartesianFromPixelTerrain(this.renderer.handler.getCenter());
-      if (c) {
-        this.planet.flyCartesian(
-          c.normal().scaleTo(c.length() + c.distance(this.planet.camera.eye)),
-          null,
-          null,
-          0,
-          null,
-          null,
-          () => {
-            this.planet.camera.look(c);
-          }
-          );
-      } else {
-        this.planet.flyCartesian(this.planet.camera.eye);
-      }
+        let c = this.planet.getCartesianFromPixelTerrain(this.renderer.handler.getCenter());
+        if (c) {
+            this.planet.flyCartesian(
+                c.normal().scaleTo(c.length() + c.distance(this.planet.camera.eye)),
+                null,
+                null,
+                0,
+                null,
+                null,
+                () => {
+                    this.planet.camera.look(c);
+                }
+            );
+        } else {
+            this.planet.flyCartesian(this.planet.camera.eye);
+        }
     }
 
     onCameraRollLeft(event) {

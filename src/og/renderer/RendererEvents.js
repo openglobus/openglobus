@@ -264,29 +264,30 @@ class RendererEvents extends Events {
      * Set render event callback.
      * @public
      * @param {string} name - Event name
+     * @param {string} id - Event identifier
      * @param {eventCallback} callback - Callback function
-     * @param {number} [key] - Key code from og.input
+     * @param {number} [keyCode] - Key code from og.input
      * @param {*} sender - Callback context
      * @param {number} [priority] - Event callback priority
      */
-    on(name, p0, p1, p2, p3) {
+    on(name, callback, keyCode, sender, priority, id) {
         if (name === "keypress" || name === "charkeypress" || name === "keyfree") {
-            this._keyboardHandler.addEvent(name, p2, p1, p0, p3);
+            this._keyboardHandler.addEvent(name, callback, keyCode, sender, priority, id);
         } else {
-            super.on(name, p0, p1, p2);
+            super.on(name, callback, keyCode, sender);
         }
     }
 
     /**
-     * TODO: DOESNT WORK!!!
-     * @param {any} name
-     * @param {any} callback
+     * @param {any} name - Event name
+     * @param {any} id - Event identifier
+     * @param {number} [keyCode] - Key code from og.input
      */
-    off(name, callback) {
+    off(name, keyCode, id) {
         if (name === "keypress" || name === "charkeypress" || name === "keyfree") {
-            this._keyboardHandler.removeEvent(name, callback);
+            this._keyboardHandler.removeEvent(name, keyCode, id);
         } else {
-            super.off(name, callback);
+            super.off(name, keyCode, id);
         }
     }
 

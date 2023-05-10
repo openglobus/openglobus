@@ -1,0 +1,53 @@
+﻿<html>
+
+<head>
+    <title>OpenGlobus - Earth planet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../css/og.css" type="text/css" />
+</head>
+
+<body>
+    <div id="globus" style="width:100%;height:100%"></div>
+    <div style="position: absolute; top: 1em; left: 1em">
+        <button id="remove_btn">Remove Space Bar Event</button>
+        <button id="add_btn">Add Space Bar Event</button>
+    </div>
+
+    <script type="module">
+
+        document.getElementById('remove_btn').addEventListener('click', function () {
+            globus.planet.renderer.events.off("keyfree", 32, 'event_id');
+        });
+
+        document.getElementById('add_btn').addEventListener('click', function () {
+            globus.planet.renderer.events.on("keyfree", function (e) {
+                alert('space bar pressed!');
+            }, 32, this, 1, 'event_id');
+        });
+
+        import { Globe } from '../../src/og/Globe.js';
+        import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
+        import { XYZ } from '../../src/og/layer/XYZ.js';
+
+        let osm = new XYZ("OpenStreetMap", {
+            isBaseLayer: true,
+            url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            visibility: true,
+            attribution: 'Data @ OpenStreetMap contributors, ODbL'
+        });
+
+        let globus = new Globe({
+            "target": "globus",
+            "name": "Earth",
+            "terrain": new GlobusTerrain(),
+            "layers": [osm]
+        });
+        globus.planet.renderer.events.on("keyfree", function (e) {
+            alert('space bar pressed!');
+        }, 32, this, 1, 'event_id');
+
+        console.log(globus.planet)
+    </script>
+</body>
+
+</html>
