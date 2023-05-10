@@ -934,8 +934,6 @@ class Handler {
      */
     start() {
         if (!this._requestAnimationFrameId && this._initialized) {
-            this._lastAnimationFrameTime = window.performance.now();
-            this.defaultClock.setDate(new Date());
             this._animationFrameCallback();
         }
     }
