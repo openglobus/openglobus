@@ -2,7 +2,7 @@ name: Release CI
 
 on:
   release:
-    types: [ created ]
+    types: [ published ]
 
 jobs:
   publish-npm:
