@@ -239,17 +239,18 @@ class LayerSwitcher extends Control {
             if (
                 (nameConcat == 'TerrainProviders' && planet.terrain == object) ||
                 (nameConcat == 'BaseLayers' && planet.baseLayer == object) ||
-                (nameConcat == 'OverLays' && object.getVisibility() == true)
+                (nameConcat == 'Overlays' && object.getVisibility() == true)
             ) {
                 return true
             }
+            return false
         }
 
         const createInput = (object, depth, type, nameConcat) => {
             if (depth > 0) {
                 return elementFactory('input', {
-                    class: 'og-layer-switcher-record-input ' +
-                        nameConcat, type: type || 'checkbox',
+                    class: 'og-layer-switcher-record-input ' + nameConcat, 
+                    type: type || 'checkbox',
                     ...(visibility(object, nameConcat) ? { checked: true } : null)
                 }, '')
             }
