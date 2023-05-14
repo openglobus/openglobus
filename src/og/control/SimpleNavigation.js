@@ -19,16 +19,16 @@ class SimpleNavigation extends Control {
 
     oninit() {
         this.camera = this.renderer.activeCamera;
-        this.renderer.events.on("keypress", input.KEY_W, this.onCameraMoveForward, this, 'KEY_W');
-        this.renderer.events.on("keypress", input.KEY_S, this.onCameraMoveBackward, this, 'KEY_S');
-        this.renderer.events.on("keypress", input.KEY_A, this.onCameraStrifeLeft, this, 'KEY_A');
-        this.renderer.events.on("keypress", input.KEY_D, this.onCameraStrifeRight, this, 'KEY_D');
-        this.renderer.events.on("keypress", input.KEY_UP, this.onCameraLookUp, this, 'KEY_UP');
-        this.renderer.events.on("keypress", input.KEY_DOWN, this.onCameraLookDown, this, 'KEY_DOWN');
-        this.renderer.events.on("keypress", input.KEY_LEFT, this.onCameraTurnLeft, this, 'KEY_LEFT');
-        this.renderer.events.on("keypress", input.KEY_RIGHT, this.onCameraTurnRight, this, 'KEY_RIGHT');
-        this.renderer.events.on("keypress", input.KEY_Q, this.onCameraRollLeft, this, 'KEY_Q');
-        this.renderer.events.on("keypress", input.KEY_E, this.onCameraRollRight, this, 'KEY_E');
+                this.renderer.events.on("keypress", input.KEY_W, this.onCameraMoveForward, this);
+        this.renderer.events.on("keypress", input.KEY_S, this.onCameraMoveBackward, this);
+        this.renderer.events.on("keypress", input.KEY_A, this.onCameraStrifeLeft, this);
+        this.renderer.events.on("keypress", input.KEY_D, this.onCameraStrifeRight, this);
+        this.renderer.events.on("keypress", input.KEY_UP, this.onCameraLookUp, this);
+        this.renderer.events.on("keypress", input.KEY_DOWN, this.onCameraLookDown, this);
+        this.renderer.events.on("keypress", input.KEY_LEFT, this.onCameraTurnLeft, this);
+        this.renderer.events.on("keypress", input.KEY_RIGHT, this.onCameraTurnRight, this);
+        this.renderer.events.on("keypress", input.KEY_Q, this.onCameraRollLeft, this);
+        this.renderer.events.on("keypress", input.KEY_E, this.onCameraRollRight, this);
     }
 
     onCameraMoveForward() {
