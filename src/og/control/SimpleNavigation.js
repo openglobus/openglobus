@@ -19,7 +19,7 @@ class SimpleNavigation extends Control {
 
     oninit() {
         this.camera = this.renderer.activeCamera;
-                this.renderer.events.on("keypress", input.KEY_W, this.onCameraMoveForward, this);
+        this.renderer.events.on("keypress", input.KEY_W, this.onCameraMoveForward, this);
         this.renderer.events.on("keypress", input.KEY_S, this.onCameraMoveBackward, this);
         this.renderer.events.on("keypress", input.KEY_A, this.onCameraStrifeLeft, this);
         this.renderer.events.on("keypress", input.KEY_D, this.onCameraStrifeRight, this);
