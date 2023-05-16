@@ -48,10 +48,15 @@ export function drawnode_screen_nl() {
             defaultTexture: "sampler2d",
             height: "float"
         }, attributes: {
-            aVertexPositionHigh: "vec3", aVertexPositionLow: "vec3", aTextureCoord: "vec2"
+            aVertexPositionHigh: "vec3", 
+            aVertexPositionLow: "vec3", 
+            aTextureCoord: "vec2"
         },
 
-        vertexShader: `attribute vec3 aVertexPositionHigh;
+        vertexShader: 
+            `precision highp float;
+            
+            attribute vec3 aVertexPositionHigh;
             attribute vec3 aVertexPositionLow;
             attribute vec2 aTextureCoord;
 
@@ -64,16 +69,19 @@ export function drawnode_screen_nl() {
             varying vec2 vTextureCoord;
 
             void main(void) {
-                vTextureCoord = aTextureCoord;
 
-                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;
-                vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
-                vec3 lowDiff = aVertexPositionLow + normalize(aVertexPosition) * height - eyePositionLow;
+                vTextureCoord = aTextureCoord;
+                vec3 nh = height * normalize(aVertexPositionHigh + aVertexPositionLow);
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
-
-                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+                mat4 m = projectionMatrix * viewMatrixRTE;
+        
+                vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
+                vec3 lowDiff = aVertexPositionLow - eyePositionLow + nh;
+                
+                // This is works for Mac Chrome, prevent some weird optimization I suppose
+                gl_Position =  m * vec4(highDiff + lowDiff, 1.0);
             }`,
 
         fragmentShader: `precision highp float;
@@ -151,37 +159,39 @@ export function drawnode_screen_wl_webgl1NoAtmos() {
 
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
-            uniform float height;
             uniform vec4 uGlobalTextureCoord;
             uniform vec3 uNormalMapBias;
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
+            uniform float height;
 
             varying vec4 vTextureCoord;
-            varying vec2 vGlobalTextureCoord;
             varying vec3 v_vertex;
-            varying float v_height;
             varying vec3 cameraPosition;
+            varying vec2 vGlobalTextureCoord;
+            varying float v_height;
 
             void main(void) {
 
-                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;
-                
+                // I replace it here (from the bottom) because it 
+                // somehow affects on float precision on MacPC Chrome
+                vTextureCoord.xy = aTextureCoord;
+                vGlobalTextureCoord = uGlobalTextureCoord.xy + (uGlobalTextureCoord.zw - uGlobalTextureCoord.xy) * aTextureCoord;
+                vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + uNormalMapBias.xy );
+
+                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;                
+                vec3 nh = height * normalize(aVertexPosition);
                 cameraPosition = eyePositionHigh + eyePositionLow;
                 
                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
-                vec3 lowDiff = aVertexPositionLow + normalize(aVertexPosition) * height - eyePositionLow;
+                vec3 lowDiff = aVertexPositionLow - eyePositionLow + nh;
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
                 v_height = height;
-                v_vertex = aVertexPosition + normalize(aVertexPosition) * height;
-                                
-                vTextureCoord.xy = aTextureCoord;
-                vGlobalTextureCoord = uGlobalTextureCoord.xy + (uGlobalTextureCoord.zw - uGlobalTextureCoord.xy) * aTextureCoord;
-                vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + uNormalMapBias.xy );
-                
+                v_vertex = aVertexPosition + nh;
+                            
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
             }`,
 
@@ -192,23 +202,22 @@ export function drawnode_screen_wl_webgl1NoAtmos() {
             #define MAX_POINT_LIGHTS 1
             #define SLICE_SIZE ${SLICE_SIZE + 1}
 
+            uniform vec4 specular;
             uniform vec3 diffuse;
             uniform vec3 ambient;
-            uniform vec4 specular;     
 
             uniform sampler2D uNormalMap;
-            uniform vec3 lightsPositions[MAX_POINT_LIGHTS];
             uniform sampler2D nightTexture;
             uniform sampler2D specularTexture;
-
-            uniform vec4 tileOffsetArr[SLICE_SIZE];
-            uniform float layerOpacityArr[SLICE_SIZE];
-
             uniform sampler2D defaultTexture;
             uniform sampler2D samplerArr[SLICE_SIZE];
+
+            uniform vec4 tileOffsetArr[SLICE_SIZE];
+            uniform vec3 lightsPositions[MAX_POINT_LIGHTS];
+            uniform float layerOpacityArr[SLICE_SIZE];
+
             uniform int samplerCount;
-            uniform float nightTextureCoefficient;
-                
+            uniform float nightTextureCoefficient;              
             uniform float camHeight;
 
             varying vec4 vTextureCoord;
@@ -330,43 +339,47 @@ export function drawnode_screen_wl_webgl2NoAtmos() {
         vertexShader:
             `#version 300 es
 
+            precision highp float;
+
             in vec3 aVertexPositionHigh;
             in vec3 aVertexPositionLow;
             in vec2 aTextureCoord;
 
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
-            uniform float height;
             uniform vec4 uGlobalTextureCoord;
             uniform vec3 uNormalMapBias;
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
+            uniform float height;
 
             out vec4 vTextureCoord;
-            out vec2 vGlobalTextureCoord;
             out vec3 v_vertex;
-            out float v_height;
             out vec3 cameraPosition;
+            out vec2 vGlobalTextureCoord;
+            out float v_height;
 
             void main(void) {
 
-                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;
-                
+                // I replace it here (from the bottom) because it 
+                // somehow affects on float precision on MacPC Chrome
+                vTextureCoord.xy = aTextureCoord;
+                vGlobalTextureCoord = uGlobalTextureCoord.xy + (uGlobalTextureCoord.zw - uGlobalTextureCoord.xy) * aTextureCoord;
+                vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + uNormalMapBias.xy );
+
+                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;                
+                vec3 nh = height * normalize(aVertexPosition);
                 cameraPosition = eyePositionHigh + eyePositionLow;
                 
                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
-                vec3 lowDiff = aVertexPositionLow + normalize(aVertexPosition) * height - eyePositionLow;
+                vec3 lowDiff = aVertexPositionLow - eyePositionLow + nh;
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
                 v_height = height;
-                v_vertex = aVertexPosition + normalize(aVertexPosition) * height;
-                                
-                vTextureCoord.xy = aTextureCoord;
-                vGlobalTextureCoord = uGlobalTextureCoord.xy + (uGlobalTextureCoord.zw - uGlobalTextureCoord.xy) * aTextureCoord;
-                vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + uNormalMapBias.xy );
-                
+                v_vertex = aVertexPosition + nh;
+                            
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
             }`,
 
@@ -378,20 +391,20 @@ export function drawnode_screen_wl_webgl2NoAtmos() {
             #define MAX_POINT_LIGHTS 1
             #define SLICE_SIZE ${SLICE_SIZE + 1}
 
+            uniform vec4 specular;
             uniform vec3 diffuse;
-            uniform vec3 ambient;
-            uniform vec4 specular;     
+            uniform vec3 ambient;  
 
             uniform sampler2D uNormalMap;
-            uniform vec3 lightsPositions[MAX_POINT_LIGHTS];
             uniform sampler2D nightTexture;
             uniform sampler2D specularTexture;
-
-            uniform vec4 tileOffsetArr[SLICE_SIZE];
-            uniform float layerOpacityArr[SLICE_SIZE];
-
             uniform sampler2D defaultTexture;
             uniform sampler2D samplerArr[SLICE_SIZE];
+
+            uniform vec4 tileOffsetArr[SLICE_SIZE];
+            uniform vec3 lightsPositions[MAX_POINT_LIGHTS];
+            uniform float layerOpacityArr[SLICE_SIZE];
+
             uniform int samplerCount;
             uniform float nightTextureCoefficient;
                 
@@ -522,6 +535,8 @@ export function drawnode_screen_wl_webgl2Atmos() {
         vertexShader:
             `#version 300 es
 
+            precision highp float;
+
             in vec3 aVertexPositionHigh;
             in vec3 aVertexPositionLow;
             in vec2 aTextureCoord;
@@ -535,30 +550,32 @@ export function drawnode_screen_wl_webgl2Atmos() {
             uniform float height;
 
             out vec4 vTextureCoord;
-            out vec2 vGlobalTextureCoord;
             out vec3 v_vertex;
-            out float v_height;
             out vec3 cameraPosition;
+            out vec2 vGlobalTextureCoord;
+            out float v_height;
 
             void main(void) {
 
-                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;
-                
+                // I replace it here (from the bottom) because it 
+                // somehow affects on float precision on MacPC Chrome
+                vTextureCoord.xy = aTextureCoord;
+                vGlobalTextureCoord = uGlobalTextureCoord.xy + (uGlobalTextureCoord.zw - uGlobalTextureCoord.xy) * aTextureCoord;
+                vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + uNormalMapBias.xy );
+
+                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;                
+                vec3 nh = height * normalize(aVertexPosition);
                 cameraPosition = eyePositionHigh + eyePositionLow;
                 
                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
-                vec3 lowDiff = aVertexPositionLow + normalize(aVertexPosition) * height - eyePositionLow;
+                vec3 lowDiff = aVertexPositionLow - eyePositionLow + nh;
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
                 v_height = height;
-                v_vertex = aVertexPosition + normalize(aVertexPosition) * height;
-                                
-                vTextureCoord.xy = aTextureCoord;
-                vGlobalTextureCoord = uGlobalTextureCoord.xy + (uGlobalTextureCoord.zw - uGlobalTextureCoord.xy) * aTextureCoord;
-                vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + uNormalMapBias.xy );
-                
+                v_vertex = aVertexPosition + nh;
+                            
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
             }`,
 
@@ -570,28 +587,27 @@ export function drawnode_screen_wl_webgl2Atmos() {
             #define MAX_POINT_LIGHTS 1
             #define SLICE_SIZE ${SLICE_SIZE + 1}
 
+            uniform vec4 specular;
             uniform vec3 diffuse;
             uniform vec3 ambient;
-            uniform vec4 specular;
+
+            uniform vec3 lightsPositions[MAX_POINT_LIGHTS];
 
             uniform sampler2D uNormalMap;
-            uniform vec3 lightsPositions[MAX_POINT_LIGHTS];
             uniform sampler2D nightTexture;
             uniform sampler2D specularTexture;
-
             uniform sampler2D transmittanceTexture;
             uniform sampler2D scatteringTexture;
+            uniform sampler2D defaultTexture;
+            uniform sampler2D samplerArr[SLICE_SIZE];
 
             uniform vec4 tileOffsetArr[SLICE_SIZE];
             uniform float layerOpacityArr[SLICE_SIZE];
 
-            uniform sampler2D defaultTexture;
-            uniform sampler2D samplerArr[SLICE_SIZE];
             uniform int samplerCount;
             uniform float nightTextureCoefficient;
             
-            uniform vec2 maxMinOpacity;
-                
+            uniform vec2 maxMinOpacity;                
             uniform float camHeight;
 
             in vec4 vTextureCoord;
@@ -828,7 +844,10 @@ export function drawnode_colorPicking() {
             aVertexPositionHigh: "vec3", aVertexPositionLow: "vec3", aTextureCoord: "vec2"
         },
 
-        vertexShader: `attribute vec3 aVertexPositionHigh;
+        vertexShader: 
+            `precision highp float;
+            
+            attribute vec3 aVertexPositionHigh;
             attribute vec3 aVertexPositionLow;
             attribute vec2 aTextureCoord;
 
@@ -853,7 +872,8 @@ export function drawnode_colorPicking() {
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
             }`,
 
-        fragmentShader: `precision highp float;
+        fragmentShader: 
+            `precision highp float;
             #define SLICE_SIZE ${SLICE_SIZE + 1}
             uniform vec4 tileOffsetArr[SLICE_SIZE];
             uniform vec4 pickingColorArr[SLICE_SIZE];
@@ -901,35 +921,47 @@ export function drawnode_heightPicking() {
             aVertexPositionHigh: "vec3", aVertexPositionLow: "vec3"
         },
 
-        vertexShader: `attribute vec3 aVertexPositionHigh;
+        vertexShader: 
+            `precision highp float;
+
+            attribute vec3 aVertexPositionHigh;
             attribute vec3 aVertexPositionLow;
 
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
-            uniform float height;
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
+            uniform float height;
 
-            varying float range;
+            varying vec3 eyePosition;
+            varying vec3 vertexPosition;
 
             void main(void) {
 
-                vec3 cameraPosition = eyePositionHigh + eyePositionLow;
-                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;
-
-                vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
-                vec3 lowDiff = aVertexPositionLow + normalize(aVertexPosition) * height - eyePositionLow;
+                // This code is works for Mac Chrome and Safari
+                // any other code probably will produce jittering
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
-                range = distance(cameraPosition, aVertexPosition + normalize(aVertexPosition) * height);
-                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+                mat4 m = projectionMatrix * viewMatrixRTE;
+
+                vec3 nh = height * normalize(aVertexPositionHigh + aVertexPositionLow);
+
+                eyePosition = eyePositionHigh + eyePositionLow;
+                vertexPosition = aVertexPositionHigh + aVertexPositionLow;
+
+                vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
+                vec3 lowDiff = aVertexPositionLow - eyePositionLow + nh;
+                
+                gl_Position =  m * vec4(highDiff + lowDiff, 1.0);         
             }`,
 
-        fragmentShader: `precision highp float;
+        fragmentShader: 
+            `precision highp float;
 
-            varying float range;
+            varying vec3 eyePosition;
+            varying vec3 vertexPosition;
 
             vec3 encode24(highp float f) {
                 float F = abs(f);
@@ -944,6 +976,7 @@ export function drawnode_heightPicking() {
             }
 
             void main(void) {
+                float range = distance(eyePosition, vertexPosition);
                 gl_FragColor = vec4(encode24(range), 1.0);
             }`
     });
@@ -962,30 +995,41 @@ export function drawnode_depth() {
             aVertexPositionHigh: "vec3", aVertexPositionLow: "vec3"
         },
 
-        vertexShader: `attribute vec3 aVertexPositionHigh;
+        vertexShader: 
+            `precision highp float;
+
+            attribute vec3 aVertexPositionHigh;
             attribute vec3 aVertexPositionLow;
 
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
-            uniform float height;
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
+            uniform float height;
 
             void main(void) {
 
-                vec3 cameraPosition = eyePositionHigh + eyePositionLow;
-                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;
-
-                vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
-                vec3 lowDiff = aVertexPositionLow + normalize(aVertexPosition) * height - eyePositionLow;
+                // This code is works for Mac Chrome and Safari
+                // any other code probably will produce jittering
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
-                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+                mat4 m = projectionMatrix * viewMatrixRTE;
+
+                vec3 nh = height * normalize(aVertexPositionHigh + aVertexPositionLow);
+
+                vec3 eyePosition = eyePositionHigh + eyePositionLow;
+                vec3 vertexPosition = aVertexPositionHigh + aVertexPositionLow;
+
+                vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
+                vec3 lowDiff = aVertexPositionLow - eyePositionLow + nh;
+                
+                gl_Position =  m * vec4(highDiff + lowDiff, 1.0);    
             }`,
 
-        fragmentShader: `precision highp float;
+        fragmentShader: 
+            `precision highp float;
             uniform vec3 frustumPickingColor;
 
             void main(void) {
