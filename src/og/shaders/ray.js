@@ -27,13 +27,14 @@ export function rayScreen() {
         },
         vertexShader:
             `precision highp float;
-            attribute vec2 a_vertices;
+
+            attribute vec4 a_rgba;
             attribute vec3 a_startPosHigh;
             attribute vec3 a_startPosLow;
             attribute vec3 a_endPosHigh;
             attribute vec3 a_endPosLow;
+            attribute vec2 a_vertices;
             attribute float a_thickness;
-            attribute vec4 a_rgba;
 
             varying vec4 v_rgba;
 

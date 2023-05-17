@@ -101,8 +101,6 @@ export const geo_object = () =>
                 vec3 r = cross(normalize(-position), aDirection);
                 mat3 modelMatrix = mat3(r, normalize(position), -aDirection) * rotX * rotZ;
 
-                float dist = length(cameraPosition);
-
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
@@ -127,6 +125,7 @@ export const geo_object = () =>
                 vec3 vert = modelMatrix * aVertexPosition * aScale * scd;
                 v_vertex = position + vert;
                 
+                // @hack
                 // Mac/Safari affects on lowDiff somehow. 
                 vert += lowDiff;
                                
@@ -173,9 +172,7 @@ export const geo_object_picking = () =>
         uniforms: {
             viewMatrix: "mat4",
             projectionMatrix: "mat4",
-
             uScaleByDistance: "vec3",
-
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
             pickingScale: "float"
@@ -196,18 +193,17 @@ export const geo_object_picking = () =>
             attribute vec3 aPositionHigh;
             attribute vec3 aPositionLow;    
             attribute vec3 aDirection;
-            attribute vec2 aPitchRoll;
             attribute vec3 aPickingColor;
+            attribute vec2 aPitchRoll;
             attribute float aScale;
             attribute float aDispose;
             
+            uniform vec3 eyePositionHigh;
+            uniform vec3 eyePositionLow;
             uniform vec3 uScaleByDistance;
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
             uniform float pickingScale;
-            
-            uniform vec3 eyePositionHigh;
-            uniform vec3 eyePositionLow;
 
             varying vec3 vColor;
             
@@ -216,47 +212,58 @@ export const geo_object_picking = () =>
             void main(void) {
 
                 if (aDispose == 0.0) {
-                   return;
-                }
+                    return;
+                 }
             
-                vColor = aPickingColor;
-              
-                float roll = aPitchRoll.y;
-                mat3 rotZ = mat3(
-                     vec3(cos(roll), sin(roll), 0.0),
-                     vec3(-sin(roll), cos(roll), 0.0), 
-                     vec3(0.0, 0.0, 1.0) 
+                 vColor = aPickingColor;
+               
+                 float roll = aPitchRoll.y;
+                 mat3 rotZ = mat3(
+                      vec3(cos(roll), sin(roll), 0.0),
+                      vec3(-sin(roll), cos(roll), 0.0), 
+                      vec3(0.0, 0.0, 1.0) 
+                 );
+ 
+                 float pitch = aPitchRoll.x;
+                 mat3 rotX = mat3(
+                     vec3(1.0, 0.0, 0.0),
+                     vec3(0.0, cos(pitch), sin(pitch)), 
+                     vec3(0.0, -sin(pitch), cos(pitch)) 
                 );
+ 
+                 vec3 position = aPositionHigh + aPositionLow;
+                 vec3 cameraPosition = eyePositionHigh + eyePositionLow;
+                 vec3 r = cross(normalize(-position), aDirection);
+                 mat3 modelMatrix = mat3(r, normalize(position), -aDirection) * rotX * rotZ;
+ 
+                 mat4 viewMatrixRTE = viewMatrix;
+                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
+ 
+                 vec3 highDiff = aPositionHigh - eyePositionHigh;
+                 vec3 lowDiff = aPositionLow - eyePositionLow;
+              
+                 vec3 look = cameraPosition - position;
+                 float lookLength = length(look);
+                                
+                 // if(lookLength > uScaleByDistance[1])
+                 // {
+                 //     scd = uScaleByDistance[1] / uScaleByDistance[0];
+                 // }
+                 // else if(lookLength > uScaleByDistance[0])
+                 // {
+                 //     scd = lookLength / uScaleByDistance[0];
+                 // }
+                 // ... is the same math above
+                 // @hack
+                 // pickingScale replace to this line, because when it s
+                 // tays in the vert above it affects on Mac Safari jitter
+                 float scd = pickingScale * uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
 
-                float pitch = aPitchRoll.x;
-                mat3 rotX = mat3(
-                    vec3(1.0, 0.0, 0.0),
-                    vec3(0.0, cos(pitch), sin(pitch)), 
-                    vec3(0.0, -sin(pitch), cos(pitch)) 
-               );
-
-                vec3 position = aPositionHigh + aPositionLow;
-                vec3 cameraPosition = eyePositionHigh + eyePositionLow;
-                vec3 r = cross(normalize(-position), aDirection);
-                mat3 modelMatrix = mat3(r, normalize(position), -aDirection) * rotX * rotZ;
-
-                float dist = length(cameraPosition);
-
-                mat4 viewMatrixRTE = viewMatrix;
-                viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
-
-                vec3 highDiff = aPositionHigh - eyePositionHigh;
-                vec3 lowDiff = aPositionLow - eyePositionLow;
-             
-                vec3 look = cameraPosition - position;
-                float lookLength = length(look);
-                               
-                float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
-                
-                vec3 vert = modelMatrix * aVertexPosition * aScale * pickingScale * scd;
-                vert += lowDiff;
-                               
-                gl_Position = projectionMatrix * viewMatrixRTE  * vec4(highDiff + vert, 1.0);
+                 vec3 vert = modelMatrix * aVertexPosition * aScale * scd;
+                 
+                 vert += lowDiff;
+                                
+                 gl_Position = projectionMatrix * viewMatrixRTE  * vec4(highDiff + vert, 1.0);
             }`,
         fragmentShader:
             `precision highp float;

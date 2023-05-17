@@ -861,15 +861,19 @@ export function drawnode_colorPicking() {
 
             void main(void) {
 
-                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;
-                vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
-                vec3 lowDiff = aVertexPositionLow + normalize(aVertexPosition) * height - eyePositionLow;
+                vTextureCoord = aTextureCoord;
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
-                vTextureCoord = aTextureCoord;
-                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+                mat4 m = projectionMatrix * viewMatrixRTE;
+
+                vec3 nh = height * normalize(aVertexPositionHigh + aVertexPositionLow);
+
+                vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
+                vec3 lowDiff = aVertexPositionLow - eyePositionLow + nh;
+
+                gl_Position = m * vec4(highDiff + lowDiff, 1.0);
             }`,
 
         fragmentShader: 
@@ -1009,6 +1013,7 @@ export function drawnode_depth() {
 
             void main(void) {
 
+                // @hack
                 // This code is works for Mac Chrome and Safari
                 // any other code probably will produce jittering
 
