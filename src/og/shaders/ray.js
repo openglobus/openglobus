@@ -48,15 +48,10 @@ export function rayScreen() {
 
                 v_rgba = vec4(a_rgba.rgb, a_rgba.a * uOpacity);
 
-                vec3 camPos = eyePositionHigh + eyePositionLow;
+                vec3 v = (a_endPosHigh - a_startPosHigh) + (a_endPosLow - a_startPosLow);
 
-                vec3 startPos = a_startPosHigh + a_startPosLow;
-                float length = length((a_endPosHigh + a_endPosLow) - startPos);
-                vec3 direction = normalize((a_endPosHigh + a_endPosLow) - startPos);
-                vec3 vertPos = startPos + a_vertices.y * direction * length;
-
-                vec3 look = vertPos - camPos;
-                vec3 up = normalize(direction);
+                vec3 look = (a_startPosHigh - eyePositionHigh) + (a_startPosLow - eyePositionLow) + v * a_vertices.y;
+                vec3 up = normalize(normalize(v));
                 vec3 right = normalize(cross(look,up));
  
                 float dist = dot(look, vec3(viewMatrix[0][2], viewMatrix[1][2], viewMatrix[2][2]));
@@ -68,16 +63,14 @@ export function rayScreen() {
 
                 if(a_vertices.y == 0.0){
                     highDiff = a_startPosHigh - eyePositionHigh;
-                    lowDiff = a_startPosLow - eyePositionLow;
+                    vert += a_startPosLow - eyePositionLow;
                 }else{
                     highDiff = a_endPosHigh - eyePositionHigh;
-                    lowDiff = a_endPosLow - eyePositionLow;
+                    vert += a_endPosLow - eyePositionLow;
                 }
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
-
-                vert += lowDiff;
                 
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + vert, 1.0);
             }`,
