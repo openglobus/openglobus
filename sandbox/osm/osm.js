@@ -249,11 +249,11 @@ var globus = new Globe({
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     //minAltitude: 1,
-    terrain: highResTerrain,
+    //terrain: highResTerrain,
     //terrain: new MapboxTerrain(),
-    // terrain: new GlobusTerrain("19", {
-    //     maxZoom: 19
-    // }),
+    terrain: new GlobusTerrain("19", {
+        maxZoom: 19
+    }),
     //terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
     layers: [sat, tg, osm, img, colorado],
