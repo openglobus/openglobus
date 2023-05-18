@@ -56,8 +56,6 @@ class DrawingScene extends RenderNode {
 
         this._centersArr = [];
 
-        this._pickingCallbackId = -1;
-
         this.scaleByDistance = new Float32Array([math.MAX32, math.MAX32, math.MAX32]);
 
         this._outlineLayer = new Vector("outline", {
