@@ -16,17 +16,7 @@ const NUM_SEGMENTS = 120;
 
 const OUTLINE_ALT = 2.0;
 
-let obj3d = Object3d.createCylinder(1, 1, 2.7, 20, 1, true, false, 0, 0, 0)
-
-const LABEL_OPTIONS = {
-    text: "",
-    size: 11,
-    color: "rgba(455,455,455,1.0)",
-    outlineColor: "rgba(0,0,0,0.34)",
-    outline: 0.23,
-    align: "center",
-    offset: [0, 20]
-};
+let obj3d = Object3d.createCylinder(1, 1, 2.7, 20, 1, true, false, 0, 0, 0);
 
 const CORNER_OPTIONS = {
     scale: 1,
@@ -55,8 +45,6 @@ class DrawingScene extends RenderNode {
         this._cornersArr = [];
 
         this._centersArr = [];
-
-        this.scaleByDistance = new Float32Array([math.MAX32, math.MAX32, math.MAX32]);
 
         this._outlineLayer = new Vector("outline", {
             entities: [new Entity({
@@ -88,32 +76,16 @@ class DrawingScene extends RenderNode {
             entities: [],
             pickingEnabled: true,
             polygonOffsetUnits: 0,
-            relativeToGround: true
+            relativeToGround: true,
+            scaleByDistance: [100, 4000000, 1.0]
         });
 
         this._centerLayer = new Vector("centers", {
             entities: [],
             pickingEnabled: true,
             polygonOffsetUnits: 0,
-            relativeToGround: true
-        });
-
-        this._trackEntity = new Entity({
-            polyline: {
-                path3v: [],
-                thickness: 4.2,
-                color: "white",
-                isClosed: false
-            }
-        });
-
-        this._trackEntity.polyline.altitude = 2;
-
-        this._trackLayer = new Vector("cam-coords", {
-            entities: [this._trackEntity],
-            pickingEnabled: false,
-            polygonOffsetUnits: 0,
-            relativeToGround: true
+            relativeToGround: true,
+            scaleByDistance: [100, 4000000, 1.0]
         });
 
         //
@@ -123,33 +95,35 @@ class DrawingScene extends RenderNode {
             geoObject: CORNER_OPTIONS,
         });
 
-        this._ghostOutlineLayer = new Vector("ghost-outline", {
-            entities: [new Entity({
-                polyline: {
-                    path3v: [],
-                    thickness: 3,
-                    color: "yellow",
-                    isClosed: false
-                },
-                properties: {
-                    index: 0
-                }
-            }), new Entity({
-                polyline: {
-                    path3v: [],
-                    thickness: 3,
-                    color: "yellow",
-                    isClosed: false
-                },
-                properties: {
-                    index: 0
-                }
-            }),
+        this._ghostOutlineLayer = new Vector("ghost-pointer", {
+            entities: [
+                new Entity({
+                    polyline: {
+                        path3v: [],
+                        thickness: 3,
+                        color: "yellow",
+                        isClosed: false
+                    },
+                    properties: {
+                        index: 0
+                    }
+                }), new Entity({
+                    polyline: {
+                        path3v: [],
+                        thickness: 3,
+                        color: "yellow",
+                        isClosed: false
+                    },
+                    properties: {
+                        index: 0
+                    }
+                }),
                 this._ghostCorner
             ],
             pickingEnabled: false,
             polygonOffsetUnits: 0,
             relativeToGround: true,
+            scaleByDistance: [100, 4000000, 1.0],
             opacity: 0.25
         });
 
@@ -165,18 +139,39 @@ class DrawingScene extends RenderNode {
         this._insertCornerIndex = -1;
     }
 
+    getCoordinates() {
+        if (this._cornersArr && this._cornersArr.length > 0) {
+            return this._cornersArr.map((c) => {
+                let ll = c.getLonLat();
+                return [ll.lon, ll.lat, ll.height];
+            });
+        } else {
+            return this._initArea;
+        }
+    }
+
+    bindPlanet(planet) {
+        this._planet = planet;
+    }
+
     init() {
 
-        this.events.on("mouseenter", (e) => {
-            e.renderer.handler.canvas.style.cursor = "pointer";
-        });
+        // this.events.on("mouseenter", (e) => {
+        //     e.renderer.handler.canvas.style.cursor = "pointer";
+        // });
+        //
+        // this.events.on("mouseleave", (e) => {
+        //     e.renderer.handler.canvas.style.cursor = "default";
+        // });
 
-        this.events.on("mouseleave", (e) => {
-            e.renderer.handler.canvas.style.cursor = "default";
-        });
+        // this._onLdown_ = this._onLdown.bind(this);
+        // this.renderer.events.on("ldown", this._onLdown_, this);
 
-        this._onLdown_ = this._onLdown.bind(this);
-        this.events.on("ldown", this._onLdown_, this);
+        this._onCornerLdown_ = this._onCornerLdown.bind(this);
+        this._cornerLayer.events.on("ldown", this._onCornerLdown_, this);
+
+        this._onCenterLdown_ = this._onCenterLdown.bind(this);
+        this._centerLayer.events.on("ldown", this._onCenterLdown_, this);
 
         this._onLup_ = this._onLup.bind(this);
         this.renderer.events.on("lup", this._onLup_, this);
@@ -184,18 +179,30 @@ class DrawingScene extends RenderNode {
         this._onMouseMove_ = this._onMouseMove.bind(this);
         this.renderer.events.on("mousemove", this._onMouseMove_, this);
 
+        this._onCornerMouseEnter_ = this._onCornerMouseEnter.bind(this);
         this._cornerLayer.events.on("mouseenter", this._onCornerMouseEnter_, this);
+
+        this._onCornerMouseLeave_ = this._onCornerMouseLeave.bind(this);
         this._cornerLayer.events.on("mouseleave", this._onCornerMouseLeave_, this);
+
+        this._onCenterMouseEnter_ = this._onCenterMouseEnter.bind(this);
         this._centerLayer.events.on("mouseenter", this._onCenterMouseEnter_, this);
+
+        this._onCenterMouseLeave_ = this._onCenterMouseLeave.bind(this);
         this._centerLayer.events.on("mouseleave", this._onCenterMouseLeave_, this);
 
         // if (this._initArea) {
-        //     this.setArea(this._initArea);
+        //     this.setCoordinates(this._initArea);
         // }
 
         this._planet.addLayer(this._outlineLayer);
+        this._planet.addLayer(this._cornerLayer);
+        this._planet.addLayer(this._centerLayer);
 
-        this._planet.addLayer(this._trackLayer);
+        this.showGhostPointer();
+        this.startNewPoint();
+
+        this._planet.renderer.controls.mouseNavigation.deactivateDoubleClickZoom();
     }
 
     _updateGhostOutlinePointer(groundPos) {
@@ -287,33 +294,50 @@ class DrawingScene extends RenderNode {
     }
 
     _onCornerMouseEnter(e) {
-        this._isCorner = true;
+        e.renderer.handler.canvas.style.cursor = "pointer";
+        this.hideGhostPointer();
     }
 
     _onCornerMouseLeave(e) {
-        this._isCorner = false;
+        e.renderer.handler.canvas.style.cursor = "default";
+        this.showGhostPointer();
     }
 
     _onCenterMouseEnter(e) {
-        this._isCenter = true;
+        e.renderer.handler.canvas.style.cursor = "pointer";
+        this.hideGhostPointer();
     }
 
     _onCenterMouseLeave(e) {
-        this._isCenter = false;
+        e.renderer.handler.canvas.style.cursor = "default";
+        this.showGhostPointer();
     }
 
-    _onLdown(e) {
+    _onCornerLdown(e) {
+        this._pickedCorner = e.pickingObject;
         e.renderer.controls.mouseNavigation.deactivate();
         this._startClick.set(e.x, e.y);
-        let coords = e.pickingObject.getCartesian();
+        let coords = this._pickedCorner.getCartesian();
         this._startPos = this._planet.getPixelFromCartesian(coords);
-
-        if (this._isCenter) {
-            this._pickedCenter = e.pickingObject;
-        } else if (this._isCorner) {
-            this._pickedCorner = e.pickingObject;
-        }
     }
+
+    _onCenterLdown(e) {
+        this._pickedCenter = e.pickingObject;
+        e.renderer.controls.mouseNavigation.deactivate();
+        this._startClick.set(e.x, e.y);
+        let coords = this._pickedCenter.getCartesian();
+        this._startPos = this._planet.getPixelFromCartesian(coords);
+    }
+
+    // _onLdown(e) {
+    //     let pickingObject = this._pickedCenter || this._pickedCorner;
+    //     if (pickingObject) {
+    //         e.renderer.controls.mouseNavigation.deactivate();
+    //         this._startClick.set(e.x, e.y);
+    //         let coords = pickingObject.getCartesian();
+    //         this._startPos = this._planet.getPixelFromCartesian(coords);
+    //     }
+    // }
 
     _onLup(e) {
         e.renderer.controls.mouseNavigation.activate();
@@ -327,15 +351,15 @@ class DrawingScene extends RenderNode {
     _onMouseMove(e) {
         if (this._pickedCenter) {
 
-            let area = this.getCoordinatesArray(),
-                index = this._pickedCenter._sceneIndex + 1,
+            let area = this.getCoordinates(),
+                index = this._pickedCenter.layerIndex + 1,
                 ll = this._pickedCenter.getLonLat();
             let newCorner = [ll.lon, ll.lat, ll.height];
 
             area.splice(index, 0, newCorner);
 
             this.clear();
-            this.setArea(area);
+            this.setCoordinates(area);
 
             this._pickedCenter = null;
 
@@ -350,10 +374,10 @@ class DrawingScene extends RenderNode {
 
             if (groundCoords) {
 
-                this._pickedCorner.setCartesian(groundCoords);
+                this._pickedCorner.setCartesian3v(groundCoords);
 
                 if (this._cornersArr.length) {
-                    let ind = this._pickedCorner.index;
+                    let ind = this._pickedCorner.layerIndex;
                     let size = this._cornersArr.length;
 
                     let cartPrev = this._cornersArr[ind == 0 ? (size - 1) : (ind - 1)].getCartesian(),
@@ -395,13 +419,15 @@ class DrawingScene extends RenderNode {
                     let prevCenterCart = vecPrev.scaleTo(distPrev * 0.5).addA(cartPrev),
                         nextCenterCart = vecNext.scaleTo(distNext * 0.5).addA(cartNext);
 
-                    prevCenter.setCartesian(prevCenterCart);
+                    prevCenter.setCartesian3v(prevCenterCart);
                     this._checkTerrainCollision(prevCenter);
 
-                    nextCenter.setCartesian(nextCenterCart);
+                    nextCenter.setCartesian3v(nextCenterCart);
                     this._checkTerrainCollision(nextCenter);
                 }
             }
+        } else {
+            this.setGhostPointerPosition(this._planet.getCartesianFromPixelTerrain(e));
         }
     }
 
@@ -409,14 +435,13 @@ class DrawingScene extends RenderNode {
         let segNum = this._cornersArr.length - 1;
         let prevCorn = this._cornersArr[segNum];
 
-
         let corner = new Entity({
             geoObject: CORNER_OPTIONS,
         });
 
-        corner.setCartesian(cart);
+        corner.setCartesian3v(cart);
         this._cornersArr.push(corner);
-        corner.addTo(this._cornersLayer);
+        corner.addTo(this._cornerLayer);
         this._checkTerrainCollision(corner);
 
         if (prevCorn) {
@@ -468,18 +493,19 @@ class DrawingScene extends RenderNode {
             let center = new Entity({
                 geoObject: CENTER_OPTIONS,
             });
-            center.setCartesian(prevCenterCart);
+            center.setCartesian3v(prevCenterCart);
             center.addTo(this._centerLayer);
             this._checkTerrainCollision(center);
 
-            firstCenter.moveToEnd();
-            firstCenter.setCartesian(firstCenterCart);
+            //firstCenter.moveToEnd();
+            firstCenter.setCartesian3v(firstCenterCart);
 
         } else {
             let center = new Entity({
                 geoObject: CENTER_OPTIONS,
             });
             center.addTo(this._centerLayer);
+            this._centersArr.push(center);
         }
     }
 
@@ -492,13 +518,13 @@ class DrawingScene extends RenderNode {
             if (this._insertCornerIndex === -1 || this._cornersArr.length < 2) {
                 this._appendCart(cart);
             } else {
-                let area = this.getCoordinatesArray(),
+                let area = this.getCoordinates(),
                     index = this._insertCornerIndex;
                 let ll = this._planet.ellipsoid.cartesianToLonLat(cart);
                 let newCorner = [ll.lon, ll.lat, ll.height];
                 area.splice(index, 0, newCorner);
                 this.clear();
-                this.setArea(area);
+                this.setCoordinates(area);
             }
             if (!this._isStartPoint && this._cornersArr.length > 2) {
                 this._isStartPoint = true;
@@ -510,15 +536,36 @@ class DrawingScene extends RenderNode {
 
     onremove() {
         this.stopNewPoint();
-        this.events.off("ldown", this._onLdown_);
-        this.renderer.events.off("mousemove", this._onMouseMove_);
-        this.renderer.events.off("lup", this._onLup_);
+        this._clearEvents();
         this.clear();
+    }
+
+    _clearEvents() {
+        this.events.off("ldown", this._onLdown_);
+        this._onLdown_ = null;
+
+        this.renderer.events.off("mousemove", this._onMouseMove_);
+        this._onMouseMove_ = null;
+
+        this.renderer.events.off("lup", this._onLup_);
+        this._onLup_ = null;
+
+        this._cornerLayer.events.off("mouseenter", this._onCornerMouseEnter_);
+        this._onCornerMouseEnter_ = null;
+
+        this._cornerLayer.events.off("mouseleave", this._onCornerMouseLeave_);
+        this._onCornerMouseLeave_ = null;
+
+        this._centerLayer.events.off("mouseenter", this._onCenterMouseEnter_);
+        this._onCenterMouseEnter_ = null;
+
+        this._centerLayer.events.off("mouseleave", this._onCenterMouseLeave_);
+        this._onCenterMouseLeave_ = null;
     }
 
     clear() {
 
-        this._initArea = this.getCoordinatesArray();
+        this._initArea = this.getCoordinates();
 
         let i = this._cornersArr.length;
         while (i--) {
@@ -541,10 +588,10 @@ class DrawingScene extends RenderNode {
             }
         }
 
-        this._trackEntity.polyline.clear();
+        //this._trackEntity.polyline.clear();
     }
 
-    setArea(coords) {
+    setCoordinates(coords) {
         for (let i = 0; i < coords.length; i++) {
             let ci = coords[i];
             let cart = this._planet.ellipsoid.lonLatToCartesian(new LonLat(ci[0], ci[1], ci[2]));
@@ -582,17 +629,6 @@ class DrawingScene extends RenderNode {
         }
     }
 
-    setActive(active) {
-        if (this._isActive != active) {
-            super.setActive(active);
-            if (this._isActive) {
-                this.startNewPoint();
-            } else if (!this._isActive) {
-                this.stopNewPoint();
-            }
-        }
-    }
-
     stopNewPoint() {
         if (this.renderer) {
             this.renderer.events.off("ldblclick", this._onMouseDblClick_);
@@ -606,31 +642,31 @@ class DrawingScene extends RenderNode {
     }
 
     showGhostPointer() {
-        this._planet.addLayer(this._ghostOutlineLayer);
         this._showGhostPointer = true;
+        this._planet.addLayer(this._ghostOutlineLayer);
         this._insertCornerIndex = this._cornersArr.length;
     }
 
     hideGhostPointer() {
-        this._ghostOutlineLayer.remove();
         this._showGhostPointer = false;
+        this._ghostOutlineLayer.remove();
         this._insertCornerIndex = -1;
     }
 
     setGhostPointerPosition(groundPos) {
-        if (!this._isReadOnly) {
-            this._ghostCorner.setCartesian(groundPos);
+        if (!this._isReadOnly && groundPos) {
+            this._ghostCorner.setCartesian3v(groundPos);
             this._updateGhostOutlinePointer(groundPos);
         }
     }
 
     _checkTerrainCollision(entity) {
         let _tempTerrPoint = new Vec3();
-        let nodes = this._scene._planet._renderedNodes;
+        let nodes = this._planet._renderedNodes;
         for (let j = 0; j < nodes.length; j++) {
             let seg = nodes[j].segment;
             if (seg && seg._extentLonLat.isInside(entity.getLonLat())) {
-                seg.getTerrainPoint(entity._cartesian, this._lonLatMerc, _tempTerrPoint);
+                seg.getEntityTerrainPoint(entity, _tempTerrPoint);
                 entity.setCartesian3v(_tempTerrPoint);
                 break;
             }

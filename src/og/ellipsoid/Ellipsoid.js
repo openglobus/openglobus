@@ -375,6 +375,8 @@ class Ellipsoid {
             pY = p.y || 0.0,
             pZ = p.z || 0.0;
 
+        let length = Math.sqrt(pX * pX + pY * pY + pZ * pZ);
+
         let invRadii2X = this._invRadii2.x,
             invRadii2Y = this._invRadii2.y,
             invRadii2Z = this._invRadii2.z;
@@ -391,7 +393,7 @@ class Ellipsoid {
             return !Number.isFinite(ratio) ? new Vec3() : first
         }
 
-        let lambda = ((1.0 - ratio) * p.length()) / first.mulA(this._invRadii2).length();
+        let lambda = ((1.0 - ratio) * length) / first.mulA(this._invRadii2).length();
 
         let m_X, m_Y, m_Z;
 

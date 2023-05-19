@@ -213,10 +213,6 @@ class EntityCollection {
         this._counter = n;
     }
 
-    // setPolygonOffset(factor, units) {
-    //     this.polygonOffsetUnits = units;
-    // }
-
     /**
      * Sets collection visibility.
      * @public

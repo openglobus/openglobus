@@ -227,6 +227,10 @@ class Entity {
         this._counter = n;
     }
 
+    get layerIndex() {
+        return this._layerIndex;
+    }
+
     get instanceName() {
         return "Entity";
     }

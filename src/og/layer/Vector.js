@@ -300,7 +300,7 @@ class Vector extends Layer {
             }
         }
 
-        if (entity.billboard || entity.label) {
+        if (entity.billboard || entity.label || entity.geoObject) {
             if (this._planet) {
                 if (entity._cartesian.isZero() && !entity._lonlat.isZero()) {
                     entity._setCartesian3vSilent(

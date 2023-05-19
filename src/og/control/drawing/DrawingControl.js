@@ -5,39 +5,34 @@
 "use strict";
 
 import { Control } from "../Control.js";
-import { RulerScene } from "./RulerScene.js";
+import { DrawingScene } from "./DrawingScene.js";
 
 /**
- * Activate ruler
+ * Activate drawing
  * @class
  * @extends {Control}
  * @param {Object} [options] - Control options.
  */
-class Ruler extends Control {
+class DrawingControl extends Control {
     constructor(options = {}) {
         super(options);
 
-        this._rulerScene = new RulerScene({
-            name: `rulerScene:${this._id}`,
-            ignoreTerrain: options.ignoreTerrain
+        this._drawingScene = new DrawingScene({
+            name: `drawingScene:${this._id}`
         });
     }
 
-    set ignoreTerrain(v) {
-        this._rulerScene.ignoreTerrain = v;
-    }
-
     oninit() {
-        this._rulerScene.bindPlanet(this.planet);
+        this._drawingScene.bindPlanet(this.planet);
     }
 
     onactivate() {
-        this.renderer.addNode(this._rulerScene);
+        this.renderer.addNode(this._drawingScene);
     }
 
     ondeactivate() {
-        this.renderer.removeNode(this._rulerScene);
+        this.renderer.removeNode(this._drawingScene);
     }
 }
 
-export { Ruler };
+export { DrawingControl };

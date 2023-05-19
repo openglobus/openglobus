@@ -333,6 +333,11 @@ details[open] {
     display: block;
 }
 
+.og-drawing_button {
+    top: 65px;
+    right: 66px;
+}
+
 /* =============================== */
 /* RULER */
 
