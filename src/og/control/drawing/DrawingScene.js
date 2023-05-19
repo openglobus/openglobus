@@ -12,27 +12,37 @@ import { Vec3 } from '../../math/Vec3.js';
 import { Line3 } from '../../math/Line3.js';
 import { LonLat } from '../../LonLat.js';
 
-const NUM_SEGMENTS = 120;
+const NUM_SEGMENTS = 320;
 
 const OUTLINE_ALT = 1.0;
 
-let obj3d = Object3d.createCylinder(1, 0, 2.0, 20, 1, true, false, 0, 0, 0);
+let obj3d = Object3d.createCylinder(1, 1, 2.0, 20, 1, true, false, 0, -0.5, 0);
+
+const COORDINATES_COLOR = "rgb(73, 244, 275)";
+const CENTER_COLOR = "rgb(73, 244, 275)";
+const OUTLINE_COLOR = "#35E0FF";
+const OUTLINE_THICKNESS = 3;
 
 const CORNER_OPTIONS = {
-    scale: 1,
+    scale: 0.7,
     instanced: true,
     tag: "corners",
-    color: "rgb(0,305,0)",
+    color: COORDINATES_COLOR,
     object3d: obj3d
 };
 
 const CENTER_OPTIONS = {
-    scale: 1,
+    scale: 0.7,
     instanced: true,
     tag: "centers",
-    color: "rgb(305,305,0)",
+    color: CENTER_COLOR,
     object3d: obj3d
 };
+
+const OUTLINE_OPTIONS = {
+    thickness: OUTLINE_THICKNESS,
+    color: OUTLINE_COLOR
+}
 
 class DrawingScene extends RenderNode {
     constructor(options = {}) {
@@ -46,9 +56,8 @@ class DrawingScene extends RenderNode {
             entities: [new Entity({
                 polyline: {
                     path3v: [],
-                    thickness: 3,
-                    color: "yellow",
-                    isClosed: false
+                    isClosed: false,
+                    ...OUTLINE_OPTIONS
                 },
                 properties: {
                     index: 0
@@ -95,9 +104,8 @@ class DrawingScene extends RenderNode {
                 new Entity({
                     polyline: {
                         path3v: [],
-                        thickness: 3,
-                        color: "yellow",
-                        isClosed: false
+                        isClosed: false,
+                        ...OUTLINE_OPTIONS
                     },
                     properties: {
                         index: 0
@@ -105,9 +113,8 @@ class DrawingScene extends RenderNode {
                 }), new Entity({
                     polyline: {
                         path3v: [],
-                        thickness: 3,
-                        color: "yellow",
-                        isClosed: false
+                        isClosed: false,
+                        ...OUTLINE_OPTIONS
                     },
                     properties: {
                         index: 0
@@ -119,7 +126,7 @@ class DrawingScene extends RenderNode {
             polygonOffsetUnits: 0,
             relativeToGround: true,
             scaleByDistance: [100, 4000000, 1.0],
-            opacity: 0.25
+            opacity: 0.5
         });
 
         this._ghostOutlineLayer.getEntities()[0].polyline.altitude =
@@ -129,9 +136,9 @@ class DrawingScene extends RenderNode {
 
         this._isStartPoint = false;
 
-        this._isReadOnly = false;
-
         this._insertCornerIndex = -1;
+
+        this._initCoordinates = options.coordinates || [];
     }
 
     getCoordinates() {
@@ -142,7 +149,7 @@ class DrawingScene extends RenderNode {
                 return [ll.lon, ll.lat, ll.height];
             });
         } else {
-            return this._initArea;
+            return this._initCoordinates;
         }
     }
 
@@ -154,9 +161,9 @@ class DrawingScene extends RenderNode {
 
         this._initEvents();
 
-        // if (this._initArea) {
-        //     this.setCoordinates(this._initArea);
-        // }
+        if (this._initCoordiantes) {
+            this.setCoordinates(this._initCoordiantes);
+        }
 
         this._planet.addLayer(this._outlineLayer);
         this._planet.addLayer(this._cornerLayer);
@@ -407,7 +414,7 @@ class DrawingScene extends RenderNode {
             return;
         }
 
-        if (this._isReadOnly || !this._showGhostPointer) {
+        if (!this._showGhostPointer) {
             return;
         }
 
@@ -477,12 +484,11 @@ class DrawingScene extends RenderNode {
             let entity = new Entity({
                 polyline: {
                     path3v: [prevPath],
-                    thickness: 3,
-                    color: "yellow",
                     isClosed: false,
                     properties: {
                         index: segNum + 1
-                    }
+                    },
+                    ...OUTLINE_OPTIONS
                 }
             });
             entity.polyline.altitude = OUTLINE_ALT;
@@ -516,8 +522,9 @@ class DrawingScene extends RenderNode {
     }
 
     onremove() {
-        this.stopNewPoint();
         this._clearEvents();
+        this.hideGhostPointer();
+        this.stopNewPoint();
         this.clear();
     }
 
@@ -582,7 +589,7 @@ class DrawingScene extends RenderNode {
 
     clear() {
 
-        this._initArea = this.getCoordinates();
+        this._initCoordinates = this.getCoordinates();
 
         let corners = this._cornerLayer.getEntities();
 
@@ -605,6 +612,9 @@ class DrawingScene extends RenderNode {
                 entities[i].remove();
             }
         }
+
+        this._ghostOutlineLayer.getEntities()[0].polyline.clear();
+        this._ghostOutlineLayer.getEntities()[1].polyline.clear();
     }
 
     setCoordinates(coords) {
@@ -639,11 +649,9 @@ class DrawingScene extends RenderNode {
     }
 
     frame() {
-        if (!this._isReadOnly) {
-            this._drawCorners();
-            this._drawCenters();
-            this._drawGhostCorner();
-        }
+        this._drawCorners();
+        this._drawCenters();
+        this._drawGhostCorner();
     }
 
     stopNewPoint() {
@@ -671,7 +679,7 @@ class DrawingScene extends RenderNode {
     }
 
     setGhostPointerPosition(groundPos) {
-        if (!this._isReadOnly && groundPos) {
+        if (groundPos) {
             this._ghostCorner.setCartesian3v(groundPos);
             this._updateGhostOutlinePointer(groundPos);
         }
