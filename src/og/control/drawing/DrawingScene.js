@@ -1,7 +1,6 @@
 'use strict';
 
 import * as math from "../../math.js";
-import { Ellipsoid } from '../../ellipsoid/Ellipsoid.js';
 import { Entity } from '../../entity/Entity.js';
 import { Events } from '../../Events.js';
 import { Vector } from '../../layer/Vector.js';
@@ -12,16 +11,16 @@ import { Vec3 } from '../../math/Vec3.js';
 import { Line3 } from '../../math/Line3.js';
 import { LonLat } from '../../LonLat.js';
 
-const NUM_SEGMENTS = 320;
+const NUM_SEGMENTS = 200;
 
 const OUTLINE_ALT = 1.0;
 
 let obj3d = Object3d.createCylinder(1, 1, 2.0, 20, 1, true, false, 0, -0.5, 0);
 
-const COORDINATES_COLOR = "rgb(73, 244, 275)";
-const CENTER_COLOR = "rgb(73, 244, 275)";
-const OUTLINE_COLOR = "#35E0FF";
-const OUTLINE_THICKNESS = 3;
+const COORDINATES_COLOR = "rgb(285, 178, 30)";
+const CENTER_COLOR = "rgb(285, 178, 30)";
+const OUTLINE_COLOR = "rgb(255, 148, 0)";
+const OUTLINE_THICKNESS = 4.5;
 
 const CORNER_OPTIONS = {
     scale: 0.7,
@@ -32,7 +31,7 @@ const CORNER_OPTIONS = {
 };
 
 const CENTER_OPTIONS = {
-    scale: 0.7,
+    scale: 0.6,
     instanced: true,
     tag: "centers",
     color: CENTER_COLOR,
@@ -52,6 +51,31 @@ class DrawingScene extends RenderNode {
 
         this._planet = null;
 
+        this._initCoordinates = options.coordinates || [];
+
+        this._pickedCorner = null;
+        this._pickedCenter = null;
+
+        this._startPos = null;
+        this._startClick = new Vec2();
+
+        //
+        // outline vectors
+        //
+        this._cornerLayer = new Vector("corners", {
+            pickingEnabled: true,
+            polygonOffsetUnits: 0,
+            relativeToGround: true,
+            scaleByDistance: [100, 4000000, 1.0]
+        });
+
+        this._centerLayer = new Vector("centers", {
+            pickingEnabled: true,
+            polygonOffsetUnits: 0,
+            relativeToGround: true,
+            scaleByDistance: [100, 4000000, 1.0]
+        });
+
         this._outlineLayer = new Vector("outline", {
             entities: [new Entity({
                 polyline: {
@@ -70,28 +94,6 @@ class DrawingScene extends RenderNode {
 
         this._outlineLayer.getEntities()[0].polyline.altitude = OUTLINE_ALT;
 
-        this._pickedCorner = null;
-        this._pickedCenter = null;
-
-        this._startPos = null;
-        this._startClick = new Vec2();
-
-        this._cornerLayer = new Vector("corners", {
-            entities: [],
-            pickingEnabled: true,
-            polygonOffsetUnits: 0,
-            relativeToGround: true,
-            scaleByDistance: [100, 4000000, 1.0]
-        });
-
-        this._centerLayer = new Vector("centers", {
-            entities: [],
-            pickingEnabled: true,
-            polygonOffsetUnits: 0,
-            relativeToGround: true,
-            scaleByDistance: [100, 4000000, 1.0]
-        });
-
         //
         // Ghost cursor pointer
         //
@@ -100,28 +102,6 @@ class DrawingScene extends RenderNode {
         });
 
         this._ghostOutlineLayer = new Vector("ghost-pointer", {
-            entities: [
-                new Entity({
-                    polyline: {
-                        path3v: [],
-                        isClosed: false,
-                        ...OUTLINE_OPTIONS
-                    },
-                    properties: {
-                        index: 0
-                    }
-                }), new Entity({
-                    polyline: {
-                        path3v: [],
-                        isClosed: false,
-                        ...OUTLINE_OPTIONS
-                    },
-                    properties: {
-                        index: 0
-                    }
-                }),
-                this._ghostCorner
-            ],
             pickingEnabled: false,
             polygonOffsetUnits: 0,
             relativeToGround: true,
@@ -129,16 +109,11 @@ class DrawingScene extends RenderNode {
             opacity: 0.5
         });
 
-        this._ghostOutlineLayer.getEntities()[0].polyline.altitude =
-            this._ghostOutlineLayer.getEntities()[1].polyline.altitude = OUTLINE_ALT;
-
         this._showGhostPointer = false;
 
         this._isStartPoint = false;
 
         this._insertCornerIndex = -1;
-
-        this._initCoordinates = options.coordinates || [];
     }
 
     getCoordinates() {
@@ -169,10 +144,456 @@ class DrawingScene extends RenderNode {
         this._planet.addLayer(this._cornerLayer);
         this._planet.addLayer(this._centerLayer);
 
+        this._initGhostLayerPointer();
+
         this.showGhostPointer();
         this.startNewPoint();
 
         this._planet.renderer.controls.mouseNavigation.deactivateDoubleClickZoom();
+    }
+
+    onremove() {
+        this._clearEvents();
+        this.hideGhostPointer();
+        this.stopNewPoint();
+        this.clear();
+    }
+
+    clear() {
+
+        this._initCoordinates = this.getCoordinates();
+
+        let corners = this._cornerLayer.getEntities();
+
+        let i = corners.length;
+        while (i--) {
+            corners[i].remove();
+        }
+
+        let centers = this._centerLayer.getEntities();
+        i = centers.length;
+        while (i--) {
+            centers[i].remove();
+        }
+
+        let entities = this._outlineLayer.getEntities();
+        i = entities.length;
+        while (i--) {
+            entities[i].polyline.clear();
+            if (i > 0) {
+                entities[i].remove();
+            }
+        }
+
+        this._clearGhostPointer();
+    }
+
+    setCoordinates(coords) {
+        this.clear();
+        for (let i = 0; i < coords.length; i++) {
+            let ci = coords[i];
+            let cart = this._planet.ellipsoid.lonLatToCartesian(new LonLat(ci[0], ci[1], ci[2]));
+            this._appendCart(cart);
+        }
+    }
+
+    stopNewPoint() {
+        if (this.renderer) {
+            this.renderer.events.off("ldblclick", this._onMouseDblClick_);
+            this._onMouseDblClick_ = null;
+        }
+    }
+
+    startNewPoint() {
+        this._onMouseDblClick_ = this._onMouseDblClick.bind(this);
+        this.renderer.events.on("ldblclick", this._onMouseDblClick_, this);
+    }
+
+    showGhostPointer() {
+        this._showGhostPointer = true;
+        this._planet.addLayer(this._ghostOutlineLayer);
+        this._insertCornerIndex = this._cornerLayer.getEntities().length;
+    }
+
+    hideGhostPointer() {
+        this._showGhostPointer = false;
+        this._ghostOutlineLayer.remove();
+        this._insertCornerIndex = -1;
+    }
+
+    setGhostPointerPosition(groundPos) {
+        if (groundPos) {
+            this._ghostCorner.setCartesian3v(groundPos);
+            this._updateGhostOutlinePointer(groundPos);
+        }
+    }
+
+    _onCornerMouseEnter(e) {
+        e.renderer.handler.canvas.style.cursor = "pointer";
+        this.hideGhostPointer();
+    }
+
+    _onCornerMouseLeave(e) {
+        e.renderer.handler.canvas.style.cursor = "default";
+        this.showGhostPointer();
+    }
+
+    _onCenterMouseEnter(e) {
+        e.renderer.handler.canvas.style.cursor = "pointer";
+        this.hideGhostPointer();
+    }
+
+    _onCenterMouseLeave(e) {
+        e.renderer.handler.canvas.style.cursor = "default";
+        if (!(this._pickedCenter || this._pickedCorner)) {
+            this.showGhostPointer();
+        }
+    }
+
+    _onLup(e) {
+        e.renderer.controls.mouseNavigation.activate();
+        if (this._pickedCorner || this._pickedCenter) {
+            this.events.dispatch(this.events.change, this);
+            this.setGhostPointerPosition(this._planet.getCartesianFromPixelTerrain(e));
+            this.showGhostPointer();
+            this._pickedCorner = null;
+            this._pickedCenter = null;
+        }
+    }
+
+    _getLdown(e) {
+        e.renderer.controls.mouseNavigation.deactivate();
+        this._startClick.set(e.x, e.y);
+        let coords = e.pickingObject.getCartesian();
+        this._startPos = this._planet.getPixelFromCartesian(coords);
+        return e.pickingObject;
+    }
+
+    _onCornerLdown(e) {
+        this._pickedCorner = this._getLdown(e);
+    }
+
+    _onCenterLdown(e) {
+        this._pickedCenter = this._getLdown(e);
+    }
+
+    _onMouseMove(e) {
+        if (this._pickedCenter) {
+            this._moveCenterPoint();
+        } else if (this._pickedCorner) {
+            this._moveCornerPoint(e);
+        } else {
+            this.setGhostPointerPosition(this._planet.getCartesianFromPixelTerrain(e));
+        }
+    }
+
+    _onCornerLdblclick(e) {
+        this._cornerDblClick = true;
+        let coords = this.getCoordinates();
+        coords.splice(e.pickingObject.layerIndex, 1);
+        this.setCoordinates(coords);
+    }
+
+    _onMouseDblClick(e) {
+
+        if (this._cornerDblClick) {
+            this._cornerDblClick = false;
+            return;
+        }
+
+        if (!this._showGhostPointer) {
+            return;
+        }
+
+        let cart = this._planet.getCartesianFromPixelTerrain(e);
+        if (cart) {
+            if (this._insertCornerIndex === -1 || this._cornerLayer.getEntities().length < 2) {
+                this._appendCart(cart);
+            } else {
+                let area = this.getCoordinates(),
+                    index = this._insertCornerIndex;
+                let ll = this._planet.ellipsoid.cartesianToLonLat(cart);
+                let newCorner = [ll.lon, ll.lat, ll.height];
+                area.splice(index, 0, newCorner);
+                this.clear();
+                this.setCoordinates(area);
+            }
+            if (!this._isStartPoint && this._cornerLayer.getEntities().length > 2) {
+                this._isStartPoint = true;
+                this.events.dispatch(this.events.startpoint, this);
+            }
+            this.events.dispatch(this.events.change, this);
+        }
+    }
+
+    _initEvents() {
+
+        this._onCornerLdblclick_ = this._onCornerLdblclick.bind(this);
+        this._cornerLayer.events.on("ldblclick", this._onCornerLdblclick_, this);
+
+        this._onCornerLdown_ = this._onCornerLdown.bind(this);
+        this._cornerLayer.events.on("ldown", this._onCornerLdown_, this);
+
+        this._onCenterLdown_ = this._onCenterLdown.bind(this);
+        this._centerLayer.events.on("ldown", this._onCenterLdown_, this);
+
+        this._onLup_ = this._onLup.bind(this);
+        this.renderer.events.on("lup", this._onLup_, this);
+
+        this._onMouseMove_ = this._onMouseMove.bind(this);
+        this.renderer.events.on("mousemove", this._onMouseMove_, this);
+
+        this._onCornerMouseEnter_ = this._onCornerMouseEnter.bind(this);
+        this._cornerLayer.events.on("mouseenter", this._onCornerMouseEnter_, this);
+
+        this._onCornerMouseLeave_ = this._onCornerMouseLeave.bind(this);
+        this._cornerLayer.events.on("mouseleave", this._onCornerMouseLeave_, this);
+
+        this._onCenterMouseEnter_ = this._onCenterMouseEnter.bind(this);
+        this._centerLayer.events.on("mouseenter", this._onCenterMouseEnter_, this);
+
+        this._onCenterMouseLeave_ = this._onCenterMouseLeave.bind(this);
+        this._centerLayer.events.on("mouseleave", this._onCenterMouseLeave_, this);
+    }
+
+    _clearEvents() {
+        this._cornerLayer.events.off("ldblclick", this._onCornerLdblclick_);
+        this._onCornerLdblclick_ = null;
+
+        this._cornerLayer.events.off("ldown", this._onCornerLdown_);
+        this._onCornerLdown_ = null;
+
+        this._centerLayer.events.off("ldown", this._onCenterLdown_);
+        this._onCenterLdown_ = null;
+
+        this.renderer.events.off("lup", this._onLup_);
+        this._onLup_ = null;
+
+        this.renderer.events.off("mousemove", this._onMouseMove_);
+        this._onMouseMove_ = null;
+
+        this._cornerLayer.events.off("mouseenter", this._onCornerMouseEnter_);
+        this._onCornerMouseEnter_ = null;
+
+        this._cornerLayer.events.off("mouseleave", this._onCornerMouseLeave_);
+        this._onCornerMouseLeave_ = null;
+
+        this._centerLayer.events.off("mouseenter", this._onCenterMouseEnter_);
+        this._onCenterMouseEnter_ = null;
+
+        this._centerLayer.events.off("mouseleave", this._onCenterMouseLeave_);
+        this._onCenterMouseLeave_ = null;
+    }
+
+    _drawCorners() {
+        let corners = this._cornerLayer.getEntities();
+        for (let i = 0; i < corners.length; i++) {
+            let ai = corners[i];
+            this._checkTerrainCollision(ai);
+        }
+    }
+
+    _drawCenters() {
+        let centers = this._centerLayer.getEntities();
+        for (let i = 0; i < centers.length; i++) {
+            let ai = centers[i];
+            this._checkTerrainCollision(ai);
+        }
+    }
+
+    _drawGhostCorner() {
+        if (this._showGhostPointer) {
+            this._checkTerrainCollision(this._ghostCorner);
+        }
+    }
+
+    frame() {
+        this._drawCorners();
+        this._drawCenters();
+        this._drawGhostCorner();
+    }
+
+    _checkTerrainCollision(entity) {
+        let _tempTerrPoint = new Vec3();
+        let nodes = this._planet._renderedNodes;
+        for (let j = 0; j < nodes.length; j++) {
+            let seg = nodes[j].segment;
+            if (seg && seg._extentLonLat.isInside(entity.getLonLat())) {
+                seg.getEntityTerrainPoint(entity, _tempTerrPoint);
+                entity.setCartesian3v(_tempTerrPoint);
+                break;
+            }
+        }
+    }
+
+    _moveCenterPoint() {
+        let coords = this.getCoordinates(),
+            index = this._pickedCenter.layerIndex + 1,
+            ll = this._pickedCenter.getLonLat();
+        let newCorner = [ll.lon, ll.lat, ll.height];
+
+        coords.splice(index, 0, newCorner);
+
+        this.clear();
+        this.setCoordinates(coords);
+
+        this._pickedCenter = null;
+
+        this._pickedCorner = this._cornerLayer.getEntities()[index];
+    }
+
+    //
+    // virtual
+    //
+    _appendCart(cart) {
+        let corners = this._cornerLayer.getEntities();
+
+        let segNum = corners.length - 1;
+        let prevCorn = corners[segNum];
+
+        let corner = new Entity({
+            geoObject: CORNER_OPTIONS,
+        });
+
+        corner.setCartesian3v(cart);
+        corner.addTo(this._cornerLayer);
+        this._checkTerrainCollision(corner);
+
+        if (prevCorn) {
+
+            let firstCart = corners[0].getCartesian(),
+                prevCart = prevCorn.getCartesian();
+
+            let vecPrev = corner.getCartesian().sub(prevCart),
+                vecFirst = corner.getCartesian().sub(firstCart);
+
+            let distPrev = vecPrev.length(),
+                distFirst = vecFirst.length();
+
+            vecPrev.normalize();
+            vecFirst.normalize();
+
+            let prevPath = [],
+                firstPath = [];
+
+            for (let i = 0; i <= NUM_SEGMENTS; i++) {
+                let p = vecPrev.scaleTo(i * distPrev / NUM_SEGMENTS).addA(prevCart);
+                prevPath.push(p);
+
+                let f = vecFirst.scaleTo(i * distFirst / NUM_SEGMENTS).addA(firstCart);
+                firstPath.push(f);
+            }
+
+            this._outlineLayer.getEntities()[0].polyline.setPath3v([firstPath]);
+
+            let entity = new Entity({
+                polyline: {
+                    path3v: [prevPath],
+                    isClosed: false,
+                    properties: {
+                        index: segNum + 1
+                    },
+                    ...OUTLINE_OPTIONS
+                }
+            });
+            entity.polyline.altitude = OUTLINE_ALT;
+            this._outlineLayer.add(entity);
+
+            let centers = this._centerLayer.getEntities();
+            let firstCenter = centers[centers.length - 1];
+
+            let prevCenterCart = vecPrev.scaleTo(distPrev * 0.5).addA(prevCart),
+                firstCenterCart = vecFirst.scaleTo(distFirst * 0.5).addA(firstCart);
+
+            let center = new Entity({
+                geoObject: CENTER_OPTIONS,
+            });
+            center.setCartesian3v(prevCenterCart);
+            center.addTo(this._centerLayer);
+            this._checkTerrainCollision(center);
+
+            //moveToEnd
+            firstCenter.remove();
+            firstCenter.addTo(this._centerLayer);
+
+            firstCenter.setCartesian3v(firstCenterCart);
+
+        } else {
+            let center = new Entity({
+                geoObject: CENTER_OPTIONS,
+            });
+            center.addTo(this._centerLayer);
+        }
+    }
+
+    _clearGhostPointer() {
+        this._ghostOutlineLayer.getEntities()[0].polyline.clear();
+        this._ghostOutlineLayer.getEntities()[1].polyline.clear();
+    }
+
+    _moveCornerPoint(e) {
+        let d = new Vec2(e.x, e.y).sub(this._startClick),
+            p = this._startPos.add(d);
+
+        let groundCoords = this._planet.getCartesianFromPixelTerrain(p);
+
+        if (groundCoords) {
+
+            this._pickedCorner.setCartesian3v(groundCoords);
+
+            let corners = this._cornerLayer.getEntities();
+
+            if (corners.length) {
+                let ind = this._pickedCorner.layerIndex;
+                let size = corners.length;
+
+                let cartPrev = corners[ind == 0 ? (size - 1) : (ind - 1)].getCartesian(),
+                    cartNext = corners[(ind + 1) % size].getCartesian();
+
+                let vecPrev = this._pickedCorner.getCartesian().sub(cartPrev),
+                    vecNext = this._pickedCorner.getCartesian().sub(cartNext);
+
+                let distPrev = vecPrev.length(),
+                    distNext = vecNext.length();
+
+                vecPrev.normalize();
+                vecNext.normalize();
+
+                let pathPrev = [],
+                    pathNext = [];
+
+                for (let i = 0; i <= NUM_SEGMENTS; i++) {
+                    let p = vecPrev.scaleTo(i * distPrev / NUM_SEGMENTS).addA(cartPrev);
+                    pathPrev.push(p);
+
+                    let f = vecNext.scaleTo(i * distNext / NUM_SEGMENTS).addA(cartNext);
+                    pathNext.push(f);
+                }
+
+                let entities = this._outlineLayer.getEntities();
+
+                let prevPolyline = entities[ind].polyline,
+                    nextPolyline = entities[(ind + 1) % size].polyline;
+
+                prevPolyline.setPath3v([pathPrev]);
+                nextPolyline.setPath3v([pathNext]);
+
+                //
+                // Move center points
+                let centers = this._centerLayer.getEntities();
+                let prevCenter = centers[ind === 0 ? (size - 1) : (ind - 1)],
+                    nextCenter = centers[ind];
+
+                let prevCenterCart = vecPrev.scaleTo(distPrev * 0.5).addA(cartPrev),
+                    nextCenterCart = vecNext.scaleTo(distNext * 0.5).addA(cartNext);
+
+                prevCenter.setCartesian3v(prevCenterCart);
+                this._checkTerrainCollision(prevCenter);
+
+                nextCenter.setCartesian3v(nextCenterCart);
+                this._checkTerrainCollision(nextCenter);
+            }
+        }
     }
 
     _updateGhostOutlinePointer(groundPos) {
@@ -264,438 +685,32 @@ class DrawingScene extends RenderNode {
         }
     }
 
-    _onCornerMouseEnter(e) {
-        e.renderer.handler.canvas.style.cursor = "pointer";
-        this.hideGhostPointer();
-    }
-
-    _onCornerMouseLeave(e) {
-        e.renderer.handler.canvas.style.cursor = "default";
-        this.showGhostPointer();
-    }
-
-    _onCenterMouseEnter(e) {
-        e.renderer.handler.canvas.style.cursor = "pointer";
-        this.hideGhostPointer();
-    }
-
-    _onCenterMouseLeave(e) {
-        e.renderer.handler.canvas.style.cursor = "default";
-        if (!(this._pickedCenter || this._pickedCorner)) {
-            this.showGhostPointer();
-        }
-    }
-
-    _onLup(e) {
-        e.renderer.controls.mouseNavigation.activate();
-        if (this._pickedCorner || this._pickedCenter) {
-            this.events.dispatch(this.events.change, this);
-            this.setGhostPointerPosition(this._planet.getCartesianFromPixelTerrain(e));
-            this.showGhostPointer();
-            this._pickedCorner = null;
-            this._pickedCenter = null;
-        }
-    }
-
-    _getLdown(e) {
-        e.renderer.controls.mouseNavigation.deactivate();
-        this._startClick.set(e.x, e.y);
-        let coords = e.pickingObject.getCartesian();
-        this._startPos = this._planet.getPixelFromCartesian(coords);
-        return e.pickingObject;
-    }
-
-    _onCornerLdown(e) {
-        this._pickedCorner = this._getLdown(e);
-    }
-
-    _onCenterLdown(e) {
-        this._pickedCenter = this._getLdown(e);
-    }
-
-    _onMouseMove(e) {
-        if (this._pickedCenter) {
-
-            let area = this.getCoordinates(),
-                index = this._pickedCenter.layerIndex + 1,
-                ll = this._pickedCenter.getLonLat();
-            let newCorner = [ll.lon, ll.lat, ll.height];
-
-            area.splice(index, 0, newCorner);
-
-            this.clear();
-            this.setCoordinates(area);
-
-            this._pickedCenter = null;
-
-            this._pickedCorner = this._cornerLayer.getEntities()[index];
-
-        } else if (this._pickedCorner) {
-
-            let d = new Vec2(e.x, e.y).sub(this._startClick),
-                p = this._startPos.add(d);
-
-            let groundCoords = this._planet.getCartesianFromPixelTerrain(p);
-
-            if (groundCoords) {
-
-                this._pickedCorner.setCartesian3v(groundCoords);
-
-                let corners = this._cornerLayer.getEntities();
-
-                if (corners.length) {
-                    let ind = this._pickedCorner.layerIndex;
-                    let size = corners.length;
-
-                    let cartPrev = corners[ind == 0 ? (size - 1) : (ind - 1)].getCartesian(),
-                        cartNext = corners[(ind + 1) % size].getCartesian();
-
-                    let vecPrev = this._pickedCorner.getCartesian().sub(cartPrev),
-                        vecNext = this._pickedCorner.getCartesian().sub(cartNext);
-
-                    let distPrev = vecPrev.length(),
-                        distNext = vecNext.length();
-
-                    vecPrev.normalize();
-                    vecNext.normalize();
-
-                    let pathPrev = [],
-                        pathNext = [];
-
-                    for (let i = 0; i <= NUM_SEGMENTS; i++) {
-                        let p = vecPrev.scaleTo(i * distPrev / NUM_SEGMENTS).addA(cartPrev);
-                        pathPrev.push(p);
-
-                        let f = vecNext.scaleTo(i * distNext / NUM_SEGMENTS).addA(cartNext);
-                        pathNext.push(f);
-                    }
-
-                    let entities = this._outlineLayer.getEntities();
-
-                    let prevPolyline = entities[ind].polyline,
-                        nextPolyline = entities[(ind + 1) % size].polyline;
-
-                    prevPolyline.setPath3v([pathPrev]);
-                    nextPolyline.setPath3v([pathNext]);
-
-                    //
-                    // Move center points
-                    let centers = this._centerLayer.getEntities();
-                    let prevCenter = centers[ind === 0 ? (size - 1) : (ind - 1)],
-                        nextCenter = centers[ind];
-
-                    let prevCenterCart = vecPrev.scaleTo(distPrev * 0.5).addA(cartPrev),
-                        nextCenterCart = vecNext.scaleTo(distNext * 0.5).addA(cartNext);
-
-                    prevCenter.setCartesian3v(prevCenterCart);
-                    this._checkTerrainCollision(prevCenter);
-
-                    nextCenter.setCartesian3v(nextCenterCart);
-                    this._checkTerrainCollision(nextCenter);
-                }
-            }
-        } else {
-            this.setGhostPointerPosition(this._planet.getCartesianFromPixelTerrain(e));
-        }
-    }
-
-
-    _onCornerLdblclick(e) {
-        this._cornerDblClick = true;
-        let coords = this.getCoordinates();
-        coords.splice(e.pickingObject.layerIndex, 1);
-        this.setCoordinates(coords);
-    }
-
-    _onMouseDblClick(e) {
-
-        if (this._cornerDblClick) {
-            this._cornerDblClick = false;
-            return;
-        }
-
-        if (!this._showGhostPointer) {
-            return;
-        }
-
-        let cart = this._planet.getCartesianFromPixelTerrain(e);
-        if (cart) {
-            if (this._insertCornerIndex === -1 || this._cornerLayer.getEntities().length < 2) {
-                this._appendCart(cart);
-            } else {
-                let area = this.getCoordinates(),
-                    index = this._insertCornerIndex;
-                let ll = this._planet.ellipsoid.cartesianToLonLat(cart);
-                let newCorner = [ll.lon, ll.lat, ll.height];
-                area.splice(index, 0, newCorner);
-                this.clear();
-                this.setCoordinates(area);
-            }
-            if (!this._isStartPoint && this._cornerLayer.getEntities().length > 2) {
-                this._isStartPoint = true;
-                this.events.dispatch(this.events.startpoint, this);
-            }
-            this.events.dispatch(this.events.change, this);
-        }
-    }
-
-
-    _appendCart(cart) {
-        let corners = this._cornerLayer.getEntities();
-
-        let segNum = corners.length - 1;
-        let prevCorn = corners[segNum];
-
-        let corner = new Entity({
-            geoObject: CORNER_OPTIONS,
-        });
-
-        corner.setCartesian3v(cart);
-        corner.addTo(this._cornerLayer);
-        this._checkTerrainCollision(corner);
-
-        if (prevCorn) {
-
-            let firstCart = corners[0].getCartesian(),
-                prevCart = prevCorn.getCartesian();
-
-            let vecPrev = corner.getCartesian().sub(prevCart),
-                vecFirst = corner.getCartesian().sub(firstCart);
-
-            let distPrev = vecPrev.length(),
-                distFirst = vecFirst.length();
-
-            vecPrev.normalize();
-            vecFirst.normalize();
-
-            let prevPath = [],
-                firstPath = [];
-
-            for (let i = 0; i <= NUM_SEGMENTS; i++) {
-                let p = vecPrev.scaleTo(i * distPrev / NUM_SEGMENTS).addA(prevCart);
-                prevPath.push(p);
-
-                let f = vecFirst.scaleTo(i * distFirst / NUM_SEGMENTS).addA(firstCart);
-                firstPath.push(f);
-            }
-
-            this._outlineLayer.getEntities()[0].polyline.setPath3v([firstPath]);
-
-            let entity = new Entity({
+    _initGhostLayerPointer() {
+        this._ghostOutlineLayer.setEntities([
+            new Entity({
                 polyline: {
-                    path3v: [prevPath],
+                    path3v: [],
                     isClosed: false,
-                    properties: {
-                        index: segNum + 1
-                    },
                     ...OUTLINE_OPTIONS
+                },
+                properties: {
+                    index: 0
                 }
-            });
-            entity.polyline.altitude = OUTLINE_ALT;
-            this._outlineLayer.add(entity);
+            }), new Entity({
+                polyline: {
+                    path3v: [],
+                    isClosed: false,
+                    ...OUTLINE_OPTIONS
+                },
+                properties: {
+                    index: 0
+                }
+            }),
+            this._ghostCorner
+        ]);
 
-            let centers = this._centerLayer.getEntities();
-            let firstCenter = centers[centers.length - 1];
-
-            let prevCenterCart = vecPrev.scaleTo(distPrev * 0.5).addA(prevCart),
-                firstCenterCart = vecFirst.scaleTo(distFirst * 0.5).addA(firstCart);
-
-            let center = new Entity({
-                geoObject: CENTER_OPTIONS,
-            });
-            center.setCartesian3v(prevCenterCart);
-            center.addTo(this._centerLayer);
-            this._checkTerrainCollision(center);
-
-            //moveToEnd
-            firstCenter.remove();
-            firstCenter.addTo(this._centerLayer);
-
-            firstCenter.setCartesian3v(firstCenterCart);
-
-        } else {
-            let center = new Entity({
-                geoObject: CENTER_OPTIONS,
-            });
-            center.addTo(this._centerLayer);
-        }
-    }
-
-    onremove() {
-        this._clearEvents();
-        this.hideGhostPointer();
-        this.stopNewPoint();
-        this.clear();
-    }
-
-    _initEvents() {
-
-        this._onCornerLdblclick_ = this._onCornerLdblclick.bind(this);
-        this._cornerLayer.events.on("ldblclick", this._onCornerLdblclick_, this);
-
-        this._onCornerLdown_ = this._onCornerLdown.bind(this);
-        this._cornerLayer.events.on("ldown", this._onCornerLdown_, this);
-
-        this._onCenterLdown_ = this._onCenterLdown.bind(this);
-        this._centerLayer.events.on("ldown", this._onCenterLdown_, this);
-
-        this._onLup_ = this._onLup.bind(this);
-        this.renderer.events.on("lup", this._onLup_, this);
-
-        this._onMouseMove_ = this._onMouseMove.bind(this);
-        this.renderer.events.on("mousemove", this._onMouseMove_, this);
-
-        this._onCornerMouseEnter_ = this._onCornerMouseEnter.bind(this);
-        this._cornerLayer.events.on("mouseenter", this._onCornerMouseEnter_, this);
-
-        this._onCornerMouseLeave_ = this._onCornerMouseLeave.bind(this);
-        this._cornerLayer.events.on("mouseleave", this._onCornerMouseLeave_, this);
-
-        this._onCenterMouseEnter_ = this._onCenterMouseEnter.bind(this);
-        this._centerLayer.events.on("mouseenter", this._onCenterMouseEnter_, this);
-
-        this._onCenterMouseLeave_ = this._onCenterMouseLeave.bind(this);
-        this._centerLayer.events.on("mouseleave", this._onCenterMouseLeave_, this);
-    }
-
-    _clearEvents() {
-        this._cornerLayer.events.off("ldblclick", this._onCornerLdblclick_);
-        this._onCornerLdblclick_ = null;
-
-        this._cornerLayer.events.off("ldown", this._onCornerLdown_);
-        this._onCornerLdown_ = null;
-
-        this._centerLayer.events.off("ldown", this._onCenterLdown_);
-        this._onCenterLdown_ = null;
-
-        this.renderer.events.off("lup", this._onLup_);
-        this._onLup_ = null;
-
-        this.renderer.events.off("mousemove", this._onMouseMove_);
-        this._onMouseMove_ = null;
-
-        this._cornerLayer.events.off("mouseenter", this._onCornerMouseEnter_);
-        this._onCornerMouseEnter_ = null;
-
-        this._cornerLayer.events.off("mouseleave", this._onCornerMouseLeave_);
-        this._onCornerMouseLeave_ = null;
-
-        this._centerLayer.events.off("mouseenter", this._onCenterMouseEnter_);
-        this._onCenterMouseEnter_ = null;
-
-        this._centerLayer.events.off("mouseleave", this._onCenterMouseLeave_);
-        this._onCenterMouseLeave_ = null;
-    }
-
-    clear() {
-
-        this._initCoordinates = this.getCoordinates();
-
-        let corners = this._cornerLayer.getEntities();
-
-        let i = corners.length;
-        while (i--) {
-            corners[i].remove();
-        }
-
-        let centers = this._centerLayer.getEntities();
-        i = centers.length;
-        while (i--) {
-            centers[i].remove();
-        }
-
-        let entities = this._outlineLayer.getEntities();
-        i = entities.length;
-        while (i--) {
-            entities[i].polyline.clear();
-            if (i > 0) {
-                entities[i].remove();
-            }
-        }
-
-        this._ghostOutlineLayer.getEntities()[0].polyline.clear();
-        this._ghostOutlineLayer.getEntities()[1].polyline.clear();
-    }
-
-    setCoordinates(coords) {
-        this.clear();
-        for (let i = 0; i < coords.length; i++) {
-            let ci = coords[i];
-            let cart = this._planet.ellipsoid.lonLatToCartesian(new LonLat(ci[0], ci[1], ci[2]));
-            this._appendCart(cart);
-        }
-    }
-
-    _drawCorners() {
-        let corners = this._cornerLayer.getEntities();
-        for (let i = 0; i < corners.length; i++) {
-            let ai = corners[i];
-            this._checkTerrainCollision(ai);
-        }
-    }
-
-    _drawCenters() {
-        let centers = this._centerLayer.getEntities();
-        for (let i = 0; i < centers.length; i++) {
-            let ai = centers[i];
-            this._checkTerrainCollision(ai);
-        }
-    }
-
-    _drawGhostCorner() {
-        if (this._showGhostPointer) {
-            this._checkTerrainCollision(this._ghostCorner);
-        }
-    }
-
-    frame() {
-        this._drawCorners();
-        this._drawCenters();
-        this._drawGhostCorner();
-    }
-
-    stopNewPoint() {
-        if (this.renderer) {
-            this.renderer.events.off("ldblclick", this._onMouseDblClick_);
-            this._onMouseDblClick_ = null;
-        }
-    }
-
-    startNewPoint() {
-        this._onMouseDblClick_ = this._onMouseDblClick.bind(this);
-        this.renderer.events.on("ldblclick", this._onMouseDblClick_, this);
-    }
-
-    showGhostPointer() {
-        this._showGhostPointer = true;
-        this._planet.addLayer(this._ghostOutlineLayer);
-        this._insertCornerIndex = this._cornerLayer.getEntities().length;
-    }
-
-    hideGhostPointer() {
-        this._showGhostPointer = false;
-        this._ghostOutlineLayer.remove();
-        this._insertCornerIndex = -1;
-    }
-
-    setGhostPointerPosition(groundPos) {
-        if (groundPos) {
-            this._ghostCorner.setCartesian3v(groundPos);
-            this._updateGhostOutlinePointer(groundPos);
-        }
-    }
-
-    _checkTerrainCollision(entity) {
-        let _tempTerrPoint = new Vec3();
-        let nodes = this._planet._renderedNodes;
-        for (let j = 0; j < nodes.length; j++) {
-            let seg = nodes[j].segment;
-            if (seg && seg._extentLonLat.isInside(entity.getLonLat())) {
-                seg.getEntityTerrainPoint(entity, _tempTerrPoint);
-                entity.setCartesian3v(_tempTerrPoint);
-                break;
-            }
-        }
+        this._ghostOutlineLayer.getEntities()[0].polyline.altitude =
+            this._ghostOutlineLayer.getEntities()[1].polyline.altitude = OUTLINE_ALT;
     }
 }
 
