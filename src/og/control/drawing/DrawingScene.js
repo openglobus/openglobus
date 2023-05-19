@@ -42,10 +42,6 @@ class DrawingScene extends RenderNode {
 
         this._planet = options.planet || null;
 
-        this._cornersArr = [];
-
-        this._centersArr = [];
-
         this._outlineLayer = new Vector("outline", {
             entities: [new Entity({
                 polyline: {
@@ -140,8 +136,10 @@ class DrawingScene extends RenderNode {
     }
 
     getCoordinates() {
-        if (this._cornersArr && this._cornersArr.length > 0) {
-            return this._cornersArr.map((c) => {
+        let corners = this._cornerLayer.getEntities();
+
+        if (corners.length > 0) {
+            return corners.map((c) => {
                 let ll = c.getLonLat();
                 return [ll.lon, ll.lat, ll.height];
             });
@@ -196,7 +194,8 @@ class DrawingScene extends RenderNode {
 
     _updateGhostOutlinePointer(groundPos) {
 
-        let size = this._cornersArr.length;
+        let corners = this._cornerLayer.getEntities();
+        let size = corners.length;
 
         if (size > 0) {
 
@@ -205,7 +204,7 @@ class DrawingScene extends RenderNode {
             let minDist = math.MAX;
 
             for (let i = 0; i < size; i++) {
-                let ci = this._cornersArr[i];
+                let ci = corners[i];
                 let dist = ci.getCartesian().distance(groundPos);
                 if (dist < minDist) {
                     minDist = dist;
@@ -213,9 +212,9 @@ class DrawingScene extends RenderNode {
                 }
             }
 
-            let cCurr = this._cornersArr[ind].getCartesian(),
-                cNext = this._cornersArr[(ind + 1) % size].getCartesian(),
-                cPrev = this._cornersArr[ind === 0 ? (size - 1) : (ind - 1)].getCartesian();
+            let cCurr = corners[ind].getCartesian(),
+                cNext = corners[(ind + 1) % size].getCartesian(),
+                cPrev = corners[ind === 0 ? (size - 1) : (ind - 1)].getCartesian();
 
             let nPrev = cPrev.sub(cCurr).normalize(),
                 nNext = cNext.sub(cCurr).normalize(),
@@ -236,7 +235,7 @@ class DrawingScene extends RenderNode {
             let temp = new Vec3();
 
             for (let i = 0; i < size; i++) {
-                let side = new Line3(this._cornersArr[i].getCartesian(), this._cornersArr[(i + 1) % size].getCartesian());
+                let side = new Line3(corners[i].getCartesian(), corners[(i + 1) % size].getCartesian());
                 let u = side.getNearestDistancePoint(groundPos, temp);
                 if (u) {
                     let dist = temp.distance(groundPos);
@@ -249,8 +248,8 @@ class DrawingScene extends RenderNode {
 
             this._insertCornerIndex = (ind + 1) % size;
 
-            let cartPrev = this._cornersArr[ind % size].getCartesian(),
-                cartNext = this._cornersArr[(ind + 1) % size].getCartesian();
+            let cartPrev = corners[ind % size].getCartesian(),
+                cartNext = corners[(ind + 1) % size].getCartesian();
 
             let vecPrev = this._ghostCorner.getCartesian().sub(cartPrev),
                 vecNext = this._ghostCorner.getCartesian().sub(cartNext);
@@ -345,7 +344,7 @@ class DrawingScene extends RenderNode {
 
             this._pickedCenter = null;
 
-            this._pickedCorner = this._cornersArr[index];
+            this._pickedCorner = this._cornerLayer.getEntities()[index];
 
         } else if (this._pickedCorner) {
 
@@ -358,12 +357,14 @@ class DrawingScene extends RenderNode {
 
                 this._pickedCorner.setCartesian3v(groundCoords);
 
-                if (this._cornersArr.length) {
-                    let ind = this._pickedCorner.layerIndex;
-                    let size = this._cornersArr.length;
+                let corners = this._cornerLayer.getEntities();
 
-                    let cartPrev = this._cornersArr[ind == 0 ? (size - 1) : (ind - 1)].getCartesian(),
-                        cartNext = this._cornersArr[(ind + 1) % size].getCartesian();
+                if (corners.length) {
+                    let ind = this._pickedCorner.layerIndex;
+                    let size = corners.length;
+
+                    let cartPrev = corners[ind == 0 ? (size - 1) : (ind - 1)].getCartesian(),
+                        cartNext = corners[(ind + 1) % size].getCartesian();
 
                     let vecPrev = this._pickedCorner.getCartesian().sub(cartPrev),
                         vecNext = this._pickedCorner.getCartesian().sub(cartNext);
@@ -395,8 +396,9 @@ class DrawingScene extends RenderNode {
 
                     //
                     // Move center points
-                    let prevCenter = this._centersArr[ind === 0 ? (size - 1) : (ind - 1)],
-                        nextCenter = this._centersArr[ind];
+                    let centers = this._centerLayer.getEntities();
+                    let prevCenter = centers[ind === 0 ? (size - 1) : (ind - 1)],
+                        nextCenter = centers[ind];
 
                     let prevCenterCart = vecPrev.scaleTo(distPrev * 0.5).addA(cartPrev),
                         nextCenterCart = vecNext.scaleTo(distNext * 0.5).addA(cartNext);
@@ -414,21 +416,22 @@ class DrawingScene extends RenderNode {
     }
 
     _appendCart(cart) {
-        let segNum = this._cornersArr.length - 1;
-        let prevCorn = this._cornersArr[segNum];
+        let corners = this._cornerLayer.getEntities();
+
+        let segNum = corners.length - 1;
+        let prevCorn = corners[segNum];
 
         let corner = new Entity({
             geoObject: CORNER_OPTIONS,
         });
 
         corner.setCartesian3v(cart);
-        this._cornersArr.push(corner);
         corner.addTo(this._cornerLayer);
         this._checkTerrainCollision(corner);
 
         if (prevCorn) {
 
-            let firstCart = this._cornersArr[0].getCartesian(),
+            let firstCart = corners[0].getCartesian(),
                 prevCart = prevCorn.getCartesian();
 
             let vecPrev = corner.getCartesian().sub(prevCart),
@@ -467,7 +470,8 @@ class DrawingScene extends RenderNode {
             entity.polyline.altitude = OUTLINE_ALT;
             this._outlineLayer.add(entity);
 
-            let firstCenter = this._centersArr[this._centersArr.length - 1];
+            let centers = this._centerLayer.getEntities();
+            let firstCenter = centers[centers.length - 1];
 
             let prevCenterCart = vecPrev.scaleTo(distPrev * 0.5).addA(prevCart),
                 firstCenterCart = vecFirst.scaleTo(distFirst * 0.5).addA(firstCart);
@@ -477,7 +481,6 @@ class DrawingScene extends RenderNode {
             });
             center.setCartesian3v(prevCenterCart);
             center.addTo(this._centerLayer);
-            this._centersArr.push(center);
             this._checkTerrainCollision(center);
 
             //moveToEnd
@@ -491,7 +494,6 @@ class DrawingScene extends RenderNode {
                 geoObject: CENTER_OPTIONS,
             });
             center.addTo(this._centerLayer);
-            this._centersArr.push(center);
         }
     }
 
@@ -501,7 +503,7 @@ class DrawingScene extends RenderNode {
 
         let cart = this._planet.getCartesianFromMouseTerrain();
         if (cart) {
-            if (this._insertCornerIndex === -1 || this._cornersArr.length < 2) {
+            if (this._insertCornerIndex === -1 || this._cornerLayer.getEntities().length < 2) {
                 this._appendCart(cart);
             } else {
                 let area = this.getCoordinates(),
@@ -512,7 +514,7 @@ class DrawingScene extends RenderNode {
                 this.clear();
                 this.setCoordinates(area);
             }
-            if (!this._isStartPoint && this._cornersArr.length > 2) {
+            if (!this._isStartPoint && this._cornerLayer.getEntities().length > 2) {
                 this._isStartPoint = true;
                 this.events.dispatch(this.events.startpoint, this);
             }
@@ -553,17 +555,18 @@ class DrawingScene extends RenderNode {
 
         this._initArea = this.getCoordinates();
 
-        let i = this._cornersArr.length;
-        while (i--) {
-            this._cornersArr[i].remove();
-        }
-        this._cornersArr = [];
+        let corners = this._cornerLayer.getEntities();
 
-        i = this._centersArr.length;
+        let i = corners.length;
         while (i--) {
-            this._centersArr[i].remove();
+            corners[i].remove();
         }
-        this._centersArr = [];
+
+        let centers = this._centerLayer.getEntities();
+        i = centers.length;
+        while (i--) {
+            centers[i].remove();
+        }
 
         let entities = this._outlineLayer.getEntities();
         i = entities.length;
@@ -573,8 +576,6 @@ class DrawingScene extends RenderNode {
                 entities[i].remove();
             }
         }
-
-        //this._trackEntity.polyline.clear();
     }
 
     setCoordinates(coords) {
@@ -586,17 +587,17 @@ class DrawingScene extends RenderNode {
     }
 
     _drawCorners() {
-        let len = this._cornersArr.length;
-        for (let i = 0; i < len; i++) {
-            let ai = this._cornersArr[i];
+        let corners = this._cornerLayer.getEntities();
+        for (let i = 0; i < corners.length; i++) {
+            let ai = corners[i];
             this._checkTerrainCollision(ai);
         }
     }
 
     _drawCenters() {
-        let len = this._centersArr.length;
-        for (let i = 0; i < len; i++) {
-            let ai = this._centersArr[i];
+        let centers = this._centerLayer.getEntities();
+        for (let i = 0; i < centers.length; i++) {
+            let ai = centers[i];
             this._checkTerrainCollision(ai);
         }
     }
@@ -630,7 +631,7 @@ class DrawingScene extends RenderNode {
     showGhostPointer() {
         this._showGhostPointer = true;
         this._planet.addLayer(this._ghostOutlineLayer);
-        this._insertCornerIndex = this._cornersArr.length;
+        this._insertCornerIndex = this._cornerLayer.getEntities().length;
     }
 
     hideGhostPointer() {
