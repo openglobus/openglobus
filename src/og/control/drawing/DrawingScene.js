@@ -40,7 +40,7 @@ class DrawingScene extends RenderNode {
 
         this.events = new Events(EVENT_NAMES);
 
-        this._planet = options.planet || null;
+        this._planet = null;
 
         this._outlineLayer = new Vector("outline", {
             entities: [new Entity({
@@ -62,7 +62,6 @@ class DrawingScene extends RenderNode {
         this._outlineLayer.getEntities()[0].polyline.altitude = OUTLINE_ALT;
 
         this._pickedCorner = null;
-
         this._pickedCenter = null;
 
         this._startPos = null;
@@ -137,7 +136,6 @@ class DrawingScene extends RenderNode {
 
     getCoordinates() {
         let corners = this._cornerLayer.getEntities();
-
         if (corners.length > 0) {
             return corners.map((c) => {
                 let ll = c.getLonLat();
@@ -154,29 +152,7 @@ class DrawingScene extends RenderNode {
 
     init() {
 
-        this._onCornerLdown_ = this._onCornerLdown.bind(this);
-        this._cornerLayer.events.on("ldown", this._onCornerLdown_, this);
-
-        this._onCenterLdown_ = this._onCenterLdown.bind(this);
-        this._centerLayer.events.on("ldown", this._onCenterLdown_, this);
-
-        this._onLup_ = this._onLup.bind(this);
-        this.renderer.events.on("lup", this._onLup_, this);
-
-        this._onMouseMove_ = this._onMouseMove.bind(this);
-        this.renderer.events.on("mousemove", this._onMouseMove_, this);
-
-        this._onCornerMouseEnter_ = this._onCornerMouseEnter.bind(this);
-        this._cornerLayer.events.on("mouseenter", this._onCornerMouseEnter_, this);
-
-        this._onCornerMouseLeave_ = this._onCornerMouseLeave.bind(this);
-        this._cornerLayer.events.on("mouseleave", this._onCornerMouseLeave_, this);
-
-        this._onCenterMouseEnter_ = this._onCenterMouseEnter.bind(this);
-        this._centerLayer.events.on("mouseenter", this._onCenterMouseEnter_, this);
-
-        this._onCenterMouseLeave_ = this._onCenterMouseLeave.bind(this);
-        this._centerLayer.events.on("mouseleave", this._onCenterMouseLeave_, this);
+        this._initEvents();
 
         // if (this._initArea) {
         //     this.setCoordinates(this._initArea);
@@ -303,6 +279,17 @@ class DrawingScene extends RenderNode {
         }
     }
 
+    _onLup(e) {
+        e.renderer.controls.mouseNavigation.activate();
+        if (this._pickedCorner || this._pickedCenter) {
+            this.events.dispatch(this.events.change, this);
+            this.setGhostPointerPosition(this._planet.getCartesianFromPixelTerrain(e));
+            this.showGhostPointer();
+            this._pickedCorner = null;
+            this._pickedCenter = null;
+        }
+    }
+
     _getLdown(e) {
         e.renderer.controls.mouseNavigation.deactivate();
         this._startClick.set(e.x, e.y);
@@ -317,16 +304,6 @@ class DrawingScene extends RenderNode {
 
     _onCenterLdown(e) {
         this._pickedCenter = this._getLdown(e);
-    }
-
-    _onLup(e) {
-        e.renderer.controls.mouseNavigation.activate();
-        if (this._pickedCorner || this._pickedCenter) {
-            this.events.dispatch(this.events.change, this);
-            this.showGhostPointer();
-            this._pickedCorner = null;
-            this._pickedCenter = null;
-        }
     }
 
     _onMouseMove(e) {
@@ -415,6 +392,47 @@ class DrawingScene extends RenderNode {
         }
     }
 
+
+    _onCornerLdblclick(e) {
+        this._cornerDblClick = true;
+        let coords = this.getCoordinates();
+        coords.splice(e.pickingObject.layerIndex, 1);
+        this.setCoordinates(coords);
+    }
+
+    _onMouseDblClick(e) {
+
+        if (this._cornerDblClick) {
+            this._cornerDblClick = false;
+            return;
+        }
+
+        if (this._isReadOnly || !this._showGhostPointer) {
+            return;
+        }
+
+        let cart = this._planet.getCartesianFromPixelTerrain(e);
+        if (cart) {
+            if (this._insertCornerIndex === -1 || this._cornerLayer.getEntities().length < 2) {
+                this._appendCart(cart);
+            } else {
+                let area = this.getCoordinates(),
+                    index = this._insertCornerIndex;
+                let ll = this._planet.ellipsoid.cartesianToLonLat(cart);
+                let newCorner = [ll.lon, ll.lat, ll.height];
+                area.splice(index, 0, newCorner);
+                this.clear();
+                this.setCoordinates(area);
+            }
+            if (!this._isStartPoint && this._cornerLayer.getEntities().length > 2) {
+                this._isStartPoint = true;
+                this.events.dispatch(this.events.startpoint, this);
+            }
+            this.events.dispatch(this.events.change, this);
+        }
+    }
+
+
     _appendCart(cart) {
         let corners = this._cornerLayer.getEntities();
 
@@ -497,46 +515,57 @@ class DrawingScene extends RenderNode {
         }
     }
 
-    _onMouseDblClick(e) {
-
-        if (this._isReadOnly || !this._showGhostPointer) return;
-
-        let cart = this._planet.getCartesianFromMouseTerrain();
-        if (cart) {
-            if (this._insertCornerIndex === -1 || this._cornerLayer.getEntities().length < 2) {
-                this._appendCart(cart);
-            } else {
-                let area = this.getCoordinates(),
-                    index = this._insertCornerIndex;
-                let ll = this._planet.ellipsoid.cartesianToLonLat(cart);
-                let newCorner = [ll.lon, ll.lat, ll.height];
-                area.splice(index, 0, newCorner);
-                this.clear();
-                this.setCoordinates(area);
-            }
-            if (!this._isStartPoint && this._cornerLayer.getEntities().length > 2) {
-                this._isStartPoint = true;
-                this.events.dispatch(this.events.startpoint, this);
-            }
-            this.events.dispatch(this.events.change, this);
-        }
-    }
-
     onremove() {
         this.stopNewPoint();
         this._clearEvents();
         this.clear();
     }
 
-    _clearEvents() {
-        this.events.off("ldown", this._onLdown_);
-        this._onLdown_ = null;
+    _initEvents() {
 
-        this.renderer.events.off("mousemove", this._onMouseMove_);
-        this._onMouseMove_ = null;
+        this._onCornerLdblclick_ = this._onCornerLdblclick.bind(this);
+        this._cornerLayer.events.on("ldblclick", this._onCornerLdblclick_, this);
+
+        this._onCornerLdown_ = this._onCornerLdown.bind(this);
+        this._cornerLayer.events.on("ldown", this._onCornerLdown_, this);
+
+        this._onCenterLdown_ = this._onCenterLdown.bind(this);
+        this._centerLayer.events.on("ldown", this._onCenterLdown_, this);
+
+        this._onLup_ = this._onLup.bind(this);
+        this.renderer.events.on("lup", this._onLup_, this);
+
+        this._onMouseMove_ = this._onMouseMove.bind(this);
+        this.renderer.events.on("mousemove", this._onMouseMove_, this);
+
+        this._onCornerMouseEnter_ = this._onCornerMouseEnter.bind(this);
+        this._cornerLayer.events.on("mouseenter", this._onCornerMouseEnter_, this);
+
+        this._onCornerMouseLeave_ = this._onCornerMouseLeave.bind(this);
+        this._cornerLayer.events.on("mouseleave", this._onCornerMouseLeave_, this);
+
+        this._onCenterMouseEnter_ = this._onCenterMouseEnter.bind(this);
+        this._centerLayer.events.on("mouseenter", this._onCenterMouseEnter_, this);
+
+        this._onCenterMouseLeave_ = this._onCenterMouseLeave.bind(this);
+        this._centerLayer.events.on("mouseleave", this._onCenterMouseLeave_, this);
+    }
+
+    _clearEvents() {
+        this._cornerLayer.events.off("ldblclick", this._onCornerLdblclick_);
+        this._onCornerLdblclick_ = null;
+
+        this._cornerLayer.events.off("ldown", this._onCornerLdown_);
+        this._onCornerLdown_ = null;
+
+        this._centerLayer.events.off("ldown", this._onCenterLdown_);
+        this._onCenterLdown_ = null;
 
         this.renderer.events.off("lup", this._onLup_);
         this._onLup_ = null;
+
+        this.renderer.events.off("mousemove", this._onMouseMove_);
+        this._onMouseMove_ = null;
 
         this._cornerLayer.events.off("mouseenter", this._onCornerMouseEnter_);
         this._onCornerMouseEnter_ = null;
@@ -579,6 +608,7 @@ class DrawingScene extends RenderNode {
     }
 
     setCoordinates(coords) {
+        this.clear();
         for (let i = 0; i < coords.length; i++) {
             let ci = coords[i];
             let cart = this._planet.ellipsoid.lonLatToCartesian(new LonLat(ci[0], ci[1], ci[2]));
