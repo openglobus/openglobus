@@ -14,9 +14,9 @@ import { LonLat } from '../../LonLat.js';
 
 const NUM_SEGMENTS = 120;
 
-const OUTLINE_ALT = 2.0;
+const OUTLINE_ALT = 1.0;
 
-let obj3d = Object3d.createCylinder(1, 1, 2.7, 20, 1, true, false, 0, 0, 0);
+let obj3d = Object3d.createCylinder(1, 0, 2.0, 20, 1, true, false, 0, 0, 0);
 
 const CORNER_OPTIONS = {
     scale: 1,
@@ -155,17 +155,6 @@ class DrawingScene extends RenderNode {
     }
 
     init() {
-
-        // this.events.on("mouseenter", (e) => {
-        //     e.renderer.handler.canvas.style.cursor = "pointer";
-        // });
-        //
-        // this.events.on("mouseleave", (e) => {
-        //     e.renderer.handler.canvas.style.cursor = "default";
-        // });
-
-        // this._onLdown_ = this._onLdown.bind(this);
-        // this.renderer.events.on("ldown", this._onLdown_, this);
 
         this._onCornerLdown_ = this._onCornerLdown.bind(this);
         this._cornerLayer.events.on("ldown", this._onCornerLdown_, this);
@@ -310,39 +299,32 @@ class DrawingScene extends RenderNode {
 
     _onCenterMouseLeave(e) {
         e.renderer.handler.canvas.style.cursor = "default";
-        this.showGhostPointer();
+        if (!(this._pickedCenter || this._pickedCorner)) {
+            this.showGhostPointer();
+        }
+    }
+
+    _getLdown(e) {
+        e.renderer.controls.mouseNavigation.deactivate();
+        this._startClick.set(e.x, e.y);
+        let coords = e.pickingObject.getCartesian();
+        this._startPos = this._planet.getPixelFromCartesian(coords);
+        return e.pickingObject;
     }
 
     _onCornerLdown(e) {
-        this._pickedCorner = e.pickingObject;
-        e.renderer.controls.mouseNavigation.deactivate();
-        this._startClick.set(e.x, e.y);
-        let coords = this._pickedCorner.getCartesian();
-        this._startPos = this._planet.getPixelFromCartesian(coords);
+        this._pickedCorner = this._getLdown(e);
     }
 
     _onCenterLdown(e) {
-        this._pickedCenter = e.pickingObject;
-        e.renderer.controls.mouseNavigation.deactivate();
-        this._startClick.set(e.x, e.y);
-        let coords = this._pickedCenter.getCartesian();
-        this._startPos = this._planet.getPixelFromCartesian(coords);
+        this._pickedCenter = this._getLdown(e);
     }
-
-    // _onLdown(e) {
-    //     let pickingObject = this._pickedCenter || this._pickedCorner;
-    //     if (pickingObject) {
-    //         e.renderer.controls.mouseNavigation.deactivate();
-    //         this._startClick.set(e.x, e.y);
-    //         let coords = pickingObject.getCartesian();
-    //         this._startPos = this._planet.getPixelFromCartesian(coords);
-    //     }
-    // }
 
     _onLup(e) {
         e.renderer.controls.mouseNavigation.activate();
         if (this._pickedCorner || this._pickedCenter) {
             this.events.dispatch(this.events.change, this);
+            this.showGhostPointer();
             this._pickedCorner = null;
             this._pickedCenter = null;
         }
@@ -495,9 +477,13 @@ class DrawingScene extends RenderNode {
             });
             center.setCartesian3v(prevCenterCart);
             center.addTo(this._centerLayer);
+            this._centersArr.push(center);
             this._checkTerrainCollision(center);
 
-            //firstCenter.moveToEnd();
+            //moveToEnd
+            firstCenter.remove();
+            firstCenter.addTo(this._centerLayer);
+
             firstCenter.setCartesian3v(firstCenterCart);
 
         } else {
