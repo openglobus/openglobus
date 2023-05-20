@@ -11,39 +11,37 @@ import { Vec3 } from '../../math/Vec3.js';
 import { Line3 } from '../../math/Line3.js';
 import { LonLat } from '../../LonLat.js';
 
-const NUM_SEGMENTS = 200;
+const POINTER_OBJ3D = Object3d.createCylinder(1, 1, 2.0, 20, 1, true, false, 0, -0.5, 0);
 
-const OUTLINE_ALT = 1.0;
+export const NUM_SEGMENTS = 200;
+export const OUTLINE_ALT = 1.0;
+export const COORDINATES_COLOR = "rgb(285, 178, 30)";
+export const CENTER_COLOR = "rgb(285, 178, 30)";
+export const OUTLINE_COLOR = "rgb(255, 148, 0)";
+export const OUTLINE_THICKNESS = 4.5;
 
-let obj3d = Object3d.createCylinder(1, 1, 2.0, 20, 1, true, false, 0, -0.5, 0);
-
-const COORDINATES_COLOR = "rgb(285, 178, 30)";
-const CENTER_COLOR = "rgb(285, 178, 30)";
-const OUTLINE_COLOR = "rgb(255, 148, 0)";
-const OUTLINE_THICKNESS = 4.5;
-
-const CORNER_OPTIONS = {
+export const CORNER_OPTIONS = {
     scale: 0.7,
     instanced: true,
     tag: "corners",
     color: COORDINATES_COLOR,
-    object3d: obj3d
+    object3d: POINTER_OBJ3D
 };
 
-const CENTER_OPTIONS = {
+export const CENTER_OPTIONS = {
     scale: 0.6,
     instanced: true,
     tag: "centers",
     color: CENTER_COLOR,
-    object3d: obj3d
+    object3d: POINTER_OBJ3D
 };
 
-const OUTLINE_OPTIONS = {
+export const OUTLINE_OPTIONS = {
     thickness: OUTLINE_THICKNESS,
     color: OUTLINE_COLOR
 }
 
-class DrawingScene extends RenderNode {
+class PolygonDrawingScene extends RenderNode {
     constructor(options = {}) {
         super(options.name);
 
@@ -136,15 +134,15 @@ class DrawingScene extends RenderNode {
 
         this._initEvents();
 
-        if (this._initCoordiantes) {
-            this.setCoordinates(this._initCoordiantes);
+        this._initGhostLayerPointer();
+
+        if (this._initCoordinates.length) {
+            this.setCoordinates(this._initCoordinates);
         }
 
         this._planet.addLayer(this._outlineLayer);
         this._planet.addLayer(this._cornerLayer);
         this._planet.addLayer(this._centerLayer);
-
-        this._initGhostLayerPointer();
 
         this.showGhostPointer();
         this.startNewPoint();
@@ -251,7 +249,7 @@ class DrawingScene extends RenderNode {
     }
 
     _onLup(e) {
-        e.renderer.controls.mouseNavigation.activate();
+        this._planet.renderer.controls.mouseNavigation.activate();
         if (this._pickedCorner || this._pickedCenter) {
             this.events.dispatch(this.events.change, this);
             this.setGhostPointerPosition(this._planet.getCartesianFromPixelTerrain(e));
@@ -262,7 +260,7 @@ class DrawingScene extends RenderNode {
     }
 
     _getLdown(e) {
-        e.renderer.controls.mouseNavigation.deactivate();
+        this._planet.renderer.controls.mouseNavigation.deactivate();
         this._startClick.set(e.x, e.y);
         let coords = e.pickingObject.getCartesian();
         this._startPos = this._planet.getPixelFromCartesian(coords);
@@ -547,7 +545,7 @@ class DrawingScene extends RenderNode {
                 let ind = this._pickedCorner.layerIndex;
                 let size = corners.length;
 
-                let cartPrev = corners[ind == 0 ? (size - 1) : (ind - 1)].getCartesian(),
+                let cartPrev = corners[ind === 0 ? (size - 1) : (ind - 1)].getCartesian(),
                     cartNext = corners[(ind + 1) % size].getCartesian();
 
                 let vecPrev = this._pickedCorner.getCartesian().sub(cartPrev),
@@ -747,4 +745,4 @@ const EVENT_NAMES = [
 ];
 
 
-export { DrawingScene };
+export { PolygonDrawingScene };

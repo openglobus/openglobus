@@ -5,7 +5,8 @@
 "use strict";
 
 import { Control } from "../Control.js";
-import { DrawingScene } from "./DrawingScene.js";
+import { PolygonDrawingScene } from "./PolygonDrawingScene.js";
+import { LineStringDrawingScene } from "./LineStringDrawingScene.js";
 
 /**
  * Activate drawing
@@ -17,7 +18,7 @@ class DrawingControl extends Control {
     constructor(options = {}) {
         super(options);
 
-        this._drawingScene = new DrawingScene({
+        this._drawingScene = new LineStringDrawingScene({
             name: `drawingScene:${this._id}`
         });
     }
