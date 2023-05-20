@@ -15,6 +15,10 @@ class LineStringDrawingScene extends PolygonDrawingScene {
         super(props);
     }
 
+    _addNew(cart) {
+        this._appendCart(cart);
+    }
+
     _appendCart(cart) {
         let corners = this._cornerLayer.getEntities();
 
@@ -31,30 +35,20 @@ class LineStringDrawingScene extends PolygonDrawingScene {
 
         if (prevCorn) {
 
-            let firstCart = corners[0].getCartesian(),
-                prevCart = prevCorn.getCartesian();
+            let prevCart = prevCorn.getCartesian();
 
-            let vecPrev = corner.getCartesian().sub(prevCart),
-                vecFirst = corner.getCartesian().sub(firstCart);
+            let vecPrev = corner.getCartesian().sub(prevCart);
 
-            let distPrev = vecPrev.length(),
-                distFirst = vecFirst.length();
+            let distPrev = vecPrev.length();
 
             vecPrev.normalize();
-            vecFirst.normalize();
 
-            let prevPath = [],
-                firstPath = [];
+            let prevPath = [];
 
             for (let i = 0; i <= NUM_SEGMENTS; i++) {
                 let p = vecPrev.scaleTo(i * distPrev / NUM_SEGMENTS).addA(prevCart);
                 prevPath.push(p);
-
-                let f = vecFirst.scaleTo(i * distFirst / NUM_SEGMENTS).addA(firstCart);
-                firstPath.push(f);
             }
-
-            this._outlineLayer.getEntities()[0].polyline.setPath3v([firstPath]);
 
             let entity = new Entity({
                 polyline: {
@@ -69,11 +63,7 @@ class LineStringDrawingScene extends PolygonDrawingScene {
             entity.polyline.altitude = OUTLINE_ALT;
             this._outlineLayer.add(entity);
 
-            let centers = this._centerLayer.getEntities();
-            let firstCenter = centers[centers.length - 1];
-
-            let prevCenterCart = vecPrev.scaleTo(distPrev * 0.5).addA(prevCart),
-                firstCenterCart = vecFirst.scaleTo(distFirst * 0.5).addA(firstCart);
+            let prevCenterCart = vecPrev.scaleTo(distPrev * 0.5).addA(prevCart);
 
             let center = new Entity({
                 geoObject: CENTER_OPTIONS,
@@ -82,23 +72,16 @@ class LineStringDrawingScene extends PolygonDrawingScene {
             center.addTo(this._centerLayer);
             this._checkTerrainCollision(center);
 
-            //moveToEnd
-            firstCenter.remove();
-            firstCenter.addTo(this._centerLayer);
-
-            firstCenter.setCartesian3v(firstCenterCart);
-
         } else {
-            let center = new Entity({
-                geoObject: CENTER_OPTIONS,
-            });
-            center.addTo(this._centerLayer);
+            // let center = new Entity({
+            //     geoObject: CENTER_OPTIONS,
+            // });
+            // center.addTo(this._centerLayer);
         }
     }
 
     _clearGhostPointer() {
         this._ghostOutlineLayer.getEntities()[0].polyline.clear();
-        this._ghostOutlineLayer.getEntities()[1].polyline.clear();
     }
 
     _moveCornerPoint(e) {
@@ -173,85 +156,30 @@ class LineStringDrawingScene extends PolygonDrawingScene {
 
         if (size > 0) {
 
-            let ind = 0;
+            let ind = size - 1;
 
-            let minDist = math.MAX;
+            this._insertCornerIndex = ind;
 
-            for (let i = 0; i < size; i++) {
-                let ci = corners[i];
-                let dist = ci.getCartesian().distance(groundPos);
-                if (dist < minDist) {
-                    minDist = dist;
-                    ind = i;
-                }
-            }
+            let cartPrev = corners[ind].getCartesian();
 
-            let cCurr = corners[ind].getCartesian(),
-                cNext = corners[(ind + 1) % size].getCartesian(),
-                cPrev = corners[ind === 0 ? (size - 1) : (ind - 1)].getCartesian();
+            let vecPrev = this._ghostCorner.getCartesian().sub(cartPrev);
 
-            let nPrev = cPrev.sub(cCurr).normalize(),
-                nNext = cNext.sub(cCurr).normalize(),
-                nGround = groundPos.sub(cCurr).normalize();
-
-            let midVec = nPrev.add(nNext).normalize();
-
-            let toMid = nGround.cross(midVec),
-                up = nPrev.cross(nNext);
-
-            if (toMid.dot(up) > 0) {
-                ind--;
-                if (ind < 0) {
-                    ind = size - 1;
-                }
-            }
-
-            let temp = new Vec3();
-
-            for (let i = 0; i < size; i++) {
-                let side = new Line3(corners[i].getCartesian(), corners[(i + 1) % size].getCartesian());
-                let u = side.getNearestDistancePoint(groundPos, temp);
-                if (u) {
-                    let dist = temp.distance(groundPos);
-                    if (dist < minDist) {
-                        minDist = dist;
-                        ind = i;
-                    }
-                }
-            }
-
-            this._insertCornerIndex = (ind + 1) % size;
-
-            let cartPrev = corners[ind % size].getCartesian(),
-                cartNext = corners[(ind + 1) % size].getCartesian();
-
-            let vecPrev = this._ghostCorner.getCartesian().sub(cartPrev),
-                vecNext = this._ghostCorner.getCartesian().sub(cartNext);
-
-            let distPrev = vecPrev.length(),
-                distNext = vecNext.length();
+            let distPrev = vecPrev.length();
 
             vecPrev.normalize();
-            vecNext.normalize();
 
-            let pathPrev = [],
-                pathNext = [];
+            let pathPrev = [];
 
             for (let i = 0; i <= NUM_SEGMENTS; i++) {
                 let p = vecPrev.scaleTo(i * distPrev / NUM_SEGMENTS).addA(cartPrev);
                 pathPrev.push(p);
-
-                let f = vecNext.scaleTo(i * distNext / NUM_SEGMENTS).addA(cartNext);
-                pathNext.push(f);
             }
 
             let entities = this._ghostOutlineLayer.getEntities();
 
-            let prevPolyline = entities[0].polyline,
-                nextPolyline = entities[1].polyline;
+            let prevPolyline = entities[0].polyline;
 
             prevPolyline.setPath3v([pathPrev]);
-            nextPolyline.setPath3v([pathNext]);
         }
     }
 
@@ -266,21 +194,11 @@ class LineStringDrawingScene extends PolygonDrawingScene {
                 properties: {
                     index: 0
                 }
-            }), new Entity({
-                polyline: {
-                    path3v: [],
-                    isClosed: false,
-                    ...OUTLINE_OPTIONS
-                },
-                properties: {
-                    index: 0
-                }
             }),
             this._ghostCorner
         ]);
 
-        this._ghostOutlineLayer.getEntities()[0].polyline.altitude =
-            this._ghostOutlineLayer.getEntities()[1].polyline.altitude = OUTLINE_ALT;
+        this._ghostOutlineLayer.getEntities()[0].polyline.altitude = OUTLINE_ALT;
     }
 }
 

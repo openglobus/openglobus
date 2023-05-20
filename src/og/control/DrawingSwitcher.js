@@ -33,6 +33,10 @@ const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="utf-8"?>
 </g>
 </svg>`;
 
+// <?xml version="1.0" encoding="utf-8"?>
+// <!-- License: MIT. Made by Esri: https://github.com/Esri/calcite-ui-icons -->
+//     <svg width="800px" height="800px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 6h.046l-5.25 9h-.944L10 9.455V7H7v2.926L1.862 18H0v3h3v-2.926L8.138 10h1.01L14 15.545V18h3v-3h-.046l5.25-9H24V3h-3zM8 8h1v1H8zM2 20H1v-1h1zm14-3h-1v-1h1zm7-13v1h-1V4z"/><path fill="none" d="M0 0h24v24H0z"/></svg>
+
 /**
  * Activate drawing control
  * @class

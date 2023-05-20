@@ -305,17 +305,7 @@ class PolygonDrawingScene extends RenderNode {
 
         let cart = this._planet.getCartesianFromPixelTerrain(e);
         if (cart) {
-            if (this._insertCornerIndex === -1 || this._cornerLayer.getEntities().length < 2) {
-                this._appendCart(cart);
-            } else {
-                let area = this.getCoordinates(),
-                    index = this._insertCornerIndex;
-                let ll = this._planet.ellipsoid.cartesianToLonLat(cart);
-                let newCorner = [ll.lon, ll.lat, ll.height];
-                area.splice(index, 0, newCorner);
-                this.clear();
-                this.setCoordinates(area);
-            }
+            this._addNew(cart);
             if (!this._isStartPoint && this._cornerLayer.getEntities().length > 2) {
                 this._isStartPoint = true;
                 this.events.dispatch(this.events.startpoint, this);
@@ -443,6 +433,21 @@ class PolygonDrawingScene extends RenderNode {
     //
     // virtual
     //
+
+    _addNew(cart) {
+        if (this._insertCornerIndex === -1 || this._cornerLayer.getEntities().length < 2) {
+            this._appendCart(cart);
+        } else {
+            let area = this.getCoordinates(),
+                index = this._insertCornerIndex;
+            let ll = this._planet.ellipsoid.cartesianToLonLat(cart);
+            let newCorner = [ll.lon, ll.lat, ll.height];
+            area.splice(index, 0, newCorner);
+            this.clear();
+            this.setCoordinates(area);
+        }
+    }
+
     _appendCart(cart) {
         let corners = this._cornerLayer.getEntities();
 
