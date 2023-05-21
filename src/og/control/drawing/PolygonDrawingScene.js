@@ -14,14 +14,14 @@ import { LonLat } from '../../LonLat.js';
 const POINTER_OBJ3D = Object3d.createCylinder(1, 1, 2.0, 20, 1, true, false, 0, -0.5, 0);
 
 export const NUM_SEGMENTS = 200;
-export const OUTLINE_ALT = 1.0;
-export const COORDINATES_COLOR = "rgb(285, 178, 30)";
-export const CENTER_COLOR = "rgb(285, 178, 30)";
-export const OUTLINE_COLOR = "rgb(255, 148, 0)";
-export const OUTLINE_THICKNESS = 4.5;
+export const OUTLINE_ALT = 0.3;
+export const COORDINATES_COLOR = "rgb(350, 350, 0)";
+export const CENTER_COLOR = "rgb(0, 350, 50)";
+export const OUTLINE_COLOR = "rgb(0, 350, 50)";
+export const OUTLINE_THICKNESS = 5;
 
 export const CORNER_OPTIONS = {
-    scale: 0.7,
+    scale: 0.4,
     instanced: true,
     tag: "corners",
     color: COORDINATES_COLOR,
@@ -29,7 +29,7 @@ export const CORNER_OPTIONS = {
 };
 
 export const CENTER_OPTIONS = {
-    scale: 0.6,
+    scale: 0.3,
     instanced: true,
     tag: "centers",
     color: CENTER_COLOR,
