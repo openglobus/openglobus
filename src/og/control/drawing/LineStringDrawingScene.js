@@ -72,11 +72,6 @@ class LineStringDrawingScene extends PolygonDrawingScene {
             center.addTo(this._centerLayer);
             this._checkTerrainCollision(center);
 
-        } else {
-            // let center = new Entity({
-            //     geoObject: CENTER_OPTIONS,
-            // });
-            // center.addTo(this._centerLayer);
         }
     }
 
@@ -100,51 +95,118 @@ class LineStringDrawingScene extends PolygonDrawingScene {
                 let ind = this._pickedCorner.layerIndex;
                 let size = corners.length;
 
-                let cartPrev = corners[ind === 0 ? (size - 1) : (ind - 1)].getCartesian(),
-                    cartNext = corners[(ind + 1) % size].getCartesian();
+                if (ind === 0) {
+                    let cartNext = corners[ind + 1].getCartesian();
 
-                let vecPrev = this._pickedCorner.getCartesian().sub(cartPrev),
-                    vecNext = this._pickedCorner.getCartesian().sub(cartNext);
+                    let vecNext = this._pickedCorner.getCartesian().sub(cartNext);
 
-                let distPrev = vecPrev.length(),
-                    distNext = vecNext.length();
+                    let distNext = vecNext.length();
 
-                vecPrev.normalize();
-                vecNext.normalize();
+                    vecNext.normalize();
 
-                let pathPrev = [],
-                    pathNext = [];
+                    let pathNext = [];
 
-                for (let i = 0; i <= NUM_SEGMENTS; i++) {
-                    let p = vecPrev.scaleTo(i * distPrev / NUM_SEGMENTS).addA(cartPrev);
-                    pathPrev.push(p);
+                    for (let i = 0; i <= NUM_SEGMENTS; i++) {
+                        let f = vecNext.scaleTo(i * distNext / NUM_SEGMENTS).addA(cartNext);
+                        pathNext.push(f);
+                    }
 
-                    let f = vecNext.scaleTo(i * distNext / NUM_SEGMENTS).addA(cartNext);
-                    pathNext.push(f);
+                    let entities = this._outlineLayer.getEntities();
+
+                    let nextPolyline = entities[ind + 1].polyline;
+
+                    nextPolyline.setPath3v([pathNext]);
+
+                    //
+                    // Move center points
+                    let centers = this._centerLayer.getEntities();
+                    let nextCenter = centers[ind];
+
+                    let nextCenterCart = vecNext.scaleTo(distNext * 0.5).addA(cartNext);
+
+                    nextCenter.setCartesian3v(nextCenterCart);
+                    this._checkTerrainCollision(nextCenter);
+
+                } else if (ind === corners.length - 1) {
+
+                    let cartPrev = corners[ind - 1].getCartesian();
+
+                    let vecPrev = this._pickedCorner.getCartesian().sub(cartPrev);
+
+                    let distPrev = vecPrev.length();
+
+                    vecPrev.normalize();
+
+                    let pathPrev = [];
+
+                    for (let i = 0; i <= NUM_SEGMENTS; i++) {
+                        let p = vecPrev.scaleTo(i * distPrev / NUM_SEGMENTS).addA(cartPrev);
+                        pathPrev.push(p);
+                    }
+
+                    let entities = this._outlineLayer.getEntities();
+
+                    let prevPolyline = entities[ind].polyline;
+
+                    prevPolyline.setPath3v([pathPrev]);
+
+                    //
+                    // Move center points
+                    let centers = this._centerLayer.getEntities();
+                    let prevCenter = centers[ind - 1];
+
+                    let prevCenterCart = vecPrev.scaleTo(distPrev * 0.5).addA(cartPrev);
+
+                    prevCenter.setCartesian3v(prevCenterCart);
+                    this._checkTerrainCollision(prevCenter);
+
+                } else {
+                    let cartPrev = corners[ind - 1].getCartesian(),
+                        cartNext = corners[ind + 1].getCartesian();
+
+                    let vecPrev = this._pickedCorner.getCartesian().sub(cartPrev),
+                        vecNext = this._pickedCorner.getCartesian().sub(cartNext);
+
+                    let distPrev = vecPrev.length(),
+                        distNext = vecNext.length();
+
+                    vecPrev.normalize();
+                    vecNext.normalize();
+
+                    let pathPrev = [],
+                        pathNext = [];
+
+                    for (let i = 0; i <= NUM_SEGMENTS; i++) {
+                        let p = vecPrev.scaleTo(i * distPrev / NUM_SEGMENTS).addA(cartPrev);
+                        pathPrev.push(p);
+
+                        let f = vecNext.scaleTo(i * distNext / NUM_SEGMENTS).addA(cartNext);
+                        pathNext.push(f);
+                    }
+
+                    let entities = this._outlineLayer.getEntities();
+
+                    let prevPolyline = entities[ind].polyline,
+                        nextPolyline = entities[(ind + 1) % size].polyline;
+
+                    prevPolyline.setPath3v([pathPrev]);
+                    nextPolyline.setPath3v([pathNext]);
+
+                    //
+                    // Move center points
+                    let centers = this._centerLayer.getEntities();
+                    let prevCenter = centers[ind === 0 ? (size - 1) : (ind - 1)],
+                        nextCenter = centers[ind];
+
+                    let prevCenterCart = vecPrev.scaleTo(distPrev * 0.5).addA(cartPrev),
+                        nextCenterCart = vecNext.scaleTo(distNext * 0.5).addA(cartNext);
+
+                    prevCenter.setCartesian3v(prevCenterCart);
+                    this._checkTerrainCollision(prevCenter);
+
+                    nextCenter.setCartesian3v(nextCenterCart);
+                    this._checkTerrainCollision(nextCenter);
                 }
-
-                let entities = this._outlineLayer.getEntities();
-
-                let prevPolyline = entities[ind].polyline,
-                    nextPolyline = entities[(ind + 1) % size].polyline;
-
-                prevPolyline.setPath3v([pathPrev]);
-                nextPolyline.setPath3v([pathNext]);
-
-                //
-                // Move center points
-                let centers = this._centerLayer.getEntities();
-                let prevCenter = centers[ind === 0 ? (size - 1) : (ind - 1)],
-                    nextCenter = centers[ind];
-
-                let prevCenterCart = vecPrev.scaleTo(distPrev * 0.5).addA(cartPrev),
-                    nextCenterCart = vecNext.scaleTo(distNext * 0.5).addA(cartNext);
-
-                prevCenter.setCartesian3v(prevCenterCart);
-                this._checkTerrainCollision(prevCenter);
-
-                nextCenter.setCartesian3v(nextCenterCart);
-                this._checkTerrainCollision(nextCenter);
             }
         }
     }
