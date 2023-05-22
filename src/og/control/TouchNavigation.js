@@ -75,14 +75,6 @@ class TouchNavigation extends Control {
         this.touches = [new Touch(), new Touch()];
 
         this._keyLock = new Key();
-        // this.middlePoint = new Entity({
-        //     billboard: {
-        //         src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAH0AAAB9CAMAAAC4XpwXAAAAYFBMVEX///8AAAD39/fj4+P8/Pzr6+sUFBSoqKjW1tbOzs6ZmZnFxcWhoaFISEgbGxu6urogICBiYmJ5eXk/Pz+ysrJubm6Tk5N/f39YWFgyMjKNjY0qKipzc3NSUlIMDAyFhYV3jNPgAAAB7klEQVRoge2ZDZKCMAxGSbEWUFDAP1DX+99yp+vquCra9ktxdibvAg9KSNIkSQRBEARBEARBEITRUDq1aDUZWTzRpqnbiizTtm6MHu8Jsr6je/Z9PoZaraYP6l+Miu02yyG3/QhFVP+sfeG2dItobnV647YcIr1+uneQE1VZDPnKyW2Z88vnznKiDbfceMiJCl65+7GfMZzy3FNONOOT68H0NkzKZj/6y6nlkvtF3AWmyFNBciLNYt8G2tcc8jRQTsSRcptgO8PL62A5x1/nk9/v6WF7CdhbtNZngJwI7TTDMs0FNOPsIDuabl+1sO+psA+ffkF2MOHMMDlhDbZvT3PPCrJjIY/2lxvQvoXsPWhv/rG9AO0nyI5GHZZqP/vHfTbbhNwjbgFbO7DKgKOsGrKXmBwMO3SOgHVWcEcfcoO8gB48dvT4AEcDUc9wh3cZ0j3ngMuBqxTL+CK0w8A6iyuBdqaR6SJIjpW3G9YB8h2XPFFu8+FbKp6pzQ+pd6FlHVT7DisZR5UWv8hji7gQPeuM+Ix7rWU+9jPKrdiWjNH+B5fuvoi3lczeDVKOUVZCV15u5Np427irf+j9yyjR9oAyj312PY8VbE+Y5EVTl92yWnZl3RT52Cv4xK7/LaMv/wVBEARBEARBEARBGJVvKBMWoqDjlbEAAAAASUVORK5CYII=\n",
-        //         width: 64,
-        //         height: 64,
-        //         offset: [0, 32]
-        //     }
-        // });
     }
 
     oninit() {
@@ -97,16 +89,6 @@ class TouchNavigation extends Control {
     onTouchStart(e) {
         const handler = this.renderer.handler;
         this._touching = true;
-
-        // this.vec = new Vector("track", {
-        //     entities: [],
-        //     pickingEnabled: false,
-        //     polygonOffsetUnits: -1.0,
-        //     relativeToGround: true,
-        //     displayInLayerSwitcher: false
-        // });
-        // this.planet.addLayer(this.vec);
-        // this.vec.add(this.middlePoint)
 
         if (e.sys.touches.length === 2) {
             const t0 = this.touches[0],
@@ -238,7 +220,6 @@ class TouchNavigation extends Control {
             if (earthMiddlePoint) {
                 this.pointOnEarth = earthMiddlePoint
 
-                // this.middlePoint.setCartesian3v(this.pointOnEarth)
                 const prevAngle = Math.atan2(t0.prev_y - t1.prev_y, t0.prev_x - t1.prev_x)
                 const curAngle = Math.atan2(t0.y - t1.y, t0.x - t1.x)
 
