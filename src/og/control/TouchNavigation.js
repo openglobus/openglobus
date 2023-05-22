@@ -1,7 +1,3 @@
-/**
- * @module og/control/TouchNavigation
- */
-
 "use strict";
 
 import { Sphere } from "../bv/Sphere.js";
@@ -12,8 +8,7 @@ import { Ray } from "../math/Ray.js";
 import { Vec3 } from "../math/Vec3.js";
 import { Control } from "./Control.js";
 import { Vec2 } from "../math/index.js";
-import { Entity } from "../entity/index.js";
-import { math, Vector } from "../index.js";
+import { math } from "../index.js";
 
 class Touch {
     constructor() {
