@@ -565,7 +565,7 @@ export function base64StringToBlog(string) {
  * Callback throttling
  * @param {any} func
  * @param {Number} limit
- * @param {Number} skip
+ * @param {boolean} [skip]
  */
 export function throttle(func, limit, skip) {
     let lastFunc;
