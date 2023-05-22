@@ -9,10 +9,15 @@ import {
 import { Entity } from "../../entity/Entity.js";
 import { Line3, Vec2, Vec3 } from "../../math/index.js";
 import * as math from "../../math.js";
+import { GeometryType } from "../../entity/Geometry.js";
 
 class LineStringDrawingScene extends PolygonDrawingScene {
     constructor(props) {
         super(props);
+    }
+
+    get geometryType() {
+        return "LineString";
     }
 
     _addNew(cart) {

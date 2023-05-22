@@ -10,6 +10,7 @@ import { RenderNode } from '../../scene/RenderNode.js';
 import { Vec3 } from '../../math/Vec3.js';
 import { Line3 } from '../../math/Line3.js';
 import { LonLat } from '../../LonLat.js';
+import { Geometry, GeometryType } from "../../entity/Geometry.js";
 
 const POINTER_OBJ3D = Object3d.createCylinder(1, 1, 2.0, 20, 1, true, false, 0, -0.5, 0);
 
@@ -56,6 +57,8 @@ class PolygonDrawingScene extends RenderNode {
 
         this._startPos = null;
         this._startClick = new Vec2();
+
+        this._geometryLayer = new Vector();
 
         //
         // outline vectors
@@ -114,6 +117,10 @@ class PolygonDrawingScene extends RenderNode {
         this._insertCornerIndex = -1;
     }
 
+    get geometryType() {
+        return "Polygon";
+    }
+
     getCoordinates() {
         let corners = this._cornerLayer.getEntities();
         if (corners.length > 0) {
@@ -148,6 +155,28 @@ class PolygonDrawingScene extends RenderNode {
         this.startNewPoint();
 
         this._planet.renderer.controls.mouseNavigation.deactivateDoubleClickZoom();
+
+        this._geometryLayer.addTo(this._planet);
+
+        this._onChange_ = this._onChange.bind(this);
+        this.events.on("change", this._onChange_, this);
+    }
+
+    _onChange(e) {
+        if (e.geometryType === "Polygon") {
+            let coords = this.getCoordinates();
+            let entity = new Entity({
+                'geometry': {
+                    'type': e.geometryType,
+                    'coordinates': [coords],
+                    'style': {
+                        'fillColor': "rgba(0,146,247,0.6)"
+                    }
+                }
+            });
+            this._geometryLayer.clear();
+            this._geometryLayer.add(entity);
+        }
     }
 
     onremove() {
@@ -155,9 +184,12 @@ class PolygonDrawingScene extends RenderNode {
         this.hideGhostPointer();
         this.stopNewPoint();
         this.clear();
+        this._geometryLayer.remove();
     }
 
     clear() {
+
+        this._geometryLayer.clear();
 
         let corners = this._cornerLayer.getEntities();
 
@@ -191,6 +223,7 @@ class PolygonDrawingScene extends RenderNode {
             let cart = this._planet.ellipsoid.lonLatToCartesian(new LonLat(ci[0], ci[1], ci[2]));
             this._appendCart(cart);
         }
+        this.events.dispatch(this.events.change, this);
     }
 
     stopNewPoint() {
@@ -420,7 +453,6 @@ class PolygonDrawingScene extends RenderNode {
 
         coords.splice(index, 0, newCorner);
 
-        this.clear();
         this.setCoordinates(coords);
 
         this._pickedCenter = null;

@@ -192,6 +192,11 @@ class Geometry {
         return res;
     }
 
+    /**
+     * @todo
+     * @param geoJson
+     * @returns {Geometry}
+     */
     setGeometry(geoJson) {
         var h = this._handler;
         this.remove();
