@@ -3,8 +3,9 @@
 import { ToggleButton } from "../ui/ToggleButton.js";
 import { Control } from "./Control.js";
 import { DrawingControl } from "./drawing/DrawingControl.js";
+import { ButtonGroup } from "../ui/ButtonGroup.js";
 
-const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="utf-8"?>
+const ICON_POLYGON_SVG = `<?xml version="1.0" encoding="utf-8"?>
 <!-- Generator: Adobe Illustrator 24.1.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
 <svg version="1.1" id="Layer_2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 \t viewBox="0 0 1024 1024" style="enable-background:new 0 0 1024 1024;" xml:space="preserve">
@@ -33,9 +34,10 @@ const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="utf-8"?>
 </g>
 </svg>`;
 
-// <?xml version="1.0" encoding="utf-8"?>
-// <!-- License: MIT. Made by Esri: https://github.com/Esri/calcite-ui-icons -->
-//     <svg width="800px" height="800px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 6h.046l-5.25 9h-.944L10 9.455V7H7v2.926L1.862 18H0v3h3v-2.926L8.138 10h1.01L14 15.545V18h3v-3h-.046l5.25-9H24V3h-3zM8 8h1v1H8zM2 20H1v-1h1zm14-3h-1v-1h1zm7-13v1h-1V4z"/><path fill="none" d="M0 0h24v24H0z"/></svg>
+const ICON_LINESTRING_SVG = `<?xml version="1.0" encoding="utf-8"?><!-- License: MIT. Made by Esri: https://github.com/Esri/calcite-ui-icons -->
+    <svg width="800px" height="800px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 6h.046l-5.25 9h-.944L10 9.455V7H7v2.926L1.862 18H0v3h3v-2.926L8.138 10h1.01L14 15.545V18h3v-3h-.046l5.25-9H24V3h-3zM8 8h1v1H8zM2 20H1v-1h1zm14-3h-1v-1h1zm7-13v1h-1V4z"/></svg>`;
+
+const ICON_DEFAULT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M4 0l16 12.279-6.951 1.17 4.325 8.817-3.596 1.734-4.35-8.879-5.428 4.702z"/></svg>`;
 
 /**
  * Activate drawing control
@@ -55,7 +57,7 @@ class DrawingSwitcher extends Control {
 
     oninit() {
         this.planet.addControl(this.drawingControl);
-        this._createMenuBtn();
+        this._createMenu();
     }
 
     onactivate() {
@@ -66,22 +68,48 @@ class DrawingSwitcher extends Control {
         this.drawingControl.deactivate();
     }
 
-    _createMenuBtn() {
+    _createMenu() {
 
-        let btn = new ToggleButton({
-            classList: ["og-map-button", "og-drawing_button"],
-            icon: ICON_BUTTON_SVG
+        let defaultBtn = new ToggleButton({
+            classList: ["og-map-button", "og-drawing-default_button"],
+            icon: ICON_DEFAULT_SVG,
+            name: "default",
+            isActive: true
         });
 
-        btn.appendTo(this.renderer.div);
+        let polyBtn = new ToggleButton({
+            classList: ["og-map-button", "og-drawing-polygon_button"],
+            icon: ICON_POLYGON_SVG,
+            name: "polygon"
+        });
 
-        btn.on("change", (isActive) => {
-            if (isActive) {
-                this.onactivate();
-            } else {
-                this.ondeactivate();
+        let lineBtn = new ToggleButton({
+            classList: ["og-map-button", "og-drawing-linestring_button"],
+            icon: ICON_LINESTRING_SVG,
+            name: "linestring"
+        });
+
+        let buttons = new ButtonGroup({
+            buttons: [
+                defaultBtn, polyBtn, lineBtn
+            ]
+        });
+
+        buttons.on("change", (btn) => {
+            this.drawingControl.deactivate();
+            switch (btn.name) {
+                case "polygon":
+                    this.drawingControl.activatePolygonDrawing();
+                    break;
+                case "linestring":
+                    this.drawingControl.activateLineStringDrawing();
+                    break;
             }
         });
+
+        defaultBtn.appendTo(this.renderer.div)
+        polyBtn.appendTo(this.renderer.div);
+        lineBtn.appendTo(this.renderer.div);
     }
 }
 

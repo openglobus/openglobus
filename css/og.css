@@ -333,8 +333,22 @@ details[open] {
     display: block;
 }
 
-.og-drawing_button {
-    top: 65px;
+.og-drawing-default_button {
+    top: 12px;
+    right: 166px;
+}
+
+.og-drawing-default_button .og-button-icon {
+    transform: scale(0.73);
+}
+
+.og-drawing-polygon_button {
+    top: 12px;
+    right: 115px;
+}
+
+.og-drawing-linestring_button {
+    top: 12px;
     right: 66px;
 }
 

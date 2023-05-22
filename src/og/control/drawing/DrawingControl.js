@@ -23,11 +23,27 @@ class DrawingControl extends Control {
         });
     }
 
+    activatePolygonDrawing(){
+        this.deactivate();
+        this._drawingScene = new PolygonDrawingScene({
+            name: `drawingScene:${this._id}`
+        });
+        this.activate();
+    }
+
+    activateLineStringDrawing() {
+        this.deactivate();
+        this._drawingScene = new LineStringDrawingScene({
+            name: `drawingScene:${this._id}`
+        });
+        this.activate();
+    }
+
     oninit() {
-        this._drawingScene.bindPlanet(this.planet);
     }
 
     onactivate() {
+        this._drawingScene.bindPlanet(this.planet);
         this.renderer.addNode(this._drawingScene);
     }
 

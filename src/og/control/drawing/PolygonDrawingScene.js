@@ -18,10 +18,10 @@ export const OUTLINE_ALT = 0.3;
 export const COORDINATES_COLOR = "rgb(350, 350, 0)";
 export const CENTER_COLOR = "rgb(0, 350, 50)";
 export const OUTLINE_COLOR = "rgb(0, 350, 50)";
-export const OUTLINE_THICKNESS = 5;
+export const OUTLINE_THICKNESS = 3.5;
 
 export const CORNER_OPTIONS = {
-    scale: 0.4,
+    scale: 0.5,
     instanced: true,
     tag: "corners",
     color: COORDINATES_COLOR,
@@ -29,7 +29,7 @@ export const CORNER_OPTIONS = {
 };
 
 export const CENTER_OPTIONS = {
-    scale: 0.3,
+    scale: 0.4,
     instanced: true,
     tag: "centers",
     color: CENTER_COLOR,
@@ -62,14 +62,14 @@ class PolygonDrawingScene extends RenderNode {
         //
         this._cornerLayer = new Vector("corners", {
             pickingEnabled: true,
-            polygonOffsetUnits: 0,
+            polygonOffsetUnits: -5,
             relativeToGround: true,
             scaleByDistance: [100, 4000000, 1.0]
         });
 
         this._centerLayer = new Vector("centers", {
             pickingEnabled: true,
-            polygonOffsetUnits: 0,
+            polygonOffsetUnits: -5,
             relativeToGround: true,
             scaleByDistance: [100, 4000000, 1.0]
         });
@@ -86,7 +86,7 @@ class PolygonDrawingScene extends RenderNode {
                 }
             })],
             pickingEnabled: false,
-            polygonOffsetUnits: 0,
+            polygonOffsetUnits: -5,
             relativeToGround: true
         });
 
@@ -101,7 +101,7 @@ class PolygonDrawingScene extends RenderNode {
 
         this._ghostOutlineLayer = new Vector("ghost-pointer", {
             pickingEnabled: false,
-            polygonOffsetUnits: 0,
+            polygonOffsetUnits: -5,
             relativeToGround: true,
             scaleByDistance: [100, 4000000, 1.0],
             opacity: 0.5
@@ -158,8 +158,6 @@ class PolygonDrawingScene extends RenderNode {
     }
 
     clear() {
-
-        this._initCoordinates = this.getCoordinates();
 
         let corners = this._cornerLayer.getEntities();
 
