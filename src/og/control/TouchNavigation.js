@@ -7,11 +7,13 @@
 import { Sphere } from "../bv/Sphere.js";
 import { Key } from "../Lock.js";
 import { LonLat } from "../LonLat.js";
-import * as math from "../math.js";
 import { Quat } from "../math/Quat.js";
 import { Ray } from "../math/Ray.js";
 import { Vec3 } from "../math/Vec3.js";
 import { Control } from "./Control.js";
+import { Vec2 } from "../math/index.js";
+import { Entity } from "../entity/index.js";
+import { math, Vector } from "../index.js";
 
 class Touch {
     constructor() {
@@ -21,12 +23,24 @@ class Touch {
         this.prev_y = 0;
         this.grabbedPoint = new Vec3();
         this.grabbedSpheroid = new Sphere();
-        this.dX = function () {
-            return this.x - this.prev_x;
-        };
-        this.dY = function () {
-            return this.y - this.prev_y;
-        };
+        this._vec = new Vec2();
+        this._vecPrev = new Vec2();
+    }
+
+    get dY() {
+        return this.y - this.prev_y;
+    }
+
+    get dX() {
+        return this.x - this.prev_x;
+    }
+
+    get vec() {
+        return this._vec.set(this.x, this.y);
+    }
+
+    get vecPrev() {
+        return this._vecPrev.set(this.prev_x, this.prev_y);
     }
 }
 
@@ -61,6 +75,14 @@ class TouchNavigation extends Control {
         this.touches = [new Touch(), new Touch()];
 
         this._keyLock = new Key();
+        // this.middlePoint = new Entity({
+        //     billboard: {
+        //         src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAH0AAAB9CAMAAAC4XpwXAAAAYFBMVEX///8AAAD39/fj4+P8/Pzr6+sUFBSoqKjW1tbOzs6ZmZnFxcWhoaFISEgbGxu6urogICBiYmJ5eXk/Pz+ysrJubm6Tk5N/f39YWFgyMjKNjY0qKipzc3NSUlIMDAyFhYV3jNPgAAAB7klEQVRoge2ZDZKCMAxGSbEWUFDAP1DX+99yp+vquCra9ktxdibvAg9KSNIkSQRBEARBEARBEITRUDq1aDUZWTzRpqnbiizTtm6MHu8Jsr6je/Z9PoZaraYP6l+Miu02yyG3/QhFVP+sfeG2dItobnV647YcIr1+uneQE1VZDPnKyW2Z88vnznKiDbfceMiJCl65+7GfMZzy3FNONOOT68H0NkzKZj/6y6nlkvtF3AWmyFNBciLNYt8G2tcc8jRQTsSRcptgO8PL62A5x1/nk9/v6WF7CdhbtNZngJwI7TTDMs0FNOPsIDuabl+1sO+psA+ffkF2MOHMMDlhDbZvT3PPCrJjIY/2lxvQvoXsPWhv/rG9AO0nyI5GHZZqP/vHfTbbhNwjbgFbO7DKgKOsGrKXmBwMO3SOgHVWcEcfcoO8gB48dvT4AEcDUc9wh3cZ0j3ngMuBqxTL+CK0w8A6iyuBdqaR6SJIjpW3G9YB8h2XPFFu8+FbKp6pzQ+pd6FlHVT7DisZR5UWv8hji7gQPeuM+Ix7rWU+9jPKrdiWjNH+B5fuvoi3lczeDVKOUVZCV15u5Np427irf+j9yyjR9oAyj312PY8VbE+Y5EVTl92yWnZl3RT52Cv4xK7/LaMv/wVBEARBEARBEARBGJVvKBMWoqDjlbEAAAAASUVORK5CYII=\n",
+        //         width: 64,
+        //         height: 64,
+        //         offset: [0, 32]
+        //     }
+        // });
     }
 
     oninit() {
@@ -73,25 +95,36 @@ class TouchNavigation extends Control {
     }
 
     onTouchStart(e) {
+        const handler = this.renderer.handler;
         this._touching = true;
 
+        // this.vec = new Vector("track", {
+        //     entities: [],
+        //     pickingEnabled: false,
+        //     polygonOffsetUnits: -1.0,
+        //     relativeToGround: true,
+        //     displayInLayerSwitcher: false
+        // });
+        // this.planet.addLayer(this.vec);
+        // this.vec.add(this.middlePoint)
+
         if (e.sys.touches.length === 2) {
-            var t0 = this.touches[0],
+            const t0 = this.touches[0],
                 t1 = this.touches[1];
 
-            t0.x = e.sys.touches.item(0).clientX - e.sys.offsetLeft;
-            t0.y = e.sys.touches.item(0).clientY - e.sys.offsetTop;
-            t0.prev_x = e.sys.touches.item(0).clientX - e.sys.offsetLeft;
-            t0.prev_y = e.sys.touches.item(0).clientY - e.sys.offsetTop;
-            t0.grabbedPoint = this.planet.getCartesianFromPixelTerrain(e, true);
+            t0.e = e
+            t0.x = (e.sys.touches.item(0).clientX - e.sys.offsetLeft) * handler.pixelRatio;
+            t0.y = (e.sys.touches.item(0).clientY - e.sys.offsetTop) * handler.pixelRatio;
+            t0.prev_x = t0.x;
+            t0.prev_y = t0.y;
+            t0.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t0, true);
 
-            t1.x = e.sys.touches.item(1).clientX - e.sys.offsetLeft;
-            t1.y = e.sys.touches.item(1).clientY - e.sys.offsetTop;
-            t1.prev_x = e.sys.touches.item(1).clientX - e.sys.offsetLeft;
-            t1.prev_y = e.sys.touches.item(1).clientY - e.sys.offsetTop;
-            t1.grabbedPoint = this.planet.getCartesianFromPixelTerrain(e, true);
+            t1.x = (e.sys.touches.item(1).clientX - e.sys.offsetLeft) * handler.pixelRatio;
+            t1.y = (e.sys.touches.item(1).clientY - e.sys.offsetTop) * handler.pixelRatio;
+            t1.prev_x = t1.x;
+            t1.prev_y = t1.y;
+            t1.grabbedPoint = this.planet.getCartesianFromPixelTerrain(t1, true);
 
-            // this.planet._viewChanged = true;
             this.pointOnEarth = this.planet.getCartesianFromPixelTerrain(
                 this.renderer.handler.getCenter(),
                 true
@@ -112,12 +145,13 @@ class TouchNavigation extends Control {
     }
 
     _startTouchOne(e) {
-        var t = this.touches[0];
+        const t = this.touches[0];
+        const handler = this.renderer.handler;
 
-        t.x = e.sys.touches.item(0).clientX - e.sys.offsetLeft;
-        t.y = e.sys.touches.item(0).clientY - e.sys.offsetTop;
-        t.prev_x = e.sys.touches.item(0).clientX - e.sys.offsetLeft;
-        t.prev_y = e.sys.touches.item(0).clientY - e.sys.offsetTop;
+        t.x = (e.sys.touches.item(0).clientX - e.sys.offsetLeft) * handler.pixelRatio;
+        t.y = (e.sys.touches.item(0).clientY - e.sys.offsetTop) * handler.pixelRatio;
+        t.prev_x = t.x;
+        t.prev_y = t.y;
 
         t.grabbedPoint = this.planet.getCartesianFromPixelTerrain(e, true);
         this._eye0.copy(this.renderer.activeCamera.eye);
@@ -169,11 +203,12 @@ class TouchNavigation extends Control {
         }
     }
 
-    onTouchCancel(e) {}
+    onTouchCancel(e) {
+    }
 
     onTouchMove(e) {
         var cam = this.renderer.activeCamera;
-
+        const handler = this.renderer.handler;
         if (e.sys.touches.length === 2) {
             this.renderer.controlsBag.scaleRot = 1;
 
@@ -188,57 +223,55 @@ class TouchNavigation extends Control {
 
             t0.prev_x = t0.x;
             t0.prev_y = t0.y;
-            t0.x = e.sys.touches.item(0).clientX - e.sys.offsetLeft;
-            t0.y = e.sys.touches.item(0).clientY - e.sys.offsetTop;
+            t0.x = (e.sys.touches.item(0).clientX - e.sys.offsetLeft) * handler.pixelRatio;
+            t0.y = (e.sys.touches.item(0).clientY - e.sys.offsetTop) * handler.pixelRatio;
 
             t1.prev_x = t1.x;
             t1.prev_y = t1.y;
-            t1.x = e.sys.touches.item(1).clientX - e.sys.offsetLeft;
-            t1.y = e.sys.touches.item(1).clientY - e.sys.offsetTop;
+            t1.x = (e.sys.touches.item(1).clientX - e.sys.offsetLeft) * handler.pixelRatio;
+            t1.y = (e.sys.touches.item(1).clientY - e.sys.offsetTop) * handler.pixelRatio;
 
-            // distance = Math.sqrt((t0.prev_x-t1.prev_x)**2+(t0.prev_y-t1.prev_y)**2) - Math.sqrt((t0.x-t1.x)**2 + (t0.y-t1.y)**2))
-            // distance < 0 --> zoomIn; distance > 0 --> zoomOut
-            var t0t1Distance = Math.abs(t0.prev_x - t1.prev_x) + Math.abs(t0.prev_y - t1.prev_y)  - (Math.abs(t0.x - t1.x)  + Math.abs(t0.y - t1.y))
-            var _move = 0
-            if (t0t1Distance < 0) {
-                _move = 1
-            }
-            if (t0t1Distance > 0) {
-                _move = -1
-            }
-            if (_move !== 0) {
-                let pos = this.planet.getCartesianFromPixelTerrain(e);
-                if (pos) {
-                    let d = cam.eye.distance(pos) * 0.075;
-                    cam.eye.addA(cam.getForward().scale(_move * d));
-                    cam.checkTerrainCollision();
-                    cam.update();
-                }
-            }
+            const middle = t0.vec.add(t1.vec).scale(0.5);
+            const earthMiddlePoint = this.planet.getCartesianFromPixelTerrain(
+                middle
+            );
+            if (earthMiddlePoint) {
+                this.pointOnEarth = earthMiddlePoint
 
-            if (
-                (t0.dY() > 0 && t1.dY() > 0) ||
-                (t0.dY() < 0 && t1.dY() < 0) ||
-                (t0.dX() > 0 && t1.dX() > 0) ||
-                (t0.dX() < 0 && t1.dX() < 0)
-            ) {
-                var l =
-                    (0.5 / cam.eye.distance(this.pointOnEarth)) * cam._lonLat.height * math.RADIANS;
-                if (l > 0.007) l = 0.007;
-                cam.rotateHorizontal(l * t0.dX(), false, this.pointOnEarth, this.earthUp);
-                cam.rotateVertical(l * t0.dY(), this.pointOnEarth, true);
+                // this.middlePoint.setCartesian3v(this.pointOnEarth)
+                const prevAngle = Math.atan2(t0.prev_y - t1.prev_y, t0.prev_x - t1.prev_x)
+                const curAngle = Math.atan2(t0.y - t1.y, t0.x - t1.x)
+
+                const deltaAngle = curAngle - prevAngle;
+                const distanceToPointOnEarth = cam.eye.distance(this.pointOnEarth);
+
+                const zoomCur = t0.vec.sub(t1.vec);
+                const zoomPrev = t0.vecPrev.sub(t1.vecPrev);
+                const scale = zoomCur.length() / zoomPrev.length();
+
+                let d = distanceToPointOnEarth * -(1 - scale);
+                cam.eye.addA(cam.getForward().scale(d));
+                cam.rotateAround(-deltaAngle, false, this.pointOnEarth, this.earthUp);
+
+                const panCur = t0.vec.add(t1.vec).scale(0.5);
+                const panPrev = t0.vecPrev.add(t1.vecPrev).scale(0.5);
+                const panOffset = panCur.sub(panPrev).scale(-1);
+                var l = 0.5 / distanceToPointOnEarth * cam._lonLat.height * math.RADIANS;
+                if (l > 0.003) l = 0.003;
+                cam.rotateHorizontal(l * -panOffset.x, false, this.pointOnEarth, this.earthUp);
+                cam.rotateVertical(l * -panOffset.y, this.pointOnEarth);
+
                 cam.checkTerrainCollision();
                 cam.update();
             }
-
             this.scaleRot = 0;
         } else if (e.sys.touches.length === 1) {
             var t = this.touches[0];
 
             t.prev_x = t.x;
             t.prev_y = t.y;
-            t.x = e.sys.touches.item(0).clientX - e.sys.offsetLeft;
-            t.y = e.sys.touches.item(0).clientY - e.sys.offsetTop;
+            t.x = (e.sys.touches.item(0).clientX - e.sys.offsetLeft) * handler.pixelRatio;
+            t.y = (e.sys.touches.item(0).clientY - e.sys.offsetTop) * handler.pixelRatio;
 
             if (!t.grabbedPoint) {
                 return;

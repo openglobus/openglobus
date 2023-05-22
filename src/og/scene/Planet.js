@@ -1667,7 +1667,7 @@ export class Planet extends RenderNode {
      * @public
      * @param {Vec2} px - Pixel screen 2d coordinates.
      * @param {Boolean} [force=false] - Force framebuffer rendering.
-     * @returns {Vec3} -
+     * @returns {Vec3 | null} -
      */
     getCartesianFromPixelTerrain(px) {
         var distance = this.getDistanceFromPixel(px);
