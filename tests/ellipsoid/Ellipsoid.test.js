@@ -68,3 +68,30 @@ test('Testing Ellipsoid Vincenty inverse to diect formulas', () => {
         expect(direct.destination.lat).toBeCloseTo(p1.lat);
     }
 });
+
+test('Testing Ellipsoid getIntermediatePointOnGreatCircle', () => {
+
+    let p0 = new LonLat(0, 0),
+        p1 = new LonLat(1, 1);
+
+    let p = wgs84.getIntermediatePointOnGreatCircle(p0, p1, 0);
+
+    expect(p.lon).toBeCloseTo(p0.lon);
+    expect(p.lat).toBeCloseTo(p0.lat);
+
+    p0 = new LonLat(0, 0);
+    p1 = new LonLat(1, 1);
+
+    p = wgs84.getIntermediatePointOnGreatCircle(p0, p1, 1);
+
+    expect(p.lon).toBeCloseTo(p1.lon);
+    expect(p.lat).toBeCloseTo(p1.lat);
+
+    p0 = new LonLat(0, 0);
+    p1 = new LonLat(1, 1);
+
+    p = wgs84.getIntermediatePointOnGreatCircle(p0, p1, 0.5);
+
+    expect(p.lon).toBeCloseTo(0.5);
+    expect(p.lat).toBeCloseTo(0.5);
+});
