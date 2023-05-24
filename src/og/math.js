@@ -422,7 +422,7 @@ function getAngleDirection(a, b) {
  * @param {number} b - Second azimuth angle
  * @returns {number}
  */
-function getAngleBetweenAzimuths(a, b) {
+export function getAngleBetweenAzimuths(a, b) {
     a = zeroTwoPI(a);
     b = zeroTwoPI(b);
     return ((((a - b) % 360) + 360 + 180) % 360) - 180;
