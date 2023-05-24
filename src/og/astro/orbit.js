@@ -1,7 +1,3 @@
-/**
- * @module og/astro/orbit
- */
-
 "use strict";
 
 import * as math from "../math.js";

@@ -1,7 +1,3 @@
-/**
- * @module og/layer/GeoTexture2d
- */
-
 'use strict';
 
 import * as math from '../math.js';

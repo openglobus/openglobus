@@ -1,7 +1,3 @@
-/**
- * @module og/control/Sun
- */
-
 "use strict";
 
 import { getSunPosition } from "../astro/earth.js";

@@ -1,7 +1,3 @@
-/**
- * @module og/quadTree/EntityCollectionNode
- */
-
 'use strict';
 
 import { Sphere } from '../bv/Sphere.js';

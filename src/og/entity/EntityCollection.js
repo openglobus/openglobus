@@ -1,7 +1,3 @@
-/**
- * @module og/entity/EntityCollection
- */
-
 "use strict";
 
 import { Events } from "../Events.js";
@@ -212,10 +208,6 @@ class EntityCollection {
     static set _staticCounter(n) {
         this._counter = n;
     }
-
-    // setPolygonOffset(factor, units) {
-    //     this.polygonOffsetUnits = units;
-    // }
 
     /**
      * Sets collection visibility.

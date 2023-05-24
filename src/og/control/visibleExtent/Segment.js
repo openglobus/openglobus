@@ -281,7 +281,7 @@ class Segment {
      * @public
      * @param {Vec3} xyz - Cartesian object position.
      * @param {LonLat} insideSegmentPosition - Geodetic object position.
-     * @param {Vec3} [res] - Result cartesian coordiantes on the terrain.
+     * @param {Vec3} [res] - Result cartesian coordinates on the terrain.
      * @param {Vec3} [normal] - Terrain point normal.
      * @returns {number} -
      */

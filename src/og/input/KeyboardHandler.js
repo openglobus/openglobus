@@ -1,7 +1,3 @@
-/**
- * @module og/input/KeyboardHandler
- */
-
 'use strict';
 
 import { input } from './input.js';

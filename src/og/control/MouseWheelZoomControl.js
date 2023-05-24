@@ -1,7 +1,3 @@
-/**
- * @module og/control/MouseWheelZoomControl
- */
-
 "use strict";
 
 import { Sphere } from "../bv/Sphere.js";

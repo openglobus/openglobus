@@ -1,7 +1,3 @@
-/**
- * @module og/scene/SkyBox
- */
-
 'use strict';
 
 import * as shaders from '../shaders/skybox.js';

@@ -1,7 +1,3 @@
-/**
- * @module og/ImageCanvas
- */
-
 "use strict";
 
 /**

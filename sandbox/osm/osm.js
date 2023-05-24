@@ -22,6 +22,7 @@ import { VisibleExtent } from "../../src/og/control/visibleExtent/VisibleExtent.
 import { TimelineControl } from "../../src/og/control/timeline/TimelineControl.js";
 import { GeoImageDragControl } from "../../src/og/control/GeoImageDragControl.js";
 import { GeoImage } from '../../src/og/layer/GeoImage.js';
+import { DrawingSwitcher } from "../../src/og/control/DrawingSwitcher.js";
 
 let cnv = document.createElement("canvas");
 let ctx = cnv.getContext("2d");
@@ -249,14 +250,14 @@ var globus = new Globe({
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
     //minAltitude: 1,
-    terrain: highResTerrain,
+    //terrain: highResTerrain,
     //terrain: new MapboxTerrain(),
-    // terrain: new GlobusTerrain("19", {
-    //     maxZoom: 19
-    // }),
+    terrain: new GlobusTerrain("19", {
+        maxZoom: 19
+    }),
     //terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
-    layers: [sat, tg, osm, img, colorado],
+    layers: [osm],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
     //useNightTexture: false,
     //useEarthNavigation: true,
@@ -276,6 +277,7 @@ globus.planet.addControl(new Lighting());
 globus.planet.addControl(new RulerSwitcher());
 globus.planet.addControl(new Selection());
 globus.planet.addControl(new GeoImageDragControl());
+globus.planet.addControl(new DrawingSwitcher());
 
 
 window.globus = globus;

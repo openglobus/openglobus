@@ -1,7 +1,3 @@
-/**
- * @module og/utils/VectorTileCreator
- */
-
 'use strict';
 
 import { doubleToTwoFloats2 } from '../math/coder.js';

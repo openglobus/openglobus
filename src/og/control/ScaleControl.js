@@ -1,7 +1,3 @@
-/**
- * @module og/control/ZoomControl
- */
-
 "use strict";
 
 import { RADIANS } from "../math.js";

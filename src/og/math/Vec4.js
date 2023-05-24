@@ -1,7 +1,3 @@
-/**
- * @module og/math/Vec4
- */
-
 "use strict";
 
 import { frac } from "../math.js";

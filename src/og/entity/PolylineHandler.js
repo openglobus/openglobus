@@ -1,7 +1,3 @@
-/**
- * @module og/entity/PolylineHandler
- */
-
 'use strict';
 
 import * as shaders from '../shaders/polyline.js';

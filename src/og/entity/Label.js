@@ -1,7 +1,3 @@
-/**
- * @module og/entity/Label
- */
-
 "use strict";
 
 import { Vec4 } from "../math/Vec4.js";

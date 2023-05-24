@@ -1,7 +1,3 @@
-/**
- * @module og/math/Vec3
- */
-
 "use strict";
 
 import { Quat } from "./Quat.js";

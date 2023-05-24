@@ -1,7 +1,3 @@
-/**
- * @module og/input/MouseHandler
- */
-
 'use strict';
 
 class MouseHandler {

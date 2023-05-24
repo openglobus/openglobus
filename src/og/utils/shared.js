@@ -968,3 +968,13 @@ export async function loadImage(url) {
 export function isImageLoaded(image) {
     return image.complete && image.naturalHeight !== 0;
 }
+
+export function distanceFormat(v) {
+    if (v > 1000) {
+        return `${(v / 1000).toFixed(1)} km`;
+    } else if (v > 9) {
+        return `${Math.round(v)} m`;
+    } else {
+        return `${v.toFixed(1)} m`;
+    }
+}

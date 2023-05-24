@@ -1,7 +1,3 @@
-/**
- * @module og/control/Selector
- */
-
 "use strict";
 
 import { ToggleButton } from "../../ui/ToggleButton.js";

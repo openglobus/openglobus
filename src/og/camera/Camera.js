@@ -478,9 +478,9 @@ class Camera {
     }
 
     /**
-     * Gets projected 3d point to the 2d screen coordiantes
+     * Gets projected 3d point to the 2d screen coordinates
      * @public
-     * @param {Vec3} v - Cartesian 3d coordiantes
+     * @param {Vec3} v - Cartesian 3d coordinates
      * @returns {Vec2} - Screen point coordinates
      */
     project(v) {

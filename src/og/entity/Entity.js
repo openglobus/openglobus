@@ -1,7 +1,3 @@
-/**
- * @module og/entity/Entity
- */
-
 "use strict";
 
 import { Extent } from "../Extent.js";
@@ -225,6 +221,10 @@ class Entity {
 
     static set _staticCounter(n) {
         this._counter = n;
+    }
+
+    get layerIndex() {
+        return this._layerIndex;
     }
 
     get instanceName() {

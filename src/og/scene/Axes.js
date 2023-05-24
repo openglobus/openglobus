@@ -1,7 +1,3 @@
-/**
- * @module og/scene/Axes
- */
-
 'use strict';
 
 import { Program } from '../webgl/Program.js';

@@ -1,7 +1,3 @@
-/**
- * @module og/control/MouseNavigation
- */
-
 "use strict";
 
 import { Sphere } from "../bv/Sphere.js";

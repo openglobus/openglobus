@@ -1,7 +1,3 @@
-/**
- * @module og/layer/BaseGeoImage
- */
-
 "use strict";
 
 import { Extent } from "../Extent.js";

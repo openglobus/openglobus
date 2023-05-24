@@ -1,7 +1,3 @@
-/**
- * @module og/control/ToggleWireframe
- */
-
 "use strict";
 
 import { input } from "../input/input.js";

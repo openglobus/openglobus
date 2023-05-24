@@ -1,7 +1,3 @@
-/**
- * @module og/layer/Material
- */
-
 "use strict";
 
 class Material {

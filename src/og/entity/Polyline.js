@@ -1,7 +1,3 @@
-/**
- * @module og/entity/Polyline
- */
-
 "use strict";
 
 import { Extent } from "../Extent.js";
@@ -96,7 +92,7 @@ class Polyline {
         this._pathLengths = [];
 
         /**
-         * Polyline geodetic degrees coordiantes.
+         * Polyline geodetic degrees coordinates.
          * @private
          * @type {Array.<LonLat>}
          */

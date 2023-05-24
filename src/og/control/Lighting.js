@@ -1,7 +1,3 @@
-/**
- * @module og/control/Lighting
- */
-
 "use strict";
 
 import { Dialog } from '../ui/Dialog.js';

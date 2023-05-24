@@ -1,7 +1,3 @@
-/**
- * @module og/control/Control
- */
-
 "use strict";
 
 /**

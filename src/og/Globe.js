@@ -1,4 +1,4 @@
-// StandWithUkraine
+// #StandWithUkraine
 
 /**
  * @module og/Globe

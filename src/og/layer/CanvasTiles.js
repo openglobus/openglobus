@@ -1,7 +1,3 @@
-/**
- * @module og/layer/CanvasTiles
- */
-
 "use strict";
 
 import * as quadTree from "../quadTree/quadTree.js";

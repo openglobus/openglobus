@@ -1,7 +1,3 @@
-/**
- * @module og/astro/jd
- */
-
 "use strict";
 
 import { binarySearch } from "../utils/shared.js";

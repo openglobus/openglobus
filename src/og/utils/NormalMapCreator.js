@@ -1,7 +1,3 @@
-/**
- * @module og/utils/NormalMapCreator
- */
-
 "use strict";
 
 import { Lock } from "../Lock.js";

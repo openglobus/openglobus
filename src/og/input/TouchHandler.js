@@ -1,7 +1,3 @@
-/**
- * @module og/input/TouchHandler
- */
-
 'use strict';
 
 class TouchHandler {
