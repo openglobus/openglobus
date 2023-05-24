@@ -1,7 +1,3 @@
-/**
- * @module og/control/TouchNavigation
- */
-
 "use strict";
 
 import { Sphere } from "../bv/Sphere.js";

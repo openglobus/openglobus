@@ -4,6 +4,7 @@ Release
 Debug
 eslint
 node_modules
+docs
 .eslintrc
 .csslintrc
 .idea

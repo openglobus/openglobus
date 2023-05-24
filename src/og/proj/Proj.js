@@ -1,7 +1,3 @@
-/**
- * @module og/proj/Proj
- */
-
 "use strict";
 
 /**

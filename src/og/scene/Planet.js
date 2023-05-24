@@ -1,7 +1,3 @@
-/**
- * @module og/scene/Planet
- */
-
 "use strict";
 
 import { PlanetCamera } from "../camera/PlanetCamera.js";

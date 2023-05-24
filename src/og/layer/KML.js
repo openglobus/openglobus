@@ -1,8 +1,5 @@
-/**
- * @module og/layer/KML
- */
-
 "use strict";
+
 import { Billboard } from "../entity/Billboard.js";
 import { Entity } from "../entity/Entity.js";
 import { Extent } from "../Extent.js";

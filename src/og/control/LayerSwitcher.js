@@ -1,7 +1,3 @@
-/**
- * @module og/control/LayerSwitcher
- */
-
 "use strict";
 
 import { Dialog } from "../ui/Dialog.js";

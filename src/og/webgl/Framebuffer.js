@@ -1,7 +1,3 @@
-/**
- * @module og/webgl/Framebuffer
- */
-
 "use strict";
 
 import { ImageCanvas } from "../ImageCanvas.js";

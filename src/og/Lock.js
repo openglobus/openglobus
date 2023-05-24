@@ -1,7 +1,3 @@
-/**
- * @module og/Lock
- */
-
 'use strict';
 
 class Lock {

@@ -1,7 +1,3 @@
-/**
- * @module og/entity/Geometry
- */
-
 "use strict";
 
 import { Extent } from "../Extent.js";
@@ -193,7 +189,7 @@ class Geometry {
     }
 
     /**
-     * @todo
+     * @todo ASAP need test for this method
      * @param geoJson
      * @returns {Geometry}
      */

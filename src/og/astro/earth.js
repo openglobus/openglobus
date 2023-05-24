@@ -1,7 +1,3 @@
-/**
- * @module og/astro/earth
- */
-
 "use strict";
 
 import * as math from "../math.js";

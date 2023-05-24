@@ -1,9 +1,5 @@
 "use strict";
 
-/**
- * @module og/entity/GeoObjectHandler
- */
-
 import * as shaders from "../shaders/geoObject.js";
 import { concatArrays, loadImage, makeArrayTyped, spliceArray } from "../utils/shared.js";
 

@@ -1,7 +1,3 @@
-/**
- * @module og/astro/rotation
- */
-
 "use strict";
 
 import { PI_TWO } from "../math.js";

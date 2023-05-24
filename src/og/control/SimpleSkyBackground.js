@@ -1,7 +1,3 @@
-/**
- * @module og/control/SimpleSkyBackground
- */
-
 "use strict";
 
 import { htmlColorToRgb } from "../utils/shared.js";

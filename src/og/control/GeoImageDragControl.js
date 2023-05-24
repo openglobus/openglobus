@@ -1,7 +1,3 @@
-/**
- * @module og/control/GeoImageDragControl
- */
-
 'use strict';
 
 import { BaseGeoImage } from '../layer/BaseGeoImage.js';

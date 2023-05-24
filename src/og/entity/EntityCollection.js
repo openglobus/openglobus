@@ -1,7 +1,3 @@
-/**
- * @module og/entity/EntityCollection
- */
-
 "use strict";
 
 import { Events } from "../Events.js";

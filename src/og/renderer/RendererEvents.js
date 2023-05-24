@@ -1,7 +1,3 @@
-/**
- * @module og/renderer/RendererEvents
- */
-
 "use strict";
 
 import { Events } from "../Events.js";

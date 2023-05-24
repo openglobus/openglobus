@@ -1,7 +1,3 @@
-/**
- * @module og/Events
- */
-
 "use strict";
 
 import { binaryInsert, stamp } from "./utils/shared.js";

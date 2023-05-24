@@ -1,7 +1,3 @@
-/**
- * @module og/math/Vec2
- */
-
 "use strict";
 
 import { Vec3 } from "./Vec3.js";

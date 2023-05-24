@@ -1,7 +1,3 @@
-/**
- * @module og/bv/Sphere
- */
-
 "use strict";
 
 import { Vec3 } from "../math/Vec3.js";

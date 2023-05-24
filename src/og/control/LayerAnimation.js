@@ -1,7 +1,3 @@
-/**
- * @module og/control/LayerAnimation
- */
-
 "use strict";
 
 import { Events } from '../Events.js';

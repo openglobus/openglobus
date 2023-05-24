@@ -1,7 +1,3 @@
-/**
- * @module og/entity/Entity
- */
-
 "use strict";
 
 import { Extent } from "../Extent.js";

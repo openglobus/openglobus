@@ -1,7 +1,3 @@
-/**
- * @module og/entity/Polyline
- */
-
 "use strict";
 
 import { Extent } from "../Extent.js";

@@ -1,7 +1,3 @@
-/**
- * @module og/layer/Layer
- */
-
 "use strict";
 
 import { Events } from "../Events.js";

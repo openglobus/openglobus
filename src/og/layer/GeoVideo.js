@@ -1,7 +1,3 @@
-/**
- * @module og/layer/GeoVideo
- */
-
 "use strict";
 
 import { BaseGeoImage } from "./BaseGeoImage.js";

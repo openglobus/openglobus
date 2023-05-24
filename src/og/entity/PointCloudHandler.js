@@ -1,7 +1,3 @@
-/**
- * @module og/entity/PointCloudHandler
- */
-
 "use strict";
 
 import * as shaders from "../shaders/pointCloud.js";

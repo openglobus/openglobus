@@ -1,7 +1,3 @@
-/**
- * @module og/ellipsoid/Ellipsoid
- */
-
 "use strict";
 
 import { LonLat } from "../LonLat.js";

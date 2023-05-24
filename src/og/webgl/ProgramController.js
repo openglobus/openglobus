@@ -1,7 +1,7 @@
+"use strict";
+
 import { Handler } from "./Handler.js";
 import { Program } from "./Program.js";
-
-"use strict";
 
 /**
  * This is shader program controller that used by hadler object to access the shader

@@ -1,7 +1,3 @@
-/**
- * @module og/layer/Vector
- */
-
 "use strict";
 
 import { Entity } from "../entity/Entity.js";

@@ -1,5 +1,5 @@
 /**
- * @module og/shaders/drawnode
+ * @module og/shaders/geoObject
  */
 
 "use strict";

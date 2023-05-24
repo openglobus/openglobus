@@ -1,7 +1,3 @@
-/**
- * @module og/Extent
- */
-
 "use strict";
 
 import { LonLat } from "./LonLat.js";

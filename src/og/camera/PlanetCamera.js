@@ -1,7 +1,3 @@
-/**
- * @module og/camera/PlanetCamera
- */
-
 "use strict";
 
 import { Key } from "../Lock.js";

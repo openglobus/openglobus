@@ -1,7 +1,3 @@
-/**
- * @module og/scene/BaseNode
- */
-
 "use strict";
 
 /**

@@ -1,7 +1,3 @@
-/**
- * @module og/entity/Billboard
- */
-
 "use strict";
 
 import { BaseBillboard } from "./BaseBillboard.js";

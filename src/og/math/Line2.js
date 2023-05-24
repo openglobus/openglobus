@@ -1,7 +1,3 @@
-/**
- * @module og/math/Line2
- */
-
 'use strict';
 
 import { Vec2 } from './Vec2.js';

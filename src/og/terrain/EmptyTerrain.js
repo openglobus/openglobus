@@ -1,7 +1,3 @@
-/**
- * @module og/terrainProvider/EmptyTerrain
- */
-
 "use strict";
 
 import { binarySearchFast } from "../utils/shared.js";

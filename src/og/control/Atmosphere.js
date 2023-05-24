@@ -1,7 +1,3 @@
-/**
- * @module og/control/Atmosphere
- */
-
 "use strict";
 
 import * as atmos from "../shaders/atmos.js";
