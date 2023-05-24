@@ -209,4 +209,10 @@ describe('math module', () => {
             expect(frac(0)).toBe(0);
         });
     });
+
+    test('Testing getAngleBetweenAzimuths', () => {
+        let res = Ellipsoid.getAngleBetweenAzimuths(0, 0);
+        expect(1).toBe(1);
+    });
+
 });

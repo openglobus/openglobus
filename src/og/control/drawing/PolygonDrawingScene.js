@@ -170,7 +170,7 @@ class PolygonDrawingScene extends RenderNode {
                     'type': e.geometryType,
                     'coordinates': [coords],
                     'style': {
-                        'fillColor': "rgba(0,146,247,0.6)"
+                        'fillColor': "rgba(0,146,247,0.2)"
                     }
                 }
             });

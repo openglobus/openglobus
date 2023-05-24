@@ -2,11 +2,6 @@ import { LonLat } from "../../src/og/LonLat";
 import { Ellipsoid } from "../../src/og/ellipsoid/Ellipsoid.js";
 import { wgs84 } from "../../src/og/ellipsoid/wgs84";
 
-test('Testing Ellipsoid getAngleBetweenAzimuths', () => {
-    let res = Ellipsoid.getAngleBetweenAzimuths(0, 0);
-    expect(1).toBe(1);
-});
-
 test('Testing Ellipsoid Vincenty direct to inverse formulas', () => {
 
     let good = [[0, 0, 0, 1], [0, 0, 0, 10000], [10, 20, 33, 5000], [-10, 70, 33, 15000], [180, 0, 0, 1]];
