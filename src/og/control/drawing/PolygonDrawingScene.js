@@ -64,6 +64,7 @@ class PolygonDrawingScene extends RenderNode {
         // outline vectors
         //
         this._cornerLayer = new Vector("corners", {
+            pickingScale: 3,
             pickingEnabled: true,
             polygonOffsetUnits: -5,
             relativeToGround: true,
@@ -71,6 +72,7 @@ class PolygonDrawingScene extends RenderNode {
         });
 
         this._centerLayer = new Vector("centers", {
+            pickingScale: 3,
             pickingEnabled: true,
             polygonOffsetUnits: -5,
             relativeToGround: true,

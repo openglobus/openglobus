@@ -1,7 +1,3 @@
-/**
- * @module og/shaders/pointCloud
- */
-
 'use strict';
 
 import { Program } from '../webgl/Program.js';

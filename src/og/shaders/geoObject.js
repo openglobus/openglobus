@@ -1,7 +1,3 @@
-/**
- * @module og/shaders/geoObject
- */
-
 "use strict";
 
 import { Program } from "../webgl/Program.js";
