@@ -64,7 +64,7 @@ class Box {
     }
 
     /**
-     * Sets bounding box coordiantes by ellipsoid geodetic extend.
+     * Sets bounding box coordinates by ellipsoid geodetic extend.
      * @param {Ellipsoid} ellipsoid - Ellipsoid.
      * @param {Extent} extent - Geodetic extent.
      */

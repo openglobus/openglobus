@@ -7,13 +7,13 @@ import * as mercator from "./mercator.js";
 /**
  * Represents geographical coordinates extent.
  * @class
- * @param {LonLat} [sw] - South West extent corner coordiantes.
- * @param {LonLat} [ne] - North East extent corner coordiantes.
+ * @param {LonLat} [sw] - South West extent corner coordinates.
+ * @param {LonLat} [ne] - North East extent corner coordinates.
  */
 export class Extent {
     /**
-     * @param {LonLat} [sw] - South West extent corner coordiantes.
-     * @param {LonLat} [ne] - North East extent corner coordiantes.
+     * @param {LonLat} [sw] - South West extent corner coordinates.
+     * @param {LonLat} [ne] - North East extent corner coordinates.
      */
     constructor(sw = new LonLat(), ne = new LonLat()) {
         /**

@@ -6,7 +6,7 @@ import { Vec3 } from "../math/Vec3.js";
  * Bounding sphere class.
  * @class
  * @param {Number} [radius] - Bounding sphere radius.
- * @param {Vec3} [center] - Bounding sphere coordiantes.
+ * @param {Vec3} [center] - Bounding sphere coordinates.
  */
 class Sphere {
     /**
@@ -23,7 +23,7 @@ class Sphere {
         this.radius = radius;
 
         /**
-         * Sphere coordiantes.
+         * Sphere coordinates.
          * @public
          * @type {Vec3}
          */
@@ -45,7 +45,7 @@ class Sphere {
     }
 
     /**
-     * Sets bounding sphere coordiantes by ellipsoid geodetic extend.
+     * Sets bounding sphere coordinates by ellipsoid geodetic extend.
      * @param {Ellipsoid} ellipsoid - Ellipsoid.
      * @param {Extent} extent - Geodetic extent.
      */

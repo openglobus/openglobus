@@ -457,7 +457,7 @@ class PlanetCamera extends Camera {
     }
 
     /**
-     * Flies to the geo coordiantes.
+     * Flies to the geo coordinates.
      * @public
      * @param {LonLat} lonlat - Finish coordinates.
      * @param {Vec3} [look] - Camera LOOK in the end of flying. Default - (0,0,0)
