@@ -86,7 +86,7 @@ export class KML extends Vector {
         if (!placemark) return;
 
         const nameTags = Array.from(placemark.getElementsByTagName("name"))
-        const name = nameTags && nameTags[0]?.innerHTML?.trim() || '';
+        const name = nameTags && nameTags.length > 0 ? nameTags[0].innerHTML.trim() : '';
 
         const { iconHeading, iconURL, iconColor, lineWidth, lineColor } = this._extractStyle(placemark);
 
