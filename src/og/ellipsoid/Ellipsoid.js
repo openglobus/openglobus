@@ -91,6 +91,33 @@ class Ellipsoid {
         return Math.atan2(y, x) * DEGREES;
     }
 
+    /**
+     * @todo this is not precise function, needs to be replaced or removed
+     * @param lonLat1
+     * @param bearing
+     * @param distance
+     * @returns {LonLat}
+     */
+    getBearingDestination(lonLat1, bearing = 0.0, distance = 0) {
+        bearing = bearing * RADIANS;
+        var nlon = ((lonLat1.lon + 540) % 360) - 180;
+        var f1 = lonLat1.lat * RADIANS,
+            l1 = nlon * RADIANS;
+        var dR = distance / this._a;
+        var f2 = Math.asin(
+            Math.sin(f1) * Math.cos(dR) + Math.cos(f1) * Math.sin(dR) * Math.cos(bearing)
+        );
+        return new LonLat(
+            (l1 +
+                Math.atan2(
+                    Math.sin(bearing) * Math.sin(dR) * Math.cos(f1),
+                    Math.cos(dR) - Math.sin(f1) * Math.sin(f2)
+                )) *
+            DEGREES,
+            f2 * DEGREES
+        );
+    }
+
     getFlattening() {
         return this._flattening;
     }
