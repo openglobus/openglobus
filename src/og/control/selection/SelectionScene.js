@@ -233,16 +233,14 @@ class SelectionScene extends RenderNode {
 
         let endPos = this._planet.ellipsoid.lonLatToCartesian(endLonLat);
 
-        let length = this._planet.ellipsoid.getGreatCircleDistance(startLonLat, endLonLat);
+        let res = this._planet.ellipsoid.direct(startLonLat, endLonLat);
 
-        this._heading = Ellipsoid.getRhumbBearing(startLonLat, endLonLat);
+        this._heading = res.initialAzimuth;
 
         let path = [];
 
-
         this._cornerEntity[0].setCartesian3v(startPos);
         this._cornerEntity[1].setCartesian3v(endPos);
-
 
         let corners = [
             startPos,

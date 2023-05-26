@@ -71,16 +71,16 @@ class EntityCollectionNode {
 
     __setLonLat__(entity) {
 
-        if (entity._lonlat.isZero() && !entity._cartesian.isZero()) {
-            entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
+        if (entity._lonLat.isZero() && !entity._cartesian.isZero()) {
+            entity._lonLat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
         }
 
-        if (Math.abs(entity._lonlat.lat) < mercator.MAX_LAT) {
-            entity._lonlatMerc = entity._lonlat.forwardMercator();
+        if (Math.abs(entity._lonLat.lat) < mercator.MAX_LAT) {
+            entity._lonLatMerc = entity._lonLat.forwardMercator();
         } else {
-            entity._lonlatMerc = null;
+            entity._lonLatMerc = null;
         }
-        return entity._lonlatMerc;
+        return entity._lonLatMerc;
     }
 
     buildTree(entities, rightNow) {
@@ -127,8 +127,8 @@ class EntityCollectionNode {
     }
 
     isInside(entity) {
-        if (entity._lonlatMerc) {
-            return this.extent.isInside(entity._lonlatMerc);
+        if (entity._lonLatMerc) {
+            return this.extent.isInside(entity._lonLatMerc);
         } else {
             return false;
         }
@@ -339,10 +339,10 @@ class EntityCollectionNodeWGS84 extends EntityCollectionNode {
     }
 
     __setLonLat__(entity) {
-        if (entity._lonlat.isZero()) {
-            entity._lonlat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
+        if (entity._lonLat.isZero()) {
+            entity._lonLat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
         }
-        return entity._lonlat;
+        return entity._lonLat;
     }
 
     isVisible() {
@@ -355,7 +355,7 @@ class EntityCollectionNodeWGS84 extends EntityCollectionNode {
     }
 
     isInside(entity) {
-        return this.extent.isInside(entity._lonlat);
+        return this.extent.isInside(entity._lonLat);
     }
 
     /**

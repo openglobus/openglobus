@@ -467,9 +467,9 @@ class PlanetCamera extends Camera {
      * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
      */
     flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback) {
-        var _lonlat = new LonLat(lonlat.lon, lonlat.lat, lonlat.height || this._lonLat.height);
+        var _lonLat = new LonLat(lonlat.lon, lonlat.lat, lonlat.height || this._lonLat.height);
         this.flyCartesian(
-            this.planet.ellipsoid.lonLatToCartesian(_lonlat),
+            this.planet.ellipsoid.lonLatToCartesian(_lonLat),
             look,
             up,
             ampl,
@@ -622,7 +622,7 @@ class PlanetCamera extends Camera {
         if (this._insideSegment && this._insideSegment.planet) {
             this._terrainAltitude = this._insideSegment.getTerrainPoint(
                 this.eye,
-                this._lonLatMerc,
+                this._insideSegment.getInsideLonLat(this),
                 this._terrainPoint
             );
             if (this._terrainAltitude < this.minAltitude && this._checkTerrainCollision) {

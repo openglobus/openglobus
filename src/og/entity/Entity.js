@@ -86,14 +86,14 @@ class Entity {
          * @protected
          * @type {LonLat}
          */
-        this._lonlat = utils.createLonLat(options.lonlat);
+        this._lonLat = utils.createLonLat(options.lonlat);
 
         /**
          * World Mercator entity coordinates.
          * @protected
          * @type {LonLat}
          */
-        this._lonlatMerc = null;
+        this._lonLatMerc = null;
 
         /**
          * Entity visible terrain altitude.
@@ -343,12 +343,12 @@ class Entity {
         let ec = this._entityCollection;
 
         if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
-            this._lonlat = ec.renderNode.ellipsoid.cartesianToLonLat(p);
+            this._lonLat = ec.renderNode.ellipsoid.cartesianToLonLat(p);
 
-            if (Math.abs(this._lonlat.lat) < mercator.MAX_LAT) {
-                this._lonlatMerc = this._lonlat.forwardMercator();
+            if (Math.abs(this._lonLat.lat) < mercator.MAX_LAT) {
+                this._lonLatMerc = this._lonLat.forwardMercator();
             } else {
-                this._lonlatMerc = null;
+                this._lonLatMerc = null;
             }
         }
 
@@ -384,12 +384,12 @@ class Entity {
         let ec = this._entityCollection;
 
         if (!skipLonLat && ec && ec.renderNode && ec.renderNode.ellipsoid) {
-            this._lonlat = ec.renderNode.ellipsoid.cartesianToLonLat(p);
+            this._lonLat = ec.renderNode.ellipsoid.cartesianToLonLat(p);
 
-            if (Math.abs(this._lonlat.lat) < mercator.MAX_LAT) {
-                this._lonlatMerc = this._lonlat.forwardMercator();
+            if (Math.abs(this._lonLat.lat) < mercator.MAX_LAT) {
+                this._lonLatMerc = this._lonLat.forwardMercator();
             } else {
-                this._lonlatMerc = null;
+                this._lonLatMerc = null;
             }
         }
     }
@@ -400,7 +400,7 @@ class Entity {
      * @returns {LonLat} -
      */
     getLonLat() {
-        return this._lonlat.clone();
+        return this._lonLat.clone();
     }
 
     /**
@@ -409,7 +409,7 @@ class Entity {
      * @param {LonLat} lonlat - WGS84 coordinates.
      */
     setLonLat(lonlat) {
-        let l = this._lonlat;
+        let l = this._lonLat;
 
         l.lon = lonlat.lon;
         l.lat = lonlat.lat;
@@ -418,9 +418,9 @@ class Entity {
         let ec = this._entityCollection;
         if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
             if (Math.abs(l.lat) < mercator.MAX_LAT) {
-                this._lonlatMerc = l.forwardMercator();
+                this._lonLatMerc = l.forwardMercator();
             } else {
-                this._lonlatMerc = null;
+                this._lonLatMerc = null;
             }
 
             ec.renderNode.ellipsoid.lonLatToCartesianRes(l, this._cartesian);
@@ -436,7 +436,7 @@ class Entity {
      * @param {number} [height] - Height
      */
     setLonLat2(lon, lat, height) {
-        let l = this._lonlat;
+        let l = this._lonLat;
 
         l.lon = lon;
         l.lat = lat;
@@ -445,9 +445,9 @@ class Entity {
         let ec = this._entityCollection;
         if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
             if (Math.abs(l.lat) < mercator.MAX_LAT) {
-                this._lonlatMerc = l.forwardMercator();
+                this._lonLatMerc = l.forwardMercator();
             } else {
-                this._lonlatMerc = null;
+                this._lonLatMerc = null;
             }
 
             ec.renderNode.ellipsoid.lonLatToCartesianRes(l, this._cartesian);
@@ -683,7 +683,7 @@ class Entity {
      */
     getExtent() {
         let res;
-        let c = this._lonlat;
+        let c = this._lonLat;
         if (this.billboard || this.label) {
             res = new Extent(new LonLat(c.lon, c.lat), new LonLat(c.lon, c.lat));
         } else {

@@ -298,19 +298,19 @@ class Vector extends Layer {
 
         if (entity.billboard || entity.label || entity.geoObject) {
             if (this._planet) {
-                if (entity._cartesian.isZero() && !entity._lonlat.isZero()) {
+                if (entity._cartesian.isZero() && !entity._lonLat.isZero()) {
                     entity._setCartesian3vSilent(
-                        this._planet.ellipsoid.lonLatToCartesian(entity._lonlat)
+                        this._planet.ellipsoid.lonLatToCartesian(entity._lonLat)
                     );
                 } else {
-                    entity._lonlat = this._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
+                    entity._lonLat = this._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
                 }
 
                 // north tree
-                if (entity._lonlat.lat > mercator.MAX_LAT) {
+                if (entity._lonLat.lat > mercator.MAX_LAT) {
                     this._entityCollectionsTreeNorth.__setLonLat__(entity);
                     this._entityCollectionsTreeNorth.insertEntity(entity, rightNow);
-                } else if (entity._lonlat.lat < mercator.MIN_LAT) {
+                } else if (entity._lonLat.lat < mercator.MIN_LAT) {
                     // south tree
                     this._entityCollectionsTreeSouth.__setLonLat__(entity);
                     this._entityCollectionsTreeSouth.insertEntity(entity, rightNow);
@@ -605,9 +605,9 @@ class Vector extends Layer {
             for (let i = 0, len = entitiesForTree.length; i < len; i++) {
                 let entity = entitiesForTree[i];
                 // north tree
-                if (entity._lonlat.lat > mercator.MAX_LAT) {
+                if (entity._lonLat.lat > mercator.MAX_LAT) {
                     this._entityCollectionsTreeNorth.__setLonLat__(entity);
-                } else if (entity._lonlat.lat < mercator.MIN_LAT) {
+                } else if (entity._lonLat.lat < mercator.MIN_LAT) {
                     // south tree
                     this._entityCollectionsTreeSouth.__setLonLat__(entity);
                 } else {

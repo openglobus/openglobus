@@ -275,8 +275,9 @@ class RulerScene extends RenderNode {
 
         let endPos = this._planet.ellipsoid.lonLatToCartesian(endLonLat);
 
-        let length = this._planet.ellipsoid.getGreatCircleDistance(startLonLat, endLonLat);
-        this._heading = Ellipsoid.getRhumbBearing(startLonLat, endLonLat);
+        let res = this._planet.ellipsoid.inverse(startLonLat, endLonLat);
+        let length = res.distance;
+        this._heading = res.initialAzimuth;
 
         let path = [];
         let dir = endPos.sub(startPos);

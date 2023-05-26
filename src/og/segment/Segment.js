@@ -251,11 +251,15 @@ class Segment {
      * @returns {Vec3} -
      */
     getEntityTerrainPoint(entity, res) {
-        return this.getTerrainPoint(entity._cartesian, entity._lonlatMerc, res);
+        return this.getTerrainPoint(entity._cartesian, this.getInsideLonLat(entity), res);
     }
 
-    isEntityInside(e) {
-        return this._extentLonLat.isInside(e._lonlat);
+    getInsideLonLat(obj) {
+        return obj._lonLatMerc;
+    }
+
+    isEntityInside(entity) {
+        return this._extentLonLat.isInside(entity._lonLat);
     }
 
     /**

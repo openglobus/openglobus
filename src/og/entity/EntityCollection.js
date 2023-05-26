@@ -326,7 +326,7 @@ class EntityCollection {
             if (rn) {
                 rn.renderer && rn.renderer.assignPickingColor(entity);
                 if (rn.ellipsoid && entity._cartesian.isZero()) {
-                    entity.setCartesian3v(rn.ellipsoid.lonLatToCartesian(entity._lonlat));
+                    entity.setCartesian3v(rn.ellipsoid.lonLatToCartesian(entity._lonLat));
                 }
             }
             this._addRecursively(entity);
@@ -507,7 +507,7 @@ class EntityCollection {
         var i = e.length;
         while (i--) {
             var ei = e[i];
-            ei._lonlat && ei.setCartesian3v(ellipsoid.lonLatToCartesian(ei._lonlat));
+            ei._lonLat && ei.setCartesian3v(ellipsoid.lonLatToCartesian(ei._lonLat));
         }
     }
 
