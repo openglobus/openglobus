@@ -91,33 +91,6 @@ class Ellipsoid {
         return Math.atan2(y, x) * DEGREES;
     }
 
-    /**
-     * @todo this is not precise function, needs to be replaced or removed
-     * @param lonLat1
-     * @param bearing
-     * @param distance
-     * @returns {LonLat}
-     */
-    getBearingDestination(lonLat1, bearing = 0.0, distance = 0) {
-        bearing = bearing * RADIANS;
-        var nlon = ((lonLat1.lon + 540) % 360) - 180;
-        var f1 = lonLat1.lat * RADIANS,
-            l1 = nlon * RADIANS;
-        var dR = distance / this._a;
-        var f2 = Math.asin(
-            Math.sin(f1) * Math.cos(dR) + Math.cos(f1) * Math.sin(dR) * Math.cos(bearing)
-        );
-        return new LonLat(
-            (l1 +
-                Math.atan2(
-                    Math.sin(bearing) * Math.sin(dR) * Math.cos(f1),
-                    Math.cos(dR) - Math.sin(f1) * Math.sin(f2)
-                )) *
-            DEGREES,
-            f2 * DEGREES
-        );
-    }
-
     getFlattening() {
         return this._flattening;
     }
@@ -520,6 +493,91 @@ class Ellipsoid {
             // qw >= 0.0.  Looking outward or tangent.
             // return undefined
         }
+    }
+
+    /**
+     * @todo this is not precise function, needs to be replaced or removed
+     * @param lonLat1
+     * @param bearing
+     * @param distance
+     * @returns {LonLat}
+     */
+    getBearingDestination(lonLat1, bearing = 0.0, distance = 0) {
+        bearing = bearing * RADIANS;
+        var nlon = ((lonLat1.lon + 540) % 360) - 180;
+        var f1 = lonLat1.lat * RADIANS,
+            l1 = nlon * RADIANS;
+        var dR = distance / this._a;
+        var f2 = Math.asin(
+            Math.sin(f1) * Math.cos(dR) + Math.cos(f1) * Math.sin(dR) * Math.cos(bearing)
+        );
+        return new LonLat(
+            (l1 +
+                Math.atan2(
+                    Math.sin(bearing) * Math.sin(dR) * Math.cos(f1),
+                    Math.cos(dR) - Math.sin(f1) * Math.sin(f2)
+                )) *
+            DEGREES,
+            f2 * DEGREES
+        );
+    }
+
+    /**
+     * Returns the point at given fraction between two points on the great circle.
+     * @param   {LonLat} lonLat1 - Longitude/Latitude of source point.
+     * @param   {LonLat} lonLat2 - Longitude/Latitude of destination point.
+     * @param   {number} fraction - Fraction between the two points (0 = source point, 1 = destination point).
+     * @returns {LonLat} Intermediate point between points.
+     */
+    static getIntermediatePointOnGreatCircle(lonLat1, lonLat2, fraction) {
+        var f1 = lonLat1.lat * RADIANS,
+            l1 = lonLat1.lon * RADIANS;
+        var f2 = lonLat2.lat * RADIANS,
+            l2 = lonLat2.lon * RADIANS;
+
+        var sinf1 = Math.sin(f1),
+            cosf1 = Math.cos(f1),
+            sinl1 = Math.sin(l1),
+            cosl1 = Math.cos(l1);
+        var sinf2 = Math.sin(f2),
+            cosf2 = Math.cos(f2),
+            sinl2 = Math.sin(l2),
+            cosl2 = Math.cos(l2);
+
+        var df = f2 - f1,
+            dl = l2 - l1;
+        var a =
+            Math.sin(df / 2) * Math.sin(df / 2) +
+            Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+        var d = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        var A = Math.sin((1 - fraction) * d) / Math.sin(d);
+        var B = Math.sin(fraction * d) / Math.sin(d);
+
+        var x = A * cosf1 * cosl1 + B * cosf2 * cosl2;
+        var y = A * cosf1 * sinl1 + B * cosf2 * sinl2;
+        var z = A * sinf1 + B * sinf2;
+
+        var f3 = Math.atan2(z, Math.sqrt(x * x + y * y));
+        var l3 = Math.atan2(y, x);
+
+        return new LonLat(((l3 * DEGREES + 540) % 360) - 180, f3 * DEGREES);
+    }
+
+    static getRhumbBearing(lonLat1, lonLat2) {
+        var dLon = (lonLat2.lon - lonLat1.lon) * RADIANS;
+        var dPhi = Math.log(
+            Math.tan((lonLat2.lat * RADIANS) / 2 + Math.PI / 4) /
+            Math.tan((lonLat1.lat * RADIANS) / 2 + Math.PI / 4)
+        );
+        if (Math.abs(dLon) > Math.PI) {
+            if (dLon > 0) {
+                dLon = (2 * Math.PI - dLon) * -1;
+            } else {
+                dLon = 2 * Math.PI + dLon;
+            }
+        }
+        return (Math.atan2(dLon, dPhi) * DEGREES + 360) % 360;
     }
 }
 
