@@ -58,12 +58,8 @@ class SegmentLonLat extends Segment {
         return coords;
     }
 
-    getTerrainPoint(xyz, insideSegmentPosition, res, normal) {
-        res.copy(this.planet.ellipsoid.hitRay(xyz, xyz.negateTo().normalize()));
-        if (normal) {
-            normal.copy(res.normal());
-        }
-        return xyz.length() - res.length();
+    getInsideLonLat(obj) {
+        return obj._lonLat;
     }
 
     _getMaxZoom() {
