@@ -66,7 +66,7 @@ class EarthCoordinates extends Control {
         this._altUnit = units[this._altUnitVal];
         this._heightMode = heightMode[this._heightModeVal];
 
-        this._centerMode = options.centerMode || false;
+        this._centerMode = options.centerMode != undefined ? options.centerMode : true;
     }
 
     _SHOW_DECIMAL(ll) {

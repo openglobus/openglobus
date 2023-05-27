@@ -82,7 +82,10 @@
     margin-left: 5px;
     margin-right: 5px;
     align-items: center;
-    display: flex;
+    display: inline;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .og-attribution img {
