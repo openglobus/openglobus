@@ -24,7 +24,9 @@ class ImageCanvas {
          * @protected
          * @type {Object}
          */
-        this._context = this._canvas.getContext("2d");
+        this._context = this._canvas.getContext("2d", {
+            willReadFrequently: true
+        });
     }
 
     /**
