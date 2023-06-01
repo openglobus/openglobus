@@ -51,8 +51,9 @@ import { Object3d } from './Object3d.js';
 const { Handler } = webgl, { Control } = control;
 const { Layer, Vector, XYZ, CanvasTiles} = layer;
 const {
+    Polyline,
     EntityCollection,
-    Entity
+    Entity,
 } = entity;
 
 export {
@@ -78,6 +79,7 @@ export {
     PlanetCamera,
     Globe,
     LightSource,
+    Polyline,
     EntityCollection,
     Handler,
     Renderer,
