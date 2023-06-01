@@ -1,7 +1,3 @@
-/**
- * @module og/scene/Planet
- */
-
 "use strict";
 
 import { PlanetCamera } from "../camera/PlanetCamera.js";
@@ -1667,7 +1663,7 @@ export class Planet extends RenderNode {
      * @public
      * @param {Vec2} px - Pixel screen 2d coordinates.
      * @param {Boolean} [force=false] - Force framebuffer rendering.
-     * @returns {Vec3} -
+     * @returns {Vec3 | null} -
      */
     getCartesianFromPixelTerrain(px) {
         var distance = this.getDistanceFromPixel(px);
@@ -1695,7 +1691,7 @@ export class Planet extends RenderNode {
     }
 
     /**
-     * Returns projected 2d screen coordinates by 3d cartesian coordiantes.
+     * Returns projected 2d screen coordinates by 3d cartesian coordinates.
      * @public
      * @param {Vec3} coords - Cartesian coordinates.
      * @returns {Vec2} -
@@ -1720,7 +1716,7 @@ export class Planet extends RenderNode {
 
     /**
      * Returns distance from active camera to the the planet ellipsoid
-     * coordiantes unprojected by 2d screen coordiantes, or null if screen coordinates outside the planet.
+     * coordinates unprojected by 2d screen coordinates, or null if screen coordinates outside the planet.
      * @public
      * @param {Vec2} px - Screen coordinates.
      * @returns {number} -
@@ -1731,8 +1727,8 @@ export class Planet extends RenderNode {
     }
 
     /**
-     * Returns distance from active camera to the the relief planet coordiantes unprojected
-     * by 2d screen coordiantes, or null if screen coordinates outside the planet.
+     * Returns distance from active camera to the the relief planet coordinates unprojected
+     * by 2d screen coordinates, or null if screen coordinates outside the planet.
      * If screen coordinates inside the planet but relief is not exists in the
      * point than function returns distance to the planet ellipsoid.
      * @public
@@ -1855,7 +1851,7 @@ export class Planet extends RenderNode {
     /**
      * Fly camera to the new point.
      * @public
-     * @param {Vec3} cartesian - Fly coordiantes.
+     * @param {Vec3} cartesian - Fly coordinates.
      * @param {Vec3} [look] - Camera "look at" point.
      * @param {Vec3} [up] - Camera UP vector on the end of a flying.
      * @param {Number} [ampl] - Altitude amplitude factor.
@@ -1870,7 +1866,7 @@ export class Planet extends RenderNode {
     /**
      * Fly camera to the new geographical position.
      * @public
-     * @param {LonLat} lonlat - Fly geographical coordiantes.
+     * @param {LonLat} lonlat - Fly geographical coordinates.
      * @param {Vec3} [look] - Camera "look at" point on the end of a flying.
      * @param {Vec3} [up] - Camera UP vector on the end of a flying.
      * @param {Number} [ampl] - Altitude amplitude factor.

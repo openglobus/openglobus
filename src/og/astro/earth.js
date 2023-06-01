@@ -1,7 +1,3 @@
-/**
- * @module og/astro/earth
- */
-
 "use strict";
 
 import * as math from "../math.js";
@@ -82,7 +78,7 @@ export function getSunPosition(jDate) {
     var E =
         M + math.DEGREES * e * Math.sin(M * math.RADIANS) * (1 + e * Math.cos(M * math.RADIANS)); // eccentric anomaly
 
-    // Sun rectangular coordiantes, where the X axis points towards the perihelion
+    // Sun rectangular coordinates, where the X axis points towards the perihelion
     var x = Math.cos(E * math.RADIANS) - e;
     var y = Math.sin(E * math.RADIANS) * Math.sqrt(1 - e * e);
 

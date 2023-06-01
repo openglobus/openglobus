@@ -82,7 +82,10 @@
     margin-left: 5px;
     margin-right: 5px;
     align-items: center;
-    display: flex;
+    display: inline;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .og-attribution img {
@@ -331,6 +334,25 @@ details[open] {
 
 .displayBlock {
     display: block;
+}
+
+.og-drawing-default_button {
+    top: 12px;
+    right: 166px;
+}
+
+.og-drawing-default_button .og-button-icon {
+    transform: scale(0.73);
+}
+
+.og-drawing-polygon_button {
+    top: 12px;
+    right: 115px;
+}
+
+.og-drawing-linestring_button {
+    top: 12px;
+    right: 66px;
 }
 
 /* =============================== */

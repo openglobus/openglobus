@@ -269,11 +269,11 @@ class Segment {
      * @returns {Vec3} -
      */
     getEntityTerrainPoint(entity, res) {
-        return this.getTerrainPoint(entity._cartesian, entity._lonlatMerc, res);
+        return this.getTerrainPoint(entity._cartesian, entity._lonLatMerc, res);
     }
 
     isEntityInside(e) {
-        return this._extent.isInside(e._lonlatMerc);
+        return this._extent.isInside(e._lonLatMerc);
     }
 
     /**
@@ -281,7 +281,7 @@ class Segment {
      * @public
      * @param {Vec3} xyz - Cartesian object position.
      * @param {LonLat} insideSegmentPosition - Geodetic object position.
-     * @param {Vec3} [res] - Result cartesian coordiantes on the terrain.
+     * @param {Vec3} [res] - Result cartesian coordinates on the terrain.
      * @param {Vec3} [normal] - Terrain point normal.
      * @returns {number} -
      */
@@ -363,8 +363,8 @@ class Segment {
      * @param {LonLat} lonlat - Coordinates to project.
      * @returns {LonLat} -
      */
-    projectNative(lonlat) {
-        return lonlat.forwardMercator();
+    projectNative(lonLat) {
+        return lonLat.forwardMercator();
     }
 
     /**

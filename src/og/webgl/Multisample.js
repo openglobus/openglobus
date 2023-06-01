@@ -1,7 +1,3 @@
-/**
- * @module og/webgl/Multisample
- */
-
 "use strict";
 
 /**

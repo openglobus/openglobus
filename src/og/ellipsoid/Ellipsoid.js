@@ -1,7 +1,3 @@
-/**
- * @module og/ellipsoid/Ellipsoid
- */
-
 "use strict";
 
 import { LonLat } from "../LonLat.js";
@@ -44,33 +40,7 @@ class Ellipsoid {
     }
 
     /**
-     * Returns angle between to bearin angles
-     * @param {number} a - First bearing angle
-     * @param {number} b - Second bearing angle
-     * @returns {number}
-     */
-    static getAngleBetweenTwoBearings(a, b) {
-        a = zeroTwoPI(a);
-        b = zeroTwoPI(b);
-        return ((((a - b) % 360) + 360 + 180) % 360) - 180;
-    }
-
-    static getRelativeBearing(a, b) {
-        let a_y = Math.cos(a),
-            a_x = Math.sin(a),
-            b_y = Math.cos(b),
-            b_x = Math.sin(b);
-        let c = a_y * b_x - b_y * a_x,
-            d = a_x * b_x + a_y * b_y;
-        if (c > 0.0) {
-            return Math.acos(d);
-        }
-        return -Math.acos(d);
-    }
-
-    /**
      * Returns the distance travelling from ‘this’ point to destination point along a rhumb line.
-     *
      * @param   {LonLat} start coordinates.
      * @param   {LonLat} end coordinates
      * @returns {number} Distance in m between this point and destination point (same units as radius).
@@ -88,87 +58,29 @@ class Ellipsoid {
     }
 
     /**
-     * Returns the midpoint between two points on the great circle.
-     * @param   {LonLat} lonLat1 - Longitude/latitude of first point.
-     * @param   {LonLat} lonLat2 - Longitude/latitude of second point.
-     * @return {LonLat} Midpoint between points.
-     */
-    static getMiddlePointOnGreatCircle(lonLat1, lonLat2) {
-        var f1 = lonLat1.lat * RADIANS,
-            l1 = lonLat1.lon * RADIANS;
-        var f2 = lonLat2.lat * RADIANS;
-        var dl = (lonLat2.lon - lonLat1.lon) * RADIANS;
-
-        var Bx = Math.cos(f2) * Math.cos(dl);
-        var By = Math.cos(f2) * Math.sin(dl);
-
-        var x = Math.sqrt((Math.cos(f1) + Bx) * (Math.cos(f1) + Bx) + By * By);
-        var y = Math.sin(f1) + Math.sin(f2);
-        var f3 = Math.atan2(y, x);
-
-        var l3 = l1 + Math.atan2(By, Math.cos(f1) + Bx);
-
-        return new LonLat(((l3 * DEGREES + 540) % 360) - 180, f3 * DEGREES);
-    }
-
-    /**
      * Returns the point at given fraction between two points on the great circle.
      * @param   {LonLat} lonLat1 - Longitude/Latitude of source point.
      * @param   {LonLat} lonLat2 - Longitude/Latitude of destination point.
      * @param   {number} fraction - Fraction between the two points (0 = source point, 1 = destination point).
      * @returns {LonLat} Intermediate point between points.
      */
-    static getIntermediatePointOnGreatCircle(lonLat1, lonLat2, fraction) {
-        var f1 = lonLat1.lat * RADIANS,
-            l1 = lonLat1.lon * RADIANS;
-        var f2 = lonLat2.lat * RADIANS,
-            l2 = lonLat2.lon * RADIANS;
+    getIntermediatePointOnGreatCircle(lonLat1, lonLat2, fraction) {
 
-        var sinf1 = Math.sin(f1),
-            cosf1 = Math.cos(f1),
-            sinl1 = Math.sin(l1),
-            cosl1 = Math.cos(l1);
-        var sinf2 = Math.sin(f2),
-            cosf2 = Math.cos(f2),
-            sinl2 = Math.sin(l2),
-            cosl2 = Math.cos(l2);
+        if (fraction == 0) return lonLat1.clone();
+        if (fraction == 1) return lonLat2.clone();
 
-        var df = f2 - f1,
-            dl = l2 - l1;
-        var a =
-            Math.sin(df / 2) * Math.sin(df / 2) +
-            Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2);
-        var d = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        var A = Math.sin((1 - fraction) * d) / Math.sin(d);
-        var B = Math.sin(fraction * d) / Math.sin(d);
-
-        var x = A * cosf1 * cosl1 + B * cosf2 * cosl2;
-        var y = A * cosf1 * sinl1 + B * cosf2 * sinl2;
-        var z = A * sinf1 + B * sinf2;
-
-        var f3 = Math.atan2(z, Math.sqrt(x * x + y * y));
-        var l3 = Math.atan2(y, x);
-
-        return new LonLat(((l3 * DEGREES + 540) % 360) - 180, f3 * DEGREES);
+        const inverse = this.inverse(lonLat1, lonLat2);
+        const dist = inverse.distance;
+        const azimuth = inverse.initialAzimuth;
+        return isNaN(azimuth) ? lonLat1 : this.getGreatCircleDestination(lonLat1, azimuth, dist * fraction);
     }
 
-    static getRhumbBearing(lonLat1, lonLat2) {
-        var dLon = (lonLat2.lon - lonLat1.lon) * RADIANS;
-        var dPhi = Math.log(
-            Math.tan((lonLat2.lat * RADIANS) / 2 + Math.PI / 4) /
-            Math.tan((lonLat1.lat * RADIANS) / 2 + Math.PI / 4)
-        );
-        if (Math.abs(dLon) > Math.PI) {
-            if (dLon > 0) {
-                dLon = (2 * Math.PI - dLon) * -1;
-            } else {
-                dLon = 2 * Math.PI + dLon;
-            }
-        }
-        return (Math.atan2(dLon, dPhi) * DEGREES + 360) % 360;
-    }
-
+    /**
+     * REMOVE ASAP after
+     * @param lonLat1
+     * @param lonLat2
+     * @returns {number}
+     */
     static getBearing(lonLat1, lonLat2) {
         var f1 = lonLat1.lat * RADIANS,
             l1 = lonLat1.lon * RADIANS;
@@ -179,101 +91,8 @@ class Ellipsoid {
         return Math.atan2(y, x) * DEGREES;
     }
 
-    /**
-     * Returns the (initial) bearing from source to destination point on the great circle.
-     * @param {LonLat} lonLat1 - Longitude/latitude of source point.
-     * @param {LonLat} lonLat2 - Longitude/latitude of destination point.
-     * @return {number} Initial bearing in degrees from north.
-     */
-    static getInitialBearing(lonLat1, lonLat2) {
-        var f1 = lonLat1.lat * RADIANS,
-            f2 = lonLat2.lat * RADIANS;
-        var dl = (lonLat2.lon - lonLat1.lon) * RADIANS;
-        var y = Math.sin(dl) * Math.cos(f2);
-        var x = Math.cos(f1) * Math.sin(f2) - Math.sin(f1) * Math.cos(f2) * Math.cos(dl);
-        var D = Math.atan2(y, x);
-        return (D * DEGREES + 360) % 360;
-    }
-
-    /**
-     * Returns the point of intersection of two paths defined by point and bearing.
-     * @param   {LonLat} p1 - First point.
-     * @param   {number} brng1 - Initial bearing from first point.
-     * @param   {LonLat} p2 - Second point.
-     * @param   {number} brng2 - Initial bearing from second point.
-     * @return {LonLat|null} Destination point (null if no unique intersection defined).
-     */
-    static intersection(p1, brng1, p2, brng2) {
-        var f1 = p1.lat * RADIANS,
-            l1 = p1.lon * RADIANS;
-        var f2 = p2.lat * RADIANS,
-            l2 = p2.lon * RADIANS;
-        var D13 = brng1 * RADIANS,
-            D23 = brng2 * RADIANS;
-        var df = f2 - f1,
-            dl = l2 - l1;
-
-        var d12 =
-            2 *
-            Math.asin(
-                Math.sqrt(
-                    Math.sin(df / 2) * Math.sin(df / 2) +
-                    Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2)
-                )
-            );
-        if (d12 == 0) return null;
-
-        // initial/final bearings between points
-        var Da = Math.acos(
-            (Math.sin(f2) - Math.sin(f1) * Math.cos(d12)) / (Math.sin(d12) * Math.cos(f1))
-        );
-        if (isNaN(Da)) Da = 0; // protect against rounding
-        var Db = Math.acos(
-            (Math.sin(f1) - Math.sin(f2) * Math.cos(d12)) / (Math.sin(d12) * Math.cos(f2))
-        );
-
-        var D12 = Math.sin(l2 - l1) > 0 ? Da : 2 * Math.PI - Da;
-        var D21 = Math.sin(l2 - l1) > 0 ? 2 * Math.PI - Db : Db;
-
-        var a1 = ((D13 - D12 + Math.PI) % (2 * Math.PI)) - Math.PI;
-        var a2 = ((D21 - D23 + Math.PI) % (2 * Math.PI)) - Math.PI;
-
-        if (Math.sin(a1) == 0 && Math.sin(a2) == 0) return null; // infinite intersections
-        if (Math.sin(a1) * Math.sin(a2) < 0) return null; // ambiguous intersection
-
-        // a1 = Math.abs(a1);
-        // a2 = Math.abs(a2);
-        // ... Ed Williams takes abs of a1/a2, but seems to break calculation?
-
-        var a3 = Math.acos(
-            -Math.cos(a1) * Math.cos(a2) + Math.sin(a1) * Math.sin(a2) * Math.cos(d12)
-        );
-        var d13 = Math.atan2(
-            Math.sin(d12) * Math.sin(a1) * Math.sin(a2),
-            Math.cos(a2) + Math.cos(a1) * Math.cos(a3)
-        );
-        var f3 = Math.asin(
-            Math.sin(f1) * Math.cos(d13) + Math.cos(f1) * Math.sin(d13) * Math.cos(D13)
-        );
-        var dl13 = Math.atan2(
-            Math.sin(D13) * Math.sin(d13) * Math.cos(f1),
-            Math.cos(d13) - Math.sin(f1) * Math.sin(f3)
-        );
-        var l3 = l1 + dl13;
-
-        return new LonLat(((l3 * DEGREES + 540) % 360) - 180, f3 * DEGREES);
-    }
-
-    /**
-     * Returns final bearing arriving at destination destination point from lonLat1 point; the final bearing
-     * will differ from the initial bearing by varying degrees according to distance and latitude.
-     * @param {LonLat} lonLat1 - Longitude/latitude of source point.
-     * @param {LonLat} lonLat2 - Longitude/latitude of destination point.
-     * @return {number} Final bearing in degrees from north.
-     */
-    static getFinalBearing(lonLat1, lonLat2) {
-        // get initial bearing from destination lonLat2 to lonLat1 & reverse it by adding 180°
-        return (Ellipsoid.getInitialBearing(lonLat2, lonLat1) + 180) % 360;
+    getFlattening() {
+        return this._flattening;
     }
 
     /**
@@ -295,9 +114,9 @@ class Ellipsoid {
     }
 
     /**
-     * Gets cartesian ECEF from Wgs84 geodetic coordinates.
+     * Calculate cartesian coordinates by its ECEF geodetic coordinates.
      * @public
-     * @param {LonLat} lonlat - Degrees geodetic coordinates.
+     * @param {LonLat} lonlat - Geodetic coordinates.
      * @returns {Vec3} -
      */
     lonLatToCartesian(lonlat) {
@@ -317,10 +136,10 @@ class Ellipsoid {
     }
 
     /**
-     * Gets cartesian ECEF from Wgs84 geodetic coordinates.
+     * Calculate cartesian coordinates by its ECEF geodetic coordinates.
      * @public
-     * @param {LonLat} lonlat - Degrees geodetic coordinates.
-     * @param {Vec3} res - Output result.
+     * @param {LonLat} lonlat - Geodetic coordinates.
+     * @param {Vec3} res - Output variable reference.
      * @returns {Vec3} -
      */
     lonLatToCartesianRes(lonlat, res) {
@@ -375,6 +194,8 @@ class Ellipsoid {
             pY = p.y || 0.0,
             pZ = p.z || 0.0;
 
+        let length = Math.sqrt(pX * pX + pY * pY + pZ * pZ);
+
         let invRadii2X = this._invRadii2.x,
             invRadii2Y = this._invRadii2.y,
             invRadii2Z = this._invRadii2.z;
@@ -391,9 +212,9 @@ class Ellipsoid {
             return !Number.isFinite(ratio) ? new Vec3() : first
         }
 
-        let lambda = ((1.0 - ratio) * p.length()) / first.mulA(this._invRadii2).length();
+        let lambda = ((1.0 - ratio) * length) / first.mulA(this._invRadii2).length();
 
-        let m_X, m_Y, m_Z;
+        let m_X = 0.0, m_Y = 0.0, m_Z = 0.0;
 
         do {
             m_X = 1.0 / (1.0 + lambda * invRadii2X);
@@ -468,65 +289,96 @@ class Ellipsoid {
         return new Vec3(nx * l, ny * l, nz * l);
     }
 
-    /**
-     *
-     * @param {LonLat} lonLat1
-     * @param {number} [bearing]
-     * @param {number} [distance]
-     * @return {LonLat} -
-     */
-    getBearingDestination(lonLat1, bearing = 0.0, distance = 0) {
-        bearing = bearing * RADIANS;
-        var nlon = ((lonLat1.lon + 540) % 360) - 180;
-        var f1 = lonLat1.lat * RADIANS,
-            l1 = nlon * RADIANS;
-        var dR = distance / this._a;
-        var f2 = Math.asin(
-            Math.sin(f1) * Math.cos(dR) + Math.cos(f1) * Math.sin(dR) * Math.cos(bearing)
-        );
-        return new LonLat(
-            (l1 +
-                Math.atan2(
-                    Math.sin(bearing) * Math.sin(dR) * Math.cos(f1),
-                    Math.cos(dR) - Math.sin(f1) * Math.sin(f2)
-                )) *
-            DEGREES,
-            f2 * DEGREES
-        );
-    }
-
-    /**
-     * Returns the distance from one point to another(using haversine formula) on the great circle.
-     * @param   {LonLat} lonLat1 - Longitude/latitude of source point.
-     * @param   {LonLat} lonLat2 - Longitude/latitude of destination point.
-     * @return {number} Distance between points.
-     */
     getGreatCircleDistance(lonLat1, lonLat2) {
-        var dLat = (lonLat2.lat - lonLat1.lat) * RADIANS;
-        var dLon = (lonLat2.lon - lonLat1.lon) * RADIANS;
-        var a =
-            Math.sin(dLat / 2.0) * Math.sin(dLat / 2.0) +
-            Math.sin(dLon / 2.0) *
-            Math.sin(dLon / 2) *
-            Math.cos(lonLat1.lat * RADIANS) *
-            Math.cos(lonLat2.lat * RADIANS);
-        return this._a * 2.0 * Math.atan2(Math.sqrt(a), Math.sqrt(1.0 - a));
+        return this.inverse(lonLat1, lonLat2).distance;
     }
 
     /**
-     * Calculates the destination point given start point lat / lon, bearing(deg) and distance (m).
-     *
-     * Taken from http://movable-type.co.uk/scripts/latlong-vincenty-direct.html and optimized / cleaned up by Mathias Bynens <http://mathiasbynens.be/>
+     * Calculates the destination point given start point lat / lon, azimuth(deg) and distance (m).
+     * Source: http://movable-type.co.uk/scripts/latlong-vincenty-direct.html and optimized / cleaned up by Mathias Bynens <http://mathiasbynens.be/>
      * Based on the Vincenty direct formula by T. Vincenty, “Direct and Inverse Solutions of Geodesics on the Ellipsoid with application of nested equations”, Survey Review, vol XXII no 176, 1975 <http://www.ngs.noaa.gov/PUBS_LIB/inverse.pdf>
+     * @param {LonLat} lonLat - Origin coordinates
+     * @param {number} azimuth - View azimuth in degrees
+     * @param {number} dist - Distance to the destination point coordinates in meters
+     * @returns {LonLat} - Destination point coordinates
      */
-    getGreatCircleDestination(lonLat, brng, dist) {
-        var lon1 = lonLat.lon,
+    getGreatCircleDestination(lonLat, azimuth, dist) {
+        return this.direct(lonLat, azimuth, dist).destination;
+    }
+
+    inverse(lonLat1, lonLat2) {
+
+        let a = this._a, b = this._b, f = this._flattening;
+
+        const fi1 = lonLat1.lat * RADIANS, lambda1 = lonLat1.lon * RADIANS;
+        const fi2 = lonLat2.lat * RADIANS, lambda2 = lonLat2.lon * RADIANS;
+
+        const L = lambda2 - lambda1; // L = difference in longitude, U = reduced latitude, defined by tan U = (1-f)·tanφ.
+        const tanU1 = (1 - f) * Math.tan(fi1), cosU1 = 1 / Math.sqrt((1 + tanU1 * tanU1)), sinU1 = tanU1 * cosU1;
+        const tanU2 = (1 - f) * Math.tan(fi2), cosU2 = 1 / Math.sqrt((1 + tanU2 * tanU2)), sinU2 = tanU2 * cosU2;
+
+        const antipodal = Math.abs(L) > Math.PI / 2 || Math.abs(fi2 - fi1) > Math.PI / 2;
+
+        let lmb = L, sinLmb = null, cosLmb = null; // lmb - difference in longitude on an auxiliary sphere
+        let s = antipodal ? Math.PI : 0, sin_s = 0, cos_s = antipodal ? -1 : 1, sinSqs = null; // s - angular distance lonLat1 lonLat2 on the sphere
+        let cos2sm = 1;                      // sm - angular distance on the sphere from the equator to the midpoint of the line
+        let cosSqa = 1;                      // a - azimuth of the geodesic at the equator
+
+        let lmb_ = null, iterations = 0;
+        do {
+            sinLmb = Math.sin(lmb);
+            cosLmb = Math.cos(lmb);
+            sinSqs = (cosU2 * sinLmb) ** 2 + (cosU1 * sinU2 - sinU1 * cosU2 * cosLmb) ** 2;
+            if (Math.abs(sinSqs) < 1e-24) break;  // co-incident/antipodal points (σ < ≈0.006mm)
+            sin_s = Math.sqrt(sinSqs);
+            cos_s = sinU1 * sinU2 + cosU1 * cosU2 * cosLmb;
+            s = Math.atan2(sin_s, cos_s);
+            const sin_a = cosU1 * cosU2 * sinLmb / sin_s;
+            cosSqa = 1 - sin_a * sin_a;
+            cos2sm = (cosSqa != 0) ? (cos_s - 2 * sinU1 * sinU2 / cosSqa) : 0; // on equatorial line cos²α = 0 (§6)
+            const C = f / 16 * cosSqa * (4 + f * (4 - 3 * cosSqa));
+            lmb_ = lmb;
+            lmb = L + (1 - C) * f * sin_a * (s + C * sin_s * (cos2sm + C * cos_s * (-1 + 2 * cos2sm * cos2sm)));
+        } while (Math.abs(lmb - lmb_) > EPS12 && ++iterations < 1000);
+
+        const uSq = cosSqa * (a * a - b * b) / (b * b);
+        const A = 1 + uSq / 16384 * (4096 + uSq * (-768 + uSq * (320 - 175 * uSq)));
+        const B = uSq / 1024 * (256 + uSq * (-128 + uSq * (74 - 47 * uSq)));
+        const ds = B * sin_s * (cos2sm + B / 4 * (cos_s * (-1 + 2 * cos2sm * cos2sm) - B / 6 * cos2sm * (-3 + 4 * sin_s * sin_s) * (-3 + 4 * cos2sm * cos2sm)));
+
+        const dist = b * A * (s - ds); // s = length of the geodesic
+
+        // note special handling of exactly antipodal points where sin²σ = 0 (due to discontinuity
+        // atan2(0, 0) = 0 but atan2(ε, 0) = π/2 / 90°) - in which case bearing is always meridional,
+        // due north (or due south!)
+        // α = azimuths of the geodesic; α2 the direction P₁ P₂ produced
+        const a1 = Math.abs(sinSqs) < Number.EPSILON ? 0 : Math.atan2(cosU2 * sinLmb, cosU1 * sinU2 - sinU1 * cosU2 * cosLmb);
+        const a2 = Math.abs(sinSqs) < Number.EPSILON ? Math.PI : Math.atan2(cosU1 * sinLmb, -sinU1 * cosU2 + cosU1 * sinU2 * cosLmb);
+
+        return {
+            distance: dist,
+            initialAzimuth: Math.abs(dist) < Number.EPSILON ? NaN : zeroTwoPI(a1) * DEGREES,
+            finalAzimuth: Math.abs(dist) < Number.EPSILON ? NaN : zeroTwoPI(a2) * DEGREES
+        };
+    }
+
+    /**
+     * Calculates the destination point given start point lat / lon, azimuth(deg) and distance (m).
+     * Source: http://movable-type.co.uk/scripts/latlong-vincenty-direct.html and optimized / cleaned up by Mathias Bynens <http://mathiasbynens.be/>
+     * Based on the Vincenty direct formula by T. Vincenty, “Direct and Inverse Solutions of Geodesics on the Ellipsoid with application of nested equations”, Survey Review, vol XXII no 176, 1975 <http://www.ngs.noaa.gov/PUBS_LIB/inverse.pdf>
+     * @param {LonLat} lonLat - Origin coordinates
+     * @param {number} azimuth - View azimuth in degrees
+     * @param {number} dist - Distance to the destination point coordinates in meters
+     * @returns {LonLat} - Destination point coordinates
+     */
+    direct(lonLat, azimuth, dist) {
+        let lon1 = lonLat.lon,
             lat1 = lonLat.lat;
-        var a = this._a,
+        let a = this._a,
             b = this._b,
-            f = 1.0 / this._f,
+            f = this._flattening,
             s = dist,
-            alpha1 = brng * RADIANS,
+            alpha1 = azimuth * RADIANS,
             sinAlpha1 = Math.sin(alpha1),
             cosAlpha1 = Math.cos(alpha1),
             tanU1 = (1 - f) * Math.tan(lat1 * RADIANS),
@@ -544,20 +396,16 @@ class Ellipsoid {
             var cos2SigmaM = Math.cos(2 * sigma1 + sigma),
                 sinSigma = Math.sin(sigma),
                 cosSigma = Math.cos(sigma),
-                deltaSigma =
-                    B *
-                    sinSigma *
-                    (cos2SigmaM +
-                        (B / 4) *
-                        (cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM) -
-                            (B / 6) *
-                            cos2SigmaM *
-                            (-3 + 4 * sinSigma * sinSigma) *
-                            (-3 + 4 * cos2SigmaM * cos2SigmaM)));
+                deltaSigma = B * sinSigma *
+                    (cos2SigmaM + (B / 4) *
+                        (
+                            cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM) -
+                            (B / 6) * cos2SigmaM * (-3 + 4 * sinSigma * sinSigma) * (-3 + 4 * cos2SigmaM * cos2SigmaM)
+                        ));
             sigmaP = sigma;
             sigma = s / (b * A) + deltaSigma;
         }
-        var tmp = sinU1 * sinSigma - cosU1 * cosSigma * cosAlpha1,
+        let tmp = sinU1 * sinSigma - cosU1 * cosSigma * cosAlpha1,
             lat2 = Math.atan2(
                 sinU1 * cosSigma + cosU1 * sinSigma * cosAlpha1,
                 (1 - f) * Math.sqrt(sinAlpha * sinAlpha + tmp * tmp)
@@ -566,22 +414,19 @@ class Ellipsoid {
                 sinSigma * sinAlpha1,
                 cosU1 * cosSigma - sinU1 * sinSigma * cosAlpha1
             ),
-            C = (f / 16) * cosSqAlpha * (4 + f * (4 - 3 * cosSqAlpha)),
-            L =
-                lambda -
-                (1 - C) *
-                f *
-                sinAlpha *
-                (sigma +
-                    C *
-                    sinSigma *
-                    (cos2SigmaM + C * cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM))),
-            revAz = Math.atan2(sinAlpha, -tmp); // final bearing
-        return new LonLat(lon1 + L * DEGREES, lat2 * DEGREES);
+            C = (f / 16.0) * cosSqAlpha * (4.0 + f * (4.0 - 3.0 * cosSqAlpha)),
+            L = lambda - (1.0 - C) * f * sinAlpha * (sigma + C * sinSigma * (cos2SigmaM + C * cosSigma * (-1.0 + 2.0 * cos2SigmaM * cos2SigmaM))),
+            revAz = Math.atan2(sinAlpha, -tmp);
+
+        return {
+            destination: new LonLat(lon1 + L * DEGREES, lat2 * DEGREES),
+            finalAzimuth: revAz * DEGREES
+        };
     }
 
+
     /**
-     * Returns ray vector hit ellipsoid coordinates.
+     * Returns cartesian coordinates of the intersection of a ray and an ellipsoid.
      * If the ray doesn't hit ellipsoid returns null.
      * @public
      * @param {Vec3} origin - Ray origin point.
@@ -646,8 +491,93 @@ class Ellipsoid {
                 return origin.add(direction.scaleTo(-qw / w2));
             }
             // qw >= 0.0.  Looking outward or tangent.
-            return null;
+            // return undefined
         }
+    }
+
+    /**
+     * @todo this is not precise function, needs to be replaced or removed
+     * @param lonLat1
+     * @param bearing
+     * @param distance
+     * @returns {LonLat}
+     */
+    getBearingDestination(lonLat1, bearing = 0.0, distance = 0) {
+        bearing = bearing * RADIANS;
+        var nlon = ((lonLat1.lon + 540) % 360) - 180;
+        var f1 = lonLat1.lat * RADIANS,
+            l1 = nlon * RADIANS;
+        var dR = distance / this._a;
+        var f2 = Math.asin(
+            Math.sin(f1) * Math.cos(dR) + Math.cos(f1) * Math.sin(dR) * Math.cos(bearing)
+        );
+        return new LonLat(
+            (l1 +
+                Math.atan2(
+                    Math.sin(bearing) * Math.sin(dR) * Math.cos(f1),
+                    Math.cos(dR) - Math.sin(f1) * Math.sin(f2)
+                )) *
+            DEGREES,
+            f2 * DEGREES
+        );
+    }
+
+    /**
+     * Returns the point at given fraction between two points on the great circle.
+     * @param   {LonLat} lonLat1 - Longitude/Latitude of source point.
+     * @param   {LonLat} lonLat2 - Longitude/Latitude of destination point.
+     * @param   {number} fraction - Fraction between the two points (0 = source point, 1 = destination point).
+     * @returns {LonLat} Intermediate point between points.
+     */
+    static getIntermediatePointOnGreatCircle(lonLat1, lonLat2, fraction) {
+        var f1 = lonLat1.lat * RADIANS,
+            l1 = lonLat1.lon * RADIANS;
+        var f2 = lonLat2.lat * RADIANS,
+            l2 = lonLat2.lon * RADIANS;
+
+        var sinf1 = Math.sin(f1),
+            cosf1 = Math.cos(f1),
+            sinl1 = Math.sin(l1),
+            cosl1 = Math.cos(l1);
+        var sinf2 = Math.sin(f2),
+            cosf2 = Math.cos(f2),
+            sinl2 = Math.sin(l2),
+            cosl2 = Math.cos(l2);
+
+        var df = f2 - f1,
+            dl = l2 - l1;
+        var a =
+            Math.sin(df / 2) * Math.sin(df / 2) +
+            Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+        var d = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        var A = Math.sin((1 - fraction) * d) / Math.sin(d);
+        var B = Math.sin(fraction * d) / Math.sin(d);
+
+        var x = A * cosf1 * cosl1 + B * cosf2 * cosl2;
+        var y = A * cosf1 * sinl1 + B * cosf2 * sinl2;
+        var z = A * sinf1 + B * sinf2;
+
+        var f3 = Math.atan2(z, Math.sqrt(x * x + y * y));
+        var l3 = Math.atan2(y, x);
+
+        return new LonLat(((l3 * DEGREES + 540) % 360) - 180, f3 * DEGREES);
+    }
+
+    static getRhumbBearing(lonLat1, lonLat2) {
+        var dLon = (lonLat2.lon - lonLat1.lon) * RADIANS;
+        var dPhi = Math.log(
+            Math.tan((lonLat2.lat * RADIANS) / 2 + Math.PI / 4) /
+            Math.tan((lonLat1.lat * RADIANS) / 2 + Math.PI / 4)
+        );
+        if (Math.abs(dLon) > Math.PI) {
+            if (dLon > 0) {
+                dLon = (2 * Math.PI - dLon) * -1;
+            } else {
+                dLon = 2 * Math.PI + dLon;
+            }
+        }
+        return (Math.atan2(dLon, dPhi) * DEGREES + 360) % 360;
     }
 }
 

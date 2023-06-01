@@ -1,6 +1,7 @@
 /**
  * @module og/math
  */
+
 "use strict";
 
 /** @const */
@@ -226,7 +227,7 @@ export function step(edge, x) {
  */
 export function frac(x) {
     const mx = Math.abs(x)
-    return  mx - Math.floor(mx);
+    return mx - Math.floor(mx);
 }
 
 /**
@@ -396,3 +397,34 @@ export function solve_iteration(f, x0, err, maxIter = 50) {
  * @callback equationCallback
  * @param {number} x - Equation variable.
  */
+
+/**
+ *
+ * @param a - First bearing angle
+ * @param b - Second bearing angle
+ * @returns {number}
+ */
+function getAngleDirection(a, b) {
+    let a_y = Math.cos(a),
+        a_x = Math.sin(a),
+        b_y = Math.cos(b),
+        b_x = Math.sin(b);
+    let c = a_y * b_x - b_y * a_x,
+        d = a_x * b_x + a_y * b_y;
+    if (c > 0.0) {
+        return Math.acos(d);
+    }
+    return -Math.acos(d);
+}
+
+/**
+ * Returns angle between two azimuths
+ * @param {number} a - First azimuth angle
+ * @param {number} b - Second azimuth angle
+ * @returns {number}
+ */
+export function getAngleBetweenAzimuths(a, b) {
+    a = zeroTwoPI(a);
+    b = zeroTwoPI(b);
+    return ((((a - b) % 360) + 360 + 180) % 360) - 180;
+}

@@ -1,7 +1,3 @@
-/**
- * @module og/shaders/skybox
- */
-
 'use strict';
 
 import { Program } from '../webgl/Program.js';

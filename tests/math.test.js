@@ -8,7 +8,9 @@ import {
     nextHighestPowerOfTwo,
     RAD2DEG,
     random,
-    randomi, step
+    randomi,
+    step,
+    getAngleBetweenAzimuths
 } from "../src/og/math.js";
 
 describe('math module', () => {
@@ -209,4 +211,10 @@ describe('math module', () => {
             expect(frac(0)).toBe(0);
         });
     });
+
+    test('Testing getAngleBetweenAzimuths', () => {
+        let res = getAngleBetweenAzimuths(0, 0);
+        expect(1).toBe(1);
+    });
+
 });

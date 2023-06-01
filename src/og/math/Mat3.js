@@ -1,7 +1,3 @@
-/**
- * @module og/math/Mat3
- */
-
 "use strict";
 
 import { Mat4 } from "./Mat4.js";

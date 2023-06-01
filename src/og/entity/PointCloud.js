@@ -1,7 +1,3 @@
-/**
- * @module og/entity/PointCloud
- */
-
 "use strict";
 
 import { Vec3 } from "../math/Vec3.js";

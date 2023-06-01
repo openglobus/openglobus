@@ -27,7 +27,7 @@ const TYPE_HTML = [DECIMAL_TEMPLATE, DEGREE_TEMPLATE];
  * @class
  * @extends {og.control.Control}
  * @param {Object} [options] - Options:
- * @param {Boolean} [options.center] - Earth coordiantes by screen center otherwise mouse pointer. False is default.
+ * @param {Boolean} [options.center] - Earth coordinates by screen center otherwise mouse pointer. False is default.
  * @param {Boolean} [options.type] - Coordinates shown: 0 - is decimal degrees, 1 - degrees, 2 - mercator geodetic coordinates.
  */
 class EarthCoordinates extends Control {
@@ -66,7 +66,7 @@ class EarthCoordinates extends Control {
         this._altUnit = units[this._altUnitVal];
         this._heightMode = heightMode[this._heightModeVal];
 
-        this._centerMode = options.centerMode || false;
+        this._centerMode = options.centerMode != undefined ? options.centerMode : true;
     }
 
     _SHOW_DECIMAL(ll) {

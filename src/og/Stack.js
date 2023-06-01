@@ -1,7 +1,3 @@
-/**
- * @module og/Stack
- */
-
 "use strict";
 
 class Node {

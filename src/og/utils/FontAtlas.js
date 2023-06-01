@@ -1,7 +1,3 @@
-/**
- * @module og/utils/FontAtlas
- */
-
 'use strict';
 
 import { Deferred } from '../Deferred.js';

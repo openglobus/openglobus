@@ -1,7 +1,3 @@
-/**
- * @module og/entity/LabelHandler
- */
-
 "use strict";
 
 import * as shaders from "../shaders/label.js";

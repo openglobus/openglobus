@@ -1,7 +1,3 @@
-/**
- * @module og/ImageCanvas
- */
-
 "use strict";
 
 /**
@@ -28,7 +24,9 @@ class ImageCanvas {
          * @protected
          * @type {Object}
          */
-        this._context = this._canvas.getContext("2d", { willReadFrequently: true });
+        this._context = this._canvas.getContext("2d", {
+            willReadFrequently: true
+        });
     }
 
     /**

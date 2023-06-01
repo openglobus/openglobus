@@ -565,7 +565,7 @@ export function base64StringToBlog(string) {
  * Callback throttling
  * @param {any} func
  * @param {Number} limit
- * @param {Number} skip
+ * @param {boolean} [skip]
  */
 export function throttle(func, limit, skip) {
     let lastFunc;
@@ -967,4 +967,14 @@ export async function loadImage(url) {
  */
 export function isImageLoaded(image) {
     return image.complete && image.naturalHeight !== 0;
+}
+
+export function distanceFormat(v) {
+    if (v > 1000) {
+        return `${(v / 1000).toFixed(1)} km`;
+    } else if (v > 9) {
+        return `${Math.round(v)} m`;
+    } else {
+        return `${v.toFixed(1)} m`;
+    }
 }

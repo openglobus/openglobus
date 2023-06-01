@@ -1,7 +1,3 @@
-/**
- * @module og/control/ShowFps
- */
-
 "use strict";
 
 import { print2d } from "../utils/shared.js";

@@ -1,7 +1,3 @@
-/**
- * @module og/control/ZoomControl
- */
-
 "use strict";
 
 import { Key } from "../Lock.js";

@@ -1,7 +1,3 @@
-/**
- * @module og/webgl/Program
- */
-
 "use strict";
 
 import { cons } from "../cons.js";

@@ -1,7 +1,3 @@
-/**
- * @module og/control/ZoomControl
- */
-
 "use strict";
 
 import { RADIANS } from "../math.js";
@@ -40,7 +36,7 @@ class ScaleControl extends Control {
         this._minWidth = 100;
         this._maxWidth = 150;
 
-        this._isCenter = options.isCenter || false;
+        this._isCenter = options.isCenter != undefined ? options.isCenter : true;
     }
 
     _renderTemplate() {

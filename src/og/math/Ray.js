@@ -1,7 +1,3 @@
-/**
- * @module og/math/Ray
- */
-
 "use strict";
 
 import { EPS10 } from "../math.js";

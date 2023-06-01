@@ -1,7 +1,3 @@
-/**
- * @module og/Clock
- */
-
 "use strict";
 
 import * as jd from "./astro/jd.js";

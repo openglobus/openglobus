@@ -1,7 +1,3 @@
-/**
- * @module og/control/Ruler
- */
-
 "use strict";
 
 import { Control } from "../Control.js";

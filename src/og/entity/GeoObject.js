@@ -1,7 +1,3 @@
-/**
- * @module og/entity/GeoObject
- */
-
 "use strict";
 
 import { Quat, Vec3 } from "../math/index.js";

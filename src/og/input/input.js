@@ -1,7 +1,3 @@
-/**
- * @module og/input/input
- */
-
 'use strict';
 
 export const input = {

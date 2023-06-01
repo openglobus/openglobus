@@ -1,7 +1,3 @@
-/**
- * @module og/webgl/Handler
- */
-
 "use strict";
 
 import { Clock } from "../Clock.js";

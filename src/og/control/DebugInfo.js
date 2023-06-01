@@ -1,7 +1,3 @@
-/**
- * @module og/control/DebugInfo
- */
-
 "use strict";
 
 import { Control } from "./Control.js";

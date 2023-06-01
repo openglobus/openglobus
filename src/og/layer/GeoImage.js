@@ -1,7 +1,3 @@
-/**
- * @module og/layer/GeoImage
- */
-
 "use strict";
 
 import { nextHighestPowerOfTwo } from "../math.js";

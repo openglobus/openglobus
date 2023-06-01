@@ -1,7 +1,3 @@
-/**
- * @module og/entity/GeometryHandler
- */
-
 "use strict";
 
 import { doubleToTwoFloatsV2 } from "../math/coder.js";

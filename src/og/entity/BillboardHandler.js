@@ -1,7 +1,3 @@
-/**
- * @module og/entity/BillboardHandler
- */
-
 "use strict";
 
 import * as shaders from "../shaders/billboard.js";

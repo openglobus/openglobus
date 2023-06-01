@@ -1,7 +1,3 @@
-/**
- * @module og/Events
- */
-
 "use strict";
 
 import { binaryInsert, stamp } from "./utils/shared.js";
@@ -96,7 +92,8 @@ class Events {
      * @public
      * @param {string} name - Event name to listen.
      * @param {eventCallback} callback - Event callback function.
-     * @param {Object} sender - Event callback function owner.
+     * @param {any} [sender] - Event callback function owner.
+     * @param {number} [priority] - Priority of event callback.
      */
     on(name, callback, sender, priority = 0) {
         if (this._stamp(name, callback)) {

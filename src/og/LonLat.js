@@ -1,7 +1,3 @@
-/**
- * @module og/LonLat
- */
-
 "use strict";
 
 import * as mercator from "./mercator.js";
