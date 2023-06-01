@@ -138,16 +138,20 @@ class TimelineView extends View {
     }
 
     resize() {
+        console.log('TIMELINE RESIZE')
+
         this._resize();
         this.draw();
     }
 
     afterRender(parentNode) {
+        console.log('TIMELINE AFTER RENDER')
         this.resize();
     }
 
     render() {
         super.render();
+        console.log('TIMELINE RENDER')
 
         this.$controls = this.select(".og-timeline-controls");
 
@@ -304,6 +308,7 @@ class TimelineView extends View {
     }
 
     _onMouseDown(e) {
+        console.log('TIMELINE MOUSE DOWN')
         if (this._isMouseOver) {
             this._isDragging = true;
             document.body.classList.add("og-timeline-unselectable");
@@ -331,19 +336,18 @@ class TimelineView extends View {
         if (this._isDragging) {
             this._isDragging = false;
             document.body.classList.remove("og-timeline-unselectable");
-            if (this._clickPosX === e.clientX && (Date.now() - this._clickTime) < this._clickDelay) {
-                let rect = this._canvasEl.getBoundingClientRect();
-                let current = new Date(this.model.rangeStartTime + (e.clientX - rect.left) * this._millisecondsInPixel);
-                this.model.current = current;
-                this._events.dispatch(this._events.stopdrag, current);
-                this._events.dispatch(this._events.setcurrent, current);
-            } else {
-                this._events.dispatch(this._events.stopdrag, this.model.current);
-            }
+            this._events.dispatch(this._events.stopdrag, this.model.current);
         } else if (this._isCurrentDragging) {
             this._isCurrentDragging = false;
             document.body.classList.remove("og-timeline-unselectable");
             this._events.dispatch(this._events.stopdragcurrent, this.model.current);
+        } else {
+            if (this._clickPosX === e.clientX && (Date.now() - this._clickTime) < this._clickDelay) {
+                let rect = this._canvasEl.getBoundingClientRect();
+                let current = new Date(this.model.rangeStartTime + (e.clientX - rect.left) * this._millisecondsInPixel);
+                this.model.current = current;  
+                this._events.dispatch(this._events.setcurrent, current);
+            } 
         }
     }
 
@@ -385,11 +389,14 @@ class TimelineView extends View {
     }
 
     _resize() {
+        console.log('TIMELINE _RESIZE')
         if (this._canvasEl && this._frameEl) {
             this._canvasEl.width = this._frameEl.clientWidth * this._canvasScale;
             this._canvasEl.height = this._frameEl.clientHeight * this._canvasScale;
             this._canvasEl.style.width = `${this._frameEl.clientWidth}px`;
             this._canvasEl.style.height = `${this._frameEl.clientHeight}px`;
+            console.log('TIMELINE _RESIZE:',this._canvasEl)
+
         }
     }
 
@@ -403,6 +410,7 @@ class TimelineView extends View {
     }
 
     _clearCanvas() {
+        console.log('TIMELINE CLEAR CNV')
         if (this._ctx) {
             this._ctx.fillStyle = this.fillStyle;
             this._ctx.fillRect(0, 0, this.clientWidth * this._canvasScale, this.clientHeight * this._canvasScale);
@@ -410,17 +418,23 @@ class TimelineView extends View {
     }
 
     _drawCurrent() {
+        console.log('TIMELINE _DRAW CURRENT')
         let curPosX = (this.model.currentTime - this.model.rangeStartTime) / this._millisecondsInPixel;
         if (this.model.current < this.model.rangeStart || this.model.current > this.model.rangeEnd) {
+            console.log('TIMELINE _DRAW CURRENT NONE')
             this._currentEl.style.display = "none";
         } else {
+            console.log('TIMELINE _DRAW CURRENT BLOCK')
+
             this._currentEl.style.display = "block";
             this._currentEl.style.transform = `translateX(${curPosX}px)`;
         }
     }
 
     draw() {
+        console.log('TIMELINE DRAW')
         if (this._ctx) {
+            console.log('TIMELINE HAS CTX', this._ctx)
             this._millisecondsInPixel = (this.model.range / this.clientWidth);
             let minWidthMs = this._minWidth * this._millisecondsInPixel;
             let scaleData = getScale(minWidthMs * MILLISECONDS_TO_SECONDS);
@@ -440,11 +454,13 @@ class TimelineView extends View {
                 for (let i = originTime, rangeEnd = this.model.rangeEndTime + scaleMs; i < rangeEnd; i += scaleMs) {
                     let x = this.getOffsetbyTime(i);
                     if (x >= 0 && x <= this.clientWidth * this._canvasScale) {
+                        console.log('TIMELINE DRAW NOTCH')
                         drawNotch(this._ctx, x * this._canvasScale, 10 * this._canvasScale, 2 * this._canvasScale, SCALE_NOTCH_COLOR);
                     }
                     for (let j = 1; j < segCount; j++) {
                         let xx = x + j * (scalePx / segCount);
                         if (xx >= 0 && xx <= this.clientWidth * this._canvasScale) {
+                            console.log('TIMELINE DRAW NOTCH2')
                             drawNotch(this._ctx, xx * this._canvasScale, 5 * this._canvasScale, 1 * this._canvasScale, SCALE_NOTCH_COLOR);
                         }
                     }
