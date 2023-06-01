@@ -28,7 +28,7 @@ class ImageCanvas {
          * @protected
          * @type {Object}
          */
-        this._context = this._canvas.getContext("2d");
+        this._context = this._canvas.getContext("2d", { willReadFrequently: true });
     }
 
     /**
@@ -60,6 +60,16 @@ class ImageCanvas {
             pixels[i] = pixels[i + 1] = pixels[i + 2] = pixels[i + 3] = 0;
         }
         this._context.putImageData(imgd, 0, 0);
+    }
+
+    /**
+     * Fills canvas RGBA with color.
+     * @public
+     */
+    fill(c) {
+        console.log('CANVAS FILL W/', color)
+        this._context.fillStyle = color
+        this._context.fill()
     }
 
     /**
