@@ -239,7 +239,7 @@ class LayerSwitcher extends Control {
             if (
                 (nameConcat == 'TerrainProviders' && planet.terrain == object) ||
                 (nameConcat == 'BaseLayers' && planet.baseLayer == object) ||
-                (nameConcat == 'OverLays' && object.getVisibility() == true)
+                (nameConcat == 'Overlays' && object.getVisibility() == true)
             ) {
                 return true
             }
@@ -282,6 +282,8 @@ class LayerSwitcher extends Control {
                 let entities = object._entities
                 let inputs = [...title.querySelectorAll('input')]
                 entities ? object._entities.forEach((entity, index) => {
+                    console.log("visibility ENTITY/INDEX/INPUTS/SIBLINGS/TITLE", entity, index, inputs, siblings, title);
+
                     inputs[index].checked = entity.getVisibility()
                 }) : null
             } else {
