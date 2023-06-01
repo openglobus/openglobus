@@ -290,6 +290,11 @@ class Globe {
         this._canvas.style.opacity = 0.0;
     }
 
+    detach() {
+        this.renderer.div=null
+        this.div=null
+    }
+
     static get _staticCounter() {
         if (!this._counter && this._counter !== 0) {
             this._counter = 0;
