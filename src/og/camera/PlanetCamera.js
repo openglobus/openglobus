@@ -24,9 +24,9 @@ import { Ellipsoid } from "../ellipsoid/index.js";
  * @param {Object} [options.name] - Camera name.
  * @param {number} [options.viewAngle] - Camera angle of view.
  * @param {number} [options.near] - Camera near plane distance. Default is 1.0
- * @param {number} [options.far] - Camera far plane distance. Deafult is og.math.MAX
- * @param {number} [options.minAltitude] - Minimal altitude for the camera. Deafult is 5
- * @param {number} [options.maxAltitude] - Maximal altitude for the camera. Deafult is 20000000
+ * @param {number} [options.far] - Camera far plane distance. Default is og.math.MAX
+ * @param {number} [options.minAltitude] - Minimal altitude for the camera. Default is 5
+ * @param {number} [options.maxAltitude] - Maximal altitude for the camera. Default is 20000000
  * @param {Vec3} [options.eye] - Camera eye position. Default (0,0,0)
  * @param {Vec3} [options.look] - Camera look position. Default (0,0,0)
  * @param {Vec3} [options.up] - Camera eye position. Default (0,1,0)

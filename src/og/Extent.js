@@ -86,7 +86,7 @@ export class Extent {
     }
 
     /**
-     * Creates bound extent instance by coordinate array.
+     * Creates bound extent instance by coordinates array.
      * @static
      * @param {Array.<Array<number>>} arr - Coordinate array. (exactly 2 entries)
      * @return {Extent} Extent object.

@@ -14,7 +14,7 @@ import { Events } from "./Events.js";
  * @param {number} [params.startDate=0.0] - Julian start date.
  * @param {number} [params.endDate=0.0] - Julian end date.
  * @param {number} [params.currentDate] - Julian current date. Default: current date.
- * @param {number} [params.multiplier=1.0] - Time speed multiolier.
+ * @param {number} [params.multiplier=1.0] - Time speed multiplier.
  */
 class Clock {
     static get _staticCounter() {
