@@ -15,10 +15,10 @@
         import { Globe } from '../../src/og/Globe.js';
         import { LonLat } from '../../src/og/LonLat.js';
         import { Vec3 } from '../../src/og/math/Vec3.js';
+        import { Vec4 } from '../../src/og/math/Vec4.js';
         import { Quat } from '../../src/og/math/Quat.js';
         import { XYZ } from '../../src/og/layer/XYZ.js';
         import { Vector } from '../../src/og/layer/Vector.js';
-        import { GeoImage } from '../../src/og/layer/GeoImage.js';
         import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
 
         //
@@ -87,8 +87,8 @@
                     }
                 }, {
                     'polyline': {
-                        'pathLonLat': [[[55, 2.3510, 200000], [52, 17, 200000], [50, 35, 300000]]],
-                        'pathColors': [[[1, 1, 1, 1], [1, 1, 0, 1], [1, 0, 0, 1]]],
+                        'pathLonLat': [[ new LonLat(55, 2.3510, 200000), new LonLat(52, 17, 200000), new LonLat(50, 35, 300000)]],
+                        'pathColors': [[[1, 1, 1, 1],[1, 1, 0, 1], [1, 0, 0, 1]]],
                         'thickness': 5.5,
                         'color': "red",
                         'isClosed': false
