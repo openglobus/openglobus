@@ -956,6 +956,7 @@ export async function loadImage(url) {
             resolve(image);
         });
         image.src = url;
+        image.crossOrigin = ""
         return image;
     });
 }
