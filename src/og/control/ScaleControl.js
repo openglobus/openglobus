@@ -55,7 +55,7 @@ class ScaleControl extends Control {
                 this._drawScreen(this.planet.renderer.handler.getCenter());
             });
 
-            this.planet.terrain.events.on("loadend", (e) => {
+            !this.planet.terrain.isEmpty && this.planet.terrain.events.on("loadend", (e) => {
                 this._drawScreen(this.planet.renderer.handler.getCenter());
             });
         } else {
