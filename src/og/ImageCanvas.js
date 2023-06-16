@@ -65,7 +65,6 @@ class ImageCanvas {
      * @public
      */
     fill(c) {
-        console.log('CANVAS FILL W/', color)
         this._context.fillStyle = color
         this._context.fill()
     }

@@ -26,7 +26,7 @@ class TimelineControl extends Control {
         }
         super(options);
 
-        let currentDate = options.currentDate || new Date();
+        let currentDate = options.currentDate;
         let startDate = options.rangeStart || addHours(currentDate, -12);
         let endDate = options.rangeEnd || addHours(currentDate, 12); 
 
@@ -76,7 +76,6 @@ class TimelineControl extends Control {
         this._timelineView.appendTo(this._dialog.container);
 
         this._timelineView.on("setcurrent", (d) => {
-            console.log('set current', d)
             this.renderer.handler.defaultClock.setDate(d);
         });
 
@@ -85,7 +84,6 @@ class TimelineControl extends Control {
         });
 
         this._timelineView.on("stopdrag", (e) => {
-            console.log(e)
             this.renderer.controls.mouseNavigation.activate();
         });
 
