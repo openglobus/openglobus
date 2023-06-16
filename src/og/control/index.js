@@ -21,6 +21,8 @@ import { Sun } from "./Sun.js";
 import { ToggleWireframe } from "./ToggleWireframe.js";
 import { TouchNavigation } from "./TouchNavigation.js";
 import { ZoomControl } from "./ZoomControl.js";
+import { DrawingSwitcher } from "./DrawingSwitcher.js";
+import { DrawingControl } from "./drawing/DrawingControl.js";
 
 import { TimelineControl } from "./timeline/TimelineControl.js";
 
@@ -48,5 +50,7 @@ export {
     SimpleSkyBackground,
     Selection,
     LayerAnimation,
-    TimelineControl
+    TimelineControl,
+    DrawingSwitcher,
+    DrawingControl
 };

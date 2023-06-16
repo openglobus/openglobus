@@ -379,7 +379,7 @@ class Object3d {
 
 
     static async loadObj(src) {
-        const obj = await fetch(src)
+        const obj = await fetch(src, { mode: "cors", })
             .then((response) => response.text())
             .then((data) => transformLeftToRightCoordinateSystem(objParser(data)))
             .catch(() => []);

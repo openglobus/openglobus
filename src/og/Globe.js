@@ -137,7 +137,6 @@ class Globe {
                 }
             }), {
                 autoActivate: false,
-                backgroundColor: createColorRGB(options.backgroundColor, new Vec3(115 / 255, 203 / 255, 249 / 255)),
                 msaa: options.msaa
             }
         );
