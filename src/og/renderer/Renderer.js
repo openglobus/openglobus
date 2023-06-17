@@ -237,13 +237,13 @@ class Renderer {
 
     enableBlendDefault(){
         let gl = this.handler.gl;
-        gl.enable(gl.BLEND);
-        gl.blendEquation(gl.FUNC_ADD);
-        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-
         // gl.enable(gl.BLEND);
         // gl.blendEquation(gl.FUNC_ADD);
-        // gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+        // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+        gl.enable(gl.BLEND);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
     }
 
     /**
@@ -720,10 +720,11 @@ class Renderer {
         if (ec.length) {
             let gl = this.handler.gl;
 
-            //this.enableBlend();
-            // gl.enable(gl.BLEND);
-            // gl.blendEquation(gl.FUNC_ADD);
-            // gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+            gl.enable(gl.BLEND);
+            gl.blendEquation(gl.FUNC_ADD);
+            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+
+            //this.enableBlendDefault();
 
             // billboards pass
             gl.activeTexture(gl.TEXTURE0);
