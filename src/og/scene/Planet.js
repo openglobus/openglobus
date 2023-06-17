@@ -1225,7 +1225,7 @@ export class Planet extends RenderNode {
 
         gl.enable(gl.CULL_FACE);
 
-        renderer.enableBlendDefault();
+        //renderer.enableBlendDefault();
 
         if (this.lightEnabled) {
             h.programs.drawnode_screen_wl.activate();
