@@ -1225,7 +1225,7 @@ export class Planet extends RenderNode {
 
         gl.enable(gl.CULL_FACE);
 
-        //renderer.enableBlendDefault();
+        renderer.enableBlendOneSrcAlpha();
 
         if (this.lightEnabled) {
             h.programs.drawnode_screen_wl.activate();
@@ -1333,11 +1333,7 @@ export class Planet extends RenderNode {
 
         gl.enable(gl.CULL_FACE);
 
-        // gl.enable(gl.BLEND);
-        // gl.blendEquation(gl.FUNC_ADD);
-        // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-        //renderer.enableBlendDefault();
+        renderer.enableBlendOneSrcAlpha();
 
         if (this.lightEnabled) {
             h.programs.drawnode_screen_wl.activate();
