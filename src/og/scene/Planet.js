@@ -115,7 +115,7 @@ export class Planet extends RenderNode {
     constructor(options = {}) {
         super(options.name);
 
-        this._cameraFrustums = options.frustums || [[1, 100 + 0.075], [100, 1000 + 0.075], [1000, 1e6 + 10000], [1e6, 1e9]];
+        this._cameraFrustums = options.frustums || [[1, 100], [100, 1000 + 7.0], [1000 - 7.0, 1e6 + 17], [1e6 - 17, 1e9]];
 
         /**
          * @public
