@@ -50,12 +50,12 @@ export const DEGREES_TO_HOURS = 1.0 / 15.0;
 /** @const */
 export const SQRT_HALF = Math.sqrt(0.5);
 
-export const EPS1 = 0.1;
-export const EPS2 = 0.01;
-export const EPS3 = 0.001;
-export const EPS4 = 0.0001;
-export const EPS5 = 0.00001;
-export const EPS6 = 0.000001;
+export const EPS1 = 1e-1;
+export const EPS2 = 1e-2;
+export const EPS3 = 1e-3;
+export const EPS4 = 1e-4;
+export const EPS5 = 1e-5;
+export const EPS6 = 1e-6;
 export const EPS7 = 1e-7;
 export const EPS8 = 1e-8;
 export const EPS9 = 1e-9;
