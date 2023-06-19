@@ -235,6 +235,20 @@ class Renderer {
         }
     }
 
+    enableBlendOneSrcAlpha(){
+        let gl = this.handler.gl;
+        gl.enable(gl.BLEND);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    }
+
+    enableBlendDefault(){
+        let gl = this.handler.gl;
+        gl.enable(gl.BLEND);
+        gl.blendEquation(gl.FUNC_ADD);
+        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+    }
+
     /**
      * Sets renderer events activity.
      * @param {Boolean} activity - Events activity.
@@ -674,10 +688,8 @@ class Renderer {
         let ec = this._entityCollections;
 
         if (ec.length) {
-            let gl = this.handler.gl;
-            gl.enable(gl.BLEND);
-            gl.blendEquation(gl.FUNC_ADD);
-            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+
+            this.enableBlendDefault();
 
             //geoObject
             let i = ec.length;
@@ -709,9 +721,7 @@ class Renderer {
         if (ec.length) {
             let gl = this.handler.gl;
 
-            gl.enable(gl.BLEND);
-            gl.blendEquation(gl.FUNC_ADD);
-            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+            this.enableBlendDefault();
 
             // billboards pass
             gl.activeTexture(gl.TEXTURE0);
@@ -775,10 +785,6 @@ class Renderer {
 
         let h = this.handler, gl = h.gl;
 
-        gl.enable(gl.BLEND);
-        gl.blendEquation(gl.FUNC_ADD);
-        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
-
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -805,10 +811,7 @@ class Renderer {
 
             i = rn.length;
             while (i--) {
-                gl.enable(gl.BLEND);
-                gl.blendEquation(gl.FUNC_ADD);
-                gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
-
+                this.enableBlendDefault();
                 rn[i].drawNode();
             }
 
