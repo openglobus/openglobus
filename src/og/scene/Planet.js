@@ -115,7 +115,7 @@ export class Planet extends RenderNode {
     constructor(options = {}) {
         super(options.name);
 
-        this._cameraFrustums = options.frustums || [[1, 100 + 0.075], [100, 1000 + 0.075], [1000, 1e6 + 10000], [1e6, 1e9]];
+        this._cameraFrustums = options.frustums || [[1, 100], [100, 1000 + 7.0], [1000 - 7.0, 1e6 + 17], [1e6 - 17, 1e9]];
 
         /**
          * @public
@@ -1225,9 +1225,7 @@ export class Planet extends RenderNode {
 
         gl.enable(gl.CULL_FACE);
 
-        gl.enable(gl.BLEND);
-        gl.blendEquation(gl.FUNC_ADD);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        renderer.enableBlendOneSrcAlpha();
 
         if (this.lightEnabled) {
             h.programs.drawnode_screen_wl.activate();
@@ -1335,9 +1333,7 @@ export class Planet extends RenderNode {
 
         gl.enable(gl.CULL_FACE);
 
-        gl.enable(gl.BLEND);
-        gl.blendEquation(gl.FUNC_ADD);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        renderer.enableBlendOneSrcAlpha();
 
         if (this.lightEnabled) {
             h.programs.drawnode_screen_wl.activate();
@@ -1488,9 +1484,10 @@ export class Planet extends RenderNode {
         let shu = sh.uniforms;
         let cam = renderer.activeCamera;
 
-        gl.blendEquation(gl.FUNC_ADD);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.enable(gl.BLEND);
+        // Special blend
+        // gl.enable(gl.BLEND);
+        // gl.blendEquation(gl.FUNC_ADD);
+        // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
         gl.enable(gl.CULL_FACE);
 
