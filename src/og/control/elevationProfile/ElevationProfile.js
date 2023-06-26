@@ -13,9 +13,9 @@ const HEIGHT_EPS = 0.1;
 const BOTTOM_PADDING = 0.1;
 const TOP_PADDING = 0.1;
 
-export const SAFE = 0;
-export const WARNING = 1;
-export const COLLISION = 2;
+const SAFE = 0;
+const WARNING = 1;
+const COLLISION = 2;
 
 
 class ElevationProfile {
@@ -254,14 +254,11 @@ class ElevationProfile {
         this._pointsReady = false;
         this._isWarningOrCollision = false;
         this._drawData = [][0];
-
         this._pMaxY = 0;
         this._pMinY = 0;
         this._pDist = 0;
-
         this._pTrackCoords = [[0, 0, SAFE]];
         this._pGroundCoords = [[0, 0, SAFE]];
-
         this._pIndex = 0;
     }
 }
