@@ -22,6 +22,8 @@ class ElevationProfile {
     constructor(options = {}) {
         this.events = new Events(["profilecollected"]);
 
+        this.planet = options.planet;
+
         this._minX = 0;
         this._maxX = 1000;
         this._minY = 0;
@@ -45,8 +47,6 @@ class ElevationProfile {
         this._pGroundCoords = [[0, 0, SAFE]];
 
         this._pIndex = 0;
-
-        this.planet = options.planet;
     }
 
     setWarningHeightLevel(warningHeight = 0) {
