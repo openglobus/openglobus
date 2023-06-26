@@ -1,16 +1,18 @@
 'use strict';
 
-import {Vec3} from "../../math/Vec3.js";
-import {Deferred} from "../../Deferred.js";
-import {LonLat} from "../../LonLat.js";
-import {Events} from '../../Events.js';
+import { Vec3 } from "../../math/Vec3.js";
+import { Deferred } from "../../Deferred.js";
+import { Events } from '../../Events.js';
 
 const SEGMMENT_LENGTH = 1.0;
 const HEIGHT_EPS = 0.1;
 
-const SAFE = 0;
-const WARNING = 1;
-const COLLISION = 2;
+const BOTTOM_PADDING = 0.1;
+const TOP_PADDING = 0.1;
+
+export const SAFE = 0;
+export const WARNING = 1;
+export const COLLISION = 2;
 
 
 class ElevationProfile {
@@ -207,9 +209,7 @@ class ElevationProfile {
         ((counter) => {
             this._calcPointsAsync(pointsLonLat).then((p) => {
                 if (counter === this._promiseCounter) {
-                    const MIN_BOTTOM_PADDING = 0.17;
-                    const MAX_TOP_PADDING = 0.1;
-                    this.setRange(0, p.dist, p.minY - MIN_BOTTOM_PADDING * Math.abs(p.minY), p.maxY + Math.abs(p.maxY) * MAX_TOP_PADDING);
+                    this.setRange(0, p.dist, p.minY - BOTTOM_PADDING * Math.abs(p.minY), p.maxY + Math.abs(p.maxY) * TOP_PADDING);
                     this._pointsReady = true;
                     this._drawParam = [p.trackCoords, p.groundCoords];
                     this.events.dispatch(this.events.profilecollected, this._drawParam, this);
