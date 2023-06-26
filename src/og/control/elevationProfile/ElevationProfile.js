@@ -37,7 +37,7 @@ class ElevationProfile {
         this._warningHeightLevel = 50;
 
         this._pointsReady = false;
-        this._isWarningOrCollision = false;
+        this._isWarning = false;
 
         this._pMaxY = 0;
         this._pMinY = 0;
@@ -198,12 +198,12 @@ class ElevationProfile {
     }
 
     get isWarningOrCollision() {
-        return this._isWarningOrCollision;
+        return this._isWarning;
     }
 
     collectProfile(pointsLonLat) {
         this._pointsReady = false;
-        this._isWarningOrCollision = false;
+        this._isWarning = false;
 
         if (!pointsLonLat || !pointsLonLat.length) return;
 
@@ -232,12 +232,12 @@ class ElevationProfile {
         }
 
         if (this._pGroundCoords[pIndex][2] == WARNING || this._pGroundCoords[pIndex][2] == COLLISION) {
-            this._isWarningOrCollision = true;
+            this._isWarning = true;
         }
     }
 
     _setPointsType() {
-        this._isWarningOrCollision = false;
+        this._isWarning = false;
 
         this._pTrackCoords = this._drawData[TRACK];
         this._pGroundCoords = this._drawData[GROUND];
@@ -252,7 +252,7 @@ class ElevationProfile {
 
     clear() {
         this._pointsReady = false;
-        this._isWarningOrCollision = false;
+        this._isWarning = false;
         this._drawData = [][0];
         this._pMaxY = 0;
         this._pMinY = 0;
