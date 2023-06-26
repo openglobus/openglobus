@@ -4,6 +4,9 @@ import { Vec3 } from "../../math/Vec3.js";
 import { Deferred } from "../../Deferred.js";
 import { Events } from '../../Events.js';
 
+const TRACK = 0;
+const GROUND = 1;
+
 const SEGMMENT_LENGTH = 1.0;
 const HEIGHT_EPS = 0.1;
 
@@ -24,7 +27,7 @@ class ElevationProfile {
         this._minY = 0;
         this._maxY = 200;
 
-        this._drawParam = [][0];
+        this._drawData = [][0];
 
         this._promiseArr = [];
 
@@ -211,8 +214,8 @@ class ElevationProfile {
                 if (counter === this._promiseCounter) {
                     this.setRange(0, p.dist, p.minY - BOTTOM_PADDING * Math.abs(p.minY), p.maxY + Math.abs(p.maxY) * TOP_PADDING);
                     this._pointsReady = true;
-                    this._drawParam = [p.trackCoords, p.groundCoords];
-                    this.events.dispatch(this.events.profilecollected, this._drawParam, this);
+                    this._drawData = [p.trackCoords, p.groundCoords];
+                    this.events.dispatch(this.events.profilecollected, this._drawData, this);
                 }
             });
         })(this._promiseCounter);
@@ -236,22 +239,21 @@ class ElevationProfile {
     _setPointsType() {
         this._isWarningOrCollision = false;
 
-        this._pTrackCoords = this._drawParam[0];
-
-        this._pGroundCoords = this._drawParam[1];
+        this._pTrackCoords = this._drawData[TRACK];
+        this._pGroundCoords = this._drawData[GROUND];
 
         for (let i = 0; i < this._pGroundCoords.length; i++) {
             this._setPointType(i);
         }
 
-        this._drawParam[1] = this._pGroundCoords;
-        this.events.dispatch(this.events.profilecollected, this._drawParam, this);
+        this._drawData[GROUND] = this._pGroundCoords;
+        this.events.dispatch(this.events.profilecollected, this._drawData, this);
     }
 
     clear() {
         this._pointsReady = false;
         this._isWarningOrCollision = false;
-        this._drawParam = [][0];
+        this._drawData = [][0];
 
         this._pMaxY = 0;
         this._pMinY = 0;
