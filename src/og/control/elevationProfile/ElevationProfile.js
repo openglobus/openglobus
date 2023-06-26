@@ -4,25 +4,37 @@ import { Vec3 } from "../../math/Vec3.js";
 import { Deferred } from "../../Deferred.js";
 import { Events } from '../../Events.js';
 
-const TRACK = 0;
-const GROUND = 1;
-
-const SEGMMENT_LENGTH = 1.0;
-const HEIGHT_EPS = 0.1;
-
-const BOTTOM_PADDING = 0.1;
-const TOP_PADDING = 0.1;
-
+/**
+ * Point types
+ * @type {number}
+ */
 const SAFE = 0;
 const WARNING = 1;
 const COLLISION = 2;
 
+/**
+ * drawData index names
+ * @type {number}
+ */
+const TRACK = 0;
+const GROUND = 1;
+
+const SEGMMENT_LENGTH = 1.0; // Distance between query points on the ground
+const GROUND_OFFSET = 1.0; // Ground level offset
+const BOTTOM_PADDING = 0.1; // Range minY padding in percentage from the bottom
+const TOP_PADDING = 0.1; // Range maxY padding in percentage from the top
+
+const HEIGHT_EPS = 0.1; // Warning height level error
 
 class ElevationProfile {
     constructor(options = {}) {
         this.events = new Events(["profilecollected"]);
 
         this.planet = options.planet;
+
+        this._warningHeightLevel = 50;
+        this._pointsReady = false;
+        this._isWarning = false;
 
         this._minX = 0;
         this._maxX = 1000;
@@ -32,20 +44,12 @@ class ElevationProfile {
         this._drawData = [][0];
 
         this._promiseArr = [];
-
         this._promiseCounter = 0;
-        this._warningHeightLevel = 50;
-
-        this._pointsReady = false;
-        this._isWarning = false;
-
         this._pMaxY = 0;
         this._pMinY = 0;
         this._pDist = 0;
-
         this._pTrackCoords = [[0, 0, SAFE]];
         this._pGroundCoords = [[0, 0, SAFE]];
-
         this._pIndex = 0;
     }
 
@@ -227,7 +231,7 @@ class ElevationProfile {
             this._pGroundCoords[pIndex][2] = WARNING;
         }
 
-        if (this._pGroundCoords[pIndex][3] <= this._pGroundCoords[pIndex][1] + 1.0) {
+        if (this._pGroundCoords[pIndex][3] <= this._pGroundCoords[pIndex][1] + GROUND_OFFSET) {
             this._pGroundCoords[pIndex][2] = COLLISION;
         }
 
