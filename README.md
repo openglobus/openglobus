@@ -81,7 +81,7 @@ yarn add @openglobus/og
 Openglobus integrates well with front-end frameworks like React, Angular or Vuejs [Read more here](./framework-intergration.md).
 
 ## Documentation
-
+UNDER CONSTRUCTION
 Check out the [hosted examples](http://www.openglobus.org/examples.html), or
 the [API documentation](http://www.openglobus.org/api/).
 

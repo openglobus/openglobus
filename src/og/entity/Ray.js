@@ -1,8 +1,8 @@
 "use strict";
 
-import { Vec3 } from "../math/Vec3.js";
+import {Vec3} from "../math/Vec3.js";
 import * as utils from "../utils/shared.js";
-import { Entity } from "./Entity.js";
+import {Entity} from "./Entity.js";
 
 /**
  * Ray class.
@@ -95,11 +95,15 @@ class Ray {
             this._startPositionLow
         );
         this._handler &&
-            this._handler.setStartPositionArr(
-                this._handlerIndex,
-                this._startPositionHigh,
-                this._startPositionLow
-            );
+        this._handler.setStartPositionArr(
+            this._handlerIndex,
+            this._startPositionHigh,
+            this._startPositionLow
+        );
+    }
+
+    getLength() {
+        return this._startPosition.distance(this._endPosition);
     }
 
     /**
@@ -117,11 +121,11 @@ class Ray {
             this._startPositionLow
         );
         this._handler &&
-            this._handler.setStartPositionArr(
-                this._handlerIndex,
-                this._startPositionHigh,
-                this._startPositionLow
-            );
+        this._handler.setStartPositionArr(
+            this._handlerIndex,
+            this._startPositionHigh,
+            this._startPositionLow
+        );
     }
 
     /**
@@ -137,11 +141,11 @@ class Ray {
         this._endPosition.z = z;
         Vec3.doubleToTwoFloats(this._endPosition, this._endPositionHigh, this._endPositionLow);
         this._handler &&
-            this._handler.setEndPositionArr(
-                this._handlerIndex,
-                this._endPositionHigh,
-                this._endPositionLow
-            );
+        this._handler.setEndPositionArr(
+            this._handlerIndex,
+            this._endPositionHigh,
+            this._endPositionLow
+        );
     }
 
     /**
@@ -155,11 +159,11 @@ class Ray {
         this._endPosition.z = position.z;
         Vec3.doubleToTwoFloats(this._endPosition, this._endPositionHigh, this._endPositionLow);
         this._handler &&
-            this._handler.setEndPositionArr(
-                this._handlerIndex,
-                this._endPositionHigh,
-                this._endPositionLow
-            );
+        this._handler.setEndPositionArr(
+            this._handlerIndex,
+            this._endPositionHigh,
+            this._endPositionLow
+        );
     }
 
     setThickness(thickness) {
@@ -183,7 +187,7 @@ class Ray {
         }
 
         this._handler &&
-            this._handler.setRgbaArr(this._handlerIndex, this._startColor, this._endColor);
+        this._handler.setRgbaArr(this._handlerIndex, this._startColor, this._endColor);
     }
 
     setColorsHTML(startColor, endColor) {
@@ -196,7 +200,7 @@ class Ray {
         }
 
         this._handler &&
-            this._handler.setRgbaArr(this._handlerIndex, this._startColor, this._endColor);
+        this._handler.setRgbaArr(this._handlerIndex, this._startColor, this._endColor);
     }
 
     /**
@@ -255,4 +259,4 @@ class Ray {
     }
 }
 
-export { Ray };
+export {Ray};
