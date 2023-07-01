@@ -46,10 +46,11 @@ const MAX_NODES = 200;
 
 const HORIZON_TANGENT = 0.81;
 
-const EVENT_NAMES = [/**
- * Triggered before globe frame begins to render.
- * @event og.scene.Planet#draw
- */
+const EVENT_NAMES = [
+    /**
+     * Triggered before globe frame begins to render.
+     * @event og.scene.Planet#draw
+     */
     "draw",
 
     /**
@@ -92,7 +93,8 @@ const EVENT_NAMES = [/**
      * Triggered when layer data is laded
      * @event og.scene.Planet#terraincompleted
      */
-    "layerloadend"];
+    "layerloadend"
+];
 
 /**
  * Main class for rendering planet
@@ -282,12 +284,6 @@ export class Planet extends RenderNode {
          * @type {idle.Lock}
          */
         this.terrainLock = new Lock();
-
-        /**
-         * Layer's transparent colors.
-         * @protected
-         */
-        this._tcolorArr = [];
 
         /**
          * Height scale factor. 1 - is normal elevation scale.
@@ -1679,8 +1675,8 @@ export class Planet extends RenderNode {
      * @param {Boolean} [force=false] - Force framebuffer rendering.
      * @returns {LonLat} -
      */
-    getLonLatFromPixelTerrain(px, force) {
-        var coords = this.getCartesianFromPixelTerrain(px, force);
+    getLonLatFromPixelTerrain(px) {
+        var coords = this.getCartesianFromPixelTerrain(px);
         if (coords) {
             return this.ellipsoid.cartesianToLonLat(coords);
         }
