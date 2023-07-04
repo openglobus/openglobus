@@ -1043,7 +1043,7 @@ class Handler {
         }
         gl.deleteBuffer(tmp);
 
-        let numTextureUnits = gl.getParameter(gl.MAX_TEXTlURE_IMAGE_UNITS);
+        let numTextureUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
         for (let ii = 0; ii < numTextureUnits; ++ii) {
             gl.activeTexture(gl.TEXTURE0 + ii);
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);

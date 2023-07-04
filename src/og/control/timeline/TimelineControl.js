@@ -33,7 +33,7 @@ class TimelineControl extends Control {
         this._timelineView = new TimelineView({
             rangeStart: startDate,
             rangeEnd: endDate,
-            current: currentDate
+            currentDate: currentDate
         });
 
         this._toggleBtn = new ToggleButton({
@@ -83,7 +83,7 @@ class TimelineControl extends Control {
             this.renderer.controls.mouseNavigation.deactivate();
         });
 
-        this._timelineView.on("stopdrag", () => {
+        this._timelineView.on("stopdrag", (e) => {
             this.renderer.controls.mouseNavigation.activate();
         });
 

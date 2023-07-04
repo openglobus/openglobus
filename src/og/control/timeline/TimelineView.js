@@ -331,19 +331,18 @@ class TimelineView extends View {
         if (this._isDragging) {
             this._isDragging = false;
             document.body.classList.remove("og-timeline-unselectable");
-            if (this._clickPosX === e.clientX && (Date.now() - this._clickTime) < this._clickDelay) {
-                let rect = this._canvasEl.getBoundingClientRect();
-                let current = new Date(this.model.rangeStartTime + (e.clientX - rect.left) * this._millisecondsInPixel);
-                this.model.current = current;
-                this._events.dispatch(this._events.stopdrag, current);
-                this._events.dispatch(this._events.setcurrent, current);
-            } else {
-                this._events.dispatch(this._events.stopdrag, this.model.current);
-            }
+            this._events.dispatch(this._events.stopdrag, this.model.current);
         } else if (this._isCurrentDragging) {
             this._isCurrentDragging = false;
             document.body.classList.remove("og-timeline-unselectable");
             this._events.dispatch(this._events.stopdragcurrent, this.model.current);
+        } else {
+            if (this._clickPosX === e.clientX && (Date.now() - this._clickTime) < this._clickDelay) {
+                let rect = this._canvasEl.getBoundingClientRect();
+                let current = new Date(this.model.rangeStartTime + (e.clientX - rect.left) * this._millisecondsInPixel);
+                this.model.current = current;  
+                this._events.dispatch(this._events.setcurrent, current);
+            } 
         }
     }
 
@@ -390,6 +389,7 @@ class TimelineView extends View {
             this._canvasEl.height = this._frameEl.clientHeight * this._canvasScale;
             this._canvasEl.style.width = `${this._frameEl.clientWidth}px`;
             this._canvasEl.style.height = `${this._frameEl.clientHeight}px`;
+
         }
     }
 
