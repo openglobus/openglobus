@@ -129,7 +129,7 @@ class Globe {
         this.renderer = new Renderer(
             new Handler(_canvasId, {
                 autoActivate: false,
-                pixelRatio: options.dpi || getUrlParam('og_dpi') || (window.devicePixelRatio + 0.15),
+                pixelRatio: options.dpi || (window.devicePixelRatio + 0.15),
                 context: {
                     alpha: false,
                     antialias: false,

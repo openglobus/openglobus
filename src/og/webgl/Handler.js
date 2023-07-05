@@ -6,7 +6,7 @@ import { Events } from "../Events.js";
 import { ImageCanvas } from "../ImageCanvas.js";
 import { Vec2 } from "../math/Vec2.js";
 import { Stack } from "../Stack.js";
-import { isEmpty } from "../utils/shared.js";
+import { getUrlParam, isEmpty } from "../utils/shared.js";
 import { ProgramController } from "./ProgramController.js";
 
 const vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
@@ -90,7 +90,7 @@ class Handler {
         this._params.anisotropy = this._params.anisotropy || 4;
         this._params.width = this._params.width || 256;
         this._params.height = this._params.height || 256;
-        this._params.pixelRatio = this._params.pixelRatio || 1.0;
+        this._params.pixelRatio = getUrlParam('og_dpi') || this._params.pixelRatio || 1.0;
         this._params.context = this._params.context || {};
         this._params.extensions = this._params.extensions || [];
         this._oneByHeight = 1.0 / (this._params.height * this._params.pixelRatio);
