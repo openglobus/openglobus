@@ -135,7 +135,7 @@ class Globe {
          * @type {Renderer}
          */
         this.renderer = new Renderer(
-            new Handler(_canvasId, {
+            new Handler(this._canvas, {
                 autoActivate: false,
                 pixelRatio: options.dpi || (window.devicePixelRatio + 0.15),
                 context: {

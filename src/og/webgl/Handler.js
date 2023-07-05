@@ -19,7 +19,7 @@ const MAX_LEVELS = 2;
 /**
  * A WebGL handler for accessing low-level WebGL capabilities.
  * @class
- * @param {string} id - Canvas element id that WebGL handler assing with. If it's null
+ * @param {string | HTMLCanvasElement} canvasTarget - Canvas element target.
  * or undefined creates hidden canvas and handler bacomes hidden.
  * @param {Object} [params] - Handler options:
  * @param {number} [params.anisotropy] - Anisotropy filter degree. 8 is default.
@@ -28,7 +28,7 @@ const MAX_LEVELS = 2;
  * @param {Array.<string>} [params.extensions] - Additional WebGL extension list. Available by default: EXT_texture_filter_anisotropic.
  */
 class Handler {
-    constructor(id, params = {}) {
+    constructor(canvasTarget, params = {}) {
 
         this.events = new Events(["visibilitychange", "resize"]);
         /**
@@ -105,11 +105,11 @@ class Handler {
         this.extensions = {};
 
         /**
-         * HTML Canvas object id.
+         * HTML Canvas target.
          * @private
          * @type {Object}
          */
-        this._id = id;
+        this._canvasTarget = canvasTarget;
 
         this._lastAnimationFrameTime = 0;
 
@@ -148,8 +148,12 @@ class Handler {
     }
 
     _createCanvas() {
-        if (this._id) {
-            this.canvas = document.getElementById(this._id);
+        if (this._canvasTarget) {
+            if (this._canvasTarget instanceof HTMLElement) {
+                this.canvas = this._canvasTarget;
+            } else {
+                this.canvas = document.getElementById(this._canvasTarget) || document.querySelector(this._canvasTarget);
+            }
         } else {
             this.canvas = document.createElement("canvas");
             this.canvas.width = this._params.width;
