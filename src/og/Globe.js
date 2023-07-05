@@ -18,7 +18,7 @@ import { Vec3 } from "./math/Vec3.js";
 import { Renderer } from "./renderer/Renderer.js";
 import { Planet } from "./scene/Planet.js";
 import { EmptyTerrain } from "./terrain/EmptyTerrain.js";
-import { createColorRGB, isEmpty } from "./utils/shared.js";
+import { createColorRGB, getUrlParam, isEmpty } from "./utils/shared.js";
 import { Handler } from "./webgl/Handler.js";
 
 /** @const {string} */
@@ -129,7 +129,7 @@ class Globe {
         this.renderer = new Renderer(
             new Handler(_canvasId, {
                 autoActivate: false,
-                pixelRatio: options.dpi || (window.devicePixelRatio + 0.15),
+                pixelRatio: options.dpi || getUrlParam('og_dpi') || (window.devicePixelRatio + 0.15),
                 context: {
                     alpha: false,
                     antialias: false,

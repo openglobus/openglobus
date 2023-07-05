@@ -979,3 +979,11 @@ export function distanceFormat(v) {
         return `${v.toFixed(1)} m`;
     }
 }
+
+export function getUrlParam(paramName) {
+    let urlParams = new URLSearchParams(location.search);
+    let param = urlParams.get(paramName);
+    if (param) {
+        return Number(param);
+    }
+}
