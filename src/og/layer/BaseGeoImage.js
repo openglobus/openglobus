@@ -261,10 +261,11 @@ class BaseGeoImage extends Layer {
             this._creationProceeding && p._geoImageCreator.remove(this);
             p._clearLayerMaterial(this);
 
-            gl.deleteBuffer(this._gridBuffer);
-
-            gl.deleteTexture(this._sourceTexture);
-            !this._materialTexture.default && gl.deleteTexture(this._materialTexture);
+            if (gl) {
+                gl.deleteBuffer(this._gridBuffer);
+                gl.deleteTexture(this._sourceTexture);
+                this._materialTexture && !this._materialTexture.default && gl.deleteTexture(this._materialTexture);
+            }
         }
 
         this._sourceTexture = null;

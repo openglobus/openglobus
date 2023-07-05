@@ -863,11 +863,21 @@ export class Planet extends RenderNode {
         // Loading first nodes for better viewing if you have started on a lower altitude.
         this._preRender();
 
-        this._initialized = true;
-
         this.renderer.events.on("postdraw", () => {
             this._checkRendercompleted();
         });
+
+        this.initLayers();
+
+        this._initialized = true;
+    }
+
+    initLayers() {
+        let temp = [...this._layers];
+        for (let i = 0; i < temp.length; i++) {
+            this.removeLayer(temp[i]);
+            this.addLayer(temp[i]);
+        }
     }
 
     clearIndexesCache() {
