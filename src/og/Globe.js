@@ -80,6 +80,9 @@ class Globe {
      * @param {*} options
      */
     constructor(options) {
+
+        this.$target = null;
+
         window.__globus__ = this;
 
         // Canvas creation
@@ -98,14 +101,19 @@ class Globe {
          * @public
          * @type {Element}
          */
-        if (options.target instanceof HTMLElement) {
-            this.div = options.target;
+        this.$inner = document.createElement('div');
+        this.$inner.classList.add("og-inner");
+        this.$inner.appendChild(this._canvas);
+
+        this.$inner.attributions = document.createElement('div');
+        if (options.attributionContainer) {
+            options.attributionContainer.appendChild(this.$inner.attributions);
         } else {
-            this.div = document.getElementById(options.target) || document.querySelector(options.target);
+            this.$inner.attributions.classList.add("og-attribution");
+            this.$inner.appendChild(this.$inner.attributions);
         }
 
-        this.div.appendChild(this._canvas);
-        this.div.classList.add("ogViewport");
+        this.attachTo(options.target);
 
         const _disableWheel = (e) => {
             e.preventDefault();
@@ -141,14 +149,7 @@ class Globe {
             }
         );
 
-        this.renderer.div = this.div;
-        this.renderer.div.attributions = document.createElement("div");
-        if (options.attributionContainer) {
-            options.attributionContainer.appendChild(this.div.attributions);
-        } else {
-            this.div.attributions.classList.add("og-attribution");
-            this.div.appendChild(this.div.attributions);
-        }
+        this.renderer.div = this.$inner;
 
         // Skybox
         if (options.skybox) {
@@ -284,10 +285,19 @@ class Globe {
         this._canvas.style.opacity = 0.0;
     }
 
-    attachTo(htmlTarget) {
-        //
-        // todo
-        //
+    attachTo(target) {
+
+        let t;
+        if (target instanceof HTMLElement) {
+            t = target;
+        } else {
+            t = document.getElementById(target) || document.querySelector(target);
+        }
+
+        if (t) {
+            this.$target = t;
+            t.appendChild(this.$inner);
+        }
     }
 
     detach() {
