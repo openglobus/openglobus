@@ -1020,6 +1020,9 @@ class Handler {
 
         this.stop();
 
+        //
+        // Dispose shaders
+        //
         for (let p in this.programs) {
             this.removeProgram(p);
         }
@@ -1033,6 +1036,9 @@ class Handler {
         this.framebufferStack = null;
         this.framebufferStack = new Stack();
 
+        //
+        // Destroy canvas
+        //
         if (this.canvas.parentNode) {
             this.canvas.parentNode.removeChild(this.canvas);
         }
@@ -1040,6 +1046,9 @@ class Handler {
         this.canvas.height = 1;
         this.canvas = null;
 
+        //
+        // Clear attrib pointers
+        //
         let numAttribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
         let tmp = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, tmp);
@@ -1050,6 +1059,9 @@ class Handler {
         }
         gl.deleteBuffer(tmp);
 
+        //
+        // Clear all possible textures
+        //
         let numTextureUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
         for (let ii = 0; ii < numTextureUnits; ++ii) {
             gl.activeTexture(gl.TEXTURE0 + ii);
@@ -1057,6 +1069,9 @@ class Handler {
             gl.bindTexture(gl.TEXTURE_2D, null);
         }
 
+        //
+        // Hard reset
+        //
         gl.activeTexture(gl.TEXTURE0);
         gl.useProgram(null);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);

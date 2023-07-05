@@ -285,8 +285,10 @@ class Globe {
     }
 
     detach() {
-        this.renderer.div = null
-        this.div = null
+        //
+        // this.renderer.div = null
+        // this.div = null
+        ///
     }
 
     static get _staticCounter() {
