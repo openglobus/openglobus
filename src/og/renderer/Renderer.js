@@ -645,7 +645,7 @@ class Renderer {
 
     _initializeRenderNodes() {
         for (let i = 0; i < this._renderNodesArr.length; i++) {
-            this._renderNodesArr[i].init();
+            this._renderNodesArr[i].initialize();
         }
     }
 

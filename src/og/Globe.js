@@ -265,10 +265,9 @@ class Globe {
         this._stopHandler = null;
 
         // Run!
-        // if (options.autoActivate || isEmpty(options.autoActivate)) {
-        //     this.renderer.start();
-        //     this.fadeIn();
-        // }
+        if (options.autoActivate || isEmpty(options.autoActivate)) {
+            this.start();
+        }
     }
 
     start() {

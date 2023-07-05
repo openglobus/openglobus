@@ -265,6 +265,7 @@ let colorado = new GeoImage("Colorado Lagoon from International Space Station (t
 });
 
 var globus = new Globe({
+    autoActivate: false,
     target: "earth",
     name: "Earth",
     //frustums: [[100, 100000000]],
@@ -302,23 +303,23 @@ globus.planet.addControl(new DrawingSwitcher());
 
 window.globus = globus;
 
-// let obj3d = Object3d.createSphere();
-//
-// const entity = new Entity({
-//     lonlat: [0.2, 87],
-//     geoObject: {
-//         scale: 1,
-//         color: "yellow",
-//         instanced: true,
-//         object3d: obj3d
-//     }
-// });
-//
-// window.marker = entity;
-//
-// let geoObjects = new EntityCollection({
-//     entities: [entity],
-//     scaleByDistance: [100, 20000000, 1.0]
-// });
-//
-// geoObjects.addTo(globus.planet);
+let obj3d = Object3d.createSphere();
+
+const entity = new Entity({
+    lonlat: [0.2, 87],
+    geoObject: {
+        scale: 1,
+        color: "yellow",
+        instanced: true,
+        object3d: obj3d
+    }
+});
+
+window.marker = entity;
+
+let geoObjects = new EntityCollection({
+    entities: [entity],
+    scaleByDistance: [100, 20000000, 1.0]
+});
+
+geoObjects.addTo(globus.planet);

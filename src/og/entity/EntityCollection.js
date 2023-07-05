@@ -464,10 +464,12 @@ class EntityCollection {
     addTo(renderNode, isHidden) {
         if (!this.renderNode) {
             this.renderNode = renderNode;
+
             if (!isHidden) {
                 this._renderNodeIndex = renderNode.entityCollections.length;
                 renderNode.entityCollections.push(this);
             }
+
             renderNode.ellipsoid && this._updateGeodeticCoordinates(renderNode.ellipsoid);
 
             this.bindRenderNode(renderNode);
@@ -482,10 +484,12 @@ class EntityCollection {
      * @param {RenderNode} renderNode
      */
     bindRenderNode(renderNode) {
-        if (renderNode.renderer) {
+        if (renderNode.renderer && renderNode.renderer.isInitialized()) {
+
             this.billboardHandler.setRenderer(renderNode.renderer);
             this.labelHandler.setRenderer(renderNode.renderer);
             this.rayHandler.setRenderer(renderNode.renderer);
+
             this.geoObjectHandler.setRenderNode(renderNode);
             this.polylineHandler.setRenderNode(renderNode);
             this.pointCloudHandler.setRenderNode(renderNode);
