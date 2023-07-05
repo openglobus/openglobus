@@ -284,11 +284,17 @@ class Globe {
         this._canvas.style.opacity = 0.0;
     }
 
+    attachTo(htmlTarget) {
+        //
+        // todo
+        //
+    }
+
     detach() {
         //
         // this.renderer.div = null
         // this.div = null
-        ///
+        //
     }
 
     static get _staticCounter() {
