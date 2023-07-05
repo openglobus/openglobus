@@ -83,7 +83,7 @@ class Globe {
         window.__globus__ = this;
 
         // Canvas creation
-        var _canvasId = CANVAS_ID_PREFIX + Globe._staticCounter++;
+        let _canvasId = CANVAS_ID_PREFIX + Globe._staticCounter++;
 
         this._canvas = document.createElement("canvas");
         this._canvas.id = _canvasId;
@@ -101,24 +101,23 @@ class Globe {
         if (options.target instanceof HTMLElement) {
             this.div = options.target;
         } else {
-            this.div =
-                document.getElementById(options.target) || document.querySelector(options.target);
+            this.div = document.getElementById(options.target) || document.querySelector(options.target);
         }
 
         this.div.appendChild(this._canvas);
         this.div.classList.add("ogViewport");
 
-        function _disableWheel(e) {
+        const _disableWheel = (e) => {
             e.preventDefault();
         }
 
-        this.div.onmouseenter = function () {
+        this._canvas.onmouseenter = function () {
             document.addEventListener("mousewheel", _disableWheel, {
                 capture: false,
                 passive: false
             });
         };
-        this.div.onmouseleave = function () {
+        this._canvas.onmouseleave = function () {
             document.removeEventListener("mousewheel", _disableWheel);
         };
 
@@ -141,13 +140,6 @@ class Globe {
                 msaa: options.msaa
             }
         );
-
-        //
-        //
-        //this.renderer.initialize();
-        //
-        //
-        //
 
         this.renderer.div = this.div;
         this.renderer.div.attributions = document.createElement("div");
