@@ -265,7 +265,7 @@ let colorado = new GeoImage("Colorado Lagoon from International Space Station (t
 });
 
 var globus = new Globe({
-    autoActivate: false,
+    //autoActivate: false,
     target: "earth",
     name: "Earth",
     //frustums: [[100, 100000000]],
