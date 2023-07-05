@@ -230,19 +230,18 @@ class Renderer {
         this.__useDistanceFramebuffer__ = true;
 
         if (params.autoActivate || isEmpty(params.autoActivate)) {
-            this.initialize();
             this.start();
         }
     }
 
-    enableBlendOneSrcAlpha(){
+    enableBlendOneSrcAlpha() {
         let gl = this.handler.gl;
         gl.enable(gl.BLEND);
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     }
 
-    enableBlendDefault(){
+    enableBlendDefault() {
         let gl = this.handler.gl;
         gl.enable(gl.BLEND);
         gl.blendEquation(gl.FUNC_ADD);
@@ -428,16 +427,23 @@ class Renderer {
         control.remove();
     }
 
+    isInitialized() {
+        return this._initialized;
+    }
+
     /**
      * Renderer initialization.
      * @public
      */
     initialize() {
+
         if (this._initialized) {
             return;
         } else {
             this._initialized = true;
         }
+
+        this.handler.initialize();
 
         this.billboardsTextureAtlas.assignHandler(this.handler);
         this.geoObjectsTextureAtlas.assignHandler(this.handler);
@@ -551,17 +557,24 @@ class Renderer {
 
         this.screenFramePositionBuffer = this.handler.createArrayBuffer(new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), 2, 4);
 
-        let temp = this.controls;
-        this.controls = {};
-        for (let i in temp) {
-            this.addControl(temp[i]);
-        }
 
         this.outputTexture = this.screenTexture.screen;
 
         this.fontAtlas.initFont("arial", arial.data, arial.image);
 
         this._pickingMaskCoordinatesBuffer = this.handler.createArrayBuffer(new Float32Array([0, 0]), 2, 1);
+
+        this._initializeRenderNodes();
+
+        this._initializeControls();
+    }
+
+    _initializeControls() {
+        let temp = this.controls;
+        this.controls = {};
+        for (let i in temp) {
+            this.addControl(temp[i]);
+        }
     }
 
     resize() {
@@ -627,6 +640,12 @@ class Renderer {
             this.renderNodes[renderNode.name] = renderNode;
         } else {
             cons.logWrn("Node name " + renderNode.name + " allready exists.");
+        }
+    }
+
+    _initializeRenderNodes() {
+        for (let i = 0; i < this._renderNodesArr.length; i++) {
+            this._renderNodesArr[i].init();
         }
     }
 
@@ -1090,10 +1109,13 @@ class Renderer {
     }
 
     /**
-     * Function starts rendering.
+     * Function starts renderer
      * @public
      */
     start() {
+        if (!this._initialized) {
+            this.initialize();
+        }
         this.handler.start();
     }
 }

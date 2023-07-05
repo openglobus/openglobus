@@ -140,8 +140,20 @@ class Handler {
 
         this.ONCANVASRESIZE = null;
 
+        this._createCanvas();
+
         if (params.autoActivate || isEmpty(params.autoActivate)) {
             this.initialize();
+        }
+    }
+
+    _createCanvas() {
+        if (this._id) {
+            this.canvas = document.getElementById(this._id);
+        } else {
+            this.canvas = document.createElement("canvas");
+            this.canvas.width = this._params.width;
+            this.canvas.height = this._params.height;
         }
     }
 
@@ -607,17 +619,12 @@ class Handler {
      * @public
      */
     initialize() {
-        if (this._id) {
-            this.canvas = document.getElementById(this._id);
-        } else {
-            this.canvas = document.createElement("canvas");
-            this.canvas.width = this._params.width;
-            this.canvas.height = this._params.height;
-        }
+
+        if (this._initialized) return;
 
         this.gl = Handler.getContext(this.canvas, this._params.context);
 
-        if(this.gl) {
+        if (this.gl) {
             this._initialized = true;
 
             /** Sets default extensions */

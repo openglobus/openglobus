@@ -46,7 +46,6 @@ const clouds = new GeoImage(`transparentImage`, {
 })
 
 
-
 const tg = new CanvasTiles("Tile grid", {
     visibility: true,
     isBaseLayer: false,
@@ -278,7 +277,7 @@ var globus = new Globe({
     }),
     //terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
-    layers: [sat2, clouds],
+    layers: []//[sat2, clouds],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
     //useNightTexture: false,
     //useEarthNavigation: true,
@@ -303,23 +302,23 @@ globus.planet.addControl(new DrawingSwitcher());
 
 window.globus = globus;
 
-let obj3d = Object3d.createSphere();
-
-const entity = new Entity({
-    lonlat: [0.2, 87],
-    geoObject: {
-        scale: 1,
-        color: "yellow",
-        instanced: true,
-        object3d: obj3d
-    }
-});
-
-window.marker = entity;
-
-let geoObjects = new EntityCollection({
-    entities: [entity],
-    scaleByDistance: [100, 20000000, 1.0]
-});
-
-geoObjects.addTo(globus.planet);
+// let obj3d = Object3d.createSphere();
+//
+// const entity = new Entity({
+//     lonlat: [0.2, 87],
+//     geoObject: {
+//         scale: 1,
+//         color: "yellow",
+//         instanced: true,
+//         object3d: obj3d
+//     }
+// });
+//
+// window.marker = entity;
+//
+// let geoObjects = new EntityCollection({
+//     entities: [entity],
+//     scaleByDistance: [100, 20000000, 1.0]
+// });
+//
+// geoObjects.addTo(globus.planet);

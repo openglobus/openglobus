@@ -129,6 +129,7 @@ class Globe {
          */
         this.renderer = new Renderer(
             new Handler(_canvasId, {
+                autoActivate: false,
                 pixelRatio: options.dpi || (window.devicePixelRatio + 0.15),
                 context: {
                     alpha: false,
@@ -140,7 +141,14 @@ class Globe {
                 msaa: options.msaa
             }
         );
-        this.renderer.initialize();
+
+        //
+        //
+        //this.renderer.initialize();
+        //
+        //
+        //
+
         this.renderer.div = this.div;
         this.renderer.div.attributions = document.createElement("div");
         if (options.attributionContainer) {
@@ -169,30 +177,21 @@ class Globe {
          */
         this._quadTreeType = options.quadTreeType;
 
-        if (options.atmosphere) {
-            /**
-             * Render node renders a planet.
-             * @public
-             * @type {Planet|og.scene.PlanetAtmosphere}
-             */
-            // TODO:
-        } else {
-            this.planet = new Planet({
-                name: this._planetName,
-                frustums: options.frustums,
-                ellipsoid: options.ellipsoid,
-                maxGridSize: options.maxGridSize,
-                useNightTexture: options.useNightTexture,
-                useSpecularTexture: options.useSpecularTexture,
-                minAltitude: options.minAltitude,
-                maxAltitude: options.maxAltitude || 15000000,
-                maxEqualZoomAltitude: options.maxEqualZoomAltitude,
-                minEqualZoomAltitude: options.minEqualZoomAltitude,
-                minEqualZoomCameraSlope: options.minEqualZoomCameraSlope,
-                quadTreeStrategyPrototype: options.quadTreeStrategyPrototype,
-                maxLoadingRequests: options.maxLoadingRequests
-            });
-        }
+        this.planet = new Planet({
+            name: this._planetName,
+            frustums: options.frustums,
+            ellipsoid: options.ellipsoid,
+            maxGridSize: options.maxGridSize,
+            useNightTexture: options.useNightTexture,
+            useSpecularTexture: options.useSpecularTexture,
+            minAltitude: options.minAltitude,
+            maxAltitude: options.maxAltitude || 15000000,
+            maxEqualZoomAltitude: options.maxEqualZoomAltitude,
+            minEqualZoomAltitude: options.minEqualZoomAltitude,
+            minEqualZoomCameraSlope: options.minEqualZoomCameraSlope,
+            quadTreeStrategyPrototype: options.quadTreeStrategyPrototype,
+            maxLoadingRequests: options.maxLoadingRequests
+        });
 
         // Attach terrain provider (can be one object or array)
         if (options.terrain) {
@@ -266,10 +265,15 @@ class Globe {
         this._stopHandler = null;
 
         // Run!
-        if (options.autoActivate || isEmpty(options.autoActivate)) {
-            this.renderer.start();
-            this.fadeIn();
-        }
+        // if (options.autoActivate || isEmpty(options.autoActivate)) {
+        //     this.renderer.start();
+        //     this.fadeIn();
+        // }
+    }
+
+    start() {
+        this.renderer.start();
+        this.fadeIn();
     }
 
     /**
@@ -290,8 +294,8 @@ class Globe {
     }
 
     detach() {
-        this.renderer.div=null
-        this.div=null
+        this.renderer.div = null
+        this.div = null
     }
 
     static get _staticCounter() {
