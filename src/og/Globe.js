@@ -314,6 +314,8 @@ class Globe {
 
     detach() {
         if (this.$target) {
+            // Remember that when container is zero
+            // sized(display none etc.) renderer frame will be stopped
             this.$target.removeChild(this.$inner);
         }
     }
