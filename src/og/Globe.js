@@ -22,8 +22,6 @@ import { createColorRGB, getUrlParam, isEmpty } from "./utils/shared.js";
 import { Handler } from "./webgl/Handler.js";
 
 /** @const {string} */
-const CANVAS_ID_PREFIX = "globus_viewport_";
-/** @const {string} */
 const PLANET_NAME_PREFIX = "globus_planet_";
 
 /**
@@ -83,13 +81,14 @@ class Globe {
 
         this.$target = null;
 
-        window.__globus__ = this;
+        this._instanceID = `__globus${Globe.__staticCounter++ ? Globe.__staticCounter : ""}__`;
+        window[this._instanceID] = this;
 
+        //
         // Canvas creation
-        let _canvasId = CANVAS_ID_PREFIX + Globe._staticCounter++;
-
+        //
         this._canvas = document.createElement("canvas");
-        this._canvas.id = _canvasId;
+        this._canvas.id = `canvas${this._instanceID}`;
         this._canvas.style.width = "100%";
         this._canvas.style.height = "100%";
         this._canvas.style.display = "block";
@@ -261,6 +260,17 @@ class Globe {
         if (options.autoActivate || isEmpty(options.autoActivate)) {
             this.start();
         }
+    }
+
+    static get __staticCounter() {
+        if (!this.__counter && this.__counter !== 0) {
+            this.__counter = 0;
+        }
+        return this.__counter;
+    }
+
+    static set __staticCounter(n) {
+        this.__counter = n;
     }
 
     start() {
