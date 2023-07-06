@@ -94,7 +94,7 @@ class Globe {
         this._canvas.style.height = "100%";
         this._canvas.style.display = "block";
         this._canvas.style.opacity = "0.0";
-        this._canvas.style.transition = "opacity 1.0s";
+        this._canvas.style.transition = "opacity 150ms";
 
         /**
          * Dom element where WebGL canvas creates
