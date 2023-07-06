@@ -1121,16 +1121,14 @@ class Renderer {
 
     destroy() {
         for (let i in this.controls) {
-            // todo
+            this.controls[i].remove();
         }
 
         for (let i = 0; i < this._renderNodesArr.length; i++) {
-            // todo
+            this._renderNodesArr[i].remove();
         }
 
         this.div = null;
-
-        this.handler = null;
 
         this._renderNodesArr = [];
 
@@ -1169,14 +1167,15 @@ class Renderer {
         // todo
         //this.billboardsTextureAtlas.clear();
         //this.geoObjectsTextureAtlas.clear()
-
-        this.fontAtlas.clear();
+        //this.fontAtlas.clear();
 
         this._entityCollections = [];
 
         this.colorObjects = null;
 
         this.handler.destroy();
+
+        this.handler = null;
 
         this._initialized = false;
     }

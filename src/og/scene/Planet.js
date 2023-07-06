@@ -1932,4 +1932,10 @@ export class Planet extends RenderNode {
             });
         });
     }
+
+    onremove(){
+        this.memClear();
+        this.quadTreeStrategy.destroyBranches();
+        this._renderedNodes = [];
+    }
 }

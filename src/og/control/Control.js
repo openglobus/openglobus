@@ -132,6 +132,9 @@ class Control {
      * @public
      */
     remove() {
+
+        this.deactivate();
+
         this.onremove && this.onremove();
 
         let r = this.renderer,
