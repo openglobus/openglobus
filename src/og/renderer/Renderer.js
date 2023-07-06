@@ -1120,11 +1120,67 @@ class Renderer {
     }
 
     destroy() {
-        //
-        // ...
-        //
+        for (let i in this.controls) {
+            // todo
+        }
+
+        for (let i = 0; i < this._renderNodesArr.length; i++) {
+            // todo
+        }
+
+        this.div = null;
+
+        this.handler = null;
+
+        this._renderNodesArr = [];
+
+        this.renderNodes = {};
+
+        this.activeCamera = null;
+
+        this.controls = {};
+
+        this.controlsBag = {};
+
+        this.colorObjects = new Map();
+
+        this._pickingCallbacks = [];
+
+        this.pickingFramebuffer = null;
+
+        this._tempPickingPix_ = null;
+
+        this.distanceFramebuffer = null;
+
+        this._distanceCallbacks = [];
+
+        this._tempDistancePix_ = null;
+
+        this._depthCallbacks = [];
+
+        this.depthFramebuffer = null;
+
+        this.sceneFramebuffer = null;
+
+        this.blitFramebuffer = null;
+
+        this.toneMappingFramebuffer = null;
+
+        // todo
+        //this.billboardsTextureAtlas.clear();
+        //this.geoObjectsTextureAtlas.clear()
+
+        this.fontAtlas.clear();
+
+        this._entityCollections = [];
+
+        this.colorObjects = null;
+
         this.handler.destroy();
+
+        this._initialized = false;
     }
+
 }
 
 export { Renderer };
