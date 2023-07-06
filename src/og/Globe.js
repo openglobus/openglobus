@@ -320,9 +320,9 @@ class Globe {
         }
     }
 
-    dispose() {
+    destroy() {
         this.detach();
-        //...
+        this.renderer.destroy();
     }
 
     static get _staticCounter() {

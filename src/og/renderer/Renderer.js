@@ -1118,6 +1118,13 @@ class Renderer {
         }
         this.handler.start();
     }
+
+    destroy() {
+        //
+        // ...
+        //
+        this.handler.destroy();
+    }
 }
 
 export { Renderer };
