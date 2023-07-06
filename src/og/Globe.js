@@ -287,6 +287,8 @@ class Globe {
 
     attachTo(target) {
 
+        this.detach();
+
         let t;
         if (target instanceof HTMLElement) {
             t = target;
@@ -301,10 +303,14 @@ class Globe {
     }
 
     detach() {
-        //
-        // this.renderer.div = null
-        // this.div = null
-        //
+        if (this.$target) {
+            this.$target.removeChild(this.$inner);
+        }
+    }
+
+    dispose() {
+        this.detach();
+        //...
     }
 
     static get _staticCounter() {
