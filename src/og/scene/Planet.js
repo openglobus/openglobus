@@ -237,6 +237,8 @@ export class Planet extends RenderNode {
 
         this._viewExtent = new Extent(new LonLat(180, 180), new LonLat(-180, -180));
 
+        this._initialViewExtent = null;
+
         /**
          * @protected
          */
@@ -870,6 +872,12 @@ export class Planet extends RenderNode {
         this.initLayers();
 
         this._initialized = true;
+
+
+        //
+        // after init
+        //
+        this.viewExtent(this._initialViewExtent);
     }
 
     initLayers() {
@@ -1783,7 +1791,11 @@ export class Planet extends RenderNode {
      * @param {Extent} extent - Geographical extent.
      */
     viewExtent(extent) {
-        this.renderer.activeCamera.viewExtent(extent);
+        if (this.camera) {
+            this.camera.viewExtent(extent);
+        } else {
+            this._initialViewExtent = extent;
+        }
     }
 
     /**
@@ -1793,7 +1805,7 @@ export class Planet extends RenderNode {
      * where index 0 - southwest longitude, 1 - latitude southwest, 2 - longitude northeast, 3 - latitude northeast.
      */
     viewExtentArr(extentArr) {
-        this.renderer.activeCamera.viewExtent(new Extent(new LonLat(extentArr[0], extentArr[1]), new LonLat(extentArr[2], extentArr[3])));
+        this.viewExtent(new Extent(new LonLat(extentArr[0], extentArr[1]), new LonLat(extentArr[2], extentArr[3])));
     }
 
     /**
@@ -1803,28 +1815,6 @@ export class Planet extends RenderNode {
      */
     getViewExtent() {
         return this._viewExtent;
-        // if (this._viewExtentMerc) {
-        //     var ne = this._viewExtentMerc.northEast.inverseMercator(),
-        //         sw = this._viewExtentMerc.southWest.inverseMercator();
-        //     if (this._viewExtentWGS84) {
-        //         var e = this._viewExtentWGS84;
-        //         if (e.northEast.lon > ne.lon) {
-        //             ne.lon = e.northEast.lon;
-        //         }
-        //         if (e.northEast.lat > ne.lat) {
-        //             ne.lat = e.northEast.lat;
-        //         }
-        //         if (e.southWest.lon < sw.lon) {
-        //             sw.lon = e.southWest.lon;
-        //         }
-        //         if (e.southWest.lat < sw.lat) {
-        //             sw.lat = e.southWest.lat;
-        //         }
-        //     }
-        //     return new Extent(sw, ne);
-        // } else if (this._viewExtentWGS84) {
-        //     return this._viewExtentWGS84;
-        // }
     }
 
     /**
@@ -1933,7 +1923,7 @@ export class Planet extends RenderNode {
         });
     }
 
-    onremove(){
+    onremove() {
         this.memClear();
         this.quadTreeStrategy.destroyBranches();
         this._renderedNodes = [];
