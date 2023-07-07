@@ -1155,13 +1155,32 @@ export class Planet extends RenderNode {
 
         if (this.camera.isFirstPass) {
             this.camera.update();
-            this._firstPASS();
+
+            if (this._skipPreRender && this._collectRenderNodesIsActive) {
+                this._collectRenderNodes();
+            }
+            this._skipPreRender = true;
+
+            this.transformLights();
+
+            // creates terrain normal maps
+            this._normalMapCreator.frame();
+
+            // Creating geoImages textures.
+            this._geoImageCreator.frame();
+
+            // Vector tiles rasteriazation
+            this._vectorTileCreator.frame();
+
             this.camera.checkTerrainCollision();
             this.camera.update();
 
             // Here is the planet node dispatches a draw event before
             // rendering begins and we have got render nodes.
             this.events.dispatch(this.events.draw, this);
+
+            // Collect entity collections from vector layers
+            this._collectVectorLayerCollections();
         }
 
         this.drawEntityCollections(this._frustumEntityCollections);
@@ -1206,27 +1225,6 @@ export class Planet extends RenderNode {
     unlockQuadTree() {
         this._collectRenderNodesIsActive = true;
         this.camera.setTerrainCollisionActivity(true);
-    }
-
-    _firstPASS() {
-
-        if (this._skipPreRender && this._collectRenderNodesIsActive) {
-            this._collectRenderNodes();
-        }
-        this._skipPreRender = true;
-
-        this.transformLights();
-
-        this._normalMapCreator.frame();
-
-        // Creating geoImages textures.
-        this._geoImageCreator.frame();
-
-        // Collect entity collections from vector layers
-        this._collectVectorLayerCollections();
-
-        // Vector tiles rasteriazation
-        this._vectorTileCreator.frame();
     }
 
     _renderScreenNodesPASSNoAtmos() {
