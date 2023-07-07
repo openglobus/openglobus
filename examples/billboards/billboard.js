@@ -75,7 +75,7 @@ globus.planet.events.on("draw", () => {
     carrots.each(function (e) {
         let c = e.getLonLat();
         let ll = globus.planet.ellipsoid.getBearingDestination(c, e.properties.bearing, 2000);
-        e.properties.bearing = Ellipsoid.getFinalBearing(c, ll);
+        e.properties.bearing = globus.planet.ellipsoid.inverse(c, ll).finalAzimuth;
         e.setLonLat(new LonLat(ll.lon, ll.lat, c.height));
         e.billboard.setRotation(e.billboard.getRotation() + 0.01);
     });

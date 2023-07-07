@@ -1759,7 +1759,9 @@ class Polyline {
                 this._createData3v([].concat(this._path3v));
             }
             this._refresh();
-            this._update();
+            if (renderNode.renderer.isInitialized()) {
+                this._update();
+            }
         }
     }
 
