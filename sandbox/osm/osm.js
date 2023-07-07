@@ -283,6 +283,7 @@ var globus = new Globe({
     //useNightTexture: false,
     //useEarthNavigation: true,
     //useSpecularTexture: false
+    atmosphereEnabled: true
 });
 
 //globus.renderer.fontAtlas.loadFont("chinese.msyh", "//assets.msn.com/weathermapdata/1/static/3d/label/zh-cn/font-v2.2/", "chinese.msyh.json");

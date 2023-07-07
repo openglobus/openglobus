@@ -71,6 +71,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {Number} [options.quadTreeStrategyPrototype] - Prototype of quadTree. QuadTreeStrategy for Earth is default.
  * @param {Number} [options.msaa] - MSAA antialiasing parameter: 2,4,8,16. Default is 4.
  * @param {Number} [options.dpi] - Device pixel ratio. Default is current screen DPI.
+ * @param {Boolean} [options.atmosphereEnabled] - Enables atmosphere effect.
  */
 
 class Globe {
@@ -182,7 +183,8 @@ class Globe {
             minEqualZoomAltitude: options.minEqualZoomAltitude,
             minEqualZoomCameraSlope: options.minEqualZoomCameraSlope,
             quadTreeStrategyPrototype: options.quadTreeStrategyPrototype,
-            maxLoadingRequests: options.maxLoadingRequests
+            maxLoadingRequests: options.maxLoadingRequests,
+            atmosphereEnabled: options.atmosphereEnabled
         });
 
         // Attach terrain provider (can be one object or array)

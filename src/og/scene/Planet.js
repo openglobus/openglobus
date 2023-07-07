@@ -877,7 +877,9 @@ export class Planet extends RenderNode {
         //
         // after init
         //
-        this.viewExtent(this._initialViewExtent);
+        if (this._initialViewExtent) {
+            this.viewExtent(this._initialViewExtent);
+        }
     }
 
     initLayers() {
