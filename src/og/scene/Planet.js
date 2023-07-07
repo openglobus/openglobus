@@ -196,15 +196,22 @@ export class Planet extends RenderNode {
          */
         this._terrainPool = null;
 
+        this._minAltitude = options.minAltitude;
+        this._maxAltitude = options.maxAltitude;
+
         /**
          * Camera is this.renderer.activeCamera pointer.
          * @public
          * @type {PlanetCamera}
          */
-        this.camera = null;
-
-        this._minAltitude = options.minAltitude;
-        this._maxAltitude = options.maxAltitude;
+        this.camera = new PlanetCamera(this, {
+            frustums: this._cameraFrustums,
+            eye: new Vec3(0, 0, 28000000),
+            look: new Vec3(0, 0, 0),
+            up: new Vec3(0, 1, 0),
+            minAltitude: this._minAltitude,
+            maxAltitude: this._maxAltitude
+        });
 
         this.maxEqualZoomAltitude = options.maxEqualZoomAltitude || 15000000.0;
         this.minEqualZoomAltitude = options.minEqualZoomAltitude || 10000.0;
@@ -810,17 +817,6 @@ export class Planet extends RenderNode {
 
         this.transparentTexture = this.renderer.handler.transparentTexture;
 
-        this.camera = this.renderer.activeCamera = new PlanetCamera(this, {
-            frustums: this._cameraFrustums,
-            eye: new Vec3(0, 0, 28000000),
-            look: new Vec3(0, 0, 0),
-            up: new Vec3(0, 1, 0),
-            minAltitude: this._minAltitude,
-            maxAltitude: this._maxAltitude
-        });
-
-        this.camera.update();
-
         this._renderedNodesInFrustum = new Array(this.camera.frustums.length);
         for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
             this._renderedNodesInFrustum[i] = [];
@@ -880,6 +876,10 @@ export class Planet extends RenderNode {
         if (this._initialViewExtent) {
             this.viewExtent(this._initialViewExtent);
         }
+
+        this.renderer.activeCamera = this.camera;
+        this.camera.bindRenderer(this.renderer);
+        this.camera.update();
     }
 
     initLayers() {

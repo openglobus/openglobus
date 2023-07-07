@@ -49,7 +49,7 @@ class Camera {
          * @public
          * @type {Vec3}
          */
-        this.eye = new Vec3();
+        this.eye = options.eye || new Vec3();
 
         /**
          * Camera RTE high position
@@ -70,7 +70,7 @@ class Camera {
          * @protected
          * @type {Number}
          */
-        this._aspect = options.aspect || this.renderer.handler.getClientAspect();
+        this._aspect = options.aspect || 1.0;
 
         /**
          * Camera view angle in degrees
@@ -143,7 +143,6 @@ class Camera {
 
                 fr._cameraFrustumIndex = this.frustums.length;
                 this.frustums.push(fr);
-                this.renderer.assignPickingColor(fr);
                 this.nearFarArr.push.apply(this.nearFarArr, [fi[0], fi[1]]);
                 this.frustumColors.push.apply(this.frustumColors, fr._pickingColorU);
             }
@@ -160,7 +159,6 @@ class Camera {
 
             fr._cameraFrustumIndex = this.frustums.length;
             this.frustums.push(fr);
-            this.renderer.assignPickingColor(fr);
             this.nearFarArr = new Array([near, far]);
             this.frustumColors.push.apply(this.frustumColors, fr._pickingColorU);
         }
@@ -171,7 +169,11 @@ class Camera {
 
         this.isFirstPass = false;
 
-        renderer && this._init(options);
+        this.set(
+            options.eye || new Vec3(0.0, 0.0, 1.0),
+            options.look || new Vec3(),
+            options.up || new Vec3(0.0, 1.0, 0.0)
+        );
     }
 
     checkMoveEnd() {
@@ -195,6 +197,16 @@ class Camera {
         this._peye.copy(eye);
     }
 
+    bindRenderer(renderer) {
+        this.renderer = renderer;
+        for (let i = 0; i < this.frustums.length; i++) {
+            this.renderer.assignPickingColor(this.frustums[i]);
+        }
+        this._aspect = this.renderer.handler.getClientAspect();
+
+        this._setProj(this._viewAngle, this._aspect);
+    }
+
     /**
      * Camera initialization.
      * @public
@@ -208,6 +220,7 @@ class Camera {
      * @param {Vec3} [options.up] - Camera eye position. Default (0,1,0)
      */
     _init(options) {
+
         this._setProj(this._viewAngle, this._aspect);
 
         this.set(
