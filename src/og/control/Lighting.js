@@ -239,14 +239,14 @@ class Lighting extends Control {
         this._dialog.appendTo(this.renderer.div);
         this._panel.appendTo(this._dialog.container);
 
-        this.$atmosphereOpacity = document.querySelector(".og-atmosphere-opacity");
-        this.$gamma = document.querySelector(".og-option.og-gamma");
-        this.$exposure = document.querySelector(".og-option.og-exposure");
-        this.$opacity = document.querySelector(".og-option.og-opacity");
-        this.$diffuse = document.querySelector(".og-option.og-diffuse");
-        this.$ambient = document.querySelector(".og-option.og-ambient");
-        this.$specular = document.querySelector(".og-option.og-specular");
-        this.$night = document.querySelector(".og-option.og-night");
+        this.$atmosphereOpacity = this._panel.el.querySelector(".og-atmosphere-opacity");
+        this.$gamma = this._panel.el.querySelector(".og-option.og-gamma");
+        this.$exposure = this._panel.el.querySelector(".og-option.og-exposure");
+        this.$opacity = this._panel.el.querySelector(".og-option.og-opacity");
+        this.$diffuse = this._panel.el.querySelector(".og-option.og-diffuse");
+        this.$ambient = this._panel.el.querySelector(".og-option.og-ambient");
+        this.$specular = this._panel.el.querySelector(".og-option.og-specular");
+        this.$night = this._panel.el.querySelector(".og-option.og-night");
 
         this._toggleBtn.on("change", (isActive) => {
             this._dialog.setVisibility(isActive);
@@ -353,7 +353,7 @@ class Lighting extends Control {
         });
 
 
-        document.getElementById("layers").addEventListener("change", (e) => {
+        this._panel.el.querySelector("#layers").addEventListener("change", (e) => {
             this.bindLayer(this.planet.getLayerByName(e.target.value));
         });
 
@@ -476,8 +476,8 @@ class Lighting extends Control {
         let opt = document.createElement("option");
         opt.value = e.name;
         opt.innerText = e.name;
-        document.getElementById("layers").appendChild(opt);
-        document.getElementById("layers").value = e.name;
+        this._panel.el.querySelector("#layers").appendChild(opt);
+        this._panel.el.querySelector("#layers").value = e.name;
     }
 
     _onLayerRemove(e) {

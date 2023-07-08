@@ -46,7 +46,6 @@ const clouds = new GeoImage(`transparentImage`, {
 })
 
 
-
 const tg = new CanvasTiles("Tile grid", {
     visibility: true,
     isBaseLayer: false,
@@ -266,7 +265,8 @@ let colorado = new GeoImage("Colorado Lagoon from International Space Station (t
 });
 
 var globus = new Globe({
-    target: "earth",
+    autoActivate: false,
+    //target: "earth4",
     name: "Earth",
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
@@ -278,11 +278,12 @@ var globus = new Globe({
     }),
     //terrain: new EmptyTerrain(),
     //maxEqualZoomAltitude: 1,
-    layers: [sat2, clouds],
+    layers: [osm, clouds],
     //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
     //useNightTexture: false,
     //useEarthNavigation: true,
     //useSpecularTexture: false
+    atmosphereEnabled: true
 });
 
 //globus.renderer.fontAtlas.loadFont("chinese.msyh", "//assets.msn.com/weathermapdata/1/static/3d/label/zh-cn/font-v2.2/", "chinese.msyh.json");
@@ -323,3 +324,26 @@ let geoObjects = new EntityCollection({
 });
 
 geoObjects.addTo(globus.planet);
+
+
+
+var globus2 = new Globe({
+    autoActivate: false,
+    //target: "earth4",
+    name: "Earth",
+    //frustums: [[100, 100000000]],
+    maxAltitude: 15000000,
+    //minAltitude: 1,
+    //terrain: highResTerrain,
+    //terrain: new MapboxTerrain(),
+    terrain: new GlobusTerrain("19", {
+        maxZoom: 19
+    }),
+    //terrain: new EmptyTerrain(),
+    //maxEqualZoomAltitude: 1,
+    layers: [sat2],
+    //frustums: [[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]],
+    //useNightTexture: false,
+    //useEarthNavigation: true,
+    //useSpecularTexture: false
+});

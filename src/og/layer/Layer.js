@@ -356,32 +356,33 @@ class Layer {
      * @param {Planet} planet - Planet render node.
      */
     _assignPlanet(planet) {
-        // TODO: webgl1
-        if (this._isSRGB) {
-            this._internalFormat = planet.renderer.handler.gl.SRGB8_ALPHA8;
-        } else {
-            this._internalFormat = planet.renderer.handler.gl.RGBA8;
-        }
-
-        this.createTexture = planet.renderer.handler.createTexture[this._textureFilter];
-
-        // TODO: replace to planet
-        planet._layers.push(this);
 
         this._planet = planet;
-        this.events.on("visibilitychange", planet._onLayerVisibilityChanged, planet);
-        if (this._isBaseLayer && this._visibility) {
-            planet.setBaseLayer(this);
-        }
+        planet._layers.push(this);
 
-        if (this._visibility && this.hasImageryTiles()) {
-            this._preLoad();
-        }
+        if (planet.renderer.isInitialized()) {
+            // TODO: webgl1
+            if (this._isSRGB) {
+                this._internalFormat = planet.renderer.handler.gl.SRGB8_ALPHA8;
+            } else {
+                this._internalFormat = planet.renderer.handler.gl.RGBA8;
+            }
+            this.createTexture = planet.renderer.handler.createTexture[this._textureFilter];
 
-        planet.events.dispatch(planet.events.layeradd, this);
-        this.events.dispatch(this.events.add, planet);
-        planet.updateVisibleLayers();
-        this._bindPicking();
+            this.events.on("visibilitychange", planet._onLayerVisibilityChanged, planet);
+            if (this._isBaseLayer && this._visibility) {
+                planet.setBaseLayer(this);
+            }
+
+            planet.events.dispatch(planet.events.layeradd, this);
+            this.events.dispatch(this.events.add, planet);
+            planet.updateVisibleLayers();
+            this._bindPicking();
+
+            if (this._visibility && this.hasImageryTiles()) {
+                this._preLoad();
+            }
+        }
     }
 
     get isIdle() {
@@ -406,7 +407,6 @@ class Layer {
         if (!this._planet) {
             this._assignPlanet(planet);
         }
-        return this;
     }
 
     /**

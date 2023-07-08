@@ -196,15 +196,22 @@ export class Planet extends RenderNode {
          */
         this._terrainPool = null;
 
+        this._minAltitude = options.minAltitude;
+        this._maxAltitude = options.maxAltitude;
+
         /**
          * Camera is this.renderer.activeCamera pointer.
          * @public
          * @type {PlanetCamera}
          */
-        this.camera = null;
-
-        this._minAltitude = options.minAltitude;
-        this._maxAltitude = options.maxAltitude;
+        this.camera = new PlanetCamera(this, {
+            frustums: this._cameraFrustums,
+            eye: new Vec3(0, 0, 28000000),
+            look: new Vec3(0, 0, 0),
+            up: new Vec3(0, 1, 0),
+            minAltitude: this._minAltitude,
+            maxAltitude: this._maxAltitude
+        });
 
         this.maxEqualZoomAltitude = options.maxEqualZoomAltitude || 15000000.0;
         this.minEqualZoomAltitude = options.minEqualZoomAltitude || 10000.0;
@@ -236,6 +243,8 @@ export class Planet extends RenderNode {
         this.maxCurrZoom = math.MIN;
 
         this._viewExtent = new Extent(new LonLat(180, 180), new LonLat(-180, -180));
+
+        this._initialViewExtent = null;
 
         /**
          * @protected
@@ -374,13 +383,23 @@ export class Planet extends RenderNode {
         /**
          * GeoImage creator.
          * @protected
-         * @type{utils.GeoImageCreator}
+         * @type{GeoImageCreator}
          */
-        this._geoImageCreator = null;
+        this._geoImageCreator = new GeoImageCreator(this);
 
-        this._vectorTileCreator = null;
+        /**
+         * VectorTileCreator creator.
+         * @protected
+         * @type{VectorTileCreator}
+         */
+        this._vectorTileCreator = new VectorTileCreator(this);
 
-        this._normalMapCreator = null;
+        /**
+         * NormalMapCreator creator.
+         * @protected
+         * @type{NormalMapCreator}
+         */
+        this._normalMapCreator = new NormalMapCreator(this);
 
         this._terrainWorker = new TerrainWorker(3);
 
@@ -751,6 +770,7 @@ export class Planet extends RenderNode {
         // Initialization indexes table
         segmentHelper.getInstance().setMaxGridSize(this._maxGridSize);
         const TABLESIZE = this._maxGridSize;
+
         let kk = 0;
         // Initialization indexes buffers cache. It takes about 120mb RAM!
         for (var i = 0; i <= TABLESIZE; i++) {
@@ -808,17 +828,6 @@ export class Planet extends RenderNode {
 
         this.transparentTexture = this.renderer.handler.transparentTexture;
 
-        this.camera = this.renderer.activeCamera = new PlanetCamera(this, {
-            frustums: this._cameraFrustums,
-            eye: new Vec3(0, 0, 28000000),
-            look: new Vec3(0, 0, 0),
-            up: new Vec3(0, 1, 0),
-            minAltitude: this._minAltitude,
-            maxAltitude: this._maxAltitude
-        });
-
-        this.camera.update();
-
         this._renderedNodesInFrustum = new Array(this.camera.frustums.length);
         for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
             this._renderedNodesInFrustum[i] = [];
@@ -848,26 +857,44 @@ export class Planet extends RenderNode {
             createImageBitmap(SPECULAR).then((e) => (this._specularTexture = this.renderer.handler.createTexture_l(e)));
         }
 
-        this._geoImageCreator = new GeoImageCreator(this);
+        this._geoImageCreator.init();
 
-        this._vectorTileCreator = new VectorTileCreator(this);
+        this._vectorTileCreator.init();
 
-        this._normalMapCreator = new NormalMapCreator(this, {
-            minTableSize: 1,
-            maxTableSize: TABLESIZE,
-            blur: this.terrain && (this.terrain.blur != undefined ? this.terrain.blur : true)
-        });
+        this._normalMapCreator.init();
 
         this.renderer.events.on("draw", this._globalPreDraw, this, -100);
 
         // Loading first nodes for better viewing if you have started on a lower altitude.
         this._preRender();
 
-        this._initialized = true;
-
         this.renderer.events.on("postdraw", () => {
             this._checkRendercompleted();
         });
+
+        this.initLayers();
+
+        this._initialized = true;
+
+
+        //
+        // after init
+        //
+        if (this._initialViewExtent) {
+            this.viewExtent(this._initialViewExtent);
+        }
+
+        this.renderer.activeCamera = this.camera;
+        this.camera.bindRenderer(this.renderer);
+        this.camera.update();
+    }
+
+    initLayers() {
+        let temp = [...this._layers];
+        for (let i = 0; i < temp.length; i++) {
+            this.removeLayer(temp[i]);
+            this.addLayer(temp[i]);
+        }
     }
 
     clearIndexesCache() {
@@ -1135,13 +1162,32 @@ export class Planet extends RenderNode {
 
         if (this.camera.isFirstPass) {
             this.camera.update();
-            this._firstPASS();
+
+            if (this._skipPreRender && this._collectRenderNodesIsActive) {
+                this._collectRenderNodes();
+            }
+            this._skipPreRender = true;
+
+            this.transformLights();
+
+            // creates terrain normal maps
+            this._normalMapCreator.frame();
+
+            // Creating geoImages textures.
+            this._geoImageCreator.frame();
+
+            // Vector tiles rasteriazation
+            this._vectorTileCreator.frame();
+
             this.camera.checkTerrainCollision();
             this.camera.update();
 
             // Here is the planet node dispatches a draw event before
             // rendering begins and we have got render nodes.
             this.events.dispatch(this.events.draw, this);
+
+            // Collect entity collections from vector layers
+            this._collectVectorLayerCollections();
         }
 
         this.drawEntityCollections(this._frustumEntityCollections);
@@ -1186,27 +1232,6 @@ export class Planet extends RenderNode {
     unlockQuadTree() {
         this._collectRenderNodesIsActive = true;
         this.camera.setTerrainCollisionActivity(true);
-    }
-
-    _firstPASS() {
-
-        if (this._skipPreRender && this._collectRenderNodesIsActive) {
-            this._collectRenderNodes();
-        }
-        this._skipPreRender = true;
-
-        this.transformLights();
-
-        this._normalMapCreator.frame();
-
-        // Creating geoImages textures.
-        this._geoImageCreator.frame();
-
-        // Collect entity collections from vector layers
-        this._collectVectorLayerCollections();
-
-        // Vector tiles rasteriazation
-        this._vectorTileCreator.frame();
     }
 
     _renderScreenNodesPASSNoAtmos() {
@@ -1773,7 +1798,11 @@ export class Planet extends RenderNode {
      * @param {Extent} extent - Geographical extent.
      */
     viewExtent(extent) {
-        this.renderer.activeCamera.viewExtent(extent);
+        if (this.camera) {
+            this.camera.viewExtent(extent);
+        } else {
+            this._initialViewExtent = extent;
+        }
     }
 
     /**
@@ -1783,7 +1812,7 @@ export class Planet extends RenderNode {
      * where index 0 - southwest longitude, 1 - latitude southwest, 2 - longitude northeast, 3 - latitude northeast.
      */
     viewExtentArr(extentArr) {
-        this.renderer.activeCamera.viewExtent(new Extent(new LonLat(extentArr[0], extentArr[1]), new LonLat(extentArr[2], extentArr[3])));
+        this.viewExtent(new Extent(new LonLat(extentArr[0], extentArr[1]), new LonLat(extentArr[2], extentArr[3])));
     }
 
     /**
@@ -1793,28 +1822,6 @@ export class Planet extends RenderNode {
      */
     getViewExtent() {
         return this._viewExtent;
-        // if (this._viewExtentMerc) {
-        //     var ne = this._viewExtentMerc.northEast.inverseMercator(),
-        //         sw = this._viewExtentMerc.southWest.inverseMercator();
-        //     if (this._viewExtentWGS84) {
-        //         var e = this._viewExtentWGS84;
-        //         if (e.northEast.lon > ne.lon) {
-        //             ne.lon = e.northEast.lon;
-        //         }
-        //         if (e.northEast.lat > ne.lat) {
-        //             ne.lat = e.northEast.lat;
-        //         }
-        //         if (e.southWest.lon < sw.lon) {
-        //             sw.lon = e.southWest.lon;
-        //         }
-        //         if (e.southWest.lat < sw.lat) {
-        //             sw.lat = e.southWest.lat;
-        //         }
-        //     }
-        //     return new Extent(sw, ne);
-        // } else if (this._viewExtentWGS84) {
-        //     return this._viewExtentWGS84;
-        // }
     }
 
     /**
@@ -1838,7 +1845,7 @@ export class Planet extends RenderNode {
      * @param {cameraCallback} [completeCallback] - Callback that calls befor the flying begins.
      */
     flyExtent(extent, height, up, ampl, completeCallback, startCallback) {
-        this.renderer.activeCamera.flyExtent(extent, height, up, ampl, completeCallback, startCallback);
+        this.camera.flyExtent(extent, height, up, ampl, completeCallback, startCallback);
     }
 
     /**
@@ -1853,7 +1860,7 @@ export class Planet extends RenderNode {
      * @param [frameCallback]
      */
     flyCartesian(cartesian, look, up, ampl, completeCallback, startCallback, frameCallback) {
-        this.renderer.activeCamera.flyCartesian(cartesian, look, up, ampl, completeCallback, startCallback, frameCallback);
+        this.camera.flyCartesian(cartesian, look, up, ampl, completeCallback, startCallback, frameCallback);
     }
 
     /**
@@ -1868,7 +1875,7 @@ export class Planet extends RenderNode {
      * @param [frameCallback]
      */
     flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback, frameCallback) {
-        this.renderer.activeCamera.flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback, frameCallback);
+        this.camera.flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback, frameCallback);
     }
 
     /**
@@ -1876,7 +1883,7 @@ export class Planet extends RenderNode {
      * @public
      */
     stopFlying() {
-        this.renderer.activeCamera.stopFlying();
+        this.camera.stopFlying();
     }
 
     updateBillboardsTexCoords() {
@@ -1921,5 +1928,11 @@ export class Planet extends RenderNode {
                 resolve(alt + this.terrain.geoid.getHeightLonLat(lonLat));
             });
         });
+    }
+
+    onremove() {
+        this.memClear();
+        this.quadTreeStrategy.destroyBranches();
+        this._renderedNodes = [];
     }
 }

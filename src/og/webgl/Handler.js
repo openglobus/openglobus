@@ -6,7 +6,7 @@ import { Events } from "../Events.js";
 import { ImageCanvas } from "../ImageCanvas.js";
 import { Vec2 } from "../math/Vec2.js";
 import { Stack } from "../Stack.js";
-import { isEmpty } from "../utils/shared.js";
+import { getUrlParam, isEmpty } from "../utils/shared.js";
 import { ProgramController } from "./ProgramController.js";
 
 const vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
@@ -19,7 +19,7 @@ const MAX_LEVELS = 2;
 /**
  * A WebGL handler for accessing low-level WebGL capabilities.
  * @class
- * @param {string} id - Canvas element id that WebGL handler assing with. If it's null
+ * @param {string | HTMLCanvasElement} canvasTarget - Canvas element target.
  * or undefined creates hidden canvas and handler bacomes hidden.
  * @param {Object} [params] - Handler options:
  * @param {number} [params.anisotropy] - Anisotropy filter degree. 8 is default.
@@ -28,7 +28,7 @@ const MAX_LEVELS = 2;
  * @param {Array.<string>} [params.extensions] - Additional WebGL extension list. Available by default: EXT_texture_filter_anisotropic.
  */
 class Handler {
-    constructor(id, params = {}) {
+    constructor(canvasTarget, params = {}) {
 
         this.events = new Events(["visibilitychange", "resize"]);
         /**
@@ -90,7 +90,7 @@ class Handler {
         this._params.anisotropy = this._params.anisotropy || 4;
         this._params.width = this._params.width || 256;
         this._params.height = this._params.height || 256;
-        this._params.pixelRatio = this._params.pixelRatio || 1.0;
+        this._params.pixelRatio = getUrlParam('og_dpi') || this._params.pixelRatio || 1.0;
         this._params.context = this._params.context || {};
         this._params.extensions = this._params.extensions || [];
         this._oneByHeight = 1.0 / (this._params.height * this._params.pixelRatio);
@@ -105,11 +105,11 @@ class Handler {
         this.extensions = {};
 
         /**
-         * HTML Canvas object id.
+         * HTML Canvas target.
          * @private
          * @type {Object}
          */
-        this._id = id;
+        this._canvasTarget = canvasTarget;
 
         this._lastAnimationFrameTime = 0;
 
@@ -140,8 +140,28 @@ class Handler {
 
         this.ONCANVASRESIZE = null;
 
+        this._createCanvas();
+
         if (params.autoActivate || isEmpty(params.autoActivate)) {
             this.initialize();
+        }
+    }
+
+    isInitialized() {
+        return this._initialized;
+    }
+
+    _createCanvas() {
+        if (this._canvasTarget) {
+            if (this._canvasTarget instanceof HTMLElement) {
+                this.canvas = this._canvasTarget;
+            } else {
+                this.canvas = document.getElementById(this._canvasTarget) || document.querySelector(this._canvasTarget);
+            }
+        } else {
+            this.canvas = document.createElement("canvas");
+            this.canvas.width = this._params.width;
+            this.canvas.height = this._params.height;
         }
     }
 
@@ -607,17 +627,12 @@ class Handler {
      * @public
      */
     initialize() {
-        if (this._id) {
-            this.canvas = document.getElementById(this._id);
-        } else {
-            this.canvas = document.createElement("canvas");
-            this.canvas.width = this._params.width;
-            this.canvas.height = this._params.height;
-        }
+
+        if (this._initialized) return;
 
         this.gl = Handler.getContext(this.canvas, this._params.context);
 
-        if(this.gl) {
+        if (this.gl) {
             this._initialized = true;
 
             /** Sets default extensions */
@@ -1013,6 +1028,9 @@ class Handler {
 
         this.stop();
 
+        //
+        // Dispose shaders
+        //
         for (let p in this.programs) {
             this.removeProgram(p);
         }
@@ -1026,6 +1044,9 @@ class Handler {
         this.framebufferStack = null;
         this.framebufferStack = new Stack();
 
+        //
+        // Destroy canvas
+        //
         if (this.canvas.parentNode) {
             this.canvas.parentNode.removeChild(this.canvas);
         }
@@ -1033,6 +1054,9 @@ class Handler {
         this.canvas.height = 1;
         this.canvas = null;
 
+        //
+        // Clear attrib pointers
+        //
         let numAttribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
         let tmp = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, tmp);
@@ -1043,13 +1067,19 @@ class Handler {
         }
         gl.deleteBuffer(tmp);
 
-        let numTextureUnits = gl.getParameter(gl.MAX_TEXTlURE_IMAGE_UNITS);
+        //
+        // Clear all possible textures
+        //
+        let numTextureUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
         for (let ii = 0; ii < numTextureUnits; ++ii) {
             gl.activeTexture(gl.TEXTURE0 + ii);
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
             gl.bindTexture(gl.TEXTURE_2D, null);
         }
 
+        //
+        // Hard reset
+        //
         gl.activeTexture(gl.TEXTURE0);
         gl.useProgram(null);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);

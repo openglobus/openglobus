@@ -316,7 +316,7 @@ class Strip {
     }
 
     _createBuffers() {
-        if (this._renderNode && this._renderNode.renderer) {
+        if (this._renderNode && this._renderNode.renderer && this._renderNode.renderer.isInitialized()) {
             var gl = this._renderNode.renderer.handler.gl;
 
             gl.deleteBuffer(this._indexBuffer);

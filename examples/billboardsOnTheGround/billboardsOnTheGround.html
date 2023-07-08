@@ -60,7 +60,8 @@
             "target": "globus",
             "name": "Earth",
             "terrain": new GlobusTerrain(),
-            "layers": [osm, pointLayer]
+            "layers": [osm, pointLayer],
+            autoActivate: false
         });
 
         globus.planet.camera.set(
@@ -73,12 +74,14 @@
         let center = new LonLat(8.5, 46.3);
         let angle = 0.1 * RADIANS;
         globus.planet.events.on("draw", function () {
-            pointLayer.each(function (e) {
-                let c = e.getLonLat();
-                let rotatedLon = Math.cos(angle) * (c.lon - center.lon) - Math.sin(angle) * (c.lat - center.lat) + center.lon,
-                    rotatedLat = Math.sin(angle) * (c.lon - center.lon) + Math.cos(angle) * (c.lat - center.lat) + center.lat;
-                e.setLonLat(new LonLat(rotatedLon, rotatedLat));
-            });
+            //requestAnimationFrame(()=> {
+                pointLayer.each(function (e) {
+                    let c = e.getLonLat();
+                    let rotatedLon = Math.cos(angle) * (c.lon - center.lon) - Math.sin(angle) * (c.lat - center.lat) + center.lon,
+                            rotatedLat = Math.sin(angle) * (c.lon - center.lon) + Math.cos(angle) * (c.lat - center.lat) + center.lat;
+                    e.setLonLat(new LonLat(rotatedLon, rotatedLat));
+                });
+            //});
         });
 
     </script>

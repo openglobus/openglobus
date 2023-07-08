@@ -18,10 +18,9 @@ export class GeoImageCreator {
         this._currentFrame = 0;
         this._queue = [];
         this._animate = [];
-        this._initialize();
     }
 
-    _initialize() {
+    init() {
         this._initShaders();
         this._initBuffers();
     }

@@ -18,11 +18,9 @@ import { Vec3 } from "./math/Vec3.js";
 import { Renderer } from "./renderer/Renderer.js";
 import { Planet } from "./scene/Planet.js";
 import { EmptyTerrain } from "./terrain/EmptyTerrain.js";
-import { createColorRGB, isEmpty } from "./utils/shared.js";
+import { createColorRGB, getUrlParam, isEmpty } from "./utils/shared.js";
 import { Handler } from "./webgl/Handler.js";
 
-/** @const {string} */
-const CANVAS_ID_PREFIX = "globus_viewport_";
 /** @const {string} */
 const PLANET_NAME_PREFIX = "globus_planet_";
 
@@ -73,6 +71,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {Number} [options.quadTreeStrategyPrototype] - Prototype of quadTree. QuadTreeStrategy for Earth is default.
  * @param {Number} [options.msaa] - MSAA antialiasing parameter: 2,4,8,16. Default is 4.
  * @param {Number} [options.dpi] - Device pixel ratio. Default is current screen DPI.
+ * @param {Boolean} [options.atmosphereEnabled] - Enables atmosphere effect.
  */
 
 class Globe {
@@ -80,45 +79,53 @@ class Globe {
      * @param {*} options
      */
     constructor(options) {
-        window.__globus__ = this;
 
+        this.$target = null;
+
+        this._instanceID = `__globus${Globe.__staticCounter++ ? Globe.__staticCounter : ""}__`;
+        window[this._instanceID] = this;
+
+        //
         // Canvas creation
-        var _canvasId = CANVAS_ID_PREFIX + Globe._staticCounter++;
-
+        //
         this._canvas = document.createElement("canvas");
-        this._canvas.id = _canvasId;
+        this._canvas.id = `canvas${this._instanceID}`;
         this._canvas.style.width = "100%";
         this._canvas.style.height = "100%";
         this._canvas.style.display = "block";
         this._canvas.style.opacity = "0.0";
-        this._canvas.style.transition = "opacity 1.0s";
+        this._canvas.style.transition = "opacity 150ms";
 
         /**
          * Dom element where WebGL canvas creates
          * @public
          * @type {Element}
          */
-        if (options.target instanceof HTMLElement) {
-            this.div = options.target;
+        this.$inner = document.createElement('div');
+        this.$inner.classList.add("og-inner");
+        this.$inner.appendChild(this._canvas);
+
+        this.$inner.attributions = document.createElement('div');
+        if (options.attributionContainer) {
+            options.attributionContainer.appendChild(this.$inner.attributions);
         } else {
-            this.div =
-                document.getElementById(options.target) || document.querySelector(options.target);
+            this.$inner.attributions.classList.add("og-attribution");
+            this.$inner.appendChild(this.$inner.attributions);
         }
 
-        this.div.appendChild(this._canvas);
-        this.div.classList.add("ogViewport");
+        this.attachTo(options.target);
 
-        function _disableWheel(e) {
+        const _disableWheel = (e) => {
             e.preventDefault();
         }
 
-        this.div.onmouseenter = function () {
+        this._canvas.onmouseenter = function () {
             document.addEventListener("mousewheel", _disableWheel, {
                 capture: false,
                 passive: false
             });
         };
-        this.div.onmouseleave = function () {
+        this._canvas.onmouseleave = function () {
             document.removeEventListener("mousewheel", _disableWheel);
         };
 
@@ -128,7 +135,8 @@ class Globe {
          * @type {Renderer}
          */
         this.renderer = new Renderer(
-            new Handler(_canvasId, {
+            new Handler(this._canvas, {
+                autoActivate: false,
                 pixelRatio: options.dpi || (window.devicePixelRatio + 0.15),
                 context: {
                     alpha: false,
@@ -140,15 +148,8 @@ class Globe {
                 msaa: options.msaa
             }
         );
-        this.renderer.initialize();
-        this.renderer.div = this.div;
-        this.renderer.div.attributions = document.createElement("div");
-        if (options.attributionContainer) {
-            options.attributionContainer.appendChild(this.div.attributions);
-        } else {
-            this.div.attributions.classList.add("og-attribution");
-            this.div.appendChild(this.div.attributions);
-        }
+
+        this.renderer.div = this.$inner;
 
         // Skybox
         if (options.skybox) {
@@ -169,30 +170,22 @@ class Globe {
          */
         this._quadTreeType = options.quadTreeType;
 
-        if (options.atmosphere) {
-            /**
-             * Render node renders a planet.
-             * @public
-             * @type {Planet|og.scene.PlanetAtmosphere}
-             */
-            // TODO:
-        } else {
-            this.planet = new Planet({
-                name: this._planetName,
-                frustums: options.frustums,
-                ellipsoid: options.ellipsoid,
-                maxGridSize: options.maxGridSize,
-                useNightTexture: options.useNightTexture,
-                useSpecularTexture: options.useSpecularTexture,
-                minAltitude: options.minAltitude,
-                maxAltitude: options.maxAltitude || 15000000,
-                maxEqualZoomAltitude: options.maxEqualZoomAltitude,
-                minEqualZoomAltitude: options.minEqualZoomAltitude,
-                minEqualZoomCameraSlope: options.minEqualZoomCameraSlope,
-                quadTreeStrategyPrototype: options.quadTreeStrategyPrototype,
-                maxLoadingRequests: options.maxLoadingRequests
-            });
-        }
+        this.planet = new Planet({
+            name: this._planetName,
+            frustums: options.frustums,
+            ellipsoid: options.ellipsoid,
+            maxGridSize: options.maxGridSize,
+            useNightTexture: options.useNightTexture,
+            useSpecularTexture: options.useSpecularTexture,
+            minAltitude: options.minAltitude,
+            maxAltitude: options.maxAltitude || 15000000,
+            maxEqualZoomAltitude: options.maxEqualZoomAltitude,
+            minEqualZoomAltitude: options.minEqualZoomAltitude,
+            minEqualZoomCameraSlope: options.minEqualZoomCameraSlope,
+            quadTreeStrategyPrototype: options.quadTreeStrategyPrototype,
+            maxLoadingRequests: options.maxLoadingRequests,
+            atmosphereEnabled: options.atmosphereEnabled
+        });
 
         // Attach terrain provider (can be one object or array)
         if (options.terrain) {
@@ -267,9 +260,24 @@ class Globe {
 
         // Run!
         if (options.autoActivate || isEmpty(options.autoActivate)) {
-            this.renderer.start();
-            this.fadeIn();
+            this.start();
         }
+    }
+
+    static get __staticCounter() {
+        if (!this.__counter && this.__counter !== 0) {
+            this.__counter = 0;
+        }
+        return this.__counter;
+    }
+
+    static set __staticCounter(n) {
+        this.__counter = n;
+    }
+
+    start() {
+        this.renderer.start();
+        this.fadeIn();
     }
 
     /**
@@ -287,6 +295,36 @@ class Globe {
      */
     fadeOut() {
         this._canvas.style.opacity = 0.0;
+    }
+
+    attachTo(target) {
+
+        this.detach();
+
+        let t;
+        if (target instanceof HTMLElement) {
+            t = target;
+        } else {
+            t = document.getElementById(target) || document.querySelector(target);
+        }
+
+        if (t) {
+            this.$target = t;
+            t.appendChild(this.$inner);
+        }
+    }
+
+    detach() {
+        if (this.$target) {
+            // Remember that when container is zero
+            // sized(display none etc.) renderer frame will be stopped
+            this.$target.removeChild(this.$inner);
+        }
+    }
+
+    destroy() {
+        this.detach();
+        this.renderer.destroy();
     }
 
     static get _staticCounter() {

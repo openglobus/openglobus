@@ -61,6 +61,15 @@ class ImageCanvas {
     }
 
     /**
+     * Fills canvas RGBA with color.
+     * @public
+     */
+    fill(c) {
+        this._context.fillStyle = color
+        this._context.fill()
+    }
+
+    /**
      * Gets canvas pixels RGBA data.
      * @public
      * @returns {Array.<number>}

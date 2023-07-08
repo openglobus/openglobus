@@ -10,19 +10,17 @@ let tempArr = new Float32Array(2);
 const MAX_FRAME_TIME = 25.0;
 
 export class VectorTileCreator {
-
     constructor(planet, width = 512, height = 512) {
-
         this._width = width;
         this._height = height;
-        this._handler = planet.renderer.handler;
         this._planet = planet;
         this._framebuffer = null;
         this._queue = [];
-        this._initialize();
     }
 
-    _initialize() {
+    init() {
+
+        this._handler = this._planet.renderer.handler;
 
         //Line
         if (!this._handler.programs.vectorTileLineRasterization) {

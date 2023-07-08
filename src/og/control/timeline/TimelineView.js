@@ -390,6 +390,7 @@ class TimelineView extends View {
             this._canvasEl.height = this._frameEl.clientHeight * this._canvasScale;
             this._canvasEl.style.width = `${this._frameEl.clientWidth}px`;
             this._canvasEl.style.height = `${this._frameEl.clientHeight}px`;
+
         }
     }
 
