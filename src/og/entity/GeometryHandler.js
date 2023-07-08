@@ -523,6 +523,9 @@ class GeometryHandler {
     assignHandler(handler) {
         this._handler = handler;
         this.refresh();
+        if (handler.isInitialized()) {
+            this.update();
+        }
     }
 
     /**

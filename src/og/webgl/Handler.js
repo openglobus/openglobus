@@ -147,6 +147,10 @@ class Handler {
         }
     }
 
+    isInitialized() {
+        return this._initialized;
+    }
+
     _createCanvas() {
         if (this._canvasTarget) {
             if (this._canvasTarget instanceof HTMLElement) {
