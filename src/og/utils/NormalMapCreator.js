@@ -15,7 +15,7 @@ export class NormalMapCreator {
         this._maxTableSize = options.maxTableSize || 8;
 
         this._planet = planet;
-        this._handler = planet.renderer.handler;
+        this._handler = null;
         this._verticesBufferArray = [];
         this._indexBufferArray = [];
         this._positionBuffer = null;
@@ -28,12 +28,15 @@ export class NormalMapCreator {
         this._queue = new QueueArray(1024);
 
         this._lock = new Lock();
-
-        this._init();
     }
 
-    _init() {
-        var isWebkit = false; //('WebkitAppearance' in document.documentElement.style) && !/^((?!chrome).)*safari/i.test(navigator.userAgent);
+    init() {
+
+        this._maxTableSize = this._planet._maxGridSize || 8;
+
+        this._handler = this._planet.renderer.handler;
+
+        let isWebkit = false; //('WebkitAppearance' in document.documentElement.style) && !/^((?!chrome).)*safari/i.test(navigator.userAgent);
 
         /*==================================================================================
          * http://www.sunsetlakesoftware.com/2013/10/21/optimizing-gaussian-blurs-mobile-gpu

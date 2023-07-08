@@ -383,13 +383,23 @@ export class Planet extends RenderNode {
         /**
          * GeoImage creator.
          * @protected
-         * @type{utils.GeoImageCreator}
+         * @type{GeoImageCreator}
          */
-        this._geoImageCreator = null;
+        this._geoImageCreator = new GeoImageCreator(this);
 
-        this._vectorTileCreator = null;
+        /**
+         * VectorTileCreator creator.
+         * @protected
+         * @type{VectorTileCreator}
+         */
+        this._vectorTileCreator = new VectorTileCreator(this);
 
-        this._normalMapCreator = null;
+        /**
+         * NormalMapCreator creator.
+         * @protected
+         * @type{NormalMapCreator}
+         */
+        this._normalMapCreator = new NormalMapCreator(this);
 
         this._terrainWorker = new TerrainWorker(3);
 
@@ -760,6 +770,7 @@ export class Planet extends RenderNode {
         // Initialization indexes table
         segmentHelper.getInstance().setMaxGridSize(this._maxGridSize);
         const TABLESIZE = this._maxGridSize;
+
         let kk = 0;
         // Initialization indexes buffers cache. It takes about 120mb RAM!
         for (var i = 0; i <= TABLESIZE; i++) {
@@ -846,15 +857,11 @@ export class Planet extends RenderNode {
             createImageBitmap(SPECULAR).then((e) => (this._specularTexture = this.renderer.handler.createTexture_l(e)));
         }
 
-        this._geoImageCreator = new GeoImageCreator(this);
+        this._geoImageCreator.init();
 
-        this._vectorTileCreator = new VectorTileCreator(this);
+        this._vectorTileCreator.init();
 
-        this._normalMapCreator = new NormalMapCreator(this, {
-            minTableSize: 1,
-            maxTableSize: TABLESIZE,
-            blur: this.terrain && (this.terrain.blur != undefined ? this.terrain.blur : true)
-        });
+        this._normalMapCreator.init();
 
         this.renderer.events.on("draw", this._globalPreDraw, this, -100);
 
@@ -1838,7 +1845,7 @@ export class Planet extends RenderNode {
      * @param {cameraCallback} [completeCallback] - Callback that calls befor the flying begins.
      */
     flyExtent(extent, height, up, ampl, completeCallback, startCallback) {
-        this.renderer.activeCamera.flyExtent(extent, height, up, ampl, completeCallback, startCallback);
+        this.camera.flyExtent(extent, height, up, ampl, completeCallback, startCallback);
     }
 
     /**
@@ -1853,7 +1860,7 @@ export class Planet extends RenderNode {
      * @param [frameCallback]
      */
     flyCartesian(cartesian, look, up, ampl, completeCallback, startCallback, frameCallback) {
-        this.renderer.activeCamera.flyCartesian(cartesian, look, up, ampl, completeCallback, startCallback, frameCallback);
+        this.camera.flyCartesian(cartesian, look, up, ampl, completeCallback, startCallback, frameCallback);
     }
 
     /**
@@ -1868,7 +1875,7 @@ export class Planet extends RenderNode {
      * @param [frameCallback]
      */
     flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback, frameCallback) {
-        this.renderer.activeCamera.flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback, frameCallback);
+        this.camera.flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback, frameCallback);
     }
 
     /**
@@ -1876,7 +1883,7 @@ export class Planet extends RenderNode {
      * @public
      */
     stopFlying() {
-        this.renderer.activeCamera.stopFlying();
+        this.camera.stopFlying();
     }
 
     updateBillboardsTexCoords() {
