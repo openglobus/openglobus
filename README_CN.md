@@ -118,7 +118,7 @@ npm run build
 
 `npm run webgl` - 仅构建 og.webgl （WebGL 的封装部分）
 
-`npm run api` - 本地构建 API 帮助文档至 `/api` 目录
+`npm run docs` - 本地构建 API 帮助文档至 `/api` 目录
 
 `npm run serve` - 运行本地 Web 服务器以便开发以及查看示例代码
 
