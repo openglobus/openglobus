@@ -64,7 +64,7 @@ class ImageCanvas {
      * Fills canvas RGBA with color.
      * @public
      */
-    fill(c) {
+    fill(color) {
         this._context.fillStyle = color
         this._context.fill()
     }

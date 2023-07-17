@@ -76,16 +76,17 @@ class Node {
     createChildrenNodes() {
         this.ready = true;
 
-        var p = this.planet;
-        var ps = this.segment;
-        var ext = ps._extent;
-        var size_x = ext.getWidth() * 0.5;
-        var size_y = ext.getHeight() * 0.5;
-        var ne = ext.northEast, sw = ext.southWest;
-        var z = ps.tileZoom + 1;
-        var id = this.nodeId * 4 + 1;
-        var c = new LonLat(sw.lon + size_x, sw.lat + size_y);
-        var nd = this.nodes;
+        const p = this.planet;
+        const ps = this.segment;
+        const ext = ps._extent;
+        const z = ps.tileZoom + 1;
+        const size_x = ext.getWidth() * 0.5;
+        const size_y = ext.getHeight() * 0.5;
+        const ne = ext.northEast;
+        const sw = ext.southWest;
+        const id = this.nodeId * 4 + 1;
+        const c = new LonLat(sw.lon + size_x, sw.lat + size_y);
+        const nd = this.nodes;
 
         nd[NW] = new Node(this.SegmentPrototype, p, NW, this, id, z, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)));
         nd[NE] = new Node(this.SegmentPrototype, p, NE, this, id, z, new Extent(c, new LonLat(ne.lon, ne.lat)));
