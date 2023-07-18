@@ -120,19 +120,7 @@ class Ellipsoid {
      * @returns {Vec3} -
      */
     lonLatToCartesian(lonlat) {
-        var latrad = RADIANS * lonlat.lat,
-            lonrad = RADIANS * lonlat.lon;
-
-        var slt = Math.sin(latrad);
-
-        var N = this._a / Math.sqrt(1.0 - this._e2 * slt * slt);
-        var nc = (N + lonlat.height) * Math.cos(latrad);
-
-        return new Vec3(
-            nc * Math.sin(lonrad),
-            (N * (1.0 - this._e2) + lonlat.height) * slt,
-            nc * Math.cos(lonrad)
-        );
+        return this.geodeticToCartesian(lonlat.lon, lonlat.lat, lonlat.height);
     }
 
     /**
@@ -143,19 +131,7 @@ class Ellipsoid {
      * @returns {Vec3} -
      */
     lonLatToCartesianRes(lonlat, res) {
-        var latrad = RADIANS * lonlat.lat,
-            lonrad = RADIANS * lonlat.lon;
-
-        var slt = Math.sin(latrad);
-
-        var N = this._a / Math.sqrt(1.0 - this._e2 * slt * slt);
-        var nc = (N + lonlat.height) * Math.cos(latrad);
-
-        res.x = nc * Math.sin(lonrad);
-        res.y = (N * (1.0 - this._e2) + lonlat.height) * slt;
-        res.z = nc * Math.cos(lonrad);
-
-        return res;
+        return this.geodeticToCartesian(lonlat.lon, lonlat.lat, lonlat.height, res);
     }
 
     /**
@@ -166,20 +142,28 @@ class Ellipsoid {
      * @param {Number} height - Height.
      * @returns {Vec3} -
      */
-    geodeticToCartesian(lon, lat, height = 0) {
-        var latrad = RADIANS * lat,
+    geodeticToCartesian(lon, lat, height = 0, res) {
+        res = res || new Vec3();
+
+        let latrad = RADIANS * lat,
             lonrad = RADIANS * lon;
 
-        var slt = Math.sin(latrad);
+        let slt = Math.sin(latrad);
 
-        var N = this._a / Math.sqrt(1 - this._e2 * slt * slt);
-        var nc = (N + height) * Math.cos(latrad);
+        let N = this._a / Math.sqrt(1 - this._e2 * slt * slt);
+        let nc = (N + height) * Math.cos(latrad);
 
-        return new Vec3(
-            nc * Math.sin(lonrad),
-            (N * (1 - this._e2) + height) * slt,
-            nc * Math.cos(lonrad)
-        );
+        // return new Vec3(
+        //     nc * Math.sin(lonrad),
+        //     (N * (1 - this._e2) + height) * slt,
+        //     nc * Math.cos(lonrad)
+        // );
+
+        res.x = nc * Math.cos(lonrad);
+        res.y = nc * Math.sin(lonrad);
+        res.z = (N * (1 - this._e2) + height) * slt;
+
+        return res;
     }
 
     /**

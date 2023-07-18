@@ -193,7 +193,7 @@ const _programm = `
         this.z = z;
     };
 
-    var lonLatToCartesian = function (lon, lat, heightFactor, res) {
+    var geodeticToCartesian = function (lon, lat, heightFactor, res) {
 
         let h = getHeightMSL(lon, lat) * heightFactor;
 
@@ -205,13 +205,17 @@ const _programm = `
         let N = A / Math.sqrt(1.0 - E2 * slt * slt);
         let nc = (N + h) * Math.cos(latrad);       
         
-        res.x = nc * Math.sin(lonrad);
-        res.y = (N * (1.0 - E2) + h) * slt;
-        res.z = nc * Math.cos(lonrad);
+        // res.x = nc * Math.sin(lonrad);
+        // res.y = (N * (1.0 - E2) + h) * slt;
+        // res.z = nc * Math.cos(lonrad);
+        
+        res.x = nc * Math.cos(lonrad);
+        res.y = nc * Math.sin(lonrad);
+        res.z = (N * (1 - E2) + h) * slt;
     };
 
-    var lonLatToCartesianInverse = function (lon, lat, heightFactor, res){
-        lonLatToCartesian(
+    var geodeticToCartesianInverse = function (lon, lat, heightFactor, res){
+        geodeticToCartesian(
             lon * INV_POLE_BY_180,
             INV_PI_BY_360 * Math.atan(Math.exp(lat * PI_BY_POLE)) - INV_PI_BY_180_HALF_PI,
             heightFactor,
@@ -279,9 +283,9 @@ const _programm = `
             let heightFactor =  msg.data.params[13];
         
             if(msg.data.params[1] === 0.0){
-                _projFunc = lonLatToCartesianInverse;
+                _projFunc = geodeticToCartesianInverse;
             }else{
-                _projFunc = lonLatToCartesian;
+                _projFunc = geodeticToCartesian;
             }
 
             let maxFgs = Math.max(fgs, gridSize);
