@@ -33,10 +33,10 @@ class Ellipsoid {
         this._k = qa2b2 / polarSize;
         this._k2 = this._k * this._k;
 
-        this._radii = new Vec3(equatorialSize, polarSize, equatorialSize);
-        this._radii2 = new Vec3(this._a2, this._b2, this._a2);
-        this._invRadii = new Vec3(1.0 / equatorialSize, 1.0 / polarSize, 1.0 / equatorialSize);
-        this._invRadii2 = new Vec3(1.0 / this._a2, 1.0 / this._b2, 1.0 / this._a2);
+        this._radii = new Vec3(equatorialSize, equatorialSize, polarSize);
+        this._radii2 = new Vec3(this._a2, this._a2, this._b2);
+        this._invRadii = new Vec3(1.0 / equatorialSize, 1.0 / equatorialSize, 1.0 / polarSize);
+        this._invRadii2 = new Vec3(1.0 / this._a2, 1.0 / this._a2, 1.0 / this._b2);
     }
 
     /**
@@ -232,14 +232,7 @@ class Ellipsoid {
      * @returns {LonLat} - Geodetic coordinates
      */
     cartesianToLonLat(cart) {
-        let p = this.projToSurface(cart);
-        let n = this.getSurfaceNormal3v(p),
-            h = cart.sub(p);
-        return new LonLat(
-            Math.atan2(n.x, n.z) * DEGREES,
-            Math.asin(n.y) * DEGREES,
-            Math.sign(h.dot(cart)) * h.length()
-        );
+        return this.cartesianToLonLatRes(cart);
     }
 
     /**
@@ -249,11 +242,16 @@ class Ellipsoid {
      * @returns {LonLat} - Geodetic coordinates
      */
     cartesianToLonLatRes(cart, res) {
+        res = res || new LonLat();
         let p = this.projToSurface(cart);
         let n = this.getSurfaceNormal3v(p),
             h = cart.sub(p);
-        res.lon = Math.atan2(n.x, n.z) * DEGREES;
-        res.lat = Math.asin(n.y) * DEGREES;
+        // res.lon = Math.atan2(n.x, n.z) * DEGREES;
+        // res.lat = Math.asin(n.y) * DEGREES;
+
+        res.lon = Math.atan2(n.y, n.x) * DEGREES;
+        res.lat = Math.asin(n.z) * DEGREES;
+
         res.height = Math.sign(h.dot(cart)) * h.length();
         return res;
     }

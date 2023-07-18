@@ -307,7 +307,7 @@ window.globus = globus;
 let obj3d = Object3d.createSphere();
 
 const entity = new Entity({
-    lonlat: [0.2, 87],
+    lonlat: [0, 0],
     geoObject: {
         scale: 1,
         color: "yellow",
