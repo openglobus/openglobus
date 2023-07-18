@@ -1,7 +1,7 @@
 "use strict";
 
 import * as shaders from "../shaders/geoObject.js";
-import { concatArrays, loadImage, makeArrayTyped, spliceArray } from "../utils/shared.js";
+import {concatArrays, loadImage, makeArrayTyped, spliceArray} from "../utils/shared.js";
 
 const VERTEX_BUFFER = 0;
 const POSITION_BUFFER = 1;
@@ -112,24 +112,33 @@ class InstanceData {
         this._visibleArr = [];
         this._texCoordArr = [];
 
-        let h = this._geoObjectHandler._planet.renderer.handler, gl = h.gl;
+        this._deleteBuffers();
 
-        h.deleteTexture(this._texture);
+        this.isFree = false;
+        this._geoObjectHandler = null;
+    }
 
-        this._texture = null;
+    _deleteBuffers() {
+        if (this._geoObjectHandler && this._geoObjectHandler._planet && this._geoObjectHandler._planet.renderer) {
+            let h = this._geoObjectHandler._planet.renderer.handler,
+                gl = h.gl;
 
-        gl.deleteBuffer(this._pitchRollBuffer);
-        gl.deleteBuffer(this._sizeBuffer);
-        gl.deleteBuffer(this._vertexBuffer);
-        gl.deleteBuffer(this._positionHighBuffer);
-        gl.deleteBuffer(this._positionLowBuffer);
-        gl.deleteBuffer(this._directionBuffer);
-        gl.deleteBuffer(this._rgbaBuffer);
-        gl.deleteBuffer(this._normalsBuffer);
-        gl.deleteBuffer(this._indicesBuffer);
-        gl.deleteBuffer(this._pickingColorBuffer);
-        gl.deleteBuffer(this._visibleBuffer);
-        gl.deleteBuffer(this._texCoordBuffer);
+            h.deleteTexture(this._texture);
+            this._texture = null;
+
+            gl.deleteBuffer(this._pitchRollBuffer);
+            gl.deleteBuffer(this._sizeBuffer);
+            gl.deleteBuffer(this._vertexBuffer);
+            gl.deleteBuffer(this._positionHighBuffer);
+            gl.deleteBuffer(this._positionLowBuffer);
+            gl.deleteBuffer(this._directionBuffer);
+            gl.deleteBuffer(this._rgbaBuffer);
+            gl.deleteBuffer(this._normalsBuffer);
+            gl.deleteBuffer(this._indicesBuffer);
+            gl.deleteBuffer(this._pickingColorBuffer);
+            gl.deleteBuffer(this._visibleBuffer);
+            gl.deleteBuffer(this._texCoordBuffer);
+        }
 
         this._pitchRollBuffer = null;
         this._sizeBuffer = null;
@@ -143,9 +152,6 @@ class InstanceData {
         this._pickingColorBuffer = null;
         this._visibleBuffer = null;
         this._texCoordBuffer = null;
-
-        this.isFree = false;
-        this._geoObjectHandler = null;
     }
 
     createVertexBuffer() {
@@ -635,7 +641,7 @@ class GeoObjectHandler {
         this._geoObjects.length = 0;
         this._geoObjects = [];
 
-        for (let i = 0; this._instanceDataMapValues.length; i++) {
+        for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].clear();
         }
 
@@ -731,4 +737,4 @@ class GeoObjectHandler {
     }
 }
 
-export { GeoObjectHandler };
+export {GeoObjectHandler};
