@@ -498,7 +498,7 @@ class Ellipsoid {
 
     getNorthFrameRotation(cartesian) {
         let n = this.getSurfaceNormal3v(cartesian);
-        let t = Vec3.proj_b_to_plane(Vec3.UNIT_Y, n);
+        let t = Vec3.proj_b_to_plane(Vec3.NORTH, n);
         return Quat.getLookRotation(t, n);
     }
 
