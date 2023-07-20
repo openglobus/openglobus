@@ -3,6 +3,7 @@
 import { LonLat } from "../LonLat.js";
 import { DEGREES, EPS1, EPS12, EPS15, RADIANS, zeroTwoPI } from "../math.js";
 import { Vec3 } from "../math/Vec3.js";
+import { Quat } from "../math/Quat.js";
 
 /**
  * Class represents a plant ellipsoid.
@@ -475,6 +476,12 @@ class Ellipsoid {
             // qw >= 0.0.  Looking outward or tangent.
             // return undefined
         }
+    }
+
+    getNorthFrameRotation(cartesian) {
+        let n = this.getSurfaceNormal3v(cartesian);
+        let t = Vec3.proj_b_to_plane(Vec3.UNIT_Y, n);
+        return Quat.getLookRotation(t, n);
     }
 
     /**
