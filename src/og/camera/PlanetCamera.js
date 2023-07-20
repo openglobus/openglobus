@@ -184,7 +184,7 @@ class PlanetCamera extends Camera {
         var el = this.planet.ellipsoid;
         var newEye = el.lonLatToCartesian(this._lonLat);
         var newLook = lookLonLat ? el.lonLatToCartesian(lookLonLat) : Vec3.ZERO;
-        this.set(newEye, newLook, up || Vec3.UP);
+        this.set(newEye, newLook, up || Vec3.NORTH);
         this.update();
     }
 
@@ -249,7 +249,7 @@ class PlanetCamera extends Camera {
         southWest.subA(center);
 
         var direction = center.normal(); // ellipsoid.getSurfaceNormal(center).negate().normalize();
-        var right = direction.cross(Vec3.UP).normalize();
+        var right = direction.cross(Vec3.NORTH).normalize();
         var up = right.cross(direction).normalize();
 
         var _h = Math.max(
@@ -283,7 +283,7 @@ class PlanetCamera extends Camera {
      */
     viewExtent(extent, height) {
         this.stopFlying();
-        this.set(this.getExtentPosition(extent, height), Vec3.ZERO, Vec3.UP);
+        this.set(this.getExtentPosition(extent, height), Vec3.ZERO, Vec3.NORTH);
         this.update();
     }
 

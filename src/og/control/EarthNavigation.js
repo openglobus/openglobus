@@ -153,12 +153,12 @@ class EarthNavigation extends Control {
                 var rot = this._hRot.mul(this._vRot);
 
                 var state = this.positionState[this.currState];
-                var lim = rot.mulVec3(cam.eye).normal().dot(Vec3.UP);
+                var lim = rot.mulVec3(cam.eye).normal().dot(Vec3.NORTH);
                 if (lim > state.max || lim < state.min) {
                     rot = Quat.yRotation(rot.getYaw());
                 }
 
-                cam.set(rot.mulVec3(cam.eye), Vec3.ZERO, Vec3.UP);
+                cam.set(rot.mulVec3(cam.eye), Vec3.ZERO, Vec3.NORTH);
                 cam.update();
             }
         }
@@ -204,7 +204,6 @@ class EarthNavigation extends Control {
                 let rot = this._vRot = Quat.axisAngleToQuat(cam._u, this._a);
 
                 cam.set(rot.mulVec3(cam.eye), Vec3.ZERO, rot.mulVec3(cam.getUp()));
-                //cam.update();
 
                 this._hRot = Quat.getRotationBetweenVectors(
                     new Vec3(targetPoint.x, 0.0, targetPoint.z).normal(),
@@ -213,14 +212,8 @@ class EarthNavigation extends Control {
 
                 rot = this._hRot;
 
-                //var state = this.positionState[this.currState];
-                //var lim = cam.eye.normal().dot(Vec3.UP);
-
-                //if (lim > state.max || lim < state.min) {
-                //    rot = Quat.yRotation(rot.getYaw());
-                    cam.set(rot.mulVec3(cam.eye), Vec3.ZERO, rot.mulVec3(cam.getUp()));
-                    cam.update();
-                //}
+                cam.set(rot.mulVec3(cam.eye), Vec3.ZERO, rot.mulVec3(cam.getUp()));
+                cam.update();
             }
         } else {
             this.scaleRot = 0;
@@ -240,7 +233,7 @@ class EarthNavigation extends Control {
             this._vRot = Quat.axisAngleToQuat(cam._u, this._a);
             var rot = this._vRot.mul(this._hRot);
 
-            var lim = rot.mulVec3(cam.eye).normal().dot(Vec3.UP);
+            var lim = rot.mulVec3(cam.eye).normal().dot(Vec3.NORTH);
 
             var state = this.positionState[this.currState];
 
@@ -256,7 +249,7 @@ class EarthNavigation extends Control {
                 this.scaleRot = 0;
             }
 
-            cam.set(rot.mulVec3(cam.eye), Vec3.ZERO, Vec3.UP);
+            cam.set(rot.mulVec3(cam.eye), Vec3.ZERO, Vec3.NORTH);
             cam.update();
         }
     }
