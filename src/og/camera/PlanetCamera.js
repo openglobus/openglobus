@@ -362,7 +362,7 @@ class PlanetCamera extends Camera {
      * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
      * @param [frameCallback]
      */
-    flyCartesian(cartesian, look = Vec3.ZERO, up = Vec3.UP, ampl = 1.0, completeCallback = () => {
+    flyCartesian(cartesian, look = Vec3.ZERO, up = Vec3.NORTH, ampl = 1.0, completeCallback = () => {
     }, startCallback = () => {
     }, frameCallback = () => {
     }) {
@@ -370,7 +370,7 @@ class PlanetCamera extends Camera {
         this.stopFlying();
 
         look = look || Vec3.ZERO;
-        up = up || Vec3.UP;
+        up = up || Vec3.NORTH;
 
         this._completeCallback = completeCallback;
 
@@ -640,7 +640,7 @@ class PlanetCamera extends Camera {
                 this.slope >= 0.97 ? this.getUp() : this.getForward(),
                 u
             ).normalize(),
-            n = Vec3.proj_b_to_plane(Vec3.UP, u).normalize();
+            n = Vec3.proj_b_to_plane(Vec3.NORTH, u).normalize();
         let res = Math.sign(u.dot(f.cross(n))) * Math.acos(f.dot(n)) * math.DEGREES;
         if (res < 0.0) {
             return 360.0 + res;
