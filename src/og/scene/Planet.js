@@ -438,17 +438,8 @@ export class Planet extends RenderNode {
         this._atmosphereMaxMinOpacity = new Float32Array([1.0, 0.41]);
     }
 
-    static getBearingNorthRotationQuat(cartesian) {
-        //
-        // TODO: fix normal for ellipsoid
-        //
-        let n = cartesian.normal();
-        let t = Vec3.proj_b_to_plane(Vec3.UNIT_Y, n);
-        return Quat.getLookRotation(t, n);
-    }
-
-    getBearingNorthRotationQuat(cartesian) {
-        return Planet.getBearingNorthRotationQuat(cartesian);
+    getNorthFrameRotation(cartesian) {
+        return this.ellipsoid.getNorthFrameRotation(cartesian);
     }
 
     set atmosphereMaxOpacity(opacity) {

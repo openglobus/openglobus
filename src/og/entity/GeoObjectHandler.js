@@ -1,7 +1,7 @@
 "use strict";
 
 import * as shaders from "../shaders/geoObject.js";
-import {concatArrays, loadImage, makeArrayTyped, spliceArray} from "../utils/shared.js";
+import { concatArrays, loadImage, makeArrayTyped, spliceArray } from "../utils/shared.js";
 
 const VERTEX_BUFFER = 0;
 const POSITION_BUFFER = 1;
@@ -349,6 +349,10 @@ class GeoObjectHandler {
         // in case of lazy initialization loading data here
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._loadDataTagTexture(this._instanceDataMapValues[i]);
+        }
+
+        for (let i = 0; i < this._geoObjects.length; i++) {
+            this._geoObjects[i].updateDirection();
         }
 
         this.update();
@@ -737,4 +741,4 @@ class GeoObjectHandler {
     }
 }
 
-export {GeoObjectHandler};
+export { GeoObjectHandler };

@@ -232,10 +232,12 @@ class GeoObject {
     }
 
     updateDirection() {
-        this._qNorthFrame = Planet.getBearingNorthRotationQuat(this._position);
-        let qq = Quat.yRotation(this._yaw).mul(this._qNorthFrame).conjugate();
-        this._direction = qq.mulVec3(new Vec3(0.0, 0.0, -1.0)).normalize();
-        this._handler && this._handler.setDirectionArr(this._tagData, this._tagDataIndex, this._direction);
+        if (this._handler && this._handler._planet) {
+            this._qNorthFrame = this._handler._planet.getNorthFrameRotation(this._position);
+            let qq = Quat.yRotation(this._yaw).mul(this._qNorthFrame).conjugate();
+            this._direction = qq.mulVec3(new Vec3(0.0, 0.0, -1.0)).normalize();
+            this._handler.setDirectionArr(this._tagData, this._tagDataIndex, this._direction);
+        }
     }
 }
 
