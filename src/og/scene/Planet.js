@@ -447,6 +447,10 @@ export class Planet extends RenderNode {
         return Quat.getLookRotation(t, n);
     }
 
+    getBearingNorthRotationQuat(cartesian) {
+        return Planet.getBearingNorthRotationQuat(cartesian);
+    }
+
     set atmosphereMaxOpacity(opacity) {
         this._atmosphereMaxMinOpacity[0] = opacity;
     }
