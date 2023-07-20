@@ -206,9 +206,9 @@ export class Planet extends RenderNode {
          */
         this.camera = new PlanetCamera(this, {
             frustums: this._cameraFrustums,
-            eye: new Vec3(0, 0, 28000000),
-            look: new Vec3(0, 0, 0),
-            up: new Vec3(0, 1, 0),
+            eye: new Vec3(25000000, 0, 0),
+            look: Vec3.ZERO,
+            up: Vec3.NORTH,
             minAltitude: this._minAltitude,
             maxAltitude: this._maxAltitude
         });
