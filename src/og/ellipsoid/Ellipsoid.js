@@ -154,12 +154,6 @@ class Ellipsoid {
         let N = this._a / Math.sqrt(1 - this._e2 * slt * slt);
         let nc = (N + height) * Math.cos(latrad);
 
-        // return new Vec3(
-        //     nc * Math.sin(lonrad),
-        //     (N * (1 - this._e2) + height) * slt,
-        //     nc * Math.cos(lonrad)
-        // );
-
         res.x = nc * Math.cos(lonrad);
         res.y = nc * Math.sin(lonrad);
         res.z = (N * (1 - this._e2) + height) * slt;
@@ -247,13 +241,11 @@ class Ellipsoid {
         let p = this.projToSurface(cart);
         let n = this.getSurfaceNormal3v(p),
             h = cart.sub(p);
-        // res.lon = Math.atan2(n.x, n.z) * DEGREES;
-        // res.lat = Math.asin(n.y) * DEGREES;
 
         res.lon = Math.atan2(n.y, n.x) * DEGREES;
         res.lat = Math.asin(n.z) * DEGREES;
-
         res.height = Math.sign(h.dot(cart)) * h.length();
+
         return res;
     }
 

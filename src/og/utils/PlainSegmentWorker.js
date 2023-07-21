@@ -204,11 +204,7 @@ const _programm = `
 
         let N = A / Math.sqrt(1.0 - E2 * slt * slt);
         let nc = (N + h) * Math.cos(latrad);       
-        
-        // res.x = nc * Math.sin(lonrad);
-        // res.y = (N * (1.0 - E2) + h) * slt;
-        // res.z = nc * Math.cos(lonrad);
-        
+           
         res.x = nc * Math.cos(lonrad);
         res.y = nc * Math.sin(lonrad);
         res.z = (N * (1 - E2) + h) * slt;
