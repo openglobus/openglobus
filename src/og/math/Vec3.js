@@ -83,7 +83,7 @@ export class Vec3 {
 
     /** @const */
     static get NORTH() {
-        return Vec3.UNIT_Y;
+        return Vec3.UNIT_Z;
     }
 
     /**

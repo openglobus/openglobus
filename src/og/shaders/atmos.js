@@ -23,7 +23,7 @@ export const COMMON =
     const float TOP_RADIUS = 6356752.3142451793 + ATMOS_HEIGHT;
         
     // Ellipsoid
-    const vec3 bottomRadii = vec3(6378137.0, 6356752.3142451793, 6378137.0);           
+    const vec3 bottomRadii = vec3(6378137.0, 6378137.0, 6356752.3142451793);           
     const vec3 topRadii = bottomRadii + ATMOS_HEIGHT;
     
     const vec3 SPHERE_TO_ELLIPSOID_SCALE = vec3(BOTTOM_RADIUS) / bottomRadii;           

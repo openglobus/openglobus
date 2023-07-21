@@ -1,4 +1,5 @@
 import { LonLat } from "../../src/og/LonLat";
+import { Vec3 } from "../../src/og/math/Vec3";
 import { Ellipsoid } from "../../src/og/ellipsoid/Ellipsoid.js";
 import { wgs84 } from "../../src/og/ellipsoid/wgs84";
 
@@ -89,4 +90,57 @@ test('Testing Ellipsoid getIntermediatePointOnGreatCircle', () => {
 
     expect(p.lon).toBeCloseTo(0.5);
     expect(p.lat).toBeCloseTo(0.5);
+});
+
+test('Testing lon, lat to EPSG4978', () => {
+
+    //6378137.0, 6356752.3142451793
+
+    const test_0_0 = new Vec3(wgs84.getEquatorialSize(), .0, .0);
+    let res = wgs84.geodeticToCartesian(0, 0);
+    expect(res).toEqual(test_0_0);
+    let lonlat = wgs84.cartesianToLonLat(test_0_0);
+    expect(lonlat).toEqual(new LonLat(0, 0));
+
+
+    const test_180_0 = new Vec3(-wgs84.getEquatorialSize(), .0, .0);
+    res = wgs84.geodeticToCartesian(180, 0);
+    res.y = Math.round(res.y);
+    expect(res).toEqual(test_180_0);
+    lonlat = wgs84.cartesianToLonLat(test_180_0);
+    expect(lonlat).toEqual(new LonLat(180, 0));
+
+    const test_n180_0 = new Vec3(-wgs84.getEquatorialSize(), .0, .0);
+    res = wgs84.geodeticToCartesian(-180, 0);
+    res.y = Math.round(res.y) || 0;
+    expect(res).toEqual(test_n180_0);
+    lonlat = wgs84.cartesianToLonLat(test_n180_0);
+    expect(lonlat).toEqual(new LonLat(180, 0));
+
+    const test_90_0 = new Vec3(.0, wgs84.getEquatorialSize(), .0);
+    res = wgs84.geodeticToCartesian(90, 0);
+    res.x = Math.round(res.x) || 0;
+    expect(res).toEqual(test_90_0);
+    lonlat = wgs84.cartesianToLonLat(test_90_0);
+    expect(lonlat).toEqual(new LonLat(90, 0));
+
+    const test_n90_0 = new Vec3(.0, -wgs84.getEquatorialSize(), .0);
+    res = wgs84.geodeticToCartesian(-90, 0)
+    res.x = Math.round(res.x) || 0;
+    expect(res).toEqual(test_n90_0);
+
+    const test_0_90 = new Vec3(.0, .0, wgs84.getPolarSize());
+    res = wgs84.geodeticToCartesian(0, 90);
+    res.x = Math.round(res.x) || 0;
+    expect(res).toEqual(test_0_90);
+
+    const test_0_n90 = new Vec3(.0, .0, -wgs84.getPolarSize());
+    res = wgs84.geodeticToCartesian(0, -90);
+    res.x = Math.round(res.x) || 0;
+    expect(res).toEqual(test_0_n90);
+
+    const test_10_90 = new Vec3(.0, .0, wgs84.getPolarSize());
+    res = wgs84.geodeticToCartesian(0, 90);
+    res.x = Math.round(res.x) || 0;
+    expect(res).toEqual(test_10_90);
 });

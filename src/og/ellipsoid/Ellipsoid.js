@@ -34,10 +34,10 @@ class Ellipsoid {
         this._k = qa2b2 / polarSize;
         this._k2 = this._k * this._k;
 
-        this._radii = new Vec3(equatorialSize, polarSize, equatorialSize);
-        this._radii2 = new Vec3(this._a2, this._b2, this._a2);
-        this._invRadii = new Vec3(1.0 / equatorialSize, 1.0 / polarSize, 1.0 / equatorialSize);
-        this._invRadii2 = new Vec3(1.0 / this._a2, 1.0 / this._b2, 1.0 / this._a2);
+        this._radii = new Vec3(equatorialSize, equatorialSize, polarSize);
+        this._radii2 = new Vec3(this._a2, this._a2, this._b2);
+        this._invRadii = new Vec3(1.0 / equatorialSize, 1.0 / equatorialSize, 1.0 / polarSize);
+        this._invRadii2 = new Vec3(1.0 / this._a2, 1.0 / this._a2, 1.0 / this._b2);
     }
 
     /**
@@ -121,19 +121,7 @@ class Ellipsoid {
      * @returns {Vec3} -
      */
     lonLatToCartesian(lonlat) {
-        var latrad = RADIANS * lonlat.lat,
-            lonrad = RADIANS * lonlat.lon;
-
-        var slt = Math.sin(latrad);
-
-        var N = this._a / Math.sqrt(1.0 - this._e2 * slt * slt);
-        var nc = (N + lonlat.height) * Math.cos(latrad);
-
-        return new Vec3(
-            nc * Math.sin(lonrad),
-            (N * (1.0 - this._e2) + lonlat.height) * slt,
-            nc * Math.cos(lonrad)
-        );
+        return this.geodeticToCartesian(lonlat.lon, lonlat.lat, lonlat.height);
     }
 
     /**
@@ -144,19 +132,7 @@ class Ellipsoid {
      * @returns {Vec3} -
      */
     lonLatToCartesianRes(lonlat, res) {
-        var latrad = RADIANS * lonlat.lat,
-            lonrad = RADIANS * lonlat.lon;
-
-        var slt = Math.sin(latrad);
-
-        var N = this._a / Math.sqrt(1.0 - this._e2 * slt * slt);
-        var nc = (N + lonlat.height) * Math.cos(latrad);
-
-        res.x = nc * Math.sin(lonrad);
-        res.y = (N * (1.0 - this._e2) + lonlat.height) * slt;
-        res.z = nc * Math.cos(lonrad);
-
-        return res;
+        return this.geodeticToCartesian(lonlat.lon, lonlat.lat, lonlat.height, res);
     }
 
     /**
@@ -167,20 +143,22 @@ class Ellipsoid {
      * @param {Number} height - Height.
      * @returns {Vec3} -
      */
-    geodeticToCartesian(lon, lat, height = 0) {
-        var latrad = RADIANS * lat,
+    geodeticToCartesian(lon, lat, height = 0, res) {
+        res = res || new Vec3();
+
+        let latrad = RADIANS * lat,
             lonrad = RADIANS * lon;
 
-        var slt = Math.sin(latrad);
+        let slt = Math.sin(latrad);
 
-        var N = this._a / Math.sqrt(1 - this._e2 * slt * slt);
-        var nc = (N + height) * Math.cos(latrad);
+        let N = this._a / Math.sqrt(1 - this._e2 * slt * slt);
+        let nc = (N + height) * Math.cos(latrad);
 
-        return new Vec3(
-            nc * Math.sin(lonrad),
-            (N * (1 - this._e2) + height) * slt,
-            nc * Math.cos(lonrad)
-        );
+        res.x = nc * Math.cos(lonrad);
+        res.y = nc * Math.sin(lonrad);
+        res.z = (N * (1 - this._e2) + height) * slt;
+
+        return res;
     }
 
     /**
@@ -249,14 +227,7 @@ class Ellipsoid {
      * @returns {LonLat} - Geodetic coordinates
      */
     cartesianToLonLat(cart) {
-        let p = this.projToSurface(cart);
-        let n = this.getSurfaceNormal3v(p),
-            h = cart.sub(p);
-        return new LonLat(
-            Math.atan2(n.x, n.z) * DEGREES,
-            Math.asin(n.y) * DEGREES,
-            Math.sign(h.dot(cart)) * h.length()
-        );
+        return this.cartesianToLonLatRes(cart);
     }
 
     /**
@@ -266,12 +237,15 @@ class Ellipsoid {
      * @returns {LonLat} - Geodetic coordinates
      */
     cartesianToLonLatRes(cart, res) {
+        res = res || new LonLat();
         let p = this.projToSurface(cart);
         let n = this.getSurfaceNormal3v(p),
             h = cart.sub(p);
-        res.lon = Math.atan2(n.x, n.z) * DEGREES;
-        res.lat = Math.asin(n.y) * DEGREES;
+
+        res.lon = Math.atan2(n.y, n.x) * DEGREES;
+        res.lat = Math.asin(n.z) * DEGREES;
         res.height = Math.sign(h.dot(cart)) * h.length();
+
         return res;
     }
 
