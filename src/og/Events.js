@@ -57,7 +57,7 @@ class Events {
      * @param {Array.<string>} eventNames - Specified event names list.
      */
     registerNames(eventNames) {
-        for (var i = 0; i < eventNames.length; i++) {
+        for (let i = 0; i < eventNames.length; i++) {
             this[eventNames[i]] = { active: true, handlers: [] };
             this._eventNames.push(eventNames[i]);
         }
@@ -172,7 +172,7 @@ class Events {
      * @public
      */
     clear() {
-        for (var i = 0; i < this._eventNames.length; i++) {
+        for (let i = 0; i < this._eventNames.length; i++) {
             var e = this[this._eventNames[i]];
             e.handlers.length = 0;
             e.handlers = [];

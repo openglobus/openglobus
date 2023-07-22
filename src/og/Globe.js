@@ -222,7 +222,7 @@ class Globe {
         }
 
         var _controls = this.renderer.controls;
-        for (var i in _controls) {
+        for (let i in _controls) {
             if (_controls[i] instanceof Sun) {
                 this.sun = _controls[i];
                 break;

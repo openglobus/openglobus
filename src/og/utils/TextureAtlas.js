@@ -168,7 +168,7 @@ class TextureAtlas {
             this.clearCanvas();
 
             var newNodes = new Map();
-            for (var i = 0; i < im.length; i++) {
+            for (let i = 0; i < im.length; i++) {
                 this._completeNode(newNodes, this._btree.insert(im[i]));
             }
             this.nodes = null;

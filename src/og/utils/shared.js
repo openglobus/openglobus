@@ -152,7 +152,7 @@ export function parseHTML(htmlStr) {
     var p = document.createElement("div");
     p.innerHTML = htmlStr;
     var domArr = [];
-    for (var i = 0; i < p.childNodes.length; i++) {
+    for (let i = 0; i < p.childNodes.length; i++) {
         domArr.push(p.childNodes[i]);
         p.removeChild(p.childNodes[i]);
     }
@@ -419,7 +419,7 @@ export function xmlToJson(xml) {
         // do attributes
         if (xml.attributes.length > 0) {
             obj["@attributes"] = {};
-            for (var j = 0; j < xml.attributes.length; j++) {
+            for (let j = 0; j < xml.attributes.length; j++) {
                 var attribute = xml.attributes.item(j);
                 obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
             }
@@ -431,7 +431,7 @@ export function xmlToJson(xml) {
 
     // do children
     if (xml.hasChildNodes()) {
-        for (var i = 0; i < xml.childNodes.length; i++) {
+        for (let i = 0; i < xml.childNodes.length; i++) {
             var item = xml.childNodes.item(i);
             var nodeName = item.nodeName;
             if (typeof obj[nodeName] === "undefined") {
@@ -511,12 +511,12 @@ export function base64toBlob(base64Data, contentType) {
     var slicesCount = Math.ceil(bytesLength / sliceSize);
     var byteArrays = new Array(slicesCount);
 
-    for (var sliceIndex = 0; sliceIndex < slicesCount; ++sliceIndex) {
+    for (let sliceIndex = 0; sliceIndex < slicesCount; ++sliceIndex) {
         var begin = sliceIndex * sliceSize;
         var end = Math.min(begin + sliceSize, bytesLength);
 
         var bytes = new Array(end - begin);
-        for (var offset = begin, i = 0; offset < end; ++i, ++offset) {
+        for (let offset = begin, i = 0; offset < end; ++i, ++offset) {
             bytes[i] = byteCharacters[offset].charCodeAt(0);
         }
         byteArrays[sliceIndex] = new Uint8Array(bytes);
@@ -751,7 +751,7 @@ export function concatArrays(a = [], b) {
     if (ArrayBuffer.isView(a)) {
         return concatTypedArrays(a, b);
     } else {
-        for (var i = 0; i < b.length; i++) {
+        for (let i = 0; i < b.length; i++) {
             a.push(b[i]);
         }
         return a;
@@ -858,8 +858,8 @@ export function getMatrixSubArray(sourceArr, gridSize, i0, j0, size) {
     var res = new Float64Array(size_1 * size_1 * 3);
 
     var vInd = 0;
-    for (var i = i0; i < i0size; i++) {
-        for (var j = j0; j < j0size; j++) {
+    for (let i = i0; i < i0size; i++) {
+        for (let j = j0; j < j0size; j++) {
             var ind = 3 * (i * (gridSize + 1) + j);
 
             res[vInd++] = sourceArr[ind];
@@ -902,8 +902,8 @@ export function getMatrixSubArrayBoundsExt(
     gridSize += 1;
     var vInd = 0,
         nInd = 0;
-    for (var i = i0; i < i0size; i++) {
-        for (var j = j0; j < j0size; j++) {
+    for (let i = i0; i < i0size; i++) {
+        for (let j = j0; j < j0size; j++) {
             let indBy3 = i * gridSize + j,
                 ind = 3 * indBy3;
 

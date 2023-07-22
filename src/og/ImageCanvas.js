@@ -54,7 +54,7 @@ class ImageCanvas {
     fillEmpty() {
         var imgd = this._context.getImageData(0, 0, this._canvas.width, this._canvas.height);
         var pixels = imgd.data;
-        for (var i = 0, n = pixels.length; i < n; i += 4) {
+        for (let i = 0, n = pixels.length; i < n; i += 4) {
             pixels[i] = pixels[i + 1] = pixels[i + 2] = pixels[i + 3] = 0;
         }
         this._context.putImageData(imgd, 0, 0);
@@ -64,7 +64,7 @@ class ImageCanvas {
      * Fills canvas RGBA with color.
      * @public
      */
-    fill(c) {
+    fill(color) {
         this._context.fillStyle = color
         this._context.fill()
     }

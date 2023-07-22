@@ -208,7 +208,7 @@ class PointCloud {
      */
     setPoints(points) {
         this.clear();
-        for (var i = 0; i < points.length; i++) {
+        for (let i = 0; i < points.length; i++) {
             var pi = points[i];
             var pos = new Vec3(pi[0], pi[1], pi[2]),
                 col = new Vec4(pi[3], pi[4], pi[5], pi[6] == undefined ? 255.0 : pi[6]);
@@ -471,7 +471,7 @@ class PointCloud {
 
     _setPickingColors() {
         if (this._renderNode) {
-            for (var i = 0; i < this._points.length; i++) {
+            for (let i = 0; i < this._points.length; i++) {
                 var p = this._points[i];
                 p._entity = this._entity;
                 p._entityCollection = this._entity._entityCollection;

@@ -56,7 +56,7 @@ export class LonLat {
      */
     static join(arr) {
         var res = [];
-        for (var i = 0; i < arr.length; i++) {
+        for (let i = 0; i < arr.length; i++) {
             var ai = arr[i];
             res[i] = new LonLat(ai[0], ai[1], ai[2]);
         }

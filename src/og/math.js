@@ -138,7 +138,7 @@ export function isPowerOfTwo(x) {
  */
 export function nextHighestPowerOfTwo(x, maxValue = 4096) {
     --x;
-    for (var i = 1; i < 32; i <<= 1) {
+    for (let i = 1; i < 32; i <<= 1) {
         x = x | (x >> i);
     }
     return (x + 1) > maxValue ? maxValue : x + 1
@@ -362,7 +362,7 @@ export function negativePItoPI(a) {
 export function solve_iteration_fixed(f, x0, maxIter) {
     var x = 0;
     var x2 = x0;
-    for (var i = 0; i < maxIter; i++) {
+    for (let i = 0; i < maxIter; i++) {
         x = x2;
         x2 = f(x);
     }
@@ -382,7 +382,7 @@ export function solve_iteration_fixed(f, x0, maxIter) {
 export function solve_iteration(f, x0, err, maxIter = 50) {
     var x = 0;
     var x2 = x0;
-    for (var i = 0; i < maxIter; i++) {
+    for (let i = 0; i < maxIter; i++) {
         x = x2;
         x2 = f(x);
         if (Math.abs(x2 - x) < err) {

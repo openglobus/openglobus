@@ -41,7 +41,7 @@ class PolylineHandler {
     setRenderNode(renderNode) {
         this._renderer = renderNode.renderer;
         this._initProgram();
-        for (var i = 0; i < this._polylines.length; i++) {
+        for (let i = 0; i < this._polylines.length; i++) {
             this._polylines[i].setRenderNode(renderNode);
         }
     }
@@ -69,7 +69,7 @@ class PolylineHandler {
 
     reindexPolylineArray(startIndex) {
         var ls = this._polylines;
-        for (var i = startIndex; i < ls.length; i++) {
+        for (let i = startIndex; i < ls.length; i++) {
             ls[i]._handlerIndex = i;
         }
     }

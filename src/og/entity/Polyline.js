@@ -221,7 +221,7 @@ class Polyline {
             outIndexes.push(0, 0);
         }
 
-        for (var j = 0, len = path3v.length; j < len; j++) {
+        for (let j = 0, len = path3v.length; j < len; j++) {
             var path = path3v[j],
                 pathColors_j = pathColors[j];
 
@@ -743,7 +743,7 @@ class Polyline {
             outIndexes.push(0, 0);
         }
 
-        for (var j = 0, len = pathLonLat.length; j < len; j++) {
+        for (let j = 0, len = pathLonLat.length; j < len; j++) {
             var path = pathLonLat[j],
                 pathColors_j = pathColors[j];
 
@@ -1011,7 +1011,7 @@ class Polyline {
 
         var ellipsoid = this._renderNode.ellipsoid;
 
-        for (var j = 0; j < path3v.length; j++) {
+        for (let j = 0; j < path3v.length; j++) {
             var path = path3v[j];
 
             var last;
@@ -1052,7 +1052,7 @@ class Polyline {
             vh[k] = v_high.z;
             vl[k++] = v_low.z;
 
-            for (var i = 0; i < path.length; i++) {
+            for (let i = 0; i < path.length; i++) {
                 var cur = path[i],
                     pji = this._path3v[j][i];
 
@@ -1173,7 +1173,7 @@ class Polyline {
 
         var ellipsoid = this._renderNode.ellipsoid;
 
-        for (var j = 0; j < pathLonLat.length; j++) {
+        for (let j = 0; j < pathLonLat.length; j++) {
             var path = pathLonLat[j];
 
             var last;
@@ -1212,7 +1212,7 @@ class Polyline {
             vh[k] = v_high.z;
             vl[k++] = v_low.z;
 
-            for (var i = 0; i < path.length; i++) {
+            for (let i = 0; i < path.length; i++) {
                 var cur = path[i];
                 var cartesian = ellipsoid.lonLatToCartesian(cur);
                 c[j][i] = cartesian;
@@ -1312,9 +1312,9 @@ class Polyline {
             var extent = this._extent;
             extent.southWest.set(180.0, 90.0);
             extent.northEast.set(-180.0, -90.0);
-            for (var i = 0; i < l.length; i++) {
+            for (let i = 0; i < l.length; i++) {
                 var pi = l[i];
-                for (var j = 0; j < pi.length; j++) {
+                for (let j = 0; j < pi.length; j++) {
                     var lon = pi[j].lon,
                         lat = pi[j].lat;
                     if (lon > extent.northEast.lon) {
@@ -1359,7 +1359,7 @@ class Polyline {
                 k = 0,
                 kk = 0;
 
-            //for (var i = 0; i < segmentIndex; i++) {
+            //for (let i = 0; i < segmentIndex; i++) {
             //    kk += this._path3v[i].length * 12 + 24;
             //}
             kk = this._pathLengths[segmentIndex] * 12 + 24 * segmentIndex;
@@ -1428,7 +1428,7 @@ class Polyline {
                 extent.northEast.set(-180.0, -90.0);
                 for (let i = 0; i < l.length; i++) {
                     var pi = l[i];
-                    for (var j = 0; j < pi.length; j++) {
+                    for (let j = 0; j < pi.length; j++) {
                         var lon = pi[j].lon,
                             lat = pi[j].lat;
                         if (lon > extent.northEast.lon) {
@@ -1682,7 +1682,7 @@ class Polyline {
             let c = this._colors;
 
             //optimized with this._pathLengths
-            //for (var i = 0; i < segmentIndex; i++) {
+            //for (let i = 0; i < segmentIndex; i++) {
             //    kk += this._path3v[i].length * 16 + 32;
             //}
 

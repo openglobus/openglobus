@@ -510,7 +510,7 @@ class LabelHandler extends BillboardHandler {
             yl = positionLow.y,
             zl = positionLow.z;
 
-        for (var q = 0; q < this._maxLetters; q++) {
+        for (let q = 0; q < this._maxLetters; q++) {
             var j = i + q * 18;
             a[j] = x;
             a[j + 1] = y;
@@ -572,7 +572,7 @@ class LabelHandler extends BillboardHandler {
             y = color.y / 255,
             z = color.z / 255;
 
-        for (var q = 0; q < this._maxLetters; q++) {
+        for (let q = 0; q < this._maxLetters; q++) {
             var j = i + q * 18;
             a[j] = x;
             a[j + 1] = y;
@@ -606,7 +606,7 @@ class LabelHandler extends BillboardHandler {
         var i = index * 6 * this._maxLetters;
         var a = this._sizeArr;
 
-        for (var q = 0; q < this._maxLetters; q++) {
+        for (let q = 0; q < this._maxLetters; q++) {
             var j = i + q * 6;
             a[j] = size;
             a[j + 1] = size;
@@ -626,7 +626,7 @@ class LabelHandler extends BillboardHandler {
             y = offset.y,
             z = offset.z;
 
-        for (var q = 0; q < this._maxLetters; q++) {
+        for (let q = 0; q < this._maxLetters; q++) {
             var j = i + q * 18;
             a[j] = x;
             a[j + 1] = y;
@@ -664,7 +664,7 @@ class LabelHandler extends BillboardHandler {
             z = rgba.z,
             w = rgba.w;
 
-        for (var q = 0; q < this._maxLetters; q++) {
+        for (let q = 0; q < this._maxLetters; q++) {
             var j = i + q * 24;
 
             a[j] = x;
@@ -709,7 +709,7 @@ class LabelHandler extends BillboardHandler {
             z = rgba.z,
             w = rgba.w;
 
-        for (var q = 0; q < this._maxLetters; q++) {
+        for (let q = 0; q < this._maxLetters; q++) {
             var j = i + q * 24;
 
             a[j] = x;
@@ -750,7 +750,7 @@ class LabelHandler extends BillboardHandler {
         var i = index * 6 * this._maxLetters;
         var a = this._outlineArr;
 
-        for (var q = 0; q < this._maxLetters; q++) {
+        for (let q = 0; q < this._maxLetters; q++) {
             var j = i + q * 6;
             a[j] = outline;
             a[j + 1] = outline;
@@ -767,7 +767,7 @@ class LabelHandler extends BillboardHandler {
         var i = index * 6 * this._maxLetters;
         var a = this._rotationArr;
 
-        for (var q = 0; q < this._maxLetters; q++) {
+        for (let q = 0; q < this._maxLetters; q++) {
             var j = i + q * 6;
             a[j] = rotation;
             a[j + 1] = rotation;
@@ -794,7 +794,7 @@ class LabelHandler extends BillboardHandler {
         var i = index * 12 * this._maxLetters;
         var a = this._vertexArr;
 
-        for (var q = 0; q < this._maxLetters; q++) {
+        for (let q = 0; q < this._maxLetters; q++) {
             var j = i + q * 12;
 
             a[j] = vertexArr[0];
@@ -823,7 +823,7 @@ class LabelHandler extends BillboardHandler {
         var i = index * 6 * this._maxLetters;
         var a = this._fontIndexArr;
 
-        for (var q = 0; q < this._maxLetters; q++) {
+        for (let q = 0; q < this._maxLetters; q++) {
             var j = i + q * 6;
             a[j] = fontIndex;
             a[j + 1] = fontIndex;

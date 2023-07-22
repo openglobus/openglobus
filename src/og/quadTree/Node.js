@@ -333,7 +333,7 @@ class Node {
 
         var nodes = this.planet._renderedNodes;
 
-        for (var i = nodes.length - 1; i >= 0; --i) {
+        for (let i = nodes.length - 1; i >= 0; --i) {
             var ni = nodes[i];
 
             var cs = this.getCommonSide(ni);
@@ -597,7 +597,7 @@ class Node {
                 tempVerticesHigh = new Float32Array(3 * _vertOrder.length);
                 tempVerticesLow = new Float32Array(3 * _vertOrder.length);
 
-                for (var i = 0; i < _vertOrder.length; i++) {
+                for (let i = 0; i < _vertOrder.length; i++) {
                     let vi_y = _vertOrder[i].y + t_i0, vi_x = _vertOrder[i].x + t_j0;
 
                     let vi_x_is = vi_x * gridSize, vi_y_is = vi_y * gridSize;
@@ -725,7 +725,7 @@ class Node {
         if (state === NOTRENDERING || state === RENDERING) {
             this.destroyBranches();
         } else {
-            for (var i = 0; i < this.nodes.length; i++) {
+            for (let i = 0; i < this.nodes.length; i++) {
                 this.nodes[i] && this.nodes[i].clearTree();
             }
         }
@@ -763,7 +763,7 @@ class Node {
     traverseTree(callback) {
         callback(this);
         if (this.ready) {
-            for (var i = 0; i < this.nodes.length; i++) {
+            for (let i = 0; i < this.nodes.length; i++) {
                 this.nodes[i].traverseTree(callback);
             }
         }

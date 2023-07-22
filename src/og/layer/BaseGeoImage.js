@@ -146,7 +146,7 @@ class BaseGeoImage extends Layer {
             corners[3].clone()
         ] || [0, 0, 0, 0];
 
-        for (var i = 0; i < this._cornersWgs84.length; i++) {
+        for (let i = 0; i < this._cornersWgs84.length; i++) {
             if (this._cornersWgs84[i].lat >= 89.9) {
                 this._cornersWgs84[i].lat = 89.9;
             }

@@ -17,7 +17,7 @@ class Stack {
         this._current = new Node();
         this._head = this._current;
 
-        for (var i = 0; i < size; i++) {
+        for (let i = 0; i < size; i++) {
             var n = new Node();
             n.prev = this._current;
             this._current.next = n;

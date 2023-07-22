@@ -71,7 +71,7 @@ function createCanvasTilesLayer(id) {
             //         ctx.drawImage(bitmap, 0, 0, cnv.width, cnv.height);
             //         var data = ctx.getImageData(0, 0, cnv.width, cnv.height);
             //
-            //         // for (var i = 0; i < data.data.length; i += 4) {
+            //         // for (let i = 0; i < data.data.length; i += 4) {
             //         //     let a = data.data[i + 3];
             //         //     data.data[i] = data.data[i] / a;
             //         //     data.data[i + 1] = data.data[i + 1] / a;

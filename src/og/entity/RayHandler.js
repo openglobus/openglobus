@@ -74,7 +74,7 @@ class RayHandler {
     }
 
     static concArr(dest, curr) {
-        for (var i = 0; i < curr.length; i++) {
+        for (let i = 0; i < curr.length; i++) {
             dest.push(curr[i]);
         }
     }
@@ -457,7 +457,7 @@ class RayHandler {
 
     reindexRaysArray(startIndex) {
         var r = this._rays;
-        for (var i = startIndex; i < r.length; i++) {
+        for (let i = startIndex; i < r.length; i++) {
             r[i]._handlerIndex = i;
         }
     }
