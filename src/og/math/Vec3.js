@@ -81,6 +81,11 @@ export class Vec3 {
         return new Vec3(0, 0, 1);
     }
 
+    /** @const */
+    static get NORTH() {
+        return Vec3.UNIT_Z;
+    }
+
     /**
      * Separate 63 bit Vec3 to two Vec3 32 bit float values.
      * @function

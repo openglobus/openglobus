@@ -265,8 +265,8 @@ let colorado = new GeoImage("Colorado Lagoon from International Space Station (t
 });
 
 var globus = new Globe({
-    autoActivate: false,
-    //target: "earth4",
+    //autoActivate: false,
+    target: "earth4",
     name: "Earth",
     //frustums: [[100, 100000000]],
     maxAltitude: 15000000,
@@ -307,7 +307,7 @@ window.globus = globus;
 let obj3d = Object3d.createSphere();
 
 const entity = new Entity({
-    lonlat: [0.2, 87],
+    lonlat: [0, 0],
     geoObject: {
         scale: 1,
         color: "yellow",
