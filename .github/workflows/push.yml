@@ -10,14 +10,21 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  build:
-    name: Build Openglobus
+  lint:
+    name: Checking code
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/main
-      - run: npm run build
+      - run: npm run lint
 
+  build:
+    name: Building library
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/main
+      - run: npm run build          
   test:
     name: Running tests
     runs-on: ubuntu-latest
