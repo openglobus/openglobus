@@ -527,7 +527,7 @@ export class Planet extends RenderNode {
      * @param {Array.<control.Control>} cArr - Control array.
      */
     addControls(cArr) {
-        for (var i = 0; i < cArr.length; i++) {
+        for (let i = 0; i < cArr.length; i++) {
             this.addControl(cArr[i]);
         }
     }
@@ -768,15 +768,15 @@ export class Planet extends RenderNode {
 
         let kk = 0;
         // Initialization indexes buffers cache. It takes about 120mb RAM!
-        for (var i = 0; i <= TABLESIZE; i++) {
+        for (let i = 0; i <= TABLESIZE; i++) {
             !this._indexesCache[i] && (this._indexesCache[i] = new Array(TABLESIZE));
-            for (var j = 0; j <= TABLESIZE; j++) {
+            for (let j = 0; j <= TABLESIZE; j++) {
                 !this._indexesCache[i][j] && (this._indexesCache[i][j] = new Array(TABLESIZE));
-                for (var k = 0; k <= TABLESIZE; k++) {
+                for (let k = 0; k <= TABLESIZE; k++) {
                     !this._indexesCache[i][j][k] && (this._indexesCache[i][j][k] = new Array(TABLESIZE));
-                    for (var m = 0; m <= TABLESIZE; m++) {
+                    for (let m = 0; m <= TABLESIZE; m++) {
                         !this._indexesCache[i][j][k][m] && (this._indexesCache[i][j][k][m] = new Array(TABLESIZE));
-                        for (var q = 0; q <= TABLESIZE; q++) {
+                        for (let q = 0; q <= TABLESIZE; q++) {
                             let ptr = {
                                 buffer: null
                             };
@@ -1098,7 +1098,7 @@ export class Planet extends RenderNode {
             this._clearRenderNodesInFrustum();
             this._renderedNodes = [];
 
-            for (var i = 0, len = temp.length; i < len; i++) {
+            for (let i = 0, len = temp.length; i < len; i++) {
                 var ri = temp[i];
                 let ht = ri.segment.centerNormal.dot(cam._b);
                 if (ri.segment.tileZoom === this.maxCurrZoom || ht < HORIZON_TANGENT) {
@@ -1296,7 +1296,7 @@ export class Planet extends RenderNode {
 
         if (sl.length) {
             let sli = sl[0];
-            for (var i = sli.length - 1; i >= 0; --i) {
+            for (let i = sli.length - 1; i >= 0; --i) {
                 let li = sli[i];
                 if (li._fading && firstPass && li._refreshFadingOpacity()) {
                     sli.splice(i, 1);
@@ -1305,7 +1305,7 @@ export class Planet extends RenderNode {
         }
 
         let isEq = this.terrain.equalizeVertices;
-        i = rn.length;
+        var i = rn.length;
         while (i--) {
             let s = rn[i].segment;
             isEq && s.equalize();
@@ -1418,7 +1418,7 @@ export class Planet extends RenderNode {
 
         if (sl.length) {
             let sli = sl[0];
-            for (var i = sli.length - 1; i >= 0; --i) {
+            for (let i = sli.length - 1; i >= 0; --i) {
                 let li = sli[i];
                 if (li._fading && firstPass && li._refreshFadingOpacity()) {
                     sli.splice(i, 1);
@@ -1427,7 +1427,7 @@ export class Planet extends RenderNode {
         }
 
         let isEq = this.terrain.equalizeVertices;
-        i = rn.length;
+        var i = rn.length;
         while (i--) {
             let s = rn[i].segment;
             isEq && s.equalize();

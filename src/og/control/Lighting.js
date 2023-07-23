@@ -465,7 +465,7 @@ class Lighting extends Control {
 
     _fetchLayers() {
         if (this.planet) {
-            for (var i = 0; i < this.planet.layers.length; i++) {
+            for (let i = 0; i < this.planet.layers.length; i++) {
                 this._onLayerAdd(this.planet.layers[i]);
             }
         }

@@ -121,7 +121,7 @@ export class Framebuffer {
     destroy() {
         var gl = this.handler.gl;
 
-        for (var i = 0; i < this.textures.length; i++) {
+        for (let i = 0; i < this.textures.length; i++) {
             gl.deleteTexture(this.textures[i]);
         }
         this.textures = new Array(this._size);
@@ -148,7 +148,7 @@ export class Framebuffer {
 
         if (!this._isBare) {
             let attachmentArr = [];
-            for (var i = 0; i < this.textures.length; i++) {
+            for (let i = 0; i < this.textures.length; i++) {
                 let ti = this.textures[i] || this.handler.createEmptyTexture2DExt(this._width, this._height, this._filter, this._internalFormatArr[i], this._formatArr[i], this._typeArr[i]);
 
                 let att_i = gl[this._attachmentArr[i]];

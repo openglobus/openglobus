@@ -140,7 +140,7 @@ class Object3d {
     static getNormals(vertices) {
         let res = new Array(vertices.length);
 
-        for (var i = 0; i < vertices.length; i += 9) {
+        for (let i = 0; i < vertices.length; i += 9) {
 
             let t03 = i, t13 = i + 3, t23 = i + 6, v0_x = vertices[t03], v0_y = vertices[t03 + 1],
                 v0_z = vertices[t03 + 2], v1_x = vertices[t13], v1_y = vertices[t13 + 1], v1_z = vertices[t13 + 2],

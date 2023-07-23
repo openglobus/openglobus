@@ -94,7 +94,7 @@ export class Cons {
         var d = document.createElement("div");
         d.classList.add("ogConsole-text");
         if (style) {
-            for (var s in style) {
+            for (let s in style) {
                 d.style[s] = style[s];
             }
         }

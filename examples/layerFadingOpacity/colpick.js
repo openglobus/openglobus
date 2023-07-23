@@ -281,7 +281,7 @@ For usage and examples: colpick.com/plugin
 				var len = 6 - hex.length;
 				if (len > 0) {
 					var o = [];
-					for (var i=0; i<len; i++) {
+					for (let i=0; i<len; i++) {
 						o.push('0');
 					}
 					o.push(hex);

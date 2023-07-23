@@ -25,7 +25,7 @@ class Frustum {
          * @type {Array.<Array.<number>>}
          */
         this._f = new Array(6);
-        for (var i = 0; i < 6; i++) {
+        for (let i = 0; i < 6; i++) {
             this._f[i] = new Array(4);
         }
 
@@ -224,7 +224,7 @@ class Frustum {
      */
     containsPoint(point) {
         var d;
-        for (var p = 0; p < 6; p++) {
+        for (let p = 0; p < 6; p++) {
             d = point.dotArr(this._f[p]) + this._f[p][3];
             if (d <= 0) {
                 return false;
@@ -304,11 +304,11 @@ class Frustum {
             cout,
             cin;
 
-        for (var i = 0; i < 6; i++) {
+        for (let i = 0; i < 6; i++) {
             cout = 0;
             cin = 0;
 
-            for (var k = 0; k < 8 && (cin === 0 || cout === 0); k++) {
+            for (let k = 0; k < 8 && (cin === 0 || cout === 0); k++) {
                 var d = box.vertices[k].dotArr(this._f[i]) + this._f[i][3];
                 if (d < 0) {
                     cout++;

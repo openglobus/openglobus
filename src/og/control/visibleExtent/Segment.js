@@ -861,7 +861,7 @@ class Segment {
      */
     deleteMaterials() {
         var m = this.materials;
-        for (var i = 0; i < m.length; i++) {
+        for (let i = 0; i < m.length; i++) {
             var mi = m[i];
             if (mi) {
                 mi.clear();
@@ -1368,7 +1368,7 @@ class Segment {
             nmVertsLow = this.normalMapVerticesLow,
             nmNorms = this.normalMapNormals;
 
-        for (var k = 0; k < gsgs; k++) {
+        for (let k = 0; k < gsgs; k++) {
             var j = k % gs,
                 i = ~~(k / gs);
 

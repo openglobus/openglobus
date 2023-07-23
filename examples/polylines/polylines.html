@@ -33,7 +33,7 @@
         var p2 = new Vec3(0, 0, 6378137.0 + 5000000.0);
         var q2 = Quat.axisAngleToQuat(new Vec3(-0.1, 1, 0.1).normalize(), size * math.RADIANS);
 
-        for (var i = 0; i < 360; i += size) {
+        for (let i = 0; i < 360; i += size) {
             p = q.mulVec3(p);
             greenOrbit.push(p);
 
@@ -46,18 +46,18 @@
         //
         var grid = [];
         //meridians
-        for (var i = -180; i < 180; i += 10) {
+        for (let i = -180; i < 180; i += 10) {
             var mer = [];
-            for (var j = -90; j <= 90; j++) {
+            for (let j = -90; j <= 90; j++) {
                 mer.push(new LonLat(i, j, 20000));
             }
             grid.push(mer);
         }
 
         //parallels
-        for (var i = -90; i < 90; i += 10) {
+        for (let i = -90; i < 90; i += 10) {
             var mer = [];
-            for (var j = -180; j <= 180; j++) {
+            for (let j = -180; j <= 180; j++) {
                 mer.push(new LonLat(j, i, 20000));
             }
             grid.push(mer);

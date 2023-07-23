@@ -88,7 +88,7 @@ export class Multisample {
     destroy() {
         var gl = this.handler.gl;
 
-        for (var i = 0; i < this.renderbuffers.length; i++) {
+        for (let i = 0; i < this.renderbuffers.length; i++) {
             gl.deleteRenderbuffer(this.renderbuffers[i]);
         }
         this.renderbuffers = new Array(this._size);
@@ -116,7 +116,7 @@ export class Multisample {
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
 
         let colorAttachments = [];
-        for (var i = 0; i < this.renderbuffers.length; i++) {
+        for (let i = 0; i < this.renderbuffers.length; i++) {
             let rb = gl.createRenderbuffer();
             gl.bindRenderbuffer(gl.RENDERBUFFER, rb);
 

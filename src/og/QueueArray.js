@@ -66,7 +66,7 @@ class QueueArray {
     }
 
     each(callback) {
-        for (var i = this._shiftIndex; i < this._popIndex; i++) {
+        for (let i = this._shiftIndex; i < this._popIndex; i++) {
             callback(this._array[i]);
         }
     }

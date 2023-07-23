@@ -122,7 +122,7 @@ export function getTileY(lat, zoom) {
  */
 export function forwardArray(lonlatArr) {
     var res = [];
-    for (var i = 0; i < lonlatArr.length; i++) {
+    for (let i = 0; i < lonlatArr.length; i++) {
         res.push(lonlatArr[i].forwardMercator());
     }
     return res;

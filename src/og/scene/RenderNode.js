@@ -112,7 +112,7 @@ class RenderNode extends BaseNode {
                 delete r.renderNodes[n];
             }
 
-            for (var i = 0; i < r._renderNodesArr.length; i++) {
+            for (let i = 0; i < r._renderNodesArr.length; i++) {
                 if (r._renderNodesArr[i].isEqual(this)) {
                     r._renderNodesArr.splice(i, 1);
                     break;
@@ -224,7 +224,7 @@ class RenderNode extends BaseNode {
             }
         }
 
-        for (var i = 0; i < this.childNodes.length; i++) {
+        for (let i = 0; i < this.childNodes.length; i++) {
             this.childNodes[i].setActive(isActive);
         }
     }
@@ -236,7 +236,7 @@ class RenderNode extends BaseNode {
      */
     setDrawMode(mode) {
         this.drawMode = mode;
-        for (var i = 0; i < this.childNodes.length; i++) {
+        for (let i = 0; i < this.childNodes.length; i++) {
             this.childNodes[i].setDrawMode(mode);
         }
     }
@@ -247,7 +247,7 @@ class RenderNode extends BaseNode {
      */
     transformLights() {
         var r = this.renderer;
-        for (var i = 0; i < this._lights.length; i++) {
+        for (let i = 0; i < this._lights.length; i++) {
             var ii = i * 3;
             var tp;
             tp = this._lights[i]._position;
@@ -256,7 +256,7 @@ class RenderNode extends BaseNode {
             this._lightsPositions[ii + 2] = tp.z;
         }
 
-        // for (var i = 0; i < this._lights.length; i++) {
+        // for (let i = 0; i < this._lights.length; i++) {
         //     var ii = i * 4;
         //     var tp;
         //     if (this._lights[i].directional) {
@@ -273,13 +273,13 @@ class RenderNode extends BaseNode {
     }
 
     updateBillboardsTexCoords() {
-        for (var i = 0; i < this.entityCollections.length; i++) {
+        for (let i = 0; i < this.entityCollections.length; i++) {
             this.entityCollections[i].billboardHandler.refreshTexCoordsArr();
         }
     }
 
     updateGeoObjectsTexCoords() {
-        for (var i = 0; i < this.entityCollections.length; i++) {
+        for (let i = 0; i < this.entityCollections.length; i++) {
             this.entityCollections[i].geoObjectHandler.refreshTexCoordsArr();
         }
     }
@@ -296,7 +296,7 @@ class RenderNode extends BaseNode {
      * @private
      */
     _preDrawNodes() {
-        for (var i = 0; i < this.childNodes.length; i++) {
+        for (let i = 0; i < this.childNodes.length; i++) {
             if (this.childNodes[i]._isActive) {
                 this.childNodes[i]._preDrawNodes();
             }
@@ -313,7 +313,7 @@ class RenderNode extends BaseNode {
      * @private
      */
     _drawNodes() {
-        for (var i = 0; i < this.childNodes.length; i++) {
+        for (let i = 0; i < this.childNodes.length; i++) {
             if (this.childNodes[i]._isActive) {
                 this.childNodes[i]._drawNodes();
             }

@@ -265,7 +265,7 @@ class Renderer {
     }
 
     removeDepthCallback(id) {
-        for (var i = 0; i < this._depthCallbacks.length; i++) {
+        for (let i = 0; i < this._depthCallbacks.length; i++) {
             if (id === this._depthCallbacks[i].id) {
                 this._depthCallbacks.splice(i, 1);
                 break;
@@ -282,7 +282,7 @@ class Renderer {
     }
 
     removeDistanceCallback(id) {
-        for (var i = 0; i < this._distanceCallbacks.length; i++) {
+        for (let i = 0; i < this._distanceCallbacks.length; i++) {
             if (id === this._distanceCallbacks[i].id) {
                 this._distanceCallbacks.splice(i, 1);
                 break;
@@ -310,7 +310,7 @@ class Renderer {
      * @param {Number} id - Handler id to remove.
      */
     removePickingCallback(id) {
-        for (var i = 0; i < this._pickingCallbacks.length; i++) {
+        for (let i = 0; i < this._pickingCallbacks.length; i++) {
             if (id === this._pickingCallbacks[i].id) {
                 this._pickingCallbacks.splice(i, 1);
                 break;
@@ -414,7 +414,7 @@ class Renderer {
      * @param {Array.<control.Control>} cArr - Control array.
      */
     addControls(cArr) {
-        for (var i = 0; i < cArr.length; i++) {
+        for (let i = 0; i < cArr.length; i++) {
             cArr[i].addTo(this);
         }
     }
@@ -676,7 +676,7 @@ class Renderer {
      * @param {Array.<scene.RenderNode>} nodesArr - Render nodes array.
      */
     addNodes(nodesArr) {
-        for (var i = 0; i < nodesArr.length; i++) {
+        for (let i = 0; i < nodesArr.length; i++) {
             this.addNode(nodesArr[i]);
         }
     }

@@ -158,7 +158,7 @@ class SegmentLonLat extends Segment {
             nmVertsLow = this.normalMapVerticesLow,
             nmNorms = this.normalMapNormals;
 
-        for (var k = 0; k < gsgs; k++) {
+        for (let k = 0; k < gsgs; k++) {
             var j = k % gs,
                 i = ~~(k / gs);
 

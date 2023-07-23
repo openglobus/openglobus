@@ -45,7 +45,7 @@ function earcut(data, holeIndices, dim) {
         minX = maxX = data[0];
         minY = maxY = data[1];
 
-        for (var i = dim; i < outerLen; i += dim) {
+        for (let i = dim; i < outerLen; i += dim) {
             x = data[i];
             y = data[i + 1];
             if (x < minX) minX = x;
@@ -610,7 +610,7 @@ function deviation(data, holeIndices, dim, triangles) {
 
     var polygonArea = Math.abs(signedArea(data, 0, outerLen, dim));
     if (hasHoles) {
-        for (var i = 0, len = holeIndices.length; i < len; i++) {
+        for (let i = 0, len = holeIndices.length; i < len; i++) {
             var start = holeIndices[i] * dim;
             var end = i < len - 1 ? holeIndices[i + 1] * dim : data.length;
             polygonArea -= Math.abs(signedArea(data, start, end, dim));
@@ -618,7 +618,7 @@ function deviation(data, holeIndices, dim, triangles) {
     }
 
     var trianglesArea = 0;
-    for (i = 0; i < triangles.length; i += 3) {
+    for (let i = 0; i < triangles.length; i += 3) {
         var a = triangles[i] * dim;
         var b = triangles[i + 1] * dim;
         var c = triangles[i + 2] * dim;
@@ -633,7 +633,7 @@ function deviation(data, holeIndices, dim, triangles) {
 
 function signedArea(data, start, end, dim) {
     var sum = 0;
-    for (var i = start, j = end - dim; i < end; i += dim) {
+    for (let i = start, j = end - dim; i < end; i += dim) {
         sum += (data[j] - data[i]) * (data[i + 1] + data[j + 1]);
         j = i;
     }
@@ -646,9 +646,9 @@ function flatten(data) {
         result = { vertices: [], holes: [], dimensions: dim },
         holeIndex = 0;
 
-    for (var i = 0; i < data.length; i++) {
-        for (var j = 0; j < data[i].length; j++) {
-            for (var d = 0; d < dim; d++) result.vertices.push(data[i][j][d]);
+    for (let i = 0; i < data.length; i++) {
+        for (let j = 0; j < data[i].length; j++) {
+            for (let d = 0; d < dim; d++) result.vertices.push(data[i][j][d]);
         }
         if (i > 0) {
             holeIndex += data[i - 1].length;

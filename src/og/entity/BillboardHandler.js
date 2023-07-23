@@ -91,7 +91,7 @@ class BillboardHandler {
     }
 
     static concArr(dest, curr) {
-        for (var i = 0; i < curr.length; i++) {
+        for (let i = 0; i < curr.length; i++) {
             dest.push(curr[i]);
         }
     }
@@ -463,7 +463,7 @@ class BillboardHandler {
 
     reindexBillbordsArray(startIndex) {
         var b = this._billboards;
-        for (var i = startIndex; i < b.length; i++) {
+        for (let i = startIndex; i < b.length; i++) {
             b[i]._handlerIndex = i;
         }
     }
@@ -866,7 +866,7 @@ class BillboardHandler {
         var bc = this._entityCollection;
         if (bc && this._renderer) {
             var ta = this._renderer.billboardsTextureAtlas;
-            for (var i = 0; i < this._billboards.length; i++) {
+            for (let i = 0; i < this._billboards.length; i++) {
                 var bi = this._billboards[i];
                 var img = bi._image;
                 if (img) {
