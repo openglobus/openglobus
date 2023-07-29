@@ -57,7 +57,7 @@ class PointCloudHandler {
     setRenderNode(renderNode) {
         this._renderer = renderNode.renderer;
         this._initProgram();
-        for (var i = 0; i < this._pointClouds.length; i++) {
+        for (let i = 0; i < this._pointClouds.length; i++) {
             this._pointClouds[i].setRenderNode(renderNode);
         }
     }
@@ -86,7 +86,7 @@ class PointCloudHandler {
 
     reindexPointCloudArray(startIndex) {
         var pc = this._pointClouds;
-        for (var i = startIndex; i < pc.length; i++) {
+        for (let i = startIndex; i < pc.length; i++) {
             pc[i]._handlerIndex = i;
         }
     }

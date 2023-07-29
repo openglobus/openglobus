@@ -232,7 +232,7 @@ const _programm =
             normalMapVerticesHigh = new Float32Array(fileGridSize_one_x2 * 3);
             normalMapVerticesLow = new Float32Array(fileGridSize_one_x2 * 3);
 
-            for (var k = 0; k < fileGridSize_one_x2; k++) {
+            for (let k = 0; k < fileGridSize_one_x2; k++) {
 
                 var j = k % fileGridSize_one,
                     i = ~~(k / fileGridSize_one);
@@ -502,7 +502,7 @@ const _programm =
             normalMapVerticesHigh.set(terrainVerticesHigh);
             normalMapVerticesLow.set(terrainVerticesLow);
 
-            for(var k=0;k < gsgs; k++) {
+            for (let k = 0; k < gsgs; k++) {
 
                 var j = k % gs,
                     i = ~~(k / gs);

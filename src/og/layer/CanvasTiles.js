@@ -102,7 +102,7 @@ class CanvasTiles extends Layer {
      */
     abortLoading() {
         var q = this._pendingsQueue;
-        for (var i = q._shiftIndex + 1; i < q._popIndex + 1; i++) {
+        for (let i = q._shiftIndex + 1; i < q._popIndex + 1; i++) {
             if (q._array[i]) {
                 this.abortMaterialLoading(q._array[i]);
             }

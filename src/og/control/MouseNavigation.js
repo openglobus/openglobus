@@ -88,7 +88,7 @@ class MouseNavigation extends Control {
                     eyeArr = [];
 
                 var breaked = false;
-                for (var i = 0; i < stepsCount; i++) {
+                for (let i = 0; i < stepsCount; i++) {
                     eye.addA(scaled_n);
                     var b = new Ray(eye, dir).hitSphere(grabbedSpheroid);
                     eyeArr[i] = eye.clone();

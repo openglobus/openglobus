@@ -113,7 +113,7 @@ const _programm = `'use strict';
             _outlineColorArr = new Float32Array(maxLetters * 24),
             _pickingColorArr = new Float32Array(maxLetters * 18);
         
-        for (var i = 0; i < maxLetters; i++) {
+        for (let i = 0; i < maxLetters; i++) {
             if (isVisible !== 0) {
                 concatTypedArrays(_vertexArr, i, [0, 0, 0, -1, 1, -1, 1, -1, 1, 0, 0, 0]);
             } else {

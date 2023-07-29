@@ -90,7 +90,7 @@ class DebugInfo extends Control {
     }
 
     addWatches(watches) {
-        for (var i = 0; i < watches.length; i++) {
+        for (let i = 0; i < watches.length; i++) {
             this.addWatch(watches[i]);
         }
     }
@@ -124,7 +124,7 @@ class DebugInfo extends Control {
 
         var temp = this._watch;
         this._watch = [];
-        for (var i = 0; i < temp.length; i++) {
+        for (let i = 0; i < temp.length; i++) {
             this.addWatch(temp[i]);
         }
         this._dialog.container.appendChild(this.el);
@@ -245,7 +245,7 @@ class DebugInfo extends Control {
     }
 
     _frame() {
-        for (var i = 0; i < this._watch.length; i++) {
+        for (let i = 0; i < this._watch.length; i++) {
             var w = this._watch[i];
             w.valEl.innerHTML = w.frame ? w.frame() : "";
         }

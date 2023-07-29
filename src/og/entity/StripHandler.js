@@ -93,7 +93,7 @@ class StripHandler {
     setRenderNode(renderNode) {
         this._renderer = renderNode.renderer;
         this._initProgram();
-        for (var i = 0; i < this._strips.length; i++) {
+        for (let i = 0; i < this._strips.length; i++) {
             this._strips[i].setRenderNode(renderNode);
         }
     }
@@ -122,7 +122,7 @@ class StripHandler {
 
     reindexStripArray(startIndex) {
         var pc = this._strips;
-        for (var i = startIndex; i < pc.length; i++) {
+        for (let i = startIndex; i < pc.length; i++) {
             pc[i]._handlerIndex = i;
         }
     }

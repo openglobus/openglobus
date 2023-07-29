@@ -205,7 +205,7 @@
         var sunControl = globus.renderer.controls.sun;
 
         var radios = document.getElementsByName("sun");
-        for (var i = 0; i < radios.length; i++) {
+        for (let i = 0; i < radios.length; i++) {
             radios[i].addEventListener("change", function () {
                 var c;
                 if (this.id == "chkA") {

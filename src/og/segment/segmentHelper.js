@@ -21,8 +21,8 @@ function createCenterBodyIndexes(size) {
         j1 = 1;
 
     var ind1, ind2, nr;
-    for (var i = i0; i < size - 1 - i1; i++) {
-        for (var j = j0; j < size - j1; j++) {
+    for (let i = i0; i < size - 1 - i1; i++) {
+        for (let j = j0; j < size - j1; j++) {
             ind1 = i * size + j;
             nr = (i + 1) * size;
             ind2 = nr + j;
@@ -40,7 +40,7 @@ function createWestNeighborSkirt(size, deltaGr) {
     var grCount = (size - 1) / deltaGr;
     var b = size * size - size;
     var k = 0;
-    for (var i = 0; i < size - 2; i++) {
+    for (let i = 0; i < size - 2; i++) {
         if (i % grCount === 0) {
             k = i;
         }
@@ -61,7 +61,7 @@ function createNorthNeighborSkirt(size, deltaGr) {
     let indexes = [];
     var grCount = (size - 1) / deltaGr;
     var k = 0;
-    for (var i = 0; i < size - 2; i++) {
+    for (let i = 0; i < size - 2; i++) {
         if (i % grCount === 0) {
             k = i;
         }
@@ -82,7 +82,7 @@ function createEastNeighborSkirt(size, deltaGr) {
     let indexes = [];
     var grCount = (size - 1) / deltaGr;
     var k = 0;
-    for (var i = 0; i < size - 2; i++) {
+    for (let i = 0; i < size - 2; i++) {
         if (i % grCount === 0) {
             k = i;
         }
@@ -105,7 +105,7 @@ function createSouthNeighborSkirt(size, deltaGr) {
     var k = 0;
     var rb = size * (size - 1) - 2;
     var lb = size * size - 1;
-    for (var i = 0; i < size - 2; i++) {
+    for (let i = 0; i < size - 2; i++) {
         if (i % grCount === 0) {
             k = i;
         }
@@ -130,7 +130,7 @@ function initIndexesBodySkirts(pow) {
     table[S] = [];
     table[E] = [];
 
-    for (var i = 0; i <= pow; i++) {
+    for (let i = 0; i <= pow; i++) {
         var d = Math.pow(2, i),
             d1 = d + 1;
 
@@ -139,7 +139,7 @@ function initIndexesBodySkirts(pow) {
         table[S][i] = [];
         table[E][i] = [];
 
-        for (var j = 0; j <= pow; j++) {
+        for (let j = 0; j <= pow; j++) {
             var dd = Math.pow(2, j);
             table[W][i][j] = createWestNeighborSkirt(d1, dd);
             table[N][i][j] = createNorthNeighborSkirt(d1, dd);
@@ -153,7 +153,7 @@ function initIndexesBodySkirts(pow) {
 
 function initIndexBodiesTable(pow) {
     var table = [];
-    for (var i = 0; i <= pow; i++) {
+    for (let i = 0; i <= pow; i++) {
         var d = Math.pow(2, i);
         table[i] = createCenterBodyIndexes(d + 1);
     }
@@ -163,8 +163,8 @@ function initIndexBodiesTable(pow) {
 function createTextureCoords(size) {
     var texCoords = new Uint16Array((size + 1) * (size + 1) * 2);
     let k = 0;
-    for (var i = 0; i <= size; i++) {
-        for (var j = 0; j <= size; j++) {
+    for (let i = 0; i <= size; i++) {
+        for (let j = 0; j <= size; j++) {
             texCoords[k++] = j / size * 0xFFFF;
             texCoords[k++] = i / size * 0xFFFF;
         }
@@ -215,7 +215,7 @@ class SegmentHelper {
 
     initTextureCoordsTable(pow) {
         var table = [];
-        for (var i = 0; i <= pow; i++) {
+        for (let i = 0; i <= pow; i++) {
             var d = Math.pow(2, i);
             table[i] = createTextureCoords(d);
         }

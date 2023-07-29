@@ -117,10 +117,10 @@ class KeyboardHandler {
         this.handleKeyDown = function () {
             _anykeyCallback && _anykeyCallback.callback.call(_anykeyCallback.sender, _event);
             _currentlyPressedKeys[_event.keyCode] = true;
-            for (var ch in _charkeysCallbacks) {
+            for (let ch in _charkeysCallbacks) {
                 if (String.fromCharCode(_event.keyCode) == String.fromCharCode(ch)) {
                     var ccl = _charkeysCallbacks[ch];
-                    for (var i = 0; i < ccl.length; i++) {
+                    for (let i = 0; i < ccl.length; i++) {
                         ccl[i].callback.call(ccl[i].sender, _event);
                     }
                 }
@@ -133,10 +133,10 @@ class KeyboardHandler {
 
         this.handleKeyUp = function () {
             if (_currentlyPressedKeys[_event.keyCode] || _event.keyCode === input.KEY_PRINTSCREEN) {
-                for (var pk in _unpressedKeysCallbacks) {
+                for (let pk in _unpressedKeysCallbacks) {
                     if (_currentlyPressedKeys[pk] || _event.keyCode === input.KEY_PRINTSCREEN && pk == input.KEY_PRINTSCREEN) {
                         var cpk = _unpressedKeysCallbacks[pk];
-                        for (var i = 0; i < cpk.length; i++) {
+                        for (let i = 0; i < cpk.length; i++) {
                             cpk[i].callback.call(cpk[i].sender, _event);
                         }
                     }
@@ -146,10 +146,10 @@ class KeyboardHandler {
         };
 
         this.handleEvents = function () {
-            for (var pk in _pressedKeysCallbacks) {
+            for (let pk in _pressedKeysCallbacks) {
                 if (_currentlyPressedKeys[pk]) {
                     var cpk = _pressedKeysCallbacks[pk];
-                    for (var i = 0; i < cpk.length; i++) {
+                    for (let i = 0; i < cpk.length; i++) {
                         cpk[i].callback.call(cpk[i].sender, _event);
                     }
                 }

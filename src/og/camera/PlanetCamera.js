@@ -416,7 +416,7 @@ class PlanetCamera extends Camera {
         var zero = Vec3.ZERO;
 
         // camera path and orientations calculation
-        for (var i = 0; i <= this._numFrames; i++) {
+        for (let i = 0; i <= this._numFrames; i++) {
             var d = 1 - i / this._numFrames;
             d = d * d * (3 - 2 * d);
             d *= d;

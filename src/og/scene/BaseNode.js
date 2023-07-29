@@ -74,7 +74,7 @@ class BaseNode {
      * @public
      */
     destroy() {
-        for (var i = 0; i < this.childNodes.length; i++) {
+        for (let i = 0; i < this.childNodes.length; i++) {
             this.childNodes[i].destroy();
         }
         this._clear();

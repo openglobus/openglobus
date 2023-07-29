@@ -122,13 +122,13 @@ export class NormalMapCreator {
         this._normalMapVerticesTexture = this._handler.createEmptyTexture_l(this._width, this._height);
 
         //create vertices hasharray for different grid size segments from 2^4(16) to 2^7(128)
-        for (var p = this._minTabelSize; p <= this._maxTableSize; p++) {
+        for (let p = this._minTabelSize; p <= this._maxTableSize; p++) {
             var gs = Math.pow(2, p);
             var gs2 = gs / 2;
             var vertices = new Float32Array((gs + 1) * (gs + 1) * 2);
 
-            for (var i = 0; i <= gs; i++) {
-                for (var j = 0; j <= gs; j++) {
+            for (let i = 0; i <= gs; i++) {
+                for (let j = 0; j <= gs; j++) {
                     let ind = (i * (gs + 1) + j) * 2;
                     vertices[ind] = -1 + j / gs2;
                     vertices[ind + 1] = -1 + i / gs2;

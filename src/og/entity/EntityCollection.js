@@ -303,7 +303,7 @@ class EntityCollection {
 
         this.events.dispatch(this.events.entityadd, entity);
 
-        for (var i = 0; i < entity.childrenNodes.length; i++) {
+        for (let i = 0; i < entity.childrenNodes.length; i++) {
             entity.childrenNodes[i]._entityCollection = this;
             entity.childrenNodes[i]._entityCollectionIndex = entity._entityCollectionIndex;
             entity.childrenNodes[i]._pickingColor = entity._pickingColor;
@@ -386,7 +386,7 @@ class EntityCollection {
         // geoObject
         entity.geoObject && this.geoObjectHandler.remove(entity.geoObject);
 
-        for (var i = 0; i < entity.childrenNodes.length; i++) {
+        for (let i = 0; i < entity.childrenNodes.length; i++) {
             this._removeRecursively(entity.childrenNodes[i]);
         }
     }
@@ -434,7 +434,7 @@ class EntityCollection {
      */
     createPickingColors() {
         var e = this._entities;
-        for (var i = 0; i < e.length; i++) {
+        for (let i = 0; i < e.length; i++) {
             if (!e[i].parent) {
                 this.renderNode.renderer.assignPickingColor(e[i]);
                 e[i].setPickingColor();
@@ -449,7 +449,7 @@ class EntityCollection {
      */
     reindexEntitiesArray(startIndex) {
         var e = this._entities;
-        for (var i = startIndex; i < e.length; i++) {
+        for (let i = startIndex; i < e.length; i++) {
             e[i]._entityCollectionIndex = i;
         }
     }
@@ -521,7 +521,7 @@ class EntityCollection {
      */
     updateBillboardsTextureAtlas() {
         var b = this.billboardHandler._billboards;
-        for (var i = 0; i < b.length; i++) {
+        for (let i = 0; i < b.length; i++) {
             b[i].setSrc(b[i]._src);
         }
     }
@@ -534,7 +534,7 @@ class EntityCollection {
         if (this.renderNode) {
             var l = [].concat(this.labelHandler._billboards);
             this.labelHandler._billboards = [];
-            for (var i = 0; i < l.length; i++) {
+            for (let i = 0; i < l.length; i++) {
                 this.labelHandler.assignFontAtlas(l[i]);
             }
         }
@@ -621,7 +621,7 @@ class EntityCollection {
     _clearEntity(entity) {
         entity._entityCollection = null;
         entity._entityCollectionIndex = -1;
-        for (var i = 0; i < entity.childrenNodes.length; i++) {
+        for (let i = 0; i < entity.childrenNodes.length; i++) {
             this._clearEntity(entity.childrenNodes[i]);
         }
     }

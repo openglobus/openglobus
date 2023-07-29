@@ -154,7 +154,7 @@ class Program {
      */
     set(material) {
         this._textureID = 0;
-        for (var i in material) {
+        for (let i in material) {
             this._variables[i].value = material[i];
             this._variables[i]._callback(this, this._variables[i]);
         }
@@ -167,7 +167,7 @@ class Program {
     apply() {
         this._textureID = 0;
         var v = this._variables;
-        for (var i in v) {
+        for (let i in v) {
             v[i]._callback(this, v[i]);
         }
     }
@@ -318,7 +318,7 @@ class Program {
 
         this.use();
 
-        for (var a in this._attributes) {
+        for (let a in this._attributes) {
             //this.attributes[a]._name = a;
             this._variables[a] = this._attributes[a];
 
@@ -371,7 +371,7 @@ class Program {
             this.attributes[a] = this._p[a];
         }
 
-        for (var u in this._uniforms) {
+        for (let u in this._uniforms) {
             //this.uniforms[u]._name = u;
 
             if (typeof this._uniforms[u].type === "string") {

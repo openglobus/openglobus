@@ -163,7 +163,7 @@ class GeometryHandler {
             sc = [strokeColor.x, strokeColor.y, strokeColor.z, strokeColor.w],
             p = [pickingColor.x, pickingColor.y, pickingColor.z, 1.0];
 
-        for (var j = 0; j < pathArr.length; j++) {
+        for (let j = 0; j < pathArr.length; j++) {
             var path = pathArr[j];
 
             if (path.length === 0) {
@@ -288,7 +288,7 @@ class GeometryHandler {
                 p[3]
             );
 
-            for (var i = 0; i < path.length; i++) {
+            for (let i = 0; i < path.length; i++) {
                 var cur = path[i];
 
                 doubleToTwoFloats(cur, tempHigh, tempLow);
@@ -554,7 +554,7 @@ class GeometryHandler {
                     let ci = [];
                     for (let j = 0; j < coordinates.length; j++) {
                         ci[j] = [];
-                        for (var k = 0; k < coordinates[j].length; k++) {
+                        for (let k = 0; k < coordinates[j].length; k++) {
                             ci[j][k] = [
                                 mercator.forward_lon(coordinates[j][k][0]),
                                 mercator.forward_lat(coordinates[j][k][1])
@@ -653,7 +653,7 @@ class GeometryHandler {
                     geometry._lineColorsHandlerIndex = this._lineColors.length;
                     geometry._lineThicknessHandlerIndex = this._lineThickness.length;
 
-                    for (var i = 0; i < coordinates.length; i++) {
+                    for (let i = 0; i < coordinates.length; i++) {
                         let cci = coordinates[i];
                         let ci = [];
                         for (let j = 0; j < cci.length; j++) {
@@ -883,7 +883,7 @@ class GeometryHandler {
                 geometry._polyIndexesLength
             );
             var di = geometry._polyVerticesLength * 0.5;
-            for (var i = geometry._polyIndexesHandlerIndex; i < this._polyIndexes.length; i++) {
+            for (let i = geometry._polyIndexesHandlerIndex; i < this._polyIndexes.length; i++) {
                 this._polyIndexes[i] -= di;
             }
 
@@ -975,7 +975,7 @@ class GeometryHandler {
     _refreshRecursevely(geometry, treeNode) {
         if (treeNode.ready) {
             var lid = this._layer._id;
-            for (var i = 0; i < treeNode.nodes.length; i++) {
+            for (let i = 0; i < treeNode.nodes.length; i++) {
                 var ni = treeNode.nodes[i];
                 if (geometry._extent.overlaps(ni.segment.getExtentLonLat())) {
                     this._refreshRecursevely(geometry, ni);
@@ -999,7 +999,7 @@ class GeometryHandler {
     _refreshRecursevelyExt(extent, treeNode) {
         if (treeNode.ready) {
             var lid = this._layer._id;
-            for (var i = 0; i < treeNode.nodes.length; i++) {
+            for (let i = 0; i < treeNode.nodes.length; i++) {
                 var ni = treeNode.nodes[i];
                 if (extent.overlaps(ni.segment.getExtentLonLat())) {
                     this._refreshRecursevelyExt(extent, ni);
@@ -1076,7 +1076,7 @@ class GeometryHandler {
 
         var l = geometry._polyVerticesLength;
         var ind = geometry._polyVerticesHandlerIndex;
-        for (var i = 0; i < l; i++) {
+        for (let i = 0; i < l; i++) {
             a[ind + i] = geometry._polyVerticesHighMerc[i] * v;
             b[ind + i] = geometry._polyVerticesLowMerc[i] * v;
         }
@@ -1085,7 +1085,7 @@ class GeometryHandler {
         b = this._lineVerticesLowMerc;
         l = geometry._lineVerticesLength;
         ind = geometry._lineVerticesHandlerIndex;
-        for (i = 0; i < l; i++) {
+        for (let i = 0; i < l; i++) {
             a[ind + i] = geometry._lineVerticesHighMerc[i] * v;
             b[ind + i] = geometry._lineVerticesLowMerc[i] * v;
         }
@@ -1101,7 +1101,7 @@ class GeometryHandler {
         var index = geometry._polyVerticesHandlerIndex * 2, // ... / 2 * 4
             size = index + geometry._polyVerticesLength * 2; // ... / 2 * 4
         var a = this._polyColors;
-        for (var i = index; i < size; i += 4) {
+        for (let i = index; i < size; i += 4) {
             a[i] = color.x;
             a[i + 1] = color.y;
             a[i + 2] = color.z;
@@ -1116,7 +1116,7 @@ class GeometryHandler {
         var index = geometry._lineColorsHandlerIndex,
             size = index + geometry._lineColorsLength;
         var a = this._lineStrokeColors;
-        for (var i = index; i < size; i += 4) {
+        for (let i = index; i < size; i += 4) {
             a[i] = color.x;
             a[i + 1] = color.y;
             a[i + 2] = color.z;
@@ -1131,7 +1131,7 @@ class GeometryHandler {
         var index = geometry._lineColorsHandlerIndex,
             size = index + geometry._lineColorsLength;
         var a = this._lineColors;
-        for (var i = index; i < size; i += 4) {
+        for (let i = index; i < size; i += 4) {
             a[i] = color.x;
             a[i + 1] = color.y;
             a[i + 2] = color.z;
@@ -1146,7 +1146,7 @@ class GeometryHandler {
         var index = geometry._lineStrokesHandlerIndex,
             size = index + geometry._lineStrokesLength;
         var a = this._lineStrokes;
-        for (var i = index; i < size; i++) {
+        for (let i = index; i < size; i++) {
             a[i] = width;
         }
         this._changedBuffers[LINESTROKES_BUFFER] = true;
@@ -1158,7 +1158,7 @@ class GeometryHandler {
         var index = geometry._lineThicknessHandlerIndex,
             size = index + geometry._lineThicknessLength;
         var a = this._lineThickness;
-        for (var i = index; i < size; i++) {
+        for (let i = index; i < size; i++) {
             a[i] = width;
         }
         this._changedBuffers[LINETHICKNESS_BUFFER] = true;
@@ -1179,7 +1179,7 @@ class GeometryHandler {
         this._geometries.splice(geometry._handlerIndex, 1);
 
         var g = this._geometries;
-        for (var i = geometry._handlerIndex; i < g.length; i++) {
+        for (let i = geometry._handlerIndex; i < g.length; i++) {
             var gi = g[i];
             gi._handlerIndex = i;
             gi._polyIndexesHandlerIndex -= geometry._polyIndexesLength;

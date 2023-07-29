@@ -22,7 +22,7 @@ import { Layer } from "./Layer.js";
  */
 function _entitiesConstructor(entities) {
     var res = [];
-    for (var i = 0; i < entities.length; i++) {
+    for (let i = 0; i < entities.length; i++) {
         var ei = entities[i];
         if (ei.instanceName === "Entity") {
             res.push(ei);
@@ -447,7 +447,7 @@ class Vector extends Layer {
      */
     _reindexEntitiesArray(startIndex) {
         var e = this._entities;
-        for (var i = startIndex; i < e.length; i++) {
+        for (let i = startIndex; i < e.length; i++) {
             e[i]._layerIndex = i;
         }
     }
