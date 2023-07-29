@@ -12,6 +12,7 @@ class KeyboardHandler {
         let _pressedKeysCallbacks = {};
         let _unpressedKeysCallbacks = {};
         let _charkeysCallbacks = {};
+
         let _that = this;
         let _anykeyCallback = null;
         let _event = null;
@@ -38,6 +39,22 @@ class KeyboardHandler {
         var _sortByPriority = function (a, b) {
             return a.priority < b.priority;
         };
+
+        this.getcurrentlyPressedKeys = function () {
+            return _currentlyPressedKeys;
+        }
+
+        this.getPressedKeysCallbacks = function () {
+            return _pressedKeysCallbacks;
+        }
+
+        this.getUnpressedKeysCallbacks = function () {
+            return _unpressedKeysCallbacks;
+        }
+
+        this.getCharkeysCallbacks = function () {
+            return _charkeysCallbacks;
+        }
 
         this.removeEvent = function (event, keyCode, callback) {
             let st = this._getStamp(event, keyCode, callback._openglobus_id);
@@ -88,7 +105,7 @@ class KeyboardHandler {
             _currentlyPressedKeys = {};
         };
 
-        this.addEvent = function (event, sender, callback, keyCode, priority) {
+        this.addEvent = function (event, keyCode, callback, sender, priority) {
 
             // Event is already bound with the callback
             if (!this._stamp(event, keyCode, callback)) return;

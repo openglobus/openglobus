@@ -256,28 +256,14 @@ class RendererEvents extends Events {
         }
     }
 
-    /**
-     * Set render event callback.
-     * @public
-     * @param {string} name - Event name
-     * @param {eventCallback} callback - Callback function
-     * @param {number} [key] - Key code from og.input
-     * @param {*} sender - Callback context
-     * @param {number} [priority] - Event callback priority
-     */
     on(name, p0, p1, p2, p3) {
         if (name === "keypress" || name === "charkeypress" || name === "keyfree") {
-            this._keyboardHandler.addEvent(name, p2, p1, p0, p3);
+            this._keyboardHandler.addEvent(name, p0, p1, p2, p3);
         } else {
             super.on(name, p0, p1, p2);
         }
     }
 
-    /**
-     * TODO: DOESNT WORK!!!
-     * @param {any} name
-     * @param {any} callback
-     */
     off(name, p1, p2) {
         if (name === "keypress" || name === "charkeypress" || name === "keyfree") {
             this._keyboardHandler.removeEvent(name, p1, p2);
