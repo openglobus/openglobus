@@ -278,11 +278,11 @@ class RendererEvents extends Events {
      * @param {any} name
      * @param {any} callback
      */
-    off(name, callback, keyCode) {
+    off(name, p1, p2) {
         if (name === "keypress" || name === "charkeypress" || name === "keyfree") {
-            this._keyboardHandler.removeEvent(name, keyCode, callback);
+            this._keyboardHandler.removeEvent(name, p1, p2);
         } else {
-            super.off(name, callback);
+            super.off(name, p1);
         }
     }
 

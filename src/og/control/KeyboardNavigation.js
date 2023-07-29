@@ -15,11 +15,11 @@ import { Control } from "./Control.js";
 class KeyboardNavigation extends Control {
     constructor(options) {
         options = options || {};
-        super(options);
+        super({ name: "KeyboardNavigation", ...options });
         this.step = options.step || 250;
     }
 
-    oninit() {
+    onactivate() {
         this.renderer.events.on("keypress", input.KEY_PGUP, this.onCameraMoveForward, this);
         this.renderer.events.on("keypress", input.KEY_PGDN, this.onCameraMoveBackward, this);
         this.renderer.events.on("keypress", input.KEY_PLUS, this.onCameraMoveForward, this);
@@ -36,6 +36,29 @@ class KeyboardNavigation extends Control {
         this.renderer.events.on("keypress", input.KEY_Q, this.onCameraRollLeft, this);
         this.renderer.events.on("keypress", input.KEY_E, this.onCameraRollRight, this);
         this.renderer.events.on("keypress", input.KEY_N, this.onCameraRollNorth, this);
+    }
+
+    ondeactivate() {
+        this.renderer.events.off("keypress", input.KEY_PGUP, this.onCameraMoveForward);
+        this.renderer.events.off("keypress", input.KEY_PGDN, this.onCameraMoveBackward);
+        this.renderer.events.off("keypress", input.KEY_PLUS, this.onCameraMoveForward);
+        this.renderer.events.off("keypress", input.KEY_EQUALS, this.onCameraMoveForward);
+        this.renderer.events.off("keypress", input.KEY_MINUS, this.onCameraMoveBackward);
+        this.renderer.events.off("keypress", input.KEY_W, this.onCameraMoveForward);
+        this.renderer.events.off("keypress", input.KEY_S, this.onCameraMoveBackward);
+        this.renderer.events.off("keypress", input.KEY_A, this.onCameraStrifeLeft);
+        this.renderer.events.off("keypress", input.KEY_D, this.onCameraStrifeRight);
+        this.renderer.events.off("keypress", input.KEY_UP, this.onCameraLookUp);
+        this.renderer.events.off("keypress", input.KEY_DOWN, this.onCameraLookDown);
+        this.renderer.events.off("keypress", input.KEY_LEFT, this.onCameraLookLeft);
+        this.renderer.events.off("keypress", input.KEY_RIGHT, this.onCameraLookRight);
+        this.renderer.events.off("keypress", input.KEY_Q, this.onCameraRollLeft);
+        this.renderer.events.off("keypress", input.KEY_E, this.onCameraRollRight);
+        this.renderer.events.off("keypress", input.KEY_N, this.onCameraRollNorth);
+    }
+
+    oninit() {
+        this.activate();
     }
 
     onCameraMoveForward(event) {
@@ -114,22 +137,22 @@ class KeyboardNavigation extends Control {
 
     // from CompassButton._onClick()
     onCameraRollNorth(event) {
-      let c = this.planet.getCartesianFromPixelTerrain(this.renderer.handler.getCenter());
-      if (c) {
-        this.planet.flyCartesian(
-          c.normal().scaleTo(c.length() + c.distance(this.planet.camera.eye)),
-          null,
-          null,
-          0,
-          null,
-          null,
-          () => {
-            this.planet.camera.look(c);
-          }
-          );
-      } else {
-        this.planet.flyCartesian(this.planet.camera.eye);
-      }
+        let c = this.planet.getCartesianFromPixelTerrain(this.renderer.handler.getCenter());
+        if (c) {
+            this.planet.flyCartesian(
+                c.normal().scaleTo(c.length() + c.distance(this.planet.camera.eye)),
+                null,
+                null,
+                0,
+                null,
+                null,
+                () => {
+                    this.planet.camera.look(c);
+                }
+            );
+        } else {
+            this.planet.flyCartesian(this.planet.camera.eye);
+        }
     }
 
     onCameraRollLeft(event) {

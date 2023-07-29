@@ -3,6 +3,8 @@
 import { input } from './input.js';
 import { stamp } from "../utils/shared.js";
 
+const STAMP_SPACER = "_";
+
 class KeyboardHandler {
 
     constructor() {
@@ -39,16 +41,31 @@ class KeyboardHandler {
 
         this.removeEvent = function (event, keyCode, callback) {
             let st = this._getStamp(event, keyCode, callback._openglobus_id);
-            if (callback._openglobus_id && this._stampCache[st]) {
-                //
-                //...
-                //
+            if (callback._openglobus_id && _stampCache[st]) {
+                _stampCache[st] = null;
+                delete _stampCache[st];
+
+                if (event === "keypress") {
+                    this._removeCallback(_pressedKeysCallbacks[keyCode], callback);
+                } else if (event === "keyfree") {
+                    this._removeCallback(_unpressedKeysCallbacks[keyCode], callback);
+                } else if (event === "charkeypress") {
+                    this._removeCallback(_charkeysCallbacks[keyCode], callback);
+                }
+            }
+        };
+
+        this._removeCallback = function (handlers, callback) {
+            for (let i = 0; i < handlers.length; i++) {
+                if (handlers[i].callback._openglobus_id === callback._openglobus_id) {
+                    handlers.splice(i, 1);
+                }
             }
         };
 
         this._getStamp = function (name, keyCode, ogid) {
-            return `${name}_${keyCode}_${ogid}`;
-        }
+            return `${name}${STAMP_SPACER}${keyCode}${STAMP_SPACER}${ogid}`;
+        };
 
         this._stamp = function (name, keyCode, obj) {
             let ogid = stamp(obj);
@@ -61,7 +78,7 @@ class KeyboardHandler {
             }
 
             return false;
-        }
+        };
 
         this.setActivity = function (activity) {
             _active = activity;
@@ -69,7 +86,7 @@ class KeyboardHandler {
 
         this.releaseKeys = function () {
             _currentlyPressedKeys = {};
-        }
+        };
 
         this.addEvent = function (event, sender, callback, keyCode, priority) {
 
@@ -148,7 +165,7 @@ class KeyboardHandler {
         this.handleEvents = function () {
             for (let pk in _pressedKeysCallbacks) {
                 if (_currentlyPressedKeys[pk]) {
-                    var cpk = _pressedKeysCallbacks[pk];
+                    let cpk = _pressedKeysCallbacks[pk];
                     for (let i = 0; i < cpk.length; i++) {
                         cpk[i].callback.call(cpk[i].sender, _event);
                     }
