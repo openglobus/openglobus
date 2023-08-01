@@ -9,7 +9,7 @@
   "compilerOptions": {
     "allowJs": true,
     "target": "es2016",
-    "module": "commonjs",
+    "module": "ESNext",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,

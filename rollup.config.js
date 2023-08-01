@@ -9,7 +9,7 @@ const OUTPUT_NAME = `dist/${LIB_NAME}.`;
 
 export default [
     {
-        input: `src/og/index${LIB_SUFFIX}.js`,
+        input: `out-tsc/index${LIB_SUFFIX}.js`,
         output: [
             {
                 file: `${OUTPUT_NAME}umd.js`,
@@ -21,7 +21,7 @@ export default [
         plugins: [terser(), json()]
     },
     {
-        input: `src/og/index${LIB_SUFFIX}.js`,
+        input: `out-tsc/index${LIB_SUFFIX}.js`,
         output: [
             {
                 file: `${OUTPUT_NAME}esm.js`,
