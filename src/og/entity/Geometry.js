@@ -111,8 +111,8 @@ class Geometry {
         var t = Geometry.getType(geometryObj.type);
 
         if (t === GeometryType.POINT) {
-            let lon = res.coordinates[0],
-                lat = res.coordinates[1];
+            let lon = geometryObj.coordinates[0],
+                lat = geometryObj.coordinates[1];
             res.southWest.lon = lon;
             res.southWest.lat = lat;
             res.northEast.lon = lon;
