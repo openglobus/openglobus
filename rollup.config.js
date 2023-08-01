@@ -10,7 +10,7 @@ const OUTPUT_NAME = `dist/${LIB_NAME}.`;
 
 export default [
     {
-        input: `src/og/index${LIB_SUFFIX}.js`,
+        input: `src/og/index${LIB_SUFFIX}.ts`,
         output: [
             {
                 file: `${OUTPUT_NAME}umd.js`,
@@ -26,7 +26,7 @@ export default [
         ]
     },
     {
-        input: `src/og/index${LIB_SUFFIX}.js`,
+        input: `src/og/index${LIB_SUFFIX}.ts`,
         output: [
             {
                 file: `${OUTPUT_NAME}esm.js`,

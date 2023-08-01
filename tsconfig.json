@@ -15,5 +15,6 @@
     "strict": true,
     "skipLibCheck": true,
     "outDir": "out-tsc",
+    "sourceMap": true
   }
 }
