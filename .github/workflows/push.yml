@@ -1,8 +1,8 @@
-name: CI
+name: Build
 
 on:
   push:
-    branches: [ master, ci ]
+    branches: [ master ]
   pull_request:
     branches: [ master ]
 
@@ -32,32 +32,3 @@ jobs:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/main
       - run: npm test
-
-  docs:
-    name: Generate documentation
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/main
-      - run: npm run docs
-#        Temprorary deploy to check work
-      - name: Deploy to openglobus.github.io
-        uses: cpina/github-action-push-to-another-repository@main
-        env:
-          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY  }}
-        with:
-          source-directory: docs
-          destination-github-username: openglobus
-          destination-repository-name: openglobus.github.io
-          user-name: Github Bot
-          user-email: github-actions[bot]@users.noreply.github.com
-          target-branch: master
-          target-directory: docs
-
-  generate_types:
-    name: Generate types
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/main
-      - run: npm run generate_types

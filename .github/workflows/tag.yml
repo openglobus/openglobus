@@ -1,0 +1,41 @@
+name: Tag CI
+
+on:
+  create:
+    tags:
+      - '*'
+  push:
+    tags:
+      - '*'
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  docs:
+    name: Generate documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/main
+      - run: npm run docs
+      - name: Deploy to openglobus.github.io
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY  }}
+        with:
+          source-directory: docs
+          destination-github-username: openglobus
+          destination-repository-name: openglobus.github.io
+          user-name: Github Bot
+          user-email: github-actions[bot]@users.noreply.github.com
+          target-branch: master
+          target-directory: docs
+
+  generate_types:
+    name: Generate types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/main
+      - run: npm run generate_types
