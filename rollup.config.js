@@ -2,6 +2,7 @@ import terser from "@rollup/plugin-terser";
 import json from "@rollup/plugin-json";
 import pkg from "./package.json";
 import postcss from "rollup-plugin-postcss";
+import typescript from "@rollup/plugin-typescript";
 
 const LIB_SUFFIX = process.env.entry ? `.${process.env.entry}` : "";
 const LIB_NAME = pkg.name + LIB_SUFFIX;
@@ -9,7 +10,7 @@ const OUTPUT_NAME = `dist/${LIB_NAME}.`;
 
 export default [
     {
-        input: `out-tsc/index${LIB_SUFFIX}.js`,
+        input: `src/og/index${LIB_SUFFIX}.js`,
         output: [
             {
                 file: `${OUTPUT_NAME}umd.js`,
@@ -18,10 +19,14 @@ export default [
                 sourcemap: true
             }
         ],
-        plugins: [terser(), json()]
+        plugins: [
+            terser(),
+            json(),
+            typescript({ module: "ESNext" })
+        ]
     },
     {
-        input: `out-tsc/index${LIB_SUFFIX}.js`,
+        input: `src/og/index${LIB_SUFFIX}.js`,
         output: [
             {
                 file: `${OUTPUT_NAME}esm.js`,
@@ -29,7 +34,11 @@ export default [
                 sourcemap: true
             }
         ],
-        plugins: [terser(), json()]
+        plugins: [
+            terser(),
+            json(),
+            typescript({ module: "ESNext" })
+        ]
     },
     {
         input: `css/og.css`,

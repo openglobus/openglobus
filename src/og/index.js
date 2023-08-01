@@ -2,7 +2,7 @@
 
 import * as jd from './astro/jd.js';
 import * as math from './math.js';
-import * as mercator from './mercator.js';
+import * as mercator from './mercator';
 import * as utils from './utils/shared.js';
 
 import * as bv from './bv/index.js';
@@ -32,7 +32,7 @@ import { LightSource } from './light/LightSource.js';
 import { Clock } from './Clock.js';
 import { Events } from './Events.js';
 import { Extent } from './Extent.js';
-import { LonLat } from './LonLat.js';
+import { LonLat } from './LonLat';
 import { RenderNode } from './scene/RenderNode.js';
 import { Planet } from './scene/Planet.js';
 
