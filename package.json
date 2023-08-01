@@ -12,12 +12,9 @@
     "docs": "jsdoc -r ./src/ -c ./jsdoc.conf.json -d ./docs",
     "serve": "ws",
     "build": "rollup -c --bundleConfigAsCjs",
-    "webgl": "rollup -c --environment entry:webgl",
-    "core": "rollup -c --environment entry:core",
     "test": "jest --env=jsdom --runInBand --ci --coverage=false",
     "test_watch": "jest --env=jsdom --watch",
     "lint": "eslint -c ./.eslintrc.js src/og",
-    "generate_types": "rm -rf types; tsc src/**/*.js --declaration --allowJs --emitDeclarationOnly --outDir types",
     "compile_js_as_ts": "tsc src/og/index.js --AllowJs --checkJs --outDir dist/@openglobus/src/",
     "font": "node ./fonts/index.js"
   },
@@ -60,7 +57,7 @@
     "prettier": "^2.8.8",
     "rollup": "^3.21.3",
     "rollup-plugin-postcss": "^4.0.2",
-    "typescript": "^5.0.4"
+    "typescript": "^5.1.6"
   },
   "lint-staged": {
     "*.{js,ts}": [

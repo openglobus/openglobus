@@ -1,5 +1,6 @@
 "use strict";
 
+//@ts-ignore
 import * as mercator from "./mercator.js";
 
 const HALF_PI = Math.PI * 0.5;
@@ -16,12 +17,12 @@ const INV_PI_BY_180_HALF_PI = INV_PI_BY_180 * HALF_PI;
  * @param {number} [height] - Height over the surface.
  */
 export class LonLat {
-    /**
-     * @param {number} [lon] - Longitude.
-     * @param {number} [lat] - Latitude.
-     * @param {number} [height] - Height over the surface.
-     */
-    constructor(lon = 0, lat = 0, height = 0) {
+
+    public lon: number = 0;
+    public lat: number = 0;
+    public height: number = 0;
+
+    constructor(lon: number = 0, lat: number = 0, height: number = 0) {
         /**
          * Longitude.
          * @public
@@ -44,7 +45,7 @@ export class LonLat {
         this.height = height;
     }
 
-    isZero() {
+    public isZero(): boolean {
         return this.lon === 0.0 && this.lat === 0.0 && this.height === 0.0;
     }
 
@@ -54,10 +55,10 @@ export class LonLat {
      * @param{Array.<Array<number>>} arr - Coordinates array data. (exactly 3 entries)
      * @return{Array.<LonLat>} the same coordinates array but each element is LonLat instance.
      */
-    static join(arr) {
-        var res = [];
+    static join(arr: [number, number, number][]): LonLat[] {
+        let res = [];
         for (let i = 0; i < arr.length; i++) {
-            var ai = arr[i];
+            let ai = arr[i];
             res[i] = new LonLat(ai[0], ai[1], ai[2]);
         }
         return res;
@@ -69,7 +70,7 @@ export class LonLat {
      * @param {Array.<number>} arr - Coordiante array, where first is longitude, second is latitude and third is a height. (exactly 3 entries)
      * @returns {LonLat} -
      */
-    static createFromArray(arr) {
+    static createFromArray(arr: [number, number, number]): LonLat {
         return new LonLat(arr[0], arr[1], arr[2]);
     }
 
@@ -78,7 +79,7 @@ export class LonLat {
      * @param lonLat
      * @returns {number[]}
      */
-    static toArray(lonLat) {
+    static toArray(lonLat: LonLat): [number, number, number] {
         return [lonLat.lon, lonLat.lat, lonLat.height]
     }
 
@@ -86,8 +87,8 @@ export class LonLat {
      *  Create array from lonlat
      * @returns {number[]}
      */
-    toArray() {
-        return LonLat.toArray(this)
+    public toArray(): [number, number, number] {
+        return LonLat.toArray(this);
     }
 
     /**
@@ -98,7 +99,7 @@ export class LonLat {
      * @param {number} [height] - Height.
      * @returns {LonLat} -
      */
-    static forwardMercator(lon, lat, height) {
+    static forwardMercator(lon: number, lat: number, height: number): LonLat {
         return new LonLat(
             lon * mercator.POLE_BY_180,
             Math.log(Math.tan((90.0 + lat) * PI_BY_360)) * mercator.POLE_BY_PI,
@@ -113,7 +114,7 @@ export class LonLat {
      * @param {LonLat} res - Output mercator coordinates
      * @returns {LonLat} - Output mercator coordinates
      */
-    static forwardMercatorRes(lonLat, res) {
+    static forwardMercatorRes(lonLat: LonLat, res: LonLat): LonLat {
         res.lon = lonLat.lon * mercator.POLE_BY_180;
         res.lat = Math.log(Math.tan((90.0 + lonLat.lat) * PI_BY_360)) * mercator.POLE_BY_PI,
             res.height = lonLat.height;
@@ -128,7 +129,7 @@ export class LonLat {
      * @param {number} [height] - Height.
      * @returns {LonLat} -
      */
-    static inverseMercator(x, y, height = 0) {
+    static inverseMercator(x: number, y: number, height: number = 0): LonLat {
         return new LonLat(
             x * mercator.INV_POLE_BY_180,
             INV_PI_BY_360 * Math.atan(Math.exp(y * mercator.PI_BY_POLE)) - INV_PI_BY_180_HALF_PI,
@@ -144,7 +145,7 @@ export class LonLat {
      * @param {number} [height] - Height.
      * @returns {LonLat} -
      */
-    set(lon = 0, lat = 0, height = 0) {
+    public set(lon: number = 0, lat: number = 0, height: number = 0): LonLat {
         this.lon = lon;
         this.lat = lat;
         this.height = height;
@@ -157,7 +158,7 @@ export class LonLat {
      * @param {LonLat} [lonLat] - Coordinates to copy.
      * @returns {LonLat} -
      */
-    copy(lonLat) {
+    public copy(lonLat: LonLat): LonLat {
         this.lon = lonLat.lon;
         this.lat = lonLat.lat;
         this.height = lonLat.height;
@@ -169,7 +170,7 @@ export class LonLat {
      * @public
      * @returns {LonLat} -
      */
-    clone() {
+    public clone(): LonLat {
         return new LonLat(this.lon, this.lat, this.height);
     }
 
@@ -178,12 +179,12 @@ export class LonLat {
      * @public
      * @returns {LonLat} -
      */
-    forwardMercator() {
+    public forwardMercator(): LonLat {
         return LonLat.forwardMercator(this.lon, this.lat, this.height);
     }
 
-    forwardMercatorEPS01() {
-        var lat = this.lat;
+    public forwardMercatorEPS01(): LonLat {
+        let lat = this.lat;
         if (lat > 89.9) {
             lat = 89.9;
         } else if (lat < -89.9) {
@@ -200,7 +201,7 @@ export class LonLat {
      * @public
      * @returns {LonLat} -
      */
-    inverseMercator() {
+    public inverseMercator(): LonLat {
         return LonLat.inverseMercator(this.lon, this.lat, this.height);
     }
 
@@ -210,7 +211,7 @@ export class LonLat {
      * @param {LonLat} b - Coordinate to compare with.
      * @returns {boolean} -
      */
-    equal(b) {
+    public equal(b: LonLat): boolean {
         if (b.height) {
             return this.lon === b.lon && this.lat === b.lat && this.height === b.height;
         } else {
