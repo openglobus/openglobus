@@ -22,7 +22,7 @@ export default [
         plugins: [
             terser(),
             json(),
-            typescript({ module: "ESNext" })
+            typescript({ tsconfig: './tsconfig.json' })
         ]
     },
     {
@@ -37,7 +37,7 @@ export default [
         plugins: [
             terser(),
             json(),
-            typescript({ module: "ESNext" })
+            typescript({ tsconfig: './tsconfig.json' })
         ]
     },
     {
