@@ -1,7 +1,6 @@
 "use strict";
 
-//@ts-ignore
-import * as mercator from "./mercator.js";
+import * as mercator from "./mercator";
 
 const HALF_PI = Math.PI * 0.5;
 const INV_PI_BY_180 = 180.0 / Math.PI;
