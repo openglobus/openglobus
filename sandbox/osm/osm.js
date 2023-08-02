@@ -1,4 +1,4 @@
-import * as math from "../../src/og/math.js";
+//import * as math from "../../src/og/math.js";
 import {
     Globe,
     Object3d,
