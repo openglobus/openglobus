@@ -1,8 +1,6 @@
 'use strict';
 
-//@ts-ignore
-import { Extent } from "./Extent.js";
-
+import { Extent } from "./Extent";
 import { LonLat } from './LonLat';
 
 /**

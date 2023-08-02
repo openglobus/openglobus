@@ -4,6 +4,8 @@ module.exports = {
         jest: true,
         es2021: true
     },
+    parser: "@typescript-eslint/parser",
+    plugins: ["@typescript-eslint"],
     extends: "eslint:recommended",
     parserOptions: {
         ecmaVersion: 13,

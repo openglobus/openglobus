@@ -1,20 +1,22 @@
 "use strict";
 
-import { Mat4 } from "./Mat4.js";
-import { Vec3 } from "./Vec3.js";
+import {Mat4} from "./Mat4";
+import {Vec3} from "./Vec3";
 
 /**
  * Class represents a 3x3 matrix.
  * @class
  */
 export class Mat3 {
+
+    /**
+     * A 3x3 matrix, indexing as a column-major order array.
+     * @public
+     * @type {Array.<number>}
+     */
+    public _m: number[] = new Array(9);
+
     constructor() {
-        /**
-         * A 3x3 matrix, indexable as a column-major order array.
-         * @public
-         * @type {Array.<number>}
-         */
-        this._m = new Array(9);
     }
 
     /**
@@ -23,7 +25,7 @@ export class Mat3 {
      * @param {Array.<number>} m - Matrix array.
      * @returns {Mat3}
      */
-    set(m) {
+    public set(m: number[]): Mat3 {
         this._m[0] = m[0];
         this._m[1] = m[1];
         this._m[2] = m[2];
@@ -41,9 +43,9 @@ export class Mat3 {
      * @public
      * @returns {Mat3}
      */
-    clone() {
-        var res = new Mat3();
-        res.set(this);
+    public clone(): Mat3 {
+        let res = new Mat3();
+        res.set(this._m);
         return res;
     }
 
@@ -53,18 +55,18 @@ export class Mat3 {
      * @param {Mat3} a - Matrix to copy.
      * @returns {Mat3}
      */
-    copy(a) {
+    public copy(a: Mat3): Mat3 {
         return this.set(a._m);
     }
 
     /**
-     * Creates trasposed matrix from the current.
+     * Creates transposed matrix from the current.
      * @public
      * @returns {Mat3}
      */
-    transposeTo() {
-        var res = new Mat3();
-        var m = this._m;
+    public transposeTo(): Mat3 {
+        let res = new Mat3();
+        let m = this._m;
         res._m[0] = m[0];
         res._m[1] = m[3];
         res._m[2] = m[6];
@@ -82,7 +84,7 @@ export class Mat3 {
      * @public
      * @returns {Mat3}
      */
-    setIdentity() {
+    public setIdentity(): Mat3 {
         this._m[0] = 1;
         this._m[1] = 0;
         this._m[2] = 0;
@@ -101,11 +103,14 @@ export class Mat3 {
      * @params {Vec3} p - 3d vector.
      * @returns {Vec3}
      */
-    mulVec(p) {
-        var d = p.x,
+    public mulVec(p: Vec3): Vec3 {
+
+        let d = p.x,
             e = p.y,
             g = p.z;
-        var m = this._m;
+
+        let m = this._m;
+
         return new Vec3(
             m[0] * d + m[3] * e + m[6] * g,
             m[1] * d + m[4] * e + m[7] * g,
@@ -118,10 +123,12 @@ export class Mat3 {
      * @public
      * @returns {Mat4}
      */
-    toMatrix4() {
-        var res = new Mat4();
-        var b = res._m;
-        var a = this._m;
+    public toMatrix4(): Mat4 {
+
+        let res = new Mat4();
+        let b = res._m;
+        let a = this._m;
+
         b[0] = a[0];
         b[1] = a[1];
         b[2] = a[2];
@@ -138,6 +145,7 @@ export class Mat3 {
         b[13] = 0;
         b[14] = 0;
         b[15] = 1;
+
         return res;
     }
 }
@@ -147,6 +155,6 @@ export class Mat3 {
  * @static
  * @return {Mat3}
  */
-export function mat3() {
+export function mat3(): Mat3 {
     return new Mat3();
 }

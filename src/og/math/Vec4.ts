@@ -1,7 +1,9 @@
 "use strict";
 
-import { frac } from "../math.js";
-import { Vec3 } from "./Vec3.js";
+import {Vec3} from "./Vec3";
+
+//@ts-ignore
+import {frac} from "../math.js";
 
 /**
  * Class represents a 4d vector.
@@ -12,30 +14,37 @@ import { Vec3 } from "./Vec3.js";
  * @param {number} [w] - Fourth value.
  */
 export class Vec4 {
-    constructor(x = 0.0, y = 0.0, z = 0.0, w = 0.0) {
-        /**
-         * @public
-         * @type {number}
-         */
-        this.x = x || 0.0;
 
-        /**
-         * @public
-         * @type {number}
-         */
-        this.y = y || 0.0;
+    /**
+     * @public
+     * @type {number}
+     */
+    public x: number;
 
-        /**
-         * @public
-         * @type {number}
-         */
-        this.z = z || 0.0;
+    /**
+     * @public
+     * @type {number}
+     */
+    public y: number;
 
-        /**
-         * @public
-         * @type {number}
-         */
-        this.w = w || 0.0;
+    /**
+     * @public
+     * @type {number}
+     */
+    public z: number;
+
+    /**
+     * @public
+     * @type {number}
+     */
+    public w: number;
+
+
+    constructor(x: number = 0.0, y: number = 0.0, z: number = 0.0, w: number = 0.0) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.w = w;
     }
 
     /**
@@ -43,26 +52,26 @@ export class Vec4 {
      * @const
      * @type {Vec4}
      */
-    static get identity() {
+    static get identity(): Vec4 {
         return new Vec4(0, 0, 0, 1);
     }
 
     /**
      * Creates 4d vector from array.
      * @function
-     * @param {Array.<number>} - (exactly 4 entries)
+     * @param {Array.<number>} arr - Array of four values
      * @returns {Vec4}
      */
-    static fromVec(arr) {
+    static fromVec(arr: [number, number, number, number]): Vec4 {
         return new Vec4(arr[0], arr[1], arr[2], arr[3]);
     }
 
     /**
-     * Converts to 3d vector, without fourth value.
+     * Converts to Vec3, without fourth value.
      * @public
      * @returns {Vec3}
      */
-    toVec3() {
+    public toVec3(): Vec3 {
         return new Vec3(this.x, this.y, this.z);
     }
 
@@ -71,17 +80,17 @@ export class Vec4 {
      * @public
      * @returns {Vec4}
      */
-    clone() {
+    public clone(): Vec4 {
         return new Vec4(this.x, this.y, this.z, this.w);
     }
 
     /**
      * Compares with vector. Returns true if it equals another.
      * @public
-     * @param {Vec4} p - Vector to compare.
+     * @param {Vec4} v - Vector to compare.
      * @returns {boolean}
      */
-    equal(v) {
+    public equal(v: Vec4): boolean {
         return this.x === v.x && this.y === v.y && this.z === v.z && this.w === v.w;
     }
 
@@ -90,7 +99,7 @@ export class Vec4 {
      * @param {Vec4} v - Vector to copy.
      * @returns {Vec4}
      */
-    copy(v) {
+    public copy(v: Vec4): Vec4 {
         this.x = v.x;
         this.y = v.y;
         this.z = v.z;
@@ -103,7 +112,7 @@ export class Vec4 {
      * @public
      * @returns {Array.<number>} - (exactly 4 entries)
      */
-    toArray() {
+    public toArray(): [number, number, number, number] {
         return [this.x, this.y, this.z, this.w];
     }
 
@@ -112,7 +121,7 @@ export class Vec4 {
      * @public
      * @returns {Array.<number>} - (exactly 4 entries)
      */
-    toArray3() {
+    toArray3(): [number, number, number] {
         return [this.x, this.y, this.z];
     }
 
@@ -125,7 +134,7 @@ export class Vec4 {
      * @param {number} w - Value W.
      * @returns {Vec4}
      */
-    set(x, y, z, w) {
+    public set(x: number, y: number, z: number, w: number): Vec4 {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -136,10 +145,10 @@ export class Vec4 {
     /**
      * Adds vector to the current.
      * @public
-     * @param {Vec4}
+     * @param {Vec4} v - Vector to add.
      * @returns {Vec4}
      */
-    addA(v) {
+    public addA(v: Vec4): Vec4 {
         this.x += v.x;
         this.y += v.y;
         this.z += v.z;
@@ -153,7 +162,7 @@ export class Vec4 {
      * @param {Vec4} v - Subtract vector.
      * @returns {Vec4}
      */
-    subA(v) {
+    public subA(v: Vec4): Vec4 {
         this.x -= v.x;
         this.y -= v.y;
         this.z -= v.z;
@@ -167,7 +176,7 @@ export class Vec4 {
      * @param {number} scale - Scale value.
      * @returns {Vec4}
      */
-    scale(scale) {
+    public scale(scale: number): Vec4 {
         this.x *= scale;
         this.y *= scale;
         this.z *= scale;
@@ -176,16 +185,19 @@ export class Vec4 {
     }
 
     /**
-     * Makes vector affinity. Thereby fourh component becomes to 1.0.
+     * Makes vector affinity. Thereby fourth component becomes to 1.0.
      * @public
      * @returns {Vec4}
      */
-    affinity() {
-        var iw = 1 / this.w;
+    public affinity(): Vec4 {
+
+        let iw = 1.0 / this.w;
+
         this.x *= iw;
         this.y *= iw;
         this.z *= iw;
         this.w = 1.0;
+
         return this;
     }
 
@@ -195,16 +207,16 @@ export class Vec4 {
      * @param {number} scale - Scale value.
      * @returns {Vec3}
      */
-    scaleTo(scale) {
+    public scaleTo(scale: number): Vec4 {
         return new Vec4(this.x * scale, this.y * scale, this.z * scale, this.w * scale);
     }
 
     /**
-     * Vector's edge function that returns vector where each component is 0.0 if it's smaller then edge and otherwise 1.0.
+     * Vector's edge function that returns vector where each component is 0.0 if it's smaller than edge and otherwise 1.0.
      * @public
      * @returns {Vec4}
      */
-    getStep(edge) {
+    public getStep(edge: number): Vec4 {
         return new Vec4(
             this.x < edge ? 0.0 : 1.0,
             this.y < edge ? 0.0 : 1.0,
@@ -214,21 +226,22 @@ export class Vec4 {
     }
 
     /**
-     * The vector fract function returns the vector of fractional parts of each value, i.e. x minus floor(x).
+     * The vector frac function returns the vector of fractional parts of each value, i.e. x minus floor(x).
      * @public
+     * @param {Vec4} v - Input vector
      * @returns {Vec4}
      */
-    getFrac(v) {
+    public getFrac(v: Vec4): Vec4 {
         return new Vec4(frac(v.x), frac(v.y), frac(v.z), frac(v.w));
     }
 
     /**
      * Gets vectors dot production.
      * @public
-     * @param {math.Vec4} v - Another vector.
+     * @param {Vec4} v - Another vector.
      * @returns {number} - Dot product.
      */
-    dot(v) {
+    public dot(v: Vec4): number {
         return v.x * this.x + v.y * this.y + v.z * this.z + v.w * this.w;
     }
 
@@ -237,7 +250,7 @@ export class Vec4 {
      * @public
      * @returns {boolean} -
      */
-    isZero() {
+    public isZero(): boolean {
         return !(this.x || this.y || this.z || this.w);
     }
 }
@@ -245,12 +258,12 @@ export class Vec4 {
 /**
  * Vector 4d object creator.
  * @function
- * @param {number} [x] - First cvalue.
+ * @param {number} [x] - First value.
  * @param {number} [y] - Second value.
  * @param {number} [z] - Third value.
  * @param {number} [w] - Fourth value.
  * @returns {Vec4}
  */
-export function vec4(x, y, z, w) {
+export function vec4(x: number = 0, y: number = 0, z: number = 0, w: number = 0): Vec4 {
     return new Vec4(x, y, z, w);
 }

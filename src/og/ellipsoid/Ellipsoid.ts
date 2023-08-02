@@ -1,9 +1,21 @@
 "use strict";
 
-import { LonLat } from "../LonLat.js";
-import { DEGREES, EPS1, EPS12, EPS15, RADIANS, zeroTwoPI } from "../math.js";
-import { Vec3 } from "../math/Vec3.js";
-import { Quat } from "../math/Quat.js";
+import {LonLat} from "../LonLat";
+import {Quat} from "../math/Quat";
+import {Vec3} from "../math/Vec3";
+//@ts-ignore
+import {DEGREES, EPS1, EPS12, EPS15, RADIANS, zeroTwoPI} from "../math.js";
+
+export interface IInverseResult {
+    distance: number;
+    initialAzimuth: number;
+    finalAzimuth: number;
+}
+
+export interface IDirectResult {
+    destination: LonLat;
+    finalAzimuth: number;
+}
 
 /**
  * Class represents a plant ellipsoid.
@@ -12,11 +24,24 @@ import { Quat } from "../math/Quat.js";
  * @param {number} polarSize - Polar ellipsoid size.
  */
 class Ellipsoid {
-    /**
-     * @param {number} equatorialSize - Equatorial ellipsoid size.
-     * @param {number} polarSize - Polar ellipsoid size.
-     */
-    constructor(equatorialSize, polarSize) {
+
+    protected _a: number;
+    protected _b: number;
+    protected _flattening: number;
+    protected _f: number;
+    protected _a2: number;
+    protected _b2: number;
+    protected _e: number;
+    protected _e2: number;
+    protected _e22: number;
+    protected _k: number;
+    protected _k2: number;
+    protected _radii: Vec3;
+    protected _radii2: Vec3;
+    protected _invRadii: Vec3;
+    protected _invRadii2: Vec3;
+
+    constructor(equatorialSize: number = 1, polarSize: number = 1) {
         this._a = equatorialSize;
         this._b = polarSize;
         this._flattening = (equatorialSize - polarSize) / equatorialSize;
@@ -25,7 +50,7 @@ class Ellipsoid {
         this._a2 = equatorialSize * equatorialSize;
         this._b2 = polarSize * polarSize;
 
-        var qa2b2 = Math.sqrt(this._a2 - this._b2);
+        const qa2b2 = Math.sqrt(this._a2 - this._b2);
 
         this._e = qa2b2 / equatorialSize;
         this._e2 = this._e * this._e;
@@ -42,11 +67,11 @@ class Ellipsoid {
 
     /**
      * Returns the distance travelling from ‘this’ point to destination point along a rhumb line.
-     * @param   {LonLat} start coordinates.
-     * @param   {LonLat} end coordinates
+     * @param   {LonLat} startLonLat coordinates.
+     * @param   {LonLat} endLonLat coordinates
      * @returns {number} Distance in m between this point and destination point (same units as radius).
      */
-    rhumbDistanceTo(startLonLat, endLonLat) {
+    public rhumbDistanceTo(startLonLat: LonLat, endLonLat: LonLat): number {
         const f1 = startLonLat.lat * RADIANS;
         const f2 = endLonLat.lat * RADIANS;
         const df = f2 - f1;
@@ -65,11 +90,9 @@ class Ellipsoid {
      * @param   {number} fraction - Fraction between the two points (0 = source point, 1 = destination point).
      * @returns {LonLat} Intermediate point between points.
      */
-    getIntermediatePointOnGreatCircle(lonLat1, lonLat2, fraction) {
-
+    public getIntermediatePointOnGreatCircle(lonLat1: LonLat, lonLat2: LonLat, fraction: number): LonLat {
         if (fraction == 0) return lonLat1.clone();
         if (fraction == 1) return lonLat2.clone();
-
         const inverse = this.inverse(lonLat1, lonLat2);
         const dist = inverse.distance;
         const azimuth = inverse.initialAzimuth;
@@ -82,17 +105,17 @@ class Ellipsoid {
      * @param lonLat2
      * @returns {number}
      */
-    static getBearing(lonLat1, lonLat2) {
-        var f1 = lonLat1.lat * RADIANS,
+    static getBearing(lonLat1: LonLat, lonLat2: LonLat): number {
+        let f1 = lonLat1.lat * RADIANS,
             l1 = lonLat1.lon * RADIANS;
-        var f2 = lonLat2.lat * RADIANS,
+        let f2 = lonLat2.lat * RADIANS,
             l2 = lonLat2.lon * RADIANS;
-        var y = Math.sin(l2 - l1) * Math.cos(f2);
-        var x = Math.cos(f1) * Math.sin(f2) - Math.sin(f1) * Math.cos(f2) * Math.cos(l2 - l1);
+        let y = Math.sin(l2 - l1) * Math.cos(f2);
+        let x = Math.cos(f1) * Math.sin(f2) - Math.sin(f1) * Math.cos(f2) * Math.cos(l2 - l1);
         return Math.atan2(y, x) * DEGREES;
     }
 
-    getFlattening() {
+    public getFlattening(): number {
         return this._flattening;
     }
 
@@ -101,7 +124,7 @@ class Ellipsoid {
      * @public
      * @returns {number} -
      */
-    getEquatorialSize() {
+    public getEquatorialSize(): number {
         return this._a;
     }
 
@@ -110,7 +133,7 @@ class Ellipsoid {
      * @public
      * @returns {number} -
      */
-    getPolarSize() {
+    public getPolarSize(): number {
         return this._b;
     }
 
@@ -120,7 +143,7 @@ class Ellipsoid {
      * @param {LonLat} lonlat - Geodetic coordinates.
      * @returns {Vec3} -
      */
-    lonLatToCartesian(lonlat) {
+    public lonLatToCartesian(lonlat: LonLat): Vec3 {
         return this.geodeticToCartesian(lonlat.lon, lonlat.lat, lonlat.height);
     }
 
@@ -131,7 +154,7 @@ class Ellipsoid {
      * @param {Vec3} res - Output variable reference.
      * @returns {Vec3} -
      */
-    lonLatToCartesianRes(lonlat, res) {
+    public lonLatToCartesianRes(lonlat: LonLat, res: Vec3): Vec3 {
         return this.geodeticToCartesian(lonlat.lon, lonlat.lat, lonlat.height, res);
     }
 
@@ -141,11 +164,10 @@ class Ellipsoid {
      * @param {Number} lon - Longitude.
      * @param {Number} lat - Latitude.
      * @param {Number} height - Height.
+     * @param {Vec3} res - Output result variable.
      * @returns {Vec3} -
      */
-    geodeticToCartesian(lon, lat, height = 0, res) {
-        res = res || new Vec3();
-
+    public geodeticToCartesian(lon: number, lat: number, height: number = 0, res: Vec3 = new Vec3()): Vec3 {
         let latrad = RADIANS * lat,
             lonrad = RADIANS * lon;
 
@@ -167,7 +189,7 @@ class Ellipsoid {
      * @param {Vec3} p - Cartesian coordinates.
      * @returns {LonLat} -
      */
-    projToSurface(p) {
+    public projToSurface(p: Vec3): Vec3 {
 
         let pX = p.x || 0.0,
             pY = p.y || 0.0,
@@ -226,7 +248,7 @@ class Ellipsoid {
      * @param {Vec3} cart - Cartesian coordinates
      * @returns {LonLat} - Geodetic coordinates
      */
-    cartesianToLonLat(cart) {
+    public cartesianToLonLat(cart: Vec3): LonLat {
         return this.cartesianToLonLatRes(cart);
     }
 
@@ -236,8 +258,7 @@ class Ellipsoid {
      * @param {LonLat} res - Link geodetic coordinates variable
      * @returns {LonLat} - Geodetic coordinates
      */
-    cartesianToLonLatRes(cart, res) {
-        res = res || new LonLat();
+    public cartesianToLonLatRes(cart: Vec3, res: LonLat = new LonLat()): LonLat {
         let p = this.projToSurface(cart);
         let n = this.getSurfaceNormal3v(p),
             h = cart.sub(p);
@@ -255,7 +276,7 @@ class Ellipsoid {
      * @param {Vec3} coord - Spatial coordinates.
      * @return {Vec3} -
      */
-    getSurfaceNormal3v(coord) {
+    public getSurfaceNormal3v(coord: Vec3): Vec3 {
         let r2 = this._invRadii2;
         let nx = coord.x * r2.x,
             ny = coord.y * r2.y,
@@ -264,7 +285,7 @@ class Ellipsoid {
         return new Vec3(nx * l, ny * l, nz * l);
     }
 
-    getGreatCircleDistance(lonLat1, lonLat2) {
+    public getGreatCircleDistance(lonLat1: LonLat, lonLat2: LonLat): number {
         return this.inverse(lonLat1, lonLat2).distance;
     }
 
@@ -277,11 +298,11 @@ class Ellipsoid {
      * @param {number} dist - Distance to the destination point coordinates in meters
      * @returns {LonLat} - Destination point coordinates
      */
-    getGreatCircleDestination(lonLat, azimuth, dist) {
+    public getGreatCircleDestination(lonLat: LonLat, azimuth: number, dist: number): LonLat {
         return this.direct(lonLat, azimuth, dist).destination;
     }
 
-    inverse(lonLat1, lonLat2) {
+    public inverse(lonLat1: LonLat, lonLat2: LonLat): IInverseResult {
 
         let a = this._a, b = this._b, f = this._flattening;
 
@@ -346,9 +367,11 @@ class Ellipsoid {
      * @param {number} dist - Distance to the destination point coordinates in meters
      * @returns {LonLat} - Destination point coordinates
      */
-    direct(lonLat, azimuth, dist) {
+    public direct(lonLat: LonLat, azimuth: number, dist: number): IDirectResult {
+
         let lon1 = lonLat.lon,
             lat1 = lonLat.lat;
+
         let a = this._a,
             b = this._b,
             f = this._flattening,
@@ -367,19 +390,26 @@ class Ellipsoid {
             B = (uSq / 1024) * (256 + uSq * (-128 + uSq * (74 - 47 * uSq))),
             sigma = s / (b * A),
             sigmaP = 2 * Math.PI;
+
+        let cos2SigmaM = 0,
+            sinSigma = 0,
+            cosSigma = 0,
+            deltaSigma = 0;
+
         while (Math.abs(sigma - sigmaP) > 1e-12) {
-            var cos2SigmaM = Math.cos(2 * sigma1 + sigma),
-                sinSigma = Math.sin(sigma),
-                cosSigma = Math.cos(sigma),
-                deltaSigma = B * sinSigma *
-                    (cos2SigmaM + (B / 4) *
-                        (
-                            cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM) -
-                            (B / 6) * cos2SigmaM * (-3 + 4 * sinSigma * sinSigma) * (-3 + 4 * cos2SigmaM * cos2SigmaM)
-                        ));
+            cos2SigmaM = Math.cos(2 * sigma1 + sigma);
+            sinSigma = Math.sin(sigma);
+            cosSigma = Math.cos(sigma);
+            deltaSigma = B * sinSigma *
+                (cos2SigmaM + (B / 4) *
+                    (
+                        cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM) -
+                        (B / 6) * cos2SigmaM * (-3 + 4 * sinSigma * sinSigma) * (-3 + 4 * cos2SigmaM * cos2SigmaM)
+                    ));
             sigmaP = sigma;
             sigma = s / (b * A) + deltaSigma;
         }
+
         let tmp = sinU1 * sinSigma - cosU1 * cosSigma * cosAlpha1,
             lat2 = Math.atan2(
                 sinU1 * cosSigma + cosU1 * sinSigma * cosAlpha1,
@@ -408,20 +438,20 @@ class Ellipsoid {
      * @param {Vec3} direction - Ray direction.
      * @returns {Vec3} -
      */
-    hitRay(origin, direction) {
-        var q = this._invRadii.mul(origin);
-        var w = this._invRadii.mul(direction);
+    public hitRay(origin: Vec3, direction: Vec3): Vec3 | undefined {
+        let q = this._invRadii.mul(origin);
+        let w = this._invRadii.mul(direction);
 
-        var q2 = q.dot(q);
-        var qw = q.dot(w);
+        let q2 = q.dot(q);
+        let qw = q.dot(w);
 
-        var difference, w2, product, discriminant, temp;
+        let difference, w2, product, discriminant, temp;
 
         if (q2 > 1.0) {
             // Outside ellipsoid.
             if (qw >= 0.0) {
                 // Looking outward or tangent (0 intersections).
-                return null;
+                return undefined;
             }
 
             // qw < 0.0.
@@ -434,7 +464,7 @@ class Ellipsoid {
 
             if (eps > EPS15 && qw2 < product) {
                 // Imaginary roots (0 intersections).
-                return null;
+                return undefined;
             } else if (qw2 > product) {
                 // Distinct roots (2 intersections).
                 discriminant = qw * qw - product;
@@ -470,7 +500,7 @@ class Ellipsoid {
         }
     }
 
-    getNorthFrameRotation(cartesian) {
+    public getNorthFrameRotation(cartesian: Vec3): Quat {
         let n = this.getSurfaceNormal3v(cartesian);
         let t = Vec3.proj_b_to_plane(Vec3.NORTH, n);
         return Quat.getLookRotation(t, n);
@@ -483,7 +513,7 @@ class Ellipsoid {
      * @param distance
      * @returns {LonLat}
      */
-    getBearingDestination(lonLat1, bearing = 0.0, distance = 0) {
+    public getBearingDestination(lonLat1: LonLat, bearing: number = 0.0, distance: number = 0): LonLat {
         bearing = bearing * RADIANS;
         var nlon = ((lonLat1.lon + 540) % 360) - 180;
         var f1 = lonLat1.lat * RADIANS,
@@ -510,7 +540,7 @@ class Ellipsoid {
      * @param   {number} fraction - Fraction between the two points (0 = source point, 1 = destination point).
      * @returns {LonLat} Intermediate point between points.
      */
-    static getIntermediatePointOnGreatCircle(lonLat1, lonLat2, fraction) {
+    static getIntermediatePointOnGreatCircle(lonLat1: LonLat, lonLat2: LonLat, fraction: number): LonLat {
         var f1 = lonLat1.lat * RADIANS,
             l1 = lonLat1.lon * RADIANS;
         var f2 = lonLat2.lat * RADIANS,
@@ -545,7 +575,7 @@ class Ellipsoid {
         return new LonLat(((l3 * DEGREES + 540) % 360) - 180, f3 * DEGREES);
     }
 
-    static getRhumbBearing(lonLat1, lonLat2) {
+    static getRhumbBearing(lonLat1: LonLat, lonLat2: LonLat): number {
         var dLon = (lonLat2.lon - lonLat1.lon) * RADIANS;
         var dPhi = Math.log(
             Math.tan((lonLat2.lat * RADIANS) / 2 + Math.PI / 4) /
@@ -562,4 +592,4 @@ class Ellipsoid {
     }
 }
 
-export { Ellipsoid };
+export {Ellipsoid};

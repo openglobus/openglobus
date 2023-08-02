@@ -1,7 +1,7 @@
 "use strict";
 
-import { Quat } from "./Quat.js";
-import { Vec4 } from "./Vec4.js";
+import {Quat} from "./Quat";
+import {Vec4} from "./Vec4";
 
 /**
  * Class represents a 3d vector.
@@ -11,90 +11,94 @@ import { Vec4 } from "./Vec4.js";
  * @param {number} [z] - Third value.
  */
 export class Vec3 {
-    constructor(x = 0.0, y = 0.0, z = 0.0) {
-        /**
-         * @public
-         * @type {number}
-         */
-        this.x = x || 0.0;
 
-        /**
-         * @public
-         * @type {number}
-         */
-        this.y = y || 0.0;
+    /**
+     * @public
+     * @type {number}
+     */
+    public x: number;
 
-        /**
-         * @public
-         * @type {number}
-         */
-        this.z = z || 0.0;
+    /**
+     * @public
+     * @type {number}
+     */
+    public y: number;
+
+    /**
+     * @public
+     * @type {number}
+     */
+    public z: number;
+
+    constructor(x: number = 0.0, y: number = 0.0, z: number = 0.0) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
     /** @const */
-    static get UP() {
+    static get UP(): Vec3 {
         return new Vec3(0, 1, 0);
     }
 
     /** @const */
-    static get DOWN() {
+    static get DOWN(): Vec3 {
         return new Vec3(0, -1, 0);
     }
 
     /** @const */
-    static get RIGHT() {
+    static get RIGHT(): Vec3 {
         return new Vec3(1, 0, 0);
     }
 
     /** @const */
-    static get LEFT() {
+    static get LEFT(): Vec3 {
         return new Vec3(-1, 0, 0);
     }
 
     /** @const */
-    static get FORWARD() {
+    static get FORWARD(): Vec3 {
         return new Vec3(0, 0, -1);
     }
 
     /** @const */
-    static get BACKWARD() {
+    static get BACKWARD(): Vec3 {
         return new Vec3(0, 0, 1);
     }
 
     /** @const */
-    static get ZERO() {
+    static get ZERO(): Vec3 {
         return new Vec3();
     }
 
     /** @const */
-    static get UNIT_X() {
+    static get UNIT_X(): Vec3 {
         return new Vec3(1, 0, 0);
     }
 
     /** @const */
-    static get UNIT_Y() {
+    static get UNIT_Y(): Vec3 {
         return new Vec3(0, 1, 0);
     }
 
     /** @const */
-    static get UNIT_Z() {
+    static get UNIT_Z(): Vec3 {
         return new Vec3(0, 0, 1);
     }
 
     /** @const */
-    static get NORTH() {
+    static get NORTH(): Vec3 {
         return Vec3.UNIT_Z;
     }
 
     /**
-     * Separate 63 bit Vec3 to two Vec3 32 bit float values.
+     * Separate 63 bit Vec3 to two Vec3 32-bit float values.
      * @function
-     * @param {number} value - Double type value.
+     * @param {Vec3} v - Double type value.
      * @param {Vec3} high - Out vector high values.
      * @param {Vec3} low - Out vector low values.
-     * @returns {Array.<number>} Encoded array. (exactly 2 entries)
      */
-    static doubleToTwoFloats(v, high, low) {
+    static doubleToTwoFloats(v: Vec3, high: Vec3, low: Vec3) {
         let x = v.x,
             y = v.y,
             z = v.z;
@@ -131,14 +135,14 @@ export class Vec3 {
     }
 
     /**
-     * Separate 63 bit Vec3 to two Vec3 32 bit float values.
+     * Separate 63 bit Vec3 to two Vec3 32-bit float values.
      * @function
-     * @param {number} value - Double type value.
+     * @param {Vec3} v - Double type value.
      * @param {Float32Array} high - Out vector high values.
      * @param {Float32Array} low - Out vector low values.
      * @returns {Array.<number>} Encoded array. (exactly 2 entries)
      */
-    static doubleToTwoFloat32Array(v, high, low) {
+    static doubleToTwoFloat32Array(v: Vec3, high: [number, number, number], low: [number, number, number]) {
         let x = v.x,
             y = v.y,
             z = v.z;
@@ -177,10 +181,10 @@ export class Vec3 {
     /**
      * Creates 3d vector from array.
      * @function
-     * @param {Array.<number>} arr - Input array (exactly 3 entries)
+     * @param {[number, number, number]} arr - Input array (exactly 3 entries)
      * @returns {Vec3} -
      */
-    static fromVec(arr) {
+    static fromVec(arr: [number, number, number]): Vec3 {
         return new Vec3(arr[0], arr[1], arr[2]);
     }
 
@@ -191,7 +195,7 @@ export class Vec3 {
      * @param {Vec3} b - Second vector.
      * @returns {number} -
      */
-    static angle(a, b) {
+    static angle(a: Vec3, b: Vec3): number {
         return Math.acos(a.dot(b) / Math.sqrt(a.length2() * b.length2()));
     }
 
@@ -203,7 +207,7 @@ export class Vec3 {
      * @param {number} l - Interpolate value.
      * @returns {Vec3} -
      */
-    static lerp(v1, v2, l) {
+    static lerp(v1: Vec3, v2: Vec3, l: number) {
         return new Vec3(v1.x + (v2.x - v1.x) * l, v1.y + (v2.y - v1.y) * l, v1.z + (v2.z - v1.z) * l);
     }
 
@@ -214,8 +218,8 @@ export class Vec3 {
      * @param {Vec3} b - Second vector.
      * @returns {Vec3} - Summary vector.
      */
-    static add(a, b) {
-        var res = new Vec3(a.x, a.y, a.z);
+    static add(a: Vec3, b: Vec3): Vec3 {
+        let res = new Vec3(a.x, a.y, a.z);
         res.addA(b);
         return res;
     }
@@ -227,8 +231,8 @@ export class Vec3 {
      * @param {Vec3} b - Second vector.
      * @returns {Vec3} - Vectors subtraction.
      */
-    static sub(a, b) {
-        var res = new Vec3(a.x, a.y, a.z);
+    static sub(a: Vec3, b: Vec3): Vec3 {
+        let res = new Vec3(a.x, a.y, a.z);
         res.subA(b);
         return res;
     }
@@ -240,7 +244,7 @@ export class Vec3 {
      * @param {number} scale - Scale value.
      * @returns {Vec3} -
      */
-    static scale(a, scale) {
+    static scale(a: Vec3, scale: number): Vec3 {
         return a.scaleTo(scale);
     }
 
@@ -251,21 +255,21 @@ export class Vec3 {
      * @param {Vec3} b - Second vector.
      * @returns {Vec3} -
      */
-    static mul(a, b) {
-        var res = new Vec3(a.x, a.y, a.z);
+    static mul(a: Vec3, b: Vec3): Vec3 {
+        let res = new Vec3(a.x, a.y, a.z);
         res.mulA(b);
         return res;
     }
 
     /**
-     * Returns true if two vectors are non collinear.
+     * Returns true if two vectors are non-collinear.
      * @public
      * @param {Vec3} a - First vector.
      * @param {Vec3} b - Second vector.
      * @returns {Vec3} -
      */
-    static noncollinear(a, b) {
-        return a.y * b.z - a.z * b.y || a.z * b.x - a.x * b.z || a.x * b.y - a.y * b.z;
+    static noncollinear(a: Vec3, b: Vec3): boolean {
+        return Boolean(a.y * b.z - a.z * b.y || a.z * b.x - a.x * b.z || a.x * b.y - a.y * b.z);
     }
 
     /**
@@ -276,8 +280,8 @@ export class Vec3 {
      * @param {Vec3} [def] - Default value for non existed result.
      * @returns {Vec3} -
      */
-    static proj_b_to_plane(b, n, def) {
-        var res = b.sub(n.scaleTo(n.dot(b) / n.dot(n)));
+    static proj_b_to_plane(b: Vec3, n: Vec3, def?: Vec3): Vec3 {
+        let res = b.sub(n.scaleTo(n.dot(b) / n.dot(n)));
         if (def && res.isZero()) {
             return new Vec3(def.x, def.y, def.z);
         }
@@ -291,7 +295,7 @@ export class Vec3 {
      * @param {Vec3} a - Second vector.
      * @returns {Vec3} -
      */
-    static proj_b_to_a(b, a) {
+    static proj_b_to_a(b: Vec3, a: Vec3): Vec3 {
         return a.scaleTo(a.dot(b) / a.dot(a));
     }
 
@@ -303,8 +307,8 @@ export class Vec3 {
      * @param {Vec3} tangent - Tangent vector.
      * @returns {Vec3} -
      */
-    static orthoNormalize(normal, tangent) {
-        normal = normal.normal();
+    static orthoNormalize(normal: Vec3, tangent: Vec3): Vec3 {
+        normal = normal.getNormal();
         normal.scale(tangent.dot(normal));
         return tangent.subA(normal).normalize();
     }
@@ -316,21 +320,21 @@ export class Vec3 {
      * @param {Vec3} b - Second vector.
      * @returns {Vec3} -
      */
-    static div(a, b) {
-        var res = new Vec3(a.x, a.y, a.z);
+    static div(a: Vec3, b: Vec3): Vec3 {
+        let res = new Vec3(a.x, a.y, a.z);
         res.divA(b);
         return res;
     }
 
-    static length2(a) {
+    static length2(a: Vec3): number {
         return a.length2();
     }
 
-    static length(a) {
-        return a.length();
-    }
+    // static length(a: Vec3): number {
+    //     return a.length();
+    // }
 
-    static dot(a, b) {
+    static dot(a: Vec3, b: Vec3): number {
         return a.dot(b);
     }
 
@@ -339,7 +343,7 @@ export class Vec3 {
      * @public
      * @returns {Vec4} -
      */
-    toVec4() {
+    public toVec4(): Vec4 {
         return new Vec4(this.x, this.y, this.z, 1.0);
     }
 
@@ -348,7 +352,7 @@ export class Vec3 {
      * @public
      * @returns {Vec3} -
      */
-    clone() {
+    public clone(): Vec3 {
         return new Vec3(this.x, this.y, this.z);
     }
 
@@ -357,8 +361,8 @@ export class Vec3 {
      * @public
      * @returns {string} -
      */
-    toString() {
-        return "(" + this.x + "," + this.y + "," + this.z + ")";
+    public toString(): string {
+        return `(${this.x},${this.y},${this.z})`;
     }
 
     /**
@@ -366,7 +370,7 @@ export class Vec3 {
      * @public
      * @returns {boolean} -
      */
-    isZero() {
+    public isZero(): boolean {
         return !(this.x || this.y || this.z);
     }
 
@@ -376,7 +380,7 @@ export class Vec3 {
      * @param {Vec3} a - Project vector.
      * @returns {Vec3} -
      */
-    projToVec(a) {
+    public projToVec(a: Vec3): Vec3 {
         return a.scaleTo(a.dot(this) / a.dot(a));
     }
 
@@ -386,7 +390,7 @@ export class Vec3 {
      * @param {Vec3} p - Vector to compare.
      * @returns {boolean} -
      */
-    equal(p) {
+    public equal(p: Vec3): boolean {
         return this.x === p.x && this.y === p.y && this.z === p.z;
     }
 
@@ -395,7 +399,7 @@ export class Vec3 {
      * @param {Vec3} p - Vector to copy.
      * @returns {Vec3} -
      */
-    copy(p) {
+    public copy(p: Vec3): Vec3 {
         this.x = p.x;
         this.y = p.y;
         this.z = p.z;
@@ -407,7 +411,7 @@ export class Vec3 {
      * @public
      * @returns {number} -
      */
-    length() {
+    public length(): number {
         return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
     }
 
@@ -416,7 +420,7 @@ export class Vec3 {
      * @public
      * @returns {number} -
      */
-    length2() {
+    public length2(): number {
         return this.x * this.x + this.y * this.y + this.z * this.z;
     }
 
@@ -425,7 +429,7 @@ export class Vec3 {
      * @public
      * @returns {Quat} -
      */
-    getQuat() {
+    public getQuat(): Quat {
         return new Quat(this.x, this.y, this.z);
     }
 
@@ -435,7 +439,7 @@ export class Vec3 {
      * @param {Vec3} p - Point to add.
      * @returns {Vec3} -
      */
-    addA(p) {
+    public addA(p: Vec3): Vec3 {
         this.x += p.x;
         this.y += p.y;
         this.z += p.z;
@@ -448,7 +452,7 @@ export class Vec3 {
      * @param {Vec3} p - Vector to add.
      * @returns {Vec3} Returns a sum vector.
      */
-    add(p) {
+    public add(p: Vec3): Vec3 {
         return new Vec3(this.x + p.x, this.y + p.y, this.z + p.z);
     }
 
@@ -458,7 +462,7 @@ export class Vec3 {
      * @param {Vec3} p - Subtract vector.
      * @returns {Vec3} -
      */
-    subA(p) {
+    public subA(p: Vec3): Vec3 {
         this.x -= p.x;
         this.y -= p.y;
         this.z -= p.z;
@@ -471,7 +475,7 @@ export class Vec3 {
      * @param {Vec3} p - Subtract vector.
      * @return {Vec3} Returns new instance of a subtraction
      */
-    sub(p) {
+    public sub(p: Vec3): Vec3 {
         return new Vec3(this.x - p.x, this.y - p.y, this.z - p.z);
     }
 
@@ -481,7 +485,7 @@ export class Vec3 {
      * @param {number} scale - Scale value.
      * @returns {Vec3} -
      */
-    scale(scale) {
+    public scale(scale: number): Vec3 {
         this.x *= scale;
         this.y *= scale;
         this.z *= scale;
@@ -494,7 +498,7 @@ export class Vec3 {
      * @param {number} scale - Scale value.
      * @returns {Vec3} -
      */
-    scaleTo(scale) {
+    public scaleTo(scale: number): Vec3 {
         return new Vec3(this.x * scale, this.y * scale, this.z * scale);
     }
 
@@ -504,7 +508,7 @@ export class Vec3 {
      * @param {Vec3} vec - Multiply vector.
      * @returns {Vec3} -
      */
-    mulA(vec) {
+    public mulA(vec: Vec3): Vec3 {
         this.x *= vec.x;
         this.y *= vec.y;
         this.z *= vec.z;
@@ -517,7 +521,7 @@ export class Vec3 {
      * @param {Vec3} vec - Multiply vector.
      * @returns {Vec3} -
      */
-    mul(vec) {
+    public mul(vec: Vec3): Vec3 {
         return new Vec3(this.x * vec.x, this.y * vec.y, this.z * vec.z);
     }
 
@@ -527,7 +531,7 @@ export class Vec3 {
      * @param {Vec3} vec - Div vector.
      * @returns {Vec3} -
      */
-    divA(vec) {
+    public divA(vec: Vec3): Vec3 {
         this.x /= vec.x;
         this.y /= vec.y;
         this.z /= vec.z;
@@ -540,7 +544,7 @@ export class Vec3 {
      * @param {Vec3} vec - Div vector.
      * @returns {Vec3} -
      */
-    div(vec) {
+    public div(vec: Vec3): Vec3 {
         return new Vec3(this.x / vec.x, this.y / vec.y, this.z / vec.z);
     }
 
@@ -550,7 +554,7 @@ export class Vec3 {
      * @param {Vec3} a - Another vector.
      * @returns {number} -
      */
-    dot(a) {
+    public dot(a: Vec3): number {
         return a.x * this.x + a.y * this.y + a.z * this.z;
     }
 
@@ -560,7 +564,7 @@ export class Vec3 {
      * @param {Array.<number>} arr - Array vector. (exactly 3 entries)
      * @returns {number} -
      */
-    dotArr(arr) {
+    public dotArr(arr: [number, number, number]): number {
         return arr[0] * this.x + arr[1] * this.y + arr[2] * this.z;
     }
 
@@ -570,7 +574,7 @@ export class Vec3 {
      * @param {Vec3} point3 - Another vector.
      * @returns {Vec3} -
      */
-    cross(point3) {
+    public cross(point3: Vec3): Vec3 {
         return new Vec3(
             this.y * point3.z - this.z * point3.y,
             this.z * point3.x - this.x * point3.z,
@@ -583,7 +587,7 @@ export class Vec3 {
      * @public
      * @returns {Vec3} -
      */
-    clear() {
+    public clear(): Vec3 {
         this.x = this.y = this.z = 0;
         return this;
     }
@@ -593,11 +597,11 @@ export class Vec3 {
      * @public
      * @returns {Vec3} -
      */
-    getNormal() {
-        var res = new Vec3();
+    public getNormal(): Vec3 {
+        let res = new Vec3();
         res.copy(this);
 
-        var length = 1.0 / res.length();
+        let length = 1.0 / res.length();
 
         res.x *= length;
         res.y *= length;
@@ -612,11 +616,11 @@ export class Vec3 {
      * @public
      * @returns {Vec3} -
      */
-    normal() {
-        var res = new Vec3();
+    public normal(): Vec3 {
+        let res = new Vec3();
         res.copy(this);
 
-        var length = 1.0 / res.length();
+        let length = 1.0 / res.length();
 
         res.x *= length;
         res.y *= length;
@@ -630,11 +634,11 @@ export class Vec3 {
      * @public
      * @returns {Vec3} -
      */
-    normalNegate() {
-        var res = new Vec3();
+    public normalNegate(): Vec3 {
+        let res = new Vec3();
         res.copy(this);
 
-        var length = -1.0 / res.length();
+        let length = -1.0 / res.length();
 
         res.x *= length;
         res.y *= length;
@@ -648,11 +652,11 @@ export class Vec3 {
      * @public
      * @returns {Vec3} -
      */
-    normalNegateScale(scale) {
-        var res = new Vec3();
+    public normalNegateScale(scale: number): Vec3 {
+        let res = new Vec3();
         res.copy(this);
 
-        var length = -scale / res.length();
+        let length = -scale / res.length();
 
         res.x *= length;
         res.y *= length;
@@ -666,11 +670,11 @@ export class Vec3 {
      * @public
      * @returns {Vec3} -
      */
-    normalScale(scale) {
-        var res = new Vec3();
+    public normalScale(scale: number): Vec3 {
+        let res = new Vec3();
         res.copy(this);
 
-        var length = scale / res.length();
+        let length = scale / res.length();
 
         res.x *= length;
         res.y *= length;
@@ -684,13 +688,11 @@ export class Vec3 {
      * @public
      * @returns {Vec3} -
      */
-    normalize() {
-        var length = 1.0 / this.length();
-
+    public normalize(): Vec3 {
+        let length = 1.0 / this.length();
         this.x *= length;
         this.y *= length;
         this.z *= length;
-
         return this;
     }
 
@@ -700,7 +702,7 @@ export class Vec3 {
      * @returns {Array.<number>} - (exactly 3 entries)
      * @deprecated
      */
-    toVec() {
+    public toVec(): [number, number, number] {
         return [this.x, this.y, this.z];
     }
 
@@ -709,7 +711,7 @@ export class Vec3 {
      * @public
      * @returns {Array.<number>} - (exactly 3 entries)
      */
-    toArray() {
+    public toArray(): [number, number, number] {
         return [this.x, this.y, this.z];
     }
 
@@ -719,7 +721,7 @@ export class Vec3 {
      * @param {Vec3} p - Distant point.
      * @returns {number} -
      */
-    distance(p) {
+    public distance(p: Vec3): number {
         let dx = this.x - p.x,
             dy = this.y - p.y,
             dz = this.z - p.z;
@@ -732,7 +734,7 @@ export class Vec3 {
      * @param {Vec3} p - Distant point.
      * @returns {number} -
      */
-    distance2(p) {
+    public distance2(p: Vec3): number {
         let dx = this.x - p.x,
             dy = this.y - p.y,
             dz = this.z - p.z;
@@ -747,7 +749,7 @@ export class Vec3 {
      * @param {number} z - Value Z.
      * @returns {Vec3} -
      */
-    set(x, y, z) {
+    public set(x: number, y: number, z: number): Vec3 {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -759,7 +761,7 @@ export class Vec3 {
      * @public
      * @returns {Vec3} -
      */
-    negate() {
+    public negate(): Vec3 {
         this.x = -this.x;
         this.y = -this.y;
         this.z = -this.z;
@@ -771,7 +773,7 @@ export class Vec3 {
      * @public
      * @returns {Vec3} -
      */
-    negateTo() {
+    public negateTo(): Vec3 {
         return new Vec3(-this.x, -this.y, -this.z);
     }
 
@@ -782,8 +784,8 @@ export class Vec3 {
      * @param {Vec3} direction - Ray direction.
      * @returns {Vec3} -
      */
-    projToRay(pos, direction) {
-        var v = Vec3.proj_b_to_a(Vec3.sub(this, pos), direction);
+    public projToRay(pos: Vec3, direction: Vec3): Vec3 {
+        let v = Vec3.proj_b_to_a(Vec3.sub(this, pos), direction);
         v.addA(pos);
         return v;
     }
@@ -794,7 +796,7 @@ export class Vec3 {
      * @param {Vec3} a - Another vector.
      * @returns {number} -
      */
-    angle(a) {
+    public angle(a: Vec3): number {
         return Vec3.angle(this, a);
     }
 
@@ -805,7 +807,7 @@ export class Vec3 {
      * @param {number} l - Interpolate value.
      * @returns {Vec3} -
      */
-    lerp(v2, l) {
+    public lerp(v2: Vec3, l: number) {
         return new Vec3(
             this.x + (v2.x - this.x) * l,
             this.y + (v2.y - this.y) * l,
@@ -820,8 +822,8 @@ export class Vec3 {
      * @param {number} t - Interpolate value.
      * @returns {Vec3} -
      */
-    smerp(v2, t) {
-        var one_d = 1 - t;
+    public smerp(v2: Vec3, t: number): Vec3 {
+        let one_d = 1 - t;
         return new Vec3(
             this.x * t + v2.x * one_d,
             this.y * t + v2.y * one_d,
@@ -829,7 +831,7 @@ export class Vec3 {
         );
     }
 
-    static get LERP_DELTA() {
+    static get LERP_DELTA(): number {
         return 1e-6;
     }
 
@@ -843,19 +845,19 @@ export class Vec3 {
      * @param {number} t - The parameter t is clamped to the range [0, 1].
      * @returns {Vec3} -
      */
-    slerp(v2, t) {
-        var res = new Vec3();
+    public slerp(v2: Vec3, t: number): Vec3 {
+        let res = new Vec3();
 
         if (t <= 0.0) {
             res.copy(this);
-            return;
+            return res;
         } else if (t >= 1.0) {
             res.copy(v2);
-            return;
+            return res;
         }
 
-        var omega, sinom, scale0, scale1;
-        var cosom = this.dot(v2);
+        let omega, sinom, scale0, scale1;
+        let cosom = this.dot(v2);
 
         if (1.0 - cosom > Vec3.LERP_DELTA) {
             omega = Math.acos(cosom);
@@ -877,7 +879,7 @@ export class Vec3 {
      * @returns {Quat} -
      * @todo: TEST IT!
      */
-    getRotationTo(dest, fallbackAxis) {
+    public getRotationTo(dest: Vec3, fallbackAxis: Vec3): Quat {
         // Based on Stan Melax's article in Game Programming Gems
         // Copy, since cannot modify local
         let v0 = this.clone();
@@ -892,9 +894,9 @@ export class Vec3 {
         }
 
         if (d < 1e-6 - 1.0) {
-            if (!fallbackAxis.isEqual(Vec3.ZERO)) {
+            if (!fallbackAxis.equal(Vec3.ZERO)) {
                 // rotate 180 degrees about the fallback axis
-                return Quat.axisAngleToQuat(Math.PI, fallbackAxis);
+                return Quat.axisAngleToQuat(fallbackAxis, Math.PI);
             } else {
                 // Generate an axis
                 let axis = Vec3.UNIT_X.cross(v0);
@@ -903,16 +905,14 @@ export class Vec3 {
                     axis = Vec3.UNIT_Y.cross(v0);
                 }
                 axis.normalize();
-                return Quat.axisAngleToQuat(Math.PI, axis);
+                return Quat.axisAngleToQuat(axis, Math.PI);
             }
         } else {
             let s = Math.sqrt((1 + d) * 2);
             let invs = 1.0 / s;
-
             let c = v0.cross(v1);
-
             let q = new Quat(c.x * invs, c.y * invs, c.z * invs, s * 0.5);
-            q.normalise();
+            q.normalize();
             return q;
         }
     }
@@ -921,11 +921,11 @@ export class Vec3 {
 /**
  * Vector 3d object creator.
  * @function
- * @param {number} [x] - First cvalue.
- * @param {number} [y] - Second value.
- * @param {number} [z] - Third value.
+ * @param {number} [x] - value X.
+ * @param {number} [y] - value Y.
+ * @param {number} [z] - value Z.
  * @returns {Vec3} -
  */
-export function vec3(x, y, z) {
+export function vec3(x: number = 0, y: number = 0, z: number = 0): Vec3 {
     return new Vec3(x, y, z);
 }

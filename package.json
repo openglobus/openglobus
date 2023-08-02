@@ -1,13 +1,12 @@
 {
   "name": "@openglobus/og",
   "version": "0.17.1",
-  "description": "[OpenGlobus](https://www.openglobus.org/) is a javascript library designed to display interactive 3d maps and planets with map tiles, imagery and vector data, markers and 3d objects. It uses the WebGL technology, open source and completely free.",
+  "description": "[openglobus](https://www.openglobus.org/) is a javascript library designed to display interactive 3d maps and planets with map tiles, imagery and vector data, markers and 3d objects. It uses the WebGL technology, open source and completely free.",
   "directories": {
     "example": "./sandbox"
   },
-  "main": "./src/og/index.js",
+  "main": "./src/og/index.ts",
   "style": "./css/og.css",
-  "types": "./types/index.d.ts",
   "scripts": {
     "docs": "jsdoc -r ./src/ -c ./jsdoc.conf.json -d ./docs",
     "serve": "ws",
@@ -15,7 +14,6 @@
     "test": "jest --env=jsdom --runInBand --ci --coverage=false",
     "test_watch": "jest --env=jsdom --watch",
     "lint": "eslint -c ./.eslintrc.js src/og",
-    "compile_js_as_ts": "tsc src/og/index.js --AllowJs --checkJs --outDir dist/@openglobus/src/",
     "font": "node ./fonts/index.js"
   },
   "repository": {
@@ -45,6 +43,8 @@
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-terser": "^0.4.1",
     "@types/jest": "^29.5.1",
+    "@typescript-eslint/eslint-plugin": "^6.2.1",
+    "@typescript-eslint/parser": "^6.2.1",
     "clean-jsdoc-theme": "^4.2.7",
     "eslint": "^8.39.0",
     "jest": "^29.5.0",
@@ -67,8 +67,7 @@
   "files": [
     "src/**/*",
     "dist/**/*",
-    "css/**/*",
-    "types/**/*"
+    "css/**/*"
   ],
   "keywords": [
     "map",
