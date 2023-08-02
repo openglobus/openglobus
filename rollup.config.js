@@ -8,7 +8,34 @@ const LIB_SUFFIX = process.env.entry ? `.${process.env.entry}` : "";
 const LIB_NAME = pkg.name + LIB_SUFFIX;
 const OUTPUT_NAME = `dist/${LIB_NAME}.`;
 
-export default [
+const DEV = [{
+    input: `src/og/index${LIB_SUFFIX}.ts`,
+    output: {
+        file: `${OUTPUT_NAME}esm.js`,
+        format: "esm",
+        sourcemap: true
+    },
+    plugins: [
+        json(),
+        typescript({ tsconfig: './tsconfig.json' })
+    ]
+}, {
+    input: `css/og.css`,
+    output: {
+        file: `${OUTPUT_NAME}css`,
+        format: "umd",
+        name: pkg.name,
+        sourcemap: false
+    },
+    plugins: [
+        postcss({
+            extract: true,
+            minimize: false
+        })
+    ]
+}];
+
+const PROD = [
     {
         input: `src/og/index${LIB_SUFFIX}.ts`,
         output: [
@@ -24,8 +51,7 @@ export default [
             json(),
             typescript({ tsconfig: './tsconfig.json' })
         ]
-    },
-    {
+    }, {
         input: `src/og/index${LIB_SUFFIX}.ts`,
         output: [
             {
@@ -39,8 +65,7 @@ export default [
             json(),
             typescript({ tsconfig: './tsconfig.json' })
         ]
-    },
-    {
+    }, {
         input: `css/og.css`,
         output: [
             {
@@ -58,3 +83,8 @@ export default [
         ]
     }
 ];
+
+export default () => {
+    const isDev = process.env.NODE_ENV === 'development';
+    return isDev ? DEV : PROD ;
+}
