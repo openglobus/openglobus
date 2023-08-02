@@ -4,11 +4,11 @@
 
 "use strict";
 
-import { Extent } from "../Extent.js";
-import { LonLat } from "../LonLat.js";
+import { Extent } from "../Extent";
+import { LonLat } from "../LonLat";
 import { Vec2 } from "../math/Vec2.js";
-import { Vec3 } from "../math/Vec3.js";
-import { Vec4 } from "../math/Vec4.js";
+import { Vec3 } from "../math/Vec3";
+import { Vec4 } from "../math/Vec4";
 import { colorTable } from "./colorTable.js";
 
 export function getDefault(param, def) {

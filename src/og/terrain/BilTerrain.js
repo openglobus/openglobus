@@ -2,8 +2,8 @@
 
 import { Layer } from "../layer/Layer.js";
 import { WMS } from "../layer/WMS.js";
-import { isPowerOfTwo, nextHighestPowerOfTwo } from "../math.js";
-import { getTileExtent } from "../mercator.js";
+import { isPowerOfTwo, nextHighestPowerOfTwo } from "../math";
+import { getTileExtent } from "../mercator";
 import { GlobusTerrain } from "./GlobusTerrain.js";
 
 class BilTerrain extends GlobusTerrain {

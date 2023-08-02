@@ -1,6 +1,6 @@
 "use strict";
 
-import * as mercator from "../mercator.js";
+import * as mercator from "../mercator";
 import { RENDERING } from "../quadTree/quadTree.js";
 import { stringTemplate } from "../utils/shared.js";
 import { Layer } from "./Layer.js";

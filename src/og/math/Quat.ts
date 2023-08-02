@@ -1,12 +1,9 @@
 "use strict";
 
+import * as math from "../math";
 import {Vec3} from "./Vec3";
 import {Mat4} from "./Mat4";
 import {Mat3} from "./Mat3";
-
-//@ts-ignore
-import * as math from "../math.js";
-
 
 /**
  * A set of 4-dimensional coordinates used to represent rotation in 3-dimensional space.

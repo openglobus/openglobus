@@ -1,9 +1,9 @@
 "use strict";
 
-import { Extent } from "../Extent.js";
-import { LonLat } from "../LonLat.js";
-import { Vec3 } from "../math/Vec3.js";
-import * as mercator from "../mercator.js";
+import { Extent } from "../Extent";
+import { LonLat } from "../LonLat";
+import { Vec3 } from "../math/Vec3";
+import * as mercator from "../mercator";
 import * as utils from "../utils/shared.js";
 import { Billboard } from "./Billboard.js";
 import { Geometry } from "./Geometry.js";

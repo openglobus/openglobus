@@ -1,6 +1,6 @@
 "use strict";
 
-import { Vec3 } from "./math/Vec3.js";
+import { Vec3 } from "./math/Vec3";
 import { createLonLat, stringTemplate } from "./utils/shared.js";
 import { View } from './ui/View.js';
 import { CLOSE_ICON } from './ui/icons.js';

@@ -1,15 +1,15 @@
 'use strict';
 
-import * as math from "../../math.js";
+import * as math from "../../math";
 import { Entity } from '../../entity/Entity.js';
 import { Events } from '../../Events.js';
 import { Vector } from '../../layer/Vector.js';
 import { Vec2 } from '../../math/Vec2.js';
 import { Object3d } from '../../Object3d.js';
 import { RenderNode } from '../../scene/RenderNode.js';
-import { Vec3 } from '../../math/Vec3.js';
+import { Vec3 } from '../../math/Vec3';
 import { Line3 } from '../../math/Line3.js';
-import { LonLat } from '../../LonLat.js';
+import { LonLat } from '../../LonLat';
 import { Geometry, GeometryType } from "../../entity/Geometry.js";
 
 const POINTER_OBJ3D = Object3d.createCylinder(1, 1, 2.0, 20, 1, true, false, 0, -0.5, 0);

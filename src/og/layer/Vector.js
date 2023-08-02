@@ -1,12 +1,12 @@
 "use strict";
 
+import * as mercator from "../mercator";
 import { Entity } from "../entity/Entity.js";
 import { EntityCollection } from "../entity/EntityCollection.js";
 import { GeometryHandler } from "../entity/GeometryHandler.js";
-import { Extent } from "../Extent.js";
-import * as math from "../math.js";
-import { Vec3 } from "../math/Vec3.js";
-import * as mercator from "../mercator.js";
+import { Extent } from "../Extent";
+import * as math from "../math";
+import { Vec3 } from "../math/Vec3";
 import {
     EntityCollectionNode,
     EntityCollectionNodeWGS84

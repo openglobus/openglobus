@@ -1,6 +1,6 @@
 "use strict";
 
-import { Ellipsoid } from "./Ellipsoid.js";
+import {Ellipsoid} from "./Ellipsoid";
 
 /**
  * WGS84 ellipsoid object.

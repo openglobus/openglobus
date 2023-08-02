@@ -1,7 +1,7 @@
 "use strict";
 
 import { Events } from "../Events.js";
-import * as math from "../math.js";
+import * as math from "../math";
 import { BillboardHandler } from "./BillboardHandler.js";
 import { GeoObjectHandler } from "./GeoObjectHandler.js";
 import { LabelHandler } from "./LabelHandler.js";

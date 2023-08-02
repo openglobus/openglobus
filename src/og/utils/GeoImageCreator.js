@@ -1,6 +1,6 @@
 'use strict';
 
-import { LonLat } from '../LonLat.js';
+import { LonLat } from '../LonLat';
 import * as utils from '../utils/shared.js';
 import { Framebuffer } from '../webgl/Framebuffer.js';
 import { Program } from '../webgl/Program.js';

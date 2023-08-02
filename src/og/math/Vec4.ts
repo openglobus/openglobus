@@ -1,9 +1,7 @@
 "use strict";
 
+import {frac} from "../math";
 import {Vec3} from "./Vec3";
-
-//@ts-ignore
-import {frac} from "../math.js";
 
 /**
  * Class represents a 4d vector.

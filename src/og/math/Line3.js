@@ -1,7 +1,7 @@
 'use strict';
 
-import { EPS10 } from '../math.js';
-import { Vec3 } from './Vec3.js';
+import { EPS10 } from '../math';
+import { Vec3 } from './Vec3';
 
 export class Line3 {
     constructor(p0, p1) {

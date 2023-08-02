@@ -1,6 +1,6 @@
 'use strict';
 
-import { clamp } from '../math.js';
+import { clamp } from '../math';
 import { stringTemplate } from '../utils/shared.js';
 import { View } from './View.js';
 

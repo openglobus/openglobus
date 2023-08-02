@@ -16,34 +16,37 @@ const INV_PI_BY_180_HALF_PI = INV_PI_BY_180 * HALF_PI;
  * @param {number} [height] - Height over the surface.
  */
 export class LonLat {
-
+    /**
+     * Longitude.
+     * @public
+     * @type {number}
+     */
     public lon: number = 0;
+
+    /**
+     * Latitude.
+     * @public
+     * @type {number}
+     */
     public lat: number = 0;
+
+    /**
+     * Height.
+     * @public
+     * @type {number}
+     */
     public height: number = 0;
 
     constructor(lon: number = 0, lat: number = 0, height: number = 0) {
-        /**
-         * Longitude.
-         * @public
-         * @type {number}
-         */
         this.lon = lon;
-
-        /**
-         * Latitude.
-         * @public
-         * @type {number}
-         */
         this.lat = lat;
-
-        /**
-         * Height.
-         * @public
-         * @type {number}
-         */
         this.height = height;
     }
 
+    /**
+     * Check zero coordinates
+     * @returns {boolean} -
+     */
     public isZero(): boolean {
         return this.lon === 0.0 && this.lat === 0.0 && this.height === 0.0;
     }
@@ -74,7 +77,7 @@ export class LonLat {
     }
 
     /**
-     *  Create array from lonlat
+     * Create array from lonlat
      * @param lonLat
      * @returns {number[]}
      */
@@ -83,7 +86,7 @@ export class LonLat {
     }
 
     /**
-     *  Create array from lonlat
+     * Create array from lonlat
      * @returns {number[]}
      */
     public toArray(): [number, number, number] {

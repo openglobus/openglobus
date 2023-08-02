@@ -1,6 +1,6 @@
 "use strict";
 
-import { Extent } from "../Extent.js";
+import { Extent } from "../Extent";
 import { EPSG4326 } from "../proj/EPSG4326.js";
 import { Node } from "../quadTree/Node.js";
 import * as quadTree from "../quadTree/quadTree.js";

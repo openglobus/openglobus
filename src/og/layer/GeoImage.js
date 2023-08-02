@@ -1,6 +1,6 @@
 "use strict";
 
-import { nextHighestPowerOfTwo } from "../math.js";
+import { nextHighestPowerOfTwo } from "../math";
 import { BaseGeoImage } from "./BaseGeoImage.js";
 import { isImageLoaded } from "../utils/shared.js";
 

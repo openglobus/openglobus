@@ -1,8 +1,6 @@
-/**
- * @module og/math
- */
-
 "use strict";
+
+import {Vec3} from "./math/Vec3";
 
 /** @const */
 export const TWO_PI = 2.0 * Math.PI;
@@ -81,7 +79,7 @@ export const EPS20 = 1e-20;
  * log(64, 2)
  * //returns 6
  */
-export function log(n, base) {
+export function log(n: number, base: number): number {
     return Math.log(n) / Math.log(base);
 }
 
@@ -96,7 +94,7 @@ export function log(n, base) {
  * clamp(12, 1, 5)
  * //returns 5
  */
-export function clamp(number, min, max) {
+export function clamp(number: number, min: number, max: number): number {
     return Math.max(min, Math.min(number, max));
 }
 
@@ -106,7 +104,7 @@ export function clamp(number, min, max) {
  * @param {number} degrees - Degree value.
  * @returns {number} -
  */
-export function DEG2RAD(degrees) {
+export function DEG2RAD(degrees: number): number {
     return degrees * RADIANS;
 }
 
@@ -116,7 +114,7 @@ export function DEG2RAD(degrees) {
  * @param {number} angle - Degree value.
  * @returns {number} -
  */
-export function RAD2DEG(angle) {
+export function RAD2DEG(angle: number): number {
     return angle * DEGREES;
 }
 
@@ -126,7 +124,7 @@ export function RAD2DEG(angle) {
  * @param {number} x - Input value.
  * @returns {boolean} -
  */
-export function isPowerOfTwo(x) {
+export function isPowerOfTwo(x: number): boolean {
     return (x & (x - 1)) === 0;
 }
 
@@ -134,9 +132,10 @@ export function isPowerOfTwo(x) {
  * Returns next value that is power of two.
  * @function
  * @param {number} x - Input value.
+ * @param {number} [maxValue=4096] - Maximal value.
  * @returns {number} -
  */
-export function nextHighestPowerOfTwo(x, maxValue = 4096) {
+export function nextHighestPowerOfTwo(x: number, maxValue: number = 4096): number {
     --x;
     for (let i = 1; i < 32; i <<= 1) {
         x = x | (x >> i);
@@ -151,7 +150,7 @@ export function nextHighestPowerOfTwo(x, maxValue = 4096) {
  * @param {number} max - Maximal bound.
  * @returns {number} -
  */
-export function randomi(min = 0, max = 1) {
+export function randomi(min: number = 0, max: number = 1): number {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
@@ -162,7 +161,7 @@ export function randomi(min = 0, max = 1) {
  * @param {number} [max=1] - Maximal bound.
  * @returns {number} -
  */
-export function random(min = 0, max = 1) {
+export function random(min: number = 0, max: number = 1): number {
     return Math.random() * (max - min) + min;
 }
 
@@ -175,7 +174,7 @@ export function random(min = 0, max = 1) {
  * @param {boolean} [p] - Positive flag. False - default.
  * @returns {number} -
  **/
-export function degToDec(d, m, s, p) {
+export function degToDec(d: number, m: number, s: number, p: number): number {
     if (p) {
         return d + m / 60.0 + s / 3600.0;
     } else {
@@ -190,7 +189,7 @@ export function degToDec(d, m, s, p) {
  * @param {number} n - The divisor.
  * @returns {number} The remainder.
  */
-export function mod(m, n) {
+export function mod(m: number, n: number): number {
     return ((m % n) + n) % n;
 }
 
@@ -200,7 +199,7 @@ export function mod(m, n) {
  * @param {number} a - Angle in radians
  * @returns {number} -
  */
-export function zeroTwoPI(a) {
+export function zeroTwoPI(a: number): number {
     const res = mod(a, TWO_PI);
     if (Math.abs(res) < EPS14 && Math.abs(a) > EPS14) {
         return TWO_PI;
@@ -215,17 +214,17 @@ export function zeroTwoPI(a) {
  * @param {number} x - Value to edge.
  * @returns {number} -
  */
-export function step(edge, x) {
+export function step(edge: number, x: number): number {
     return x < edge ? 0.0 : 1.0;
 }
 
 /**
- * The fract function returns the fractional part of x, i.e. x minus floor(x).
+ * The frac function returns the fractional part of x, i.e. x minus floor(x).
  * @function
  * @param {number} x - Input value.
  * @returns {number} -
  */
-export function frac(x) {
+export function frac(x: number): number {
     const mx = Math.abs(x)
     return mx - Math.floor(mx);
 }
@@ -236,7 +235,7 @@ export function frac(x) {
  * @param {number} x - Input value.
  * @returns {number} -
  */
-export function log2(x) {
+export function log2(x: number): number {
     return Math.log(x) / LOG2;
 }
 
@@ -246,7 +245,7 @@ export function log2(x) {
  * @param {number} n - Power value.
  * @returns {number} -
  */
-export function exp2(n) {
+export function exp2(n: number): number {
     return Math.pow(2, n);
 }
 
@@ -256,7 +255,7 @@ export function exp2(n) {
  * @param {number} n - Integer power value.
  * @returns {number} -
  */
-export function pow2i(n) {
+export function pow2i(n: number): number {
     return 2 << (n - 1);
 }
 
@@ -267,7 +266,7 @@ export function pow2i(n) {
  * @param {number} h0 - Start value.
  * @returns {number} -
  */
-export function slice(t, h1, h0) {
+export function slice(t: number, h1: number, h0: number): number {
     return t * (h1 - h0);
 }
 
@@ -279,19 +278,19 @@ export function slice(t, h1, h0) {
  * @param {number} h0 - Start value.
  * @returns {number} -
  */
-export function lerp(t, h1, h0) {
+export function lerp(t: number, h1: number, h0: number): number {
     return h0 + t * (h1 - h0);
 }
 
-export function cube(f) {
+export function cube(f: number): number {
     return f * f * f;
 }
 
-export function square(f) {
+export function square(f: number): number {
     return f * f;
 }
 
-export function bezier1v(t, p0, p1, p2, p3) {
+export function bezier1v(t: number, p0: number, p1: number, p2: number, p3: number): number {
     return (
         cube(1 - t) * p0 + 3 * square(1 - t) * t * p1 + 3 * (1 - t) * square(t) * p2 + cube(t) * p3
     );
@@ -307,15 +306,15 @@ export function bezier1v(t, p0, p1, p2, p3) {
  * @param {Vec3} p3 - Fourth control point.
  * @returns {Vec3} -
  */
-export function bezier3v(t, p0, p1, p2, p3) {
-    var u = 1 - t;
-    var tt = t * t;
-    var uu = u * u;
-    var uuu = uu * u;
-    var ttt = tt * t;
+export function bezier3v(t: number, p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3): Vec3 {
 
-    return p0
-        .scaleTo(uuu)
+    let u = 1 - t;
+    let tt = t * t;
+    let uu = u * u;
+    let uuu = uu * u;
+    let ttt = tt * t;
+
+    return p0.scaleTo(uuu)
         .addA(p1.scaleTo(3 * uu * t))
         .addA(p2.scaleTo(3 * u * tt))
         .addA(p3.scaleTo(ttt));
@@ -327,7 +326,7 @@ export function bezier3v(t, p0, p1, p2, p3) {
  * @param {number} x - Input angle.
  * @returns {number} -
  */
-export function rev(x) {
+export function rev(x: number): number {
     return x - Math.floor(x / 360.0) * 360.0;
 }
 
@@ -337,7 +336,7 @@ export function rev(x) {
  * @param {number} lon - Longitude.
  * @returns {number} -
  */
-export function norm_lon(lon) {
+export function norm_lon(lon: number): number {
     return lon > 180 ? ((lon + 180) % 360) - 180 : lon < -180 ? ((lon - 180) % 360) + 180 : lon;
 }
 
@@ -347,21 +346,21 @@ export function norm_lon(lon) {
  * @param {number} a - Angle in radians.
  * @returns {number} -
  */
-export function negativePItoPI(a) {
+export function negativePItoPI(a: number): number {
     return zeroTwoPI(a + Math.PI) - Math.PI;
 }
 
 /**
  * Solve using iteration method and a fixed number of steps.
  * @function
- * @param {equationCallback} f - Equation. Used in Euler's equation(see og.orbit) solving.
+ * @param {Function} f - Equation. Used in Euler's equation(see og.orbit) solving.
  * @param {number} x0 - First approximation.
  * @param {number} maxIter - Maximum iterations.
  * @returns {number} -
  */
-export function solve_iteration_fixed(f, x0, maxIter) {
-    var x = 0;
-    var x2 = x0;
+export function solve_iteration_fixed(f: Function, x0: number, maxIter: number): number {
+    let x = 0;
+    let x2 = x0;
     for (let i = 0; i < maxIter; i++) {
         x = x2;
         x2 = f(x);
@@ -373,15 +372,15 @@ export function solve_iteration_fixed(f, x0, maxIter) {
  * Solve using iteration; terminate when error is below err or the maximum
  * number of iterations is reached. Used in Euler's equation(see og.orbit) solving.
  * @function
- * @param {equationCallback} f - Equation.
+ * @param {Function} f - Equation.
  * @param {number} x0 - First approximation.
  * @param {number} err - Maximal accepted error value.
  * @param {number} maxIter - Maximum iterations.
  * @returns {number} -
  */
-export function solve_iteration(f, x0, err, maxIter = 50) {
-    var x = 0;
-    var x2 = x0;
+export function solve_iteration(f: Function, x0: number, err: number, maxIter: number = 50): number {
+    let x = 0;
+    let x2 = x0;
     for (let i = 0; i < maxIter; i++) {
         x = x2;
         x2 = f(x);
@@ -404,7 +403,7 @@ export function solve_iteration(f, x0, err, maxIter = 50) {
  * @param b - Second bearing angle
  * @returns {number}
  */
-function getAngleDirection(a, b) {
+function getAngleDirection(a: number, b: number): number {
     let a_y = Math.cos(a),
         a_x = Math.sin(a),
         b_y = Math.cos(b),
@@ -423,7 +422,7 @@ function getAngleDirection(a, b) {
  * @param {number} b - Second azimuth angle
  * @returns {number}
  */
-export function getAngleBetweenAzimuths(a, b) {
+export function getAngleBetweenAzimuths(a: number, b: number): number {
     a = zeroTwoPI(a);
     b = zeroTwoPI(b);
     return ((((a - b) % 360) + 360 + 180) % 360) - 180;

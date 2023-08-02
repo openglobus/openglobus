@@ -7,8 +7,8 @@ import {
     PolygonDrawingScene
 } from "./PolygonDrawingScene.js";
 import { Entity } from "../../entity/Entity.js";
-import { Line3, Vec2, Vec3 } from "../../math/index.js";
-import * as math from "../../math.js";
+import { Line3, Vec2, Vec3 } from "../../math/index";
+import * as math from "../../math";
 import { GeometryType } from "../../entity/Geometry.js";
 
 class LineStringDrawingScene extends PolygonDrawingScene {

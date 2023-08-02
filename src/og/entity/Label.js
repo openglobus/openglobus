@@ -1,6 +1,6 @@
 "use strict";
 
-import { Vec4 } from "../math/Vec4.js";
+import { Vec4 } from "../math/Vec4";
 import * as utils from "../utils/shared.js";
 import { BaseBillboard } from "./BaseBillboard.js";
 import { LOCK_FREE, LOCK_UPDATE } from "./LabelWorker.js";

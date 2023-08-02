@@ -1,13 +1,13 @@
 import { Line2 } from './Line2.js';
 import { Line3 } from './Line3.js';
-import { Mat3 } from './Mat3.js';
-import { Mat4 } from './Mat4.js';
+import { Mat3 } from './Mat3';
+import { Mat4 } from './Mat4';
 import { Plane } from './Plane.js';
-import { Quat } from './Quat.js';
+import { Quat } from './Quat';
 import { Ray } from './Ray.js';
 import { Vec2 } from './Vec2.js';
-import { Vec3 } from './Vec3.js';
-import { Vec4 } from './Vec4.js';
+import { Vec3 } from './Vec3';
+import { Vec4 } from './Vec4';
 
 export {
     Line2,

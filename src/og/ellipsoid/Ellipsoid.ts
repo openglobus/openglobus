@@ -3,8 +3,7 @@
 import {LonLat} from "../LonLat";
 import {Quat} from "../math/Quat";
 import {Vec3} from "../math/Vec3";
-//@ts-ignore
-import {DEGREES, EPS1, EPS12, EPS15, RADIANS, zeroTwoPI} from "../math.js";
+import {DEGREES, EPS1, EPS12, EPS15, RADIANS, zeroTwoPI} from "../math";
 
 export interface IInverseResult {
     distance: number;

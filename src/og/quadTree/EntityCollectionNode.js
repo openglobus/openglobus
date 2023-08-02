@@ -2,10 +2,10 @@
 
 import { Sphere } from '../bv/Sphere.js';
 import { EntityCollection } from '../entity/EntityCollection.js';
-import { Extent } from '../Extent.js';
-import { LonLat } from '../LonLat.js';
-import { Vec3 } from '../math/Vec3.js';
-import * as mercator from '../mercator.js';
+import { Extent } from '../Extent';
+import { LonLat } from '../LonLat';
+import { Vec3 } from '../math/Vec3';
+import * as mercator from '../mercator';
 import * as quadTree from './quadTree.js';
 
 class EntityCollectionNode {

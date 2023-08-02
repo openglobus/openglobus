@@ -1,8 +1,8 @@
 "use strict";
 
-import { Extent } from "../Extent.js";
-import { LonLat } from "../LonLat.js";
-import { Vec3 } from "../math/Vec3.js";
+import { Extent } from "../Extent";
+import { LonLat } from "../LonLat";
+import { Vec3 } from "../math/Vec3";
 import {
     cloneArray, htmlColorToFloat32Array,
     htmlColorToRgba, makeArray, makeArrayTyped

@@ -1,8 +1,8 @@
 "use strict";
 
-import { Extent } from "../Extent.js";
-import { LonLat } from "../LonLat.js";
-import * as mercator from "../mercator.js";
+import { Extent } from "../Extent";
+import { LonLat } from "../LonLat";
+import * as mercator from "../mercator";
 import { Layer } from "./Layer.js";
 import { doubleToTwoFloats2 } from "../math/coder.js";
 

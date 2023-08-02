@@ -1,7 +1,7 @@
 'use strict';
 
 import * as jd from './astro/jd.js';
-import * as math from './math.js';
+import * as math from './math';
 import * as mercator from './mercator';
 import * as utils from './utils/shared.js';
 

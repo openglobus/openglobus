@@ -1,6 +1,6 @@
 "use strict";
 
-import { Mat4 } from "../math/Mat4.js";
+import { Mat4 } from "../math/Mat4";
 
 function planeNormalize(plane) {
     var t = 1.0 / Math.sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);

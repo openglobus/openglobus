@@ -1,12 +1,9 @@
 "use strict";
 
+import * as math from "./math";
 import * as mercator from "./mercator";
 import {Ellipsoid} from "./ellipsoid/Ellipsoid";
 import {LonLat} from "./LonLat";
-
-//@ts-ignore
-import * as math from "./math.js";
-
 
 /**
  * Represents geographical coordinates extent.
@@ -26,7 +23,7 @@ export class Extent {
     /**
      * Creates extent instance from values in array.
      * @static
-     * @param {Array.<number>} arr - South west and north east longitude and latidudes packed in array. (exactly 4 entries)
+     * @param {Array.<number>} arr - South west and north-east longitude and latitudes packed in array. (exactly 4 entries)
      * @return {Extent} Extent object.
      */
     static createFromArray(arr: [number, number, number, number]): Extent {
@@ -76,7 +73,7 @@ export class Extent {
     }
 
     /**
-     * Creates extent by meractor grid tile coordinates.
+     * Creates extent by merсator grid tile coordinates.
      * @static
      * @param {number} x -
      * @param {number} y -

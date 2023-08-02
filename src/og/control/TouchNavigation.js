@@ -2,13 +2,13 @@
 
 import { Sphere } from "../bv/Sphere.js";
 import { Key } from "../Lock.js";
-import { LonLat } from "../LonLat.js";
-import { Quat } from "../math/Quat.js";
+import { LonLat } from "../LonLat";
+import { Quat } from "../math/Quat";
 import { Ray } from "../math/Ray.js";
-import { Vec3 } from "../math/Vec3.js";
+import { Vec3 } from "../math/Vec3";
 import { Control } from "./Control.js";
-import { Vec2 } from "../math/index.js";
-import { math } from "../index.js";
+import { Vec2 } from "../math/Vec2.js";
+import { math } from "../index";
 
 class Touch {
     constructor() {

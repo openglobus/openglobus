@@ -1,7 +1,7 @@
 "use strict";
 
-import { RADIANS } from "../math.js";
-import { Vec3 } from "../math/Vec3.js";
+import { RADIANS } from "../math";
+import { Vec3 } from "../math/Vec3";
 import { binarySearch, parseHTML } from "../utils/shared.js";
 import { Control } from "./Control.js";
 

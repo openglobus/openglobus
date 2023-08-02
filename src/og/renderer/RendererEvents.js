@@ -6,7 +6,7 @@ import { KeyboardHandler } from "../input/KeyboardHandler.js";
 import { MouseHandler } from "../input/MouseHandler.js";
 import { TouchHandler } from "../input/TouchHandler.js";
 import { Vec2 } from "../math/Vec2.js";
-import { Vec3 } from "../math/Vec3.js";
+import { Vec3 } from "../math/Vec3";
 
 const LB_M = 0b0001;
 const RB_M = 0b0010;

@@ -1,7 +1,7 @@
 "use strict";
 
-import { Vec3 } from "../math/Vec3.js";
-import { Vec4 } from "../math/Vec4.js";
+import { Vec3 } from "../math/Vec3";
+import { Vec4 } from "../math/Vec4";
 
 const COORDINATES_BUFFER = 0;
 const COLOR_BUFFER = 1;

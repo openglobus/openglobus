@@ -4,17 +4,17 @@
 "use strict";
 
 import { Events } from "../Events.js";
-import * as mercator from "../mercator.js";
+import * as mercator from "../mercator";
 import { EPSG3857 } from "../proj/EPSG3857.js";
 import { NOTRENDERING } from "../quadTree/quadTree.js";
 import { Loader } from "../utils/Loader.js";
 import { EmptyTerrain } from "./EmptyTerrain.js";
 // import { QueueArray } from '../QueueArray.js';
-import { Extent } from "../Extent.js";
+import { Extent } from "../Extent";
 import { Layer } from "../layer/Layer.js";
-import { LonLat } from "../LonLat.js";
+import { LonLat } from "../LonLat";
 import { Ray } from "../math/Ray.js";
-import { Vec3 } from "../math/Vec3.js";
+import { Vec3 } from "../math/Vec3";
 import { createExtent, stringTemplate } from "../utils/shared.js";
 
 const EVENT_NAMES = [

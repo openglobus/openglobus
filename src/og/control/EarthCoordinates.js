@@ -1,6 +1,6 @@
 'use strict';
 
-import { LonLat } from '../LonLat.js';
+import { LonLat } from '../LonLat';
 import { throttle } from '../utils/shared.js';
 import * as units from '../utils/units.js';
 import { heightMode } from '../utils/units.js';

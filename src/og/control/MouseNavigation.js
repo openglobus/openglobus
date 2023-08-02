@@ -3,12 +3,12 @@
 import { Sphere } from "../bv/Sphere.js";
 import { input } from "../input/input.js";
 import { Key } from "../Lock.js";
-import { LonLat } from "../LonLat.js";
-import * as math from "../math.js";
-import { Mat4 } from "../math/Mat4.js";
-import { Quat } from "../math/Quat.js";
+import { LonLat } from "../LonLat";
+import * as math from "../math";
+import { Mat4 } from "../math/Mat4";
+import { Quat } from "../math/Quat";
 import { Ray } from "../math/Ray.js";
-import { Vec3 } from "../math/Vec3.js";
+import { Vec3 } from "../math/Vec3";
 import { Control } from "./Control.js";
 
 /**

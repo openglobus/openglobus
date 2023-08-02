@@ -1,6 +1,6 @@
 "use strict";
 
-import { Vec3 } from "./Vec3.js";
+import { Vec3 } from "./Vec3";
 
 /**
  * Class represents a 3d vector.

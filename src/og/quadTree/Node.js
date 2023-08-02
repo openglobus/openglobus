@@ -1,10 +1,10 @@
 "use strict";
 
-import { Extent } from "../Extent.js";
-import { LonLat } from "../LonLat.js";
-import { MAX, MIN } from "../math.js";
-import { Vec3 } from "../math/Vec3.js";
-import { MAX_LAT } from "../mercator.js";
+import { Extent } from "../Extent";
+import { LonLat } from "../LonLat";
+import { MAX, MIN } from "../math";
+import { Vec3 } from "../math/Vec3";
+import { MAX_LAT } from "../mercator";
 import { EPSG3857 } from "../proj/EPSG3857.js";
 import { EPSG4326 } from "../proj/EPSG4326.js";
 import { getMatrixSubArray, getMatrixSubArrayBoundsExt } from "../utils/shared.js";

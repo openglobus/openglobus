@@ -1,6 +1,6 @@
 ﻿'use strict';
 
-import { Ellipsoid } from '../../ellipsoid/Ellipsoid.js';
+import { Ellipsoid } from '../../ellipsoid/Ellipsoid';
 import { Entity } from '../../entity/Entity.js';
 import { Events } from '../../Events.js';
 import { Vector } from '../../layer/Vector.js';

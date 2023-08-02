@@ -1,10 +1,10 @@
 "use strict";
 
-import { Extent } from "../Extent.js";
+import { Extent } from "../Extent";
 import { Layer } from "../layer/Layer.js";
-import { LonLat } from "../LonLat.js";
-import { Vec3 } from "../math/Vec3.js";
-import * as mercator from "../mercator.js";
+import { LonLat } from "../LonLat";
+import { Vec3 } from "../math/Vec3";
+import * as mercator from "../mercator";
 import { EPSG4326 } from "../proj/EPSG4326.js";
 import * as quadTree from "../quadTree/quadTree.js";
 import { Segment, TILEGROUP_NORTH, TILEGROUP_SOUTH } from "./Segment.js";

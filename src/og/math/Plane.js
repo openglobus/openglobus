@@ -1,7 +1,7 @@
 "use strict";
 
-import { EPS5 } from "../math.js";
-import { Vec3 } from "./Vec3.js";
+import { EPS5 } from "../math";
+import { Vec3 } from "./Vec3";
 
 /**
  * Plane class.

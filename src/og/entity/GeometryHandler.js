@@ -2,7 +2,7 @@
 
 import { doubleToTwoFloatsV2 } from "../math/coder.js";
 import { Vec2 } from "../math/Vec2.js";
-import * as mercator from "../mercator.js";
+import * as mercator from "../mercator";
 import * as quadTree from "../quadTree/quadTree.js";
 import { earcut, flatten } from "../utils/earcut.js";
 import { GeometryType } from "./Geometry.js";
