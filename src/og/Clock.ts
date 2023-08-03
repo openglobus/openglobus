@@ -1,7 +1,22 @@
 "use strict";
 
+import {Events, EventsMap} from "./Events";
+
+
+
+//@ts-ignore
 import * as jd from "./astro/jd.js";
-import { Events } from "./Events";
+
+type ClockEvents = ["tick", "end", "start", "stop"];
+type  myEvents = Events<ClockEvents> & EventsMap<ClockEvents>;
+
+export interface IClockParams {
+    name?: string;
+    startDate?: number;
+    endDate?: number;
+    currentDate?: number;
+    multiplier?: number;
+}
 
 /**
  * Class represents application timer that stores custom current julian datetime, and time speed multiplier.
@@ -13,25 +28,35 @@ import { Events } from "./Events";
  * @param {number} [params.multiplier=1.0] - Time speed multiplier.
  */
 class Clock {
-    static get _staticCounter() {
-        if (!this._counter && this._counter !== 0) {
-            this._counter = 0;
-        }
-        return this._counter;
-    }
 
-    static set _staticCounter(n) {
-        this._counter = n;
-    }
+    static __counter__: number;
 
-    /**
-     *
-     * @param {Object} [params] - Clock parameters:
-     */
-    constructor(params) {
-        params = params || {};
+    public events: myEvents;
+    public name: string;
+    public startDate: number;
+    public endDate: number;
+    public currentDate: number;
+    public deltaTicks: number;
 
-        this._id = Clock._staticCounter++;
+    protected __id: number;
+    protected _multiplier: number = 1;
+    protected _running: number = 1;
+    protected active: boolean = true;
+    protected _intervalDelay: number = 0;
+    protected _intervalStart: number = 0;
+    protected _intervalCallback: Function | null;
+
+    constructor(params: IClockParams = {}) {
+
+
+        this.__id = Clock.__counter__++;
+
+        /**
+         * Clock events.
+         * @public
+         * @type {Events}
+         */
+        this.events = Events.create<ClockEvents>(["tick", "end", "start", "stop"], this);
 
         /**
          * Clock name.
@@ -39,13 +64,6 @@ class Clock {
          * @type {string}
          */
         this.name = params.name || "";
-
-        /**
-         * Clock events.
-         * @public
-         * @type {Events}
-         */
-        this.events = new Events(["tick", "end", "start", "stop"], this);
 
         /**
          * Start julian date clock loop.
@@ -61,7 +79,7 @@ class Clock {
          */
         this.endDate = params.endDate || 0;
 
-        var currentDate = params.currentDate || jd.DateToUTC(new Date());
+        let currentDate = params.currentDate || jd.DateToUTC(new Date());
         if (params.startDate && currentDate < params.startDate) {
             currentDate = params.startDate;
         }
@@ -104,13 +122,13 @@ class Clock {
         this._intervalCallback = null;
     }
 
-    clearInterval() {
+    public clearInterval() {
         this._intervalDelay = 0;
         this._intervalStart = 0;
         this._intervalCallback = null;
     }
 
-    setInterval(delay, callback) {
+    public setInterval(delay: number, callback: Function) {
         this._intervalStart = this.currentDate;
         this._intervalDelay = delay * jd.ONE_BY_MILLISECONDS_PER_DAY;
         this._intervalCallback = callback;
@@ -121,8 +139,8 @@ class Clock {
      * @public
      * @param {Object} date - JavaScript Date object.
      */
-    setDate(date) {
-        var d = jd.DateToUTC(date);
+    public setDate(date: Date) {
+        let d = jd.DateToUTC(date);
         if (this.startDate && d < this.startDate) {
             d = this.startDate;
         }
@@ -184,8 +202,8 @@ class Clock {
      * @param {Clock} clock - Clock instance to compare.
      * @returns {boolean} - Returns true if a clock is the same instance.
      */
-    isEqual(clock) {
-        return this._id === clock._id;
+    public isEqual(clock: Clock) {
+        return this.__id === clock.__id;
     }
 
     start() {
@@ -211,4 +229,4 @@ class Clock {
     }
 }
 
-export { Clock };
+export {Clock};

@@ -2,20 +2,28 @@
 
 import {binaryInsert, stamp} from "./utils/shared";
 
+type EventHandlers = Array<() => void>;
+
+export type EventsMap<T extends readonly string[]> = {
+    [K in T[number]]: { active: boolean; handlers: EventHandlers }
+}
+
 /**
  * Base events class to handle custom events.
  * @class
  * @param {Array.<string>} [eventNames] - Event names that could be dispatched.
  * @param {*} [sender]
  */
-class Events {
+class Events<T extends string[]> implements EventsMap<T> {
+
 
     /**
      * Registered event names.
      * @protected
      * @type {Array.<string>}
      */
-    protected _eventNames: string[];
+    protected _eventNames: T;
+
 
     protected _sender: any;
 
@@ -32,11 +40,11 @@ class Events {
 
     static __counter__: number;
 
-    constructor(eventNames?: string[], sender?: any) {
+    constructor(eventNames: T, sender?: any) {
 
         this.__id = Events.__counter__++;
 
-        this._eventNames = [];
+        this._eventNames = [] as T;
 
         eventNames && this.registerNames(eventNames);
 
@@ -45,6 +53,10 @@ class Events {
         this._stopPropagation = false;
 
         this._stampCache = {};
+    }
+
+    static create<T extends string[]>(methodNames: T, sender?: any) {
+        return new Events(methodNames, sender) as Events<T> & EventsMap<T>
     }
 
     public bindSender(sender?: any) {
@@ -56,7 +68,7 @@ class Events {
      * @public
      * @param {Array.<string>} eventNames - Specified event names list.
      */
-    public registerNames(eventNames: string[]) {
+    public registerNames(eventNames: T) {
         for (let i = 0; i < eventNames.length; i++) {
             (this as any)[eventNames[i]] = {
                 active: true,
@@ -144,7 +156,7 @@ class Events {
      * Dispatch event.
      * @public
      * @param {Object} event - Event instance property that created by event name.
-     * @param {Object} [obj] - Event object.
+     * @param {Object} [args] - Callback parameters.
      */
     public dispatch(event: any, ...args: any[]) {
         let result = true;
@@ -180,7 +192,7 @@ class Events {
             e.handlers = [];
         }
         this._eventNames.length = 0;
-        this._eventNames = [];
+        this._eventNames = [] as T;
     }
 }
 
