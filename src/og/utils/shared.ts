@@ -759,7 +759,7 @@ type TypedArray =
  * @param {TypedArray} b
  */
 export function concatTypedArrays(a: TypedArray, b: TypedArray): TypedArray {
-    let c = new (a.constructor(a.length + b.length) as any); //hacky
+    let c = new (a as any).constructor(a.length + b.length); //hacky
     c.set(a, 0);
     c.set(b, a.length);
     return c;
@@ -790,7 +790,7 @@ export function concatArrays(a: TypedArray | number[] = [], b: TypedArray | numb
  */
 export function makeArrayTyped(arr: TypedArray | number[], ctor: Function = Float32Array) {
     if (!ArrayBuffer.isView(arr)) {
-        const typedArr = new (ctor(arr.length) as any); //hacky
+        const typedArr = new (ctor as any)(arr.length); //hacky
         typedArr.set(arr, 0);
         return typedArr;
     } else {
@@ -852,7 +852,7 @@ export function spliceTypedArray(arr: TypedArray, starting: number, deleteCount:
         return arr;
     }
     const newSize = arr.length - deleteCount;
-    const splicedArray = new (arr.constructor(newSize) as any); //hacky
+    const splicedArray = new (arr as any).constructor(newSize); //hacky
     splicedArray.set(arr.subarray(0, starting));
     splicedArray.set(arr.subarray(starting + deleteCount), starting);
     if (out) {
