@@ -1,12 +1,12 @@
 "use strict";
 
-import { Extent } from "../Extent.js";
-import { LonLat } from "../LonLat.js";
-import { Vec3 } from "../math/Vec3.js";
+import { Extent } from "../Extent";
+import { LonLat } from "../LonLat";
+import { Vec3 } from "../math/Vec3";
 import {
     cloneArray, htmlColorToFloat32Array,
     htmlColorToRgba, makeArray, makeArrayTyped
-} from "../utils/shared.js";
+} from "../utils/shared";
 
 window.POLYLINE_DEPTH_OFFSET = 0.0;
 

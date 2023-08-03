@@ -1,6 +1,6 @@
 'use strict';
 
-import * as math from '../../math.js';
+import * as math from '../../math';
 
 export function addSeconds(date, seconds) {
     return new Date(+date + seconds * 1000);

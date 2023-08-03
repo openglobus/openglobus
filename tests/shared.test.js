@@ -1,6 +1,6 @@
 'use strict';
 
-import * as shared from '../src/og/utils/shared.js';
+import * as shared from '../src/og/utils/shared';
 
 test('Test for extractElevationTiles 4 function', () => {
 

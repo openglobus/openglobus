@@ -1,6 +1,6 @@
 "use strict";
 
-import { htmlColorToRgb } from "../utils/shared.js";
+import { htmlColorToRgb } from "../utils/shared";
 import { Program } from '../webgl/Program.js';
 import { Control } from "./Control.js";
 

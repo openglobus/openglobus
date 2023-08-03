@@ -2,8 +2,8 @@
 
 import { getSunPosition } from "../astro/earth.js";
 import { LightSource } from "../light/LightSource.js";
-import { Quat } from "../math/Quat.js";
-import { Vec3 } from "../math/Vec3.js";
+import { Quat } from "../math/Quat";
+import { Vec3 } from "../math/Vec3";
 import { Control } from "./Control.js";
 
 /**

@@ -1,6 +1,6 @@
 'use strict';
 
-import * as math from '../math.js';
+import * as math from '../math';
 import { BaseGeoImage } from './BaseGeoImage.js';
 
 class GeoTexture2d extends BaseGeoImage {

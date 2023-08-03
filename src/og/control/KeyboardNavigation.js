@@ -1,8 +1,8 @@
 "use strict";
 
 import { input } from "../input/input.js";
-import * as math from "../math.js";
-import { Vec3 } from "../math/Vec3.js";
+import * as math from "../math";
+import { Vec3 } from "../math/Vec3";
 import { Control } from "./Control.js";
 
 /**

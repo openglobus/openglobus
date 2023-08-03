@@ -1,13 +1,13 @@
 "use strict";
 
 import { Key } from "../Lock.js";
-import { LonLat } from "../LonLat.js";
-import * as math from "../math.js";
-import { Mat4 } from "../math/Mat4.js";
-import { Quat } from "../math/Quat.js";
+import { LonLat } from "../LonLat";
+import * as math from "../math";
+import { Mat4 } from "../math/Mat4";
+import { Quat } from "../math/Quat";
 import { Ray } from "../math/Ray.js";
-import { Vec3 } from "../math/Vec3.js";
-import * as mercator from "../mercator.js";
+import { Vec3 } from "../math/Vec3";
+import * as mercator from "../mercator";
 import { Camera } from "./Camera.js";
 import { Ellipsoid } from "../ellipsoid/index.js";
 

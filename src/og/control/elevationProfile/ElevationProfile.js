@@ -1,8 +1,8 @@
 'use strict';
 
-import { Vec3 } from "../../math/Vec3.js";
+import { Vec3 } from "../../math/Vec3";
 import { Deferred } from "../../Deferred.js";
-import { Events } from '../../Events.js';
+import { Events } from '../../Events';
 
 /**
  * Point types

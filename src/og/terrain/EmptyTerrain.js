@@ -1,6 +1,6 @@
 "use strict";
 
-import { binarySearchFast } from "../utils/shared.js";
+import { binarySearchFast } from "../utils/shared";
 import { Geoid } from "./Geoid.js";
 
 /**

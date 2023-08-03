@@ -1,6 +1,6 @@
 "use strict";
 
-import { binarySearch } from "../utils/shared.js";
+import { binarySearch } from "../utils/shared";
 
 /**
  * Seconds in millisecond.

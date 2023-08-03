@@ -1,4 +1,4 @@
-import { Ellipsoid } from './Ellipsoid.js';
-import { wgs84 } from './wgs84.js';
+import { Ellipsoid } from './Ellipsoid';
+import { wgs84 } from './wgs84';
 
 export { Ellipsoid, wgs84 };

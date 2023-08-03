@@ -1,6 +1,6 @@
 "use strict";
 
-import { Vec3 } from "../math/Vec3.js";
+import { Vec3 } from "../math/Vec3";
 
 /**
  * Bounding box class.

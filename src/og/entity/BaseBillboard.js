@@ -1,7 +1,7 @@
 "use strict";
 
-import { Vec3 } from "../math/Vec3.js";
-import * as utils from "../utils/shared.js";
+import { Vec3 } from "../math/Vec3";
+import * as utils from "../utils/shared";
 import { LOCK_FREE, LOCK_UPDATE } from "./LabelWorker.js";
 
 /**

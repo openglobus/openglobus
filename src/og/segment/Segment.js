@@ -2,16 +2,16 @@
 
 import { Box } from "../bv/Box.js";
 import { Sphere } from "../bv/Sphere.js";
-import { Extent } from "../Extent.js";
+import { Extent } from "../Extent";
 import { Layer } from "../layer/Layer.js";
-import { LonLat } from "../LonLat.js";
+import { LonLat } from "../LonLat";
 import { Ray } from "../math/Ray.js";
-import { Vec3 } from "../math/Vec3.js";
-import * as mercator from "../mercator.js";
+import { Vec3 } from "../math/Vec3";
+import * as mercator from "../mercator";
 import { EPSG3857 } from "../proj/EPSG3857.js";
 import { E, N, NOTRENDERING, OPSIDE, S, W } from "../quadTree/quadTree.js";
 import * as segmentHelper from "../segment/segmentHelper.js";
-import { getMatrixSubArray } from "../utils/shared.js";
+import { getMatrixSubArray } from "../utils/shared";
 import { Slice } from "./Slice.js";
 
 export const TILEGROUP_COMMON = 0;

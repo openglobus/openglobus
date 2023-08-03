@@ -11,7 +11,7 @@ import {
     randomi,
     step,
     getAngleBetweenAzimuths
-} from "../src/og/math.js";
+} from "../src/og/math";
 
 describe('math module', () => {
     describe('log', () => {

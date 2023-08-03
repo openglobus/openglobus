@@ -1,9 +1,9 @@
 /* eslint-disable no-param-reassign */
 'use strict';
 
-import { htmlColorToFloat32Array } from './utils/shared.js';
-import { Vec3 } from './math/Vec3.js';
-import { MAX, MIN } from './math.js';
+import { htmlColorToFloat32Array } from './utils/shared';
+import { Vec3 } from './math/Vec3';
+import { MAX, MIN } from './math';
 import { transformLeftToRightCoordinateSystem, objParser } from "./utils/objParser.js";
 
 function getColor(color) {

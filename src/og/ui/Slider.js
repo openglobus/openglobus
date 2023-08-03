@@ -1,7 +1,7 @@
 'use strict';
 
-import { clamp } from '../math.js';
-import { stringTemplate } from '../utils/shared.js';
+import { clamp } from '../math';
+import { stringTemplate } from '../utils/shared';
 import { View } from './View.js';
 
 const TEMPLATE = `<div class="og-slider">

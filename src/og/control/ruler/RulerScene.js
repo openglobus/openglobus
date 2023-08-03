@@ -1,10 +1,10 @@
 ﻿'use strict';
 
-import { Ellipsoid } from '../../ellipsoid/Ellipsoid.js';
+import { Ellipsoid } from '../../ellipsoid/Ellipsoid';
 import { Entity } from '../../entity/Entity.js';
-import { Events } from '../../Events.js';
+import { Events } from '../../Events';
 import { Vector } from '../../layer/Vector.js';
-import { Vec2 } from '../../math/Vec2.js';
+import { Vec2 } from '../../math/Vec2';
 import { Object3d } from '../../Object3d.js';
 import { RenderNode } from '../../scene/RenderNode.js';
 

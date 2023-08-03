@@ -1,8 +1,8 @@
 "use strict";
 
-import * as math from "../math.js";
-import { Quat } from "../math/Quat.js";
-import { Vec3 } from "../math/Vec3.js";
+import * as math from "../math";
+import { Quat } from "../math/Quat";
+import { Vec3 } from "../math/Vec3";
 import * as astro from "./astro.js";
 import * as jd from "./jd.js";
 

@@ -1,7 +1,7 @@
 import { Layer } from "../layer/Layer.js";
-import { isPowerOfTwo } from "../math.js";
-import * as mercator from "../mercator.js";
-import { getTileExtent } from "../mercator.js";
+import { isPowerOfTwo } from "../math";
+import * as mercator from "../mercator";
+import { getTileExtent } from "../mercator";
 import { GlobusTerrain } from "./GlobusTerrain.js";
 
 const KEY =

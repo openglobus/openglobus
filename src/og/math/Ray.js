@@ -1,7 +1,7 @@
 "use strict";
 
-import { EPS10 } from "../math.js";
-import { Vec3 } from "./Vec3.js";
+import { EPS10 } from "../math";
+import { Vec3 } from "./Vec3";
 
 /**
  * Represents a ray that extends infinitely from the provided origin in the provided direction.

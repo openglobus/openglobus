@@ -1,6 +1,6 @@
 'use strict'
 
-import { getDefault, stringTemplate } from '../utils/shared.js';
+import { getDefault, stringTemplate } from '../utils/shared';
 import { Button } from './Button.js';
 import { CLOSE_ICON } from './icons.js';
 import { View } from './View.js';

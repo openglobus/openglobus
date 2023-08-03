@@ -1,7 +1,7 @@
 "use strict";
 
 import * as shaders from "../shaders/billboard.js";
-import { concatTypedArrays, spliceTypedArray } from "../utils/shared.js";
+import { concatTypedArrays, spliceTypedArray } from "../utils/shared";
 import { LOCK_FREE } from "./LabelWorker.js";
 
 const PICKINGCOLOR_BUFFER = 0;

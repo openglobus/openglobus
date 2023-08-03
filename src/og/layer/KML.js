@@ -2,8 +2,8 @@
 
 import { Billboard } from "../entity/Billboard.js";
 import { Entity } from "../entity/Entity.js";
-import { Extent } from "../Extent.js";
-import { LonLat } from "../LonLat.js";
+import { Extent } from "../Extent";
+import { LonLat } from "../LonLat";
 import { Vector } from "./Vector.js";
 
 /**

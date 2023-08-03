@@ -1,7 +1,7 @@
 "use strict";
 
-import { Extent } from "../Extent.js";
-import * as mercator from "../mercator.js";
+import * as mercator from "../mercator";
+import { Extent } from "../Extent";
 import { Node } from "../quadTree/Node.js";
 import * as quadTree from "../quadTree/quadTree.js";
 import { Segment } from "../segment/Segment.js";

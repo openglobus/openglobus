@@ -1,10 +1,10 @@
 "use strict";
 
 import { Sphere } from "../bv/Sphere.js";
-import { LonLat } from "../LonLat.js";
-import { Quat } from "../math/Quat.js";
+import { LonLat } from "../LonLat";
+import { Quat } from "../math/Quat";
 import { Ray } from "../math/Ray.js";
-import { Vec3 } from "../math/Vec3.js";
+import { Vec3 } from "../math/Vec3";
 import { Control } from "./Control.js";
 
 class Touch {

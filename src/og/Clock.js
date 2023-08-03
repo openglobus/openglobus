@@ -1,7 +1,7 @@
 "use strict";
 
 import * as jd from "./astro/jd.js";
-import { Events } from "./Events.js";
+import { Events } from "./Events";
 
 /**
  * Class represents application timer that stores custom current julian datetime, and time speed multiplier.

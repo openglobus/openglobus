@@ -1,9 +1,4 @@
 // #StandWithUkraine
-
-/**
- * @module og/Globe
- */
-
 "use strict";
 
 import { CompassButton } from "./control/CompassButton.js";
@@ -14,11 +9,10 @@ import { ScaleControl } from "./control/ScaleControl.js";
 import { Sun } from "./control/Sun.js";
 import { TouchNavigation } from "./control/TouchNavigation.js";
 import { ZoomControl } from "./control/ZoomControl.js";
-import { Vec3 } from "./math/Vec3.js";
 import { Renderer } from "./renderer/Renderer.js";
 import { Planet } from "./scene/Planet.js";
 import { EmptyTerrain } from "./terrain/EmptyTerrain.js";
-import { createColorRGB, getUrlParam, isEmpty } from "./utils/shared.js";
+import { createColorRGB, getUrlParam, isEmpty } from "./utils/shared";
 import { Handler } from "./webgl/Handler.js";
 
 /** @const {string} */
