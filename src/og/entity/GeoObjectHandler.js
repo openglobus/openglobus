@@ -1,7 +1,7 @@
 "use strict";
 
 import * as shaders from "../shaders/geoObject.js";
-import { concatArrays, loadImage, makeArrayTyped, spliceArray } from "../utils/shared.js";
+import { concatArrays, loadImage, makeArrayTyped, spliceArray } from "../utils/shared";
 
 const VERTEX_BUFFER = 0;
 const POSITION_BUFFER = 1;

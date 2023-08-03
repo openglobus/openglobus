@@ -4,7 +4,7 @@ import { Extent } from "../Extent";
 import { LonLat } from "../LonLat";
 import { Vec3 } from "../math/Vec3";
 import * as mercator from "../mercator";
-import * as utils from "../utils/shared.js";
+import * as utils from "../utils/shared";
 import { Billboard } from "./Billboard.js";
 import { Geometry } from "./Geometry.js";
 import { GeoObject } from "./GeoObject.js";

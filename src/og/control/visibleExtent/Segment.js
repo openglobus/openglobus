@@ -11,7 +11,7 @@ import * as mercator from "../../mercator";
 import { EPSG3857 } from "../../proj/EPSG3857.js";
 import { E, N, NOTRENDERING, OPSIDE, S, W } from "../../quadTree/quadTree.js";
 import * as segmentHelper from "../../segment/segmentHelper.js";
-import { getMatrixSubArray } from "../../utils/shared.js";
+import { getMatrixSubArray } from "../../utils/shared";
 
 export const MAX_NORMAL_ZOOM = 7;
 

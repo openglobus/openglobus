@@ -1,53 +1,53 @@
 "use strict";
 
-import { binaryInsert, stamp } from "./utils/shared.js";
+import {binaryInsert, stamp} from "./utils/shared";
 
 /**
  * Base events class to handle custom events.
  * @class
+ * @param {Array.<string>} [eventNames] - Event names that could be dispatched.
+ * @param {*} [sender]
  */
 class Events {
+
     /**
-     *
-     * @param {Array.<string>} [eventNames] - Event names that could be dispatched.
-     * @param {*} [sender]
+     * Registered event names.
+     * @protected
+     * @type {Array.<string>}
      */
-    constructor(eventNames, sender) {
-        /**
-         * Registered event names.
-         * @protected
-         * @type {Array.<string>}
-         */
+    protected _eventNames: string[];
+
+    protected _sender: any;
+
+    /**
+     * Stop propagation flag
+     * @protected
+     * @type {boolean}
+     */
+    protected _stopPropagation: boolean;
+
+    protected _stampCache: any;
+
+    protected __id: number;
+
+    static __counter__: number;
+
+    constructor(eventNames?: string[], sender?: any) {
+
+        this.__id = Events.__counter__++;
+
         this._eventNames = [];
 
         eventNames && this.registerNames(eventNames);
 
         this._sender = sender || this;
 
-        /**
-         * Stop propagation flag
-         * @protected
-         * @type {boolean}
-         */
         this._stopPropagation = false;
 
         this._stampCache = {};
-
-        this.__id = Events._staticCounter++;
     }
 
-    static get _staticCounter() {
-        if (!this.__counter__ && this.__counter__ !== 0) {
-            this.__counter__ = 0;
-        }
-        return this.__counter__;
-    }
-
-    static set _staticCounter(n) {
-        this.__counter__ = n;
-    }
-
-    bindSender(sender) {
+    public bindSender(sender?: any) {
         this._sender = sender || this;
     }
 
@@ -56,14 +56,17 @@ class Events {
      * @public
      * @param {Array.<string>} eventNames - Specified event names list.
      */
-    registerNames(eventNames) {
+    public registerNames(eventNames: string[]) {
         for (let i = 0; i < eventNames.length; i++) {
-            this[eventNames[i]] = { active: true, handlers: [] };
+            (this as any)[eventNames[i]] = {
+                active: true,
+                handlers: []
+            };
             this._eventNames.push(eventNames[i]);
         }
     }
 
-    _getStamp(name, id, ogid) {
+    protected _getStamp(name: string, id: number, ogid: number) {
         return `${name}_${id}_${ogid}`;
     }
 
@@ -74,10 +77,9 @@ class Events {
      * @param {Object} obj - Event callback.
      * @return {boolean} -
      */
-    _stamp(name, obj) {
-        var ogid = stamp(obj);
-
-        var st = this._getStamp(name, this.__id, ogid);
+    protected _stamp(name: string, obj: any) {
+        let ogid = stamp(obj);
+        let st = this._getStamp(name, this.__id, ogid);
 
         if (!this._stampCache[st]) {
             this._stampCache[st] = ogid;
@@ -91,17 +93,17 @@ class Events {
      * Attach listener.
      * @public
      * @param {string} name - Event name to listen.
-     * @param {eventCallback} callback - Event callback function.
+     * @param {any} callback - Event callback function.
      * @param {any} [sender] - Event callback function owner.
      * @param {number} [priority] - Priority of event callback.
      */
-    on(name, callback, sender, priority = 0) {
+    public on(name: string, callback: any, sender?: any, priority: number = 0) {
         if (this._stamp(name, callback)) {
-            if (this[name]) {
+            if ((this as any)[name]) {
                 let c = callback.bind(sender || this._sender);
                 c._openglobus_id = callback._openglobus_id;
                 c._openglobus_priority = priority;
-                binaryInsert(this[name].handlers, c, (a, b) => {
+                binaryInsert((this as any)[name].handlers, c, (a: any, b: any) => {
                     return b._openglobus_priority - a._openglobus_priority;
                 });
             }
@@ -112,17 +114,17 @@ class Events {
      * Stop listening event name with specified callback function.
      * @public
      * @param {string} name - Event name.
-     * @param {eventCallback} callback - Attached  event callback.
+     * @param {any} callback - Attached  event callback.
      */
-    off(name, callback) {
+    public off(name: string, callback: any) {
         if (callback) {
-            var st = this._getStamp(name, this.__id, callback._openglobus_id);
+            let st = this._getStamp(name, this.__id, callback._openglobus_id);
             if (callback._openglobus_id && this._stampCache[st]) {
-                var h = this[name].handlers;
-                var i = h.length;
-                var indexToRemove = -1;
+                let h = (this as any)[name].handlers;
+                let i = h.length;
+                let indexToRemove = -1;
                 while (i--) {
-                    var hi = h[i];
+                    let hi = h[i];
                     if (hi._openglobus_id === callback._openglobus_id) {
                         indexToRemove = i;
                         break;
@@ -144,7 +146,7 @@ class Events {
      * @param {Object} event - Event instance property that created by event name.
      * @param {Object} [obj] - Event object.
      */
-    dispatch(event, ...args) {
+    public dispatch(event: any, ...args: any[]) {
         let result = true;
         if (event && event.active && !this._stopPropagation) {
             let h = event.handlers.slice(0),
@@ -163,7 +165,7 @@ class Events {
      * Brakes events propagation.
      * @public
      */
-    stopPropagation() {
+    public stopPropagation() {
         this._stopPropagation = true;
     }
 
@@ -171,9 +173,9 @@ class Events {
      * Removes all events.
      * @public
      */
-    clear() {
+    public clear() {
         for (let i = 0; i < this._eventNames.length; i++) {
-            var e = this[this._eventNames[i]];
+            let e = (this as any)[this._eventNames[i]];
             e.handlers.length = 0;
             e.handlers = [];
         }
@@ -182,4 +184,4 @@ class Events {
     }
 }
 
-export { Events };
+export {Events};

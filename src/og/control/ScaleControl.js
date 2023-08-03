@@ -2,7 +2,7 @@
 
 import { RADIANS } from "../math";
 import { Vec3 } from "../math/Vec3";
-import { binarySearch, parseHTML } from "../utils/shared.js";
+import { binarySearch, parseHTML } from "../utils/shared";
 import { Control } from "./Control.js";
 
 const scale = [

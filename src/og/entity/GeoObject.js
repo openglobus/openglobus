@@ -1,8 +1,7 @@
 "use strict";
 
 import { Quat, Vec3 } from "../math/index";
-import { Planet } from "../scene/Planet.js";
-import * as utils from "../utils/shared.js";
+import * as utils from "../utils/shared";
 
 /**
  * @class

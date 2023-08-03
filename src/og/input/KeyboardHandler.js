@@ -1,7 +1,7 @@
 'use strict';
 
 import { input } from './input.js';
-import { stamp } from "../utils/shared.js";
+import { stamp } from "../utils/shared";
 
 const STAMP_SPACER = "_";
 

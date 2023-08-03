@@ -5,6 +5,13 @@ import {Quat} from "./Quat";
 import {Vec3} from "./Vec3";
 import {Vec4} from "./Vec4";
 
+type NumberArray16 = [
+    number, number, number, number,
+    number, number, number, number,
+    number, number, number, number,
+    number, number, number, number
+];
+
 /**
  * Class represents a 4x4 matrix.
  * @class
@@ -16,7 +23,12 @@ export class Mat4 {
      * @public
      * @type {Array.<number>}
      */
-    public _m: number[] = new Array(16);
+    public _m: NumberArray16 = [
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0
+    ];
 
     constructor() {
     }
@@ -53,7 +65,7 @@ export class Mat4 {
      * @param {Array.<number>} m - Matrix array.
      * @returns {Mat4} -
      */
-    public set(m: number[]): Mat4 {
+    public set(m: NumberArray16): Mat4 {
         this._m[0] = m[0];
         this._m[1] = m[1];
         this._m[2] = m[2];

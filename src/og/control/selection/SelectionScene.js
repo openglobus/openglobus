@@ -2,7 +2,7 @@
 
 import { Ellipsoid } from '../../ellipsoid/Ellipsoid';
 import { Entity } from '../../entity/Entity.js';
-import { Events } from '../../Events.js';
+import { Events } from '../../Events';
 import { Vector } from '../../layer/Vector.js';
 import { LonLat } from '../../LonLat';
 import { Object3d } from '../../Object3d.js';

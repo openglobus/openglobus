@@ -1,7 +1,7 @@
 'use strict';
 
 import { LonLat } from '../LonLat';
-import { throttle } from '../utils/shared.js';
+import { throttle } from '../utils/shared';
 import * as units from '../utils/units.js';
 import { heightMode } from '../utils/units.js';
 import { Control } from './Control.js';

@@ -1,6 +1,6 @@
 'use strict';
 
-import { Events } from '../Events.js';
+import { Events } from '../Events';
 
 // if (window && !('createImageBitmap' in window)) {
 //     window.createImageBitmap = function (blob) {

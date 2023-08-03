@@ -2,11 +2,11 @@
 
 import { Clock } from "../Clock.js";
 import { cons } from "../cons.js";
-import { Events } from "../Events.js";
+import { Events } from "../Events";
 import { ImageCanvas } from "../ImageCanvas.js";
-import { Vec2 } from "../math/Vec2.js";
+import { Vec2 } from "../math/Vec2";
 import { Stack } from "../Stack.js";
-import { getUrlParam, isEmpty } from "../utils/shared.js";
+import { getUrlParam, isEmpty } from "../utils/shared";
 import { ProgramController } from "./ProgramController.js";
 
 const vendorPrefixes = ["", "WEBKIT_", "MOZ_"];

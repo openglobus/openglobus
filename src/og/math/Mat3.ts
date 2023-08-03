@@ -3,6 +3,12 @@
 import {Mat4} from "./Mat4";
 import {Vec3} from "./Vec3";
 
+type NumberArray9 = [
+    number, number, number,
+    number, number, number,
+    number, number, number
+];
+
 /**
  * Class represents a 3x3 matrix.
  * @class
@@ -14,7 +20,11 @@ export class Mat3 {
      * @public
      * @type {Array.<number>}
      */
-    public _m: number[] = new Array(9);
+    public _m: NumberArray9 = [
+        0, 0, 0,
+        0, 0, 0,
+        0, 0, 0
+    ];
 
     constructor() {
     }
@@ -25,7 +35,7 @@ export class Mat3 {
      * @param {Array.<number>} m - Matrix array.
      * @returns {Mat3}
      */
-    public set(m: number[]): Mat3 {
+    public set(m: NumberArray9): Mat3 {
         this._m[0] = m[0];
         this._m[1] = m[1];
         this._m[2] = m[2];

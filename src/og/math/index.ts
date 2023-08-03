@@ -5,7 +5,7 @@ import { Mat4 } from './Mat4';
 import { Plane } from './Plane.js';
 import { Quat } from './Quat';
 import { Ray } from './Ray.js';
-import { Vec2 } from './Vec2.js';
+import { Vec2 } from './Vec2';
 import { Vec3 } from './Vec3';
 import { Vec4 } from './Vec4';
 

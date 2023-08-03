@@ -1,8 +1,8 @@
 'use strict';
 
 
-import { Events } from '../Events.js';
-import { parseHTML, stringTemplate } from '../utils/shared.js';
+import { Events } from '../Events';
+import { parseHTML, stringTemplate } from '../utils/shared';
 
 class View {
     constructor(options = {}) {

@@ -3,7 +3,7 @@
  */
 "use strict";
 
-import { Events } from "../Events.js";
+import { Events } from "../Events";
 import * as mercator from "../mercator";
 import { EPSG3857 } from "../proj/EPSG3857.js";
 import { NOTRENDERING } from "../quadTree/quadTree.js";
@@ -15,7 +15,7 @@ import { Layer } from "../layer/Layer.js";
 import { LonLat } from "../LonLat";
 import { Ray } from "../math/Ray.js";
 import { Vec3 } from "../math/Vec3";
-import { createExtent, stringTemplate } from "../utils/shared.js";
+import { createExtent, stringTemplate } from "../utils/shared";
 
 const EVENT_NAMES = [
     /**

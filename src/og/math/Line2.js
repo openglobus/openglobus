@@ -1,6 +1,6 @@
 'use strict';
 
-import { Vec2 } from './Vec2.js';
+import { Vec2 } from './Vec2';
 
 export class Line2 {
     constructor(a = 0, b = 0, c = 0) {

@@ -7,7 +7,7 @@ import { Quat } from "../math/Quat";
 import { Ray } from "../math/Ray.js";
 import { Vec3 } from "../math/Vec3";
 import { Control } from "./Control.js";
-import { Vec2 } from "../math/Vec2.js";
+import { Vec2 } from "../math/Vec2";
 import { math } from "../index";
 
 class Touch {

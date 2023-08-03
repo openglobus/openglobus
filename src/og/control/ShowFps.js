@@ -1,6 +1,6 @@
 "use strict";
 
-import { print2d } from "../utils/shared.js";
+import { print2d } from "../utils/shared";
 import { Control } from "./Control.js";
 
 /**

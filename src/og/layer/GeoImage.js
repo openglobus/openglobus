@@ -2,7 +2,7 @@
 
 import { nextHighestPowerOfTwo } from "../math";
 import { BaseGeoImage } from "./BaseGeoImage.js";
-import { isImageLoaded } from "../utils/shared.js";
+import { isImageLoaded } from "../utils/shared";
 
 /**
  * Used to load and display a single image over specific corner coordinates on the globe, implements og.layer.BaseGeoImage interface.

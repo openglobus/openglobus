@@ -1,7 +1,7 @@
 'use strict';
 
 import { LonLat } from '../LonLat';
-import * as utils from '../utils/shared.js';
+import * as utils from '../utils/shared';
 import { Framebuffer } from '../webgl/Framebuffer.js';
 import { Program } from '../webgl/Program.js';
 import { doubleToTwoFloats2 } from "../math/coder.js";

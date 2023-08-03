@@ -12,7 +12,7 @@ import { ZoomControl } from "./control/ZoomControl.js";
 import { Renderer } from "./renderer/Renderer.js";
 import { Planet } from "./scene/Planet.js";
 import { EmptyTerrain } from "./terrain/EmptyTerrain.js";
-import { createColorRGB, getUrlParam, isEmpty } from "./utils/shared.js";
+import { createColorRGB, getUrlParam, isEmpty } from "./utils/shared";
 import { Handler } from "./webgl/Handler.js";
 
 /** @const {string} */

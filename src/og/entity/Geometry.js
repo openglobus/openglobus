@@ -3,7 +3,7 @@
 import { Extent } from "../Extent";
 import { LonLat } from "../LonLat";
 import { Vec4 } from "../math/Vec4";
-import * as utils from "../utils/shared.js";
+import * as utils from "../utils/shared";
 
 const GeometryType = {
     POINT: 1,

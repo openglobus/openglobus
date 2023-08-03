@@ -1,6 +1,6 @@
 "use strict";
 
-import { Events } from "../Events.js";
+import { Events } from "../Events";
 import * as math from "../math";
 import { BillboardHandler } from "./BillboardHandler.js";
 import { GeoObjectHandler } from "./GeoObjectHandler.js";

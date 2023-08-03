@@ -6,7 +6,7 @@ import { Vec3 } from "../math/Vec3";
 import {
     cloneArray, htmlColorToFloat32Array,
     htmlColorToRgba, makeArray, makeArrayTyped
-} from "../utils/shared.js";
+} from "../utils/shared";
 
 window.POLYLINE_DEPTH_OFFSET = 0.0;
 

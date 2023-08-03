@@ -7,7 +7,7 @@ import { Vec3 } from "../math/Vec3";
 import { MAX_LAT } from "../mercator";
 import { EPSG3857 } from "../proj/EPSG3857.js";
 import { EPSG4326 } from "../proj/EPSG4326.js";
-import { getMatrixSubArray, getMatrixSubArrayBoundsExt } from "../utils/shared.js";
+import { getMatrixSubArray, getMatrixSubArrayBoundsExt } from "../utils/shared";
 import {
     COMSIDE,
     E,
