@@ -2,10 +2,16 @@
 
 import {binaryInsert, stamp} from "./utils/shared";
 
-type EventHandlers = Array<() => void>;
+type EventCallbacks = Array<() => void>;
 
-export type EventsMap<T extends readonly string[]> = {
-    [K in T[number]]: { active: boolean; handlers: EventHandlers }
+type EventsMap<T extends readonly string[]> = {
+    [K in T[number]]: { active: boolean; handlers: EventCallbacks }
+}
+
+export type Events<T> = EventsHandler<T> & EventsMap<T>;
+
+export function createEvents<T extends string[]>(methodNames: T, sender?: any) {
+    return new EventsHandler(methodNames, sender) as Events<T>;
 }
 
 /**
@@ -14,7 +20,7 @@ export type EventsMap<T extends readonly string[]> = {
  * @param {Array.<string>} [eventNames] - Event names that could be dispatched.
  * @param {*} [sender]
  */
-class Events<T extends string[]> implements EventsMap<T> {
+class EventsHandler<T extends string[]> implements EventsMap<T> {
 
 
     /**
@@ -42,7 +48,7 @@ class Events<T extends string[]> implements EventsMap<T> {
 
     constructor(eventNames: T, sender?: any) {
 
-        this.__id = Events.__counter__++;
+        this.__id = EventsHandler.__counter__++;
 
         this._eventNames = [] as T;
 
@@ -53,10 +59,6 @@ class Events<T extends string[]> implements EventsMap<T> {
         this._stopPropagation = false;
 
         this._stampCache = {};
-    }
-
-    static create<T extends string[]>(methodNames: T, sender?: any) {
-        return new Events(methodNames, sender) as Events<T> & EventsMap<T>
     }
 
     public bindSender(sender?: any) {
@@ -195,5 +197,3 @@ class Events<T extends string[]> implements EventsMap<T> {
         this._eventNames = [] as T;
     }
 }
-
-export {Events};

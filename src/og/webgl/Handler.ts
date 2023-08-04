@@ -5,7 +5,7 @@ import { cons } from "../cons.js";
 import { Events } from "../Events";
 import { ImageCanvas } from "../ImageCanvas.js";
 import { Vec2 } from "../math/Vec2";
-import { Stack } from "../Stack.js";
+import { Stack } from "../Stack";
 import { getUrlParam, isEmpty } from "../utils/shared";
 import { ProgramController } from "./ProgramController.js";
 
