@@ -1,17 +1,20 @@
 "use strict";
 
 import {Clock} from "../Clock";
-import {Events, createEvents} from "../Events";
+import {EventsHandler, createEvents} from "../Events";
 import {ImageCanvas} from "../ImageCanvas";
 import {Vec2} from "../math/Vec2";
 import {Stack} from "../Stack";
 import {getUrlParam, isEmpty} from "../utils/shared";
 
+type WebGLContextExt = { type: string } & WebGL2RenderingContext;
 
 //@ts-ignore
 import {cons} from "../cons.js";
 //@ts-ignore
 import {ProgramController} from "./ProgramController.js";
+//@ts-ignore
+import {Program} from "./ProgramC.js";
 //@ts-ignore
 import {Framebuffer} from "./Framebuffer.js";
 //@ts-ignore
@@ -37,7 +40,7 @@ const MAX_LEVELS = 2;
  */
 class Handler {
 
-    public events: Events<["visibilitychange", "resize"]>;
+    public events: EventsHandler<["visibilitychange", "resize"]>;
 
     /**
      * Application default timer.
@@ -72,7 +75,7 @@ class Handler {
      * @public
      * @type {Object}
      */
-    public gl: WebGLRenderingContext | WebGL2RenderingContext | null;
+    public gl: WebGLContextExt | null;
 
     /**
      * Shader program controller list.
@@ -133,6 +136,18 @@ class Handler {
     public createTextureDefault: any | null;
 
     public ONCANVASRESIZE: Function | null;
+
+    public createTexture_n: Function = () => {
+    };
+    public createTexture_l: Function = () => {
+    };
+    public createTexture_mm: Function = () => {
+    };
+    public createTexture_a: Function = () => {
+    };
+
+    public intersectionObserver?: IntersectionObserver;
+    public resizeObserver?: ResizeObserver;
 
     constructor(canvasTarget: string | HTMLCanvasElement | undefined, params: any = {}) {
 
@@ -222,7 +237,10 @@ class Handler {
      * @param {String} name - Extension name.
      * @returns {Object} -
      */
-    static getExtension(gl: WebGLRenderingContext | WebGL2RenderingContext, name: string): string | undefined {
+    static getExtension(gl: WebGLRenderingContext | WebGL2RenderingContext | null, name: string): string | undefined {
+
+        if (!gl) return;
+
         let i, ext;
         for (i in vendorPrefixes) {
             ext = gl.getExtension(vendorPrefixes[i] + name);
@@ -238,18 +256,20 @@ class Handler {
      * @param {Object} [contextAttributes] - See canvas.getContext contextAttributes.
      * @returns {Object} -
      */
-    static getContext(canvas, contextAttributes) {
-        let ctx = null;
+    static getContext(canvas: HTMLCanvasElement, contextAttributes?: any): WebGLContextExt | null {
+        let ctx: WebGLContextExt | null = null;
 
         try {
             let urlParams = new URLSearchParams(location.search);
             let ver = urlParams.get('og_ver');
             if (ver) {
-                ctx = canvas.getContext(ver, contextAttributes);
-                ctx.type = ver;
+                ctx = canvas.getContext(ver, contextAttributes) as WebGLContextExt;
+                if (ctx) {
+                    ctx.type = ver;
+                }
             } else {
                 for (let i = 0; i < CONTEXT_TYPE.length; i++) {
-                    ctx = canvas.getContext(CONTEXT_TYPE[i], contextAttributes);
+                    ctx = canvas.getContext(CONTEXT_TYPE[i], contextAttributes) as WebGLContextExt;
                     if (ctx) {
                         ctx.type = CONTEXT_TYPE[i];
                         break;
@@ -300,6 +320,7 @@ class Handler {
 
         let gl = this.gl;
         if (!gl) return;
+
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
@@ -333,10 +354,11 @@ class Handler {
     public createEmptyTexture_n(
         width: number,
         height: number,
-        internalFormat: any | undefined): WebGLTexture | undefined {
+        internalFormat?: number): WebGLTexture | undefined {
 
         let gl = this.gl;
         if (!gl) return;
+
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
@@ -367,9 +389,14 @@ class Handler {
      * @param {number} height - Empty texture height.
      * @returns {Object} - WebGL texture object.
      */
-    public createEmptyTexture_l(width: number, height: number, internalFormat: number | undefined): WebGLTexture | undefined {
+    public createEmptyTexture_l(
+        width: number,
+        height: number,
+        internalFormat?: number): WebGLTexture | undefined {
+
         let gl = this.gl;
         if (!gl) return;
+
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
@@ -379,6 +406,7 @@ class Handler {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.bindTexture(gl.TEXTURE_2D, null as any);
+
         return texture;
     }
 
@@ -388,8 +416,14 @@ class Handler {
      * @param {HTMLCanvasElement | Image} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_n_webgl1(image, internalFormat, texture) {
+    public createTexture_n_webgl1(
+        image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
+        internalFormat?: number,
+        texture?: WebGLTexture): WebGLTexture | undefined {
+
         let gl = this.gl;
+        if (!gl) return;
+
         texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
@@ -398,7 +432,8 @@ class Handler {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindTexture(gl.TEXTURE_2D, null as any);
+
         return texture;
     }
 
@@ -408,8 +443,14 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_l_webgl1(image, internalFormat, texture) {
+    public createTexture_l_webgl1(
+        image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
+        internalFormat?: number,
+        texture?: WebGLTexture): WebGLTexture | undefined {
+
         let gl = this.gl;
+        if (!gl) return;
+
         texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
@@ -417,7 +458,8 @@ class Handler {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindTexture(gl.TEXTURE_2D, null as any);
+
         return texture;
     }
 
@@ -427,8 +469,14 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_mm_webgl1(image, internalFormat, texture) {
+    public createTexture_mm_webgl1(
+        image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
+        internalFormat?: number,
+        texture?: WebGLTexture): WebGLTexture | undefined {
+
         let gl = this.gl;
+        if (!gl) return;
+
         texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
@@ -437,7 +485,8 @@ class Handler {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindTexture(gl.TEXTURE_2D, null as any);
+
         return texture;
     }
 
@@ -447,8 +496,14 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_a_webgl1(image, internalFormat, texture) {
+    public createTexture_a_webgl1(
+        image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
+        internalFormat?: number,
+        texture?: WebGLTexture): WebGLTexture | undefined {
+
         let gl = this.gl;
+        if (!gl) return;
+
         texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
@@ -458,7 +513,8 @@ class Handler {
         gl.texParameterf(gl.TEXTURE_2D, this.extensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this._params.anisotropy);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindTexture(gl.TEXTURE_2D, null as any);
+
         return texture;
     }
 
@@ -468,8 +524,14 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_n_webgl2(image, internalFormat, texture) {
+    public createTexture_n_webgl2(
+        image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
+        internalFormat?: number,
+        texture?: WebGLTexture): WebGLTexture | undefined {
+
         let gl = this.gl;
+        if (!gl) return;
+
         texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
@@ -480,7 +542,8 @@ class Handler {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindTexture(gl.TEXTURE_2D, null as any);
+
         return texture;
     }
 
@@ -490,8 +553,14 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_l_webgl2(image, internalFormat, texture) {
+    public createTexture_l_webgl2(
+        image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
+        internalFormat?: number,
+        texture?: WebGLTexture): WebGLTexture | undefined {
+
         let gl = this.gl;
+        if (!gl) return;
+
         texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
@@ -502,7 +571,8 @@ class Handler {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindTexture(gl.TEXTURE_2D, null as any);
+
         return texture;
     }
 
@@ -512,8 +582,14 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_mm_webgl2(image, internalFormat, texture) {
+    public createTexture_mm_webgl2(
+        image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
+        internalFormat?: number,
+        texture?: WebGLTexture): WebGLTexture | undefined {
+
         let gl = this.gl;
+        if (!gl) return;
+
         texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
@@ -523,7 +599,8 @@ class Handler {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindTexture(gl.TEXTURE_2D, null as any);
+
         return texture;
     }
 
@@ -533,8 +610,14 @@ class Handler {
      * @param {Object} image - Image or Canvas object.
      * @returns {Object} - WebGL texture object.
      */
-    createTexture_a_webgl2(image, internalFormat, texture) {
+    public createTexture_a_webgl2(
+        image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
+        internalFormat?: number,
+        texture?: WebGLTexture): WebGLTexture | undefined {
+
         let gl = this.gl;
+        if (!gl) return;
+
         texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
@@ -546,7 +629,7 @@ class Handler {
         gl.texParameterf(gl.TEXTURE_2D, this.extensions.EXT_texture_filter_anisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this._params.anisotropy);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindTexture(gl.TEXTURE_2D, null as any);
         return texture;
     }
 
@@ -562,8 +645,11 @@ class Handler {
      * @param {string} params.nz - Negative Z or back image url.
      * @returns {Object} - WebGL texture object.
      */
-    loadCubeMapTexture(params) {
+    public loadCubeMapTexture(params: any): WebGLTexture | undefined {
+
         let gl = this.gl;
+        if (!gl) return;
+
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -595,11 +681,13 @@ class Handler {
             let face = faces[i][1];
             let image = new Image();
             image.crossOrigin = "";
-            image.onload = (function (texture, face, image) {
+            image.onload = (function (texture: WebGLTexture, face: number, image: HTMLImageElement) {
                 return function () {
-                    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
-                    //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-                    gl.texImage2D(face, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                    if (gl) {
+                        gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+                        //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+                        gl.texImage2D(face, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                    }
                 };
             })(texture, face, image);
             image.src = faces[i][0];
@@ -614,7 +702,7 @@ class Handler {
      * @param {boolean} [notActivate] - If it's true program will not compile.
      * @return {Program} -
      */
-    addProgram(program, notActivate) {
+    public addProgram(program: Program, notActivate: boolean = false): Program {
         if (!this.programs[program.name]) {
             let sc = new ProgramController(this, program);
             this.programs[program.name] = sc;
@@ -623,7 +711,7 @@ class Handler {
                 sc._activated = false;
             }
         } else {
-            console.log(
+            console.warn(
                 "og.webgl.Handler:284 - shader program: '" + program.name + "' is allready exists."
             );
         }
@@ -635,7 +723,7 @@ class Handler {
      * @public
      * @param {String} name - Shader program name.
      */
-    removeProgram(name) {
+    public removeProgram(name: string) {
         this.programs[name] && this.programs[name].remove();
     }
 
@@ -644,7 +732,7 @@ class Handler {
      * @public
      * @param {Array.<Program>} programsArr - Shader program array.
      */
-    addPrograms(programsArr) {
+    public addPrograms(programsArr: Program[]) {
         for (let i = 0; i < programsArr.length; i++) {
             this.addProgram(programsArr[i]);
         }
@@ -655,7 +743,7 @@ class Handler {
      * @private
      * @param {ProgramController} sc - Program controller
      */
-    _initProgramController(sc) {
+    protected _initProgramController(sc: ProgramController) {
         if (this._initialized) {
             sc.initialize();
             if (!this.activeProgram) {
@@ -673,7 +761,7 @@ class Handler {
      * Used in init function.
      * @private
      */
-    _initPrograms() {
+    protected _initPrograms() {
         for (let p in this.programs) {
             this._initProgramController(this.programs[p]);
         }
@@ -686,13 +774,13 @@ class Handler {
      * @param {boolean} showLog - Show logging.
      * @return {Object} -
      */
-    initializeExtension(extensionStr, showLog) {
+    public initializeExtension(extensionStr: string, showLog: boolean = false) {
         if (!(this.extensions && this.extensions[extensionStr])) {
             let ext = Handler.getExtension(this.gl, extensionStr);
             if (ext) {
                 this.extensions[extensionStr] = ext;
             } else if (showLog) {
-                console.log(
+                console.warn(
                     "og.webgl.Handler: extension '" + extensionStr + "' doesn't initialize."
                 );
             }
@@ -704,77 +792,81 @@ class Handler {
      * Main function that initialize handler.
      * @public
      */
-    initialize() {
+    public initialize() {
 
         if (this._initialized) return;
 
+        if (!this.canvas) return;
+
         this.gl = Handler.getContext(this.canvas, this._params.context);
 
-        if (this.gl) {
-            this._initialized = true;
+        if (!this.gl) return;
 
-            /** Sets default extensions */
-            this._params.extensions.push("EXT_texture_filter_anisotropic");
+        this._initialized = true;
 
-            if (this.gl.type === "webgl") {
-                this._params.extensions.push("OES_standard_derivatives");
-                this._params.extensions.push("OES_element_index_uint");
-                this._params.extensions.push("WEBGL_depth_texture");
-                this._params.extensions.push("ANGLE_instanced_arrays");
-                //this._params.extensions.push("WEBGL_draw_buffers");
-                //this._params.extensions.push("EXT_frag_depth");
-            } else {
-                this._params.extensions.push("EXT_color_buffer_float");
-                this._params.extensions.push("OES_texture_float_linear");
-                //this._params.extensions.push("WEBGL_draw_buffers");
-            }
+        /** Sets default extensions */
+        this._params.extensions.push("EXT_texture_filter_anisotropic");
 
-            let i = this._params.extensions.length;
-            while (i--) {
-                this.initializeExtension(this._params.extensions[i], true);
-            }
-
-            if (this.gl.type === "webgl") {
-                this.createTexture_n = this.createTexture_n_webgl1.bind(this);
-                this.createTexture_l = this.createTexture_l_webgl1.bind(this);
-                this.createTexture_mm = this.createTexture_mm_webgl1.bind(this);
-                this.createTexture_a = this.createTexture_a_webgl1.bind(this);
-            } else {
-                this.createTexture_n = this.createTexture_n_webgl2.bind(this);
-                this.createTexture_l = this.createTexture_l_webgl2.bind(this);
-                this.createTexture_mm = this.createTexture_mm_webgl2.bind(this);
-                this.createTexture_a = this.createTexture_a_webgl2.bind(this);
-            }
-
-            this.createTexture["NEAREST"] = this.createTexture_n;
-            this.createTexture["LINEAR"] = this.createTexture_l;
-            this.createTexture["MIPMAP"] = this.createTexture_mm;
-            this.createTexture["ANISOTROPIC"] = this.createTexture_a;
-
-            if (!this.extensions.EXT_texture_filter_anisotropic) {
-                this.createTextureDefault = this.createTexture_mm;
-            } else {
-                this.createTextureDefault = this.createTexture_a;
-            }
-
-            /** Initilalize shaders and rendering parameters*/
-            this._initPrograms();
-            this._setDefaults();
-
-            this.intersectionObserver = new IntersectionObserver((entries) => {
-                this._toggleVisibilityChange(entries[0].isIntersecting === true);
-            }, {threshold: 0});
-            this.intersectionObserver.observe(this.canvas);
-
-            this.resizeObserver = new ResizeObserver(entries => {
-                this._toggleVisibilityChange(entries[0].contentRect.width !== 0 && entries[0].contentRect.height !== 0);
-            });
-            this.resizeObserver.observe(this.canvas);
-
-            document.addEventListener("visibilitychange", () => {
-                this._toggleVisibilityChange(document.visibilityState === 'visible');
-            });
+        if (this.gl.type === "webgl") {
+            this._params.extensions.push("OES_standard_derivatives");
+            this._params.extensions.push("OES_element_index_uint");
+            this._params.extensions.push("WEBGL_depth_texture");
+            this._params.extensions.push("ANGLE_instanced_arrays");
+            //this._params.extensions.push("WEBGL_draw_buffers");
+            //this._params.extensions.push("EXT_frag_depth");
+        } else {
+            this._params.extensions.push("EXT_color_buffer_float");
+            this._params.extensions.push("OES_texture_float_linear");
+            //this._params.extensions.push("WEBGL_draw_buffers");
         }
+
+        let i = this._params.extensions.length;
+        while (i--) {
+            this.initializeExtension(this._params.extensions[i], true);
+        }
+
+        if (this.gl.type === "webgl") {
+            this.createTexture_n = this.createTexture_n_webgl1.bind(this);
+            this.createTexture_l = this.createTexture_l_webgl1.bind(this);
+            this.createTexture_mm = this.createTexture_mm_webgl1.bind(this);
+            this.createTexture_a = this.createTexture_a_webgl1.bind(this);
+        } else {
+            this.createTexture_n = this.createTexture_n_webgl2.bind(this);
+            this.createTexture_l = this.createTexture_l_webgl2.bind(this);
+            this.createTexture_mm = this.createTexture_mm_webgl2.bind(this);
+            this.createTexture_a = this.createTexture_a_webgl2.bind(this);
+        }
+
+        this.createTexture["NEAREST"] = this.createTexture_n;
+        this.createTexture["LINEAR"] = this.createTexture_l;
+        this.createTexture["MIPMAP"] = this.createTexture_mm;
+        this.createTexture["ANISOTROPIC"] = this.createTexture_a;
+
+        if (!this.extensions.EXT_texture_filter_anisotropic) {
+            this.createTextureDefault = this.createTexture_mm;
+        } else {
+            this.createTextureDefault = this.createTexture_a;
+        }
+
+        /** Initilalize shaders and rendering parameters*/
+        this._initPrograms();
+        this._setDefaults();
+
+        this.intersectionObserver = new IntersectionObserver((entries) => {
+            this._toggleVisibilityChange(entries[0].isIntersecting === true);
+        }, {threshold: 0});
+
+        this.intersectionObserver.observe(this.canvas);
+
+        this.resizeObserver = new ResizeObserver(entries => {
+            this._toggleVisibilityChange(entries[0].contentRect.width !== 0 && entries[0].contentRect.height !== 0);
+        });
+
+        this.resizeObserver.observe(this.canvas);
+
+        document.addEventListener("visibilitychange", () => {
+            this._toggleVisibilityChange(document.visibilityState === 'visible');
+        });
     }
 
     _toggleVisibilityChange(visibility) {
@@ -792,8 +884,13 @@ class Handler {
      * Sets default gl render parameters. Used in init function.
      * @private
      */
-    _setDefaults() {
+    protected _setDefaults() {
+
         let gl = this.gl;
+
+        if (!gl) return;
+        if (!this.canvas) return;
+
         gl.depthFunc(gl.LESS);
         gl.enable(gl.DEPTH_TEST);
         this.setSize(

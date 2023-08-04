@@ -8,10 +8,10 @@ type EventsMap<T extends readonly string[]> = {
     [K in T[number]]: { active: boolean; handlers: EventCallbacks }
 }
 
-export type Events<T> = EventsHandler<T> & EventsMap<T>;
+export type EventsHandler<T> = Events<T> & EventsMap<T>;
 
 export function createEvents<T extends string[]>(methodNames: T, sender?: any) {
-    return new EventsHandler(methodNames, sender) as Events<T>;
+    return new Events(methodNames, sender) as EventsHandler<T>;
 }
 
 /**
@@ -20,7 +20,7 @@ export function createEvents<T extends string[]>(methodNames: T, sender?: any) {
  * @param {Array.<string>} [eventNames] - Event names that could be dispatched.
  * @param {*} [sender]
  */
-class EventsHandler<T extends string[]> implements EventsMap<T> {
+export class Events<T extends string[]> implements EventsMap<T> {
 
 
     /**
@@ -48,7 +48,7 @@ class EventsHandler<T extends string[]> implements EventsMap<T> {
 
     constructor(eventNames: T, sender?: any) {
 
-        this.__id = EventsHandler.__counter__++;
+        this.__id = Events.__counter__++;
 
         this._eventNames = [] as T;
 

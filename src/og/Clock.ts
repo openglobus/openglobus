@@ -1,13 +1,13 @@
 "use strict";
 
-import {Events, createEvents} from "./Events";
+import {EventsHandler, createEvents} from "./Events";
 
 //@ts-ignore
 import * as jd from "./astro/jd.js";
 
-type ClockEvents = ["tick", "end", "start", "stop"];
+type ClockEventsList = ["tick", "end", "start", "stop"];
 
-const CLOCK_EVENTS: ClockEvents = ["tick", "end", "start", "stop"];
+const CLOCK_EVENTS: ClockEventsList = ["tick", "end", "start", "stop"];
 
 export interface IClockParams {
     name?: string;
@@ -30,7 +30,7 @@ class Clock {
 
     static __counter__: number;
 
-    public events: Events<ClockEvents>;
+    public events: EventsHandler<ClockEventsList>;
     public name: string;
     public startDate: number;
     public endDate: number;
@@ -55,7 +55,7 @@ class Clock {
          * @public
          * @type {Events}
          */
-        this.events = createEvents<ClockEvents>(CLOCK_EVENTS, this);
+        this.events = createEvents<ClockEventsList>(CLOCK_EVENTS, this);
 
         /**
          * Clock name.
