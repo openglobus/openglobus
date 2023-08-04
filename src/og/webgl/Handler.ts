@@ -1,13 +1,18 @@
 "use strict";
 
-import { Clock } from "../Clock.js";
-import { cons } from "../cons.js";
-import { Events } from "../Events";
-import { ImageCanvas } from "../ImageCanvas.js";
-import { Vec2 } from "../math/Vec2";
-import { Stack } from "../Stack";
-import { getUrlParam, isEmpty } from "../utils/shared";
-import { ProgramController } from "./ProgramController.js";
+import {Clock} from "../Clock";
+import {Events, createEvents} from "../Events";
+import {ImageCanvas} from "../ImageCanvas";
+import {Vec2} from "../math/Vec2";
+import {Stack} from "../Stack";
+import {getUrlParam, isEmpty} from "../utils/shared";
+
+//@ts-ignore
+import {cons} from "../cons.js";
+//@ts-ignore
+import {ProgramController} from "./ProgramController.js";
+import {Framebuffer} from "./Framebuffer";
+import {Multisample} from "./Multisample";
 
 const vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
 
@@ -28,98 +33,141 @@ const MAX_LEVELS = 2;
  * @param {Array.<string>} [params.extensions] - Additional WebGL extension list. Available by default: EXT_texture_filter_anisotropic.
  */
 class Handler {
-    constructor(canvasTarget, params = {}) {
 
-        this.events = new Events(["visibilitychange", "resize"]);
-        /**
-         * Application default timer.
-         * @public
-         * @type {Clock}
-         */
+    public events: Events<["visibilitychange", "resize"]>;
+
+    /**
+     * Application default timer.
+     * @public
+     * @type {Clock}
+     */
+    public defaultClock: Clock;
+
+    /**
+     * Custom timers.
+     * @protected
+     * @type{Clock[]}
+     */
+    protected _clocks: Clock[];
+
+    /**
+     * Draw frame time in milliseconds.
+     * @public
+     * @type {number}
+     */
+    public deltaTime = 0;
+
+    /**
+     * WebGL rendering canvas element.
+     * @public
+     * @type {Object}
+     */
+    public canvas: HTMLCanvasElement | null;
+
+    /**
+     * WebGL context.
+     * @public
+     * @type {Object}
+     */
+    public gl: WebGLRenderingContext | WebGL2RenderingContext | null;
+
+    /**
+     * Shader program controller list.
+     * @public
+     * @type {Object.<ProgramController>}
+     */
+    public programs: any;
+
+    /**
+     * Current active shader program controller.
+     * @public
+     * @type {ProgramController}
+     */
+    public activeProgram: ProgramController | null;
+
+    /**
+     * Handler parameters.
+     * @private
+     * @type {Object}
+     */
+    protected _params: any;
+
+    protected _oneByHeight: number;
+
+    /**
+     * Current WebGL extensions. Becomes here after context initialization.
+     * @public
+     * @type {Object}
+     */
+    public extensions: any;
+
+    /**
+     * HTML Canvas target.
+     * @private
+     * @type {Object}
+     */
+    protected _canvasTarget: string | HTMLCanvasElement | undefined;
+
+    protected _lastAnimationFrameTime: number;
+
+    protected _initialized: boolean;
+
+    /**
+     * Animation frame function assigned from outside(Ex. from Renderer).
+     * @private
+     * @type {Function}
+     */
+    protected _frameCallback: Function;
+
+    public transparentTexture: any | null;
+
+    public defaultTexture: any | null;
+
+    public framebufferStack = new Stack<Framebuffer | Multisample>();
+
+    public createTexture: any;
+
+    public createTextureDefault: any | null;
+
+    public ONCANVASRESIZE: Function | null;
+
+    constructor(canvasTarget: string | HTMLCanvasElement | undefined, params: any = {}) {
+
+        this.events = createEvents<["visibilitychange", "resize"]>(["visibilitychange", "resize"]);
+
         this.defaultClock = new Clock();
 
-        /**
-         * Custom timers.
-         * @protected
-         * @type{Clock[]}
-         */
         this._clocks = [];
 
-        /**
-         * Draw frame time in milliseconds.
-         * @public
-         * @readonly
-         * @type {number}
-         */
         this.deltaTime = 0;
 
-        /**
-         * WebGL rendering canvas element.
-         * @public
-         * @type {Object}
-         */
         this.canvas = null;
 
-        /**
-         * WebGL context.
-         * @public
-         * @type {Object}
-         */
         this.gl = null;
 
-        /**
-         * Shader program controller list.
-         * @public
-         * @type {Object.<og.webgl.ProgramController>}
-         */
         this.programs = {};
 
-        /**
-         * Current active shader program controller.
-         * @public
-         * @type {ProgramController}
-         */
         this.activeProgram = null;
 
-        /**
-         * Handler parameters.
-         * @private
-         * @type {Object}
-         */
-        this._params = params || {};
+        this._params = params;
         this._params.anisotropy = this._params.anisotropy || 4;
         this._params.width = this._params.width || 256;
         this._params.height = this._params.height || 256;
         this._params.pixelRatio = getUrlParam('og_dpi') || this._params.pixelRatio || 1.0;
         this._params.context = this._params.context || {};
         this._params.extensions = this._params.extensions || [];
-        this._oneByHeight = 1.0 / (this._params.height * this._params.pixelRatio);
-
         this._params.context.stencil = true;
 
-        /**
-         * Current WebGL extensions. Becomes here after context initialization.
-         * @public
-         * @type {Object}
-         */
+        this._oneByHeight = 1.0 / (this._params.height * this._params.pixelRatio);
+
         this.extensions = {};
 
-        /**
-         * HTML Canvas target.
-         * @private
-         * @type {Object}
-         */
         this._canvasTarget = canvasTarget;
 
         this._lastAnimationFrameTime = 0;
 
         this._initialized = false;
 
-        /**
-         * Animation frame function assigned from outside(Ex. from Renderer).
-         * @private
-         * @type {frameCallback}
-         */
         this._frameCallback = function () {
         };
 
@@ -147,7 +195,7 @@ class Handler {
         }
     }
 
-    isInitialized() {
+    public isInitialized(): boolean {
         return this._initialized;
     }
 
@@ -685,7 +733,7 @@ class Handler {
 
             this.intersectionObserver = new IntersectionObserver((entries) => {
                 this._toggleVisibilityChange(entries[0].isIntersecting === true);
-            }, { threshold: 0 });
+            }, {threshold: 0});
             this.intersectionObserver.observe(this.canvas);
 
             this.resizeObserver = new ResizeObserver(entries => {
@@ -726,10 +774,10 @@ class Handler {
         gl.cullFace(gl.BACK);
         gl.enable(gl.CULL_FACE);
         gl.disable(gl.BLEND);
-        this.createDefaultTexture({ color: "rgba(0,0,0,0.0)" }, (t) => {
+        this.createDefaultTexture({color: "rgba(0,0,0,0.0)"}, (t) => {
             this.transparentTexture = t;
         });
-        this.createDefaultTexture({ color: "rgba(255, 255, 255, 1.0)" }, (t) => {
+        this.createDefaultTexture({color: "rgba(255, 255, 255, 1.0)"}, (t) => {
             this.defaultTexture = t;
         });
     }
@@ -1165,4 +1213,4 @@ class Handler {
     // });
 }
 
-export { Handler };
+export {Handler};

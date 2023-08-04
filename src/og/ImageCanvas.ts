@@ -3,27 +3,30 @@
 /**
  * Usefull class for working with JS canvas object.
  * @class
+ * @param {number} [width] - Canvas width. Default 256.
+ * @param {number} [height] - Canvas height. Default 256.
  */
 class ImageCanvas {
+
     /**
-     * @param {number} [width] - Canvas width. Default 256.
-     * @param {number} [height] - Canvas height. Default 256.
+     * Canvas object.
+     * @protected
+     * @type {Object}
      */
-    constructor(width = 256, height = 256) {
-        /**
-         * Canvas object.
-         * @protected
-         * @type {Object}
-         */
+    protected _canvas: HTMLCanvasElement;
+
+    /**
+     * Canvas context.
+     * @protected
+     * @type {Object}
+     */
+    protected _context: CanvasRenderingContext2D;
+
+    constructor(width: number = 256, height: number = 256) {
         this._canvas = document.createElement("canvas");
         this._canvas.width = width;
         this._canvas.height = height;
 
-        /**
-         * Canvas context.
-         * @protected
-         * @type {Object}
-         */
         this._context = this._canvas.getContext("2d", {
             willReadFrequently: true
         });
@@ -34,7 +37,7 @@ class ImageCanvas {
      * @public
      * @returns {Object}
      */
-    getCanvas() {
+    public getCanvas(): HTMLCanvasElement {
         return this._canvas;
     }
 
@@ -43,7 +46,7 @@ class ImageCanvas {
      * @public
      * @returns {Object}
      */
-    getContext() {
+    public getContext(): CanvasRenderingContext2D {
         return this._context;
     }
 
@@ -51,9 +54,9 @@ class ImageCanvas {
      * Fills canvas RGBA with zeroes.
      * @public
      */
-    fillEmpty() {
-        var imgd = this._context.getImageData(0, 0, this._canvas.width, this._canvas.height);
-        var pixels = imgd.data;
+    public fillEmpty() {
+        let imgd = this._context.getImageData(0, 0, this._canvas.width, this._canvas.height);
+        let pixels = imgd.data;
         for (let i = 0, n = pixels.length; i < n; i += 4) {
             pixels[i] = pixels[i + 1] = pixels[i + 2] = pixels[i + 3] = 0;
         }
@@ -63,8 +66,9 @@ class ImageCanvas {
     /**
      * Fills canvas RGBA with color.
      * @public
+     * @param {string} color - CSS string color.
      */
-    fill(color) {
+    public fill(color: string) {
         this._context.fillStyle = color
         this._context.fill()
     }
@@ -72,10 +76,10 @@ class ImageCanvas {
     /**
      * Gets canvas pixels RGBA data.
      * @public
-     * @returns {Array.<number>}
+     * @returns {Uint8ClampedArray}
      */
-    getData() {
-        var imgd = this._context.getImageData(0, 0, this._canvas.width, this._canvas.height);
+    public getData(): Uint8ClampedArray {
+        let imgd = this._context.getImageData(0, 0, this._canvas.width, this._canvas.height);
         return imgd.data;
     }
 
@@ -84,7 +88,7 @@ class ImageCanvas {
      * @public
      * @param {string} color - CSS string color.
      */
-    fillColor(color) {
+    public fillColor(color: string) {
         this._context.fillStyle = color;
         this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
     }
@@ -94,8 +98,8 @@ class ImageCanvas {
      * @public
      * @param {Array.<number>} data - Array RGBA data.
      */
-    setData(data) {
-        var imageData = this._context.createImageData(this._canvas.width, this._canvas.height);
+    public setData(data: ArrayLike<number>) {
+        let imageData = this._context.createImageData(this._canvas.width, this._canvas.height);
         imageData.data.set(data);
         this._context.putImageData(imageData, 0, 0);
     }
@@ -106,7 +110,7 @@ class ImageCanvas {
      * @param {number} width - Width.
      * @param {number} height - Height.
      */
-    resize(width, height) {
+    public resize(width: number, height: number) {
         this._canvas.width = width;
         this._canvas.height = height;
         this._context = this._canvas.getContext("2d");
@@ -121,7 +125,7 @@ class ImageCanvas {
      * @param {number} [width] - Image width slice. Image width is default.
      * @param {number} [height] - Image height slice. Image height is default.
      */
-    drawImage(img, x, y, width, height) {
+    public drawImage(img: HTMLImageElement, x: number, y: number, width: number, height: number) {
         this._context = this._canvas.getContext("2d");
         this._context.drawImage(img, x || 0, y || 0, width || img.width, height || img.height);
     }
@@ -131,8 +135,8 @@ class ImageCanvas {
      * @public
      * @returns {Image}
      */
-    getImage() {
-        var img = new Image();
+    public getImage(): HTMLImageElement {
+        let img = new Image();
         img.width = this.getWidth();
         img.height = this.getHeight();
         img.src = this._canvas.toDataURL("image/png");
@@ -145,8 +149,8 @@ class ImageCanvas {
      * @param {string} text - Measured text.
      * @returns {number}
      */
-    getTextWidth(text) {
-        var metrics = this._context.measureText(text);
+    public getTextWidth(text: string): number {
+        let metrics = this._context.measureText(text);
         return Math.round(metrics.width);
     }
 
@@ -159,10 +163,10 @@ class ImageCanvas {
      * @param {string} [font] - Font style. 'normal 14px Verdana' - is default.
      * @param {string} [color] - Css font color.
      */
-    drawText(text, x, y, font, color) {
-        this._context.fillStyle = color || "black";
-        this._context.font = font || "normal 14px Verdana";
-        this._context.fillText(text, x || 0, y || 14);
+    public drawText(text: string, x: number = 0, y: number = 14, font: string = "normal 14px Verdana", color: string = "black") {
+        this._context.fillStyle = color;
+        this._context.font = font;
+        this._context.fillText(text, x, y);
     }
 
     /**
@@ -170,7 +174,7 @@ class ImageCanvas {
      * @public
      * @returns {number}
      */
-    getWidth() {
+    public getWidth(): number {
         return this._canvas.width;
     }
 
@@ -179,7 +183,7 @@ class ImageCanvas {
      * @public
      * @returns {number}
      */
-    getHeight() {
+    public getHeight(): number {
         return this._canvas.height;
     }
 
@@ -187,11 +191,11 @@ class ImageCanvas {
      * Load image to canvas.
      * @public
      * @param {string} url - Image url.
-     * @pararm {imageCallback} [callback] - Image onload callback.
+     * @param {Function} [callback] - Image onload callback.
      */
-    load(url, callback) {
-        var img = new Image();
-        var that = this;
+    public load(url: string, callback: Function) {
+        let img = new Image();
+        let that = this;
         img.onload = function () {
             that.resize(img.width, img.height);
             that._context.drawImage(img, 0, 0, img.width, img.height);
@@ -204,17 +208,17 @@ class ImageCanvas {
      * Open canvas image in the new window.
      * @public
      */
-    openImage() {
-        var img = this.getImage();
-        var dataUrl = img.src;
-        var windowContent = "<!DOCTYPE html>";
+    public openImage() {
+        let img = this.getImage();
+        let dataUrl = img.src;
+        let windowContent = "<!DOCTYPE html>";
         windowContent += "<html>";
         windowContent += "<head><title>Print</title></head>";
         windowContent += "<body>";
         windowContent += '<img src="' + dataUrl + '">';
         windowContent += "</body>";
         windowContent += "</html>";
-        var printWin = window.open(
+        let printWin = window.open(
             "",
             "",
             "width=" + img.width + "px ,height=" + img.height + "px"
@@ -225,12 +229,14 @@ class ImageCanvas {
         printWin.focus();
     }
 
-    destroy() {
+    public destroy() {
         this._canvas.width = 1;
         this._canvas.height = 1;
+        //@ts-ignore
         this._canvas = null;
+        //@ts-ignore
         this._context = null;
     }
 }
 
-export { ImageCanvas };
+export {ImageCanvas};
