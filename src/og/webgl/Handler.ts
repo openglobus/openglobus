@@ -8,6 +8,8 @@ import {Stack} from "../Stack";
 import {getUrlParam, isEmpty} from "../utils/shared";
 
 type WebGLContextExt = { type: string } & WebGL2RenderingContext;
+type WebGLBufferExt = { numItems: number; itemSize: number } & WebGLBuffer;
+type WebGLTextureExt = { default?: boolean } & WebGLTexture;
 
 //@ts-ignore
 import {cons} from "../cons.js";
@@ -148,6 +150,8 @@ class Handler {
 
     public intersectionObserver?: IntersectionObserver;
     public resizeObserver?: ResizeObserver;
+
+    protected _requestAnimationFrameId: number = 0;
 
     constructor(canvasTarget: string | HTMLCanvasElement | undefined, params: any = {}) {
 
@@ -305,7 +309,7 @@ class Handler {
      * @param {String} [internalFormat="RGBA"] - Specifies the color components in the texture.
      * @param {String} [format="RGBA"] - Specifies the format of the texel data.
      * @param {String} [type="UNSIGNED_BYTE"] - Specifies the data type of the texel data.
-     * @param {Number} [levels=0] - Specifies the level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.
+     * @param {Number} [level=0] - Specifies the level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.
      * @returns {Object} - WebGL texture object.
      */
     public createEmptyTexture2DExt(
@@ -411,7 +415,7 @@ class Handler {
      * Creates NEAREST filter texture.
      * @public
      * @param {HTMLCanvasElement | Image} image - Image or Canvas object.
-     * @returns {Object} - WebGL texture object.
+     * @returns {WebGLTexture} - WebGL texture object.
      */
     public createTexture_n_webgl1(
         image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
@@ -906,34 +910,35 @@ class Handler {
      * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
      * @return {Object} -
      */
-    createStreamArrayBuffer(itemSize, numItems, usage, bites = 4) {
-        let buffer = this.gl.createBuffer();
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
-        this.gl.bufferData(
-            this.gl.ARRAY_BUFFER,
+    public createStreamArrayBuffer(itemSize: number, numItems: number, usage?: number, bites: number = 4): WebGLBufferExt {
+        let gl = this.gl!;
+        let buffer: WebGLBufferExt = gl.createBuffer() as WebGLBufferExt;
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(
+            gl.ARRAY_BUFFER,
             numItems * itemSize * bites,
-            usage || this.gl.STREAM_DRAW
+            usage || gl.STREAM_DRAW
         );
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null as any);
         buffer.itemSize = itemSize;
         buffer.numItems = numItems;
         return buffer;
     }
 
     /**
-     * Load stream ARRAY buffer.
+     * Sets stream buffer.
      * @public
-     * @param {Array.<number>} array - Input array.
-     * @param {number} itemSize - Array item size.
-     * @param {number} numItems - Items quantity.
-     * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
-     * @return {Object} -
+     * @param {WebGLBufferExt} buffer -
+     * @param {ArrayBuffer} array -
+     * @param {number} [offset=0] -
+     * @param {number} [usage=STATIC_DRAW] -
+     * @return {WebGLBufferExt} -
      */
-    setStreamArrayBuffer(buffer, array, offset = 0) {
-        let gl = this.gl;
-        gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
-        gl.bufferSubData(this.gl.ARRAY_BUFFER, offset, array);
-        gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+    public setStreamArrayBuffer(buffer: WebGLBufferExt, array: number[], offset: number = 0): WebGLBufferExt {
+        let gl = this.gl!;
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferSubData(gl.ARRAY_BUFFER, offset, array as ArrayBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null as any);
         return buffer;
     }
 
@@ -946,11 +951,12 @@ class Handler {
      * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
      * @return {Object} -
      */
-    createArrayBuffer(array, itemSize, numItems, usage) {
-        let buffer = this.gl.createBuffer();
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, array, usage || this.gl.STATIC_DRAW);
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+    public createArrayBuffer(array: number[], itemSize: number, numItems: number, usage?: number): WebGLBufferExt {
+        let gl = this.gl!;
+        let buffer: WebGLBufferExt = gl.createBuffer() as WebGLBufferExt;
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, array as ArrayBuffer, usage || gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null as any);
         buffer.itemSize = itemSize;
         buffer.numItems = numItems;
         return buffer;
@@ -965,11 +971,12 @@ class Handler {
      * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
      * @return {Object} -
      */
-    createArrayBufferLength(size, usage) {
-        let buffer = this.gl.createBuffer();
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, size, usage || this.gl.STATIC_DRAW);
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+    public createArrayBufferLength(size: number, usage?: number): WebGLBufferExt {
+        let gl = this.gl!;
+        let buffer: WebGLBufferExt = gl.createBuffer() as WebGLBufferExt;
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, size, usage || gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null as any);
         buffer.itemSize = 1;
         buffer.numItems = size;
         return buffer;
@@ -984,11 +991,12 @@ class Handler {
      * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
      * @return {Object} -
      */
-    createElementArrayBuffer(array, itemSize, numItems, usage) {
-        let buffer = this.gl.createBuffer();
-        this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, buffer);
-        this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, array, usage || this.gl.STATIC_DRAW);
-        this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, null);
+    public createElementArrayBuffer(array: number[], itemSize: number, numItems: number, usage?: number): WebGLBufferExt {
+        let gl = this.gl!;
+        let buffer = gl.createBuffer() as WebGLBufferExt;
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, array as ArrayBuffer, usage || gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null as any);
         buffer.itemSize = itemSize;
         buffer.numItems = numItems || array.length;
         return buffer;
@@ -1000,24 +1008,26 @@ class Handler {
      * @param {number} w - Canvas width.
      * @param {number} h - Canvas height.
      */
-    setSize(w, h) {
+    public setSize(w: number, h: number) {
         this._params.width = w;
         this._params.height = h;
-        this.canvas.width = w * this._params.pixelRatio;
-        this.canvas.height = h * this._params.pixelRatio;
+        if (this.canvas) {
+            this.canvas.width = w * this._params.pixelRatio;
+            this.canvas.height = h * this._params.pixelRatio;
 
-        this._oneByHeight = 1.0 / this.canvas.height;
+            this._oneByHeight = 1.0 / this.canvas.height;
 
-        this.gl && this.gl.viewport(0, 0, w, h);
-        this.ONCANVASRESIZE && this.ONCANVASRESIZE(this.canvas);
-        this.events.dispatch(this.events.resize, this);
+            this.gl && this.gl.viewport(0, 0, w, h);
+            this.ONCANVASRESIZE && this.ONCANVASRESIZE(this.canvas);
+            this.events.dispatch(this.events.resize, this);
+        }
     }
 
-    get pixelRatio() {
+    public get pixelRatio(): number {
         return this._params.pixelRatio;
     }
 
-    set pixelRatio(pr) {
+    public set pixelRatio(pr: number) {
         this._params.pixelRatio = pr;
         this.setSize(this._params.width, this._params.height);
     }
@@ -1027,8 +1037,8 @@ class Handler {
      * @public
      * @returns {number} -
      */
-    getWidth() {
-        return this.canvas.width;
+    public getWidth(): number {
+        return this.canvas ? this.canvas.width : 0;
     }
 
     /**
@@ -1036,8 +1046,8 @@ class Handler {
      * @public
      * @returns {number} -
      */
-    getHeight() {
-        return this.canvas.height;
+    public getHeight(): number {
+        return this.canvas ? this.canvas.height : 0;
     }
 
     /**
@@ -1045,8 +1055,8 @@ class Handler {
      * @public
      * @returns {number} -
      */
-    getClientAspect() {
-        return this.canvas.clientWidth / this.canvas.clientHeight;
+    public getClientAspect(): number {
+        return this.canvas ? this.canvas.clientWidth / this.canvas.clientHeight : 0;
     }
 
     /**
@@ -1054,9 +1064,10 @@ class Handler {
      * @public
      * @returns {number} -
      */
-    getCenter() {
+    public getCenter(): Vec2 {
         let c = this.canvas;
-        return new Vec2(Math.round(c.width * 0.5), Math.round(c.height * 0.5));
+        //TODO: use class property
+        return c ? new Vec2(Math.round(c.width * 0.5), Math.round(c.height * 0.5)) : new Vec2();
     }
 
     /**
@@ -1064,7 +1075,7 @@ class Handler {
      * @public
      * @param {number} now - Frame current time milliseconds.
      */
-    drawFrame() {
+    public drawFrame() {
         /** Calculating frame time */
         let now = window.performance.now();
         this.deltaTime = now - this._lastAnimationFrameTime;
@@ -1077,7 +1088,7 @@ class Handler {
         }
 
         /** Canvas resize checking */
-        let canvas = this.canvas;
+        let canvas = this.canvas!;
 
         if (Math.floor(canvas.clientWidth * this._params.pixelRatio) !== canvas.width || Math.floor(canvas.clientHeight * this._params.pixelRatio) !== canvas.height) {
             if (canvas.clientWidth === 0 || canvas.clientHeight === 0) {
@@ -1096,9 +1107,9 @@ class Handler {
      * Clearing gl frame.
      * @public
      */
-    clearFrame() {
-        let gl = this.gl;
-        this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    public clearFrame() {
+        let gl = this.gl!;
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     }
 
@@ -1106,20 +1117,20 @@ class Handler {
      * Starts animation loop.
      * @public
      */
-    start() {
+    public start() {
         if (!this._requestAnimationFrameId && this._initialized) {
             this._animationFrameCallback();
         }
     }
 
-    stop() {
+    public stop() {
         if (this._requestAnimationFrameId) {
             window.cancelAnimationFrame(this._requestAnimationFrameId);
-            this._requestAnimationFrameId = null;
+            this._requestAnimationFrameId = 0;
         }
     }
 
-    isStopped() {
+    public isStopped(): boolean {
         return !this._requestAnimationFrameId;
     }
 
@@ -1127,15 +1138,15 @@ class Handler {
      * Check is gl context type equals webgl2
      * @public
      */
-    isWebGl2() {
-        return this.gl.type === "webgl2"
+    public isWebGl2(): boolean {
+        return this.gl ? this.gl.type === "webgl2" : false;
     }
 
     /**
      * Make animation.
      * @private
      */
-    _animationFrameCallback() {
+    protected _animationFrameCallback() {
         this._requestAnimationFrameId = window.requestAnimationFrame(() => {
             this.drawFrame();
             this._requestAnimationFrameId && this._animationFrameCallback();
@@ -1148,7 +1159,7 @@ class Handler {
      * @param {Object} [params] - Texture parameters:
      * @param {callback} [success] - Creation callback
      */
-    createDefaultTexture(params, success) {
+    public createDefaultTexture(params: any, success: Function) {
         let imgCnv;
         let texture;
         const is2 = this.isWebGl2();
@@ -1177,17 +1188,16 @@ class Handler {
         }
     }
 
-    deleteTexture(texture) {
+    public deleteTexture(texture: WebGLTextureExt | null | undefined) {
         if (texture && !texture.default) {
-            this.gl.deleteTexture(texture);
+            this.gl!.deleteTexture(texture);
         }
     }
 
     /**
      * @public
      */
-    destroy() {
-        let gl = this.gl;
+    public destroy() {
 
         this.stop();
 
@@ -1198,93 +1208,101 @@ class Handler {
             this.removeProgram(p);
         }
 
-        gl.deleteTexture(this.transparentTexture);
-        this.transparentTexture = null;
+        //
+        // Clear WebGL context
+        //
+        let gl = this.gl;
 
-        gl.deleteTexture(this.defaultTexture);
-        this.defaultTexture = null;
+        if(gl) {
+            gl.deleteTexture(this.transparentTexture);
+            this.transparentTexture = null;
 
-        this.framebufferStack = null;
-        this.framebufferStack = new Stack();
+            gl.deleteTexture(this.defaultTexture);
+            this.defaultTexture = null;
+
+            this.framebufferStack = new Stack();
+
+            //
+            // Clear attrib pointers
+            //
+            let numAttribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
+            let tmp = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, tmp);
+            for (let ii = 0; ii < numAttribs; ++ii) {
+                gl.disableVertexAttribArray(ii);
+                gl.vertexAttribPointer(ii, 4, gl.FLOAT, false, 0, 0);
+                gl.vertexAttrib1f(ii, 0);
+            }
+            gl.deleteBuffer(tmp);
+
+            //
+            // Clear all possible textures
+            //
+            let numTextureUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
+            for (let ii = 0; ii < numTextureUnits; ++ii) {
+                gl.activeTexture(gl.TEXTURE0 + ii);
+                gl.bindTexture(gl.TEXTURE_CUBE_MAP, null as any);
+                gl.bindTexture(gl.TEXTURE_2D, null as any);
+            }
+
+            //
+            // Hard reset
+            //
+            gl.activeTexture(gl.TEXTURE0);
+            gl.useProgram(null as any);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null as any );
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null as any);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null as any);
+            gl.bindRenderbuffer(gl.RENDERBUFFER, null as any);
+            gl.disable(gl.BLEND);
+            gl.disable(gl.CULL_FACE);
+            gl.disable(gl.DEPTH_TEST);
+            gl.disable(gl.DITHER);
+            gl.disable(gl.SCISSOR_TEST);
+            gl.blendColor(0, 0, 0, 0);
+            gl.blendEquation(gl.FUNC_ADD);
+            gl.blendFunc(gl.ONE, gl.ZERO);
+            gl.clearColor(0, 0, 0, 0);
+            gl.clearDepth(1);
+            gl.clearStencil(-1);
+        }
 
         //
         // Destroy canvas
         //
-        if (this.canvas.parentNode) {
-            this.canvas.parentNode.removeChild(this.canvas);
+        if (this.canvas) {
+            if (this.canvas.parentNode) {
+                this.canvas.parentNode.removeChild(this.canvas);
+            }
+            this.canvas.width = 1;
+            this.canvas.height = 1;
+            this.canvas = null;
         }
-        this.canvas.width = 1;
-        this.canvas.height = 1;
-        this.canvas = null;
-
-        //
-        // Clear attrib pointers
-        //
-        let numAttribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
-        let tmp = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, tmp);
-        for (let ii = 0; ii < numAttribs; ++ii) {
-            gl.disableVertexAttribArray(ii);
-            gl.vertexAttribPointer(ii, 4, gl.FLOAT, false, 0, 0);
-            gl.vertexAttrib1f(ii, 0);
-        }
-        gl.deleteBuffer(tmp);
-
-        //
-        // Clear all possible textures
-        //
-        let numTextureUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
-        for (let ii = 0; ii < numTextureUnits; ++ii) {
-            gl.activeTexture(gl.TEXTURE0 + ii);
-            gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
-            gl.bindTexture(gl.TEXTURE_2D, null);
-        }
-
-        //
-        // Hard reset
-        //
-        gl.activeTexture(gl.TEXTURE0);
-        gl.useProgram(null);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-        gl.disable(gl.BLEND);
-        gl.disable(gl.CULL_FACE);
-        gl.disable(gl.DEPTH_TEST);
-        gl.disable(gl.DITHER);
-        gl.disable(gl.SCISSOR_TEST);
-        gl.blendColor(0, 0, 0, 0);
-        gl.blendEquation(gl.FUNC_ADD);
-        gl.blendFunc(gl.ONE, gl.ZERO);
-        gl.clearColor(0, 0, 0, 0);
-        gl.clearDepth(1);
-        gl.clearStencil(-1);
 
         this.gl = null;
 
         this._initialized = false;
     }
 
-    addClock(clock) {
+    public addClock(clock: Clock) {
         if (!clock.__handler) {
             clock.__handler = this;
             this._clocks.push(clock);
         }
     }
 
-    addClocks(clockArr) {
+    public addClocks(clockArr: Clock[]) {
         for (let i = 0; i < clockArr.length; i++) {
             this.addClock(clockArr[i]);
         }
     }
 
-    removeClock(clock) {
+    public removeClock(clock: Clock) {
         if (clock.__handler) {
             let c = this._clocks;
             let i = c.length;
             while (i--) {
-                if (c[i].equal(clock)) {
+                if (c[i].isEqual(clock)) {
                     clock.__handler = null;
                     c.splice(i, 1);
                     break;
