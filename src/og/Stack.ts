@@ -40,29 +40,20 @@ class Stack<T> {
     }
 
     public push(data: T) {
-        if (this._current.next) {
-            this._current = this._current.next;
-            this._current.data = data;
-        }
+        this._current = this._current.next!;
+        this._current.data = data;
     }
 
     public pop(): T | null {
-        if (this._current.prev) {
-            let res = this._current.data;
-            //this._current.data = null;
-            this._current = this._current.prev;
-            return res;
-        }
-        return null;
+        let res = this._current.data;
+        //this._current.data = null;
+        this._current = this._current.prev!;
+        return res;
     }
 
     public popPrev(): T | null {
-        if (this._current.prev) {
-            //this._current.data = null;
-            this._current = this._current.prev;
-            return this._current.data;
-        }
-        return null;
+        this._current = this._current.prev!;
+        return this._current.data;
     }
 }
 

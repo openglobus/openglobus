@@ -318,8 +318,7 @@ class Handler {
         level: number = 0
     ): WebGLTexture | undefined {
 
-        let gl = this.gl;
-        if (!gl) return;
+        let gl = this.gl!;
 
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -356,8 +355,7 @@ class Handler {
         height: number,
         internalFormat?: number): WebGLTexture | undefined {
 
-        let gl = this.gl;
-        if (!gl) return;
+        let gl = this.gl!;
 
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -394,8 +392,7 @@ class Handler {
         height: number,
         internalFormat?: number): WebGLTexture | undefined {
 
-        let gl = this.gl;
-        if (!gl) return;
+        let gl = this.gl!;
 
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -421,8 +418,7 @@ class Handler {
         internalFormat?: number,
         texture?: WebGLTexture): WebGLTexture | undefined {
 
-        let gl = this.gl;
-        if (!gl) return;
+        let gl = this.gl!;
 
         texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -448,8 +444,7 @@ class Handler {
         internalFormat?: number,
         texture?: WebGLTexture): WebGLTexture | undefined {
 
-        let gl = this.gl;
-        if (!gl) return;
+        let gl = this.gl!;
 
         texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -474,8 +469,7 @@ class Handler {
         internalFormat?: number,
         texture?: WebGLTexture): WebGLTexture | undefined {
 
-        let gl = this.gl;
-        if (!gl) return;
+        let gl = this.gl!;
 
         texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -501,8 +495,7 @@ class Handler {
         internalFormat?: number,
         texture?: WebGLTexture): WebGLTexture | undefined {
 
-        let gl = this.gl;
-        if (!gl) return;
+        let gl = this.gl!;
 
         texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -529,8 +522,7 @@ class Handler {
         internalFormat?: number,
         texture?: WebGLTexture): WebGLTexture | undefined {
 
-        let gl = this.gl;
-        if (!gl) return;
+        let gl = this.gl!;
 
         texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -558,8 +550,7 @@ class Handler {
         internalFormat?: number,
         texture?: WebGLTexture): WebGLTexture | undefined {
 
-        let gl = this.gl;
-        if (!gl) return;
+        let gl = this.gl!;
 
         texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -587,8 +578,7 @@ class Handler {
         internalFormat?: number,
         texture?: WebGLTexture): WebGLTexture | undefined {
 
-        let gl = this.gl;
-        if (!gl) return;
+        let gl = this.gl!;
 
         texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -615,8 +605,7 @@ class Handler {
         internalFormat?: number,
         texture?: WebGLTexture): WebGLTexture | undefined {
 
-        let gl = this.gl;
-        if (!gl) return;
+        let gl = this.gl!;
 
         texture = texture || gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -647,8 +636,7 @@ class Handler {
      */
     public loadCubeMapTexture(params: any): WebGLTexture | undefined {
 
-        let gl = this.gl;
-        if (!gl) return;
+        let gl = this.gl!;
 
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
