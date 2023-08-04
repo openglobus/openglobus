@@ -34,10 +34,9 @@ class PlanetCamera extends Camera {
      */
     constructor(planet, options) {
         super(planet.renderer, {
-                frustums: [
-                    [[1, 100], [100, 1000 + 7.0], [1000 - 7.0, 1e6 + 17], [1e6 - 17, 1e9]]
-                ], //[[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]]*/
-                ...options
+                ...options,
+                frustums: options.frustums || [[1, 100 + 0.075], [100, 1000 + 0.075], [1000, 1e6 + 10000], [1e6, 1e9]],
+            //[[1, 1e3 + 100], [1e3, 1e6 + 10000], [1e6, 1e9]]*/
             }
         );
         /**
