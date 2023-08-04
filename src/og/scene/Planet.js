@@ -117,8 +117,6 @@ export class Planet extends RenderNode {
     constructor(options = {}) {
         super(options.name);
 
-        this._cameraFrustums = options.frustums || [[1, 100], [100, 1000 + 7.0], [1000 - 7.0, 1e6 + 17], [1e6 - 17, 1e9]];
-
         /**
          * @public
          * @type {Ellipsoid}
@@ -205,7 +203,7 @@ export class Planet extends RenderNode {
          * @type {PlanetCamera}
          */
         this.camera = new PlanetCamera(this, {
-            frustums: this._cameraFrustums,
+            frustums: [1, 1000000],//options.frustums,
             eye: new Vec3(25000000, 0, 0),
             look: Vec3.ZERO,
             up: Vec3.NORTH,
