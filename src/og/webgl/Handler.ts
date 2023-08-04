@@ -7,12 +7,15 @@ import {Vec2} from "../math/Vec2";
 import {Stack} from "../Stack";
 import {getUrlParam, isEmpty} from "../utils/shared";
 
+
 //@ts-ignore
 import {cons} from "../cons.js";
 //@ts-ignore
 import {ProgramController} from "./ProgramController.js";
-import {Framebuffer} from "./Framebuffer";
-import {Multisample} from "./Multisample";
+//@ts-ignore
+import {Framebuffer} from "./Framebuffer.js";
+//@ts-ignore
+import {Multisample} from "./Multisample.js";
 
 const vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
 
@@ -199,12 +202,12 @@ class Handler {
         return this._initialized;
     }
 
-    _createCanvas() {
+    protected _createCanvas() {
         if (this._canvasTarget) {
             if (this._canvasTarget instanceof HTMLElement) {
                 this.canvas = this._canvasTarget;
             } else {
-                this.canvas = document.getElementById(this._canvasTarget) || document.querySelector(this._canvasTarget);
+                this.canvas = (document.getElementById(this._canvasTarget) || document.querySelector(this._canvasTarget)) as HTMLCanvasElement;
             }
         } else {
             this.canvas = document.createElement("canvas");
@@ -219,7 +222,7 @@ class Handler {
      * @param {String} name - Extension name.
      * @returns {Object} -
      */
-    static getExtension(gl, name) {
+    static getExtension(gl: WebGLRenderingContext | WebGL2RenderingContext, name: string): string | undefined {
         let i, ext;
         for (i in vendorPrefixes) {
             ext = gl.getExtension(vendorPrefixes[i] + name);
@@ -227,7 +230,6 @@ class Handler {
                 return ext;
             }
         }
-        return null;
     }
 
     /**
@@ -270,7 +272,7 @@ class Handler {
      * @public
      * @param {callback} callback - Frame callback.
      */
-    setFrameCallback(callback) {
+    public setFrameCallback(callback: Function) {
         callback && (this._frameCallback = callback);
     }
 
@@ -286,27 +288,38 @@ class Handler {
      * @param {Number} [levels=0] - Specifies the level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.
      * @returns {Object} - WebGL texture object.
      */
-    createEmptyTexture2DExt(
-        width = 1,
-        height = 1,
-        filter = "NEAREST",
-        internalFormat = "RGBA",
-        format = "RGBA",
-        type = "UNSIGNED_BYTE",
-        level = 0
-    ) {
+    public createEmptyTexture2DExt(
+        width: number = 1,
+        height: number = 1,
+        filter: string = "NEAREST",
+        internalFormat: string = "RGBA",
+        format: string = "RGBA",
+        type: string = "UNSIGNED_BYTE",
+        level: number = 0
+    ): WebGLTexture | undefined {
+
         let gl = this.gl;
+        if (!gl) return;
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        gl.texImage2D(gl.TEXTURE_2D, level, gl[internalFormat.toUpperCase()], width, height, 0,
-            gl[format.toUpperCase()], gl[type.toUpperCase()], null
+        gl.texImage2D(
+            gl.TEXTURE_2D,
+            level,
+            gl[internalFormat.toUpperCase()],
+            width,
+            height,
+            0,
+            gl[format.toUpperCase()],
+            gl[type.toUpperCase()],
+            null as any
         );
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl[filter.toUpperCase()]);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl[filter.toUpperCase()]);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindTexture(gl.TEXTURE_2D, null as any);
+
         return texture;
     }
 
@@ -317,17 +330,33 @@ class Handler {
      * @param {number} height - Empty texture height.
      * @returns {Object} - WebGL texture object.
      */
-    createEmptyTexture_n(width, height, internalFormat) {
+    public createEmptyTexture_n(
+        width: number,
+        height: number,
+        internalFormat: any | undefined): WebGLTexture | undefined {
+
         let gl = this.gl;
+        if (!gl) return;
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            internalFormat || gl.RGBA,
+            width,
+            height,
+            0,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            null as any
+        );
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindTexture(gl.TEXTURE_2D, null as any);
+
         return texture;
     }
 
@@ -338,17 +367,18 @@ class Handler {
      * @param {number} height - Empty texture height.
      * @returns {Object} - WebGL texture object.
      */
-    createEmptyTexture_l(width, height, internalFormat) {
+    public createEmptyTexture_l(width: number, height: number, internalFormat: number | undefined): WebGLTexture | undefined {
         let gl = this.gl;
+        if (!gl) return;
         let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat || gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null as any);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindTexture(gl.TEXTURE_2D, null as any);
         return texture;
     }
 
