@@ -2,10 +2,10 @@
 
 //@ts-ignore
 import {cons} from "../cons.js";
-//@ts-ignore
-import {callbacks} from "./callbacks.js";
-//@ts-ignore
-import {types, typeStr} from "./types.js";
+
+import {callbacks} from "./callbacks";
+
+import {types, typeStr} from "./types";
 
 import {WebGLBufferExt} from "./Handler";
 
@@ -42,13 +42,14 @@ class Program {
 
     public _attributes: any;
 
-    public _uniforms = {};
+    public _uniforms: any;
 
     public vertexShader: string;
 
     public fragmentShader: string;
 
     public drawElementsInstanced: Function | null;
+    public vertexAttribDivisor: Function | null;
 
     /**
      * Webgl context.
@@ -139,6 +140,9 @@ class Program {
         this.attributes = {};
 
         this.uniforms = {};
+
+        this.vertexAttribDivisor = null;
+        this.drawElementsInstanced = null;
     }
 
     /**
@@ -248,10 +252,9 @@ class Program {
     protected _createVertexShader(src: string): WebGLShader | undefined {
         if (!this.gl) return;
         let shader = this.gl.createShader(this.gl.VERTEX_SHADER);
-        if (!this._getShaderCompileStatus(shader, src)) {
-            return;
+        if (shader && this._getShaderCompileStatus(shader, src)) {
+            return shader;
         }
-        return shader;
     }
 
     /**
@@ -263,10 +266,9 @@ class Program {
     protected _createFragmentShader(src: string): WebGLShader | undefined {
         if (!this.gl) return;
         let shader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
-        if (!this._getShaderCompileStatus(shader, src)) {
-            return;
+        if (shader && this._getShaderCompileStatus(shader, src)) {
+            return shader;
         }
-        return shader;
     }
 
     /**
@@ -278,7 +280,7 @@ class Program {
         let a = this._attribArrays;
         for (let i = 0, len = a.length; i < len; i++) {
             gl.disableVertexAttribArray(a[i]);
-            this.vertexAttribDivisor(a[i], 0);
+            this.vertexAttribDivisor!(a[i], 0);
         }
     }
 
@@ -292,16 +294,16 @@ class Program {
         let d = this._attribDivisor;
         for (let i = 0, len = a.length; i < len; i++) {
             gl.enableVertexAttribArray(a[i]);
-            this.vertexAttribDivisor(a[i], d[i]);
+            this.vertexAttribDivisor!(a[i], d[i]);
         }
     }
 
-    public vertexAttribDivisor(index: number, divisor: number) {
-        const gl = this.gl!;
-        gl.vertexAttribDivisor ?
-            gl.vertexAttribDivisor(index, divisor) :
-            gl.getExtension('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(index, divisor);
-    }
+    // public vertexAttribDivisor(index: number, divisor: number) {
+    //     const gl = this.gl!;
+    //     gl.vertexAttribDivisor ?
+    //         gl.vertexAttribDivisor(index, divisor) :
+    //         gl.getExtension('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(index, divisor);
+    // }
 
     /**
      * Delete program.
@@ -330,18 +332,35 @@ class Program {
 
         gl.linkProgram(this._p);
 
+
         if (!this.drawElementsInstanced) {
-            this.drawElementsInstanced =
-                gl.drawElementsInstanced ?
-                    gl.drawElementsInstanced.bind(gl) :
-                    gl.getExtension('ANGLE_instanced_arrays').drawElementsInstancedANGLE.bind(gl.getExtension('ANGLE_instanced_arrays'));
+            if (gl.drawElementsInstanced) {
+                this.drawElementsInstanced = gl.drawElementsInstanced.bind(gl);
+            } else {
+                let ext = gl.getExtension('ANGLE_instanced_arrays');
+                if (ext) {
+                    this.drawElementsInstanced = ext.drawElementsInstancedANGLE.bind(ext);
+                }
+            }
+            // this.drawElementsInstanced =
+            //     gl.drawElementsInstanced ?
+            //         gl.drawElementsInstanced.bind(gl) :
+            //         gl.getExtension('ANGLE_instanced_arrays').drawElementsInstancedANGLE.bind(gl.getExtension('ANGLE_instanced_arrays'));
         }
 
         if (!this.vertexAttribDivisor) {
-            this.vertexAttribDivisor =
-                gl.vertexAttribDivisor ?
-                    gl.vertexAttribDivisor.bind(gl) :
-                    gl.getExtension('ANGLE_instanced_arrays').vertexAttribDivisorANGLE.bind(gl.getExtension('ANGLE_instanced_arrays'));
+            if (gl.vertexAttribDivisor) {
+                this.vertexAttribDivisor = gl.vertexAttribDivisor.bind(gl);
+            } else {
+                let ext = gl.getExtension('ANGLE_instanced_arrays');
+                if (ext) {
+                    this.vertexAttribDivisor = ext.vertexAttribDivisorANGLE.bind(ext);
+                }
+            }
+            // this.vertexAttribDivisor =
+            //     gl.vertexAttribDivisor ?
+            //         gl.vertexAttribDivisor.bind(gl) :
+            //         gl.getExtension('ANGLE_instanced_arrays').vertexAttribDivisorANGLE.bind(gl.getExtension('ANGLE_instanced_arrays'));
         }
 
 
@@ -358,7 +377,7 @@ class Program {
             this._variables[a] = this._attributes[a];
             this._attributes[a]._callback = Program.bindBuffer;
 
-            let itemTypeStr =
+            let itemTypeStr: string =
                 this._attributes[a].itemType ?
                     this._attributes[a].itemType.trim().toUpperCase() :
                     "FLOAT";
@@ -367,6 +386,7 @@ class Program {
                 cons.logErr(`Shader program "${this.name}": attribute '${a}', item type '${this._attributes[a].itemType}' not exists.`);
                 this._attributes[a].itemType = gl.FLOAT;
             } else {
+                // @ts-ignore
                 this._attributes[a].itemType = gl[itemTypeStr];
             }
 

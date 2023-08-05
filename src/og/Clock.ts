@@ -45,7 +45,7 @@ class Clock {
     protected _intervalStart: number = 0;
     protected _intervalCallback: Function | null;
 
-    __handler: Handler | null;
+    public __handler: Handler | null = null;
 
     constructor(params: IClockParams = {}) {
 
@@ -156,17 +156,17 @@ class Clock {
      * @public
      * @returns {Date} - Current date.
      */
-    getDate() {
+    public getDate(): Date {
         return jd.UTCtoDate(this.currentDate);
     }
 
-    reset() {
+    public reset() {
         if (this.startDate) {
             this.currentDate = this.startDate;
         }
     }
 
-    _tick(dt) {
+    protected _tick(dt: number) {
         let m = this._multiplier * this._running;
         this.deltaTicks = dt * m
         if (this.active) {
@@ -207,22 +207,22 @@ class Clock {
         return this.__id === clock.__id;
     }
 
-    start() {
+    public start() {
         if (this._running === 0) {
             this._running = 1;
             this.events.dispatch(this.events.start, this);
         }
     }
 
-    get multiplier() {
+    public get multiplier(): number {
         return this._multiplier;
     }
 
-    set multiplier(value) {
+    public set multiplier(value: number) {
         this._multiplier = value;
     }
 
-    stop() {
+    public stop() {
         if (this._running === 1) {
             this._running = 0;
             this.events.dispatch(this.events.stop, this);

@@ -4,7 +4,7 @@ import {binaryInsert, stamp} from "./utils/shared";
 
 type EventCallbacks = Array<() => void>;
 
-type EventsMap<T extends readonly string[]> = {
+type EventsMap<T extends string[]> = {
     [K in T[number]]: { active: boolean; handlers: EventCallbacks }
 }
 
