@@ -320,7 +320,7 @@ class Handler {
         format: string = "RGBA",
         type: string = "UNSIGNED_BYTE",
         level: number = 0
-    ): WebGLTexture | undefined {
+    ): WebGLTexture | null {
 
         let gl = this.gl!;
 
@@ -330,15 +330,20 @@ class Handler {
         gl.texImage2D(
             gl.TEXTURE_2D,
             level,
+            // @ts-ignore
             gl[internalFormat.toUpperCase()],
             width,
             height,
             0,
+            // @ts-ignore
             gl[format.toUpperCase()],
+            // @ts-ignore
             gl[type.toUpperCase()],
             null as any
         );
+        // @ts-ignore
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl[filter.toUpperCase()]);
+        // @ts-ignore
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl[filter.toUpperCase()]);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -358,7 +363,7 @@ class Handler {
     public createEmptyTexture_n(
         width: number,
         height: number,
-        internalFormat?: number): WebGLTexture | undefined {
+        internalFormat?: number): WebGLTexture | null {
 
         let gl = this.gl!;
 
@@ -396,7 +401,7 @@ class Handler {
     public createEmptyTexture_l(
         width: number,
         height: number,
-        internalFormat?: number): WebGLTexture | undefined {
+        internalFormat?: number): WebGLTexture | null {
 
         let gl = this.gl!;
 
@@ -424,7 +429,7 @@ class Handler {
     public createTexture_n_webgl1(
         image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
         internalFormat?: number,
-        texture?: WebGLTexture): WebGLTexture | undefined {
+        texture: WebGLTexture | null = null): WebGLTexture | null {
 
         let gl = this.gl!;
 
@@ -452,7 +457,7 @@ class Handler {
     public createTexture_l_webgl1(
         image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
         internalFormat?: number,
-        texture?: WebGLTexture): WebGLTexture | undefined {
+        texture: WebGLTexture | null = null): WebGLTexture | null {
 
         let gl = this.gl!;
 
@@ -479,7 +484,7 @@ class Handler {
     public createTexture_mm_webgl1(
         image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
         internalFormat?: number,
-        texture?: WebGLTexture): WebGLTexture | undefined {
+        texture: WebGLTexture | null = null): WebGLTexture | null {
 
         let gl = this.gl!;
 
@@ -507,7 +512,7 @@ class Handler {
     public createTexture_a_webgl1(
         image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
         internalFormat?: number,
-        texture?: WebGLTexture): WebGLTexture | undefined {
+        texture: WebGLTexture | null = null): WebGLTexture | null {
 
         let gl = this.gl!;
 
@@ -536,7 +541,7 @@ class Handler {
     public createTexture_n_webgl2(
         image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
         internalFormat?: number,
-        texture?: WebGLTexture): WebGLTexture | undefined {
+        texture: WebGLTexture | null = null): WebGLTexture | null {
 
         let gl = this.gl!;
 
@@ -566,7 +571,7 @@ class Handler {
     public createTexture_l_webgl2(
         image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
         internalFormat?: number,
-        texture?: WebGLTexture): WebGLTexture | undefined {
+        texture: WebGLTexture | null = null): WebGLTexture | null {
 
         let gl = this.gl!;
 
@@ -596,7 +601,7 @@ class Handler {
     public createTexture_mm_webgl2(
         image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
         internalFormat?: number,
-        texture?: WebGLTexture): WebGLTexture | undefined {
+        texture: WebGLTexture | null = null): WebGLTexture | null {
 
         let gl = this.gl!;
 
@@ -625,7 +630,7 @@ class Handler {
     public createTexture_a_webgl2(
         image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
         internalFormat?: number,
-        texture?: WebGLTexture): WebGLTexture | undefined {
+        texture: WebGLTexture | null = null): WebGLTexture | null {
 
         let gl = this.gl!;
 
@@ -656,7 +661,7 @@ class Handler {
      * @param {string} params.nz - Negative Z or back image url.
      * @returns {Object} - WebGL texture object.
      */
-    public loadCubeMapTexture(params: any): WebGLTexture | undefined {
+    public loadCubeMapTexture(params: any): WebGLTexture | null {
 
         let gl = this.gl!;
 
@@ -691,9 +696,9 @@ class Handler {
             let face = faces[i][1];
             let image = new Image();
             image.crossOrigin = "";
-            image.onload = (function (texture: WebGLTexture, face: number, image: HTMLImageElement) {
+            image.onload = (function (texture: WebGLTexture | null, face: number, image: HTMLImageElement) {
                 return function () {
-                    if (gl) {
+                    if (gl && texture) {
                         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
                         //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
                         gl.texImage2D(face, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
@@ -877,7 +882,7 @@ class Handler {
         });
     }
 
-    _toggleVisibilityChange(visibility) {
+    protected _toggleVisibilityChange(visibility: boolean) {
         if (visibility) {
             this.start();
             this.ONCANVASRESIZE && this.ONCANVASRESIZE();
@@ -909,10 +914,10 @@ class Handler {
         gl.cullFace(gl.BACK);
         gl.enable(gl.CULL_FACE);
         gl.disable(gl.BLEND);
-        this.createDefaultTexture({color: "rgba(0,0,0,0.0)"}, (t) => {
+        this.createDefaultTexture({color: "rgba(0,0,0,0.0)"}, (t: WebGLTextureExt) => {
             this.transparentTexture = t;
         });
-        this.createDefaultTexture({color: "rgba(255, 255, 255, 1.0)"}, (t) => {
+        this.createDefaultTexture({color: "rgba(255, 255, 255, 1.0)"}, (t: WebGLTextureExt) => {
             this.defaultTexture = t;
         });
     }
@@ -952,7 +957,7 @@ class Handler {
     public setStreamArrayBuffer(buffer: WebGLBufferExt, array: number[], offset: number = 0): WebGLBufferExt {
         let gl = this.gl!;
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-        gl.bufferSubData(gl.ARRAY_BUFFER, offset, array as ArrayBuffer);
+        gl.bufferSubData(gl.ARRAY_BUFFER, offset, array as any);
         gl.bindBuffer(gl.ARRAY_BUFFER, null as any);
         return buffer;
     }
@@ -970,7 +975,7 @@ class Handler {
         let gl = this.gl!;
         let buffer: WebGLBufferExt = gl.createBuffer() as WebGLBufferExt;
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, array as ArrayBuffer, usage || gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, array as any, usage || gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null as any);
         buffer.itemSize = itemSize;
         buffer.numItems = numItems;
@@ -1008,7 +1013,7 @@ class Handler {
         let gl = this.gl!;
         let buffer = gl.createBuffer() as WebGLBufferExt;
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, array as ArrayBuffer, usage || gl.STATIC_DRAW);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, array as any, usage || gl.STATIC_DRAW);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null as any);
         buffer.itemSize = itemSize;
         buffer.numItems = numItems || array.length;
@@ -1093,10 +1098,10 @@ class Handler {
         this.deltaTime = now - this._lastAnimationFrameTime;
         this._lastAnimationFrameTime = now;
 
-        this.defaultClock._tick(this.deltaTime);
+        this.defaultClock.tick(this.deltaTime);
 
         for (let i = 0; i < this._clocks.length; i++) {
-            this._clocks[i]._tick(this.deltaTime);
+            this._clocks[i].tick(this.deltaTime);
         }
 
         /** Canvas resize checking */
@@ -1186,7 +1191,7 @@ class Handler {
             let img = new Image();
             let that = this;
             img.onload = function () {
-                texture = that.createTexture(this);
+                texture = that.createTextureDefault(this);
                 texture.default = true;
                 success(texture);
             };

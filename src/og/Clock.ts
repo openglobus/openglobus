@@ -166,7 +166,7 @@ class Clock {
         }
     }
 
-    protected _tick(dt: number) {
+    public tick(dt: number) {
         let m = this._multiplier * this._running;
         this.deltaTicks = dt * m
         if (this.active) {

@@ -29,7 +29,8 @@ class ImageCanvas {
 
         this._context = this._canvas.getContext("2d", {
             willReadFrequently: true
-        });
+        }) as CanvasRenderingContext2D;
+
     }
 
     /**
@@ -113,7 +114,7 @@ class ImageCanvas {
     public resize(width: number, height: number) {
         this._canvas.width = width;
         this._canvas.height = height;
-        this._context = this._canvas.getContext("2d");
+        this._context = this._canvas.getContext("2d") as CanvasRenderingContext2D;
     }
 
     /**
@@ -126,7 +127,6 @@ class ImageCanvas {
      * @param {number} [height] - Image height slice. Image height is default.
      */
     public drawImage(img: HTMLImageElement, x: number, y: number, width: number, height: number) {
-        this._context = this._canvas.getContext("2d");
         this._context.drawImage(img, x || 0, y || 0, width || img.width, height || img.height);
     }
 
@@ -211,6 +211,7 @@ class ImageCanvas {
     public openImage() {
         let img = this.getImage();
         let dataUrl = img.src;
+
         let windowContent = "<!DOCTYPE html>";
         windowContent += "<html>";
         windowContent += "<head><title>Print</title></head>";
@@ -218,15 +219,19 @@ class ImageCanvas {
         windowContent += '<img src="' + dataUrl + '">';
         windowContent += "</body>";
         windowContent += "</html>";
+
         let printWin = window.open(
             "",
             "",
             "width=" + img.width + "px ,height=" + img.height + "px"
         );
-        printWin.document.open();
-        printWin.document.write(windowContent);
-        printWin.document.close();
-        printWin.focus();
+
+        if (printWin) {
+            printWin.document.open();
+            printWin.document.write(windowContent);
+            printWin.document.close();
+            printWin.focus();
+        }
     }
 
     public destroy() {
