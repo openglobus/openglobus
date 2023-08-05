@@ -203,7 +203,7 @@ export class Planet extends RenderNode {
          * @type {PlanetCamera}
          */
         this.camera = new PlanetCamera(this, {
-            frustums: [1, 1000000],//options.frustums,
+            frustums: options.frustums,
             eye: new Vec3(25000000, 0, 0),
             look: Vec3.ZERO,
             up: Vec3.NORTH,
