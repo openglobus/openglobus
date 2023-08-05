@@ -3,13 +3,19 @@
 //@ts-ignore
 import {cons} from "../cons.js";
 
-import {callbacks} from "./callbacks";
+import {ProgramVariable, variableHandlers} from "./variableHandlers";
 
 import {types, typeStr} from "./types";
 
 import {WebGLBufferExt} from "./Handler";
 
 const itemTypes: string[] = ["BYTE", "SHORT", "UNSIGNED_BYTE", "UNSIGNED_SHORT", "FLOAT", "HALF_FLOAT"];
+
+type ProgramVariableMap = {
+    [id: string]: ProgramVariable;
+};
+
+type WebGLProgramExt = WebGLProgram & { [id: string]: WebGLUniformLocation };
 
 type ProgramMaterial = {
     attributes: any;
@@ -36,13 +42,13 @@ class Program {
      */
     public name: string;
 
-    public attributes: any;
+    public attributes: { [id: string]: number };
 
-    public uniforms: any;
+    public uniforms: { [id: string]: WebGLUniformLocation };
 
-    public _attributes: any;
+    public _attributes: ProgramVariableMap;
 
-    public _uniforms: any;
+    public _uniforms: ProgramVariableMap;
 
     public vertexShader: string;
 
@@ -63,14 +69,14 @@ class Program {
      * @private
      * @type {Object}
      */
-    protected _variables: any;
+    protected _variables: ProgramVariableMap;
 
     /**
      * Program pointer.
      * @private
      * @type {any}
      */
-    public _p: any | null;
+    public _p: WebGLProgramExt | null;
 
     /**
      * Texture counter.
@@ -103,7 +109,7 @@ class Program {
                 typeof material.attributes[t] === "string" ||
                 typeof material.attributes[t] === "number"
             ) {
-                this._attributes[t] = {type: material.attributes[t]};
+                this._attributes[t] = {type: material.attributes[t]} as ProgramVariable;
             } else {
                 this._attributes[t] = material.attributes[t];
             }
@@ -115,7 +121,7 @@ class Program {
                 typeof material.uniforms[t] === "string" ||
                 typeof material.uniforms[t] === "number"
             ) {
-                this._uniforms[t] = {type: material.uniforms[t]};
+                this._uniforms[t] = {type: material.uniforms[t]} as ProgramVariable;
             } else {
                 this._uniforms[t] = material.uniforms[t];
             }
@@ -151,14 +157,14 @@ class Program {
      * @param {Program} program - Used program.
      * @param {Object} variable - Variable represents buffer data.
      */
-    static bindBuffer(program: Program, variable: any) {
+    static bindBuffer(program: Program, variable: ProgramVariable) {
         let gl = program.gl;
         if (gl) {
             gl.bindBuffer(gl.ARRAY_BUFFER, variable.value);
             gl.vertexAttribPointer(
-                variable._pName,
+                variable._pName as number,
                 variable.value.itemSize,
-                variable.itemType,
+                variable.itemType as number,
                 variable.normalized,
                 0,
                 0
@@ -171,7 +177,7 @@ class Program {
      * @public
      */
     public use() {
-        this.gl && this.gl.useProgram(this._p);
+        this.gl && this.gl.useProgram(this._p as WebGLProgramExt);
     }
 
     /**
@@ -183,7 +189,7 @@ class Program {
         this._textureID = 0;
         for (let i in material) {
             this._variables[i].value = material[i];
-            this._variables[i]._callback(this, this._variables[i]);
+            this._variables[i].func(this, this._variables[i]);
         }
     }
 
@@ -195,7 +201,7 @@ class Program {
         this._textureID = 0;
         let v = this._variables;
         for (let i in v) {
-            v[i]._callback(this, v[i]);
+            v[i].func(this, v[i]);
         }
     }
 
@@ -310,7 +316,7 @@ class Program {
      * @public
      */
     public delete() {
-        this.gl && this.gl.deleteProgram(this._p);
+        this.gl && this.gl.deleteProgram(this._p as WebGLProgram);
     }
 
     /**
@@ -320,7 +326,10 @@ class Program {
      */
     public createProgram(gl: WebGL2RenderingContext) {
         this.gl = gl;
-        this._p = this.gl.createProgram();
+
+        this._p = this.gl.createProgram() as WebGLProgramExt;
+
+        if (!this._p) return;
 
         let fs = this._createFragmentShader(this.fragmentShader);
         let vs = this._createVertexShader(this.vertexShader);
@@ -375,12 +384,10 @@ class Program {
         for (let a in this._attributes) {
             //this.attributes[a]._name = a;
             this._variables[a] = this._attributes[a];
-            this._attributes[a]._callback = Program.bindBuffer;
+            this._attributes[a].func = Program.bindBuffer;
 
-            let itemTypeStr: string =
-                this._attributes[a].itemType ?
-                    this._attributes[a].itemType.trim().toUpperCase() :
-                    "FLOAT";
+            let t = this._attributes[a].itemType as string;
+            let itemTypeStr: string = t ? t.trim().toUpperCase() : "FLOAT";
 
             if (itemTypes.indexOf(itemTypeStr) == -1) {
                 cons.logErr(`Shader program "${this.name}": attribute '${a}', item type '${this._attributes[a].itemType}' not exists.`);
@@ -401,14 +408,14 @@ class Program {
                 return;
             }
 
-            let type = this._attributes[a].type;
+            let type: string | number = this._attributes[a].type;
             if (typeof type === "string") {
                 type = typeStr[type.trim().toLowerCase()];
             }
 
             let d = this._attributes[a].divisor;
             if (type === types.MAT4) {
-                let loc = this._p[a];
+                let loc = this._p[a] as number;
                 this._attribArrays.push(loc, loc + 1, loc + 2, loc + 3);
                 this._attribDivisor.push(d, d, d, d);
             } else {
@@ -416,24 +423,23 @@ class Program {
                 this._attribDivisor.push(d);
             }
 
-            gl.enableVertexAttribArray(this._p[a]);
+            gl.enableVertexAttribArray(this._p[a] as number);
 
             this._attributes[a]._pName = this._p[a];
-            this.attributes[a] = this._p[a];
+            this.attributes[a] = this._p[a] as number;
         }
 
         for (let u in this._uniforms) {
-            //this.uniforms[u]._name = u;
 
             if (typeof this._uniforms[u].type === "string") {
-                this._uniforms[u]._callback =
-                    callbacks.u[typeStr[this._uniforms[u].type.trim().toLowerCase()]];
+                let t: string = this._uniforms[u].type as string;
+                this._uniforms[u].func = variableHandlers.u[typeStr[t.trim().toLowerCase()]];
             } else {
-                this._uniforms[u]._callback = callbacks.u[this._uniforms[u].type];
+                this._uniforms[u].func = variableHandlers.u[this._uniforms[u].type as number];
             }
 
             this._variables[u] = this._uniforms[u];
-            this._p[u] = gl.getUniformLocation(this._p, u);
+            this._p[u] = gl.getUniformLocation(this._p, u)!;
 
             if (this._p[u] == undefined) {
                 cons.logErr(`Shader program "${this.name}": uniform '${u}' not exists.`);
@@ -445,8 +451,8 @@ class Program {
             this.uniforms[u] = this._p[u];
         }
 
-        gl.detachShader(this._p, fs);
-        gl.detachShader(this._p, vs);
+        gl.detachShader(this._p as WebGLProgram, fs);
+        gl.detachShader(this._p as WebGLProgram, vs);
 
         gl.deleteShader(fs);
         gl.deleteShader(vs);

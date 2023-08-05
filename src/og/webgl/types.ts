@@ -19,13 +19,13 @@ let _declarations: string[] = [
     "SAMPLER2DARRAY",
     "INTXX", "FLOATXX"];
 
-export const types: any = {};
+export const types: { [id: string]: number } = {};
 
 for (let i = 0; i < _declarations.length; i++) {
     types[_declarations[i]] = i;
 }
 
-export const typeStr: any = {};
+export const typeStr: { [id: string]: number } = {};
 for (let i = 0; i < _declarations.length; i++) {
     typeStr[_declarations[i].toLowerCase()] = types[_declarations[i]];
 }
