@@ -7,16 +7,16 @@ import {Vec2} from "../math/Vec2";
 import {Stack} from "../Stack";
 import {getUrlParam, isEmpty} from "../utils/shared";
 
-type WebGLContextExt = { type: string } & WebGL2RenderingContext;
-type WebGLBufferExt = { numItems: number; itemSize: number } & WebGLBuffer;
-type WebGLTextureExt = { default?: boolean } & WebGLTexture;
+export type WebGLContextExt = { type: string } & WebGL2RenderingContext;
+export type WebGLBufferExt = { numItems: number; itemSize: number } & WebGLBuffer;
+export type WebGLTextureExt = { default?: boolean } & WebGLTexture;
 
 //@ts-ignore
 import {cons} from "../cons.js";
-//@ts-ignore
-import {ProgramController} from "./ProgramController.js";
-//@ts-ignore
-import {Program} from "./ProgramC.js";
+
+import {ProgramController} from "./ProgramController";
+import {Program} from "./Program";
+
 //@ts-ignore
 import {Framebuffer} from "./Framebuffer.js";
 //@ts-ignore
@@ -33,7 +33,7 @@ const MAX_LEVELS = 2;
  * A WebGL handler for accessing low-level WebGL capabilities.
  * @class
  * @param {string | HTMLCanvasElement} canvasTarget - Canvas element target.
- * or undefined creates hidden canvas and handler bacomes hidden.
+ * or undefined creates hidden canvas and handler becomes hidden.
  * @param {Object} [params] - Handler options:
  * @param {number} [params.anisotropy] - Anisotropy filter degree. 8 is default.
  * @param {number} [params.width] - Hidden handler width. 256 is default.
@@ -303,8 +303,8 @@ class Handler {
     /**
      * Creates empty texture.
      * @public
-     * @param {Number} [width=1] - Specifies the width of the texture image..
-     * @param {Number} [height=1] - Specifies the width of the texture image..
+     * @param {Number} [width=1] - Specifies the width of the texture image.
+     * @param {Number} [height=1] - Specifies the width of the texture image.
      * @param {String} [filter="NEAREST"] - Specifies GL_TEXTURE_MIN(MAX)_FILTER texture value.
      * @param {String} [internalFormat="RGBA"] - Specifies the color components in the texture.
      * @param {String} [format="RGBA"] - Specifies the format of the texel data.
@@ -352,6 +352,7 @@ class Handler {
      * @public
      * @param {number} width - Empty texture width.
      * @param {number} height - Empty texture height.
+     * @param {number} [internalFormat]
      * @returns {Object} - WebGL texture object.
      */
     public createEmptyTexture_n(
@@ -389,6 +390,7 @@ class Handler {
      * @public
      * @param {number} width - Empty texture width.
      * @param {number} height - Empty texture height.
+     * @param {number} [internalFormat]
      * @returns {Object} - WebGL texture object.
      */
     public createEmptyTexture_l(
@@ -415,6 +417,8 @@ class Handler {
      * Creates NEAREST filter texture.
      * @public
      * @param {HTMLCanvasElement | Image} image - Image or Canvas object.
+     * @param {number} [internalFormat]
+     * @param {WebGLTexture} [texture]
      * @returns {WebGLTexture} - WebGL texture object.
      */
     public createTexture_n_webgl1(
@@ -441,6 +445,8 @@ class Handler {
      * Creates LINEAR filter texture.
      * @public
      * @param {Object} image - Image or Canvas object.
+     * @param {number} [internalFormat]
+     * @param {WebGLTexture} [texture]
      * @returns {Object} - WebGL texture object.
      */
     public createTexture_l_webgl1(
@@ -466,6 +472,8 @@ class Handler {
      * Creates MIPMAP filter texture.
      * @public
      * @param {Object} image - Image or Canvas object.
+     * @param {number} [internalFormat]
+     * @param {WebGLTexture} [texture]
      * @returns {Object} - WebGL texture object.
      */
     public createTexture_mm_webgl1(
@@ -492,6 +500,8 @@ class Handler {
      * Creates ANISOTROPY filter texture.
      * @public
      * @param {Object} image - Image or Canvas object.
+     * @param {number} [internalFormat]
+     * @param {WebGLTexture} [texture]
      * @returns {Object} - WebGL texture object.
      */
     public createTexture_a_webgl1(
@@ -519,6 +529,8 @@ class Handler {
      * Creates NEAREST filter texture.
      * @public
      * @param {Object} image - Image or Canvas object.
+     * @param {number} [internalFormat]
+     * @param {WebGLTexture} [texture]
      * @returns {Object} - WebGL texture object.
      */
     public createTexture_n_webgl2(
@@ -547,6 +559,8 @@ class Handler {
      * Creates LINEAR filter texture.
      * @public
      * @param {Object} image - Image or Canvas object.
+     * @param {number} [internalFormat]
+     * @param {WebGLTexture} [texture]
      * @returns {Object} - WebGL texture object.
      */
     public createTexture_l_webgl2(
@@ -575,6 +589,8 @@ class Handler {
      * Creates MIPMAP filter texture.
      * @public
      * @param {Object} image - Image or Canvas object.
+     * @param {number} [internalFormat]
+     * @param {WebGLTexture} [texture]
      * @returns {Object} - WebGL texture object.
      */
     public createTexture_mm_webgl2(
@@ -602,6 +618,8 @@ class Handler {
      * Creates ANISOTROPY filter texture.
      * @public
      * @param {Object} image - Image or Canvas object.
+     * @param {number} [internalFormat]
+     * @param {WebGLTexture} [texture]
      * @returns {Object} - WebGL texture object.
      */
     public createTexture_a_webgl2(
@@ -703,9 +721,7 @@ class Handler {
                 sc._activated = false;
             }
         } else {
-            console.warn(
-                "og.webgl.Handler:284 - shader program: '" + program.name + "' is allready exists."
-            );
+            console.warn(`Shader program: "${program.name}" already exists.`);
         }
         return program;
     }
@@ -840,12 +856,12 @@ class Handler {
             this.createTextureDefault = this.createTexture_a;
         }
 
-        /** Initilalize shaders and rendering parameters*/
+        /** Initializing shaders and rendering parameters*/
         this._initPrograms();
         this._setDefaults();
 
         this.intersectionObserver = new IntersectionObserver((entries) => {
-            this._toggleVisibilityChange(entries[0].isIntersecting === true);
+            this._toggleVisibilityChange(entries[0].isIntersecting);
         }, {threshold: 0});
 
         this.intersectionObserver.observe(this.canvas);
@@ -904,19 +920,19 @@ class Handler {
     /**
      * Creates STREAM_DRAW ARRAY buffer.
      * @public
-     * @param {Array.<number>} array - Input array.
      * @param {number} itemSize - Array item size.
      * @param {number} numItems - Items quantity.
      * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
+     * @param {number} [bytes=4] -
      * @return {Object} -
      */
-    public createStreamArrayBuffer(itemSize: number, numItems: number, usage?: number, bites: number = 4): WebGLBufferExt {
+    public createStreamArrayBuffer(itemSize: number, numItems: number, usage?: number, bytes: number = 4): WebGLBufferExt {
         let gl = this.gl!;
         let buffer: WebGLBufferExt = gl.createBuffer() as WebGLBufferExt;
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
         gl.bufferData(
             gl.ARRAY_BUFFER,
-            numItems * itemSize * bites,
+            numItems * itemSize * bytes,
             usage || gl.STREAM_DRAW
         );
         gl.bindBuffer(gl.ARRAY_BUFFER, null as any);
@@ -931,7 +947,6 @@ class Handler {
      * @param {WebGLBufferExt} buffer -
      * @param {ArrayBuffer} array -
      * @param {number} [offset=0] -
-     * @param {number} [usage=STATIC_DRAW] -
      * @return {WebGLBufferExt} -
      */
     public setStreamArrayBuffer(buffer: WebGLBufferExt, array: number[], offset: number = 0): WebGLBufferExt {
@@ -965,11 +980,9 @@ class Handler {
     /**
      * Creates ARRAY buffer specific length.
      * @public
-     * @param {Array.<number>} array - Input array.
-     * @param {number} itemSize - Array item size.
-     * @param {number} numItems - Items quantity.
+     * @param {number} size -
      * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
-     * @return {Object} -
+     * @return {WebGLBufferExt} -
      */
     public createArrayBufferLength(size: number, usage?: number): WebGLBufferExt {
         let gl = this.gl!;
@@ -1073,7 +1086,6 @@ class Handler {
     /**
      * Draw single frame.
      * @public
-     * @param {number} now - Frame current time milliseconds.
      */
     public drawFrame() {
         /** Calculating frame time */
@@ -1160,14 +1172,14 @@ class Handler {
      * @param {callback} [success] - Creation callback
      */
     public createDefaultTexture(params: any, success: Function) {
+
         let imgCnv;
         let texture;
-        const is2 = this.isWebGl2();
 
         if (params && params.color) {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor(params.color);
-            texture = this.createTexture_n(imgCnv._canvas);
+            texture = this.createTexture_n(imgCnv.getCanvas());
             texture.default = true;
             success(texture);
         } else if (params && params.url) {
@@ -1182,7 +1194,7 @@ class Handler {
         } else {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor("#C5C5C5");
-            texture = this.createTexture_n(imgCnv._canvas);
+            texture = this.createTexture_n(imgCnv.getCanvas());
             texture.default = true;
             success(texture);
         }
@@ -1213,7 +1225,7 @@ class Handler {
         //
         let gl = this.gl;
 
-        if(gl) {
+        if (gl) {
             gl.deleteTexture(this.transparentTexture);
             this.transparentTexture = null;
 
@@ -1250,7 +1262,7 @@ class Handler {
             //
             gl.activeTexture(gl.TEXTURE0);
             gl.useProgram(null as any);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null as any );
+            gl.bindBuffer(gl.ARRAY_BUFFER, null as any);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null as any);
             gl.bindFramebuffer(gl.FRAMEBUFFER, null as any);
             gl.bindRenderbuffer(gl.RENDERBUFFER, null as any);

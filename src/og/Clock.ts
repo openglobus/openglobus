@@ -1,7 +1,7 @@
 "use strict";
 
 import {EventsHandler, createEvents} from "./Events";
-
+import {Handler} from "./webgl/Handler";
 //@ts-ignore
 import * as jd from "./astro/jd.js";
 
@@ -44,6 +44,8 @@ class Clock {
     protected _intervalDelay: number = 0;
     protected _intervalStart: number = 0;
     protected _intervalCallback: Function | null;
+
+    __handler: Handler | null;
 
     constructor(params: IClockParams = {}) {
 
