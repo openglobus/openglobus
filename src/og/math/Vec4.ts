@@ -3,6 +3,8 @@
 import {frac} from "../math";
 import {Vec3} from "./Vec3";
 
+export type NumberArray4 = [number, number, number, number];
+
 /**
  * Class represents a 4d vector.
  * @class
@@ -60,7 +62,7 @@ export class Vec4 {
      * @param {Array.<number>} arr - Array of four values
      * @returns {Vec4}
      */
-    static fromVec(arr: [number, number, number, number]): Vec4 {
+    static fromVec(arr: NumberArray4): Vec4 {
         return new Vec4(arr[0], arr[1], arr[2], arr[3]);
     }
 
@@ -110,7 +112,7 @@ export class Vec4 {
      * @public
      * @returns {Array.<number>} - (exactly 4 entries)
      */
-    public toArray(): [number, number, number, number] {
+    public toArray(): NumberArray4 {
         return [this.x, this.y, this.z, this.w];
     }
 

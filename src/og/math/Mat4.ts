@@ -5,7 +5,7 @@ import {Quat} from "./Quat";
 import {Vec3} from "./Vec3";
 import {Vec4} from "./Vec4";
 
-type NumberArray16 = [
+export type NumberArray16 = [
     number, number, number, number,
     number, number, number, number,
     number, number, number, number,

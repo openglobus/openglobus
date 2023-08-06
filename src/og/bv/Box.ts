@@ -1,22 +1,28 @@
 "use strict";
 
-import { Vec3 } from "../math/Vec3";
+import {Vec3} from "../math/Vec3";
+import {NumberArray6} from "./Sphere";
+import {Ellipsoid} from "../ellipsoid";
+import {Extent} from "../Extent";
+
+type Vec3Array8 = [Vec3, Vec3, Vec3, Vec3, Vec3, Vec3, Vec3, Vec3];
 
 /**
  * Bounding box class.
  * @class
+ * @param {NumberArray6} [boundsArr]
  */
 class Box {
+
     /**
-     *
-     * @param {*} boundsArr
+     * Vertices array.
+     * @public
+     * @type{Array.<Vec3>}
      */
-    constructor(boundsArr = [0, 0, 0, 0, 0, 0]) {
-        /**
-         * Vertices array.
-         * @public
-         * @type{Array.<Vec3>}
-         */
+    public vertices: Vec3Array8
+
+    constructor(boundsArr?: NumberArray6) {
+
         this.vertices = [
             new Vec3(),
             new Vec3(),
@@ -33,7 +39,7 @@ class Box {
         }
     }
 
-    copy(bbox) {
+    public copy(bbox: Box) {
         for (let i = 0, len = this.vertices.length; i < len; i++) {
             this.vertices[i].copy(bbox.vertices[i]);
         }
@@ -41,17 +47,17 @@ class Box {
 
     /**
      * Sets bounding box coordinates by the bounds array.
-     * @param {Array.<number>} bounds - Bounds is an array where [minX, minY, minZ, maxX, maxY, maxZ]
+     * @param {NumberArray6} bounds - Bounds is an array where [minX, minY, minZ, maxX, maxY, maxZ]
      */
-    setFromBoundsArr(bounds) {
-        var xmin = bounds[0],
+    public setFromBoundsArr(bounds: NumberArray6) {
+        let xmin = bounds[0],
             xmax = bounds[3],
             ymin = bounds[1],
             ymax = bounds[4],
             zmin = bounds[2],
             zmax = bounds[5];
 
-        var v = this.vertices;
+        let v = this.vertices;
 
         v[0].set(xmin, ymin, zmin);
         v[1].set(xmax, ymin, zmin);
@@ -68,10 +74,10 @@ class Box {
      * @param {Ellipsoid} ellipsoid - Ellipsoid.
      * @param {Extent} extent - Geodetic extent.
      */
-    setFromExtent(ellipsoid, extent) {
+    public setFromExtent(ellipsoid: Ellipsoid, extent: Extent) {
         this.setFromBoundsArr(extent.getCartesianBounds(ellipsoid));
     }
 }
 
-export { Box };
+export {Box};
 

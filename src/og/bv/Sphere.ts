@@ -1,6 +1,10 @@
 "use strict";
 
-import { Vec3 } from "../math/Vec3";
+import {Vec3} from "../math/Vec3";
+import {Ellipsoid} from "../ellipsoid";
+import {Extent} from "../Extent";
+
+export type NumberArray6 = [number, number, number, number, number, number];
 
 /**
  * Bounding sphere class.
@@ -10,23 +14,23 @@ import { Vec3 } from "../math/Vec3";
  */
 class Sphere {
     /**
-     *
-     * @param {number} radius
-     * @param {Vec3} center
+     * Sphere radius.
+     * @public
+     * @type {Number}
      */
-    constructor(radius = 0, center = Vec3.ZERO) {
-        /**
-         * Sphere radius.
-         * @public
-         * @type {Number}
-         */
+    public radius: number;
+
+    /**
+     * Sphere coordinates.
+     * @public
+     * @type {Vec3}
+     */
+    public center: Vec3;
+
+    constructor(radius: number = 0, center?: Vec3) {
+
         this.radius = radius;
 
-        /**
-         * Sphere coordinates.
-         * @public
-         * @type {Vec3}
-         */
         this.center = center ? center.clone() : new Vec3();
     }
 
@@ -34,7 +38,7 @@ class Sphere {
      * Sets bounding sphere coordinates by the bounds array.
      * @param {Array.<number>} bounds - Bounds is an array where [minX, minY, minZ, maxX, maxY, maxZ]
      */
-    setFromBounds(bounds) {
+    public setFromBounds(bounds: NumberArray6) {
         let m = new Vec3(bounds[0], bounds[1], bounds[2]);
         this.center.set(
             m.x + (bounds[3] - m.x) * 0.5,
@@ -49,9 +53,9 @@ class Sphere {
      * @param {Ellipsoid} ellipsoid - Ellipsoid.
      * @param {Extent} extent - Geodetic extent.
      */
-    setFromExtent(ellipsoid, extent) {
+    public setFromExtent(ellipsoid: Ellipsoid, extent: Extent) {
         this.setFromBounds(extent.getCartesianBounds(ellipsoid));
     }
 }
 
-export { Sphere };
+export {Sphere};

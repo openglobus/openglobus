@@ -7,7 +7,7 @@ import { Mat4 } from "../math/Mat4";
 import { Vec2 } from "../math/Vec2";
 import { Vec3 } from "../math/Vec3";
 import { Vec4 } from "../math/Vec4";
-import { Frustum } from "./Frustum.js";
+import { Frustum } from "./Frustum";
 
 /**
  * Camera class.

@@ -1,95 +1,125 @@
 "use strict";
 
-import { Mat4 } from "../math/Mat4";
+import {Mat4, NumberArray16} from "../math/Mat4";
+import {Vec3} from "../math/Vec3";
+import {NumberArray4} from "../math/Vec4";
+import {Sphere} from "../bv/Sphere";
+import {Box} from "../bv/Box";
 
-function planeNormalize(plane) {
-    var t = 1.0 / Math.sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);
+function planeNormalize(plane: NumberArray4) {
+    let t = 1.0 / Math.sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);
     plane[0] *= t;
     plane[1] *= t;
     plane[2] *= t;
     plane[3] *= t;
 }
 
+interface IFrustumParams {
+    cameraFrustumIndex?: number;
+    fov?: number;
+    aspect?: number,
+    near?: number;
+    far?: number;
+}
+
 /**
  * Frustum object, part of the camera object.
  * @class
+ * @param {*} options
  */
 class Frustum {
+
+    protected _f: [NumberArray4, NumberArray4, NumberArray4, NumberArray4, NumberArray4, NumberArray4];
+
     /**
-     * @param {*} options
+     * Camera projection matrix.
+     * @protected
+     * @type {Mat4}
      */
-    constructor(options = {}) {
-        /**
-         * Frustum planes.
-         * @private
-         * @type {Array.<Array.<number>>}
-         */
+    protected _projectionMatrix: Mat4;
+
+    /**
+     * Camera inverse projection matrix.
+     * @protected
+     * @type {Mat4}
+     */
+    protected _inverseProjectionMatrix: Mat4;
+
+    /**
+     * Product of projection and view matrices.
+     * @protected
+     * @type {Mat4}
+     */
+    protected _projectionViewMatrix: Mat4;
+
+    /**
+     * Inverse projectionView Matrix.
+     * @protected
+     * @type {Mat4}
+     */
+    protected _inverseProjectionViewMatrix: Mat4;
+
+    /**
+     * Projection frustum left value.
+     * @public
+     */
+    public left: number;
+    /**
+     * Projection frustum right value.
+     * @public
+     */
+    public right: number;
+    /**
+     * Projection frustum bottom value.
+     * @public
+     */
+    public bottom: number;
+    /**
+     * Projection frustum top value.
+     * @public
+     */
+    public top: number;
+    /**
+     * Projection frustum near value.
+     * @public
+     */
+    public near: number;
+    /**
+     * Projection frustum far value.
+     * @public
+     */
+    public far: number;
+
+    protected _cameraFrustumIndex: number;
+
+    constructor(options: IFrustumParams = {}) {
+
         this._f = new Array(6);
         for (let i = 0; i < 6; i++) {
             this._f[i] = new Array(4);
         }
 
-        /**
-         * Camera projection matrix.
-         * @protected
-         * @type {Mat4}
-         */
         this._projectionMatrix = new Mat4();
 
-        /**
-         * Camera inverse projection matrix.
-         * @protected
-         * @type {Mat4}
-         */
         this._inverseProjectionMatrix = new Mat4();
 
-        /**
-         * Product of projection and view matrices.
-         * @protected
-         * @type {Mat4}
-         */
         this._projectionViewMatrix = new Mat4();
 
-        /**
-         * Inverse projectionView Matrix.
-         * @protected
-         * @type {Mat4}
-         */
         this._inverseProjectionViewMatrix = new Mat4();
 
-        /**
-         * Projection frustum left value.
-         * @public
-         */
         this.left = 0.0;
-        /**
-         * Projection frustum right value.
-         * @public
-         */
+
         this.right = 0.0;
-        /**
-         * Projection frustum bottom value.
-         * @public
-         */
+
         this.bottom = 0.0;
-        /**
-         * Projection frustum top value.
-         * @public
-         */
+
         this.top = 0.0;
-        /**
-         * Projection frustum near value.
-         * @public
-         */
+
         this.near = 0.0;
-        /**
-         * Projection frustum far value.
-         * @public
-         */
+
         this.far = 0.0;
 
-        this._cameraFrustumIndex =
-            options.cameraFrustumIndex != undefined ? options.cameraFrustumIndex : -1;
+        this._cameraFrustumIndex = options.cameraFrustumIndex != undefined ? options.cameraFrustumIndex : -1;
 
         this.setProjectionMatrix(
             options.fov || 30.0,
@@ -99,51 +129,51 @@ class Frustum {
         );
     }
 
-    getRightPlane() {
+    public getRightPlane(): NumberArray4 {
         return this._f[0];
     }
 
-    getLeftPlane() {
+    public getLeftPlane(): NumberArray4 {
         return this._f[1];
     }
 
-    getBottomPlane() {
+    public getBottomPlane(): NumberArray4 {
         return this._f[2];
     }
 
-    getTopPlane() {
+    public getTopPlane(): NumberArray4 {
         return this._f[3];
     }
 
-    getBackwardPlane() {
+    public getBackwardPlane(): NumberArray4 {
         return this._f[4];
     }
 
-    getForwardPlane() {
+    public getForwardPlane(): NumberArray4 {
         return this._f[5];
     }
 
-    getProjectionViewMatrix() {
+    public getProjectionViewMatrix(): NumberArray16 {
         return this._projectionViewMatrix._m;
     }
 
-    getProjectionMatrix() {
+    public getProjectionMatrix(): NumberArray16 {
         return this._projectionMatrix._m;
     }
 
-    getInverseProjectionMatrix() {
+    public getInverseProjectionMatrix(): NumberArray16 {
         return this._inverseProjectionMatrix._m;
     }
 
     /**
      * Sets up camera projection matrix.
      * @public
-     * @param {nnumber} angle - Camera's view angle.
+     * @param {number} angle - Camera's view angle.
      * @param {number} aspect - Screen aspect ration.
      * @param {number} near - Near camera distance.
      * @param {number} far - Far camera distance.
      */
-    setProjectionMatrix(angle, aspect, near, far) {
+    public setProjectionMatrix(angle: number, aspect: number, near: number, far: number) {
         this.top = near * Math.tan((angle * Math.PI) / 360);
         this.bottom = -this.top;
         this.right = this.top * aspect;
@@ -165,9 +195,9 @@ class Frustum {
     /**
      * Camera's projection matrix values.
      * @public
-     * @param {Mat4} projectionView - projectionView matrix.
+     * @param {Mat4} viewMatrix - View matrix.
      */
-    setViewMatrix(viewMatrix) {
+    public setViewMatrix(viewMatrix: Mat4) {
         this._projectionViewMatrix = this._projectionMatrix.mul(viewMatrix);
         this._projectionViewMatrix.inverseTo(this._inverseProjectionViewMatrix);
 
@@ -222,10 +252,9 @@ class Frustum {
      * @param {Vec3} point - Cartesian point.
      * @returns {boolean} -
      */
-    containsPoint(point) {
-        var d;
+    public containsPoint(point: Vec3): boolean {
         for (let p = 0; p < 6; p++) {
-            d = point.dotArr(this._f[p]) + this._f[p][3];
+            let d = point.dotArr(this._f[p]) + this._f[p][3];
             if (d <= 0) {
                 return false;
             }
@@ -239,8 +268,8 @@ class Frustum {
      * @param {Sphere} sphere - Bounding sphere.
      * @returns {boolean} -
      */
-    containsSphereBottomExc(sphere) {
-        var r = -sphere.radius,
+    public containsSphereBottomExc(sphere: Sphere): boolean {
+        let r = -sphere.radius,
             f = this._f;
         if (sphere.center.dotArr(f[0]) + f[0][3] <= r) return false;
         if (sphere.center.dotArr(f[1]) + f[1][3] <= r) return false;
@@ -250,10 +279,11 @@ class Frustum {
         return true;
     }
 
-    containsSphereButtom(sphere) {
-        var r = -sphere.radius,
+    public containsSphereButtom(sphere: Sphere): boolean {
+        let r = -sphere.radius,
             f = this._f;
-        if (sphere.center.dotArr(f[2]) + f[2][3] <= r) return false;
+        if (sphere.center.dotArr(f[2]) + f[2][3] <= r)
+            return false;
         return true;
     }
 
@@ -263,8 +293,8 @@ class Frustum {
      * @param {Sphere} sphere - Bounding sphere.
      * @returns {boolean} -
      */
-    containsSphere(sphere) {
-        var r = -sphere.radius,
+    public containsSphere(sphere: Sphere): boolean {
+        let r = -sphere.radius,
             f = this._f;
         if (sphere.center.dotArr(f[0]) + f[0][3] <= r) return false;
         if (sphere.center.dotArr(f[1]) + f[1][3] <= r) return false;
@@ -282,8 +312,8 @@ class Frustum {
      * @param {number} radius - Sphere radius.
      * @returns {boolean} -
      */
-    containsSphere2(center, radius) {
-        var r = -radius;
+    public containsSphere2(center: Vec3, radius: number): boolean {
+        let r = -radius;
         if (center.dotArr(this._f[0]) + this._f[0][3] <= r) return false;
         if (center.dotArr(this._f[1]) + this._f[1][3] <= r) return false;
         if (center.dotArr(this._f[2]) + this._f[2][3] <= r) return false;
@@ -299,17 +329,16 @@ class Frustum {
      * @param {Box} box - Bounding box.
      * @returns {boolean} -
      */
-    containsBox(box) {
-        var result = true,
-            cout,
-            cin;
+    public containsBox(box: Box): boolean {
+        let result: boolean = true,
+            cout: number,
+            cin: number;
 
         for (let i = 0; i < 6; i++) {
             cout = 0;
             cin = 0;
-
             for (let k = 0; k < 8 && (cin === 0 || cout === 0); k++) {
-                var d = box.vertices[k].dotArr(this._f[i]) + this._f[i][3];
+                let d = box.vertices[k].dotArr(this._f[i]) + this._f[i][3];
                 if (d < 0) {
                     cout++;
                 } else {
@@ -328,4 +357,4 @@ class Frustum {
     }
 }
 
-export { Frustum };
+export {Frustum};

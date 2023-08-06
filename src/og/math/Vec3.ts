@@ -1,7 +1,9 @@
 "use strict";
 
 import {Quat} from "./Quat";
-import {Vec4} from "./Vec4";
+import {Vec4, NumberArray4} from "./Vec4";
+
+export type NumberArray3 = [number, number, number];
 
 /**
  * Class represents a 3d vector.
@@ -142,7 +144,7 @@ export class Vec3 {
      * @param {Float32Array} low - Out vector low values.
      * @returns {Array.<number>} Encoded array. (exactly 2 entries)
      */
-    static doubleToTwoFloat32Array(v: Vec3, high: [number, number, number], low: [number, number, number]) {
+    static doubleToTwoFloat32Array(v: Vec3, high: NumberArray3, low: NumberArray3) {
         let x = v.x,
             y = v.y,
             z = v.z;
@@ -181,10 +183,10 @@ export class Vec3 {
     /**
      * Creates 3d vector from array.
      * @function
-     * @param {[number, number, number]} arr - Input array (exactly 3 entries)
+     * @param {NumberArray3|NumberArray4} arr - Input array (exactly 3 entries)
      * @returns {Vec3} -
      */
-    static fromVec(arr: [number, number, number]): Vec3 {
+    static fromVec(arr: NumberArray3 | NumberArray4): Vec3 {
         return new Vec3(arr[0], arr[1], arr[2]);
     }
 
@@ -564,7 +566,7 @@ export class Vec3 {
      * @param {Array.<number>} arr - Array vector. (exactly 3 entries)
      * @returns {number} -
      */
-    public dotArr(arr: [number, number, number]): number {
+    public dotArr(arr: NumberArray3 | NumberArray4): number {
         return arr[0] * this.x + arr[1] * this.y + arr[2] * this.z;
     }
 
@@ -702,7 +704,7 @@ export class Vec3 {
      * @returns {Array.<number>} - (exactly 3 entries)
      * @deprecated
      */
-    public toVec(): [number, number, number] {
+    public toVec(): NumberArray3 {
         return [this.x, this.y, this.z];
     }
 
@@ -711,7 +713,7 @@ export class Vec3 {
      * @public
      * @returns {Array.<number>} - (exactly 3 entries)
      */
-    public toArray(): [number, number, number] {
+    public toArray(): NumberArray3 {
         return [this.x, this.y, this.z];
     }
 
