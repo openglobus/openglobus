@@ -11,10 +11,18 @@ import {Quat} from "../math/Quat";
 import {Ray} from "../math/Ray.js";
 import {Vec3} from "../math/Vec3";
 import {Extent} from "../Extent";
+import {Segment} from "../segment/Segment";
 
 interface IPlanetCameraParams extends ICameraParams {
     minAltitude?: number;
     maxAltitude?: number;
+}
+
+type CameraFrame = {
+    eye: Vec3;
+    n: Vec3;
+    u: Vec3;
+    v: Vec3;
 }
 
 /**
@@ -43,14 +51,14 @@ class PlanetCamera extends Camera {
     public planet: Planet;
 
     /**
-     * Minimal alltitude that camera can reach over the terrain.
+     * Minimal altitude that camera can reach over the terrain.
      * @public
      * @type {number}
      */
     public minAltitude: number;
 
     /**
-     * Maximal alltitude that camera can reach over the globe.
+     * Maximal altitude that camera can reach over the globe.
      * @public
      * @type {number}
      */
@@ -87,15 +95,15 @@ class PlanetCamera extends Camera {
     /**
      * Quad node that camera flies over.
      * @protected
-     * @type {quadTree.Node}
+     * @type {Segment}
      */
 
-    protected _insideSegment: Node | null;
+    protected _insideSegment: Segment | null;
 
     public slope: number;
 
     protected _keyLock: Key;
-    protected _framesArr: [];
+    protected _framesArr: CameraFrame[];
     protected _framesCounter: number;
     protected _numFrames: number;
     protected _completeCallback: Function | null;
@@ -112,67 +120,27 @@ class PlanetCamera extends Camera {
                 frustums: options.frustums || [[1, 100 + 0.075], [100, 1000 + 0.075], [1000, 1e6 + 10000], [1e6, 1e9]],
             }
         );
-        /**
-         * Assigned camera's planet.
-         * @public
-         * @type {Planet}
-         */
+
         this.planet = planet;
 
-        /**
-         * Minimal alltitude that camera can reach over the terrain.
-         * @public
-         * @type {number}
-         */
         this.minAltitude = options.minAltitude || 1;
 
-        /**
-         * Maximal alltitude that camera can reach over the globe.
-         * @public
-         * @type {number}
-         */
         this.maxAltitude = options.maxAltitude || 20000000;
 
-        /**
-         * Current geographical degree position.
-         * @protected
-         * @type {LonLat}
-         */
         this._lonLat = this.planet.ellipsoid.cartesianToLonLat(this.eye);
 
-        /**
-         * Current geographical mercator position.
-         * @protected
-         * @type {LonLat}
-         */
         this._lonLatMerc = this._lonLat.forwardMercator();
 
-        /**
-         * Current altitude.
-         * @protected
-         * @type {number}
-         */
         this._terrainAltitude = this._lonLat.height;
 
-        /**
-         * Cartesian coordinates on the terrain.
-         * @protected
-         * @type {Vec3}
-         */
         this._terrainPoint = new Vec3();
 
-        /**
-         * Quad node that camera flies over.
-         * @protected
-         * @type {quadTree.Node}
-         */
         this._insideSegment = null;
 
         this.slope = 0;
 
         this._keyLock = new Key();
 
-        // Camera's flying frames
         this._framesArr = [];
         this._framesCounter = 0;
         this._numFrames = 50;
@@ -180,7 +148,7 @@ class PlanetCamera extends Camera {
         this._flying = false;
         this._checkTerrainCollision = true;
 
-        this.eyeNorm = this.eye.normal();
+        this.eyeNorm = this.eye.getNormal();
     }
 
     public setTerrainCollisionActivity(isActive: boolean) {
@@ -198,14 +166,14 @@ class PlanetCamera extends Camera {
         let maxAlt = this.maxAltitude + this.planet.ellipsoid.getEquatorialSize();
 
         if (this.eye.length() > maxAlt) {
-            this.eye.copy(this.eye.normal().scale(maxAlt));
+            this.eye.copy(this.eye.getNormal().scale(maxAlt));
         }
 
         super.update();
 
         this.updateGeodeticPosition();
 
-        this.eyeNorm = this.eye.normal();
+        this.eyeNorm = this.eye.getNormal();
         this.slope = this._b.dot(this.eyeNorm);
 
         this.events.dispatch(this.events.viewchange, this);
@@ -320,7 +288,7 @@ class PlanetCamera extends Camera {
         northEast.subA(center);
         southWest.subA(center);
 
-        let direction = center.normal(); // ellipsoid.getSurfaceNormal(center).negate().normalize();
+        let direction = center.getNormal(); // ellipsoid.getSurfaceNormal(center).negate().normalize();
         let right = direction.cross(Vec3.NORTH).normalize();
         let up = right.cross(direction).normalize();
 
@@ -352,6 +320,7 @@ class PlanetCamera extends Camera {
      * View current extent.
      * @public
      * @param {Extent} extent - Current extent.
+     * @param {number} [height]
      */
     public viewExtent(extent: Extent, height?: number) {
         this.stopFlying();
@@ -363,11 +332,12 @@ class PlanetCamera extends Camera {
      * Flies to the current extent.
      * @public
      * @param {Extent} extent - Current extent.
+     * @param {number} [height] - Destination height.
      * @param {Vec3} [up] - Camera UP in the end of flying. Default - (0,1,0)
      * @param {Number} [ampl] - Altitude amplitude factor.
-     * @param {cameraCallback} [completeCallback] - Callback that calls after flying when flying is finished.
-     * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
-     * @param [frameCallback]
+     * @param {Function} [completeCallback] - Callback that calls after flying when flying is finished.
+     * @param {Function} [startCallback] - Callback that calls before the flying begins.
+     * @param {Function} [frameCallback] - Each frame callback
      */
     public flyExtent(
         extent: Extent,
@@ -390,7 +360,7 @@ class PlanetCamera extends Camera {
 
     public viewDistance(cartesian: Vec3, distance: number = 10000.0) {
         let p0 = this.eye.add(this.getForward().scaleTo(distance));
-        let _rot = Quat.getRotationBetweenVectors(p0.normal(), cartesian.normal());
+        let _rot = Quat.getRotationBetweenVectors(p0.getNormal(), cartesian.getNormal());
         if (_rot.isZero()) {
             let newPos = cartesian.add(this.getBackward().scaleTo(distance));
             this.set(newPos, cartesian);
@@ -411,7 +381,7 @@ class PlanetCamera extends Camera {
         frameCallback?: Function
     ) {
         let p0 = this.eye.add(this.getForward().scaleTo(distance));
-        let _rot = Quat.getRotationBetweenVectors(p0.normal(), cartesian.normal());
+        let _rot = Quat.getRotationBetweenVectors(p0.getNormal(), cartesian.getNormal());
         if (_rot.isZero()) {
             let newPos = cartesian.add(this.getBackward().scaleTo(distance));
             this.set(newPos, cartesian);
@@ -437,9 +407,9 @@ class PlanetCamera extends Camera {
      * @param {Vec3} [look] - Camera LOOK in the end of flying. Default - (0,0,0)
      * @param {Vec3} [up] - Camera UP vector in the end of flying. Default - (0,1,0)
      * @param {Number} [ampl=1.0] - Altitude amplitude factor.
-     * @param {cameraCallback} [completeCallback] - Callback that calls after flying when flying is finished.
-     * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
-     * @param [frameCallback]
+     * @param {Function} [completeCallback] - Callback that calls after flying when flying is finished.
+     * @param {Function} [startCallback] - Callback that calls before the flying begins.
+     * @param {Function} [frameCallback] - Frame callback
      */
     flyCartesian(
         cartesian: Vec3,
@@ -482,15 +452,14 @@ class PlanetCamera extends Camera {
         let ground_b = this.planet.ellipsoid.lonLatToCartesian(
             new LonLat(lonlat_b.lon, lonlat_b.lat, 0)
         );
-        let eye_b = cartesian;
-        let n_b = Vec3.sub(eye_b, look);
+        let n_b = Vec3.sub(cartesian, look);
         let u_b = up_b.cross(n_b);
         n_b.normalize();
         u_b.normalize();
         let v_b = n_b.cross(u_b);
 
-        let an = ground_a.normal();
-        let bn = ground_b.normal();
+        let an = ground_a.getNormal();
+        let bn = ground_b.getNormal();
         let anbn = 1.0 - an.dot(bn);
         let hM_a = ampl * math.SQRT_HALF * Math.sqrt(anbn > 0.0 ? anbn : 0.0);
 
@@ -533,7 +502,7 @@ class PlanetCamera extends Camera {
                 n: n,
                 u: u,
                 v: v
-            } as any;
+            };
         }
 
         this._framesCounter = this._numFrames;
@@ -547,11 +516,11 @@ class PlanetCamera extends Camera {
      * @param {Vec3} [look] - Camera LOOK in the end of flying. Default - (0,0,0)
      * @param {Vec3} [up] - Camera UP vector in the end of flying. Default - (0,1,0)
      * @param {Number} [ampl] - Altitude amplitude factor.
-     * @param {cameraCallback} [completeCallback] - Callback that calls after flying when flying is finished.
-     * @param {cameraCallback} [startCallback] - Callback that calls befor the flying begins.
+     * @param {Function} [completeCallback] - Callback that calls after flying when flying is finished.
+     * @param {Function} [startCallback] - Callback that calls befor the flying begins.
      */
     flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback) {
-        var _lonLat = new LonLat(lonlat.lon, lonlat.lat, lonlat.height || this._lonLat.height);
+        let _lonLat = new LonLat(lonlat.lon, lonlat.lat, lonlat.height || this._lonLat.height);
         this.flyCartesian(
             this.planet.ellipsoid.lonLatToCartesian(_lonLat),
             look,
@@ -569,7 +538,7 @@ class PlanetCamera extends Camera {
     stopFlying() {
         this.planet.layerLock.free(this._keyLock);
         this.planet.terrainLock.free(this._keyLock);
-        this.planet._normalMapCreator.free(this._keyLock);
+        this.planet.normalMapCreator.free(this._keyLock);
 
         this._flying = false;
         this._framesArr.length = 0;
@@ -610,7 +579,7 @@ class PlanetCamera extends Camera {
     }
 
     /**
-     * Rotates around planet to the north pole.
+     * Rotates around planet to the North Pole.
      * @public
      * @param {number} angle - Rotation angle.
      */
@@ -620,7 +589,7 @@ class PlanetCamera extends Camera {
     }
 
     /**
-     * Rotates around planet to the south pole.
+     * Rotates around planet to the South Pole.
      * @public
      * @param {number} angle - Rotation angle.
      */
@@ -640,7 +609,7 @@ class PlanetCamera extends Camera {
         let r = rot.mulVec3(this._r).normalize();
         let b = rot.mulVec3(this._b).normalize();
 
-        let eyeNorm = eye.normal();
+        let eyeNorm = eye.getNormal();
         let slope = b.dot(eyeNorm);
 
         if (minSlope) {
@@ -651,7 +620,7 @@ class PlanetCamera extends Camera {
             if (
                 (slope > 0.1 && u.dot(eyeNorm) > 0) ||
                 this.slope <= 0.1 ||
-                this._u.dot(this.eye.normal()) <= 0.0
+                this._u.dot(this.eye.getNormal()) <= 0.0
             ) {
                 this.eye = eye;
                 this._u = u;
@@ -676,7 +645,7 @@ class PlanetCamera extends Camera {
 
             this.planet.layerLock.lock(this._keyLock);
             this.planet.terrainLock.lock(this._keyLock);
-            this.planet._normalMapCreator.lock(this._keyLock);
+            this.planet.normalMapCreator.lock(this._keyLock);
 
             this.eye = this._framesArr[c].eye;
             this._r = this._framesArr[c].u;
@@ -722,7 +691,7 @@ class PlanetCamera extends Camera {
     }
 
     public getHeading(): number {
-        let u = this.eye.normal();
+        let u = this.eye.getNormal();
         let f = Vec3.proj_b_to_plane(
                 this.slope >= 0.97 ? this.getUp() : this.getForward(),
                 u
