@@ -2,7 +2,7 @@
 
 import {Vec3} from "../math/Vec3";
 import {NumberArray6} from "./Sphere";
-import {Ellipsoid} from "../ellipsoid";
+import {Ellipsoid} from "../ellipsoid/Ellipsoid";
 import {Extent} from "../Extent";
 
 type Vec3Array8 = [Vec3, Vec3, Vec3, Vec3, Vec3, Vec3, Vec3, Vec3];

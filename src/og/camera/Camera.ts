@@ -5,7 +5,7 @@ import * as math from "../math";
 import {Mat3, NumberArray9} from "../math/Mat3";
 import {Mat4, NumberArray16} from "../math/Mat4";
 import {NumberArray2, Vec2} from "../math/Vec2";
-import {Vec3} from "../math/Vec3";
+import {NumberArray3, Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 import {Frustum} from "./Frustum";
 import {Renderer} from "../renderer/Renderer";
@@ -152,8 +152,6 @@ class Camera {
 
     public frustums: Frustum[];
 
-    public nearFarArr: NumberArray2[];
-
     public frustumColors: number[];
 
     public FARTHEST_FRUSTUM_INDEX: number;
@@ -199,8 +197,6 @@ class Camera {
 
         this.frustums = [];
 
-        this.nearFarArr = [];
-
         this.frustumColors = [];
 
         if (options.frustums) {
@@ -216,8 +212,7 @@ class Camera {
 
                 fr.cameraFrustumIndex = this.frustums.length;
                 this.frustums.push(fr);
-                this.nearFarArr.push.apply(this.nearFarArr, [fi[0], fi[1]]);
-                this.frustumColors.push.apply(this.frustumColors, fr._pickingColorU);
+                this.frustumColors.push.apply(this.frustumColors, fr._pickingColorU as any);
             }
         } else {
             let near = 1.0,
@@ -232,8 +227,7 @@ class Camera {
 
             fr.cameraFrustumIndex = this.frustums.length;
             this.frustums.push(fr);
-            this.nearFarArr = [[near, far]];
-            this.frustumColors.push.apply(this.frustumColors, fr._pickingColorU);
+            this.frustumColors.push.apply(this.frustumColors, fr._pickingColorU as any);
         }
 
         this.FARTHEST_FRUSTUM_INDEX = this.frustums.length - 1;
@@ -628,7 +622,7 @@ class Camera {
      * @param {Vec3} r - Far point.
      * @returns {number} - Size factor.
      */
-    public projectedSize(p: Vec3, r: Vec3): number {
+    public projectedSize(p: Vec3, r: number): number {
         return Math.atan(r / this.eye.distance(p)) * this._projSizeConst;
     }
 

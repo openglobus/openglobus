@@ -92,14 +92,11 @@ class Frustum {
 
     public cameraFrustumIndex: number;
 
-    public _pickingColorU: Float32Array = new Float32Array(0, 0, 0);
+    public _pickingColorU: Float32Array = new Float32Array([0, 0, 0]);
 
     constructor(options: IFrustumParams = {}) {
 
-        this._f = new Array(6);
-        for (let i = 0; i < 6; i++) {
-            this._f[i] = new Array(4);
-        }
+        this._f = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
 
         this.projectionMatrix = new Mat4();
 
