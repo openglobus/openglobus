@@ -3,7 +3,7 @@
 import {Mat4} from "./Mat4";
 import {Vec3} from "./Vec3";
 
-type NumberArray9 = [
+export type NumberArray9 = [
     number, number, number,
     number, number, number,
     number, number, number

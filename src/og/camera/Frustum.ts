@@ -36,28 +36,28 @@ class Frustum {
      * @protected
      * @type {Mat4}
      */
-    protected _projectionMatrix: Mat4;
+    public projectionMatrix: Mat4;
 
     /**
      * Camera inverse projection matrix.
      * @protected
      * @type {Mat4}
      */
-    protected _inverseProjectionMatrix: Mat4;
+    public inverseProjectionMatrix: Mat4;
 
     /**
      * Product of projection and view matrices.
      * @protected
      * @type {Mat4}
      */
-    protected _projectionViewMatrix: Mat4;
+    public projectionViewMatrix: Mat4;
 
     /**
      * Inverse projectionView Matrix.
      * @protected
      * @type {Mat4}
      */
-    protected _inverseProjectionViewMatrix: Mat4;
+    public inverseProjectionViewMatrix: Mat4;
 
     /**
      * Projection frustum left value.
@@ -90,7 +90,9 @@ class Frustum {
      */
     public far: number;
 
-    protected _cameraFrustumIndex: number;
+    public cameraFrustumIndex: number;
+
+    public _pickingColorU: Float32Array = new Float32Array(0, 0, 0);
 
     constructor(options: IFrustumParams = {}) {
 
@@ -99,13 +101,13 @@ class Frustum {
             this._f[i] = new Array(4);
         }
 
-        this._projectionMatrix = new Mat4();
+        this.projectionMatrix = new Mat4();
 
-        this._inverseProjectionMatrix = new Mat4();
+        this.inverseProjectionMatrix = new Mat4();
 
-        this._projectionViewMatrix = new Mat4();
+        this.projectionViewMatrix = new Mat4();
 
-        this._inverseProjectionViewMatrix = new Mat4();
+        this.inverseProjectionViewMatrix = new Mat4();
 
         this.left = 0.0;
 
@@ -119,7 +121,7 @@ class Frustum {
 
         this.far = 0.0;
 
-        this._cameraFrustumIndex = options.cameraFrustumIndex != undefined ? options.cameraFrustumIndex : -1;
+        this.cameraFrustumIndex = options.cameraFrustumIndex != undefined ? options.cameraFrustumIndex : -1;
 
         this.setProjectionMatrix(
             options.fov || 30.0,
@@ -154,15 +156,15 @@ class Frustum {
     }
 
     public getProjectionViewMatrix(): NumberArray16 {
-        return this._projectionViewMatrix._m;
+        return this.projectionViewMatrix._m;
     }
 
     public getProjectionMatrix(): NumberArray16 {
-        return this._projectionMatrix._m;
+        return this.projectionMatrix._m;
     }
 
     public getInverseProjectionMatrix(): NumberArray16 {
-        return this._inverseProjectionMatrix._m;
+        return this.inverseProjectionMatrix._m;
     }
 
     /**
@@ -181,7 +183,7 @@ class Frustum {
         this.near = near;
         this.far = far;
 
-        this._projectionMatrix.setPerspective(
+        this.projectionMatrix.setPerspective(
             this.left,
             this.right,
             this.bottom,
@@ -189,7 +191,7 @@ class Frustum {
             near,
             far
         );
-        this._projectionMatrix.inverseTo(this._inverseProjectionMatrix);
+        this.projectionMatrix.inverseTo(this.inverseProjectionMatrix);
     }
 
     /**
@@ -198,10 +200,10 @@ class Frustum {
      * @param {Mat4} viewMatrix - View matrix.
      */
     public setViewMatrix(viewMatrix: Mat4) {
-        this._projectionViewMatrix = this._projectionMatrix.mul(viewMatrix);
-        this._projectionViewMatrix.inverseTo(this._inverseProjectionViewMatrix);
+        this.projectionViewMatrix = this.projectionMatrix.mul(viewMatrix);
+        this.projectionViewMatrix.inverseTo(this.inverseProjectionViewMatrix);
 
-        let m = this._projectionViewMatrix._m;
+        let m = this.projectionViewMatrix._m;
 
         /* Right */
         this._f[0][0] = m[3] - m[0];

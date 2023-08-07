@@ -144,7 +144,7 @@ export class Vec3 {
      * @param {Float32Array} low - Out vector low values.
      * @returns {Array.<number>} Encoded array. (exactly 2 entries)
      */
-    static doubleToTwoFloat32Array(v: Vec3, high: NumberArray3, low: NumberArray3) {
+    static doubleToTwoFloat32Array(v: Vec3, high: Float32Array | NumberArray3, low: Float32Array | NumberArray3) {
         let x = v.x,
             y = v.y,
             z = v.z;

@@ -2,6 +2,8 @@
 
 import {Vec3} from "./Vec3";
 
+export type NumberArray2 = [number, number];
+
 /**
  * Class represents a 3d vector.
  * @class
@@ -325,7 +327,7 @@ export class Vec2 {
      * @param {Array.<number>} arr - Array vector. (exactly 2 entries)
      * @returns {number}
      */
-    public dotArr(arr: [number, number]): number {
+    public dotArr(arr: NumberArray2): number {
         return arr[0] * this.x + arr[1] * this.y;
     }
 
@@ -385,7 +387,7 @@ export class Vec2 {
      * @public
      * @returns {Array.<number>} - (exactly 2 entries)
      */
-    public toVec(): [number, number] {
+    public toVec(): NumberArray2 {
         return [this.x, this.y];
     }
 
