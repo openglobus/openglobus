@@ -4,7 +4,7 @@ import {binaryInsert, stamp} from "./utils/shared";
 
 type EventCallbacks = Array<() => void>;
 
-type EventsMap<T extends string[]> = {
+export type EventsMap<T extends string[]> = {
     [K in T[number]]: { active: boolean; handlers: EventCallbacks }
 }
 
@@ -51,7 +51,7 @@ export class Events<T extends string[]> {
 
         this._eventNames = [] as any;
 
-        eventNames && this.registerNames(eventNames);
+        this.registerNames(eventNames);
 
         this._sender = sender || this;
 

@@ -9,22 +9,22 @@ class KeyboardHandler {
 
     private _instance: any;
 
-    protected _removeCallback: Function;
-    protected _getStamp: Function;
-    protected _stamp: Function;
+    protected _removeCallback: any;
+    protected _getStamp: any;
+    protected _stamp: any;
 
-    public getcurrentlyPressedKeys: Function;
-    public getPressedKeysCallbacks: Function;
-    public getUnpressedKeysCallbacks: Function;
-    public getCharkeysCallbacks: Function;
-    public removeEvent: Function;
-    public setActivity: Function;
-    public releaseKeys: Function;
-    public addEvent: Function;
-    public isKeyPressed: Function;
-    public handleKeyDown: Function;
-    public handleKeyUp: Function;
-    public handleEvents: Function;
+    public getcurrentlyPressedKeys: any;
+    public getPressedKeysCallbacks: any;
+    public getUnpressedKeysCallbacks: any;
+    public getCharkeysCallbacks: any;
+    public removeEvent: any;
+    public setActivity: any;
+    public releaseKeys: any;
+    public addEvent: any;
+    public isKeyPressed: any;
+    public handleKeyDown: any;
+    public handleKeyUp: any;
+    public handleEvents: any;
 
     constructor() {
         let _that = this;
@@ -52,7 +52,7 @@ class KeyboardHandler {
             };
         }
 
-        const _sortByPriority = function (a, b) {
+        const _sortByPriority = function (a: any, b: any) {
             return a.priority < b.priority;
         };
 
@@ -72,7 +72,7 @@ class KeyboardHandler {
             return _charkeysCallbacks;
         }
 
-        this.removeEvent = function (event, keyCode, callback) {
+        this.removeEvent = function (event: string, keyCode: number, callback: any) {
             let st = this._getStamp(event, keyCode, callback._openglobus_id);
             if (callback._openglobus_id && _stampCache[st]) {
                 _stampCache[st] = null;
@@ -88,7 +88,7 @@ class KeyboardHandler {
             }
         };
 
-        this._removeCallback = function (handlers, callback) {
+        this._removeCallback = function (handlers: any, callback: any) {
             for (let i = 0; i < handlers.length; i++) {
                 if (handlers[i].callback._openglobus_id === callback._openglobus_id) {
                     handlers.splice(i, 1);
@@ -96,11 +96,11 @@ class KeyboardHandler {
             }
         };
 
-        this._getStamp = function (name, keyCode, ogid) {
+        this._getStamp = function (name: string, keyCode: number, ogid: number) {
             return `${name}${STAMP_SPACER}${keyCode}${STAMP_SPACER}${ogid}`;
         };
 
-        this._stamp = function (name, keyCode, obj) {
+        this._stamp = function (name: string, keyCode: number, obj: any) {
             let ogid = stamp(obj);
 
             let st = this._getStamp(name, keyCode, ogid);
@@ -113,7 +113,7 @@ class KeyboardHandler {
             return false;
         };
 
-        this.setActivity = function (activity) {
+        this.setActivity = function (activity: boolean) {
             _active = activity;
         };
 
@@ -121,7 +121,7 @@ class KeyboardHandler {
             _currentlyPressedKeys = {};
         };
 
-        this.addEvent = function (event, keyCode, callback, sender, priority) {
+        this.addEvent = function (event: string, keyCode: number, callback: Function, sender?: any, priority?: number) {
 
             // Event is already bound with the callback
             if (!this._stamp(event, keyCode, callback)) return;
@@ -160,7 +160,7 @@ class KeyboardHandler {
             }
         };
 
-        this.isKeyPressed = function (keyCode) {
+        this.isKeyPressed = function (keyCode: number) {
             return _currentlyPressedKeys[keyCode];
         };
 
@@ -184,7 +184,7 @@ class KeyboardHandler {
         this.handleKeyUp = function () {
             if (_currentlyPressedKeys[_event.keyCode] || _event.keyCode === input.KEY_PRINTSCREEN) {
                 for (let pk in _unpressedKeysCallbacks) {
-                    if (_currentlyPressedKeys[pk] || _event.keyCode === input.KEY_PRINTSCREEN && pk == input.KEY_PRINTSCREEN) {
+                    if (_currentlyPressedKeys[pk] || _event.keyCode === input.KEY_PRINTSCREEN && Number(pk) === input.KEY_PRINTSCREEN) {
                         let cpk = _unpressedKeysCallbacks[pk];
                         for (let i = 0; i < cpk.length; i++) {
                             cpk[i].callback.call(cpk[i].sender, _event);

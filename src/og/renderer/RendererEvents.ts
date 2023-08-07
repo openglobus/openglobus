@@ -1,6 +1,6 @@
 "use strict";
 
-import {Events} from "../Events";
+import {Events, EventsMap} from "../Events";
 import {input} from "../input/input";
 import {KeyboardHandler} from "../input/KeyboardHandler";
 import {MouseHandler} from "../input/MouseHandler";
@@ -9,6 +9,125 @@ import {TouchHandler} from "../input/TouchHandler";
 import {Vec2} from "../math/Vec2";
 import {NumberArray3, Vec3} from "../math/Vec3";
 
+type RendererEventsType = [
+    "draw",
+    "postdraw",
+    "resize",
+    "resizeend",
+    "mouseenter",
+    "mouseleave",
+    "mousemove",
+    "mousestop",
+    "lclick",
+    "rclick",
+    "mclick",
+    "ldblclick",
+    "rdblclick",
+    "mdblclick",
+    "lup",
+    "rup",
+    "mup",
+    "ldown",
+    "rdown",
+    "mdown",
+    "lhold",
+    "rhold",
+    "mhold",
+    "mousewheel",
+    "touchstart",
+    "touchend",
+    "touchcancel",
+    "touchmove",
+    "doubletouch",
+    "touchleave",
+    "touchenter"
+];
+
+interface IBaseInputState {
+    /** Current screen mouse X position. */
+    clientX: number;
+    /** Current screen mouse Y position. */
+    clientY: number;
+    /** Current touch X - coordinate. */
+    x: number;
+    /** Current touch Y - coordinate. */
+    y: number;
+    /** Current touch X - coordinate from 0 to 1 */
+    nx: number;
+    /** Current touch Y - coordinate from 0 to 1 */
+    ny: number;
+    /** Previous touch X coordinate. */
+    prev_x: number;
+    /** Previous touch Y coordinate. */
+    prev_y: number,
+    /** Screen touch position world direction. */
+    direction: Vec3;
+    /** JavaScript touching system event message. */
+    sys: any | null;
+    /** Current touched(picking) object. */
+    pickingObject: any | null;
+    /** Renderer instance. */
+    renderer: Renderer;
+    /** Touching is moving now. */
+    moving: boolean;
+}
+
+interface IMouseState extends IBaseInputState {
+    /** Left mouse button has stopped pushing down right now.*/
+    leftButtonUp: boolean;
+    /** Right mouse button has stopped pushing down right now.*/
+    rightButtonUp: boolean;
+    /** Middle mouse button has stopped pushing down right now.*/
+    middleButtonUp: boolean;
+    /** Left mouse button has pushed now.*/
+    leftButtonDown: boolean;
+    /** Right mouse button has pushed now.*/
+    rightButtonDown: boolean;
+    /** Middle mouse button has pushed now.*/
+    middleButtonDown: boolean;
+    /** Left mouse button is pushing.*/
+    leftButtonHold: boolean;
+    /** Right mouse button is pushing.*/
+    rightButtonHold: boolean;
+    /** Middle mouse button is pushing.*/
+    middleButtonHold: boolean;
+    /** Left mouse button has clicked twice now.*/
+    leftButtonDoubleClick: boolean;
+    /** Right mouse button has clicked twice now.*/
+    rightButtonDoubleClick: boolean;
+    /** Middle mouse button has clicked twice now.*/
+    middleButtonDoubleClick: boolean;
+    /** Left mouse button has clicked now. */
+    leftButtonClick: boolean;
+    /** Right mouse button has clicked now. */
+    rightButtonClick: boolean;
+    /** Middle mouse button has clicked now. */
+    middleButtonClick: boolean;
+    /** Mouse has just stopped now. */
+    justStopped: boolean;
+    /** Mose double click delay response time.*/
+    doubleClickDelay: number;
+    /** Mose click delay response time.*/
+    clickDelay: number;
+    /** Mouse wheel. */
+    wheelDelta: number;
+}
+
+interface ITouchState extends IBaseInputState {
+    /** Touch has ended right now.*/
+    touchEnd: boolean;
+    /** Touch has started right now.*/
+    touchStart: boolean;
+    /** Touch canceled.*/
+    touchCancel: boolean;
+    /** Touched twice.*/
+    doubleTouch: boolean;
+    /** Double touching responce delay.*/
+    doubleTouchDelay: number;
+    /** Double touching responce radius in screen pixels.*/
+    doubleTouchRadius: number;
+}
+
 const LB_M = 0b0001;
 const RB_M = 0b0010;
 const MB_M = 0b0100;
@@ -16,12 +135,11 @@ const MB_M = 0b0100;
 let __skipFrames__ = 0;
 const MAX_SKIP_FRAMES_ON_BLACK = 15;
 
-const ISBLACK = (c: NumberArray3): boolean => !(c[0] || c[1] || c[2]);
-const NOTBLACK = (c: NumberArray3): boolean => !!(c[0] || c[1] || c[2]);
+const ISBLACK = (c: NumberArray3 | Uint8Array): boolean => !(c[0] || c[1] || c[2]);
+const NOTBLACK = (c: NumberArray3 | Uint8Array): boolean => !!(c[0] || c[1] || c[2]);
 
 /**
  * Stores current picking rgb color.
- * @private
  * @type {Array.<number>} - (exactly 3 entries)
  */
 let _currPickingColor = new Uint8Array(4);
@@ -29,7 +147,6 @@ let _tempCurrPickingColor = new Uint8Array(4);
 
 /**
  * Stores previous picked rgb color.
- * @private
  * @type {Array.<number>} - (exactly 3 entries)
  */
 let _prevPickingColor = new Uint8Array(4);
@@ -39,163 +156,146 @@ let _prevPickingColor = new Uint8Array(4);
  * @class
  * @param {Renderer} renderer - Renderer object, events that works for.
  */
-class RendererEvents extends Events<RendererEventsType> {
+class RendererEvents extends Events<RendererEventsType> implements EventsMap<RendererEventsType> {
+    /**
+     * Assigned renderer.
+     * @public
+     * @type {Renderer}
+     */
+    public renderer: Renderer;
+
+    /**
+     * Low level touch events handler.
+     * @protected
+     * @type {TouchHandler}
+     */
+    protected _touchHandler: TouchHandler;
+
+    /**
+     * Low level mouse events handler.
+     * @protected
+     * @type {MouseHandler}
+     */
+    protected _mouseHandler: MouseHandler;
+
+    /**
+     * Low level keyboard events handler.
+     * @protected
+     * @type {KeyboardHandler}
+     */
+    protected _keyboardHandler: KeyboardHandler;
+
+    protected _active: boolean;
+
+    public clickRadius: number;
+
+    /**
+     * Current mouse state.
+     * @public
+     * @enum {IMouseState}
+     */
+    public mouseState: IMouseState;
+
+    /**
+     * Current touch state.
+     * @public
+     * @enum {ITouchState}
+     */
+    public touchState: ITouchState;
+
+    protected _dblTchCoords: Vec2;
+    protected _oneTouchStart: boolean;
+    protected _dblTchBegins: number;
+    protected _mousestopThread: any | null;
+    protected _ldblClkBegins: number;
+    protected _rdblClkBegins: number;
+    protected _mdblClkBegins: number;
+    protected _lClkBegins: number;
+    protected _rClkBegins: number;
+    protected _mClkBegins: number;
+    protected _lclickX: number;
+    protected _lclickY: number;
+    protected _rclickX: number;
+    protected _rclickY: number;
+    protected _mclickX: number;
+    protected _mclickY: number;
+
     constructor(renderer: Renderer) {
 
         super(RENDERER_EVENTS);
 
-        /**
-         * Assigned renderer.
-         * @public
-         * @type {Renderer}
-         */
         this.renderer = renderer;
 
-        /**
-         * Low level touch events handler.
-         * @private
-         * @type {input.TouchHandler}
-         */
         this._touchHandler = new TouchHandler(renderer.handler.canvas);
 
-        /**
-         * Low level mouse events handler.
-         * @private
-         * @type {input.MouseHandler}
-         */
         this._mouseHandler = new MouseHandler(renderer.handler.canvas);
 
-        /**
-         * Low level keyboard events handler.
-         * @private
-         * @type {input.KeyboardHandler}
-         */
         this._keyboardHandler = new KeyboardHandler();
 
         this._active = true;
 
         this.clickRadius = 15;
 
-        /**
-         * Current mouse state.
-         * @public
-         * @enum {Object}
-         */
         this.mouseState = {
-            /** Current screen mouse X position. */
             clientX: 0,
-            /** Current screen mouse Y position. */
             clientY: 0,
-            /** Current viewport mouse X position. */
             x: 0,
-            /** Current viewport mouse Y position. */
             y: 0,
-            /** Current mouse X position from 0 to 1 */
             nx: 0,
-            /** Current mouse Y position from 0 to 1 */
             ny: 0,
-            /** Previous mouse X position. */
             prev_x: 0,
-            /** Previous mouse Y position. */
             prev_y: 0,
-            /** Screen mouse position world direction. */
             direction: new Vec3(),
-            /** Left mouse button has stopped pushing down right now.*/
             leftButtonUp: false,
-            /** Right mouse button has stopped pushing down right now.*/
             rightButtonUp: false,
-            /** Middle mouse button has stopped pushing down right now.*/
             middleButtonUp: false,
-            /** Left mouse button has pushed now.*/
             leftButtonDown: false,
-            /** Right mouse button has pushed now.*/
             rightButtonDown: false,
-            /** Middle mouse button has pushed now.*/
             middleButtonDown: false,
-            /** Left mouse button is pushing.*/
             leftButtonHold: false,
-            /** Right mouse button is pushing.*/
             rightButtonHold: false,
-            /** Middle mouse button is pushing.*/
             middleButtonHold: false,
-            /** Left mouse button has clicked twice now.*/
             leftButtonDoubleClick: false,
-            /** Right mouse button has clicked twice now.*/
             rightButtonDoubleClick: false,
-            /** Middle mouse button has clicked twice now.*/
             middleButtonDoubleClick: false,
-            /** Left mouse button has clicked now. */
             leftButtonClick: false,
-            /** Right mouse button has clicked now. */
             rightButtonClick: false,
-            /** Middle mouse button has clicked now. */
             middleButtonClick: false,
-            /** Mouse is moving now. */
             moving: false,
-            /** Mouse has just stopped now. */
             justStopped: false,
-            /** Mose double click delay response time.*/
             doubleClickDelay: 500,
-            /** Mose click delay response time.*/
             clickDelay: 200,
-            /** Mouse wheel. */
             wheelDelta: 0,
-            /** JavaScript mouse system event message. */
             sys: null,
-            /** Current picking object. */
             pickingObject: null,
-            /** Renderer instanve. */
             renderer: renderer
         };
 
-        /**
-         * Current touch state.
-         * @public
-         * @enum {Object}
-         */
         this.touchState = {
-            /** Touching is moving now. */
             moving: false,
-            /** Touch has ended right now.*/
             touchEnd: false,
-            /** Touch has started right now.*/
             touchStart: false,
-            /** Touch canceled.*/
             touchCancel: false,
-            /** Touched twice.*/
             doubleTouch: false,
-            /** Double touching responce delay.*/
             doubleTouchDelay: 550,
-            /** Double touching responce radius in screen pixels.*/
             doubleTouchRadius: 10,
-            /** Current touch X - coordinate. */
+            clientX: 0,
+            clientY: 0,
             x: 0,
-            /** Current touch Y - coordinate. */
             y: 0,
-            /** Current touch X - coordinate from 0 to 1 */
             nx: 0,
-            /** Current touch Y - coordinate from 0 to 1 */
             ny: 0,
-            /** Previous touch X coordinate. */
             prev_x: 0,
-            /** Previous touch Y coordinate. */
             prev_y: 0,
-            /** Screen touch position world direction. */
             direction: new Vec3(),
-            /** JavaScript touching system event message. */
             sys: null,
-            /** Current touched(picking) object. */
             pickingObject: null,
-            /** Renderer instanve. */
             renderer: renderer
         };
 
         this._dblTchCoords = new Vec2();
         this._oneTouchStart = false;
         this._dblTchBegins = 0;
-        /**
-         * @type {number}
-         */
         this._mousestopThread = null;
         this._ldblClkBegins = 0;
         this._rdblClkBegins = 0;
@@ -211,33 +311,33 @@ class RendererEvents extends Events<RendererEventsType> {
         this._mclickY = 0;
     }
 
-    pointerEvent() {
+    public pointerEvent(): boolean {
         let ms = this.mouseState,
             ts = this.touchState;
         return (
             ms.moving ||
             ms.justStopped ||
-            ms.wheelDelta ||
             ts.moving ||
             ts.touchStart ||
-            ts.touchEnd
+            ts.touchEnd ||
+            ms.wheelDelta !== 0
         )
     }
 
-    get active() {
+    public get active(): boolean {
         return this._active;
     }
 
-    set active(act) {
-        this._active = act;
-        this._keyboardHandler.setActivity(act);
+    public set active(isActive: boolean) {
+        this._active = isActive;
+        this._keyboardHandler.setActivity(isActive);
     }
 
     /**
      * Used in render node frame.
      * @public
      */
-    handleEvents() {
+    public handleEvents() {
         if (this._active) {
             this.mouseState.direction = this.renderer.activeCamera.unproject(
                 this.mouseState.x,
@@ -258,7 +358,7 @@ class RendererEvents extends Events<RendererEventsType> {
         }
     }
 
-    on(name, p0, p1, p2, p3) {
+    public override on(name: string, p0: Function | number, p1?: any | Function, p2?: any, p3?: any) {
         if (name === "keypress" || name === "charkeypress" || name === "keyfree") {
             this._keyboardHandler.addEvent(name, p0, p1, p2, p3);
         } else {
@@ -266,7 +366,7 @@ class RendererEvents extends Events<RendererEventsType> {
         }
     }
 
-    off(name, p1, p2) {
+    public override off(name: string, p1: Function | number, p2?: Function) {
         if (name === "keypress" || name === "charkeypress" || name === "keyfree") {
             this._keyboardHandler.removeEvent(name, p1, p2);
         } else {
@@ -280,11 +380,11 @@ class RendererEvents extends Events<RendererEventsType> {
      * @param {number} keyCode - Key code
      * @return {boolean}
      */
-    isKeyPressed(keyCode) {
+    public isKeyPressed(keyCode: number): boolean {
         return this._keyboardHandler.isKeyPressed(keyCode);
     }
 
-    releaseKeys() {
+    public releaseKeys() {
         this._keyboardHandler.releaseKeys();
     }
 
@@ -292,7 +392,7 @@ class RendererEvents extends Events<RendererEventsType> {
      * Renderer events initialization.
      * @public
      */
-    initialize() {
+    public initialize() {
         this._mouseHandler.setEvent("mouseup", this, this.onMouseUp);
         this._mouseHandler.setEvent("mousemove", this, this.onMouseMove);
         this._mouseHandler.setEvent("mousedown", this, this.onMouseDown);
@@ -307,16 +407,16 @@ class RendererEvents extends Events<RendererEventsType> {
     }
 
     /**
-     * @private
+     * @protected
      */
-    onMouseWheel(event) {
-        this.mouseState.wheelDelta = event.wheelDelta;
+    protected onMouseWheel(event: any) {
+        this.mouseState.wheelDelta = event.wheelDelta || 0;
     }
 
     /**
      * @protected
      */
-    updateButtonsStates(buttons) {
+    protected updateButtonsStates(buttons: any) {
         let ms = this.mouseState;
         if ((buttons & LB_M) && ms.leftButtonDown) {
             ms.leftButtonDown = true;
@@ -341,11 +441,11 @@ class RendererEvents extends Events<RendererEventsType> {
     }
 
     /**
-     * @private
+     * @protected
      */
-    onMouseMove(event, sys) {
-        var ms = this.mouseState;
-        this.updateButtonsStates(sys.buttons);
+    protected onMouseMove(event: any) {
+        let ms = this.mouseState;
+        this.updateButtonsStates(event.buttons);
         ms.sys = event;
 
         let ex = event.clientX,
@@ -391,18 +491,18 @@ class RendererEvents extends Events<RendererEventsType> {
         }, 100);
     }
 
-    onMouseLeave(event) {
+    protected onMouseLeave(event: any) {
         this.dispatch(this.mouseleave, event);
     }
 
-    onMouseEnter(event) {
+    protected onMouseEnter(event: any) {
         this.dispatch(this.mouseenter, event);
     }
 
     /**
-     * @private
+     * @protected
      */
-    onMouseDown(event) {
+    protected onMouseDown(event: any) {
         if (event.button === input.MB_LEFT) {
             this._lClkBegins = window.performance.now();
             this._lclickX = event.clientX;
@@ -427,10 +527,10 @@ class RendererEvents extends Events<RendererEventsType> {
     /**
      * @private
      */
-    onMouseUp(event) {
-        var ms = this.mouseState;
+    protected onMouseUp(event: any) {
+        let ms = this.mouseState;
         ms.sys = event;
-        var t = window.performance.now();
+        let t = window.performance.now();
 
         if (event.button === input.MB_LEFT) {
             ms.leftButtonDown = false;
@@ -486,7 +586,7 @@ class RendererEvents extends Events<RendererEventsType> {
                 t - this._mClkBegins <= ms.clickDelay
             ) {
                 if (this._mdblClkBegins) {
-                    var deltatime = window.performance.now() - this._mdblClkBegins;
+                    let deltatime = window.performance.now() - this._mdblClkBegins;
                     if (deltatime <= ms.doubleClickDelay) {
                         ms.middleButtonDoubleClick = true;
                     }
@@ -502,10 +602,10 @@ class RendererEvents extends Events<RendererEventsType> {
     }
 
     /**
-     * @private
+     * @protected
      */
-    onTouchStart(event) {
-        var ts = this.touchState;
+    protected onTouchStart(event: any) {
+        let ts = this.touchState;
         ts.sys = event;
 
         ts.clientX = event.touches.item(0).clientX - event.offsetLeft;
@@ -532,10 +632,10 @@ class RendererEvents extends Events<RendererEventsType> {
     }
 
     /**
-     * @private
+     * @protected
      */
-    onTouchEnd(event) {
-        var ts = this.touchState;
+    protected onTouchEnd(event: any) {
+        let ts = this.touchState;
         ts.sys = event;
         ts.touchEnd = true;
 
@@ -545,7 +645,7 @@ class RendererEvents extends Events<RendererEventsType> {
 
             if (this._oneTouchStart) {
                 if (this._dblTchBegins) {
-                    var deltatime = window.performance.now() - this._dblTchBegins;
+                    let deltatime = window.performance.now() - this._dblTchBegins;
                     if (deltatime <= ts.doubleTouchDelay) {
                         ts.doubleTouch = true;
                     }
@@ -558,23 +658,23 @@ class RendererEvents extends Events<RendererEventsType> {
     }
 
     /**
-     * @private
+     * @protected
      */
-    onTouchCancel(event) {
-        var ts = this.touchState;
+    protected onTouchCancel(event: any) {
+        let ts = this.touchState;
         ts.sys = event;
         ts.touchCancel = true;
     }
 
     /**
-     * @private
+     * @protected
      */
-    onTouchMove(event) {
-        var ts = this.touchState;
+    protected onTouchMove(event: any) {
+        let ts = this.touchState;
         ts.clientX = event.touches.item(0).clientX - event.offsetLeft;
         ts.clientY = event.touches.item(0).clientY - event.offsetTop;
 
-        var h = this.renderer.handler;
+        let h = this.renderer.handler;
 
         ts.x = ts.clientX * h.pixelRatio;
         ts.y = ts.clientY * h.pixelRatio;
@@ -594,9 +694,9 @@ class RendererEvents extends Events<RendererEventsType> {
     }
 
     /**
-     * @private
+     * @protected
      */
-    entityPickingEvents() {
+    protected entityPickingEvents() {
         let ts = this.touchState,
             ms = this.mouseState;
 
@@ -676,9 +776,9 @@ class RendererEvents extends Events<RendererEventsType> {
     }
 
     /**
-     * @private
+     * @protected
      */
-    handleMouseEvents() {
+    protected handleMouseEvents() {
         let ms = this.mouseState;
         let po = ms.pickingObject,
             pe = null;
@@ -842,9 +942,9 @@ class RendererEvents extends Events<RendererEventsType> {
     }
 
     /**
-     * @private
+     * @protected
      */
-    handleTouchEvents() {
+    protected handleTouchEvents() {
         let ts = this.touchState;
 
         let tpo = ts.pickingObject,
@@ -904,40 +1004,6 @@ class RendererEvents extends Events<RendererEventsType> {
         }
     }
 }
-
-type RendererEventsType = [
-    "draw",
-    "postdraw",
-    "resize",
-    "resizeend",
-    "mouseenter",
-    "mouseleave",
-    "mousemove",
-    "mousestop",
-    "lclick",
-    "rclick",
-    "mclick",
-    "ldblclick",
-    "rdblclick",
-    "mdblclick",
-    "lup",
-    "rup",
-    "mup",
-    "ldown",
-    "rdown",
-    "mdown",
-    "lhold",
-    "rhold",
-    "mhold",
-    "mousewheel",
-    "touchstart",
-    "touchend",
-    "touchcancel",
-    "touchmove",
-    "doubletouch",
-    "touchleave",
-    "touchenter"
-];
 
 const RENDERER_EVENTS: RendererEventsType = [
     /**
