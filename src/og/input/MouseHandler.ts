@@ -2,15 +2,16 @@
 
 class MouseHandler {
 
-    constructor(htmlObject) {
+    protected _htmlObject: HTMLElement;
+    constructor(htmlObject: HTMLElement) {
         this._htmlObject = htmlObject;
     }
 
-    setEvent(event, sender, callback) {
+    public setEvent(event: string, sender: any, callback: Function) {
         switch (event) {
             case "mousewheel":
-                this._htmlObject.addEventListener('mousewheel', function (evt) {
-                    var delta = evt.deltaY || evt.detail || evt.wheelDelta;
+                this._htmlObject.addEventListener('mousewheel', function (evt: any) {
+                    let delta = evt.deltaY || evt.detail || evt.wheelDelta;
                     if (evt.wheelDelta == undefined) {
                         evt.wheelDelta = delta * (-120);
                     }
@@ -18,8 +19,8 @@ class MouseHandler {
                     evt.preventDefault();
                 }, false);
 
-                this._htmlObject.addEventListener('wheel', function (evt) {
-                    var delta = evt.deltaY || evt.detail || evt.wheelDelta;
+                this._htmlObject.addEventListener('wheel', function (evt: any) {
+                    let delta = evt.deltaY || evt.detail || evt.wheelDelta;
                     if (evt.wheelDelta == undefined) {
                         evt.wheelDelta = delta * (-120);
                     }
@@ -30,7 +31,7 @@ class MouseHandler {
 
             case "mousedown":
                 this._htmlObject.addEventListener('mousedown', function (event) {
-                    var rect = this.getBoundingClientRect();
+                    let rect = this.getBoundingClientRect();
                     callback.call(sender, {
                         button: event.button,
                         clientX: event.clientX - rect.left,
@@ -45,7 +46,7 @@ class MouseHandler {
 
             case "mouseup":
                 this._htmlObject.addEventListener('mouseup', function (event) {
-                    var rect = this.getBoundingClientRect();
+                    let rect = this.getBoundingClientRect();
                     callback.call(sender, {
                         button: event.button,
                         clientX: event.clientX - rect.left,
@@ -56,7 +57,7 @@ class MouseHandler {
 
             case "mousemove":
                 this._htmlObject.addEventListener('mousemove', function (event) {
-                    var rect = this.getBoundingClientRect();
+                    let rect = this.getBoundingClientRect();
                     callback.call(sender, {
                         clientX: event.clientX - rect.left,
                         clientY: event.clientY - rect.top

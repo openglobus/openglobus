@@ -1,6 +1,6 @@
 'use strict';
 
-export const input = {
+export const input: { [id: string]: number } = {
     KEY_CTRL: 17,
     KEY_ALT: 18,
     KEY_SHIFT: 16,

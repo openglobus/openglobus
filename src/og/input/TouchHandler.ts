@@ -2,16 +2,18 @@
 
 class TouchHandler {
 
-    constructor(htmlObject) {
+    protected _htmlObject: HTMLElement;
+
+    constructor(htmlObject: HTMLElement) {
         this._htmlObject = htmlObject;
     }
 
-    setEvent(event, sender, callback) {
+    public setEvent(event: string, sender: any, callback: Function) {
         switch (event) {
             case "touchcancel":
-                this._htmlObject.addEventListener('touchcancel', function (event) {
+                this._htmlObject.addEventListener('touchcancel', function (event: any) {
                     event.preventDefault();
-                    var rect = this.getBoundingClientRect();
+                    let rect = this.getBoundingClientRect();
                     event.offsetLeft = rect.left;
                     event.offsetTop = rect.top;
                     callback.call(sender, event);
@@ -20,9 +22,9 @@ class TouchHandler {
                 break;
 
             case "touchstart":
-                this._htmlObject.addEventListener('touchstart', function (event) {
+                this._htmlObject.addEventListener('touchstart', function (event: any) {
                     event.preventDefault();
-                    var rect = this.getBoundingClientRect();
+                    let rect = this.getBoundingClientRect();
                     event.offsetLeft = rect.left;
                     event.offsetTop = rect.top;
                     callback.call(sender, event);
@@ -31,9 +33,9 @@ class TouchHandler {
                 break;
 
             case "touchend":
-                this._htmlObject.addEventListener('touchend', function (event) {
+                this._htmlObject.addEventListener('touchend', function (event: any) {
                     event.preventDefault();
-                    var rect = this.getBoundingClientRect();
+                    let rect = this.getBoundingClientRect();
                     event.offsetLeft = rect.left;
                     event.offsetTop = rect.top;
                     callback.call(sender, event);
@@ -42,9 +44,9 @@ class TouchHandler {
                 break;
 
             case "touchmove":
-                this._htmlObject.addEventListener('touchmove', function (event) {
+                this._htmlObject.addEventListener('touchmove', function (event: any) {
                     event.preventDefault();
-                    var rect = this.getBoundingClientRect();
+                    let rect = this.getBoundingClientRect();
                     event.offsetLeft = rect.left;
                     event.offsetTop = rect.top;
                     callback.call(sender, event);
@@ -55,5 +57,5 @@ class TouchHandler {
     }
 }
 
-export { TouchHandler };
+export {TouchHandler};
 

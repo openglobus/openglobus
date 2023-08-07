@@ -1,7 +1,7 @@
 "use strict";
 
 import * as arial from "../arial.js";
-import { Camera } from "../camera/Camera.js";
+import { Camera } from "../camera/Camera";
 import { cons } from "../cons.js";
 import { depth } from "../shaders/depth.js";
 import { LabelWorker } from "../entity/LabelWorker.js";

@@ -1,12 +1,13 @@
 "use strict";
 
-import { Events } from "../Events";
-import { input } from "../input/input.js";
-import { KeyboardHandler } from "../input/KeyboardHandler.js";
-import { MouseHandler } from "../input/MouseHandler.js";
-import { TouchHandler } from "../input/TouchHandler.js";
-import { Vec2 } from "../math/Vec2";
-import { Vec3 } from "../math/Vec3";
+import {Events} from "../Events";
+import {input} from "../input/input";
+import {KeyboardHandler} from "../input/KeyboardHandler";
+import {MouseHandler} from "../input/MouseHandler";
+import {Renderer} from "./Renderer";
+import {TouchHandler} from "../input/TouchHandler";
+import {Vec2} from "../math/Vec2";
+import {NumberArray3, Vec3} from "../math/Vec3";
 
 const LB_M = 0b0001;
 const RB_M = 0b0010;
@@ -15,8 +16,8 @@ const MB_M = 0b0100;
 let __skipFrames__ = 0;
 const MAX_SKIP_FRAMES_ON_BLACK = 15;
 
-const ISBLACK = (c) => !(c[0] || c[1] || c[2]);
-const NOTBLACK = (c) => c[0] || c[1] || c[2];
+const ISBLACK = (c: NumberArray3): boolean => !(c[0] || c[1] || c[2]);
+const NOTBLACK = (c: NumberArray3): boolean => !!(c[0] || c[1] || c[2]);
 
 /**
  * Stores current picking rgb color.
@@ -38,9 +39,10 @@ let _prevPickingColor = new Uint8Array(4);
  * @class
  * @param {Renderer} renderer - Renderer object, events that works for.
  */
-class RendererEvents extends Events {
-    constructor(renderer) {
-        super(EVENT_NAMES);
+class RendererEvents extends Events<RendererEventsType> {
+    constructor(renderer: Renderer) {
+
+        super(RENDERER_EVENTS);
 
         /**
          * Assigned renderer.
@@ -903,7 +905,41 @@ class RendererEvents extends Events {
     }
 }
 
-const EVENT_NAMES = [
+type RendererEventsType = [
+    "draw",
+    "postdraw",
+    "resize",
+    "resizeend",
+    "mouseenter",
+    "mouseleave",
+    "mousemove",
+    "mousestop",
+    "lclick",
+    "rclick",
+    "mclick",
+    "ldblclick",
+    "rdblclick",
+    "mdblclick",
+    "lup",
+    "rup",
+    "mup",
+    "ldown",
+    "rdown",
+    "mdown",
+    "lhold",
+    "rhold",
+    "mhold",
+    "mousewheel",
+    "touchstart",
+    "touchend",
+    "touchcancel",
+    "touchmove",
+    "doubletouch",
+    "touchleave",
+    "touchenter"
+];
+
+const RENDERER_EVENTS: RendererEventsType = [
     /**
      * Triggered before scene frame is rendered(before render nodes).
      * @event og.RendererEvents#draw
@@ -1091,4 +1127,4 @@ const EVENT_NAMES = [
     "touchenter"
 ];
 
-export { RendererEvents };
+export {RendererEvents};
