@@ -145,6 +145,7 @@ class PlanetCamera extends Camera {
         this._framesCounter = 0;
         this._numFrames = 50;
         this._completeCallback = null;
+        this._frameCallback = null;
         this._flying = false;
         this._checkTerrainCollision = true;
 
@@ -452,7 +453,7 @@ class PlanetCamera extends Camera {
         let ground_b = this.planet.ellipsoid.lonLatToCartesian(
             new LonLat(lonlat_b.lon, lonlat_b.lat, 0)
         );
-        let n_b = Vec3.sub(cartesian, look);
+        let n_b = Vec3.sub(cartesian, look as Vec3);
         let u_b = up_b.cross(n_b);
         n_b.normalize();
         u_b.normalize();
@@ -519,7 +520,7 @@ class PlanetCamera extends Camera {
      * @param {Function} [completeCallback] - Callback that calls after flying when flying is finished.
      * @param {Function} [startCallback] - Callback that calls befor the flying begins.
      */
-    flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback) {
+    flyLonLat(lonlat: LonLat, look?: Vec3 | LonLat, up?: Vec3, ampl?: number, completeCallback?: Function, startCallback?: Function) {
         let _lonLat = new LonLat(lonlat.lon, lonlat.lat, lonlat.height || this._lonLat.height);
         this.flyCartesian(
             this.planet.ellipsoid.lonLatToCartesian(_lonLat),
@@ -563,7 +564,7 @@ class PlanetCamera extends Camera {
      * @param {boolean} [spin] - If its true rotates around globe spin.
      */
     public rotateLeft(angle: number, spin: boolean) {
-        this.rotateHorizontal(angle * math.RADIANS, Boolean(spin ^ true), Vec3.ZERO);
+        this.rotateHorizontal(angle * math.RADIANS, spin !== true, Vec3.ZERO);
         this.update();
     }
 
@@ -574,7 +575,7 @@ class PlanetCamera extends Camera {
      * @param {boolean} [spin] - If its true rotates around globe spin.
      */
     public rotateRight(angle: number, spin: boolean) {
-        this.rotateHorizontal(-angle * math.RADIANS, Boolean(spin ^ true), Vec3.ZERO);
+        this.rotateHorizontal(-angle * math.RADIANS, spin !== true, Vec3.ZERO);
         this.update();
     }
 
