@@ -1774,7 +1774,7 @@ export class Planet extends RenderNode {
                 //if (r.screenDepthFramebuffer.isComplete()) {
                 r.screenDepthFramebuffer.readPixels(_tempDepthColor_, spx, spy);
                 let screenPos = new Vec4(spx * 2.0 - 1.0, spy * 2.0 - 1.0, (_tempDepthColor_[0] / 255.0) * 2.0 - 1.0, 1.0 * 2.0 - 1.0);
-                let viewPosition = this.camera.frustums[0]._inverseProjectionMatrix.mulVec4(screenPos);
+                let viewPosition = this.camera.frustums[0].inverseProjectionMatrix.mulVec4(screenPos);
                 let dir = px.direction || this.renderer.activeCamera.unproject(px.x, px.y);
                 dist = -(viewPosition.z / viewPosition.w) / dir.dot(this.renderer.activeCamera.getForward());
                 //}

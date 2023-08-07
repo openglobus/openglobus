@@ -1,6 +1,6 @@
 "use strict";
 
-import {Events, EventsMap} from "../Events";
+import {Events, EventsHandler, EventsMap} from "../Events";
 import {input} from "../input/input";
 import {KeyboardHandler} from "../input/KeyboardHandler";
 import {MouseHandler} from "../input/MouseHandler";
@@ -156,7 +156,7 @@ let _prevPickingColor = new Uint8Array(4);
  * @class
  * @param {Renderer} renderer - Renderer object, events that works for.
  */
-class RendererEvents extends Events<RendererEventsType> implements EventsMap<RendererEventsType> {
+class RendererEvents extends Events<RendererEventsType> implements EventsHandler<RendererEventsType> {
     /**
      * Assigned renderer.
      * @public
@@ -344,7 +344,7 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
                 this.mouseState.y
             );
             //
-            // TODO: Replace in some other place with a thought that we do            
+            // TODO: Replace in some other place with a thought that we do
             // not need to make unproject when we do not make touching
             this.touchState.direction = this.renderer.activeCamera.unproject(
                 this.touchState.x,
@@ -443,9 +443,9 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
     /**
      * @protected
      */
-    protected onMouseMove(event: any) {
+    protected onMouseMove(event: any, sys: any) {
         let ms = this.mouseState;
-        this.updateButtonsStates(event.buttons);
+        this.updateButtonsStates(sys.buttons);
         ms.sys = event;
 
         let ex = event.clientX,
@@ -492,11 +492,11 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
     }
 
     protected onMouseLeave(event: any) {
-        this.dispatch(this.mouseleave, event);
+        this.dispatch((this as EventsHandler<RendererEventsType>).mouseleave, event);
     }
 
     protected onMouseEnter(event: any) {
-        this.dispatch(this.mouseenter, event);
+        this.dispatch((this as EventsHandler<RendererEventsType>).mouseenter, event);
     }
 
     /**
@@ -779,6 +779,7 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
      * @protected
      */
     protected handleMouseEvents() {
+        let _this = this as EventsHandler<RendererEventsType>;
         let ms = this.mouseState;
         let po = ms.pickingObject,
             pe = null;
@@ -788,7 +789,7 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
                 pe = po.rendererEvents;
                 pe && pe.dispatch(pe.lclick, ms);
             }
-            this.dispatch(this.lclick, ms);
+            this.dispatch(_this.lclick, ms);
             ms.leftButtonClick = false;
         }
 
@@ -797,7 +798,7 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
                 pe = po.rendererEvents;
                 pe && pe.dispatch(pe.rclick, ms);
             }
-            this.dispatch(this.rclick, ms);
+            this.dispatch(_this.rclick, ms);
             ms.rightButtonClick = false;
         }
 
@@ -806,7 +807,7 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
                 pe = po.rendererEvents;
                 pe && pe.dispatch(pe.mclick, ms);
             }
-            this.dispatch(this.mclick, ms);
+            this.dispatch(_this.mclick, ms);
             ms.middleButtonClick = false;
         }
 
@@ -816,14 +817,14 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
                     pe = po.rendererEvents;
                     pe && pe.dispatch(pe.lhold, ms);
                 }
-                this.dispatch(this.lhold, ms);
+                this.dispatch(_this.lhold, ms);
             } else {
                 ms.leftButtonHold = true;
                 if (po) {
                     pe = po.rendererEvents;
                     pe && pe.dispatch(pe.ldown, ms);
                 }
-                this.dispatch(this.ldown, ms);
+                this.dispatch(_this.ldown, ms);
             }
         }
 
@@ -833,14 +834,14 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
                     pe = po.rendererEvents;
                     pe && pe.dispatch(pe.rhold, ms);
                 }
-                this.dispatch(this.rhold, ms);
+                this.dispatch(_this.rhold, ms);
             } else {
                 ms.rightButtonHold = true;
                 if (po) {
                     pe = po.rendererEvents;
                     pe && pe.dispatch(pe.rdown, ms);
                 }
-                this.dispatch(this.rdown, ms);
+                this.dispatch(_this.rdown, ms);
             }
         }
 
@@ -850,14 +851,14 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
                     pe = po.rendererEvents;
                     pe && pe.dispatch(pe.mhold, ms);
                 }
-                this.dispatch(this.mhold, ms);
+                this.dispatch(_this.mhold, ms);
             } else {
                 ms.middleButtonHold = true;
                 if (po) {
                     pe = po.rendererEvents;
                     pe && pe.dispatch(pe.mdown, ms);
                 }
-                this.dispatch(this.mdown, ms);
+                this.dispatch(_this.mdown, ms);
             }
         }
 
@@ -866,7 +867,7 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
                 pe = po.rendererEvents;
                 pe && pe.dispatch(pe.lup, ms);
             }
-            this.dispatch(this.lup, ms);
+            this.dispatch(_this.lup, ms);
             ms.leftButtonUp = false;
             ms.leftButtonHold = false;
         }
@@ -876,7 +877,7 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
                 pe = po.rendererEvents;
                 pe && pe.dispatch(pe.rup, ms);
             }
-            this.dispatch(this.rup, ms);
+            this.dispatch(_this.rup, ms);
             ms.rightButtonUp = false;
             ms.rightButtonHold = false;
         }
@@ -886,7 +887,7 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
                 pe = po.rendererEvents;
                 pe && pe.dispatch(pe.mup, ms);
             }
-            this.dispatch(this.mup, ms);
+            this.dispatch(_this.mup, ms);
             ms.middleButtonUp = false;
             ms.middleButtonHold = false;
         }
@@ -896,7 +897,7 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
                 pe = po.rendererEvents;
                 pe && pe.dispatch(pe.ldblclick, ms);
             }
-            this.dispatch(this.ldblclick, ms);
+            this.dispatch(_this.ldblclick, ms);
             ms.leftButtonDoubleClick = false;
         }
 
@@ -905,7 +906,7 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
                 pe = po.rendererEvents;
                 pe && pe.dispatch(pe.rdblclick, ms);
             }
-            this.dispatch(this.rdblclick, ms);
+            this.dispatch(_this.rdblclick, ms);
             ms.rightButtonDoubleClick = false;
         }
 
@@ -914,7 +915,7 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
                 pe = po.rendererEvents;
                 pe && pe.dispatch(pe.mdblclick, ms);
             }
-            this.dispatch(this.mdblclick, ms);
+            this.dispatch(_this.mdblclick, ms);
             ms.middleButtonDoubleClick = false;
         }
 
@@ -923,7 +924,7 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
                 pe = po.rendererEvents;
                 pe && pe.dispatch(pe.mousewheel, ms);
             }
-            this.dispatch(this.mousewheel, ms);
+            this.dispatch(_this.mousewheel, ms);
         }
 
         if (ms.moving) {
@@ -931,13 +932,13 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
                 pe = po.rendererEvents;
                 pe && pe.dispatch(pe.mousemove, ms);
             }
-            this.dispatch(this.mousemove, ms);
+            this.dispatch(_this.mousemove, ms);
             ms.prev_x = ms.x;
             ms.prev_y = ms.y;
         }
 
         if (ms.justStopped) {
-            this.dispatch(this.mousestop, ms);
+            this.dispatch(_this.mousestop, ms);
         }
     }
 
@@ -945,13 +946,15 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
      * @protected
      */
     protected handleTouchEvents() {
+        let _this = this as EventsHandler<RendererEventsType>;
+
         let ts = this.touchState;
 
         let tpo = ts.pickingObject,
             tpe = null;
 
         if (ts.touchCancel) {
-            this.dispatch(this.touchcancel, ts);
+            this.dispatch(_this.touchcancel, ts);
             ts.touchCancel = false;
         }
 
@@ -969,7 +972,7 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
                 tpe = tpo.rendererEvents;
                 tpe && tpe.dispatch(tpe.touchstart, ts);
             }
-            this.dispatch(this.touchstart, ts);
+            this.dispatch(_this.touchstart, ts);
             ts.touchStart = false;
         }
 
@@ -978,7 +981,7 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
                 tpe = tpo.rendererEvents;
                 tpe && tpe.dispatch(tpe.doubletouch, ts);
             }
-            this.dispatch(this.doubletouch, ts);
+            this.dispatch(_this.doubletouch, ts);
             ts.doubleTouch = false;
         }
 
@@ -987,7 +990,7 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
                 tpe = tpo.rendererEvents;
                 tpe && tpe.dispatch(tpe.touchend, ts);
             }
-            this.dispatch(this.touchend, ts);
+            this.dispatch(_this.touchend, ts);
             ts.x = 0;
             ts.y = 0;
             ts.touchEnd = false;
@@ -998,7 +1001,7 @@ class RendererEvents extends Events<RendererEventsType> implements EventsMap<Ren
                 tpe = tpo.rendererEvents;
                 tpe && tpe.dispatch(tpe.touchmove, ts);
             }
-            this.dispatch(this.touchmove, ts);
+            this.dispatch(_this.touchmove, ts);
             ts.prev_x = ts.x;
             ts.prev_y = ts.y;
         }

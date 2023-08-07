@@ -3,6 +3,7 @@
 class MouseHandler {
 
     protected _htmlObject: HTMLElement;
+
     constructor(htmlObject: HTMLElement) {
         this._htmlObject = htmlObject;
     }
@@ -30,7 +31,7 @@ class MouseHandler {
                 break;
 
             case "mousedown":
-                this._htmlObject.addEventListener('mousedown', function (event) {
+                this._htmlObject.addEventListener('mousedown', function (event: any) {
                     let rect = this.getBoundingClientRect();
                     callback.call(sender, {
                         button: event.button,
@@ -38,14 +39,14 @@ class MouseHandler {
                         clientY: event.clientY - rect.top
                     }, event);
                 });
-                this._htmlObject.addEventListener('contextmenu', function (event) {
+                this._htmlObject.addEventListener('contextmenu', function (event: any) {
                     event.preventDefault();
                     return false;
                 });
                 break;
 
             case "mouseup":
-                this._htmlObject.addEventListener('mouseup', function (event) {
+                this._htmlObject.addEventListener('mouseup', function (event: any) {
                     let rect = this.getBoundingClientRect();
                     callback.call(sender, {
                         button: event.button,
@@ -56,7 +57,7 @@ class MouseHandler {
                 break;
 
             case "mousemove":
-                this._htmlObject.addEventListener('mousemove', function (event) {
+                this._htmlObject.addEventListener('mousemove', function (event: any) {
                     let rect = this.getBoundingClientRect();
                     callback.call(sender, {
                         clientX: event.clientX - rect.left,
@@ -66,25 +67,25 @@ class MouseHandler {
                 break;
 
             case "mouseleave":
-                this._htmlObject.addEventListener('mouseleave', function (event) {
+                this._htmlObject.addEventListener('mouseleave', function (event: any) {
                     callback.call(sender, event);
                 });
                 break;
 
             case "mouseout":
-                this._htmlObject.addEventListener('mouseout', function (event) {
+                this._htmlObject.addEventListener('mouseout', function (event: any) {
                     callback.call(sender, event);
                 });
                 break;
 
             case "mouseover":
-                this._htmlObject.addEventListener('mouseover', function (event) {
+                this._htmlObject.addEventListener('mouseover', function (event: any) {
                     callback.call(sender, event);
                 });
                 break;
 
             case "mouseenter":
-                this._htmlObject.addEventListener('mouseenter', function (event) {
+                this._htmlObject.addEventListener('mouseenter', function (event: any) {
                     callback.call(sender, event);
                 });
                 break;
@@ -92,4 +93,4 @@ class MouseHandler {
     }
 }
 
-export { MouseHandler };
+export {MouseHandler};
