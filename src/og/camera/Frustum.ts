@@ -1,10 +1,10 @@
 "use strict";
 
+import {Box} from "../bv/Box";
 import {Mat4, NumberArray16} from "../math/Mat4";
-import {Vec3} from "../math/Vec3";
 import {NumberArray4} from "../math/Vec4";
 import {Sphere} from "../bv/Sphere";
-import {Box} from "../bv/Box";
+import {Vec3} from "../math/Vec3";
 
 function planeNormalize(plane: NumberArray4) {
     let t = 1.0 / Math.sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);

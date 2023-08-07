@@ -1,14 +1,14 @@
 "use strict";
 
-import {createEvents, Events, EventsHandler} from "../Events";
 import * as math from "../math";
+import {Events, EventsHandler, createEvents} from "../Events";
+import {Frustum} from "./Frustum";
 import {Mat3, NumberArray9} from "../math/Mat3";
 import {Mat4, NumberArray16} from "../math/Mat4";
-import {NumberArray2, Vec2} from "../math/Vec2";
-import {NumberArray3, Vec3} from "../math/Vec3";
-import {Vec4} from "../math/Vec4";
-import {Frustum} from "./Frustum";
 import {Renderer} from "../renderer/Renderer";
+import {Vec2, NumberArray2} from "../math/Vec2";
+import {Vec3} from "../math/Vec3";
+import {Vec4} from "../math/Vec4";
 
 type CameraEvents = ["viewchange", "moveend"];
 
@@ -26,7 +26,7 @@ const EVENT_NAMES: CameraEvents = [
     "moveend"
 ];
 
-interface ICameraParams {
+export interface ICameraParams {
     eye?: Vec3;
     aspect?: number;
     viewAngle?: number;
