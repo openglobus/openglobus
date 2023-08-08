@@ -1,22 +1,26 @@
 "use strict";
 
 import * as arial from "../arial.js";
-import { Camera } from "../camera/Camera";
-import { cons } from "../cons.js";
-import { depth } from "../shaders/depth";
-import { LabelWorker } from "../entity/LabelWorker.js";
-import { input } from "../input/input";
-import { randomi } from "../math";
-import { Vec2 } from "../math/Vec2";
-import { Vec3 } from "../math/Vec3";
-import { pickingMask } from "../shaders/pickingMask.js";
-import { screenFrame } from "../shaders/screenFrame.js";
-import { toneMapping } from "../shaders/toneMapping.js";
-import { FontAtlas } from "../utils/FontAtlas.js";
-import { isEmpty } from "../utils/shared";
-import { TextureAtlas } from "../utils/TextureAtlas.js";
-import { Framebuffer, Multisample } from "../webgl/index.js";
-import { RendererEvents } from "./RendererEvents";
+import {Camera} from "../camera/Camera";
+import {Control} from "../control/Control";
+import {cons} from "../cons.js";
+import {depth} from "../shaders/depth";
+import {EntityCollection} from "../entity/EntityCollection";
+import {Framebuffer, Multisample} from "../webgl/index.js";
+import {FontAtlas} from "../utils/FontAtlas.js";
+import {Handler} from "../webgl/Handler";
+import {input} from "../input/input";
+import {isEmpty} from "../utils/shared";
+import {LabelWorker} from "../entity/LabelWorker.js";
+import {pickingMask} from "../shaders/pickingMask.js";
+import {randomi} from "../math";
+import {RendererEvents} from "./RendererEvents";
+import {RenderNode} from "../scene/RenderNode";
+import {screenFrame} from "../shaders/screenFrame.js";
+import {toneMapping} from "../shaders/toneMapping.js";
+import {TextureAtlas} from "../utils/TextureAtlas.js";
+import {Vec2} from "../math/Vec2";
+import {Vec3} from "../math/Vec3";
 
 let __pickingCallbackCounter__ = 0;
 
@@ -25,6 +29,12 @@ let __depthCallbackCounter__ = 0;
 let __distanceCallbackCounter__ = 0;
 
 const MSAA_DEFAULT = 0;
+
+interface IRendererParams {
+    controls?: Control[];
+    msaa?: number;
+    autoActivate?: boolean;
+}
 
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
@@ -63,20 +73,159 @@ const MSAA_DEFAULT = 0;
 let __resizeTimeout;
 
 class Renderer {
-    constructor(handler, params = {}) {
 
-        /**
-         * Div element with WebGL canvas. Assigned in Globe class.
-         * @public
-         * @type {object}
-         */
+    /**
+     * Div element with WebGL canvas. Assigned in Globe class.
+     * @public
+     * @type {object}
+     */
+    public div: HTMLElement | null;
+
+    /**
+     * WebGL handler context.
+     * @public
+     * @type {Handler}
+     */
+    public handler: Handler;
+    public exposure: number;
+    public gamma: number;
+    public whitepoint: number;
+    public brightThreshold: number;
+
+    /**
+     * Render nodes drawing queue.
+     * @protected
+     * @type {Array.<RenderNode>}
+     */
+    protected _renderNodesArr: RenderNode[];
+
+    /**
+     * Render nodes store for the comfortable access by the node name.
+     * @public
+     * @type {Object.<RenderNode>}
+     */
+    public renderNodes: Record<string, RenderNode>;
+
+    /**
+     * Current active camera.
+     * @public
+     * @type {Camera}
+     */
+    public activeCamera: Camera | null;
+
+    /**
+     * Renderer events. Represents interface for setting events like mousemove, draw, keypress etc.
+     * @public
+     * @type {RendererEvents}
+     */
+    public events: RendererEvents;
+
+    /**
+     * OpenGlobus controls array.
+     * @public
+     * @type {Object}
+     */
+    public controls: Record<string, Control>;
+
+    /**
+     * Provides exchange between controls.
+     * @public
+     * @type {Object}
+     */
+    public controlsBag: any;
+
+    /**
+     * Hash table for drawing objects.
+     * @public
+     * @type {Map<string, any>}
+     */
+    public colorObjects: Map<string, any>;
+
+    /**
+     * Color picking objects rendering queue.
+     * @type {Function[]}
+     */
+    protected _pickingCallbacks: Function[];
+
+    /**
+     * Picking objects(labels and billboards) framebuffer.
+     * @public
+     * @type {Framebuffer}
+     */
+    public pickingFramebuffer: Framebuffer | null;
+
+    protected _tempPickingPix_: Uint8Array | null;
+
+    /**
+     * @public
+     * @type {Framebuffer}
+     */
+    public distanceFramebuffer: Framebuffer | null;
+
+    /**
+     * @type {Function[]}
+     */
+    protected _distanceCallbacks: Function[];
+
+    protected _tempDistancePix_: Uint8Array | null;
+
+    /**
+     * Depth objects rendering queue.
+     * @type {Function[]}
+     */
+    protected _depthCallbacks: Function[];
+
+    public depthFramebuffer: Framebuffer | null;
+
+    protected _msaa: number;
+
+    protected _internalFormat: string;
+    protected _format: string;
+    protected _type: string;
+
+    protected sceneFramebuffer: Multisample | Framebuffer | null;
+
+    protected blitFramebuffer: Framebuffer | null;
+
+    protected toneMappingFramebuffer: Framebuffer | null;
+
+    protected _initialized: boolean;
+
+    /**
+     * Texture atlas for the billboards images. One atlas per node.
+     * @public
+     * @type {TextureAtlas}
+     */
+    public billboardsTextureAtlas: TextureAtlas;
+
+    /**
+     * Texture atlas for the billboards images. One atlas per node.
+     * @public
+     * @type {TextureAtlas}
+     */
+    public geoObjectsTextureAtlas: TextureAtlas;
+
+    /**
+     * Texture font atlas for the font families and styles. One atlas per node.
+     * @public
+     * @type {FontAtlas}
+     */
+    public fontAtlas: FontAtlas;
+
+    protected _entityCollections: EntityCollection[];
+
+    protected _currentOutput: string;
+
+    protected _fnScreenFrame: Function | null;
+
+    protected labelWorker: LabelWorker;
+
+    protected __useDistanceFramebuffer__: boolean;
+
+    constructor(handler: Handler, params: IRendererParams = {}) {
+
         this.div = null;
 
-        /**
-         * WebGL handler context.
-         * @public
-         * @type {Handler}
-         */
         this.handler = handler;
 
         this.exposure = 3.01;
@@ -87,39 +236,14 @@ class Renderer {
 
         this.brightThreshold = 0.9;
 
-        /**
-         * Render nodes drawing queue.
-         * @private
-         * @type {Array.<scene.RenderNode>}
-         */
         this._renderNodesArr = [];
 
-        /**
-         * Render nodes store for the comfortable access by the node name.
-         * @public
-         * @type {Object.<og.scene.RenderNode>}
-         */
         this.renderNodes = {};
 
-        /**
-         * Current active camera.
-         * @public
-         * @type {Camera}
-         */
         this.activeCamera = null;
 
-        /**
-         * Renderer events. Represents interface for setting events like mousemove, draw, keypress etc.
-         * @public
-         * @type {RendererEvents}
-         */
         this.events = new RendererEvents(this);
 
-        /**
-         * OpenGlobus controls array.
-         * @public
-         * @type {Object}
-         */
         this.controls = {};
 
         if (params.controls) {
@@ -128,52 +252,22 @@ class Renderer {
             }
         }
 
-        /**
-         * Provides exchange between controls.
-         * @public
-         * @type {Object}
-         */
         this.controlsBag = {};
 
-        /**
-         * Hash table for drawing objects.
-         * @public
-         * @type {Object}
-         */
-        this.colorObjects = new Map();
+        this.colorObjects = new Map<string, any>();
 
-        /**
-         * Color picking objects rendering queue.
-         * @type {Array.<Renderer~pickingCallback>}
-         */
         this._pickingCallbacks = [];
 
-        /**
-         * Picking objects(labels and billboards) framebuffer.
-         * @public
-         * @type {Framebuffer}
-         */
         this.pickingFramebuffer = null;
 
         this._tempPickingPix_ = null;
 
-        /**
-         * @public
-         * @type {Framebuffer}
-         */
         this.distanceFramebuffer = null;
 
-        /**
-         * @type {Array.<Renderer~distanceCallback>}
-         */
         this._distanceCallbacks = [];
 
         this._tempDistancePix_ = null;
 
-        /**
-         * Depth objects rendering queue.
-         * @type {Array.<Renderer~depthCallback>}
-         */
         this._depthCallbacks = [];
 
         this.depthFramebuffer = null;
@@ -1182,4 +1276,4 @@ class Renderer {
 
 }
 
-export { Renderer };
+export {Renderer};
