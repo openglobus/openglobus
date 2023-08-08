@@ -62,8 +62,6 @@ interface IBaseInputState {
     prev_y: number,
     /** Screen touch position world direction. */
     direction: Vec3;
-    /** JavaScript touching system event message. */
-    sys: any | null;
     /** Current touched(picking) object. */
     pickingObject: any | null;
     /** Renderer instance. */
@@ -111,6 +109,8 @@ interface IMouseState extends IBaseInputState {
     clickDelay: number;
     /** Mouse wheel. */
     wheelDelta: number;
+    /** JavaScript mouse system event message. */
+    sys: MouseEvent | null;
 }
 
 interface ITouchState extends IBaseInputState {
@@ -126,6 +126,8 @@ interface ITouchState extends IBaseInputState {
     doubleTouchDelay: number;
     /** Double touching responce radius in screen pixels.*/
     doubleTouchRadius: number;
+    /** JavaScript mouse system event message. */
+    sys: TouchEvent | null;
 }
 
 const LB_M = 0b0001;
@@ -685,8 +687,8 @@ class RendererEvents extends Events<RendererEventsType> implements EventsHandler
         ts.sys = event;
         ts.moving = true;
 
-        var dX = ts.x - ts.prev_x
-        var dY = ts.y - ts.prev_y
+        let dX = ts.x - ts.prev_x
+        let dY = ts.y - ts.prev_y
         if (Math.abs(dX) > 9 || Math.abs(dY) > 9) {
             this._dblTchBegins = 0;
             this._oneTouchStart = false;
@@ -965,8 +967,7 @@ class RendererEvents extends Events<RendererEventsType> implements EventsHandler
             r.pickingFramebuffer.readPixels(_currPickingColor, ts.nx, 1.0 - ts.ny, 1);
             r.pickingFramebuffer.deactivate();
 
-            let c = _currPickingColor;
-            let co = r.getPickingObjectArr(c);
+            let co = r.getPickingObjectArr(_currPickingColor);
             tpo = ts.pickingObject = co;
             if (tpo) {
                 tpe = tpo.rendererEvents;
