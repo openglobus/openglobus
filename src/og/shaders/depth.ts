@@ -1,6 +1,6 @@
 'use strict';
 
-import { Program } from '../webgl/Program.js';
+import { Program } from '../webgl/Program';
 
 export function depth() {
     return new Program("depth", {

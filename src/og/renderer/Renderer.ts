@@ -3,9 +3,9 @@
 import * as arial from "../arial.js";
 import { Camera } from "../camera/Camera";
 import { cons } from "../cons.js";
-import { depth } from "../shaders/depth.js";
+import { depth } from "../shaders/depth";
 import { LabelWorker } from "../entity/LabelWorker.js";
-import { input } from "../input/input.js";
+import { input } from "../input/input";
 import { randomi } from "../math";
 import { Vec2 } from "../math/Vec2";
 import { Vec3 } from "../math/Vec3";
@@ -16,7 +16,7 @@ import { FontAtlas } from "../utils/FontAtlas.js";
 import { isEmpty } from "../utils/shared";
 import { TextureAtlas } from "../utils/TextureAtlas.js";
 import { Framebuffer, Multisample } from "../webgl/index.js";
-import { RendererEvents } from "./RendererEvents.js";
+import { RendererEvents } from "./RendererEvents";
 
 let __pickingCallbackCounter__ = 0;
 
@@ -31,33 +31,33 @@ const MSAA_DEFAULT = 0;
  * @class
  * @param {Handler} handler - WebGL handler context.
  * @param {Object} [params] - Renderer parameters:
- * @fires og.RendererEvents#draw
- * @fires og.RendererEvents#resize
- * @fires og.RendererEvents#mousemove
- * @fires og.RendererEvents#mousestop
- * @fires og.RendererEvents#lclick
- * @fires og.RendererEvents#rclick
- * @fires og.RendererEvents#mclick
- * @fires og.RendererEvents#ldblclick
- * @fires og.RendererEvents#rdblclick
- * @fires og.RendererEvents#mdblclick
- * @fires og.RendererEvents#lup
- * @fires og.RendererEvents#rup
- * @fires og.RendererEvents#mup
- * @fires og.RendererEvents#ldown
- * @fires og.RendererEvents#rdown
- * @fires og.RendererEvents#mdown
- * @fires og.RendererEvents#lhold
- * @fires og.RendererEvents#rhold
- * @fires og.RendererEvents#mhold
- * @fires og.RendererEvents#mousewheel
- * @fires og.RendererEvents#touchstart
- * @fires og.RendererEvents#touchend
- * @fires og.RendererEvents#touchcancel
- * @fires og.RendererEvents#touchmove
- * @fires og.RendererEvents#doubletouch
- * @fires og.RendererEvents#touchleave
- * @fires og.RendererEvents#touchenter
+ * @fires RendererEvents#draw
+ * @fires RendererEvents#resize
+ * @fires RendererEvents#mousemove
+ * @fires RendererEvents#mousestop
+ * @fires RendererEvents#lclick
+ * @fires RendererEvents#rclick
+ * @fires RendererEvents#mclick
+ * @fires RendererEvents#ldblclick
+ * @fires RendererEvents#rdblclick
+ * @fires RendererEvents#mdblclick
+ * @fires RendererEvents#lup
+ * @fires RendererEvents#rup
+ * @fires RendererEvents#mup
+ * @fires RendererEvents#ldown
+ * @fires RendererEvents#rdown
+ * @fires RendererEvents#mdown
+ * @fires RendererEvents#lhold
+ * @fires RendererEvents#rhold
+ * @fires RendererEvents#mhold
+ * @fires RendererEvents#mousewheel
+ * @fires RendererEvents#touchstart
+ * @fires RendererEvents#touchend
+ * @fires RendererEvents#touchcancel
+ * @fires RendererEvents#touchmove
+ * @fires RendererEvents#doubletouch
+ * @fires RendererEvents#touchleave
+ * @fires RendererEvents#touchenter
  */
 
 let __resizeTimeout;
