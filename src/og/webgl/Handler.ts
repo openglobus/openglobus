@@ -100,7 +100,7 @@ class Handler {
      */
     protected _params: any;
 
-    protected _oneByHeight: number;
+    public _oneByHeight: number;
 
     /**
      * Current WebGL extensions. Becomes here after context initialization.
