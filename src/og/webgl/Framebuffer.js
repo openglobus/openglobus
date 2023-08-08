@@ -137,7 +137,7 @@ export class Framebuffer {
 
     /**
      * Framebuffer initialization.
-     * @private
+     * @public
      */
     init() {
         var gl = this.handler.gl;

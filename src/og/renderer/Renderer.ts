@@ -7,6 +7,7 @@ import {cons} from "../cons.js";
 import {depth} from "../shaders/depth";
 import {EntityCollection} from "../entity/EntityCollection";
 import {Framebuffer, Multisample} from "../webgl/index.js";
+import {WebGLBufferExt} from "../webgl/Handler";
 import {FontAtlas} from "../utils/FontAtlas.js";
 import {Handler} from "../webgl/Handler";
 import {input} from "../input/input";
@@ -14,19 +15,27 @@ import {isEmpty} from "../utils/shared";
 import {LabelWorker} from "../entity/LabelWorker.js";
 import {pickingMask} from "../shaders/pickingMask.js";
 import {randomi} from "../math";
-import {RendererEvents} from "./RendererEvents";
+import {createRendererEvents, RendererEvents, RendererEventsHandler} from "./RendererEvents";
 import {RenderNode} from "../scene/RenderNode";
 import {screenFrame} from "../shaders/screenFrame.js";
 import {toneMapping} from "../shaders/toneMapping.js";
 import {TextureAtlas} from "../utils/TextureAtlas.js";
 import {Vec2} from "../math/Vec2";
-import {Vec3} from "../math/Vec3";
+import {NumberArray3, Vec3} from "../math/Vec3";
+import {Vec4} from "../math/Vec4";
+import {EventsHandler} from "../Events";
 
 let __pickingCallbackCounter__ = 0;
 
 let __depthCallbackCounter__ = 0;
 
 let __distanceCallbackCounter__ = 0;
+
+interface IFrameCallbackHandler {
+    id: number;
+    callback: Function;
+    sender: any;
+}
 
 const MSAA_DEFAULT = 0;
 
@@ -77,7 +86,7 @@ class Renderer {
     /**
      * Div element with WebGL canvas. Assigned in Globe class.
      * @public
-     * @type {object}
+     * @type {HTMLElement | null}
      */
     public div: HTMLElement | null;
 
@@ -118,7 +127,7 @@ class Renderer {
      * @public
      * @type {RendererEvents}
      */
-    public events: RendererEvents;
+    public events: RendererEventsHandler;
 
     /**
      * OpenGlobus controls array.
@@ -145,7 +154,7 @@ class Renderer {
      * Color picking objects rendering queue.
      * @type {Function[]}
      */
-    protected _pickingCallbacks: Function[];
+    protected _pickingCallbacks: IFrameCallbackHandler[];
 
     /**
      * Picking objects(labels and billboards) framebuffer.
@@ -165,7 +174,7 @@ class Renderer {
     /**
      * @type {Function[]}
      */
-    protected _distanceCallbacks: Function[];
+    protected _distanceCallbacks: IFrameCallbackHandler[];
 
     protected _tempDistancePix_: Uint8Array | null;
 
@@ -173,7 +182,7 @@ class Renderer {
      * Depth objects rendering queue.
      * @type {Function[]}
      */
-    protected _depthCallbacks: Function[];
+    protected _depthCallbacks: IFrameCallbackHandler[];
 
     public depthFramebuffer: Framebuffer | null;
 
@@ -222,6 +231,16 @@ class Renderer {
 
     protected __useDistanceFramebuffer__: boolean;
 
+    public screenDepthFramebuffer: Framebuffer | null;
+
+    public screenFramePositionBuffer: WebGLBufferExt | null;
+
+    public screenTexture: Record<string, WebGLTexture>;
+
+    public outputTexture: WebGLTexture | null;
+
+    protected _pickingMaskCoordinatesBuffer: WebGLBufferExt | null;
+
     constructor(handler: Handler, params: IRendererParams = {}) {
 
         this.div = null;
@@ -242,7 +261,7 @@ class Renderer {
 
         this.activeCamera = null;
 
-        this.events = new RendererEvents(this);
+        this.events = createRendererEvents(this);
 
         this.controls = {};
 
@@ -323,20 +342,30 @@ class Renderer {
 
         this.__useDistanceFramebuffer__ = true;
 
+        this.screenDepthFramebuffer = null;
+
+        this.screenFramePositionBuffer = null;
+
+        this.screenTexture = {};
+
+        this.outputTexture = null;
+
+        this._pickingMaskCoordinatesBuffer = null;
+
         if (params.autoActivate || isEmpty(params.autoActivate)) {
             this.start();
         }
     }
 
-    enableBlendOneSrcAlpha() {
-        let gl = this.handler.gl;
+    public enableBlendOneSrcAlpha() {
+        let gl = this.handler.gl!;
         gl.enable(gl.BLEND);
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     }
 
-    enableBlendDefault() {
-        let gl = this.handler.gl;
+    public enableBlendDefault() {
+        let gl = this.handler.gl!;
         gl.enable(gl.BLEND);
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
@@ -346,19 +375,19 @@ class Renderer {
      * Sets renderer events activity.
      * @param {Boolean} activity - Events activity.
      */
-    setEventsActivity(activity) {
+    public setEventsActivity(activity: boolean) {
         this.events.active = activity;
     }
 
-    addDepthCallback(sender, callback) {
-        var id = __depthCallbackCounter__++;
+    public addDepthCallback(sender: any, callback: Function) {
+        let id = __depthCallbackCounter__++;
         this._depthCallbacks.push({
             id: id, callback: callback, sender: sender
         });
         return id;
     }
 
-    removeDepthCallback(id) {
+    public removeDepthCallback(id: number) {
         for (let i = 0; i < this._depthCallbacks.length; i++) {
             if (id === this._depthCallbacks[i].id) {
                 this._depthCallbacks.splice(i, 1);
@@ -367,15 +396,15 @@ class Renderer {
         }
     }
 
-    addDistanceCallback(sender, callback) {
-        var id = __distanceCallbackCounter__++;
+    public addDistanceCallback(sender: any, callback: Function) {
+        let id = __distanceCallbackCounter__++;
         this._distanceCallbacks.push({
             id: id, callback: callback, sender: sender
         });
         return id;
     }
 
-    removeDistanceCallback(id) {
+    public removeDistanceCallback(id: number) {
         for (let i = 0; i < this._distanceCallbacks.length; i++) {
             if (id === this._distanceCallbacks[i].id) {
                 this._distanceCallbacks.splice(i, 1);
@@ -391,8 +420,8 @@ class Renderer {
      * @param {Renderer~pickingCallback} callback - Rendering callback.
      * @returns {Number} Handler id
      */
-    addPickingCallback(sender, callback) {
-        var id = __pickingCallbackCounter__++;
+    public addPickingCallback(sender: any, callback: Function) {
+        let id = __pickingCallbackCounter__++;
         this._pickingCallbacks.push({
             id: id, callback: callback, sender: sender
         });
@@ -403,7 +432,7 @@ class Renderer {
      * Removes picking rendering callback function.
      * @param {Number} id - Handler id to remove.
      */
-    removePickingCallback(id) {
+    public removePickingCallback(id: number) {
         for (let i = 0; i < this._pickingCallbacks.length; i++) {
             if (id === this._pickingCallbacks[i].id) {
                 this._pickingCallbacks.splice(i, 1);
@@ -412,15 +441,15 @@ class Renderer {
         }
     }
 
-    getPickingObject(r, g, b) {
+    public getPickingObject(r: number, g: number, b: number) {
         return this.colorObjects.get(`${r}_${g}_${b}`);
     }
 
-    getPickingObjectArr(arr) {
+    public getPickingObjectArr(arr: NumberArray3) {
         return this.colorObjects.get(`${arr[0]}_${arr[1]}_${arr[2]}`);
     }
 
-    getPickingObject3v(vec) {
+    public getPickingObject3v(vec: Vec3 | Vec4) {
         return this.colorObjects.get(`${vec.x}_${vec.y}_${vec.z}`);
     }
 
@@ -429,7 +458,7 @@ class Renderer {
      * @public
      * @param {Object} obj - Object that pressume to be picked.
      */
-    assignPickingColor(obj) {
+    public assignPickingColor(obj: any) {
         if (!obj._pickingColor || obj._pickingColor.isZero()) {
             let r = 0, g = 0, b = 0;
             let str = "0_0_0";
@@ -457,9 +486,9 @@ class Renderer {
      * @public
      * @param {Object} obj - Object to remove picking color.
      */
-    clearPickingColor(obj) {
+    public clearPickingColor(obj: any) {
         if (!obj._pickingColor.isZero()) {
-            var c = obj._pickingColor;
+            let c = obj._pickingColor;
             if (!c.isZero()) {
                 this.colorObjects.delete(`${c.x}_${c.y}_${c.z}`);
                 c.x = c.y = c.z = 0;
@@ -472,8 +501,8 @@ class Renderer {
      * @public
      * @returns {number} -
      */
-    getWidth() {
-        return this.handler.canvas.clientWidth;
+    public getWidth(): number {
+        return this.handler.canvas!.clientWidth;
     }
 
     /**
@@ -481,8 +510,8 @@ class Renderer {
      * @public
      * @returns {number} -
      */
-    getHeight() {
-        return this.handler.canvas.clientHeight;
+    public getHeight(): number {
+        return this.handler.canvas!.clientHeight;
     }
 
     /**
@@ -490,8 +519,8 @@ class Renderer {
      * @public
      * @returns {math.Vec2} -
      */
-    getCenter() {
-        var cnv = this.handler.canvas;
+    public getCenter(): Vec2 {
+        let cnv = this.handler.canvas!;
         return new Vec2(Math.round(cnv.clientWidth * 0.5), Math.round(cnv.clientHeight * 0.5));
     }
 
@@ -499,7 +528,7 @@ class Renderer {
      * Add the given control to the renderer.
      * @param {control.Control} control - Control.
      */
-    addControl(control) {
+    public addControl(control: Control) {
         control.addTo(this);
     }
 
@@ -507,7 +536,7 @@ class Renderer {
      * Add the given controls array to the planet node.
      * @param {Array.<control.Control>} cArr - Control array.
      */
-    addControls(cArr) {
+    public addControls(cArr: Control[]) {
         for (let i = 0; i < cArr.length; i++) {
             cArr[i].addTo(this);
         }
@@ -517,11 +546,11 @@ class Renderer {
      * Remove control from the renderer.
      * @param {control.Control} control  - Control.
      */
-    removeControl(control) {
+    public removeControl(control: Control) {
         control.remove();
     }
 
-    isInitialized() {
+    public isInitialized(): boolean {
         return this._initialized;
     }
 
@@ -529,7 +558,7 @@ class Renderer {
      * Renderer initialization.
      * @public
      */
-    initialize() {
+    public initialize() {
 
         if (this._initialized) {
             return;
@@ -586,7 +615,7 @@ class Renderer {
             useDepth: false
         }).init();
 
-        if (this.handler.gl.type === "webgl") {
+        if (this.handler.gl!.type === "webgl") {
             this.sceneFramebuffer = new Framebuffer(this.handler);
             this.sceneFramebuffer.init();
 
@@ -663,7 +692,7 @@ class Renderer {
         this._initializeControls();
     }
 
-    _initializeControls() {
+    public _initializeControls() {
         let temp = this.controls;
         this.controls = {};
         for (let i in temp) {
@@ -671,26 +700,26 @@ class Renderer {
         }
     }
 
-    resize() {
+    public resize() {
         this._resizeEnd();
     }
 
-    setCurrentScreen(screenName) {
+    public setCurrentScreen(screenName: string) {
         this._currentOutput = screenName;
         if (this.screenTexture[screenName]) {
             this.outputTexture = this.screenTexture[screenName];
         }
     }
 
-    _resizeStart() {
-        let c = this.handler.canvas;
+    public _resizeStart() {
+        let c = this.handler.canvas!;
 
-        this.activeCamera.setAspectRatio(c.width / c.height);
-        this.sceneFramebuffer.setSize(c.width * 0.5, c.height * 0.5);
+        this.activeCamera!.setAspectRatio(c.width / c.height);
+        this.sceneFramebuffer!.setSize(c.width * 0.5, c.height * 0.5);
         this.blitFramebuffer && this.blitFramebuffer.setSize(c.width * 0.5, c.height * 0.5, true);
     }
 
-    _resizeEnd() {
+    public _resizeEnd() {
         let c = this.handler.canvas;
 
         this.activeCamera.setAspectRatio(c.width / c.height);

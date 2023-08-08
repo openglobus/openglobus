@@ -3,7 +3,7 @@
 import {Quat} from "./Quat";
 import {Vec4, NumberArray4} from "./Vec4";
 
-export type NumberArray3 = [number, number, number];
+export type NumberArray3 = [number, number, number] | Uint8Array;
 
 /**
  * Class represents a 3d vector.

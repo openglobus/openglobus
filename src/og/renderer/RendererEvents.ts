@@ -1,6 +1,6 @@
 "use strict";
 
-import {Events, EventsHandler, EventsMap} from "../Events";
+import {Events, EventsHandler} from "../Events";
 import {input} from "../input/input";
 import {KeyboardHandler} from "../input/KeyboardHandler";
 import {MouseHandler} from "../input/MouseHandler";
@@ -8,6 +8,12 @@ import {Renderer} from "./Renderer";
 import {TouchHandler} from "../input/TouchHandler";
 import {Vec2} from "../math/Vec2";
 import {NumberArray3, Vec3} from "../math/Vec3";
+
+export type RendererEventsHandler = RendererEvents & EventsHandler<RendererEventsType>;
+
+export function createRendererEvents(renderer: Renderer) {
+    return new RendererEvents(renderer);
+}
 
 type RendererEventsType = [
     "draw",
@@ -158,7 +164,7 @@ let _prevPickingColor = new Uint8Array(4);
  * @class
  * @param {Renderer} renderer - Renderer object, events that works for.
  */
-class RendererEvents extends Events<RendererEventsType> implements EventsHandler<RendererEventsType> {
+class RendererEvents extends Events<RendererEventsType> implements RendererEventsHandler {
     /**
      * Assigned renderer.
      * @public
@@ -228,9 +234,9 @@ class RendererEvents extends Events<RendererEventsType> implements EventsHandler
 
         this.renderer = renderer;
 
-        this._touchHandler = new TouchHandler(renderer.handler.canvas);
+        this._touchHandler = new TouchHandler(renderer.handler.canvas!);
 
-        this._mouseHandler = new MouseHandler(renderer.handler.canvas);
+        this._mouseHandler = new MouseHandler(renderer.handler.canvas!);
 
         this._keyboardHandler = new KeyboardHandler();
 
@@ -341,14 +347,14 @@ class RendererEvents extends Events<RendererEventsType> implements EventsHandler
      */
     public handleEvents() {
         if (this._active) {
-            this.mouseState.direction = this.renderer.activeCamera.unproject(
+            this.mouseState.direction = this.renderer.activeCamera!.unproject(
                 this.mouseState.x,
                 this.mouseState.y
             );
             //
             // TODO: Replace in some other place with a thought that we do
             // not need to make unproject when we do not make touching
-            this.touchState.direction = this.renderer.activeCamera.unproject(
+            this.touchState.direction = this.renderer.activeCamera!.unproject(
                 this.touchState.x,
                 this.touchState.y
             );
@@ -481,8 +487,8 @@ class RendererEvents extends Events<RendererEventsType> implements EventsHandler
         ms.x = event.clientX * h.pixelRatio;
         ms.y = event.clientY * h.pixelRatio;
 
-        ms.nx = ms.x / h.canvas.width;
-        ms.ny = ms.y / h.canvas.height;
+        ms.nx = ms.x / h.canvas!.width;
+        ms.ny = ms.y / h.canvas!.height;
 
         ms.moving = true;
 
@@ -494,11 +500,11 @@ class RendererEvents extends Events<RendererEventsType> implements EventsHandler
     }
 
     protected onMouseLeave(event: any) {
-        this.dispatch((this as EventsHandler<RendererEventsType>).mouseleave, event);
+        this.dispatch((this as RendererEventsHandler).mouseleave, event);
     }
 
     protected onMouseEnter(event: any) {
-        this.dispatch((this as EventsHandler<RendererEventsType>).mouseenter, event);
+        this.dispatch((this as RendererEventsHandler).mouseenter, event);
     }
 
     /**
@@ -618,8 +624,8 @@ class RendererEvents extends Events<RendererEventsType> implements EventsHandler
         ts.x = ts.clientX * h.pixelRatio;
         ts.y = ts.clientY * h.pixelRatio;
 
-        ts.nx = ts.x / h.canvas.width;
-        ts.ny = ts.y / h.canvas.height;
+        ts.nx = ts.x / h.canvas!.width;
+        ts.ny = ts.y / h.canvas!.height;
         ts.prev_x = ts.x;
         ts.prev_y = ts.y;
         ts.touchStart = true;
@@ -681,8 +687,8 @@ class RendererEvents extends Events<RendererEventsType> implements EventsHandler
         ts.x = ts.clientX * h.pixelRatio;
         ts.y = ts.clientY * h.pixelRatio;
 
-        ts.nx = ts.x / h.canvas.width;
-        ts.ny = ts.y / h.canvas.height;
+        ts.nx = ts.x / h.canvas!.width;
+        ts.ny = ts.y / h.canvas!.height;
 
         ts.sys = event;
         ts.moving = true;
@@ -781,7 +787,7 @@ class RendererEvents extends Events<RendererEventsType> implements EventsHandler
      * @protected
      */
     protected handleMouseEvents() {
-        let _this = this as EventsHandler<RendererEventsType>;
+        let _this = this as RendererEventsHandler;
         let ms = this.mouseState;
         let po = ms.pickingObject,
             pe = null;
@@ -948,7 +954,7 @@ class RendererEvents extends Events<RendererEventsType> implements EventsHandler
      * @protected
      */
     protected handleTouchEvents() {
-        let _this = this as EventsHandler<RendererEventsType>;
+        let _this = this as RendererEventsHandler;
 
         let ts = this.touchState;
 
@@ -963,9 +969,9 @@ class RendererEvents extends Events<RendererEventsType> implements EventsHandler
         if (ts.touchStart) {
             let r = this.renderer;
 
-            r.pickingFramebuffer.activate();
-            r.pickingFramebuffer.readPixels(_currPickingColor, ts.nx, 1.0 - ts.ny, 1);
-            r.pickingFramebuffer.deactivate();
+            r.pickingFramebuffer!.activate();
+            r.pickingFramebuffer!.readPixels(_currPickingColor, ts.nx, 1.0 - ts.ny, 1);
+            r.pickingFramebuffer!.deactivate();
 
             let co = r.getPickingObjectArr(_currPickingColor);
             tpo = ts.pickingObject = co;

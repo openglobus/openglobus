@@ -971,7 +971,7 @@ class Handler {
      * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
      * @return {Object} -
      */
-    public createArrayBuffer(array: number[], itemSize: number, numItems: number, usage?: number): WebGLBufferExt {
+    public createArrayBuffer(array: number[] | Float32Array, itemSize: number, numItems: number, usage?: number): WebGLBufferExt {
         let gl = this.gl!;
         let buffer: WebGLBufferExt = gl.createBuffer() as WebGLBufferExt;
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
