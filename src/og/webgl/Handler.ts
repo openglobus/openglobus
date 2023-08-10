@@ -16,11 +16,7 @@ import {cons} from "../cons.js";
 
 import {ProgramController} from "./ProgramController";
 import {Program} from "./Program";
-
-//@ts-ignore
-import {Framebuffer} from "./Framebuffer.js";
-//@ts-ignore
-import {Multisample} from "./Multisample.js";
+import {BaseFramebuffer} from "./BaseFramebuffer";
 
 const vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
 
@@ -131,7 +127,7 @@ class Handler {
 
     public defaultTexture: any | null;
 
-    public framebufferStack = new Stack<Framebuffer | Multisample>();
+    public framebufferStack = new Stack<BaseFramebuffer>();
 
     public createTexture: any;
 

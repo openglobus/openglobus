@@ -24,6 +24,7 @@ import {Vec2} from "../math/Vec2";
 import {NumberArray3, Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 import {EventsHandler} from "../Events";
+import {BaseFramebuffer} from "../webgl/BaseFramebuffer";
 
 let __pickingCallbackCounter__ = 0;
 
@@ -192,7 +193,7 @@ class Renderer {
     protected _format: string;
     protected _type: string;
 
-    protected sceneFramebuffer: Multisample | Framebuffer | null;
+    protected sceneFramebuffer: Framebuffer | Multisample | null;
 
     protected blitFramebuffer: Framebuffer | null;
 
@@ -279,13 +280,13 @@ class Renderer {
 
         this.pickingFramebuffer = null;
 
-        this._tempPickingPix_ = new Uint8Array();
+        this._tempPickingPix_ = new Uint8Array([]);
 
         this.distanceFramebuffer = null;
 
         this._distanceCallbacks = [];
 
-        this._tempDistancePix_ = new Uint8Array();
+        this._tempDistancePix_ = new Uint8Array([]);
 
         this._depthCallbacks = [];
 
@@ -313,22 +314,22 @@ class Renderer {
 
         /**
          * Texture atlas for the billboards images. One atlas per node.
-         * @protected
-         * @type {utils.TextureAtlas}
+         * @public
+         * @type {TextureAtlas}
          */
         this.billboardsTextureAtlas = new TextureAtlas();
-        //TODO global texture atlas
+
         /**
          * Texture atlas for the billboards images. One atlas per node.
-         * @protected
-         * @type {utils.TextureAtlas}
+         * @public
+         * @type {TextureAtlas}
          */
         this.geoObjectsTextureAtlas = new TextureAtlas();
 
         /**
          * Texture font atlas for the font families and styles. One atlas per node.
          * @public
-         * @type {utils.FontAtlas}
+         * @type {FontAtlas}
          */
         this.fontAtlas = new FontAtlas();
 
@@ -592,13 +593,15 @@ class Renderer {
 
         this.pickingFramebuffer = new Framebuffer(this.handler, {
             width: 640, height: 480, depthComponent: "DEPTH_STENCIL", renderbufferTarget: "DEPTH_STENCIL_ATTACHMENT"
-        }).init();
+        });
+        this.pickingFramebuffer.init();
 
         this._tempPickingPix_ = new Uint8Array(this.pickingFramebuffer.width * this.pickingFramebuffer.height * 4);
 
         this.distanceFramebuffer = new Framebuffer(this.handler, {
             width: 320, height: 240
-        }).init();
+        });
+        this.distanceFramebuffer.init();
 
         this._tempDistancePix_ = new Uint8Array(this.distanceFramebuffer.width * this.distanceFramebuffer.height * 4);
 
@@ -609,11 +612,13 @@ class Renderer {
             type: ["UNSIGNED_BYTE", "UNSIGNED_INT"],
             attachment: ["COLOR_ATTACHMENT", "DEPTH_ATTACHMENT"],
             useDepth: false
-        }).init();
+        });
+        this.depthFramebuffer.init();
 
         this.screenDepthFramebuffer = new Framebuffer(this.handler, {
             useDepth: false
-        }).init();
+        });
+        this.screenDepthFramebuffer.init();
 
         if (this.handler.gl!.type === "webgl") {
             this.sceneFramebuffer = new Framebuffer(this.handler);
@@ -622,10 +627,10 @@ class Renderer {
             this._fnScreenFrame = this._screenFrameNoMSAA;
 
             this.screenTexture = {
-                screen: this.sceneFramebuffer.textures[0],
-                picking: this.pickingFramebuffer.textures[0],
-                distance: this.distanceFramebuffer.textures[0],
-                depth: this.screenDepthFramebuffer.textures[0]
+                screen: this.sceneFramebuffer!.textures[0],
+                picking: this.pickingFramebuffer!.textures[0],
+                distance: this.distanceFramebuffer!.textures[0],
+                depth: this.screenDepthFramebuffer!.textures[0]
             };
         } else {
             let _maxMSAA = this.getMaxMSAA(this._internalFormat);
@@ -639,8 +644,13 @@ class Renderer {
             this.handler.addPrograms([depth()]);
 
             this.sceneFramebuffer = new Multisample(this.handler, {
-                size: 1, msaa: this._msaa, internalFormat: this._internalFormat, filter: "LINEAR"
-            }).init();
+                size: 1,
+                msaa: this._msaa,
+                internalFormat: this._internalFormat,
+                filter: "LINEAR"
+            });
+
+            this.sceneFramebuffer.init();
 
             this.blitFramebuffer = new Framebuffer(this.handler, {
                 size: 1,
@@ -649,20 +659,24 @@ class Renderer {
                 format: this._format,
                 type: this._type,
                 filter: "NEAREST"
-            }).init();
+            });
+
+            this.blitFramebuffer.init();
 
             this.toneMappingFramebuffer = new Framebuffer(this.handler, {
                 useDepth: false
-            }).init();
+            });
+
+            this.toneMappingFramebuffer.init();
 
             this._fnScreenFrame = this._screenFrameMSAA;
 
             this.screenTexture = {
-                screen: this.toneMappingFramebuffer.textures[0],
-                picking: this.pickingFramebuffer.textures[0],
-                distance: this.distanceFramebuffer.textures[0],
-                depth: this.screenDepthFramebuffer.textures[0],
-                frustum: this.depthFramebuffer.textures[0]
+                screen: this.toneMappingFramebuffer!.textures[0],
+                picking: this.pickingFramebuffer!.textures[0],
+                distance: this.distanceFramebuffer!.textures[0],
+                depth: this.screenDepthFramebuffer!.textures[0],
+                frustum: this.depthFramebuffer!.textures[0]
             };
         }
 
@@ -731,7 +745,7 @@ class Renderer {
         this.screenDepthFramebuffer && this.screenDepthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
 
         if (this.handler.gl!.type === "webgl") {
-            this.screenTexture.screen = this.sceneFramebuffer!.textures[0];
+            this.screenTexture.screen = (this.sceneFramebuffer as Framebuffer)!.textures[0];
             this.screenTexture.picking = this.pickingFramebuffer!.textures[0];
             this.screenTexture.distance = this.distanceFramebuffer!.textures[0];
             this.screenTexture.depth = this.screenDepthFramebuffer!.textures[0];
@@ -806,6 +820,7 @@ class Renderer {
 
     public getMaxMSAA(internalFormat: string) {
         let gl = this.handler.gl!;
+        // @ts-ignore
         let samples = gl.getInternalformatParameter(gl.RENDERBUFFER, gl[internalFormat] as any, gl.SAMPLES);
         return samples[0];
     }
@@ -967,7 +982,7 @@ class Renderer {
 
         sceneFramebuffer.deactivate();
 
-        this.blitFramebuffer && sceneFramebuffer.blitTo(this.blitFramebuffer, 0);
+        this.blitFramebuffer && (sceneFramebuffer as Multisample).blitTo(this.blitFramebuffer, 0);
 
         if (pointerEvent) {
             // It works ONLY for 0 (closest) frustum
@@ -1183,7 +1198,7 @@ class Renderer {
         sh.activate();
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer.textures[1]);
+        gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer!.textures[1]);
         gl.uniform1i(p.uniforms.depthTexture, 0);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);

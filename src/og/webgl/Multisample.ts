@@ -1,92 +1,45 @@
 "use strict";
 
+import {BaseFramebuffer, IBaseFramebufferParams} from "./BaseFramebuffer";
+import {Handler} from "./Handler";
+
+interface IMultisampleParams extends IBaseFramebufferParams {
+    msaa?: number;
+    internalFormat?: string;
+}
+
 /**
  * Class represents multisample framebuffer.
  * @class
  * @param {Handler} handler - WebGL handler.
  * @param {Object} [options] - Framebuffer options:
- * @param {number} [options.width] - Framebuffer width. Default is handler canvas width.
- * @param {number} [options.height] - Framebuffer height. Default is handler canvas height.
- * @param {Object} [options.texture] - Texture to render.
- * @param {String} [options.depthComponent="DEPTH_COMPONENT16"] - Specifies depth buffer size.
- * @param {Boolean} [options.useDepth] - Using depth buffer during the rendering.
  */
-export class Multisample {
-    constructor(handler, options) {
-        options = options || {};
+export class Multisample extends BaseFramebuffer {
+    protected _internalFormat: string;
 
-        /**
-         * WebGL handler.
-         * @public
-         * @type {Handler}
-         */
-        this.handler = handler;
+    protected _msaa: number;
 
-        this._internalFormat = options.internalFormat
-            ? options.internalFormat.toUpperCase()
-            : "RGBA8";
+    protected _glFilter: number;
 
-        /**
-         * Framebuffer object.
-         * @private
-         * @type {Object}
-         */
-        this._fbo = null;
+    public renderbuffers: WebGLRenderbuffer[];
 
-        /**
-         * Renderbuffer object.
-         * @private
-         * @type {Object}
-         */
-        this._depthRenderbuffer = null;
+    constructor(handler: Handler, options: IMultisampleParams = {}) {
 
-        /**
-         * Framebuffer width.
-         * @private
-         * @type {number}
-         */
-        this._width = options.width || handler.canvas.width;
+        super(handler, options);
 
-        /**
-         * Framebuffer width.
-         * @private
-         * @type {number}
-         */
-        this._height = options.height || handler.canvas.height;
+        this._internalFormat = options.internalFormat ? options.internalFormat.toUpperCase() : "RGBA8";
 
         this._msaa = options.msaa != undefined ? options.msaa : 4;
 
-        this._useDepth = options.useDepth != undefined ? options.useDepth : true;
-
-        this._depthComponent =
-            options.depthComponent != undefined ? options.depthComponent : "DEPTH_COMPONENT16";
-
-        /**
-         * Framebuffer activity.
-         * @private
-         * @type {boolean}
-         */
-        this._active = false;
-
-        this._size = options.size || 1;
-
-        this._filter = options.filter || "NEAREST";
-
-        this._glFilter = null;
+        this._glFilter = 0;
 
         this.renderbuffers = new Array(this._size);
     }
 
-    get width() {
-        return this._width;
-    }
+    public override destroy() {
+        let gl = this.handler.gl;
 
-    get height() {
-        return this._height;
-    }
-
-    destroy() {
-        var gl = this.handler.gl;
+        if (!gl) return;
 
         for (let i = 0; i < this.renderbuffers.length; i++) {
             gl.deleteRenderbuffer(this.renderbuffers[i]);
@@ -106,9 +59,12 @@ export class Multisample {
      * Framebuffer initialization.
      * @public
      */
-    init() {
-        var gl = this.handler.gl;
+    public override init() {
+        let gl = this.handler.gl;
 
+        if (!gl) return;
+
+        // @ts-ignore
         this._glFilter = gl[this._filter];
 
         this._fbo = gl.createFramebuffer();
@@ -124,6 +80,7 @@ export class Multisample {
                 gl.renderbufferStorageMultisample(
                     gl.RENDERBUFFER,
                     this._msaa,
+                    // @ts-ignore
                     gl[this._internalFormat],
                     this._width,
                     this._height
@@ -131,6 +88,7 @@ export class Multisample {
             } else {
                 gl.renderbufferStorage(
                     gl.RENDERBUFFER,
+                    // @ts-ignore
                     gl[this._internalFormat],
                     this._width,
                     this._height
@@ -144,8 +102,8 @@ export class Multisample {
                 rb
             );
             colorAttachments.push(gl.COLOR_ATTACHMENT0 + i);
-            this.renderbuffers[i] = rb;
-            gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+            this.renderbuffers[i] = rb as any;
+            gl.bindRenderbuffer(gl.RENDERBUFFER, null as any);
         }
         gl.drawBuffers(colorAttachments);
 
@@ -155,6 +113,7 @@ export class Multisample {
             gl.renderbufferStorageMultisample(
                 gl.RENDERBUFFER,
                 this._msaa,
+                // @ts-ignore
                 gl[this._depthComponent],
                 this._width,
                 this._height
@@ -169,14 +128,13 @@ export class Multisample {
         }
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-        return this;
     }
 
-    blitTo(framebuffer, attachmentIndex = 0) {
-        let gl = this.handler.gl;
+    public blitTo(framebuffer: BaseFramebuffer, attachmentIndex: number = 0) {
+        let gl = this.handler.gl!;
 
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._fbo);
+        // @ts-ignore
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebuffer._fbo);
         gl.readBuffer(gl.COLOR_ATTACHMENT0 + attachmentIndex);
 
@@ -189,7 +147,9 @@ export class Multisample {
             this._height,
             0,
             0,
+            // @ts-ignore
             framebuffer._width,
+            // @ts-ignore
             framebuffer._height,
             gl.COLOR_BUFFER_BIT,
             this._glFilter
@@ -198,78 +158,5 @@ export class Multisample {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
-    }
-
-    /**
-     * Sets framebuffer viewport size.
-     * @public
-     * @param {number} width - Framebuffer width.
-     * @param {number} height - Framebuffer height.
-     */
-    setSize(width, height, forceDestroy) {
-        this._width = width;
-        this._height = height;
-
-        if (this._active) {
-            this.handler.gl.viewport(0, 0, this._width, this._height);
-        }
-
-        if (this._useDepth || forceDestroy) {
-            this.destroy();
-            this.init();
-        }
-    }
-
-    /**
-     * Returns framebuffer completed.
-     * @public
-     * @returns {boolean} -
-     */
-    isComplete() {
-        var gl = this.handler.gl;
-        if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Activate framebuffer frame to draw.
-     * @public
-     * @returns {Framebuffer} Returns Current framebuffer.
-     */
-    activate() {
-        var gl = this.handler.gl;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
-        gl.viewport(0, 0, this._width, this._height);
-        this._active = true;
-        var c = this.handler.framebufferStack.current().data;
-        c && (c._active = false);
-        this.handler.framebufferStack.push(this);
-        return this;
-    }
-
-    /**
-     * Deactivate framebuffer frame.
-     * @public
-     */
-    deactivate() {
-        var h = this.handler,
-            gl = h.gl;
-
-        //Q: check for this._useDepth ?
-
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        this._active = false;
-
-        var f = this.handler.framebufferStack.popPrev();
-
-        if (f) {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, f._fbo);
-            gl.viewport(0, 0, f._width, f._height);
-        } else {
-            gl.viewport(0, 0, h.canvas.width, h.canvas.height);
-        }
     }
 }
