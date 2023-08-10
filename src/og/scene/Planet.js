@@ -5,6 +5,7 @@ import { Atmosphere } from "../control/Atmosphere.js";
 import { SimpleSkyBackground } from "../control/SimpleSkyBackground.js";
 import { wgs84 } from "../ellipsoid/wgs84";
 import { Extent } from "../Extent";
+import { Events } from "../Events";
 import { Vector } from "../layer/Vector.js";
 import { Key, Lock } from "../Lock.js";
 import { LonLat } from "../LonLat";
@@ -407,7 +408,7 @@ export class Planet extends RenderNode {
 
         this._memKey = new Key();
 
-        this.events.registerNames(EVENT_NAMES);
+        this.events = new Events(EVENT_NAMES);
 
         this._distBeforeMemClear = 0.0;
 

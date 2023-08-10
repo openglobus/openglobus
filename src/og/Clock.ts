@@ -27,9 +27,9 @@ export interface IClockParams {
  * @param {number} [params.multiplier=1.0] - Time speed multiplier.
  */
 class Clock {
-
     static __counter__: number;
 
+    public __handler: Handler | null = null;
     public events: EventsHandler<ClockEventsList>;
     public name: string;
     public startDate: number;
@@ -44,8 +44,6 @@ class Clock {
     protected _intervalDelay: number = 0;
     protected _intervalStart: number = 0;
     protected _intervalCallback: Function | null;
-
-    public __handler: Handler | null = null;
 
     constructor(params: IClockParams = {}) {
 

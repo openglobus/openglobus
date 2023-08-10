@@ -6,50 +6,59 @@
  * @param {string} name - Node name.
  */
 class BaseNode {
-    constructor(name) {
-        /**
-         * Node name.
-         * @public
-         * @type {string}
-         */
-        this.name = name;
 
-        /**
-         * Top scene tree node pointer.
-         * @public
-         * @type {BaseNode}
-         */
+    /**
+     * Node name.
+     * @public
+     * @type {string}
+     */
+    protected _name: string;
+
+    /**
+     * Top scene tree node pointer.
+     * @public
+     * @type {BaseNode}
+     */
+    public topNode: BaseNode;
+
+    protected _dictionary: Record<string, BaseNode>;
+
+    /**
+     * Children nodes.
+     * @public
+     * @type {Array.<BaseNode>}
+     */
+    public childNodes: BaseNode[];
+
+    /**
+     * Parent node pointer.
+     * @public
+     * @type {BaseNode}
+     */
+    public parentNode: BaseNode | null;
+
+    static __counter__: number;
+
+    protected __id: number;
+
+    constructor(name?: string) {
+
+        this.__id = BaseNode.__counter__++;
+
+        this._name = name || `nonameNode:${this.__id}`;
+
         this.topNode = this;
 
-        this._dictionary = [];
-        this._dictionary[name] = this;
+        this._dictionary = {};
+        this._dictionary[this._name] = this;
 
-        /**
-         * Children nodes.
-         * @public
-         * @type {Array.<RenderNode>}
-         */
         this.childNodes = [];
 
-        /**
-         * Parent node pointer.
-         * @public
-         * @type {RenderNode}
-         */
         this.parentNode = null;
-
-        this.__staticId = BaseNode._staticCounter++;
     }
 
-    static get _staticCounter() {
-        if (!this.__counter__ && this.__counter__ !== 0) {
-            this.__counter__ = 0;
-        }
-        return this.__counter__;
-    }
-
-    static set _staticCounter(n) {
-        this.__counter__ = n;
+    public get name(): string {
+        return this._name;
     }
 
     /**
@@ -57,7 +66,7 @@ class BaseNode {
      * @public
      * @type {BaseNode}
      */
-    addNode(node) {
+    public addNode(node: BaseNode) {
         if (this.parentNode == null) {
             node.topNode = this;
         } else {
@@ -73,7 +82,7 @@ class BaseNode {
      * Destroy node.
      * @public
      */
-    destroy() {
+    public destroy() {
         for (let i = 0; i < this.childNodes.length; i++) {
             this.childNodes[i].destroy();
         }
@@ -86,7 +95,7 @@ class BaseNode {
      * @param {string} name - Node name.
      * @return {RenderNode} Node object in the current node.
      */
-    getNodeByName(name) {
+    public getNodeByName(name: string): BaseNode {
         return this._dictionary[name];
     }
 
@@ -94,16 +103,15 @@ class BaseNode {
      * Clear current node.
      * @protected
      */
-    _clear() {
-        this.name = "";
+    protected _clear() {
         this.parentNode = null;
-        this.topNode = null;
+        this.topNode = this;
         this.childNodes.length = 0;
     }
 
-    isEqual(node) {
-        return node.__staticId === this.__staticId;
+    public isEqual(node: BaseNode): boolean {
+        return node.__id === this.__id;
     }
 }
 
-export { BaseNode };
+export {BaseNode};

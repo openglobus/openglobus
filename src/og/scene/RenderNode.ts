@@ -1,13 +1,15 @@
 "use strict";
 
-import { Events } from "../Events";
-import { BaseNode } from "./BaseNode.js";
+import {BaseNode} from "./BaseNode";
+import {Renderer} from "../renderer/Renderer";
+import {LightSource} from "../light/LightSource";
+import {EntityCollection} from "../entity/EntityCollection";
 
 /**
  * Render node is a logical part of a render mechanism. Represents scene rendering.
  * For example one scene node for rendering the Earth, another one for rendering the Moon, another node for rendering stars etc.
  * Each render node has own model view space defined with matrices(scale, rotation, translation, transformation).
- * There are collections of ligh sources, entities and so on in the node.
+ * There are collections of light sources, entities and so on in the node.
  * Access to the node is renderer.renderNodes["Earth"]
  * @class
  * @extends {BaseNode}
@@ -15,53 +17,76 @@ import { BaseNode } from "./BaseNode.js";
  */
 
 class RenderNode extends BaseNode {
-    constructor(name = "") {
+
+    /**
+     * Renderer that calls frame() callback.
+     * @public
+     * @type {Renderer}
+     */
+    public renderer: Renderer | null;
+
+    public drawMode: number;
+
+    /** Show rendering.
+     * @public
+     */
+    public show: boolean;
+
+    protected _isActive: boolean;
+
+    public childNodes: RenderNode[];
+
+    /**
+     * Lighting calculations.
+     * @public
+     * @type {boolean}
+     */
+    public lightEnabled: boolean;
+
+    /**
+     * Point light array.
+     * @private
+     * @type {Array.<LightSource>}
+     */
+    protected _lights: LightSource[];
+    protected _lightsNames: string[];
+    protected _lightsPositions: number[];
+    protected _lightsParamsv: number[];
+    protected _lightsParamsf: number[];
+
+    /**
+     * Entity collection array.
+     * @public
+     * @type {Array.<EntityCollection>}
+     */
+    public entityCollections: EntityCollection[];
+
+    protected _pickingId: number;
+
+    constructor(name?: string) {
         super(name);
 
-        /**
-         * Renderer that calls frame() callback.
-         * @public
-         * @type {Renderer}
-         */
+        this.childNodes = [];
+
         this.renderer = null;
 
-        this.drawMode = null;
+        this.drawMode = 0;
 
-        /** Show rendering.
-         * @public
-         */
         this.show = true;
 
         this._isActive = true;
 
-        /**
-         * Lighting calculations.
-         * @public
-         * @type {boolean}
-         */
         this.lightEnabled = false;
 
-        /**
-         * Point light array.
-         * @private
-         * @type {Array.<LightSource>}
-         */
         this._lights = [];
+        this._lightsNames = [];
         this._lightsPositions = [];
         this._lightsParamsv = [];
         this._lightsParamsf = [];
-        this._lightsNames = [];
 
-        /**
-         * Entity collection array.
-         * @public
-         * @type {Array.<EntityCollection>}
-         */
         this.entityCollections = [];
 
         this._pickingId = -1;
-
-        this.events = new Events(null, this);
     }
 
     /**
@@ -69,24 +94,24 @@ class RenderNode extends BaseNode {
      * @public
      * @type {RenderNode}
      */
-    addNode(node) {
+    public addNode(node: RenderNode) {
         super.addNode(node);
-        node.assign(this.renderer);
+        this.renderer && node.assign(this.renderer);
     }
 
     /**
      * Assign render node with renderer.
      * @public
-     * @param {Renderer} renderer - Redner node's renderer.
+     * @param {Renderer} renderer - Render node's renderer.
      */
-    assign(renderer) {
+    public assign(renderer: Renderer) {
         this.renderer = renderer;
         this._pickingId = renderer.addPickingCallback(this, this._entityCollectionPickingCallback);
         this.initialize();
     }
 
-    initialize() {
-        if (this.renderer.isInitialized()) {
+    public initialize() {
+        if (this.renderer && this.renderer.isInitialized()) {
             for (let i = 0; i < this.entityCollections.length; i++) {
                 this.entityCollections[i].bindRenderNode(this);
             }
@@ -94,26 +119,31 @@ class RenderNode extends BaseNode {
         }
     }
 
-    init() {
+    public init() {
         //virtual
     }
 
-    onremove() {
+    public onremove() {
         //virtual
     }
 
-    remove() {
-        var r = this.renderer,
+    public remove() {
+        let r = this.renderer,
             n = this.name;
 
         if (r) {
+            // TODO: replace to renderer
             if (r.renderNodes[n] && r.renderNodes[n].isEqual(this)) {
+                // @ts-ignore
                 r.renderNodes[n] = null;
                 delete r.renderNodes[n];
             }
 
+            // @ts-ignore
             for (let i = 0; i < r._renderNodesArr.length; i++) {
+                // @ts-ignore
                 if (r._renderNodesArr[i].isEqual(this)) {
+                    // @ts-ignore
                     r._renderNodesArr.splice(i, 1);
                     break;
                 }
@@ -131,7 +161,7 @@ class RenderNode extends BaseNode {
      * @param {boolean} [isHidden] - If it's true that this collection has specific rendering.
      * @returns {RenderNode} -
      */
-    addEntityCollection(entityCollection, isHidden) {
+    public addEntityCollection(entityCollection: EntityCollection, isHidden?: boolean): RenderNode {
         entityCollection.addTo(this, isHidden);
         return this;
     }
@@ -141,7 +171,7 @@ class RenderNode extends BaseNode {
      * @public
      * @param {EntityCollection} entityCollection - Entity collection for remove.
      */
-    removeEntityCollection(entityCollection) {
+    public removeEntityCollection(entityCollection: EntityCollection) {
         entityCollection.remove();
     }
 
@@ -151,7 +181,7 @@ class RenderNode extends BaseNode {
      * @param {LightSource} light - Light source.
      * @returns {RenderNode}
      */
-    addLight(light) {
+    public addLight(light: LightSource): RenderNode {
         light.addTo(this);
         return this;
     }
@@ -162,8 +192,8 @@ class RenderNode extends BaseNode {
      * @param {string} name - Point light name.
      * @returns {LightSource}
      */
-    getLightByName(name) {
-        var li = this._lightsNames.indexOf(name);
+    public getLightByName(name: string): LightSource | undefined {
+        let li = this._lightsNames.indexOf(name);
         return this._lights[li];
     }
 
@@ -172,7 +202,7 @@ class RenderNode extends BaseNode {
      * @public
      * @param {LightSource} light - Light source object.
      */
-    removeLight(light) {
+    public removeLight(light: LightSource) {
         light.remove();
     }
 
@@ -180,8 +210,8 @@ class RenderNode extends BaseNode {
      * Calls render frame node's callback. Used in renderer.
      * @public
      */
-    preDrawNode(frustum, frustumIndex) {
-        this._isActive && this._preDrawNodes(frustum, frustumIndex);
+    public preDrawNode() {
+        this._isActive && this._preDrawNodes();
     }
 
 
@@ -189,8 +219,8 @@ class RenderNode extends BaseNode {
      * Calls render frame node's callback. Used in renderer.
      * @public
      */
-    drawNode(frustum, frustumIndex) {
-        this._isActive && this._drawNodes(frustum, frustumIndex);
+    public drawNode() {
+        this._isActive && this._drawNodes();
     }
 
     /**
@@ -198,7 +228,7 @@ class RenderNode extends BaseNode {
      * @public
      * @returns {Boolean} -
      */
-    isActive() {
+    public isActive(): boolean {
         return this._isActive;
     }
 
@@ -207,7 +237,7 @@ class RenderNode extends BaseNode {
      * @public
      * @param {boolean} isActive - Activation flag.
      */
-    setActive(isActive) {
+    public setActive(isActive: boolean) {
         this._isActive = isActive;
 
         if (this.renderer) {
@@ -234,7 +264,7 @@ class RenderNode extends BaseNode {
      * @public
      * @param {Number} mode - Draw mode, such as gl.TRIANGLES, gl.TRIANGLE_STRIP, gl.LINES etc.
      */
-    setDrawMode(mode) {
+    public setDrawMode(mode: number) {
         this.drawMode = mode;
         for (let i = 0; i < this.childNodes.length; i++) {
             this.childNodes[i].setDrawMode(mode);
@@ -242,14 +272,13 @@ class RenderNode extends BaseNode {
     }
 
     /**
-     * IMPORTANT: This function have to be called manualy in each render node frame callback, before drawing scene geometry.
+     * IMPORTANT: This function have to be called manually in each render node frame callback, before drawing scene geometry.
      * @public
      */
-    transformLights() {
-        var r = this.renderer;
+    public transformLights() {
         for (let i = 0; i < this._lights.length; i++) {
-            var ii = i * 3;
-            var tp;
+            let ii = i * 3;
+            let tp;
             tp = this._lights[i]._position;
             this._lightsPositions[ii] = tp.x;
             this._lightsPositions[ii + 1] = tp.y;
@@ -272,30 +301,27 @@ class RenderNode extends BaseNode {
         // }
     }
 
-    updateBillboardsTexCoords() {
+    public updateBillboardsTexCoords() {
         for (let i = 0; i < this.entityCollections.length; i++) {
             this.entityCollections[i].billboardHandler.refreshTexCoordsArr();
         }
     }
 
-    updateGeoObjectsTexCoords() {
+    public updateGeoObjectsTexCoords() {
         for (let i = 0; i < this.entityCollections.length; i++) {
             this.entityCollections[i].geoObjectHandler.refreshTexCoordsArr();
         }
     }
 
-    frame() {
-
+    public frame() {
+        // virtual
     }
 
-    preFrame() {
-
+    public preFrame() {
+        // virtual
     }
 
-    /**
-     * @private
-     */
-    _preDrawNodes() {
+    protected _preDrawNodes() {
         for (let i = 0; i < this.childNodes.length; i++) {
             if (this.childNodes[i]._isActive) {
                 this.childNodes[i]._preDrawNodes();
@@ -309,10 +335,7 @@ class RenderNode extends BaseNode {
         }
     }
 
-    /**
-     * @private
-     */
-    _drawNodes() {
+    protected _drawNodes() {
         for (let i = 0; i < this.childNodes.length; i++) {
             if (this.childNodes[i]._isActive) {
                 this.childNodes[i]._drawNodes();
@@ -324,19 +347,19 @@ class RenderNode extends BaseNode {
         }
     }
 
-    drawEntityCollections(ec) {
-        this.renderer.enqueueEntityCollectionsToDraw(ec);
+    public drawEntityCollections(ec: EntityCollection[]) {
+        this.renderer!.enqueueEntityCollectionsToDraw(ec);
     }
 
     /**
      * Draw entity collections picking frame.
      * @public
-     * @param {Array<og.EntityCollection>} ec - Entity collection array.
+     * @param {Array<EntityCollection>} ec - Entity collection array.
      */
-    drawPickingEntityCollections(ec) {
+    public drawPickingEntityCollections(ec: EntityCollection[]) {
         if (ec.length) {
 
-            // billoard pass
+            // billboard pass
             let i = ec.length;
             while (i--) {
                 ec[i]._fadingOpacity && ec[i].billboardHandler.drawPicking();
@@ -360,7 +383,7 @@ class RenderNode extends BaseNode {
                 ec[i]._fadingOpacity && ec[i].rayHandler.drawPicking();
             }
 
-            // polylines pass
+            // polyline pass
             i = ec.length;
             while (i--) {
                 ec[i]._visibility && ec[i].polylineHandler.drawPicking();
@@ -380,13 +403,9 @@ class RenderNode extends BaseNode {
         }
     }
 
-    /**
-     * Picking entity frame callback
-     * @private
-     */
-    _entityCollectionPickingCallback() {
+    protected _entityCollectionPickingCallback() {
         this.drawPickingEntityCollections(this.entityCollections);
     }
 }
 
-export { RenderNode };
+export {RenderNode};

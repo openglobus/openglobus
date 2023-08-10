@@ -6,7 +6,7 @@ import {Control} from "../control/Control";
 import {cons} from "../cons.js";
 import {depth} from "../shaders/depth";
 import {EntityCollection} from "../entity/EntityCollection";
-import {Framebuffer, Multisample} from "../webgl/index.js";
+import {Framebuffer, Multisample} from "../webgl/index";
 import {WebGLBufferExt} from "../webgl/Handler";
 import {FontAtlas} from "../utils/FontAtlas.js";
 import {Handler} from "../webgl/Handler";
@@ -762,6 +762,7 @@ class Renderer {
     }
 
     public removeNode(renderNode: RenderNode) {
+        // TODO: replace from RednerNode to this method
         renderNode.remove();
     }
 

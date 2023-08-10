@@ -58,7 +58,7 @@ class Camera {
      * @public
      * @type {Renderer}
      */
-    public renderer: Renderer;
+    public renderer: Renderer | null;
 
     /**
      * Camera events handler
@@ -160,7 +160,7 @@ class Camera {
 
     public isFirstPass: boolean;
 
-    constructor(renderer: Renderer, options: ICameraParams = {}) {
+    constructor(renderer: Renderer | null, options: ICameraParams = {}) {
         this.renderer = renderer;
 
         this.events = createEvents<CameraEvents>(EVENT_NAMES, this);
@@ -391,8 +391,8 @@ class Camera {
         this._aspect = aspect;
         this._tanViewAngle_hrad = Math.tan(angle * math.RADIANS_HALF);
         this._tanViewAngle_hradOneByHeight =
-            this._tanViewAngle_hrad * this.renderer.handler._oneByHeight;
-        let c = this.renderer.handler.canvas!;
+            this._tanViewAngle_hrad * this.renderer!.handler._oneByHeight;
+        let c = this.renderer!.handler.canvas!;
         this._projSizeConst = Math.min(c.clientWidth < 512 ? 512 : c.clientWidth, c.clientHeight < 512 ? 512 : c.clientHeight) / (angle * math.RADIANS);
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             this.frustums[i].setProjectionMatrix(
@@ -544,7 +544,7 @@ class Camera {
      * @returns {Vec3} - Direction vector
      */
     public unproject(x: number, y: number) {
-        let c = this.renderer.handler.canvas!,
+        let c = this.renderer!.handler.canvas!,
             w = c.width * 0.5,
             h = c.height * 0.5;
 
@@ -565,7 +565,7 @@ class Camera {
      */
     public project(v: Vec3): Vec2 {
         let r = this.frustums[0].projectionViewMatrix.mulVec4(v.toVec4()),
-            c = this.renderer.handler.canvas!;
+            c = this.renderer!.handler.canvas!;
         return new Vec2((1 + r.x / r.w) * c.width * 0.5, (1 - r.y / r.w) * c.height * 0.5);
     }
 
