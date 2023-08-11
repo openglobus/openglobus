@@ -2,7 +2,7 @@
 
 import * as math from "../math";
 import {Entity} from "./Entity";
-import {createEvents, Events, EventsHandler} from "../Events";
+import {createEvents, EventsHandler} from "../Events";
 import {BillboardHandler} from "./BillboardHandler.js";
 import {GeoObjectHandler} from "./GeoObjectHandler.js";
 import {LabelHandler} from "./LabelHandler.js";
@@ -12,6 +12,8 @@ import {PolylineHandler} from "./PolylineHandler.js";
 import {RayHandler} from "./RayHandler.js";
 import {RenderNode} from "../scene/RenderNode";
 import {StripHandler} from "./StripHandler.js";
+import {Planet} from "../scene/Planet";
+import {Ellipsoid} from "../ellipsoid";
 
 interface IEntityCollectionParams {
     polygonOffsetUnits?: number;
@@ -27,7 +29,7 @@ interface IEntityCollectionParams {
 
 /**
  * An observable collection of og.Entity instances where each entity has a unique id.
- * Entity collection provide handlers for an each type of entity like billboard, label or 3ds object.
+ * Entity collection provide handlers for each type of entity like billboard, label or 3ds object.
  * @constructor
  * @param {Object} [options] - Entity options:
  * @param {Array.<Entity>} [options.entities] - Entities array.
@@ -78,7 +80,7 @@ class EntityCollection {
     static __counter__: number;
 
     /**
-     * Unic identifier.
+     * Uniq identifier.
      * @public
      * @readonly
      */
@@ -273,7 +275,7 @@ class EntityCollection {
      * @public
      * @returns {boolean} -
      */
-    getVisibility() {
+    public getVisibility(): boolean {
         return this._visibility;
     }
 
@@ -282,7 +284,7 @@ class EntityCollection {
      * @public
      * @param {number} opacity - Opacity.
      */
-    setOpacity(opacity) {
+    public setOpacity(opacity: number) {
         this._opacity = opacity;
     }
 
@@ -291,7 +293,7 @@ class EntityCollection {
      * @public
      * @param {boolean} enable - Picking enable flag.
      */
-    setPickingEnabled(enable) {
+    public setPickingEnabled(enable: boolean) {
         this.billboardHandler.pickingEnabled = enable;
         this.labelHandler.pickingEnabled = enable;
         this.polylineHandler.pickingEnabled = enable;
@@ -306,7 +308,7 @@ class EntityCollection {
      * @public
      * @returns {number} -
      */
-    getOpacity() {
+    public getOpacity(): number {
         return this._opacity;
     }
 
@@ -314,20 +316,20 @@ class EntityCollection {
      * Sets scale by distance parameters.
      * @public
      * @param {number} near - Full scale entity distance.
-     * @param {number} far - Zerol scale entity distance.
+     * @param {number} far - Zero scale entity distance.
      * @param {number} [farInvisible] - Entity visibility distance.
      */
-    setScaleByDistance(near, far, farInvisible) {
+    public setScaleByDistance(near: number, far: number, farInvisible?: number) {
         this.scaleByDistance[0] = near;
         this.scaleByDistance[1] = far;
         this.scaleByDistance[2] = farInvisible || math.MAX32;
     }
 
-    appendChildEntity(entity) {
+    public appendChildEntity(entity: Entity) {
         this._addRecursively(entity);
     }
 
-    _addRecursively(entity) {
+    protected _addRecursively(entity: Entity) {
         // billboard
         entity.billboard && this.billboardHandler.add(entity.billboard);
 
@@ -365,16 +367,16 @@ class EntityCollection {
      * @param {Entity} entity - Entity.
      * @returns {EntityCollection} -
      */
-    add(entity) {
+    public add(entity: Entity): EntityCollection {
         if (!entity._entityCollection) {
             entity._entityCollection = this;
             entity._entityCollectionIndex = this._entities.length;
             this._entities.push(entity);
-            var rn = this.renderNode;
+            let rn: RenderNode | null = this.renderNode;
             if (rn) {
                 rn.renderer && rn.renderer.assignPickingColor(entity);
-                if (rn.ellipsoid && entity._cartesian.isZero()) {
-                    entity.setCartesian3v(rn.ellipsoid.lonLatToCartesian(entity._lonLat));
+                if ((rn as Planet).ellipsoid && entity._cartesian.isZero()) {
+                    entity.setCartesian3v((rn as Planet).ellipsoid.lonLatToCartesian(entity._lonLat));
                 }
             }
             this._addRecursively(entity);
@@ -389,7 +391,7 @@ class EntityCollection {
      * @param {Array.<Entity>} entities - Entities array.
      * @returns {EntityCollection} -
      */
-    addEntities(entities) {
+    public addEntities(entities: Entity[]): EntityCollection {
         for (let i = 0, len = entities.length; i < len; i++) {
             this.add(entities[i]);
         }
@@ -402,14 +404,14 @@ class EntityCollection {
      * @param {Entity} entity - Entity.
      * @returns {boolean} -
      */
-    belongs(entity) {
+    public belongs(entity: Entity) {
         return (
             entity._entityCollection &&
             this._renderNodeIndex === entity._entityCollection._renderNodeIndex
         );
     }
 
-    _removeRecursively(entity) {
+    protected _removeRecursively(entity: Entity) {
         entity._entityCollection = null;
         entity._entityCollectionIndex = -1;
 
@@ -444,7 +446,7 @@ class EntityCollection {
      * @public
      * @param {Entity} entity - Entity to remove.
      */
-    removeEntity(entity) {
+    public removeEntity(entity: Entity) {
         this._entities.splice(entity._entityCollectionIndex, 1);
         this.reindexEntitiesArray(entity._entityCollectionIndex);
 
@@ -461,7 +463,7 @@ class EntityCollection {
         this.events.dispatch(this.events.entityremove, entity);
     }
 
-    _removeEntitySilent(entity) {
+    protected _removeEntitySilent(entity: Entity) {
         this._entities.splice(entity._entityCollectionIndex, 1);
         this.reindexEntitiesArray(entity._entityCollectionIndex);
 
@@ -480,8 +482,8 @@ class EntityCollection {
      * Creates or refresh collected entities picking color.
      * @public
      */
-    createPickingColors() {
-        var e = this._entities;
+    public createPickingColors() {
+        let e = this._entities;
         for (let i = 0; i < e.length; i++) {
             if (!e[i].parent) {
                 this.renderNode.renderer.assignPickingColor(e[i]);
@@ -491,12 +493,12 @@ class EntityCollection {
     }
 
     /**
-     * Refresh collected entities indexes from startIndex entitytes collection array position.
+     * Refresh collected entities indexes from startIndex entities collection array position.
      * @public
      * @param {number} startIndex - Entities collection array index.
      */
-    reindexEntitiesArray(startIndex) {
-        var e = this._entities;
+    public reindexEntitiesArray(startIndex: number) {
+        let e = this._entities;
         for (let i = startIndex; i < e.length; i++) {
             e[i]._entityCollectionIndex = i;
         }
@@ -509,7 +511,7 @@ class EntityCollection {
      * @param {boolean} [isHidden] - Uses in vector layers that render in planet render specific function.
      * @returns {EntityCollection} -
      */
-    addTo(renderNode, isHidden) {
+    public addTo(renderNode: RenderNode, isHidden: boolean = false) {
         if (!this.renderNode) {
             this.renderNode = renderNode;
 
@@ -518,7 +520,7 @@ class EntityCollection {
                 renderNode.entityCollections.push(this);
             }
 
-            renderNode.ellipsoid && this._updateGeodeticCoordinates(renderNode.ellipsoid);
+            (renderNode as Planet).ellipsoid && this._updateGeodeticCoordinates((renderNode as Planet).ellipsoid);
 
             this.bindRenderNode(renderNode);
 
@@ -529,9 +531,10 @@ class EntityCollection {
 
     /**
      * This function is called in the RenderNode assign function.
+     * @public
      * @param {RenderNode} renderNode
      */
-    bindRenderNode(renderNode) {
+    public bindRenderNode(renderNode: RenderNode) {
         if (renderNode.renderer && renderNode.renderer.isInitialized()) {
 
             this.billboardHandler.setRenderer(renderNode.renderer);
@@ -550,15 +553,15 @@ class EntityCollection {
     }
 
     /**
-     * Updates coordinates all lonLat entities in collection after collecction attached to the planet node.
-     * @private
+     * Updates coordinates all lonLat entities in collection after collection attached to the planet node.
+     * @protected
      * @param {Ellipsoid} ellipsoid - Globe ellipsoid.
      */
-    _updateGeodeticCoordinates(ellipsoid) {
-        var e = this._entities;
-        var i = e.length;
+    protected _updateGeodeticCoordinates(ellipsoid: Ellipsoid) {
+        let e = this._entities;
+        let i = e.length;
         while (i--) {
-            var ei = e[i];
+            let ei = e[i];
             ei._lonLat && ei.setCartesian3v(ellipsoid.lonLatToCartesian(ei._lonLat));
         }
     }
@@ -567,8 +570,8 @@ class EntityCollection {
      * Updates billboard texture atlas.
      * @public
      */
-    updateBillboardsTextureAtlas() {
-        var b = this.billboardHandler._billboards;
+    public updateBillboardsTextureAtlas() {
+        let b = this.billboardHandler._billboards;
         for (let i = 0; i < b.length; i++) {
             b[i].setSrc(b[i]._src);
         }
@@ -578,9 +581,9 @@ class EntityCollection {
      * Updates labels font atlas.
      * @public
      */
-    updateLabelsFontAtlas() {
+    public updateLabelsFontAtlas() {
         if (this.renderNode) {
-            var l = [].concat(this.labelHandler._billboards);
+            let l = [].concat(this.labelHandler._billboards);
             this.labelHandler._billboards = [];
             for (let i = 0; i < l.length; i++) {
                 this.labelHandler.assignFontAtlas(l[i]);
@@ -592,17 +595,13 @@ class EntityCollection {
      * Removes collection from render node.
      * @public
      */
-    remove() {
+    public remove() {
         if (this.renderNode) {
             if (this._renderNodeIndex !== -1) {
                 this.renderNode.entityCollections.splice(this._renderNodeIndex, 1);
                 // reindex in the renderNode
-                for (
-                    var i = this._renderNodeIndex;
-                    i < this.renderNode.entityCollections.length;
-                    i++
-                ) {
-                    this.renderNode.entityCollections._renderNodeIndex = i;
+                for (let i = this._renderNodeIndex; i < this.renderNode.entityCollections.length; i++) {
+                    this.renderNode.entityCollections[i]._renderNodeIndex = i;
                 }
             }
             this.renderNode = null;
@@ -616,7 +615,7 @@ class EntityCollection {
      * @public
      * @returns {Array.<Entity>} -
      */
-    getEntities() {
+    public getEntities(): Entity[] {
         return [].concat(this._entities);
     }
 
@@ -625,10 +624,10 @@ class EntityCollection {
      * @public
      * @param {function} callback - Entity callback.
      */
-    each(callback) {
-        var i = this._entities.length;
+    public each(callback: Function) {
+        let i = this._entities.length;
         while (i--) {
-            var ei = this._entities[i];
+            let ei = this._entities[i];
             ei && callback(ei);
         }
     }
@@ -637,7 +636,7 @@ class EntityCollection {
      * Removes all entities from collection and clear handlers.
      * @public
      */
-    clear() {
+    public clear() {
         // TODO: Optimize by replace delete
         // code to the clearEntity function.
         this.billboardHandler.clear();
@@ -648,9 +647,9 @@ class EntityCollection {
         this.stripHandler.clear();
         this.geoObjectHandler.clear();
 
-        var i = this._entities.length;
+        let i = this._entities.length;
         while (i--) {
-            var ei = this._entities[i];
+            let ei = this._entities[i];
             if (this.renderNode && this.renderNode.renderer) {
                 this.renderNode.renderer.clearPickingColor(ei);
                 ei._pickingColor.clear();
@@ -662,11 +661,11 @@ class EntityCollection {
     }
 
     /**
-     * Clears entity recursevely.
+     * Clears entity recursively.
      * @private
      * @param {Entity} entity - Entity to clear.
      */
-    _clearEntity(entity) {
+    protected _clearEntity(entity: Entity) {
         entity._entityCollection = null;
         entity._entityCollectionIndex = -1;
         for (let i = 0; i < entity.childrenNodes.length; i++) {
