@@ -1,18 +1,25 @@
 "use strict";
 
-import { Extent } from "../Extent";
-import { LonLat } from "../LonLat";
-import { Vec3 } from "../math/Vec3";
 import * as mercator from "../mercator";
 import * as utils from "../utils/shared";
-import { Billboard } from "./Billboard.js";
-import { Geometry } from "./Geometry.js";
-import { GeoObject } from "./GeoObject.js";
-import { Label } from "./Label.js";
-import { PointCloud } from "./PointCloud.js";
-import { Polyline } from "./Polyline.js";
-import { Ray } from "./Ray.js";
-import { Strip } from "./Strip.js";
+
+import {Billboard} from "./Billboard.js";
+import {Extent} from "../Extent";
+import {Geometry} from "./Geometry.js";
+import {GeoObject} from "./GeoObject.js";
+import {LonLat} from "../LonLat";
+import {Label} from "./Label.js";
+import {PointCloud} from "./PointCloud.js";
+import {Polyline} from "./Polyline.js";
+import {Ray} from "./Ray.js";
+import {Strip} from "./Strip.js";
+import {Vec3} from "../math/Vec3";
+import {EntityCollection} from "./EntityCollection";
+
+interface IEntityParams {
+    properties?: any;
+
+}
 
 /**
  * Entity instances aggregate multiple forms of visualization into a single high-level object.
@@ -34,114 +41,198 @@ import { Strip } from "./Strip.js";
  * @param {*} [options.properties] - Entity custom properties.
  */
 class Entity {
-    constructor(options) {
-        options = options || {};
+
+    static __counter__: number;
+
+    /**
+     * Unic identifier.
+     * @public
+     * @readonly
+     */
+    protected __id: number;
+
+    /**
+     * Entity user defined properties.
+     * @public
+     * @type {Object}
+     */
+    public properties: any;
+
+
+    /**
+     * Children entities.
+     * @public
+     * @type {Array.<Entity>}
+     */
+    public childrenNodes: Entity[];
+
+    /**
+     * Parent entity.
+     * @public
+     * @type {Entity}
+     */
+    public parent: Entity | null;
+
+    /**
+     * Entity cartesian position.
+     * @protected
+     * @type {Vec3}
+     */
+    protected _cartesian: Vec3;
+
+    /**
+     * Geodetic entity coordinates.
+     * @protected
+     * @type {LonLat}
+     */
+    protected _lonLat: LonLat;
+
+    /**
+     * World Mercator entity coordinates.
+     * @protected
+     * @type {LonLat}
+     */
+    protected _lonLatMerc: LonLat;
+
+    /**
+     * Entity visible terrain altitude.
+     * @protected
+     * @type {number}
+     */
+    protected _altitude: number;
+
+    /**
+     * Visibility flag.
+     * @protected
+     * @type {boolean}
+     */
+    protected _visibility: boolean;
+
+    /**
+     * Entity collection that this entity belongs to.
+     * @protected
+     * @type {EntityCollection}
+     */
+    protected _entityCollection: EntityCollection | null;
+
+    /**
+     * Entity collection array store index.
+     * @protected
+     * @type {number}
+     */
+    protected _entityCollectionIndex: number;
+
+    /**
+     * Assigned vector layer pointer.
+     * @protected
+     * @type {layer.Vector}
+     */
+    protected _layer: Layer | null;
+
+    /**
+     * Assigned vector layer entity array index.
+     * @protected
+     * @type {number}
+     */
+    protected _layerIndex: number;
+
+    /**
+     * Picking color.
+     * @protected
+     * @type {Vec3}
+     */
+    protected _pickingColor: Vec3;
+
+    protected _featureConstructorArray: any;
+
+    /**
+     * Billboard entity.
+     * @public
+     * @type {Billboard | null}
+     */
+    public billboard: Billboard | null;
+
+    /**
+     * Text label entity.
+     * @public
+     * @type {Label}
+     */
+    public label: Label | null;
+
+    /**
+     * Polyline entity.
+     * @public
+     * @type {Polyline}
+     */
+    public polyline: Polyline | null;
+
+    /**
+     * Ray entity.
+     * @public
+     * @type {ray}
+     */
+    public ray: Ray | null;
+
+    /**
+     * PointCloud entity.
+     * @public
+     * @type {PointCloud}
+     */
+    public pointCloud: PointCloud | null;
+
+    /**
+     * Geometry entity(available for vector layer only).
+     * @public
+     * @type {Geometry}
+     */
+    public geometry: Geometry | null;
+
+    /**
+     * Geo object entity
+     * @public
+     * @type {og.Geometry}
+     */
+    public geoObject: GeoObject | null;
+
+    /**
+     * Strip entity.
+     * @public
+     * @type {Strip}
+     */
+    public strip: Strip | null;
+
+    constructor(options: IEntityParams = {}) {
 
         options.properties = options.properties || {};
 
-        /**
-         * Unic identifier.
-         * @public
-         * @readonly
-         */
-        this.id = Entity._staticCounter++;
+        this.__id = Entity.__counter__++;
 
-        /**
-         * Entity user defined properties.
-         * @public
-         * @type {Object}
-         */
         this.properties = options.properties || {};
 
-        /**
-         * Entity name.
-         * @public
-         * @type {string}
-         */
         this.properties.name = this.properties.name != undefined ? this.properties.name : "";
 
-        /**
-         * Children entities.
-         * @public
-         * @type {Array.<Entity>}
-         */
         this.childrenNodes = [];
 
-        /**
-         * Parent entity.
-         * @public
-         * @type {Entity}
-         */
         this.parent = null;
 
-        /**
-         * Entity cartesian position.
-         * @protected
-         * @type {Vec3}
-         */
         this._cartesian = utils.createVector3(options.cartesian);
 
-        /**
-         * Geodetic entity coordinates.
-         * @protected
-         * @type {LonLat}
-         */
         this._lonLat = utils.createLonLat(options.lonlat);
 
-        /**
-         * World Mercator entity coordinates.
-         * @protected
-         * @type {LonLat}
-         */
-        this._lonLatMerc = null;
+        this._lonLatMerc = new LonLat();
 
-        /**
-         * Entity visible terrain altitude.
-         * @protected
-         * @type {number}
-         */
         this._altitude = options.altitude || 0.0;
 
-        /**
-         * Visibility flag.
-         * @protected
-         * @type {boolean}
-         */
         this._visibility = options.visibility != undefined ? options.visibility : true;
 
-        /**
-         * Entity collection that this entity belongs to.
-         * @protected
-         * @type {EntityCollection}
-         */
         this._entityCollection = null;
 
-        /**
-         * Entity collection array store index.
-         * @protected
-         * @type {number}
-         */
         this._entityCollectionIndex = -1;
 
-        /**
-         * Assigned vector layer pointer.
-         * @protected
-         * @type {layer.Vector}
-         */
         this._layer = null;
 
-        /**
-         * Assigned vector layer entity array index.
-         * @protected
-         * @type {number}
-         */
         this._layerIndex = -1;
 
-        /**
-         * Picking color.
-         * @protected
-         * @type {Vec3}
-         */
         this._pickingColor = new Vec3(0, 0, 0);
 
         this._featureConstructorArray = {
@@ -155,60 +246,20 @@ class Entity {
             ray: [Ray, this.setRay]
         };
 
-        /**
-         * Billboard entity.
-         * @public
-         * @type {Billboard}
-         */
         this.billboard = this._createOptionFeature("billboard", options.billboard);
 
-        /**
-         * Text label entity.
-         * @public
-         * @type {Label}
-         */
         this.label = this._createOptionFeature("label", options.label);
 
-        /**
-         * Polyline entity.
-         * @public
-         * @type {Polyline}
-         */
         this.polyline = this._createOptionFeature("polyline", options.polyline);
 
-        /**
-         * Ray entity.
-         * @public
-         * @type {ray}
-         */
         this.ray = this._createOptionFeature("ray", options.ray);
 
-        /**
-         * PointCloud entity.
-         * @public
-         * @type {PointCloud}
-         */
         this.pointCloud = this._createOptionFeature("pointCloud", options.pointCloud);
 
-        /**
-         * Geometry entity(available for vector layer only).
-         * @public
-         * @type {Geometry}
-         */
         this.geometry = this._createOptionFeature("geometry", options.geometry);
 
-        /**
-         * Geo object entity
-         * @public
-         * @type {og.Geometry}
-         */
         this.geoObject = this._createOptionFeature("geoObject", options.geoObject);
 
-        /**
-         * Strip entity.
-         * @public
-         * @type {Strip}
-         */
         this.strip = this._createOptionFeature("strip", options.strip);
     }
 
@@ -725,4 +776,4 @@ class Entity {
     }
 }
 
-export { Entity };
+export {Entity};
