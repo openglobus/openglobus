@@ -13,12 +13,25 @@ import {PointCloud} from "./PointCloud.js";
 import {Polyline} from "./Polyline.js";
 import {Ray} from "./Ray.js";
 import {Strip} from "./Strip.js";
-import {Vec3} from "../math/Vec3";
+import {NumberArray3, Vec3} from "../math/Vec3";
 import {EntityCollection} from "./EntityCollection";
+import {NumberArray2} from "../math/Vec2";
+import {Vector} from "../layer/Vector";
 
-interface IEntityParams {
+export interface IEntityParams {
     properties?: any;
-
+    cartesian?: Vec3 | NumberArray3;
+    lonlat?: LonLat | NumberArray3 | NumberArray2;
+    altitude?: number;
+    visibility?: boolean;
+    billboard?: Billboard;
+    label?: Label;
+    polyline?: Polyline;
+    ray?: Ray;
+    pointCloud?: PointCloud;
+    geometry?: Geometry;
+    geoObject?: GeoObject;
+    strip?: Strip;
 }
 
 /**
@@ -32,12 +45,12 @@ interface IEntityParams {
  * @param {LonLat} [options.lonlat] - Geodetic coordinates for an entities like billboard, label etc.
  * @param {boolean} [options.aground] - True for entities that have to be placed on the relief.
  * @param {boolean} [options.visibility] - Entity visibility.
- * @param {*} [options.billboard] - Billboard options(see {@link og.Billboard}).
- * @param {*} [options.label] - Label options(see {@link og.Label}).
- * @param {*} [options.polyline] - Polyline options(see {@link og.Polyline}).
- * @param {*} [options.ray] - Ray options(see {@link og.Ray}).
- * @param {*} [options.pointCloud] - Point cloud options(see {@link og.PointCloud}).
- * @param {*} [options.geometry] - Geometry options (see {@link og.Geometry}), available for vector layer only.
+ * @param {*} [options.billboard] - Billboard options(see {@link Billboard}).
+ * @param {*} [options.label] - Label options(see {@link Label}).
+ * @param {*} [options.polyline] - Polyline options(see {@link Polyline}).
+ * @param {*} [options.ray] - Ray options(see {@link Ray}).
+ * @param {*} [options.pointCloud] - Point cloud options(see {@link PointCloud}).
+ * @param {*} [options.geometry] - Geometry options (see {@link Geometry}), available for vector layer only.
  * @param {*} [options.properties] - Entity custom properties.
  */
 class Entity {
@@ -125,9 +138,9 @@ class Entity {
     /**
      * Assigned vector layer pointer.
      * @protected
-     * @type {layer.Vector}
+     * @type {Vector}
      */
-    protected _layer: Layer | null;
+    protected _layer: Vector | null;
 
     /**
      * Assigned vector layer entity array index.
@@ -155,49 +168,49 @@ class Entity {
     /**
      * Text label entity.
      * @public
-     * @type {Label}
+     * @type {Label | null}
      */
     public label: Label | null;
 
     /**
      * Polyline entity.
      * @public
-     * @type {Polyline}
+     * @type {Polyline | null}
      */
     public polyline: Polyline | null;
 
     /**
      * Ray entity.
      * @public
-     * @type {ray}
+     * @type {Ray | null}
      */
     public ray: Ray | null;
 
     /**
      * PointCloud entity.
      * @public
-     * @type {PointCloud}
+     * @type {PointCloud | null}
      */
     public pointCloud: PointCloud | null;
 
     /**
      * Geometry entity(available for vector layer only).
      * @public
-     * @type {Geometry}
+     * @type {Geometry | null}
      */
     public geometry: Geometry | null;
 
     /**
      * Geo object entity
      * @public
-     * @type {og.Geometry}
+     * @type {Geometry | null}
      */
     public geoObject: GeoObject | null;
 
     /**
      * Strip entity.
      * @public
-     * @type {Strip}
+     * @type {Strip | null}
      */
     public strip: Strip | null;
 
@@ -261,17 +274,6 @@ class Entity {
         this.geoObject = this._createOptionFeature("geoObject", options.geoObject);
 
         this.strip = this._createOptionFeature("strip", options.strip);
-    }
-
-    static get _staticCounter() {
-        if (!this._counter && this._counter !== 0) {
-            this._counter = 0;
-        }
-        return this._counter;
-    }
-
-    static set _staticCounter(n) {
-        this._counter = n;
     }
 
     get layerIndex() {

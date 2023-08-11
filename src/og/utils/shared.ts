@@ -7,8 +7,9 @@
 import {Extent} from "../Extent";
 import {LonLat} from "../LonLat";
 import {Vec2} from "../math/Vec2";
-import {Vec3} from "../math/Vec3";
-import {Vec4} from "../math/Vec4";
+import {NumberArray2} from "../math/Vec2";
+import {NumberArray3, Vec3} from "../math/Vec3";
+import {NumberArray4, Vec4} from "../math/Vec4";
 import {colorTable} from "./colorTable";
 
 export function getDefault(param?: any, def?: any): boolean {
@@ -184,7 +185,7 @@ export function defaultString(str?: string, def?: string): string | undefined {
     return str ? str.trim().toLowerCase() : def;
 }
 
-export function createVector3(v: Vec3 | [number, number, number], def?: Vec3): Vec3 {
+export function createVector3(v?: Vec3 | NumberArray3, def?: Vec3): Vec3 {
     if (v) {
         if (v instanceof Vec3) {
             return v.clone();
@@ -197,7 +198,7 @@ export function createVector3(v: Vec3 | [number, number, number], def?: Vec3): V
     return new Vec3();
 }
 
-export function createVector4(v: Vec4 | [number, number, number, number], def?: Vec4): Vec4 {
+export function createVector4(v?: Vec4 | NumberArray4, def?: Vec4): Vec4 {
     if (v) {
         if (v instanceof Vec4) {
             return v.clone();
@@ -210,7 +211,7 @@ export function createVector4(v: Vec4 | [number, number, number, number], def?: 
     return new Vec4();
 }
 
-export function createColorRGBA(c: string | [number, number, number, number] | Vec4, def?: Vec4): Vec4 {
+export function createColorRGBA(c?: string | NumberArray4 | Vec4, def?: Vec4): Vec4 {
     if (c) {
         if (isString(c)) {
             return htmlColorToRgba(c as string);
@@ -225,7 +226,7 @@ export function createColorRGBA(c: string | [number, number, number, number] | V
     return new Vec4(1.0, 1.0, 1.0, 1.0);
 }
 
-export function createColorRGB(c: string | [number, number, number] | Vec4, def?: Vec3): Vec3 {
+export function createColorRGB(c?: string | NumberArray3 | Vec4, def?: Vec3): Vec3 {
     if (c) {
         if (isString(c)) {
             return htmlColorToRgb(c as string);
@@ -240,7 +241,7 @@ export function createColorRGB(c: string | [number, number, number] | Vec4, def?
     return new Vec3(1.0, 1.0, 1.0);
 }
 
-export function createExtent(e?: Extent | [number, number, number][], def?: Extent): Extent {
+export function createExtent(e?: Extent | NumberArray3[], def?: Extent): Extent {
     if (e) {
         if (e instanceof Array) {
             return new Extent(createLonLat(e[0]), createLonLat(e[1]));
@@ -253,7 +254,7 @@ export function createExtent(e?: Extent | [number, number, number][], def?: Exte
     return new Extent();
 }
 
-export function createLonLat(l?: LonLat | [number, number, number], def?: LonLat): LonLat {
+export function createLonLat(l?: LonLat | NumberArray2 | NumberArray3, def?: LonLat): LonLat {
     if (l) {
         if (l instanceof Array) {
             return new LonLat(l[0], l[1], l[2]);
