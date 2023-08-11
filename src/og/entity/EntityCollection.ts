@@ -1,14 +1,29 @@
 "use strict";
 
-import { Events } from "../Events";
 import * as math from "../math";
-import { BillboardHandler } from "./BillboardHandler.js";
-import { GeoObjectHandler } from "./GeoObjectHandler.js";
-import { LabelHandler } from "./LabelHandler.js";
-import { PointCloudHandler } from "./PointCloudHandler.js";
-import { PolylineHandler } from "./PolylineHandler.js";
-import { RayHandler } from "./RayHandler.js";
-import { StripHandler } from "./StripHandler.js";
+import {Entity} from "./Entity";
+import {createEvents, Events, EventsHandler} from "../Events";
+import {BillboardHandler} from "./BillboardHandler.js";
+import {GeoObjectHandler} from "./GeoObjectHandler.js";
+import {LabelHandler} from "./LabelHandler.js";
+import {NumberArray3} from "../math/Vec3";
+import {PointCloudHandler} from "./PointCloudHandler.js";
+import {PolylineHandler} from "./PolylineHandler.js";
+import {RayHandler} from "./RayHandler.js";
+import {RenderNode} from "../scene/RenderNode";
+import {StripHandler} from "./StripHandler.js";
+
+interface IEntityCollectionParams {
+    polygonOffsetUnits?: number;
+    visibility?: boolean;
+    labelMaxLetters?: number;
+    pickingEnabled?: boolean;
+    scaleByDistance?: NumberArray3;
+    pickingScale?: number;
+    opacity?: number;
+
+    entities?: Entity[];
+}
 
 /**
  * An observable collection of og.Entity instances where each entity has a unique id.
@@ -24,171 +39,211 @@ import { StripHandler } from "./StripHandler.js";
  * @param {number} [options.opacity] - Entity global opacity.
  * @param {boolean} [options.pickingEnabled=true] - Entity picking enable.
  * @param {Number} [options.polygonOffsetUnits=0.0] - The multiplier by which an implementation-specific value is multiplied with to create a constant depth offset. The default value is 0.
- * @fires og.EntityCollection#entitymove
- * @fires og.EntityCollection#draw
- * @fires og.EntityCollection#drawend
- * @fires og.EntityCollection#add
- * @fires og.EntityCollection#remove
- * @fires og.EntityCollection#entityadd
- * @fires og.EntityCollection#entityremove
- * @fires og.EntityCollection#visibilitychange
- * @fires og.EntityCollection#mousemove
- * @fires og.EntityCollection#mouseenter
- * @fires og.EntityCollection#mouseleave
- * @fires og.EntityCollection#lclick
- * @fires og.EntityCollection#rclick
- * @fires og.EntityCollection#mclick
- * @fires og.EntityCollection#ldblclick
- * @fires og.EntityCollection#rdblclick
- * @fires og.EntityCollection#mdblclick
- * @fires og.EntityCollection#lup
- * @fires og.EntityCollection#rup
- * @fires og.EntityCollection#mup
- * @fires og.EntityCollection#ldown
- * @fires og.EntityCollection#rdown
- * @fires og.EntityCollection#mdown
- * @fires og.EntityCollection#lhold
- * @fires og.EntityCollection#rhold
- * @fires og.EntityCollection#mhold
- * @fires og.EntityCollection#mousewheel
- * @fires og.EntityCollection#touchmove
- * @fires og.EntityCollection#touchstart
- * @fires og.EntityCollection#touchend
- * @fires og.EntityCollection#doubletouch
- * @fires og.EntityCollection#touchleave
- * @fires og.EntityCollection#touchenter
+ * @fires EntityCollection#entitymove
+ * @fires EntityCollection#draw
+ * @fires EntityCollection#drawend
+ * @fires EntityCollection#add
+ * @fires EntityCollection#remove
+ * @fires EntityCollection#entityadd
+ * @fires EntityCollection#entityremove
+ * @fires EntityCollection#visibilitychange
+ * @fires EntityCollection#mousemove
+ * @fires EntityCollection#mouseenter
+ * @fires EntityCollection#mouseleave
+ * @fires EntityCollection#lclick
+ * @fires EntityCollection#rclick
+ * @fires EntityCollection#mclick
+ * @fires EntityCollection#ldblclick
+ * @fires EntityCollection#rdblclick
+ * @fires EntityCollection#mdblclick
+ * @fires EntityCollection#lup
+ * @fires EntityCollection#rup
+ * @fires EntityCollection#mup
+ * @fires EntityCollection#ldown
+ * @fires EntityCollection#rdown
+ * @fires EntityCollection#mdown
+ * @fires EntityCollection#lhold
+ * @fires EntityCollection#rhold
+ * @fires EntityCollection#mhold
+ * @fires EntityCollection#mousewheel
+ * @fires EntityCollection#touchmove
+ * @fires EntityCollection#touchstart
+ * @fires EntityCollection#touchend
+ * @fires EntityCollection#doubletouch
+ * @fires EntityCollection#touchleave
+ * @fires EntityCollection#touchenter
  */
 class EntityCollection {
-    constructor(options) {
-        options = options || {};
 
-        /**
-         * Unic identifier.
-         * @public
-         * @readonly
-         */
-        this.id = EntityCollection._staticCounter++;
+    static __counter__: number;
 
-        /**
-         * Render node collections array index.
-         * @protected
-         * @type {number}
-         */
+    /**
+     * Unic identifier.
+     * @public
+     * @readonly
+     */
+    protected __id: number;
+
+    /**
+     * Render node collections array index.
+     * @protected
+     * @type {number}
+     */
+    protected _renderNodeIndex: number;
+
+    /**
+     * Render node context.
+     * @public
+     * @type {RenderNode}
+     */
+    public renderNode: RenderNode | null;
+
+    /**
+     * Visibility option.
+     * @protected
+     * @type {boolean}
+     */
+    protected _visibility: boolean;
+
+    /**
+     * Specifies the scale Units for gl.polygonOffset function to calculate depth values, 0.0 is default.
+     * @public
+     * @type {Number}
+     */
+    public polygonOffsetUnits: number;
+
+    /**
+     * Billboards handler
+     * @public
+     * @type {BillboardHandler}
+     */
+    public billboardHandler: BillboardHandler;
+
+    /**
+     * Labels handler
+     * @public
+     * @type {LabelHandler}
+     */
+    public labelHandler: LabelHandler;
+
+    /**
+     * Polyline handler
+     * @public
+     * @type {PolylineHandler}
+     */
+    public polylineHandler: PolylineHandler;
+
+    /**
+     * Ray handler
+     * @public
+     * @type {RayHandler}
+     */
+    public rayHandler: RayHandler;
+
+    /**
+     * PointCloud handler
+     * @public
+     * @type {PointCloudHandler}
+     */
+    public pointCloudHandler: PointCloudHandler;
+
+    /**
+     * Strip handler
+     * @public
+     * @type {StripHandler}
+     */
+    public stripHandler: StripHandler;
+
+    /**
+     * Geo object handler
+     * @public
+     * @type {GeoObjectHandler}
+     */
+    public geoObjectHandler: GeoObjectHandler;
+
+    /**
+     * Entities array.
+     * @protected
+     * @type {Array.<Entity>}
+     */
+    protected _entities: Entity[];
+
+    /**
+     * First index - near distance to the entity, after entity becomes full scale.
+     * Second index - far distance to the entity, when entity becomes zero scale.
+     * Third index - far distance to the entity, when entity becomes invisible.
+     * @public
+     * @type {Array.<number>} - (exactly 3 entries)
+     */
+    public scaleByDistance: NumberArray3;
+
+    public pickingScale: number;
+
+    /**
+     * Global opacity.
+     * @protected
+     * @type {number}
+     */
+    protected _opacity: number;
+
+    /**
+     * Opacity state during the animated opacity.
+     * @public
+     * @type {number}
+     */
+    public _fadingOpacity: number;
+
+    /**
+     * Entity collection events handler.
+     * @public
+     * @type {EventsHandler<EntityCollectionEventList>}
+     */
+    public events: EventsHandler<EntityCollectionEventList>;
+
+    public rendererEvents: EventsHandler<EntityCollectionEventList>;
+
+    constructor(options: IEntityCollectionParams = {}) {
+
+        this.__id = EntityCollection.__counter__++;
+
         this._renderNodeIndex = -1;
 
-        /**
-         * Render node context.
-         * @public
-         * @type {RenderNode}
-         */
         this.renderNode = null;
 
-        /**
-         * Visibility option.
-         * @protected
-         * @type {boolean}
-         */
         this._visibility = options.visibility == undefined ? true : options.visibility;
 
-        /**
-         * Specifies the scale Units for gl.polygonOffset function to calculate depth values, 0.0 is default.
-         * @public
-         * @type {Number}
-         */
         this.polygonOffsetUnits =
             options.polygonOffsetUnits != undefined ? options.polygonOffsetUnits : 0.0;
 
-        /**
-         * Billboards handler
-         * @public
-         * @type {BillboardHandler}
-         */
         this.billboardHandler = new BillboardHandler(this);
 
-        /**
-         * Labels handler
-         * @public
-         * @type {LabelHandler}
-         */
         this.labelHandler = new LabelHandler(this, options.labelMaxLetters);
 
-        /**
-         * Polyline handler
-         * @public
-         * @type {PolylineHandler}
-         */
         this.polylineHandler = new PolylineHandler(this);
 
-        /**
-         * Ray handler
-         * @public
-         * @type {RayHandler}
-         */
         this.rayHandler = new RayHandler(this);
 
-        /**
-         * PointCloud handler
-         * @public
-         * @type {PointCloudHandler}
-         */
         this.pointCloudHandler = new PointCloudHandler(this);
 
-        /**
-         * Strip handler
-         * @public
-         * @type {StripHandler}
-         */
         this.stripHandler = new StripHandler(this);
 
-        /**
-         * Geo object handler
-         * @public
-         * @type {og.GeoObjectHandler}
-         */
         this.geoObjectHandler = new GeoObjectHandler(this);
 
         if (options.pickingEnabled != undefined) {
             this.setPickingEnabled(options.pickingEnabled);
         }
 
-        /**
-         * Entities array.
-         * @protected
-         * @type {Array.<Entity>}
-         */
         this._entities = [];
 
-        /**
-         * First index - near distance to the entity, after entity becomes full scale.
-         * Second index - far distance to the entity, when entity becomes zero scale.
-         * Third index - far distance to the entity, when entity becomes invisible.
-         * @public
-         * @type {Array.<number>} - (exactly 3 entries)
-         */
         this.scaleByDistance = options.scaleByDistance || [math.MAX32, math.MAX32, math.MAX32];
 
         this.pickingScale = options.pickingScale || 1.0;
 
-        /**
-         * Global opacity.
-         * @protected
-         * @type {number}
-         */
         this._opacity = options.opacity == undefined ? 1.0 : options.opacity;
 
-        /**
-         * Opacity state during the animated opacity.
-         * @protected
-         * @type {number}
-         */
         this._fadingOpacity = this._opacity;
 
-        /**
-         * Entity collection events handler.
-         * @public
-         * @type {Events}
-         */
-        this.events = new Events(EVENT_NAMES, this);
+        this.events = createEvents<EntityCollectionEventList>(ENTITYCOLLECTION_EVENTS, this);
 
         this.rendererEvents = this.events;
 
@@ -198,15 +253,8 @@ class EntityCollection {
         }
     }
 
-    static get _staticCounter() {
-        if (!this._counter && this._counter !== 0) {
-            this._counter = 0;
-        }
-        return this._counter;
-    }
-
-    static set _staticCounter(n) {
-        this._counter = n;
+    public isEqual(ec: EntityCollection): boolean {
+        return this.__id === ec.__id;
     }
 
     /**
@@ -214,7 +262,7 @@ class EntityCollection {
      * @public
      * @param {boolean} visibility - Visibility flag.
      */
-    setVisibility(visibility) {
+    public setVisibility(visibility) {
         this._visibility = visibility;
         this._fadingOpacity = this._opacity * (visibility ? 1 : 0);
         this.events.dispatch(this.events.visibilitychange, this);
@@ -627,7 +675,43 @@ class EntityCollection {
     }
 }
 
-const EVENT_NAMES = [
+type EntityCollectionEventList = [
+    "entitymove",
+    "draw",
+    "drawend",
+    "add",
+    "remove",
+    "entityadd",
+    "entityremove",
+    "visibilitychange",
+    "mousemove",
+    "mouseenter",
+    "mouseleave",
+    "lclick",
+    "rclick",
+    "mclick",
+    "ldblclick",
+    "rdblclick",
+    "mdblclick",
+    "lup",
+    "rup",
+    "mup",
+    "ldown",
+    "rdown",
+    "mdown",
+    "lhold",
+    "rhold",
+    "mhold",
+    "mousewheel",
+    "touchmove",
+    "touchstart",
+    "touchend",
+    "doubletouch",
+    "touchleave",
+    "touchenter"
+]
+
+const ENTITYCOLLECTION_EVENTS: EntityCollectionEventList = [
     /**
      * Triggered when entity has moved.
      * @event og.EntityCollection#entitymove
@@ -827,4 +911,4 @@ const EVENT_NAMES = [
     "touchenter"
 ];
 
-export { EntityCollection };
+export {EntityCollection};
