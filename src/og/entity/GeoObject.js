@@ -27,7 +27,7 @@ class GeoObject {
         /**
          * Geo object center cartesian position.
          * @protected
-         * @type {og.Vec3}
+         * @type {Vec3}
          */
         this._position = utils.createVector3(options.position);
 
@@ -44,7 +44,7 @@ class GeoObject {
         /**
          * RGBA color.
          * @protected
-         * @type {og.Vec4}
+         * @type {Vec4}
          */
         this._color = utils.createColorRGBA(options.color);
 
@@ -115,7 +115,7 @@ class GeoObject {
      * @param {number} r - Red.
      * @param {number} g - Green.
      * @param {number} b - Blue.
-     * @param {number} a - Alpha.
+     * @param {number} [a] - Alpha.
      */
     setColor(r, g, b, a) {
         this._color.x = r;
@@ -128,7 +128,7 @@ class GeoObject {
     /**
      * Sets color.
      * @public
-     * @param {og.Vec4} color - RGBA vector.
+     * @param {Vec4} color - RGBA vector.
      */
     setColor4v(color) {
         this._color.x = color.x;
@@ -177,7 +177,7 @@ class GeoObject {
     /**
      * Sets geo object position.
      * @public
-     * @param {og.Vec3} position - Cartesian coordinates.
+     * @param {Vec3} position - Cartesian coordinates.
      */
     setPosition3v(position) {
         this._position.x = position.x;
@@ -224,7 +224,7 @@ class GeoObject {
     /**
      * Sets billboard picking color.
      * @public
-     * @param {og.Vec3} color - Picking color.
+     * @param {Vec3} color - Picking color.
      */
     setPickingColor3v(color) {
         this._handler && this._handler.setPickingColorArr(this._tagData, this._tagDataIndex, color);

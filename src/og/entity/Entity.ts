@@ -9,6 +9,7 @@ import {Geometry} from "./Geometry.js";
 import {GeoObject} from "./GeoObject.js";
 import {LonLat} from "../LonLat";
 import {Label} from "./Label.js";
+import {Planet} from "../scene/Planet";
 import {PointCloud} from "./PointCloud.js";
 import {Polyline} from "./Polyline.js";
 import {Ray} from "./Ray.js";
@@ -259,51 +260,56 @@ class Entity {
             ray: [Ray, this.setRay]
         };
 
-        this.billboard = this._createOptionFeature("billboard", options.billboard);
+        this.billboard = this._createOptionFeature("billboard", options.billboard) as Billboard;
 
-        this.label = this._createOptionFeature("label", options.label);
+        this.label = this._createOptionFeature("label", options.label) as Label;
 
-        this.polyline = this._createOptionFeature("polyline", options.polyline);
+        this.polyline = this._createOptionFeature("polyline", options.polyline) as Polyline;
 
-        this.ray = this._createOptionFeature("ray", options.ray);
+        this.ray = this._createOptionFeature("ray", options.ray) as Ray;
 
-        this.pointCloud = this._createOptionFeature("pointCloud", options.pointCloud);
+        this.pointCloud = this._createOptionFeature("pointCloud", options.pointCloud) as PointCloud;
 
-        this.geometry = this._createOptionFeature("geometry", options.geometry);
+        this.geometry = this._createOptionFeature("geometry", options.geometry) as Geometry;
 
-        this.geoObject = this._createOptionFeature("geoObject", options.geoObject);
+        this.geoObject = this._createOptionFeature("geoObject", options.geoObject) as GeoObject;
 
-        this.strip = this._createOptionFeature("strip", options.strip);
+        this.strip = this._createOptionFeature("strip", options.strip) as Strip;
     }
 
-    get layerIndex() {
+    public isEqual(entity: Entity): boolean {
+        return this.__id === entity.__id;
+    }
+
+    public get layerIndex(): number {
         return this._layerIndex;
     }
 
-    get instanceName() {
+    public get instanceName(): string {
         return "Entity";
     }
 
-    _createOptionFeature(featureName, options) {
+    protected _createOptionFeature(featureName: string, options: any): Billboard | Label | Polyline | Ray | PointCloud | Geometry | GeoObject | Strip | null {
         if (options) {
             let c = this._featureConstructorArray[featureName];
             return c[1].call(this, new c[0](options));
         }
+
         return null;
     }
 
-    getCollectionIndex() {
+    public getCollectionIndex(): number {
         return this._entityCollectionIndex;
     }
 
     /**
      * Adds current entity into the specified entity collection.
      * @public
-     * @param {EntityCollection|Vector} collection - Specified entity collection or vector layer.
+     * @param {EntityCollection | Vector} collection - Specified entity collection or vector layer.
      * @param {Boolean} [rightNow=false] - Entity insertion option for vector layer.
      * @returns {Entity} - This object.
      */
-    addTo(collection, rightNow = false) {
+    public addTo(collection: EntityCollection | Vector, rightNow: boolean = false) {
         collection.add(this, rightNow);
         return this;
     }
@@ -312,7 +318,7 @@ class Entity {
      * Removes current entity from collection and layer.
      * @public
      */
-    remove() {
+    public remove() {
         this._layer && this._layer.removeEntity(this);
         this._entityCollection && this._entityCollection.removeEntity(this);
     }
@@ -322,7 +328,7 @@ class Entity {
      * @public
      * @param {boolean} visibility - Entity visibility.
      */
-    setVisibility(visibility) {
+    public setVisibility(visibility: boolean) {
         this._visibility = visibility;
 
         // billboards
@@ -353,7 +359,7 @@ class Entity {
      * @public
      * @returns {boolean} -
      */
-    getVisibility() {
+    public getVisibility() {
         return this._visibility;
     }
 
@@ -362,7 +368,7 @@ class Entity {
      * @public
      * @param {Vec3} cartesian - Cartesian position in 3d space.
      */
-    setCartesian3v(cartesian) {
+    public setCartesian3v(cartesian: Vec3) {
         this.setCartesian(cartesian.x, cartesian.y, cartesian.z);
     }
 
@@ -373,7 +379,7 @@ class Entity {
      * @param {number} y - 3d space Y - position.
      * @param {number} z - 3d space Z - position.
      */
-    setCartesian(x, y, z) {
+    public setCartesian(x?: number, y?: number, z?: number) {
         let p = this._cartesian;
 
         p.x = x || 0.0;
@@ -395,13 +401,13 @@ class Entity {
 
         let ec = this._entityCollection;
 
-        if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
-            this._lonLat = ec.renderNode.ellipsoid.cartesianToLonLat(p);
+        if (ec && ec.renderNode && (ec.renderNode as Planet).ellipsoid) {
+            this._lonLat = (ec.renderNode as Planet).ellipsoid.cartesianToLonLat(p);
 
             if (Math.abs(this._lonLat.lat) < mercator.MAX_LAT) {
                 this._lonLatMerc = this._lonLat.forwardMercator();
             } else {
-                this._lonLatMerc = null;
+                //this._lonLatMerc = null;
             }
         }
 
@@ -414,7 +420,7 @@ class Entity {
      * @param {Vec3} cartesian - Cartesian position in 3d space.
      * @param {boolean} skipLonLat - skip geodetic calculation.
      */
-    _setCartesian3vSilent(cartesian, skipLonLat) {
+    protected _setCartesian3vSilent(cartesian: Vec3, skipLonLat: boolean = false) {
         let p = this._cartesian;
 
         p.x = cartesian.x || 0.0;
@@ -436,13 +442,13 @@ class Entity {
 
         let ec = this._entityCollection;
 
-        if (!skipLonLat && ec && ec.renderNode && ec.renderNode.ellipsoid) {
-            this._lonLat = ec.renderNode.ellipsoid.cartesianToLonLat(p);
+        if (!skipLonLat && ec && ec.renderNode && (ec.renderNode as Planet).ellipsoid) {
+            this._lonLat = (ec.renderNode as Planet).ellipsoid.cartesianToLonLat(p);
 
             if (Math.abs(this._lonLat.lat) < mercator.MAX_LAT) {
                 this._lonLatMerc = this._lonLat.forwardMercator();
             } else {
-                this._lonLatMerc = null;
+                //this._lonLatMerc = null;
             }
         }
     }
@@ -452,7 +458,7 @@ class Entity {
      * @public
      * @returns {LonLat} -
      */
-    getLonLat() {
+    public getLonLat(): LonLat {
         return this._lonLat.clone();
     }
 
@@ -461,7 +467,7 @@ class Entity {
      * @public
      * @param {LonLat} lonlat - WGS84 coordinates.
      */
-    setLonLat(lonlat) {
+    public setLonLat(lonlat: LonLat) {
         let l = this._lonLat;
 
         l.lon = lonlat.lon;
@@ -469,14 +475,14 @@ class Entity {
         l.height = lonlat.height;
 
         let ec = this._entityCollection;
-        if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
+        if (ec && ec.renderNode && (ec.renderNode as Planet).ellipsoid) {
             if (Math.abs(l.lat) < mercator.MAX_LAT) {
                 this._lonLatMerc = l.forwardMercator();
             } else {
-                this._lonLatMerc = null;
+                //this._lonLatMerc = null;
             }
 
-            ec.renderNode.ellipsoid.lonLatToCartesianRes(l, this._cartesian);
+            (ec.renderNode as Planet).ellipsoid.lonLatToCartesianRes(l, this._cartesian);
             this.setCartesian3v(this._cartesian);
         }
     }
@@ -488,7 +494,7 @@ class Entity {
      * @param {number} lat - Latitude
      * @param {number} [height] - Height
      */
-    setLonLat2(lon, lat, height) {
+    public setLonLat2(lon: number, lat: number, height?: number) {
         let l = this._lonLat;
 
         l.lon = lon;
@@ -496,14 +502,14 @@ class Entity {
         l.height = height != undefined ? height : l.height;
 
         let ec = this._entityCollection;
-        if (ec && ec.renderNode && ec.renderNode.ellipsoid) {
+        if (ec && ec.renderNode && (ec.renderNode as Planet).ellipsoid) {
             if (Math.abs(l.lat) < mercator.MAX_LAT) {
                 this._lonLatMerc = l.forwardMercator();
             } else {
-                this._lonLatMerc = null;
+                //this._lonLatMerc = null;
             }
 
-            ec.renderNode.ellipsoid.lonLatToCartesianRes(l, this._cartesian);
+            (ec.renderNode as Planet).ellipsoid.lonLatToCartesianRes(l, this._cartesian);
             this.setCartesian3v(this._cartesian);
         }
     }
@@ -513,7 +519,7 @@ class Entity {
      * @public
      * @param {number} altitude - Altitude.
      */
-    setAltitude(altitude) {
+    public setAltitude(altitude: number) {
         this._altitude = altitude;
     }
 
@@ -522,7 +528,7 @@ class Entity {
      * @public
      * @return {number} Altitude.
      */
-    getAltitude() {
+    public getAltitude(): number {
         return this._altitude;
     }
 
@@ -531,7 +537,7 @@ class Entity {
      * @public
      * @returns {Vec3} -
      */
-    getCartesian() {
+    public getCartesian(): Vec3 {
         return this._cartesian.clone();
     }
 
@@ -541,15 +547,16 @@ class Entity {
      * @param {Billboard} billboard - Billboard object.
      * @returns {Billboard} -
      */
-    setBillboard(billboard) {
+    public setBillboard(billboard: Billboard): Billboard {
         if (this.billboard) {
             this.billboard.remove();
         }
         this.billboard = billboard;
+        // @ts-ignore
         this.billboard._entity = this;
         this.billboard.setPosition3v(this._cartesian);
         this.billboard.setVisibility(this._visibility);
-        this._entityCollection && this._entityCollection._billboardHandler.add(billboard);
+        this._entityCollection && this._entityCollection.billboardHandler.add(billboard);
         return billboard;
     }
 
@@ -559,15 +566,16 @@ class Entity {
      * @param {Label} label - Text label.
      * @returns {Label} -
      */
-    setLabel(label) {
+    public setLabel(label: Label): Label {
         if (this.label) {
             this.label.remove();
         }
         this.label = label;
+        // @ts-ignore
         this.label._entity = this;
         this.label.setPosition3v(this._cartesian);
         this.label.setVisibility(this._visibility);
-        this._entityCollection && this._entityCollection._labelHandler.add(label);
+        this._entityCollection && this._entityCollection.labelHandler.add(label);
         return label;
     }
 
@@ -577,11 +585,12 @@ class Entity {
      * @param {Ray} ray - Ray object.
      * @returns {Ray} -
      */
-    setRay(ray) {
+    public setRay(ray: Ray): Ray {
         if (this.ray) {
             this.ray.remove();
         }
         this.ray = ray;
+        // @ts-ignore
         this.ray._entity = this;
         this.ray.setVisibility(this._visibility);
         this._entityCollection && this._entityCollection.rayHandler.add(ray);
@@ -594,11 +603,12 @@ class Entity {
      * @param {Polyline} polyline - Polyline object.
      * @returns {Polyline} -
      */
-    setPolyline(polyline) {
+    public setPolyline(polyline: Polyline): Polyline {
         if (this.polyline) {
             this.polyline.remove();
         }
         this.polyline = polyline;
+        // @ts-ignore
         this.polyline._entity = this;
         this.polyline.setVisibility(this._visibility);
         this._entityCollection && this._entityCollection.polylineHandler.add(polyline);
@@ -611,11 +621,12 @@ class Entity {
      * @param {PointCloud} pointCloud - PointCloud object.
      * @returns {PointCloud} -
      */
-    setPointCloud(pointCloud) {
+    public setPointCloud(pointCloud: PointCloud): PointCloud {
         if (this.pointCloud) {
             this.pointCloud.remove();
         }
         this.pointCloud = pointCloud;
+        // @ts-ignore
         this.pointCloud._entity = this;
         this.pointCloud.setVisibility(this._visibility);
         this._entityCollection && this._entityCollection.pointCloudHandler.add(pointCloud);
@@ -628,11 +639,12 @@ class Entity {
      * @param {Geometry} geometry - Geometry object.
      * @returns {Geometry} -
      */
-    setGeometry(geometry) {
+    public setGeometry(geometry: Geometry): Geometry {
         if (this.geometry) {
             this.geometry.remove();
         }
         this.geometry = geometry;
+        // @ts-ignore
         this.geometry._entity = this;
         this.geometry.setVisibility(this._visibility);
         this._layer && this._layer.add(this);
@@ -645,11 +657,12 @@ class Entity {
      * @param {GeoObject} geoObject - GeoObject.
      * @returns {GeoObject} -
      */
-    setGeoObject(geoObject) {
+    public setGeoObject(geoObject: GeoObject): GeoObject {
         if (this.geoObject) {
             this.geoObject.remove();
         }
         this.geoObject = geoObject;
+        // @ts-ignore
         this.geoObject._entity = this;
         this.geoObject.setPosition3v(this._cartesian);
         this.geoObject.setVisibility(this._visibility);
@@ -663,22 +676,24 @@ class Entity {
      * @param {Strip} strip - Strip object.
      * @returns {Strip} -
      */
-    setStrip(strip) {
+    public setStrip(strip: Strip): Strip {
         if (this.strip) {
             this.strip.remove();
         }
         this.strip = strip;
+        // @ts-ignore
         this.strip._entity = this;
         this.strip.setVisibility(this._visibility);
         this._entityCollection && this._entityCollection.stripHandler.add(strip);
         return strip;
     }
 
-    get layer() {
+    public get layer(): Vector | null {
         return this._layer;
     }
 
-    get rendererEvents() {
+    // @todo: replace any with VectorLayerEvents | EntityCollectioEvents
+    public get rendererEvents(): any {
         if (this._layer) {
             return this._layer.events;
         } else if (this._entityCollection) {
@@ -692,7 +707,7 @@ class Entity {
      * @public
      * @param {Entity} entity - Child entity.
      */
-    appendChild(entity) {
+    public appendChild(entity: Entity) {
         entity._entityCollection = this._entityCollection;
         entity._pickingColor = this._pickingColor;
         entity.parent = this;
@@ -704,25 +719,19 @@ class Entity {
      * Appends entity items(billboard, label etc.) picking color.
      * @public
      */
-    setPickingColor() {
+    public setPickingColor() {
         let c = this._pickingColor;
 
-        // billboard
         this.billboard && this.billboard.setPickingColor3v(c);
 
-        // label
         this.label && this.label.setPickingColor3v(c);
 
-        // polyline
         this.polyline && this.polyline.setPickingColor3v(c);
 
-        // ray
         this.ray && this.ray.setPickingColor3v(c);
 
-        // strip
         this.strip && this.strip.setPickingColor3v(c);
 
-        // geoObject
         this.geoObject && this.geoObject.setPickingColor3v(c);
 
         for (let i = 0; i < this.childrenNodes.length; i++) {
@@ -732,11 +741,14 @@ class Entity {
 
     /**
      * Return geodethic extent.
+     * @public
      * @returns {Extent} -
      */
-    getExtent() {
+    public getExtent(): Extent {
+
         let res;
         let c = this._lonLat;
+
         if (this.billboard || this.label) {
             res = new Extent(new LonLat(c.lon, c.lat), new LonLat(c.lon, c.lat));
         } else {
@@ -771,10 +783,6 @@ class Entity {
         }
 
         return res;
-    }
-
-    isEqual(entity) {
-        return this.id === entity.id;
     }
 }
 

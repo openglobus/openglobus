@@ -44,7 +44,7 @@ class LightSource {
 
         /**
          * Light position.
-         * @protected
+         * @public
          * @type {Vec3}
          */
         this._position = params.position || new Vec3();

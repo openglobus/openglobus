@@ -307,11 +307,11 @@ class RenderNode extends BaseNode {
         }
     }
 
-    public updateGeoObjectsTexCoords() {
-        for (let i = 0; i < this.entityCollections.length; i++) {
-            this.entityCollections[i].geoObjectHandler.refreshTexCoordsArr();
-        }
-    }
+    // public updateGeoObjectsTexCoords() {
+    //     for (let i = 0; i < this.entityCollections.length; i++) {
+    //         this.entityCollections[i].geoObjectHandler.refreshTexCoordsArr();
+    //     }
+    // }
 
     public frame() {
         // virtual
@@ -386,12 +386,14 @@ class RenderNode extends BaseNode {
             // polyline pass
             i = ec.length;
             while (i--) {
+                // @ts-ignore
                 ec[i]._visibility && ec[i].polylineHandler.drawPicking();
             }
 
             //Strip pass
             i = ec.length;
             while (i--) {
+                // @ts-ignore
                 ec[i]._visibility && ec[i].stripHandler.drawPicking();
             }
 

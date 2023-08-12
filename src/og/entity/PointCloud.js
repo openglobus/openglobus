@@ -167,7 +167,7 @@ class PointCloud {
     /**
      * Sets cloud visibility.
      * @public
-     * @param {number} visibility - Visibility flag.
+     * @param {boolean} visibility - Visibility flag.
      */
     setVisibility(visibility) {
         this.visibility = visibility;

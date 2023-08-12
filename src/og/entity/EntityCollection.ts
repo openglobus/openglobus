@@ -13,7 +13,7 @@ import {RayHandler} from "./RayHandler.js";
 import {RenderNode} from "../scene/RenderNode";
 import {StripHandler} from "./StripHandler.js";
 import {Planet} from "../scene/Planet";
-import {Ellipsoid} from "../ellipsoid";
+import {Ellipsoid} from "../ellipsoid/Ellipsoid";
 
 interface IEntityCollectionParams {
     polygonOffsetUnits?: number;
@@ -264,7 +264,7 @@ class EntityCollection {
      * @public
      * @param {boolean} visibility - Visibility flag.
      */
-    public setVisibility(visibility) {
+    public setVisibility(visibility: boolean) {
         this._visibility = visibility;
         this._fadingOpacity = this._opacity * (visibility ? 1 : 0);
         this.events.dispatch(this.events.visibilitychange, this);
@@ -354,8 +354,11 @@ class EntityCollection {
         this.events.dispatch(this.events.entityadd, entity);
 
         for (let i = 0; i < entity.childrenNodes.length; i++) {
+            // @ts-ignore
             entity.childrenNodes[i]._entityCollection = this;
+            // @ts-ignore
             entity.childrenNodes[i]._entityCollectionIndex = entity._entityCollectionIndex;
+            // @ts-ignore
             entity.childrenNodes[i]._pickingColor = entity._pickingColor;
             this._addRecursively(entity.childrenNodes[i]);
         }
@@ -368,14 +371,19 @@ class EntityCollection {
      * @returns {EntityCollection} -
      */
     public add(entity: Entity): EntityCollection {
+        // @ts-ignore
         if (!entity._entityCollection) {
+            // @ts-ignore
             entity._entityCollection = this;
+            // @ts-ignore
             entity._entityCollectionIndex = this._entities.length;
             this._entities.push(entity);
             let rn: RenderNode | null = this.renderNode;
             if (rn) {
                 rn.renderer && rn.renderer.assignPickingColor(entity);
+                // @ts-ignore
                 if ((rn as Planet).ellipsoid && entity._cartesian.isZero()) {
+                    // @ts-ignore
                     entity.setCartesian3v((rn as Planet).ellipsoid.lonLatToCartesian(entity._lonLat));
                 }
             }
@@ -405,14 +413,14 @@ class EntityCollection {
      * @returns {boolean} -
      */
     public belongs(entity: Entity) {
-        return (
-            entity._entityCollection &&
-            this._renderNodeIndex === entity._entityCollection._renderNodeIndex
-        );
+        // @ts-ignore
+        return entity._entityCollection && this._renderNodeIndex === entity._entityCollection._renderNodeIndex;
     }
 
     protected _removeRecursively(entity: Entity) {
+        // @ts-ignore
         entity._entityCollection = null;
+        // @ts-ignore
         entity._entityCollectionIndex = -1;
 
         // billboard
@@ -447,12 +455,15 @@ class EntityCollection {
      * @param {Entity} entity - Entity to remove.
      */
     public removeEntity(entity: Entity) {
+        // @ts-ignore
         this._entities.splice(entity._entityCollectionIndex, 1);
+        // @ts-ignore
         this.reindexEntitiesArray(entity._entityCollectionIndex);
 
         // clear picking color
         if (this.renderNode && this.renderNode.renderer) {
             this.renderNode.renderer.clearPickingColor(entity);
+            // @ts-ignore
             entity._pickingColor.clear();
         }
 
@@ -464,12 +475,15 @@ class EntityCollection {
     }
 
     protected _removeEntitySilent(entity: Entity) {
+        // @ts-ignore
         this._entities.splice(entity._entityCollectionIndex, 1);
+        // @ts-ignore
         this.reindexEntitiesArray(entity._entityCollectionIndex);
 
         // clear picking color
         if (this.renderNode && this.renderNode.renderer) {
             this.renderNode.renderer.clearPickingColor(entity);
+            // @ts-ignore
             entity._pickingColor.clear();
         }
 
@@ -483,6 +497,7 @@ class EntityCollection {
      * @public
      */
     public createPickingColors() {
+        if (!(this.renderNode && this.renderNode.renderer)) return;
         let e = this._entities;
         for (let i = 0; i < e.length; i++) {
             if (!e[i].parent) {
@@ -500,6 +515,7 @@ class EntityCollection {
     public reindexEntitiesArray(startIndex: number) {
         let e = this._entities;
         for (let i = startIndex; i < e.length; i++) {
+            // @ts-ignore
             e[i]._entityCollectionIndex = i;
         }
     }
@@ -562,6 +578,7 @@ class EntityCollection {
         let i = e.length;
         while (i--) {
             let ei = e[i];
+            // @ts-ignore
             ei._lonLat && ei.setCartesian3v(ellipsoid.lonLatToCartesian(ei._lonLat));
         }
     }
@@ -583,6 +600,7 @@ class EntityCollection {
      */
     public updateLabelsFontAtlas() {
         if (this.renderNode) {
+            // @ts-ignore
             let l = [].concat(this.labelHandler._billboards);
             this.labelHandler._billboards = [];
             for (let i = 0; i < l.length; i++) {
@@ -616,7 +634,7 @@ class EntityCollection {
      * @returns {Array.<Entity>} -
      */
     public getEntities(): Entity[] {
-        return [].concat(this._entities);
+        return ([] as Entity[]).concat(this._entities);
     }
 
     /**
@@ -652,6 +670,7 @@ class EntityCollection {
             let ei = this._entities[i];
             if (this.renderNode && this.renderNode.renderer) {
                 this.renderNode.renderer.clearPickingColor(ei);
+                // @ts-ignore
                 ei._pickingColor.clear();
             }
             this._clearEntity(ei);
@@ -666,7 +685,9 @@ class EntityCollection {
      * @param {Entity} entity - Entity to clear.
      */
     protected _clearEntity(entity: Entity) {
+        // @ts-ignore
         entity._entityCollection = null;
+        // @ts-ignore
         entity._entityCollectionIndex = -1;
         for (let i = 0; i < entity.childrenNodes.length; i++) {
             this._clearEntity(entity.childrenNodes[i]);

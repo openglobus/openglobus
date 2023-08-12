@@ -55,14 +55,14 @@ class Strip {
 
         /**
          * Parent collection render node.
-         * @private
+         * @protected
          * @type {RenderNode}
          */
         this._renderNode = null;
 
         /**
          * Entity instance that holds this strip.
-         * @private
+         * @protected
          * @type {Entity}
          */
         this._entity = null;
@@ -85,7 +85,7 @@ class Strip {
 
         /**
          * Handler that stores and renders this object.
-         * @private
+         * @protected
          * @type {StripHandler}
          */
         this._handler = null;
@@ -109,7 +109,7 @@ class Strip {
 
     /**
      * Assign picking color.
-     * @protected
+     * @public
      * @param {Vec3} color - Picking RGB color.
      */
     setPickingColor3v(color) {
@@ -159,7 +159,7 @@ class Strip {
     /**
      * Sets cloud visibility.
      * @public
-     * @param {number} visibility - Visibility flag.
+     * @param {boolean} visibility - Visibility flag.
      */
     setVisibility(visibility) {
         this.visibility = visibility;
