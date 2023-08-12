@@ -455,7 +455,7 @@ class Strip {
         }
     }
 
-    setEdge3v(p2, p3, index) {
+    public setEdge3v(p2: Vec3, p3: Vec3, index: number) {
         if (index === this._path.length) {
             this.addEdge3v(p2, p3);
             return;
@@ -626,19 +626,19 @@ class Strip {
 
     public removeEdge(index: number) {
         this._path.splice(index, 1);
-        this.setPath([].concat(this._path));
+        this.setPath(([] as TStrip[]).concat(this._path));
     }
 
     public setGridSize(gridSize: number) {
         this._gridSize = gridSize;
-        this.setPath([].concat(this._path));
+        this.setPath(([] as TStrip[]).concat(this._path));
     }
 
     public getPath(): TStrip[] {
         return this._path;
     }
 
-    public setPath(path: TStripExt[]) {
+    public setPath(path: TStripExt[] | TStrip[]) {
         this._verticesHigh = [];
         this._verticesLow = [];
         this._indexes = [];
@@ -662,7 +662,7 @@ class Strip {
 
     public insertEdge3v(p0: Vec3, p1: Vec3, index: number) {
         if (index < this._path.length) {
-            let p = [].concat(this._path);
+            let p: TStrip[] = ([] as TStrip[]).concat(this._path);
             p.splice(index, 0, [p0, p1]);
             this.setPath(p);
         } else if (index === this._path.length) {
