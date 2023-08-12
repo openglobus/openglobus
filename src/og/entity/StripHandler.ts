@@ -1,6 +1,6 @@
 "use strict";
 
-import { Program } from "../webgl/Program.js";
+import { Program } from "../webgl/Program";
 
 class StripHandler {
     constructor(entityCollection) {

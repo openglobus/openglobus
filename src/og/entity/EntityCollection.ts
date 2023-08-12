@@ -3,15 +3,15 @@
 import * as math from "../math";
 import {Entity} from "./Entity";
 import {createEvents, EventsHandler} from "../Events";
-import {BillboardHandler} from "./BillboardHandler.js";
-import {GeoObjectHandler} from "./GeoObjectHandler.js";
-import {LabelHandler} from "./LabelHandler.js";
+import {BillboardHandler} from "./BillboardHandler";
+import {GeoObjectHandler} from "./GeoObjectHandler";
+import {LabelHandler} from "./LabelHandler";
 import {NumberArray3} from "../math/Vec3";
-import {PointCloudHandler} from "./PointCloudHandler.js";
-import {PolylineHandler} from "./PolylineHandler.js";
-import {RayHandler} from "./RayHandler.js";
+import {PointCloudHandler} from "./PointCloudHandler";
+import {PolylineHandler} from "./PolylineHandler";
+import {RayHandler} from "./RayHandler";
 import {RenderNode} from "../scene/RenderNode";
-import {StripHandler} from "./StripHandler.js";
+import {StripHandler} from "./StripHandler";
 import {Planet} from "../scene/Planet";
 import {Ellipsoid} from "../ellipsoid/Ellipsoid";
 
@@ -734,199 +734,199 @@ type EntityCollectionEventList = [
 const ENTITYCOLLECTION_EVENTS: EntityCollectionEventList = [
     /**
      * Triggered when entity has moved.
-     * @event og.EntityCollection#entitymove
+     * @event EntityCollection#entitymove
      */
     "entitymove",
 
     /**
      * Triggered when collection entities begin draw.
-     * @event og.EntityCollection#draw
+     * @event EntityCollection#draw
      */
     "draw",
 
     /**
      * Triggered after collection has drawn.
-     * @event og.EntityCollection#drawend
+     * @event EntityCollection#drawend
      */
     "drawend",
 
     /**
      * Triggered when added to the render node.
-     * @event og.EntityCollection#add
+     * @event EntityCollection#add
      */
     "add",
 
     /**
      * Triggered when removed from the render node.
-     * @event og.EntityCollection#remove
+     * @event EntityCollection#remove
      */
     "remove",
 
     /**
      * Triggered when new entity added to the collection.
-     * @event og.EntityCollection#entityadd
+     * @event EntityCollection#entityadd
      */
     "entityadd",
 
     /**
      * Triggered when entity removes from the collection.
-     * @event og.EntityCollection#entityremove
+     * @event EntityCollection#entityremove
      */
     "entityremove",
 
     /**
      * Triggered when visibility changes.
-     * @event og.EntityCollection#visibilitychange
+     * @event EntityCollection#visibilitychange
      */
     "visibilitychange",
 
     /**
      * Triggered when mouse moves over the entity.
-     * @event og.EntityCollection#mousemove
+     * @event EntityCollection#mousemove
      */
     "mousemove",
 
     /**
      * Triggered when mouse has entered over the entity.
-     * @event og.EntityCollection#mouseenter
+     * @event EntityCollection#mouseenter
      */
     "mouseenter",
 
     /**
      * Triggered when mouse leaves the entity.
-     * @event og.EntityCollection#mouseleave
+     * @event EntityCollection#mouseleave
      */
     "mouseleave",
 
     /**
      * Mouse left button clicked.
-     * @event og.EntityCollection#lclick
+     * @event EntityCollection#lclick
      */
     "lclick",
 
     /**
      * Mouse right button clicked.
-     * @event og.EntityCollection#rclick
+     * @event EntityCollection#rclick
      */
     "rclick",
 
     /**
      * Mouse right button clicked.
-     * @event og.EntityCollection#mclick
+     * @event EntityCollection#mclick
      */
     "mclick",
 
     /**
      * Mouse left button double click.
-     * @event og.EntityCollection#ldblclick
+     * @event EntityCollection#ldblclick
      */
     "ldblclick",
 
     /**
      * Mouse right button double click.
-     * @event og.EntityCollection#rdblclick
+     * @event EntityCollection#rdblclick
      */
     "rdblclick",
 
     /**
      * Mouse middle button double click.
-     * @event og.EntityCollection#mdblclick
+     * @event EntityCollection#mdblclick
      */
     "mdblclick",
 
     /**
      * Mouse left button up(stop pressing).
-     * @event og.EntityCollection#lup
+     * @event EntityCollection#lup
      */
     "lup",
 
     /**
      * Mouse right button up(stop pressing).
-     * @event og.EntityCollection#rup
+     * @event EntityCollection#rup
      */
     "rup",
 
     /**
      * Mouse middle button up(stop pressing).
-     * @event og.EntityCollection#mup
+     * @event EntityCollection#mup
      */
     "mup",
 
     /**
      * Mouse left button is just pressed down(start pressing).
-     * @event og.EntityCollection#ldown
+     * @event EntityCollection#ldown
      */
     "ldown",
 
     /**
      * Mouse right button is just pressed down(start pressing).
-     * @event og.EntityCollection#rdown
+     * @event EntityCollection#rdown
      */
     "rdown",
 
     /**
      * Mouse middle button is just pressed down(start pressing).
-     * @event og.EntityCollection#mdown
+     * @event EntityCollection#mdown
      */
     "mdown",
 
     /**
      * Mouse left button is pressing.
-     * @event og.EntityCollection#lhold
+     * @event EntityCollection#lhold
      */
     "lhold",
 
     /**
      * Mouse right button is pressing.
-     * @event og.EntityCollection#rhold
+     * @event EntityCollection#rhold
      */
     "rhold",
 
     /**
      * Mouse middle button is pressing.
-     * @event og.EntityCollection#mhold
+     * @event EntityCollection#mhold
      */
     "mhold",
 
     /**
      * Mouse wheel is rotated.
-     * @event og.EntityCollection#mousewheel
+     * @event EntityCollection#mousewheel
      */
     "mousewheel",
 
     /**
      * Triggered when touch moves over the entity.
-     * @event og.EntityCollection#touchmove
+     * @event EntityCollection#touchmove
      */
     "touchmove",
 
     /**
      * Triggered when entity begins to touch.
-     * @event og.EntityCollection#touchstart
+     * @event EntityCollection#touchstart
      */
     "touchstart",
 
     /**
      * Triggered when entity ends touching.
-     * @event og.EntityCollection#touchend
+     * @event EntityCollection#touchend
      */
     "touchend",
 
     /**
      * Triggered entity double touch.
-     * @event og.EntityCollection#doubletouch
+     * @event EntityCollection#doubletouch
      */
     "doubletouch",
 
     /**
      * Triggered when touching leaves entity.
-     * @event og.EntityCollection#touchleave
+     * @event EntityCollection#touchleave
      */
     "touchleave",
 
     /**
      * Triggered when touch enters over the entity.
-     * @event og.EntityCollection#touchenter
+     * @event EntityCollection#touchenter
      */
     "touchenter"
 ];
