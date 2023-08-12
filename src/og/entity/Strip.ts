@@ -1,8 +1,8 @@
 "use strict";
 
-import { Line3 } from "../math/Line3.js";
-import { Vec3 } from "../math/Vec3";
 import * as utils from "../utils/shared";
+import { Line3 } from "../math/Line3";
+import { Vec3 } from "../math/Vec3";
 
 let _tempHigh = new Vec3(),
     _tempLow = new Vec3();
