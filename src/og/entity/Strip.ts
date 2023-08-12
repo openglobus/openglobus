@@ -1,8 +1,28 @@
 "use strict";
 
 import * as utils from "../utils/shared";
-import { Line3 } from "../math/Line3";
-import { Vec3 } from "../math/Vec3";
+import {Entity} from "./Entity";
+import {Line3} from "../math/Line3";
+import {RenderNode} from "../scene/RenderNode";
+import {NumberArray3, Vec3} from "../math/Vec3";
+import {NumberArray4, Vec4} from "../math/Vec4";
+import {StripHandler} from "./StripHandler";
+import {WebGLBufferExt} from "../webgl/Handler";
+
+type TPoiExt = Vec3 | NumberArray3;
+type TStripExt = [TPoiExt, TPoiExt];
+
+type TPoi = Vec3;
+type TStrip = [TPoi, TPoi];
+
+//type TStrip = TEdge[];
+
+interface IStripParams {
+    visibility?: boolean;
+    color?: string | NumberArray4 | Vec4;
+    opacity?: number;
+    path?: TStrip[];
+}
 
 let _tempHigh = new Vec3(),
     _tempLow = new Vec3();
@@ -24,22 +44,57 @@ let _tempHigh = new Vec3(),
  * });
  */
 class Strip {
-    constructor(options) {
-        options = options || {};
 
-        /**
-         * Object unic identifier.
-         * @public
-         * @readonly
-         * @type {number}
-         */
-        this.id = Strip._staticCounter++;
+    static __counter__: number;
 
-        /**
-         * Cloud visibility.
-         * @public
-         * @type {boolean}
-         */
+    protected __id: number;
+
+    /**
+     * Strip visibility.
+     * @public
+     * @type {boolean}
+     */
+    public visibility: boolean;
+
+    public color: Float32Array;
+
+    /**
+     * Parent collection render node.
+     * @protected
+     * @type {RenderNode}
+     */
+    protected _renderNode: RenderNode | null;
+
+    /**
+     * Entity instance that holds this strip.
+     * @protected
+     * @type {Entity}
+     */
+    protected _entity: Entity | null;
+    protected _verticesHighBuffer: WebGLBufferExt | null;
+    protected _verticesLowBuffer: WebGLBufferExt | null;
+    protected _indexBuffer: WebGLBufferExt | null;
+    protected _verticesHigh: number[];
+    protected _verticesLow: number[];
+    protected _indexes: number[];
+    protected _path: TStrip[];
+
+    protected _pickingColor: Float32Array;
+
+    protected _gridSize: number;
+
+    /**
+     * Handler that stores and renders this object.
+     * @protected
+     * @type {StripHandler | null}
+     */
+    protected _handler: StripHandler | null;
+    protected _handlerIndex: number;
+
+    constructor(options: IStripParams = {}) {
+
+        this.__id = Strip.__counter__++;
+
         this.visibility = options.visibility != undefined ? options.visibility : true;
 
         this.color = new Float32Array([1.0, 1.0, 1.0, 0.5]);
@@ -70,7 +125,7 @@ class Strip {
         this._verticesHighBuffer = null;
         this._verticesLowBuffer = null;
 
-        this._indexesBuffer = null;
+        this._indexBuffer = null;
 
         this._verticesHigh = [];
         this._verticesLow = [];
@@ -96,23 +151,12 @@ class Strip {
         }
     }
 
-    static get _staticCounter() {
-        if (!this._counter && this._counter !== 0) {
-            this._counter = 0;
-        }
-        return this._counter;
-    }
-
-    static set _staticCounter(n) {
-        this._counter = n;
-    }
-
     /**
      * Assign picking color.
      * @public
      * @param {Vec3} color - Picking RGB color.
      */
-    setPickingColor3v(color) {
+    public setPickingColor3v(color: Vec3) {
         this._pickingColor[0] = color.x / 255.0;
         this._pickingColor[1] = color.y / 255.0;
         this._pickingColor[2] = color.z / 255.0;
@@ -123,7 +167,7 @@ class Strip {
      * Clears object
      * @public
      */
-    clear() {
+    public clear() {
         this._path.length = 0;
         this._path = [];
 
@@ -139,7 +183,7 @@ class Strip {
         this._deleteBuffers();
     }
 
-    setColor(r, g, b, a) {
+    public setColor(r: number, g: number, b: number, a?: number) {
         a = a || this.color[3];
         this.color[0] = r;
         this.color[1] = g;
@@ -152,7 +196,7 @@ class Strip {
      * @public
      * @param {number} opacity - opacity.
      */
-    setOpacity(opacity) {
+    public setOpacity(opacity: number) {
         this.color[3] = opacity || 0;
     }
 
@@ -161,14 +205,14 @@ class Strip {
      * @public
      * @param {boolean} visibility - Visibility flag.
      */
-    setVisibility(visibility) {
+    public setVisibility(visibility: boolean) {
         this.visibility = visibility;
     }
 
     /**
-     * @return {boolean} Strip visibily.
+     * @return {boolean} Strip visibility.
      */
-    getVisibility() {
+    public getVisibility(): boolean {
         return this.visibility;
     }
 
@@ -177,7 +221,7 @@ class Strip {
      * @public
      * @param {RenderNode}  renderNode - Assigned render node.
      */
-    setRenderNode(renderNode) {
+    public setRenderNode(renderNode: RenderNode) {
         this._renderNode = renderNode;
         this._createBuffers();
     }
@@ -186,18 +230,18 @@ class Strip {
      * Removes from entity.
      * @public
      */
-    remove() {
+    public remove() {
         this._entity = null;
         this._handler && this._handler.remove(this);
     }
 
-    draw() {
+    public draw() {
         if (this.visibility && this._verticesHigh.length) {
-            var r = this._renderNode.renderer;
+            let r = this._renderNode!.renderer!;
 
-            var gl = r.handler.gl;
+            let gl = r.handler.gl!;
 
-            var sh = r.handler.programs.strip,
+            let sh = r.handler.programs.strip,
                 p = sh._program,
                 sha = p.attributes,
                 shu = p.uniforms;
@@ -206,36 +250,37 @@ class Strip {
 
             gl.disable(gl.CULL_FACE);
 
-            gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera.getViewMatrix());
-            gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
+            gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera!.getViewMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
 
-            gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
-            gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
+            gl.uniform3fv(shu.eyePositionHigh, r.activeCamera!.eyeHigh);
+            gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
 
             gl.uniform4fv(shu.uColor, this.color);
-            gl.uniform1f(shu.uOpacity, this._entity._entityCollection._fadingOpacity);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesHighBuffer);
+            //@ts-ignore
+            gl.uniform1f(shu.uOpacity, this._entity!._entityCollection._fadingOpacity);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesHighBuffer as WebGLBuffer);
             gl.vertexAttribPointer(
                 sha.aVertexPositionHigh,
-                this._verticesHighBuffer.itemSize,
+                this._verticesHighBuffer!.itemSize,
                 gl.FLOAT,
                 false,
                 0,
                 0
             );
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesLowBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesLowBuffer as WebGLBuffer);
             gl.vertexAttribPointer(
                 sha.aVertexPositionLow,
-                this._verticesLowBuffer.itemSize,
+                this._verticesLowBuffer!.itemSize,
                 gl.FLOAT,
                 false,
                 0,
                 0
             );
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer as WebGLBuffer);
             gl.drawElements(
-                r.handler.gl.TRIANGLE_STRIP,
-                this._indexBuffer.numItems,
+                r.handler.gl!.TRIANGLE_STRIP,
+                this._indexBuffer!.numItems,
                 gl.UNSIGNED_INT,
                 0
             );
@@ -246,11 +291,11 @@ class Strip {
 
     drawPicking() {
         if (this.visibility && this._verticesHigh.length) {
-            var r = this._renderNode.renderer;
+            let r = this._renderNode!.renderer!;
 
-            var gl = r.handler.gl;
+            let gl = r.handler.gl!;
 
-            var sh = r.handler.programs.strip,
+            let sh = r.handler.programs.strip,
                 p = sh._program,
                 sha = p.attributes,
                 shu = p.uniforms;
@@ -259,36 +304,37 @@ class Strip {
 
             gl.disable(gl.CULL_FACE);
 
-            gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera.getViewMatrix());
-            gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
+            gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera!.getViewMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
 
-            gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
-            gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
+            gl.uniform3fv(shu.eyePositionHigh, r.activeCamera!.eyeHigh);
+            gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
+            //@ts-ignore
             gl.uniform1f(shu.uOpacity, this._entity._entityCollection._fadingOpacity != 0 ? 1 : 0);
 
             gl.uniform4fv(shu.uColor, this._pickingColor);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesHighBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesHighBuffer as WebGLBuffer);
             gl.vertexAttribPointer(
                 sha.aVertexPositionHigh,
-                this._verticesHighBuffer.itemSize,
+                this._verticesHighBuffer!.itemSize,
                 gl.FLOAT,
                 false,
                 0,
                 0
             );
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesLowBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesLowBuffer as WebGLBuffer);
             gl.vertexAttribPointer(
                 sha.aVertexPositionLow,
-                this._verticesLowBuffer.itemSize,
+                this._verticesLowBuffer!.itemSize,
                 gl.FLOAT,
                 false,
                 0,
                 0
             );
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer as WebGLBuffer);
             gl.drawElements(
-                r.handler.gl.TRIANGLE_STRIP,
-                this._indexBuffer.numItems,
+                r.handler.gl!.TRIANGLE_STRIP,
+                this._indexBuffer!.numItems,
                 gl.UNSIGNED_INT,
                 0
             );
@@ -299,29 +345,29 @@ class Strip {
 
     /**
      * Delete buffers
-     * @private
+     * @protected
      */
-    _deleteBuffers() {
+    protected _deleteBuffers() {
         if (this._renderNode && this._renderNode.renderer) {
-            var r = this._renderNode.renderer,
-                gl = r.handler.gl;
+            let r = this._renderNode.renderer,
+                gl = r.handler.gl!;
 
-            gl.deleteBuffer(this._indexBuffer);
-            gl.deleteBuffer(this._verticesHighBuffer);
-            gl.deleteBuffer(this._verticesLowBuffer);
+            gl.deleteBuffer(this._indexBuffer as WebGLBuffer);
+            gl.deleteBuffer(this._verticesHighBuffer as WebGLBuffer);
+            gl.deleteBuffer(this._verticesLowBuffer as WebGLBuffer);
         }
         this._verticesHighBuffer = null;
         this._verticesLowBuffer = null;
         this._indexBuffer = null;
     }
 
-    _createBuffers() {
+    protected _createBuffers() {
         if (this._renderNode && this._renderNode.renderer && this._renderNode.renderer.isInitialized()) {
-            var gl = this._renderNode.renderer.handler.gl;
+            let gl = this._renderNode.renderer.handler.gl!;
 
-            gl.deleteBuffer(this._indexBuffer);
-            gl.deleteBuffer(this._verticesHighBuffer);
-            gl.deleteBuffer(this._verticesLowBuffer);
+            gl.deleteBuffer(this._indexBuffer as WebGLBuffer);
+            gl.deleteBuffer(this._verticesHighBuffer as WebGLBuffer);
+            gl.deleteBuffer(this._verticesLowBuffer as WebGLBuffer);
 
             this._verticesHighBuffer = this._renderNode.renderer.handler.createArrayBuffer(
                 new Float32Array(this._verticesHigh),
@@ -341,7 +387,7 @@ class Strip {
         }
     }
 
-    addEdge3v(p2, p3) {
+    public addEdge3v(p2: Vec3, p3: Vec3) {
         let length = this._path.length;
 
         if (length === 0) {
@@ -578,21 +624,21 @@ class Strip {
         }
     }
 
-    removeEdge(index) {
+    public removeEdge(index: number) {
         this._path.splice(index, 1);
         this.setPath([].concat(this._path));
     }
 
-    setGridSize(gridSize) {
+    public setGridSize(gridSize: number) {
         this._gridSize = gridSize;
         this.setPath([].concat(this._path));
     }
 
-    getPath() {
+    public getPath(): TStrip[] {
         return this._path;
     }
 
-    setPath(path) {
+    public setPath(path: TStripExt[]) {
         this._verticesHigh = [];
         this._verticesLow = [];
         this._indexes = [];
@@ -610,11 +656,11 @@ class Strip {
                 p1 = new Vec3(p1[0], p1[1], p1[2]);
             }
 
-            this.addEdge3v(p0, p1);
+            this.addEdge3v(p0 as Vec3, p1 as Vec3);
         }
     }
 
-    insertEdge3v(p0, p1, index) {
+    public insertEdge3v(p0: Vec3, p1: Vec3, index: number) {
         if (index < this._path.length) {
             let p = [].concat(this._path);
             p.splice(index, 0, [p0, p1]);
@@ -625,4 +671,4 @@ class Strip {
     }
 }
 
-export { Strip };
+export {Strip};
