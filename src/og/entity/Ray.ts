@@ -1,8 +1,20 @@
 "use strict";
 
-import {Vec3} from "../math/Vec3";
 import * as utils from "../utils/shared";
+import {NumberArray3, Vec3} from "../math/Vec3";
+import {NumberArray4, Vec4} from "../math/Vec4";
 import {Entity} from "./Entity.js";
+import {RayHandler} from "./RayHandler";
+
+export interface IRayParams {
+    thickness?: number;
+    startPosition?: Vec3 | NumberArray3;
+    endPosition?: Vec3 | NumberArray3;
+    startColor?: string | NumberArray4;
+    endColor?: string | NumberArray4;
+    visibility?: boolean;
+
+}
 
 /**
  * Ray class.
@@ -15,21 +27,64 @@ import {Entity} from "./Entity.js";
  * @param {boolean} [options.visibility] - Visibility.
  */
 class Ray {
-    constructor(options) {
-        options = options || {};
 
-        /**
-         * Object unic identifier.
-         * @public
-         * @readonly
-         * @type {number}
-         */
-        this.id = Entity._staticCounter++;
+    static __counter__: number;
+    /**
+     * Object uniq identifier.
+     * @protected
+     * @type {number}
+     */
+    protected __id: number;
 
-        // Thickenss
+    protected _thickness: number;
+
+    protected _startPosition: Vec3;
+    protected _startPositionHigh: Vec3;
+    protected _startPositionLow: Vec3;
+
+    // RTE end position
+    protected _endPosition: Vec3;
+    protected _endPositionHigh: Vec3;
+    protected _endPositionLow: Vec3;
+
+    // start end point colors
+    protected _startColor: Vec4;
+    protected _endColor: Vec4;
+
+    /**
+     * Ray visibility.
+     * @protected
+     * @type {boolean}
+     */
+    protected _visibility: boolean;
+
+    /**
+     * Entity instance that holds this billboard.
+     * @protected
+     * @type {Entity}
+     */
+    protected _entity: Entity | null;
+
+    /**
+     * Handler that stores and renders this billboard object.
+     * @protected
+     * @type {BillboardHandler}
+     */
+    protected _handler: RayHandler | null;
+
+    /**
+     * Billboard handler array index.
+     * @protected
+     * @type {number}
+     */
+    protected _handlerIndex: number;
+
+    constructor(options: IRayParams = {}) {
+
+        this.__id = Ray.__counter__++;
+
         this._thickness = options.thickness || 2.0;
 
-        // RTE start position
         this._startPosition = utils.createVector3(options.startPosition);
         this._startPositionHigh = new Vec3();
         this._startPositionLow = new Vec3();
@@ -39,13 +94,11 @@ class Ray {
             this._startPositionLow
         );
 
-        // RTE end position
         this._endPosition = utils.createVector3(options.endPosition);
         this._endPositionHigh = new Vec3();
         this._endPositionLow = new Vec3();
         Vec3.doubleToTwoFloats(this._endPosition, this._endPositionHigh, this._endPositionLow);
 
-        // start end point colors
         this._startColor = utils.createColorRGBA(options.startColor);
         this._endColor = utils.createColorRGBA(options.endColor);
 
@@ -57,21 +110,21 @@ class Ray {
         this._visibility = options.visibility != undefined ? options.visibility : true;
 
         /**
-         * Entity instance that holds this billboard.
+         * Ray entity
          * @protected
          * @type {Entity}
          */
         this._entity = null;
 
         /**
-         * Handler that stores and renders this billboard object.
+         * Handler that stores and renders this ray object.
          * @protected
-         * @type {BillboardHandler}
+         * @type {RayHandler}
          */
         this._handler = null;
 
         /**
-         * Billboard handler array index.
+         * Ray handler array index.
          * @protected
          * @type {number}
          */
@@ -85,7 +138,7 @@ class Ray {
      * @param {number} y - Y coordinate.
      * @param {number} z - Z coordinate.
      */
-    setStartPosition(x, y, z) {
+    public setStartPosition(x: number, y: number, z: number) {
         this._startPosition.x = x;
         this._startPosition.y = y;
         this._startPosition.z = z;
@@ -102,7 +155,7 @@ class Ray {
         );
     }
 
-    getLength() {
+    public getLength(): number {
         return this._startPosition.distance(this._endPosition);
     }
 
@@ -111,7 +164,7 @@ class Ray {
      * @public
      * @param {Vec3} position - Cartesian coordinates.
      */
-    setStartPosition3v(position) {
+    public setStartPosition3v(position: Vec3) {
         this._startPosition.x = position.x;
         this._startPosition.y = position.y;
         this._startPosition.z = position.z;
@@ -135,7 +188,7 @@ class Ray {
      * @param {number} y - Y coordinate.
      * @param {number} z - Z coordinate.
      */
-    setEndPosition(x, y, z) {
+    public setEndPosition(x: number, y: number, z: number) {
         this._endPosition.x = x;
         this._endPosition.y = y;
         this._endPosition.z = z;
@@ -153,7 +206,7 @@ class Ray {
      * @public
      * @param {Vec3} position - Cartesian coordinates.
      */
-    setEndPosition3v(position) {
+    public setEndPosition3v(position: Vec3) {
         this._endPosition.x = position.x;
         this._endPosition.y = position.y;
         this._endPosition.z = position.z;
@@ -166,12 +219,12 @@ class Ray {
         );
     }
 
-    setThickness(thickness) {
+    public setThickness(thickness: number) {
         this._thickness = thickness;
         this._handler && this._handler.setThicknessArr(this._handlerIndex, thickness);
     }
 
-    setColors4v(startColor, endColor) {
+    public setColors4v(startColor?: Vec4, endColor?: Vec4) {
         if (startColor) {
             this._startColor.x = startColor.x;
             this._startColor.y = startColor.y;
@@ -179,7 +232,7 @@ class Ray {
             this._startColor.w = startColor.w;
         }
 
-        if (this._endColor) {
+        if (endColor) {
             this._endColor.x = endColor.x;
             this._endColor.y = endColor.y;
             this._endColor.z = endColor.z;
@@ -190,7 +243,7 @@ class Ray {
         this._handler.setRgbaArr(this._handlerIndex, this._startColor, this._endColor);
     }
 
-    setColorsHTML(startColor, endColor) {
+    public setColorsHTML(startColor?: string, endColor?: string) {
         if (startColor) {
             this._startColor = utils.htmlColorToRgba(startColor);
         }
@@ -199,8 +252,7 @@ class Ray {
             this._endColor = utils.htmlColorToRgba(endColor);
         }
 
-        this._handler &&
-        this._handler.setRgbaArr(this._handlerIndex, this._startColor, this._endColor);
+        this._handler && this._handler.setRgbaArr(this._handlerIndex, this._startColor, this._endColor);
     }
 
     /**
@@ -208,7 +260,7 @@ class Ray {
      * @public
      * @returns {Vec3}
      */
-    getStartPosition() {
+    public getStartPosition(): Vec3 {
         return this._startPosition;
     }
 
@@ -217,44 +269,44 @@ class Ray {
      * @public
      * @returns {Vec3}
      */
-    getEndPosition() {
+    public getEndPosition(): Vec3 {
         return this._endPosition;
     }
 
     /**
-     * Sets billboard visibility.
+     * Sets visibility.
      * @public
      * @param {boolean} visibility - Visibility flag.
      */
-    setVisibility(visibility) {
+    public setVisibility(visibility: boolean) {
         this._visibility = visibility;
         this._handler && this._handler.setVisibility(this._handlerIndex, visibility);
     }
 
     /**
-     * Returns billboard visibility.
+     * Returns visibility.
      * @public
      * @returns {boolean}
      */
-    getVisibility() {
+    public getVisibility(): boolean {
         return this._visibility;
     }
 
     /**
-     * Removes billboard from hander.
+     * Remove from handler.
      * @public
      */
-    remove() {
+    public remove() {
         this._entity = null;
         this._handler && this._handler.remove(this);
     }
 
     /**
-     * Sets billboard picking color.
+     * Set picking color.
      * @public
      * @param {Vec3} color - Picking color.
      */
-    setPickingColor3v(color) {
+    public setPickingColor3v(color: Vec4) {
         this._handler && this._handler.setPickingColorArr(this._handlerIndex, color);
     }
 }
