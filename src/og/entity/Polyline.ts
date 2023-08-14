@@ -1,11 +1,18 @@
 "use strict";
 
+import {Entity} from "./Entity";
 import {Extent} from "../Extent";
 import {LonLat} from "../LonLat";
-import {Vec3} from "../math/Vec3";
+import {NumberArray3, Vec3} from "../math/Vec3";
+import {NumberArray2} from "../math/Vec2";
+import {NumberArray4} from "../math/Vec4";
+import {Planet} from "../scene/Planet";
+import {PolylineHandler} from "./PolylineHandler";
+import {RenderNode} from "../scene";
+import {WebGLBufferExt} from "../webgl/Handler";
 import {
     cloneArray, htmlColorToFloat32Array,
-    htmlColorToRgba, makeArray, makeArrayTyped
+    htmlColorToRgba, makeArray, makeArrayTyped, TypedArray
 } from "../utils/shared";
 
 const VERTICES_BUFFER = 0;
@@ -19,8 +26,20 @@ const G = 1;
 const B = 2;
 const A = 3;
 
-export interface IPolylineParams {
+type SegmentPath3v = Vec3[] | NumberArray3[];
+type SegmentPathLonLat = LonLat[] | NumberArray3[] | NumberArray2[];
+type SegmentPathColor = NumberArray4[];
 
+export interface IPolylineParams {
+    altitude?: number;
+    thickness?: number;
+    opacity?: number;
+    color?: string;
+    visibility?: boolean;
+    isClosed?: boolean;
+    pathColors?: SegmentPathColor[];
+    path3v?: SegmentPath3v[];
+    pathLonLat?: SegmentPathLonLat[];
 }
 
 /**
@@ -33,86 +52,146 @@ export interface IPolylineParams {
  * @param {Boolean} [options.opacity] - Line opacity.
  * @param {Boolean} [options.visibility] - Polyline visibility. True default.
  * @param {Boolean} [options.isClosed] - Closed geometry type identificator.
- * @param {Array.<Array.<number>>} [options.pathLonLat] - Polyline geodetic coordinates array. [[0,0,0], [1,1,1],...]
- * @param {Array.<Array.<number>>} [options.path3v] - LinesString cartesian coordinates array. [[0,0,0], [1,1,1],...]
- * @param {Array.<Array.<number>>} [options.pathColors] - Coordinates color. [[1,0,0,1], [0,1,0,1],...] for right and green colors.
+ * @param {Array.<Array.<number>>} [options.pathLonLat] - Polyline geodetic coordinates array. [[[0,0,0], [1,1,1],...]]
+ * @param {Array.<Array.<number>>} [options.path3v] - LinesString cartesian coordinates array. [[[0,0,0], [1,1,1],...]]
+ * @param {Array.<Array.<number>>} [options.pathColors] - Coordinates color. [[[1,0,0,1], [0,1,0,1],...]] for right and green colors.
  */
 class Polyline {
+    static __counter__: number;
+
+    /**
+     * Object unic identifier.
+     * @protected
+     * @type {number}
+     */
+    protected __id = Polyline.__counter__++;
+
+    public altitude: number;
+
+    /**
+     * Polyline thickness in screen pixels.
+     * @public
+     * @type {number}
+     */
+    public thickness: number;
+
+    protected _opacity: number;
+
+    /**
+     * Polyline RGBA color.
+     * @protected
+     * @type {Float32Array} - (exactly 4 entries)
+     */
+    protected _defaultColor: Float32Array;
+
+    /**
+     * Polyline visibility.
+     * @public
+     * @type {boolean}
+     */
+    public visibility: boolean;
+
+    /**
+     * Polyline geometry ring type identificator.
+     * @protected
+     * @type {Boolean}
+     */
+    protected _closedLine: boolean;
+
+    /**
+     * Polyline cartesian coordinates.
+     * @private
+     * @type {Array.<Vec3>}
+     */
+    protected _path3v: Vec3[];
+
+    protected _pathLengths: number[];
+
+    /**
+     * Polyline geodetic degrees coordinates.
+     * @private
+     * @type {Array.<LonLat>}
+     */
+    protected _pathLonLat: LonLat[];
+
+    /**
+     * Polyline geodetic mercator coordinates.
+     * @private
+     * @type {Array.<LonLat>}
+     */
+    protected _pathLonLatMerc: LonLat[];
+
+    protected _pathColors: NumberArray4[];
+
+    /**
+     * Polyline geodetic extent.
+     * @protected
+     * @type {Extent}
+     */
+    protected _extent: Extent;
+
+    protected _verticesHigh: TypedArray | number[];
+    protected _verticesLow: TypedArray | number[];
+    protected _orders: TypedArray | number[];
+    protected _indexes: TypedArray | number[];
+    protected _colors: TypedArray | number[];
+
+    protected _verticesHighBuffer: WebGLBufferExt | null;
+    protected _verticesLowBuffer: WebGLBufferExt | null;
+    protected _ordersBuffer: WebGLBufferExt | null;
+    protected _indexesBuffer: WebGLBufferExt | null;
+    protected _colorsBuffer: WebGLBufferExt | null;
+
+    protected _pickingColor: NumberArray3;
+
+    protected _renderNode: RenderNode | null;
+
+    /**
+     * Entity instance that holds this Polyline.
+     * @private
+     * @type {Entity}
+     */
+    protected _entity: Entity | null;
+
+    /**
+     * Handler that stores and renders this Polyline object.
+     * @private
+     * @type {PolylineHandler | null}
+     */
+    protected _handler: PolylineHandler | null;
+    protected _handlerIndex: number;
+    protected _buffersUpdateCallbacks: Function[];
+    protected _changedBuffers: boolean[];
+
     constructor(options: IPolylineParams = {}) {
 
-        /**
-         * Object unic identifier.
-         * @public
-         * @readonly
-         * @type {number}
-         */
-        this.id = Polyline._staticCounter++;
+        this.__id = Polyline.__counter__++;
 
         this.altitude = options.altitude || 0.0;
 
-        /**
-         * Polyline thickness in screen pixels.
-         * @public
-         * @type {number}
-         */
         this.thickness = options.thickness || 1.5;
 
         this._opacity = options.opacity != undefined ? options.opacity : 1.0;
 
-        /**
-         * Polyline RGBA color.
-         * @public
-         * @type {Array<number>} - (exactly 4 entries)
-         */
         this._defaultColor = htmlColorToFloat32Array(
             options.color || DEFAULT_COLOR,
             options.opacity
-        ); // utils.createColorRGBA(options.color, new Vec4(1.0, 1.0, 1.0, 1.0));
+        );
 
-        /**
-         * Polyline visibility.
-         * @public
-         * @type {boolean}
-         */
         this.visibility = options.visibility != undefined ? options.visibility : true;
 
-        /**
-         * Polyline geometry ring type identificator.
-         * @protected
-         * @type {Boolean}
-         */
         this._closedLine = options.isClosed || false;
 
-        /**
-         * Polyline cartesian coordinates.
-         * @private
-         * @type {Array.<Vec3>}
-         */
         this._path3v = [];
 
         this._pathLengths = [];
 
-        /**
-         * Polyline geodetic degrees coordinates.
-         * @private
-         * @type {Array.<LonLat>}
-         */
         this._pathLonLat = [];
 
-        /**
-         * Polyline geodetic mercator coordinates.
-         * @private
-         * @type {Array.<LonLat>}
-         */
         this._pathLonLatMerc = [];
 
         this._pathColors = options.pathColors ? cloneArray(options.pathColors) : [];
 
-        /**
-         * Polyline geodetic extent.
-         * @protected
-         * @type {Extent}
-         */
         this._extent = new Extent();
 
         this._verticesHigh = [];
@@ -131,18 +210,9 @@ class Polyline {
 
         this._renderNode = null;
 
-        /**
-         * Entity instance that holds this Polyline.
-         * @private
-         * @type {Entity}
-         */
         this._entity = null;
 
-        /**
-         * Handler that stores and renders this Polyline object.
-         * @private
-         * @type {PolylineHandler}
-         */
+
         this._handler = null;
         this._handlerIndex = -1;
 
@@ -161,17 +231,6 @@ class Polyline {
         }
 
         this._refresh();
-    }
-
-    static get _staticCounter() {
-        if (!this._counter && this._counter !== 0) {
-            this._counter = 0;
-        }
-        return this._counter;
-    }
-
-    static set _staticCounter(n) {
-        this._counter = n;
     }
 
     /**
@@ -459,7 +518,9 @@ class Polyline {
      * @param {Extent} [outExtent] - Geodetic line extent.
      * @static
      */
-    static appendPoint3v(
+    static
+
+    appendPoint3v(
         path3v,
         point3v,
         pathColors,
@@ -711,7 +772,9 @@ class Polyline {
      * @param {Extent} outExtent - Geodetic line extent.
      * @static
      */
-    static appendLineDataLonLat(
+    static
+
+    appendLineDataLonLat(
         pathLonLat,
         pathColors,
         defaultColor,
@@ -1934,8 +1997,8 @@ class Polyline {
      * @param {Array.<Array.<number>>} pathLonLat - Polyline path cartesian coordinates. (exactly 3 entries)
      * @param {Boolean} [forceEqual=false] - Makes assigning faster for size equal coordinates array.
      */
-    setPathLonLat(pathLonLat, forceEqual) {
-        if (this._renderNode && this._renderNode.ellipsoid) {
+    setPathLonLat(pathLonLat: SegmentPathLonLat[], forceEqual: boolean = false) {
+        if (this._renderNode && (this._renderNode as Planet).ellipsoid) {
             if (forceEqual) {
                 this._setEqualPathLonLat(pathLonLat);
                 this._changedBuffers[VERTICES_BUFFER] = true;
@@ -1954,10 +2017,11 @@ class Polyline {
     /**
      * Sets Polyline cartesian coordinates.
      * @public
-     * @param {Array.<Array.<number>>} path3v - Polyline path cartesian coordinates. (exactly 3 entries)
+     * @param {SegmentPath3v[]} path3v - Polyline path cartesian coordinates. (exactly 3 entries)
+     * @param {SegmentPathColor[]} [path3v] - Polyline path cartesian coordinates. (exactly 3 entries)
      * @param {Boolean} [forceEqual=false] - Makes assigning faster for size equal coordinates array.
      */
-    setPath3v(path3v, pathColors, forceEqual) {
+    public setPath3v(path3v: SegmentPath3v[], pathColors?: SegmentPathColor[], forceEqual: boolean = false) {
         if (pathColors) {
             this._pathColors = [].concat(pathColors);
         }
