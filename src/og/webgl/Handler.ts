@@ -38,6 +38,11 @@ const MAX_LEVELS = 2;
  */
 class Handler {
 
+    /**
+     * Events.
+     * @public
+     * @type {EventsHandler<["visibilitychange", "resize"]>}
+     */
     public events: EventsHandler<["visibilitychange", "resize"]>;
 
     /**
@@ -59,28 +64,28 @@ class Handler {
      * @public
      * @type {number}
      */
-    public deltaTime = 0;
+    public deltaTime: number;
 
     /**
      * WebGL rendering canvas element.
      * @public
-     * @type {Object}
+     * @type {HTMLCanvasElement | null}
      */
     public canvas: HTMLCanvasElement | null;
 
     /**
      * WebGL context.
      * @public
-     * @type {Object}
+     * @type {WebGLContextExt | null}
      */
     public gl: WebGLContextExt | null;
 
     /**
      * Shader program controller list.
      * @public
-     * @type {Object.<ProgramController>}
+     * @type {Record<string, ProgramController>}
      */
-    public programs: any;
+    public programs: Record<string, ProgramController>;
 
     /**
      * Current active shader program controller.
@@ -108,7 +113,7 @@ class Handler {
     /**
      * HTML Canvas target.
      * @private
-     * @type {Object}
+     * @type {string | HTMLCanvasElement | undefined}
      */
     protected _canvasTarget: string | HTMLCanvasElement | undefined;
 
@@ -123,9 +128,9 @@ class Handler {
      */
     protected _frameCallback: Function;
 
-    public transparentTexture: any | null;
+    public transparentTexture: WebGLTextureExt | null;
 
-    public defaultTexture: any | null;
+    public defaultTexture: WebGLTextureExt | null;
 
     public framebufferStack = new Stack<BaseFramebuffer>();
 
@@ -1227,10 +1232,10 @@ class Handler {
         let gl = this.gl;
 
         if (gl) {
-            gl.deleteTexture(this.transparentTexture);
+            gl.deleteTexture(this.transparentTexture as WebGLTexture);
             this.transparentTexture = null;
 
-            gl.deleteTexture(this.defaultTexture);
+            gl.deleteTexture(this.defaultTexture as WebGLTexture);
             this.defaultTexture = null;
 
             this.framebufferStack = new Stack();

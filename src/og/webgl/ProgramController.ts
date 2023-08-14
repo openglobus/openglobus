@@ -90,6 +90,7 @@ export class ProgramController {
                 this.deactivate();
             }
             this._program.delete();
+            //@ts-ignore
             p[this._program.name] = null;
             delete p[this._program.name];
         }

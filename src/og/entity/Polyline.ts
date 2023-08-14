@@ -1,14 +1,12 @@
 "use strict";
 
-import { Extent } from "../Extent";
-import { LonLat } from "../LonLat";
-import { Vec3 } from "../math/Vec3";
+import {Extent} from "../Extent";
+import {LonLat} from "../LonLat";
+import {Vec3} from "../math/Vec3";
 import {
     cloneArray, htmlColorToFloat32Array,
     htmlColorToRgba, makeArray, makeArrayTyped
 } from "../utils/shared";
-
-window.POLYLINE_DEPTH_OFFSET = 0.0;
 
 const VERTICES_BUFFER = 0;
 const INDEX_BUFFER = 1;
@@ -20,6 +18,10 @@ const R = 0;
 const G = 1;
 const B = 2;
 const A = 3;
+
+export interface IPolylineParams {
+
+}
 
 /**
  * Polyline object.
@@ -36,8 +38,7 @@ const A = 3;
  * @param {Array.<Array.<number>>} [options.pathColors] - Coordinates color. [[1,0,0,1], [0,1,0,1],...] for right and green colors.
  */
 class Polyline {
-    constructor(options) {
-        options = options || {};
+    constructor(options: IPolylineParams = {}) {
 
         /**
          * Object unic identifier.
@@ -2200,4 +2201,4 @@ class Polyline {
     }
 }
 
-export { Polyline };
+export {Polyline};
