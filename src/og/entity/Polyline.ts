@@ -8,12 +8,13 @@ import {NumberArray2} from "../math/Vec2";
 import {NumberArray4} from "../math/Vec4";
 import {Planet} from "../scene/Planet";
 import {PolylineHandler} from "./PolylineHandler";
-import {RenderNode} from "../scene";
+import {RenderNode} from "../scene/RenderNode";
 import {WebGLBufferExt} from "../webgl/Handler";
 import {
     cloneArray, htmlColorToFloat32Array,
     htmlColorToRgba, makeArray, makeArrayTyped, TypedArray
 } from "../utils/shared";
+import {Ellipsoid} from "../ellipsoid/Ellipsoid";
 
 const VERTICES_BUFFER = 0;
 const INDEX_BUFFER = 1;
@@ -26,8 +27,12 @@ const G = 1;
 const B = 2;
 const A = 3;
 
-type SegmentPath3v = Vec3[] | NumberArray3[];
-type SegmentPathLonLat = LonLat[] | NumberArray3[] | NumberArray2[];
+type Cartesian = Vec3 | NumberArray3;
+type SegmentPath3v = Cartesian[];
+
+type Geodetic = LonLat | NumberArray2 | NumberArray3
+type SegmentPathLonLat = Geodetic[];
+
 type SegmentPathColor = NumberArray4[];
 
 export interface IPolylineParams {
@@ -82,7 +87,7 @@ class Polyline {
      * @protected
      * @type {Float32Array} - (exactly 4 entries)
      */
-    protected _defaultColor: Float32Array;
+    protected _defaultColor: Float32Array | NumberArray4;
 
     /**
      * Polyline visibility.
@@ -103,7 +108,7 @@ class Polyline {
      * @private
      * @type {Array.<Vec3>}
      */
-    protected _path3v: Vec3[];
+    protected _path3v: SegmentPath3v[];
 
     protected _pathLengths: number[];
 
@@ -112,16 +117,16 @@ class Polyline {
      * @private
      * @type {Array.<LonLat>}
      */
-    protected _pathLonLat: LonLat[];
+    protected _pathLonLat: SegmentPathLonLat[];
 
     /**
      * Polyline geodetic mercator coordinates.
      * @private
      * @type {Array.<LonLat>}
      */
-    protected _pathLonLatMerc: LonLat[];
+    protected _pathLonLatMerc: LonLat[][];
 
-    protected _pathColors: NumberArray4[];
+    protected _pathColors: SegmentPathColor[];
 
     /**
      * Polyline geodetic extent.
@@ -235,34 +240,23 @@ class Polyline {
 
     /**
      * Appends to the line array new cartesian coordinates line data.
-     * @param {Array.<Array.<number>>} path3v - Line coordinates path array. [[0,0,0], [1,1,1],...]
-     * @param {Boolean} isClosed - Identificator for the closed line data creation.
-     * @param {Number[]} outVertices - Out vertices data array.
-     * @param {Number[]} outOrders - Out vertices orders data array.
-     * @param {Number[]} outIndexes - Out vertices indexes data array.
-     * @param {Ellipsoid} [ellipsoid] - Ellipsoid to coordinates transformation.
-     * @param {Array.<Array.<LonLat>>} [outTransformedPathLonLat] - Geodetic coordinates out array.
-     * @param {Array.<Array.<LonLat>>} [outPath3v] - Cartesian coordinates out array.
-     * @param {Array.<Array.<LonLat>>} [outTransformedPathMerc] - Mercator coordinates out array.
-     * @param {Extent} [outExtent] - Geodetic line extent.
-     * @param {Array} [outColors]
      * @static
      */
     static appendLineData3v(
-        path3v,
-        pathColors,
-        defaultColor,
-        isClosed,
-        outVerticesHigh,
-        outVerticesLow,
-        outOrders,
-        outIndexes,
-        ellipsoid,
-        outTransformedPathLonLat,
-        outPath3v,
-        outTransformedPathMerc,
-        outExtent,
-        outColors
+        path3v: SegmentPath3v[],
+        pathColors: SegmentPathColor[],
+        defaultColor: NumberArray4,
+        isClosed: boolean,
+        outVerticesHigh: number[],
+        outVerticesLow: number[],
+        outOrders: number[],
+        outIndexes: number[],
+        ellipsoid: Ellipsoid,
+        outTransformedPathLonLat: SegmentPathLonLat[],
+        outPath3v: SegmentPath3v[],
+        outTransformedPathMerc: LonLat[][],
+        outExtent: Extent,
+        outColors: number[]
     ) {
         var index = 0;
 
@@ -311,6 +305,10 @@ class Polyline {
                 if (p1 instanceof Array) {
                     p1 = new Vec3(p1[0], p1[1], p1[2]);
                 }
+
+                p0 = p0 as Vec3;
+                p1 = p1 as Vec3;
+
                 last = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
             }
 
@@ -320,34 +318,18 @@ class Polyline {
                 color = pathColors_j[0];
             }
 
-            Vec3.doubleToTwoFloats(last, v_high, v_low);
+            Vec3.doubleToTwoFloats(last as Vec3, v_high, v_low);
             outVerticesHigh.push(
-                v_high.x,
-                v_high.y,
-                v_high.z,
-                v_high.x,
-                v_high.y,
-                v_high.z,
-                v_high.x,
-                v_high.y,
-                v_high.z,
-                v_high.x,
-                v_high.y,
-                v_high.z
+                v_high.x, v_high.y, v_high.z,
+                v_high.x, v_high.y, v_high.z,
+                v_high.x, v_high.y, v_high.z,
+                v_high.x, v_high.y, v_high.z
             );
             outVerticesLow.push(
-                v_low.x,
-                v_low.y,
-                v_low.z,
-                v_low.x,
-                v_low.y,
-                v_low.z,
-                v_low.x,
-                v_low.y,
-                v_low.z,
-                v_low.x,
-                v_low.y,
-                v_low.z
+                v_low.x, v_low.y, v_low.z,
+                v_low.x, v_low.y, v_low.z,
+                v_low.x, v_low.y, v_low.z,
+                v_low.x, v_low.y, v_low.z
             );
 
             let r = color[R],
@@ -368,10 +350,10 @@ class Polyline {
                     cur = new Vec3(cur[0], cur[1], cur[2]);
                 }
 
-                outPath3v[j].push(cur);
+                outPath3v[j].push(cur as Vec3);
 
                 if (ellipsoid) {
-                    var lonLat = ellipsoid.cartesianToLonLat(cur);
+                    var lonLat = ellipsoid.cartesianToLonLat(cur as Vec3);
                     outTransformedPathLonLat[j].push(lonLat);
                     outTransformedPathMerc[j].push(lonLat.forwardMercator());
 
@@ -398,34 +380,18 @@ class Polyline {
                 b = color[B];
                 a = color[A] != undefined ? color[A] : 1.0;
 
-                Vec3.doubleToTwoFloats(cur, v_high, v_low);
+                Vec3.doubleToTwoFloats(cur as Vec3, v_high, v_low);
                 outVerticesHigh.push(
-                    v_high.x,
-                    v_high.y,
-                    v_high.z,
-                    v_high.x,
-                    v_high.y,
-                    v_high.z,
-                    v_high.x,
-                    v_high.y,
-                    v_high.z,
-                    v_high.x,
-                    v_high.y,
-                    v_high.z
+                    v_high.x, v_high.y, v_high.z,
+                    v_high.x, v_high.y, v_high.z,
+                    v_high.x, v_high.y, v_high.z,
+                    v_high.x, v_high.y, v_high.z
                 );
                 outVerticesLow.push(
-                    v_low.x,
-                    v_low.y,
-                    v_low.z,
-                    v_low.x,
-                    v_low.y,
-                    v_low.z,
-                    v_low.x,
-                    v_low.y,
-                    v_low.z,
-                    v_low.x,
-                    v_low.y,
-                    v_low.z
+                    v_low.x, v_low.y, v_low.z,
+                    v_low.x, v_low.y, v_low.z,
+                    v_low.x, v_low.y, v_low.z,
+                    v_low.x, v_low.y, v_low.z
                 );
 
                 outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
@@ -450,6 +416,7 @@ class Polyline {
                 if (p1 instanceof Array) {
                     p1 = new Vec3(p1[0], p1[1], p1[2]);
                 }
+                //@ts-ignore
                 first = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
                 outIndexes.push(index - 1, index - 1, index - 1, index - 1);
             }
@@ -463,34 +430,18 @@ class Polyline {
             b = color[B];
             a = color[A] != undefined ? color[A] : 1.0;
 
-            Vec3.doubleToTwoFloats(first, v_high, v_low);
+            Vec3.doubleToTwoFloats(first as Vec3, v_high, v_low);
             outVerticesHigh.push(
-                v_high.x,
-                v_high.y,
-                v_high.z,
-                v_high.x,
-                v_high.y,
-                v_high.z,
-                v_high.x,
-                v_high.y,
-                v_high.z,
-                v_high.x,
-                v_high.y,
-                v_high.z
+                v_high.x, v_high.y, v_high.z,
+                v_high.x, v_high.y, v_high.z,
+                v_high.x, v_high.y, v_high.z,
+                v_high.x, v_high.y, v_high.z
             );
             outVerticesLow.push(
-                v_low.x,
-                v_low.y,
-                v_low.z,
-                v_low.x,
-                v_low.y,
-                v_low.z,
-                v_low.x,
-                v_low.y,
-                v_low.z,
-                v_low.x,
-                v_low.y,
-                v_low.z
+                v_low.x, v_low.y, v_low.z,
+                v_low.x, v_low.y, v_low.z,
+                v_low.x, v_low.y, v_low.z,
+                v_low.x, v_low.y, v_low.z
             );
 
             outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
@@ -506,35 +457,23 @@ class Polyline {
 
     /**
      * Appends to the line new cartesian coordinates point data.
-     * @param {Array.<Array.<number>>} path3v - Line coordinates path array. [[0,0,0], [1,1,1],...]
-     * @param {Boolean} isClosed - Identificator for the closed line data creation.
-     * @param {Number[]} outVertices - Out vertices data array.
-     * @param {Number[]} outOrders - Out vertices orders data array.
-     * @param {Number[]} outIndexes - Out vertices indexes data array.
-     * @param {Ellipsoid} [ellipsoid] - Ellipsoid to coordinates transformation.
-     * @param {Array.<Array.<LonLat>>} [outTransformedPathLonLat] - Geodetic coordinates out array.
-     * @param {Array.<Array.<LonLat>>} [outPath3v] - Cartesian coordinates out array.
-     * @param {Array.<Array.<LonLat>>} [outTransformedPathMerc] - Mercator coordinates out array.
-     * @param {Extent} [outExtent] - Geodetic line extent.
      * @static
      */
-    static
-
-    appendPoint3v(
-        path3v,
-        point3v,
-        pathColors,
-        color,
-        isClosed,
-        outVerticesHigh,
-        outVerticesLow,
-        outColors,
-        outOrders,
-        outIndexes,
-        ellipsoid,
-        outTransformedPathLonLat,
-        outTransformedPathMerc,
-        outExtent
+    static appendPoint3v(
+        path3v: SegmentPath3v[],
+        point3v: Vec3,
+        pathColors: SegmentPathColor[],
+        color: NumberArray4,
+        isClosed: boolean,
+        outVerticesHigh: number[],
+        outVerticesLow: number[],
+        outColors: number[],
+        outOrders: number[],
+        outIndexes: number[],
+        ellipsoid: Ellipsoid,
+        outTransformedPathLonLat: SegmentPathLonLat[],
+        outTransformedPathMerc: LonLat[][],
+        outExtent: Extent
     ) {
         var v_high = new Vec3(),
             v_low = new Vec3();
@@ -587,10 +526,11 @@ class Polyline {
                 if (p1 instanceof Array) {
                     p1 = new Vec3(p1[0], p1[1], p1[2]);
                 }
+                //@ts-ignore
                 last = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
             }
 
-            Vec3.doubleToTwoFloats(last, v_high, v_low);
+            Vec3.doubleToTwoFloats(last as Vec3, v_high, v_low);
 
             let vi = outVerticesHigh.length - 3 * 12;
 
@@ -632,8 +572,7 @@ class Polyline {
                 outTransformedPathMerc.push([]);
             }
 
-            var transformedPathLonLat =
-                    outTransformedPathLonLat[outTransformedPathLonLat.length - 1],
+            var transformedPathLonLat = outTransformedPathLonLat[outTransformedPathLonLat.length - 1],
                 transformedPathMerc = outTransformedPathMerc[outTransformedPathMerc.length - 1];
 
             let lonLat = ellipsoid.cartesianToLonLat(point3v);
@@ -713,11 +652,11 @@ class Polyline {
         //
         var first;
         if (isClosed) {
-            first = path[0];
+            first = path[0] as Vec3;
             outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
         } else {
-            let p0 = path[path.length - 1],
-                p1 = path[path.length - 2] || p0;
+            let p0 = path[path.length - 1] as Vec3,
+                p1 = path[path.length - 2] as Vec3 || p0;
 
             first = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
             outIndexes.push(index - 1, index - 1, index - 1, index - 1);
@@ -725,32 +664,16 @@ class Polyline {
 
         Vec3.doubleToTwoFloats(first, v_high, v_low);
         outVerticesHigh.push(
-            v_high.x,
-            v_high.y,
-            v_high.z,
-            v_high.x,
-            v_high.y,
-            v_high.z,
-            v_high.x,
-            v_high.y,
-            v_high.z,
-            v_high.x,
-            v_high.y,
-            v_high.z
+            v_high.x, v_high.y, v_high.z,
+            v_high.x, v_high.y, v_high.z,
+            v_high.x, v_high.y, v_high.z,
+            v_high.x, v_high.y, v_high.z
         );
         outVerticesLow.push(
-            v_low.x,
-            v_low.y,
-            v_low.z,
-            v_low.x,
-            v_low.y,
-            v_low.z,
-            v_low.x,
-            v_low.y,
-            v_low.z,
-            v_low.x,
-            v_low.y,
-            v_low.z
+            v_low.x, v_low.y, v_low.z,
+            v_low.x, v_low.y, v_low.z,
+            v_low.x, v_low.y, v_low.z,
+            v_low.x, v_low.y, v_low.z
         );
 
         outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
@@ -760,35 +683,23 @@ class Polyline {
 
     /**
      * Appends to the line array new geodetic coordinates line data.
-     * @param {Array.<Array.<number>>} pathLonLat - Line geodetic coordinates path array. [[0,0,0], [1,1,1],...]
-     * @param {Boolean} isClosed - Identificator for the closed line data creation.
-     * @param {Number[]} outVertices - Out vertices data array.
-     * @param {Number[]} outOrders - Out vertices orders data array.
-     * @param {Number[]} outIndexes - Out indexes data array.
-     * @param {Ellipsoid} ellipsoid - Ellipsoid to coordinates transformation.
-     * @param {Array.<Array.<number>>} outTransformedPathCartesian - Cartesian coordinates out array. [[0,0,0], [1,1,1],...]
-     * @param {Array.<Array.<LonLat>>} outPathLonLat - Geographic coordinates out array.
-     * @param {Array.<Array.<LonLat>>} outTransformedPathMerc - Mercator coordinates out array.
-     * @param {Extent} outExtent - Geodetic line extent.
      * @static
      */
-    static
-
-    appendLineDataLonLat(
-        pathLonLat,
-        pathColors,
-        defaultColor,
-        isClosed,
-        outVerticesHigh,
-        outVerticesLow,
-        outOrders,
-        outIndexes,
-        ellipsoid,
-        outTransformedPathCartesian,
-        outPathLonLat,
-        outTransformedPathMerc,
-        outExtent,
-        outColors
+    static appendLineDataLonLat(
+        pathLonLat: SegmentPathLonLat[],
+        pathColors: SegmentPathColor[],
+        defaultColor: NumberArray4,
+        isClosed: boolean,
+        outVerticesHigh: number[],
+        outVerticesLow: number[],
+        outOrders: number[],
+        outIndexes: number[],
+        ellipsoid: Ellipsoid,
+        outTransformedPathCartesian: SegmentPath3v[],
+        outPathLonLat: SegmentPathLonLat[],
+        outTransformedPathMerc: LonLat[][],
+        outExtent: Extent,
+        outColors: number[]
     ) {
         var index = 0;
 
@@ -828,7 +739,7 @@ class Polyline {
                 if (pp instanceof Array) {
                     last = ellipsoid.lonLatToCartesian(new LonLat(pp[0], pp[1], pp[2]));
                 } else {
-                    last = ellipsoid.lonLatToCartesian(pp);
+                    last = ellipsoid.lonLatToCartesian(pp as LonLat);
                 }
             } else {
                 let p0, p1;
@@ -836,7 +747,7 @@ class Polyline {
                 if (pp instanceof Array) {
                     p0 = ellipsoid.lonLatToCartesian(new LonLat(pp[0], pp[1], pp[2]));
                 } else {
-                    p0 = ellipsoid.lonLatToCartesian(pp);
+                    p0 = ellipsoid.lonLatToCartesian(pp as LonLat);
                 }
 
                 pp = path[1];
@@ -848,7 +759,7 @@ class Polyline {
                 if (pp instanceof Array) {
                     p1 = ellipsoid.lonLatToCartesian(new LonLat(pp[0], pp[1], pp[2]));
                 } else {
-                    p1 = ellipsoid.lonLatToCartesian(pp);
+                    p1 = ellipsoid.lonLatToCartesian(pp as LonLat);
                 }
 
                 last = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
@@ -862,32 +773,16 @@ class Polyline {
 
             Vec3.doubleToTwoFloats(last, v_high, v_low);
             outVerticesHigh.push(
-                v_high.x,
-                v_high.y,
-                v_high.z,
-                v_high.x,
-                v_high.y,
-                v_high.z,
-                v_high.x,
-                v_high.y,
-                v_high.z,
-                v_high.x,
-                v_high.y,
-                v_high.z
+                v_high.x, v_high.y, v_high.z,
+                v_high.x, v_high.y, v_high.z,
+                v_high.x, v_high.y, v_high.z,
+                v_high.x, v_high.y, v_high.z
             );
             outVerticesLow.push(
-                v_low.x,
-                v_low.y,
-                v_low.z,
-                v_low.x,
-                v_low.y,
-                v_low.z,
-                v_low.x,
-                v_low.y,
-                v_low.z,
-                v_low.x,
-                v_low.y,
-                v_low.z
+                v_low.x, v_low.y, v_low.z,
+                v_low.x, v_low.y, v_low.z,
+                v_low.x, v_low.y, v_low.z,
+                v_low.x, v_low.y, v_low.z
             );
 
             let r = color[R],
@@ -917,39 +812,23 @@ class Polyline {
                 b = color[B];
                 a = color[A] != undefined ? color[A] : 1.0;
 
-                var cartesian = ellipsoid.lonLatToCartesian(cur);
+                var cartesian = ellipsoid.lonLatToCartesian(cur as LonLat);
                 outTransformedPathCartesian[j].push(cartesian);
-                outPathLonLat[j].push(cur);
-                outTransformedPathMerc[j].push(cur.forwardMercator());
+                outPathLonLat[j].push(cur as LonLat);
+                outTransformedPathMerc[j].push((cur as LonLat).forwardMercator());
 
                 Vec3.doubleToTwoFloats(cartesian, v_high, v_low);
                 outVerticesHigh.push(
-                    v_high.x,
-                    v_high.y,
-                    v_high.z,
-                    v_high.x,
-                    v_high.y,
-                    v_high.z,
-                    v_high.x,
-                    v_high.y,
-                    v_high.z,
-                    v_high.x,
-                    v_high.y,
-                    v_high.z
+                    v_high.x, v_high.y, v_high.z,
+                    v_high.x, v_high.y, v_high.z,
+                    v_high.x, v_high.y, v_high.z,
+                    v_high.x, v_high.y, v_high.z
                 );
                 outVerticesLow.push(
-                    v_low.x,
-                    v_low.y,
-                    v_low.z,
-                    v_low.x,
-                    v_low.y,
-                    v_low.z,
-                    v_low.x,
-                    v_low.y,
-                    v_low.z,
-                    v_low.x,
-                    v_low.y,
-                    v_low.z
+                    v_low.x, v_low.y, v_low.z,
+                    v_low.x, v_low.y, v_low.z,
+                    v_low.x, v_low.y, v_low.z,
+                    v_low.x, v_low.y, v_low.z
                 );
 
                 outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
@@ -957,17 +836,17 @@ class Polyline {
                 outOrders.push(1, -1, 2, -2);
                 outIndexes.push(index++, index++, index++, index++);
 
-                if (cur.lon < outExtent.southWest.lon) {
-                    outExtent.southWest.lon = cur.lon;
+                if ((cur as LonLat).lon < outExtent.southWest.lon) {
+                    outExtent.southWest.lon = (cur as LonLat).lon;
                 }
-                if (cur.lat < outExtent.southWest.lat) {
-                    outExtent.southWest.lat = cur.lat;
+                if ((cur as LonLat).lat < outExtent.southWest.lat) {
+                    outExtent.southWest.lat = (cur as LonLat).lat;
                 }
-                if (cur.lon > outExtent.northEast.lon) {
-                    outExtent.northEast.lon = cur.lon;
+                if ((cur as LonLat).lon > outExtent.northEast.lon) {
+                    outExtent.northEast.lon = (cur as LonLat).lon;
                 }
-                if (cur.lat > outExtent.northEast.lat) {
-                    outExtent.northEast.lat = cur.lat;
+                if ((cur as LonLat).lat > outExtent.northEast.lat) {
+                    outExtent.northEast.lat = (cur as LonLat).lat;
                 }
             }
 
@@ -977,7 +856,7 @@ class Polyline {
                 if (pp instanceof Array) {
                     first = ellipsoid.lonLatToCartesian(new LonLat(pp[0], pp[1], pp[2]));
                 } else {
-                    first = ellipsoid.lonLatToCartesian(pp);
+                    first = ellipsoid.lonLatToCartesian(pp as LonLat);
                 }
                 outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
             } else {
@@ -986,7 +865,7 @@ class Polyline {
                 if (pp instanceof Array) {
                     p0 = ellipsoid.lonLatToCartesian(new LonLat(pp[0], pp[1], pp[2]));
                 } else {
-                    p0 = ellipsoid.lonLatToCartesian(pp);
+                    p0 = ellipsoid.lonLatToCartesian(pp as LonLat);
                 }
 
                 pp = path[path.length - 2];
@@ -998,7 +877,7 @@ class Polyline {
                 if (pp instanceof Array) {
                     p1 = ellipsoid.lonLatToCartesian(new LonLat(pp[0], pp[1], pp[2]));
                 } else {
-                    p1 = ellipsoid.lonLatToCartesian(pp);
+                    p1 = ellipsoid.lonLatToCartesian(pp as LonLat);
                 }
                 first = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
                 outIndexes.push(index - 1, index - 1, index - 1, index - 1);
@@ -1015,32 +894,16 @@ class Polyline {
 
             Vec3.doubleToTwoFloats(first, v_high, v_low);
             outVerticesHigh.push(
-                v_high.x,
-                v_high.y,
-                v_high.z,
-                v_high.x,
-                v_high.y,
-                v_high.z,
-                v_high.x,
-                v_high.y,
-                v_high.z,
-                v_high.x,
-                v_high.y,
-                v_high.z
+                v_high.x, v_high.y, v_high.z,
+                v_high.x, v_high.y, v_high.z,
+                v_high.x, v_high.y, v_high.z,
+                v_high.x, v_high.y, v_high.z
             );
             outVerticesLow.push(
-                v_low.x,
-                v_low.y,
-                v_low.z,
-                v_low.x,
-                v_low.y,
-                v_low.z,
-                v_low.x,
-                v_low.y,
-                v_low.z,
-                v_low.x,
-                v_low.y,
-                v_low.z
+                v_low.x, v_low.y, v_low.z,
+                v_low.x, v_low.y, v_low.z,
+                v_low.x, v_low.y, v_low.z,
+                v_low.x, v_low.y, v_low.z
             );
 
             outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
@@ -1057,9 +920,9 @@ class Polyline {
     /**
      * Sets polyline path with cartesian coordinates.
      * @protected
-     * @param {pg.math.Vector3[]} path3v - Cartesian coordinates.
+     * @param {SegmentPath3v[]} path3v - Cartesian coordinates.
      */
-    _setEqualPath3v(path3v) {
+    protected _setEqualPath3v(path3v: SegmentPath3v[]) {
         var extent = this._extent;
         extent.southWest.set(180, 90);
         extent.northEast.set(-180, -90);
@@ -1073,10 +936,10 @@ class Polyline {
             m = this._pathLonLatMerc,
             k = 0;
 
-        var ellipsoid = this._renderNode.ellipsoid;
+        var ellipsoid = (this._renderNode as Planet).ellipsoid;
 
         for (let j = 0; j < path3v.length; j++) {
-            var path = path3v[j];
+            var path = path3v[j] as Vec3[];
 
             var last;
             if (this._closedLine) {
@@ -1117,8 +980,8 @@ class Polyline {
             vl[k++] = v_low.z;
 
             for (let i = 0; i < path.length; i++) {
-                var cur = path[i],
-                    pji = this._path3v[j][i];
+                var cur = path[i] as Vec3,
+                    pji = this._path3v[j][i] as Vec3;
 
                 pji.x = cur.x;
                 pji.y = cur.y;
@@ -1186,7 +1049,7 @@ class Polyline {
                 );
             }
 
-            Vec3.doubleToTwoFloats(first, v_high, v_low);
+            Vec3.doubleToTwoFloats(first as Vec3, v_high, v_low);
 
             vh[k] = v_high.x;
             vl[k++] = v_low.x;
@@ -1218,9 +1081,9 @@ class Polyline {
     /**
      * Sets polyline with geodetic coordinates.
      * @protected
-     * @param {LonLat[]} pathLonLat - Geodetic polyline path coordinates.
+     * @param {SegmentPathLonLat[]} pathLonLat - Geodetic polyline path coordinates.
      */
-    _setEqualPathLonLat(pathLonLat) {
+    protected _setEqualPathLonLat(pathLonLat: SegmentPathLonLat[]) {
         var extent = this._extent;
         extent.southWest.set(180.0, 90.0);
         extent.northEast.set(-180.0, -90.0);
@@ -1235,7 +1098,7 @@ class Polyline {
             c = this._path3v,
             k = 0;
 
-        var ellipsoid = this._renderNode.ellipsoid;
+        var ellipsoid = (this._renderNode as Planet).ellipsoid;
 
         for (let j = 0; j < pathLonLat.length; j++) {
             var path = pathLonLat[j];
@@ -1277,7 +1140,7 @@ class Polyline {
             vl[k++] = v_low.z;
 
             for (let i = 0; i < path.length; i++) {
-                var cur = path[i];
+                var cur = path[i] as LonLat;
                 var cartesian = ellipsoid.lonLatToCartesian(cur);
                 c[j][i] = cartesian;
                 m[j][i] = cur.forwardMercator();
@@ -1362,8 +1225,8 @@ class Polyline {
         }
     }
 
-    setPointLonLat(lonlat, index, segmentIndex) {
-        if (this._renderNode && this._renderNode.ellipsoid) {
+    public setPointLonLat(lonlat: LonLat, index: number, segmentIndex: number) {
+        if (this._renderNode && (this._renderNode as Planet).ellipsoid) {
             let l = this._pathLonLat,
                 m = this._pathLonLatMerc;
 
@@ -1377,7 +1240,7 @@ class Polyline {
             extent.southWest.set(180.0, 90.0);
             extent.northEast.set(-180.0, -90.0);
             for (let i = 0; i < l.length; i++) {
-                var pi = l[i];
+                var pi = l[i] as LonLat[];
                 for (let j = 0; j < pi.length; j++) {
                     var lon = pi[j].lon,
                         lat = pi[j].lat;
@@ -1397,20 +1260,27 @@ class Polyline {
             }
 
             this.setPoint3v(
-                this._renderNode.ellipsoid.lonLatToCartesian(lonlat),
+                (this._renderNode as Planet).ellipsoid.lonLatToCartesian(lonlat),
                 index,
                 segmentIndex,
                 true
             );
         } else {
-            let path = this._pathLonLat[segmentIndex];
+            let path = this._pathLonLat[segmentIndex] as LonLat[];
             path[index].lon = lonlat.lon;
             path[index].lat = lonlat.lat;
             path[index].height = lonlat.height;
         }
     }
 
-    setPoint3v(coordinates, index = 0, segmentIndex = 0, skipLonLat = false) {
+    /**
+     * Changes cartesian point coordinates of the path
+     * @param {Vec3} coordinates - New coordinates
+     * @param {number} [index=0] - Path segment index
+     * @param {number} s[egmentIndex=0] - Index of the point in the path segment
+     * @param {boolean} [skipLonLat=false] - Do not update geotetic coordinates
+     */
+    public setPoint3v(coordinates: Vec3, index: number = 0, segmentIndex: number = 0, skipLonLat: boolean = false) {
 
         if (this._renderNode) {
             var v_high = new Vec3(),
@@ -1428,7 +1298,7 @@ class Polyline {
             //}
             kk = this._pathLengths[segmentIndex] * 12 + 24 * segmentIndex;
 
-            let path = this._path3v[segmentIndex];
+            let path = this._path3v[segmentIndex] as Vec3[];
 
             path[index].x = coordinates.x;
             path[index].y = coordinates.y;
@@ -1479,8 +1349,8 @@ class Polyline {
                 vl[k + 11] = v_low.z;
             }
 
-            if (!skipLonLat && this._renderNode.ellipsoid) {
-                var lonLat = this._renderNode.ellipsoid.cartesianToLonLat(coordinates);
+            if (!skipLonLat && (this._renderNode as Planet).ellipsoid) {
+                var lonLat = (this._renderNode as Planet).ellipsoid.cartesianToLonLat(coordinates);
                 l[segmentIndex][index] = lonLat;
                 m[segmentIndex][index] = lonLat.forwardMercator();
 
@@ -1491,7 +1361,7 @@ class Polyline {
                 extent.southWest.set(180.0, 90.0);
                 extent.northEast.set(-180.0, -90.0);
                 for (let i = 0; i < l.length; i++) {
-                    var pi = l[i];
+                    var pi = l[i] as LonLat[];
                     for (let j = 0; j < pi.length; j++) {
                         var lon = pi[j].lon,
                             lat = pi[j].lat;
@@ -1587,38 +1457,54 @@ class Polyline {
 
             this._changedBuffers[VERTICES_BUFFER] = true;
         } else {
-            let path = this._path3v[segmentIndex];
+            let path = this._path3v[segmentIndex] as Vec3[];
             path[index].x = coordinates.x;
             path[index].y = coordinates.y;
             path[index].z = coordinates.z;
         }
     }
 
-    _resizePathLengths(index = 0) {
+    protected _resizePathLengths(index: number = 0) {
         this._pathLengths[0] = 0;
         for (let i = index + 1, len = this._path3v.length; i <= len; i++) {
             this._pathLengths[i] = this._pathLengths[i - 1] + this._path3v[i - 1].length;
         }
     }
 
-    removeSegment(index) {
+    /**
+     * Remove path segment
+     * @param {number} index - Path segment index
+     */
+    public removeSegment(index: number) {
         this._path3v.splice(index, 1);
-        this.setPath3v([].concat(this._path3v));
+        this.setPath3v(([] as SegmentPath3v[]).concat(this._path3v));
     }
 
-    removePoint(index, multiLineIndex = 0) {
+    /**
+     * Remove point from the path
+     * @param {number} index - Point index in a path segment
+     * @param {number} [multiLineIndex=0] - Segment path index
+     */
+    public removePoint(index: number, multiLineIndex: number = 0) {
         this._path3v[multiLineIndex].splice(index, 1);
         if (this._path3v[multiLineIndex].length === 0) {
             this._path3v.splice(multiLineIndex, 1);
         }
-        this.setPath3v([].concat(this._path3v));
+        this.setPath3v(([] as SegmentPath3v[]).concat(this._path3v));
     }
 
-    insertPoint3v(point3v, index = 0, color, multilineIndex = 0) {
-        let p = [].concat(this._path3v),
+    /**
+     * Insert point coordinates in a path segment
+     * @param {Vec3} point3v - Point coordinates
+     * @param {number} [index=0] - Index in the path
+     * @param {NumberArray4} [color] - Point color
+     * @param {number} [multilineIndex=0] - Path segment index
+     */
+    public insertPoint3v(point3v: Vec3, index: number = 0, color?: NumberArray4, multilineIndex: number = 0) {
+        let p = ([] as SegmentPath3v[]).concat(this._path3v),
             pp = p[multilineIndex];
         if (pp) {
-            let c = [].concat(this._pathColors);
+            let c = ([] as SegmentPathColor[]).concat(this._pathColors);
 
             pp.splice(index, 0, point3v);
 
@@ -1639,11 +1525,11 @@ class Polyline {
     /**
      * Adds a new cartesian point in the end of the path in a last line segment.
      * @public
-     * @param {Vec3} point3v - New coordinate.
+     * @param {Vec3} point3v - New coordinates.
      */
-    appendPoint3v(point3v, color, skipEllipsoid) {
+    public appendPoint3v(point3v: Vec3, color?: NumberArray4, skipEllipsoid?: boolean) {
         if (this._path3v.length === 0) {
-            this._pathColors.push([color || this._defaultColor]);
+            this._pathColors.push([color || this._defaultColor as NumberArray4]);
             this.addPoint3v(point3v);
         } else {
             //
@@ -1659,14 +1545,14 @@ class Polyline {
                 this._path3v,
                 point3v,
                 this._pathColors,
-                color || this._defaultColor,
+                color || this._defaultColor as NumberArray4,
                 this._closedLine,
                 this._verticesHigh,
                 this._verticesLow,
                 this._colors,
                 this._orders,
                 this._indexes,
-                !skipEllipsoid && this._renderNode.ellipsoid,
+                !skipEllipsoid && (this._renderNode as Planet).ellipsoid,
                 this._pathLonLat,
                 this._pathLonLatMerc,
                 this._extent
@@ -1681,12 +1567,12 @@ class Polyline {
     }
 
     /**
-     * Adds a new cartesian point in the end of the path.
+     * Append new point in the end of the path.
      * @public
-     * @param {Vec3} point3v - New coordinate.
-     * @param {number} [multiLineIndex=0] - Path part index, first by default.
+     * @param {Vec3} point3v - New point coordinates.
+     * @param {number} [multiLineIndex=0] - Path segment index, first by default.
      */
-    addPoint3v(point3v, multiLineIndex = 0) {
+    public addPoint3v(point3v: Vec3, multiLineIndex: number = 0) {
         //
         // TODO: could be optimized
         //
@@ -1694,16 +1580,16 @@ class Polyline {
             this._path3v.push([]);
         }
         this._path3v[multiLineIndex].push(point3v);
-        this.setPath3v([].concat(this._path3v));
+        this.setPath3v(([] as SegmentPath3v[]).concat(this._path3v));
     }
 
     /**
-     * Adds a new geodetic point in the end of the path.
+     * Append new geodetic point in the end of the path.
      * @public
      * @param {LonLat} lonLat - New coordinate.
-     * @param {number} [multiLineIndex=0] - Path part index, first by default.
+     * @param {number} [multiLineIndex=0] - Path segment index, first by default.
      */
-    addPointLonLat(lonLat, multiLineIndex = 0) {
+    public addPointLonLat(lonLat: LonLat, multiLineIndex: number = 0) {
         //
         // TODO: could be optimized
         //
@@ -1711,18 +1597,24 @@ class Polyline {
             this._pathLonLat.push([]);
         }
         this._pathLonLat[multiLineIndex].push(lonLat);
-        this.setPathLonLat([].concat(this._pathLonLat));
+        this.setPathLonLat(([] as SegmentPathLonLat[]).concat(this._pathLonLat));
     }
 
     /**
-     * Clear Polyline object data.
+     * Clear polyline data.
      * @public
      */
-    clear() {
+    public clear() {
         this._clearData();
     }
 
-    setPointColor(color, index = 0, segmentIndex = 0) {
+    /**
+     * Change path point color
+     * @param {NumberArray4} color - New color
+     * @param {number} [index=0] - Point index
+     * @param {number} [segmentIndex=0] - Path segment index
+     */
+    public setPointColor(color: NumberArray4, index: number = 0, segmentIndex: number = 0) {
         if (this._renderNode && index < this._path3v[segmentIndex].length) {
             let colors = this._pathColors[segmentIndex];
 
@@ -1765,11 +1657,11 @@ class Polyline {
     }
 
     /**
-     * Sets Polyline opacity.
+     * Sets polyline opacity.
      * @public
      * @param {number} opacity - Opacity.
      */
-    setOpacity(opacity) {
+    public setOpacity(opacity: number) {
         this._opacity = opacity;
     }
 
@@ -1778,7 +1670,7 @@ class Polyline {
      * @public
      * @param {number} thickness - Thickness.
      */
-    setThickness(thickness) {
+    public setThickness(thickness: number) {
         this.thickness = thickness;
     }
 
@@ -1787,7 +1679,7 @@ class Polyline {
      * @public
      * @return {number} Thickness in screen pixels.
      */
-    getThickness() {
+    public getThickness(): number {
         return this.thickness;
     }
 
@@ -1796,7 +1688,7 @@ class Polyline {
      * @public
      * @param {boolean} visibility - Polyline visibility.
      */
-    setVisibility(visibility) {
+    public setVisibility(visibility: boolean) {
         this.visibility = visibility;
     }
 
@@ -1805,7 +1697,7 @@ class Polyline {
      * @public
      * @return {boolean} Polyline visibility.
      */
-    getVisibility() {
+    public getVisibility(): boolean {
         return this.visibility;
     }
 
@@ -1814,29 +1706,31 @@ class Polyline {
      * @public
      * @param {RenderNode} renderNode -
      */
-    setRenderNode(renderNode) {
+    public setRenderNode(renderNode: RenderNode) {
         if (renderNode) {
             this._renderNode = renderNode;
             if (this._pathLonLat.length) {
-                this._createDataLonLat([].concat(this._pathLonLat));
+                this._createDataLonLat(([] as SegmentPathLonLat[]).concat(this._pathLonLat));
             } else {
-                this._createData3v([].concat(this._path3v));
+                this._createData3v(([] as SegmentPath3v[]).concat(this._path3v));
             }
             this._refresh();
-            if (renderNode.renderer.isInitialized()) {
+            if (renderNode.renderer && renderNode.renderer.isInitialized()) {
                 this._update();
             }
         }
     }
 
-    /**
-     * @protected
-     */
-    _clearData() {
+    protected _clearData() {
+        //@ts-ignore
         this._verticesHigh = null;
+        //@ts-ignore
         this._verticesLow = null;
+        //@ts-ignore
         this._orders = null;
+        //@ts-ignore
         this._indexes = null;
+        //@ts-ignore
         this._colors = null;
 
         this._verticesHigh = [];
@@ -1854,44 +1748,44 @@ class Polyline {
         this._pathLonLatMerc = [];
     }
 
-    _createData3v(path3v) {
+    protected _createData3v(path3v: SegmentPath3v[]) {
         this._clearData();
         Polyline.appendLineData3v(
             path3v,
             this._pathColors,
-            this._defaultColor,
+            this._defaultColor as NumberArray4,
             this._closedLine,
-            this._verticesHigh,
-            this._verticesLow,
-            this._orders,
-            this._indexes,
-            this._renderNode.ellipsoid,
+            this._verticesHigh as number[],
+            this._verticesLow as number[],
+            this._orders as number[],
+            this._indexes as number[],
+            (this._renderNode as Planet).ellipsoid,
             this._pathLonLat,
             this._path3v,
             this._pathLonLatMerc,
             this._extent,
-            this._colors
+            this._colors as number[]
         );
         this._resizePathLengths(0);
     }
 
-    _createDataLonLat(pathLonlat) {
+    protected _createDataLonLat(pathLonlat: SegmentPathLonLat[]) {
         this._clearData();
         Polyline.appendLineDataLonLat(
             pathLonlat,
             this._pathColors,
-            this._defaultColor,
+            this._defaultColor as NumberArray4,
             this._closedLine,
-            this._verticesHigh,
-            this._verticesLow,
-            this._orders,
-            this._indexes,
-            this._renderNode.ellipsoid,
+            this._verticesHigh as number[],
+            this._verticesLow as number[],
+            this._orders as number[],
+            this._indexes as number[],
+            (this._renderNode as Planet).ellipsoid,
             this._path3v,
             this._pathLonLat,
             this._pathLonLatMerc,
             this._extent,
-            this._colors
+            this._colors as number[]
         );
         this._resizePathLengths(0);
     }
@@ -1900,16 +1794,21 @@ class Polyline {
      * Removes from an entity.
      * @public
      */
-    remove() {
+    public remove() {
         this._entity = null;
 
         this._pathColors.length = 0;
         this._pathColors = [];
 
+        //@ts-ignore
         this._verticesHigh = null;
+        //@ts-ignore
         this._verticesLow = null;
+        //@ts-ignore
         this._orders = null;
+        //@ts-ignore
         this._indexes = null;
+        //@ts-ignore
         this._colors = null;
 
         this._verticesHigh = [];
@@ -1923,7 +1822,7 @@ class Polyline {
         this._handler && this._handler.remove(this);
     }
 
-    setPickingColor3v(color) {
+    public setPickingColor3v(color: Vec3) {
         this._pickingColor[0] = color.x / 255.0;
         this._pickingColor[1] = color.y / 255.0;
         this._pickingColor[2] = color.z / 255.0;
@@ -1934,37 +1833,47 @@ class Polyline {
      * @public
      * @returns {Extent} - Geodetic extent
      */
-    getExtent() {
+    public getExtent(): Extent {
         return this._extent.clone();
     }
 
     /**
      * Returns path cartesian coordinates.
-     * @return {Array.<Vec3>} Polyline path.
+     * @return {SegmentPath3v[]} Polyline path.
      */
-    getPath3v() {
+    public getPath3v(): SegmentPath3v[] {
         return this._path3v;
     }
 
     /**
      * Returns geodetic path coordinates.
-     * @return {Array.<LonLat>} Polyline path.
+     * @return {SegmentPathLonLat[]} Polyline path.
      */
-    getPathLonLat() {
+    public getPathLonLat(): SegmentPathLonLat[] {
         return this._pathLonLat;
     }
 
-    getPathColors() {
+    public getPathColors(): NumberArray4[][] {
         return this._pathColors;
     }
 
-    setPathColors(pathColors) {
+    /**
+     * @todo
+     * @param {NumberArray4[][]} pathColors
+     */
+    setPathColors(pathColors: NumberArray4[][]) {
         if (this._renderNode) {
+            //
             // ...
+            //
         }
     }
 
-    setColorHTML(htmlColor) {
+    /**
+     * Sets polyline color
+     * @param {string} htmlColor- HTML color
+     */
+    public setColorHTML(htmlColor: string) {
         this._defaultColor = htmlColorToFloat32Array(htmlColor);
 
         let color = htmlColorToRgba(htmlColor),
@@ -1992,12 +1901,12 @@ class Polyline {
     }
 
     /**
-     * Sets geodetic coordinates.
+     * Sets polyline geodetic coordinates.
      * @public
-     * @param {Array.<Array.<number>>} pathLonLat - Polyline path cartesian coordinates. (exactly 3 entries)
-     * @param {Boolean} [forceEqual=false] - Makes assigning faster for size equal coordinates array.
+     * @param {SegmentPathLonLat[]} pathLonLat - Polyline path cartesian coordinates.
+     * @param {Boolean} [forceEqual=false] - OPTIMIZATION FLAG: Makes assigning faster for size equal coordinates array.
      */
-    setPathLonLat(pathLonLat: SegmentPathLonLat[], forceEqual: boolean = false) {
+    public setPathLonLat(pathLonLat: SegmentPathLonLat[], forceEqual: boolean = false) {
         if (this._renderNode && (this._renderNode as Planet).ellipsoid) {
             if (forceEqual) {
                 this._setEqualPathLonLat(pathLonLat);
@@ -2010,7 +1919,7 @@ class Polyline {
                 this._changedBuffers[COLORS_BUFFER] = true;
             }
         } else {
-            this._pathLonLat = [].concat(pathLonLat);
+            this._pathLonLat = ([] as SegmentPathLonLat[]).concat(pathLonLat);
         }
     }
 
@@ -2023,7 +1932,7 @@ class Polyline {
      */
     public setPath3v(path3v: SegmentPath3v[], pathColors?: SegmentPathColor[], forceEqual: boolean = false) {
         if (pathColors) {
-            this._pathColors = [].concat(pathColors);
+            this._pathColors = ([] as SegmentPathColor[]).concat(pathColors);
         }
 
         if (this._renderNode) {
@@ -2038,77 +1947,76 @@ class Polyline {
                 this._changedBuffers[COLORS_BUFFER] = true;
             }
         } else {
-            this._path3v = [].concat(path3v);
+            this._path3v = ([] as SegmentPath3v[]).concat(path3v);
         }
     }
 
-    draw() {
+    public draw() {
         if (this.visibility && this._path3v.length) {
             this._update();
 
-            var rn = this._renderNode;
-            var r = rn.renderer;
-            var sh = r.handler.programs.polyline_screen;
-            var p = sh._program;
-            var gl = r.handler.gl,
+            let rn = this._renderNode!;
+            let r = rn.renderer!;
+            let sh = r.handler.programs.polyline_screen;
+            let p = sh._program;
+            let gl = r.handler.gl!,
                 sha = p.attributes,
-                shu = p.uniforms,
-                ec = this._handler._entityCollection;
+                shu = p.uniforms;
+            //@ts-ignore
+            let ec = this._handler._entityCollection;
 
             sh.activate();
 
             gl.disable(gl.CULL_FACE);
 
-            gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits + window.POLYLINE_DEPTH_OFFSET);
+            gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
 
-            gl.uniformMatrix4fv(shu.proj, false, r.activeCamera.getProjectionMatrix());
-            gl.uniformMatrix4fv(shu.view, false, r.activeCamera.getViewMatrix());
+            gl.uniformMatrix4fv(shu.proj, false, r.activeCamera!.getProjectionMatrix());
+            gl.uniformMatrix4fv(shu.view, false, r.activeCamera!.getViewMatrix());
 
             // gl.uniform4fv(shu.color, [this.color.x, this.color.y, this.color.z, this.color.w * this._handler._entityCollection._fadingOpacity]);
 
-            gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
-            gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
+            gl.uniform3fv(shu.eyePositionHigh, r.activeCamera!.eyeHigh);
+            gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
 
-            gl.uniform2fv(shu.uFloatParams, [
-                rn._planetRadius2 || 0.0,
-                r.activeCamera._tanViewAngle_hradOneByHeight
-            ]);
-            gl.uniform2fv(shu.viewport, [r.handler.canvas.width, r.handler.canvas.height]);
+            //@ts-ignore
+            gl.uniform2fv(shu.uFloatParams, [(rn as Planet)._planetRadius2 || 0.0, r.activeCamera!._tanViewAngle_hradOneByHeight]);
+            gl.uniform2fv(shu.viewport, [r.handler.canvas!.width, r.handler.canvas!.height]);
             gl.uniform1f(shu.thickness, this.thickness * 0.5);
             gl.uniform1f(shu.opacity, this._opacity * ec._fadingOpacity);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._colorsBuffer);
-            gl.vertexAttribPointer(sha.color, this._colorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._colorsBuffer as WebGLBuffer);
+            gl.vertexAttribPointer(sha.color, this._colorsBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            var v = this._verticesHighBuffer;
+            let v = this._verticesHighBuffer!;
             gl.bindBuffer(gl.ARRAY_BUFFER, v);
             gl.vertexAttribPointer(sha.prevHigh, v.itemSize, gl.FLOAT, false, 12, 0);
             gl.vertexAttribPointer(sha.currentHigh, v.itemSize, gl.FLOAT, false, 12, 48);
             gl.vertexAttribPointer(sha.nextHigh, v.itemSize, gl.FLOAT, false, 12, 96);
 
-            v = this._verticesLowBuffer;
+            v = this._verticesLowBuffer!;
             gl.bindBuffer(gl.ARRAY_BUFFER, v);
             gl.vertexAttribPointer(sha.prevLow, v.itemSize, gl.FLOAT, false, 12, 0);
             gl.vertexAttribPointer(sha.currentLow, v.itemSize, gl.FLOAT, false, 12, 48);
             gl.vertexAttribPointer(sha.nextLow, v.itemSize, gl.FLOAT, false, 12, 96);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._ordersBuffer);
-            gl.vertexAttribPointer(sha.order, this._ordersBuffer.itemSize, gl.FLOAT, false, 4, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._ordersBuffer as WebGLBuffer);
+            gl.vertexAttribPointer(sha.order, this._ordersBuffer!.itemSize, gl.FLOAT, false, 4, 0);
 
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer);
-            gl.drawElements(gl.TRIANGLE_STRIP, this._indexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer as WebGLBuffer);
+            gl.drawElements(gl.TRIANGLE_STRIP, this._indexesBuffer!.numItems, gl.UNSIGNED_INT, 0);
 
             gl.enable(gl.CULL_FACE);
         }
     }
 
-    drawPicking() {
+    public drawPicking() {
         if (this.visibility && this._path3v.length) {
-            var rn = this._renderNode;
-            var r = rn.renderer;
-            var sh = r.handler.programs.polyline_picking;
-            var p = sh._program;
-            var gl = r.handler.gl,
+            let rn = this._renderNode!;
+            let r = rn.renderer!;
+            let sh = r.handler.programs.polyline_picking;
+            let p = sh._program;
+            let gl = r.handler.gl!,
                 sha = p.attributes,
                 shu = p.uniforms;
 
@@ -2116,10 +2024,11 @@ class Polyline {
 
             gl.disable(gl.CULL_FACE);
 
-            gl.uniform1f(shu.depthOffset, this._handler._entityCollection.polygonOffsetUnits + window.POLYLINE_DEPTH_OFFSET);
+            //@ts-ignore
+            gl.uniform1f(shu.depthOffset, this._handler!._entityCollection.polygonOffsetUnits);
 
-            gl.uniformMatrix4fv(shu.proj, false, r.activeCamera.getProjectionMatrix());
-            gl.uniformMatrix4fv(shu.view, false, r.activeCamera.getViewMatrix());
+            gl.uniformMatrix4fv(shu.proj, false, r.activeCamera!.getProjectionMatrix());
+            gl.uniformMatrix4fv(shu.view, false, r.activeCamera!.getViewMatrix());
 
             gl.uniform4fv(shu.color, [
                 this._pickingColor[0],
@@ -2128,33 +2037,32 @@ class Polyline {
                 1.0
             ]);
 
-            gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
-            gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
+            gl.uniform3fv(shu.eyePositionHigh, r.activeCamera!.eyeHigh);
+            gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
 
-            gl.uniform2fv(shu.uFloatParams, [
-                rn._planetRadius2 || 0.0,
-                r.activeCamera._tanViewAngle_hradOneByHeight
-            ]);
-            gl.uniform2fv(shu.viewport, [r.handler.canvas.width, r.handler.canvas.height]);
+            //@ts-ignore
+            gl.uniform2fv(shu.uFloatParams, [rn._planetRadius2 || 0.0, r.activeCamera._tanViewAngle_hradOneByHeight]);
+            //@todo: replace to the handler property
+            gl.uniform2fv(shu.viewport, [r.handler.canvas!.width, r.handler.canvas!.height]);
             gl.uniform1f(shu.thickness, this.thickness * 0.5);
 
-            var v = this._verticesHighBuffer;
+            let v = this._verticesHighBuffer!;
             gl.bindBuffer(gl.ARRAY_BUFFER, v);
             gl.vertexAttribPointer(sha.prevHigh, v.itemSize, gl.FLOAT, false, 12, 0);
             gl.vertexAttribPointer(sha.currentHigh, v.itemSize, gl.FLOAT, false, 12, 48);
             gl.vertexAttribPointer(sha.nextHigh, v.itemSize, gl.FLOAT, false, 12, 96);
 
-            v = this._verticesLowBuffer;
+            v = this._verticesLowBuffer!;
             gl.bindBuffer(gl.ARRAY_BUFFER, v);
             gl.vertexAttribPointer(sha.prevLow, v.itemSize, gl.FLOAT, false, 12, 0);
             gl.vertexAttribPointer(sha.currentLow, v.itemSize, gl.FLOAT, false, 12, 48);
             gl.vertexAttribPointer(sha.nextLow, v.itemSize, gl.FLOAT, false, 12, 96);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._ordersBuffer);
-            gl.vertexAttribPointer(sha.order, this._ordersBuffer.itemSize, gl.FLOAT, false, 4, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._ordersBuffer as WebGLBuffer);
+            gl.vertexAttribPointer(sha.order, this._ordersBuffer!.itemSize, gl.FLOAT, false, 4, 0);
 
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer);
-            gl.drawElements(gl.TRIANGLE_STRIP, this._indexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexesBuffer as WebGLBuffer);
+            gl.drawElements(gl.TRIANGLE_STRIP, this._indexesBuffer!.numItems, gl.UNSIGNED_INT, 0);
 
             gl.enable(gl.CULL_FACE);
         }
@@ -2164,8 +2072,8 @@ class Polyline {
      * Refresh buffers.
      * @protected
      */
-    _refresh() {
-        var i = this._changedBuffers.length;
+    protected _refresh() {
+        let i = this._changedBuffers.length;
         while (i--) {
             this._changedBuffers[i] = true;
         }
@@ -2175,9 +2083,9 @@ class Polyline {
      * Updates render buffers.
      * @protected
      */
-    _update() {
+    protected _update() {
         if (this._renderNode) {
-            var i = this._changedBuffers.length;
+            let i = this._changedBuffers.length;
             while (i--) {
                 if (this._changedBuffers[i]) {
                     this._buffersUpdateCallbacks[i].call(this);
@@ -2191,16 +2099,16 @@ class Polyline {
      * Clear GL buffers.
      * @protected
      */
-    _deleteBuffers() {
+    protected _deleteBuffers() {
         if (this._renderNode) {
-            var r = this._renderNode.renderer,
-                gl = r.handler.gl;
+            let r = this._renderNode.renderer!,
+                gl = r.handler.gl!;
 
-            gl.deleteBuffer(this._verticesHighBuffer);
-            gl.deleteBuffer(this._verticesLowBuffer);
-            gl.deleteBuffer(this._ordersBuffer);
-            gl.deleteBuffer(this._indexesBuffer);
-            gl.deleteBuffer(this._colorsBuffer);
+            gl.deleteBuffer(this._verticesHighBuffer as WebGLBuffer);
+            gl.deleteBuffer(this._verticesLowBuffer as WebGLBuffer);
+            gl.deleteBuffer(this._ordersBuffer as WebGLBuffer);
+            gl.deleteBuffer(this._indexesBuffer as WebGLBuffer);
+            gl.deleteBuffer(this._colorsBuffer as WebGLBuffer);
 
             this._verticesHighBuffer = null;
             this._verticesLowBuffer = null;
@@ -2211,17 +2119,17 @@ class Polyline {
     }
 
     /**
-     * Creates gl main data buffer.
+     * Creates vertices buffers.
      * @protected
      */
-    _createVerticesBuffer() {
-        var h = this._renderNode.renderer.handler;
+    protected _createVerticesBuffer() {
+        let h = this._renderNode!.renderer!.handler;
 
         let numItems = this._verticesHigh.length / 3;
 
         if (!this._verticesHighBuffer || this._verticesHighBuffer.numItems !== numItems) {
-            h.gl.deleteBuffer(this._verticesHighBuffer);
-            h.gl.deleteBuffer(this._verticesLowBuffer);
+            h.gl!.deleteBuffer(this._verticesHighBuffer as WebGLBuffer);
+            h.gl!.deleteBuffer(this._verticesLowBuffer as WebGLBuffer);
             this._verticesHighBuffer = h.createStreamArrayBuffer(3, numItems);
             this._verticesLowBuffer = h.createStreamArrayBuffer(3, numItems);
         }
@@ -2229,39 +2137,32 @@ class Polyline {
         this._verticesHigh = makeArrayTyped(this._verticesHigh);
         this._verticesLow = makeArrayTyped(this._verticesLow);
 
-        h.setStreamArrayBuffer(this._verticesHighBuffer, this._verticesHigh);
-        h.setStreamArrayBuffer(this._verticesLowBuffer, this._verticesLow);
+        h.setStreamArrayBuffer(this._verticesHighBuffer!, this._verticesHigh);
+        h.setStreamArrayBuffer(this._verticesLowBuffer!, this._verticesLow);
     }
 
     /**
      * Creates gl index and order buffer.
      * @protected
      */
-    _createIndexBuffer() {
-        var h = this._renderNode.renderer.handler;
-        h.gl.deleteBuffer(this._ordersBuffer);
-        h.gl.deleteBuffer(this._indexesBuffer);
+    protected _createIndexBuffer() {
+        let h = this._renderNode!.renderer!.handler;
+        h.gl!.deleteBuffer(this._ordersBuffer as WebGLBuffer);
+        h.gl!.deleteBuffer(this._indexesBuffer as WebGLBuffer);
 
         this._orders = makeArrayTyped(this._orders);
-
         this._ordersBuffer = h.createArrayBuffer(this._orders, 1, this._orders.length / 2);
 
         this._indexes = makeArrayTyped(this._indexes, Uint32Array);
-
         this._indexesBuffer = h.createElementArrayBuffer(this._indexes, 1, this._indexes.length);
     }
 
-    _createColorsBuffer() {
-        var h = this._renderNode.renderer.handler;
-        h.gl.deleteBuffer(this._colorsBuffer);
+    protected _createColorsBuffer() {
+        let h = this._renderNode!.renderer!.handler;
+        h.gl!.deleteBuffer(this._colorsBuffer as WebGLBuffer);
 
         this._colors = makeArrayTyped(this._colors);
-
-        this._colorsBuffer = h.createArrayBuffer(
-            new Float32Array(this._colors),
-            4,
-            this._colors.length / 4
-        );
+        this._colorsBuffer = h.createArrayBuffer(new Float32Array(this._colors), 4, this._colors.length / 4);
     }
 }
 

@@ -5,7 +5,7 @@ import {EventsHandler, createEvents} from "../Events";
 import {ImageCanvas} from "../ImageCanvas";
 import {Vec2} from "../math/Vec2";
 import {Stack} from "../Stack";
-import {getUrlParam, isEmpty} from "../utils/shared";
+import {getUrlParam, isEmpty, TypedArray} from "../utils/shared";
 
 export type WebGLContextExt = { type: string } & WebGL2RenderingContext;
 export type WebGLBufferExt = { numItems: number; itemSize: number } & WebGLBuffer;
@@ -951,11 +951,11 @@ class Handler {
      * Sets stream buffer.
      * @public
      * @param {WebGLBufferExt} buffer -
-     * @param {ArrayBuffer} array -
+     * @param {TypedArray | number[]} array -
      * @param {number} [offset=0] -
      * @return {WebGLBufferExt} -
      */
-    public setStreamArrayBuffer(buffer: WebGLBufferExt, array: number[], offset: number = 0): WebGLBufferExt {
+    public setStreamArrayBuffer(buffer: WebGLBufferExt, array: TypedArray | number[], offset: number = 0): WebGLBufferExt {
         let gl = this.gl!;
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
         gl.bufferSubData(gl.ARRAY_BUFFER, offset, array as any);
@@ -966,13 +966,13 @@ class Handler {
     /**
      * Creates ARRAY buffer.
      * @public
-     * @param {Array.<number>} array - Input array.
+     * @param {TypedArray | number[]} array - Input array.
      * @param {number} itemSize - Array item size.
      * @param {number} numItems - Items quantity.
      * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
      * @return {Object} -
      */
-    public createArrayBuffer(array: number[] | Float32Array, itemSize: number, numItems: number, usage?: number): WebGLBufferExt {
+    public createArrayBuffer(array: number[] | TypedArray, itemSize: number, numItems: number, usage?: number): WebGLBufferExt {
         let gl = this.gl!;
         let buffer: WebGLBufferExt = gl.createBuffer() as WebGLBufferExt;
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -1004,13 +1004,13 @@ class Handler {
     /**
      * Creates ELEMENT ARRAY buffer.
      * @public
-     * @param {Array.<number>} array - Input array.
+     * @param {TypedArray | number[]} array - Input array.
      * @param {number} itemSize - Array item size.
      * @param {number} numItems - Items quantity.
      * @param {number} [usage=STATIC_DRAW] - Parameter of the bufferData call can be one of STATIC_DRAW, DYNAMIC_DRAW, or STREAM_DRAW.
      * @return {Object} -
      */
-    public createElementArrayBuffer(array: number[] | Uint32Array, itemSize: number, numItems: number, usage?: number): WebGLBufferExt {
+    public createElementArrayBuffer(array: TypedArray | number[], itemSize: number, numItems: number, usage?: number): WebGLBufferExt {
         let gl = this.gl!;
         let buffer = gl.createBuffer() as WebGLBufferExt;
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);

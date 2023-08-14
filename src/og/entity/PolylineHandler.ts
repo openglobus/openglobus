@@ -68,6 +68,7 @@ class PolylineHandler {
         //@ts-ignore
         let index = polyline._handlerIndex;
         if (index !== -1) {
+            //@ts-ignore
             polyline._deleteBuffers();
             //@ts-ignore
             polyline._handlerIndex = -1;
@@ -105,6 +106,7 @@ class PolylineHandler {
     public clear() {
         let i = this._polylines.length;
         while (i--) {
+            //@ts-ignore
             this._polylines[i]._deleteBuffers();
             //@ts-ignore
             this._polylines[i]._handler = null;

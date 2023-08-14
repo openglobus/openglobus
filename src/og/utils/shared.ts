@@ -801,10 +801,10 @@ export function makeArrayTyped(arr: TypedArray | number[], ctor: Function = Floa
 
 /**
  * Convert typed array to array
- * @param arr {TypedArray}
- * @returns {Array}
+ * @param arr {TypedArray | number[]}
+ * @returns {number[]}
  */
-export function makeArray(arr: TypedArray): number[] {
+export function makeArray(arr: TypedArray | number[]): number[] {
     if (ArrayBuffer.isView(arr)) {
         return Array.from(arr);
     } else {
