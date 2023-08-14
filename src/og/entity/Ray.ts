@@ -102,32 +102,12 @@ class Ray {
         this._startColor = utils.createColorRGBA(options.startColor);
         this._endColor = utils.createColorRGBA(options.endColor);
 
-        /**
-         * Ray visibility.
-         * @protected
-         * @type {boolean}
-         */
         this._visibility = options.visibility != undefined ? options.visibility : true;
 
-        /**
-         * Ray entity
-         * @protected
-         * @type {Entity}
-         */
         this._entity = null;
 
-        /**
-         * Handler that stores and renders this ray object.
-         * @protected
-         * @type {RayHandler}
-         */
         this._handler = null;
 
-        /**
-         * Ray handler array index.
-         * @protected
-         * @type {number}
-         */
         this._handlerIndex = -1;
     }
 
@@ -306,7 +286,7 @@ class Ray {
      * @public
      * @param {Vec3} color - Picking color.
      */
-    public setPickingColor3v(color: Vec4) {
+    public setPickingColor3v(color: Vec3) {
         this._handler && this._handler.setPickingColorArr(this._handlerIndex, color);
     }
 }

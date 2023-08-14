@@ -743,7 +743,7 @@ export function extractElevationTiles(rgbaData: number[], outCurrenElevations: n
     }
 }
 
-type TypedArray =
+export type TypedArray =
     | Int8Array
     | Uint8Array
     | Uint8ClampedArray
