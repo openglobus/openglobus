@@ -1,6 +1,6 @@
 "use strict";
 
-import * as shaders from "../shaders/billboard.js";
+import * as shaders from "../shaders/billboard";
 import { concatTypedArrays, spliceTypedArray } from "../utils/shared";
 import { LOCK_FREE } from "./LabelWorker.js";
 
@@ -12,8 +12,6 @@ const RGBA_BUFFER = 4;
 const ROTATION_BUFFER = 5;
 const TEXCOORD_BUFFER = 6;
 const VERTEX_BUFFER = 7;
-
-window.BILLBOARD_DEPTH_OFFSET = 0.0;
 
 /*
  * og.BillboardHandler

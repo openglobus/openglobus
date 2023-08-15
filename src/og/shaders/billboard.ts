@@ -1,6 +1,6 @@
 'use strict';
 
-import { Program } from '../webgl/Program.js';
+import {Program} from '../webgl/Program.js';
 
 const PROJECT = `vec2 project(vec4 p) {
                     return (0.5 * p.xyz / p.w + 0.5).xy * viewport;
@@ -12,7 +12,7 @@ const ROTATE2D =
            sin(angle), cos(angle));
      }`;
 
-export function billboardPicking() {
+export function billboardPicking(): Program {
     return new Program("billboardPicking", {
         uniforms: {
             viewport: "vec2",
@@ -113,7 +113,7 @@ export function billboardPicking() {
     });
 }
 
-export function billboard_screen() {
+export function billboard_screen(): Program {
     return new Program("billboard", {
         uniforms: {
             viewport: "vec2",

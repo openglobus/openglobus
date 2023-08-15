@@ -28,37 +28,49 @@ interface IBillboardParams extends IBaseBillboardParams {
  * @param {number} [options.scale] - Billboard scale.
  */
 class Billboard extends BaseBillboard {
+
+    /**
+     * Image src.
+     * @protected
+     * @type {string}
+     */
+    protected _src: string | null;
+
+    /**
+     * Image object.
+     * @protected
+     * @type {Object}
+     */
+    protected _image: HTMLImageElement & { __nodeIndex?: number } | null;
+
+    protected _scale: number;
+
+    /**
+     * Billboard screen width.
+     * @protected
+     * @type {number}
+     */
+    protected _width: number;
+
+    /**
+     * Billboard screen height.
+     * @protected
+     * @type {number}
+     */
+    protected _height: number;
+
     constructor(options: IBillboardParams = {}) {
+
         super(options);
 
-        /**
-         * Image src.
-         * @protected
-         * @type {string}
-         */
         this._src = options.src || null;
 
-        /**
-         * Image object.
-         * @protected
-         * @type {Object}
-         */
         this._image = options.image || null;
 
         this._scale = 1.0;
 
-        /**
-         * Billboard screen width.
-         * @protected
-         * @type {number}
-         */
         this._width = options.width || (options.size ? options.size[0] : 30);
 
-        /**
-         * Billboard screen height.
-         * @protected
-         * @type {number}
-         */
         this._height = options.height || (options.size ? options.size[1] : 30);
     }
 
@@ -67,20 +79,20 @@ class Billboard extends BaseBillboard {
      * @public
      * @param {string} src - Image url.
      */
-    setSrc(src) {
+    public setSrc(src: string) {
         this._src = src;
-        var bh = this._handler;
+        let bh = this._handler;
         if (bh && src) {
-            var rn = bh._entityCollection.renderNode;
+            let rn = bh._entityCollection.renderNode;
             if (rn) {
-                var ta = rn.renderer.billboardsTextureAtlas;
-                var that = this;
+                let ta = rn.renderer.billboardsTextureAtlas;
+                let that = this;
                 ta.loadImage(src, function (img) {
                     if (ta.get(img.__nodeIndex)) {
                         that._image = img;
-                        bh.setTexCoordArr(
+                        bh!.setTexCoordArr(
                             that._handlerIndex,
-                            ta.get(that._image.__nodeIndex).texCoords
+                            ta.get(that._image!.__nodeIndex).texCoords
                         );
                     } else {
                         ta.addImage(img);
@@ -98,7 +110,7 @@ class Billboard extends BaseBillboard {
      * @public
      * @param {Object} image - JavaScript image object.
      */
-    setImage(image) {
+    public setImage(image: HTMLImageElement) {
         this.setSrc(image.src);
     }
 
@@ -108,7 +120,7 @@ class Billboard extends BaseBillboard {
      * @param {number} width - Billboard width.
      * @param {number} height - Billboard height.
      */
-    setSize(width, height) {
+    public setSize(width: number, height: number) {
         this._width = width;
         this._height = height;
         this._handler &&
@@ -120,7 +132,7 @@ class Billboard extends BaseBillboard {
      * @public
      * @returns {Object}
      */
-    getSize() {
+    public getSize(): { width: number, height: number } {
         return {
             width: this._width,
             height: this._height
@@ -132,7 +144,7 @@ class Billboard extends BaseBillboard {
      * @public
      * @param {number} width - Width.
      */
-    setWidth(width) {
+    public setWidth(width: number) {
         this.setSize(width, this._height);
     }
 
@@ -141,7 +153,7 @@ class Billboard extends BaseBillboard {
      * @public
      * @returns {number}
      */
-    getWidth() {
+    public getWidth(): number {
         return this._width;
     }
 
@@ -150,7 +162,7 @@ class Billboard extends BaseBillboard {
      * @public
      * @param {number} height - Height.
      */
-    setHeight(height) {
+    public setHeight(height: number) {
         this.setSize(this._width, height);
     }
 
@@ -159,7 +171,7 @@ class Billboard extends BaseBillboard {
      * @public
      * @returns {number}
      */
-    getHeight() {
+    public getHeight(): number {
         return this._height;
     }
 }

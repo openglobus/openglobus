@@ -1,7 +1,7 @@
 "use strict";
 
-import { ImageCanvas } from "../ImageCanvas.js";
-import { Rectangle } from "../Rectangle.js";
+import { ImageCanvas } from "../ImageCanvas";
+import { Rectangle } from "../Rectangle";
 import { ImagesCacheManager } from "./ImagesCacheManager.js";
 
 /**
