@@ -357,7 +357,7 @@ class LabelHandler extends BillboardHandler {
         this._fontIndexArr = spliceTypedArray(this._fontIndexArr, i, ml);
         this._outlineArr = spliceTypedArray(this._outlineArr, i, ml);
 
-        this.reindexBillbordsArray(li);
+        this.reindexBillboardsArray(li);
         this.refresh();
 
         label._handlerIndex = -1;

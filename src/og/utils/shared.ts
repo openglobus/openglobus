@@ -759,7 +759,7 @@ export type TypedArray =
  * @param {TypedArray} a
  * @param {TypedArray} b
  */
-export function concatTypedArrays(a: TypedArray, b: TypedArray): TypedArray {
+export function concatTypedArrays(a: TypedArray, b: TypedArray | number[]): TypedArray {
     let c = new (a as any).constructor(a.length + b.length); //hacky
     c.set(a, 0);
     c.set(b, a.length);

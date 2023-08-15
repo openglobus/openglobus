@@ -82,12 +82,13 @@ class Billboard extends BaseBillboard {
     public setSrc(src: string) {
         this._src = src;
         let bh = this._handler;
-        if (bh && src) {
+        if (bh && src.length) {
+            //@ts-ignore
             let rn = bh._entityCollection.renderNode;
-            if (rn) {
+            if (rn && rn.renderer) {
                 let ta = rn.renderer.billboardsTextureAtlas;
                 let that = this;
-                ta.loadImage(src, function (img) {
+                ta.loadImage(src, function (img: any) {
                     if (ta.get(img.__nodeIndex)) {
                         that._image = img;
                         bh!.setTexCoordArr(
@@ -98,11 +99,15 @@ class Billboard extends BaseBillboard {
                         ta.addImage(img);
                         ta.createTexture();
                         that._image = img;
-                        rn.updateBillboardsTexCoords();
+                        rn!.updateBillboardsTexCoords();
                     }
                 });
             }
         }
+    }
+
+    public getSrc(): string | null {
+        return this._src;
     }
 
     /**
@@ -112,6 +117,10 @@ class Billboard extends BaseBillboard {
      */
     public setImage(image: HTMLImageElement) {
         this.setSrc(image.src);
+    }
+
+    public getImage(): HTMLImageElement | null {
+        return this._image;
     }
 
     /**
