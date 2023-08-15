@@ -1,19 +1,18 @@
 'use strict';
 
-import { Program } from '../webgl/Program.js';
-import { types } from '../webgl/types.js';
+import { Program } from '../webgl/Program';
 
 //Picking is the same
-export function pointCloud() {
+export function pointCloud(): Program {
     return new Program("pointCloud", {
         uniforms: {
-            projectionViewMatrix: { type: types.MAT4 },
-            opacity: { type: types.FLOAT },
-            pointSize: { type: types.FLOAT }
+            projectionViewMatrix: "mat4",
+            opacity: "float",
+            pointSize: "float"
         },
         attributes: {
-            coordinates: { type: types.VEC3, enableArray: true },
-            colors: { type: types.VEC3, enableArray: true }
+            coordinates: "vec3",
+            colors: "vec3"
         },
         vertexShader:
             `attribute vec3 coordinates;

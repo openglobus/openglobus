@@ -1,7 +1,32 @@
 "use strict";
 
-import { Vec3 } from "../math/Vec3";
-import { Vec4 } from "../math/Vec4";
+import {Entity} from "./Entity";
+import {PointCloudHandler} from "./PointCloudHandler";
+import {RenderNode} from "../scene/RenderNode";
+import {Vec3} from "../math/Vec3";
+import {Vec4} from "../math/Vec4";
+import {WebGLBufferExt} from "../webgl/Handler";
+import {EntityCollection} from "./EntityCollection";
+
+export interface IPointCloudParams {
+    visibility?: boolean;
+    pointSize?: number;
+    pickingScale?: number;
+    points?: Poi[];
+}
+
+type Poi = [number, number, number, number, number, number, number, any | undefined];
+
+interface IPoint {
+    _entity: Entity | null;
+    _pickingColor: Vec3;
+    _entityCollection: EntityCollection | null;
+    index: number;
+    position: Vec3;
+    color: Vec4;
+    pointCloud: PointCloud;
+    properties: any
+}
 
 const COORDINATES_BUFFER = 0;
 const COLOR_BUFFER = 1;
@@ -12,9 +37,9 @@ const PICKING_COLOR_BUFFER = 2;
  * @class
  * @param {*} [options] - Point cloud options:
  * @param {Array.<Array.<number>>} [options.points] - Points cartesian coordinates array,
- * where first three is cartesian coordinates, next fourth is a RGBA color, and last is an point properties.
+ * where first three is cartesian coordinates, next fourth is an RGBA color, and last is a point properties.
  * @param {number} [options.pointSize] - Point screen size in pixels.
- * @param {number} [options.pickingDistance] - Point border picking size in screen pixels.
+ * @param {number} [options.pickingScale] - Point border picking size in screen pixels.
  * @param {boolean} [options.visibility] - Point cloud visibility.
  * @example <caption>Creates point cloud with two ten pixel size points</caption>
  * new og.Entity({
@@ -28,16 +53,91 @@ const PICKING_COLOR_BUFFER = 2;
  * });
  */
 class PointCloud {
-    constructor(options) {
-        options = options || {};
+    static __counter__: number;
 
-        /**
-         * Object unic identifier.
-         * @public
-         * @readonly
-         * @type {number}
-         */
-        this.id = PointCloud._staticCounter++;
+    protected __id: number;
+
+    /**
+     * Cloud visibility.
+     * @public
+     * @type {boolean}
+     */
+    public visibility: boolean;
+
+    /**
+     * Point screen size in pixels.
+     * @public
+     * @type {number}
+     */
+    public pointSize: number;
+
+    /**
+     * Point picking border size in pixels.
+     * @public
+     * @type {number}
+     */
+    public pickingScale: number;
+
+    /**
+     * Parent collection render node.
+     * @protected
+     * @type {RenderNode | null}
+     */
+    protected _renderNode: RenderNode | null;
+
+    /**
+     * Entity instance that holds this point cloud.
+     * @protected
+     * @type {Entity | null}
+     */
+    protected _entity: Entity | null;
+
+    /**
+     * Points properties.
+     * @protected
+     * @type {IPoint[]}
+     */
+    protected _points: IPoint[];
+
+    /**
+     * Coordinates array.
+     * @protected
+     * @type {number[]}
+     */
+    protected _coordinatesData: number[];
+
+    /**
+     * Color array.
+     * @protected
+     * @type {number[]}
+     */
+    protected _colorData: number[];
+
+    /**
+     * Picking color array.
+     * @protected
+     * @type {number[]}
+     */
+    protected _pickingColorData: number[];
+
+    protected _coordinatesBuffer: WebGLBufferExt | null;
+    protected _colorBuffer: WebGLBufferExt | null;
+    protected _pickingColorBuffer: WebGLBufferExt | null;
+
+    /**
+     * Handler that stores and renders this object.
+     * @protected
+     * @type {PointCloudHandler}
+     */
+    protected _handler: PointCloudHandler | null;
+    protected _handlerIndex: number;
+
+    protected _buffersUpdateCallbacks: Function[];
+    protected _changedBuffers: boolean[];
+
+    constructor(options: IPointCloudParams = {}) {
+
+        this.__id = PointCloud.__counter__++;
 
         /**
          * Cloud visibility.
@@ -58,7 +158,7 @@ class PointCloud {
          * @public
          * @type {number}
          */
-        this.pickingDistance = options.pickingDistance || 0;
+        this.pickingScale = options.pickingScale || 0;
 
         /**
          * Parent collection render node.
@@ -77,7 +177,7 @@ class PointCloud {
         /**
          * Points properties.
          * @private
-         * @type {Array.<*>}
+         * @type {IPoint[]}
          */
         this._points = [];
 
@@ -121,25 +221,16 @@ class PointCloud {
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
 
-        this.setPoints(options.points);
-    }
-
-    static get _staticCounter() {
-        if (!this._counter && this._counter !== 0) {
-            this._counter = 0;
+        if (options.points) {
+            this.setPoints(options.points);
         }
-        return this._counter;
-    }
-
-    static set _staticCounter(n) {
-        this._counter = n;
     }
 
     /**
      * Clears point cloud data
      * @public
      */
-    clear() {
+    public clear() {
         this._points.length = 0;
         this._points = [];
 
@@ -156,27 +247,18 @@ class PointCloud {
     }
 
     /**
-     * Set point cloud opacity.
-     * @public
-     * @param {number} opacity - Cloud opacity.
-     */
-    setOpacity(opacity) {
-        this.opacity = opacity;
-    }
-
-    /**
      * Sets cloud visibility.
      * @public
      * @param {boolean} visibility - Visibility flag.
      */
-    setVisibility(visibility) {
+    public setVisibility(visibility: boolean) {
         this.visibility = visibility;
     }
 
     /**
-     * @return {boolean} Point cloud visibily.
+     * @return {boolean} Point cloud visibility.
      */
-    getVisibility() {
+    public getVisibility(): boolean {
         return this.visibility;
     }
 
@@ -185,7 +267,7 @@ class PointCloud {
      * @public
      * @param {RenderNode}  renderNode - Assigned render node.
      */
-    setRenderNode(renderNode) {
+    public setRenderNode(renderNode: RenderNode) {
         this._renderNode = renderNode;
         this._setPickingColors();
     }
@@ -194,7 +276,7 @@ class PointCloud {
      * Removes from entity.
      * @public
      */
-    remove() {
+    public remove() {
         this._entity = null;
         this._handler && this._handler.remove(this);
     }
@@ -202,30 +284,38 @@ class PointCloud {
     /**
      * Adds points to render.
      * @public
-     * @param {Array.<Array<number>>} points - Point cloud array.
+     * @param { Poi[]} points - Point cloud array.
      * @example
      * var points = [[0, 0, 0, 255, 255, 255, 255, { 'name': 'White point' }], [100, 100, 0, 255, 0, 0, 255, { 'name': 'Red point' }]];
      */
-    setPoints(points) {
+    public setPoints(points: Poi[]) {
         this.clear();
         for (let i = 0; i < points.length; i++) {
-            var pi = points[i];
-            var pos = new Vec3(pi[0], pi[1], pi[2]),
+            let pi = points[i];
+
+            let pos = new Vec3(pi[0], pi[1], pi[2]),
                 col = new Vec4(pi[3], pi[4], pi[5], pi[6] == undefined ? 255.0 : pi[6]);
+
             this._coordinatesData.push(pos.x, pos.y, pos.z);
+
             this._colorData.push(col.x / 255.0, col.y / 255.0, col.z / 255.0, col.w / 255.0);
-            var p = {
+
+            // @ts-ignore
+            let p = {
+                _entity: this._entity,
                 _pickingColor: new Vec3(),
-                _entityCollection: this._entity && this._entity._entityCollection,
+                // @ts-ignore
+                _entityCollection: this._entity ? this._entity._entityCollection : null,
                 index: i,
                 position: pos,
                 color: col,
                 pointCloud: this,
                 properties: pi[7] || {}
             };
+
             this._points.push(p);
 
-            if (this._renderNode) {
+            if (this._renderNode && this._renderNode.renderer) {
                 this._renderNode.renderer.assignPickingColor(p);
                 this._pickingColorData.push(
                     p._pickingColor.x / 255.0,
@@ -241,29 +331,25 @@ class PointCloud {
         this._changedBuffers[PICKING_COLOR_BUFFER] = true;
     }
 
-    setPointPosition(index, x, y, z) {
+    public setPointPosition(index: number, x: number, y: number, z: number) {
         // TODO: ...
-
         this._changedBuffers[COORDINATES_BUFFER] = true;
     }
 
-    setPointColor(index, r, g, b, a) {
+    public setPointColor(index: number, r: number, g: number, b: number, a: number) {
         // TODO: ...
-
         this._changedBuffers[COLOR_BUFFER] = true;
     }
 
-    addPoints(points) {
+    public addPoints(points: Poi[]) {
         // TODO: ...
-
         this._changedBuffers[COORDINATES_BUFFER] = true;
         this._changedBuffers[COLOR_BUFFER] = true;
         this._changedBuffers[PICKING_COLOR_BUFFER] = true;
     }
 
-    addPoint(index, point) {
+    public addPoint(index: number, point: Poi) {
         // TODO: ...
-
         this._changedBuffers[COORDINATES_BUFFER] = true;
         this._changedBuffers[COLOR_BUFFER] = true;
         this._changedBuffers[PICKING_COLOR_BUFFER] = true;
@@ -273,49 +359,35 @@ class PointCloud {
      * Returns specific point by index.
      * @public
      * @param {number} index - Point index.
-     * @return {*} Specific point
+     * @return {Poi} Specific point
      */
-    getPoint(index) {
+    public getPoint(index: number): IPoint {
         return this._points[index];
     }
 
-    removePoint(index) {
+    public removePoint(index: number) {
         // TODO: ...
-
         this._changedBuffers[COORDINATES_BUFFER] = true;
         this._changedBuffers[COLOR_BUFFER] = true;
         this._changedBuffers[PICKING_COLOR_BUFFER] = true;
     }
 
-    insertPoint(index, point) {
+    public insertPoint(index: number, point: Poi) {
         // TODO: ...
-
         this._changedBuffers[COORDINATES_BUFFER] = true;
         this._changedBuffers[COLOR_BUFFER] = true;
         this._changedBuffers[PICKING_COLOR_BUFFER] = true;
     }
 
-    /**
-     * Each point iterator.
-     * @public
-     * @param {callback} callback -
-     */
-    each(callback) {
-        var i = this._points.length;
-        while (i--) {
-            callback && callback(this._points[i]);
-        }
-    }
-
-    draw() {
+    public draw() {
         if (this.visibility && this._coordinatesData.length) {
             this._update();
 
-            var rn = this._renderNode;
-            var r = rn.renderer;
-            var sh = r.handler.programs.pointCloud;
-            var p = sh._program;
-            var gl = r.handler.gl,
+            let rn = this._renderNode!;
+            let r = rn.renderer!;
+            let sh = r.handler.programs.pointCloud;
+            let p = sh._program;
+            let gl = r.handler.gl!,
                 sha = p.attributes,
                 shu = p.uniforms;
 
@@ -326,40 +398,29 @@ class PointCloud {
 
             sh.activate();
 
-            gl.uniformMatrix4fv(
-                shu.projectionViewMatrix,
-                false,
-                r.activeCamera._projectionViewMatrix._m
-            );
+            gl.uniformMatrix4fv(shu.projectionViewMatrix, false, r.activeCamera!.getProjectionViewMatrix());
 
+            //@ts-ignore
             gl.uniform1f(shu.opacity, this._handler._entityCollection._fadingOpacity);
-
             gl.uniform1f(shu.pointSize, this.pointSize);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._coordinatesBuffer);
-            gl.vertexAttribPointer(
-                sha.coordinates,
-                this._coordinatesBuffer.itemSize,
-                gl.FLOAT,
-                false,
-                0,
-                0
-            );
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._coordinatesBuffer as WebGLBuffer);
+            gl.vertexAttribPointer(sha.coordinates, this._coordinatesBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._colorBuffer);
-            gl.vertexAttribPointer(sha.colors, this._colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._colorBuffer as WebGLBuffer);
+            gl.vertexAttribPointer(sha.colors, this._colorBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.drawArrays(gl.POINTS, 0, this._coordinatesBuffer.numItems);
+            gl.drawArrays(gl.POINTS, 0, this._coordinatesBuffer!.numItems);
         }
     }
 
-    drawPicking() {
+    public drawPicking() {
         if (this.visibility && this._coordinatesData.length) {
-            var rn = this._renderNode;
-            var r = rn.renderer;
-            var sh = r.handler.programs.pointCloud;
-            var p = sh._program;
-            var gl = r.handler.gl,
+            let rn = this._renderNode!;
+            let r = rn.renderer!;
+            let sh = r.handler.programs.pointCloud;
+            let p = sh._program;
+            let gl = r.handler.gl!,
                 sha = p.attributes,
                 shu = p.uniforms;
 
@@ -370,47 +431,29 @@ class PointCloud {
             //     this._handler._entityCollection.polygonOffsetUnits
             // );
 
-            gl.uniformMatrix4fv(
-                shu.projectionViewMatrix,
-                false,
-                r.activeCamera._projectionViewMatrix._m
-            );
+            gl.uniformMatrix4fv(shu.projectionViewMatrix, false, r.activeCamera!.getProjectionViewMatrix());
 
+            //@ts-ignore
             gl.uniform1f(shu.opacity, this._handler._entityCollection._fadingOpacity);
+            gl.uniform1f(shu.pointSize, this.pointSize + this.pickingScale);
 
-            gl.uniform1f(shu.pointSize, this.pointSize + this.pickingDistance);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._coordinatesBuffer as WebGLBuffer);
+            gl.vertexAttribPointer(sha.coordinates, this._coordinatesBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._coordinatesBuffer);
-            gl.vertexAttribPointer(
-                sha.coordinates,
-                this._coordinatesBuffer.itemSize,
-                gl.FLOAT,
-                false,
-                0,
-                0
-            );
+            gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingColorBuffer as WebGLBuffer);
+            gl.vertexAttribPointer(sha.colors, this._pickingColorBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingColorBuffer);
-            gl.vertexAttribPointer(
-                sha.colors,
-                this._pickingColorBuffer.itemSize,
-                gl.FLOAT,
-                false,
-                0,
-                0
-            );
-
-            gl.drawArrays(gl.POINTS, 0, this._coordinatesBuffer.numItems);
+            gl.drawArrays(gl.POINTS, 0, this._coordinatesBuffer!.numItems);
         }
     }
 
     /**
      * Update gl buffers.
-     * @private
+     * @protected
      */
-    _update() {
+    protected _update() {
         if (this._renderNode) {
-            var i = this._changedBuffers.length;
+            let i = this._changedBuffers.length;
             while (i--) {
                 if (this._changedBuffers[i]) {
                     this._buffersUpdateCallbacks[i].call(this);
@@ -422,16 +465,16 @@ class PointCloud {
 
     /**
      * Delete buffers
-     * @private
+     * @protected
      */
-    _deleteBuffers() {
+    protected _deleteBuffers() {
         if (this._renderNode) {
-            var r = this._renderNode.renderer,
-                gl = r.handler.gl;
+            let r = this._renderNode.renderer!,
+                gl = r.handler.gl!;
 
-            gl.deleteBuffer(this._coordinatesBuffer);
-            gl.deleteBuffer(this._colorBuffer);
-            gl.deleteBuffer(this._pickingColorBuffer);
+            gl.deleteBuffer(this._coordinatesBuffer as WebGLBuffer);
+            gl.deleteBuffer(this._colorBuffer as WebGLBuffer);
+            gl.deleteBuffer(this._pickingColorBuffer as WebGLBuffer);
         }
 
         this._coordinatesBuffer = null;
@@ -439,9 +482,9 @@ class PointCloud {
         this._pickingColorBuffer = null;
     }
 
-    _createCoordinatesBuffer() {
-        var h = this._renderNode.renderer.handler;
-        h.gl.deleteBuffer(this._coordinatesBuffer);
+    protected _createCoordinatesBuffer() {
+        let h = this._renderNode!.renderer!.handler;
+        h.gl!.deleteBuffer(this._coordinatesBuffer as WebGLBuffer);
         this._coordinatesBuffer = h.createArrayBuffer(
             new Float32Array(this._coordinatesData),
             3,
@@ -449,9 +492,9 @@ class PointCloud {
         );
     }
 
-    _createColorBuffer() {
-        var h = this._renderNode.renderer.handler;
-        h.gl.deleteBuffer(this._colorBuffer);
+    protected _createColorBuffer() {
+        let h = this._renderNode!.renderer!.handler;
+        h.gl!.deleteBuffer(this._colorBuffer as WebGLBuffer);
         this._colorBuffer = h.createArrayBuffer(
             new Float32Array(this._colorData),
             4,
@@ -459,9 +502,9 @@ class PointCloud {
         );
     }
 
-    _createPickingColorBuffer() {
-        var h = this._renderNode.renderer.handler;
-        h.gl.deleteBuffer(this._pickingColorBuffer);
+    protected _createPickingColorBuffer() {
+        let h = this._renderNode!.renderer!.handler;
+        h.gl!.deleteBuffer(this._pickingColorBuffer as WebGLBuffer);
         this._pickingColorBuffer = h.createArrayBuffer(
             new Float32Array(this._pickingColorData),
             4,
@@ -469,12 +512,13 @@ class PointCloud {
         );
     }
 
-    _setPickingColors() {
-        if (this._renderNode) {
+    protected _setPickingColors() {
+        if (this._renderNode && this._renderNode.renderer) {
             for (let i = 0; i < this._points.length; i++) {
-                var p = this._points[i];
+                let p = this._points[i];
                 p._entity = this._entity;
-                p._entityCollection = this._entity._entityCollection;
+                // @ts-ignore
+                p._entityCollection = this._entity!._entityCollection;
                 this._renderNode.renderer.assignPickingColor(p);
                 this._pickingColorData.push(
                     p._pickingColor.x / 255.0,
@@ -488,4 +532,4 @@ class PointCloud {
     }
 }
 
-export { PointCloud };
+export {PointCloud};

@@ -1,59 +1,64 @@
 "use strict";
 
-import * as shaders from "../shaders/pointCloud.js";
+import * as shaders from "../shaders/pointCloud";
+import {EntityCollection} from "./EntityCollection";
+import {PointCloud} from "./PointCloud";
+import {Renderer} from "../renderer/Renderer";
+import {RenderNode} from "../scene/RenderNode";
+
 class PointCloudHandler {
-    constructor(entityCollection) {
-        /**
-         * Picking rendering option.
-         * @public
-         * @type {boolean}
-         */
+
+    static __counter__: number;
+
+    protected __id: number;
+
+    /**
+     * Picking rendering option.
+     * @public
+     * @type {boolean}
+     */
+    public pickingEnabled = true;
+
+    /**
+     * Parent collection
+     * @protected
+     * @type {EntityCollection}
+     */
+    protected _entityCollection: EntityCollection;
+
+    /**
+     * Renderer
+     * @protected
+     * @type {Renderer|null}
+     */
+    protected _renderer: Renderer | null;
+
+    /**
+     * Point cloud array
+     * @protected
+     * @type {Array.<PointCloud>}
+     */
+    protected _pointClouds: PointCloud[];
+
+    constructor(entityCollection: EntityCollection) {
+
+        this.__id = PointCloudHandler.__counter__++;
+
         this.pickingEnabled = true;
-
-        /**
-         * Parent collection
-         * @private
-         * @type {EntityCollection}
-         */
         this._entityCollection = entityCollection;
-
-        /**
-         * Renderer
-         * @private
-         * @type {Renderer}
-         */
         this._renderer = null;
-
-        /**
-         * Point cloud array
-         * @private
-         * @type {Array.<PointCloud>}
-         */
         this._pointClouds = [];
-
-        this.__staticId = PointCloudHandler._staticCounter++;
     }
 
-    static get _staticCounter() {
-        if (!this._counter && this._counter !== 0) {
-            this._counter = 0;
-        }
-        return this._counter;
-    }
-
-    static set _staticCounter(n) {
-        this._counter = n;
-    }
-
-    _initProgram() {
-        if (this._renderer.handler) {
+    protected _initProgram() {
+        if (this._renderer && this._renderer.handler) {
             if (!this._renderer.handler.programs.pointCloud) {
                 this._renderer.handler.addProgram(shaders.pointCloud());
             }
         }
     }
 
-    setRenderNode(renderNode) {
+    public setRenderNode(renderNode: RenderNode) {
         this._renderer = renderNode.renderer;
         this._initProgram();
         for (let i = 0; i < this._pointClouds.length; i++) {
@@ -61,56 +66,67 @@ class PointCloudHandler {
         }
     }
 
-    add(pointCloud) {
+    public add(pointCloud: PointCloud) {
+        // @ts-ignore
         if (pointCloud._handlerIndex === -1) {
+            // @ts-ignore
             pointCloud._handler = this;
+            // @ts-ignore
             pointCloud._handlerIndex = this._pointClouds.length;
             this._pointClouds.push(pointCloud);
             this._entityCollection &&
-                this._entityCollection.renderNode &&
-                pointCloud.setRenderNode(this._entityCollection.renderNode);
+            this._entityCollection.renderNode &&
+            pointCloud.setRenderNode(this._entityCollection.renderNode);
         }
     }
 
-    remove(pointCloud) {
-        var index = pointCloud._handlerIndex;
+    public remove(pointCloud: PointCloud) {
+        // @ts-ignore
+        let index = pointCloud._handlerIndex;
         if (index !== -1) {
+            // @ts-ignore
             pointCloud._deleteBuffers();
+            // @ts-ignore
             pointCloud._handlerIndex = -1;
+            // @ts-ignore
             pointCloud._handler = null;
             this._pointClouds.splice(index, 1);
-            this.reindexPointCloudArray(index);
+            this._reindexPointCloudArray(index);
         }
     }
 
-    reindexPointCloudArray(startIndex) {
-        var pc = this._pointClouds;
+    protected _reindexPointCloudArray(startIndex: number) {
+        let pc = this._pointClouds;
         for (let i = startIndex; i < pc.length; i++) {
+            // @ts-ignore
             pc[i]._handlerIndex = i;
         }
     }
 
-    draw() {
-        var i = this._pointClouds.length;
+    public draw() {
+        let i = this._pointClouds.length;
         while (i--) {
             this._pointClouds[i].draw();
         }
     }
 
-    drawPicking() {
+    public drawPicking() {
         if (this.pickingEnabled) {
-            var i = this._pointClouds.length;
+            let i = this._pointClouds.length;
             while (i--) {
                 this._pointClouds[i].drawPicking();
             }
         }
     }
 
-    clear() {
-        var i = this._pointClouds.length;
+    public clear() {
+        let i = this._pointClouds.length;
         while (i--) {
+            // @ts-ignore
             this._pointClouds[i]._deleteBuffers();
+            // @ts-ignore
             this._pointClouds[i]._handler = null;
+            // @ts-ignore
             this._pointClouds[i]._handlerIndex = -1;
         }
         this._pointClouds.length = 0;
@@ -118,4 +134,4 @@ class PointCloudHandler {
     }
 }
 
-export { PointCloudHandler };
+export {PointCloudHandler};
