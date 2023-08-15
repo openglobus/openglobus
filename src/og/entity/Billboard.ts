@@ -1,6 +1,14 @@
 "use strict";
 
-import { BaseBillboard } from "./BaseBillboard.js";
+import {BaseBillboard, IBaseBillboardParams} from "./BaseBillboard";
+
+interface IBillboardParams extends IBaseBillboardParams {
+    src?: string;
+    image?: HTMLImageElement;
+    size?: [number, number];
+    width?: number;
+    height?: number;
+}
 
 /**
  * Represents basic quad billboard image.
@@ -20,10 +28,8 @@ import { BaseBillboard } from "./BaseBillboard.js";
  * @param {number} [options.scale] - Billboard scale.
  */
 class Billboard extends BaseBillboard {
-    constructor(options) {
+    constructor(options: IBillboardParams = {}) {
         super(options);
-
-        options = options || {};
 
         /**
          * Image src.
@@ -106,7 +112,7 @@ class Billboard extends BaseBillboard {
         this._width = width;
         this._height = height;
         this._handler &&
-            this._handler.setSizeArr(this._handlerIndex, width * this._scale, height * this._scale);
+        this._handler.setSizeArr(this._handlerIndex, width * this._scale, height * this._scale);
     }
 
     /**
@@ -158,4 +164,4 @@ class Billboard extends BaseBillboard {
     }
 }
 
-export { Billboard };
+export {Billboard};

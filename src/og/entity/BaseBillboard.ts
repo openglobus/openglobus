@@ -1,8 +1,20 @@
 "use strict";
 
-import { Vec3 } from "../math/Vec3";
 import * as utils from "../utils/shared";
-import { LOCK_FREE, LOCK_UPDATE } from "./LabelWorker.js";
+import {Entity} from "./Entity";
+import {LOCK_FREE, LOCK_UPDATE} from "./LabelWorker.js";
+import {NumberArray3, Vec3} from "../math/Vec3";
+import {NumberArray4, Vec4} from "../math/Vec4";
+import {BillboardHandler} from "./BillboardHandler";
+
+export interface IBaseBillboardParams {
+    position?: NumberArray3 | Vec3;
+    rotation?: number;
+    color?: string | NumberArray4 | Vec4;
+    alignedAxis?: NumberArray3 | Vec3;
+    offset?: NumberArray3 | Vec3;
+    visibility?: boolean;
+}
 
 /**
  * Base prototype for billboard and label classes.
@@ -16,22 +28,90 @@ import { LOCK_FREE, LOCK_UPDATE } from "./LabelWorker.js";
  * @param {boolean} [options.visibility] - Visibility.
  */
 class BaseBillboard {
-    constructor(options) {
-        options = options || {};
+    static __counter__: number;
 
-        /**
-         * Object unic identifier.
-         * @public
-         * @readonly
-         * @type {number}
-         */
-        this.id = BaseBillboard._staticCounter++;
+    protected __id: number;
 
-        /**
-         * Billboard center cartesian position.
-         * @protected
-         * @type {Vec3}
-         */
+    /**
+     * Billboard center cartesian position.
+     * @protected
+     * @type {Vec3}
+     */
+    protected _position: Vec3;
+
+    protected _positionHigh: Vec3;
+
+    protected _positionLow: Vec3;
+
+    /**
+     * Screen space rotation angle.
+     * @protected
+     * @type {number}
+     */
+    protected _rotation: number;
+
+    /**
+     * RGBA color.
+     * @protected
+     * @type {Vec4}
+     */
+    protected _color: Vec4;
+
+    /**
+     * Cartesian aligned axis vector.
+     * @protected
+     * @type {Vec3}
+     */
+    protected _alignedAxis: Vec3;
+
+    /**
+     * Billboard center screen space offset. Where x,y - screen space offset and z - depth offset.
+     * @protected
+     * @type {Vec3}
+     */
+    protected _offset: Vec3;
+
+    /**
+     * Billboard visibility.
+     * @protected
+     * @type {boolean}
+     */
+    protected _visibility: boolean;
+
+    /**
+     * Entity instance that holds this billboard.
+     * @protected
+     * @type {Entity}
+     */
+    protected _entity: Entity | null;
+
+    /**
+     * Handler that stores and renders this billboard object.
+     * @protected
+     * @type {BillboardHandler | null}
+     */
+    protected _handler: BillboardHandler | null;
+
+    /**
+     * Billboard handler array index.
+     * @protected
+     * @type {number}
+     */
+    protected _handlerIndex: number;
+
+    /**
+     * An indication that the object is ready to draw
+     * @protected
+     * @type {number}
+     */
+    protected _isReady: boolean;
+
+    protected _lockId: number;
+
+    constructor(options: IBaseBillboardParams = {}) {
+
+        this.__id = BaseBillboard.__counter__++;
+
         this._position = utils.createVector3(options.position);
 
         this._positionHigh = new Vec3();
@@ -40,81 +120,25 @@ class BaseBillboard {
 
         Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
 
-        /**
-         * Screen space rotation angle.
-         * @protected
-         * @type {number}
-         */
         this._rotation = options.rotation || 0;
 
-        /**
-         * RGBA color.
-         * @protected
-         * @type {Vec4}
-         */
         this._color = utils.createColorRGBA(options.color);
 
-        /**
-         * Cartesian aligned axis vector.
-         * @protected
-         * @type {Vec3}
-         */
         this._alignedAxis = utils.createVector3(options.alignedAxis);
 
-        /**
-         * Billboard center screen space offset. Where x,y - screen space offset and z - depth offset.
-         * @protected
-         * @type {math.Vecto3}
-         */
         this._offset = utils.createVector3(options.offset);
 
-        /**
-         * Billboard visibility.
-         * @protected
-         * @type {boolean}
-         */
         this._visibility = options.visibility != undefined ? options.visibility : true;
 
-        /**
-         * Entity instance that holds this billboard.
-         * @protected
-         * @type {Entity}
-         */
         this._entity = null;
 
-        /**
-         * Handler that stores and renders this billboard object.
-         * @protected
-         * @type {BillboardHandler}
-         */
         this._handler = null;
 
-        /**
-         * Billboard handler array index.
-         * @protected
-         * @type {number}
-         */
         this._handlerIndex = -1;
 
-        /**
-         * An indication that the object is ready to draw
-         * @protected
-         * @type {number}
-         */
         this._isReady = false;
 
         this._lockId = LOCK_FREE;
-    }
-
-    static get _staticCounter() {
-        if (!this._counter && this._counter !== 0) {
-            this._counter = 0;
-        }
-        return this._counter;
-    }
-
-    static set _staticCounter(n) {
-        this._counter = n;
     }
 
     /**
@@ -124,7 +148,7 @@ class BaseBillboard {
      * @param {number} y - Y coordinate.
      * @param {number} z - Z coordinate.
      */
-    setPosition(x, y, z) {
+    public setPosition(x: number, y: number, z: number) {
         this._position.x = x;
         this._position.y = y;
         this._position.z = z;
@@ -141,7 +165,7 @@ class BaseBillboard {
      * @public
      * @param {Vec3} position - Cartesian coordinates.
      */
-    setPosition3v(position) {
+    public setPosition3v(position: Vec3) {
         this._position.x = position.x;
         this._position.y = position.y;
         this._position.z = position.z;
@@ -158,7 +182,7 @@ class BaseBillboard {
      * @public
      * @returns {Vec3}
      */
-    getPosition() {
+    public getPosition(): Vec3 {
         return this._position;
     }
 
@@ -169,7 +193,7 @@ class BaseBillboard {
      * @param {number} y - Y offset.
      * @param {number} [z] - Z offset.
      */
-    setOffset(x, y, z) {
+    public setOffset(x: number, y: number, z?: number) {
         this._offset.x = x;
         this._offset.y = y;
         z != undefined && (this._offset.z = z);
@@ -185,7 +209,7 @@ class BaseBillboard {
      * @public
      * @param {Vec2} offset - Offset size.
      */
-    setOffset3v(offset) {
+    public setOffset3v(offset: Vec3) {
         this.setOffset(offset.x, offset.y, offset.z);
     }
 
@@ -194,7 +218,7 @@ class BaseBillboard {
      * @public
      * @returns {Vec3}
      */
-    getOffset() {
+    public getOffset(): Vec3 {
         return this._offset;
     }
 
@@ -203,7 +227,7 @@ class BaseBillboard {
      * @public
      * @param {number} rotation - Screen space rotation in radians.
      */
-    setRotation(rotation) {
+    public setRotation(rotation: number) {
         if (rotation !== this._rotation) {
             this._rotation = rotation;
             if (this._isReady && this._handler) {
@@ -219,7 +243,7 @@ class BaseBillboard {
      * @public
      * @returns {number}
      */
-    getRotation() {
+    public getRotation(): number {
         return this._rotation;
     }
 
@@ -228,7 +252,7 @@ class BaseBillboard {
      * @public
      * @param {number} a - Billboard opacity.
      */
-    setOpacity(a) {
+    public setOpacity(a: number) {
         if (a !== this._color.w) {
             a != undefined && (this._color.w = a);
             if (this._isReady && this._handler) {
@@ -247,7 +271,7 @@ class BaseBillboard {
      * @param {number} b - Blue.
      * @param {number} a - Alpha.
      */
-    setColor(r, g, b, a) {
+    public setColor(r: number, g: number, b: number, a?: number) {
         if (a !== this._color.w || r !== this._color.x || g !== this._color.y || this._color.z !== b) {
             this._color.x = r;
             this._color.y = g;
@@ -266,7 +290,7 @@ class BaseBillboard {
      * @public
      * @param {Vec4} color - RGBA vector.
      */
-    setColor4v(color) {
+    public setColor4v(color: Vec4) {
         this.setColor(color.x, color.y, color.z, color.w);
     }
 
@@ -275,7 +299,7 @@ class BaseBillboard {
      * @public
      * @param {string} color - HTML style color.
      */
-    setColorHTML(color) {
+    public setColorHTML(color: string) {
         this.setColor4v(utils.htmlColorToRgba(color));
     }
 
@@ -284,7 +308,7 @@ class BaseBillboard {
      * @public
      * @returns {Vec4}
      */
-    getColor() {
+    public getColor(): Vec4 {
         return this._color;
     }
 
@@ -293,7 +317,7 @@ class BaseBillboard {
      * @public
      * @param {boolean} visibility - Visibility flag.
      */
-    setVisibility(visibility) {
+    public setVisibility(visibility: boolean) {
         if (visibility !== this._visibility) {
             this._visibility = visibility;
             if (this._isReady && this._handler) {
@@ -309,7 +333,7 @@ class BaseBillboard {
      * @public
      * @returns {boolean}
      */
-    getVisibility() {
+    public getVisibility(): boolean {
         return this._visibility;
     }
 
@@ -320,7 +344,7 @@ class BaseBillboard {
      * @param {number} y - Aligned vector Y coordinate.
      * @param {number} z - Aligned vector Z coordinate.
      */
-    setAlignedAxis(x, y, z) {
+    public setAlignedAxis(x: number, y: number, z: number) {
         this._alignedAxis.x = x;
         this._alignedAxis.y = y;
         this._alignedAxis.z = z;
@@ -334,9 +358,9 @@ class BaseBillboard {
     /**
      * Sets billboard aligned vector.
      * @public
-     * @param {math.Vecto3} alignedAxis - Vector to align.
+     * @param {Vec3} alignedAxis - Align direction.
      */
-    setAlignedAxis3v(alignedAxis) {
+    public setAlignedAxis3v(alignedAxis: Vec3) {
         this.setAlignedAxis(alignedAxis.x, alignedAxis.y, alignedAxis.z);
     }
 
@@ -345,15 +369,15 @@ class BaseBillboard {
      * @public
      * @returns {Vec3}
      */
-    getAlignedAxis() {
+    public getAlignedAxis(): Vec3 {
         return this._alignedAxis;
     }
 
     /**
-     * Removes billboard from hander.
+     * Removes billboard from handler.
      * @public
      */
-    remove() {
+    public remove() {
         this._entity = null;
         this._handler && this._handler.remove(this);
     }
@@ -363,7 +387,7 @@ class BaseBillboard {
      * @public
      * @param {Vec3} color - Picking color.
      */
-    setPickingColor3v(color) {
+    public setPickingColor3v(color: Vec3) {
         if (this._isReady && this._handler) {
             this._handler.setPickingColorArr(this._handlerIndex, color);
         } else if (this._lockId !== LOCK_FREE) {
@@ -372,4 +396,4 @@ class BaseBillboard {
     }
 }
 
-export { BaseBillboard };
+export {BaseBillboard};
