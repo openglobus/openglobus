@@ -8,8 +8,8 @@ import { LOCK_FREE, LOCK_UPDATE } from "./LabelWorker.js";
  * Base prototype for billboard and label classes.
  * @class
  * @param {Object} [options] - Options:
- * @param {Vec3|Array.<number>} [options.position] - Billboard spatial position.
- * @param {number} [options.rotation] - Screen angle rotaion.
+ * @param {Vec3|Array.<number>} [options.position] - Billboard position.
+ * @param {number} [options.rotation] - Screen angle rotation.
  * @param {Vec4|string|Array.<number>} [options.color] - Billboard color.
  * @param {Vec3|Array.<number>} [options.alignedAxis] - Billboard aligned vector.
  * @param {Vec3|Array.<number>} [options.offset] - Billboard center screen offset.

@@ -1,8 +1,8 @@
 "use strict";
 
-import * as shaders from "../shaders/label.js";
+import * as shaders from "../shaders/label";
 import { concatTypedArrays, spliceTypedArray } from "../utils/shared";
-import { BillboardHandler } from "./BillboardHandler.js";
+import { BillboardHandler } from "./BillboardHandler";
 import { ALIGN } from "./Label.js";
 import { LOCK_FREE } from "./LabelWorker.js";
 
