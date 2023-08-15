@@ -28,8 +28,7 @@ export interface IBaseBillboardParams {
  * @param {boolean} [options.visibility] - Visibility.
  */
 class BaseBillboard {
-    static __counter__: number;
-
+    static __counter__: number = 0;
     protected __id: number;
 
     /**

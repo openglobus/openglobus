@@ -77,7 +77,7 @@ interface IEntityCollectionParams {
  */
 class EntityCollection {
 
-    static __counter__: number;
+    static __counter__: number = 0;
 
     /**
      * Uniq identifier.
@@ -253,6 +253,10 @@ class EntityCollection {
         if (options.entities) {
             this.addEntities(options.entities);
         }
+    }
+
+    get id(): number {
+        return this.__id;
     }
 
     public isEqual(ec: EntityCollection): boolean {

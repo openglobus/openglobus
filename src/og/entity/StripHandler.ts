@@ -8,9 +8,8 @@ import {Strip} from "./Strip";
 
 class StripHandler {
 
+    static __counter__: number = 0;
     protected __id: number;
-
-    static __counter__: number;
 
     /**
      * Picking rendering option.

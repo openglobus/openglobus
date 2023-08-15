@@ -23,7 +23,7 @@ const VERTEX_BUFFER = 5;
  */
 class RayHandler {
 
-    static __counter__: number;
+    static __counter__: number = 0;
 
     protected __id: number;
 

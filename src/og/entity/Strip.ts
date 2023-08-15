@@ -45,7 +45,7 @@ let _tempHigh = new Vec3(),
  */
 class Strip {
 
-    static __counter__: number;
+    static __counter__: number = 0;
 
     protected __id: number;
 

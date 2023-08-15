@@ -7,9 +7,7 @@ import {Renderer} from "../renderer/Renderer";
 import {RenderNode} from "../scene/RenderNode";
 
 class PointCloudHandler {
-
-    static __counter__: number;
-
+    static __counter__: number = 0;
     protected __id: number;
 
     /**

@@ -22,13 +22,16 @@ export function createEvents<T extends string[]>(methodNames: T, sender?: any) {
  */
 export class Events<T extends string[]> {
 
+    static __counter__: number = 0;
+
+    protected __id: number;
+
     /**
      * Registered event names.
      * @protected
      * @type {Array.<string>}
      */
     protected _eventNames: T;
-
 
     protected _sender: any;
 
@@ -38,12 +41,7 @@ export class Events<T extends string[]> {
      * @type {boolean}
      */
     protected _stopPropagation: boolean;
-
     protected _stampCache: any;
-
-    protected __id: number;
-
-    static __counter__: number;
 
     constructor(eventNames: T, sender?: any) {
 

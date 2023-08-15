@@ -8,7 +8,7 @@ import {RenderNode} from "../scene/RenderNode";
 
 class PolylineHandler {
 
-    static __counter__: number;
+    static __counter__: number = 0;
     protected __id: number;
 
     protected _entityCollection: EntityCollection;

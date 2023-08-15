@@ -53,8 +53,7 @@ const PICKING_COLOR_BUFFER = 2;
  * });
  */
 class PointCloud {
-    static __counter__: number;
-
+    static __counter__: number = 0;
     protected __id: number;
 
     /**

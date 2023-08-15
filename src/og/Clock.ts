@@ -27,8 +27,8 @@ export interface IClockParams {
  * @param {number} [params.multiplier=1.0] - Time speed multiplier.
  */
 class Clock {
-    static __counter__: number;
-
+    static __counter__: number = 0;
+    protected __id: number;
     public __handler: Handler | null = null;
     public events: EventsHandler<ClockEventsList>;
     public name: string;
@@ -37,7 +37,6 @@ class Clock {
     public currentDate: number;
     public deltaTicks: number;
 
-    protected __id: number;
     protected _multiplier: number = 1;
     protected _running: number = 1;
     protected active: boolean = true;

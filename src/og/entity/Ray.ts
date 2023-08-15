@@ -28,7 +28,7 @@ export interface IRayParams {
  */
 class Ray {
 
-    static __counter__: number;
+    static __counter__: number = 0;
     /**
      * Object uniq identifier.
      * @protected

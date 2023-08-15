@@ -7,6 +7,10 @@
  */
 class BaseNode {
 
+    static __counter__: number = 0;
+
+    protected __id: number;
+
     /**
      * Node name.
      * @public
@@ -36,10 +40,6 @@ class BaseNode {
      * @type {BaseNode}
      */
     public parentNode: BaseNode | null;
-
-    static __counter__: number;
-
-    protected __id: number;
 
     constructor(name?: string) {
 

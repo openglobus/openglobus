@@ -62,14 +62,14 @@ export interface IPolylineParams {
  * @param {Array.<Array.<number>>} [options.pathColors] - Coordinates color. [[[1,0,0,1], [0,1,0,1],...]] for right and green colors.
  */
 class Polyline {
-    static __counter__: number;
+    static __counter__: number = 0;
 
     /**
      * Object unic identifier.
      * @protected
      * @type {number}
      */
-    protected __id = Polyline.__counter__++;
+    protected __id: number;
 
     public altitude: number;
 

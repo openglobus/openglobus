@@ -56,7 +56,7 @@ export interface IEntityParams {
  */
 class Entity {
 
-    static __counter__: number;
+    static __counter__: number = 0;
 
     /**
      * Unic identifier.

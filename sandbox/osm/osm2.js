@@ -6,67 +6,40 @@ import {
     XYZ,
     LonLat,
     Vector,
+    Vec2,
     Vec3,
     Quat
 } from "../../dist/@openglobus/og.esm.js";
 
-function createGrid(center) {
-    let grid = [];
-
-    let size = 0.26;
-    let cell = 0.005;
-
-    let vert = [];
-    for (let i = 0; i < size; i += cell) {
-        let par = [],
-            mer = [];
-        for (let j = 0; j < size; j += cell) {
-            par.push(new LonLat(center.lon + j - size / 2, center.lat + i - size / 2));
-            mer.push(new LonLat(center.lon + i - size / 2, center.lat + j - size / 2));
-        }
-        grid.push(par);
-        grid.push(mer);
-    }
-    return grid;
-};
-
-let center = new LonLat(8.19, 46.73);
-
-const polylineEntity = new Entity({
-    'polyline': {
-        'pathLonLat': createGrid(center),
-        'thickness': 4,
-        'color': "orange",
-        'isClosed': false
-    }
-});
-
-const pointLayer = new Vector("points", {
+let pointLayer = new Vector("points", {
     'clampToGround': true,
-    'entities': [
-        polylineEntity
-    ],
+    'entities': [{
+        'name': 'Blue Marker',
+        'lonlat': [8.19, 46.73],
+        'billboard': {
+            'src': 'marker.png',
+            'size': [29, 48],
+            'offset': [0, 24]
+        }
+    }],
     'async': false
 });
 
-const osm = new XYZ("OpenStreetMap", {
-    isBaseLayer: true,
-    url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    visibility: true,
-    attribution: 'Data @ OpenStreetMap contributors, ODbL'
+let label = new Entity({
+    'name': 'label',
+    'lonlat': [8.25, 46.74],
+    'label': {
+        'align': "center",
+        'text': 'Hello world',
+        'size': [18],
+        'outlineColor': "rgba(0,0,0,.5)",
+        'outline': 0.11
+    }
 });
-
-const globe = new Globe({
-    "target": "earth",
-    "name": "Earth",
-    "terrain": new GlobusTerrain(),
-    "layers": [osm, pointLayer]
-});
-
-window.globe = globe;
 
 let pickingObject = null;
-let startPos, endPos;
+let startClick = new Vec2(),
+    startPos;
 
 pointLayer.events.on("mouseenter", function (e) {
     e.renderer.handler.canvas.style.cursor = "pointer";
@@ -77,28 +50,90 @@ pointLayer.events.on("mouseleave", function (e) {
 });
 
 pointLayer.events.on("ldown", function (e) {
-    this.planet.renderer.controls.mouseNavigation.deactivate();
-    startPos = this.planet.getLonLatFromPixelTerrain(e);
+    e.renderer.controls.mouseNavigation.deactivate();
+    startClick.set(e.x, e.y);
     pickingObject = e.pickingObject;
+    startPos = e.pickingObject.layer.planet.getPixelFromCartesian(pickingObject.getCartesian());
 });
 
 pointLayer.events.on("lup", function (e) {
     e.renderer.controls.mouseNavigation.activate();
-    center.lon += endPos.lon - startPos.lon;
-    center.lat += endPos.lat - startPos.lat;
     pickingObject = null;
+});
+
+let osm = new XYZ("OSM", {
+    'isBaseLayer': true,
+    'url': "//b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    'visibility': true,
+    'attribution': 'Data @ OpenStreetMap contributors, ODbL'
+});
+
+let globe = new Globe({
+    "target": "earth",
+    "name": "Earth",
+    "terrain": new GlobusTerrain(),
+    "layers": [osm, pointLayer]
 });
 
 globe.planet.renderer.events.on("mousemove", function (e) {
     if (pickingObject) {
-        endPos = this.getLonLatFromPixelTerrain(e);
-        if (endPos) {
-            let dlon = endPos.lon - startPos.lon,
-                dlat = endPos.lat - startPos.lat;
-            let grid = createGrid(new LonLat(center.lon + dlon, center.lat + dlat));
-            polylineEntity.polyline.setPathLonLat(grid, true);
+        var d = new Vec2(e.x, e.y).sub(startClick);
+        var endPos = startPos.add(d);
+        var coords = this.getCartesianFromPixelTerrain(endPos);
+        if (coords) {
+            pickingObject.setCartesian3v(coords);
         }
     }
 }, globe.planet);
 
+pointLayer.add(label);
+
 globe.planet.viewExtentArr([8.08, 46.72, 8.31, 46.75]);
+
+globe.renderer.events.on("lclick", function (e) {
+
+    var ll = globe.planet.getLonLatFromPixelTerrain(e, true);
+
+    pointLayer.add(new Entity({
+        'name': 'New Marker',
+        'lonlat': ll,
+        'billboard': {
+            'src': 'marker.png',
+            'size': [29, 48],
+            'offset': [0, 24]
+        }
+    }));
+
+});
+
+pointLayer.events.on("rclick", function (e) {
+    e.pickingObject.remove();
+});
+
+window.test = function(){
+    let number = new Entity({
+        'name': 'number',
+        'label': {
+            'align': "center",
+            'offset': [0, -20],
+            'text': '123',
+            'size': [14],
+            'outlineColor': "rgba(0,0,0,.5)",
+            'outline': 0.14
+        }
+    });
+
+    let blb = new Entity({
+        'name': 'New Marker',
+        //'lonlat': ll,
+        'billboard': {
+            'src': 'marker.png',
+            'size': [29, 48],
+            'offset': [0, 24]
+        }
+    })
+
+    label.appendChild(number);
+
+    label.appendChild(blb);
+}
