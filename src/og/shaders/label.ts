@@ -1,6 +1,6 @@
 'use strict';
 
-import { Program } from '../webgl/Program.js';
+import {Program} from '../webgl/Program';
 
 const DEFINE = `
 #define EMPTY -1.0
@@ -16,7 +16,7 @@ const ROTATE2D =
            sin(angle), cos(angle));
      }`;
 
-export function label_webgl2() {
+export function label_webgl2(): Program {
     return new Program("label", {
         uniforms: {
             viewport: "vec2",
@@ -234,7 +234,7 @@ export function label_webgl2() {
     });
 }
 
-export function label_screen() {
+export function label_screen(): Program {
     return new Program("label", {
         uniforms: {
             viewport: "vec2",
@@ -472,7 +472,7 @@ export function label_screen() {
     });
 }
 
-export function labelPicking() {
+export function labelPicking(): Program {
     return new Program("labelPicking", {
         uniforms: {
             viewport: "vec2",

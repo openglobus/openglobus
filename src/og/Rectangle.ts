@@ -10,38 +10,37 @@
  */
 class Rectangle {
     /**
-     * @param {number} [left] - Left coordinate. 0 - default.
-     * @param {number} [top] - Top coordinate. 0 - default.
-     * @param {number} [right] - Right coordinate. 0 - default.
-     * @param {number} [bottom] - Bottom coordinate. 0 - default.
+     * Left coordinate.
+     * @public
+     * @type {number}
      */
-    constructor(left = 0, top = 0, right = 0, bottom = 0) {
-        /**
-         * Left coordinate.
-         * @public
-         * @type {number}
-         */
+    public left: number;
+
+    /**
+     * Right coordinate.
+     * @public
+     * @type {number}
+     */
+    public right: number;
+
+    /**
+     * Top coordinate.
+     * @public
+     * @type {number}
+     */
+    public top: number;
+
+    /**
+     * Top coordinate.
+     * @public
+     * @type {number}
+     */
+    public bottom: number;
+
+    constructor(left: number = 0, top: number = 0, right: number = 0, bottom: number = 0) {
         this.left = left;
-
-        /**
-         * Right coordinate.
-         * @public
-         * @type {number}
-         */
         this.right = right;
-
-        /**
-         * Top coordinate.
-         * @public
-         * @type {number}
-         */
         this.top = top;
-
-        /**
-         * Top coordinate.
-         * @public
-         * @type {number}
-         */
         this.bottom = bottom;
     }
 
@@ -50,7 +49,7 @@ class Rectangle {
      * @public
      * @returns {Rectangle}
      */
-    clone() {
+    public clone(): Rectangle {
         return new Rectangle(this.left, this.top, this.right, this.bottom);
     }
 
@@ -59,7 +58,7 @@ class Rectangle {
      * @public
      * @type {number}
      */
-    getWidth() {
+    public getWidth(): number {
         return Math.abs(this.right - this.left);
     }
 
@@ -68,7 +67,7 @@ class Rectangle {
      * @public
      * @type {number}
      */
-    getHeight() {
+    public getHeight(): number {
         return Math.abs(this.bottom - this.top);
     }
 
@@ -77,7 +76,7 @@ class Rectangle {
      * @public
      * @type {number}
      */
-    getSquare() {
+    public getSquare(): number {
         return this.getHeight() * this.getWidth();
     }
 
@@ -86,8 +85,8 @@ class Rectangle {
      * @public
      * @type {number}
      */
-    getDiagonal() {
-        var w = this.getWidth(),
+    public getDiagonal(): number {
+        let w = this.getWidth(),
             h = this.getHeight();
         return Math.sqrt(h * h + w * w);
     }
@@ -99,11 +98,11 @@ class Rectangle {
      * @param {number} height - Height.
      * @type {boolean}
      */
-    fit(width, height) {
+    public fit(width: number, height: number): boolean {
         return this.getWidth() == width && this.getHeight() == height;
     }
 
-    isInside(x, y) {
+    public isInside(x: number, y: number): boolean {
         return x >= this.left && x <= this.right && y >= this.top && y <= this.bottom;
     }
 }

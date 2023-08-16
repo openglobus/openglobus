@@ -5,7 +5,7 @@ import {Entity} from "./Entity";
 import {LOCK_FREE, LOCK_UPDATE} from "./LabelWorker.js";
 import {NumberArray3, Vec3} from "../math/Vec3";
 import {NumberArray4, Vec4} from "../math/Vec4";
-import {BillboardHandler} from "./BillboardHandler";
+import {BaseBillboardHandler} from "./BaseBillboardHandler";
 
 export interface IBaseBillboardParams {
     position?: NumberArray3 | Vec3;
@@ -89,7 +89,7 @@ class BaseBillboard {
      * @protected
      * @type {BillboardHandler | null}
      */
-    protected _handler: BillboardHandler | null;
+    protected _handler: BaseBillboardHandler | null;
 
     /**
      * Billboard handler array index.

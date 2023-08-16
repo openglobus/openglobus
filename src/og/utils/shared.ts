@@ -181,7 +181,7 @@ export function print2d(id: string, text: string, x: number, y: number) {
     el.style.top = `${y}px`;
 }
 
-export function defaultString(str?: string, def?: string): string | undefined {
+export function defaultString(str?: string, def: string = ""): string {
     return str ? str.trim().toLowerCase() : def;
 }
 

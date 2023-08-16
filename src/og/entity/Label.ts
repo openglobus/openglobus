@@ -1,11 +1,23 @@
 "use strict";
 
-import { Vec4 } from "../math/Vec4";
 import * as utils from "../utils/shared";
-import { BaseBillboard } from "./BaseBillboard.js";
-import { LOCK_FREE, LOCK_UPDATE } from "./LabelWorker.js";
+import {BaseBillboard, IBaseBillboardParams} from "./BaseBillboard";
+import {LOCK_FREE, LOCK_UPDATE} from "./LabelWorker.js";
+import {NumberArray4, Vec4} from "../math/Vec4";
+import {FontAtlas} from "../utils/FontAtlas";
+import {LabelHandler} from "./LabelHandler";
 
-const ALIGN = {
+interface ILabelParams extends IBaseBillboardParams {
+    text?: string;
+    face?: string;
+    size?: number;
+    outline?: number;
+    outlineColor?: string | NumberArray4 | Vec4;
+    align?: string;
+    isRTL?: boolean;
+}
+
+const ALIGN: Record<string, number> = {
     RIGHT: 0,
     LEFT: 1,
     CENTER: 2
@@ -16,7 +28,7 @@ const ALIGN = {
  * @readonly
  * @enum {number}
  */
-const STR2ALIGN = {
+const STR2ALIGN: Record<string, number> = {
     left: ALIGN.LEFT,
     right: ALIGN.RIGHT,
     center: ALIGN.CENTER
@@ -40,85 +52,104 @@ const STR2ALIGN = {
  * @param {string} [options.weight] - HTML5 font weight. Example 'normal', 'bold'.
  * @param {number} [options.outline] - Text outline size. 0 - no outline, 1 - maximum outline. Default 0.58.
  * @param {Vec4|string|Array.<number>} [options.outlineColor] - Outline color.
- * @param {Label.ALIGN} [options.align] - Text horizontal align: "left", "right" and "center".
+ * @param {string} [options.align] - Text horizontal align: "left", "right" and "center".
  */
 class Label extends BaseBillboard {
-    constructor(options) {
+
+    protected override _handler: LabelHandler | null;
+
+    /**
+     * Label text string.
+     * @protected
+     * @type {string}
+     */
+    protected _text: string;
+
+    /**
+     * HTML5 font face.
+     * @private
+     * @type {string}
+     */
+    protected _face: string;
+
+    /**
+     * Font size in pixels.
+     * @protected
+     * @type {number}
+     */
+    protected _size: number;
+
+    /**
+     * Label outline.
+     * @protected
+     * @type {number}
+     */
+    protected _outline: number;
+
+    /**
+     * Label outline color.
+     * @protected
+     * @type {Vec4}
+     */
+    protected _outlineColor: Vec4;
+
+    /**
+     * Text horizontal align: "left", "right" and "center".
+     * @private
+     * @type {Label.ALIGN}
+     */
+    protected _align: number;
+
+    /**
+     * Label font atlas index.
+     * @protected
+     * @type {number}
+     */
+    protected _fontIndex: number;
+
+    /**
+     * Font atlas pointer.
+     * @private
+     * @type {FontAtlas}
+     */
+    protected _fontAtlas: FontAtlas | null;
+
+    protected _isRTL: boolean;
+
+    constructor(options: ILabelParams = {}) {
         super(options);
 
-        options = options || {};
+        this._handler = null;
 
-        /**
-         * Label text string.
-         * @private
-         * @type {string}
-         */
-        this._text = options.text;
+        this._text = options.text || "";
 
-        /**
-         * HTML5 font face.
-         * @private
-         * @type {string}
-         */
         this._face = utils.defaultString(options.face, "arial");
 
-        /**
-         * Font size in pixels.
-         * @private
-         * @type {number}
-         */
         this._size = options.size || 24;
 
-        /**
-         * Label outline.
-         * @private
-         * @type {number}
-         */
         this._outline = options.outline != undefined ? options.outline : 0.0;
 
-        /**
-         * Label outline color.
-         * @private
-         * @type {Vec4}
-         */
         this._outlineColor = utils.createColorRGBA(
             options.outlineColor,
             new Vec4(0.0, 0.0, 0.0, 1.0)
         );
 
-        /**
-         * Text horizontal align: "left", "right" and "center".
-         * @private
-         * @type {Label.ALIGN}
-         */
-        this._align = options.align
-            ? STR2ALIGN[options.align.trim().toLowerCase()] || ALIGN.RIGHT
-            : ALIGN.RIGHT;
+        this._align = options.align ? STR2ALIGN[options.align.trim().toLowerCase()] as number || ALIGN.RIGHT : ALIGN.RIGHT;
 
-        /**
-         * Label font atlas index.
-         * @private
-         * @type {number}
-         */
         this._fontIndex = 0;
 
-        /**
-         * Font atlas pointer.
-         * @private
-         * @type {utils.FontAtlas}
-         */
         this._fontAtlas = null;
 
         this._isRTL = options.isRTL || false;
     }
 
     /**
-     * Sets lablel text.
+     * Set label text.
      * @public
      * @param {string} text - Text string.
      * It can't be bigger than maximum labelHandler _maxLetters value.
      */
-    setText(text) {
+    public setText(text: string) {
         this._text = text.toString();
         if (this._isReady && this._handler) {
             this._handler.setText(this._handlerIndex, text, this._fontIndex, this._align, this._isRTL);
@@ -130,17 +161,17 @@ class Label extends BaseBillboard {
      * @public
      * @returns {string}
      */
-    getText() {
+    public getText(): string {
         return this._text;
     }
 
     /**
      * Sets label text align. Could be center, left or right. Left is default.
      * @public
-     * @param {Label.ALIGN} align - Text align.
+     * @param {string} align - Text align.
      */
-    setAlign(align) {
-        this._align = STR2ALIGN[align.trim().toLowerCase()];
+    public setAlign(align: string) {
+        this._align = STR2ALIGN[align.trim().toLowerCase()] as number;
         if (this._isReady && this._handler) {
             this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align, this._isRTL);
         } else if (this._lockId !== LOCK_FREE) {
@@ -151,9 +182,9 @@ class Label extends BaseBillboard {
     /**
      * Gets label text current alignment.
      * @public
-     * @returns {Label.ALIGN}
+     * @returns {string}
      */
-    getAlign() {
+    public getAlign(): number {
         return this._align;
     }
 
@@ -162,7 +193,7 @@ class Label extends BaseBillboard {
      * @public
      * @param {string} face - Font face family.
      */
-    setFace(face) {
+    public setFace(face: string) {
         this._face = face.trim().toLowerCase();
         this.update();
     }
@@ -172,7 +203,7 @@ class Label extends BaseBillboard {
      * @public
      * @returns {string}
      */
-    getFace() {
+    public getFace(): string {
         return this._face;
     }
 
@@ -181,7 +212,7 @@ class Label extends BaseBillboard {
      * @public
      * @param {number} size - Label size in pixels.
      */
-    setSize(size) {
+    public setSize(size: number) {
         if (size !== this._size) {
             this._size = size;
             if (this._isReady && this._handler) {
@@ -197,16 +228,16 @@ class Label extends BaseBillboard {
      * @public
      * @returns {number}
      */
-    getSize() {
+    public getSize(): number {
         return this._size;
     }
 
     /**
-     * Sets text outline border size. Where 0 - is no outline and 1 - is the maximum outline size.
+     * Sets text outline border size. Where 0 - is no outline, and 1 - is the maximum outline size.
      * @public
      * @param {number} outline - Text outline size.
      */
-    setOutline(outline) {
+    public setOutline(outline: number) {
         this._outline = outline;
         if (this._isReady && this._handler) {
             this._handler.setOutlineArr(this._handlerIndex, outline);
@@ -220,7 +251,7 @@ class Label extends BaseBillboard {
      * @public
      * @returns {number}
      */
-    getOutline() {
+    public getOutline(): number {
         return this._outline;
     }
 
@@ -229,7 +260,7 @@ class Label extends BaseBillboard {
      * @public
      * @param {number} a - Label opacity.
      */
-    setOpacity(a) {
+    public override setOpacity(a: number) {
         super.setOpacity(a);
         this.setOutlineOpacity(a);
     }
@@ -242,7 +273,7 @@ class Label extends BaseBillboard {
      * @param {number} b - Blue.
      * @param {number} a - Alpha.
      */
-    setOutlineColor(r, g, b, a) {
+    public setOutlineColor(r: number, g: number, b: number, a: number) {
         if (a !== this._outlineColor.w || r !== this._outlineColor.x || g !== this._outlineColor.y || b !== this._outlineColor.z) {
             this._outlineColor.x = r;
             this._outlineColor.y = g;
@@ -261,7 +292,7 @@ class Label extends BaseBillboard {
      * @public
      * @param {Vec4} rgba - Color vector.
      */
-    setOutlineColor4v(rgba) {
+    public setOutlineColor4v(rgba: Vec4) {
         this.setOutlineColor(rgba.x, rgba.y, rgba.z, rgba.w);
     }
 
@@ -270,7 +301,7 @@ class Label extends BaseBillboard {
      * @public
      * @param {string} color - HTML string color.
      */
-    setOutlineColorHTML(color) {
+    public setOutlineColorHTML(color: string) {
         this.setOutlineColor4v(utils.htmlColorToRgba(color));
     }
 
@@ -279,7 +310,7 @@ class Label extends BaseBillboard {
      * @public
      * @returns {Vec4}
      */
-    getOutlineColor() {
+    public getOutlineColor(): Vec4 {
         return this._outlineColor;
     }
 
@@ -288,7 +319,7 @@ class Label extends BaseBillboard {
      * @public
      * @param {number} opacity - Outline opacity.
      */
-    setOutlineOpacity(opacity) {
+    public setOutlineOpacity(opacity: number) {
         if (opacity !== this._outlineColor.w) {
             this._outlineColor.w = opacity;
             if (this._isReady && this._handler) {
@@ -304,7 +335,7 @@ class Label extends BaseBillboard {
      * @public
      * @returns {number}
      */
-    getOutlineOpacity() {
+    public getOutlineOpacity(): number {
         return this._outlineColor.w;
     }
 
@@ -312,14 +343,14 @@ class Label extends BaseBillboard {
      * Updates label parameters.
      * @public
      */
-    async update() {
+    public async update() {
         if (this._fontAtlas) {
             const fontIndex = await this._fontAtlas.getFontIndex(this._face);
             this._applyFontIndex(fontIndex);
         }
     }
 
-    _applyFontIndex(fontIndex) {
+    protected _applyFontIndex(fontIndex: number) {
         this._fontIndex = fontIndex;
         if (this._isReady && this._handler) {
             this._handler.setFontIndexArr(this._handlerIndex, this._fontIndex);
@@ -332,9 +363,9 @@ class Label extends BaseBillboard {
     /**
      * Assigns font atlas and update.
      * @public
-     * @param {utils.FontAtlas} fontAtlas - Font atlas.
+     * @param {FontAtlas} fontAtlas - Font atlas.
      */
-    assignFontAtlas(fontAtlas) {
+    public assignFontAtlas(fontAtlas: FontAtlas) {
         if (!this._fontAtlas) {
             this._fontAtlas = fontAtlas;
         }
@@ -342,4 +373,4 @@ class Label extends BaseBillboard {
     }
 }
 
-export { Label, ALIGN };
+export {Label, ALIGN};

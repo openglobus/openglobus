@@ -1,6 +1,7 @@
 "use strict";
 
 import {BaseBillboard, IBaseBillboardParams} from "./BaseBillboard";
+import {BillboardHandler} from "./BillboardHandler";
 
 interface IBillboardParams extends IBaseBillboardParams {
     src?: string;
@@ -28,6 +29,8 @@ interface IBillboardParams extends IBaseBillboardParams {
  * @param {number} [options.scale] - Billboard scale.
  */
 class Billboard extends BaseBillboard {
+
+    protected override _handler: BillboardHandler | null;
 
     /**
      * Image src.
@@ -62,6 +65,8 @@ class Billboard extends BaseBillboard {
     constructor(options: IBillboardParams = {}) {
 
         super(options);
+
+        this._handler = null;
 
         this._src = options.src || null;
 

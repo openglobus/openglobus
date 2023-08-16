@@ -5,6 +5,7 @@ import {Entity} from "./Entity";
 import {createEvents, EventsHandler} from "../Events";
 import {BillboardHandler} from "./BillboardHandler";
 import {GeoObjectHandler} from "./GeoObjectHandler";
+import {Label} from "./Label";
 import {LabelHandler} from "./LabelHandler";
 import {NumberArray3} from "../math/Vec3";
 import {PointCloudHandler} from "./PointCloudHandler";
@@ -592,9 +593,10 @@ class EntityCollection {
      * @public
      */
     public updateBillboardsTextureAtlas() {
+        // @ts-ignore
         let b = this.billboardHandler._billboards;
         for (let i = 0; i < b.length; i++) {
-            b[i].setSrc(b[i]._src);
+            b[i].setSrc(b[i].getSrc());
         }
     }
 
@@ -605,7 +607,8 @@ class EntityCollection {
     public updateLabelsFontAtlas() {
         if (this.renderNode) {
             // @ts-ignore
-            let l = [].concat(this.labelHandler._billboards);
+            let l = ([] as Label[]).concat(this.labelHandler._billboards);
+            // @ts-ignore
             this.labelHandler._billboards = [];
             for (let i = 0; i < l.length; i++) {
                 this.labelHandler.assignFontAtlas(l[i]);

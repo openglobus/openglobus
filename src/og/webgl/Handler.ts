@@ -3,7 +3,7 @@
 import {Clock} from "../Clock";
 import {EventsHandler, createEvents} from "../Events";
 import {ImageCanvas} from "../ImageCanvas";
-import {Vec2} from "../math/Vec2";
+import {NumberArray2, Vec2} from "../math/Vec2";
 import {Stack} from "../Stack";
 import {getUrlParam, isEmpty, TypedArray} from "../utils/shared";
 
@@ -128,6 +128,8 @@ class Handler {
      */
     protected _frameCallback: Function;
 
+    protected _canvasSize: NumberArray2;
+
     public transparentTexture: WebGLTextureExt | null;
 
     public defaultTexture: WebGLTextureExt | null;
@@ -171,6 +173,8 @@ class Handler {
         this.programs = {};
 
         this.activeProgram = null;
+
+        this._canvasSize = [0, 0];
 
         this._params = params;
         this._params.anisotropy = this._params.anisotropy || 4;
@@ -923,6 +927,10 @@ class Handler {
         });
     }
 
+    public getCanvasSize(): NumberArray2 {
+        return this._canvasSize;
+    }
+
     /**
      * Creates STREAM_DRAW ARRAY buffer.
      * @public
@@ -1033,6 +1041,9 @@ class Handler {
         if (this.canvas) {
             this.canvas.width = w * this._params.pixelRatio;
             this.canvas.height = h * this._params.pixelRatio;
+
+            this._canvasSize[0] = this.canvas.width;
+            this._canvasSize[1] = this.canvas.height;
 
             this._oneByHeight = 1.0 / this.canvas.height;
 

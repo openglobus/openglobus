@@ -4,18 +4,17 @@ import * as arial from "../arial.js";
 import {Camera} from "../camera/Camera";
 import {Control} from "../control/Control";
 import {cons} from "../cons.js";
+import {createRendererEvents, RendererEvents, RendererEventsHandler} from "./RendererEvents";
 import {depth} from "../shaders/depth";
 import {EntityCollection} from "../entity/EntityCollection";
 import {Framebuffer, Multisample} from "../webgl/index";
-import {WebGLBufferExt} from "../webgl/Handler";
 import {FontAtlas} from "../utils/FontAtlas.js";
-import {Handler} from "../webgl/Handler";
+import {Handler, WebGLBufferExt} from "../webgl/Handler";
 import {input} from "../input/input";
 import {isEmpty} from "../utils/shared";
 import {LabelWorker} from "../entity/LabelWorker.js";
 import {pickingMask} from "../shaders/pickingMask.js";
 import {randomi} from "../math";
-import {createRendererEvents, RendererEvents, RendererEventsHandler} from "./RendererEvents";
 import {RenderNode} from "../scene/RenderNode";
 import {screenFrame} from "../shaders/screenFrame.js";
 import {toneMapping} from "../shaders/toneMapping.js";
@@ -23,8 +22,6 @@ import {TextureAtlas} from "../utils/TextureAtlas.js";
 import {Vec2} from "../math/Vec2";
 import {NumberArray3, Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
-import {EventsHandler} from "../Events";
-import {BaseFramebuffer} from "../webgl/BaseFramebuffer";
 
 let __pickingCallbackCounter__ = 0;
 
@@ -228,7 +225,7 @@ class Renderer {
 
     protected _fnScreenFrame: Function | null;
 
-    protected labelWorker: LabelWorker;
+    public labelWorker: LabelWorker;
 
     protected __useDistanceFramebuffer__: boolean;
 

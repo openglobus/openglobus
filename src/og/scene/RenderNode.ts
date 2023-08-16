@@ -34,7 +34,7 @@ class RenderNode extends BaseNode {
 
     protected _isActive: boolean;
 
-    public childNodes: RenderNode[];
+    public override childNodes: RenderNode[];
 
     /**
      * Lighting calculations.
@@ -94,7 +94,7 @@ class RenderNode extends BaseNode {
      * @public
      * @type {RenderNode}
      */
-    public addNode(node: RenderNode) {
+    public override addNode(node: RenderNode) {
         super.addNode(node);
         this.renderer && node.assign(this.renderer);
     }

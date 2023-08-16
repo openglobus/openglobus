@@ -599,7 +599,7 @@ class PlanetCamera extends Camera {
         this.update();
     }
 
-    public rotateVertical(angle: number, center: Vec3, minSlope: number = 0) {
+    public override rotateVertical(angle: number, center: Vec3, minSlope: number = 0) {
         let rot = new Mat4().setRotation(this._r, angle);
         let tr = new Mat4().setIdentity().translate(center);
         let ntr = new Mat4().setIdentity().translate(center.negateTo());
