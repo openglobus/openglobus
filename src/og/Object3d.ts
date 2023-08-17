@@ -1,22 +1,49 @@
-/* eslint-disable no-param-reassign */
-'use strict';
+import {htmlColorToFloat32Array, TypedArray} from './utils/shared';
+import {NumberArray3, Vec3} from './math/Vec3';
+import {MAX, MIN} from './math';
+import {transformLeftToRightCoordinateSystem, objParser} from "./utils/objParser";
 
-import { htmlColorToFloat32Array } from './utils/shared';
-import { Vec3 } from './math/Vec3';
-import { MAX, MIN } from './math';
-import { transformLeftToRightCoordinateSystem, objParser } from "./utils/objParser.js";
-
-function getColor(color) {
+function getColor(color?: number[] | TypedArray | string): Float32Array {
     if (color instanceof Array) {
-        return color;
+        return new Float32Array(color);
     } else if (typeof color === 'string') {
         return htmlColorToFloat32Array(color);
     }
-    return [1.0, 1.0, 1.0, 1.0];
+    return new Float32Array([1.0, 1.0, 1.0, 1.0]);
+}
+
+interface IObject3dParams {
+    name?: string;
+    vertices?: number[];
+    texCoords?: number[];
+    indices?: number[];
+    normals?: number[];
+    center?: boolean;
+    src?: string;
+    color?: number[] | TypedArray | string;
+    scale?: number;
 }
 
 class Object3d {
-    constructor(data) {
+
+    protected _name: string;
+    protected _vertices: number[];
+    protected _numVertices: number;
+    protected _texCoords: number[];
+
+    /**
+     * Image src.
+     * @protected
+     * @type {string}
+     */
+    protected _src: string | null;
+
+    protected color: Float32Array;
+
+    protected _indices: number[];
+    protected _normals: number[];
+
+    constructor(data: IObject3dParams = {}) {
 
         this._name = data.name || "noname";
         this._vertices = data.vertices || [];
@@ -41,7 +68,7 @@ class Object3d {
         }
 
         if (data.indices) {
-            this._indices = data.indices || [];
+            this._indices = data.indices;
             this._normals = data.normals || [];
         } else {
             this._normals = Object3d.getNormals(this._vertices);
@@ -52,7 +79,7 @@ class Object3d {
         }
     }
 
-    static centering(verts) {
+    static centering(verts: number[]) {
         let min_x = MAX, min_y = MAX, min_z = MAX, max_x = MIN, max_y = MIN, max_z = MIN;
         for (let i = 0, len = verts.length; i < len; i += 3) {
             let x = verts[i], y = verts[i + 1], z = verts[i + 2];
@@ -75,45 +102,45 @@ class Object3d {
         }
     }
 
-    get src() {
+    public get src(): string | null {
         return this._src;
     }
 
-    set src(src) {
+    public set src(src: string) {
         this._src = src;
     }
 
-    get name() {
+    public get name(): string {
         return this._name;
     }
 
-    get vertices() {
+    public get vertices(): number[] {
         return this._vertices;
     }
 
-    get normals() {
+    public get normals(): number[] {
         return this._normals;
     }
 
-    get indices() {
+    public get indices(): number[] {
         return this._indices;
     }
 
-    get texCoords() {
+    public get texCoords(): number[] {
         return this._texCoords;
     }
 
-    get numVertices() {
+    public get numVertices(): number {
         return this._numVertices;
     }
 
-    static scale(vertices, s) {
+    static scale(vertices: number[], s: number) {
         for (let i = 0; i < vertices.length; i++) {
             vertices[i] *= s;
         }
     }
 
-    static centroid(vertices) {
+    static centroid(vertices: number[]) {
         let minX = 1000.0, minY = 1000.0, minZ = 1000.0, maxX = -1000.0, maxY = -1000.0, maxZ = -1000.0;
 
         for (let i = 0; i < vertices.length; i += 3) {
@@ -129,7 +156,7 @@ class Object3d {
         return [minX + (maxX - minX) * 0.5, minY + (maxY - minY) * 0.5, minZ + (maxZ - minZ) * 0.5];
     }
 
-    static translate(vertices, v) {
+    static translate(vertices: number[], v: NumberArray3) {
         for (let i = 0; i < vertices.length; i += 3) {
             vertices[i] -= v[0];
             vertices[i + 1] -= v[1];
@@ -137,7 +164,7 @@ class Object3d {
         }
     }
 
-    static getNormals(vertices) {
+    static getNormals(vertices: number[]): number[] {
         let res = new Array(vertices.length);
 
         for (let i = 0; i < vertices.length; i += 9) {
@@ -171,22 +198,23 @@ class Object3d {
         return res;
     }
 
-    static createSphere(lonBands = 16, latBands = 16, radius = 1.0, offsetX = 0, offsetY = 0, offsetZ = 0) {
+    static createSphere(lonBands: number = 16, latBands: number = 16, radius: number = 1.0,
+                        offsetX: number = 0, offsetY: number = 0, offsetZ: number = 0): Object3d {
 
         let vertices = [], indices = [], normals = [];
 
         for (let latNumber = 0; latNumber <= latBands; latNumber++) {
-            var theta = latNumber * Math.PI / latBands;
-            var sinTheta = Math.sin(theta);
-            var cosTheta = Math.cos(theta);
+            let theta = latNumber * Math.PI / latBands;
+            let sinTheta = Math.sin(theta);
+            let cosTheta = Math.cos(theta);
 
             for (let longNumber = 0; longNumber <= lonBands; longNumber++) {
-                var phi = longNumber * 2 * Math.PI / lonBands;
-                var sinPhi = Math.sin(phi);
-                var cosPhi = Math.cos(phi);
-                var x = cosPhi * sinTheta + offsetX;
-                var y = cosTheta + offsetY;
-                var z = sinPhi * sinTheta + offsetZ;
+                let phi = longNumber * 2 * Math.PI / lonBands;
+                let sinPhi = Math.sin(phi);
+                let cosPhi = Math.cos(phi);
+                let x = cosPhi * sinTheta + offsetX;
+                let y = cosTheta + offsetY;
+                let z = sinPhi * sinTheta + offsetZ;
                 //var u = 1 - (longNumber / lonBands);
                 //var v = latNumber / latBands;
                 normals.push(x);
@@ -202,8 +230,8 @@ class Object3d {
 
         for (let latNumber = 0; latNumber < latBands; latNumber++) {
             for (let longNumber = 0; longNumber < lonBands; longNumber++) {
-                var first = (latNumber * (lonBands + 1)) + longNumber;
-                var second = first + lonBands + 1;
+                let first = (latNumber * (lonBands + 1)) + longNumber;
+                let second = first + lonBands + 1;
 
                 indices.push(first);
                 indices.push(first + 1);
@@ -220,18 +248,21 @@ class Object3d {
         });
     }
 
-    static createDisc(radius = 1.0, height = 0.0, radialSegments = 8, isTop = true, startIndex = 0, offsetX = 0, offsetY, offsetZ = 0) {
+    static createDisc(radius: number = 1.0, height: number = 0.0,
+                      radialSegments: number = 8, isTop: boolean = true, startIndex: number = 0,
+                      offsetX: number = 0, offsetY: number = 0, offsetZ: number = 0
+    ): Object3d {
 
         let vertices = [], indices = [], normals = [];
 
         let thetaStart = 0.0, thetaLength = Math.PI * 2;
 
-        let sign = (isTop === true) ? 1.0 : -1.0;
+        let sign = isTop ? 1.0 : -1.0;
 
         let centerIndexStart = startIndex;
 
         for (let x = 1; x <= radialSegments; x++) {
-            vertices.push(0 + offsetX, height * sign + offsetY, 0 + offsetZ);
+            vertices.push(offsetX, height * sign + offsetY, offsetZ);
             normals.push(0, sign, 0);
             //texCoords.push(0.5, 0.5);
             startIndex++;
@@ -256,7 +287,7 @@ class Object3d {
 
         for (let x = 0; x < radialSegments; x++) {
             let c = centerIndexStart + x, i = centerIndexEnd + x;
-            if (isTop === true) {
+            if (isTop) {
                 indices.push(i, i + 1, c);
             } else {
                 indices.push(i + 1, i, c);
@@ -268,9 +299,13 @@ class Object3d {
         });
     }
 
-    static createCylinder(radiusTop = 1.0, radiusBottom = 1.0, height = 1.0, radialSegments = 32, heightSegments = 1.0, isTop = true, isBottom = true, offsetX = 0, offsetY = 0, offsetZ = 0) {
+    static createCylinder(radiusTop: number = 1.0, radiusBottom: number = 1.0, height: number = 1.0,
+                          radialSegments: number = 32, heightSegments: number = 1.0, isTop: boolean = true,
+                          isBottom: boolean = true, offsetX: number = 0, offsetY: number = 0, offsetZ: number = 0): Object3d {
 
-        let vertices = [], indices = [], normals = [];
+        let vertices: number[] = [],
+            indices: number[] = [],
+            normals: number[] = [];
 
         let thetaStart = 0.0, thetaLength = Math.PI * 2;
 
@@ -279,7 +314,7 @@ class Object3d {
 
         let normal = new Vec3();
 
-        var slope = (radiusBottom - radiusTop) / height;
+        let slope = (radiusBottom - radiusTop) / height;
 
         for (let y = 0; y <= heightSegments; y++) {
 
@@ -335,11 +370,14 @@ class Object3d {
         }
 
         return new Object3d({
-            'vertices': vertices, 'normals': normals, 'indices': indices
+            vertices: vertices,
+            normals: normals,
+            indices: indices
         });
     }
 
-    static createCube(length = 1, height = 1, depth = 1, xOffset = 0, yOffset = 0, zOffset = 0) {
+    static createCube(length: number = 1, height: number = 1, depth: number = 1,
+                      xOffset: number = 0, yOffset: number = 0, zOffset: number = 0): Object3d {
         let l = length * 0.5 + xOffset, h = height * 0.5 + yOffset, d = depth * 0.5 + zOffset;
 
         return new Object3d({
@@ -363,28 +401,24 @@ class Object3d {
         });
     }
 
-    static createArrow(back = 0.0, height = 2.1, front = -15) {
+    static createArrow(back: number = 0.0, height: number = 2.1, front: number = -15): Object3d {
         return new Object3d({
             vertices: [0, height, 0, 7, 0, 6, 0, 0, front,
-
                 0, 0, back, 7, 0, 6, 0, height, 0,
-
                 -7, 0, 6, 0, 0, back, 0, height, 0,
-
                 -7, 0, 6, 0, height, 0, 0, 0, front,
-
                 -7, 0, 6, 0, 0, front, 0, 0, back, 0, 0, back, 0, 0, front, 7, 0, 6]
         });
     }
 
 
-    static async loadObj(src) {
-        const obj = await fetch(src, { mode: "cors", })
+    static async loadObj(src: string): Promise<Object3d[]> {
+        const obj = await fetch(src, {mode: "cors",})
             .then((response) => response.text())
             .then((data) => transformLeftToRightCoordinateSystem(objParser(data)))
             .catch(() => []);
 
-        return obj.geometries.map(({ data: { vertices, normals, textures } }) => new Object3d({
+        return (obj as any).geometries.map(({data: {vertices, normals, textures}}) => new Object3d({
             vertices,
             normals,
             texCoords: textures
@@ -392,4 +426,4 @@ class Object3d {
     }
 }
 
-export { Object3d };
+export {Object3d};

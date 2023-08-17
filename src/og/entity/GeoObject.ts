@@ -76,7 +76,7 @@ class GeoObject {
 
     protected _qNorthFrame: Quat;
 
-    constructor(options: IGeoObjectParams = {}) {
+    constructor(options: IGeoObjectParams) {
 
         this.tag = options.tag || "none";
 
