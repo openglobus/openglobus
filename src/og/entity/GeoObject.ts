@@ -1,34 +1,89 @@
 "use strict";
 
-import { Quat, Vec3 } from "../math/index";
 import * as utils from "../utils/shared";
+import {Entity} from "./Entity";
+import {Quat, Vec3, Vec4} from "../math/index";
+import {InstanceData} from "./GeoObjectHandler";
+import {NumberArray3} from "../math/Vec3";
+import {NumberArray4} from "../math/Vec4";
+import {Object3d} from "../Object3d";
+import {GeoObjectHandler} from "./GeoObjectHandler";
+
+interface IGeoObjectParams {
+    object3d: Object3d;
+    tag?: string;
+    position?: Vec3 | NumberArray3;
+    pitch?: number;
+    yaw?: number;
+    roll?: number;
+    scale?: number;
+    color?: Vec4 | NumberArray4;
+}
 
 /**
  * @class
  * @param {Object} options -  Geo object parameters:
- * @param {og.Vec3} [options.position] - Geo object position.
+ * @param {Vec3} [options.position] - Geo object position.
+ *
+ * @todo: GeoObject and GeoObjectHandler provides instanced objects only.
+ * It would be nice if it could provide not instanced rendering loop too.
  */
-
 class GeoObject {
-    constructor(options = {}) {
+    public tag: string;
+
+    public instanced: boolean;
+
+    /**
+     * Entity instance that holds this geo object.
+     * @protected
+     * @type {Entity}
+     */
+    protected _entity: Entity | null;
+
+    /**
+     * Geo object center cartesian position.
+     * @protected
+     * @type {Vec3}
+     */
+    protected _position: Vec3;
+    protected _positionHigh: Vec3;
+    protected _positionLow: Vec3;
+
+    protected _pitch: number;
+    protected _yaw: number;
+    protected _roll: number;
+
+    protected _scale: number;
+
+    /**
+     * RGBA color.
+     * @protected
+     * @type {Vec4}
+     */
+    protected _color: Vec4;
+
+    protected _direction: Vec3;
+
+    protected _handler: GeoObjectHandler | null;
+    protected _handlerIndex = -1;
+
+    protected _tagData: InstanceData | null;
+    protected _tagDataIndex: number;
+
+    protected _object3d: Object3d;
+
+    protected _visibility: boolean;
+
+    protected _qNorthFrame: Quat;
+
+    constructor(options: IGeoObjectParams = {}) {
 
         this.tag = options.tag || "none";
 
-        // TODO: not instanced
         this.instanced = true;
 
-        /**
-         * Entity instance that holds this geo object.
-         * @protected
-         * @type {Entity}
-         */
         this._entity = null;
 
-        /**
-         * Geo object center cartesian position.
-         * @protected
-         * @type {Vec3}
-         */
         this._position = utils.createVector3(options.position);
 
         this._positionHigh = new Vec3();
@@ -41,11 +96,6 @@ class GeoObject {
 
         this._scale = options.scale || 1.0;
 
-        /**
-         * RGBA color.
-         * @protected
-         * @type {Vec4}
-         */
         this._color = utils.createColorRGBA(options.color);
 
         this._direction = new Vec3(0, 0, 0);
@@ -57,45 +107,49 @@ class GeoObject {
         this._tagDataIndex = -1;
 
         this._object3d = options.object3d;
+
+        this._visibility = true;
+
+        this._qNorthFrame = new Quat();
     }
 
-    getPosition() {
+    public getPosition(): Vec3 {
         return this._position;
     }
 
-    getPitch() {
+    public getPitch(): number {
         return this._pitch;
     }
 
-    getYaw() {
+    public getYaw(): number {
         return this._yaw;
     }
 
-    getRoll() {
+    public getRoll(): number {
         return this._roll;
     }
 
-    getDirection() {
+    public getDirection(): Vec3 {
         return this._direction;
     }
 
-    get object3d() {
+    public get object3d(): Object3d {
         return this._object3d;
     }
 
-    get vertices() {
+    public get vertices(): number[] {
         return this._object3d.vertices;
     }
 
-    get normals() {
+    public get normals(): number[] {
         return this._object3d.normals;
     }
 
-    get texCoords() {
+    public get texCoords(): number[] {
         return this._object3d.texCoords;
     }
 
-    get indices() {
+    public get indices(): number[] {
         return this._object3d.indices;
     }
 
@@ -104,7 +158,7 @@ class GeoObject {
      * @public
      * @param {number} a - Billboard opacity.
      */
-    setOpacity(a) {
+    public setOpacity(a: number) {
         this._color.w = a;
         this.setColor(this._color.x, this._color.y, this._color.z, a);
     }
@@ -117,7 +171,7 @@ class GeoObject {
      * @param {number} b - Blue.
      * @param {number} [a] - Alpha.
      */
-    setColor(r, g, b, a) {
+    public setColor(r: number, g: number, b: number, a?: number) {
         this._color.x = r;
         this._color.y = g;
         this._color.z = b;
@@ -128,13 +182,13 @@ class GeoObject {
     /**
      * Sets color.
      * @public
-     * @param {Vec4} color - RGBA vector.
+     * @param {Vec3 | Vec4} color - RGBA vector.
      */
-    setColor4v(color) {
+    public setColor4v(color: Vec3 | Vec4) {
         this._color.x = color.x;
         this._color.y = color.y;
         this._color.z = color.z;
-        color.w != undefined && (this._color.w = color.w);
+        (color as Vec4).w != undefined && (this._color.w = (color as Vec4).w);
         this._handler && this._handler.setRgbaArr(this._tagData, this._tagDataIndex, color);
     }
 
@@ -143,7 +197,7 @@ class GeoObject {
      * @public
      * @param {boolean} visibility - Visibility flag.
      */
-    setVisibility(visibility) {
+    public setVisibility(visibility: boolean) {
         this._visibility = visibility;
         this._handler && this._handler.setVisibility(this._tagData, this._tagDataIndex, visibility);
     }
@@ -153,7 +207,7 @@ class GeoObject {
      * @public
      * @returns {boolean}
      */
-    getVisibility() {
+    public getVisibility(): boolean {
         return this._visibility;
     }
 
@@ -164,7 +218,7 @@ class GeoObject {
      * @param {number} y - Y coordinate.
      * @param {number} z - Z coordinate.
      */
-    setPosition(x, y, z) {
+    public setPosition(x: number, y: number, z: number) {
         this._position.x = x;
         this._position.y = y;
         this._position.z = z;
@@ -179,7 +233,7 @@ class GeoObject {
      * @public
      * @param {Vec3} position - Cartesian coordinates.
      */
-    setPosition3v(position) {
+    public setPosition3v(position: Vec3) {
         this._position.x = position.x;
         this._position.y = position.y;
         this._position.z = position.z;
@@ -188,27 +242,27 @@ class GeoObject {
         this.updateDirection();
     }
 
-    setYaw(yaw) {
+    public setYaw(yaw: number) {
         this._yaw = yaw;
         this.updateDirection();
     }
 
-    setPitch(pitch) {
+    public setPitch(pitch: number) {
         this._pitch = pitch;
         this._handler && this._handler.setPitchRollArr(this._tagData, this._tagDataIndex, pitch, this._roll);
     }
 
-    setRoll(roll) {
+    public setRoll(roll: number) {
         this._roll = roll;
         this._handler && this._handler.setPitchRollArr(this._tagData, this._tagDataIndex, this._pitch, roll);
     }
 
-    setScale(scale) {
+    public setScale(scale: number) {
         this._scale = scale;
         this._handler && this._handler.setScaleArr(this._tagData, this._tagDataIndex, scale);
     }
 
-    getScale() {
+    public getScale(): number {
         return this._scale;
     }
 
@@ -216,7 +270,7 @@ class GeoObject {
      * Removes geo object from handler.
      * @public
      */
-    remove() {
+    public remove() {
         this._entity = null;
         this._handler && this._handler.remove(this);
     }
@@ -226,11 +280,11 @@ class GeoObject {
      * @public
      * @param {Vec3} color - Picking color.
      */
-    setPickingColor3v(color) {
+    public setPickingColor3v(color: Vec3) {
         this._handler && this._handler.setPickingColorArr(this._tagData, this._tagDataIndex, color);
     }
 
-    updateDirection() {
+    public updateDirection() {
         if (this._handler && this._handler._planet) {
             this._qNorthFrame = this._handler._planet.getNorthFrameRotation(this._position);
             let qq = Quat.yRotation(this._yaw).mul(this._qNorthFrame).conjugate();
@@ -240,4 +294,4 @@ class GeoObject {
     }
 }
 
-export { GeoObject };
+export {GeoObject};
