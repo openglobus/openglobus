@@ -402,7 +402,7 @@ class Program {
 
             this._p[a] = gl.getAttribLocation(this._p, a);
 
-            if (!this._p[a]) {
+            if (this._p[a] == undefined) {
                 cons.logErr(`Shader program "${this.name}":  attribute '${a}' not exists.`);
                 gl.deleteProgram(this._p);
                 return;
@@ -441,7 +441,7 @@ class Program {
             this._variables[u] = this._uniforms[u];
             this._p[u] = gl.getUniformLocation(this._p, u)!;
 
-            if (!this._p[u]) {
+            if (this._p[u] == undefined) {
                 cons.logErr(`Shader program "${this.name}": uniform '${u}' not exists.`);
                 gl.deleteProgram(this._p);
                 return;
