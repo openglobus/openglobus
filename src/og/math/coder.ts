@@ -42,7 +42,7 @@ export function decodeFloatFromRGBA(rgba: Vec4): number {
 export function decodeFloatFromRGBAArr(arr: NumberArray4 | NumberArray3, use32: boolean = false): number {
     let s = 1.0 - math.step(128.0, arr[0]) * 2.0;
     let e = 2.0 * math.mod(arr[0], 128.0) + math.step(128.0, arr[1]) - 127.0;
-    let m = math.mod(arr[1], 128.0) * 65536.0 + arr[2] * 256.0 + (use32 ? arr[3] : 0.0) + 8388608.0;
+    let m = math.mod(arr[1], 128.0) * 65536.0 + arr[2] * 256.0 + (use32 ? arr[3] || 0.0 : 0.0) + 8388608.0;
     return s * math.exp2(e) * (m * 1.1920928955078125e-7);
 }
 

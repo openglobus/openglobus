@@ -14,17 +14,17 @@ const GeometryType: Record<string, number> = {
     MULTILINESTRING: 5
 };
 
-type IPointCoordinates = NumberArray2;
-type IPolygonCoordinates = NumberArray2[];
-type IMultiPolygonCoordinates = IPolygonCoordinates[];
-type ILinestringCoordinates = NumberArray2[];
-type IMultiLinestringCoordinates = ILinestringCoordinates[];
-type IGeometryCoordinates =
+export type IPointCoordinates = NumberArray2;
+export type IPolygonCoordinates = NumberArray2[][];
+export type IMultiPolygonCoordinates = IPolygonCoordinates[];
+export type ILineStringCoordinates = NumberArray2[];
+export type IMultiLineStringCoordinates = ILineStringCoordinates[];
+export type IGeometryCoordinates =
     IPointCoordinates |
     IPolygonCoordinates |
     IMultiPolygonCoordinates |
-    ILinestringCoordinates |
-    IMultiLinestringCoordinates;
+    ILineStringCoordinates |
+    IMultiLineStringCoordinates;
 
 interface IGeometry {
     type: string;
@@ -175,15 +175,15 @@ class Geometry {
         let t = Geometry.getType(geometryObj.type);
 
         if (t === GeometryType.POINT) {
-            let lon = geometryObj.coordinates[0],
-                lat = geometryObj.coordinates[1];
+            let lon: number = geometryObj.coordinates[0] as number,
+                lat: number = geometryObj.coordinates[1] as number;
             res.southWest.lon = lon;
             res.southWest.lat = lat;
             res.northEast.lon = lon;
             res.northEast.lat = lat;
             outCoordinates && (outCoordinates[0] = lon) && (outCoordinates[1] = lat);
         } else if (t === GeometryType.LINESTRING) {
-            let c = geometryObj.coordinates;
+            let c: ILineStringCoordinates = geometryObj.coordinates as ILineStringCoordinates;
             for (let i = 0; i < c.length; i++) {
                 let lon = c[i][0],
                     lat = c[i][1];
@@ -191,12 +191,12 @@ class Geometry {
                 if (lat < res.southWest.lat) res.southWest.lat = lat;
                 if (lon > res.northEast.lon) res.northEast.lon = lon;
                 if (lat > res.northEast.lat) res.northEast.lat = lat;
-                outCoordinates && (outCoordinates[i] = [lon, lat]);
+                outCoordinates && ((outCoordinates as ILineStringCoordinates)[i] = [lon, lat]);
             }
         } else if (t === GeometryType.POLYGON) {
-            let c = geometryObj.coordinates;
+            let c: IPolygonCoordinates = geometryObj.coordinates as IPolygonCoordinates;
             for (let i = 0; i < c.length; i++) {
-                let ci = c[i];
+                let ci: NumberArray2[] = c[i];
                 outCoordinates && (outCoordinates[i] = []);
                 for (let j = 0; j < ci.length; j++) {
                     let cij = ci[j];
@@ -206,17 +206,17 @@ class Geometry {
                     if (lat < res.southWest.lat) res.southWest.lat = lat;
                     if (lon > res.northEast.lon) res.northEast.lon = lon;
                     if (lat > res.northEast.lat) res.northEast.lat = lat;
-                    outCoordinates && (outCoordinates[i][j] = [lon, lat]);
+                    outCoordinates && ((outCoordinates as IPolygonCoordinates)[i][j] = [lon, lat]);
                 }
             }
         } else if (t === GeometryType.MULTIPOLYGON) {
             let p = geometryObj.coordinates;
             for (let i = 0; i < p.length; i++) {
-                let pi = p[i];
+                let pi: IPolygonCoordinates = p[i] as IPolygonCoordinates;
                 outCoordinates && (outCoordinates[i] = []);
                 for (let j = 0; j < pi.length; j++) {
-                    let pij = pi[j];
-                    outCoordinates && (outCoordinates[i][j] = []);
+                    let pij: NumberArray2[] = pi[j];
+                    outCoordinates && ((outCoordinates as IMultiPolygonCoordinates)[i][j] = []);
                     for (let k = 0; k < pij.length; k++) {
                         let pijk = pij[k];
                         let lon = pijk[0],
@@ -225,14 +225,14 @@ class Geometry {
                         if (lat < res.southWest.lat) res.southWest.lat = lat;
                         if (lon > res.northEast.lon) res.northEast.lon = lon;
                         if (lat > res.northEast.lat) res.northEast.lat = lat;
-                        outCoordinates && (outCoordinates[i][j][k] = [lon, lat]);
+                        outCoordinates && ((outCoordinates as IMultiPolygonCoordinates)[i][j][k] = [lon, lat]);
                     }
                 }
             }
         } else if (t === GeometryType.MULTILINESTRING) {
             let c = geometryObj.coordinates;
             for (let i = 0; i < c.length; i++) {
-                let ci = c[i];
+                let ci: ILineStringCoordinates = c[i] as ILineStringCoordinates;
                 outCoordinates && (outCoordinates[i] = []);
                 for (let j = 0; j < ci.length; j++) {
                     let cij = ci[j];
@@ -242,7 +242,7 @@ class Geometry {
                     if (lat < res.southWest.lat) res.southWest.lat = lat;
                     if (lon > res.northEast.lon) res.northEast.lon = lon;
                     if (lat > res.northEast.lat) res.northEast.lat = lat;
-                    outCoordinates && (outCoordinates[i][j] = [lon, lat]);
+                    outCoordinates && ((outCoordinates as IMultiLineStringCoordinates)[i][j] = [lon, lat]);
                 }
             }
         } else {

@@ -7,7 +7,13 @@ import {Vector} from "../layer/Vector";
 import {NumberArray2, Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
-import {GeometryType, Geometry} from "./Geometry";
+import {
+    GeometryType,
+    Geometry,
+    IMultiLineStringCoordinates,
+    ILineStringCoordinates,
+    IGeometryCoordinates, IPointCoordinates, IMultiPolygonCoordinates, IPolygonCoordinates
+} from "./Geometry";
 
 import {earcut, flatten} from "../utils/earcut.js";
 import {WebGLBufferExt} from "../webgl/Handler";
@@ -220,8 +226,8 @@ class GeometryHandler {
                 continue;
             }
 
-            var startIndex = index;
-            var last;
+            let startIndex = index;
+            let last: NumberArray2;
             if (isClosed) {
                 last = path[path.length - 1];
             } else {
@@ -287,7 +293,7 @@ class GeometryHandler {
             );
 
             for (let i = 0; i < path.length; i++) {
-                var cur = path[i];
+                let cur = path[i];
 
                 doubleToTwoFloats(cur, tempHigh, tempLow);
 
@@ -341,7 +347,7 @@ class GeometryHandler {
                 outIndexes.push(index++, index++, index++, index++);
             }
 
-            var first;
+            let first: NumberArray2;
             if (isClosed) {
                 first = path[0];
                 outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
@@ -455,15 +461,12 @@ class GeometryHandler {
                 // @ts-ignore
                 if (geometry._type === GeometryType.POLYGON) {
                     // @ts-ignore
-                    let coordinates = geometry._coordinates;
-                    let ci = [];
+                    let coordinates: IPolygonCoordinates = geometry._coordinates;
+                    let ci: IPolygonCoordinates = [];
                     for (let j = 0; j < coordinates.length; j++) {
                         ci[j] = [];
                         for (let k = 0; k < coordinates[j].length; k++) {
-                            ci[j][k] = [
-                                mercator.forward_lon(coordinates[j][k][0]),
-                                mercator.forward_lat(coordinates[j][k][1])
-                            ];
+                            ci[j][k] = [mercator.forward_lon(coordinates[j][k][0]), mercator.forward_lat(coordinates[j][k][1])];
                         }
                     }
 
@@ -488,12 +491,7 @@ class GeometryHandler {
 
                     for (let i = 0; i < data.vertices.length * 0.5; i++) {
                         this._polyColors.push(color.x, color.y, color.z, color.w);
-                        this._polyPickingColors.push(
-                            pickingColor.x,
-                            pickingColor.y,
-                            pickingColor.z,
-                            1.0
-                        );
+                        this._polyPickingColors.push(pickingColor.x, pickingColor.y, pickingColor.z, 1.0);
                     }
 
                     for (let i = 0; i < data.vertices.length; i++) {
@@ -531,10 +529,14 @@ class GeometryHandler {
                     GeometryHandler.appendLineData(
                         ci,
                         true,
+                        // @ts-ignore
                         geometry._style.lineColor,
                         pickingColor,
+                        // @ts-ignore
                         geometry._style.lineWidth,
+                        // @ts-ignore
                         geometry._style.strokeColor,
+                        // @ts-ignore
                         geometry._style.strokeWidth,
                         this._lineVerticesHighMerc,
                         this._lineVerticesLowMerc,
@@ -545,7 +547,9 @@ class GeometryHandler {
                         this._lineThickness,
                         this._lineStrokeColors,
                         this._lineStrokes,
+                        // @ts-ignore
                         geometry._lineVerticesHighMerc,
+                        // @ts-ignore
                         geometry._lineVerticesLowMerc
                     );
 
@@ -562,9 +566,9 @@ class GeometryHandler {
 
                 } else if (geometry.type === GeometryType.MULTIPOLYGON) {
                     // @ts-ignore
-                    let coordinates = geometry._coordinates;
-                    let vertices = [],
-                        indexes = [];
+                    let coordinates: IMultiPolygonCoordinates = geometry._coordinates;
+                    let vertices: number[] = [],
+                        indexes: number[] = [];
 
                     // Creates polygon stroke data
                     // @ts-ignore
@@ -579,15 +583,12 @@ class GeometryHandler {
                     geometry._lineThicknessHandlerIndex = this._lineThickness.length;
 
                     for (let i = 0; i < coordinates.length; i++) {
-                        let cci = coordinates[i];
-                        let ci = [];
+                        let cci: NumberArray2[][] = coordinates[i];
+                        let ci: NumberArray2[][] = [];
                         for (let j = 0; j < cci.length; j++) {
                             ci[j] = [];
                             for (let k = 0; k < coordinates[i][j].length; k++) {
-                                ci[j][k] = [
-                                    mercator.forward_lon(cci[j][k][0]),
-                                    mercator.forward_lat(cci[j][k][1])
-                                ];
+                                ci[j][k] = [mercator.forward_lon(cci[j][k][0]), mercator.forward_lat(cci[j][k][1])];
                             }
                         }
                         let data = flatten(ci);
@@ -603,10 +604,14 @@ class GeometryHandler {
                         GeometryHandler.appendLineData(
                             ci,
                             true,
+                            // @ts-ignore
                             geometry._style.lineColor,
                             pickingColor,
+                            // @ts-ignore
                             geometry._style.lineWidth,
+                            // @ts-ignore
                             geometry._style.strokeColor,
+                            // @ts-ignore
                             geometry._style.strokeWidth,
                             this._lineVerticesHighMerc,
                             this._lineVerticesLowMerc,
@@ -617,7 +622,9 @@ class GeometryHandler {
                             this._lineThickness,
                             this._lineStrokeColors,
                             this._lineStrokes,
+                            // @ts-ignore
                             geometry._lineVerticesHighMerc,
+                            // @ts-ignore
                             geometry._lineVerticesLowMerc
                         );
                     }
@@ -679,7 +686,7 @@ class GeometryHandler {
                     geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex;
                 } else if (geometry.type === GeometryType.LINESTRING) {
                     // @ts-ignore
-                    let coordinates = geometry._coordinates;
+                    let coordinates: ILineStringCoordinates = geometry._coordinates;
                     let ci = new Array(coordinates.length);
                     for (let j = 0; j < coordinates.length; j++) {
                         ci[j] = [mercator.forward_lon(coordinates[j][0]), mercator.forward_lat(coordinates[j][1])];
@@ -701,10 +708,14 @@ class GeometryHandler {
                     GeometryHandler.appendLineData(
                         [ci],
                         false,
+                        // @ts-ignore
                         geometry._style.lineColor,
                         pickingColor,
+                        // @ts-ignore
                         geometry._style.lineWidth,
+                        // @ts-ignore
                         geometry._style.strokeColor,
+                        // @ts-ignore
                         geometry._style.strokeWidth,
                         this._lineVerticesHighMerc,
                         this._lineVerticesLowMerc,
@@ -715,7 +726,9 @@ class GeometryHandler {
                         this._lineThickness,
                         this._lineStrokeColors,
                         this._lineStrokes,
+                        // @ts-ignore
                         geometry._lineVerticesHighMerc,
+                        // @ts-ignore
                         geometry._lineVerticesLowMerc
                     );
 
@@ -731,8 +744,8 @@ class GeometryHandler {
                     geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex;
                 } else if (geometry.type === GeometryType.MULTILINESTRING) {
                     // @ts-ignore
-                    let coordinates = geometry._coordinates;
-                    let ci = [];
+                    let coordinates: IMultiLineStringCoordinates = geometry._coordinates;
+                    let ci: IMultiLineStringCoordinates = [];
                     for (let j = 0; j < coordinates.length; j++) {
                         ci[j] = [];
                         for (let k = 0; k < coordinates[j].length; k++) {
@@ -756,10 +769,14 @@ class GeometryHandler {
                     GeometryHandler.appendLineData(
                         ci,
                         false,
+                        // @ts-ignore
                         geometry._style.lineColor,
                         pickingColor,
+                        // @ts-ignore
                         geometry._style.lineWidth,
+                        // @ts-ignore
                         geometry._style.strokeColor,
+                        // @ts-ignore
                         geometry._style.strokeWidth,
                         this._lineVerticesHighMerc,
                         this._lineVerticesLowMerc,
@@ -770,7 +787,9 @@ class GeometryHandler {
                         this._lineThickness,
                         this._lineStrokeColors,
                         this._lineStrokes,
+                        // @ts-ignore
                         geometry._lineVerticesHighMerc,
+                        // @ts-ignore
                         geometry._lineVerticesLowMerc
                     );
 
@@ -993,7 +1012,7 @@ class GeometryHandler {
     protected _updatePlanet() {
         let p = this._layer._planet;
         if (p) {
-            p.quadTreeStrategy.quadTreeList.forEach(quadTree => {
+            p.quadTreeStrategy.quadTreeList.forEach((quadTree: Node) => {
                 this._refreshPlanetNode(quadTree);
             });
         }
@@ -1070,6 +1089,7 @@ class GeometryHandler {
     public setPolyColorArr(geometry: Geometry, color: Vec4) {
         // @ts-ignore
         let index = geometry._polyVerticesHandlerIndex * 2, // ... / 2 * 4
+            // @ts-ignore
             size = index + geometry._polyVerticesLength * 2; // ... / 2 * 4
         let a = this._polyColors;
         for (let i = index; i < size; i += 4) {
@@ -1088,6 +1108,7 @@ class GeometryHandler {
     public setLineStrokeColorArr(geometry: Geometry, color: Vec4) {
         // @ts-ignore
         let index = geometry._lineColorsHandlerIndex,
+            // @ts-ignore
             size = index + geometry._lineColorsLength;
         let a = this._lineStrokeColors;
         for (let i = index; i < size; i += 4) {
@@ -1125,6 +1146,7 @@ class GeometryHandler {
     public setLineStrokeArr(geometry: Geometry, width: number) {
         // @ts-ignore
         let index = geometry._lineStrokesHandlerIndex,
+            // @ts-ignore
             size = index + geometry._lineStrokesLength;
         let a = this._lineStrokes;
         for (let i = index; i < size; i++) {
@@ -1137,11 +1159,10 @@ class GeometryHandler {
         this._updatedGeometry[geometry.__id] = true;
     }
 
-    ppublic
-
-    setLineThicknessArr(geometry: Geometry, width: number) {
+    public setLineThicknessArr(geometry: Geometry, width: number) {
         // @ts-ignore
         let index = geometry._lineThicknessHandlerIndex,
+            // @ts-ignore
             size = index + geometry._lineThicknessLength;
         let a = this._lineThickness;
         for (let i = index; i < size; i++) {
