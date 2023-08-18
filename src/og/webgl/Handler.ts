@@ -136,20 +136,16 @@ class Handler {
 
     public framebufferStack = new Stack<BaseFramebuffer>();
 
-    public createTexture: any;
+    public createTexture: Record<string, Function>;
 
-    public createTextureDefault: any | null;
+    public createTextureDefault: Function;
 
     public ONCANVASRESIZE: Function | null;
 
-    public createTexture_n: Function = () => {
-    };
-    public createTexture_l: Function = () => {
-    };
-    public createTexture_mm: Function = () => {
-    };
-    public createTexture_a: Function = () => {
-    };
+    public createTexture_n: Function;
+    public createTexture_l: Function;
+    public createTexture_mm: Function;
+    public createTexture_a: Function;
 
     public intersectionObserver?: IntersectionObserver;
     public resizeObserver?: ResizeObserver;
@@ -204,14 +200,19 @@ class Handler {
 
         this.framebufferStack = new Stack();
 
+        this.createTexture_n = this.createTexture_n_webgl2.bind(this);
+        this.createTexture_l = this.createTexture_l_webgl2.bind(this);
+        this.createTexture_mm = this.createTexture_mm_webgl2.bind(this);
+        this.createTexture_a = this.createTexture_a_webgl2.bind(this);
+
         this.createTexture = {
-            "NEAREST": null,
-            "LINEAR": null,
-            "MIPMAP": null,
-            "ANISOTROPIC": null
+            "NEAREST": this.createTexture_n,
+            "LINEAR": this.createTexture_l,
+            "MIPMAP": this.createTexture_mm,
+            "ANISOTROPIC": this.createTexture_a
         };
 
-        this.createTextureDefault = null;
+        this.createTextureDefault = this.createTexture_n;
 
         this.ONCANVASRESIZE = null;
 

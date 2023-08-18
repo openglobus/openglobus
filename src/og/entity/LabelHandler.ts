@@ -7,6 +7,7 @@ import {Billboard} from "./Billboard";
 import {concatTypedArrays, spliceTypedArray} from "../utils/shared";
 import {EntityCollection} from "./EntityCollection";
 import {LOCK_FREE} from "./LabelWorker.js";
+import {Planet} from "../scene/Planet";
 import {WebGLBufferExt} from "../webgl/Handler";
 import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";

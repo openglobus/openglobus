@@ -15,6 +15,7 @@ import {RenderNode} from "../scene/RenderNode";
 import {StripHandler} from "./StripHandler";
 import {Planet} from "../scene/Planet";
 import {Ellipsoid} from "../ellipsoid/Ellipsoid";
+import {Billboard} from "./Billboard";
 
 interface IEntityCollectionParams {
     polygonOffsetUnits?: number;
@@ -562,7 +563,7 @@ class EntityCollection {
             this.labelHandler.setRenderer(renderNode.renderer);
             this.rayHandler.setRenderer(renderNode.renderer);
 
-            this.geoObjectHandler.setRenderNode(renderNode);
+            this.geoObjectHandler.setRenderNode(renderNode as Planet);
             this.polylineHandler.setRenderNode(renderNode);
             this.pointCloudHandler.setRenderNode(renderNode);
             this.stripHandler.setRenderNode(renderNode);
@@ -594,7 +595,7 @@ class EntityCollection {
      */
     public updateBillboardsTextureAtlas() {
         // @ts-ignore
-        let b = this.billboardHandler._billboards;
+        let b: Billboard[] = this.billboardHandler._billboards;
         for (let i = 0; i < b.length; i++) {
             b[i].setSrc(b[i].getSrc());
         }

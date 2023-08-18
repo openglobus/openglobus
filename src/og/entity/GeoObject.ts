@@ -29,7 +29,7 @@ interface IGeoObjectParams {
  * It would be nice if it could provide not instanced rendering loop too.
  */
 class GeoObject {
-    public tag: string;
+    protected _tag: string;
 
     public instanced: boolean;
 
@@ -78,7 +78,7 @@ class GeoObject {
 
     constructor(options: IGeoObjectParams) {
 
-        this.tag = options.tag || "none";
+        this._tag = options.tag || "none";
 
         this.instanced = true;
 
@@ -111,6 +111,10 @@ class GeoObject {
         this._visibility = true;
 
         this._qNorthFrame = new Quat();
+    }
+
+    public get tag() {
+        return this._tag;
     }
 
     public getPosition(): Vec3 {
@@ -176,7 +180,7 @@ class GeoObject {
         this._color.y = g;
         this._color.z = b;
         a != undefined && (this._color.w = a);
-        this._handler && this._handler.setRgbaArr(this._tagData, this._tagDataIndex, this._color);
+        this._handler && this._handler.setRgbaArr(this._tagData!, this._tagDataIndex, this._color);
     }
 
     /**
@@ -189,7 +193,7 @@ class GeoObject {
         this._color.y = color.y;
         this._color.z = color.z;
         (color as Vec4).w != undefined && (this._color.w = (color as Vec4).w);
-        this._handler && this._handler.setRgbaArr(this._tagData, this._tagDataIndex, color);
+        this._handler && this._handler.setRgbaArr(this._tagData!, this._tagDataIndex, this._color);
     }
 
     /**
@@ -199,7 +203,7 @@ class GeoObject {
      */
     public setVisibility(visibility: boolean) {
         this._visibility = visibility;
-        this._handler && this._handler.setVisibility(this._tagData, this._tagDataIndex, visibility);
+        this._handler && this._handler.setVisibility(this._tagData!, this._tagDataIndex, visibility);
     }
 
     /**
@@ -224,7 +228,7 @@ class GeoObject {
         this._position.z = z;
         Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
         this._handler &&
-        this._handler.setPositionArr(this._tagData, this._tagDataIndex, this._positionHigh, this._positionLow);
+        this._handler.setPositionArr(this._tagData!, this._tagDataIndex, this._positionHigh, this._positionLow);
         this.updateDirection();
     }
 
@@ -238,7 +242,7 @@ class GeoObject {
         this._position.y = position.y;
         this._position.z = position.z;
         Vec3.doubleToTwoFloats(position, this._positionHigh, this._positionLow);
-        this._handler && this._handler.setPositionArr(this._tagData, this._tagDataIndex, this._positionHigh, this._positionLow);
+        this._handler && this._handler.setPositionArr(this._tagData!, this._tagDataIndex, this._positionHigh, this._positionLow);
         this.updateDirection();
     }
 
@@ -249,17 +253,17 @@ class GeoObject {
 
     public setPitch(pitch: number) {
         this._pitch = pitch;
-        this._handler && this._handler.setPitchRollArr(this._tagData, this._tagDataIndex, pitch, this._roll);
+        this._handler && this._handler.setPitchRollArr(this._tagData!, this._tagDataIndex, pitch, this._roll);
     }
 
     public setRoll(roll: number) {
         this._roll = roll;
-        this._handler && this._handler.setPitchRollArr(this._tagData, this._tagDataIndex, this._pitch, roll);
+        this._handler && this._handler.setPitchRollArr(this._tagData!, this._tagDataIndex, this._pitch, roll);
     }
 
     public setScale(scale: number) {
         this._scale = scale;
-        this._handler && this._handler.setScaleArr(this._tagData, this._tagDataIndex, scale);
+        this._handler && this._handler.setScaleArr(this._tagData!, this._tagDataIndex, scale);
     }
 
     public getScale(): number {
@@ -281,15 +285,17 @@ class GeoObject {
      * @param {Vec3} color - Picking color.
      */
     public setPickingColor3v(color: Vec3) {
-        this._handler && this._handler.setPickingColorArr(this._tagData, this._tagDataIndex, color);
+        this._handler && this._handler.setPickingColorArr(this._tagData!, this._tagDataIndex, color);
     }
 
     public updateDirection() {
+        // @ts-ignore
         if (this._handler && this._handler._planet) {
+            // @ts-ignore
             this._qNorthFrame = this._handler._planet.getNorthFrameRotation(this._position);
             let qq = Quat.yRotation(this._yaw).mul(this._qNorthFrame).conjugate();
             this._direction = qq.mulVec3(new Vec3(0.0, 0.0, -1.0)).normalize();
-            this._handler.setDirectionArr(this._tagData, this._tagDataIndex, this._direction);
+            this._handler.setDirectionArr(this._tagData!, this._tagDataIndex, this._direction);
         }
     }
 }

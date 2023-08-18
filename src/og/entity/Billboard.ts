@@ -84,10 +84,10 @@ class Billboard extends BaseBillboard {
      * @public
      * @param {string} src - Image url.
      */
-    public setSrc(src: string) {
+    public setSrc(src: string | null) {
         this._src = src;
         let bh = this._handler;
-        if (bh && src.length) {
+        if (bh && src && src.length) {
             //@ts-ignore
             let rn = bh._entityCollection.renderNode;
             if (rn && rn.renderer) {

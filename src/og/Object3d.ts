@@ -413,12 +413,12 @@ class Object3d {
 
 
     static async loadObj(src: string): Promise<Object3d[]> {
-        const obj = await fetch(src, {mode: "cors",})
+        const obj: any = await fetch(src, {mode: "cors",})
             .then((response) => response.text())
             .then((data) => transformLeftToRightCoordinateSystem(objParser(data)))
             .catch(() => []);
 
-        return (obj as any).geometries.map(({data: {vertices, normals, textures}}) => new Object3d({
+        return obj.geometries.map(({data: {vertices, normals, textures}}: any) => new Object3d({
             vertices,
             normals,
             texCoords: textures
