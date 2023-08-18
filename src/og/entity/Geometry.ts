@@ -1,7 +1,11 @@
-import {Extent} from "../Extent";
-import {LonLat} from "../LonLat";
-import {Vec4} from "../math/Vec4";
 import * as utils from "../utils/shared";
+import {Entity} from "./Entity";
+import {Extent} from "../Extent";
+import {GeometryHandler} from "./GeometryHandler";
+import {LonLat} from "../LonLat";
+import {NumberArray4, Vec4} from "../math/Vec4";
+import {NumberArray2} from "../math/Vec2";
+
 const GeometryType: Record<string, number> = {
     POINT: 1,
     LINESTRING: 2,
@@ -10,24 +14,98 @@ const GeometryType: Record<string, number> = {
     MULTILINESTRING: 5
 };
 
+type IPointCoordinates = NumberArray2;
+type IPolygonCoordinates = NumberArray2[];
+type IMultiPolygonCoordinates = IPolygonCoordinates[];
+type ILinestringCoordinates = NumberArray2[];
+type IMultiLinestringCoordinates = ILinestringCoordinates[];
+type IGeometryCoordinates =
+    IPointCoordinates |
+    IPolygonCoordinates |
+    IMultiPolygonCoordinates |
+    ILinestringCoordinates |
+    IMultiLinestringCoordinates;
+
+interface IGeometry {
+    type: string;
+    coordinates: IGeometryCoordinates;
+}
+
+interface IGeometryStyle {
+    fillColor?: string | NumberArray4 | Vec4;
+    lineColor?: string | NumberArray4 | Vec4;
+    strokeColor?: string | NumberArray4 | Vec4;
+    lineWidth?: number;
+    strokeWidth?: number;
+}
+
+interface IGeometryStyleInternal {
+    fillColor: Vec4;
+    lineColor: Vec4;
+    strokeColor: Vec4;
+    lineWidth: number;
+    strokeWidth: number;
+}
+
+interface IGeometryParams {
+    type?: string;
+    coordinates?: IGeometryCoordinates;
+    style?: IGeometryStyle;
+    visibility?: boolean;
+}
+
 class Geometry {
-    constructor(options) {
-        this._id = Geometry._staticCounter++;
+    static __counter__: number = 0;
 
-        options = options || {};
-        options.style = options.style || {};
+    public __id: number;
 
-        /**
-         * Entity instance that holds this geometry.
-         * @protected
-         * @type {Entity}
-         */
+    /**
+     * Entity instance that holds this geometry.
+     * @protected
+     * @type {Entity}
+     */
+    protected _entity: Entity | null;
+
+    protected _handler: GeometryHandler | null;
+    protected _handlerIndex: number;
+
+    // Polygon
+    protected _polyVerticesHighMerc: number[];
+    protected _polyVerticesLowMerc: number[];
+    protected _polyVerticesLength: number;
+    protected _polyIndexesLength: number;
+    protected _polyVerticesHandlerIndex: number;
+    protected _polyIndexesHandlerIndex: number;
+
+    // Line(Linestring and polygon's stroke(s)
+    protected _lineVerticesHighMerc: number[];
+    protected _lineVerticesLowMerc: number[];
+    protected _lineVerticesLength: number;
+    protected _lineOrdersLength: number;
+    protected _lineIndexesLength: number;
+    protected _lineColorsLength: number;
+    protected _lineThicknessLength: number;
+    protected _lineVerticesHandlerIndex: number;
+    protected _lineOrdersHandlerIndex: number;
+    protected _lineIndexesHandlerIndex: number;
+    protected _lineThicknessHandlerIndex: number;
+    protected _lineColorsHandlerIndex: number;
+    protected _type: number;
+    protected _coordinates: IGeometryCoordinates;
+    protected _extent: Extent;
+    protected _style: IGeometryStyleInternal;
+    protected _visibility: boolean;
+    protected _pickingReady: boolean;
+
+    constructor(options: IGeometryParams = {}) {
+
+        this.__id = Geometry.__counter__++;
+
         this._entity = null;
 
         this._handler = null;
         this._handlerIndex = -1;
 
-        // Polygon
         this._polyVerticesHighMerc = [];
         this._polyVerticesLowMerc = [];
         this._polyVerticesLength = -1;
@@ -35,7 +113,6 @@ class Geometry {
         this._polyVerticesHandlerIndex = -1;
         this._polyIndexesHandlerIndex = -1;
 
-        // Line(Linestring and polygon's stroke(s)
         this._lineVerticesHighMerc = [];
         this._lineVerticesLowMerc = [];
         this._lineVerticesLength = -1;
@@ -51,29 +128,22 @@ class Geometry {
 
         this._type = (options.type && Geometry.getType(options.type)) || GeometryType.POINT;
         this._coordinates = [];
-        this._extent = Geometry.getExtent(
-            {
+        this._extent = Geometry.getExtent({
                 type: options.type || "Point",
                 coordinates: options.coordinates || []
             },
             this._coordinates
         );
 
-        this._style = options.style || {};
-        this._style.fillColor = utils.createColorRGBA(
-            options.style.fillColor,
-            new Vec4(0.19, 0.62, 0.85, 0.4)
-        );
-        this._style.lineColor = utils.createColorRGBA(
-            options.style.lineColor,
-            new Vec4(0.19, 0.62, 0.85, 1)
-        );
-        this._style.strokeColor = utils.createColorRGBA(
-            options.style.strokeColor,
-            new Vec4(1, 1, 1, 0.95)
-        );
-        this._style.lineWidth = options.style.lineWidth || 3;
-        this._style.strokeWidth = options.style.strokeWidth || 0;
+        options.style = options.style || {};
+
+        this._style = {
+            fillColor: utils.createColorRGBA(options.style.fillColor, new Vec4(0.19, 0.62, 0.85, 0.4)),
+            lineColor: utils.createColorRGBA(options.style.lineColor, new Vec4(0.19, 0.62, 0.85, 1)),
+            strokeColor: utils.createColorRGBA(options.style.strokeColor, new Vec4(1, 1, 1, 0.95)),
+            lineWidth: options.style.lineWidth || 3,
+            strokeWidth: options.style.strokeWidth || 0
+        };
 
         this._visibility = options.visibility || true;
 
@@ -81,31 +151,20 @@ class Geometry {
         this._pickingReady = false;
     }
 
-    static get _staticCounter() {
-        if (!this._counter && this._counter !== 0) {
-            this._counter = 0;
-        }
-        return this._counter;
-    }
-
-    static set _staticCounter(n) {
-        this._counter = n;
-    }
-
-    static getType(typeStr) {
+    static getType(typeStr: string): number {
         return GeometryType[typeStr.toUpperCase()];
     }
 
     /**
-     * Returns geometry feature extent.
+     * Returns geometry extent.
      @static
-     @param {Object} geometryObj - GeoJSON style geometry feature.
-     @param {LonLat[]} outCoordinates - Geometry feature coordinates clone.
+     @param {IGeometry} geometryObj - GeoJSON style geometry feature.
+     @param {IGeometryCoordinates} outCoordinates - Geometry feature coordinates clone.
      @returns {Extent} -
      */
-    static getExtent(geometryObj, outCoordinates) {
-        var res = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
-        var t = Geometry.getType(geometryObj.type);
+    static getExtent(geometryObj: IGeometry, outCoordinates: IGeometryCoordinates): Extent {
+        let res = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
+        let t = Geometry.getType(geometryObj.type);
 
         if (t === GeometryType.POINT) {
             let lon = geometryObj.coordinates[0],
@@ -182,6 +241,7 @@ class Geometry {
             res.southWest.lon = res.southWest.lat = res.northEast.lon = res.northEast.lat = 0.0;
             outCoordinates && (outCoordinates[0] = 0) && (outCoordinates[1] = 0);
         }
+
         return res;
     }
 
@@ -190,17 +250,19 @@ class Geometry {
      * @param geoJson
      * @returns {Geometry}
      */
-    setGeometry(geoJson) {
-        var h = this._handler;
-        this.remove();
-        this._type = Geometry.getType(geoJson.type || "Point");
-        this._extent = Geometry.getExtent(geoJson, this._coordinates);
-        h.add(this);
+    public setGeometry(geoJson: IGeometry): Geometry {
+        let h = this._handler;
+        if (h) {
+            this.remove();
+            this._type = Geometry.getType(geoJson.type || "Point");
+            this._extent = Geometry.getExtent(geoJson, this._coordinates);
+            h.add(this);
+        }
         return this;
     }
 
-    setFillColor(r, g, b, a) {
-        var c = this._style.fillColor;
+    public setFillColor(r: number, g: number, b: number, a: number = 1.0): Geometry {
+        let c = this._style.fillColor;
         if ((c.w === 0.0 && a !== 0.0) || (c.w !== 0.0 && a === 0.0)) {
             this._pickingReady = false;
         }
@@ -212,12 +274,12 @@ class Geometry {
         return this;
     }
 
-    setFillColor4v(rgba) {
+    public setFillColor4v(rgba: Vec4): Geometry {
         return this.setFillColor(rgba.x, rgba.y, rgba.z, rgba.w);
     }
 
-    setStrokeColor(r, g, b, a) {
-        var c = this._style.strokeColor;
+    public setStrokeColor(r: number, g: number, b: number, a: number = 1.0): Geometry {
+        let c = this._style.strokeColor;
         if ((c.w === 0.0 && a !== 0.0) || (c.w !== 0.0 && a === 0.0)) {
             this._pickingReady = false;
         }
@@ -229,8 +291,8 @@ class Geometry {
         return this;
     }
 
-    setLineColor(r, g, b, a) {
-        var c = this._style.lineColor;
+    public setLineColor(r: number, g: number, b: number, a: number = 1.0): Geometry {
+        let c = this._style.lineColor;
         if ((c.w === 0.0 && a !== 0.0) || (c.w !== 0.0 && a === 0.0)) {
             this._pickingReady = false;
         }
@@ -242,47 +304,47 @@ class Geometry {
         return this;
     }
 
-    setStrokeColor4v(rgba) {
+    public setStrokeColor4v(rgba: Vec4): Geometry {
         return this.setStrokeColor(rgba.x, rgba.y, rgba.z, rgba.w);
     }
 
-    setLineColor4v(rgba) {
+    public setLineColor4v(rgba: Vec4): Geometry {
         return this.setLineColor(rgba.x, rgba.y, rgba.z, rgba.w);
     }
 
-    setStrokeOpacity(opacity) {
-        var c = this._style.strokeColor;
+    public setStrokeOpacity(opacity: number): Geometry {
+        let c = this._style.strokeColor;
         c.w = opacity;
         return this.setStrokeColor(c.x, c.y, c.z, opacity);
     }
 
-    setLineOpacity(opacity) {
-        var c = this._style.lineColor;
+    public setLineOpacity(opacity: number): Geometry {
+        let c = this._style.lineColor;
         c.w = opacity;
         return this.setLineColor(c.x, c.y, c.z, opacity);
     }
 
-    setStrokeWidth(width) {
+    public setStrokeWidth(width: number): Geometry {
         this._style.strokeWidth = width;
         this._pickingReady = false;
         this._handler && this._handler.setLineStrokeArr(this, width);
         return this;
     }
 
-    bringToFront() {
+    public bringToFront(): Geometry {
         this._handler && this._handler.bringToFront(this);
         return this;
     }
 
-    setLineWidth(width) {
+    public setLineWidth(width: number): Geometry {
         this._style.lineWidth = width;
         this._pickingReady = false;
         this._handler && this._handler.setLineThicknessArr(this, width);
         return this;
     }
 
-    setFillOpacity(opacity) {
-        var c = this._style.fillColor;
+    public setFillOpacity(opacity: number): Geometry {
+        let c = this._style.fillColor;
         if ((c.w === 0.0 && opacity !== 0.0) || (c.w !== 0.0 && opacity === 0.0)) {
             this._pickingReady = false;
         }
@@ -291,25 +353,25 @@ class Geometry {
         return this;
     }
 
-    setVisibility(visibility) {
+    public setVisibility(visibility: boolean): Geometry {
         this._visibility = visibility;
         this._handler && this._handler.setGeometryVisibility(this);
         return this;
     }
 
-    getVisibility() {
+    public getVisibility(): boolean {
         return this._visibility;
     }
 
-    remove() {
+    public remove() {
         this._handler && this._handler.remove(this);
     }
 
-    getExtent() {
+    public getExtent(): Extent {
         return this._extent.clone();
     }
 
-    getType() {
+    public getType(): number {
         return this._type;
     }
 }
