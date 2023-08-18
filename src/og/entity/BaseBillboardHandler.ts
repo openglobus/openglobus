@@ -1,5 +1,3 @@
-"use strict";
-
 import * as shaders from "../shaders/billboard";
 import {spliceTypedArray, TypedArray} from "../utils/shared";
 import {EntityCollection} from "./EntityCollection";

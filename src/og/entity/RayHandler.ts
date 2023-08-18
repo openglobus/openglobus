@@ -1,5 +1,3 @@
-"use strict";
-
 import * as shaders from "../shaders/ray.js";
 import {concatArrays, makeArrayTyped, spliceArray, TypedArray} from "../utils/shared";
 import {EntityCollection} from "./EntityCollection";

@@ -1,5 +1,3 @@
-"use strict";
-
 import * as utils from "../utils/shared";
 import {Entity} from "./Entity";
 import {Line3} from "../math/Line3";

@@ -1,5 +1,3 @@
-"use strict";
-
 import {EntityCollection} from "./EntityCollection";
 import {Program} from "../webgl/Program";
 import {Renderer} from "../renderer/Renderer";

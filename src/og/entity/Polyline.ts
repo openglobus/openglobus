@@ -1,5 +1,3 @@
-"use strict";
-
 import {Entity} from "./Entity";
 import {Extent} from "../Extent";
 import {LonLat} from "../LonLat";

@@ -1,5 +1,3 @@
-"use strict";
-
 import * as utils from "../utils/shared";
 import {BaseBillboard, IBaseBillboardParams} from "./BaseBillboard";
 import {LOCK_FREE, LOCK_UPDATE} from "./LabelWorker.js";

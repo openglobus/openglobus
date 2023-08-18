@@ -1,5 +1,3 @@
-"use strict";
-
 import * as mercator from "../mercator";
 import * as utils from "../utils/shared";
 

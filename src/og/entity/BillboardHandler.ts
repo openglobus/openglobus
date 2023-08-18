@@ -1,5 +1,3 @@
-"use strict";
-
 import {BaseBillboardHandler} from "./BaseBillboardHandler";
 import {Billboard} from "./Billboard";
 import {concatTypedArrays} from "../utils/shared";

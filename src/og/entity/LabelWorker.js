@@ -1,5 +1,3 @@
-"use strict";
-
 // import { QueueArray } from '../QueueArray.js';
 
 import { BaseWorker } from "../utils/BaseWorker.js";

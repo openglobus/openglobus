@@ -1,5 +1,3 @@
-"use strict";
-
 import {Entity} from "./Entity";
 import {PointCloudHandler} from "./PointCloudHandler";
 import {RenderNode} from "../scene/RenderNode";

@@ -1,5 +1,3 @@
-'use strict';
-
 import * as shaders from '../shaders/polyline';
 import {EntityCollection} from "./EntityCollection";
 import {Polyline} from "./Polyline";

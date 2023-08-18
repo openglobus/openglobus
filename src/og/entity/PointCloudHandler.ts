@@ -1,5 +1,3 @@
-"use strict";
-
 import * as shaders from "../shaders/pointCloud";
 import {EntityCollection} from "./EntityCollection";
 import {PointCloud} from "./PointCloud";

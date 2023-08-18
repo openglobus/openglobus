@@ -1,11 +1,8 @@
-"use strict";
-
-import { Extent } from "../Extent";
-import { LonLat } from "../LonLat";
-import { Vec4 } from "../math/Vec4";
+import {Extent} from "../Extent";
+import {LonLat} from "../LonLat";
+import {Vec4} from "../math/Vec4";
 import * as utils from "../utils/shared";
-
-const GeometryType = {
+const GeometryType: Record<string, number> = {
     POINT: 1,
     LINESTRING: 2,
     POLYGON: 3,
@@ -317,4 +314,4 @@ class Geometry {
     }
 }
 
-export { Geometry, GeometryType };
+export {Geometry, GeometryType};

@@ -1,5 +1,3 @@
-"use strict";
-
 import * as utils from "../utils/shared";
 import {NumberArray3, Vec3} from "../math/Vec3";
 import {NumberArray4, Vec4} from "../math/Vec4";

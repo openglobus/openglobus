@@ -1,5 +1,3 @@
-"use strict";
-
 import {BaseBillboard, IBaseBillboardParams} from "./BaseBillboard";
 import {BillboardHandler} from "./BillboardHandler";
 

@@ -1,5 +1,3 @@
-"use strict";
-
 import * as math from "../math";
 import {Entity} from "./Entity";
 import {createEvents, EventsHandler} from "../Events";

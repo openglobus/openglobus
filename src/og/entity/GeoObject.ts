@@ -1,5 +1,3 @@
-"use strict";
-
 import * as utils from "../utils/shared";
 import {Entity} from "./Entity";
 import {Quat, Vec3, Vec4} from "../math/index";

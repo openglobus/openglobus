@@ -1,5 +1,3 @@
-"use strict";
-
 import * as shaders from "../shaders/label";
 import {ALIGN, Label} from "./Label";
 import {BaseBillboardHandler} from "./BaseBillboardHandler";
