@@ -14,11 +14,104 @@ const GeometryType: Record<string, number> = {
     MULTILINESTRING: 5
 };
 
+// {
+//     "type": "Point",
+//     "coordinates": [100.0, 0.0]
+// }
 export type IPointCoordinates = NumberArray2;
-export type IPolygonCoordinates = NumberArray2[][];
-export type IMultiPolygonCoordinates = IPolygonCoordinates[];
+
+ // {
+ //     "type": "LineString",
+ //     "coordinates": [
+ //         [100.0, 0.0],
+ //         [101.0, 1.0]
+ //     ]
+ // }
 export type ILineStringCoordinates = NumberArray2[];
+
+// No holes
+// {
+//     "type": "Polygon",
+//     "coordinates": [
+//         [
+//             [100.0, 0.0],
+//             [101.0, 0.0],
+//             [101.0, 1.0],
+//             [100.0, 1.0],
+//             [100.0, 0.0]
+//         ]
+//     ]
+// }
+//
+// With holes:
+// {
+//     "type": "Polygon",
+//     "coordinates": [
+//         [
+//             [100.0, 0.0],
+//             [101.0, 0.0],
+//             [101.0, 1.0],
+//             [100.0, 1.0],
+//             [100.0, 0.0]
+//         ],
+//         [
+//             [100.8, 0.8],
+//             [100.8, 0.2],
+//             [100.2, 0.2],
+//             [100.2, 0.8],
+//             [100.8, 0.8]
+//         ]
+//     ]
+// }
+export type IPolygonCoordinates = NumberArray2[][];
+
+// {
+//     "type": "MultiLineString",
+//     "coordinates": [
+//         [
+//             [100.0, 0.0],
+//             [101.0, 1.0]
+//         ],
+//         [
+//             [102.0, 2.0],
+//             [103.0, 3.0]
+//         ]
+//     ]
+// }
 export type IMultiLineStringCoordinates = ILineStringCoordinates[];
+
+// {
+//     "type": "MultiPolygon",
+//     "coordinates": [
+//         [
+//             [
+//                 [102.0, 2.0],
+//                 [103.0, 2.0],
+//                 [103.0, 3.0],
+//                 [102.0, 3.0],
+//                 [102.0, 2.0]
+//             ]
+//         ],
+//         [
+//             [
+//                 [100.0, 0.0],
+//                 [101.0, 0.0],
+//                 [101.0, 1.0],
+//                 [100.0, 1.0],
+//                 [100.0, 0.0]
+//             ],
+//             [
+//                 [100.2, 0.2],
+//                 [100.2, 0.8],
+//                 [100.8, 0.8],
+//                 [100.8, 0.2],
+//                 [100.2, 0.2]
+//             ]
+//         ]
+//     ]
+// }
+export type IMultiPolygonCoordinates = IPolygonCoordinates[];
+
 export type IGeometryCoordinates =
     IPointCoordinates |
     IPolygonCoordinates |
