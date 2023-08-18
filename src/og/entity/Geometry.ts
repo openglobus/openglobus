@@ -57,7 +57,7 @@ interface IGeometryParams {
 class Geometry {
     static __counter__: number = 0;
 
-    public __id: number;
+    protected __id: number;
 
     /**
      * Entity instance that holds this geometry.
@@ -149,6 +149,14 @@ class Geometry {
 
         // optimization flag for picking mask rendering pass
         this._pickingReady = false;
+    }
+
+    public get id(): number {
+        return this.__id;
+    }
+
+    public get type(): number {
+        return this._type;
     }
 
     static getType(typeStr: string): number {

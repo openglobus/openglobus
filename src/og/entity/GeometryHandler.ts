@@ -1,10 +1,16 @@
 import * as mercator from "../mercator";
 import * as quadTree from "../quadTree/quadTree.js";
-import { doubleToTwoFloatsV2 } from "../math/coder.js";
-import { Vec2 } from "../math/Vec2";
-import { GeometryType } from "./Geometry.js";
+import {Extent} from "../Extent";
+import {Handler} from "../webgl/Handler";
+import {doubleToTwoFloatsV2} from "../math/coder";
+import {Vector} from "../layer/Vector";
+import {NumberArray2, Vec2} from "../math/Vec2";
+import {Vec3} from "../math/Vec3";
+import {Vec4} from "../math/Vec4";
+import {GeometryType, Geometry} from "./Geometry";
 
-import { earcut, flatten } from "../utils/earcut.js";
+import {earcut, flatten} from "../utils/earcut.js";
+import {WebGLBufferExt} from "../webgl/Handler";
 
 const POLYVERTICES_BUFFER = 0;
 const POLYINDEXES_BUFFER = 1;
@@ -19,7 +25,7 @@ const LINESTROKECOLORS_BUFFER = 9;
 const POLYPICKINGCOLORS_BUFFER = 10;
 const LINEPICKINGCOLORS_BUFFER = 11;
 
-function doubleToTwoFloats(v, high, low) {
+function doubleToTwoFloats(v: NumberArray2, high: Vec2, low: Vec2) {
     let x = v[0],
         y = v[1];
 
@@ -49,8 +55,64 @@ let tempHigh = new Vec2(),
     tempHighLow = new Vec2();
 
 class GeometryHandler {
-    constructor(layer) {
-        this.__staticId = GeometryHandler._staticCounter++;
+
+    static __counter__: number = 0;
+
+    protected __id: number;
+
+    protected _layer: Vector;
+
+    protected _handler: Handler | null;
+
+    protected _geometries: Geometry[];
+
+    protected _updatedGeometryArr: Geometry[];
+    protected _updatedGeometry: Record<number, boolean>;
+
+    protected _removeGeometryExtentArr: Extent[];
+    protected _removeGeometryExtents: Record<number, boolean>;
+
+    // Polygon arrays
+    protected _polyVerticesHighMerc: number[];
+    protected _polyVerticesLowMerc: number[];
+    protected _polyColors: number[];
+    protected _polyPickingColors: number[];
+    protected _polyIndexes: number[];
+
+    // Line arrays
+    protected _lineVerticesHighMerc: number[];
+    protected _lineVerticesLowMerc: number[];
+    protected _lineOrders: number[];
+    protected _lineIndexes: number[];
+    protected _lineColors: number[];
+    protected _linePickingColors: number[];
+    protected _lineThickness: number[];
+    protected _lineStrokes: number[];
+    protected _lineStrokeColors: number[];
+
+    // Buffers
+    protected _polyVerticesHighBufferMerc: WebGLBufferExt | null;
+    protected _polyVerticesLowBufferMerc: WebGLBufferExt | null;
+    protected _polyColorsBuffer: WebGLBufferExt | null;
+    protected _polyPickingColorsBuffer: WebGLBufferExt | null;
+    protected _polyIndexesBuffer: WebGLBufferExt | null;
+
+    protected _lineVerticesHighBufferMerc: WebGLBufferExt | null;
+    protected _lineVerticesLowBufferMerc: WebGLBufferExt | null;
+    protected _lineColorsBuffer: WebGLBufferExt | null;
+    protected _linePickingColorsBuffer: WebGLBufferExt | null;
+    protected _lineThicknessBuffer: WebGLBufferExt | null;
+    protected _lineStrokesBuffer: WebGLBufferExt | null;
+    protected _lineStrokeColorsBuffer: WebGLBufferExt | null;
+    protected _lineOrdersBuffer: WebGLBufferExt | null;
+    protected _lineIndexesBuffer: WebGLBufferExt | null;
+
+    protected _buffersUpdateCallbacks: Function[];
+
+    protected _changedBuffers: boolean[];
+
+    constructor(layer: Vector) {
+        this.__id = GeometryHandler.__counter__++;
 
         this._layer = layer;
 
@@ -116,36 +178,25 @@ class GeometryHandler {
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
     }
 
-    static get _staticCounter() {
-        if (!this._counter && this._counter !== 0) {
-            this._counter = 0;
-        }
-        return this._counter;
-    }
-
-    static set _staticCounter(n) {
-        this._counter = n;
-    }
-
     static appendLineData(
-        pathArr,
-        isClosed,
-        color,
-        pickingColor,
-        thickness,
-        strokeColor,
-        strokeSize,
-        outVerticesHigh,
-        outVerticesLow,
-        outOrders,
-        outIndexes,
-        outColors,
-        outPickingColors,
-        outThickness,
-        outStrokeColors,
-        outStrokes,
-        outVerticesHigh2,
-        outVerticesLow2
+        pathArr: NumberArray2[][],
+        isClosed: boolean,
+        color: Vec4,
+        pickingColor: Vec3,
+        thickness: number,
+        strokeColor: Vec4,
+        strokeSize: number,
+        outVerticesHigh: number[],
+        outVerticesLow: number[],
+        outOrders: number[],
+        outIndexes: number[],
+        outColors: number[],
+        outPickingColors: number[],
+        outThickness: number[],
+        outStrokeColors: number[],
+        outStrokes: number[],
+        outVerticesHigh2: number[],
+        outVerticesLow2: number[]
     ) {
         var index = 0;
 
@@ -187,45 +238,29 @@ class GeometryHandler {
             doubleToTwoFloats(last, tempHigh, tempLow);
 
             outVerticesHigh.push(
-                tempHigh.x,
-                tempHigh.y,
-                tempHigh.x,
-                tempHigh.y,
-                tempHigh.x,
-                tempHigh.y,
-                tempHigh.x,
-                tempHigh.y
+                tempHigh.x, tempHigh.y,
+                tempHigh.x, tempHigh.y,
+                tempHigh.x, tempHigh.y,
+                tempHigh.x, tempHigh.y
             );
             outVerticesLow.push(
-                tempLow.x,
-                tempLow.y,
-                tempLow.x,
-                tempLow.y,
-                tempLow.x,
-                tempLow.y,
-                tempLow.x,
-                tempLow.y
+                tempLow.x, tempLow.y,
+                tempLow.x, tempLow.y,
+                tempLow.x, tempLow.y,
+                tempLow.x, tempLow.y
             );
 
             outVerticesHigh2.push(
-                tempHigh.x,
-                tempHigh.y,
-                tempHigh.x,
-                tempHigh.y,
-                tempHigh.x,
-                tempHigh.y,
-                tempHigh.x,
-                tempHigh.y
+                tempHigh.x, tempHigh.y,
+                tempHigh.x, tempHigh.y,
+                tempHigh.x, tempHigh.y,
+                tempHigh.x, tempHigh.y
             );
             outVerticesLow2.push(
-                tempLow.x,
-                tempLow.y,
-                tempLow.x,
-                tempLow.y,
-                tempLow.x,
-                tempLow.y,
-                tempLow.x,
-                tempLow.y
+                tempLow.x, tempLow.y,
+                tempLow.x, tempLow.y,
+                tempLow.x, tempLow.y,
+                tempLow.x, tempLow.y
             );
 
             outOrders.push(1, -1, 2, -2);
@@ -233,58 +268,22 @@ class GeometryHandler {
             outThickness.push(t, t, t, t);
             outStrokes.push(s, s, s, s);
             outColors.push(
-                c[0],
-                c[1],
-                c[2],
-                c[3],
-                c[0],
-                c[1],
-                c[2],
-                c[3],
-                c[0],
-                c[1],
-                c[2],
-                c[3],
-                c[0],
-                c[1],
-                c[2],
-                c[3]
+                c[0], c[1], c[2], c[3],
+                c[0], c[1], c[2], c[3],
+                c[0], c[1], c[2], c[3],
+                c[0], c[1], c[2], c[3]
             );
             outStrokeColors.push(
-                sc[0],
-                sc[1],
-                sc[2],
-                sc[3],
-                sc[0],
-                sc[1],
-                sc[2],
-                sc[3],
-                sc[0],
-                sc[1],
-                sc[2],
-                sc[3],
-                sc[0],
-                sc[1],
-                sc[2],
-                sc[3]
+                sc[0], sc[1], sc[2], sc[3],
+                sc[0], sc[1], sc[2], sc[3],
+                sc[0], sc[1], sc[2], sc[3],
+                sc[0], sc[1], sc[2], sc[3]
             );
             outPickingColors.push(
-                p[0],
-                p[1],
-                p[2],
-                p[3],
-                p[0],
-                p[1],
-                p[2],
-                p[3],
-                p[0],
-                p[1],
-                p[2],
-                p[3],
-                p[0],
-                p[1],
-                p[2],
-                p[3]
+                p[0], p[1], p[2], p[3],
+                p[0], p[1], p[2], p[3],
+                p[0], p[1], p[2], p[3],
+                p[0], p[1], p[2], p[3]
             );
 
             for (let i = 0; i < path.length; i++) {
@@ -293,103 +292,51 @@ class GeometryHandler {
                 doubleToTwoFloats(cur, tempHigh, tempLow);
 
                 outVerticesHigh.push(
-                    tempHigh.x,
-                    tempHigh.y,
-                    tempHigh.x,
-                    tempHigh.y,
-                    tempHigh.x,
-                    tempHigh.y,
-                    tempHigh.x,
-                    tempHigh.y
+                    tempHigh.x, tempHigh.y,
+                    tempHigh.x, tempHigh.y,
+                    tempHigh.x, tempHigh.y,
+                    tempHigh.x, tempHigh.y
                 );
                 outVerticesLow.push(
-                    tempLow.x,
-                    tempLow.y,
-                    tempLow.x,
-                    tempLow.y,
-                    tempLow.x,
-                    tempLow.y,
-                    tempLow.x,
-                    tempLow.y
+                    tempLow.x, tempLow.y,
+                    tempLow.x, tempLow.y,
+                    tempLow.x, tempLow.y,
+                    tempLow.x, tempLow.y
                 );
 
                 outVerticesHigh2.push(
-                    tempHigh.x,
-                    tempHigh.y,
-                    tempHigh.x,
-                    tempHigh.y,
-                    tempHigh.x,
-                    tempHigh.y,
-                    tempHigh.x,
-                    tempHigh.y
+                    tempHigh.x, tempHigh.y,
+                    tempHigh.x, tempHigh.y,
+                    tempHigh.x, tempHigh.y,
+                    tempHigh.x, tempHigh.y
                 );
                 outVerticesLow2.push(
-                    tempLow.x,
-                    tempLow.y,
-                    tempLow.x,
-                    tempLow.y,
-                    tempLow.x,
-                    tempLow.y,
-                    tempLow.x,
-                    tempLow.y
+                    tempLow.x, tempLow.y,
+                    tempLow.x, tempLow.y,
+                    tempLow.x, tempLow.y,
+                    tempLow.x, tempLow.y
                 );
 
                 outOrders.push(1, -1, 2, -2);
                 outThickness.push(t, t, t, t);
                 outStrokes.push(s, s, s, s);
                 outColors.push(
-                    c[0],
-                    c[1],
-                    c[2],
-                    c[3],
-                    c[0],
-                    c[1],
-                    c[2],
-                    c[3],
-                    c[0],
-                    c[1],
-                    c[2],
-                    c[3],
-                    c[0],
-                    c[1],
-                    c[2],
-                    c[3]
+                    c[0], c[1], c[2], c[3],
+                    c[0], c[1], c[2], c[3],
+                    c[0], c[1], c[2], c[3],
+                    c[0], c[1], c[2], c[3]
                 );
                 outStrokeColors.push(
-                    sc[0],
-                    sc[1],
-                    sc[2],
-                    sc[3],
-                    sc[0],
-                    sc[1],
-                    sc[2],
-                    sc[3],
-                    sc[0],
-                    sc[1],
-                    sc[2],
-                    sc[3],
-                    sc[0],
-                    sc[1],
-                    sc[2],
-                    sc[3]
+                    sc[0], sc[1], sc[2], sc[3],
+                    sc[0], sc[1], sc[2], sc[3],
+                    sc[0], sc[1], sc[2], sc[3],
+                    sc[0], sc[1], sc[2], sc[3]
                 );
                 outPickingColors.push(
-                    p[0],
-                    p[1],
-                    p[2],
-                    p[3],
-                    p[0],
-                    p[1],
-                    p[2],
-                    p[3],
-                    p[0],
-                    p[1],
-                    p[2],
-                    p[3],
-                    p[0],
-                    p[1],
-                    p[2],
-                    p[3]
+                    p[0], p[1], p[2], p[3],
+                    p[0], p[1], p[2], p[3],
+                    p[0], p[1], p[2], p[3],
+                    p[0], p[1], p[2], p[3]
                 );
                 outIndexes.push(index++, index++, index++, index++);
             }
@@ -413,103 +360,51 @@ class GeometryHandler {
             doubleToTwoFloats(first, tempHigh, tempLow);
 
             outVerticesHigh.push(
-                tempHigh.x,
-                tempHigh.y,
-                tempHigh.x,
-                tempHigh.y,
-                tempHigh.x,
-                tempHigh.y,
-                tempHigh.x,
-                tempHigh.y
+                tempHigh.x, tempHigh.y,
+                tempHigh.x, tempHigh.y,
+                tempHigh.x, tempHigh.y,
+                tempHigh.x, tempHigh.y
             );
             outVerticesLow.push(
-                tempLow.x,
-                tempLow.y,
-                tempLow.x,
-                tempLow.y,
-                tempLow.x,
-                tempLow.y,
-                tempLow.x,
-                tempLow.y
+                tempLow.x, tempLow.y,
+                tempLow.x, tempLow.y,
+                tempLow.x, tempLow.y,
+                tempLow.x, tempLow.y
             );
 
             outVerticesHigh2.push(
-                tempHigh.x,
-                tempHigh.y,
-                tempHigh.x,
-                tempHigh.y,
-                tempHigh.x,
-                tempHigh.y,
-                tempHigh.x,
-                tempHigh.y
+                tempHigh.x, tempHigh.y,
+                tempHigh.x, tempHigh.y,
+                tempHigh.x, tempHigh.y,
+                tempHigh.x, tempHigh.y
             );
             outVerticesLow2.push(
-                tempLow.x,
-                tempLow.y,
-                tempLow.x,
-                tempLow.y,
-                tempLow.x,
-                tempLow.y,
-                tempLow.x,
-                tempLow.y
+                tempLow.x, tempLow.y,
+                tempLow.x, tempLow.y,
+                tempLow.x, tempLow.y,
+                tempLow.x, tempLow.y
             );
 
             outOrders.push(1, -1, 2, -2);
             outThickness.push(t, t, t, t);
             outStrokes.push(s, s, s, s);
             outColors.push(
-                c[0],
-                c[1],
-                c[2],
-                c[3],
-                c[0],
-                c[1],
-                c[2],
-                c[3],
-                c[0],
-                c[1],
-                c[2],
-                c[3],
-                c[0],
-                c[1],
-                c[2],
-                c[3]
+                c[0], c[1], c[2], c[3],
+                c[0], c[1], c[2], c[3],
+                c[0], c[1], c[2], c[3],
+                c[0], c[1], c[2], c[3]
             );
             outStrokeColors.push(
-                sc[0],
-                sc[1],
-                sc[2],
-                sc[3],
-                sc[0],
-                sc[1],
-                sc[2],
-                sc[3],
-                sc[0],
-                sc[1],
-                sc[2],
-                sc[3],
-                sc[0],
-                sc[1],
-                sc[2],
-                sc[3]
+                sc[0], sc[1], sc[2], sc[3],
+                sc[0], sc[1], sc[2], sc[3],
+                sc[0], sc[1], sc[2], sc[3],
+                sc[0], sc[1], sc[2], sc[3]
             );
             outPickingColors.push(
-                p[0],
-                p[1],
-                p[2],
-                p[3],
-                p[0],
-                p[1],
-                p[2],
-                p[3],
-                p[0],
-                p[1],
-                p[2],
-                p[3],
-                p[0],
-                p[1],
-                p[2],
-                p[3]
+                p[0], p[1], p[2], p[3],
+                p[0], p[1], p[2], p[3],
+                p[0], p[1], p[2], p[3],
+                p[0], p[1], p[2], p[3]
             );
 
             if (j < pathArr.length - 1) {
@@ -519,7 +414,7 @@ class GeometryHandler {
         }
     }
 
-    assignHandler(handler) {
+    public assignHandler(handler: Handler) {
         this._handler = handler;
         this.refresh();
         if (handler.isInitialized()) {
@@ -531,24 +426,35 @@ class GeometryHandler {
      * @public
      * @param {Geometry} geometry - Geometry object.
      */
-    add(geometry) {
+    public add(geometry: Geometry) {
         //
         // Triangulates polygon and sets geometry data.
+        // @ts-ignore
         if (geometry._handlerIndex === -1) {
+            // @ts-ignore
             geometry._handler = this;
+            // @ts-ignore
             geometry._handlerIndex = this._geometries.length;
 
             this._geometries.push(geometry);
 
+            // @ts-ignore
             let pickingColor = geometry._entity._pickingColor.scaleTo(1 / 255);
 
+            // @ts-ignore
             geometry._polyVerticesHighMerc = [];
+            // @ts-ignore
             geometry._polyVerticesLowMerc = [];
+            // @ts-ignore
             geometry._lineVerticesHighMerc = [];
+            // @ts-ignore
             geometry._lineVerticesLowMerc = [];
 
+            // @ts-ignore
             if (geometry._coordinates[0].length) {
+                // @ts-ignore
                 if (geometry._type === GeometryType.POLYGON) {
+                    // @ts-ignore
                     let coordinates = geometry._coordinates;
                     let ci = [];
                     for (let j = 0; j < coordinates.length; j++) {
@@ -562,16 +468,20 @@ class GeometryHandler {
                     }
 
                     let data = flatten(ci);
-                    let indexes = earcut(data.vertices, data.holes, 2);
+                    let indexes: number[] = earcut(data.vertices, data.holes, 2);
 
+                    // @ts-ignore
                     geometry._polyVerticesHandlerIndex = this._polyVerticesHighMerc.length;
+                    // @ts-ignore
                     geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
 
                     for (let i = 0; i < indexes.length; i++) {
+                        // @ts-ignore
                         this._polyIndexes.push(indexes[i] + geometry._polyVerticesHandlerIndex * 0.5);
                     }
 
-                    var color = geometry._style.fillColor;
+                    // @ts-ignore
+                    let color = geometry._style.fillColor;
 
                     let verticesHigh = [],
                         verticesLow = [];
@@ -592,22 +502,32 @@ class GeometryHandler {
                         verticesLow[i] = tempHighLow.y;
                     }
 
+                    // @ts-ignore
                     geometry._polyVerticesHighMerc = verticesHigh;
+                    // @ts-ignore
                     geometry._polyVerticesLowMerc = verticesLow;
 
                     this._polyVerticesHighMerc.push.apply(this._polyVerticesHighMerc, verticesHigh);
                     this._polyVerticesLowMerc.push.apply(this._polyVerticesLowMerc, verticesLow);
 
+                    // @ts-ignore
                     geometry._polyVerticesLength = data.vertices.length;
+                    // @ts-ignore
                     geometry._polyIndexesLength = indexes.length;
 
                     // Creates polygon stroke data
+                    // @ts-ignore
                     geometry._lineVerticesHandlerIndex = this._lineVerticesHighMerc.length;
+                    // @ts-ignore
                     geometry._lineOrdersHandlerIndex = this._lineOrders.length;
+                    // @ts-ignore
                     geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
+                    // @ts-ignore
                     geometry._lineColorsHandlerIndex = this._lineColors.length;
+                    // @ts-ignore
                     geometry._lineThicknessHandlerIndex = this._lineThickness.length;
 
+                    // @ts-ignore
                     GeometryHandler.appendLineData(
                         ci,
                         true,
@@ -629,27 +549,33 @@ class GeometryHandler {
                         geometry._lineVerticesLowMerc
                     );
 
-                    geometry._lineVerticesLength =
-                        this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
-                    geometry._lineOrdersLength =
-                        this._lineOrders.length - geometry._lineOrdersHandlerIndex;
-                    geometry._lineIndexesLength =
-                        this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
-                    geometry._lineColorsLength =
-                        this._lineColors.length - geometry._lineColorsHandlerIndex;
-                    geometry._lineThicknessLength =
-                        this._lineThickness.length - geometry._lineThicknessHandlerIndex;
+                    // @ts-ignore
+                    geometry._lineVerticesLength = this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
+                    // @ts-ignore
+                    geometry._lineOrdersLength = this._lineOrders.length - geometry._lineOrdersHandlerIndex;
+                    // @ts-ignore
+                    geometry._lineIndexesLength = this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
+                    // @ts-ignore
+                    geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
+                    // @ts-ignore
+                    geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex;
 
-                } else if (geometry._type === GeometryType.MULTIPOLYGON) {
+                } else if (geometry.type === GeometryType.MULTIPOLYGON) {
+                    // @ts-ignore
                     let coordinates = geometry._coordinates;
                     let vertices = [],
                         indexes = [];
 
                     // Creates polygon stroke data
+                    // @ts-ignore
                     geometry._lineVerticesHandlerIndex = this._lineVerticesHighMerc.length;
+                    // @ts-ignore
                     geometry._lineOrdersHandlerIndex = this._lineOrders.length;
+                    // @ts-ignore
                     geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
+                    // @ts-ignore
                     geometry._lineColorsHandlerIndex = this._lineColors.length;
+                    // @ts-ignore
                     geometry._lineThicknessHandlerIndex = this._lineThickness.length;
 
                     for (let i = 0; i < coordinates.length; i++) {
@@ -665,7 +591,7 @@ class GeometryHandler {
                             }
                         }
                         let data = flatten(ci);
-                        let dataIndexes = earcut(data.vertices, data.holes, 2);
+                        let dataIndexes: number[] = earcut(data.vertices, data.holes, 2);
 
                         for (let j = 0; j < dataIndexes.length; j++) {
                             indexes.push(dataIndexes[j] + vertices.length * 0.5);
@@ -673,6 +599,7 @@ class GeometryHandler {
 
                         vertices.push.apply(vertices, data.vertices);
 
+                        // @ts-ignore
                         GeometryHandler.appendLineData(
                             ci,
                             true,
@@ -695,13 +622,17 @@ class GeometryHandler {
                         );
                     }
 
+                    // @ts-ignore
                     geometry._polyVerticesHandlerIndex = this._polyVerticesHighMerc.length;
+                    // @ts-ignore
                     geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
 
                     for (let i = 0; i < indexes.length; i++) {
+                        // @ts-ignore
                         this._polyIndexes.push(indexes[i] + geometry._polyVerticesHandlerIndex * 0.5);
                     }
 
+                    // @ts-ignore
                     let color = geometry._style.fillColor;
 
                     let verticesHigh = [],
@@ -723,42 +654,50 @@ class GeometryHandler {
                         verticesLow[i] = tempHighLow.y;
                     }
 
+                    // @ts-ignore
                     geometry._polyVerticesHighMerc = verticesHigh;
+                    // @ts-ignore
                     geometry._polyVerticesLowMerc = verticesLow;
 
                     this._polyVerticesHighMerc.push.apply(this._polyVerticesHighMerc, verticesHigh);
                     this._polyVerticesLowMerc.push.apply(this._polyVerticesLowMerc, verticesLow);
 
+                    // @ts-ignore
                     geometry._polyVerticesLength = vertices.length;
+                    // @ts-ignore
                     geometry._polyIndexesLength = indexes.length;
 
-                    geometry._lineVerticesLength =
-                        this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
-                    geometry._lineOrdersLength =
-                        this._lineOrders.length - geometry._lineOrdersHandlerIndex;
-                    geometry._lineIndexesLength =
-                        this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
-                    geometry._lineColorsLength =
-                        this._lineColors.length - geometry._lineColorsHandlerIndex;
-                    geometry._lineThicknessLength =
-                        this._lineThickness.length - geometry._lineThicknessHandlerIndex;
-                } else if (geometry._type === GeometryType.LINESTRING) {
+                    // @ts-ignore
+                    geometry._lineVerticesLength = this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
+                    // @ts-ignore
+                    geometry._lineOrdersLength = this._lineOrders.length - geometry._lineOrdersHandlerIndex;
+                    // @ts-ignore
+                    geometry._lineIndexesLength = this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
+                    // @ts-ignore
+                    geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
+                    // @ts-ignore
+                    geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex;
+                } else if (geometry.type === GeometryType.LINESTRING) {
+                    // @ts-ignore
                     let coordinates = geometry._coordinates;
                     let ci = new Array(coordinates.length);
                     for (let j = 0; j < coordinates.length; j++) {
-                        ci[j] = [
-                            mercator.forward_lon(coordinates[j][0]),
-                            mercator.forward_lat(coordinates[j][1])
-                        ];
+                        ci[j] = [mercator.forward_lon(coordinates[j][0]), mercator.forward_lat(coordinates[j][1])];
                     }
 
                     // Creates polygon stroke data
+                    // @ts-ignore
                     geometry._lineVerticesHandlerIndex = this._lineVerticesHighMerc.length;
+                    // @ts-ignore
                     geometry._lineOrdersHandlerIndex = this._lineOrders.length;
+                    // @ts-ignore
                     geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
+                    // @ts-ignore
                     geometry._lineColorsHandlerIndex = this._lineColors.length;
+                    // @ts-ignore
                     geometry._lineThicknessHandlerIndex = this._lineThickness.length;
 
+                    // @ts-ignore
                     GeometryHandler.appendLineData(
                         [ci],
                         false,
@@ -780,36 +719,40 @@ class GeometryHandler {
                         geometry._lineVerticesLowMerc
                     );
 
-                    geometry._lineVerticesLength =
-                        this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
-                    geometry._lineOrdersLength =
-                        this._lineOrders.length - geometry._lineOrdersHandlerIndex;
-                    geometry._lineIndexesLength =
-                        this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
-                    geometry._lineColorsLength =
-                        this._lineColors.length - geometry._lineColorsHandlerIndex;
-                    geometry._lineThicknessLength =
-                        this._lineThickness.length - geometry._lineThicknessHandlerIndex;
-                } else if (geometry._type === GeometryType.MULTILINESTRING) {
+                    // @ts-ignore
+                    geometry._lineVerticesLength = this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
+                    // @ts-ignore
+                    geometry._lineOrdersLength = this._lineOrders.length - geometry._lineOrdersHandlerIndex;
+                    // @ts-ignore
+                    geometry._lineIndexesLength = this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
+                    // @ts-ignore
+                    geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
+                    // @ts-ignore
+                    geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex;
+                } else if (geometry.type === GeometryType.MULTILINESTRING) {
+                    // @ts-ignore
                     let coordinates = geometry._coordinates;
                     let ci = [];
                     for (let j = 0; j < coordinates.length; j++) {
                         ci[j] = [];
                         for (let k = 0; k < coordinates[j].length; k++) {
-                            ci[j][k] = [
-                                mercator.forward_lon(coordinates[j][k][0]),
-                                mercator.forward_lat(coordinates[j][k][1])
-                            ];
+                            ci[j][k] = [mercator.forward_lon(coordinates[j][k][0]), mercator.forward_lat(coordinates[j][k][1])];
                         }
                     }
 
                     // Creates polygon stroke data
+                    // @ts-ignore
                     geometry._lineVerticesHandlerIndex = this._lineVerticesHighMerc.length;
+                    // @ts-ignore
                     geometry._lineOrdersHandlerIndex = this._lineOrders.length;
+                    // @ts-ignore
                     geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
+                    // @ts-ignore
                     geometry._lineColorsHandlerIndex = this._lineColors.length;
+                    // @ts-ignore
                     geometry._lineThicknessHandlerIndex = this._lineThickness.length;
 
+                    // @ts-ignore
                     GeometryHandler.appendLineData(
                         ci,
                         false,
@@ -831,163 +774,181 @@ class GeometryHandler {
                         geometry._lineVerticesLowMerc
                     );
 
-                    geometry._lineVerticesLength =
-                        this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
-                    geometry._lineOrdersLength =
-                        this._lineOrders.length - geometry._lineOrdersHandlerIndex;
-                    geometry._lineIndexesLength =
-                        this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
-                    geometry._lineColorsLength =
-                        this._lineColors.length - geometry._lineColorsHandlerIndex;
-                    geometry._lineThicknessLength =
-                        this._lineThickness.length - geometry._lineThicknessHandlerIndex;
+                    // @ts-ignore
+                    geometry._lineVerticesLength = this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
+                    // @ts-ignore
+                    geometry._lineOrdersLength = this._lineOrders.length - geometry._lineOrdersHandlerIndex;
+                    // @ts-ignore
+                    geometry._lineIndexesLength = this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
+                    // @ts-ignore
+                    geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
+                    // @ts-ignore
+                    geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex;
                 }
             }
 
             // Refresh visibility
             this.setGeometryVisibility(geometry);
 
-            !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
-            this._updatedGeometry[geometry._id] = true;
+            // @ts-ignore
+            !this._updatedGeometry[geometry.__id] && this._updatedGeometryArr.push(geometry);
+            // @ts-ignore
+            this._updatedGeometry[geometry.__id] = true;
             this.refresh();
         }
     }
 
-    remove(geometry) {
-        var index = geometry._handlerIndex;
+    public remove(geometry: Geometry) {
+        // @ts-ignore
+        const index = geometry._handlerIndex;
         if (index !== -1) {
             this._geometries.splice(index, 1);
 
             // polygon
             // this._polyVerticesLonLat.splice(geometry._polyVerticesHandlerIndex, geometry._polyVerticesLength);
-            this._polyVerticesHighMerc.splice(
-                geometry._polyVerticesHandlerIndex,
-                geometry._polyVerticesLength
-            );
-            this._polyVerticesLowMerc.splice(
-                geometry._polyVerticesHandlerIndex,
-                geometry._polyVerticesLength
-            );
+            // @ts-ignore
+            this._polyVerticesHighMerc.splice(geometry._polyVerticesHandlerIndex, geometry._polyVerticesLength);
+            // @ts-ignore
+            this._polyVerticesLowMerc.splice(geometry._polyVerticesHandlerIndex, geometry._polyVerticesLength);
 
-            this._polyColors.splice(
-                geometry._polyVerticesHandlerIndex * 2,
-                geometry._polyVerticesLength * 2
-            );
-            this._polyPickingColors.splice(
-                geometry._polyVerticesHandlerIndex * 2,
-                geometry._polyVerticesLength * 2
-            );
-            this._polyIndexes.splice(
-                geometry._polyIndexesHandlerIndex,
-                geometry._polyIndexesLength
-            );
-            var di = geometry._polyVerticesLength * 0.5;
+            // @ts-ignore
+            this._polyColors.splice(geometry._polyVerticesHandlerIndex * 2, geometry._polyVerticesLength * 2);
+            // @ts-ignore
+            this._polyPickingColors.splice(geometry._polyVerticesHandlerIndex * 2, geometry._polyVerticesLength * 2);
+            // @ts-ignore
+            this._polyIndexes.splice(geometry._polyIndexesHandlerIndex, geometry._polyIndexesLength);
+            // @ts-ignore
+            let di = geometry._polyVerticesLength * 0.5;
+            // @ts-ignore
             for (let i = geometry._polyIndexesHandlerIndex; i < this._polyIndexes.length; i++) {
                 this._polyIndexes[i] -= di;
             }
 
             // line
             // this._lineVerticesLonLat.splice(geometry._lineVerticesHandlerIndex, geometry._lineVerticesLength);
-            this._lineVerticesHighMerc.splice(
-                geometry._lineVerticesHandlerIndex,
-                geometry._lineVerticesLength
-            );
-            this._lineVerticesLowMerc.splice(
-                geometry._lineVerticesHandlerIndex,
-                geometry._lineVerticesLength
-            );
+            // @ts-ignore
+            this._lineVerticesHighMerc.splice(geometry._lineVerticesHandlerIndex, geometry._lineVerticesLength);
+            // @ts-ignore
+            this._lineVerticesLowMerc.splice(geometry._lineVerticesHandlerIndex, geometry._lineVerticesLength);
+            // @ts-ignore
             this._lineOrders.splice(geometry._lineOrdersHandlerIndex, geometry._lineOrdersLength);
+            // @ts-ignore
             this._lineColors.splice(geometry._lineColorsHandlerIndex, geometry._lineColorsLength);
-            this._linePickingColors.splice(
-                geometry._lineColorsHandlerIndex,
-                geometry._lineColorsLength
-            );
-            this._lineStrokeColors.splice(
-                geometry._lineColorsHandlerIndex,
-                geometry._lineColorsLength
-            );
-            this._lineThickness.splice(
-                geometry._lineThicknessHandlerIndex,
-                geometry._lineThicknessLength
-            );
-            this._lineStrokes.splice(
-                geometry._lineThicknessHandlerIndex,
-                geometry._lineThicknessLength
-            );
-            this._lineIndexes.splice(
-                geometry._lineIndexesHandlerIndex,
-                geometry._lineIndexesLength
-            );
+            // @ts-ignore
+            this._linePickingColors.splice(geometry._lineColorsHandlerIndex, geometry._lineColorsLength);
+            // @ts-ignore
+            this._lineStrokeColors.splice(geometry._lineColorsHandlerIndex, geometry._lineColorsLength);
+            // @ts-ignore
+            this._lineThickness.splice(geometry._lineThicknessHandlerIndex, geometry._lineThicknessLength);
+            // @ts-ignore
+            this._lineStrokes.splice(geometry._lineThicknessHandlerIndex, geometry._lineThicknessLength);
+            // @ts-ignore
+            this._lineIndexes.splice(geometry._lineIndexesHandlerIndex, geometry._lineIndexesLength);
+            // @ts-ignore
             di = geometry._lineVerticesLength * 0.5;
+            // @ts-ignore
             for (let i = geometry._lineIndexesHandlerIndex; i < this._lineIndexes.length; i++) {
                 this._lineIndexes[i] -= di;
             }
 
             // reindex
-            var g = this._geometries;
+            let g = this._geometries;
             for (let i = index; i < g.length; i++) {
-                var gi = g[i];
+                let gi = g[i];
+                // @ts-ignore
                 gi._handlerIndex = i;
+                // @ts-ignore
                 gi._polyVerticesHandlerIndex -= geometry._polyVerticesLength;
+                // @ts-ignore
                 gi._polyIndexesHandlerIndex -= geometry._polyIndexesLength;
 
+                // @ts-ignore
                 gi._lineVerticesHandlerIndex -= geometry._lineVerticesLength;
+                // @ts-ignore
                 gi._lineOrdersHandlerIndex -= geometry._lineOrdersLength;
+                // @ts-ignore
                 gi._lineColorsHandlerIndex -= geometry._lineColorsLength;
+                // @ts-ignore
                 gi._lineThicknessHandlerIndex -= geometry._lineThicknessLength;
+                // @ts-ignore
                 gi._lineIndexesHandlerIndex -= geometry._lineIndexesLength;
             }
 
+            // @ts-ignore
             geometry._pickingReady = false;
 
+            // @ts-ignore
             geometry._handler = null;
+            // @ts-ignore
             geometry._handlerIndex = -1;
 
+            // @ts-ignore
             geometry._polyVerticesHighMerc = [];
+            // @ts-ignore
             geometry._polyVerticesLowMerc = [];
+            // @ts-ignore
             geometry._polyVerticesLength = -1;
+            // @ts-ignore
             geometry._polyIndexesLength = -1;
+            // @ts-ignore
             geometry._polyVerticesHandlerIndex = -1;
+            // @ts-ignore
             geometry._polyIndexesHandlerIndex = -1;
 
+            // @ts-ignore
             geometry._lineVerticesHighMerc = [];
+            // @ts-ignore
             geometry._lineVerticesLowMerc = [];
+            // @ts-ignore
             geometry._lineVerticesLength = -1;
+            // @ts-ignore
             geometry._lineOrdersLength = -1;
+            // @ts-ignore
             geometry._lineIndexesLength = -1;
+            // @ts-ignore
             geometry._lineColorsLength = -1;
+            // @ts-ignore
             geometry._lineThicknessLength = -1;
+            // @ts-ignore
             geometry._lineVerticesHandlerIndex = -1;
+            // @ts-ignore
             geometry._lineOrdersHandlerIndex = -1;
+            // @ts-ignore
             geometry._lineIndexesHandlerIndex = -1;
+            // @ts-ignore
             geometry._lineThicknessHandlerIndex = -1;
+            // @ts-ignore
             geometry._lineColorsHandlerIndex = -1;
 
-            !this._removeGeometryExtents[geometry._id] &&
-            this._removeGeometryExtentArr.push(geometry.getExtent());
-            this._removeGeometryExtents[geometry._id] = true;
+            // @ts-ignore
+            !this._removeGeometryExtents[geometry.__id] && this._removeGeometryExtentArr.push(geometry.getExtent());
+            // @ts-ignore
+            this._removeGeometryExtents[geometry.__id] = true;
 
             this.refresh();
         }
     }
 
-    _refreshRecursevely(geometry, treeNode) {
+    protected _refreshRecursevely(geometry: Geometry, treeNode: Node) {
         if (treeNode.ready) {
-            var lid = this._layer._id;
+            let lid = this._layer._id;
             for (let i = 0; i < treeNode.nodes.length; i++) {
-                var ni = treeNode.nodes[i];
+                let ni = treeNode.nodes[i];
+                // @ts-ignore
                 if (geometry._extent.overlaps(ni.segment.getExtentLonLat())) {
                     this._refreshRecursevely(geometry, ni);
-                    var m = ni.segment.materials[lid];
+                    let m = ni.segment.materials[lid];
                     if (m && m.isReady) {
                         if (m.segment.node.getState() !== quadTree.RENDERING) {
                             m.layer.clearMaterial(m);
                         } else {
+                            // @ts-ignore
                             m.pickingReady = m.pickingReady && geometry._pickingReady;
                             m.isReady = false;
                             m._updateTexture = m.texture;
                             m._updatePickingMask = m.pickingMask;
                         }
+                        // @ts-ignore
                         geometry._pickingReady = true;
                     }
                 }
@@ -995,14 +956,14 @@ class GeometryHandler {
         }
     }
 
-    _refreshRecursevelyExt(extent, treeNode) {
+    protected _refreshRecursevelyExt(extent: Extent, treeNode: Node) {
         if (treeNode.ready) {
-            var lid = this._layer._id;
+            let lid = this._layer._id;
             for (let i = 0; i < treeNode.nodes.length; i++) {
-                var ni = treeNode.nodes[i];
+                let ni = treeNode.nodes[i];
                 if (extent.overlaps(ni.segment.getExtentLonLat())) {
                     this._refreshRecursevelyExt(extent, ni);
-                    var m = ni.segment.materials[lid];
+                    let m = ni.segment.materials[lid];
                     if (m && m.isReady) {
                         m.layer.clearMaterial(m);
                         // m.pickingReady = false;
@@ -1015,22 +976,22 @@ class GeometryHandler {
         }
     }
 
-    _refreshPlanetNode(treeNode) {
-        var i = 0;
+    protected _refreshPlanetNode(treeNode: Node) {
+        let i = 0;
 
-        var e = this._removeGeometryExtentArr;
+        let e = this._removeGeometryExtentArr;
         for (i = 0; i < e.length; i++) {
             this._refreshRecursevelyExt(e[i], treeNode);
         }
 
-        var g = this._updatedGeometryArr;
+        let g = this._updatedGeometryArr;
         for (i = 0; i < g.length; i++) {
             this._refreshRecursevely(g[i], treeNode);
         }
     }
 
-    _updatePlanet() {
-        var p = this._layer._planet;
+    protected _updatePlanet() {
+        let p = this._layer._planet;
         if (p) {
             p.quadTreeStrategy.quadTreeList.forEach(quadTree => {
                 this._refreshPlanetNode(quadTree);
@@ -1045,17 +1006,17 @@ class GeometryHandler {
         this._removeGeometryExtents = {};
     }
 
-    refresh() {
-        var i = this._changedBuffers.length;
+    protected refresh() {
+        let i = this._changedBuffers.length;
         while (i--) {
             this._changedBuffers[i] = true;
         }
     }
 
-    update() {
+    public update() {
         if (this._handler) {
-            var needUpdate = false;
-            var i = this._changedBuffers.length;
+            let needUpdate = false;
+            let i = this._changedBuffers.length;
             while (i--) {
                 if (this._changedBuffers[i]) {
                     needUpdate = true;
@@ -1067,39 +1028,50 @@ class GeometryHandler {
         }
     }
 
-    setGeometryVisibility(geometry) {
-        var v = geometry._visibility ? 1.0 : 0.0;
+    public setGeometryVisibility(geometry: Geometry) {
+        let v = geometry.getVisibility() ? 1.0 : 0.0;
 
-        var a = this._polyVerticesHighMerc,
+        let a = this._polyVerticesHighMerc,
             b = this._polyVerticesLowMerc;
 
-        var l = geometry._polyVerticesLength;
-        var ind = geometry._polyVerticesHandlerIndex;
+        // @ts-ignore
+        let l = geometry._polyVerticesLength;
+        // @ts-ignore
+        let ind = geometry._polyVerticesHandlerIndex;
         for (let i = 0; i < l; i++) {
+            // @ts-ignore
             a[ind + i] = geometry._polyVerticesHighMerc[i] * v;
+            // @ts-ignore
             b[ind + i] = geometry._polyVerticesLowMerc[i] * v;
         }
 
         a = this._lineVerticesHighMerc;
         b = this._lineVerticesLowMerc;
+        // @ts-ignore
         l = geometry._lineVerticesLength;
+        // @ts-ignore
         ind = geometry._lineVerticesHandlerIndex;
         for (let i = 0; i < l; i++) {
+            // @ts-ignore
             a[ind + i] = geometry._lineVerticesHighMerc[i] * v;
+            // @ts-ignore
             b[ind + i] = geometry._lineVerticesLowMerc[i] * v;
         }
 
         this._changedBuffers[POLYVERTICES_BUFFER] = true;
         this._changedBuffers[LINEVERTICES_BUFFER] = true;
 
-        !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
-        this._updatedGeometry[geometry._id] = true;
+        // @ts-ignore
+        !this._updatedGeometry[geometry.__id] && this._updatedGeometryArr.push(geometry);
+        // @ts-ignore
+        this._updatedGeometry[geometry.__id] = true;
     }
 
-    setPolyColorArr(geometry, color) {
-        var index = geometry._polyVerticesHandlerIndex * 2, // ... / 2 * 4
+    public setPolyColorArr(geometry: Geometry, color: Vec4) {
+        // @ts-ignore
+        let index = geometry._polyVerticesHandlerIndex * 2, // ... / 2 * 4
             size = index + geometry._polyVerticesLength * 2; // ... / 2 * 4
-        var a = this._polyColors;
+        let a = this._polyColors;
         for (let i = index; i < size; i += 4) {
             a[i] = color.x;
             a[i + 1] = color.y;
@@ -1107,14 +1079,17 @@ class GeometryHandler {
             a[i + 3] = color.w;
         }
         this._changedBuffers[POLYCOLORS_BUFFER] = true;
-        !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
-        this._updatedGeometry[geometry._id] = true;
+        // @ts-ignore
+        !this._updatedGeometry[geometry.__id] && this._updatedGeometryArr.push(geometry);
+        // @ts-ignore
+        this._updatedGeometry[geometry.__id] = true;
     }
 
-    setLineStrokeColorArr(geometry, color) {
-        var index = geometry._lineColorsHandlerIndex,
+    public setLineStrokeColorArr(geometry: Geometry, color: Vec4) {
+        // @ts-ignore
+        let index = geometry._lineColorsHandlerIndex,
             size = index + geometry._lineColorsLength;
-        var a = this._lineStrokeColors;
+        let a = this._lineStrokeColors;
         for (let i = index; i < size; i += 4) {
             a[i] = color.x;
             a[i + 1] = color.y;
@@ -1122,14 +1097,18 @@ class GeometryHandler {
             a[i + 3] = color.w;
         }
         this._changedBuffers[LINESTROKECOLORS_BUFFER] = true;
-        !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
-        this._updatedGeometry[geometry._id] = true;
+        // @ts-ignore
+        !this._updatedGeometry[geometry.__id] && this._updatedGeometryArr.push(geometry);
+        // @ts-ignore
+        this._updatedGeometry[geometry.__id] = true;
     }
 
-    setLineColorArr(geometry, color) {
-        var index = geometry._lineColorsHandlerIndex,
+    public setLineColorArr(geometry: Geometry, color: Vec4) {
+        // @ts-ignore
+        let index = geometry._lineColorsHandlerIndex,
+            // @ts-ignore
             size = index + geometry._lineColorsLength;
-        var a = this._lineColors;
+        let a = this._lineColors;
         for (let i = index; i < size; i += 4) {
             a[i] = color.x;
             a[i + 1] = color.y;
@@ -1137,57 +1116,71 @@ class GeometryHandler {
             a[i + 3] = color.w;
         }
         this._changedBuffers[LINECOLORS_BUFFER] = true;
-        !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
-        this._updatedGeometry[geometry._id] = true;
+        // @ts-ignore
+        !this._updatedGeometry[geometry.__id] && this._updatedGeometryArr.push(geometry);
+        // @ts-ignore
+        this._updatedGeometry[geometry.__id] = true;
     }
 
-    setLineStrokeArr(geometry, width) {
-        var index = geometry._lineStrokesHandlerIndex,
+    public setLineStrokeArr(geometry: Geometry, width: number) {
+        // @ts-ignore
+        let index = geometry._lineStrokesHandlerIndex,
             size = index + geometry._lineStrokesLength;
-        var a = this._lineStrokes;
+        let a = this._lineStrokes;
         for (let i = index; i < size; i++) {
             a[i] = width;
         }
         this._changedBuffers[LINESTROKES_BUFFER] = true;
-        !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
-        this._updatedGeometry[geometry._id] = true;
+        // @ts-ignore
+        !this._updatedGeometry[geometry.__id] && this._updatedGeometryArr.push(geometry);
+        // @ts-ignore
+        this._updatedGeometry[geometry.__id] = true;
     }
 
-    setLineThicknessArr(geometry, width) {
-        var index = geometry._lineThicknessHandlerIndex,
+    ppublic
+
+    setLineThicknessArr(geometry: Geometry, width: number) {
+        // @ts-ignore
+        let index = geometry._lineThicknessHandlerIndex,
             size = index + geometry._lineThicknessLength;
-        var a = this._lineThickness;
+        let a = this._lineThickness;
         for (let i = index; i < size; i++) {
             a[i] = width;
         }
         this._changedBuffers[LINETHICKNESS_BUFFER] = true;
-        !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
-        this._updatedGeometry[geometry._id] = true;
+        // @ts-ignore
+        !this._updatedGeometry[geometry.__id] && this._updatedGeometryArr.push(geometry);
+        // @ts-ignore
+        this._updatedGeometry[geometry.__id] = true;
     }
 
-    bringToFront(geometry) {
-        var polyIndexes = this._polyIndexes.splice(
-            geometry._polyIndexesHandlerIndex,
-            geometry._polyIndexesLength
-        );
-        var lineIndexes = this._lineIndexes.splice(
-            geometry._lineIndexesHandlerIndex,
-            geometry._lineIndexesLength
-        );
+    public bringToFront(geometry: Geometry) {
+        // @ts-ignore
+        let polyIndexes = this._polyIndexes.splice(geometry._polyIndexesHandlerIndex, geometry._polyIndexesLength);
+        // @ts-ignore
+        let lineIndexes = this._lineIndexes.splice(geometry._lineIndexesHandlerIndex, geometry._lineIndexesLength);
 
+        // @ts-ignore
         this._geometries.splice(geometry._handlerIndex, 1);
 
-        var g = this._geometries;
+        let g = this._geometries;
+        // @ts-ignore
         for (let i = geometry._handlerIndex; i < g.length; i++) {
-            var gi = g[i];
+            let gi = g[i];
+            // @ts-ignore
             gi._handlerIndex = i;
+            // @ts-ignore
             gi._polyIndexesHandlerIndex -= geometry._polyIndexesLength;
+            // @ts-ignore
             gi._lineIndexesHandlerIndex -= geometry._lineIndexesLength;
         }
 
+        // @ts-ignore
         geometry._polyIndexesHandlerIndex = this._polyIndexes.length;
+        // @ts-ignore
         geometry._lineIndexesHandlerIndex = this._lineIndexes.length;
 
+        // @ts-ignore
         geometry._handlerIndex = this._geometries.length;
         this._geometries.push(geometry);
 
@@ -1197,20 +1190,22 @@ class GeometryHandler {
         this._changedBuffers[POLYINDEXES_BUFFER] = true;
         this._changedBuffers[LINEINDEXES_BUFFER] = true;
 
-        !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
-        this._updatedGeometry[geometry._id] = true;
+        // @ts-ignore
+        !this._updatedGeometry[geometry.__id] && this._updatedGeometryArr.push(geometry);
+        // @ts-ignore
+        this._updatedGeometry[geometry.__id] = true;
     }
 
-    createPolyVerticesBuffer() {
-        var h = this._handler;
-        h.gl.deleteBuffer(this._polyVerticesHighBufferMerc);
+    public createPolyVerticesBuffer() {
+        let h = this._handler!;
+        h.gl!.deleteBuffer(this._polyVerticesHighBufferMerc as WebGLBuffer);
         this._polyVerticesHighBufferMerc = h.createArrayBuffer(
             new Float32Array(this._polyVerticesHighMerc),
             2,
             this._polyVerticesHighMerc.length / 2
         );
 
-        h.gl.deleteBuffer(this._polyVerticesLowBufferMerc);
+        h.gl!.deleteBuffer(this._polyVerticesLowBufferMerc as WebGLBuffer);
         this._polyVerticesLowBufferMerc = h.createArrayBuffer(
             new Float32Array(this._polyVerticesLowMerc),
             2,
@@ -1218,9 +1213,9 @@ class GeometryHandler {
         );
     }
 
-    createPolyIndexesBuffer() {
-        var h = this._handler;
-        h.gl.deleteBuffer(this._polyIndexesBuffer);
+    public createPolyIndexesBuffer() {
+        let h = this._handler!;
+        h.gl!.deleteBuffer(this._polyIndexesBuffer as WebGLBuffer);
         this._polyIndexesBuffer = h.createElementArrayBuffer(
             new Uint32Array(this._polyIndexes),
             1,
@@ -1228,9 +1223,9 @@ class GeometryHandler {
         );
     }
 
-    createPolyColorsBuffer() {
-        var h = this._handler;
-        h.gl.deleteBuffer(this._polyColorsBuffer);
+    public createPolyColorsBuffer() {
+        let h = this._handler!;
+        h.gl!.deleteBuffer(this._polyColorsBuffer as WebGLBuffer);
         this._polyColorsBuffer = h.createArrayBuffer(
             new Float32Array(this._polyColors),
             4,
@@ -1238,9 +1233,9 @@ class GeometryHandler {
         );
     }
 
-    createPolyPickingColorsBuffer() {
-        var h = this._handler;
-        h.gl.deleteBuffer(this._polyPickingColorsBuffer);
+    public createPolyPickingColorsBuffer() {
+        let h = this._handler!;
+        h.gl!.deleteBuffer(this._polyPickingColorsBuffer as WebGLBuffer);
         this._polyPickingColorsBuffer = h.createArrayBuffer(
             new Float32Array(this._polyPickingColors),
             4,
@@ -1248,16 +1243,16 @@ class GeometryHandler {
         );
     }
 
-    createLineVerticesBuffer() {
-        var h = this._handler;
-        h.gl.deleteBuffer(this._lineVerticesHighBufferMerc);
+    public createLineVerticesBuffer() {
+        let h = this._handler!;
+        h.gl!.deleteBuffer(this._lineVerticesHighBufferMerc as WebGLBuffer);
         this._lineVerticesHighBufferMerc = h.createArrayBuffer(
             new Float32Array(this._lineVerticesHighMerc),
             2,
             this._lineVerticesHighMerc.length / 2
         );
 
-        h.gl.deleteBuffer(this._lineVerticesLowBufferMerc);
+        h.gl!.deleteBuffer(this._lineVerticesLowBufferMerc as WebGLBuffer);
         this._lineVerticesLowBufferMerc = h.createArrayBuffer(
             new Float32Array(this._lineVerticesLowMerc),
             2,
@@ -1265,9 +1260,9 @@ class GeometryHandler {
         );
     }
 
-    createLineIndexesBuffer() {
-        var h = this._handler;
-        h.gl.deleteBuffer(this._lineIndexesBuffer);
+    public createLineIndexesBuffer() {
+        let h = this._handler!;
+        h.gl!.deleteBuffer(this._lineIndexesBuffer as WebGLBuffer);
         this._lineIndexesBuffer = h.createElementArrayBuffer(
             new Uint32Array(this._lineIndexes),
             1,
@@ -1275,9 +1270,9 @@ class GeometryHandler {
         );
     }
 
-    createLineOrdersBuffer() {
-        var h = this._handler;
-        h.gl.deleteBuffer(this._lineOrdersBuffer);
+    public createLineOrdersBuffer() {
+        let h = this._handler!;
+        h.gl!.deleteBuffer(this._lineOrdersBuffer as WebGLBuffer);
         this._lineOrdersBuffer = h.createArrayBuffer(
             new Float32Array(this._lineOrders),
             1,
@@ -1285,9 +1280,9 @@ class GeometryHandler {
         );
     }
 
-    createLineColorsBuffer() {
-        var h = this._handler;
-        h.gl.deleteBuffer(this._lineColorsBuffer);
+    public createLineColorsBuffer() {
+        let h = this._handler!;
+        h.gl!.deleteBuffer(this._lineColorsBuffer as WebGLBuffer);
         this._lineColorsBuffer = h.createArrayBuffer(
             new Float32Array(this._lineColors),
             4,
@@ -1295,9 +1290,9 @@ class GeometryHandler {
         );
     }
 
-    createLinePickingColorsBuffer() {
-        var h = this._handler;
-        h.gl.deleteBuffer(this._linePickingColorsBuffer);
+    public createLinePickingColorsBuffer() {
+        let h = this._handler!;
+        h.gl!.deleteBuffer(this._linePickingColorsBuffer as WebGLBuffer);
         this._linePickingColorsBuffer = h.createArrayBuffer(
             new Float32Array(this._linePickingColors),
             4,
@@ -1305,9 +1300,9 @@ class GeometryHandler {
         );
     }
 
-    createLineThicknessBuffer() {
-        var h = this._handler;
-        h.gl.deleteBuffer(this._lineThicknessBuffer);
+    public createLineThicknessBuffer() {
+        let h = this._handler!;
+        h.gl!.deleteBuffer(this._lineThicknessBuffer as WebGLBuffer);
         this._lineThicknessBuffer = h.createArrayBuffer(
             new Float32Array(this._lineThickness),
             1,
@@ -1315,9 +1310,9 @@ class GeometryHandler {
         );
     }
 
-    createLineStrokesBuffer() {
-        var h = this._handler;
-        h.gl.deleteBuffer(this._lineStrokesBuffer);
+    public createLineStrokesBuffer() {
+        let h = this._handler!;
+        h.gl!.deleteBuffer(this._lineStrokesBuffer as WebGLBuffer);
         this._lineStrokesBuffer = h.createArrayBuffer(
             new Float32Array(this._lineStrokes),
             1,
@@ -1325,9 +1320,9 @@ class GeometryHandler {
         );
     }
 
-    createLineStrokeColorsBuffer() {
-        var h = this._handler;
-        h.gl.deleteBuffer(this._lineStrokeColorsBuffer);
+    public createLineStrokeColorsBuffer() {
+        let h = this._handler!;
+        h.gl!.deleteBuffer(this._lineStrokeColorsBuffer as WebGLBuffer);
         this._lineStrokeColorsBuffer = h.createArrayBuffer(
             new Float32Array(this._lineStrokeColors),
             4,
@@ -1336,4 +1331,4 @@ class GeometryHandler {
     }
 }
 
-export { GeometryHandler };
+export {GeometryHandler};
