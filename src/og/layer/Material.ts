@@ -1,12 +1,33 @@
-"use strict";
+import {Layer} from "./Layer";
+import {Segment} from "../segment/Segment";
+import {WebGLTextureExt} from "../webgl/Handler";
+import {NumberArray4} from "../math/Vec4";
 
+/**
+ * @class Material
+ * @param {Segment} segment
+ * @param {Layer} layer
+ */
 class Material {
-    /**
-     *
-     * @param {*} segment
-     * @param {*} layer
-     */
-    constructor(segment, layer) {
+
+    public segment: Segment;
+    public layer: Layer;
+    public isReady: boolean;
+    public isLoading: boolean;
+    public texture: WebGLTextureExt | null;
+    public pickingMask: WebGLTextureExt | null;
+
+    public textureExists: boolean;
+    public appliedNodeId: number;
+    public texOffset: NumberArray4;
+    public loadingAttempts: number;
+
+    // vector data
+    public _updateTexture: WebGLTextureExt | null;
+    public _updatePickingMask: WebGLTextureExt | null;
+    public pickingReady: boolean;
+
+    constructor(segment: Segment, layer: Layer) {
         this.segment = segment;
         this.layer = layer;
         this.isReady = false;
@@ -19,28 +40,20 @@ class Material {
         this.texOffset = [0.0, 0.0, 1.0, 1.0];
         this.loadingAttempts = 0;
 
-        // vector data
         this._updateTexture = null;
         this._updatePickingMask = null;
         this.pickingReady = false;
     }
 
-    /**
-     *
-     */
-    abortLoading() {
+    public abortLoading() {
         this.layer.abortMaterialLoading(this);
     }
 
-    _createTexture(img) {
+    public _createTexture(img: HTMLCanvasElement | ImageBitmap | HTMLImageElement) {
         return this.layer._planet && this.layer.createTexture(img, this.layer._internalFormat, this.isReady ? this.texture : null);
     }
 
-    /**
-     *
-     * @param {*} img
-     */
-    applyImage(img) {
+    public applyImage(img: HTMLCanvasElement | ImageBitmap | HTMLImageElement) {
         if (this.segment.initialized) {
             this._updateTexture = null;
             //this.image = img;
@@ -54,12 +67,7 @@ class Material {
         }
     }
 
-    /**
-     *
-     * @param {*} texture
-     * @param {*} pickingMask
-     */
-    applyTexture(texture, pickingMask) {
+    public applyTexture(texture: WebGLTextureExt, pickingMask?: WebGLTextureExt) {
         if (this.segment.initialized) {
             this.texture = texture;
             this._updateTexture = null;
@@ -74,10 +82,7 @@ class Material {
         }
     }
 
-    /**
-     *
-     */
-    textureNotExists() {
+    public textureNotExists() {
         if (this.segment.initialized) {
             this.pickingReady = true;
             this.isLoading = false;
@@ -86,13 +91,10 @@ class Material {
         }
     }
 
-    /**
-     *
-     */
-    clear() {
+    public clear() {
         this.loadingAttempts = 0;
         this.layer.clearMaterial(this);
     }
 }
 
-export { Material };
+export {Material};
