@@ -5,28 +5,28 @@ import * as math from './math';
 import * as mercator from './mercator';
 import * as utils from './utils/shared';
 import * as bv from './bv/index.js';
-import * as control from './control/index.js';
-import * as entity from './entity/index.js';
+import * as control from './control/index';
+import * as entity from './entity/index';
 import * as layer from './layer/index.js';
-import * as scene from './scene/index.js';
+import * as scene from './scene/index';
 import * as terrain from './terrain/index.js';
-import * as webgl from './webgl/index.js';
+import * as webgl from './webgl/index';
 
 import {Globe} from './Globe.js';
 
 import {Geoid} from './terrain/Geoid.js';
 
-import {input} from './input/input.js';
+import {input} from './input/input';
 
 import {
     Ellipsoid,
     wgs84
-} from './ellipsoid/index.js';
+} from './ellipsoid/index';
 
 import {
     Camera,
     PlanetCamera
-} from './camera/index.js';
+} from './camera/index';
 
 import {
     Line2,
@@ -39,15 +39,15 @@ import {
     Vec2,
     Vec3,
     Vec4
-} from './math/index.js';
+} from './math/index';
 
-import {Renderer} from './renderer/Renderer.js';
+import {Renderer} from './renderer/Renderer';
 import {LightSource} from './light/LightSource.js';
-import {Clock} from './Clock.js';
+import {Clock} from './Clock';
 import {Events} from './Events';
-import {Extent} from './Extent.js';
+import {Extent} from './Extent';
 import {LonLat} from './LonLat';
-import {RenderNode} from './scene/RenderNode.js';
+import {RenderNode} from './scene/RenderNode';
 import {Planet} from './scene/Planet.js';
 import {Popup} from './Popup.js';
 
@@ -60,7 +60,7 @@ import {
 } from './quadTree/index.js';
 
 
-import {Object3d} from './Object3d.js';
+import {Object3d} from './Object3d';
 
 const {Handler} = webgl;
 const {Control} = control;

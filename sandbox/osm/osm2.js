@@ -8,146 +8,26 @@ import {
     Vector,
     Vec2,
     Vec3,
-    Quat
+    Quat,
+    control
 } from "../../dist/@openglobus/og.esm.js";
 
-let osm = new XYZ("OSM", {
-    'isBaseLayer': true,
-    'url': "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    'visibility': true,
-    'attribution': 'Data @ OpenStreetMap contributors, ODbL'
+var osm = new XYZ("OpenStreetMap", {
+    specular: [0.0003, 0.00012, 0.00001],
+    shininess: 20,
+    diffuse: [0.89, 0.9, 0.83],
+    isBaseLayer: true,
+    url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    visibility: true,
+    attribution: 'Data @ OpenStreetMap contributors, ODbL'
 });
 
-let townMarkers = new Vector("town markers", {
-    'nodeCapacity': 100000,
-    'maxZoom': 9,
-    'scaleByDistance': [0, 1500000, 25000000],
-    'fading': true
+var globus = new Globe({
+    "target": "earth",
+    "name": "Earth",
+    "terrain": new GlobusTerrain(),
+    "layers": [osm]
 });
 
-let townLabels = new Vector("town labels", {
-    'nodeCapacity': 50,
-    'scaleByDistance': [0, 350000, 25000000],
-    'minZoom': 10,
-    'fading': true
-});
-
-townLabels.events.on("mouseenter", function (e) {
-    e.renderer.handler.canvas.style.cursor = "pointer";
-});
-
-townLabels.events.on("mouseleave", function (e) {
-    e.renderer.handler.canvas.style.cursor = "default";
-});
-
-townMarkers.events.on("mouseenter", function (e) {
-    e.renderer.handler.canvas.style.cursor = "pointer";
-});
-
-townMarkers.events.on("mouseleave", function (e) {
-    e.renderer.handler.canvas.style.cursor = "default";
-});
-
-window.globe = new Globe({
-    'name': "Earth",
-    'target': "earth",
-    'terrain': new GlobusTerrain(),
-    'layers': [osm, townLabels, townMarkers],
-    "sun": {
-        "active": false
-    }
-});
-
-//Set low quality
-globe.planet.RATIO_LOD = 0.75;
-
-//View at Germany
-globe.planet.viewExtentArr([-0.895, 47.51, 21.84, 51.65]);
-
-//globe.planet.events.on("draw", function () {
-//    towns.setScaleByDistance(globe.planet.camera.getHeight(), globe.planet.camera.getHeight() * 2);
-//});
-
-//Load points
-fetch("DE.json.txt", {
-    credentials: 'include',
-    method: 'GET'
-})
-    .then(function (resp) {
-        return resp.json();
-    })
-    .then(function (resp) {
-        let labels = [],
-            markers = [];
-        for (let i = 0; i < resp.length; i++) {
-            let ri = resp[i];
-            markers.push(new Entity({
-                'lonlat': [parseFloat(ri.lon), parseFloat(ri.lat)],
-                'billboard': {
-                    'src': "./marker.png",
-                    'width': 12,
-                    'height': 12,
-                    'offset': [0, 6]
-                },
-                'properties': {
-                    'name': ri.name
-                }
-            }));
-
-            labels.push(new Entity({
-                'lonlat': [parseFloat(ri.lon), parseFloat(ri.lat)],
-                'label': {
-                    'text': ri.name,
-                    'size': 16,
-                    'outline': 0.17,
-                    'outlineColor': "black",
-                    'color': "white",
-                    'align': "center"
-                },
-                'properties': {
-                    'name': ri.name
-                }
-            }));
-        }
-        townLabels.setEntities(labels);
-        townMarkers.setEntities(markers);
-    });
-
-document.querySelector("#fontOutline").addEventListener("input", (e) => {
-    let entities = townLabels.getEntities();
-    for (let i = 0; i < entities.length; i++) {
-        entities[i].label.setOutline(Number(e.target.value));
-    }
-    document.querySelector("#valOutline").innerText = e.target.value;
-});
-
-document.querySelector("#labelOpacity").addEventListener("input", (e) => {
-    let entities = townLabels.getEntities();
-    for (let i = 0; i < entities.length; i++) {
-        entities[i].label.setOpacity(Number(e.target.value));
-    }
-    document.querySelector("#valLabelOpacity").innerText = e.target.value;
-});
-
-document.querySelector("#outlineOpacity").addEventListener("input", (e) => {
-    let entities = townLabels.getEntities();
-    for (let i = 0; i < entities.length; i++) {
-        entities[i].label.setOutlineOpacity(Number(e.target.value));
-    }
-    document.querySelector("#valOutlineOpacity").innerText = e.target.value;
-});
-
-
-$("#colorpicker").colpick({
-    colorScheme: 'dark',
-    layout: 'rgbhex',
-    color: "black",
-    flat: true,
-    onChange: function (hsb, hex, rgb, el) {
-        townLabels.each(function (e) {
-            e.label.setColor(rgb.r / 255.0, rgb.g / 255.0, rgb.b / 255.0);
-        });
-    },
-    onSubmit: function (hsb, hex, rgb, el) {
-    }
-});
+globus.planet.addControl(new control.Lighting());
+globus.planet.addControl(new control.RulerSwitcher());
