@@ -1,9 +1,18 @@
 "use strict";
 
 import * as mercator from "../mercator";
-import {Layer, ILayerParams} from "./Layer";
-import {RENDERING} from "../quadTree/quadTree.js";
+import {Layer, ILayerParams, LayerEventsList} from "./Layer";
+import {RENDERING} from "../quadTree/quadTree";
 import {stringTemplate} from "../utils/shared";
+import {EventsHandler} from "../Events";
+
+interface IXYZParams extends ILayerParams {
+    url?: string;
+    subdomains?: string[];
+    minNativeZoom?: number;
+    maxNativeZoom?: number;
+    urlRewrite?: Function;
+}
 
 /**
  * Represents an imagery tiles source provider.
@@ -25,8 +34,8 @@ import {stringTemplate} from "../utils/shared";
  * @param {string} options.textureFilter - texture gl filter. NEAREST, LINEAR, MIPMAP, ANISOTROPHIC.
  * @param {layer.XYZ~_urlRewriteCallback} options.urlRewrite - Url rewrite function.
  *
- * @fires Eventshandler<XYZEventsList>#load
- * @fires Eventshandler<XYZEventsList>#loadend
+ * @fires EventsHandler<XYZEventsList>#load
+ * @fires EventsHandler<XYZEventsList>#loadend
  *
  * @example <caption>Creates OpenStreetMap base tile layer</caption>
  * new og.layer.XYZ("OpenStreetMap", {
@@ -37,52 +46,66 @@ import {stringTemplate} from "../utils/shared";
  * });
  */
 class XYZ extends Layer {
+
+    override events: EventsHandler<XYZEventsList> & EventsHandler<LayerEventsList>;
+
     /**
-     * @param {string} name - Layer name.
-     * @param {*} options
+     * Tile url source template.
+     * @public
+     * @type {string}
      */
-    constructor(name, options = {}) {
+    public url: string;
+
+    /**
+     * @protected
+     */
+    protected _s: string[];
+
+    /**
+     * Minimal native zoom level when tiles are available.
+     * @public
+     * @type {number}
+     */
+    public minNativeZoom: number;
+
+    /**
+     * Maximal native zoom level when tiles are available.
+     * @public
+     * @type {number}
+     */
+    public maxNativeZoom: number;
+
+    /**
+     * Rewrites imagery tile url query.
+     * @private
+     * @callback og.layer.XYZ~_urlRewriteCallback
+     * @param {Segment} segment - Segment to load.
+     * @param {string} url - Created url.
+     * @returns {string} - Url query string.
+     */
+    protected _urlRewriteCallback: Function | null;
+
+    protected _requestsPeerSubdomian: number;
+
+    protected _requestCount: number;
+
+    constructor(name: string | null, options: IXYZParams = {}) {
         super(name, options);
 
-        this.events.registerNames(EVENT_NAMES);
+        this.events.registerNames(XYZ_EVENTS);
 
-        /**
-         * Tile url source template.
-         * @public
-         * @type {string}
-         */
         this.url = options.url || "";
 
-        /**
-         * @protected
-         */
         this._s = options.subdomains || ["a", "b", "c"];
 
-        /**
-         * Minimal native zoom level when tiles are available.
-         * @public
-         * @type {number}
-         */
         this.minNativeZoom = options.minNativeZoom || 0;
 
-        /**
-         * Maximal native zoom level when tiles are available.
-         * @public
-         * @type {number}
-         */
         this.maxNativeZoom = options.maxNativeZoom || 19;
 
-        /**
-         * Rewrites imagery tile url query.
-         * @private
-         * @callback og.layer.XYZ~_urlRewriteCallback
-         * @param {Segment} segment - Segment to load.
-         * @param {string} url - Created url.
-         * @returns {string} - Url query string.
-         */
         this._urlRewriteCallback = options.urlRewrite || null;
 
         this._requestsPeerSubdomian = 4;
+
         this._requestCount = 0;
     }
 
@@ -366,13 +389,13 @@ type XYZEventsList = [
 const XYZ_EVENTS: XYZEventsList = [
     /**
      * Triggered when current tile image has loaded before rendereing.
-     * @event og.layer.XYZ#load
+     * @event #load
      */
     "load",
 
     /**
      * Triggered when all tiles have loaded or loading has stopped.
-     * @event og.layer.XYZ#loadend
+     * @event #loadend
      */
     "loadend"
 ];

@@ -233,7 +233,7 @@ class Layer {
 
     protected isVector?: boolean = false;
 
-    constructor(name: string, options: ILayerParams = {}) {
+    constructor(name: string | null, options: ILayerParams = {}) {
 
         this.__id = Layer.__counter__++;
 
