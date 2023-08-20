@@ -1,9 +1,9 @@
 "use strict";
 
 import * as mercator from "../mercator";
-import { RENDERING } from "../quadTree/quadTree.js";
-import { stringTemplate } from "../utils/shared";
-import { Layer } from "./Layer.js";
+import {Layer, ILayerParams} from "./Layer";
+import {RENDERING} from "../quadTree/quadTree.js";
+import {stringTemplate} from "../utils/shared";
 
 /**
  * Represents an imagery tiles source provider.
@@ -24,8 +24,9 @@ import { Layer } from "./Layer.js";
  * @param {string} options.url - Tile url source template(see example below).
  * @param {string} options.textureFilter - texture gl filter. NEAREST, LINEAR, MIPMAP, ANISOTROPHIC.
  * @param {layer.XYZ~_urlRewriteCallback} options.urlRewrite - Url rewrite function.
- * @fires og.layer.XYZ#load
- * @fires og.layer.XYZ#loadend
+ *
+ * @fires Eventshandler<XYZEventsList>#load
+ * @fires Eventshandler<XYZEventsList>#loadend
  *
  * @example <caption>Creates OpenStreetMap base tile layer</caption>
  * new og.layer.XYZ("OpenStreetMap", {
@@ -357,7 +358,12 @@ class XYZ extends Layer {
     }
 }
 
-const EVENT_NAMES = [
+type XYZEventsList = [
+    "load",
+    "loadend"
+];
+
+const XYZ_EVENTS: XYZEventsList = [
     /**
      * Triggered when current tile image has loaded before rendereing.
      * @event og.layer.XYZ#load
@@ -371,4 +377,4 @@ const EVENT_NAMES = [
     "loadend"
 ];
 
-export { XYZ };
+export {XYZ};

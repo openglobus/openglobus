@@ -1,18 +1,48 @@
-"use strict";
-
-import { Events } from "../Events";
-import { Extent } from "../Extent";
-import { LonLat } from "../LonLat";
-import { Vec3 } from "../math/Vec3";
 import * as mercator from "../mercator";
 import * as utils from "../utils/shared";
-import { createColorRGB } from "../utils/shared";
-import { Material } from "./Material.js";
+import {createColorRGB} from "../utils/shared";
+import {createEvents, Events, EventsHandler} from "../Events";
+import {Extent} from "../Extent";
+import {LonLat} from "../LonLat";
+import {Node} from "../quadTree/Node";
+import {Material} from "./Material";
+import {Planet} from "../scene/Planet";
+import {Segment} from "../segment/Segment";
+import {Vec3, NumberArray3} from "../math/Vec3";
+import {Vec4} from "../math/Vec4";
+import {WebGLTextureExt} from "../webgl/Handler";
 
 const FADING_RATIO = 15.8;
 
+export interface ILayerParams {
+    properties?: any;
+    labelMaxLetters?: number;
+    displayInLayerSwitcher?: boolean;
+    opacity?: number;
+    minZoom?: number;
+    maxZoom?: number;
+    attribution?: string;
+    zIndex?: number;
+    isBaseLayer?: boolean;
+    defaultTextures?: [string, string];
+    visibility?: boolean;
+    fading?: boolean;
+    height?: number;
+    textureFilter?: string;
+    isSRGB?: boolean;
+    pickingEnabled?: boolean;
+    preLoadZoomLevels?: number[];
+    events?: string[];
+    extent?: Extent | NumberArray3[];
+    ambient?: string | NumberArray3 | Vec4;
+    diffuse?: string | NumberArray3 | Vec4;
+    specular?: string | NumberArray3 | Vec4;
+    shininess?: number;
+    nightTextureCoefficient?: number;
+}
+
 /**
- * @classdesc
+ * @class
  * Base class; normally only used for creating subclasses and not instantiated in apps.
  * A visual representation of raster or vector map data well known as a layer.
  * @class
@@ -25,89 +55,206 @@ const FADING_RATIO = 15.8;
  * @param {boolean} [options.isBaseLayer=false] - This is a base layer.
  * @param {boolean} [options.visibility=true] - Layer visibility.
  * @param {boolean} [options.displayInLayerSwitcher=true] - Presence of layer in dialog window of LayerSwitcher control.
- * @param {boolean} [options.isSRGB=false] - Layer image webgl nternal format.
+ * @param {boolean} [options.isSRGB=false] - Layer image webgl internal format.
  * @param {Extent} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
  * @param {string} [options.textureFilter="anisotropic"] - Image texture filter. Available values: "nearest", "linear", "mipmap" and "anisotropic".
  *
- * @fires og.Layer#visibilitychange
- * @fires og.Layer#add
- * @fires og.Layer#remove
- * @fires og.layer.Layer#mousemove
- * @fires og.layer.Layer#mouseenter
- * @fires og.layer.Layer#mouseleave
- * @fires og.layer.Layer#lclick
- * @fires og.layer.Layer#rclick
- * @fires og.layer.Layer#mclick
- * @fires og.layer.Layer#ldblclick
- * @fires og.layer.Layer#rdblclick
- * @fires og.layer.Layer#mdblclick
- * @fires og.layer.Layer#lup
- * @fires og.layer.Layer#rup
- * @fires og.layer.Layer#mup
- * @fires og.layer.Layer#ldown
- * @fires og.layer.Layer#rdown
- * @fires og.layer.Layer#mdown
- * @fires og.layer.Layer#lhold
- * @fires og.layer.Layer#rhold
- * @fires og.layer.Layer#mhold
- * @fires og.layer.Layer#mousewheel
- * @fires og.layer.Layer#touchmove
- * @fires og.layer.Layer#touchstart
- * @fires og.layer.Layer#touchend
- * @fires og.layer.Layer#doubletouch
+ * @fires EventsHandler<LayerEventsList>#visibilitychange
+ * @fires EventsHandler<LayerEventsList>#add
+ * @fires EventsHandler<LayerEventsList>#remove
+ * @fires EventsHandler<LayerEventsList>#mousemove
+ * @fires EventsHandler<LayerEventsList>#mouseenter
+ * @fires EventsHandler<LayerEventsList>#mouseleave
+ * @fires EventsHandler<LayerEventsList>#lclick
+ * @fires EventsHandler<LayerEventsList>#rclick
+ * @fires EventsHandler<LayerEventsList>#mclick
+ * @fires EventsHandler<LayerEventsList>#ldblclick
+ * @fires EventsHandler<LayerEventsList>#rdblclick
+ * @fires EventsHandler<LayerEventsList>#mdblclick
+ * @fires EventsHandler<LayerEventsList>#lup
+ * @fires EventsHandler<LayerEventsList>#rup
+ * @fires EventsHandler<LayerEventsList>#mup
+ * @fires EventsHandler<LayerEventsList>#ldown
+ * @fires EventsHandler<LayerEventsList>#rdown
+ * @fires EventsHandler<LayerEventsList>#mdown
+ * @fires EventsHandler<LayerEventsList>#lhold
+ * @fires EventsHandler<LayerEventsList>#rhold
+ * @fires EventsHandler<LayerEventsList>#mhold
+ * @fires EventsHandler<LayerEventsList>#mousewheel
+ * @fires EventsHandler<LayerEventsList>#touchmove
+ * @fires EventsHandler<LayerEventsList>#touchstart
+ * @fires EventsHandler<LayerEventsList>#touchend
+ * @fires EventsHandler<LayerEventsList>#doubletouch
  */
 class Layer {
-    constructor(name, options = {}) {
-        /**
-         * Layer user name.
-         * @public
-         * @type {string}
-         */
+
+    static __counter__: number = 0;
+
+    /**
+     * Events handler.
+     * @public
+     * @type {Events}
+     */
+    public events: EventsHandler<LayerEventsList>;
+
+    /**
+     * Layer user name.
+     * @public
+     * @type {string}
+     */
+    public name: string;
+
+    public properties: any;
+
+    public displayInLayerSwitcher: boolean;
+
+    /**
+     * Minimal zoom level when layer is visible.
+     * @public
+     * @type {number}
+     */
+    public minZoom: number;
+
+    /**
+     * Maximal zoom level when layer is visible.
+     * @public
+     * @type {number}
+     */
+    public maxZoom: number;
+
+    /**
+     * Planet node.
+     * @public
+     * @type {Planet}
+     */
+    public _planet: Planet | null;
+
+    public createTexture: Function;
+
+    public nightTextureCoefficient: number;
+
+    /**
+     * Uniq identifier.
+     * @protected
+     * @type {number}
+     */
+    protected __id: number;
+
+    protected _labelMaxLetters: number;
+
+    protected _hasImageryTiles: boolean;
+
+    /**
+     * Layer global opacity.
+     * @public
+     * @type {number}
+     */
+    protected _opacity: number;
+
+    /**
+     * Layer attribution.
+     * @protected
+     * @type {string}
+     */
+    protected _attribution: string;
+
+    /**
+     * Layer z-index.
+     * @protected
+     * @type {number}
+     */
+    protected _zIndex: number;
+
+    /**
+     * Base layer type flag.
+     * @protected
+     * @type {boolean}
+     */
+    protected _isBaseLayer: boolean;
+
+    protected _defaultTextures: [WebGLTextureExt | null, WebGLTextureExt | null];
+
+    /**
+     * Layer visibility.
+     * @protected
+     * @type {boolean}
+     */
+    protected _visibility: boolean;
+
+    protected _fading: boolean;
+
+    protected _fadingFactor: number;
+
+    protected _fadingOpacity: number;
+
+    /**
+     * Height over the ground.
+     * @protected
+     * @type {number}
+     */
+    protected _height: number;
+
+    /**
+     * Visible degrees extent.
+     * @protected
+     * @type {Extent}
+     */
+    protected _extent: Extent;
+
+    protected _textureFilter: string;
+
+    protected _isSRGB: boolean;
+
+    protected _internalFormat: number | null;
+
+    /**
+     * Visible mercator extent.
+     * @protected
+     * @type {Extent}
+     */
+    protected _extentMerc: Extent | null;
+
+    /**
+     * Layer picking color. Assign when added to the planet.
+     * @protected
+     * @type {Vec3}
+     */
+    protected _pickingColor: Vec3;
+
+    protected _pickingEnabled: boolean;
+
+    protected _isPreloadDone: boolean;
+
+    protected _preLoadZoomLevels: number[];
+
+    protected _ambient: Float32Array | null;
+    protected _diffuse: Float32Array | null;
+    protected _specular: Float32Array | null;
+
+    protected isVector?: boolean = false;
+
+    constructor(name: string, options: ILayerParams = {}) {
+
+        this.__id = Layer.__counter__++;
+
         this.name = name || "noname";
 
         this.properties = options.properties || {};
 
-        this._labelMaxLetters = options.labelMaxLetters;
+        this._labelMaxLetters = options.labelMaxLetters || 24;
 
         this.displayInLayerSwitcher =
             options.displayInLayerSwitcher !== undefined ? options.displayInLayerSwitcher : true;
 
         this._hasImageryTiles = true;
 
-        /**
-         * Layer global opacity.
-         * @public
-         * @type {number}
-         */
         this._opacity = options.opacity || 1.0;
 
-        /**
-         * Minimal zoom level when layer is visibile.
-         * @public
-         * @type {number}
-         */
         this.minZoom = options.minZoom || 0;
 
-        /**
-         * Maximal zoom level when layer is visibile.
-         * @public
-         * @type {number}
-         */
         this.maxZoom = options.maxZoom || 50;
 
-        /**
-         * Planet node.
-         * @protected
-         * @type {Planet}
-         */
         this._planet = null;
-
-        /**
-         * Unic identifier.
-         * @protected
-         * @type {number}
-         */
-        this._id = Layer.__layersCounter++;
 
         /**
          * Layer attribution.
@@ -161,7 +308,7 @@ class Layer {
          * @protected
          * @type {Extent}
          */
-        this._extent = null;
+        this._extent = new Extent();
 
         this.createTexture = null;
 
@@ -204,7 +351,8 @@ class Layer {
          * @public
          * @type {Events}
          */
-        this.events = new Events(options.events ? [...EVENT_NAMES, ...options.events] : EVENT_NAMES, this);
+        //this.events = new Events(options.events ? [...EVENT_NAMES, ...options.events] : EVENT_NAMES, this);
+        this.events = createEvents<LayerEventsList>(options.events ? [...LAYER_EVENTS, ...options.events] as LayerEventsList : LAYER_EVENTS, this);
 
         this._ambient = null;
         this._diffuse = null;
@@ -226,7 +374,7 @@ class Layer {
             this._specular = new Float32Array([s.x, s.y, s.z, shininess]);
         }
 
-        this.nightTextureCoefficient = options.nightTextureCoefficient || null;
+        this.nightTextureCoefficient = options.nightTextureCoefficient || 1.0;
     }
 
     set diffuse(rgb) {
@@ -250,7 +398,7 @@ class Layer {
     set specular(rgb) {
         if (rgb) {
             let vec = createColorRGB(rgb);
-            this._specular = new Float32Array([vec.x, vec.y, vec.y, this._specular[3]]);
+            this._specular = new Float32Array([vec.x, vec.y, vec.y, this._specular ? this._specular[3] : 0.0]);
         } else {
             this._specular = null;
         }
@@ -262,11 +410,11 @@ class Layer {
         }
     }
 
-    get normalMapCreator() {
-        return this._normalMapCreator;
-    }
+    // get normalMapCreator() {
+    //     return this._normalMapCreator;
+    // }
 
-    static getTMS(x, y, z) {
+    static getTMS(x: number, y: number, z: number): { x: number; y: number; z: number } {
         return {
             x: x,
             y: (1 << z) - y - 1,
@@ -274,30 +422,19 @@ class Layer {
         };
     }
 
-    static getTileIndex(...arr) {
+    static getTileIndex(...arr: number[]): string {
         return arr.join("_");
     }
 
-    static get __layersCounter() {
-        if (!this.__lcounter && this.__lcounter !== 0) {
-            this.__lcounter = 0;
-        }
-        return this.__lcounter;
-    }
-
-    static set __layersCounter(n) {
-        this.__lcounter = n;
-    }
-
-    get instanceName() {
+    public get instanceName(): string {
         return "Layer";
     }
 
-    get rendererEvents() {
+    public get rendererEvents(): EventsHandler<LayerEventsList> {
         return this.events;
     }
 
-    set opacity(opacity) {
+    public set opacity(opacity: number) {
         if (opacity !== this._opacity) {
             if (this._fading) {
                 if (opacity > this._opacity) {
@@ -312,12 +449,12 @@ class Layer {
         }
     }
 
-    set pickingEnabled(picking) {
-        this._pickingEnabled = picking ? 1.0 : 0.0;
+    public set pickingEnabled(picking: boolean) {
+        this._pickingEnabled = picking;
     }
 
-    get pickingEnabled() {
-        return !!this._pickingEnabled;
+    public get pickingEnabled(): boolean {
+        return this._pickingEnabled;
     }
 
     /**
@@ -326,7 +463,7 @@ class Layer {
      * @virtual
      * @returns {boolean} - Imagery tiles flag.
      */
-    hasImageryTiles() {
+    public hasImageryTiles(): boolean {
         return this._hasImageryTiles;
     }
 
@@ -335,8 +472,12 @@ class Layer {
      * @public
      * @returns {string} - Layer object id.
      */
-    getID() {
-        return this._id;
+    public getID(): number {
+        return this.__id;
+    }
+
+    public get id(): number {
+        return this.__id;
     }
 
     /**
@@ -345,8 +486,8 @@ class Layer {
      * @param {Layer} layer - Layer instance to compare.
      * @returns {boolean} - Returns true if the layers is the same instance of the input.
      */
-    isEqual(layer) {
-        return layer && (layer._id === this._id);
+    public isEqual(layer: Layer): boolean {
+        return layer && (layer.__id === this.__id);
     }
 
     /**
@@ -355,17 +496,17 @@ class Layer {
      * @virtual
      * @param {Planet} planet - Planet render node.
      */
-    _assignPlanet(planet) {
+    public _assignPlanet(planet: Planet) {
 
         this._planet = planet;
         planet._layers.push(this);
 
-        if (planet.renderer.isInitialized()) {
+        if (planet.renderer && planet.renderer.isInitialized()) {
             // TODO: webgl1
             if (this._isSRGB) {
-                this._internalFormat = planet.renderer.handler.gl.SRGB8_ALPHA8;
+                this._internalFormat = planet.renderer.handler.gl!.SRGB8_ALPHA8;
             } else {
-                this._internalFormat = planet.renderer.handler.gl.RGBA8;
+                this._internalFormat = planet.renderer.handler.gl!.RGBA8;
             }
             this.createTexture = planet.renderer.handler.createTexture[this._textureFilter];
 
@@ -385,7 +526,7 @@ class Layer {
         }
     }
 
-    get isIdle() {
+    public get isIdle(): boolean {
         return this._planet && this._planet._terrainCompletedActivated;
     }
 
@@ -394,8 +535,8 @@ class Layer {
      * @protected
      * @virtual
      */
-    _bindPicking() {
-        this._planet && this._planet.renderer.assignPickingColor(this);
+    protected _bindPicking() {
+        this._planet && this._planet.renderer && this._planet.renderer.assignPickingColor(this);
     }
 
     /**
@@ -403,7 +544,7 @@ class Layer {
      * @public
      * @param {Planet} planet - Adds layer to the planet.
      */
-    addTo(planet) {
+    public addTo(planet: Planet) {
         if (!this._planet) {
             this._assignPlanet(planet);
         }
@@ -414,13 +555,13 @@ class Layer {
      * @public
      * @returns {Layer} -This layer.
      */
-    remove() {
+    public remove(): this {
         let p = this._planet;
         if (p) {
             //TODO: replace to planet
             for (let i = 0; i < p._layers.length; i++) {
                 if (this.isEqual(p._layers[i])) {
-                    p.renderer.clearPickingColor(this);
+                    p.renderer && p.renderer.clearPickingColor(this);
                     p._layers.splice(i, 1);
                     p.updateVisibleLayers();
                     this.clear();
@@ -440,7 +581,7 @@ class Layer {
      * Clears layer material.
      * @virtual
      */
-    clear() {
+    public clear() {
         if (this._planet) {
             this._planet._clearLayerMaterial(this);
         }
@@ -448,9 +589,8 @@ class Layer {
 
     /**
      * Returns planet instance.
-     * @virtual
      */
-    get planet() {
+    get planet(): Planet | null {
         return this._planet;
     }
 
@@ -459,7 +599,7 @@ class Layer {
      * @public
      * @param {string} html - HTML code that represents layer attribution, it could be just a text.
      */
-    setAttribution(html) {
+    public setAttribution(html: string) {
         if (this._attribution !== html) {
             this._attribution = html;
             this._planet && this._planet.updateAttributionsList();
@@ -471,7 +611,7 @@ class Layer {
      * @public
      * @param {number} height - Layer height.
      */
-    setHeight(height) {
+    public setHeight(height: number) {
         this._height = height;
         this._planet && this._planet.updateVisibleLayers();
     }
@@ -481,7 +621,7 @@ class Layer {
      * @public
      * @returns {number} -
      */
-    getHeight() {
+    public getHeight(): number {
         return this._height;
     }
 
@@ -490,7 +630,7 @@ class Layer {
      * @public
      * @param {number} zIndex - Layer z-index.
      */
-    setZIndex(zIndex) {
+    public setZIndex(zIndex: number) {
         this._zIndex = zIndex;
         this._planet && this._planet.updateVisibleLayers();
     }
@@ -500,7 +640,7 @@ class Layer {
      * @public
      * @returns {number} -
      */
-    getZIndex() {
+    public getZIndex(): number {
         return this._zIndex;
     }
 
@@ -508,10 +648,10 @@ class Layer {
      * Set zIndex to the maximal value depend on other layers on the planet.
      * @public
      */
-    bringToFront() {
+    public bringToFront() {
         if (this._planet) {
-            var vl = this._planet.visibleTileLayers;
-            var l = vl[vl.length - 1];
+            let vl = this._planet.visibleTileLayers;
+            let l = vl[vl.length - 1];
             if (!l.isEqual(this)) {
                 this.setZIndex(l.getZIndex() + 1);
             }
@@ -523,19 +663,19 @@ class Layer {
      * @public
      * @returns {boolean} - Base layer flag.
      */
-    isBaseLayer() {
+    public isBaseLayer(): boolean {
         return this._isBaseLayer;
     }
 
     /**
      * Sets base layer type true.
      * @public
-     * @param {boolean} flag - Base layer flag.
+     * @param {boolean} isBaseLayer -
      */
-    setBaseLayer(flag) {
-        this._isBaseLayer = flag;
+    public setBaseLayer(isBaseLayer: boolean) {
+        this._isBaseLayer = isBaseLayer;
         if (this._planet) {
-            if (!flag && this.isEqual(this._planet.baseLayer)) {
+            if (!isBaseLayer && this.isEqual(this._planet.baseLayer)) {
                 this._planet.baseLayer = null;
             }
             this._planet.updateVisibleLayers();
@@ -548,7 +688,7 @@ class Layer {
      * @virtual
      * @param {boolean} visibility - Layer visibility.
      */
-    setVisibility(visibility) {
+    public setVisibility(visibility: boolean) {
         if (visibility !== this._visibility) {
             this._visibility = visibility;
             if (this._planet) {
@@ -565,22 +705,26 @@ class Layer {
         }
     }
 
-    _forceMaterialApply(segment) {
+    protected _forceMaterialApply(segment: Segment) {
         let pm = segment.materials,
-            m = pm[this._id];
+            m = pm[this.__id];
 
         if (!m) {
-            m = pm[this._id] = this.createMaterial(segment);
+            m = pm[this.__id] = this.createMaterial(segment);
         }
 
         if (!m.isReady) {
-            this._planet._renderCompleted = false;
+            this._planet!._renderCompleted = false;
         }
 
         this.applyMaterial(m, true);
     }
 
-    _preLoadRecursive(node, maxZoom) {
+    public applyMaterial(m: Material, isForced: boolean = false) {
+        //empty
+    }
+
+    protected _preLoadRecursive(node: Node, maxZoom: number) {
         if (node.segment.tileZoom > maxZoom) {
             return;
         }
@@ -595,7 +739,7 @@ class Layer {
         }
     }
 
-    _preLoad() {
+    protected _preLoad() {
         if (this._planet && this._preLoadZoomLevels.length) {
 
             let p = this._planet,
@@ -613,7 +757,7 @@ class Layer {
      * @public
      * @returns {boolean} - Layer visibility.
      */
-    getVisibility() {
+    public getVisibility(): boolean {
         return this._visibility;
     }
 
@@ -622,17 +766,21 @@ class Layer {
      * @public
      * @param {Extent} extent - Layer visible geographical extent.
      */
-    setExtent(extent) {
-        var sw = extent.southWest.clone(),
+    public setExtent(extent: Extent) {
+        let sw = extent.southWest.clone(),
             ne = extent.northEast.clone();
+
         if (sw.lat < mercator.MIN_LAT) {
             sw.lat = mercator.MIN_LAT;
         }
+
         if (ne.lat > mercator.MAX_LAT) {
             ne.lat = mercator.MAX_LAT;
         }
+
         this._extent = extent.clone();
         this._extentMerc = new Extent(sw.forwardMercator(), ne.forwardMercator());
+
         this._correctFullExtent();
     }
 
@@ -641,7 +789,7 @@ class Layer {
      * @public
      * @return {Extent} - Layer geodetic extent.
      */
-    getExtent() {
+    public getExtent(): Extent {
         return this._extent;
     }
 
@@ -649,7 +797,7 @@ class Layer {
      * Special correction of the whole globe extent.
      * @protected
      */
-    _correctFullExtent() {
+    protected _correctFullExtent() {
         // var e = this._extent,
         //    em = this._extentMerc;
         // var ENLARGE_MERCATOR_LON = og.mercator.POLE + 50000;
@@ -668,20 +816,19 @@ class Layer {
         // }
     }
 
-    get opacity() {
+    public get opacity(): number {
         return this._opacity;
     }
 
-    get screenOpacity() {
+    public get screenOpacity(): number {
         return this._fading ? this._fadingOpacity : this._opacity;
     }
 
-    _refreshFadingOpacity() {
-        var p = this._planet;
+    protected _refreshFadingOpacity() {
+        let p = this._planet!;
         if (
             this._visibility &&
-            p._viewExtent &&
-            p._viewExtent.overlaps(this._extent) &&
+            p._viewExtent && p._viewExtent.overlaps(this._extent) &&
             p.maxCurrZoom >= this.minZoom &&
             p.minCurrZoom <= this.maxZoom
         ) {
@@ -696,37 +843,34 @@ class Layer {
 
             return false;
         } else {
-            //this._fadingOpacity -= this._opacity / FADING_RATIO;
-            //if (this._fadingOpacity < 0.0) {
             this._fadingOpacity = 0.0;
-            //}
             return !this._visibility;
         }
     }
 
-    createMaterial(segment) {
+    public createMaterial(segment: Segment): Material {
         return new Material(segment, this);
     }
 
-    redraw() {
+    public redraw() {
         if (this._planet) {
             this._planet._quadTree.traverseTree((n) => {
-                    if (n.segment.materials[this._id]) {
-                        n.segment.materials[this._id].clear();
+                    if (n.segment.materials[this.__id]) {
+                        n.segment.materials[this.__id].clear();
                     }
                 }
             );
 
             this._planet._quadTreeNorth.traverseTree((n) => {
-                    if (n.segment.materials[this._id]) {
-                        n.segment.materials[this._id].clear();
+                    if (n.segment.materials[this.__id]) {
+                        n.segment.materials[this.__id].clear();
                     }
                 }
             );
 
             this._planet._quadTreeSouth.traverseTree((n) => {
-                    if (n.segment.materials[this._id]) {
-                        n.segment.materials[this._id].clear();
+                    if (n.segment.materials[this.__id]) {
+                        n.segment.materials[this.__id].clear();
                     }
                 }
             );
@@ -734,7 +878,38 @@ class Layer {
     }
 }
 
-const EVENT_NAMES = [
+export type LayerEventsList = [
+    "visibilitychange",
+    "add",
+    "remove",
+    "mousemove",
+    "mouseenter",
+    "mouseleave",
+    "lclick",
+    "rclick",
+    "mclick",
+    "ldblclick",
+    "rdblclick",
+    "mdblclick",
+    "lup",
+    "rup",
+    "mup",
+    "ldown",
+    "rdown",
+    "mdown",
+    "lhold",
+    "rhold",
+    "mhold",
+    "mousewheel",
+    "touchmove",
+    "touchstart",
+    "touchend",
+    "doubletouch",
+    "touchleave",
+    "touchenter"
+];
+
+export const LAYER_EVENTS: LayerEventsList = [
     /**
      * Triggered when layer visibilty chanched.
      * @event og.Layer#visibilitychange
@@ -904,4 +1079,4 @@ const EVENT_NAMES = [
     "touchenter"
 ];
 
-export { Layer };
+export {Layer};
