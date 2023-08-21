@@ -9,7 +9,7 @@ import {Material} from "./Material";
 import {Planet} from "../scene/Planet";
 import {Segment} from "../segment/Segment";
 import {Vec3, NumberArray3} from "../math/Vec3";
-import {Vec4} from "../math/Vec4";
+import {NumberArray4, Vec4} from "../math/Vec4";
 import {WebGLTextureExt} from "../webgl/Handler";
 
 const FADING_RATIO = 15.8;
@@ -481,6 +481,13 @@ class Layer {
     }
 
     /**
+     * @todo: remove after all
+     */
+    public get _id(): number {
+        return this.__id;
+    }
+
+    /**
      * Compares layers instances.
      * @public
      * @param {Layer} layer - Layer instance to compare.
@@ -720,8 +727,16 @@ class Layer {
         this.applyMaterial(m, true);
     }
 
-    public applyMaterial(m: Material, isForced: boolean = false) {
+    public clearMaterial(material: Material) {
         //empty
+    }
+
+    public loadMaterial(material: Material, forceLoading: boolean = false) {
+        //empty
+    }
+
+    public applyMaterial(m: Material, isForced: boolean = false): NumberArray4 {
+        return [1, 1, 1, 1];
     }
 
     protected _preLoadRecursive(node: Node, maxZoom: number) {
@@ -877,7 +892,7 @@ class Layer {
         }
     }
 
-    public abortMaterialLoading() {
+    public abortMaterialLoading(material: Material) {
 
     }
 }

@@ -23,7 +23,7 @@ export class QuadTreeStrategy {
     }
 
     clearLayerMaterial(layer) {
-        let lid = layer._id;
+        let lid = layer.__id;
         for (let i = 0, len = this._quadTreeList.length; i < len; i++) {
             this._quadTreeList[i].traverseTree(function (node) {
                 let mats = node.segment.materials;

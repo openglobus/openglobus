@@ -1385,7 +1385,7 @@ class Segment {
      * @returns {planetSegment.Material} - Segment material.
      */
     getMaterialByLayer(layer) {
-        return this.materials[layer._id];
+        return this.materials[layer.__id];
     }
 
     _getLayerExtentOffset(layer) {
@@ -1446,10 +1446,10 @@ class Segment {
             ) {
                 notEmpty = true;
 
-                var m = pm[li._id];
+                var m = pm[li.__id];
 
                 if (!m) {
-                    m = pm[li._id] = li.createMaterial(this);
+                    m = pm[li.__id] = li.createMaterial(this);
                 }
 
                 if (!m.isReady) {
@@ -1567,11 +1567,11 @@ class Segment {
 
             p._samplerArr[n] = n;
             gl.activeTexture(gl.TEXTURE0 + n);
-            gl.bindTexture(gl.TEXTURE_2D, pm[li._id].texture || this.planet.transparentTexture);
+            gl.bindTexture(gl.TEXTURE_2D, pm[li.__id].texture || this.planet.transparentTexture);
 
             p._pickingMaskArr[n] = n + p.SLICE_SIZE;
             gl.activeTexture(gl.TEXTURE0 + n + p.SLICE_SIZE);
-            gl.bindTexture(gl.TEXTURE_2D, pm[li._id].pickingMask || this.planet.transparentTexture);
+            gl.bindTexture(gl.TEXTURE_2D, pm[li.__id].pickingMask || this.planet.transparentTexture);
         }
 
         if (notEmpty || !isOverlay) {

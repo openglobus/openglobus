@@ -1,27 +1,89 @@
-"use strict";
-
 import * as mercator from "../mercator";
-import { Extent } from "../Extent";
-import { doubleToTwoFloats2 } from "../math/coder";
-import { Layer } from "./Layer";
-import { LonLat } from "../LonLat";
+import {Extent} from "../Extent";
+import {EventsHandler} from "../Events";
+import {doubleToTwoFloats2} from "../math/coder";
+import {Layer, LayerEventsList, ILayerParams} from "./Layer";
+import {LonLat} from "../LonLat";
+import {Material} from "./Material";
+import {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
+import {NumberArray2} from "../math/Vec2";
+import {NumberArray4} from "../math/Vec4";
 
-const EVENT_NAMES = [
+export interface IBaseGeoImageParams extends ILayerParams {
+    fullExtent?: boolean;
+    corners?: NumberArray2[];
+}
+
+type BaseGeoImageEventsList = [
+    "loadend"
+];
+
+const BASEGEOIMAGE_EVENTS: BaseGeoImageEventsList = [
     /**
      * Triggered when image data is loaded
-     * @event og.layer.BaseGeoImage#loadend
+     * @event EventsHandler<BaseGeoImageEventsList>#loadend
      */
     "loadend"
 ];
 
+export type BaseGeoImageEventsType = EventsHandler<BaseGeoImageEventsList> & EventsHandler<LayerEventsList>;
+
 /**
- * BaseGeoImage layer represents square imagery layer that could be an static image, or animated video or webgl buffer object displayed on the globe.
+ * BaseGeoImage layer represents square imagery layer that
+ * could be a static image, or animated video or webgl buffer
+ * object displayed on the globe.
  * @class
  * @extends {Layer}
  */
 class BaseGeoImage extends Layer {
-    constructor(name, options) {
-        super(name, { ...options, events: EVENT_NAMES });
+
+    override events: BaseGeoImageEventsType;
+
+    protected _projType: number;
+
+    protected _frameWidth: number;
+    protected _frameHeight: number;
+
+    protected _sourceReady: boolean;
+    protected _sourceTexture: WebGLTextureExt | null;
+    protected _materialTexture: WebGLTextureExt | null;
+
+    protected _gridBufferLow: WebGLBufferExt | null;
+    protected _gridBufferHigh: WebGLBufferExt | null;
+
+    protected _extentWgs84ParamsHigh: Float32Array;
+    protected _extentWgs84ParamsLow: Float32Array;
+
+    protected _extentMercParamsHigh: Float32Array;
+    protected _extentMercParamsLow: Float32Array;
+
+    protected _refreshFrame: boolean;
+    protected _frameCreated: boolean;
+    protected _sourceCreated: boolean;
+
+    protected _animate: boolean;
+    protected _ready: boolean;
+    protected _creationProceeding: boolean;
+    protected _isRendering: boolean;
+
+    protected _extentWgs84: Extent;
+    protected _cornersWgs84: LonLat[];
+    protected _cornersMerc: LonLat[];
+
+    protected _isFullExtent: number;
+
+    /**
+     * rendering function pointer
+     * @type {Function}
+     */
+    public rendering: Function;
+
+    protected _onLoadend_: Function | null;
+
+    constructor(name: string | null, options: IBaseGeoImageParams = {}) {
+        super(name, options);
+
+        this.events.registerNames(BASEGEOIMAGE_EVENTS);
 
         this._projType = 0;
 
@@ -32,12 +94,12 @@ class BaseGeoImage extends Layer {
         this._sourceTexture = null;
         this._materialTexture = null;
 
-        this._gridBuffer = null;
-        this._extentWgs84Params = null;
+        this._gridBufferLow = null;
+        this._gridBufferHigh = null;
+
         this._extentWgs84ParamsHigh = new Float32Array(4);
         this._extentWgs84ParamsLow = new Float32Array(4);
 
-        this._extentMercParams = null;
         this._extentMercParamsHigh = new Float32Array(4);
         this._extentMercParamsLow = new Float32Array(4);
 
@@ -51,41 +113,43 @@ class BaseGeoImage extends Layer {
         this._isRendering = false;
 
         this._extentWgs84 = new Extent();
-        this._cornersWgs84 = null;
+        this._cornersWgs84 = [];
 
-        this._isFullExtent = options.fullExtent || false;
+        this._isFullExtent = options.fullExtent ? 1 : 0;
 
         /**
          * rendering function pointer
          */
-        this.rendering = null;
+        this.rendering = this._renderingProjType0.bind(this);
+
+        this._onLoadend_ = null;
 
         options.corners && this.setCorners(options.corners);
     }
 
-    get isIdle() {
+    public override get isIdle(): boolean {
         return super.isIdle && this._ready;
     }
 
-    addTo(planet) {
+    public override addTo(planet) {
         this._onLoadend_ = this._onLoadend.bind(this);
         this.events.on("loadend", this._onLoadend_, this);
         return super.addTo(planet);
     }
 
-    _onLoadend() {
+    protected _onLoadend() {
         if (this._planet) {
             this._planet.events.dispatch(this._planet.events.layerloadend, this);
         }
     }
 
-    remove() {
+    public override remove() {
         this.events.off("loadend", this._onLoadend_);
         this._onLoadend_ = null;
         return super.remove();
     }
 
-    get instanceName() {
+    public override get instanceName(): string {
         return "BaseGeoImage";
     }
 
@@ -94,8 +158,8 @@ class BaseGeoImage extends Layer {
      * @public
      * @return {Array.<LonLat>} - (exactly 4 entries)
      */
-    getCornersLonLat() {
-        var c = this._cornersWgs84;
+    public getCornersLonLat(): LonLat[] {
+        let c = this._cornersWgs84;
         return [
             new LonLat(c[0].lon, c[0].lat),
             new LonLat(c[1].lon, c[1].lat),
@@ -109,8 +173,8 @@ class BaseGeoImage extends Layer {
      * @public
      * @return {Array.<Array<number>>} - (exactly 3 entries)
      */
-    getCorners() {
-        var c = this._cornersWgs84;
+    public getCorners(): NumberArray2[] {
+        let c = this._cornersWgs84;
         return [
             [c[0].lon, c[0].lat],
             [c[1].lon, c[1].lat],
@@ -126,7 +190,7 @@ class BaseGeoImage extends Layer {
      * coincedents to the left top image corner, secont to the right top image corner, third to the right bottom
      * and fourth - left bottom image corner.
      */
-    setCorners(corners) {
+    public setCorners(corners: NumberArray2[]) {
         this.setCornersLonLat(LonLat.join(corners));
     }
 
@@ -137,14 +201,14 @@ class BaseGeoImage extends Layer {
      * coincedents to the left top image corner, secont to the right top image corner, third to the right bottom
      * and fourth - left bottom image corner. (exactly 4 entries)
      */
-    setCornersLonLat(corners) {
+    public setCornersLonLat(corners: LonLat[]) {
         this._refreshFrame = true;
         this._cornersWgs84 = [
             corners[0].clone(),
             corners[1].clone(),
             corners[2].clone(),
             corners[3].clone()
-        ] || [0, 0, 0, 0];
+        ];
 
         for (let i = 0; i < this._cornersWgs84.length; i++) {
             if (this._cornersWgs84[i].lat >= 89.9) {
@@ -156,7 +220,7 @@ class BaseGeoImage extends Layer {
         }
         this._extent.setByCoordinates(this._cornersWgs84);
 
-        var me = this._extent;
+        let me = this._extent;
         if (me.southWest.lat > mercator.MAX_LAT || me.northEast.lat < mercator.MIN_LAT) {
             this._projType = 0;
             this.rendering = this._renderingProjType0;
@@ -166,7 +230,7 @@ class BaseGeoImage extends Layer {
         }
 
         if (this._ready && !this._creationProceeding) {
-            this._planet._geoImageCreator.add(this);
+            this._planet!._geoImageCreator.add(this);
         }
     }
 
@@ -174,7 +238,7 @@ class BaseGeoImage extends Layer {
      * Creates geoImage frame.
      * @protected
      */
-    _createFrame() {
+    protected _createFrame() {
         this._extentWgs84 = this._extent.clone();
 
         this._cornersMerc = [
@@ -220,17 +284,14 @@ class BaseGeoImage extends Layer {
 
         // creates material frame textures
         if (this._planet) {
-            var p = this._planet,
-                h = p.renderer.handler,
-                gl = h.gl;
+            let p = this._planet,
+                h = p.renderer!.handler,
+                gl = h.gl!;
 
-            gl.deleteTexture(this._materialTexture);
+            gl.deleteTexture(this._materialTexture as WebGLTexture);
             this._materialTexture = h.createEmptyTexture_l(this._frameWidth, this._frameHeight);
 
-            let gridBufferArr = this._planet._geoImageCreator.createGridBuffer(
-                this._cornersWgs84,
-                this._projType
-            );
+            let gridBufferArr = this._planet._geoImageCreator.createGridBuffer(this._cornersWgs84, this._projType === 1);
 
             this._gridBufferHigh = gridBufferArr[0];
             this._gridBufferLow = gridBufferArr[1];
@@ -240,10 +301,11 @@ class BaseGeoImage extends Layer {
     }
 
     /**
-     * @virtual
+     * @public
+     * @override
      * @param {Material} material - GeoImage material.
      */
-    abortMaterialLoading(material) {
+    public override abortMaterialLoading(material: Material) {
         this._creationProceeding = false;
         material.isLoading = false;
         material.isReady = false;
@@ -251,19 +313,21 @@ class BaseGeoImage extends Layer {
 
     /**
      * Clear layer material.
-     * @virtual
+     * @public
+     * @override
      */
-    clear() {
+    public override clear() {
         let p = this._planet;
 
         if (p) {
-            let gl = p.renderer.handler.gl;
+            let gl = p.renderer!.handler.gl;
             this._creationProceeding && p._geoImageCreator.remove(this);
             p._clearLayerMaterial(this);
 
             if (gl) {
-                gl.deleteBuffer(this._gridBuffer);
-                gl.deleteTexture(this._sourceTexture);
+                gl.deleteBuffer(this._gridBufferHigh as WebGLBuffer);
+                gl.deleteBuffer(this._gridBufferLow as WebGLBuffer);
+                gl.deleteTexture(this._sourceTexture as WebGLTexture);
                 this._materialTexture && !this._materialTexture.default && gl.deleteTexture(this._materialTexture);
             }
         }
@@ -271,7 +335,8 @@ class BaseGeoImage extends Layer {
         this._sourceTexture = null;
         this._materialTexture = null;
 
-        this._gridBuffer = null;
+        this._gridBufferHigh = null;
+        this._gridBufferLow = null;
 
         this._refreshFrame = true;
         this._sourceCreated = false;
@@ -283,47 +348,46 @@ class BaseGeoImage extends Layer {
     /**
      * Sets layer visibility.
      * @public
-     * @virtual
+     * @override
      * @param {boolean} visibility - GeoImage visibility.
      */
-    setVisibility(visibility) {
+    public override setVisibility(visibility: boolean) {
         if (visibility !== this._visibility) {
             super.setVisibility(visibility);
 
             // remove from creator
-            if (visibility) {
-                this._sourceReady && this._planet._geoImageCreator.add(this);
-            } else {
-                this._sourceReady && this._planet._geoImageCreator.remove(this);
+            if (this._planet && this._sourceReady) {
+                if (visibility) {
+                    this._planet._geoImageCreator.add(this);
+                } else {
+                    this._planet._geoImageCreator.remove(this);
+                }
             }
         }
     }
 
     /**
-     * @virtual
-     * @protected
+     * @public
      * @param {Material} material - GeoImage material.
      */
-    clearMaterial(material) {
-        material.image = null;
+    public override clearMaterial(material: Material) {
         material.texture = null;
         material.isLoading = false;
         material.isReady = false;
     }
 
     /**
-     * @virtual
-     * @protected
-     * @param {Material} material - GeoImage segment material.
-     * @returns {Array<number> } -
+     * @public
+     * @override
+     * @returns {Array<number>} -
      */
-    applyMaterial(material) {
-        var segment = material.segment;
+    public override applyMaterial(material: Material): NumberArray4 {
+        let segment = material.segment;
 
         if (this._ready) {
             material.applyTexture(this._materialTexture);
         } else {
-            material.texture = this._planet.transparentTexture;
+            material.texture = this._planet!.transparentTexture;
             !this._creationProceeding && this.loadMaterial(material);
         }
 
@@ -336,12 +400,13 @@ class BaseGeoImage extends Layer {
             v0t = segment.getExtentMerc();
         }
 
-        var sSize_x = v0s.northEast.lon - v0s.southWest.lon;
-        var sSize_y = v0s.northEast.lat - v0s.southWest.lat;
-        var dV0s_x = (v0t.southWest.lon - v0s.southWest.lon) / sSize_x;
-        var dV0s_y = (v0s.northEast.lat - v0t.northEast.lat) / sSize_y;
-        var dSize_x = (v0t.northEast.lon - v0t.southWest.lon) / sSize_x;
-        var dSize_y = (v0t.northEast.lat - v0t.southWest.lat) / sSize_y;
+        let sSize_x = v0s.northEast.lon - v0s.southWest.lon;
+        let sSize_y = v0s.northEast.lat - v0s.southWest.lat;
+        let dV0s_x = (v0t.southWest.lon - v0s.southWest.lon) / sSize_x;
+        let dV0s_y = (v0s.northEast.lat - v0t.northEast.lat) / sSize_y;
+        let dSize_x = (v0t.northEast.lon - v0t.southWest.lon) / sSize_x;
+        let dSize_y = (v0t.northEast.lat - v0t.southWest.lat) / sSize_y;
+
         return [dV0s_x, dV0s_y, dSize_x, dSize_y];
     }
 
@@ -350,7 +415,7 @@ class BaseGeoImage extends Layer {
      * @public
      * @returns {Number} Frame width.
      */
-    get getFrameWidth() {
+    public get getFrameWidth(): number {
         return this._frameWidth;
     }
 
@@ -359,82 +424,28 @@ class BaseGeoImage extends Layer {
      * @public
      * @returns {Number} Frame height.
      */
-    get getFrameHeight() {
+    public get getFrameHeight(): number {
         return this._frameHeight;
     }
 
     /**
      * Method depends on GeoImage instance
-     * @virtual
-     * @private
+     * @protected
      */
-    _createSourceTexture() {
+    protected _createSourceTexture() {
         //empty
     }
 
-    _renderingProjType1() {
-        let p = this._planet,
-            h = p.renderer.handler,
-            gl = h.gl,
+    public _renderingProjType1() {
+        let p = this._planet!,
+            h = p.renderer!.handler,
+            gl = h.gl!,
             creator = p._geoImageCreator;
 
         this._refreshFrame && this._createFrame();
         this._createSourceTexture();
 
-        let f = creator._framebuffer;
-        f.setSize(this._frameWidth, this._frameHeight);
-        f.activate();
-
-        h.programs.geoImageTransform.activate();
-        var sh = h.programs.geoImageTransform._program;
-        var sha = sh.attributes,
-            shu = sh.uniforms;
-
-        gl.disable(gl.CULL_FACE);
-
-        f.bindOutputTexture(this._materialTexture);
-        gl.clearColor(0.0, 0.0, 0.0, 0.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-
-        gl.uniform1i(shu.isFullExtent, this._isFullExtent);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer);
-
-        gl.vertexAttribPointer(sha.texCoords, 2, gl.UNSIGNED_SHORT, true, 0, 0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferHigh);
-        gl.vertexAttribPointer(sha.cornersHigh, this._gridBufferHigh.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferLow);
-        gl.vertexAttribPointer(sha.cornersLow, this._gridBufferLow.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.uniform4fv(shu.extentParamsHigh, this._extentMercParamsHigh);
-        gl.uniform4fv(shu.extentParamsLow, this._extentMercParamsLow);
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
-        gl.uniform1i(shu.sourceTexture, 0);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, creator._indexBuffer);
-        gl.drawElements(gl.TRIANGLE_STRIP, creator._indexBuffer.numItems, gl.UNSIGNED_INT, 0);
-        f.deactivate();
-
-        gl.enable(gl.CULL_FACE);
-
-        this._ready = true;
-
-        this._creationProceeding = false;
-    }
-
-    _renderingProjType0() {
-        let p = this._planet,
-            h = p.renderer.handler,
-            gl = h.gl,
-            creator = p._geoImageCreator;
-
-        this._refreshFrame && this._createFrame();
-        this._createSourceTexture();
-
-        let f = creator._framebuffer;
+        let f = creator._framebuffer!;
         f.setSize(this._frameWidth, this._frameHeight);
         f.activate();
 
@@ -445,28 +456,81 @@ class BaseGeoImage extends Layer {
 
         gl.disable(gl.CULL_FACE);
 
-        f.bindOutputTexture(this._materialTexture);
+        f.bindOutputTexture(this._materialTexture as WebGLTexture);
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer);
+
+        gl.uniform1i(shu.isFullExtent, this._isFullExtent);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer as WebGLBuffer);
 
         gl.vertexAttribPointer(sha.texCoords, 2, gl.UNSIGNED_SHORT, true, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferHigh);
-        gl.vertexAttribPointer(sha.cornersHigh, this._gridBufferHigh.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferHigh as WebGLBuffer);
+        gl.vertexAttribPointer(sha.cornersHigh, this._gridBufferHigh!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferLow);
-        gl.vertexAttribPointer(sha.cornersLow, this._gridBufferLow.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferLow as WebGLBuffer);
+        gl.vertexAttribPointer(sha.cornersLow, this._gridBufferLow!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.uniform4fv(shu.extentParamsHigh, this._extentMercParamsHigh);
+        gl.uniform4fv(shu.extentParamsLow, this._extentMercParamsLow);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture as WebGLTexture);
+        gl.uniform1i(shu.sourceTexture, 0);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, creator._indexBuffer as WebGLBuffer);
+        gl.drawElements(gl.TRIANGLE_STRIP, creator._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
+        f.deactivate();
+
+        gl.enable(gl.CULL_FACE);
+
+        this._ready = true;
+
+        this._creationProceeding = false;
+    }
+
+    protected _renderingProjType0() {
+        let p = this._planet!,
+            h = p.renderer!.handler,
+            gl = h.gl!,
+            creator = p._geoImageCreator;
+
+        this._refreshFrame && this._createFrame();
+        this._createSourceTexture();
+
+        let f = creator._framebuffer!;
+        f.setSize(this._frameWidth, this._frameHeight);
+        f.activate();
+
+        h.programs.geoImageTransform.activate();
+        let sh = h.programs.geoImageTransform._program;
+        let sha = sh.attributes,
+            shu = sh.uniforms;
+
+        gl.disable(gl.CULL_FACE);
+
+        f.bindOutputTexture(this._materialTexture as WebGLTexture);
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.bindBuffer(gl.ARRAY_BUFFER, creator._texCoordsBuffer as WebGLBuffer);
+
+        gl.vertexAttribPointer(sha.texCoords, 2, gl.UNSIGNED_SHORT, true, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferHigh as WebGLBuffer);
+        gl.vertexAttribPointer(sha.cornersHigh, this._gridBufferHigh!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._gridBufferLow as WebGLBuffer);
+        gl.vertexAttribPointer(sha.cornersLow, this._gridBufferLow!.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.uniform4fv(shu.extentParamsHigh, this._extentWgs84ParamsHigh);
         gl.uniform4fv(shu.extentParamsLow, this._extentWgs84ParamsLow);
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
+        gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture as WebGLTexture);
         gl.uniform1i(shu.sourceTexture, 0);
 
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, creator._indexBuffer);
-        gl.drawElements(gl.TRIANGLE_STRIP, creator._indexBuffer.numItems, gl.UNSIGNED_INT, 0);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, creator._indexBuffer as WebGLBuffer);
+        gl.drawElements(gl.TRIANGLE_STRIP, creator._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
         f.deactivate();
 
         gl.enable(gl.CULL_FACE);
@@ -477,4 +541,4 @@ class BaseGeoImage extends Layer {
     }
 }
 
-export { BaseGeoImage };
+export {BaseGeoImage};

@@ -13,10 +13,10 @@ export class GeoImageCreator {
 
     protected _gridSize: number;
     protected _planet: Planet;
-    protected _framebuffer: Framebuffer | null;
+    public _framebuffer: Framebuffer | null;
     protected _framebufferMercProj: Framebuffer | null;
-    protected _texCoordsBuffer: WebGLTextureExt | null;
-    protected _indexBuffer: WebGLTextureExt | null;
+    public _texCoordsBuffer: WebGLBufferExt | null;
+    public _indexBuffer: WebGLBufferExt | null;
     protected _currentFrame: number;
     protected _queue: BaseGeoImage[];
     protected _animate: BaseGeoImage[];
@@ -50,7 +50,7 @@ export class GeoImageCreator {
      * @param{boolean} [toMerc=false] - Transform to web mercator.
      * @return{WebGLBuffer} Grid coordinates buffer.
      */
-    public createGridBuffer(c: LonLat[], toMerc: boolean = false): [WebGLTextureExt, WebGLTextureExt] {
+    public createGridBuffer(c: LonLat[], toMerc: boolean = false): [WebGLBufferExt, WebGLBufferExt] {
         let gs = this._gridSize;
 
         let v03 = new LonLat((c[3].lon - c[0].lon) / gs, (c[3].lat - c[0].lat) / gs),
@@ -111,10 +111,11 @@ export class GeoImageCreator {
         ];
     }
 
-    frame() {
+    public frame() {
         let i = this.MAX_FRAMES;
         while (i-- && this._queue.length) {
             const q = this._queue.shift();
+            //@ts-ignore
             q._isRendering = false;
             q.rendering();
             q.events.dispatch(q.events.loadend);
@@ -126,9 +127,12 @@ export class GeoImageCreator {
         }
     }
 
-    add(geoImage) {
+    public add(geoImage: BaseGeoImage) {
+        // @ts-ignore
         if (!geoImage._isRendering) {
+            // @ts-ignore
             geoImage._isRendering = true;
+            // @ts-ignore
             if (geoImage._animate) {
                 this._animate.push(geoImage);
             } else {
@@ -137,11 +141,15 @@ export class GeoImageCreator {
         }
     }
 
-    remove(geoImage: BaseGeoImage) {
+    public remove(geoImage: BaseGeoImage) {
+        //@ts-ignore
         if (geoImage._isRendering) {
+            //@ts-ignore
             geoImage._creationProceeding = false;
+            //@ts-ignore
             geoImage._isRendering = false;
             let arr: BaseGeoImage[];
+            //@ts-ignore
             if (geoImage._animate) {
                 arr = this._animate;
             } else {
@@ -156,7 +164,7 @@ export class GeoImageCreator {
         }
     }
 
-    _initBuffers() {
+    protected _initBuffers() {
 
         let h = this._planet.renderer!.handler!;
 
@@ -176,7 +184,7 @@ export class GeoImageCreator {
         this._quadVertexBuffer = h.createArrayBuffer(new Float32Array([-1, 1, 1, 1, -1, -1, 1, -1]), 2, 4);
     }
 
-    _initShaders() {
+    protected _initShaders() {
 
         this._planet.renderer!.handler.addProgram(new Program("geoImageTransform", {
             uniforms: {

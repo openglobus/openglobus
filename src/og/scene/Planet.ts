@@ -7,6 +7,7 @@ import {decodeFloatFromRGBAArr} from "../math/coder";
 import {EarthQuadTreeStrategy} from "../quadTree/EarthQuadTreeStrategy.js";
 import {EmptyTerrain} from "../terrain/EmptyTerrain";
 import {Extent} from "../Extent";
+import {Control} from "../control/Control";
 import {createColorRGB, isUndef} from "../utils/shared";
 import {createEvents, Events, EventsHandler} from "../Events";
 import {Geoid} from "../terrain/Geoid.js";
@@ -83,7 +84,7 @@ const MAX_NODES = 200;
 
 const HORIZON_TANGENT = 0.81;
 
-type IndexBufferCacheData = { buffer: WebGLTextureExt | null };
+type IndexBufferCacheData = { buffer: WebGLBufferExt | null };
 
 /**
  * Main class for rendering planet
@@ -274,7 +275,7 @@ export class Planet extends RenderNode {
      * @protected
      * @type {Array.<Array.<number>>}
      */
-    public _indexesCache: IndexBufferCacheData[][][];
+    public _indexesCache: IndexBufferCacheData[][][][][];
 
     protected _indexesCacheToRemove: IndexBufferCacheData[];
     protected _indexesCacheToRemoveCounter: number;
@@ -346,10 +347,10 @@ export class Planet extends RenderNode {
 
     /**
      * GeoImage creator.
-     * @protected
+     * @public
      * @type{GeoImageCreator}
      */
-    protected _geoImageCreator: GeoImageCreator;
+    public _geoImageCreator: GeoImageCreator;
 
     /**
      * VectorTileCreator creator.

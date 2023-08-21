@@ -35,7 +35,7 @@ class Material {
         this.isLoading = false;
         this.texture = null;
         this.pickingMask = null;
-        //this.image = null;
+
         this.textureExists = false;
         this.appliedNodeId = 0;
         this.appliedNode = null;

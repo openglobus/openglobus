@@ -183,7 +183,7 @@ class XYZ extends Layer {
      * @param {Material} material - Loads current material.
      * @param {boolean} [forceLoading=false] -
      */
-    public loadMaterial(material: Material, forceLoading: boolean = false) {
+    public override loadMaterial(material: Material, forceLoading: boolean = false) {
 
         let seg = material.segment;
 
@@ -342,16 +342,10 @@ class XYZ extends Layer {
         return material.texOffset;
     }
 
-    public clearMaterial(material: Material) {
+    public override clearMaterial(material: Material) {
         if (material.isReady && material.textureExists) {
-            !material.texture!.default &&
-            material.segment.handler.gl.deleteTexture(material.texture);
+            !material.texture!.default && material.segment.handler.gl.deleteTexture(material.texture);
             material.texture = null;
-
-            // if (material.image) {
-            //     material.image.src = "";
-            //     material.image = null;
-            // }
         }
 
         material.isReady = false;

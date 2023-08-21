@@ -1,6 +1,8 @@
 "use strict";
 
 import * as mercator from "./mercator";
+import {NumberArray2} from "./math/Vec2";
+import {NumberArray3} from "./math/Vec3";
 
 const HALF_PI = Math.PI * 0.5;
 const INV_PI_BY_180 = 180.0 / Math.PI;
@@ -57,7 +59,7 @@ export class LonLat {
      * @param{Array.<Array<number>>} arr - Coordinates array data. (exactly 3 entries)
      * @return{Array.<LonLat>} the same coordinates array but each element is LonLat instance.
      */
-    static join(arr: [number, number, number][]): LonLat[] {
+    static join(arr: NumberArray2[] | NumberArray3[]): LonLat[] {
         let res = [];
         for (let i = 0; i < arr.length; i++) {
             let ai = arr[i];
@@ -69,7 +71,7 @@ export class LonLat {
     /**
      * Creates an object by coordinate array.
      * @static
-     * @param {Array.<number>} arr - Coordiante array, where first is longitude, second is latitude and third is a height. (exactly 3 entries)
+     * @param {Array.<number>} arr - Coordinates array, where first is longitude, second is latitude and third is a height. (exactly 3 entries)
      * @returns {LonLat} -
      */
     static createFromArray(arr: [number, number, number]): LonLat {
@@ -77,7 +79,7 @@ export class LonLat {
     }
 
     /**
-     * Create array from lonlat
+     * Create array from lonLat
      * @param lonLat
      * @returns {number[]}
      */
@@ -86,7 +88,7 @@ export class LonLat {
     }
 
     /**
-     * Create array from lonlat
+     * Create array from lonLat
      * @returns {number[]}
      */
     public toArray(): [number, number, number] {
