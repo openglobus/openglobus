@@ -175,9 +175,6 @@ export class Planet extends RenderNode {
      */
     protected terrain: EmptyTerrain | null;
 
-    protected _minAltitude: number;
-    protected _maxAltitude: number;
-
     /**
      * Camera is this.renderer.activeCamera pointer.
      * @public
@@ -310,7 +307,7 @@ export class Planet extends RenderNode {
      * @protected
      * @type {boolean}
      */
-    protected _useNightTexture: number;
+    protected _useNightTexture: boolean;
 
     /**
      * True for rendering specular mask texture.
@@ -474,16 +471,6 @@ export class Planet extends RenderNode {
         this.terrain = null;
 
         /**
-         * Terrain provider Pool.
-         * @public
-         * @type {Terrain}
-         */
-        this._terrainPool = null;
-
-        this._minAltitude = options.minAltitude;
-        this._maxAltitude = options.maxAltitude;
-
-        /**
          * Camera is this.renderer.activeCamera pointer.
          * @public
          * @type {PlanetCamera}
@@ -493,8 +480,8 @@ export class Planet extends RenderNode {
             eye: new Vec3(25000000, 0, 0),
             look: Vec3.ZERO,
             up: Vec3.NORTH,
-            minAltitude: this._minAltitude,
-            maxAltitude: this._maxAltitude
+            minAltitude: options.minAltitude,
+            maxAltitude: options.maxAltitude
         });
 
         this.maxEqualZoomAltitude = options.maxEqualZoomAltitude || 15000000.0;
@@ -630,14 +617,14 @@ export class Planet extends RenderNode {
          * @protected
          * @type {boolean}
          */
-        this._useNightTexture = isUndef(options.useNightTexture) ? true : options.useNightTexture;
+        this._useNightTexture = isUndef(options.useNightTexture) ? true : options.useNightTexture as boolean;
 
         /**
          * True for rendering specular mask texture.
          * @protected
          * @type {boolean}
          */
-        this._useSpecularTexture = isUndef(options.useSpecularTexture) ? true : options.useSpecularTexture;
+        this._useSpecularTexture = isUndef(options.useSpecularTexture) ? true : options.useSpecularTexture as boolean;
 
         this._maxGridSize = Math.log2(options.maxGridSize || 128);
 
@@ -781,8 +768,8 @@ export class Planet extends RenderNode {
         return [...this._layers];
     }
 
-    get sunPos() {
-        return this.renderer.controls.sun.sunlight.getPosition();
+    public get sunPos(): Vec3 {
+        return this.renderer!.controls.sun.sunlight.getPosition();
     }
 
     /**
@@ -1124,16 +1111,16 @@ export class Planet extends RenderNode {
 
         this._updateVisibleLayers();
 
-        this.renderer.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
+        this.renderer!.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
 
         // loading Earth night glowing texture
         if (this._useNightTexture) {
-            createImageBitmap(NIGHT).then((e) => (this._nightTexture = this.renderer.handler.createTextureDefault(e)));
+            createImageBitmap(NIGHT).then((e) => (this._nightTexture = this.renderer!.handler!.createTextureDefault(e)));
         }
 
         // load water specular mask
         if (this._useSpecularTexture) {
-            createImageBitmap(SPECULAR).then((e) => (this._specularTexture = this.renderer.handler.createTexture_l(e)));
+            createImageBitmap(SPECULAR).then((e) => (this._specularTexture = this.renderer!.handler!.createTexture_l(e)));
         }
 
         this._geoImageCreator.init();
@@ -1142,12 +1129,12 @@ export class Planet extends RenderNode {
 
         this._normalMapCreator.init();
 
-        this.renderer.events.on("draw", this._globalPreDraw, this, -100);
+        this.renderer!.events.on("draw", this._globalPreDraw, this, -100);
 
         // Loading first nodes for better viewing if you have started on a lower altitude.
         this._preRender();
 
-        this.renderer.events.on("postdraw", () => {
+        this.renderer!.events.on("postdraw", () => {
             this._checkRendercompleted();
         });
 

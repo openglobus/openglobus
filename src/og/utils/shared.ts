@@ -26,7 +26,7 @@ export function isEmpty(v: any): boolean {
  * @param {Object} obj - Object pointer.
  * @returns {boolean} Returns true if object is undefined.
  */
-export function isUndef(obj: any): boolean {
+export function isUndef(obj?: any): boolean {
     return obj === void 0;
 }
 
@@ -37,7 +37,7 @@ export function isUndefExt(obj: any, defVal: any): any {
 let _stampCounter: number = 0;
 
 export function stamp(obj: any): number {
-    var stamp = obj._openglobus_id;
+    let stamp = obj._openglobus_id;
     if (!stamp) {
         stamp = obj._openglobus_id = ++_stampCounter;
     }
@@ -52,7 +52,7 @@ export function isString(s: any): boolean {
  * Convert html color string to the RGBA number vector.
  * @param {string} htmlColor - HTML string("#C6C6C6" or "#EF5" or "rgb(8,8,8)" or "rgba(8,8,8)") color.
  * @param {number} [opacity] - Opacity for the output vector.
- * @returns {math.Vec4} -
+ * @returns {Vec4} -
  */
 export function htmlColorToRgba(htmlColor: string, opacity?: number): Vec4 {
     let hColor: any | undefined = colorTable[htmlColor];
@@ -98,7 +98,6 @@ export function htmlColorToFloat32Array(htmlColor: string, opacity?: number): Fl
 /**
  * Convert html color string to the RGB number vector.
  * @param {string} htmlColor - HTML string("#C6C6C6" or "#EF5" or "rgb(8,8,8)" or "rgba(8,8,8)") color.
- * @param {number} [opacity] - Opacity for the output vector.
  * @returns {Vec3} -
  */
 export function htmlColorToRgb(htmlColor: string): Vec3 {
@@ -144,7 +143,7 @@ export function htmlColorToRgb(htmlColor: string): Vec3 {
  *       "y": 15,
  *       "z": 8
  * }
- * og.utils.stringTemplate("http://earth3.openglobus.org/{z}/{y}/{x}.ddm", substrins);
+ * og.utils.stringTemplate("http://earth3.openglobus.org/{z}/{y}/{x}.ddm", substrings);
  * //returns http://earth3.openglobus.org/8/15/12.ddm
  */
 export function stringTemplate(template: string, params: any): string {
@@ -289,7 +288,7 @@ export function binarySearchFast(arr: number[], x: number) {
  * @param {any} el The item to find in the array.
  * @param {Function} compare_fn comparator The function to use to compare the item to
  *        elements in the array.
- * @returns {number} a negative number  if a is less than b; 0 if a is equal to b;a positive number of a is greater than b.
+ * @returns {number} a negative number  if 'a' is less than 'b'; 0 if 'a' is equal to 'b'; 'a' positive number of 'a' is greater than 'b'.
  *
  * @example
  * // Create a comparator function to search through an array of numbers.
@@ -336,12 +335,12 @@ export function binaryInsert(ar: any[], el: any, compare_fn: Function): number {
 /**
  * Returns two segment lines intersection coordinate.
  * @static
- * @param {math.Vec2} start1 - First line first coordinate.
- * @param {math.Vec2} end1 - First line second coordinate.
- * @param {math.Vec2} start2 - Second line first coordinate.
- * @param {math.Vec2} end2 - Second line second coordinate.
+ * @param {Vec2} start1 - First line first coordinate.
+ * @param {Vec2} end1 - First line second coordinate.
+ * @param {Vec2} start2 - Second line first coordinate.
+ * @param {Vec2} end2 - Second line second coordinate.
  * @param {boolean} [isSegment] - Lines are segments.
- * @return {math.Vec2} - Intersection coordinate.
+ * @return {Vec2} - Intersection coordinate.
  */
 export function getLinesIntersection2v(start1: Vec2, end1: Vec2, start2: Vec2, end2: Vec2, isSegment: boolean): Vec2 | undefined {
     let dir1 = end1.sub(start1);
@@ -376,12 +375,12 @@ export function getLinesIntersection2v(start1: Vec2, end1: Vec2, start2: Vec2, e
 /**
  * Returns two segment lines intersection coordinate.
  * @static
- * @param {math.Vec2} start1 - First line first coordinate.
- * @param {math.Vec2} end1 - First line second coordinate.
- * @param {math.Vec2} start2 - Second line first coordinate.
- * @param {math.Vec2} end2 - Second line second coordinate.
+ * @param {Vec2} start1 - First line first coordinate.
+ * @param {Vec2} end1 - First line second coordinate.
+ * @param {Vec2} start2 - Second line first coordinate.
+ * @param {Vec2} end2 - Second line second coordinate.
  * @param {boolean} [isSegment] - Lines are segments.
- * @return {math.Vec2} - Intersection coordinate.
+ * @return {Vec2} - Intersection coordinate.
  */
 export function getLinesIntersectionLonLat(start1: LonLat, end1: LonLat, start2: LonLat, end2: LonLat, isSegment: boolean): LonLat | undefined {
     let dir1 = new LonLat(end1.lon - start1.lon, end1.lat - start1.lat);
@@ -429,7 +428,7 @@ export function xmlToJson(xml: any): any {
         if (xml.attributes.length > 0) {
             obj["@attributes"] = {};
             for (let j = 0; j < xml.attributes.length; j++) {
-                var attribute = xml.attributes.item(j);
+                let attribute = xml.attributes.item(j);
                 obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
             }
         }
@@ -447,7 +446,7 @@ export function xmlToJson(xml: any): any {
                 obj[nodeName] = xmlToJson(item);
             } else {
                 if (typeof obj[nodeName].push === "undefined") {
-                    var old = obj[nodeName];
+                    let old = obj[nodeName];
                     obj[nodeName] = [];
                     obj[nodeName].push(old);
                 }
@@ -757,7 +756,7 @@ export type TypedArray =
 /**
  * Concatenates two the same type arrays
  * @param {TypedArray} a
- * @param {TypedArray} b
+ * @param {TypedArray | number[]} b
  */
 export function concatTypedArrays(a: TypedArray, b: TypedArray | number[]): TypedArray {
     let c = new (a as any).constructor(a.length + b.length); //hacky
@@ -768,8 +767,8 @@ export function concatTypedArrays(a: TypedArray, b: TypedArray | number[]): Type
 
 /**
  * Concatenates two the same  arrays
- * @param {TypedArray | number[]} a - First array
- * @param {TypedArray | number[]} b - Second array
+ * @param {TypedArray | number[]} [a=[]] - First array
+ * @param {TypedArray | number[]} [b=[]] - Second array
  * @return {TypedArray | number[]} -
  */
 export function concatArrays(a: TypedArray | number[] = [], b: TypedArray | number[] = []): TypedArray | number[] {
@@ -817,16 +816,16 @@ export function makeArray(arr: TypedArray | number[]): number[] {
  * @param {TypedArray | Array} arr
  * @param {Number} starting
  * @param {Number} deleteCount
- * @param {Object} outArr
+ * @param {{ result: number[] }} [out]
  */
 
-export function spliceArray(arr: TypedArray | number[], starting: number, deleteCount: number, out?: any): TypedArray | number[] {
+export function spliceArray(arr: TypedArray | number[], starting: number, deleteCount: number, out?: { result: number[] } | { result: TypedArray }): TypedArray | number[] {
     if (ArrayBuffer.isView(arr)) {
         if (starting < 0) {
             deleteCount = Math.abs(starting);
             starting += arr.length;
         }
-        return spliceTypedArray(arr, starting, deleteCount, out);
+        return spliceTypedArray(arr, starting, deleteCount, out as { result: TypedArray });
     } else {
         let res;
         if (starting < 0) {
@@ -846,9 +845,9 @@ export function spliceArray(arr: TypedArray | number[], starting: number, delete
  * @param {TypedArray} arr
  * @param {Number} starting
  * @param {Number} deleteCount
- * @param {Array} outArr
+ * @param {{ result: TypedArray }} [out]
  */
-export function spliceTypedArray(arr: TypedArray, starting: number, deleteCount: number, out?: any): TypedArray {
+export function spliceTypedArray(arr: TypedArray, starting: number, deleteCount: number, out?: { result: TypedArray }): TypedArray {
     if (arr.length === 0) {
         return arr;
     }
