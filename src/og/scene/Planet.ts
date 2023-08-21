@@ -30,7 +30,7 @@ import {Ellipsoid} from "../ellipsoid";
 import {NumberArray2} from "../math/Vec2";
 import {NumberArray3} from "../math/Vec3";
 import {EntityCollection} from "../entity";
-import {WebGLTextureExt} from "../webgl/Handler";
+import {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
 
 export interface IPlanetParams {
     name?: string;
@@ -82,6 +82,8 @@ const DEPTH_DISTANCE = 11;//m
 const MAX_NODES = 200;
 
 const HORIZON_TANGENT = 0.81;
+
+type IndexBufferCacheData = { buffer: WebGLTextureExt | null };
 
 /**
  * Main class for rendering planet
@@ -272,18 +274,19 @@ export class Planet extends RenderNode {
      * @protected
      * @type {Array.<Array.<number>>}
      */
-    protected _indexesCache: number[][];
-    protected _indexesCacheToRemove: number[];
+    public _indexesCache: IndexBufferCacheData[][][];
+
+    protected _indexesCacheToRemove: IndexBufferCacheData[];
     protected _indexesCacheToRemoveCounter: number;
 
     /**
      * Precomputed texture coordinates buffers for differrent grid size segments.
-     * @protected
+     * @public
      * @type {Array.<Array.<number>>}
      */
-    protected _textureCoordsBufferCache: number[][];
+    public _textureCoordsBufferCache: WebGLBufferExt[];
 
-    protected quadTreeStrategy: EarthQuadTreeStrategy;
+    public quadTreeStrategy: EarthQuadTreeStrategy;
 
     /**
      * Night glowing gl texture.
@@ -366,7 +369,7 @@ export class Planet extends RenderNode {
 
     protected _plainSegmentWorker: PlainSegmentWorker;
 
-    protected _tileLoader: Loader;
+    public _tileLoader: Loader;
 
     protected _memKey: Key;
 
@@ -397,84 +400,34 @@ export class Planet extends RenderNode {
     protected _atmosphereEnabled: boolean;
     protected _atmosphereMaxMinOpacity: Float32Array;
 
+    public solidTextureOne: WebGLTextureExt | null;
+    public solidTextureTwo: WebGLTextureExt | null;
+
     constructor(options: IPlanetParams = {}) {
         super(options.name);
 
-        /**
-         * @public
-         * @type {Ellipsoid}
-         */
         this.ellipsoid = options.ellipsoid || wgs84;
 
-        /**
-         * @public
-         * @type {Boolean}
-         */
         this.lightEnabled = true;
 
-        /**
-         * Squared ellipsoid radius.
-         * @protected
-         * @type {number}
-         */
         this._planetRadius2 = this.ellipsoid.getPolarSize() * this.ellipsoid.getPolarSize();
 
-        /**
-         * Layers array.
-         * @protected
-         * @type {Array.<Layer>}
-         */
         this._layers = [];
 
-        /**
-         * Flag to trigger layer update in a next frame
-         * @type {boolean}
-         * @private
-         */
         this._updateLayer = false;
 
-        /**
-         * Current visible imagery tile layers array.
-         * @public
-         * @type {Array.<Layer>}
-         */
         this.visibleTileLayers = [];
 
-        /**
-         * Current visible vector layers array.
-         * @protected
-         * @type {Array.<layer.Vector>}
-         */
         this.visibleVectorLayers = [];
 
         this._visibleTileLayerSlices = [];
 
-        /**
-         * Vector layers visible nodes with collections.
-         * @protected
-         * @type {Array.<EntityCollection>}
-         */
         this._frustumEntityCollections = [];
 
-        /**
-         * There is only one base layer on the globe when layer.isBaseLayer is true.
-         * @public
-         * @type {Layer}
-         */
         this.baseLayer = null;
 
-        /**
-         * Terrain provider.
-         * @public
-         * @type {Terrain}
-         */
         this.terrain = null;
 
-        /**
-         * Camera is this.renderer.activeCamera pointer.
-         * @public
-         * @type {PlanetCamera}
-         */
         this.camera = new PlanetCamera(this, {
             frustums: options.frustums,
             eye: new Vec3(25000000, 0, 0),
@@ -488,118 +441,47 @@ export class Planet extends RenderNode {
         this.minEqualZoomAltitude = options.minEqualZoomAltitude || 10000.0;
         this.minEqualZoomCameraSlope = options.minEqualZoomCameraSlope || 0.8;
 
-        /**
-         * Screen mouse pointer projected to planet cartesian position.
-         * @public
-         * @type {Vec3}
-         */
         this.mousePositionOnEarth = new Vec3();
 
         this.emptyTexture = null;
         this.transparentTexture = null;
         this.defaultTexture = null;
 
-        /**
-         * Current visible minimal zoom index planet segment.
-         * @public
-         * @type {number}
-         */
         this.minCurrZoom = math.MAX;
 
-        /**
-         * Current visible maximal zoom index planet segment.
-         * @public
-         * @type {number}
-         */
         this.maxCurrZoom = math.MIN;
 
         this._viewExtent = new Extent(new LonLat(180, 180), new LonLat(-180, -180));
 
         this._initialViewExtent = null;
 
-        /**
-         * @protected
-         */
         this._createdNodesCount = 0;
 
-        /**
-         * Planet's segments collected for rendering frame.
-         * @protected
-         * @type {quadTree.Node}
-         */
         this._renderedNodes = [];
         this._renderedNodesInFrustum = [];
 
-        /**
-         * Current visible mercator segments tree nodes array.
-         * @protected
-         * @type {Node}
-         */
         this._visibleNodes = {};
 
-        /**
-         * Current visible north pole nodes tree nodes array.
-         * @protected
-         * @type {Node}
-         */
         this._visibleNodesNorth = {};
 
-        /**
-         * Current visible south pole nodes tree nodes array.
-         * @protected
-         * @type {Node}
-         */
         this._visibleNodesSouth = {};
 
-        /**
-         * Layers activity lock.
-         * @public
-         * @type {Lock}
-         */
         this.layerLock = new Lock();
 
-        /**
-         * Terrain providers activity lock.
-         * @public
-         * @type {Lock}
-         */
         this.terrainLock = new Lock();
 
-        /**
-         * Height scale factor. 1 - is normal elevation scale.
-         * @protected
-         * @type {number}
-         */
         this._heightFactor = 1.0;
 
-        /**
-         * Precomputed indexes array for differrent grid size segments.
-         * @protected
-         * @type {Array.<Array.<number>>}
-         */
         this._indexesCache = [];
         this._indexesCacheToRemove = [];
         this._indexesCacheToRemoveCounter = 0;
 
-        /**
-         * Precomputed texture coordinates buffers for differrent grid size segments.
-         * @protected
-         * @type {Array.<Array.<number>>}
-         */
         this._textureCoordsBufferCache = [];
 
         this.quadTreeStrategy = options.quadTreeStrategyPrototype ? new options.quadTreeStrategyPrototype({planet: this}) : new EarthQuadTreeStrategy({planet: this});
 
-        /**
-         * Night glowing gl texture.
-         * @protected
-         */
         this._nightTexture = null;
 
-        /**
-         * Specular mask gl texture.
-         * @protected
-         */
         this._specularTexture = null;
 
         //TODO: replace to a function
@@ -612,36 +494,16 @@ export class Planet extends RenderNode {
         this._diffuse = new Float32Array([d.x, d.y, d.z]);
         this._specular = new Float32Array([s.x, s.y, s.z, shininess]);
 
-        /**
-         * True for rendering night glowing texture.
-         * @protected
-         * @type {boolean}
-         */
         this._useNightTexture = isUndef(options.useNightTexture) ? true : options.useNightTexture as boolean;
 
-        /**
-         * True for rendering specular mask texture.
-         * @protected
-         * @type {boolean}
-         */
         this._useSpecularTexture = isUndef(options.useSpecularTexture) ? true : options.useSpecularTexture as boolean;
 
         this._maxGridSize = Math.log2(options.maxGridSize || 128);
 
-        /**
-         * Segment multiple textures size.(4 - convenient value for the most devices)
-         * @const
-         * @public
-         */
         this.SLICE_SIZE = 4;
         this.SLICE_SIZE_4 = this.SLICE_SIZE * 4;
         this.SLICE_SIZE_3 = this.SLICE_SIZE * 3;
 
-        /**
-         * Level of the visible segment detalization.
-         * @public
-         * @type {number}
-         */
         this._lodSize = CUR_LOD_SIZE;
         this._curLodSize = CUR_LOD_SIZE;
         this._minLodSize = MIN_LOD_SIZE;
@@ -651,25 +513,10 @@ export class Planet extends RenderNode {
         this._samplerArr = new Int32Array(this.SLICE_SIZE);
         this._pickingMaskArr = new Int32Array(this.SLICE_SIZE);
 
-        /**
-         * GeoImage creator.
-         * @protected
-         * @type{GeoImageCreator}
-         */
         this._geoImageCreator = new GeoImageCreator(this);
 
-        /**
-         * VectorTileCreator creator.
-         * @protected
-         * @type{VectorTileCreator}
-         */
         this._vectorTileCreator = new VectorTileCreator(this);
 
-        /**
-         * NormalMapCreator creator.
-         * @protected
-         * @type{NormalMapCreator}
-         */
         this._normalMapCreator = new NormalMapCreator(this);
 
         this._terrainWorker = new TerrainWorker(3);
@@ -697,16 +544,15 @@ export class Planet extends RenderNode {
         this._terrainCompletedActivated = false;
         this._collectRenderNodesIsActive = true;
 
-        /**
-         * Night texture brightness coefficient
-         * @type {number}
-         */
         this.nightTextureCoefficient = 2.0;
 
         this._renderScreenNodesPASS = this._renderScreenNodesPASSNoAtmos;
 
         this._atmosphereEnabled = options.atmosphereEnabled || false;
         this._atmosphereMaxMinOpacity = new Float32Array([1.0, 0.41]);
+
+        this.solidTextureOne = null;
+        this.solidTextureTwo = null;
     }
 
     getNorthFrameRotation(cartesian) {
@@ -764,7 +610,7 @@ export class Planet extends RenderNode {
         return this._normalMapCreator;
     }
 
-    get layers() {
+    public get layers(): Layer[] {
         return [...this._layers];
     }
 
@@ -776,7 +622,7 @@ export class Planet extends RenderNode {
      * Add the given control to the renderer of the planet scene.
      * @param {control.Control} control - Control.
      */
-    addControl(control) {
+    public addControl(control: Control) {
         control.planet = this;
         control.addTo(this.renderer);
     }
@@ -880,7 +726,7 @@ export class Planet extends RenderNode {
      * @param {Layer} layer - Layer object.
      * @public
      */
-    setBaseLayer(layer) {
+    public setBaseLayer(layer: Layer) {
         if (this.baseLayer) {
             if (!this.baseLayer.isEqual(layer)) {
                 this.baseLayer.setVisibility(false);
@@ -922,7 +768,7 @@ export class Planet extends RenderNode {
      * @public
      * @param {Terrain} terrain - Terrain provider.
      */
-    setTerrain(terrain) {
+    public setTerrain(terrain: EmptyTerrain) {
         this._renderCompletedActivated = false;
         this._terrainCompletedActivated = false;
 
@@ -1048,15 +894,15 @@ export class Planet extends RenderNode {
                     for (let m = 0; m <= TABLESIZE; m++) {
                         !this._indexesCache[i][j][k][m] && (this._indexesCache[i][j][k][m] = new Array(TABLESIZE));
                         for (let q = 0; q <= TABLESIZE; q++) {
-                            let ptr = {
+
+                            let ptr: IndexBufferCacheData = {
                                 buffer: null
                             };
 
                             if (i >= 1 && i === j && i === k && i === m && i === q) {
-                                let indexes = segmentHelper
-                                    .getInstance()
-                                    .createSegmentIndexes(i, [j, k, m, q]);
-                                ptr.buffer = this.renderer.handler.createElementArrayBuffer(indexes, 1);
+                                let indexes = segmentHelper.getInstance().createSegmentIndexes(i, [j, k, m, q]);
+                                ptr.buffer = this.renderer!.handler.createElementArrayBuffer(indexes, 1);
+                                // @ts-ignore
                                 indexes = null;
                             } else {
                                 this._indexesCacheToRemove[kk++] = ptr;
@@ -1069,7 +915,7 @@ export class Planet extends RenderNode {
             }
         }
 
-        this.renderer.events.on("resize", () => {
+        this.renderer!.events.on("resize", () => {
             this._renderCompletedActivated = false;
             this._terrainCompletedActivated = false;
         });
@@ -1080,16 +926,16 @@ export class Planet extends RenderNode {
         let texCoordCache = segmentHelper.getInstance().initTextureCoordsTable(TABLESIZE + 1);
 
         for (let i = 0; i <= TABLESIZE; i++) {
-            this._textureCoordsBufferCache[i] = this.renderer.handler.createArrayBuffer(texCoordCache[i], 2, ((1 << i) + 1) * ((1 << i) + 1));
+            this._textureCoordsBufferCache[i] = this.renderer!.handler.createArrayBuffer(texCoordCache[i], 2, ((1 << i) + 1) * ((1 << i) + 1));
         }
 
+        // @ts-ignore
         texCoordCache = null;
 
         // creating empty textures
-        var that = this;
-        this.renderer.handler.createDefaultTexture(null, function (t) {
-            that.solidTextureOne = t;
-            that.solidTextureTwo = t;
+        this.renderer!.handler.createDefaultTexture(null, (t) => {
+            this.solidTextureOne = t;
+            this.solidTextureTwo = t;
         });
 
         this.transparentTexture = this.renderer.handler.transparentTexture;

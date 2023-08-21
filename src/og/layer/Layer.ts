@@ -212,7 +212,7 @@ class Layer {
      * @protected
      * @type {Extent}
      */
-    protected _extentMerc: Extent | null;
+    protected _extentMerc: Extent;
 
     /**
      * Layer picking color. Assign when added to the planet.
@@ -323,7 +323,7 @@ class Layer {
          * @protected
          * @type {Extent}
          */
-        this._extentMerc = null;
+        this._extentMerc = new Extent();
 
         // Setting the extent up
         this.setExtent(
@@ -875,6 +875,10 @@ class Layer {
                 }
             );
         }
+    }
+
+    public abortMaterialLoading() {
+
     }
 }
 

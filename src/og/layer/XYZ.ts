@@ -3,8 +3,11 @@
 import * as mercator from "../mercator";
 import {Layer, ILayerParams, LayerEventsList} from "./Layer";
 import {RENDERING} from "../quadTree/quadTree";
+import {Segment} from "../segment/Segment";
 import {stringTemplate} from "../utils/shared";
 import {EventsHandler} from "../Events";
+import {Material} from "./Material";
+import {NumberArray4} from "../math/Vec4";
 
 interface IXYZParams extends ILayerParams {
     url?: string;
@@ -13,6 +16,13 @@ interface IXYZParams extends ILayerParams {
     maxNativeZoom?: number;
     urlRewrite?: Function;
 }
+
+type XYZEventsList = [
+    "load",
+    "loadend"
+];
+
+type XYZEventsType = EventsHandler<XYZEventsList> & EventsHandler<LayerEventsList>;
 
 /**
  * Represents an imagery tiles source provider.
@@ -31,8 +41,8 @@ interface IXYZParams extends ILayerParams {
  * @param {boolean} [options.visibility=true] - Layer visibility.
  * @param {string} [options.crossOrigin=true] - If true, all tiles will have their crossOrigin attribute set to ''.
  * @param {string} options.url - Tile url source template(see example below).
- * @param {string} options.textureFilter - texture gl filter. NEAREST, LINEAR, MIPMAP, ANISOTROPHIC.
- * @param {layer.XYZ~_urlRewriteCallback} options.urlRewrite - Url rewrite function.
+ * @param {string} options.textureFilter - texture gl filter. NEAREST, LINEAR, MIPMAP, ANISOTROPIC.
+ * @param {Function} options.urlRewrite - Url rewrite function.
  *
  * @fires EventsHandler<XYZEventsList>#load
  * @fires EventsHandler<XYZEventsList>#loadend
@@ -47,7 +57,7 @@ interface IXYZParams extends ILayerParams {
  */
 class XYZ extends Layer {
 
-    override events: EventsHandler<XYZEventsList> & EventsHandler<LayerEventsList>;
+    override events: XYZEventsType;
 
     /**
      * Tile url source template.
@@ -85,7 +95,7 @@ class XYZ extends Layer {
      */
     protected _urlRewriteCallback: Function | null;
 
-    protected _requestsPeerSubdomian: number;
+    protected _requestsPeerSubdomains: number;
 
     protected _requestCount: number;
 
@@ -104,19 +114,19 @@ class XYZ extends Layer {
 
         this._urlRewriteCallback = options.urlRewrite || null;
 
-        this._requestsPeerSubdomian = 4;
+        this._requestsPeerSubdomains = 4;
 
         this._requestCount = 0;
     }
 
     /**
-     * @warning Use XYZ.isIdle in requesAnimationFrame(after setVisibility)
+     * @warning Use XYZ.isIdle in requestAnimationFrame(after setVisibility)
      */
-    get isIdle() {
-        return super.isIdle && this._planet._tileLoader.getRequestCounter(this) === 0;
+    public get isIdle(): boolean {
+        return super.isIdle && this._planet!._tileLoader.getRequestCounter(this) === 0;
     }
 
-    get instanceName() {
+    public get instanceName(): string {
         return "XYZ";
     }
 
@@ -124,7 +134,7 @@ class XYZ extends Layer {
      * Abort loading tiles.
      * @public
      */
-    abortLoading() {
+    public abortLoading() {
         if (this._planet) {
             this._planet._tileLoader.abort(this);
         }
@@ -135,7 +145,7 @@ class XYZ extends Layer {
      * @public
      * @param {boolean} visibility - Layer visibility.
      */
-    setVisibility(visibility) {
+    public setVisibility(visibility: boolean) {
         if (visibility !== this._visibility) {
             super.setVisibility(visibility);
             if (!visibility) {
@@ -144,9 +154,10 @@ class XYZ extends Layer {
         }
     }
 
-    remove() {
+    public override remove(): this {
         this.abortLoading();
         super.remove();
+        return this;
     }
 
     /**
@@ -155,14 +166,14 @@ class XYZ extends Layer {
      * @param {string} url - Url template.
      * @example
      * http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
-     * where {z}, {x} and {y} - replaces by current tile values, {s} - random domen.
+     * where {z}, {x} and {y} - replaces by current tile values, {s} - random domain.
      */
-    setUrl(url) {
+    public setUrl(url: string) {
         this.url = url;
     }
 
-    _checkSegment(segment) {
-        return segment._projection.id === this._planet.quadTreeStrategy.projection.id;// EPSG4326.id;// EPSG3857.id;
+    public _checkSegment(segment: Segment) {
+        return segment._projection.id === this._planet!.quadTreeStrategy.projection.id;// EPSG4326.id;// EPSG3857.id;
     }
 
     /**
@@ -170,8 +181,9 @@ class XYZ extends Layer {
      * @public
      * @virtual
      * @param {Material} material - Loads current material.
+     * @param {boolean} [forceLoading=false] -
      */
-    loadMaterial(material, forceLoading) {
+    public loadMaterial(material: Material, forceLoading: boolean = false) {
 
         let seg = material.segment;
 
@@ -182,26 +194,24 @@ class XYZ extends Layer {
         }
 
         // Q: Maybe we should change "<2" to material.segment.tileZoom < (material.layer.minZoom + 1)
-        if (this._planet.layerLock.isFree() || material.segment.tileZoom < 2) {
+        if (this._planet!.layerLock.isFree() || material.segment.tileZoom < 2) {
             material.isReady = false;
             material.isLoading = true;
 
             if (this._checkSegment(seg)) {
                 material.loadingAttempts++;
 
-                this._planet._tileLoader.load(
-                    {
+                this._planet!._tileLoader.load({
                         sender: this,
                         src: this._getHTTPRequestString(material.segment),
                         type: "imageBitmap",
-                        filter: () =>
-                            (seg.initialized && seg.node.getState() === RENDERING) || forceLoading,
+                        filter: () => (seg.initialized && seg.node.getState() === RENDERING) || forceLoading,
                         options: {}
                     },
                     (response) => {
                         if (response.status === "ready") {
                             if (material.isLoading) {
-                                let e = this.events.load;
+                                let e = this.events.load!;
                                 if (e.handlers.length) {
                                     this.events.dispatch(e, material);
                                 }
@@ -216,7 +226,7 @@ class XYZ extends Layer {
                             }
                         }
                     },
-                    this._id
+                    this.__id
                 );
             } else {
                 material.textureNotExists();
@@ -231,7 +241,7 @@ class XYZ extends Layer {
      * @param {Segment} segment - Creates specific url for current segment.
      * @returns {String} - Returns url string.
      */
-    _createUrl(segment) {
+    protected _createUrl(segment: Segment) {
         return stringTemplate(this.url, {
             s: this._getSubdomain(),
             x: segment.tileX.toString(),
@@ -240,10 +250,9 @@ class XYZ extends Layer {
         });
     }
 
-    _getSubdomain() {
+    protected _getSubdomain(): string {
         this._requestCount++;
-        return this._s[Math.floor(this._requestCount % (this._requestsPeerSubdomian * this._s.length) / this._requestsPeerSubdomian)];
-
+        return this._s[Math.floor(this._requestCount % (this._requestsPeerSubdomains * this._s.length) / this._requestsPeerSubdomains)];
     }
 
     /**
@@ -259,15 +268,15 @@ class XYZ extends Layer {
     }
 
     /**
-     * Sets url rewrite callback, used for custom url rewriting for every tile laoding.
+     * Sets url rewrite callback, used for custom url rewriting for every tile loading.
      * @public
-     * @param {layer.XYZ~_urlRewriteCallback} ur - The callback that returns tile custom created url.
+     * @param {Function} ur - The callback that returns tile custom created url.
      */
-    setUrlRewriteCallback(ur) {
+    public setUrlRewriteCallback(ur: Function) {
         this._urlRewriteCallback = ur;
     }
 
-    applyMaterial(material, forceLoading) {
+    public applyMaterial(material: Material, forceLoading: boolean = false): NumberArray4 {
         if (material.isReady) {
             return material.texOffset;
         } else if (material.segment.tileZoom < this.minNativeZoom) {
@@ -278,7 +287,7 @@ class XYZ extends Layer {
                 pn = segment.node,
                 notEmpty = false;
 
-            let mId = this._id;
+            let mId = this.__id;
             let psegm = material;
             while (pn.parentNode) {
                 pn = pn.parentNode;
@@ -290,21 +299,21 @@ class XYZ extends Layer {
             }
 
             if (segment.passReady) {
-                let maxNativeZoom = material.layer.maxNativeZoom;
+                let maxNativeZoom = (material.layer as XYZ).maxNativeZoom;
                 if (pn.segment.tileZoom === maxNativeZoom) {
                     material.textureNotExists();
                 } else if (material.segment.tileZoom <= maxNativeZoom) {
                     !material.isLoading && !material.isReady && this.loadMaterial(material, forceLoading);
                 } else {
                     let pn = segment.node;
-                    while (pn.segment.tileZoom > material.layer.maxNativeZoom) {
+                    while (pn.segment.tileZoom > (material.layer as XYZ).maxNativeZoom) {
                         pn = pn.parentNode;
                     }
-                    let pnm = pn.segment.materials[material.layer._id];
+                    let pnm = pn.segment.materials[material.layer.__id];
                     if (pnm) {
                         !pnm.isLoading && !pnm.isReady && this.loadMaterial(pnm, true);
                     } else {
-                        pnm = pn.segment.materials[material.layer._id] = material.layer.createMaterial(
+                        pnm = pn.segment.materials[material.layer.__id] = material.layer.createMaterial(
                             pn.segment
                         );
                         this.loadMaterial(pnm, true);
@@ -333,16 +342,16 @@ class XYZ extends Layer {
         return material.texOffset;
     }
 
-    clearMaterial(material) {
+    public clearMaterial(material: Material) {
         if (material.isReady && material.textureExists) {
-            !material.texture.default &&
+            !material.texture!.default &&
             material.segment.handler.gl.deleteTexture(material.texture);
             material.texture = null;
 
-            if (material.image) {
-                material.image.src = "";
-                material.image = null;
-            }
+            // if (material.image) {
+            //     material.image.src = "";
+            //     material.image = null;
+            // }
         }
 
         material.isReady = false;
@@ -353,11 +362,11 @@ class XYZ extends Layer {
     /**
      * @protected
      */
-    _correctFullExtent() {
-        var e = this._extent,
+    protected _correctFullExtent() {
+        let e = this._extent,
             em = this._extentMerc;
-        var ENLARGE_MERCATOR_LON = mercator.POLE + 50000;
-        var ENLARGE_MERCATOR_LAT = mercator.POLE + 50000;
+        let ENLARGE_MERCATOR_LON = mercator.POLE + 50000;
+        let ENLARGE_MERCATOR_LAT = mercator.POLE + 50000;
         if (e.northEast.lat === 90.0) {
             em.northEast.lat = ENLARGE_MERCATOR_LAT;
         }
@@ -381,14 +390,9 @@ class XYZ extends Layer {
     }
 }
 
-type XYZEventsList = [
-    "load",
-    "loadend"
-];
-
 const XYZ_EVENTS: XYZEventsList = [
     /**
-     * Triggered when current tile image has loaded before rendereing.
+     * Triggered when current tile image has loaded before rendering.
      * @event #load
      */
     "load",

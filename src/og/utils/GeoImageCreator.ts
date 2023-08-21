@@ -1,26 +1,44 @@
-'use strict';
-
-import { LonLat } from '../LonLat';
 import * as utils from '../utils/shared';
-import { Framebuffer } from '../webgl/Framebuffer.js';
-import { Program } from '../webgl/Program.js';
-import { doubleToTwoFloats2 } from "../math/coder.js";
+import {BaseGeoImage} from "../layer/BaseGeoImage";
+import {Framebuffer} from '../webgl/Framebuffer';
+import {LonLat} from '../LonLat';
+import {Program} from '../webgl/Program';
+import {Planet} from "../scene/Planet";
+import {doubleToTwoFloats2} from "../math/coder";
+import {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
 
 export class GeoImageCreator {
 
-    constructor(planet, maxFrames) {
+    public MAX_FRAMES: number;
+
+    protected _gridSize: number;
+    protected _planet: Planet;
+    protected _framebuffer: Framebuffer | null;
+    protected _framebufferMercProj: Framebuffer | null;
+    protected _texCoordsBuffer: WebGLTextureExt | null;
+    protected _indexBuffer: WebGLTextureExt | null;
+    protected _currentFrame: number;
+    protected _queue: BaseGeoImage[];
+    protected _animate: BaseGeoImage[];
+    protected _quadTexCoordsBuffer: WebGLBufferExt | null;
+    protected _quadVertexBuffer: WebGLTextureExt | null;
+
+    constructor(planet: Planet, maxFrames: number = 5) {
+        this.MAX_FRAMES = maxFrames;
         this._gridSize = 64;
         this._planet = planet;
         this._framebuffer = null;
+        this._framebufferMercProj = null;
         this._texCoordsBuffer = null;
         this._indexBuffer = null;
-        this.MAX_FRAMES = maxFrames || 5;
         this._currentFrame = 0;
         this._queue = [];
         this._animate = [];
+        this._quadTexCoordsBuffer = null;
+        this._quadVertexBuffer = null;
     }
 
-    init() {
+    public init() {
         this._initShaders();
         this._initBuffers();
     }
@@ -29,9 +47,10 @@ export class GeoImageCreator {
      * Creates geoImage corners coordinates grid buffer.
      * @public
      * @param{Array.<LonLat>} c - GeoImage corners coordinates.
+     * @param{boolean} [toMerc=false] - Transform to web mercator.
      * @return{WebGLBuffer} Grid coordinates buffer.
      */
-    createGridBuffer(c, toMerc) {
+    public createGridBuffer(c: LonLat[], toMerc: boolean = false): [WebGLTextureExt, WebGLTextureExt] {
         let gs = this._gridSize;
 
         let v03 = new LonLat((c[3].lon - c[0].lon) / gs, (c[3].lat - c[0].lat) / gs),
@@ -61,7 +80,7 @@ export class GeoImageCreator {
             for (let j = 0; j <= gs; j++) {
                 let P01j = new LonLat(c[0].lon + j * v01.lon, c[0].lat + j * v01.lat),
                     P32j = new LonLat(c[3].lon + j * v32.lon, c[3].lat + j * v32.lat);
-                let xx = utils.getLinesIntersectionLonLat(P03i, P12i, P01j, P32j);
+                let xx = utils.getLinesIntersectionLonLat(P03i, P12i, P01j, P32j)!;
                 doubleToTwoFloats2(xx.lon, tempArr);
                 gridHigh[kh++] = tempArr[0];
                 gridLow[kl++] = tempArr[1];
@@ -83,22 +102,19 @@ export class GeoImageCreator {
                 doubleToTwoFloats2(c.lat, tempArr);
                 gridHigh[i * 2 + 1] = tempArr[0];
                 gridLow[i * 2 + 1] = tempArr[1];
-
-                //grid[i] = c.lon;
-                //grid[i + 1] = c.lat;
             }
         }
 
         return [
-            this._planet.renderer.handler.createArrayBuffer(gridHigh, 2, halfSize),
-            this._planet.renderer.handler.createArrayBuffer(gridLow, 2, halfSize)
+            this._planet.renderer!.handler.createArrayBuffer(gridHigh, 2, halfSize),
+            this._planet.renderer!.handler.createArrayBuffer(gridLow, 2, halfSize)
         ];
     }
 
     frame() {
-        var i = this.MAX_FRAMES;
+        let i = this.MAX_FRAMES;
         while (i-- && this._queue.length) {
-            var q = this._queue.shift();
+            const q = this._queue.shift();
             q._isRendering = false;
             q.rendering();
             q.events.dispatch(q.events.loadend);
@@ -121,11 +137,11 @@ export class GeoImageCreator {
         }
     }
 
-    remove(geoImage) {
+    remove(geoImage: BaseGeoImage) {
         if (geoImage._isRendering) {
             geoImage._creationProceeding = false;
             geoImage._isRendering = false;
-            var arr;
+            let arr: BaseGeoImage[];
             if (geoImage._animate) {
                 arr = this._animate;
             } else {
@@ -142,12 +158,12 @@ export class GeoImageCreator {
 
     _initBuffers() {
 
-        let h = this._planet.renderer.handler;
+        let h = this._planet.renderer!.handler!;
 
-        this._framebuffer = new Framebuffer(h, { width: 2, height: 2, useDepth: false });
+        this._framebuffer = new Framebuffer(h, {width: 2, height: 2, useDepth: false});
         this._framebuffer.init();
 
-        this._framebufferMercProj = new Framebuffer(h, { width: 2, height: 2, useDepth: false });
+        this._framebufferMercProj = new Framebuffer(h, {width: 2, height: 2, useDepth: false});
         this._framebufferMercProj.init();
 
         let gs = Math.log2(this._gridSize);
@@ -162,7 +178,7 @@ export class GeoImageCreator {
 
     _initShaders() {
 
-        this._planet.renderer.handler.addProgram(new Program("geoImageTransform", {
+        this._planet.renderer!.handler.addProgram(new Program("geoImageTransform", {
             uniforms: {
                 sourceTexture: "sampler2d",
                 extentParamsHigh: "vec4",

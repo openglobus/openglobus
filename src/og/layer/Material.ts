@@ -19,6 +19,7 @@ class Material {
 
     public textureExists: boolean;
     public appliedNodeId: number;
+    public appliedNode: Node | null;
     public texOffset: NumberArray4;
     public loadingAttempts: number;
 
@@ -37,6 +38,7 @@ class Material {
         //this.image = null;
         this.textureExists = false;
         this.appliedNodeId = 0;
+        this.appliedNode = null;
         this.texOffset = [0.0, 0.0, 1.0, 1.0];
         this.loadingAttempts = 0;
 

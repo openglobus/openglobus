@@ -1,10 +1,10 @@
 "use strict";
 
-import { Extent } from "../Extent";
-import { LonLat } from "../LonLat";
 import * as mercator from "../mercator";
-import { Layer } from "./Layer.js";
-import { doubleToTwoFloats2 } from "../math/coder.js";
+import { Extent } from "../Extent";
+import { doubleToTwoFloats2 } from "../math/coder";
+import { Layer } from "./Layer";
+import { LonLat } from "../LonLat";
 
 const EVENT_NAMES = [
     /**

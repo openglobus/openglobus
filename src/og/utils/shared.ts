@@ -379,10 +379,10 @@ export function getLinesIntersection2v(start1: Vec2, end1: Vec2, start2: Vec2, e
  * @param {Vec2} end1 - First line second coordinate.
  * @param {Vec2} start2 - Second line first coordinate.
  * @param {Vec2} end2 - Second line second coordinate.
- * @param {boolean} [isSegment] - Lines are segments.
+ * @param {boolean} [isSegment=false] - Lines are segments.
  * @return {Vec2} - Intersection coordinate.
  */
-export function getLinesIntersectionLonLat(start1: LonLat, end1: LonLat, start2: LonLat, end2: LonLat, isSegment: boolean): LonLat | undefined {
+export function getLinesIntersectionLonLat(start1: LonLat, end1: LonLat, start2: LonLat, end2: LonLat, isSegment: boolean = false): LonLat | undefined {
     let dir1 = new LonLat(end1.lon - start1.lon, end1.lat - start1.lat);
     let dir2 = new LonLat(end2.lon - start2.lon, end2.lat - start2.lat);
 
