@@ -114,7 +114,7 @@ export class GeoImageCreator {
     public frame() {
         let i = this.MAX_FRAMES;
         while (i-- && this._queue.length) {
-            const q = this._queue.shift();
+            const q = this._queue.shift()!;
             //@ts-ignore
             q._isRendering = false;
             q.rendering();

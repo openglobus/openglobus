@@ -11,7 +11,7 @@ import { Control } from "./Control.js";
  * @param {Object} [options] - Control options.
  */
 class SimpleSkyBackground extends Control {
-    constructor(options) {
+    constructor(options = {}) {
         super({
             name: "SimpleSkyBackground",
             ...options

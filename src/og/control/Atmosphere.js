@@ -12,7 +12,7 @@ import { Control } from "./Control.js";
  * @param {Object} [options] - Control options.
  */
 class Atmosphere extends Control {
-    constructor(options) {
+    constructor(options = {}) {
         super({
             name: "Atmosphere",
             ...options

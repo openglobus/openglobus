@@ -20,6 +20,7 @@ import {NormalMapCreator} from "../utils/NormalMapCreator.js";
 import {NIGHT, SPECULAR} from "../res/images.js";
 import {PlainSegmentWorker} from "../utils/PlainSegmentWorker.js";
 import {PlanetCamera} from "../camera/PlanetCamera";
+import {Quat} from "../math/Quat";
 import {RenderNode} from "./RenderNode";
 import {SimpleSkyBackground} from "../control/SimpleSkyBackground.js";
 import {TerrainWorker} from "../utils/TerrainWorker.js";
@@ -404,6 +405,8 @@ export class Planet extends RenderNode {
     public solidTextureOne: WebGLTextureExt | null;
     public solidTextureTwo: WebGLTextureExt | null;
 
+    protected _skipPreRender: boolean;
+
     constructor(options: IPlanetParams = {}) {
         super(options.name);
 
@@ -454,6 +457,8 @@ export class Planet extends RenderNode {
 
         this._viewExtent = new Extent(new LonLat(180, 180), new LonLat(-180, -180));
 
+        this._skipPreRender = false;
+
         this._initialViewExtent = null;
 
         this._createdNodesCount = 0;
@@ -485,7 +490,6 @@ export class Planet extends RenderNode {
 
         this._specularTexture = null;
 
-        //TODO: replace to a function
         let a = utils.createColorRGB(options.ambient, new Vec3(0.2, 0.2, 0.3));
         let d = utils.createColorRGB(options.diffuse, new Vec3(1.0, 1.0, 1.0));
         let s = utils.createColorRGB(options.specular, new Vec3(0.00063, 0.00055, 0.00032));
@@ -556,58 +560,57 @@ export class Planet extends RenderNode {
         this.solidTextureTwo = null;
     }
 
-    getNorthFrameRotation(cartesian) {
+    public getNorthFrameRotation(cartesian: Vec3): Quat {
         return this.ellipsoid.getNorthFrameRotation(cartesian);
     }
 
-    set atmosphereMaxOpacity(opacity) {
+    public set atmosphereMaxOpacity(opacity: number) {
         this._atmosphereMaxMinOpacity[0] = opacity;
     }
 
-    get atmosphereMaxOpacity() {
+    public get atmosphereMaxOpacity(): number {
         return this._atmosphereMaxMinOpacity[0];
     }
 
-    set atmosphereMinOpacity(opacity) {
+    public set atmosphereMinOpacity(opacity: number) {
         this._atmosphereMaxMinOpacity[1] = opacity;
     }
 
-    get atmosphereMinOpacity() {
+    public get atmosphereMinOpacity(): number {
         return this._atmosphereMaxMinOpacity[1];
     }
 
-
-    set atmosphereEnabled(enabled) {
+    public set atmosphereEnabled(enabled: boolean) {
         if (enabled != this._atmosphereEnabled) {
             this._atmosphereEnabled = enabled;
             this._initializeAtmosphere();
         }
     }
 
-    get atmosphereEnabled() {
+    public get atmosphereEnabled(): boolean {
         return this._atmosphereEnabled;
     }
 
-    set diffuse(rgb) {
+    public set diffuse(rgb: string | NumberArray3 | Vec4) {
         let vec = createColorRGB(rgb);
         this._diffuse = new Float32Array(vec.toArray());
     }
 
-    set ambient(rgb) {
+    public set ambient(rgb: string | NumberArray3 | Vec4) {
         let vec = createColorRGB(rgb);
         this._ambient = new Float32Array(vec.toArray());
     }
 
-    set specular(rgb) {
+    public set specular(rgb: string | NumberArray3 | Vec4) {
         let vec = createColorRGB(rgb);
         this._specular = new Float32Array([vec.x, vec.y, vec.y, this._specular[3]]);
     }
 
-    set shininess(v) {
+    public set shininess(v: number) {
         this._specular[3] = v;
     }
 
-    get normalMapCreator() {
+    public get normalMapCreator(): NormalMapCreator {
         return this._normalMapCreator;
     }
 
@@ -615,36 +618,47 @@ export class Planet extends RenderNode {
         return [...this._layers];
     }
 
+    /**
+     * @todo: remove after tests
+     * Get the collection of layers associated with this planet.
+     * @return {Array.<Layer>} Layers array.
+     * @public
+     */
+    public getLayers(): Layer[] {
+        return this.layers;
+    }
+
+
     public get sunPos(): Vec3 {
         return this.renderer!.controls.sun.sunlight.getPosition();
     }
 
     /**
      * Add the given control to the renderer of the planet scene.
-     * @param {control.Control} control - Control.
+     * @param {Control} control - Control.
      */
     public addControl(control: Control) {
         control.planet = this;
         control.addTo(this.renderer);
     }
 
-    get lodSize() {
+    public get lodSize(): number {
         return this._lodSize;
     }
 
-    setLodSize(currentLodSize, minLodSize, maxLodSize) {
+    public setLodSize(currentLodSize: number, minLodSize?: number, maxLodSize?: number) {
         this._maxLodSize = maxLodSize || this._maxLodSize;
         this._minLodSize = minLodSize || this._minLodSize;
-        this._curLodSize = currentLodSize || this._curLodSize;
+        this._curLodSize = currentLodSize;
         this._renderCompletedActivated = false;
         this._terrainCompletedActivated = false;
     }
 
     /**
      * Add the given controls array to the renderer of the planet.
-     * @param {Array.<control.Control>} cArr - Control array.
+     * @param {Array.<Control>} cArr - Control array.
      */
-    addControls(cArr) {
+    public addControls(cArr: Control[]) {
         for (let i = 0; i < cArr.length; i++) {
             this.addControl(cArr[i]);
         }
@@ -656,7 +670,7 @@ export class Planet extends RenderNode {
      * @public
      * @returns {Layer} -
      */
-    getLayerByName(name) {
+    public getLayerByName(name: string) {
         for (let i = 0, len = this._layers.length; i < len; i++) {
             if (name === this._layers[i].name) {
                 return this._layers[i];
@@ -665,11 +679,11 @@ export class Planet extends RenderNode {
     }
 
     /**
-     * Adds the given layer to the planet.
+     * Adds layer to the planet.
      * @param {Layer} layer - Layer object.
      * @public
      */
-    addLayer(layer) {
+    public addLayer(layer: Layer) {
         layer.addTo(this);
     }
 
@@ -678,7 +692,7 @@ export class Planet extends RenderNode {
      * @param {Layer} layer - Changed layer.
      * @protected
      */
-    _onLayerVisibilityChanged(layer) {
+    protected _onLayerVisibilityChanged(layer: Layer) {
         this.events.dispatch(this.events.layervisibilitychange, layer);
     }
 
@@ -687,7 +701,7 @@ export class Planet extends RenderNode {
      * @param {Array.<Layer>} layers - Layers array.
      * @public
      */
-    addLayers(layers) {
+    public addLayers(layers: Layer[]) {
         for (let i = 0, len = layers.length; i < len; i++) {
             this.addLayer(layers[i]);
         }
@@ -696,11 +710,10 @@ export class Planet extends RenderNode {
     /**
      * Removes the given layer from the planet.
      * @param {Layer} layer - Layer to remove.
-     * @return {Layer|undefined} The removed layer or undefined if the layer was not found.
      * @public
      */
-    removeLayer(layer) {
-        return layer.remove();
+    public removeLayer(layer: Layer) {
+        layer.remove();
     }
 
     /**
@@ -708,18 +721,8 @@ export class Planet extends RenderNode {
      * @protected
      * @param {Layer} layer - Material layer.
      */
-    _clearLayerMaterial(layer) {
+    protected _clearLayerMaterial(layer: Layer) {
         this.quadTreeStrategy.clearLayerMaterial(layer);
-    }
-
-
-    /**
-     * Get the collection of layers associated with this planet.
-     * @return {Array.<Layer>} Layers array.
-     * @public
-     */
-    getLayers() {
-        return this.layers;
     }
 
     /**
@@ -746,7 +749,7 @@ export class Planet extends RenderNode {
      * Sets elevation scale. 1.0 is default.
      * @param {number} factor - Elevation scale.
      */
-    setHeightFactor(factor) {
+    public setHeightFactor(factor: number) {
         this._renderCompletedActivated = false;
         this._terrainCompletedActivated = false;
 
@@ -760,14 +763,14 @@ export class Planet extends RenderNode {
      * Gets elevation scale.
      * @returns {number} Terrain elevation scale
      */
-    getHeightFactor() {
+    public getHeightFactor(): number {
         return this._heightFactor;
     }
 
     /**
      * Sets terrain provider
      * @public
-     * @param {Terrain} terrain - Terrain provider.
+     * @param {EmptyTerrain} terrain - Terrain provider.
      */
     public setTerrain(terrain: EmptyTerrain) {
         this._renderCompletedActivated = false;
@@ -804,8 +807,8 @@ export class Planet extends RenderNode {
         }
     }
 
-    _initializeAtmosphere() {
-        let h = this.renderer.handler;
+    protected _initializeAtmosphere() {
+        let h = this.renderer!.handler;
         h.removeProgram("drawnode_screen_wl");
 
         if (this._atmosphereEnabled) {
@@ -818,29 +821,28 @@ export class Planet extends RenderNode {
                 h.addProgram(shaders.drawnode_screen_wl_webgl1NoAtmos(), true);
             }
 
-            if (!this.renderer.controls.Atmosphere) {
+            if (!this.renderer!.controls.Atmosphere) {
                 this.addControl(new Atmosphere());
             } else {
-                this.renderer.controls.Atmosphere.activate();
+                this.renderer!.controls.Atmosphere.activate();
             }
 
-            if (this.renderer.controls.SimpleSkyBackground) {
-                this.renderer.controls.SimpleSkyBackground.deactivate();
+            if (this.renderer!.controls.SimpleSkyBackground) {
+                this.renderer!.controls.SimpleSkyBackground.deactivate();
             }
 
         } else {
 
             this._renderScreenNodesPASS = this._renderScreenNodesPASSNoAtmos;
 
-
-            if (this.renderer.controls.Atmosphere) {
-                this.renderer.controls.Atmosphere.deactivate();
+            if (this.renderer!.controls.Atmosphere) {
+                this.renderer!.controls.Atmosphere.deactivate();
             }
 
-            if (!this.renderer.controls.SimpleSkyBackground) {
+            if (!this.renderer!.controls.SimpleSkyBackground) {
                 this.addControl(new SimpleSkyBackground());
             } else {
-                this.renderer.controls.SimpleSkyBackground.activate();
+                this.renderer!.controls.SimpleSkyBackground.activate();
             }
 
             if (h.isWebGl2()) {
@@ -851,37 +853,30 @@ export class Planet extends RenderNode {
         }
     }
 
-    /**
-     * @virtual
-     * @protected
-     */
-    _initializeShaders() {
-        let h = this.renderer.handler;
+    protected _initializeShaders() {
+        let h = this.renderer!.handler;
 
         h.addProgram(shaders.drawnode_screen_nl(), true);
         h.addProgram(shaders.drawnode_colorPicking(), true);
         h.addProgram(shaders.drawnode_depth(), true);
         h.addProgram(shaders.drawnode_heightPicking(), true);
 
-        this.renderer.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
-        this.renderer.addDepthCallback(this, this._renderDepthFramebufferPASS);
-        this.renderer.addDistanceCallback(this, this._renderDistanceFramebufferPASS);
+        this.renderer!.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
+        this.renderer!.addDepthCallback(this, this._renderDepthFramebufferPASS);
+        this.renderer!.addDistanceCallback(this, this._renderDistanceFramebufferPASS);
     }
 
-    _onLayerLoadend(layer) {
+    protected _onLayerLoadend(layer: Layer) {
         this.events.dispatch(this.events.layerloadend, layer);
     }
 
-    /**
-     * @virtual
-     * @public
-     */
-    init() {
+    public init() {
 
         this._tileLoader.events.on("layerloadend", this._onLayerLoadend, this);
 
         // Initialization indexes table
         segmentHelper.getInstance().setMaxGridSize(this._maxGridSize);
+
         const TABLESIZE = this._maxGridSize;
 
         let kk = 0;
@@ -939,7 +934,7 @@ export class Planet extends RenderNode {
             this.solidTextureTwo = t;
         });
 
-        this.transparentTexture = this.renderer.handler.transparentTexture;
+        this.transparentTexture = this.renderer!.handler.transparentTexture;
 
         this._renderedNodesInFrustum = new Array(this.camera.frustums.length);
         for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
@@ -949,7 +944,7 @@ export class Planet extends RenderNode {
         // Creating quad trees nodes
         this.quadTreeStrategy.init();
 
-        this.drawMode = this.renderer.handler.gl.TRIANGLE_STRIP;
+        this.drawMode = this.renderer!.handler.gl!.TRIANGLE_STRIP;
 
         // Applying shaders
         this._initializeShaders();
@@ -989,7 +984,6 @@ export class Planet extends RenderNode {
 
         this._initialized = true;
 
-
         //
         // after init
         //
@@ -997,12 +991,12 @@ export class Planet extends RenderNode {
             this.viewExtent(this._initialViewExtent);
         }
 
-        this.renderer.activeCamera = this.camera;
-        this.camera.bindRenderer(this.renderer);
+        this.renderer!.activeCamera = this.camera;
+        this.camera.bindRenderer(this.renderer!);
         this.camera.update();
     }
 
-    initLayers() {
+    public initLayers() {
         let temp = [...this._layers];
         for (let i = 0; i < temp.length; i++) {
             this.removeLayer(temp[i]);
@@ -1010,27 +1004,25 @@ export class Planet extends RenderNode {
         }
     }
 
-    clearIndexesCache() {
+    protected _clearIndexesCache() {
         this._indexesCacheToRemoveCounter = 0;
-        let c = this._indexesCacheToRemove, gl = this.renderer.handler.gl;
+        let c = this._indexesCacheToRemove,
+            gl = this.renderer!.handler.gl!;
         for (let i = 0, len = c.length; i < len; i++) {
             let ci = c[i];
-            gl.deleteBuffer(ci.buffer);
+            gl.deleteBuffer(ci.buffer as WebGLBuffer);
             ci.buffer = null;
         }
     }
 
-    _preRender() {
+    protected _preRender() {
         this.quadTreeStrategy.preRender();
-
         this._preLoad();
     }
 
-    _preLoad() {
+    protected _preLoad() {
         this._clearRenderedNodeList();
-
         this._skipPreRender = false;
-
         this.quadTreeStrategy.preLoad();
     }
 
@@ -1040,32 +1032,31 @@ export class Planet extends RenderNode {
      * @param{Object} param0 -
      * @param{Object} param1 -
      */
-    createDefaultTextures(param0, param1) {
-        this.renderer.handler.gl.deleteTexture(this.solidTextureOne);
-        this.renderer.handler.gl.deleteTexture(this.solidTextureTwo);
-        var that = this;
-        this.renderer.handler.createDefaultTexture(param0, function (t) {
-            that.solidTextureOne = t;
+    public createDefaultTextures(param0: any, param1: any) {
+        this.renderer!.handler.gl!.deleteTexture(this.solidTextureOne as WebGLBuffer);
+        this.renderer!.handler.gl!.deleteTexture(this.solidTextureTwo as WebGLBuffer);
+        this.renderer!.handler.createDefaultTexture(param0, (texture: WebGLBufferExt) => {
+            this.solidTextureOne = texture;
         });
-        this.renderer.handler.createDefaultTexture(param1, function (t) {
-            that.solidTextureTwo = t;
+        this.renderer!.handler.createDefaultTexture(param1, (texture: WebGLBufferExt) => {
+            this.solidTextureTwo = texture;
         });
     }
 
-    _getLayerAttributionHTML(layer) {
-        return `<div class="og-attribution__layer">${layer._attribution}</div>`;
+    protected _getLayerAttributionHTML(layer: Layer) {
+        return `<div class="og-attribution__layer">${layer.getAttribution()}</div>`;
     }
 
     /**
      * Updates attribution lists
      * @public
      */
-    updateAttributionsList() {
+    public updateAttributionsList() {
         let html = "";
         for (let i = 0, len = this._layers.length; i < len; i++) {
             let li = this._layers[i];
-            if (li._visibility) {
-                if (li._attribution.length) {
+            if (li.getVisibility()) {
+                if (li.getAttribution().length) {
                     html += this._getLayerAttributionHTML(li);
                 }
             }
@@ -1073,15 +1064,11 @@ export class Planet extends RenderNode {
         this._applyAttribution(html)
     }
 
-    updateVisibleLayers() {
+    public updateVisibleLayers() {
         this._updateLayer = true;
     }
 
-    /**
-     * Updates visible layers.
-     * @public
-     */
-    _updateVisibleLayers() {
+    protected _updateVisibleLayers() {
         this.visibleTileLayers = [];
         this.visibleTileLayers.length = 0;
 
@@ -1091,8 +1078,8 @@ export class Planet extends RenderNode {
         let html = "";
         for (let i = 0, len = this._layers.length; i < len; i++) {
             let li = this._layers[i];
-            if (li._visibility) {
-                if (li._isBaseLayer) {
+            if (li.getVisibility()) {
+                if (li.isBaseLayer()) {
                     this.createDefaultTextures(li._defaultTextures[0], li._defaultTextures[1]);
                     this.baseLayer = li;
                 }
@@ -1101,11 +1088,12 @@ export class Planet extends RenderNode {
                     this.visibleTileLayers.push(li);
                 }
 
+                // @ts-ignore
                 if (li.isVector) {
-                    this.visibleVectorLayers.push(li);
+                    this.visibleVectorLayers.push(li as Vector);
                 }
 
-                if (li._attribution.length) {
+                if (li.getAttribution().length) {
                     html += this._getLayerAttributionHTML(li);
                 }
 
@@ -1114,8 +1102,9 @@ export class Planet extends RenderNode {
                     this.visibleTileLayers.push(li);
                 }
 
+                // @ts-ignore
                 if (li.isVector) {
-                    this.visibleVectorLayers.push(li);
+                    this.visibleVectorLayers.push(li as Vector);
                 }
             }
         }
@@ -1127,18 +1116,16 @@ export class Planet extends RenderNode {
 
     /**
      * Apply to render list of layer attributions
-     * @private
+     * @protected
      */
-    _applyAttribution(html) {
-        if (this.renderer) {
+    protected _applyAttribution(html: string) {
+        if (this.renderer && this.renderer.div) {
             if (html.length) {
-                if (this.renderer.div.attributions.innerHTML !== html) {
-                    //this.renderer.div.attributions.style.display = "block";
-                    this.renderer.div.attributions.innerHTML = html;
+                if (this.renderer.div.attributions!.innerHTML !== html) {
+                    this.renderer.div.attributions!.innerHTML = html;
                 }
             } else {
-                //this.renderer.div.attributions.style.display = "none";
-                this.renderer.div.attributions.innerHTML = "";
+                this.renderer.div.attributions!.innerHTML = "";
             }
         }
     }
@@ -1147,35 +1134,35 @@ export class Planet extends RenderNode {
      * Sort visible layer - preparing for rendering.
      * @protected
      */
-    _sortLayers() {
-        this.visibleVectorLayers.sort((a, b) => (a._zIndex - b._zIndex) || (a._height - b._height));
+    protected _sortLayers() {
+
+        this.visibleVectorLayers.sort((a, b) => (a.getZIndex() - b.getZIndex()) || (a.getHeight() - b.getHeight()));
 
         this._visibleTileLayerSlices = [];
         this._visibleTileLayerSlices.length = 0;
 
         if (this.visibleTileLayers.length) {
-            this.visibleTileLayers.sort((a, b) => (a._height - b._height) || (a._zIndex - b._zIndex));
+            this.visibleTileLayers.sort((a, b) => (a.getHeight() - b.getHeight()) || (a.getZIndex() - b.getZIndex()));
 
-            var k = -1;
-            var currHeight = this.visibleTileLayers[0]._height;
+            let k = -1;
+            let currHeight = this.visibleTileLayers[0].getHeight();
             for (let i = 0, len = this.visibleTileLayers.length; i < len; i++) {
-                if (i % this.SLICE_SIZE === 0 || this.visibleTileLayers[i]._height !== currHeight) {
+                if (i % this.SLICE_SIZE === 0 || this.visibleTileLayers[i].getHeight() !== currHeight) {
                     k++;
                     this._visibleTileLayerSlices[k] = [];
-                    currHeight = this.visibleTileLayers[i]._height;
+                    currHeight = this.visibleTileLayers[i].getHeight();
                 }
                 this._visibleTileLayerSlices[k].push(this.visibleTileLayers[i]);
             }
         }
     }
 
-    _clearRenderedNodeList() {
-        // clearing all node list
+    protected _clearRenderedNodeList() {
         this._renderedNodes.length = 0;
         this._renderedNodes = [];
     }
 
-    _clearRenderNodesInFrustum() {
+    protected _clearRenderNodesInFrustum() {
         for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
             this._renderedNodesInFrustum[i].length = 0;
             this._renderedNodesInFrustum[i] = [];
@@ -1186,9 +1173,11 @@ export class Planet extends RenderNode {
      * Collects visible quad nodes.
      * @protected
      */
-    _collectRenderNodes() {
+    protected _collectRenderNodes() {
         let cam = this.camera;
         this._lodSize = math.lerp(cam.slope < 0.0 ? 0.0 : cam.slope, this._curLodSize, this._minLodSize);
+
+        //@ts-ignore
         cam._insideSegment = null;
 
         // clear first
@@ -1207,6 +1196,7 @@ export class Planet extends RenderNode {
 
         this.quadTreeStrategy.collectRenderNodes();
 
+        // @ts-ignore
         if (cam.slope > this.minEqualZoomCameraSlope && cam._lonLat.height < this.maxEqualZoomAltitude && cam._lonLat.height > this.minEqualZoomAltitude) {
 
             this.minCurrZoom = this.maxCurrZoom;
@@ -1240,12 +1230,13 @@ export class Planet extends RenderNode {
         }
     }
 
-    _globalPreDraw() {
+    protected _globalPreDraw() {
         let cam = this.camera;
 
         // Might be it's better to replace it in setTerrain,
         // but we have to be sure that setTerrain exists with renderer insttance
-        this.renderer.__useDistanceFramebuffer__ = !this.terrain.isEmpty;
+        // @ts-ignore
+        this.renderer!.__useDistanceFramebuffer__ = !this.terrain.isEmpty;
 
         this._distBeforeMemClear += this._prevCamEye.distance(cam.eye);
         this._prevCamEye.copy(cam.eye);
@@ -1258,7 +1249,7 @@ export class Planet extends RenderNode {
         }
 
         if (this._indexesCacheToRemoveCounter > 600) {
-            this.clearIndexesCache();
+            this._clearIndexesCache();
         }
     }
 
@@ -1266,7 +1257,7 @@ export class Planet extends RenderNode {
      * Render node callback.
      * @public
      */
-    preFrame() {
+    public override preFrame() {
 
         if (this._updateLayer) {
             this._updateLayer = false;
@@ -1279,6 +1270,7 @@ export class Planet extends RenderNode {
             if (this._skipPreRender && this._collectRenderNodesIsActive) {
                 this._collectRenderNodes();
             }
+
             this._skipPreRender = true;
 
             this.transformLights();
@@ -1347,13 +1339,13 @@ export class Planet extends RenderNode {
         this.camera.setTerrainCollisionActivity(true);
     }
 
-    _renderScreenNodesPASSNoAtmos() {
+    protected _renderScreenNodesPASSNoAtmos() {
 
         let sh, shu;
-        let renderer = this.renderer;
+        let renderer = this.renderer!;
         let h = renderer.handler;
-        let gl = h.gl;
-        let cam = renderer.activeCamera;
+        let gl = h.gl!;
+        let cam = (renderer.activeCamera as PlanetCamera)!;
         let firstPass = cam.isFirstPass;
         let frustumIndex = cam.currentFrustumIndex;
 
@@ -1371,8 +1363,11 @@ export class Planet extends RenderNode {
             gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
             if (this.baseLayer) {
+                //@ts-ignore
                 gl.uniform3fv(shu.diffuse, this.baseLayer._diffuse || this._diffuse);
+                //@ts-ignore
                 gl.uniform3fv(shu.ambient, this.baseLayer._ambient || this._ambient);
+                //@ts-ignore
                 gl.uniform4fv(shu.specular, this.baseLayer._specular || this._specular);
                 gl.uniform1f(shu.nightTextureCoefficient, this.baseLayer.nightTextureCoefficient || this.nightTextureCoefficient);
             } else {
@@ -1386,11 +1381,11 @@ export class Planet extends RenderNode {
             // Night and specular
             //
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
-            gl.bindTexture(gl.TEXTURE_2D, this._nightTexture || this.transparentTexture);
+            gl.bindTexture(gl.TEXTURE_2D, this._nightTexture as WebGLTextureExt || this.transparentTexture as WebGLTextureExt);
             gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
 
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
-            gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
+            gl.bindTexture(gl.TEXTURE_2D, this._specularTexture as WebGLTextureExt || this.transparentTexture as WebGLTexture);
             gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
 
             gl.uniform1f(shu.camHeight, cam.getHeight());
@@ -1452,16 +1447,13 @@ export class Planet extends RenderNode {
         gl.disable(gl.POLYGON_OFFSET_FILL);
     }
 
-    /**
-     * @protected
-     */
-    _renderScreenNodesPASSAtmos() {
+    protected _renderScreenNodesPASSAtmos() {
 
         let sh, shu;
-        let renderer = this.renderer;
+        let renderer = this.renderer!;
         let h = renderer.handler;
-        let gl = h.gl;
-        let cam = renderer.activeCamera;
+        let gl = h.gl!;
+        let cam = (renderer.activeCamera as PlanetCamera)!;
         let firstPass = cam.isFirstPass;
         let frustumIndex = cam.currentFrustumIndex;
 
@@ -1479,8 +1471,11 @@ export class Planet extends RenderNode {
             gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
             if (this.baseLayer) {
+                // @ts-ignore
                 gl.uniform3fv(shu.diffuse, this.baseLayer._diffuse || this._diffuse);
+                // @ts-ignore
                 gl.uniform3fv(shu.ambient, this.baseLayer._ambient || this._ambient);
+                // @ts-ignore
                 gl.uniform4fv(shu.specular, this.baseLayer._specular || this._specular);
                 gl.uniform1f(shu.nightTextureCoefficient, this.baseLayer.nightTextureCoefficient || this.nightTextureCoefficient);
             } else {
@@ -1496,11 +1491,11 @@ export class Planet extends RenderNode {
             // Night and specular
             //
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
-            gl.bindTexture(gl.TEXTURE_2D, this._nightTexture || this.transparentTexture);
+            gl.bindTexture(gl.TEXTURE_2D, this._nightTexture as WebGLTexture || this.transparentTexture as WebGLTexture);
             gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
 
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
-            gl.bindTexture(gl.TEXTURE_2D, this._specularTexture || this.transparentTexture);
+            gl.bindTexture(gl.TEXTURE_2D, this._specularTexture as WebGLTexture || this.transparentTexture as WebGLTexture);
             gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
 
 
@@ -1508,11 +1503,11 @@ export class Planet extends RenderNode {
             // atmos precomputed textures
             //
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 4);
-            gl.bindTexture(gl.TEXTURE_2D, this.renderer.controls.Atmosphere._transmittanceBuffer.textures[0]);
+            gl.bindTexture(gl.TEXTURE_2D, renderer.controls.Atmosphere._transmittanceBuffer.textures[0]);
             gl.uniform1i(shu.transmittanceTexture, this.SLICE_SIZE + 4);
 
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 5);
-            gl.bindTexture(gl.TEXTURE_2D, this.renderer.controls.Atmosphere._scatteringBuffer.textures[0]);
+            gl.bindTexture(gl.TEXTURE_2D, renderer.controls.Atmosphere._scatteringBuffer.textures[0]);
             gl.uniform1i(shu.scatteringTexture, this.SLICE_SIZE + 5);
 
             gl.uniform1f(shu.camHeight, cam.getHeight());
@@ -1572,24 +1567,21 @@ export class Planet extends RenderNode {
         gl.disable(gl.POLYGON_OFFSET_FILL);
     }
 
-    /**
-     * @protected
-     */
-    _renderDistanceFramebufferPASS() {
+    protected _renderDistanceFramebufferPASS() {
         if (!this.terrain.isEmpty) {
 
             let sh;
-            let renderer = this.renderer;
+            let renderer = this.renderer!;
             let h = renderer.handler;
-            let gl = h.gl;
-            let cam = renderer.activeCamera;
+            let gl = h.gl!;
+            let cam = (renderer.activeCamera as PlanetCamera)!;
 
             h.programs.drawnode_heightPicking.activate();
             sh = h.programs.drawnode_heightPicking._program;
             let shu = sh.uniforms;
 
-            gl.uniformMatrix4fv(shu.viewMatrix, false, renderer.activeCamera.getViewMatrix());
-            gl.uniformMatrix4fv(shu.projectionMatrix, false, renderer.activeCamera.getProjectionMatrix());
+            gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
             gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
             gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
@@ -1605,10 +1597,7 @@ export class Planet extends RenderNode {
         }
     }
 
-    /**
-     * @protected
-     */
-    _renderColorPickingFramebufferPASS() {
+    protected _renderColorPickingFramebufferPASS() {
         let sh;
         let renderer = this.renderer;
         let h = renderer.handler;

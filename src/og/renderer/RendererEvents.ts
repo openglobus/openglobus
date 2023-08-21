@@ -15,7 +15,7 @@ export function createRendererEvents(renderer: Renderer) {
     return new RendererEvents(renderer);
 }
 
-type RendererEventsType = [
+export type RendererEventsType = [
     "draw",
     "postdraw",
     "resize",

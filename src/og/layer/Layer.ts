@@ -172,7 +172,7 @@ class Layer {
      */
     protected _isBaseLayer: boolean;
 
-    protected _defaultTextures: [WebGLTextureExt | null, WebGLTextureExt | null];
+    public _defaultTextures: [WebGLTextureExt | null, WebGLTextureExt | null];
 
     /**
      * Layer visibility.
@@ -231,7 +231,7 @@ class Layer {
     protected _diffuse: Float32Array | null;
     protected _specular: Float32Array | null;
 
-    protected isVector?: boolean = false;
+    protected isVector: boolean = false;
 
     constructor(name: string | null, options: ILayerParams = {}) {
 
@@ -255,6 +255,8 @@ class Layer {
         this.maxZoom = options.maxZoom || 50;
 
         this._planet = null;
+
+        this.isVector = false;
 
         /**
          * Layer attribution.
@@ -506,6 +508,8 @@ class Layer {
     public _assignPlanet(planet: Planet) {
 
         this._planet = planet;
+
+        // @ts-ignore
         planet._layers.push(this);
 
         if (planet.renderer && planet.renderer.isInitialized()) {
@@ -517,7 +521,9 @@ class Layer {
             }
             this.createTexture = planet.renderer.handler.createTexture[this._textureFilter];
 
+            // @ts-ignore
             this.events.on("visibilitychange", planet._onLayerVisibilityChanged, planet);
+
             if (this._isBaseLayer && this._visibility) {
                 planet.setBaseLayer(this);
             }
@@ -534,7 +540,8 @@ class Layer {
     }
 
     public get isIdle(): boolean {
-        return this._planet && this._planet._terrainCompletedActivated;
+        // @ts-ignore
+        return this._planet && this._planet._terrainCompletedActivated || false;
     }
 
     /**
@@ -566,9 +573,12 @@ class Layer {
         let p = this._planet;
         if (p) {
             //TODO: replace to planet
+            // @ts-ignore
             for (let i = 0; i < p._layers.length; i++) {
+                // @ts-ignore
                 if (this.isEqual(p._layers[i])) {
                     p.renderer && p.renderer.clearPickingColor(this);
+                    // @ts-ignore
                     p._layers.splice(i, 1);
                     p.updateVisibleLayers();
                     this.clear();
@@ -590,6 +600,7 @@ class Layer {
      */
     public clear() {
         if (this._planet) {
+            // @ts-ignore
             this._planet._clearLayerMaterial(this);
         }
     }
@@ -611,6 +622,15 @@ class Layer {
             this._attribution = html;
             this._planet && this._planet.updateAttributionsList();
         }
+    }
+
+    /**
+     * Gets layer attribution.
+     * @public
+     * @returns {string} Layer attribution
+     */
+    public getAttribution(): string {
+        return this._attribution;
     }
 
     /**
@@ -839,7 +859,7 @@ class Layer {
         return this._fading ? this._fadingOpacity : this._opacity;
     }
 
-    protected _refreshFadingOpacity() {
+    public _refreshFadingOpacity() {
         let p = this._planet!;
         if (
             this._visibility &&

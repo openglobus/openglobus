@@ -1189,7 +1189,7 @@ class Handler {
      * @param {Object} [params] - Texture parameters:
      * @param {callback} [success] - Creation callback
      */
-    public createDefaultTexture(params: any, success: Function) {
+    public createDefaultTexture(params: any, success: (texture: WebGLTexture) => void) {
 
         let imgCnv;
         let texture;

@@ -48,36 +48,40 @@ interface IRendererParams {
  * @class
  * @param {Handler} handler - WebGL handler context.
  * @param {Object} [params] - Renderer parameters:
- * @fires RendererEvents#draw
- * @fires RendererEvents#resize
- * @fires RendererEvents#mousemove
- * @fires RendererEvents#mousestop
- * @fires RendererEvents#lclick
- * @fires RendererEvents#rclick
- * @fires RendererEvents#mclick
- * @fires RendererEvents#ldblclick
- * @fires RendererEvents#rdblclick
- * @fires RendererEvents#mdblclick
- * @fires RendererEvents#lup
- * @fires RendererEvents#rup
- * @fires RendererEvents#mup
- * @fires RendererEvents#ldown
- * @fires RendererEvents#rdown
- * @fires RendererEvents#mdown
- * @fires RendererEvents#lhold
- * @fires RendererEvents#rhold
- * @fires RendererEvents#mhold
- * @fires RendererEvents#mousewheel
- * @fires RendererEvents#touchstart
- * @fires RendererEvents#touchend
- * @fires RendererEvents#touchcancel
- * @fires RendererEvents#touchmove
- * @fires RendererEvents#doubletouch
- * @fires RendererEvents#touchleave
- * @fires RendererEvents#touchenter
+ * @fires EventsHandler<RendererEventsType>#draw
+ * @fires EventsHandler<RendererEventsType>#resize
+ * @fires EventsHandler<RendererEventsType>#mousemove
+ * @fires EventsHandler<RendererEventsType>#mousestop
+ * @fires EventsHandler<RendererEventsType>#lclick
+ * @fires EventsHandler<RendererEventsType>#rclick
+ * @fires EventsHandler<RendererEventsType>#mclick
+ * @fires EventsHandler<RendererEventsType>#ldblclick
+ * @fires EventsHandler<RendererEventsType>#rdblclick
+ * @fires EventsHandler<RendererEventsType>#mdblclick
+ * @fires EventsHandler<RendererEventsType>#lup
+ * @fires EventsHandler<RendererEventsType>#rup
+ * @fires EventsHandler<RendererEventsType>#mup
+ * @fires EventsHandler<RendererEventsType>#ldown
+ * @fires EventsHandler<RendererEventsType>#rdown
+ * @fires EventsHandler<RendererEventsType>#mdown
+ * @fires EventsHandler<RendererEventsType>#lhold
+ * @fires EventsHandler<RendererEventsType>#rhold
+ * @fires EventsHandler<RendererEventsType>#mhold
+ * @fires EventsHandler<RendererEventsType>#mousewheel
+ * @fires EventsHandler<RendererEventsType>#touchstart
+ * @fires EventsHandler<RendererEventsType>#touchend
+ * @fires EventsHandler<RendererEventsType>#touchcancel
+ * @fires EventsHandler<RendererEventsType>#touchmove
+ * @fires EventsHandler<RendererEventsType>#doubletouch
+ * @fires EventsHandler<RendererEventsType>#touchleave
+ * @fires EventsHandler<RendererEventsType>#touchenter
  */
 
 let __resizeTimeout: any;
+
+export interface HTMLDivElementExt extends HTMLDivElement {
+    attributions?: HTMLElement;
+}
 
 class Renderer {
 
@@ -86,7 +90,7 @@ class Renderer {
      * @public
      * @type {HTMLElement | null}
      */
-    public div: HTMLElement | null;
+    public div: HTMLDivElementExt | null;
 
     /**
      * WebGL handler context.
@@ -128,7 +132,7 @@ class Renderer {
     public events: RendererEventsHandler;
 
     /**
-     * OpenGlobus controls array.
+     * Controls array.
      * @public
      * @type {Object}
      */
@@ -415,7 +419,7 @@ class Renderer {
     /**
      * Adds picking rendering callback function.
      * @param {object} sender - Callback context.
-     * @param {Renderer~pickingCallback} callback - Rendering callback.
+     * @param {Function} callback - Rendering callback.
      * @returns {Number} Handler id
      */
     public addPickingCallback(sender: any, callback: Function) {
@@ -454,7 +458,7 @@ class Renderer {
     /**
      * Assign picking color to the object.
      * @public
-     * @param {Object} obj - Object that pressume to be picked.
+     * @param {Object} obj - Object that presume to be picked.
      */
     public assignPickingColor(obj: any) {
         if (!obj._pickingColor || obj._pickingColor.isZero()) {
@@ -515,7 +519,7 @@ class Renderer {
     /**
      * Get center of the screen
      * @public
-     * @returns {math.Vec2} -
+     * @returns {Vec2} -
      */
     public getCenter(): Vec2 {
         let cnv = this.handler.canvas!;
@@ -524,7 +528,7 @@ class Renderer {
 
     /**
      * Add the given control to the renderer.
-     * @param {control.Control} control - Control.
+     * @param {Control} control - Control.
      */
     public addControl(control: Control) {
         control.addTo(this);
@@ -532,7 +536,7 @@ class Renderer {
 
     /**
      * Add the given controls array to the planet node.
-     * @param {Array.<control.Control>} cArr - Control array.
+     * @param {Array.<Control>} cArr - Control array.
      */
     public addControls(cArr: Control[]) {
         for (let i = 0; i < cArr.length; i++) {
@@ -542,7 +546,7 @@ class Renderer {
 
     /**
      * Remove control from the renderer.
-     * @param {control.Control} control  - Control.
+     * @param {Control} control  - Control.
      */
     public removeControl(control: Control) {
         control.remove();
@@ -759,7 +763,7 @@ class Renderer {
     }
 
     public removeNode(renderNode: RenderNode) {
-        // TODO: replace from RednerNode to this method
+        // TODO: replace from RenderNode to this method
         renderNode.remove();
     }
 
@@ -788,6 +792,7 @@ class Renderer {
      * Adds render node to the renderer before specific node.
      * @public
      * @param {RenderNode} renderNode - Render node.
+     * @param {RenderNode} renderNodeBefore - Insert before the renderNodeBefore node.
      */
     public addNodeBefore(renderNode: RenderNode, renderNodeBefore: RenderNode) {
         if (!this.renderNodes[renderNode.name]) {
@@ -808,7 +813,7 @@ class Renderer {
     /**
      * Adds render nodes array to the renderer.
      * @public
-     * @param {Array.<scene.RenderNode>} nodesArr - Render nodes array.
+     * @param {Array.<RenderNode>} nodesArr - Render nodes array.
      */
     public addNodes(nodesArr: RenderNode[]) {
         for (let i = 0; i < nodesArr.length; i++) {
@@ -828,7 +833,7 @@ class Renderer {
     }
 
     /**
-     * TODO: replace with cahce frendly linked list by bilboardHandler, label handler etc.
+     * TODO: replace with cache friendly linked list by BillboardHandler, LabelHandler etc.
      */
     public enqueueEntityCollectionsToDraw(ecArr: EntityCollection[]) {
         this._entityCollections.push.apply(this._entityCollections, ecArr);
@@ -865,7 +870,7 @@ class Renderer {
 
 
     /**
-     * Draws ytransparend items entity collections.
+     * Draws transparent items entity collections.
      * @protected
      */
     protected _drawTransparentEntityCollections() {
@@ -1011,7 +1016,7 @@ class Renderer {
 
         gl.disable(gl.DEPTH_TEST);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer as WebGLBuffer);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
         this.toneMappingFramebuffer!.activate();
@@ -1054,7 +1059,7 @@ class Renderer {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
         gl.uniform1i(p.uniforms.texture, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer as WebGLBuffer);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         gl.enable(gl.DEPTH_TEST);
@@ -1096,7 +1101,7 @@ class Renderer {
 
         gl.uniform2f(shu.offset, (ms.nx - 0.5) * 2, (0.5 - ms.ny) * 2);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingMaskCoordinatesBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingMaskCoordinatesBuffer as WebGLBuffer);
         gl.vertexAttribPointer(sha.coordinates, this._pickingMaskCoordinatesBuffer!.itemSize, gl.FLOAT, false, 0, 0);
         gl.drawArrays(gl.POINTS, 0, this._pickingMaskCoordinatesBuffer!.numItems);
 
@@ -1190,7 +1195,7 @@ class Renderer {
         let sh = h.programs.depth, p = sh._program;
 
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer as WebGLBuffer);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
         sh.activate();
