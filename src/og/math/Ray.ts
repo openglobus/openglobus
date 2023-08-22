@@ -1,7 +1,7 @@
-"use strict";
-
-import { EPS10 } from "../math";
-import { Vec3 } from "./Vec3";
+import {EPS10} from "../math";
+import {Box} from "../bv/Box";
+import {Sphere} from "../bv/Sphere";
+import {Vec3} from "./Vec3";
 
 /**
  * Represents a ray that extends infinitely from the provided origin in the provided direction.
@@ -10,20 +10,25 @@ import { Vec3 } from "./Vec3";
  * @param {Vec3} direction - The direction of the ray.
  */
 export class Ray {
-    constructor(origin = Vec3.ZERO, direction = Vec3.ZERO) {
-        /**
-         * The origin of the ray.
-         * @public
-         * @type {Vec3}
-         */
-        this.origin = origin || new Vec3();
+    /**
+     * The origin of the ray.
+     * @public
+     * @type {Vec3}
+     */
+    public origin: Vec3;
 
-        /**
-         * The direction of the ray.
-         * @public
-         * @type {Vec3}
-         */
-        this.direction = direction || new Vec3();
+    /**
+     * The direction of the ray.
+     * @public
+     * @type {Vec3}
+     */
+    public direction: Vec3;
+
+    constructor(origin: Vec3 = Vec3.ZERO, direction: Vec3 = Vec3.ZERO) {
+
+        this.origin = origin;
+
+        this.direction = direction;
     }
 
     /** @const */
@@ -53,7 +58,7 @@ export class Ray {
      * @param {Vec3} direction - The direction of the ray.
      * @returns {Ray}
      */
-    set(origin, direction) {
+    public set(origin: Vec3, direction: Vec3): Ray {
         this.origin = origin;
         this.direction = direction;
         return this;
@@ -65,7 +70,7 @@ export class Ray {
      * @param {number} distance - Point distance.
      * @returns {Vec3}
      */
-    getPoint(distance) {
+    public getPoint(distance: number): Vec3 {
         return Vec3.add(this.origin, this.direction.scaleTo(distance));
     }
 
@@ -79,14 +84,14 @@ export class Ray {
      * @returns {number} - Hit code, could 0 - og.Ray.OUTSIDE, 1 - og.Ray.INSIDE,
      *      2 - og.Ray.INPLANE and 3 - og.Ray.AWAY(ray goes away from triangle).
      */
-    hitTriangle(v0, v1, v2, res) {
-        var u = v1.sub(v0);
-        var v = v2.sub(v0);
-        var n = u.cross(v);
+    public hitTriangle(v0: Vec3, v1: Vec3, v2: Vec3, res: Vec3): number {
+        let u = v1.sub(v0);
+        let v = v2.sub(v0);
+        let n = u.cross(v);
 
-        var w0 = this.origin.sub(v0);
-        var a = -n.dot(w0);
-        var b = n.dot(this.direction);
+        let w0 = this.origin.sub(v0);
+        let a = -n.dot(w0);
+        let b = n.dot(this.direction);
 
         // ray is  parallel to triangle plane
         if (Math.abs(b) < EPS10) {
@@ -100,7 +105,7 @@ export class Ray {
             }
         }
 
-        var r = a / b;
+        let r = a / b;
 
         // intersect point of ray and plane
         res.copy(this.origin.add(this.direction.scaleTo(r)));
@@ -111,20 +116,20 @@ export class Ray {
         }
 
         // is res point inside the triangle?
-        var uu = u.dot(u);
-        var uv = u.dot(v);
-        var vv = v.dot(v);
-        var w = res.sub(v0);
-        var wu = w.dot(u);
-        var wv = w.dot(v);
-        var D = uv * uv - uu * vv;
+        let uu = u.dot(u);
+        let uv = u.dot(v);
+        let vv = v.dot(v);
+        let w = res.sub(v0);
+        let wu = w.dot(u);
+        let wv = w.dot(v);
+        let D = uv * uv - uu * vv;
 
-        var s = (uv * wv - vv * wu) / D;
+        let s = (uv * wv - vv * wu) / D;
         if (s < 0.0 || s > 1.0) {
             return Ray.OUTSIDE;
         }
 
-        var t = (uv * wu - uu * wv) / D;
+        let t = (uv * wu - uu * wv) / D;
         if (t < 0.0 || s + t > 1.0) {
             return Ray.OUTSIDE;
         }
@@ -141,14 +146,14 @@ export class Ray {
      * @param {Vec3} res - Hit point object pointer that stores hit result.
      * @returns {number}
      */
-    hitPlane(v0, v1, v2, res) {
-        var u = Vec3.sub(v1, v0);
-        var v = Vec3.sub(v2, v0);
-        var n = u.cross(v);
+    public hitPlane(v0: Vec3, v1: Vec3, v2: Vec3, res: Vec3): number {
+        let u = Vec3.sub(v1, v0);
+        let v = Vec3.sub(v2, v0);
+        let n = u.cross(v);
 
-        var w0 = Vec3.sub(this.origin, v0);
-        var a = -n.dot(w0);
-        var b = n.dot(this.direction);
+        let w0 = Vec3.sub(this.origin, v0);
+        let a = -n.dot(w0);
+        let b = n.dot(this.direction);
 
         // ray is  parallel to the plane
         if (Math.abs(b) < EPS10) {
@@ -157,13 +162,13 @@ export class Ray {
             }
         }
 
-        var r = a / b;
+        let r = a / b;
 
         if (r < 0) {
             return Ray.OUTSIDE;
         }
 
-        var d = this.direction.scaleTo(r);
+        let d = this.direction.scaleTo(r);
 
         // intersect point of ray and plane
         res.x = this.origin.x + d.x;
@@ -179,12 +184,14 @@ export class Ray {
      * @param {Sphere} sphere - Sphere object.
      * @returns {Vec3}
      */
-    hitSphere(sphere) {
-        var r = sphere.radius,
+    public hitSphere(sphere: Sphere) {
+        let r = sphere.radius,
             c = sphere.center,
             o = this.origin,
             d = this.direction;
-        var vpc = Vec3.sub(c, o);
+
+        let vpc = Vec3.sub(c, o);
+
         if (vpc.dot(d) < 0) {
             var l = vpc.length();
             if (l > r) {
@@ -218,20 +225,9 @@ export class Ray {
         }
     }
 
-    hitBox(box) {
+    public hitBox(box: Box) {
         //
         // TODO
         //
     }
-}
-
-/**
- * Ray object creator.
- * @function
- * @param {Vec3} origin - The origin of the ray.
- * @param {Vec3} direction - The direction of the ray.
- * @returns {Ray}
- */
-export function ray(origin, direction) {
-    return new Ray(origin, direction);
 }
