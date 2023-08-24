@@ -32,7 +32,7 @@ export interface ILayerParams {
     isSRGB?: boolean;
     pickingEnabled?: boolean;
     preLoadZoomLevels?: number[];
-    extent?: Extent | NumberArray3[];
+    extent?: Extent | [[number, number], [number, number]];
     ambient?: string | NumberArray3 | Vec3;
     diffuse?: string | NumberArray3 | Vec3;
     specular?: string | NumberArray3 | Vec3;

@@ -823,7 +823,7 @@ class Renderer {
 
     public getMaxMSAA(internalFormat: string) {
         let gl = this.handler.gl!;
-        let samples = gl.getInternalformatParameter(gl.RENDERBUFFER, gl[internalFormat], gl.SAMPLES);
+        let samples = gl.getInternalformatParameter(gl.RENDERBUFFER, gl[internalFormat] as any, gl.SAMPLES);
         return samples[0];
     }
 

@@ -240,7 +240,7 @@ export function createColorRGB(c?: string | NumberArray3 | Vec3 | null, def?: Ve
     return new Vec3(1.0, 1.0, 1.0);
 }
 
-export function createExtent(e?: Extent | NumberArray3[], def?: Extent): Extent {
+export function createExtent(e?: Extent | [[number, number], [number, number]] | null, def?: Extent): Extent {
     if (e) {
         if (e instanceof Array) {
             return new Extent(createLonLat(e[0]), createLonLat(e[1]));
@@ -266,7 +266,7 @@ export function createLonLat(l?: LonLat | NumberArray2 | NumberArray3, def?: Lon
     return new LonLat();
 }
 
-export function binarySearchFast(arr: number[], x: number) {
+export function binarySearchFast(arr: number[] | TypedArray, x: number) {
     let start = 0,
         end = arr.length - 1;
     while (start <= end) {
@@ -646,7 +646,7 @@ export function blerp2(x: number, y: number, fQ11: number, fQ21: number, fQ12: n
     );
 }
 
-export function extractElevationTiles(rgbaData: number[], outCurrenElevations: number[], outChildrenElevations: number[][][]) {
+export function extractElevationTiles(rgbaData: number[] | TypedArray, outCurrenElevations: number[] | TypedArray, outChildrenElevations: number[][][] | TypedArray[][]) {
     let destSize = Math.sqrt(outCurrenElevations.length) - 1;
     let destSizeOne = destSize + 1;
     let sourceSize = Math.sqrt(rgbaData.length / 4);

@@ -804,9 +804,9 @@ export class Planet extends RenderNode {
             this._plainSegmentWorker.setGeoid(terrain.getGeoid());
             terrain._isReady = true;
         } else {
-            Geoid.loadModel(terrain._geoid.src)
+            Geoid.loadModel(terrain.geoid.src)
                 .then((m) => {
-                    terrain.getGeoid().setModel(m);
+                    terrain.geoid.setModel(m);
                     this._plainSegmentWorker.setGeoid(terrain.getGeoid());
                     terrain._isReady = true;
                 })

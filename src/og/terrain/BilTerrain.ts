@@ -1,16 +1,27 @@
-"use strict";
+import {getTileExtent} from "../mercator";
+import {GlobusTerrain, IGlobusTerrainParams} from "./GlobusTerrain";
+import {Layer} from "../layer/Layer";
+import {WMS} from "../layer/WMS";
+import {isPowerOfTwo, nextHighestPowerOfTwo} from "../math";
+import {Segment} from "../segment/Segment";
+import {Extent} from "../Extent";
+import {TypedArray} from "../utils/shared";
 
-import { Layer } from "../layer/Layer.js";
-import { WMS } from "../layer/WMS.js";
-import { isPowerOfTwo, nextHighestPowerOfTwo } from "../math";
-import { getTileExtent } from "../mercator";
-import { GlobusTerrain } from "./GlobusTerrain.js";
+interface IBilTerrainParams extends IGlobusTerrainParams {
+    layers?: string;
+    imageSize?: number;
+}
 
 class BilTerrain extends GlobusTerrain {
-    constructor(options) {
-        super("bil", options);
 
-        options = options || {};
+    protected _format: string;
+
+    protected _layers: string;
+
+    protected _imageSize: number;
+
+    constructor(options: IBilTerrainParams = {}) {
+        super("BilTerrain", options);
 
         this.equalizeVertices = true;
 
@@ -30,24 +41,18 @@ class BilTerrain extends GlobusTerrain {
 
         this._imageSize = options.imageSize || 256;
 
-        this.plainGridSize =
-            options.plainGridSize != undefined
-                ? options.plainGridSize
-                : isPowerOfTwo(this._imageSize)
-                    ? this._imageSize / 2
-                    : nextHighestPowerOfTwo(this._imageSize) / 2;
+        this.plainGridSize = options.plainGridSize != undefined
+            ? options.plainGridSize
+            : isPowerOfTwo(this._imageSize) ? this._imageSize / 2 : nextHighestPowerOfTwo(this._imageSize) / 2;
 
         this._dataType = "arrayBuffer";
     }
 
-    isBlur(segment) {
-        if (segment.tileZoom >= 18) {
-            return true;
-        }
-        return false;
+    public override isBlur(segment: Segment): boolean {
+        return segment.tileZoom >= 18;
     }
 
-    _createUrl(segment) {
+    protected override _createUrl(segment: Segment): string {
         return WMS.createRequestUrl(
             this.url,
             this._layers,
@@ -61,11 +66,12 @@ class BilTerrain extends GlobusTerrain {
         );
     }
 
-    _createHeights(data, segment) {
+    protected override _createHeights(data: number[], tileIndex: string, tileX: number, tileY: number, tileZoom: number, extent: Extent, preventChildren: boolean): TypedArray | number[] {
+
         let bil16 = new Int16Array(data);
 
         //
-        //Non power of two images
+        //Non-power of two images
         //
         if (!isPowerOfTwo(this._imageSize)) {
             let outCurrenElevations = new Float32Array(bil16.length);
@@ -91,18 +97,18 @@ class BilTerrain extends GlobusTerrain {
 
         extractElevationTiles(bil16, this.noDataValues, outCurrenElevations, outChildrenElevations);
 
-        this._elevationCache[segment.tileIndex] = {
+        this._elevationCache[tileIndex] = {
             heights: outCurrenElevations,
-            extent: segment.getExtent()
+            extent: extent
         };
 
         let dd = this._imageSize / this.plainGridSize;
 
         for (let i = 0; i < dd; i++) {
             for (let j = 0; j < dd; j++) {
-                let x = segment.tileX * 2 + j,
-                    y = segment.tileY * 2 + i,
-                    z = segment.tileZoom + 1;
+                let x = tileX * 2 + j,
+                    y = tileY * 2 + i,
+                    z = tileZoom + 1;
                 let tileIndex = Layer.getTileIndex(x, y, z);
                 this._elevationCache[tileIndex] = {
                     heights: outChildrenElevations[i][j],
@@ -115,13 +121,13 @@ class BilTerrain extends GlobusTerrain {
     }
 }
 
-function extractElevationTilesNonPowerOfTwo(data, outCurrenElevations) {
+function extractElevationTilesNonPowerOfTwo(data: number[] | TypedArray, outCurrenElevations: number[] | TypedArray) {
     for (let i = 0, len = outCurrenElevations.length; i < len; i++) {
         outCurrenElevations[i] = data[i];
     }
 }
 
-function extractElevationTiles(data, noDataValues, outCurrenElevations, outChildrenElevations) {
+function extractElevationTiles(data: number[] | TypedArray, noDataValues: number[] | TypedArray, outCurrenElevations: number[] | TypedArray, outChildrenElevations: number[][][] | TypedArray[][]) {
     let destSize = Math.sqrt(outCurrenElevations.length) - 1;
     let destSizeOne = destSize + 1;
     let sourceSize = Math.sqrt(data.length);
@@ -240,4 +246,4 @@ function extractElevationTiles(data, noDataValues, outCurrenElevations, outChild
     }
 }
 
-export { BilTerrain };
+export {BilTerrain};

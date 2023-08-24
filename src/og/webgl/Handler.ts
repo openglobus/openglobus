@@ -968,7 +968,7 @@ class Handler {
         let gl = this.gl!;
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
         gl.bufferSubData(gl.ARRAY_BUFFER, offset, array as any);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null as any);
         return buffer;
     }
 

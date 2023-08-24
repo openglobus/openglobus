@@ -1,42 +1,40 @@
-/**
- * Datasource http://www.viewfinderpanoramas.org/ srtm 3 arc second
- */
-"use strict";
-
-import { Events } from "../Events";
 import * as mercator from "../mercator";
-import { EPSG3857 } from "../proj/EPSG3857.js";
-import { NOTRENDERING } from "../quadTree/quadTree.js";
-import { Loader } from "../utils/Loader.js";
-import { EmptyTerrain } from "./EmptyTerrain.js";
+import {createEvents, EventsHandler} from "../Events";
+import {createExtent, stringTemplate, TypedArray} from "../utils/shared";
+import {EPSG3857} from "../proj/EPSG3857";
+import {EmptyTerrain, IEmptyTerrainParams} from "./EmptyTerrain";
+import {Extent} from "../Extent";
+import {Layer} from "../layer/Layer";
+import {Loader} from "../utils/Loader.js";
+import {LonLat} from "../LonLat";
+import {NOTRENDERING} from "../quadTree/quadTree";
+import {Segment} from "../segment/Segment";
 // import { QueueArray } from '../QueueArray.js';
-import { Extent } from "../Extent";
-import { Layer } from "../layer/Layer.js";
-import { LonLat } from "../LonLat";
-import { Ray } from "../math/Ray.js";
-import { Vec3 } from "../math/Vec3";
-import { createExtent, stringTemplate } from "../utils/shared";
+import {Ray} from "../math/Ray";
+import {Vec3} from "../math/Vec3";
 
-const EVENT_NAMES = [
-    /**
-     * Triggered when current elevation tile has loaded but before rendereing.
-     * @event og.terrain.GlobusTerrain#load
-     */
-    "load",
+export interface IGlobusTerrainParams extends IEmptyTerrainParams {
+    subdomains?: string[];
+    url?: string;
+    extent?: Extent | [[number, number], [number, number]];
+    urlRewrite?: UrlRewriteFunc;
+    noDataValues?: number[];
+    plainGridSize?: number;
+}
 
-    /**
-     * Triggered when all elevation tiles have loaded or loading has stopped.
-     * @event og.terrain.GlobusTerrain#loadend
-     */
-    "loadend"
-];
+type TileData = {
+    heights: number[] | TypedArray | null,
+    extent: Extent | null
+}
+
+type UrlRewriteFunc = (segment: Segment, url: string) => string;
 
 /**
  * Class that loads segment elevation data, converts it to the array and passes it to the planet segment.
  * @class
- * @extends {EmptyTerrain}
+ * @extends {GlobusTerrain}
  * @param {string} [name=""] - Terrain provider name.
- * @param {Object} [options] - Provider options:
+ * @param {IGlobusTerrainParams} [options] - Provider options:
  * @param {number} [options.minZoom=3] - Minimal visible zoom index when terrain handler works.
  * @param {number} [options.minZoom=14] - Maximal visible zoom index when terrain handler works.
  * @param {number} [options.minNativeZoom=14] - Maximal available terrain zoom level.
@@ -46,15 +44,49 @@ const EVENT_NAMES = [
  * @param {string} [options.responseType="arraybuffer"] - Responce type.
  * @param {number} [options.MAX_LOADING_TILES] - Maximum at one time loading tiles.
  * @param {Array.<number>} [gridSizeByZoom] - Array of values, where each value corresponds to the size of a tile(or segment) on the globe. Each value must be power of two.
- * @fires og.terrain.GlobusTerrain#load
- * @fires og.terrain.GlobusTerrain#loadend
+ *
+ * @fires GlobusTerrainEvents#load
+ * @fires GlobusTerrainEvents#loadend
  */
 class GlobusTerrain extends EmptyTerrain {
+
+    public events: GlobusTerrainEvents;
+
+    protected _s: string[];
+
+    protected _requestCount: number;
+
+    protected _requestsPeerSubdomian: number;
+
     /**
-     * @param {string} [name]
-     * @param {*} [options]
+     * Terrain source path url template.
+     * @protected
+     * @type {string}
      */
-    constructor(name, options = {}) {
+    protected url: string;
+
+    public noDataValues: number[];
+
+    protected _extent: Extent;
+
+    protected _dataType: string;
+
+    protected _elevationCache: Record<string, TileData>;
+
+    protected _fetchCache: Record<string, Promise<any>>;
+
+    protected _loader: Loader;
+
+    /**
+     * Rewrites elevation storage url query.
+     * @protected
+     * @type {Function} -
+     */
+    protected _urlRewriteCallback: UrlRewriteFunc | null;
+
+
+    constructor(name: string | null, options: IGlobusTerrainParams = {}) {
+
         super({
             geoidSrc: "//openglobus.org/geoid/egm84-30.pgm",
             maxNativeZoom: options.maxNativeZoom || 14,
@@ -63,12 +95,7 @@ class GlobusTerrain extends EmptyTerrain {
 
         this._s = options.subdomains || ["a", "b", "c"];
 
-        /**
-         * Events handler.
-         * @public
-         * @type {Events}
-         */
-        this.events = new Events(EVENT_NAMES, this);
+        this.events = createEvents(GLOBUSTERRAIN_EVENTS, this);
 
         this._requestCount = 0;
 
@@ -78,42 +105,19 @@ class GlobusTerrain extends EmptyTerrain {
 
         this.equalizeNormals = true;
 
-        /**
-         * Provider name.
-         * @public
-         * @type {string}
-         */
         this.name = name || "openglobus";
 
-        /**
-         * Terrain source path url template.
-         * @public
-         * @type {string}
-         */
         this.url = options.url || "//{s}.srtm3.openglobus.org/{z}/{y}/{x}.ddm";
 
-        /**
-         * Array of segment triangulation grid sizes where array index agreed to the segment zoom index.
-         * @public
-         * @type {Array.<number>}
-         */
         this.gridSizeByZoom = options.gridSizeByZoom || [
             64, 32, 32, 16, 16, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 16, 8, 4, 2, 2, 2, 2, 2, 2
         ];
 
         this.noDataValues = options.noDataValues || [];
 
-        /**
-         * Elevation tile grid size.
-         * @public
-         * @type {number}
-         */
         this.plainGridSize = options.plainGridSize || 32;
 
-        this._extent = createExtent(
-            options.extent,
-            new Extent(new LonLat(-180.0, -90.0), new LonLat(180.0, 90.0))
-        );
+        this._extent = createExtent(options.extent, new Extent(new LonLat(-180.0, -90.0), new LonLat(180.0, 90.0)));
 
         this._dataType = "arrayBuffer";
 
@@ -125,44 +129,37 @@ class GlobusTerrain extends EmptyTerrain {
 
         this._loader = new Loader();
 
-        /**
-         * Rewrites elevation storage url query.
-         * @private
-         * @callback og.terrain.GlobusTerrain~_urlRewriteCallback
-         * @param {Segment} segment - Segment to load.
-         * @param {string} url - Created url.
-         * @returns {string} - Url query string.
-         */
         this._urlRewriteCallback = options.urlRewrite || null;
     }
 
-    clearCache() {
-        //?
+    public override clearCache() {
         for (let c in this._elevationCache) {
             this._elevationCache[c].heights = null;
             this._elevationCache[c].extent = null;
             delete this._elevationCache[c];
         }
+        //@ts-ignore
         this._elevationCache = null;
         this._elevationCache = {};
 
-        //?
         for (let c in this._fetchCache) {
+            //@ts-ignore
             this._fetchCache[c] = null;
             delete this._fetchCache[c];
         }
+        //@ts-ignore
         this._fetchCache = null;
         this._fetchCache = {};
     }
 
-    isBlur(segment) {
+    public override isBlur(segment: Segment): boolean {
         if (segment.tileZoom >= 6) {
             return true;
         }
         return false;
     }
 
-    getHeightAsync(lonLat, callback, zoom, firstAttempt) {
+    public override getHeightAsync(lonLat: LonLat, callback: (h: number) => void, zoom?: number, firstAttempt?: boolean): boolean {
         if (!lonLat || lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
             callback(0);
             return true;
@@ -197,35 +194,34 @@ class GlobusTerrain extends EmptyTerrain {
                 });
             }
 
-            this._fetchCache[tileIndex].then((response) => {
+            this._fetchCache[tileIndex].then((response: any) => {
 
                 let extent = mercator.getTileExtent(x, y, z);
 
                 if (response.status === "ready") {
-                    let cache = {
+                    let cache: TileData = {
                         heights: this._createHeights(response.data, tileIndex, x, y, z, extent),
                         extent: extent
                     };
                     this._elevationCache[tileIndex] = cache;
                     callback(this._getGroundHeightMerc(merc, cache));
-                } else if (response.status === "error") {
 
+                } else if (response.status === "error") {
                     if (firstAttempt && z > this.maxZoom) {
                         firstAttempt = false;
                         this.getHeightAsync(lonLat, callback, this.maxZoom, false);
                         return;
                     }
 
-                    let cache = {
+                    this._elevationCache[tileIndex] = {
                         heights: null,
                         extent: extent
                     };
 
-                    this._elevationCache[tileIndex] = cache;
-
                     callback(0);
 
                 } else {
+                    // @ts-ignore
                     this._fetchCache[tileIndex] = null;
                     delete this._fetchCache[tileIndex];
                 }
@@ -235,7 +231,7 @@ class GlobusTerrain extends EmptyTerrain {
         return false;
     }
 
-    getTileCache(lonLat, z) {
+    public getTileCache(lonLat: LonLat, z: number): TileData | undefined {
         if (!lonLat || lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
             return;
         }
@@ -251,7 +247,7 @@ class GlobusTerrain extends EmptyTerrain {
         return this._elevationCache[tileIndex];
     }
 
-    _getGroundHeightMerc(merc, tileData) {
+    protected _getGroundHeightMerc(merc: LonLat, tileData: TileData): number {
         if (!(tileData.extent && tileData.heights)) {
             return 0;
         }
@@ -282,11 +278,7 @@ class GlobusTerrain extends EmptyTerrain {
             h2 = tileData.heights[v2Ind],
             h3 = tileData.heights[v3Ind];
 
-        let v0 = new Vec3(
-                tileData.extent.southWest.lon + size * j,
-                h0,
-                tileData.extent.northEast.lat - size * i - size
-            ),
+        let v0 = new Vec3(tileData.extent.southWest.lon + size * j, h0, tileData.extent.northEast.lat - size * i - size),
             v1 = new Vec3(v0.x + size, h1, v0.z),
             v2 = new Vec3(v0.x, h2, v0.z + size),
             v3 = new Vec3(v0.x + size, h3, v0.z + size);
@@ -305,13 +297,15 @@ class GlobusTerrain extends EmptyTerrain {
         if (d === Ray.INSIDE) {
             return res.y;
         }
+
+        return 0;
     }
 
     /**
      * Stop loading.
      * @public
      */
-    abortLoading() {
+    public override abortLoading() {
         this._loader.abortAll();
     }
 
@@ -322,7 +316,7 @@ class GlobusTerrain extends EmptyTerrain {
      * @example <caption>Default openglobus url template:</caption>:
      * "http://earth3.openglobus.org/{z}/{y}/{x}.ddm"
      */
-    setUrl(url) {
+    public setUrl(url: string) {
         this.url = url;
     }
 
@@ -331,47 +325,46 @@ class GlobusTerrain extends EmptyTerrain {
      * @public
      * @param {string} name - Name.
      */
-    setName(name) {
+    public setName(name: string) {
         this.name = name;
     }
 
-    isReadyToLoad(segment) {
-        return (
-            segment._projection.id === EPSG3857.id &&
-            this._extent.overlaps(segment.getExtentLonLat())
-        );
+    public isReadyToLoad(segment: Segment): boolean {
+        return segment._projection.equal(EPSG3857) && this._extent.overlaps(segment.getExtentLonLat());
     }
 
     /**
-     * Starts to load segment data.
+     * Starts to load segment elevation data.
      * @public
-     * @virtual
      * @param {Segment} segment - Segment that wants a terrain data.
-     * @param {boolean} forceLoading
+     * @param {boolean} [forceLoading] -
      */
-    loadTerrain(segment, forceLoading) {
-        if (this._planet.terrainLock.isFree()) {
+    public override loadTerrain(segment: Segment, forceLoading: boolean = false) {
+
+        if (this._planet!.terrainLock.isFree()) {
+
             segment.terrainReady = false;
             segment.terrainIsLoading = true;
+
             if (this.isReadyToLoad(segment)) {
+
                 let cache = this._elevationCache[segment.tileIndex];
+
                 if (cache) {
                     this._applyElevationsData(segment, cache.heights);
                 } else {
-                    this._loader.load(
-                        {
+                    this._loader.load({
                             sender: this,
                             src: this._getHTTPRequestString(segment),
                             segment: segment,
                             type: this._dataType,
-                            filter: () =>
-                                (segment.plainReady && segment.node.getState() !== NOTRENDERING) ||
-                                forceLoading
-                        },
-                        (response) => {
+                            filter: () => (segment.plainReady && segment.node.getState() !== NOTRENDERING) || forceLoading
+                        }, (response: any) => {
+
                             if (response.status === "ready") {
 
-                                let heights = this._createHeights(response.data,
+                                let heights = this._createHeights(
+                                    response.data,
                                     segment.tileIndex,
                                     segment.tileX, segment.tileY, segment.tileZoom,
                                     segment.getExtent(),
@@ -403,30 +396,28 @@ class GlobusTerrain extends EmptyTerrain {
         }
     }
 
-    _getSubdomain() {
+    protected _getSubdomain(): string {
         this._requestCount++;
         return this._s[Math.floor(this._requestCount % (this._requestsPeerSubdomian * this._s.length) / this._requestsPeerSubdomian)];
     }
 
-    _buildURL(x, y, z) {
+    protected _buildURL(x: number, y: number, z: number): string {
         return stringTemplate(this.url, {
-            s: this._getSubdomain(), x, y, z
+            s: this._getSubdomain(),
+            x: x.toString(),
+            y: y.toString(),
+            z: z.toString()
         });
     }
 
     /**
-     * Creates query url.
+     * Creates default query url string.
      * @protected
-     * @virtual
      * @param {Segment} segment -
      * @returns {string} -
      */
-    _createUrl(segment) {
-        return this._buildURL(
-            segment.tileX.toString(),
-            segment.tileY.toString(),
-            segment.tileZoom.toString()
-        )
+    protected _createUrl(segment: Segment): string {
+        return this._buildURL(segment.tileX, segment.tileY, segment.tileZoom);
     }
 
     /**
@@ -435,29 +426,26 @@ class GlobusTerrain extends EmptyTerrain {
      * @param {Segment} segment - Segment that loads image data.
      * @returns {string} - Url string.
      */
-    _getHTTPRequestString(segment) {
-        return this._urlRewriteCallback
-            ? this._urlRewriteCallback(segment, this.url)
-            : this._createUrl(segment);
+    protected _getHTTPRequestString(segment: Segment): string {
+        return this._urlRewriteCallback ? this._urlRewriteCallback(segment, this.url) : this._createUrl(segment);
     }
 
     /**
      * Sets url rewrite callback, used for custom url rewriting for every tile laoding.
      * @public
-     * @param {GlobusTerrain~_urlRewriteCallback} ur - The callback that returns tile custom created url.
+     * @param {UrlRewriteFunc} ur - The callback that returns tile custom created url.
      */
-    setUrlRewriteCallback(ur) {
+    public setUrlRewriteCallback(ur: UrlRewriteFunc) {
         this._urlRewriteCallback = ur;
     }
 
     /**
      * Converts loaded data to segment elevation data type(columr major elevation data array in meters)
      * @public
-     * @virtual
      * @param {*} data - Loaded elevation data.
      * @returns {Array.<number>} -
      */
-    _createHeights(data) {
+    protected _createHeights(data: any, tileIndex?: string, x?: number, y?: number, z?: number, extent?: Extent, isMaxZoom?: boolean): TypedArray | number[] {
         return new Float32Array(data);
     }
 
@@ -466,9 +454,9 @@ class GlobusTerrain extends EmptyTerrain {
      * @param {Segment} segment -
      * @param {*} data -
      */
-    _applyElevationsData(segment, elevations) {
+    protected _applyElevationsData(segment: Segment, elevations: number[] | TypedArray | null) {
         if (segment) {
-            var e = this.events.load;
+            let e = this.events.load!;
             if (e.handlers.length) {
                 this.events.dispatch(e, {
                     elevations: elevations,
@@ -480,4 +468,26 @@ class GlobusTerrain extends EmptyTerrain {
     }
 }
 
-export { GlobusTerrain };
+type GlobusTerrainEventsList = [
+    "load",
+    "loadend"
+];
+
+type GlobusTerrainEvents = EventsHandler<GlobusTerrainEventsList>;
+
+const GLOBUSTERRAIN_EVENTS: GlobusTerrainEventsList = [
+    /**
+     * Triggered when current elevation tile has loaded but before rendereing.
+     * @event og.terrain.GlobusTerrain#load
+     */
+    "load",
+
+    /**
+     * Triggered when all elevation tiles have loaded or loading has stopped.
+     * @event og.terrain.GlobusTerrain#loadend
+     */
+    "loadend"
+];
+
+
+export {GlobusTerrain};
