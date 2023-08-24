@@ -18,6 +18,8 @@ class Control {
 
         this._name = options.name || "_control_" + this._id;
 
+        this.planet = null;
+
         /**
          * Control initialized.
          * @protected

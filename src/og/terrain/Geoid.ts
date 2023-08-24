@@ -34,40 +34,68 @@
 //        console.log(err);
 //    });
 
-'use strict';
+import {LonLat} from "../LonLat";
+
+interface IGeoidParams {
+    model?: GeoidModel;
+    src?: string | null;
+}
+
+
+export type GeoidModel = {
+    scale: number;
+    offset: number,
+    width: number;
+    height: number;
+    rlonres: number;
+    rlatres: number;
+    i: number;
+    rawfile: Uint8Array
+};
 
 class Geoid {
-    constructor(options = {}) {
+
+    public model: GeoidModel | null;
+    public src: string | null;
+
+    protected _cached_ix: number;
+    protected _cached_iy: number;
+    protected _v00: number;
+    protected _v01: number;
+    protected _v10: number;
+    protected _v11: number;
+    protected _t: number;
+
+    constructor(options: IGeoidParams = {}) {
 
         this.model = options.model || null;
         this.src = options.src || null;
 
-        this._cached_ix = null;
-        this._cached_iy = null;
-        this._v00 = null;
-        this._v01 = null;
-        this._v10 = null;
-        this._v11 = null;
-        this._t = null;
+        this._cached_ix = 0;
+        this._cached_iy = 0;
+        this._v00 = 0;
+        this._v01 = 0;
+        this._v10 = 0;
+        this._v11 = 0;
+        this._t = 0;
     }
 
-    static loadModel(url) {
+    static loadModel(url?: string | null): Promise<GeoidModel | null> {
         if (!url) {
-            return new Promise((resolve) => {
+            return new Promise((resolve: any) => {
                 resolve(null);
             });
         } else
-
             return fetch(url, {})
 
-                .then((r) => {
+                .then((r: Response) => {
                     if (!r.ok) {
                         throw Error("Geoid model file: HTTP error " + r.status);
                     }
                     return r.arrayBuffer();
                 })
 
-                .then((r) => {
+                .then((r: ArrayBuffer) => {
                     if (r) {
                         return new Uint8Array(r);
                     } else {
@@ -75,7 +103,7 @@ class Geoid {
                     }
                 })
 
-                .then(function (rawfile) {
+                .then(function (rawfile: Uint8Array) {
 
                     if (!((rawfile[0] === 80) && (rawfile[1] === 53) && (
                         ((rawfile[2] === 13) && (rawfile[3] === 10)) ||
@@ -84,12 +112,12 @@ class Geoid {
                         throw new Error("Geoid model file: no PGM header");
                     }
 
-                    var i = (rawfile[2] === 13) ? 4 : 3;
-                    var offset = null;
-                    var scale = null;
+                    var i: number = (rawfile[2] === 13) ? 4 : 3;
+                    var offset: number | null = null;
+                    var scale: number | null = null;
 
-                    function getline() {
-                        var start = i;
+                    function getline(): string {
+                        let start = i;
                         for (var j = i; ; j++) {
                             if (j >= rawfile.length) {
                                 throw new Error("Geoid model file: missing newline in header");
@@ -100,7 +128,7 @@ class Geoid {
                             }
                         }
                         if ((j > start) && (rawfile[j - 1] === 13)) j--;
-                        return String.fromCharCode.apply(null, rawfile.slice(start, j));
+                        return String.fromCharCode.apply(null, rawfile.slice(start, j) as any);
                     }
 
                     var m, s;
@@ -126,8 +154,8 @@ class Geoid {
 
                     m = s.match(/^\s*(\d+)\s+(\d+)\s*$/);
 
-                    var width = null;
-                    var height = null;
+                    let width: number = 0;
+                    let height: number = 0;
 
                     if (m) {
                         width = parseInt(m[1], 10);
@@ -138,7 +166,7 @@ class Geoid {
                         throw new Error("Geoid model file: bad PGM width&height line");
                     }
 
-                    var levels = parseInt(getline());
+                    let levels = parseInt(getline());
 
                     if (levels != 65535) {
                         throw new Error("Geoid model file: PGM file must have 65535 gray levels");
@@ -153,7 +181,7 @@ class Geoid {
                         throw new Error("Geoid model file: Raster size too small");
                     }
 
-                    var payload_len = rawfile.length - i;
+                    let payload_len = rawfile.length - i;
 
                     if (payload_len !== (width * height * 2)) {
                         throw new Error("Geoid model file: File has the wrong length");
@@ -172,12 +200,12 @@ class Geoid {
                 });
     }
 
-    setModel(model) {
+    setModel(model: GeoidModel | null) {
         this.model = model;
     }
 
-    _rawval(ix, iy) {
-        let model = this.model;
+    protected _rawval(ix: number, iy: number): number {
+        let model = this.model!;
 
         if (iy < 0) {
             iy = -iy;
@@ -193,16 +221,16 @@ class Geoid {
             ix -= model.width;
         }
 
-        var k = (iy * model.width + ix) * 2 + model.i;
+        let k = (iy * model.width + ix) * 2 + model.i;
 
         return (model.rawfile[k] << 8) | model.rawfile[k + 1];
     }
 
-    getHeightLonLat(lonlat) {
+    public getHeightLonLat(lonlat: LonLat): number {
         return this.getHeight(lonlat.lon, lonlat.lat);
     }
 
-    getHeight(lon, lat) {
+    public getHeight(lon: number, lat: number): number {
 
         if (!this.model) return 0;
 
@@ -210,10 +238,10 @@ class Geoid {
 
         if (lon < 0) lon += 360.0;
 
-        var fy = (90 - lat) * model.rlatres;
-        var fx = lon * model.rlonres;
-        var iy = Math.floor(fy);
-        var ix = Math.floor(fx);
+        let fy = (90 - lat) * model.rlatres;
+        let fx = lon * model.rlonres;
+        let iy = Math.floor(fy);
+        let ix = Math.floor(fx);
 
         fx -= ix;
         fy -= iy;
@@ -233,15 +261,13 @@ class Geoid {
             this._v11 = this._rawval(ix + 1, iy + 1);
         }
 
-        let h = null;
+        let a = (1 - fx) * this._v00 + fx * this._v01;
+        let b = (1 - fx) * this._v10 + fx * this._v11;
 
-        var a = (1 - fx) * this._v00 + fx * this._v01;
-        var b = (1 - fx) * this._v10 + fx * this._v11;
-
-        h = (1 - fy) * a + fy * b;
+        let h = (1 - fy) * a + fy * b;
 
         return model.offset + model.scale * h;
     }
 }
 
-export { Geoid };
+export {Geoid};

@@ -13,7 +13,7 @@ import {Extent} from "../Extent";
 import {Entity} from "../entity/Entity";
 import {Ellipsoid} from "../ellipsoid/Ellipsoid";
 import {EntityCollection} from "../entity/EntityCollection";
-import {Geoid} from "../terrain/Geoid.js";
+import {Geoid, GeoidModel} from "../terrain/Geoid";
 import {GeoImageCreator} from "../utils/GeoImageCreator.js";
 import {IBaseInputState} from "../renderer/RendererEvents";
 import {Key, Lock} from "../Lock.js";
@@ -805,7 +805,7 @@ export class Planet extends RenderNode {
             terrain._isReady = true;
         } else {
             Geoid.loadModel(terrain.geoid.src)
-                .then((m) => {
+                .then((m: GeoidModel | null) => {
                     terrain.geoid.setModel(m);
                     this._plainSegmentWorker.setGeoid(terrain.getGeoid());
                     terrain._isReady = true;
