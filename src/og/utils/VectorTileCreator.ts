@@ -1,26 +1,39 @@
 'use strict';
 
-import { doubleToTwoFloats2 } from '../math/coder.js';
-import { RENDERING } from '../quadTree/quadTree.js';
-import { Framebuffer } from '../webgl/Framebuffer.js';
-import { Program } from '../webgl/Program.js';
+import {doubleToTwoFloats2} from '../math/coder';
+import {Framebuffer} from '../webgl/Framebuffer';
+import {Handler} from "../webgl/Handler";
+import {Material} from "../layer/Material";
+import {Program} from '../webgl/Program';
+import {Planet} from "../scene/Planet";
+import {RENDERING} from '../quadTree/quadTree';
+import {Vector} from "../layer/Vector";
 
 let tempArr = new Float32Array(2);
 
 const MAX_FRAME_TIME = 25.0;
 
 export class VectorTileCreator {
-    constructor(planet, width = 512, height = 512) {
+
+    protected _width: number;
+    protected _height: number;
+    protected _planet: Planet;
+    protected _framebuffer: Framebuffer | null;
+    protected _queue: Material[];
+    protected _handler: Handler | null;
+
+    constructor(planet: Planet, width: number = 512, height: number = 512) {
         this._width = width;
         this._height = height;
         this._planet = planet;
         this._framebuffer = null;
         this._queue = [];
+        this._handler = null;
     }
 
-    init() {
+    public init() {
 
-        this._handler = this._planet.renderer.handler;
+        this._handler = this._planet.renderer!.handler;
 
         //Line
         if (!this._handler.programs.vectorTileLineRasterization) {
@@ -182,13 +195,14 @@ export class VectorTileCreator {
             height: this._height,
             useDepth: false
         });
+
         this._framebuffer.init();
     }
 
-    frame() {
+    public frame() {
         if (this._planet.layerLock.isFree() && this._queue.length) {
-            let h = this._handler,
-                gl = h.gl;
+            let h = this._handler!,
+                gl = h.gl!;
 
             gl.disable(gl.CULL_FACE);
             gl.disable(gl.DEPTH_TEST);
@@ -208,7 +222,7 @@ export class VectorTileCreator {
             let extentParamsHigh = new Float32Array(4);
             let extentParamsLow = new Float32Array(4);
 
-            let f = this._framebuffer.activate();
+            let f = this._framebuffer!.activate();
 
             let deltaTime = 0,
                 startTime = window.performance.now();
@@ -233,7 +247,7 @@ export class VectorTileCreator {
 
                     f.setSize(width, height);
 
-                    f.bindOutputTexture(texture);
+                    f.bindOutputTexture(texture!);
 
                     gl.clearColor(0.0, 0.0, 0.0, 0.0);
                     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -256,7 +270,7 @@ export class VectorTileCreator {
                     let sha = sh.attributes,
                         shu = sh.uniforms;
 
-                    let geomHandler = material.layer._geometryHandler;
+                    let geomHandler = (material.layer as Vector)._geometryHandler;
 
                     //=========================================
                     //Polygon rendering
@@ -264,36 +278,36 @@ export class VectorTileCreator {
                     gl.uniform4fv(shu.extentParamsHigh, extentParamsHigh);
                     gl.uniform4fv(shu.extentParamsLow, extentParamsLow);
 
-                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyVerticesHighBufferMerc);
-                    gl.vertexAttribPointer(sha.coordinatesHigh, geomHandler._polyVerticesHighBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyVerticesHighBufferMerc!);
+                    gl.vertexAttribPointer(sha.coordinatesHigh, geomHandler._polyVerticesHighBufferMerc!.itemSize, gl.FLOAT, false, 0, 0);
 
-                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyVerticesLowBufferMerc);
-                    gl.vertexAttribPointer(sha.coordinatesLow, geomHandler._polyVerticesLowBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyVerticesLowBufferMerc!);
+                    gl.vertexAttribPointer(sha.coordinatesLow, geomHandler._polyVerticesLowBufferMerc!.itemSize, gl.FLOAT, false, 0, 0);
 
-                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyColorsBuffer);
-                    gl.vertexAttribPointer(sha.colors, geomHandler._polyColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyColorsBuffer!);
+                    gl.vertexAttribPointer(sha.colors, geomHandler._polyColorsBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geomHandler._polyIndexesBuffer);
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geomHandler._polyIndexesBuffer!);
 
-                    gl.drawElements(gl.TRIANGLES, geomHandler._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                    gl.drawElements(gl.TRIANGLES, geomHandler._polyIndexesBuffer!.numItems, gl.UNSIGNED_INT, 0);
 
                     //Polygon picking PASS
                     if (pickingEnabled) {
-                        f.bindOutputTexture(pickingMask);
+                        f.bindOutputTexture(pickingMask!);
 
                         gl.clearColor(0.0, 0.0, 0.0, 0.0);
                         gl.clear(gl.COLOR_BUFFER_BIT);
 
-                        gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyPickingColorsBuffer);
-                        gl.vertexAttribPointer(sha.colors, geomHandler._polyPickingColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                        gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyPickingColorsBuffer!);
+                        gl.vertexAttribPointer(sha.colors, geomHandler._polyPickingColorsBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-                        gl.drawElements(gl.TRIANGLES, geomHandler._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                        gl.drawElements(gl.TRIANGLES, geomHandler._polyIndexesBuffer!.numItems, gl.UNSIGNED_INT, 0);
                     }
 
                     //=========================================
                     //Strokes and linestrings rendering
                     //=========================================
-                    f.bindOutputTexture(texture);
+                    f.bindOutputTexture(texture!);
 
                     hLine.activate();
                     sh = hLine._program;
@@ -306,14 +320,14 @@ export class VectorTileCreator {
                     gl.uniform4fv(shu.extentParamsLow, extentParamsLow);
 
                     //vertex
-                    var mb = geomHandler._lineVerticesHighBufferMerc;
+                    let mb = geomHandler._lineVerticesHighBufferMerc!;
                     gl.bindBuffer(gl.ARRAY_BUFFER, mb);
 
                     gl.vertexAttribPointer(sha.prevHigh, mb.itemSize, gl.FLOAT, false, 8, 0);
                     gl.vertexAttribPointer(sha.currentHigh, mb.itemSize, gl.FLOAT, false, 8, 32);
                     gl.vertexAttribPointer(sha.nextHigh, mb.itemSize, gl.FLOAT, false, 8, 64);
 
-                    mb = geomHandler._lineVerticesLowBufferMerc;
+                    mb = geomHandler._lineVerticesLowBufferMerc!;
                     gl.bindBuffer(gl.ARRAY_BUFFER, mb);
 
                     gl.vertexAttribPointer(sha.prevLow, mb.itemSize, gl.FLOAT, false, 8, 0);
@@ -321,51 +335,51 @@ export class VectorTileCreator {
                     gl.vertexAttribPointer(sha.nextLow, mb.itemSize, gl.FLOAT, false, 8, 64);
 
                     //order
-                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineOrdersBuffer);
-                    gl.vertexAttribPointer(sha.order, geomHandler._lineOrdersBuffer.itemSize, gl.FLOAT, false, 4, 0);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineOrdersBuffer!);
+                    gl.vertexAttribPointer(sha.order, geomHandler._lineOrdersBuffer!.itemSize, gl.FLOAT, false, 4, 0);
 
-                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geomHandler._lineIndexesBuffer);
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geomHandler._lineIndexesBuffer!);
 
                     //PASS - stroke
-                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineStrokesBuffer);
-                    gl.vertexAttribPointer(sha.thickness, geomHandler._lineStrokesBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineStrokesBuffer!);
+                    gl.vertexAttribPointer(sha.thickness, geomHandler._lineStrokesBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineStrokeColorsBuffer);
-                    gl.vertexAttribPointer(sha.color, geomHandler._lineStrokeColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineStrokeColorsBuffer!);
+                    gl.vertexAttribPointer(sha.color, geomHandler._lineStrokeColorsBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
                     //Antialias pass
                     gl.uniform1f(shu.thicknessOutline, 2);
                     gl.uniform1f(shu.alpha, 0.54);
-                    gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                    gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer!.numItems, gl.UNSIGNED_INT, 0);
                     //
                     //Aliased pass
                     gl.uniform1f(shu.thicknessOutline, 1);
                     gl.uniform1f(shu.alpha, 1.0);
-                    gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                    gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer!.numItems, gl.UNSIGNED_INT, 0);
 
                     //PASS - inside line
-                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineThicknessBuffer);
-                    gl.vertexAttribPointer(sha.thickness, geomHandler._lineThicknessBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineThicknessBuffer!);
+                    gl.vertexAttribPointer(sha.thickness, geomHandler._lineThicknessBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineColorsBuffer);
-                    gl.vertexAttribPointer(sha.color, geomHandler._lineColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._lineColorsBuffer!);
+                    gl.vertexAttribPointer(sha.color, geomHandler._lineColorsBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
                     //Antialias pass
                     gl.uniform1f(shu.thicknessOutline, 2);
                     gl.uniform1f(shu.alpha, 0.54);
-                    gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                    gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer!.numItems, gl.UNSIGNED_INT, 0);
                     //
                     //Aliased pass
                     gl.uniform1f(shu.thicknessOutline, 1);
                     gl.uniform1f(shu.alpha, 1.0);
-                    gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                    gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer!.numItems, gl.UNSIGNED_INT, 0);
 
                     if (pickingEnabled) {
-                        f.bindOutputTexture(pickingMask);
+                        f.bindOutputTexture(pickingMask!);
                         gl.uniform1f(shu.thicknessOutline, 8);
-                        gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._linePickingColorsBuffer);
-                        gl.vertexAttribPointer(sha.color, geomHandler._linePickingColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-                        gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
+                        gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._linePickingColorsBuffer!);
+                        gl.vertexAttribPointer(sha.color, geomHandler._linePickingColorsBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+                        gl.drawElements(gl.TRIANGLE_STRIP, geomHandler._lineIndexesBuffer!.numItems, gl.UNSIGNED_INT, 0);
                     }
                 } else {
                     material.isLoading = false;
@@ -381,11 +395,11 @@ export class VectorTileCreator {
         }
     }
 
-    add(material) {
+    public add(material: Material) {
         this._queue.push(material);
     }
 
-    remove(material) {
+    public remove(material: Material) {
         //...
     }
 }

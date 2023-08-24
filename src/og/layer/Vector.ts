@@ -137,7 +137,7 @@ class Vector extends Layer {
     protected _stripEntityCollection: EntityCollection;
     protected _polylineEntityCollection: EntityCollection;
     protected _geoObjectEntityCollection: EntityCollection;
-    protected _geometryHandler: GeometryHandler;
+    public _geometryHandler: GeometryHandler;
 
     protected _entityCollectionsTree: EntityCollectionNode | null;
     protected _entityCollectionsTreeNorth: EntityCollectionNodeWGS84 | null;

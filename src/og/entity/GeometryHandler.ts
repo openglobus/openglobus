@@ -99,21 +99,21 @@ class GeometryHandler {
     protected _lineStrokeColors: number[];
 
     // Buffers
-    protected _polyVerticesHighBufferMerc: WebGLBufferExt | null;
-    protected _polyVerticesLowBufferMerc: WebGLBufferExt | null;
-    protected _polyColorsBuffer: WebGLBufferExt | null;
-    protected _polyPickingColorsBuffer: WebGLBufferExt | null;
-    protected _polyIndexesBuffer: WebGLBufferExt | null;
+    public _polyVerticesHighBufferMerc: WebGLBufferExt | null;
+    public _polyVerticesLowBufferMerc: WebGLBufferExt | null;
+    public _polyColorsBuffer: WebGLBufferExt | null;
+    public _polyPickingColorsBuffer: WebGLBufferExt | null;
+    public _polyIndexesBuffer: WebGLBufferExt | null;
 
-    protected _lineVerticesHighBufferMerc: WebGLBufferExt | null;
-    protected _lineVerticesLowBufferMerc: WebGLBufferExt | null;
-    protected _lineColorsBuffer: WebGLBufferExt | null;
-    protected _linePickingColorsBuffer: WebGLBufferExt | null;
-    protected _lineThicknessBuffer: WebGLBufferExt | null;
-    protected _lineStrokesBuffer: WebGLBufferExt | null;
-    protected _lineStrokeColorsBuffer: WebGLBufferExt | null;
-    protected _lineOrdersBuffer: WebGLBufferExt | null;
-    protected _lineIndexesBuffer: WebGLBufferExt | null;
+    public _lineVerticesHighBufferMerc: WebGLBufferExt | null;
+    public _lineVerticesLowBufferMerc: WebGLBufferExt | null;
+    public _lineColorsBuffer: WebGLBufferExt | null;
+    public _linePickingColorsBuffer: WebGLBufferExt | null;
+    public _lineThicknessBuffer: WebGLBufferExt | null;
+    public _lineStrokesBuffer: WebGLBufferExt | null;
+    public _lineStrokeColorsBuffer: WebGLBufferExt | null;
+    public _lineOrdersBuffer: WebGLBufferExt | null;
+    public _lineIndexesBuffer: WebGLBufferExt | null;
 
     protected _buffersUpdateCallbacks: Function[];
 
