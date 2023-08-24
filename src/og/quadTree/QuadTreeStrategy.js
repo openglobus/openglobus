@@ -1,6 +1,7 @@
 "use strict";
 
 import { EPSG3857 } from "../proj/EPSG3857.js";
+import { Node } from "./Node.js";
 
 export class QuadTreeStrategy {
     constructor(options = {}) {
@@ -11,7 +12,7 @@ export class QuadTreeStrategy {
         /**
          * grid tree list.
          * @protected
-         * @type {quadTree.Node[]}
+         * @type {Node[]}
          */
         this._quadTreeList = [];
     }
@@ -90,5 +91,4 @@ export class QuadTreeStrategy {
     get quadTreeList() {
         return this._quadTreeList;
     }
-
 }

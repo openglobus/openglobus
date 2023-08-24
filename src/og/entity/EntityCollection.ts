@@ -165,10 +165,10 @@ class EntityCollection {
 
     /**
      * Entities array.
-     * @protected
+     * @public
      * @type {Array.<Entity>}
      */
-    protected _entities: Entity[];
+    public _entities: Entity[];
 
     /**
      * First index - near distance to the entity, after entity becomes full scale.
@@ -375,19 +375,14 @@ class EntityCollection {
      * @returns {EntityCollection} -
      */
     public add(entity: Entity): EntityCollection {
-        // @ts-ignore
         if (!entity._entityCollection) {
-            // @ts-ignore
             entity._entityCollection = this;
-            // @ts-ignore
             entity._entityCollectionIndex = this._entities.length;
             this._entities.push(entity);
             let rn: RenderNode | null = this.renderNode;
             if (rn) {
                 rn.renderer && rn.renderer.assignPickingColor(entity);
-                // @ts-ignore
                 if ((rn as Planet).ellipsoid && entity._cartesian.isZero()) {
-                    // @ts-ignore
                     entity.setCartesian3v((rn as Planet).ellipsoid.lonLatToCartesian(entity._lonLat));
                 }
             }
@@ -417,14 +412,11 @@ class EntityCollection {
      * @returns {boolean} -
      */
     public belongs(entity: Entity) {
-        // @ts-ignore
         return entity._entityCollection && this._renderNodeIndex === entity._entityCollection._renderNodeIndex;
     }
 
     protected _removeRecursively(entity: Entity) {
-        // @ts-ignore
         entity._entityCollection = null;
-        // @ts-ignore
         entity._entityCollectionIndex = -1;
 
         // billboard
@@ -459,15 +451,12 @@ class EntityCollection {
      * @param {Entity} entity - Entity to remove.
      */
     public removeEntity(entity: Entity) {
-        // @ts-ignore
         this._entities.splice(entity._entityCollectionIndex, 1);
-        // @ts-ignore
         this.reindexEntitiesArray(entity._entityCollectionIndex);
 
         // clear picking color
         if (this.renderNode && this.renderNode.renderer) {
             this.renderNode.renderer.clearPickingColor(entity);
-            // @ts-ignore
             entity._pickingColor.clear();
         }
 
@@ -478,16 +467,13 @@ class EntityCollection {
         this.events.dispatch(this.events.entityremove, entity);
     }
 
-    protected _removeEntitySilent(entity: Entity) {
-        // @ts-ignore
+    public _removeEntitySilent(entity: Entity) {
         this._entities.splice(entity._entityCollectionIndex, 1);
-        // @ts-ignore
         this.reindexEntitiesArray(entity._entityCollectionIndex);
 
         // clear picking color
         if (this.renderNode && this.renderNode.renderer) {
             this.renderNode.renderer.clearPickingColor(entity);
-            // @ts-ignore
             entity._pickingColor.clear();
         }
 
@@ -519,7 +505,6 @@ class EntityCollection {
     public reindexEntitiesArray(startIndex: number) {
         let e = this._entities;
         for (let i = startIndex; i < e.length; i++) {
-            // @ts-ignore
             e[i]._entityCollectionIndex = i;
         }
     }
@@ -582,7 +567,6 @@ class EntityCollection {
         let i = e.length;
         while (i--) {
             let ei = e[i];
-            // @ts-ignore
             ei._lonLat && ei.setCartesian3v(ellipsoid.lonLatToCartesian(ei._lonLat));
         }
     }
@@ -676,7 +660,6 @@ class EntityCollection {
             let ei = this._entities[i];
             if (this.renderNode && this.renderNode.renderer) {
                 this.renderNode.renderer.clearPickingColor(ei);
-                // @ts-ignore
                 ei._pickingColor.clear();
             }
             this._clearEntity(ei);
@@ -691,9 +674,7 @@ class EntityCollection {
      * @param {Entity} entity - Entity to clear.
      */
     protected _clearEntity(entity: Entity) {
-        // @ts-ignore
         entity._entityCollection = null;
-        // @ts-ignore
         entity._entityCollectionIndex = -1;
         for (let i = 0; i < entity.childrenNodes.length; i++) {
             this._clearEntity(entity.childrenNodes[i]);

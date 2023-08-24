@@ -5,6 +5,7 @@ import {doubleToTwoFloats2} from "../math/coder";
 import {Layer, LayerEventsList, ILayerParams} from "./Layer";
 import {LonLat} from "../LonLat";
 import {Material} from "./Material";
+import {Planet} from "../scene/Planet";
 import {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
 import {NumberArray2} from "../math/Vec2";
 import {NumberArray4} from "../math/Vec4";
@@ -37,7 +38,7 @@ export type BaseGeoImageEventsType = EventsHandler<BaseGeoImageEventsList> & Eve
  */
 class BaseGeoImage extends Layer {
 
-    override events: BaseGeoImageEventsType;
+    public override events: BaseGeoImageEventsType;
 
     protected _projType: number;
 
@@ -84,6 +85,7 @@ class BaseGeoImage extends Layer {
         super(name, options);
 
         this.events.registerNames(BASEGEOIMAGE_EVENTS);
+        //this.events = (super.events as BaseGeoImageEventsType).registerNames(BASEGEOIMAGE_EVENTS);
 
         this._projType = 0;
 
@@ -114,6 +116,7 @@ class BaseGeoImage extends Layer {
 
         this._extentWgs84 = new Extent();
         this._cornersWgs84 = [];
+        this._cornersMerc = [];
 
         this._isFullExtent = options.fullExtent ? 1 : 0;
 
@@ -131,7 +134,7 @@ class BaseGeoImage extends Layer {
         return super.isIdle && this._ready;
     }
 
-    public override addTo(planet) {
+    public override addTo(planet: Planet) {
         this._onLoadend_ = this._onLoadend.bind(this);
         this.events.on("loadend", this._onLoadend_, this);
         return super.addTo(planet);

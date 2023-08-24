@@ -1,33 +1,55 @@
-"use strict";
-
-import * as mercator from "../mercator";
-import { Entity } from "../entity/Entity.js";
-import { EntityCollection } from "../entity/EntityCollection.js";
-import { GeometryHandler } from "../entity/GeometryHandler.js";
-import { Extent } from "../Extent";
 import * as math from "../math";
-import { Vec3 } from "../math/Vec3";
+import * as mercator from "../mercator";
+import * as quadTree from "../quadTree/quadTree.js";
+import {Entity, IEntityParams} from "../entity/Entity";
+import {EntityCollection} from "../entity/EntityCollection";
 import {
     EntityCollectionNode,
     EntityCollectionNodeWGS84
 } from "../quadTree/EntityCollectionNode.js";
-import * as quadTree from "../quadTree/quadTree.js";
-import { QueueArray } from "../QueueArray.js";
-import { Layer } from "./Layer.js";
+import {EventsHandler} from "../Events";
+import {Extent} from "../Extent";
+import {GeometryHandler} from "../entity/GeometryHandler";
+import {ILayerParams, Layer, LayerEventsList} from "./Layer";
+import {NumberArray3, Vec3} from "../math/Vec3";
+import {Planet} from "../scene/Planet";
+import {QueueArray} from "../QueueArray";
+import {Material} from "./Material";
+import {NumberArray4} from "../math/Vec4";
+
+interface IVectorParams extends ILayerParams {
+    entities?: Entity[] | IEntityParams[];
+    polygonOffsetUnits?: number;
+    nodeCapacity?: number;
+    relativeToGround?: boolean;
+    clampToGround?: boolean;
+    async?: boolean;
+    pickingScale?: number;
+    scaleByDistance?: NumberArray3;
+}
+
+type VectorEventsList = [
+    "entitymove",
+    "draw",
+    "entityadd",
+    "entityremove"
+]
+
+type VectorEventsType = EventsHandler<VectorEventsList> & EventsHandler<LayerEventsList>;
 
 /**
  * Creates entity instance array.
- * @param {Entity[]} entities - Entity array.
+ * @param {Entity[] | IEntityParams[]} entities - Entity array.
  * @returns {Entity[]} - Entity array.
  */
-function _entitiesConstructor(entities) {
-    var res = [];
+function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
+    let res: Entity[] = [];
     for (let i = 0; i < entities.length; i++) {
-        var ei = entities[i];
-        if (ei.instanceName === "Entity") {
-            res.push(ei);
+        let ei = entities[i];
+        if ((ei as Entity).instanceName === "Entity") {
+            res.push(ei as Entity);
         } else {
-            res.push(new Entity(ei));
+            res.push(new Entity(ei as IEntityParams));
         }
     }
     return res;
@@ -39,7 +61,7 @@ function _entitiesConstructor(entities) {
  * @class
  * @extends {Layer}
  * @param {string} [name="noname"] - Layer name.
- * @param {Object} [options] - Layer options:
+ * @param {IVectorParams} [options] - Layer options:
  * @param {number} [options.minZoom=0] - Minimal visible zoom. 0 is default
  * @param {number} [options.maxZoom=50] - Maximal visible zoom. 50 is default.
  * @param {string} [options.attribution] - Layer attribution.
@@ -57,71 +79,110 @@ function _entitiesConstructor(entities) {
  * @param {boolean} [options.relativeToGround = false] - Place vector data relative to the ground relief.
  * @param {Number} [options.polygonOffsetUnits=0.0] - The multiplier by which an implementation-specific value is multiplied with to create a constant depth offset.
  *
- * @fires og.layer.Vector#entitymove
- * @fires og.layer.Vector#draw
- * @fires og.layer.Vector#add
- * @fires og.layer.Vector#remove
- * @fires og.layer.Vector#entityadd
- * @fires og.layer.Vector#entityremove
- * @fires og.layer.Vector#visibilitychange
+ * @fires EventsHandler<VectorEventsList>#entitymove
+ * @fires EventsHandler<VectorEventsList>#draw
+ * @fires EventsHandler<VectorEventsList>#add
+ * @fires EventsHandler<VectorEventsList>#remove
+ * @fires EventsHandler<VectorEventsList>#entityadd
+ * @fires EventsHandler<VectorEventsList>#entityremove
+ * @fires EventsHandler<VectorEventsList>#visibilitychange
  */
 class Vector extends Layer {
+
+    public override events: VectorEventsType;
+
     /**
-     * @param {string} name
-     * @param {*} [options]
+     * Entities collection.
+     * @protected
      */
-    constructor(name, options = {}) {
+    protected _entities: Entity[];
+
+    /**
+     * First index - near distance to the entity, after that entity becomes full scale.
+     * Second index - far distance to the entity, when entity becomes zero scale.
+     * Third index - far distance to the entity, when entity becomes invisible.
+     * @public
+     * @type {NumberArray3} - (exactly 3 entries)
+     */
+    public scaleByDistance: NumberArray3;
+
+    public pickingScale: number;
+
+    /**
+     * Asynchronous data handling before rendering.
+     * @public
+     * @type {boolean}
+     */
+    public async: boolean;
+
+    /**
+     * Clamp vector data to the ground.
+     * @public
+     * @type {boolean}
+     */
+    public clampToGround: boolean;
+
+    /**
+     * Sets vector data relative to the ground relief.
+     * @public
+     * @type {boolean}
+     */
+    public relativeToGround: boolean;
+
+    /**
+     * Maximum entities quantity in the tree node.
+     * @protected
+     */
+    protected _nodeCapacity: number;
+    protected _stripEntityCollection: EntityCollection;
+    protected _polylineEntityCollection: EntityCollection;
+    protected _geoObjectEntityCollection: EntityCollection;
+    protected _geometryHandler: GeometryHandler;
+
+    protected _entityCollectionsTree: EntityCollectionNode | null;
+    protected _entityCollectionsTreeNorth: EntityCollectionNodeWGS84 | null;
+    protected _entityCollectionsTreeSouth: EntityCollectionNodeWGS84 | null;
+
+    protected _renderingNodes: Record<number, any>;
+    protected _renderingNodesNorth: Record<number, any>;
+    protected _renderingNodesSouth: Record<number, any>;
+
+    protected _counter: number;
+    protected _deferredEntitiesPendingQueue: QueueArray<EntityCollectionNode>;
+
+    protected _pendingsQueue: Entity[];
+
+    /**
+     * Specifies the scale Units for gl.polygonOffset function to calculate depth values, 0.0 is default.
+     * @public
+     * @type {Number}
+     */
+    public polygonOffsetUnits: number;
+
+    protected _secondPASS: EntityCollectionNode[];
+
+    constructor(name: string | null, options: IVectorParams = {}) {
         super(name, options);
 
-        this.events.registerNames(EVENT_NAMES);
+        this.events.registerNames(VECTOR_EVENTS);
+        //this.events = (super.events as VectorEventsType).registerNames(VECTOR_EVENTS);
 
         this.isVector = true;
 
         this._hasImageryTiles = false;
 
-
-        /**
-         * First index - near distance to the entity, after that entity becomes full scale.
-         * Second index - far distance to the entity, when entity becomes zero scale.
-         * Third index - far distance to the entity, when entity becomes invisible.
-         * @public
-         * @type {Array.<number>} - (exactly 3 entries)
-         */
         this.scaleByDistance = options.scaleByDistance || [math.MAX32, math.MAX32, math.MAX32];
 
         this.pickingScale = options.pickingScale || 1;
 
-        /**
-         * Asynchronous data handling before rendering.
-         * @public
-         * @type {boolean}
-         */
         this.async = options.async !== undefined ? options.async : true;
 
-        /**
-         * Vector data clamp to ground flag.
-         * @public
-         * @type {boolean}
-         */
         this.clampToGround = options.clampToGround || false;
 
-        /**
-         * Sets vector data relative to the ground relief.
-         * @public
-         * @type {boolean}
-         */
         this.relativeToGround = options.relativeToGround || false;
 
-        /**
-         * Maximum entities quantity in the tree node.
-         * @private
-         */
         this._nodeCapacity = options.nodeCapacity || 30;
 
-        /**
-         * Stored entities.
-         * @private
-         */
         this._entities = _entitiesConstructor(options.entities || []);
 
         this._stripEntityCollection = new EntityCollection({
@@ -150,29 +211,24 @@ class Vector extends Layer {
         this._renderingNodesSouth = {};
 
         this._counter = 0;
-        this._deferredEntitiesPendingQueue = new QueueArray();
+        this._deferredEntitiesPendingQueue = new QueueArray<EntityCollectionNode>();
 
         this._pendingsQueue = [];
 
-        // Creates collections tree
         this.setEntities(this._entities);
 
-        /**
-         * Specifies the scale Units for gl.polygonOffset function to calculate depth values, 0.0 is default.
-         * @public
-         * @type {Number}
-         */
-        this.polygonOffsetUnits =
-            options.polygonOffsetUnits != undefined ? options.polygonOffsetUnits : 0.0;
+        this.polygonOffsetUnits = options.polygonOffsetUnits != undefined ? options.polygonOffsetUnits : 0.0;
 
         this.pickingEnabled = this._pickingEnabled;
+
+        this._secondPASS = [];
     }
 
-    get instanceName() {
+    public override get instanceName() {
         return "Vector";
     }
 
-    _bindPicking() {
+    protected override _bindPicking() {
         this._pickingColor.clear();
     }
 
@@ -180,25 +236,25 @@ class Vector extends Layer {
      * Adds layer to the planet.
      * @public
      * @param {Planet} planet - Planet scene object.
-     * @returns {layer.Vector} -
+     * @returns {Vector} -
      */
-    addTo(planet) {
+    public override addTo(planet: Planet) {
         if (!this._planet) {
             this._assignPlanet(planet);
-            this._geometryHandler.assignHandler(planet.renderer.handler);
+            this._geometryHandler.assignHandler(planet.renderer!.handler);
             this._polylineEntityCollection.addTo(planet, true);
             this._stripEntityCollection.addTo(planet, true);
             this._geoObjectEntityCollection.addTo(planet, true);
             this.setEntities(this._entities);
         }
-        return this;
     }
 
-    remove() {
+    public override remove(): this {
         super.remove();
         this._polylineEntityCollection.remove();
         this._stripEntityCollection.remove();
         this._geoObjectEntityCollection.remove();
+        return this;
     }
 
     /**
@@ -206,8 +262,8 @@ class Vector extends Layer {
      * @public
      * @returns {Array.<Entity>} -
      */
-    getEntities() {
-        return [].concat(this._entities);
+    public getEntities(): Entity[] {
+        return ([] as Entity[]).concat(this._entities);
     }
 
     //_fitExtent(entity) {
@@ -242,10 +298,10 @@ class Vector extends Layer {
      * Adds entity to the layer.
      * @public
      * @param {Entity} entity - Entity.
-     * @param {boolean} [rightNow] - Entity insertion option. False is default.
-     * @returns {layer.Vector} - Returns this layer.
+     * @param {boolean} [rightNow=false] - Entity insertion option. False is default.
+     * @returns {Vector} - Returns this layer.
      */
-    add(entity, rightNow) {
+    public add(entity: Entity, rightNow: boolean = false): this {
         if (!(entity._layer || entity._entityCollection)) {
             entity._layer = this;
             entity._layerIndex = this._entities.length;
@@ -262,9 +318,9 @@ class Vector extends Layer {
      * @param {Entity} entity - Entity.
      * @param {Number} index - Index position.
      * @param {boolean} [rightNow] - Entity insertion option. False is default.
-     * @returns {layer.Vector} - Returns this layer.
+     * @returns {Vector} - Returns this layer.
      */
-    insert(entity, index, rightNow) {
+    public insert(entity: Entity, index: number, rightNow: boolean = false): this {
         if (!(entity._layer || entity._entityCollection)) {
             entity._layer = this;
             entity._layerIndex = index;
@@ -280,7 +336,7 @@ class Vector extends Layer {
         return this;
     }
 
-    _proceedEntity(entity, rightNow) {
+    protected _proceedEntity(entity: Entity, rightNow: boolean = false) {
         let temp = this._hasImageryTiles;
 
         if (entity.strip) {
@@ -298,7 +354,7 @@ class Vector extends Layer {
         if (entity.geometry) {
             this._hasImageryTiles = true;
             if (this._planet) {
-                this._planet.renderer.assignPickingColor(entity);
+                this._planet.renderer!.assignPickingColor(entity);
                 this._geometryHandler.add(entity.geometry);
             }
         }
@@ -315,15 +371,14 @@ class Vector extends Layer {
 
                 // north tree
                 if (entity._lonLat.lat > mercator.MAX_LAT) {
-                    this._entityCollectionsTreeNorth.__setLonLat__(entity);
-                    this._entityCollectionsTreeNorth.insertEntity(entity, rightNow);
+                    this._entityCollectionsTreeNorth!.__setLonLat__(entity);
+                    this._entityCollectionsTreeNorth!.insertEntity(entity, rightNow);
                 } else if (entity._lonLat.lat < mercator.MIN_LAT) {
-                    // south tree
-                    this._entityCollectionsTreeSouth.__setLonLat__(entity);
-                    this._entityCollectionsTreeSouth.insertEntity(entity, rightNow);
+                    this._entityCollectionsTreeSouth!.__setLonLat__(entity);
+                    this._entityCollectionsTreeSouth!.insertEntity(entity, rightNow);
                 } else {
-                    this._entityCollectionsTree.__setLonLat__(entity);
-                    this._entityCollectionsTree.insertEntity(entity, rightNow);
+                    this._entityCollectionsTree!.__setLonLat__(entity);
+                    this._entityCollectionsTree!.insertEntity(entity, rightNow);
                 }
             }
         }
@@ -339,11 +394,11 @@ class Vector extends Layer {
      * Adds entity array to the layer.
      * @public
      * @param {Array.<Entity>} entities - Entities array.
-     * @param {boolean} [rightNow] - Entity insertion option. False is default.
-     * @returns {layer.Vector} - Returns this layer.
+     * @param {boolean} [rightNow=false] - Entity insertion option. False is default.
+     * @returns {Vector} - Returns this layer.
      */
-    addEntities(entities, rightNow) {
-        var i = entities.length;
+    public addEntities(entities: Entity[], rightNow: boolean = false) {
+        let i = entities.length;
         while (i--) {
             this.add(entities[i], rightNow);
         }
@@ -355,22 +410,31 @@ class Vector extends Layer {
      * TODO: memory leaks.
      * @public
      * @param {Entity} entity - Entity to remove.
-     * @returns {layer.Vector} - Returns this layer.
+     * @returns {Vector} - Returns this layer.
      */
-    removeEntity(entity) {
+    public removeEntity(entity: Entity): this {
+
         if (entity._layer && this.isEqual(entity._layer)) {
+
             this._entities.splice(entity._layerIndex, 1);
+
             this._reindexEntitiesArray(entity._layerIndex);
+
             entity._layer = null;
+
             entity._layerIndex = -1;
 
             if (entity._entityCollection) {
+
                 entity._entityCollection._removeEntitySilent(entity);
+
                 let node = entity._nodePtr;
+
                 while (node) {
                     node.count--;
                     node = node.parentNode;
                 }
+
                 if (
                     entity._nodePtr &&
                     entity._nodePtr.count === 0 &&
@@ -382,8 +446,8 @@ class Vector extends Layer {
                     //
                 }
             } else if (entity._nodePtr && entity._nodePtr.deferredEntities.length) {
-                var defEntities = entity._nodePtr.deferredEntities;
-                var j = defEntities.length;
+                let defEntities = entity._nodePtr.deferredEntities;
+                let j = defEntities.length;
                 while (j--) {
                     if (defEntities[j].id === entity.id) {
                         defEntities.splice(j, 1);
@@ -400,13 +464,15 @@ class Vector extends Layer {
             if (entity.geometry) {
                 if (this._planet) {
                     this._geometryHandler.remove(entity.geometry);
-                    this._planet.renderer.clearPickingColor(entity);
+                    this._planet.renderer!.clearPickingColor(entity);
                 }
             }
 
-            entity._nodePtr && (entity._nodePtr = null);
+            entity._nodePtr = undefined;
+
             this.events.dispatch(this.events.entityremove, entity);
         }
+
         return this;
     }
 
@@ -415,7 +481,8 @@ class Vector extends Layer {
      * @public
      * @param {boolean} picking - Picking enable flag.
      */
-    set pickingEnabled(picking) {
+    public override set pickingEnabled(picking: boolean) {
+
         this._pickingEnabled = picking;
 
         this._stripEntityCollection.setPickingEnabled(picking);
@@ -424,29 +491,26 @@ class Vector extends Layer {
 
         this._geoObjectEntityCollection.setPickingEnabled(picking);
 
-        this._entityCollectionsTree &&
-        this._entityCollectionsTree.traverseTree(function (node) {
+        this._entityCollectionsTree && this._entityCollectionsTree.traverseTree((node: EntityCollectionNode) => {
             node.entityCollection.setPickingEnabled(picking);
         });
 
-        this._entityCollectionsTreeNorth &&
-        this._entityCollectionsTreeNorth.traverseTree(function (node) {
+        this._entityCollectionsTreeNorth && this._entityCollectionsTreeNorth.traverseTree((node: EntityCollectionNodeWGS84) => {
             node.entityCollection.setPickingEnabled(picking);
         });
 
-        this._entityCollectionsTreeSouth &&
-        this._entityCollectionsTreeSouth.traverseTree(function (node) {
+        this._entityCollectionsTreeSouth && this._entityCollectionsTreeSouth.traverseTree((node: EntityCollectionNodeWGS84) => {
             node.entityCollection.setPickingEnabled(picking);
         });
     }
 
     /**
-     * Refresh collected entities indexes from startIndex entitytes collection array position.
-     * @public
+     * Refresh collected entities indexes from startIndex entities collection array position.
+     * @protected
      * @param {number} startIndex - Entity array index.
      */
-    _reindexEntitiesArray(startIndex) {
-        var e = this._entities;
+    protected _reindexEntitiesArray(startIndex: number) {
+        const e = this._entities;
         for (let i = startIndex; i < e.length; i++) {
             e[i]._layerIndex = i;
         }
@@ -456,37 +520,28 @@ class Vector extends Layer {
      * Removes entities from layer.
      * @public
      * @param {Array.<Entity>} entities - Entity array.
-     * @returns {layer.Vector} - Returns this layer.
+     * @returns {Vector} - Returns this layer.
      */
-    removeEntities(entities) {
-        var i = entities.length;
+    public removeEntities(entities: Entity[]): this {
+        let i = entities.length;
         while (i--) {
             this.removeEntity(entities[i]);
         }
         return this;
     }
 
-    /**
-     * Sets scale by distance parameters.
-     * @public
-     * @param {number} near - Full scale entity distance.
-     * @param {number} far - Zerol scale entity distance.
-     * @param {number} [farInvisible] - Entity visibility distance.
-     * @returns {layer.Vector} -
-     */
-    setScaleByDistance(near, far, farInvisible) {
-        this.scaleByDistance[0] = near;
-        this.scaleByDistance[1] = far;
-        this.scaleByDistance[2] = farInvisible || math.MAX32;
-        return this;
-    }
+    // public setScaleByDistance(near, far, farInvisible) {
+    //     this.scaleByDistance[0] = near;
+    //     this.scaleByDistance[1] = far;
+    //     this.scaleByDistance[2] = farInvisible || math.MAX32;
+    // }
 
     /**
      * TODO: Clear the layer.
      * @public
      */
-    clear() {
-        let temp = new Array(this._entities.length);
+    public override clear() {
+        let temp: Entity[] = new Array(this._entities.length);
 
         for (let i = 0; i < temp.length; i++) {
             temp[i] = this._entities[i];
@@ -511,11 +566,11 @@ class Vector extends Layer {
     /**
      * Safety entities loop.
      * @public
-     * @param {callback} callback - Entity callback.
+     * @param {(entity: Entity, index?: number) => void} callback - Entity callback.
      */
-    each(callback) {
-        var e = this._entities;
-        var i = e.length;
+    public each(callback: (entity: Entity, index?: number) => void) {
+        let e = this._entities;
+        let i = e.length;
         while (i--) {
             callback(e[i], i);
         }
@@ -525,17 +580,17 @@ class Vector extends Layer {
      * Removes current entities from layer and adds new entities.
      * @public
      * @param {Array.<Entity>} entities - New entity array.
-     * @returns {layer.Vector} - Returns layer instance.
+     * @returns {Vector} - Returns layer instance.
      */
-    setEntities(entities) {
-        let temp = new Array(entities.length);
+    public setEntities(entities: Entity[]): this {
+
+        let temp: Entity[] = new Array(entities.length);
+
         for (let i = 0, len = entities.length; i < len; i++) {
             temp[i] = entities[i];
         }
 
         this.clear();
-
-        //var e = this._extent;
 
         this._entities = new Array(temp.length);
 
@@ -560,18 +615,12 @@ class Vector extends Layer {
             if (ei.geometry) {
                 this._hasImageryTiles = true;
                 if (this._planet) {
-                    this._planet.renderer.assignPickingColor(ei);
+                    this._planet.renderer!.assignPickingColor(ei);
                     this._geometryHandler.add(ei.geometry);
                 }
             }
 
             this._entities[i] = ei;
-
-            //var ext = ei.getExtent();
-            //if (ext.northEast.lon > e.northEast.lon) e.northEast.lon = ext.northEast.lon;
-            //if (ext.northEast.lat > e.northEast.lat) e.northEast.lat = ext.northEast.lat;
-            //if (ext.southWest.lon < e.southWest.lon) e.southWest.lon = ext.southWest.lon;
-            //if (ext.southWest.lat < e.southWest.lat) e.southWest.lat = ext.southWest.lat;
         }
 
         this._createEntityCollectionsTree(entitiesForTree);
@@ -579,8 +628,10 @@ class Vector extends Layer {
         return this;
     }
 
-    _createEntityCollectionsTree(entitiesForTree) {
+    protected _createEntityCollectionsTree(entitiesForTree: Entity[]) {
+
         if (this._planet) {
+
             this._entityCollectionsTree = new EntityCollectionNode(
                 this,
                 quadTree.NW,
@@ -590,6 +641,7 @@ class Vector extends Layer {
                 this._planet,
                 0
             );
+
             this._entityCollectionsTreeNorth = new EntityCollectionNodeWGS84(
                 this,
                 quadTree.NW,
@@ -599,6 +651,7 @@ class Vector extends Layer {
                 this._planet,
                 0
             );
+
             this._entityCollectionsTreeSouth = new EntityCollectionNodeWGS84(
                 this,
                 quadTree.NW,
@@ -628,90 +681,95 @@ class Vector extends Layer {
         }
     }
 
-    _bindEventsDefault(entityCollection) {
-        var ve = this.events;
-        entityCollection.events.on("entitymove", function (e) {
+    protected _bindEventsDefault(entityCollection: EntityCollection) {
+
+        let ve = this.events;
+
+        //
+        // @todo: replace with arrow functions and '...e'
+        //
+        entityCollection.events.on("entitymove", function (e: any) {
             ve.dispatch(ve.entitymove, e);
         });
-        entityCollection.events.on("mousemove", function (e) {
+        entityCollection.events.on("mousemove", function (e: any) {
             ve.dispatch(ve.mousemove, e);
         });
-        entityCollection.events.on("mouseenter", function (e) {
+        entityCollection.events.on("mouseenter", function (e: any) {
             ve.dispatch(ve.mouseenter, e);
         });
-        entityCollection.events.on("mouseleave", function (e) {
+        entityCollection.events.on("mouseleave", function (e: any) {
             ve.dispatch(ve.mouseleave, e);
         });
-        entityCollection.events.on("lclick", function (e) {
+        entityCollection.events.on("lclick", function (e: any) {
             ve.dispatch(ve.lclick, e);
         });
-        entityCollection.events.on("rclick", function (e) {
+        entityCollection.events.on("rclick", function (e: any) {
             ve.dispatch(ve.rclick, e);
         });
-        entityCollection.events.on("mclick", function (e) {
+        entityCollection.events.on("mclick", function (e: any) {
             ve.dispatch(ve.mclick, e);
         });
-        entityCollection.events.on("ldblclick", function (e) {
+        entityCollection.events.on("ldblclick", function (e: any) {
             ve.dispatch(ve.ldblclick, e);
         });
-        entityCollection.events.on("rdblclick", function (e) {
+        entityCollection.events.on("rdblclick", function (e: any) {
             ve.dispatch(ve.rdblclick, e);
         });
-        entityCollection.events.on("mdblclick", function (e) {
+        entityCollection.events.on("mdblclick", function (e: any) {
             ve.dispatch(ve.mdblclick, e);
         });
-        entityCollection.events.on("lup", function (e) {
+        entityCollection.events.on("lup", function (e: any) {
             ve.dispatch(ve.lup, e);
         });
-        entityCollection.events.on("rup", function (e) {
+        entityCollection.events.on("rup", function (e: any) {
             ve.dispatch(ve.rup, e);
         });
-        entityCollection.events.on("mup", function (e) {
+        entityCollection.events.on("mup", function (e: any) {
             ve.dispatch(ve.mup, e);
         });
-        entityCollection.events.on("ldown", function (e) {
+        entityCollection.events.on("ldown", function (e: any) {
             ve.dispatch(ve.ldown, e);
         });
-        entityCollection.events.on("rdown", function (e) {
+        entityCollection.events.on("rdown", function (e: any) {
             ve.dispatch(ve.rdown, e);
         });
-        entityCollection.events.on("mdown", function (e) {
+        entityCollection.events.on("mdown", function (e: any) {
             ve.dispatch(ve.mdown, e);
         });
-        entityCollection.events.on("lhold", function (e) {
+        entityCollection.events.on("lhold", function (e: any) {
             ve.dispatch(ve.lhold, e);
         });
-        entityCollection.events.on("rhold", function (e) {
+        entityCollection.events.on("rhold", function (e: any) {
             ve.dispatch(ve.rhold, e);
         });
-        entityCollection.events.on("mhold", function (e) {
+        entityCollection.events.on("mhold", function (e: any) {
             ve.dispatch(ve.mhold, e);
         });
-        entityCollection.events.on("mousewheel", function (e) {
+        entityCollection.events.on("mousewheel", function (e: any) {
             ve.dispatch(ve.mousewheel, e);
         });
-        entityCollection.events.on("touchmove", function (e) {
+        entityCollection.events.on("touchmove", function (e: any) {
             ve.dispatch(ve.touchmove, e);
         });
-        entityCollection.events.on("touchstart", function (e) {
+        entityCollection.events.on("touchstart", function (e: any) {
             ve.dispatch(ve.touchstart, e);
         });
-        entityCollection.events.on("touchend", function (e) {
+        entityCollection.events.on("touchend", function (e: any) {
             ve.dispatch(ve.touchend, e);
         });
-        entityCollection.events.on("doubletouch", function (e) {
+        entityCollection.events.on("doubletouch", function (e: any) {
             ve.dispatch(ve.doubletouch, e);
         });
-        entityCollection.events.on("touchleave", function (e) {
+        entityCollection.events.on("touchleave", function (e: any) {
             ve.dispatch(ve.touchleave, e);
         });
-        entityCollection.events.on("touchenter", function (e) {
+        entityCollection.events.on("touchenter", function (e: any) {
             ve.dispatch(ve.touchenter, e);
         });
     }
 
-    _collectStripCollectionPASS(outArr) {
-        var ec = this._stripEntityCollection;
+    protected _collectStripCollectionPASS(outArr: EntityCollection[]) {
+        let ec = this._stripEntityCollection;
 
         ec._fadingOpacity = this._fadingOpacity;
         ec.scaleByDistance = this.scaleByDistance;
@@ -719,12 +777,9 @@ class Vector extends Layer {
         ec.polygonOffsetUnits = this.polygonOffsetUnits;
 
         outArr.push(ec);
-        //
-        // ...TODO: extent
-        //
     }
 
-    _collectPolylineCollectionPASS(outArr) {
+    protected _collectPolylineCollectionPASS(outArr: EntityCollection[]) {
         let ec = this._polylineEntityCollection;
 
         ec._fadingOpacity = this._fadingOpacity;
@@ -737,32 +792,32 @@ class Vector extends Layer {
         if (this.clampToGround || this.relativeToGround) {
             let rtg = Number(this.relativeToGround);
 
-            var nodes = this._planet._renderedNodes;
-            var visibleExtent = this._planet.getViewExtent();
-            var e = ec._entities;
-            var e_i = e.length;
+            const nodes = this._planet!._renderedNodes;
+            const visibleExtent = this._planet!.getViewExtent();
+            let e = ec._entities;
+            let e_i = e.length;
             let res = new Vec3();
 
             while (e_i--) {
-                var p = e[e_i].polyline;
-                if (visibleExtent.overlaps(p._extent)) {
+                let p = e[e_i].polyline!;
+                if (p && visibleExtent.overlaps(p._extent)) {
                     // TODO:this works only for mercator area.
                     // needs to be working on poles.
                     let coords = p._pathLonLatMerc,
                         c_j = coords.length;
                     while (c_j--) {
-                        var c_j_h = coords[c_j].length;
+                        let c_j_h = coords[c_j].length;
                         while (c_j_h--) {
                             let ll = coords[c_j][c_j_h],
                                 n_k = nodes.length;
                             while (n_k--) {
-                                var seg = nodes[n_k].segment;
+                                let seg = nodes[n_k].segment;
                                 if (seg._extent.isInside(ll)) {
-                                    let cart = p._path3v[c_j][c_j_h];
+                                    let cart = p._path3v[c_j][c_j_h] as Vec3;
                                     seg.getTerrainPoint(cart, ll, res);
                                     let alt = (rtg && p.altitude) || 0.0;
                                     if (alt) {
-                                        let n = this._planet.ellipsoid.getSurfaceNormal3v(res);
+                                        let n = this._planet!.ellipsoid.getSurfaceNormal3v(res);
                                         p.setPoint3v(res.addA(n.scale(alt)), c_j_h, c_j, true);
                                     } else {
                                         p.setPoint3v(res, c_j_h, c_j, true);
@@ -777,7 +832,7 @@ class Vector extends Layer {
         }
     }
 
-    _collectGeoObjectCollectionPASS(outArr) {
+    protected _collectGeoObjectCollectionPASS(outArr: EntityCollection[]) {
         let ec = this._geoObjectEntityCollection;
 
         ec._fadingOpacity = this._fadingOpacity;
@@ -829,12 +884,12 @@ class Vector extends Layer {
         // }
     }
 
-    collectVisibleCollections(outArr) {
-        var p = this._planet;
+    public collectVisibleCollections(outArr: EntityCollection[]) {
+        let p = this._planet!;
 
         if (
             (this._fading && this._fadingOpacity > 0.0) ||
-            (this.minZoom <= this._planet.maxCurrZoom && this.maxZoom >= p.maxCurrZoom)
+            (this.minZoom <= p.maxCurrZoom && this.maxZoom >= p.maxCurrZoom)
         ) {
             this._renderingNodes = {};
             this._renderingNodesNorth = {};
@@ -847,52 +902,31 @@ class Vector extends Layer {
 
             // Merc nodes
             this._secondPASS = [];
-            this._entityCollectionsTree &&
-            this._entityCollectionsTree.collectRenderCollectionsPASS1(p._visibleNodes, outArr);
-            var i = this._secondPASS.length;
+            this._entityCollectionsTree && this._entityCollectionsTree.collectRenderCollectionsPASS1(p._visibleNodes, outArr);
+            let i = this._secondPASS.length;
             while (i--) {
-                this._secondPASS[i].collectRenderCollectionsPASS2(
-                    p._visibleNodes,
-                    outArr,
-                    this._secondPASS[i].nodeId
-                );
+                this._secondPASS[i].collectRenderCollectionsPASS2(p._visibleNodes, outArr, this._secondPASS[i].nodeId);
             }
 
             // North nodes
             this._secondPASS = [];
-            this._entityCollectionsTreeNorth &&
-            this._entityCollectionsTreeNorth.collectRenderCollectionsPASS1(
-                p._visibleNodesNorth,
-                outArr
-            );
+            this._entityCollectionsTreeNorth && this._entityCollectionsTreeNorth.collectRenderCollectionsPASS1(p._visibleNodesNorth, outArr);
             i = this._secondPASS.length;
             while (i--) {
-                this._secondPASS[i].collectRenderCollectionsPASS2(
-                    p._visibleNodesNorth,
-                    outArr,
-                    this._secondPASS[i].nodeId
-                );
+                this._secondPASS[i].collectRenderCollectionsPASS2(p._visibleNodesNorth, outArr, this._secondPASS[i].nodeId);
             }
 
             // South nodes
             this._secondPASS = [];
-            this._entityCollectionsTreeSouth &&
-            this._entityCollectionsTreeSouth.collectRenderCollectionsPASS1(
-                p._visibleNodesSouth,
-                outArr
-            );
+            this._entityCollectionsTreeSouth && this._entityCollectionsTreeSouth.collectRenderCollectionsPASS1(p._visibleNodesSouth, outArr);
             i = this._secondPASS.length;
             while (i--) {
-                this._secondPASS[i].collectRenderCollectionsPASS2(
-                    p._visibleNodesSouth,
-                    outArr,
-                    this._secondPASS[i].nodeId
-                );
+                this._secondPASS[i].collectRenderCollectionsPASS2(p._visibleNodesSouth, outArr, this._secondPASS[i].nodeId);
             }
         }
     }
 
-    _queueDeferredNode(node) {
+    protected _queueDeferredNode(node: EntityCollectionNode) {
         if (this._visibility) {
             node._inTheQueue = true;
             if (this._counter >= 1) {
@@ -903,18 +937,17 @@ class Vector extends Layer {
         }
     }
 
-    _execDeferredNode(node) {
+    protected _execDeferredNode(node: EntityCollectionNode) {
         this._counter++;
-        var that = this;
-        setTimeout(function () {
+        setTimeout(() => {
             node.applyCollection();
-            that._counter--;
-            if (that._deferredEntitiesPendingQueue.length && that._counter < 1) {
-                while (that._deferredEntitiesPendingQueue.length) {
-                    var n = that._deferredEntitiesPendingQueue.pop();
+            this._counter--;
+            if (this._deferredEntitiesPendingQueue.length && this._counter < 1) {
+                while (this._deferredEntitiesPendingQueue.length) {
+                    let n = this._deferredEntitiesPendingQueue.pop()!;
                     n._inTheQueue = false;
                     if (n.isVisible()) {
-                        that._execDeferredNode(n);
+                        this._execDeferredNode(n);
                         return;
                     }
                 }
@@ -926,48 +959,47 @@ class Vector extends Layer {
      * Start to load tile material.
      * @public
      * @virtual
-     * @param {Segment.Material} material - Current material.
+     * @param {Material} material - Current material.
      */
-    loadMaterial(material) {
-        var seg = material.segment;
+    public override loadMaterial(material: Material) {
+        const seg = material.segment;
 
         if (this._isBaseLayer) {
-            material.texture = seg._isNorth
-                ? seg.planet.solidTextureOne
-                : seg.planet.solidTextureTwo;
+            material.texture = seg._isNorth ? seg.planet.solidTextureOne : seg.planet.solidTextureTwo;
         } else {
             material.texture = seg.planet.transparentTexture;
         }
 
-        if (this._planet.layerLock.isFree()) {
+        if (this._planet!.layerLock.isFree()) {
             material.isReady = false;
             material.isLoading = true;
-            this._planet._vectorTileCreator.add(material);
+            this._planet!._vectorTileCreator.add(material);
         }
     }
 
     /**
      * Abort exact material loading.
      * @public
+     * @override
      * @param {Material} material - Segment material.
      */
-    abortMaterialLoading(material) {
+    public override abortMaterialLoading(material: Material) {
         material.isLoading = false;
         material.isReady = false;
     }
 
-    applyMaterial(material) {
+    public override applyMaterial(material: Material, isForced: boolean = false): NumberArray4 {
         if (material.isReady) {
             return [0, 0, 1, 1];
         } else {
             !material.isLoading && this.loadMaterial(material);
 
-            var segment = material.segment;
-            var pn = segment.node,
+            const segment = material.segment;
+            let pn = segment.node,
                 notEmpty = false;
 
-            var mId = this._id;
-            var psegm = material;
+            let mId = this.__id;
+            let psegm = material;
 
             while (pn.parentNode) {
                 if (psegm && psegm.isReady) {
@@ -982,7 +1014,7 @@ class Vector extends Layer {
                 material.appliedNodeId = pn.nodeId;
                 material.texture = psegm.texture;
                 material.pickingMask = psegm.pickingMask;
-                var dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
+                const dZ2 = 1.0 / (2 << (segment.tileZoom - pn.segment.tileZoom - 1));
                 return [
                     segment.tileX * dZ2 - pn.segment.tileX,
                     segment.tileY * dZ2 - pn.segment.tileY,
@@ -1003,14 +1035,14 @@ class Vector extends Layer {
         }
     }
 
-    clearMaterial(material) {
+    public override clearMaterial(material: Material) {
         if (material.isReady) {
-            var gl = material.segment.handler.gl;
+            const gl = material.segment.handler.gl!;
 
             material.isReady = false;
             material.pickingReady = false;
 
-            var t = material.texture;
+            let t = material.texture;
             material.texture = null;
             t && !t.default && gl.deleteTexture(t);
 
@@ -1033,36 +1065,36 @@ class Vector extends Layer {
         material.textureExists = false;
     }
 
-    update() {
+    public update() {
         this._geometryHandler.update();
         this.events.dispatch(this.events.draw, this);
     }
 }
 
-const EVENT_NAMES = [
+const VECTOR_EVENTS: VectorEventsList = [
     /**
      * Triggered when entity has moved.
-     * @event og.layer.Vector#draw
+     * @event EventsHandler<VectorEventsList>#draw
      */
     "entitymove",
 
     /**
      * Triggered when layer begin draw.
-     * @event og.layer.Vector#draw
+     * @event EventsHandler<VectorEventsList>#draw
      */
     "draw",
 
     /**
      * Triggered when new entity added to the layer.
-     * @event og.layer.Vector#entityadd
+     * @event EventsHandler<VectorEventsList>#entityadd
      */
     "entityadd",
 
     /**
      * Triggered when entity removes from the collection.
-     * @event og.layer.Vector#entityremove
+     * @event EventsHandler<VectorEventsList>#entityremove
      */
     "entityremove"
 ];
 
-export { Vector };
+export {Vector};

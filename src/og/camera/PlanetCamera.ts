@@ -29,9 +29,9 @@ type CameraFrame = {
  * Planet camera.
  * @class
  * @extends {Camera}
- * @param {RenderNode} planet - Planet render node.
- * @param {Object} [options] - Planet camera options:
- * @param {Object} [options.name] - Camera name.
+ * @param {Planet} planet - Planet render node.
+ * @param {IPlanetCameraParams} [options] - Planet camera options:
+ * @param {string} [options.name] - Camera name.
  * @param {number} [options.viewAngle] - Camera angle of view.
  * @param {number} [options.near] - Camera near plane distance. Default is 1.0
  * @param {number} [options.far] - Camera far plane distance. Default is og.math.MAX
@@ -42,7 +42,6 @@ type CameraFrame = {
  * @param {Vec3} [options.up] - Camera eye position. Default (0,1,0)
  */
 class PlanetCamera extends Camera {
-
     /**
      * Assigned camera's planet.
      * @public
@@ -66,17 +65,17 @@ class PlanetCamera extends Camera {
 
     /**
      * Current geographical degree position.
-     * @protected
+     * @public
      * @type {LonLat}
      */
-    protected _lonLat: LonLat;
+    public _lonLat: LonLat;
 
     /**
      * Current geographical mercator position.
-     * @protected
+     * @public
      * @type {LonLat}
      */
-    protected _lonLatMerc: LonLat;
+    public _lonLatMerc: LonLat;
 
     /**
      * Current altitude.
@@ -98,7 +97,7 @@ class PlanetCamera extends Camera {
      * @type {Segment}
      */
 
-    protected _insideSegment: Segment | null;
+    public _insideSegment: Segment | null;
 
     public slope: number;
 
@@ -410,7 +409,7 @@ class PlanetCamera extends Camera {
      * @param {Number} [ampl=1.0] - Altitude amplitude factor.
      * @param {Function} [completeCallback] - Callback that calls after flying when flying is finished.
      * @param {Function} [startCallback] - Callback that calls before the flying begins.
-     * @param {Function} [frameCallback] - Frame callback
+     * @param {Function} [frameCallback] - Each frame callback
      */
     flyCartesian(
         cartesian: Vec3,
@@ -478,7 +477,6 @@ class PlanetCamera extends Camera {
             d = d * d * (3 - 2 * d);
             d *= d;
 
-            // Error here
             let g_i = ground_a.smerp(ground_b, d).normalize();
             let ground_i = this.planet.getRayIntersectionEllipsoid(new Ray(zero, g_i));
             let t = 1 - d;
@@ -488,7 +486,7 @@ class PlanetCamera extends Camera {
                 max_h * 3 * d * t * t +
                 lonlat_b.height * t * t * t;
 
-            let eye_i = ground_i.addA(g_i.scale(height_i));
+            let eye_i = ground_i!.addA(g_i.scale(height_i));
             let up_i = v_a.smerp(v_b, d);
             let look_i = Vec3.add(eye_i, n_a.smerp(n_b, d).negateTo());
 
@@ -514,13 +512,22 @@ class PlanetCamera extends Camera {
      * Flies to the geo coordinates.
      * @public
      * @param {LonLat} lonlat - Finish coordinates.
-     * @param {Vec3} [look] - Camera LOOK in the end of flying. Default - (0,0,0)
+     * @param {Vec3 | LonLat} [look] - Camera LOOK in the end of flying. Default - (0,0,0)
      * @param {Vec3} [up] - Camera UP vector in the end of flying. Default - (0,1,0)
-     * @param {Number} [ampl] - Altitude amplitude factor.
+     * @param {number} [ampl] - Altitude amplitude factor.
      * @param {Function} [completeCallback] - Callback that calls after flying when flying is finished.
      * @param {Function} [startCallback] - Callback that calls befor the flying begins.
+     * @param {Function} [frameCallback] - each frame callback
      */
-    flyLonLat(lonlat: LonLat, look?: Vec3 | LonLat, up?: Vec3, ampl?: number, completeCallback?: Function, startCallback?: Function) {
+    flyLonLat(
+        lonlat: LonLat,
+        look?: Vec3 | LonLat,
+        up?: Vec3,
+        ampl?: number,
+        completeCallback?: Function,
+        startCallback?: Function,
+        frameCallbak?: Function
+    ) {
         let _lonLat = new LonLat(lonlat.lon, lonlat.lat, lonlat.height || this._lonLat.height);
         this.flyCartesian(
             this.planet.ellipsoid.lonLatToCartesian(_lonLat),
@@ -528,7 +535,8 @@ class PlanetCamera extends Camera {
             up,
             ampl,
             completeCallback,
-            startCallback
+            startCallback,
+            frameCallbak
         );
     }
 
@@ -687,7 +695,7 @@ class PlanetCamera extends Camera {
     }
 
     public getSurfaceVisibleDistance(d: number): number {
-        let R = this.planet.ellipsoid._a;
+        let R = this.planet.ellipsoid.equatorialSize;
         return R * Math.acos(R / (R + this._lonLat.height + d));
     }
 
@@ -707,7 +715,7 @@ class PlanetCamera extends Camera {
 
     public isVisible(poi: Vec3): boolean {
         let e = this.eye.length();
-        return this.eye.distance(poi) < Math.sqrt(e * e - this.planet.ellipsoid._a2);
+        return this.eye.distance(poi) < Math.sqrt(e * e - this.planet.ellipsoid.equatorialSizeSqr);
     }
 
     // _calcOrientation() {

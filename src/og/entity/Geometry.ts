@@ -188,7 +188,7 @@ class Geometry {
     protected _extent: Extent;
     protected _style: IGeometryStyleInternal;
     protected _visibility: boolean;
-    protected _pickingReady: boolean;
+    public _pickingReady: boolean;
 
     constructor(options: IGeometryParams = {}) {
 

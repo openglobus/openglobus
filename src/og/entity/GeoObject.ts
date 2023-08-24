@@ -96,7 +96,7 @@ class GeoObject {
 
         this._color = utils.createColorRGBA(options.color);
 
-        this._direction = new Vec3(0, 0, 0);
+        this._direction = new Vec3(0, 1, 0);
 
         this._handler = null;
         this._handlerIndex = -1;
@@ -287,9 +287,7 @@ class GeoObject {
     }
 
     public updateDirection() {
-        // @ts-ignore
         if (this._handler && this._handler._planet) {
-            // @ts-ignore
             this._qNorthFrame = this._handler._planet.getNorthFrameRotation(this._position);
             let qq = Quat.yRotation(this._yaw).mul(this._qNorthFrame).conjugate();
             this._direction = qq.mulVec3(new Vec3(0.0, 0.0, -1.0)).normalize();

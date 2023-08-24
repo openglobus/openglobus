@@ -38,7 +38,7 @@ class Ellipsoid {
     protected _radii: Vec3;
     protected _radii2: Vec3;
     protected _invRadii: Vec3;
-    protected _invRadii2: Vec3;
+    public _invRadii2: Vec3;
 
     constructor(equatorialSize: number = 1, polarSize: number = 1) {
         this._a = equatorialSize;
@@ -127,6 +127,14 @@ class Ellipsoid {
         return this._a;
     }
 
+    public get equatorialSize(): number {
+        return this._a;
+    }
+
+    public get equatorialSizeSqr(): number {
+        return this._a2;
+    }
+
     /**
      * Gets ellipsoid polar size.
      * @public
@@ -134,6 +142,14 @@ class Ellipsoid {
      */
     public getPolarSize(): number {
         return this._b;
+    }
+
+    public get polarSize(): number {
+        return this._b;
+    }
+
+    public get polarSizeSqr(): number {
+        return this._b2;
     }
 
     /**

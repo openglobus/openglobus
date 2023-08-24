@@ -5,6 +5,7 @@ import {Handler} from "../webgl/Handler";
 import {doubleToTwoFloatsV2} from "../math/coder";
 import {Vector} from "../layer/Vector";
 import {NumberArray2, Vec2} from "../math/Vec2";
+import {Node} from "../quadTree/Node";
 import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 import {
@@ -12,7 +13,8 @@ import {
     Geometry,
     IMultiLineStringCoordinates,
     ILineStringCoordinates,
-    IGeometryCoordinates, IPointCoordinates, IMultiPolygonCoordinates, IPolygonCoordinates
+    IMultiPolygonCoordinates,
+    IPolygonCoordinates
 } from "./Geometry";
 
 import {earcut, flatten} from "../utils/earcut.js";
@@ -961,7 +963,6 @@ class GeometryHandler {
                         if (m.segment.node.getState() !== quadTree.RENDERING) {
                             m.layer.clearMaterial(m);
                         } else {
-                            // @ts-ignore
                             m.pickingReady = m.pickingReady && geometry._pickingReady;
                             m.isReady = false;
                             m._updateTexture = m.texture;
@@ -977,7 +978,7 @@ class GeometryHandler {
 
     protected _refreshRecursevelyExt(extent: Extent, treeNode: Node) {
         if (treeNode.ready) {
-            let lid = this._layer._id;
+            let lid = this._layer.__id;
             for (let i = 0; i < treeNode.nodes.length; i++) {
                 let ni = treeNode.nodes[i];
                 if (extent.overlaps(ni.segment.getExtentLonLat())) {
@@ -996,7 +997,7 @@ class GeometryHandler {
     }
 
     protected _refreshPlanetNode(treeNode: Node) {
-        let i = 0;
+        let i;
 
         let e = this._removeGeometryExtentArr;
         for (i = 0; i < e.length; i++) {
@@ -1012,9 +1013,13 @@ class GeometryHandler {
     protected _updatePlanet() {
         let p = this._layer._planet;
         if (p) {
-            p.quadTreeStrategy.quadTreeList.forEach((quadTree: Node) => {
-                this._refreshPlanetNode(quadTree);
-            });
+            let ql = p.quadTreeStrategy.quadTreeList;
+            for (let i = 0; i < ql.length; i++) {
+                this._refreshPlanetNode(ql[i]);
+            }
+            // p.quadTreeStrategy.quadTreeList.forEach((quadTree: Node) => {
+            //     this._refreshPlanetNode(quadTree);
+            // });
         }
         this._updatedGeometryArr.length = 0;
         this._updatedGeometryArr = [];

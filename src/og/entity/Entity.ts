@@ -16,6 +16,7 @@ import {NumberArray3, Vec3} from "../math/Vec3";
 import {EntityCollection} from "./EntityCollection";
 import {NumberArray2} from "../math/Vec2";
 import {Vector} from "../layer/Vector";
+import {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
 
 export interface IEntityParams {
     properties?: any;
@@ -39,7 +40,7 @@ export interface IEntityParams {
  *
  * @class
  * @param {Object} [options] - Entity options:
- * @param {string} [options.name] - A human readable name to display to users. It does not have to be unique.
+ * @param {string} [options.name] - A human-readable name to display to users. It does not have to be unique.
  * @param {Vec3|Array.<number>} [options.cartesian] - Spatial entities like billboard, label etc. cartesian position.
  * @param {LonLat} [options.lonlat] - Geodetic coordinates for an entities like billboard, label etc.
  * @param {boolean} [options.aground] - True for entities that have to be placed on the relief.
@@ -57,7 +58,7 @@ class Entity {
     static __counter__: number = 0;
 
     /**
-     * Unic identifier.
+     * Uniq identifier.
      * @public
      * @readonly
      */
@@ -90,21 +91,21 @@ class Entity {
      * @protected
      * @type {Vec3}
      */
-    protected _cartesian: Vec3;
+    public _cartesian: Vec3;
 
     /**
      * Geodetic entity coordinates.
-     * @protected
+     * @public
      * @type {LonLat}
      */
-    protected _lonLat: LonLat;
+    public _lonLat: LonLat;
 
     /**
      * World Mercator entity coordinates.
-     * @protected
+     * @public
      * @type {LonLat}
      */
-    protected _lonLatMerc: LonLat;
+    public _lonLatMerc: LonLat;
 
     /**
      * Entity visible terrain altitude.
@@ -122,38 +123,38 @@ class Entity {
 
     /**
      * Entity collection that this entity belongs to.
-     * @protected
+     * @public
      * @type {EntityCollection}
      */
-    protected _entityCollection: EntityCollection | null;
+    public _entityCollection: EntityCollection | null;
 
     /**
      * Entity collection array store index.
-     * @protected
+     * @public
      * @type {number}
      */
-    protected _entityCollectionIndex: number;
+    public _entityCollectionIndex: number;
 
     /**
      * Assigned vector layer pointer.
-     * @protected
+     * @public
      * @type {Vector}
      */
-    protected _layer: Vector | null;
+    public _layer: Vector | null;
 
     /**
      * Assigned vector layer entity array index.
-     * @protected
+     * @public
      * @type {number}
      */
-    protected _layerIndex: number;
+    public _layerIndex: number;
 
     /**
      * Picking color.
-     * @protected
+     * @public
      * @type {Vec3}
      */
-    protected _pickingColor: Vec3;
+    public _pickingColor: Vec3;
 
     protected _featureConstructorArray: any;
 
@@ -212,6 +213,8 @@ class Entity {
      * @type {Strip | null}
      */
     public strip: Strip | null;
+
+    public _nodePtr?: EntityCollectionNode;
 
     constructor(options: IEntityParams = {}) {
 
@@ -273,6 +276,10 @@ class Entity {
         this.geoObject = this._createOptionFeature("geoObject", options.geoObject) as GeoObject;
 
         this.strip = this._createOptionFeature("strip", options.strip) as Strip;
+    }
+
+    public get id(): number {
+        return this.__id;
     }
 
     public isEqual(entity: Entity): boolean {
@@ -405,7 +412,7 @@ class Entity {
             if (Math.abs(this._lonLat.lat) < mercator.MAX_LAT) {
                 this._lonLatMerc = this._lonLat.forwardMercator();
             } else {
-                //this._lonLatMerc = null;
+                this._lonLatMerc.lon = this._lonLatMerc.lat = this._lonLatMerc.height = 0;
             }
         }
 
@@ -414,11 +421,11 @@ class Entity {
 
     /**
      * Sets entity cartesian position without event dispatching.
-     * @protected
+     * @public
      * @param {Vec3} cartesian - Cartesian position in 3d space.
      * @param {boolean} skipLonLat - skip geodetic calculation.
      */
-    protected _setCartesian3vSilent(cartesian: Vec3, skipLonLat: boolean = false) {
+    public _setCartesian3vSilent(cartesian: Vec3, skipLonLat: boolean = false) {
         let p = this._cartesian;
 
         p.x = cartesian.x || 0.0;
@@ -504,7 +511,7 @@ class Entity {
             if (Math.abs(l.lat) < mercator.MAX_LAT) {
                 this._lonLatMerc = l.forwardMercator();
             } else {
-                //this._lonLatMerc = null;
+                this._lonLatMerc.lon = this._lonLatMerc.lat = this._lonLatMerc.height = 0;
             }
 
             (ec.renderNode as Planet).ellipsoid.lonLatToCartesianRes(l, this._cartesian);
@@ -690,7 +697,7 @@ class Entity {
         return this._layer;
     }
 
-    // @todo: replace any with VectorLayerEvents | EntityCollectioEvents
+    // @todo: replace any with VectorLayerEvents | EntityCollectionEvents
     public get rendererEvents(): any {
         if (this._layer) {
             return this._layer.events;
@@ -738,7 +745,7 @@ class Entity {
     }
 
     /**
-     * Return geodethic extent.
+     * Return geodetic extent.
      * @public
      * @returns {Extent} -
      */

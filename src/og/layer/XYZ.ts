@@ -9,7 +9,7 @@ import {EventsHandler} from "../Events";
 import {Material} from "./Material";
 import {NumberArray4} from "../math/Vec4";
 
-interface IXYZParams extends ILayerParams {
+export interface IXYZParams extends ILayerParams {
     url?: string;
     subdomains?: string[];
     minNativeZoom?: number;
@@ -29,7 +29,7 @@ type XYZEventsType = EventsHandler<XYZEventsList> & EventsHandler<LayerEventsLis
  * @class
  * @extends {Layer}
  * @param {string} name - Layer name.
- * @param {Object} options:
+ * @param {IXYZParams} options:
  * @param {number} [options.opacity=1.0] - Layer opacity.
  * @param {Array.<string>} [options.subdomains=['a','b','c']] - Subdomains of the tile service.
  * @param {number} [options.minZoom=0] - Minimal visibility zoom level.
@@ -57,7 +57,7 @@ type XYZEventsType = EventsHandler<XYZEventsList> & EventsHandler<LayerEventsLis
  */
 class XYZ extends Layer {
 
-    override events: XYZEventsType;
+    public override events: XYZEventsType;
 
     /**
      * Tile url source template.
@@ -122,11 +122,11 @@ class XYZ extends Layer {
     /**
      * @warning Use XYZ.isIdle in requestAnimationFrame(after setVisibility)
      */
-    public get isIdle(): boolean {
+    public override get isIdle(): boolean {
         return super.isIdle && this._planet!._tileLoader.getRequestCounter(this) === 0;
     }
 
-    public get instanceName(): string {
+    public override get instanceName(): string {
         return "XYZ";
     }
 
@@ -145,7 +145,7 @@ class XYZ extends Layer {
      * @public
      * @param {boolean} visibility - Layer visibility.
      */
-    public setVisibility(visibility: boolean) {
+    public override setVisibility(visibility: boolean) {
         if (visibility !== this._visibility) {
             super.setVisibility(visibility);
             if (!visibility) {
@@ -208,7 +208,7 @@ class XYZ extends Layer {
                         filter: () => (seg.initialized && seg.node.getState() === RENDERING) || forceLoading,
                         options: {}
                     },
-                    (response) => {
+                    (response: any) => {
                         if (response.status === "ready") {
                             if (material.isLoading) {
                                 let e = this.events.load!;
@@ -225,8 +225,8 @@ class XYZ extends Layer {
                                 material.textureNotExists();
                             }
                         }
-                    },
-                    this.__id
+                    }
+                    //,this.__id
                 );
             } else {
                 material.textureNotExists();
@@ -239,9 +239,9 @@ class XYZ extends Layer {
      * @protected
      * @virtual
      * @param {Segment} segment - Creates specific url for current segment.
-     * @returns {String} - Returns url string.
+     * @returns {string} - Returns url string.
      */
-    protected _createUrl(segment: Segment) {
+    protected _createUrl(segment: Segment): string {
         return stringTemplate(this.url, {
             s: this._getSubdomain(),
             x: segment.tileX.toString(),
@@ -261,10 +261,8 @@ class XYZ extends Layer {
      * @param {Segment} segment - Segment that loads image data.
      * @returns {string} - Url string.
      */
-    _getHTTPRequestString(segment) {
-        return this._urlRewriteCallback
-            ? this._urlRewriteCallback(segment, this.url)
-            : this._createUrl(segment);
+    protected _getHTTPRequestString(segment: Segment) {
+        return this._urlRewriteCallback ? this._urlRewriteCallback(segment, this.url) : this._createUrl(segment);
     }
 
     /**
@@ -276,7 +274,7 @@ class XYZ extends Layer {
         this._urlRewriteCallback = ur;
     }
 
-    public applyMaterial(material: Material, forceLoading: boolean = false): NumberArray4 {
+    public override applyMaterial(material: Material, forceLoading: boolean = false): NumberArray4 {
         if (material.isReady) {
             return material.texOffset;
         } else if (material.segment.tileZoom < this.minNativeZoom) {
@@ -307,7 +305,7 @@ class XYZ extends Layer {
                 } else {
                     let pn = segment.node;
                     while (pn.segment.tileZoom > (material.layer as XYZ).maxNativeZoom) {
-                        pn = pn.parentNode;
+                        pn = pn.parentNode!;
                     }
                     let pnm = pn.segment.materials[material.layer.__id];
                     if (pnm) {
@@ -344,7 +342,7 @@ class XYZ extends Layer {
 
     public override clearMaterial(material: Material) {
         if (material.isReady && material.textureExists) {
-            !material.texture!.default && material.segment.handler.gl.deleteTexture(material.texture);
+            !material.texture!.default && material.segment.handler.gl!.deleteTexture(material.texture!);
             material.texture = null;
         }
 
@@ -356,7 +354,7 @@ class XYZ extends Layer {
     /**
      * @protected
      */
-    protected _correctFullExtent() {
+    protected override _correctFullExtent() {
         let e = this._extent,
             em = this._extentMerc;
         let ENLARGE_MERCATOR_LON = mercator.POLE + 50000;

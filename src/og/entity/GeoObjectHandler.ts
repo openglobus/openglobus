@@ -134,9 +134,7 @@ class InstanceData {
     }
 
     public createTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
-        // @ts-ignore
         if (this._geoObjectHandler && this._geoObjectHandler._planet) {
-            // @ts-ignore
             this._texture = this._geoObjectHandler._planet.renderer!.handler.createTextureDefault(image);
         }
     }
@@ -244,7 +242,6 @@ class InstanceData {
     }
 
     public createSizeBuffer() {
-        // @ts-ignore
         let h = this._geoObjectHandler._planet!.renderer!.handler,
             numItems = this._sizeArr.length;
 
@@ -259,7 +256,6 @@ class InstanceData {
     }
 
     public createTexCoordBuffer() {
-        // @ts-ignore
         const h = this._geoObjectHandler._planet!.renderer!.handler;
         h.gl!.deleteBuffer(this._texCoordBuffer as WebGLBuffer);
         this._texCoordArr = makeArrayTyped(this._texCoordArr);
@@ -267,7 +263,6 @@ class InstanceData {
     }
 
     public createPositionBuffer() {
-        // @ts-ignore
         let h = this._geoObjectHandler._planet!.renderer!.handler,
             numItems = this._positionHighArr.length / 3;
 
@@ -286,7 +281,6 @@ class InstanceData {
     }
 
     public createRgbaBuffer() {
-        // @ts-ignore
         let h = this._geoObjectHandler._planet!.renderer!.handler,
             numItems = this._rgbaArr.length / 4;
 
@@ -301,7 +295,6 @@ class InstanceData {
     }
 
     public createDirectionBuffer() {
-        // @ts-ignore
         let h = this._geoObjectHandler._planet!.renderer!.handler,
             numItems = this._directionArr.length / 3;
 
@@ -316,7 +309,6 @@ class InstanceData {
     }
 
     public createNormalsBuffer() {
-        // @ts-ignore
         const h = this._geoObjectHandler._planet!.renderer!.handler;
         h.gl!.deleteBuffer(this._normalsBuffer as WebGLBuffer);
         this._normalsArr = makeArrayTyped(this._normalsArr);
@@ -324,7 +316,6 @@ class InstanceData {
     }
 
     public createIndicesBuffer() {
-        // @ts-ignore
         const h = this._geoObjectHandler._planet!.renderer!.handler;
         h.gl!.deleteBuffer(this._indicesBuffer as WebGLBuffer);
         this._indicesArr = makeArrayTyped(this._indicesArr, Uint32Array);
@@ -332,7 +323,6 @@ class InstanceData {
     }
 
     public createPickingColorBuffer() {
-        // @ts-ignore
         const h = this._geoObjectHandler._planet!.renderer!.handler;
         h.gl!.deleteBuffer(this._pickingColorBuffer as WebGLBuffer);
         this._pickingColorArr = makeArrayTyped(this._pickingColorArr);
@@ -347,7 +337,6 @@ class InstanceData {
     }
 
     public update() {
-        // @ts-ignore
         if (this._geoObjectHandler._planet) {
             let i = this._changedBuffers.length;
             while (i--) {
@@ -375,7 +364,7 @@ class GeoObjectHandler {
 
     protected _entityCollection: EntityCollection;
 
-    protected _planet: Planet | null;
+    public _planet: Planet | null;
 
     protected _geoObjects: GeoObject[];
 
@@ -784,6 +773,8 @@ class GeoObjectHandler {
 
             this._geoObjects.push(geoObject);
             this._addGeoObjectToArray(geoObject);
+
+            geoObject.updateDirection();
 
             // @ts-ignore
             geoObject._tagData!.refresh();

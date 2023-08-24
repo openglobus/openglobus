@@ -43,13 +43,13 @@ export interface ICameraParams {
  * @param {Object} [options.name] - Camera name.
  * @param {number} [options.viewAngle=47] - Camera angle of view. Default is 47.0
  * @param {number} [options.near=1] - Camera near plane distance. Default is 1.0
- * @param {number} [options.far=og.math.MAX] - Camera far plane distance. Deafult is og.math.MAX
+ * @param {number} [options.far=og.math.MAX] - Camera far plane distance. Default is og.math.MAX
  * @param {Vec3} [options.eye=[0,0,0]] - Camera eye position. Default (0,0,0)
  * @param {Vec3} [options.look=[0,0,0]] - Camera look position. Default (0,0,0)
  * @param {Vec3} [options.up=[0,1,0]] - Camera eye position. Default (0,1,0)
  *
- * @fires Camera#viewchange
- * @fires Camera#moveend
+ * @fires EventsHandler<CameraEvents>#viewchange
+ * @fires EventsHandler<CameraEvents>#moveend
  */
 class Camera {
 
@@ -118,24 +118,24 @@ class Camera {
 
     /**
      * Camera right vector.
-     * @protected
+     * @public
      * @type {Vec3}
      */
-    protected _r: Vec3;
+    public _r: Vec3;
 
     /**
      * Camera up vector.
-     * @protected
+     * @public
      * @type {Vec3}
      */
-    protected _u: Vec3;
+    public _u: Vec3;
 
     /**
      * Camera backward vector.
-     * @protected
+     * @public
      * @type {Vec3}
      */
-    protected _b: Vec3;
+    public _b: Vec3;
 
     protected _pr: Vec3;
     protected _pu: Vec3;
@@ -146,7 +146,7 @@ class Camera {
 
     protected _tanViewAngle_hrad: number;
 
-    protected _tanViewAngle_hradOneByHeight: number;
+    public _tanViewAngle_hradOneByHeight: number;
 
     protected _projSizeConst: number;
 
@@ -342,7 +342,7 @@ class Camera {
             -eye.dot(u), -eye.dot(v), -eye.dot(n), 1.0
         ]);
 
-        // do not cleanup, someday it will be using
+        // do not clean up, someday it will be using
         //this._normalMatrix = this._viewMatrix.toMatrix3(); // this._viewMatrix.toInverseMatrix3().transposeTo();
 
         for (let i = 0, len = this.frustums.length; i < len; i++) {
@@ -431,7 +431,7 @@ class Camera {
      * @param {Vec3} up - Camera up vector
      * @returns {Camera} - This camera
      */
-    public set(eye: Vec3, look?: Vec3, up?: Vec3) {
+    public set(eye: Vec3, look?: Vec3, up?: Vec3): this {
         this.eye.x = eye.x;
         this.eye.y = eye.y;
         this.eye.z = eye.z;
@@ -444,6 +444,7 @@ class Camera {
         this._b.normalize();
         this._r.normalize();
         this._u.copy(this._b.cross(this._r));
+        return this;
     }
 
     /**

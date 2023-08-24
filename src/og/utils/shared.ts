@@ -184,7 +184,7 @@ export function defaultString(str?: string, def: string = ""): string {
     return str ? str.trim().toLowerCase() : def;
 }
 
-export function createVector3(v?: Vec3 | NumberArray3, def?: Vec3): Vec3 {
+export function createVector3(v?: Vec3 | NumberArray3 | null, def?: Vec3): Vec3 {
     if (v) {
         if (v instanceof Vec3) {
             return v.clone();
@@ -197,7 +197,7 @@ export function createVector3(v?: Vec3 | NumberArray3, def?: Vec3): Vec3 {
     return new Vec3();
 }
 
-export function createVector4(v?: Vec4 | NumberArray4, def?: Vec4): Vec4 {
+export function createVector4(v?: Vec4 | NumberArray4 | null, def?: Vec4): Vec4 {
     if (v) {
         if (v instanceof Vec4) {
             return v.clone();
@@ -210,7 +210,7 @@ export function createVector4(v?: Vec4 | NumberArray4, def?: Vec4): Vec4 {
     return new Vec4();
 }
 
-export function createColorRGBA(c?: string | NumberArray4 | Vec4, def?: Vec4): Vec4 {
+export function createColorRGBA(c?: string | NumberArray4 | Vec4 | null, def?: Vec4): Vec4 {
     if (c) {
         if (isString(c)) {
             return htmlColorToRgba(c as string);
@@ -225,7 +225,7 @@ export function createColorRGBA(c?: string | NumberArray4 | Vec4, def?: Vec4): V
     return new Vec4(1.0, 1.0, 1.0, 1.0);
 }
 
-export function createColorRGB(c?: string | NumberArray3 | Vec4, def?: Vec3): Vec3 {
+export function createColorRGB(c?: string | NumberArray3 | Vec3 | null, def?: Vec3): Vec3 {
     if (c) {
         if (isString(c)) {
             return htmlColorToRgb(c as string);
@@ -862,23 +862,56 @@ export function spliceTypedArray(arr: TypedArray, starting: number, deleteCount:
 }
 
 /**
- * Returns triangle coordinate array from inside of the source triangle array.
+ * Returns 64-bit triangle coordinate array from inside of the source triangle array.
  * @static
  * @param {TypedArray | number[]} sourceArr - Source array
  * @param {number} gridSize - Source array square matrix size
  * @param {number} i0 - First row index source array matrix
  * @param {number} j0 - First column index
  * @param {number} size - Square matrix result size.
- * @return{Float64Array} Triangle coordinates array from the source array.
+ * @return {Float64Array} Triangle coordinates array from the source array.
  * @TODO: optimization
  */
-export function getMatrixSubArray(sourceArr: TypedArray | number[], gridSize: number, i0: number, j0: number, size: number): Float64Array {
+export function getMatrixSubArray64(sourceArr: TypedArray | number[], gridSize: number, i0: number, j0: number, size: number): Float64Array {
 
     const size_1 = size + 1;
     const i0size = i0 + size_1;
     const j0size = j0 + size_1;
 
     let res = new Float64Array(size_1 * size_1 * 3);
+    let vInd = 0;
+
+    for (let i = i0; i < i0size; i++) {
+        for (let j = j0; j < j0size; j++) {
+
+            let ind = 3 * (i * (gridSize + 1) + j);
+
+            res[vInd++] = sourceArr[ind];
+            res[vInd++] = sourceArr[ind + 1];
+            res[vInd++] = sourceArr[ind + 2];
+        }
+    }
+
+    return res;
+}
+
+/**
+ * Returns 32-bit triangle coordinate array from inside of the source triangle array.
+ * @static
+ * @param {TypedArray | number[]} sourceArr - Source array
+ * @param {number} gridSize - Source array square matrix size
+ * @param {number} i0 - First row index source array matrix
+ * @param {number} j0 - First column index
+ * @param {number} size - Square matrix result size.
+ * @return {Float32Array} Triangle coordinates array from the source array.
+ */
+export function getMatrixSubArray32(sourceArr: TypedArray | number[], gridSize: number, i0: number, j0: number, size: number): Float32Array {
+
+    const size_1 = size + 1;
+    const i0size = i0 + size_1;
+    const j0size = j0 + size_1;
+
+    let res = new Float32Array(size_1 * size_1 * 3);
     let vInd = 0;
 
     for (let i = i0; i < i0size; i++) {

@@ -9,7 +9,7 @@ import {Material} from "./Material";
 import {Planet} from "../scene/Planet";
 import {Segment} from "../segment/Segment";
 import {Vec3, NumberArray3} from "../math/Vec3";
-import {NumberArray4, Vec4} from "../math/Vec4";
+import {NumberArray4} from "../math/Vec4";
 import {WebGLTextureExt} from "../webgl/Handler";
 
 const FADING_RATIO = 15.8;
@@ -32,11 +32,10 @@ export interface ILayerParams {
     isSRGB?: boolean;
     pickingEnabled?: boolean;
     preLoadZoomLevels?: number[];
-    events?: string[];
     extent?: Extent | NumberArray3[];
-    ambient?: string | NumberArray3 | Vec4;
-    diffuse?: string | NumberArray3 | Vec4;
-    specular?: string | NumberArray3 | Vec4;
+    ambient?: string | NumberArray3 | Vec3;
+    diffuse?: string | NumberArray3 | Vec3;
+    specular?: string | NumberArray3 | Vec3;
     shininess?: number;
     nightTextureCoefficient?: number;
 }
@@ -129,16 +128,16 @@ class Layer {
      */
     public _planet: Planet | null;
 
-    public createTexture: Function;
+    public createTexture: Function | null;
 
     public nightTextureCoefficient: number;
 
     /**
      * Uniq identifier.
-     * @protected
+     * @public
      * @type {number}
      */
-    protected __id: number;
+    public __id: number;
 
     protected _labelMaxLetters: number;
 
@@ -181,18 +180,18 @@ class Layer {
      */
     protected _visibility: boolean;
 
-    protected _fading: boolean;
+    public _fading: boolean;
 
     protected _fadingFactor: number;
 
-    protected _fadingOpacity: number;
+    public _fadingOpacity: number;
 
     /**
      * Height over the ground.
-     * @protected
+     * @public
      * @type {number}
      */
-    protected _height: number;
+    public _height: number;
 
     /**
      * Visible degrees extent.
@@ -205,23 +204,23 @@ class Layer {
 
     protected _isSRGB: boolean;
 
-    protected _internalFormat: number | null;
+    public _internalFormat: number | null;
 
     /**
      * Visible mercator extent.
-     * @protected
+     * @public
      * @type {Extent}
      */
-    protected _extentMerc: Extent;
+    public _extentMerc: Extent;
 
     /**
      * Layer picking color. Assign when added to the planet.
-     * @protected
+     * @public
      * @type {Vec3}
      */
-    protected _pickingColor: Vec3;
+    public _pickingColor: Vec3;
 
-    protected _pickingEnabled: boolean;
+    public _pickingEnabled: boolean;
 
     protected _isPreloadDone: boolean;
 
@@ -231,11 +230,13 @@ class Layer {
     protected _diffuse: Float32Array | null;
     protected _specular: Float32Array | null;
 
-    protected isVector: boolean = false;
+    public isVector: boolean = false;
 
     constructor(name: string | null, options: ILayerParams = {}) {
 
         this.__id = Layer.__counter__++;
+
+        this.events = createEvents<LayerEventsList>(LAYER_EVENTS, this);
 
         this.name = name || "noname";
 
@@ -258,34 +259,14 @@ class Layer {
 
         this.isVector = false;
 
-        /**
-         * Layer attribution.
-         * @protected
-         * @type {string}
-         */
         this._attribution = options.attribution || "";
 
-        /**
-         * Layer z-index.
-         * @protected
-         * @type {number}
-         */
         this._zIndex = options.zIndex || 0;
 
-        /**
-         * Base layer type flag.
-         * @protected
-         * @type {boolean}
-         */
         this._isBaseLayer = options.isBaseLayer || false;
 
         this._defaultTextures = options.defaultTextures || [null, null];
 
-        /**
-         * Layer visibility.
-         * @protected
-         * @type {boolean}
-         */
         this._visibility = options.visibility !== undefined ? options.visibility : true;
 
         this._fading = options.fading || false;
@@ -298,18 +279,8 @@ class Layer {
             this._fadingOpacity = this._opacity;
         }
 
-        /**
-         * Height over the ground.
-         * @protected
-         * @type {number}
-         */
         this._height = options.height || 0;
 
-        /**
-         * Visible degrees extent.
-         * @protected
-         * @type {Extent}
-         */
         this._extent = new Extent();
 
         this.createTexture = null;
@@ -320,11 +291,6 @@ class Layer {
 
         this._internalFormat = null;
 
-        /**
-         * Visible mercator extent.
-         * @protected
-         * @type {Extent}
-         */
         this._extentMerc = new Extent();
 
         // Setting the extent up
@@ -347,14 +313,6 @@ class Layer {
         this._isPreloadDone = false;
 
         this._preLoadZoomLevels = options.preLoadZoomLevels || [0, 1];
-
-        /**
-         * Events handler.
-         * @public
-         * @type {Events}
-         */
-        //this.events = new Events(options.events ? [...EVENT_NAMES, ...options.events] : EVENT_NAMES, this);
-        this.events = createEvents<LayerEventsList>(options.events ? [...LAYER_EVENTS, ...options.events] as LayerEventsList : LAYER_EVENTS, this);
 
         this._ambient = null;
         this._diffuse = null;
@@ -379,7 +337,7 @@ class Layer {
         this.nightTextureCoefficient = options.nightTextureCoefficient || 1.0;
     }
 
-    set diffuse(rgb) {
+    public set diffuse(rgb: string | NumberArray3 | Vec3 | null | undefined) {
         if (rgb) {
             let vec = createColorRGB(rgb);
             this._diffuse = new Float32Array(vec.toArray());
@@ -388,7 +346,7 @@ class Layer {
         }
     }
 
-    set ambient(rgb) {
+    public set ambient(rgb: string | NumberArray3 | Vec3 | null | undefined) {
         if (rgb) {
             let vec = createColorRGB(rgb);
             this._ambient = new Float32Array(vec.toArray());
@@ -397,7 +355,7 @@ class Layer {
         }
     }
 
-    set specular(rgb) {
+    public set specular(rgb: string | NumberArray3 | Vec3 | null | undefined) {
         if (rgb) {
             let vec = createColorRGB(rgb);
             this._specular = new Float32Array([vec.x, vec.y, vec.y, this._specular ? this._specular[3] : 0.0]);
@@ -406,7 +364,7 @@ class Layer {
         }
     }
 
-    set shininess(v) {
+    public set shininess(v: number) {
         if (this._specular) {
             this._specular[3] = v;
         }
@@ -496,7 +454,7 @@ class Layer {
      * @returns {boolean} - Returns true if the layers is the same instance of the input.
      */
     public isEqual(layer: Layer): boolean {
-        return layer && (layer.__id === this.__id);
+        return layer.__id === this.__id;
     }
 
     /**
@@ -702,7 +660,9 @@ class Layer {
     public setBaseLayer(isBaseLayer: boolean) {
         this._isBaseLayer = isBaseLayer;
         if (this._planet) {
-            if (!isBaseLayer && this.isEqual(this._planet.baseLayer)) {
+            // @ts-ignore
+            if (!isBaseLayer && this._planet.baseLayer && this.isEqual(this._planet.baseLayer)) {
+                // @ts-ignore
                 this._planet.baseLayer = null;
             }
             this._planet.updateVisibleLayers();
@@ -756,7 +716,7 @@ class Layer {
     }
 
     public applyMaterial(m: Material, isForced: boolean = false): NumberArray4 {
-        return [1, 1, 1, 1];
+        return [0, 0, 1, 1];
     }
 
     protected _preLoadRecursive(node: Node, maxZoom: number) {
@@ -862,8 +822,7 @@ class Layer {
     public _refreshFadingOpacity() {
         let p = this._planet!;
         if (
-            this._visibility &&
-            p._viewExtent && p._viewExtent.overlaps(this._extent) &&
+            this._visibility && p.getViewExtent().overlaps(this._extent) &&
             p.maxCurrZoom >= this.minZoom &&
             p.minCurrZoom <= this.maxZoom
         ) {
@@ -889,26 +848,29 @@ class Layer {
 
     public redraw() {
         if (this._planet) {
-            this._planet._quadTree.traverseTree((n) => {
-                    if (n.segment.materials[this.__id]) {
-                        n.segment.materials[this.__id].clear();
-                    }
-                }
-            );
 
-            this._planet._quadTreeNorth.traverseTree((n) => {
-                    if (n.segment.materials[this.__id]) {
-                        n.segment.materials[this.__id].clear();
-                    }
-                }
-            );
+            this._planet.quadTreeStrategy.clearLayerMaterial(this);
 
-            this._planet._quadTreeSouth.traverseTree((n) => {
-                    if (n.segment.materials[this.__id]) {
-                        n.segment.materials[this.__id].clear();
-                    }
-                }
-            );
+            // this._planet._quadTree.traverseTree((n: Node) => {
+            //         if (n.segment.materials[this.__id]) {
+            //             n.segment.materials[this.__id].clear();
+            //         }
+            //     }
+            // );
+            //
+            // this._planet._quadTreeNorth.traverseTree((n: Node) => {
+            //         if (n.segment.materials[this.__id]) {
+            //             n.segment.materials[this.__id].clear();
+            //         }
+            //     }
+            // );
+            //
+            // this._planet._quadTreeSouth.traverseTree((n: Node) => {
+            //         if (n.segment.materials[this.__id]) {
+            //             n.segment.materials[this.__id].clear();
+            //         }
+            //     }
+            // );
         }
     }
 
@@ -950,7 +912,7 @@ export type LayerEventsList = [
 
 export const LAYER_EVENTS: LayerEventsList = [
     /**
-     * Triggered when layer visibilty chanched.
+     * Triggered when layer visibility changed.
      * @event og.Layer#visibilitychange
      */
     "visibilitychange",

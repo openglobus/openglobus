@@ -49,7 +49,7 @@ export type RendererEventsType = [
     "touchenter"
 ];
 
-interface IBaseInputState {
+export interface IBaseInputState {
     /** Current screen mouse X position. */
     clientX: number;
     /** Current screen mouse Y position. */

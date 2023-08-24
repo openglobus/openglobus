@@ -1,4 +1,5 @@
 import {Layer} from "./Layer";
+import {Node} from "../quadTree/Node";
 import {Segment} from "../segment/Segment";
 import {WebGLTextureExt} from "../webgl/Handler";
 import {NumberArray4} from "../math/Vec4";
@@ -52,7 +53,7 @@ class Material {
     }
 
     public _createTexture(img: HTMLCanvasElement | ImageBitmap | HTMLImageElement) {
-        return this.layer._planet && this.layer.createTexture(img, this.layer._internalFormat, this.isReady ? this.texture : null);
+        return this.layer._planet && this.layer.createTexture!(img, this.layer._internalFormat, this.isReady ? this.texture : null);
     }
 
     public applyImage(img: HTMLCanvasElement | ImageBitmap | HTMLImageElement) {
@@ -69,7 +70,7 @@ class Material {
         }
     }
 
-    public applyTexture(texture: WebGLTextureExt, pickingMask?: WebGLTextureExt) {
+    public applyTexture(texture: WebGLTextureExt | null, pickingMask?: WebGLTextureExt | null) {
         if (this.segment.initialized) {
             this.texture = texture;
             this._updateTexture = null;

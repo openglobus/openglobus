@@ -968,7 +968,7 @@ class Handler {
         let gl = this.gl!;
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
         gl.bufferSubData(gl.ARRAY_BUFFER, offset, array as any);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null as any);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null as WebGLBuffer);
         return buffer;
     }
 
@@ -1189,7 +1189,7 @@ class Handler {
      * @param {Object} [params] - Texture parameters:
      * @param {callback} [success] - Creation callback
      */
-    public createDefaultTexture(params: any, success: (texture: WebGLTexture) => void) {
+    public createDefaultTexture(params: any, success: (texture: WebGLTextureExt) => void) {
 
         let imgCnv;
         let texture;

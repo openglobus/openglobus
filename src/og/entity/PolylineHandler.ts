@@ -9,7 +9,7 @@ class PolylineHandler {
     static __counter__: number = 0;
     protected __id: number;
 
-    protected _entityCollection: EntityCollection;
+    public _entityCollection: EntityCollection;
 
     protected _renderer: Renderer | null;
 

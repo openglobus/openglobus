@@ -4,7 +4,7 @@ import * as jd from './astro/jd.js';
 import * as math from './math';
 import * as mercator from './mercator';
 import * as utils from './utils/shared';
-import * as bv from './bv/index.js';
+import * as bv from './bv/index';
 import * as control from './control/index';
 import * as entity from './entity/index';
 import * as layer from './layer/index.js';
@@ -48,7 +48,7 @@ import {Events} from './Events';
 import {Extent} from './Extent';
 import {LonLat} from './LonLat';
 import {RenderNode} from './scene/RenderNode';
-import {Planet} from './scene/Planet.js';
+import {Planet} from './scene/Planet';
 import {Popup} from './Popup.js';
 
 import {
@@ -62,9 +62,9 @@ import {
 
 import {Object3d} from './Object3d';
 
-const {Handler} = webgl;
+const {Handler, Program, Framebuffer, Multisample} = webgl;
 const {Control} = control;
-const {Layer, Vector, XYZ, CanvasTiles, WMS, GeoImage, GeoVideo, GeoTexture2d} = layer;
+const {Layer, Vector, XYZ, CanvasTiles, WMS, GeoImage, GeoVideo, GeoTexture2d, KML} = layer;
 const {EmptyTerrain, GlobusTerrain, MapboxTerrain, BilTerrain} = terrain;
 
 const {
@@ -83,6 +83,7 @@ export {
     jd,
     math,
     mercator,
+    Framebuffer,
     utils,
     input,
     layer,
@@ -93,6 +94,7 @@ export {
     entity,
     quadTreeStrategyType,
     wgs84,
+    KML,
     Layer,
     XYZ,
     Vector,
@@ -119,8 +121,10 @@ export {
     Label,
     PointCloud,
     Polyline,
+    Program,
     GeoObject,
     Handler,
+    Multisample,
     Renderer,
     Clock,
     Events,

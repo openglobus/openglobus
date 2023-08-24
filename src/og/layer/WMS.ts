@@ -1,15 +1,21 @@
-"use strict";
-
 import * as mercator from "../mercator";
-import { Extent } from "../Extent";
-import { LonLat } from "../LonLat";
-import { XYZ } from "./XYZ.js";
+import {Extent} from "../Extent";
+import {LonLat} from "../LonLat";
+import {Segment} from "../segment/Segment";
+import {XYZ, IXYZParams} from "./XYZ";
+
+interface IWMSParams extends IXYZParams {
+    extra?: any;
+    layers: string;
+    imageWidth?: number;
+    imageHeight?: number;
+    version?: string;
+}
 
 /**
  * Used to display WMS services as tile layers on the globe.
  * @class
  * @extends {XYZ}
- * //TODO: WMS version, format, and custom srs cpecification.
  * @param {string} name - Layer name.
  * @param {Object} options - Options:
  * @param {number} [options.opacity=1.0] - Layer opacity.
@@ -23,7 +29,7 @@ import { XYZ } from "./XYZ.js";
  * @param {number} [options.height=256] - Tile height.
  * @param {string} options.layers - WMS layers string.
  * @param {string} [options.version="1.1.1"] - WMS version.
- * @param {Object} extra  - Extra parameters (by WMS rreference or by WMS service vendors) to pass to WMS service.
+ * @param {Object} extra  - Extra parameters (by WMS reference or by WMS service vendors) to pass to WMS service.
  * @example:
  * new og.layer.WMS("USA States", {
  *     isBaseLayer: false,
@@ -35,30 +41,47 @@ import { XYZ } from "./XYZ.js";
  *     version: "1.1.1",
  *     visibility: false }, {
  *     transparent: true,
- *     sld: "style.sld"}	   
+ *     sld: "style.sld"}
  * );
- *
- * @fires og.layer.XYZ#load
- * @fires og.layer.XYZ#loadend
  */
 class WMS extends XYZ {
 
+    protected _extra: string;
 
-    constructor(name, options, extra) {
+    /**
+     * WMS layers string.
+     * @public
+     * @type {string}
+     */
+    public layers: string;
+
+    /**
+     * WMS tile width.
+     * @public
+     * @type {number}
+     */
+    public imageWidth: number;
+
+    /**
+     * WMS tile height.
+     * @public
+     * @type {number}
+     */
+    public imageHeight: number;
+
+    protected _getBbox: (extent: Extent) => string;
+
+    protected _version: string;
+
+    constructor(name: string | null, options: IWMSParams) {
         super(name, options);
 
-        this._extra = new URLSearchParams(extra).toString();
-
+        this._extra = new URLSearchParams(options.extra).toString();
 
         if (!options.extent) {
             this.setExtent(new Extent(new LonLat(-180.0, -90), new LonLat(180.0, 90)));
         }
 
-        /**
-         * WMS layers string.
-         * @public
-         * @type {string}
-         */
         this.layers = options.layers;
 
         /**
@@ -77,59 +100,43 @@ class WMS extends XYZ {
 
         this._getBbox = WMS.get_bbox_v1_1_1;
 
+        this._version = "";
+
         this.setVersion(options.version);
     }
 
     static createRequestUrl(
-        url,
-        layers,
-        format = "image/png",
-        version = "1.1.1",
-        request = "GetMap",
-        srs,
-        bbox,
-        width = 256,
-        height = 256,
-        extra
-
-    ) {
-       return `${url}/?LAYERS=${layers}&FORMAT=${format}&SERVICE=WMS&VERSION=${version}&REQUEST=${request}&SRS=${srs}&BBOX=${bbox}&WIDTH=${width}&HEIGHT=${height}` +
-            (extra ? `&${extra}` : "");
+        url: string,
+        layers: string,
+        format: string = "image/png",
+        version: string = "1.1.1",
+        request: string = "GetMap",
+        srs: string,
+        bbox: string,
+        width: number = 256,
+        height: number = 256,
+        extra?: string
+    ): string {
+        return `${url}/?LAYERS=${layers}&FORMAT=${format}&SERVICE=WMS&VERSION=${version}&REQUEST=${request}&SRS=${srs}&BBOX=${bbox}&WIDTH=${width}&HEIGHT=${height}` + (extra ? `&${extra}` : "");
     }
 
-    static get_bbox_v1_1_1(extent) {
-        return (
-            extent.getWest() +
-            "," +
-            extent.getSouth() +
-            "," +
-            extent.getEast() +
-            "," +
-            extent.getNorth()
-        );
+    static get_bbox_v1_1_1(extent: Extent): string {
+        return `${extent.getWest()},${extent.getSouth()},${extent.getEast()},${extent.getNorth()}`;
     }
 
-    static get_bbox_v1_3_0(extent) {
-        return (
-            extent.getSouth() +
-            "," +
-            extent.getWest() +
-            "," +
-            extent.getNorth() +
-            "," +
-            extent.getEast()
-        );
+    static get_bbox_v1_3_0(extent: Extent): string {
+        return `${extent.getSouth()},${extent.getWest()},${extent.getNorth()},${extent.getEast()}`;
     }
 
-    _checkSegment(segment) {
+    public override _checkSegment(segment: Segment) {
         return true;
     }
 
-    get instanceName() {
+    public override get instanceName(): string {
         return "WMS";
     }
 
-    _createUrl(segment) {
+    protected override _createUrl(segment: Segment): string {
         return WMS.createRequestUrl(
             this.url,
             this.layers,
@@ -144,7 +151,7 @@ class WMS extends XYZ {
         );
     }
 
-    setVersion(version) {
+    public setVersion(version?: string) {
         if (version) {
             this._version = version;
         } else {
@@ -158,25 +165,30 @@ class WMS extends XYZ {
         }
     }
 
-    _correctFullExtent() {
-        var e = this._extent,
-            em = this._extentMerc;
-        var ENLARGE_MERCATOR_LON = mercator.POLE + 50000;
-        var ENLARGE_MERCATOR_LAT = mercator.POLE + 50000;
+    public override _correctFullExtent() {
+        const e = this._extent;
+        const em = this._extentMerc;
+
+        const ENLARGE_MERCATOR_LON = mercator.POLE + 50000;
+        const ENLARGE_MERCATOR_LAT = mercator.POLE + 50000;
+
         if (e.northEast.lat === 90.0) {
             em.northEast.lat = ENLARGE_MERCATOR_LAT;
         }
+
         if (e.northEast.lon === 180.0) {
             em.northEast.lon = ENLARGE_MERCATOR_LON;
         }
+
         if (e.southWest.lat === -90.0) {
             em.southWest.lat = -ENLARGE_MERCATOR_LAT;
         }
+
         if (e.southWest.lon === -180.0) {
             em.southWest.lon = -ENLARGE_MERCATOR_LON;
         }
     }
 }
 
-export { WMS };
+export {WMS};
 

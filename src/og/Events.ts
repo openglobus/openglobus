@@ -67,7 +67,7 @@ export class Events<T extends string[]> {
      * @public
      * @param {Array.<string>} eventNames - Specified event names list.
      */
-    public registerNames(eventNames: T) {
+    public registerNames(eventNames: T): this {
         for (let i = 0; i < eventNames.length; i++) {
             (this as any)[eventNames[i]] = {
                 active: true,
@@ -75,6 +75,7 @@ export class Events<T extends string[]> {
             };
             this._eventNames.push(eventNames[i]);
         }
+        return this;
     }
 
     protected _getStamp(name: string, id: number, ogid: number) {
