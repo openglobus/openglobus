@@ -228,7 +228,7 @@ export class VectorTileCreator {
                 startTime = window.performance.now();
 
             while (this._queue.length && deltaTime < MAX_FRAME_TIME) {
-                let material = this._queue.shift();
+                let material = this._queue.shift()!;
                 if (material.isLoading && material.segment.node.getState() === RENDERING) {
                     let pickingEnabled = material.layer._pickingEnabled;
 
