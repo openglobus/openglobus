@@ -21,7 +21,7 @@ const ICON_MINUS_SVG = '<?xml version="1.0"?>' +
  * @params {Object} [options] - Control options.
  */
 class ZoomControl extends Control {
-    constructor(options) {
+    constructor(options = {}) {
         super(options);
 
         this._keyLock = new Key();

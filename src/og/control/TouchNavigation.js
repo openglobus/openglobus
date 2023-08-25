@@ -46,7 +46,7 @@ class Touch {
  * @param {Object} [options] - Control options.
  */
 class TouchNavigation extends Control {
-    constructor(options) {
+    constructor(options = {}) {
         super(options);
 
         this._name = "touchNavigation";

@@ -84,8 +84,8 @@ class BaseGeoImage extends Layer {
     constructor(name: string | null, options: IBaseGeoImageParams = {}) {
         super(name, options);
 
-        this.events.registerNames(BASEGEOIMAGE_EVENTS);
-        //this.events = (super.events as BaseGeoImageEventsType).registerNames(BASEGEOIMAGE_EVENTS);
+        // @ts-ignore
+        this.events = this.events.registerNames(BASEGEOIMAGE_EVENTS);
 
         this._projType = 0;
 

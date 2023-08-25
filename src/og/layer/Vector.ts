@@ -164,8 +164,8 @@ class Vector extends Layer {
     constructor(name: string | null, options: IVectorParams = {}) {
         super(name, options);
 
-        this.events.registerNames(VECTOR_EVENTS);
-        //this.events = (super.events as VectorEventsType).registerNames(VECTOR_EVENTS);
+        // @ts-ignore
+        this.events = this.events.registerNames(VECTOR_EVENTS);
 
         this.isVector = true;
 

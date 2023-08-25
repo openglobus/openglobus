@@ -25,33 +25,22 @@ const TYPE_HTML = [DECIMAL_TEMPLATE, DEGREE_TEMPLATE];
 /**
  * Control displays mouse or screen center Earth coordinates.
  * @class
- * @extends {og.control.Control}
+ * @extends {Control}
  * @param {Object} [options] - Options:
  * @param {Boolean} [options.center] - Earth coordinates by screen center otherwise mouse pointer. False is default.
  * @param {Boolean} [options.type] - Coordinates shown: 0 - is decimal degrees, 1 - degrees, 2 - mercator geodetic coordinates.
  */
 class EarthCoordinates extends Control {
-    constructor(options) {
+
+    constructor(options = {}) {
         super(options);
 
-        options = options || {};
-
-        /**
-         * Display type.
-         * @private
-         * @type {Boolean}
-         */
         this._type = options.type || 0;
 
         this._TYPE_FUNC = [this._SHOW_DECIMAL, this._SHOW_DEGREE];
 
         this._showFn = null;
 
-        /**
-         * Current position.
-         * @public
-         * @type {og.Vec3}
-         */
         this._lonLat = new LonLat();
 
         this._latSideEl = null;

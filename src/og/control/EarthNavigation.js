@@ -25,7 +25,7 @@ class Touch {
 }
 
 class EarthNavigation extends Control {
-    constructor(options) {
+    constructor(options = {}) {
         super(options);
 
         this.grabbedPoint = new Vec3();

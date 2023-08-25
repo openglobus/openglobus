@@ -27,7 +27,6 @@ class ScaleControl extends Control {
             options.name = "scaleControl";
         }
         super(options);
-        options = options || {};
 
         this._template = TEMPLATE;
 

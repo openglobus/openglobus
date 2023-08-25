@@ -102,7 +102,8 @@ class XYZ extends Layer {
     constructor(name: string | null, options: IXYZParams = {}) {
         super(name, options);
 
-        this.events.registerNames(XYZ_EVENTS);
+        //@ts-ignore
+        this.events = this.events.registerNames(XYZ_EVENTS);
 
         this.url = options.url || "";
 

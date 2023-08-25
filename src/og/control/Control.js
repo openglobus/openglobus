@@ -11,8 +11,7 @@ class Control {
     /**
      * @param {Object} [options] - Control activation options:
      */
-    constructor(options) {
-        options = options || {};
+    constructor(options = {}) {
 
         this._id = Control.__staticCounter++;
 
