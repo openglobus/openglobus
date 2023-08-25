@@ -1,9 +1,10 @@
-"use strict";
-
-import { Vec3 } from "./math/Vec3";
-import { createLonLat, stringTemplate } from "./utils/shared";
-import { View } from './ui/View.js';
-import { CLOSE_ICON } from './ui/icons.js';
+import {CLOSE_ICON} from './ui/icons';
+import {createLonLat, stringTemplate} from "./utils/shared";
+import {LonLat} from "./LonLat";
+import {Planet} from "./scene/Planet";
+import {NumberArray2, Vec2} from "./math/Vec2";
+import {NumberArray3, Vec3} from "./math/Vec3";
+import {View, IViewParams} from './ui/View';
 
 const TEMPLATE = `<div class="og-popup {className}">
       <div class="og-popup-content-wrapper">
@@ -18,8 +19,35 @@ const TEMPLATE = `<div class="og-popup {className}">
       <div class="og-popup-title">{title}</div>
     </div>`;
 
+interface IPopupParams extends IViewParams {
+    planet: Planet;
+    title?: string;
+    className?: string;
+    visibility?: boolean;
+    content?: string;
+    offset?: NumberArray2;
+    lonLat?: LonLat | NumberArray2 | NumberArray3;
+}
+
 class Popup extends View {
-    constructor(options = {}) {
+
+    public $content: HTMLElement | null;
+    public $tip: HTMLElement | null;
+    public $title: HTMLElement | null;
+
+    protected _content: string | HTMLElement | null;
+
+    protected _planet: Planet;
+
+    protected _offset: NumberArray2;
+
+    protected _lonLat: LonLat;
+
+    protected _cartPos: Vec3;
+
+    protected _visibility: boolean;
+
+    constructor(options: IPopupParams) {
         super({
             template: stringTemplate(TEMPLATE, {
                 title: options.title || ""
@@ -52,23 +80,23 @@ class Popup extends View {
         this.setCartesian3v(this._cartPos);
     }
 
-    setScreen(p) {
+    public setScreen(p: Vec2) {
         if (this._planet) {
-            let r = this._planet.renderer.handler.pixelRatio;
-            this.el.style.transform =
-                `translate(${p.x / r - this.clientWidth * 0.5}px, ${p.y / r - this._planet.renderer.handler.canvas.clientHeight - this.$tip.clientHeight}px)`;
+            let r = this._planet.renderer!.handler.pixelRatio;
+            this.el!.style.transform =
+                `translate(${p.x / r - this.clientWidth * 0.5}px, ${p.y / r - this._planet.renderer!.handler.canvas!.clientHeight - this.$tip!.clientHeight}px)`;
         }
     }
 
-    get clientWidth() {
-        return this.el.clientWidth;
+    public get clientWidth(): number {
+        return this.el ? this.el.clientWidth : 0;
     }
 
-    get clientHeight() {
-        return this.el.clientHeight;
+    public get clientHeight(): number {
+        return this.el ? this.el.clientHeight : 0;
     }
 
-    setOffset(x = 0, y = 0) {
+    public setOffset(x: number = 0, y: number = 0): this {
         this._offset[0] = x;
         this._offset[1] = y;
         if (this.el) {
@@ -78,25 +106,25 @@ class Popup extends View {
         return this;
     }
 
-    render(params) {
+    public override render(params?: any): this {
         super.render(params);
 
-        this.$content = this.select(".og-popup-content");
-        this.$title = this.select(".og-popup-title");
-        this.$tip = this.select(".og-popup-tip-container");
+        this.$content = this.select(".og-popup-content")!;
+        this.$title = this.select(".og-popup-title")!;
+        this.$tip = this.select(".og-popup-tip-container")!;
 
         this.setOffset(this._offset[0], this._offset[1]);
         this.setContent(this._content);
         this.setLonLat(this._lonLat);
         this.setVisibility(this._visibility);
-        this.select(".og-popup-close").addEventListener("click", () => {
+        this.select(".og-popup-close")!.addEventListener("click", () => {
             this.hide();
         });
 
         return this;
     }
 
-    setVisibility(visibility) {
+    public setVisibility(visibility: boolean): this {
         if (visibility) {
             this.show();
         } else {
@@ -105,28 +133,27 @@ class Popup extends View {
         return this;
     }
 
-    getContainer() {
+    public getContainer(): HTMLElement | null {
         return this.$content;
     }
 
-    getToolbarContainer() {
-        return this.select(".og-popup-toolbar");
+    public getToolbarContainer(): HTMLElement {
+        return this.select(".og-popup-toolbar")!;
     }
 
-    show() {
+    public show(): this {
         this._visibility = true;
         if (this._planet) {
             this._planet.events.on("draw", this._updatePosition, this);
-            this.appendTo(this._planet.renderer.div);
-            //this._planet.renderer.div.appendChild(this.el);
+            this.appendTo(this._planet.renderer!.div as HTMLElement);
             this._events.dispatch(this._events.open, this);
         }
         return this;
     }
 
-    hide() {
+    public hide(): this {
         this._visibility = false;
-        if (this.el.parentNode) {
+        if (this.el && this.el.parentNode) {
             this._planet.events.off("draw", this._updatePosition);
             this.el.parentNode.removeChild(this.el);
             this._events.dispatch(this._events.close, this);
@@ -134,54 +161,60 @@ class Popup extends View {
         return this;
     }
 
-    setCartesian3v(cart, height = 0) {
+    public setCartesian3v(cart: Vec3, height: number = 0): this {
         this._cartPos = cart;
 
         if (this._planet) {
             let cam = this._planet.camera;
-            let f = this._planet.ellipsoid._a + height,
+            let f = this._planet.ellipsoid.equatorialSize + height,
                 g = cam._lonLat.height;
 
             let look = cart.sub(cam.eye),
                 v = Math.sqrt((f + g) * (f + g) - f * f);
 
             if (v > look.length() && cam.getForward().dot(look.normalize()) > 0.0) {
-                this.el.style.display = "block";
+                this.el!.style.display = "block";
                 this.setScreen(cam.project(cart));
             } else {
-                this.el.style.display = "none";
+                this.el!.style.display = "none";
             }
         }
         return this;
     }
 
-    setTitle(html) {
-        this.$title.innerHTML = html;
+    public setTitle(html: string) {
+        if (this.$title) {
+            this.$title.innerHTML = html;
+        }
     }
 
-    setLonLat(lonLat) {
+    public setLonLat(lonLat: LonLat) {
         this._lonLat = lonLat;
         if (this._planet) {
             this.setCartesian3v(this._planet.ellipsoid.lonLatToCartesian(lonLat), lonLat.height);
         }
     }
 
-    setContent(content) {
+    public setContent(content?: string | HTMLElement | null) {
         if (content) {
             this.clear();
             this._content = content;
-            if (typeof content === "string") {
-                this.$content.innerHTML = content;
-            } else {
-                this.$content.appendChild(content);
+            if (this.$content) {
+                if (typeof content === "string") {
+                    this.$content.innerHTML = content;
+                } else {
+                    this.$content.appendChild(content);
+                }
             }
         }
     }
 
-    clear() {
+    public clear() {
         this._content = null;
-        this.$content.innerHTML = "";
+        if (this.$content) {
+            this.$content.innerHTML = "";
+        }
     }
 }
 
-export { Popup };
+export {Popup};

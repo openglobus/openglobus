@@ -1,5 +1,3 @@
-"use strict";
-
 import {binarySearchFast, TypedArray} from "../utils/shared";
 import {Geoid} from "./Geoid";
 import {LonLat} from "../LonLat";

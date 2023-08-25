@@ -1,39 +1,51 @@
-'use strict';
+import {createEvents, EventsHandler} from '../Events';
+import {parseHTML, stringTemplate} from '../utils/shared';
 
-
-import { Events } from '../Events';
-import { parseHTML, stringTemplate } from '../utils/shared';
+export interface IViewParams {
+    model?: any | null;
+    template?: string;
+    parent?: View | null;
+    classList?: string[];
+    eventList?: string[];
+}
 
 class View {
-    constructor(options = {}) {
-        this.__id = View.__staticCounter++;
-        this._events = new Events(options.eventList || []);
+
+    static __counter__: number = 0;
+
+    protected __id: number;
+
+    protected _events: EventsHandler<any>;
+
+    public model: any | null;
+
+    public template: string;
+
+    public parent: View | null;
+
+    public el: HTMLElement | null;
+
+    protected _classList: string[];
+
+    constructor(options: IViewParams = {}) {
+        this.__id = View.__counter__++;
+        this._events = createEvents(options.eventList || []);
         this.model = options.model || null;
         this.template = options.template || "";
         this.parent = options.parent || null;
         this._classList = options.classList || [];
+        this.el = null;
     }
 
-    static set __staticCounter(n) {
-        this.__counter__ = n;
-    }
-
-    static get __staticCounter() {
-        if (!this.__counter__ && this.__counter__ !== 0) {
-            this.__counter__ = 0;
-        }
-        return this.__counter__;
-    }
-
-    static getHTML(template, params) {
+    static getHTML(template: string, params: any): string {
         return stringTemplate(template, params);
     }
 
-    static parseHTML(htmlStr) {
+    static parseHTML(htmlStr: string): HTMLElement[] {
         return parseHTML(htmlStr);
     }
 
-    static insertAfter(newNodes, referenceNode) {
+    static insertAfter(newNodes: HTMLElement | HTMLElement[], referenceNode: Node): HTMLElement[] {
         if (!Array.isArray(newNodes)) {
             newNodes = [newNodes];
         }
@@ -45,7 +57,7 @@ class View {
         return newNodes;
     }
 
-    static insertBefore(newNodes, referenceNode) {
+    static insertBefore(newNodes: HTMLElement | HTMLElement[], referenceNode: Node): HTMLElement[] {
         if (!Array.isArray(newNodes)) {
             newNodes = [newNodes];
         }
@@ -54,21 +66,22 @@ class View {
                 referenceNode.parentNode.insertBefore(newNodes[i], referenceNode);
             }
         }
+        return newNodes;
     }
 
-    get events() {
+    public get events(): EventsHandler<any> {
         return this._events;
     }
 
-    on(eventName, callback, sender) {
+    public on(eventName: string, callback: Function, sender?: any) {
         return this._events.on(eventName, callback, sender);
     }
 
-    off(eventName, callback) {
+    public off(eventName: string, callback: Function) {
         return this._events.off(eventName, callback);
     }
 
-    insertBefore(view) {
+    public insertBefore(view: View | HTMLElement) {
         if (!this.el) {
             this.render();
         }
@@ -76,13 +89,13 @@ class View {
             if (view instanceof HTMLElement && view.parentNode) {
                 View.insertBefore(this.el, view);
             }
-            if (view instanceof View && view.el.parentNode) {
+            if (view instanceof View && view.el && view.el.parentNode) {
                 View.insertBefore(this.el, view.el);
             }
         }
     }
 
-    insertAfter(view) {
+    public insertAfter(view: View | HTMLElement) {
         if (!this.el) {
             this.render();
         }
@@ -90,17 +103,17 @@ class View {
             if (view instanceof HTMLElement && view.parentNode) {
                 View.insertAfter(this.el, view);
             }
-            if (view instanceof View && view.el.parentNode) {
+            if (view instanceof View && view.el && view.el.parentNode) {
                 View.insertAfter(this.el, view.el);
             }
         }
     }
 
-    isEqual(view) {
+    public isEqual(view: View): boolean {
         return view.__id === this.__id;
     }
 
-    appendTo(node, clean, firstPosition) {
+    public appendTo(node: HTMLElement, clean: boolean = false, firstPosition: boolean = false) {
         if (node) {
             if (!this.el) {
                 this.beforeRender(node);
@@ -115,14 +128,16 @@ class View {
                 node.innerHTML = "";
             }
 
-            if (firstPosition) {
-                if (node.childNodes[0]) {
-                    View.insertBefore(this.el, node.childNodes[0]);
+            if (this.el) {
+                if (firstPosition) {
+                    if (node.childNodes[0]) {
+                        View.insertBefore(this.el, node.childNodes[0]);
+                    } else {
+                        node.appendChild(this.el);
+                    }
                 } else {
                     node.appendChild(this.el);
                 }
-            } else {
-                node.appendChild(this.el);
             }
             this.afterRender(node);
         }
@@ -130,23 +145,23 @@ class View {
         return this;
     }
 
-    afterRender(parentNode) {
+    public afterRender(parentNode: HTMLElement) {
         //virtual
     }
 
-    beforeRender(parentNode) {
+    public beforeRender(parentNode: HTMLElement) {
         //virtual
     }
 
-    stopPropagation() {
+    public stopPropagation() {
         this._events.stopPropagation();
     }
 
-    renderTemplate(params) {
+    public renderTemplate(params: any): HTMLElement {
         return View.parseHTML(View.getHTML(this.template, params || {}))[0];
     }
 
-    render(params) {
+    public render(params?: any): this {
         this.el = this.renderTemplate(params);
         for (let i = 0, len = this._classList.length; i < len; i++) {
             this.el.classList.add(this._classList[i]);
@@ -154,11 +169,14 @@ class View {
         return this;
     }
 
-    select(queryStr) {
-        return this.el.querySelector(queryStr);
+    public select(queryStr: string): HTMLElement | null {
+        if (this.el) {
+            return this.el.querySelector(queryStr);
+        }
+        return null;
     }
 
-    selectRemove(queryStr) {
+    public selectRemove(queryStr: string): HTMLElement | undefined {
         if (this.el) {
             let r = this.select(queryStr);
             if (r && r.parentNode) {
@@ -168,7 +186,7 @@ class View {
         }
     }
 
-    selectAll(queryStr, callback) {
+    public selectAll(queryStr: string, callback?: Function) {
         if (this.el) {
             const res = this.el.querySelectorAll(queryStr);
             if (callback) {
@@ -180,11 +198,11 @@ class View {
         }
     }
 
-    remove() {
+    public remove() {
         if (this.el && this.el.parentNode) {
             this.el.parentNode.removeChild(this.el);
         }
     }
 }
 
-export { View };
+export {View};

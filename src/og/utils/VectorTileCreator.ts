@@ -1,5 +1,3 @@
-'use strict';
-
 import {doubleToTwoFloats2} from '../math/coder';
 import {Framebuffer} from '../webgl/Framebuffer';
 import {Handler} from "../webgl/Handler";
