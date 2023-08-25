@@ -1,22 +1,29 @@
-// import { QueueArray } from '../QueueArray.js';
-
-import { BaseWorker } from "../utils/BaseWorker.js";
+import {BaseWorker} from "../utils/BaseWorker";
+import {Label} from "../entity/Label";
+import {LabelHandler} from "../entity/LabelHandler";
 
 export const LOCK_UPDATE = -2;
 export const LOCK_FREE = -1;
 
-class LabelWorker extends BaseWorker {
-    constructor(numWorkers = 4) {
-        super(numWorkers, _programm);
-        this._source = new Map();
+interface LabelInfo {
+    label: Label;
+    handler: LabelHandler;
+}
+
+class LabelWorker extends BaseWorker<LabelInfo> {
+    protected _source: Map<number, LabelInfo>;
+
+    constructor(numWorkers: number = 4) {
+        super(numWorkers, LABEL_PROGRAM);
+        this._source = new Map<number, LabelInfo>();
     }
 
-    _onMessage(e) {
-        let s = this._source.get(e.data.id);
+    protected override _onMessage(e: MessageEvent) {
+        let s = this._source.get(e.data.id)!;
 
         if (s.label._lockId === LOCK_UPDATE) {
             requestAnimationFrame(() => {
-                this.make({ handler: s.handler, label: s.label });
+                this.make({handler: s.handler, label: s.label});
             });
         } else {
             s.handler.workerCallback(e.data, s.label);
@@ -26,32 +33,45 @@ class LabelWorker extends BaseWorker {
     }
 
 
-    make(data) {
+    public override make(data: LabelInfo) {
         let label = data.label,
             handler = data.handler;
 
+        //@ts-ignore
         if (handler._entityCollection) {
 
             if (this._workerQueue.length) {
-                var w = this._workerQueue.pop();
+                let w = this._workerQueue.pop()!;
 
                 this._source.set(this._id, data);
 
                 let labelData = new Float32Array([
                     /*0*/this._id++,
+                    //@ts-ignore
                     /*1*/handler._maxLetters,
                     /*2*/label.getVisibility() ? 1 : 0,
+                    //@ts-ignore
                     /*3, 4, 5*/label._positionHigh.x, label._positionHigh.y, label._positionHigh.z,
+                    //@ts-ignore
                     /*6, 7, 8*/label._positionLow.x, label._positionLow.y, label._positionLow.z,
+                    //@ts-ignore
                     /*9*/label._size,
+                    //@ts-ignore
                     /*10, 11, 12*/label._offset.x, label._offset.y, label._offset.z,
+                    //@ts-ignore
                     /*13, 14, 15, 16*/label._color.x, label._color.y, label._color.z, label._color.w,
+                    //@ts-ignore
                     /*17*/label._rotation,
+                    //@ts-ignore
                     /*18, 19, 20*/label._alignedAxis.x, label._alignedAxis.y, label._alignedAxis.z,
+                    //@ts-ignore
                     /*21*/label._fontIndex,
+                    //@ts-ignore
                     /*22*/label._outline,
+                    //@ts-ignore
                     /*23, 24, 25, 26*/label._outlineColor.x, label._outlineColor.y, label._outlineColor.z, label._outlineColor.w,
-                    /*27, 28, 29*/label._entity._pickingColor.x, label._entity._pickingColor.y, label._entity._pickingColor.z
+                    //@ts-ignore
+                    /*27, 28, 29*/label._entity!._pickingColor.x, label._entity!._pickingColor.y, label._entity!._pickingColor.z
                 ]);
 
                 label._lockId = this._id;
@@ -68,7 +88,7 @@ class LabelWorker extends BaseWorker {
     }
 }
 
-const _programm = `'use strict';
+const LABEL_PROGRAM = `'use strict';
 
     function concatTypedArrays(dest, index, source) {
         let len = source.length,
@@ -189,4 +209,4 @@ const _programm = `'use strict';
             ]);
     }`;
 
-export { LabelWorker };
+export {LabelWorker};

@@ -103,7 +103,7 @@ class BaseBillboard {
      */
     protected _isReady: boolean;
 
-    protected _lockId: number;
+    public _lockId: number;
 
     constructor(options: IBaseBillboardParams = {}) {
 
