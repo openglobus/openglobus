@@ -393,7 +393,7 @@ export class Planet extends RenderNode {
     protected _renderCompletedActivated: boolean;
 
     public _terrainCompleted: boolean;
-    protected _terrainCompletedActivated: boolean;
+    public _terrainCompletedActivated: boolean;
 
     protected _collectRenderNodesIsActive: boolean;
 

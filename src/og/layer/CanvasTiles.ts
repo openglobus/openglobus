@@ -1,98 +1,136 @@
-"use strict";
+import * as quadTree from "../quadTree/quadTree";
+import {ILayerParams, Layer, LayerEventsList} from "./Layer";
+import {EventsHandler} from "../Events";
+import {Material} from "../layer/Material";
+import {Planet} from "../scene";
+import {NumberArray4} from "../math/Vec4";
 
-import * as quadTree from "../quadTree/quadTree.js";
-import { Layer } from "./Layer.js";
+type ApplyImageFunc = (material: HTMLCanvasElement | ImageBitmap | HTMLImageElement) => void;
+type DrawTileCallback = (material: Material, applyImage: ApplyImageFunc) => void;
 
-/**
- * Maximum tiles per frame.
- * @const
- * @type {number}
- */
+export interface ICanvasTilesParams extends ILayerParams {
+    drawTile: DrawTileCallback;
+    animated?: boolean;
+    minNativeZoom?: number;
+    maxNativeZoom?: number;
+}
 
-const EVENT_NAMES = [/**
- * Triggered when current tile image has loaded before rendereing.
- * @event og.layer.CanvasTiles#load
- */
+type CanvasTilesEventsList = [
+    "load",
+    "loadend"
+];
+
+type CanvasTilesEventsType = EventsHandler<CanvasTilesEventsList> & EventsHandler<LayerEventsList>;
+
+const CANVASTILES_EVENTS: CanvasTilesEventsList = [
+    /**
+     * Triggered when current tile image has loaded before rendering.
+     * @event og.layer.CanvasTiles#load
+     */
     "load",
 
     /**
      * Triggered when all tiles have loaded or loading has stopped.
      * @event og.layer.CanvasTiles#loadend
      */
-    "loadend"];
+    "loadend"
+];
 
 /**
  * Layer used to rendering each tile as a separate canvas object.
  * @class
  * @extends {Layer}
- * //TODO: make asynchronous handler.
  * @param {String} [name="noname"] - Layer name.
- * @param {Object} options:
+ * @param {ICanvasTilesParams} options:
  * @param {number} [options.opacity=1.0] - Layer opacity.
  * @param {number} [options.minZoom=0] - Minimal visibility zoom level.
  * @param {number} [options.maxZoom=0] - Maximal visibility zoom level.
  * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
  * @param {boolean} [options.isBaseLayer=false] - Base layer flag.
  * @param {boolean} [options.visibility=true] - Layer visibility.
- * @param {layer.CanvasTiles~drawTileCallback} [options.drawTile] - Draw tile callback.
- * @fires og.layer.CanvasTiles#load
- * @fires og.layer.CanvasTiles#loadend
+ * @param {DrawTileCallback} options.drawTile - Draw tile callback.
+ * @fires EventsHandler<CanvasTilesEventsList>#load
+ * @fires EventsHandler<CanvasTilesEventsList>#loadend
  */
 class CanvasTiles extends Layer {
-    constructor(name, options = {}) {
+
+    static MAX_REQUESTS: number = 20;
+    static __requestsCounter: number = 0
+
+    public override events: CanvasTilesEventsType;
+
+    public animated: boolean;
+
+    public minNativeZoom: number;
+    public maxNativeZoom: number;
+
+    /**
+     * Current creating tiles counter.
+     * @protected
+     * @type {number}
+     */
+    protected _counter: number;
+
+    /**
+     * Tile pending queue that waiting for create.
+     * @protected
+     * @type {Material[]}
+     */
+    protected _pendingsQueue: Material[]; // new og.QueueArray();
+
+    /**
+     * Draw tile callback.
+     * @type {DrawTileCallback}
+     * @public
+     */
+    public drawTile: DrawTileCallback;
+
+    protected _onLoadend_: Function | null;
+
+
+    constructor(name: string | null, options: ICanvasTilesParams) {
         super(name, options);
 
-        this.events.registerNames(EVENT_NAMES);
+        //@ts-ignore
+        this.events.registerNames(CANVASTILES_EVENTS);
 
         this.animated = options.animated || false;
 
         this.minNativeZoom = options.minNativeZoom || 0;
         this.maxNativeZoom = options.maxNativeZoom || 100;
-        /**
-         * Current creating tiles couter.
-         * @protected
-         * @type {number}
-         */
+
         this._counter = 0;
 
-        /**
-         * Tile pending queue that waiting for create.
-         * @protected
-         * @type {Array.<planetSegment.Material>}
-         */
         this._pendingsQueue = []; // new og.QueueArray();
 
-        /**
-         * Draw tile callback.
-         * @type {layer.CanvasTiles~drawTileCallback}
-         * @public
-         */
-        this.drawTile = options.drawTile || null;
+        this.drawTile = options.drawTile;
+
+        this._onLoadend_ = null;
     }
 
-    addTo(planet) {
+    public override addTo(planet: Planet) {
         this._onLoadend_ = this._onLoadend.bind(this);
         this.events.on("loadend", this._onLoadend_, this);
         return super.addTo(planet);
     }
 
-    remove() {
+    public override remove() {
         this.events.off("loadend", this._onLoadend_);
         this._onLoadend_ = null;
         return super.remove();
     }
 
-    _onLoadend() {
+    public _onLoadend() {
         if (this._planet && this._planet._terrainCompletedActivated) {
             this._planet.events.dispatch(this._planet.events.layerloadend, this);
         }
     }
 
-    get instanceName() {
+    public override get instanceName(): string {
         return "CanvasTiles";
     }
 
-    get isIdle() {
+    public override get isIdle() {
         return super.isIdle && this._counter === 0;
     }
 
@@ -100,15 +138,18 @@ class CanvasTiles extends Layer {
      * Abort loading tiles.
      * @public
      */
-    abortLoading() {
-        var q = this._pendingsQueue;
-        for (let i = q._shiftIndex + 1; i < q._popIndex + 1; i++) {
-            if (q._array[i]) {
-                this.abortMaterialLoading(q._array[i]);
-            }
+    public abortLoading() {
+        const q = this._pendingsQueue;
+        // for (let i = q._shiftIndex + 1; i < q._popIndex + 1; i++) {
+        //     if (q._array[i]) {
+        //         this.abortMaterialLoading(q._array[i]);
+        //     }
+        // }
+        // this._pendingsQueue.clear();
+        for (let i = 0; i < q.length; i++) {
+            this.abortMaterialLoading(q[i]);
         }
         this._pendingsQueue = [];
-        // this._pendingsQueue.clear();
     }
 
     /**
@@ -116,7 +157,7 @@ class CanvasTiles extends Layer {
      * @public
      * @param {boolean} visibility - Layer visibility.
      */
-    setVisibility(visibility) {
+    public override setVisibility(visibility: boolean) {
         if (visibility !== this._visibility) {
             super.setVisibility(visibility);
 
@@ -132,7 +173,7 @@ class CanvasTiles extends Layer {
      * @virtual
      * @param {Material} material -
      */
-    loadMaterial(material) {
+    public override loadMaterial(material: Material) {
         let seg = material.segment;
 
         if (this._isBaseLayer) {
@@ -141,7 +182,7 @@ class CanvasTiles extends Layer {
             material.texture = seg.planet.transparentTexture;
         }
 
-        if (this._planet.layerLock.isFree() || material.segment.tileZoom < 2) {
+        if (this._planet!.layerLock.isFree() || material.segment.tileZoom < 2) {
             material.isReady = false;
             material.isLoading = true;
             if (CanvasTiles.__requestsCounter >= CanvasTiles.MAX_REQUESTS && this._counter) {
@@ -157,18 +198,12 @@ class CanvasTiles extends Layer {
      * @protected
      * @param {Material} material - Loads material image.
      */
-    _exec(material) {
+    protected _exec(material: Material) {
         CanvasTiles.__requestsCounter++;
         this._counter++;
-        var that = this;
+        const that = this;
         if (this.drawTile) {
-            /**
-             * Tile custom draw function.
-             * @callback og.layer.CanvasTiles~drawTileCallback
-             * @param {Material} material
-             * @param {applyCanvasCallback} applyCanvasCallback
-             */
-            var e = that.events.load;
+            const e = that.events.load!;
             if (e.handlers.length) {
                 that.events.dispatch(e, material);
             }
@@ -199,9 +234,9 @@ class CanvasTiles extends Layer {
      * @public
      * @param {Material} material - Segment material.
      */
-    abortMaterialLoading(material) {
-        if (material.isLoading && material.image) {
-            material.image.src = "";
+    public override abortMaterialLoading(material: Material) {
+        if (material.isLoading/* && material.image*/) {
+            //material.image.src = "";
             this._counter--;
             CanvasTiles.__requestsCounter--;
             this._dequeueRequest();
@@ -210,10 +245,10 @@ class CanvasTiles extends Layer {
         material.isReady = false;
     }
 
-    _dequeueRequest() {
+    protected _dequeueRequest() {
         if (this._pendingsQueue.length) {
             if (CanvasTiles.__requestsCounter < CanvasTiles.MAX_REQUESTS) {
-                var pmat = this._whilePendings();
+                const pmat = this._whilePendings();
                 if (pmat) {
                     this._exec(pmat);
                 }
@@ -223,9 +258,9 @@ class CanvasTiles extends Layer {
         }
     }
 
-    _whilePendings() {
+    protected _whilePendings(): Material | null {
         while (this._pendingsQueue.length) {
-            var pmat = this._pendingsQueue.pop();
+            const pmat = this._pendingsQueue.pop();
             if (pmat.segment.node) {
                 if (pmat.segment.initialized && pmat.segment.node.getState() === quadTree.RENDERING) {
                     return pmat;
@@ -236,7 +271,7 @@ class CanvasTiles extends Layer {
         return null;
     }
 
-    applyMaterial(material) {
+    public override applyMaterial(material: Material): NumberArray4 {
         if (material.isReady) {
 
             // IMPORTANT!
@@ -244,7 +279,7 @@ class CanvasTiles extends Layer {
             // It could be fixed with call drawTile method only for parent
             // material (which is rendered on the current segment material),
             // just for one renderer frame
-            if (material.layer.animated) {
+            if ((material.layer as CanvasTiles).animated) {
                 requestAnimationFrame(() => {
                     this.drawTile(material, function (canvas) {
                         material.applyImage(canvas);
@@ -261,7 +296,7 @@ class CanvasTiles extends Layer {
             let segment = material.segment;
             let pn = segment.node,
                 parentTextureExists = false;
-            let maxNativeZoom = material.layer.maxNativeZoom;
+            let maxNativeZoom = (material.layer as CanvasTiles).maxNativeZoom;
 
             if (segment.passReady && !material.isLoading && segment.tileZoom <= maxNativeZoom) {
                 this.loadMaterial(material);
@@ -287,7 +322,7 @@ class CanvasTiles extends Layer {
 
                     let pn = segment.node;
                     while (pn.segment.tileZoom > maxNativeZoom) {
-                        pn = pn.parentNode;
+                        pn = pn.parentNode!;
                     }
 
                     let pnm = pn.segment.materials[mId];
@@ -307,7 +342,7 @@ class CanvasTiles extends Layer {
                 //
                 // Animated doesn't work withMaxNativeZoom
                 //
-                if (material.layer.animated) {
+                if ((material.layer as CanvasTiles).animated) {
                     requestAnimationFrame(() => {
                         this.drawTile(material, function (canvas) {
                             material.applyImage(canvas);
@@ -334,11 +369,11 @@ class CanvasTiles extends Layer {
         return material.texOffset;
     }
 
-    clearMaterial(material) {
+    public override clearMaterial(material: Material) {
         if (material.isReady) {
             material.isReady = false;
             if (material.textureExists && material.texture && !material.texture.default) {
-                material.segment.handler.gl.deleteTexture(material.texture);
+                material.segment.handler.gl!.deleteTexture(material.texture);
                 material.texture = null;
             }
         }
@@ -347,14 +382,16 @@ class CanvasTiles extends Layer {
         material.isLoading = false;
         material.textureExists = false;
 
+        //@ts-ignore
         material.layer = null;
+        //@ts-ignore
         material.segment = null;
 
-        if (material.image) {
-            material.image.src = "";
-            material.image = null;
-        }
+        // if (material.image) {
+        //     material.image.src = "";
+        //     material.image = null;
+        // }
     }
 }
 
-export { CanvasTiles };
+export {CanvasTiles};
