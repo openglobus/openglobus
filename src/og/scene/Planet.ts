@@ -272,10 +272,10 @@ export class Planet extends RenderNode {
 
     /**
      * Height scale factor. 1 - is normal elevation scale.
-     * @protected
+     * @public
      * @type {number}
      */
-    protected _heightFactor: number;
+    public _heightFactor: number;
 
     /**
      * Precomputed indexes array for different grid size segments.

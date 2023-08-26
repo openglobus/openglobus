@@ -1,11 +1,13 @@
 export class BaseWorker<T> {
-    protected _id: number;
+    protected _sourceId: number;
+    protected _source: Map<number, T>;
     protected _pendingQueue: T[];
     protected _numWorkers: number;
     protected _workerQueue: Worker[];
 
     constructor(numWorkers: number = 2, program?: string) {
-        this._id = 0;
+        this._sourceId = 0;
+        this._source = new Map<number, T>();
         this._pendingQueue = [];
         this._numWorkers = numWorkers;
         this._workerQueue = [];
@@ -15,7 +17,7 @@ export class BaseWorker<T> {
     }
 
     public check() {
-        if (this._pendingQueue && this._pendingQueue.length) {
+        if (this._pendingQueue.length) {
             this.make(this._pendingQueue.pop()!);
         }
     }

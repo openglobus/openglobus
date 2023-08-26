@@ -2,17 +2,22 @@
 
 // import { QueueArray } from '../QueueArray.js';
 
-import { BaseWorker } from "./BaseWorker.js";
+import { BaseWorker } from "./BaseWorker";
+import {Segment} from "../segment/Segment";
 
-class TerrainWorker extends BaseWorker {
-    constructor(numWorkers = 2) {
-        super(numWorkers, _programm);
-        this._segments = new Map();
+interface TerrainInfo {
+    segment: Segment;
+    elevations: Float32Array;
+}
+
+class TerrainWorker extends BaseWorker<TerrainInfo> {
+    constructor(numWorkers: number = 2) {
+        super(numWorkers, TERRAIN_PROGRAM);
     }
 
-    _onMessage(e) {
-        this._segments.get(e.data.id)._terrainWorkerCallback(e.data);
-        this._segments.delete(e.data.id);
+    protected override _onMessage(e: MessageEvent) {
+        this._source.get(e.data.id)!.segment._terrainWorkerCallback(e.data);
+        this._source.delete(e.data.id);
 
         e.data.normalMapNormals = null;
         e.data.normalMapVertices = null;
@@ -23,45 +28,39 @@ class TerrainWorker extends BaseWorker {
         e.data.terrainVerticesLow = null;
     }
 
-    check() {
-        if (this._pendingQueue.length) {
-            var p = this._pendingQueue.pop();
-            this.make(p.segment, p.elevations);
-        }
-    }
-
-    make(segment, elevations) {
-        if (segment.plainReady && segment.terrainIsLoading) {
-
-            var _elevations = new Float32Array(elevations.length);
-            _elevations.set(elevations);
+    public override make(info: TerrainInfo) {
+        if (info.segment.plainReady && info.segment.terrainIsLoading) {
 
             if (this._workerQueue.length) {
 
-                var w = this._workerQueue.pop();
+                const w = this._workerQueue.pop()!;
 
-                this._segments.set(this._id, segment);
+                this._source.set(this._sourceId, info);
+
+                let segment = info.segment;
 
                 w.postMessage({
-                    'elevations': _elevations,
+                    'elevations': info.elevations,
                     'this_plainVertices': segment.plainVertices,
                     'this_plainNormals': segment.plainNormals,
                     'this_normalMapVertices': segment.normalMapVertices,
                     'this_normalMapNormals': segment.normalMapNormals,
                     'heightFactor': segment.planet._heightFactor,
-                    'gridSize': segment.planet.terrain.gridSizeByZoom[segment.tileZoom],
-                    'noDataValues': segment.planet.terrain.noDataValues,
-                    'id': this._id++
+                    'gridSize': segment.planet.terrain!.gridSizeByZoom[segment.tileZoom],
+                    'noDataValues': segment.planet.terrain!.noDataValues,
+                    'id': this._sourceId
                 }, [
-                    _elevations.buffer,
-                    segment.plainVertices.buffer,
-                    segment.plainNormals.buffer,
-                    segment.normalMapVertices.buffer,
-                    segment.normalMapNormals.buffer
+                    info.elevations.buffer,
+                    segment.plainVertices!.buffer,
+                    segment.plainNormals!.buffer,
+                    segment.normalMapVertices!.buffer,
+                    segment.normalMapNormals!.buffer
                 ]);
 
+                this._sourceId++;
+
             } else {
-                this._pendingQueue.push({ segment: segment, elevations: _elevations });
+                this._pendingQueue.push(info);
             }
         } else {
             this.check();
@@ -69,7 +68,7 @@ class TerrainWorker extends BaseWorker {
     }
 }
 
-const _programm =
+const TERRAIN_PROGRAM =
     `'use strict';
     //
     //Terrain worker

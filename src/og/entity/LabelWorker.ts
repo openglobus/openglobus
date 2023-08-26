@@ -11,11 +11,9 @@ interface LabelInfo {
 }
 
 class LabelWorker extends BaseWorker<LabelInfo> {
-    protected _source: Map<number, LabelInfo>;
 
     constructor(numWorkers: number = 4) {
         super(numWorkers, LABEL_PROGRAM);
-        this._source = new Map<number, LabelInfo>();
     }
 
     protected override _onMessage(e: MessageEvent) {
@@ -43,38 +41,13 @@ class LabelWorker extends BaseWorker<LabelInfo> {
             if (this._workerQueue.length) {
                 let w = this._workerQueue.pop()!;
 
-                this._source.set(this._id, data);
+                this._source.set(this._sourceId, data);
 
-                let labelData = new Float32Array([
-                    /*0*/this._id++,
-                    //@ts-ignore
-                    /*1*/handler._maxLetters,
-                    /*2*/label.getVisibility() ? 1 : 0,
-                    //@ts-ignore
-                    /*3, 4, 5*/label._positionHigh.x, label._positionHigh.y, label._positionHigh.z,
-                    //@ts-ignore
-                    /*6, 7, 8*/label._positionLow.x, label._positionLow.y, label._positionLow.z,
-                    //@ts-ignore
-                    /*9*/label._size,
-                    //@ts-ignore
-                    /*10, 11, 12*/label._offset.x, label._offset.y, label._offset.z,
-                    //@ts-ignore
-                    /*13, 14, 15, 16*/label._color.x, label._color.y, label._color.z, label._color.w,
-                    //@ts-ignore
-                    /*17*/label._rotation,
-                    //@ts-ignore
-                    /*18, 19, 20*/label._alignedAxis.x, label._alignedAxis.y, label._alignedAxis.z,
-                    //@ts-ignore
-                    /*21*/label._fontIndex,
-                    //@ts-ignore
-                    /*22*/label._outline,
-                    //@ts-ignore
-                    /*23, 24, 25, 26*/label._outlineColor.x, label._outlineColor.y, label._outlineColor.z, label._outlineColor.w,
-                    //@ts-ignore
-                    /*27, 28, 29*/label._entity!._pickingColor.x, label._entity!._pickingColor.y, label._entity!._pickingColor.z
-                ]);
+                let labelData = label.serializeWorkerData(this._sourceId);
 
-                label._lockId = this._id;
+                label._lockId = this._sourceId;
+
+                this._sourceId++;
 
                 w.postMessage({
                     labelData: labelData

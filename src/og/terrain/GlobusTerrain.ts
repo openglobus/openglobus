@@ -41,7 +41,7 @@ type UrlRewriteFunc = (segment: Segment, url: string) => string;
  * @param {string} [options.url="//openglobus.org/heights/srtm3/{z}/{y}/{x}.ddm"] - Terrain source path url template. Default is openglobus ddm elevation file.
  * @param {Array.<number>} [options.gridSizeByZoom] - Array of segment triangulation grid sizes where array index agreed to the segment zoom index.
  * @param {number} [options.plainGridSize=32] - Elevation grid size. Default is 32x32. Must be power of two.
- * @param {string} [options.responseType="arraybuffer"] - Responce type.
+ * @param {string} [options.responseType="arraybuffer"] - Response type.
  * @param {number} [options.MAX_LOADING_TILES] - Maximum at one time loading tiles.
  * @param {Array.<number>} [gridSizeByZoom] - Array of values, where each value corresponds to the size of a tile(or segment) on the globe. Each value must be power of two.
  *
@@ -56,7 +56,7 @@ class GlobusTerrain extends EmptyTerrain {
 
     protected _requestCount: number;
 
-    protected _requestsPeerSubdomian: number;
+    protected _requestsPeerSubdomain: number;
 
     /**
      * Terrain source path url template.
@@ -64,8 +64,6 @@ class GlobusTerrain extends EmptyTerrain {
      * @type {string}
      */
     protected url: string;
-
-    public noDataValues: number[];
 
     protected _extent: Extent;
 
@@ -99,7 +97,7 @@ class GlobusTerrain extends EmptyTerrain {
 
         this._requestCount = 0;
 
-        this._requestsPeerSubdomian = 4;
+        this._requestsPeerSubdomain = 4;
 
         this.isEmpty = false;
 
@@ -153,10 +151,7 @@ class GlobusTerrain extends EmptyTerrain {
     }
 
     public override isBlur(segment: Segment): boolean {
-        if (segment.tileZoom >= 6) {
-            return true;
-        }
-        return false;
+        return segment.tileZoom >= 6;
     }
 
     public override getHeightAsync(lonLat: LonLat, callback: (h: number) => void, zoom?: number, firstAttempt?: boolean): boolean {
@@ -398,7 +393,7 @@ class GlobusTerrain extends EmptyTerrain {
 
     protected _getSubdomain(): string {
         this._requestCount++;
-        return this._s[Math.floor(this._requestCount % (this._requestsPeerSubdomian * this._s.length) / this._requestsPeerSubdomian)];
+        return this._s[Math.floor(this._requestCount % (this._requestsPeerSubdomain * this._s.length) / this._requestsPeerSubdomain)];
     }
 
     protected _buildURL(x: number, y: number, z: number): string {
@@ -431,7 +426,7 @@ class GlobusTerrain extends EmptyTerrain {
     }
 
     /**
-     * Sets url rewrite callback, used for custom url rewriting for every tile laoding.
+     * Sets url rewrite callback, used for custom url rewriting for every tile loading.
      * @public
      * @param {UrlRewriteFunc} ur - The callback that returns tile custom created url.
      */
@@ -440,9 +435,8 @@ class GlobusTerrain extends EmptyTerrain {
     }
 
     /**
-     * Converts loaded data to segment elevation data type(columr major elevation data array in meters)
+     * Converts loaded data to segment elevation data type(column major elevation data array in meters)
      * @public
-     * @param {*} data - Loaded elevation data.
      * @returns {Array.<number>} -
      */
     protected _createHeights(data: any, tileIndex?: string, x?: number, y?: number, z?: number, extent?: Extent, isMaxZoom?: boolean): TypedArray | number[] {
@@ -451,8 +445,6 @@ class GlobusTerrain extends EmptyTerrain {
 
     /**
      * @protected
-     * @param {Segment} segment -
-     * @param {*} data -
      */
     protected _applyElevationsData(segment: Segment, elevations: number[] | TypedArray | null) {
         if (segment) {
@@ -477,7 +469,7 @@ type GlobusTerrainEvents = EventsHandler<GlobusTerrainEventsList>;
 
 const GLOBUSTERRAIN_EVENTS: GlobusTerrainEventsList = [
     /**
-     * Triggered when current elevation tile has loaded but before rendereing.
+     * Triggered when current elevation tile has loaded but before rendering.
      * @event og.terrain.GlobusTerrain#load
      */
     "load",

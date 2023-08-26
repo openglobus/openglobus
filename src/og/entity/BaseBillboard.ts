@@ -391,6 +391,10 @@ class BaseBillboard {
             this._lockId = LOCK_UPDATE;
         }
     }
+
+    public serializeWorkerData(workerId: number): Float32Array{
+        return new Float32Array([]);
+    }
 }
 
 export {BaseBillboard};

@@ -1,17 +1,17 @@
-"use strict";
-
 // import { QueueArray } from '../QueueArray.js';
-import { EPSG4326 } from "../proj/EPSG4326.js";
-import { BaseWorker } from "./BaseWorker.js";
+import {EPSG4326} from "../proj/EPSG4326";
+import {BaseWorker} from "./BaseWorker";
+import {Segment} from "../segment/Segment";
+import {Geoid} from "../terrain/Geoid";
 
-class PlainSegmentWorker extends BaseWorker {
-    constructor(numWorkers = 2) {
-        super(numWorkers, _programm);
-        this._segments = new Map();
+
+class PlainSegmentWorker extends BaseWorker<Segment> {
+    constructor(numWorkers: number = 2) {
+        super(numWorkers, PLAIN_SEGMENT_PROGRAM);
     }
 
-    _onMessage(e) {
-        this._segments.get(e.data.id)._plainSegmentWorkerCallback(e.data);
+    protected override _onMessage(e: MessageEvent) {
+        this._source.get(e.data.id)!._plainSegmentWorkerCallback(e.data);
 
         e.data.plainVertices = null;
         e.data.plainVerticesHigh = null;
@@ -22,16 +22,14 @@ class PlainSegmentWorker extends BaseWorker {
         e.data.normalMapVerticesHigh = null;
         e.data.normalMapVerticesLow = null;
 
-        this._segments.delete(e.data.id)
+        this._source.delete(e.data.id)
     }
 
-    setGeoid(geoid) {
-
-        let model = null;
+    public setGeoid(geoid: Geoid) {
 
         if (geoid.model) {
             let m = geoid.model;
-            model = {
+            let model: any = {
                 scale: m.scale,
                 offset: m.offset,
                 width: m.width,
@@ -62,29 +60,32 @@ class PlainSegmentWorker extends BaseWorker {
         }
     }
 
-    make(segment) {
+    public override make(segment: Segment) {
         if (segment.initialized) {
             if (this._workerQueue.length) {
-                let w = this._workerQueue.pop();
+                let w = this._workerQueue.pop()!;
 
-                this._segments.set(this._id, segment);
+                this._source.set(this._sourceId, segment);
 
                 let params = new Float64Array([
-                    this._id++,
+                    this._sourceId,
                     segment._projection.id === EPSG4326.id ? 1.0 : 0.0,
-                    segment.planet.terrain.gridSizeByZoom[segment.tileZoom],
-                    segment.planet.terrain.plainGridSize,
+                    segment.planet.terrain!.gridSizeByZoom[segment.tileZoom],
+                    segment.planet.terrain!.plainGridSize,
                     segment._extent.southWest.lon,
                     segment._extent.southWest.lat,
                     segment._extent.northEast.lon,
                     segment._extent.northEast.lat,
+                    // @ts-ignore
                     segment.planet.ellipsoid._e2,
-                    segment.planet.ellipsoid._a,
+                    segment.planet.ellipsoid.equatorialSize,
                     segment.planet.ellipsoid._invRadii2.x,
                     segment.planet.ellipsoid._invRadii2.y,
                     segment.planet.ellipsoid._invRadii2.z,
                     segment.planet._heightFactor
                 ]);
+
+                this._sourceId++;
 
                 w.postMessage({
                     params: params
@@ -100,7 +101,7 @@ class PlainSegmentWorker extends BaseWorker {
     }
 }
 
-const _programm = `
+const PLAIN_SEGMENT_PROGRAM = `
     'use strict';
     
     let model = null;
@@ -395,4 +396,4 @@ const _programm = `
         }
     }`;
 
-export { PlainSegmentWorker };
+export {PlainSegmentWorker};

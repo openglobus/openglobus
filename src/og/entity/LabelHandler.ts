@@ -55,7 +55,7 @@ class LabelHandler extends BaseBillboardHandler {
     protected _outlineArr: Float32Array;
     protected _outlineColorArr: Float32Array;
 
-    protected _maxLetters: number;
+    public _maxLetters: number;
 
     constructor(entityCollection: EntityCollection, maxLetters: number = 21) {
         super(entityCollection);

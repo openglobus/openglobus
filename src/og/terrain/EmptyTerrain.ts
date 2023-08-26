@@ -57,6 +57,8 @@ class EmptyTerrain {
      */
     public maxZoom: number;
 
+    public noDataValues: number[];
+
     /**
      * Maximal existent available zoom
      * @type {number}
@@ -112,6 +114,8 @@ class EmptyTerrain {
         this._maxNodeZoom = this.gridSizeByZoom.length - 1;
 
         this.plainGridSize = 2;
+
+        this.noDataValues = [];
 
         this._planet = null;
 

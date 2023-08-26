@@ -489,7 +489,11 @@ class Segment {
      */
     public elevationsExists(elevations: number[] | TypedArray) {
         if (this.plainReady && this.terrainIsLoading) {
-            this.planet._terrainWorker.make(this, elevations);
+
+            let _elevations = new Float32Array(elevations.length);
+            _elevations.set(elevations);
+
+            this.planet._terrainWorker.make({segment: this, elevations: _elevations});
 
             this.plainVerticesHigh = null;
             this.plainVerticesLow = null;
@@ -750,7 +754,7 @@ class Segment {
         this.createCoordsBuffers(this.tempVerticesHigh!, this.tempVerticesLow!, this.gridSize);
     }
 
-    protected _terrainWorkerCallback(data: any) {
+    public _terrainWorkerCallback(data: any) {
         if (this.plainReady) {
             this.readyToEngage = true;
 
@@ -1349,7 +1353,7 @@ class Segment {
         }
     }
 
-    protected _plainSegmentWorkerCallback(data: any) {
+    public _plainSegmentWorkerCallback(data: any) {
         this.plainProcessing = false;
 
         if (this.initialized && !this.terrainReady) {
