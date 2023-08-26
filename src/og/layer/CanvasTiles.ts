@@ -2,7 +2,7 @@ import * as quadTree from "../quadTree/quadTree";
 import {ILayerParams, Layer, LayerEventsList} from "./Layer";
 import {EventsHandler} from "../Events";
 import {Material} from "../layer/Material";
-import {Planet} from "../scene";
+import {Planet} from "../scene/Planet";
 import {NumberArray4} from "../math/Vec4";
 
 type ApplyImageFunc = (material: HTMLCanvasElement | ImageBitmap | HTMLImageElement) => void;
@@ -92,7 +92,7 @@ class CanvasTiles extends Layer {
         super(name, options);
 
         //@ts-ignore
-        this.events.registerNames(CANVASTILES_EVENTS);
+        this.events = this.events.registerNames(CANVASTILES_EVENTS);
 
         this.animated = options.animated || false;
 
@@ -202,31 +202,31 @@ class CanvasTiles extends Layer {
         CanvasTiles.__requestsCounter++;
         this._counter++;
         const that = this;
-        if (this.drawTile) {
-            const e = that.events.load!;
-            if (e.handlers.length) {
-                that.events.dispatch(e, material);
-            }
-            requestAnimationFrame(() => {
-                that.drawTile(
-                    material,
-                    /**
-                     * Apply canvas.
-                     * @callback applyCanvasCallback
-                     * @param {Object} canvas -
-                     */
-                    function (canvas) {
-                        that._counter--;
-                        CanvasTiles.__requestsCounter--;
-                        if (material.isLoading) {
-                            material.applyImage(canvas);
-                        }
-                        that._dequeueRequest();
-                    });
-            });
-        } else {
-            material.textureNotExists();
+        //if (this.drawTile) {
+        const e = that.events.load!;
+        if (e.handlers.length) {
+            that.events.dispatch(e, material);
         }
+        requestAnimationFrame(() => {
+            that.drawTile(
+                material,
+                /**
+                 * Apply canvas.
+                 * @callback applyCanvasCallback
+                 * @param {Object} canvas -
+                 */
+                function (canvas) {
+                    that._counter--;
+                    CanvasTiles.__requestsCounter--;
+                    if (material.isLoading) {
+                        material.applyImage(canvas);
+                    }
+                    that._dequeueRequest();
+                });
+        });
+        // } else {
+        //     material.textureNotExists();
+        // }
     }
 
     /**
@@ -260,7 +260,7 @@ class CanvasTiles extends Layer {
 
     protected _whilePendings(): Material | null {
         while (this._pendingsQueue.length) {
-            const pmat = this._pendingsQueue.pop();
+            const pmat = this._pendingsQueue.pop()!;
             if (pmat.segment.node) {
                 if (pmat.segment.initialized && pmat.segment.node.getState() === quadTree.RENDERING) {
                     return pmat;
