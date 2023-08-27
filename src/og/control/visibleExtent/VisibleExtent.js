@@ -1,8 +1,6 @@
-"use strict";
-
-import { Slice } from "../../segment/Slice.js";
-import { Control } from "../Control.js";
-import * as shaders from "./drawnode.js";
+import { Slice } from "../../segment/Slice";
+import { Control } from "../Control";
+import * as shaders from "./drawnode";
 
 function rewriteSlice() {
     Slice.prototype.init = function (segment) {
@@ -39,11 +37,7 @@ function rewriteSlice() {
     };
 }
 
-/**
- * @class
- * @extends {Control}
- */
-class VisibleExtent extends Control {
+export class VisibleExtent extends Control {
     constructor() {
         super();
 
@@ -73,8 +67,7 @@ class VisibleExtent extends Control {
     }
 }
 
-export function visibleExtent() {
-    return new VisibleExtent();
-}
-
-export { VisibleExtent };
+/**
+ * @deprecated 
+ */
+export const visibleExtent = () => new VisibleExtent();

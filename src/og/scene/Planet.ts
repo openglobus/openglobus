@@ -653,7 +653,7 @@ export class Planet extends RenderNode {
      */
     public addControl(control: Control) {
         control.planet = this;
-        control.addTo(this.renderer);
+        control.addTo(this.renderer!);
     }
 
     public get lodSize(): number {
