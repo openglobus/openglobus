@@ -67,8 +67,7 @@ class QueueArray<T> {
         }
         return undefined;
     }
-
-    public each(callback: (el: T) => void) {
+    public forEach(callback: (el: T) => void) {
         for (let i = this._shiftIndex; i < this._popIndex; i++) {
             callback(this._array[i]);
         }

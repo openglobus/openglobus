@@ -237,8 +237,13 @@ export class Planet extends RenderNode {
      * Current visible mercator segments tree nodes array.
      * @public
      * @type {Node}
+     *
+     * @todo
      * _visibleNodes, _visibleNodesNorth and _visibleNodesSouth should
      * be replaced to strategy and Vector layer reworked in collecting methods.
+     * _visibleNodes, and _visibleNodesNorth and South are used in Vector
+     * layer only, for entity terrain collision
+     *
      */
     public _visibleNodes: Record<number, Node>;
 
@@ -246,6 +251,7 @@ export class Planet extends RenderNode {
      * Current visible north pole nodes tree nodes array.
      * @public
      * @type {Node}
+     * @todo
      */
     public _visibleNodesNorth: Record<number, Node>;
 
@@ -253,6 +259,7 @@ export class Planet extends RenderNode {
      * Current visible south pole nodes tree nodes array.
      * @public
      * @type {Node}
+     * @todo
      */
     public _visibleNodesSouth: Record<number, Node>;
 

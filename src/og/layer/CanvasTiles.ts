@@ -1,9 +1,9 @@
 import * as quadTree from "../quadTree/quadTree";
-import {ILayerParams, Layer, LayerEventsList} from "./Layer";
 import {EventsHandler} from "../Events";
+import {ILayerParams, Layer, LayerEventsList} from "./Layer";
 import {Material} from "../layer/Material";
-import {Planet} from "../scene/Planet";
 import {NumberArray4} from "../math/Vec4";
+import {Planet} from "../scene/Planet";
 
 type ApplyImageFunc = (material: HTMLCanvasElement | ImageBitmap | HTMLImageElement) => void;
 type DrawTileCallback = (material: Material, applyImage: ApplyImageFunc) => void;
@@ -139,16 +139,19 @@ class CanvasTiles extends Layer {
      * @public
      */
     public abortLoading() {
-        const q = this._pendingsQueue;
+        //const q = this._pendingsQueue;
         // for (let i = q._shiftIndex + 1; i < q._popIndex + 1; i++) {
         //     if (q._array[i]) {
         //         this.abortMaterialLoading(q._array[i]);
         //     }
         // }
         // this._pendingsQueue.clear();
-        for (let i = 0; i < q.length; i++) {
-            this.abortMaterialLoading(q[i]);
-        }
+        // for (let i = 0; i < q.length; i++) {
+        //     this.abortMaterialLoading(q[i]);
+        // }
+        this._pendingsQueue.forEach((qi: Material) => {
+            this.abortMaterialLoading(qi);
+        })
         this._pendingsQueue = [];
     }
 

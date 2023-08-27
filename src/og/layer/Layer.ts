@@ -193,18 +193,18 @@ class Layer {
      */
     public _height: number;
 
-    /**
-     * Visible degrees extent.
-     * @protected
-     * @type {Extent}
-     */
-    protected _extent: Extent;
-
     protected _textureFilter: string;
 
     protected _isSRGB: boolean;
 
     public _internalFormat: number | null;
+
+    /**
+     * Visible degrees extent.
+     * @public
+     * @type {Extent}
+     */
+    public _extent: Extent;
 
     /**
      * Visible mercator extent.
@@ -786,6 +786,15 @@ class Layer {
      */
     public getExtent(): Extent {
         return this._extent;
+    }
+
+    /**
+     * Gets layer web-mercator extent.
+     * @public
+     * @return {Extent} - Layer extent.
+     */
+    public getExtentMerc(): Extent {
+        return this._extentMerc;
     }
 
     /**

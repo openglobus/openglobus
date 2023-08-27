@@ -139,6 +139,7 @@ class Node {
     public createBounds() {
 
         let seg = this.segment;
+
         seg._setExtentLonLat();
 
         if (seg.tileZoom === 0) {
@@ -291,6 +292,7 @@ class Node {
             }
 
             if ((this.inFrustum && (altVis || h > 10000.0)) || this._cameraInside) {
+                //@todo: replace to the strategy
                 seg._collectVisibleNodes();
             }
 

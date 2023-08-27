@@ -110,6 +110,8 @@ class Segment {
      */
     public _extent: Extent;
 
+    public _extentMerc: Extent;
+
     public _extentLonLat: Extent;
 
     /**
@@ -264,7 +266,7 @@ class Segment {
 
         this.centerNormal = new Vec3();
 
-        this._extent = extent;
+        this._extent = this._extentMerc = extent;
 
         this._extentLonLat = new Extent();
 
@@ -1042,6 +1044,9 @@ class Segment {
         this._globalTextureCoordinates = null;
     }
 
+    /**
+     * @todo: looks like it could be simplified in Segment contructor
+     */
     public _setExtentLonLat() {
         this._extentLonLat = this._extent.inverseMercator();
     }
@@ -1490,6 +1495,14 @@ class Segment {
         return this.materials[layer.__id];
     }
 
+    /**
+     * @param layer
+     * @protected
+     *
+     * @todo siplify layer._extentMerc in this.getLayerExtent(layer)
+     *
+     */
+
     protected _getLayerExtentOffset(layer: Layer): [number, number, number, number] {
         const v0s = layer._extentMerc;
         const v0t = this._extent;
@@ -1736,6 +1749,9 @@ class Segment {
         return cache.buffer;
     }
 
+    /**
+     * @todo: replace to the strategy
+     */
     public _collectVisibleNodes() {
         this.planet._visibleNodes[this.node.nodeId] = this.node;
     }
@@ -1753,13 +1769,16 @@ class Segment {
     }
 
     public getExtentMerc(): Extent {
-        return this._extent;
+        return this._extentMerc;
     }
 
     public getExtent(): Extent {
         return this._extent;
     }
 
+    /**
+     * @todo replace to the strategy
+     */
     public getNodeState(): number {
         let vn = this.planet._visibleNodes[this.node.nodeId];
         return (vn && vn.state) || NOTRENDERING;

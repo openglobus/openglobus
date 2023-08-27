@@ -1,13 +1,16 @@
-"use strict";
-
-import { Extent } from "../Extent";
-import { Layer } from "../layer/Layer.js";
-import { LonLat } from "../LonLat";
-import { Vec3 } from "../math/Vec3";
 import * as mercator from "../mercator";
-import { EPSG4326 } from "../proj/EPSG4326.js";
-import * as quadTree from "../quadTree/quadTree.js";
-import { Segment, TILEGROUP_NORTH, TILEGROUP_SOUTH } from "./Segment.js";
+import * as quadTree from "../quadTree/quadTree";
+import {EPSG4326} from "../proj/EPSG4326";
+import {Extent} from "../Extent";
+import {Layer} from "../layer/Layer";
+import {Node} from "../quadTree/Node";
+import {Planet} from "../scene/Planet";
+import {Segment, TILEGROUP_NORTH, TILEGROUP_SOUTH} from "./Segment";
+import {LonLat} from "../LonLat";
+import {Vec3} from "../math/Vec3";
+import {Entity} from "../entity/Entity";
+import {PlanetCamera} from "../camera/PlanetCamera";
+import {WebGLTextureExt} from "../webgl/Handler";
 
 const MAX_POLE_ZOOM = 7;
 export const POLE_PIECE_SIZE = (90.0 - mercator.MAX_LAT) / Math.pow(2, MAX_POLE_ZOOM);
@@ -19,50 +22,38 @@ let _tempHigh = new Vec3(),
  * Planet segment Web Mercator tile class that stored and rendered with quad tree.
  * @class
  * @extends {Segment}
- * @param {quadNode.Node} node - Quad tree segment node.
- * @param {Planet} planet - Scene planet.
- * @param {Number} tileZoom - Segment tile zoom index.
- * @param {Extent} extent - Segment WGS84 extent.
  */
 class SegmentLonLat extends Segment {
-    /**
-     * @param {quadTree.Node} node - Segment node.
-     * @param {Planet} planet - Current planet scene.
-     * @param {number} tileZoom - Zoom index.
-     * @param {Extent} extent - Segment extent.
-     */
-    constructor(node, planet, tileZoom, extent) {
+    constructor(node: Node, planet: Planet, tileZoom: number, extent: Extent) {
         super(node, planet, tileZoom, extent);
 
         this._projection = EPSG4326;
+
+        this._extentLonLat = this._extent;
 
         this._extentMerc = new Extent(
             extent.southWest.forwardMercatorEPS01(),
             extent.northEast.forwardMercatorEPS01()
         );
 
-        if (this._extent.northEast.lat > 0) {
-            this._isNorth = true;
-        } else {
-            this._isNorth = false;
-        }
+        this._isNorth = this._extent.northEast.lat > 0;
 
         this.isPole = true;
     }
 
-    _setExtentLonLat() {
+    public override _setExtentLonLat() {
         this._extentLonLat = this._extent;
     }
 
-    projectNative(coords) {
+    public override projectNative(coords: LonLat): LonLat {
         return coords;
     }
 
-    getInsideLonLat(obj) {
+    public override getInsideLonLat(obj: Entity | PlanetCamera): LonLat {
         return obj._lonLat;
     }
 
-    _getMaxZoom() {
+    protected _getMaxZoom() {
         let maxPoleZoom = 0;
         if (this._isNorth) {
             //north pole limits
@@ -76,17 +67,17 @@ class SegmentLonLat extends Segment {
         return maxPoleZoom;
     }
 
-    checkZoom() {
+    public override checkZoom() {
         return super.checkZoom() && this.tileZoom <= this._getMaxZoom();
     }
 
-    _assignTileIndexes() {
+    protected override _assignTileIndexes() {
         this._assignTileXIndexes(this._extent);
         this._assignTileYIndexes(this._extent);
         this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, this.tileZoom);
     }
 
-    _assignTileXIndexes(extent) {
+    protected _assignTileXIndexes(extent: Extent) {
         this.tileX = Math.round(
             Math.abs(-180.0 - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon)
         );
@@ -96,8 +87,8 @@ class SegmentLonLat extends Segment {
         this.tileXW = (p2 + this.tileX - 1) % p2;
     }
 
-    _assignTileYIndexes(extent) {
-        var lat = extent.northEast.lat;
+    protected _assignTileYIndexes(extent: Extent) {
+        const lat = extent.northEast.lat;
         if (lat > 0) {
             this._tileGroup = TILEGROUP_NORTH;
             this.tileY = Math.round((90.0 - lat) / (extent.northEast.lat - extent.southWest.lat));
@@ -112,25 +103,27 @@ class SegmentLonLat extends Segment {
     }
 
 
-    _createPlainVertices() {
-        var gridSize = this.planet.terrain.gridSizeByZoom[this.tileZoom];
+    protected override _createPlainVertices() {
+        const gridSize = this.planet.terrain!.gridSizeByZoom[this.tileZoom];
 
-        var e = this._extent,
-            fgs = this.planet.terrain.plainGridSize;
-        var lonSize = e.getWidth();
-        var latSize = e.getHeight();
-        var llStep = lonSize / Math.max(fgs, gridSize);
-        var ltStep = latSize / gridSize;
-        var esw_lon = e.southWest.lon,
-            ene_lat = e.northEast.lat;
-        var dg = Math.max(fgs / gridSize, 1),
-            gs = Math.max(fgs, gridSize) + 1;
-        var r2 = this.planet.ellipsoid._invRadii2;
-        var ind = 0,
+        const e = this._extent;
+        const fgs = this.planet.terrain!.plainGridSize;
+        const lonSize = e.getWidth();
+        const latSize = e.getHeight();
+        const llStep = lonSize / Math.max(fgs, gridSize);
+        const ltStep = latSize / gridSize;
+        const esw_lon = e.southWest.lon;
+        const ene_lat = e.northEast.lat;
+        const dg = Math.max(fgs / gridSize, 1);
+        const gs = Math.max(fgs, gridSize) + 1;
+        const r2 = this.planet.ellipsoid._invRadii2;
+
+        let ind = 0,
             nmInd = 0;
+
         const gsgs = gs * gs;
 
-        var gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
+        const gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
 
         this.plainNormals = new Float32Array(gridSize3);
         this.plainVertices = new Float64Array(gridSize3);
@@ -149,7 +142,7 @@ class SegmentLonLat extends Segment {
             zmin = 549755748352.0,
             zmax = -549755748352.0;
 
-        var verts = this.plainVertices,
+        let verts = this.plainVertices,
             vertsHigh = this.plainVerticesHigh,
             vertsLow = this.plainVerticesLow,
             norms = this.plainNormals,
@@ -159,17 +152,17 @@ class SegmentLonLat extends Segment {
             nmNorms = this.normalMapNormals;
 
         for (let k = 0; k < gsgs; k++) {
-            var j = k % gs,
+            let j = k % gs,
                 i = ~~(k / gs);
 
-            var v = this.planet.ellipsoid.lonLatToCartesian(
+            const v = this.planet.ellipsoid.lonLatToCartesian(
                 new LonLat(esw_lon + j * llStep, ene_lat - i * ltStep)
             );
-            var nx = v.x * r2.x,
+            let nx = v.x * r2.x,
                 ny = v.y * r2.y,
                 nz = v.z * r2.z;
-            var l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
-            var nxl = nx * l,
+            let l = 1.0 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+            let nxl = nx * l,
                 nyl = ny * l,
                 nzl = nz * l;
 
@@ -219,10 +212,6 @@ class SegmentLonLat extends Segment {
         this.terrainVerticesHigh = vertsHigh;
         this.terrainVerticesLow = vertsLow;
 
-        //store raw normals
-        this.normalMapNormalsRaw = new Float32Array(nmNorms.length);
-        this.normalMapNormalsRaw.set(nmNorms);
-
         let x = (xmax - xmin) * 0.5,
             y = (ymax - ymin) * 0.5,
             z = (zmax - zmin) * 0.5;
@@ -232,15 +221,18 @@ class SegmentLonLat extends Segment {
         this.plainReady = true;
     }
 
-    _assignGlobalTextureCoordinates() {
-        var e = this._extent;
+    protected override _assignGlobalTextureCoordinates() {
+        const e = this._extent;
         this._globalTextureCoordinates[0] = (e.southWest.lon + 180.0) / 360.0;
         this._globalTextureCoordinates[1] = (90 - e.northEast.lat) / 180.0;
         this._globalTextureCoordinates[2] = (e.northEast.lon + 180.0) / 360.0;
         this._globalTextureCoordinates[3] = (90 - e.southWest.lat) / 180.0;
     }
 
-    _collectVisibleNodes() {
+    /**
+     * @todo: replace to the strategy
+     */
+    public override _collectVisibleNodes() {
         if (this._isNorth) {
             this.planet._visibleNodesNorth[this.node.nodeId] = this.node;
         } else {
@@ -248,36 +240,42 @@ class SegmentLonLat extends Segment {
         }
     }
 
-    _getLayerExtentOffset(layer) {
-        var v0s = layer._extent;
-        var v0t = this._extent;
-        var sSize_x = v0s.northEast.lon - v0s.southWest.lon;
-        var sSize_y = v0s.northEast.lat - v0s.southWest.lat;
-        var dV0s_x = (v0t.southWest.lon - v0s.southWest.lon) / sSize_x;
-        var dV0s_y = (v0s.northEast.lat - v0t.northEast.lat) / sSize_y;
-        var dSize_x = (v0t.northEast.lon - v0t.southWest.lon) / sSize_x;
-        var dSize_y = (v0t.northEast.lat - v0t.southWest.lat) / sSize_y;
+    /**
+     * @param layer
+     * @protected
+     *
+     * @todo simplify layer._extentMerc in layer.getNativeExtent(this)
+     *
+     */
+    protected override _getLayerExtentOffset(layer: Layer): [number, number, number, number] {
+        const v0s = layer._extent;
+        const v0t = this._extent;
+        const sSize_x = v0s.northEast.lon - v0s.southWest.lon;
+        const sSize_y = v0s.northEast.lat - v0s.southWest.lat;
+        const dV0s_x = (v0t.southWest.lon - v0s.southWest.lon) / sSize_x;
+        const dV0s_y = (v0s.northEast.lat - v0t.northEast.lat) / sSize_y;
+        const dSize_x = (v0t.northEast.lon - v0t.southWest.lon) / sSize_x;
+        const dSize_y = (v0t.northEast.lat - v0t.southWest.lat) / sSize_y;
         return [dV0s_x, dV0s_y, dSize_x, dSize_y];
     }
 
-    layerOverlap(layer) {
+    public override layerOverlap(layer: Layer): boolean {
         return this._extent.overlaps(layer._extent);
     }
 
-    getDefaultTexture() {
+    public override getDefaultTexture(): WebGLTextureExt | null {
         return this._isNorth ? this.planet.solidTextureOne : this.planet.solidTextureTwo;
     }
 
-    getExtentLonLat() {
+    public override getExtentLonLat(): Extent {
         return this._extent;
     }
 
-    getExtentMerc() {
-        return this._extentMerc;
-    }
-
-    getNodeState() {
-        var vn;
+    /**
+     * @todo: replace to the strategy
+     */
+    public override getNodeState(): number {
+        let vn;
         if (this._isNorth) {
             vn = this.planet._visibleNodesNorth[this.node.nodeId];
         } else {
@@ -285,10 +283,6 @@ class SegmentLonLat extends Segment {
         }
         return (vn && vn.state) || quadTree.NOTRENDERING;
     }
-
-    _freeCache() {
-        //empty for a time
-    }
 }
 
-export { SegmentLonLat };
+export {SegmentLonLat};
