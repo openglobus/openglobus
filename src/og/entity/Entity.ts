@@ -1,20 +1,19 @@
 import * as mercator from "../mercator";
 import * as utils from "../utils/shared";
-
-import {Billboard} from "./Billboard.js";
-import {Extent} from "../Extent";
-import {Geometry} from "./Geometry.js";
-import {GeoObject} from "./GeoObject.js";
-import {LonLat} from "../LonLat";
-import {Label} from "./Label.js";
-import {Planet} from "../scene/Planet";
-import {PointCloud} from "./PointCloud.js";
-import {Polyline} from "./Polyline.js";
-import {Ray} from "./Ray.js";
-import {Strip} from "./Strip.js";
-import {NumberArray3, Vec3} from "../math/Vec3";
+import {Billboard} from "./Billboard";
 import {EntityCollection} from "./EntityCollection";
+import {Extent} from "../Extent";
+import {Geometry} from "./Geometry";
+import {GeoObject} from "./GeoObject";
+import {LonLat} from "../LonLat";
+import {Label} from "./Label";
+import {NumberArray3, Vec3} from "../math/Vec3";
 import {NumberArray2} from "../math/Vec2";
+import {Planet} from "../scene/Planet";
+import {PointCloud} from "./PointCloud";
+import {Polyline} from "./Polyline";
+import {Ray} from "./Ray";
+import {Strip} from "./Strip";
 import {Vector} from "../layer/Vector";
 import {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
 

@@ -628,6 +628,9 @@ class Vector extends Layer {
         return this;
     }
 
+    /**
+     * @todo: replace to a strategy node collecting algorithm
+     */
     protected _createEntityCollectionsTree(entitiesForTree: Entity[]) {
 
         if (this._planet) {

@@ -1,16 +1,19 @@
-'use strict';
-
-import { Sphere } from '../bv/Sphere.js';
-import { EntityCollection } from '../entity/EntityCollection.js';
-import { Extent } from '../Extent';
-import { LonLat } from '../LonLat';
-import { Vec3 } from '../math/Vec3';
 import * as mercator from '../mercator';
-import * as quadTree from './quadTree.js';
+import * as quadTree from './quadTree';
+import {EntityCollection} from '../entity/EntityCollection';
+import {Extent} from '../Extent';
+import {LonLat} from '../LonLat';
+import {Planet} from "../scene/Planet";
+import {Sphere} from '../bv/Sphere';
+import {Vec3} from '../math/Vec3';
+import {Vector} from "../layer/Vector";
 
+/**
+ * @todo: remove planet parameter. It's already available in the layer.
+ */
 class EntityCollectionNode {
 
-    constructor(layer, partId, parent, id, extent, planet, zoom) {
+    constructor(layer: Vector, partId: number, parent: EntityCollectionNode | null, id: number, extent: Extent, planet: Planet, zoom: number) {
         this.layer = layer;
         this.parentNode = parent;
         this.childrenNodes = [];
@@ -388,4 +391,4 @@ class EntityCollectionNodeWGS84 extends EntityCollectionNode {
     }
 }
 
-export { EntityCollectionNode, EntityCollectionNodeWGS84 };
+export {EntityCollectionNode, EntityCollectionNodeWGS84};
