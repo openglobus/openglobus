@@ -1,22 +1,24 @@
-"use strict";
-
+import {BaseFramebuffer} from "./BaseFramebuffer";
 import {Clock} from "../Clock";
+import {cons} from "../cons";
 import {EventsHandler, createEvents} from "../Events";
+import {getUrlParam, isEmpty, TypedArray} from "../utils/shared";
 import {ImageCanvas} from "../ImageCanvas";
 import {NumberArray2, Vec2} from "../math/Vec2";
+import {ProgramController} from "./ProgramController";
+import {Program} from "./Program";
 import {Stack} from "../Stack";
-import {getUrlParam, isEmpty, TypedArray} from "../utils/shared";
 
 export type WebGLContextExt = { type: string } & WebGL2RenderingContext;
 export type WebGLBufferExt = { numItems: number; itemSize: number } & WebGLBuffer;
 export type WebGLTextureExt = { default?: boolean } & WebGLTexture;
+export type ImageSource = HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement | HTMLVideoElement;
+type CreateTextureFunc = (image: ImageSource, internalFormat?: number, texture?: WebGLTextureExt) => WebGLTextureExt | null;
 
-//@ts-ignore
-import {cons} from "../cons.js";
-
-import {ProgramController} from "./ProgramController";
-import {Program} from "./Program";
-import {BaseFramebuffer} from "./BaseFramebuffer";
+interface IDefaultTextureParams {
+    color?: string;
+    url?: string;
+}
 
 const vendorPrefixes = ["", "WEBKIT_", "MOZ_"];
 
@@ -136,16 +138,16 @@ class Handler {
 
     public framebufferStack = new Stack<BaseFramebuffer>();
 
-    public createTexture: Record<string, Function>;
+    public createTexture: Record<string, CreateTextureFunc>;
 
-    public createTextureDefault: Function;
+    public createTextureDefault: CreateTextureFunc;
 
     public ONCANVASRESIZE: Function | null;
 
-    public createTexture_n: Function;
-    public createTexture_l: Function;
-    public createTexture_mm: Function;
-    public createTexture_a: Function;
+    public createTexture_n: CreateTextureFunc;
+    public createTexture_l: CreateTextureFunc;
+    public createTexture_mm: CreateTextureFunc;
+    public createTexture_a: CreateTextureFunc;
 
     public intersectionObserver?: IntersectionObserver;
     public resizeObserver?: ResizeObserver;
@@ -433,7 +435,7 @@ class Handler {
      * @returns {WebGLTexture} - WebGL texture object.
      */
     public createTexture_n_webgl1(
-        image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
+        image: ImageSource,
         internalFormat?: number,
         texture: WebGLTexture | null = null): WebGLTexture | null {
 
@@ -461,7 +463,7 @@ class Handler {
      * @returns {Object} - WebGL texture object.
      */
     public createTexture_l_webgl1(
-        image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
+        image: ImageSource,
         internalFormat?: number,
         texture: WebGLTexture | null = null): WebGLTexture | null {
 
@@ -488,7 +490,7 @@ class Handler {
      * @returns {Object} - WebGL texture object.
      */
     public createTexture_mm_webgl1(
-        image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
+        image: ImageSource,
         internalFormat?: number,
         texture: WebGLTexture | null = null): WebGLTexture | null {
 
@@ -516,7 +518,7 @@ class Handler {
      * @returns {Object} - WebGL texture object.
      */
     public createTexture_a_webgl1(
-        image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
+        image: ImageSource,
         internalFormat?: number,
         texture: WebGLTexture | null = null): WebGLTexture | null {
 
@@ -545,7 +547,7 @@ class Handler {
      * @returns {Object} - WebGL texture object.
      */
     public createTexture_n_webgl2(
-        image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
+        image: ImageSource,
         internalFormat?: number,
         texture: WebGLTexture | null = null): WebGLTexture | null {
 
@@ -575,7 +577,7 @@ class Handler {
      * @returns {Object} - WebGL texture object.
      */
     public createTexture_l_webgl2(
-        image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
+        image: ImageSource,
         internalFormat?: number,
         texture: WebGLTexture | null = null): WebGLTexture | null {
 
@@ -605,7 +607,7 @@ class Handler {
      * @returns {Object} - WebGL texture object.
      */
     public createTexture_mm_webgl2(
-        image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
+        image: ImageSource,
         internalFormat?: number,
         texture: WebGLTexture | null = null): WebGLTexture | null {
 
@@ -634,7 +636,7 @@ class Handler {
      * @returns {Object} - WebGL texture object.
      */
     public createTexture_a_webgl2(
-        image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement,
+        image: ImageSource,
         internalFormat?: number,
         texture: WebGLTexture | null = null): WebGLTexture | null {
 
@@ -1189,7 +1191,7 @@ class Handler {
      * @param {Object} [params] - Texture parameters:
      * @param {callback} [success] - Creation callback
      */
-    public createDefaultTexture(params: any, success: (texture: WebGLTextureExt) => void) {
+    public createDefaultTexture(params: IDefaultTextureParams | null, success: (texture: WebGLTextureExt) => void) {
 
         let imgCnv;
         let texture;
@@ -1197,14 +1199,14 @@ class Handler {
         if (params && params.color) {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor(params.color);
-            texture = this.createTexture_n(imgCnv.getCanvas());
+            texture = this.createTexture_n(imgCnv.getCanvas())!;
             texture.default = true;
             success(texture);
         } else if (params && params.url) {
             let img = new Image();
             let that = this;
             img.onload = function () {
-                texture = that.createTextureDefault(this);
+                texture = that.createTextureDefault(img)!;
                 texture.default = true;
                 success(texture);
             };
@@ -1212,7 +1214,7 @@ class Handler {
         } else {
             imgCnv = new ImageCanvas(2, 2);
             imgCnv.fillColor("#C5C5C5");
-            texture = this.createTexture_n(imgCnv.getCanvas());
+            texture = this.createTexture_n(imgCnv.getCanvas())!;
             texture.default = true;
             success(texture);
         }

@@ -946,7 +946,7 @@ export class Planet extends RenderNode {
         texCoordCache = null;
 
         // creating empty textures
-        this.renderer!.handler.createDefaultTexture(null, (t) => {
+        this.renderer!.handler.createDefaultTexture(null, (t: WebGLTextureExt) => {
             this.solidTextureOne = t;
             this.solidTextureTwo = t;
         });
