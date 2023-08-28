@@ -26,6 +26,7 @@ import {NIGHT, SPECULAR} from "../res/images.js";
 import {PlainSegmentWorker} from "../utils/PlainSegmentWorker.js";
 import {PlanetCamera} from "../camera/PlanetCamera";
 import {Quat} from "../math/Quat";
+import {QuadTreeStrategy} from "../quadTree/QuadTreeStrategy";
 import {Ray} from "../math/Ray";
 import {RenderNode} from "./RenderNode";
 import {SimpleSkyBackground} from "../control/SimpleSkyBackground.js";
@@ -301,7 +302,7 @@ export class Planet extends RenderNode {
      */
     public _textureCoordsBufferCache: WebGLBufferExt[];
 
-    public quadTreeStrategy: EarthQuadTreeStrategy;
+    public quadTreeStrategy: QuadTreeStrategy;
 
     /**
      * Night glowing gl texture.
@@ -497,7 +498,7 @@ export class Planet extends RenderNode {
 
         this._textureCoordsBufferCache = [];
 
-        this.quadTreeStrategy = options.quadTreeStrategyPrototype ? new options.quadTreeStrategyPrototype({planet: this}) : new EarthQuadTreeStrategy({planet: this});
+        this.quadTreeStrategy = options.quadTreeStrategyPrototype ? new options.quadTreeStrategyPrototype(this) : new EarthQuadTreeStrategy(this);
 
         this._nightTexture = null;
 

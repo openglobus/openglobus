@@ -1,20 +1,17 @@
-"use strict";
-
-import { Extent } from "../Extent";
-import { EPSG4326 } from "../proj/EPSG4326.js";
-import { Node } from "../quadTree/Node.js";
-import * as quadTree from "../quadTree/quadTree.js";
-import { SegmentLonLatWgs84 } from "../segment/SegmentLonLatWgs84.js";
-import { QuadTreeStrategy } from "./QuadTreeStrategy.js";
+import * as quadTree from "../quadTree/quadTree";
+import {Extent} from "../Extent";
+import {EPSG4326} from "../proj/EPSG4326";
+import {Node} from "../quadTree/Node";
+import {Planet} from "../scene/Planet";
+import {QuadTreeStrategy} from "./QuadTreeStrategy";
+import {SegmentLonLatWgs84} from "../segment/SegmentLonLatWgs84";
 
 export class EPSG4326QuadTreeStrategy extends QuadTreeStrategy {
-    constructor(options = {}) {
-        super(options);
-        this.name = "EPSG4326";
-        this.projection = EPSG4326;
+    constructor(planet: Planet) {
+        super(planet, "EPSG4326", EPSG4326);
     }
 
-    init() {
+    public override init() {
         let earthQuadTreeSouth = new Node(SegmentLonLatWgs84, this.planet, quadTree.NW, null, 0, 0,
             Extent.createFromArray([-180, -90, 0, 90])
         );
