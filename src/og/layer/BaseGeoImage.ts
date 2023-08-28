@@ -1,14 +1,14 @@
 import * as mercator from "../mercator";
+import {doubleToTwoFloats2} from "../math/coder";
 import {Extent} from "../Extent";
 import {EventsHandler} from "../Events";
-import {doubleToTwoFloats2} from "../math/coder";
 import {Layer, LayerEventsList, ILayerParams} from "./Layer";
 import {LonLat} from "../LonLat";
 import {Material} from "./Material";
-import {Planet} from "../scene/Planet";
-import {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
 import {NumberArray2} from "../math/Vec2";
 import {NumberArray4} from "../math/Vec4";
+import {Planet} from "../scene/Planet";
+import {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
 
 export interface IBaseGeoImageParams extends ILayerParams {
     fullExtent?: boolean;
