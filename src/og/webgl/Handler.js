@@ -1026,6 +1026,8 @@ class Handler {
     destroy() {
         let gl = this.gl;
 
+        this.resizeObserver.disconnect();
+        this.intersectionObserver.disconnect();
         this.stop();
 
         //
