@@ -108,10 +108,10 @@ class Entity {
 
     /**
      * Entity visible terrain altitude.
-     * @protected
+     * @public
      * @type {number}
      */
-    protected _altitude: number;
+    public _altitude: number;
 
     /**
      * Visibility flag.

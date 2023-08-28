@@ -139,8 +139,6 @@ class Layer {
      */
     public __id: number;
 
-    protected _labelMaxLetters: number;
-
     protected _hasImageryTiles: boolean;
 
     /**
@@ -241,8 +239,6 @@ class Layer {
         this.name = name || "noname";
 
         this.properties = options.properties || {};
-
-        this._labelMaxLetters = options.labelMaxLetters || 24;
 
         this.displayInLayerSwitcher =
             options.displayInLayerSwitcher !== undefined ? options.displayInLayerSwitcher : true;

@@ -1,19 +1,21 @@
 import * as math from "../math";
-import {Entity} from "./Entity";
-import {createEvents, EventsHandler} from "../Events";
+import {Billboard} from "./Billboard";
 import {BillboardHandler} from "./BillboardHandler";
+import {createEvents, EventsHandler} from "../Events";
+import {Entity} from "./Entity";
+import {Ellipsoid} from "../ellipsoid/Ellipsoid";
+import {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
 import {GeoObjectHandler} from "./GeoObjectHandler";
 import {Label} from "./Label";
 import {LabelHandler} from "./LabelHandler";
 import {NumberArray3} from "../math/Vec3";
+import {Planet} from "../scene/Planet";
 import {PointCloudHandler} from "./PointCloudHandler";
 import {PolylineHandler} from "./PolylineHandler";
 import {RayHandler} from "./RayHandler";
 import {RenderNode} from "../scene/RenderNode";
 import {StripHandler} from "./StripHandler";
-import {Planet} from "../scene/Planet";
-import {Ellipsoid} from "../ellipsoid/Ellipsoid";
-import {Billboard} from "./Billboard";
+import {Vector} from "../layer/Vector";
 
 interface IEntityCollectionParams {
     polygonOffsetUnits?: number;
@@ -203,6 +205,12 @@ class EntityCollection {
     public events: EventsHandler<EntityCollectionEventList>;
 
     public rendererEvents: EventsHandler<EntityCollectionEventList>;
+
+    /**
+     * Used in EntityCollectionNode, also could be merged with _quadNode
+     */
+    public _layer?: Vector;
+    public _quadNode?: EntityCollectionNode;
 
     constructor(options: IEntityCollectionParams = {}) {
 

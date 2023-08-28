@@ -1,17 +1,37 @@
 import * as mercator from '../mercator';
-import * as quadTree from './quadTree';
+import {NW, NE, SW, SE, RENDERING, VISIBLE_DISTANCE} from './quadTree';
 import {EntityCollection} from '../entity/EntityCollection';
 import {Extent} from '../Extent';
 import {LonLat} from '../LonLat';
+import {Node} from "../quadTree/Node";
 import {Planet} from "../scene/Planet";
 import {Sphere} from '../bv/Sphere';
+import {Segment} from "../segment/Segment";
 import {Vec3} from '../math/Vec3';
 import {Vector} from "../layer/Vector";
+import {Entity} from "../entity/Entity";
+
+type NodesDict = Record<number, Node>;
 
 /**
  * @todo: remove planet parameter. It's already available in the layer.
  */
 class EntityCollectionNode {
+
+    public layer: Vector;
+    public parentNode: EntityCollectionNode | null;
+    public childrenNodes: EntityCollectionNode[];
+    public partId: number;
+    public nodeId: number;
+    public state: number | null;
+    public extent: Extent;
+    public count: number;
+    public deferredEntities: Entity[];
+    public entityCollection: EntityCollection | null;
+    public zoom: number;
+    public bsphere: Sphere;
+
+    public _inTheQueue: boolean;
 
     constructor(layer: Vector, partId: number, parent: EntityCollectionNode | null, id: number, extent: Extent, planet: Planet, zoom: number) {
         this.layer = layer;
@@ -32,21 +52,21 @@ class EntityCollectionNode {
         planet && this._setExtentBounds();
     }
 
-    insertEntity(entity, rightNow) {
+    public insertEntity(entity: Entity, rightNow: boolean = false) {
         this.buildTree([entity], rightNow);
     }
 
-    _addEntitiesToCollection(entities, rightNow) {
+    protected _addEntitiesToCollection(entities: Entity[], rightNow: boolean = false) {
         if (entities.length) {
-            var l = this.layer,
-                p = l._planet;
+            const l = this.layer;
+            const p = l._planet!;
 
-            var ec = this.entityCollection;
+            let ec = this.entityCollection;
 
             if (!ec) {
                 ec = new EntityCollection({
                     pickingEnabled: l._pickingEnabled,
-                    labelMaxLetters: l._labelMaxLetters
+                    labelMaxLetters: l.labelMaxLetters
                 });
                 ec._layer = this.layer;
                 ec.addTo(p, true);
@@ -56,80 +76,80 @@ class EntityCollectionNode {
             }
 
             if (rightNow || !l.async) {
-                this.entityCollection.addEntities(entities);
+                this.entityCollection!.addEntities(entities);
             } else {
                 this.deferredEntities.push.apply(this.deferredEntities, entities);
             }
         }
     }
 
-    _setExtentBounds() {
+    protected _setExtentBounds() {
         if (!this.nodeId) {
-            this.bsphere.radius = this.layer._planet.ellipsoid._a;
+            this.bsphere.radius = this.layer._planet!.ellipsoid.equatorialSize;
             this.bsphere.center = new Vec3();
         } else {
-            this.bsphere.setFromExtent(this.layer._planet.ellipsoid, this.extent.inverseMercator());
+            this.bsphere.setFromExtent(this.layer._planet!.ellipsoid, this.extent.inverseMercator());
         }
     }
 
-    __setLonLat__(entity) {
+    public __setLonLat__(entity: Entity): LonLat {
 
         if (entity._lonLat.isZero() && !entity._cartesian.isZero()) {
-            entity._lonLat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
+            entity._lonLat = this.layer._planet!.ellipsoid.cartesianToLonLat(entity._cartesian);
         }
 
         if (Math.abs(entity._lonLat.lat) < mercator.MAX_LAT) {
             entity._lonLatMerc = entity._lonLat.forwardMercator();
         } else {
-            entity._lonLatMerc = null;
+            entity._lonLatMerc = new LonLat();
         }
         return entity._lonLatMerc;
     }
 
-    buildTree(entities, rightNow) {
+    public buildTree(entities: Entity[], rightNow: boolean = false) {
 
         this.count += entities.length;
 
         if (entities.length > this.layer._nodeCapacity) {
-            var cn = this.childrenNodes;
+            const cn = this.childrenNodes;
             if (!cn.length) {
                 this.createChildrenNodes();
             }
 
-            var en_nw = [],
+            let en_nw = [],
                 en_ne = [],
                 en_sw = [],
                 en_se = [];
 
-            var i = entities.length;
+            let i = entities.length;
             while (i--) {
-                var ei = entities[i];
-                if (cn[quadTree.NW].isInside(ei)) {
-                    ei._nodePtr = cn[quadTree.NW];
+                const ei = entities[i];
+                if (cn[NW].isInside(ei)) {
+                    ei._nodePtr = cn[NW];
                     en_nw.push(ei);
-                } else if (cn[quadTree.NE].isInside(ei)) {
-                    ei._nodePtr = cn[quadTree.NE];
+                } else if (cn[NE].isInside(ei)) {
+                    ei._nodePtr = cn[NE];
                     en_ne.push(ei);
-                } else if (cn[quadTree.SW].isInside(ei)) {
-                    ei._nodePtr = cn[quadTree.SW];
+                } else if (cn[SW].isInside(ei)) {
+                    ei._nodePtr = cn[SW];
                     en_sw.push(ei);
-                } else if (cn[quadTree.SE].isInside(ei)) {
-                    ei._nodePtr = cn[quadTree.SE];
+                } else if (cn[SE].isInside(ei)) {
+                    ei._nodePtr = cn[SE];
                     en_se.push(ei);
                 }
             }
 
-            en_nw.length && cn[quadTree.NW].buildTree(en_nw, rightNow);
-            en_ne.length && cn[quadTree.NE].buildTree(en_ne, rightNow);
-            en_sw.length && cn[quadTree.SW].buildTree(en_sw, rightNow);
-            en_se.length && cn[quadTree.SE].buildTree(en_se, rightNow);
+            en_nw.length && cn[NW].buildTree(en_nw, rightNow);
+            en_ne.length && cn[NE].buildTree(en_ne, rightNow);
+            en_sw.length && cn[SW].buildTree(en_sw, rightNow);
+            en_se.length && cn[SE].buildTree(en_se, rightNow);
 
         } else {
             this._addEntitiesToCollection(entities, rightNow);
         }
     }
 
-    isInside(entity) {
+    public isInside(entity: Entity): boolean {
         if (entity._lonLatMerc) {
             return this.extent.isInside(entity._lonLatMerc);
         } else {
@@ -137,99 +157,90 @@ class EntityCollectionNode {
         }
     }
 
-    createChildrenNodes() {
-        var l = this.layer;
-        var ext = this.extent;
-        var size_x = ext.getWidth() * 0.5;
-        var size_y = ext.getHeight() * 0.5;
-        var ne = ext.northEast,
-            sw = ext.southWest;
-        var id = this.nodeId * 4 + 1;
-        var c = new LonLat(sw.lon + size_x, sw.lat + size_y);
-        var nd = this.childrenNodes;
-        var p = this.layer._planet;
-        var z = this.zoom + 1;
+    public createChildrenNodes() {
+        const l = this.layer;
+        const ext = this.extent;
+        const size_x = ext.getWidth() * 0.5;
+        const size_y = ext.getHeight() * 0.5;
+        const ne = ext.northEast;
+        const sw = ext.southWest;
+        const id = this.nodeId * 4 + 1;
+        const c = new LonLat(sw.lon + size_x, sw.lat + size_y);
+        const nd = this.childrenNodes;
+        const p = this.layer._planet!;
+        const z = this.zoom + 1;
 
-        nd[quadTree.NW] = new EntityCollectionNode(l, quadTree.NW, this, id,
-            new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)), p, z);
-
-        nd[quadTree.NE] = new EntityCollectionNode(l, quadTree.NE, this, id,
-            new Extent(c, new LonLat(ne.lon, ne.lat)), p, z);
-
-        nd[quadTree.SW] = new EntityCollectionNode(l, quadTree.SW, this, id,
-            new Extent(new LonLat(sw.lon, sw.lat), c), p, z);
-
-        nd[quadTree.SE] = new EntityCollectionNode(l, quadTree.SE, this, id,
-            new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
+        nd[NW] = new EntityCollectionNode(l, NW, this, id, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)), p, z);
+        nd[NE] = new EntityCollectionNode(l, NE, this, id, new Extent(c, new LonLat(ne.lon, ne.lat)), p, z);
+        nd[SW] = new EntityCollectionNode(l, SW, this, id, new Extent(new LonLat(sw.lon, sw.lat), c), p, z);
+        nd[SE] = new EntityCollectionNode(l, SE, this, id, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
     }
 
-    collectRenderCollectionsPASS1(visibleNodes, outArr) {
-        var n = visibleNodes[this.nodeId];
+    public collectRenderCollectionsPASS1(visibleNodes: NodesDict, outArr: EntityCollection[]) {
+        const n = visibleNodes[this.nodeId];
         if (n) {
-            var cn = this.childrenNodes;
+            const cn = this.childrenNodes;
             if (this.entityCollection) {
                 this.renderCollection(outArr, visibleNodes);
             } else if (cn.length) {
-                if (n.state === quadTree.RENDERING) {
+                if (n.state === RENDERING) {
                     this.layer._secondPASS.push(this);
                 } else {
-                    cn[quadTree.NW].collectRenderCollectionsPASS1(visibleNodes, outArr);
-                    cn[quadTree.NE].collectRenderCollectionsPASS1(visibleNodes, outArr);
-                    cn[quadTree.SW].collectRenderCollectionsPASS1(visibleNodes, outArr);
-                    cn[quadTree.SE].collectRenderCollectionsPASS1(visibleNodes, outArr);
+                    cn[NW].collectRenderCollectionsPASS1(visibleNodes, outArr);
+                    cn[NE].collectRenderCollectionsPASS1(visibleNodes, outArr);
+                    cn[SW].collectRenderCollectionsPASS1(visibleNodes, outArr);
+                    cn[SE].collectRenderCollectionsPASS1(visibleNodes, outArr);
                 }
             }
         }
     }
 
-    collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId) {
-        var p = this.layer._planet;
-        var cam = p.renderer.activeCamera;
+    public collectRenderCollectionsPASS2(visibleNodes: NodesDict, outArr: EntityCollection[], renderingNodeId: number) {
+        const p = this.layer._planet!;
+        const cam = p.camera;
 
-        var altVis = (cam.eye.distance(this.bsphere.center) - this.bsphere.radius <
-            quadTree.VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)) || cam._lonLat.height > 10000;
+        const altVis = (cam.eye.distance(this.bsphere.center) - this.bsphere.radius <
+            VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)) || cam._lonLat.height > 10000;
 
-        if (this.count > 0 && altVis &&
-            p.renderer.activeCamera.frustum.containsSphere(this.bsphere) > 0) {
+        if (this.count > 0 && altVis && cam.frustum.containsSphere(this.bsphere)) {
 
-            var cn = this.childrenNodes;
+            const cn = this.childrenNodes;
 
             if (this.entityCollection) {
                 this.renderCollection(outArr, visibleNodes, renderingNodeId);
             } else if (cn.length) {
-                cn[quadTree.NW].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
-                cn[quadTree.NE].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
-                cn[quadTree.SW].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
-                cn[quadTree.SE].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
+                cn[NW].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
+                cn[NE].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
+                cn[SW].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
+                cn[SE].collectRenderCollectionsPASS2(visibleNodes, outArr, renderingNodeId);
             }
-
         }
     }
 
-    applyCollection() {
-        this.entityCollection.addEntities(this.deferredEntities);
+    public applyCollection() {
+        this.entityCollection!.addEntities(this.deferredEntities);
         this.deferredEntities.length = 0;
         this.deferredEntities = [];
         this._inTheQueue = false;
     }
 
-    traverseTree(callback) {
+    public traverseTree(callback: Function) {
 
-        var cn = this.childrenNodes;
+        const cn = this.childrenNodes;
 
         if (this.entityCollection) {
             callback(this);
         } else if (cn.length) {
-            cn[quadTree.NW].traverseTree(callback);
-            cn[quadTree.NE].traverseTree(callback);
-            cn[quadTree.SW].traverseTree(callback);
-            cn[quadTree.SE].traverseTree(callback);
+            cn[NW].traverseTree(callback);
+            cn[NE].traverseTree(callback);
+            cn[SW].traverseTree(callback);
+            cn[SE].traverseTree(callback);
         }
     }
 
-    renderCollection(outArr, visibleNodes, renderingNodeId) {
+    public renderCollection(outArr: EntityCollection[], visibleNodes: NodesDict, renderingNodeId?: number) {
 
-        var l = this.layer;
+        const l = this.layer;
 
         l._renderingNodes[this.nodeId] = true;
 
@@ -241,7 +252,7 @@ class EntityCollectionNode {
             }
         }
 
-        var ec = this.entityCollection;
+        const ec = this.entityCollection!;
 
         ec._fadingOpacity = l._fadingOpacity;
         ec.scaleByDistance = l.scaleByDistance;
@@ -251,10 +262,10 @@ class EntityCollectionNode {
         outArr.push(ec);
 
         if (l.clampToGround || l.relativeToGround) {
-            var e = ec._entities;
-            var i = e.length;
+            const e = ec._entities;
+            let i = e.length;
 
-            if (visibleNodes[this.nodeId] && visibleNodes[this.nodeId].state === quadTree.RENDERING) {
+            if (visibleNodes[this.nodeId] && visibleNodes[this.nodeId].state === RENDERING) {
                 while (i--) {
                     let ei = e[i];
                     this.alignEntityToTheGround(ei, visibleNodes[this.nodeId].segment);
@@ -265,7 +276,7 @@ class EntityCollectionNode {
                     this.alignEntityToTheGround(ei, visibleNodes[renderingNodeId].segment);
                 }
             } else {
-                var n = l._planet._renderedNodes;
+                const n = l._planet!._renderedNodes;
                 while (i--) {
                     let ei = e[i];
                     let j = n.length;
@@ -280,75 +291,69 @@ class EntityCollectionNode {
         }
     }
 
-    alignEntityToTheGround(entity, segment) {
+    public alignEntityToTheGround(entity: Entity, segment: Segment) {
         let res = new Vec3();
         segment.getEntityTerrainPoint(entity, res);
         let alt = (Number(this.layer.relativeToGround) && entity._altitude) || 0.0;
         if (alt) {
-            let n = this.layer._planet.ellipsoid.getSurfaceNormal3v(res);
+            let n = this.layer._planet!.ellipsoid.getSurfaceNormal3v(res);
             entity._setCartesian3vSilent(res.addA(n.scale(alt)));
         } else {
             entity._setCartesian3vSilent(res);
         }
     }
 
-    isVisible() {
+    public isVisible(): boolean {
         if (this.layer._renderingNodes[this.nodeId]) {
             return true;
         }
         return false;
     }
-
 }
 
 class EntityCollectionNodeWGS84 extends EntityCollectionNode {
 
-    constructor(layer, partId, parent, id, extent, planet, zoom) {
+    public isNorth: boolean;
+
+    constructor(layer: Vector, partId: number, parent: EntityCollectionNodeWGS84 | null, id: number, extent: Extent, planet: Planet, zoom: number) {
         super(layer, partId, parent, id, extent, planet, zoom);
         this.isNorth = false;
     }
 
-    createChildrenNodes() {
-        var l = this.layer;
-        var ext = this.extent;
-        var size_x = ext.getWidth() * 0.5;
-        var size_y = ext.getHeight() * 0.5;
-        var ne = ext.northEast,
-            sw = ext.southWest;
-        var id = this.nodeId * 4 + 1;
-        var c = new LonLat(sw.lon + size_x, sw.lat + size_y);
-        var nd = this.childrenNodes;
-        var p = this.layer._planet;
-        var z = this.zoom + 1;
+    public override createChildrenNodes() {
+        const l = this.layer;
+        const ext = this.extent;
+        const size_x = ext.getWidth() * 0.5;
+        const size_y = ext.getHeight() * 0.5;
+        const ne = ext.northEast;
+        const sw = ext.southWest;
+        const id = this.nodeId * 4 + 1;
+        const c = new LonLat(sw.lon + size_x, sw.lat + size_y);
+        const nd = this.childrenNodes;
+        const p = this.layer._planet!;
+        const z = this.zoom + 1;
 
-        nd[quadTree.NW] = new EntityCollectionNodeWGS84(l, quadTree.NW, this, id,
-            new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)), p, z);
-
-        nd[quadTree.NE] = new EntityCollectionNodeWGS84(l, quadTree.NE, this, id,
-            new Extent(c, new LonLat(ne.lon, ne.lat)), p, z);
-
-        nd[quadTree.SW] = new EntityCollectionNodeWGS84(l, quadTree.SW, this, id,
-            new Extent(new LonLat(sw.lon, sw.lat), c), p, z);
-
-        nd[quadTree.SE] = new EntityCollectionNodeWGS84(l, quadTree.SE, this, id,
-            new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
+        nd[NW] = new EntityCollectionNodeWGS84(l, NW, this, id, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)), p, z);
+        nd[NE] = new EntityCollectionNodeWGS84(l, NE, this, id, new Extent(c, new LonLat(ne.lon, ne.lat)), p, z);
+        nd[SW] = new EntityCollectionNodeWGS84(l, SW, this, id, new Extent(new LonLat(sw.lon, sw.lat), c), p, z);
+        nd[SE] = new EntityCollectionNodeWGS84(l, SE, this, id, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
     }
 
-    _setExtentBounds() {
+    protected override _setExtentBounds() {
         if (this.extent.northEast.lat > 0) {
             this.isNorth = true;
         }
-        this.bsphere.setFromExtent(this.layer._planet.ellipsoid, this.extent);
+        this.bsphere.setFromExtent(this.layer._planet!.ellipsoid, this.extent);
     }
 
-    __setLonLat__(entity) {
+    public override __setLonLat__(entity: Entity): LonLat {
         if (entity._lonLat.isZero()) {
-            entity._lonLat = this.layer._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
+            entity._lonLat = this.layer._planet!.ellipsoid.cartesianToLonLat(entity._cartesian);
         }
         return entity._lonLat;
     }
 
-    isVisible() {
+    public override isVisible(): boolean {
         if (this.isNorth && this.layer._renderingNodesNorth[this.nodeId]) {
             return true;
         } else if (this.layer._renderingNodesSouth[this.nodeId]) {
@@ -357,17 +362,11 @@ class EntityCollectionNodeWGS84 extends EntityCollectionNode {
         return false;
     }
 
-    isInside(entity) {
+    public override isInside(entity: Entity): boolean {
         return this.extent.isInside(entity._lonLat);
     }
 
-    /**
-     *
-     * @param {*} outArr
-     * @param {*} visibleNodes
-     * @param {*} renderingNode
-     */
-    renderCollection(outArr, visibleNodes, renderingNode) {
+    public override renderCollection(outArr: EntityCollection[], visibleNodes: NodesDict, renderingNode: number) {
 
         if (this.isNorth) {
             this.layer._renderingNodesNorth[this.nodeId] = true;
@@ -383,11 +382,13 @@ class EntityCollectionNodeWGS84 extends EntityCollectionNode {
             }
         }
 
-        this.entityCollection._fadingOpacity = this.layer._fadingOpacity;
-        this.entityCollection.scaleByDistance = this.layer.scaleByDistance;
-        this.entityCollection.pickingScale = this.layer.pickingScale;
+        const ec = this.entityCollection!;
 
-        outArr.push(this.entityCollection);
+        ec._fadingOpacity = this.layer._fadingOpacity;
+        ec.scaleByDistance = this.layer.scaleByDistance;
+        ec.pickingScale = this.layer.pickingScale;
+
+        outArr.push(ec);
     }
 }
 
