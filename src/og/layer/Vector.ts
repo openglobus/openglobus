@@ -26,6 +26,7 @@ interface IVectorParams extends ILayerParams {
     async?: boolean;
     pickingScale?: number;
     scaleByDistance?: NumberArray3;
+    labelMaxLetters?: number;
 }
 
 type VectorEventsList = [
@@ -129,23 +130,25 @@ class Vector extends Layer {
      */
     public relativeToGround: boolean;
 
-    /**
-     * Maximum entities quantity in the tree node.
-     * @protected
-     */
-    protected _nodeCapacity: number;
+
     protected _stripEntityCollection: EntityCollection;
     protected _polylineEntityCollection: EntityCollection;
     protected _geoObjectEntityCollection: EntityCollection;
     public _geometryHandler: GeometryHandler;
 
+    /**
+     * Maximum entities quantity in the tree node.
+     * @public
+     */
+    public _nodeCapacity: number;
+
     protected _entityCollectionsTree: EntityCollectionNode | null;
     protected _entityCollectionsTreeNorth: EntityCollectionNodeWGS84 | null;
     protected _entityCollectionsTreeSouth: EntityCollectionNodeWGS84 | null;
 
-    protected _renderingNodes: Record<number, any>;
-    protected _renderingNodesNorth: Record<number, any>;
-    protected _renderingNodesSouth: Record<number, any>;
+    public _renderingNodes: Record<number, any>;
+    public _renderingNodesNorth: Record<number, any>;
+    public _renderingNodesSouth: Record<number, any>;
 
     protected _counter: number;
     protected _deferredEntitiesPendingQueue: QueueArray<EntityCollectionNode>;
@@ -159,7 +162,10 @@ class Vector extends Layer {
      */
     public polygonOffsetUnits: number;
 
-    protected _secondPASS: EntityCollectionNode[];
+    public _secondPASS: EntityCollectionNode[];
+
+    protected _labelMaxLetters: number;
+
 
     constructor(name: string | null, options: IVectorParams = {}) {
         super(name, options);
@@ -184,6 +190,8 @@ class Vector extends Layer {
         this._nodeCapacity = options.nodeCapacity || 30;
 
         this._entities = _entitiesConstructor(options.entities || []);
+
+        this._labelMaxLetters = options.labelMaxLetters || 24;
 
         this._stripEntityCollection = new EntityCollection({
             pickingEnabled: this.pickingEnabled
@@ -222,6 +230,10 @@ class Vector extends Layer {
         this.pickingEnabled = this._pickingEnabled;
 
         this._secondPASS = [];
+    }
+
+    public get labelMaxLetters(): number {
+        return this._labelMaxLetters;
     }
 
     public override get instanceName() {
@@ -432,7 +444,7 @@ class Vector extends Layer {
 
                 while (node) {
                     node.count--;
-                    node = node.parentNode;
+                    node = node.parentNode!;
                 }
 
                 if (
@@ -454,7 +466,7 @@ class Vector extends Layer {
                         let node = entity._nodePtr;
                         while (node) {
                             node.count--;
-                            node = node.parentNode;
+                            node = node.parentNode!;
                         }
                         break;
                     }
@@ -492,15 +504,15 @@ class Vector extends Layer {
         this._geoObjectEntityCollection.setPickingEnabled(picking);
 
         this._entityCollectionsTree && this._entityCollectionsTree.traverseTree((node: EntityCollectionNode) => {
-            node.entityCollection.setPickingEnabled(picking);
+            node.entityCollection!.setPickingEnabled(picking);
         });
 
         this._entityCollectionsTreeNorth && this._entityCollectionsTreeNorth.traverseTree((node: EntityCollectionNodeWGS84) => {
-            node.entityCollection.setPickingEnabled(picking);
+            node.entityCollection!.setPickingEnabled(picking);
         });
 
         this._entityCollectionsTreeSouth && this._entityCollectionsTreeSouth.traverseTree((node: EntityCollectionNodeWGS84) => {
-            node.entityCollection.setPickingEnabled(picking);
+            node.entityCollection!.setPickingEnabled(picking);
         });
     }
 
@@ -628,6 +640,9 @@ class Vector extends Layer {
         return this;
     }
 
+    /**
+     * @todo: replace to a strategy node collecting algorithm
+     */
     protected _createEntityCollectionsTree(entitiesForTree: Entity[]) {
 
         if (this._planet) {
@@ -681,7 +696,11 @@ class Vector extends Layer {
         }
     }
 
-    protected _bindEventsDefault(entityCollection: EntityCollection) {
+    /**
+     * @todo (refactoring) could be used in somethig like bindEntityCollectionQuad(...)
+     * @param entityCollection
+     */
+    public _bindEventsDefault(entityCollection: EntityCollection) {
 
         let ve = this.events;
 
@@ -926,7 +945,7 @@ class Vector extends Layer {
         }
     }
 
-    protected _queueDeferredNode(node: EntityCollectionNode) {
+    public _queueDeferredNode(node: EntityCollectionNode) {
         if (this._visibility) {
             node._inTheQueue = true;
             if (this._counter >= 1) {

@@ -1,20 +1,18 @@
-"use strict";
-
 import * as mercator from "../mercator";
-import { Extent } from "../Extent";
-import { Node } from "../quadTree/Node.js";
 import * as quadTree from "../quadTree/quadTree.js";
-import { Segment } from "../segment/Segment.js";
-import { SegmentLonLat } from "../segment/SegmentLonLat.js";
-import { QuadTreeStrategy } from "./QuadTreeStrategy.js";
+import {Extent} from "../Extent";
+import {Node} from "../quadTree/Node.js";
+import {Planet} from "../scene/Planet";
+import {QuadTreeStrategy} from "./QuadTreeStrategy.js";
+import {Segment} from "../segment/Segment.js";
+import {SegmentLonLat} from "../segment/SegmentLonLat.js";
 
 export class EarthQuadTreeStrategy extends QuadTreeStrategy {
-    constructor(options = {}) {
-        super(options);
-        this.name = "earth";
+    constructor(planet: Planet) {
+        super(planet, "Earth");
     }
 
-    init() {
+    public override init() {
         this._quadTreeList = [
             new Node(Segment, this.planet, quadTree.NW, null, 0, 0,
                 Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34])

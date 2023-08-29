@@ -30,6 +30,15 @@ export interface IEmptyTerrainParams {
  */
 class EmptyTerrain {
 
+    static __counter__: number = 0;
+
+    /**
+     * Uniq identifier.
+     * @public
+     * @type {number}
+     */
+    public __id: number;
+
     public equalizeVertices: boolean;
 
     public equalizeNormals: boolean;
@@ -93,6 +102,8 @@ class EmptyTerrain {
 
     constructor(options: IEmptyTerrainParams = {}) {
 
+        this.__id = EmptyTerrain.__counter__++;
+
         this.equalizeVertices = options.equalizeVertices || false;
 
         this.equalizeNormals = false;
@@ -144,6 +155,14 @@ class EmptyTerrain {
         //         return callback(mslAlt);
         //     },
         // ];
+    }
+
+    public get isIdle(): boolean {
+        return true;
+    }
+
+    public isEqual(obj: this): boolean {
+        return obj.__id === this.__id;
     }
 
     static checkNoDataValue(noDataValues: number[] | TypedArray, value: number): boolean {

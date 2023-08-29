@@ -17,7 +17,8 @@ const DEV = [{
     },
     plugins: [
         json(),
-        typescript({ tsconfig: './tsconfig.json' })
+        typescript({ tsconfig: './tsconfig.json' }),
+        terser({ format: { comments: false } })
     ]
 }, {
     input: `css/og.css`,
@@ -47,7 +48,7 @@ const PROD = [
             }
         ],
         plugins: [
-            terser(),
+            terser({ format: { comments: false } }),
             json(),
             typescript({ tsconfig: './tsconfig.json' })
         ]
@@ -61,7 +62,7 @@ const PROD = [
             }
         ],
         plugins: [
-            terser(),
+            terser({ format: { comments: false } }),
             json(),
             typescript({ tsconfig: './tsconfig.json' })
         ]

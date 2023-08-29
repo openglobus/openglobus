@@ -24,7 +24,18 @@ export interface IDirectResult {
  */
 class Ellipsoid {
 
+    /**
+     * Equatorial size
+     * @type {number}
+     * @protected
+     */
     protected _a: number;
+
+    /**
+     * Polar size
+     * @type {number}
+     * @protected
+     */
     protected _b: number;
     protected _flattening: number;
     protected _f: number;

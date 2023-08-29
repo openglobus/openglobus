@@ -1,48 +1,52 @@
-"use strict";
+import {BaseGeoImage, IBaseGeoImageParams} from "./BaseGeoImage";
+import {Material} from "./Material";
 
-import { BaseGeoImage } from "./BaseGeoImage.js";
+interface IGeoVideoParams extends IBaseGeoImageParams {
+    videoElement?: HTMLVideoElement;
+    src?: string;
+}
 
 /**
- * Used to load and display a video stream by specific corners coordinates on the globe, implements og.layer.BaseGeoImage interface.
+ * Used to load and display a video stream by specific corners coordinates on the globe.
  * @class
  * @extends {BaseGeoImage}
  */
 class GeoVideo extends BaseGeoImage {
-    constructor(name, options) {
+
+    /**
+     * HTML5 video element object.
+     * @protected
+     * @type {HTMLVideoElement}
+     */
+    protected _video: HTMLVideoElement | null;
+
+    /**
+     * Video source url path.
+     * @protected
+     * @type {string}
+     */
+    protected _src: string | null;
+
+    constructor(name: string | null, options: IGeoVideoParams = {}) {
         super(name, options);
 
-        /**
-         * @protected
-         * @const
-         * @type {Boolean}
-         */
         this._animate = true;
 
-        /**
-         * HTML5 video element object.
-         * @private
-         * @type {Object}
-         */
         this._video = options.videoElement || null;
 
-        /**
-         * VIdeo source url path.
-         * @private
-         * @type {String}
-         */
         this._src = options.src || null;
     }
 
-    get instanceName() {
+    public override get instanceName(): string {
         return "GeoVideo";
     }
 
     /**
      * Sets video source url path.
      * @public
-     * @param {String} srs - Video url path.
+     * @param {string} src - Video url path.
      */
-    setSrc(src) {
+    public setSrc(src: string) {
         this._planet && this._planet._geoImageCreator.remove(this);
         this._src = src;
         this._sourceReady = false;
@@ -51,9 +55,9 @@ class GeoVideo extends BaseGeoImage {
     /**
      * Sets HTML5 video object.
      * @public
-     * @param {Object} video - HTML5 video element object.
+     * @param {HTMLVideoElement} video - HTML5 video element object.
      */
-    setVideoElement(video) {
+    public setVideoElement(video: HTMLVideoElement) {
         this._planet && this._planet._geoImageCreator.remove(this);
         this._video = video;
         this._src = video.src;
@@ -65,17 +69,17 @@ class GeoVideo extends BaseGeoImage {
      * @public
      * @param {boolean} visibility - Layer visibility.
      */
-    setVisibility(visibility) {
+    public override setVisibility(visibility: boolean) {
         if (visibility != this._visibility) {
             super.setVisibility(visibility);
-
-            // remove from creator
-            if (visibility) {
-                this._sourceReady && this._planet._geoImageCreator.add(this);
-                this._video && this._video.play();
-            } else {
-                this._sourceReady && this._planet._geoImageCreator.remove(this);
-                this._video && this._video.pause();
+            if (this._planet) {
+                if (visibility) {
+                    this._sourceReady && this._planet._geoImageCreator.add(this);
+                    this._video && this._video.play();
+                } else {
+                    this._sourceReady && this._planet._geoImageCreator.remove(this);
+                    this._video && this._video.pause();
+                }
             }
         }
     }
@@ -85,13 +89,13 @@ class GeoVideo extends BaseGeoImage {
      * @virtual
      * @protected
      */
-    _createSourceTexture() {
-        let gl = this._planet.renderer.handler.gl;
+    protected override _createSourceTexture() {
+        let gl = this._planet!.renderer!.handler.gl!;
         if (this._sourceCreated) {
-            gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this._video);
+            gl.bindTexture(gl.TEXTURE_2D, this._sourceTexture!);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this._video!);
         } else {
-            this._sourceTexture = this._planet.renderer.handler.createTexture_n_webgl1(this._video);
+            this._sourceTexture = this._planet!.renderer!.handler.createTexture_n_webgl1(this._video!);
             this._sourceCreated = true;
         }
     }
@@ -99,22 +103,19 @@ class GeoVideo extends BaseGeoImage {
     /**
      * @private
      */
-    _onCanPlay(video) {
+    protected _onCanPlay(video: HTMLVideoElement) {
         this._frameWidth = video.videoWidth;
         this._frameHeight = video.videoHeight;
         video.width = video.videoWidth;
         video.height = video.videoHeight;
         video.play();
         this._sourceReady = true;
-        this._planet._geoImageCreator.add(this);
+        this._planet!._geoImageCreator.add(this);
     }
 
-    /**
-     * @private
-     */
-    _onError(video) {
+    protected _onError(video: HTMLVideoElement) {
         let err = "unknown error";
-        switch (video.error.code) {
+        switch (video.error!.code) {
             case 1:
                 err = "video loading aborted";
                 break;
@@ -128,16 +129,15 @@ class GeoVideo extends BaseGeoImage {
                 err = "video not supported";
                 break;
         }
-        console.log("Error: " + err + " (errorcode=" + video.error.code + ")");
+        console.warn(`Error: ${err} error-code=${video.error!.code})`);
     }
 
     /**
      * Loads planet segment material. In this case - GeoImage source video.
-     * @virtual
      * @public
      * @param {Material} material - GeoImage planet material.
      */
-    loadMaterial(material) {
+    public override loadMaterial(material: Material) {
         material.isLoading = true;
         this._creationProceeding = true;
         if (!this._sourceReady && this._src) {
@@ -146,7 +146,7 @@ class GeoVideo extends BaseGeoImage {
                     this._onCanPlay(this._video);
                 } else if (this._video.src) {
                     let that = this;
-                    this._video.addEventListener("canplay", function (e) {
+                    this._video.addEventListener("canplay", function (e: Event) {
                         that._onCanPlay(this);
                     });
                 }
@@ -164,11 +164,12 @@ class GeoVideo extends BaseGeoImage {
             this._video.autoplay = true;
             this._video.loop = true;
             this._video.src = this._src;
+            //@ts-ignore
             this._video.muted = "muted";
             this._video.setAttribute("playsinline", "true");
             this._video.setAttribute("webkit-playsinline", "true");
         } else {
-            this._planet._geoImageCreator.add(this);
+            this._planet!._geoImageCreator.add(this);
         }
     }
 
@@ -176,7 +177,7 @@ class GeoVideo extends BaseGeoImage {
      * @virtual
      * @param {Material} material - GeoImage material.
      */
-    abortMaterialLoading(material) {
+    public override abortMaterialLoading(material: Material) {
         this._video && (this._video.src = "");
         this._creationProceeding = false;
         material.isLoading = false;
@@ -184,4 +185,4 @@ class GeoVideo extends BaseGeoImage {
     }
 }
 
-export { GeoVideo };
+export {GeoVideo};

@@ -153,6 +153,9 @@ class Segment {
     /**
      * Texture materials array.
      * @type {Array.<Material>}
+     *
+     * @toso: Check it should be Map<number, Material> instead of array
+     *
      */
     public materials: Material[];
 
@@ -292,6 +295,9 @@ class Segment {
 
         this._assignTileIndexes();
 
+        /**
+         * @toso: Check it should be Map<number, Material> instead of array
+         */
         this.materials = [];
 
         this.plainReady = false;

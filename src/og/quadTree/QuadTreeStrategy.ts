@@ -1,51 +1,59 @@
-"use strict";
-
-import { EPSG3857 } from "../proj/EPSG3857.js";
-import { Node } from "./Node.js";
+import {EPSG3857} from "../proj/EPSG3857";
+import {Layer} from "../layer/Layer";
+import {Node} from "../quadTree/Node";
+import {Planet} from "../scene/Planet";
+import {Proj} from "../proj/Proj";
 
 export class QuadTreeStrategy {
-    constructor(options = {}) {
-        this.name = "";
-        this._planet = options.planet;
-        this.projection = EPSG3857;
 
-        /**
-         * grid tree list.
-         * @protected
-         * @type {Node[]}
-         */
+    public name: string;
+    public projection: Proj;
+    protected _planet: Planet;
+
+    /**
+     * grid tree list.
+     * @protected
+     * @type {Node[]}
+     */
+    protected _quadTreeList: Node[];
+
+    constructor(planet: Planet, name: string = "", proj: Proj = EPSG3857) {
+        this.name = name;
+        this.projection = proj;
+        this._planet = planet;
         this._quadTreeList = [];
     }
 
-    destroyBranches() {
+    public destroyBranches() {
         for (let i = 0, len = this._quadTreeList.length; i < len; i++) {
             this._quadTreeList[i].destroyBranches();
         }
     }
 
-    clearLayerMaterial(layer) {
+    public clearLayerMaterial(layer: Layer) {
         let lid = layer.__id;
         for (let i = 0, len = this._quadTreeList.length; i < len; i++) {
-            this._quadTreeList[i].traverseTree(function (node) {
+            this._quadTreeList[i].traverseTree(function (node: Node) {
                 let mats = node.segment.materials;
                 if (mats[lid]) {
                     mats[lid].clear();
+                    //@ts-ignore
                     mats[lid] = null;
-                    delete mats[lid];
+                    //delete mats[lid];
                 }
             });
         }
     }
 
-    get planet() {
+    public get planet() {
         return this._planet;
     }
 
-    init() {
+    public init() {
 
     }
 
-    preRender() {
+    public preRender() {
         for (let i = 0; i < this._quadTreeList.length; i++) {
 
             let quadTree = this._quadTreeList[i];
@@ -56,39 +64,38 @@ export class QuadTreeStrategy {
                 quadTree.nodes[j].segment.createPlainSegment();
             }
         }
-
     }
 
-    preLoad() {
+    public preLoad() {
 
         for (let i = 0; i < this._quadTreeList.length; i++) {
 
             let quadTree = this._quadTreeList[i];
             quadTree.segment.passReady = true;
-            quadTree.renderNode(true);
+            quadTree.renderNode(1);
             this._planet.normalMapCreator.drawSingle(quadTree.segment);
 
             for (let j = 0; j < quadTree.nodes.length; j++) {
                 quadTree.nodes[j].segment.passReady = true;
-                quadTree.nodes[j].renderNode(true);
+                quadTree.nodes[j].renderNode(1);
                 this._planet._normalMapCreator.drawSingle(quadTree.nodes[j].segment);
             }
         }
     }
 
-    collectRenderNodes() {
+    public collectRenderNodes() {
         for (let i = 0; i < this._quadTreeList.length; i++) {
             this._quadTreeList[i].renderTree(this._planet.camera, 0, null);
         }
     }
 
-    clear() {
+    public clear() {
         for (let i = 0; i < this._quadTreeList.length; i++) {
             this._quadTreeList[i].clearTree();
         }
     }
 
-    get quadTreeList() {
+    public get quadTreeList(): Node[] {
         return this._quadTreeList;
     }
 }
