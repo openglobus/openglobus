@@ -1,10 +1,16 @@
-'use strict';
+import {BaseGeoImage, IBaseGeoImageParams} from './BaseGeoImage';
+import {Material} from "../layer/Material";
+import {nextHighestPowerOfTwo} from '../math';
+import {WebGLTextureExt} from "../webgl/Handler";
 
-import * as math from '../math';
-import { BaseGeoImage } from './BaseGeoImage.js';
+interface IGeoTexture2dParams extends IBaseGeoImageParams {
+    texture?: WebGLTextureExt;
+    frameWidth?: number;
+    frameHeight?: number;
+}
 
 class GeoTexture2d extends BaseGeoImage {
-    constructor(name, options) {
+    constructor(name: string | null, options: IGeoTexture2dParams = {}) {
         super(name, options);
 
         this._sourceTexture = options.texture || null;
@@ -14,37 +20,37 @@ class GeoTexture2d extends BaseGeoImage {
             this._sourceCreated = true;
         }
 
-        this._frameWidth = options.frameWidth ? math.nextHighestPowerOfTwo(options.frameWidth) : 256;
-        this._frameHeight = options.frameHeight ? math.nextHighestPowerOfTwo(options.frameHeight) : 256;
+        this._frameWidth = options.frameWidth != undefined ? nextHighestPowerOfTwo(options.frameWidth!) : 256;
+        this._frameHeight = options.frameHeight != undefined ? nextHighestPowerOfTwo(options.frameHeight!) : 256;
 
         this._animate = true;
     }
 
-    get instanceName() {
+    public override get instanceName(): string {
         return "GeoTexture2d";
     }
 
-    loadMaterial(material) {
-        this._planet._geoImageCreator.add(this);
+    public override loadMaterial(material: Material) {
+        this._planet!._geoImageCreator.add(this);
     }
 
-    bindTexture(texture) {
+    public bindTexture(texture: WebGLTextureExt) {
         this._sourceReady = true;
         this._sourceCreated = true;
         this._sourceTexture = texture;
     }
 
-    setSize(width, height) {
+    public setSize(width: number, height: number) {
         this._frameWidth = width;
         this._frameHeight = height;
         this._frameCreated = false;
     }
 
-    abortMaterialLoading(material) {
+    public override abortMaterialLoading(material: Material) {
         this._creationProceeding = false;
         material.isLoading = false;
         material.isReady = false;
     }
 }
 
-export { GeoTexture2d };
+export {GeoTexture2d};

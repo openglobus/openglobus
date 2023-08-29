@@ -12,12 +12,6 @@ interface IGeoVideoParams extends IBaseGeoImageParams {
  * @extends {BaseGeoImage}
  */
 class GeoVideo extends BaseGeoImage {
-    /**
-     * @public
-     * @override
-     * @type {boolean}
-     */
-    public override _animate: boolean;
 
     /**
      * HTML5 video element object.
