@@ -5,7 +5,7 @@ import {EPSG3857} from "../proj/EPSG3857";
 import {EmptyTerrain, IEmptyTerrainParams} from "./EmptyTerrain";
 import {Extent} from "../Extent";
 import {Layer} from "../layer/Layer";
-import {Loader} from "../utils/Loader.js";
+import {Loader} from "../utils/Loader";
 import {LonLat} from "../LonLat";
 import {NOTRENDERING} from "../quadTree/quadTree";
 import {Segment} from "../segment/Segment";
@@ -73,7 +73,7 @@ class GlobusTerrain extends EmptyTerrain {
 
     protected _fetchCache: Record<string, Promise<any>>;
 
-    protected _loader: Loader;
+    protected _loader: Loader<GlobusTerrain>;
 
     /**
      * Rewrites elevation storage url query.
@@ -125,7 +125,7 @@ class GlobusTerrain extends EmptyTerrain {
 
         this._fetchCache = {};
 
-        this._loader = new Loader();
+        this._loader = new Loader<GlobusTerrain>();
 
         this._urlRewriteCallback = options.urlRewrite || null;
     }

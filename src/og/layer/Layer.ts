@@ -90,6 +90,13 @@ class Layer {
     static __counter__: number = 0;
 
     /**
+     * Uniq identifier.
+     * @public
+     * @type {number}
+     */
+    public __id: number;
+
+    /**
      * Events handler.
      * @public
      * @type {Events}
@@ -131,13 +138,6 @@ class Layer {
     public createTexture: Function | null;
 
     public nightTextureCoefficient: number;
-
-    /**
-     * Uniq identifier.
-     * @public
-     * @type {number}
-     */
-    public __id: number;
 
     protected _hasImageryTiles: boolean;
 

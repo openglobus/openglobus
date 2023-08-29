@@ -14,26 +14,26 @@ import {Entity} from "../entity/Entity";
 import {Ellipsoid} from "../ellipsoid/Ellipsoid";
 import {EntityCollection} from "../entity/EntityCollection";
 import {Geoid, GeoidModel} from "../terrain/Geoid";
-import {GeoImageCreator} from "../utils/GeoImageCreator.js";
+import {GeoImageCreator} from "../utils/GeoImageCreator";
 import {IBaseInputState} from "../renderer/RendererEvents";
 import {Key, Lock} from "../Lock.js";
 import {Layer} from "../layer/Layer";
-import {Loader} from "../utils/Loader.js";
+import {Loader} from "../utils/Loader";
 import {LonLat} from "../LonLat";
 import {Node} from "../quadTree/Node";
 import {NormalMapCreator} from "../utils/NormalMapCreator.js";
 import {NIGHT, SPECULAR} from "../res/images.js";
-import {PlainSegmentWorker} from "../utils/PlainSegmentWorker.js";
+import {PlainSegmentWorker} from "../utils/PlainSegmentWorker";
 import {PlanetCamera} from "../camera/PlanetCamera";
 import {Quat} from "../math/Quat";
 import {QuadTreeStrategy} from "../quadTree/QuadTreeStrategy";
 import {Ray} from "../math/Ray";
 import {RenderNode} from "./RenderNode";
 import {SimpleSkyBackground} from "../control/SimpleSkyBackground.js";
-import {TerrainWorker} from "../utils/TerrainWorker.js";
+import {TerrainWorker} from "../utils/TerrainWorker";
 import {Vec2, Vec3, Vec4, NumberArray2, NumberArray3, NumberArray4} from "../math/index";
 import {Vector} from "../layer/Vector";
-import {VectorTileCreator} from "../utils/VectorTileCreator.js";
+import {VectorTileCreator} from "../utils/VectorTileCreator";
 import {wgs84} from "../ellipsoid/wgs84";
 import {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
 
@@ -385,7 +385,7 @@ export class Planet extends RenderNode {
 
     public _plainSegmentWorker: PlainSegmentWorker;
 
-    public _tileLoader: Loader;
+    public _tileLoader: Loader<Layer>;
 
     protected _memKey: Key;
 
