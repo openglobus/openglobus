@@ -1,106 +1,108 @@
-import { Planet, Renderer } from "../index";
+import {Planet, Renderer} from "../index";
+
+export interface IControlParams {
+    name?: string;
+    autoActivate?: boolean
+}
 
 /**
- * Base control class for implementing renderer controls.
- * All other controls extend from this class.
+ * Base control class. All other controls extend from this class.
+ * @class Control
+ * @param {Boolean} [options.autoActivated=true] - If true - calls initialize function after the renderer assigning.
  */
 export class Control {
-    _id = 0;
-    _name: string;
-    planet: Planet | null;
-    _initialized: boolean;
-    renderer: any;
-    autoActivate: any;
-    _active: boolean;
-    static __counter = 0;
+    static __counter__: number = 0;
+    protected __id: number;
+    protected _name: string;
 
     /**
-     * @param {Boolean} [options.autoActivated=true] - If true - calls initialize function after the renderer assigning.
+     * Control activity.
+     * @protected
+     * @type {boolean}
      */
-    constructor(options: { name?: string, autoActivate?: boolean } = {}) {
+    protected _active: boolean;
 
-        this._id = Control.__counter++;
+    /**
+     * Control initialized.
+     * @protected
+     * @type {boolean}
+     */
+    protected _initialized: boolean;
+    public planet: Planet | null;
 
-        this._name = options.name || "_control_" + this._id;
+    /**
+     * Assigned renderer.
+     * @public
+     * @type {Renderer}
+     */
+    public renderer: Renderer | null;
+
+    /**
+     * Auto activation flag.
+     * @public
+     * @type {boolean}
+     */
+    public autoActivate: boolean;
+
+    constructor(options: IControlParams = {}) {
+
+        this.__id = Control.__counter__++;
+
+        this._name = options.name || `_control_${this.__id.toString()}`;
 
         this.planet = null;
 
-        /**
-         * Control initialized.
-         * @protected
-         * @type {Boolean}
-         */
         this._initialized = false;
 
-        /**
-         * Assigned renderer.
-         * @public
-         * @type {Renderer}
-         */
         this.renderer = null;
 
-        /**
-         * Auto activation flag.
-         * @public
-         * @type {Boolean}
-         */
         this.autoActivate = options.autoActivate || false;
 
-        /**
-         * Control activity.
-         * @protected
-         * @type {Boolean}
-         */
         this._active = false;
     }
 
     /**
      * Returns control name.
      * @public
-     * @virtual
+     * @return {string} -
      */
-    get name() {
+    public get name(): string {
         return this._name;
     }
 
     /**
-     * Control initialization function have to be overriden.
+     * Control initialization function have to be overridden.
      * @public
-     * @virtual
      */
-    oninit() {
+    public oninit() {
     }
 
     /**
-     * Control renderer assigning function have to be overriden.
+     * Control renderer assigning function have to be overridden.
      * @public
-     * @virtual
      */
-    onadd() {
+    public onadd() {
     }
 
     /**
-     * Control remove function have to be overriden.
+     * Control remove function have to be overridden.
      * @public
-     * @virtual
      */
-    onremove() {
+    public onremove() {
     }
 
     /**
-     * Control activation function have to be overriden.
+     * Control activation function have to be overridden.
      * @public
-     * @virtual
      */
-    onactivate() {
+    public onactivate() {
     }
 
     /**
      * Control deactivation function have to be overriden.
      * @public
-     * @virtual
      */
-    ondeactivate() {
+    public ondeactivate() {
     }
 
     /**
@@ -108,7 +110,7 @@ export class Control {
      * @public
      * @type {Renderer}
      */
-    addTo(renderer: Renderer) {
+    public addTo(renderer: Renderer) {
         if (renderer) {
             this.renderer = renderer;
             renderer.controls[this.name] = this;
@@ -124,10 +126,10 @@ export class Control {
     }
 
     /**
-     * Assign renderer to the control.
+     * Removes control.
      * @public
      */
-    remove() {
+    public remove() {
 
         this.deactivate();
 
@@ -142,6 +144,7 @@ export class Control {
 
         if (c) {
             if (this.isEqual(c)) {
+                //@ts-ignore
                 r.controls[n] = null;
                 delete r.controls[n];
             }
@@ -156,7 +159,7 @@ export class Control {
      * Activate control.
      * @public
      */
-    activate() {
+    public activate() {
         if (!this._active) {
             if (!this._initialized) {
                 this._initialized = true;
@@ -171,7 +174,7 @@ export class Control {
      * Deactivate control.
      * @public
      */
-    deactivate() {
+    public deactivate() {
         if (this._active) {
             this._active = false;
             this.ondeactivate && this.ondeactivate();
@@ -182,11 +185,11 @@ export class Control {
      * Is control active.
      * @public
      */
-    isActive() {
+    public isActive(): boolean {
         return this._active;
     }
 
-    isEqual(control: any) {
-        return control._id === this._id;
+    public isEqual(control: this): boolean {
+        return control.__id === this.__id;
     }
 }
