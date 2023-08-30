@@ -1,6 +1,6 @@
 import {EventsHandler} from "../../Events";
 import {ButtonGroup} from "../../ui/ButtonGroup";
-import {IViewParams, View} from '../../ui/View';
+import {IViewParams, View, ViewEventsList} from '../../ui/View';
 import {ToggleButton} from "../../ui/ToggleButton";
 import {TimelineModel} from './TimelineModel';
 import {
@@ -13,7 +13,7 @@ import {
     getScale
 } from './timelineUtils';
 
-interface ITimelineViewParams extends IViewParams<TimelineViewEventsList> {
+interface ITimelineViewParams extends IViewParams {
     currentDate?: Date;
     rangeStart?: Date;
     rangeEnd?: Date;
@@ -81,9 +81,9 @@ const TEMPLATE =
 </div>`;
 
 
-class TimelineView extends View<TimelineModel, TimelineViewEventsList> {
+class TimelineView extends View<TimelineModel> {
 
-    //protected override _events: EventsHandler<TimelineViewEventsList>;
+    public override events: EventsHandler<TimelineViewEventsList> & EventsHandler<ViewEventsList>;
     public fillStyle: string;
     public $controls: HTMLElement | null;
     protected _frameEl: HTMLElement | null;
@@ -113,7 +113,6 @@ class TimelineView extends View<TimelineModel, TimelineViewEventsList> {
     constructor(options: ITimelineViewParams = {}) {
         super({
             template: TEMPLATE,
-            eventList: TIMELINEVIEW_EVENTS,
             model: new TimelineModel({
                 rangeStart: options.rangeStart,
                 rangeEnd: options.rangeEnd,
@@ -122,6 +121,8 @@ class TimelineView extends View<TimelineModel, TimelineViewEventsList> {
                 maxDate: options.maxDate
             })
         });
+
+        this.events = this.events.registerNames(TIMELINEVIEW_EVENTS);
 
         this.fillStyle = options.fillStyle || SCALE_FILL_COLOR;
 
@@ -213,7 +214,7 @@ class TimelineView extends View<TimelineModel, TimelineViewEventsList> {
 
         this.model.on("current", (d: Date) => {
             this._drawCurrent();
-            this._events.dispatch(this._events.setcurrent, d);
+            this.events.dispatch(this.events.setcurrent, d);
         });
 
         this._canvasEl.addEventListener("mouseenter", this._onMouseEnter);
@@ -239,7 +240,7 @@ class TimelineView extends View<TimelineModel, TimelineViewEventsList> {
             this._playBtn.preventClick = true;
         }
 
-        this._buttons.on("change", (btn: any) => {
+        this._buttons.events.on("change", (btn: ToggleButton) => {
             switch (btn.name) {
                 case "play":
                     this.play();
@@ -285,30 +286,30 @@ class TimelineView extends View<TimelineModel, TimelineViewEventsList> {
             } else {
                 (this.el as any).style.display = "none";
             }
-            this._events.dispatch(this._events.visibility, visibility);
+            this.events.dispatch(this.events.visibility, visibility);
         }
     }
 
     public reset() {
         this.model.stop();
-        this._events.dispatch(this._events.reset, this.model);
+        this.events.dispatch(this.events.reset, this.model);
     }
 
     public play() {
         this.model.multiplier = Math.abs(this.model.multiplier);
         this.model.play();
-        this._events.dispatch(this._events.play, this.model);
+        this.events.dispatch(this.events.play, this.model);
     }
 
     public pause() {
         this.model.stop();
-        this._events.dispatch(this._events.pause, this.model);
+        this.events.dispatch(this.events.pause, this.model);
     }
 
     public playBack() {
         this.model.multiplier = -1 * Math.abs(this.model.multiplier);
         this.model.play();
-        this._events.dispatch(this._events.playback, this.model);
+        this.events.dispatch(this.events.playback, this.model);
     }
 
     protected _onMouseWheel = (e: any) => {
@@ -363,7 +364,7 @@ class TimelineView extends View<TimelineModel, TimelineViewEventsList> {
             this._clickRangeStart = this.model.rangeStart;
             this._clickRangeEnd = this.model.rangeEnd;
 
-            this._events.dispatch(this._events.startdrag, e);
+            this.events.dispatch(this.events.startdrag, e);
         } else if (this._isCurrentMouseOver) {
             this._isCurrentDragging = true;
             document.body.classList.add("og-timeline-unselectable");
@@ -372,7 +373,7 @@ class TimelineView extends View<TimelineModel, TimelineViewEventsList> {
 
             this._clickCurrentDate = this.model.current;
 
-            this._events.dispatch(this._events.startdragcurrent, e);
+            this.events.dispatch(this.events.startdragcurrent, e);
         }
     }
 
@@ -384,15 +385,15 @@ class TimelineView extends View<TimelineModel, TimelineViewEventsList> {
                 let rect = this._canvasEl.getBoundingClientRect();
                 let current = new Date(this.model.rangeStartTime + (e.clientX - rect.left) * this._millisecondsInPixel);
                 this.model.current = current;
-                this._events.dispatch(this._events.stopdrag, current);
-                this._events.dispatch(this._events.setcurrent, current);
+                this.events.dispatch(this.events.stopdrag, current);
+                this.events.dispatch(this.events.setcurrent, current);
             } else {
-                this._events.dispatch(this._events.stopdrag, this.model.current);
+                this.events.dispatch(this.events.stopdrag, this.model.current);
             }
         } else if (this._isCurrentDragging) {
             this._isCurrentDragging = false;
             document.body.classList.remove("og-timeline-unselectable");
-            this._events.dispatch(this._events.stopdragcurrent, this.model.current);
+            this.events.dispatch(this.events.stopdragcurrent, this.model.current);
         }
     }
 

@@ -2,8 +2,6 @@
  * @module og/utils/shared
  */
 
-"use strict";
-
 import {Extent} from "../Extent";
 import {LonLat} from "../LonLat";
 import {Vec2} from "../math/Vec2";

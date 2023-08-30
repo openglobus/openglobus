@@ -1,9 +1,15 @@
-'use strict'
+import {getDefault, stringTemplate} from '../utils/shared';
+import {Button} from './Button';
+import {CLOSE_ICON} from './icons.js';
+import {IViewParams, View} from './View';
 
-import { getDefault, stringTemplate } from '../utils/shared';
-import { Button } from './Button.js';
-import { CLOSE_ICON } from './icons.js';
-import { View } from './View.js';
+export interface IDialogParams extends IViewParams {
+
+}
+
+type DialogEventsList = ["resize", "focus", "visibility", "dragstart", "dragend"];
+
+const DIALOG_EVENTS: DialogEventsList = ["resize", "focus", "visibility", "dragstart", "dragend"];
 
 const TEMPLATE = `<div class="og-ddialog" 
         style="display:{display}; resize:{resize}; width: {width}px; {height}; top: {top}px; left: {left}px; min-height: {minHeight}; max-height: {maxHeight}; min-width: {minWidth}; max-width: {maxWidth};">
@@ -14,8 +20,8 @@ const TEMPLATE = `<div class="og-ddialog"
        <div class="og-ddialog-container"></div>
     </div>>`;
 
-class Dialog extends View {
-    constructor(options = {}) {
+class Dialog<M> extends View<M> {
+    constructor(options: IDialogParams = {}) {
         super({
             template: stringTemplate(TEMPLATE, {
                 title: options.title || "",
@@ -236,4 +242,4 @@ class Dialog extends View {
     }
 }
 
-export { Dialog };
+export {Dialog};

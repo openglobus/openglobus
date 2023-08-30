@@ -1,35 +1,37 @@
 import {createEvents, EventsHandler} from '../Events';
 import {parseHTML, stringTemplate} from '../utils/shared';
 
-export interface IViewParams<E extends string[]> {
+export interface IViewParams {
     model?: any;
     template?: string;
-    parent?: View<any, any> | null;
+    parent?: View<any> | null;
     classList?: string[];
-    eventList?: E;
 }
 
-class View<M, E extends string[]> {
+export type ViewEventsList = ["render"];
+const VIEW_EVENTS: ViewEventsList = ["render"];
+
+class View<M> {
 
     static __counter__: number = 0;
 
     protected __id: number;
 
-    protected _events: EventsHandler<E>;
+    public events: EventsHandler<ViewEventsList>;
 
     public model: M;
 
     public template: string;
 
-    public parent: View<any, any> | null;
+    public parent: View<any> | null;
 
     public el: HTMLElement | null;
 
     protected _classList: string[];
 
-    constructor(options: IViewParams<E> = {}) {
+    constructor(options: IViewParams = {}) {
         this.__id = View.__counter__++;
-        this._events = createEvents<E>(options.eventList || [] as any);
+        this.events = createEvents<ViewEventsList>(VIEW_EVENTS);
         this.model = options.model || null;
         this.template = options.template || "";
         this.parent = options.parent || null;
@@ -69,19 +71,7 @@ class View<M, E extends string[]> {
         return newNodes;
     }
 
-    public get events(): EventsHandler<E> {
-        return this._events;
-    }
-
-    public on(eventName: string, callback: Function, sender?: any) {
-        return this._events.on(eventName, callback, sender);
-    }
-
-    public off(eventName: string, callback: Function) {
-        return this._events.off(eventName, callback);
-    }
-
-    public insertBefore(view: View<any, any> | HTMLElement) {
+    public insertBefore(view: View<any> | HTMLElement) {
         if (!this.el) {
             this.render();
         }
@@ -95,7 +85,7 @@ class View<M, E extends string[]> {
         }
     }
 
-    public insertAfter(view: View<any, any> | HTMLElement) {
+    public insertAfter(view: View<any> | HTMLElement) {
         if (!this.el) {
             this.render();
         }
@@ -109,7 +99,7 @@ class View<M, E extends string[]> {
         }
     }
 
-    public isEqual(view: View<any, any>): boolean {
+    public isEqual(view: View<any>): boolean {
         return view.__id === this.__id;
     }
 
@@ -152,7 +142,7 @@ class View<M, E extends string[]> {
     }
 
     public stopPropagation() {
-        this._events.stopPropagation();
+        this.events.stopPropagation();
     }
 
     public renderTemplate(params: any): HTMLElement {
@@ -164,6 +154,7 @@ class View<M, E extends string[]> {
         for (let i = 0, len = this._classList.length; i < len; i++) {
             this.el.classList.add(this._classList[i]);
         }
+        this.events.dispatch(this.events.render, this);
         return this;
     }
 

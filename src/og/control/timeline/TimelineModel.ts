@@ -15,7 +15,7 @@ interface ITimelineParams {
 }
 
 class TimelineModel {
-    protected _events: EventsHandler<TimelineEventsList>;
+    public events: EventsHandler<TimelineEventsList>;
     protected _current: Date;
     protected _rangeStart: Date;
     protected _rangeEnd: Date;
@@ -30,7 +30,7 @@ class TimelineModel {
 
     constructor(options: ITimelineParams = {}) {
 
-        this._events = createEvents(TIMELINE_EVENTS);
+        this.events = createEvents(TIMELINE_EVENTS);
 
         this._current = options.current || new Date();
         this._rangeStart = options.rangeStart || new Date();
@@ -45,14 +45,6 @@ class TimelineModel {
         this._prevNow = 0;
 
         this.dt = 0;
-    }
-
-    public on(eventName: string, callback: Function, sender?: any) {
-        return this._events.on(eventName, callback, sender);
-    }
-
-    public off(eventName: string, callback: Function) {
-        return this._events.off(eventName, callback);
     }
 
     public play() {
@@ -99,7 +91,7 @@ class TimelineModel {
             this._rangeStart = rangeStart;
             this._rangeEnd = rangeEnd;
             this._range = this._rangeEnd.getTime() - this._rangeStart.getTime();
-            this._events.dispatch(this._events.change, rangeStart, rangeEnd);
+            this.events.dispatch(this.events.change, rangeStart, rangeEnd);
         }
     }
 
@@ -136,7 +128,7 @@ class TimelineModel {
             } else {
                 this._current = current;
             }
-            this._events.dispatch(this._events.current, this._current);
+            this.events.dispatch(this.events.current, this._current);
         }
     }
 
@@ -144,7 +136,7 @@ class TimelineModel {
         if (date !== this._rangeStart) {
             this._rangeStart = date;
             this._range = this._rangeEnd.getTime() - this._rangeStart.getTime();
-            this._events.dispatch(this._events.change, date);
+            this.events.dispatch(this.events.change, date);
         }
     }
 
@@ -152,7 +144,7 @@ class TimelineModel {
         if (date !== this._rangeEnd) {
             this._rangeEnd = date;
             this._range = this._rangeEnd.getTime() - this._rangeStart.getTime();
-            this._events.dispatch(this._events.change, date);
+            this.events.dispatch(this.events.change, date);
         }
     }
 }
