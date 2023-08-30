@@ -28,6 +28,7 @@ export class Control {
      * @type {boolean}
      */
     protected _initialized: boolean;
+
     public planet: Planet | null;
 
     /**
@@ -44,6 +45,8 @@ export class Control {
      */
     public autoActivate: boolean;
 
+    protected _deferredActive: boolean;
+
     constructor(options: IControlParams = {}) {
 
         this.__id = Control.__counter__++;
@@ -59,6 +62,8 @@ export class Control {
         this.autoActivate = options.autoActivate || false;
 
         this._active = false;
+
+        this._deferredActive = true;
     }
 
     /**
@@ -165,8 +170,12 @@ export class Control {
                 this._initialized = true;
                 this.oninit && this.oninit();
             }
-            this._active = true;
-            this.onactivate && this.onactivate();
+            if (this._deferredActive) {
+                this._active = true;
+                this.onactivate && this.onactivate();
+            } else {
+                this._deferredActive = true;
+            }
         }
     }
 
@@ -178,6 +187,8 @@ export class Control {
         if (this._active) {
             this._active = false;
             this.ondeactivate && this.ondeactivate();
+        } else if (!this._initialized) {
+            this._deferredActive = false;
         }
     }
 

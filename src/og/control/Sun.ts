@@ -1,8 +1,8 @@
-import { getSunPosition } from "../astro/earth";
-import { LightSource } from "../light/LightSource";
-import { Quat } from "../math/Quat";
-import { Vec3 } from "../math/Vec3";
-import { Control } from "./Control";
+import {getSunPosition} from "../astro/earth";
+import {LightSource} from "../light/LightSource";
+import {Quat} from "../math/Quat";
+import {Vec3} from "../math/Vec3";
+import {Control} from "./Control";
 
 /**
  * Real Sun geocentric position control that place the Sun on the right place by the Earth.
@@ -21,7 +21,7 @@ export class Sun extends Control {
     _k = 0;
 
     constructor(options: { activationHeight?: number, offsetVertical?: number, offsetHorizontal?: number, stopped?: boolean } = {}) {
-        super({ autoActivate: true, ...options });
+        super({autoActivate: true, ...options});
 
         this._name = "sun";
 
@@ -174,11 +174,4 @@ export class Sun extends Control {
             this.sunlight.setPosition3v(getSunPosition(this._currDate));
         }
     }
-}
-
-/**
- * @deprecated 
- */
-export function sun(options: any) {
-    return new Sun(options);
 }
