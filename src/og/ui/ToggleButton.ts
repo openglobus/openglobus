@@ -56,7 +56,7 @@ class ToggleButton extends Button {
         return this;
     }
 
-    protected override _onMouseClick(e: Event) {
+    protected override _onMouseClick = (e: MouseEvent) => {
         if (!this.preventClick) {
             super._onMouseClick(e);
             this.setActive(!this.isActive);

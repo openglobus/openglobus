@@ -1,10 +1,22 @@
 import {getDefault, stringTemplate} from '../utils/shared';
 import {Button} from './Button';
 import {CLOSE_ICON} from './icons.js';
-import {IViewParams, View} from './View';
+import {IViewParams, View, ViewEventsList} from './View';
+import {EventsHandler} from "../Events";
 
 export interface IDialogParams extends IViewParams {
-
+    title?: string;
+    visible?: boolean;
+    resizable?: boolean;
+    width?: number;
+    height?: number;
+    left?: number;
+    top?: number;
+    minHeight?: number;
+    maxHeight?: number;
+    minWidth?: number;
+    maxWidth?: number;
+    useHide?: boolean;
 }
 
 type DialogEventsList = ["resize", "focus", "visibility", "dragstart", "dragend"];
@@ -21,6 +33,25 @@ const TEMPLATE = `<div class="og-ddialog"
     </div>>`;
 
 class Dialog<M> extends View<M> {
+
+    static __zIndex__: number = 0;
+
+    public override events: EventsHandler<DialogEventsList> & EventsHandler<ViewEventsList>;
+
+    public $header: HTMLElement | null;
+    public $title: HTMLElement | null;
+    public $container: HTMLElement | null;
+    public $buttons: HTMLElement | null;
+
+    public useHide: boolean;
+
+    protected _startPosX: number;
+    protected _startPosY: number;
+
+    protected _closeBtn: Button;
+
+    protected _visibility: boolean;
+
     constructor(options: IDialogParams = {}) {
         super({
             template: stringTemplate(TEMPLATE, {
@@ -36,57 +67,50 @@ class Dialog<M> extends View<M> {
                 minWidth: options.minWidth ? `${options.minWidth}px` : 'unset',
                 maxWidth: options.maxWidth ? `${options.maxWidth}px` : 'unset',
             }),
-            ...options,
-            eventList: ["resize", "focus", "visibility", "dragstart", "dragend", ...(options.eventList || [])],
+            ...options
         });
+
+        this.events = this.events.registerNames(DIALOG_EVENTS);
 
         this._startPosX = 0;
         this._startPosY = 0;
 
-        this.$header;
-        this.$title;
-        this.$constainer;
-        this.$buttons;
+        this.$header = null;
+        this.$title = null;
+        this.$container = null;
+        this.$buttons = null;
 
-        this._closeBtn;
+        this._closeBtn = new Button({
+            icon: CLOSE_ICON,
+            classList: ["og-button-size__20"]
+        });
 
         this.useHide = options.useHide || false;
 
         this._visibility = getDefault(options.visible, true);
     }
 
-    static set __zIndex(n) {
-        this.__zIndex__ = n;
+    public setContainer(htmlStr: string) {
+        this.$container!.innerHTML = htmlStr;
     }
 
-    static get __zIndex() {
-        if (!this.__zIndex__ && this.__zIndex__ !== 0) {
-            this.__zIndex__ = 0;
-        }
-        return this.__zIndex__;
-    }
-
-    setContainer(htmlStr) {
-        this.$constainer.innerHTML = htmlStr;
-    }
-
-    get container() {
+    public get container(): HTMLElement | null {
         return this.$container;
     }
 
-    get width() {
+    public get width(): number {
         return this.el ? parseFloat(this.el.style.width) : 0;
     }
 
-    get height() {
+    public get height(): number {
         return this.el ? parseFloat(this.el.style.height) : 0;
     }
 
-    bringToFront() {
-        this.el.style.zIndex = Dialog.__zIndex++;
+    public bringToFront() {
+        this.el!.style.zIndex = String(Dialog.__zIndex__++);
     }
 
-    render(params) {
+    public override render(params: any): this {
         super.render(params);
         this.bringToFront();
         this.$header = this.select(".og-ddialog-header");
@@ -98,24 +122,24 @@ class Dialog<M> extends View<M> {
         return this;
     }
 
-    show() {
+    public show() {
         if (!this._visibility) {
             this._visibility = true;
-            this.el.style.display = "flex";
+            this.el!.style.display = "flex";
             this.bringToFront();
-            this._events.dispatch(this._events.visibility, true, this);
+            this.events.dispatch(this.events.visibility, true, this);
         }
     }
 
-    hide() {
+    public hide() {
         if (this._visibility) {
             this._visibility = false;
-            this.el.style.display = "none";
-            this._events.dispatch(this._events.visibility, false, this);
+            this.el!.style.display = "none";
+            this.events.dispatch(this.events.visibility, false, this);
         }
     }
 
-    close() {
+    public close() {
         if (this.useHide) {
             this.hide();
         } else {
@@ -123,7 +147,7 @@ class Dialog<M> extends View<M> {
         }
     }
 
-    setVisibility(visibility) {
+    public setVisibility(visibility: boolean) {
         if (visibility) {
             this.show();
         } else {
@@ -131,35 +155,26 @@ class Dialog<M> extends View<M> {
         }
     }
 
-    _initButtons() {
-        this._closeBtn = new Button({
-            icon: CLOSE_ICON,
-            classList: ["og-button-size__20"]
-        });
-
-        this._onCloseBtnClick_ = this._onCloseBtnClick.bind(this);
-        this._closeBtn.on("click", this._onCloseBtnClick_);
-
-        this._closeBtn.appendTo(this.$buttons);
+    protected _initButtons() {
+        this._closeBtn.events.on("click", this._onCloseBtnClick);
+        this._closeBtn.appendTo(this.$buttons!);
     }
 
-    _initEvents() {
-        this._onMouseDown_ = this._onMouseDown.bind(this);
-        this.$header.addEventListener("mousedown", this._onMouseDown_);
-
-        this._onMouseDownAll_ = this._onMouseDownAll.bind(this);
-        this.el.addEventListener("mousedown", this._onMouseDownAll_);
+    protected _initEvents() {
+        this.$header!.addEventListener("mousedown", this._onMouseDown);
+        this.el!.addEventListener("mousedown", this._onMouseDownAll);
     }
 
-    _onCloseBtnClick(e) {
+    protected _onCloseBtnClick = () => {
         this.close();
     }
 
-    _onMouseDownAll() {
+    protected _onMouseDownAll = () => {
         this.bringToFront();
     }
 
-    _onMouseDown(e) {
+    protected _onMouseDown = (e: MouseEvent) => {
+        //@ts-ignore
         e = e || window.event;
         e.preventDefault();
 
@@ -168,77 +183,64 @@ class Dialog<M> extends View<M> {
         this._startPosX = e.clientX;
         this._startPosY = e.clientY;
 
-        this._onMouseMove_ = this._onMouseMove.bind(this)
-        document.addEventListener("mousemove", this._onMouseMove_);
-
-        this._onMouseUp_ = this._onMouseUp.bind(this);
-        document.addEventListener("mouseup", this._onMouseUp_);
+        document.addEventListener("mousemove", this._onMouseMove);
+        document.addEventListener("mouseup", this._onMouseUp);
     }
 
-    setPosition(x, y) {
+    public setPosition(x?: number, y?: number) {
         if (x != undefined) {
-            this.el.style.left = `${x}px`;
+            this.el!.style.left = `${x}px`;
         }
         if (y != undefined) {
-            this.el.style.top = `${y}px`;
+            this.el!.style.top = `${y}px`;
         }
     }
 
-    _onMouseMove(e) {
+    protected _onMouseMove(e: MouseEvent) {
+        //@ts-ignore
         e = e || window.event;
         e.preventDefault();
         let dx = this._startPosX - e.clientX;
         let dy = this._startPosY - e.clientY;
         this._startPosX = e.clientX;
         this._startPosY = e.clientY;
-        this.setPosition(this.el.offsetLeft - dx, this.el.offsetTop - dy);
+        this.setPosition(this.el!.offsetLeft - dx, this.el!.offsetTop - dy);
     }
 
-    _startDragging() {
-        if (!this.el.classList.contains("dragging")) {
-            this.el.classList.add("dragging");
-            this._events.dispatch(this._events.dragstart, this);
+    protected _startDragging() {
+        if (!this.el!.classList.contains("dragging")) {
+            this.el!.classList.add("dragging");
+            this.events.dispatch(this.events.dragstart, this);
         }
     }
 
-    _clearDragging() {
-        if (this.el.classList.contains("dragging")) {
-            this._events.dispatch(this._events.dragend, this);
-            this.el.classList.remove("dragging");
+    protected _clearDragging() {
+        if (this.el!.classList.contains("dragging")) {
+            this.events.dispatch(this.events.dragend, this);
+            this.el!.classList.remove("dragging");
         }
     }
 
-    _onMouseUp() {
+    protected _onMouseUp = () => {
         this._clearDragging();
-
-        document.removeEventListener("mouseup", this._onMouseUp_);
-        this._onMouseUp_ = undefined;
-
-        document.removeEventListener("mousemove", this._onMouseMove_);
-        this._onMouseMove_ = undefined;
+        document.removeEventListener("mouseup", this._onMouseUp);
+        document.removeEventListener("mousemove", this._onMouseMove);
     }
 
-    remove() {
+    public override remove() {
         this._clearDragging();
         this._clearEvents();
         super.remove();
     }
 
-    _clearEvents() {
-        this._closeBtn.off("click", this._onCloseBtnClick_);
-        this._onCloseBtnClick_ = undefined;
+    protected _clearEvents() {
+        this._closeBtn.events.off("click", this._onCloseBtnClick);
 
-        document.removeEventListener("mouseup", this._onMouseUp_);
-        this._onMouseUp_ = undefined;
+        document.removeEventListener("mouseup", this._onMouseUp);
+        document.removeEventListener("mousemove", this._onMouseMove);
 
-        document.removeEventListener("mousemove", this._onMouseMove_);
-        this._onMouseMove_ = undefined;
-
-        this.$header.removeEventListener("mousedown", this._onMouseDown_);
-        this._onMouseDown_ = undefined;
-
-        this.el.removeEventListener("mousedown", this._onMouseDownAll_);
-        this._onMouseDownAll_ = undefined;
+        this.$header!.removeEventListener("mousedown", this._onMouseDown);
+        this.el!.removeEventListener("mousedown", this._onMouseDownAll);
     }
 }
 

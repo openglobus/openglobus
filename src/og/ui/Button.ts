@@ -65,37 +65,43 @@ class Button extends View<null> {
         }
     }
 
-    protected _onMouseDown = (e: Event) => {
+    protected _onMouseDown = (e: MouseEvent) => {
+        //@ts-ignore
         e = e || window.event;
         e.preventDefault();
         this.events.dispatch(this.events.mousedown, this, e);
     }
 
-    protected _onMouseUp = (e: Event) => {
+    protected _onMouseUp = (e: MouseEvent) => {
+        //@ts-ignore
         e = e || window.event;
         e.preventDefault();
         this.events.dispatch(this.events.mouseup, this, e);
     }
 
-    protected _onTouchStart = (e: Event) => {
+    protected _onTouchStart = (e: TouchEvent) => {
+        //@ts-ignore
         e = e || window.event;
         e.preventDefault();
         this.events.dispatch(this.events.touchstart, this, e);
     }
 
-    protected _onTouchEnd = (e: Event) => {
+    protected _onTouchEnd = (e: TouchEvent) => {
+        //@ts-ignore
         e = e || window.event;
         e.preventDefault();
         this.events.dispatch(this.events.touchend, this, e);
     }
 
-    protected _onTouchCancel = (e: Event) => {
+    protected _onTouchCancel = (e: TouchEvent) => {
+        //@ts-ignore
         e = e || window.event;
         e.preventDefault();
         this.events.dispatch(this.events.touchcancel, this, e);
     }
 
-    protected _onMouseClick = (e: Event) => {
+    protected _onMouseClick = (e: MouseEvent) => {
+        //@ts-ignore
         e = e || window.event;
         e.preventDefault();
         this.events.dispatch(this.events.click, this, e);

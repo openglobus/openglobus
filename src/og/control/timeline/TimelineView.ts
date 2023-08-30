@@ -208,11 +208,11 @@ class TimelineView extends View<TimelineModel> {
 
         this._resizeObserver.observe(this.el!);
 
-        this.model.on("change", () => {
+        this.model.events.on("change", () => {
             this.draw()
         });
 
-        this.model.on("current", (d: Date) => {
+        this.model.events.on("current", (d: Date) => {
             this._drawCurrent();
             this.events.dispatch(this.events.setcurrent, d);
         });

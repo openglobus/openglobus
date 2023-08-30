@@ -28,7 +28,7 @@ const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="utf-8"?>
 class TimelineControl extends Control {
     protected _timelineView: TimelineView;
     protected _toggleBtn: ToggleButton;
-    protected _dialog: Dialog;
+    protected _dialog: Dialog<null>;
 
     constructor(options: ITimelineControlParams = {}) {
         super({
@@ -64,7 +64,7 @@ class TimelineControl extends Control {
             maxHeight: 110
         });
 
-        this._dialog.on("visibility", (v: boolean) => {
+        this._dialog.events.on("visibility", (v: boolean) => {
             this._toggleBtn.setActive(v);
         });
     }
@@ -76,7 +76,7 @@ class TimelineControl extends Control {
         this._toggleBtn.appendTo($container);
         this._dialog.appendTo($container);
 
-        this._toggleBtn.on("change", (isActive: boolean) => {
+        this._toggleBtn.events.on("change", (isActive: boolean) => {
             this._dialog.setVisibility(isActive);
             if (isActive) {
                 this._timelineView.resize();
@@ -85,23 +85,23 @@ class TimelineControl extends Control {
 
         this._timelineView.appendTo(this._dialog.container as any);
 
-        this._timelineView.on("setcurrent", (d: Date) => {
+        this._timelineView.events.on("setcurrent", (d: Date) => {
             this.renderer && this.renderer.handler.defaultClock.setDate(d);
         });
 
-        this._timelineView.on("startdrag", () => {
+        this._timelineView.events.on("startdrag", () => {
             this.renderer && this.renderer.controls.mouseNavigation.deactivate();
         });
 
-        this._timelineView.on("stopdrag", () => {
+        this._timelineView.events.on("stopdrag", () => {
             this.renderer && this.renderer.controls.mouseNavigation.activate();
         });
 
-        this._timelineView.on("startdragcurrent", () => {
+        this._timelineView.events.on("startdragcurrent", () => {
             this.renderer && this.renderer.controls.mouseNavigation.deactivate();
         });
 
-        this._timelineView.on("stopdragcurrent", () => {
+        this._timelineView.events.on("stopdragcurrent", () => {
             this.renderer && this.renderer.controls.mouseNavigation.activate();
         });
     }
