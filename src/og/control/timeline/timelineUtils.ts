@@ -1,10 +1,13 @@
 import * as math from '../../math';
 
-export function addSeconds(date: any, seconds: any) {
+type BaselineType = "alphabetic" | "bottom" | "hanging" | "ideographic" | "middle" | "top";
+type AlignType = "center" | "end" | "left" | "right" | "start";
+
+export function addSeconds(date: Date, seconds: number): Date {
     return new Date(+date + seconds * 1000);
 }
 
-export function dateToStr(date: any, showTime = true, showMilliseconds = false) {
+export function dateToStr(date: Date, showTime: boolean = true, showMilliseconds: boolean = false): string {
 
     let month = MONTHS[date.getMonth()],
         day = date.getUTCDate(),
@@ -26,15 +29,15 @@ export function dateToStr(date: any, showTime = true, showMilliseconds = false) 
     return `${month} ${day} ${year}`;
 }
 
-export function createCanvasHTML() {
+export function createCanvasHTML(): HTMLCanvasElement {
     return document.createElement("canvas");
 }
 
-export function getNearestTimeLeft(t: number, div: number) {
+export function getNearestTimeLeft(t: number, div: number): number {
     return t - (t % div);
 }
 
-export function drawNotch(ctx: any, xOffset = 0, size = 10, thickness = 2, color = "white") {
+export function drawNotch(ctx: CanvasRenderingContext2D, xOffset: number = 0, size: number = 10, thickness: number = 2, color: string = "white") {
     ctx.lineWidth = thickness;
     ctx.strokeStyle = color;
     ctx.beginPath();
@@ -43,7 +46,7 @@ export function drawNotch(ctx: any, xOffset = 0, size = 10, thickness = 2, color
     ctx.stroke();
 }
 
-export function drawText(ctx: any, text: string, x: number, y: number, font = "12px Arial", fillStyle = "black", align = "left", baseLine = "bottom", rotDeg = 0) {
+export function drawText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, font: string = "12px Arial", fillStyle: string = "black", align: AlignType = "left", baseLine: BaselineType = "bottom", rotDeg: number = 0) {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(rotDeg * math.RADIANS);
@@ -55,7 +58,7 @@ export function drawText(ctx: any, text: string, x: number, y: number, font = "1
     ctx.restore();
 }
 
-export const SCALES = [
+export const SCALES: [number, number][] = [
     [0.001, 10],
     [0.002, 10],
     [0.005, 10],

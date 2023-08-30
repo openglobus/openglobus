@@ -1281,7 +1281,9 @@ class Renderer {
 
         this.controlsBag = {};
 
-        //@ts-ignore
+        this.colorObjects.clear();
+
+        // @ts-ignore
         this.colorObjects = null;
 
         this._pickingCallbacks = [];
@@ -1314,9 +1316,6 @@ class Renderer {
         //this.fontAtlas.clear();
 
         this._entityCollections = [];
-
-        // @ts-ignore
-        this.colorObjects = null;
 
         this.handler.destroy();
 

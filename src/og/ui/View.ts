@@ -1,35 +1,35 @@
 import {createEvents, EventsHandler} from '../Events';
 import {parseHTML, stringTemplate} from '../utils/shared';
 
-export interface IViewParams {
-    model?: any | null;
+export interface IViewParams<E extends string[]> {
+    model?: any;
     template?: string;
-    parent?: View | null;
+    parent?: View<any, any> | null;
     classList?: string[];
-    eventList?: string[];
+    eventList?: E;
 }
 
-class View {
+class View<M, E extends string[]> {
 
     static __counter__: number = 0;
 
     protected __id: number;
 
-    protected _events: EventsHandler<any>;
+    protected _events: EventsHandler<E>;
 
-    public model: any | null;
+    public model: M;
 
     public template: string;
 
-    public parent: View | null;
+    public parent: View<any, any> | null;
 
     public el: HTMLElement | null;
 
     protected _classList: string[];
 
-    constructor(options: IViewParams = {}) {
+    constructor(options: IViewParams<E> = {}) {
         this.__id = View.__counter__++;
-        this._events = createEvents(options.eventList || []);
+        this._events = createEvents<E>(options.eventList || [] as any);
         this.model = options.model || null;
         this.template = options.template || "";
         this.parent = options.parent || null;
@@ -69,7 +69,7 @@ class View {
         return newNodes;
     }
 
-    public get events(): EventsHandler<any> {
+    public get events(): EventsHandler<E> {
         return this._events;
     }
 
@@ -81,7 +81,7 @@ class View {
         return this._events.off(eventName, callback);
     }
 
-    public insertBefore(view: View | HTMLElement) {
+    public insertBefore(view: View<any, any> | HTMLElement) {
         if (!this.el) {
             this.render();
         }
@@ -95,7 +95,7 @@ class View {
         }
     }
 
-    public insertAfter(view: View | HTMLElement) {
+    public insertAfter(view: View<any, any> | HTMLElement) {
         if (!this.el) {
             this.render();
         }
@@ -109,7 +109,7 @@ class View {
         }
     }
 
-    public isEqual(view: View): boolean {
+    public isEqual(view: View<any, any>): boolean {
         return view.__id === this.__id;
     }
 
@@ -146,11 +146,9 @@ class View {
     }
 
     public afterRender(parentNode: HTMLElement) {
-        //virtual
     }
 
     public beforeRender(parentNode: HTMLElement) {
-        //virtual
     }
 
     public stopPropagation() {

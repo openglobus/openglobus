@@ -1,21 +1,36 @@
-import { Events } from '../../Events';
-import { addSeconds } from "./timelineUtils";
+import {EventsHandler, createEvents} from '../../Events';
+import {addSeconds} from "./timelineUtils";
+
+type TimelineEventsList = ["change", "current"];
+
+const TIMELINE_EVENTS: TimelineEventsList = ["change", "current"/*, "tick"*/];
+
+interface ITimelineParams {
+    current?: Date;
+    rangeStart?: Date;
+    rangeEnd?: Date;
+    minDate?: Date | null;
+    maxDate?: Date | null;
+    multiplier?: number
+}
 
 class TimelineModel {
-    _events: any;
-    _current: Date;
-    _rangeStart: Date;
-    _rangeEnd: Date;
-    _range: number;
-    _minDate: any;
-    _maxDate: any;
-    multiplier = 1.0;
-    _requestAnimationFrameId = 0;
-    _prevNow = 0;
-    dt: number;
-    constructor(options: { current?: Date, rangeStart?: Date, rangeEnd?: Date, minDate?: any, maxDate?: any, multiplier?: number } = {}) {
+    protected _events: EventsHandler<TimelineEventsList>;
+    protected _current: Date;
+    protected _rangeStart: Date;
+    protected _rangeEnd: Date;
+    protected _range: number;
+    protected _minDate: Date | null;
+    protected _maxDate: Date | null;
+    protected _requestAnimationFrameId: number;
+    protected _prevNow: number;
 
-        this._events = new Events(["change", "current"/*, "tick"*/]);
+    public multiplier: number;
+    public dt: number;
+
+    constructor(options: ITimelineParams = {}) {
+
+        this._events = createEvents(TIMELINE_EVENTS);
 
         this._current = options.current || new Date();
         this._rangeStart = options.rangeStart || new Date();
@@ -32,55 +47,54 @@ class TimelineModel {
         this.dt = 0;
     }
 
-    on(eventName: any, callback: any, sender: any) {
+    public on(eventName: string, callback: Function, sender?: any) {
         return this._events.on(eventName, callback, sender);
     }
 
-    off(eventName: any, callback: any) {
+    public off(eventName: string, callback: Function) {
         return this._events.off(eventName, callback);
     }
 
-    play() {
+    public play() {
         if (!this._requestAnimationFrameId) {
             this._prevNow = window.performance.now();
             this._animationFrameCallback();
         }
     }
 
-    stop() {
+    public stop() {
         if (this._requestAnimationFrameId) {
             window.cancelAnimationFrame(this._requestAnimationFrameId);
             this._requestAnimationFrameId = 0;
         }
     }
 
-    stopped() {
+    public stopped() {
         return this._requestAnimationFrameId == 0;
     }
 
-    _animationFrameCallback() {
+    protected _animationFrameCallback() {
         this._requestAnimationFrameId = window.requestAnimationFrame(() => {
             this._frame();
             this._animationFrameCallback();
         });
     }
 
-    _frame() {
+    protected _frame() {
         let now = window.performance.now();
         this.dt = now - this._prevNow;
         this._prevNow = now;
 
         this.current = new Date(this.currentTime + this.dt * this.multiplier);
 
-        // // @ts-ignore
         // this._events.dispatch(this._events.tick, this._current);
     }
 
-    get range() {
+    public get range(): number {
         return this._range
     }
 
-    set(rangeStart: any, rangeEnd: any) {
+    public set(rangeStart: Date, rangeEnd: Date) {
         if (rangeStart !== this._rangeStart || rangeEnd !== this._rangeEnd) {
             this._rangeStart = rangeStart;
             this._rangeEnd = rangeEnd;
@@ -89,31 +103,31 @@ class TimelineModel {
         }
     }
 
-    get current() {
+    public get current(): Date {
         return this._current;
     }
 
-    get rangeStart() {
+    public get rangeStart(): Date {
         return this._rangeStart;
     }
 
-    get rangeEnd() {
+    public get rangeEnd(): Date {
         return this._rangeEnd;
     }
 
-    get rangeStartTime() {
+    public get rangeStartTime(): number {
         return this._rangeStart.getTime();
     }
 
-    get rangeEndTime() {
+    public get rangeEndTime(): number {
         return this._rangeEnd.getTime();
     }
 
-    get currentTime() {
+    public get currentTime(): number {
         return this._current.getTime();
     }
 
-    set current(current) {
+    public set current(current: Date) {
         if (current !== this._current) {
             if (this._maxDate && current > this._maxDate) {
                 this._current = this._maxDate;
@@ -126,7 +140,7 @@ class TimelineModel {
         }
     }
 
-    set rangeStart(date) {
+    public set rangeStart(date: Date) {
         if (date !== this._rangeStart) {
             this._rangeStart = date;
             this._range = this._rangeEnd.getTime() - this._rangeStart.getTime();
@@ -134,7 +148,7 @@ class TimelineModel {
         }
     }
 
-    set rangeEnd(date) {
+    public set rangeEnd(date: Date) {
         if (date !== this._rangeEnd) {
             this._rangeEnd = date;
             this._range = this._rangeEnd.getTime() - this._rangeStart.getTime();
@@ -143,4 +157,4 @@ class TimelineModel {
     }
 }
 
-export { TimelineModel };
+export {TimelineModel};

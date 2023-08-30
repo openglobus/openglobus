@@ -12,7 +12,7 @@
     "noImplicitAny" : true,
     "strictNullChecks" : true,
     "allowJs" : true,
-    "target" : "es2016",
+    "target" : "es2021",
     "module" : "ESNext",
     "esModuleInterop" : true,
     "forceConsistentCasingInFileNames" : true,

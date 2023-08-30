@@ -1,7 +1,8 @@
-import { ButtonGroup } from "../../ui/ButtonGroup";
-import { ToggleButton } from "../../ui/ToggleButton";
-import { View } from '../../ui/View.js';
-import { TimelineModel } from './TimelineModel.js';
+import {EventsHandler} from "../../Events";
+import {ButtonGroup} from "../../ui/ButtonGroup";
+import {IViewParams, View} from '../../ui/View';
+import {ToggleButton} from "../../ui/ToggleButton";
+import {TimelineModel} from './TimelineModel';
 import {
     addSeconds,
     createCanvasHTML,
@@ -10,11 +11,34 @@ import {
     drawText,
     getNearestTimeLeft,
     getScale
-} from './timelineUtils.js';
+} from './timelineUtils';
+
+interface ITimelineViewParams extends IViewParams<TimelineViewEventsList> {
+    currentDate?: Date;
+    rangeStart?: Date;
+    rangeEnd?: Date;
+    minDate?: Date;
+    maxDate?: Date;
+    fillStyle?: string
+}
 
 const SECONDS_TO_MILLISECONDS = 1000.0;
 const MILLISECONDS_TO_SECONDS = 1.0 / SECONDS_TO_MILLISECONDS;
-const EVENT_LIST = [
+
+type TimelineViewEventsList = [
+    'startdrag',
+    'stopdrag',
+    'startdragcurrent',
+    'stopdragcurrent',
+    'setcurrent',
+    'reset',
+    'play',
+    'playback',
+    'pause',
+    'visibility'
+];
+
+const TIMELINEVIEW_EVENTS: TimelineViewEventsList = [
     'startdrag',
     'stopdrag',
     'startdragcurrent',
@@ -56,37 +80,40 @@ const TEMPLATE =
 
 </div>`;
 
-class TimelineView extends View {
-    fillStyle: string;
-    $controls: any;
-    _frameEl: any;
-    _currentEl: any;
-    _canvasEl: HTMLCanvasElement;
-    _ctx: any;
-    _isMouseOver: boolean;
-    _isDragging: boolean;
-    _isCurrentDragging: boolean;
-    _isCurrentMouseOver: boolean;
-    _minWidth: number;
-    _canvasScale: number;
-    _millisecondsInPixel: number;
-    _clickPosX: number;
-    _clickRangeStart: Date;
-    _clickRangeEnd: Date;
-    _clickCurrentDate: Date;
-    _clickTime: number;
-    _clickDelay: number;
-    _onResizeObserver_: () => void;
-    _resizeObserver: ResizeObserver;
-    _pauseBtn: ToggleButton;
-    _playBtn: ToggleButton;
-    _buttons: ButtonGroup;
-    _visibility: any;
 
-    constructor(options: { currentDate?: Date, rangeStart?: Date, rangeEnd?: Date, minDate?: any, maxDate?: any, fillStyle?: string } = {}) {
+class TimelineView extends View<TimelineModel, TimelineViewEventsList> {
+
+    //protected override _events: EventsHandler<TimelineViewEventsList>;
+    public fillStyle: string;
+    public $controls: HTMLElement | null;
+    protected _frameEl: HTMLElement | null;
+    protected _currentEl: HTMLElement | null;
+    protected _canvasEl: HTMLCanvasElement;
+    protected _ctx: CanvasRenderingContext2D;
+    protected _isMouseOver: boolean;
+    protected _isDragging: boolean;
+    protected _isCurrentDragging: boolean;
+    protected _isCurrentMouseOver: boolean;
+    protected _minWidth: number;
+    protected _canvasScale: number;
+    protected _millisecondsInPixel: number;
+    protected _clickPosX: number;
+    protected _clickRangeStart: Date;
+    protected _clickRangeEnd: Date;
+    protected _clickCurrentDate: Date;
+    protected _clickTime: number;
+    protected _clickDelay: number;
+    protected _onResizeObserver_: () => void;
+    protected _resizeObserver: ResizeObserver;
+    protected _pauseBtn: ToggleButton;
+    protected _playBtn: ToggleButton;
+    protected _buttons: ButtonGroup;
+    protected _visibility: boolean;
+
+    constructor(options: ITimelineViewParams = {}) {
         super({
             template: TEMPLATE,
-            eventList: EVENT_LIST,
+            eventList: TIMELINEVIEW_EVENTS,
             model: new TimelineModel({
                 rangeStart: options.rangeStart,
                 rangeEnd: options.rangeEnd,
@@ -98,12 +125,12 @@ class TimelineView extends View {
 
         this.fillStyle = options.fillStyle || SCALE_FILL_COLOR;
 
-        this.$controls;
+        this.$controls = null;
 
         this._frameEl = null;
         this._currentEl = null;
         this._canvasEl = createCanvasHTML();
-        this._ctx = this._canvasEl.getContext('2d');
+        this._ctx = this._canvasEl.getContext('2d')!;
 
         this._isMouseOver = false;
         this._isDragging = false;
@@ -142,73 +169,72 @@ class TimelineView extends View {
             buttons: [this._pauseBtn, this._playBtn]
         })
 
-        this._visibility = null;
+        this._visibility = false;
     }
 
-    _onResizeObserver() {
+    protected _onResizeObserver() {
         this.resize();
     }
 
-    get canvasScale() {
+    public get canvasScale(): number {
         return this._canvasScale;
     }
 
-    set canvasScale(scale) {
+    public set canvasScale(scale: number) {
         if (scale !== this._canvasScale) {
             this._canvasScale = scale;
             this.resize();
         }
     }
 
-    resize() {
+    public resize() {
         this._resize();
         this.draw();
     }
 
-    override afterRender(parentNode: any) {
+    public override afterRender(parentNode: HTMLElement) {
         this.resize();
     }
 
-    override render() {
+    public override render(): this {
         super.render();
 
         this.$controls = this.select(".og-timeline-controls");
 
         this._frameEl = this.select(".og-timeline-frame");
         this._currentEl = this.select(".og-timeline-current");
-        (this.select as any)(".og-timeline-frame .og-timeline-scale").appendChild(this._canvasEl);
+        this.select(".og-timeline-frame .og-timeline-scale")!.appendChild(this._canvasEl);
 
-        this._resizeObserver.observe(this.el as any);
+        this._resizeObserver.observe(this.el!);
 
         this.model.on("change", () => {
             this.draw()
         });
 
-        this.model.on("current", (d: any) => {
+        this.model.on("current", (d: Date) => {
             this._drawCurrent();
             this._events.dispatch(this._events.setcurrent, d);
         });
 
-        this._canvasEl.addEventListener("mouseenter", this._onMouseEnter.bind(this));
-        this._canvasEl.addEventListener("mouseout", this._onMouseOut.bind(this));
+        this._canvasEl.addEventListener("mouseenter", this._onMouseEnter);
+        this._canvasEl.addEventListener("mouseout", this._onMouseOut);
 
-        this._currentEl.addEventListener("mouseenter", this._onCurrentMouseEnter.bind(this));
-        this._currentEl.addEventListener("mouseout", this._onCurrentMouseOut.bind(this));
+        this._currentEl!.addEventListener("mouseenter", this._onCurrentMouseEnter);
+        this._currentEl!.addEventListener("mouseout", this._onCurrentMouseOut);
 
-        document.body.addEventListener("mousemove", this._onMouseMove.bind(this));
-        document.body.addEventListener("mousedown", this._onMouseDown.bind(this));
-        document.body.addEventListener("mouseup", this._onMouseUp.bind(this));
-        document.body.addEventListener("mousewheel", this._onMouseWheel.bind(this));
-        document.body.addEventListener("wheel", this._onMouseWheelFF.bind(this));
+        document.body.addEventListener("mousemove", this._onMouseMove);
+        document.body.addEventListener("mousedown", this._onMouseDown);
+        document.body.addEventListener("mouseup", this._onMouseUp);
+        document.body.addEventListener("mousewheel", this._onMouseWheel);
+        document.body.addEventListener("wheel", this._onMouseWheelFF);
 
-        this._playBtn.appendTo(this.$controls);
-        this._pauseBtn.appendTo(this.$controls);
+        this._playBtn.appendTo(this.$controls!);
+        this._pauseBtn.appendTo(this.$controls!);
 
         if (this.model.stopped()) {
             this._pauseBtn.setActive(true, true);
             this._pauseBtn.preventClick = true;
-        }
-        else {
+        } else {
             this._playBtn.setActive(true, true);
             this._playBtn.preventClick = true;
         }
@@ -251,7 +277,7 @@ class TimelineView extends View {
         return this;
     }
 
-    setVisibility(visibility: boolean) {
+    public setVisibility(visibility: boolean) {
         if (visibility !== this._visibility) {
             this._visibility = visibility;
             if (visibility) {
@@ -263,29 +289,29 @@ class TimelineView extends View {
         }
     }
 
-    reset() {
+    public reset() {
         this.model.stop();
         this._events.dispatch(this._events.reset, this.model);
     }
 
-    play() {
+    public play() {
         this.model.multiplier = Math.abs(this.model.multiplier);
         this.model.play();
         this._events.dispatch(this._events.play, this.model);
     }
 
-    pause() {
+    public pause() {
         this.model.stop();
         this._events.dispatch(this._events.pause, this.model);
     }
 
-    playBack() {
+    public playBack() {
         this.model.multiplier = -1 * Math.abs(this.model.multiplier);
         this.model.play();
         this._events.dispatch(this._events.playback, this.model);
     }
 
-    _onMouseWheel(e: any) {
+    protected _onMouseWheel = (e: any) => {
         if (this._isMouseOver) {
             let rect = this._canvasEl.getBoundingClientRect();
             let pointerPosX = e.clientX - rect.left,
@@ -298,11 +324,11 @@ class TimelineView extends View {
         }
     }
 
-    _onMouseWheelFF(e: any) {
+    protected _onMouseWheelFF = (e: MouseEvent) => {
         this._onMouseWheel(e);
     }
 
-    _zoom(pointerTime: number, pointerCenterOffsetX: number, dir: number) {
+    protected _zoom(pointerTime: number, pointerCenterOffsetX: number, dir: number) {
         let centerTime = this.model.rangeStartTime + 0.5 * this.model.range;
 
         let centerTimeOffset = (pointerTime - centerTime) * MILLISECONDS_TO_SECONDS;
@@ -326,7 +352,7 @@ class TimelineView extends View {
         }
     }
 
-    _onMouseDown(e: any) {
+    protected _onMouseDown = (e: MouseEvent) => {
         if (this._isMouseOver) {
             this._isDragging = true;
             document.body.classList.add("og-timeline-unselectable");
@@ -350,7 +376,7 @@ class TimelineView extends View {
         }
     }
 
-    _onMouseUp(e: any) {
+    protected _onMouseUp = (e: MouseEvent) => {
         if (this._isDragging) {
             this._isDragging = false;
             document.body.classList.remove("og-timeline-unselectable");
@@ -370,23 +396,23 @@ class TimelineView extends View {
         }
     }
 
-    _onMouseEnter() {
+    protected _onMouseEnter = () => {
         this._isMouseOver = true;
     }
 
-    _onMouseOut() {
+    protected _onMouseOut = () => {
         this._isMouseOver = false;
     }
 
-    _onCurrentMouseEnter() {
+    protected _onCurrentMouseEnter = () => {
         this._isCurrentMouseOver = true;
     }
 
-    _onCurrentMouseOut() {
+    protected _onCurrentMouseOut = () => {
         this._isCurrentMouseOver = false;
     }
 
-    _onMouseMove(e: any) {
+    protected _onMouseMove = (e: MouseEvent) => {
         if (this._isDragging) {
             let offsetSec = (this._clickPosX - e.clientX) * this._millisecondsInPixel * MILLISECONDS_TO_SECONDS;
             this.model.set(addSeconds(this._clickRangeStart, offsetSec), addSeconds(this._clickRangeEnd, offsetSec))
@@ -399,16 +425,16 @@ class TimelineView extends View {
         }
     }
 
-    get clientWidth() {
+    public get clientWidth(): number {
         return this._canvasEl ? this._canvasEl.width / this._canvasScale : 0;
     }
 
-    get clientHeight() {
+    public get clientHeight(): number {
         return this._canvasEl ? this._canvasEl.height / this._canvasScale : 0;
     }
 
-    _resize() {
-        if (this._canvasEl && this._frameEl) {
+    protected _resize() {
+        if (this._frameEl) {
             this._canvasEl.width = this._frameEl.clientWidth * this._canvasScale;
             this._canvasEl.height = this._frameEl.clientHeight * this._canvasScale;
             this._canvasEl.style.width = `${this._frameEl.clientWidth}px`;
@@ -417,69 +443,65 @@ class TimelineView extends View {
         }
     }
 
-    getOffsetbyTime(milliseconds: number) {
+    public getOffsetByTime(milliseconds: number): number {
         return (milliseconds - this.model.rangeStartTime) / this._millisecondsInPixel;
     }
 
-    override remove() {
+    public override remove() {
         super.remove();
         this.model.stop();
     }
 
-    _clearCanvas() {
-        if (this._ctx) {
-            this._ctx.fillStyle = this.fillStyle;
-            this._ctx.fillRect(0, 0, this.clientWidth * this._canvasScale, this.clientHeight * this._canvasScale);
-        }
+    protected _clearCanvas() {
+        this._ctx.fillStyle = this.fillStyle;
+        this._ctx.fillRect(0, 0, this.clientWidth * this._canvasScale, this.clientHeight * this._canvasScale);
     }
 
-    _drawCurrent() {
+    protected _drawCurrent() {
         let curPosX = (this.model.currentTime - this.model.rangeStartTime) / this._millisecondsInPixel;
         if (this.model.current < this.model.rangeStart || this.model.current > this.model.rangeEnd) {
-            this._currentEl.style.display = "none";
+            this._currentEl!.style.display = "none";
         } else {
-            this._currentEl.style.display = "block";
-            this._currentEl.style.transform = `translateX(${curPosX}px)`;
+            this._currentEl!.style.display = "block";
+            this._currentEl!.style.transform = `translateX(${curPosX}px)`;
         }
     }
 
-    draw() {
-        if (this._ctx) {
-            this._millisecondsInPixel = (this.model.range / this.clientWidth);
-            let minWidthMs = this._minWidth * this._millisecondsInPixel;
-            let scaleData = getScale(minWidthMs * MILLISECONDS_TO_SECONDS);
-            if (scaleData) {
+    public draw() {
+        this._millisecondsInPixel = (this.model.range / this.clientWidth);
+        let minWidthMs = this._minWidth * this._millisecondsInPixel;
+        let scaleData = getScale(minWidthMs * MILLISECONDS_TO_SECONDS);
+        if (scaleData) {
 
-                this._clearCanvas();
+            this._clearCanvas();
 
-                let scaleMs = scaleData[0] * SECONDS_TO_MILLISECONDS,
-                    scalePx = scaleMs / this._millisecondsInPixel,
-                    segCount = scaleData[1];
+            let scaleMs = scaleData[0] * SECONDS_TO_MILLISECONDS,
+                scalePx = scaleMs / this._millisecondsInPixel,
+                segCount = scaleData[1];
 
-                let originTime = getNearestTimeLeft(this.model.rangeStartTime, scaleMs);
+            let originTime = getNearestTimeLeft(this.model.rangeStartTime, scaleMs);
 
-                let showMillisconds = scaleData[0] < 1.0,
-                    showTime = scaleData[0] < 86400.0;
+            let showMilliseconds = scaleData[0] < 1.0,
+                showTime = scaleData[0] < 86400.0;
 
-                for (let i = originTime, rangeEnd = this.model.rangeEndTime + scaleMs; i < rangeEnd; i += scaleMs) {
-                    let x = this.getOffsetbyTime(i);
-                    if (x >= 0 && x <= this.clientWidth * this._canvasScale) {
-                        drawNotch(this._ctx, x * this._canvasScale, 10 * this._canvasScale, 2 * this._canvasScale, SCALE_NOTCH_COLOR);
-                    }
-                    for (let j = 1; j < segCount; j++) {
-                        let xx = x + j * (scalePx / segCount);
-                        if (xx >= 0 && xx <= this.clientWidth * this._canvasScale) {
-                            drawNotch(this._ctx, xx * this._canvasScale, 5 * this._canvasScale, 1 * this._canvasScale, SCALE_NOTCH_COLOR);
-                        }
-                    }
-                    drawText(this._ctx, dateToStr(new Date(i), showTime, showMillisconds), x * this._canvasScale, 26 * this._canvasScale, "24px monospace", SCALE_TIME_COLOR, "center");
+            for (let i = originTime, rangeEnd = this.model.rangeEndTime + scaleMs; i < rangeEnd; i += scaleMs) {
+                let x = this.getOffsetByTime(i);
+                if (x >= 0 && x <= this.clientWidth * this._canvasScale) {
+                    drawNotch(this._ctx, x * this._canvasScale, 10 * this._canvasScale, 2 * this._canvasScale, SCALE_NOTCH_COLOR);
                 }
-
-                this._drawCurrent();
+                for (let j = 1; j < segCount; j++) {
+                    let xx = x + j * (scalePx / segCount);
+                    if (xx >= 0 && xx <= this.clientWidth * this._canvasScale) {
+                        drawNotch(this._ctx, xx * this._canvasScale, 5 * this._canvasScale, 1 * this._canvasScale, SCALE_NOTCH_COLOR);
+                    }
+                }
+                drawText(this._ctx, dateToStr(new Date(i), showTime, showMilliseconds), x * this._canvasScale, 26 * this._canvasScale, "24px monospace", SCALE_TIME_COLOR, "center");
             }
+
+            this._drawCurrent();
         }
     }
 }
 
-export { TimelineView };
+export {TimelineView};
 

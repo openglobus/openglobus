@@ -1,9 +1,17 @@
-import { Dialog } from "../../ui/Dialog";
-import { ToggleButton } from "../../ui/ToggleButton";
-import { Control } from '../Control.js';
-import { TimelineView } from './TimelineView.js';
+import {Dialog} from "../../ui/Dialog";
+import {ToggleButton} from "../../ui/ToggleButton";
+import {Control, IControlParams} from '../Control';
+import {TimelineView} from './TimelineView';
 
-function addHours(date: any, hours: any) {
+interface ITimelineControlParams extends IControlParams {
+    name?: string;
+    current?: Date;
+    rangeStart?: Date;
+    rangeEnd?: Date;
+}
+
+
+function addHours(date: Date, hours: number): Date {
     const temp = new Date(date);
     temp.setHours(temp.getHours() + hours);
     return temp;
@@ -18,14 +26,15 @@ const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="utf-8"?>
 </svg>`;
 
 class TimelineControl extends Control {
-    _timelineView: TimelineView;
-    _toggleBtn: ToggleButton;
-    _dialog: Dialog;
-    constructor(options: { name?: string, current?: Date, rangeStart?: Date, rangeEnd?: Date } = {}) {
-        if (!options.name || options.name === "") {
-            options.name = "timeline";
-        }
-        super(options);
+    protected _timelineView: TimelineView;
+    protected _toggleBtn: ToggleButton;
+    protected _dialog: Dialog;
+
+    constructor(options: ITimelineControlParams = {}) {
+        super({
+            name: "timeline",
+            ...options
+        });
 
         let currentDate = options.current || new Date();
         let startDate = options.rangeStart || addHours(currentDate, -12);
@@ -55,14 +64,14 @@ class TimelineControl extends Control {
             maxHeight: 110
         });
 
-        this._dialog.on("visibility", (v: any) => {
+        this._dialog.on("visibility", (v: boolean) => {
             this._toggleBtn.setActive(v);
         });
     }
 
-    override oninit() {
+    public override oninit() {
 
-        let $container = this.renderer.div;
+        let $container = this.renderer!.div!;
 
         this._toggleBtn.appendTo($container);
         this._dialog.appendTo($container);
@@ -76,26 +85,26 @@ class TimelineControl extends Control {
 
         this._timelineView.appendTo(this._dialog.container as any);
 
-        this._timelineView.on("setcurrent", (d: any) => {
-            this.renderer.handler.defaultClock.setDate(d);
+        this._timelineView.on("setcurrent", (d: Date) => {
+            this.renderer && this.renderer.handler.defaultClock.setDate(d);
         });
 
         this._timelineView.on("startdrag", () => {
-            this.renderer.controls.mouseNavigation.deactivate();
+            this.renderer && this.renderer.controls.mouseNavigation.deactivate();
         });
 
-        this._timelineView.on("stopdrag", (e: any) => {
-            this.renderer.controls.mouseNavigation.activate();
+        this._timelineView.on("stopdrag", () => {
+            this.renderer && this.renderer.controls.mouseNavigation.activate();
         });
 
         this._timelineView.on("startdragcurrent", () => {
-            this.renderer.controls.mouseNavigation.deactivate();
+            this.renderer && this.renderer.controls.mouseNavigation.deactivate();
         });
 
         this._timelineView.on("stopdragcurrent", () => {
-            this.renderer.controls.mouseNavigation.activate();
+            this.renderer && this.renderer.controls.mouseNavigation.activate();
         });
     }
 }
 
-export { TimelineControl };
+export {TimelineControl};
