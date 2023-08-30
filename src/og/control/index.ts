@@ -1,57 +1,45 @@
-import {CompassButton} from "./CompassButton.js";
-import {Control} from "./Control.js";
-import {DebugInfo} from "./DebugInfo.js";
-import {DrawingSwitcher} from "./DrawingSwitcher.js";
-import {DrawingControl} from "./drawing/DrawingControl.js";
-import {EarthCoordinates} from "./EarthCoordinates.js";
-import {EarthNavigation} from "./EarthNavigation.js";
-import {GeoImageDragControl} from "./GeoImageDragControl.js";
-import {HeightRuler} from "./heightRuler/HeightRuler.js";
-import {KeyboardNavigation} from "./KeyboardNavigation.js";
-import {LayerAnimation} from "./LayerAnimation.js";
-import {LayerSwitcher} from "./LayerSwitcher.js";
-import {Lighting} from "./Lighting.js";
-import {MouseNavigation} from "./MouseNavigation.js";
-import {MouseWheelZoomControl} from "./MouseWheelZoomControl.js";
-import {Ruler} from "./ruler/Ruler.js";
-import {RulerSwitcher} from "./RulerSwitcher";
-import {ScaleControl} from "./ScaleControl.js";
-import {Selection} from "./selection/Selection.js";
-import {ShowFps} from "./ShowFps.js";
-import {SimpleNavigation} from "./SimpleNavigation.js";
-import {SimpleSkyBackground} from "./SimpleSkyBackground.js";
-import {Sun} from "./Sun.js";
-import {TimelineControl} from "./timeline/TimelineControl.js";
-import {ToggleWireframe} from "./ToggleWireframe.js";
-import {TouchNavigation} from "./TouchNavigation.js";
-import {ZoomControl} from "./ZoomControl.js";
+import { CompassButton } from "./CompassButton";
+import { Control } from "./Control";
+import { DebugInfo } from "./DebugInfo";
+import { DrawingSwitcher } from "./DrawingSwitcher";
+import { EarthCoordinates } from "./EarthCoordinates";
+import { EarthNavigation } from "./EarthNavigation";
+import { GeoImageDragControl } from "./GeoImageDragControl";
+import { KeyboardNavigation } from "./KeyboardNavigation";
+import { LayerAnimation } from "./LayerAnimation";
+import { LayerSwitcher } from "./LayerSwitcher";
+import { Lighting } from "./Lighting";
+import { MouseNavigation } from "./MouseNavigation";
+import { MouseWheelZoomControl } from "./MouseWheelZoomControl";
+import { RulerSwitcher } from "./RulerSwitcher";
+import { ScaleControl } from "./ScaleControl";
+import { ShowFps } from "./ShowFps";
+import { SimpleNavigation } from "./SimpleNavigation";
+import { SimpleSkyBackground } from "./SimpleSkyBackground";
+import { Sun } from "./Sun";
+import { ToggleWireframe } from "./ToggleWireframe";
+import { TouchNavigation } from "./TouchNavigation";
+import { ZoomControl } from "./ZoomControl";
+import { DrawingControl } from "./drawing/DrawingControl";
+import { HeightRuler } from "./heightRuler/HeightRuler";
+import { Ruler } from "./ruler/Ruler";
+import { Selection } from "./selection/Selection";
+import { TimelineControl } from "./timeline/TimelineControl";
 
 export {
-    Control,
-    CompassButton,
-    DebugInfo,
-    DrawingSwitcher,
-    DrawingControl,
-    EarthNavigation,
-    EarthCoordinates,
-    GeoImageDragControl,
+    CompassButton, Control, DebugInfo, DrawingControl, DrawingSwitcher, EarthCoordinates, EarthNavigation, GeoImageDragControl,
     HeightRuler,
-    KeyboardNavigation,
-    LayerSwitcher,
-    Lighting,
-    LayerAnimation,
-    MouseNavigation,
+    KeyboardNavigation, LayerAnimation, LayerSwitcher,
+    Lighting, MouseNavigation,
     MouseWheelZoomControl,
     Ruler,
     RulerSwitcher,
-    ScaleControl,
-    ShowFps,
+    ScaleControl, Selection, ShowFps,
     SimpleNavigation,
     SimpleSkyBackground,
-    Sun,
-    Selection,
-    TimelineControl,
+    Sun, TimelineControl,
     ToggleWireframe,
     TouchNavigation,
     ZoomControl
 };
+
