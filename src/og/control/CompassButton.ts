@@ -110,7 +110,7 @@ export class CompassButton extends Control {
         this.renderer!.events!.on("draw", this._draw, this);
     }
 
-    _onClick() {
+    protected _onClick() {
         const planet = this.planet!;
         let c = planet.getCartesianFromPixelTerrain(this.renderer!.handler!.getCenter());
         if (c) {
@@ -122,7 +122,7 @@ export class CompassButton extends Control {
                 null,
                 null,
                 () => {
-                    planet.camera.look(c);
+                    planet.camera.look(c!);
                 }
             );
         } else {
@@ -130,14 +130,14 @@ export class CompassButton extends Control {
         }
     }
 
-    _draw(e: any) {
-        this.setHeading(e.activeCamera.getHeading());
+    protected _draw() {
+        this.setHeading(this.planet!.camera.getHeading());
     }
 
-    setHeading(heading: any) {
+    public setHeading(heading: number) {
         if (this._heading !== heading) {
             this._heading = heading;
-            this._svg.style.transform = `rotateZ(${-heading}deg)`;
+            this._svg!.style.transform = `rotateZ(${-heading}deg)`;
         }
     }
 }
