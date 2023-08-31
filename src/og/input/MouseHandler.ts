@@ -1,10 +1,12 @@
+export type WheelEventExt = WheelEvent & { wheelDelta?: number };
+
 export interface MouseHandlerEvent {
     button?: any;
     clientX: number;
     clientY: number;
 }
 
-type MouseHandlerEventCallback = (sys: MouseEvent | WheelEvent, event?: MouseHandlerEvent) => void;
+type MouseHandlerEventCallback = (sys: MouseEvent | WheelEventExt, event?: MouseHandlerEvent) => void;
 
 class MouseHandler {
 
@@ -17,21 +19,19 @@ class MouseHandler {
     public setEvent(event: string, sender: any, callback: MouseHandlerEventCallback) {
         switch (event) {
             case "mousewheel":
-                this._htmlObject.addEventListener('mousewheel', function (event: any) {
-                    let delta = event.deltaY || event.detail || event.wheelDelta;
-                    if (event.wheelDelta == undefined) {
-                        event.wheelDelta = delta * (-120);
-                    }
-                    callback.call(sender, event);
-                    event.preventDefault();
-                }, false);
+                // this._htmlObject.addEventListener('mousewheel', function (event: WheelEventExt) {
+                //     let delta = event.deltaY || event.detail || event.wheelDelta || 0;
+                //     if (event.wheelDelta == undefined) {
+                //         event.wheelDelta = delta * (-120);
+                //     }
+                //     callback.call(sender, event);
+                //     event.preventDefault();
+                // }, false);
 
-                this._htmlObject.addEventListener('wheel', function (event: MouseEvent) {
-                    //@ts-ignore
-                    let delta = event.deltaY || event.detail || event.wheelDelta;
-                    //@ts-ignore
+                this._htmlObject.addEventListener('wheel', function (event: WheelEventExt) {
+                    let delta = event.deltaY || event.detail || event.wheelDelta || 0;
+
                     if (event.wheelDelta == undefined) {
-                        //@ts-ignore
                         event.wheelDelta = delta * (-120);
                     }
                     callback.call(sender, event);

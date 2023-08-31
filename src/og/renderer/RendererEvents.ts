@@ -5,7 +5,7 @@ import {input} from "../input/input";
 import {KeyboardHandler} from "../input/KeyboardHandler";
 import {MouseHandler, MouseHandlerEvent} from "../input/MouseHandler";
 import {Renderer} from "./Renderer";
-import {TouchHandler} from "../input/TouchHandler";
+import {TouchEventExt, TouchHandler} from "../input/TouchHandler";
 import {Vec2} from "../math/Vec2";
 import {NumberArray3, Vec3} from "../math/Vec3";
 
@@ -135,7 +135,7 @@ export interface ITouchState extends IBaseInputState {
     /** Double touching responce radius in screen pixels.*/
     doubleTouchRadius: number;
     /** JavaScript mouse system event message. */
-    sys: TouchEvent | null;
+    sys: TouchEventExt | null;
 }
 
 const LB_M = 0b0001;
@@ -605,14 +605,12 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         }
     }
 
-    protected onTouchStart(event: TouchEvent) {
+    protected onTouchStart(event: TouchEventExt) {
         let ts = this.touchState;
         ts.sys = event;
 
-        //@ts-ignore
-        ts.clientX = event.touches.item(0).clientX - event.offsetLeft;
-        //@ts-ignore
-        ts.clientY = event.touches.item(0).clientY - event.offsetTop;
+        ts.clientX = event.touches.item(0)!.clientX - event.offsetLeft;
+        ts.clientY = event.touches.item(0)!.clientY - event.offsetTop;
 
         let h = this.renderer.handler;
 
@@ -637,7 +635,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
     /**
      * @protected
      */
-    protected onTouchEnd(event: TouchEvent) {
+    protected onTouchEnd(event: TouchEventExt) {
         let ts = this.touchState;
         ts.sys = event;
         ts.touchEnd = true;
@@ -660,22 +658,17 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         }
     }
 
-    protected onTouchCancel(event: TouchEvent) {
+    protected onTouchCancel(event: TouchEventExt) {
         let ts = this.touchState;
         ts.sys = event;
         ts.touchCancel = true;
     }
 
-    /**
-     * @protected
-     */
-    protected onTouchMove(event: TouchEvent) {
+    protected onTouchMove(event: TouchEventExt) {
         let ts = this.touchState;
 
-        //@ts-ignore
-        ts.clientX = event.touches.item(0).clientX - event.offsetLeft;
-        //@ts-ignore
-        ts.clientY = event.touches.item(0).clientY - event.offsetTop;
+        ts.clientX = event.touches.item(0)!.clientX - event.offsetLeft;
+        ts.clientY = event.touches.item(0)!.clientY - event.offsetTop;
 
         let h = this.renderer.handler;
 
