@@ -158,11 +158,11 @@ class View<M> {
         return this;
     }
 
-    public select(queryStr: string): HTMLElement | null {
+    public select<T extends HTMLElement>(queryStr: string): T | null {
         if (this.el) {
-            return this.el.querySelector(queryStr);
+            return this.el.querySelector<T>(queryStr);
         }
-        return null;
+        return null as T | null;
     }
 
     public selectRemove(queryStr: string): HTMLElement | undefined {

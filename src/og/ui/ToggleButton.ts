@@ -23,6 +23,7 @@ class ToggleButton extends Button {
             ...options
         });
 
+        //@ts-ignore
         this.events = this.events.registerNames(TOGGLEBUTTON_EVENTS);
 
         this._isActive = options.isActive || false;
@@ -58,7 +59,7 @@ class ToggleButton extends Button {
 
     protected override _onMouseClick = (e: MouseEvent) => {
         if (!this.preventClick) {
-            super._onMouseClick(e);
+            this._mouseClickHandler(e);
             this.setActive(!this.isActive);
         }
     }

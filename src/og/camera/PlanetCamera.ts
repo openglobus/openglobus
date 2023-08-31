@@ -413,14 +413,14 @@ class PlanetCamera extends Camera {
      */
     flyCartesian(
         cartesian: Vec3,
-        look: Vec3 | LonLat = Vec3.ZERO,
-        up: Vec3 = Vec3.NORTH,
+        look: Vec3 | LonLat | null = Vec3.ZERO,
+        up: Vec3 | null = Vec3.NORTH,
         ampl: number = 1.0,
-        completeCallback: Function = () => {
+        completeCallback: Function | null = () => {
         },
-        startCallback: Function = () => {
+        startCallback: Function | null = () => {
         },
-        frameCallback: Function = () => {
+        frameCallback: Function | null = () => {
         }) {
 
         this.stopFlying();

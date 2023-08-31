@@ -1,10 +1,11 @@
 import {CLOSE_ICON} from './ui/icons';
 import {createLonLat, stringTemplate} from "./utils/shared";
+import {EventsHandler} from "./Events";
 import {LonLat} from "./LonLat";
 import {Planet} from "./scene/Planet";
 import {NumberArray2, Vec2} from "./math/Vec2";
 import {NumberArray3, Vec3} from "./math/Vec3";
-import {View, IViewParams} from './ui/View';
+import {View, IViewParams, ViewEventsList} from './ui/View';
 
 const TEMPLATE = `<div class="og-popup {className}">
       <div class="og-popup-content-wrapper">
@@ -29,7 +30,12 @@ interface IPopupParams extends IViewParams {
     lonLat?: LonLat | NumberArray2 | NumberArray3;
 }
 
-class Popup extends View {
+type PopupEventsList = ["open", "close"];
+const POPUP_EVENTS: PopupEventsList = ["open", "close"];
+
+class Popup extends View<null> {
+
+    public override events: EventsHandler<PopupEventsList> & EventsHandler<ViewEventsList>;
 
     public $content: HTMLElement | null;
     public $tip: HTMLElement | null;
@@ -52,10 +58,12 @@ class Popup extends View {
             template: stringTemplate(TEMPLATE, {
                 title: options.title || ""
             }),
-            eventList: ["open", "close"],
             classList: options.className ? [options.className] : [],
             ...options
         });
+
+        //@ts-ignore
+        this.events = this.events.registerNames(POPUP_EVENTS);
 
         this._content = options.content || "";
 
@@ -146,7 +154,7 @@ class Popup extends View {
         if (this._planet) {
             this._planet.events.on("draw", this._updatePosition, this);
             this.appendTo(this._planet.renderer!.div as HTMLElement);
-            this._events.dispatch(this._events.open, this);
+            this.events.dispatch(this.events.open, this);
         }
         return this;
     }
@@ -156,7 +164,7 @@ class Popup extends View {
         if (this.el && this.el.parentNode) {
             this._planet.events.off("draw", this._updatePosition);
             this.el.parentNode.removeChild(this.el);
-            this._events.dispatch(this._events.close, this);
+            this.events.dispatch(this.events.close, this);
         }
         return this;
     }

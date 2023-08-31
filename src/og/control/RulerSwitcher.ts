@@ -1,6 +1,6 @@
-import { ToggleButton } from "../ui/ToggleButton";
-import { Control } from "./Control";
-import { HeightRuler } from "./heightRuler/HeightRuler";
+import {Control, IControlParams} from "./Control";
+import {ToggleButton} from "../ui/ToggleButton";
+import {HeightRuler} from "./heightRuler/HeightRuler";
 
 const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="iso-8859-1"?>
 <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
@@ -18,12 +18,17 @@ const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="iso-8859-1"?>
 </g>
 </svg>`;
 
+interface IRulerSwitcherParams extends IControlParams {
+    ignoreTerrain?: boolean;
+}
+
 /**
  * Activate ruler
  */
 export class RulerSwitcher extends Control {
     ruler: HeightRuler;
-    constructor(options: { name?: string, ignoreTerrain?: boolean } = {}) {
+
+    constructor(options: IRulerSwitcherParams = {}) {
         super({
             name: "RulerSwitcher",
             ...options
@@ -34,29 +39,29 @@ export class RulerSwitcher extends Control {
         });
     }
 
-    override oninit() {
+    public override oninit() {
         this.planet!.addControl(this.ruler);
         this._createMenuBtn();
     }
 
-    override onactivate() {
+    public override onactivate() {
         this.ruler.activate();
     }
 
-    override ondeactivate() {
+    public override ondeactivate() {
         this.ruler.deactivate();
     }
 
-    _createMenuBtn() {
+    protected _createMenuBtn() {
 
         let btn = new ToggleButton({
             classList: ["og-map-button", "og-ruler_button"],
             icon: ICON_BUTTON_SVG
         });
 
-        btn.appendTo(this.renderer.div);
+        btn.appendTo(this.renderer!.div!);
 
-        btn.on("change", (isActive: boolean) => {
+        btn.events.on("change", (isActive: boolean) => {
             if (isActive) {
                 this.onactivate();
             } else {

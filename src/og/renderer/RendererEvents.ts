@@ -420,11 +420,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
     protected onMouseWheel(event: any) {
         this.mouseState.wheelDelta = event.wheelDelta || 0;
     }
-
-    /**
-     * @protected
-     */
-    protected updateButtonsStates(buttons: any) {
+    public updateButtonsStates(buttons: any) {
         let ms = this.mouseState;
         if ((buttons & LB_M) && ms.leftButtonDown) {
             ms.leftButtonDown = true;

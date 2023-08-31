@@ -579,7 +579,7 @@ class Camera {
      * @param {Vec3} [center] - Point that the camera rotates around
      * @param {Vec3} [up] - Camera up vector
      */
-    public rotateAround(angle: number, isArc?: boolean, center?: Vec3, up?: Vec3) {
+    public rotateAround(angle: number, isArc?: boolean, center?: Vec3 | null, up?: Vec3 | null) {
         center = center || Vec3.ZERO;
         up = up || Vec3.UP;
 
@@ -603,7 +603,7 @@ class Camera {
      * @param {Vec3} [center] - Point that the camera rotates around.
      * @param {Vec3} [up] - Camera up vector.
      */
-    public rotateHorizontal(angle: number, isArc?: boolean, center?: Vec3, up?: Vec3) {
+    public rotateHorizontal(angle: number, isArc?: boolean, center?: Vec3 | null, up?: Vec3 | null) {
         this.rotateAround(angle, isArc, center, up);
     }
 
@@ -688,7 +688,7 @@ class Camera {
     /**
      * Returns inverse projection matrix.
      * @public
-     * @returns {Mat4} - Inversed projection-view matrix.
+     * @returns {Mat4} - Inverse projection-view matrix.
      */
     public getInverseProjectionMatrix(): NumberArray16 {
         return this.frustum.inverseProjectionMatrix._m;

@@ -1,33 +1,35 @@
-import { Control } from "../Control";
-import { RulerScene } from "./RulerScene";
+import {Control, IControlParams} from "../Control";
+import {RulerScene} from "./RulerScene";
 
-/**
- * Activate ruler
- */
+export interface IRulerParams extends IControlParams {
+    ignoreTerrain?: boolean
+}
+
 export class Ruler extends Control {
-    protected _rulerScene: any;
-    constructor(options: { ignoreTerrain?: boolean, name?: string, autoActivate?: boolean } = {}) {
+    protected _rulerScene: RulerScene;
+
+    constructor(options: IRulerParams = {}) {
         super(options);
 
         this._rulerScene = new RulerScene({
-            name: `rulerScene:${this._id}`,
+            name: `rulerScene:${this.__id}`,
             ignoreTerrain: options.ignoreTerrain
         });
     }
 
-    set ignoreTerrain(v: boolean) {
+    public set ignoreTerrain(v: boolean) {
         this._rulerScene.ignoreTerrain = v;
     }
 
-    override oninit() {
+    public override oninit() {
         this._rulerScene.bindPlanet(this.planet);
     }
 
-    override onactivate() {
-        this.renderer.addNode(this._rulerScene);
+    public override onactivate() {
+        this.renderer && this.renderer.addNode(this._rulerScene);
     }
 
-    override ondeactivate() {
-        this.renderer.removeNode(this._rulerScene);
+    public override ondeactivate() {
+        this.renderer && this.renderer.removeNode(this._rulerScene);
     }
 }

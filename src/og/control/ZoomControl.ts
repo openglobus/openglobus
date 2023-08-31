@@ -1,6 +1,7 @@
-import { Key } from "../Lock";
-import { Button } from "../ui/Button";
-import { Control } from "./Control";
+import {Key} from "../Lock";
+import {Button} from "../ui/Button";
+import {Control, IControlParams} from "./Control";
+import {Vec2} from "../math/Vec2";
 
 const ICON_PLUS_SVG = '<?xml version="1.0"?>' +
     '<svg width=24 height=24 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' +
@@ -16,55 +17,56 @@ const ICON_MINUS_SVG = '<?xml version="1.0"?>' +
  * Planet zoom buttons control.
  */
 class ZoomControl extends Control {
-    private _keyLock: Key;
-    private _move: number;
-    private _targetPoint: any;
+    protected _keyLock: Key;
+    protected _move: number;
+    protected _targetPoint: Vec2 | null;
 
-    constructor(options = {}) {
+    constructor(options: IControlParams = {}) {
         super(options);
         this._keyLock = new Key();
         this._move = 0;
+        this._targetPoint = null;
     }
 
-    override oninit() {
+    public override oninit() {
 
         let zoomInBtn = new Button({
             classList: ["og-map-button", "og-zoomin-button"],
             icon: ICON_PLUS_SVG
         });
-        zoomInBtn.appendTo(this.renderer.div);
+        zoomInBtn.appendTo(this.renderer!.div!);
 
 
         let zoomOutBtn = new Button({
             classList: ["og-map-button", "og-zoomout-button"],
             icon: ICON_MINUS_SVG
         });
-        zoomOutBtn.appendTo(this.renderer.div);
+        zoomOutBtn.appendTo(this.renderer!.div!);
 
-        zoomInBtn.on("mousedown", () => this.zoomIn());
-        zoomInBtn.on("mouseup", () => this.stopZoom());
-        zoomOutBtn.on("mousedown", () => this.zoomOut());
-        zoomOutBtn.on("mouseup", () => this.stopZoom());
-        zoomInBtn.on("touchstart", () => this.zoomIn());
-        zoomInBtn.on("touchend", () => this.stopZoom());
-        zoomInBtn.on("touchcancel", () => this.stopZoom());
-        zoomOutBtn.on("touchstart", () => this.zoomOut());
-        zoomOutBtn.on("touchend", () => this.stopZoom());
-        zoomOutBtn.on("touchcancel", () => this.stopZoom());
+        zoomInBtn.events.on("mousedown", () => this.zoomIn());
+        zoomInBtn.events.on("mouseup", () => this.stopZoom());
+        zoomOutBtn.events.on("mousedown", () => this.zoomOut());
+        zoomOutBtn.events.on("mouseup", () => this.stopZoom());
+        zoomInBtn.events.on("touchstart", () => this.zoomIn());
+        zoomInBtn.events.on("touchend", () => this.stopZoom());
+        zoomInBtn.events.on("touchcancel", () => this.stopZoom());
+        zoomOutBtn.events.on("touchstart", () => this.zoomOut());
+        zoomOutBtn.events.on("touchend", () => this.stopZoom());
+        zoomOutBtn.events.on("touchcancel", () => this.stopZoom());
 
-        this.renderer.events.on("draw", this._draw, this);
+        this.renderer!.events.on("draw", this._draw, this);
     }
 
     /**
      * Planet zoom in.
      * @public
      */
-    zoomIn() {
+    public zoomIn() {
         this.planet!.layerLock.lock(this._keyLock);
         this.planet!.terrainLock.lock(this._keyLock);
         this.planet!._normalMapCreator.lock(this._keyLock);
 
-        this._targetPoint = this.renderer.getCenter();
+        this._targetPoint = this.renderer!.getCenter();
 
         this._move = 1;
     }
@@ -78,11 +80,11 @@ class ZoomControl extends Control {
         this.planet!.terrainLock.lock(this._keyLock);
         this.planet!._normalMapCreator.lock(this._keyLock);
 
-        this._targetPoint = this.renderer.getCenter();
+        this._targetPoint = this.renderer!.getCenter();
         this._move = -1;
     }
 
-    stopZoom() {
+    public stopZoom() {
         this._move = 0;
 
         this.planet!.layerLock.free(this._keyLock);
@@ -90,8 +92,8 @@ class ZoomControl extends Control {
         this.planet!._normalMapCreator.free(this._keyLock);
     }
 
-    _draw(e: any) {
-        const cam = this.renderer.activeCamera;
+    protected _draw(e: any) {
+        const cam = this.planet!.camera;
 
         if (this._move !== 0) {
             const pos = this.planet!.getCartesianFromPixelTerrain(e);
@@ -105,8 +107,4 @@ class ZoomControl extends Control {
     }
 }
 
-export function zoomControl(options: any) {
-    return new ZoomControl(options);
-}
-
-export { ZoomControl };
+export {ZoomControl};

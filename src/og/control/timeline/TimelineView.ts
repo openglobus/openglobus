@@ -122,6 +122,7 @@ class TimelineView extends View<TimelineModel> {
             })
         });
 
+        //@ts-ignore
         this.events = this.events.registerNames(TIMELINEVIEW_EVENTS);
 
         this.fillStyle = options.fillStyle || SCALE_FILL_COLOR;

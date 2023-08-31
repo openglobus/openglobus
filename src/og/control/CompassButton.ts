@@ -1,5 +1,5 @@
-﻿import { Button } from "../ui/Button";
-import { Control } from "./Control";
+﻿import {Button} from "../ui/Button";
+import {Control, IControlParams} from "./Control";
 
 const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
@@ -77,37 +77,42 @@ const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
   </g>
 </svg>`;
 
+interface ICompasButtonParams extends IControlParams {
+
+}
+
 /**
  * Planet compass button
  */
 export class CompassButton extends Control {
-    _heading: any;
-    _svg: any;
-    constructor(options = {}) {
+    protected _heading: number;
+    protected _svg: HTMLElement | null;
+
+    constructor(options: ICompasButtonParams = {}) {
         super(options);
-        this._heading = null;
+        this._heading = 0;
         this._svg = null;
     }
 
-    override oninit() {
+    public override oninit() {
 
         let btn = new Button({
             classList: ["og-map-button", "og-compass-button"],
             icon: ICON_BUTTON_SVG
         });
 
-        btn.appendTo(this.renderer.div);
+        btn.appendTo(this.renderer!.div!);
 
-        btn.on("click", this._onClick, this);
+        btn.events.on("click", this._onClick, this);
 
         this._svg = btn.select("svg");
 
-        this.renderer.events.on("draw", this._draw, this);
+        this.renderer!.events!.on("draw", this._draw, this);
     }
 
     _onClick() {
-        const planet = this.planet as any;
-        let c = planet.getCartesianFromPixelTerrain(this.renderer.handler.getCenter());
+        const planet = this.planet!;
+        let c = planet.getCartesianFromPixelTerrain(this.renderer!.handler!.getCenter());
         if (c) {
             planet.flyCartesian(
                 c.normal().scaleTo(c.length() + c.distance(planet.camera.eye)),

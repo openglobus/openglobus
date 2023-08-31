@@ -1,8 +1,14 @@
-import { Dialog } from '../ui/Dialog.js';
-import { Slider } from "../ui/Slider.js";
-import { ToggleButton } from "../ui/ToggleButton.js";
-import { View } from '../ui/View.js';
-import { Control } from "./Control.js";
+import {Control, IControlParams} from "./Control";
+import {Dialog} from '../ui/Dialog';
+import {Layer} from "../layer/Layer";
+import {Slider} from "../ui/Slider";
+import {Sun} from "./Sun";
+import {ToggleButton} from "../ui/ToggleButton";
+import {View} from '../ui/View';
+
+interface ILightingParams extends IControlParams {
+
+}
 
 const SUN_STOP_SVG_ICON = `<?xml version="1.0" encoding="utf-8"?><svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 122.88 70.41" style="enable-background:new 0 0 122.88 70.41" xml:space="preserve"><g><path d="M60.91,19.12c6.95,0,13.24,2.95,17.8,7.72c4.55,4.77,7.37,11.37,7.37,18.64c0,1.94-0.2,3.83-0.58,5.65h31.61 c2.1,0,2.62,1.16,2.62,2.59c0,1.43-0.52,2.59-2.62,2.59H7.09c-2.1,0-2.62-1.16-2.62-2.59c0-1.43,0.52-2.59,2.62-2.59h29.23 c-0.38-1.82-0.58-3.71-0.58-5.65c0-7.28,2.82-13.87,7.37-18.64C47.67,22.08,53.96,19.12,60.91,19.12L60.91,19.12L60.91,19.12z M63.4,70.41c-2.1,0-2.62-1.16-2.62-2.59s0.52-2.59,2.62-2.59h56.86c2.1,0,2.62,1.16,2.62,2.59s-0.52,2.59-2.62,2.59H63.4 L63.4,70.41z M2.62,70.41c-2.1,0-2.62-1.16-2.62-2.59s0.52-2.59,2.62-2.59h29.51c2.1,0,2.62,1.16,2.62,2.59s-0.52,2.59-2.62,2.59 H2.62L2.62,70.41z M38.39,9.46c-0.78-1.35-0.32-3.07,1.03-3.85c1.35-0.78,3.07-0.32,3.85,1.03l3.62,6.27 c0.78,1.35,0.32,3.07-1.03,3.85c-1.35,0.78-3.07,0.32-3.85-1.03L38.39,9.46L38.39,9.46L38.39,9.46z M58.67,2.83 c0-1.56,1.27-2.83,2.83-2.83c1.56,0,2.83,1.27,2.83,2.83v7.24c0,1.56-1.27,2.83-2.83,2.83c-1.56,0-2.83-1.26-2.83-2.83V2.83 L58.67,2.83L58.67,2.83z M79.56,7.23c0.77-1.35,2.49-1.81,3.84-1.04c1.35,0.77,1.81,2.49,1.04,3.84l-3.62,6.27 c-0.77,1.35-2.49,1.81-3.84,1.04c-1.35-0.77-1.81-2.49-1.04-3.84L79.56,7.23L79.56,7.23L79.56,7.23z M95.45,21.48 c1.35-0.78,3.07-0.32,3.85,1.03c0.78,1.35,0.32,3.07-1.03,3.85L92,29.98c-1.35,0.78-3.07,0.32-3.85-1.03 c-0.78-1.35-0.32-3.07,1.03-3.85L95.45,21.48L95.45,21.48L95.45,21.48z M102.08,41.76c1.56,0,2.83,1.27,2.83,2.83 c0,1.56-1.27,2.83-2.83,2.83h-7.24c-1.56,0-2.83-1.26-2.83-2.83s1.26-2.83,2.83-2.83H102.08L102.08,41.76L102.08,41.76z M19.74,46.25c-1.56,0-2.83-1.27-2.83-2.83c0-1.56,1.27-2.83,2.83-2.83h7.24c1.56,0,2.83,1.26,2.83,2.83s-1.27,2.83-2.83,2.83 H19.74L19.74,46.25L19.74,46.25z M24.14,25.35c-1.35-0.77-1.81-2.49-1.04-3.84c0.77-1.35,2.49-1.81,3.84-1.04l6.27,3.62 c1.35,0.77,1.81,2.49,1.04,3.84c-0.77,1.35-2.49,1.81-3.84,1.04L24.14,25.35L24.14,25.35L24.14,25.35z"/></g></svg>`;
 const SUN_ACTIVE_SVG_ICON = `<?xml version="1.0"?>
@@ -93,39 +99,42 @@ const ICON_BUTTON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="ht
 const MAX_COLOR = 5;
 
 /**
- * Helps to setup lighting.
+ * Helps to set up lighting.
  */
 export class Lighting extends Control {
-    _selectedLayer: any;
-    _toggleBtn: ToggleButton;
-    _dialog: Dialog;
-    _panel: View;
-    $gamma: any;
-    $exposure: any;
-    $night: any;
-    $opacity: any;
-    $diffuse: any;
-    $ambient: any;
-    $specular: any;
-    _atmosphereMaxOpacity: Slider;
-    _atmosphereMinOpacity: Slider;
-    _gamma: Slider;
-    _exposure: Slider;
-    _night: Slider;
-    _opacity: Slider;
-    _diffuse_r: Slider;
-    _diffuse_g: Slider;
-    _diffuse_b: Slider;
-    _ambient_r: Slider;
-    _ambient_g: Slider;
-    _ambient_b: Slider;
-    _specular_r: Slider;
-    _specular_g: Slider;
-    _specular_b: Slider;
-    _shininess: Slider;
-    $atmosphereOpacity: any;
+    protected _selectedLayer: Layer | null;
+    protected _toggleBtn: ToggleButton;
+    protected _dialog: Dialog<null>;
+    protected _panel: View<null>;
 
-    constructor(options = {}) {
+    protected _atmosphereMaxOpacity: Slider;
+    protected _atmosphereMinOpacity: Slider;
+    protected _gamma: Slider;
+    protected _exposure: Slider;
+    protected _night: Slider;
+    protected _opacity: Slider;
+    protected _diffuse_r: Slider;
+    protected _diffuse_g: Slider;
+    protected _diffuse_b: Slider;
+    protected _ambient_r: Slider;
+    protected _ambient_g: Slider;
+    protected _ambient_b: Slider;
+    protected _specular_r: Slider;
+    protected _specular_g: Slider;
+    protected _specular_b: Slider;
+    protected _shininess: Slider;
+
+    public $gamma: HTMLElement | null;
+    public $exposure: HTMLElement | null;
+    public $night: HTMLElement | null;
+    public $opacity: HTMLElement | null;
+    public $diffuse: HTMLElement | null;
+    public $ambient: HTMLElement | null;
+    public $specular: HTMLElement | null;
+    public $atmosphereOpacity: HTMLElement | null;
+
+
+    constructor(options: ILightingParams = {}) {
         super(options);
 
         this._selectedLayer = null;
@@ -144,7 +153,7 @@ export class Lighting extends Control {
             width: 600
         });
 
-        this._dialog.on("visibility", (v: any) => {
+        this._dialog.events.on("visibility", (v: any) => {
             this._toggleBtn.setActive(v);
         });
 
@@ -152,13 +161,14 @@ export class Lighting extends Control {
             template: TEMPLATE
         });
 
-        this.$gamma;
-        this.$exposure;
-        this.$night;
-        this.$opacity;
-        this.$diffuse;
-        this.$ambient;
-        this.$specular;
+        this.$gamma = null;
+        this.$exposure = null;
+        this.$night = null;
+        this.$opacity = null;
+        this.$diffuse = null;
+        this.$ambient = null;
+        this.$specular = null;
+        this.$atmosphereOpacity = null;
 
         this._atmosphereMaxOpacity = new Slider({
             label: "Max.opacity",
@@ -250,32 +260,34 @@ export class Lighting extends Control {
         });
     }
 
-    bindLayer(layer: any) {
+    public bindLayer(layer: Layer) {
         this._selectedLayer = layer;
         this._opacity.value = layer.opacity;
         this._update();
     }
 
-    override oninit() {
+    public override oninit() {
 
-        this._toggleBtn.appendTo(this.renderer.div);
-        this._dialog.appendTo(this.renderer.div);
+        this._toggleBtn.appendTo(this.renderer!.div!);
+        this._dialog.appendTo(this.renderer!.div!);
         this._panel.appendTo(this._dialog.container as any);
 
-        this.$atmosphereOpacity = this._panel.el?.querySelector(".og-atmosphere-opacity");
-        this.$gamma = this._panel.el?.querySelector(".og-option.og-gamma");
-        this.$exposure = this._panel.el?.querySelector(".og-option.og-exposure");
-        this.$opacity = this._panel.el?.querySelector(".og-option.og-opacity");
-        this.$diffuse = this._panel.el?.querySelector(".og-option.og-diffuse");
-        this.$ambient = this._panel.el?.querySelector(".og-option.og-ambient");
-        this.$specular = this._panel.el?.querySelector(".og-option.og-specular");
-        this.$night = this._panel.el?.querySelector(".og-option.og-night");
+        if (this._panel.el) {
+            this.$atmosphereOpacity = this._panel.el.querySelector(".og-atmosphere-opacity");
+            this.$gamma = this._panel.el.querySelector(".og-option.og-gamma");
+            this.$exposure = this._panel.el.querySelector(".og-option.og-exposure");
+            this.$opacity = this._panel.el.querySelector(".og-option.og-opacity");
+            this.$diffuse = this._panel.el.querySelector(".og-option.og-diffuse");
+            this.$ambient = this._panel.el.querySelector(".og-option.og-ambient");
+            this.$specular = this._panel.el.querySelector(".og-option.og-specular");
+            this.$night = this._panel.el.querySelector(".og-option.og-night");
+        }
 
-        this._toggleBtn.on("change", (isActive: boolean) => {
+        this._toggleBtn.events.on("change", (isActive: boolean) => {
             this._dialog.setVisibility(isActive);
         });
 
-        let $suncontrol = this._dialog.select(".og-suncontrol");
+        let $suncontrol = this._dialog.select(".og-suncontrol")!;
 
         let sunStopBtn = new ToggleButton({
             classList: ["og-suncontrol-button"],
@@ -283,7 +295,7 @@ export class Lighting extends Control {
             icon: SUN_STOP_SVG_ICON,
             title: "Star/stop the Sun from following the camera"
         });
-        sunStopBtn.appendTo($suncontrol as any);
+        sunStopBtn.appendTo($suncontrol);
 
         let sunActiveBtn = new ToggleButton({
             classList: ["og-suncontrol-button"],
@@ -291,10 +303,10 @@ export class Lighting extends Control {
             icon: SUN_ACTIVE_SVG_ICON,
             title: "Activate/deactivate the Sun current time positioning"
         });
-        sunActiveBtn.appendTo($suncontrol as any);
+        sunActiveBtn.appendTo($suncontrol);
 
-        sunStopBtn.on("change", (isActive: boolean) => {
-            const sun = this.planet!.renderer!.controls.sun as any;
+        sunStopBtn.events.on("change", (isActive: boolean) => {
+            const sun = this.planet!.renderer!.controls.sun as Sun;
             if (isActive) {
                 sun.start();
             } else {
@@ -302,7 +314,7 @@ export class Lighting extends Control {
             }
         });
 
-        sunActiveBtn.on("change", (isActive: boolean) => {
+        sunActiveBtn.events.on("change", (isActive: boolean) => {
             const sun = this.planet!.renderer!.controls.sun;
             if (isActive) {
                 sun.activate();
@@ -317,10 +329,10 @@ export class Lighting extends Control {
             icon: LIGHTING_ENABLED_SVG_ICON,
             title: "Enable/disable planet lighting"
         });
-        lightingEnabledBtn.appendTo($suncontrol as any);
+        lightingEnabledBtn.appendTo($suncontrol);
 
-        lightingEnabledBtn.on("change", (isActive: boolean) => {
-            (this.planet as any).lightEnabled = isActive;
+        lightingEnabledBtn.events.on("change", (isActive: boolean) => {
+            this.planet!.lightEnabled = isActive;
         });
 
         let atmosphereEnabledBtn = new ToggleButton({
@@ -329,126 +341,131 @@ export class Lighting extends Control {
             icon: ATMOSPHERE_SVG_ICON,
             title: "Enable/disable atmosphere scattering"
         });
-        atmosphereEnabledBtn.appendTo($suncontrol as any);
+        atmosphereEnabledBtn.appendTo($suncontrol);
 
         if (this.planet!.atmosphereEnabled) {
-            this.$atmosphereOpacity.style.display = "block";
+            this.$atmosphereOpacity!.style.display = "block";
         } else {
-            this.$atmosphereOpacity.style.display = "none";
+            this.$atmosphereOpacity!.style.display = "none";
         }
-        atmosphereEnabledBtn.on("change", (isActive: boolean) => {
-            (this.planet as any).atmosphereEnabled = isActive;
+        atmosphereEnabledBtn.events.on("change", (isActive: boolean) => {
+            this.planet!.atmosphereEnabled = isActive;
             if (this.planet!.atmosphereEnabled) {
-                this.$atmosphereOpacity.style.display = "block";
+                this.$atmosphereOpacity!.style.display = "block";
             } else {
-                this.$atmosphereOpacity.style.display = "none";
+                this.$atmosphereOpacity!.style.display = "none";
             }
         });
 
-        this._atmosphereMaxOpacity.appendTo(this.$atmosphereOpacity);
-        this._atmosphereMinOpacity.appendTo(this.$atmosphereOpacity);
+        this._atmosphereMaxOpacity.appendTo(this.$atmosphereOpacity!);
+        this._atmosphereMinOpacity.appendTo(this.$atmosphereOpacity!);
 
-        this._gamma.appendTo(this.$gamma);
-        this._exposure.appendTo(this.$exposure);
+        this._gamma.appendTo(this.$gamma!);
+        this._exposure.appendTo(this.$exposure!);
 
-        this._night.appendTo(this.$night);
-        this._opacity.appendTo(this.$opacity);
+        this._night.appendTo(this.$night!);
+        this._opacity.appendTo(this.$opacity!);
 
-        this._diffuse_r.appendTo(this.$diffuse);
-        this._diffuse_g.appendTo(this.$diffuse);
-        this._diffuse_b.appendTo(this.$diffuse);
+        this._diffuse_r.appendTo(this.$diffuse!);
+        this._diffuse_g.appendTo(this.$diffuse!);
+        this._diffuse_b.appendTo(this.$diffuse!);
 
-        this._ambient_r.appendTo(this.$ambient);
-        this._ambient_g.appendTo(this.$ambient);
-        this._ambient_b.appendTo(this.$ambient);
+        this._ambient_r.appendTo(this.$ambient!);
+        this._ambient_g.appendTo(this.$ambient!);
+        this._ambient_b.appendTo(this.$ambient!);
 
-        this._specular_r.appendTo(this.$specular);
-        this._specular_g.appendTo(this.$specular);
-        this._specular_b.appendTo(this.$specular);
-        this._shininess.appendTo(this.$specular);
+        this._specular_r.appendTo(this.$specular!);
+        this._specular_g.appendTo(this.$specular!);
+        this._specular_b.appendTo(this.$specular!);
+        this._shininess.appendTo(this.$specular!);
 
         this._atmosphereMinOpacity.value = this.planet!.atmosphereMinOpacity;
-        this._atmosphereMinOpacity.on("change", (val: any) => {
-            (this.planet as any).atmosphereMinOpacity = val;
+        this._atmosphereMinOpacity.events.on("change", (val: number) => {
+            this.planet!.atmosphereMinOpacity = val;
         });
 
         this._gamma.value = this.planet!.renderer!.gamma;
-        this._gamma.on("change", (val: any) => {
-            (this.planet as any).renderer.gamma = val;
+        this._gamma.events.on("change", (val: number) => {
+            this.planet!.renderer!.gamma = val;
         });
 
-
-        (this as any)._panel.el.querySelector("#layers").addEventListener("change", (e: any) => {
-            this.bindLayer(this.planet!.getLayerByName(e.target.value));
+        this._panel.el!.querySelector<HTMLSelectElement>("#layers")!.addEventListener("change", (e: Event) => {
+            //@ts-ignore
+            const l = this.planet!.getLayerByName(e.target.value);
+            if (l) {
+                this.bindLayer(l);
+            }
         });
 
         this._atmosphereMaxOpacity.value = this.planet!.atmosphereMaxOpacity;
-        this._atmosphereMaxOpacity.on("change", (val: any) => {
-            (this as any).planet.atmosphereMaxOpacity = val;
-            (this as any).planet.renderer.controls.Atmosphere.opacity = val;
+        this._atmosphereMaxOpacity.events.on("change", (val: number) => {
+            this.planet!.atmosphereMaxOpacity = val;
+            //@ts-ignore
+            this.planet!.renderer!.controls.Atmosphere.opacity = val;
         });
 
         this._exposure.value = (this as any).planet.renderer.exposure;
-        this._exposure.on("change", (val: any) => {
-            (this as any).planet.renderer.exposure = val;
+        this._exposure.events.on("change", (val: number) => {
+            this.planet!.renderer!.exposure = val;
         });
 
-        this._night.on("change", (val: any) => {
-            if (this._selectedLayer)
+        this._night.events.on("change", (val: number) => {
+            if (this._selectedLayer) {
                 this._selectedLayer.nightTextureCoefficient = val;
+            }
         });
 
-        this._opacity.on("change", (val: any) => {
+        this._opacity.events.on("change", (val: number) => {
             if (this._selectedLayer)
                 this._selectedLayer.opacity = val;
         });
 
-        this._ambient_r.on("change", (val: any) => {
+        this._ambient_r.events.on("change", (val: number) => {
             if (this._selectedLayer && this._selectedLayer._ambient)
                 this._selectedLayer._ambient[0] = val
         });
 
-        this._ambient_g.on("change", (val: any) => {
+        this._ambient_g.events.on("change", (val: number) => {
             if (this._selectedLayer && this._selectedLayer._ambient)
                 this._selectedLayer._ambient[1] = val
         });
 
-        this._ambient_b.on("change", (val: any) => {
+        this._ambient_b.events.on("change", (val: number) => {
             if (this._selectedLayer && this._selectedLayer._ambient)
                 this._selectedLayer._ambient[2] = val
         });
 
-        this._diffuse_r.on("change", (val: any) => {
+        this._diffuse_r.events.on("change", (val: number) => {
             if (this._selectedLayer && this._selectedLayer._diffuse)
                 this._selectedLayer._diffuse[0] = val
         });
 
-        this._diffuse_g.on("change", (val: any) => {
+        this._diffuse_g.events.on("change", (val: number) => {
             if (this._selectedLayer && this._selectedLayer._diffuse)
                 this._selectedLayer._diffuse[1] = val
         });
 
-        this._diffuse_b.on("change", (val: any) => {
+        this._diffuse_b.events.on("change", (val: number) => {
             if (this._selectedLayer && this._selectedLayer._diffuse)
                 this._selectedLayer._diffuse[2] = val
         });
 
-        this._specular_r.on("change", (val: any) => {
+        this._specular_r.events.on("change", (val: number) => {
             if (this._selectedLayer && this._selectedLayer._specular)
                 this._selectedLayer._specular[0] = val
         });
 
-        this._specular_g.on("change", (val: any) => {
+        this._specular_g.events.on("change", (val: number) => {
             if (this._selectedLayer && this._selectedLayer._specular)
                 this._selectedLayer._specular[1] = val
         });
 
-        this._specular_b.on("change", (val: any) => {
+        this._specular_b.events.on("change", (val: number) => {
             if (this._selectedLayer && this._selectedLayer._specular)
                 this._selectedLayer._specular[2] = val
         });
 
-        this._shininess.on("change", (val: any) => {
+        this._shininess.events.on("change", (val: number) => {
             if (this._selectedLayer && this._selectedLayer._specular)
                 this._selectedLayer._specular[3] = val
         });
@@ -462,33 +479,31 @@ export class Lighting extends Control {
         this._fetchLayers();
     }
 
-    _update() {
+    protected _update() {
         let l = this._selectedLayer;
 
-        let o = l && l.opacity ? l.opacity : 0.0;
-        this._opacity.value = o;
+        this._opacity.value = l && l.opacity ? l.opacity : 0.0;
 
-        let n = l && l.nightTextureCoefficient ? l.nightTextureCoefficient : this.planet!.nightTextureCoefficient;
-        this._night.value = n;
+        this._night.value = l && l.nightTextureCoefficient ? l.nightTextureCoefficient : this.planet!.nightTextureCoefficient;
 
-        let a = l && l._ambient ? l._ambient : (this as any).planet._ambient;
+        let a = l && l._ambient ? l._ambient : this.planet!._ambient;
         this._ambient_r.value = a[0];
         this._ambient_g.value = a[1];
         this._ambient_b.value = a[2];
 
-        let d = l && l._diffuse ? l._diffuse : (this as any).planet._diffuse;
+        let d = l && l._diffuse ? l._diffuse : this.planet!._diffuse;
         this._diffuse_r.value = d[0];
         this._diffuse_g.value = d[1];
         this._diffuse_b.value = d[2];
 
-        let s = l && l._specular ? l._specular : (this as any).planet._specular;
+        let s = l && l._specular ? l._specular : this.planet!._specular;
         this._specular_r.value = s[0];
         this._specular_g.value = s[1];
         this._specular_b.value = s[2];
         this._shininess.value = s[3];
     }
 
-    _fetchLayers() {
+    protected _fetchLayers() {
         if (this.planet) {
             for (let i = 0; i < this.planet.layers.length; i++) {
                 this._onLayerAdd(this.planet.layers[i]);
@@ -496,15 +511,15 @@ export class Lighting extends Control {
         }
     }
 
-    _onLayerAdd(e: any) {
+    protected _onLayerAdd(e: Layer) {
         this.bindLayer(e);
         let opt = document.createElement("option");
         opt.value = e.name;
         opt.innerText = e.name;
-        (this as any)._panel.el.querySelector("#layers").appendChild(opt);
-        (this as any)._panel.el.querySelector("#layers").value = e.name;
+        this._panel.el!.querySelector("#layers")!.appendChild(opt);
+        this._panel.el!.querySelector<HTMLSelectElement>("#layers")!.value = e.name;
     }
 
-    _onLayerRemove(e: any) {
+    protected _onLayerRemove(e: Layer) {
     }
 }

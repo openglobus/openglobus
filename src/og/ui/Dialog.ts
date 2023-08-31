@@ -70,6 +70,7 @@ class Dialog<M> extends View<M> {
             ...options
         });
 
+        //@ts-ignore
         this.events = this.events.registerNames(DIALOG_EVENTS);
 
         this._startPosX = 0;
@@ -196,7 +197,7 @@ class Dialog<M> extends View<M> {
         }
     }
 
-    protected _onMouseMove(e: MouseEvent) {
+    protected _onMouseMove = (e: MouseEvent) => {
         //@ts-ignore
         e = e || window.event;
         e.preventDefault();

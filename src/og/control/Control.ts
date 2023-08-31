@@ -200,7 +200,7 @@ export class Control {
         return this._active;
     }
 
-    public isEqual(control: this): boolean {
+    public isEqual(control: Control): boolean {
         return control.__id === this.__id;
     }
 }

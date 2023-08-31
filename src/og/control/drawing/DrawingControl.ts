@@ -1,47 +1,48 @@
-import { Control } from "../Control";
-import { LineStringDrawingScene } from "./LineStringDrawingScene";
-import { PolygonDrawingScene } from "./PolygonDrawingScene";
+import {Control, IControlParams} from "../Control";
+import {LineStringDrawingScene} from "./LineStringDrawingScene";
+import {PolygonDrawingScene} from "./PolygonDrawingScene";
 
 /**
  * Activate drawing
  */
 class DrawingControl extends Control {
-    _drawingScene: any;
-    constructor(options: { [key: string]: any; } = {}) {
+    _drawingScene: PolygonDrawingScene;
+
+    constructor(options: IControlParams) {
         super(options);
 
         this._drawingScene = new LineStringDrawingScene({
-            name: `drawingScene:${this._id}`
+            name: `drawingScene:${this.__id}`
         });
     }
 
-    activatePolygonDrawing() {
+    public activatePolygonDrawing() {
         this.deactivate();
         this._drawingScene = new PolygonDrawingScene({
-            name: `drawingScene:${this._id}`
+            name: `drawingScene:${this.__id}`
         });
         this.activate();
     }
 
-    activateLineStringDrawing() {
+    public activateLineStringDrawing() {
         this.deactivate();
         this._drawingScene = new LineStringDrawingScene({
-            name: `drawingScene:${this._id}`
+            name: `drawingScene:${this.__id}`
         });
         this.activate();
     }
 
-    override oninit() {
+    public override oninit() {
     }
 
-    override onactivate() {
+    public override onactivate() {
         this._drawingScene.bindPlanet(this.planet);
-        this.renderer.addNode(this._drawingScene);
+        this.renderer && this.renderer.addNode(this._drawingScene);
     }
 
-    override ondeactivate() {
-        this.renderer.removeNode(this._drawingScene);
+    public override ondeactivate() {
+        this.renderer && this.renderer.removeNode(this._drawingScene);
     }
 }
 
-export { DrawingControl };
+export {DrawingControl};

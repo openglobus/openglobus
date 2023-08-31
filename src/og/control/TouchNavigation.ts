@@ -1,47 +1,53 @@
-import { Key } from "../Lock";
-import { LonLat } from "../LonLat";
-import { Sphere } from "../bv/Sphere";
-import { math } from "../index";
-import { Quat } from "../math/Quat";
-import { Ray } from "../math/Ray";
-import { Vec2 } from "../math/Vec2";
-import { Vec3 } from "../math/Vec3";
-import { Control } from "./Control";
+import {Control, IControlParams} from "./Control";
+import {Key} from "../Lock";
+import {LonLat} from "../LonLat";
+import {math} from "../index";
+import {Quat} from "../math/Quat";
+import {Ray} from "../math/Ray";
+import {Sphere} from "../bv/Sphere";
+import {Vec2} from "../math/Vec2";
+import {Vec3} from "../math/Vec3";
+
+interface ITouchNavigationParams extends IControlParams {
+
+}
 
 class Touch {
-    x: number;
-    y: number;
-    prev_x: number;
-    prev_y: number;
-    grabbedPoint: Vec3;
-    grabbedSpheroid: Sphere;
-    _vec: Vec2;
-    _vecPrev: Vec2;
+    public x: number;
+    public y: number;
+    public prev_x: number;
+    public prev_y: number;
+    public grabbedPoint: Vec3 | null;
+    public grabbedSpheroid: Sphere;
+
+    protected _vec: Vec2;
+    protected _vecPrev: Vec2;
+
 
     constructor() {
         this.x = 0;
         this.y = 0;
         this.prev_x = 0;
         this.prev_y = 0;
-        this.grabbedPoint = new Vec3();
+        this.grabbedPoint = null;
         this.grabbedSpheroid = new Sphere();
         this._vec = new Vec2();
         this._vecPrev = new Vec2();
     }
 
-    get dY() {
+    public get dY(): number {
         return this.y - this.prev_y;
     }
 
-    get dX() {
+    public get dX(): number {
         return this.x - this.prev_x;
     }
 
-    get vec() {
+    public get vec(): Vec2 {
         return this._vec.set(this.x, this.y);
     }
 
-    get vecPrev() {
+    public get vecPrev(): Vec2 {
         return this._vecPrev.set(this.prev_x, this.prev_y);
     }
 }
@@ -50,23 +56,26 @@ class Touch {
  * Touch pad planet camera dragging control.
  */
 export class TouchNavigation extends Control {
-    grabbedPoint: Vec3;
-    inertia: number;
-    grabbedSpheroid: Sphere;
-    qRot: Quat;
-    scaleRot: number;
-    rot: number;
-    _eye0: Vec3;
-    stepsCount: number;
-    stepsForward: any;
-    stepIndex: number;
-    pointOnEarth: any;
-    earthUp: any;
-    touches: Touch[];
-    _keyLock: Key;
-    _touching = false;
 
-    constructor(options = {}) {
+    public grabbedPoint: Vec3;
+    public inertia: number;
+
+    protected grabbedSpheroid: Sphere;
+    protected qRot: Quat;
+    protected scaleRot: number;
+    protected rot: number;
+    protected _eye0: Vec3;
+    protected stepsCount: number;
+    protected stepsForward: any;
+    protected stepIndex: number;
+    protected pointOnEarth: Vec3 | null;
+    protected earthUp: Vec3 | null;
+    protected touches: Touch[];
+    protected _keyLock: Key;
+    protected _touching: boolean;
+
+
+    constructor(options: ITouchNavigationParams = {}) {
         super(options);
 
         this._name = "touchNavigation";
@@ -90,43 +99,46 @@ export class TouchNavigation extends Control {
         this.touches = [new Touch(), new Touch()];
 
         this._keyLock = new Key();
+
+        this._touching = false;
     }
 
     override oninit() {
-        this.renderer.events.on("touchstart", this.onTouchStart, this);
-        this.renderer.events.on("touchend", this.onTouchEnd, this);
-        this.renderer.events.on("doubletouch", this.onDoubleTouch, this);
-        this.renderer.events.on("touchcancel", this.onTouchCancel, this);
-        this.renderer.events.on("touchmove", this.onTouchMove, this);
-        this.renderer.events.on("draw", this.onDraw, this);
+        if (this.renderer) {
+            this.renderer.events.on("touchstart", this.onTouchStart, this);
+            this.renderer.events.on("touchend", this.onTouchEnd, this);
+            this.renderer.events.on("doubletouch", this.onDoubleTouch, this);
+            this.renderer.events.on("touchcancel", this.onTouchCancel, this);
+            this.renderer.events.on("touchmove", this.onTouchMove, this);
+            this.renderer.events.on("draw", this.onDraw, this);
+        }
     }
 
-    onTouchStart(e: any) {
-        const handler = this.renderer.handler;
+    protected onTouchStart(e: any) {
+        const handler = this.renderer!.handler;
         this._touching = true;
 
         if (e.sys.touches.length === 2) {
-            const t0 = this.touches[0] as any;
-            const t1 = this.touches[1] as any;
+            const t0 = this.touches[0];
+            const t1 = this.touches[1];
 
-            t0.e = e
             t0.x = (e.sys.touches.item(0).clientX - e.sys.offsetLeft) * handler.pixelRatio;
             t0.y = (e.sys.touches.item(0).clientY - e.sys.offsetTop) * handler.pixelRatio;
             t0.prev_x = t0.x;
             t0.prev_y = t0.y;
-            // t0.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(t0, true);
-            t0.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(t0);
+            //@ts-ignore
+            t0.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(t0) || null;
 
             t1.x = (e.sys.touches.item(1).clientX - e.sys.offsetLeft) * handler.pixelRatio;
             t1.y = (e.sys.touches.item(1).clientY - e.sys.offsetTop) * handler.pixelRatio;
             t1.prev_x = t1.x;
             t1.prev_y = t1.y;
-            // t1.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(t1, true);
-            t1.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(t1);
+            //@ts-ignore
+            t1.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(t1) || null;
 
             this.pointOnEarth = this.planet!.getCartesianFromPixelTerrain(
-                this.renderer.handler.getCenter()
-            );
+                this.renderer!.handler.getCenter()
+            ) || null;
 
             if (this.pointOnEarth) {
                 this.earthUp = this.pointOnEarth.normal();
@@ -142,9 +154,9 @@ export class TouchNavigation extends Control {
         }
     }
 
-    _startTouchOne(e: any) {
-        const t = this.touches[0] as any;
-        const handler = this.renderer.handler;
+    protected _startTouchOne(e: any) {
+        const t = this.touches[0];
+        const handler = this.renderer!.handler;
 
         t.x = (e.sys.touches.item(0).clientX - e.sys.offsetLeft) * handler.pixelRatio;
         t.y = (e.sys.touches.item(0).clientY - e.sys.offsetTop) * handler.pixelRatio;
@@ -152,8 +164,8 @@ export class TouchNavigation extends Control {
         t.prev_y = t.y;
 
         // t.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(e, true);
-        t.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(e);
-        this._eye0.copy(this.renderer.activeCamera.eye);
+        t.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(e) || null;
+        this._eye0.copy(this.planet!.camera.eye);
 
         if (t.grabbedPoint) {
             t.grabbedSpheroid.radius = t.grabbedPoint.length();
@@ -161,14 +173,14 @@ export class TouchNavigation extends Control {
         }
     }
 
-    stopRotation() {
+    public stopRotation() {
         this.qRot.clear();
         this.planet!.layerLock.free(this._keyLock);
         this.planet!.terrainLock.free(this._keyLock);
         this.planet!._normalMapCreator.free(this._keyLock);
     }
 
-    onDoubleTouch(e: any) {
+    protected onDoubleTouch(e: any) {
         if (this.stepIndex) {
             return;
         }
@@ -180,12 +192,12 @@ export class TouchNavigation extends Control {
         if (p) {
             const g = this.planet!.ellipsoid.cartesianToLonLat(p) as any;
             this.planet!.flyLonLat(
-                new LonLat(g.lon, g.lat, this.renderer.activeCamera.eye.distance(p) * 0.57)
+                new LonLat(g.lon, g.lat, this.planet!.camera.eye.distance(p) * 0.57)
             );
         }
     }
 
-    onTouchEnd(e: any) {
+    protected onTouchEnd(e: any) {
         if (e.sys.touches.length === 0) {
             this._touching = false;
         }
@@ -202,16 +214,16 @@ export class TouchNavigation extends Control {
         }
     }
 
-    onTouchCancel(e: any) {
+    protected onTouchCancel(e: any) {
     }
 
-    onTouchMove(e: any) {
-        var cam = this.renderer.activeCamera;
-        const handler = this.renderer.handler;
+    protected onTouchMove(e: any) {
+        let cam = this.planet!.camera;
+        const handler = this.renderer!.handler;
         if (e.sys.touches.length === 2) {
-            this.renderer.controlsBag.scaleRot = 1;
+            this.renderer!.controlsBag.scaleRot = 1;
 
-            var t0 = this.touches[0],
+            let t0 = this.touches[0],
                 t1 = this.touches[1];
 
             if (!t0.grabbedPoint || !t1.grabbedPoint) {
@@ -264,7 +276,7 @@ export class TouchNavigation extends Control {
             }
             this.scaleRot = 0;
         } else if (e.sys.touches.length === 1) {
-            var t = this.touches[0];
+            let t = this.touches[0];
 
             t.prev_x = t.x;
             t.prev_y = t.y;
@@ -277,8 +289,8 @@ export class TouchNavigation extends Control {
 
             this.planet!.stopFlying();
 
-            var direction = e.direction
-            var targetPoint = new Ray(cam.eye, direction).hitSphere(t.grabbedSpheroid);
+            let direction = e.direction
+            let targetPoint = new Ray(cam.eye, direction).hitSphere(t.grabbedSpheroid);
 
             if (targetPoint) {
                 if (cam.slope > 0.2) {
@@ -286,7 +298,7 @@ export class TouchNavigation extends Control {
                         targetPoint.normal(),
                         t.grabbedPoint.normal()
                     );
-                    var rot = this.qRot;
+                    let rot = this.qRot;
                     cam.eye = rot.mulVec3(cam.eye);
                     cam._r = rot.mulVec3(cam._r);
                     cam._u = rot.mulVec3(cam._u);
@@ -295,11 +307,11 @@ export class TouchNavigation extends Control {
                     cam.update();
                     this.scaleRot = 1;
                 } else {
-                    var p0 = t.grabbedPoint,
+                    let p0 = t.grabbedPoint,
                         p1 = Vec3.add(p0, cam._u),
                         p2 = Vec3.add(p0, p0.normal());
-                    var dir = cam.unproject(t.x, t.y);
-                    var px = new Vec3();
+                    let dir = cam.unproject(t.x, t.y);
+                    let px = new Vec3();
                     if (new Ray(cam.eye, dir).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
                         cam.eye = this._eye0.addA(px.subA(p0).negate());
                         cam.checkTerrainCollision();
@@ -311,20 +323,22 @@ export class TouchNavigation extends Control {
         }
     }
 
-    onDraw(e: any) {
-        this.renderer.controlsBag.scaleRot = this.scaleRot;
+    protected onDraw() {
+
+        const r = this.renderer!;
+
+        r.controlsBag.scaleRot = this.scaleRot;
 
         if (this._touching) {
             return;
         }
 
-        var r = this.renderer;
-        var cam = r.activeCamera;
-        var prevEye = cam.eye.clone();
+        let cam = this.planet!.camera;
+        let prevEye = cam.eye.clone();
 
         if (this.stepIndex) {
             r.controlsBag.scaleRot = 1;
-            var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
+            let sf = this.stepsForward[this.stepsCount - this.stepIndex--];
             cam.eye = sf.eye;
             cam._r = sf.v;
             cam._u = sf.u;
@@ -342,7 +356,7 @@ export class TouchNavigation extends Control {
             this.scaleRot = 0;
         } else {
             r.controlsBag.scaleRot = this.scaleRot;
-            var rot = this.qRot
+            let rot = this.qRot
                 .slerp(Quat.IDENTITY, 1 - this.scaleRot * this.scaleRot * this.scaleRot)
                 .normalize();
             if (!(rot.x || rot.y || rot.z)) {
@@ -356,7 +370,7 @@ export class TouchNavigation extends Control {
             cam.update();
         }
 
-        if (cam.eye.distance(prevEye) / cam._terrainAltitude > 0.01) {
+        if (cam.eye.distance(prevEye) / cam.getAltitude() > 0.01) {
             this.planet!.layerLock.lock(this._keyLock);
             this.planet!.terrainLock.lock(this._keyLock);
             this.planet!._normalMapCreator.lock(this._keyLock);

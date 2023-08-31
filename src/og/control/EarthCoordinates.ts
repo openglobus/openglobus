@@ -1,8 +1,8 @@
-import { LonLat } from '../LonLat';
-import { throttle } from '../utils/shared';
 import * as units from '../utils/units.js';
-import { heightMode } from '../utils/units.js';
-import { Control } from './Control.js';
+import {Control} from './Control.js';
+import {heightMode} from '../utils/units.js';
+import {LonLat} from '../LonLat';
+import {throttle} from '../utils/shared';
 
 const DECIMAL_TEMPLATE =
     `<div class="og-lat-side"></div><div class="og-lat-val"></div>

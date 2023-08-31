@@ -224,9 +224,9 @@ class Layer {
 
     protected _preLoadZoomLevels: number[];
 
-    protected _ambient: Float32Array | null;
-    protected _diffuse: Float32Array | null;
-    protected _specular: Float32Array | null;
+    public _ambient: Float32Array | null;
+    public _diffuse: Float32Array | null;
+    public _specular: Float32Array | null;
 
     public isVector: boolean = false;
 

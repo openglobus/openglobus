@@ -10,7 +10,6 @@ interface ITimelineControlParams extends IControlParams {
     rangeEnd?: Date;
 }
 
-
 function addHours(date: Date, hours: number): Date {
     const temp = new Date(date);
     temp.setHours(temp.getHours() + hours);
@@ -83,7 +82,7 @@ class TimelineControl extends Control {
             }
         });
 
-        this._timelineView.appendTo(this._dialog.container as any);
+        this._timelineView.appendTo(this._dialog.container!);
 
         this._timelineView.events.on("setcurrent", (d: Date) => {
             this.renderer && this.renderer.handler.defaultClock.setDate(d);

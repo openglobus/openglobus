@@ -37,6 +37,7 @@ class Button extends View<null> {
             ...options
         });
 
+        //@ts-ignore
         this.events = this.events.registerNames(BUTTON_EVENTS);
 
         this.name = options.name || "";
@@ -100,11 +101,15 @@ class Button extends View<null> {
         this.events.dispatch(this.events.touchcancel, this, e);
     }
 
-    protected _onMouseClick = (e: MouseEvent) => {
+    protected _mouseClickHandler(e: MouseEvent) {
         //@ts-ignore
         e = e || window.event;
         e.preventDefault();
         this.events.dispatch(this.events.click, this, e);
+    }
+
+    protected _onMouseClick = (e: MouseEvent) => {
+        this._mouseClickHandler(e)
     }
 
     public override remove() {

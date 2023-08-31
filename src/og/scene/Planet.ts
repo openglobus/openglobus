@@ -317,9 +317,9 @@ export class Planet extends RenderNode {
     protected _specularTexture: WebGLTextureExt | null;
 
 
-    protected _ambient: Float32Array;
-    protected _diffuse: Float32Array;
-    protected _specular: Float32Array;
+    public _ambient: Float32Array;
+    public _diffuse: Float32Array;
+    public _specular: Float32Array;
 
     /**
      * True for rendering night glowing texture.
@@ -685,7 +685,7 @@ export class Planet extends RenderNode {
      * @public
      * @returns {Layer} -
      */
-    public getLayerByName(name: string) {
+    public getLayerByName(name: string): Layer | undefined {
         for (let i = 0, len = this._layers.length; i < len; i++) {
             if (name === this._layers[i].name) {
                 return this._layers[i];
@@ -974,12 +974,16 @@ export class Planet extends RenderNode {
 
         // loading Earth night glowing texture
         if (this._useNightTexture) {
-            createImageBitmap(NIGHT).then((e) => (this._nightTexture = this.renderer!.handler!.createTextureDefault(e)));
+            createImageBitmap(NIGHT).then((e: ImageBitmap) => {
+                this._nightTexture = this.renderer!.handler!.createTextureDefault(e);
+            });
         }
 
         // load water specular mask
         if (this._useSpecularTexture) {
-            createImageBitmap(SPECULAR).then((e) => (this._specularTexture = this.renderer!.handler!.createTexture_l(e)));
+            createImageBitmap(SPECULAR).then((e: ImageBitmap) => {
+                this._specularTexture = this.renderer!.handler!.createTexture_l(e);
+            });
         }
 
         this._geoImageCreator.init();
@@ -1977,12 +1981,12 @@ export class Planet extends RenderNode {
      */
     public flyCartesian(
         cartesian: Vec3,
-        look?: Vec3,
-        up?: Vec3,
+        look?: Vec3 | null,
+        up?: Vec3 | null,
         ampl?: number,
-        completeCallback?: Function,
-        startCallback?: Function,
-        frameCallback?: Function
+        completeCallback?: Function | null,
+        startCallback?: Function | null,
+        frameCallback?: Function | null
     ) {
         this.camera.flyCartesian(cartesian, look, up, ampl, completeCallback, startCallback, frameCallback);
     }
@@ -2050,7 +2054,7 @@ export class Planet extends RenderNode {
     }
 
     public async getHeightDefault(lonLat: LonLat): Promise<number> {
-        return new Promise((resolve: Function) => {
+        return new Promise<number>((resolve: Function) => {
             if (this.terrain) {
                 this.terrain.getHeightAsync(lonLat.clone(), (alt: number) => {
                     resolve(alt);
@@ -2061,7 +2065,7 @@ export class Planet extends RenderNode {
     }
 
     public async getHeightAboveELL(lonLat: LonLat): Promise<number> {
-        return new Promise((resolve: Function) => {
+        return new Promise<number>((resolve: Function) => {
             if (this.terrain) {
                 this.terrain.getHeightAsync(lonLat.clone(), (alt: number) => {
                     resolve(alt + this.terrain!.geoid.getHeightLonLat(lonLat));
