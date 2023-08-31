@@ -210,7 +210,7 @@ export class LayerSwitcher extends Control {
 
         this._menuBtn.appendTo(this.planet!.renderer!.div!);
 
-        this._menuBtn.on("change", (isActive: boolean) => {
+        this._menuBtn.events.on("change", (isActive: boolean) => {
             this.dialog.setVisibility(isActive);
         });
 

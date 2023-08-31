@@ -1,15 +1,16 @@
-import { htmlColorToRgb } from "../utils/shared";
-import { Program } from '../webgl/Program.js';
-import { Control } from "./Control";
+import {Control, IControlParams} from "./Control";
+import {htmlColorToRgb} from "../utils/shared";
+import {Program} from '../webgl/Program.js';
 
-/**
- * Frame per second(FPS) display control.
- */
+interface ISimpleSkyBackgroundParams extends IControlParams {
+
+}
+
 export class SimpleSkyBackground extends Control {
-    _colorOne: Float32Array;
-    _colorTwo: Float32Array;
+    protected _colorOne: Float32Array;
+    protected _colorTwo: Float32Array;
 
-    constructor(options = {}) {
+    constructor(options: ISimpleSkyBackgroundParams = {}) {
         super({
             name: "SimpleSkyBackground",
             ...options
@@ -19,44 +20,47 @@ export class SimpleSkyBackground extends Control {
         this._colorTwo = new Float32Array([0.0, 153.0 / 255.0, 221.0 / 255.0]);
     }
 
-    set colorOne(htmlColor: any) {
+    public set colorOne(htmlColor: string) {
         let rgb = htmlColorToRgb(htmlColor);
         this._colorOne[0] = rgb.x;
         this._colorOne[1] = rgb.y;
         this._colorOne[2] = rgb.z;
     }
 
-    set colorTwo(htmlColor: any) {
+    public set colorTwo(htmlColor: string) {
         let rgb = htmlColorToRgb(htmlColor);
         this._colorTwo[0] = rgb.x;
         this._colorTwo[1] = rgb.y;
         this._colorTwo[2] = rgb.z;
     }
 
-    override oninit() {
-        this.renderer.handler.addProgram(simpleSkyBackgroundShader());
+    public override oninit() {
+        this.renderer!.handler.addProgram(simpleSkyBackgroundShader());
         this.activate();
     }
 
-    override onactivate() {
+    public override onactivate() {
         super.onactivate();
         this.planet!.events.on("draw", this._drawBackground, this);
     }
 
-    override ondeactivate() {
+    public override ondeactivate() {
         super.ondeactivate();
         this.planet!.events.off("draw", this._drawBackground);
     }
 
-    _drawBackground() {
-        let h = this.renderer.handler;
-        let sh = h.programs.simpleSkyBackground, p = sh._program, shu = p.uniforms, gl = h.gl;
-        let cam = this.renderer.activeCamera;
+    protected _drawBackground() {
+        let h = this.renderer!.handler;
+        let sh = h.programs.simpleSkyBackground,
+            p = sh._program,
+            shu = p.uniforms,
+            gl = h.gl!;
+        let cam = this.planet!.camera;
 
         gl.disable(gl.DEPTH_TEST);
 
         sh.activate();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.renderer.screenFramePositionBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.renderer!.screenFramePositionBuffer!);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
         gl.uniform3fv(shu.camPos, [cam.eye.x, cam.eye.y, cam.eye.z]);
@@ -66,7 +70,7 @@ export class SimpleSkyBackground extends Control {
         gl.uniform3fv(shu.colorOne, this._colorOne);
         gl.uniform3fv(shu.colorTwo, this._colorTwo);
 
-        gl.uniformMatrix4fv(shu.viewMatrix, false, cam._viewMatrix._m);
+        gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
@@ -74,11 +78,7 @@ export class SimpleSkyBackground extends Control {
     }
 }
 
-export function simpleSkyBackground(options: any) {
-    return new SimpleSkyBackground(options);
-}
-
-function simpleSkyBackgroundShader() {
+function simpleSkyBackgroundShader(): Program {
     return new Program("simpleSkyBackground", {
         uniforms: {
             iResolution: "vec2", fov: "float",

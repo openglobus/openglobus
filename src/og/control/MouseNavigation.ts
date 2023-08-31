@@ -68,7 +68,7 @@ export class MouseNavigation extends Control {
         this._keyLock = new Key();
     }
 
-    static getMovePointsFromPixelTerrain(cam: PlanetCamera, planet: Planet, stepsCount: number, delta: number, point: Vec2, forward: boolean, dir: Vec3): any[] | undefined {
+    static getMovePointsFromPixelTerrain(cam: PlanetCamera, planet: Planet, stepsCount: number, delta: number, point: Vec2, forward: boolean, dir?: Vec3 | null): any[] | undefined {
         const steps: any = [];
 
         let eye = cam.eye.clone(),

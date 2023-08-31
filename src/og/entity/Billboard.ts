@@ -1,7 +1,6 @@
 import {BaseBillboard, IBaseBillboardParams} from "./BaseBillboard";
 import {BillboardHandler} from "./BillboardHandler";
-
-interface IBillboardParams extends IBaseBillboardParams {
+export interface IBillboardParams extends IBaseBillboardParams {
     src?: string;
     image?: HTMLImageElement;
     size?: [number, number];

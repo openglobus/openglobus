@@ -423,6 +423,10 @@ class Camera {
         return this._viewAngle;
     }
 
+    public get viewAngle(): number {
+        return this._viewAngle;
+    }
+
     /**
      * Sets camera to eye position
      * @public

@@ -1,68 +1,71 @@
-import { input } from "../input/input";
-import { Control } from "./Control";
+import {Camera} from "../camera/Camera";
+import {Control, IControlParams} from "./Control";
+import {input} from "../input/input";
+
+interface ISimpleNavigationParams extends IControlParams {
+    speed?: number;
+}
 
 /**
  * Simple keyboard camera navigation with W,S,A,D and shift keys to fly around the scene.
  */
 export class SimpleNavigation extends Control {
-    camera: any;
-    speed: any;
-    constructor(options: { speed?: number } = {}) {
-        super({ autoActivate: true, ...options });
+    public speed: number;
 
-        this.camera = null;
+    constructor(options: ISimpleNavigationParams = {}) {
+        super(options);
         this.speed = options.speed || 1.0;
     }
 
     override oninit() {
-        this.camera = this.renderer.activeCamera;
-        this.renderer.events.on("keypress", input.KEY_W, this.onCameraMoveForward, this);
-        this.renderer.events.on("keypress", input.KEY_S, this.onCameraMoveBackward, this);
-        this.renderer.events.on("keypress", input.KEY_A, this.onCameraStrifeLeft, this);
-        this.renderer.events.on("keypress", input.KEY_D, this.onCameraStrifeRight, this);
-        this.renderer.events.on("keypress", input.KEY_UP, this.onCameraLookUp, this);
-        this.renderer.events.on("keypress", input.KEY_DOWN, this.onCameraLookDown, this);
-        this.renderer.events.on("keypress", input.KEY_LEFT, this.onCameraTurnLeft, this);
-        this.renderer.events.on("keypress", input.KEY_RIGHT, this.onCameraTurnRight, this);
-        this.renderer.events.on("keypress", input.KEY_Q, this.onCameraRollLeft, this);
-        this.renderer.events.on("keypress", input.KEY_E, this.onCameraRollRight, this);
+        let r = this.renderer!;
+        r.events.on("keypress", input.KEY_W, this.onCameraMoveForward, this);
+        r.events.on("keypress", input.KEY_S, this.onCameraMoveBackward, this);
+        r.events.on("keypress", input.KEY_A, this.onCameraStrifeLeft, this);
+        r.events.on("keypress", input.KEY_D, this.onCameraStrifeRight, this);
+        r.events.on("keypress", input.KEY_UP, this.onCameraLookUp, this);
+        r.events.on("keypress", input.KEY_DOWN, this.onCameraLookDown, this);
+        r.events.on("keypress", input.KEY_LEFT, this.onCameraTurnLeft, this);
+        r.events.on("keypress", input.KEY_RIGHT, this.onCameraTurnRight, this);
+        r.events.on("keypress", input.KEY_Q, this.onCameraRollLeft, this);
+        r.events.on("keypress", input.KEY_E, this.onCameraRollRight, this);
     }
 
     onCameraMoveForward() {
         if (this._active) {
-            var camera = this.camera;
-            camera.slide(0, 0, -this.speed);
-            camera.update();
+            let cam = this.renderer!.activeCamera!;
+            cam.slide(0, 0, -this.speed);
+            cam.update();
         }
     }
 
     onCameraMoveBackward() {
         if (this._active) {
-            var camera = this.camera;
-            camera.slide(0, 0, this.speed);
-            camera.update();
+            let cam = this.renderer!.activeCamera!;
+            cam.slide(0, 0, this.speed);
+            cam.update();
         }
     }
 
     onCameraStrifeLeft() {
         if (this._active) {
-            var camera = this.camera;
-            camera.slide(-this.speed, 0, 0);
-            camera.update();
+            let cam = this.renderer!.activeCamera!;
+            cam.slide(-this.speed, 0, 0);
+            cam.update();
         }
     }
 
     onCameraStrifeRight() {
         if (this._active) {
-            var camera = this.camera;
-            camera.slide(this.speed, 0, 0);
-            camera.update();
+            let cam = this.renderer!.activeCamera!;
+            cam.slide(this.speed, 0, 0);
+            cam.update();
         }
     }
 
     onCameraLookUp() {
         if (this._active) {
-            var cam = this.camera;
+            let cam = this.renderer!.activeCamera!;
             cam.pitch(0.5);
             cam.update();
         }
@@ -70,7 +73,7 @@ export class SimpleNavigation extends Control {
 
     onCameraLookDown() {
         if (this._active) {
-            var cam = this.camera;
+            let cam = this.renderer!.activeCamera!;
             cam.pitch(-0.5);
             cam.update();
         }
@@ -78,7 +81,7 @@ export class SimpleNavigation extends Control {
 
     onCameraTurnLeft() {
         if (this._active) {
-            var cam = this.camera;
+            let cam = this.renderer!.activeCamera!;
             cam.yaw(0.5);
             cam.update();
         }
@@ -86,7 +89,7 @@ export class SimpleNavigation extends Control {
 
     onCameraTurnRight() {
         if (this._active) {
-            var cam = this.camera;
+            let cam = this.renderer!.activeCamera!;
             cam.yaw(-0.5);
             cam.update();
         }
@@ -94,7 +97,7 @@ export class SimpleNavigation extends Control {
 
     onCameraRollLeft() {
         if (this._active) {
-            var cam = this.camera;
+            let cam = this.renderer!.activeCamera!;
             cam.roll(-0.5);
             cam.update();
         }
@@ -102,17 +105,9 @@ export class SimpleNavigation extends Control {
 
     onCameraRollRight() {
         if (this._active) {
-            var cam = this.camera;
+            let cam = this.renderer!.activeCamera!;
             cam.roll(0.5);
             cam.update();
         }
     }
-}
-
-/**
- * Creates simple navigation control instance.
- * @deprecated
- */
-export function simpleNavigation(options: any) {
-    return new SimpleNavigation(options);
 }

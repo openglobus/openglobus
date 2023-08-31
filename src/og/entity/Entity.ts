@@ -1,18 +1,18 @@
 import * as mercator from "../mercator";
 import * as utils from "../utils/shared";
-import {Billboard} from "./Billboard";
+import {Billboard, IBillboardParams} from "./Billboard";
 import {EntityCollection} from "./EntityCollection";
 import {Extent} from "../Extent";
-import {Geometry} from "./Geometry";
-import {GeoObject} from "./GeoObject";
+import {Geometry, IGeometryParams} from "./Geometry";
+import {GeoObject, IGeoObjectParams} from "./GeoObject";
 import {LonLat} from "../LonLat";
-import {Label} from "./Label";
+import {Label, ILabelParams} from "./Label";
 import {NumberArray3, Vec3} from "../math/Vec3";
 import {NumberArray2} from "../math/Vec2";
 import {Planet} from "../scene/Planet";
-import {PointCloud} from "./PointCloud";
-import {Polyline} from "./Polyline";
-import {Ray} from "./Ray";
+import {IPointCloudParams, PointCloud} from "./PointCloud";
+import {IPolylineParams, Polyline} from "./Polyline";
+import {IRayParams, Ray} from "./Ray";
 import {Strip} from "./Strip";
 import {Vector} from "../layer/Vector";
 import {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
@@ -23,13 +23,13 @@ export interface IEntityParams {
     lonlat?: LonLat | NumberArray3 | NumberArray2;
     altitude?: number;
     visibility?: boolean;
-    billboard?: Billboard;
-    label?: Label;
-    polyline?: Polyline;
-    ray?: Ray;
-    pointCloud?: PointCloud;
-    geometry?: Geometry;
-    geoObject?: GeoObject;
+    billboard?: Billboard | IBillboardParams;
+    label?: Label | ILabelParams;
+    polyline?: Polyline | IPolylineParams;
+    ray?: Ray | IRayParams;
+    pointCloud?: PointCloud | IPointCloudParams;
+    geometry?: Geometry | IGeometryParams;
+    geoObject?: GeoObject | IGeoObjectParams;
     strip?: Strip;
 }
 

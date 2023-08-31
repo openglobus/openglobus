@@ -1,38 +1,37 @@
-import { Sphere } from "../bv/Sphere";
-import { Key } from "../Lock";
-import { Quat } from "../math/Quat";
-import { Vec3 } from "../math/Vec3";
-import { Control } from "./Control";
-import { MouseNavigation } from "./MouseNavigation";
+import {Sphere} from "../bv/Sphere";
+import {Key} from "../Lock";
+import {Quat} from "../math/Quat";
+import {Vec3} from "../math/Vec3";
+import {Control, IControlParams} from "./Control";
+import {MouseNavigation} from "./MouseNavigation";
 
-/**
- * Planet zoom buttons control.
- */
+interface IMouseWheelZoomControl extends IControlParams {
+    minSlope?: number;
+}
+
 export class MouseWheelZoomControl extends Control {
-    grabbedPoint: Vec3;
-    _eye0: Vec3;
-    pointOnEarth: Vec3;
-    earthUp: Vec3;
-    inertia: number;
-    grabbedSpheroid: Sphere;
-    qRot: Quat;
-    scaleRot: number;
-    distDiff: number;
-    stepsCount: number;
-    stepsForward: any;
-    stepIndex: number;
-    _lmbDoubleClickActive: boolean;
-    minSlope: any;
-    _keyLock: Key;
-    _deactivate = false;
-    _move = 0;
+    protected grabbedPoint: Vec3;
+    protected _eye0: Vec3;
+    protected pointOnEarth: Vec3;
+    protected earthUp: Vec3;
+    public inertia: number;
+    protected grabbedSpheroid: Sphere;
+    protected qRot: Quat;
+    protected scaleRot: number;
+    protected distDiff: number;
+    protected stepsCount: number;
+    protected stepsForward: any;
+    protected stepIndex: number;
+    protected _lmbDoubleClickActive: boolean;
+    protected minSlope: number;
+    protected _keyLock: Key;
+    protected _deactivate: boolean;
+    protected _move: number;
 
-    constructor(options: any) {
+    constructor(options: IMouseWheelZoomControl = {}) {
         super(options);
 
         this._name = "MouseWheelZoomControl";
-
-        options = options || {};
 
         this.grabbedPoint = new Vec3();
         this._eye0 = new Vec3();
@@ -54,10 +53,14 @@ export class MouseWheelZoomControl extends Control {
         this.minSlope = options.minSlope || 0.1;
 
         this._keyLock = new Key();
+
+        this._deactivate = false;
+
+        this._move = 0;
     }
 
-    override oninit() {
-        var zoomDiv = document.createElement("div"),
+    public override oninit() {
+        let zoomDiv = document.createElement("div"),
             btnZoomIn = document.createElement("button"),
             btnZoomOut = document.createElement("button");
 
@@ -68,48 +71,48 @@ export class MouseWheelZoomControl extends Control {
         zoomDiv.appendChild(btnZoomIn);
         zoomDiv.appendChild(btnZoomOut);
 
-        this.renderer.div.appendChild(zoomDiv);
+        this.renderer!.div!.appendChild(zoomDiv);
 
-        btnZoomIn.addEventListener("mousedown", (e) => this.zoomIn());
-        btnZoomIn.addEventListener("mouseup", (e) => this.stopZoom());
+        btnZoomIn.addEventListener("mousedown", () => this.zoomIn());
+        btnZoomIn.addEventListener("mouseup", () => this.stopZoom());
 
-        btnZoomOut.addEventListener("mousedown", (e) => this.zoomOut());
-        btnZoomOut.addEventListener("mouseup", (e) => this.stopZoom());
+        btnZoomOut.addEventListener("mousedown", () => this.zoomOut());
+        btnZoomOut.addEventListener("mouseup", () => this.stopZoom());
 
-        btnZoomIn.addEventListener("touchstart", (e) => {
+        btnZoomIn.addEventListener("touchstart", (e: TouchEvent) => {
             e.preventDefault();
             this.zoomIn();
         });
-        btnZoomIn.addEventListener("touchend", (e) => {
+        btnZoomIn.addEventListener("touchend", (e: TouchEvent) => {
             e.preventDefault();
             this.stopZoom();
         });
-        btnZoomIn.addEventListener("touchcancel", (e) => {
+        btnZoomIn.addEventListener("touchcancel", (e: TouchEvent) => {
             e.preventDefault();
             this.stopZoom();
         });
 
-        btnZoomOut.addEventListener("touchstart", (e) => {
+        btnZoomOut.addEventListener("touchstart", (e: TouchEvent) => {
             e.preventDefault();
             this.zoomOut();
         });
-        btnZoomOut.addEventListener("touchend", (e) => {
+        btnZoomOut.addEventListener("touchend", (e: TouchEvent) => {
             e.preventDefault();
             this.stopZoom();
         });
-        btnZoomOut.addEventListener("touchcancel", (e) => {
+        btnZoomOut.addEventListener("touchcancel", (e: TouchEvent) => {
             e.preventDefault();
             this.stopZoom();
         });
 
-        this.renderer.events.on("draw", this._draw, this);
+        this.renderer!.events.on("draw", this._draw, this);
     }
 
     /**
      * Planet zoom in.
      * @public
      */
-    zoomIn() {
+    public zoomIn() {
         if (this.stepIndex) {
             return;
         }
@@ -125,14 +128,15 @@ export class MouseWheelZoomControl extends Control {
         this.planet!._normalMapCreator.lock(this._keyLock);
 
         this.stepsForward = MouseNavigation.getMovePointsFromPixelTerrain(
-            this.renderer.activeCamera,
-            this.planet,
+            this.planet!.camera,
+            this.planet!,
             this.stepsCount,
             this.distDiff,
-            this.renderer.handler.getCenter(),
+            this.renderer!.handler.getCenter(),
             true,
             null
         );
+
         if (this.stepsForward) {
             this.stepIndex = this.stepsCount;
         }
@@ -142,7 +146,7 @@ export class MouseWheelZoomControl extends Control {
      * Planet zoom out.
      * @public
      */
-    zoomOut() {
+    public zoomOut() {
         if (this.stepIndex) {
             return;
         }
@@ -158,27 +162,28 @@ export class MouseWheelZoomControl extends Control {
         this.planet!._normalMapCreator.lock(this._keyLock);
 
         this.stepsForward = MouseNavigation.getMovePointsFromPixelTerrain(
-            this.renderer.activeCamera,
-            this.planet,
+            this.planet!.camera,
+            this.planet!,
             this.stepsCount,
             this.distDiff,
-            this.renderer.handler.getCenter(),
+            this.renderer!.handler.getCenter(),
             false,
             null
         );
+
         if (this.stepsForward) {
             this.stepIndex = this.stepsCount;
         }
     }
 
-    stopRotation() {
+    public stopRotation() {
         this.qRot.clear();
         this.planet!.layerLock.free(this._keyLock);
         this.planet!.terrainLock.free(this._keyLock);
         this.planet!._normalMapCreator.free(this._keyLock);
     }
 
-    stopZoom() {
+    public stopZoom() {
         this._move = 0;
 
         this.planet!.layerLock.free(this._keyLock);
@@ -186,18 +191,18 @@ export class MouseWheelZoomControl extends Control {
         this.planet!._normalMapCreator.free(this._keyLock);
     }
 
-    _draw(e: any) {
+    protected _draw() {
         if (this._active) {
-            var r = this.renderer;
-            var cam = r.activeCamera;
-            var prevEye = cam.eye.clone();
+            let r = this.renderer!;
+            let cam = this.planet!.camera;
+            let prevEye = cam.eye.clone();
 
             if (this.stepIndex) {
                 r.controlsBag.scaleRot = 1.0;
-                var sf = this.stepsForward[this.stepsCount - this.stepIndex--];
+                let sf = this.stepsForward[this.stepsCount - this.stepIndex--];
 
-                let maxAlt = cam.maxAltitude + (this.planet!.ellipsoid as any)._a;
-                let minAlt = cam.minAltitude + (this.planet!.ellipsoid as any)._a;
+                let maxAlt = cam.maxAltitude + this.planet!.ellipsoid.equatorialSize;
+                let minAlt = cam.minAltitude + this.planet!.ellipsoid.equatorialSize;
                 const camAlt = sf.eye.length();
                 if (camAlt > maxAlt || camAlt < minAlt) {
                     return;
@@ -229,13 +234,17 @@ export class MouseWheelZoomControl extends Control {
             if (this.scaleRot <= 0.0) {
                 this.scaleRot = 0.0;
             } else {
+
                 r.controlsBag.scaleRot = this.scaleRot;
-                var rot = this.qRot
+
+                let rot = this.qRot
                     .slerp(Quat.IDENTITY, 1.0 - this.scaleRot * this.scaleRot * this.scaleRot)
                     .normalize();
+
                 if (!(rot.x || rot.y || rot.z)) {
                     this.scaleRot = 0.0;
                 }
+
                 cam.eye = rot.mulVec3(cam.eye);
                 cam._u = rot.mulVec3(cam._u);
                 cam._r = rot.mulVec3(cam._r);
@@ -246,7 +255,7 @@ export class MouseWheelZoomControl extends Control {
                 cam.update();
             }
 
-            if (cam.eye.distance(prevEye) / cam._terrainAltitude > 0.01) {
+            if (cam.eye.distance(prevEye) / cam.getAltitude() > 0.01) {
                 this.planet!.layerLock.lock(this._keyLock);
                 this.planet!.terrainLock.lock(this._keyLock);
                 this.planet!._normalMapCreator.lock(this._keyLock);
@@ -258,9 +267,3 @@ export class MouseWheelZoomControl extends Control {
         }
     }
 }
-
-
-/**
- * @deprecated
- */
-export const mouseWheelZoomControl = (options: any) => new MouseWheelZoomControl(options);

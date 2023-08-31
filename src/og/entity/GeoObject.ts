@@ -7,7 +7,7 @@ import {NumberArray4} from "../math/Vec4";
 import {Object3d} from "../Object3d";
 import {GeoObjectHandler} from "./GeoObjectHandler";
 
-interface IGeoObjectParams {
+export interface IGeoObjectParams {
     object3d: Object3d;
     tag?: string;
     position?: Vec3 | NumberArray3;

@@ -5,7 +5,7 @@ import {NumberArray4, Vec4} from "../math/Vec4";
 import {FontAtlas} from "../utils/FontAtlas";
 import {LabelHandler} from "./LabelHandler";
 
-interface ILabelParams extends IBaseBillboardParams {
+export interface ILabelParams extends IBaseBillboardParams {
     text?: string;
     face?: string;
     size?: number;

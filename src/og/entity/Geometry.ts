@@ -140,7 +140,7 @@ interface IGeometryStyleInternal {
     strokeWidth: number;
 }
 
-interface IGeometryParams {
+export interface IGeometryParams {
     type?: string;
     coordinates?: IGeometryCoordinates;
     style?: IGeometryStyle;
