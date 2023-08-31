@@ -21,7 +21,7 @@ export class LayerSwitcher extends Control {
     switcherDependent: any;
     expandedSections: any;
     docListener: any;
-    dialog: Dialog;
+    dialog: Dialog<null>;
     _menuBtn: ToggleButton;
 
     constructor(options: { switcherDependent?: number, expandedSections?: any, docListener?: any } = {}) {
@@ -54,7 +54,7 @@ export class LayerSwitcher extends Control {
 
         this.dialog.setPosition((this.planet!.renderer!.div!.clientWidth as number) - this.dialog.width - 67)
 
-        this.dialog.on("visibility", (v: boolean) => {
+        this.dialog.events.on("visibility", (v: boolean) => {
             this._menuBtn.setActive(v);
         });
 

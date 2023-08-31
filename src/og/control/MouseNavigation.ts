@@ -242,7 +242,7 @@ export class MouseNavigation extends Control {
             this.planet!,
             this.stepsCount,
             this.distDiff,
-            ms,
+            ms.pos,
             event.wheelDelta > 0,
             ms.direction
         );

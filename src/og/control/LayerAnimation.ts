@@ -21,7 +21,7 @@ export class LayerAnimation extends Control {
     constructor(options: { name?: string, layers?: any, playInterval?: number, frameSize?: number, repeat?: number, skipTimeout?: number } = {}) {
         super(options);
         this.events = new Events(["change", "idle", "play", "pause", "stop"])
-        this._name = options.name || `layerAnimation-${this._id}`;
+        this._name = options.name || `layerAnimation-${this.__id}`;
         this._layersArr = options.layers ? [].concat(options.layers) : [];
         this._currentIndex = -1;
         this._playInterval = options.playInterval || 120;

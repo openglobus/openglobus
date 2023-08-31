@@ -54,6 +54,8 @@ export interface IBaseInputState {
     clientX: number;
     /** Current screen mouse Y position. */
     clientY: number;
+    /** Current screen mouse position. */
+    pos: Vec2;
     /** Current touch X - coordinate. */
     x: number;
     /** Current touch Y - coordinate. */
@@ -247,6 +249,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         this.mouseState = {
             clientX: 0,
             clientY: 0,
+            pos: new Vec2(),
             x: 0,
             y: 0,
             nx: 0,
@@ -289,6 +292,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
             doubleTouchRadius: 10,
             clientX: 0,
             clientY: 0,
+            pos: new Vec2(),
             x: 0,
             y: 0,
             nx: 0,
@@ -420,6 +424,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
     protected onMouseWheel(event: any) {
         this.mouseState.wheelDelta = event.wheelDelta || 0;
     }
+
     public updateButtonsStates(buttons: any) {
         let ms = this.mouseState;
         if ((buttons & LB_M) && ms.leftButtonDown) {
@@ -480,8 +485,8 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
 
         let h = this.renderer.handler;
 
-        ms.x = event.clientX * h.pixelRatio;
-        ms.y = event.clientY * h.pixelRatio;
+        ms.pos.x = ms.x = event.clientX * h.pixelRatio;
+        ms.pos.y = ms.y = event.clientY * h.pixelRatio;
 
         ms.nx = ms.x / h.canvas!.width;
         ms.ny = ms.y / h.canvas!.height;
@@ -617,8 +622,8 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
 
         let h = this.renderer.handler;
 
-        ts.x = ts.clientX * h.pixelRatio;
-        ts.y = ts.clientY * h.pixelRatio;
+        ts.pos.x = ts.x = ts.clientX * h.pixelRatio;
+        ts.pos.y = ts.y = ts.clientY * h.pixelRatio;
 
         ts.nx = ts.x / h.canvas!.width;
         ts.ny = ts.y / h.canvas!.height;

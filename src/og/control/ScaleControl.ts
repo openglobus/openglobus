@@ -85,7 +85,7 @@ export class ScaleControl extends Control {
             this.planet!.camera.events.on("moveend", () => {
                 let ms = this.renderer!.events.mouseState;
                 if (!ms.leftButtonHold && !ms.rightButtonHold) {
-                    this._drawScreen(ms);
+                    this._drawScreen(ms.pos);
                 }
             });
         }
