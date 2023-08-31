@@ -1,15 +1,20 @@
-import { Planet } from '../index.js';
-import { BaseGeoImage } from '../layer/BaseGeoImage.js';
-import { ToggleButton } from "../ui/ToggleButton.js";
-import { Control } from './Control.js';
+import {BaseGeoImage} from '../layer/BaseGeoImage.js';
+import {Control, IControlParams} from './Control.js';
+import {Layer} from "../layer/Layer";
+import {ToggleButton} from "../ui/ToggleButton.js";
 
 const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="UTF-8" standalone="no"?> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path d="M16 13l6.964 4.062-2.973.85 2.125 3.681-1.732 1-2.125-3.68-2.223 2.15L16 13zm-2-7h2v2h5a1 1 0 0 1 1 1v4h-2v-3H10v10h4v2H9a1 1 0 0 1-1-1v-5H6v-2h2V9a1 1 0 0 1 1-1h5V6zM4 14v2H2v-2h2zm0-4v2H2v-2h2zm0-4v2H2V6h2zm0-4v2H2V2h2zm4 0v2H6V2h2zm4 0v2h-2V2h2zm4 0v2h-2V2h2z" fill="#000"/></svg>`;
 
+interface IGeoImageDragControlParams extends IControlParams {
+
+}
+
 export class GeoImageDragControl extends Control {
-    _cornerIndex: number;
-    _catchCorner: boolean;
-    _toggleBtn: ToggleButton;
-    constructor(options = {}) {
+    protected _cornerIndex: number;
+    protected _catchCorner: boolean;
+    protected _toggleBtn: ToggleButton;
+
+    constructor(options: IGeoImageDragControlParams = {}) {
         super(options);
 
         this._cornerIndex = -1;
@@ -19,19 +24,18 @@ export class GeoImageDragControl extends Control {
             classList: ["og-map-button", "og-geoimagegrag_button"],
             icon: ICON_BUTTON_SVG
         });
-
     }
 
     override oninit() {
-        this._toggleBtn.appendTo(this.renderer.div);
+        this._toggleBtn.appendTo(this.renderer!.div!);
 
-        this.planet!.events.on('layeradd', (e: any) => {
+        this.planet!.events.on('layeradd', (e: Layer) => {
             if (this.isActive()) {
                 this._bindLayer(e);
             }
         }, this);
 
-        this._toggleBtn.on("change", (isActive: boolean) => {
+        this._toggleBtn.events.on("change", (isActive: boolean) => {
             if (isActive) {
                 this.activate();
             } else {
@@ -57,7 +61,7 @@ export class GeoImageDragControl extends Control {
         }
     }
 
-    _bindLayer(layer: any) {
+    _bindLayer(layer: Layer) {
         if (layer instanceof BaseGeoImage) {
             layer.events.on('mousemove', this._onMouseMove, this);
             layer.events.on("mouseleave", this._onMouseLeave, this);
@@ -66,7 +70,7 @@ export class GeoImageDragControl extends Control {
         }
     }
 
-    _unbindLayer(layer: any) {
+    protected _unbindLayer(layer: Layer) {
         if (layer instanceof BaseGeoImage) {
             layer.events.off('mousemove', this._onMouseMove);
             layer.events.off("mouseleave", this._onMouseLeave);
@@ -75,23 +79,23 @@ export class GeoImageDragControl extends Control {
         }
     }
 
-    _onLUp(ms: any) {
+    protected _onLUp(ms: any) {
         this._catchCorner = false;
         ms.renderer.controls.mouseNavigation.activate();
     }
 
-    _onLDown(ms: any) {
+    protected _onLDown(ms: any) {
         if (this._cornerIndex !== -1) {
             this._catchCorner = true;
             ms.renderer.controls.mouseNavigation.deactivate();
         }
     }
 
-    _onMouseLeave() {
+    protected _onMouseLeave() {
         document.body.style.cursor = 'auto';
     }
 
-    _onMouseMove(ms: any) {
+    protected _onMouseMove(ms: any) {
         let layer = ms.pickingObject;
         const p = this.planet!;
         if (this._catchCorner) {// mouse is catching a corner

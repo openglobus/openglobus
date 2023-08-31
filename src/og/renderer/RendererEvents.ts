@@ -3,7 +3,7 @@
 import {Events, EventsHandler} from "../Events";
 import {input} from "../input/input";
 import {KeyboardHandler} from "../input/KeyboardHandler";
-import {MouseHandler} from "../input/MouseHandler";
+import {MouseHandler, MouseHandlerEvent} from "../input/MouseHandler";
 import {Renderer} from "./Renderer";
 import {TouchHandler} from "../input/TouchHandler";
 import {Vec2} from "../math/Vec2";
@@ -78,7 +78,7 @@ export interface IBaseInputState {
     moving: boolean;
 }
 
-interface IMouseState extends IBaseInputState {
+export interface IMouseState extends IBaseInputState {
     /** Left mouse button has stopped pushing down right now.*/
     leftButtonUp: boolean;
     /** Right mouse button has stopped pushing down right now.*/
@@ -121,7 +121,7 @@ interface IMouseState extends IBaseInputState {
     sys: MouseEvent | null;
 }
 
-interface ITouchState extends IBaseInputState {
+export interface ITouchState extends IBaseInputState {
     /** Touch has ended right now.*/
     touchEnd: boolean;
     /** Touch has started right now.*/
@@ -202,14 +202,14 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
     /**
      * Current mouse state.
      * @public
-     * @enum {IMouseState}
+     * @type {IMouseState}
      */
     public mouseState: IMouseState;
 
     /**
      * Current touch state.
      * @public
-     * @enum {ITouchState}
+     * @type {ITouchState}
      */
     public touchState: ITouchState;
 
@@ -421,7 +421,9 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
     /**
      * @protected
      */
-    protected onMouseWheel(event: any) {
+    protected onMouseWheel(event: MouseEvent) {
+        this.mouseState.sys = event;
+        //@ts-ignore
         this.mouseState.wheelDelta = event.wheelDelta || 0;
     }
 
@@ -449,16 +451,13 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         }
     }
 
-    /**
-     * @protected
-     */
-    protected onMouseMove(event: any, sys: any) {
+    protected onMouseMove(sys: MouseEvent, event?: MouseHandlerEvent) {
         let ms = this.mouseState;
         this.updateButtonsStates(sys.buttons);
-        ms.sys = event;
+        ms.sys = sys;
 
-        let ex = event.clientX,
-            ey = event.clientY,
+        let ex = event!.clientX,
+            ey = event!.clientY,
             r = this.clickRadius;
 
         if (Math.abs(this._lclickX - ex) >= r && Math.abs(this._lclickY - ey) >= r) {
@@ -476,17 +475,17 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
             this._mClkBegins = 0;
         }
 
-        if (ms.clientX === event.clientX && ms.clientY === event.clientY) {
+        if (ms.clientX === event!.clientX && ms.clientY === event!.clientY) {
             return;
         }
 
-        ms.clientX = event.clientX;
-        ms.clientY = event.clientY;
+        ms.clientX = event!.clientX;
+        ms.clientY = event!.clientY;
 
         let h = this.renderer.handler;
 
-        ms.pos.x = ms.x = event.clientX * h.pixelRatio;
-        ms.pos.y = ms.y = event.clientY * h.pixelRatio;
+        ms.pos.x = ms.x = event!.clientX * h.pixelRatio;
+        ms.pos.y = ms.y = event!.clientY * h.pixelRatio;
 
         ms.nx = ms.x / h.canvas!.width;
         ms.ny = ms.y / h.canvas!.height;
@@ -500,54 +499,50 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         }, 100);
     }
 
-    protected onMouseLeave(event: any) {
-        this.dispatch((this as RendererEventsHandler).mouseleave, event);
+    protected onMouseLeave(sys: MouseEvent) {
+        this.mouseState.sys = sys;
+        this.dispatch((this as RendererEventsHandler).mouseleave, this.mouseState);
     }
 
-    protected onMouseEnter(event: any) {
-        this.dispatch((this as RendererEventsHandler).mouseenter, event);
+    protected onMouseEnter(sys: MouseEvent) {
+        this.mouseState.sys = sys;
+        this.dispatch((this as RendererEventsHandler).mouseenter, this.mouseState);
     }
 
-    /**
-     * @protected
-     */
-    protected onMouseDown(event: any) {
-        if (event.button === input.MB_LEFT) {
+    protected onMouseDown(sys: MouseEvent, event?: MouseHandlerEvent) {
+        if (event!.button === input.MB_LEFT) {
             this._lClkBegins = window.performance.now();
-            this._lclickX = event.clientX;
-            this._lclickY = event.clientY;
-            this.mouseState.sys = event;
+            this._lclickX = event!.clientX;
+            this._lclickY = event!.clientY;
+            this.mouseState.sys = sys;
             this.mouseState.leftButtonDown = true;
-        } else if (event.button === input.MB_RIGHT) {
+        } else if (event!.button === input.MB_RIGHT) {
             this._rClkBegins = window.performance.now();
-            this._rclickX = event.clientX;
-            this._rclickY = event.clientY;
-            this.mouseState.sys = event;
+            this._rclickX = event!.clientX;
+            this._rclickY = event!.clientY;
+            this.mouseState.sys = sys;
             this.mouseState.rightButtonDown = true;
-        } else if (event.button === input.MB_MIDDLE) {
+        } else if (event!.button === input.MB_MIDDLE) {
             this._mClkBegins = window.performance.now();
-            this._mclickX = event.clientX;
-            this._mclickY = event.clientY;
-            this.mouseState.sys = event;
+            this._mclickX = event!.clientX;
+            this._mclickY = event!.clientY;
+            this.mouseState.sys = sys;
             this.mouseState.middleButtonDown = true;
         }
     }
 
-    /**
-     * @private
-     */
-    protected onMouseUp(event: any) {
+    protected onMouseUp(sys: MouseEvent, event?: MouseHandlerEvent) {
         let ms = this.mouseState;
-        ms.sys = event;
+        ms.sys = sys;
         let t = window.performance.now();
 
-        if (event.button === input.MB_LEFT) {
+        if (event!.button === input.MB_LEFT) {
             ms.leftButtonDown = false;
             ms.leftButtonUp = true;
 
             if (
-                Math.abs(this._lclickX - event.clientX) < this.clickRadius &&
-                Math.abs(this._lclickY - event.clientY) < this.clickRadius &&
+                Math.abs(this._lclickX - event!.clientX) < this.clickRadius &&
+                Math.abs(this._lclickY - event!.clientY) < this.clickRadius &&
                 t - this._lClkBegins <= ms.clickDelay
             ) {
                 if (this._ldblClkBegins) {
@@ -563,13 +558,13 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
                 ms.leftButtonClick = true;
                 this._lClkBegins = 0;
             }
-        } else if (event.button === input.MB_RIGHT) {
+        } else if (event!.button === input.MB_RIGHT) {
             ms.rightButtonDown = false;
             ms.rightButtonUp = true;
 
             if (
-                Math.abs(this._rclickX - event.clientX) < this.clickRadius &&
-                Math.abs(this._rclickY - event.clientY) < this.clickRadius &&
+                Math.abs(this._rclickX - event!.clientX) < this.clickRadius &&
+                Math.abs(this._rclickY - event!.clientY) < this.clickRadius &&
                 t - this._rClkBegins <= ms.clickDelay
             ) {
                 if (this._rdblClkBegins) {
@@ -585,13 +580,13 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
                 ms.rightButtonClick = true;
                 this._rClkBegins = 0;
             }
-        } else if (event.button === input.MB_MIDDLE) {
+        } else if (event!.button === input.MB_MIDDLE) {
             ms.middleButtonDown = false;
             ms.middleButtonUp = true;
 
             if (
-                Math.abs(this._mclickX - event.clientX) < this.clickRadius &&
-                Math.abs(this._mclickY - event.clientY) < this.clickRadius &&
+                Math.abs(this._mclickX - event!.clientX) < this.clickRadius &&
+                Math.abs(this._mclickY - event!.clientY) < this.clickRadius &&
                 t - this._mClkBegins <= ms.clickDelay
             ) {
                 if (this._mdblClkBegins) {
@@ -610,14 +605,13 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         }
     }
 
-    /**
-     * @protected
-     */
-    protected onTouchStart(event: any) {
+    protected onTouchStart(event: TouchEvent) {
         let ts = this.touchState;
         ts.sys = event;
 
+        //@ts-ignore
         ts.clientX = event.touches.item(0).clientX - event.offsetLeft;
+        //@ts-ignore
         ts.clientY = event.touches.item(0).clientY - event.offsetTop;
 
         let h = this.renderer.handler;
@@ -643,7 +637,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
     /**
      * @protected
      */
-    protected onTouchEnd(event: any) {
+    protected onTouchEnd(event: TouchEvent) {
         let ts = this.touchState;
         ts.sys = event;
         ts.touchEnd = true;
@@ -666,10 +660,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         }
     }
 
-    /**
-     * @protected
-     */
-    protected onTouchCancel(event: any) {
+    protected onTouchCancel(event: TouchEvent) {
         let ts = this.touchState;
         ts.sys = event;
         ts.touchCancel = true;
@@ -678,9 +669,12 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
     /**
      * @protected
      */
-    protected onTouchMove(event: any) {
+    protected onTouchMove(event: TouchEvent) {
         let ts = this.touchState;
+
+        //@ts-ignore
         ts.clientX = event.touches.item(0).clientX - event.offsetLeft;
+        //@ts-ignore
         ts.clientY = event.touches.item(0).clientY - event.offsetTop;
 
         let h = this.renderer.handler;
@@ -702,9 +696,6 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         }
     }
 
-    /**
-     * @protected
-     */
     protected entityPickingEvents() {
         let ts = this.touchState,
             ms = this.mouseState;
@@ -784,9 +775,6 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         }
     }
 
-    /**
-     * @protected
-     */
     protected handleMouseEvents() {
         let _this = this as RendererEventsHandler;
         let ms = this.mouseState;

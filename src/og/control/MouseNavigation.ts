@@ -11,6 +11,7 @@ import {Vec3} from "../math/Vec3";
 import {Vec2} from "../math/Vec2";
 import {Planet} from "../scene/Planet";
 import {PlanetCamera} from "../camera/PlanetCamera";
+import {IMouseState} from "../renderer/RendererEvents";
 
 interface IMouseNavigationParams extends IControlParams {
     minSlope?: number;
@@ -30,10 +31,10 @@ export class MouseNavigation extends Control {
     protected scaleRot: number;
     protected distDiff: number;
     protected stepsCount: number;
-    protected stepsForward: any;
+    protected stepsForward: any | null;
     protected stepIndex: number;
     protected _lmbDoubleClickActive: boolean;
-    public minSlope: any;
+    public minSlope: number;
     protected _wheelDirection: number;
     protected _keyLock: Key;
     protected _deactivate = false;
@@ -50,7 +51,6 @@ export class MouseNavigation extends Control {
         this.earthUp = new Vec3();
         this.inertia = 0.007;
         this.grabbedSpheroid = new Sphere();
-        this.planet = null;
         this.qRot = new Quat();
         this.scaleRot = 0.0;
 
@@ -121,7 +121,7 @@ export class MouseNavigation extends Control {
 
                 if (!breaked) {
                     for (let i = 0; i < stepsCount; i++) {
-                        var rot = rotArr[i];
+                        let rot = rotArr[i];
                         steps[i] = {};
                         steps[i].eye = rot.mulVec3(eyeArr[i]);
                         steps[i].v = rot.mulVec3(v);
@@ -200,13 +200,13 @@ export class MouseNavigation extends Control {
         }
     }
 
-    protected onMouseEnter(e: any) {
+    protected onMouseEnter(e: IMouseState) {
         const renderEvents = this.renderer!.events;
         if (renderEvents.isKeyPressed(input.KEY_ALT)) {
             renderEvents.releaseKeys();
         }
 
-        renderEvents.updateButtonsStates(e.buttons);
+        renderEvents.updateButtonsStates(e.sys!.buttons);
         if (renderEvents.mouseState.leftButtonDown) {
             this.renderer!.handler.canvas!.classList.add("ogGrabbingPoiner");
         } else {
@@ -214,14 +214,14 @@ export class MouseNavigation extends Control {
         }
     }
 
-    protected onMouseLeave(e: any) {
+    protected onMouseLeave() {
         if (this.renderer!.events.mouseState.leftButtonDown) {
             this.scaleRot = 0;
         }
         this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
     }
 
-    protected onMouseWheel(event: any) {
+    protected onMouseWheel(e: IMouseState) {
         if (this.stepIndex) {
             return;
         }
@@ -236,25 +236,24 @@ export class MouseNavigation extends Control {
         //this.planet!.terrainLock.lock(this._keyLock);
         this.planet!._normalMapCreator.lock(this._keyLock);
 
-        var ms = this.renderer!.events.mouseState;
         this.stepsForward = MouseNavigation.getMovePointsFromPixelTerrain(
             this.planet!.camera,
             this.planet!,
             this.stepsCount,
             this.distDiff,
-            ms.pos,
-            event.wheelDelta > 0,
-            ms.direction
+            e.pos,
+            e.wheelDelta > 0,
+            e.direction
         );
 
-        this._wheelDirection = event.wheelDelta;
+        this._wheelDirection = e.wheelDelta;
 
         if (this.stepsForward) {
             this.stepIndex = this.stepsCount;
         }
     }
 
-    override oninit() {
+    public override oninit() {
         this.activate();
         if (this.renderer) {
             this.renderer.events.on("keyfree", input.KEY_ALT, this.onShiftFree, this);
@@ -262,10 +261,10 @@ export class MouseNavigation extends Control {
         }
     }
 
-    protected onMouseLeftButtonDoubleClick() {
+    protected onMouseLeftButtonDoubleClick(e: IMouseState) {
         this.planet!.stopFlying();
         this.stopRotation();
-        const p = this.planet!.getCartesianFromPixelTerrain(this.renderer!.events.mouseState);
+        const p = this.planet!.getCartesianFromPixelTerrain(e.pos);
         if (p) {
             const cam = this.planet!.camera;
             let maxAlt = cam.maxAltitude + (this.planet!.ellipsoid as any)._b;
@@ -308,14 +307,14 @@ export class MouseNavigation extends Control {
         this.planet!._normalMapCreator.free(this._keyLock);
     }
 
-    protected onMouseLeftButtonUp(e: any) {
+    protected onMouseLeftButtonUp(e: IMouseState) {
         this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
         if (e.x === e.prev_x && e.y === e.prev_y) {
             this.scaleRot = 0.0;
         }
     }
 
-    protected onMouseLeftButtonDown(e: any) {
+    protected onMouseLeftButtonDown(e: IMouseState) {
         if (this._active) {
             if (!this.grabbedPoint) {
                 return;
@@ -323,7 +322,7 @@ export class MouseNavigation extends Control {
 
             this.planet!.stopFlying();
 
-            if (this.renderer!.events.mouseState.moving) {
+            if (e.moving) {
                 let cam = this.planet!.camera;
 
                 if (cam.slope > 0.2) {
@@ -354,19 +353,19 @@ export class MouseNavigation extends Control {
         }
     }
 
-    protected onMouseRightButtonClick(e: any) {
+    protected onMouseRightButtonClick(e: IMouseState) {
         this.stopRotation();
         this.planet!.stopFlying();
-        this.pointOnEarth = this.planet!.getCartesianFromPixelTerrain(e)!;
+        this.pointOnEarth = this.planet!.getCartesianFromPixelTerrain(e.pos)!;
         if (this.pointOnEarth) {
             this.earthUp = this.pointOnEarth.normal();
         }
     }
 
-    protected onMouseRightButtonDown(e: any) {
+    protected onMouseRightButtonDown(e: IMouseState) {
         const cam = this.planet!.camera;
 
-        if (this.pointOnEarth && this.renderer!.events.mouseState.moving) {
+        if (this.pointOnEarth && e.moving) {
             this.renderer!.controlsBag.scaleRot = 1.0;
             let l = (0.5 / cam.eye.distance(this.pointOnEarth)) * (cam._lonLat.height < 5.0 ? 5.0 : cam._lonLat.height) * math.RADIANS;
             if (l > 0.007) {
@@ -381,7 +380,7 @@ export class MouseNavigation extends Control {
         this._shiftBusy = false;
     }
 
-    protected onMouseMove(e: any) {
+    protected onMouseMove(e: IMouseState) {
         if (this._active && this.renderer!.events.isKeyPressed(input.KEY_ALT)) {
             if (!this._shiftBusy) {
                 this._shiftBusy = true;
@@ -392,7 +391,7 @@ export class MouseNavigation extends Control {
         }
     }
 
-    protected onDraw(e: any) {
+    protected onDraw() {
         if (this._active) {
             const r = this.renderer!;
             const cam = this.planet!.camera;
