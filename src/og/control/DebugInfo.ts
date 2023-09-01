@@ -1,6 +1,6 @@
-import { Control } from "./Control";
-import { ToggleButton } from "../ui/ToggleButton";
-import { Dialog } from "../ui/Dialog";
+import {Control, IControlParams} from "./Control";
+import {Dialog} from "../ui/Dialog";
+import {ToggleButton} from "../ui/ToggleButton";
 
 const ICON_LOCK_BUTTON_SVG = `<?xml version="1.0" encoding="utf-8"?>
 <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
@@ -50,16 +50,23 @@ const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="iso-8859-1"?>
 </g>
 </svg>`;
 
-export class DebugInfo extends Control {
-    el: any;
-    _watch: any;
-    _toggleBtn: ToggleButton;
-    _dialog: Dialog;
+export interface IDebugInfoWatch {
+    label: string;
+    valEl?: HTMLElement;
+    frame?: () => string | number;
+}
 
-    /**
-     * @param {Object} [options] - Control options.
-     */
-    constructor(options: { name?: string, watch?: any } = {}) {
+interface IDebugInfoParams extends IControlParams {
+    watch?: IDebugInfoWatch[];
+}
+
+export class DebugInfo extends Control {
+    public el: HTMLElement | null;
+    protected _watch: IDebugInfoWatch[];
+    protected _toggleBtn: ToggleButton;
+    protected _dialog: Dialog<null>;
+
+    constructor(options: IDebugInfoParams = {}) {
         if (!options.name || options.name === "") {
             options.name = "DebugInfo";
         }
@@ -81,34 +88,31 @@ export class DebugInfo extends Control {
             width: 480
         });
 
-        this._dialog.on("visibility", (v: boolean) => {
+        this._dialog.events.on("visibility", (v: boolean) => {
             this._toggleBtn.setActive(v);
         });
     }
 
-    addWatches(watches: any) {
+    public addWatches(watches: IDebugInfoWatch[]) {
         for (let i = 0; i < watches.length; i++) {
             this.addWatch(watches[i]);
         }
     }
 
-    addWatch(watch: any) {
+    public addWatch(watch: IDebugInfoWatch) {
         this._watch.push(watch);
         let watchEl = document.createElement("div");
         watchEl.classList.add("og-watch-line");
-        watchEl.innerHTML =
-            '<div class="og-watch-label">' +
-            watch.label +
-            '</div><div class="og-watch-value"></div>';
-        watch.valEl = watchEl.querySelector(".og-watch-value");
-        this.el.appendChild(watchEl);
+        watchEl.innerHTML = `<div class="og-watch-label">${watch.label}</div><div class="og-watch-value"></div>`;
+        watch.valEl = watchEl.querySelector<HTMLElement>(".og-watch-value")!;
+        this.el!.appendChild(watchEl);
     }
 
-    override oninit() {
+    public override oninit() {
 
-        this._toggleBtn.appendTo(this.renderer.div);
-        this._dialog.appendTo(this.renderer.div);
-        this._toggleBtn.on("change", (isActive: boolean) => {
+        this._toggleBtn.appendTo(this.renderer!.div!);
+        this._dialog.appendTo(this.renderer!.div!);
+        this._toggleBtn.events.on("change", (isActive: boolean) => {
             this._dialog.setVisibility(isActive);
         });
 
@@ -119,15 +123,15 @@ export class DebugInfo extends Control {
         $controls.classList.add("og-debuginfo_controls");
         this.el.appendChild($controls);
 
-        var temp = this._watch;
+        let temp = this._watch;
         this._watch = [];
         for (let i = 0; i < temp.length; i++) {
             this.addWatch(temp[i]);
         }
         this._dialog.container?.appendChild(this.el);
-        this.renderer.events.on("draw", this._frame, this);
+        this.renderer!.events.on("draw", this._frame, this);
 
-        let p = this.planet;
+        let p = this.planet!;
 
         if (p) {
             this.addWatches([
@@ -137,90 +141,95 @@ export class DebugInfo extends Control {
                 },
                 {
                     label: "createdNodes",
-                    frame: () => p!._createdNodesCount
+                    frame: () => p._createdNodesCount
                 },
                 {
                     label: "indexesCache",
-                    frame: () => p!._indexesCacheToRemoveCounter
+                    frame: () => p._indexesCacheToRemoveCounter
                 },
                 {
                     label: "distBeforeMemClear",
-                    frame: () => Math.round((p as any)._distBeforeMemClear)
+                    //@ts-ignore
+                    frame: () => Math.round(p._distBeforeMemClear)
                 },
                 {
                     label: "maxZoom/minZoom",
-                    frame: () => p?.maxCurrZoom + " / " + p?.minCurrZoom
+                    frame: () => p.maxCurrZoom + " / " + p?.minCurrZoom
                 },
                 {
                     label: "viewExtent",
-                    frame: () => p?.getViewExtent().toString()
+                    frame: () => p.getViewExtent().toString()
                 },
                 {
                     label: "height/alt (km)",
                     frame: () =>
-                        `<div style="width:190px">${((p as any).camera._lonLat.height / 1000.0).toFixed(2) +
+                        `<div style="width:190px">${(p.camera._lonLat.height / 1000.0).toFixed(2) +
                         " / " +
-                        ((p as any).camera.getAltitude() / 1000.0).toFixed(2)
-                        }</div>`
+                        (p.camera.getAltitude() / 1000.0).toFixed(2)}</div>`
                 },
                 {
                     label: "cam.slope",
-                    frame: () => p?.camera.slope.toFixed(3)
+                    frame: () => p.camera.slope.toFixed(3)
                 },
                 {
                     label: "lodSize",
-                    frame: () => Math.round(p?.lodSize as number)
+                    frame: () => Math.round(p.lodSize)
                 },
                 {
                     label: "deltaTime/FPS",
                     frame: () =>
-                        `<div style="width:70px"><div style="width:20px; float: left;">${Math.round(
-                            (p as any).renderer.handler.deltaTime
-                        )}</div> <div style="float: left">${Math.round(
-                            1000.0 / (p as any).renderer.handler.deltaTime
-                        )}</div></div>`
+                        `<div style="width:70px"><div style="width:20px; float: left;">
+                        ${Math.round(p.renderer!.handler.deltaTime)}
+                        </div> <div style="float: left">
+                        ${Math.round(1000.0 / p.renderer!.handler.deltaTime)}
+                        </div></div>`
                 },
                 {
                     label: "-------------------------"
                 },
                 {
                     label: "_renderCompleted / renderCompletedActivated",
-                    frame: () => `${p?._renderCompleted} / ${(p as any)._renderCompletedActivated}`
+                    frame: () => `${p._renderCompleted} / ${p._renderCompletedActivated}`
                 },
                 {
                     label: "_terrainCompleted / terrainCompletedActivated",
-                    frame: () => `${p?._terrainCompleted} / ${(p as any)._terrainCompletedActivated}`
+                    frame: () => `${p._terrainCompleted} / ${p._terrainCompletedActivated}`
                 },
                 {
                     label: "PlainWorker",
-                    frame: () => (p as any)._plainSegmentWorker._pendingQueue.length
+                    //@ts-ignore
+                    frame: () => p._plainSegmentWorker._pendingQueue.length
                 },
                 {
                     label: "TileLoader",
-                    frame: () => (p as any)._tileLoader._loading + " " + p?._tileLoader._queue.length
+                    //@ts-ignore
+                    frame: () => `${p._tileLoader._loading} ${p._tileLoader._queue.length}`
                 },
                 {
                     label: "TerrainLoader",
                     frame: () => {
-                        if (p?.terrain && (p as any).terrain._loader) {
-                            return (
-                                (p as any).terrain._loader._loading + " " + (p as any).terrain._loader._queue.length
-                            );
+                        //@ts-ignore
+                        if (p.terrain && p.terrain._loader) {
+                            //@ts-ignore
+                            return `${p.terrain._loader._loading}  ${p.terrain._loader._queue.length}`
                         }
                         return "";
                     }
                 },
                 {
                     label: "TerrainWorker",
-                    frame: () => (p as any)._terrainWorker._pendingQueue.length
+                    //@ts-ignore
+                    frame: () => p._terrainWorker._pendingQueue.length
                 },
                 {
                     label: "NormalMapCreator",
-                    frame: () => (p as any)._normalMapCreator._queue.length
+                    //@ts-ignore
+                    frame: () => p._normalMapCreator._queue.length
                 },
                 {
                     label: "VectorTileCreator",
-                    frame: () => (p as any)._vectorTileCreator._queue.length
+                    //@ts-ignore
+                    frame: () => p._vectorTileCreator._queue.length
                 }
             ]);
         }
@@ -232,26 +241,19 @@ export class DebugInfo extends Control {
         });
         lockTreeBtn.appendTo($controls);
 
-        lockTreeBtn.on("change", (isActive: boolean) => {
+        lockTreeBtn.events.on("change", (isActive: boolean) => {
             if (isActive) {
-                p?.lockQuadTree();
+                p.lockQuadTree();
             } else {
-                p?.unlockQuadTree();
+                p.unlockQuadTree();
             }
         });
     }
 
-    _frame() {
+    protected _frame() {
         for (let i = 0; i < this._watch.length; i++) {
-            var w = this._watch[i];
-            w.valEl.innerHTML = w.frame ? w.frame() : "";
+            let w = this._watch[i];
+            w.valEl!.innerHTML = w.frame ? String(w.frame()) : "";
         }
     }
-}
-
-/**
- * @deprecated
- */
-export function debugInfo(options: any) {
-    return new DebugInfo(options);
 }
