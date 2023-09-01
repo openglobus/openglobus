@@ -1,28 +1,30 @@
-import { Entity } from "../../entity/Entity";
-import { Vec2 } from "../../math/index";
+import {Entity} from "../../entity/Entity";
+import {Vec2} from "../../math/Vec2";
+import {Vec3} from "../../math/Vec3";
 import {
     CENTER_OPTIONS,
     CORNER_OPTIONS,
     NUM_SEGMENTS,
     OUTLINE_ALT,
     OUTLINE_OPTIONS,
-    PolygonDrawingScene
+    PolygonDrawingScene,
+    IPolygonDrawingSceneParams
 } from "./PolygonDrawingScene";
 
 class LineStringDrawingScene extends PolygonDrawingScene {
-    constructor(props: any) {
+    constructor(props: IPolygonDrawingSceneParams) {
         super(props);
     }
 
-    override get geometryType() {
+    public override get geometryType(): string {
         return "LineString";
     }
 
-    override _addNew(cart: any) {
+    protected override _addNew(cart: Vec3) {
         this._appendCart(cart);
     }
 
-    override _appendCart(cart: any) {
+    protected override _appendCart(cart: Vec3) {
         let corners = this._cornerLayer.getEntities();
 
         let segNum = corners.length - 1;
@@ -30,7 +32,7 @@ class LineStringDrawingScene extends PolygonDrawingScene {
 
         let corner = new Entity({
             geoObject: CORNER_OPTIONS,
-        } as any);
+        });
 
         corner.setCartesian3v(cart);
         corner.addTo(this._cornerLayer);
@@ -62,15 +64,15 @@ class LineStringDrawingScene extends PolygonDrawingScene {
                     },
                     ...OUTLINE_OPTIONS
                 }
-            } as any);
-            (entity as any).polyline.altitude = OUTLINE_ALT;
+            });
+            entity.polyline!.altitude = OUTLINE_ALT;
             this._outlineLayer.add(entity);
 
             let prevCenterCart = vecPrev.scaleTo(distPrev * 0.5).addA(prevCart);
 
             let center = new Entity({
                 geoObject: CENTER_OPTIONS,
-            } as any);
+            });
             center.setCartesian3v(prevCenterCart);
             center.addTo(this._centerLayer);
             this._checkTerrainCollision(center);
@@ -78,18 +80,18 @@ class LineStringDrawingScene extends PolygonDrawingScene {
         }
     }
 
-    override _clearGhostPointer() {
+    protected override _clearGhostPointer() {
         (this._ghostOutlineLayer as any).getEntities()[0].polyline.clear();
     }
 
-    _moveCorner(indexCurrent: number, indexPrev: number, indexCenter: number) {
+    protected _moveCorner(indexCurrent: number, indexPrev: number, indexCenter: number) {
         let corners = this._cornerLayer.getEntities();
         if (corners.length == 0) return;
         if (corners.length == 1) {
             indexCurrent = indexPrev = indexCenter = 0;
         }
         let cartCurr = corners[indexCurrent].getCartesian();
-        let vecCurr = this._pickedCorner.getCartesian().sub(cartCurr);
+        let vecCurr = this._pickedCorner!.getCartesian().sub(cartCurr);
         let distCurr = vecCurr.length();
         vecCurr.normalize();
 
@@ -117,21 +119,20 @@ class LineStringDrawingScene extends PolygonDrawingScene {
         }
     }
 
-    override _moveCornerPoint(e: any) {
+    protected override _moveCornerPoint(e: Vec2) {
         let d = new Vec2(e.x, e.y).sub(this._startClick),
-            p = this._startPos.add(d);
+            p = this._startPos!.add(d);
 
-        let groundCoords = this._planet.getCartesianFromPixelTerrain(p);
+        let groundCoords = this._planet!.getCartesianFromPixelTerrain(p);
 
         if (groundCoords) {
 
-            this._pickedCorner.setCartesian3v(groundCoords);
+            this._pickedCorner!.setCartesian3v(groundCoords);
 
             let corners = this._cornerLayer.getEntities();
 
             if (corners.length) {
-                let ind = this._pickedCorner.layerIndex;
-                let size = corners.length;
+                let ind = this._pickedCorner!.layerIndex;
 
                 if (ind === 0) {
                     this._moveCorner(ind + 1, ind + 1, ind);
@@ -145,7 +146,7 @@ class LineStringDrawingScene extends PolygonDrawingScene {
         }
     }
 
-    override _updateGhostOutlinePointer(groundPos: any) {
+    public override _updateGhostOutlinePointer(groundPos: Vec3) {
 
         let corners = this._cornerLayer.getEntities();
         let size = corners.length;
@@ -173,13 +174,13 @@ class LineStringDrawingScene extends PolygonDrawingScene {
 
             let entities = this._ghostOutlineLayer.getEntities();
 
-            let prevPolyline = entities[0].polyline;
+            let prevPolyline = entities[0].polyline!;
 
-            prevPolyline?.setPath3v([pathPrev]);
+            prevPolyline.setPath3v([pathPrev]);
         }
     }
 
-    override _initGhostLayerPointer() {
+    protected override _initGhostLayerPointer() {
         this._ghostOutlineLayer.setEntities([
             new Entity({
                 polyline: {
@@ -190,12 +191,12 @@ class LineStringDrawingScene extends PolygonDrawingScene {
                 properties: {
                     index: 0
                 }
-            } as any),
+            }),
             this._ghostCorner
         ]);
 
-        (this._ghostOutlineLayer as any).getEntities()[0].polyline.altitude = OUTLINE_ALT;
+        this._ghostOutlineLayer.getEntities()[0].polyline!.altitude = OUTLINE_ALT;
     }
 }
 
-export { LineStringDrawingScene };
+export {LineStringDrawingScene};
