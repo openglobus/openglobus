@@ -10,7 +10,7 @@ import {Object3d} from '../../Object3d.js';
 import {Planet} from '../../scene/Planet';
 import {RenderNode} from '../../scene/RenderNode.js';
 import {Vec2} from '../../math/Vec2';
-import {NumberArray3, Vec3} from '../../math/Vec3';
+import {Vec3} from '../../math/Vec3';
 import {Vector} from '../../layer/Vector.js';
 
 type PolygonDrawingSceneEventsList = ["change", "startpoint"];
@@ -69,18 +69,7 @@ class PolygonDrawingScene extends RenderNode {
     protected _showGhostPointer: boolean;
     protected _isStartPoint: boolean;
     protected _insertCornerIndex: number;
-    protected _onChange_: Function | null = null;
     protected _cornerDblClick = false;
-    protected _onCornerLdblclick_: Function | null = null;
-    protected _onCornerLdown_: Function | null = null;
-    protected _onCenterLdown_: Function | null = null;
-    protected _onLup_: Function | null = null;
-    protected _onMouseMove_: Function | null = null;
-    protected _onCornerMouseEnter_: Function | null = null;
-    protected _onCornerMouseLeave_: Function | null = null;
-    protected _onCenterMouseEnter_: Function | null = null;
-    protected _onCenterMouseLeave_: Function | null = null;
-    protected _onMouseDblClick_: Function | null = null;
 
     constructor(options: IPolygonDrawingSceneParams) {
         super(options.name);
@@ -199,11 +188,10 @@ class PolygonDrawingScene extends RenderNode {
 
         this._geometryLayer.addTo(this._planet!);
 
-        this._onChange_ = this._onChange.bind(this);
-        this.events.on("change", this._onChange_, this);
+        this.events.on("change", this._onChange, this);
     }
 
-    protected _onChange(e: this) {
+    protected _onChange = (e: PolygonDrawingScene) => {
         if (e.geometryType === "Polygon") {
             let coords = this.getCoordinates();
             let entity = new Entity({
@@ -269,14 +257,12 @@ class PolygonDrawingScene extends RenderNode {
 
     public stopNewPoint() {
         if (this.renderer) {
-            this.renderer.events.off("ldblclick", this._onMouseDblClick_);
-            this._onMouseDblClick_ = null;
+            this.renderer.events.off("ldblclick", this._onMouseDblClick);
         }
     }
 
     public startNewPoint() {
-        this._onMouseDblClick_ = this._onMouseDblClick.bind(this);
-        this.renderer!.events.on("ldblclick", this._onMouseDblClick_, this);
+        this.renderer!.events.on("ldblclick", this._onMouseDblClick, this);
     }
 
     public showGhostPointer() {
@@ -298,29 +284,29 @@ class PolygonDrawingScene extends RenderNode {
         }
     }
 
-    protected _onCornerMouseEnter(e: IMouseState) {
+    protected _onCornerMouseEnter = (e: IMouseState) => {
         e.renderer.handler.canvas!.style.cursor = "pointer";
         this.hideGhostPointer();
     }
 
-    _onCornerMouseLeave(e: IMouseState) {
+    _onCornerMouseLeave = (e: IMouseState) => {
         e.renderer.handler.canvas!.style.cursor = "default";
         this.showGhostPointer();
     }
 
-    _onCenterMouseEnter(e: IMouseState) {
+    _onCenterMouseEnter = (e: IMouseState) => {
         e.renderer.handler.canvas!.style.cursor = "pointer";
         this.hideGhostPointer();
     }
 
-    _onCenterMouseLeave(e: IMouseState) {
+    _onCenterMouseLeave = (e: IMouseState) => {
         e.renderer.handler.canvas!.style.cursor = "default";
         if (!(this._pickedCenter || this._pickedCorner)) {
             this.showGhostPointer();
         }
     }
 
-    protected _onLup(e: IMouseState) {
+    protected _onLup = (e: IMouseState) => {
         (this._planet!.renderer!.controls.mouseNavigation as MouseNavigation).activate();
         if (this._pickedCorner || this._pickedCenter) {
             this.events.dispatch(this.events.change, this);
@@ -339,15 +325,15 @@ class PolygonDrawingScene extends RenderNode {
         return e.pickingObject;
     }
 
-    protected _onCornerLdown(e: IMouseState) {
+    protected _onCornerLdown = (e: IMouseState) => {
         this._pickedCorner = this._getLdown(e);
     }
 
-    protected _onCenterLdown(e: IMouseState) {
+    protected _onCenterLdown = (e: IMouseState) => {
         this._pickedCenter = this._getLdown(e);
     }
 
-    protected _onMouseMove(e: IMouseState) {
+    protected _onMouseMove = (e: IMouseState) => {
         if (this._pickedCenter) {
             this._moveCenterPoint();
         } else if (this._pickedCorner) {
@@ -357,14 +343,14 @@ class PolygonDrawingScene extends RenderNode {
         }
     }
 
-    protected _onCornerLdblclick(e: IMouseState) {
+    protected _onCornerLdblclick = (e: IMouseState) => {
         this._cornerDblClick = true;
         let coords = this.getCoordinates();
         coords.splice(e.pickingObject.layerIndex, 1);
         this.setCoordinates(coords);
     }
 
-    protected _onMouseDblClick(e: IMouseState) {
+    protected _onMouseDblClick = (e: IMouseState) => {
 
         if (this._cornerDblClick) {
             this._cornerDblClick = false;
@@ -388,61 +374,31 @@ class PolygonDrawingScene extends RenderNode {
 
     protected _initEvents() {
 
-        this._onCornerLdblclick_ = this._onCornerLdblclick.bind(this);
-        this._cornerLayer.events.on("ldblclick", this._onCornerLdblclick_, this);
+        this._cornerLayer.events.on("ldblclick", this._onCornerLdblclick, this);
+        this._cornerLayer.events.on("ldown", this._onCornerLdown, this);
+        this._centerLayer.events.on("ldown", this._onCenterLdown, this);
 
-        this._onCornerLdown_ = this._onCornerLdown.bind(this);
-        this._cornerLayer.events.on("ldown", this._onCornerLdown_, this);
+        this.renderer!.events.on("lup", this._onLup, this);
+        this.renderer!.events.on("mousemove", this._onMouseMove, this);
 
-        this._onCenterLdown_ = this._onCenterLdown.bind(this);
-        this._centerLayer.events.on("ldown", this._onCenterLdown_, this);
-
-        this._onLup_ = this._onLup.bind(this);
-        this.renderer!.events.on("lup", this._onLup_, this);
-
-        this._onMouseMove_ = this._onMouseMove.bind(this);
-        this.renderer!.events.on("mousemove", this._onMouseMove_, this);
-
-        this._onCornerMouseEnter_ = this._onCornerMouseEnter.bind(this);
-        this._cornerLayer.events.on("mouseenter", this._onCornerMouseEnter_, this);
-
-        this._onCornerMouseLeave_ = this._onCornerMouseLeave.bind(this);
-        this._cornerLayer.events.on("mouseleave", this._onCornerMouseLeave_, this);
-
-        this._onCenterMouseEnter_ = this._onCenterMouseEnter.bind(this);
-        this._centerLayer.events.on("mouseenter", this._onCenterMouseEnter_, this);
-
-        this._onCenterMouseLeave_ = this._onCenterMouseLeave.bind(this);
-        this._centerLayer.events.on("mouseleave", this._onCenterMouseLeave_, this);
+        this._cornerLayer.events.on("mouseenter", this._onCornerMouseEnter, this);
+        this._cornerLayer.events.on("mouseleave", this._onCornerMouseLeave, this);
+        this._centerLayer.events.on("mouseenter", this._onCenterMouseEnter, this);
+        this._centerLayer.events.on("mouseleave", this._onCenterMouseLeave, this);
     }
 
     protected _clearEvents() {
-        this._cornerLayer.events.off("ldblclick", this._onCornerLdblclick_);
-        this._onCornerLdblclick_ = null;
+        this._cornerLayer.events.off("ldblclick", this._onCornerLdblclick);
+        this._cornerLayer.events.off("ldown", this._onCornerLdown);
+        this._centerLayer.events.off("ldown", this._onCenterLdown);
 
-        this._cornerLayer.events.off("ldown", this._onCornerLdown_);
-        this._onCornerLdown_ = null;
+        this.renderer!.events.off("lup", this._onLup);
+        this.renderer!.events.off("mousemove", this._onMouseMove);
 
-        this._centerLayer.events.off("ldown", this._onCenterLdown_);
-        this._onCenterLdown_ = null;
-
-        this.renderer!.events.off("lup", this._onLup_);
-        this._onLup_ = null;
-
-        this.renderer!.events.off("mousemove", this._onMouseMove_);
-        this._onMouseMove_ = null;
-
-        this._cornerLayer.events.off("mouseenter", this._onCornerMouseEnter_);
-        this._onCornerMouseEnter_ = null;
-
-        this._cornerLayer.events.off("mouseleave", this._onCornerMouseLeave_);
-        this._onCornerMouseLeave_ = null;
-
-        this._centerLayer.events.off("mouseenter", this._onCenterMouseEnter_);
-        this._onCenterMouseEnter_ = null;
-
-        this._centerLayer.events.off("mouseleave", this._onCenterMouseLeave_);
-        this._onCenterMouseLeave_ = null;
+        this._cornerLayer.events.off("mouseenter", this._onCornerMouseEnter);
+        this._cornerLayer.events.off("mouseleave", this._onCornerMouseLeave);
+        this._centerLayer.events.off("mouseenter", this._onCenterMouseEnter);
+        this._centerLayer.events.off("mouseleave", this._onCenterMouseLeave);
     }
 
     protected _drawCorners() {
