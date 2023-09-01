@@ -1,13 +1,17 @@
 import * as atmos from "../shaders/atmos";
-import { Framebuffer } from "../webgl/Framebuffer";
-import { Program } from '../webgl/Program';
-import { Control } from "./Control";
+import {Framebuffer} from "../webgl/Framebuffer";
+import {Program} from '../webgl/Program';
+import {Control, IControlParams} from "./Control";
+
+interface IAtmosphereParams extends IControlParams {
+}
 
 export class Atmosphere extends Control {
-    _transmittanceBuffer: any;
-    _scatteringBuffer: any;
-    opacity: number;
-    constructor(options = {}) {
+    protected _transmittanceBuffer: Framebuffer | null;
+    protected _scatteringBuffer: Framebuffer | null;
+    public opacity: number;
+
+    constructor(options: IAtmosphereParams = {}) {
         super({
             name: "Atmosphere",
             ...options
@@ -19,32 +23,33 @@ export class Atmosphere extends Control {
         this.opacity = 1.0;
     }
 
-    override oninit() {
-        this.renderer.handler.addProgram(atmos.transmittance(), true);
-        this.renderer.handler.addProgram(atmos.scattering(), true);
-        this.renderer.handler.addProgram(atmosphereBackgroundShader(), true);
+    public override oninit() {
+        if (this.renderer) {
+            this.renderer.handler.addProgram(atmos.transmittance(), true);
+            this.renderer.handler.addProgram(atmos.scattering(), true);
+            this.renderer.handler.addProgram(atmosphereBackgroundShader(), true);
 
-        this._drawAtmosphereTextures();
-
-        this.activate();
+            this._drawAtmosphereTextures();
+            this.activate();
+        }
     }
 
-    override onactivate() {
+    public override onactivate() {
         super.onactivate();
-        this.planet!.events.on("draw", this._drawBackground, this);
+        this.planet && this.planet.events.on("draw", this._drawBackground, this);
     }
 
-    override ondeactivate() {
+    public override ondeactivate() {
         super.ondeactivate();
-        this.planet!.events.off("draw", this._drawBackground);
+        this.planet && this.planet.events.off("draw", this._drawBackground);
     }
 
-    _drawAtmosphereTextures() {
+    protected _drawAtmosphereTextures() {
 
         let width = 256,
             height = 128;
 
-        this._transmittanceBuffer = new Framebuffer(this.renderer.handler, {
+        this._transmittanceBuffer = new Framebuffer(this.renderer!.handler, {
             width: width,
             height: height,
             useDepth: false,
@@ -55,7 +60,7 @@ export class Atmosphere extends Control {
 
         this._transmittanceBuffer.init();
 
-        this._scatteringBuffer = new Framebuffer(this.renderer.handler, {
+        this._scatteringBuffer = new Framebuffer(this.renderer!.handler, {
             width: width,
             height: height,
             useDepth: false,
@@ -66,10 +71,10 @@ export class Atmosphere extends Control {
 
         this._scatteringBuffer.init();
 
-        let positionBuffer = this.renderer.screenFramePositionBuffer;
+        let positionBuffer = this.renderer!.screenFramePositionBuffer;
 
-        let h = this.renderer.handler;
-        let gl = h.gl;
+        let h = this.renderer!.handler;
+        let gl = h.gl!;
 
         //
         // Draw transmittance texture
@@ -86,9 +91,9 @@ export class Atmosphere extends Control {
 
         gl.uniform2fv(shu.iResolution, [this._transmittanceBuffer.width, this._transmittanceBuffer.height]);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.vertexAttribPointer(sha.a_position, positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer.numItems);
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer!);
+        gl.vertexAttribPointer(sha.a_position, positionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer!.numItems);
 
         this._transmittanceBuffer.deactivate();
 
@@ -111,9 +116,9 @@ export class Atmosphere extends Control {
         gl.bindTexture(gl.TEXTURE_2D, this._transmittanceBuffer.textures[0]);
         gl.uniform1i(shu.transmittanceTexture, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.vertexAttribPointer(sha.a_position, positionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer.numItems);
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer!);
+        gl.vertexAttribPointer(sha.a_position, positionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer!.numItems);
 
         this._scatteringBuffer.deactivate();
 
@@ -128,25 +133,27 @@ export class Atmosphere extends Control {
         }
     }
 
-    _drawBackground() {
-        let h = this.renderer.handler;
+    protected _drawBackground() {
+        let h = this.renderer!.handler;
         let sh = h.programs.atmosphereBackground,
             p = sh._program,
-            shu = p.uniforms, gl = h.gl;
-        let cam = this.renderer.activeCamera;
+            shu = p.uniforms,
+            gl = h.gl!;
+        let r = this.renderer!;
+        let cam = this.planet!.camera;
 
         gl.disable(gl.DEPTH_TEST);
 
         sh.activate();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.renderer.screenFramePositionBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer!);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this._transmittanceBuffer.textures[0]);
+        gl.bindTexture(gl.TEXTURE_2D, this._transmittanceBuffer!.textures[0]);
         gl.uniform1i(shu.transmittanceTexture, 0);
 
         gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, this._scatteringBuffer.textures[0]);
+        gl.bindTexture(gl.TEXTURE_2D, this._scatteringBuffer!.textures[0]);
         gl.uniform1i(shu.scatteringTexture, 1);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
@@ -154,7 +161,7 @@ export class Atmosphere extends Control {
         let sunPos = this.planet!.sunPos;
         gl.uniform3fv(shu.sunPos, [sunPos.x, sunPos.y, sunPos.z]);
         gl.uniform3fv(shu.camPos, [cam.eye.x, cam.eye.y, cam.eye.z]);
-        gl.uniform2fv(shu.iResolution, [this.renderer.sceneFramebuffer.width, this.renderer.sceneFramebuffer.height]);
+        gl.uniform2fv(shu.iResolution, [r.sceneFramebuffer!.width, r.sceneFramebuffer!.height]);
         gl.uniform1f(shu.fov, cam.getViewAngle());
         gl.uniform1f(shu.opacity, this.opacity);
 
@@ -164,7 +171,7 @@ export class Atmosphere extends Control {
     }
 }
 
-function atmosphereBackgroundShader() {
+function atmosphereBackgroundShader(): Program {
     return new Program("atmosphereBackground", {
         uniforms: {
             iResolution: "vec2",

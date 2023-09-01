@@ -194,7 +194,7 @@ class Renderer {
     protected _format: string;
     protected _type: string;
 
-    protected sceneFramebuffer: Framebuffer | Multisample | null;
+    public sceneFramebuffer: Framebuffer | Multisample | null;
 
     protected blitFramebuffer: Framebuffer | null;
 
