@@ -189,7 +189,7 @@ class TextureAtlas {
      * @public
      */
     createTexture(img, internalFormat) {
-        if (this._handler) {
+        if (this._handler && this._handler.gl) {
             this._handler.gl.deleteTexture(this.texture);
             if (img) {
                 this.canvas.resize(img.width, img.height);
