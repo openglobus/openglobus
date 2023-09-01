@@ -2,11 +2,8 @@ import {Control, IControlParams} from "../Control";
 import {LineStringDrawingScene} from "./LineStringDrawingScene";
 import {PolygonDrawingScene} from "./PolygonDrawingScene";
 
-/**
- * Activate drawing
- */
 class DrawingControl extends Control {
-    _drawingScene: PolygonDrawingScene;
+    protected _drawingScene: PolygonDrawingScene;
 
     constructor(options: IControlParams) {
         super(options);

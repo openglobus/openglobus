@@ -1,15 +1,24 @@
-
-
-import { Events } from '../../Events';
-import { LonLat } from '../../LonLat';
-import { Object3d } from '../../Object3d.js';
-import { Entity } from '../../entity/Entity.js';
-import { Vector } from '../../layer/Vector.js';
 import * as math from "../../math";
-import { Line3 } from '../../math/Line3.js';
-import { Vec2 } from '../../math/Vec2';
-import { Vec3 } from '../../math/Vec3';
-import { RenderNode } from '../../scene/RenderNode.js';
+import {createEvents, Events, EventsHandler} from '../../Events';
+import {Entity} from '../../entity/Entity.js';
+import {LonLat} from '../../LonLat';
+import {Object3d} from '../../Object3d.js';
+import {Vector} from '../../layer/Vector.js';
+import {Line3} from '../../math/Line3.js';
+import {Planet} from '../../scene/Planet';
+import {Vec2} from '../../math/Vec2';
+import {NumberArray3, Vec3} from '../../math/Vec3';
+import {RenderNode} from '../../scene/RenderNode.js';
+import {MouseNavigation} from "../MouseNavigation";
+
+type PolygonDrawingSceneEventsList = ["change"];
+
+const POLYGONDRAWINGSCENE_EVENTS: PolygonDrawingSceneEventsList = ["change"];
+
+export interface IPolygonDrawingSceneParams {
+    coordinates?: NumberArray3[];
+    name: string;
+}
 
 const POINTER_OBJ3D = Object3d.createCylinder(1, 1, 2.0, 20, 1, true, false, 0, -0.5, 0);
 
@@ -42,39 +51,39 @@ export const OUTLINE_OPTIONS = {
 }
 
 class PolygonDrawingScene extends RenderNode {
-    events: any; // Events<string[]>;
-    _planet: any;
-    _initCoordinates: any;
-    _pickedCorner: any;
-    _pickedCenter: any;
-    _startPos: any;
-    _startClick: Vec2;
-    _geometryLayer: Vector;
-    _cornerLayer: Vector;
-    _centerLayer: Vector;
-    _outlineLayer: Vector;
-    _ghostCorner: Entity;
-    _ghostOutlineLayer: Vector;
-    _showGhostPointer: boolean;
-    _isStartPoint: boolean;
-    _insertCornerIndex: number;
-    _onChange_: any;
-    _cornerDblClick = false;
-    _onCornerLdblclick_: any;
-    _onCornerLdown_: any;
-    _onCenterLdown_: any;
-    _onLup_: any;
-    _onMouseMove_: any;
-    _onCornerMouseEnter_: any;
-    _onCornerMouseLeave_: any;
-    _onCenterMouseEnter_: any;
-    _onCenterMouseLeave_: any;
-    private _onMouseDblClick_: any;
+    public events: EventsHandler<PolygonDrawingSceneEventsList>;
+    public _planet: Planet | null;
+    protected _initCoordinates: any;
+    protected _pickedCorner: any;
+    protected _pickedCenter: any;
+    protected _startPos: Vec2 | null;
+    protected _startClick: Vec2;
+    protected _geometryLayer: Vector;
+    protected _cornerLayer: Vector;
+    protected _centerLayer: Vector;
+    protected _outlineLayer: Vector;
+    protected _ghostCorner: Entity;
+    protected _ghostOutlineLayer: Vector;
+    protected _showGhostPointer: boolean;
+    protected _isStartPoint: boolean;
+    protected _insertCornerIndex: number;
+    protected _onChange_: Function | null;
+    protected _cornerDblClick = false;
+    protected _onCornerLdblclick_: Function | null;
+    protected _onCornerLdown_: Function | null;
+    protected _onCenterLdown_: Function | null;
+    protected _onLup_: Function | null;
+    protected _onMouseMove_: Function | null;
+    protected _onCornerMouseEnter_: Function | null;
+    protected _onCornerMouseLeave_: Function | null;
+    protected _onCenterMouseEnter_: Function | null;
+    protected _onCenterMouseLeave_: Function | null;
+    protected _onMouseDblClick_: Function | null;
 
-    constructor(options: { name?: string, coordinates?: any[] } = {}) {
+    constructor(options: IPolygonDrawingSceneParams) {
         super(options.name);
 
-        this.events = new Events(EVENT_NAMES);
+        this.events = createEvents(POLYGONDRAWINGSCENE_EVENTS);
 
         this._planet = null;
 
@@ -86,7 +95,7 @@ class PolygonDrawingScene extends RenderNode {
         this._startPos = null;
         this._startClick = new Vec2();
 
-        this._geometryLayer = new Vector(null);
+        this._geometryLayer = new Vector();
 
         //
         // outline vectors
@@ -113,7 +122,7 @@ class PolygonDrawingScene extends RenderNode {
                     path3v: [],
                     isClosed: false,
                     ...OUTLINE_OPTIONS
-                } as any,
+                },
                 properties: {
                     index: 0
                 }
@@ -123,13 +132,13 @@ class PolygonDrawingScene extends RenderNode {
             relativeToGround: true
         });
 
-        (this._outlineLayer as any).getEntities()[0].polyline.altitude = OUTLINE_ALT;
+        this._outlineLayer.getEntities()[0].polyline!.altitude = OUTLINE_ALT;
 
         //
         // Ghost cursor pointer
         //
         this._ghostCorner = new Entity({
-            geoObject: CORNER_OPTIONS as any,
+            geoObject: CORNER_OPTIONS,
         });
 
         this._ghostOutlineLayer = new Vector("ghost-pointer", {
@@ -147,14 +156,14 @@ class PolygonDrawingScene extends RenderNode {
         this._insertCornerIndex = -1;
     }
 
-    get geometryType() {
+    public get geometryType(): string {
         return "Polygon";
     }
 
-    getCoordinates() {
+    public getCoordinates(): NumberArray3[] {
         let corners = this._cornerLayer.getEntities();
         if (corners.length > 0) {
-            return corners.map((c) => {
+            return corners.map((c: Entity) => {
                 let ll = c.getLonLat();
                 return [ll.lon, ll.lat, ll.height];
             });
@@ -163,11 +172,11 @@ class PolygonDrawingScene extends RenderNode {
         }
     }
 
-    bindPlanet(planet: any) {
+    public bindPlanet(planet: Planet) {
         this._planet = planet;
     }
 
-    override init() {
+    public override init() {
 
         this._initEvents();
 
@@ -177,22 +186,22 @@ class PolygonDrawingScene extends RenderNode {
             this.setCoordinates(this._initCoordinates);
         }
 
-        this._planet.addLayer(this._outlineLayer);
-        this._planet.addLayer(this._cornerLayer);
-        this._planet.addLayer(this._centerLayer);
+        this._planet!.addLayer(this._outlineLayer);
+        this._planet!.addLayer(this._cornerLayer);
+        this._planet!.addLayer(this._centerLayer);
 
         this.showGhostPointer();
         this.startNewPoint();
 
-        this._planet.renderer.controls.mouseNavigation.deactivateDoubleClickZoom();
+        (this._planet!.renderer!.controls.mouseNavigation as MouseNavigation).deactivateDoubleClickZoom();
 
-        this._geometryLayer.addTo(this._planet);
+        this._geometryLayer.addTo(this._planet!);
 
         this._onChange_ = this._onChange.bind(this);
         this.events.on("change", this._onChange_, this);
     }
 
-    _onChange(e: any) {
+    protected _onChange(e: any) {
         if (e.geometryType === "Polygon") {
             let coords = this.getCoordinates();
             let entity = new Entity({
@@ -811,4 +820,4 @@ const EVENT_NAMES = [
 ];
 
 
-export { PolygonDrawingScene };
+export {PolygonDrawingScene};
