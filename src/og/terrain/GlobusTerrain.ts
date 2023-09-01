@@ -162,7 +162,7 @@ class GlobusTerrain extends EmptyTerrain {
 
         firstAttempt = firstAttempt != undefined ? firstAttempt : true;
 
-        let z = zoom || this.maxNativeZoom,
+        let z = zoom || this.maxZoom,
             z2 = Math.pow(2, z),
             size = mercator.POLE2 / z2,
             merc = mercator.forward(lonLat),
@@ -202,9 +202,9 @@ class GlobusTerrain extends EmptyTerrain {
                     callback(this._getGroundHeightMerc(merc, cache));
 
                 } else if (response.status === "error") {
-                    if (firstAttempt && z > this.maxZoom) {
+                    if (firstAttempt && z > this.maxNativeZoom) {
                         firstAttempt = false;
-                        this.getHeightAsync(lonLat, callback, this.maxZoom, false);
+                        this.getHeightAsync(lonLat, callback, this.maxNativeZoom, false);
                         return;
                     }
 
