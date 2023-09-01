@@ -1,8 +1,6 @@
-'use strict';
+import {Program} from '../webgl/Program';
 
-import { Program } from '../webgl/Program.js';
-
-export function pickingMask() {
+export function pickingMask(): Program {
     return new Program("pickingMask", {
         uniforms: {
             offset: "vec2"

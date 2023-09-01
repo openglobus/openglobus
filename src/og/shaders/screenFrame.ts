@@ -1,8 +1,6 @@
-'use strict';
+import {Program} from '../webgl/Program';
 
-import { Program } from '../webgl/Program.js';
-
-export function screenFrame() {
+export function screenFrame(): Program {
     return new Program("screenFrame", {
         uniforms: {
             texture: "sampler2d"

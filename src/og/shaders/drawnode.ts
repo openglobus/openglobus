@@ -1,8 +1,6 @@
-"use strict";
-
-import { Program } from "../webgl/Program.js";
-import * as atmos from "./atmos.js";
-import { UTILS } from './utils.js';
+import * as atmos from "./atmos";
+import {Program} from "../webgl/Program";
+import {UTILS} from './utils';
 
 // REMEMBER!
 // src*(1)+dest*(1-src.alpha)
@@ -30,7 +28,7 @@ const DEF_BLEND_PICKING = `#define blendPicking(DEST, OFFSET, SAMPLER, MASK, COL
 
 const SLICE_SIZE = 4;
 
-export function drawnode_screen_nl() {
+export function drawnode_screen_nl(): Program {
     return new Program("drawnode_screen_nl", {
         uniforms: {
             projectionMatrix: "mat4",
@@ -44,12 +42,12 @@ export function drawnode_screen_nl() {
             defaultTexture: "sampler2d",
             height: "float"
         }, attributes: {
-            aVertexPositionHigh: "vec3", 
-            aVertexPositionLow: "vec3", 
+            aVertexPositionHigh: "vec3",
+            aVertexPositionLow: "vec3",
             aTextureCoord: "vec2"
         },
 
-        vertexShader: 
+        vertexShader:
             `precision highp float;
             
             attribute vec3 aVertexPositionHigh;
@@ -114,7 +112,7 @@ export function drawnode_screen_nl() {
     });
 }
 
-export function drawnode_screen_wl_webgl1NoAtmos() {
+export function drawnode_screen_wl_webgl1NoAtmos(): Program {
     return new Program("drawnode_screen_wl", {
         uniforms: {
             projectionMatrix: "mat4",
@@ -299,7 +297,7 @@ export function drawnode_screen_wl_webgl1NoAtmos() {
     });
 }
 
-export function drawnode_screen_wl_webgl2NoAtmos() {
+export function drawnode_screen_wl_webgl2NoAtmos(): Program {
     return new Program("drawnode_screen_wl", {
         uniforms: {
             projectionMatrix: "mat4",
@@ -492,7 +490,7 @@ export function drawnode_screen_wl_webgl2NoAtmos() {
 }
 
 
-export function drawnode_screen_wl_webgl2Atmos() {
+export function drawnode_screen_wl_webgl2Atmos(): Program {
     return new Program("drawnode_screen_wl", {
         uniforms: {
             projectionMatrix: "mat4",
@@ -823,7 +821,7 @@ export function drawnode_screen_wl_webgl2Atmos() {
     });
 }
 
-export function drawnode_colorPicking() {
+export function drawnode_colorPicking(): Program {
     return new Program("drawnode_colorPicking", {
         uniforms: {
             projectionMatrix: "mat4",
@@ -840,7 +838,7 @@ export function drawnode_colorPicking() {
             aVertexPositionHigh: "vec3", aVertexPositionLow: "vec3", aTextureCoord: "vec2"
         },
 
-        vertexShader: 
+        vertexShader:
             `precision highp float;
             
             attribute vec3 aVertexPositionHigh;
@@ -872,7 +870,7 @@ export function drawnode_colorPicking() {
                 gl_Position = m * vec4(highDiff + lowDiff, 1.0);
             }`,
 
-        fragmentShader: 
+        fragmentShader:
             `precision highp float;
             #define SLICE_SIZE ${SLICE_SIZE + 1}
             uniform vec4 tileOffsetArr[SLICE_SIZE];
@@ -909,7 +907,7 @@ export function drawnode_colorPicking() {
     });
 }
 
-export function drawnode_heightPicking() {
+export function drawnode_heightPicking(): Program {
     return new Program("drawnode_heightPicking", {
         uniforms: {
             projectionMatrix: "mat4",
@@ -921,7 +919,7 @@ export function drawnode_heightPicking() {
             aVertexPositionHigh: "vec3", aVertexPositionLow: "vec3"
         },
 
-        vertexShader: 
+        vertexShader:
             `precision highp float;
 
             attribute vec3 aVertexPositionHigh;
@@ -957,7 +955,7 @@ export function drawnode_heightPicking() {
                 gl_Position =  m * vec4(highDiff + lowDiff, 1.0);         
             }`,
 
-        fragmentShader: 
+        fragmentShader:
             `precision highp float;
 
             varying vec3 eyePosition;
@@ -982,7 +980,7 @@ export function drawnode_heightPicking() {
     });
 }
 
-export function drawnode_depth() {
+export function drawnode_depth(): Program {
     return new Program("drawnode_depth", {
         uniforms: {
             projectionMatrix: "mat4",
@@ -995,7 +993,7 @@ export function drawnode_depth() {
             aVertexPositionHigh: "vec3", aVertexPositionLow: "vec3"
         },
 
-        vertexShader: 
+        vertexShader:
             `precision highp float;
 
             attribute vec3 aVertexPositionHigh;
@@ -1029,7 +1027,7 @@ export function drawnode_depth() {
                 gl_Position =  m * vec4(highDiff + lowDiff, 1.0);    
             }`,
 
-        fragmentShader: 
+        fragmentShader:
             `precision highp float;
             uniform vec3 frustumPickingColor;
 

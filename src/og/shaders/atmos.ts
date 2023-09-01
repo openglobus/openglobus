@@ -1,7 +1,5 @@
-'use strict';
-
-import { Program } from '../webgl/Program.js';
-import { UTILS } from './utils.js';
+import { Program } from '../webgl/Program';
+import { UTILS } from './utils';
 
 export const COMMON =
     `
@@ -93,7 +91,7 @@ export const COMMON =
         return exp(-(rayleighScatteringCoefficient * opticalDepth.x + mieExtinctionCoefficient * opticalDepth.y + ozoneAbsorptionCoefficient * opticalDepth.z));
     }`;
 
-export function transmittance() {
+export function transmittance(): Program {
     return new Program("transmittance", {
         uniforms: {
             iResolution: "vec2"
@@ -129,7 +127,7 @@ export function transmittance() {
     });
 }
 
-export function scattering() {
+export function scattering(): Program {
     return new Program("scattering", {
         uniforms: {
             iResolution: "vec2",

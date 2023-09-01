@@ -1,10 +1,7 @@
-'use strict';
+import {Program} from '../webgl/Program';
 
-import { Program } from '../webgl/Program.js';
-
-export function buildKernel(sigma) {
-
-    function gauss(x, sigma) {
+export function buildKernel(sigma: number): number[] {
+    function gauss(x: number, sigma: number) {
         return Math.exp(-(x * x) / (2.0 * sigma * sigma));
     }
 
@@ -26,7 +23,7 @@ export function buildKernel(sigma) {
     return values;
 }
 
-export function blur() {
+export function blur(): Program {
 
     return new Program("blur", {
         uniforms: {

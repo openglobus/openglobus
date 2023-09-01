@@ -1,11 +1,8 @@
 import * as atmos from "../shaders/atmos";
-import { Framebuffer } from "../webgl/index";
-import { Program } from '../webgl/Program.js';
+import { Framebuffer } from "../webgl/Framebuffer";
+import { Program } from '../webgl/Program';
 import { Control } from "./Control";
 
-/**
- * Frame per second(FPS) display control.
- */
 export class Atmosphere extends Control {
     _transmittanceBuffer: any;
     _scatteringBuffer: any;

@@ -1,8 +1,6 @@
-'use strict';
+import {Program} from '../webgl/Program';
 
-import { Program } from '../webgl/Program.js';
-
-export function rayScreen() {
+export function rayScreen(): Program {
     return new Program("rayScreen", {
         uniforms: {
             projectionMatrix: "mat4",

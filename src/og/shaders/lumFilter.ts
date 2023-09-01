@@ -1,8 +1,6 @@
-'use strict';
+import { Program } from '../webgl/Program';
 
-import { Program } from '../webgl/Program.js';
-
-export function lumFilter() {
+export function lumFilter(): Program {
     return new Program("lumFilter", {
         uniforms: {
             texture: "sampler2d",

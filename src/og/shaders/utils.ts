@@ -1,5 +1,3 @@
-'use strict';
-
 export const UTILS = `
     float getLerpValue(in float min, in float max, in float between)
     {

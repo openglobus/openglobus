@@ -1,8 +1,6 @@
-"use strict";
+import {Program} from "../webgl/Program";
 
-import { Program } from "../webgl/Program.js";
-
-export const geo_object = () =>
+export const geo_object = (): Program =>
     new Program("geo_object", {
         uniforms: {
             viewMatrix: "mat4",
@@ -25,13 +23,13 @@ export const geo_object = () =>
             aVertexNormal: "vec3",
             aTexCoord: "vec2",
 
-            aPositionHigh: { type: "vec3", divisor: 1 },
-            aPositionLow: { type: "vec3", divisor: 1 },
-            aDirection: { type: "vec3", divisor: 1 },
-            aPitchRoll: { type: "vec2", divisor: 1 },
-            aColor: { type: "vec4", divisor: 1 },
-            aScale: { type: "float", divisor: 1 },
-            aDispose: { type: "float", divisor: 1 }
+            aPositionHigh: {type: "vec3", divisor: 1},
+            aPositionLow: {type: "vec3", divisor: 1},
+            aDirection: {type: "vec3", divisor: 1},
+            aPitchRoll: {type: "vec2", divisor: 1},
+            aColor: {type: "vec4", divisor: 1},
+            aScale: {type: "float", divisor: 1},
+            aDispose: {type: "float", divisor: 1}
         },
         vertexShader:
             `precision highp float;
@@ -163,7 +161,7 @@ export const geo_object = () =>
                 }`
     });
 
-export const geo_object_picking = () =>
+export const geo_object_picking = (): Program =>
     new Program("geo_object_picking", {
         uniforms: {
             viewMatrix: "mat4",
@@ -175,13 +173,13 @@ export const geo_object_picking = () =>
         },
         attributes: {
             aVertexPosition: "vec3",
-            aPositionHigh: { type: "vec3", divisor: 1 },
-            aPositionLow: { type: "vec3", divisor: 1 },
-            aDirection: { type: "vec3", divisor: 1 },
-            aPitchRoll: { type: "vec2", divisor: 1 },
-            aPickingColor: { type: "vec3", divisor: 1 },
-            aScale: { type: "float", divisor: 1 },
-            aDispose: { type: "float", divisor: 1 }
+            aPositionHigh: {type: "vec3", divisor: 1},
+            aPositionLow: {type: "vec3", divisor: 1},
+            aDirection: {type: "vec3", divisor: 1},
+            aPitchRoll: {type: "vec2", divisor: 1},
+            aPickingColor: {type: "vec3", divisor: 1},
+            aScale: {type: "float", divisor: 1},
+            aDispose: {type: "float", divisor: 1}
         },
         vertexShader: `precision highp float;
 

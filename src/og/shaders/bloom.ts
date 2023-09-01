@@ -1,8 +1,6 @@
-'use strict';
+import {Program} from '../webgl/Program';
 
-import { Program } from '../webgl/Program.js';
-
-export function bloom() {
+export function bloom(): Program {
     return new Program("bloom", {
         uniforms: {
             uTextureOriginal: "sampler2d",

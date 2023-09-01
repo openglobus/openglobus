@@ -1,8 +1,6 @@
-'use strict';
+import {Program} from '../webgl/Program';
 
-import { Program } from '../webgl/Program.js';
-
-export function toneMapping() {
+export function toneMapping(): Program {
     return new Program("toneMapping", {
         uniforms: {
             hdrBuffer: "sampler2d",
