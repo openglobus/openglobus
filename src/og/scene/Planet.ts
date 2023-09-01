@@ -398,7 +398,7 @@ export class Planet extends RenderNode {
     protected always: any[];
 
     public _renderCompleted: boolean
-    protected _renderCompletedActivated: boolean;
+    public _renderCompletedActivated: boolean;
 
     public _terrainCompleted: boolean;
     public _terrainCompletedActivated: boolean;
