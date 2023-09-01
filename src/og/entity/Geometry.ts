@@ -5,6 +5,7 @@ import {GeometryHandler} from "./GeometryHandler";
 import {LonLat} from "../LonLat";
 import {NumberArray4, Vec4} from "../math/Vec4";
 import {NumberArray2} from "../math/Vec2";
+import {NumberArray3} from "../math/Vec3";
 
 const GeometryType: Record<string, number> = {
     POINT: 1,
@@ -14,11 +15,12 @@ const GeometryType: Record<string, number> = {
     MULTILINESTRING: 5
 };
 
+export type CoordinatesType = NumberArray2 | NumberArray3;
 // {
 //     "type": "Point",
 //     "coordinates": [100.0, 0.0]
 // }
-export type IPointCoordinates = NumberArray2;
+export type IPointCoordinates = CoordinatesType;
 
  // {
  //     "type": "LineString",
@@ -27,7 +29,7 @@ export type IPointCoordinates = NumberArray2;
  //         [101.0, 1.0]
  //     ]
  // }
-export type ILineStringCoordinates = NumberArray2[];
+export type ILineStringCoordinates = CoordinatesType[];
 
 // No holes
 // {
@@ -63,7 +65,7 @@ export type ILineStringCoordinates = NumberArray2[];
 //         ]
 //     ]
 // }
-export type IPolygonCoordinates = NumberArray2[][];
+export type IPolygonCoordinates = CoordinatesType[][];
 
 // {
 //     "type": "MultiLineString",
@@ -289,7 +291,7 @@ class Geometry {
         } else if (t === GeometryType.POLYGON) {
             let c: IPolygonCoordinates = geometryObj.coordinates as IPolygonCoordinates;
             for (let i = 0; i < c.length; i++) {
-                let ci: NumberArray2[] = c[i];
+                let ci: CoordinatesType[] = c[i];
                 outCoordinates && (outCoordinates[i] = []);
                 for (let j = 0; j < ci.length; j++) {
                     let cij = ci[j];
@@ -308,7 +310,7 @@ class Geometry {
                 let pi: IPolygonCoordinates = p[i] as IPolygonCoordinates;
                 outCoordinates && (outCoordinates[i] = []);
                 for (let j = 0; j < pi.length; j++) {
-                    let pij: NumberArray2[] = pi[j];
+                    let pij: CoordinatesType[] = pi[j];
                     outCoordinates && ((outCoordinates as IMultiPolygonCoordinates)[i][j] = []);
                     for (let k = 0; k < pij.length; k++) {
                         let pijk = pij[k];

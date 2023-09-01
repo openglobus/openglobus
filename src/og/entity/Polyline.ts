@@ -47,6 +47,7 @@ export interface IPolylineParams {
     pathColors?: SegmentPathColor[];
     path3v?: SegmentPath3vExt[];
     pathLonLat?: SegmentPathLonLatExt[];
+    properties?: any;
 }
 
 /**

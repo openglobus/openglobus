@@ -9,6 +9,7 @@ import {Node} from "../quadTree/Node";
 import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 import {
+    CoordinatesType,
     GeometryType,
     Geometry,
     IMultiLineStringCoordinates,
@@ -187,7 +188,7 @@ class GeometryHandler {
     }
 
     static appendLineData(
-        pathArr: NumberArray2[][],
+        pathArr: CoordinatesType[][],
         isClosed: boolean,
         color: Vec4,
         pickingColor: Vec3,
@@ -229,7 +230,7 @@ class GeometryHandler {
             }
 
             let startIndex = index;
-            let last: NumberArray2;
+            let last: CoordinatesType;
             if (isClosed) {
                 last = path[path.length - 1];
             } else {
@@ -243,7 +244,7 @@ class GeometryHandler {
                 last = [p0[0] + p0[0] - p1[0], p0[1] + p0[1] - p1[1]];
             }
 
-            doubleToTwoFloats(last, tempHigh, tempLow);
+            doubleToTwoFloats(last as NumberArray2, tempHigh, tempLow);
 
             outVerticesHigh.push(
                 tempHigh.x, tempHigh.y,
@@ -297,7 +298,7 @@ class GeometryHandler {
             for (let i = 0; i < path.length; i++) {
                 let cur = path[i];
 
-                doubleToTwoFloats(cur, tempHigh, tempLow);
+                doubleToTwoFloats(cur as NumberArray2, tempHigh, tempLow);
 
                 outVerticesHigh.push(
                     tempHigh.x, tempHigh.y,
@@ -349,7 +350,7 @@ class GeometryHandler {
                 outIndexes.push(index++, index++, index++, index++);
             }
 
-            let first: NumberArray2;
+            let first: CoordinatesType;
             if (isClosed) {
                 first = path[0];
                 outIndexes.push(startIndex, startIndex + 1, startIndex + 1, startIndex + 1);
@@ -365,7 +366,7 @@ class GeometryHandler {
                 outIndexes.push(index - 1, index - 1, index - 1, index - 1);
             }
 
-            doubleToTwoFloats(first, tempHigh, tempLow);
+            doubleToTwoFloats(first as NumberArray2, tempHigh, tempLow);
 
             outVerticesHigh.push(
                 tempHigh.x, tempHigh.y,
@@ -585,8 +586,8 @@ class GeometryHandler {
                     geometry._lineThicknessHandlerIndex = this._lineThickness.length;
 
                     for (let i = 0; i < coordinates.length; i++) {
-                        let cci: NumberArray2[][] = coordinates[i];
-                        let ci: NumberArray2[][] = [];
+                        let cci: CoordinatesType[][] = coordinates[i];
+                        let ci: CoordinatesType[][] = [];
                         for (let j = 0; j < cci.length; j++) {
                             ci[j] = [];
                             for (let k = 0; k < coordinates[i][j].length; k++) {

@@ -41,7 +41,7 @@ const ICON_DEFAULT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" hei
  * Activate drawing control
  */
 export class DrawingSwitcher extends Control {
-    drawingControl: DrawingControl;
+    public drawingControl: DrawingControl;
     constructor(options = {}) {
         super({
             name: "DrawingSwitcher",
@@ -51,20 +51,20 @@ export class DrawingSwitcher extends Control {
         this.drawingControl = new DrawingControl();
     }
 
-    override oninit() {
+    public override oninit() {
         this.planet!.addControl(this.drawingControl);
         this._createMenu();
     }
 
-    override onactivate() {
+    public override onactivate() {
         this.drawingControl.activate();
     }
 
-    override ondeactivate() {
+    public override ondeactivate() {
         this.drawingControl.deactivate();
     }
 
-    _createMenu() {
+    protected _createMenu() {
 
         let defaultBtn = new ToggleButton({
             classList: ["og-map-button", "og-drawing-default_button"],
@@ -91,7 +91,7 @@ export class DrawingSwitcher extends Control {
             ]
         });
 
-        buttons.on("change", (btn: any) => {
+        buttons.events.on("change", (btn: any) => {
             this.drawingControl.deactivate();
             switch (btn.name) {
                 case "polygon":
@@ -103,8 +103,8 @@ export class DrawingSwitcher extends Control {
             }
         });
 
-        defaultBtn.appendTo(this.renderer.div)
-        polyBtn.appendTo(this.renderer.div);
-        lineBtn.appendTo(this.renderer.div);
+        defaultBtn.appendTo(this.renderer!.div!)
+        polyBtn.appendTo(this.renderer!.div!);
+        lineBtn.appendTo(this.renderer!.div!);
     }
 }

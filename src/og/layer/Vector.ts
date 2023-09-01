@@ -167,7 +167,7 @@ class Vector extends Layer {
     protected _labelMaxLetters: number;
 
 
-    constructor(name: string | null, options: IVectorParams = {}) {
+    constructor(name?: string | null, options: IVectorParams = {}) {
         super(name, options);
 
         // @ts-ignore

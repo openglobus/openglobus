@@ -15,7 +15,7 @@ export interface IGeoObjectParams {
     yaw?: number;
     roll?: number;
     scale?: number;
-    color?: Vec4 | NumberArray4;
+    color?: Vec4 | NumberArray4 | string;
 }
 
 /**

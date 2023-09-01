@@ -5,7 +5,7 @@ import {PolygonDrawingScene} from "./PolygonDrawingScene";
 class DrawingControl extends Control {
     protected _drawingScene: PolygonDrawingScene;
 
-    constructor(options: IControlParams) {
+    constructor(options: IControlParams = {}) {
         super(options);
 
         this._drawingScene = new LineStringDrawingScene({
@@ -16,7 +16,7 @@ class DrawingControl extends Control {
     public activatePolygonDrawing() {
         this.deactivate();
         this._drawingScene = new PolygonDrawingScene({
-            name: `drawingScene:${this.__id}`
+            name: `polygonDrawingScene:${this.__id}`
         });
         this.activate();
     }
@@ -24,7 +24,7 @@ class DrawingControl extends Control {
     public activateLineStringDrawing() {
         this.deactivate();
         this._drawingScene = new LineStringDrawingScene({
-            name: `drawingScene:${this.__id}`
+            name: `linestringDrawingScene:${this.__id}`
         });
         this.activate();
     }
@@ -33,7 +33,7 @@ class DrawingControl extends Control {
     }
 
     public override onactivate() {
-        this._drawingScene.bindPlanet(this.planet);
+        this.planet && this._drawingScene.bindPlanet(this.planet);
         this.renderer && this.renderer.addNode(this._drawingScene);
     }
 
