@@ -1,6 +1,24 @@
-import { Deferred } from '../../Deferred';
-import { Events } from '../../Events';
-import { Vec3 } from "../../math/Vec3";
+import {Deferred} from '../../Deferred';
+import {createEvents, EventsHandler} from '../../Events';
+import {Vec3} from "../../math/Vec3";
+import {Planet} from "../../scene/Planet";
+import {LonLat} from "../../LonLat";
+
+interface ElevationProfileParams {
+    planet: Planet
+}
+
+interface IProfileData {
+    dist: number;
+    minY: number;
+    maxY: number;
+    trackCoords: number[][];
+    groundCoords: number[][];
+}
+
+type ElevationProfileEventsList = ["profilecollected"];
+
+const ELEVATIONPROFILE_EVENTS: ElevationProfileEventsList = ["profilecollected"];
 
 /**
  * Point types
@@ -23,26 +41,27 @@ const TOP_PADDING = 0.1; // Range maxY padding in percentage from the top
 const HEIGHT_EPS = 0.1; // Warning height level error
 
 class ElevationProfile {
-    events: any;
-    planet: any;
-    _warningHeightLevel: number;
-    _pointsReady: boolean;
-    _isWarning: boolean;
-    _minX: number;
-    _maxX: number;
-    _minY: number;
-    _maxY: number;
-    _drawData: any;
-    _promiseArr: any[];
-    _promiseCounter: number;
-    _pMaxY: number;
-    _pMinY: number;
-    _pDist: number;
-    _pTrackCoords: number[][];
-    _pGroundCoords: number[][];
-    _pIndex: number;
-    constructor(options: { planet?: any } = {}) {
-        this.events = new Events(["profilecollected"]);
+    public events: EventsHandler<ElevationProfileEventsList>;
+    public planet: Planet;
+    protected _warningHeightLevel: number;
+    protected _pointsReady: boolean;
+    protected _isWarning: boolean;
+    protected _minX: number;
+    protected _maxX: number;
+    protected _minY: number;
+    protected _maxY: number;
+    protected _drawData: any;
+    protected _promiseArr: any[];
+    protected _promiseCounter: number;
+    protected _pMaxY: number;
+    protected _pMinY: number;
+    protected _pDist: number;
+    protected _pTrackCoords: number[][];
+    protected _pGroundCoords: number[][];
+    protected _pIndex: number;
+
+    constructor(options: ElevationProfileParams) {
+        this.events = createEvents(ELEVATIONPROFILE_EVENTS);
 
         this.planet = options.planet;
 
@@ -67,21 +86,21 @@ class ElevationProfile {
         this._pIndex = 0;
     }
 
-    setWarningHeightLevel(warningHeight = 0) {
+    public setWarningHeightLevel(warningHeight: number = 0) {
         this._warningHeightLevel = warningHeight;
     }
 
-    setRange(minX: number, maxX: number, minY: number, maxY: number) {
+    public setRange(minX: number, maxX: number, minY: number, maxY: number) {
         this._minX = minX;
         this._maxX = maxX;
         this._minY = minY;
         this._maxY = maxY;
     }
 
-    _getHeightAsync(ll: any, pIndex: number) {
-        let def = new Deferred();
-        this.planet.terrain.getHeightAsync(ll, (elv: number) => {
-            elv += this.planet.terrain.geoid.getHeightLonLat(ll);
+    protected _getHeightAsync(ll: LonLat, pIndex: number) {
+        let def = new Deferred<number>();
+        this.planet.terrain!.getHeightAsync(ll, (elv: number) => {
+            elv += this.planet.terrain!.geoid.getHeightLonLat(ll);
             this._pGroundCoords[pIndex][1] = elv;
             this._pGroundCoords[pIndex][2] = SAFE;
             this._pGroundCoords[pIndex][3] = ll.height;
@@ -91,7 +110,7 @@ class ElevationProfile {
         return def.promise;
     }
 
-    _collectCoordsBetweenTwoTrackPoints(internalPoints: number, scaleFactor: number, p0: any, trackDir: any) {
+    protected _collectCoordsBetweenTwoTrackPoints(internalPoints: number, scaleFactor: number, p0: Vec3, trackDir: Vec3) {
         for (let j = 1; j <= internalPoints; j++) {
             this._pDist += SEGMMENT_LENGTH;
             this._pIndex++;
@@ -103,7 +122,7 @@ class ElevationProfile {
 
             this._pGroundCoords[this._pIndex] = [this._pDist, 0, SAFE];
 
-            ((lonlat, index) => {
+            ((lonlat: LonLat, index: number) => {
                 this._promiseArr.push(
                     this._getHeightAsync(lonlat, index)
                         .then((elv) => {
@@ -115,7 +134,7 @@ class ElevationProfile {
         }
     }
 
-    _collectAllPoints(pointsLonLat: any) {
+    protected _collectAllPoints(pointsLonLat: LonLat[]) {
 
         let p0 = new Vec3(),
             p1 = new Vec3();
@@ -154,7 +173,7 @@ class ElevationProfile {
         }
     }
 
-    _getGroundElevation(lonLat: any) {
+    protected _getGroundElevation(lonLat: LonLat) {
         this._pGroundCoords[this._pIndex] = [this._pDist, 0, SAFE];
         this._promiseArr.push(
             this._getHeightAsync(lonLat, this._pIndex)
@@ -167,7 +186,7 @@ class ElevationProfile {
         );
     }
 
-    _collectPromise(resolve: any) {
+    protected _collectPromise(resolve: (p: IProfileData) => void) {
         Promise.all(this._promiseArr).then(() => {
             resolve({
                 dist: this._pDist,
@@ -179,8 +198,8 @@ class ElevationProfile {
         });
     }
 
-    _calcPointsAsync(pointsLonLat: any) {
-        return new Promise((resolve, reject) => {
+    protected _calcPointsAsync(pointsLonLat: LonLat[]) {
+        return new Promise<IProfileData>((resolve: (p: IProfileData) => void, reject) => {
             this._pTrackCoords = [[0, pointsLonLat[0].height]];
             this._pMaxY = pointsLonLat[0].height;
             this._pMinY = this._pMaxY;
@@ -195,31 +214,31 @@ class ElevationProfile {
         });
     }
 
-    get minX() {
+    public get minX(): number {
         return this._minX;
     }
 
-    get maxX() {
+    public get maxX(): number {
         return this._maxX;
     }
 
-    get minY() {
+    public get minY(): number {
         return this._minY;
     }
 
-    get maxY() {
+    public get maxY(): number {
         return this._maxY;
     }
 
-    get pointsReady() {
+    public get pointsReady(): boolean {
         return this._pointsReady;
     }
 
-    get isWarningOrCollision() {
+    public get isWarningOrCollision(): boolean {
         return this._isWarning;
     }
 
-    collectProfile(pointsLonLat: any) {
+    public collectProfile(pointsLonLat: LonLat[]) {
         this._pointsReady = false;
         this._isWarning = false;
 
@@ -227,8 +246,8 @@ class ElevationProfile {
 
         this._promiseCounter++;
 
-        ((counter) => {
-            this._calcPointsAsync(pointsLonLat).then((p: any) => {
+        ((counter: number) => {
+            this._calcPointsAsync(pointsLonLat).then((p: IProfileData) => {
                 if (counter === this._promiseCounter) {
                     this.setRange(0, p.dist, p.minY - BOTTOM_PADDING * Math.abs(p.minY), p.maxY + Math.abs(p.maxY) * TOP_PADDING);
                     this._pointsReady = true;
@@ -239,7 +258,7 @@ class ElevationProfile {
         })(this._promiseCounter);
     }
 
-    _setPointType(pIndex: number) {
+    protected _setPointType(pIndex: number) {
         if ((this._pGroundCoords[pIndex][3] >= this._pGroundCoords[pIndex][1]) &&
             (this._pGroundCoords[pIndex][3] < this._pGroundCoords[pIndex][1] + this._warningHeightLevel - HEIGHT_EPS)) {
             this._pGroundCoords[pIndex][2] = WARNING;
@@ -254,7 +273,7 @@ class ElevationProfile {
         }
     }
 
-    _setPointsType() {
+    protected _setPointsType() {
         this._isWarning = false;
 
         this._pTrackCoords = this._drawData[TRACK];
@@ -268,7 +287,7 @@ class ElevationProfile {
         this.events.dispatch(this.events.profilecollected, this._drawData, this);
     }
 
-    clear() {
+    public clear() {
         this._pointsReady = false;
         this._isWarning = false;
         this._drawData = [][0];
@@ -282,5 +301,9 @@ class ElevationProfile {
 }
 
 export {
-    COLLISION, ElevationProfile, SAFE, WARNING
+    COLLISION,
+    SAFE,
+    WARNING,
+    IProfileData,
+    ElevationProfile,
 };
