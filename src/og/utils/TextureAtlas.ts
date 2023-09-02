@@ -1,68 +1,87 @@
-import { ImageCanvas } from "../ImageCanvas";
-import { Rectangle } from "../Rectangle";
-import { ImagesCacheManager } from "./ImagesCacheManager";
+import {ImageCanvas} from "../ImageCanvas";
+import {Rectangle} from "../Rectangle";
+import {ImagesCacheManager, HTMLImageElementExt, ImagesCacheManagerCallback} from "./ImagesCacheManager";
+import {Handler, WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
 
 /**
  * Texture atlas stores images in one texture. Each image has its own
  * atlas texture coordinates.
  * @class
- * @param {number} [width] - Texture atlas width, if it hasn't 1024 default.
- * @param {number} [height] - Texture atlas height, if it hasn't 1024 default..
+ * @param {number} [width=1024] - Texture atlas width, if it hasn't 1024 default.
+ * @param {number} [height=1024] - Texture atlas height, if it hasn't 1024 default.
  */
 class TextureAtlas {
-    constructor(width = 1024, height = 1024) {
-        /**
-         * Atlas nodes where input images store. It can be access by image.__nodeIndex.
-         * @public
-         * @type {Array.<utils.TextureAtlasNode >}
-         */
-        this.nodes = new Map();
+    /**
+     * Atlas nodes where input images store. It can be access by image.__nodeIndex.
+     * @public
+     * @type {Map<number, TextureAtlasNode>}
+     */
+    public nodes: Map<number, TextureAtlasNode>;
 
-        /**
-         * Created gl texture.
-         * @public
-         */
+    /**
+     * Created gl texture.
+     * @public
+     */
+    public texture: WebGLTextureExt | null;
+
+    /**
+     * Atlas canvas.
+     * @public
+     * @type {ImageCanvas}
+     */
+    public canvas: ImageCanvas;
+
+    protected _handler: Handler | null;
+    protected _images: HTMLImageElementExt[];
+    protected _btree: TextureAtlasNode | null;
+    protected _imagesCacheManager: ImagesCacheManager;
+    protected borderSize = 4;
+
+    constructor(width: number = 1024, height: number = 1024) {
+
+        this.nodes = new Map<number, TextureAtlasNode>();
+
         this.texture = null;
 
-        /**
-         * Atlas canvas.
-         * @public
-         * @type {canvas}
-         */
         this.canvas = new ImageCanvas(width, height);
+
         this.clearCanvas();
 
         this._handler = null;
+
         this._images = [];
+
         this._btree = null;
+
         this._imagesCacheManager = new ImagesCacheManager();
+
         this.borderSize = 4;
     }
 
     /**
      * Returns atlas javascript image object.
      * @public
-     * @returns {Object} -
+     * @returns {HTMLImageElement} -
      */
-    getImage() {
+    public getImage() {
         return this.canvas.getImage();
     }
 
     /**
      * Returns canvas object.
      * @public
-     * @returns {Object} -
+     * @returns {HTMLCanvasElement} -
      */
-    getCanvas() {
-        return this.canvas._canvas;
+    public getCanvas(): HTMLCanvasElement {
+        return this.canvas.getCanvas();
     }
 
     /**
      * Clear atlas with black.
      * @public
      */
-    clearCanvas() {
-        this.canvas.fillEmpty("black");
+    public clearCanvas() {
+        this.canvas.fillEmpty();
     }
 
     /**
@@ -70,7 +89,7 @@ class TextureAtlas {
      * @public
      * @param {Handler} handler - WebGL handler.
      */
-    assignHandler(handler) {
+    public assignHandler(handler: Handler) {
         this._handler = handler;
         this.createTexture();
     }
@@ -80,8 +99,8 @@ class TextureAtlas {
      * @param {Object} image - JavaSript image object.
      * @returns {number} -
      */
-    getDiagonal(image) {
-        var w = image.atlasWidth || image.width,
+    public getDiagonal(image: HTMLImageElement): number {
+        let w = image.atlasWidth || image.width,
             h = image.atlasHeight || image.height;
         return Math.sqrt(w * w + h * h);
     }
@@ -94,7 +113,7 @@ class TextureAtlas {
      * and store image in the curent atlas sheme.
      * @returns {utils.TextureAtlasNode} -
      */
-    addImage(image, fastInsert) {
+    public addImage(image: HTMLImageElementExt, fastInsert: boolean = false) {
         if (!(image.width && image.height)) {
             return;
         }
@@ -106,15 +125,18 @@ class TextureAtlas {
         return this.get(image.__nodeIndex);
     }
 
-    _completeNode(nodes, node) {
+    protected _completeNode(nodes: Map<number, TextureAtlasNode>, node?: TextureAtlasNode | null) {
         if (node) {
-            var w = this.canvas.getWidth(),
+
+            let w = this.canvas.getWidth(),
                 h = this.canvas.getHeight();
-            var im = node.image;
-            var r = node.rect;
-            var bs = Math.round(this.borderSize * 0.5);
+
+            let im = node.image;
+            let r = node.rect;
+            let bs = Math.round(this.borderSize * 0.5);
             this.canvas.drawImage(im, r.left + bs, r.top + bs, im.atlasWidth, im.atlasHeight);
-            var tc = node.texCoords;
+
+            let tc = node.texCoords;
 
             tc[0] = (r.left + bs) / w;
             tc[1] = (r.top + bs) / h;
@@ -140,11 +162,11 @@ class TextureAtlas {
 
     /**
      * Main atlas making function.
-     * @private
+     * @protected
      * @param {boolean} [fastInsert] - If it's true atlas doesnt restore all images again
      * and store image in the curent atlas sheme.
      */
-    _makeAtlas(fastInsert) {
+    protected _makeAtlas(fastInsert: boolean = false) {
         if (fastInsert && this._btree) {
             let im = this._images[this._images.length - 1];
             this._completeNode(this.nodes, this._btree.insert(im));
@@ -165,20 +187,21 @@ class TextureAtlas {
 
             this.clearCanvas();
 
-            var newNodes = new Map();
+            let newNodes = new Map<number, TextureAtlasNode>();
             for (let i = 0; i < im.length; i++) {
                 this._completeNode(newNodes, this._btree.insert(im[i]));
             }
+            //@ts-ignore
             this.nodes = null;
             this.nodes = newNodes;
         }
     }
 
-    get(key) {
+    public get(key: number): TextureAtlasNode | undefined {
         return this.nodes.get(key);
     }
 
-    set(key, value) {
+    public set(key: number, value: TextureAtlasNode) {
         this.nodes.set(key, value);
     }
 
@@ -186,34 +209,28 @@ class TextureAtlas {
      * Creates atlas gl texture.
      * @public
      */
-    createTexture(img, internalFormat) {
+    public createTexture(img?: HTMLImageElement | null, internalFormat?: number) {
         if (this._handler) {
-            this._handler.gl.deleteTexture(this.texture);
+            this._handler.gl!.deleteTexture(this.texture!);
             if (img) {
                 this.canvas.resize(img.width, img.height);
                 this.canvas.drawImage(img, 0, 0, img.width, img.height);
             }
-            this.texture = this._handler.createTexture_l(this.canvas._canvas, internalFormat);
+            this.texture = this._handler.createTexture_l(this.canvas.getCanvas(), internalFormat)!;
         }
     }
-
-    /**
-     * Image handler callback.
-     * @callback Object~successCallback
-     * @param {Image} img - Loaded image.
-     */
 
     /**
      * Asynchronous function that loads and creates image to the image cache, and call success callback when it's done.
      * @public
      * @param {string} src - Image object src string.
-     * @param {Object~successCallback} success - The callback that handles the image loads done.
+     * @param {ImagesCacheManagerCallback} success - The callback that handles the image loads done.
      */
-    loadImage(src, success) {
+    public loadImage(src: string, success: ImagesCacheManagerCallback) {
         this._imagesCacheManager.load(src, success);
     }
 
-    getImageTexCoordinates(img) {
+    public getImageTexCoordinates(img: HTMLImageElementExt): number[] {
         if (img.__nodeIndex != null) {
             let n = this.get(img.__nodeIndex);
             if (n) {
@@ -286,4 +303,4 @@ class TextureAtlasNode {
     }
 }
 
-export { TextureAtlas, TextureAtlasNode };
+export {TextureAtlas, TextureAtlasNode};

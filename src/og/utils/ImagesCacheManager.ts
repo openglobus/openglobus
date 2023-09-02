@@ -1,11 +1,11 @@
 import {QueueArray} from '../QueueArray';
 
-type HTMLImageElementExt = HTMLImageElement & { __nodeIndex?: number };
-type ImagesCacheCallback = (image: HTMLImageElementExt) => void;
+export type HTMLImageElementExt = HTMLImageElement & { __nodeIndex?: number };
+export type ImagesCacheManagerCallback = (image: HTMLImageElementExt) => void;
 
 interface IImagesCacheRequest {
     "src": string;
-    "success": ImagesCacheCallback;
+    "success": ImagesCacheManagerCallback;
 }
 
 class ImagesCacheManager {
@@ -24,7 +24,7 @@ class ImagesCacheManager {
         this._imageIndexCounter = 0;
     }
 
-    public load(src: string, success: ImagesCacheCallback) {
+    public load(src: string, success: ImagesCacheManagerCallback) {
         if (this.imagesCache[src]) {
             success(this.imagesCache[src]);
         } else {
