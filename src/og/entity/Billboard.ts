@@ -95,7 +95,7 @@ class Billboard extends BaseBillboard {
                         that._image = img;
                         bh!.setTexCoordArr(
                             that._handlerIndex,
-                            ta.get(that._image!.__nodeIndex).texCoords
+                            ta.get(that._image!.__nodeIndex!)!.texCoords
                         );
                     } else {
                         ta.addImage(img);

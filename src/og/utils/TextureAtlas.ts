@@ -1,7 +1,7 @@
 import {ImageCanvas} from "../ImageCanvas";
 import {Rectangle} from "../Rectangle";
 import {ImagesCacheManager, HTMLImageElementExt, ImagesCacheManagerCallback} from "./ImagesCacheManager";
-import {Handler, WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
+import {Handler, WebGLTextureExt} from "../webgl/Handler";
 
 /**
  * Texture atlas stores images in one texture. Each image has its own
@@ -12,7 +12,7 @@ import {Handler, WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
  */
 class TextureAtlas {
     /**
-     * Atlas nodes where input images store. It can be access by image.__nodeIndex.
+     * Atlas nodes where input images store. It can be accessed by image.__nodeIndex.
      * @public
      * @type {Map<number, TextureAtlasNode>}
      */
@@ -31,11 +31,12 @@ class TextureAtlas {
      */
     public canvas: ImageCanvas;
 
+    public borderSize: number;
+
     protected _handler: Handler | null;
     protected _images: HTMLImageElementExt[];
     protected _btree: TextureAtlasNode | null;
     protected _imagesCacheManager: ImagesCacheManager;
-    protected borderSize = 4;
 
     constructor(width: number = 1024, height: number = 1024) {
 
@@ -96,24 +97,24 @@ class TextureAtlas {
 
     /**
      * Returns image diagonal size.
-     * @param {Object} image - JavaSript image object.
+     * @param {HTMLImageElementExt} image - Image object.
      * @returns {number} -
      */
-    public getDiagonal(image: HTMLImageElement): number {
+    public getDiagonal(image: HTMLImageElementExt): number {
         let w = image.atlasWidth || image.width,
             h = image.atlasHeight || image.height;
         return Math.sqrt(w * w + h * h);
     }
 
     /**
-     * Adds image to the atlas and returns creted node with texture coordinates of the stored image.
+     * Adds image to the atlas and returns created node with texture coordinates of the stored image.
      * @public
-     * @param {Object} image - Input javascript image object.
-     * @param {boolean} [fastInsert] - If it's true atlas doesnt restore all images again
-     * and store image in the curent atlas sheme.
-     * @returns {utils.TextureAtlasNode} -
+     * @param {HTMLImageElementExt} image - Input javascript image object.
+     * @param {boolean} [fastInsert] - If it's true atlas doesn't restore all images again
+     * and store image in the current atlas scheme.
+     * @returns {TextureAtlasNode | undefined} -
      */
-    public addImage(image: HTMLImageElementExt, fastInsert: boolean = false) {
+    public addImage(image: HTMLImageElementExt, fastInsert: boolean = false): TextureAtlasNode | undefined {
         if (!(image.width && image.height)) {
             return;
         }
@@ -122,7 +123,9 @@ class TextureAtlas {
 
         this._makeAtlas(fastInsert);
 
-        return this.get(image.__nodeIndex);
+        if (image.__nodeIndex != undefined) {
+            return this.get(image.__nodeIndex);
+        }
     }
 
     protected _completeNode(nodes: Map<number, TextureAtlasNode>, node?: TextureAtlasNode | null) {
@@ -131,10 +134,10 @@ class TextureAtlas {
             let w = this.canvas.getWidth(),
                 h = this.canvas.getHeight();
 
-            let im = node.image;
+            let im = node.image!;
             let r = node.rect;
             let bs = Math.round(this.borderSize * 0.5);
-            this.canvas.drawImage(im, r.left + bs, r.top + bs, im.atlasWidth, im.atlasHeight);
+            this.canvas.drawImage(im, r.left + bs, r.top + bs, im.atlasWidth || 0, im.atlasHeight || 0);
 
             let tc = node.texCoords;
 
@@ -156,15 +159,15 @@ class TextureAtlas {
             tc[10] = (r.left + bs) / w;
             tc[11] = (r.top + bs) / h;
 
-            nodes.set(im.__nodeIndex, node);
+            nodes.set(im.__nodeIndex!, node);
         }
     }
 
     /**
      * Main atlas making function.
      * @protected
-     * @param {boolean} [fastInsert] - If it's true atlas doesnt restore all images again
-     * and store image in the curent atlas sheme.
+     * @param {boolean} [fastInsert] - If it's true atlas doesn't restore all images again
+     * and store image in the current atlas scheme.
      */
     protected _makeAtlas(fastInsert: boolean = false) {
         if (fastInsert && this._btree) {
@@ -173,7 +176,7 @@ class TextureAtlas {
         } else {
             let im = this._images.slice(0);
 
-            im.sort(function (b, a) {
+            im.sort(function (b: HTMLImageElementExt, a: HTMLImageElementExt) {
                 return (
                     (a.atlasWidth || a.width) - (b.atlasWidth || b.width) ||
                     (a.atlasHeight || a.height) - (b.atlasHeight || b.height)
@@ -230,7 +233,7 @@ class TextureAtlas {
         this._imagesCacheManager.load(src, success);
     }
 
-    public getImageTexCoordinates(img: HTMLImageElementExt): number[] {
+    public getImageTexCoordinates(img: HTMLImageElementExt): number[] | undefined {
         if (img.__nodeIndex != null) {
             let n = this.get(img.__nodeIndex);
             if (n) {
@@ -244,36 +247,43 @@ class TextureAtlas {
  * Atlas binary tree node.
  * @class
  * @param {Rectangle} rect - Node image rectangle.
+ * @param {number[]} texCoords - Node image rectangle.
  */
 class TextureAtlasNode {
-    constructor(rect, texCoords = []) {
+    public childNodes: TextureAtlasNode[] | null;
+    public image: HTMLImageElementExt | null;
+    public rect: Rectangle;
+    public texCoords: number[];
+    public atlas: TextureAtlas | null;
+
+    constructor(rect?: Rectangle, texCoords?: number[]) {
         this.childNodes = null;
         this.image = null;
-        this.rect = rect;
-        this.texCoords = texCoords;
+        this.rect = rect || new Rectangle();
+        this.texCoords = texCoords || [];
         this.atlas = null;
     }
 
-    insert(img) {
+    public insert(img: HTMLImageElementExt): TextureAtlasNode | undefined {
         if (this.childNodes) {
-            var newNode = this.childNodes[0].insert(img);
+            let newNode = this.childNodes[0].insert(img);
 
-            if (newNode != null) {
+            if (newNode) {
                 return newNode;
             }
 
             return this.childNodes[1].insert(img);
         } else {
             if (this.image != null) {
-                return null;
+                return;
             }
 
-            var rc = this.rect;
-            var w = (img.atlasWidth || img.width) + this.atlas.borderSize;
-            var h = (img.atlasHeight || img.height) + this.atlas.borderSize;
+            let rc = this.rect;
+            const w = (img.atlasWidth || img.width) + this.atlas!.borderSize;
+            const h = (img.atlasHeight || img.height) + this.atlas!.borderSize;
 
             if (w > rc.getWidth() || h > rc.getHeight()) {
-                return null;
+                return;
             }
 
             if (rc.fit(w, h)) {
@@ -287,15 +297,21 @@ class TextureAtlasNode {
             this.childNodes[1] = new TextureAtlasNode();
             this.childNodes[1].atlas = this.atlas;
 
-            var dw = rc.getWidth() - w;
-            var dh = rc.getHeight() - h;
+            const dw = rc.getWidth() - w;
+            const dh = rc.getHeight() - h;
 
             if (dw > dh) {
-                this.childNodes[0].rect = new Rectangle(rc.left, rc.top, rc.left + w, rc.bottom);
-                this.childNodes[1].rect = new Rectangle(rc.left + w, rc.top, rc.right, rc.bottom);
+                // this.childNodes[0].rect = new Rectangle(rc.left, rc.top, rc.left + w, rc.bottom);
+                // this.childNodes[1].rect = new Rectangle(rc.left + w, rc.top, rc.right, rc.bottom);
+                this.childNodes[0].rect.set(rc.left, rc.top, rc.left + w, rc.bottom);
+                this.childNodes[1].rect.set(rc.left + w, rc.top, rc.right, rc.bottom);
+
             } else {
-                this.childNodes[0].rect = new Rectangle(rc.left, rc.top, rc.right, rc.top + h);
-                this.childNodes[1].rect = new Rectangle(rc.left, rc.top + h, rc.right, rc.bottom);
+                // this.childNodes[0].rect = new Rectangle(rc.left, rc.top, rc.right, rc.top + h);
+                // this.childNodes[1].rect = new Rectangle(rc.left, rc.top + h, rc.right, rc.bottom);
+                this.childNodes[0].rect.set(rc.left, rc.top, rc.right, rc.top + h);
+                this.childNodes[1].rect.set(rc.left, rc.top + h, rc.right, rc.bottom);
+
             }
 
             return this.childNodes[0].insert(img);

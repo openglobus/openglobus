@@ -1,6 +1,8 @@
 import {QueueArray} from '../QueueArray';
 
-export type HTMLImageElementExt = HTMLImageElement & { __nodeIndex?: number };
+export type HTMLImageElementExt =
+    HTMLImageElement
+    & { __nodeIndex?: number; atlasWidth?: number; atlasHeight?: number };
 export type ImagesCacheManagerCallback = (image: HTMLImageElementExt) => void;
 
 interface IImagesCacheRequest {

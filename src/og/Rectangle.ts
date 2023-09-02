@@ -44,6 +44,13 @@ class Rectangle {
         this.bottom = bottom;
     }
 
+    public set(left: number = 0, top: number = 0, right: number = 0, bottom: number = 0) {
+        this.left = left;
+        this.right = right;
+        this.top = top;
+        this.bottom = bottom;
+    }
+
     /**
      * Clone rectangle object.
      * @public
@@ -107,4 +114,4 @@ class Rectangle {
     }
 }
 
-export { Rectangle };
+export {Rectangle};
