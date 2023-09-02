@@ -1,8 +1,6 @@
-"use strict";
-
 import { ImageCanvas } from "../ImageCanvas";
 import { Rectangle } from "../Rectangle";
-import { ImagesCacheManager } from "./ImagesCacheManager.js";
+import { ImagesCacheManager } from "./ImagesCacheManager";
 
 /**
  * Texture atlas stores images in one texture. Each image has its own
