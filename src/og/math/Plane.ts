@@ -1,8 +1,10 @@
-"use strict";
+import {EPS5} from "../math";
+import {Vec3} from "./Vec3";
+import {Line3} from "./Line3";
 
-import { EPS5 } from "../math";
-import { Vec3 } from "./Vec3";
-
+const DISJOINT = 0
+const COINCIDE = 1;
+const INTERSECT = 2;
 /**
  * Plane class.
  * @constructor
@@ -10,30 +12,33 @@ import { Vec3 } from "./Vec3";
  * @param {Vec3} [n] - Planet normal.
  */
 class Plane {
-    constructor(p, n) {
+    public p: Vec3;
+    public n: Vec3;
+
+    constructor(p: Vec3, n: Vec3) {
         this.p = p ? p.clone() : new Vec3();
         this.n = n ? n.clone() : this.p.normal();
     }
 
-    set(p, n) {
+    public set(p: Vec3, n: Vec3) {
         this.p.copy(p);
         this.n.copy(n);
     }
 
-    getNormal() {
+    public getNormal(): Vec3 {
         return this.n.clone();
     }
 
-    distance(p) {
+    public distance(p: Vec3): number {
         let pp = this.getProjection(p);
         return p.distance(pp);
     }
 
-    getProjection(v, def) {
+    public getProjection(v: Vec3, def?: Vec3): Vec3 {
         return Vec3.proj_b_to_plane(v, this.n, def);
     }
 
-    getProjectionPoint(p, vh) {
+    public getProjectionPoint(p: Vec3, vh?: Vec3): Vec3 {
         let v = p.sub(this.p),
             n = this.n,
             dist = v.dot(n);
@@ -46,29 +51,29 @@ class Plane {
         return p.sub(vh);
     }
 
-    getIntersection(Pn1, Pn2, L) {
-        var u = Pn1.n.cross(Pn2.n);
+    public getIntersection(Pn1: Plane, Pn2: Plane, L: Line3): number {
+        let u = Pn1.n.cross(Pn2.n);
 
-        var ax = u.x >= 0 ? u.x : -u.x;
-        var ay = u.y >= 0 ? u.y : -u.y;
-        var az = u.z >= 0 ? u.z : -u.z;
+        let ax = u.x >= 0 ? u.x : -u.x;
+        let ay = u.y >= 0 ? u.y : -u.y;
+        let az = u.z >= 0 ? u.z : -u.z;
 
         // test if the two planes are parallel
         if (ax + ay + az < EPS5) {
             // Pn1 and Pn2 are near parallel
             // test if disjoint or coincide
-            var v = Pn2.p.sub(Pn1.p);
+            let v = Pn2.p.sub(Pn1.p);
             if (Pn1.n.dot(v) == 0) {
                 // Pn2.V0 lies in Pn1
-                return 1; // Pn1 and Pn2 coincide
+                return COINCIDE; // Pn1 and Pn2 coincide
             } else {
-                return 0; // Pn1 and Pn2 are disjoint
+                return DISJOINT; // Pn1 and Pn2 are disjoint
             }
         }
 
         // Pn1 and Pn2 intersect in a line
         // first determine max abs coordinate of cross product
-        var maxc; // max coordinate
+        let maxc; // max coordinate
         if (ax > ay) {
             if (ax > az) {
                 maxc = 1;
@@ -85,9 +90,9 @@ class Plane {
 
         // next, to get a point on the intersect line
         // zero the max coord, and solve for the other two
-        var iP = new Vec3(); // intersect point
+        let iP = new Vec3(); // intersect point
 
-        var d1, d2; // the constants in the 2 plane equations
+        let d1, d2; // the constants in the 2 plane equations
         d1 = -Pn1.n.dot(Pn1.p); // note: could be pre-stored  with plane
         d2 = -Pn2.n.dot(Pn2.p); // ditto
 
@@ -110,8 +115,8 @@ class Plane {
         }
         L.p0.copy(iP);
         L.p1.copy(iP.add(u));
-        return 2;
+        return INTERSECT;
     }
 }
 
-export { Plane };
+export {Plane};
