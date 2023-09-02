@@ -21,7 +21,7 @@ document.getElementById('viewExtent').onclick = () => {
     dieppeRouen = new KML('dieppeRouenVector', {});
     const { entities, extent } = await dieppeRouen.addKmlFromUrl('./dieppe-rouen.kml');
 
-    const osm = new XYZ('osm', { isBaseLayer: true, url: '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' });
+    const osm = new XYZ('osm', { isBaseLayer: true, url: '//tile.openstreetmap.org/{z}/{x}/{y}.png' });
     globus = new Globe({
         target: 'globus',
         terrain: new GlobusTerrain(),
