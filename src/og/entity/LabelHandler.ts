@@ -439,8 +439,7 @@ class LabelHandler extends BaseBillboardHandler {
         for (c = 0; c < len; c++) {
             let j = i + c * 24;
             let char = text[c];
-            //@ts-ignore
-            let n = fa.get(char.charCodeAt()) || fa.get(" ".charCodeAt());
+            let n = fa.get(char.charCodeAt(0)) || fa.get(" ".charCodeAt(0))!;
             let tc = n.texCoords;
 
             let m = n.metrics;
@@ -508,13 +507,11 @@ class LabelHandler extends BaseBillboardHandler {
             g[j + 22] = m.nXOffset;
             g[j + 23] = m.nYOffset;
 
-            //@ts-ignore
-            let k = kern[char.charCodeAt()];
+            let k = kern[char.charCodeAt(0)];
             if (k && text[c + 1]) {
-                //@ts-ignore
-                k = k[text[c + 1].charCodeAt()];
-                if (k) {
-                    offset += m.nAdvance + k;
+                let kk = k[text[c + 1].charCodeAt(0)];
+                if (kk) {
+                    offset += m.nAdvance + kk;
                 } else {
                     offset += m.nAdvance;
                 }

@@ -1,38 +1,151 @@
-import { Deferred } from '../Deferred';
-import { Rectangle } from '../Rectangle';
-import { TextureAtlas, TextureAtlasNode } from './TextureAtlas';
+import {Deferred} from '../Deferred';
+import {Rectangle} from '../Rectangle';
+import {TextureAtlas, TextureAtlasNode} from './TextureAtlas';
+import {Handler} from "../webgl/Handler";
+import {HTMLImageElementExt} from "./ImagesCacheManager";
 
 //@todo: get the value from shader module
 const MAX_SIZE = 11;
 
+interface IChar {
+    id: number;
+    char: string;
+    width: number;
+    height: number;
+    x: number;
+    y: number;
+    chnl: number;
+    index: number;
+    page: number;
+    xadvance: number;
+    xoffset: number;
+    yoffset: number;
+}
+
+interface IKerning {
+    first: number;
+    second: number;
+    amount: number;
+}
+
+export interface IFontParams {
+    common: {
+        scaleH: number;
+        scaleW: number;
+    };
+    info: {
+        size: number;
+    };
+    distanceField: {
+        distanceRange: number;
+    }
+    chars: IChar[];
+    kernings: IKerning[];
+    pages: string[];
+}
+
+class FontTextureAtlas extends TextureAtlas {
+    public width: number;
+    public height: number;
+    public gliphSize: number;
+    public distanceRange: number;
+    public override nodes: Map<number, FontTextureAtlasNode>;
+    public kernings: Record<number, Record<number, number>>;
+
+    constructor(width?: number, height?: number) {
+        super(width, height);
+        this.width = 0;
+        this.height = 0;
+        this.gliphSize = 0;
+        this.distanceRange = 0;
+        this.nodes = new Map<number, FontTextureAtlasNode>();
+        this.kernings = {};
+    }
+
+    public override get(key: number): FontTextureAtlasNode | undefined {
+        return this.nodes.get(key);
+    }
+}
+
+interface IMetrics extends IChar {
+    nChar: string;
+    nCode: number;
+    nWidth: number;
+    nHeight: number
+    nAdvance: number;
+    nXOffset: number;
+    nYOffset: number;
+}
+
+class FontTextureAtlasNode extends TextureAtlasNode {
+    public metrics: IMetrics;
+    public emptySize: number;
+
+    constructor(rect: Rectangle, texCoords: number[]) {
+        super(rect, texCoords);
+        this.emptySize = 1;
+        this.metrics = {
+            id: 0,
+            char: "",
+            width: 0,
+            height: 0,
+            x: 0,
+            y: 0,
+            chnl: 0,
+            index: 0,
+            page: 0,
+            xadvance: 0,
+            xoffset: 0,
+            yoffset: 0,
+
+            nChar: "",
+            nCode: 0,
+            nWidth: 0,
+            nHeight: 0,
+            nAdvance: 0,
+            nXOffset: 0,
+            nYOffset: 0
+        }
+    }
+}
+
 class FontAtlas {
+    public atlasesArr: FontTextureAtlas[];
+    public samplerArr: Uint32Array;
+    public sdfParamsArr: Float32Array;
+
+    protected atlasIndexes: Record<string, number>;
+    protected atlasIndexesDeferred: Record<string, Deferred<number>>;
+    protected tokenImageSize: number;
+    protected _handler: Handler | null;
+
     constructor() {
         this.atlasesArr = [];
         this.atlasIndexes = {};
-        this.atlasIndexesDeferred = [];
+        this.atlasIndexesDeferred = {};
         this.tokenImageSize = 64;
         this.samplerArr = new Uint32Array(MAX_SIZE);
         this.sdfParamsArr = new Float32Array(MAX_SIZE * 4);
         this._handler = null;
     }
 
-    assignHandler(handler) {
+    public assignHandler(handler: Handler) {
         this._handler = handler;
     }
 
-    getFontIndex(face) {
+    public getFontIndex(face: string): Promise<number> {
         let fullName = this.getFullIndex(face);
         if (!this.atlasIndexesDeferred[fullName]) {
-            this.atlasIndexesDeferred[fullName] = new Deferred();
+            this.atlasIndexesDeferred[fullName] = new Deferred<number>();
         }
         return this.atlasIndexesDeferred[fullName].promise;
     }
 
-    getFullIndex(face) {
+    public getFullIndex(face: string): string {
         return face.trim().toLowerCase();
     }
 
-    _applyFontDataToAtlas(atlas, data, index = 0) {
+    protected _applyFontDataToAtlas(atlas: FontTextureAtlas, data: IFontParams, index: number = 0) {
         let chars = data.chars;
 
         atlas.height = data.common.scaleH;
@@ -49,7 +162,7 @@ class FontAtlas {
         this.sdfParamsArr[index * 4 + 2] = s;
         this.sdfParamsArr[index * 4 + 3] = atlas.distanceRange;
 
-        let idToChar = {};
+        let idToChar: Record<number, string> = {};
 
         for (let i = 0; i < chars.length; i++) {
             let ci = chars[i];
@@ -79,20 +192,38 @@ class FontAtlas {
             tc[10] = r.left / w;
             tc[11] = r.top / h;
 
-            let taNode = new TextureAtlasNode(r, tc);
+            let taNode = new FontTextureAtlasNode(r, tc);
             let ciNorm = ci.char.normalize('NFKC');
-            let ciCode = ciNorm.charCodeAt();
-            taNode.metrics = ci;
-            taNode.metrics.nChar = ciNorm;
-            taNode.metrics.nCode = ciCode;
-            taNode.metrics.nWidth = taNode.metrics.width / s;
-            taNode.metrics.nHeight = taNode.metrics.height / s;
-            taNode.metrics.nAdvance = taNode.metrics.xadvance / s;
-            taNode.metrics.nXOffset = taNode.metrics.xoffset / s;
-            taNode.metrics.nYOffset = 1.0 - taNode.metrics.yoffset / s;
+            let ciCode = ciNorm.charCodeAt(0);
+
+            //taNode.metrics = ci;
+
+            let m = taNode.metrics;
+
+            m.id = ci.id;
+            m.char = ci.char;
+            m.width = ci.width;
+            m.height = ci.height;
+            m.x = ci.x;
+            m.y = ci.y;
+            m.chnl = ci.chnl;
+            m.index = ci.index;
+            m.page = ci.page;
+            m.xadvance = ci.xadvance;
+            m.xoffset = ci.xoffset;
+            m.yoffset = ci.yoffset;
+
+            m.nChar = ciNorm;
+            m.nCode = ciCode;
+            m.nWidth = taNode.metrics.width / s;
+            m.nHeight = taNode.metrics.height / s;
+            m.nAdvance = taNode.metrics.xadvance / s;
+            m.nXOffset = taNode.metrics.xoffset / s;
+            m.nYOffset = 1.0 - taNode.metrics.yoffset / s;
+
             taNode.emptySize = 1;
 
-            atlas.nodes.set(ciNorm.charCodeAt(), taNode);
+            atlas.nodes.set(ciNorm.charCodeAt(0), taNode);
         }
 
         atlas.kernings = {};
@@ -120,7 +251,7 @@ class FontAtlas {
         }
     }
 
-    initFont(faceName, dataJson, imageBase64) {
+    public initFont(faceName: string, dataJson: IFontParams, imageBase64: string) {
         let index = this.atlasesArr.length;
         let fullName = this.getFullIndex(faceName);
 
@@ -128,13 +259,13 @@ class FontAtlas {
 
         let def = this.atlasIndexesDeferred[fullName];
         if (!def) {
-            def = this.atlasIndexesDeferred[fullName] = new Deferred();
+            def = this.atlasIndexesDeferred[fullName] = new Deferred<number>();
         }
 
         this.samplerArr[this.atlasesArr.length] = index;
 
         // TODO: FontTextureAtlas();
-        let atlas = new TextureAtlas();
+        let atlas = new FontTextureAtlas();
 
         atlas.height = 0;
         atlas.width = 0;
@@ -142,7 +273,7 @@ class FontAtlas {
         atlas.distanceRange = 0;
         atlas.kernings = {};
 
-        atlas.assignHandler(this._handler);
+        atlas.assignHandler(this._handler!);
 
         this.atlasesArr[index] = atlas;
 
@@ -156,11 +287,11 @@ class FontAtlas {
         img.src = imageBase64;
     }
 
-    _createTexture(atlas, img) {
+    protected _createTexture(atlas: FontTextureAtlas, img: HTMLImageElementExt) {
         atlas.createTexture(img);
     }
 
-    loadFont(faceName, srcDir, atlasUrl) {
+    public loadFont(faceName: string, srcDir: string, atlasUrl: string) {
 
         let index = this.atlasesArr.length;
         let fullName = this.getFullIndex(faceName);
@@ -169,13 +300,13 @@ class FontAtlas {
 
         let def = this.atlasIndexesDeferred[fullName];
         if (!def) {
-            def = this.atlasIndexesDeferred[fullName] = new Deferred();
+            def = this.atlasIndexesDeferred[fullName] = new Deferred<number>();
         }
 
         this.samplerArr[this.atlasesArr.length] = index;
 
         // TODO: FontTextureAtlas();
-        let atlas = new TextureAtlas();
+        let atlas = new FontTextureAtlas();
 
         atlas.height = 0;
         atlas.width = 0;
@@ -183,17 +314,18 @@ class FontAtlas {
         atlas.distanceRange = 0;
         atlas.kernings = {};
 
-        atlas.assignHandler(this._handler);
+        atlas.assignHandler(this._handler!);
         this.atlasesArr[index] = atlas;
 
         fetch(`${srcDir}/${atlasUrl}`)
-            .then(response => {
+            .then((response: Response) => {
                 if (!response.ok) {
                     throw Error(`Unable to load "${srcDir}/${atlasUrl}"`);
                 }
-                return response.json(response);
+                //return response.json(response);
+                return response.json();
             })
-            .then(data => {
+            .then((data: IFontParams) => {
 
                 this._applyFontDataToAtlas(atlas, data, index);
 
@@ -208,9 +340,9 @@ class FontAtlas {
             })
             .catch(err => {
                 def.reject();
-                return { 'status': "error", 'msg': err.toString() };
+                return {'status': "error", 'msg': err.toString()};
             });
     }
 }
 
-export { FontAtlas };
+export {FontAtlas};
