@@ -1,10 +1,8 @@
-'use strict';
+import { Deferred } from '../Deferred';
+import { Rectangle } from '../Rectangle';
+import { TextureAtlas, TextureAtlasNode } from './TextureAtlas';
 
-import { Deferred } from '../Deferred.js';
-import { Rectangle } from '../Rectangle.js';
-import { TextureAtlas, TextureAtlasNode } from './TextureAtlas.js';
-
-//TODO: get the value from shader module
+//@todo: get the value from shader module
 const MAX_SIZE = 11;
 
 class FontAtlas {
