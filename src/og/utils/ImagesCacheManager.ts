@@ -1,19 +1,34 @@
-import { QueueArray } from '../QueueArray.js';
+import {QueueArray} from '../QueueArray';
+
+type HTMLImageElementExt = HTMLImageElement & { __nodeIndex?: number };
+type ImagesCacheCallback = (image: HTMLImageElementExt) => void;
+
+interface IImagesCacheRequest {
+    "src": string;
+    "success": ImagesCacheCallback;
+}
 
 class ImagesCacheManager {
+
+    public imagesCache: Record<string, HTMLImageElementExt>;
+
+    protected _counter: number;
+    protected _pendingsQueue: QueueArray<IImagesCacheRequest>;
+    protected _imageIndexCounter: number;
+
     constructor() {
         this.imagesCache = {};
 
         this._counter = 0;
-        this._pendingsQueue = new QueueArray();
+        this._pendingsQueue = new QueueArray<IImagesCacheRequest>();
         this._imageIndexCounter = 0;
     }
 
-    load(src, success) {
+    public load(src: string, success: ImagesCacheCallback) {
         if (this.imagesCache[src]) {
             success(this.imagesCache[src]);
         } else {
-            var req = { "src": src, "success": success };
+            let req = {"src": src, "success": success};
             if (this._counter >= 1) {
                 this._pendingsQueue.unshift(req);
             } else {
@@ -22,16 +37,16 @@ class ImagesCacheManager {
         }
     }
 
-    _exec(req) {
+    protected _exec(req: IImagesCacheRequest) {
         this._counter++;
-        var that = this;
+        const that = this;
 
-        var img = new Image();
+        let img: HTMLImageElementExt = new Image();
         img.crossOrigin = '';
         img.onload = function () {
             that.imagesCache[req.src] = img;
-            this.__nodeIndex = that._imageIndexCounter++;
-            req.success(this);
+            img.__nodeIndex = that._imageIndexCounter++;
+            req.success(img);
             that._dequeueRequest();
         };
 
@@ -42,11 +57,11 @@ class ImagesCacheManager {
         img.src = req.src;
     }
 
-    _dequeueRequest() {
+    protected _dequeueRequest() {
         this._counter--;
         if (this._pendingsQueue.length && this._counter < 1) {
             while (this._pendingsQueue.length) {
-                var req = this._pendingsQueue.pop();
+                let req = this._pendingsQueue.pop();
                 if (req) {
                     if (this.imagesCache[req.src]) {
                         if (this._counter <= 0) {
@@ -65,4 +80,4 @@ class ImagesCacheManager {
     }
 }
 
-export { ImagesCacheManager };
+export {ImagesCacheManager};
