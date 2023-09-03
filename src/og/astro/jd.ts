@@ -1,160 +1,138 @@
-"use strict";
+import {binarySearch} from "../utils/shared";
 
-import { binarySearch } from "../utils/shared";
-
+type JulianDate = number;
 /**
  * Seconds in millisecond.
  * @const
- * @default
  */
 export const SECONDS_PER_MILLISECOND = 0.001;
 
 /**
  * Milliseconds in second.
  * @const
- * @default
  */
 export const MILLISECONDS_PER_SECOND = 1000.0;
 
 /**
  * Seconds in minute.
  * @const
- * @default
  */
 export const SECONDS_PER_MINUTE = 60.0;
 
 /**
  * One by seconds in minute.
  * @const
- * @default
  */
 export const ONE_BY_SECONDS_PER_MINUTE = 1.0 / SECONDS_PER_MINUTE;
 
 /**
  * Minutes in hour.
  * @const
- * @default
  */
 export const MINUTES_PER_HOUR = 60.0;
 
 /**
  * Hours in day.
  * @const
- * @default
  */
 export const HOURS_PER_DAY = 24.0;
 
 /**
  * One by hours in day.
  * @const
- * @default
  */
 export const ONE_BY_HOURS_PER_DAY = 1.0 / HOURS_PER_DAY;
 
 /**
  * Seconds in hour.
  * @const
- * @default
  */
 export const SECONDS_PER_HOUR = 3600.0;
 
 /**
  * One by seconds in hour.
  * @const
- * @default
  */
 export const ONE_BY_SECONDS_PER_HOUR = 1.0 / SECONDS_PER_HOUR;
 
 /**
  * Seconds in 12 hours.
  * @const
- * @default
  */
 export const SECONDS_PER_12_HOURS = 12.0 * SECONDS_PER_HOUR;
 
 /**
  * Minutes in day.
  * @const
- * @default
  */
 export const MINUTES_PER_DAY = 1440.0;
 
 /**
  * One by minutes in day.
  * @const
- * @default
  */
 export const ONE_BY_MINUTES_PER_DAY = 1.0 / MINUTES_PER_DAY;
 
 /**
  * Seconds in day.
  * @const
- * @default
  */
 export const SECONDS_PER_DAY = 86400.0;
 
 /**
  * Milliseconds in day.
  * @const
- * @default
  */
 export const MILLISECONDS_PER_DAY = 86400000.0;
 
 /**
  * One by milliseconds in day.
  * @const
- * @default
  */
 export const ONE_BY_MILLISECONDS_PER_DAY = 1.0 / MILLISECONDS_PER_DAY;
 
 /**
  * One by seconds in day.
  * @const
- * @default
  */
 export const ONE_BY_SECONDS_PER_DAY = 1.0 / SECONDS_PER_DAY;
 
 /**
  * Days in julian century.
  * @const
- * @default
  */
 export const DAYS_PER_JULIAN_CENTURY = 36525.0;
 
 /**
  * Days in julian year.
  * @const
- * @default
  */
 export const DAYS_PER_JULIAN_YEAR = 365.25;
 
 /**
- * Seconds in picosecond.
+ * Seconds in picoseconds.
  * @const
- * @default
  */
 export const PICOSECOND = 0.000000001;
 
 /**
  * Modified julian date difference.
  * @const
- * @default
  */
 export const MODIFIED_JULIAN_DATE_DIFFERENCE = 2400000.5;
 
 /**
  * Julian date of 2000 year. Epoch.
  * @const
- * @default
  */
 export const J2000 = 2451545.0;
 
 /**
  * Returns julian days from Epoch.
- * @param {number} jd - Julian date.
+ * @param {JulianDate} jd - Julian date.
  * @returns {number} Days from epoch
  */
-export function T(jd) {
+export function T(jd: JulianDate): number {
     return (jd - J2000) / DAYS_PER_JULIAN_CENTURY;
 }
 
@@ -163,11 +141,11 @@ export function T(jd) {
  * @param {number} year - Year.
  * @param {number} month - Month.
  * @param {number} day - Day.
- * @returns {Number} Day number
+ * @returns {number} Day number
  */
-export function getDayNumber(year, month, day) {
-    var a = ((month - 14) / 12) | 0;
-    var b = year + 4800 + a;
+export function getDayNumber(year: number, month: number, day: number): number {
+    let a = ((month - 14) / 12) | 0;
+    let b = year + 4800 + a;
     return (
         (((1461 * b) / 4) | 0) +
         (((367 * (month - 2 - 12 * a)) / 12) | 0) -
@@ -180,17 +158,17 @@ export function getDayNumber(year, month, day) {
 /**
  * Converts javascript date to the universal(UTC) julian date.
  * @param {Date} date - Date.
- * @returns {number} UTC julian date
+ * @returns {JulianDate} UTC julian date
  */
-export function DateToUTC(date) {
-    var dayNumber = getDayNumber(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate());
+export function DateToUTC(date: Date): JulianDate {
+    let dayNumber = getDayNumber(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate());
 
-    var hour = date.getUTCHours() - 12;
+    let hour = date.getUTCHours() - 12;
     if (hour < 0) {
         hour += 24;
     }
 
-    var secondsOfDay =
+    let secondsOfDay =
         date.getUTCSeconds() +
         hour * SECONDS_PER_HOUR +
         date.getUTCMinutes() * SECONDS_PER_MINUTE +
@@ -200,7 +178,7 @@ export function DateToUTC(date) {
         dayNumber--;
     }
 
-    var extraDays = (secondsOfDay * ONE_BY_SECONDS_PER_DAY) | 0;
+    let extraDays = (secondsOfDay * ONE_BY_SECONDS_PER_DAY) | 0;
     dayNumber += extraDays;
     secondsOfDay -= SECONDS_PER_DAY * extraDays;
 
@@ -215,21 +193,21 @@ export function DateToUTC(date) {
 /**
  * Converts javascript date to the atomic(TAI) julian date.
  * @param {Date} date - Date.
- * @returns {number} TAI julian date
+ * @returns {JulianDate} TAI julian date
  */
-export function DateToTAI(date) {
+export function DateToTAI(date: Date): JulianDate {
     return UTCtoTAI(DateToUTC(date));
 }
 
 /**
  * Converts coordinated universal(UTC) julian date to atomic(TAI) julian date.
- * @param {number} jd - UTC julian date.
- * @returns {number} TAI julian date
+ * @param {JulianDate} jd - UTC julian date.
+ * @returns {JulianDate} TAI julian date
  */
-export function UTCtoTAI(jd) {
-    var leapSeconds = leapSecondsTable;
+export function UTCtoTAI(jd: JulianDate): JulianDate {
+    let leapSeconds = leapSecondsTable;
 
-    var index = binarySearch(leapSeconds, jd, function (a, b) {
+    let index = binarySearch(leapSeconds, jd, function (a: number, b: LeapSeconds) {
         return a - b.jd;
     });
 
@@ -241,7 +219,7 @@ export function UTCtoTAI(jd) {
         index = leapSeconds.length - 1;
     }
 
-    var offset = leapSeconds[index].leapSeconds;
+    let offset = leapSeconds[index].leapSeconds;
 
     if (index !== 0) {
         if ((leapSeconds[index].jd - jd) * SECONDS_PER_DAY > offset) {
@@ -254,12 +232,12 @@ export function UTCtoTAI(jd) {
 
 /**
  * Converts atomic julian date(TAI) to the coordinated universal(UTC) julian date.
- * @param {number} tai - TAI julian date.
- * @returns {number} UTC julian date
+ * @param {JulianDate} tai - TAI julian date.
+ * @returns {JulianDate | undefined} UTC julian date
  */
-export function TAItoUTC(tai) {
-    var leapSeconds = leapSecondsTable;
-    var index = binarySearch(leapSeconds, tai, function (a, b) {
+export function TAItoUTC(tai: JulianDate): JulianDate | undefined {
+    let leapSeconds = leapSecondsTable;
+    let index = binarySearch(leapSeconds, tai, function (a: JulianDate, b: LeapSeconds) {
         return a - b.jd;
     });
 
@@ -275,14 +253,14 @@ export function TAItoUTC(tai) {
         return tai - leapSeconds[0].leapSeconds * ONE_BY_SECONDS_PER_DAY;
     }
 
-    var diff = (leapSeconds[index].jd - tai) * SECONDS_PER_DAY;
+    let diff = (leapSeconds[index].jd - tai) * SECONDS_PER_DAY;
 
     if (diff === 0) {
         return tai - leapSeconds[index].leapSeconds * ONE_BY_SECONDS_PER_DAY;
     }
 
     if (diff <= 1.0) {
-        return null;
+        return;
     }
 
     return tai - leapSeconds[index - 1].leapSeconds * ONE_BY_SECONDS_PER_DAY;
@@ -290,34 +268,34 @@ export function TAItoUTC(tai) {
 
 /**
  * Converts UTC julian date to the javascript date object.
- * @param {number} utc - UTC julian date.
+ * @param {JulianDate} utc - UTC julian date.
  * @returns {Date} JavaScript Date object
  */
-export function UTCtoDate(utc) {
-    var julianDayNumber = utc | 0;
-    var secondsOfDay = (utc - julianDayNumber) * SECONDS_PER_DAY;
+export function UTCtoDate(utc: JulianDate): Date {
+    let julianDayNumber = utc | 0;
+    let secondsOfDay = (utc - julianDayNumber) * SECONDS_PER_DAY;
 
     if (secondsOfDay >= SECONDS_PER_12_HOURS) {
         julianDayNumber++;
     }
 
-    var L = (julianDayNumber + 68569) | 0;
-    var N = ((4 * L) / 146097) | 0;
+    let L = (julianDayNumber + 68569) | 0;
+    let N = ((4 * L) / 146097) | 0;
     L = (L - (((146097 * N + 3) / 4) | 0)) | 0;
-    var I = ((4000 * (L + 1)) / 1461001) | 0;
+    let I = ((4000 * (L + 1)) / 1461001) | 0;
     L = (L - (((1461 * I) / 4) | 0) + 31) | 0;
-    var J = ((80 * L) / 2447) | 0;
-    var day = (L - (((2447 * J) / 80) | 0)) | 0;
+    let J = ((80 * L) / 2447) | 0;
+    let day = (L - (((2447 * J) / 80) | 0)) | 0;
     L = (J / 11) | 0;
-    var month = (J + 2 - 12 * L) | 0;
-    var year = (100 * (N - 49) + I + L) | 0;
+    let month = (J + 2 - 12 * L) | 0;
+    let year = (100 * (N - 49) + I + L) | 0;
 
-    var hour = (secondsOfDay * ONE_BY_SECONDS_PER_HOUR) | 0;
-    var remainingSeconds = secondsOfDay - hour * SECONDS_PER_HOUR;
-    var minute = (remainingSeconds * ONE_BY_SECONDS_PER_MINUTE) | 0;
+    let hour = (secondsOfDay * ONE_BY_SECONDS_PER_HOUR) | 0;
+    let remainingSeconds = secondsOfDay - hour * SECONDS_PER_HOUR;
+    let minute = (remainingSeconds * ONE_BY_SECONDS_PER_MINUTE) | 0;
     remainingSeconds = remainingSeconds - minute * SECONDS_PER_MINUTE;
-    var second = remainingSeconds | 0;
-    var millisecond = ((remainingSeconds - second) * MILLISECONDS_PER_SECOND) | 0;
+    let second = remainingSeconds | 0;
+    let millisecond = ((remainingSeconds - second) * MILLISECONDS_PER_SECOND) | 0;
 
     hour += 12;
     if (hour > 23) {
@@ -329,14 +307,14 @@ export function UTCtoDate(utc) {
 
 /**
  * Converts TAI julian date to the javascript date object.
- * @param {number} tai - TAI julian date.
+ * @param {JulianDate} tai - TAI julian date.
  * @returns {Date} JavaScript Date object
  */
-export function TAItoDate(tai) {
-    var utc = TAItoUTC(tai);
+export function TAItoDate(tai: JulianDate): Date {
+    let utc = TAItoUTC(tai);
     if (!utc) {
-        utc = TAItoUTC(addSeconds(tai, -1));
-        console.warn("TAItoDate:336 - can't conv utc.");
+        utc = TAItoUTC(addSeconds(tai, -1))!;
+        console.trace(`TAItoDate - can't convert ${tai.toString()} to utc.`);
     }
 
     return UTCtoDate(utc);
@@ -344,90 +322,90 @@ export function TAItoDate(tai) {
 
 /**
  * Adds milliseconds to the julian date.
- * @param {number} jd - Julian date.
+ * @param {JulianDate} jd - Julian date.
  * @param {number} milliseconds - Milliseconds to add.
- * @returns {number} Julian date
+ * @returns {JulianDate} Julian date
  */
-export function addMilliseconds(jd, milliseconds) {
+export function addMilliseconds(jd: JulianDate, milliseconds: number): JulianDate {
     return jd + milliseconds * ONE_BY_MILLISECONDS_PER_DAY;
 }
 
 /**
  * Adds seconds to the julian date.
- * @param {number} jd - Julian date.
+ * @param {JulianDate} jd - Julian date.
  * @param {number} seconds - Seconds to add.
- * @returns {number} Julian date
+ * @returns {JulianDate} Julian date
  */
-export function addSeconds(jd, seconds) {
+export function addSeconds(jd: JulianDate, seconds: number): JulianDate {
     return jd + seconds * ONE_BY_SECONDS_PER_DAY;
 }
 
 /**
  * Adds hours to the julian date.
- * @param {number} jd - Julian date.
+ * @param {JulianDate} jd - Julian date.
  * @param {number} hours - Hours to add.
- * @returns {number} Julian date
+ * @returns {JulianDate} Julian date
  */
-export function addHours(jd, hours) {
+export function addHours(jd: JulianDate, hours: number): JulianDate {
     return jd + hours * ONE_BY_HOURS_PER_DAY;
 }
 
 /**
  * Adds minutes to the julian date.
- * @param {number} jd - Julian date.
+ * @param {JulianDate} jd - Julian date.
  * @param {number} minutes - Minutes to add.
- * @returns {number} Julian date
+ * @returns {JulianDate} Julian date
  */
-export function addMinutes(jd, minutes) {
+export function addMinutes(jd: JulianDate, minutes: number): JulianDate {
     return jd + minutes * MINUTES_PER_DAY;
 }
 
 /**
  * Adds days to the julian date.
- * @param {number} jd - Julian date.
+ * @param {JulianDate} jd - Julian date.
  * @param {number} days - Days to add.
- * @returns {number} Julian date
+ * @returns {JulianDate} Julian date
  */
-export function addDays(jd, days) {
+export function addDays(jd: JulianDate, days: number): JulianDate {
     return jd + days;
 }
 
 /**
  * Gets milliseconds of a julian date.
- * @param {number} js - julian date.
+ * @param {JulianDate} jd - julian date.
  * @returns {number} Milliseconds
  */
-export function getMilliseconds(jd) {
-    var s = jd - (jd | 0);
+export function getMilliseconds(jd: JulianDate): number {
+    let s = jd - (jd | 0);
     s *= SECONDS_PER_DAY;
     return ((s - (s | 0)) * MILLISECONDS_PER_SECOND) | 0;
 }
 
 /**
  * Gets seconds of a julian date.
- * @param {number} js - julian date.
+ * @param {JulianDate} jd - julian date.
  * @returns {number} Seconds
  */
-export function getSeconds(jd) {
-    var s = jd - (jd | 0);
+export function getSeconds(jd: JulianDate): number {
+    let s = jd - (jd | 0);
     return s * SECONDS_PER_DAY;
 }
 
 /**
  * Gets hours of a julian date.
- * @param {number} js - julian date.
+ * @param {JulianDate} jd - julian date.
  * @returns {number} Hours
  */
-export function getHours(jd) {
-    var julianDayNumber = jd | 0;
-    var secondsOfDay = (jd - julianDayNumber) * SECONDS_PER_DAY;
+export function getHours(jd: JulianDate): number {
+    let julianDayNumber = jd | 0;
+    let secondsOfDay = (jd - julianDayNumber) * SECONDS_PER_DAY;
 
-    var hour = (secondsOfDay * ONE_BY_SECONDS_PER_HOUR) | 0;
-    var remainingSeconds = secondsOfDay - hour * SECONDS_PER_HOUR;
-    var minute = (remainingSeconds * ONE_BY_SECONDS_PER_MINUTE) | 0;
+    let hour = (secondsOfDay * ONE_BY_SECONDS_PER_HOUR) | 0;
+    let remainingSeconds = secondsOfDay - hour * SECONDS_PER_HOUR;
+    let minute = (remainingSeconds * ONE_BY_SECONDS_PER_MINUTE) | 0;
     remainingSeconds = remainingSeconds - minute * SECONDS_PER_MINUTE;
-    var second = remainingSeconds | 0;
-    var millisecond = ((remainingSeconds - second) * MILLISECONDS_PER_SECOND) | 0;
+    let second = remainingSeconds | 0;
+    let millisecond = ((remainingSeconds - second) * MILLISECONDS_PER_SECOND) | 0;
 
     hour += 12 + minute / 60 + second / 3600 + millisecond / 1000;
     if (hour > 23) {
@@ -439,20 +417,20 @@ export function getHours(jd) {
 
 /**
  * Gets minutes of a julian date.
- * @param {number} js - julian date.
+ * @param {JulianDate} jd - julian date.
  * @returns {number} Minutes
  */
-export function getMinutes(jd) {
-    var s = jd - (jd | 0);
+export function getMinutes(jd: JulianDate): number {
+    let s = jd - (jd | 0);
     return (s * MINUTES_PER_DAY) | 0;
 }
 
 /**
  * Gets days of a julian date.
- * @param {number} js - julian date.
+ * @param {JulianDate} jd - julian date.
  * @returns {number} Days
  */
-export function getDays(jd) {
+export function getDays(jd: JulianDate): number {
     return jd | 0;
 }
 
@@ -461,7 +439,7 @@ export function getDays(jd) {
  * @param {number} s - Seconds.
  * @returns {number} Days
  */
-export function secondsToDays(s) {
+export function secondsToDays(s: number): number {
     return s * ONE_BY_SECONDS_PER_DAY;
 }
 
@@ -470,18 +448,20 @@ export function secondsToDays(s) {
  * @param {number} d - Days.
  * @returns {number} Seconds
  */
-export function daysToSeconds(d) {
+export function daysToSeconds(d: number): number {
     return d * SECONDS_PER_DAY;
 }
 
-function __ls(jd, leapSeconds) {
+type LeapSeconds = { jd: JulianDate, leapSeconds: number };
+
+function __ls(jd: JulianDate, leapSeconds: number): LeapSeconds {
     return {
         jd: jd,
         leapSeconds: leapSeconds
     };
 }
 
-const leapSecondsTable = [
+const leapSecondsTable: LeapSeconds[] = [
     __ls(2441317.5, 10.0), // 1972-01-01T00:00:00.000Z
     __ls(2441499.5, 11.0), // 1972-07-01T00:00:00.000Z
     __ls(2441683.5, 12.0), // 1973-01-01T00:00:00.000Z
