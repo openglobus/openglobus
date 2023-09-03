@@ -1,10 +1,12 @@
-'use strict';
-
 /**
  * Console logging singleton object.
  * @class
  */
 export class Cons {
+
+    protected _container: HTMLElement;
+    protected _visibility: boolean;
+
     constructor() {
         this._container = document.createElement("div");
         this._container.classList.add("ogConsole");
@@ -16,11 +18,11 @@ export class Cons {
         this._visibility = false;
     }
 
-    getVisibility() {
+    public getVisibility(): boolean {
         return this._visibility;
     }
 
-    setVisibility(visibility) {
+    public setVisibility(visibility: boolean) {
         if (this._visibility != visibility) {
             this._visibility = visibility;
             if (this._visibility) {
@@ -35,7 +37,7 @@ export class Cons {
      * Show console panel.
      * @public
      */
-    show() {
+    public show() {
         if (!this._container.parentNode) {
             if (document.body) {
                 document.body.appendChild(this._container);
@@ -49,7 +51,7 @@ export class Cons {
      * Hide console panel.
      * @public
      */
-    hide() {
+    public hide() {
         this._container.style.display = "none";
         this._visibility = false;
     }
@@ -59,8 +61,8 @@ export class Cons {
      * @public
      * @param {string} str - Error text.
      */
-    logErr(str) {
-        var d = document.createElement("div");
+    public logErr(str: string) {
+        let d = document.createElement("div");
         d.classList.add("ogConsole-text");
         d.classList.add("ogConsole-error");
         d.innerHTML = "error: " + str;
@@ -74,8 +76,8 @@ export class Cons {
      * @public
      * @param {string} str - Warning text.
      */
-    logWrn(str) {
-        var d = document.createElement("div");
+    public logWrn(str: string) {
+        let d = document.createElement("div");
         d.classList.add("ogConsole-text");
         d.classList.add("ogConsole-warning");
         d.innerHTML = "warning: " + str;
@@ -88,16 +90,10 @@ export class Cons {
      * Adds log text in the console.
      * @public
      * @param {string} str - Log text.
-     * @param {Object} [style] - HTML style.
      */
-    log(str, style) {
-        var d = document.createElement("div");
+    public log(str: string) {
+        let d = document.createElement("div");
         d.classList.add("ogConsole-text");
-        if (style) {
-            for (let s in style) {
-                d.style[s] = style[s];
-            }
-        }
         d.innerHTML = str;
         console.trace(str);
         this._container.appendChild(d);
