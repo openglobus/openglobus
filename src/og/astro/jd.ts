@@ -1,6 +1,7 @@
 import {binarySearch} from "../utils/shared";
 
-type JulianDate = number;
+export type JulianDate = number;
+
 /**
  * Seconds in millisecond.
  * @const
