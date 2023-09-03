@@ -1,10 +1,8 @@
-"use strict";
-
-import { Lock } from "../Lock.js";
-import * as quadTree from "../quadTree/quadTree.js";
-import { QueueArray } from "../QueueArray.js";
-import { Framebuffer } from "../webgl/Framebuffer.js";
-import { Program } from "../webgl/Program.js";
+import { Lock } from "../Lock";
+import * as quadTree from "../quadTree/quadTree";
+import { QueueArray } from "../QueueArray";
+import { Framebuffer } from "../webgl/Framebuffer";
+import { Program } from "../webgl/Program";
 
 export class NormalMapCreator {
 
