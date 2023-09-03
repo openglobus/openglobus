@@ -1,9 +1,7 @@
-"use strict";
-
+import * as jd from "./astro/jd";
 import {EventsHandler, createEvents} from "./Events";
+import {JulianDate} from "./astro/jd";
 import {Handler} from "./webgl/Handler";
-//@ts-ignore
-import * as jd from "./astro/jd.js";
 
 type ClockEventsList = ["tick", "end", "start", "stop"];
 
@@ -11,9 +9,9 @@ const CLOCK_EVENTS: ClockEventsList = ["tick", "end", "start", "stop"];
 
 export interface IClockParams {
     name?: string;
-    startDate?: number;
-    endDate?: number;
-    currentDate?: number;
+    startDate?: JulianDate;
+    endDate?: JulianDate;
+    currentDate?: JulianDate;
     multiplier?: number;
 }
 
@@ -21,60 +19,89 @@ export interface IClockParams {
  * Class represents application timer that stores custom current julian datetime, and time speed multiplier.
  * @class
  * @param {Object} [params] - Clock parameters:
- * @param {number} [params.startDate=0.0] - Julian start date.
- * @param {number} [params.endDate=0.0] - Julian end date.
- * @param {number} [params.currentDate] - Julian current date. Default: current date.
+ * @param {JulianDate} [params.startDate=0.0] - Julian start date.
+ * @param {JulianDate} [params.endDate=0.0] - Julian end date.
+ * @param {JulianDate} [params.currentDate] - Julian current date. Default: current date.
  * @param {number} [params.multiplier=1.0] - Time speed multiplier.
  */
 class Clock {
     static __counter__: number = 0;
     protected __id: number;
     public __handler: Handler | null = null;
+
+    /**
+     * Clock events.
+     * @public
+     * @type {EventsHandler<ClockEventsList>}
+     */
     public events: EventsHandler<ClockEventsList>;
+
+    /**
+     * Clock name.
+     * @public
+     * @type {string}
+     */
     public name: string;
-    public startDate: number;
-    public endDate: number;
-    public currentDate: number;
+
+    /**
+     * Start julian date clock loop.
+     * @public
+     * @type {JulianDate}
+     */
+    public startDate: JulianDate;
+
+    /**
+     * End julian date clock loop.
+     * @public
+     * @type {JulianDate}
+     */
+    public endDate: JulianDate;
+
+    /**
+     * Current julian datetime.
+     * @public
+     * @type {JulianDate}
+     */
+    public currentDate: JulianDate;
+
+    /**
+     * Animation frame delta time.
+     * @public
+     * @readonly
+     * @type {number}
+     */
     public deltaTicks: number;
 
-    protected _multiplier: number = 1;
-    protected _running: number = 1;
-    protected active: boolean = true;
-    protected _intervalDelay: number = 0;
-    protected _intervalStart: number = 0;
+    /**
+     * Timer activity.
+     * @public
+     * @type {boolean}
+     */
+    public active: boolean = true;
+
+    /**
+     * Timer speed multiplier.
+     * @protected
+     * @type {number}
+     */
+    protected _multiplier: number;
+    protected _running: number;
+    protected _intervalDelay: number;
+    protected _intervalStart: number;
     protected _intervalCallback: Function | null;
+
 
     constructor(params: IClockParams = {}) {
 
 
         this.__id = Clock.__counter__++;
 
-        /**
-         * Clock events.
-         * @public
-         * @type {Events}
-         */
         this.events = createEvents<ClockEventsList>(CLOCK_EVENTS, this);
 
-        /**
-         * Clock name.
-         * @public
-         * @type {string}
-         */
         this.name = params.name || "";
 
-        /**
-         * Start julian date clock loop.
-         * @public
-         * @type {number}
-         */
         this.startDate = params.startDate || 0;
 
-        /**
-         * End julian date clock loop.
-         * @public
-         * @type {number}
-         */
         this.endDate = params.endDate || 0;
 
         let currentDate = params.currentDate || jd.DateToUTC(new Date());
@@ -85,34 +112,13 @@ class Clock {
             currentDate = params.endDate;
         }
 
-        /**
-         * Current julian datetime.
-         * @public
-         * @type {number}
-         */
         this.currentDate = currentDate;
 
-        /**
-         * Timer speed multiplier.
-         * @public
-         * @type {number}
-         */
         this._multiplier = params.multiplier !== undefined ? params.multiplier : 1.0;
         this._running = 1;
 
-        /**
-         * Animation frame delta time.
-         * @public
-         * @readonly
-         * @type {number}
-         */
         this.deltaTicks = 0;
 
-        /**
-         * Timer activity.
-         * @public
-         * @type {boolean}
-         */
         this.active = true;
 
         this._intervalDelay = 0;
