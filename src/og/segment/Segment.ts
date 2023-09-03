@@ -811,7 +811,7 @@ class Segment {
 
             if (!this.normalMapTexturePtr) {
                 const nmc = this.planet._normalMapCreator;
-                this.normalMapTexturePtr = this.planet.renderer!.handler.createEmptyTexture_l(nmc._width, nmc._height);
+                this.normalMapTexturePtr = this.planet.renderer!.handler.createEmptyTexture_l(nmc.width, nmc.height);
             }
 
             if (this.planet.lightEnabled) {
@@ -820,7 +820,7 @@ class Segment {
         }
     }
 
-    protected _normalMapEdgeEqualize(side: number) {
+    public _normalMapEdgeEqualize(side: number) {
         let nn = this.node.neighbors;
         let n: Node | undefined = nn[side][0];
         let maxZ = this.planet.terrain!.maxZoom;
@@ -1332,7 +1332,7 @@ class Segment {
 
         if (this.tileZoom <= p.terrain!.maxZoom) {
             const nmc = this.planet._normalMapCreator;
-            this.normalMapTexturePtr = p.renderer!.handler.createEmptyTexture_l(nmc._width, nmc._height);
+            this.normalMapTexturePtr = p.renderer!.handler.createEmptyTexture_l(nmc.width, nmc.height);
         }
 
         this.normalMapTexture = this.planet.transparentTexture;

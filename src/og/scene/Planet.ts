@@ -574,6 +574,10 @@ export class Planet extends RenderNode {
         this.solidTextureTwo = null;
     }
 
+    public get maxGridSize(): number {
+        return this._maxGridSize;
+    }
+
     public getNorthFrameRotation(cartesian: Vec3): Quat {
         return this.ellipsoid.getNorthFrameRotation(cartesian);
     }

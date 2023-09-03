@@ -1,13 +1,40 @@
-import { Lock } from "../Lock";
 import * as quadTree from "../quadTree/quadTree";
-import { QueueArray } from "../QueueArray";
-import { Framebuffer } from "../webgl/Framebuffer";
-import { Program } from "../webgl/Program";
+import {Framebuffer} from "../webgl/Framebuffer";
+import {Lock, Key} from "../Lock";
+import {Planet} from "../scene/Planet";
+import {Program} from "../webgl/Program";
+import {QueueArray} from "../QueueArray";
+import {Segment} from "../segment/Segment";
+import {WebGLBufferExt, WebGLTextureExt, Handler} from "../webgl/Handler";
+
+interface INormalMapCreatorParams {
+    minTableSize?: number;
+    maxTableSize?: number;
+    width?: number;
+    height?: number;
+}
 
 export class NormalMapCreator {
 
-    constructor(planet, options) {
-        options = options || {};
+    protected _minTabelSize: number;
+    protected _maxTableSize: number;
+
+    protected _planet: Planet;
+    protected _handler: Handler | null;
+    protected _verticesBufferArray: WebGLBufferExt[];
+    protected _indexBufferArray: WebGLBufferExt[];
+    protected _positionBuffer: WebGLBufferExt | null;
+    protected _framebuffer: Framebuffer | null;
+    protected _normalMapVerticesTexture: WebGLTextureExt | null;
+
+    protected _width: number;
+    protected _height: number;
+
+    protected _queue: QueueArray<Segment>;
+
+    protected _lock: Lock;
+
+    constructor(planet: Planet, options: INormalMapCreatorParams = {}) {
 
         this._minTabelSize = options.minTableSize || 1;
         this._maxTableSize = options.maxTableSize || 8;
@@ -28,18 +55,26 @@ export class NormalMapCreator {
         this._lock = new Lock();
     }
 
-    init() {
+    public get width(): number {
+        return this._width;
+    }
 
-        this._maxTableSize = this._planet._maxGridSize || 8;
+    public get height(): number {
+        return this._height;
+    }
 
-        this._handler = this._planet.renderer.handler;
+    public init() {
+
+        this._maxTableSize = this._planet.maxGridSize || 8;
+
+        this._handler = this._planet.renderer!.handler;
 
         let isWebkit = false; //('WebkitAppearance' in document.documentElement.style) && !/^((?!chrome).)*safari/i.test(navigator.userAgent);
 
         /*==================================================================================
          * http://www.sunsetlakesoftware.com/2013/10/21/optimizing-gaussian-blurs-mobile-gpu
          *=================================================================================*/
-        var normalMapBlur = new Program("normalMapBlur", {
+        const normalMapBlur = new Program("normalMapBlur", {
             attributes: {
                 a_position: "vec2"
             },
@@ -54,10 +89,10 @@ export class NormalMapCreator {
 
                       void main() {
                           vec2 vt = a_position * 0.5 + 0.5; 
-                          ${isWebkit ? "vt.y = 1.0 - vt.y; " : " " }
+                          ${isWebkit ? "vt.y = 1.0 - vt.y; " : " "}
                           gl_Position = vec4(a_position, 0.0, 1.0);
                           blurCoordinates[0] = vt;
-                          blurCoordinates[1] = vt + ${(1.0 / this._width) * 1.407333 };
+                          blurCoordinates[1] = vt + ${(1.0 / this._width) * 1.407333};
                           blurCoordinates[2] = vt - ${(1.0 / this._height) * 1.407333};
                           blurCoordinates[3] = vt + ${(1.0 / this._width) * 3.294215};
                           blurCoordinates[4] = vt - ${(1.0 / this._height) * 3.294215};
@@ -82,11 +117,12 @@ export class NormalMapCreator {
                         }`
         });
 
-        var normalMap = new Program("normalMap", {
+        const normalMap = new Program("normalMap", {
             attributes: {
                 a_position: "vec2",
                 a_normal: "vec3"
             },
+            uniforms: {},
             vertexShader: `attribute vec2 a_position;
                       attribute vec3 a_normal;
                       
@@ -121,9 +157,11 @@ export class NormalMapCreator {
 
         //create vertices hasharray for different grid size segments from 2^4(16) to 2^7(128)
         for (let p = this._minTabelSize; p <= this._maxTableSize; p++) {
-            var gs = Math.pow(2, p);
-            var gs2 = gs / 2;
-            var vertices = new Float32Array((gs + 1) * (gs + 1) * 2);
+
+            const gs = Math.pow(2, p);
+            const gs2 = gs / 2;
+
+            let vertices = new Float32Array((gs + 1) * (gs + 1) * 2);
 
             for (let i = 0; i <= gs; i++) {
                 for (let j = 0; j <= gs; j++) {
@@ -138,51 +176,50 @@ export class NormalMapCreator {
                 2,
                 vertices.length / 2
             );
+
             this._indexBufferArray[gs] =
-                this._planet._indexesCache[Math.log2(gs)][Math.log2(gs)][Math.log2(gs)][Math.log2(gs)][
-                    Math.log2(gs)
-                ].buffer;
+                this._planet._indexesCache[Math.log2(gs)][Math.log2(gs)][Math.log2(gs)][Math.log2(gs)][Math.log2(gs)].buffer!;
         }
 
         //create 2d screen square buffer
-        var positions = new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0]);
+        const positions = new Float32Array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0]);
 
         this._positionBuffer = this._handler.createArrayBuffer(positions, 2, positions.length / 2);
     }
 
-    _drawNormalMapBlur(segment) {
-        var normals = segment.normalMapNormals;
+    protected _drawNormalMapBlur(segment: Segment): boolean {
+        let normals = segment.normalMapNormals;
         if (
             segment.node &&
             segment.node.getState() !== quadTree.NOTRENDERING &&
             normals &&
             normals.length
         ) {
-            var size = normals.length / 3;
-            var gridSize = Math.sqrt(size) - 1;
+            const size = normals.length / 3;
+            const gridSize = Math.sqrt(size) - 1;
 
             let indBuf = this._verticesBufferArray[gridSize];
 
             if (indBuf) {
-                if (segment.planet.terrain.equalizeNormals) {
+                if (segment.planet.terrain!.equalizeNormals) {
                     segment._normalMapEdgeEqualize(quadTree.N);
                     segment._normalMapEdgeEqualize(quadTree.S);
                     segment._normalMapEdgeEqualize(quadTree.W);
                     segment._normalMapEdgeEqualize(quadTree.E);
                 }
 
-                var outTexture = segment.normalMapTexturePtr;
+                let outTexture = segment.normalMapTexturePtr;
 
-                var h = this._handler;
-                var gl = h.gl;
+                const h = this._handler!;
+                const gl = h.gl!;
 
-                var _normalsBuffer = h.createArrayBuffer(normals, 3, size, gl.DYNAMIC_DRAW);
+                let _normalsBuffer = h.createArrayBuffer(normals, 3, size, gl.DYNAMIC_DRAW);
 
-                var f = this._framebuffer;
-                var p = h.programs.normalMap;
-                var sha = p._program.attributes;
+                const f = this._framebuffer!;
+                let p = h.programs.normalMap;
+                let sha = p._program.attributes;
 
-                f.bindOutputTexture(this._normalMapVerticesTexture);
+                f.bindOutputTexture(this._normalMapVerticesTexture!);
 
                 p.activate();
 
@@ -205,24 +242,24 @@ export class NormalMapCreator {
                 //
                 // blur pass
                 //
-                f.bindOutputTexture(outTexture);
+                f.bindOutputTexture(outTexture!);
 
                 p = h.programs.normalMapBlur;
 
                 p.activate();
-                gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer);
+                gl.bindBuffer(gl.ARRAY_BUFFER, this._positionBuffer!);
                 gl.vertexAttribPointer(
                     p._program.attributes.a_position,
-                    this._positionBuffer.itemSize,
+                    this._positionBuffer!.itemSize,
                     gl.FLOAT,
                     false,
                     0,
                     0
                 );
                 gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, this._normalMapVerticesTexture);
+                gl.bindTexture(gl.TEXTURE_2D, this._normalMapVerticesTexture!);
                 gl.uniform1i(p._program.uniforms.s_texture, 0);
-                gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer.numItems);
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, this._positionBuffer!.numItems);
                 return true;
             } else {
                 return true;
@@ -231,39 +268,39 @@ export class NormalMapCreator {
         return false;
     }
 
-    _drawNormalMapNoBlur(segment) {
-        var normals = segment.normalMapNormals;
+    protected _drawNormalMapNoBlur(segment: Segment): boolean {
+        let normals = segment.normalMapNormals;
         if (
             segment.node &&
             segment.node.getState() !== quadTree.NOTRENDERING &&
             normals &&
             normals.length
         ) {
-            var size = normals.length / 3;
-            var gridSize = Math.sqrt(size) - 1;
+            const size = normals.length / 3;
+            const gridSize = Math.sqrt(size) - 1;
 
             let indBuf = this._verticesBufferArray[gridSize];
 
             if (indBuf) {
-                if (segment.planet.terrain.equalizeNormals) {
+                if (segment.planet.terrain!.equalizeNormals) {
                     segment._normalMapEdgeEqualize(quadTree.N);
                     segment._normalMapEdgeEqualize(quadTree.S);
                     segment._normalMapEdgeEqualize(quadTree.W);
                     segment._normalMapEdgeEqualize(quadTree.E);
                 }
 
-                var outTexture = segment.normalMapTexturePtr;
+                let outTexture = segment.normalMapTexturePtr;
 
-                var h = this._handler;
-                var gl = h.gl;
+                const h = this._handler!;
+                const gl = h.gl!;
 
-                var _normalsBuffer = h.createArrayBuffer(normals, 3, size, gl.DYNAMIC_DRAW);
+                let _normalsBuffer = h.createArrayBuffer(normals, 3, size, gl.DYNAMIC_DRAW);
 
-                var f = this._framebuffer;
-                var p = h.programs.normalMap;
-                var sha = p._program.attributes;
+                const f = this._framebuffer!;
+                const p = h.programs.normalMap;
+                const sha = p._program.attributes;
 
-                f.bindOutputTexture(outTexture);
+                f.bindOutputTexture(outTexture!);
 
                 p.activate();
 
@@ -291,21 +328,19 @@ export class NormalMapCreator {
         return false;
     }
 
-    _drawNormalMap(segment) {
-        let t = segment.planet.terrain;
-
-        if (t.isBlur(segment)) {
+    protected _drawNormalMap(segment: Segment) {
+        if (segment.planet.terrain!.isBlur(segment)) {
             return this._drawNormalMapBlur(segment);
         } else {
             return this._drawNormalMapNoBlur(segment);
         }
     }
 
-    drawSingle(segment) {
-        var h = this._handler,
-            gl = h.gl;
+    public drawSingle(segment: Segment) {
+        const h = this._handler!;
+        const gl = h.gl!;
 
-        this._framebuffer.activate();
+        this._framebuffer!.activate();
 
         gl.disable(gl.CULL_FACE);
         gl.disable(gl.DEPTH_TEST);
@@ -324,25 +359,25 @@ export class NormalMapCreator {
         gl.enable(gl.CULL_FACE);
         gl.enable(gl.BLEND);
 
-        this._framebuffer.deactivate();
+        this._framebuffer!.deactivate();
     }
 
-    frame() {
+    public frame() {
         if (this._queue.length) {
-            var h = this._handler,
-                gl = h.gl;
+            const h = this._handler!;
+            const gl = h.gl!;
 
-            this._framebuffer.activate();
+            this._framebuffer!.activate();
 
             gl.disable(gl.CULL_FACE);
             gl.disable(gl.DEPTH_TEST);
             gl.disable(gl.BLEND);
 
-            var deltaTime = 0,
+            let deltaTime = 0,
                 startTime = window.performance.now();
 
             while (this._lock.isFree() && this._queue.length && deltaTime < 0.25) {
-                var segment = this._queue.shift();
+                const segment = this._queue.shift()!;
                 if (segment.terrainReady && this._drawNormalMap(segment)) {
                     segment.normalMapReady = true;
                     segment.normalMapTexture = segment.normalMapTexturePtr;
@@ -358,27 +393,27 @@ export class NormalMapCreator {
             gl.enable(gl.DEPTH_TEST);
             gl.enable(gl.CULL_FACE);
 
-            this._framebuffer.deactivate();
+            this._framebuffer!.deactivate();
         }
     }
 
-    queue(segment) {
+    public queue(segment: Segment) {
         segment._inTheQueue = true;
         this._queue.push(segment);
     }
 
-    unshift(segment) {
+    public unshift(segment: Segment) {
         segment._inTheQueue = true;
         this._queue.unshift(segment);
     }
 
-    remove(segment) {
+    public remove(segment: Segment) {
         //...
     }
 
-    clear() {
+    public clear() {
         while (this._queue.length) {
-            var s = this._queue.pop();
+            let s = this._queue.pop()!;
             s._inTheQueue = false;
         }
     }
@@ -387,7 +422,7 @@ export class NormalMapCreator {
      * Set activity off
      * @public
      */
-    lock(key) {
+    public lock(key: Key) {
         this._lock.lock(key);
     }
 
@@ -395,7 +430,7 @@ export class NormalMapCreator {
      * Set activity on
      * @public
      */
-    free(key) {
+    public free(key: Key) {
         this._lock.free(key);
     }
 
