@@ -30,12 +30,14 @@ import {QuadTreeStrategy} from "../quadTree/QuadTreeStrategy";
 import {Ray} from "../math/Ray";
 import {RenderNode} from "./RenderNode";
 import {SimpleSkyBackground} from "../control/SimpleSkyBackground.js";
+import {Sun} from "../control/Sun";
 import {TerrainWorker} from "../utils/TerrainWorker";
 import {Vec2, Vec3, Vec4, NumberArray2, NumberArray3, NumberArray4} from "../math/index";
 import {Vector} from "../layer/Vector";
 import {VectorTileCreator} from "../utils/VectorTileCreator";
 import {wgs84} from "../ellipsoid/wgs84";
-import {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
+import {WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams} from "../webgl/Handler";
+import Constructor = jest.Constructor;
 
 export interface IPlanetParams {
     name?: string;
@@ -46,7 +48,7 @@ export interface IPlanetParams {
     maxEqualZoomAltitude?: number;
     minEqualZoomAltitude?: number;
     minEqualZoomCameraSlope?: number;
-    quadTreeStrategyPrototype?: any;
+    quadTreeStrategyPrototype?: Constructor;
     ambient?: string | NumberArray3 | Vec3;
     diffuse?: string | NumberArray3 | Vec3;
     specular?: string | NumberArray3 | Vec3;
@@ -648,8 +650,7 @@ export class Planet extends RenderNode {
 
 
     public get sunPos(): Vec3 {
-        // @ts-ignore
-        return this.renderer!.controls.sun.sunlight.getPosition();
+        return (this.renderer!.controls.sun as Sun).sunlight.getPosition();
     }
 
     /**
@@ -919,8 +920,6 @@ export class Planet extends RenderNode {
                             if (i >= 1 && i === j && i === k && i === m && i === q) {
                                 let indexes = segmentHelper.getInstance().createSegmentIndexes(i, [j, k, m, q]);
                                 ptr.buffer = this.renderer!.handler.createElementArrayBuffer(indexes, 1);
-                                // @ts-ignore
-                                indexes = null;
                             } else {
                                 this._indexesCacheToRemove[kk++] = ptr;
                             }
@@ -945,9 +944,6 @@ export class Planet extends RenderNode {
         for (let i = 0; i <= TABLESIZE; i++) {
             this._textureCoordsBufferCache[i] = this.renderer!.handler.createArrayBuffer(texCoordCache[i], 2, ((1 << i) + 1) * ((1 << i) + 1));
         }
-
-        // @ts-ignore
-        texCoordCache = null;
 
         // creating empty textures
         this.renderer!.handler.createDefaultTexture(null, (t: WebGLTextureExt) => {
@@ -1054,12 +1050,12 @@ export class Planet extends RenderNode {
     /**
      * Creates default textures first for the North Pole and whole globe and second for the South Pole.
      * @public
-     * @param{Object} param0 -
-     * @param{Object} param1 -
+     * @param{IDefaultTextureParams} param0 -
+     * @param{IDefaultTextureParams} param1 -
      */
-    public createDefaultTextures(param0: any, param1: any) {
-        this.renderer!.handler.gl!.deleteTexture(this.solidTextureOne as WebGLBuffer);
-        this.renderer!.handler.gl!.deleteTexture(this.solidTextureTwo as WebGLBuffer);
+    public createDefaultTextures(param0: IDefaultTextureParams, param1: IDefaultTextureParams) {
+        this.renderer!.handler.gl!.deleteTexture(this.solidTextureOne!);
+        this.renderer!.handler.gl!.deleteTexture(this.solidTextureTwo!);
         this.renderer!.handler.createDefaultTexture(param0, (texture: WebGLTextureExt) => {
             this.solidTextureOne = texture;
         });
@@ -1105,7 +1101,7 @@ export class Planet extends RenderNode {
             let li = this._layers[i];
             if (li.getVisibility()) {
                 if (li.isBaseLayer()) {
-                    this.createDefaultTextures(li._defaultTextures[0], li._defaultTextures[1]);
+                    this.createDefaultTextures(li._defaultTextures[0]!, li._defaultTextures[1]!);
                     this.baseLayer = li;
                 }
 
@@ -1113,7 +1109,6 @@ export class Planet extends RenderNode {
                     this.visibleTileLayers.push(li);
                 }
 
-                // @ts-ignore
                 if (li.isVector) {
                     this.visibleVectorLayers.push(li);
                 }
@@ -1201,7 +1196,6 @@ export class Planet extends RenderNode {
         let cam = this.camera;
         this._lodSize = math.lerp(cam.slope < 0.0 ? 0.0 : cam.slope, this._curLodSize, this._minLodSize);
 
-        //@ts-ignore
         cam._insideSegment = null;
 
         // clear first
@@ -1220,7 +1214,6 @@ export class Planet extends RenderNode {
 
         this.quadTreeStrategy.collectRenderNodes();
 
-        // @ts-ignore
         if (cam.slope > this.minEqualZoomCameraSlope && cam._lonLat.height < this.maxEqualZoomAltitude && cam._lonLat.height > this.minEqualZoomAltitude) {
 
             this.minCurrZoom = this.maxCurrZoom;
@@ -1259,8 +1252,7 @@ export class Planet extends RenderNode {
 
         // Might be it's better to replace it in setTerrain,
         // but we have to be sure that setTerrain exists with renderer insttance
-        // @ts-ignore
-        this.renderer!.__useDistanceFramebuffer__ = !this.terrain.isEmpty;
+        this.renderer!.__useDistanceFramebuffer__ = !this.terrain!.isEmpty;
 
         this._distBeforeMemClear += this._prevCamEye.distance(cam.eye);
         this._prevCamEye.copy(cam.eye);
@@ -1388,11 +1380,8 @@ export class Planet extends RenderNode {
             gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
             if (this.baseLayer) {
-                //@ts-ignore
                 gl.uniform3fv(shu.diffuse, this.baseLayer._diffuse || this._diffuse);
-                //@ts-ignore
                 gl.uniform3fv(shu.ambient, this.baseLayer._ambient || this._ambient);
-                //@ts-ignore
                 gl.uniform4fv(shu.specular, this.baseLayer._specular || this._specular);
                 gl.uniform1f(shu.nightTextureCoefficient, this.baseLayer.nightTextureCoefficient || this.nightTextureCoefficient);
             } else {
@@ -1436,7 +1425,6 @@ export class Planet extends RenderNode {
             let sli = sl[0];
             for (let i = sli.length - 1; i >= 0; --i) {
                 let li = sli[i];
-                // @ts-ignore
                 if (li._fading && firstPass && li._refreshFadingOpacity()) {
                     sli.splice(i, 1);
                 }
@@ -1458,7 +1446,6 @@ export class Planet extends RenderNode {
             let slj = sl[j];
             for (i = slj.length - 1; i >= 0; --i) {
                 let li = slj[i];
-                // @ts-ignore
                 if (li._fading && firstPass && li._refreshFadingOpacity()) {
                     slj.splice(i, 1);
                 }
@@ -1498,11 +1485,8 @@ export class Planet extends RenderNode {
             gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
             if (this.baseLayer) {
-                // @ts-ignore
                 gl.uniform3fv(shu.diffuse, this.baseLayer._diffuse || this._diffuse);
-                // @ts-ignore
                 gl.uniform3fv(shu.ambient, this.baseLayer._ambient || this._ambient);
-                // @ts-ignore
                 gl.uniform4fv(shu.specular, this.baseLayer._specular || this._specular);
                 gl.uniform1f(shu.nightTextureCoefficient, this.baseLayer.nightTextureCoefficient || this.nightTextureCoefficient);
             } else {
@@ -1529,13 +1513,11 @@ export class Planet extends RenderNode {
             // atmos precomputed textures
             //
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 4);
-            // @ts-ignore
-            gl.bindTexture(gl.TEXTURE_2D, renderer.controls.Atmosphere._transmittanceBuffer.textures[0]);
+            gl.bindTexture(gl.TEXTURE_2D, (renderer.controls.Atmosphere as Atmosphere)._transmittanceBuffer!.textures[0]);
             gl.uniform1i(shu.transmittanceTexture, this.SLICE_SIZE + 4);
 
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 5);
-            // @ts-ignore
-            gl.bindTexture(gl.TEXTURE_2D, renderer.controls.Atmosphere._scatteringBuffer.textures[0]);
+            gl.bindTexture(gl.TEXTURE_2D, (renderer.controls.Atmosphere as Atmosphere)._scatteringBuffer!.textures[0]);
             gl.uniform1i(shu.scatteringTexture, this.SLICE_SIZE + 5);
 
             gl.uniform1f(shu.camHeight, cam.getHeight());
@@ -1561,7 +1543,6 @@ export class Planet extends RenderNode {
             let sli = sl[0];
             for (let i = sli.length - 1; i >= 0; --i) {
                 let li = sli[i];
-                // @ts-ignore
                 if (li._fading && firstPass && li._refreshFadingOpacity()) {
                     sli.splice(i, 1);
                 }
@@ -1582,7 +1563,6 @@ export class Planet extends RenderNode {
             let slj = sl[j];
             for (i = slj.length - 1; i >= 0; --i) {
                 let li = slj[i];
-                // @ts-ignore
                 if (li._fading && firstPass && li._refreshFadingOpacity()) {
                     slj.splice(i, 1);
                 }
@@ -1711,7 +1691,6 @@ export class Planet extends RenderNode {
         while (i--) {
             let vi = this.visibleVectorLayers[i] as Vector;
 
-            // @ts-ignore
             if (vi._fading && vi._refreshFadingOpacity()) {
                 this.visibleVectorLayers.splice(i, 1);
             }
@@ -1732,7 +1711,6 @@ export class Planet extends RenderNode {
     public memClear() {
         this._distBeforeMemClear = 0;
 
-        // @ts-ignore
         this.camera._insideSegment = null;
 
         this.layerLock.lock(this._memKey);
@@ -2036,11 +2014,8 @@ export class Planet extends RenderNode {
             let li = this._layers[i];
             if (li instanceof Vector) {
                 (li as Vector).each(function (e: Entity) {
-                    // @ts-ignore
                     if (e._entityCollection && !readyCollections[e._entityCollection.id]) {
-                        // @ts-ignore
                         e._entityCollection.billboardHandler.refreshTexCoordsArr();
-                        // @ts-ignore
                         readyCollections[e._entityCollection.id] = true;
                     }
                 });

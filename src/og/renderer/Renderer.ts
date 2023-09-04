@@ -1,5 +1,3 @@
-"use strict";
-
 import * as arial from "../arial.js";
 import {Camera} from "../camera/Camera";
 import {Control} from "../control/Control";
@@ -8,7 +6,7 @@ import {createRendererEvents, RendererEvents, RendererEventsHandler} from "./Ren
 import {depth} from "../shaders/depth";
 import {EntityCollection} from "../entity/EntityCollection";
 import {Framebuffer, Multisample} from "../webgl/index";
-import {FontAtlas} from "../utils/FontAtlas.js";
+import {FontAtlas, IFontParams} from "../utils/FontAtlas.js";
 import {Handler, WebGLBufferExt} from "../webgl/Handler";
 import {input} from "../input/input";
 import {isEmpty} from "../utils/shared";
@@ -105,10 +103,10 @@ class Renderer {
 
     /**
      * Render nodes drawing queue.
-     * @protected
+     * @public
      * @type {Array.<RenderNode>}
      */
-    protected _renderNodesArr: RenderNode[];
+    public _renderNodesArr: RenderNode[];
 
     /**
      * Render nodes store for the comfortable access by the node name.
@@ -141,7 +139,7 @@ class Renderer {
     /**
      * Provides exchange between controls.
      * @public
-     * @type {Object}
+     * @type {any}
      */
     public controlsBag: any;
 
@@ -231,7 +229,7 @@ class Renderer {
 
     public labelWorker: LabelWorker;
 
-    protected __useDistanceFramebuffer__: boolean;
+    public __useDistanceFramebuffer__: boolean;
 
     public screenDepthFramebuffer: Framebuffer | null;
 
@@ -443,15 +441,15 @@ class Renderer {
         }
     }
 
-    public getPickingObject(r: number, g: number, b: number) {
+    public getPickingObject(r: number, g: number, b: number): any {
         return this.colorObjects.get(`${r}_${g}_${b}`);
     }
 
-    public getPickingObjectArr(arr: NumberArray3) {
+    public getPickingObjectArr(arr: NumberArray3): any {
         return this.colorObjects.get(`${arr[0]}_${arr[1]}_${arr[2]}`);
     }
 
-    public getPickingObject3v(vec: Vec3 | Vec4) {
+    public getPickingObject3v(vec: Vec3 | Vec4): any {
         return this.colorObjects.get(`${vec.x}_${vec.y}_${vec.z}`);
     }
 
@@ -698,7 +696,7 @@ class Renderer {
 
         this.outputTexture = this.screenTexture.screen;
 
-        this.fontAtlas.initFont("arial", arial.data, arial.image);
+        this.fontAtlas.initFont("arial", arial.data as IFontParams, arial.image);
 
         this._pickingMaskCoordinatesBuffer = this.handler.createArrayBuffer(new Float32Array([0, 0]), 2, 1);
 

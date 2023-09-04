@@ -15,7 +15,7 @@ export type WebGLTextureExt = { default?: boolean } & WebGLTexture;
 export type ImageSource = HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement | HTMLVideoElement;
 type CreateTextureFunc = (image: ImageSource, internalFormat?: number, texture?: WebGLTextureExt) => WebGLTextureExt | null;
 
-interface IDefaultTextureParams {
+export interface IDefaultTextureParams {
     color?: string;
     url?: string;
 }

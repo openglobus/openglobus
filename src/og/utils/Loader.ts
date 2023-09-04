@@ -6,7 +6,7 @@ type LoaderEventsList = ["loadend", "layerloadend"];
 
 const LOADER_EVENTS: LoaderEventsList = ["loadend", "layerloadend"];
 
-interface IResponse {
+export interface IResponse {
     status: string;
     data?: any;
     msg?: string;

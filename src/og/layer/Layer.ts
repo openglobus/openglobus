@@ -10,7 +10,7 @@ import {Planet} from "../scene/Planet";
 import {Segment} from "../segment/Segment";
 import {Vec3, NumberArray3} from "../math/Vec3";
 import {NumberArray4} from "../math/Vec4";
-import {WebGLTextureExt} from "../webgl/Handler";
+import {IDefaultTextureParams, WebGLTextureExt} from "../webgl/Handler";
 
 const FADING_RATIO = 15.8;
 
@@ -24,7 +24,7 @@ export interface ILayerParams {
     attribution?: string;
     zIndex?: number;
     isBaseLayer?: boolean;
-    defaultTextures?: [string, string];
+    defaultTextures?: [IDefaultTextureParams, IDefaultTextureParams];
     visibility?: boolean;
     fading?: boolean;
     height?: number;
@@ -169,7 +169,7 @@ class Layer {
      */
     protected _isBaseLayer: boolean;
 
-    public _defaultTextures: [WebGLTextureExt | null, WebGLTextureExt | null];
+    public _defaultTextures: [IDefaultTextureParams | null, IDefaultTextureParams | null];
 
     /**
      * Layer visibility.

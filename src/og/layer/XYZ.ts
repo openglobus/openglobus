@@ -1,5 +1,3 @@
-"use strict";
-
 import * as mercator from "../mercator";
 import {Layer, ILayerParams, LayerEventsList} from "./Layer";
 import {RENDERING} from "../quadTree/quadTree";
@@ -8,6 +6,7 @@ import {stringTemplate} from "../utils/shared";
 import {EventsHandler} from "../Events";
 import {Material} from "./Material";
 import {NumberArray4} from "../math/Vec4";
+import {IResponse} from "../utils/Loader";
 
 export interface IXYZParams extends ILayerParams {
     url?: string;
@@ -209,7 +208,7 @@ class XYZ extends Layer {
                         filter: () => (seg.initialized && seg.node.getState() === RENDERING) || forceLoading,
                         options: {}
                     },
-                    (response: any) => {
+                    (response: IResponse) => {
                         if (response.status === "ready") {
                             if (material.isLoading) {
                                 let e = this.events.load!;

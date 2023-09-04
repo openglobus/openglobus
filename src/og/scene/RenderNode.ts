@@ -1,5 +1,3 @@
-"use strict";
-
 import {BaseNode} from "./BaseNode";
 import {Renderer} from "../renderer/Renderer";
 import {LightSource} from "../light/LightSource";
@@ -139,11 +137,8 @@ class RenderNode extends BaseNode {
                 delete r.renderNodes[n];
             }
 
-            // @ts-ignore
             for (let i = 0; i < r._renderNodesArr.length; i++) {
-                // @ts-ignore
                 if (r._renderNodesArr[i].isEqual(this)) {
-                    // @ts-ignore
                     r._renderNodesArr.splice(i, 1);
                     break;
                 }
@@ -386,14 +381,12 @@ class RenderNode extends BaseNode {
             // polyline pass
             i = ec.length;
             while (i--) {
-                // @ts-ignore
                 ec[i]._visibility && ec[i].polylineHandler.drawPicking();
             }
 
             //Strip pass
             i = ec.length;
             while (i--) {
-                // @ts-ignore
                 ec[i]._visibility && ec[i].stripHandler.drawPicking();
             }
 

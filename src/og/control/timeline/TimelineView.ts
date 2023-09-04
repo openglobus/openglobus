@@ -12,7 +12,7 @@ import {
     getNearestTimeLeft,
     getScale
 } from './timelineUtils';
-import {WheelEventExt} from "../../input/MouseHandler";
+import {MouseEventExt} from "../../input/MouseHandler";
 
 interface ITimelineViewParams extends IViewParams {
     currentDate?: Date;
@@ -315,7 +315,7 @@ class TimelineView extends View<TimelineModel> {
         this.events.dispatch(this.events.playback, this.model);
     }
 
-    protected _onMouseWheel = (e: WheelEventExt) => {
+    protected _onMouseWheel = (e: MouseEventExt) => {
         if (this._isMouseOver) {
             let rect = this._canvasEl.getBoundingClientRect();
             let pointerPosX = e.clientX - rect.left,
@@ -328,7 +328,7 @@ class TimelineView extends View<TimelineModel> {
         }
     }
 
-    protected _onMouseWheelFF = (e: WheelEventExt) => {
+    protected _onMouseWheelFF = (e: MouseEventExt) => {
         this._onMouseWheel(e);
     }
 

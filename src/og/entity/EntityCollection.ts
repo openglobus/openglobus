@@ -105,10 +105,10 @@ class EntityCollection {
 
     /**
      * Visibility option.
-     * @protected
+     * @public
      * @type {boolean}
      */
-    protected _visibility: boolean;
+    public _visibility: boolean;
 
     /**
      * Specifies the scale Units for gl.polygonOffset function to calculate depth values, 0.0 is default.

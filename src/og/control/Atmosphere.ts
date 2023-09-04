@@ -7,8 +7,8 @@ interface IAtmosphereParams extends IControlParams {
 }
 
 export class Atmosphere extends Control {
-    protected _transmittanceBuffer: Framebuffer | null;
-    protected _scatteringBuffer: Framebuffer | null;
+    public _transmittanceBuffer: Framebuffer | null;
+    public _scatteringBuffer: Framebuffer | null;
     public opacity: number;
 
     constructor(options: IAtmosphereParams = {}) {

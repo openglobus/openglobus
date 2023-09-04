@@ -1,9 +1,7 @@
-"use strict";
-
 import {Events, EventsHandler} from "../Events";
 import {input} from "../input/input";
 import {KeyboardHandler} from "../input/KeyboardHandler";
-import {MouseHandler, MouseHandlerEvent} from "../input/MouseHandler";
+import {MouseHandler, MouseHandlerEvent, MouseEventExt} from "../input/MouseHandler";
 import {Renderer} from "./Renderer";
 import {TouchEventExt, TouchHandler} from "../input/TouchHandler";
 import {Vec2} from "../math/Vec2";
@@ -421,13 +419,12 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
     /**
      * @protected
      */
-    protected onMouseWheel(event: MouseEvent) {
+    protected onMouseWheel(event: MouseEventExt) {
         this.mouseState.sys = event;
-        //@ts-ignore
         this.mouseState.wheelDelta = event.wheelDelta || 0;
     }
 
-    public updateButtonsStates(buttons: any) {
+    public updateButtonsStates(buttons: number) {
         let ms = this.mouseState;
         if ((buttons & LB_M) && ms.leftButtonDown) {
             ms.leftButtonDown = true;
