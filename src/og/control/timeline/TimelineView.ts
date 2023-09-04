@@ -12,6 +12,7 @@ import {
     getNearestTimeLeft,
     getScale
 } from './timelineUtils';
+import {WheelEventExt} from "../../input/MouseHandler";
 
 interface ITimelineViewParams extends IViewParams {
     currentDate?: Date;
@@ -227,7 +228,6 @@ class TimelineView extends View<TimelineModel> {
         document.body.addEventListener("mousemove", this._onMouseMove);
         document.body.addEventListener("mousedown", this._onMouseDown);
         document.body.addEventListener("mouseup", this._onMouseUp);
-        document.body.addEventListener("mousewheel", this._onMouseWheel);
         document.body.addEventListener("wheel", this._onMouseWheelFF);
 
         this._playBtn.appendTo(this.$controls!);
@@ -282,10 +282,12 @@ class TimelineView extends View<TimelineModel> {
     public setVisibility(visibility: boolean) {
         if (visibility !== this._visibility) {
             this._visibility = visibility;
-            if (visibility) {
-                (this.el as any).style.display = "block";
-            } else {
-                (this.el as any).style.display = "none";
+            if (this.el) {
+                if (visibility) {
+                    this.el.style.display = "block";
+                } else {
+                    this.el.style.display = "none";
+                }
             }
             this.events.dispatch(this.events.visibility, visibility);
         }
@@ -313,20 +315,20 @@ class TimelineView extends View<TimelineModel> {
         this.events.dispatch(this.events.playback, this.model);
     }
 
-    protected _onMouseWheel = (e: any) => {
+    protected _onMouseWheel = (e: WheelEventExt) => {
         if (this._isMouseOver) {
             let rect = this._canvasEl.getBoundingClientRect();
             let pointerPosX = e.clientX - rect.left,
                 pointerCenterOffsetX = -(pointerPosX - this.clientWidth * 0.5);
             let pointerTime = this.model.rangeStartTime + this._millisecondsInPixel * pointerPosX;
-            this._zoom(pointerTime, pointerCenterOffsetX, Math.sign(e.wheelDelta));
+            this._zoom(pointerTime, pointerCenterOffsetX, Math.sign(e.wheelDelta!));
         } else if (this._isCurrentMouseOver) {
             let pointerCenterOffsetX = -((this.model.currentTime - this.model.rangeStartTime) / this._millisecondsInPixel - this.clientWidth * 0.5);
-            this._zoom(this.model.currentTime, pointerCenterOffsetX, Math.sign(e.wheelDelta));
+            this._zoom(this.model.currentTime, pointerCenterOffsetX, Math.sign(e.wheelDelta!));
         }
     }
 
-    protected _onMouseWheelFF = (e: MouseEvent) => {
+    protected _onMouseWheelFF = (e: WheelEventExt) => {
         this._onMouseWheel(e);
     }
 

@@ -1,7 +1,11 @@
-import {Control} from "./Control";
+import {Control, IControlParams} from "./Control";
 import {Dialog} from "../ui/Dialog";
 import {Layer} from "../layer/Layer";
 import {ToggleButton} from "../ui/ToggleButton";
+
+interface ILayerSwitcherParams extends IControlParams {
+
+}
 
 const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="utf-8"?>
 <!-- Svg Vector Icons : http://www.onlinewebfonts.com/icon -->
@@ -16,10 +20,10 @@ const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="utf-8"?>
  * Double click for zoom, drag-and-drop to change zIndex
  */
 export class LayerSwitcher extends Control {
-    dialog: Dialog<null>;
-    _menuBtn: ToggleButton;
+    public dialog: Dialog<null>;
+    protected _menuBtn: ToggleButton;
 
-    constructor(options = {}) {
+    constructor(options: ILayerSwitcherParams = {}) {
         super({
             name: "LayerSwitcher",
             ...options

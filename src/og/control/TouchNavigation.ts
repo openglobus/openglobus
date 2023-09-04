@@ -7,12 +7,18 @@ import {Ray} from "../math/Ray";
 import {Sphere} from "../bv/Sphere";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
+import {ITouchState} from "../renderer/RendererEvents";
 
 interface ITouchNavigationParams extends IControlParams {
 
 }
 
-class Touch {
+interface Touch {
+    clientX: number;
+    clientY: number;
+}
+
+class TouchExt {
     public x: number;
     public y: number;
     public prev_x: number;
@@ -65,12 +71,9 @@ export class TouchNavigation extends Control {
     protected scaleRot: number;
     protected rot: number;
     protected _eye0: Vec3;
-    protected stepsCount: number;
-    protected stepsForward: any;
-    protected stepIndex: number;
     protected pointOnEarth: Vec3 | null;
     protected earthUp: Vec3 | null;
-    protected touches: Touch[];
+    protected touches: TouchExt[];
     protected _keyLock: Key;
     protected _touching: boolean;
 
@@ -89,14 +92,10 @@ export class TouchNavigation extends Control {
         this.rot = 1;
         this._eye0 = new Vec3();
 
-        this.stepsCount = 5;
-        this.stepsForward = null;
-        this.stepIndex = 0;
-
         this.pointOnEarth = null;
         this.earthUp = null;
 
-        this.touches = [new Touch(), new Touch()];
+        this.touches = [new TouchExt(), new TouchExt()];
 
         this._keyLock = new Key();
 
@@ -114,27 +113,27 @@ export class TouchNavigation extends Control {
         }
     }
 
-    protected onTouchStart(e: any) {
+    protected onTouchStart(e: ITouchState) {
         const handler = this.renderer!.handler;
         this._touching = true;
 
-        if (e.sys.touches.length === 2) {
+        if (e.sys!.touches.length === 2) {
             const t0 = this.touches[0];
             const t1 = this.touches[1];
 
-            t0.x = (e.sys.touches.item(0).clientX - e.sys.offsetLeft) * handler.pixelRatio;
-            t0.y = (e.sys.touches.item(0).clientY - e.sys.offsetTop) * handler.pixelRatio;
+            t0.x = (e.sys!.touches.item(0)!.clientX - e.sys!.offsetLeft) * handler.pixelRatio;
+            t0.y = (e.sys!.touches.item(0)!.clientY - e.sys!.offsetTop) * handler.pixelRatio;
             t0.prev_x = t0.x;
             t0.prev_y = t0.y;
-            //@ts-ignore
-            t0.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(t0) || null;
 
-            t1.x = (e.sys.touches.item(1).clientX - e.sys.offsetLeft) * handler.pixelRatio;
-            t1.y = (e.sys.touches.item(1).clientY - e.sys.offsetTop) * handler.pixelRatio;
+            t0.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(new Vec2(t0.x, t0.y)) || null;
+
+            t1.x = (e.sys!.touches.item(1)!.clientX - e.sys!.offsetLeft) * handler.pixelRatio;
+            t1.y = (e.sys!.touches.item(1)!.clientY - e.sys!.offsetTop) * handler.pixelRatio;
             t1.prev_x = t1.x;
             t1.prev_y = t1.y;
-            //@ts-ignore
-            t1.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(t1) || null;
+
+            t1.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(new Vec2(t1.x, t1.y)) || null;
 
             this.pointOnEarth = this.planet!.getCartesianFromPixelTerrain(
                 this.renderer!.handler.getCenter()
@@ -149,17 +148,17 @@ export class TouchNavigation extends Control {
                 t1.grabbedSpheroid.radius = t1.grabbedPoint.length();
                 this.stopRotation();
             }
-        } else if (e.sys.touches.length === 1) {
+        } else if (e.sys!.touches.length === 1) {
             this._startTouchOne(e);
         }
     }
 
-    protected _startTouchOne(e: any) {
+    protected _startTouchOne(e: ITouchState) {
         const t = this.touches[0];
         const handler = this.renderer!.handler;
 
-        t.x = (e.sys.touches.item(0).clientX - e.sys.offsetLeft) * handler.pixelRatio;
-        t.y = (e.sys.touches.item(0).clientY - e.sys.offsetTop) * handler.pixelRatio;
+        t.x = (e.sys!.touches.item(0)!.clientX - e.sys!.offsetLeft) * handler.pixelRatio;
+        t.y = (e.sys!.touches.item(0)!.clientY - e.sys!.offsetTop) * handler.pixelRatio;
         t.prev_x = t.x;
         t.prev_y = t.y;
 
@@ -180,29 +179,26 @@ export class TouchNavigation extends Control {
         this.planet!._normalMapCreator.free(this._keyLock);
     }
 
-    protected onDoubleTouch(e: any) {
-        if (this.stepIndex) {
-            return;
-        }
+    protected onDoubleTouch(e: ITouchState) {
 
         this.planet!.stopFlying();
         this.stopRotation();
 
         const p = this.planet!.getCartesianFromPixelTerrain(e);
         if (p) {
-            const g = this.planet!.ellipsoid.cartesianToLonLat(p) as any;
+            const g = this.planet!.ellipsoid.cartesianToLonLat(p);
             this.planet!.flyLonLat(
                 new LonLat(g.lon, g.lat, this.planet!.camera.eye.distance(p) * 0.57)
             );
         }
     }
 
-    protected onTouchEnd(e: any) {
-        if (e.sys.touches.length === 0) {
+    protected onTouchEnd(e: ITouchState) {
+        if (e.sys!.touches.length === 0) {
             this._touching = false;
         }
 
-        if (e.sys.touches.length === 1) {
+        if (e.sys!.touches.length === 1) {
             this._startTouchOne(e);
         }
 
@@ -214,13 +210,13 @@ export class TouchNavigation extends Control {
         }
     }
 
-    protected onTouchCancel(e: any) {
+    protected onTouchCancel(e: ITouchState) {
     }
 
-    protected onTouchMove(e: any) {
+    protected onTouchMove(e: ITouchState) {
         let cam = this.planet!.camera;
         const handler = this.renderer!.handler;
-        if (e.sys.touches.length === 2) {
+        if (e.sys!.touches.length === 2) {
             this.renderer!.controlsBag.scaleRot = 1;
 
             let t0 = this.touches[0],
@@ -234,13 +230,13 @@ export class TouchNavigation extends Control {
 
             t0.prev_x = t0.x;
             t0.prev_y = t0.y;
-            t0.x = (e.sys.touches.item(0).clientX - e.sys.offsetLeft) * handler.pixelRatio;
-            t0.y = (e.sys.touches.item(0).clientY - e.sys.offsetTop) * handler.pixelRatio;
+            t0.x = (e.sys!.touches.item(0)!.clientX - e.sys!.offsetLeft) * handler.pixelRatio;
+            t0.y = (e.sys!.touches.item(0)!.clientY - e.sys!.offsetTop) * handler.pixelRatio;
 
             t1.prev_x = t1.x;
             t1.prev_y = t1.y;
-            t1.x = (e.sys.touches.item(1).clientX - e.sys.offsetLeft) * handler.pixelRatio;
-            t1.y = (e.sys.touches.item(1).clientY - e.sys.offsetTop) * handler.pixelRatio;
+            t1.x = (e.sys!.touches.item(1)!.clientX - e.sys!.offsetLeft) * handler.pixelRatio;
+            t1.y = (e.sys!.touches.item(1)!.clientY - e.sys!.offsetTop) * handler.pixelRatio;
 
             const middle = t0.vec.add(t1.vec).scale(0.5);
             const earthMiddlePoint = this.planet!.getCartesianFromPixelTerrain(
@@ -275,13 +271,13 @@ export class TouchNavigation extends Control {
                 cam.update();
             }
             this.scaleRot = 0;
-        } else if (e.sys.touches.length === 1) {
+        } else if (e.sys!.touches.length === 1) {
             let t = this.touches[0];
 
             t.prev_x = t.x;
             t.prev_y = t.y;
-            t.x = (e.sys.touches.item(0).clientX - e.sys.offsetLeft) * handler.pixelRatio;
-            t.y = (e.sys.touches.item(0).clientY - e.sys.offsetTop) * handler.pixelRatio;
+            t.x = (e.sys!.touches.item(0)!.clientX - e.sys!.offsetLeft) * handler.pixelRatio;
+            t.y = (e.sys!.touches.item(0)!.clientY - e.sys!.offsetTop) * handler.pixelRatio;
 
             if (!t.grabbedPoint) {
                 return;
@@ -335,17 +331,6 @@ export class TouchNavigation extends Control {
 
         let cam = this.planet!.camera;
         let prevEye = cam.eye.clone();
-
-        if (this.stepIndex) {
-            r.controlsBag.scaleRot = 1;
-            let sf = this.stepsForward[this.stepsCount - this.stepIndex--];
-            cam.eye = sf.eye;
-            cam._r = sf.v;
-            cam._u = sf.u;
-            cam._b = sf.n;
-            cam.checkTerrainCollision();
-            cam.update();
-        }
 
         if (r.events.mouseState.leftButtonDown || !this.scaleRot) {
             return;

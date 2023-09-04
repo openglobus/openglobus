@@ -1,22 +1,28 @@
-import {Sphere} from "../bv/Sphere";
-import {LonLat} from "../LonLat";
-import {Quat} from "../math/Quat";
-import {Ray} from "../math/Ray";
-import {Vec3} from "../math/Vec3";
 import {Control, IControlParams} from "./Control";
+import {LonLat} from "../LonLat";
 import {ITouchState} from "../renderer/RendererEvents";
 import {IMouseState} from "../renderer/RendererEvents";
+import {Quat} from "../math/Quat";
+import {Ray} from "../math/Ray";
+import {Sphere} from "../bv/Sphere";
+import {Vec2} from "../math/Vec2";
+import {Vec3} from "../math/Vec3";
+
+interface Touch {
+    pageX: number;
+    pageY: number;
+}
 
 interface IEarthNavigationParams extends IControlParams {
 
 }
 
-class Touch {
+class TouchExt {
     public x: number;
     public y: number;
     public prev_x: number;
     public prev_y: number;
-    public grabbedPoint: Vec3;
+    public grabbedPoint: Vec3 | null;
     public grabbedSpheroid: Sphere;
 
     constructor() {
@@ -38,7 +44,7 @@ class Touch {
 }
 
 export class EarthNavigation extends Control {
-    protected grabbedPoint: Vec3;
+    protected grabbedPoint: Vec3 | null;
     protected grabbedDir: Vec3;
     public inertia: number;
     protected grabbedSpheroid: Sphere;
@@ -48,7 +54,7 @@ export class EarthNavigation extends Control {
     protected scaleRot: number;
     protected currState: number;
     protected positionState: { h: number; max: number; min: number; }[];
-    protected touches: Touch[];
+    protected touches: TouchExt[];
 
     constructor(options: IEarthNavigationParams = {}) {
         super(options);
@@ -72,7 +78,7 @@ export class EarthNavigation extends Control {
             {h: 500000, max: 0.98, min: -0.98}
         ];
 
-        this.touches = [new Touch(), new Touch()];
+        this.touches = [new TouchExt(), new TouchExt()];
     }
 
     public switchZoomState(wheelDelta: number) {
@@ -123,19 +129,15 @@ export class EarthNavigation extends Control {
 
     protected onTouchStart(e: ITouchState) {
         if (e.sys!.touches.length == 1) {
-            const t = this.touches[0] as any;
+            const t = this.touches[0];
 
-            //@ts-ignore
-            t.x = e.sys!.touches.item(0).pageX - e.sys!.offsetLeft;
-            //@ts-ignore
-            t.y = e.sys!.touches.item(0).pageY - e.sys!.offsetTop;
-            //@ts-ignore
-            t.prev_x = e.sys!.touches.item(0).pageX - e.sys!.offsetLeft;
-            //@ts-ignore
-            t.prev_y = e.sys!.touches.item(0).pageY - e.sys!.offsetTop;
+            t.x = e.sys!.touches.item(0)!.pageX - e.sys!.offsetLeft;
+            t.y = e.sys!.touches.item(0)!.pageY - e.sys!.offsetTop;
+            t.prev_x = e.sys!.touches.item(0)!.pageX - e.sys!.offsetLeft;
+            t.prev_y = e.sys!.touches.item(0)!.pageY - e.sys!.offsetTop;
 
             // t.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(t, true);
-            t.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(t);
+            t.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(new Vec2(t.x, t.y)) || null;
 
             if (t.grabbedPoint) {
                 t.grabbedSpheroid.radius = t.grabbedPoint.length();
@@ -164,10 +166,9 @@ export class EarthNavigation extends Control {
 
             t.prev_x = t.x;
             t.prev_y = t.y;
-            //@ts-ignore
-            t.x = e.sys!.touches.item(0).pageX - e.sys!.offsetLeft;
-            //@ts-ignore
-            t.y = e.sys!.touches.item(0).pageY - e.sys!.offsetTop;
+
+            t.x = e.sys!.touches.item(0)!.pageX - e.sys!.offsetLeft;
+            t.y = e.sys!.touches.item(0)!.pageY - e.sys!.offsetTop;
 
             if (!t.grabbedPoint) return;
 
@@ -201,9 +202,8 @@ export class EarthNavigation extends Control {
     }
 
     protected onMouseLeftButtonClick(e: IMouseState) {
-        //@ts-ignore
-        this.renderer!.handler.gl!.canvas!.classList.add("ogGrabbingPoiner");
-        this.grabbedPoint = this.planet!.getCartesianFromMouseTerrain()!;
+        this.renderer!.handler.canvas!.classList.add("ogGrabbingPoiner");
+        this.grabbedPoint = this.planet!.getCartesianFromMouseTerrain() || null;
         this.grabbedDir.copy(e.direction);
         if (this.grabbedPoint) {
             this.grabbedSpheroid.radius = this.grabbedPoint.length();
@@ -220,10 +220,7 @@ export class EarthNavigation extends Control {
 
     protected onMouseLeftButtonUp(e: IMouseState) {
         this.scaleRot = 1;
-
-        //@ts-ignore
-        this.renderer!.handler.gl!.canvas!.classList.remove("ogGrabbingPoiner");
-
+        this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
         if (Math.abs(e.x - e.prev_x) < 3 && Math.abs(e.y - e.prev_y) < 3) this.stopRotation();
     }
 

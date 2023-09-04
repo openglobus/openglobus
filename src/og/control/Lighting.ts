@@ -5,6 +5,7 @@ import {Slider} from "../ui/Slider";
 import {Sun} from "./Sun";
 import {ToggleButton} from "../ui/ToggleButton";
 import {View} from '../ui/View';
+import {Atmosphere} from "./Atmosphere";
 
 interface ILightingParams extends IControlParams {
 
@@ -153,7 +154,7 @@ export class Lighting extends Control {
             width: 600
         });
 
-        this._dialog.events.on("visibility", (v: any) => {
+        this._dialog.events.on("visibility", (v: boolean) => {
             this._toggleBtn.setActive(v);
         });
 
@@ -270,7 +271,7 @@ export class Lighting extends Control {
 
         this._toggleBtn.appendTo(this.renderer!.div!);
         this._dialog.appendTo(this.renderer!.div!);
-        this._panel.appendTo(this._dialog.container as any);
+        this._panel.appendTo(this._dialog.container!);
 
         if (this._panel.el) {
             this.$atmosphereOpacity = this._panel.el.querySelector(".og-atmosphere-opacity");
@@ -390,8 +391,7 @@ export class Lighting extends Control {
         });
 
         this._panel.el!.querySelector<HTMLSelectElement>("#layers")!.addEventListener("change", (e: Event) => {
-            //@ts-ignore
-            const l = this.planet!.getLayerByName(e.target.value);
+            const l = this.planet!.getLayerByName((e.target as HTMLSelectElement).value);
             if (l) {
                 this.bindLayer(l);
             }
@@ -400,11 +400,11 @@ export class Lighting extends Control {
         this._atmosphereMaxOpacity.value = this.planet!.atmosphereMaxOpacity;
         this._atmosphereMaxOpacity.events.on("change", (val: number) => {
             this.planet!.atmosphereMaxOpacity = val;
-            //@ts-ignore
-            this.planet!.renderer!.controls.Atmosphere.opacity = val;
+            let atmos = this.planet!.renderer!.controls.Atmosphere as Atmosphere;
+            atmos.opacity = val;
         });
 
-        this._exposure.value = (this as any).planet.renderer.exposure;
+        this._exposure.value = this.planet!.renderer!.exposure;
         this._exposure.events.on("change", (val: number) => {
             this.planet!.renderer!.exposure = val;
         });
