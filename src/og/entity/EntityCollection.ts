@@ -1,5 +1,4 @@
 import * as math from "../math";
-import {Billboard} from "./Billboard";
 import {BillboardHandler} from "./BillboardHandler";
 import {createEvents, EventsHandler} from "../Events";
 import {Entity} from "./Entity";
@@ -366,11 +365,8 @@ class EntityCollection {
         this.events.dispatch(this.events.entityadd, entity);
 
         for (let i = 0; i < entity.childrenNodes.length; i++) {
-            // @ts-ignore
             entity.childrenNodes[i]._entityCollection = this;
-            // @ts-ignore
             entity.childrenNodes[i]._entityCollectionIndex = entity._entityCollectionIndex;
-            // @ts-ignore
             entity.childrenNodes[i]._pickingColor = entity._pickingColor;
             this._addRecursively(entity.childrenNodes[i]);
         }
@@ -584,8 +580,7 @@ class EntityCollection {
      * @public
      */
     public updateBillboardsTextureAtlas() {
-        // @ts-ignore
-        let b: Billboard[] = this.billboardHandler._billboards;
+        let b = this.billboardHandler.billboards;
         for (let i = 0; i < b.length; i++) {
             b[i].setSrc(b[i].getSrc());
         }
@@ -597,13 +592,12 @@ class EntityCollection {
      */
     public updateLabelsFontAtlas() {
         if (this.renderNode) {
-            // @ts-ignore
-            let l = ([] as Label[]).concat(this.labelHandler._billboards);
-            // @ts-ignore
-            this.labelHandler._billboards = [];
-            for (let i = 0; i < l.length; i++) {
-                this.labelHandler.assignFontAtlas(l[i]);
-            }
+            // let l = ([] as Label[]).concat(this.labelHandler.labels);
+            // this.labelHandler._billboards = [];
+            // for (let i = 0; i < l.length; i++) {
+            //     this.labelHandler.assignFontAtlas(l[i]);
+            // }
+            this.labelHandler.updateFonts();
         }
     }
 

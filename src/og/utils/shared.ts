@@ -845,7 +845,7 @@ export function spliceArray(arr: TypedArray | number[], starting: number, delete
  * @param {Number} deleteCount
  * @param {{ result: TypedArray }} [out]
  */
-export function spliceTypedArray(arr: TypedArray, starting: number, deleteCount: number, out?: { result: TypedArray }): TypedArray {
+export function spliceTypedArray<T extends TypedArray>(arr: T, starting: number, deleteCount: number, out?: { result: T }): T {
     if (arr.length === 0) {
         return arr;
     }
@@ -854,7 +854,7 @@ export function spliceTypedArray(arr: TypedArray, starting: number, deleteCount:
     splicedArray.set(arr.subarray(0, starting));
     splicedArray.set(arr.subarray(starting + deleteCount), starting);
     if (out) {
-        out.result = arr.subarray(starting, starting + deleteCount);
+        out.result = arr.subarray(starting, starting + deleteCount) as T;
     }
     return splicedArray;
 }

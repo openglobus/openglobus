@@ -1,7 +1,6 @@
 import * as shaders from "../shaders/label";
 import {ALIGN, Label} from "./Label";
 import {BaseBillboardHandler} from "./BaseBillboardHandler";
-import {Billboard} from "./Billboard";
 import {concatTypedArrays, spliceTypedArray} from "../utils/shared";
 import {EntityCollection} from "./EntityCollection";
 import {LOCK_FREE} from "./LabelWorker.js";
@@ -97,13 +96,23 @@ class LabelHandler extends BaseBillboardHandler {
         }
     }
 
+    public get labels(): Label[] {
+        return this._billboards;
+    }
+
     public override add(label: Label) {
-        //@ts-ignore
         if (!label._handler) {
-            //@ts-ignore
             label._handler = this;
             this.assignFontAtlas(label);
             this.refresh();
+        }
+    }
+
+    public updateFonts() {
+        let l = [...this._billboards];
+        this._billboards = [];
+        for (let i = 0; i < l.length; i++) {
+            this.assignFontAtlas(l[i]);
         }
     }
 
@@ -121,13 +130,9 @@ class LabelHandler extends BaseBillboardHandler {
     }
 
     public workerCallback(data: LabelWorkerCallbackData, label: Label) {
-        // @ts-ignore
-        if (label._lockId !== LOCK_FREE && this.isEqual(label._handler)) {
-            // @ts-ignore
+        if (label._lockId !== LOCK_FREE && label._handler && this.isEqual(label._handler)) {
             label._isReady = true;
-            // @ts-ignore
             label._lockId = LOCK_FREE;
-            // @ts-ignore
             label._handlerIndex = this._billboards.length;
 
             this._billboards.push(label);
@@ -199,21 +204,21 @@ class LabelHandler extends BaseBillboardHandler {
     protected override _deleteBuffers() {
         if (this._renderer) {
             let gl = this._renderer.handler.gl!;
-            gl.deleteBuffer(this._gliphParamBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._sizeBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._fontIndexBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._texCoordBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._outlineBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._outlineColorBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._positionHighBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._positionLowBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._sizeBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._offsetBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._rgbaBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._rotationBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._vertexBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._texCoordBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._pickingColorBuffer as WebGLBuffer);
+            gl.deleteBuffer(this._gliphParamBuffer!);
+            gl.deleteBuffer(this._sizeBuffer!);
+            gl.deleteBuffer(this._fontIndexBuffer!);
+            gl.deleteBuffer(this._texCoordBuffer!);
+            gl.deleteBuffer(this._outlineBuffer!);
+            gl.deleteBuffer(this._outlineColorBuffer!);
+            gl.deleteBuffer(this._positionHighBuffer!);
+            gl.deleteBuffer(this._positionLowBuffer!);
+            gl.deleteBuffer(this._sizeBuffer!);
+            gl.deleteBuffer(this._offsetBuffer!);
+            gl.deleteBuffer(this._rgbaBuffer!);
+            gl.deleteBuffer(this._rotationBuffer!);
+            gl.deleteBuffer(this._vertexBuffer!);
+            gl.deleteBuffer(this._texCoordBuffer!);
+            gl.deleteBuffer(this._pickingColorBuffer!);
 
             this._gliphParamBuffer = null;
             this._sizeBuffer = null;
@@ -257,31 +262,31 @@ class LabelHandler extends BaseBillboardHandler {
         gl.uniform1f(shu.planetRadius, (ec.renderNode as Planet)._planetRadius2 || 0);
         gl.uniform2fv(shu.viewport, [h.canvas!.clientWidth, h.canvas!.clientHeight]);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer!);
         gl.vertexAttribPointer(sha.a_texCoord, this._texCoordBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._gliphParamBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._gliphParamBuffer!);
         gl.vertexAttribPointer(sha.a_gliphParam, this._gliphParamBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer!);
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer!);
         gl.vertexAttribPointer(sha.a_positionsHigh, this._positionHighBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer!);
         gl.vertexAttribPointer(sha.a_positionsLow, this._positionLowBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer!);
         gl.vertexAttribPointer(sha.a_size, this._sizeBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer!);
         gl.vertexAttribPointer(sha.a_rotation, this._rotationBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._offsetBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._offsetBuffer!);
         gl.vertexAttribPointer(sha.a_offset, this._offsetBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._fontIndexBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._fontIndexBuffer!);
         gl.vertexAttribPointer(sha.a_fontIndex, this._fontIndexBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
         //
@@ -289,10 +294,10 @@ class LabelHandler extends BaseBillboardHandler {
         gl.uniform1i(shu.isOutlinePass, 1);
         gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineColorBuffer!);
         gl.vertexAttribPointer(sha.a_rgba, this._outlineColorBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._outlineBuffer!);
         gl.vertexAttribPointer(sha.a_outline, this._outlineBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer!.numItems);
@@ -303,7 +308,7 @@ class LabelHandler extends BaseBillboardHandler {
         gl.uniform1i(shu.isOutlinePass, 0);
         gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer!);
         gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer!.numItems);
@@ -337,31 +342,31 @@ class LabelHandler extends BaseBillboardHandler {
         gl.uniform1f(shu.planetRadius, (rn as Planet)._planetRadius2 || 0);
         gl.uniform2fv(shu.viewport, [h.canvas!.clientWidth, h.canvas!.clientHeight]);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer!);
         gl.vertexAttribPointer(sha.a_texCoord, this._texCoordBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._gliphParamBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._gliphParamBuffer!);
         gl.vertexAttribPointer(sha.a_gliphParam, this._gliphParamBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer!);
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer!);
         gl.vertexAttribPointer(sha.a_positionsHigh, this._positionHighBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer!);
         gl.vertexAttribPointer(sha.a_positionsLow, this._positionLowBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer!);
         gl.vertexAttribPointer(sha.a_size, this._sizeBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._rotationBuffer!);
         gl.vertexAttribPointer(sha.a_rotation, this._rotationBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._offsetBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._offsetBuffer!);
         gl.vertexAttribPointer(sha.a_offset, this._offsetBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingColorBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingColorBuffer!);
         gl.vertexAttribPointer(sha.a_rgba, this._pickingColorBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
@@ -379,37 +384,34 @@ class LabelHandler extends BaseBillboardHandler {
 
         let ml = 24 * this._maxLetters;
         let i = li * ml;
-        this._rgbaArr = spliceTypedArray(this._rgbaArr, i, ml) as Float32Array;
-        this._outlineColorArr = spliceTypedArray(this._outlineColorArr, i, ml) as Float32Array;
-        this._texCoordArr = spliceTypedArray(this._texCoordArr, i, ml) as Float32Array;
-        this._gliphParamArr = spliceTypedArray(this._gliphParamArr, i, ml) as Float32Array;
+        this._rgbaArr = spliceTypedArray<Float32Array>(this._rgbaArr, i, ml);
+        this._outlineColorArr = spliceTypedArray<Float32Array>(this._outlineColorArr, i, ml);
+        this._texCoordArr = spliceTypedArray<Float32Array>(this._texCoordArr, i, ml);
+        this._gliphParamArr = spliceTypedArray<Float32Array>(this._gliphParamArr, i, ml);
 
         ml = 18 * this._maxLetters;
         i = li * ml;
-        this._positionHighArr = spliceTypedArray(this._positionHighArr, i, ml) as Float32Array;
-        this._positionLowArr = spliceTypedArray(this._positionLowArr, i, ml) as Float32Array;
-        this._offsetArr = spliceTypedArray(this._offsetArr, i, ml) as Float32Array;
-        this._pickingColorArr = spliceTypedArray(this._pickingColorArr, i, ml) as Float32Array;
+        this._positionHighArr = spliceTypedArray<Float32Array>(this._positionHighArr, i, ml);
+        this._positionLowArr = spliceTypedArray<Float32Array>(this._positionLowArr, i, ml);
+        this._offsetArr = spliceTypedArray<Float32Array>(this._offsetArr, i, ml);
+        this._pickingColorArr = spliceTypedArray<Float32Array>(this._pickingColorArr, i, ml);
 
         ml = 12 * this._maxLetters;
         i = li * ml;
-        this._vertexArr = spliceTypedArray(this._vertexArr, i, ml) as Float32Array;
+        this._vertexArr = spliceTypedArray<Float32Array>(this._vertexArr, i, ml);
 
         ml = 6 * this._maxLetters;
         i = li * ml;
-        this._sizeArr = spliceTypedArray(this._sizeArr, i, ml) as Float32Array;
-        this._rotationArr = spliceTypedArray(this._rotationArr, i, ml) as Float32Array;
-        this._fontIndexArr = spliceTypedArray(this._fontIndexArr, i, ml) as Float32Array;
-        this._outlineArr = spliceTypedArray(this._outlineArr, i, ml) as Float32Array;
+        this._sizeArr = spliceTypedArray<Float32Array>(this._sizeArr, i, ml);
+        this._rotationArr = spliceTypedArray<Float32Array>(this._rotationArr, i, ml);
+        this._fontIndexArr = spliceTypedArray<Float32Array>(this._fontIndexArr, i, ml);
+        this._outlineArr = spliceTypedArray<Float32Array>(this._outlineArr, i, ml);
 
         this.reindexBillboardsArray(li);
         this.refresh();
 
-        //@ts-ignore
         label._handlerIndex = -1;
-        //@ts-ignore
         label._handler = null;
-        //@ts-ignore
         label._isReady = false;
     }
 

@@ -22,13 +22,13 @@ export type CoordinatesType = NumberArray2 | NumberArray3;
 // }
 export type IPointCoordinates = CoordinatesType;
 
- // {
- //     "type": "LineString",
- //     "coordinates": [
- //         [100.0, 0.0],
- //         [101.0, 1.0]
- //     ]
- // }
+// {
+//     "type": "LineString",
+//     "coordinates": [
+//         [100.0, 0.0],
+//         [101.0, 1.0]
+//     ]
+// }
 export type ILineStringCoordinates = CoordinatesType[];
 
 // No holes
@@ -152,7 +152,7 @@ export interface IGeometryParams {
 class Geometry {
     static __counter__: number = 0;
 
-    protected __id: number;
+    public __id: number;
 
     /**
      * Entity instance that holds this geometry.
@@ -161,34 +161,34 @@ class Geometry {
      */
     public _entity: Entity | null;
 
-    protected _handler: GeometryHandler | null;
-    protected _handlerIndex: number;
+    public _handler: GeometryHandler | null;
+    public _handlerIndex: number;
 
     // Polygon
-    protected _polyVerticesHighMerc: number[];
-    protected _polyVerticesLowMerc: number[];
-    protected _polyVerticesLength: number;
-    protected _polyIndexesLength: number;
-    protected _polyVerticesHandlerIndex: number;
-    protected _polyIndexesHandlerIndex: number;
+    public _polyVerticesHighMerc: number[];
+    public _polyVerticesLowMerc: number[];
+    public _polyVerticesLength: number;
+    public _polyIndexesLength: number;
+    public _polyVerticesHandlerIndex: number;
+    public _polyIndexesHandlerIndex: number;
 
     // Line(Linestring and polygon's stroke(s)
-    protected _lineVerticesHighMerc: number[];
-    protected _lineVerticesLowMerc: number[];
-    protected _lineVerticesLength: number;
-    protected _lineOrdersLength: number;
-    protected _lineIndexesLength: number;
-    protected _lineColorsLength: number;
-    protected _lineThicknessLength: number;
-    protected _lineVerticesHandlerIndex: number;
-    protected _lineOrdersHandlerIndex: number;
-    protected _lineIndexesHandlerIndex: number;
-    protected _lineThicknessHandlerIndex: number;
-    protected _lineColorsHandlerIndex: number;
+    public _lineVerticesHighMerc: number[];
+    public _lineVerticesLowMerc: number[];
+    public _lineVerticesLength: number;
+    public _lineOrdersLength: number;
+    public _lineIndexesLength: number;
+    public _lineColorsLength: number;
+    public _lineThicknessLength: number;
+    public _lineVerticesHandlerIndex: number;
+    public _lineOrdersHandlerIndex: number;
+    public _lineIndexesHandlerIndex: number;
+    public _lineThicknessHandlerIndex: number;
+    public _lineColorsHandlerIndex: number;
     protected _type: number;
-    protected _coordinates: IGeometryCoordinates;
+    public _coordinates: IGeometryCoordinates;
     protected _extent: Extent;
-    protected _style: IGeometryStyleInternal;
+    public _style: IGeometryStyleInternal;
     protected _visibility: boolean;
     public _pickingReady: boolean;
 
@@ -375,6 +375,10 @@ class Geometry {
         c.w = a;
         this._handler && this._handler.setPolyColorArr(this, c);
         return this;
+    }
+
+    public overlaps(extent: Extent): boolean {
+        return this._extent.overlaps(extent);
     }
 
     public setFillColor4v(rgba: Vec4): Geometry {

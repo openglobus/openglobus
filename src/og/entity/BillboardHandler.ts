@@ -110,6 +110,10 @@ class BillboardHandler extends BaseBillboardHandler {
         this._pickingColorArr = concatTypedArrays(this._pickingColorArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]) as Float32Array;
     }
 
+    public get billboards(): Billboard[] {
+        return this._billboards
+    }
+
     public override refreshTexCoordsArr() {
         let bc = this._entityCollection;
         if (bc && this._renderer) {
