@@ -1,49 +1,69 @@
-export function objParser(text){
-    const objPositions = [[0, 0, 0]];
-    const objTexcoords = [[0, 0]];
-    const objNormals = [[0, 0, 0]];
+interface IObjGeometryData {
+    vertices: number[];
+    textures: number[];
+    normals: number[];
+}
+
+interface IObjGeometry {
+    object: string;
+    groups: string[];
+    material: string;
+    data: IObjGeometryData
+}
+
+interface IObjData {
+    geometries: IObjGeometry[];
+    materialLibs: string[];
+}
+
+export function objParser(text: string) {
+    const objPositions: number[][] = [[0, 0, 0]];
+    const objTexcoords: number[][] = [[0, 0]];
+    const objNormals: number[][] = [[0, 0, 0]];
 
     // same order as `f` indices
-    const objVertexData = [
+    const objVertexData: [number[][], number[][], number[][]] = [
         objPositions,
         objTexcoords,
         objNormals,
     ];
 
     // same order as `f` indices
-    let vertexData = [
+    let vertexData: [number[], number[], number[]] = [
         [],   // positions
         [],   // texcoords
         [],   // normals
     ];
 
-    const materialLibs = [];
-    const geometries = [];
-    let geometry;
-    let groups = ['default'];
-    let material = 'default';
-    let object = 'default';
+    const materialLibs: string[] = [];
+    const geometries: IObjGeometry[] = [];
+    let geometry: IObjGeometry | null;
 
-    const noop = () => {};
+    let groups: string[] = ['default'];
+    let material: string = 'default';
+    let object: string = 'default';
 
     function newGeometry() {
         // If there is an existing geometry and it's
         // not empty then start a new one.
         if (geometry && geometry.data.vertices.length) {
-            geometry = undefined;
+            geometry = null;
         }
     }
 
     function setGeometry() {
         if (!geometry) {
-            const vertices = [];
-            const textures = [];
-            const normals = [];
+
+            const vertices: number[] = [];
+            const textures: number[] = [];
+            const normals: number[] = [];
+
             vertexData = [
                 vertices,
                 textures,
                 normals,
             ];
+
             geometry = {
                 object,
                 groups,
@@ -54,13 +74,14 @@ export function objParser(text){
                     normals,
                 },
             };
+
             geometries.push(geometry);
         }
     }
 
-    function addVertex(vert) {
+    function addVertex(vert: string) {
         const ptn = vert.split('/');
-        ptn.forEach((objIndexStr, i) => {
+        ptn.forEach((objIndexStr: string, i: number) => {
             if (!objIndexStr) {
                 return;
             }
@@ -70,18 +91,18 @@ export function objParser(text){
         });
     }
 
-    const keywords = {
-        v(parts) {
+    const keywords: Record<string, (parts: string[], unparsedArgs: string) => void> = {
+        v(parts: string[]) {
             objPositions.push(parts.map(parseFloat));
         },
-        vn(parts) {
+        vn(parts: string[]) {
             objNormals.push(parts.map(parseFloat));
         },
-        vt(parts) {
+        vt(parts: string[]) {
             // should check for missing v and extra w?
             objTexcoords.push(parts.map(parseFloat));
         },
-        f(parts) {
+        f(parts: string[]) {
             setGeometry();
             const numTriangles = parts.length - 2;
             for (let tri = 0; tri < numTriangles; ++tri) {
@@ -90,21 +111,22 @@ export function objParser(text){
                 addVertex(parts[tri + 2]);
             }
         },
-        s: noop,    // smoothing group
-        mtllib(parts, unparsedArgs) {
+        s: () => {
+        },    // smoothing group
+        mtllib(parts: string[], unparsedArgs: string) {
             // the spec says there can be multiple filenames here
             // but many exist with spaces in a single filename
             materialLibs.push(unparsedArgs);
         },
-        usemtl(parts, unparsedArgs) {
+        usemtl(parts: string[], unparsedArgs: string) {
             material = unparsedArgs;
             newGeometry();
         },
-        g(parts) {
+        g(parts: string[]) {
             groups = parts;
             newGeometry();
         },
-        o(parts, unparsedArgs) {
+        o(parts: string[], unparsedArgs: string) {
             object = unparsedArgs;
             newGeometry();
         },
@@ -134,7 +156,8 @@ export function objParser(text){
     // remove any arrays that have no entries.
     for (const geometry of geometries) {
         geometry.data = Object.fromEntries(
-            Object.entries(geometry.data).filter(([, array]) => array.length > 0));
+            Object.entries(geometry.data).filter(([key, array]) => array.length > 0)
+        ) as IObjGeometryData;
     }
 
     return {
@@ -143,15 +166,21 @@ export function objParser(text){
     };
 }
 
-export function transformLeftToRightCoordinateSystem(objData) {
-    const convertedGeometries = objData.geometries.map(geometry => {
+export function transformLeftToRightCoordinateSystem(objData: IObjData): {
+    geometries: IObjGeometry[],
+    materialLibs: string[]
+} {
+
+    const convertedGeometries: IObjGeometry[] = objData.geometries.map(geometry => {
         const vertices = geometry.data.vertices;
         const normals = geometry.data.normals;
         const textures = geometry.data.textures;
-        rotateObject(geometry.data, 0)
-        const convertedVertices = [];
-        const convertedNormals = [];
-        const convertedTextures = [];
+
+        rotateObject(geometry.data, 0);
+
+        let convertedVertices: number[] = [];
+        let convertedNormals: number[] = [];
+        let convertedTextures: number[] = [];
 
         // Convert positions
         for (let i = 0; i < vertices.length; i += 3) {
@@ -194,7 +223,7 @@ export function transformLeftToRightCoordinateSystem(objData) {
     };
 }
 
-function rotateObject(obj, angle) {
+function rotateObject(obj: IObjGeometryData, angle: number): { vertices: number[], normals: number[] } {
     const cosA = Math.cos(angle);
     const sinA = Math.sin(angle);
 
