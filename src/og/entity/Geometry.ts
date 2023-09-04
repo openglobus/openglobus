@@ -156,10 +156,10 @@ class Geometry {
 
     /**
      * Entity instance that holds this geometry.
-     * @protected
+     * @public
      * @type {Entity}
      */
-    protected _entity: Entity | null;
+    public _entity: Entity | null;
 
     protected _handler: GeometryHandler | null;
     protected _handlerIndex: number;

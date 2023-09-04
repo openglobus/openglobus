@@ -1,5 +1,7 @@
 import {BaseBillboard, IBaseBillboardParams} from "./BaseBillboard";
 import {BillboardHandler} from "./BillboardHandler";
+import {HTMLImageElementExt} from "../utils/ImagesCacheManager";
+
 export interface IBillboardParams extends IBaseBillboardParams {
     src?: string;
     image?: HTMLImageElement;
@@ -27,7 +29,7 @@ export interface IBillboardParams extends IBaseBillboardParams {
  */
 class Billboard extends BaseBillboard {
 
-    protected override _handler: BillboardHandler | null;
+    public override _handler: BillboardHandler | null;
 
     /**
      * Image src.
@@ -47,17 +49,17 @@ class Billboard extends BaseBillboard {
 
     /**
      * Billboard screen width.
-     * @protected
+     * @public
      * @type {number}
      */
-    protected _width: number;
+    public _width: number;
 
     /**
      * Billboard screen height.
-     * @protected
+     * @public
      * @type {number}
      */
-    protected _height: number;
+    public _height: number;
 
     constructor(options: IBillboardParams = {}) {
 
@@ -85,13 +87,12 @@ class Billboard extends BaseBillboard {
         this._src = src;
         let bh = this._handler;
         if (bh && src && src.length) {
-            //@ts-ignore
             let rn = bh._entityCollection.renderNode;
             if (rn && rn.renderer) {
                 let ta = rn.renderer.billboardsTextureAtlas;
                 let that = this;
-                ta.loadImage(src, function (img: any) {
-                    if (ta.get(img.__nodeIndex)) {
+                ta.loadImage(src, function (img: HTMLImageElementExt) {
+                    if (img.__nodeIndex != undefined && ta.get(img.__nodeIndex)) {
                         that._image = img;
                         bh!.setTexCoordArr(
                             that._handlerIndex,
@@ -121,7 +122,7 @@ class Billboard extends BaseBillboard {
         this.setSrc(image.src);
     }
 
-    public getImage(): HTMLImageElement | null {
+    public getImage(): HTMLImageElementExt | null {
         return this._image;
     }
 

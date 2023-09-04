@@ -84,10 +84,10 @@ class PointCloud {
 
     /**
      * Entity instance that holds this point cloud.
-     * @protected
+     * @public
      * @type {Entity | null}
      */
-    protected _entity: Entity | null;
+    public _entity: Entity | null;
 
     /**
      * Points properties.

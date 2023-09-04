@@ -54,7 +54,7 @@ const STR2ALIGN: Record<string, number> = {
  */
 class Label extends BaseBillboard {
 
-    protected override _handler: LabelHandler | null;
+    public override _handler: LabelHandler | null;
 
     /**
      * Label text string.

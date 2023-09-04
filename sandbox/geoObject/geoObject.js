@@ -239,9 +239,10 @@ let geoObjects = new EntityCollection({
     scaleByDistance: [100, 4000000, 1.0]
 });
 
-Object3d.loadObj("./cube.obj").then((objects)=>{
-    let obj3d = objects[0];
-})//Object3d.createSphere(16, 16, 5);
+// Object3d.loadObj("./cube.obj").then((objects)=>{
+//     let obj3d = objects[0];
+// })
+let obj3d = Object3d.createSphere(16, 16, 5);
 
 let obj3d2 = Object3d.createCylinder(3, 3, 10, 16, 16);
 

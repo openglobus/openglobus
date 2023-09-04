@@ -25,7 +25,7 @@ class BaseBillboardHandler {
 
     static __counter__: number = 0;
 
-    protected __id: number;
+    public __id: number;
 
     /**
      * Picking rendering option.
@@ -34,7 +34,7 @@ class BaseBillboardHandler {
      */
     public pickingEnabled: boolean;
 
-    protected _entityCollection: EntityCollection;
+    public _entityCollection: EntityCollection;
 
     protected _renderer: Renderer | null;
 
@@ -148,13 +148,9 @@ class BaseBillboardHandler {
         let i = this._billboards.length;
         while (i--) {
             let bi = this._billboards[i];
-            // @ts-ignore
             bi._handlerIndex = -1;
-            // @ts-ignore
             bi._handler = null;
-            // @ts-ignore
             bi._isReady = false;
-            // @ts-ignore
             bi._lockId = LOCK_FREE;
         }
         this._billboards.length = 0;
@@ -234,13 +230,9 @@ class BaseBillboardHandler {
     }
 
     public add(billboard: BaseBillboard) {
-        // @ts-ignore
         if (billboard._handlerIndex == -1) {
-            // @ts-ignore
             billboard._isReady = true;
-            // @ts-ignore
             billboard._handler = this;
-            // @ts-ignore
             billboard._handlerIndex = this._billboards.length;
             this._billboards.push(billboard);
         }
@@ -376,13 +368,12 @@ class BaseBillboardHandler {
     public reindexBillboardsArray(startIndex: number) {
         let b = this._billboards;
         for (let i = startIndex; i < b.length; i++) {
-            // @ts-ignore
             b[i]._handlerIndex = i;
         }
     }
 
     protected _removeBillboard(billboard: BaseBillboard) {
-        // @ts-ignore
+
         let bi = billboard._handlerIndex;
 
         this._billboards.splice(bi, 1);
@@ -408,13 +399,9 @@ class BaseBillboardHandler {
         this.reindexBillboardsArray(bi);
         this.refresh();
 
-        //@ts-ignore
         billboard._handlerIndex = -1;
-        //@ts-ignore
         billboard._handler = null;
-        //@ts-ignore
         billboard._isReady = false;
-        //@ts-ignore
         billboard._lockId = LOCK_FREE;
     }
 
@@ -423,12 +410,12 @@ class BaseBillboardHandler {
     }
 
     public remove(billboard: BaseBillboard) {
-        // @ts-ignore
-        if (billboard._isReady && this.__id === billboard._handler.__id) {
-            this._removeBillboard(billboard);
-        } else {
-            // @ts-ignore
-            billboard._handler = null;
+        if (billboard._handler) {
+            if (billboard._isReady && this.__id === billboard._handler.__id) {
+                this._removeBillboard(billboard);
+            } else {
+                billboard._handler = null;
+            }
         }
     }
 

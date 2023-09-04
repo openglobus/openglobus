@@ -14,8 +14,7 @@ type TPoi = Vec3;
 type TStrip = [TPoi, TPoi];
 
 //type TStrip = TEdge[];
-
-interface IStripParams {
+export interface IStripParams {
     visibility?: boolean;
     color?: string | NumberArray4 | Vec4;
     opacity?: number;
@@ -65,10 +64,10 @@ class Strip {
 
     /**
      * Entity instance that holds this strip.
-     * @protected
+     * @public
      * @type {Entity}
      */
-    protected _entity: Entity | null;
+    public _entity: Entity | null;
     protected _verticesHighBuffer: WebGLBufferExt | null;
     protected _verticesLowBuffer: WebGLBufferExt | null;
     protected _indexBuffer: WebGLBufferExt | null;

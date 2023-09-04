@@ -17,6 +17,8 @@ import {RenderNode} from "../scene/RenderNode";
 import {StripHandler} from "./StripHandler";
 import {Vector} from "../layer/Vector";
 
+export type EntityCollectionEvents = EventsHandler<EntityCollectionEventList>;
+
 interface IEntityCollectionParams {
     polygonOffsetUnits?: number;
     visibility?: boolean;
@@ -200,11 +202,11 @@ class EntityCollection {
     /**
      * Entity collection events handler.
      * @public
-     * @type {EventsHandler<EntityCollectionEventList>}
+     * @type {EntityCollectionEvents}
      */
-    public events: EventsHandler<EntityCollectionEventList>;
+    public events: EntityCollectionEvents;
 
-    public rendererEvents: EventsHandler<EntityCollectionEventList>;
+    public rendererEvents: EntityCollectionEvents;
 
     /**
      * Used in EntityCollectionNode, also could be merged with _quadNode
@@ -253,9 +255,7 @@ class EntityCollection {
 
         this._fadingOpacity = this._opacity;
 
-        this.events = createEvents<EntityCollectionEventList>(ENTITYCOLLECTION_EVENTS, this);
-
-        this.rendererEvents = this.events;
+        this.events = this.rendererEvents = createEvents<EntityCollectionEventList>(ENTITYCOLLECTION_EVENTS, this);
 
         // initialize current entities
         if (options.entities) {

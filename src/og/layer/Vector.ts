@@ -36,7 +36,7 @@ type VectorEventsList = [
     "entityremove"
 ]
 
-type VectorEventsType = EventsHandler<VectorEventsList> & EventsHandler<LayerEventsList>;
+export type VectorEventsType = EventsHandler<VectorEventsList> & EventsHandler<LayerEventsList>;
 
 /**
  * Creates entity instance array.

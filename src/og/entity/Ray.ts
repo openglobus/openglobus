@@ -58,10 +58,10 @@ class Ray {
 
     /**
      * Entity instance that holds this billboard.
-     * @protected
+     * @public
      * @type {Entity}
      */
-    protected _entity: Entity | null;
+    public _entity: Entity | null;
 
     /**
      * Handler that stores and renders this billboard object.

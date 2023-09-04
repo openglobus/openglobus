@@ -27,7 +27,7 @@ export interface IBaseBillboardParams {
  */
 class BaseBillboard {
     static __counter__: number = 0;
-    protected __id: number;
+    public __id: number;
 
     /**
      * Billboard center cartesian position.
@@ -36,23 +36,23 @@ class BaseBillboard {
      */
     protected _position: Vec3;
 
-    protected _positionHigh: Vec3;
+    public _positionHigh: Vec3;
 
-    protected _positionLow: Vec3;
+    public _positionLow: Vec3;
 
     /**
      * Screen space rotation angle.
-     * @protected
+     * @public
      * @type {number}
      */
-    protected _rotation: number;
+    public _rotation: number;
 
     /**
      * RGBA color.
-     * @protected
+     * @public
      * @type {Vec4}
      */
-    protected _color: Vec4;
+    public _color: Vec4;
 
     /**
      * Cartesian aligned axis vector.
@@ -63,10 +63,10 @@ class BaseBillboard {
 
     /**
      * Billboard center screen space offset. Where x,y - screen space offset and z - depth offset.
-     * @protected
+     * @public
      * @type {Vec3}
      */
-    protected _offset: Vec3;
+    public _offset: Vec3;
 
     /**
      * Billboard visibility.
@@ -77,31 +77,31 @@ class BaseBillboard {
 
     /**
      * Entity instance that holds this billboard.
-     * @protected
+     * @public
      * @type {Entity}
      */
-    protected _entity: Entity | null;
+    public _entity: Entity | null;
 
     /**
      * Handler that stores and renders this billboard object.
-     * @protected
+     * @public
      * @type {BillboardHandler | null}
      */
-    protected _handler: BaseBillboardHandler | null;
+    public _handler: BaseBillboardHandler | null;
 
     /**
      * Billboard handler array index.
-     * @protected
+     * @public
      * @type {number}
      */
-    protected _handlerIndex: number;
+    public _handlerIndex: number;
 
     /**
      * An indication that the object is ready to draw
-     * @protected
+     * @public
      * @type {number}
      */
-    protected _isReady: boolean;
+    public _isReady: boolean;
 
     public _lockId: number;
 

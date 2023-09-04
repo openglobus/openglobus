@@ -155,10 +155,10 @@ class Polyline {
 
     /**
      * Entity instance that holds this Polyline.
-     * @private
+     * @public
      * @type {Entity}
      */
-    protected _entity: Entity | null;
+    public _entity: Entity | null;
 
     /**
      * Handler that stores and renders this Polyline object.

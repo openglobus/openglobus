@@ -1,7 +1,7 @@
 import * as mercator from "../mercator";
 import * as utils from "../utils/shared";
 import {Billboard, IBillboardParams} from "./Billboard";
-import {EntityCollection} from "./EntityCollection";
+import {EntityCollection, EntityCollectionEvents} from "./EntityCollection";
 import {Extent} from "../Extent";
 import {Geometry, IGeometryParams} from "./Geometry";
 import {GeoObject, IGeoObjectParams} from "./GeoObject";
@@ -13,9 +13,10 @@ import {Planet} from "../scene/Planet";
 import {IPointCloudParams, PointCloud} from "./PointCloud";
 import {IPolylineParams, Polyline} from "./Polyline";
 import {IRayParams, Ray} from "./Ray";
-import {Strip} from "./Strip";
-import {Vector} from "../layer/Vector";
+import {Strip, IStripParams} from "./Strip";
+import {Vector, VectorEventsType} from "../layer/Vector";
 import {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
+import Constructor = jest.Constructor;
 
 export interface IEntityParams {
     properties?: any;
@@ -155,7 +156,7 @@ class Entity {
      */
     public _pickingColor: Vec3;
 
-    protected _featureConstructorArray: any;
+    protected _featureConstructorArray: Record<string, [Constructor, Function]>;
 
     /**
      * Billboard entity.
@@ -260,21 +261,21 @@ class Entity {
             ray: [Ray, this.setRay]
         };
 
-        this.billboard = this._createOptionFeature("billboard", options.billboard) as Billboard;
+        this.billboard = this._createOptionFeature<Billboard, IBillboardParams>("billboard", options.billboard);
 
-        this.label = this._createOptionFeature("label", options.label) as Label;
+        this.label = this._createOptionFeature<Label, ILabelParams>("label", options.label);
 
-        this.polyline = this._createOptionFeature("polyline", options.polyline) as Polyline;
+        this.polyline = this._createOptionFeature<Polyline, IPolylineParams>("polyline", options.polyline);
 
-        this.ray = this._createOptionFeature("ray", options.ray) as Ray;
+        this.ray = this._createOptionFeature<Ray, IRayParams>("ray", options.ray);
 
-        this.pointCloud = this._createOptionFeature("pointCloud", options.pointCloud) as PointCloud;
+        this.pointCloud = this._createOptionFeature<PointCloud, IPolylineParams>("pointCloud", options.pointCloud);
 
-        this.geometry = this._createOptionFeature("geometry", options.geometry) as Geometry;
+        this.geometry = this._createOptionFeature<Geometry, IGeometryParams>("geometry", options.geometry);
 
-        this.geoObject = this._createOptionFeature("geoObject", options.geoObject) as GeoObject;
+        this.geoObject = this._createOptionFeature<GeoObject, IGeoObjectParams>("geoObject", options.geoObject);
 
-        this.strip = this._createOptionFeature("strip", options.strip) as Strip;
+        this.strip = this._createOptionFeature<Strip, IStripParams>("strip", options.strip);
     }
 
     public get id(): number {
@@ -293,12 +294,14 @@ class Entity {
         return "Entity";
     }
 
-    protected _createOptionFeature(featureName: string, options: any): Billboard | Label | Polyline | Ray | PointCloud | Geometry | GeoObject | Strip | null {
+    protected _createOptionFeature<T, K>(
+        featureName: string,
+        options?: T | K
+    ): T | null {
         if (options) {
             let c = this._featureConstructorArray[featureName];
-            return c[1].call(this, new c[0](options));
+            return c[1].call(this, new c[0](options)) as T;
         }
-
         return null;
     }
 
@@ -556,7 +559,6 @@ class Entity {
             this.billboard.remove();
         }
         this.billboard = billboard;
-        // @ts-ignore
         this.billboard._entity = this;
         this.billboard.setPosition3v(this._cartesian);
         this.billboard.setVisibility(this._visibility);
@@ -575,7 +577,6 @@ class Entity {
             this.label.remove();
         }
         this.label = label;
-        // @ts-ignore
         this.label._entity = this;
         this.label.setPosition3v(this._cartesian);
         this.label.setVisibility(this._visibility);
@@ -594,7 +595,6 @@ class Entity {
             this.ray.remove();
         }
         this.ray = ray;
-        // @ts-ignore
         this.ray._entity = this;
         this.ray.setVisibility(this._visibility);
         this._entityCollection && this._entityCollection.rayHandler.add(ray);
@@ -612,7 +612,6 @@ class Entity {
             this.polyline.remove();
         }
         this.polyline = polyline;
-        // @ts-ignore
         this.polyline._entity = this;
         this.polyline.setVisibility(this._visibility);
         this._entityCollection && this._entityCollection.polylineHandler.add(polyline);
@@ -630,7 +629,6 @@ class Entity {
             this.pointCloud.remove();
         }
         this.pointCloud = pointCloud;
-        // @ts-ignore
         this.pointCloud._entity = this;
         this.pointCloud.setVisibility(this._visibility);
         this._entityCollection && this._entityCollection.pointCloudHandler.add(pointCloud);
@@ -648,7 +646,6 @@ class Entity {
             this.geometry.remove();
         }
         this.geometry = geometry;
-        // @ts-ignore
         this.geometry._entity = this;
         this.geometry.setVisibility(this._visibility);
         this._layer && this._layer.add(this);
@@ -666,7 +663,6 @@ class Entity {
             this.geoObject.remove();
         }
         this.geoObject = geoObject;
-        // @ts-ignore
         this.geoObject._entity = this;
         this.geoObject.setPosition3v(this._cartesian);
         this.geoObject.setVisibility(this._visibility);
@@ -685,7 +681,6 @@ class Entity {
             this.strip.remove();
         }
         this.strip = strip;
-        // @ts-ignore
         this.strip._entity = this;
         this.strip.setVisibility(this._visibility);
         this._entityCollection && this._entityCollection.stripHandler.add(strip);
@@ -696,8 +691,7 @@ class Entity {
         return this._layer;
     }
 
-    // @todo: replace any with VectorLayerEvents | EntityCollectionEvents
-    public get rendererEvents(): any {
+    public get rendererEvents(): VectorEventsType | EntityCollectionEvents | null {
         if (this._layer) {
             return this._layer.events;
         } else if (this._entityCollection) {

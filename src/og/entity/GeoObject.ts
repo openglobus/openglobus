@@ -33,10 +33,10 @@ class GeoObject {
 
     /**
      * Entity instance that holds this geo object.
-     * @protected
+     * @public
      * @type {Entity}
      */
-    protected _entity: Entity | null;
+    public _entity: Entity | null;
 
     /**
      * Geo object center cartesian position.

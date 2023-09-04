@@ -372,7 +372,7 @@ class LabelHandler extends BaseBillboardHandler {
     }
 
     protected override _removeBillboard(label: Label) {
-        // @ts-ignore
+
         let li = label._handlerIndex;
 
         this._billboards.splice(li, 1);

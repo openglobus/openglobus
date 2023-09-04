@@ -17,7 +17,6 @@ class BillboardHandler extends BaseBillboardHandler {
     }
 
     public override add(billboard: Billboard) {
-        // @ts-ignore
         if (billboard._handlerIndex == -1) {
             super.add(billboard);
 
@@ -48,11 +47,8 @@ class BillboardHandler extends BaseBillboardHandler {
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ) as Float32Array;
 
-        // @ts-ignore
         let x = billboard._positionHigh.x,
-            // @ts-ignore
             y = billboard._positionHigh.y,
-            // @ts-ignore
             z = billboard._positionHigh.z,
             w;
         this._positionHighArr = concatTypedArrays(this._positionHighArr, [
@@ -64,11 +60,8 @@ class BillboardHandler extends BaseBillboardHandler {
             x, y, z
         ]) as Float32Array;
 
-        // @ts-ignore
         x = billboard._positionLow.x;
-        // @ts-ignore
         y = billboard._positionLow.y;
-        // @ts-ignore
         z = billboard._positionLow.z;
         this._positionLowArr = concatTypedArrays(this._positionLowArr, [
             x, y, z,
@@ -79,17 +72,12 @@ class BillboardHandler extends BaseBillboardHandler {
             x, y, z
         ]) as Float32Array;
 
-        // @ts-ignore
         x = billboard._width;
-        // @ts-ignore
         y = billboard._height;
         this._sizeArr = concatTypedArrays(this._sizeArr, [x, y, x, y, x, y, x, y, x, y, x, y]) as Float32Array;
 
-        // @ts-ignore
         x = billboard._offset.x;
-        // @ts-ignore
         y = billboard._offset.y;
-        // @ts-ignore
         z = billboard._offset.z;
         this._offsetArr = concatTypedArrays(this._offsetArr, [
             x, y, z,
@@ -100,13 +88,9 @@ class BillboardHandler extends BaseBillboardHandler {
             x, y, z
         ]) as Float32Array;
 
-        // @ts-ignore
         x = billboard._color.x;
-        // @ts-ignore
         y = billboard._color.y;
-        // @ts-ignore
         z = billboard._color.z;
-        // @ts-ignore
         w = billboard._color.w;
         this._rgbaArr = concatTypedArrays(this._rgbaArr, [
             x, y, z, w,
@@ -117,16 +101,12 @@ class BillboardHandler extends BaseBillboardHandler {
             x, y, z, w
         ]) as Float32Array;
 
-        // @ts-ignore
         x = billboard._rotation;
         this._rotationArr = concatTypedArrays(this._rotationArr, [x, x, x, x, x, x]) as Float32Array;
 
-        // @ts-ignore
-        x = billboard._entity._pickingColor.x / 255;
-        // @ts-ignore
-        y = billboard._entity._pickingColor.y / 255;
-        // @ts-ignore
-        z = billboard._entity._pickingColor.z / 255;
+        x = billboard._entity!._pickingColor.x / 255;
+        y = billboard._entity!._pickingColor.y / 255;
+        z = billboard._entity!._pickingColor.z / 255;
         this._pickingColorArr = concatTypedArrays(this._pickingColorArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]) as Float32Array;
     }
 
@@ -138,10 +118,8 @@ class BillboardHandler extends BaseBillboardHandler {
                 let bi = this._billboards[i];
                 let img = bi.getImage();
                 if (img) {
-                    //@ts-ignore
-                    let imageNode = ta.get(img.__nodeIndex);
+                    let imageNode = ta.get(img.__nodeIndex!);
                     if (imageNode) {
-                        // @ts-ignore
                         this.setTexCoordArr(bi._handlerIndex, imageNode.texCoords);
                     }
                 }
