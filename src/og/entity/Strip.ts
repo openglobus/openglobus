@@ -82,11 +82,11 @@ class Strip {
 
     /**
      * Handler that stores and renders this object.
-     * @protected
+     * @public
      * @type {StripHandler | null}
      */
-    protected _handler: StripHandler | null;
-    protected _handlerIndex: number;
+    public _handler: StripHandler | null;
+    public _handlerIndex: number;
 
     constructor(options: IStripParams = {}) {
 
@@ -254,8 +254,8 @@ class Strip {
             gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
 
             gl.uniform4fv(shu.uColor, this.color);
-            //@ts-ignore
-            gl.uniform1f(shu.uOpacity, this._entity!._entityCollection._fadingOpacity);
+
+            gl.uniform1f(shu.uOpacity, this._entity!._entityCollection!._fadingOpacity);
             gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesHighBuffer as WebGLBuffer);
             gl.vertexAttribPointer(
                 sha.aVertexPositionHigh,
@@ -306,8 +306,8 @@ class Strip {
 
             gl.uniform3fv(shu.eyePositionHigh, r.activeCamera!.eyeHigh);
             gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
-            //@ts-ignore
-            gl.uniform1f(shu.uOpacity, this._entity._entityCollection._fadingOpacity != 0 ? 1 : 0);
+
+            gl.uniform1f(shu.uOpacity, this._entity!._entityCollection!._fadingOpacity != 0 ? 1 : 0);
 
             gl.uniform4fv(shu.uColor, this._pickingColor);
             gl.bindBuffer(gl.ARRAY_BUFFER, this._verticesHighBuffer as WebGLBuffer);
@@ -342,16 +342,16 @@ class Strip {
 
     /**
      * Delete buffers
-     * @protected
+     * @public
      */
-    protected _deleteBuffers() {
+    public _deleteBuffers() {
         if (this._renderNode && this._renderNode.renderer) {
             let r = this._renderNode.renderer,
                 gl = r.handler.gl!;
 
-            gl.deleteBuffer(this._indexBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._verticesHighBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._verticesLowBuffer as WebGLBuffer);
+            gl.deleteBuffer(this._indexBuffer!);
+            gl.deleteBuffer(this._verticesHighBuffer!);
+            gl.deleteBuffer(this._verticesLowBuffer!);
         }
         this._verticesHighBuffer = null;
         this._verticesLowBuffer = null;

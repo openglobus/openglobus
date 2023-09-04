@@ -103,11 +103,8 @@ class StripHandler {
     }
 
     public add(strip: Strip) {
-        // @ts-ignore
         if (strip._handlerIndex === -1) {
-            // @ts-ignore
             strip._handler = this;
-            // @ts-ignore
             strip._handlerIndex = this._strips.length;
             this._strips.push(strip);
             this._entityCollection &&
@@ -117,14 +114,10 @@ class StripHandler {
     }
 
     public remove(strip: Strip) {
-        // @ts-ignore
         let index = strip._handlerIndex;
         if (index !== -1) {
-            // @ts-ignore
             strip._deleteBuffers();
-            // @ts-ignore
             strip._handlerIndex = -1;
-            // @ts-ignore
             strip._handler = null;
             this._strips.splice(index, 1);
             this.reindexStripArray(index);
@@ -134,7 +127,6 @@ class StripHandler {
     public reindexStripArray(startIndex: number) {
         let pc = this._strips;
         for (let i = startIndex; i < pc.length; i++) {
-            // @ts-ignore
             pc[i]._handlerIndex = i;
         }
     }
@@ -158,11 +150,8 @@ class StripHandler {
     public clear() {
         let i = this._strips.length;
         while (i--) {
-            // @ts-ignore
             this._strips[i]._deleteBuffers();
-            // @ts-ignore
             this._strips[i]._handler = null;
-            // @ts-ignore
             this._strips[i]._handlerIndex = -1;
         }
         this._strips.length = 0;

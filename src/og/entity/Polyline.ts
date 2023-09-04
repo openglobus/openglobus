@@ -161,11 +161,11 @@ class Polyline {
 
     /**
      * Handler that stores and renders this Polyline object.
-     * @private
+     * @public
      * @type {PolylineHandler | null}
      */
-    protected _handler: PolylineHandler | null;
-    protected _handlerIndex: number;
+    public _handler: PolylineHandler | null;
+    public _handlerIndex: number;
     protected _buffersUpdateCallbacks: Function[];
     protected _changedBuffers: boolean[];
 
@@ -411,13 +411,19 @@ class Polyline {
             } else {
                 let p0 = path[path.length - 1],
                     p1 = path[path.length - 2] || p0;
+
                 if (p0 instanceof Array) {
                     p0 = new Vec3(p0[0], p0[1], p0[2]);
+                } else {
+                    p0 = p0 as Vec3;
                 }
+
                 if (p1 instanceof Array) {
                     p1 = new Vec3(p1[0], p1[1], p1[2]);
+                } else {
+                    p1 = p1 as Vec3;
                 }
-                //@ts-ignore
+
                 first = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
                 outIndexes.push(index - 1, index - 1, index - 1, index - 1);
             }
@@ -519,15 +525,21 @@ class Polyline {
                     last = new Vec3(last[0], last[1], last[2]);
                 }
             } else {
-                var p0 = path[0],
+                let p0 = path[0],
                     p1 = path[1] || p0;
+
                 if (p0 instanceof Array) {
                     p0 = new Vec3(p0[0], p0[1], p0[2]);
+                } else {
+                    p0 = p0 as Vec3;
                 }
+
                 if (p1 instanceof Array) {
                     p1 = new Vec3(p1[0], p1[1], p1[2]);
+                } else {
+                    p1 = p1 as Vec3;
                 }
-                //@ts-ignore
+
                 last = new Vec3(p0.x + p0.x - p1.x, p0.y + p0.y - p1.y, p0.z + p0.z - p1.z);
             }
 
@@ -2097,9 +2109,9 @@ class Polyline {
 
     /**
      * Clear GL buffers.
-     * @protected
+     * @public
      */
-    protected _deleteBuffers() {
+    public _deleteBuffers() {
         if (this._renderNode) {
             let r = this._renderNode.renderer!,
                 gl = r.handler.gl!;

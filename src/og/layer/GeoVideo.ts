@@ -164,8 +164,7 @@ class GeoVideo extends BaseGeoImage {
             this._video.autoplay = true;
             this._video.loop = true;
             this._video.src = this._src;
-            //@ts-ignore
-            this._video.muted = "muted";
+            this._video.muted = true;
             this._video.setAttribute("playsinline", "true");
             this._video.setAttribute("webkit-playsinline", "true");
         } else {

@@ -12,6 +12,7 @@ import {Extent} from "../Extent";
 import {GeometryHandler} from "../entity/GeometryHandler";
 import {ILayerParams, Layer, LayerEventsList} from "./Layer";
 import {NumberArray3, Vec3} from "../math/Vec3";
+import {Node} from "../quadTree/Node";
 import {Planet} from "../scene/Planet";
 import {QueueArray} from "../QueueArray";
 import {Material} from "./Material";
@@ -146,9 +147,9 @@ class Vector extends Layer {
     protected _entityCollectionsTreeNorth: EntityCollectionNodeWGS84 | null;
     protected _entityCollectionsTreeSouth: EntityCollectionNodeWGS84 | null;
 
-    public _renderingNodes: Record<number, any>;
-    public _renderingNodesNorth: Record<number, any>;
-    public _renderingNodesSouth: Record<number, any>;
+    public _renderingNodes: Record<number, boolean>;
+    public _renderingNodesNorth: Record<number, boolean>;
+    public _renderingNodesSouth: Record<number, boolean>;
 
     protected _counter: number;
     protected _deferredEntitiesPendingQueue: QueueArray<EntityCollectionNode>;

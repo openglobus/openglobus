@@ -78,7 +78,7 @@ class LineStringDrawingScene extends PolygonDrawingScene {
     }
 
     protected override _clearGhostPointer() {
-        (this._ghostOutlineLayer as any).getEntities()[0].polyline.clear();
+        this._ghostOutlineLayer.getEntities()[0].polyline!.clear();
     }
 
     protected _moveCorner(indexCurrent: number, indexPrev: number, indexCenter: number) {

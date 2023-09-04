@@ -134,10 +134,10 @@ export class Planet extends RenderNode {
 
     /**
      * Layers array.
-     * @protected
+     * @public
      * @type {Array.<Layer>}
      */
-    protected _layers: Layer[];
+    public _layers: Layer[];
 
     /**
      * Flag to trigger layer update in a next frame
@@ -171,10 +171,10 @@ export class Planet extends RenderNode {
 
     /**
      * There is only one base layer on the globe when layer.isBaseLayer is true.
-     * @protected
+     * @public
      * @type {Layer}
      */
-    protected baseLayer: Layer | null;
+    public baseLayer: Layer | null;
 
     /**
      * Terrain provider.
@@ -709,9 +709,9 @@ export class Planet extends RenderNode {
     /**
      * Dispatch layer visibility changing event.
      * @param {Layer} layer - Changed layer.
-     * @protected
+     * @public
      */
-    protected _onLayerVisibilityChanged(layer: Layer) {
+    public _onLayerVisibilityChanged(layer: Layer) {
         this.events.dispatch(this.events.layervisibilitychange, layer);
     }
 

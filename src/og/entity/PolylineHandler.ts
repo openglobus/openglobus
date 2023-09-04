@@ -5,17 +5,12 @@ import {Renderer} from "../renderer/Renderer";
 import {RenderNode} from "../scene/RenderNode";
 
 class PolylineHandler {
-
     static __counter__: number = 0;
     protected __id: number;
-
     public _entityCollection: EntityCollection;
-
-    protected _renderer: Renderer | null;
-
-    protected _polylines: Polyline[];
-
     public pickingEnabled: boolean;
+    protected _renderer: Renderer | null;
+    protected _polylines: Polyline[];
 
     constructor(entityCollection: EntityCollection) {
 
@@ -50,11 +45,8 @@ class PolylineHandler {
     }
 
     public add(polyline: Polyline) {
-        //@ts-ignore
         if (polyline._handlerIndex === -1) {
-            //@ts-ignore
             polyline._handler = this;
-            //@ts-ignore
             polyline._handlerIndex = this._polylines.length;
             this._polylines.push(polyline);
             this._entityCollection && this._entityCollection.renderNode &&
@@ -63,14 +55,10 @@ class PolylineHandler {
     }
 
     public remove(polyline: Polyline) {
-        //@ts-ignore
         let index = polyline._handlerIndex;
         if (index !== -1) {
-            //@ts-ignore
             polyline._deleteBuffers();
-            //@ts-ignore
             polyline._handlerIndex = -1;
-            //@ts-ignore
             polyline._handler = null;
             this._polylines.splice(index, 1);
             this.reindexPolylineArray(index);
@@ -80,7 +68,6 @@ class PolylineHandler {
     public reindexPolylineArray(startIndex: number) {
         let ls = this._polylines;
         for (let i = startIndex; i < ls.length; i++) {
-            //@ts-ignore
             ls[i]._handlerIndex = i;
         }
     }
@@ -104,11 +91,8 @@ class PolylineHandler {
     public clear() {
         let i = this._polylines.length;
         while (i--) {
-            //@ts-ignore
             this._polylines[i]._deleteBuffers();
-            //@ts-ignore
             this._polylines[i]._handler = null;
-            //@ts-ignore
             this._polylines[i]._handlerIndex = -1;
         }
         this._polylines.length = 0;

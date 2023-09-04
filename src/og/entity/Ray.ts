@@ -34,20 +34,20 @@ class Ray {
      */
     protected __id: number;
 
-    protected _thickness: number;
+    public _thickness: number;
 
     protected _startPosition: Vec3;
-    protected _startPositionHigh: Vec3;
-    protected _startPositionLow: Vec3;
+    public _startPositionHigh: Vec3;
+    public _startPositionLow: Vec3;
 
     // RTE end position
     protected _endPosition: Vec3;
-    protected _endPositionHigh: Vec3;
-    protected _endPositionLow: Vec3;
+    public _endPositionHigh: Vec3;
+    public _endPositionLow: Vec3;
 
     // start end point colors
-    protected _startColor: Vec4;
-    protected _endColor: Vec4;
+    public _startColor: Vec4;
+    public _endColor: Vec4;
 
     /**
      * Ray visibility.
@@ -65,18 +65,17 @@ class Ray {
 
     /**
      * Handler that stores and renders this billboard object.
-     * @protected
+     * @public
      * @type {BillboardHandler}
      */
-    protected _handler: RayHandler | null;
+    public _handler: RayHandler | null;
 
     /**
      * Billboard handler array index.
-     * @protected
+     * @public
      * @type {number}
      */
-    protected _handlerIndex: number;
-
+    public _handlerIndex: number;
     constructor(options: IRayParams = {}) {
 
         this.__id = Ray.__counter__++;

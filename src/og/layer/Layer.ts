@@ -463,7 +463,6 @@ class Layer {
 
         this._planet = planet;
 
-        // @ts-ignore
         planet._layers.push(this);
 
         if (planet.renderer && planet.renderer.isInitialized()) {
@@ -475,7 +474,6 @@ class Layer {
             }
             this.createTexture = planet.renderer.handler.createTexture[this._textureFilter];
 
-            // @ts-ignore
             this.events.on("visibilitychange", planet._onLayerVisibilityChanged, planet);
 
             if (this._isBaseLayer && this._visibility) {
@@ -494,7 +492,6 @@ class Layer {
     }
 
     public get isIdle(): boolean {
-        // @ts-ignore
         return this._planet && this._planet._terrainCompletedActivated || false;
     }
 
@@ -527,12 +524,9 @@ class Layer {
         let p = this._planet;
         if (p) {
             //TODO: replace to planet
-            // @ts-ignore
             for (let i = 0; i < p._layers.length; i++) {
-                // @ts-ignore
                 if (this.isEqual(p._layers[i])) {
                     p.renderer && p.renderer.clearPickingColor(this);
-                    // @ts-ignore
                     p._layers.splice(i, 1);
                     p.updateVisibleLayers();
                     this.clear();
@@ -554,7 +548,6 @@ class Layer {
      */
     public clear() {
         if (this._planet) {
-            // @ts-ignore
             this._planet._clearLayerMaterial(this);
         }
     }
@@ -656,9 +649,7 @@ class Layer {
     public setBaseLayer(isBaseLayer: boolean) {
         this._isBaseLayer = isBaseLayer;
         if (this._planet) {
-            // @ts-ignore
             if (!isBaseLayer && this._planet.baseLayer && this.isEqual(this._planet.baseLayer)) {
-                // @ts-ignore
                 this._planet.baseLayer = null;
             }
             this._planet.updateVisibleLayers();

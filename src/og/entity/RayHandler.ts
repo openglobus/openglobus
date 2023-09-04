@@ -140,9 +140,7 @@ class RayHandler {
         let i = this._rays.length;
         while (i--) {
             let ri = this._rays[i];
-            //@ts-ignore
             ri._handlerIndex = -1;
-            //@ts-ignore
             ri._handler = null;
         }
         this._rays.length = 0;
@@ -215,11 +213,8 @@ class RayHandler {
     }
 
     public add(ray: Ray) {
-        //@ts-ignore
         if (ray._handlerIndex == -1) {
-            //@ts-ignore
             ray._handler = this;
-            //@ts-ignore
             ray._handlerIndex = this._rays.length;
             this._rays.push(ray);
             this._addRayToArrays(ray);
@@ -228,8 +223,7 @@ class RayHandler {
     }
 
     protected _addRayToArrays(ray: Ray) {
-        //@ts-ignore
-        if (ray._visibility) {
+        if (ray.getVisibility()) {
             this._vertexArr = concatArrays(
                 this._vertexArr,
                 [-0.5, 1.0, -0.5, 0.0, 0.5, 0.0, 0.5, 0.0, 0.5, 1.0, -0.5, 1.0]
@@ -241,53 +235,36 @@ class RayHandler {
             );
         }
 
-        // @ts-ignore
-        let x = ray._startPositionHigh.x, y = ray._startPositionHigh.y, z = ray._startPositionHigh.z;
+        let x = ray._startPositionHigh.x,
+            y = ray._startPositionHigh.y,
+            z = ray._startPositionHigh.z;
         this._startPositionHighArr = concatArrays(this._startPositionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-        // @ts-ignore
         x = ray._startPositionLow.x;
-        // @ts-ignore
         y = ray._startPositionLow.y;
-        // @ts-ignore
         z = ray._startPositionLow.z;
         this._startPositionLowArr = concatArrays(this._startPositionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-        // @ts-ignore
         x = ray._endPositionHigh.x;
-        // @ts-ignore
         y = ray._endPositionHigh.y;
-        // @ts-ignore
         z = ray._endPositionHigh.z;
         this._endPositionHighArr = concatArrays(this._endPositionHighArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-        // @ts-ignore
         x = ray._endPositionLow.x;
-        // @ts-ignore
         y = ray._endPositionLow.y;
-        // @ts-ignore
         z = ray._endPositionLow.z;
         this._endPositionLowArr = concatArrays(this._endPositionLowArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
 
-        //@ts-ignore
         x = ray._thickness;
         this._thicknessArr = concatArrays(this._thicknessArr, [x, x, x, x, x, x]);
 
-        //@ts-ignore
         let r0 = ray._startColor.x,
-            //@ts-ignore
             g0 = ray._startColor.y,
-            //@ts-ignore
             b0 = ray._startColor.z,
-            //@ts-ignore
             a0 = ray._startColor.w,
-            //@ts-ignore
             r1 = ray._endColor.x,
-            //@ts-ignore
             g1 = ray._endColor.y,
-            //@ts-ignore
             b1 = ray._endColor.z,
-            //@ts-ignore
             a1 = ray._endColor.w;
         this._rgbaArr = concatArrays(this._rgbaArr, [
             r1, g1, b1, a1,
@@ -298,12 +275,9 @@ class RayHandler {
             r1, g1, b1, a1
         ]);
 
-        //@ts-ignore
-        x = ray._entity._pickingColor.x / 255;
-        //@ts-ignore
-        y = ray._entity._pickingColor.y / 255;
-        //@ts-ignore
-        z = ray._entity._pickingColor.z / 255;
+        x = ray._entity!._pickingColor.x / 255;
+        y = ray._entity!._pickingColor.y / 255;
+        z = ray._entity!._pickingColor.z / 255;
         this._pickingColorArr = concatArrays(this._pickingColorArr, [x, y, z, x, y, z, x, y, z, x, y, z, x, y, z, x, y, z]);
     }
 
@@ -330,28 +304,27 @@ class RayHandler {
         gl.uniform3fv(shu.eyePositionHigh, r.activeCamera!.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
 
-        //@ts-ignore
-        gl.uniform1f(shu.resolution, r.activeCamera._tanViewAngle_hradOneByHeight);
+        gl.uniform1f(shu.resolution, r.activeCamera!._tanViewAngle_hradOneByHeight);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._startPositionHighBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._startPositionHighBuffer!);
         gl.vertexAttribPointer(sha.a_startPosHigh, this._startPositionHighBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._startPositionLowBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._startPositionLowBuffer!);
         gl.vertexAttribPointer(sha.a_startPosLow, this._startPositionLowBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._endPositionHighBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._endPositionHighBuffer!);
         gl.vertexAttribPointer(sha.a_endPosHigh, this._endPositionHighBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._endPositionLowBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._endPositionLowBuffer!);
         gl.vertexAttribPointer(sha.a_endPosLow, this._endPositionLowBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer!);
         gl.vertexAttribPointer(sha.a_rgba, this._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._thicknessBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._thicknessBuffer!);
         gl.vertexAttribPointer(sha.a_thickness, this._thicknessBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer!);
         gl.vertexAttribPointer(sha.a_vertices, this._vertexBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLES, 0, this._vertexBuffer!.numItems);
@@ -379,13 +352,12 @@ class RayHandler {
     public reindexRaysArray(startIndex: number) {
         let r = this._rays;
         for (let i = startIndex; i < r.length; i++) {
-            // @ts-ignore
             r[i]._handlerIndex = i;
         }
     }
 
     protected _removeRay(ray: Ray) {
-        //@ts-ignore
+
         let ri = ray._handlerIndex;
 
         this._rays.splice(ri, 1);
@@ -409,15 +381,12 @@ class RayHandler {
         this.reindexRaysArray(ri);
         this.refresh();
 
-        //@ts-ignore
         ray._handlerIndex = -1;
-        //@ts-ignore
         ray._handler = null;
     }
 
     public remove(ray: Ray) {
-        //@ts-ignore
-        if (ray._handler && this.__id == ray._handler.__id) {
+        if (ray._handler && this.__id === ray._handler.__id) {
             this._removeRay(ray);
         }
     }

@@ -1,5 +1,3 @@
-"use strict";
-
 /**
  * Usefull class for working with JS canvas object.
  * @class
@@ -11,14 +9,14 @@ class ImageCanvas {
     /**
      * Canvas object.
      * @protected
-     * @type {Object}
+     * @type {HTMLCanvasElement}
      */
     protected _canvas: HTMLCanvasElement;
 
     /**
      * Canvas context.
      * @protected
-     * @type {Object}
+     * @type {CanvasRenderingContext2D}
      */
     protected _context: CanvasRenderingContext2D;
 
@@ -29,14 +27,13 @@ class ImageCanvas {
 
         this._context = this._canvas.getContext("2d", {
             willReadFrequently: true
-        }) as CanvasRenderingContext2D;
-
+        })!;
     }
 
     /**
      * Returns canvas object.
      * @public
-     * @returns {Object}
+     * @returns {HTMLCanvasElement}
      */
     public getCanvas(): HTMLCanvasElement {
         return this._canvas;
@@ -45,7 +42,7 @@ class ImageCanvas {
     /**
      * Returns canvas context pointer.
      * @public
-     * @returns {Object}
+     * @returns {CanvasRenderingContext2D}
      */
     public getContext(): CanvasRenderingContext2D {
         return this._context;
