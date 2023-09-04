@@ -50,9 +50,9 @@ class RenderNode extends BaseNode {
      */
     protected _lights: LightSource[];
     protected _lightsNames: string[];
-    protected _lightsPositions: number[];
-    protected _lightsParamsv: number[];
-    protected _lightsParamsf: number[];
+    public _lightsPositions: number[];
+    public _lightsParamsv: number[];
+    public _lightsParamsf: number[];
 
     /**
      * Entity collection array.

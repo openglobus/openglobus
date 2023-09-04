@@ -166,9 +166,9 @@ class InstanceData {
     }
 
     public _deleteBuffers() {
-        // @ts-ignore
+
         if (this._geoObjectHandler && this._geoObjectHandler._planet && this._geoObjectHandler._planet.renderer) {
-            // @ts-ignore
+
             let h = this._geoObjectHandler._planet.renderer.handler,
                 gl = h.gl!;
 
@@ -204,20 +204,19 @@ class InstanceData {
     }
 
     public createVertexBuffer() {
-        // @ts-ignore
         const h = this._geoObjectHandler._planet!.renderer!.handler;
-        h.gl!.deleteBuffer(this._vertexBuffer as WebGLBuffer);
+        h.gl!.deleteBuffer(this._vertexBuffer!);
         this._vertexArr = makeArrayTyped(this._vertexArr);
         this._vertexBuffer = h.createArrayBuffer(this._vertexArr, 3, this._vertexArr.length / 3);
     }
 
     public createPitchRollBuffer() {
-        // @ts-ignore
+
         let h = this._geoObjectHandler._planet!.renderer!.handler,
             numItems = this._pitchRollArr.length / 2;
 
         if (!this._pitchRollBuffer || this._pitchRollBuffer.numItems !== numItems) {
-            h.gl!.deleteBuffer(this._pitchRollBuffer as WebGLBuffer);
+            h.gl!.deleteBuffer(this._pitchRollBuffer!);
             this._pitchRollBuffer = h.createStreamArrayBuffer(2, numItems);
         }
 
@@ -227,12 +226,12 @@ class InstanceData {
     }
 
     public createVisibleBuffer() {
-        // @ts-ignore
+
         const h = this._geoObjectHandler._planet!.renderer!.handler,
             numItems = this._visibleArr.length;
 
         if (!this._visibleBuffer || this._visibleBuffer.numItems !== numItems) {
-            h.gl!.deleteBuffer(this._visibleBuffer as WebGLBuffer);
+            h.gl!.deleteBuffer(this._visibleBuffer!);
             this._visibleBuffer = h.createStreamArrayBuffer(1, numItems);
         }
 
@@ -441,9 +440,7 @@ class GeoObjectHandler {
             this._loadDataTagTexture(tagData);
         }
 
-        // @ts-ignore
         geoObject._tagDataIndex = tagData.numInstances++;
-        // @ts-ignore
         geoObject._tagData = tagData;
         tagData.geoObjects.push(geoObject);
 
@@ -451,58 +448,40 @@ class GeoObjectHandler {
 
         tagData._visibleArr = concatArrays(tagData._visibleArr, setParametersToArray([], 0, 1, 1, geoObject.getVisibility() ? 1 : 0));
 
-        // @ts-ignore
-        let x: number = geoObject._positionHigh.x,
-            // @ts-ignore
-            y: number = geoObject._positionHigh.y,
-            // @ts-ignore
-            z: number = geoObject._positionHigh.z,
-            // @ts-ignore
-            w: number;
+        let x = geoObject._positionHigh.x,
+            y = geoObject._positionHigh.y,
+            z = geoObject._positionHigh.z,
+            w;
+
         tagData._positionHighArr = concatArrays(tagData._positionHighArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
 
-        // @ts-ignore
         x = geoObject._positionLow.x;
-        // @ts-ignore
         y = geoObject._positionLow.y;
-        // @ts-ignore
         z = geoObject._positionLow.z;
         tagData._positionLowArr = concatArrays(tagData._positionLowArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
 
-        // @ts-ignore
-        x = geoObject._entity._pickingColor.x / 255;
-        // @ts-ignore
-        y = geoObject._entity._pickingColor.y / 255;
-        // @ts-ignore
-        z = geoObject._entity._pickingColor.z / 255;
+        x = geoObject._entity!._pickingColor.x / 255;
+        y = geoObject._entity!._pickingColor.y / 255;
+        z = geoObject._entity!._pickingColor.z / 255;
         tagData._pickingColorArr = concatArrays(tagData._pickingColorArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
 
-        // @ts-ignore
         x = geoObject._direction.x;
-        // @ts-ignore
         y = geoObject._direction.y;
-        // @ts-ignore
         z = geoObject._direction.z;
         tagData._directionArr = concatArrays(tagData._directionArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
 
         itemSize = 4;
 
-        // @ts-ignore
         x = geoObject._color.x;
-        // @ts-ignore
         y = geoObject._color.y;
-        // @ts-ignore
         z = geoObject._color.z;
-        // @ts-ignore
         w = geoObject._color.w;
         tagData._rgbaArr = concatArrays(tagData._rgbaArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z, w));
 
         itemSize = 2;
 
-        // @ts-ignore
-        x = geoObject._pitch;
-        // @ts-ignore
-        y = geoObject._roll;
+        x = geoObject.getPitch();
+        y = geoObject.getRoll();
         tagData._pitchRollArr = concatArrays(tagData._pitchRollArr, setParametersToArray([], 0, itemSize, itemSize, x, y));
 
         itemSize = 1;
@@ -532,11 +511,8 @@ class GeoObjectHandler {
         gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera!.getViewMatrix());
 
-        //@ts-ignore
         gl.uniform3fv(u.lightsPositions, this._planet!._lightsPositions);
-        //@ts-ignore
         gl.uniform3fv(u.lightsParamsv, this._planet!._lightsParamsv);
-        //@ts-ignore
         gl.uniform1fv(u.lightsParamsf, this._planet!._lightsParamsf);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
@@ -545,19 +521,19 @@ class GeoObjectHandler {
             //
             //  Instance individual data
             //
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._directionBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._directionBuffer!);
             gl.vertexAttribPointer(a.aDirection, tagData._directionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._sizeBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._sizeBuffer!);
             gl.vertexAttribPointer(a.aScale, tagData._sizeBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._pitchRollBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._pitchRollBuffer!);
             gl.vertexAttribPointer(a.aPitchRoll, tagData._pitchRollBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._rgbaBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._rgbaBuffer!);
             gl.vertexAttribPointer(a.aColor, tagData._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._visibleBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._visibleBuffer!);
             gl.vertexAttribPointer(a.aDispose, tagData._visibleBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.uniform1f(u.uUseTexture, tagData._texture ? 1 : 0);
@@ -565,26 +541,26 @@ class GeoObjectHandler {
             //
             // Instance common data(could be in VAO)
             //
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._positionHighBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._positionHighBuffer!);
             gl.vertexAttribPointer(a.aPositionHigh, tagData._positionHighBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._positionLowBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._positionLowBuffer!);
             gl.vertexAttribPointer(a.aPositionLow, tagData._positionLowBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._normalsBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._normalsBuffer!);
             gl.vertexAttribPointer(a.aVertexNormal, tagData._normalsBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._vertexBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._vertexBuffer!);
             gl.vertexAttribPointer(a.aVertexPosition, tagData._vertexBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, (tagData._texture || r.handler.defaultTexture) as WebGLTexture);
+            gl.bindTexture(gl.TEXTURE_2D, (tagData._texture || r.handler.defaultTexture)!);
             gl.uniform1i(u.uTexture, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._texCoordBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._texCoordBuffer!);
             gl.vertexAttribPointer(a.aTexCoord, tagData._texCoordBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer!);
             p.drawElementsInstanced!(gl.TRIANGLES, tagData._indicesBuffer!.numItems, gl.UNSIGNED_INT, 0, tagData.numInstances);
         }
     }
@@ -623,34 +599,34 @@ class GeoObjectHandler {
             //
             // Instance individual data
             //
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._directionBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._directionBuffer!);
             gl.vertexAttribPointer(a.aDirection, tagData._directionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._sizeBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._sizeBuffer!);
             gl.vertexAttribPointer(a.aScale, tagData._sizeBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._pitchRollBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._pitchRollBuffer!);
             gl.vertexAttribPointer(a.aPitchRoll, tagData._pitchRollBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._pickingColorBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._pickingColorBuffer!);
             gl.vertexAttribPointer(a.aPickingColor, tagData._pickingColorBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._positionHighBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._positionHighBuffer!);
             gl.vertexAttribPointer(a.aPositionHigh, tagData._positionHighBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._positionLowBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._positionLowBuffer!);
             gl.vertexAttribPointer(a.aPositionLow, tagData._positionLowBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._visibleBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._visibleBuffer!);
             gl.vertexAttribPointer(a.aDispose, tagData._visibleBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
             //
             // Instance common data(could be in VAO)
             //
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._vertexBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._vertexBuffer!);
             gl.vertexAttribPointer(a.aVertexPosition, tagData._vertexBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer as WebGLBuffer);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer!);
             p.drawElementsInstanced!(gl.TRIANGLES, tagData._indicesBuffer!.numItems, gl.UNSIGNED_INT, 0, tagData.numInstances);
         }
     }
@@ -730,14 +706,10 @@ class GeoObjectHandler {
         while (i--) {
             const gi = this._geoObjects[i];
 
-            // @ts-ignore
             gi._tagDataIndex = -1;
-            // @ts-ignore
             gi._tagData = null;
 
-            // @ts-ignore
             gi._handlerIndex = -1;
-            // @ts-ignore
             gi._handler = null;
         }
         this._geoObjects.length = 0;
@@ -763,12 +735,10 @@ class GeoObjectHandler {
     }
 
     public add(geoObject: GeoObject) {
-        // @ts-ignore
+
         if (geoObject._handlerIndex === -1) {
 
-            // @ts-ignore
             geoObject._handler = this;
-            // @ts-ignore
             geoObject._handlerIndex = this._geoObjects.length;
 
             this._geoObjects.push(geoObject);
@@ -776,15 +746,13 @@ class GeoObjectHandler {
 
             geoObject.updateDirection();
 
-            // @ts-ignore
             geoObject._tagData!.refresh();
-            // @ts-ignore
+
             this._updateTag(geoObject._tagData!);
         }
     }
 
     public remove(geoObject: GeoObject) {
-        // @ts-ignore
         if (geoObject._handler && this.__id == geoObject._handler.__id) {
             this._removeGeoObject(geoObject);
         }
@@ -797,7 +765,6 @@ class GeoObjectHandler {
 
     public _removeGeoObject(geoObject: GeoObject) {
 
-        //@ts-ignore
         let tagData = geoObject._tagData!;
         let tag = geoObject.tag;
 
@@ -813,22 +780,17 @@ class GeoObjectHandler {
             isEmpty = true;
         }
 
-        // @ts-ignore
         this._geoObjects.splice(geoObject._handlerIndex, 1);
-        // @ts-ignore
         for (let i = geoObject._handlerIndex, len = this._geoObjects.length; i < len; i++) {
             let gi = this._geoObjects[i];
-            // @ts-ignore
             gi._handlerIndex = gi._handlerIndex - 1;
         }
 
-        // @ts-ignore
         let tdi = geoObject._tagDataIndex;
         tagData.geoObjects.splice(tdi, 1);
-        // @ts-ignore
+
         for (let i = geoObject._tagDataIndex, len = tagData.geoObjects.length; i < len; i++) {
             let gi = tagData.geoObjects[i];
-            // @ts-ignore
             gi._tagDataIndex = gi._tagDataIndex - 1;
         }
 
@@ -841,14 +803,10 @@ class GeoObjectHandler {
         tagData._sizeArr = spliceArray(tagData._sizeArr, tdi, 1);
         tagData._visibleArr = spliceArray(tagData._visibleArr, tdi, 1);
 
-        // @ts-ignore
         geoObject._handlerIndex = -1;
-        // @ts-ignore
         geoObject._handler = null;
 
-        // @ts-ignore
         geoObject._tagDataIndex = -1;
-        // @ts-ignore
         geoObject._tagData = null;
 
         if (!isEmpty) {

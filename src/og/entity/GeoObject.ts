@@ -44,8 +44,8 @@ class GeoObject {
      * @type {Vec3}
      */
     protected _position: Vec3;
-    protected _positionHigh: Vec3;
-    protected _positionLow: Vec3;
+    public _positionHigh: Vec3;
+    public _positionLow: Vec3;
 
     protected _pitch: number;
     protected _yaw: number;
@@ -55,18 +55,18 @@ class GeoObject {
 
     /**
      * RGBA color.
-     * @protected
+     * @public
      * @type {Vec4}
      */
-    protected _color: Vec4;
+    public _color: Vec4;
 
-    protected _direction: Vec3;
+    public _direction: Vec3;
 
-    protected _handler: GeoObjectHandler | null;
-    protected _handlerIndex = -1;
+    public _handler: GeoObjectHandler | null;
+    public _handlerIndex = -1;
 
-    protected _tagData: InstanceData | null;
-    protected _tagDataIndex: number;
+    public _tagData: InstanceData | null;
+    public _tagDataIndex: number;
 
     protected _object3d: Object3d;
 

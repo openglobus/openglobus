@@ -113,9 +113,6 @@ class PolygonDrawingScene extends RenderNode {
                     path3v: [],
                     isClosed: false,
                     ...OUTLINE_OPTIONS
-                },
-                properties: {
-                    index: 0
                 }
             })],
             pickingEnabled: false,
@@ -516,9 +513,6 @@ class PolygonDrawingScene extends RenderNode {
                 polyline: {
                     path3v: [prevPath],
                     isClosed: false,
-                    properties: {
-                        index: segNum + 1
-                    },
                     ...OUTLINE_OPTIONS
                 }
             });
@@ -719,18 +713,12 @@ class PolygonDrawingScene extends RenderNode {
                     path3v: [],
                     isClosed: false,
                     ...OUTLINE_OPTIONS
-                },
-                properties: {
-                    index: 0
                 }
             }), new Entity({
                 polyline: {
                     path3v: [],
                     isClosed: false,
                     ...OUTLINE_OPTIONS
-                },
-                properties: {
-                    index: 0
                 }
             }),
             this._ghostCorner

@@ -59,9 +59,6 @@ class LineStringDrawingScene extends PolygonDrawingScene {
                 polyline: {
                     path3v: [prevPath],
                     isClosed: false,
-                    properties: {
-                        index: segNum + 1
-                    },
                     ...OUTLINE_OPTIONS
                 }
             });
@@ -187,9 +184,6 @@ class LineStringDrawingScene extends PolygonDrawingScene {
                     path3v: [],
                     isClosed: false,
                     ...OUTLINE_OPTIONS
-                },
-                properties: {
-                    index: 0
                 }
             }),
             this._ghostCorner

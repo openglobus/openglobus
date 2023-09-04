@@ -17,10 +17,10 @@ class PointCloudHandler {
 
     /**
      * Parent collection
-     * @protected
+     * @public
      * @type {EntityCollection}
      */
-    protected _entityCollection: EntityCollection;
+    public _entityCollection: EntityCollection;
 
     /**
      * Renderer
@@ -63,11 +63,8 @@ class PointCloudHandler {
     }
 
     public add(pointCloud: PointCloud) {
-        // @ts-ignore
         if (pointCloud._handlerIndex === -1) {
-            // @ts-ignore
             pointCloud._handler = this;
-            // @ts-ignore
             pointCloud._handlerIndex = this._pointClouds.length;
             this._pointClouds.push(pointCloud);
             this._entityCollection &&
@@ -77,14 +74,13 @@ class PointCloudHandler {
     }
 
     public remove(pointCloud: PointCloud) {
-        // @ts-ignore
+
         let index = pointCloud._handlerIndex;
         if (index !== -1) {
-            // @ts-ignore
+
             pointCloud._deleteBuffers();
-            // @ts-ignore
+
             pointCloud._handlerIndex = -1;
-            // @ts-ignore
             pointCloud._handler = null;
             this._pointClouds.splice(index, 1);
             this._reindexPointCloudArray(index);
@@ -94,7 +90,6 @@ class PointCloudHandler {
     protected _reindexPointCloudArray(startIndex: number) {
         let pc = this._pointClouds;
         for (let i = startIndex; i < pc.length; i++) {
-            // @ts-ignore
             pc[i]._handlerIndex = i;
         }
     }
@@ -118,11 +113,8 @@ class PointCloudHandler {
     public clear() {
         let i = this._pointClouds.length;
         while (i--) {
-            // @ts-ignore
             this._pointClouds[i]._deleteBuffers();
-            // @ts-ignore
             this._pointClouds[i]._handler = null;
-            // @ts-ignore
             this._pointClouds[i]._handlerIndex = -1;
         }
         this._pointClouds.length = 0;

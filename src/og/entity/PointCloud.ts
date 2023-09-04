@@ -123,11 +123,11 @@ class PointCloud {
 
     /**
      * Handler that stores and renders this object.
-     * @protected
+     * @public
      * @type {PointCloudHandler}
      */
-    protected _handler: PointCloudHandler | null;
-    protected _handlerIndex: number;
+    public _handler: PointCloudHandler | null;
+    public _handlerIndex: number;
 
     protected _buffersUpdateCallbacks: Function[];
     protected _changedBuffers: boolean[];
@@ -297,11 +297,9 @@ class PointCloud {
 
             this._colorData.push(col.x / 255.0, col.y / 255.0, col.z / 255.0, col.w / 255.0);
 
-            // @ts-ignore
             let p = {
                 _entity: this._entity,
                 _pickingColor: new Vec3(),
-                // @ts-ignore
                 _entityCollection: this._entity ? this._entity._entityCollection : null,
                 index: i,
                 position: pos,
@@ -397,8 +395,7 @@ class PointCloud {
 
             gl.uniformMatrix4fv(shu.projectionViewMatrix, false, r.activeCamera!.getProjectionViewMatrix());
 
-            //@ts-ignore
-            gl.uniform1f(shu.opacity, this._handler._entityCollection._fadingOpacity);
+            gl.uniform1f(shu.opacity, this._handler!._entityCollection._fadingOpacity);
             gl.uniform1f(shu.pointSize, this.pointSize);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._coordinatesBuffer as WebGLBuffer);
@@ -430,8 +427,7 @@ class PointCloud {
 
             gl.uniformMatrix4fv(shu.projectionViewMatrix, false, r.activeCamera!.getProjectionViewMatrix());
 
-            //@ts-ignore
-            gl.uniform1f(shu.opacity, this._handler._entityCollection._fadingOpacity);
+            gl.uniform1f(shu.opacity, this._handler!._entityCollection._fadingOpacity);
             gl.uniform1f(shu.pointSize, this.pointSize + this.pickingScale);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._coordinatesBuffer as WebGLBuffer);
@@ -462,9 +458,9 @@ class PointCloud {
 
     /**
      * Delete buffers
-     * @protected
+     * @public
      */
-    protected _deleteBuffers() {
+    public _deleteBuffers() {
         if (this._renderNode) {
             let r = this._renderNode.renderer!,
                 gl = r.handler.gl!;
@@ -514,7 +510,6 @@ class PointCloud {
             for (let i = 0; i < this._points.length; i++) {
                 let p = this._points[i];
                 p._entity = this._entity;
-                // @ts-ignore
                 p._entityCollection = this._entity!._entityCollection;
                 this._renderNode.renderer.assignPickingColor(p);
                 this._pickingColorData.push(

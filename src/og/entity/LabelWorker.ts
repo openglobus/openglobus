@@ -35,7 +35,6 @@ class LabelWorker extends BaseWorker<LabelInfo> {
         let label = data.label,
             handler = data.handler;
 
-        //@ts-ignore
         if (handler._entityCollection) {
 
             if (this._workerQueue.length) {
