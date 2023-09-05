@@ -5,11 +5,11 @@ import {EPSG3857} from "../proj/EPSG3857";
 import {EmptyTerrain, IEmptyTerrainParams} from "./EmptyTerrain";
 import {Extent} from "../Extent";
 import {Layer} from "../layer/Layer";
-import {Loader} from "../utils/Loader";
+import {IResponse, Loader} from "../utils/Loader";
 import {LonLat} from "../LonLat";
 import {NOTRENDERING} from "../quadTree/quadTree";
 import {Segment} from "../segment/Segment";
-// import { QueueArray } from '../QueueArray.js';
+// import { QueueArray } from '../QueueArray';
 import {Ray} from "../math/Ray";
 import {Vec3} from "../math/Vec3";
 
@@ -189,7 +189,7 @@ class GlobusTerrain extends EmptyTerrain {
                 });
             }
 
-            this._fetchCache[tileIndex].then((response: any) => {
+            this._fetchCache[tileIndex].then((response: IResponse) => {
 
                 let extent = mercator.getTileExtent(x, y, z);
 
@@ -354,7 +354,7 @@ class GlobusTerrain extends EmptyTerrain {
                             segment: segment,
                             type: this._dataType,
                             filter: () => (segment.plainReady && segment.node.getState() !== NOTRENDERING) || forceLoading
-                        }, (response: any) => {
+                        }, (response: IResponse) => {
 
                             if (response.status === "ready") {
 

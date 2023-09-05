@@ -1,7 +1,7 @@
-import { ButtonGroup } from "../ui/ButtonGroup";
-import { Control } from "./Control";
-import { DrawingControl } from "./drawing/DrawingControl";
-import { ToggleButton } from "../ui/ToggleButton";
+import {ButtonGroup} from "../ui/ButtonGroup";
+import {Control} from "./Control";
+import {DrawingControl} from "./drawing/DrawingControl";
+import {ToggleButton} from "../ui/ToggleButton";
 
 const ICON_POLYGON_SVG = `<?xml version="1.0" encoding="utf-8"?>
 <!-- Generator: Adobe Illustrator 24.1.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
@@ -42,6 +42,7 @@ const ICON_DEFAULT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" hei
  */
 export class DrawingSwitcher extends Control {
     public drawingControl: DrawingControl;
+
     constructor(options = {}) {
         super({
             name: "DrawingSwitcher",
@@ -91,7 +92,7 @@ export class DrawingSwitcher extends Control {
             ]
         });
 
-        buttons.events.on("change", (btn: any) => {
+        buttons.events.on("change", (btn: ToggleButton) => {
             this.drawingControl.deactivate();
             switch (btn.name) {
                 case "polygon":

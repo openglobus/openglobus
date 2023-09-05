@@ -8,6 +8,10 @@ const TEMPLATE =
        <div class="og-button-text">{text}</div>
     </div>`;
 
+interface HTMLElementExt extends HTMLElement {
+    __og_button__: Button;
+}
+
 export type ButtonEventsList = ["click", "mousedown", "mouseup", "touchstart", "touchend", "touchcancel"];
 
 const BUTTON_EVENTS: ButtonEventsList = ["click", "mousedown", "mouseup", "touchstart", "touchend", "touchcancel"];
@@ -22,6 +26,8 @@ export interface IButtonParams extends IViewParams {
 class Button extends View<null> {
 
     public override events: EventsHandler<ButtonEventsList> & EventsHandler<ViewEventsList>;
+
+    public override el: HTMLElementExt | null;
 
     public name: string;
     public $icon: HTMLElement | null;
@@ -40,6 +46,8 @@ class Button extends View<null> {
         //@ts-ignore
         this.events = this.events.registerNames(BUTTON_EVENTS);
 
+        this.el = null;
+
         this.name = options.name || "";
 
         this.$icon = null;
@@ -50,7 +58,7 @@ class Button extends View<null> {
         super.render(params);
         this.$icon = this.select(".og-button-icon");
         this.$text = this.select(".og-button-text");
-        (this.el as any).__og_button__ = this;
+        this.el!.__og_button__ = this;
         this._initEvents();
         return this;
     }
@@ -67,43 +75,31 @@ class Button extends View<null> {
     }
 
     protected _onMouseDown = (e: MouseEvent) => {
-        //@ts-ignore
-        e = e || window.event;
         e.preventDefault();
         this.events.dispatch(this.events.mousedown, this, e);
     }
 
     protected _onMouseUp = (e: MouseEvent) => {
-        //@ts-ignore
-        e = e || window.event;
         e.preventDefault();
         this.events.dispatch(this.events.mouseup, this, e);
     }
 
     protected _onTouchStart = (e: TouchEvent) => {
-        //@ts-ignore
-        e = e || window.event;
         e.preventDefault();
         this.events.dispatch(this.events.touchstart, this, e);
     }
 
     protected _onTouchEnd = (e: TouchEvent) => {
-        //@ts-ignore
-        e = e || window.event;
         e.preventDefault();
         this.events.dispatch(this.events.touchend, this, e);
     }
 
     protected _onTouchCancel = (e: TouchEvent) => {
-        //@ts-ignore
-        e = e || window.event;
         e.preventDefault();
         this.events.dispatch(this.events.touchcancel, this, e);
     }
 
     protected _mouseClickHandler(e: MouseEvent) {
-        //@ts-ignore
-        e = e || window.event;
         e.preventDefault();
         this.events.dispatch(this.events.click, this, e);
     }

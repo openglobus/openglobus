@@ -50,8 +50,8 @@ class ElevationProfile {
     protected _maxX: number;
     protected _minY: number;
     protected _maxY: number;
-    protected _drawData: any;
-    protected _promiseArr: any[];
+    protected _drawData: [number[][], number[][]];
+    protected _promiseArr: Promise<void | number>[];
     protected _promiseCounter: number;
     protected _pMaxY: number;
     protected _pMinY: number;
@@ -97,7 +97,7 @@ class ElevationProfile {
         this._maxY = maxY;
     }
 
-    protected _getHeightAsync(ll: LonLat, pIndex: number) {
+    protected _getHeightAsync(ll: LonLat, pIndex: number): Promise<number> {
         let def = new Deferred<number>();
         this.planet.terrain!.getHeightAsync(ll, (elv: number) => {
             elv += this.planet.terrain!.geoid.getHeightLonLat(ll);

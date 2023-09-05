@@ -13,6 +13,13 @@ import {Planet} from "../scene/Planet";
 import {PlanetCamera} from "../camera/PlanetCamera";
 import {IMouseState} from "../renderer/RendererEvents";
 
+export interface IStepForward {
+    eye: Vec3;
+    v: Vec3;
+    u: Vec3;
+    n: Vec3;
+}
+
 interface IMouseNavigationParams extends IControlParams {
     minSlope?: number;
 }
@@ -31,7 +38,7 @@ export class MouseNavigation extends Control {
     protected scaleRot: number;
     protected distDiff: number;
     protected stepsCount: number;
-    protected stepsForward: any | null;
+    protected stepsForward: IStepForward[] | null;
     protected stepIndex: number;
     protected _lmbDoubleClickActive: boolean;
     public minSlope: number;
@@ -68,8 +75,8 @@ export class MouseNavigation extends Control {
         this._keyLock = new Key();
     }
 
-    static getMovePointsFromPixelTerrain(cam: PlanetCamera, planet: Planet, stepsCount: number, delta: number, point: Vec2, forward: boolean, dir?: Vec3 | null): any[] | undefined {
-        const steps: any = [];
+    static getMovePointsFromPixelTerrain(cam: PlanetCamera, planet: Planet, stepsCount: number, delta: number, point: Vec2, forward: boolean, dir?: Vec3 | null): IStepForward[] | undefined {
+        const steps: IStepForward[] = [];
 
         let eye = cam.eye.clone(),
             n = cam._b.clone(),
@@ -122,29 +129,32 @@ export class MouseNavigation extends Control {
                 if (!breaked) {
                     for (let i = 0; i < stepsCount; i++) {
                         let rot = rotArr[i];
-                        steps[i] = {};
-                        steps[i].eye = rot.mulVec3(eyeArr[i]);
-                        steps[i].v = rot.mulVec3(v);
-                        steps[i].u = rot.mulVec3(u);
-                        steps[i].n = rot.mulVec3(n);
+                        steps[i] = {
+                            eye: rot.mulVec3(eyeArr[i]),
+                            v: rot.mulVec3(v),
+                            u: rot.mulVec3(u),
+                            n: rot.mulVec3(n)
+                        };
                     }
                 } else {
                     eye = cam.eye.clone();
                     for (let i = 0; i < stepsCount; i++) {
-                        steps[i] = {};
-                        steps[i].eye = eye.addA(scaled_n).clone();
-                        steps[i].v = v;
-                        steps[i].u = u;
-                        steps[i].n = n;
+                        steps[i] = {
+                            eye: eye.addA(scaled_n).clone(),
+                            v: v,
+                            u: u,
+                            n: n,
+                        };
                     }
                 }
             } else {
                 for (let i = 0; i < stepsCount; i++) {
-                    steps[i] = {};
-                    steps[i].eye = eye.addA(dir.scaleTo(-d)).clone();
-                    steps[i].v = v;
-                    steps[i].u = u;
-                    steps[i].n = n;
+                    steps[i] = {
+                        eye: eye.addA(dir.scaleTo(-d)).clone(),
+                        v: v,
+                        u: u,
+                        n: n,
+                    };
                 }
             }
 
@@ -244,7 +254,7 @@ export class MouseNavigation extends Control {
             e.pos,
             e.wheelDelta > 0,
             e.direction
-        );
+        ) || null;
 
         this._wheelDirection = e.wheelDelta;
 
@@ -267,8 +277,8 @@ export class MouseNavigation extends Control {
         const p = this.planet!.getCartesianFromPixelTerrain(e.pos);
         if (p) {
             const cam = this.planet!.camera;
-            let maxAlt = cam.maxAltitude + (this.planet!.ellipsoid as any)._b;
-            let minAlt = cam.minAltitude + (this.planet!.ellipsoid as any)._b;
+            let maxAlt = cam.maxAltitude + this.planet!.ellipsoid.polarSize;
+            let minAlt = cam.minAltitude + this.planet!.ellipsoid.polarSize;
             const camAlt = cam.eye.length();
             const g = this.planet!.ellipsoid.cartesianToLonLat(p);
             if (camAlt > maxAlt || camAlt < minAlt) {
@@ -399,10 +409,10 @@ export class MouseNavigation extends Control {
 
             if (this.stepIndex) {
                 r.controlsBag.scaleRot = 1.0;
-                const sf = this.stepsForward[this.stepsCount - this.stepIndex--];
+                const sf = this.stepsForward![this.stepsCount - this.stepIndex--];
 
-                let maxAlt = cam.maxAltitude + (this.planet as any).ellipsoid._b;
-                let minAlt = cam.minAltitude + (this.planet as any)?.ellipsoid._b;
+                let maxAlt = cam.maxAltitude + this.planet!.ellipsoid.polarSize;
+                let minAlt = cam.minAltitude + this.planet!.ellipsoid.polarSize;
                 const camAlt = sf.eye.length();
                 if (camAlt > maxAlt || camAlt < minAlt && this._wheelDirection > 0) {
                     this._wheelDirection = +1;

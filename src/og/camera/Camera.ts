@@ -1,5 +1,3 @@
-"use strict";
-
 import * as math from "../math";
 import {Events, EventsHandler, createEvents} from "../Events";
 import {Frustum} from "./Frustum";
@@ -212,7 +210,8 @@ class Camera {
 
                 fr.cameraFrustumIndex = this.frustums.length;
                 this.frustums.push(fr);
-                this.frustumColors.push.apply(this.frustumColors, fr._pickingColorU as any);
+                //this.frustumColors.push.apply(this.frustumColors, fr._pickingColorU);
+                this.frustumColors.push(fr._pickingColorU[0], fr._pickingColorU[1], fr._pickingColorU[2]);
             }
         } else {
             let near = 1.0,
@@ -227,7 +226,8 @@ class Camera {
 
             fr.cameraFrustumIndex = this.frustums.length;
             this.frustums.push(fr);
-            this.frustumColors.push.apply(this.frustumColors, fr._pickingColorU as any);
+            //this.frustumColors.push.apply(this.frustumColors, fr._pickingColorU);
+            this.frustumColors.push(fr._pickingColorU[0], fr._pickingColorU[1], fr._pickingColorU[2]);
         }
 
         this.FARTHEST_FRUSTUM_INDEX = this.frustums.length - 1;

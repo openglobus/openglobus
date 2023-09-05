@@ -1,9 +1,7 @@
-
-
-import { Object3d } from "../../Object3d.js";
-import { Entity } from '../../entity/Entity.js';
-import { Vector } from "../../layer/Vector.js";
-import { RulerScene } from "../ruler/RulerScene.js";
+import { Object3d } from "../../Object3d";
+import { Entity } from '../../entity/Entity';
+import { Vector } from "../../layer/Vector";
+import { RulerScene } from "../ruler/RulerScene";
 
 let obj3d = Object3d.createCylinder(1.1, 0, 2, 6, 1, true, true, 0, 0, 0)
 
@@ -31,13 +29,13 @@ const RULER_CORNER_OPTIONS = {
 };
 
 class HeightRulerScene extends RulerScene {
-    _geoRulerLayer: Vector;
-    _heightLabels: any;
-    _rayH: any;
-    _rayV: any;
+    protected _geoRulerLayer: Vector;
+    protected _heightLabels: any;
+    protected _rayH: any;
+    protected _rayV: any;
+
     constructor(options = {}) {
         super(options);
-
 
         this._cornersLayer = new Vector("corners", {
             entities: [],
@@ -46,7 +44,6 @@ class HeightRulerScene extends RulerScene {
             scaleByDistance: [100, 4000000, 1.0],
             pickingScale: 2
         });
-
 
         this._geoRulerLayer = new Vector("rayHeightRuler", {
             entities: [],

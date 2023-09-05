@@ -7,6 +7,7 @@ import {Layer} from "../layer/Layer";
 import {LonLat} from "../LonLat";
 import {Segment} from "../segment/Segment";
 import {TypedArray} from "../utils/shared";
+import {IResponse} from "../utils/Loader";
 
 interface IMapboxTerrainParams extends IGlobusTerrainParams {
     equalizeNormals?: boolean;
@@ -29,7 +30,7 @@ class MapboxTerrain extends GlobusTerrain {
 
     protected _ctx: CanvasRenderingContext2D;
 
-    protected _imageDataCache: Record<string, any>;
+    protected _imageDataCache: Record<string, Uint8ClampedArray>;
 
     constructor(name: string | null, options: IMapboxTerrainParams = {}) {
         super(name || "MapboxTerrain", {
@@ -209,7 +210,7 @@ class MapboxTerrain extends GlobusTerrain {
             });
         }
 
-        this._fetchCache[tileIndex].then((response: any) => {
+        this._fetchCache[tileIndex].then((response: IResponse) => {
             if (response.status === "ready") {
                 this._ctx.clearRect(0, 0, this._imageSize, this._imageSize);
                 this._ctx.drawImage(response.data, 0, 0);

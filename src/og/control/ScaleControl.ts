@@ -4,6 +4,7 @@ import {RADIANS} from "../math";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import {GlobusTerrain} from "../terrain/GlobusTerrain";
+import {IMouseState} from "../renderer/RendererEvents";
 
 interface IScaleControlParams extends IControlParams {
     isCenter?: boolean
@@ -76,9 +77,9 @@ export class ScaleControl extends Control {
                 this._drawScreen(this.planet!.renderer!.handler.getCenter());
             });
         } else {
-            this.renderer!.events.on("mousemove", (e: any) => {
+            this.renderer!.events.on("mousemove", (e: IMouseState) => {
                 if (!e.leftButtonHold && !e.rightButtonHold) {
-                    this._drawScreen(e);
+                    this._drawScreen(e.pos);
                 }
             });
 

@@ -141,10 +141,3 @@ export class CompassButton extends Control {
         }
     }
 }
-
-/**
- * @deprecated
- */
-export function compassButton(options: any) {
-    return new CompassButton(options);
-}

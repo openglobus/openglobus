@@ -3,7 +3,7 @@ import {Key} from "../Lock";
 import {Quat} from "../math/Quat";
 import {Vec3} from "../math/Vec3";
 import {Control, IControlParams} from "./Control";
-import {MouseNavigation} from "./MouseNavigation";
+import {IStepForward, MouseNavigation} from "./MouseNavigation";
 
 interface IMouseWheelZoomControl extends IControlParams {
     minSlope?: number;
@@ -20,7 +20,7 @@ export class MouseWheelZoomControl extends Control {
     protected scaleRot: number;
     protected distDiff: number;
     protected stepsCount: number;
-    protected stepsForward: any;
+    protected stepsForward: IStepForward[] | null;
     protected stepIndex: number;
     protected _lmbDoubleClickActive: boolean;
     protected minSlope: number;
@@ -135,7 +135,7 @@ export class MouseWheelZoomControl extends Control {
             this.renderer!.handler.getCenter(),
             true,
             null
-        );
+        ) || null;
 
         if (this.stepsForward) {
             this.stepIndex = this.stepsCount;
@@ -169,7 +169,7 @@ export class MouseWheelZoomControl extends Control {
             this.renderer!.handler.getCenter(),
             false,
             null
-        );
+        ) || null;
 
         if (this.stepsForward) {
             this.stepIndex = this.stepsCount;
@@ -199,7 +199,7 @@ export class MouseWheelZoomControl extends Control {
 
             if (this.stepIndex) {
                 r.controlsBag.scaleRot = 1.0;
-                let sf = this.stepsForward[this.stepsCount - this.stepIndex--];
+                let sf = this.stepsForward![this.stepsCount - this.stepIndex--];
 
                 let maxAlt = cam.maxAltitude + this.planet!.ellipsoid.equatorialSize;
                 let minAlt = cam.minAltitude + this.planet!.ellipsoid.equatorialSize;
