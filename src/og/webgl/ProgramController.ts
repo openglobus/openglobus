@@ -1,5 +1,3 @@
-"use strict";
-
 import {Handler, WebGLBufferExt} from "./Handler";
 import {Program} from "./Program";
 

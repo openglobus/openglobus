@@ -1,25 +1,15 @@
-"use strict";
-
-//@ts-ignore
-import {cons} from "../cons.js";
-
+import {cons} from "../cons";
 import {ProgramVariable, variableHandlers} from "./variableHandlers";
-
 import {types, typeStr} from "./types";
-
 import {WebGLBufferExt} from "./Handler";
 
 const itemTypes: string[] = ["BYTE", "SHORT", "UNSIGNED_BYTE", "UNSIGNED_SHORT", "FLOAT", "HALF_FLOAT"];
 
-type ProgramVariableMap = {
-    [id: string]: ProgramVariable;
-};
-
 type WebGLProgramExt = WebGLProgram & { [id: string]: WebGLUniformLocation };
 
 type ProgramMaterial = {
-    attributes: any;
-    uniforms: any,
+    attributes: Record<string, any>;
+    uniforms: Record<string, any>,
     vertexShader: string;
     fragmentShader: string
 };
@@ -28,9 +18,9 @@ type ProgramMaterial = {
  * Represents more comfortable using WebGL shader program.
  * @class
  * @param {string} name - Program name.
- * @param {object} material - Object stores uniforms, attributes and program codes:
- * @param {object} material.uniforms - Uniforms definition section.
- * @param {object} material.attributes - Attributes definition section.
+ * @param {ProgramMaterial} material - Object stores uniforms, attributes and program codes:
+ * @param {Record<string, any>} material.uniforms - Uniforms definition section.
+ * @param {Record<string, any>} material.attributes - Attributes definition section.
  * @param {string} material.vertexShader - Vertex glsl code.
  * @param {string} material.fragmentShader - Fragment glsl code.
  */
@@ -46,9 +36,9 @@ class Program {
 
     public uniforms: { [id: string]: WebGLUniformLocation };
 
-    public _attributes: ProgramVariableMap;
+    public _attributes: Record<string, ProgramVariable>;
 
-    public _uniforms: ProgramVariableMap;
+    public _uniforms: Record<string, ProgramVariable>;
 
     public vertexShader: string;
 
@@ -60,21 +50,21 @@ class Program {
     /**
      * Webgl context.
      * @public
-     * @type {Object}
+     * @type {WebGL2RenderingContext | null}
      */
     public gl: WebGL2RenderingContext | null;
 
     /**
      * All program variables.
      * @private
-     * @type {Object}
+     * @type {Record<string, ProgramVariable>}
      */
-    protected _variables: ProgramVariableMap;
+    protected _variables: Record<string, ProgramVariable>;
 
     /**
      * Program pointer.
      * @private
-     * @type {any}
+     * @type {WebGLProgramExt | null}
      */
     public _p: WebGLProgramExt | null;
 
@@ -88,16 +78,16 @@ class Program {
     /**
      * Program attributes array.
      * @private
-     * @type {Array.<Object>}
+     * @type {number[]}
      */
-    protected _attribArrays: any[];
+    protected _attribArrays: number[];
 
     /**
      * Program attributes divisors.
-     * @private
-     * @type {Array.<Object>}
+     * @protected
+     * @type {number[]}
      */
-    protected _attribDivisor: any[];
+    protected _attribDivisor: number[];
 
     constructor(name: string, material: ProgramMaterial) {
 
@@ -177,7 +167,7 @@ class Program {
      * @public
      */
     public use() {
-        this.gl && this.gl.useProgram(this._p as WebGLProgramExt);
+        this.gl && this.gl.useProgram(this._p!);
     }
 
     /**
@@ -185,7 +175,7 @@ class Program {
      * @public
      * @param {Object} material - Variables and values object.
      */
-    public set(material: any) {
+    public set(material: Record<string, any>) {
         this._textureID = 0;
         for (let i in material) {
             this._variables[i].value = material[i];
@@ -316,7 +306,7 @@ class Program {
      * @public
      */
     public delete() {
-        this.gl && this.gl.deleteProgram(this._p as WebGLProgram);
+        this.gl && this.gl.deleteProgram(this._p!);
     }
 
     /**
@@ -419,7 +409,7 @@ class Program {
                 this._attribArrays.push(loc, loc + 1, loc + 2, loc + 3);
                 this._attribDivisor.push(d, d, d, d);
             } else {
-                this._attribArrays.push(this._p[a]);
+                this._attribArrays.push(this._p[a] as number);
                 this._attribDivisor.push(d);
             }
 
