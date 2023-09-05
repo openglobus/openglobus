@@ -236,4 +236,12 @@ export class Loader<T extends Obj<T>> {
         }
         this._queue = [];
     }
+
+    public get loading(): number {
+        return this._loading;
+    }
+
+    public get queue(): QueueData<T>[] {
+        return this._queue;
+    }
 }

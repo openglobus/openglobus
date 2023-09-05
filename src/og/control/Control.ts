@@ -149,8 +149,6 @@ export class Control {
 
         if (c) {
             if (this.isEqual(c)) {
-                //@ts-ignore
-                r.controls[n] = null;
                 delete r.controls[n];
             }
         }

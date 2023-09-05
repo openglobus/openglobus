@@ -12,7 +12,6 @@ let tempArr = new Float32Array(2);
 const MAX_FRAME_TIME = 25.0;
 
 export class VectorTileCreator {
-
     protected _width: number;
     protected _height: number;
     protected _planet: Planet;
@@ -399,5 +398,9 @@ export class VectorTileCreator {
 
     public remove(material: Material) {
         //...
+    }
+
+    public get queueSize(): number {
+        return this._queue.length;
     }
 }

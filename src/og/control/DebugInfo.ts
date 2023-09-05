@@ -1,6 +1,7 @@
 import {Control, IControlParams} from "./Control";
 import {Dialog} from "../ui/Dialog";
 import {ToggleButton} from "../ui/ToggleButton";
+import {GlobusTerrain} from "../terrain/GlobusTerrain";
 
 const ICON_LOCK_BUTTON_SVG = `<?xml version="1.0" encoding="utf-8"?>
 <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
@@ -149,7 +150,6 @@ export class DebugInfo extends Control {
                 },
                 {
                     label: "distBeforeMemClear",
-                    //@ts-ignore
                     frame: () => Math.round(p._distBeforeMemClear)
                 },
                 {
@@ -197,39 +197,32 @@ export class DebugInfo extends Control {
                 },
                 {
                     label: "PlainWorker",
-                    //@ts-ignore
-                    frame: () => p._plainSegmentWorker._pendingQueue.length
+                    frame: () => p._plainSegmentWorker.pendingQueue.length
                 },
                 {
                     label: "TileLoader",
-                    //@ts-ignore
-                    frame: () => `${p._tileLoader._loading} ${p._tileLoader._queue.length}`
+                    frame: () => `${p._tileLoader.loading} ${p._tileLoader.queue.length}`
                 },
                 {
                     label: "TerrainLoader",
                     frame: () => {
-                        //@ts-ignore
-                        if (p.terrain && p.terrain._loader) {
-                            //@ts-ignore
-                            return `${p.terrain._loader._loading}  ${p.terrain._loader._queue.length}`
+                        if (p.terrain && !p.terrain.isEmpty) {
+                            return `${(p.terrain as GlobusTerrain).loader.loading}  ${(p.terrain as GlobusTerrain).loader.queue.length}`
                         }
                         return "";
                     }
                 },
                 {
                     label: "TerrainWorker",
-                    //@ts-ignore
-                    frame: () => p._terrainWorker._pendingQueue.length
+                    frame: () => p._terrainWorker.pendingQueue.length
                 },
                 {
                     label: "NormalMapCreator",
-                    //@ts-ignore
-                    frame: () => p._normalMapCreator._queue.length
+                    frame: () => p._normalMapCreator.queueSize
                 },
                 {
                     label: "VectorTileCreator",
-                    //@ts-ignore
-                    frame: () => p._vectorTileCreator._queue.length
+                    frame: () => p._vectorTileCreator.queueSize
                 }
             ]);
         }

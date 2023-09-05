@@ -391,7 +391,7 @@ export class Planet extends RenderNode {
 
     protected _memKey: Key;
 
-    protected _distBeforeMemClear: number;
+    public _distBeforeMemClear: number;
 
     protected _prevCamEye: Vec3;
 

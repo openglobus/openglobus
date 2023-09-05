@@ -51,8 +51,10 @@ export class BaseWorker<T> {
         //@ts-ignore
         this._pendingQueue = null;
         //@ts-ignore
-        this._numWorkers = null;
-        //@ts-ignore
         this._workerQueue = null;
+    }
+
+    public get pendingQueue(): T[] {
+        return this._pendingQueue;
     }
 }

@@ -451,11 +451,9 @@ class GeometryHandler {
             geometry._lineVerticesHighMerc = [];
             geometry._lineVerticesLowMerc = [];
 
-            //@ts-ignore
-            if (geometry._coordinates[0].length) {
+            if ((geometry._coordinates as IPolygonCoordinates)[0].length) {
                 if (geometry.type === GeometryType.POLYGON) {
-                    // @ts-ignore
-                    let coordinates: IPolygonCoordinates = geometry._coordinates;
+                    let coordinates = geometry._coordinates as IPolygonCoordinates;
                     let ci: IPolygonCoordinates = [];
                     for (let j = 0; j < coordinates.length; j++) {
                         ci[j] = [];
@@ -535,8 +533,7 @@ class GeometryHandler {
 
                 } else if (geometry.type === GeometryType.MULTIPOLYGON) {
 
-                    //@ts-ignore
-                    let coordinates: IMultiPolygonCoordinates = geometry._coordinates;
+                    let coordinates = geometry._coordinates as IMultiPolygonCoordinates;
                     let vertices: number[] = [],
                         indexes: number[] = [];
 
@@ -632,8 +629,7 @@ class GeometryHandler {
 
                 } else if (geometry.type === GeometryType.LINESTRING) {
 
-                    //@ts-ignore
-                    let coordinates: ILineStringCoordinates = geometry._coordinates;
+                    let coordinates: ILineStringCoordinates = geometry._coordinates as ILineStringCoordinates;
                     let ci = new Array(coordinates.length);
                     for (let j = 0; j < coordinates.length; j++) {
                         ci[j] = [mercator.forward_lon(coordinates[j][0]), mercator.forward_lat(coordinates[j][1])];
@@ -675,8 +671,7 @@ class GeometryHandler {
 
                 } else if (geometry.type === GeometryType.MULTILINESTRING) {
 
-                    // @ts-ignore
-                    let coordinates: IMultiLineStringCoordinates = geometry._coordinates;
+                    let coordinates = geometry._coordinates as IMultiLineStringCoordinates;
                     let ci: IMultiLineStringCoordinates = [];
                     for (let j = 0; j < coordinates.length; j++) {
                         ci[j] = [];
@@ -996,17 +991,15 @@ class GeometryHandler {
     }
 
     public setLineStrokeArr(geometry: Geometry, width: number) {
-        // @ts-ignore
-        let index = geometry._lineStrokesHandlerIndex,
-            // @ts-ignore
-            size = index + geometry._lineStrokesLength;
-        let a = this._lineStrokes;
-        for (let i = index; i < size; i++) {
-            a[i] = width;
-        }
-        this._changedBuffers[LINESTROKES_BUFFER] = true;
-        !this._updatedGeometry[geometry.__id] && this._updatedGeometryArr.push(geometry);
-        this._updatedGeometry[geometry.__id] = true;
+        // let index = geometry._lineStrokesHandlerIndex,
+        //     size = index + geometry._lineStrokesLength;
+        // let a = this._lineStrokes;
+        // for (let i = index; i < size; i++) {
+        //     a[i] = width;
+        // }
+        // this._changedBuffers[LINESTROKES_BUFFER] = true;
+        // !this._updatedGeometry[geometry.__id] && this._updatedGeometryArr.push(geometry);
+        // this._updatedGeometry[geometry.__id] = true;
     }
 
     public setLineThicknessArr(geometry: Geometry, width: number) {

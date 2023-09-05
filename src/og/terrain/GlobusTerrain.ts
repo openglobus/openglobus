@@ -130,6 +130,10 @@ class GlobusTerrain extends EmptyTerrain {
         this._urlRewriteCallback = options.urlRewrite || null;
     }
 
+    public get loader(): Loader<GlobusTerrain> {
+        return this._loader;
+    }
+
     public override clearCache() {
         for (let c in this._elevationCache) {
             this._elevationCache[c].heights = null;

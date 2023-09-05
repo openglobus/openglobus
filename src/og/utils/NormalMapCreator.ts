@@ -397,6 +397,10 @@ export class NormalMapCreator {
         }
     }
 
+    public get queueSize(): number {
+        return this._queue.length;
+    }
+
     public queue(segment: Segment) {
         segment._inTheQueue = true;
         this._queue.push(segment);
