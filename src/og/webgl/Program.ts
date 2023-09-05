@@ -163,7 +163,7 @@ class Program {
             gl.bindBuffer(gl.ARRAY_BUFFER, variable.value);
             gl.vertexAttribPointer(
                 variable._pName as number,
-                variable.value.itemSize,
+                (variable.value as WebGLBufferExt).itemSize,
                 variable.itemType as number,
                 variable.normalized,
                 0,
