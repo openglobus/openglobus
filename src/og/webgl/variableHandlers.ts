@@ -1,5 +1,5 @@
 /**
- * @module og/webgl/callbacks
+ * @module og/webgl/variableHandlers
  */
 
 import {types} from "./types";
