@@ -1,5 +1,3 @@
-"use strict";
-
 import {BaseFramebuffer, IBaseFramebufferParams} from "./BaseFramebuffer";
 import {Handler} from "./Handler";
 
@@ -64,8 +62,7 @@ export class Multisample extends BaseFramebuffer {
 
         if (!gl) return;
 
-        // @ts-ignore
-        this._glFilter = gl[this._filter];
+        this._glFilter = (gl as any)[this._filter];
 
         this._fbo = gl.createFramebuffer();
 
@@ -80,16 +77,14 @@ export class Multisample extends BaseFramebuffer {
                 gl.renderbufferStorageMultisample(
                     gl.RENDERBUFFER,
                     this._msaa,
-                    // @ts-ignore
-                    gl[this._internalFormat],
+                    (gl as any)[this._internalFormat],
                     this._width,
                     this._height
                 );
             } else {
                 gl.renderbufferStorage(
                     gl.RENDERBUFFER,
-                    // @ts-ignore
-                    gl[this._internalFormat],
+                    (gl as any)[this._internalFormat],
                     this._width,
                     this._height
                 );
@@ -102,8 +97,8 @@ export class Multisample extends BaseFramebuffer {
                 rb
             );
             colorAttachments.push(gl.COLOR_ATTACHMENT0 + i);
-            this.renderbuffers[i] = rb as any;
-            gl.bindRenderbuffer(gl.RENDERBUFFER, null as any);
+            this.renderbuffers[i] = rb!;
+            gl.bindRenderbuffer(gl.RENDERBUFFER, null!);
         }
         gl.drawBuffers(colorAttachments);
 
@@ -113,8 +108,7 @@ export class Multisample extends BaseFramebuffer {
             gl.renderbufferStorageMultisample(
                 gl.RENDERBUFFER,
                 this._msaa,
-                // @ts-ignore
-                gl[this._depthComponent],
+                (gl as any)[this._depthComponent],
                 this._width,
                 this._height
             );
@@ -134,7 +128,6 @@ export class Multisample extends BaseFramebuffer {
         let gl = this.handler.gl!;
 
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._fbo);
-        // @ts-ignore
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebuffer._fbo);
         gl.readBuffer(gl.COLOR_ATTACHMENT0 + attachmentIndex);
 
@@ -147,9 +140,7 @@ export class Multisample extends BaseFramebuffer {
             this._height,
             0,
             0,
-            // @ts-ignore
             framebuffer._width,
-            // @ts-ignore
             framebuffer._height,
             gl.COLOR_BUFFER_BIT,
             this._glFilter

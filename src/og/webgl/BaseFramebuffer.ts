@@ -14,10 +14,10 @@ export interface IBaseFramebufferParams {
 
 export class BaseFramebuffer {
     public handler: Handler;
-    protected _fbo: WebGLFramebuffer | null;
+    public _fbo: WebGLFramebuffer | null;
     protected _depthRenderbuffer: WebGLRenderbuffer | null;
-    protected _width: number;
-    protected _height: number;
+    public _width: number;
+    public _height: number;
     protected _depthComponent: string;
     protected _size: number;
     protected _active: boolean;
@@ -112,7 +112,7 @@ export class BaseFramebuffer {
     public deactivate() {
         let h = this.handler,
             gl = h.gl!;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null as any);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null!);
         this._active = false;
 
         let f = this.handler.framebufferStack.popPrev();
