@@ -95,15 +95,6 @@ class RulerScene extends RenderNode {
     protected _cornerEntity: Entity[];
     protected _propsLabel: Entity;
     protected _trackEntity: Entity;
-
-    // _onLclick_: Function;
-    // _onMouseMove_: any; // (e: any) => void;
-    // _onLdblclick_: any; // () => void;
-    // _onLUp_: any; // () => void;
-    // _onCornerEnter_: any // (e: any) => void;
-    // _onCornerLeave_: any // (e: any) => void;
-    // _onCornerLdown_: any // (e: any) => void;
-    // _onCornerLup_: any; // () => void;
     protected _anchorLonLat: LonLat | null;
     protected _timeout: any;
 
