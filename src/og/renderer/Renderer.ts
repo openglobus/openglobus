@@ -515,11 +515,21 @@ class Renderer {
     }
 
     /**
-     * Get center of the screen
+     * Get center of the screen canvas
      * @public
      * @returns {Vec2} -
      */
     public getCenter(): Vec2 {
+        let cnv = this.handler.canvas!;
+        return new Vec2(Math.round(cnv.width * 0.5), Math.round(cnv.height * 0.5));
+    }
+
+    /**
+     * Get center of the screen canvas
+     * @public
+     * @returns {Vec2} -
+     */
+    public getClientCenter(): Vec2 {
         let cnv = this.handler.canvas!;
         return new Vec2(Math.round(cnv.clientWidth * 0.5), Math.round(cnv.clientHeight * 0.5));
     }

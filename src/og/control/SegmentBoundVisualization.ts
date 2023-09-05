@@ -1,6 +1,11 @@
 import {Entity} from "../entity/Entity";
 import {EntityCollection} from "../entity/EntityCollection";
 import {Control, IControlParams} from "./Control";
+import {Segment} from '../segment/Segment';
+
+interface SegmentExt extends Segment {
+    _sphereEntity: Entity;
+}
 
 /**
  * Frame per second(FPS) display control.
@@ -28,16 +33,17 @@ export class SegmentBoundVisualization extends Control {
     protected _draw() {
         const planet = this.planet!;
         for (let i = 0; i < planet._renderedNodes.length; i++) {
-            let si = planet._renderedNodes[i].segment as any;
+            let si = planet._renderedNodes[i].segment as SegmentExt;
             if (!si._sphereEntity) {
                 si._sphereEntity = new Entity({
                     billboard: {
-                        //todo: replace with sphere geoobject
+                        //todo: replace with sphere geoObject
                     }
                 });
             }
-            si._sphereEntity.shape.setScale(si.bsphere.radius / 2);
-            si._sphereEntity.shape.setPosition3v(si.bsphere.center);
+            //@todo: geoObject
+            //si._sphereEntity.shape.setScale(si.bsphere.radius / 2);
+            //si._sphereEntity.shape.setPosition3v(si.bsphere.center);
             this._boundingSphereCollection.add(si._sphereEntity);
         }
     }

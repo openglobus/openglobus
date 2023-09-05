@@ -66,7 +66,7 @@ export class SimpleSkyBackground extends Control {
         gl.uniform3fv(shu.camPos, [cam.eye.x, cam.eye.y, cam.eye.z]);
         gl.uniform2fv(shu.iResolution, [h.getWidth(), h.getHeight()]);
         gl.uniform1f(shu.fov, cam.getViewAngle());
-        gl.uniform1f(shu.earthRadius, (this.planet as any).ellipsoid.getPolarSize() + 1);
+        gl.uniform1f(shu.earthRadius, this.planet!.ellipsoid.getPolarSize() + 1);
         gl.uniform3fv(shu.colorOne, this._colorOne);
         gl.uniform3fv(shu.colorTwo, this._colorTwo);
 
@@ -89,7 +89,8 @@ function simpleSkyBackgroundShader(): Program {
             colorTwo: "vec3"
         }, attributes: {
             corners: "vec3"
-        }, vertexShader:
+        },
+        vertexShader:
             `attribute vec2 corners;
                         
             varying vec2 tc;
@@ -97,7 +98,8 @@ function simpleSkyBackgroundShader(): Program {
             void main(void) {
                 gl_Position = vec4(corners, 0.0, 1.0);
                 tc = corners * 0.5 + 0.5;
-            }`, fragmentShader:
+            }`,
+        fragmentShader:
             `precision highp float;
             
             #define MAX 10e10

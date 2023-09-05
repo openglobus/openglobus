@@ -1,6 +1,7 @@
 import {Key} from "../Lock";
 import {Button} from "../ui/Button";
 import {Control, IControlParams} from "./Control";
+import {Renderer} from "../renderer/Renderer";
 import {Vec2} from "../math/Vec2";
 
 const ICON_PLUS_SVG = '<?xml version="1.0"?>' +
@@ -92,11 +93,11 @@ class ZoomControl extends Control {
         this.planet!._normalMapCreator.free(this._keyLock);
     }
 
-    protected _draw(e: any) {
+    protected _draw(e: Renderer) {
         const cam = this.planet!.camera;
 
         if (this._move !== 0) {
-            const pos = this.planet!.getCartesianFromPixelTerrain(e);
+            const pos = this.planet!.getCartesianFromPixelTerrain(e.getCenter());
             if (pos) {
                 let d = cam.eye.distance(pos) * 0.035;
                 cam.eye.addA(cam.getForward().scale(this._move * d));
