@@ -445,7 +445,7 @@ class Renderer {
         return this.colorObjects.get(`${r}_${g}_${b}`);
     }
 
-    public getPickingObjectArr(arr: NumberArray3): any {
+    public getPickingObjectArr(arr: NumberArray3 | Uint8Array): any {
         return this.colorObjects.get(`${arr[0]}_${arr[1]}_${arr[2]}`);
     }
 
@@ -515,7 +515,7 @@ class Renderer {
     }
 
     /**
-     * Get center of the screen canvas
+     * Get center of the canvas
      * @public
      * @returns {Vec2} -
      */
@@ -525,7 +525,7 @@ class Renderer {
     }
 
     /**
-     * Get center of the screen canvas
+     * Get center of the screen viewport
      * @public
      * @returns {Vec2} -
      */

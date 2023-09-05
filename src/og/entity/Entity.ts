@@ -16,9 +16,9 @@ import {IRayParams, Ray} from "./Ray";
 import {Strip, IStripParams} from "./Strip";
 import {Vector, VectorEventsType} from "../layer/Vector";
 import {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
-import Constructor = jest.Constructor;
 
 export interface IEntityParams {
+    name?: string;
     properties?: any;
     cartesian?: Vec3 | NumberArray3;
     lonlat?: LonLat | NumberArray3 | NumberArray2;
@@ -156,7 +156,7 @@ class Entity {
      */
     public _pickingColor: Vec3;
 
-    protected _featureConstructorArray: Record<string, [Constructor, Function]>;
+    protected _featureConstructorArray: Record<string, [any, Function]>;
 
     /**
      * Billboard entity.

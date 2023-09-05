@@ -22,7 +22,7 @@ export class Ruler extends Control {
     }
 
     public override oninit() {
-        this._rulerScene.bindPlanet(this.planet);
+        this._rulerScene.bindPlanet(this.planet!);
     }
 
     public override onactivate() {

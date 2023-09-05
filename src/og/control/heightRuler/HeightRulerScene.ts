@@ -1,23 +1,27 @@
-import { Object3d } from "../../Object3d";
-import { Entity } from '../../entity/Entity';
-import { Vector } from "../../layer/Vector";
-import { RulerScene } from "../ruler/RulerScene";
+import {Entity} from '../../entity/Entity';
+import {LonLat} from "../../LonLat";
+import {Object3d} from "../../Object3d";
+import {RulerScene, IRulerSceneParams} from "../ruler/RulerScene";
+import {Vector} from "../../layer/Vector";
+import {Vec3} from "../../math/Vec3";
+import {ILabelParams} from "../../entity/Label";
+import {IRayParams} from "../../entity/Ray";
 
-let obj3d = Object3d.createCylinder(1.1, 0, 2, 6, 1, true, true, 0, 0, 0)
+let obj3d = Object3d.createCylinder(1.1, 0, 2, 6, 1, true, true, 0, 0, 0);
 
-const RAYS_OPTIONS = {
+const RAYS_OPTIONS: IRayParams = {
     startColor: "rgb(255,131,0)",
     endColor: "rgb(255,131,0)",
     thickness: 5
 }
-const LABEL_OPTIONS = {
+const LABEL_OPTIONS: ILabelParams = {
     text: "",
     size: 11,
     color: "rgba(455,455,455,1.0)",
     outlineColor: "rgba(0,0,0,0.34)",
     outline: 0.23,
     align: "center",
-    offset: [0, 18]
+    offset: [0, 18, 0]
 };
 
 const RULER_CORNER_OPTIONS = {
@@ -28,22 +32,18 @@ const RULER_CORNER_OPTIONS = {
     object3d: obj3d
 };
 
+interface IHeightRulerSceneParams extends IRulerSceneParams {
+
+}
+
 class HeightRulerScene extends RulerScene {
     protected _geoRulerLayer: Vector;
-    protected _heightLabels: any;
-    protected _rayH: any;
-    protected _rayV: any;
+    protected _heightLabels: Entity[];
+    protected _rayH: Entity;
+    protected _rayV: Entity;
 
-    constructor(options = {}) {
+    constructor(options: IHeightRulerSceneParams = {}) {
         super(options);
-
-        this._cornersLayer = new Vector("corners", {
-            entities: [],
-            pickingEnabled: true,
-            displayInLayerSwitcher: false,
-            scaleByDistance: [100, 4000000, 1.0],
-            pickingScale: 2
-        });
 
         this._geoRulerLayer = new Vector("rayHeightRuler", {
             entities: [],
@@ -52,54 +52,85 @@ class HeightRulerScene extends RulerScene {
             relativeToGround: false,
             displayInLayerSwitcher: false
         });
+
+        this._rayV = new Entity({
+            name: 'verticalRay',
+            ray: RAYS_OPTIONS
+        });
+
+        this._rayH = new Entity({
+            name: 'heightRay',
+            ray: RAYS_OPTIONS
+        });
+
+        this._heightLabels = [
+            new Entity({
+                name: 'startCornerLabel',
+                label: {
+                    ...LABEL_OPTIONS
+                }
+            }),
+            new Entity({
+                name: 'endCornerLabel',
+                label: {
+                    ...LABEL_OPTIONS
+                }
+            }),
+            new Entity({
+                name: 'deltaLabel',
+                label: {
+                    ...LABEL_OPTIONS
+                }
+            })
+        ];
     }
 
-    override setVisibility(visibility: boolean) {
+    public override setVisibility(visibility: boolean) {
         super.setVisibility(visibility);
         this._geoRulerLayer.setVisibility(visibility);
     }
 
-    get deltaLabel() {
-        return this._heightLabels[2]
+    public get deltaLabel(): Entity {
+        return this._heightLabels[2];
     }
 
-    get startLabel() {
+    public get startLabel(): Entity {
         return this._heightLabels[0]
     }
 
-    get endLabel() {
+    public get endLabel(): Entity {
         return this._heightLabels[1]
     }
 
-    get corners() {
+    public get corners(): Entity[] {
         return this._cornerEntity;
     }
 
-    get startCorner() {
+    public get startCorner(): Entity {
         return this.corners[0];
     }
 
-    get endCorner() {
+    public get endCorner(): Entity {
         return this.corners[1];
     }
 
-    get startCornerLonLat() {
+    public get startCornerLonLat(): LonLat {
         return this.startCorner.getLonLat();
     }
 
-    get startCornerHeight() {
+    public get startCornerHeight(): number {
         return this.startCornerLonLat.height;
     }
 
-    get endCornerLonLat() {
+    public get endCornerLonLat(): LonLat {
         return this.endCorner.getLonLat();
     }
 
-    get endCornerHeight() {
+    public get endCornerHeight(): number {
         return this.endCornerLonLat.height;
     }
 
-    get maxHeightCornerLonLat() {
+    public get maxHeightCornerLonLat(): LonLat {
         if (this.startCornerHeight <= this.endCornerHeight) {
             return this.endCornerLonLat;
         } else {
@@ -107,7 +138,7 @@ class HeightRulerScene extends RulerScene {
         }
     }
 
-    get minHeightCornerLonLat() {
+    public get minHeightCornerLonLat(): LonLat {
         if (this.startCornerHeight > this.endCornerHeight) {
             return this.endCornerLonLat;
         } else {
@@ -115,23 +146,23 @@ class HeightRulerScene extends RulerScene {
         }
     }
 
-    get deltaHeight() {
+    public get deltaHeight(): number {
         return Math.abs(this.startCornerHeight - this.endCornerHeight);
     }
 
-    override _drawLine(startLonLat: any, endLonLat: any, startPos: any) {
+    public override _drawLine(startLonLat: LonLat, endLonLat: LonLat, startPos?: Vec3) {
         super._drawLine(startLonLat, endLonLat, startPos);
         this._updateHeightRaysAndLabels();
     }
 
-    async _updateHeightRaysAndLabels() {
+    protected async _updateHeightRaysAndLabels() {
         const middleLonLat = this.minHeightCornerLonLat.clone();
         middleLonLat.height = this.maxHeightCornerLonLat.height;
 
-        this._rayH.ray.setStartPosition3v(this._planet.ellipsoid.lonLatToCartesian(this.maxHeightCornerLonLat))
-        this._rayH.ray.setEndPosition3v(this._planet.ellipsoid.lonLatToCartesian(middleLonLat))
-        this._rayV.ray.setStartPosition3v(this._planet.ellipsoid.lonLatToCartesian(this.minHeightCornerLonLat));
-        this._rayV.ray.setEndPosition3v(this._planet.ellipsoid.lonLatToCartesian(middleLonLat));
+        this._rayH.ray!.setStartPosition3v(this._planet!.ellipsoid.lonLatToCartesian(this.maxHeightCornerLonLat))
+        this._rayH.ray!.setEndPosition3v(this._planet!.ellipsoid.lonLatToCartesian(middleLonLat))
+        this._rayV.ray!.setStartPosition3v(this._planet!.ellipsoid.lonLatToCartesian(this.minHeightCornerLonLat));
+        this._rayV.ray!.setEndPosition3v(this._planet!.ellipsoid.lonLatToCartesian(middleLonLat));
 
         middleLonLat.height = this.minHeightCornerLonLat.height + this.deltaHeight / 2;
 
@@ -139,15 +170,15 @@ class HeightRulerScene extends RulerScene {
         this.startLabel.setLonLat(this.startCornerLonLat);
         this.endLabel.setLonLat(this.endCornerLonLat);
 
-        const startHeight = await this._planet.getHeightDefault(this.startCornerLonLat),
-            endHeight = await this._planet.getHeightDefault(this.endCornerLonLat)
+        const startHeight = await this._planet!.getHeightDefault(this.startCornerLonLat),
+            endHeight = await this._planet!.getHeightDefault(this.endCornerLonLat)
 
-        this.deltaLabel.label.setText(`\u0394 ${Math.abs(startHeight - endHeight).toFixed(1)} m`);
-        this.startLabel.label.setText(`P1 ${startHeight.toFixed(1)} m`)
-        this.endLabel.label.setText(`P2 ${endHeight.toFixed(1)} m`)
+        this.deltaLabel.label!.setText(`\u0394 ${Math.abs(startHeight - endHeight).toFixed(1)} m`);
+        this.startLabel.label!.setText(`P1 ${startHeight.toFixed(1)} m`)
+        this.endLabel.label!.setText(`P2 ${endHeight.toFixed(1)} m`)
     }
 
-    override clear() {
+    public override clear() {
         this._rayH.remove();
         this._rayV.remove();
         this.startCorner.remove();
@@ -155,75 +186,48 @@ class HeightRulerScene extends RulerScene {
         this.startLabel.remove();
         this.endLabel.remove();
         this.deltaLabel.remove();
-        super.clear()
-        this._rayH = undefined;
-        this._rayV = undefined;
+        super.clear();
 
-        this._planet.removeLayer(this._geoRulerLayer);
+        // this._rayH = null;
+        // this._rayV = null;
+
+        this._planet!.removeLayer(this._geoRulerLayer);
     }
 
-    override _createCorners() {
+    public override _createCorners() {
         this._cornerEntity = [
             new Entity({
                 geoObject: RULER_CORNER_OPTIONS,
                 properties: {
                     name: "start"
                 }
-            } as any),
+            }),
             new Entity({
                 geoObject: RULER_CORNER_OPTIONS,
                 properties: {
                     name: "end"
                 }
-            } as any)
+            })
         ];
 
         this._cornersLayer.setEntities(this._cornerEntity);
     }
 
-    override init() {
-
+    public override init() {
         super.init();
         this._createCorners();
-        this._rayV = new Entity({
-            name: 'verticalRay',
-            ray: RAYS_OPTIONS
-        } as any);
-        this._rayH = new Entity({
-            name: 'heightRay',
-            ray: RAYS_OPTIONS
-        } as any);
-        this._heightLabels = [
-            new Entity({
-                name: 'startCornerLabel',
-                label: {
-                    ...LABEL_OPTIONS
-                }
-            } as any),
-            new Entity({
-                name: 'endCornerLabel',
-                label: {
-                    ...LABEL_OPTIONS
-                }
-            } as any),
-            new Entity({
-                name: 'deltaLabel',
-                label: {
-                    ...LABEL_OPTIONS
-                }
-            } as any)
-        ];
+
         this._labelLayer.addEntities(this._heightLabels);
         this._geoRulerLayer.addEntities([this._rayH, this._rayV]);
 
-        this._planet.addLayer(this._geoRulerLayer);
+        this._planet!.addLayer(this._geoRulerLayer);
     }
 
-    override frame() {
+    public override frame() {
         super.frame()
         this._updateHeightRaysAndLabels();
     }
 }
 
 
-export { HeightRulerScene };
+export {HeightRulerScene};
