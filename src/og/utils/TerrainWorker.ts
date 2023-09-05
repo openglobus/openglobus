@@ -2,12 +2,30 @@
 
 // import { QueueArray } from '../QueueArray.js';
 
-import { BaseWorker } from "./BaseWorker";
+import {BaseWorker} from "./BaseWorker";
 import {Segment} from "../segment/Segment";
+import {NumberArray6} from "../bv/Sphere";
 
 interface TerrainInfo {
     segment: Segment;
     elevations: Float32Array;
+}
+
+export interface ITerrainWorkerData {
+    id: number;
+    normalMapNormals: Float32Array | null;
+    normalMapVertices: Float64Array | null;
+    normalMapVerticesHigh: Float32Array | null;
+    normalMapVerticesLow: Float32Array | null;
+    terrainVertices: Float64Array | null;
+    terrainVerticesHigh: Float32Array | null;
+    terrainVerticesLow: Float32Array | null;
+    noDataVertices: Uint8Array | null;
+    bounds: NumberArray6;
+}
+
+type MessageEventExt = MessageEvent & {
+    data: ITerrainWorkerData
 }
 
 class TerrainWorker extends BaseWorker<TerrainInfo> {
@@ -15,7 +33,7 @@ class TerrainWorker extends BaseWorker<TerrainInfo> {
         super(numWorkers, TERRAIN_PROGRAM);
     }
 
-    protected override _onMessage(e: MessageEvent) {
+    protected override _onMessage(e: MessageEventExt) {
         this._source.get(e.data.id)!.segment._terrainWorkerCallback(e.data);
         this._source.delete(e.data.id);
 
@@ -569,4 +587,4 @@ const TERRAIN_PROGRAM =
             ]);
     }`;
 
-export { TerrainWorker };
+export {TerrainWorker};

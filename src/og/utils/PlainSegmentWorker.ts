@@ -3,14 +3,31 @@ import {EPSG4326} from "../proj/EPSG4326";
 import {BaseWorker} from "./BaseWorker";
 import {Segment} from "../segment/Segment";
 import {Geoid} from "../terrain/Geoid";
+import {NumberArray6} from "../bv/Sphere";
 
+export interface IPlainSegmentWorkerData {
+    plainVertices: Float64Array | null;
+    plainVerticesHigh: Float32Array | null;
+    plainVerticesLow: Float32Array | null;
+    plainNormals: Float32Array | null;
+    plainRadius: number;
+
+    normalMapNormals: Float32Array | null;
+    normalMapVertices: Float64Array | null;
+    normalMapVerticesHigh: Float32Array | null;
+    normalMapVerticesLow: Float32Array | null;
+}
+
+type MessageEventExt = MessageEvent & {
+    data: IPlainSegmentWorkerData
+}
 
 class PlainSegmentWorker extends BaseWorker<Segment> {
     constructor(numWorkers: number = 2) {
         super(numWorkers, PLAIN_SEGMENT_PROGRAM);
     }
 
-    protected override _onMessage(e: MessageEvent) {
+    protected override _onMessage(e: MessageEventExt) {
         this._source.get(e.data.id)!._plainSegmentWorkerCallback(e.data);
 
         e.data.plainVertices = null;

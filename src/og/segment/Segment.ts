@@ -7,6 +7,7 @@ import {EPSG3857} from "../proj/EPSG3857";
 import {E, N, NOTRENDERING, OPSIDE, S, W} from "../quadTree/quadTree";
 import {getMatrixSubArray64, TypedArray} from "../utils/shared";
 import {Handler, WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
+import {ITerrainWorkerData} from "../utils/TerrainWorker";
 import {Layer} from "../layer/Layer";
 import {LonLat} from "../LonLat";
 import {Material} from "../layer/Material";
@@ -19,6 +20,7 @@ import {NumberArray6, Sphere} from "../bv/Sphere";
 import {Slice} from "./Slice";
 import {Ray} from "../math/Ray";
 import {Vec3} from "../math/Vec3";
+import {IPlainSegmentWorkerData} from "../utils/PlainSegmentWorker";
 
 export const TILEGROUP_COMMON = 0;
 export const TILEGROUP_NORTH = 1;
@@ -762,7 +764,7 @@ class Segment {
         this.createCoordsBuffers(this.tempVerticesHigh!, this.tempVerticesLow!, this.gridSize);
     }
 
-    public _terrainWorkerCallback(data: any) {
+    public _terrainWorkerCallback(data: ITerrainWorkerData) {
         if (this.plainReady) {
             this.readyToEngage = true;
 
@@ -1364,7 +1366,7 @@ class Segment {
         }
     }
 
-    public _plainSegmentWorkerCallback(data: any) {
+    public _plainSegmentWorkerCallback(data: IPlainSegmentWorkerData) {
         this.plainProcessing = false;
 
         if (this.initialized && !this.terrainReady) {
@@ -1385,7 +1387,7 @@ class Segment {
             //this.terrainVerticesHigh = this.plainVerticesHigh;
             //this.terrainVerticesLow = this.plainVerticesLow;
 
-            this.fileGridSize = Math.sqrt(data.normalMapVertices.length / 3) - 1;
+            this.fileGridSize = Math.sqrt(data.normalMapVertices!.length / 3) - 1;
         }
     }
 
