@@ -2,6 +2,7 @@ import {Control, IControlParams} from "./Control";
 import {Dialog} from "../ui/Dialog";
 import {ToggleButton} from "../ui/ToggleButton";
 import {GlobusTerrain} from "../terrain/GlobusTerrain";
+import {CanvasTiles} from "../layer/CanvasTiles";
 
 const ICON_LOCK_BUTTON_SVG = `<?xml version="1.0" encoding="utf-8"?>
 <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
@@ -51,6 +52,11 @@ const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="iso-8859-1"?>
 </g>
 </svg>`;
 
+const ICON_CANVASTILES_SVG = `<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M 4 4 L 4 8 L 8 8 L 8 4 L 4 4 z M 10 4 L 10 8 L 14 8 L 14 4 L 10 4 z M 16 4 L 16 8 L 20 8 L 20 4 L 16 4 z M 4 10 L 4 14 L 8 14 L 8 10 L 4 10 z M 10 10 L 10 14 L 14 14 L 14 10 L 10 10 z M 16 10 L 16 14 L 20 14 L 20 10 L 16 10 z M 4 16 L 4 20 L 8 20 L 8 16 L 4 16 z M 10 16 L 10 20 L 14 20 L 14 16 L 10 16 z M 16 16 L 16 20 L 20 20 L 20 16 L 16 16 z"/>
+</svg>`;
+
 export interface IDebugInfoWatch {
     label: string;
     valEl?: HTMLElement;
@@ -66,6 +72,8 @@ export class DebugInfo extends Control {
     protected _watch: IDebugInfoWatch[];
     protected _toggleBtn: ToggleButton;
     protected _dialog: Dialog<null>;
+
+    protected _canvasTiles: CanvasTiles;
 
     constructor(options: IDebugInfoParams = {}) {
         if (!options.name || options.name === "") {
@@ -91,6 +99,58 @@ export class DebugInfo extends Control {
 
         this._dialog.events.on("visibility", (v: boolean) => {
             this._toggleBtn.setActive(v);
+        });
+
+        this._canvasTiles = new CanvasTiles("Tile grid", {
+            visibility: true,
+            isBaseLayer: false,
+            drawTile: function (material: any, applyCanvas: any) {
+
+                //
+                // This is important create canvas here!
+                //
+                let cnv = document.createElement("canvas");
+                let ctx = cnv.getContext("2d")!;
+                cnv.width = 256;
+                cnv.height = 256;
+
+                //Clear canvas
+                ctx.clearRect(0, 0, cnv.width, cnv.height);
+
+                //Draw border
+                ctx.beginPath();
+                ctx.rect(0, 0, cnv.width, cnv.height);
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'black';
+                ctx.stroke();
+
+                let size;
+
+                if (material.segment.isPole) {
+                    let ext = material.segment.getExtentLonLat();
+
+                    ctx.fillStyle = 'black';
+                    ctx.font = 'normal ' + 29 + 'px Verdana';
+
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`${ext.northEast.lon.toFixed(3)} ${ext.northEast.lat.toFixed(3)}`, cnv.width / 2, cnv.height / 2 + 20);
+                    ctx.fillText(`${ext.southWest.lon.toFixed(3)} ${ext.southWest.lat.toFixed(3)}`, cnv.width / 2, cnv.height / 2 - 20);
+                } else {
+                    //Draw text
+                    if (material.segment.tileZoom > 14) {
+                        size = "26";
+                    } else {
+                        size = "32";
+                    }
+                    ctx.fillStyle = 'black';
+                    ctx.font = 'normal ' + size + 'px Verdana';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+                }
+
+                //Draw canvas tile
+                applyCanvas(cnv);
+            }
         });
     }
 
@@ -239,6 +299,21 @@ export class DebugInfo extends Control {
                 p.lockQuadTree();
             } else {
                 p.unlockQuadTree();
+            }
+        });
+
+        let canvasTilesBtn = new ToggleButton({
+            classList: ["og-debuginfo_controls-button"],
+            icon: ICON_CANVASTILES_SVG,
+            title: "Show/Hide grid"
+        });
+        canvasTilesBtn.appendTo($controls);
+
+        canvasTilesBtn.events.on("change", (isActive: boolean) => {
+            if (isActive) {
+                this.planet!.addLayer(this._canvasTiles);
+            } else {
+                this._canvasTiles.remove();
             }
         });
     }

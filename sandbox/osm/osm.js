@@ -8,7 +8,8 @@ import {
     XYZ,
     LonLat,
     CanvasTiles,
-    Vector
+    Vector,
+    control
 } from "../../dist/@openglobus/og.esm.js";
 
 // GlobusTerrain,
@@ -270,7 +271,7 @@ const globus = new Globe({
 //
 // globus.planet.addControl(new LayerSwitcher());
 //
-// globus.planet.addControl(new DebugInfo());
+globus.planet.addControl(new control.DebugInfo());
 //
 // globus.planet.addControl(new ToggleWireframe());
 // globus.planet.addControl(new KeyboardNavigation());
