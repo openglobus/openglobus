@@ -38,7 +38,6 @@ import {
 } from "../segment/Segment";
 
 import {PlanetCamera} from "../camera/PlanetCamera";
-import Constructor = jest.Constructor;
 
 let _tempHigh = new Vec3(),
     _tempLow = new Vec3();
@@ -72,7 +71,7 @@ let BOUNDS: BoundsType = {
  * @param {Extent} extent - Planet segment extent.
  */
 class Node {
-    public SegmentPrototype: Constructor;
+    public SegmentPrototype: typeof Segment;
     public planet: Planet;
     public parentNode: Node | null;
     public partId: number;
@@ -89,7 +88,7 @@ class Node {
     public inFrustum: number;
 
     constructor(
-        SegmentPrototype: Constructor,
+        SegmentPrototype: typeof Segment,
         planet: Planet,
         partId: number,
         parent: Node | null,

@@ -501,7 +501,7 @@ class Layer {
      * @virtual
      */
     protected _bindPicking() {
-        this._planet && this._planet.renderer && this._planet.renderer.assignPickingColor(this);
+        this._planet && this._planet.renderer && this._planet.renderer.assignPickingColor<Layer>(this);
     }
 
     /**

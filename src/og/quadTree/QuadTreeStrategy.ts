@@ -5,7 +5,6 @@ import {Planet} from "../scene/Planet";
 import {Proj} from "../proj/Proj";
 
 export class QuadTreeStrategy {
-
     public name: string;
     public projection: Proj;
     protected _planet: Planet;

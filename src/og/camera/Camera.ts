@@ -269,7 +269,7 @@ class Camera {
     public bindRenderer(renderer: Renderer) {
         this.renderer = renderer;
         for (let i = 0; i < this.frustums.length; i++) {
-            this.renderer.assignPickingColor(this.frustums[i]);
+            this.renderer.assignPickingColor<Frustum>(this.frustums[i]);
         }
         this._aspect = this.renderer.handler.getClientAspect();
 

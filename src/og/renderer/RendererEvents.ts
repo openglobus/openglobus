@@ -720,7 +720,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
             ms.pickingObject = null;
             ts.pickingObject = null;
 
-            let co = r.getPickingObjectArr(c);
+            let co = r.getPickingObjectArr<any>(c);
 
             ms.pickingObject = co;
             ts.pickingObject = co;
@@ -730,7 +730,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
 
                 //current is black
                 if (ISBLACK(c)) {
-                    let po = r.getPickingObjectArr(p);
+                    let po = r.getPickingObjectArr<any>(p);
                     if (po) {
                         let pe = po.rendererEvents;
                         ms.pickingObject = po;
@@ -743,7 +743,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
 
                     //previous is not black
                     if (NOTBLACK(p)) {
-                        let po = r.getPickingObjectArr(p);
+                        let po = r.getPickingObjectArr<any>(p);
                         if (po) {
                             let pe = po.rendererEvents;
                             ms.pickingObject = po;
@@ -952,7 +952,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
             r.pickingFramebuffer!.readPixels(_currPickingColor, ts.nx, 1.0 - ts.ny, 1);
             r.pickingFramebuffer!.deactivate();
 
-            let co = r.getPickingObjectArr(_currPickingColor);
+            let co = r.getPickingObjectArr<any>(_currPickingColor);
             tpo = ts.pickingObject = co;
             if (tpo) {
                 tpe = tpo.rendererEvents;

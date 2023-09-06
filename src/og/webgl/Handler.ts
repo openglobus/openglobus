@@ -408,7 +408,7 @@ class Handler {
             0,
             gl.RGBA,
             gl.UNSIGNED_BYTE,
-            null as any
+            null!
         );
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -1293,19 +1293,19 @@ class Handler {
             let numTextureUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
             for (let ii = 0; ii < numTextureUnits; ++ii) {
                 gl.activeTexture(gl.TEXTURE0 + ii);
-                gl.bindTexture(gl.TEXTURE_CUBE_MAP, null as any);
-                gl.bindTexture(gl.TEXTURE_2D, null as any);
+                gl.bindTexture(gl.TEXTURE_CUBE_MAP, null!);
+                gl.bindTexture(gl.TEXTURE_2D, null!);
             }
 
             //
             // Hard reset
             //
             gl.activeTexture(gl.TEXTURE0);
-            gl.useProgram(null as any);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null as any);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null as any);
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null as any);
-            gl.bindRenderbuffer(gl.RENDERBUFFER, null as any);
+            gl.useProgram(null!);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null!);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null!);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null!);
+            gl.bindRenderbuffer(gl.RENDERBUFFER, null!);
             gl.disable(gl.BLEND);
             gl.disable(gl.CULL_FACE);
             gl.disable(gl.DEPTH_TEST);

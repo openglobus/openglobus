@@ -311,7 +311,7 @@ class PointCloud {
             this._points.push(p);
 
             if (this._renderNode && this._renderNode.renderer) {
-                this._renderNode.renderer.assignPickingColor(p);
+                this._renderNode.renderer.assignPickingColor<IPoint>(p);
                 this._pickingColorData.push(
                     p._pickingColor.x / 255.0,
                     p._pickingColor.y / 255.0,
@@ -511,7 +511,7 @@ class PointCloud {
                 let p = this._points[i];
                 p._entity = this._entity;
                 p._entityCollection = this._entity!._entityCollection;
-                this._renderNode.renderer.assignPickingColor(p);
+                this._renderNode.renderer.assignPickingColor<IPoint>(p);
                 this._pickingColorData.push(
                     p._pickingColor.x / 255.0,
                     p._pickingColor.y / 255.0,

@@ -367,7 +367,7 @@ class Vector extends Layer {
         if (entity.geometry) {
             this._hasImageryTiles = true;
             if (this._planet) {
-                this._planet.renderer!.assignPickingColor(entity);
+                this._planet.renderer!.assignPickingColor<Entity>(entity);
                 this._geometryHandler.add(entity.geometry);
             }
         }
@@ -628,7 +628,7 @@ class Vector extends Layer {
             if (ei.geometry) {
                 this._hasImageryTiles = true;
                 if (this._planet) {
-                    this._planet.renderer!.assignPickingColor(ei);
+                    this._planet.renderer!.assignPickingColor<Entity>(ei);
                     this._geometryHandler.add(ei.geometry);
                 }
             }

@@ -1,8 +1,8 @@
-"use strict";
-
 import {binaryInsert, stamp} from "./utils/shared";
 
-export type EventCallback = ((...args: any[]) => boolean) | ((...args: any[]) => void);
+export type EventCallback = (((...args: any[]) => boolean) | ((...args: any[]) => void));
+
+type EventCallbackStamp = EventCallback & { _openglobus_id?: number; _openglobus_priority?: number };
 
 type EventCallbacks = Array<EventCallback>;
 type EventCallbackHandler = { active: boolean; handlers: EventCallbacks };
@@ -32,7 +32,7 @@ export class Events<T extends string[]> {
     /**
      * Registered event names.
      * @protected
-     * @type {Array.<string>}
+     * @type {T}
      */
     protected _eventNames: T;
 
@@ -108,18 +108,18 @@ export class Events<T extends string[]> {
      * Attach listener.
      * @public
      * @param {string} name - Event name to listen.
-     * @param {any} callback - Event callback function.
+     * @param {EventCallback} callback - Event callback function.
      * @param {any} [sender] - Event callback function owner.
      * @param {number} [priority] - Priority of event callback.
      */
     public on(name: string, callback: EventCallback, sender?: any, priority: number = 0) {
         if (this._stamp(name, callback)) {
             if ((this as any)[name]) {
-                let c = callback.bind(sender || this._sender) as any;
-                c._openglobus_id = (callback as any)._openglobus_id;
+                let c = callback.bind(sender || this._sender) as EventCallbackStamp;
+                c._openglobus_id = (callback as EventCallbackStamp)._openglobus_id;
                 c._openglobus_priority = priority;
-                binaryInsert((this as any)[name].handlers, c, (a: any, b: any) => {
-                    return b._openglobus_priority - a._openglobus_priority;
+                binaryInsert((this as any)[name].handlers, c, (a: EventCallbackStamp, b: EventCallbackStamp) => {
+                    return (b._openglobus_priority || 0) - (a._openglobus_priority || 0);
                 });
             }
         }
@@ -129,18 +129,18 @@ export class Events<T extends string[]> {
      * Stop listening event name with specified callback function.
      * @public
      * @param {string} name - Event name.
-     * @param {any} callback - Attached  event callback.
+     * @param {EventCallback | null} callback - Attached  event callback.
      */
     public off(name: string, callback?: EventCallback | null) {
         if (callback) {
-            let st = this._getStamp(name, this.__id, (callback as any)._openglobus_id);
-            if ((callback as any)._openglobus_id && this._stampCache[st]) {
+            let st = this._getStamp(name, this.__id, (callback as EventCallbackStamp)._openglobus_id!);
+            if ((callback as EventCallbackStamp)._openglobus_id && this._stampCache[st]) {
                 let h = (this as any)[name].handlers;
                 let i = h.length;
                 let indexToRemove = -1;
                 while (i--) {
                     let hi = h[i];
-                    if (hi._openglobus_id === (callback as any)._openglobus_id) {
+                    if (hi._openglobus_id === (callback as EventCallbackStamp)._openglobus_id) {
                         indexToRemove = i;
                         break;
                     }

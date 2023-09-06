@@ -385,7 +385,7 @@ class EntityCollection {
             this._entities.push(entity);
             let rn: RenderNode | null = this.renderNode;
             if (rn) {
-                rn.renderer && rn.renderer.assignPickingColor(entity);
+                rn.renderer && rn.renderer.assignPickingColor<Entity>(entity);
                 if ((rn as Planet).ellipsoid && entity._cartesian.isZero()) {
                     entity.setCartesian3v((rn as Planet).ellipsoid.lonLatToCartesian(entity._lonLat));
                 }
@@ -495,7 +495,7 @@ class EntityCollection {
         let e = this._entities;
         for (let i = 0; i < e.length; i++) {
             if (!e[i].parent) {
-                this.renderNode.renderer.assignPickingColor(e[i]);
+                this.renderNode.renderer.assignPickingColor<Entity>(e[i]);
                 e[i].setPickingColor();
             }
         }

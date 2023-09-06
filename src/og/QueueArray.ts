@@ -1,5 +1,4 @@
 class QueueArray<T> {
-
     protected _size: number;
     protected _array: T[];
     protected _popIndex: number;

@@ -27,6 +27,11 @@ let __depthCallbackCounter__ = 0;
 
 let __distanceCallbackCounter__ = 0;
 
+interface IPickingObject {
+    _pickingColor?: Vec3;
+    _pickingColorU?: Float32Array;
+}
+
 interface IFrameCallbackHandler {
     id: number;
     callback: Function;
@@ -441,15 +446,15 @@ class Renderer {
         }
     }
 
-    public getPickingObject(r: number, g: number, b: number): any {
+    public getPickingObject<T>(r: number, g: number, b: number): T {
         return this.colorObjects.get(`${r}_${g}_${b}`);
     }
 
-    public getPickingObjectArr(arr: NumberArray3 | Uint8Array): any {
+    public getPickingObjectArr<T>(arr: NumberArray3 | Uint8Array): T {
         return this.colorObjects.get(`${arr[0]}_${arr[1]}_${arr[2]}`);
     }
 
-    public getPickingObject3v(vec: Vec3 | Vec4): any {
+    public getPickingObject3v<T>(vec: Vec3 | Vec4): T {
         return this.colorObjects.get(`${vec.x}_${vec.y}_${vec.z}`);
     }
 
@@ -458,7 +463,7 @@ class Renderer {
      * @public
      * @param {Object} obj - Object that presume to be picked.
      */
-    public assignPickingColor(obj: any) {
+    public assignPickingColor<T>(obj: T & IPickingObject) {
         if (!obj._pickingColor || obj._pickingColor.isZero()) {
             let r = 0, g = 0, b = 0;
             let str = "0_0_0";
@@ -486,8 +491,8 @@ class Renderer {
      * @public
      * @param {Object} obj - Object to remove picking color.
      */
-    public clearPickingColor(obj: any) {
-        if (!obj._pickingColor.isZero()) {
+    public clearPickingColor<T>(obj: T & IPickingObject) {
+        if (obj._pickingColor && !obj._pickingColor.isZero()) {
             let c = obj._pickingColor;
             if (!c.isZero()) {
                 this.colorObjects.delete(`${c.x}_${c.y}_${c.z}`);

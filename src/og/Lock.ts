@@ -7,13 +7,11 @@ class Lock {
     }
 
     public lock(key: Key) {
-        // @ts-ignore
-        this._lock |= (1 << key.__id);
+        this._lock |= (1 << key.id);
     }
 
     public free(key: Key) {
-        // @ts-ignore
-        this._lock &= ~(1 << key.__id);
+        this._lock &= ~(1 << key.id);
     }
 
     public isFree(): boolean {
@@ -33,6 +31,10 @@ class Key {
 
     constructor() {
         this.__id = Key.__counter__++;
+    }
+
+    public get id(): number {
+        return this.__id;
     }
 }
 
