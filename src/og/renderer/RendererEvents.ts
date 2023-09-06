@@ -1,4 +1,4 @@
-import {Events, EventsHandler} from "../Events";
+import {Events, EventsHandler, EventCallback} from "../Events";
 import {input} from "../input/input";
 import {KeyboardHandler} from "../input/KeyboardHandler";
 import {MouseHandler, MouseHandlerEvent, MouseEventExt} from "../input/MouseHandler";
@@ -368,19 +368,19 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         }
     }
 
-    public override on(name: string, p0: Function | number, p1?: any | Function, p2?: any, p3?: any) {
+    public override on(name: string, p0: EventCallback | number, p1?: any | EventCallback, p2?: any, p3?: any) {
         if (name === "keypress" || name === "charkeypress" || name === "keyfree") {
-            this._keyboardHandler.addEvent(name, p0, p1, p2, p3);
+            this._keyboardHandler.addEvent(name, p0, p1 as EventCallback, p2, p3);
         } else {
-            super.on(name, p0, p1, p2);
+            super.on(name, p0 as EventCallback, p1, p2);
         }
     }
 
-    public override off(name: string, p1: Function | number, p2?: Function) {
+    public override off(name: string, p1?: EventCallback | number | null, p2?: EventCallback) {
         if (name === "keypress" || name === "charkeypress" || name === "keyfree") {
             this._keyboardHandler.removeEvent(name, p1, p2);
         } else {
-            super.off(name, p1);
+            super.off(name, p1 as EventCallback);
         }
     }
 

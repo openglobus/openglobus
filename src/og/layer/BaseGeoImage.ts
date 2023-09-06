@@ -1,7 +1,7 @@
 import * as mercator from "../mercator";
 import {doubleToTwoFloats2} from "../math/coder";
 import {Extent} from "../Extent";
-import {EventsHandler} from "../Events";
+import {EventCallback, EventsHandler} from "../Events";
 import {Layer, LayerEventsList, ILayerParams} from "./Layer";
 import {LonLat} from "../LonLat";
 import {Material} from "./Material";
@@ -79,7 +79,7 @@ class BaseGeoImage extends Layer {
      */
     public rendering: Function;
 
-    protected _onLoadend_: Function | null;
+    protected _onLoadend_: EventCallback | null;
 
     constructor(name: string | null, options: IBaseGeoImageParams = {}) {
         super(name, options);

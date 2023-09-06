@@ -1,5 +1,5 @@
 import * as quadTree from "../quadTree/quadTree";
-import {EventsHandler} from "../Events";
+import {EventCallback, EventsHandler} from "../Events";
 import {ILayerParams, Layer, LayerEventsList} from "./Layer";
 import {Material} from "../layer/Material";
 import {NumberArray4} from "../math/Vec4";
@@ -85,7 +85,7 @@ class CanvasTiles extends Layer {
      */
     public drawTile: DrawTileCallback;
 
-    protected _onLoadend_: Function | null;
+    protected _onLoadend_: EventCallback | null;
 
 
     constructor(name: string | null, options: ICanvasTilesParams) {
@@ -110,7 +110,7 @@ class CanvasTiles extends Layer {
 
     public override addTo(planet: Planet) {
         this._onLoadend_ = this._onLoadend.bind(this);
-        this.events.on("loadend", this._onLoadend_, this);
+        this.events.on("loadend", this._onLoadend_!, this);
         return super.addTo(planet);
     }
 
