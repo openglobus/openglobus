@@ -2149,8 +2149,8 @@ class Polyline {
         this._verticesHigh = makeArrayTyped(this._verticesHigh);
         this._verticesLow = makeArrayTyped(this._verticesLow);
 
-        h.setStreamArrayBuffer(this._verticesHighBuffer!, this._verticesHigh);
-        h.setStreamArrayBuffer(this._verticesLowBuffer!, this._verticesLow);
+        h.setStreamArrayBuffer(this._verticesHighBuffer!, this._verticesHigh as Float32Array);
+        h.setStreamArrayBuffer(this._verticesLowBuffer!, this._verticesLow as Float32Array);
     }
 
     /**
@@ -2163,10 +2163,10 @@ class Polyline {
         h.gl!.deleteBuffer(this._indexesBuffer as WebGLBuffer);
 
         this._orders = makeArrayTyped(this._orders);
-        this._ordersBuffer = h.createArrayBuffer(this._orders, 1, this._orders.length / 2);
+        this._ordersBuffer = h.createArrayBuffer(this._orders as Uint8Array, 1, this._orders.length / 2);
 
         this._indexes = makeArrayTyped(this._indexes, Uint32Array);
-        this._indexesBuffer = h.createElementArrayBuffer(this._indexes, 1, this._indexes.length);
+        this._indexesBuffer = h.createElementArrayBuffer(this._indexes as Uint32Array, 1, this._indexes.length);
     }
 
     protected _createColorsBuffer() {

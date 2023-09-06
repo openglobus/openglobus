@@ -383,8 +383,7 @@ class Program {
                 cons.logErr(`Shader program "${this.name}": attribute '${a}', item type '${this._attributes[a].itemType}' not exists.`);
                 this._attributes[a].itemType = gl.FLOAT;
             } else {
-                // @ts-ignore
-                this._attributes[a].itemType = gl[itemTypeStr];
+                this._attributes[a].itemType = (gl as any)[itemTypeStr];
             }
 
             this._attributes[a].normalized = this._attributes[a].normalized || false;

@@ -207,7 +207,7 @@ class InstanceData {
         const h = this._geoObjectHandler._planet!.renderer!.handler;
         h.gl!.deleteBuffer(this._vertexBuffer!);
         this._vertexArr = makeArrayTyped(this._vertexArr);
-        this._vertexBuffer = h.createArrayBuffer(this._vertexArr, 3, this._vertexArr.length / 3);
+        this._vertexBuffer = h.createArrayBuffer(this._vertexArr as Float32Array, 3, this._vertexArr.length / 3);
     }
 
     public createPitchRollBuffer() {
@@ -222,7 +222,7 @@ class InstanceData {
 
         this._pitchRollArr = makeArrayTyped(this._pitchRollArr);
 
-        h.setStreamArrayBuffer(this._pitchRollBuffer, this._pitchRollArr);
+        h.setStreamArrayBuffer(this._pitchRollBuffer, this._pitchRollArr as Float32Array);
     }
 
     public createVisibleBuffer() {
@@ -237,7 +237,7 @@ class InstanceData {
 
         this._visibleArr = makeArrayTyped(this._visibleArr);
 
-        h.setStreamArrayBuffer(this._visibleBuffer, this._visibleArr);
+        h.setStreamArrayBuffer(this._visibleBuffer, this._visibleArr as Uint8Array);
     }
 
     public createSizeBuffer() {
@@ -251,14 +251,14 @@ class InstanceData {
 
         this._sizeArr = makeArrayTyped(this._sizeArr);
 
-        h.setStreamArrayBuffer(this._sizeBuffer, this._sizeArr);
+        h.setStreamArrayBuffer(this._sizeBuffer, this._sizeArr as Float32Array);
     }
 
     public createTexCoordBuffer() {
         const h = this._geoObjectHandler._planet!.renderer!.handler;
         h.gl!.deleteBuffer(this._texCoordBuffer as WebGLBuffer);
         this._texCoordArr = makeArrayTyped(this._texCoordArr);
-        this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr, 2, this._texCoordArr.length / 2);
+        this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr as Uint8Array, 2, this._texCoordArr.length / 2);
     }
 
     public createPositionBuffer() {
@@ -275,8 +275,8 @@ class InstanceData {
         this._positionHighArr = makeArrayTyped(this._positionHighArr);
         this._positionLowArr = makeArrayTyped(this._positionLowArr);
 
-        h.setStreamArrayBuffer(this._positionHighBuffer!, this._positionHighArr);
-        h.setStreamArrayBuffer(this._positionLowBuffer!, this._positionLowArr);
+        h.setStreamArrayBuffer(this._positionHighBuffer!, this._positionHighArr as Float32Array);
+        h.setStreamArrayBuffer(this._positionLowBuffer!, this._positionLowArr as Float32Array);
     }
 
     public createRgbaBuffer() {
@@ -290,7 +290,7 @@ class InstanceData {
 
         this._rgbaArr = makeArrayTyped(this._rgbaArr);
 
-        h.setStreamArrayBuffer(this._rgbaBuffer, this._rgbaArr);
+        h.setStreamArrayBuffer(this._rgbaBuffer, this._rgbaArr as Uint8Array);
     }
 
     public createDirectionBuffer() {
@@ -304,28 +304,28 @@ class InstanceData {
 
         this._directionArr = makeArrayTyped(this._directionArr);
 
-        h.setStreamArrayBuffer(this._directionBuffer, this._directionArr);
+        h.setStreamArrayBuffer(this._directionBuffer, this._directionArr as Float32Array);
     }
 
     public createNormalsBuffer() {
         const h = this._geoObjectHandler._planet!.renderer!.handler;
         h.gl!.deleteBuffer(this._normalsBuffer as WebGLBuffer);
         this._normalsArr = makeArrayTyped(this._normalsArr);
-        this._normalsBuffer = h.createArrayBuffer(this._normalsArr, 3, this._normalsArr.length / 3);
+        this._normalsBuffer = h.createArrayBuffer(this._normalsArr as Uint8Array, 3, this._normalsArr.length / 3);
     }
 
     public createIndicesBuffer() {
         const h = this._geoObjectHandler._planet!.renderer!.handler;
         h.gl!.deleteBuffer(this._indicesBuffer as WebGLBuffer);
         this._indicesArr = makeArrayTyped(this._indicesArr, Uint32Array);
-        this._indicesBuffer = h.createElementArrayBuffer(this._indicesArr, 1, this._indicesArr.length);
+        this._indicesBuffer = h.createElementArrayBuffer(this._indicesArr as Uint32Array, 1, this._indicesArr.length);
     }
 
     public createPickingColorBuffer() {
         const h = this._geoObjectHandler._planet!.renderer!.handler;
         h.gl!.deleteBuffer(this._pickingColorBuffer as WebGLBuffer);
         this._pickingColorArr = makeArrayTyped(this._pickingColorArr);
-        this._pickingColorBuffer = h.createArrayBuffer(this._pickingColorArr, 3, this._pickingColorArr.length / 3);
+        this._pickingColorBuffer = h.createArrayBuffer(this._pickingColorArr as Uint8Array, 3, this._pickingColorArr.length / 3);
     }
 
     public refresh() {
