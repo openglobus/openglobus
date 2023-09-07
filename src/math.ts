@@ -356,7 +356,7 @@ export function negativePItoPI(a: number): number {
  * @param {number} maxIter - Maximum iterations.
  * @returns {number} -
  */
-export function solve_iteration_fixed(f: Function, x0: number, maxIter: number): number {
+export function solve_iteration_fixed(f: (x: number) => number, x0: number, maxIter: number): number {
     let x = 0;
     let x2 = x0;
     for (let i = 0; i < maxIter; i++) {
@@ -370,13 +370,13 @@ export function solve_iteration_fixed(f: Function, x0: number, maxIter: number):
  * Solve using iteration; terminate when error is below err or the maximum
  * number of iterations is reached. Used in Euler's equation(see og.orbit) solving.
  * @function
- * @param {Function} f - Equation.
+ * @param {(x: number) => number} f - Equation.
  * @param {number} x0 - First approximation.
  * @param {number} err - Maximal accepted error value.
  * @param {number} maxIter - Maximum iterations.
  * @returns {number} -
  */
-export function solve_iteration(f: Function, x0: number, err: number, maxIter: number = 50): number {
+export function solve_iteration(f: (x: number) => number, x0: number, err: number, maxIter: number = 50): number {
     let x = 0;
     let x2 = x0;
     for (let i = 0; i < maxIter; i++) {

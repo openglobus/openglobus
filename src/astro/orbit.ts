@@ -1,9 +1,9 @@
-"use strict";
-
 import * as math from "../math";
-import { Mat3 } from "../math/Mat3";
+import {Mat3} from "../math/Mat3";
 
-export function getEccentricAnomaly(M, ecc) {
+type Func = (x: number) => number;
+
+export function getEccentricAnomaly(M: number, ecc: number): number {
     if (ecc == 0.0) {
         // Circular orbit
         return M;
@@ -17,7 +17,7 @@ export function getEccentricAnomaly(M, ecc) {
     } else if (ecc < 1.0) {
         // Extremely stable Laguerre-Conway method for solving Kepler's
         // equation.  Only use this for high-eccentricity orbits, as it
-        // requires more calcuation.
+        // requires more calculation.
         let E = M + 0.85 * ecc * Math.sign(Math.sin(M));
         return math.solve_iteration_fixed(solveKeplerLaguerreConway(ecc, M), E, 8);
     } else if (ecc == 1.0) {
@@ -31,8 +31,8 @@ export function getEccentricAnomaly(M, ecc) {
 }
 
 // Standard iteration for solving Kepler's Equation
-function solveKeplerFunc1(ecc, M) {
-    return function (x) {
+function solveKeplerFunc1(ecc: number, M: number): Func {
+    return function (x: number) {
         return M + ecc * Math.sin(x);
     };
 }
@@ -40,54 +40,52 @@ function solveKeplerFunc1(ecc, M) {
 // Faster converging iteration for Kepler's Equation; more efficient
 // than above for orbits with eccentricities greater than 0.3.  This
 // is from Jean Meeus's _Astronomical Algorithms_ (2nd ed), p. 199
-function solveKeplerFunc2(ecc, M) {
-    return function (x) {
+function solveKeplerFunc2(ecc: number, M: number): Func {
+    return function (x: number) {
         return x + (M + ecc * Math.sin(x) - x) / (1 - ecc * Math.cos(x));
     };
 }
 
-function solveKeplerLaguerreConway(ecc, M) {
-    return function (x) {
-        var s = ecc * Math.sin(x);
-        var c = ecc * Math.cos(x);
-        var f = x - s - M;
-        var f1 = 1 - c;
-        var f2 = s;
-        x += (-5 * f) / (f1 + Math.sign(f1) * Math.sqrt(Math.abs(16 * f1 * f1 - 20 * f * f2)));
+function solveKeplerLaguerreConway(ecc: number, M: number): Func {
+    return function (x: number) {
+        const s = ecc * Math.sin(x);
+        const c = ecc * Math.cos(x);
+        const f = x - s - M;
+        const f1 = 1 - c;
+        x += (-5 * f) / (f1 + Math.sign(f1) * Math.sqrt(Math.abs(16 * f1 * f1 - 20 * f * s)));
         return x;
     };
 }
 
-function solveKeplerLaguerreConwayHyp(ecc, M) {
-    return function (x) {
-        var s = ecc * Math.sinh(x);
-        var c = ecc * Math.cosh(x);
-        var f = s - x - M;
-        var f1 = c - 1;
-        var f2 = s;
-        x += (-5 * f) / (f1 + Math.sign(f1) * Math.sqrt(Math.abs(16 * f1 * f1 - 20 * f * f2)));
+function solveKeplerLaguerreConwayHyp(ecc: number, M: number): Func {
+    return function (x: number) {
+        const s = ecc * Math.sinh(x);
+        const c = ecc * Math.cosh(x);
+        const f = s - x - M;
+        const f1 = c - 1;
+        x += (-5 * f) / (f1 + Math.sign(f1) * Math.sqrt(Math.abs(16 * f1 * f1 - 20 * f * s)));
         return x;
     };
 }
 
-export function getEllipticalEccentricAnomaly(meanAnomaly, eccentricity) {
-    var tol = 0.00000001745;
-    var iterations = 20;
-    var e = meanAnomaly - 2.0 * Math.PI * ((meanAnomaly / (2.0 * Math.PI)) | 0);
-    var err = 1;
+export function getEllipticalEccentricAnomaly(meanAnomaly: number, eccentricity: number): number {
+    const tol = 0.00000001745;
+    let iterations = 20;
+    let e = meanAnomaly - 2.0 * Math.PI * ((meanAnomaly / (2.0 * Math.PI)) | 0);
+    let err = 1;
     while (Math.abs(err) > tol && iterations > 0) {
         err = e - eccentricity * Math.sin(e) - meanAnomaly;
-        var delta = err / (1 - eccentricity * Math.cos(e));
+        let delta = err / (1 - eccentricity * Math.cos(e));
         e -= delta;
         iterations--;
     }
     return e;
 }
 
-export function getTrueAnomaly(eccentricAnomaly, eccentricity) {
-    var revs = Math.floor(eccentricAnomaly / math.TWO_PI);
+export function getTrueAnomaly(eccentricAnomaly: number, eccentricity: number): number {
+    const revs = Math.floor(eccentricAnomaly / math.TWO_PI);
     eccentricAnomaly -= revs * math.TWO_PI;
-    var trueAnomaly = Math.atan2(
+    let trueAnomaly = Math.atan2(
         Math.sin(eccentricAnomaly) * Math.sqrt(1 - eccentricity * eccentricity),
         Math.cos(eccentricAnomaly) - eccentricity
     );
@@ -98,9 +96,9 @@ export function getTrueAnomaly(eccentricAnomaly, eccentricity) {
     return trueAnomaly + revs * math.TWO_PI;
 }
 
-export function getPerifocalToCartesianMatrix(argumentOfPeriapsis, inclination, rightAscension) {
-    var res = new Mat3();
-    var cosap = Math.cos(argumentOfPeriapsis),
+export function getPerifocalToCartesianMatrix(argumentOfPeriapsis: number, inclination: number, rightAscension: number): Mat3 {
+    let res = new Mat3();
+    let cosap = Math.cos(argumentOfPeriapsis),
         sinap = Math.sin(argumentOfPeriapsis),
         cosi = Math.cos(inclination),
         sini = Math.sin(inclination),
