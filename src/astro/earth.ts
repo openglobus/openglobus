@@ -1,17 +1,16 @@
-"use strict";
-
 import * as math from "../math";
 import { Quat } from "../math/Quat";
 import { Vec3 } from "../math/Vec3";
 import * as astro from "./astro.js";
-import * as jd from "./jd.js";
+import * as jd from "./jd";
+import {JulianDate} from "./jd";
 
 /**
  * Returns Sun position in the geocentric coordinate system by the time.
- * @param {Number} jDate - Julian date time.
+ * @param {JulianDate} jDate - Julian date time.
  * @returns {Vec3} - Sun geocentric coordinates.
  */
-export function getSunPosition(jDate) {
+export function getSunPosition(jDate: JulianDate): Vec3 {
     // http://stjarnhimlen.se/comp/tutorial.html
     // a  Mean distance, or semi-major axis
     // e  Eccentricity
