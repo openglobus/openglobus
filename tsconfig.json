@@ -1,6 +1,6 @@
 {
   "include" : [
-    "./src/og/**/*"
+    "./src/**/*"
   ],
   "exclude" : [
     "node_modules",

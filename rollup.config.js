@@ -9,7 +9,7 @@ const LIB_NAME = pkg.name + LIB_SUFFIX;
 const OUTPUT_NAME = `dist/${LIB_NAME}.`;
 
 const DEV = [{
-    input: `src/og/index${LIB_SUFFIX}.ts`,
+    input: `src/index${LIB_SUFFIX}.ts`,
     output: {
         file: `${OUTPUT_NAME}esm.js`,
         format: "esm",
@@ -38,7 +38,7 @@ const DEV = [{
 
 const PROD = [
     {
-        input: `src/og/index${LIB_SUFFIX}.ts`,
+        input: `src/index${LIB_SUFFIX}.ts`,
         output: [
             {
                 file: `${OUTPUT_NAME}umd.js`,
@@ -53,7 +53,7 @@ const PROD = [
             typescript({ tsconfig: './tsconfig.json' })
         ]
     }, {
-        input: `src/og/index${LIB_SUFFIX}.ts`,
+        input: `src/index${LIB_SUFFIX}.ts`,
         output: [
             {
                 file: `${OUTPUT_NAME}esm.js`,

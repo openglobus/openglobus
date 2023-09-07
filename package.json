@@ -5,7 +5,7 @@
   "directories" : {
     "example" : "./sandbox"
   },
-  "main" : "./src/og/index.ts",
+  "main" : "./src/index.ts",
   "style" : "./css/og.css",
   "scripts" : {
     "docs" : "jsdoc -r ./src/ -c ./jsdoc.conf.json -d ./docs",
@@ -14,7 +14,7 @@
     "dev" : "rollup -c -w --bundleConfigAsCjs --environment NODE_ENV:development",
     "test" : "jest --env=jsdom --runInBand --ci --coverage=false",
     "test_watch" : "jest --env=jsdom --watch",
-    "lint" : "eslint -c ./.eslintrc.js src/og",
+    "lint" : "eslint -c ./.eslintrc.js src/",
     "font" : "node ./fonts/index.js"
   },
   "repository" : {
@@ -29,14 +29,14 @@
   },
   "homepage" : "https://www.openglobus.org",
   "exports" : {
-    "." : "./src/og/index.js",
-    "./layer" : "./src/og/layer/index.js",
-    "./bv" : "./src/og/bv/index.js",
-    "./terrain" : "./src/og/terrain/index.js",
-    "./entity" : "./src/og/entity/index.js",
-    "./control" : "./src/og/control/index.js",
-    "./webgl" : "./src/og/webgl/index.js",
-    "./scene" : "./src/og/scene/index.js",
+    "." : "./src/index.js",
+    "./layer" : "./src/layer/index.js",
+    "./bv" : "./src/index.js",
+    "./terrain" : "./src/terrain/index.js",
+    "./entity" : "./src/entity/index.js",
+    "./control" : "./src/control/index.js",
+    "./webgl" : "./src/webgl/index.js",
+    "./scene" : "./src/scene/index.js",
     "./css/og.css" : "./css/og.css"
   },
   "devDependencies" : {
