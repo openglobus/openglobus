@@ -1,5 +1,4 @@
-import { EntityCollectionNode, EntityCollectionNodeWGS84 } from '../../src/og/quadTree/EntityCollectionNode';
-
+import { EntityCollectionNode, EntityCollectionNodeWGS84 } from '../../src/quadTree/EntityCollectionNode';
 
 describe('EntityCollectionNode class', () => {
     test('EntityCollectionNode', () => {

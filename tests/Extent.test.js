@@ -1,5 +1,5 @@
-import { Extent } from "../src/og/Extent";
-import * as mercator from "../src/og/mercator";
+import { Extent } from "../src/Extent";
+import * as mercator from "../src/mercator";
 
 test("Testing Extent", () => {
     const extent = new Extent();

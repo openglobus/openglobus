@@ -1,5 +1,5 @@
-import { Entity } from '../../src/og/entity/Entity';
-import { EntityCollection } from '../../src/og/entity/EntityCollection';
+import { Entity } from '../../src/entity/Entity';
+import { EntityCollection } from '../../src/entity/EntityCollection';
 
 
 test('Testing EntityCollection', () => {

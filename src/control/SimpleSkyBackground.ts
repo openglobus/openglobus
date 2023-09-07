@@ -1,6 +1,6 @@
 import {Control, IControlParams} from "./Control";
 import {htmlColorToRgb} from "../utils/shared";
-import {Program} from '../webgl/Program.js';
+import {Program} from '../webgl/Program';
 
 interface ISimpleSkyBackgroundParams extends IControlParams {
 

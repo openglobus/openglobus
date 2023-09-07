@@ -1,4 +1,4 @@
-import { LonLat } from '../src/og/LonLat';
+import { LonLat } from '../src/LonLat';
 
 describe('LonLat', () => {
     describe('constructor', () => {

@@ -1,6 +1,6 @@
-import { Extent } from "../src/og/Extent";
-import { Planet } from "../src/og/scene/Planet";
-import { SegmentLonLat } from "../src/og/segment/SegmentLonLat";
+import { Extent } from "../src/Extent";
+import { Planet } from "../src/scene/Planet";
+import { SegmentLonLat } from "../src/segment/SegmentLonLat";
 
 const mockPlanet = () => {
     const planet = new Planet();

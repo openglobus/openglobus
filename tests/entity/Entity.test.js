@@ -1,19 +1,18 @@
-import { Billboard } from '../../src/og/entity/Billboard';
-import { Entity } from '../../src/og/entity/Entity';
-import { EntityCollection } from '../../src/og/entity/EntityCollection';
-import { PointCloud } from '../../src/og/entity/PointCloud';
-import { Polyline } from '../../src/og/entity/Polyline';
-import { Ray } from '../../src/og/entity/Ray';
-import { Strip } from '../../src/og/entity/Strip';
-import { LonLat } from '../../src/og/LonLat';
-import { Vec3 } from '../../src/og/math/Vec3';
+import { Billboard } from '../../src/entity/Billboard';
+import { Entity } from '../../src/entity/Entity';
+import { EntityCollection } from '../../src/entity/EntityCollection';
+import { PointCloud } from '../../src/entity/PointCloud';
+import { Polyline } from '../../src/entity/Polyline';
+import { Ray } from '../../src/entity/Ray';
+import { Strip } from '../../src/entity/Strip';
+import { LonLat } from '../../src/LonLat';
+import { Vec3 } from '../../src/math/Vec3';
 
 test('Testing Entity', () => {
     let entity1 = new Entity({
         'label': {},
         'polyline': {},
         'billboard': {},
-        'label': {},
         'ray': {},
         'strip': {},
         'visibility': true

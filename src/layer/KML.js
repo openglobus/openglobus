@@ -1,10 +1,10 @@
 "use strict";
 
-import { Billboard } from "../entity/Billboard.js";
-import { Entity } from "../entity/Entity.js";
+import { Billboard } from "../entity/Billboard";
+import { Entity } from "../entity/Entity";
 import { Extent } from "../Extent";
 import { LonLat } from "../LonLat";
-import { Vector } from "./Vector.js";
+import { Vector } from "./Vector";
 
 /**
  * Layer to render KMLs files

@@ -1,6 +1,6 @@
-import { Label } from "../../src/og/entity/Label";
-import { Vec4 } from "../../src/og/math/Vec4";
-import { FontAtlas } from "../../src/og/utils/FontAtlas";
+import { Label } from "../../src/entity/Label";
+import { Vec4 } from "../../src/math/Vec4";
+import { FontAtlas } from "../../src/utils/FontAtlas";
 test('Testing Label', () => {
     let label = new Label();
 

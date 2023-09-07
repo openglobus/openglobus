@@ -1,4 +1,4 @@
-import { Billboard } from "../../src/og/entity/Billboard";
+import { Billboard } from "../../src/entity/Billboard";
 
 test("Testing Billboard", () => {
     let billboard = new Billboard();

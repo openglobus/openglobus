@@ -1,4 +1,4 @@
-import { Material } from "../../src/og/layer/Material";
+import { Material } from "../../src/layer/Material";
 
 test("Testing Material", () => {
     const material = new Material("name", {});

@@ -1,5 +1,5 @@
 import fs from 'fs'
-import { KML } from '../../src/og/layer/KML'
+import { KML } from '../../src/layer/KML'
 
 const readKml = (name) => {
     return new Promise((resolve) => {
