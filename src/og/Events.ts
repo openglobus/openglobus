@@ -2,7 +2,7 @@ import {binaryInsert, stamp} from "./utils/shared";
 
 export type EventCallback = (((...args: any[]) => boolean) | ((...args: any[]) => void));
 
-type EventCallbackStamp = EventCallback & { _openglobus_id?: number; _openglobus_priority?: number };
+export type EventCallbackStamp = EventCallback & { _openglobus_id?: number; _openglobus_priority?: number };
 
 type EventCallbacks = Array<EventCallback>;
 type EventCallbackHandler = { active: boolean; handlers: EventCallbacks };

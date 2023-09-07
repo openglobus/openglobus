@@ -1,210 +1,195 @@
-'use strict';
-
 import {input} from './input';
 import {stamp} from "../utils/shared";
+import {EventCallback, EventCallbackStamp} from "../Events";
 
 const STAMP_SPACER = "_";
 
+interface ICallbackHandler {
+    callback: EventCallbackStamp,
+    sender: any,
+    priority: number
+}
+
+const _sortByPriority = function (a: ICallbackHandler, b: ICallbackHandler): number {
+    return Number(a.priority < b.priority);
+};
+
 class KeyboardHandler {
-
-    private _instance: any;
-
-    protected _removeCallback: any;
-    protected _getStamp: any;
-    protected _stamp: any;
-
-    public getcurrentlyPressedKeys: any;
-    public getPressedKeysCallbacks: any;
-    public getUnpressedKeysCallbacks: any;
-    public getCharkeysCallbacks: any;
-    public removeEvent: any;
-    public setActivity: any;
-    public releaseKeys: any;
-    public addEvent: any;
-    public isKeyPressed: any;
-    public handleKeyDown: any;
-    public handleKeyUp: any;
-    public handleEvents: any;
+    protected _currentlyPressedKeys: Record<number, boolean>;
+    protected _pressedKeysCallbacks: Record<number, ICallbackHandler[]>;
+    protected _unpressedKeysCallbacks: Record<number, ICallbackHandler[]>;
+    protected _charkeysCallbacks: Record<number, ICallbackHandler[]>;
+    protected _anykeyCallback: any;
+    protected _event: KeyboardEvent | null;
+    protected _active: boolean;
+    protected _stampCache: Record<string, number>;
 
     constructor() {
-        let _that = this;
-        let _currentlyPressedKeys: any = {};
-        let _pressedKeysCallbacks: any = {};
-        let _unpressedKeysCallbacks: any = {};
-        let _charkeysCallbacks: any = {};
-        let _anykeyCallback: any = null;
-        let _event: any = null;
-        let _active: boolean = true;
-        let _stampCache: any = {};
+        this._currentlyPressedKeys = {};
+        this._pressedKeysCallbacks = {};
+        this._unpressedKeysCallbacks = {};
+        this._charkeysCallbacks = {};
+        this._anykeyCallback = null;
+        this._event = null;
+        this._active = true;
+        this._stampCache = {};
 
-        if (KeyboardHandler.prototype._instance) {
-            return KeyboardHandler.prototype._instance;
-        } else {
-            KeyboardHandler.prototype._instance = this;
-
-            document.onkeydown = function (event) {
-                _event = event;
-                _active && _that.handleKeyDown();
-            };
-            document.onkeyup = function (event) {
-                _event = event;
-                _active && _that.handleKeyUp();
-            };
-        }
-
-        const _sortByPriority = function (a: any, b: any) {
-            return a.priority < b.priority;
+        document.onkeydown = (event: KeyboardEvent) => {
+            this._event = event;
+            this._active && this.handleKeyDown();
         };
 
-        this.getcurrentlyPressedKeys = function () {
-            return _currentlyPressedKeys;
+        document.onkeyup = (event: KeyboardEvent) => {
+            this._event = event;
+            this._active && this.handleKeyUp();
+        };
+    }
+
+    public getcurrentlyPressedKeys(): Record<number, boolean> {
+        return this._currentlyPressedKeys;
+    }
+
+    public getPressedKeysCallbacks() {
+        return this._pressedKeysCallbacks;
+    }
+
+    public getUnpressedKeysCallbacks() {
+        return this._unpressedKeysCallbacks;
+    }
+
+    public getCharkeysCallbacks() {
+        return this._charkeysCallbacks;
+    }
+
+    public removeEvent(event: string, keyCode: number, callback: EventCallback) {
+        let st = this._getStamp(event, keyCode, (callback as EventCallbackStamp)._openglobus_id!);
+        if ((callback as EventCallbackStamp)._openglobus_id && this._stampCache[st]) {
+            //this._stampCache[st] = null;
+            delete this._stampCache[st];
+
+            if (event === "keypress") {
+                this._removeCallback(this._pressedKeysCallbacks[keyCode], callback);
+            } else if (event === "keyfree") {
+                this._removeCallback(this._unpressedKeysCallbacks[keyCode], callback);
+            } else if (event === "charkeypress") {
+                this._removeCallback(this._charkeysCallbacks[keyCode], callback);
+            }
         }
+    }
 
-        this.getPressedKeysCallbacks = function () {
-            return _pressedKeysCallbacks;
+    protected _removeCallback(handlers: ICallbackHandler[], callback: EventCallbackStamp) {
+        for (let i = 0; i < handlers.length; i++) {
+            if (handlers[i].callback._openglobus_id === callback._openglobus_id) {
+                handlers.splice(i, 1);
+            }
         }
+    }
 
-        this.getUnpressedKeysCallbacks = function () {
-            return _unpressedKeysCallbacks;
+    protected _getStamp(name: string, keyCode: number, ogid: number) {
+        return `${name}${STAMP_SPACER}${keyCode}${STAMP_SPACER}${ogid}`;
+    }
+
+    protected _stamp(name: string, keyCode: number, obj: any) {
+        const ogid = stamp(obj);
+        const st = this._getStamp(name, keyCode, ogid);
+        if (!this._stampCache[st]) {
+            this._stampCache[st] = ogid;
+            return true;
         }
+        return false;
+    }
 
-        this.getCharkeysCallbacks = function () {
-            return _charkeysCallbacks;
+    public setActivity(activity: boolean) {
+        this._active = activity;
+    }
+
+    public releaseKeys() {
+        this._currentlyPressedKeys = {};
+    }
+
+    public addEvent(event: string, keyCode: number, callback: EventCallback, sender?: any, priority?: number) {
+
+        // Event is already bound with the callback
+        if (!this._stamp(event, keyCode, callback)) return;
+
+        if (priority === undefined) {
+            priority = 1600;
         }
+        switch (event) {
+            case "keyfree":
+                if (!this._unpressedKeysCallbacks[keyCode]) {
+                    this._unpressedKeysCallbacks[keyCode] = [];
+                }
+                this._unpressedKeysCallbacks[keyCode].push({callback: callback, sender: sender, priority: priority});
+                this._unpressedKeysCallbacks[keyCode].sort(_sortByPriority);
+                break;
 
-        this.removeEvent = function (event: string, keyCode: number, callback: any) {
-            let st = this._getStamp(event, keyCode, callback._openglobus_id);
-            if (callback._openglobus_id && _stampCache[st]) {
-                _stampCache[st] = null;
-                delete _stampCache[st];
+            case "keypress":
+                if (keyCode == null) {
+                    this._anykeyCallback = {callback: callback, sender: sender || this};
+                } else {
+                    if (!this._pressedKeysCallbacks[keyCode]) {
+                        this._pressedKeysCallbacks[keyCode] = [];
+                    }
+                    this._pressedKeysCallbacks[keyCode].push({callback: callback, sender: sender, priority: priority});
+                    this._pressedKeysCallbacks[keyCode].sort(_sortByPriority);
+                }
+                break;
 
-                if (event === "keypress") {
-                    this._removeCallback(_pressedKeysCallbacks[keyCode], callback);
-                } else if (event === "keyfree") {
-                    this._removeCallback(_unpressedKeysCallbacks[keyCode], callback);
-                } else if (event === "charkeypress") {
-                    this._removeCallback(_charkeysCallbacks[keyCode], callback);
+            case "charkeypress":
+                if (!this._charkeysCallbacks[keyCode]) {
+                    this._charkeysCallbacks[keyCode] = [];
+                }
+                this._charkeysCallbacks[keyCode].push({callback: callback, sender: sender, priority: priority});
+                this._charkeysCallbacks[keyCode].sort(_sortByPriority);
+                break;
+        }
+    }
+
+    public isKeyPressed(keyCode: number) {
+        return this._currentlyPressedKeys[keyCode];
+    }
+
+    public handleKeyDown() {
+        this._anykeyCallback && this._anykeyCallback.callback.call(this._anykeyCallback.sender, this._event);
+        this._currentlyPressedKeys[this._event!.keyCode] = true;
+        for (let ch in this._charkeysCallbacks) {
+            if (String.fromCharCode(this._event!.keyCode) === String.fromCharCode(Number(ch))) {
+                let ccl = this._charkeysCallbacks[ch];
+                for (let i = 0; i < ccl.length; i++) {
+                    (ccl[i].callback as Function).call(ccl[i].sender, this._event);
                 }
             }
-        };
+        }
 
-        this._removeCallback = function (handlers: any, callback: any) {
-            for (let i = 0; i < handlers.length; i++) {
-                if (handlers[i].callback._openglobus_id === callback._openglobus_id) {
-                    handlers.splice(i, 1);
-                }
-            }
-        };
+        if (this._event!.keyCode == input.KEY_ALT || this._event!.keyCode == input.KEY_SHIFT) {
+            this._event!.preventDefault();
+        }
+    }
 
-        this._getStamp = function (name: string, keyCode: number, ogid: number) {
-            return `${name}${STAMP_SPACER}${keyCode}${STAMP_SPACER}${ogid}`;
-        };
-
-        this._stamp = function (name: string, keyCode: number, obj: any) {
-            let ogid = stamp(obj);
-
-            let st = this._getStamp(name, keyCode, ogid);
-
-            if (!_stampCache[st]) {
-                _stampCache[st] = ogid;
-                return true;
-            }
-
-            return false;
-        };
-
-        this.setActivity = function (activity: boolean) {
-            _active = activity;
-        };
-
-        this.releaseKeys = function () {
-            _currentlyPressedKeys = {};
-        };
-
-        this.addEvent = function (event: string, keyCode: number, callback: Function, sender?: any, priority?: number) {
-
-            // Event is already bound with the callback
-            if (!this._stamp(event, keyCode, callback)) return;
-
-            if (priority === undefined) {
-                priority = 1600;
-            }
-            switch (event) {
-                case "keyfree":
-                    if (!_unpressedKeysCallbacks[keyCode]) {
-                        _unpressedKeysCallbacks[keyCode] = [];
-                    }
-                    _unpressedKeysCallbacks[keyCode].push({callback: callback, sender: sender, priority: priority});
-                    _unpressedKeysCallbacks[keyCode].sort(_sortByPriority);
-                    break;
-
-                case "keypress":
-                    if (keyCode == null) {
-                        _anykeyCallback = {callback: callback, sender: sender || _that};
-                    } else {
-                        if (!_pressedKeysCallbacks[keyCode]) {
-                            _pressedKeysCallbacks[keyCode] = [];
-                        }
-                        _pressedKeysCallbacks[keyCode].push({callback: callback, sender: sender, priority: priority});
-                        _pressedKeysCallbacks[keyCode].sort(_sortByPriority);
-                    }
-                    break;
-
-                case "charkeypress":
-                    if (!_charkeysCallbacks[keyCode]) {
-                        _charkeysCallbacks[keyCode] = [];
-                    }
-                    _charkeysCallbacks[keyCode].push({callback: callback, sender: sender, priority: priority});
-                    _charkeysCallbacks[keyCode].sort(_sortByPriority);
-                    break;
-            }
-        };
-
-        this.isKeyPressed = function (keyCode: number) {
-            return _currentlyPressedKeys[keyCode];
-        };
-
-        this.handleKeyDown = function () {
-            _anykeyCallback && _anykeyCallback.callback.call(_anykeyCallback.sender, _event);
-            _currentlyPressedKeys[_event.keyCode] = true;
-            for (let ch in _charkeysCallbacks) {
-                if (String.fromCharCode(_event.keyCode) == String.fromCharCode(Number(ch))) {
-                    let ccl = _charkeysCallbacks[ch];
-                    for (let i = 0; i < ccl.length; i++) {
-                        ccl[i].callback.call(ccl[i].sender, _event);
-                    }
-                }
-            }
-
-            if (_event.keyCode == input.KEY_ALT || _event.keyCode == input.KEY_SHIFT) {
-                _event.preventDefault();
-            }
-        };
-
-        this.handleKeyUp = function () {
-            if (_currentlyPressedKeys[_event.keyCode] || _event.keyCode === input.KEY_PRINTSCREEN) {
-                for (let pk in _unpressedKeysCallbacks) {
-                    if (_currentlyPressedKeys[pk] || _event.keyCode === input.KEY_PRINTSCREEN && Number(pk) === input.KEY_PRINTSCREEN) {
-                        let cpk = _unpressedKeysCallbacks[pk];
-                        for (let i = 0; i < cpk.length; i++) {
-                            cpk[i].callback.call(cpk[i].sender, _event);
-                        }
-                    }
-                }
-            }
-            _currentlyPressedKeys[_event.keyCode] = false;
-        };
-
-        this.handleEvents = function () {
-            for (let pk in _pressedKeysCallbacks) {
-                if (_currentlyPressedKeys[pk]) {
-                    let cpk = _pressedKeysCallbacks[pk];
+    public handleKeyUp() {
+        if (this._currentlyPressedKeys[this._event!.keyCode] || this._event!.keyCode === input.KEY_PRINTSCREEN) {
+            for (let pk in this._unpressedKeysCallbacks) {
+                if (this._currentlyPressedKeys[pk] || this._event!.keyCode === input.KEY_PRINTSCREEN && Number(pk) === input.KEY_PRINTSCREEN) {
+                    let cpk = this._unpressedKeysCallbacks[pk];
                     for (let i = 0; i < cpk.length; i++) {
-                        cpk[i].callback.call(cpk[i].sender, _event);
+                        (cpk[i].callback as Function).call(cpk[i].sender, this._event);
                     }
                 }
             }
-        };
+        }
+        this._currentlyPressedKeys[this._event!.keyCode] = false;
+    }
+
+    public handleEvents() {
+        for (let pk in this._pressedKeysCallbacks) {
+            if (this._currentlyPressedKeys[pk]) {
+                let cpk = this._pressedKeysCallbacks[pk];
+                for (let i = 0; i < cpk.length; i++) {
+                    (cpk[i].callback as Function).call(cpk[i].sender, this._event);
+                }
+            }
+        }
     }
 }
 
