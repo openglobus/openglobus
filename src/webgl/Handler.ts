@@ -280,11 +280,11 @@ class Handler {
 
     /**
      * The return value is null if the extension is not supported, or an extension object otherwise.
-     * @param {Object} gl - WebGl context pointer.
-     * @param {String} name - Extension name.
-     * @returns {Object} -
+     * @param {WebGLRenderingContext | WebGL2RenderingContext | null} gl - WebGl context pointer.
+     * @param {string} name - Extension name.
+     * @returns {any} -
      */
-    static getExtension(gl: WebGLRenderingContext | WebGL2RenderingContext | null, name: string): string | undefined {
+    static getExtension(gl: WebGLRenderingContext | WebGL2RenderingContext | null, name: string): any | undefined {
 
         if (!gl) return;
 
@@ -299,9 +299,9 @@ class Handler {
 
     /**
      * Returns a drawing context on the canvas, or null if the context identifier is not supported.
-     * @param {Object} canvas - HTML canvas object.
-     * @param {Object} [contextAttributes] - See canvas.getContext contextAttributes.
-     * @returns {Object} -
+     * @param {HTMLCanvasElement} canvas - HTML canvas object.
+     * @param {any} [contextAttributes] - See canvas.getContext contextAttributes.
+     * @returns {WebGLContextExt | null} -
      */
     static getContext(canvas: HTMLCanvasElement, contextAttributes?: any): WebGLContextExt | null {
         let ctx: WebGLContextExt | null = null;
@@ -337,7 +337,7 @@ class Handler {
     /**
      * Sets animation frame function.
      * @public
-     * @param {callback} callback - Frame callback.
+     * @param {Function} callback - Frame callback.
      */
     public setFrameCallback(callback: Function) {
         callback && (this._frameCallback = callback);
@@ -346,14 +346,14 @@ class Handler {
     /**
      * Creates empty texture.
      * @public
-     * @param {Number} [width=1] - Specifies the width of the texture image.
-     * @param {Number} [height=1] - Specifies the width of the texture image.
-     * @param {String} [filter="NEAREST"] - Specifies GL_TEXTURE_MIN(MAX)_FILTER texture value.
-     * @param {String} [internalFormat="RGBA"] - Specifies the color components in the texture.
-     * @param {String} [format="RGBA"] - Specifies the format of the texel data.
-     * @param {String} [type="UNSIGNED_BYTE"] - Specifies the data type of the texel data.
-     * @param {Number} [level=0] - Specifies the level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.
-     * @returns {Object} - WebGL texture object.
+     * @param {number} [width=1] - Specifies the width of the texture image.
+     * @param {number} [height=1] - Specifies the width of the texture image.
+     * @param {string} [filter="NEAREST"] - Specifies GL_TEXTURE_MIN(MAX)_FILTER texture value.
+     * @param {string} [internalFormat="RGBA"] - Specifies the color components in the texture.
+     * @param {string} [format="RGBA"] - Specifies the format of the texel data.
+     * @param {string} [type="UNSIGNED_BYTE"] - Specifies the data type of the texel data.
+     * @param {number} [level=0] - Specifies the level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.
+     * @returns {WebGLTexture | null} - WebGL texture object.
      */
     public createEmptyTexture2DExt(
         width: number = 1,
@@ -396,7 +396,7 @@ class Handler {
      * @param {number} width - Empty texture width.
      * @param {number} height - Empty texture height.
      * @param {number} [internalFormat]
-     * @returns {Object} - WebGL texture object.
+     * @returns {WebGLTexture | null} - WebGL texture object.
      */
     public createEmptyTexture_n(
         width: number,
@@ -434,7 +434,7 @@ class Handler {
      * @param {number} width - Empty texture width.
      * @param {number} height - Empty texture height.
      * @param {number} [internalFormat]
-     * @returns {Object} - WebGL texture object.
+     * @returns {WebGLTexture | null} - WebGL texture object.
      */
     public createEmptyTexture_l(
         width: number,
@@ -461,8 +461,8 @@ class Handler {
      * @public
      * @param {HTMLCanvasElement | Image} image - Image or Canvas object.
      * @param {number} [internalFormat]
-     * @param {WebGLTexture} [texture]
-     * @returns {WebGLTexture} - WebGL texture object.
+     * @param {WebGLTexture | null} [texture=null]
+     * @returns {WebGLTexture | null} - WebGL texture object.
      */
     public createTexture_n_webgl1(
         image: ImageSource,
@@ -487,10 +487,10 @@ class Handler {
     /**
      * Creates LINEAR filter texture.
      * @public
-     * @param {Object} image - Image or Canvas object.
+     * @param {ImageSource} image - Image or Canvas object.
      * @param {number} [internalFormat]
-     * @param {WebGLTexture} [texture]
-     * @returns {Object} - WebGL texture object.
+     * @param {WebGLTexture | null} [texture]
+     * @returns {WebGLTexture | null} - WebGL texture object.
      */
     public createTexture_l_webgl1(
         image: ImageSource,
@@ -514,10 +514,10 @@ class Handler {
     /**
      * Creates MIPMAP filter texture.
      * @public
-     * @param {Object} image - Image or Canvas object.
+     * @param {ImageSource} image - Image or Canvas object.
      * @param {number} [internalFormat]
-     * @param {WebGLTexture} [texture]
-     * @returns {Object} - WebGL texture object.
+     * @param {WebGLTexture | null} [texture]
+     * @returns {WebGLTexture | null} - WebGL texture object.
      */
     public createTexture_mm_webgl1(
         image: ImageSource,
@@ -542,10 +542,10 @@ class Handler {
     /**
      * Creates ANISOTROPY filter texture.
      * @public
-     * @param {Object} image - Image or Canvas object.
+     * @param {ImageSource} image - Image or Canvas object.
      * @param {number} [internalFormat]
-     * @param {WebGLTexture} [texture]
-     * @returns {Object} - WebGL texture object.
+     * @param {WebGLTexture | null} [texture]
+     * @returns {WebGLTexture | null} - WebGL texture object.
      */
     public createTexture_a_webgl1(
         image: ImageSource,
@@ -571,10 +571,10 @@ class Handler {
     /**
      * Creates NEAREST filter texture.
      * @public
-     * @param {Object} image - Image or Canvas object.
+     * @param {ImageSource} image - Image or Canvas object.
      * @param {number} [internalFormat]
-     * @param {WebGLTexture} [texture]
-     * @returns {Object} - WebGL texture object.
+     * @param {WebGLTexture | null} [texture]
+     * @returns {WebGLTexture | null} - WebGL texture object.
      */
     public createTexture_n_webgl2(
         image: ImageSource,
@@ -773,7 +773,7 @@ class Handler {
     /**
      * Removes shader program from handler.
      * @public
-     * @param {String} name - Shader program name.
+     * @param {string} name - Shader program name.
      */
     public removeProgram(name: string) {
         this.programs[name] && this.programs[name].remove();
