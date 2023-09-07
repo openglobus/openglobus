@@ -1,5 +1,3 @@
-"use strict";
-
 import {Vec3} from "./Vec3";
 
 export type NumberArray2 = [number, number];

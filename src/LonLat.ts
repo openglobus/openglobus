@@ -1,5 +1,3 @@
-"use strict";
-
 import * as mercator from "./mercator";
 import {NumberArray2} from "./math/Vec2";
 import {NumberArray3} from "./math/Vec3";

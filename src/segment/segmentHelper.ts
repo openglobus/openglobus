@@ -2,7 +2,7 @@
  * @module og/segment/SegmentHelper
  */
 
-import {N, W, S, E} from '../quadTree/quadTree.js';
+import {N, W, S, E} from '../quadTree/quadTree';
 
 type IndexTypeArray = Uint32Array;
 type IndexesTable = [IndexTypeArray[][], IndexTypeArray[][], IndexTypeArray[][], IndexTypeArray[][]];

@@ -1,9 +1,9 @@
-﻿import { Entity } from '../../entity/Entity.js';
+﻿import { Entity } from '../../entity/Entity';
 import { Events } from '../../Events';
-import { Vector } from '../../layer/Vector.js';
+import { Vector } from '../../layer/Vector';
 import { LonLat } from '../../LonLat';
-import { Object3d } from '../../Object3d.js';
-import { RenderNode } from '../../scene/RenderNode.js';
+import { Object3d } from '../../Object3d';
+import { RenderNode } from '../../scene/RenderNode';
 
 const OUTLINE_COUNT = 120;
 

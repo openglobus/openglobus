@@ -1,14 +1,12 @@
-"use strict";
-
 import * as mercator from "../mercator";
 import * as math from "../math";
 import {Camera, ICameraParams} from "./Camera";
-import {Key} from "../Lock.js";
+import {Key} from "../Lock";
 import {LonLat} from "../LonLat";
 import {Mat4} from "../math/Mat4";
 import {Planet} from "../scene/Planet";
 import {Quat} from "../math/Quat";
-import {Ray} from "../math/Ray.js";
+import {Ray} from "../math/Ray";
 import {Vec3} from "../math/Vec3";
 import {Extent} from "../Extent";
 import {Segment} from "../segment/Segment";

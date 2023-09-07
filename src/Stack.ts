@@ -1,5 +1,3 @@
-"use strict";
-
 class Node<T> {
 
     public next: Node<T> | null;

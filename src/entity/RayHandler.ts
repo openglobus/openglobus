@@ -1,4 +1,4 @@
-import * as shaders from "../shaders/ray.js";
+import * as shaders from "../shaders/ray";
 import {concatArrays, makeArrayTyped, spliceArray, TypedArray} from "../utils/shared";
 import {EntityCollection} from "./EntityCollection";
 import {Ray} from "./Ray";

@@ -1,5 +1,3 @@
-"use strict";
-
 /**
  * Scene node base class.
  * @class

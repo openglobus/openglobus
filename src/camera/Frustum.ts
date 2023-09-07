@@ -1,5 +1,3 @@
-"use strict";
-
 import {Box} from "../bv/Box";
 import {Mat4, NumberArray16} from "../math/Mat4";
 import {NumberArray4} from "../math/Vec4";

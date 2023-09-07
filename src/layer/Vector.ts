@@ -1,12 +1,12 @@
 import * as math from "../math";
 import * as mercator from "../mercator";
-import * as quadTree from "../quadTree/quadTree.js";
+import * as quadTree from "../quadTree/quadTree";
 import {Entity, IEntityParams} from "../entity/Entity";
 import {EntityCollection} from "../entity/EntityCollection";
 import {
     EntityCollectionNode,
     EntityCollectionNodeWGS84
-} from "../quadTree/EntityCollectionNode.js";
+} from "../quadTree/EntityCollectionNode";
 import {EventsHandler} from "../Events";
 import {Extent} from "../Extent";
 import {GeometryHandler} from "../entity/GeometryHandler";

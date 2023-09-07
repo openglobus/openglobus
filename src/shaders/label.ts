@@ -1,5 +1,3 @@
-'use strict';
-
 import {Program} from '../webgl/Program';
 
 const DEFINE = `

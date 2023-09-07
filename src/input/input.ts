@@ -1,5 +1,3 @@
-'use strict';
-
 export const input: { [id: string]: number } = {
     KEY_CTRL: 17,
     KEY_ALT: 18,

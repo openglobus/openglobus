@@ -1,20 +1,18 @@
-'use strict';
-
-import * as jd from './astro/jd.js';
+import * as jd from './astro/jd';
 import * as math from './math';
 import * as mercator from './mercator';
 import * as utils from './utils/shared';
 import * as bv from './bv/index';
 import * as control from './control/index';
 import * as entity from './entity/index';
-import * as layer from './layer/index.js';
+import * as layer from './layer/index';
 import * as scene from './scene/index';
-import * as terrain from './terrain/index.js';
+import * as terrain from './terrain/index';
 import * as webgl from './webgl/index';
 
-import {Globe} from './Globe.js';
+import {Globe} from './Globe';
 
-import {Geoid} from './terrain/Geoid.js';
+import {Geoid} from './terrain/Geoid';
 
 import {input} from './input/input';
 
@@ -42,14 +40,14 @@ import {
 } from './math/index';
 
 import {Renderer} from './renderer/Renderer';
-import {LightSource} from './light/LightSource.js';
+import {LightSource} from './light/LightSource';
 import {Clock} from './Clock';
 import {Events} from './Events';
 import {Extent} from './Extent';
 import {LonLat} from './LonLat';
 import {RenderNode} from './scene/RenderNode';
 import {Planet} from './scene/Planet';
-import {Popup} from './Popup.js';
+import {Popup} from './Popup';
 
 import {
     EarthQuadTreeStrategy,
@@ -57,7 +55,7 @@ import {
     QuadTreeStrategy,
     quadTreeStrategyType,
     Wgs84QuadTreeStrategy
-} from './quadTree/index.js';
+} from './quadTree/index';
 
 
 import {Object3d} from './Object3d';

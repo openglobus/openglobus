@@ -1,5 +1,3 @@
-"use strict";
-
 import {frac} from "../math";
 import {Vec3} from "./Vec3";
 

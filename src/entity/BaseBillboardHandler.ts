@@ -3,7 +3,7 @@ import {spliceTypedArray, TypedArray} from "../utils/shared";
 import {EntityCollection} from "./EntityCollection";
 import {Planet} from "../scene/Planet";
 import {Renderer} from "../renderer/Renderer";
-import {LOCK_FREE} from "./LabelWorker.js";
+import {LOCK_FREE} from "./LabelWorker";
 import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 import {WebGLBufferExt} from "../webgl/Handler";

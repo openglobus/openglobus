@@ -1,5 +1,3 @@
-"use strict";
-
 import * as math from "../math";
 import {Vec3} from "./Vec3";
 import {Mat4} from "./Mat4";

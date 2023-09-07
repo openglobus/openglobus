@@ -1,5 +1,3 @@
-'use strict';
-
 export const colorTable: { [id: string]: string } = {
     "aliceblue": "#f0f8ff",
     "antiquewhite": "#faebd7",

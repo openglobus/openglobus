@@ -1,6 +1,6 @@
 import * as utils from "../utils/shared";
 import {BaseBillboard, IBaseBillboardParams} from "./BaseBillboard";
-import {LOCK_FREE, LOCK_UPDATE} from "./LabelWorker.js";
+import {LOCK_FREE, LOCK_UPDATE} from "./LabelWorker";
 import {NumberArray4, Vec4} from "../math/Vec4";
 import {FontAtlas} from "../utils/FontAtlas";
 import {LabelHandler} from "./LabelHandler";

@@ -1,5 +1,5 @@
 import * as mercator from "../mercator";
-import * as quadTree from "../quadTree/quadTree.js";
+import * as quadTree from "../quadTree/quadTree";
 import {Extent} from "../Extent";
 import {Handler} from "../webgl/Handler";
 import {doubleToTwoFloatsV2} from "../math/coder";

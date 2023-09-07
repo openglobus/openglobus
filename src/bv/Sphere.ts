@@ -1,5 +1,3 @@
-"use strict";
-
 import {Vec3} from "../math/Vec3";
 import {Ellipsoid} from "../ellipsoid/Ellipsoid";
 import {Extent} from "../Extent";

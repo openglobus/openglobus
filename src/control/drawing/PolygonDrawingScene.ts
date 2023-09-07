@@ -5,13 +5,13 @@ import {Entity} from '../../entity/Entity.js';
 import {IMouseState} from "../../renderer/RendererEvents";
 import {MouseNavigation} from "../MouseNavigation";
 import {LonLat} from '../../LonLat';
-import {Line3} from '../../math/Line3.js';
-import {Object3d} from '../../Object3d.js';
+import {Line3} from '../../math/Line3';
+import {Object3d} from '../../Object3d';
 import {Planet} from '../../scene/Planet';
-import {RenderNode} from '../../scene/RenderNode.js';
+import {RenderNode} from '../../scene/RenderNode';
 import {Vec2} from '../../math/Vec2';
 import {Vec3} from '../../math/Vec3';
-import {Vector} from '../../layer/Vector.js';
+import {Vector} from '../../layer/Vector';
 
 type PolygonDrawingSceneEventsList = ["change", "startpoint"];
 

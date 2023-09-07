@@ -1,5 +1,3 @@
-"use strict";
-
 /**
  * 2D Rectangle class.
  * @class

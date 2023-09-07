@@ -1,6 +1,6 @@
 import * as utils from "../utils/shared";
 import {Entity} from "./Entity";
-import {LOCK_FREE, LOCK_UPDATE} from "./LabelWorker.js";
+import {LOCK_FREE, LOCK_UPDATE} from "./LabelWorker";
 import {NumberArray3, Vec3} from "../math/Vec3";
 import {NumberArray4, Vec4} from "../math/Vec4";
 import {BaseBillboardHandler} from "./BaseBillboardHandler";

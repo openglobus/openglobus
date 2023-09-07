@@ -3,7 +3,6 @@ import {EPSG4326} from "../proj/EPSG4326";
 import {BaseWorker} from "./BaseWorker";
 import {Segment} from "../segment/Segment";
 import {Geoid} from "../terrain/Geoid";
-import {NumberArray6} from "../bv/Sphere";
 
 export interface IPlainSegmentWorkerData {
     plainVertices: Float64Array | null;

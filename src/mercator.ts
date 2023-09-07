@@ -1,5 +1,3 @@
-'use strict';
-
 import { Extent } from "./Extent";
 import { LonLat } from './LonLat';
 

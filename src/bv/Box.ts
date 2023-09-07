@@ -1,5 +1,3 @@
-"use strict";
-
 import {Vec3} from "../math/Vec3";
 import {NumberArray6} from "./Sphere";
 import {Ellipsoid} from "../ellipsoid/Ellipsoid";

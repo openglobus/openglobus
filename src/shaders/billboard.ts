@@ -1,6 +1,4 @@
-'use strict';
-
-import {Program} from '../webgl/Program.js';
+import {Program} from '../webgl/Program';
 
 const PROJECT = `vec2 project(vec4 p) {
                     return (0.5 * p.xyz / p.w + 0.5).xy * viewport;

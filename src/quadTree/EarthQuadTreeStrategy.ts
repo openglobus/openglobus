@@ -1,11 +1,11 @@
 import * as mercator from "../mercator";
-import * as quadTree from "../quadTree/quadTree.js";
+import * as quadTree from "../quadTree/quadTree";
 import {Extent} from "../Extent";
-import {Node} from "../quadTree/Node.js";
+import {Node} from "../quadTree/Node";
 import {Planet} from "../scene/Planet";
-import {QuadTreeStrategy} from "./QuadTreeStrategy.js";
-import {Segment} from "../segment/Segment.js";
-import {SegmentLonLat} from "../segment/SegmentLonLat.js";
+import {QuadTreeStrategy} from "./QuadTreeStrategy";
+import {Segment} from "../segment/Segment";
+import {SegmentLonLat} from "../segment/SegmentLonLat";
 
 export class EarthQuadTreeStrategy extends QuadTreeStrategy {
     constructor(planet: Planet) {

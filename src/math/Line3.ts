@@ -1,5 +1,3 @@
-'use strict';
-
 import {EPS10} from '../math';
 import {Sphere} from "../bv/Sphere";
 import {Vec3} from './Vec3';

@@ -1,7 +1,7 @@
 import * as utils from "../utils/shared";
 import {NumberArray3, Vec3} from "../math/Vec3";
 import {NumberArray4, Vec4} from "../math/Vec4";
-import {Entity} from "./Entity.js";
+import {Entity} from "./Entity";
 import {RayHandler} from "./RayHandler";
 
 export interface IRayParams {

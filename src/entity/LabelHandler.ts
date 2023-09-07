@@ -3,7 +3,7 @@ import {ALIGN, Label} from "./Label";
 import {BaseBillboardHandler} from "./BaseBillboardHandler";
 import {concatTypedArrays, spliceTypedArray} from "../utils/shared";
 import {EntityCollection} from "./EntityCollection";
-import {LOCK_FREE} from "./LabelWorker.js";
+import {LOCK_FREE} from "./LabelWorker";
 import {Planet} from "../scene/Planet";
 import {WebGLBufferExt} from "../webgl/Handler";
 import {Vec3} from "../math/Vec3";

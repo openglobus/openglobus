@@ -1,5 +1,3 @@
-"use strict";
-
 import * as math from "./math";
 import * as mercator from "./mercator";
 import {Ellipsoid} from "./ellipsoid/Ellipsoid";

@@ -1,5 +1,3 @@
-"use strict";
-
 import {LonLat} from "../LonLat";
 import {Quat} from "../math/Quat";
 import {Vec3} from "../math/Vec3";

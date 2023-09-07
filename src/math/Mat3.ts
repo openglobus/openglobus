@@ -1,5 +1,3 @@
-"use strict";
-
 import {Mat4} from "./Mat4";
 import {Vec3} from "./Vec3";
 
