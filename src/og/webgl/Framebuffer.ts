@@ -1,5 +1,3 @@
-"use strict";
-
 import {BaseFramebuffer, IBaseFramebufferParams} from "./BaseFramebuffer";
 import {ImageCanvas} from "../ImageCanvas";
 import {Handler} from "./Handler";
@@ -52,18 +50,19 @@ export class Framebuffer extends BaseFramebuffer {
 
         this._typeArr = options.type instanceof Array ? options.type : [options.type || "UNSIGNED_BYTE"];
 
-        // @ts-ignore
-        this._attachmentArr = options.attachment instanceof Array ? options.attachment.map((a: string, i: number) => {
-            let res = a.toUpperCase();
-            if (res === "COLOR_ATTACHMENT") {
-                return `${res}${i.toString()}`;
-            }
-            return res;
-        }) : [options.attachment || "COLOR_ATTACHMENT0"];
-
+        if (options.attachment instanceof Array) {
+            this._attachmentArr = options.attachment.map((a: string, i: number) => {
+                let res = a.toUpperCase();
+                if (res === "COLOR_ATTACHMENT") {
+                    return `${res}${i.toString()}`;
+                }
+                return res;
+            })
+        } else {
+            this._attachmentArr = [options.attachment as string || "COLOR_ATTACHMENT0"];
+        }
 
         this._renderbufferTarget = options.renderbufferTarget != undefined ? options.renderbufferTarget : "DEPTH_ATTACHMENT";
-
 
         this.textures = options.textures || new Array(this._size);
     }
@@ -79,9 +78,9 @@ export class Framebuffer extends BaseFramebuffer {
     //
     //     gl.blitFramebuffer(0, 0, sourceFramebuffer._width, sourceFramebuffer._height, 0, 0, destFramebuffer._width, destFramebuffer._height, glMask, glFilter);
     //
-    //     gl.bindFramebuffer(gl.FRAMEBUFFER, null as any);
-    //     gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null as any);
-    //     gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null as any);
+    //     gl.bindFramebuffer(gl.FRAMEBUFFER, null!);
+    //     gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null!);
+    //     gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null!);
     // }
 
     public override destroy() {
@@ -106,6 +105,7 @@ export class Framebuffer extends BaseFramebuffer {
     /**
      * Framebuffer initialization.
      * @public
+     * @override
      */
     public override init() {
         let gl = this.handler.gl;
@@ -121,8 +121,7 @@ export class Framebuffer extends BaseFramebuffer {
             for (let i = 0; i < this.textures.length; i++) {
                 let ti = this.textures[i] || this.handler.createEmptyTexture2DExt(this._width, this._height, this._filter, this._internalFormatArr[i], this._formatArr[i], this._typeArr[i]);
 
-                // @ts-ignore
-                let att_i = gl[this._attachmentArr[i]];
+                let att_i = (gl as any)[this._attachmentArr[i]];
 
                 if (ti) {
                     this.bindOutputTexture(ti, att_i);
@@ -139,14 +138,12 @@ export class Framebuffer extends BaseFramebuffer {
         if (this._useDepth) {
             this._depthRenderbuffer = gl.createRenderbuffer();
             gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthRenderbuffer);
-            // @ts-ignore
-            gl.renderbufferStorage(gl.RENDERBUFFER, gl[this._depthComponent], this._width, this._height);
-            // @ts-ignore
-            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl[this._renderbufferTarget], gl.RENDERBUFFER, this._depthRenderbuffer);
+            gl.renderbufferStorage(gl.RENDERBUFFER, (gl as any)[this._depthComponent], this._width, this._height);
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, (gl as any)[this._renderbufferTarget], gl.RENDERBUFFER, this._depthRenderbuffer);
             gl.bindRenderbuffer(gl.RENDERBUFFER, null);
         }
 
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null!);
     }
 
     /**
@@ -159,7 +156,7 @@ export class Framebuffer extends BaseFramebuffer {
         let gl = this.handler.gl!;
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, glAttachment || gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
-        gl.bindTexture(gl.TEXTURE_2D, null as any);
+        gl.bindTexture(gl.TEXTURE_2D, null!);
     }
 
     /**
@@ -170,30 +167,28 @@ export class Framebuffer extends BaseFramebuffer {
      * @param {number} ny - Normalized y - coordinate.
      * @param {number} [w=1] - Normalized width.
      * @param {number} [h=1] - Normalized height.
-     * @param {Number} [index=0] - color attachment index.
+     * @param {number} [index=0] - color attachment index.
      */
     public readPixels(res: Uint8Array, nx: number, ny: number, index: number = 0, w: number = 1, h: number = 1) {
         let gl = this.handler.gl!;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
         gl.readBuffer && gl.readBuffer(gl.COLOR_ATTACHMENT0 + index || 0);
-        // @ts-ignore
-        gl.readPixels(nx * this._width, ny * this._height, w, h, gl.RGBA, gl[this._typeArr[index]], res);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null as any);
+        gl.readPixels(nx * this._width, ny * this._height, w, h, gl.RGBA, (gl as any)[this._typeArr[index]], res);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null!);
     }
 
     /**
      * Reads all pixels(RGBA colors) from framebuffer.
      * @public
      * @param {Uint8Array} res - Result array.
-     * @param {Number} [attachmentIndex=0] - color attachment index.
+     * @param {number} [attachmentIndex=0] - color attachment index.
      */
     public readAllPixels(res: Uint8Array, attachmentIndex: number = 0) {
         let gl = this.handler.gl!;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
         gl.readBuffer && gl.readBuffer(gl.COLOR_ATTACHMENT0 + attachmentIndex);
-        // @ts-ignore
-        gl.readPixels(0, 0, this._width, this._height, gl.RGBA, gl[this._typeArr[attachmentIndex]], res);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null as any);
+        gl.readPixels(0, 0, this._width, this._height, gl.RGBA, (gl as any)[this._typeArr[attachmentIndex]], res);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null!);
     }
 
     /**

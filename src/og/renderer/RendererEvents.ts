@@ -368,9 +368,9 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         }
     }
 
-    public override on(name: string, p0: EventCallback | number, p1?: any | EventCallback, p2?: any, p3?: any) {
+    public override on(name: string, p0: EventCallback | number, p1?: number | EventCallback, p2?: any, keyPriority?: number) {
         if (name === "keypress" || name === "charkeypress" || name === "keyfree") {
-            this._keyboardHandler.addEvent(name, p0, p1 as EventCallback, p2, p3);
+            this._keyboardHandler.addEvent(name, p0, p1 as EventCallback, p2, keyPriority);
         } else {
             super.on(name, p0 as EventCallback, p1, p2);
         }

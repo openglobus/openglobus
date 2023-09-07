@@ -115,7 +115,6 @@ export class GeoImageCreator {
         let i = this.MAX_FRAMES;
         while (i-- && this._queue.length) {
             const q = this._queue.shift()!;
-            //@ts-ignore
             q._isRendering = false;
             q.rendering();
             q.events.dispatch(q.events.loadend);
@@ -128,11 +127,8 @@ export class GeoImageCreator {
     }
 
     public add(geoImage: BaseGeoImage) {
-        // @ts-ignore
         if (!geoImage._isRendering) {
-            // @ts-ignore
             geoImage._isRendering = true;
-            // @ts-ignore
             if (geoImage._animate) {
                 this._animate.push(geoImage);
             } else {
@@ -142,14 +138,10 @@ export class GeoImageCreator {
     }
 
     public remove(geoImage: BaseGeoImage) {
-        //@ts-ignore
         if (geoImage._isRendering) {
-            //@ts-ignore
             geoImage._creationProceeding = false;
-            //@ts-ignore
             geoImage._isRendering = false;
             let arr: BaseGeoImage[];
-            //@ts-ignore
             if (geoImage._animate) {
                 arr = this._animate;
             } else {

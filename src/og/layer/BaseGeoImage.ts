@@ -62,10 +62,10 @@ class BaseGeoImage extends Layer {
     protected _frameCreated: boolean;
     protected _sourceCreated: boolean;
 
-    protected _animate: boolean;
+    public _animate: boolean;
     protected _ready: boolean;
-    protected _creationProceeding: boolean;
-    protected _isRendering: boolean;
+    public _creationProceeding: boolean;
+    public _isRendering: boolean;
 
     protected _extentWgs84: Extent;
     protected _cornersWgs84: LonLat[];

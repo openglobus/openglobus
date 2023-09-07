@@ -13,31 +13,28 @@ export class ProgramController {
 
     /**
      * Handler.
-     * @private
+     * @protected
      * @type {Handler}
      */
     protected _handler: Handler;
 
     /**
      * Shader program.
-     * @private
+     * @public
      * @type {Program}
      */
     public _program: Program;
 
     /**
      * Program current frame activation flag.
-     * @private
+     * @public
      * @type {boolean}
      */
     public _activated: boolean;
 
     constructor(handler: Handler, program: Program) {
-
         this._program = program;
-
         this._handler = handler;
-
         this._activated = false;
     }
 
@@ -65,7 +62,7 @@ export class ProgramController {
      * @public
      * @returns {ProgramController} -
      */
-    public activate() {
+    public activate(): this {
         if (!this._activated) {
             this._handler.activeProgram!.deactivate();
             this._handler.activeProgram = this;
@@ -88,8 +85,6 @@ export class ProgramController {
                 this.deactivate();
             }
             this._program.delete();
-            //@ts-ignore
-            p[this._program.name] = null;
             delete p[this._program.name];
         }
     }
@@ -115,10 +110,10 @@ export class ProgramController {
     /**
      * Sets program uniforms and attributes values and return controller instance.
      * @public
-     * @param {Object} params - Object with variable name and value like { value: 12, someArray:[1,2,3], uSampler: texture,... }
+     * @param {Record<string, any>} params - Object with variable name and value like { value: 12, someArray:[1,2,3], uSampler: texture,... }
      * @return {ProgramController} -
      */
-    public set(params: any) {
+    public set(params: Record<string, any>) {
         this.activate();
         this._program.set(params);
         return this;

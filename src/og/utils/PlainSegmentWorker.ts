@@ -46,7 +46,7 @@ class PlainSegmentWorker extends BaseWorker<Segment> {
 
         if (geoid.model) {
             let m = geoid.model;
-            let model: any = {
+            let model = {
                 scale: m.scale,
                 offset: m.offset,
                 width: m.width,

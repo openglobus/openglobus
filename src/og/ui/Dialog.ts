@@ -175,8 +175,6 @@ class Dialog<M> extends View<M> {
     }
 
     protected _onMouseDown = (e: MouseEvent) => {
-        //@ts-ignore
-        e = e || window.event;
         e.preventDefault();
 
         this._startDragging();
@@ -198,8 +196,6 @@ class Dialog<M> extends View<M> {
     }
 
     protected _onMouseMove = (e: MouseEvent) => {
-        //@ts-ignore
-        e = e || window.event;
         e.preventDefault();
         let dx = this._startPosX - e.clientX;
         let dy = this._startPosY - e.clientY;
