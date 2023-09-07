@@ -1,21 +1,25 @@
-'use strict';
-
-import { Program } from '../webgl/Program.js';
-import { RenderNode } from './RenderNode.js';
+import {Program} from '../webgl/Program';
+import {RenderNode} from './RenderNode';
+import {WebGLBufferExt} from "../webgl/Handler";
 
 class Axes extends RenderNode {
-    constructor(size) {
+
+    public size: number;
+    public axesBuffer: WebGLBufferExt | null;
+    public axesColorBuffer: WebGLBufferExt | null;
+
+    constructor(size: number = 100) {
         super("Axes");
 
-        this.size = size || 100;
+        this.size = size;
         this.axesBuffer = null;
         this.axesColorBuffer = null;
     }
 
-    init() {
-        this.createAxisBuffer(this.size);
-        this.drawMode = this.renderer.handler.gl.LINES;
-        this.renderer.handler.addProgram(new Program("axesShader", {
+    public override init() {
+        this.createAxesBuffer(this.size);
+        this.drawMode = this.renderer!.handler.gl!.LINES;
+        this.renderer!.handler.addProgram(new Program("axesShader", {
             uniforms: {
                 projectionViewMatrix: 'mat4'
             },
@@ -41,34 +45,34 @@ class Axes extends RenderNode {
         }));
     }
 
-    frame() {
+    public override frame() {
 
-        this.renderer.handler.programs.axesShader.activate().set({
-            projectionViewMatrix: this.renderer.activeCamera.getProjectionViewMatrix(),
-            aVertexPosition: this.axisBuffer,
-            aVertexColor: this.axisColorBuffer
+        this.renderer!.handler.programs.axesShader.activate().set({
+            projectionViewMatrix: this.renderer!.activeCamera!.getProjectionViewMatrix(),
+            aVertexPosition: this.axesBuffer,
+            aVertexColor: this.axesColorBuffer
         });
 
-        this.renderer.handler.programs.axesShader.drawArrays(this.drawMode, this.axisBuffer.numItems);
+        this.renderer!.handler.programs.axesShader.drawArrays(this.drawMode, this.axesBuffer!.numItems);
     }
 
-    createAxisBuffer(gridSize) {
+    public createAxesBuffer(gridSize: number) {
 
-        var vertices = [
+        const vertices = [
             0.0, 0.0, 0.0, gridSize - 1, 0.0, 0.0, // x - R
             0.0, 0.0, 0.0, 0.0, gridSize - 1, 0.0, // y - B  
             0.0, 0.0, 0.0, 0.0, 0.0, gridSize - 1  // z - G
         ];
 
-        var colors = [
+        const colors = [
             1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0,   // x - R
             0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0,   // y - B
             0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0    // z - G
         ];
 
-        this.axisBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(vertices), 3, 6);
-        this.axisColorBuffer = this.renderer.handler.createArrayBuffer(new Float32Array(colors), 4, 6);
+        this.axesBuffer = this.renderer!.handler.createArrayBuffer(new Float32Array(vertices), 3, 6);
+        this.axesColorBuffer = this.renderer!.handler.createArrayBuffer(new Float32Array(colors), 4, 6);
     }
 }
 
-export { Axes };
+export {Axes};

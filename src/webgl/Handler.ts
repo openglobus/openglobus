@@ -30,6 +30,15 @@ export interface IHandlerParameters {
     autoActivate?: boolean;
 }
 
+export interface Texture3DParams {
+    nx: string,
+    px: string,
+    py: string,
+    ny: string,
+    pz: string,
+    nz: string
+}
+
 export interface IDefaultTextureParams {
     color?: string;
     url?: string;
@@ -681,7 +690,7 @@ class Handler {
     /**
      * Creates cube texture.
      * @public
-     * @param {Object.<string>} params - Face image urls:
+     * @param {Texture3DParams} params - Face image urls:
      * @param {string} params.px - Positive X or right image url.
      * @param {string} params.nx - Negative X or left image url.
      * @param {string} params.py - Positive Y or up image url.
@@ -690,7 +699,7 @@ class Handler {
      * @param {string} params.nz - Negative Z or back image url.
      * @returns {WebGLTexture | null} - WebGL texture object.
      */
-    public loadCubeMapTexture(params: any): WebGLTexture | null {
+    public loadCubeMapTexture(params: Texture3DParams): WebGLTexture | null {
 
         let gl = this.gl!;
 
@@ -701,7 +710,7 @@ class Handler {
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-        let faces = [
+        let faces: [string, number][] = [
             [params.px, gl.TEXTURE_CUBE_MAP_POSITIVE_X],
             [params.nx, gl.TEXTURE_CUBE_MAP_NEGATIVE_X],
             [params.py, gl.TEXTURE_CUBE_MAP_POSITIVE_Y],
@@ -734,6 +743,7 @@ class Handler {
                     }
                 };
             })(texture, face, image);
+
             image.src = faces[i][0];
         }
         return texture;
