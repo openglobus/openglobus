@@ -1,7 +1,7 @@
 import * as math from "../math";
 import { Quat } from "../math/Quat";
 import { Vec3 } from "../math/Vec3";
-import * as astro from "./astro.js";
+import * as astro from "./astro";
 import * as jd from "./jd";
 import {JulianDate} from "./jd";
 
