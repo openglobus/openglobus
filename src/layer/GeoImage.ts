@@ -41,7 +41,7 @@ class GeoImage extends BaseGeoImage {
         return "GeoImage";
     }
 
-    public abortLoading() {
+    public override abortLoading() {
         if (this._image instanceof HTMLImageElement) {
             this._image.src = "";
         }

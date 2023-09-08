@@ -1,28 +1,43 @@
-import { Events } from '../Events';
-import { Layer } from '../layer/Layer';
-import { Control } from "./Control";
+import {EventsHandler, createEvents} from '../Events';
+import {Layer} from '../layer/Layer';
+import {Control, IControlParams} from "./Control";
+
+type LayerAnimationEventsList = ["change", "idle", "play", "pause", "stop"];
+
+const LAYERANIMATION_EVENTS: LayerAnimationEventsList = ["change", "idle", "play", "pause", "stop"];
+
+interface ILayerAnimationParams extends IControlParams {
+    layers?: Layer,
+    playInterval?: number,
+    frameSize?: number,
+    repeat?: boolean;
+    skipTimeout?: number;
+}
 
 export class LayerAnimation extends Control {
-    events: any; // Events<string[]>;
-    _layersArr: any[];
+    events: EventsHandler<LayerAnimationEventsList>;
+    _layersArr: Layer[];
     _currentIndex: number;
     _playInterval: number;
     _playIntervalHandler: any;
     _playIndex: number;
-    _frameSize: any;
-    repeat: any;
-    skipTimeout: any;
+    _frameSize: number;
+    repeat: boolean;
+    skipTimeout: number;
     _timeoutStart: number;
+    _currVisibleIndex: number = 0;
+
+
     _onLayerLoadend_: any;
     _onViewchange_: any;
     _onVisibityChange_: any;
-    _currVisibleIndex = 0;
 
-    constructor(options: { name?: string, layers?: any, playInterval?: number, frameSize?: number, repeat?: number, skipTimeout?: number } = {}) {
+
+    constructor(options: ILayerAnimationParams = {}) {
         super(options);
-        this.events = new Events(["change", "idle", "play", "pause", "stop"])
+        this.events = createEvents(LAYERANIMATION_EVENTS);
         this._name = options.name || `layerAnimation-${this.__id}`;
-        this._layersArr = options.layers ? [].concat(options.layers) : [];
+        this._layersArr = options.layers ? ([] as Layer[]).concat(options.layers) : [];
         this._currentIndex = -1;
         this._playInterval = options.playInterval || 120;
         this._playIntervalHandler = -1;

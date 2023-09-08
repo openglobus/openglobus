@@ -873,6 +873,10 @@ class Layer {
     public abortMaterialLoading(material: Material) {
 
     }
+
+    public abortLoading() {
+
+    }
 }
 
 export type LayerEventsList = [

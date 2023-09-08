@@ -134,7 +134,7 @@ class XYZ extends Layer {
      * Abort loading tiles.
      * @public
      */
-    public abortLoading() {
+    public override abortLoading() {
         if (this._planet) {
             this._planet._tileLoader.abort(this);
         }

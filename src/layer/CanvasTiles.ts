@@ -138,7 +138,7 @@ class CanvasTiles extends Layer {
      * Abort loading tiles.
      * @public
      */
-    public abortLoading() {
+    public override abortLoading() {
         //const q = this._pendingsQueue;
         // for (let i = q._shiftIndex + 1; i < q._popIndex + 1; i++) {
         //     if (q._array[i]) {
