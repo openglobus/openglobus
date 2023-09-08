@@ -442,6 +442,7 @@ class LabelHandler extends BaseBillboardHandler {
             let j = i + c * 24;
             let char = text[c];
             let n = fa.get(char.charCodeAt(0)) || fa.get(" ".charCodeAt(0))!;
+            if (!n) continue;
             let tc = n.texCoords;
 
             let m = n.metrics;
