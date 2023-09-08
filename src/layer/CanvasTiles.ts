@@ -204,32 +204,26 @@ class CanvasTiles extends Layer {
     protected _exec(material: Material) {
         CanvasTiles.__requestsCounter++;
         this._counter++;
-        const that = this;
-        //if (this.drawTile) {
-        const e = that.events.load!;
+        const e = this.events.load!;
         if (e.handlers.length) {
-            that.events.dispatch(e, material);
+            this.events.dispatch(e, material);
         }
         requestAnimationFrame(() => {
-            that.drawTile(
-                material,
-                /**
-                 * Apply canvas.
-                 * @callback applyCanvasCallback
-                 * @param {Object} canvas -
-                 */
-                function (canvas) {
-                    that._counter--;
-                    CanvasTiles.__requestsCounter--;
-                    if (material.isLoading) {
-                        material.applyImage(canvas);
-                    }
-                    that._dequeueRequest();
-                });
+            this.drawTile(material, (canvas: HTMLCanvasElement | ImageBitmap | HTMLImageElement) => {
+                this._counter--;
+                CanvasTiles.__requestsCounter--;
+                this._correctCounter();
+                if (material.isLoading) {
+                    material.applyImage(canvas);
+                }
+                this._dequeueRequest();
+            });
         });
-        // } else {
-        //     material.textureNotExists();
-        // }
+    }
+
+    protected _correctCounter() {
+        if (this._counter < 0) this._counter = 0;
+        if (CanvasTiles.__requestsCounter < 0) CanvasTiles.__requestsCounter = 0;
     }
 
     /**
@@ -238,10 +232,10 @@ class CanvasTiles extends Layer {
      * @param {Material} material - Segment material.
      */
     public override abortMaterialLoading(material: Material) {
-        if (material.isLoading/* && material.image*/) {
-            //material.image.src = "";
+        if (material.isLoading) {
             this._counter--;
             CanvasTiles.__requestsCounter--;
+            this._correctCounter();
             this._dequeueRequest();
         }
         material.isLoading = false;
