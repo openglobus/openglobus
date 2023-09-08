@@ -1,4 +1,3 @@
-import * as arial from "../arial.js";
 import {Camera} from "../camera/Camera";
 import {Control} from "../control/Control";
 import {cons} from "../cons";
@@ -21,11 +20,12 @@ import {Vec2} from "../math/Vec2";
 import {NumberArray3, Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 
-let __pickingCallbackCounter__ = 0;
-
-let __depthCallbackCounter__ = 0;
-
-let __distanceCallbackCounter__ = 0;
+interface IRendererParams {
+    controls?: Control[];
+    msaa?: number;
+    autoActivate?: boolean;
+    fontsSrc?: string;
+}
 
 interface IPickingObject {
     _pickingColor?: Vec3;
@@ -40,11 +40,11 @@ interface IFrameCallbackHandler {
 
 const MSAA_DEFAULT = 0;
 
-interface IRendererParams {
-    controls?: Control[];
-    msaa?: number;
-    autoActivate?: boolean;
-}
+let __pickingCallbackCounter__ = 0;
+
+let __depthCallbackCounter__ = 0;
+
+let __distanceCallbackCounter__ = 0;
 
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
@@ -335,7 +335,7 @@ class Renderer {
          * @public
          * @type {FontAtlas}
          */
-        this.fontAtlas = new FontAtlas();
+        this.fontAtlas = new FontAtlas(params.fontsSrc);
 
         this._entityCollections = [];
 
@@ -710,8 +710,6 @@ class Renderer {
 
 
         this.outputTexture = this.screenTexture.screen;
-
-        this.fontAtlas.initFont("arial", arial.data as IFontParams, arial.image);
 
         this._pickingMaskCoordinatesBuffer = this.handler.createArrayBuffer(new Float32Array([0, 0]), 2, 1);
 

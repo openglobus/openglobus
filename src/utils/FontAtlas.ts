@@ -113,13 +113,14 @@ class FontAtlas {
     public atlasesArr: FontTextureAtlas[];
     public samplerArr: Uint32Array;
     public sdfParamsArr: Float32Array;
+    public catalogSrc: string;
 
     protected atlasIndexes: Record<string, number>;
     protected atlasIndexesDeferred: Record<string, Deferred<number>>;
     protected tokenImageSize: number;
     protected _handler: Handler | null;
 
-    constructor() {
+    constructor(catalogSrc?: string) {
         this.atlasesArr = [];
         this.atlasIndexes = {};
         this.atlasIndexesDeferred = {};
@@ -127,6 +128,7 @@ class FontAtlas {
         this.samplerArr = new Uint32Array(MAX_SIZE);
         this.sdfParamsArr = new Float32Array(MAX_SIZE * 4);
         this._handler = null;
+        this.catalogSrc = catalogSrc || "./";
     }
 
     public assignHandler(handler: Handler) {
@@ -135,6 +137,12 @@ class FontAtlas {
 
     public getFontIndex(face: string): Promise<number> {
         let fullName = this.getFullIndex(face);
+
+        // Try to load font from the directory
+        if (!this.atlasIndexes[fullName]) {
+            this.loadFont(fullName, this.catalogSrc, `${fullName}.json`);
+        }
+
         if (!this.atlasIndexesDeferred[fullName]) {
             this.atlasIndexesDeferred[fullName] = new Deferred<number>();
         }

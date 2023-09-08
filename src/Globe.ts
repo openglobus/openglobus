@@ -50,6 +50,8 @@ interface IGlobeParams {
     layers?: Layer[];
     viewExtent?: Extent | NumberArray4;
     autoActivate?: boolean;
+
+    fontsSrc?: string;
 }
 
 /** @const {string} */
@@ -102,6 +104,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {number} [options.msaa=0] - MSAA antialiasing parameter: 2,4,8,16. Default is 0.
  * @param {number} [options.dpi] - Device pixel ratio. Default is current screen DPI.
  * @param {boolean} [options.atmosphereEnabled] - Enables atmosphere effect.
+ * @param {string} [fontsSrc] -  Fonts collection url
  */
 
 class Globe {
@@ -198,7 +201,8 @@ class Globe {
                 }
             }), {
                 autoActivate: false,
-                msaa: options.msaa
+                msaa: options.msaa,
+                fontsSrc: options.fontsSrc
             }
         );
 
@@ -268,7 +272,7 @@ class Globe {
         if (!sun) {
             this.sun = new Sun();
             this.planet.addControl(this.sun);
-        }else{
+        } else {
             this.sun = sun;
         }
 
