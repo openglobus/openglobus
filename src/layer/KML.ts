@@ -1,5 +1,3 @@
-"use strict";
-
 import { Billboard } from "../entity/Billboard";
 import { Entity } from "../entity/Entity";
 import { Extent } from "../Extent";
