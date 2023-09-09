@@ -1,42 +1,43 @@
-import { Billboard } from "../entity/Billboard";
-import { Entity } from "../entity/Entity";
-import { Extent } from "../Extent";
-import { LonLat } from "../LonLat";
-import { Vector } from "./Vector";
+import {Billboard, IBillboardParams} from "../entity/Billboard";
+import {Entity} from "../entity/Entity";
+import {Extent} from "../Extent";
+import {LonLat} from "../LonLat";
+import {Vector, IVectorParams} from "./Vector";
+import {NumberArray3} from "../math/Vec3";
+
+interface IKMLParams extends IVectorParams {
+    color?: string;
+    billboard?: IBillboardParams;
+}
 
 /**
  * Layer to render KMLs files
  * @class
  * @extends {Vector}
+ * @param {string} name
+ * @param {*} [options]
  */
 export class KML extends Vector {
-    /**
-     *
-     * @param {string} name
-     * @param {*} [options]
-     */
-    constructor(name, options = {}) {
+
+    protected _color: string;
+    protected _billboard: IBillboardParams;
+
+    constructor(name: string, options: IKMLParams = {}) {
         super(name, options);
-        this._extent = null;
         this._billboard = options.billboard || {
             src: "https://openglobus.org/examples/billboards/carrot.png"
         };
-        /**
-         * @type {string}
-         */
+
         this._color = options.color || "#6689db";
     }
 
-    get instanceName() {
+    public override get instanceName() {
         return "KML";
     }
 
-    /**
-     * @public
-     */
-    _extractCoordonatesFromKml(xmlDoc) {
+    protected _extractCoordonatesFromKml(xmlDoc: XMLDocument) {
         const raw = Array.from(xmlDoc.getElementsByTagName("coordinates"));
-        const rawText = raw.map(item => item.textContent.trim());
+        const rawText = raw.map(item => item.textContent!.trim());
         const coordinates = rawText.map(item =>
             item
                 .replace(/\n/g, " ")
@@ -48,11 +49,8 @@ export class KML extends Vector {
         return coordinates;
     }
 
-    /**
-     * @private
-     */
-    _AGBRtoRGBA(agbr) {
-        if (!agbr || agbr.length != 8) return
+    protected _AGBRtoRGBA(agbr: string): string | undefined {
+        if (!agbr || agbr.length != 8) return;
 
         const a = parseInt(agbr.slice(0, 2), 16) / 255;
         const b = parseInt(agbr.slice(2, 4), 16);
@@ -63,10 +61,10 @@ export class KML extends Vector {
     }
 
     /**
-     * @private
+     * @protected
      returns array of longitude, latitude, altitude (altitude optional)
      */
-    _parseKMLcoordinates(coords) {
+    protected _parseKMLcoordinates(coords: Element): number[][] {
         const coordinates = coords.innerHTML.trim()
             .replace(/\n/g, ' ')
             .replace(/\t/g, ' ')
@@ -77,20 +75,17 @@ export class KML extends Vector {
         return coordinates;
     }
 
-    /**
-     * @private
-     */
-    _kmlPlacemarkToEntity(placemark, extent) {
+    protected _kmlPlacemarkToEntity(placemark: Element | undefined | null, extent: Extent): Entity | undefined {
         if (!placemark) return;
 
-        const nameTags = Array.from(placemark.getElementsByTagName("name"))
-        const name = nameTags && nameTags.length > 0 ? nameTags[0].innerHTML.trim() : '';
+        const nameTags: Element[] = Array.from(placemark.getElementsByTagName("name"))
+        const name: string = nameTags && nameTags.length > 0 ? nameTags[0].innerHTML.trim() : '';
 
-        const { iconHeading, iconURL, iconColor, lineWidth, lineColor } = this._extractStyle(placemark);
+        const {iconHeading, iconURL, iconColor, lineWidth, lineColor} = this._extractStyle(placemark);
 
         // TODO handle MultiGeometry
 
-        const lonLats = [];
+        const lonLats: LonLat[] = [];
         for (const coord of placemark.getElementsByTagName("coordinates")) {
             const coordinates = this._parseKMLcoordinates(coord) || [[0, 0, 0]]
 
@@ -136,7 +131,7 @@ export class KML extends Vector {
         }
     }
 
-    _extractStyle(placemark) {
+    protected _extractStyle(placemark: Element): any {
         let iconColor;
         let iconHeading;
         let iconURL;
@@ -185,10 +180,10 @@ export class KML extends Vector {
         if (!lineColor) lineColor = "#FFFFFF"
         if (!lineWidth) lineWidth = 1
 
-        return { iconHeading, iconURL, iconColor, lineWidth, lineColor };
+        return {iconHeading, iconURL, iconColor, lineWidth, lineColor};
     }
 
-    _parseKML(xml, extent, entities = undefined) {
+    protected _parseKML(xml: XMLDocument, extent: Extent, entities?: Entity[]): Entity[] {
         if (!entities)
             entities = [];
 
@@ -203,23 +198,23 @@ export class KML extends Vector {
         return entities;
     }
 
-    _convertKMLintoEntities(xml) {
+    protected _convertKMLintoEntities(xml: XMLDocument): any {
         const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
         const entities = this._parseKML(xml, extent);
 
-        return { entities, extent }
+        return {entities, extent}
     }
 
     /**
      * Creates billboards or polylines from array of lonlat.
-     * @public
+     * @protected
      * @param {Array} coordonates
      * @param {string} color
-     * @returns {Array<Entity>}
+     * @returns {any}
      */
-    _convertCoordonatesIntoEntities(coordinates, color, billboard) {
+    protected _convertCoordonatesIntoEntities(coordinates: number[][][][], color: string, billboard?: IBillboardParams): any {
         const extent = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
-        const addToExtent = (c) => {
+        const addToExtent = (c: number[]) => {
             const lon = c[0],
                 lat = c[1];
             if (lon < extent.southWest.lon) extent.southWest.lon = lon;
@@ -227,45 +222,44 @@ export class KML extends Vector {
             if (lon > extent.northEast.lon) extent.northEast.lon = lon;
             if (lat > extent.northEast.lat) extent.northEast.lat = lat;
         };
-        const _pathes = [];
-        coordinates.forEach((kmlFile) => kmlFile.forEach((p) => _pathes.push(p)));
+        const _pathes: number[][][] = [];
+
+        coordinates.forEach((kmlFile: number[][][]) => kmlFile.forEach((p: number[][]) => _pathes.push(p)));
+
         const entities = _pathes.map((path) => {
             if (path.length === 1) {
-                const lonlat = path[0];
-                const _entity = new Entity({ lonlat, billboard });
+                const lonlat = path[0] as NumberArray3;
+                const _entity = new Entity({lonlat, billboard});
                 addToExtent(lonlat);
                 return _entity;
             } else if (path.length > 1) {
-                const pathLonLat = path.map((item) => {
+                const pathLonLat = path.map((item: number[]) => {
                     addToExtent(item);
                     return new LonLat(item[0], item[1], item[2]);
                 });
                 const _entity = new Entity({
-                    polyline: { pathLonLat: [pathLonLat], thickness: 3, color, isClosed: false }
+                    polyline: {pathLonLat: [pathLonLat], thickness: 3, color, isClosed: false}
                 });
                 return _entity;
             }
         });
-        return { entities, extent };
+        return {entities, extent};
     }
 
     /**
-     * @public
+     * @protected
      * @returns {Document}
      */
-    _getXmlContent(file) {
+    protected _getXmlContent(file: Blob): Promise<XMLDocument> {
         return new Promise((resolve) => {
             const fileReader = new FileReader();
             fileReader.onload = async (i) =>
-                resolve(new DOMParser().parseFromString(i.target.result, "text/xml"));
+                resolve(new DOMParser().parseFromString(i.target!.result as string, "text/xml"));
             fileReader.readAsText(file);
         });
     }
 
-    /**
-     * @public
-     */
-    _expandExtents(extent1, extent2) {
+    protected _expandExtents(extent1: Extent | null | undefined, extent2: Extent): Extent {
         if (!extent1) return extent2;
         if (extent2.southWest.lon < extent1.southWest.lon)
             extent1.southWest.lon = extent2.southWest.lon;
@@ -285,41 +279,38 @@ export class KML extends Vector {
      * @param {Billboard} [billboard]
      * @returns {Promise<{entities: Entity[], extent: Extent}>}
      */
-    async addKmlFromFiles(kmls, color = null, billboard = null) {
+    public async addKmlFromFiles(kmls: Blob[], color?: string, billboard?: IBillboardParams) {
         if (!Array.isArray(kmls)) return null
         const kmlObjs = await Promise.all(kmls.map(this._getXmlContent));
         const coordonates = kmlObjs.map(this._extractCoordonatesFromKml);
-        const { entities, extent } = this._convertCoordonatesIntoEntities(
+        const {entities, extent} = this._convertCoordonatesIntoEntities(
             coordonates,
             color || this._color,
             billboard || this._billboard
         );
         this._extent = this._expandExtents(this._extent, extent);
         entities.forEach(this.add.bind(this));
-        return { entities, extent };
+        return {entities, extent};
     }
 
     /**
      * @param {string} color
      * @public
      */
-    setColor(color) {
+    public setColor(color: string) {
         this._color = color;
         this._billboard.color = color;
     }
 
-    /**
-     * @public
-     */
-    _getKmlFromUrl(url) {
-        return new Promise((resolve, reject) => {
+    protected _getKmlFromUrl(url: string): Promise<Document> {
+        return new Promise<Document>((resolve, reject) => {
             const request = new XMLHttpRequest();
             request.open("GET", url, true);
             request.responseType = "document";
             request.overrideMimeType("text/xml");
             request.onload = () => {
                 if (request.readyState === request.DONE && request.status === 200) {
-                    resolve(request.responseXML);
+                    resolve(request.responseXML!);
                 } else {
                     reject(new Error("no valid kml file"));
                 }
@@ -335,7 +326,7 @@ export class KML extends Vector {
      * @param {Billboard} [billboard]
      * @returns {Promise<{entities: Entity[], extent: Extent}>}
      */
-    async addKmlFromUrl(url, color = null, billboard = null) {
+    public async addKmlFromUrl(url: string, color?: string, billboard?: Billboard | IBillboardParams): Promise<any> {
         const kml = await this._getKmlFromUrl(url);
         /*
                 const coordonates = this._extractCoordonatesFromKml(kml);
@@ -345,12 +336,12 @@ export class KML extends Vector {
                     billboard || this._billboard
                 );
         */
-        const { entities, extent } = this._convertKMLintoEntities(kml);
+        const {entities, extent} = this._convertKMLintoEntities(kml);
 
         this._extent = this._expandExtents(this._extent, extent);
 
         entities.forEach(this.add.bind(this));
 
-        return { entities, extent };
+        return {entities, extent};
     }
 }
