@@ -31,8 +31,8 @@ interface IGlobeParams {
     frustums?: NumberArray2[];
     ellipsoid?: Ellipsoid;
     maxGridSize?: number;
-    useNightTexture?: boolean;
-    useSpecularTexture?: boolean;
+    nightTextureSrc?: string;
+    specularTextureSrc?: string;
     minAltitude?: number;
     maxAltitude?: number;
     maxEqualZoomAltitude?: number;
@@ -52,7 +52,12 @@ interface IGlobeParams {
     autoActivate?: boolean;
 
     fontsSrc?: string;
+    resourcesSrc?: string;
 }
+
+const DEFAULT_NIGHT_SRC = `/res/night.png`;
+const DEFAULT_SPEC_SRC = `/res/spec.png`;
+const DEFAULT_RESOURCES_SRC = '.';
 
 /** @const {string} */
 const PLANET_NAME_PREFIX = "globus_planet_";
@@ -92,8 +97,10 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {boolean} [options.autoActivate=true] - Globe rendering auto activation flag. True is default.
  * @param {HTMLElement} [options.attributionContainer] - Container for attribution list.
  * @param {number} [options.maxGridSize=128] = Maximal segment grid size. 128 is default
- * @param {boolean} [options.useSpecularTexture=true] - use specular water mask
- * @param {boolean} [options.useNightTexture=true] - show night cities
+ * @param {string} [options.specularTextureSrc] - Specular water mask image sourcr
+ * @param {string} [options.fontsSrc] -  Fonts collection url.
+ * @param {string} [options.resourcesSrc] - Resources root src.
+ * @param {string} [options.nightTextureSrc] - Night glowing image sources
  * @param {number} [options.maxAltitude=15000000.0] - Maximal camera altitude above terrain
  * @param {number} [options.minAltitude=1.0] - Minimal camera altitude above terrain
  * @param {number} [options.maxEqualZoomAltitude=15000000.0] - Maximal altitude since segments on the screen became the same zoom level
@@ -104,7 +111,6 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {number} [options.msaa=0] - MSAA antialiasing parameter: 2,4,8,16. Default is 0.
  * @param {number} [options.dpi] - Device pixel ratio. Default is current screen DPI.
  * @param {boolean} [options.atmosphereEnabled] - Enables atmosphere effect.
- * @param {string} [fontsSrc] -  Fonts collection url
  */
 
 class Globe {
@@ -220,8 +226,8 @@ class Globe {
             frustums: options.frustums,
             ellipsoid: options.ellipsoid,
             maxGridSize: options.maxGridSize,
-            useNightTexture: options.useNightTexture,
-            useSpecularTexture: options.useSpecularTexture,
+            nightTextureSrc: options.nightTextureSrc || `${options.resourcesSrc || DEFAULT_RESOURCES_SRC}${DEFAULT_NIGHT_SRC}`,
+            specularTextureSrc: options.specularTextureSrc || `${options.resourcesSrc || DEFAULT_RESOURCES_SRC}${DEFAULT_SPEC_SRC}`,
             minAltitude: options.minAltitude,
             maxAltitude: options.maxAltitude || 15000000,
             maxEqualZoomAltitude: options.maxEqualZoomAltitude,

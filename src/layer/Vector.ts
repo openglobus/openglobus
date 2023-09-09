@@ -18,7 +18,7 @@ import {QueueArray} from "../QueueArray";
 import {Material} from "./Material";
 import {NumberArray4} from "../math/Vec4";
 
-interface IVectorParams extends ILayerParams {
+export interface IVectorParams extends ILayerParams {
     entities?: Entity[] | IEntityParams[];
     polygonOffsetUnits?: number;
     nodeCapacity?: number;

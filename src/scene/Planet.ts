@@ -22,7 +22,6 @@ import {Loader} from "../utils/Loader";
 import {LonLat} from "../LonLat";
 import {Node} from "../quadTree/Node";
 import {NormalMapCreator} from "../utils/NormalMapCreator";
-import {NIGHT, SPECULAR} from "../res/images";
 import {PlainSegmentWorker} from "../utils/PlainSegmentWorker";
 import {PlanetCamera} from "../camera/PlanetCamera";
 import {Quat} from "../math/Quat";
@@ -53,8 +52,8 @@ export interface IPlanetParams {
     diffuse?: string | NumberArray3 | Vec3;
     specular?: string | NumberArray3 | Vec3;
     shininess?: number;
-    useNightTexture?: boolean;
-    useSpecularTexture?: boolean;
+    nightTextureSrc?: string;
+    specularTextureSrc?: string;
     maxGridSize?: number;
     maxLoadingRequests?: number;
     atmosphereEnabled?: boolean;
@@ -323,20 +322,6 @@ export class Planet extends RenderNode {
     public _diffuse: Float32Array;
     public _specular: Float32Array;
 
-    /**
-     * True for rendering night glowing texture.
-     * @protected
-     * @type {boolean}
-     */
-    protected _useNightTexture: boolean;
-
-    /**
-     * True for rendering specular mask texture.
-     * @protected
-     * @type {boolean}
-     */
-    public _useSpecularTexture: boolean;
-
     protected _maxGridSize: number;
 
     /**
@@ -422,6 +407,9 @@ export class Planet extends RenderNode {
     public solidTextureTwo: WebGLTextureExt | null;
 
     protected _skipPreRender: boolean;
+
+    protected _nightTextureSrc: string | null;
+    protected _specularTextureSrc: string | null;
 
     constructor(options: IPlanetParams = {}) {
         super(options.name);
@@ -515,10 +503,6 @@ export class Planet extends RenderNode {
         this._diffuse = new Float32Array([d.x, d.y, d.z]);
         this._specular = new Float32Array([s.x, s.y, s.z, shininess]);
 
-        this._useNightTexture = isUndef(options.useNightTexture) ? true : options.useNightTexture as boolean;
-
-        this._useSpecularTexture = isUndef(options.useSpecularTexture) ? true : options.useSpecularTexture as boolean;
-
         this._maxGridSize = Math.log2(options.maxGridSize || 128);
 
         this.SLICE_SIZE = 4;
@@ -574,6 +558,9 @@ export class Planet extends RenderNode {
 
         this.solidTextureOne = null;
         this.solidTextureTwo = null;
+
+        this._nightTextureSrc = options.nightTextureSrc || null;
+        this._specularTextureSrc = options.specularTextureSrc || null;
     }
 
     public get maxGridSize(): number {
@@ -973,17 +960,32 @@ export class Planet extends RenderNode {
         this.renderer!.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
 
         // loading Earth night glowing texture
-        if (this._useNightTexture) {
-            createImageBitmap(NIGHT).then((e: ImageBitmap) => {
-                this._nightTexture = this.renderer!.handler!.createTextureDefault(e);
-            });
+        if (this._nightTextureSrc) {
+
+            let img = new Image();
+            img.onload = () => {
+                this._nightTexture = this.renderer!.handler.createTextureDefault(img)!;
+                this._nightTexture.default = true;
+            };
+            img.src = this._nightTextureSrc;
+
+            // createImageBitmap(NIGHT).then((e: ImageBitmap) => {
+            //     this._nightTexture = this.renderer!.handler!.createTextureDefault(e);
+            // });
         }
 
         // load water specular mask
-        if (this._useSpecularTexture) {
-            createImageBitmap(SPECULAR).then((e: ImageBitmap) => {
-                this._specularTexture = this.renderer!.handler!.createTexture_l(e);
-            });
+        if (this._specularTextureSrc) {
+            let img = new Image();
+            img.onload = () => {
+                this._specularTexture = this.renderer!.handler.createTextureDefault(img)!;
+                this._specularTexture.default = true;
+            };
+            img.src = this._specularTextureSrc;
+
+            // createImageBitmap(SPECULAR).then((e: ImageBitmap) => {
+            //     this._specularTexture = this.renderer!.handler!.createTexture_l(e);
+            // });
         }
 
         this._geoImageCreator.init();
