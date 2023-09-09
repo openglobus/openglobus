@@ -52,8 +52,8 @@ export interface IPlanetParams {
     diffuse?: string | NumberArray3 | Vec3;
     specular?: string | NumberArray3 | Vec3;
     shininess?: number;
-    nightTextureSrc?: string;
-    specularTextureSrc?: string;
+    nightTextureSrc?: string | null;
+    specularTextureSrc?: string | null;
     maxGridSize?: number;
     maxLoadingRequests?: number;
     atmosphereEnabled?: boolean;

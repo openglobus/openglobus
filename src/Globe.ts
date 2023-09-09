@@ -31,8 +31,8 @@ interface IGlobeParams {
     frustums?: NumberArray2[];
     ellipsoid?: Ellipsoid;
     maxGridSize?: number;
-    nightTextureSrc?: string;
-    specularTextureSrc?: string;
+    nightTextureSrc?: string | null;
+    specularTextureSrc?: string | null;
     minAltitude?: number;
     maxAltitude?: number;
     maxEqualZoomAltitude?: number;
@@ -226,8 +226,8 @@ class Globe {
             frustums: options.frustums,
             ellipsoid: options.ellipsoid,
             maxGridSize: options.maxGridSize,
-            nightTextureSrc: options.nightTextureSrc || `${options.resourcesSrc || DEFAULT_RESOURCES_SRC}${DEFAULT_NIGHT_SRC}`,
-            specularTextureSrc: options.specularTextureSrc || `${options.resourcesSrc || DEFAULT_RESOURCES_SRC}${DEFAULT_SPEC_SRC}`,
+            nightTextureSrc: options.nightTextureSrc == null ? null : `${options.resourcesSrc || DEFAULT_RESOURCES_SRC}${DEFAULT_NIGHT_SRC}`,
+            specularTextureSrc: options.specularTextureSrc == null ? null : `${options.resourcesSrc || DEFAULT_RESOURCES_SRC}${DEFAULT_SPEC_SRC}`,
             minAltitude: options.minAltitude,
             maxAltitude: options.maxAltitude || 15000000,
             maxEqualZoomAltitude: options.maxEqualZoomAltitude,
