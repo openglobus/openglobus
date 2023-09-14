@@ -15,23 +15,17 @@ interface ILayerAnimationParams extends IControlParams {
 }
 
 export class LayerAnimation extends Control {
-    events: EventsHandler<LayerAnimationEventsList>;
-    _layersArr: Layer[];
-    _currentIndex: number;
-    _playInterval: number;
-    _playIntervalHandler: any;
-    _playIndex: number;
-    _frameSize: number;
-    repeat: boolean;
-    skipTimeout: number;
-    _timeoutStart: number;
-    _currVisibleIndex: number = 0;
-
-
-    _onLayerLoadend_: any;
-    _onViewchange_: any;
-    _onVisibityChange_: any;
-
+    public events: EventsHandler<LayerAnimationEventsList>;
+    protected _layersArr: Layer[];
+    protected _currentIndex: number;
+    protected _playInterval: number;
+    protected _playIntervalHandler: any;
+    protected _playIndex: number;
+    protected _frameSize: number;
+    public repeat: boolean;
+    public skipTimeout: number;
+    protected _timeoutStart: number;
+    protected _currVisibleIndex: number = 0;
 
     constructor(options: ILayerAnimationParams = {}) {
         super(options);
@@ -48,15 +42,15 @@ export class LayerAnimation extends Control {
         this._timeoutStart = 0;
     }
 
-    _onViewchange() {
+    protected _onViewchange = () => {
         this._timeoutStart = performance.now();
     }
 
-    _getFramesNum() {
+    protected _getFramesNum(): number {
         return Math.ceil(this._layersArr.length / this._frameSize);
     }
 
-    _setFrame(frameIndex: number) {
+    protected _setFrame(frameIndex: number) {
         for (let i = 0, len = this._getFramesNum(); i < len; i++) {
             if (i !== frameIndex) {
                 this._removeFrameFromPlanet(i);
@@ -66,11 +60,11 @@ export class LayerAnimation extends Control {
         }
     }
 
-    _getFrameIndex(layerIndex: number) {
+    protected _getFrameIndex(layerIndex: number): number {
         return Math.floor(layerIndex / this._frameSize);
     }
 
-    _appendFrameToPlanet(frameIndex: number) {
+    protected _appendFrameToPlanet(frameIndex: number) {
         if (this.planet) {
             let minIndex = frameIndex * this._frameSize;
             let maxIndex = minIndex + this._frameSize;
@@ -80,7 +74,7 @@ export class LayerAnimation extends Control {
         }
     }
 
-    _removeFrameFromPlanet(frameIndex: number) {
+    protected _removeFrameFromPlanet(frameIndex: number) {
         if (this.planet) {
             let minIndex = frameIndex * this._frameSize;
             let maxIndex = minIndex + this._frameSize;
@@ -92,47 +86,39 @@ export class LayerAnimation extends Control {
         }
     }
 
-    override oninit() {
+    public override oninit() {
         super.oninit();
         this.onactivate();
         this._initLayers();
-        this._onLayerLoadend_ = this._onLayerLoadend.bind(this);
-        this.planet!.events.on("layerloadend", this._onLayerLoadend_, this);
+        this.planet!.events.on("layerloadend", this._onLayerLoadend);
         this._setCurrentIndexAsync(0, false, true);
     }
 
-    override onactivate() {
+    public override onactivate() {
         super.onactivate();
-        this._onViewchange_ = this._onViewchange.bind(this);
-        this.planet!.camera.events.on("viewchange", this._onViewchange_, this);
-
-        this._onVisibityChange_ = this._onVisibityChange.bind(this);
-        this.planet!.renderer!.handler.events.on("visibilitychange", this._onVisibityChange_, this);
+        this.planet!.camera.events.on("viewchange", this._onViewchange);
+        this.planet!.renderer!.handler.events.on("visibilitychange", this._onVisibilityChange);
     }
 
-    override ondeactivate() {
+    public override ondeactivate() {
         super.ondeactivate();
-        this.planet!.camera.events.off("viewchange", this._onViewchange_);
-        this._onViewchange_ = null;
+        this.planet!.camera.events.off("viewchange", this._onViewchange);
 
         for (let i = 0; i < this._layersArr.length; i++) {
             this._layersArr[i].setVisibility(false);
         }
 
-        this.planet!.events.off("layerloadend", this._onLayerLoadend_);
-        this._onLayerLoadend_ = null;
-
-        this.planet!.renderer!.handler.events.off("visibilitychange", this._onVisibityChange_);
-        this._onVisibityChange_ = null;
+        this.planet!.events.off("layerloadend", this._onLayerLoadend);
+        this.planet!.renderer!.handler.events.off("visibilitychange", this._onVisibilityChange);
     }
 
-    _onVisibityChange(isVisible: boolean) {
+    protected _onVisibilityChange = (isVisible: boolean) => {
         if (!isVisible) {
             this.pause();
         }
     }
 
-    clear() {
+    public clear() {
         this.stop();
         this._currentIndex = -1;
         this._currVisibleIndex = -1;
@@ -143,7 +129,7 @@ export class LayerAnimation extends Control {
         }
     }
 
-    _initLayers() {
+    protected _initLayers() {
         if (this.planet) {
             for (let i = 0, len = this._layersArr.length; i < len; i++) {
                 let li = this._layersArr[i];
@@ -155,13 +141,13 @@ export class LayerAnimation extends Control {
         }
     }
 
-    setLayers(layers: Layer[]) {
+    public setLayers(layers: Layer[]) {
         this.clear();
         this._layersArr = [].concat(layers as any);
         this._initLayers();
     }
 
-    appendLayer(layer: Layer) {
+    public appendLayer(layer: Layer) {
         this._layersArr.push(layer);
         layer.setVisibility(false);
         layer.setBaseLayer(false);
@@ -171,19 +157,19 @@ export class LayerAnimation extends Control {
     }
 
     /**
-     * warning: Use XYZ.isIdle in requesAnimationFrame(after setVisibility)
-     * @returns Returns truw if current layer is idle
+     * warning: Use XYZ.isIdle in requestAnimationFrame(after setVisibility)
+     * @returns Returns true if current layer is idle
      */
-    get isIdle(): boolean {
+    public get isIdle(): boolean {
         let currLayer = this._layersArr[this._currentIndex];
         return currLayer && currLayer.isIdle || !currLayer;
     }
 
-    get playInterval() {
+    public get playInterval() {
         return this._playInterval;
     }
 
-    set playInterval(val) {
+    public set playInterval(val: number) {
         if (val !== this._playInterval) {
             this._playInterval = val;
             if (this.isPlaying) {
@@ -193,15 +179,15 @@ export class LayerAnimation extends Control {
         }
     }
 
-    get isPlaying() {
+    public get isPlaying(): boolean {
         return this._playIntervalHandler !== -1;
     }
 
-    get layers() {
+    public get layers(): Layer[] {
         return this._layersArr;
     }
 
-    _checkEnd() {
+    protected _checkEnd() {
         if (this._playIndex > this._layersArr.length) {
             if (this.repeat) {
                 this._playIndex = 0;
@@ -211,7 +197,7 @@ export class LayerAnimation extends Control {
         }
     }
 
-    play() {
+    public play() {
         if (!this.isPlaying) {
 
             if (this._currentIndex >= this._layersArr.length - 1) {
@@ -237,7 +223,7 @@ export class LayerAnimation extends Control {
         }
     }
 
-    stop() {
+    public stop() {
         if (this._playIndex > 0) {
             this._clearInterval();
             this._playIndex = 0;
@@ -246,23 +232,23 @@ export class LayerAnimation extends Control {
         }
     }
 
-    pause() {
+    public pause() {
         if (this.isPlaying) {
             this._clearInterval();
             this.events.dispatch(this.events.pause);
         }
     }
 
-    _clearInterval() {
+    protected _clearInterval() {
         clearInterval(this._playIntervalHandler);
         this._playIntervalHandler = -1;
     }
 
     /**
-     * Waiting for the current index layer loadend and make it non transparent,
-     * and make prev layer transparent, also check previous frame index to cleanup.
+     * Waiting for the current index layer loadend and make it non-transparent,
+     * and make prev layer transparent, also check previous frame index to clean up.
      */
-    private _onLayerLoadend(layer: Layer) {
+    private _onLayerLoadend = (layer: Layer) => {
 
         let currLayer = this._layersArr[this._currentIndex];
 
@@ -301,7 +287,7 @@ export class LayerAnimation extends Control {
     /**
      * Function sets layer index visible.
      * @param {number} index
-     * @param {boolean} [stopPropagation]
+     * @param {boolean} [stopPropagation=false]
      */
     setCurrentIndex(index: number, stopPropagation = false) {
         this._setCurrentIndexAsync(index, true, stopPropagation);
@@ -310,9 +296,9 @@ export class LayerAnimation extends Control {
     /**
      * Function sets layer index visible. If the layer is idle (all visible tiles loaded), sets opacity to one,
      * otherwise to ZERO it means that when all visible tiles will be loaded the opacity becomes ONE. So, previous
-     * layer remains non transparent (opacity = 1) till current layer is loading.
+     * layer remains not transparent (opacity = 1) till current layer is loading.
      */
-    _setCurrentIndexAsync(index: number, forceVisibility: boolean, stopPropagation: boolean) {
+    protected _setCurrentIndexAsync(index: number, forceVisibility: boolean = false, stopPropagation: boolean = false) {
 
         if (index != this._currentIndex && index >= 0 && index < this._layersArr.length) {
 
@@ -375,8 +361,3 @@ export class LayerAnimation extends Control {
         }
     }
 }
-
-/**
- * @deprecated
- */
-export const layerAnimation = (options: any) => new LayerAnimation(options);

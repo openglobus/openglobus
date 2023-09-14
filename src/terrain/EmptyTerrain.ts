@@ -22,7 +22,7 @@ export interface IEmptyTerrainParams {
  * @param {boolean} [options.equalizeVertices] -
  * @param {number} [options.minZoom=2] - Minimal visible zoom index when terrain handler works.
  * @param {number} [options.minZoom=50] - Maximal visible zoom index when terrain handler works.
- * @param {number} [options.maxNativeZoom=50] - Maximal available terrain zoom level.
+ * @param {number} [options.maxNativeZoom=19] - Maximal available terrain zoom level.
  * @param {Array.<number>} [options.gridSizeByZoom] - Array of segment triangulation grid sizes where array index agreed to the segment zoom index.
  * @param {Array.<number>} [gridSizeByZoom] - Array of values, where each value corresponds to the size of a tile(or segment) on the globe. Each value must be power of two.
  * @param {Geoid} [options.geoid] -
@@ -114,12 +114,12 @@ class EmptyTerrain {
 
         this.minZoom = options.minZoom || 2;
 
-        this.maxZoom = options.maxZoom || 50;
+        this.maxZoom = options.maxZoom || 19;
 
         this.maxNativeZoom = options.maxNativeZoom || this.maxZoom;
 
         this.gridSizeByZoom = options.gridSizeByZoom || [
-            64, 32, 16, 8, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
+            64, 32, 16, 8, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
         ];
 
         this._maxNodeZoom = this.gridSizeByZoom.length - 1;
