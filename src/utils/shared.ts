@@ -150,7 +150,7 @@ export function stringTemplate(template: string, params?: any): string {
     });
 }
 
-export function getHTML(template: string, params?: any) {
+export function getHTML(template: string, params?: any): string {
     return stringTemplate(template, params);
 }
 
