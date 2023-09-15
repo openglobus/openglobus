@@ -1,7 +1,7 @@
 import * as quadTree from "../quadTree/quadTree";
 import {Extent} from "../Extent";
 import {EPSG4326} from "../proj/EPSG4326";
-import {Node} from "../quadTree/Node.js";
+import {Node} from "../quadTree/Node";
 import {Planet} from "../scene/Planet";
 import {SegmentLonLatWgs84} from "../segment/SegmentLonLatWgs84";
 import {QuadTreeStrategy} from "./QuadTreeStrategy";

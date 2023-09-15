@@ -1,7 +1,7 @@
 import * as math from "../../math";
 import {createEvents, EventsHandler} from '../../Events';
 import {CoordinatesType} from "../../entity/Geometry";
-import {Entity} from '../../entity/Entity.js';
+import {Entity} from '../../entity/Entity';
 import {IMouseState} from "../../renderer/RendererEvents";
 import {MouseNavigation} from "../MouseNavigation";
 import {LonLat} from '../../LonLat';
