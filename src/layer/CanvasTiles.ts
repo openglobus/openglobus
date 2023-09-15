@@ -257,8 +257,8 @@ class CanvasTiles extends Layer {
 
     protected _whilePendings(): Material | null {
         while (this._pendingsQueue.length) {
-            const pmat = this._pendingsQueue.pop()!;
-            if (pmat.segment.node) {
+            const pmat = this._pendingsQueue.pop();
+            if (pmat && pmat.segment && pmat.segment.node) {
                 if (pmat.segment.initialized && pmat.segment.node.getState() === quadTree.RENDERING) {
                     return pmat;
                 }
