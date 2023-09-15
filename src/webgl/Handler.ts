@@ -1261,8 +1261,9 @@ class Handler {
      */
     public destroy() {
 
-        this.resizeObserver.disconnect();
-        this.intersectionObserver.disconnect();
+        this.resizeObserver?.disconnect();
+        this.intersectionObserver?.disconnect();
+
         this.stop();
 
         //
