@@ -4,11 +4,7 @@ import * as mercator from './mercator';
 import * as utils from './utils/shared';
 import * as bv from './bv/index';
 import * as control from './control/index';
-import * as entity from './entity/index';
-import * as layer from './layer/index';
 import * as scene from './scene/index';
-import * as terrain from './terrain/index';
-import * as webgl from './webgl/index';
 
 import {Globe} from './Globe';
 
@@ -57,15 +53,20 @@ import {
     Wgs84QuadTreeStrategy
 } from './quadTree/index';
 
-
 import {Object3d} from './Object3d';
 
-const {Handler, Program, Framebuffer, Multisample} = webgl;
-const {Control} = control;
-const {Layer, Vector, XYZ, CanvasTiles, WMS, GeoImage, GeoVideo, GeoTexture2d, KML} = layer;
-const {EmptyTerrain, GlobusTerrain, MapboxTerrain, BilTerrain} = terrain;
+import {
+    Handler,
+    Program,
+    Framebuffer,
+    Multisample
+} from './webgl/index';
 
-const {
+import {
+    Control
+} from './control/Control';
+
+import {
     Entity,
     EntityCollection,
     Billboard,
@@ -74,7 +75,26 @@ const {
     PointCloud,
     Polyline,
     GeoObject
-} = entity;
+} from './entity/index';
+
+import {
+    Layer,
+    Vector,
+    XYZ,
+    CanvasTiles,
+    WMS,
+    GeoImage,
+    GeoVideo,
+    GeoTexture2d,
+    KML
+} from './layer/index';
+
+import {
+    EmptyTerrain,
+    GlobusTerrain,
+    MapboxTerrain,
+    BilTerrain
+} from './terrain/index';
 
 export {
     bv,
@@ -84,12 +104,8 @@ export {
     Framebuffer,
     utils,
     input,
-    layer,
-    terrain,
     control,
-    webgl,
     scene,
-    entity,
     quadTreeStrategyType,
     wgs84,
     KML,
