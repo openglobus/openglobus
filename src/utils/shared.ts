@@ -144,13 +144,13 @@ export function htmlColorToRgb(htmlColor: string): Vec3 {
  * og.utils.stringTemplate("http://earth3.openglobus.org/{z}/{y}/{x}.ddm", substrings);
  * //returns http://earth3.openglobus.org/8/15/12.ddm
  */
-export function stringTemplate(template: string, params: any): string {
+export function stringTemplate(template: string, params?: any): string {
     return template.replace(/{[^{}]+}/g, function (key) {
         return params[key.replace(/[{}]+/g, "")] || "";
     });
 }
 
-export function getHTML(template: string, params: any) {
+export function getHTML(template: string, params?: any) {
     return stringTemplate(template, params);
 }
 
