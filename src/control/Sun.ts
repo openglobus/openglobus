@@ -75,7 +75,7 @@ export class Sun extends Control {
         this.planet!.lightEnabled = true;
 
         // sunlight initialization
-        this.sunlight.addTo(this.planet);
+        this.sunlight.addTo(this.planet!);
 
         this.renderer!.events.on("draw", this._draw, this);
 

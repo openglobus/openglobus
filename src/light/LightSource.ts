@@ -1,12 +1,20 @@
-"use strict";
+import {Vec3} from "../math/Vec3";
+import {RenderNode} from "../scene/RenderNode";
 
-import { Vec3 } from "../math/Vec3";
+export interface ILightSourceParams {
+    position?: Vec3;
+    directional?: boolean;
+    ambient?: Vec3;
+    diffuse?: Vec3;
+    specular?: Vec3;
+    shininess?: number;
+}
 
 /**
  * Represents basic light source.
  * @class
  * @param {string} [name] - Light source name.
- * @param {Object} [params] - Light parameters:
+ * @param {ILightSourceParams} [params] - Light parameters:
  * @param {Vec3} [params.position] - Light source position if it is a point light, otherwise it is a light direction vector.
  * @param {Vec3} [params.ambient]  - Ambient RGB color.
  * @param {Vec3} [params.diffuse]  - Diffuse RGB color.
@@ -14,26 +22,85 @@ import { Vec3 } from "../math/Vec3";
  * @param {number} [params.shininess]  - Specular shininess.
  */
 class LightSource {
-    static get _staticCounter() {
-        if (!this._counter && this._counter !== 0) {
-            this._counter = 0;
-        }
-        return this._counter;
-    }
 
-    static set _staticCounter(n) {
-        this._counter = n;
-    }
+    static __counter__: number = 0;
 
-    constructor(name, params) {
-        params = params || {};
+    /**
+     * Light name.
+     * @protected
+     * @type {string}
+     */
+    protected _name: string;
+
+    /**
+     * Render node where light is shines.
+     * @protected
+     * @type {RenderNode}
+     */
+    protected _renderNode: RenderNode | null;
+
+    /**
+     * Light position.
+     * @public
+     * @type {Vec3}
+     */
+    public _position: Vec3;
+
+    /**
+     * True if the light is directional.
+     * @public
+     * @type {boolean}
+     */
+    public directional: boolean;
+
+    /**
+     * Ambient color.
+     * @protected
+     * @type {Vec3}
+     */
+    protected _ambient: Vec3;
+
+    /**
+     * Diffuse color.
+     * @protected
+     * @type {Vec3}
+     */
+    protected _diffuse: Vec3;
+
+    /**
+     * Specular color.
+     * @protected
+     * @type {Vec3}
+     */
+    protected _specular: Vec3;
+
+    /**
+     * Shininess.
+     * @protected
+     * @type {number}
+     */
+    protected _shininess: number;
+
+    /**
+     * Light activity.
+     * @protected
+     * @type {boolean}
+     */
+    protected _active: boolean;
+
+    protected _tempAmbient: Vec3;
+    protected _tempDiffuse: Vec3;
+    protected _tempSpecular: Vec3;
+    protected _tempShininess: number;
+
+    constructor(name: string, params: ILightSourceParams) {
 
         /**
          * Light name.
          * @protected
          * @type {string}
          */
-        this._name = name || "light_" + LightSource._staticCounter++;
+        this._name = name || "light_" + LightSource.__counter__++;
 
         /**
          * Render node where light is shines.
@@ -54,7 +121,7 @@ class LightSource {
          * @public
          * @type {boolean}
          */
-        this.directional = params.derectional != undefined ? params.derectional : true;
+        this.directional = params.directional != undefined ? params.directional : true;
 
         /**
          * Ambient color.
@@ -103,7 +170,7 @@ class LightSource {
      * @public
      * @returns {LightSource}
      */
-    clone() {
+    public clone() {
         // TODO
     }
 
@@ -112,11 +179,11 @@ class LightSource {
      * @public
      * @param {boolean} active - Light activity.
      */
-    setActive(active) {
+    public setActive(active: boolean) {
         if (active && !this._active) {
-            var rn = this._renderNode;
+            const rn = this._renderNode;
             if (rn) {
-                var index = rn._lightsNames.indexOf(this._name);
+                let index = rn._lightsNames.indexOf(this._name);
                 this._shininess = rn._lightsParamsf[index] = this._tempShininess;
                 if (index != -1) {
                     index *= 9;
@@ -149,7 +216,7 @@ class LightSource {
      * @public
      * @returns {boolean}
      */
-    isActive() {
+    public isActive(): boolean {
         return this._active;
     }
 
@@ -157,26 +224,21 @@ class LightSource {
      * Set light source position, or if it is a directional type sets light direction vector.
      * @public
      * @param {Vec3} position - Light position or direction vector.
-     * @returns {LightSource}
      */
-    setPosition3v(position) {
+    public setPosition3v(position: Vec3) {
         this._position.x = position.x;
         this._position.y = position.y;
         this._position.z = position.z;
-        return this;
     }
 
     /**
      * Set light source position, or if it is a directional type sets light direction vector.
      * @public
-     * @param {Vec3} position - Light position or direction vector.
-     * @returns {LightSource}
      */
-    setPosition(x, y, z) {
+    public setPosition(x: number, y: number, z: number) {
         this._position.x = x;
         this._position.y = y;
         this._position.z = z;
-        return this;
     }
 
     /**
@@ -184,7 +246,7 @@ class LightSource {
      * @public
      * @returns {Vec3} - Light source position/direction.
      */
-    getPosition() {
+    public getPosition(): Vec3 {
         return this._position.clone();
     }
 
@@ -192,171 +254,148 @@ class LightSource {
      * Set ambient color.
      * @public
      * @param {Vec3} rgb - Ambient color.
-     * @returns {LightSource}
      */
-    setAmbient3v(rgb) {
-        return this.setAmbient(rgb.x, rgb.y, rgb.z);
+    public setAmbient3v(rgb: Vec3) {
+        this.setAmbient(rgb.x, rgb.y, rgb.z);
     }
 
     /**
      * Set diffuse color.
      * @public
      * @param {Vec3} rgb - Diffuse color.
-     * @returns {LightSource}
      */
-    setDiffuse3v(rgb) {
-        return this.setDiffuse(rgb.x, rgb.y, rgb.z);
+    public setDiffuse3v(rgb: Vec3) {
+        this.setDiffuse(rgb.x, rgb.y, rgb.z);
     }
 
     /**
      * Set specular color.
      * @public
      * @param {Vec3} rgb - Specular color.
-     * @returns {LightSource}
      */
-    setSpecular3v(rgb) {
-        return this.setSpecular(rgb.x, rgb.y, rgb.z);
+    public setSpecular3v(rgb: Vec3) {
+        this.setSpecular(rgb.x, rgb.y, rgb.z);
     }
 
     /**
      * Set ambient color.
      * @public
-     * @param {Vec3} rgb - Ambient color.
-     * @returns {LightSource}
      */
-    setAmbient(r, g, b) {
+    public setAmbient(r: number, g: number, b: number) {
         this._ambient.set(r, g, b);
-        var rn = this._renderNode;
+        const rn = this._renderNode;
         if (rn) {
-            var index = 9 * rn._lightsNames.indexOf(this._name);
+            let index = 9 * rn._lightsNames.indexOf(this._name);
             if (index != -1) {
                 rn._lightsParamsv[index] = r;
                 rn._lightsParamsv[index + 1] = g;
                 rn._lightsParamsv[index + 2] = b;
             }
         }
-        return this;
     }
 
     /**
      * Set diffuse color.
      * @public
-     * @returns {LightSource}
      */
-    setDiffuse(r, g, b) {
+    public setDiffuse(r: number, g: number, b: number) {
         this._diffuse.set(r, g, b);
-        var rn = this._renderNode;
+        const rn = this._renderNode;
         if (rn) {
-            var index = 9 * rn._lightsNames.indexOf(this._name);
+            let index = 9 * rn._lightsNames.indexOf(this._name);
             if (index != -1) {
                 rn._lightsParamsv[index + 3] = r;
                 rn._lightsParamsv[index + 4] = g;
                 rn._lightsParamsv[index + 5] = b;
             }
         }
-        return this;
     }
 
     /**
      * Set specular color.
      * @public
-     * @returns {LightSource}
      */
-    setSpecular(r, g, b) {
+    public setSpecular(r: number, g: number, b: number) {
         this._specular.set(r, g, b);
-        var rn = this._renderNode;
+        const rn = this._renderNode;
         if (rn) {
-            var index = 9 * rn._lightsNames.indexOf(this._name);
+            let index = 9 * rn._lightsNames.indexOf(this._name);
             if (index != -1) {
                 rn._lightsParamsv[index + 6] = r;
                 rn._lightsParamsv[index + 7] = g;
                 rn._lightsParamsv[index + 8] = b;
             }
         }
-        return this;
     }
 
     /**
      * Set material shininess.
      * @public
-     * @returns {LightSource}
      */
-    setShininess(shininess) {
+    public setShininess(shininess: number) {
         this._shininess = shininess;
-        var rn = this._renderNode;
+        const rn = this._renderNode;
         if (rn) {
-            var index = rn._lightsNames.indexOf(this._name);
+            let index = rn._lightsNames.indexOf(this._name);
             if (index != -1) {
                 rn._lightsParamsf[index] = shininess;
             }
         }
-        return this;
     }
 
     /**
      * Sets light to black.
      * @public
-     * @returns {LightSource}
      */
-    setBlack() {
+    public setBlack() {
         this._ambient.clear();
         this._diffuse.clear();
         this._specular.clear();
         this._shininess = 0;
-        var rn = this._renderNode;
+        const rn = this._renderNode;
         if (rn) {
-            var index = 9 * rn._lightsNames.indexOf(this._name);
-            if (index != -1) {
-                rn._lightsParamsv[index] =
-                    rn._lightsParamsv[index + 1] =
-                    rn._lightsParamsv[index + 2] =
-                    rn._lightsParamsv[index + 3] =
-                    rn._lightsParamsv[index + 4] =
-                    rn._lightsParamsv[index + 5] =
-                    rn._lightsParamsv[index + 6] =
-                    rn._lightsParamsv[index + 7] =
-                    rn._lightsParamsv[index + 8] =
-                        0;
+            let index = 9 * rn._lightsNames.indexOf(this._name);
+            if (index !== -1) {
+                rn._lightsParamsv[index] = rn._lightsParamsv[index + 1] = rn._lightsParamsv[index + 2] =
+                    rn._lightsParamsv[index + 3] = rn._lightsParamsv[index + 4] = rn._lightsParamsv[index + 5] =
+                        rn._lightsParamsv[index + 6] = rn._lightsParamsv[index + 7] = rn._lightsParamsv[index + 8] = 0;
             }
         }
-        return this;
     }
 
     /**
      * Adds current light to the render node scene.
      * @public
      * @param {RenderNode} renderNode - Render node scene.
-     * @returns {LightSource}
      */
-    addTo(renderNode) {
+    public addTo(renderNode: RenderNode) {
         this._renderNode = renderNode;
         renderNode._lights.push(this);
         renderNode._lightsNames.push(this._name);
         renderNode._lightsParamsf.push(this._shininess);
-        renderNode._lightsParamsv.push.apply(renderNode._lightsParamsv, this._ambient.toVec());
-        renderNode._lightsParamsv.push.apply(renderNode._lightsParamsv, this._diffuse.toVec());
-        renderNode._lightsParamsv.push.apply(renderNode._lightsParamsv, this._specular.toVec());
+        renderNode._lightsParamsv.push.apply(renderNode._lightsParamsv, this._ambient.toArray());
+        renderNode._lightsParamsv.push.apply(renderNode._lightsParamsv, this._diffuse.toArray());
+        renderNode._lightsParamsv.push.apply(renderNode._lightsParamsv, this._specular.toArray());
         renderNode.transformLights();
-        return this;
     }
 
     /**
      * Removes from render node scene.
      * @public
      */
-    remove() {
-        var rn = this.renderNode;
+    public remove() {
+        const rn = this._renderNode;
         if (rn) {
-            var li = rn.getLightById(this._name);
-            if (li != -1) {
-                rn._lights.splice(li, 1);
-                rn._lightsNames.splice(li, 1);
-                rn._lightsParamsf.splice(li, 1);
-                rn._lightsParamsv.splice(li, 9);
-            }
+            // let li = rn.getLightById(this._name);
+            // if (li != -1) {
+            //     rn._lights.splice(li, 1);
+            //     rn._lightsNames.splice(li, 1);
+            //     rn._lightsParamsf.splice(li, 1);
+            //     rn._lightsParamsv.splice(li, 9);
+            // }
         }
         this._renderNode = null;
     }
 }
 
-export { LightSource };
+export {LightSource};

@@ -106,7 +106,7 @@ class Object3d {
         return this._src;
     }
 
-    public set src(src: string) {
+    public set src(src: string | null) {
         this._src = src;
     }
 

@@ -43,11 +43,11 @@ class RenderNode extends BaseNode {
 
     /**
      * Point light array.
-     * @private
+     * @public
      * @type {Array.<LightSource>}
      */
-    protected _lights: LightSource[];
-    protected _lightsNames: string[];
+    public _lights: LightSource[];
+    public _lightsNames: string[];
     public _lightsPositions: number[];
     public _lightsParamsv: number[];
     public _lightsParamsf: number[];
