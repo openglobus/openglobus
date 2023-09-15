@@ -1,6 +1,6 @@
 import {getDefault, stringTemplate} from '../utils/shared';
 import {Button} from './Button';
-import {CLOSE_ICON} from './icons.js';
+import {CLOSE_ICON} from './icons';
 import {IViewParams, View, ViewEventsList} from './View';
 import {EventsHandler} from "../Events";
 

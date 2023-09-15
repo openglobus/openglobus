@@ -18,7 +18,7 @@ import {
     IPolygonCoordinates
 } from "./Geometry";
 
-import {earcut, flatten} from "../utils/earcut.js";
+import {earcut, flatten} from "../utils/earcut";
 import {WebGLBufferExt} from "../webgl/Handler";
 
 const POLYVERTICES_BUFFER = 0;
