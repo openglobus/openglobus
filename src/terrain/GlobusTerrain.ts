@@ -400,7 +400,7 @@ class GlobusTerrain extends EmptyTerrain {
         return this._s[Math.floor(this._requestCount % (this._requestsPeerSubdomain * this._s.length) / this._requestsPeerSubdomain)];
     }
 
-    protected _buildURL(x: number, y: number, z: number): string {
+    public _buildURL(x: number, y: number, z: number): string {
         return stringTemplate(this.url, {
             s: this._getSubdomain(),
             x: x.toString(),
