@@ -1,6 +1,7 @@
 import * as utils from "../utils/shared";
 import {Entity} from "./Entity";
 import {LOCK_FREE, LOCK_UPDATE} from "./LabelWorker";
+import {NumberArray2, Vec2} from "../math/Vec2";
 import {NumberArray3, Vec3} from "../math/Vec3";
 import {NumberArray4, Vec4} from "../math/Vec4";
 import {BaseBillboardHandler} from "./BaseBillboardHandler";
@@ -10,7 +11,7 @@ export interface IBaseBillboardParams {
     rotation?: number;
     color?: string | NumberArray4 | Vec4;
     alignedAxis?: NumberArray3 | Vec3;
-    offset?: NumberArray3 | Vec3;
+    offset?: NumberArray2 | NumberArray3 | Vec2 | Vec3;
     visibility?: boolean;
 }
 

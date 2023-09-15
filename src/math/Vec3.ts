@@ -1,5 +1,6 @@
 import {Quat} from "./Quat";
 import {Vec4, NumberArray4} from "./Vec4";
+import {NumberArray2} from "./Vec2";
 
 export type NumberArray3 = [number, number, number];
 
@@ -181,10 +182,10 @@ export class Vec3 {
     /**
      * Creates 3d vector from array.
      * @function
-     * @param {NumberArray3|NumberArray4} arr - Input array (exactly 3 entries)
+     * @param {NumberArray2 | NumberArray3 | NumberArray4} arr - Input array (exactly 3 entries)
      * @returns {Vec3} -
      */
-    static fromVec(arr: NumberArray3 | NumberArray4): Vec3 {
+    static fromVec(arr: NumberArray2 | NumberArray3 | NumberArray4): Vec3 {
         return new Vec3(arr[0], arr[1], arr[2]);
     }
 

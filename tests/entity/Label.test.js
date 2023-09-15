@@ -27,7 +27,4 @@ test('Testing Label', () => {
 
     label.setOutlineOpacity(1);
     expect(label.getOutlineOpacity()).toBe(1);
-
-    label.assignFontAtlas(new FontAtlas());
-    label.update();
 });

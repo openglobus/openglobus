@@ -182,12 +182,14 @@ export function defaultString(str?: string, def: string = ""): string {
     return str ? str.trim().toLowerCase() : def;
 }
 
-export function createVector3(v?: Vec3 | NumberArray3 | null, def?: Vec3): Vec3 {
+export function createVector3(v?: Vec3 | Vec2 | NumberArray3 | NumberArray2 | null, def?: Vec3): Vec3 {
     if (v) {
         if (v instanceof Vec3) {
             return v.clone();
         } else if (v instanceof Array) {
             return Vec3.fromVec(v);
+        } else if (v instanceof Vec2) {
+            return new Vec3(v.x, v.y, 0.0);
         }
     } else if (def) {
         return def;
@@ -1009,7 +1011,7 @@ export function cloneArray(items: any[]): any[] {
  * @returns {Promise<Image>} Returns promise.
  */
 export async function loadImage(url: string): Promise<HTMLImageElement> {
-    return new Promise(resolve => {
+    return new Promise<HTMLImageElement>(resolve => {
         const image = new Image();
         image.addEventListener('load', () => {
             resolve(image);
