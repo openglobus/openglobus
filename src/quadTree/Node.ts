@@ -580,10 +580,10 @@ class Node {
 
             const pseg = pn.segment;
 
-            let tempVertices,
-                tempVerticesHigh,
-                tempVerticesLow,
-                noDataVertices;
+            let tempVertices: Float64Array,
+                tempVerticesHigh: Float32Array,
+                tempVerticesLow: Float32Array,
+                noDataVertices: Uint8Array;
 
             this.appliedTerrainNodeId = pn.nodeId;
             this.equalizedSideWithNodeId[N] = this.equalizedSideWithNodeId[E] = this.equalizedSideWithNodeId[S] = this.equalizedSideWithNodeId[W] = this.appliedTerrainNodeId;
