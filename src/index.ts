@@ -7,6 +7,7 @@ import * as control from './control/index';
 import * as scene from './scene/index';
 import * as terrain from './terrain/index';
 import * as layer from './layer/index';
+import * as webgl from './webgl/index';
 
 import {Globe} from './Globe';
 
@@ -112,6 +113,7 @@ export {
     wgs84,
     terrain,
     layer,
+    webgl,
     Framebuffer,
     Material,
     KML,
