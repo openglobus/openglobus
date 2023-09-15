@@ -2,8 +2,6 @@
  * @module og/webgl/types
  */
 
-'use strict';
-
 let _declarations: string[] = [
     "FLOAT", "DOUBLE", "BOOL", "INT", "UINT",
     "VEC2", "VEC3", "VEC4", "DVEC2",
