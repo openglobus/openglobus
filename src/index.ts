@@ -5,6 +5,8 @@ import * as utils from './utils/shared';
 import * as bv from './bv/index';
 import * as control from './control/index';
 import * as scene from './scene/index';
+import * as terrain from './terrain/index';
+import * as layer from './layer/index';
 
 import {Globe} from './Globe';
 
@@ -86,7 +88,8 @@ import {
     GeoImage,
     GeoVideo,
     GeoTexture2d,
-    KML
+    KML,
+    Material
 } from './layer/index';
 
 import {
@@ -101,13 +104,16 @@ export {
     jd,
     math,
     mercator,
-    Framebuffer,
     utils,
     input,
     control,
     scene,
     quadTreeStrategyType,
     wgs84,
+    terrain,
+    layer,
+    Framebuffer,
+    Material,
     KML,
     Layer,
     XYZ,
