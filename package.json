@@ -1,84 +1,85 @@
 {
-  "name" : "@openglobus/og",
-  "version" : "0.18.0",
-  "description" : "[openglobus](https://www.openglobus.org/) is a javascript/typescript library designed to display interactive 3d maps and planets with map tiles, imagery and vector data, markers, and 3D objects. It uses the WebGL technology, open source, and completely free.",
-  "directories" : {
-    "example" : "./sandbox"
+  "name": "@openglobus/og",
+  "version": "0.18.0",
+  "description": "[openglobus](https://www.openglobus.org/) is a javascript/typescript library designed to display interactive 3d maps and planets with map tiles, imagery and vector data, markers, and 3D objects. It uses the WebGL technology, open source, and completely free.",
+  "directories": {
+    "example": "./sandbox"
   },
-  "main" : "./src/index.ts",
-  "style" : "./css/og.css",
-  "scripts" : {
-    "docs" : "jsdoc -r ./src/ -c ./jsdoc.conf.json -d ./docs",
-    "serve" : "ws -p 8080",
-    "build" : "rollup -c --bundleConfigAsCjs",
-    "dev" : "rollup -c -w --bundleConfigAsCjs --environment NODE_ENV:development",
-    "test" : "jest --env=jsdom --runInBand --ci --coverage=false",
-    "test_watch" : "jest --env=jsdom --watch",
-    "lint" : "eslint -c ./.eslintrc.js src/",
-    "font" : "node ./fonts/index.js"
+  "main": "./src/index.ts",
+  "style": "./css/og.css",
+  "scripts": {
+    "docs": "jsdoc -r ./src/ -c ./jsdoc.conf.json -d ./docs",
+    "serve": "ws -p 8080",
+    "build": "rollup -c --bundleConfigAsCjs",
+    "dev": "rollup -c -w --bundleConfigAsCjs --environment NODE_ENV:development",
+    "test": "jest --env=jsdom --runInBand --ci --coverage=false",
+    "test_watch": "jest --env=jsdom --watch",
+    "lint": "eslint -c ./.eslintrc.js src/",
+    "font": "node ./fonts/index.js"
   },
-  "repository" : {
-    "type" : "git",
-    "url" : "git+https://github.com/openglobus/openglobus.git"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openglobus/openglobus.git"
   },
-  "author" : "Zemledelec",
-  "license" : "MIT",
-  "bugs" : {
-    "url" : "https://github.com/openglobus/openglobus/issues",
-    "email" : "mgevlich@gmail.com"
+  "author": "Zemledelec",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/openglobus/openglobus/issues",
+    "email": "mgevlich@gmail.com"
   },
-  "homepage" : "https://www.openglobus.org",
-  "exports" : {
-    "." : "./src/index.js",
-    "./layer" : "./src/layer/index.js",
-    "./bv" : "./src/index.js",
-    "./terrain" : "./src/terrain/index.js",
-    "./entity" : "./src/entity/index.js",
-    "./control" : "./src/control/index.js",
-    "./webgl" : "./src/webgl/index.js",
-    "./scene" : "./src/scene/index.js",
-    "./css/og.css" : "./css/og.css"
+  "homepage": "https://www.openglobus.org",
+  "exports": {
+    ".": "./src/index.js",
+    "./layer": "./src/layer/index.js",
+    "./bv": "./src/index.js",
+    "./terrain": "./src/terrain/index.js",
+    "./entity": "./src/entity/index.js",
+    "./control": "./src/control/index.js",
+    "./webgl": "./src/webgl/index.js",
+    "./scene": "./src/scene/index.js",
+    "./css/og.css": "./css/og.css"
   },
-  "devDependencies" : {
-    "@babel/preset-env" : "^7.21.5",
-    "@rollup/plugin-json" : "^6.0.0",
-    "@rollup/plugin-terser" : "^0.4.1",
-    "@types/jest" : "^29.5.3",
-    "@typescript-eslint/eslint-plugin" : "^6.2.1",
-    "@typescript-eslint/parser" : "^6.2.1",
-    "clean-jsdoc-theme" : "^4.2.7",
-    "eslint" : "^8.39.0",
-    "jest" : "^29.5.0",
-    "jest-canvas-mock" : "^2.5.0",
-    "jest-environment-jsdom" : "^29.5.0",
-    "jsdoc" : "^4.0.2",
-    "lint-staged" : "^13.2.2",
-    "local-web-server" : "^5.3.0",
-    "postcss" : "^8.4.23",
-    "prettier" : "^2.8.8",
-    "rollup" : "^3.21.3",
-    "rollup-plugin-postcss" : "^4.0.2",
-    "ts-jest" : "^29.1.1",
-    "typescript" : "^5.1.6"
+  "devDependencies": {
+    "@babel/preset-env": "^7.21.5",
+    "@rollup/plugin-json": "^6.0.0",
+    "@rollup/plugin-terser": "^0.4.1",
+    "@types/jest": "^29.5.3",
+    "@typescript-eslint/eslint-plugin": "^6.2.1",
+    "@typescript-eslint/parser": "^6.2.1",
+    "clean-jsdoc-theme": "^4.2.7",
+    "eslint": "^8.39.0",
+    "jest": "^29.5.0",
+    "jest-canvas-mock": "^2.5.0",
+    "jest-environment-jsdom": "^29.5.0",
+    "jsdoc": "^4.0.2",
+    "lint-staged": "^13.2.2",
+    "local-web-server": "^5.3.0",
+    "postcss": "^8.4.23",
+    "prettier": "^2.8.8",
+    "rollup": "^3.21.3",
+    "rollup-plugin-copy": "^3.5.0",
+    "rollup-plugin-postcss": "^4.0.2",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.1.6"
   },
-  "lint-staged" : {
-    "*.{js,ts}" : [
+  "lint-staged": {
+    "*.{js,ts}": [
       "prettier --write"
     ]
   },
-  "files" : [
+  "files": [
     "src/**/*",
     "dist/**/*",
     "css/**/*"
   ],
-  "keywords" : [
+  "keywords": [
     "map",
     "3D",
     "webgl",
     "globe",
     "og"
   ],
-  "dependencies" : {
-    "@rollup/plugin-typescript" : "^11.1.2"
+  "dependencies": {
+    "@rollup/plugin-typescript": "^11.1.2"
   }
 }
