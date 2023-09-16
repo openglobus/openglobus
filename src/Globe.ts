@@ -97,10 +97,10 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {boolean} [options.autoActivate=true] - Globe rendering auto activation flag. True is default.
  * @param {HTMLElement} [options.attributionContainer] - Container for attribution list.
  * @param {number} [options.maxGridSize=128] = Maximal segment grid size. 128 is default
- * @param {string} [options.specularTextureSrc] - Specular water mask image sourcr
  * @param {string} [options.fontsSrc] -  Fonts collection url.
  * @param {string} [options.resourcesSrc] - Resources root src.
  * @param {string} [options.nightTextureSrc] - Night glowing image sources
+ * @param {string} [options.specularTextureSrc] - Specular water mask image sourcr
  * @param {number} [options.maxAltitude=15000000.0] - Maximal camera altitude above terrain
  * @param {number} [options.minAltitude=1.0] - Minimal camera altitude above terrain
  * @param {number} [options.maxEqualZoomAltitude=15000000.0] - Maximal altitude since segments on the screen became the same zoom level
@@ -226,8 +226,8 @@ class Globe {
             frustums: options.frustums,
             ellipsoid: options.ellipsoid,
             maxGridSize: options.maxGridSize,
-            nightTextureSrc: options.nightTextureSrc == null ? null : `${options.resourcesSrc || DEFAULT_RESOURCES_SRC}${DEFAULT_NIGHT_SRC}`,
-            specularTextureSrc: options.specularTextureSrc == null ? null : `${options.resourcesSrc || DEFAULT_RESOURCES_SRC}${DEFAULT_SPEC_SRC}`,
+            nightTextureSrc: options.nightTextureSrc === null ? null : `${options.resourcesSrc || DEFAULT_RESOURCES_SRC}${DEFAULT_NIGHT_SRC}`,
+            specularTextureSrc: options.specularTextureSrc === null ? null : `${options.resourcesSrc || DEFAULT_RESOURCES_SRC}${DEFAULT_SPEC_SRC}`,
             minAltitude: options.minAltitude,
             maxAltitude: options.maxAltitude || 15000000,
             maxEqualZoomAltitude: options.maxEqualZoomAltitude,
