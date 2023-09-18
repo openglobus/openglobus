@@ -83,7 +83,7 @@ class GlobusTerrain extends EmptyTerrain {
     protected _urlRewriteCallback: UrlRewriteFunc | null;
 
 
-    constructor(name: string | null, options: IGlobusTerrainParams = {}) {
+    constructor(name: string = "", options: IGlobusTerrainParams = {}) {
 
         super({
             geoidSrc: "//openglobus.org/geoid/egm84-30.pgm",
