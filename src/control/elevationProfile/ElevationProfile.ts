@@ -304,6 +304,6 @@ export {
     COLLISION,
     SAFE,
     WARNING,
-    IProfileData,
+    type IProfileData,
     ElevationProfile,
 };

@@ -8,11 +8,6 @@ import {Sphere} from "../bv/Sphere";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 
-interface Touch {
-    pageX: number;
-    pageY: number;
-}
-
 interface IEarthNavigationParams extends IControlParams {
 
 }

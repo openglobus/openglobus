@@ -207,7 +207,7 @@ export class Mat4 {
      * @public
      * @returns {Mat4} -
      */
-    public inverseTo(res: Mat4 = new Mat4): Mat4 {
+    public inverseTo(res: Mat4 = new Mat4()): Mat4 {
         let c = this._m[0],
             d = this._m[1],
             e = this._m[2],
