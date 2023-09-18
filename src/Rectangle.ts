@@ -104,7 +104,7 @@ class Rectangle {
      * @type {boolean}
      */
     public fit(width: number, height: number): boolean {
-        return this.getWidth() == width && this.getHeight() == height;
+        return this.getWidth() === width && this.getHeight() === height;
     }
 
     public isInside(x: number, y: number): boolean {

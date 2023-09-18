@@ -54,7 +54,7 @@ type XYZEventsType = EventsHandler<XYZEventsList> & EventsHandler<LayerEventsLis
  *     attribution: 'Data @ <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>'
  * });
  */
-class XYZ extends Layer {
+export class XYZ extends Layer {
 
     public override events: XYZEventsType;
 
@@ -395,5 +395,3 @@ const XYZ_EVENTS: XYZEventsList = [
      */
     "loadend"
 ];
-
-export {XYZ};

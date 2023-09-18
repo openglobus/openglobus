@@ -13,11 +13,6 @@ interface ITouchNavigationParams extends IControlParams {
 
 }
 
-interface Touch {
-    clientX: number;
-    clientY: number;
-}
-
 class TouchExt {
     public x: number;
     public y: number;

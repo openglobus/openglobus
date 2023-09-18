@@ -4,7 +4,7 @@ import {Mat3} from "../math/Mat3";
 type Func = (x: number) => number;
 
 export function getEccentricAnomaly(M: number, ecc: number): number {
-    if (ecc == 0.0) {
+    if (ecc === 0.0) {
         // Circular orbit
         return M;
     } else if (ecc < 0.2) {
@@ -20,7 +20,7 @@ export function getEccentricAnomaly(M: number, ecc: number): number {
         // requires more calculation.
         let E = M + 0.85 * ecc * Math.sign(Math.sin(M));
         return math.solve_iteration_fixed(solveKeplerLaguerreConway(ecc, M), E, 8);
-    } else if (ecc == 1.0) {
+    } else if (ecc === 1.0) {
         // TODO: Parabolic orbit
         return M;
     } else {
