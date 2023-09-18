@@ -31,11 +31,3 @@ jobs:
           user-email: github-actions[bot]@users.noreply.github.com
           target-branch: master
           target-directory: docs
-
-  generate_types:
-    name: Generate types
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/main
-      - run: npm run generate_types
