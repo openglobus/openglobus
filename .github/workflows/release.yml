@@ -35,8 +35,6 @@ jobs:
           target-branch: master
           target-directory: docs
 
-      - run: npm run generate_types
-
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
