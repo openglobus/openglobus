@@ -131,7 +131,7 @@ class BaseGeoImage extends Layer {
     }
 
     public override get isIdle(): boolean {
-        return super.isIdle && this._ready;
+        return !!this._planet && this._planet._terrainCompletedActivated && this._ready;
     }
 
     public override addTo(planet: Planet) {

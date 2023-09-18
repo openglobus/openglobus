@@ -492,7 +492,7 @@ class Layer {
     }
 
     public get isIdle(): boolean {
-        return this._planet && this._planet._terrainCompletedActivated || false;
+        return !!this._planet && this._planet._terrainCompletedActivated;
     }
 
     /**

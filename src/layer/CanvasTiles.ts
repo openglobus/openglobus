@@ -131,7 +131,7 @@ class CanvasTiles extends Layer {
     }
 
     public override get isIdle() {
-        return super.isIdle && this._counter === 0;
+        return !!this._planet && this._planet._terrainCompletedActivated && this._counter === 0;
     }
 
     /**
