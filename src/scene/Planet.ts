@@ -36,7 +36,6 @@ import {Vector} from "../layer/Vector";
 import {VectorTileCreator} from "../utils/VectorTileCreator";
 import {wgs84} from "../ellipsoid/wgs84";
 import {WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams} from "../webgl/Handler";
-import Constructor = jest.Constructor;
 
 export interface IPlanetParams {
     name?: string;
