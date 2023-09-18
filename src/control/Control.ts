@@ -8,7 +8,7 @@ export interface IControlParams {
 /**
  * Base control class. All other controls extend from this class.
  * @class Control
- * @param {Boolean} [options.autoActivated=true] - If true - calls initialize function after the renderer assigning.
+ * @param {Boolean} [options.autoActivate=true] - If true - calls initialize function after the renderer assigning.
  */
 export class Control {
     static __counter__: number = 0;

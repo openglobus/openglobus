@@ -20,7 +20,7 @@ export {
     Vec2,
     Vec3,
     Vec4,
-    NumberArray2,
-    NumberArray3,
-    NumberArray4
+    type NumberArray2,
+    type NumberArray3,
+    type NumberArray4
 };

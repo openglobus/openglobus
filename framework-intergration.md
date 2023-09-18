@@ -34,7 +34,7 @@ export class GlobeComponent implements OnInit {
       name: 'Earth',
       terrain: new og.terrain.GlobusTerrain(),
       layers: [osm],
-      autoActivated: true
+      autoActivate: true
     });
     globus.planet.flyLonLat(new og.LonLat(2, 48, 20108312));
   }
@@ -75,7 +75,7 @@ export default {
       name: "Earth",
       terrain: new og.terrain.GlobusTerrain(),
       layers: [osm],
-      autoActivated: true
+      autoActivate: true
     });
     globus.planet.flyLonLat(new og.LonLat(2, 48, 20108312));
   }
