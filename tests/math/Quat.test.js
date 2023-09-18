@@ -1,6 +1,6 @@
-import { Mat4 } from '../../src/og/math/Mat4';
-import { Quat, quat } from '../../src/og/math/Quat';
-import { Vec3 } from '../../src/og/math/Vec3';
+import { Mat4 } from '../../src/math/Mat4';
+import { Quat, quat } from '../../src/math/Quat';
+import { Vec3 } from '../../src/math/Vec3';
 
 describe('Quat class', () => {
     test('methods', () => {

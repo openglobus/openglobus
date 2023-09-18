@@ -1,7 +1,6 @@
-import { LonLat } from "../../src/og/LonLat";
-import { Vec3 } from "../../src/og/math/Vec3";
-import { Ellipsoid } from "../../src/og/ellipsoid/Ellipsoid.js";
-import { wgs84 } from "../../src/og/ellipsoid/wgs84";
+import { LonLat } from "../../src/LonLat";
+import { Vec3 } from "../../src/math/Vec3";
+import { wgs84 } from "../../src/ellipsoid/wgs84";
 
 test('Testing Ellipsoid Vincenty direct to inverse formulas', () => {
 

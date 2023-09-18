@@ -1,5 +1,5 @@
-import { KeyboardHandler } from "../../src/og/input/KeyboardHandler.js";
-import { input } from "../../src/og/input/input.js";
+import { KeyboardHandler } from "../../src/input/KeyboardHandler";
+import { input } from "../../src/input/input";
 
 test('Testing KeyboardHadler instantiating', () => {
     let kb = new KeyboardHandler();

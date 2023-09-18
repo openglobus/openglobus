@@ -1,4 +1,4 @@
-import { Strip } from "../../src/og/entity/Strip";
+import { Strip } from "../../src/entity/Strip";
 
 
 test('Testing Strip', () => {

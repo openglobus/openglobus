@@ -1,4 +1,4 @@
-import { Events } from '../src/og/Events.js';
+import { Events } from '../src/Events';
 
 test('Test multiple event handlers for one function', () => {
 

@@ -1,5 +1,5 @@
-import { Ray } from "../../src/og/entity/Ray";
-import { Vec3 } from "../../src/og/math/Vec3";
+import { Ray } from "../../src/entity/Ray";
+import { Vec3 } from "../../src/math/Vec3";
 
 test('Testing Ray', () => {
     let ray = new Ray();

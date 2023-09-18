@@ -1,4 +1,4 @@
-import { LonLat } from '../src/og/LonLat';
+import { LonLat } from '../src/LonLat';
 
 describe('LonLat', () => {
     describe('constructor', () => {
@@ -60,7 +60,6 @@ describe('LonLat', () => {
     describe('forwardMercator', () => {
         test('converts degrees to mercator', () => {
             const lonlat = LonLat.forwardMercator(0, 0, 30);
-            console.log(lonlat)
             expect(lonlat).toBeInstanceOf(LonLat);
             expect(lonlat.lon).toBeCloseTo(0, 5);
             expect(lonlat.lat).toBeCloseTo(0, 5);

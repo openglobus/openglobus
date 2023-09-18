@@ -1,17 +1,18 @@
-"use strict";
-
-import { Entity } from "../../src/og/entity/Entity.js";
-import { EntityCollection } from "../../src/og/entity/EntityCollection.js";
-import { Globe } from "../../src/og/Globe.js";
-import { XYZ } from "../../src/og/layer/XYZ.js";
-import { GlobusTerrain } from "../../src/og/terrain/GlobusTerrain.js";
-import * as utils from "../../src/og/utils/shared.js";
-import { MAX32 } from "../../src/og/math.js";
-import { KeyboardNavigation } from "../../src/og/control/KeyboardNavigation.js";
-import { ToggleWireframe } from "../../src/og/control/ToggleWireframe.js";
-import { RulerSwitcher } from "../../src/og/control/RulerSwitcher.js";
-import { DebugInfo } from "../../src/og/control/DebugInfo.js";
-import { Object3d } from "../../src/og/Object3d.js";
+import {
+    Entity,
+    EntityCollection,
+    Globe,
+    XYZ,
+    GlobusTerrain,
+    utils,
+    math,
+    // KeyboardNavigation,
+    // ToggleWireframe,
+    // RulerSwitcher,
+    // DebugInfo,
+    Object3d,
+    control
+} from "../../dist/@openglobus/og.esm.js";
 
 
 let plane3d = new Object3d({
@@ -238,7 +239,11 @@ let geoObjects = new EntityCollection({
     scaleByDistance: [100, 4000000, 1.0]
 });
 
+// Object3d.loadObj("./cube.obj").then((objects)=>{
+//     let obj3d = objects[0];
+// })
 let obj3d = Object3d.createSphere(16, 16, 5);
+
 let obj3d2 = Object3d.createCylinder(3, 3, 10, 16, 16);
 
 let entities = [];
@@ -295,10 +300,10 @@ for (let i = 0; i < 10; i++) {
 geoObjects.addEntities(entities);
 
 
-globus.planet.addControl(new ToggleWireframe());
-globus.planet.addControl(new KeyboardNavigation());
-globus.planet.addControl(new RulerSwitcher());
-let di = new DebugInfo();
+globus.planet.addControl(new control.ToggleWireframe());
+globus.planet.addControl(new control.KeyboardNavigation());
+globus.planet.addControl(new control.RulerSwitcher());
+let di = new control.DebugInfo();
 globus.planet.addControl(di);
 di.addWatch({
     label: "distance",
@@ -310,42 +315,42 @@ di.addWatch({
     }
 });
 
-fetch(`./fish.json`)
-    .then((response) => response.json())
-    .then((data) => {
-        const entities = [];
-        const { vertices, indices, normals, texCoords } = data;
-
-        let obj3d = new Object3d({
-            center: true,
-            vertices: vertices,
-            indices: indices,
-            normals: normals,
-            texCoords: texCoords,
-            src: "./fish.png"
-        });
-
-        for (let i = 0; i < 10; i++) {
-            let entity = new Entity({
-                lonlat: [0, i, 0],
-                name: "obj-" + i,
-                geoObject: {
-                    pitch: Math.random(),
-                    yaw: Math.random(),
-                    roll: Math.random(),
-                    scale: 5.0,
-                    instanced: true,
-                    tag: "cube",
-                    color: colors[i % 7],
-                    object3d: obj3d
-                }
-            });
-
-            entities.push(entity);
-        }
-
-        geoObjects.addEntities(entities);
-    });
+// fetch(`./fish.json`)
+//     .then((response) => response.json())
+//     .then((data) => {
+//         const entities = [];
+//         const { vertices, indices, normals, texCoords } = data;
+//
+//         let obj3d = new Object3d({
+//             center: true,
+//             vertices: vertices,
+//             indices: indices,
+//             normals: normals,
+//             texCoords: texCoords,
+//             src: "./fish.png"
+//         });
+//
+//         for (let i = 0; i < 10; i++) {
+//             let entity = new Entity({
+//                 lonlat: [0, i, 0],
+//                 name: "obj-" + i,
+//                 geoObject: {
+//                     pitch: Math.random(),
+//                     yaw: Math.random(),
+//                     roll: Math.random(),
+//                     scale: 5.0,
+//                     instanced: true,
+//                     tag: "cube",
+//                     color: colors[i % 7],
+//                     object3d: obj3d
+//                 }
+//             });
+//
+//             entities.push(entity);
+//         }
+//
+//         geoObjects.addEntities(entities);
+//     });
 
 geoObjects.events.on("lclick", function (e) {
     //e.pickingObject.geoObject.remove();

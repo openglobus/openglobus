@@ -20,26 +20,29 @@ yarn add @openglobus/og
 
 ### 代码：使用 umd 引用
 
-``` html
-<link rel="stylesheet" href="./libs/og.css">
-<script src="./libs/og.umd.js"></script>
+```html
+
+<link rel="stylesheet" href="../dist/@openglogus/og.css">
+<script src="../dist/@openglogus/og.umd.js"></script>
 <div id="globus"></div>
 <script>
 
-  const osm = new og.layer.XYZ("OpenStreetMap", {
-    isBaseLayer: true,
-    url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    visibility: true,
-  })
+    const osm = new og.layer.XYZ("OpenStreetMap", {
+        isBaseLayer: true,
+        url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        visibility: true,
+    });
 
-  const globus = new og.Globe({
-    target: "globus", // a HTMLDivElement which its id is `globus`
-    name: "Earth",
-    terrain: new og.terrain.GlobusTerrain(),
-    layers: [osm],
-    autoActivated: true,
-    viewExtent: [108.28125, 20.63278, 118.125, 25.79989] // 广州上空
-  })
+    const globus = new og.Globe({
+        target: "globus", // a HTMLDivElement which its id is `globus`
+        name: "Earth",
+        terrain: new og.terrain.GlobusTerrain(),
+        layers: [osm],
+        autoActivated: true,
+        fontsSrc: "../res/fonts", // Fonts folder
+        resourcesSrc: "../res",   // Night and water mask terxtures folder
+        viewExtent: [5.56707, 45.15679, 5.88834, 45.22260]
+    });
 
 </script>
 ```
@@ -47,39 +50,39 @@ yarn add @openglobus/og
 ### 代码：使用 esm 引用
 
 ```html
-<link rel="stylesheet" href="./libs/og.css">
+
+<link rel="stylesheet" href="../dist/@openglobus/og.css">
 <div id="globus"></div>
 <script type="module">
 
-  import { layer, Globe, terrain } from './libs/og.esm.js'
-  const { XYZ } = layer
-  const { GlobusTerrain } = terrain
+    import {XYZ, Globe, GlobusTerrain} from '../dist/@openglobus/og.esm.js';
 
-  const osm = new XYZ("OpenStreetMap", {
-    isBaseLayer: true,
-    url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    visibility: true,
-  })
+    const osm = new XYZ("OpenStreetMap", {
+        isBaseLayer: true,
+        url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        visibility: true,
+    });
 
-  const globus = new Globe({
-    target: "globus", // a HTMLDivElement which its id is `globus`
-    name: "Earth",
-    terrain: new GlobusTerrain(),
-    layers: [osm],
-    autoActivated: true,
-    viewExtent: [108.28125, 20.63278, 118.125, 25.79989] // 广州上空
-  })
+    const globus = new Globe({
+        target: "globus", // a HTMLDivElement which its id is `globus`
+        name: "Earth",
+        terrain: new GlobusTerrain(),
+        layers: [osm],
+        autoActivated: true,
+        fontsSrc: "../res/fonts",  // Fonts folder
+        resourcesSrc: "../res",    // Night and water mask terxtures folder
+        viewExtent: [5.56707, 45.15679, 5.88834, 45.22260]
+    });
 
 </script>
 ```
 
-
-
 ## 文档
 
-查看[在线示例](http://www.openglobus.org/examples.html)，或者查看 [API 帮助文档](http://www.openglobus.org/api/)。
-
-
+UNDER CONSTRUCTION
+Here is a [Wiki](https://github.com/openglobus/openglobus/wiki), also
+check out the [hosted examples](http://www.openglobus.org/examples.html), and
+the [API documentation](http://www.openglobus.org/api/).
 
 ## 如何贡献你的代码
 
@@ -109,21 +112,39 @@ npm run build
 - og.esm.js
 - og.esm.js.map
 - og.css
+- ./res/...
 
-其中，js 文件均使用 `terser` 插件进行了代码压缩。
+### 新情况
+
+First, it starts by watching sources and building into dist folder esm module:
+
+```sh
+npm run dev
+```
+
+Second, runs local server, then you can browse 127.0.0.1:8080:
+
+```sh
+npm run serve
+```
+
+Third, try an example from the sandbox:
+
+```sh
+ http://127.0.0.1:8080/sandbox/osm/osm.html
+```
 
 ### 其他命令
-
-`npm run core` - 仅构建 og.core （渲染引擎）
-
-`npm run webgl` - 仅构建 og.webgl （WebGL 的封装部分）
 
 `npm run docs` - 本地构建 API 帮助文档至 `/api` 目录
 
 `npm run serve` - 运行本地 Web 服务器以便开发以及查看示例代码
 
-`npm run font` - 生成自定义的字体集
+`npm run lint` - run code linter
 
+`npm run test` - run tests
+
+`tsc` - run typescript parser
 
 
 ## 支持此项目

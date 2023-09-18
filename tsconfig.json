@@ -1,0 +1,24 @@
+{
+  "include" : [
+    "./src/**/*"
+  ],
+  "exclude" : [
+    "node_modules",
+    "dist"
+  ],
+  "compilerOptions" : {
+    "strictPropertyInitialization" : true,
+    "alwaysStrict" : true,
+    "noImplicitOverride" : true,
+    "noImplicitAny" : true,
+    "strictNullChecks" : true,
+    "allowJs" : true,
+    "target" : "es2021",
+    "module" : "ESNext",
+    "esModuleInterop" : true,
+    "forceConsistentCasingInFileNames" : true,
+    "strict" : true,
+    "skipLibCheck" : true,
+    "outDir" : "out-tsc"
+  }
+}
