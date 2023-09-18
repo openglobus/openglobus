@@ -1,0 +1,19 @@
+{
+  "include" : [
+    "./src/**/*"
+  ],
+  "exclude" : [
+    "node_modules",
+    "dist"
+  ],
+  "compilerOptions": {
+    "allowJs": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "dist/types",
+    "declarationMap": true,
+    "target": "es2021",
+    "moduleResolution": "nodenext",
+    "module": "NodeNext"
+  }
+}

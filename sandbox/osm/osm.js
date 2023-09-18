@@ -272,6 +272,7 @@ const globus = new Globe({
 // globus.planet.addControl(new LayerSwitcher());
 //
 globus.planet.addControl(new control.DebugInfo());
+globus.planet.addControl(new control.KeyboardNavigation());
 //
 // globus.planet.addControl(new ToggleWireframe());
 // globus.planet.addControl(new KeyboardNavigation());
