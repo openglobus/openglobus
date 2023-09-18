@@ -39,7 +39,7 @@ yarn add @openglobus/og
         name: "Earth",
         terrain: new og.terrain.GlobusTerrain(),
         layers: [osm],
-        autoActivated: true,
+        autoActivate: true,
         fontsSrc: "../dist/@openglobus/res/fonts", // Fonts folder
         resourcesSrc: "../dist/@openglobus/res",   // Night and water mask terxtures folder
         viewExtent: [5.56707, 45.15679, 5.88834, 45.22260]
@@ -69,7 +69,7 @@ yarn add @openglobus/og
         name: "Earth",
         terrain: new GlobusTerrain(),
         layers: [osm],
-        autoActivated: true,
+        autoActivate: true,
         fontsSrc: "../res/fonts",  // Fonts folder
         resourcesSrc: "../res",    // Night and water mask terxtures folder
         viewExtent: [5.56707, 45.15679, 5.88834, 45.22260]
