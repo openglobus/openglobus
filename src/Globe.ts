@@ -46,7 +46,10 @@ interface IGlobeParams {
     controls?: Control[];
     useEarthNavigation?: boolean;
     minSlope?: number;
-    sun?: { active?: boolean };
+    sun?: {
+        active?: boolean;
+        stopped?: boolean
+    };
     layers?: Layer[];
     viewExtent?: Extent | NumberArray4;
     autoActivate?: boolean;
@@ -285,6 +288,9 @@ class Globe {
         if (options.sun) {
             if (options.sun.active !== undefined && !options.sun.active) {
                 this.sun.deactivate();
+            }
+            if (options.sun.stopped === true) {
+                this.sun.stop();
             }
         }
 
