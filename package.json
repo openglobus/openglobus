@@ -11,6 +11,8 @@
     "docs": "jsdoc -r ./src/ -c ./jsdoc.conf.json -d ./docs",
     "serve": "ws -p 8080",
     "build": "rollup -c --bundleConfigAsCjs",
+    "clean": "rm -rf ./dist ./docs",
+    "prepublishOnly": "npm run build; npm run gen_js",
     "dev": "rollup -c -w --bundleConfigAsCjs --environment NODE_ENV:development",
     "test": "jest --env=jsdom --runInBand --ci --coverage=false",
     "test_watch": "jest --env=jsdom --watch",
@@ -59,7 +61,6 @@
     ]
   },
   "files": [
-    "src/**/*",
     "dist/**/*",
     "css/**/*"
   ],
