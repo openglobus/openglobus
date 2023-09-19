@@ -16,10 +16,10 @@
     "target" : "es2021",
     "module" : "ESNext",
     "esModuleInterop" : true,
-    "isolatedModules": true,
     "forceConsistentCasingInFileNames" : true,
     "strict" : true,
     "skipLibCheck" : true,
-    "outDir" : "out-tsc"
+    "isolatedModules": true,
+    "outDir" : "out-tsc/js"
   }
 }
