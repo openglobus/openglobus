@@ -23,8 +23,8 @@ yarn add @openglobus/og
 
 ```html
 
-<link rel="stylesheet" href="../dist/@openglogus/og.css">
-<script src="../dist/@openglogus/og.umd.js"></script>
+<link rel="stylesheet" href="../lib/@openglogus/og.css">
+<script src="../lib/@openglogus/og.umd.js"></script>
 <div id="globus"></div>
 <script>
 
@@ -39,9 +39,8 @@ yarn add @openglobus/og
         name: "Earth",
         terrain: new og.terrain.GlobusTerrain(),
         layers: [osm],
-        autoActivate: true,
-        fontsSrc: "../dist/@openglobus/res/fonts", // Fonts folder
-        resourcesSrc: "../dist/@openglobus/res",   // Night and water mask terxtures folder
+        fontsSrc: "../lib/@openglobus/res/fonts", // Fonts folder
+        resourcesSrc: "../lib/@openglobus/res",   // Night and water mask terxtures folder
         viewExtent: [5.56707, 45.15679, 5.88834, 45.22260]
     });
 
@@ -52,11 +51,11 @@ yarn add @openglobus/og
 
 ```html
 
-<link rel="stylesheet" href="../dist/@openglobus/og.css">
+<link rel="stylesheet" href="../lib/@openglobus/og.css">
 <div id="globus"></div>
 <script type="module">
 
-    import {XYZ, Globe, GlobusTerrain} from '../dist/@openglobus/og.esm.js';
+    import {XYZ, Globe, GlobusTerrain} from '../lib/@openglobus/og.esm.js';
 
     const osm = new XYZ("OpenStreetMap", {
         isBaseLayer: true,
@@ -69,7 +68,6 @@ yarn add @openglobus/og
         name: "Earth",
         terrain: new GlobusTerrain(),
         layers: [osm],
-        autoActivate: true,
         fontsSrc: "../res/fonts",  // Fonts folder
         resourcesSrc: "../res",    // Night and water mask terxtures folder
         viewExtent: [5.56707, 45.15679, 5.88834, 45.22260]
@@ -110,7 +108,7 @@ Run
 npm run build
 ```
 
-Then, it will generate 5 files at `dist/@openglobus/`:
+Then, it will generate 5 files at `lib/@openglobus/`:
 
 - og.umd.js
 - og.umd.js.map
@@ -121,7 +119,7 @@ Then, it will generate 5 files at `dist/@openglobus/`:
 
 ### Run examples
 
-First, it starts by watching sources and building into dist folder esm module:
+First, it starts by watching sources and building into ./lib folder esm module:
 
 ```sh
 npm run dev

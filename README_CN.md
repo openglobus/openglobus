@@ -22,8 +22,8 @@ yarn add @openglobus/og
 
 ```html
 
-<link rel="stylesheet" href="../dist/@openglogus/og.css">
-<script src="../dist/@openglogus/og.umd.js"></script>
+<link rel="stylesheet" href="../lib/@openglogus/og.css">
+<script src="../lib/@openglogus/og.umd.js"></script>
 <div id="globus"></div>
 <script>
 
@@ -51,11 +51,11 @@ yarn add @openglobus/og
 
 ```html
 
-<link rel="stylesheet" href="../dist/@openglobus/og.css">
+<link rel="stylesheet" href="../lib/@openglobus/og.css">
 <div id="globus"></div>
 <script type="module">
 
-    import {XYZ, Globe, GlobusTerrain} from '../dist/@openglobus/og.esm.js';
+    import {XYZ, Globe, GlobusTerrain} from '../lib/@openglobus/og.esm.js';
 
     const osm = new XYZ("OpenStreetMap", {
         isBaseLayer: true,
@@ -105,7 +105,7 @@ yarn
 npm run build
 ```
 
-随后会在 `dist/@openglobus/` 目录下生成下列 5 个文件：
+随后会在 `lib/@openglobus/` 目录下生成下列 5 个文件：
 
 - og.umd.js
 - og.umd.js.map
@@ -116,7 +116,7 @@ npm run build
 
 ### 新情况
 
-First, it starts by watching sources and building into dist folder esm module:
+First, it starts by watching sources and building into ./lib folder esm module:
 
 ```sh
 npm run dev

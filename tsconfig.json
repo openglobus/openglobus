@@ -4,7 +4,7 @@
   ],
   "exclude" : [
     "node_modules",
-    "dist"
+    "lib"
   ],
   "compilerOptions" : {
     "strictPropertyInitialization" : true,
@@ -20,6 +20,6 @@
     "strict" : true,
     "skipLibCheck" : true,
     "isolatedModules": true,
-    "outDir" : "dist/js"
+    "outDir" : "lib/js"
   }
 }

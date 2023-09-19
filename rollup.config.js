@@ -7,7 +7,7 @@ import copy from 'rollup-plugin-copy';
 
 const LIB_SUFFIX = process.env.entry ? `.${process.env.entry}` : "";
 const LIB_NAME = pkg.name + LIB_SUFFIX;
-const OUTPUT_NAME = `dist/${LIB_NAME}.`;
+const OUTPUT_NAME = `lib/${LIB_NAME}.`;
 
 const DEV = [{
     input: `src/index${LIB_SUFFIX}.ts`,
@@ -21,7 +21,7 @@ const DEV = [{
         typescript({ tsconfig: './tsconfig.json' }),
         terser({ format: { comments: false } }),
         copy({
-            targets: [{ src: './res', dest: './dist/@openglobus/' }]
+            targets: [{ src: './res', dest: './lib/@openglobus/' }]
         })
     ]
 }, {
@@ -56,7 +56,7 @@ const PROD = [
             json(),
             typescript({ tsconfig: './tsconfig.json' }),
             copy({
-                targets: [{ src: './res', dest: './dist/@openglobus/' }]
+                targets: [{ src: './res', dest: './lib/@openglobus/' }]
             })
         ]
     }, {
