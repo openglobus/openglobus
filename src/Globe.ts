@@ -58,9 +58,9 @@ interface IGlobeParams {
     resourcesSrc?: string;
 }
 
-const DEFAULT_NIGHT_SRC = `/res/night.png`;
-const DEFAULT_SPEC_SRC = `/res/spec.png`;
-const DEFAULT_RESOURCES_SRC = '.';
+const DEFAULT_NIGHT_SRC = `/night.png`;
+const DEFAULT_SPEC_SRC = `/spec.png`;
+const DEFAULT_RESOURCES_SRC = '/res';
 
 /** @const {string} */
 const PLANET_NAME_PREFIX = "globus_planet_";
