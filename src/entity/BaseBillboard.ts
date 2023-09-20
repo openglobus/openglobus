@@ -393,8 +393,11 @@ class BaseBillboard {
         }
     }
 
-    public serializeWorkerData(workerId: number): Float32Array{
-        return new Float32Array([]);
+    public serializeWorkerData(workerId: number): Float32Array | null {
+        if (this._handler) {
+            return new Float32Array([]);
+        }
+        return null;
     }
 }
 

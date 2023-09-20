@@ -39,20 +39,17 @@ class LabelWorker extends BaseWorker<LabelInfo> {
 
             if (this._workerQueue.length) {
                 let w = this._workerQueue.pop()!;
-
-                this._source.set(this._sourceId, data);
-
                 let labelData = label.serializeWorkerData(this._sourceId);
-
-                label._lockId = this._sourceId;
-
-                this._sourceId++;
-
-                w.postMessage({
-                    labelData: labelData
-                }, [
-                    labelData.buffer,
-                ]);
+                if (labelData) {
+                    this._source.set(this._sourceId, data);
+                    label._lockId = this._sourceId;
+                    this._sourceId++;
+                    w.postMessage({
+                        labelData: labelData
+                    }, [
+                        labelData.buffer,
+                    ]);
+                }
             } else {
                 this._pendingQueue.push(data);
             }

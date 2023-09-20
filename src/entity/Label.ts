@@ -370,23 +370,27 @@ class Label extends BaseBillboard {
         this.update();
     }
 
-    public override serializeWorkerData(workerId: number): Float32Array {
-        return new Float32Array([
-            /*0*/workerId,
-            /*1*/this._handler!._maxLetters,
-            /*2*/this.getVisibility() ? 1 : 0,
-            /*3, 4, 5*/this._positionHigh.x, this._positionHigh.y, this._positionHigh.z,
-            /*6, 7, 8*/this._positionLow.x, this._positionLow.y, this._positionLow.z,
-            /*9*/this._size,
-            /*10, 11, 12*/this._offset.x, this._offset.y, this._offset.z,
-            /*13, 14, 15, 16*/this._color.x, this._color.y, this._color.z, this._color.w,
-            /*17*/this._rotation,
-            /*18, 19, 20*/this._alignedAxis.x, this._alignedAxis.y, this._alignedAxis.z,
-            /*21*/this._fontIndex,
-            /*22*/this._outline,
-            /*23, 24, 25, 26*/this._outlineColor.x, this._outlineColor.y, this._outlineColor.z, this._outlineColor.w,
-            /*27, 28, 29*/this._entity!._pickingColor.x, this._entity!._pickingColor.y, this._entity!._pickingColor.z
-        ]);
+    public override serializeWorkerData(workerId: number): Float32Array | null {
+        if(this._handler) {
+            return new Float32Array([
+                /*0*/workerId,
+                /*1*/this._handler!._maxLetters,
+                /*2*/this.getVisibility() ? 1 : 0,
+                /*3, 4, 5*/this._positionHigh.x, this._positionHigh.y, this._positionHigh.z,
+                /*6, 7, 8*/this._positionLow.x, this._positionLow.y, this._positionLow.z,
+                /*9*/this._size,
+                /*10, 11, 12*/this._offset.x, this._offset.y, this._offset.z,
+                /*13, 14, 15, 16*/this._color.x, this._color.y, this._color.z, this._color.w,
+                /*17*/this._rotation,
+                /*18, 19, 20*/this._alignedAxis.x, this._alignedAxis.y, this._alignedAxis.z,
+                /*21*/this._fontIndex,
+                /*22*/this._outline,
+                /*23, 24, 25, 26*/this._outlineColor.x, this._outlineColor.y, this._outlineColor.z, this._outlineColor.w,
+                /*27, 28, 29*/this._entity!._pickingColor.x, this._entity!._pickingColor.y, this._entity!._pickingColor.z
+            ]);
+        }
+
+        return null;
     }
 }
 
