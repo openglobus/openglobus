@@ -699,11 +699,13 @@ class Renderer {
         this.handler.ONCANVASRESIZE = () => {
             this._resizeStart();
             this.events.dispatch(this.events.resize, this.handler.canvas);
-            clearTimeout(__resizeTimeout);
-            __resizeTimeout = setTimeout(() => {
-                this._resizeEnd();
-                this.events.dispatch(this.events.resizeend, this.handler.canvas);
-            }, 320);
+            this._resizeEnd();
+            //clearTimeout(__resizeTimeout);
+            // __resizeTimeout = setTimeout(() => {
+            //     this._resizeEnd();
+            //     this.events.dispatch(this.events.resizeend, this.handler.canvas);
+            // }, 320);
+            this.events.dispatch(this.events.resizeend, this.handler.canvas);
         };
 
         this.screenFramePositionBuffer = this.handler.createArrayBuffer(new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), 2, 4);
@@ -893,7 +895,7 @@ class Renderer {
 
             // billboards pass
             gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture);
+            gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
 
             let i = ec.length;
             while (i--) {

@@ -228,6 +228,9 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
     protected _mclickX: number;
     protected _mclickY: number;
 
+    protected _isMouseInside: boolean;
+    protected _entityPickingEventsActive: boolean;
+
     constructor(renderer: Renderer) {
 
         super(RENDERER_EVENTS);
@@ -302,6 +305,9 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
             pickingObject: null,
             renderer: renderer
         };
+
+        this._isMouseInside = false;
+        this._entityPickingEventsActive = true;
 
         this._dblTchCoords = new Vec2();
         this._oneTouchStart = false;
@@ -449,6 +455,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
     }
 
     protected onMouseMove(sys: MouseEvent, event?: MouseHandlerEvent) {
+
         let ms = this.mouseState;
         this.updateButtonsStates(sys.buttons);
         ms.sys = sys;
@@ -497,11 +504,13 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
     }
 
     protected onMouseLeave(sys: MouseEvent) {
+        this._isMouseInside = false;
         this.mouseState.sys = sys;
         this.dispatch((this as RendererEventsHandler).mouseleave, this.mouseState);
     }
 
     protected onMouseEnter(sys: MouseEvent) {
+        this._isMouseInside = true;
         this.mouseState.sys = sys;
         this.dispatch((this as RendererEventsHandler).mouseenter, this.mouseState);
     }
@@ -690,7 +699,27 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         let ts = this.touchState,
             ms = this.mouseState;
 
-        if (!(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
+        // Triggers mouseleave when mouse goes outside the viewport
+        if (this._isMouseInside !== this._entityPickingEventsActive) {
+            this._entityPickingEventsActive = this._isMouseInside;
+            if (!this._entityPickingEventsActive) {
+                let r = this.renderer;
+                let c = _currPickingColor;
+                let co = r.getPickingObjectArr<any>(c);
+                if (co) {
+                    let pe = co.rendererEvents;
+                    ms.pickingObject = co;
+                    pe && pe.dispatch(pe.mouseleave, ms);
+                    ts.pickingObject = co;
+                    pe && pe.dispatch(pe.touchleave, ts);
+                }
+                _currPickingColor[0] = _currPickingColor[1] = _currPickingColor[2] = _currPickingColor[3] =
+                    _prevPickingColor[0] = _prevPickingColor[1] = _prevPickingColor[2] = _prevPickingColor[3] =
+                        _tempCurrPickingColor[0] = _tempCurrPickingColor[1] = _tempCurrPickingColor[2] = _tempCurrPickingColor[3] = 0.0;
+            }
+        }
+
+        if (this._isMouseInside && !(ms.leftButtonHold || ms.rightButtonHold || ms.middleButtonHold)) {
 
             let r = this.renderer;
             let c = _currPickingColor,
