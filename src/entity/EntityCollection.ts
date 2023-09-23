@@ -44,7 +44,7 @@ interface IEntityCollectionParams {
  * @param {number} [options.opacity] - Entity global opacity.
  * @param {boolean} [options.pickingEnabled=true] - Entity picking enable.
  * @param {Number} [options.polygonOffsetUnits=0.0] - The multiplier by which an implementation-specific value is multiplied with to create a constant depth offset. The default value is 0.
- * @fires EntityCollection#entitymove
+ * //@fires EntityCollection#entitymove
  * @fires EntityCollection#draw
  * @fires EntityCollection#drawend
  * @fires EntityCollection#add
@@ -685,7 +685,7 @@ class EntityCollection {
 }
 
 type EntityCollectionEventList = [
-    "entitymove",
+    //"entitymove",
     "draw",
     "drawend",
     "add",
@@ -721,11 +721,11 @@ type EntityCollectionEventList = [
 ]
 
 const ENTITYCOLLECTION_EVENTS: EntityCollectionEventList = [
-    /**
-     * Triggered when entity has moved.
-     * @event EntityCollection#entitymove
-     */
-    "entitymove",
+    // /**
+    //  * Triggered when entity has moved.
+    //  * @event EntityCollection#entitymove
+    //  */
+    // "entitymove",
 
     /**
      * Triggered when collection entities begin draw.

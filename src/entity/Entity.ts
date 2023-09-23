@@ -418,7 +418,7 @@ class Entity {
             }
         }
 
-        ec && ec.events.dispatch(ec.events.entitymove, this);
+        //ec && ec.events.dispatch(ec.events.entitymove, this);
     }
 
     /**

@@ -10,9 +10,9 @@ import {
 import {EventsHandler} from "../Events";
 import {Extent} from "../Extent";
 import {GeometryHandler} from "../entity/GeometryHandler";
+import {IMouseState, ITouchState} from "../renderer/RendererEvents";
 import {ILayerParams, Layer, LayerEventsList} from "./Layer";
 import {NumberArray3, Vec3} from "../math/Vec3";
-import {Node} from "../quadTree/Node";
 import {Planet} from "../scene/Planet";
 import {QueueArray} from "../QueueArray";
 import {Material} from "./Material";
@@ -31,7 +31,7 @@ export interface IVectorParams extends ILayerParams {
 }
 
 type VectorEventsList = [
-    "entitymove",
+    //"entitymove",
     "draw",
     "entityadd",
     "entityremove"
@@ -81,7 +81,7 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
  * @param {boolean} [options.relativeToGround = false] - Place vector data relative to the ground relief.
  * @param {Number} [options.polygonOffsetUnits=0.0] - The multiplier by which an implementation-specific value is multiplied with to create a constant depth offset.
  *
- * @fires EventsHandler<VectorEventsList>#entitymove
+ * //@fires EventsHandler<VectorEventsList>#entitymove
  * @fires EventsHandler<VectorEventsList>#draw
  * @fires EventsHandler<VectorEventsList>#add
  * @fires EventsHandler<VectorEventsList>#remove
@@ -708,82 +708,82 @@ class Vector extends Layer {
         //
         // @todo: replace with arrow functions and '...e'
         //
-        entityCollection.events.on("entitymove", function (e: any) {
-            ve.dispatch(ve.entitymove, e);
-        });
-        entityCollection.events.on("mousemove", function (e: any) {
+        // entityCollection.events.on("entitymove", (e: any) => {
+        //     ve.dispatch(ve.entitymove, e);
+        // });
+        entityCollection.events.on("mousemove", (e: IMouseState) => {
             ve.dispatch(ve.mousemove, e);
         });
-        entityCollection.events.on("mouseenter", function (e: any) {
+        entityCollection.events.on("mouseenter", (e: IMouseState) => {
             ve.dispatch(ve.mouseenter, e);
         });
-        entityCollection.events.on("mouseleave", function (e: any) {
+        entityCollection.events.on("mouseleave", (e: IMouseState) => {
             ve.dispatch(ve.mouseleave, e);
         });
-        entityCollection.events.on("lclick", function (e: any) {
+        entityCollection.events.on("lclick", (e: IMouseState) => {
             ve.dispatch(ve.lclick, e);
         });
-        entityCollection.events.on("rclick", function (e: any) {
+        entityCollection.events.on("rclick", (e: IMouseState) => {
             ve.dispatch(ve.rclick, e);
         });
-        entityCollection.events.on("mclick", function (e: any) {
+        entityCollection.events.on("mclick", (e: IMouseState) => {
             ve.dispatch(ve.mclick, e);
         });
-        entityCollection.events.on("ldblclick", function (e: any) {
+        entityCollection.events.on("ldblclick", (e: IMouseState) => {
             ve.dispatch(ve.ldblclick, e);
         });
-        entityCollection.events.on("rdblclick", function (e: any) {
+        entityCollection.events.on("rdblclick", (e: IMouseState) => {
             ve.dispatch(ve.rdblclick, e);
         });
-        entityCollection.events.on("mdblclick", function (e: any) {
+        entityCollection.events.on("mdblclick", (e: IMouseState) => {
             ve.dispatch(ve.mdblclick, e);
         });
-        entityCollection.events.on("lup", function (e: any) {
+        entityCollection.events.on("lup", (e: IMouseState) => {
             ve.dispatch(ve.lup, e);
         });
-        entityCollection.events.on("rup", function (e: any) {
+        entityCollection.events.on("rup", (e: IMouseState) => {
             ve.dispatch(ve.rup, e);
         });
-        entityCollection.events.on("mup", function (e: any) {
+        entityCollection.events.on("mup", (e: IMouseState) => {
             ve.dispatch(ve.mup, e);
         });
-        entityCollection.events.on("ldown", function (e: any) {
+        entityCollection.events.on("ldown", (e: IMouseState) => {
             ve.dispatch(ve.ldown, e);
         });
-        entityCollection.events.on("rdown", function (e: any) {
+        entityCollection.events.on("rdown", (e: IMouseState) => {
             ve.dispatch(ve.rdown, e);
         });
-        entityCollection.events.on("mdown", function (e: any) {
+        entityCollection.events.on("mdown", (e: IMouseState) => {
             ve.dispatch(ve.mdown, e);
         });
-        entityCollection.events.on("lhold", function (e: any) {
+        entityCollection.events.on("lhold", (e: IMouseState) => {
             ve.dispatch(ve.lhold, e);
         });
-        entityCollection.events.on("rhold", function (e: any) {
+        entityCollection.events.on("rhold", (e: IMouseState) => {
             ve.dispatch(ve.rhold, e);
         });
-        entityCollection.events.on("mhold", function (e: any) {
+        entityCollection.events.on("mhold", (e: IMouseState) => {
             ve.dispatch(ve.mhold, e);
         });
-        entityCollection.events.on("mousewheel", function (e: any) {
+        entityCollection.events.on("mousewheel", (e: IMouseState) => {
             ve.dispatch(ve.mousewheel, e);
         });
-        entityCollection.events.on("touchmove", function (e: any) {
+        entityCollection.events.on("touchmove", (e: ITouchState) => {
             ve.dispatch(ve.touchmove, e);
         });
-        entityCollection.events.on("touchstart", function (e: any) {
+        entityCollection.events.on("touchstart", (e: ITouchState) => {
             ve.dispatch(ve.touchstart, e);
         });
-        entityCollection.events.on("touchend", function (e: any) {
+        entityCollection.events.on("touchend", (e: ITouchState) => {
             ve.dispatch(ve.touchend, e);
         });
-        entityCollection.events.on("doubletouch", function (e: any) {
+        entityCollection.events.on("doubletouch", (e: ITouchState) => {
             ve.dispatch(ve.doubletouch, e);
         });
-        entityCollection.events.on("touchleave", function (e: any) {
+        entityCollection.events.on("touchleave", (e: ITouchState) => {
             ve.dispatch(ve.touchleave, e);
         });
-        entityCollection.events.on("touchenter", function (e: any) {
+        entityCollection.events.on("touchenter", (e: ITouchState) => {
             ve.dispatch(ve.touchenter, e);
         });
     }
@@ -1092,11 +1092,11 @@ class Vector extends Layer {
 }
 
 const VECTOR_EVENTS: VectorEventsList = [
-    /**
-     * Triggered when entity has moved.
-     * @event EventsHandler<VectorEventsList>#draw
-     */
-    "entitymove",
+    // /**
+    //  * Triggered when entity has moved.
+    //  * @event EventsHandler<VectorEventsList>#draw
+    //  */
+    // "entitymove",
 
     /**
      * Triggered when layer begin draw.
