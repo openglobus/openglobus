@@ -192,7 +192,7 @@ class Label extends BaseBillboard {
      * @param {string} face - Font face family.
      */
     public setFace(face: string) {
-        this._face = face.trim().toLowerCase();
+        this._face = face.trim();
         this.update();
     }
 

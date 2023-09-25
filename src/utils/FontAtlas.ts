@@ -140,7 +140,7 @@ class FontAtlas {
 
         // Try to load font from the directory
         if (!this.atlasIndexes[fullName]) {
-            this.loadFont(fullName, this.catalogSrc, `${fullName}.json`);
+            this.loadFont(face, this.catalogSrc, `${face}.json`);
         }
 
         if (!this.atlasIndexesDeferred[fullName]) {

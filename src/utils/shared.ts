@@ -179,7 +179,7 @@ export function print2d(id: string, text: string, x: number, y: number) {
 }
 
 export function defaultString(str?: string, def: string = ""): string {
-    return str ? str.trim().toLowerCase() : def;
+    return str ? str.trim() : def;
 }
 
 export function createVector3(v?: Vec3 | Vec2 | NumberArray3 | NumberArray2 | null, def?: Vec3): Vec3 {
