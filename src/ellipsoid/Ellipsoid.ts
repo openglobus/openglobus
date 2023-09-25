@@ -221,6 +221,10 @@ class Ellipsoid {
 
         let length = Math.sqrt(pX * pX + pY * pY + pZ * pZ);
 
+        if (length === 0) {
+            return this.lonLatToCartesian(new LonLat());
+        }
+
         let invRadii2X = this._invRadii2.x,
             invRadii2Y = this._invRadii2.y,
             invRadii2Z = this._invRadii2.z;
