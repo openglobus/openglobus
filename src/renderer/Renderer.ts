@@ -267,6 +267,10 @@ class Renderer {
 
     protected _distancePixelBuffer: WebGLBuffer | null;
 
+    protected _skipPickingFrame: boolean;
+
+    protected _pickingPixelBuffer: WebGLBuffer | null;
+
     constructor(handler: Handler, params: IRendererParams = {}) {
 
         this.div = null;
@@ -381,6 +385,10 @@ class Renderer {
         this._skipDistanceFrame = false;
 
         this._distancePixelBuffer = null;
+
+        this._skipPickingFrame = false;
+
+        this._pickingPixelBuffer = null;
 
         if (params.autoActivate || isEmpty(params.autoActivate)) {
             this.start();

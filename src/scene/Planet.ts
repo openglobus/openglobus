@@ -2034,24 +2034,26 @@ export class Planet extends RenderNode {
     }
 
     public async getHeightDefault(lonLat: LonLat): Promise<number> {
-        return new Promise<number>((resolve: Function) => {
+        return new Promise<number>((resolve: (alt: number) => void) => {
             if (this.terrain) {
                 this.terrain.getHeightAsync(lonLat.clone(), (alt: number) => {
                     resolve(alt);
                 });
+            } else {
+                resolve(0);
             }
-            resolve(0);
         });
     }
 
     public async getHeightAboveELL(lonLat: LonLat): Promise<number> {
-        return new Promise<number>((resolve: Function) => {
+        return new Promise<number>((resolve: (alt: number) => void) => {
             if (this.terrain) {
                 this.terrain.getHeightAsync(lonLat.clone(), (alt: number) => {
                     resolve(alt + this.terrain!.geoid.getHeightLonLat(lonLat));
                 });
+            } else {
+                resolve(0);
             }
-            resolve(0);
         });
     }
 
