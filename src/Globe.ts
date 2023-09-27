@@ -204,7 +204,7 @@ class Globe {
                 autoActivate: false,
                 pixelRatio: options.dpi || (window.devicePixelRatio + 0.15),
                 context: {
-                    alpha: false,
+                    //alpha: false,
                     antialias: false,
                     premultipliedAlpha: false
                 }
