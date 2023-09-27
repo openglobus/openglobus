@@ -46,8 +46,8 @@ let __depthCallbackCounter__ = 0;
 
 let __distanceCallbackCounter__ = 0;
 
-function clientWaitAsync(gl: WebGL2RenderingContext, sync: WebGLSync, flags: number) {
-    return new Promise((resolve, reject) => {
+function clientWaitAsync(gl: WebGL2RenderingContext, sync: WebGLSync, flags: number): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
         function check() {
             const res = gl.clientWaitSync(sync, flags, 0);
             if (res == gl.WAIT_FAILED) {
@@ -61,7 +61,7 @@ function clientWaitAsync(gl: WebGL2RenderingContext, sync: WebGLSync, flags: num
 
         check();
     });
-};
+}
 
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
@@ -263,6 +263,10 @@ class Renderer {
 
     protected _pickingMaskCoordinatesBuffer: WebGLBufferExt | null;
 
+    protected _skipDistanceFrame: boolean;
+
+    protected _distancePixelBuffer: WebGLBuffer | null;
+
     constructor(handler: Handler, params: IRendererParams = {}) {
 
         this.div = null;
@@ -373,6 +377,10 @@ class Renderer {
         this.outputTexture = null;
 
         this._pickingMaskCoordinatesBuffer = null;
+
+        this._skipDistanceFrame = false;
+
+        this._distancePixelBuffer = null;
 
         if (params.autoActivate || isEmpty(params.autoActivate)) {
             this.start();
@@ -739,10 +747,14 @@ class Renderer {
 
         let gl = this.handler.gl!;
 
-        this.pixelPackBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, this.pixelPackBuffer);
-        let bufferSize = this.distanceFramebuffer.width * this.distanceFramebuffer.height * 4;
-        gl.bufferData(gl.PIXEL_PACK_BUFFER, bufferSize, gl.STREAM_READ);
+        this._distancePixelBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, this._distancePixelBuffer);
+        gl.bufferData(gl.PIXEL_PACK_BUFFER, this.distanceFramebuffer.width * this.distanceFramebuffer.height * 4, gl.STREAM_READ);
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+
+        this._pickingPixelBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, this._pickingPixelBuffer);
+        gl.bufferData(gl.PIXEL_PACK_BUFFER, this.pickingFramebuffer.width * this.pickingFramebuffer.height * 4, gl.STREAM_READ);
         gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
     }
 
@@ -1251,33 +1263,68 @@ class Renderer {
         // this.pickingFramebuffer!.readAllPixels(this._tempPickingPix_);
         // this.pickingFramebuffer!.deactivate();
         //}
+
+        const gl = this.handler.gl!;
+        const buf = this._pickingPixelBuffer;
+
+        if (!this._skipPickingFrame) {
+
+            this._skipPickingFrame = true;
+
+            let dest = this._tempPickingPix_;
+
+            let w = this.pickingFramebuffer!.width,
+                h = this.pickingFramebuffer!.height;
+
+            this.pickingFramebuffer!.activate();
+            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buf);
+            gl.bufferData(gl.PIXEL_PACK_BUFFER, dest.byteLength, gl.STREAM_READ);
+            gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+            this.pickingFramebuffer!.deactivate();
+
+            const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0)!;
+            gl.flush();
+
+            clientWaitAsync(gl, sync, 0).then(() => {
+                this._skipPickingFrame = false;
+                gl.deleteSync(sync);
+                gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buf);
+                gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, dest);
+                gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+            });
+        }
     }
 
     protected _readDistanceBuffer() {
 
         const gl = this.handler.gl!;
+        const buf = this._distancePixelBuffer;
 
-        let buf = this.pixelPackBuffer;
+        if (!this._skipDistanceFrame) {
 
-        if (!this._skipDistance) {
+            this._skipDistanceFrame = true;
 
-            this._skipDistance = true;
+            let dest = this._tempDistancePix_;
+
+            let w = this.distanceFramebuffer!.width,
+                h = this.distanceFramebuffer!.height;
 
             this.distanceFramebuffer!.activate();
             gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buf);
-            gl.bufferData(gl.PIXEL_PACK_BUFFER, this._tempDistancePix_.byteLength, gl.STREAM_READ);
-            gl.readPixels(0, 0, this.distanceFramebuffer.width, this.distanceFramebuffer.height, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+            gl.bufferData(gl.PIXEL_PACK_BUFFER, dest.byteLength, gl.STREAM_READ);
+            gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, 0);
             gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
             this.distanceFramebuffer!.deactivate();
 
-            const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+            const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0)!;
             gl.flush();
 
             clientWaitAsync(gl, sync, 0).then(() => {
-                this._skipDistance = false;
+                this._skipDistanceFrame = false;
                 gl.deleteSync(sync);
                 gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buf);
-                gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, this._tempDistancePix_);
+                gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, dest);
                 gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
             });
         }
