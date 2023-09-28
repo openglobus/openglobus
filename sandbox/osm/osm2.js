@@ -14,7 +14,7 @@ import {
     Vec3,
     Quat,
     control
-} from "../../dist/@openglobus/og.esm.js";
+} from "../../lib/@openglobus/og.esm.js";
 
 let osm = new XYZ("OSM", {
     'isBaseLayer': true,

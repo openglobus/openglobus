@@ -10,7 +10,7 @@ import {
     CanvasTiles,
     Vector,
     control
-} from "../../dist/@openglobus/og.esm.js";
+} from "../../lib/@openglobus/og.esm.js";
 
 // GlobusTerrain,
 //     MapboxTerrain,

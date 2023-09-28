@@ -271,6 +271,10 @@ class Renderer {
 
     protected _pickingPixelBuffer: WebGLBuffer | null;
 
+    protected _readDistanceBuffer: ()=>void;
+
+    protected _readPickingBuffer: ()=>void;
+
     constructor(handler: Handler, params: IRendererParams = {}) {
 
         this.div = null;
@@ -389,6 +393,10 @@ class Renderer {
         this._skipPickingFrame = false;
 
         this._pickingPixelBuffer = null;
+
+        this._readDistanceBuffer = this._readDistanceBuffer_webgl2;
+
+        this._readPickingBuffer = this._readPickingBuffer_webgl2;
 
         if (params.autoActivate || isEmpty(params.autoActivate)) {
             this.start();
@@ -669,6 +677,9 @@ class Renderer {
         this.screenDepthFramebuffer.init();
 
         if (this.handler.gl!.type === "webgl") {
+            this._readDistanceBuffer = this._readDistanceBuffer_webgl1;
+            this._readPickingBuffer = this._readPickingBuffer_webgl1;
+
             this.sceneFramebuffer = new Framebuffer(this.handler);
             this.sceneFramebuffer.init();
 
@@ -726,6 +737,8 @@ class Renderer {
                 depth: this.screenDepthFramebuffer!.textures[0],
                 frustum: this.depthFramebuffer!.textures[0]
             };
+
+            this._initReadPixelsBuffers();
         }
 
         this.handler.addProgram(pickingMask());
@@ -752,17 +765,19 @@ class Renderer {
         this._initializeRenderNodes();
 
         this._initializeControls();
+    }
 
+    _initReadPixelsBuffers() {
         let gl = this.handler.gl!;
 
         this._distancePixelBuffer = gl.createBuffer();
         gl.bindBuffer(gl.PIXEL_PACK_BUFFER, this._distancePixelBuffer);
-        gl.bufferData(gl.PIXEL_PACK_BUFFER, this.distanceFramebuffer.width * this.distanceFramebuffer.height * 4, gl.STREAM_READ);
+        gl.bufferData(gl.PIXEL_PACK_BUFFER, this.distanceFramebuffer!.width * this.distanceFramebuffer!.height * 4, gl.STREAM_READ);
         gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
 
         this._pickingPixelBuffer = gl.createBuffer();
         gl.bindBuffer(gl.PIXEL_PACK_BUFFER, this._pickingPixelBuffer);
-        gl.bufferData(gl.PIXEL_PACK_BUFFER, this.pickingFramebuffer.width * this.pickingFramebuffer.height * 4, gl.STREAM_READ);
+        gl.bufferData(gl.PIXEL_PACK_BUFFER, this.pickingFramebuffer!.width * this.pickingFramebuffer!.height * 4, gl.STREAM_READ);
         gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
     }
 
@@ -1264,13 +1279,13 @@ class Renderer {
         this.screenDepthFramebuffer!.deactivate();
     }
 
-    protected _readPickingBuffer() {
-        //if (!this._timeStamp || window.performance.now() - this._timeStamp >= 500) {
-        //    this._timeStamp = window.performance.now();
-        // this.pickingFramebuffer!.activate();
-        // this.pickingFramebuffer!.readAllPixels(this._tempPickingPix_);
-        // this.pickingFramebuffer!.deactivate();
-        //}
+    protected _readPickingBuffer_webgl1 = () => {
+        this.pickingFramebuffer!.activate();
+        this.pickingFramebuffer!.readAllPixels(this._tempPickingPix_);
+        this.pickingFramebuffer!.deactivate();
+    }
+
+    protected _readPickingBuffer_webgl2 = () => {
 
         const gl = this.handler.gl!;
         const buf = this._pickingPixelBuffer;
@@ -1304,7 +1319,13 @@ class Renderer {
         }
     }
 
-    protected _readDistanceBuffer() {
+    protected _readDistanceBuffer_webgl1 = () => {
+        this.distanceFramebuffer!.activate();
+        this.distanceFramebuffer!.readAllPixels(this._tempDistancePix_);
+        this.distanceFramebuffer!.deactivate();
+    }
+
+    protected _readDistanceBuffer_webgl2 = () => {
 
         const gl = this.handler.gl!;
         const buf = this._distancePixelBuffer;
