@@ -46,6 +46,23 @@ let __depthCallbackCounter__ = 0;
 
 let __distanceCallbackCounter__ = 0;
 
+function clientWaitAsync(gl: WebGL2RenderingContext, sync: WebGLSync, flags: number): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        function check() {
+            const res = gl.clientWaitSync(sync, flags, 0);
+            if (res == gl.WAIT_FAILED) {
+                reject();
+            } else if (res == gl.TIMEOUT_EXPIRED) {
+                requestAnimationFrame(check);
+            } else {
+                resolve();
+            }
+        }
+
+        check();
+    });
+}
+
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
  * @class
@@ -246,6 +263,18 @@ class Renderer {
 
     protected _pickingMaskCoordinatesBuffer: WebGLBufferExt | null;
 
+    protected _skipDistanceFrame: boolean;
+
+    protected _distancePixelBuffer: WebGLBuffer | null;
+
+    protected _skipPickingFrame: boolean;
+
+    protected _pickingPixelBuffer: WebGLBuffer | null;
+
+    protected _readDistanceBuffer: ()=>void;
+
+    protected _readPickingBuffer: ()=>void;
+
     constructor(handler: Handler, params: IRendererParams = {}) {
 
         this.div = null;
@@ -356,6 +385,18 @@ class Renderer {
         this.outputTexture = null;
 
         this._pickingMaskCoordinatesBuffer = null;
+
+        this._skipDistanceFrame = false;
+
+        this._distancePixelBuffer = null;
+
+        this._skipPickingFrame = false;
+
+        this._pickingPixelBuffer = null;
+
+        this._readDistanceBuffer = this._readDistanceBuffer_webgl2;
+
+        this._readPickingBuffer = this._readPickingBuffer_webgl2;
 
         if (params.autoActivate || isEmpty(params.autoActivate)) {
             this.start();
@@ -618,6 +659,7 @@ class Renderer {
         this.distanceFramebuffer.init();
 
         this._tempDistancePix_ = new Uint8Array(this.distanceFramebuffer.width * this.distanceFramebuffer.height * 4);
+        //this._tempDistancePix_ = new Uint8Array(4);
 
         this.depthFramebuffer = new Framebuffer(this.handler, {
             size: 2,
@@ -635,6 +677,9 @@ class Renderer {
         this.screenDepthFramebuffer.init();
 
         if (this.handler.gl!.type === "webgl") {
+            this._readDistanceBuffer = this._readDistanceBuffer_webgl1;
+            this._readPickingBuffer = this._readPickingBuffer_webgl1;
+
             this.sceneFramebuffer = new Framebuffer(this.handler);
             this.sceneFramebuffer.init();
 
@@ -692,6 +737,8 @@ class Renderer {
                 depth: this.screenDepthFramebuffer!.textures[0],
                 frustum: this.depthFramebuffer!.textures[0]
             };
+
+            this._initReadPixelsBuffers();
         }
 
         this.handler.addProgram(pickingMask());
@@ -718,6 +765,20 @@ class Renderer {
         this._initializeRenderNodes();
 
         this._initializeControls();
+    }
+
+    _initReadPixelsBuffers() {
+        let gl = this.handler.gl!;
+
+        this._distancePixelBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, this._distancePixelBuffer);
+        gl.bufferData(gl.PIXEL_PACK_BUFFER, this.distanceFramebuffer!.width * this.distanceFramebuffer!.height * 4, gl.STREAM_READ);
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+
+        this._pickingPixelBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, this._pickingPixelBuffer);
+        gl.bufferData(gl.PIXEL_PACK_BUFFER, this.pickingFramebuffer!.width * this.pickingFramebuffer!.height * 4, gl.STREAM_READ);
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
     }
 
     public _initializeControls() {
@@ -907,7 +968,7 @@ class Renderer {
             let fa = this.fontAtlas.atlasesArr;
             for (i = 0; i < fa.length; i++) {
                 gl.activeTexture(gl.TEXTURE0 + i);
-                gl.bindTexture(gl.TEXTURE_2D, fa[i].texture);
+                gl.bindTexture(gl.TEXTURE_2D, fa[i].texture!);
             }
 
             i = ec.length;
@@ -1113,7 +1174,7 @@ class Renderer {
 
         gl.uniform2f(shu.offset, (ms.nx - 0.5) * 2, (0.5 - ms.ny) * 2);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingMaskCoordinatesBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingMaskCoordinatesBuffer!);
         gl.vertexAttribPointer(sha.coordinates, this._pickingMaskCoordinatesBuffer!.itemSize, gl.FLOAT, false, 0, 0);
         gl.drawArrays(gl.POINTS, 0, this._pickingMaskCoordinatesBuffer!.numItems);
 
@@ -1132,7 +1193,6 @@ class Renderer {
         for (let i = 0, len = dp.length; i < len; i++) {
             /**
              * This callback renders picking frame.
-             * @callback og.Renderer~pickingCallback
              */
             dp[i].callback.call(dp[i].sender);
         }
@@ -1146,7 +1206,7 @@ class Renderer {
 
     /**
      * Draw picking objects framebuffer.
-     * @private
+     * @protected
      */
     protected _drawDistanceBuffer() {
         this.distanceFramebuffer!.activate();
@@ -1168,7 +1228,6 @@ class Renderer {
         while (i--) {
             /**
              * This callback renders distance frame.
-             * @callback og.Renderer~distanceCallback
              */
             dp[i].callback.call(dp[i].sender);
         }
@@ -1194,7 +1253,6 @@ class Renderer {
         while (i--) {
             /**
              * This callback renders depth frame.
-             * @callback og.Renderer~depthCallback
              */
             dp[i].callback.call(dp[i].sender);
         }
@@ -1221,16 +1279,84 @@ class Renderer {
         this.screenDepthFramebuffer!.deactivate();
     }
 
-    protected _readPickingBuffer() {
+    protected _readPickingBuffer_webgl1 = () => {
         this.pickingFramebuffer!.activate();
         this.pickingFramebuffer!.readAllPixels(this._tempPickingPix_);
         this.pickingFramebuffer!.deactivate();
     }
 
-    protected _readDistanceBuffer() {
+    protected _readPickingBuffer_webgl2 = () => {
+
+        const gl = this.handler.gl!;
+        const buf = this._pickingPixelBuffer;
+
+        if (!this._skipPickingFrame) {
+
+            this._skipPickingFrame = true;
+
+            let dest = this._tempPickingPix_;
+
+            let w = this.pickingFramebuffer!.width,
+                h = this.pickingFramebuffer!.height;
+
+            this.pickingFramebuffer!.activate();
+            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buf);
+            gl.bufferData(gl.PIXEL_PACK_BUFFER, dest.byteLength, gl.STREAM_READ);
+            gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+            this.pickingFramebuffer!.deactivate();
+
+            const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0)!;
+            gl.flush();
+
+            clientWaitAsync(gl, sync, 0).then(() => {
+                this._skipPickingFrame = false;
+                gl.deleteSync(sync);
+                gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buf);
+                gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, dest);
+                gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+            });
+        }
+    }
+
+    protected _readDistanceBuffer_webgl1 = () => {
         this.distanceFramebuffer!.activate();
         this.distanceFramebuffer!.readAllPixels(this._tempDistancePix_);
         this.distanceFramebuffer!.deactivate();
+    }
+
+    protected _readDistanceBuffer_webgl2 = () => {
+
+        const gl = this.handler.gl!;
+        const buf = this._distancePixelBuffer;
+
+        if (!this._skipDistanceFrame) {
+
+            this._skipDistanceFrame = true;
+
+            let dest = this._tempDistancePix_;
+
+            let w = this.distanceFramebuffer!.width,
+                h = this.distanceFramebuffer!.height;
+
+            this.distanceFramebuffer!.activate();
+            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buf);
+            gl.bufferData(gl.PIXEL_PACK_BUFFER, dest.byteLength, gl.STREAM_READ);
+            gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+            this.distanceFramebuffer!.deactivate();
+
+            const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0)!;
+            gl.flush();
+
+            clientWaitAsync(gl, sync, 0).then(() => {
+                this._skipDistanceFrame = false;
+                gl.deleteSync(sync);
+                gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buf);
+                gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, dest);
+                gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+            });
+        }
     }
 
     public readPickingColor(x: number, y: number, outColor: NumberArray3 | Uint8Array) {
