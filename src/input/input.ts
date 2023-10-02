@@ -1,4 +1,7 @@
 export const input: { [id: string]: number } = {
+    MB_LEFT: 0,
+    MB_RIGHT: 2,
+    MB_MIDDLE: 1,
     KEY_CTRL: 17,
     KEY_ALT: 18,
     KEY_SHIFT: 16,
@@ -34,9 +37,11 @@ export const input: { [id: string]: number } = {
     KEY_F1: 112,
     KEY_MINUS: 173,
     KEY_APOSTROPHE: 192,
-    MB_LEFT: 0,
-    MB_RIGHT: 2,
-    MB_MIDDLE: 1,
     KEY_BACK_SLASH: 220,
+    KEY_MORE: 190,
+    KEY_SLASH: 191,
+    KEY_LESS: 188,
+    KEY_LEFT_SQUARE_BRACKET: 219,
+    KEY_RIGHT_SQUARE_BRACKET: 221,
     KEY_SINGLE_QUOTE: 222
 };

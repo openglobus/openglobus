@@ -151,6 +151,8 @@ class KeyboardHandler {
     }
 
     public handleKeyDown() {
+        // If you want to get a key code just uncomment and check console
+        //console.log(this._event!.keyCode);
         this._anykeyCallback && this._anykeyCallback.callback.call(this._anykeyCallback.sender, this._event);
         this._currentlyPressedKeys[this._event!.keyCode] = true;
         for (let ch in this._charkeysCallbacks) {
