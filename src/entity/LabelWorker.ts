@@ -36,11 +36,10 @@ class LabelWorker extends BaseWorker<LabelInfo> {
             handler = data.handler;
 
         if (handler._entityCollection) {
-
-            if (this._workerQueue.length) {
-                let w = this._workerQueue.pop()!;
-                let labelData = label.serializeWorkerData(this._sourceId);
-                if (labelData) {
+            let labelData = label.serializeWorkerData(this._sourceId);
+            if (labelData) {
+                if (this._workerQueue.length) {
+                    let w = this._workerQueue.pop()!;
                     this._source.set(this._sourceId, data);
                     label._lockId = this._sourceId;
                     this._sourceId++;
@@ -49,9 +48,9 @@ class LabelWorker extends BaseWorker<LabelInfo> {
                     }, [
                         labelData.buffer,
                     ]);
+                } else {
+                    this._pendingQueue.push(data);
                 }
-            } else {
-                this._pendingQueue.push(data);
             }
         }
     }
