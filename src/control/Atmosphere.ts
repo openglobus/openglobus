@@ -46,8 +46,8 @@ export class Atmosphere extends Control {
 
     protected _drawAtmosphereTextures() {
 
-        let width = 256,
-            height = 128;
+        let width = 1024,
+            height = 1024;
 
         this._transmittanceBuffer = new Framebuffer(this.renderer!.handler, {
             width: width,
@@ -195,7 +195,7 @@ function atmosphereBackgroundShader(): Program {
             }`,
         fragmentShader:
             `                                   
-            precision highp float;
+            precision lowp float;
             
             ${atmos.COMMON}
             
@@ -295,7 +295,7 @@ function atmosphereBackgroundShader(): Program {
                     if (offset > 0.0) {
                         // intersection of camera ray with atmosphere
                         rayOrigin = cameraPosition + rayDirection * offset;
-                    }
+                    }                   
                     
                     float height = length(rayOrigin) - BOTTOM_RADIUS;
                     float rayAngle = dot(rayOrigin, rayDirection) / length(rayOrigin);
@@ -311,12 +311,13 @@ function atmosphereBackgroundShader(): Program {
                     
                     bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
                     
-                    if(intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS - 15000.0, distanceToGround) && hitGround){
+                    if(intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS - 15000.0, distanceToGround) && hitGround)
+                    {
                         discard;
                     }
                     
                     float segmentLength = ((hitGround ? distanceToGround : distanceToSpace) - max(offset, 0.0)) / float(SAMPLE_COUNT);
-                            
+                                                                    
                     float t = segmentLength * 0.5;
                     
                     vec3 transmittanceCamera; 
@@ -329,17 +330,13 @@ function atmosphereBackgroundShader(): Program {
                         vec3 up = position / length(position);
                         float rayAngle = dot(up, rayDirection);
                         float lightAngle = dot(up, lightDirection);
-                        // shadow is ommitted because it can create banding artifacts with low sample counts
-                        // float distanceToGround;
-                        // float shadow = intersectSphere(position, lightDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround >= 0.0 ? 0.0 : 1.0;         
-                        float shadow = 1.0;
                         vec3 transmittanceToSpace = transmittanceFromTexture(height, cameraBelow ? -rayAngle : rayAngle);
                         transmittanceCamera = cameraBelow ? (transmittanceToSpace / transmittanceFromCameraToSpace) : (transmittanceFromCameraToSpace / transmittanceToSpace);
                         transmittanceLight = transmittanceFromTexture(height, lightAngle);
                         vec2 opticalDensity = exp(-height / rayleighMieHeights);
                         vec3 scatteredLight = transmittanceLight * (rayleighScatteringCoefficient * opticalDensity.x * rayleighPhase + mieScatteringCoefficient * opticalDensity.y * miePhase);
                         scatteredLight += multipleScatteringContributionFromTexture(height, lightAngle) * (rayleighScatteringCoefficient * opticalDensity.x + mieScatteringCoefficient * opticalDensity.y);  
-                        light += shadow * transmittanceCamera * scatteredLight * segmentLength;
+                        light += transmittanceCamera * scatteredLight * segmentLength;
                         t += segmentLength;
                     }
                     

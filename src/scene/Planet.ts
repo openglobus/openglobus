@@ -502,7 +502,7 @@ export class Planet extends RenderNode {
         this._diffuse = new Float32Array([d.x, d.y, d.z]);
         this._specular = new Float32Array([s.x, s.y, s.z, shininess]);
 
-        this._maxGridSize = Math.log2(options.maxGridSize || 128);
+        this._maxGridSize = Math.log2(options.maxGridSize || 256);
 
         this.SLICE_SIZE = 4;
         this.SLICE_SIZE_4 = this.SLICE_SIZE * 4;
