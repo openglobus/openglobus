@@ -238,11 +238,15 @@ class ElevationProfile {
         return this._isWarning;
     }
 
-    public collectProfile(pointsLonLat: LonLat[]) {
+    public collectProfile(pointsLonLat: LonLat[]): Promise<[number[][], number[][]]> {
+
+        let def = new Deferred<[number[][], number[][]]>();
+
         this._pointsReady = false;
         this._isWarning = false;
 
-        if (!pointsLonLat || !pointsLonLat.length) return;
+        if (!pointsLonLat || !pointsLonLat.length)
+            def.reject();
 
         this._promiseCounter++;
 
@@ -253,9 +257,12 @@ class ElevationProfile {
                     this._pointsReady = true;
                     this._drawData = [p.trackCoords, p.groundCoords];
                     this.events.dispatch(this.events.profilecollected, this._drawData, this);
+                    def.resolve(this._drawData);
                 }
             });
         })(this._promiseCounter);
+
+        return def.promise;
     }
 
     protected _setPointType(pIndex: number) {
