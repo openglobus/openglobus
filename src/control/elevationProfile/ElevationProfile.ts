@@ -60,10 +60,10 @@ class ElevationProfile {
     protected _pGroundCoords: number[][];
     protected _pIndex: number;
 
-    constructor(options: ElevationProfileParams) {
+    constructor(options: ElevationProfileParams = {}) {
         this.events = createEvents(ELEVATIONPROFILE_EVENTS);
 
-        this.planet = options.planet | null;
+        this.planet = options.planet || null;
 
         this._warningHeightLevel = 50;
         this._pointsReady = false;
@@ -258,6 +258,8 @@ class ElevationProfile {
     public collectProfile(pointsLonLat: LonLat[]): Promise<[number[][], number[][]]> {
 
         let def = new Deferred<[number[][], number[][]]>();
+
+        if (!this.planet) def.reject();
 
         this._pointsReady = false;
         this._isWarning = false;

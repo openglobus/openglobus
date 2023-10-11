@@ -895,3 +895,15 @@ TIMELINE
     top: 169px;
     right: 12px;
 }
+
+.og-elevationprofile {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    overflow: hidden;
+}
+
+.og-elevationprofile_button {
+    top: 175px;
+    left: 10px;
+}

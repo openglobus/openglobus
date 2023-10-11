@@ -82,7 +82,7 @@ const globus = new Globe({
     atmosphereEnabled: true
 });
 
-globus.planet.addControl(new control.ElevationProfileGraph());
+globus.planet.addControl(new control.ElevationProfileControl());
 globus.planet.addControl(new control.DebugInfo());
 globus.planet.addControl(new control.KeyboardNavigation());
 globus.planet.addControl(new control.TimelineControl());
