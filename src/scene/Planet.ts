@@ -562,6 +562,13 @@ export class Planet extends RenderNode {
         this._specularTextureSrc = options.specularTextureSrc || null;
     }
 
+    /**
+     * Returns true if current terrain data set is loaded
+     */
+    public get terrainReady(): boolean {
+        return this._terrainCompleted && this._terrainCompletedActivated;
+    }
+
     public get maxGridSize(): number {
         return this._maxGridSize;
     }

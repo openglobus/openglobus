@@ -5,7 +5,7 @@ import {Planet} from "../../scene/Planet";
 import {LonLat} from "../../LonLat";
 
 interface ElevationProfileParams {
-    planet: Planet
+    planet?: Planet
 }
 
 interface IProfileData {
@@ -42,7 +42,7 @@ const HEIGHT_EPS = 0.1; // Warning height level error
 
 class ElevationProfile {
     public events: EventsHandler<ElevationProfileEventsList>;
-    public planet: Planet;
+    public planet: Planet | null;
     protected _warningHeightLevel: number;
     protected _pointsReady: boolean;
     protected _isWarning: boolean;
@@ -63,7 +63,7 @@ class ElevationProfile {
     constructor(options: ElevationProfileParams) {
         this.events = createEvents(ELEVATIONPROFILE_EVENTS);
 
-        this.planet = options.planet;
+        this.planet = options.planet | null;
 
         this._warningHeightLevel = 50;
         this._pointsReady = false;
@@ -86,6 +86,10 @@ class ElevationProfile {
         this._pIndex = 0;
     }
 
+    public bindPlanet(planet: Planet) {
+        this.planet = planet;
+    }
+
     public setWarningHeightLevel(warningHeight: number = 0) {
         this._warningHeightLevel = warningHeight;
     }
@@ -99,18 +103,29 @@ class ElevationProfile {
 
     protected _getHeightAsync(ll: LonLat, pIndex: number): Promise<number> {
         let def = new Deferred<number>();
-        this.planet.terrain!.getHeightAsync(ll, (elv: number) => {
-            elv += this.planet.terrain!.geoid.getHeightLonLat(ll);
-            this._pGroundCoords[pIndex][1] = elv;
-            this._pGroundCoords[pIndex][2] = SAFE;
-            this._pGroundCoords[pIndex][3] = ll.height;
-            this._setPointType(pIndex);
-            def.resolve(elv);
-        });
+        if (this.planet) {
+            this.planet.terrain!.getHeightAsync(ll, (elv: number) => {
+                if (this.planet) {
+                    elv += this.planet.terrain!.geoid.getHeightLonLat(ll);
+                    this._pGroundCoords[pIndex][1] = elv;
+                    this._pGroundCoords[pIndex][2] = SAFE;
+                    this._pGroundCoords[pIndex][3] = ll.height;
+                    this._setPointType(pIndex);
+                    def.resolve(elv);
+                } else {
+                    def.reject();
+                }
+            });
+        } else {
+            def.reject();
+        }
         return def.promise;
     }
 
     protected _collectCoordsBetweenTwoTrackPoints(internalPoints: number, scaleFactor: number, p0: Vec3, trackDir: Vec3) {
+
+        if (!this.planet) return;
+
         for (let j = 1; j <= internalPoints; j++) {
             this._pDist += SEGMMENT_LENGTH;
             this._pIndex++;
@@ -135,6 +150,8 @@ class ElevationProfile {
     }
 
     protected _collectAllPoints(pointsLonLat: LonLat[]) {
+
+        if (!this.planet) return;
 
         let p0 = new Vec3(),
             p1 = new Vec3();

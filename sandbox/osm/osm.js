@@ -66,7 +66,8 @@ var highResTerrain = new MapboxTerrain(null, {
     //imageSize: 129,
     plainGridSize: 256,
     gridSizeByZoom: [
-        64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 64, 64, 128, 128, 128, 256, 256, 256, 128, 64, 32, 16
+        64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 64, 64, 128, 128, 128, 128, 128, 128, 128, 128, 64, 32
+        //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 64, 64, 128, 128, 128, 256, 256, 256, 128, 64, 32, 16
         //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 64, 64, 64, 64, 32, 16, 8
         //8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4
     ]
@@ -75,12 +76,13 @@ var highResTerrain = new MapboxTerrain(null, {
 const globus = new Globe({
     target: "earth",
     name: "Earth",
-    //terrain: highResTerrain,
-    terrain: new EmptyTerrain(),
+    terrain: highResTerrain,
+    //terrain: new EmptyTerrain(),
     layers: [sat],
     atmosphereEnabled: true
 });
 
+globus.planet.addControl(new control.ElevationProfileGraph());
 globus.planet.addControl(new control.DebugInfo());
 globus.planet.addControl(new control.KeyboardNavigation());
 globus.planet.addControl(new control.TimelineControl());
