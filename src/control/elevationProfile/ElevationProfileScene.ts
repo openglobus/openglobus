@@ -238,6 +238,7 @@ class ElevationProfileScene extends RenderNode {
             headEntity.properties.columnEntity.ray!.setEndPosition3v(headPos);
             this._trackEntity.polyline?.setPoint3v(headPos, headEntity.properties.index);
             if (!stopPropagation) {
+                this.events.dispatch(this.events.addpoint, headEntity, this);
                 this.events.dispatch(this.events.change, this);
             }
         });
@@ -356,11 +357,11 @@ class ElevationProfileScene extends RenderNode {
 }
 
 type ElevationProfileSceneEventsList = [
-    "change"
+    "change", "addpoint"
 ];
 
 const ELEVATIONPROFILESCENE_EVENTS: ElevationProfileSceneEventsList = [
-    "change"
+    "change", "addpoint"
 ];
 
 export {ElevationProfileScene};
