@@ -220,31 +220,33 @@ class ElevationProfileScene extends RenderNode {
         });
     }
 
+    public addPoint3vAsync(groundPos: Vec3, altitude: number = 10, stopPropagation: boolean = false) {
+        let {headEntity, groundEntity, columnEntity} = this._createPointer(groundPos, altitude);
+        this._groundPointersLayer.add(groundEntity);
+        this._columnPointersLayer.add(columnEntity);
+        this._headPointersLayer.add(headEntity);
+        this._trackEntity.polyline!.appendPoint3v(headEntity.getCartesian());
+
+        let lonLat = this._planet!.ellipsoid.cartesianToLonLat(groundPos)!;
+
+        this.getHeightELLAsync(lonLat).then((hEll: number) => {
+            lonLat.height = hEll;
+            let groundPos = this._planet!.ellipsoid.lonLatToCartesian(lonLat);
+            let groundNormal = this._planet!.ellipsoid.getSurfaceNormal3v(groundPos);
+            let headPos = groundPos.add(groundNormal.scale(altitude));
+            headEntity.setCartesian3v(headPos);
+            headEntity.properties.columnEntity.ray!.setEndPosition3v(headPos);
+            this._trackEntity.polyline?.setPoint3v(headPos, headEntity.properties.index);
+            if (!stopPropagation) {
+                this.events.dispatch(this.events.change, this);
+            }
+        });
+    }
+
     protected _onLClick = (e: IMouseState) => {
-
-        const ALTITUDE = 10;
-
         let groundPos = this._planet!.getCartesianFromPixelTerrain(e.pos);
         if (groundPos) {
-
-            let {headEntity, groundEntity, columnEntity} = this._createPointer(groundPos, ALTITUDE);
-            this._groundPointersLayer.add(groundEntity);
-            this._columnPointersLayer.add(columnEntity);
-            this._headPointersLayer.add(headEntity);
-            this._trackEntity.polyline!.appendPoint3v(headEntity.getCartesian());
-
-            let lonLat = this._planet!.ellipsoid.cartesianToLonLat(groundPos)!;
-
-            this.getHeightELLAsync(lonLat).then((hEll: number) => {
-                lonLat.height = hEll;
-                let groundPos = this._planet!.ellipsoid.lonLatToCartesian(lonLat);
-                let groundNormal = this._planet!.ellipsoid.getSurfaceNormal3v(groundPos);
-                let headPos = groundPos.add(groundNormal.scale(ALTITUDE));
-                headEntity.setCartesian3v(headPos);
-                headEntity.properties.columnEntity.ray!.setEndPosition3v(headPos);
-                this._trackEntity.polyline?.setPoint3v(headPos, headEntity.properties.index);
-                this.events.dispatch(this.events.change, this);
-            });
+            this.addPoint3vAsync(groundPos);
         }
     }
 
