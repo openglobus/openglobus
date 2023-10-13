@@ -1,22 +1,23 @@
 import {EventsHandler} from "../../Events";
-import {ButtonGroup} from "../../ui/ButtonGroup";
 import {IViewParams, View, ViewEventsList} from '../../ui/View';
-import {ElevationProfile} from './ElevationProfile';
-import {MouseEventExt} from "../../input/MouseHandler";
+import {ElevationProfile, ElevationProfileDrawData} from './ElevationProfile';
 
-const FILL_COLOR = "rgba(64, 59, 59, 1.0)";
+const FILL_COLOR = "rgb(45, 45, 45)";
+const TRACK_COLOR = "green";
+const TERRAIN_COLOR = "#C6C6C6";
+const TERRAIN_FILL_COLOR = "#404452";
+const WARNING_COLOR = "yellow";
+const COLLISION_COLOR = "red";
+const LINE_COLORS = [TERRAIN_COLOR, WARNING_COLOR, COLLISION_COLOR];
+const TERRAIN_ALPHA = 0.5;
 
 interface IElevationProfileViewParams extends IViewParams {
     fillStyle?: string;
 }
 
-type ElevationProfileViewEventsList = [
-    'xxx'
-];
+type ElevationProfileViewEventsList = [];
 
-const ELEVATIONPROFILEVIEW_EVENTS: ElevationProfileViewEventsList = [
-    'xxx'
-];
+const ELEVATIONPROFILEVIEW_EVENTS: ElevationProfileViewEventsList = [];
 
 const TEMPLATE = `<div class="og-elevationprofile"></div>`;
 
@@ -26,6 +27,9 @@ class ElevationProfileView extends View<ElevationProfile> {
     public override events: EventsHandler<ElevationProfileViewEventsList> & EventsHandler<ViewEventsList>;
 
     public fillStyle: string;
+
+    protected _unitPx_x: number;
+    protected _unitPx_y: number;
     protected _canvasScale: number;
     protected $canvas: HTMLCanvasElement;
     protected _ctx: CanvasRenderingContext2D;
@@ -43,6 +47,8 @@ class ElevationProfileView extends View<ElevationProfile> {
 
         this.fillStyle = options.fillStyle || FILL_COLOR;
 
+        this._unitPx_x = 0;
+        this._unitPx_y = 0;
         this._canvasScale = 2;
         this.$canvas = document.createElement("canvas");
         this._ctx = this.$canvas.getContext('2d')!;
@@ -71,9 +77,9 @@ class ElevationProfileView extends View<ElevationProfile> {
         this.draw();
     }
 
-    public override afterRender(parentNode: HTMLElement) {
-        this.resize();
-    }
+    //public override afterRender(parentNode: HTMLElement) {
+    //this.resize();
+    //}
 
     public override render(): this {
         super.render();
@@ -82,14 +88,9 @@ class ElevationProfileView extends View<ElevationProfile> {
 
         this.el!.appendChild(this.$canvas);
 
-        // this.model.events.on("change", () => {
-        //     this.draw()
-        // });
-        //
-        // this.model.events.on("current", (d: Date) => {
-        //     this._drawCurrent();
-        //     this.events.dispatch(this.events.setcurrent, d);
-        // });
+        this.model.events.on("profilecollected", (data: ElevationProfileDrawData) => {
+            this.draw();
+        });
 
         // this.$canvas.addEventListener("mouseenter", this._onMouseEnter);
         // this.$canvas.addEventListener("mouseout", this._onMouseOut);
@@ -125,8 +126,109 @@ class ElevationProfileView extends View<ElevationProfile> {
         this._ctx.fillRect(0, 0, this.clientWidth * this._canvasScale, this.clientHeight * this._canvasScale);
     }
 
+    public _updateUnits() {
+        this._unitPx_x = this._canvasScale * this.clientWidth / (this.model.maxX - this.model.minX);
+        this._unitPx_y = this._canvasScale * this.clientHeight / (this.model.maxY - this.model.minY);
+
+    }
+
     public draw() {
-        this._clearCanvas();
+        let trackCoords = this.model.drawData[0];
+        if (trackCoords.length > 1) {
+            this._updateUnits();
+            let groundCoords = this.model.drawData[1];
+            this._clearCanvas();
+
+            //
+            // Draw track
+            //
+            this._drawLine(trackCoords);
+
+            //
+            // Draw terrain
+            //
+            this._drawTerrain(groundCoords);
+
+            //
+            // Draw warning and collision
+            //
+            this._drawWarningAndCollision(groundCoords);
+        } else {
+            this._clearCanvas();
+        }
+    }
+
+    private _drawLine(coords: number[][]) {
+        let p0 = coords[0];
+        let ctx = this._ctx;
+        if (ctx) {
+            const maxY = this.model.maxY;
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = TRACK_COLOR;
+            ctx.beginPath();
+            ctx.moveTo(p0[0] * this._unitPx_x, (maxY - p0[1]) * this._unitPx_y);
+            for (let i = 1; i < coords.length; i++) {
+                let pi = coords[i];
+                ctx.lineTo(pi[0] * this._unitPx_x, (maxY - pi[1]) * this._unitPx_y);
+            }
+            ctx.stroke();
+        }
+    }
+
+    private _drawTerrain(coords: number[][]) {
+        let p0 = coords[0];
+        let ctx = this._ctx;
+        if (ctx) {
+            const maxY = this.model.maxY;
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = TERRAIN_COLOR;
+            ctx.beginPath();
+            ctx.moveTo(0, this.$canvas.height);
+            ctx.lineTo(p0[0] * this._unitPx_x, (maxY - p0[1]) * this._unitPx_y);
+            for (let i = 1, len = coords.length; i < len; i++) {
+                let pi = coords[i];
+                ctx.lineTo(pi[0] * this._unitPx_x, (maxY - pi[1]) * this._unitPx_y);
+            }
+            ctx.lineTo(this.$canvas.width, this.$canvas.height);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.save();
+            ctx.fillStyle = TERRAIN_FILL_COLOR;
+            ctx.globalAlpha = TERRAIN_ALPHA;
+            ctx.fill();
+            ctx.restore();
+            ctx.globalAlpha = 1;
+        }
+    }
+
+    private _drawWarningAndCollision(coords: number[][]) {
+        let ctx = this._ctx;
+        if (ctx && coords.length > 1) {
+            let maxY = this.model.maxY;
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            for (let i = 0, len = coords.length - 1; i < len; i++) {
+                if (coords[i][2] > 0 && coords[i + 1][2] > 0) {
+
+                    let pi0 = coords[i],
+                        pi1 = coords[i + 1];
+
+                    if (pi0[2] > pi1[2]) {
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.strokeStyle = LINE_COLORS[pi1[2]];
+                    } else if (pi0[2] !== 0) {
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.strokeStyle = LINE_COLORS[pi0[2]];
+                    }
+
+                    ctx.moveTo(pi0[0] * this._unitPx_x, (maxY - pi0[1]) * this._unitPx_y);
+                    ctx.lineTo(pi1[0] * this._unitPx_x, (maxY - pi1[1]) * this._unitPx_y);
+                }
+            }
+            ctx.stroke();
+        }
     }
 }
 

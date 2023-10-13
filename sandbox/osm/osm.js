@@ -76,8 +76,8 @@ var highResTerrain = new MapboxTerrain(null, {
 const globus = new Globe({
     target: "earth",
     name: "Earth",
-    terrain: highResTerrain,
-    //terrain: new EmptyTerrain(),
+    //terrain: highResTerrain,
+    terrain: new GlobusTerrain(),
     layers: [sat],
     atmosphereEnabled: true
 });

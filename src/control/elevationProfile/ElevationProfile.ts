@@ -16,6 +16,8 @@ interface IProfileData {
     groundCoords: number[][];
 }
 
+export type ElevationProfileDrawData = [number[][], number[][]];
+
 type ElevationProfileEventsList = ["profilecollected"];
 
 const ELEVATIONPROFILE_EVENTS: ElevationProfileEventsList = ["profilecollected"];
@@ -50,7 +52,7 @@ class ElevationProfile {
     protected _maxX: number;
     protected _minY: number;
     protected _maxY: number;
-    protected _drawData: [number[][], number[][]];
+    protected _drawData: ElevationProfileDrawData;
     protected _promiseArr: Promise<void | number>[];
     protected _promiseCounter: number;
     protected _pMaxY: number;
@@ -74,15 +76,16 @@ class ElevationProfile {
         this._minY = 0;
         this._maxY = 200;
 
-        this._drawData = [][0];
+        this._drawData = [[], []];
 
         this._promiseArr = [];
         this._promiseCounter = 0;
         this._pMaxY = 0;
         this._pMinY = 0;
         this._pDist = 0;
-        this._pTrackCoords = [[0, 0, SAFE]];
-        this._pGroundCoords = [[0, 0, SAFE]];
+        this._pTrackCoords = [];
+        this._pGroundCoords = [];
+
         this._pIndex = 0;
     }
 
@@ -110,7 +113,7 @@ class ElevationProfile {
                     this._pGroundCoords[pIndex][1] = elv;
                     this._pGroundCoords[pIndex][2] = SAFE;
                     this._pGroundCoords[pIndex][3] = ll.height;
-                    this._setPointType(pIndex);
+                    this._updatePointType(pIndex);
                     def.resolve(elv);
                 } else {
                     def.reject();
@@ -194,11 +197,9 @@ class ElevationProfile {
         this._pGroundCoords[this._pIndex] = [this._pDist, 0, SAFE];
         this._promiseArr.push(
             this._getHeightAsync(lonLat, this._pIndex)
-                .then((elv) => {
-                    if (typeof elv === 'number') {
-                        if ((elv > this._pMaxY) && (elv)) this._pMaxY = elv;
-                        if ((elv < this._pMinY) && (elv)) this._pMinY = elv;
-                    }
+                .then((elv: number) => {
+                    if (elv > this._pMaxY) this._pMaxY = elv;
+                    if (elv < this._pMinY) this._pMinY = elv;
                 })
         );
     }
@@ -221,7 +222,7 @@ class ElevationProfile {
             this._pMaxY = pointsLonLat[0].height;
             this._pMinY = this._pMaxY;
             this._pDist = 0;
-            this._pGroundCoords = [[0, 0, SAFE]];
+            this._pGroundCoords = [];
             this._pIndex = 0;
             this._promiseArr = [];
 
@@ -255,9 +256,13 @@ class ElevationProfile {
         return this._isWarning;
     }
 
-    public collectProfile(pointsLonLat: LonLat[]): Promise<[number[][], number[][]]> {
+    public get drawData(): ElevationProfileDrawData {
+        return this._drawData;
+    }
 
-        let def = new Deferred<[number[][], number[][]]>();
+    public collectProfile(pointsLonLat: LonLat[]): Promise<ElevationProfileDrawData> {
+
+        let def = new Deferred<ElevationProfileDrawData>();
 
         if (!this.planet) def.reject();
 
@@ -284,7 +289,7 @@ class ElevationProfile {
         return def.promise;
     }
 
-    protected _setPointType(pIndex: number) {
+    protected _updatePointType(pIndex: number) {
         if ((this._pGroundCoords[pIndex][3] >= this._pGroundCoords[pIndex][1]) &&
             (this._pGroundCoords[pIndex][3] < this._pGroundCoords[pIndex][1] + this._warningHeightLevel - HEIGHT_EPS)) {
             this._pGroundCoords[pIndex][2] = WARNING;
@@ -294,11 +299,14 @@ class ElevationProfile {
             this._pGroundCoords[pIndex][2] = COLLISION;
         }
 
-        if (this._pGroundCoords[pIndex][2] == WARNING || this._pGroundCoords[pIndex][2] == COLLISION) {
+        if (this._pGroundCoords[pIndex][2] === WARNING || this._pGroundCoords[pIndex][2] === COLLISION) {
             this._isWarning = true;
         }
     }
 
+    /**
+     * @deprecated
+     */
     protected _setPointsType() {
         this._isWarning = false;
 
@@ -306,7 +314,7 @@ class ElevationProfile {
         this._pGroundCoords = this._drawData[GROUND];
 
         for (let i = 0; i < this._pGroundCoords.length; i++) {
-            this._setPointType(i);
+            this._updatePointType(i);
         }
 
         this._drawData[GROUND] = this._pGroundCoords;
@@ -316,12 +324,12 @@ class ElevationProfile {
     public clear() {
         this._pointsReady = false;
         this._isWarning = false;
-        this._drawData = [][0];
+        this._drawData = [[], []];
         this._pMaxY = 0;
         this._pMinY = 0;
         this._pDist = 0;
-        this._pTrackCoords = [[0, 0, SAFE]];
-        this._pGroundCoords = [[0, 0, SAFE]];
+        this._pTrackCoords = [];
+        this._pGroundCoords = [];
         this._pIndex = 0;
     }
 }

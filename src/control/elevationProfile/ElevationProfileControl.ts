@@ -2,7 +2,6 @@ import {Control, IControlParams} from "../Control";
 import {Dialog, IDialogParams} from "../../ui/Dialog";
 import {ToggleButton} from "../../ui/ToggleButton";
 import {ElevationProfileView} from "./ElevationProfileView";
-import {Planet} from "../../scene/Planet";
 import {ElevationProfileScene} from "./ElevationProfileScene";
 
 interface IElevationProfileGraphParams extends IControlParams {
@@ -31,11 +30,12 @@ export class ElevationProfileControl extends Control {
             visible: false,
             resizable: true,
             useHide: true,
-            top: 90,
-            left: 100,
+            top: 300,
+            left: 10,
             width: 700,
-            height: 300,
-            minHeight: 115
+            height: 200,
+            minHeight: 100,
+            minWidth: 100
         });
 
         this._toggleBtn = new ToggleButton({
@@ -47,7 +47,7 @@ export class ElevationProfileControl extends Control {
     override oninit() {
 
         this._toggleBtn.appendTo(this.renderer!.div!);
-        this._dialog.appendTo(this.planet!.renderer!.div as HTMLElement);
+        this._dialog.appendTo(this.planet!.renderer!.div!);
 
         this._dialog.events.on("visibility", (v: boolean) => {
             this._toggleBtn.setActive(v);
@@ -66,6 +66,14 @@ export class ElevationProfileControl extends Control {
         this._elevationProfileView.appendTo(this._dialog.container!);
 
         this._elevationProfileView.model.bindPlanet(this.planet!);
+
+        this._elevationProfileScene.events.on("change", this._onSceneChange)
+
+    }
+
+    protected _onSceneChange = () => {
+        let points = this._elevationProfileScene.getPointsLonLat();
+        this._elevationProfileView.model.collectProfile(points);
     }
 
     override onactivate() {

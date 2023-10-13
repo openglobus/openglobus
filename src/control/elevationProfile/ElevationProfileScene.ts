@@ -9,7 +9,6 @@ import {Vec2} from '../../math/Vec2';
 import {Vec3} from '../../math/Vec3';
 import {IMouseState} from "../../renderer/RendererEvents";
 import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
-import {ILabelParams} from "../../entity/Label";
 
 export interface IElevationProfileSceneParams {
     name?: string;
@@ -26,7 +25,8 @@ export const distanceFormat = (v: number): string => {
     }
 }
 
-let obj3d = Object3d.createCylinder(0.4, 0, 1.0, 20, 1, true, false, 0, 0, 0);
+let groundObj3d = Object3d.createCylinder(0.33, 0, 1.0, 20, 1, true, false, 0, 0, 0);
+let headObj3d = Object3d.createCylinder(0.33, 0.33, 1.1, 20, 1, true, true, 0, -0.55, 0);
 
 // const LABEL_OPTIONS: ILabelParams = {
 //     text: "",
@@ -42,7 +42,14 @@ const GROUND_POINTER_OPTIONS = {
     instanced: true,
     tag: "ground-pointer",
     color: "rgb(0,305,0)",
-    object3d: obj3d
+    object3d: groundObj3d
+};
+
+const HEAD_POINTER_OPTIONS = {
+    instanced: true,
+    tag: "head-pointer",
+    color: "rgb(0,305,0)",
+    object3d: headObj3d
 };
 
 class ElevationProfileScene extends RenderNode {
@@ -52,6 +59,8 @@ class ElevationProfileScene extends RenderNode {
     protected _planet: Planet | null;
     protected _trackLayer: Vector;
     protected _groundPointersLayer: Vector;
+    protected _columnPointersLayer: Vector;
+    protected _headPointersLayer: Vector;
     protected _trackEntity: Entity;
 
     constructor(options: IElevationProfileSceneParams = {}) {
@@ -77,22 +86,74 @@ class ElevationProfileScene extends RenderNode {
             pickingScale: 2
         });
 
+        this._headPointersLayer = new Vector("head-pointers", {
+            entities: [],
+            pickingEnabled: true,
+            displayInLayerSwitcher: false,
+            scaleByDistance: [1, 40000, 0.02],
+            pickingScale: 2
+        });
+
+        this._columnPointersLayer = new Vector("column-pointers", {
+            entities: [],
+            pickingEnabled: false,
+            displayInLayerSwitcher: false
+        });
+
         this._trackEntity = new Entity({
             polyline: {
                 path3v: [],
-                thickness: 4.8,
-                color: "rgb(255,131,0)",
+                thickness: 3.8,
+                color: "rgba(0,305,0,0.8)",
                 isClosed: false
             }
         });
+
+        this._trackLayer = new Vector("column-pointers", {
+            entities: [this._trackEntity],
+            pickingEnabled: false,
+            displayInLayerSwitcher: false
+        });
     }
 
-    protected _createGroundPointerEntity(cart: Vec3): Entity {
-        return new Entity({
-            cartesian: cart,
+    protected _createPointer(groundCart: Vec3, altitude: number): { headEntity: Entity, groundEntity: Entity, columnEntity: Entity } {
+
+        let surfaceNormal = this.ellipsoid!.getSurfaceNormal3v(groundCart);
+        let headCart = groundCart.add(surfaceNormal.scale(altitude));
+
+        let columnEntity = new Entity({
+            ray: {
+                startPosition: groundCart,
+                endPosition: headCart,
+                startColor: "rgba(255,255,255,0.2)",
+                endColor: "rgba(355,355,355,1.0)",
+                thickness: 3.2
+            }
+        });
+
+        let groundEntity = new Entity({
+            cartesian: groundCart,
             geoObject: GROUND_POINTER_OPTIONS,
+        });
+
+        let headEntity = new Entity({
+            cartesian: headCart,
+            geoObject: HEAD_POINTER_OPTIONS,
             properties: {}
-        })
+        });
+
+        const index = this._groundPointersLayer.getEntities().length;
+
+        columnEntity.properties =
+            groundEntity.properties =
+                headEntity.properties = {
+                    index,
+                    headEntity,
+                    groundEntity,
+                    columnEntity
+                };
+
+        return {headEntity, groundEntity, columnEntity};
     }
 
     public bindPlanet(planet: Planet) {
@@ -111,6 +172,8 @@ class ElevationProfileScene extends RenderNode {
 
         this._planet!.addLayer(this._trackLayer);
         this._planet!.addLayer(this._groundPointersLayer);
+        this._planet!.addLayer(this._columnPointersLayer);
+        this._planet!.addLayer(this._headPointersLayer);
 
         this.renderer!.events.on("lclick", this._onLClick);
         this.renderer!.events.on("mousemove", this._onMouseMove);
@@ -120,13 +183,68 @@ class ElevationProfileScene extends RenderNode {
         this._groundPointersLayer.events.on("mouseleave", this._onGroundPointerLeave);
         this._groundPointersLayer.events.on("ldown", this._onGroundPointerLDown);
         this._groundPointersLayer.events.on("lup", this._onGroundPointerLUp);
+
+        this._headPointersLayer.events.on("mouseenter", this._onHeadPointerEnter);
+        this._headPointersLayer.events.on("mouseleave", this._onHeadPointerLeave);
+        this._headPointersLayer.events.on("ldown", this._onHeadPointerLDown);
+        this._headPointersLayer.events.on("lup", this._onHeadPointerLUp);
+    }
+
+    public getPointsLonLat(): LonLat[] {
+        let entities = this._headPointersLayer.getEntities();
+        let points: LonLat[] = new Array(entities.length);
+        for (let i = 0, len = points.length; i < len; i++) {
+            let ei = entities[i];
+            points[i] = ei.getLonLat();
+        }
+        return points;
+    }
+
+    public getHeightMSL(lonLat: LonLat) {
+        if (this._planet && this._planet.terrain!.geoid) {
+            return this._planet!.terrain!.geoid.getHeightLonLat(lonLat);
+        }
+        return 0;
+    }
+
+    public getHeightELLAsync(lonLat: LonLat): Promise<number> {
+        return new Promise((resolve, reject) => {
+            this._planet!.terrain!.getHeightAsync(lonLat, (hGnd: number) => {
+                if (this._planet) {
+                    let hMsl = this.getHeightMSL(lonLat);
+                    resolve(hGnd + hMsl);
+                } else {
+                    reject();
+                }
+            });
+        });
     }
 
     protected _onLClick = (e: IMouseState) => {
+
+        const ALTITUDE = 10;
+
         let groundPos = this._planet!.getCartesianFromPixelTerrain(e.pos);
         if (groundPos) {
-            let groundEntity = this._createGroundPointerEntity(groundPos);
+
+            let {headEntity, groundEntity, columnEntity} = this._createPointer(groundPos, ALTITUDE);
             this._groundPointersLayer.add(groundEntity);
+            this._columnPointersLayer.add(columnEntity);
+            this._headPointersLayer.add(headEntity);
+            this._trackEntity.polyline!.appendPoint3v(headEntity.getCartesian());
+
+            let lonLat = this._planet!.ellipsoid.cartesianToLonLat(groundPos)!;
+
+            this.getHeightELLAsync(lonLat).then((hEll: number) => {
+                lonLat.height = hEll;
+                let groundPos = this._planet!.ellipsoid.lonLatToCartesian(lonLat);
+                let groundNormal = this._planet!.ellipsoid.getSurfaceNormal3v(groundPos);
+                let headPos = groundPos.add(groundNormal.scale(ALTITUDE));
+                headEntity.setCartesian3v(headPos);
+                headEntity.properties.columnEntity.ray!.setEndPosition3v(headPos);
+                this._trackEntity.polyline?.setPoint3v(headPos, headEntity.properties.index);
+                this.events.dispatch(this.events.change, this);
+            });
         }
     }
 
@@ -154,6 +272,22 @@ class ElevationProfileScene extends RenderNode {
 
     }
 
+    protected _onHeadPointerEnter = (e: IMouseState) => {
+        e.renderer.handler.canvas!.style.cursor = "pointer";
+    }
+
+    protected _onHeadPointerLeave = (e: IMouseState) => {
+        e.renderer.handler.canvas!.style.cursor = "default";
+    }
+
+    protected _onHeadPointerLDown = (e: IMouseState) => {
+
+    }
+
+    protected _onHeadPointerLUp = (e: IMouseState) => {
+
+    }
+
     protected _deactivate() {
 
         this.renderer!.events.off("lclick", this._onLClick);
@@ -165,8 +299,16 @@ class ElevationProfileScene extends RenderNode {
         this._groundPointersLayer.events.off("ldown", this._onGroundPointerLDown);
         this._groundPointersLayer.events.off("lup", this._onGroundPointerLUp);
 
+        this._headPointersLayer.events.off("mouseenter", this._onHeadPointerEnter);
+        this._headPointersLayer.events.off("mouseleave", this._onHeadPointerLeave);
+        this._headPointersLayer.events.off("ldown", this._onHeadPointerLDown);
+        this._headPointersLayer.events.off("lup", this._onHeadPointerLUp);
+
         this._trackLayer.remove();
         this._groundPointersLayer.remove();
+        this._headPointersLayer.remove();
+        this._columnPointersLayer.remove();
+        this._trackLayer.remove();
 
         this.clear();
     }
@@ -175,15 +317,35 @@ class ElevationProfileScene extends RenderNode {
     public setVisibility(visibility: boolean) {
         this._groundPointersLayer.setVisibility(visibility);
         this._trackLayer.setVisibility(visibility);
+        this._columnPointersLayer.setVisibility(visibility);
+        this._headPointersLayer.setVisibility(visibility);
+        this._trackLayer.setVisibility(visibility);
     }
 
 
     public clear() {
+        this._headPointersLayer.setEntities([]);
         this._groundPointersLayer.setEntities([]);
+        this._columnPointersLayer.setEntities([]);
         this._trackEntity.polyline!.setPath3v([]);
     }
 
     public override frame() {
+        let __tempVec__ = new Vec3();
+        const nodes = this._planet!._renderedNodes;
+        const entities = this._groundPointersLayer.getEntities();
+        for (let i = 0; i < entities.length; i++) {
+            let ei = entities[i];
+            for (let j = 0; j < nodes.length; j++) {
+                let nj = nodes[j];
+                if (nj.segment.isEntityInside(ei)) {
+                    nj.segment.getEntityTerrainPoint(ei, __tempVec__);
+                    ei.setCartesian3v(__tempVec__);
+                    ei.properties.columnEntity.ray!.setStartPosition3v(__tempVec__);
+                    break;
+                }
+            }
+        }
     }
 
     public get ellipsoid(): Ellipsoid | null {
@@ -192,63 +354,11 @@ class ElevationProfileScene extends RenderNode {
 }
 
 type ElevationProfileSceneEventsList = [
-    "add",
-    "remove",
-    "mousemove",
-    "mouseenter",
-    "mouseleave",
-    "lclick",
-    "rclick",
-    "mclick",
-    "ldblclick",
-    "rdblclick",
-    "mdblclick",
-    "lup",
-    "rup",
-    "mup",
-    "ldown",
-    "rdown",
-    "mdown",
-    "lhold",
-    "rhold",
-    "mhold",
-    "mousewheel",
-    "touchmove",
-    "touchstart",
-    "touchend",
-    "doubletouch",
-    "touchleave",
-    "touchenter"
+    "change"
 ];
 
 const ELEVATIONPROFILESCENE_EVENTS: ElevationProfileSceneEventsList = [
-    "add",
-    "remove",
-    "mousemove",
-    "mouseenter",
-    "mouseleave",
-    "lclick",
-    "rclick",
-    "mclick",
-    "ldblclick",
-    "rdblclick",
-    "mdblclick",
-    "lup",
-    "rup",
-    "mup",
-    "ldown",
-    "rdown",
-    "mdown",
-    "lhold",
-    "rhold",
-    "mhold",
-    "mousewheel",
-    "touchmove",
-    "touchstart",
-    "touchend",
-    "doubletouch",
-    "touchleave",
-    "touchenter"
+    "change"
 ];
 
 export {ElevationProfileScene};
