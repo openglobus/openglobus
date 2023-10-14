@@ -3,6 +3,7 @@ import {Dialog, IDialogParams} from "../../ui/Dialog";
 import {ToggleButton} from "../../ui/ToggleButton";
 import {ElevationProfileView} from "./ElevationProfileView";
 import {ElevationProfileScene} from "./ElevationProfileScene";
+import {MouseNavigation} from "../MouseNavigation";
 
 interface IElevationProfileGraphParams extends IControlParams {
 }
@@ -77,11 +78,13 @@ export class ElevationProfileControl extends Control {
     }
 
     override onactivate() {
+        (this.renderer!.controls.mouseNavigation as MouseNavigation).deactivateDoubleClickZoom()
         this.planet && this._elevationProfileScene.bindPlanet(this.planet);
         this.renderer && this.renderer.addNode(this._elevationProfileScene);
     }
 
     override ondeactivate() {
+        (this.renderer!.controls.mouseNavigation as MouseNavigation).activateDoubleClickZoom()
         this.renderer && this.renderer.removeNode(this._elevationProfileScene);
         this._dialog.hide();
     }
