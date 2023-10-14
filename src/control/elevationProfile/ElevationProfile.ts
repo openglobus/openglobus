@@ -12,11 +12,11 @@ interface IProfileData {
     dist: number;
     minY: number;
     maxY: number;
-    trackCoords: [number, number][];
-    groundCoords: [number, number, number, number][];
+    trackCoords: TrackItem[];
+    groundCoords: GroundItem[];
 }
 
-export type ElevationProfileDrawData = [[number, number][], [number, number, number, number][]];
+export type ElevationProfileDrawData = [TrackItem[], GroundItem[]];
 
 type ElevationProfileEventsList = ["profilecollected"];
 
@@ -29,6 +29,7 @@ const SAFE = 0;
 const WARNING = 1;
 const COLLISION = 2;
 
+type WarningLevel = typeof SAFE | typeof WARNING | typeof COLLISION;
 /**
  * drawData index names
  */
@@ -41,6 +42,9 @@ const BOTTOM_PADDING = 0.1; // Range minY padding in percentage from the bottom
 const TOP_PADDING = 0.1; // Range maxY padding in percentage from the top
 
 const HEIGHT_EPS = 0.1; // Warning height level error
+
+type TrackItem = [number, number];
+type GroundItem = [number, number, WarningLevel, number];
 
 class ElevationProfile {
     public events: EventsHandler<ElevationProfileEventsList>;
@@ -58,8 +62,8 @@ class ElevationProfile {
     protected _pMaxY: number;
     protected _pMinY: number;
     protected _pDist: number;
-    protected _pTrackCoords: [number, number][];
-    protected _pGroundCoords: [number, number, number, number][];
+    protected _pTrackCoords: TrackItem[];
+    protected _pGroundCoords: GroundItem[];
     protected _pIndex: number;
 
     constructor(options: ElevationProfileParams = {}) {
