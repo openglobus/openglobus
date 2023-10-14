@@ -28,15 +28,15 @@ export const distanceFormat = (v: number): string => {
 let groundObj3d = Object3d.createCylinder(0.33, 0, 1.0, 20, 1, true, false, 0, 0, 0);
 let headObj3d = Object3d.createCylinder(0.33, 0.33, 1.1, 20, 1, true, true, 0, -0.55, 0);
 
-// const LABEL_OPTIONS: ILabelParams = {
-//     text: "",
-//     size: 11,
-//     color: "rgba(455,455,455,1.0)",
-//     outlineColor: "rgba(0,0,0,0.34)",
-//     outline: 0.23,
-//     align: "center",
-//     offset: [0, 20, 0]
-// };
+const LABEL_OPTIONS = {
+    text: "",
+    size: 10.5,
+    color: "rgba(455,455,455,1.0)",
+    outlineColor: "rgba(0,0,0,0.34)",
+    outline: 0.23,
+    align: "right",
+    offset: [-47, 25, 0]
+};
 
 const GROUND_POINTER_OPTIONS = {
     instanced: true,
@@ -61,6 +61,7 @@ class ElevationProfileScene extends RenderNode {
     protected _groundPointersLayer: Vector;
     protected _columnPointersLayer: Vector;
     protected _headPointersLayer: Vector;
+    protected _heightsLayer: Vector;
     protected _trackEntity: Entity;
 
     constructor(options: IElevationProfileSceneParams = {}) {
@@ -114,9 +115,15 @@ class ElevationProfileScene extends RenderNode {
             pickingEnabled: false,
             displayInLayerSwitcher: false
         });
+
+        this._heightsLayer = new Vector("heights-labels", {
+            entities: [],
+            pickingEnabled: false,
+            displayInLayerSwitcher: false
+        });
     }
 
-    protected _createPointer(groundCart: Vec3, altitude: number): { headEntity: Entity, groundEntity: Entity, columnEntity: Entity } {
+    protected _createPointer(groundCart: Vec3, altitude: number): { headEntity: Entity, groundEntity: Entity, columnEntity: Entity, heightLabelEntity: Entity } {
 
         let surfaceNormal = this.ellipsoid!.getSurfaceNormal3v(groundCart);
         let headCart = groundCart.add(surfaceNormal.scale(altitude));
@@ -142,18 +149,25 @@ class ElevationProfileScene extends RenderNode {
             properties: {}
         });
 
+        let heightLabelEntity = new Entity({
+            cartesian: headCart,
+            label: LABEL_OPTIONS
+        });
+
         const index = this._groundPointersLayer.getEntities().length;
 
         columnEntity.properties =
             groundEntity.properties =
                 headEntity.properties = {
                     index,
+                    realHeightEll: 0,
                     headEntity,
                     groundEntity,
-                    columnEntity
+                    columnEntity,
+                    heightLabelEntity
                 };
 
-        return {headEntity, groundEntity, columnEntity};
+        return {headEntity, groundEntity, columnEntity, heightLabelEntity};
     }
 
     public bindPlanet(planet: Planet) {
@@ -174,6 +188,7 @@ class ElevationProfileScene extends RenderNode {
         this._planet!.addLayer(this._groundPointersLayer);
         this._planet!.addLayer(this._columnPointersLayer);
         this._planet!.addLayer(this._headPointersLayer);
+        this._planet!.addLayer(this._heightsLayer);
 
         this.renderer!.events.on("lclick", this._onLClick);
         this.renderer!.events.on("mousemove", this._onMouseMove);
@@ -232,10 +247,11 @@ class ElevationProfileScene extends RenderNode {
 
     protected _addPoint(groundPos: Vec3, lonLat: LonLat, altitude: number, stopPropagation: boolean = false): Promise<Entity> {
         return new Promise((resolve, reject) => {
-            let {headEntity, groundEntity, columnEntity} = this._createPointer(groundPos, altitude);
+            let {headEntity, groundEntity, columnEntity, heightLabelEntity} = this._createPointer(groundPos, altitude);
             this._groundPointersLayer.add(groundEntity);
             this._columnPointersLayer.add(columnEntity);
             this._headPointersLayer.add(headEntity);
+            this._heightsLayer.add(heightLabelEntity)
             this._trackEntity.polyline!.appendPoint3v(headEntity.getCartesian());
 
             this.getHeightELLAsync(lonLat).then((hEll: number) => {
@@ -243,9 +259,12 @@ class ElevationProfileScene extends RenderNode {
                 let groundPos = this._planet!.ellipsoid.lonLatToCartesian(lonLat);
                 let groundNormal = this._planet!.ellipsoid.getSurfaceNormal3v(groundPos);
                 let headPos = groundPos.add(groundNormal.scale(altitude));
+                heightLabelEntity.setCartesian3v(headPos);
+                heightLabelEntity.label!.setText(`${hEll.toFixed(1)} m`);
                 headEntity.setCartesian3v(headPos);
                 headEntity.properties.columnEntity.ray!.setEndPosition3v(headPos);
                 this._trackEntity.polyline?.setPoint3v(headPos, headEntity.properties.index);
+                headEntity.properties.realHeightEll = hEll;
                 if (!stopPropagation) {
                     this.events.dispatch(this.events.addpoint, headEntity, this);
                     this.events.dispatch(this.events.change, this);
@@ -323,6 +342,7 @@ class ElevationProfileScene extends RenderNode {
         this._headPointersLayer.remove();
         this._columnPointersLayer.remove();
         this._trackLayer.remove();
+        this._heightsLayer.remove();
 
         this.clear();
     }
@@ -334,6 +354,7 @@ class ElevationProfileScene extends RenderNode {
         this._columnPointersLayer.setVisibility(visibility);
         this._headPointersLayer.setVisibility(visibility);
         this._trackLayer.setVisibility(visibility);
+        this._heightsLayer.setVisibility(visibility);
     }
 
 
@@ -341,6 +362,7 @@ class ElevationProfileScene extends RenderNode {
         this._headPointersLayer.setEntities([]);
         this._groundPointersLayer.setEntities([]);
         this._columnPointersLayer.setEntities([]);
+        this._heightsLayer.setEntities([]);
         this._trackEntity.polyline!.setPath3v([]);
     }
 
