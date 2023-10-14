@@ -9,6 +9,7 @@ import {Vec2} from '../../math/Vec2';
 import {Vec3} from '../../math/Vec3';
 import {IMouseState} from "../../renderer/RendererEvents";
 import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
+import {ILabelParams} from "../../entity/Label";
 
 export interface IElevationProfileSceneParams {
     name?: string;
@@ -28,7 +29,7 @@ export const distanceFormat = (v: number): string => {
 let groundObj3d = Object3d.createCylinder(0.33, 0, 1.0, 20, 1, true, false, 0, 0, 0);
 let headObj3d = Object3d.createCylinder(0.33, 0.33, 1.1, 20, 1, true, true, 0, -0.55, 0);
 
-const LABEL_OPTIONS = {
+const LABEL_OPTIONS: ILabelParams = {
     text: "",
     size: 10.5,
     color: "rgba(455,455,455,1.0)",

@@ -12,11 +12,11 @@ interface IProfileData {
     dist: number;
     minY: number;
     maxY: number;
-    trackCoords: number[][];
-    groundCoords: number[][];
+    trackCoords: [number, number][];
+    groundCoords: [number, number, number, number][];
 }
 
-export type ElevationProfileDrawData = [number[][], number[][]];
+export type ElevationProfileDrawData = [[number, number][], [number, number, number, number][]];
 
 type ElevationProfileEventsList = ["profilecollected"];
 
@@ -58,8 +58,8 @@ class ElevationProfile {
     protected _pMaxY: number;
     protected _pMinY: number;
     protected _pDist: number;
-    protected _pTrackCoords: number[][];
-    protected _pGroundCoords: number[][];
+    protected _pTrackCoords: [number, number][];
+    protected _pGroundCoords: [number, number, number, number][];
     protected _pIndex: number;
 
     constructor(options: ElevationProfileParams = {}) {
@@ -138,7 +138,7 @@ class ElevationProfile {
             let pjd = p0.add(trackDir.scaleTo(dirSegLen));
             let llx = this.planet.ellipsoid.cartesianToLonLat(pjd);
 
-            this._pGroundCoords[this._pIndex] = [this._pDist, 0, SAFE];
+            this._pGroundCoords[this._pIndex] = [this._pDist, 0, SAFE, 0];
 
             ((lonlat: LonLat, index: number) => {
                 this._promiseArr.push(
@@ -194,7 +194,7 @@ class ElevationProfile {
     }
 
     protected _getGroundElevation(lonLat: LonLat) {
-        this._pGroundCoords[this._pIndex] = [this._pDist, 0, SAFE];
+        this._pGroundCoords[this._pIndex] = [this._pDist, 0, SAFE, 0];
         this._promiseArr.push(
             this._getHeightAsync(lonLat, this._pIndex)
                 .then((elv: number) => {
