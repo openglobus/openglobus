@@ -4,6 +4,8 @@ import {Vec3} from "../../math/Vec3";
 import {Planet} from "../../scene/Planet";
 import {LonLat} from "../../LonLat";
 
+const DEFAULT_WARNING_HEIGHT_LEVEL = 5;
+
 interface ElevationProfileParams {
     planet?: Planet
 }
@@ -29,7 +31,6 @@ const SAFE = 0;
 const WARNING = 1;
 const COLLISION = 2;
 
-type WarningLevel = typeof SAFE | typeof WARNING | typeof COLLISION;
 /**
  * drawData index names
  */
@@ -40,9 +41,9 @@ const SEGMMENT_LENGTH = 1.0; // Distance between query points on the ground
 const GROUND_OFFSET = 1.0; // Ground level offset
 const BOTTOM_PADDING = 0.1; // Range minY padding in percentage from the bottom
 const TOP_PADDING = 0.1; // Range maxY padding in percentage from the top
-
 const HEIGHT_EPS = 0.1; // Warning height level error
 
+type WarningLevel = typeof SAFE | typeof WARNING | typeof COLLISION;
 type TrackItem = [number, number];
 type GroundItem = [number, number, WarningLevel, number];
 
@@ -71,7 +72,7 @@ class ElevationProfile {
 
         this.planet = options.planet || null;
 
-        this._warningHeightLevel = 50;
+        this._warningHeightLevel = DEFAULT_WARNING_HEIGHT_LEVEL;
         this._pointsReady = false;
         this._isWarning = false;
 

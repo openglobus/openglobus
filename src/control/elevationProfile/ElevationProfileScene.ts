@@ -191,7 +191,7 @@ class ElevationProfileScene extends RenderNode {
         this._planet!.addLayer(this._headPointersLayer);
         this._planet!.addLayer(this._heightsLayer);
 
-        this.renderer!.events.on("lclick", this._onLClick);
+        this.renderer!.events.on("ldblclick", this._onLClick);
         this.renderer!.events.on("mousemove", this._onMouseMove);
         this.renderer!.events.on("lup", this._onLUp);
 
@@ -324,7 +324,7 @@ class ElevationProfileScene extends RenderNode {
 
     protected _deactivate() {
 
-        this.renderer!.events.off("lclick", this._onLClick);
+        this.renderer!.events.off("ldblclick", this._onLClick);
         this.renderer!.events.off("mousemove", this._onMouseMove);
         this.renderer!.events.off("lup", this._onLUp);
 

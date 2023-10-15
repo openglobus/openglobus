@@ -3,13 +3,14 @@ import {IViewParams, View, ViewEventsList} from '../../ui/View';
 import {ElevationProfile, ElevationProfileDrawData} from './ElevationProfile';
 
 const FILL_COLOR = "rgb(45, 45, 45)";
-const TRACK_COLOR = "green";
-const TERRAIN_COLOR = "#C6C6C6";
-const TERRAIN_FILL_COLOR = "#404452";
-const WARNING_COLOR = "yellow";
-const COLLISION_COLOR = "red";
+const TRACK_COLOR = "rgb(0, 255, 50)";
+const TERRAIN_COLOR = "rgb(198, 198, 198)";
+const TERRAIN_FILL_COLOR = "rgb(64, 68, 82)";
+const WARNING_COLOR = "rgb(255, 255, 0)";
+const COLLISION_COLOR = "rgb(255, 0, 0)";
 const LINE_COLORS = [TERRAIN_COLOR, WARNING_COLOR, COLLISION_COLOR];
 const TERRAIN_ALPHA = 0.5;
+const LINE_WIDTH = 6;
 
 interface IElevationProfileViewParams extends IViewParams {
     fillStyle?: string;
@@ -120,8 +121,7 @@ class ElevationProfileView extends View<ElevationProfile> {
         }
     }
 
-
-    protected _clearCanvas() {
+    public clearCanvas() {
         this._ctx.fillStyle = this.fillStyle;
         this._ctx.fillRect(0, 0, this.clientWidth * this._canvasScale, this.clientHeight * this._canvasScale);
     }
@@ -137,7 +137,7 @@ class ElevationProfileView extends View<ElevationProfile> {
         if (trackCoords.length > 1) {
             this._updateUnits();
             let groundCoords = this.model.drawData[1];
-            this._clearCanvas();
+            this.clearCanvas();
 
             //
             // Draw track
@@ -154,7 +154,7 @@ class ElevationProfileView extends View<ElevationProfile> {
             //
             this._drawWarningAndCollision(groundCoords);
         } else {
-            this._clearCanvas();
+            this.clearCanvas();
         }
     }
 
@@ -163,7 +163,7 @@ class ElevationProfileView extends View<ElevationProfile> {
         let ctx = this._ctx;
         if (ctx) {
             const maxY = this.model.maxY;
-            ctx.lineWidth = 5;
+            ctx.lineWidth = LINE_WIDTH;
             ctx.strokeStyle = TRACK_COLOR;
             ctx.beginPath();
             ctx.moveTo(p0[0] * this._unitPx_x, (maxY - p0[1]) * this._unitPx_y);
@@ -180,7 +180,7 @@ class ElevationProfileView extends View<ElevationProfile> {
         let ctx = this._ctx;
         if (ctx) {
             const maxY = this.model.maxY;
-            ctx.lineWidth = 5;
+            ctx.lineWidth = LINE_WIDTH;
             ctx.strokeStyle = TERRAIN_COLOR;
             ctx.beginPath();
             ctx.moveTo(0, this.$canvas.height);
@@ -205,7 +205,7 @@ class ElevationProfileView extends View<ElevationProfile> {
         let ctx = this._ctx;
         if (ctx && coords.length > 1) {
             let maxY = this.model.maxY;
-            ctx.lineWidth = 5;
+            ctx.lineWidth = LINE_WIDTH;
             ctx.beginPath();
             for (let i = 0, len = coords.length - 1; i < len; i++) {
                 if (coords[i][2] > 0 && coords[i + 1][2] > 0) {

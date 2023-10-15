@@ -78,13 +78,14 @@ export class ElevationProfileControl extends Control {
     }
 
     override onactivate() {
-        (this.renderer!.controls.mouseNavigation as MouseNavigation).deactivateDoubleClickZoom()
+        (this.renderer!.controls.mouseNavigation as MouseNavigation).deactivateDoubleClickZoom();
         this.planet && this._elevationProfileScene.bindPlanet(this.planet);
         this.renderer && this.renderer.addNode(this._elevationProfileScene);
     }
 
     override ondeactivate() {
-        (this.renderer!.controls.mouseNavigation as MouseNavigation).activateDoubleClickZoom()
+        this._elevationProfileView.model.clear();
+        (this.renderer!.controls.mouseNavigation as MouseNavigation).activateDoubleClickZoom();
         this.renderer && this.renderer.removeNode(this._elevationProfileScene);
         this._dialog.hide();
     }
