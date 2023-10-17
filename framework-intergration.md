@@ -8,7 +8,7 @@ yarn add @openglobus/og
 
 ### Code: using reactjs
 
-[example](https://github.com/tbo47/openglobus_grafana)
+[example](https://github.com/tbo47/openglobus-react)
 
 ### Code: using in Angular
 

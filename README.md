@@ -14,6 +14,8 @@ completely free.
 Openglobus main goal is to make 3D map features fast, good looking, user friendly and easy to implement in any
 related project.
 
+Playground: https://jsfiddle.net/tbo47/27b8dsg1/
+
 ## Getting Start
 
 ### Installation
