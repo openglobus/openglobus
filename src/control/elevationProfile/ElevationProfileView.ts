@@ -10,7 +10,7 @@ const WARNING_COLOR = "rgb(255, 255, 0)";
 const COLLISION_COLOR = "rgb(255, 0, 0)";
 const LINE_COLORS = [TERRAIN_COLOR, WARNING_COLOR, COLLISION_COLOR];
 const TERRAIN_ALPHA = 0.5;
-const LINE_WIDTH = 6;
+const LINE_WIDTH = 5;
 
 interface IElevationProfileViewParams extends IViewParams {
     fillStyle?: string;

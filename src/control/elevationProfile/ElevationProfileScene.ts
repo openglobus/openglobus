@@ -10,6 +10,7 @@ import {Vec3} from '../../math/Vec3';
 import {IMouseState} from "../../renderer/RendererEvents";
 import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
 import {ILabelParams} from "../../entity/Label";
+import {Ray} from "../../math/Ray";
 
 export interface IElevationProfileSceneParams {
     name?: string;
@@ -64,6 +65,13 @@ class ElevationProfileScene extends RenderNode {
     protected _headPointersLayer: Vector;
     protected _heightsLayer: Vector;
     protected _trackEntity: Entity;
+    protected _pickedGroundEntity: Entity | null;
+    protected _pickedHeadEntity: Entity | null;
+
+    protected _startClickPos: Vec2;
+    protected _startEntityPos: Vec2;
+
+    protected _clampToGround: boolean;
 
     constructor(options: IElevationProfileSceneParams = {}) {
         super("ElevationProfileScene");
@@ -71,6 +79,12 @@ class ElevationProfileScene extends RenderNode {
         this.events = createEvents(ELEVATIONPROFILESCENE_EVENTS);
 
         this._planet = options.planet || null;
+
+        this._pickedGroundEntity = null;
+        this._pickedHeadEntity = null;
+        this._startClickPos = new Vec2();
+        this._startEntityPos = new Vec2();
+        this._clampToGround = true;
 
         this._trackLayer = new Vector("track", {
             entities: [],
@@ -161,7 +175,8 @@ class ElevationProfileScene extends RenderNode {
             groundEntity.properties =
                 headEntity.properties = {
                     index,
-                    realHeightEll: 0,
+                    altitude: altitude,
+                    lonLatEll: new LonLat(),
                     headEntity,
                     groundEntity,
                     columnEntity,
@@ -255,8 +270,12 @@ class ElevationProfileScene extends RenderNode {
             this._heightsLayer.add(heightLabelEntity)
             this._trackEntity.polyline!.appendPoint3v(headEntity.getCartesian());
 
+            groundEntity.properties.lonLatEll.lon = lonLat.lon;
+            groundEntity.properties.lonLatEll.lat = lonLat.lat;
+            groundEntity.properties.lonLatEll.height = lonLat.height;
+
             this.getHeightELLAsync(lonLat).then((hEll: number) => {
-                lonLat.height = hEll;
+                groundEntity.properties.lonLatEll.height = lonLat.height = hEll;
                 let groundPos = this._planet!.ellipsoid.lonLatToCartesian(lonLat);
                 let groundNormal = this._planet!.ellipsoid.getSurfaceNormal3v(groundPos);
                 let headPos = groundPos.add(groundNormal.scale(altitude));
@@ -283,7 +302,75 @@ class ElevationProfileScene extends RenderNode {
     }
 
     protected _onMouseMove = (e: IMouseState) => {
+        let mouseCart = this._planet!.getCartesianFromMouseTerrain();
+        if (this._pickedGroundEntity) {
+            let d = new Vec2(e.x, e.y).sub(this._startClickPos),
+                p = this._startEntityPos.add(d);
+            let groundCart = this._planet!.getCartesianFromPixelTerrain(p);
+            if (groundCart) {
+                this.setGroundPointCartesian3v(this._pickedGroundEntity!.properties.index, groundCart);
+            }
+        } else if (this._pickedHeadEntity) {
 
+            let cam = this._planet!.camera;
+            let p0 = this._pickedHeadEntity.getCartesian();
+            let groundNormal = this._planet!.ellipsoid.getSurfaceNormal3v(p0);
+            let p1 = p0.add(groundNormal);
+            let p2 = p0.add(cam.getRight());
+            let px = new Vec3();
+
+            if (new Ray(cam.eye, e.direction).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
+
+                let headPos = Vec3.proj_b_to_a(px, p0);
+                let groundPos = this._planet!.ellipsoid.lonLatToCartesian(this._pickedHeadEntity.properties.lonLatEll);
+                let alt = headPos.length() - groundPos.length();
+
+                if (alt <= 0) {
+                    headPos = groundPos;
+                    alt = 0;
+                }
+
+                this._pickedHeadEntity.properties.altitude = alt;
+                this._pickedHeadEntity.setCartesian3v(headPos);
+                this._pickedHeadEntity.properties.columnEntity.ray!.setEndPosition3v(headPos);
+                this._pickedHeadEntity.properties.heightLabelEntity.setCartesian3v(headPos);
+                this._trackEntity.polyline!.setPoint3v(headPos, this._pickedHeadEntity.properties.index);
+
+                this.events.dispatch(this.events.change, this._pickedHeadEntity);
+            }
+        }
+    }
+
+    public setGroundPointCartesian3v(entityIndex: number, groundPos: Vec3) {
+
+        let groundEntity = this._groundPointersLayer.getEntities()[entityIndex];
+
+        if (groundEntity) {
+
+            let lonLat = this._planet!.ellipsoid.cartesianToLonLat(groundPos);
+
+            groundEntity.properties.lonLatEll.lon = lonLat.lon;
+            groundEntity.properties.lonLatEll.lat = lonLat.lat;
+            groundEntity.properties.lonLatEll.height = lonLat.height;
+
+            let groundNormal = this._planet!.ellipsoid.getSurfaceNormal3v(groundPos);
+            let headEntity = groundEntity.properties.headEntity;
+            let heightLabelEntity = groundEntity.properties.heightLabelEntity;
+            let altitude = groundEntity.properties.altitude;
+
+            groundEntity.setCartesian3v(groundPos);
+
+            let headPos = groundPos.add(groundNormal.scale(altitude));
+            headEntity.setCartesian3v(headPos);
+            headEntity.properties.columnEntity.ray!.setStartPosition3v(groundPos);
+            headEntity.properties.columnEntity.ray!.setEndPosition3v(headPos);
+            this._trackEntity.polyline?.setPoint3v(headPos, headEntity.properties.index);
+
+            heightLabelEntity.setCartesian3v(headPos);
+            heightLabelEntity.label!.setText(`${lonLat.height.toFixed(1)} m`);
+
+            this.events.dispatch(this.events.change, groundEntity.properties.headEntity);
+        }
     }
 
     protected _onLUp = (e: IMouseState) => {
@@ -299,27 +386,36 @@ class ElevationProfileScene extends RenderNode {
     }
 
     protected _onGroundPointerLDown = (e: IMouseState) => {
-
+        this._clampToGround = false;
+        this.renderer!.controls.mouseNavigation.deactivate();
+        this._pickedGroundEntity = e.pickingObject;
+        const coords = this._pickedGroundEntity!.getCartesian();
+        this._startClickPos.set(e.x, e.y);
+        this._startEntityPos = this._planet!.getPixelFromCartesian(coords);
     }
 
     protected _onGroundPointerLUp = (e: IMouseState) => {
-
+        this._clampToGround = true;
+        this.renderer!.controls.mouseNavigation.activate();
+        this._pickedGroundEntity = null;
     }
 
     protected _onHeadPointerEnter = (e: IMouseState) => {
+        this.renderer!.controls.mouseNavigation.deactivate();
         e.renderer.handler.canvas!.style.cursor = "pointer";
     }
 
     protected _onHeadPointerLeave = (e: IMouseState) => {
+        this.renderer!.controls.mouseNavigation.activate();
         e.renderer.handler.canvas!.style.cursor = "default";
     }
 
     protected _onHeadPointerLDown = (e: IMouseState) => {
-
+        this._pickedHeadEntity = e.pickingObject;
     }
 
     protected _onHeadPointerLUp = (e: IMouseState) => {
-
+        this._pickedHeadEntity = null;
     }
 
     protected _deactivate() {
@@ -368,18 +464,20 @@ class ElevationProfileScene extends RenderNode {
     }
 
     public override frame() {
-        let __tempVec__ = new Vec3();
-        const nodes = this._planet!._renderedNodes;
-        const entities = this._groundPointersLayer.getEntities();
-        for (let i = 0; i < entities.length; i++) {
-            let ei = entities[i];
-            for (let j = 0; j < nodes.length; j++) {
-                let nj = nodes[j];
-                if (nj.segment.isEntityInside(ei)) {
-                    nj.segment.getEntityTerrainPoint(ei, __tempVec__);
-                    ei.setCartesian3v(__tempVec__);
-                    ei.properties.columnEntity.ray!.setStartPosition3v(__tempVec__);
-                    break;
+        if (this._clampToGround) {
+            let __tempVec__ = new Vec3();
+            const nodes = this._planet!._renderedNodes;
+            const entities = this._groundPointersLayer.getEntities();
+            for (let i = 0; i < entities.length; i++) {
+                let ei = entities[i];
+                for (let j = 0; j < nodes.length; j++) {
+                    let nj = nodes[j];
+                    if (nj.segment.isEntityInside(ei)) {
+                        nj.segment.getEntityTerrainPoint(ei, __tempVec__);
+                        ei.setCartesian3v(__tempVec__);
+                        ei.properties.columnEntity.ray!.setStartPosition3v(__tempVec__);
+                        break;
+                    }
                 }
             }
         }

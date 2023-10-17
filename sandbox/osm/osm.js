@@ -76,11 +76,11 @@ var highResTerrain = new MapboxTerrain(null, {
 const globus = new Globe({
     target: "earth",
     name: "Earth",
-    terrain: highResTerrain,
-    //terrain: new GlobusTerrain(),
+    //terrain: highResTerrain,
+    terrain: new GlobusTerrain(),
     layers: [sat],
     atmosphereEnabled: true,
-    fontsSrc:"../../res/fonts"
+    fontsSrc: "../../res/fonts"
 });
 
 globus.planet.addControl(new control.ElevationProfileControl());
