@@ -50,7 +50,7 @@ const GROUND_POINTER_OPTIONS = {
 const HEAD_POINTER_OPTIONS = {
     instanced: true,
     tag: "head-pointer",
-    color: "rgb(0,305,0)",
+    color: "rgb(305,305,0)",
     object3d: headObj3d
 };
 
@@ -169,6 +169,12 @@ class ElevationProfileScene extends RenderNode {
             label: LABEL_OPTIONS
         });
 
+        heightLabelEntity.appendChild(new Entity({
+                cartesian: headCart,
+                label: {...LABEL_OPTIONS, offset: [-47, 45, 0]}
+            })
+        );
+
         const index = this._groundPointersLayer.getEntities().length;
 
         columnEntity.properties =
@@ -267,7 +273,7 @@ class ElevationProfileScene extends RenderNode {
             this._groundPointersLayer.add(groundEntity);
             this._columnPointersLayer.add(columnEntity);
             this._headPointersLayer.add(headEntity);
-            this._heightsLayer.add(heightLabelEntity)
+            this._heightsLayer.add(heightLabelEntity);
             this._trackEntity.polyline!.appendPoint3v(headEntity.getCartesian());
 
             groundEntity.properties.lonLatEll.lon = lonLat.lon;
@@ -281,6 +287,7 @@ class ElevationProfileScene extends RenderNode {
                 let headPos = groundPos.add(groundNormal.scale(altitude));
                 heightLabelEntity.setCartesian3v(headPos);
                 heightLabelEntity.label!.setText(`${hEll.toFixed(1)} m`);
+                heightLabelEntity.childrenNodes[0].label!.setText(`${altitude.toFixed(1)} m`);
                 headEntity.setCartesian3v(headPos);
                 headEntity.properties.columnEntity.ray!.setEndPosition3v(headPos);
                 this._trackEntity.polyline?.setPoint3v(headPos, headEntity.properties.index);
@@ -332,17 +339,19 @@ class ElevationProfileScene extends RenderNode {
 
         if (headEntity) {
             let groundPos = this._planet!.ellipsoid.lonLatToCartesian(headEntity.properties.lonLatEll);
-            let alt = headPos.length() - groundPos.length();
+            let altitude = headPos.length() - groundPos.length();
 
-            if (alt <= 0) {
+            if (altitude <= 0) {
                 headPos = groundPos;
-                alt = 0;
+                altitude = 0;
             }
 
-            headEntity.properties.altitude = alt;
+            headEntity.properties.altitude = altitude;
             headEntity.setCartesian3v(headPos);
             headEntity.properties.columnEntity.ray!.setEndPosition3v(headPos);
             headEntity.properties.heightLabelEntity.setCartesian3v(headPos);
+            headEntity.properties.heightLabelEntity.childrenNodes[0].label!.setText(`${altitude.toFixed(1)} m`);
+
             this._trackEntity.polyline!.setPoint3v(headPos, entityIndex);
 
             this.events.dispatch(this.events.change, this._pickedHeadEntity);
@@ -376,6 +385,7 @@ class ElevationProfileScene extends RenderNode {
 
             heightLabelEntity.setCartesian3v(headPos);
             heightLabelEntity.label!.setText(`${lonLat.height.toFixed(1)} m`);
+            heightLabelEntity.childrenNodes[0].label!.setText(`${altitude.toFixed(1)} m`);
 
             this.events.dispatch(this.events.change, groundEntity.properties.headEntity);
         }
