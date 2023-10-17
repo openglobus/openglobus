@@ -1,5 +1,5 @@
-import * as jd from './astro/jd';
-import * as math from './math';
+import * as jd from './astro/jd.js';
+import * as math from './math.js';
 import * as mercator from './mercator';
 import * as utils from './utils/shared';
 import * as bv from './bv/index';
