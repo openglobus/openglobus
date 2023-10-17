@@ -320,24 +320,32 @@ class ElevationProfileScene extends RenderNode {
             let px = new Vec3();
 
             if (new Ray(cam.eye, e.direction).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
-
                 let headPos = Vec3.proj_b_to_a(px, p0);
-                let groundPos = this._planet!.ellipsoid.lonLatToCartesian(this._pickedHeadEntity.properties.lonLatEll);
-                let alt = headPos.length() - groundPos.length();
-
-                if (alt <= 0) {
-                    headPos = groundPos;
-                    alt = 0;
-                }
-
-                this._pickedHeadEntity.properties.altitude = alt;
-                this._pickedHeadEntity.setCartesian3v(headPos);
-                this._pickedHeadEntity.properties.columnEntity.ray!.setEndPosition3v(headPos);
-                this._pickedHeadEntity.properties.heightLabelEntity.setCartesian3v(headPos);
-                this._trackEntity.polyline!.setPoint3v(headPos, this._pickedHeadEntity.properties.index);
-
-                this.events.dispatch(this.events.change, this._pickedHeadEntity);
+                this.setHeadPointCartesian3v(this._pickedHeadEntity.properties.index, headPos);
             }
+        }
+    }
+
+    public setHeadPointCartesian3v(entityIndex: number, headPos: Vec3) {
+
+        const headEntity = this._headPointersLayer.getEntities()[entityIndex];
+
+        if (headEntity) {
+            let groundPos = this._planet!.ellipsoid.lonLatToCartesian(headEntity.properties.lonLatEll);
+            let alt = headPos.length() - groundPos.length();
+
+            if (alt <= 0) {
+                headPos = groundPos;
+                alt = 0;
+            }
+
+            headEntity.properties.altitude = alt;
+            headEntity.setCartesian3v(headPos);
+            headEntity.properties.columnEntity.ray!.setEndPosition3v(headPos);
+            headEntity.properties.heightLabelEntity.setCartesian3v(headPos);
+            this._trackEntity.polyline!.setPoint3v(headPos, entityIndex);
+
+            this.events.dispatch(this.events.change, this._pickedHeadEntity);
         }
     }
 
