@@ -20,7 +20,31 @@ type ElevationProfileViewEventsList = [];
 
 const ELEVATIONPROFILEVIEW_EVENTS: ElevationProfileViewEventsList = [];
 
-const TEMPLATE = `<div class="og-elevationprofile"></div>`;
+const TEMPLATE =
+    `<div class="og-elevationprofile">
+      <div class="og-elevationprofile-legend">
+        <div class="og-elevationprofile-legend__row og-elevationprofile-legend__track">
+          <div class="og-elevationprofile-square"></div>
+          <div class="og-elevationprofile-value"></div>
+          <div class="og-elevationprofile-units"></div>
+        </div>
+        <div class="og-elevationprofile-legend__row og-elevationprofile-legend__ground">
+          <div class="og-elevationprofile-square"></div>
+          <div class="og-elevationprofile-value"></div>
+          <div class="og-elevationprofile-units"></div>
+        </div>
+        <div class="og-elevationprofile-legend__row og-elevationprofile-legend__warning">        
+          <div class="og-elevationprofile-square"></div>
+          <div class="og-elevationprofile-value"></div>
+          <div class="og-elevationprofile-units"></div>
+        </div>
+        <div class="og-elevationprofile-legend__row og-elevationprofile-legend__collision">
+          <div class="og-elevationprofile-square"></div>
+          <div class="og-elevationprofile-value"></div>
+          <div class="og-elevationprofile-units"></div>
+        </div>
+      </div>
+    </div>`;
 
 
 class ElevationProfileView extends View<ElevationProfile> {
@@ -36,6 +60,16 @@ class ElevationProfileView extends View<ElevationProfile> {
     protected _ctx: CanvasRenderingContext2D;
     protected _onResizeObserver_: () => void;
     protected _resizeObserver: ResizeObserver;
+
+    protected $groundValue: HTMLElement | null;
+    protected $trackValue: HTMLElement | null;
+    protected $warningValue: HTMLElement | null;
+    protected $collisionValue: HTMLElement | null;
+
+    protected $trackUnits: HTMLElement | null;
+    protected $groundUnits: HTMLElement | null;
+    protected $warningUnits: HTMLElement | null;
+    protected $collisionUnits: HTMLElement | null;
 
     constructor(options: IElevationProfileViewParams = {}) {
         super({
@@ -53,6 +87,16 @@ class ElevationProfileView extends View<ElevationProfile> {
         this._canvasScale = 2;
         this.$canvas = document.createElement("canvas");
         this._ctx = this.$canvas.getContext('2d')!;
+
+        this.$groundValue = null;
+        this.$trackValue = null;
+        this.$warningValue = null;
+        this.$collisionValue = null;
+
+        this.$trackUnits = null;
+        this.$groundUnits = null;
+        this.$warningUnits = null;
+        this.$collisionUnits = null;
 
         this._onResizeObserver_ = this._onResizeObserver.bind(this);
         this._resizeObserver = new ResizeObserver(this._onResizeObserver_);
@@ -92,6 +136,16 @@ class ElevationProfileView extends View<ElevationProfile> {
         this.model.events.on("profilecollected", (data: ElevationProfileDrawData) => {
             this.draw();
         });
+
+        this.$trackValue = this.select(".og-elevationprofile-legend__track .og-elevationprofile-value");
+        this.$groundValue = this.select(".og-elevationprofile-legend__ground .og-elevationprofile-value");
+        this.$warningValue = this.select(".og-elevationprofile-legend__warning .og-elevationprofile-value");
+        this.$collisionValue = this.select(".og-elevationprofile-legend__collision .og-elevationprofile-value");
+
+        this.$trackUnits = this.select(".og-elevationprofile-legend__track .og-elevationprofile-units");
+        this.$groundUnits = this.select(".og-elevationprofile-legend__ground .og-elevationprofile-units");
+        this.$warningUnits = this.select(".og-elevationprofile-legend__warning .og-elevationprofile-units");
+        this.$collisionUnits = this.select(".og-elevationprofile-legend__collision .og-elevationprofile-units");
 
         // this.$canvas.addEventListener("mouseenter", this._onMouseEnter);
         // this.$canvas.addEventListener("mouseout", this._onMouseOut);
@@ -167,11 +221,21 @@ class ElevationProfileView extends View<ElevationProfile> {
             ctx.strokeStyle = TRACK_COLOR;
             ctx.beginPath();
             ctx.moveTo(p0[0] * this._unitPx_x, (maxY - p0[1]) * this._unitPx_y);
+            let trackLength = 0;
             for (let i = 1; i < coords.length; i++) {
                 let pi = coords[i];
                 ctx.lineTo(pi[0] * this._unitPx_x, (maxY - pi[1]) * this._unitPx_y);
+                let prevP = coords[i - 1];
+                let a = pi[0] - prevP[0],
+                    b = pi[1] - prevP[1],
+                    aa = a * a,
+                    bb = b * b;
+                trackLength += Math.sqrt(aa + bb);
             }
             ctx.stroke();
+
+            this.$trackValue!.innerText = trackLength.toFixed(1);
+            this.$trackUnits!.innerText = 'm';
         }
     }
 
@@ -185,10 +249,19 @@ class ElevationProfileView extends View<ElevationProfile> {
             ctx.beginPath();
             ctx.moveTo(0, this.$canvas.height);
             ctx.lineTo(p0[0] * this._unitPx_x, (maxY - p0[1]) * this._unitPx_y);
+            let groundLength = 0;
+            console.log(coords);
             for (let i = 1, len = coords.length; i < len; i++) {
                 let pi = coords[i];
                 ctx.lineTo(pi[0] * this._unitPx_x, (maxY - pi[1]) * this._unitPx_y);
+                let prevP = coords[i - 1];
+                let a = pi[0] - prevP[0],
+                    b = pi[1] - prevP[1],
+                    aa = a * a,
+                    bb = b * b;
+                groundLength += Math.sqrt(aa + bb);
             }
+
             ctx.lineTo(this.$canvas.width, this.$canvas.height);
             ctx.closePath();
             ctx.stroke();
@@ -198,6 +271,9 @@ class ElevationProfileView extends View<ElevationProfile> {
             ctx.fill();
             ctx.restore();
             ctx.globalAlpha = 1;
+
+            this.$groundValue!.innerText = groundLength.toFixed(1);
+            this.$groundUnits!.innerText = 'm';
         }
     }
 

@@ -907,3 +907,60 @@ TIMELINE
     top: 175px;
     left: 10px;
 }
+
+.og-elevationprofile-legend {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 12px;
+    color: var(--grey3);
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 5px;
+    display: inline-block;
+    width: 100px;
+}
+
+.og-elevationprofile-legend__row {
+    width: 100%;
+    position: relative;
+    display: inline-block;
+}
+
+.og-elevationprofile-square {
+    position: relative;
+    float: left;
+    width: 6px;
+    height: 6px;
+    margin: 5px;
+}
+
+.og-elevationprofile-legend__track .og-elevationprofile-square {
+    background-color: rgb(0, 255, 50);
+}
+
+.og-elevationprofile-legend__ground .og-elevationprofile-square {
+    background-color: rgb(198, 198, 198);
+}
+
+.og-elevationprofile-legend__warning .og-elevationprofile-square {
+    background-color: rgb(255, 255, 0);
+}
+
+.og-elevationprofile-legend__collision .og-elevationprofile-square {
+    background-color: rgb(255, 0, 0);
+}
+
+.og-elevationprofile-units {
+    display: inline-block;
+    position: relative;
+    float: left;
+    padding-left: 5px;
+}
+
+.og-elevationprofile-value {
+    width: 55px;
+    display: inline-block;
+    position: relative;
+    float: left;
+    text-align: right;
+}
