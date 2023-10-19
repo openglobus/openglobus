@@ -1033,11 +1033,26 @@ export function isImageLoaded(image: HTMLImageElement): boolean {
 
 export function distanceFormat(v: number): string {
     if (v > 1000) {
-        return `${(v / 1000).toFixed(1)} km`;
+        return `${(v / 1000).toFixed(2)} km`;
     } else if (v > 9) {
         return `${Math.round(v)} m`;
     } else {
         return `${v.toFixed(1)} m`;
+    }
+}
+
+export function distanceFormatExt(v: number): [string, string] {
+    if (v > 1000) {
+        let vv = Math.abs(v);
+        let d = vv - Math.floor(vv);
+        if (d !== 0) {
+            return [(v / 1000).toFixed(2), "km"];
+        }
+        return [(v / 1000).toFixed(0), "km"]
+    } else if (v > 9) {
+        return [Math.round(v).toString(), "m"];
+    } else {
+        return [v.toFixed(1), "m"];
     }
 }
 

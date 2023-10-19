@@ -1,6 +1,7 @@
 import {EventsHandler} from "../../Events";
 import {IViewParams, View, ViewEventsList} from '../../ui/View';
-import {ElevationProfile, ElevationProfileDrawData} from './ElevationProfile';
+import {SAFE, WARNING, COLLISION, ElevationProfile, ElevationProfileDrawData} from './ElevationProfile';
+import {distanceFormatExt} from "../../utils/shared";
 
 const FILL_COLOR = "rgb(45, 45, 45)";
 const TRACK_COLOR = "rgb(0, 255, 50)";
@@ -25,23 +26,23 @@ const TEMPLATE =
       <div class="og-elevationprofile-legend">
         <div class="og-elevationprofile-legend__row og-elevationprofile-legend__track">
           <div class="og-elevationprofile-square"></div>
-          <div class="og-elevationprofile-value"></div>
-          <div class="og-elevationprofile-units"></div>
+          <div class="og-elevationprofile-value">0</div>
+          <div class="og-elevationprofile-units">m</div>
         </div>
         <div class="og-elevationprofile-legend__row og-elevationprofile-legend__ground">
           <div class="og-elevationprofile-square"></div>
-          <div class="og-elevationprofile-value"></div>
-          <div class="og-elevationprofile-units"></div>
+          <div class="og-elevationprofile-value">0</div>
+          <div class="og-elevationprofile-units">m</div>
         </div>
         <div class="og-elevationprofile-legend__row og-elevationprofile-legend__warning">        
           <div class="og-elevationprofile-square"></div>
-          <div class="og-elevationprofile-value"></div>
-          <div class="og-elevationprofile-units"></div>
+          <div class="og-elevationprofile-value">0</div>
+          <div class="og-elevationprofile-units">m</div>
         </div>
         <div class="og-elevationprofile-legend__row og-elevationprofile-legend__collision">
           <div class="og-elevationprofile-square"></div>
-          <div class="og-elevationprofile-value"></div>
-          <div class="og-elevationprofile-units"></div>
+          <div class="og-elevationprofile-value">0</div>
+          <div class="og-elevationprofile-units">m</div>
         </div>
       </div>
     </div>`;
@@ -180,6 +181,17 @@ class ElevationProfileView extends View<ElevationProfile> {
         this._ctx.fillRect(0, 0, this.clientWidth * this._canvasScale, this.clientHeight * this._canvasScale);
     }
 
+    protected _clearLegend() {
+        this.$trackValue && (this.$trackValue.innerText = "0");
+        this.$trackUnits && (this.$trackUnits.innerText = "m");
+        this.$groundValue && (this.$groundValue.innerText = "0");
+        this.$groundUnits && (this.$groundUnits.innerText = "m");
+        this.$warningValue && (this.$warningValue.innerText = "0");
+        this.$warningUnits && (this.$warningUnits.innerText = "m");
+        this.$collisionValue && (this.$collisionValue.innerText = "0");
+        this.$collisionUnits && (this.$collisionUnits.innerText = "m");
+    }
+
     public _updateUnits() {
         this._unitPx_x = this._canvasScale * this.clientWidth / (this.model.maxX - this.model.minX);
         this._unitPx_y = this._canvasScale * this.clientHeight / (this.model.maxY - this.model.minY);
@@ -234,8 +246,9 @@ class ElevationProfileView extends View<ElevationProfile> {
             }
             ctx.stroke();
 
-            this.$trackValue!.innerText = trackLength.toFixed(1);
-            this.$trackUnits!.innerText = 'm';
+            let dist = distanceFormatExt(trackLength);
+            this.$trackValue!.innerText = dist[0];
+            this.$trackUnits!.innerText = dist[1];
         }
     }
 
@@ -250,7 +263,6 @@ class ElevationProfileView extends View<ElevationProfile> {
             ctx.moveTo(0, this.$canvas.height);
             ctx.lineTo(p0[0] * this._unitPx_x, (maxY - p0[1]) * this._unitPx_y);
             let groundLength = 0;
-            console.log(coords);
             for (let i = 1, len = coords.length; i < len; i++) {
                 let pi = coords[i];
                 ctx.lineTo(pi[0] * this._unitPx_x, (maxY - pi[1]) * this._unitPx_y);
@@ -272,8 +284,9 @@ class ElevationProfileView extends View<ElevationProfile> {
             ctx.restore();
             ctx.globalAlpha = 1;
 
-            this.$groundValue!.innerText = groundLength.toFixed(1);
-            this.$groundUnits!.innerText = 'm';
+            let dist = distanceFormatExt(groundLength);
+            this.$groundValue!.innerText = dist[0];
+            this.$groundUnits!.innerText = dist[1];
         }
     }
 
@@ -283,11 +296,16 @@ class ElevationProfileView extends View<ElevationProfile> {
             let maxY = this.model.maxY;
             ctx.lineWidth = LINE_WIDTH;
             ctx.beginPath();
-            for (let i = 0, len = coords.length - 1; i < len; i++) {
-                if (coords[i][2] > 0 && coords[i + 1][2] > 0) {
 
-                    let pi0 = coords[i],
-                        pi1 = coords[i + 1];
+            let warningLength = 0,
+                collisionLength = 0;
+
+            for (let i = 0, len = coords.length - 1; i < len; i++) {
+
+                let pi0 = coords[i],
+                    pi1 = coords[i + 1];
+
+                if (pi0[2] !== SAFE && pi1[2] !== SAFE) {
 
                     if (pi0[2] > pi1[2]) {
                         ctx.stroke();
@@ -304,6 +322,14 @@ class ElevationProfileView extends View<ElevationProfile> {
                 }
             }
             ctx.stroke();
+
+            let warningDist = distanceFormatExt(warningLength);
+            this.$warningValue!.innerText = warningDist[0];
+            this.$warningUnits!.innerText = warningDist[1];
+
+            let collisionDist = distanceFormatExt(collisionLength);
+            this.$collisionValue!.innerText = collisionDist[0];
+            this.$collisionUnits!.innerText = collisionDist[1];
         }
     }
 }

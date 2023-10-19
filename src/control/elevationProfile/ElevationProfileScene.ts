@@ -320,18 +320,16 @@ class ElevationProfileScene extends RenderNode {
         } else if (this._pickedHeadEntity) {
 
             let cam = this._planet!.camera;
-            //let p0 = this._pickedHeadEntity.getCartesian();
-            this.p0 = this._pickedHeadEntity.properties.groundEntity.getCartesian();
-            let groundNormal = this._planet!.ellipsoid.getSurfaceNormal3v(this.p0);
-            let p1 = this.p0.add(groundNormal);
-            let p2 = this.p0.add(cam.getRight());
+            let p0 = this._pickedHeadEntity.properties.groundEntity.getCartesian();
+            let groundNormal = this._planet!.ellipsoid.getSurfaceNormal3v(p0);
+            let p1 = p0.add(groundNormal);
+            let p2 = p0.add(cam.getRight());
             let px = new Vec3();
 
-            if (new Ray(cam.eye, e.direction).hitPlane(this.p0, p1, p2, px) === Ray.INSIDE) {
-                //let headPos = Vec3.proj_b_to_a(px, p0);
-                let h = Vec3.proj_b_to_a(px, this.p0);
-                let headPos = this.p0.add(groundNormal.scale(h.distance(this.p0)));
-                //let headPos = p0.
+            if (new Ray(cam.eye, e.direction).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
+                let h = Vec3.proj_b_to_a(px, p0);
+                let s = h.sub(p0).dot(p0);
+                let headPos = p0.add(groundNormal.scale(Math.sign(s) * h.distance(p0)));
                 this.setHeadPointCartesian3v(this._pickedHeadEntity.properties.index, headPos);
             }
         }
