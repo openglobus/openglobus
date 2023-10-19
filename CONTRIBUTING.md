@@ -18,7 +18,7 @@ https://github.com/openglobus/openglobus/blob/master/.editorconfig
 1) Branch must looks like this:
 `feature/<issue_id>_<custom_name>` or `bugfix/<issue_id>_<custom_name>`
 
-2) Each commit must start with an issue ID like this `#<issue_id>`, so be sure that the issue is exists.
+2) Each commit must start with an issue ID like this `#<issue_id>`, so be sure that the issue exists.
 
 3) Finally, all checks in PR must be approved and PR link must be added in the issue comments.
 
