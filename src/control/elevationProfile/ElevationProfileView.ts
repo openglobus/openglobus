@@ -138,6 +138,11 @@ class ElevationProfileView extends View<ElevationProfile> {
             this.draw();
         });
 
+        this.model.events.on("clear", () => {
+            this._clearLegend();
+            this.clearCanvas();
+        });
+
         this.$trackValue = this.select(".og-elevationprofile-legend__track .og-elevationprofile-value");
         this.$groundValue = this.select(".og-elevationprofile-legend__ground .og-elevationprofile-value");
         this.$warningValue = this.select(".og-elevationprofile-legend__warning .og-elevationprofile-value");
@@ -196,6 +201,12 @@ class ElevationProfileView extends View<ElevationProfile> {
         this._unitPx_x = this._canvasScale * this.clientWidth / (this.model.maxX - this.model.minX);
         this._unitPx_y = this._canvasScale * this.clientHeight / (this.model.maxY - this.model.minY);
 
+    }
+
+    public clear() {
+        this.model.clear();
+        this._clearLegend();
+        this.clearCanvas();
     }
 
     public draw() {

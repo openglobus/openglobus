@@ -5,6 +5,7 @@ import {ElevationProfileView} from "./ElevationProfileView";
 import {ElevationProfileScene} from "./ElevationProfileScene";
 import {MouseNavigation} from "../MouseNavigation";
 import {throttle} from "../../utils/shared";
+import {ElevationProfileButtonsView} from "./ElevationProfileButtonsView";
 
 interface IElevationProfileGraphParams extends IControlParams {
 }
@@ -17,6 +18,7 @@ export class ElevationProfileControl extends Control {
     protected _dialog: Dialog<null>;
     protected _elevationProfileView: ElevationProfileView;
     protected _elevationProfileScene: ElevationProfileScene;
+    protected _elevationProfileButtonsView: ElevationProfileButtonsView;
     protected _collectProfileThrottled: () => void;
 
 
@@ -28,6 +30,9 @@ export class ElevationProfileControl extends Control {
 
         this._elevationProfileScene = new ElevationProfileScene();
         this._elevationProfileView = new ElevationProfileView();
+        this._elevationProfileButtonsView = new ElevationProfileButtonsView({
+            model: this._elevationProfileView.model
+        });
 
         this._dialog = new Dialog({
             title: "Elevation Profile",
@@ -77,6 +82,18 @@ export class ElevationProfileControl extends Control {
         this._elevationProfileView.model.bindPlanet(this.planet!);
 
         this._elevationProfileScene.events.on("change", this._onSceneChange);
+
+        this._elevationProfileButtonsView.appendTo(this._dialog.container!);
+
+        this._elevationProfileView.model.events.on("clear", () => {
+            this._elevationProfileScene.clear();
+        })
+        // this._elevationProfileButtonsView.events.on("reset", () => {
+        // });
+        //
+        // this._elevationProfileButtonsView.events.on("list", (isVisible: boolean) => {
+        //
+        // });
     }
 
     protected _onSceneChange = () => {

@@ -20,9 +20,9 @@ interface IProfileData {
 
 export type ElevationProfileDrawData = [TrackItem[], GroundItem[]];
 
-type ElevationProfileEventsList = ["profilecollected"];
+type ElevationProfileEventsList = ["profilecollected", "clear"];
 
-const ELEVATIONPROFILE_EVENTS: ElevationProfileEventsList = ["profilecollected"];
+const ELEVATIONPROFILE_EVENTS: ElevationProfileEventsList = ["profilecollected", "clear"];
 
 /**
  * Point types
@@ -336,6 +336,7 @@ class ElevationProfile {
         this._pTrackCoords = [];
         this._pGroundCoords = [];
         this._pIndex = 0;
+        this.events.dispatch(this.events.clear, this._drawData, this);
     }
 }
 

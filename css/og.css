@@ -967,3 +967,18 @@ TIMELINE
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+.og-elevationprofile-buttons {
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.og-elevationprofile-button {
+    width: 25px;
+    height: 25px;
+    float: left;
+    margin: 3px;
+    background-color: var(--grey0);
+}
