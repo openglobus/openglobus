@@ -911,13 +911,13 @@ TIMELINE
 .og-elevationprofile-legend {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-size: 12px;
-    color: var(--grey3);
+    color: var(--grey8);
     position: absolute;
     top: 0;
     right: 0;
     margin: 5px;
     display: inline-block;
-    width: 100px;
+    width: 70px;
 }
 
 .og-elevationprofile-legend__row {
@@ -958,9 +958,12 @@ TIMELINE
 }
 
 .og-elevationprofile-value {
-    width: 55px;
+    width: 30px;
     display: inline-block;
     position: relative;
     float: left;
     text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

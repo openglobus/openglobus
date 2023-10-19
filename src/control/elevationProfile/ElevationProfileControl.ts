@@ -4,6 +4,7 @@ import {ToggleButton} from "../../ui/ToggleButton";
 import {ElevationProfileView} from "./ElevationProfileView";
 import {ElevationProfileScene} from "./ElevationProfileScene";
 import {MouseNavigation} from "../MouseNavigation";
+import {throttle} from "../../utils/shared";
 
 interface IElevationProfileGraphParams extends IControlParams {
 }
@@ -16,6 +17,8 @@ export class ElevationProfileControl extends Control {
     protected _dialog: Dialog<null>;
     protected _elevationProfileView: ElevationProfileView;
     protected _elevationProfileScene: ElevationProfileScene;
+    protected _collectProfileThrottled: () => void;
+
 
     constructor(options: IElevationProfileGraphParams = {}) {
         super({
@@ -43,6 +46,11 @@ export class ElevationProfileControl extends Control {
             classList: ["og-map-button", "og-elevationprofile_button"],
             icon: ICON_BUTTON_SVG
         });
+
+        this._collectProfileThrottled = throttle(() => {
+            let points = this._elevationProfileScene.getPointsLonLat();
+            this._elevationProfileView.model.collectProfile(points);
+        }, 300);
     }
 
     override oninit() {
@@ -68,13 +76,13 @@ export class ElevationProfileControl extends Control {
 
         this._elevationProfileView.model.bindPlanet(this.planet!);
 
-        this._elevationProfileScene.events.on("change", this._onSceneChange)
-
+        this._elevationProfileScene.events.on("change", this._onSceneChange);
     }
 
     protected _onSceneChange = () => {
-        let points = this._elevationProfileScene.getPointsLonLat();
-        this._elevationProfileView.model.collectProfile(points);
+        this._collectProfileThrottled();
+        //let points = this._elevationProfileScene.getPointsLonLat();
+        //this._elevationProfileView.model.collectProfile(points);
     }
 
     override onactivate() {

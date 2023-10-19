@@ -307,14 +307,30 @@ class ElevationProfileView extends View<ElevationProfile> {
 
                 if (pi0[2] !== SAFE && pi1[2] !== SAFE) {
 
-                    if (pi0[2] > pi1[2]) {
+                    // if (pi0[2] > pi1[2]) {
+                    //     ctx.stroke();
+                    //     ctx.beginPath();
+                    //     ctx.strokeStyle = LINE_COLORS[pi1[2]];
+                    // } else if (pi0[2] !== 0) {
+                    //     ctx.stroke();
+                    //     ctx.beginPath();
+                    //     ctx.strokeStyle = LINE_COLORS[pi0[2]];
+                    // }
+                    let a = pi1[0] - pi0[0],
+                        b = pi1[1] - pi0[1],
+                        aa = a * a,
+                        bb = b * b;
+
+                    if (pi0[2] === COLLISION) {
                         ctx.stroke();
                         ctx.beginPath();
-                        ctx.strokeStyle = LINE_COLORS[pi1[2]];
-                    } else if (pi0[2] !== 0) {
+                        ctx.strokeStyle = LINE_COLORS[COLLISION];
+                        collisionLength += Math.sqrt(aa + bb);
+                    } else if (pi0[2] === WARNING) {
                         ctx.stroke();
                         ctx.beginPath();
-                        ctx.strokeStyle = LINE_COLORS[pi0[2]];
+                        ctx.strokeStyle = LINE_COLORS[WARNING];
+                        warningLength += Math.sqrt(aa + bb);
                     }
 
                     ctx.moveTo(pi0[0] * this._unitPx_x, (maxY - pi0[1]) * this._unitPx_y);

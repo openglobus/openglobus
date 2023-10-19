@@ -578,7 +578,7 @@ export function base64StringToBlog(string: string): Blob {
  * @param {Number} limit
  * @param {boolean} [skip]
  */
-export function throttle(func: Function, limit: number, skip: boolean) {
+export function throttle(func: Function, limit: number, skip: boolean = false) {
     let lastFunc: any;
     let lastRan: number = 0;
     return function () {
@@ -1043,8 +1043,7 @@ export function distanceFormat(v: number): string {
 
 export function distanceFormatExt(v: number): [string, string] {
     if (v > 1000) {
-        let vv = Math.abs(v);
-        let d = vv - Math.floor(vv);
+        let d = v - Math.floor(v);
         if (d !== 0) {
             return [(v / 1000).toFixed(2), "km"];
         }
@@ -1052,6 +1051,9 @@ export function distanceFormatExt(v: number): [string, string] {
     } else if (v > 9) {
         return [Math.round(v).toString(), "m"];
     } else {
+        if (v <= 0.01) {
+            return ["0", "m"]
+        }
         return [v.toFixed(1), "m"];
     }
 }
