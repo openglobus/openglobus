@@ -40,7 +40,7 @@ yarn add @openglobus/og
         terrain: new og.terrain.GlobusTerrain(),
         layers: [osm],
         fontsSrc: "../lib/@openglobus/res/fonts", // Fonts folder
-        resourcesSrc: "../lib/@openglobus/res",   // Night and water mask terxtures folder
+        resourcesSrc: "../lib/@openglobus/res",   // Night and water mask textures folder
         viewExtent: [5.56707, 45.15679, 5.88834, 45.22260]
     });
 
@@ -69,7 +69,7 @@ yarn add @openglobus/og
         terrain: new GlobusTerrain(),
         layers: [osm],
         fontsSrc: "../res/fonts",  // Fonts folder
-        resourcesSrc: "../res",    // Night and water mask terxtures folder
+        resourcesSrc: "../res",    // Night and water mask textures folder
         viewExtent: [5.56707, 45.15679, 5.88834, 45.22260]
     });
 
