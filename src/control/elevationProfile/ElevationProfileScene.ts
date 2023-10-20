@@ -493,21 +493,20 @@ class ElevationProfileScene extends RenderNode {
     }
 
     protected _onHeadPointerEnter = (e: IMouseState) => {
-        this.renderer!.controls.mouseNavigation.deactivate();
         e.renderer.handler.canvas!.style.cursor = "pointer";
     }
 
     protected _onHeadPointerLeave = (e: IMouseState) => {
-        this.renderer!.controls.mouseNavigation.activate();
         e.renderer.handler.canvas!.style.cursor = "default";
     }
 
     protected _onHeadPointerLDown = (e: IMouseState) => {
+        this.renderer!.controls.mouseNavigation.deactivate();
         this._pickedHeadEntity = e.pickingObject;
-        //this.p0 = this._pickedHeadEntity!.properties.groundEntity.getCartesian();
     }
 
     protected _onHeadPointerLUp = (e: IMouseState) => {
+        this.renderer!.controls.mouseNavigation.activate();
         this._pickedHeadEntity = null;
     }
 
