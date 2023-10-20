@@ -5,7 +5,8 @@ import {
     MapboxTerrain,
     XYZ,
     control,
-    utils
+    utils,
+    LonLat
 } from "../../lib/@openglobus/og.esm.js";
 
 
@@ -76,16 +77,17 @@ var highResTerrain = new MapboxTerrain(null, {
 const globus = new Globe({
     target: "earth",
     name: "Earth",
-    terrain: highResTerrain,
-    //terrain: new GlobusTerrain(),
+    //terrain: highResTerrain,
+    terrain: new GlobusTerrain(),
     layers: [sat],
     atmosphereEnabled: true,
     fontsSrc: "../../res/fonts"
 });
 
 globus.planet.addControl(new control.ElevationProfileControl());
-globus.planet.addControl(new control.DebugInfo());
-globus.planet.addControl(new control.KeyboardNavigation());
-globus.planet.addControl(new control.TimelineControl());
-globus.planet.addControl(new control.Lighting());
-globus.planet.addControl(new control.ToggleWireframe());
+window.LonLat = LonLat;
+//globus.planet.addControl(new control.DebugInfo());
+//globus.planet.addControl(new control.KeyboardNavigation());
+//globus.planet.addControl(new control.TimelineControl());
+//globus.planet.addControl(new control.Lighting());
+//globus.planet.addControl(new control.ToggleWireframe());

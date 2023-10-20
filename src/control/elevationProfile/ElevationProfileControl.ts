@@ -6,6 +6,7 @@ import {ElevationProfileScene} from "./ElevationProfileScene";
 import {MouseNavigation} from "../MouseNavigation";
 import {throttle} from "../../utils/shared";
 import {ElevationProfileButtonsView} from "./ElevationProfileButtonsView";
+import {PointListDialog} from "./PointListDialog";
 
 interface IElevationProfileGraphParams extends IControlParams {
 }
@@ -16,6 +17,7 @@ export class ElevationProfileControl extends Control {
 
     protected _toggleBtn: ToggleButton;
     protected _dialog: Dialog<null>;
+    protected _poiListDialog: PointListDialog;
     protected _elevationProfileView: ElevationProfileView;
     protected _elevationProfileScene: ElevationProfileScene;
     protected _elevationProfileButtonsView: ElevationProfileButtonsView;
@@ -46,6 +48,11 @@ export class ElevationProfileControl extends Control {
             minHeight: 100,
             minWidth: 100
         });
+
+        this._poiListDialog = new PointListDialog({
+            model: this._elevationProfileScene
+        });
+
 
         this._toggleBtn = new ToggleButton({
             classList: ["og-map-button", "og-elevationprofile_button"],
@@ -81,25 +88,27 @@ export class ElevationProfileControl extends Control {
 
         this._elevationProfileView.model.bindPlanet(this.planet!);
 
-        this._elevationProfileScene.events.on("change", this._onSceneChange);
-
-        this._elevationProfileButtonsView.appendTo(this._dialog.container!);
-
         this._elevationProfileView.model.events.on("clear", () => {
             this._elevationProfileScene.clear();
-        })
-        // this._elevationProfileButtonsView.events.on("reset", () => {
-        // });
-        //
-        // this._elevationProfileButtonsView.events.on("list", (isVisible: boolean) => {
-        //
-        // });
+        });
+
+        this._poiListDialog.appendTo(this.planet!.renderer!.div!);
+
+        this._poiListDialog.events.on("visibility", (isVisible: boolean) => {
+            this._elevationProfileButtonsView.pointListBtn.setActive(isVisible, true);
+        });
+
+        this._elevationProfileScene.events.on("change", this._onSceneChange);
+
+        this._elevationProfileButtonsView.events.on("list", (isActive: boolean) => {
+            this._poiListDialog.setVisibility(isActive);
+        });
+
+        this._elevationProfileButtonsView.appendTo(this._dialog.container!);
     }
 
     protected _onSceneChange = () => {
         this._collectProfileThrottled();
-        //let points = this._elevationProfileScene.getPointsLonLat();
-        //this._elevationProfileView.model.collectProfile(points);
     }
 
     override onactivate() {
@@ -109,6 +118,7 @@ export class ElevationProfileControl extends Control {
     }
 
     override ondeactivate() {
+        this._poiListDialog.setVisibility(false);
         this._elevationProfileView.model.clear();
         (this.renderer!.controls.mouseNavigation as MouseNavigation).activateDoubleClickZoom();
         this.renderer && this.renderer.removeNode(this._elevationProfileScene);

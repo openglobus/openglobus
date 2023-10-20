@@ -3,6 +3,7 @@ import {Button} from "../../ui/Button";
 import {ToggleButton} from "../../ui/ToggleButton";
 import {EventsHandler} from "../../Events";
 import {ElevationProfile} from "./ElevationProfile";
+import {Dialog} from "../../ui/Dialog";
 
 const TEMPLATE = '<div class="og-elevationprofile-buttons"></div>';
 
@@ -16,7 +17,6 @@ const RESET_SVG_ICON = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 const LIST_SVG_ICON = `<?xml version="1.0" encoding="utf-8"?><svg width="800px" height="800px" viewBox="0 0 32 32" id="icon" xmlns="http://www.w3.org/2000/svg"><defs><style>.cls-1{fill:none;}</style></defs><title>list</title><rect x="10" y="6" width="18" height="2"/><rect x="10" y="24" width="18" height="2"/><rect x="10" y="15" width="18" height="2"/><rect x="4" y="15" width="2" height="2"/><rect x="4" y="6" width="2" height="2"/><rect x="4" y="24" width="2" height="2"/></svg>`;
 
 interface IElevationProfileButtonsViewParams extends IViewParams {
-
 }
 
 type ElevationProfileButtonsViewEventsList = ["reset", "list"];
@@ -26,6 +26,7 @@ const ELEVATIONPROFILEBUTTONSVIEW_EVENTS: ElevationProfileButtonsViewEventsList 
 export class ElevationProfileButtonsView extends View<ElevationProfile> {
 
     public override events: EventsHandler<ElevationProfileButtonsViewEventsList> & EventsHandler<ViewEventsList>;
+    public pointListBtn: ToggleButton;
 
     constructor(params: IElevationProfileButtonsViewParams = {}) {
         super({
@@ -35,6 +36,16 @@ export class ElevationProfileButtonsView extends View<ElevationProfile> {
 
         //@ts-ignore
         this.events = this.events.registerNames(ELEVATIONPROFILEBUTTONSVIEW_EVENTS);
+
+        this.pointListBtn = new ToggleButton({
+            classList: ["og-elevationprofile-button"],
+            icon: LIST_SVG_ICON,
+            title: "Point List"
+        });
+
+        this.pointListBtn.events.on("change", (isActive: boolean) => {
+            this.events.dispatch(this.events.list, isActive);
+        });
     }
 
     public override render(params: any) {
@@ -52,16 +63,7 @@ export class ElevationProfileButtonsView extends View<ElevationProfile> {
             this.events.dispatch(this.events.reset, this);
         })
 
-        let pointListBtn = new ToggleButton({
-            classList: ["og-elevationprofile-button"],
-            icon: LIST_SVG_ICON,
-            title: "Point List"
-        });
-        pointListBtn.appendTo(this.el!);
-
-        pointListBtn.events.on("change", (isActive: boolean) => {
-            this.events.dispatch(this.events.list, isActive);
-        });
+        this.pointListBtn.appendTo(this.el!);
 
         return this;
     }
