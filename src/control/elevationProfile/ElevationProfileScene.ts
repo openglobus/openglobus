@@ -98,16 +98,16 @@ class ElevationProfileScene extends RenderNode {
             entities: [],
             pickingEnabled: true,
             displayInLayerSwitcher: false,
-            scaleByDistance: [1, 40000, 0.02],
-            pickingScale: 2
+            scaleByDistance: [1, 5000, 0.02],
+            pickingScale: 1.5
         });
 
         this._headPointersLayer = new Vector("head-pointers", {
             entities: [],
             pickingEnabled: true,
             displayInLayerSwitcher: false,
-            scaleByDistance: [1, 40000, 0.02],
-            pickingScale: 2
+            scaleByDistance: [1, 10000, 0.02],
+            pickingScale: 1
         });
 
         this._columnPointersLayer = new Vector("column-pointers", {

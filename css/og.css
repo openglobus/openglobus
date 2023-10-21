@@ -916,14 +916,14 @@ TIMELINE
     top: 0;
     right: 0;
     margin: 5px;
-    display: inline-block;
-    width: 70px;
+    display: flex;
+    background-color: var(--grey2);
 }
 
 .og-elevationprofile-legend__row {
-    width: 100%;
     position: relative;
-    display: inline-block;
+    padding: 5px;
+    width: 70px;
 }
 
 .og-elevationprofile-square {
@@ -980,7 +980,7 @@ TIMELINE
     height: 25px;
     float: left;
     margin: 3px;
-    background-color: var(--grey0);
+    background-color: var(--grey2);
 }
 
 
