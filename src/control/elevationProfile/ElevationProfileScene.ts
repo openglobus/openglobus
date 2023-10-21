@@ -138,6 +138,10 @@ class ElevationProfileScene extends RenderNode {
         });
     }
 
+    public get planet(): Planet | null {
+        return this._planet;
+    }
+
     protected _createPointer(groundCart: Vec3, altitude: number = 10): { headEntity: Entity, groundEntity: Entity, columnEntity: Entity, heightLabelEntity: Entity } {
 
         let surfaceNormal = this.ellipsoid!.getSurfaceNormal3v(groundCart);
@@ -258,6 +262,20 @@ class ElevationProfileScene extends RenderNode {
     }
 
     public addPointLonLatArrayAsync(lonLatArr: LonLat[], stopPropagation: boolean = false): Promise<Entity>[] {
+
+        if (!this._planet) {
+            throw new Error("Planet is not defined");
+        }
+
+        let ell = this._planet.ellipsoid;
+
+        for (let i = 0, len = lonLatArr.length - 1; i < len; i++) {
+            let p0 = ell.lonLatToCartesian(lonLatArr[i]),
+                p1 = ell.lonLatToCartesian(lonLatArr[i + 1]);
+            if (p0.distance(p1) > 20000) {
+                throw new Error("Track is too long! 20 km is maximum.");
+            }
+        }
 
         let res = new Array(lonLatArr.length);
 
