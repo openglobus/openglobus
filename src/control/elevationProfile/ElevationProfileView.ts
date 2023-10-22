@@ -163,6 +163,7 @@ class ElevationProfileView extends View<ElevationProfile> {
 
         this.model.events.on("clear", () => {
             this._customFrame = false;
+            this._leftDistance = 0;
             this._clearLegend();
             this.clearCanvas();
         });
@@ -248,10 +249,14 @@ class ElevationProfileView extends View<ElevationProfile> {
                 pointerCenterOffsetX = pointerPosX - this.$canvas.clientWidth * 0.5;
             let distanceCenterOffsetX = pointerCenterOffsetX * this._canvasScale / this._pixelsInMeter_x;
 
-            this.setFrame(distanceCenterOffsetX + this._leftDistance + padDist, distanceCenterOffsetX + this._rightDistance - padDist);
+            // Move distance under pointer to a screen center
+            let leftDistance = distanceCenterOffsetX + this._leftDistance + padDist;
+            let rightDistance = distanceCenterOffsetX + this._rightDistance - padDist;
 
-            distanceCenterOffsetX = -pointerCenterOffsetX * this._canvasScale / this._pixelsInMeter_x;
-            this.setFrame(this._leftDistance + distanceCenterOffsetX, this._rightDistance + distanceCenterOffsetX);
+            // move center back to the mouse pointer
+            distanceCenterOffsetX = -pointerCenterOffsetX * (rightDistance - leftDistance) / this.clientWidth;
+
+            this.setFrame(leftDistance + distanceCenterOffsetX, rightDistance + distanceCenterOffsetX);
         }
     }
 
