@@ -2,6 +2,8 @@ import {EventsHandler} from "../../Events";
 import {IViewParams, View, ViewEventsList} from '../../ui/View';
 import {SAFE, WARNING, COLLISION, ElevationProfile, ElevationProfileDrawData} from './ElevationProfile';
 import {distanceFormatExt} from "../../utils/shared";
+import {addSeconds} from "../timeline/timelineUtils";
+import {MouseEventExt} from "../../input/MouseHandler";
 
 const FILL_COLOR = "rgb(45, 45, 45)";
 const TRACK_COLOR = "rgb(0, 255, 50)";
@@ -17,9 +19,9 @@ interface IElevationProfileViewParams extends IViewParams {
     fillStyle?: string;
 }
 
-type ElevationProfileViewEventsList = [];
+type ElevationProfileViewEventsList = ["startdrag", "stopdrag"];
 
-const ELEVATIONPROFILEVIEW_EVENTS: ElevationProfileViewEventsList = [];
+const ELEVATIONPROFILEVIEW_EVENTS: ElevationProfileViewEventsList = ["startdrag", "stopdrag"];
 
 const TEMPLATE =
     `<div class="og-elevationprofile">
@@ -54,8 +56,8 @@ class ElevationProfileView extends View<ElevationProfile> {
 
     public fillStyle: string;
 
-    protected _unitPx_x: number;
-    protected _unitPx_y: number;
+    protected _pixelsInMeter_x: number;
+    protected _pixelsInMeter_y: number;
     protected _canvasScale: number;
     protected $canvas: HTMLCanvasElement;
     protected _ctx: CanvasRenderingContext2D;
@@ -72,6 +74,18 @@ class ElevationProfileView extends View<ElevationProfile> {
     protected $warningUnits: HTMLElement | null;
     protected $collisionUnits: HTMLElement | null;
 
+    protected _isMouseOver: boolean;
+    protected _isDragging: boolean;
+
+    protected _clickPosX: number;
+    protected _clickLeftDistance: number;
+    protected _clickRightDistance: number;
+
+    protected _leftDistance: number;
+    protected _rightDistance: number;
+
+    protected _customFrame: boolean;
+
     constructor(options: IElevationProfileViewParams = {}) {
         super({
             template: TEMPLATE,
@@ -83,8 +97,11 @@ class ElevationProfileView extends View<ElevationProfile> {
 
         this.fillStyle = options.fillStyle || FILL_COLOR;
 
-        this._unitPx_x = 0;
-        this._unitPx_y = 0;
+        this._customFrame = false;
+        this._leftDistance = 0;
+        this._rightDistance = 0;
+        this._pixelsInMeter_x = 0;
+        this._pixelsInMeter_y = 0;
         this._canvasScale = 2;
         this.$canvas = document.createElement("canvas");
         this._ctx = this.$canvas.getContext('2d')!;
@@ -98,6 +115,12 @@ class ElevationProfileView extends View<ElevationProfile> {
         this.$groundUnits = null;
         this.$warningUnits = null;
         this.$collisionUnits = null;
+
+        this._isMouseOver = false;
+        this._isDragging = false;
+        this._clickPosX = 0;
+        this._clickLeftDistance = 0;
+        this._clickRightDistance = 0;
 
         this._onResizeObserver_ = this._onResizeObserver.bind(this);
         this._resizeObserver = new ResizeObserver(this._onResizeObserver_);
@@ -139,6 +162,7 @@ class ElevationProfileView extends View<ElevationProfile> {
         });
 
         this.model.events.on("clear", () => {
+            this._customFrame = false;
             this._clearLegend();
             this.clearCanvas();
         });
@@ -153,16 +177,84 @@ class ElevationProfileView extends View<ElevationProfile> {
         this.$warningUnits = this.select(".og-elevationprofile-legend__warning .og-elevationprofile-units");
         this.$collisionUnits = this.select(".og-elevationprofile-legend__collision .og-elevationprofile-units");
 
-        // this.$canvas.addEventListener("mouseenter", this._onMouseEnter);
-        // this.$canvas.addEventListener("mouseout", this._onMouseOut);
-        //
-        // document.body.addEventListener("mousemove", this._onMouseMove);
-        // document.body.addEventListener("mousedown", this._onMouseDown);
-        // document.body.addEventListener("mouseup", this._onMouseUp);
-        // document.body.addEventListener("wheel", this._onMouseWheelFF);
+        this.$canvas.addEventListener("mouseenter", this._onMouseEnter);
+        this.$canvas.addEventListener("mouseout", this._onMouseOut);
+
+        document.body.addEventListener("mousemove", this._onMouseMove);
+        document.body.addEventListener("mousedown", this._onMouseDown);
+        document.body.addEventListener("mouseup", this._onMouseUp);
+        document.body.addEventListener("wheel", this._onMouseWheelFF);
 
         return this;
     }
+
+    protected _onMouseEnter = () => {
+        this._isMouseOver = true;
+    }
+
+    protected _onMouseOut = () => {
+        this._isMouseOver = false;
+    }
+
+    protected _onMouseDown = (e: MouseEvent) => {
+        if (this._isMouseOver) {
+            this._isDragging = true;
+            document.body.classList.add("og-timeline-unselectable");
+
+            this._clickPosX = e.clientX;
+
+            this._leftDistance = this.model.minX;
+            this._rightDistance = this.model.maxX;
+
+            this._clickLeftDistance = this._leftDistance;
+            this._clickRightDistance = this._rightDistance;
+
+            this.events.dispatch(this.events.startdrag, e);
+        }
+    }
+
+    protected _onMouseUp = (e: MouseEvent) => {
+        if (this._isDragging) {
+            this._isDragging = false;
+            document.body.classList.remove("og-timeline-unselectable");
+            this.events.dispatch(this.events.stopdrag, e);
+        }
+    }
+
+    protected _onMouseMove = (e: MouseEvent) => {
+        if (this._isDragging) {
+            let offset = (this._clickPosX - e.clientX);
+            let distanceOffset = offset * this._canvasScale / this._pixelsInMeter_x;
+            this.setFrame(this._clickLeftDistance + distanceOffset, this._clickRightDistance + distanceOffset);
+        }
+    }
+    protected _onMouseWheelFF = (e: MouseEventExt) => {
+        this._onMouseWheel(e);
+    }
+    protected _onMouseWheel = (e: MouseEventExt) => {
+        if (this._isMouseOver) {
+
+            if (!this._customFrame) {
+                this._leftDistance = this.model.minX;
+                this._rightDistance = this.model.maxX;
+            }
+
+            this._customFrame = true;
+
+            let padDist = Math.sign(e.wheelDelta!) * (this._rightDistance - this._leftDistance) / 20;
+
+            let rect = this.$canvas.getBoundingClientRect();
+            let pointerPosX = e.clientX - rect.left,
+                pointerCenterOffsetX = pointerPosX - this.$canvas.clientWidth * 0.5;
+            let distanceCenterOffsetX = pointerCenterOffsetX * this._canvasScale / this._pixelsInMeter_x;
+
+            this.setFrame(distanceCenterOffsetX + this._leftDistance + padDist, distanceCenterOffsetX + this._rightDistance - padDist);
+
+            distanceCenterOffsetX = -pointerCenterOffsetX * this._canvasScale / this._pixelsInMeter_x;
+            this.setFrame(this._leftDistance + distanceCenterOffsetX, this._rightDistance + distanceCenterOffsetX);
+        }
+    }
+
 
     public get clientWidth(): number {
         return this.$canvas ? this.$canvas.width / this._canvasScale : 0;
@@ -197,10 +289,21 @@ class ElevationProfileView extends View<ElevationProfile> {
         this.$collisionUnits && (this.$collisionUnits.innerText = "m");
     }
 
-    public _updateUnits() {
-        this._unitPx_x = this._canvasScale * this.clientWidth / (this.model.maxX - this.model.minX);
-        this._unitPx_y = this._canvasScale * this.clientHeight / (this.model.maxY - this.model.minY);
 
+    public setFrame(leftDistance: number, rightDistance: number) {
+        this._leftDistance = leftDistance;
+        this._rightDistance = rightDistance;
+        this._customFrame = true;
+        this._pixelsInMeter_x = this._canvasScale * this.clientWidth / (this._rightDistance - this._leftDistance);
+        this.model.setRange(leftDistance, rightDistance);
+        this.draw();
+    }
+
+    public _updateUnits() {
+        if (!this._customFrame) {
+            this._pixelsInMeter_x = this._canvasScale * this.clientWidth / (this.model.maxX - this.model.minX);
+        }
+        this._pixelsInMeter_y = this._canvasScale * this.clientHeight / (this.model.maxY - this.model.minY);
     }
 
     public clear() {
@@ -212,8 +315,11 @@ class ElevationProfileView extends View<ElevationProfile> {
     public draw() {
         let trackCoords = this.model.drawData[0];
         if (trackCoords.length > 1) {
+
             this._updateUnits();
+
             let groundCoords = this.model.drawData[1];
+
             this.clearCanvas();
 
             //
@@ -243,11 +349,11 @@ class ElevationProfileView extends View<ElevationProfile> {
             ctx.lineWidth = LINE_WIDTH;
             ctx.strokeStyle = TRACK_COLOR;
             ctx.beginPath();
-            ctx.moveTo(p0[0] * this._unitPx_x, (maxY - p0[1]) * this._unitPx_y);
+            ctx.moveTo((-this._leftDistance + p0[0]) * this._pixelsInMeter_x, (maxY - p0[1]) * this._pixelsInMeter_y);
             let trackLength = 0;
             for (let i = 1; i < coords.length; i++) {
                 let pi = coords[i];
-                ctx.lineTo(pi[0] * this._unitPx_x, (maxY - pi[1]) * this._unitPx_y);
+                ctx.lineTo((-this._leftDistance + pi[0]) * this._pixelsInMeter_x, (maxY - pi[1]) * this._pixelsInMeter_y);
                 let prevP = coords[i - 1];
                 let a = pi[0] - prevP[0],
                     b = pi[1] - prevP[1],
@@ -271,12 +377,12 @@ class ElevationProfileView extends View<ElevationProfile> {
             ctx.lineWidth = LINE_WIDTH;
             ctx.strokeStyle = TERRAIN_COLOR;
             ctx.beginPath();
-            ctx.moveTo(0, this.$canvas.height);
-            ctx.lineTo(p0[0] * this._unitPx_x, (maxY - p0[1]) * this._unitPx_y);
+            ctx.moveTo((-this._leftDistance + p0[0]) * this._pixelsInMeter_x, this.$canvas.height);
+            ctx.lineTo((-this._leftDistance + p0[0]) * this._pixelsInMeter_x, (maxY - p0[1]) * this._pixelsInMeter_y);
             let groundLength = 0;
             for (let i = 1, len = coords.length; i < len; i++) {
                 let pi = coords[i];
-                ctx.lineTo(pi[0] * this._unitPx_x, (maxY - pi[1]) * this._unitPx_y);
+                ctx.lineTo((-this._leftDistance + pi[0]) * this._pixelsInMeter_x, (maxY - pi[1]) * this._pixelsInMeter_y);
                 let prevP = coords[i - 1];
                 let a = pi[0] - prevP[0],
                     b = pi[1] - prevP[1],
@@ -285,7 +391,7 @@ class ElevationProfileView extends View<ElevationProfile> {
                 groundLength += Math.sqrt(aa + bb);
             }
 
-            ctx.lineTo(this.$canvas.width, this.$canvas.height);
+            ctx.lineTo((-this._leftDistance + coords[coords.length - 1][0]) * this._pixelsInMeter_x, this.$canvas.height);
             ctx.closePath();
             ctx.stroke();
             ctx.save();
@@ -344,8 +450,8 @@ class ElevationProfileView extends View<ElevationProfile> {
                         warningLength += Math.sqrt(aa + bb);
                     }
 
-                    ctx.moveTo(pi0[0] * this._unitPx_x, (maxY - pi0[1]) * this._unitPx_y);
-                    ctx.lineTo(pi1[0] * this._unitPx_x, (maxY - pi1[1]) * this._unitPx_y);
+                    ctx.moveTo((-this._leftDistance + pi0[0]) * this._pixelsInMeter_x, (maxY - pi0[1]) * this._pixelsInMeter_y);
+                    ctx.lineTo((-this._leftDistance + pi1[0]) * this._pixelsInMeter_x, (maxY - pi1[1]) * this._pixelsInMeter_y);
                 }
             }
             ctx.stroke();

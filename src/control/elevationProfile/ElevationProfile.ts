@@ -108,11 +108,15 @@ class ElevationProfile {
         this._warningHeightLevel = warningHeight;
     }
 
-    public setRange(minX: number, maxX: number, minY: number, maxY: number) {
+    public setRange(minX: number, maxX: number, minY?: number, maxY?: number) {
         this._minX = minX;
         this._maxX = maxX;
-        this._minY = minY;
-        this._maxY = maxY;
+        if (minY) {
+            this._minY = minY;
+        }
+        if (maxY) {
+            this._maxY = maxY;
+        }
     }
 
     protected _getHeightAsync(ll: LonLat, pIndex: number): Promise<number> {
