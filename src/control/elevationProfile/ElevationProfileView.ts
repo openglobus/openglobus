@@ -204,8 +204,10 @@ class ElevationProfileView extends View<ElevationProfile> {
 
             this._clickPosX = e.clientX;
 
-            this._leftDistance = this.model.minX;
-            this._rightDistance = this.model.maxX;
+            if (!this._customFrame) {
+                this._leftDistance = this.model.minX;
+                this._rightDistance = this.model.maxX;
+            }
 
             this._clickLeftDistance = this._leftDistance;
             this._clickRightDistance = this._rightDistance;
