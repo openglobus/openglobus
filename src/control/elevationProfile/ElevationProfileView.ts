@@ -281,7 +281,11 @@ class ElevationProfileView extends View<ElevationProfile> {
     }
 
     public clearCanvas() {
-        this._ctx.fillStyle = this.fillStyle;
+        const grd = this._ctx.createLinearGradient(0, 0, 0, this.clientHeight * this._canvasScale);
+        grd.addColorStop(0, "black");
+        grd.addColorStop(1, this.fillStyle);
+
+        this._ctx.fillStyle = grd;
         this._ctx.fillRect(0, 0, this.clientWidth * this._canvasScale, this.clientHeight * this._canvasScale);
     }
 
