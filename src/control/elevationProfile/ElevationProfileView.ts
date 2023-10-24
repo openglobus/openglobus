@@ -258,19 +258,41 @@ class ElevationProfileView extends View<ElevationProfile> {
     public redrawPointerCanvas(x: number) {
         this.clearPointerCanvas();
 
-
+        let ctx = this._pointerCtx;
         let pointerDistance = this.model.minX + (this.model.maxX - this.model.minX) * x / this.clientWidth;
+        let groundData = this.model.drawData[1];
+        let trackData = this.model.drawData[0];
 
-        //this.model.drawData;
+        let groundPoiIndex = 0;
+
         if (pointerDistance < 0) {
+            groundPoiIndex = 1;
             pointerDistance = 0;
             x = (0 - this.model.minX) * this.clientWidth / (this.model.maxX - this.model.minX);
         } else if (pointerDistance > this.model.planeDistance) {
+            groundPoiIndex = groundData.length - 1;
             pointerDistance = this.model.planeDistance;
             x = (pointerDistance - this.model.minX) * this.clientWidth / (this.model.maxX - this.model.minX);
+        } else {
+            groundPoiIndex = -1 - binarySearch(groundData, pointerDistance, (a: number, b: GroundItem) => {
+                return a - b[0];
+            });
         }
 
-        let ctx = this._pointerCtx;
+        // Ground point
+        let gp0 = groundData[groundPoiIndex - 1],
+            gp1 = groundData[groundPoiIndex];
+        let d = (pointerDistance - gp0[0]) / (gp1[0] - gp0[0]);
+        let groundElv = gp0[1] + d * (gp1[1] - gp0[1]);
+        let groundY = (this.model.maxY - groundElv) * this._pixelsInMeter_y
+
+        // track point
+        let trackPointIndex = gp0[4];
+        let tp0 = trackData[trackPointIndex],
+            tp1 = trackData[trackPointIndex + 1];
+        d = (pointerDistance - tp0[0]) / (tp1[0] - tp0[0]);
+        let trackElv = tp0[1] + d * (tp1[1] - tp0[1]);
+        let trackY = (this.model.maxY - trackElv) * this._pixelsInMeter_y;
 
         // Vertical grey line
         ctx.lineWidth = 3;
@@ -281,13 +303,37 @@ class ElevationProfileView extends View<ElevationProfile> {
         ctx.stroke();
 
         // Ground point
+        ctx.beginPath();
+        ctx.arc(x * this._canvasScale, groundY, 5, 0, 2 * Math.PI, false);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = 'white';
+        ctx.stroke();
 
-        let groundData = this.model.drawData[1];
-        let groundPoiIndex = -1 * binarySearch(groundData, pointerDistance, (a: number, b: GroundItem) => {
-            return a - b[0];
-        });
+        // Track point
+        ctx.beginPath();
+        ctx.arc(x * this._canvasScale, trackY, 5, 0, 2 * Math.PI, false);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = 'white';
+        ctx.stroke();
 
-        console.log(groundData[groundPoiIndex]);
+        // Vertical white line
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "white";
+        ctx.beginPath();
+        ctx.moveTo(x * this._canvasScale, groundY);
+        ctx.lineTo(x * this._canvasScale, trackY);
+        ctx.stroke();
+
+        // Altitude label
+        ctx.fillStyle = "white";
+        ctx.font = `${28 / devicePixelRatio}px Arial`;
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "left";
+        ctx.fillText(`${Math.round(trackElv - groundElv).toString()} m`, (x + 5) * this._canvasScale, groundY + (trackY - groundY) * 0.5);
 
         // distance from the begining label
         ctx.fillStyle = "white";
