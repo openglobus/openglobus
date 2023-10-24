@@ -246,6 +246,12 @@ class ElevationProfileView extends View<ElevationProfile> {
     protected _onCanvasMouseMove = (e: MouseEvent) => {
         if (this.model.pointsReady) {
             if (!this._isDragging) {
+
+                if (!this._customFrame) {
+                    this._leftDistance = this.model.minX;
+                    this._rightDistance = this.model.maxX;
+                }
+
                 let rect = this.$pointerCanvas.getBoundingClientRect();
                 let x = e.clientX - rect.left;
                 this.redrawPointerCanvas(x);
@@ -259,20 +265,20 @@ class ElevationProfileView extends View<ElevationProfile> {
         this.clearPointerCanvas();
 
         let ctx = this._pointerCtx;
-        let pointerDistance = this.model.minX + (this.model.maxX - this.model.minX) * x / this.clientWidth;
+        let pointerDistance = this._leftDistance + (this._rightDistance - this._leftDistance) * x / this.clientWidth;
         let groundData = this.model.drawData[1];
         let trackData = this.model.drawData[0];
 
-        let groundPoiIndex = 0;
+        let groundPoiIndex;
 
         if (pointerDistance < 0) {
             groundPoiIndex = 1;
             pointerDistance = 0;
-            x = (0 - this.model.minX) * this.clientWidth / (this.model.maxX - this.model.minX);
+            x = (0 - this._leftDistance) * this.clientWidth / (this._rightDistance - this._leftDistance);
         } else if (pointerDistance > this.model.planeDistance) {
             groundPoiIndex = groundData.length - 1;
             pointerDistance = this.model.planeDistance;
-            x = (pointerDistance - this.model.minX) * this.clientWidth / (this.model.maxX - this.model.minX);
+            x = (pointerDistance - this._leftDistance) * this.clientWidth / (this._rightDistance - this._leftDistance);
         } else {
             groundPoiIndex = -1 - binarySearch(groundData, pointerDistance, (a: number, b: GroundItem) => {
                 return a - b[0];
@@ -344,7 +350,7 @@ class ElevationProfileView extends View<ElevationProfile> {
     }
 
     protected _onMouseMove = (e: MouseEvent) => {
-        if (this._isDragging) {
+        if (this._isDragging && this.model.pointsReady) {
             let offset = (this._clickPosX - e.clientX);
             let distanceOffset = offset * this._canvasScale / this._pixelsInMeter_x;
             this.setFrame(this._clickLeftDistance + distanceOffset, this._clickRightDistance + distanceOffset);
@@ -355,7 +361,7 @@ class ElevationProfileView extends View<ElevationProfile> {
         this._onMouseWheel(e);
     }
     protected _onMouseWheel = (e: MouseEventExt) => {
-        if (this._isMouseOver) {
+        if (this._isMouseOver && this.model.pointsReady) {
 
             if (!this._customFrame) {
                 this._leftDistance = this.model.minX;
@@ -404,6 +410,10 @@ class ElevationProfileView extends View<ElevationProfile> {
             this.$pointerCanvas.height = this.el.clientHeight * this._canvasScale;
             this.$pointerCanvas.style.width = `${this.el.clientWidth}px`;
             this.$pointerCanvas.style.height = `${this.el.clientHeight}px`;
+
+            if (this._customFrame) {
+                this._pixelsInMeter_x = this._canvasScale * this.clientWidth / (this._rightDistance - this._leftDistance);
+            }
         }
     }
 
