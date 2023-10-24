@@ -918,6 +918,7 @@ TIMELINE
     margin: 5px;
     display: flex;
     background-color: var(--grey2);
+    z-index: 1;
 }
 
 .og-elevationprofile-legend__row {

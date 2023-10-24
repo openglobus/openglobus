@@ -240,7 +240,7 @@ class ElevationProfileView extends View<ElevationProfile> {
             if (!this._isDragging) {
                 let rect = this.$pointerCanvas.getBoundingClientRect();
                 let x = e.clientX - rect.left;
-                this.redrawPointerCanvas(x * this._canvasScale);
+                this.redrawPointerCanvas(x);
             } else {
                 this.clearPointerCanvas();
             }
@@ -250,14 +250,36 @@ class ElevationProfileView extends View<ElevationProfile> {
     public redrawPointerCanvas(x: number) {
         this.clearPointerCanvas();
 
+
+        let pointerDistance = this.model.minX + (this.model.maxX - this.model.minX) * x / this.clientWidth;
+
+        //this.model.drawData;
+        if (pointerDistance < 0) {
+            pointerDistance = 0;
+            x = (0 - this.model.minX) * this.clientWidth / (this.model.maxX - this.model.minX);
+        }
+
+        if (pointerDistance > this.model.planeDistance) {
+            pointerDistance = this.model.planeDistance;
+            x = (pointerDistance - this.model.minX) * this.clientWidth / (this.model.maxX - this.model.minX);
+        }
+
         let ctx = this._pointerCtx;
 
         ctx.lineWidth = 3;
-        ctx.strokeStyle = "white";
+        ctx.strokeStyle = "grey";
         ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, this.clientHeight);
+        ctx.moveTo(x * this._canvasScale, 0);
+        ctx.lineTo(x * this._canvasScale, this.clientHeight * this._canvasScale);
         ctx.stroke();
+
+
+        ctx.fillStyle = "white";
+        ctx.font = `${28 / devicePixelRatio}px Arial`;
+        //ctx.textBaseline = "top";
+        ctx.textAlign = "right";
+        let distStr = distanceFormatExt(pointerDistance);
+        ctx.fillText(`${distStr[0]} ${distStr[1]}`, (x - 5) * this._canvasScale, (this.clientHeight - 5) * this._canvasScale);
     }
 
     protected _onMouseMove = (e: MouseEvent) => {
@@ -296,6 +318,8 @@ class ElevationProfileView extends View<ElevationProfile> {
             distanceCenterOffsetX = -pointerCenterOffsetX * (rightDistance - leftDistance) / this.clientWidth;
 
             this.setFrame(leftDistance + distanceCenterOffsetX, rightDistance + distanceCenterOffsetX);
+
+            this.redrawPointerCanvas(pointerPosX);
         }
     }
 

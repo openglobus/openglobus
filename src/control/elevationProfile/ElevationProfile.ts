@@ -59,6 +59,8 @@ class ElevationProfile {
     protected _warningHeightLevel: number;
     protected _pointsReady: boolean;
     protected _isWarning: boolean;
+
+    protected _planeDistance: number;
     protected _minX: number;
     protected _maxX: number;
     protected _minY: number;
@@ -83,7 +85,7 @@ class ElevationProfile {
         this._isWarning = false;
 
         this._minX = 0;
-        this._maxX = 1000;
+        this._planeDistance = this._maxX = 1000;
         this._minY = 0;
         this._maxY = 200;
 
@@ -242,6 +244,10 @@ class ElevationProfile {
         return this._minX;
     }
 
+    public get planeDistance(): number {
+        return this._planeDistance;
+    }
+
     public get maxX(): number {
         return this._maxX;
     }
@@ -283,6 +289,7 @@ class ElevationProfile {
         ((counter: number) => {
             this._calcPointsAsync(pointsLonLat).then((p: IProfileData) => {
                 if (counter === this._promiseCounter) {
+                    this._planeDistance = p.dist;
                     this.setRange(0, p.dist, p.minY - BOTTOM_PADDING * Math.abs(p.minY), p.maxY + Math.abs(p.maxY) * TOP_PADDING);
                     this._pointsReady = true;
                     this._drawData = [p.trackCoords, p.groundCoords];

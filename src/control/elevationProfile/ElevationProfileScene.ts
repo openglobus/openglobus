@@ -17,16 +17,6 @@ export interface IElevationProfileSceneParams {
     planet?: Planet;
 }
 
-export const distanceFormat = (v: number): string => {
-    if (v > 1000) {
-        return `${(v / 1000).toFixed(1)} km`;
-    } else if (v > 9) {
-        return `${Math.round(v)} m`;
-    } else {
-        return `${v.toFixed(1)} m`;
-    }
-}
-
 let groundObj3d = Object3d.createCylinder(0.33, 0, 1.0, 20, 1, true, false, 0, 0, 0);
 let headObj3d = Object3d.createCylinder(0.33, 0.33, 1.1, 20, 1, true, true, 0, -0.55, 0);
 
