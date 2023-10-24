@@ -63,7 +63,7 @@ var highResTerrain = new MapboxTerrain(null, {
     //url: "//terrain.openglobus.org/public/zion/{z}/{x}/{y}.png",
     //equalizeVertices: false,
     //url: "//terrain.openglobus.org/public/nz/{z}/{x}/{y}.png",
-    url: "http://127.0.0.1:8080/sandbox/osm/tiles/{z}/{x}/{y}.png",
+    url: "http://127.0.0.1:8080/sandbox/osm/tiles_laz/{z}/{x}/{y}.png",
     //imageSize: 129,
     plainGridSize: 256,
     gridSizeByZoom: [

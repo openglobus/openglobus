@@ -1016,3 +1016,25 @@ TIMELINE
     background-color: var(--grey2);
     margin-right: 15px;
 }
+
+.og-elevationprofile_pointer {
+    position: absolute;
+    let: 0;
+    top: 0;
+    height: 100%;
+}
+
+.og-elevationprofile-line {
+    position: absolute;
+    background-color: white;
+    width: 3px;
+    height: 30px;
+    margin-left: -1.5px;
+}
+
+.og-elevationprofile-label {
+    position: absolute;
+    top: left;
+    left: 0;
+    color: white;
+}

@@ -2,7 +2,6 @@ import {EventsHandler} from "../../Events";
 import {IViewParams, View, ViewEventsList} from '../../ui/View';
 import {SAFE, WARNING, COLLISION, ElevationProfile, ElevationProfileDrawData} from './ElevationProfile';
 import {distanceFormatExt} from "../../utils/shared";
-import {addSeconds} from "../timeline/timelineUtils";
 import {MouseEventExt} from "../../input/MouseHandler";
 
 const FILL_COLOR = "rgb(45, 45, 45)";
@@ -59,15 +58,17 @@ class ElevationProfileView extends View<ElevationProfile> {
     protected _pixelsInMeter_x: number;
     protected _pixelsInMeter_y: number;
     protected _canvasScale: number;
-    protected $canvas: HTMLCanvasElement;
+    public $canvas: HTMLCanvasElement;
+    public $pointerCanvas: HTMLCanvasElement;
     protected _ctx: CanvasRenderingContext2D;
+    protected _pointerCtx: CanvasRenderingContext2D;
     protected _onResizeObserver_: () => void;
     protected _resizeObserver: ResizeObserver;
 
-    protected $groundValue: HTMLElement | null;
-    protected $trackValue: HTMLElement | null;
-    protected $warningValue: HTMLElement | null;
-    protected $collisionValue: HTMLElement | null;
+    public $groundValue: HTMLElement | null;
+    public $trackValue: HTMLElement | null;
+    public $warningValue: HTMLElement | null;
+    public $collisionValue: HTMLElement | null;
 
     protected $trackUnits: HTMLElement | null;
     protected $groundUnits: HTMLElement | null;
@@ -104,7 +105,13 @@ class ElevationProfileView extends View<ElevationProfile> {
         this._pixelsInMeter_y = 0;
         this._canvasScale = 2;
         this.$canvas = document.createElement("canvas");
+        this.$canvas.style.position = "absolute";
         this._ctx = this.$canvas.getContext('2d')!;
+
+        this.$pointerCanvas = document.createElement("canvas");
+        this.$pointerCanvas.style.pointerEvents = "none";
+        this.$pointerCanvas.style.position = "absolute";
+        this._pointerCtx = this.$pointerCanvas.getContext('2d')!;
 
         this.$groundValue = null;
         this.$trackValue = null;
@@ -156,8 +163,10 @@ class ElevationProfileView extends View<ElevationProfile> {
         this._resizeObserver.observe(this.el!);
 
         this.el!.appendChild(this.$canvas);
+        this.el!.appendChild(this.$pointerCanvas);
 
         this.model.events.on("profilecollected", (data: ElevationProfileDrawData) => {
+            this.clearPointerCanvas();
             this.draw();
         });
 
@@ -166,6 +175,7 @@ class ElevationProfileView extends View<ElevationProfile> {
             this._leftDistance = 0;
             this._clearLegend();
             this.clearCanvas();
+            this.clearPointerCanvas();
         });
 
         this.$trackValue = this.select(".og-elevationprofile-legend__track .og-elevationprofile-value");
@@ -181,6 +191,7 @@ class ElevationProfileView extends View<ElevationProfile> {
         this.$canvas.addEventListener("mouseenter", this._onMouseEnter);
         this.$canvas.addEventListener("mouseout", this._onMouseOut);
 
+        this.$canvas.addEventListener("mousemove", this._onCanvasMouseMove);
         document.body.addEventListener("mousemove", this._onMouseMove);
         document.body.addEventListener("mousedown", this._onMouseDown);
         document.body.addEventListener("mouseup", this._onMouseUp);
@@ -224,6 +235,31 @@ class ElevationProfileView extends View<ElevationProfile> {
         }
     }
 
+    protected _onCanvasMouseMove = (e: MouseEvent) => {
+        if (this.model.pointsReady) {
+            if (!this._isDragging) {
+                let rect = this.$pointerCanvas.getBoundingClientRect();
+                let x = e.clientX - rect.left;
+                this.redrawPointerCanvas(x * this._canvasScale);
+            } else {
+                this.clearPointerCanvas();
+            }
+        }
+    }
+
+    public redrawPointerCanvas(x: number) {
+        this.clearPointerCanvas();
+
+        let ctx = this._pointerCtx;
+
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "white";
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, this.clientHeight);
+        ctx.stroke();
+    }
+
     protected _onMouseMove = (e: MouseEvent) => {
         if (this._isDragging) {
             let offset = (this._clickPosX - e.clientX);
@@ -231,6 +267,7 @@ class ElevationProfileView extends View<ElevationProfile> {
             this.setFrame(this._clickLeftDistance + distanceOffset, this._clickRightDistance + distanceOffset);
         }
     }
+
     protected _onMouseWheelFF = (e: MouseEventExt) => {
         this._onMouseWheel(e);
     }
@@ -277,7 +314,17 @@ class ElevationProfileView extends View<ElevationProfile> {
             this.$canvas.height = this.el.clientHeight * this._canvasScale;
             this.$canvas.style.width = `${this.el.clientWidth}px`;
             this.$canvas.style.height = `${this.el.clientHeight}px`;
+
+            this.$pointerCanvas.width = this.el.clientWidth * this._canvasScale;
+            this.$pointerCanvas.height = this.el.clientHeight * this._canvasScale;
+            this.$pointerCanvas.style.width = `${this.el.clientWidth}px`;
+            this.$pointerCanvas.style.height = `${this.el.clientHeight}px`;
         }
+    }
+
+    public clearPointerCanvas() {
+        this._pointerCtx.fillStyle = "rgba(0,0,0,0)";
+        this._pointerCtx.clearRect(0, 0, this.clientWidth * this._canvasScale, this.clientHeight * this._canvasScale);
     }
 
     public clearCanvas() {
