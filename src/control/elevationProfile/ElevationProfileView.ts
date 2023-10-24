@@ -1,7 +1,15 @@
 import {EventsHandler} from "../../Events";
 import {IViewParams, View, ViewEventsList} from '../../ui/View';
-import {SAFE, WARNING, COLLISION, ElevationProfile, ElevationProfileDrawData} from './ElevationProfile';
-import {distanceFormatExt} from "../../utils/shared";
+import {
+    SAFE,
+    WARNING,
+    COLLISION,
+    ElevationProfile,
+    ElevationProfileDrawData,
+    GroundItem,
+    TrackItem
+} from './ElevationProfile';
+import {distanceFormatExt, binarySearch} from "../../utils/shared";
 import {MouseEventExt} from "../../input/MouseHandler";
 
 const FILL_COLOR = "rgb(45, 45, 45)";
@@ -257,15 +265,14 @@ class ElevationProfileView extends View<ElevationProfile> {
         if (pointerDistance < 0) {
             pointerDistance = 0;
             x = (0 - this.model.minX) * this.clientWidth / (this.model.maxX - this.model.minX);
-        }
-
-        if (pointerDistance > this.model.planeDistance) {
+        } else if (pointerDistance > this.model.planeDistance) {
             pointerDistance = this.model.planeDistance;
             x = (pointerDistance - this.model.minX) * this.clientWidth / (this.model.maxX - this.model.minX);
         }
 
         let ctx = this._pointerCtx;
 
+        // Vertical grey line
         ctx.lineWidth = 3;
         ctx.strokeStyle = "grey";
         ctx.beginPath();
@@ -273,10 +280,18 @@ class ElevationProfileView extends View<ElevationProfile> {
         ctx.lineTo(x * this._canvasScale, this.clientHeight * this._canvasScale);
         ctx.stroke();
 
+        // Ground point
 
+        let groundData = this.model.drawData[1];
+        let groundPoiIndex = -1 * binarySearch(groundData, pointerDistance, (a: number, b: GroundItem) => {
+            return a - b[0];
+        });
+
+        console.log(groundData[groundPoiIndex]);
+
+        // distance from the begining label
         ctx.fillStyle = "white";
         ctx.font = `${28 / devicePixelRatio}px Arial`;
-        //ctx.textBaseline = "top";
         ctx.textAlign = "right";
         let distStr = distanceFormatExt(pointerDistance);
         ctx.fillText(`${distStr[0]} ${distStr[1]}`, (x - 5) * this._canvasScale, (this.clientHeight - 5) * this._canvasScale);

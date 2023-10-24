@@ -354,4 +354,6 @@ export {
     WARNING,
     type IProfileData,
     ElevationProfile,
+    type GroundItem,
+    type TrackItem
 };
