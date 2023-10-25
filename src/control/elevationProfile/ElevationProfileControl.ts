@@ -7,6 +7,7 @@ import {MouseNavigation} from "../MouseNavigation";
 import {throttle} from "../../utils/shared";
 import {ElevationProfileButtonsView} from "./ElevationProfileButtonsView";
 import {PointListDialog} from "./PointListDialog";
+import {GroundItem, TrackItem} from "./ElevationProfile";
 
 interface IElevationProfileGraphParams extends IControlParams {
 }
@@ -23,7 +24,6 @@ export class ElevationProfileControl extends Control {
     protected _elevationProfileButtonsView: ElevationProfileButtonsView;
     protected _collectProfileThrottled: () => void;
 
-
     constructor(options: IElevationProfileGraphParams = {}) {
         super({
             name: "ElevationProfileControl",
@@ -35,6 +35,12 @@ export class ElevationProfileControl extends Control {
         this._elevationProfileButtonsView = new ElevationProfileButtonsView({
             model: this._elevationProfileView.model
         });
+
+        this._elevationProfileView.events.on("pointer", this._onElevationProfilePointer);
+        this._elevationProfileView.events.on("dblclick", this._onElevationProfileDblClick);
+        this._elevationProfileView.events.on("mouseenter", this._onElevationProfileMouseEnter);
+        this._elevationProfileView.events.on("mouseleave", this._onElevationProfileMouseLeave);
+
 
         this._dialog = new Dialog({
             title: "Elevation Profile",
@@ -123,5 +129,44 @@ export class ElevationProfileControl extends Control {
         (this.renderer!.controls.mouseNavigation as MouseNavigation).activateDoubleClickZoom();
         this.renderer && this.renderer.removeNode(this._elevationProfileScene);
         this._dialog.hide();
+    }
+
+    protected _onElevationProfilePointer = (pointerDistance: number, tp0: TrackItem, tp1: TrackItem, gp0: GroundItem, gp1: GroundItem, trackPoiIndex: number, groundPoiIndex: number, elevation: number) => {
+
+        let lonLat0 = this._elevationProfileScene.getPointLonLat(trackPoiIndex)!;
+        let lonLat1 = this._elevationProfileScene.getPointLonLat(trackPoiIndex + 1)!;
+
+        let cart0 = this.planet!.ellipsoid.lonLatToCartesian(lonLat0),
+            cart1 = this.planet!.ellipsoid.lonLatToCartesian(lonLat1);
+
+        let d = (pointerDistance - tp0[0]) / (tp1[0] - tp0[0]);
+
+        let dir = cart1.sub(cart0);
+
+        this._elevationProfileScene.setPointerCartesian3v(cart0.add(dir.scale(d)), elevation);
+    }
+
+    protected _onElevationProfileDblClick = (pointerDistance: number, tp0: TrackItem, tp1: TrackItem, gp0: GroundItem, gp1: GroundItem, trackPoiIndex: number, groundPoiIndex: number, elevation: number) => {
+        let lonLat0 = this._elevationProfileScene.getPointLonLat(trackPoiIndex)!;
+        let lonLat1 = this._elevationProfileScene.getPointLonLat(trackPoiIndex + 1)!;
+
+        let cart0 = this.planet!.ellipsoid.lonLatToCartesian(lonLat0),
+            cart1 = this.planet!.ellipsoid.lonLatToCartesian(lonLat1);
+
+        let d = (pointerDistance - tp0[0]) / (tp1[0] - tp0[0]);
+
+        let dir = cart1.sub(cart0);
+
+        let poi = cart0.add(dir.scale(d));
+
+        this.planet!.camera.flyDistance(poi, this.planet!.camera.eye.distance(poi));
+    }
+
+    protected _onElevationProfileMouseEnter = () => {
+
+    }
+
+    protected _onElevationProfileMouseLeave = () => {
+
     }
 }

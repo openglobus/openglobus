@@ -12,7 +12,7 @@ import {
 import {distanceFormatExt, binarySearch} from "../../utils/shared";
 import {MouseEventExt} from "../../input/MouseHandler";
 
-const FILL_COLOR = "rgb(45, 45, 45)";
+const FILL_COLOR = "rgb(63, 63, 63)";
 const TRACK_COLOR = "rgb(0, 255, 50)";
 const TERRAIN_COLOR = "rgb(198, 198, 198)";
 const TERRAIN_FILL_COLOR = "rgb(64, 68, 82)";
@@ -26,12 +26,22 @@ interface IElevationProfileViewParams extends IViewParams {
     fillStyle?: string;
 }
 
-type ElevationProfileViewEventsList = ["startdrag", "stopdrag"];
+type ElevationProfileViewEventsList = ["startdrag", "stopdrag", "pointer", "mouseenter", "mouseleave", "dblclick"];
 
-const ELEVATIONPROFILEVIEW_EVENTS: ElevationProfileViewEventsList = ["startdrag", "stopdrag"];
+const ELEVATIONPROFILEVIEW_EVENTS: ElevationProfileViewEventsList = ["startdrag", "stopdrag", "pointer", "mouseenter", "mouseleave", "dblclick"];
 
 const TEMPLATE =
     `<div class="og-elevationprofile">
+      <div class="og-elevationprofile-loading" style="display: none;">
+        <div class="loadingio-spinner-bars-r354qqyl5v">
+          <div class="ldio-p0v5a1f6oz">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>
+        </div> 
+      </div>
       <div class="og-elevationprofile-legend">
         <div class="og-elevationprofile-legend__row og-elevationprofile-legend__track">
           <div class="og-elevationprofile-square"></div>
@@ -78,10 +88,11 @@ class ElevationProfileView extends View<ElevationProfile> {
     public $warningValue: HTMLElement | null;
     public $collisionValue: HTMLElement | null;
 
-    protected $trackUnits: HTMLElement | null;
-    protected $groundUnits: HTMLElement | null;
-    protected $warningUnits: HTMLElement | null;
-    protected $collisionUnits: HTMLElement | null;
+    public $trackUnits: HTMLElement | null;
+    public $groundUnits: HTMLElement | null;
+    public $warningUnits: HTMLElement | null;
+    public $collisionUnits: HTMLElement | null;
+    public $loading: HTMLElement | null;
 
     protected _isMouseOver: boolean;
     protected _isDragging: boolean;
@@ -94,6 +105,8 @@ class ElevationProfileView extends View<ElevationProfile> {
     protected _rightDistance: number;
 
     protected _customFrame: boolean;
+
+    protected _timeStartHandler: number;
 
     constructor(options: IElevationProfileViewParams = {}) {
         super({
@@ -131,11 +144,15 @@ class ElevationProfileView extends View<ElevationProfile> {
         this.$warningUnits = null;
         this.$collisionUnits = null;
 
+        this.$loading = null;
+
         this._isMouseOver = false;
         this._isDragging = false;
         this._clickPosX = 0;
         this._clickLeftDistance = 0;
         this._clickRightDistance = 0;
+
+        this._timeStartHandler = 0;
 
         this._onResizeObserver_ = this._onResizeObserver.bind(this);
         this._resizeObserver = new ResizeObserver(this._onResizeObserver_);
@@ -161,10 +178,6 @@ class ElevationProfileView extends View<ElevationProfile> {
         this.draw();
     }
 
-    //public override afterRender(parentNode: HTMLElement) {
-    //this.resize();
-    //}
-
     public override render(): this {
         super.render();
 
@@ -174,8 +187,17 @@ class ElevationProfileView extends View<ElevationProfile> {
         this.el!.appendChild(this.$pointerCanvas);
 
         this.model.events.on("profilecollected", (data: ElevationProfileDrawData) => {
+            this._hideLoading();
             this.clearPointerCanvas();
             this.draw();
+        });
+
+        this.model.events.on("start", () => {
+            clearTimeout(this._timeStartHandler);
+            //@ts-ignore
+            this._timeStartHandler = setTimeout(() => {
+                this._showLoading();
+            }, 450);
         });
 
         this.model.events.on("clear", () => {
@@ -196,8 +218,11 @@ class ElevationProfileView extends View<ElevationProfile> {
         this.$warningUnits = this.select(".og-elevationprofile-legend__warning .og-elevationprofile-units");
         this.$collisionUnits = this.select(".og-elevationprofile-legend__collision .og-elevationprofile-units");
 
+        this.$loading = this.select(".og-elevationprofile-loading");
+
         this.$canvas.addEventListener("mouseenter", this._onMouseEnter);
         this.$canvas.addEventListener("mouseout", this._onMouseOut);
+        this.$canvas.addEventListener("dblclick", this._onMouseDblClick);
 
         this.$canvas.addEventListener("mousemove", this._onCanvasMouseMove);
         document.body.addEventListener("mousemove", this._onMouseMove);
@@ -208,12 +233,66 @@ class ElevationProfileView extends View<ElevationProfile> {
         return this;
     }
 
-    protected _onMouseEnter = () => {
-        this._isMouseOver = true;
+    protected _hideLoading() {
+        clearTimeout(this._timeStartHandler);
+        this.$loading!.style.display = "none";
     }
 
-    protected _onMouseOut = () => {
+    protected _showLoading() {
+        this.$loading!.style.display = "flex";
+    }
+
+    protected _onMouseDblClick = (e: MouseEvent) => {
+        //
+        // @todo: The same code as in the pointer mouse move
+        //
+        let rect = this.$canvas.getBoundingClientRect();
+        let x = e.clientX - rect.left;
+
+        let pointerDistance = this._leftDistance + (this._rightDistance - this._leftDistance) * x / this.clientWidth;
+        let groundData = this.model.drawData[1];
+        let trackData = this.model.drawData[0];
+
+        let groundPoiIndex;
+
+        if (pointerDistance < 0) {
+            groundPoiIndex = 1;
+            pointerDistance = 0;
+            x = (0 - this._leftDistance) * this.clientWidth / (this._rightDistance - this._leftDistance);
+        } else if (pointerDistance > this.model.planeDistance) {
+            groundPoiIndex = groundData.length - 1;
+            pointerDistance = this.model.planeDistance;
+            x = (pointerDistance - this._leftDistance) * this.clientWidth / (this._rightDistance - this._leftDistance);
+        } else {
+            groundPoiIndex = -1 - binarySearch(groundData, pointerDistance, (a: number, b: GroundItem) => {
+                return a - b[0];
+            });
+        }
+
+        // Ground point
+        let gp0 = groundData[groundPoiIndex - 1],
+            gp1 = groundData[groundPoiIndex];
+        let d = (pointerDistance - gp0[0]) / (gp1[0] - gp0[0]);
+        let groundElv = gp0[1] + d * (gp1[1] - gp0[1]);
+
+        // track point
+        let trackPoiIndex = gp0[4];
+        let tp0 = trackData[trackPoiIndex],
+            tp1 = trackData[trackPoiIndex + 1];
+        d = (pointerDistance - tp0[0]) / (tp1[0] - tp0[0]);
+        let trackElv = tp0[1] + d * (tp1[1] - tp0[1]);
+
+        this.events.dispatch(this.events.dblclick, pointerDistance, tp0, tp1, gp0, gp1, trackPoiIndex, groundPoiIndex - 1, trackElv - groundElv);
+    }
+
+    protected _onMouseEnter = (e: MouseEvent) => {
+        this._isMouseOver = true;
+        this.events.dispatch(this.events.mouseenter, e);
+    }
+
+    protected _onMouseOut = (e: MouseEvent) => {
         this._isMouseOver = false;
+        this.events.dispatch(this.events.mouseleave, e);
     }
 
     protected _onMouseDown = (e: MouseEvent) => {
@@ -264,7 +343,6 @@ class ElevationProfileView extends View<ElevationProfile> {
     public redrawPointerCanvas(x: number) {
         this.clearPointerCanvas();
 
-        let ctx = this._pointerCtx;
         let pointerDistance = this._leftDistance + (this._rightDistance - this._leftDistance) * x / this.clientWidth;
         let groundData = this.model.drawData[1];
         let trackData = this.model.drawData[0];
@@ -290,19 +368,24 @@ class ElevationProfileView extends View<ElevationProfile> {
             gp1 = groundData[groundPoiIndex];
         let d = (pointerDistance - gp0[0]) / (gp1[0] - gp0[0]);
         let groundElv = gp0[1] + d * (gp1[1] - gp0[1]);
-        let groundY = (this.model.maxY - groundElv) * this._pixelsInMeter_y
 
         // track point
-        let trackPointIndex = gp0[4];
-        let tp0 = trackData[trackPointIndex],
-            tp1 = trackData[trackPointIndex + 1];
+        let trackPoiIndex = gp0[4];
+        let tp0 = trackData[trackPoiIndex],
+            tp1 = trackData[trackPoiIndex + 1];
         d = (pointerDistance - tp0[0]) / (tp1[0] - tp0[0]);
         let trackElv = tp0[1] + d * (tp1[1] - tp0[1]);
+
         let trackY = (this.model.maxY - trackElv) * this._pixelsInMeter_y;
+        let groundY = (this.model.maxY - groundElv) * this._pixelsInMeter_y;
+
+        this.events.dispatch(this.events.pointer, pointerDistance, tp0, tp1, gp0, gp1, trackPoiIndex, groundPoiIndex - 1, trackElv - groundElv);
+
+        let ctx = this._pointerCtx;
 
         // Vertical grey line
         ctx.lineWidth = 3;
-        ctx.strokeStyle = "grey";
+        ctx.strokeStyle = "rgba(64,64,64,0.6)";
         ctx.beginPath();
         ctx.moveTo(x * this._canvasScale, 0);
         ctx.lineTo(x * this._canvasScale, this.clientHeight * this._canvasScale);
@@ -310,25 +393,25 @@ class ElevationProfileView extends View<ElevationProfile> {
 
         // Ground point
         ctx.beginPath();
-        ctx.arc(x * this._canvasScale, groundY, 5, 0, 2 * Math.PI, false);
-        ctx.fillStyle = 'white';
+        ctx.arc(x * this._canvasScale, groundY, 4, 0, 2 * Math.PI, false);
+        ctx.fillStyle = '#FFB277';
         ctx.fill();
-        ctx.lineWidth = 5;
-        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#FFB277';
         ctx.stroke();
 
         // Track point
         ctx.beginPath();
-        ctx.arc(x * this._canvasScale, trackY, 5, 0, 2 * Math.PI, false);
-        ctx.fillStyle = 'white';
+        ctx.arc(x * this._canvasScale, trackY, 4, 0, 2 * Math.PI, false);
+        ctx.fillStyle = '#FFB277';
         ctx.fill();
-        ctx.lineWidth = 5;
-        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#FFB277';
         ctx.stroke();
 
         // Vertical white line
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = "white";
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "#FFB277";
         ctx.beginPath();
         ctx.moveTo(x * this._canvasScale, groundY);
         ctx.lineTo(x * this._canvasScale, trackY);
@@ -346,7 +429,7 @@ class ElevationProfileView extends View<ElevationProfile> {
         ctx.font = `${28 / devicePixelRatio}px Arial`;
         ctx.textAlign = "right";
         let distStr = distanceFormatExt(pointerDistance);
-        ctx.fillText(`${distStr[0]} ${distStr[1]}`, (x - 5) * this._canvasScale, (this.clientHeight - 5) * this._canvasScale);
+        ctx.fillText(`${distStr[0]} ${distStr[1]}`, (x - 5) * this._canvasScale, (this.clientHeight - 7) * this._canvasScale);
     }
 
     protected _onMouseMove = (e: MouseEvent) => {
@@ -471,30 +554,64 @@ class ElevationProfileView extends View<ElevationProfile> {
 
             this._updateUnits();
 
-            let groundCoords = this.model.drawData[1];
-
             this.clearCanvas();
 
-            //
-            // Draw track
-            //
-            this._drawLine(trackCoords);
+            let groundCoords = this.model.drawData[1];
 
-            //
-            // Draw terrain
-            //
+            this._drawTrack(trackCoords, groundCoords);
             this._drawTerrain(groundCoords);
-
-            //
-            // Draw warning and collision
-            //
             this._drawWarningAndCollision(groundCoords);
+            this._drawLabels(trackCoords, groundCoords);
+
         } else {
             this.clearCanvas();
         }
     }
 
-    private _drawLine(coords: number[][]) {
+    protected _drawLabels(coords: TrackItem[], groundCoords: GroundItem[]) {
+        let ctx = this._ctx;
+        if (ctx) {
+            let p0 = coords[0];
+            const maxY = this.model.maxY;
+            let x = (-this._leftDistance + p0[0]) * this._pixelsInMeter_x,
+                yt = (maxY - p0[1]) * this._pixelsInMeter_y,
+                yg = (maxY - groundCoords[p0[2]][1]) * this._pixelsInMeter_y;
+
+            // Track points
+            ctx.beginPath();
+            ctx.fillStyle = '#F7F718';
+            ctx.fillRect(x - 4, yt - 4, 8, 8);
+            ctx.stroke();
+
+            // Alt label
+            ctx.fillStyle = "white";
+            ctx.font = `${26 / devicePixelRatio}px Arial`;
+            ctx.textBaseline = "bottom";
+            ctx.textAlign = "left";
+            ctx.fillText(`${Math.round(p0[1] - groundCoords[p0[2]][1]).toString()} m`, x + 1, yt - 10);
+            ctx.stroke();
+
+            for (let i = 1, len = coords.length; i < len; i++) {
+                let pi = coords[i];
+                x = (-this._leftDistance + pi[0]) * this._pixelsInMeter_x;
+                yt = (maxY - pi[1]) * this._pixelsInMeter_y;
+                yg = (maxY - groundCoords[pi[2]][1]) * this._pixelsInMeter_y;
+
+                // Track points
+                ctx.beginPath();
+                ctx.fillStyle = '#F7F718';
+                ctx.fillRect(x - 4, yt - 4, 8, 8);
+                ctx.stroke();
+
+                // Alt label
+                ctx.fillStyle = "white";
+                ctx.fillText(`${Math.round(pi[1] - groundCoords[pi[2]][1]).toString()} m`, x + 1, yt - 10);
+                ctx.stroke();
+            }
+        }
+    }
+
+    protected _drawTrack(coords: TrackItem[], groundCoords: GroundItem[]) {
         let p0 = coords[0];
         let ctx = this._ctx;
         if (ctx) {
@@ -504,7 +621,7 @@ class ElevationProfileView extends View<ElevationProfile> {
             ctx.beginPath();
             ctx.moveTo((-this._leftDistance + p0[0]) * this._pixelsInMeter_x, (maxY - p0[1]) * this._pixelsInMeter_y);
             let trackLength = 0;
-            for (let i = 1; i < coords.length; i++) {
+            for (let i = 1, len = coords.length; i < len; i++) {
                 let pi = coords[i];
                 ctx.lineTo((-this._leftDistance + pi[0]) * this._pixelsInMeter_x, (maxY - pi[1]) * this._pixelsInMeter_y);
                 let prevP = coords[i - 1];
@@ -516,13 +633,35 @@ class ElevationProfileView extends View<ElevationProfile> {
             }
             ctx.stroke();
 
+            // Track points lines
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "rgba(255,255,255,0.7)";
+            ctx.beginPath();
+            let x = (-this._leftDistance + p0[0]) * this._pixelsInMeter_x,
+                yt = (maxY - p0[1]) * this._pixelsInMeter_y,
+                yg = (maxY - groundCoords[p0[2]][1]) * this._pixelsInMeter_y;
+            ctx.moveTo(x, yt);
+            ctx.lineTo(x, yg);
+
+            for (let i = 1, len = coords.length; i < len; i++) {
+                let pi = coords[i];
+                x = (-this._leftDistance + pi[0]) * this._pixelsInMeter_x;
+                yt = (maxY - pi[1]) * this._pixelsInMeter_y;
+                yg = (maxY - groundCoords[pi[2]][1]) * this._pixelsInMeter_y;
+                ctx.strokeStyle = "rgba(255,255,255,0.7)";
+                ctx.moveTo(x, yt);
+                ctx.lineTo(x, yg);
+            }
+
+            ctx.stroke();
+
             let dist = distanceFormatExt(trackLength);
             this.$trackValue!.innerText = dist[0];
             this.$trackUnits!.innerText = dist[1];
         }
     }
 
-    private _drawTerrain(coords: number[][]) {
+    protected _drawTerrain(coords: number[][]) {
         let p0 = coords[0];
         let ctx = this._ctx;
         if (ctx) {
@@ -560,7 +699,7 @@ class ElevationProfileView extends View<ElevationProfile> {
         }
     }
 
-    private _drawWarningAndCollision(coords: number[][]) {
+    protected _drawWarningAndCollision(coords: number[][]) {
         let ctx = this._ctx;
         if (ctx && coords.length > 1) {
             let maxY = this.model.maxY;
@@ -577,15 +716,6 @@ class ElevationProfileView extends View<ElevationProfile> {
 
                 if (pi0[2] !== SAFE && pi1[2] !== SAFE) {
 
-                    // if (pi0[2] > pi1[2]) {
-                    //     ctx.stroke();
-                    //     ctx.beginPath();
-                    //     ctx.strokeStyle = LINE_COLORS[pi1[2]];
-                    // } else if (pi0[2] !== 0) {
-                    //     ctx.stroke();
-                    //     ctx.beginPath();
-                    //     ctx.strokeStyle = LINE_COLORS[pi0[2]];
-                    // }
                     let a = pi1[0] - pi0[0],
                         b = pi1[1] - pi0[1],
                         aa = a * a,
