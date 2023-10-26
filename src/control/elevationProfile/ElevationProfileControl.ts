@@ -1,5 +1,6 @@
 import {Control, IControlParams} from "../Control";
 import {Dialog, IDialogParams} from "../../ui/Dialog";
+import {View} from "../../ui/View";
 import {ToggleButton} from "../../ui/ToggleButton";
 import {ElevationProfileView} from "./ElevationProfileView";
 import {ElevationProfileScene} from "./ElevationProfileScene";
@@ -8,6 +9,13 @@ import {throttle} from "../../utils/shared";
 import {ElevationProfileButtonsView} from "./ElevationProfileButtonsView";
 import {PointListDialog} from "./PointListDialog";
 import {GroundItem, TrackItem} from "./ElevationProfile";
+import {ElevationProfileLegend} from "./ElevationProfileLegend";
+
+const TEMPLATE =
+    `<div class="og-elevationprofile__container">
+      <div class="og-elevationprofile__menu"></div>
+      <div class="og-elevationprofile__graph"></div>
+    </div>`;
 
 interface IElevationProfileGraphParams extends IControlParams {
 }
@@ -18,10 +26,13 @@ export class ElevationProfileControl extends Control {
 
     protected _toggleBtn: ToggleButton;
     protected _dialog: Dialog<null>;
+    protected _graphView: View<null>;
     protected _poiListDialog: PointListDialog;
     protected _elevationProfileView: ElevationProfileView;
     protected _elevationProfileScene: ElevationProfileScene;
     protected _elevationProfileButtonsView: ElevationProfileButtonsView;
+    protected _elevationProfileLegend: ElevationProfileLegend;
+
     protected _collectProfileThrottled: () => void;
 
     constructor(options: IElevationProfileGraphParams = {}) {
@@ -32,6 +43,7 @@ export class ElevationProfileControl extends Control {
 
         this._elevationProfileScene = new ElevationProfileScene();
         this._elevationProfileView = new ElevationProfileView();
+        this._elevationProfileLegend = new ElevationProfileLegend();
         this._elevationProfileButtonsView = new ElevationProfileButtonsView({
             model: this._elevationProfileView.model
         });
@@ -55,10 +67,13 @@ export class ElevationProfileControl extends Control {
             minWidth: 100
         });
 
+        this._graphView = new View({
+            template: TEMPLATE
+        });
+
         this._poiListDialog = new PointListDialog({
             model: this._elevationProfileScene
         });
-
 
         this._toggleBtn = new ToggleButton({
             classList: ["og-map-button", "og-elevationprofile_button"],
@@ -68,14 +83,15 @@ export class ElevationProfileControl extends Control {
         this._collectProfileThrottled = throttle(() => {
             let points = this._elevationProfileScene.getPointsLonLat();
             this._elevationProfileView.model.collectProfile(points);
-        }, 300);
+        }, 250);
     }
 
     override oninit() {
 
-        this._toggleBtn.appendTo(this.renderer!.div!);
         this._dialog.appendTo(this.planet!.renderer!.div!);
+        this._graphView.appendTo(this._dialog.container!);
 
+        this._toggleBtn.appendTo(this.renderer!.div!);
         this._dialog.events.on("visibility", (v: boolean) => {
             this._toggleBtn.setActive(v);
             if (v) {
@@ -85,47 +101,53 @@ export class ElevationProfileControl extends Control {
                 this.deactivate();
             }
         });
-
         this._toggleBtn.events.on("change", (isActive: boolean) => {
             this._dialog.setVisibility(isActive);
         });
 
-        this._elevationProfileView.appendTo(this._dialog.container!);
-
+        this._elevationProfileView.appendTo(this._graphView.select(".og-elevationprofile__graph")!);
         this._elevationProfileView.model.bindPlanet(this.planet!);
-
         this._elevationProfileView.model.events.on("clear", () => {
             this._elevationProfileScene.clear();
+            this._elevationProfileLegend.clear();
+        });
+        this._elevationProfileView.model.events.on("startcollecting", () => {
+            this._elevationProfileScene.setPointerVisibility(false);
+        });
+        this._elevationProfileView.events.on("tracklength", (length: number) => {
+            this._elevationProfileLegend.setTrackLength(length);
+        });
+        this._elevationProfileView.events.on("groundlength", (length: number) => {
+            this._elevationProfileLegend.setGroundLength(length);
+        });
+        this._elevationProfileView.events.on("warninglength", (length: number) => {
+            this._elevationProfileLegend.setWarningLength(length);
+        });
+        this._elevationProfileView.events.on("collisionlength", (length: number) => {
+            this._elevationProfileLegend.setCollisionLength(length);
         });
 
-        this._poiListDialog.appendTo(this.planet!.renderer!.div!);
 
+        this._poiListDialog.appendTo(this.planet!.renderer!.div!);
         this._poiListDialog.events.on("visibility", (isVisible: boolean) => {
             this._elevationProfileButtonsView.pointListBtn.setActive(isVisible, true);
         });
 
-        this._elevationProfileScene.events.on("change", this._onSceneChange);
+        this._elevationProfileLegend.appendTo(this._graphView.select(".og-elevationprofile__menu")!);
 
+        this._elevationProfileButtonsView.appendTo(this._graphView.select(".og-elevationprofile__menu")!);
         this._elevationProfileButtonsView.events.on("list", (isActive: boolean) => {
             this._poiListDialog.setVisibility(isActive);
         });
-
-        this._elevationProfileButtonsView.appendTo(this._dialog.container!);
-
         this._elevationProfileButtonsView.events.on("location", (isActive: boolean) => {
             this._elevationProfileScene.flyExtent();
         });
-
-        this._elevationProfileView.model.events.on("startcollecting", () => {
-            this._elevationProfileScene.setPointerVisibility(false);
-        });
-
         this._elevationProfileButtonsView.events.on("reset", (isActive: boolean) => {
             this._elevationProfileScene.setPointerVisibility(false);
         });
 
-        //this._elevationProfileView.model.events.on("profilecollected", () => {
-        //});
+
+        this._elevationProfileScene.events.on("change", this._onSceneChange);
     }
 
     protected _onSceneChange = () => {

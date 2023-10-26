@@ -903,6 +903,28 @@ TIMELINE
     overflow: hidden;
 }
 
+.og-elevationprofile__container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    align-items: center;
+}
+
+.og-elevationprofile__menu {
+    position: relative;
+    width: 100%;
+    height: 43px;
+}
+
+.og-elevationprofile__graph {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
 .og-elevationprofile_button {
     top: 175px;
     left: 10px;
@@ -917,7 +939,6 @@ TIMELINE
     right: 0;
     margin: 5px;
     display: flex;
-    background-color: var(--grey2);
     z-index: 1;
 }
 
@@ -981,7 +1002,7 @@ TIMELINE
     height: 25px;
     float: left;
     margin: 3px;
-    background-color: var(--grey2);
+    /*background-color: var(--grey2);*/
 }
 
 
