@@ -1040,6 +1040,11 @@ TIMELINE
     color: white;
 }
 
+.og-elevationprofile-button__location svg {
+    width: 17px;
+    height: 17px;
+}
+
 .og-elevationprofile-loading {
     opacity: 0.3;
     background-color: black;
@@ -1054,33 +1059,49 @@ TIMELINE
 }
 
 @keyframes ldio-p0v5a1f6oz {
-    0% { opacity: 1 }
-    50% { opacity: .5 }
-    100% { opacity: 1 }
+    0% {
+        opacity: 1
+    }
+    50% {
+        opacity: .5
+    }
+    100% {
+        opacity: 1
+    }
 }
+
 .ldio-p0v5a1f6oz div {
     position: absolute;
     width: 11px;
     height: 40px;
     top: 30px;
-    animation: ldio-p0v5a1f6oz 0.9345794392523364s cubic-bezier(0.5,0,0.5,1) infinite;
-}.ldio-p0v5a1f6oz div:nth-child(1) {
-     transform: translate(14.5px,0);
-     background: #353535;
-     animation-delay: -0.5607476635514018s;
- }.ldio-p0v5a1f6oz div:nth-child(2) {
-      transform: translate(34.5px,0);
-      background: #666666;
-      animation-delay: -0.37383177570093457s;
-  }.ldio-p0v5a1f6oz div:nth-child(3) {
-       transform: translate(54.5px,0);
-       background: #9b9b9b;
-       animation-delay: -0.18691588785046728s;
-   }.ldio-p0v5a1f6oz div:nth-child(4) {
-        transform: translate(74.5px,0);
-        background: #d4d4d4;
-        animation-delay: -0.9345794392523364s;
-    }
+    animation: ldio-p0v5a1f6oz 0.9345794392523364s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.ldio-p0v5a1f6oz div:nth-child(1) {
+    transform: translate(14.5px, 0);
+    background: #353535;
+    animation-delay: -0.5607476635514018s;
+}
+
+.ldio-p0v5a1f6oz div:nth-child(2) {
+    transform: translate(34.5px, 0);
+    background: #666666;
+    animation-delay: -0.37383177570093457s;
+}
+
+.ldio-p0v5a1f6oz div:nth-child(3) {
+    transform: translate(54.5px, 0);
+    background: #9b9b9b;
+    animation-delay: -0.18691588785046728s;
+}
+
+.ldio-p0v5a1f6oz div:nth-child(4) {
+    transform: translate(74.5px, 0);
+    background: #d4d4d4;
+    animation-delay: -0.9345794392523364s;
+}
+
 .loadingio-spinner-bars-r354qqyl5v {
     width: 88px;
     height: 88px;
@@ -1088,6 +1109,7 @@ TIMELINE
     overflow: hidden;
     background: none;
 }
+
 .ldio-p0v5a1f6oz {
     width: 100%;
     height: 100%;
@@ -1096,4 +1118,7 @@ TIMELINE
     backface-visibility: hidden;
     transform-origin: 0 0; /* see note above */
 }
-.ldio-p0v5a1f6oz div { box-sizing: content-box; }
+
+.ldio-p0v5a1f6oz div {
+    box-sizing: content-box;
+}

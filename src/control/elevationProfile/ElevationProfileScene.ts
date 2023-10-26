@@ -1,6 +1,7 @@
 import {Entity} from '../../entity/Entity';
 import {createEvents, EventsHandler} from '../../Events';
 import {LonLat} from "../../LonLat";
+import {Extent} from "../../Extent";
 import {Object3d} from '../../Object3d';
 import {Planet} from "../../scene/Planet";
 import {RenderNode} from '../../scene/RenderNode';
@@ -25,8 +26,8 @@ let headObj3d = Object3d.createCylinder(0.33, 0.33, 1.1, 20, 1, true, true, 0, -
 const POINTER_RAY_OPTIONS: IRayParams = {
     startPosition: new Vec3(),
     endPosition: new Vec3(),
-    startColor: "rgba(234,164,110,0.2)",
-    endColor: "rgba(234,164,110,1.0)",
+    startColor: "rgba(214,144,90,0.2)",
+    endColor: "rgba(214,144,90,1.0)",
     thickness: 2.7
 }
 
@@ -179,6 +180,23 @@ class ElevationProfileScene extends RenderNode {
             pickingEnabled: false,
             displayInLayerSwitcher: false
         });
+    }
+
+    public flyExtent() {
+        let entities = this._headPointersLayer.getEntities();
+        let minLon = 180, minLat = 180, maxLon = -180, maxLat = -180, maxHeight = -1000000;
+        if (entities.length > 1) {
+            for (let i = 0; i < entities.length; i++) {
+                let ll = entities[i].getLonLat();
+                if (ll.lon < minLon) minLon = ll.lon;
+                if (ll.lat < minLat) minLat = ll.lat;
+                if (ll.lon > maxLon) maxLon = ll.lon;
+                if (ll.lat > maxLat) maxLat = ll.lat;
+                if (ll.height > maxHeight) maxHeight = ll.height;
+            }
+
+            this._planet!.camera.flyExtent(new Extent(new LonLat(minLon, minLat), new LonLat(maxLon, maxLat)), maxHeight, null, 0);
+        }
     }
 
     public get planet(): Planet | null {

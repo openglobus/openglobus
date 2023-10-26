@@ -6,11 +6,11 @@ import {LonLat} from "../../LonLat";
 
 const DEFAULT_WARNING_HEIGHT_LEVEL = 5;
 
-interface ElevationProfileParams {
+export interface ElevationProfileParams {
     planet?: Planet
 }
 
-interface IProfileData {
+export interface IProfileData {
     dist: number;
     minY: number;
     maxY: number;
@@ -27,9 +27,9 @@ const ELEVATIONPROFILE_EVENTS: ElevationProfileEventsList = ["start", "profileco
 /**
  * Point types
  */
-const SAFE = 0;
-const WARNING = 1;
-const COLLISION = 2;
+export const SAFE = 0;
+export const WARNING = 1;
+export const COLLISION = 2;
 
 /**
  * drawData index names
@@ -47,13 +47,13 @@ type WarningLevel = typeof SAFE | typeof WARNING | typeof COLLISION;
 /**
  * 0 - distance, 1 - elevation, 2 - related ground point index
  */
-type TrackItem = [number, number, number];
+export type TrackItem = [number, number, number];
 /**
  * 0 - distance, 1 - elevation, 2 - warning level, 3 - ..., 4 - related track point index
  */
-type GroundItem = [number, number, WarningLevel, number, number];
+export type GroundItem = [number, number, WarningLevel, number, number];
 
-class ElevationProfile {
+export class ElevationProfile {
     public events: EventsHandler<ElevationProfileEventsList>;
     public planet: Planet | null;
     protected _warningHeightLevel: number;
@@ -213,18 +213,6 @@ class ElevationProfile {
         this._promiseArr.push(this._getHeightAsync(lonLat, this._pIndex, promiseCounter));
     }
 
-    // protected _collectPromise(resolve: (p: IProfileData) => void) {
-    //     Promise.all(this._promiseArr).then(() => {
-    //         resolve({
-    //             dist: this._pDist,
-    //             minY: this._pMinY,
-    //             maxY: this._pMaxY,
-    //             trackCoords: this._pTrackCoords,
-    //             groundCoords: this._pGroundCoords
-    //         });
-    //     });
-    // }
-
     protected _calcPointsAsync(pointsLonLat: LonLat[], promiseCounter: number) {
         return new Promise<IProfileData>((resolve: (p: IProfileData) => void, reject) => {
             this._pTrackCoords = [[0, pointsLonLat[0].height, 0]];
@@ -248,8 +236,6 @@ class ElevationProfile {
                     groundCoords: this._pGroundCoords
                 });
             });
-
-            //this._collectPromise(resolve);
         });
     }
 
@@ -363,13 +349,3 @@ class ElevationProfile {
         this.events.dispatch(this.events.clear, this._drawData, this);
     }
 }
-
-export {
-    COLLISION,
-    SAFE,
-    WARNING,
-    type IProfileData,
-    ElevationProfile,
-    type GroundItem,
-    type TrackItem
-};

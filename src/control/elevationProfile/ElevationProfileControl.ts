@@ -111,6 +111,10 @@ export class ElevationProfileControl extends Control {
         });
 
         this._elevationProfileButtonsView.appendTo(this._dialog.container!);
+
+        this._elevationProfileButtonsView.events.on("location", (isActive: boolean) => {
+            this._elevationProfileScene.flyExtent();
+        });
     }
 
     protected _onSceneChange = () => {
