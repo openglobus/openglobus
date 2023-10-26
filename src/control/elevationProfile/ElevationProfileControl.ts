@@ -120,6 +120,10 @@ export class ElevationProfileControl extends Control {
             this._elevationProfileScene.setPointerVisibility(false);
         });
 
+        this._elevationProfileButtonsView.events.on("reset", (isActive: boolean) => {
+            this._elevationProfileScene.setPointerVisibility(false);
+        });
+
         //this._elevationProfileView.model.events.on("profilecollected", () => {
         //});
     }
@@ -174,7 +178,7 @@ export class ElevationProfileControl extends Control {
     }
 
     protected _onElevationProfileMouseEnter = () => {
-        if(this._elevationProfileView.model.pointsReady) {
+        if (this._elevationProfileView.model.pointsReady) {
             this._elevationProfileScene.setPointerVisibility(true);
         }
     }

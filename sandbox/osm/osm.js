@@ -57,19 +57,20 @@ let osm = new XYZ("osm", {
 });
 
 var highResTerrain = new MapboxTerrain(null, {
-    maxZoom: 19,
-    //url: "//terrain.openglobus.org/public/eu10/{z}/{x}/{y}.png",
+    maxZoom: 17,
+    url: "//terrain.openglobus.org/public/eu10/{z}/{x}/{y}.png",
     //url: "https://andorra.utm.microavia.com/Andora_dsm_las/{z}/{x}/{y}.png",
     //url: "//terrain.openglobus.org/public/zion/{z}/{x}/{y}.png",
     //equalizeVertices: false,
     //url: "//terrain.openglobus.org/public/nz/{z}/{x}/{y}.png",
-    url: "http://127.0.0.1:8080/sandbox/osm/tiles_laz/{z}/{x}/{y}.png",
+    //url: "//terrain.openglobus.org/public/london/{z}/{x}/{y}.png",
     //imageSize: 129,
-    plainGridSize: 256,
+    //plainGridSize: 256,
+    plainGridSize: 128,
     gridSizeByZoom: [
-        64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 64, 64, 128, 128, 128, 128, 128, 128, 128, 128, 64, 32
+        //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 64, 64, 128, 128, 128, 128, 128, 128, 128, 128, 64, 32
         //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 64, 64, 128, 128, 128, 256, 256, 256, 128, 64, 32, 16
-        //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 64, 64, 64, 64, 32, 16, 8
+        64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 64, 64, 64, 64, 32, 16, 8
         //8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4
     ]
 });
@@ -77,8 +78,8 @@ var highResTerrain = new MapboxTerrain(null, {
 const globus = new Globe({
     target: "earth",
     name: "Earth",
-    //terrain: highResTerrain,
-    terrain: new GlobusTerrain(),
+    terrain: highResTerrain,
+    //terrain: new GlobusTerrain(),
     layers: [sat],
     atmosphereEnabled: true,
     fontsSrc: "../../res/fonts"

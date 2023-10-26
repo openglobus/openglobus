@@ -354,8 +354,8 @@ class ElevationProfileScene extends RenderNode {
         for (let i = 0, len = lonLatArr.length - 1; i < len; i++) {
             let p0 = ell.lonLatToCartesian(lonLatArr[i]),
                 p1 = ell.lonLatToCartesian(lonLatArr[i + 1]);
-            if (p0.distance(p1) > 20000) {
-                throw new Error("Track is too long! 20 km is maximum.");
+            if (p0.distance(p1) > 100000) {
+                throw new Error("Track is too long! 100 km is maximum.");
             }
         }
 
