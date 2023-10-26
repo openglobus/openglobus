@@ -94,8 +94,8 @@ export class EarthCoordinates extends Control {
                 this._lonSideEl!.innerHTML = 'W';
             }
 
-            this._latValEl!.innerHTML = Math.abs(lat).toFixed(5) + '°';
-            this._lonValEl!.innerHTML = Math.abs(lon).toFixed(5) + '°';
+            this._latValEl!.innerHTML = Math.abs(lat).toFixed(7) + '°';
+            this._lonValEl!.innerHTML = Math.abs(lon).toFixed(7) + '°';
         }
     }
 

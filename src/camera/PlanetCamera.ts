@@ -251,7 +251,10 @@ class PlanetCamera extends Camera {
      * @param {Number} height - Camera height
      * @returns {Vec3}
      */
-    public getExtentPosition(extent: Extent, height: number = 0): Vec3 {
+    public getExtentPosition(extent: Extent, height?: number | null): Vec3 {
+
+        height = height || 0;
+
         let north = extent.getNorth();
         let south = extent.getSouth();
         let east = extent.getEast();
@@ -339,17 +342,17 @@ class PlanetCamera extends Camera {
      */
     public flyExtent(
         extent: Extent,
-        height?: number,
-        up?: Vec3,
-        ampl?: number,
-        completeCallback?: Function,
-        startCallback?: Function,
-        frameCallback?: Function) {
+        height?: number | null,
+        up?: Vec3 | null,
+        ampl?: number | null,
+        completeCallback?: Function | null,
+        startCallback?: Function | null,
+        frameCallback?: Function | null) {
         this.flyCartesian(
             this.getExtentPosition(extent, height),
             Vec3.ZERO,
             up,
-            ampl,
+            ampl == null ? 1 : ampl,
             completeCallback,
             startCallback,
             frameCallback

@@ -1543,7 +1543,7 @@ class Polyline {
      * @param {boolean} [skipEllipsoid] -
      */
     public appendPoint3v(point3v: Vec3, color?: NumberArray4, skipEllipsoid?: boolean) {
-        if (this._path3v.length === 0) {
+        if (this._path3v.length === 0 || !this._renderNode) {
             this._pathColors.push([color || this._defaultColor as NumberArray4]);
             this.addPoint3v(point3v);
         } else {

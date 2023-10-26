@@ -252,7 +252,7 @@ input {
 }
 
 .og-button__active {
-    background: var(--grey2);
+    background-color: var(--grey2);
 }
 
 /* =============================== */
@@ -666,7 +666,7 @@ details[open] {
 
 .og-lat-val,
 .og-lon-val {
-    width: 65px;
+    width: 79px;
     padding-right: 3px;
     text-align: left;
     text-overflow: unset;
@@ -894,4 +894,231 @@ TIMELINE
 .og-geoimagegrag_button {
     top: 169px;
     right: 12px;
+}
+
+.og-elevationprofile {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    overflow: hidden;
+}
+
+.og-elevationprofile_button {
+    top: 175px;
+    left: 10px;
+}
+
+.og-elevationprofile-legend {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 12px;
+    color: var(--grey8);
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 5px;
+    display: flex;
+    background-color: var(--grey2);
+    z-index: 1;
+}
+
+.og-elevationprofile-legend__row {
+    position: relative;
+    padding: 5px;
+    width: 70px;
+}
+
+.og-elevationprofile-square {
+    position: relative;
+    float: left;
+    width: 6px;
+    height: 6px;
+    margin: 5px;
+}
+
+.og-elevationprofile-legend__track .og-elevationprofile-square {
+    background-color: rgb(0, 255, 50);
+}
+
+.og-elevationprofile-legend__ground .og-elevationprofile-square {
+    background-color: rgb(198, 198, 198);
+}
+
+.og-elevationprofile-legend__warning .og-elevationprofile-square {
+    background-color: rgb(255, 255, 0);
+}
+
+.og-elevationprofile-legend__collision .og-elevationprofile-square {
+    background-color: rgb(255, 0, 0);
+}
+
+.og-elevationprofile-units {
+    display: inline-block;
+    position: relative;
+    float: left;
+    padding-left: 5px;
+}
+
+.og-elevationprofile-value {
+    width: 30px;
+    display: inline-block;
+    position: relative;
+    float: left;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.og-elevationprofile-buttons {
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.og-elevationprofile-button {
+    width: 25px;
+    height: 25px;
+    float: left;
+    margin: 3px;
+    background-color: var(--grey2);
+}
+
+
+.og-elevationprofile-list {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.og-elevationprofile-list textarea {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    resize: none;
+    background: var(--grey8);
+    padding: 5px;
+}
+
+.og-elevationprofile-list-buttons {
+    position: relative;
+    height: 60px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: right;
+}
+
+.og-elevationprofile-list-apply {
+    padding: 4px 10px 7px 10px;
+    float: right;
+    background-color: var(--grey2);
+    margin-right: 15px;
+}
+
+.og-elevationprofile_pointer {
+    position: absolute;
+    let: 0;
+    top: 0;
+    height: 100%;
+}
+
+.og-elevationprofile-line {
+    position: absolute;
+    background-color: white;
+    width: 3px;
+    height: 30px;
+    margin-left: -1.5px;
+}
+
+.og-elevationprofile-label {
+    position: absolute;
+    top: left;
+    left: 0;
+    color: white;
+}
+
+.og-elevationprofile-button__location svg {
+    width: 17px;
+    height: 17px;
+}
+
+.og-elevationprofile-loading {
+    opacity: 0.3;
+    background-color: black;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+@keyframes ldio-p0v5a1f6oz {
+    0% {
+        opacity: 1
+    }
+    50% {
+        opacity: .5
+    }
+    100% {
+        opacity: 1
+    }
+}
+
+.ldio-p0v5a1f6oz div {
+    position: absolute;
+    width: 11px;
+    height: 40px;
+    top: 30px;
+    animation: ldio-p0v5a1f6oz 0.9345794392523364s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.ldio-p0v5a1f6oz div:nth-child(1) {
+    transform: translate(14.5px, 0);
+    background: #353535;
+    animation-delay: -0.5607476635514018s;
+}
+
+.ldio-p0v5a1f6oz div:nth-child(2) {
+    transform: translate(34.5px, 0);
+    background: #666666;
+    animation-delay: -0.37383177570093457s;
+}
+
+.ldio-p0v5a1f6oz div:nth-child(3) {
+    transform: translate(54.5px, 0);
+    background: #9b9b9b;
+    animation-delay: -0.18691588785046728s;
+}
+
+.ldio-p0v5a1f6oz div:nth-child(4) {
+    transform: translate(74.5px, 0);
+    background: #d4d4d4;
+    animation-delay: -0.9345794392523364s;
+}
+
+.loadingio-spinner-bars-r354qqyl5v {
+    width: 88px;
+    height: 88px;
+    display: inline-block;
+    overflow: hidden;
+    background: none;
+}
+
+.ldio-p0v5a1f6oz {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform: translateZ(0) scale(0.88);
+    backface-visibility: hidden;
+    transform-origin: 0 0; /* see note above */
+}
+
+.ldio-p0v5a1f6oz div {
+    box-sizing: content-box;
 }

@@ -5,7 +5,8 @@ import {
     MapboxTerrain,
     XYZ,
     control,
-    utils
+    utils,
+    LonLat
 } from "../../lib/@openglobus/og.esm.js";
 
 
@@ -62,11 +63,12 @@ var highResTerrain = new MapboxTerrain(null, {
     //url: "//terrain.openglobus.org/public/zion/{z}/{x}/{y}.png",
     //equalizeVertices: false,
     //url: "//terrain.openglobus.org/public/nz/{z}/{x}/{y}.png",
-    url: "http://127.0.0.1:8080/sandbox/osm/tiles/{z}/{x}/{y}.png",
+    url: "http://127.0.0.1:8080/sandbox/osm/tiles_laz/{z}/{x}/{y}.png",
     //imageSize: 129,
     plainGridSize: 256,
     gridSizeByZoom: [
-        64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 64, 64, 128, 128, 128, 256, 256, 256, 128, 64, 32, 16
+        64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 64, 64, 128, 128, 128, 128, 128, 128, 128, 128, 64, 32
+        //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 64, 64, 128, 128, 128, 256, 256, 256, 128, 64, 32, 16
         //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 64, 64, 64, 64, 32, 16, 8
         //8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4
     ]
@@ -76,13 +78,16 @@ const globus = new Globe({
     target: "earth",
     name: "Earth",
     //terrain: highResTerrain,
-    terrain: new EmptyTerrain(),
+    terrain: new GlobusTerrain(),
     layers: [sat],
-    atmosphereEnabled: true
+    atmosphereEnabled: true,
+    fontsSrc: "../../res/fonts"
 });
 
-globus.planet.addControl(new control.DebugInfo());
-globus.planet.addControl(new control.KeyboardNavigation());
-globus.planet.addControl(new control.TimelineControl());
-globus.planet.addControl(new control.Lighting());
-globus.planet.addControl(new control.ToggleWireframe());
+globus.planet.addControl(new control.ElevationProfileControl());
+window.LonLat = LonLat;
+//globus.planet.addControl(new control.DebugInfo());
+//globus.planet.addControl(new control.KeyboardNavigation());
+//globus.planet.addControl(new control.TimelineControl());
+//globus.planet.addControl(new control.Lighting());
+//globus.planet.addControl(new control.ToggleWireframe());
