@@ -192,7 +192,7 @@ class ElevationProfileView extends View<ElevationProfile> {
             this.draw();
         });
 
-        this.model.events.on("start", () => {
+        this.model.events.on("startcollecting", () => {
             clearTimeout(this._timeStartHandler);
             //@ts-ignore
             this._timeStartHandler = setTimeout(() => {

@@ -20,9 +20,9 @@ export interface IProfileData {
 
 export type ElevationProfileDrawData = [TrackItem[], GroundItem[]];
 
-type ElevationProfileEventsList = ["start", "profilecollected", "clear"];
+type ElevationProfileEventsList = ["startcollecting", "profilecollected", "clear"];
 
-const ELEVATIONPROFILE_EVENTS: ElevationProfileEventsList = ["start", "profilecollected", "clear"];
+const ELEVATIONPROFILE_EVENTS: ElevationProfileEventsList = ["startcollecting", "profilecollected", "clear"];
 
 /**
  * Point types
@@ -283,7 +283,7 @@ export class ElevationProfile {
         if (!pointsLonLat || !pointsLonLat.length)
             def.reject();
 
-        this.events.dispatch(this.events.start, this);
+        this.events.dispatch(this.events.startcollecting, this);
 
         this._promiseCounter++;
 

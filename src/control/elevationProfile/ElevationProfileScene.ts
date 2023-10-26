@@ -302,6 +302,8 @@ class ElevationProfileScene extends RenderNode {
         this._headPointersLayer.events.on("mouseleave", this._onHeadPointerLeave);
         this._headPointersLayer.events.on("ldown", this._onHeadPointerLDown);
         this._headPointersLayer.events.on("lup", this._onHeadPointerLUp);
+
+        this.setPointerVisibility(false);
     }
 
     public getPointLonLat(index: number): LonLat | undefined {
@@ -640,6 +642,9 @@ class ElevationProfileScene extends RenderNode {
         this.clear();
     }
 
+    public setPointerVisibility(visibility: boolean) {
+        this._pointerLayer.setVisibility(visibility);
+    }
 
     public setVisibility(visibility: boolean) {
         this._groundPointersLayer.setVisibility(visibility);
