@@ -28,7 +28,7 @@ let sat = new XYZ("sat", {
     isBaseLayer: true,
     maxNativeZoom: 19,
     defaultTextures: [{ color: "#001522" }, { color: "#E4E6F3" }],
-    attribution: `<div style="transform: scale(0.8); margin-top:-2px;"><a href="http://www.bing.com" target="_blank"><img title="Bing Imagery" src="https://sandcastle.cesium.com/CesiumUnminified/Assets/Images/bing_maps_credit.png"></a> © 2021 Microsoft Corporation</div>`,
+    attribution: `<div style="transform: scale(0.8); margin-top:-2px;"><a href="http://www.bing.com" target="_blank"><img style="position: relative; top: 2px;" title="Bing Imagery" src="https://sandcastle.cesium.com/CesiumUnminified/Assets/Images/bing_maps_credit.png"></a> © 2021 Microsoft Corporation</div>`,
     urlRewrite: function (s, u) {
         return utils.stringTemplate(u, {
             's': this._getSubdomain(),
@@ -40,6 +40,15 @@ let sat = new XYZ("sat", {
     diffuse: "rgb(350,350,350)",
     shininess: 20,
     nightTextureCoefficient: 2.7
+});
+
+let st = new XYZ("swisstopo", {
+    url: "",
+    visibility: true,
+    isBaseLayer: false,
+    minNativeZoom: 0,
+    maxNativeZoom: 0,
+    attribution: `Digital Elevation swissALTI3D ©swisstopo`,
 });
 
 let osm = new XYZ("osm", {
@@ -80,9 +89,10 @@ const globus = new Globe({
     name: "Earth",
     terrain: highResTerrain,
     //terrain: new GlobusTerrain(),
-    layers: [sat],
+    layers: [sat, st],
     atmosphereEnabled: true,
-    fontsSrc: "../../res/fonts"
+    fontsSrc: "../../res/fonts",
+    viewExtent: [8.077, 46.69, 8.77, 46.83]
 });
 
 globus.planet.addControl(new control.ElevationProfileControl());
