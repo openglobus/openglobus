@@ -171,6 +171,7 @@ There are many ways to contribute back to the project:
 - ⭐️ us on GitHub
 - Spread the word about openglobus on [social media](https://twitter.com/openglobus)
 - Become a contributor
+- Support with money https://opencollective.com/openglobusjs
 
 ## License
 
