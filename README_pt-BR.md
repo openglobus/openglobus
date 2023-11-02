@@ -155,7 +155,7 @@ Third, try an example from the sandbox:
 Há varias maneiras de contribuir com o projeto:
 
 - Ajudando a testar e reportando problemas [bugs](https://github.com/openglobus/openglobus/issues)
-- Ajudando a fazer perguntas [forum](https://groups.google.com/d/forum/openglobus)
+- Ajudando a fazer perguntas [forum](https://github.com/openglobus/openglobus/discussions)
   e [chat](https://gitter.im/openglobus/og)
 - ⭐️ Estamos no Github
 - Espalhe coisas sobre o openglobus no [social media](https://twitter.com/openglobus)
