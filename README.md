@@ -164,7 +164,7 @@ Third, try an example from the sandbox:
 There are many ways to contribute back to the project:
 
 - Help us test new and existing features and report [bugs](https://github.com/openglobus/openglobus/issues)
-- Help answer questions on the community [forum](https://groups.google.com/d/forum/openglobus)
+- Help answer questions on the community [forum](https://github.com/openglobus/openglobus/discussions)
   and [chat](https://gitter.im/openglobus/og)
 - ⭐️ us on GitHub
 - Spread the word about openglobus on [social media](https://twitter.com/openglobus)
