@@ -5,12 +5,11 @@ import {createRendererEvents, RendererEvents, RendererEventsHandler} from "./Ren
 import {depth} from "../shaders/depth";
 import {EntityCollection} from "../entity/EntityCollection";
 import {Framebuffer, Multisample} from "../webgl/index";
-import {FontAtlas, IFontParams} from "../utils/FontAtlas";
+import {FontAtlas} from "../utils/FontAtlas";
 import {Handler, WebGLBufferExt} from "../webgl/Handler";
 import {input} from "../input/input";
 import {isEmpty} from "../utils/shared";
 import {LabelWorker} from "../entity/LabelWorker";
-import {pickingMask} from "../shaders/pickingMask";
 import {randomi} from "../math";
 import {RenderNode} from "../scene/RenderNode";
 import {screenFrame} from "../shaders/screenFrame";
@@ -261,8 +260,6 @@ class Renderer {
 
     public outputTexture: WebGLTexture | null;
 
-    protected _pickingMaskCoordinatesBuffer: WebGLBufferExt | null;
-
     protected _skipDistanceFrame: boolean;
 
     protected _distancePixelBuffer: WebGLBuffer | null;
@@ -271,9 +268,9 @@ class Renderer {
 
     protected _pickingPixelBuffer: WebGLBuffer | null;
 
-    protected _readDistanceBuffer: ()=>void;
+    protected _readDistanceBuffer: () => void;
 
-    protected _readPickingBuffer: ()=>void;
+    protected _readPickingBuffer: () => void;
 
     constructor(handler: Handler, params: IRendererParams = {}) {
 
@@ -383,8 +380,6 @@ class Renderer {
         this.screenTexture = {};
 
         this.outputTexture = null;
-
-        this._pickingMaskCoordinatesBuffer = null;
 
         this._skipDistanceFrame = false;
 
@@ -647,7 +642,7 @@ class Renderer {
         this.handler.addProgram(screenFrame());
 
         this.pickingFramebuffer = new Framebuffer(this.handler, {
-            width: 640, height: 480, depthComponent: "DEPTH_STENCIL", renderbufferTarget: "DEPTH_STENCIL_ATTACHMENT"
+            width: 640, height: 480
         });
         this.pickingFramebuffer.init();
 
@@ -741,8 +736,6 @@ class Renderer {
             this._initReadPixelsBuffers();
         }
 
-        this.handler.addProgram(pickingMask());
-
         this.handler.ONCANVASRESIZE = () => {
             this._resizeStart();
             this.events.dispatch(this.events.resize, this.handler.canvas);
@@ -757,10 +750,7 @@ class Renderer {
 
         this.screenFramePositionBuffer = this.handler.createArrayBuffer(new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), 2, 4);
 
-
         this.outputTexture = this.screenTexture.screen;
-
-        this._pickingMaskCoordinatesBuffer = this.handler.createArrayBuffer(new Float32Array([0, 0]), 2, 1);
 
         this._initializeRenderNodes();
 
@@ -1150,43 +1140,14 @@ class Renderer {
 
         if (this.activeCamera!.isFirstPass) {
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         } else {
-            gl.clear(gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+            gl.clear(gl.DEPTH_BUFFER_BIT);
         }
-
-        //
-        // draw picking mask
-        //
-        h.programs.pickingMask.activate();
-        let sh = h.programs.pickingMask._program;
-        let shu = sh.uniforms, sha = sh.attributes;
-
-        let /*ts = this.events.touchState,*/
-            ms = this.events.mouseState;
-
-        gl.disable(gl.DEPTH_TEST);
-
-        gl.enable(gl.STENCIL_TEST);
-        gl.colorMask(false, false, false, false);
-        gl.stencilFunc(gl.ALWAYS, 2, 0xFF);
-        gl.stencilOp(gl.REPLACE, gl.ZERO, gl.REPLACE);
-
-        gl.uniform2f(shu.offset, (ms.nx - 0.5) * 2, (0.5 - ms.ny) * 2);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._pickingMaskCoordinatesBuffer!);
-        gl.vertexAttribPointer(sha.coordinates, this._pickingMaskCoordinatesBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-        gl.drawArrays(gl.POINTS, 0, this._pickingMaskCoordinatesBuffer!.numItems);
-
-        gl.enable(gl.DEPTH_TEST);
 
         //
         // draw picking scenes
         //
-        gl.colorMask(true, true, true, true);
-        gl.stencilFunc(gl.EQUAL, 2, 0xFF);
-        gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
-
         gl.disable(gl.BLEND);
 
         let dp = this._pickingCallbacks;
@@ -1198,8 +1159,6 @@ class Renderer {
         }
 
         gl.enable(gl.BLEND);
-
-        gl.disable(gl.STENCIL_TEST);
 
         this.pickingFramebuffer!.deactivate();
     }

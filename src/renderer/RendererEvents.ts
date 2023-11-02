@@ -140,9 +140,6 @@ const LB_M = 0b0001;
 const RB_M = 0b0010;
 const MB_M = 0b0100;
 
-let __skipFrames__ = 0;
-const MAX_SKIP_FRAMES_ON_BLACK = 15;
-
 const ISBLACK = (c: NumberArray3 | Uint8Array): boolean => !(c[0] || c[1] || c[2]);
 const NOTBLACK = (c: NumberArray3 | Uint8Array): boolean => !!(c[0] || c[1] || c[2]);
 
@@ -731,12 +728,6 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
             } else {
                 r.readPickingColor(ms.nx, 1 - ms.ny, t);
             }
-
-            // current is black
-            if (ISBLACK(t) && __skipFrames__++ < MAX_SKIP_FRAMES_ON_BLACK) {
-                return;
-            }
-            __skipFrames__ = 0;
 
             p[0] = c[0];
             p[1] = c[1];
