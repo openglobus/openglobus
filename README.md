@@ -14,9 +14,7 @@ completely free.
 Openglobus main goal is to make 3D map features fast, good looking, user friendly and easy to implement in any
 related project.
 
-Playground: https://jsfiddle.net/tbo47/27b8dsg1/
-
-Examples: https://openglobus.org/examples/
+**[Playground](https://jsfiddle.net/tbo47/27b8dsg1/)** **[Examples](https://openglobus.org/examples/)**
 
 ## Getting Start
 
@@ -171,7 +169,7 @@ There are many ways to contribute back to the project:
 - ⭐️ us on GitHub
 - Spread the word about openglobus on [social media](https://twitter.com/openglobus)
 - Become a contributor
-- Support with money https://opencollective.com/openglobusjs
+- [Support with money](https://opencollective.com/openglobusjs)
 
 ## License
 
