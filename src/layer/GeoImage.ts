@@ -58,6 +58,7 @@ class GeoImage extends BaseGeoImage {
         this._sourceReady = false;
         this._sourceCreated = false;
         this._image = new Image();
+        this._image.crossOrigin = "Anonymous";
         this._onLoad_ = this._onLoad.bind(this);
         this._image.addEventListener("load", this._onLoad_);
         this._image.src = src;
@@ -73,6 +74,7 @@ class GeoImage extends BaseGeoImage {
         this._sourceCreated = false;
         this._sourceReady = false;
         this._image = image;
+        this._image.crossOrigin = "Anonymous";
         this._src = image.src;
         if (isImageLoaded(this._image)) {
             this._applyImage(this._image);
@@ -134,6 +136,7 @@ class GeoImage extends BaseGeoImage {
                 }
             } else {
                 this._image = new Image();
+                this._image.crossOrigin = "Anonymous";
                 this._onLoad_ = this._onLoad.bind(this);
                 this._image.addEventListener("load", this._onLoad_);
                 this._image.src = this._src;
