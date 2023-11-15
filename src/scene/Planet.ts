@@ -969,6 +969,7 @@ export class Planet extends RenderNode {
         if (this._nightTextureSrc) {
 
             let img = new Image();
+            img.crossOrigin = "Anonymous";
             img.onload = () => {
                 this._nightTexture = this.renderer!.handler.createTextureDefault(img)!;
                 this._nightTexture.default = true;
@@ -983,6 +984,7 @@ export class Planet extends RenderNode {
         // load water specular mask
         if (this._specularTextureSrc) {
             let img = new Image();
+            img.crossOrigin = "Anonymous";
             img.onload = () => {
                 this._specularTexture = this.renderer!.handler.createTextureDefault(img)!;
                 this._specularTexture.default = true;
