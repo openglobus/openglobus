@@ -14,7 +14,7 @@ completely free.
 Openglobus main goal is to make 3D map features fast, good looking, user friendly and easy to implement in any
 related project.
 
-**[Playground](https://jsfiddle.net/tbo47/27b8dsg1/)** **[Examples](https://openglobus.org/examples/)**
+**[Examples](https://sandbox.openglobus.org/)**
 
 ## Getting Start
 
@@ -94,8 +94,8 @@ Vuejs [Read more here](./framework-intergration.md).
 
 UNDER CONSTRUCTION
 Here is a [Wiki](https://github.com/openglobus/openglobus/wiki), also
-check out the [hosted examples](http://www.openglobus.org/examples.html), and
-the [API documentation](http://www.openglobus.org/api/).
+check out the [hosted examples](https://sandbox.openglobus.org), and
+the [API documentation](https://www.openglobus.org/api/).
 
 ## Get Started to contribute
 
