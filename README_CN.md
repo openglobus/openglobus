@@ -81,7 +81,7 @@ yarn add @openglobus/og
 
 UNDER CONSTRUCTION
 Here is a [Wiki](https://github.com/openglobus/openglobus/wiki), also
-check out the [hosted examples](http://www.openglobus.org/examples.html), and
+check out the [hosted examples](https://sandbox.openglobus.org), and
 the [API documentation](http://www.openglobus.org/api/).
 
 ## 如何贡献你的代码
