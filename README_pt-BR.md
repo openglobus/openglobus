@@ -84,7 +84,7 @@ Openglobus se integra bem com frameworks como React, Angular ou Vuejs [Read more
 
 UNDER CONSTRUCTION
 Here is a [Wiki](https://github.com/openglobus/openglobus/wiki), also
-check out the [hosted examples](http://www.openglobus.org/examples.html), and
+check out the [hosted examples](http://sandbox.openglobus.org), and
 the [API documentation](http://www.openglobus.org/api/).
 
 ## Comece a contribuir
