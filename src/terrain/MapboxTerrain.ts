@@ -36,22 +36,18 @@ class MapboxTerrain extends GlobusTerrain {
         super(name || "MapboxTerrain", {
             equalizeVertices: options.equalizeVertices != undefined ? options.equalizeVertices : true,
             maxZoom: options.maxZoom || 17,
+            noDataValues: options.noDataValues || [-65537, -10000],
+            plainGridSize: options.plainGridSize || 128,
+            url: options.url != undefined
+                ? options.url
+                : `//api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${options.key || KEY}`,
+            gridSizeByZoom: options.gridSizeByZoom || [
+                64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 16, 32, 16, 32, 16, 32, 16, 8, 4
+            ],
             ...options
         });
 
         this.equalizeNormals = options.equalizeNormals || false;
-
-        this.gridSizeByZoom = options.gridSizeByZoom || [
-            64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 16, 32, 16, 32, 16, 32, 16, 8, 4
-        ];
-
-        this.url = options.url != undefined
-            ? options.url
-            : `//api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${options.key || KEY}`;
-
-        this.noDataValues = options.noDataValues || [-65537, -10000];
-
-        this.plainGridSize = options.plainGridSize || 128;
 
         this._dataType = "imageBitmap";
 
@@ -88,7 +84,7 @@ class MapboxTerrain extends GlobusTerrain {
         //
         if (!isPowerOfTwo(this._imageSize) && SIZE === this._imageSize) {
             let outCurrenElevations = new Float32Array(SIZE * SIZE);
-            extractElevationTilesMapboxNonPowerOfTwo(rgbaData, outCurrenElevations);
+            extractElevationTilesMapboxNonPowerOfTwo(rgbaData, outCurrenElevations, this._heightFactor);
             return outCurrenElevations;
         }
 
@@ -99,25 +95,25 @@ class MapboxTerrain extends GlobusTerrain {
                 let j = k % this._imageSize,
                     i = Math.floor(k / this._imageSize);
                 let fromInd4 = k * 4;
-                let h = rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
+                let h = this._heightFactor * rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
                 outCurrenElevations[i * (this._imageSize + 1) + j] = h;
             }
 
             for (let i = 0, len = this._imageSize; i < len; i++) {
                 let j = this._imageSize - 1;
                 let fromInd4 = (i * this._imageSize + j) * 4;
-                let h = rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
+                let h = this._heightFactor * rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
                 outCurrenElevations[i * (this._imageSize + 1) + this._imageSize] = h;
             }
 
             for (let j = 0, len = this._imageSize; j < len; j++) {
                 let i = this._imageSize - 1;
                 let fromInd4 = (i * this._imageSize + j) * 4;
-                let h = rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
+                let h = this._heightFactor * rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
                 outCurrenElevations[this._imageSize * (this._imageSize + 1) + j] = h;
             }
 
-            let h = rgb2Height(rgbaData[rgbaData.length - 4], rgbaData[rgbaData.length - 3], rgbaData[rgbaData.length - 2]);
+            let h = this._heightFactor * rgb2Height(rgbaData[rgbaData.length - 4], rgbaData[rgbaData.length - 3], rgbaData[rgbaData.length - 2]);
             outCurrenElevations[outCurrenElevations.length - 1] = h;
 
             return outCurrenElevations;
@@ -141,10 +137,11 @@ class MapboxTerrain extends GlobusTerrain {
         }
 
         if (preventChildren) {
-            extractElevationTilesMapboxNoChildren(rgbaData, this.noDataValues, outCurrenElevations);
+            extractElevationTilesMapboxNoChildren(rgbaData, this._heightFactor, this.noDataValues, outCurrenElevations);
         } else {
             extractElevationTilesMapbox(
                 rgbaData,
+                this._heightFactor,
                 this.noDataValues,
                 outCurrenElevations,
                 outChildrenElevations
@@ -198,7 +195,7 @@ class MapboxTerrain extends GlobusTerrain {
 
         if (this._imageDataCache[tileIndex]) {
             let data = this._imageDataCache[tileIndex];
-            callback(rgb2Height(data[index], data[index + 1], data[index + 2]));
+            callback(this._heightFactor * rgb2Height(data[index], data[index + 1], data[index + 2]));
             return true;
         }
 
@@ -216,7 +213,7 @@ class MapboxTerrain extends GlobusTerrain {
                 this._ctx.drawImage(response.data, 0, 0);
                 let data = this._ctx.getImageData(0, 0, 256, 256).data;
                 this._imageDataCache[tileIndex] = data;
-                callback(rgb2Height(data[index], data[index + 1], data[index + 2]));
+                callback(this._heightFactor * rgb2Height(data[index], data[index + 1], data[index + 2]));
             } else if (response.status === "error") {
                 callback(0);
             } else {
@@ -230,15 +227,16 @@ class MapboxTerrain extends GlobusTerrain {
     }
 }
 
-function extractElevationTilesMapboxNonPowerOfTwo(rgbaData: number[] | TypedArray, outCurrenElevations: number[] | TypedArray) {
+function extractElevationTilesMapboxNonPowerOfTwo(rgbaData: number[] | TypedArray, outCurrenElevations: number[] | TypedArray, heightFactor: number = 1) {
     for (let i = 0, len = outCurrenElevations.length; i < len; i++) {
         let i4 = i * 4;
-        outCurrenElevations[i] = rgb2Height(rgbaData[i4], rgbaData[i4 + 1], rgbaData[i4 + 2]);
+        outCurrenElevations[i] = heightFactor * rgb2Height(rgbaData[i4], rgbaData[i4 + 1], rgbaData[i4 + 2]);
     }
 }
 
 function extractElevationTilesMapbox(
     rgbaData: number[] | TypedArray,
+    heightFactor: number,
     noDataValues: number[] | TypedArray,
     outCurrenElevations: number[] | TypedArray,
     outChildrenElevations: number[][][] | TypedArray[][]
@@ -259,7 +257,7 @@ function extractElevationTilesMapbox(
     ) {
         let k4 = k * 4;
 
-        let height = rgb2Height(rgbaData[k4], rgbaData[k4 + 1], rgbaData[k4 + 2]);
+        let height = heightFactor * rgb2Height(rgbaData[k4], rgbaData[k4 + 1], rgbaData[k4 + 2]);
 
         let isNoDataCurrent = MapboxTerrain.checkNoDataValue(noDataValues, height),
             isNoDataRight = false,
@@ -286,7 +284,7 @@ function extractElevationTilesMapbox(
 
         if ((j + 1) % destSize === 0 && j !== sourceSize - 1) {
             //current tile
-            rightHeight = rgb2Height(rgbaData[k4 + 4], rgbaData[k4 + 5], rgbaData[k4 + 6]);
+            rightHeight = heightFactor * rgb2Height(rgbaData[k4 + 4], rgbaData[k4 + 5], rgbaData[k4 + 6]);
 
             isNoDataRight = MapboxTerrain.checkNoDataValue(noDataValues, rightHeight);
 
@@ -312,7 +310,7 @@ function extractElevationTilesMapbox(
             //current tile
             sourceSize4 = sourceSize * 4;
 
-            bottomHeight = rgb2Height(rgbaData[k4 + sourceSize4], rgbaData[k4 + sourceSize4 + 1], rgbaData[k4 + sourceSize4 + 2]);
+            bottomHeight = heightFactor * rgb2Height(rgbaData[k4 + sourceSize4], rgbaData[k4 + sourceSize4 + 1], rgbaData[k4 + sourceSize4 + 2]);
 
             isNoDataBottom = MapboxTerrain.checkNoDataValue(noDataValues, bottomHeight);
 
@@ -339,7 +337,7 @@ function extractElevationTilesMapbox(
             (i + 1) % destSize === 0 && i !== sourceSize - 1
         ) {
             //current tile
-            let rightBottomHeight = rgb2Height(rgbaData[k4 + sourceSize4 + 4], rgbaData[k4 + sourceSize4 + 5], rgbaData[k4 + sourceSize4 + 6]);
+            let rightBottomHeight = heightFactor * rgb2Height(rgbaData[k4 + sourceSize4 + 4], rgbaData[k4 + sourceSize4 + 5], rgbaData[k4 + sourceSize4 + 6]);
 
             let isNoDataRightBottom = MapboxTerrain.checkNoDataValue(noDataValues, rightBottomHeight);
 
@@ -371,6 +369,7 @@ function extractElevationTilesMapbox(
 
 function extractElevationTilesMapboxNoChildren(
     rgbaData: number[] | TypedArray,
+    heightFactor: number,
     noDataValues: number[] | TypedArray,
     outCurrenElevations: number[] | TypedArray
 ) {
@@ -389,7 +388,7 @@ function extractElevationTilesMapboxNoChildren(
     ) {
         let k4 = k * 4;
 
-        let height = rgb2Height(rgbaData[k4], rgbaData[k4 + 1], rgbaData[k4 + 2]);
+        let height = heightFactor * rgb2Height(rgbaData[k4], rgbaData[k4 + 1], rgbaData[k4 + 2]);
 
         let isNoDataCurrent = MapboxTerrain.checkNoDataValue(noDataValues, height),
             isNoDataRight = false,
@@ -407,7 +406,7 @@ function extractElevationTilesMapboxNoChildren(
 
         if ((j + 1) % destSize === 0 && j !== sourceSize - 1) {
             //current tile
-            rightHeight = rgb2Height(rgbaData[k4 + 4], rgbaData[k4 + 5], rgbaData[k4 + 6]);
+            rightHeight = heightFactor * rgb2Height(rgbaData[k4 + 4], rgbaData[k4 + 5], rgbaData[k4 + 6]);
 
             isNoDataRight = MapboxTerrain.checkNoDataValue(noDataValues, rightHeight);
 
@@ -426,7 +425,7 @@ function extractElevationTilesMapboxNoChildren(
             //current tile
             sourceSize4 = sourceSize * 4;
 
-            bottomHeight = rgb2Height(rgbaData[k4 + sourceSize4], rgbaData[k4 + sourceSize4 + 1], rgbaData[k4 + sourceSize4 + 2]);
+            bottomHeight = heightFactor * rgb2Height(rgbaData[k4 + sourceSize4], rgbaData[k4 + sourceSize4 + 1], rgbaData[k4 + sourceSize4 + 2]);
 
             isNoDataBottom = MapboxTerrain.checkNoDataValue(noDataValues, bottomHeight);
 
@@ -446,12 +445,9 @@ function extractElevationTilesMapboxNoChildren(
             (i + 1) % destSize === 0 && i !== sourceSize - 1
         ) {
             //current tile
-            let rightBottomHeight = rgb2Height(rgbaData[k4 + sourceSize4 + 4], rgbaData[k4 + sourceSize4 + 5], rgbaData[k4 + sourceSize4 + 6]);
+            let rightBottomHeight = heightFactor * rgb2Height(rgbaData[k4 + sourceSize4 + 4], rgbaData[k4 + sourceSize4 + 5], rgbaData[k4 + sourceSize4 + 6]);
 
-            let isNoDataRightBottom = MapboxTerrain.checkNoDataValue(
-                noDataValues,
-                rightBottomHeight
-            );
+            let isNoDataRightBottom = MapboxTerrain.checkNoDataValue(noDataValues, rightBottomHeight);
 
             let middleHeight = height;
 

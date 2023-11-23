@@ -95,7 +95,7 @@ const TERRAIN_PROGRAM =
             end = arr.length - 1;
         while (start <= end) {
             let k = Math.floor((start + end) * 0.5); 
-            if (arr[k] === x)
+            if (Math.abs(arr[k] - x) < 1e-3)
                 return k;
             else if (arr[k] < x)
                 start = k + 1;

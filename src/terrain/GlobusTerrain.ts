@@ -20,6 +20,7 @@ export interface IGlobusTerrainParams extends IEmptyTerrainParams {
     urlRewrite?: UrlRewriteFunc;
     noDataValues?: number[];
     plainGridSize?: number;
+    heightFactor?: number;
 }
 
 type TileData = {
@@ -44,6 +45,7 @@ type UrlRewriteFunc = (segment: Segment, url: string) => string;
  * @param {string} [options.responseType="arraybuffer"] - Response type.
  * @param {number} [options.MAX_LOADING_TILES] - Maximum at one time loading tiles.
  * @param {Array.<number>} [gridSizeByZoom] - Array of values, where each value corresponds to the size of a tile(or segment) on the globe. Each value must be power of two.
+ * @param {number} [heightFactor=1] - Elevation height multiplier.
  *
  * @fires GlobusTerrainEvents#load
  * @fires GlobusTerrainEvents#loadend
@@ -82,11 +84,13 @@ class GlobusTerrain extends EmptyTerrain {
      */
     protected _urlRewriteCallback: UrlRewriteFunc | null;
 
+    protected _heightFactor: number;
+
 
     constructor(name: string = "", options: IGlobusTerrainParams = {}) {
 
         super({
-            geoidSrc: "//openglobus.org/geoid/egm84-30.pgm",
+            geoidSrc: "https://openglobus.org/geoid/egm84-30.pgm",
             maxNativeZoom: options.maxNativeZoom || 14,
             ...options
         });
@@ -105,13 +109,19 @@ class GlobusTerrain extends EmptyTerrain {
 
         this.name = name || "openglobus";
 
-        this.url = options.url || "//{s}.srtm3.openglobus.org/{z}/{y}/{x}.ddm";
+        this.url = options.url || "https://{s}.srtm3.openglobus.org/{z}/{y}/{x}.ddm";
 
         this.gridSizeByZoom = options.gridSizeByZoom || [
             64, 32, 32, 16, 16, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 16, 8, 4, 2, 2, 2, 2, 2, 2
         ];
 
+        this._heightFactor = options.heightFactor != undefined ? options.heightFactor : 1.0;
+
         this.noDataValues = options.noDataValues || [];
+
+        for (let i = 0; i < this.noDataValues.length; i++) {
+            this.noDataValues[i] *= this._heightFactor;
+        }
 
         this.plainGridSize = options.plainGridSize || 32;
 
@@ -198,10 +208,12 @@ class GlobusTerrain extends EmptyTerrain {
                 let extent = mercator.getTileExtent(x, y, z);
 
                 if (response.status === "ready") {
+
                     let cache: TileData = {
                         heights: this._createHeights(response.data, tileIndex, x, y, z, extent),
                         extent: extent
                     };
+
                     this._elevationCache[tileIndex] = cache;
                     callback(this._getGroundHeightMerc(merc, cache));
 
@@ -444,6 +456,13 @@ class GlobusTerrain extends EmptyTerrain {
      * @returns {Array.<number>} -
      */
     protected _createHeights(data: any, tileIndex?: string, x?: number, y?: number, z?: number, extent?: Extent, isMaxZoom?: boolean): TypedArray | number[] {
+        if (this._heightFactor !== 1) {
+            let res = new Float32Array(data);
+            for (let i = 0, len = res.length; i < len; i++) {
+                res[i] = res[i] * this._heightFactor;
+            }
+            return res;
+        }
         return new Float32Array(data);
     }
 
