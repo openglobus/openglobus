@@ -66,20 +66,23 @@ let osm = new XYZ("osm", {
 });
 
 var highResTerrain = new MapboxTerrain(null, {
-    maxZoom: 17,
-    url: "//terrain.openglobus.org/public/eu10/{z}/{x}/{y}.png",
+    maxZoom: 19,
+    //url: "//terrain.openglobus.org/public/eu10/{z}/{x}/{y}.png",
     //url: "https://andorra.utm.microavia.com/Andora_dsm_las/{z}/{x}/{y}.png",
     //url: "//terrain.openglobus.org/public/zion/{z}/{x}/{y}.png",
     //equalizeVertices: false,
     //url: "//terrain.openglobus.org/public/nz/{z}/{x}/{y}.png",
     //url: "//terrain.openglobus.org/public/london/{z}/{x}/{y}.png",
+    //url: "./tiles/{z}/{x}/{y}.png",
+    url: "https://terrain.openglobus.org/public/chicago/{z}/{x}/{y}.png",
+    heightFactor: 1 / 3.28,
     //imageSize: 129,
     //plainGridSize: 256,
-    plainGridSize: 128,
+    //plainGridSize: 128,
     gridSizeByZoom: [
-        //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 64, 64, 128, 128, 128, 128, 128, 128, 128, 128, 64, 32
+        64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 64, 64, 128, 128, 128, 128, 128, 128, 128, 128, 64, 32
         //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 64, 64, 128, 128, 128, 256, 256, 256, 128, 64, 32, 16
-        64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 64, 64, 64, 64, 32, 16, 8
+        //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 64, 64, 64, 64, 32, 16, 8
         //8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4
     ]
 });
@@ -87,18 +90,21 @@ var highResTerrain = new MapboxTerrain(null, {
 const globus = new Globe({
     target: "earth",
     name: "Earth",
-    terrain: highResTerrain,
-    //terrain: new GlobusTerrain(),
-    layers: [sat, st],
+    //terrain: highResTerrain,
+    terrain: new GlobusTerrain(),
+    //layers: [sat, st],
+    layers: [sat],
     atmosphereEnabled: true,
     fontsSrc: "../../res/fonts",
-    viewExtent: [8.077, 46.69, 8.77, 46.83]
+    //viewExtent: [8.077, 46.69, 8.77, 46.83]
 });
 
-globus.planet.addControl(new control.ElevationProfileControl());
+//globus.planet.addControl(new control.ElevationProfileControl());
 window.LonLat = LonLat;
 //globus.planet.addControl(new control.DebugInfo());
 //globus.planet.addControl(new control.KeyboardNavigation());
-//globus.planet.addControl(new control.TimelineControl());
-//globus.planet.addControl(new control.Lighting());
+globus.planet.addControl(new control.TimelineControl());
+globus.planet.addControl(new control.Lighting());
+globus.planet.addControl(new control.DebugInfo());
+globus.planet.addControl(new control.ElevationProfileControl());
 //globus.planet.addControl(new control.ToggleWireframe());

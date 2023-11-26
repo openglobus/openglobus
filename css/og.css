@@ -733,7 +733,7 @@ TIMELINE
     width: 100%;
     height: 100%;
     background: rgb(45 45 45);
-    position: absolute;
+    position: relative;
     left: 0;
     bottom: 0;
     overflow: hidden;
