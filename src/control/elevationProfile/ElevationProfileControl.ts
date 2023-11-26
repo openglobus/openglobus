@@ -61,7 +61,7 @@ export class ElevationProfileControl extends Control {
             useHide: true,
             top: 175,
             left: 65,
-            width: 700,
+            width: 400,
             height: 200,
             minHeight: 100,
             minWidth: 100

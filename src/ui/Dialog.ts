@@ -59,7 +59,7 @@ class Dialog<M> extends View<M> {
                 display: getDefault(options.visible, true) ? "flex" : "none",
                 resize: getDefault(options.resizable, true) ? "both" : "none",
                 width: options.width || 300,
-                height: options.height ? `height:${options.height || 200}` : "",
+                height: options.height ? `height: ${options.height || 200}px` : "",
                 left: options.left || 0,
                 top: options.top || 0,
                 minHeight: options.minHeight ? `${options.minHeight}px` : 'unset',
