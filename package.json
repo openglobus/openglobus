@@ -47,7 +47,7 @@
     "jsdoc": "^4.0.2",
     "lint-staged": "^14.0.1",
     "local-web-server": "^5.3.0",
-    "postcss": "^8.4.29",
+    "postcss": "^8.4.31",
     "prettier": "^3.0.3",
     "rollup": "^3.29.2",
     "rollup-plugin-copy": "^3.5.0",
