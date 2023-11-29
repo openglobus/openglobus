@@ -1056,7 +1056,7 @@ TIMELINE
 
 .og-elevationprofile-label {
     position: absolute;
-    top: left;
+    top: 0;
     left: 0;
     color: white;
 }
