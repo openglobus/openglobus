@@ -5,16 +5,15 @@
 
 English | [简体中文](README_CN.md) | [Portuguese-BR](README_pt-BR.md)
 
-[Openglobus](http://www.openglobus.org/) is a typescript/javascript library designed to display interactive 3D maps at a
+[Openglobus](https://www.openglobus.org/) is a typescript/javascript library designed to display interactive 3D maps and other geospatial data at a
 scale from planet to bee.
+
 It supports various high-resolution terrain providers, imagery layers, renders thousands of 3D objects, provides
 geometry measurement tools, and more. It uses the WebGL technology, open-source and
 completely free.
 
 Openglobus main goal is to make 3D map features fast, good-looking, user-friendly and easy to implement in any
 related project.
-
-**[Examples](https://sandbox.openglobus.org/)**
 
 ## Getting Start
 
@@ -24,25 +23,29 @@ related project.
 npm install @openglobus/og
 ```
 
-### Usage
+### Fast initialization
 
-For first usage you can use to [create-openglobus](https://www.npmjs.com/package/create-openglobus). This package provide a simple templates with support js, ts + react, etc.
-Just run in your terminal:
+Create your first openglobus application with [create-openglobus](https://www.npmjs.com/package/create-openglobus) template.  It support js, ts + react, etc.
+
+Run:
 
 ```sh
 npm create openglobus
 ```
 
-Also, you can use React package [openglobus-react](https://github.com/openglobus/openglobus-react) manually.
+## React integration
 
-Other code examples you can find in [Sandbox](https://sandbox.openglobus.org/)
+Openglobus React module is available with [openglobus-react](https://github.com/openglobus/openglobus-react) package.
 
-## Documentation
+```sh
+npm i @openglobus/openglobus-react
+```
 
-UNDER CONSTRUCTION
-Here is a [Wiki](https://github.com/openglobus/openglobus/wiki), also
-check out the [hosted examples](https://sandbox.openglobus.org), and
-the [API documentation](https://www.openglobus.org/api/).
+## Documentation and Examples
+
+- [Examples](https://sandbox.openglobus.org)
+- [Wiki](https://github.com/openglobus/openglobus/wiki)
+- [API documentation](https://www.openglobus.org/api/)
 
 ## Get Started to contribute
 
