@@ -30,7 +30,7 @@ Create your first openglobus application with [create-openglobus](https://www.np
 Run:
 
 ```sh
-npm create openglobus
+npx create-openglobus
 ```
 
 ## React integration
