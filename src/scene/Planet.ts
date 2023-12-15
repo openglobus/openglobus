@@ -410,8 +410,12 @@ export class Planet extends RenderNode {
     protected _nightTextureSrc: string | null;
     protected _specularTextureSrc: string | null;
 
+    public transitionTime: number;
+
     constructor(options: IPlanetParams = {}) {
         super(options.name);
+
+        this.transitionTime = 5000;
 
         this.ellipsoid = options.ellipsoid || wgs84;
 

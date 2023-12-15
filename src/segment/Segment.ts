@@ -250,6 +250,8 @@ class Segment {
 
     protected _transitionOpacity: number;
 
+    protected _transitionTimestamp: number;
+
     constructor(node: Node, planet: Planet, tileZoom: number, extent: Extent) {
         this.isPole = false;
 
@@ -364,6 +366,8 @@ class Segment {
         this.normalMapTexturePtr = null;
 
         this._transitionOpacity = 0;
+
+        this._transitionTimestamp = window.performance.now();
     }
 
     public checkZoom(): boolean {
@@ -1601,7 +1605,9 @@ class Segment {
 
         if (notEmpty || !isOverlay) {
 
-            gl.uniform1f(shu.transitionOpacity, this._transitionOpacity + window.TRANSITION_OPACITY);
+            this._transitionOpacity += (window.performance.now() - this._transitionTimestamp) / p.transitionTime;
+            if (this._transitionOpacity > 1.0) this._transitionOpacity = 1.0;
+            gl.uniform1f(shu.transitionOpacity, this._transitionOpacity);
 
             gl.uniform1i(shu.samplerCount, n);
             gl.uniform1f(shu.height, currHeight);
