@@ -22,6 +22,9 @@ import {Ray} from "../math/Ray";
 import {Vec3} from "../math/Vec3";
 import {IPlainSegmentWorkerData} from "../utils/PlainSegmentWorker";
 
+//@ts-ignore
+window.TRANSITION_OPACITY = 0.0;
+
 export const TILEGROUP_COMMON = 0;
 export const TILEGROUP_NORTH = 1;
 export const TILEGROUP_SOUTH = 2;
@@ -245,6 +248,8 @@ class Segment {
 
     public normalMapTexturePtr: WebGLTextureExt | null;
 
+    protected _transitionOpacity: number;
+
     constructor(node: Node, planet: Planet, tileZoom: number, extent: Extent) {
         this.isPole = false;
 
@@ -357,6 +362,8 @@ class Segment {
         this.plainProcessing = false;
 
         this.normalMapTexturePtr = null;
+
+        this._transitionOpacity = 0;
     }
 
     public checkZoom(): boolean {
@@ -1593,6 +1600,9 @@ class Segment {
         }
 
         if (notEmpty || !isOverlay) {
+
+            gl.uniform1f(shu.transitionOpacity, this._transitionOpacity + window.TRANSITION_OPACITY);
+
             gl.uniform1i(shu.samplerCount, n);
             gl.uniform1f(shu.height, currHeight);
             gl.uniform1iv(shu.samplerArr, p._samplerArr);
