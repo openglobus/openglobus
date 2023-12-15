@@ -412,6 +412,8 @@ export class Planet extends RenderNode {
 
     public transitionTime: number;
 
+    public transitionFrameCounter: number;
+
     constructor(options: IPlanetParams = {}) {
         super(options.name);
 
@@ -564,6 +566,8 @@ export class Planet extends RenderNode {
 
         this._nightTextureSrc = options.nightTextureSrc || null;
         this._specularTextureSrc = options.specularTextureSrc || null;
+
+        this.transitionFrameCounter = 0;
     }
 
     /**
@@ -1334,6 +1338,10 @@ export class Planet extends RenderNode {
      * @override
      */
     public override frame() {
+        this.transitionFrameCounter++;
+        if (this.transitionFrameCounter > 10000000) {
+            this.transitionFrameCounter = 0;
+        }
         this._renderScreenNodesPASS();
     }
 
@@ -1451,6 +1459,7 @@ export class Planet extends RenderNode {
             let s = rn[i].segment;
             isEq && s.equalize();
             s.readyToEngage && s.engage();
+            s.transitionOpacity();
             s.screenRendering(sh, sl[0], 0);
         }
 
@@ -1569,6 +1578,7 @@ export class Planet extends RenderNode {
             let s = rn[i].segment;
             isEq && s.equalize();
             s.readyToEngage && s.engage();
+            s.transitionOpacity();
             s.screenRendering(sh, sl[0], 0);
         }
 

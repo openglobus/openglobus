@@ -252,6 +252,8 @@ class Segment {
 
     protected _transitionTimestamp: number;
 
+    protected _transitionFrameCounter: number;
+
     constructor(node: Node, planet: Planet, tileZoom: number, extent: Extent) {
         this.isPole = false;
 
@@ -367,7 +369,9 @@ class Segment {
 
         this._transitionOpacity = 0;
 
-        this._transitionTimestamp = 0
+        this._transitionTimestamp = 0;
+
+        this._transitionFrameCounter = 0;
     }
 
     public checkZoom(): boolean {
@@ -1608,8 +1612,6 @@ class Segment {
 
         if (notEmpty || !isOverlay) {
 
-            this._transitionOpacity += (window.performance.now() - this._transitionTimestamp) / p.transitionTime;
-            if (this._transitionOpacity > 1.0) this._transitionOpacity = 1.0;
             gl.uniform1f(shu.transitionOpacity, this._transitionOpacity);
 
             gl.uniform1i(shu.samplerCount, n);
@@ -1672,6 +1674,19 @@ class Segment {
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer!);
         gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
+    }
+
+    public transitionOpacity() {
+        let p = this.planet;
+        if (this._transitionFrameCounter !== p.transitionFrameCounter) {
+            if (p.transitionFrameCounter - this._transitionFrameCounter > 4) {
+                this._transitionOpacity = 0;
+                this._transitionTimestamp = window.performance.now();
+            }
+            this._transitionFrameCounter = p.transitionFrameCounter;
+            this._transitionOpacity += (window.performance.now() - this._transitionTimestamp) / p.transitionTime;
+            if (this._transitionOpacity > 1.0) this._transitionOpacity = 1.0;
+        }
     }
 
     public colorPickingRendering(sh: Program, layerSlice: Layer[], sliceIndex: number, defaultTexture?: WebGLTextureExt | null, isOverlay: boolean = false) {
