@@ -367,7 +367,7 @@ class Segment {
 
         this._transitionOpacity = 0;
 
-        this._transitionTimestamp = window.performance.now();
+        this._transitionTimestamp = 0
     }
 
     public checkZoom(): boolean {
@@ -510,6 +510,9 @@ class Segment {
      */
     public elevationsExists(elevations: number[] | TypedArray) {
         if (this.plainReady && this.terrainIsLoading) {
+
+            this._transitionTimestamp = window.performance.now();
+            this._transitionOpacity = 0.0;
 
             let _elevations = new Float32Array(elevations.length);
             _elevations.set(elevations);
