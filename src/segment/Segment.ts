@@ -248,11 +248,11 @@ class Segment {
 
     public normalMapTexturePtr: WebGLTextureExt | null;
 
-    protected _transitionOpacity: number;
+    public _transitionOpacity: number;
 
-    protected _transitionTimestamp: number;
+    public _transitionTimestamp: number;
 
-    protected _transitionFrameCounter: number;
+    public _transitionVisibility: number;
 
     constructor(node: Node, planet: Planet, tileZoom: number, extent: Extent) {
         this.isPole = false;
@@ -371,7 +371,7 @@ class Segment {
 
         this._transitionTimestamp = 0;
 
-        this._transitionFrameCounter = 0;
+        this._transitionVisibility = 1;
     }
 
     public checkZoom(): boolean {
@@ -514,9 +514,6 @@ class Segment {
      */
     public elevationsExists(elevations: number[] | TypedArray) {
         if (this.plainReady && this.terrainIsLoading) {
-
-            this._transitionTimestamp = window.performance.now();
-            this._transitionOpacity = 0.0;
 
             let _elevations = new Float32Array(elevations.length);
             _elevations.set(elevations);
@@ -1676,16 +1673,15 @@ class Segment {
         gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
     }
 
-    public transitionOpacity() {
+    public updateTransitionOpacity() {
         let p = this.planet;
-        if (this._transitionFrameCounter !== p.transitionFrameCounter) {
-            if (p.transitionFrameCounter - this._transitionFrameCounter > 4) {
-                this._transitionOpacity = 0;
-                this._transitionTimestamp = window.performance.now();
-            }
-            this._transitionFrameCounter = p.transitionFrameCounter;
-            this._transitionOpacity += (window.performance.now() - this._transitionTimestamp) / p.transitionTime;
-            if (this._transitionOpacity > 1.0) this._transitionOpacity = 1.0;
+
+        this._transitionOpacity += this._transitionVisibility * (window.performance.now() - this._transitionTimestamp) / p.transitionTime;
+
+        if (this._transitionOpacity > 1.0) {
+            this._transitionOpacity = 1.0;
+        } else if (this._transitionOpacity < 0.0) {
+            this._transitionOpacity = 0.0;
         }
     }
 

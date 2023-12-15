@@ -77,6 +77,7 @@ class Node {
     public partId: number;
     public nodeId: number;
     public state: number | null;
+    public prevState: number | null;
     public appliedTerrainNodeId: number;
     public sideSizeLog2: [number, number, number, number];
     public ready: boolean;
@@ -104,6 +105,7 @@ class Node {
         this.partId = partId;
         this.nodeId = partId + id;
         this.state = null;
+        this.prevState = null;
         this.appliedTerrainNodeId = -1;
         this.sideSizeLog2 = [0, 0, 0, 0];
         this.ready = false;
@@ -214,6 +216,7 @@ class Node {
             return;
         }
 
+        this.prevState = this.state;
         this.state = WALKTHROUGH;
 
         // @ts-ignore
@@ -419,7 +422,18 @@ class Node {
             }
         }
 
+
+        if (this.prevState !== RENDERING) {
+            this.segment._transitionTimestamp = window.performance.now();
+            this.segment._transitionOpacity = 0;
+        }
+
         nodes.push(this);
+
+        if (this.prevState === RENDERING && this.nodes.length) {
+            this.nodes[0].state = this.nodes[1].state = this.nodes[2].state = this.nodes[3].state = NOTRENDERING;
+            this.nodes[0].prevState = this.nodes[1].prevState = this.nodes[2].prevState = this.nodes[3].prevState = NOTRENDERING;
+        }
 
         if (!this.segment.terrainReady) {
             this.planet._renderCompleted = false;
