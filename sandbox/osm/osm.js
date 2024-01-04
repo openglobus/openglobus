@@ -107,4 +107,4 @@ globus.planet.addControl(new control.TimelineControl());
 globus.planet.addControl(new control.Lighting());
 globus.planet.addControl(new control.DebugInfo());
 globus.planet.addControl(new control.ElevationProfileControl());
-//globus.planet.addControl(new control.ToggleWireframe());
+globus.planet.addControl(new control.ToggleWireframe());

@@ -422,18 +422,19 @@ class Node {
             }
         }
 
-
+        // Light up the node
         if (this.prevState !== RENDERING) {
+            this.prevState = RENDERING;
             this.segment._transitionTimestamp = window.performance.now();
-            this.segment._transitionOpacity = 0;
-        }
-
-        nodes.push(this);
-
-        if (this.prevState === RENDERING && this.nodes.length) {
+            this.segment._transitionOpacity = 0.0;
+        } else if (this.nodes.length) {
+            // Means that this.prevState == RENDERING
+            // Reset children node state
             this.nodes[0].state = this.nodes[1].state = this.nodes[2].state = this.nodes[3].state = NOTRENDERING;
             this.nodes[0].prevState = this.nodes[1].prevState = this.nodes[2].prevState = this.nodes[3].prevState = NOTRENDERING;
         }
+
+        nodes.push(this);
 
         if (!this.segment.terrainReady) {
             this.planet._renderCompleted = false;

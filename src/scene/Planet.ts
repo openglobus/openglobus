@@ -36,7 +36,7 @@ import {Vector} from "../layer/Vector";
 import {VectorTileCreator} from "../utils/VectorTileCreator";
 import {wgs84} from "../ellipsoid/wgs84";
 import {WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams} from "../webgl/Handler";
-import {WALKTHROUGH} from "../quadTree/quadTree";
+import {Program} from "../webgl/Program";
 
 export interface IPlanetParams {
     name?: string;
@@ -235,6 +235,10 @@ export class Planet extends RenderNode {
 
     public _renderedNodesInFrustum: Node[][];
 
+    public _fadingNodes: Node[];
+
+    public _fadingNodesInFrustum: Node[][];
+
     /**
      * Current visible mercator segments tree nodes array.
      * @public
@@ -417,7 +421,7 @@ export class Planet extends RenderNode {
     constructor(options: IPlanetParams = {}) {
         super(options.name);
 
-        this.transitionTime = 5000;
+        this.transitionTime = 1000;
 
         this.ellipsoid = options.ellipsoid || wgs84;
 
@@ -474,6 +478,9 @@ export class Planet extends RenderNode {
 
         this._renderedNodes = [];
         this._renderedNodesInFrustum = [];
+
+        this._fadingNodes = [];
+        this._fadingNodesInFrustum = [];
 
         this._visibleNodes = {};
 
@@ -1234,7 +1241,9 @@ export class Planet extends RenderNode {
 
             this.minCurrZoom = this.maxCurrZoom;
 
-            let temp = this._renderedNodes, rf = this._renderedNodesInFrustum, temp2 = [];
+            let temp = this._renderedNodes,
+                rf = this._renderedNodesInFrustum,
+                temp2 = [];
 
             this._clearRenderNodesInFrustum();
             this._renderedNodes = [];
@@ -1262,8 +1271,18 @@ export class Planet extends RenderNode {
             }
         }
 
+        this._increaseRenderedNodesOpacity();
+    }
+
+    protected _increaseRenderedNodesOpacity() {
         for (let i = 0; i < this._renderedNodes.length; i++) {
-            this._renderedNodes[i].segment.updateTransitionOpacity();
+            this._renderedNodes[i].segment.increaseTransitionOpacity();
+        }
+    }
+
+    protected _updateFadingNodesOpacity() {
+        for (let i = 0; i < this._fadingNodes.length; i++) {
+            this._fadingNodes[i].segment.fadingTransitionOpacity();
         }
     }
 
@@ -1336,6 +1355,7 @@ export class Planet extends RenderNode {
 
     /**
      * Render node callback.
+     * Frame function is called for each renderer activrCamera frustum.
      * @public
      * @override
      */
@@ -1376,15 +1396,13 @@ export class Planet extends RenderNode {
         this.camera.setTerrainCollisionActivity(true);
     }
 
-    protected _renderScreenNodesPASSNoAtmos() {
 
+    protected _setUniformsNoAtmos(cam: PlanetCamera): Program {
         let sh, shu;
         let renderer = this.renderer!;
+
         let h = renderer.handler;
         let gl = h.gl!;
-        let cam = (renderer.activeCamera as PlanetCamera)!;
-        let firstPass = cam.isFirstPass;
-        let frustumIndex = cam.currentFrustumIndex;
 
         gl.enable(gl.CULL_FACE);
 
@@ -1415,11 +1433,11 @@ export class Planet extends RenderNode {
             // Night and specular
             //
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
-            gl.bindTexture(gl.TEXTURE_2D, this._nightTexture as WebGLTextureExt || this.transparentTexture as WebGLTextureExt);
+            gl.bindTexture(gl.TEXTURE_2D, this._nightTexture! || this.transparentTexture!);
             gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
 
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
-            gl.bindTexture(gl.TEXTURE_2D, this._specularTexture as WebGLTextureExt || this.transparentTexture as WebGLTexture);
+            gl.bindTexture(gl.TEXTURE_2D, this._specularTexture! || this.transparentTexture!);
             gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
 
             gl.uniform1f(shu.camHeight, cam.getHeight());
@@ -1435,61 +1453,15 @@ export class Planet extends RenderNode {
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
-        //
-        // drawing planet nodes
-        //
-        let rn = this._renderedNodesInFrustum[frustumIndex],
-            sl = this._visibleTileLayerSlices;
-
-        if (sl.length) {
-            let sli = sl[0];
-            for (let i = sli.length - 1; i >= 0; --i) {
-                let li = sli[i];
-                if (li._fading && firstPass && li._refreshFadingOpacity()) {
-                    sli.splice(i, 1);
-                }
-            }
-        }
-
-        let isEq = this.terrain!.equalizeVertices;
-        let i = rn.length;
-        while (i--) {
-            let s = rn[i].segment;
-            isEq && s.equalize();
-            s.readyToEngage && s.engage();
-            s.screenRendering(sh, sl[0], 0);
-        }
-
-        gl.enable(gl.POLYGON_OFFSET_FILL);
-        //gl.disable(gl.CULL_FACE);
-        for (let j = 1, len = sl.length; j < len; j++) {
-            let slj = sl[j];
-            for (i = slj.length - 1; i >= 0; --i) {
-                let li = slj[i];
-                if (li._fading && firstPass && li._refreshFadingOpacity()) {
-                    slj.splice(i, 1);
-                }
-            }
-
-            gl.polygonOffset(0, -j);
-            i = rn.length;
-            while (i--) {
-                rn[i].segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
-            }
-        }
-        //gl.enable(gl.CULL_FACE);
-        gl.disable(gl.POLYGON_OFFSET_FILL);
+        return sh;
     }
 
-    protected _renderScreenNodesPASSAtmos() {
+    protected _setUniformsAtmos(cam: PlanetCamera): Program {
 
         let sh, shu;
         let renderer = this.renderer!;
         let h = renderer.handler;
         let gl = h.gl!;
-        let cam = (renderer.activeCamera as PlanetCamera)!;
-        let firstPass = cam.isFirstPass;
-        let frustumIndex = cam.currentFrustumIndex;
 
         gl.enable(gl.CULL_FACE);
 
@@ -1522,11 +1494,11 @@ export class Planet extends RenderNode {
             // Night and specular
             //
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
-            gl.bindTexture(gl.TEXTURE_2D, this._nightTexture as WebGLTexture || this.transparentTexture as WebGLTexture);
+            gl.bindTexture(gl.TEXTURE_2D, this._nightTexture! || this.transparentTexture!);
             gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
 
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
-            gl.bindTexture(gl.TEXTURE_2D, this._specularTexture as WebGLTexture || this.transparentTexture as WebGLTexture);
+            gl.bindTexture(gl.TEXTURE_2D, this._specularTexture! || this.transparentTexture!);
             gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
 
             //
@@ -1552,6 +1524,27 @@ export class Planet extends RenderNode {
 
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+
+        return sh;
+    }
+
+    protected _renderScreenNodesPASSNoAtmos() {
+        let cam = this.renderer!.activeCamera as PlanetCamera;
+        let sh = this._setUniformsNoAtmos(cam);
+        this._renderingScreenNodes(sh, cam);
+    }
+
+    protected _renderScreenNodesPASSAtmos() {
+        let cam = this.renderer!.activeCamera as PlanetCamera;
+        let sh = this._setUniformsAtmos(cam);
+        this._renderingScreenNodes(sh, cam);
+    }
+
+    protected _renderingScreenNodes(sh: Program, cam: PlanetCamera) {
+
+        let gl = this.renderer!.handler.gl!;
+        let firstPass = cam.isFirstPass;
+        let frustumIndex = cam.currentFrustumIndex;
 
         //
         // drawing planet nodes
@@ -1579,6 +1572,7 @@ export class Planet extends RenderNode {
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
+
         for (let j = 1, len = sl.length; j < len; j++) {
             let slj = sl[j];
             for (i = slj.length - 1; i >= 0; --i) {
@@ -1594,6 +1588,7 @@ export class Planet extends RenderNode {
                 rn[i].segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
+
         gl.disable(gl.POLYGON_OFFSET_FILL);
     }
 

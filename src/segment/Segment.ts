@@ -4,7 +4,7 @@ import {Box} from "../bv/Box";
 import {Extent} from "../Extent";
 import {Entity} from "../entity/Entity";
 import {EPSG3857} from "../proj/EPSG3857";
-import {E, N, NOTRENDERING, OPSIDE, S, W} from "../quadTree/quadTree";
+import {E, N, NOTRENDERING, OPSIDE, S, W, WALKTHROUGH} from "../quadTree/quadTree";
 import {getMatrixSubArray64, TypedArray} from "../utils/shared";
 import {Handler, WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
 import {ITerrainWorkerData} from "../utils/TerrainWorker";
@@ -21,9 +21,6 @@ import {Slice} from "./Slice";
 import {Ray} from "../math/Ray";
 import {Vec3} from "../math/Vec3";
 import {IPlainSegmentWorkerData} from "../utils/PlainSegmentWorker";
-
-//@ts-ignore
-window.TRANSITION_OPACITY = 0.0;
 
 export const TILEGROUP_COMMON = 0;
 export const TILEGROUP_NORTH = 1;
@@ -252,8 +249,6 @@ class Segment {
 
     public _transitionTimestamp: number;
 
-    public _transitionVisibility: number;
-
     constructor(node: Node, planet: Planet, tileZoom: number, extent: Extent) {
         this.isPole = false;
 
@@ -370,8 +365,6 @@ class Segment {
         this._transitionOpacity = 0;
 
         this._transitionTimestamp = 0;
-
-        this._transitionVisibility = 1;
     }
 
     public checkZoom(): boolean {
@@ -1673,14 +1666,18 @@ class Segment {
         gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
     }
 
-    public updateTransitionOpacity() {
-        let p = this.planet;
-
-        this._transitionOpacity += this._transitionVisibility * (window.performance.now() - this._transitionTimestamp) / p.transitionTime;
-
+    public increaseTransitionOpacity() {
+        this._transitionOpacity += (window.performance.now() - this._transitionTimestamp) / this.planet.transitionTime;
+        this._transitionTimestamp = window.performance.now();
         if (this._transitionOpacity > 1.0) {
             this._transitionOpacity = 1.0;
-        } else if (this._transitionOpacity < 0.0) {
+        }
+    }
+
+    public fadingTransitionOpacity() {
+        this._transitionOpacity -= (window.performance.now() - this._transitionTimestamp) / this.planet.transitionTime;
+        this._transitionTimestamp = window.performance.now();
+        if (this._transitionOpacity < 0.0) {
             this._transitionOpacity = 0.0;
         }
     }
