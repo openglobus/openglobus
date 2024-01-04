@@ -1531,26 +1531,24 @@ export class Planet extends RenderNode {
     protected _renderScreenNodesPASSNoAtmos() {
         let cam = this.renderer!.activeCamera as PlanetCamera;
         let sh = this._setUniformsNoAtmos(cam);
-        this._renderingScreenNodes(sh, cam);
+        this._renderingScreenNodes(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
     }
 
     protected _renderScreenNodesPASSAtmos() {
         let cam = this.renderer!.activeCamera as PlanetCamera;
         let sh = this._setUniformsAtmos(cam);
-        this._renderingScreenNodes(sh, cam);
+        this._renderingScreenNodes(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
     }
 
-    protected _renderingScreenNodes(sh: Program, cam: PlanetCamera) {
+    /**
+     * Drawing nodes
+     */
+    protected _renderingScreenNodes(sh: Program, cam: PlanetCamera, renderedNodes: Node[]) {
 
         let gl = this.renderer!.handler.gl!;
         let firstPass = cam.isFirstPass;
-        let frustumIndex = cam.currentFrustumIndex;
 
-        //
-        // drawing planet nodes
-        //
-        let rn = this._renderedNodesInFrustum[frustumIndex],
-            sl = this._visibleTileLayerSlices;
+        let sl = this._visibleTileLayerSlices;
 
         if (sl.length) {
             let sli = sl[0];
@@ -1563,9 +1561,9 @@ export class Planet extends RenderNode {
         }
 
         let isEq = this.terrain!.equalizeVertices;
-        let i = rn.length;
+        let i = renderedNodes.length;
         while (i--) {
-            let s = rn[i].segment;
+            let s = renderedNodes[i].segment;
             isEq && s.equalize();
             s.readyToEngage && s.engage();
             s.screenRendering(sh, sl[0], 0);
@@ -1583,9 +1581,9 @@ export class Planet extends RenderNode {
             }
 
             gl.polygonOffset(0, -j);
-            i = rn.length;
+            i = renderedNodes.length;
             while (i--) {
-                rn[i].segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
+                renderedNodes[i].segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
 
