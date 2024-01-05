@@ -417,9 +417,14 @@ export class Planet extends RenderNode {
 
     public transitionTime: number;
 
+    public _prevNodes: Map<number, Node>;
+    public _currNodes: Map<number, Node>;
 
     constructor(options: IPlanetParams = {}) {
         super(options.name);
+
+        this._prevNodes = new Map<number, Node>();
+        this._currNodes = new Map<number, Node>();
 
         this.transitionTime = 1000;
 
@@ -1275,9 +1280,26 @@ export class Planet extends RenderNode {
     }
 
     protected _increaseRenderedNodesOpacity() {
+
+        this._currNodes.clear();
+
         for (let i = 0; i < this._renderedNodes.length; i++) {
-            this._renderedNodes[i].segment.increaseTransitionOpacity();
+
+            const ri = this._renderedNodes[i];
+            const nodeId = ri.nodeId;
+
+            this._prevNodes.delete(nodeId);
+            this._currNodes.set(nodeId, ri);
+
+            ri.segment.increaseTransitionOpacity();
         }
+
+        this._fadingNodes = Array.from(this._prevNodes, ([key, value]) => value);
+        if (this._fadingNodes.length) {
+            console.log(this._fadingNodes);
+        }
+
+        this._prevNodes = new Map(this._currNodes);
     }
 
     protected _updateFadingNodesOpacity() {
@@ -1597,7 +1619,7 @@ export class Planet extends RenderNode {
             let renderer = this.renderer!;
             let h = renderer.handler;
             let gl = h.gl!;
-            let cam = (renderer.activeCamera as PlanetCamera)!;
+            let cam = renderer.activeCamera as PlanetCamera;
 
             h.programs.drawnode_heightPicking.activate();
             sh = h.programs.drawnode_heightPicking._program;
