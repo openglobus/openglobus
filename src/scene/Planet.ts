@@ -37,6 +37,7 @@ import {VectorTileCreator} from "../utils/VectorTileCreator";
 import {wgs84} from "../ellipsoid/wgs84";
 import {WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams} from "../webgl/Handler";
 import {Program} from "../webgl/Program";
+import {RENDERING, WALKTHROUGH} from "../quadTree/quadTree";
 
 export interface IPlanetParams {
     name?: string;
@@ -235,7 +236,7 @@ export class Planet extends RenderNode {
 
     public _renderedNodesInFrustum: Node[][];
 
-    public _fadingNodes: Node[];
+    public _fadingNodes: Map<number, Node>;
 
     public _fadingNodesInFrustum: Node[][];
 
@@ -484,7 +485,7 @@ export class Planet extends RenderNode {
         this._renderedNodes = [];
         this._renderedNodesInFrustum = [];
 
-        this._fadingNodes = [];
+        this._fadingNodes = new Map<number, Node>;
         this._fadingNodesInFrustum = [];
 
         this._visibleNodes = {};
@@ -1242,41 +1243,43 @@ export class Planet extends RenderNode {
 
         this.quadTreeStrategy.collectRenderNodes();
 
-        if (cam.slope > this.minEqualZoomCameraSlope && cam._lonLat.height < this.maxEqualZoomAltitude && cam._lonLat.height > this.minEqualZoomAltitude) {
-
-            this.minCurrZoom = this.maxCurrZoom;
-
-            let temp = this._renderedNodes,
-                rf = this._renderedNodesInFrustum,
-                temp2 = [];
-
-            this._clearRenderNodesInFrustum();
-            this._renderedNodes = [];
-
-            for (let i = 0, len = temp.length; i < len; i++) {
-                let ri = temp[i];
-                let ht = ri.segment.centerNormal.dot(cam._b);
-                if (ri.segment.tileZoom === this.maxCurrZoom || ht < HORIZON_TANGENT) {
-                    this._renderedNodes.push(ri);
-                    let k = 0, inFrustum = ri.inFrustum;
-                    while (inFrustum) {
-                        if (inFrustum & 1) {
-                            rf[k].push(ri);
-                        }
-                        k++;
-                        inFrustum >>= 1;
-                    }
-                } else {
-                    temp2.push(ri);
-                }
-            }
-
-            for (let i = 0, len = temp2.length; i < len; i++) {
-                temp2[i].renderTree(cam, this.maxCurrZoom, null);
-            }
-        }
+        // if (cam.slope > this.minEqualZoomCameraSlope && cam._lonLat.height < this.maxEqualZoomAltitude && cam._lonLat.height > this.minEqualZoomAltitude) {
+        //
+        //     this.minCurrZoom = this.maxCurrZoom;
+        //
+        //     let temp = this._renderedNodes,
+        //         rf = this._renderedNodesInFrustum,
+        //         temp2 = [];
+        //
+        //     this._clearRenderNodesInFrustum();
+        //     this._renderedNodes = [];
+        //
+        //     for (let i = 0, len = temp.length; i < len; i++) {
+        //         let ri = temp[i];
+        //         let ht = ri.segment.centerNormal.dot(cam._b);
+        //         if (ri.segment.tileZoom === this.maxCurrZoom || ht < HORIZON_TANGENT) {
+        //             this._renderedNodes.push(ri);
+        //             let k = 0, inFrustum = ri.inFrustum;
+        //             while (inFrustum) {
+        //                 if (inFrustum & 1) {
+        //                     rf[k].push(ri);
+        //                 }
+        //                 k++;
+        //                 inFrustum >>= 1;
+        //             }
+        //         } else {
+        //             temp2.push(ri);
+        //         }
+        //     }
+        //
+        //     for (let i = 0, len = temp2.length; i < len; i++) {
+        //         temp2[i].renderTree(cam, this.maxCurrZoom, null);
+        //     }
+        // }
 
         this._increaseRenderedNodesOpacity();
+
+        this._updateFadingNodesOpacity();
     }
 
     protected _increaseRenderedNodesOpacity() {
@@ -1288,24 +1291,72 @@ export class Planet extends RenderNode {
             const ri = this._renderedNodes[i];
             const nodeId = ri.nodeId;
 
-            this._prevNodes.delete(nodeId);
+            if (this._prevNodes.has(nodeId)) {
+                this._prevNodes.delete(nodeId);
+            }
+
+            if (this._fadingNodes.has(nodeId)) {
+                this._fadingNodes.delete(nodeId);
+            }
+
             this._currNodes.set(nodeId, ri);
+
+            if (ri.prevState != RENDERING) {
+                ri.segment._transitionTimestamp = window.performance.now();
+                ri.segment._transitionOpacity = 0.0;
+            }
 
             ri.segment.increaseTransitionOpacity();
         }
 
-        this._fadingNodes = Array.from(this._prevNodes, ([key, value]) => value);
-        if (this._fadingNodes.length) {
-            console.log(this._fadingNodes);
-        }
+        this._prevNodes.forEach((node: Node) => {
+            if (!this._fadingNodes.has(node.nodeId)) {
+                node.segment._transitionTimestamp = window.performance.now();
+                node.segment._transitionOpacity = 2.0;
+                this._fadingNodes.set(node.nodeId, node);
+            }
+        });
 
         this._prevNodes = new Map(this._currNodes);
     }
 
     protected _updateFadingNodesOpacity() {
-        for (let i = 0; i < this._fadingNodes.length; i++) {
-            this._fadingNodes[i].segment.fadingTransitionOpacity();
+
+        let fadingNodes = Array.from(this._fadingNodes.values());
+
+        for (let i = 0; i < fadingNodes.length; i++) {
+            let node = fadingNodes[i];
+            if (node.segment) {
+                node.segment.fadingTransitionOpacity();
+                if (node.segment._transitionOpacity <= 0.0) {
+                    this._fadingNodes.delete(node.nodeId);
+                }
+            } else {
+                this._fadingNodes.delete(node.nodeId);
+            }
         }
+
+        // this._fadingNodes.forEach((node: Node) => {
+        //     if (node.segment) {
+        //         node.segment.fadingTransitionOpacity();
+        //         if (node.segment._transitionOpacity === 0) {
+        //             this._fadingNodes.delete(node.nodeId);
+        //         }
+        //     } else {
+        //         this._fadingNodes.delete(node.nodeId);
+        //     }
+        // });
+
+        // fadingNodes = Array.from(this._fadingNodes.values());
+        // if (fadingNodes.length) {
+        //     console.log(fadingNodes);
+        // } else {
+        //     console.log("empty");
+        // }
+
+        // for (let i = 0; i < this._fadingNodes.length; i++) {
+        //     this._fadingNodes[i].segment.fadingTransitionOpacity();
+        // }
     }
 
     protected _globalPreDraw() {
@@ -1489,6 +1540,8 @@ export class Planet extends RenderNode {
 
         renderer.enableBlendOneSrcAlpha();
 
+        //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
         if (this.lightEnabled) {
             h.programs.drawnode_screen_wl.activate();
             sh = h.programs.drawnode_screen_wl._program;
@@ -1553,12 +1606,34 @@ export class Planet extends RenderNode {
     protected _renderScreenNodesPASSNoAtmos() {
         let cam = this.renderer!.activeCamera as PlanetCamera;
         let sh = this._setUniformsNoAtmos(cam);
+
+
+        let fadingNodes = Array.from(this._fadingNodes.values());
+
+        let gl = this.renderer!.handler.gl!;
+
+        gl.disable(gl.DEPTH_TEST);
+        this._renderingScreenNodes(sh, cam, fadingNodes);
+        gl.enable(gl.DEPTH_TEST);
+
         this._renderingScreenNodes(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
     }
 
     protected _renderScreenNodesPASSAtmos() {
         let cam = this.renderer!.activeCamera as PlanetCamera;
         let sh = this._setUniformsAtmos(cam);
+
+        let fadingNodes = Array.from(this._fadingNodes.values());
+
+        let gl = this.renderer!.handler.gl!;
+
+        gl.disable(gl.DEPTH_TEST);
+        this._renderingScreenNodes(sh, cam, fadingNodes);
+        gl.enable(gl.DEPTH_TEST);
+
+        //gl.blendEquation(gl.FUNC_ADD);
+        //gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+
         this._renderingScreenNodes(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
     }
 

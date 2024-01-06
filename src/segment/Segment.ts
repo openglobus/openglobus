@@ -1602,7 +1602,7 @@ class Segment {
 
         if (notEmpty || !isOverlay) {
 
-            gl.uniform1f(shu.transitionOpacity, this._transitionOpacity);
+            gl.uniform1f(shu.transitionOpacity, this._transitionOpacity > 1.0 ? 1.0 : this._transitionOpacity);
 
             gl.uniform1i(shu.samplerCount, n);
             gl.uniform1f(shu.height, currHeight);
@@ -1667,7 +1667,7 @@ class Segment {
     }
 
     public increaseTransitionOpacity() {
-        this._transitionOpacity += (window.performance.now() - this._transitionTimestamp) / this.planet.transitionTime;
+        this._transitionOpacity += 0.01;//(window.performance.now() - this._transitionTimestamp) / this.planet.transitionTime;
         this._transitionTimestamp = window.performance.now();
         if (this._transitionOpacity > 1.0) {
             this._transitionOpacity = 1.0;
@@ -1675,10 +1675,10 @@ class Segment {
     }
 
     public fadingTransitionOpacity() {
-        this._transitionOpacity -= (window.performance.now() - this._transitionTimestamp) / this.planet.transitionTime;
+        this._transitionOpacity -= 0.01;//(window.performance.now() - this._transitionTimestamp) / this.planet.transitionTime;
         this._transitionTimestamp = window.performance.now();
         if (this._transitionOpacity < 0.0) {
-            this._transitionOpacity = 0.0;
+            this._transitionOpacity = 0;
         }
     }
 
