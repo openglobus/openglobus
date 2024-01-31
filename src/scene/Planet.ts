@@ -1277,14 +1277,87 @@ export class Planet extends RenderNode {
         //     }
         // }
 
+        this._fadingNodes.clear();
+
         for (let i = 0; i < this._renderedNodes.length; i++) {
             const ri = this._renderedNodes[i];
             ri.segment.increaseTransitionOpacity();
+
+            let pn = ri.parentNode;
+            if (pn) {
+                if (!this._fadingNodes.has(pn.nodeId)) {
+                    this._fadingNodes.set(pn.nodeId, pn);
+                }
+            }
+        }
+
+        let fadingNodes =  Array.from(this._fadingNodes.values());
+        for (let i = 0; i < fadingNodes.length; i++) {
+            fadingNodes[i].segment.fadingTransitionOpacity();
         }
 
         //this._increaseRenderedNodesOpacity();
 
         //this._updateFadingNodesOpacity();
+    }
+
+    protected _renderScreenNodesPASSNoAtmos() {
+        let cam = this.renderer!.activeCamera as PlanetCamera;
+        let sh = this._setUniformsNoAtmos(cam);
+
+
+        let fadingNodes = Array.from(this._fadingNodes.values());
+        for (let i = 0; i < fadingNodes.length; i++) {
+            fadingNodes[i].segment.fadingTransitionOpacity();
+        }
+
+        let gl = this.renderer!.handler.gl!;
+
+        gl.disable(gl.DEPTH_TEST);
+        this._renderingScreenNodes(sh, cam, fadingNodes);
+        gl.enable(gl.DEPTH_TEST);
+
+        this._renderingScreenNodes(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
+    }
+
+    protected _renderScreenNodesPASSAtmos() {
+        let cam = this.renderer!.activeCamera as PlanetCamera;
+        let sh = this._setUniformsAtmos(cam);
+
+        let fadingNodes = Array.from(this._fadingNodes.values());
+
+        let currentNodes = this._renderedNodesInFrustum[cam.currentFrustumIndex];
+
+
+        let gl = this.renderer!.handler.gl!;
+
+        //
+        // for (let i = 0; i < fadingNodes.length; i++) {
+        //     if (fadingNodes[i].segment._transitionOpacity < 1) {
+        //         transparentNodes.push(fadingNodes[i]);
+        //     } else {
+        //         opaqueNodes.push(fadingNodes[i]);
+        //     }
+        // }
+        //
+        // for (let i = 0; i < camNodes.length; i++) {
+        //     if (camNodes[i].segment._transitionOpacity < 1) {
+        //         transparentNodes.push(camNodes[i]);
+        //     } else {
+        //         opaqueNodes.push(camNodes[i]);
+        //     }
+        // }
+
+        // this._renderingScreenNodes(sh, cam, opaqueNodes);
+        //
+        // this._renderingScreenNodes(sh, cam, transparentNodes);
+
+
+        gl.disable(gl.DEPTH_TEST);
+        this._renderingScreenNodes(sh, cam, fadingNodes);
+        gl.enable(gl.DEPTH_TEST);
+
+        this._renderingScreenNodes(sh, cam, currentNodes);
     }
 
     // protected _increaseRenderedNodesOpacity() {
@@ -1585,62 +1658,6 @@ export class Planet extends RenderNode {
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
         return sh;
-    }
-
-    protected _renderScreenNodesPASSNoAtmos() {
-        let cam = this.renderer!.activeCamera as PlanetCamera;
-        let sh = this._setUniformsNoAtmos(cam);
-
-
-        let fadingNodes = Array.from(this._fadingNodes.values());
-
-        let gl = this.renderer!.handler.gl!;
-
-        gl.disable(gl.DEPTH_TEST);
-        this._renderingScreenNodes(sh, cam, fadingNodes);
-        gl.enable(gl.DEPTH_TEST);
-
-        this._renderingScreenNodes(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
-    }
-
-    protected _renderScreenNodesPASSAtmos() {
-        let cam = this.renderer!.activeCamera as PlanetCamera;
-        let sh = this._setUniformsAtmos(cam);
-
-        //let fadingNodes = Array.from(this._fadingNodes.values());
-
-        let currentNodes = this._renderedNodesInFrustum[cam.currentFrustumIndex];
-
-
-        let gl = this.renderer!.handler.gl!;
-
-        //
-        // for (let i = 0; i < fadingNodes.length; i++) {
-        //     if (fadingNodes[i].segment._transitionOpacity < 1) {
-        //         transparentNodes.push(fadingNodes[i]);
-        //     } else {
-        //         opaqueNodes.push(fadingNodes[i]);
-        //     }
-        // }
-        //
-        // for (let i = 0; i < camNodes.length; i++) {
-        //     if (camNodes[i].segment._transitionOpacity < 1) {
-        //         transparentNodes.push(camNodes[i]);
-        //     } else {
-        //         opaqueNodes.push(camNodes[i]);
-        //     }
-        // }
-
-        // this._renderingScreenNodes(sh, cam, opaqueNodes);
-        //
-        // this._renderingScreenNodes(sh, cam, transparentNodes);
-
-
-        //gl.disable(gl.DEPTH_TEST);
-        //this._renderingScreenNodes(sh, cam, fadingNodes);
-        //gl.enable(gl.DEPTH_TEST);
-
-        this._renderingScreenNodes(sh, cam, currentNodes);
     }
 
     /**

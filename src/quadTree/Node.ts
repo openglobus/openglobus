@@ -310,7 +310,7 @@ class Node {
                     this.state = NOTRENDERING;
                 }
 
-            } else if (seg.terrainReady && seg.checkZoom() && (!maxZoom || cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.planet._maxLodSize)) {
+            } else if (/*seg._transitionOpacity >= 1.0 &&*/ seg.terrainReady && seg.checkZoom() && (!maxZoom || cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.planet._maxLodSize)) {
                 this.traverseNodes(cam, maxZoom, seg, stopLoading);
             } else if (altVis) {
                 seg.passReady = maxZoom ? seg.terrainReady : false;
@@ -391,12 +391,16 @@ class Node {
         // Light up the node
         if (this.prevState !== RENDERING) {
             this.segment._transitionTimestamp = window.performance.now();
-            this.segment._transitionOpacity = 0.25;
-        }
-
-        for (let i = 0; i < this.nodes.length; i++) {
-            this.nodes[i].prevState = this.nodes[i].state;
-            this.nodes[i].state = NOTRENDERING;
+            this.segment._transitionOpacity = 0.1;
+            if (this.parentNode) {
+                this.parentNode.segment._transitionOpacity = 2;
+            }
+            for (let i = 0; i < this.nodes.length; i++) {
+                let ni = this.nodes[i];
+                ni.segment._transitionOpacity = 2;
+                ni.prevState = ni.state;
+                ni.state = NOTRENDERING;
+            }
         }
 
         let nodes = this.planet._renderedNodes;
