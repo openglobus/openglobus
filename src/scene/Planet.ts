@@ -37,7 +37,7 @@ import {VectorTileCreator} from "../utils/VectorTileCreator";
 import {wgs84} from "../ellipsoid/wgs84";
 import {WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams} from "../webgl/Handler";
 import {Program} from "../webgl/Program";
-import {RENDERING, WALKTHROUGH} from "../quadTree/quadTree";
+import {NOTRENDERING, RENDERING, WALKTHROUGH} from "../quadTree/quadTree";
 
 export interface IPlanetParams {
     name?: string;
@@ -1277,87 +1277,71 @@ export class Planet extends RenderNode {
         //     }
         // }
 
-        this._increaseRenderedNodesOpacity();
-
-        this._updateFadingNodesOpacity();
-    }
-
-    protected _increaseRenderedNodesOpacity() {
-
-        this._currNodes.clear();
-
         for (let i = 0; i < this._renderedNodes.length; i++) {
-
             const ri = this._renderedNodes[i];
-            const nodeId = ri.nodeId;
-
-            if (this._prevNodes.has(nodeId)) {
-                this._prevNodes.delete(nodeId);
-            }
-
-            if (this._fadingNodes.has(nodeId)) {
-                this._fadingNodes.delete(nodeId);
-            }
-
-            this._currNodes.set(nodeId, ri);
-
-            if (ri.prevState != RENDERING) {
-                ri.segment._transitionTimestamp = window.performance.now();
-                ri.segment._transitionOpacity = 0.0;
-            }
-
             ri.segment.increaseTransitionOpacity();
         }
 
-        this._prevNodes.forEach((node: Node) => {
-            if (!this._fadingNodes.has(node.nodeId)) {
-                node.segment._transitionTimestamp = window.performance.now();
-                node.segment._transitionOpacity = 2.0;
-                this._fadingNodes.set(node.nodeId, node);
-            }
-        });
+        //this._increaseRenderedNodesOpacity();
 
-        this._prevNodes = new Map(this._currNodes);
+        //this._updateFadingNodesOpacity();
     }
 
-    protected _updateFadingNodesOpacity() {
+    // protected _increaseRenderedNodesOpacity() {
+    //
+    //     this._currNodes.clear();
+    //
+    //     for (let i = 0; i < this._renderedNodes.length; i++) {
+    //
+    //         const ri = this._renderedNodes[i];
+    //         const nodeId = ri.nodeId;
+    //
+    //         if (this._prevNodes.has(nodeId)) {
+    //             this._prevNodes.delete(nodeId);
+    //         }
+    //
+    //         if (this._fadingNodes.has(nodeId)) {
+    //             this._fadingNodes.delete(nodeId);
+    //         }
+    //
+    //         this._currNodes.set(nodeId, ri);
+    //
+    //         // Node just showed up
+    //         if (ri.prevState != RENDERING) {
+    //             ri.segment._transitionTimestamp = window.performance.now();
+    //             ri.segment._transitionOpacity = 0.0;
+    //         }
+    //
+    //         ri.segment.increaseTransitionOpacity();
+    //     }
+    //
+    //     this._prevNodes.forEach((node: Node) => {
+    //         if (!this._fadingNodes.has(node.nodeId)) {
+    //             node.segment._transitionTimestamp = window.performance.now();
+    //             node.segment._transitionOpacity = 2.0;
+    //             this._fadingNodes.set(node.nodeId, node);
+    //         }
+    //     });
+    //
+    //     this._prevNodes = new Map(this._currNodes);
+    // }
 
-        let fadingNodes = Array.from(this._fadingNodes.values());
-
-        for (let i = 0; i < fadingNodes.length; i++) {
-            let node = fadingNodes[i];
-            if (node.segment) {
-                node.segment.fadingTransitionOpacity();
-                if (node.segment._transitionOpacity <= 0.0) {
-                    this._fadingNodes.delete(node.nodeId);
-                }
-            } else {
-                this._fadingNodes.delete(node.nodeId);
-            }
-        }
-
-        // this._fadingNodes.forEach((node: Node) => {
-        //     if (node.segment) {
-        //         node.segment.fadingTransitionOpacity();
-        //         if (node.segment._transitionOpacity === 0) {
-        //             this._fadingNodes.delete(node.nodeId);
-        //         }
-        //     } else {
-        //         this._fadingNodes.delete(node.nodeId);
-        //     }
-        // });
-
-        // fadingNodes = Array.from(this._fadingNodes.values());
-        // if (fadingNodes.length) {
-        //     console.log(fadingNodes);
-        // } else {
-        //     console.log("empty");
-        // }
-
-        // for (let i = 0; i < this._fadingNodes.length; i++) {
-        //     this._fadingNodes[i].segment.fadingTransitionOpacity();
-        // }
-    }
+    // protected _updateFadingNodesOpacity() {
+    //
+    //     let fadingNodes = Array.from(this._fadingNodes.values());
+    //
+    //     for (let i = 0; i < fadingNodes.length; i++) {
+    //         let node = fadingNodes[i];
+    //         if (node.segment) {
+    //             node.segment.fadingTransitionOpacity();
+    //             if (node.segment._transitionOpacity <= 0.0) {
+    //                 this._fadingNodes.delete(node.nodeId);
+    //             }
+    //         } else {
+    //             this._fadingNodes.delete(node.nodeId);
+    //         }
+    //     }
+    // }
 
     protected _globalPreDraw() {
         let cam = this.camera;
@@ -1623,18 +1607,40 @@ export class Planet extends RenderNode {
         let cam = this.renderer!.activeCamera as PlanetCamera;
         let sh = this._setUniformsAtmos(cam);
 
-        let fadingNodes = Array.from(this._fadingNodes.values());
+        //let fadingNodes = Array.from(this._fadingNodes.values());
+
+        let currentNodes = this._renderedNodesInFrustum[cam.currentFrustumIndex];
+
 
         let gl = this.renderer!.handler.gl!;
 
-        gl.disable(gl.DEPTH_TEST);
-        this._renderingScreenNodes(sh, cam, fadingNodes);
-        gl.enable(gl.DEPTH_TEST);
+        //
+        // for (let i = 0; i < fadingNodes.length; i++) {
+        //     if (fadingNodes[i].segment._transitionOpacity < 1) {
+        //         transparentNodes.push(fadingNodes[i]);
+        //     } else {
+        //         opaqueNodes.push(fadingNodes[i]);
+        //     }
+        // }
+        //
+        // for (let i = 0; i < camNodes.length; i++) {
+        //     if (camNodes[i].segment._transitionOpacity < 1) {
+        //         transparentNodes.push(camNodes[i]);
+        //     } else {
+        //         opaqueNodes.push(camNodes[i]);
+        //     }
+        // }
 
-        //gl.blendEquation(gl.FUNC_ADD);
-        //gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+        // this._renderingScreenNodes(sh, cam, opaqueNodes);
+        //
+        // this._renderingScreenNodes(sh, cam, transparentNodes);
 
-        this._renderingScreenNodes(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
+
+        //gl.disable(gl.DEPTH_TEST);
+        //this._renderingScreenNodes(sh, cam, fadingNodes);
+        //gl.enable(gl.DEPTH_TEST);
+
+        this._renderingScreenNodes(sh, cam, currentNodes);
     }
 
     /**

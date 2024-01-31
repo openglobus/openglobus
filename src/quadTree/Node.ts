@@ -388,6 +388,17 @@ class Node {
     public addToRender(inFrustum: number) {
         this.state = RENDERING;
 
+        // Light up the node
+        if (this.prevState !== RENDERING) {
+            this.segment._transitionTimestamp = window.performance.now();
+            this.segment._transitionOpacity = 0.25;
+        }
+
+        for (let i = 0; i < this.nodes.length; i++) {
+            this.nodes[i].prevState = this.nodes[i].state;
+            this.nodes[i].state = NOTRENDERING;
+        }
+
         let nodes = this.planet._renderedNodes;
 
         for (let i = nodes.length - 1; i >= 0; --i) {
@@ -421,19 +432,6 @@ class Node {
                 ni.neighbors[opcs].push(this);
             }
         }
-
-        // Light up the node
-        // if (this.prevState !== RENDERING) {
-        //     console.log(this.prevState);
-        //     this.prevState = RENDERING;
-        //     this.segment._transitionTimestamp = window.performance.now();
-        //     this.segment._transitionOpacity = 0.0;
-        // } else if (this.nodes.length) {
-        //     // Means that this.prevState == RENDERING
-        //     // Reset children node state
-        //     this.nodes[0].state = this.nodes[1].state = this.nodes[2].state = this.nodes[3].state = NOTRENDERING;
-        //     this.nodes[0].prevState = this.nodes[1].prevState = this.nodes[2].prevState = this.nodes[3].prevState = NOTRENDERING;
-        // }
 
         nodes.push(this);
 
