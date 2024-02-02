@@ -381,6 +381,16 @@ class Node {
         this.addToRender(inFrustum);
     }
 
+    public nodesPrevStateContain(state: number): boolean {
+        let n = this.nodes;
+        return n[0].prevState == state || n[1].prevState == state || n[2].prevState == state || n[3].prevState == state;
+    }
+
+    public nodesPrevStateEqual(state: number): boolean {
+        let n = this.nodes;
+        return n[0].prevState == state || n[1].prevState == state || n[2].prevState == state || n[3].prevState == state;
+    }
+
     /**
      * Searching for neighbours and picking up current node to render processing.
      * @public
@@ -392,9 +402,9 @@ class Node {
         if (this.prevState !== RENDERING) {
             this.segment._transitionTimestamp = window.performance.now();
 
-            if (this.segment._transitionOpacity === 1) {
-                this.segment._transitionOpacity = 0.0;
-            }
+            //if (this.segment._transitionOpacity === 1) {
+            this.segment._transitionOpacity = 0.0;
+            //}
 
             if (this.parentNode) {
                 this.parentNode.segment._transitionOpacity = 2.0;

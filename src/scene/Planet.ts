@@ -1243,39 +1243,39 @@ export class Planet extends RenderNode {
 
         this.quadTreeStrategy.collectRenderNodes();
 
-        if (cam.slope > this.minEqualZoomCameraSlope && cam._lonLat.height < this.maxEqualZoomAltitude && cam._lonLat.height > this.minEqualZoomAltitude) {
-
-            this.minCurrZoom = this.maxCurrZoom;
-
-            let temp = this._renderedNodes,
-                rf = this._renderedNodesInFrustum,
-                temp2 = [];
-
-            this._clearRenderNodesInFrustum();
-            this._renderedNodes = [];
-
-            for (let i = 0, len = temp.length; i < len; i++) {
-                let ri = temp[i];
-                let ht = ri.segment.centerNormal.dot(cam._b);
-                if (ri.segment.tileZoom === this.maxCurrZoom || ht < HORIZON_TANGENT) {
-                    this._renderedNodes.push(ri);
-                    let k = 0, inFrustum = ri.inFrustum;
-                    while (inFrustum) {
-                        if (inFrustum & 1) {
-                            rf[k].push(ri);
-                        }
-                        k++;
-                        inFrustum >>= 1;
-                    }
-                } else {
-                    temp2.push(ri);
-                }
-            }
-
-            for (let i = 0, len = temp2.length; i < len; i++) {
-                temp2[i].renderTree(cam, this.maxCurrZoom, null);
-            }
-        }
+        // if (cam.slope > this.minEqualZoomCameraSlope && cam._lonLat.height < this.maxEqualZoomAltitude && cam._lonLat.height > this.minEqualZoomAltitude) {
+        //
+        //     this.minCurrZoom = this.maxCurrZoom;
+        //
+        //     let temp = this._renderedNodes,
+        //         rf = this._renderedNodesInFrustum,
+        //         temp2 = [];
+        //
+        //     this._clearRenderNodesInFrustum();
+        //     this._renderedNodes = [];
+        //
+        //     for (let i = 0, len = temp.length; i < len; i++) {
+        //         let ri = temp[i];
+        //         let ht = ri.segment.centerNormal.dot(cam._b);
+        //         if (ri.segment.tileZoom === this.maxCurrZoom || ht < HORIZON_TANGENT) {
+        //             this._renderedNodes.push(ri);
+        //             let k = 0, inFrustum = ri.inFrustum;
+        //             while (inFrustum) {
+        //                 if (inFrustum & 1) {
+        //                     rf[k].push(ri);
+        //                 }
+        //                 k++;
+        //                 inFrustum >>= 1;
+        //             }
+        //         } else {
+        //             temp2.push(ri);
+        //         }
+        //     }
+        //
+        //     for (let i = 0, len = temp2.length; i < len; i++) {
+        //         temp2[i].renderTree(cam, this.maxCurrZoom, null);
+        //     }
+        // }
 
         this._fadingNodes.clear();
 
@@ -1283,13 +1283,9 @@ export class Planet extends RenderNode {
             const ri = this._renderedNodes[i];
             ri.segment.increaseTransitionOpacity();
 
-            if (ri.nodes.length &&
-                ri.nodes[0].segment.initialized && ri.nodes[1].segment.initialized && ri.nodes[2].segment.initialized && ri.nodes[3].segment.initialized &&
-                (ri.nodes[0].prevState == RENDERING || ri.nodes[1].prevState == RENDERING || ri.nodes[2].prevState == RENDERING || ri.nodes[3].prevState == RENDERING)
-            ) {
-
+            if (ri.segment.childrenInitialized() && ri.nodesPrevStateContain(RENDERING)) {
                 for (let i = 0; i < ri.nodes.length; i++) {
-                    if (!this._fadingNodes.has(ri.nodes[i].nodeId) && ri.nodes[i].segment.initialized) {
+                    if (!this._fadingNodes.has(ri.nodes[i].nodeId)) {
                         this._fadingNodes.set(ri.nodes[i].nodeId, ri.nodes[i]);
                     }
                 }
