@@ -392,9 +392,9 @@ class Node {
         if (this.prevState !== RENDERING) {
             this.segment._transitionTimestamp = window.performance.now();
 
-            // if (this.segment._transitionOpacity === 1) {
-            this.segment._transitionOpacity = 0.0;
-            // }
+            if (this.segment._transitionOpacity === 1) {
+                this.segment._transitionOpacity = 0.0;
+            }
 
             if (this.parentNode) {
                 this.parentNode.segment._transitionOpacity = 2.0;
