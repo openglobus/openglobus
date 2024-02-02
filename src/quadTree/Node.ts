@@ -211,6 +211,19 @@ class Node {
     //     return !(this.parentNode || node.parentNode) || (this.parentNode!.nodeId === node.parentNode!.nodeId);
     // }
 
+    public traverseNodes(cam: PlanetCamera, maxZoom?: number | null, terrainReadySegment?: Segment | null, stopLoading?: boolean) {
+        if (!this.ready) {
+            this.createChildrenNodes();
+        }
+
+        let n = this.nodes;
+
+        n[0]!.renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
+        n[1]!.renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
+        n[2]!.renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
+        n[3]!.renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
+    }
+
     public renderTree(cam: PlanetCamera, maxZoom?: number | null, terrainReadySegment?: Segment | null, stopLoading?: boolean) {
         if (this.planet._renderedNodes.length >= MAX_RENDERED_NODES) {
             return;
@@ -310,7 +323,7 @@ class Node {
                     this.state = NOTRENDERING;
                 }
 
-            } else if (/*seg._transitionOpacity >= 1.0 &&*/ seg.terrainReady && seg.checkZoom() && (!maxZoom || cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.planet._maxLodSize)) {
+            } else if (seg.terrainReady && seg.checkZoom() && (!maxZoom || cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.planet._maxLodSize)) {
                 this.traverseNodes(cam, maxZoom, seg, stopLoading);
             } else if (altVis) {
                 seg.passReady = maxZoom ? seg.terrainReady : false;
@@ -321,19 +334,6 @@ class Node {
         } else {
             this.state = NOTRENDERING;
         }
-    }
-
-    public traverseNodes(cam: PlanetCamera, maxZoom?: number | null, terrainReadySegment?: Segment | null, stopLoading?: boolean) {
-        if (!this.ready) {
-            this.createChildrenNodes();
-        }
-
-        let n = this.nodes;
-
-        n[0]!.renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
-        n[1]!.renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
-        n[2]!.renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
-        n[3]!.renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
     }
 
     public renderNode(inFrustum: number, onlyTerrain?: boolean, terrainReadySegment?: Segment | null, stopLoading?: boolean) {
@@ -391,13 +391,18 @@ class Node {
         // Light up the node
         if (this.prevState !== RENDERING) {
             this.segment._transitionTimestamp = window.performance.now();
-            this.segment._transitionOpacity = 0.1;
+
+            // if (this.segment._transitionOpacity === 1) {
+            this.segment._transitionOpacity = 0.0;
+            // }
+
             if (this.parentNode) {
-                this.parentNode.segment._transitionOpacity = 2;
+                this.parentNode.segment._transitionOpacity = 2.0;
             }
+
             for (let i = 0; i < this.nodes.length; i++) {
                 let ni = this.nodes[i];
-                ni.segment._transitionOpacity = 2;
+                ni.segment._transitionOpacity = 2.0;
                 ni.prevState = ni.state;
                 ni.state = NOTRENDERING;
             }

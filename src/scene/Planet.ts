@@ -1283,15 +1283,28 @@ export class Planet extends RenderNode {
             const ri = this._renderedNodes[i];
             ri.segment.increaseTransitionOpacity();
 
-            let pn = ri.parentNode;
-            if (pn) {
-                if (!this._fadingNodes.has(pn.nodeId)) {
-                    this._fadingNodes.set(pn.nodeId, pn);
+            if (ri.nodes.length &&
+                ri.nodes[0].segment.initialized && ri.nodes[1].segment.initialized && ri.nodes[2].segment.initialized && ri.nodes[3].segment.initialized &&
+                (ri.nodes[0].prevState == RENDERING || ri.nodes[1].prevState == RENDERING || ri.nodes[2].prevState == RENDERING || ri.nodes[3].prevState == RENDERING)
+            ) {
+
+                for (let i = 0; i < ri.nodes.length; i++) {
+                    if (!this._fadingNodes.has(ri.nodes[i].nodeId) && ri.nodes[i].segment.initialized) {
+                        this._fadingNodes.set(ri.nodes[i].nodeId, ri.nodes[i]);
+                    }
+                }
+            } else {
+                let pn = ri.parentNode;
+                if (pn && pn.segment._transitionOpacity > 0.0) {
+                    if (!this._fadingNodes.has(pn.nodeId)) {
+                        this._fadingNodes.set(pn.nodeId, pn);
+                    }
                 }
             }
         }
 
-        let fadingNodes =  Array.from(this._fadingNodes.values());
+        let fadingNodes = Array.from(this._fadingNodes.values());
+
         for (let i = 0; i < fadingNodes.length; i++) {
             fadingNodes[i].segment.fadingTransitionOpacity();
         }

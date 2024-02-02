@@ -4,7 +4,7 @@ import {Box} from "../bv/Box";
 import {Extent} from "../Extent";
 import {Entity} from "../entity/Entity";
 import {EPSG3857} from "../proj/EPSG3857";
-import {E, N, NOTRENDERING, OPSIDE, S, W, WALKTHROUGH} from "../quadTree/quadTree";
+import {E, N, NOTRENDERING, OPSIDE, RENDERING, S, W, WALKTHROUGH} from "../quadTree/quadTree";
 import {getMatrixSubArray64, TypedArray} from "../utils/shared";
 import {Handler, WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
 import {ITerrainWorkerData} from "../utils/TerrainWorker";
