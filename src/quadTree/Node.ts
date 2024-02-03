@@ -400,7 +400,8 @@ class Node {
 
         // Light up the node
         if (this.prevState !== RENDERING) {
-            this.segment._transitionTimestamp = window.performance.now();
+            let timestamp = window.performance.now();
+            this.segment._transitionTimestamp = timestamp
 
             //if (this.segment._transitionOpacity === 1) {
             this.segment._transitionOpacity = 0.0;
@@ -408,10 +409,12 @@ class Node {
 
             if (this.parentNode) {
                 this.parentNode.segment._transitionOpacity = 2.0;
+                this.parentNode.segment._transitionTimestamp = timestamp;
             }
 
             for (let i = 0; i < this.nodes.length; i++) {
                 let ni = this.nodes[i];
+                ni.segment._transitionTimestamp = timestamp;
                 ni.segment._transitionOpacity = 2.0;
                 ni.prevState = ni.state;
                 ni.state = NOTRENDERING;

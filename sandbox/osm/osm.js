@@ -102,7 +102,7 @@ const globus = new Globe({
 //globus.planet.addControl(new control.ElevationProfileControl());
 window.LonLat = LonLat;
 //globus.planet.addControl(new control.DebugInfo());
-//globus.planet.addControl(new control.KeyboardNavigation());
+globus.planet.addControl(new control.KeyboardNavigation());
 globus.planet.addControl(new control.TimelineControl());
 globus.planet.addControl(new control.Lighting());
 globus.planet.addControl(new control.DebugInfo());
