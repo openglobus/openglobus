@@ -648,7 +648,11 @@ class Entity {
         this.geometry = geometry;
         this.geometry._entity = this;
         this.geometry.setVisibility(this._visibility);
-        this._layer && this._layer.add(this);
+        let layer = this._layer;
+        if (this._layer) {
+            this._layer.removeEntity(this);
+        }
+        layer && layer.add(this);
         return geometry;
     }
 
