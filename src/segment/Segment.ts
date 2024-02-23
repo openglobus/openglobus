@@ -362,9 +362,10 @@ class Segment {
 
         this.normalMapTexturePtr = null;
 
-        this._transitionOpacity = 0;
+        this._transitionOpacity = 0.0;
 
         this._transitionTimestamp = 0;
+
     }
 
     public checkZoom(): boolean {

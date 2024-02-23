@@ -87,6 +87,7 @@ class Node {
     public segment: Segment;
     public _cameraInside: boolean;
     public inFrustum: number;
+    public _fadingNodes: Node[];
 
     constructor(
         SegmentPrototype: typeof Segment,
@@ -115,6 +116,7 @@ class Node {
         this.segment = new SegmentPrototype(this, planet, tileZoom, extent);
         this._cameraInside = false;
         this.inFrustum = 0;
+        this._fadingNodes = [];
         this.createBounds();
     }
 
@@ -389,24 +391,37 @@ class Node {
     public refreshTransitionOpacity() {
         // Light up the node
         if (this.prevState !== RENDERING) {
+
+            this._fadingNodes = [];
+
             let timestamp = window.performance.now();
             this.segment._transitionTimestamp = timestamp;
 
-            //if (this.segment._transitionOpacity === 1) {
             this.segment._transitionOpacity = 0.0;
-            //}
 
             if (this.parentNode) {
-                this.parentNode.segment._transitionOpacity = 2.0;
-                this.parentNode.segment._transitionTimestamp = timestamp;
+                // Make parent fading
+                if (this.parentNode.prevState === RENDERING) {
+                    this._fadingNodes.push(this.parentNode);
+                    this.parentNode.segment._transitionOpacity = 2.0;
+                    this.parentNode.segment._transitionTimestamp = timestamp;
+                } else {
+                    this.parentNode.segment._transitionOpacity = 0.0;
+                }
             }
 
             for (let i = 0; i < this.nodes.length; i++) {
                 let ni = this.nodes[i];
-                ni.segment._transitionTimestamp = timestamp;
-                ni.segment._transitionOpacity = 2.0;
-                ni.prevState = ni.state;
-                ni.state = NOTRENDERING;
+                // Make child fading
+                if (ni.prevState === RENDERING) {
+                    this._fadingNodes.push(ni);
+                    ni.segment._transitionTimestamp = timestamp;
+                    ni.segment._transitionOpacity = 2.0;
+                    ni.prevState = ni.state;
+                    ni.state = NOTRENDERING;
+                } else {
+                    ni.segment._transitionOpacity = 0.0;
+                }
             }
         }
     }
