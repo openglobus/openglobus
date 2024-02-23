@@ -1283,42 +1283,35 @@ export class Planet extends RenderNode {
         /** @optimiation: Implement into Node.addToRender */
         for (let i = 0; i < this._renderedNodes.length; i++) {
             const ri = this._renderedNodes[i];
+
             ri.refreshTransitionOpacity();
-            ri.segment.increaseTransitionOpacity();
 
-            for (let i = 0; i < ri._fadingNodes.length; i++) {
-                let n = ri._fadingNodes[i];
-                if (n.segment) {
-                    if (!this._fadingNodes.has(n.nodeId) && n.segment._transitionOpacity !== 0) {
-                        this._fadingNodes.set(n.nodeId, n);
+            if (ri._fadingNodes.length === 0) {
+                ri.segment._transitionOpacity = 1.0;
+            } else {
+                ri.segment.increaseTransitionOpacity();
+
+                if (ri._fadingNodes.length === 4 && !ri.childrenPrevStateEquals(RENDERING)) {
+                    ri.segment._transitionOpacity = 1.0;
+                } else
+
+                    for (let i = 0; i < ri._fadingNodes.length; i++) {
+                        let n = ri._fadingNodes[i];
+                        if (n.segment) {
+                            if (n.segment._transitionOpacity > 0) {
+                                if (!this._fadingNodes.has(n.nodeId)) {
+                                    this._fadingNodes.set(n.nodeId, n);
+                                }
+                                n.segment.fadingTransitionOpacity();
+                            }
+                        } else {
+                            ri.segment._transitionOpacity = 1.0;
+                            break;
+                        }
                     }
-                    n.segment.fadingTransitionOpacity();
-                }
+
             }
-            //let n = ri.parentNode;
-
-            // if (n && n.segment._transitionOpacity > 0.0) {
-            //
-            //     if (!this._fadingNodes.has(n.nodeId)) {
-            //         this._fadingNodes.set(n.nodeId, n);
-            //     }
-            //
-            //     n.segment.fadingTransitionOpacity();
-            //
-            // } else if (ri.segment.childrenInitialized() && ri.childrenPrevStateContain(RENDERING)) {
-            //
-            //     // Fading children nodes
-            //     for (let i = 0; i < ri.nodes.length; i++) {
-            //         let n = ri.nodes[i];
-            //         if (n.segment._transitionOpacity > 0) {
-            //             this._fadingNodes.set(n.nodeId, n);
-            //         }
-            //         n.segment.fadingTransitionOpacity();
-            //     }
-            // }
         }
-
-        console.log("clear", this._fadingNodes.size);
     }
 
     protected _renderScreenNodesPASSNoAtmos() {
@@ -1332,7 +1325,6 @@ export class Planet extends RenderNode {
         let sh = this._setUniformsAtmos(cam);
 
         let fadingNodes = Array.from(this._fadingNodes.values());
-        console.log("LEN", fadingNodes.length)
 
         let currentNodes = this._renderedNodesInFrustum[cam.currentFrustumIndex];
 
@@ -1609,7 +1601,7 @@ export class Planet extends RenderNode {
             }
         }
 
-        console.log("_renderingScreenNodes", this._fadingNodes.size);
+        console.log(this._fadingNodes.size);
 
         let isEq = this.terrain!.equalizeVertices;
         let i = renderedNodes.length;

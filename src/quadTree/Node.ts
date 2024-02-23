@@ -383,21 +383,21 @@ class Node {
         this.addToRender(inFrustum);
     }
 
-    public childrenPrevStateContain(state: number): boolean {
+    public childrenPrevStateEquals(state: number): boolean {
         let n = this.nodes;
-        return n[0].prevState === state || n[1].prevState === state || n[2].prevState === state || n[3].prevState === state;
+        return n.length === 4 && n[0].prevState === state && n[1].prevState === state && n[2].prevState === state && n[3].prevState === state;
     }
 
     public refreshTransitionOpacity() {
         // Light up the node
         if (this.prevState !== RENDERING) {
 
+            this.segment._transitionOpacity = 0.0;
+
             this._fadingNodes = [];
 
             let timestamp = window.performance.now();
             this.segment._transitionTimestamp = timestamp;
-
-            this.segment._transitionOpacity = 0.0;
 
             if (this.parentNode) {
                 // Make parent fading
@@ -406,21 +406,35 @@ class Node {
                     this.parentNode.segment._transitionOpacity = 2.0;
                     this.parentNode.segment._transitionTimestamp = timestamp;
                 } else {
-                    this.parentNode.segment._transitionOpacity = 0.0;
-                }
-            }
+                    //this.parentNode.segment._transitionOpacity = 0.0;
+                    //this.parentNode.segment._transitionTimestamp = timestamp;
 
-            for (let i = 0; i < this.nodes.length; i++) {
-                let ni = this.nodes[i];
-                // Make child fading
-                if (ni.prevState === RENDERING) {
-                    this._fadingNodes.push(ni);
-                    ni.segment._transitionTimestamp = timestamp;
-                    ni.segment._transitionOpacity = 2.0;
-                    ni.prevState = ni.state;
-                    ni.state = NOTRENDERING;
-                } else {
-                    ni.segment._transitionOpacity = 0.0;
+                    if (this.segment.childrenInitialized() && this.childrenPrevStateEquals(RENDERING)) {
+                        for (let i = 0; i < this.nodes.length; i++) {
+                            let ni = this.nodes[i];
+                            this._fadingNodes.push(ni);
+                            ni.segment._transitionTimestamp = timestamp;
+                            ni.segment._transitionOpacity = 2.0;
+                            ni.prevState = ni.state;
+                            ni.state = NOTRENDERING;
+                        }
+                    }
+                    // for (let i = 0; i < this.nodes.length; i++) {
+                    //     let ni = this.nodes[i];
+                    //     // Make child fading
+                    //     if (ni.prevState === RENDERING) {
+                    //         this._fadingNodes.push(ni);
+                    //         ni.segment._transitionTimestamp = timestamp;
+                    //         ni.segment._transitionOpacity = 2.0;
+                    //         ni.prevState = ni.state;
+                    //         ni.state = NOTRENDERING;
+                    //     } else {
+                    //         ni.segment._transitionTimestamp = timestamp;
+                    //         ni.segment._transitionOpacity = 0.0;
+                    //         ni.prevState = ni.state;
+                    //         ni.state = NOTRENDERING;
+                    //     }
+                    // }
                 }
             }
         }
@@ -824,7 +838,7 @@ class Node {
 
     public destroy() {
 
-        this.state = NOTRENDERING;
+        this.prevState = this.state = NOTRENDERING;
         this.segment.destroySegment();
 
         let n = this.neighbors;
