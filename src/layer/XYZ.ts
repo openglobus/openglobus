@@ -87,7 +87,6 @@ export class XYZ extends Layer {
     /**
      * Rewrites imagery tile url query.
      * @private
-     * @callback og.layer.XYZ~_urlRewriteCallback
      * @param {Segment} segment - Segment to load.
      * @param {string} url - Created url.
      * @returns {string} - Url query string.

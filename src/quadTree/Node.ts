@@ -381,27 +381,16 @@ class Node {
         this.addToRender(inFrustum);
     }
 
-    public nodesPrevStateContain(state: number): boolean {
+    public childrenPrevStateContain(state: number): boolean {
         let n = this.nodes;
-        return n[0].prevState == state || n[1].prevState == state || n[2].prevState == state || n[3].prevState == state;
+        return n[0].prevState === state || n[1].prevState === state || n[2].prevState === state || n[3].prevState === state;
     }
 
-    public nodesPrevStateEqual(state: number): boolean {
-        let n = this.nodes;
-        return n[0].prevState == state || n[1].prevState == state || n[2].prevState == state || n[3].prevState == state;
-    }
-
-    /**
-     * Searching for neighbours and picking up current node to render processing.
-     * @public
-     */
-    public addToRender(inFrustum: number) {
-        this.state = RENDERING;
-
+    public refreshTransitionOpacity() {
         // Light up the node
         if (this.prevState !== RENDERING) {
             let timestamp = window.performance.now();
-            this.segment._transitionTimestamp = timestamp
+            this.segment._transitionTimestamp = timestamp;
 
             //if (this.segment._transitionOpacity === 1) {
             this.segment._transitionOpacity = 0.0;
@@ -420,6 +409,16 @@ class Node {
                 ni.state = NOTRENDERING;
             }
         }
+    }
+
+    /**
+     * Searching for neighbours and picking up current node to render processing.
+     * @public
+     */
+    public addToRender(inFrustum: number) {
+        this.state = RENDERING;
+
+        //this.refreshTransitionOpacity();
 
         let nodes = this.planet._renderedNodes;
 
