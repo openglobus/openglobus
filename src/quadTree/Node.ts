@@ -231,9 +231,9 @@ class Node {
             return;
         }
 
-        if (!maxZoom) {
+        //if (!maxZoom) {
             this.prevState = this.state;
-        }
+        //}
         this.state = WALKTHROUGH;
 
         // @ts-ignore
@@ -394,49 +394,33 @@ class Node {
         // Light up the node
         if (this.prevState !== RENDERING) {
 
+            // means that the node is lighting up
             this.segment._transitionOpacity = 0.0;
 
+            // store fading nodes, could be a parent or children nodes
             this._fadingNodes = [];
 
             let timestamp = window.performance.now();
             this.segment._transitionTimestamp = timestamp;
 
             if (this.parentNode) {
-                // Make parent fading
+                // Parent was visible the last frame, make the parent fading
                 if (this.parentNode.prevState === RENDERING) {
                     this._fadingNodes.push(this.parentNode);
                     this.parentNode.segment._transitionOpacity = 2.0;
                     this.parentNode.segment._transitionTimestamp = timestamp;
                 } else {
-                    //this.parentNode.segment._transitionOpacity = 0.0;
-                    //this.parentNode.segment._transitionTimestamp = timestamp;
-
+                    // Check if the children were visible last frame, and make them fading
                     if (this.segment.childrenInitialized() && this.childrenPrevStateEquals(RENDERING)) {
                         for (let i = 0; i < this.nodes.length; i++) {
                             let ni = this.nodes[i];
                             this._fadingNodes.push(ni);
-                            ni.segment._transitionTimestamp = timestamp;
                             ni.segment._transitionOpacity = 2.0;
+                            ni.segment._transitionTimestamp = timestamp;
                             ni.prevState = ni.state;
                             ni.state = NOTRENDERING;
                         }
                     }
-                    // for (let i = 0; i < this.nodes.length; i++) {
-                    //     let ni = this.nodes[i];
-                    //     // Make child fading
-                    //     if (ni.prevState === RENDERING) {
-                    //         this._fadingNodes.push(ni);
-                    //         ni.segment._transitionTimestamp = timestamp;
-                    //         ni.segment._transitionOpacity = 2.0;
-                    //         ni.prevState = ni.state;
-                    //         ni.state = NOTRENDERING;
-                    //     } else {
-                    //         ni.segment._transitionTimestamp = timestamp;
-                    //         ni.segment._transitionOpacity = 0.0;
-                    //         ni.prevState = ni.state;
-                    //         ni.state = NOTRENDERING;
-                    //     }
-                    // }
                 }
             }
         }

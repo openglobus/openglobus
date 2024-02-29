@@ -427,7 +427,7 @@ export class Planet extends RenderNode {
         this._prevNodes = new Map<number, Node>();
         this._currNodes = new Map<number, Node>();
 
-        this.transitionTime = 1000;
+        this.transitionTime = 2000;
 
         this.ellipsoid = options.ellipsoid || wgs84;
 
@@ -1243,39 +1243,39 @@ export class Planet extends RenderNode {
 
         this.quadTreeStrategy.collectRenderNodes();
 
-        if (cam.slope > this.minEqualZoomCameraSlope && cam._lonLat.height < this.maxEqualZoomAltitude && cam._lonLat.height > this.minEqualZoomAltitude) {
-
-            this.minCurrZoom = this.maxCurrZoom;
-
-            let temp = this._renderedNodes,
-                rf = this._renderedNodesInFrustum,
-                temp2 = [];
-
-            this._clearRenderNodesInFrustum();
-            this._renderedNodes = [];
-
-            for (let i = 0, len = temp.length; i < len; i++) {
-                let ri = temp[i];
-                let ht = ri.segment.centerNormal.dot(cam._b);
-                if (ri.segment.tileZoom === this.maxCurrZoom || ht < HORIZON_TANGENT) {
-                    this._renderedNodes.push(ri);
-                    let k = 0, inFrustum = ri.inFrustum;
-                    while (inFrustum) {
-                        if (inFrustum & 1) {
-                            rf[k].push(ri);
-                        }
-                        k++;
-                        inFrustum >>= 1;
-                    }
-                } else {
-                    temp2.push(ri);
-                }
-            }
-
-            for (let i = 0, len = temp2.length; i < len; i++) {
-                temp2[i].renderTree(cam, this.maxCurrZoom, null);
-            }
-        }
+        // if (cam.slope > this.minEqualZoomCameraSlope && cam._lonLat.height < this.maxEqualZoomAltitude && cam._lonLat.height > this.minEqualZoomAltitude) {
+        //
+        //     this.minCurrZoom = this.maxCurrZoom;
+        //
+        //     let temp = this._renderedNodes,
+        //         rf = this._renderedNodesInFrustum,
+        //         temp2 = [];
+        //
+        //     this._clearRenderNodesInFrustum();
+        //     this._renderedNodes = [];
+        //
+        //     for (let i = 0, len = temp.length; i < len; i++) {
+        //         let ri = temp[i];
+        //         let ht = ri.segment.centerNormal.dot(cam._b);
+        //         if (ri.segment.tileZoom === this.maxCurrZoom || ht < HORIZON_TANGENT) {
+        //             this._renderedNodes.push(ri);
+        //             let k = 0, inFrustum = ri.inFrustum;
+        //             while (inFrustum) {
+        //                 if (inFrustum & 1) {
+        //                     rf[k].push(ri);
+        //                 }
+        //                 k++;
+        //                 inFrustum >>= 1;
+        //             }
+        //         } else {
+        //             temp2.push(ri);
+        //         }
+        //     }
+        //
+        //     for (let i = 0, len = temp2.length; i < len; i++) {
+        //         temp2[i].renderTree(cam, this.maxCurrZoom, null);
+        //     }
+        // }
 
 
         this._fadingNodes.clear();
@@ -1289,27 +1289,26 @@ export class Planet extends RenderNode {
             if (ri._fadingNodes.length === 0) {
                 ri.segment._transitionOpacity = 1.0;
             } else {
-                ri.segment.increaseTransitionOpacity();
+                //ri.segment.increaseTransitionOpacity();
 
                 if (ri._fadingNodes.length === 4 && !ri.childrenPrevStateEquals(RENDERING)) {
                     ri.segment._transitionOpacity = 1.0;
-                } else
-
+                } else {
                     for (let i = 0; i < ri._fadingNodes.length; i++) {
                         let n = ri._fadingNodes[i];
                         if (n.segment) {
                             if (n.segment._transitionOpacity > 0) {
                                 if (!this._fadingNodes.has(n.nodeId)) {
                                     this._fadingNodes.set(n.nodeId, n);
+                                    //n.segment.fadingTransitionOpacity();
                                 }
-                                n.segment.fadingTransitionOpacity();
                             }
                         } else {
                             ri.segment._transitionOpacity = 1.0;
                             break;
                         }
                     }
-
+                }
             }
         }
     }
@@ -1321,20 +1320,23 @@ export class Planet extends RenderNode {
     }
 
     protected _renderScreenNodesPASSAtmos() {
+        // let cam = this.renderer!.activeCamera as PlanetCamera;
+        // let sh = this._setUniformsAtmos(cam);
+        //
+        // let fadingNodes = Array.from(this._fadingNodes.values());
+        //
+        // let currentNodes = this._renderedNodesInFrustum[cam.currentFrustumIndex];
+        //
+        // let gl = this.renderer!.handler.gl!;
+        //
+        // gl.disable(gl.DEPTH_TEST);
+        // this._renderingScreenNodes(sh, cam, fadingNodes);
+        // gl.enable(gl.DEPTH_TEST);
+        //
+        // this._renderingScreenNodes(sh, cam, currentNodes);
+
         let cam = this.renderer!.activeCamera as PlanetCamera;
-        let sh = this._setUniformsAtmos(cam);
-
-        let fadingNodes = Array.from(this._fadingNodes.values());
-
-        let currentNodes = this._renderedNodesInFrustum[cam.currentFrustumIndex];
-
-        let gl = this.renderer!.handler.gl!;
-
-        gl.disable(gl.DEPTH_TEST);
-        this._renderingScreenNodes(sh, cam, fadingNodes);
-        gl.enable(gl.DEPTH_TEST);
-
-        this._renderingScreenNodes(sh, cam, currentNodes);
+        this._renderingScreenNodes(this._setUniformsAtmos(cam), cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
     }
 
     protected _globalPreDraw() {
@@ -1601,7 +1603,11 @@ export class Planet extends RenderNode {
             }
         }
 
-        console.log(this._fadingNodes.size);
+        //gl.disable(gl.DEPTH_TEST);
+        //gl.enable(gl.DEPTH_TEST);
+
+        let nodes = {};
+        let temp = [];
 
         let isEq = this.terrain!.equalizeVertices;
         let i = renderedNodes.length;
@@ -1609,24 +1615,31 @@ export class Planet extends RenderNode {
             let ri = renderedNodes[i];
             let s = ri.segment;
 
-            //gl.disable(gl.DEPTH_TEST);
-            //gl.enable(gl.DEPTH_TEST);
+            s.increaseTransitionOpacity();
 
-            // if (ri.parentNode) {
-            //     if (this._fadingNodes.has(ri.parentNode.nodeId)) {
-            //         ri.parentNode.segment.screenRendering(sh, sl[0], 0);
-            //     }
-            // }
-            //
-            // for (let i = 0; i < ri.nodes.length; i++) {
-            //     if (this._fadingNodes.has(ri.nodes[i].nodeId)) {
-            //         ri.nodes[i].segment.screenRendering(sh, sl[0], 0);
-            //     }
-            // }
+            for (let j = 0; j < ri._fadingNodes.length; j++) {
+                let f = ri._fadingNodes[j].segment;
+                if (this._fadingNodes.has(ri._fadingNodes[0].nodeId) && !nodes[f.node.nodeId]) {
+                    nodes[f.node.nodeId] = true;
+                    f.fadingTransitionOpacity();
+
+                    isEq && s.equalize();
+                    f.readyToEngage && f.engage();
+                    if (f._transitionOpacity < 1.0) {
+                        temp.push(f);
+                    } else {
+                        f.screenRendering(sh, sl[0], 0);
+                    }
+                }
+            }
 
             isEq && s.equalize();
             s.readyToEngage && s.engage();
             s.screenRendering(sh, sl[0], 0);
+        }
+
+        for (let j = 0; j < temp.length; j++) {
+            temp[j].screenRendering(sh, sl[0], 0);
         }
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
