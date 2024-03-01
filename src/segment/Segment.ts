@@ -1001,7 +1001,7 @@ class Segment {
 
     public childrenInitialized(): boolean {
         let n = this.node.nodes;
-        return n.length > 0 && n[0].segment.initialized && n[1].segment.initialized && n[2].segment.initialized && n[3].segment.initialized;
+        return n.length === 4 && n[0].segment.initialized && n[1].segment.initialized && n[2].segment.initialized && n[3].segment.initialized;
     }
 
     public destroySegment() {
