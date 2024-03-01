@@ -231,9 +231,9 @@ class Node {
             return;
         }
 
-        //if (!maxZoom) {
+        if (!maxZoom) {
             this.prevState = this.state;
-        //}
+        }
         this.state = WALKTHROUGH;
 
         // @ts-ignore
