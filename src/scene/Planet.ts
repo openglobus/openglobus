@@ -1322,8 +1322,26 @@ export class Planet extends RenderNode {
     }
 
     protected _renderScreenNodesPASSAtmos() {
+
+
         let cam = this.renderer!.activeCamera as PlanetCamera;
-        this._renderingScreenNodes(this._setUniformsAtmos(cam), cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
+        let sh = this._setUniformsAtmos(cam);
+
+        let fadingNodes = Array.from(this._fadingNodes.values());
+
+        let currentNodes = this._renderedNodesInFrustum[cam.currentFrustumIndex];
+
+        let gl = this.renderer!.handler.gl!;
+
+        gl.disable(gl.DEPTH_TEST);
+        this._renderingScreenNodes(sh, cam, fadingNodes);
+        gl.enable(gl.DEPTH_TEST);
+
+        this._renderingScreenNodes(sh, cam, currentNodes);
+
+
+        // let cam = this.renderer!.activeCamera as PlanetCamera;
+        // this._renderingScreenNodes(this._setUniformsAtmos(cam), cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
     }
 
     protected _globalPreDraw() {
@@ -1599,19 +1617,19 @@ export class Planet extends RenderNode {
             let ri = renderedNodes[i];
             let s = ri.segment;
 
-            for (let j = 0; j < ri._fadingNodes.length; j++) {
-                let f = ri._fadingNodes[j].segment;
-                if (this._fadingNodes.has(ri._fadingNodes[0].nodeId) && !nodes[f.node.nodeId]) {
-                    nodes[f.node.nodeId] = true;
-                    isEq && s.equalize();
-                    f.readyToEngage && f.engage();
-                    if (f._transitionOpacity < 1.0) {
-                        transparentSegments.push(f);
-                    } else {
-                        f.screenRendering(sh, sl[0], 0);
-                    }
-                }
-            }
+            // for (let j = 0; j < ri._fadingNodes.length; j++) {
+            //     let f = ri._fadingNodes[j].segment;
+            //     if (this._fadingNodes.has(ri._fadingNodes[0].nodeId) && !nodes[f.node.nodeId]) {
+            //         nodes[f.node.nodeId] = true;
+            //         isEq && s.equalize();
+            //         f.readyToEngage && f.engage();
+            //         if (f._transitionOpacity < 1.0) {
+            //             transparentSegments.push(f);
+            //         } else {
+            //             f.screenRendering(sh, sl[0], 0);
+            //         }
+            //     }
+            // }
 
             isEq && s.equalize();
             s.readyToEngage && s.engage();
