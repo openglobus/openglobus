@@ -213,27 +213,27 @@ class Node {
     //     return !(this.parentNode || node.parentNode) || (this.parentNode!.nodeId === node.parentNode!.nodeId);
     // }
 
-    public traverseNodes(cam: PlanetCamera, maxZoom?: number | null, terrainReadySegment?: Segment | null, stopLoading?: boolean) {
+    public traverseNodes(cam: PlanetCamera, maxZoom?: number | null, terrainReadySegment?: Segment | null, stopLoading?: boolean, zoomPassNode?: Node) {
         if (!this.ready) {
             this.createChildrenNodes();
         }
 
         let n = this.nodes;
 
-        n[0]!.renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
-        n[1]!.renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
-        n[2]!.renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
-        n[3]!.renderTree(cam, maxZoom, terrainReadySegment, stopLoading);
+        n[0]!.renderTree(cam, maxZoom, terrainReadySegment, stopLoading, zoomPassNode);
+        n[1]!.renderTree(cam, maxZoom, terrainReadySegment, stopLoading, zoomPassNode);
+        n[2]!.renderTree(cam, maxZoom, terrainReadySegment, stopLoading, zoomPassNode);
+        n[3]!.renderTree(cam, maxZoom, terrainReadySegment, stopLoading, zoomPassNode);
     }
 
-    public renderTree(cam: PlanetCamera, maxZoom?: number | null, terrainReadySegment?: Segment | null, stopLoading?: boolean) {
+    public renderTree(cam: PlanetCamera, maxZoom?: number | null, terrainReadySegment?: Segment | null, stopLoading?: boolean, zoomPassNode?: Node) {
         if (this.planet._renderedNodes.length >= MAX_RENDERED_NODES) {
             return;
         }
 
-        //if (!maxZoom) {
+        if (!maxZoom || zoomPassNode && this.segment.tileZoom > zoomPassNode.segment.tileZoom) {
             this.prevState = this.state;
-        //}
+        }
         this.state = WALKTHROUGH;
 
         // @ts-ignore
@@ -317,7 +317,7 @@ class Node {
             }
 
             if (seg.tileZoom < 2) {
-                this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading);
+                this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading, zoomPassNode);
             } else if (seg.terrainReady && (!maxZoom && cam.projectedSize(seg.bsphere.center, seg._plainRadius) < planet.lodSize || maxZoom && ((seg.tileZoom === maxZoom) || !altVis))) {
 
                 if (altVis) {
@@ -328,7 +328,7 @@ class Node {
                 }
 
             } else if (seg.terrainReady && seg.checkZoom() && (!maxZoom || cam.projectedSize(seg.bsphere.center, seg.bsphere.radius) > this.planet._maxLodSize)) {
-                this.traverseNodes(cam, maxZoom, seg, stopLoading);
+                this.traverseNodes(cam, maxZoom, seg, stopLoading, zoomPassNode);
             } else if (altVis) {
                 seg.passReady = maxZoom ? seg.terrainReady : false;
                 this.renderNode(this.inFrustum, !this.inFrustum, terrainReadySegment, stopLoading);
@@ -432,8 +432,6 @@ class Node {
      */
     public addToRender(inFrustum: number) {
         this.state = RENDERING;
-
-        //this.refreshTransitionOpacity();
 
         let nodes = this.planet._renderedNodes;
 

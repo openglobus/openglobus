@@ -1217,32 +1217,7 @@ export class Planet extends RenderNode {
         }
     }
 
-    /**
-     * Collects visible quad nodes.
-     * @protected
-     */
-    protected _collectRenderNodes() {
-        let cam = this.camera;
-        this._lodSize = math.lerp(cam.slope < 0.0 ? 0.0 : cam.slope, this._curLodSize, this._minLodSize);
-
-        cam._insideSegment = null;
-
-        // clear first
-        this._clearRenderedNodeList();
-        this._clearRenderNodesInFrustum();
-
-        this._viewExtent.southWest.set(180, 180);
-        this._viewExtent.northEast.set(-180, -180);
-
-        this._visibleNodes = {};
-        this._visibleNodesNorth = {};
-        this._visibleNodesSouth = {};
-
-        this.minCurrZoom = math.MAX;
-        this.maxCurrZoom = math.MIN;
-
-        this.quadTreeStrategy.collectRenderNodes();
-
+    protected _collectRenderedNodesMaxZoom(cam: PlanetCamera) {
         if (cam.slope > this.minEqualZoomCameraSlope && cam._lonLat.height < this.maxEqualZoomAltitude && cam._lonLat.height > this.minEqualZoomAltitude) {
 
             this.minCurrZoom = this.maxCurrZoom;
@@ -1273,10 +1248,41 @@ export class Planet extends RenderNode {
             }
 
             for (let i = 0, len = temp2.length; i < len; i++) {
-                temp2[i].renderTree(cam, this.maxCurrZoom, null);
+                temp2[i].renderTree(cam, this.maxCurrZoom, null, false, temp2[i]);
             }
         }
+    }
 
+    /**
+     * Collects visible quad nodes.
+     * @protected
+     */
+    protected _collectRenderNodes(cam: PlanetCamera) {
+        this._lodSize = math.lerp(cam.slope < 0.0 ? 0.0 : cam.slope, this._curLodSize, this._minLodSize);
+        cam._insideSegment = null;
+
+        // clear first
+        this._clearRenderedNodeList();
+        this._clearRenderNodesInFrustum();
+
+        this._viewExtent.southWest.set(180, 180);
+        this._viewExtent.northEast.set(-180, -180);
+
+        // todo: replace to camera
+        this._visibleNodes = {};
+        this._visibleNodesNorth = {};
+        this._visibleNodesSouth = {};
+
+        // todo: replace to camera
+        this.minCurrZoom = math.MAX;
+        this.maxCurrZoom = math.MIN;
+
+        this.quadTreeStrategy.collectRenderNodes();
+
+        this._collectRenderedNodesMaxZoom(cam);
+
+
+        // main camera effect
         this._fadingNodes.clear();
 
         /** @optimiation: Implement into Node.addToRender */
@@ -1357,7 +1363,7 @@ export class Planet extends RenderNode {
             this.camera.update();
 
             if (this._skipPreRender && this._collectRenderNodesIsActive) {
-                this._collectRenderNodes();
+                this._collectRenderNodes(this.camera);
             }
 
             this._skipPreRender = true;
