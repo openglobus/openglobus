@@ -35,9 +35,10 @@ import {Vec2, Vec3, Vec4, NumberArray2, NumberArray3, NumberArray4} from "../mat
 import {Vector} from "../layer/Vector";
 import {VectorTileCreator} from "../utils/VectorTileCreator";
 import {wgs84} from "../ellipsoid/wgs84";
-import {WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams} from "../webgl/Handler";
+import {WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams, WebGLContextExt} from "../webgl/Handler";
 import {Program} from "../webgl/Program";
-import {NOTRENDERING, RENDERING, WALKTHROUGH} from "../quadTree/quadTree";
+import {RENDERING} from "../quadTree/quadTree";
+import {Segment} from "../segment/Segment";
 
 export interface IPlanetParams {
     name?: string;
@@ -1324,24 +1325,24 @@ export class Planet extends RenderNode {
     protected _renderScreenNodesPASSAtmos() {
 
 
-        let cam = this.renderer!.activeCamera as PlanetCamera;
-        let sh = this._setUniformsAtmos(cam);
-
-        let fadingNodes = Array.from(this._fadingNodes.values());
-
-        let currentNodes = this._renderedNodesInFrustum[cam.currentFrustumIndex];
-
-        let gl = this.renderer!.handler.gl!;
-
-        gl.disable(gl.DEPTH_TEST);
-        this._renderingScreenNodes(sh, cam, fadingNodes);
-        gl.enable(gl.DEPTH_TEST);
-
-        this._renderingScreenNodes(sh, cam, currentNodes);
-
-
         // let cam = this.renderer!.activeCamera as PlanetCamera;
-        // this._renderingScreenNodes(this._setUniformsAtmos(cam), cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
+        // let sh = this._setUniformsAtmos(cam);
+        //
+        // let fadingNodes = Array.from(this._fadingNodes.values());
+        //
+        // let currentNodes = this._renderedNodesInFrustum[cam.currentFrustumIndex];
+        //
+        // let gl = this.renderer!.handler.gl!;
+        //
+        // gl.disable(gl.DEPTH_TEST);
+        // this._renderingScreenNodes(sh, cam, fadingNodes);
+        // gl.enable(gl.DEPTH_TEST);
+        //
+        // this._renderingScreenNodes(sh, cam, currentNodes);
+
+
+        let cam = this.renderer!.activeCamera as PlanetCamera;
+        this._renderingScreenNodes(this._setUniformsAtmos(cam), cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
     }
 
     protected _globalPreDraw() {
@@ -1588,6 +1589,36 @@ export class Planet extends RenderNode {
         return sh;
     }
 
+    protected _renderingFadingNodes(nodes: Map<number, boolean>, sh: Program, ri: Node, sl: Layer[], sliceIndex: number, outTransparentSegments?: Segment[]) {
+
+        let isEq = this.terrain!.equalizeVertices;
+        let s = ri.segment;
+        let gl = sh.gl!;
+
+        gl.disable(gl.DEPTH_TEST);
+        for (let j = 0; j < ri._fadingNodes.length; j++) {
+            let f = ri._fadingNodes[j].segment;
+            if (this._fadingNodes.has(ri._fadingNodes[0].nodeId) && !nodes.has(f.node.nodeId)) {
+                nodes.set(f.node.nodeId, true);
+                if (sliceIndex === 0) {
+                    isEq && s.equalize();
+                    f.readyToEngage && f.engage();
+                }
+                // if (f._transitionOpacity < 1.0) {
+                //     outTransparentSegments.push(f);
+                // } else {
+                //     f.screenRendering(sh, sl, sliceIndex);
+                // }
+                if (sliceIndex === 0) {
+                    f.screenRendering(sh, sl, sliceIndex);
+                } else {
+                    f.screenRendering(sh, sl, sliceIndex, this.transparentTexture, true);
+                }
+            }
+        }
+        gl.enable(gl.DEPTH_TEST);
+    }
+
     /**
      * Drawing nodes
      */
@@ -1608,29 +1639,18 @@ export class Planet extends RenderNode {
             }
         }
 
-        let nodes = {};
+        let nodes = new Map<number, boolean>;
         let transparentSegments = [];
 
         let isEq = this.terrain!.equalizeVertices;
         let i = renderedNodes.length;
+
+        // PASS 0 for a base slice of layers, which is often zero height
         while (i--) {
             let ri = renderedNodes[i];
+            this._renderingFadingNodes(nodes, sh, ri, sl[0], 0, transparentSegments);
+
             let s = ri.segment;
-
-            // for (let j = 0; j < ri._fadingNodes.length; j++) {
-            //     let f = ri._fadingNodes[j].segment;
-            //     if (this._fadingNodes.has(ri._fadingNodes[0].nodeId) && !nodes[f.node.nodeId]) {
-            //         nodes[f.node.nodeId] = true;
-            //         isEq && s.equalize();
-            //         f.readyToEngage && f.engage();
-            //         if (f._transitionOpacity < 1.0) {
-            //             transparentSegments.push(f);
-            //         } else {
-            //             f.screenRendering(sh, sl[0], 0);
-            //         }
-            //     }
-            // }
-
             isEq && s.equalize();
             s.readyToEngage && s.engage();
             s.screenRendering(sh, sl[0], 0,);
@@ -1651,10 +1671,19 @@ export class Planet extends RenderNode {
                 }
             }
 
+            transparentSegments = [];
+            nodes.clear();
+
             gl.polygonOffset(0, -j);
             i = renderedNodes.length;
             while (i--) {
-                renderedNodes[i].segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
+                let ri = renderedNodes[i];
+                this._renderingFadingNodes(nodes, sh, ri, sl[j], j, transparentSegments);
+                ri.segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
+            }
+
+            for (let k = 0; k < transparentSegments.length; k++) {
+                transparentSegments[k].screenRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
 
