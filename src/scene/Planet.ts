@@ -1589,33 +1589,53 @@ export class Planet extends RenderNode {
         return sh;
     }
 
-    protected _renderingFadingNodes(nodes: Map<number, boolean>, sh: Program, ri: Node, sl: Layer[], sliceIndex: number, outTransparentSegments?: Segment[]) {
+    protected _renderingFadingNodes = (nodes: Map<number, boolean>, sh: Program, ri: Node, sl: Layer[], sliceIndex: number, outTransparentSegments?: Segment[]) => {
 
+        let isFirstPass = sliceIndex === 0;
         let isEq = this.terrain!.equalizeVertices;
-        let s = ri.segment;
-        let gl = sh.gl!;
 
-        gl.disable(gl.DEPTH_TEST);
         for (let j = 0; j < ri._fadingNodes.length; j++) {
             let f = ri._fadingNodes[j].segment;
             if (this._fadingNodes.has(ri._fadingNodes[0].nodeId) && !nodes.has(f.node.nodeId)) {
                 nodes.set(f.node.nodeId, true);
-                if (sliceIndex === 0) {
-                    isEq && s.equalize();
-                    f.readyToEngage && f.engage();
+
+                if (f._transitionOpacity < 1.0) {
+                    outTransparentSegments!.push(f);
+                } else {
+                    if (isFirstPass) {
+                        isEq && f.equalize();
+                        f.readyToEngage && f.engage();
+                        f.screenRendering(sh, sl, sliceIndex);
+                    } else {
+                        f.screenRendering(sh, sl, sliceIndex, this.transparentTexture, true);
+                    }
                 }
-                // if (f._transitionOpacity < 1.0) {
-                //     outTransparentSegments.push(f);
-                // } else {
-                //     f.screenRendering(sh, sl, sliceIndex);
-                // }
-                if (sliceIndex === 0) {
+            }
+        }
+    }
+
+    protected _renderingFadingNodesNoDepth = (nodes: Map<number, boolean>, sh: Program, ri: Node, sl: Layer[], sliceIndex: number) => {
+
+        let isFirstPass = sliceIndex === 0;
+        let isEq = this.terrain!.equalizeVertices;
+        let gl = sh.gl!;
+
+        gl.disable(gl.DEPTH_TEST);
+
+        for (let j = 0; j < ri._fadingNodes.length; j++) {
+            let f = ri._fadingNodes[j].segment;
+            if (this._fadingNodes.has(ri._fadingNodes[0].nodeId) && !nodes.has(f.node.nodeId)) {
+                nodes.set(f.node.nodeId, true);
+                if (isFirstPass) {
+                    isEq && f.equalize();
+                    f.readyToEngage && f.engage();
                     f.screenRendering(sh, sl, sliceIndex);
                 } else {
                     f.screenRendering(sh, sl, sliceIndex, this.transparentTexture, true);
                 }
             }
         }
+
         gl.enable(gl.DEPTH_TEST);
     }
 
@@ -1640,26 +1660,37 @@ export class Planet extends RenderNode {
         }
 
         let nodes = new Map<number, boolean>;
-        let transparentSegments = [];
+        let transparentSegments: Segment[] = [];
 
         let isEq = this.terrain!.equalizeVertices;
         let i = renderedNodes.length;
+        let _renderingFadingNodes = this._renderingFadingNodes;
 
-        // PASS 0 for a base slice of layers, which is often zero height
+        //
+        // PASS 0: rendering base slice of layers, which is often zero height
         while (i--) {
             let ri = renderedNodes[i];
-            this._renderingFadingNodes(nodes, sh, ri, sl[0], 0, transparentSegments);
-
             let s = ri.segment;
+
+            _renderingFadingNodes(nodes, sh, ri, sl[0], 0, transparentSegments);
+
             isEq && s.equalize();
             s.readyToEngage && s.engage();
+
             s.screenRendering(sh, sl[0], 0,);
         }
 
         for (let j = 0; j < transparentSegments.length; j++) {
-            transparentSegments[j].screenRendering(sh, sl[0], 0);
+            let tj = transparentSegments[j];
+
+            isEq && tj.equalize();
+            tj.readyToEngage && tj.engage();
+
+            tj.screenRendering(sh, sl[0], 0);
         }
 
+        //
+        // PASS 1: rendering slices, and layers with heights
         gl.enable(gl.POLYGON_OFFSET_FILL);
 
         for (let j = 1, len = sl.length; j < len; j++) {
@@ -1678,7 +1709,7 @@ export class Planet extends RenderNode {
             i = renderedNodes.length;
             while (i--) {
                 let ri = renderedNodes[i];
-                this._renderingFadingNodes(nodes, sh, ri, sl[j], j, transparentSegments);
+                _renderingFadingNodes(nodes, sh, ri, sl[j], j, transparentSegments);
                 ri.segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
             }
 
