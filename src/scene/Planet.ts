@@ -1299,10 +1299,11 @@ export class Planet extends RenderNode {
         // main camera effect
         this._fadingNodes.clear();
 
-        /** @optimiation: Implement into Node.addToRender */
         if (this._transitionOpacityEnabled) {
             for (let i = 0; i < this._renderedNodes.length; i++) {
                 const ri = this._renderedNodes[i];
+                // it's not impossible to move the code into addToRender, because
+                // we need to know actual state after _collectRenderedNodesMaxZoom
                 ri._collectFadingNodes();
                 ri._refreshTransitionOpacity();
             }
