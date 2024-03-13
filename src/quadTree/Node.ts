@@ -396,7 +396,7 @@ class Node {
         if (this.prevState !== RENDERING) {
 
             // means that the node is lighting up
-            this.segment._transitionOpacity = 0.0; // 1.0 - disable
+            this.segment._transitionOpacity = 0.0;
 
             // store fading nodes, could be a parent or children nodes
             this._fadingNodes = [];
@@ -408,7 +408,7 @@ class Node {
                 // Parent was visible the last frame, make the parent fading
                 if (this.parentNode.prevState === RENDERING) {
                     this._fadingNodes.push(this.parentNode);
-                    this.parentNode.segment._transitionOpacity = 2.0; // 0.0 - disable
+                    this.parentNode.segment._transitionOpacity = 2.0;
                     this.parentNode.segment._transitionTimestamp = timestamp;
                 } else {
                     // Check if the children were visible last frame, and make them fading
@@ -416,7 +416,7 @@ class Node {
                         for (let i = 0; i < this.nodes.length; i++) {
                             let ni = this.nodes[i];
                             this._fadingNodes.push(ni);
-                            ni.segment._transitionOpacity = 2.0; // 0.0 - disable
+                            ni.segment._transitionOpacity = 2.0;
                             ni.segment._transitionTimestamp = timestamp;
                             ni.prevState = ni.state;
                             ni.state = NOTRENDERING;

@@ -59,6 +59,7 @@ export interface IPlanetParams {
     maxGridSize?: number;
     maxLoadingRequests?: number;
     atmosphereEnabled?: boolean;
+    transitionOpacityEnabled?: boolean;
 }
 
 export type PlanetEventsList = [
@@ -422,6 +423,8 @@ export class Planet extends RenderNode {
     public _prevNodes: Map<number, Node>;
     public _currNodes: Map<number, Node>;
 
+    protected _transitionOpacityEnabled: boolean;
+
     constructor(options: IPlanetParams = {}) {
         super(options.name);
 
@@ -580,6 +583,8 @@ export class Planet extends RenderNode {
 
         this._nightTextureSrc = options.nightTextureSrc || null;
         this._specularTextureSrc = options.specularTextureSrc || null;
+
+        this._transitionOpacityEnabled = options.transitionOpacityEnabled != undefined ? options.transitionOpacityEnabled : true;
     }
 
     /**
@@ -1254,6 +1259,15 @@ export class Planet extends RenderNode {
         }
     }
 
+    public set transitionOpacityEnabled(isEnabled: boolean) {
+        this._transitionOpacityEnabled = isEnabled;
+        //@todo: set render nodes transition opacity to one
+    }
+
+    public get transitionOpacityEnabled(): boolean {
+        return this._transitionOpacityEnabled;
+    }
+
     /**
      * Collects visible quad nodes.
      * @protected
@@ -1282,18 +1296,17 @@ export class Planet extends RenderNode {
 
         this._collectRenderedNodesMaxZoom(cam);
 
-
         // main camera effect
         this._fadingNodes.clear();
 
         /** @optimiation: Implement into Node.addToRender */
-        //if(this.transitionOpacityEnabled){
-        for (let i = 0; i < this._renderedNodes.length; i++) {
-            const ri = this._renderedNodes[i];
-            ri._collectFadingNodes();
-            ri._refreshTransitionOpacity();
+        if (this._transitionOpacityEnabled) {
+            for (let i = 0; i < this._renderedNodes.length; i++) {
+                const ri = this._renderedNodes[i];
+                ri._collectFadingNodes();
+                ri._refreshTransitionOpacity();
+            }
         }
-        //}
     }
 
     protected _renderScreenNodesPASSNoAtmos() {

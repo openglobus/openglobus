@@ -41,7 +41,7 @@ interface IGlobeParams {
     quadTreeStrategyPrototype?: any;
     maxLoadingRequests?: number;
     atmosphereEnabled?: boolean;
-
+    transitionOpacityEnabled?: boolean;
     terrain?: EmptyTerrain;
     controls?: Control[];
     useEarthNavigation?: boolean;
@@ -114,6 +114,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {number} [options.msaa=0] - MSAA antialiasing parameter: 2,4,8,16. Default is 0.
  * @param {number} [options.dpi] - Device pixel ratio. Default is current screen DPI.
  * @param {boolean} [options.atmosphereEnabled] - Enables atmosphere effect.
+ * @param {boolean} [options.transtitionOpacityEnabled] - Enables terrain smooth opacity transition effect.
  */
 
 class Globe {
@@ -238,7 +239,8 @@ class Globe {
             minEqualZoomCameraSlope: options.minEqualZoomCameraSlope,
             quadTreeStrategyPrototype: options.quadTreeStrategyPrototype,
             maxLoadingRequests: options.maxLoadingRequests,
-            atmosphereEnabled: options.atmosphereEnabled
+            atmosphereEnabled: options.atmosphereEnabled,
+            transitionOpacityEnabled: options.transitionOpacityEnabled
         });
 
         // Attach terrain provider (can be one object or array)
