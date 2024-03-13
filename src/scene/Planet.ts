@@ -1287,34 +1287,13 @@ export class Planet extends RenderNode {
         this._fadingNodes.clear();
 
         /** @optimiation: Implement into Node.addToRender */
+        //if(this.transitionOpacityEnabled){
         for (let i = 0; i < this._renderedNodes.length; i++) {
             const ri = this._renderedNodes[i];
-
-            ri.refreshTransitionOpacity();
-
-            if (ri._fadingNodes.length === 0) {
-                ri.segment._transitionOpacity = 1.0;
-            } else {
-                ri.segment.increaseTransitionOpacity();
-
-                if (ri._fadingNodes.length === 4 && !ri.childrenPrevStateEquals(RENDERING)) {
-                    ri.segment._transitionOpacity = 1.0;
-                } else {
-                    for (let i = 0; i < ri._fadingNodes.length; i++) {
-                        let n = ri._fadingNodes[i];
-                        if (n.segment) {
-                            if (n.segment._transitionOpacity > 0 && !this._fadingNodes.has(n.nodeId)) {
-                                this._fadingNodes.set(n.nodeId, n);
-                                n.segment.fadingTransitionOpacity();
-                            }
-                        } else {
-                            ri.segment._transitionOpacity = 1.0;
-                            break;
-                        }
-                    }
-                }
-            }
+            ri._collectFadingNodes();
+            ri._refreshTransitionOpacity();
         }
+        //}
     }
 
     protected _renderScreenNodesPASSNoAtmos() {

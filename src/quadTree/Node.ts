@@ -390,7 +390,8 @@ class Node {
         return n.length === 4 && n[0].prevState === state && n[1].prevState === state && n[2].prevState === state && n[3].prevState === state;
     }
 
-    public refreshTransitionOpacity() {
+    public _collectFadingNodes() {
+
         // Light up the node
         if (this.prevState !== RENDERING) {
 
@@ -420,6 +421,32 @@ class Node {
                             ni.prevState = ni.state;
                             ni.state = NOTRENDERING;
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    public _refreshTransitionOpacity() {
+
+        if (this._fadingNodes.length === 0) {
+            this.segment._transitionOpacity = 1.0;
+        } else {
+            this.segment.increaseTransitionOpacity();
+
+            if (this._fadingNodes.length === 4 && !this.childrenPrevStateEquals(RENDERING)) {
+                this.segment._transitionOpacity = 1.0;
+            } else {
+                for (let i = 0; i < this._fadingNodes.length; i++) {
+                    let n = this._fadingNodes[i];
+                    if (n.segment) {
+                        if (n.segment._transitionOpacity > 0 && !this.planet._fadingNodes.has(n.nodeId)) {
+                            this.planet._fadingNodes.set(n.nodeId, n);
+                            n.segment.fadingTransitionOpacity();
+                        }
+                    } else {
+                        this.segment._transitionOpacity = 1.0;
+                        break;
                     }
                 }
             }
