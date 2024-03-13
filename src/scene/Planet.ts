@@ -1323,24 +1323,6 @@ export class Planet extends RenderNode {
     }
 
     protected _renderScreenNodesPASSAtmos() {
-
-
-        // let cam = this.renderer!.activeCamera as PlanetCamera;
-        // let sh = this._setUniformsAtmos(cam);
-        //
-        // let fadingNodes = Array.from(this._fadingNodes.values());
-        //
-        // let currentNodes = this._renderedNodesInFrustum[cam.currentFrustumIndex];
-        //
-        // let gl = this.renderer!.handler.gl!;
-        //
-        // gl.disable(gl.DEPTH_TEST);
-        // this._renderingScreenNodes(sh, cam, fadingNodes);
-        // gl.enable(gl.DEPTH_TEST);
-        //
-        // this._renderingScreenNodes(sh, cam, currentNodes);
-
-
         let cam = this.renderer!.activeCamera as PlanetCamera;
         this._renderingScreenNodes(this._setUniformsAtmos(cam), cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
     }
@@ -1666,7 +1648,7 @@ export class Planet extends RenderNode {
         let i = renderedNodes.length;
         let _renderingFadingNodes = this._renderingFadingNodes;
 
-        if (cam.slope > 0.7 || cam.getAltitude() > 10000) {
+        if (cam.slope > 0.78 || cam.getAltitude() > 10000) {
             _renderingFadingNodes = this._renderingFadingNodesNoDepth;
         }
 
