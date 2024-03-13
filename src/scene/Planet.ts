@@ -1666,6 +1666,10 @@ export class Planet extends RenderNode {
         let i = renderedNodes.length;
         let _renderingFadingNodes = this._renderingFadingNodes;
 
+        if (cam.slope > 0.5 || cam.getAltitude() > 10000) {
+            _renderingFadingNodes = this._renderingFadingNodesNoDepth;
+        }
+
         //
         // PASS 0: rendering base slice of layers, which is often zero height
         while (i--) {
