@@ -833,11 +833,12 @@ class Segment {
 
     public _normalMapEdgeEqualize(side: number) {
         let nn = this.node.neighbors;
-        let n: Node | undefined = nn[side][0];
+        let nns = nn[side];
+        let n: Node | undefined = nns && nns[0];
         let maxZ = this.planet.terrain!.maxZoom;
 
         if (this.tileZoom === maxZ) {
-            if (!(nn[0].length || nn[1].length || nn[2].length || nn[3].length)) {
+            if (nns && !(nn[0].length || nn[1].length || nn[2].length || nn[3].length)) {
                 n = this.node.getEqualNeighbor(side);
             }
         }
