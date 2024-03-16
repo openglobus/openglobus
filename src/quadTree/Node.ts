@@ -454,47 +454,15 @@ class Node {
     }
 
     /**
-     * Searching for neighbours and picking up current node to render processing.
+     * Picking up current node to render processing.
      * @public
      */
     public addToRender(inFrustum: number) {
         this.state = RENDERING;
 
-        let nodes = this.planet._renderedNodes;
+        this.getRenderedNodesNeighbors();
 
-        for (let i = nodes.length - 1; i >= 0; --i) {
-            const ni = nodes[i];
-            const cs = this.getCommonSide(ni);
-
-            if (cs !== -1) {
-                const opcs = OPSIDE[cs];
-
-                if (this.neighbors[cs].length === 0 || ni.neighbors[opcs].length === 0) {
-                    const ap = this.segment;
-                    const bp = ni.segment;
-                    const ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.tileZoom - ap.tileZoom));
-
-                    let cs_size = ap.gridSize,
-                        opcs_size = bp.gridSize;
-
-                    if (ld > 1) {
-                        cs_size = Math.ceil(ap.gridSize / ld);
-                        opcs_size = bp.gridSize;
-                    } else if (ld < 1) {
-                        cs_size = ap.gridSize;
-                        opcs_size = Math.ceil(bp.gridSize * ld);
-                    }
-
-                    this.sideSizeLog2[cs] = Math.log2(cs_size);
-                    ni.sideSizeLog2[opcs] = Math.log2(opcs_size);
-                }
-
-                this.neighbors[cs].push(ni);
-                ni.neighbors[opcs].push(this);
-            }
-        }
-
-        nodes.push(this);
+        this.planet._renderedNodes.push(this);
 
         if (!this.segment.terrainReady) {
             this.planet._renderCompleted = false;
@@ -512,6 +480,58 @@ class Node {
         }
     }
 
+    public applyNeighbor(node: Node, side: number) {
+
+        const opcs = OPSIDE[side];
+
+        if (this.neighbors[side].length === 0 || node.neighbors[opcs].length === 0) {
+            const ap = this.segment;
+            const bp = node.segment;
+
+            const ld = ap.gridSize / (bp.gridSize * Math.pow(2, bp.tileZoom - ap.tileZoom));
+
+            let cs_size = ap.gridSize,
+                opcs_size = bp.gridSize;
+
+            if (ld > 1) {
+                cs_size = Math.ceil(ap.gridSize / ld);
+                opcs_size = bp.gridSize;
+            } else if (ld < 1) {
+                cs_size = ap.gridSize;
+                opcs_size = Math.ceil(bp.gridSize * ld);
+            }
+
+            this.sideSizeLog2[side] = Math.log2(cs_size);
+            node.sideSizeLog2[opcs] = Math.log2(opcs_size);
+        }
+
+        this.neighbors[side].push(node);
+        node.neighbors[opcs].push(this);
+    }
+
+    /**
+     * Searching current node for its neighbours.
+     * @public
+     */
+    public getRenderedNodesNeighbors() {
+
+        let nodes = this.planet._renderedNodes;
+
+        for (let i = nodes.length - 1; i >= 0; --i) {
+            const ni = nodes[i];
+            const cs = this.getCommonSide(ni);
+
+            if (cs !== -1) {
+                this.applyNeighbor(ni, cs);
+            }
+        }
+    }
+
+    /**
+     * Checking if current node has a common side with input node and return side index N, E, S or W. Otherwise returns -1.
+     * @param {Node} node - Input node
+     * @returns {number} - Node side index
+     */
     public getCommonSide(node: Node): number {
         const as = this.segment;
         const bs = node.segment;

@@ -1303,7 +1303,7 @@ export class Planet extends RenderNode {
             for (let i = 0; i < this._renderedNodes.length; i++) {
                 const ri = this._renderedNodes[i];
                 // it's not impossible to move the code into addToRender, because
-                // we need to know actual state after _collectRenderedNodesMaxZoom
+                // we cant know actual state before _collectRenderedNodesMaxZoom pass
                 ri._collectFadingNodes();
                 ri._refreshTransitionOpacity();
             }
@@ -1564,14 +1564,14 @@ export class Planet extends RenderNode {
         return sh;
     }
 
-    protected _renderingFadingNodes = (nodes: Map<number, boolean>, sh: Program, ri: Node, sl: Layer[], sliceIndex: number, outTransparentSegments?: Segment[]) => {
+    protected _renderingFadingNodes = (nodes: Map<number, boolean>, sh: Program, currentNode: Node, sl: Layer[], sliceIndex: number, outTransparentSegments?: Segment[]) => {
 
         let isFirstPass = sliceIndex === 0;
         let isEq = this.terrain!.equalizeVertices;
 
-        for (let j = 0; j < ri._fadingNodes.length; j++) {
-            let f = ri._fadingNodes[j].segment;
-            if (this._fadingNodes.has(ri._fadingNodes[0].nodeId) && !nodes.has(f.node.nodeId)) {
+        for (let j = 0, len = currentNode._fadingNodes.length; j < len; j++) {
+            let f = currentNode._fadingNodes[j].segment;
+            if (this._fadingNodes.has(currentNode._fadingNodes[0].nodeId) && !nodes.has(f.node.nodeId)) {
                 nodes.set(f.node.nodeId, true);
 
                 if (f._transitionOpacity < 1.0) {
@@ -1589,7 +1589,7 @@ export class Planet extends RenderNode {
         }
     }
 
-    protected _renderingFadingNodesNoDepth = (nodes: Map<number, boolean>, sh: Program, ri: Node, sl: Layer[], sliceIndex: number) => {
+    protected _renderingFadingNodesNoDepth = (nodes: Map<number, boolean>, sh: Program, currentNode: Node, sl: Layer[], sliceIndex: number) => {
 
         let isFirstPass = sliceIndex === 0;
         let isEq = this.terrain!.equalizeVertices;
@@ -1597,9 +1597,9 @@ export class Planet extends RenderNode {
 
         gl.disable(gl.DEPTH_TEST);
 
-        for (let j = 0; j < ri._fadingNodes.length; j++) {
-            let f = ri._fadingNodes[j].segment;
-            if (this._fadingNodes.has(ri._fadingNodes[0].nodeId) && !nodes.has(f.node.nodeId)) {
+        for (let j = 0, len = currentNode._fadingNodes.length; j < len; j++) {
+            let f = currentNode._fadingNodes[j].segment;
+            if (this._fadingNodes.has(currentNode._fadingNodes[0].nodeId) && !nodes.has(f.node.nodeId)) {
                 nodes.set(f.node.nodeId, true);
                 if (isFirstPass) {
                     isEq && f.equalize();

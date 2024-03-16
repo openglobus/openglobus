@@ -365,7 +365,6 @@ class Segment {
         this._transitionOpacity = 1.0;
 
         this._transitionTimestamp = 0;
-
     }
 
     public checkZoom(): boolean {
