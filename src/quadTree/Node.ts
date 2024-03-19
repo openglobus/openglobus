@@ -460,9 +460,11 @@ class Node {
     public addToRender(inFrustum: number) {
         this.state = RENDERING;
 
-        this.getRenderedNodesNeighbors();
+        let nodes = this.planet._renderedNodes;
 
-        this.planet._renderedNodes.push(this);
+        this.getRenderedNodesNeighbors(nodes);
+
+        nodes.push(this);
 
         if (!this.segment.terrainReady) {
             this.planet._renderCompleted = false;
@@ -513,11 +515,10 @@ class Node {
      * Searching current node for its neighbours.
      * @public
      */
-    public getRenderedNodesNeighbors() {
-
-        let nodes = this.planet._renderedNodes;
+    public getRenderedNodesNeighbors(nodes: Node[]) {
 
         for (let i = nodes.length - 1; i >= 0; --i) {
+
             const ni = nodes[i];
             const cs = this.getCommonSide(ni);
 
