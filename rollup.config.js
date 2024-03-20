@@ -19,7 +19,7 @@ const DEV = [{
     plugins: [
         json(),
         typescript({ tsconfig: './tsconfig.json' }),
-        terser({ format: { comments: false } }),
+        //terser({ format: { comments: false } }),
         copy({
             targets: [{ src: './res', dest: './lib/@openglobus/' }]
         })

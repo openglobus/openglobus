@@ -93,7 +93,7 @@ const globus = new Globe({
     //terrain: highResTerrain,
     terrain: new GlobusTerrain(),
     //layers: [sat, st],
-    layers: [sat],
+    layers: [osm],
     atmosphereEnabled: true,
     fontsSrc: "../../res/fonts",
     //viewExtent: [8.077, 46.69, 8.77, 46.83]
@@ -102,9 +102,9 @@ const globus = new Globe({
 //globus.planet.addControl(new control.ElevationProfileControl());
 window.LonLat = LonLat;
 //globus.planet.addControl(new control.DebugInfo());
-//globus.planet.addControl(new control.KeyboardNavigation());
+globus.planet.addControl(new control.KeyboardNavigation());
 globus.planet.addControl(new control.TimelineControl());
 globus.planet.addControl(new control.Lighting());
 globus.planet.addControl(new control.DebugInfo());
 globus.planet.addControl(new control.ElevationProfileControl());
-//globus.planet.addControl(new control.ToggleWireframe());
+globus.planet.addControl(new control.ToggleWireframe());

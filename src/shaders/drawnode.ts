@@ -323,7 +323,9 @@ export function drawnode_screen_wl_webgl2NoAtmos(): Program {
             specular: "vec4",
 
             camHeight: "float",
-            nightTextureCoefficient: "float"
+            nightTextureCoefficient: "float",
+
+            transitionOpacity: "float"
         }, attributes: {
             aVertexPositionHigh: "vec3",
             aVertexPositionLow: "vec3",
@@ -401,6 +403,8 @@ export function drawnode_screen_wl_webgl2NoAtmos(): Program {
 
             uniform int samplerCount;
             uniform float nightTextureCoefficient;
+            
+            uniform float transitionOpacity;
                 
             uniform float camHeight;
 
@@ -452,8 +456,10 @@ export function drawnode_screen_wl_webgl2NoAtmos(): Program {
                 vec4 lightWeighting = vec4(ambient + diffuse * diffuseLightWeighting + night, 1.0);
                 
                 diffuseColor = texture( defaultTexture, vTextureCoord.xy );
+                
                 if( samplerCount == 0 ) {
                     diffuseColor = diffuseColor * lightWeighting + vec4(spec, 0.0);
+                    diffuseColor *= transitionOpacity;
                     return;
                 }
 
@@ -462,29 +468,34 @@ export function drawnode_screen_wl_webgl2NoAtmos(): Program {
                 blend(diffuseColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
                 if( samplerCount == 1 ) {                
                     diffuseColor = diffuseColor * lightWeighting + vec4(spec, 0.0);
+                    diffuseColor *= transitionOpacity;
                     return;
                 }
 
                 blend(diffuseColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
                 if( samplerCount == 2 ) {
                     diffuseColor = diffuseColor * lightWeighting + vec4(spec, 0.0);
+                    diffuseColor *= transitionOpacity;
                     return;
                 }
 
                 blend(diffuseColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
                 if( samplerCount == 3 ) {
                     diffuseColor = diffuseColor * lightWeighting + vec4(spec, 0.0);
+                    diffuseColor *= transitionOpacity;
                     return;
                 }
 
                 blend(diffuseColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
                 if( samplerCount == 4 ) {
                     diffuseColor = diffuseColor * lightWeighting + vec4(spec, 0.0);
+                    diffuseColor *= transitionOpacity;
                     return;
                 }
 
                 blend(diffuseColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
                 diffuseColor = diffuseColor * lightWeighting + vec4(spec, 0.0);
+                diffuseColor *= transitionOpacity;
             }`
     });
 }
@@ -519,7 +530,9 @@ export function drawnode_screen_wl_webgl2Atmos(): Program {
             scatteringTexture: "sampler2D",
             camHeight: "float",
             nightTextureCoefficient: "float",
-            maxMinOpacity: "vec2"
+            maxMinOpacity: "vec2",
+
+            transitionOpacity: "float"
         }, attributes: {
             aVertexPositionHigh: "vec3",
             aVertexPositionLow: "vec3",
@@ -603,6 +616,8 @@ export function drawnode_screen_wl_webgl2Atmos(): Program {
             
             uniform vec2 maxMinOpacity;                
             uniform float camHeight;
+            
+            uniform float transitionOpacity;
 
             in vec4 vTextureCoord;
             in vec3 v_vertex;
@@ -786,6 +801,7 @@ export function drawnode_screen_wl_webgl2Atmos(): Program {
                 diffuseColor = texture( defaultTexture, vTextureCoord.xy );
                 if( samplerCount == 0 ) {
                     diffuseColor = mix(diffuseColor * lightWeighting, atmosColor, fadingOpacity) + vec4(spec, 0.0);
+                    diffuseColor *= transitionOpacity;
                     return;
                 }
 
@@ -794,29 +810,34 @@ export function drawnode_screen_wl_webgl2Atmos(): Program {
                 blend(diffuseColor, samplerArr[0], tileOffsetArr[0], layerOpacityArr[0]);
                 if( samplerCount == 1 ) {                
                     diffuseColor = mix(diffuseColor * lightWeighting, atmosColor * diffuseColor.a, fadingOpacity) + vec4(spec, 0.0);
+                    diffuseColor *= transitionOpacity;
                     return;
                 }
 
                 blend(diffuseColor, samplerArr[1], tileOffsetArr[1], layerOpacityArr[1]);
                 if( samplerCount == 2 ) {
                     diffuseColor = mix(diffuseColor * lightWeighting, atmosColor * diffuseColor.a, fadingOpacity) + vec4(spec, 0.0);
+                    diffuseColor *= transitionOpacity;
                     return;
                 }
 
                 blend(diffuseColor, samplerArr[2], tileOffsetArr[2], layerOpacityArr[2]);
                 if( samplerCount == 3 ) {
                     diffuseColor = mix(diffuseColor * lightWeighting, atmosColor * diffuseColor.a, fadingOpacity) + vec4(spec, 0.0);
+                    diffuseColor *= transitionOpacity;
                     return;
                 }
 
                 blend(diffuseColor, samplerArr[3], tileOffsetArr[3], layerOpacityArr[3]);
                 if( samplerCount == 4 ) {
                     diffuseColor = mix(diffuseColor * lightWeighting, atmosColor * diffuseColor.a, fadingOpacity) + vec4(spec, 0.0);
+                    diffuseColor *= transitionOpacity;
                     return;
                 }
 
                 blend(diffuseColor, samplerArr[4], tileOffsetArr[4], layerOpacityArr[4]);
                 diffuseColor = mix(diffuseColor * lightWeighting, atmosColor * diffuseColor.a, fadingOpacity) + vec4(spec, 0.0);
+                diffuseColor *= transitionOpacity;
             }`
     });
 }

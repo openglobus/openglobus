@@ -201,6 +201,10 @@ export class DebugInfo extends Control {
                     frame: () => p!._renderedNodes.length
                 },
                 {
+                    label: "Planet._fadingNodes",
+                    frame: () => p._fadingNodes.size
+                },
+                {
                     label: "createdNodes",
                     frame: () => p._createdNodesCount
                 },
