@@ -416,7 +416,7 @@ class Node {
     }
 
     public clearNeighbors() {
-        this.sideSizeLog2[0] = this.sideSizeLog2[1] = this.sideSizeLog2[2] = this.sideSizeLog2[3] = Math.log2(this.segment.gridSize);
+        //this.sideSizeLog2[0] = this.sideSizeLog2[1] = this.sideSizeLog2[2] = this.sideSizeLog2[3] = Math.log2(this.segment.gridSize);
 
         // @ts-ignore
         this.neighbors[0] = this.neighbors[1] = this.neighbors[2] = this.neighbors[3] = null;
@@ -438,7 +438,7 @@ class Node {
                 for (let i = 0; i < this._fadingNodes.length; i++) {
                     let n = this._fadingNodes[i];
                     if (n.segment) {
-                        if (n.segment._transitionOpacity > 0 && !this.planet._fadingNodes.has(n.nodeId)) {
+                        if (n.segment._transitionOpacity >= 0 && !this.planet._fadingNodes.has(n.nodeId)) {
                             this.planet._fadingNodes.set(n.nodeId, n);
                             n.segment.fadingTransitionOpacity();
                             n.clearNeighbors();
