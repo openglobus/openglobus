@@ -438,7 +438,7 @@ class Node {
                 for (let i = 0; i < this._fadingNodes.length; i++) {
                     let n = this._fadingNodes[i];
                     if (n.segment) {
-                        if (n.segment._transitionOpacity >= 0 && !this.planet._fadingNodes.has(n.nodeId)) {
+                        if (n.segment._transitionOpacity > 0 && !this.planet._fadingNodes.has(n.nodeId)) {
                             this.planet._fadingNodes.set(n.nodeId, n);
                             n.segment.fadingTransitionOpacity();
                             n.clearNeighbors();
