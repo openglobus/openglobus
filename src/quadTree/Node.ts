@@ -433,7 +433,6 @@ class Node {
             this.segment._transitionOpacity = 1.0;
         } else {
             this.segment.increaseTransitionOpacity();
-
             if (this._fadingNodes.length === 4 && !this.childrenPrevStateEquals(RENDERING)) {
                 this.segment._transitionOpacity = 1.0;
             } else {
@@ -443,6 +442,11 @@ class Node {
                         if (n.segment._transitionOpacity > 0 && !this.planet._fadingNodes.has(n.nodeId)) {
                             this.planet._fadingNodes.set(n.nodeId, n);
                             n.segment.fadingTransitionOpacity();
+
+                            // n.neighbors[0] = [];
+                            // n.neighbors[1] = [];
+                            // n.neighbors[2] = [];
+                            // n.neighbors[3] = [];
                         }
                     } else {
                         this.segment._transitionOpacity = 1.0;
