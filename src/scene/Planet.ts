@@ -1300,12 +1300,28 @@ export class Planet extends RenderNode {
         this._fadingNodes.clear();
 
         if (this._transitionOpacityEnabled) {
+
+            let opaqueNodes: Node[] = [];
+
             for (let i = 0; i < this._renderedNodes.length; i++) {
                 const ri = this._renderedNodes[i];
                 // it's not impossible to move the code into addToRender, because
                 // we cant know actual state before _collectRenderedNodesMaxZoom pass
                 ri._collectFadingNodes();
                 ri._refreshTransitionOpacity();
+
+                if (ri.segment._transitionOpacity >= 1.0) {
+                    ri.getRenderedNodesNeighbors(opaqueNodes);
+                    opaqueNodes.push(ri);
+                } else {
+                    for (let j = 0; j < ri._fadingNodes.length; j++) {
+                        let rij = ri._fadingNodes[j];
+                        if (rij.segment && rij.segment._transitionOpacity >= 1.0) {
+                            rij.getRenderedNodesNeighbors(opaqueNodes);
+                            opaqueNodes.push(rij);
+                        }
+                    }
+                }
             }
         }
     }

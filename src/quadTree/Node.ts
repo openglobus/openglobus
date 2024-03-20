@@ -462,7 +462,7 @@ class Node {
 
         let nodes = this.planet._renderedNodes;
 
-        this.getRenderedNodesNeighbors(nodes);
+        //this.getRenderedNodesNeighbors(nodes);
 
         nodes.push(this);
 
@@ -874,20 +874,25 @@ class Node {
         this.segment.destroySegment();
 
         let n = this.neighbors;
-        for (let i = 0; i < n.length; i++) {
+        for (let i = 0, len = n.length; i < len; i++) {
             let ni = n[i];
             if (ni) {
                 for (let j = 0; j < ni.length; j++) {
                     let nij = ni[j];
                     if (nij && nij.neighbors) {
                         // @ts-ignore
-                        nij.neighbors[N] = null;
+                        nij.neighbors[0] = null;
                         // @ts-ignore
-                        nij.neighbors[E] = null;
+                        nij.neighbors[1] = null;
                         // @ts-ignore
-                        nij.neighbors[S] = null;
+                        nij.neighbors[2] = null;
                         // @ts-ignore
-                        nij.neighbors[W] = null;
+                        nij.neighbors[3] = null;
+
+                        nij.neighbors[0] = [];
+                        nij.neighbors[1] = [];
+                        nij.neighbors[2] = [];
+                        nij.neighbors[3] = [];
                     }
                 }
             }
