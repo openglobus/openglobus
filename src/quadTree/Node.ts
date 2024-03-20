@@ -416,7 +416,7 @@ class Node {
     }
 
     public clearNeighbors() {
-        //this.sideSizeLog2[0] = this.sideSizeLog2[1] = this.sideSizeLog2[2] = this.sideSizeLog2[3] = Math.log2(this.segment.gridSize);
+        this.sideSizeLog2[0] = this.sideSizeLog2[1] = this.sideSizeLog2[2] = this.sideSizeLog2[3] = Math.log2(this.segment.gridSize);
 
         // @ts-ignore
         this.neighbors[0] = this.neighbors[1] = this.neighbors[2] = this.neighbors[3] = null;

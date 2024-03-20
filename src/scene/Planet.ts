@@ -1302,7 +1302,6 @@ export class Planet extends RenderNode {
         if (this._transitionOpacityEnabled) {
 
             let opaqueNodes: Node[] = [];
-            let nodes = {};
 
             for (let i = 0; i < this._renderedNodes.length; i++) {
                 const ri = this._renderedNodes[i];
@@ -1311,24 +1310,18 @@ export class Planet extends RenderNode {
                 ri._collectFadingNodes();
                 ri._refreshTransitionOpacity();
 
-                for (let j = 0; j < ri._fadingNodes.length; j++) {
-                    let rij = ri._fadingNodes[j];
-                    if (!nodes[rij.nodeId] && rij.segment && rij.segment._transitionOpacity >= 1.0) {
-                        nodes[rij.nodeId] = true;
-
-                        // rij.sideSizeLog2[0] = rij.sideSizeLog2[1] = rij.sideSizeLog2[2] = rij.sideSizeLog2[3] = Math.log2(rij.segment.gridSize);
-
-                        //rij.clearNeighbors();
-
-                        rij.getRenderedNodesNeighbors(opaqueNodes);
-                        opaqueNodes.push(rij);
-                    }
-                }
-
                 if (ri.segment._transitionOpacity >= 1.0) {
-                    ri.sideSizeLog2[0] = ri.sideSizeLog2[1] = ri.sideSizeLog2[2] = ri.sideSizeLog2[3] = Math.log2(ri.segment.gridSize);
                     ri.getRenderedNodesNeighbors(opaqueNodes);
                     opaqueNodes.push(ri);
+                } else {
+                    for (let j = 0; j < ri._fadingNodes.length; j++) {
+                        let rij = ri._fadingNodes[j];
+                        if (rij.segment && rij.segment._transitionOpacity >= 1.0) {
+                            rij.clearNeighbors();
+                            rij.getRenderedNodesNeighbors(opaqueNodes);
+                            opaqueNodes.push(rij);
+                        }
+                    }
                 }
             }
         }
