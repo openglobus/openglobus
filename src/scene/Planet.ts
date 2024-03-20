@@ -1316,17 +1316,9 @@ export class Planet extends RenderNode {
                     if (!nodes[rij.nodeId] && rij.segment && rij.segment._transitionOpacity >= 1.0) {
                         nodes[rij.nodeId] = true;
 
-                        rij.sideSizeLog2[0] = rij.sideSizeLog2[1] = rij.sideSizeLog2[2] = rij.sideSizeLog2[3] = Math.log2(rij.segment.gridSize);
+                        // rij.sideSizeLog2[0] = rij.sideSizeLog2[1] = rij.sideSizeLog2[2] = rij.sideSizeLog2[3] = Math.log2(rij.segment.gridSize);
 
-                        rij.neighbors[0] = null;
-                        rij.neighbors[1] = null;
-                        rij.neighbors[2] = null;
-                        rij.neighbors[3] = null;
-
-                        rij.neighbors[0] = [];
-                        rij.neighbors[1] = [];
-                        rij.neighbors[2] = [];
-                        rij.neighbors[3] = [];
+                        //rij.clearNeighbors();
 
                         rij.getRenderedNodesNeighbors(opaqueNodes);
                         opaqueNodes.push(rij);

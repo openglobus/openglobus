@@ -236,19 +236,7 @@ class Node {
         }
         this.state = WALKTHROUGH;
 
-        // @ts-ignore
-        this.neighbors[0] = null;
-        // @ts-ignore
-        this.neighbors[1] = null;
-        // @ts-ignore
-        this.neighbors[2] = null;
-        // @ts-ignore
-        this.neighbors[3] = null;
-
-        this.neighbors[0] = [];
-        this.neighbors[1] = [];
-        this.neighbors[2] = [];
-        this.neighbors[3] = [];
+        this.clearNeighbors();
 
         let seg = this.segment,
             planet = this.planet;
@@ -427,8 +415,19 @@ class Node {
         }
     }
 
-    public _refreshTransitionOpacity() {
+    public clearNeighbors() {
+        //this.sideSizeLog2[0] = this.sideSizeLog2[1] = this.sideSizeLog2[2] = this.sideSizeLog2[3] = Math.log2(this.segment.gridSize);
 
+        // @ts-ignore
+        this.neighbors[0] = this.neighbors[1] = this.neighbors[2] = this.neighbors[3] = null;
+
+        this.neighbors[0] = [];
+        this.neighbors[1] = [];
+        this.neighbors[2] = [];
+        this.neighbors[3] = [];
+    }
+
+    public _refreshTransitionOpacity() {
         if (this._fadingNodes.length === 0) {
             this.segment._transitionOpacity = 1.0;
         } else {
@@ -442,11 +441,7 @@ class Node {
                         if (n.segment._transitionOpacity > 0 && !this.planet._fadingNodes.has(n.nodeId)) {
                             this.planet._fadingNodes.set(n.nodeId, n);
                             n.segment.fadingTransitionOpacity();
-
-                            // n.neighbors[0] = [];
-                            // n.neighbors[1] = [];
-                            // n.neighbors[2] = [];
-                            // n.neighbors[3] = [];
+                            n.clearNeighbors();
                         }
                     } else {
                         this.segment._transitionOpacity = 1.0;
@@ -884,19 +879,7 @@ class Node {
                 for (let j = 0; j < ni.length; j++) {
                     let nij = ni[j];
                     if (nij && nij.neighbors) {
-                        // @ts-ignore
-                        nij.neighbors[0] = null;
-                        // @ts-ignore
-                        nij.neighbors[1] = null;
-                        // @ts-ignore
-                        nij.neighbors[2] = null;
-                        // @ts-ignore
-                        nij.neighbors[3] = null;
-
-                        nij.neighbors[0] = [];
-                        nij.neighbors[1] = [];
-                        nij.neighbors[2] = [];
-                        nij.neighbors[3] = [];
+                        nij.clearNeighbors();
                     }
                 }
             }
