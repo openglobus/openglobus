@@ -237,6 +237,9 @@ class Node {
         this.state = WALKTHROUGH;
 
         this.clearNeighbors();
+        for (let i = 0; i < this._fadingNodes.length; i++) {
+            this._fadingNodes[i].neighbors && this._fadingNodes[i].clearNeighbors();
+        }
 
         let seg = this.segment,
             planet = this.planet;
@@ -441,7 +444,7 @@ class Node {
                         if (n.segment._transitionOpacity > 0 && !this.planet._fadingNodes.has(n.nodeId)) {
                             this.planet._fadingNodes.set(n.nodeId, n);
                             n.segment.fadingTransitionOpacity();
-                            n.clearNeighbors();
+                            //n.clearNeighbors();
                         }
                     } else {
                         this.segment._transitionOpacity = 1.0;

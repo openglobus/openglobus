@@ -1671,8 +1671,8 @@ export class Planet extends RenderNode {
 
             isEq && s.equalize();
             s.readyToEngage && s.engage();
+            s.screenRendering(sh, sl[0], 0);
 
-            s.screenRendering(sh, sl[0], 0,);
         }
 
         for (let j = 0; j < transparentSegments.length; j++) {
@@ -1680,7 +1680,6 @@ export class Planet extends RenderNode {
 
             isEq && tj.equalize();
             tj.readyToEngage && tj.engage();
-
             tj.screenRendering(sh, sl[0], 0);
         }
 
