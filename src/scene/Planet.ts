@@ -1317,7 +1317,6 @@ export class Planet extends RenderNode {
                     for (let j = 0; j < ri._fadingNodes.length; j++) {
                         let rij = ri._fadingNodes[j];
                         if (rij.segment && rij.segment._transitionOpacity >= 1.0) {
-                            rij.clearNeighbors();
                             rij.getRenderedNodesNeighbors(opaqueNodes);
                             opaqueNodes.push(rij);
                         }
