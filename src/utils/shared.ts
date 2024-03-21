@@ -145,9 +145,13 @@ export function htmlColorToRgb(htmlColor: string): Vec3 {
  * //returns http://earth3.openglobus.org/8/15/12.ddm
  */
 export function stringTemplate(template: string, params?: any): string {
-    return template.replace(/{[^{}]+}/g, function (key) {
-        return params[key.replace(/[{}]+/g, "")] || "";
-    });
+    if (params) {
+        return template.replace(/{[^{}]+}/g, function (key) {
+            return params[key.replace(/[{}]+/g, "")] || "";
+        });
+    } else {
+        return template;
+    }
 }
 
 export function getHTML(template: string, params?: any): string {
@@ -819,7 +823,9 @@ export function makeArray(arr: TypedArray | number[]): number[] {
  * @param {{ result: number[] }} [out]
  */
 
-export function spliceArray(arr: TypedArray | number[], starting: number, deleteCount: number, out?: { result: number[] } | { result: TypedArray }): TypedArray | number[] {
+export function spliceArray(arr: TypedArray | number[], starting: number, deleteCount: number, out?: {
+    result: number[]
+} | { result: TypedArray }): TypedArray | number[] {
     if (ArrayBuffer.isView(arr)) {
         if (starting < 0) {
             deleteCount = Math.abs(starting);
@@ -847,7 +853,9 @@ export function spliceArray(arr: TypedArray | number[], starting: number, delete
  * @param {Number} deleteCount
  * @param {{ result: TypedArray }} [out]
  */
-export function spliceTypedArray<T extends TypedArray>(arr: T, starting: number, deleteCount: number, out?: { result: T }): T {
+export function spliceTypedArray<T extends TypedArray>(arr: T, starting: number, deleteCount: number, out?: {
+    result: T
+}): T {
     if (arr.length === 0) {
         return arr;
     }
