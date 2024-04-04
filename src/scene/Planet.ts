@@ -1585,6 +1585,8 @@ export class Planet extends RenderNode {
         let isFirstPass = sliceIndex === 0;
         let isEq = this.terrain!.equalizeVertices;
 
+        //gl.disable(gl.CULL_FACE);
+
         for (let j = 0, len = currentNode._fadingNodes.length; j < len; j++) {
             let f = currentNode._fadingNodes[j].segment;
             if (this._fadingNodes.has(currentNode._fadingNodes[0].nodeId) && !nodes.has(f.node.nodeId)) {
@@ -1603,6 +1605,8 @@ export class Planet extends RenderNode {
                 }
             }
         }
+
+        //gl.enable(gl.CULL_FACE);
     }
 
     protected _renderingFadingNodesNoDepth = (nodes: Map<number, boolean>, sh: Program, currentNode: Node, sl: Layer[], sliceIndex: number) => {

@@ -586,7 +586,7 @@ class Segment {
     }
 
     protected _checkEqualization(neighborSide: number, neigborNode: Node): boolean {
-        return neigborNode && this.tileZoom >= neigborNode.segment.tileZoom &&
+        return neigborNode && neigborNode.segment && this.tileZoom >= neigborNode.segment.tileZoom &&
             this.node.equalizedSideWithNodeId[neighborSide] !== neigborNode.equalizedSideWithNodeId[OPSIDE[neighborSide]];
     }
 
