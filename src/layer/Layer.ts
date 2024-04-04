@@ -17,7 +17,7 @@ const FADING_RATIO = 15.8;
 export interface ILayerParams {
     properties?: any;
     labelMaxLetters?: number;
-    displayInLayerSwitcher?: boolean;
+    hideInLayerSwitcher?: boolean;
     opacity?: number;
     minZoom?: number;
     maxZoom?: number;
@@ -38,6 +38,7 @@ export interface ILayerParams {
     specular?: string | NumberArray3 | Vec3;
     shininess?: number;
     nightTextureCoefficient?: number;
+    iconSrc?: string | null;
 }
 
 /**
@@ -53,11 +54,11 @@ export interface ILayerParams {
  * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
  * @param {boolean} [options.isBaseLayer=false] - This is a base layer.
  * @param {boolean} [options.visibility=true] - Layer visibility.
- * @param {boolean} [options.displayInLayerSwitcher=true] - Presence of layer in dialog window of LayerSwitcher control.
+ * @param {boolean} [options.hideInLayerSwitcher=false] - Presence of layer in dialog window of LayerSwitcher control.
  * @param {boolean} [options.isSRGB=false] - Layer image webgl internal format.
  * @param {Extent} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
  * @param {string} [options.textureFilter="anisotropic"] - Image texture filter. Available values: "nearest", "linear", "mipmap" and "anisotropic".
- *
+ * @param {string} [options.icon] - Icon for LayerSwitcher
  * @fires EventsHandler<LayerEventsList>#visibilitychange
  * @fires EventsHandler<LayerEventsList>#add
  * @fires EventsHandler<LayerEventsList>#remove
@@ -112,7 +113,7 @@ class Layer {
 
     public properties: any;
 
-    public displayInLayerSwitcher: boolean;
+    public hideInLayerSwitcher: boolean;
 
     /**
      * Minimal zoom level when layer is visible.
@@ -230,9 +231,13 @@ class Layer {
 
     public isVector: boolean = false;
 
+    protected _iconSrc: string | null;
+
     constructor(name?: string | null, options: ILayerParams = {}) {
 
         this.__id = Layer.__counter__++;
+
+        this._iconSrc = options.iconSrc || null;
 
         this.events = createEvents<LayerEventsList>(LAYER_EVENTS, this);
 
@@ -240,8 +245,7 @@ class Layer {
 
         this.properties = options.properties || {};
 
-        this.displayInLayerSwitcher =
-            options.displayInLayerSwitcher !== undefined ? options.displayInLayerSwitcher : true;
+        this.hideInLayerSwitcher = options.hideInLayerSwitcher || false;
 
         this._hasImageryTiles = true;
 
@@ -331,6 +335,15 @@ class Layer {
         }
 
         this.nightTextureCoefficient = options.nightTextureCoefficient || 1.0;
+    }
+
+    public get iconSrc(): string | null {
+        return this._iconSrc;
+    }
+
+    public set iconSrc(src: string) {
+        // @todo: add event
+        this._iconSrc = src;
     }
 
     public set diffuse(rgb: string | NumberArray3 | Vec3 | null | undefined) {
@@ -782,6 +795,23 @@ class Layer {
      */
     public getExtentMerc(): Extent {
         return this._extentMerc;
+    }
+
+
+    /**
+     * Fly extent.
+     * @public
+     */
+    public flyExtent() {
+        this._planet?.flyExtent(this.getExtent());
+    }
+
+    /**
+     * View extent.
+     * @public
+     */
+    public viewExtent() {
+        this._planet?.viewExtent(this.getExtent());
     }
 
     /**

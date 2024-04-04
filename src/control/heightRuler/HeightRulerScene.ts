@@ -50,7 +50,7 @@ class HeightRulerScene extends RulerScene {
             pickingEnabled: false,
             polygonOffsetUnits: -2.0,
             relativeToGround: false,
-            displayInLayerSwitcher: false
+            hideInLayerSwitcher: true
         });
 
         this._rayV = new Entity({

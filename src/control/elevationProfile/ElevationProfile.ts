@@ -280,8 +280,10 @@ export class ElevationProfile {
         this._pointsReady = false;
         this._isWarning = false;
 
-        if (!pointsLonLat || !pointsLonLat.length)
+        if (!pointsLonLat || !pointsLonLat.length) {
             def.reject();
+            return def.promise;
+        }
 
         this.events.dispatch(this.events.startcollecting, this);
 

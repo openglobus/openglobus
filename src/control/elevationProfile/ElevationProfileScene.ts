@@ -114,13 +114,13 @@ class ElevationProfileScene extends RenderNode {
             pickingEnabled: false,
             polygonOffsetUnits: -1.0,
             relativeToGround: true,
-            displayInLayerSwitcher: false
+            hideInLayerSwitcher: true
         });
 
         this._groundPointersLayer = new Vector("ground-pointers", {
             entities: [],
             pickingEnabled: true,
-            displayInLayerSwitcher: false,
+            hideInLayerSwitcher: true,
             scaleByDistance: [1, 5000, 0.02],
             pickingScale: 1.5
         });
@@ -128,7 +128,7 @@ class ElevationProfileScene extends RenderNode {
         this._headPointersLayer = new Vector("head-pointers", {
             entities: [],
             pickingEnabled: true,
-            displayInLayerSwitcher: false,
+            hideInLayerSwitcher: true,
             scaleByDistance: [1, 10000, 0.02],
             pickingScale: 1
         });
@@ -136,7 +136,7 @@ class ElevationProfileScene extends RenderNode {
         this._columnPointersLayer = new Vector("column-pointers", {
             entities: [],
             pickingEnabled: false,
-            displayInLayerSwitcher: false
+            hideInLayerSwitcher: true
         });
 
         this._trackEntity = new Entity({
@@ -151,13 +151,13 @@ class ElevationProfileScene extends RenderNode {
         this._trackLayer = new Vector("column-pointers", {
             entities: [this._trackEntity],
             pickingEnabled: false,
-            displayInLayerSwitcher: false
+            hideInLayerSwitcher: true
         });
 
         this._heightsLayer = new Vector("heights-labels", {
             entities: [],
             pickingEnabled: false,
-            displayInLayerSwitcher: false
+            hideInLayerSwitcher: true
         });
 
         this._pointerHeadEntity = new Entity({
@@ -178,7 +178,7 @@ class ElevationProfileScene extends RenderNode {
         this._pointerLayer = new Vector("pointer", {
             entities: [this._pointerHeadEntity, this._pointerLabelEntity, this._pointerRayEntity],
             pickingEnabled: false,
-            displayInLayerSwitcher: false
+            hideInLayerSwitcher: true
         });
     }
 

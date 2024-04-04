@@ -23,6 +23,7 @@ function toQuadKey(x, y, z) {
 }
 
 let sat = new XYZ("sat", {
+    iconSrc: "https://ecn.t0.tiles.virtualearth.net/tiles/a120.jpeg?n=z&g=7146",
     subdomains: ['t0', 't1', 't2', 't3'],
     url: "https://ecn.{s}.tiles.virtualearth.net/tiles/a{quad}.jpeg?n=z&g=7146",
     isBaseLayer: true,
@@ -51,7 +52,8 @@ let st = new XYZ("swisstopo", {
     attribution: `Digital Elevation swissALTI3D ©swisstopo`,
 });
 
-let osm = new XYZ("osm", {
+let osm = new XYZ("OpenStreetMap", {
+    iconSrc: "https://tile.openstreetmap.org/8/138/95.png",
     isBaseLayer: true,
     url: "http://tile.openstreetmap.org/{z}/{x}/{y}.png",
     visibility: true,
@@ -73,8 +75,8 @@ var highResTerrain = new MapboxTerrain(null, {
     //equalizeVertices: false,
     //url: "//terrain.openglobus.org/public/nz/{z}/{x}/{y}.png",
     //url: "//terrain.openglobus.org/public/london/{z}/{x}/{y}.png",
-    url: "./dest/{z}/{x}/{y}.png",
-    //url: "https://terrain.openglobus.org/public/chicago/{z}/{x}/{y}.png",
+    //url: "./tiles/{z}/{x}/{y}.png",
+    url: "https://terrain.openglobus.org/public/chicago/{z}/{x}/{y}.png",
     heightFactor: 1 / 3.28,
     //imageSize: 129,
     //plainGridSize: 256,
@@ -90,10 +92,10 @@ var highResTerrain = new MapboxTerrain(null, {
 const globus = new Globe({
     target: "earth",
     name: "Earth",
-    terrain: highResTerrain,
-    //terrain: new GlobusTerrain(),
+    //terrain: highResTerrain,
+    terrain: new GlobusTerrain(),
     //layers: [sat, st],
-    layers: [osm],
+    layers: [osm, sat],
     atmosphereEnabled: true,
     fontsSrc: "../../res/fonts",
     //viewExtent: [8.077, 46.69, 8.77, 46.83]
@@ -108,3 +110,5 @@ globus.planet.addControl(new control.Lighting());
 globus.planet.addControl(new control.DebugInfo());
 globus.planet.addControl(new control.ElevationProfileControl());
 globus.planet.addControl(new control.ToggleWireframe());
+globus.planet.addControl(new control.LayerSwitcher());
+//globus.planet.addControl(new control.ToggleWireframe());

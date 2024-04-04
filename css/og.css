@@ -258,73 +258,80 @@ input {
 /* =============================== */
 /* 1 - LAYER SWITCHER */
 
-.og-layerswitcher_button {
+.og-layerSwitcher_button {
     top: 12px;
     right: 12px;
 }
 
-.og-layer-switcher-record {
+.og-layerSwitcher {
+    position: relative;
+    color: #b6b6b6;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.og-layerSwitcher__title {
+    position: relative;
+    color: #b6b6b6;
+    font-size: 14px;
+    width: 100%;
+    padding: 5px;
+}
+
+.og-layerSwitcher__list {
+    position: relative;
+    width: 100%;
+    display: inline-block;
+    flex-direction: column;
+    padding: 2px;
+}
+
+.og-layerSwitcher__layerButton {
+    width: 75px;
+    height: 75px;
+    position: relative;
+    background-color: #7a7a7a;
+    cursor: pointer;
+    border-radius: 5px;
+    margin: 3px;
+    border: 2px solid rgba(0, 0, 0, 0);
+    padding: 0;
+}
+
+.og-layerSwitcher__layerButton.og-layerSwitcher__visible {
+    border: 2px solid white;
+}
+
+.og-layerSwitcher__layerButton img {
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.og-layerSwitcher__layerButton:hover {
+}
+
+.og-layerSwitcher__layerButton_title {
+
+}
+
+.og-layerSwitcher__name {
+    color: var(--grey8);
+    font-size: 12px;
     overflow: hidden;
-    white-space: nowrap;
     text-overflow: ellipsis;
-    color: white;
-    font-size: 14px;
-    font-weight: 250;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.og-layer-switcher-record.og-depth-1,
-.og-layer-switcher-record.og-depth-2 {
-    color: white;
-    font-size: 14px;
-    font-weight: 250;
-}
-
-.og-layer-switcher-record.overlays > * {
-    display: inline;
-}
-
-.og-layer-switcher-record.overlays > input {
-    vertical-align: top;
-}
-
-.og-layer-switcher-record.og-depth-0:nth-child(2) {
-}
-
-.og-layer-switcher-record.og-depth-0 {
-}
-
-.og-layer-switcher-record.og-depth-0 input {
-    margin-left: 18px;
-}
-
-.og-layer-switcher-record-title {
-}
-
-details .og-layer-switcher-record {
-    padding-top: 7px;
-    padding-bottom: 3px;
-}
-
-details > summary {
-    background: var(--grey1);
-    padding: 0px 7px 3px;
-    border-top: 1px solid var(--grey0);
-}
-
-details[open] {
-    padding-bottom: 10px;
-}
-
-.og-layer-switcher-dropZone {
-    display: block !important;
-    height: 4px;
-    margin-left: 4px;
-}
-
-.og-layer-switcher-dropZone.og-drag-over {
-    background-color: var(--blue0);
-    opacity: 0.5;
+    padding: 3px;
+    background-color: rgba(0, 0, 0, 0.5);
+    position: absolute;
+    bottom: 0;
+    width: calc(100% - 6px);
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
 }
 
 /* =============================== */
