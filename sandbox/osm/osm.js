@@ -23,7 +23,7 @@ function toQuadKey(x, y, z) {
 }
 
 let sat = new XYZ("sat", {
-    iconSrc: "https://ecn.t0.tiles.virtualearth.net/tiles/a120.jpeg?n=z&g=7146",
+    //iconSrc: "https://ecn.t0.tiles.virtualearth.net/tiles/a120.jpeg?n=z&g=7146",
     subdomains: ['t0', 't1', 't2', 't3'],
     url: "https://ecn.{s}.tiles.virtualearth.net/tiles/a{quad}.jpeg?n=z&g=7146",
     isBaseLayer: true,
