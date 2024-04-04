@@ -124,7 +124,7 @@ class RulerScene extends RenderNode {
             pickingEnabled: false,
             polygonOffsetUnits: -1.0,
             relativeToGround: true,
-            displayInLayerSwitcher: false
+            hideInLayerSwitcher: true
         });
 
         this._labelLayer = new Vector("ruler-label", {
@@ -132,13 +132,13 @@ class RulerScene extends RenderNode {
             pickingEnabled: false,
             polygonOffsetUnits: -100.0,
             relativeToGround: true,
-            displayInLayerSwitcher: false
+            hideInLayerSwitcher: true
         });
 
         this._cornersLayer = new Vector("corners", {
             entities: [],
             pickingEnabled: true,
-            displayInLayerSwitcher: false,
+            hideInLayerSwitcher: true,
             scaleByDistance: [100, 4000000, 1.0],
             pickingScale: 2
         });

@@ -17,7 +17,7 @@ const FADING_RATIO = 15.8;
 export interface ILayerParams {
     properties?: any;
     labelMaxLetters?: number;
-    displayInLayerSwitcher?: boolean;
+    hideInLayerSwitcher?: boolean;
     opacity?: number;
     minZoom?: number;
     maxZoom?: number;
@@ -54,7 +54,7 @@ export interface ILayerParams {
  * @param {string} [options.attribution] - Layer attribution that displayed in the attribution area on the screen.
  * @param {boolean} [options.isBaseLayer=false] - This is a base layer.
  * @param {boolean} [options.visibility=true] - Layer visibility.
- * @param {boolean} [options.displayInLayerSwitcher=true] - Presence of layer in dialog window of LayerSwitcher control.
+ * @param {boolean} [options.hideInLayerSwitcher=false] - Presence of layer in dialog window of LayerSwitcher control.
  * @param {boolean} [options.isSRGB=false] - Layer image webgl internal format.
  * @param {Extent} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
  * @param {string} [options.textureFilter="anisotropic"] - Image texture filter. Available values: "nearest", "linear", "mipmap" and "anisotropic".
@@ -113,7 +113,7 @@ class Layer {
 
     public properties: any;
 
-    public displayInLayerSwitcher: boolean;
+    public hideInLayerSwitcher: boolean;
 
     /**
      * Minimal zoom level when layer is visible.
@@ -245,8 +245,7 @@ class Layer {
 
         this.properties = options.properties || {};
 
-        this.displayInLayerSwitcher =
-            options.displayInLayerSwitcher !== undefined ? options.displayInLayerSwitcher : true;
+        this.hideInLayerSwitcher = options.hideInLayerSwitcher || false;
 
         this._hasImageryTiles = true;
 

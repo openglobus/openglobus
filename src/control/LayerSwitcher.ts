@@ -159,12 +159,14 @@ export class LayerSwitcher extends Control {
     }
 
     public addLayer = (layer: Layer) => {
-        let layerView = this._createLayerButton(layer);
-        this._layerViews.push(layerView);
-        if (layer.isBaseLayer()) {
-            layerView.appendTo(this.$baseLayers!);
-        } else {
-            layerView.appendTo(this.$overlays!);
+        if (!layer.hideInLayerSwitcher) {
+            let layerView = this._createLayerButton(layer);
+            this._layerViews.push(layerView);
+            if (layer.isBaseLayer()) {
+                layerView.appendTo(this.$baseLayers!);
+            } else {
+                layerView.appendTo(this.$overlays!);
+            }
         }
     }
 

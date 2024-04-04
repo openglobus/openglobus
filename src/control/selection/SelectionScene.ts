@@ -117,13 +117,13 @@ class SelectionScene extends RenderNode {
             pickingEnabled: false,
             polygonOffsetUnits: -1.0,
             relativeToGround: true,
-            displayInLayerSwitcher: false
+            hideInLayerSwitcher: false
         });
 
         this._cornersLayer = new Vector("corners", {
             entities: [this._cornerEntity[0], this._cornerEntity[1]],
             pickingEnabled: true,
-            displayInLayerSwitcher: false,
+            hideInLayerSwitcher: true,
             scaleByDistance: [1.0, 4000000, 0.01],
             pickingScale: 2
         });
