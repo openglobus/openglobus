@@ -28,13 +28,16 @@ const TEMPLATE =
          
     </div>`;
 
-const LAYER_BUTTON_TEMPLATE = `<button title={title} class="og-layerSwitcher__layerButton"></button>`;
+const LAYER_BUTTON_TEMPLATE =
+    `<button title={title} class="og-layerSwitcher__layerButton">{icon}<div class="og-layerSwitcher__name">{name}</div></button>`;
 
 class LayerButtonView extends View<Layer> {
     constructor(params: IViewParams) {
         super({
             template: stringTemplate(LAYER_BUTTON_TEMPLATE, {
-                title: params.model.name
+                title: params.model.name,
+                name: params.model.name,
+                icon: params.model.icon
             }),
             ...params
         });
@@ -42,13 +45,20 @@ class LayerButtonView extends View<Layer> {
 
     public override render(params?: any): this {
         super.render(params);
-        this.model.events.on("visibility", this._onVisibility);
+        this.model.events.on("visibilitychange", this._onVisibilityChange);
+        this._onVisibilityChange(this.model);
         this.el!.addEventListener("click", this._onClick);
         return this;
     }
 
-    protected _onVisibility = (visibility: boolean) => {
-
+    protected _onVisibilityChange = (layer: Layer) => {
+        if (this.el) {
+            if (this.model.getVisibility()) {
+                this.el.classList.add("og-layerSwitcher__visible");
+            } else {
+                this.el.classList.remove("og-layerSwitcher__visible");
+            }
+        }
     }
 
     protected _onClick = () => {
@@ -57,7 +67,7 @@ class LayerButtonView extends View<Layer> {
 
     public override remove() {
         super.remove();
-        this.model.events.off("visibility", this._onVisibility);
+        this.model.events.off("visibilitychange", this._onVisibilityChange);
     }
 }
 

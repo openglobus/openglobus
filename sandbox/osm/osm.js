@@ -51,7 +51,7 @@ let st = new XYZ("swisstopo", {
     attribution: `Digital Elevation swissALTI3D ©swisstopo`,
 });
 
-let osm = new XYZ("osm", {
+let osm = new XYZ("OpenStreetMap", {
     isBaseLayer: true,
     url: "http://tile.openstreetmap.org/{z}/{x}/{y}.png",
     visibility: true,

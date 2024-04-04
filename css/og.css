@@ -265,7 +265,6 @@ input {
 
 .og-layerSwitcher {
     position: relative;
-    /*height: calc(100% - 30px);*/
     color: #b6b6b6;
     width: 100%;
     height: 100%;
@@ -297,7 +296,12 @@ input {
     cursor: pointer;
     border-radius: 7px;
     margin: 3px;
-    border: none;
+    border: 2px solid rgba(0, 0, 0, 0);
+    padding: 0;
+}
+
+.og-layerSwitcher__layerButton.og-layerSwitcher__visible {
+    border: 2px solid white;
 }
 
 .og-layerSwitcher__layerButton:hover {
@@ -305,6 +309,20 @@ input {
 
 .og-layerSwitcher__layerButton_title {
 
+}
+
+.og-layerSwitcher__name {
+    color: var(--grey8);
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 3px;
+    background-color: rgba(0, 0, 0, 0.2);
+    position: absolute;
+    bottom: 0;
+    width: calc(100% - 6px);
+    border-bottom-left-radius: 7px;
+    border-bottom-right-radius: 7px;
 }
 
 /* =============================== */

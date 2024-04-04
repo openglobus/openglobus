@@ -38,6 +38,7 @@ export interface ILayerParams {
     specular?: string | NumberArray3 | Vec3;
     shininess?: number;
     nightTextureCoefficient?: number;
+    icon?: string;
 }
 
 /**
@@ -57,7 +58,7 @@ export interface ILayerParams {
  * @param {boolean} [options.isSRGB=false] - Layer image webgl internal format.
  * @param {Extent} [options.extent=[[-180.0, -90.0], [180.0, 90.0]]] - Visible extent.
  * @param {string} [options.textureFilter="anisotropic"] - Image texture filter. Available values: "nearest", "linear", "mipmap" and "anisotropic".
- *
+ * @param {string} [options.icon] - Icon for LayerSwitcher
  * @fires EventsHandler<LayerEventsList>#visibilitychange
  * @fires EventsHandler<LayerEventsList>#add
  * @fires EventsHandler<LayerEventsList>#remove
@@ -230,9 +231,13 @@ class Layer {
 
     public isVector: boolean = false;
 
+    protected _icon: string;
+
     constructor(name?: string | null, options: ILayerParams = {}) {
 
         this.__id = Layer.__counter__++;
+
+        this._icon = options.icon || "";
 
         this.events = createEvents<LayerEventsList>(LAYER_EVENTS, this);
 
@@ -331,6 +336,15 @@ class Layer {
         }
 
         this.nightTextureCoefficient = options.nightTextureCoefficient || 1.0;
+    }
+
+    public get icon(): string {
+        return this._icon;
+    }
+
+    public set icon(html: string) {
+        // @todo: add event
+        this._icon = html;
     }
 
     public set diffuse(rgb: string | NumberArray3 | Vec3 | null | undefined) {
