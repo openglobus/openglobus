@@ -93,7 +93,7 @@ const globus = new Globe({
     //terrain: highResTerrain,
     terrain: new GlobusTerrain(),
     //layers: [sat, st],
-    layers: [sat],
+    layers: [osm, sat],
     atmosphereEnabled: true,
     fontsSrc: "../../res/fonts",
     //viewExtent: [8.077, 46.69, 8.77, 46.83]
@@ -107,4 +107,5 @@ globus.planet.addControl(new control.TimelineControl());
 globus.planet.addControl(new control.Lighting());
 globus.planet.addControl(new control.DebugInfo());
 globus.planet.addControl(new control.ElevationProfileControl());
+globus.planet.addControl(new control.LayerSwitcher());
 //globus.planet.addControl(new control.ToggleWireframe());
