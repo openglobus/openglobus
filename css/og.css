@@ -284,8 +284,9 @@ input {
 .og-layerSwitcher__list {
     position: relative;
     width: 100%;
-    display: flex;
+    display: inline-block;
     flex-direction: column;
+    padding: 2px;
 }
 
 .og-layerSwitcher__layerButton {
@@ -294,7 +295,9 @@ input {
     position: relative;
     background-color: #7a7a7a;
     cursor: pointer;
-    border-radius: 3px;
+    border-radius: 7px;
+    margin: 3px;
+    border: none;
 }
 
 .og-layerSwitcher__layerButton:hover {

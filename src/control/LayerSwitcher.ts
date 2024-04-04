@@ -2,7 +2,7 @@ import {Control, IControlParams} from "./Control";
 import {Dialog} from "../ui/Dialog";
 import {Layer} from "../layer/Layer";
 import {ToggleButton} from "../ui/ToggleButton";
-import {View} from "../ui/View";
+import {IViewParams, View} from "../ui/View";
 import {stringTemplate} from "../utils/shared";
 
 interface ILayerSwitcherParams extends IControlParams {
@@ -30,6 +30,37 @@ const TEMPLATE =
 
 const LAYER_BUTTON_TEMPLATE = `<button title={title} class="og-layerSwitcher__layerButton"></button>`;
 
+class LayerButtonView extends View<Layer> {
+    constructor(params: IViewParams) {
+        super({
+            template: stringTemplate(LAYER_BUTTON_TEMPLATE, {
+                title: params.model.name
+            }),
+            ...params
+        });
+    }
+
+    public override render(params?: any): this {
+        super.render(params);
+        this.model.events.on("visibility", this._onVisibility);
+        this.el!.addEventListener("click", this._onClick);
+        return this;
+    }
+
+    protected _onVisibility = (visibility: boolean) => {
+
+    }
+
+    protected _onClick = () => {
+        this.model.setVisibility(true);
+    }
+
+    public override remove() {
+        super.remove();
+        this.model.events.off("visibility", this._onVisibility);
+    }
+}
+
 /**
  * Advanced :) layer switcher, includes base layers, overlays, geo images etc. groups.
  * Double click for zoom, drag-and-drop to change zIndex
@@ -42,7 +73,7 @@ export class LayerSwitcher extends Control {
     public $baseLayers: HTMLElement | null;
     public $overlays: HTMLElement | null;
 
-    public _layerViews: View<Layer>[];
+    public _layerViews: LayerButtonView[];
 
     constructor(options: ILayerSwitcherParams = {}) {
         super({
@@ -106,11 +137,8 @@ export class LayerSwitcher extends Control {
         }
     }
 
-    protected _createLayerButton(layer: Layer): View<Layer> {
-        return new View({
-            template: stringTemplate(LAYER_BUTTON_TEMPLATE, {
-                title: layer.name
-            }),
+    protected _createLayerButton(layer: Layer): LayerButtonView {
+        return new LayerButtonView({
             model: layer
         });
     }
