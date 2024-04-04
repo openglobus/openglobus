@@ -23,6 +23,7 @@ function toQuadKey(x, y, z) {
 }
 
 let sat = new XYZ("sat", {
+    iconSrc: "https://ecn.t0.tiles.virtualearth.net/tiles/a120.jpeg?n=z&g=7146",
     subdomains: ['t0', 't1', 't2', 't3'],
     url: "https://ecn.{s}.tiles.virtualearth.net/tiles/a{quad}.jpeg?n=z&g=7146",
     isBaseLayer: true,
@@ -52,6 +53,7 @@ let st = new XYZ("swisstopo", {
 });
 
 let osm = new XYZ("OpenStreetMap", {
+    iconSrc: "https://tile.openstreetmap.org/8/138/95.png",
     isBaseLayer: true,
     url: "http://tile.openstreetmap.org/{z}/{x}/{y}.png",
     visibility: true,

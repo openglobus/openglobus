@@ -37,7 +37,7 @@ class LayerButtonView extends View<Layer> {
             template: stringTemplate(LAYER_BUTTON_TEMPLATE, {
                 title: params.model.name,
                 name: params.model.name,
-                icon: params.model.icon
+                icon: params.model.iconSrc ? `<img src="${params.model.iconSrc}" />` : ""
             }),
             ...params
         });
@@ -48,6 +48,7 @@ class LayerButtonView extends View<Layer> {
         this.model.events.on("visibilitychange", this._onVisibilityChange);
         this._onVisibilityChange(this.model);
         this.el!.addEventListener("click", this._onClick);
+        this.el!.addEventListener("dblclick", this._onDblClick);
         return this;
     }
 
@@ -63,6 +64,10 @@ class LayerButtonView extends View<Layer> {
 
     protected _onClick = () => {
         this.model.setVisibility(true);
+    }
+
+    protected _onDblClick = () => {
+        this.model.flyExtent();
     }
 
     public override remove() {

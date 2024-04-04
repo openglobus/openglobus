@@ -38,7 +38,7 @@ export interface ILayerParams {
     specular?: string | NumberArray3 | Vec3;
     shininess?: number;
     nightTextureCoefficient?: number;
-    icon?: string;
+    iconSrc?: string | null;
 }
 
 /**
@@ -231,13 +231,13 @@ class Layer {
 
     public isVector: boolean = false;
 
-    protected _icon: string;
+    protected _iconSrc: string | null;
 
     constructor(name?: string | null, options: ILayerParams = {}) {
 
         this.__id = Layer.__counter__++;
 
-        this._icon = options.icon || "";
+        this._iconSrc = options.iconSrc || null;
 
         this.events = createEvents<LayerEventsList>(LAYER_EVENTS, this);
 
@@ -338,13 +338,13 @@ class Layer {
         this.nightTextureCoefficient = options.nightTextureCoefficient || 1.0;
     }
 
-    public get icon(): string {
-        return this._icon;
+    public get iconSrc(): string | null {
+        return this._iconSrc;
     }
 
-    public set icon(html: string) {
+    public set iconSrc(src: string) {
         // @todo: add event
-        this._icon = html;
+        this._iconSrc = src;
     }
 
     public set diffuse(rgb: string | NumberArray3 | Vec3 | null | undefined) {
@@ -796,6 +796,23 @@ class Layer {
      */
     public getExtentMerc(): Extent {
         return this._extentMerc;
+    }
+
+
+    /**
+     * Fly extent.
+     * @public
+     */
+    public flyExtent() {
+        this._planet?.flyExtent(this.getExtent());
+    }
+
+    /**
+     * View extent.
+     * @public
+     */
+    public viewExtent() {
+        this._planet?.viewExtent(this.getExtent());
     }
 
     /**
