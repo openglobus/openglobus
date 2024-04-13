@@ -1,7 +1,7 @@
 import {Extent} from "../Extent";
 import {EPSG3857} from "../proj/EPSG3857";
 import {EPSG4326} from "../proj/EPSG4326";
-import {getMatrixSubArray32, getMatrixSubArray64, getMatrixSubArrayBoundsExt} from "../utils/shared";
+import {binaryInsert, getMatrixSubArray32, getMatrixSubArray64, getMatrixSubArrayBoundsExt} from "../utils/shared";
 import {LonLat} from "../LonLat";
 import {MAX, MIN} from "../math";
 import {MAX_LAT} from "../mercator";
@@ -112,6 +112,7 @@ class Node {
         this.ready = false;
         this.neighbors = [[], [], [], []];
         this.equalizedSideWithNodeId = [this.nodeId, this.nodeId, this.nodeId, this.nodeId];
+        // @todo: this.nodes = null;
         this.nodes = [];
         this.segment = new SegmentPrototype(this, planet, tileZoom, extent);
         this._cameraInside = false;
@@ -381,6 +382,11 @@ class Node {
         return n.length === 4 && n[0].prevState === state && n[1].prevState === state && n[2].prevState === state && n[3].prevState === state;
     }
 
+    public isFading(): boolean {
+        let n = this.nodes;
+        return this.segment._transitionOpacity > 0.0 && n.length === 4 && n[0].state === RENDERING && n[1].state === RENDERING && n[2].state === RENDERING && n[3].state === RENDERING;
+    }
+
     public _collectFadingNodes() {
 
         // Light up the node
@@ -398,6 +404,16 @@ class Node {
             if (this.parentNode) {
                 // Parent was visible the last frame, make the parent fading
                 if (this.parentNode.prevState === RENDERING) {
+
+                    let pn: Node | null = this.parentNode;
+                    while (pn) {
+                        if (pn.isFading()) {
+                            pn._fadingNodes = [];
+                            pn.segment._transitionOpacity = 1.0;
+                        }
+                        pn = pn.parentNode;
+                    }
+
                     this._fadingNodes.push(this.parentNode);
                     this.parentNode.segment._transitionOpacity = 2.0;
                     this.parentNode.segment._transitionTimestamp = timestamp;
@@ -464,9 +480,14 @@ class Node {
 
         let nodes = this.planet._renderedNodes;
 
+        //if(!this.planet._transitionOpacityEnabled){
         //this.getRenderedNodesNeighbors(nodes);
+        //}
 
-        nodes.push(this);
+        //nodes.push(this)
+        binaryInsert(nodes, this, (a: Node, b: Node) => {
+            return a.segment.tileZoom - b.segment.tileZoom;
+        });
 
         if (!this.segment.terrainReady) {
             this.planet._renderCompleted = false;

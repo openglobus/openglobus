@@ -1304,9 +1304,9 @@ export class Planet extends RenderNode {
             let opaqueNodes: Node[] = [];
 
             for (let i = 0; i < this._renderedNodes.length; i++) {
-                const ri = this._renderedNodes[i];
-                // it's not impossible to move the code into addToRender, because
-                // we cant know actual state before _collectRenderedNodesMaxZoom pass
+                let ri = this._renderedNodes[i];
+                // it's not impossible to move the code into Node.addToRender, because
+                // we can't know actual state before _collectRenderedNodesMaxZoom pass
                 ri._collectFadingNodes();
                 ri._refreshTransitionOpacity();
 

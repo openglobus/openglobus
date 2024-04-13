@@ -316,6 +316,7 @@ export function binarySearch(ar: any[], el: any, compare_fn: Function): number {
 }
 
 /**
+ * @todo: replace any with generic
  * Binary insertion that uses binarySearch algorithm.
  * @param {any[]} ar - The sorted array to insert.
  * @param {any} el - The item to insert.

@@ -76,18 +76,22 @@ export const geo_object = (): Program =>
                 vColor = aColor;
                 vTexCoords = aTexCoord;
               
-                float roll = aPitchRoll.y;
+                float cos_roll = cos(aPitchRoll.y);
+                float sin_roll = sin(aPitchRoll.y);
+                
                 mat3 rotZ = mat3(
-                     vec3(cos(roll), sin(roll), 0.0),
-                     vec3(-sin(roll), cos(roll), 0.0), 
+                     vec3(cos_roll, sin_roll, 0.0),
+                     vec3(-sin_roll, cos_roll, 0.0), 
                      vec3(0.0, 0.0, 1.0) 
                 );
 
-                float pitch = aPitchRoll.x;
+                float cos_pitch = cos(aPitchRoll.x);
+                float sin_pitch = sin(aPitchRoll.x);
+
                 mat3 rotX = mat3(
                     vec3(1.0, 0.0, 0.0),
-                    vec3(0.0, cos(pitch), sin(pitch)), 
-                    vec3(0.0, -sin(pitch), cos(pitch)) 
+                    vec3(0.0, cos_pitch, sin_pitch), 
+                    vec3(0.0, -sin_pitch, cos_pitch) 
                );
 
                 vec3 position = aPositionHigh + aPositionLow;
@@ -211,19 +215,23 @@ export const geo_object_picking = (): Program =>
             
                  vColor = aPickingColor;
                
-                 float roll = aPitchRoll.y;
-                 mat3 rotZ = mat3(
-                      vec3(cos(roll), sin(roll), 0.0),
-                      vec3(-sin(roll), cos(roll), 0.0), 
-                      vec3(0.0, 0.0, 1.0) 
-                 );
- 
-                 float pitch = aPitchRoll.x;
-                 mat3 rotX = mat3(
-                     vec3(1.0, 0.0, 0.0),
-                     vec3(0.0, cos(pitch), sin(pitch)), 
-                     vec3(0.0, -sin(pitch), cos(pitch)) 
+                float cos_roll = cos(aPitchRoll.y);
+                float sin_roll = sin(aPitchRoll.y);
+                
+                mat3 rotZ = mat3(
+                     vec3(cos_roll, sin_roll, 0.0),
+                     vec3(-sin_roll, cos_roll, 0.0), 
+                     vec3(0.0, 0.0, 1.0) 
                 );
+
+                float cos_pitch = cos(aPitchRoll.x);
+                float sin_pitch = sin(aPitchRoll.x);
+
+                mat3 rotX = mat3(
+                    vec3(1.0, 0.0, 0.0),
+                    vec3(0.0, cos_pitch, sin_pitch), 
+                    vec3(0.0, -sin_pitch, cos_pitch) 
+               );
  
                  vec3 position = aPositionHigh + aPositionLow;
                  vec3 cameraPosition = eyePositionHigh + eyePositionLow;
