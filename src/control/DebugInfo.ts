@@ -104,6 +104,7 @@ export class DebugInfo extends Control {
         this._canvasTiles = new CanvasTiles("Tile grid", {
             visibility: true,
             isBaseLayer: false,
+            hideInLayerSwitcher: true,
             drawTile: function (material: any, applyCanvas: any) {
 
                 //
