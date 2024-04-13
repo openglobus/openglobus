@@ -316,7 +316,7 @@ input {
     position: absolute;
     left: 0;
     top: 0;
-    opacity: 0.75;
+    opacity: 1.0;
 }
 
 .og-layerSwitcher__layerButton img:hover {
