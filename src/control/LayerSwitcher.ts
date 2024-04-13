@@ -63,7 +63,11 @@ class LayerButtonView extends View<Layer> {
     }
 
     protected _onClick = () => {
-        this.model.setVisibility(true);
+        if (this.model.isBaseLayer()) {
+            this.model.setVisibility(true);
+        } else {
+            this.model.setVisibility(!this.model.getVisibility());
+        }
     }
 
     protected _onDblClick = () => {
