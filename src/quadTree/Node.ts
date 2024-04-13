@@ -537,10 +537,18 @@ class Node {
 
             this.sideSizeLog2[side] = Math.log2(cs_size);
             node.sideSizeLog2[opcs] = Math.log2(opcs_size);
+        } else if (this.neighbors[side][this.neighbors.length - 1].nodeId !== this.nodeId) {
+            this.neighbors[side].push(node);
+            node.neighbors[opcs].push(this);
         }
 
-        this.neighbors[side].push(node);
-        node.neighbors[opcs].push(this);
+
+        if (this.neighbors[side].length > 2) {
+            debugger;
+        }
+        if (node.neighbors[opcs].length > 2) {
+            debugger;
+        }
     }
 
     /**
@@ -551,8 +559,8 @@ class Node {
 
         for (let i = nodes.length - 1; i >= 0; --i) {
 
-            const ni = nodes[i];
-            const cs = this.getCommonSide(ni);
+            let ni = nodes[i];
+            let cs = this.getCommonSide(ni);
 
             if (cs !== -1) {
                 this.applyNeighbor(ni, cs);

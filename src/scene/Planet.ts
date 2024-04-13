@@ -1318,6 +1318,8 @@ export class Planet extends RenderNode {
                         let rij = ri._fadingNodes[j];
                         if (rij.segment && rij.segment._transitionOpacity >= 1.0) {
                             rij.getRenderedNodesNeighbors(opaqueNodes);
+                            // not sure it's necessary here
+                            //rij.whileTerrainLoading();
                             opaqueNodes.push(rij);
                         }
                     }
@@ -1585,6 +1587,7 @@ export class Planet extends RenderNode {
         let isFirstPass = sliceIndex === 0;
         let isEq = this.terrain!.equalizeVertices;
 
+        //let gl = sh.gl!;
         //gl.disable(gl.CULL_FACE);
 
         for (let j = 0, len = currentNode._fadingNodes.length; j < len; j++) {
