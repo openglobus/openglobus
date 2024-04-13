@@ -389,6 +389,11 @@ class Node {
 
     public _collectFadingNodes() {
 
+        if (this.segment.tileZoom < 3) {
+            this.segment._transitionOpacity = 1.0;
+            return;
+        }
+
         // Light up the node
         if (this.prevState !== RENDERING) {
 
