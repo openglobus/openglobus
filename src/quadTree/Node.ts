@@ -537,18 +537,18 @@ class Node {
 
             this.sideSizeLog2[side] = Math.log2(cs_size);
             node.sideSizeLog2[opcs] = Math.log2(opcs_size);
-        } else if (this.neighbors[side][this.neighbors.length - 1].nodeId !== this.nodeId) {
+        } else if (this.neighbors[side][this.neighbors[side].length - 1].nodeId !== this.nodeId) {
             this.neighbors[side].push(node);
             node.neighbors[opcs].push(this);
         }
 
 
-        if (this.neighbors[side].length > 2) {
-            debugger;
-        }
-        if (node.neighbors[opcs].length > 2) {
-            debugger;
-        }
+        // if (this.neighbors[side].length > 2) {
+        //     debugger;
+        // }
+        // if (node.neighbors[opcs].length > 2) {
+        //     debugger;
+        // }
     }
 
     /**
