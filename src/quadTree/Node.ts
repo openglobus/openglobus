@@ -418,6 +418,7 @@ class Node {
                                 pn.nodes[i]._fadingNodes = [];
                             }
                             pn.segment._transitionOpacity = 0.0;
+                            break;
                         }
                         pn = pn.parentNode;
                     }
