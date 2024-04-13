@@ -384,7 +384,7 @@ class Node {
 
     public isFading(): boolean {
         let n = this.nodes;
-        return this.segment._transitionOpacity > 0.0 && n.length === 4 && n[0].state === RENDERING && n[1].state === RENDERING && n[2].state === RENDERING && n[3].state === RENDERING;
+        return this.state === WALKTHROUGH && this.segment._transitionOpacity > 0.0 && n.length === 4 && (n[0].state === RENDERING || n[1].state === RENDERING || n[2].state === RENDERING || n[3].state === RENDERING);
     }
 
     public _collectFadingNodes() {
@@ -408,9 +408,9 @@ class Node {
                     let pn: Node | null = this.parentNode;
                     while (pn) {
                         if (pn.isFading()) {
-                            for (let i = 0; i < this.nodes.length; i++) {
-                                this.nodes[i].segment._transitionOpacity = 1.0;
-                                this.nodes[i]._fadingNodes = [];
+                            for (let i = 0; i < pn.nodes.length; i++) {
+                                pn.nodes[i].segment._transitionOpacity = 1.0;
+                                pn.nodes[i]._fadingNodes = [];
                             }
                             pn.segment._transitionOpacity = 0.0;
                         }
