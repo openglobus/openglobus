@@ -408,8 +408,11 @@ class Node {
                     let pn: Node | null = this.parentNode;
                     while (pn) {
                         if (pn.isFading()) {
-                            pn._fadingNodes = [];
-                            pn.segment._transitionOpacity = 1.0;
+                            for (let i = 0; i < this.nodes.length; i++) {
+                                this.nodes[i].segment._transitionOpacity = 1.0;
+                                this.nodes[i]._fadingNodes = [];
+                            }
+                            pn.segment._transitionOpacity = 0.0;
                         }
                         pn = pn.parentNode;
                     }
