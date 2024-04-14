@@ -431,7 +431,7 @@ export class Planet extends RenderNode {
         this._prevNodes = new Map<number, Node>();
         this._currNodes = new Map<number, Node>();
 
-        this.transitionTime = 1000;
+        this.transitionTime = 2000;
 
         this.ellipsoid = options.ellipsoid || wgs84;
 
@@ -1318,8 +1318,6 @@ export class Planet extends RenderNode {
                         let rij = ri._fadingNodes[j];
                         if (rij.segment && rij.segment._transitionOpacity >= 1.0) {
                             rij.getRenderedNodesNeighbors(opaqueNodes);
-                            // not sure it's necessary here
-                            //rij.whileTerrainLoading();
                             opaqueNodes.push(rij);
                         }
                     }
@@ -1587,9 +1585,6 @@ export class Planet extends RenderNode {
         let isFirstPass = sliceIndex === 0;
         let isEq = this.terrain!.equalizeVertices;
 
-        //let gl = sh.gl!;
-        //gl.disable(gl.CULL_FACE);
-
         for (let j = 0, len = currentNode._fadingNodes.length; j < len; j++) {
             let f = currentNode._fadingNodes[j].segment;
             if (this._fadingNodes.has(currentNode._fadingNodes[0].nodeId) && !nodes.has(f.node.nodeId)) {
@@ -1608,8 +1603,6 @@ export class Planet extends RenderNode {
                 }
             }
         }
-
-        //gl.enable(gl.CULL_FACE);
     }
 
     protected _renderingFadingNodesNoDepth = (nodes: Map<number, boolean>, sh: Program, currentNode: Node, sl: Layer[], sliceIndex: number) => {
@@ -1642,7 +1635,6 @@ export class Planet extends RenderNode {
      */
     protected _renderingScreenNodes(sh: Program, cam: PlanetCamera, renderedNodes: Node[]) {
 
-        let gl = this.renderer!.handler.gl!;
         let firstPass = cam.isFirstPass;
 
         let sl = this._visibleTileLayerSlices;
@@ -1676,10 +1668,13 @@ export class Planet extends RenderNode {
 
             _renderingFadingNodes(nodes, sh, ri, sl[0], 0, transparentSegments);
 
-            isEq && s.equalize();
-            s.readyToEngage && s.engage();
-            s.screenRendering(sh, sl[0], 0);
-
+            if (s._transitionOpacity < 1) {
+                transparentSegments.push(s);
+            } else {
+                isEq && s.equalize();
+                s.readyToEngage && s.engage();
+                s.screenRendering(sh, sl[0], 0);
+            }
         }
 
         for (let j = 0; j < transparentSegments.length; j++) {
@@ -1691,35 +1686,38 @@ export class Planet extends RenderNode {
         }
 
         //
-        // PASS 1: rendering slices, and layers with heights
+        // PASS 1: rendering slices, and layers with heights, without transition opacity effect
+        this._renderingScreenNodesWithHeight(sh, cam, renderedNodes);
+    }
+
+    protected _renderingScreenNodesWithHeight(sh: Program, cam: PlanetCamera, renderedNodes: Node[]) {
+        let gl = this.renderer!.handler.gl!;
+        let firstPass = cam.isFirstPass;
+
+        let sl = this._visibleTileLayerSlices;
+
         gl.enable(gl.POLYGON_OFFSET_FILL);
+        gl.disable(gl.CULL_FACE);
 
         for (let j = 1, len = sl.length; j < len; j++) {
             let slj = sl[j];
-            for (i = slj.length - 1; i >= 0; --i) {
+            for (let i = slj.length - 1; i >= 0; --i) {
                 let li = slj[i];
                 if (li._fading && firstPass && li._refreshFadingOpacity()) {
                     slj.splice(i, 1);
                 }
             }
 
-            transparentSegments = [];
-            nodes.clear();
-
             gl.polygonOffset(0, -j);
-            i = renderedNodes.length;
+            let i = renderedNodes.length;
             while (i--) {
                 let ri = renderedNodes[i];
-                _renderingFadingNodes(nodes, sh, ri, sl[j], j, transparentSegments);
-                ri.segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
-            }
-
-            for (let k = 0; k < transparentSegments.length; k++) {
-                transparentSegments[k].screenRendering(sh, sl[j], j, this.transparentTexture, true);
+                ri.segment.screenRendering(sh, sl[j], j, this.transparentTexture, true, 1.0);
             }
         }
 
         gl.disable(gl.POLYGON_OFFSET_FILL);
+        gl.enable(gl.CULL_FACE);
     }
 
     protected _renderDistanceFramebufferPASS() {

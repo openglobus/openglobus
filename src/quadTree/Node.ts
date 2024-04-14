@@ -423,6 +423,8 @@ class Node {
                         pn = pn.parentNode;
                     }
 
+                    // not sure it's necessary here
+                    //this.parentNode.whileTerrainLoading();
                     this._fadingNodes.push(this.parentNode);
                     this.parentNode.segment._transitionOpacity = 2.0;
                     this.parentNode.segment._transitionTimestamp = timestamp;
@@ -431,6 +433,8 @@ class Node {
                     if (this.segment.childrenInitialized() && this.childrenPrevStateEquals(RENDERING)) {
                         for (let i = 0; i < this.nodes.length; i++) {
                             let ni = this.nodes[i];
+                            // not sure it's necessary here
+                            //ni.whileTerrainLoading();
                             this._fadingNodes.push(ni);
                             ni.segment._transitionOpacity = 2.0;
                             ni.segment._transitionTimestamp = timestamp;
@@ -459,17 +463,18 @@ class Node {
         if (this._fadingNodes.length === 0) {
             this.segment._transitionOpacity = 1.0;
         } else {
-            this.segment.increaseTransitionOpacity();
             if (this._fadingNodes.length === 4 && !this.childrenPrevStateEquals(RENDERING)) {
                 this.segment._transitionOpacity = 1.0;
             } else {
+
+                this.segment.increaseTransitionOpacity();
+
                 for (let i = 0; i < this._fadingNodes.length; i++) {
                     let n = this._fadingNodes[i];
                     if (n.segment) {
                         if (n.segment._transitionOpacity > 0 && !this.planet._fadingNodes.has(n.nodeId)) {
                             this.planet._fadingNodes.set(n.nodeId, n);
                             n.segment.fadingTransitionOpacity();
-                            //n.clearNeighbors();
                         }
                     } else {
                         this.segment._transitionOpacity = 1.0;
@@ -541,7 +546,6 @@ class Node {
             this.neighbors[side].push(node);
             node.neighbors[opcs].push(this);
         }
-
 
         // if (this.neighbors[side].length > 2) {
         //     debugger;

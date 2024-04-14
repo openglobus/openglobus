@@ -1537,7 +1537,7 @@ class Segment {
         return [dV0s_x, dV0s_y, dSize_x, dSize_y];
     }
 
-    public screenRendering(sh: Program, layerSlice: Layer[], sliceIndex: number, defaultTexture?: WebGLTextureExt | null, isOverlay: boolean = false) {
+    public screenRendering(sh: Program, layerSlice: Layer[], sliceIndex: number, defaultTexture?: WebGLTextureExt | null, isOverlay: boolean = false, forcedOpacity?: number) {
         const gl = this.handler.gl!;
         const sha = sh.attributes;
         const shu = sh.uniforms;
@@ -1608,7 +1608,7 @@ class Segment {
 
         if (notEmpty || !isOverlay) {
 
-            gl.uniform1f(shu.transitionOpacity, this._transitionOpacity > 1.0 ? 1.0 : this._transitionOpacity);
+            gl.uniform1f(shu.transitionOpacity, forcedOpacity || this._transitionOpacity > 1.0 ? 1.0 : this._transitionOpacity);
 
             gl.uniform1i(shu.samplerCount, n);
             gl.uniform1f(shu.height, currHeight);
