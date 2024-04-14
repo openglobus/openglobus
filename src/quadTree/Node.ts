@@ -494,14 +494,16 @@ class Node {
 
         let nodes = this.planet._renderedNodes;
 
-        //if(!this.planet._transitionOpacityEnabled){
-        //this.getRenderedNodesNeighbors(nodes);
-        //}
-
-        //nodes.push(this)
-        binaryInsert(nodes, this, (a: Node, b: Node) => {
-            return a.segment.tileZoom - b.segment.tileZoom;
-        });
+        //@ts-ignore
+        if (!this.planet._transitionOpacityEnabled) {
+            this.getRenderedNodesNeighbors(nodes);
+            nodes.push(this);
+        } else {
+            //@todo: check if it's possible to get rid of the sorting when using breadth traverse tree
+            binaryInsert(nodes, this, (a: Node, b: Node) => {
+                return a.segment.tileZoom - b.segment.tileZoom;
+            });
+        }
 
         if (!this.segment.terrainReady) {
             this.planet._renderCompleted = false;
@@ -546,13 +548,6 @@ class Node {
             this.neighbors[side].push(node);
             node.neighbors[opcs].push(this);
         }
-
-        // if (this.neighbors[side].length > 2) {
-        //     debugger;
-        // }
-        // if (node.neighbors[opcs].length > 2) {
-        //     debugger;
-        // }
     }
 
     /**
