@@ -405,7 +405,8 @@ export class Planet extends RenderNode {
      */
     public nightTextureCoefficient: number;
 
-    protected _renderScreenNodesPASS: Function;
+    protected _renderScreenNodesPASS: () => void;
+    protected _renderScreenNodesWithHeightPASS: () => void;
 
     protected _atmosphereEnabled: boolean;
     protected _atmosphereMaxMinOpacity: Float32Array;
@@ -574,6 +575,7 @@ export class Planet extends RenderNode {
         this.nightTextureCoefficient = 2.0;
 
         this._renderScreenNodesPASS = this._renderScreenNodesPASSNoAtmos;
+        this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSNoAtmos;
 
         this._atmosphereEnabled = options.atmosphereEnabled || false;
         this._atmosphereMaxMinOpacity = new Float32Array([1.0, 0.41]);
@@ -854,6 +856,7 @@ export class Planet extends RenderNode {
         if (this._atmosphereEnabled) {
 
             this._renderScreenNodesPASS = this._renderScreenNodesPASSAtmos;
+            this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSAtmos;
 
             if (h.isWebGl2()) {
                 h.addProgram(shaders.drawnode_screen_wl_webgl2Atmos(), true);
@@ -874,6 +877,7 @@ export class Planet extends RenderNode {
         } else {
 
             this._renderScreenNodesPASS = this._renderScreenNodesPASSNoAtmos;
+            this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSNoAtmos;
 
             if (this.renderer!.controls.Atmosphere) {
                 this.renderer!.controls.Atmosphere.deactivate();
@@ -952,6 +956,10 @@ export class Planet extends RenderNode {
         this.renderer!.events.on("resize", () => {
             this._renderCompletedActivated = false;
             this._terrainCompletedActivated = false;
+        });
+
+        this.renderer!.events.on("drawtransparent", () => {
+            this._renderScreenNodesWithHeightPASS();
         });
 
         // Initialize texture coordinates buffer pool
@@ -1328,12 +1336,42 @@ export class Planet extends RenderNode {
 
     protected _renderScreenNodesPASSNoAtmos() {
         let cam = this.renderer!.activeCamera as PlanetCamera;
-        this._renderingScreenNodes(this._setUniformsNoAtmos(cam), cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
+        let sh = this._setUniformsNoAtmos(cam);
+        //
+        // PASS 0: rendering base slice of layers, which is often zero height
+        this._renderingScreenNodes(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
+
+        // //
+        // // PASS 1: rendering slices, and layers with heights, without transition opacity effect
+        // this._renderingScreenNodesWithHeight(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
     }
 
     protected _renderScreenNodesPASSAtmos() {
         let cam = this.renderer!.activeCamera as PlanetCamera;
-        this._renderingScreenNodes(this._setUniformsAtmos(cam), cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
+        let sh = this._setUniformsAtmos(cam);
+        //
+        // PASS 0: rendering base slice of layers, which is often zero height
+        this._renderingScreenNodes(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
+
+        // //
+        // // PASS 1: rendering slices, and layers with heights, without transition opacity effect
+        // this._renderingScreenNodesWithHeight(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
+    }
+
+    protected _renderScreenNodesWithHeightPASSNoAtmos() {
+        let cam = this.renderer!.activeCamera as PlanetCamera;
+        let sh = this._setUniformsNoAtmos(cam);
+        //
+        // PASS 1: rendering slices, and layers with heights, without transition opacity effect
+        this._renderingScreenNodesWithHeight(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
+    }
+
+    protected _renderScreenNodesWithHeightPASSAtmos() {
+        let cam = this.renderer!.activeCamera as PlanetCamera;
+        let sh = this._setUniformsAtmos(cam);
+        //
+        // PASS 1: rendering slices, and layers with heights, without transition opacity effect
+        this._renderingScreenNodesWithHeight(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
     }
 
     protected _globalPreDraw() {
@@ -1660,8 +1698,6 @@ export class Planet extends RenderNode {
             _renderingFadingNodes = this._renderingFadingNodesNoDepth;
         }
 
-        //
-        // PASS 0: rendering base slice of layers, which is often zero height
         while (i--) {
             let ri = renderedNodes[i];
             let s = ri.segment;
@@ -1684,10 +1720,6 @@ export class Planet extends RenderNode {
             tj.readyToEngage && tj.engage();
             tj.screenRendering(sh, sl[0], 0);
         }
-
-        //
-        // PASS 1: rendering slices, and layers with heights, without transition opacity effect
-        this._renderingScreenNodesWithHeight(sh, cam, renderedNodes);
     }
 
     protected _renderingScreenNodesWithHeight(sh: Program, cam: PlanetCamera, renderedNodes: Node[]) {

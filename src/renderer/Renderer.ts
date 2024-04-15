@@ -913,18 +913,8 @@ class Renderer {
 
             this.enableBlendDefault();
 
-            //geoObject
-            let i = ec.length;
-            while (i--) {
-                let eci = ec[i];
-                if (ec[i]._fadingOpacity) {
-                    eci.events.dispatch(eci.events.draw, eci);
-                    ec[i].geoObjectHandler.draw();
-                }
-            }
-
             // pointClouds pass
-            i = ec.length;
+            let i = ec.length;
             while (i--) {
                 ec[i]._fadingOpacity && ec[i].pointCloudHandler.draw();
             }
@@ -944,11 +934,21 @@ class Renderer {
 
             this.enableBlendDefault();
 
+            // GeoObjects
+            let i = ec.length;
+            while (i--) {
+                let eci = ec[i];
+                if (ec[i]._fadingOpacity) {
+                    eci.events.dispatch(eci.events.draw, eci);
+                    ec[i].geoObjectHandler.draw();
+                }
+            }
+
             // billboards pass
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, this.billboardsTextureAtlas.texture!);
 
-            let i = ec.length;
+            i = ec.length;
             while (i--) {
                 let eci = ec[i];
                 eci._fadingOpacity && eci.billboardHandler.draw();
@@ -1039,6 +1039,8 @@ class Renderer {
 
             this._drawTransparentEntityCollections();
             this._clearEntityCollectionQueue();
+
+            e.dispatch(e.drawtransparent, this);
 
             if (pointerEvent) {
                 this._drawPickingBuffer();
