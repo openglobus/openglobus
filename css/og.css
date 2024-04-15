@@ -339,6 +339,7 @@ input {
     width: calc(100% - 6px);
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
+    max-height: 25px;
 }
 
 /* =============================== */

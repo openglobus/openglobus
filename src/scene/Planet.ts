@@ -1352,10 +1352,6 @@ export class Planet extends RenderNode {
         //
         // PASS 0: rendering base slice of layers, which is often zero height
         this._renderingScreenNodes(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
-
-        // //
-        // // PASS 1: rendering slices, and layers with heights, without transition opacity effect
-        // this._renderingScreenNodesWithHeight(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
     }
 
     protected _renderScreenNodesWithHeightPASSNoAtmos() {
@@ -1554,8 +1550,6 @@ export class Planet extends RenderNode {
         gl.enable(gl.CULL_FACE);
 
         renderer.enableBlendOneSrcAlpha();
-
-        //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
         if (this.lightEnabled) {
             h.programs.drawnode_screen_wl.activate();
