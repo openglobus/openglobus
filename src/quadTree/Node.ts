@@ -545,11 +545,10 @@ class Node {
             this.sideSizeLog2[side] = Math.log2(cs_size);
             node.sideSizeLog2[opcs] = Math.log2(opcs_size);
         }
-        // doesn't work with RgbaTerrain provider equalization
-        //else if (this.neighbors[side][this.neighbors[side].length - 1].nodeId !== this.nodeId) {
+
+        //@todo: fix dupe neighbors
         this.neighbors[side].push(node);
         node.neighbors[opcs].push(this);
-        //}
     }
 
     /**
