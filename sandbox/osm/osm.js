@@ -1,5 +1,7 @@
 import {
     Globe,
+    Entity,
+    Vector,
     GlobusTerrain,
     EmptyTerrain,
     MapboxTerrain,
@@ -93,8 +95,8 @@ var highResTerrain = new MapboxTerrain(null, {
 const globus = new Globe({
     target: "earth",
     name: "Earth",
-    terrain: highResTerrain,
-    //terrain: new GlobusTerrain(),
+    //terrain: highResTerrain,
+    terrain: new GlobusTerrain(),
     //layers: [sat, st],
     layers: [osm, sat],
     atmosphereEnabled: true,
@@ -113,3 +115,47 @@ globus.planet.addControl(new control.ElevationProfileControl());
 globus.planet.addControl(new control.ToggleWireframe());
 globus.planet.addControl(new control.LayerSwitcher());
 //globus.planet.addControl(new control.ToggleWireframe());
+
+fetch("./countries.json")
+    .then(r => {
+        return r.json();
+    }).then(data => {
+    var countries = new Vector("Countries", {
+        'visibility': true,
+        'isBaseLayer': false,
+        'diffuse': [0, 0, 0],
+        'ambient': [1, 1, 1]
+    });
+
+    countries.addTo(globus.planet);
+
+    var f = data.features;
+    for (let i = 0; i < f.length; i++) {
+        var fi = f[i];
+        countries.add(new Entity({
+            'geometry': {
+                'type': fi.geometry.type,
+                'coordinates': fi.geometry.coordinates,
+                'style': {
+                    'fillColor': "rgba(255,255,255,0.6)"
+                }
+            }
+        }));
+    }
+
+    countries.events.on("mouseleave", function (e) {
+        e.pickingObject.geometry.setFillColor(1, 1, 1, 0.6);
+        e.pickingObject.geometry.setLineColor(0.2, 0.6, 0.8, 1.0);
+    });
+    countries.events.on("mouseenter", function (e) {
+        e.pickingObject.geometry.bringToFront();
+        e.pickingObject.geometry.setFillColor(1, 0, 0, 0.1);
+        e.pickingObject.geometry.setLineColor(1, 0, 0, 1.0);
+    });
+    countries.events.on("lclick", function (e) {
+        globus.planet.flyExtent(e.pickingObject.geometry.getExtent());
+    });
+    countries.events.on("touchstart", function (e) {
+        globus.planet.flyExtent(e.pickingObject.geometry.getExtent());
+    });
+});

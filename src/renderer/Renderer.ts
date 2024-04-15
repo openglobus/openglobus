@@ -1149,20 +1149,20 @@ class Renderer {
             gl.clear(gl.DEPTH_BUFFER_BIT);
         }
 
-        //
-        // draw picking scenes
-        //
-        gl.disable(gl.BLEND);
-
         let dp = this._pickingCallbacks;
         for (let i = 0, len = dp.length; i < len; i++) {
+            //
+            // draw picking scenes, usually we don't need blending,
+            // but sometimes set it manually in the callbacks
+            //
+            gl.disable(gl.BLEND);
+
             /**
              * This callback renders picking frame.
              */
             dp[i].callback.call(dp[i].sender);
+            gl.enable(gl.BLEND);
         }
-
-        gl.enable(gl.BLEND);
 
         this.pickingFramebuffer!.deactivate();
     }

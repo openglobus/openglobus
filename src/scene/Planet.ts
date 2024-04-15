@@ -39,6 +39,7 @@ import {WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams, WebGLContextExt}
 import {Program} from "../webgl/Program";
 import {RENDERING} from "../quadTree/quadTree";
 import {Segment} from "../segment/Segment";
+import {Slice} from "../segment/Slice";
 
 export interface IPlanetParams {
     name?: string;
@@ -1340,10 +1341,6 @@ export class Planet extends RenderNode {
         //
         // PASS 0: rendering base slice of layers, which is often zero height
         this._renderingScreenNodes(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
-
-        // //
-        // // PASS 1: rendering slices, and layers with heights, without transition opacity effect
-        // this._renderingScreenNodesWithHeight(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
     }
 
     protected _renderScreenNodesPASSAtmos() {
@@ -1725,6 +1722,9 @@ export class Planet extends RenderNode {
         gl.enable(gl.POLYGON_OFFSET_FILL);
         gl.disable(gl.CULL_FACE);
 
+        let nodes = new Map<number, boolean>;
+        let transparentSegments: Segment[] = [];
+
         for (let j = 1, len = sl.length; j < len; j++) {
             let slj = sl[j];
             for (let i = slj.length - 1; i >= 0; --i) {
@@ -1738,8 +1738,23 @@ export class Planet extends RenderNode {
             let i = renderedNodes.length;
             while (i--) {
                 let ri = renderedNodes[i];
-                ri.segment.screenRendering(sh, sl[j], j, this.transparentTexture, true, 1.0);
+                this._renderingFadingNodes(nodes, sh, ri, sl[j], j, transparentSegments);
+                if (ri.segment._transitionOpacity < 1) {
+                    //transparentSegments.push(ri.segment);
+                    let slice = ri.segment._slices[j];
+                    if (!slice) {
+                        slice = ri.segment._slices[j] = new Slice(ri.segment);
+                    } else {
+                        slice.layers = [];
+                    }
+                } else {
+                    ri.segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
+                }
             }
+
+            // for (let k = 0; k < transparentSegments.length; k++) {
+            //     transparentSegments[k].screenRendering(sh, sl[j], j, this.transparentTexture, true);
+            // }
         }
 
         gl.disable(gl.POLYGON_OFFSET_FILL);
@@ -1786,11 +1801,6 @@ export class Planet extends RenderNode {
         let shu = sh.uniforms;
         let cam = renderer.activeCamera!;
 
-        // Special blend
-        // gl.enable(gl.BLEND);
-        // gl.blendEquation(gl.FUNC_ADD);
-        // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
         gl.enable(gl.CULL_FACE);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
@@ -1807,6 +1817,10 @@ export class Planet extends RenderNode {
         while (i--) {
             rn[i].segment.colorPickingRendering(sh, sl[0], 0);
         }
+
+        // Here is set blending for transparent overlays
+        //renderer.enableBlendDefault();
+        gl.enable(gl.BLEND);
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1, len = sl.length; j < len; j++) {
