@@ -432,7 +432,7 @@ export class Planet extends RenderNode {
         this._prevNodes = new Map<number, Node>();
         this._currNodes = new Map<number, Node>();
 
-        this.transitionTime = 2000;
+        this.transitionTime = 580;
 
         this.ellipsoid = options.ellipsoid || wgs84;
 
