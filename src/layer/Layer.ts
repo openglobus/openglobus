@@ -341,7 +341,7 @@ class Layer {
         return this._iconSrc;
     }
 
-    public set iconSrc(src: string) {
+    public set iconSrc(src: string | null) {
         // @todo: add event
         this._iconSrc = src;
     }

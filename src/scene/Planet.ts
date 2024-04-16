@@ -35,7 +35,11 @@ import {Vec2, Vec3, Vec4, NumberArray2, NumberArray3, NumberArray4} from "../mat
 import {Vector} from "../layer/Vector";
 import {VectorTileCreator} from "../utils/VectorTileCreator";
 import {wgs84} from "../ellipsoid/wgs84";
-import {WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams} from "../webgl/Handler";
+import {WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams, WebGLContextExt} from "../webgl/Handler";
+import {Program} from "../webgl/Program";
+import {RENDERING} from "../quadTree/quadTree";
+import {Segment} from "../segment/Segment";
+import {Slice} from "../segment/Slice";
 
 export interface IPlanetParams {
     name?: string;
@@ -56,6 +60,7 @@ export interface IPlanetParams {
     maxGridSize?: number;
     maxLoadingRequests?: number;
     atmosphereEnabled?: boolean;
+    transitionOpacityEnabled?: boolean;
 }
 
 export type PlanetEventsList = [
@@ -234,6 +239,10 @@ export class Planet extends RenderNode {
 
     public _renderedNodesInFrustum: Node[][];
 
+    public _fadingNodes: Map<number, Node>;
+
+    public _fadingNodesInFrustum: Node[][];
+
     /**
      * Current visible mercator segments tree nodes array.
      * @public
@@ -397,7 +406,8 @@ export class Planet extends RenderNode {
      */
     public nightTextureCoefficient: number;
 
-    protected _renderScreenNodesPASS: Function;
+    protected _renderScreenNodesPASS: () => void;
+    protected _renderScreenNodesWithHeightPASS: () => void;
 
     protected _atmosphereEnabled: boolean;
     protected _atmosphereMaxMinOpacity: Float32Array;
@@ -410,8 +420,20 @@ export class Planet extends RenderNode {
     protected _nightTextureSrc: string | null;
     protected _specularTextureSrc: string | null;
 
+    public transitionTime: number;
+
+    public _prevNodes: Map<number, Node>;
+    public _currNodes: Map<number, Node>;
+
+    protected _transitionOpacityEnabled: boolean;
+
     constructor(options: IPlanetParams = {}) {
         super(options.name);
+
+        this._prevNodes = new Map<number, Node>();
+        this._currNodes = new Map<number, Node>();
+
+        this.transitionTime = 580;
 
         this.ellipsoid = options.ellipsoid || wgs84;
 
@@ -468,6 +490,9 @@ export class Planet extends RenderNode {
 
         this._renderedNodes = [];
         this._renderedNodesInFrustum = [];
+
+        this._fadingNodes = new Map<number, Node>;
+        this._fadingNodesInFrustum = [];
 
         this._visibleNodes = {};
 
@@ -551,6 +576,7 @@ export class Planet extends RenderNode {
         this.nightTextureCoefficient = 2.0;
 
         this._renderScreenNodesPASS = this._renderScreenNodesPASSNoAtmos;
+        this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSNoAtmos;
 
         this._atmosphereEnabled = options.atmosphereEnabled || false;
         this._atmosphereMaxMinOpacity = new Float32Array([1.0, 0.41]);
@@ -560,6 +586,8 @@ export class Planet extends RenderNode {
 
         this._nightTextureSrc = options.nightTextureSrc || null;
         this._specularTextureSrc = options.specularTextureSrc || null;
+
+        this._transitionOpacityEnabled = options.transitionOpacityEnabled != undefined ? options.transitionOpacityEnabled : true;
     }
 
     /**
@@ -829,6 +857,7 @@ export class Planet extends RenderNode {
         if (this._atmosphereEnabled) {
 
             this._renderScreenNodesPASS = this._renderScreenNodesPASSAtmos;
+            this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSAtmos;
 
             if (h.isWebGl2()) {
                 h.addProgram(shaders.drawnode_screen_wl_webgl2Atmos(), true);
@@ -849,6 +878,7 @@ export class Planet extends RenderNode {
         } else {
 
             this._renderScreenNodesPASS = this._renderScreenNodesPASSNoAtmos;
+            this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSNoAtmos;
 
             if (this.renderer!.controls.Atmosphere) {
                 this.renderer!.controls.Atmosphere.deactivate();
@@ -927,6 +957,10 @@ export class Planet extends RenderNode {
         this.renderer!.events.on("resize", () => {
             this._renderCompletedActivated = false;
             this._terrainCompletedActivated = false;
+        });
+
+        this.renderer!.events.on("drawtransparent", () => {
+            this._renderScreenNodesWithHeightPASS();
         });
 
         // Initialize texture coordinates buffer pool
@@ -1198,37 +1232,14 @@ export class Planet extends RenderNode {
         }
     }
 
-    /**
-     * Collects visible quad nodes.
-     * @protected
-     */
-    protected _collectRenderNodes() {
-        let cam = this.camera;
-        this._lodSize = math.lerp(cam.slope < 0.0 ? 0.0 : cam.slope, this._curLodSize, this._minLodSize);
-
-        cam._insideSegment = null;
-
-        // clear first
-        this._clearRenderedNodeList();
-        this._clearRenderNodesInFrustum();
-
-        this._viewExtent.southWest.set(180, 180);
-        this._viewExtent.northEast.set(-180, -180);
-
-        this._visibleNodes = {};
-        this._visibleNodesNorth = {};
-        this._visibleNodesSouth = {};
-
-        this.minCurrZoom = math.MAX;
-        this.maxCurrZoom = math.MIN;
-
-        this.quadTreeStrategy.collectRenderNodes();
-
+    protected _collectRenderedNodesMaxZoom(cam: PlanetCamera) {
         if (cam.slope > this.minEqualZoomCameraSlope && cam._lonLat.height < this.maxEqualZoomAltitude && cam._lonLat.height > this.minEqualZoomAltitude) {
 
             this.minCurrZoom = this.maxCurrZoom;
 
-            let temp = this._renderedNodes, rf = this._renderedNodesInFrustum, temp2 = [];
+            let temp = this._renderedNodes,
+                rf = this._renderedNodesInFrustum,
+                temp2 = [];
 
             this._clearRenderNodesInFrustum();
             this._renderedNodes = [];
@@ -1252,9 +1263,108 @@ export class Planet extends RenderNode {
             }
 
             for (let i = 0, len = temp2.length; i < len; i++) {
-                temp2[i].renderTree(cam, this.maxCurrZoom, null);
+                temp2[i].renderTree(cam, this.maxCurrZoom, null, false, temp2[i]);
             }
         }
+    }
+
+    public set transitionOpacityEnabled(isEnabled: boolean) {
+        this._transitionOpacityEnabled = isEnabled;
+        //@todo: set render nodes transition opacity to one
+    }
+
+    public get transitionOpacityEnabled(): boolean {
+        return this._transitionOpacityEnabled;
+    }
+
+    /**
+     * Collects visible quad nodes.
+     * @protected
+     */
+    protected _collectRenderNodes(cam: PlanetCamera) {
+        this._lodSize = math.lerp(cam.slope < 0.0 ? 0.0 : cam.slope, this._curLodSize, this._minLodSize);
+        cam._insideSegment = null;
+
+        // clear first
+        this._clearRenderedNodeList();
+        this._clearRenderNodesInFrustum();
+
+        this._viewExtent.southWest.set(180, 180);
+        this._viewExtent.northEast.set(-180, -180);
+
+        // todo: replace to camera
+        this._visibleNodes = {};
+        this._visibleNodesNorth = {};
+        this._visibleNodesSouth = {};
+
+        // todo: replace to camera
+        this.minCurrZoom = math.MAX;
+        this.maxCurrZoom = math.MIN;
+
+        this.quadTreeStrategy.collectRenderNodes();
+
+        this._collectRenderedNodesMaxZoom(cam);
+
+        // main camera effect
+        this._fadingNodes.clear();
+
+        if (this._transitionOpacityEnabled) {
+
+            let opaqueNodes: Node[] = [];
+
+            for (let i = 0; i < this._renderedNodes.length; i++) {
+                let ri = this._renderedNodes[i];
+                // it's not impossible to move the code into Node.addToRender, because
+                // we can't know actual state before _collectRenderedNodesMaxZoom pass
+                ri._collectFadingNodes();
+                ri._refreshTransitionOpacity();
+
+                if (ri.segment._transitionOpacity >= 1.0) {
+                    ri.getRenderedNodesNeighbors(opaqueNodes);
+                    opaqueNodes.push(ri);
+                } else {
+                    for (let j = 0; j < ri._fadingNodes.length; j++) {
+                        let rij = ri._fadingNodes[j];
+                        if (rij.segment && rij.segment._transitionOpacity >= 1.0) {
+                            rij.getRenderedNodesNeighbors(opaqueNodes);
+                            opaqueNodes.push(rij);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    protected _renderScreenNodesPASSNoAtmos() {
+        let cam = this.renderer!.activeCamera as PlanetCamera;
+        let sh = this._setUniformsNoAtmos(cam);
+        //
+        // PASS 0: rendering base slice of layers, which is often zero height
+        this._renderingScreenNodes(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
+    }
+
+    protected _renderScreenNodesPASSAtmos() {
+        let cam = this.renderer!.activeCamera as PlanetCamera;
+        let sh = this._setUniformsAtmos(cam);
+        //
+        // PASS 0: rendering base slice of layers, which is often zero height
+        this._renderingScreenNodes(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
+    }
+
+    protected _renderScreenNodesWithHeightPASSNoAtmos() {
+        let cam = this.renderer!.activeCamera as PlanetCamera;
+        let sh = this._setUniformsNoAtmos(cam);
+        //
+        // PASS 1: rendering slices, and layers with heights, without transition opacity effect
+        this._renderingScreenNodesWithHeight(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
+    }
+
+    protected _renderScreenNodesWithHeightPASSAtmos() {
+        let cam = this.renderer!.activeCamera as PlanetCamera;
+        let sh = this._setUniformsAtmos(cam);
+        //
+        // PASS 1: rendering slices, and layers with heights, without transition opacity effect
+        this._renderingScreenNodesWithHeight(sh, cam, this._renderedNodesInFrustum[cam.currentFrustumIndex]);
     }
 
     protected _globalPreDraw() {
@@ -1294,7 +1404,7 @@ export class Planet extends RenderNode {
             this.camera.update();
 
             if (this._skipPreRender && this._collectRenderNodesIsActive) {
-                this._collectRenderNodes();
+                this._collectRenderNodes(this.camera);
             }
 
             this._skipPreRender = true;
@@ -1326,6 +1436,7 @@ export class Planet extends RenderNode {
 
     /**
      * Render node callback.
+     * Frame function is called for each renderer activrCamera frustum.
      * @public
      * @override
      */
@@ -1366,15 +1477,13 @@ export class Planet extends RenderNode {
         this.camera.setTerrainCollisionActivity(true);
     }
 
-    protected _renderScreenNodesPASSNoAtmos() {
 
+    protected _setUniformsNoAtmos(cam: PlanetCamera): Program {
         let sh, shu;
         let renderer = this.renderer!;
+
         let h = renderer.handler;
         let gl = h.gl!;
-        let cam = (renderer.activeCamera as PlanetCamera)!;
-        let firstPass = cam.isFirstPass;
-        let frustumIndex = cam.currentFrustumIndex;
 
         gl.enable(gl.CULL_FACE);
 
@@ -1405,11 +1514,11 @@ export class Planet extends RenderNode {
             // Night and specular
             //
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
-            gl.bindTexture(gl.TEXTURE_2D, this._nightTexture as WebGLTextureExt || this.transparentTexture as WebGLTextureExt);
+            gl.bindTexture(gl.TEXTURE_2D, this._nightTexture! || this.transparentTexture!);
             gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
 
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
-            gl.bindTexture(gl.TEXTURE_2D, this._specularTexture as WebGLTextureExt || this.transparentTexture as WebGLTexture);
+            gl.bindTexture(gl.TEXTURE_2D, this._specularTexture! || this.transparentTexture!);
             gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
 
             gl.uniform1f(shu.camHeight, cam.getHeight());
@@ -1425,61 +1534,15 @@ export class Planet extends RenderNode {
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
-        //
-        // drawing planet nodes
-        //
-        let rn = this._renderedNodesInFrustum[frustumIndex],
-            sl = this._visibleTileLayerSlices;
-
-        if (sl.length) {
-            let sli = sl[0];
-            for (let i = sli.length - 1; i >= 0; --i) {
-                let li = sli[i];
-                if (li._fading && firstPass && li._refreshFadingOpacity()) {
-                    sli.splice(i, 1);
-                }
-            }
-        }
-
-        let isEq = this.terrain!.equalizeVertices;
-        let i = rn.length;
-        while (i--) {
-            let s = rn[i].segment;
-            isEq && s.equalize();
-            s.readyToEngage && s.engage();
-            s.screenRendering(sh, sl[0], 0);
-        }
-
-        gl.enable(gl.POLYGON_OFFSET_FILL);
-        //gl.disable(gl.CULL_FACE);
-        for (let j = 1, len = sl.length; j < len; j++) {
-            let slj = sl[j];
-            for (i = slj.length - 1; i >= 0; --i) {
-                let li = slj[i];
-                if (li._fading && firstPass && li._refreshFadingOpacity()) {
-                    slj.splice(i, 1);
-                }
-            }
-
-            gl.polygonOffset(0, -j);
-            i = rn.length;
-            while (i--) {
-                rn[i].segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
-            }
-        }
-        //gl.enable(gl.CULL_FACE);
-        gl.disable(gl.POLYGON_OFFSET_FILL);
+        return sh;
     }
 
-    protected _renderScreenNodesPASSAtmos() {
+    protected _setUniformsAtmos(cam: PlanetCamera): Program {
 
         let sh, shu;
         let renderer = this.renderer!;
         let h = renderer.handler;
         let gl = h.gl!;
-        let cam = (renderer.activeCamera as PlanetCamera)!;
-        let firstPass = cam.isFirstPass;
-        let frustumIndex = cam.currentFrustumIndex;
 
         gl.enable(gl.CULL_FACE);
 
@@ -1512,11 +1575,11 @@ export class Planet extends RenderNode {
             // Night and specular
             //
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE);
-            gl.bindTexture(gl.TEXTURE_2D, this._nightTexture as WebGLTexture || this.transparentTexture as WebGLTexture);
+            gl.bindTexture(gl.TEXTURE_2D, this._nightTexture! || this.transparentTexture!);
             gl.uniform1i(shu.nightTexture, this.SLICE_SIZE);
 
             gl.activeTexture(gl.TEXTURE0 + this.SLICE_SIZE + 1);
-            gl.bindTexture(gl.TEXTURE_2D, this._specularTexture as WebGLTexture || this.transparentTexture as WebGLTexture);
+            gl.bindTexture(gl.TEXTURE_2D, this._specularTexture! || this.transparentTexture!);
             gl.uniform1i(shu.specularTexture, this.SLICE_SIZE + 1);
 
             //
@@ -1543,11 +1606,67 @@ export class Planet extends RenderNode {
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
-        //
-        // drawing planet nodes
-        //
-        let rn = this._renderedNodesInFrustum[frustumIndex],
-            sl = this._visibleTileLayerSlices;
+        return sh;
+    }
+
+    protected _renderingFadingNodes = (nodes: Map<number, boolean>, sh: Program, currentNode: Node, sl: Layer[], sliceIndex: number, outTransparentSegments?: Segment[]) => {
+
+        let isFirstPass = sliceIndex === 0;
+        let isEq = this.terrain!.equalizeVertices;
+
+        for (let j = 0, len = currentNode._fadingNodes.length; j < len; j++) {
+            let f = currentNode._fadingNodes[j].segment;
+            if (this._fadingNodes.has(currentNode._fadingNodes[0].nodeId) && !nodes.has(f.node.nodeId)) {
+                nodes.set(f.node.nodeId, true);
+
+                if (f._transitionOpacity < 1.0) {
+                    outTransparentSegments!.push(f);
+                } else {
+                    if (isFirstPass) {
+                        isEq && f.equalize();
+                        f.readyToEngage && f.engage();
+                        f.screenRendering(sh, sl, sliceIndex);
+                    } else {
+                        f.screenRendering(sh, sl, sliceIndex, this.transparentTexture, true);
+                    }
+                }
+            }
+        }
+    }
+
+    protected _renderingFadingNodesNoDepth = (nodes: Map<number, boolean>, sh: Program, currentNode: Node, sl: Layer[], sliceIndex: number) => {
+
+        let isFirstPass = sliceIndex === 0;
+        let isEq = this.terrain!.equalizeVertices;
+        let gl = sh.gl!;
+
+        gl.disable(gl.DEPTH_TEST);
+
+        for (let j = 0, len = currentNode._fadingNodes.length; j < len; j++) {
+            let f = currentNode._fadingNodes[j].segment;
+            if (this._fadingNodes.has(currentNode._fadingNodes[0].nodeId) && !nodes.has(f.node.nodeId)) {
+                nodes.set(f.node.nodeId, true);
+                if (isFirstPass) {
+                    isEq && f.equalize();
+                    f.readyToEngage && f.engage();
+                    f.screenRendering(sh, sl, sliceIndex);
+                } else {
+                    f.screenRendering(sh, sl, sliceIndex, this.transparentTexture, true);
+                }
+            }
+        }
+
+        gl.enable(gl.DEPTH_TEST);
+    }
+
+    /**
+     * Drawing nodes
+     */
+    protected _renderingScreenNodes(sh: Program, cam: PlanetCamera, renderedNodes: Node[]) {
+
+        let firstPass = cam.isFirstPass;
+
+        let sl = this._visibleTileLayerSlices;
 
         if (sl.length) {
             let sli = sl[0];
@@ -1559,19 +1678,56 @@ export class Planet extends RenderNode {
             }
         }
 
+        let nodes = new Map<number, boolean>;
+        let transparentSegments: Segment[] = [];
+
         let isEq = this.terrain!.equalizeVertices;
-        let i = rn.length;
-        while (i--) {
-            let s = rn[i].segment;
-            isEq && s.equalize();
-            s.readyToEngage && s.engage();
-            s.screenRendering(sh, sl[0], 0);
+        let i = renderedNodes.length;
+        let _renderingFadingNodes = this._renderingFadingNodes;
+
+        if (cam.slope > 0.78 || cam.getAltitude() > 10000) {
+            _renderingFadingNodes = this._renderingFadingNodesNoDepth;
         }
 
+        while (i--) {
+            let ri = renderedNodes[i];
+            let s = ri.segment;
+
+            _renderingFadingNodes(nodes, sh, ri, sl[0], 0, transparentSegments);
+
+            if (s._transitionOpacity < 1) {
+                transparentSegments.push(s);
+            } else {
+                isEq && s.equalize();
+                s.readyToEngage && s.engage();
+                s.screenRendering(sh, sl[0], 0);
+            }
+        }
+
+        for (let j = 0; j < transparentSegments.length; j++) {
+            let tj = transparentSegments[j];
+
+            isEq && tj.equalize();
+            tj.readyToEngage && tj.engage();
+            tj.screenRendering(sh, sl[0], 0);
+        }
+    }
+
+    protected _renderingScreenNodesWithHeight(sh: Program, cam: PlanetCamera, renderedNodes: Node[]) {
+        let gl = this.renderer!.handler.gl!;
+        let firstPass = cam.isFirstPass;
+
+        let sl = this._visibleTileLayerSlices;
+
         gl.enable(gl.POLYGON_OFFSET_FILL);
+        gl.disable(gl.CULL_FACE);
+
+        let nodes = new Map<number, boolean>;
+        let transparentSegments: Segment[] = [];
+
         for (let j = 1, len = sl.length; j < len; j++) {
             let slj = sl[j];
-            for (i = slj.length - 1; i >= 0; --i) {
+            for (let i = slj.length - 1; i >= 0; --i) {
                 let li = slj[i];
                 if (li._fading && firstPass && li._refreshFadingOpacity()) {
                     slj.splice(i, 1);
@@ -1579,12 +1735,20 @@ export class Planet extends RenderNode {
             }
 
             gl.polygonOffset(0, -j);
-            i = rn.length;
+            let i = renderedNodes.length;
             while (i--) {
-                rn[i].segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
+                let ri = renderedNodes[i];
+                this._renderingFadingNodes(nodes, sh, ri, sl[j], j, transparentSegments);
+                if (ri.segment._transitionOpacity < 1) {
+                    ri.segment.initSlice(j);
+                } else {
+                    ri.segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
+                }
             }
         }
+
         gl.disable(gl.POLYGON_OFFSET_FILL);
+        gl.enable(gl.CULL_FACE);
     }
 
     protected _renderDistanceFramebufferPASS() {
@@ -1594,7 +1758,7 @@ export class Planet extends RenderNode {
             let renderer = this.renderer!;
             let h = renderer.handler;
             let gl = h.gl!;
-            let cam = (renderer.activeCamera as PlanetCamera)!;
+            let cam = renderer.activeCamera as PlanetCamera;
 
             h.programs.drawnode_heightPicking.activate();
             sh = h.programs.drawnode_heightPicking._program;
@@ -1627,11 +1791,6 @@ export class Planet extends RenderNode {
         let shu = sh.uniforms;
         let cam = renderer.activeCamera!;
 
-        // Special blend
-        // gl.enable(gl.BLEND);
-        // gl.blendEquation(gl.FUNC_ADD);
-        // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
         gl.enable(gl.CULL_FACE);
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
@@ -1648,6 +1807,9 @@ export class Planet extends RenderNode {
         while (i--) {
             rn[i].segment.colorPickingRendering(sh, sl[0], 0);
         }
+
+        // Here is set blending for transparent overlays
+        renderer.enableBlendDefault();
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1, len = sl.length; j < len; j++) {

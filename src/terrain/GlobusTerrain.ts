@@ -112,7 +112,7 @@ class GlobusTerrain extends EmptyTerrain {
         this.url = options.url || "https://{s}.srtm3.openglobus.org/{z}/{y}/{x}.ddm";
 
         this.gridSizeByZoom = options.gridSizeByZoom || [
-            64, 32, 32, 16, 16, 8, 8, 8, 8, 16, 16, 16, 16, 32, 32, 16, 8, 4, 2, 2, 2, 2, 2, 2
+            64, 32, 32, 16, 16, 8, 8, 8, 16, 16, 16, 32, 32, 32, 32, 16, 8, 4, 2, 2, 2, 2, 2, 2
         ];
 
         this._heightFactor = options.heightFactor != undefined ? options.heightFactor : 1.0;

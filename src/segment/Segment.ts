@@ -4,7 +4,7 @@ import {Box} from "../bv/Box";
 import {Extent} from "../Extent";
 import {Entity} from "../entity/Entity";
 import {EPSG3857} from "../proj/EPSG3857";
-import {E, N, NOTRENDERING, OPSIDE, S, W} from "../quadTree/quadTree";
+import {E, N, NOTRENDERING, OPSIDE, RENDERING, S, W, WALKTHROUGH} from "../quadTree/quadTree";
 import {getMatrixSubArray64, TypedArray} from "../utils/shared";
 import {Handler, WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
 import {ITerrainWorkerData} from "../utils/TerrainWorker";
@@ -245,6 +245,10 @@ class Segment {
 
     public normalMapTexturePtr: WebGLTextureExt | null;
 
+    public _transitionOpacity: number;
+
+    public _transitionTimestamp: number;
+
     constructor(node: Node, planet: Planet, tileZoom: number, extent: Extent) {
         this.isPole = false;
 
@@ -357,6 +361,10 @@ class Segment {
         this.plainProcessing = false;
 
         this.normalMapTexturePtr = null;
+
+        this._transitionOpacity = 1.0;
+
+        this._transitionTimestamp = 0;
     }
 
     public checkZoom(): boolean {
@@ -578,7 +586,7 @@ class Segment {
     }
 
     protected _checkEqualization(neighborSide: number, neigborNode: Node): boolean {
-        return neigborNode && this.tileZoom >= neigborNode.segment.tileZoom &&
+        return neigborNode && neigborNode.segment && this.tileZoom >= neigborNode.segment.tileZoom &&
             this.node.equalizedSideWithNodeId[neighborSide] !== neigborNode.equalizedSideWithNodeId[OPSIDE[neighborSide]];
     }
 
@@ -824,11 +832,12 @@ class Segment {
 
     public _normalMapEdgeEqualize(side: number) {
         let nn = this.node.neighbors;
-        let n: Node | undefined = nn[side][0];
+        let nns = nn[side];
+        let n: Node | undefined = nns && nns[0];
         let maxZ = this.planet.terrain!.maxZoom;
 
         if (this.tileZoom === maxZ) {
-            if (!(nn[0].length || nn[1].length || nn[2].length || nn[3].length)) {
+            if (nns && !(nn[0].length || nn[1].length || nn[2].length || nn[3].length)) {
                 n = this.node.getEqualNeighbor(side);
             }
         }
@@ -988,6 +997,11 @@ class Segment {
         this.deleteBuffers();
         this.deleteMaterials();
         this.deleteElevations();
+    }
+
+    public childrenInitialized(): boolean {
+        let n = this.node.nodes;
+        return n.length === 4 && n[0].segment.initialized && n[1].segment.initialized && n[2].segment.initialized && n[3].segment.initialized;
     }
 
     public destroySegment() {
@@ -1523,7 +1537,20 @@ class Segment {
         return [dV0s_x, dV0s_y, dSize_x, dSize_y];
     }
 
-    public screenRendering(sh: Program, layerSlice: Layer[], sliceIndex: number, defaultTexture?: WebGLTextureExt | null, isOverlay: boolean = false) {
+    public initSlice(sliceIndex: number): Slice {
+        let slice = this._slices[sliceIndex];
+
+        if (!slice) {
+            slice = this._slices[sliceIndex] = new Slice(this);
+        } else {
+            //TODO: optimization!!!
+            slice.layers = [];
+        }
+
+        return slice;
+    }
+
+    public screenRendering(sh: Program, layerSlice: Layer[], sliceIndex: number, defaultTexture?: WebGLTextureExt | null, isOverlay: boolean = false, forcedOpacity?: number) {
         const gl = this.handler.gl!;
         const sha = sh.attributes;
         const shu = sh.uniforms;
@@ -1549,14 +1576,7 @@ class Segment {
 
         let notEmpty = false;
 
-        let slice = this._slices[sliceIndex];
-
-        if (!slice) {
-            slice = this._slices[sliceIndex] = new Slice(this);
-        } else {
-            //TODO: optimization!!!
-            slice.layers = [];
-        }
+        let slice = this.initSlice(sliceIndex);
 
         this._indexBuffer = this._getIndexBuffer();
 
@@ -1593,6 +1613,9 @@ class Segment {
         }
 
         if (notEmpty || !isOverlay) {
+
+            gl.uniform1f(shu.transitionOpacity, forcedOpacity || this._transitionOpacity > 1.0 ? 1.0 : this._transitionOpacity);
+
             gl.uniform1i(shu.samplerCount, n);
             gl.uniform1f(shu.height, currHeight);
             gl.uniform1iv(shu.samplerArr, p._samplerArr);
@@ -1653,6 +1676,24 @@ class Segment {
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer!);
         gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
+    }
+
+    public increaseTransitionOpacity() {
+        //this._transitionOpacity += 0.01;
+        this._transitionOpacity += (window.performance.now() - this._transitionTimestamp) / this.planet.transitionTime;
+        this._transitionTimestamp = window.performance.now();
+        if (this._transitionOpacity > 1.0) {
+            this._transitionOpacity = 1.0;
+        }
+    }
+
+    public fadingTransitionOpacity() {
+        //this._transitionOpacity -= 0.01;
+        this._transitionOpacity -= (window.performance.now() - this._transitionTimestamp) / this.planet.transitionTime;
+        this._transitionTimestamp = window.performance.now();
+        if (this._transitionOpacity < 0.0) {
+            this._transitionOpacity = 0;
+        }
     }
 
     public colorPickingRendering(sh: Program, layerSlice: Layer[], sliceIndex: number, defaultTexture?: WebGLTextureExt | null, isOverlay: boolean = false) {

@@ -242,9 +242,7 @@ export class MouseNavigation extends Control {
 
         this._deactivate = true;
 
-        this.planet!.layerLock.lock(this._keyLock);
-        //this.planet!.terrainLock.lock(this._keyLock);
-        this.planet!._normalMapCreator.lock(this._keyLock);
+        this.lockPlanet(true);
 
         this.stepsForward = MouseNavigation.getMovePointsFromPixelTerrain(
             this.planet!.camera,
@@ -312,9 +310,7 @@ export class MouseNavigation extends Control {
 
     public stopRotation() {
         this.qRot.clear();
-        this.planet!.layerLock.free(this._keyLock);
-        this.planet!.terrainLock.free(this._keyLock);
-        this.planet!._normalMapCreator.free(this._keyLock);
+        this.freePlanet();
     }
 
     protected onMouseLeftButtonUp(e: IMouseState) {
@@ -426,10 +422,7 @@ export class MouseNavigation extends Control {
             } else {
                 if (this._deactivate) {
                     this._deactivate = false;
-
-                    this.planet!.layerLock.free(this._keyLock);
-                    this.planet!.terrainLock.free(this._keyLock);
-                    this.planet!._normalMapCreator.free(this._keyLock);
+                    this.freePlanet();
                 }
             }
 
@@ -455,14 +448,22 @@ export class MouseNavigation extends Control {
             }
 
             if (cam.eye.distance(prevEye) / cam.getAltitude() > 0.01) {
-                this.planet!.layerLock.lock(this._keyLock);
-                this.planet!.terrainLock.lock(this._keyLock);
-                this.planet!._normalMapCreator.lock(this._keyLock);
+                this.lockPlanet();
             } else {
-                this.planet!.layerLock.free(this._keyLock);
-                this.planet!.terrainLock.free(this._keyLock);
-                this.planet!._normalMapCreator.free(this._keyLock);
+                this.freePlanet();
             }
         }
+    }
+
+    public lockPlanet(skipTerrain?: boolean) {
+        this.planet!.layerLock.lock(this._keyLock);
+        !skipTerrain && this.planet!.terrainLock.lock(this._keyLock);
+        this.planet!._normalMapCreator.lock(this._keyLock);
+    }
+
+    public freePlanet() {
+        this.planet!.layerLock.free(this._keyLock);
+        this.planet!.terrainLock.free(this._keyLock);
+        this.planet!._normalMapCreator.free(this._keyLock);
     }
 }

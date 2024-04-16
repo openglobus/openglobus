@@ -104,6 +104,7 @@ export class DebugInfo extends Control {
         this._canvasTiles = new CanvasTiles("Tile grid", {
             visibility: true,
             isBaseLayer: false,
+            hideInLayerSwitcher: true,
             drawTile: function (material: any, applyCanvas: any) {
 
                 //
@@ -199,6 +200,10 @@ export class DebugInfo extends Control {
                 {
                     label: "Nodes count",
                     frame: () => p!._renderedNodes.length
+                },
+                {
+                    label: "Planet._fadingNodes",
+                    frame: () => p._fadingNodes.size
                 },
                 {
                     label: "createdNodes",

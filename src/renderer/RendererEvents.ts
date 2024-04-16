@@ -15,6 +15,7 @@ export function createRendererEvents(renderer: Renderer) {
 
 export type RendererEventsType = [
     "draw",
+    "drawtransparent",
     "postdraw",
     "resize",
     "resizeend",
@@ -1020,6 +1021,12 @@ const RENDERER_EVENTS: RendererEventsType = [
      * @event og.RendererEvents#draw
      */
     "draw",
+
+    /**
+     * Triggered after all transparent object are drawn
+     * @event og.RendererEvents#drawtransparent
+     */
+    "drawtransparent",
 
     /**
      * Triggered after scene frame is rendered(after render nodes).
