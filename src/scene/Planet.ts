@@ -1740,21 +1740,11 @@ export class Planet extends RenderNode {
                 let ri = renderedNodes[i];
                 this._renderingFadingNodes(nodes, sh, ri, sl[j], j, transparentSegments);
                 if (ri.segment._transitionOpacity < 1) {
-                    //transparentSegments.push(ri.segment);
-                    let slice = ri.segment._slices[j];
-                    if (!slice) {
-                        slice = ri.segment._slices[j] = new Slice(ri.segment);
-                    } else {
-                        slice.layers = [];
-                    }
+                    ri.segment.initSlice(j);
                 } else {
                     ri.segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
                 }
             }
-
-            // for (let k = 0; k < transparentSegments.length; k++) {
-            //     transparentSegments[k].screenRendering(sh, sl[j], j, this.transparentTexture, true);
-            // }
         }
 
         gl.disable(gl.POLYGON_OFFSET_FILL);
@@ -1819,8 +1809,7 @@ export class Planet extends RenderNode {
         }
 
         // Here is set blending for transparent overlays
-        //renderer.enableBlendDefault();
-        gl.enable(gl.BLEND);
+        renderer.enableBlendDefault();
 
         gl.enable(gl.POLYGON_OFFSET_FILL);
         for (let j = 1, len = sl.length; j < len; j++) {

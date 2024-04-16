@@ -1537,6 +1537,19 @@ class Segment {
         return [dV0s_x, dV0s_y, dSize_x, dSize_y];
     }
 
+    public initSlice(sliceIndex: number): Slice {
+        let slice = this._slices[sliceIndex];
+
+        if (!slice) {
+            slice = this._slices[sliceIndex] = new Slice(this);
+        } else {
+            //TODO: optimization!!!
+            slice.layers = [];
+        }
+
+        return slice;
+    }
+
     public screenRendering(sh: Program, layerSlice: Layer[], sliceIndex: number, defaultTexture?: WebGLTextureExt | null, isOverlay: boolean = false, forcedOpacity?: number) {
         const gl = this.handler.gl!;
         const sha = sh.attributes;
@@ -1563,14 +1576,7 @@ class Segment {
 
         let notEmpty = false;
 
-        let slice = this._slices[sliceIndex];
-
-        if (!slice) {
-            slice = this._slices[sliceIndex] = new Slice(this);
-        } else {
-            //TODO: optimization!!!
-            slice.layers = [];
-        }
+        let slice = this.initSlice(sliceIndex);
 
         this._indexBuffer = this._getIndexBuffer();
 
