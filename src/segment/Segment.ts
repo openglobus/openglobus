@@ -1682,14 +1682,31 @@ class Segment {
         //this._transitionOpacity += 0.01;
         this._transitionOpacity += (window.performance.now() - this._transitionTimestamp) / this.planet.transitionTime;
         this._transitionTimestamp = window.performance.now();
-        if (this._transitionOpacity > 1.0) {
-            this._transitionOpacity = 1.0;
+        if (this._transitionOpacity > 2.0) {
+            this._transitionOpacity = 2.0;
+        }
+
+        let i = this.node._fadingNodes.length;
+        while (i--) {
+            let n = this.node._fadingNodes[i];
+            if (n.segment) {
+                if (n.segment._transitionOpacity > 0 && !this.planet._fadingNodes.has(n.nodeId)) {
+                    this.planet._fadingNodes.set(n.nodeId, n);
+                    n.segment._transitionOpacity = 2.0 - this._transitionOpacity;
+                    if (n.segment._transitionOpacity === 0) {
+                        this.node._fadingNodes.splice(i, 1);
+                    }
+                }
+            } else {
+                this._transitionOpacity = 1.0;
+                break;
+            }
         }
     }
 
     public fadingTransitionOpacity() {
-        //this._transitionOpacity -= 0.01;
-        this._transitionOpacity -= (window.performance.now() - this._transitionTimestamp) / this.planet.transitionTime;
+        this._transitionOpacity -= 0.01;
+        // this._transitionOpacity -= (window.performance.now() - this._transitionTimestamp) / this.planet.transitionTime;
         this._transitionTimestamp = window.performance.now();
         if (this._transitionOpacity < 0.0) {
             this._transitionOpacity = 0;

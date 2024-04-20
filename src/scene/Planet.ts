@@ -1683,34 +1683,43 @@ export class Planet extends RenderNode {
 
         let isEq = this.terrain!.equalizeVertices;
         let i = renderedNodes.length;
-        let _renderingFadingNodes = this._renderingFadingNodes;
 
-        if (cam.slope > 0.78 || cam.getAltitude() > 10000) {
-            _renderingFadingNodes = this._renderingFadingNodesNoDepth;
-        }
+        if (cam.slope > 0.8 /*|| cam.getAltitude() > 10000*/) {
+            while (i--) {
+                let ri = renderedNodes[i];
+                let s = ri.segment;
 
-        while (i--) {
-            let ri = renderedNodes[i];
-            let s = ri.segment;
+                this._renderingFadingNodesNoDepth(nodes, sh, ri, sl[0], 0);
 
-            _renderingFadingNodes(nodes, sh, ri, sl[0], 0, transparentSegments);
-
-            if (s._transitionOpacity < 1) {
-                transparentSegments.push(s);
-            } else {
                 isEq && s.equalize();
                 s.readyToEngage && s.engage();
                 s.screenRendering(sh, sl[0], 0);
             }
+        } else {
+            while (i--) {
+                let ri = renderedNodes[i];
+                let s = ri.segment;
+
+                this._renderingFadingNodes(nodes, sh, ri, sl[0], 0, transparentSegments);
+
+                if (s._transitionOpacity < 1) {
+                    transparentSegments.push(s);
+                } else {
+                    isEq && s.equalize();
+                    s.readyToEngage && s.engage();
+                    s.screenRendering(sh, sl[0], 0);
+                }
+            }
+
+            for (let j = 0; j < transparentSegments.length; j++) {
+                let tj = transparentSegments[j];
+
+                isEq && tj.equalize();
+                tj.readyToEngage && tj.engage();
+                tj.screenRendering(sh, sl[0], 0);
+            }
         }
 
-        for (let j = 0; j < transparentSegments.length; j++) {
-            let tj = transparentSegments[j];
-
-            isEq && tj.equalize();
-            tj.readyToEngage && tj.engage();
-            tj.screenRendering(sh, sl[0], 0);
-        }
     }
 
     protected _renderingScreenNodesWithHeight(sh: Program, cam: PlanetCamera, renderedNodes: Node[]) {

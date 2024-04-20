@@ -238,9 +238,9 @@ class Node {
         this.state = WALKTHROUGH;
 
         this.clearNeighbors();
-        for (let i = 0; i < this._fadingNodes.length; i++) {
-            this._fadingNodes[i].neighbors && this._fadingNodes[i].clearNeighbors();
-        }
+        // for (let i = 0; i < this._fadingNodes.length; i++) {
+        //     this._fadingNodes[i].neighbors && this._fadingNodes[i].clearNeighbors();
+        // }
 
         let seg = this.segment,
             planet = this.planet;
@@ -465,22 +465,10 @@ class Node {
         } else {
             if (this._fadingNodes.length === 4 && !this.childrenPrevStateEquals(RENDERING)) {
                 this.segment._transitionOpacity = 1.0;
+                this._fadingNodes = [];
             } else {
 
                 this.segment.increaseTransitionOpacity();
-
-                for (let i = 0; i < this._fadingNodes.length; i++) {
-                    let n = this._fadingNodes[i];
-                    if (n.segment) {
-                        if (n.segment._transitionOpacity > 0 && !this.planet._fadingNodes.has(n.nodeId)) {
-                            this.planet._fadingNodes.set(n.nodeId, n);
-                            n.segment.fadingTransitionOpacity();
-                        }
-                    } else {
-                        this.segment._transitionOpacity = 1.0;
-                        break;
-                    }
-                }
             }
         }
     }

@@ -46,7 +46,6 @@ export const geo_object = (): Program =>
             attribute float aUseTexture;
             attribute vec2 aTexCoord;
             
-            uniform float uUseTexture;
             uniform vec3 uScaleByDistance;
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
@@ -59,7 +58,6 @@ export const geo_object = (): Program =>
             varying vec3 v_vertex;           
             varying vec4 vColor;
             varying float vDispose;
-            varying float vUseTexture;
             varying vec2 vTexCoords;
             
             const float PI = 3.141592653589793;
@@ -72,7 +70,6 @@ export const geo_object = (): Program =>
                    return;
                 }
             
-                vUseTexture = uUseTexture;
                 vColor = aColor;
                 vTexCoords = aTexCoord;
               
@@ -138,13 +135,13 @@ export const geo_object = (): Program =>
                 uniform vec3 lightsParamsv[MAX_POINT_LIGHTS * 3];
                 uniform float lightsParamsf[MAX_POINT_LIGHTS];                
                 uniform sampler2D uTexture;
-                
+                uniform float uUseTexture;
+                            
                 varying vec3 cameraPosition;
                 varying vec3 v_vertex;                
                 varying vec4 vColor;
                 varying vec3 vNormal;
                 varying vec2 vTexCoords;
-                varying float vUseTexture;
                 
                 void main(void) {                
                     vec3 normal = normalize(vNormal);
@@ -157,7 +154,8 @@ export const geo_object = (): Program =>
                     float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
                     vec3 lightWeighting = lightsParamsv[0] + lightsParamsv[1] * diffuseLightWeighting + lightsParamsv[2] * specularLightWeighting;
                     vec4 tColor = texture2D(uTexture, vTexCoords);
-                    if(vUseTexture > 0.0){
+                    
+                    if(uUseTexture > 0.0) {
                         gl_FragColor = vec4(tColor.rgb * lightWeighting, tColor.a);
                     } else {
                         gl_FragColor = vec4(vColor.rgb * lightWeighting, vColor.a);
