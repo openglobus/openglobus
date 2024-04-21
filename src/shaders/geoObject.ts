@@ -59,16 +59,29 @@ export const geo_object = (): Program =>
             varying vec4 vColor;
             varying float vDispose;
             varying vec2 vTexCoords;
+            varying float useLighting;
             
             const float PI = 3.141592653589793;
             
             const float RADIANS = PI / 180.0;
            
             void main(void) {
-            
+                        
                 if (aDispose == 0.0) {
                    return;
                 }
+                
+                vec3 position = aPositionHigh + aPositionLow;
+                cameraPosition = eyePositionHigh + eyePositionLow;
+                
+                vec3 look = cameraPosition - position;
+                float lookLength = length(look);
+
+                useLighting = 1.0;                
+                if(lookLength > 2000000.0){
+                     useLighting = 0.0;
+                }
+
             
                 vColor = aColor;
                 vTexCoords = aTexCoord;
@@ -91,8 +104,6 @@ export const geo_object = (): Program =>
                     vec3(0.0, -sin_pitch, cos_pitch) 
                );
 
-                vec3 position = aPositionHigh + aPositionLow;
-                cameraPosition = eyePositionHigh + eyePositionLow;
                 vec3 r = cross(normalize(-position), aDirection);
                 mat3 modelMatrix = mat3(r, normalize(position), -aDirection) * rotX * rotZ;
 
@@ -102,8 +113,6 @@ export const geo_object = (): Program =>
                 vec3 highDiff = aPositionHigh - eyePositionHigh;
                 vec3 lowDiff = aPositionLow - eyePositionLow;
              
-                vec3 look = cameraPosition - position;
-                float lookLength = length(look);
                 vNormal = modelMatrix * aVertexNormal;
                                
                 // if(lookLength > uScaleByDistance[1])
@@ -133,7 +142,7 @@ export const geo_object = (): Program =>
                 
                 uniform vec3 lightsPositions[MAX_POINT_LIGHTS];
                 uniform vec3 lightsParamsv[MAX_POINT_LIGHTS * 3];
-                uniform float lightsParamsf[MAX_POINT_LIGHTS];                
+                uniform float lightsParamsf[MAX_POINT_LIGHTS];
                 uniform sampler2D uTexture;
                 uniform float uUseTexture;
                             
@@ -142,20 +151,25 @@ export const geo_object = (): Program =>
                 varying vec4 vColor;
                 varying vec3 vNormal;
                 varying vec2 vTexCoords;
+                varying float useLighting;
                 
-                void main(void) {                
-                    vec3 normal = normalize(vNormal);
+                void main(void) {        
+                                        
+                    vec3 lightWeighting = vec3(1.0);
                 
-                    vec3 lightDir = normalize(lightsPositions[0]);
-                    vec3 viewDir = normalize(cameraPosition - v_vertex);                
-                    vec3 reflectionDirection = reflect(-lightDir, normal);
-                    float reflection = max( dot(reflectionDirection, viewDir), 0.0);
-                    float specularLightWeighting = pow( reflection, lightsParamsf[0]);                                        
-                    float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
-                    vec3 lightWeighting = lightsParamsv[0] + lightsParamsv[1] * diffuseLightWeighting + lightsParamsv[2] * specularLightWeighting;
-                    vec4 tColor = texture2D(uTexture, vTexCoords);
-                    
+                    if(useLighting != 0.0){
+                        vec3 normal = normalize(vNormal);
+                        vec3 lightDir = normalize(lightsPositions[0]);
+                        vec3 viewDir = normalize(cameraPosition - v_vertex);                
+                        vec3 reflectionDirection = reflect(-lightDir, normal);
+                        float reflection = max( dot(reflectionDirection, viewDir), 0.0);
+                        float specularLightWeighting = pow( reflection, lightsParamsf[0]);                                        
+                        float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
+                        lightWeighting = lightsParamsv[0] + lightsParamsv[1] * diffuseLightWeighting + lightsParamsv[2] * specularLightWeighting;
+                    }
+                                       
                     if(uUseTexture > 0.0) {
+                        vec4 tColor = texture2D(uTexture, vTexCoords);
                         gl_FragColor = vec4(tColor.rgb * lightWeighting, tColor.a);
                     } else {
                         gl_FragColor = vec4(vColor.rgb * lightWeighting, vColor.a);
