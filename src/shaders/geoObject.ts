@@ -59,7 +59,7 @@ export const geo_object = (): Program =>
             varying vec4 vColor;
             varying float vDispose;
             varying vec2 vTexCoords;
-            varying float useLighting;
+            //varying float useLighting;
             
             const float PI = 3.141592653589793;
             
@@ -77,10 +77,10 @@ export const geo_object = (): Program =>
                 vec3 look = cameraPosition - position;
                 float lookLength = length(look);
 
-                useLighting = 1.0;                
-                if(lookLength > 2000000.0){
-                     useLighting = 0.0;
-                }
+                // useLighting = 1.0;                
+                // if(lookLength > 2000000.0){
+                //      useLighting = 0.0;
+                // }
 
             
                 vColor = aColor;
@@ -151,13 +151,13 @@ export const geo_object = (): Program =>
                 varying vec4 vColor;
                 varying vec3 vNormal;
                 varying vec2 vTexCoords;
-                varying float useLighting;
+                //varying float useLighting;
                 
                 void main(void) {        
                                         
                     vec3 lightWeighting = vec3(1.0);
                 
-                    if(useLighting != 0.0){
+                    //if(useLighting != 0.0){
                         vec3 normal = normalize(vNormal);
                         vec3 lightDir = normalize(lightsPositions[0]);
                         vec3 viewDir = normalize(cameraPosition - v_vertex);                
@@ -166,7 +166,7 @@ export const geo_object = (): Program =>
                         float specularLightWeighting = pow( reflection, lightsParamsf[0]);                                        
                         float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
                         lightWeighting = lightsParamsv[0] + lightsParamsv[1] * diffuseLightWeighting + lightsParamsv[2] * specularLightWeighting;
-                    }
+                    //}
                                        
                     if(uUseTexture > 0.0) {
                         vec4 tColor = texture2D(uTexture, vTexCoords);
