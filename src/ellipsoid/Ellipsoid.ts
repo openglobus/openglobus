@@ -330,6 +330,12 @@ class Ellipsoid {
         return this.direct(lonLat, azimuth, dist).destination;
     }
 
+    /**
+     * Returns inverse Geodesic solution for two points
+     * @param {LonLat} lonLat1 - start coordinates point
+     * @param {LonLat} lonLat2 - end coordinates point
+     * @returns {IInverseResult} - Contains distance, initialAzimuth, and finalAzimuth values
+     */
     public inverse(lonLat1: LonLat, lonLat2: LonLat): IInverseResult {
 
         let a = this._a, b = this._b, f = this._flattening;
@@ -393,7 +399,7 @@ class Ellipsoid {
      * @param {LonLat} lonLat - Origin coordinates
      * @param {number} azimuth - View azimuth in degrees
      * @param {number} dist - Distance to the destination point coordinates in meters
-     * @returns {LonLat} - Destination point coordinates
+     * @returns {{ destination: LonLat; finalAzimuth: number }} - Destination point coordinates
      */
     public direct(lonLat: LonLat, azimuth: number, dist: number): IDirectResult {
 
