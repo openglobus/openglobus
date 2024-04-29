@@ -592,9 +592,10 @@ class Segment {
 
     public equalize() {
 
-        // if (this.tileZoom < 8 || this.gridSize < 2) {
-        //     return;
-        // }
+        // Equalization doesnt work correctly for gridSize equals 2
+        if (this.gridSize < 2) {
+            return;
+        }
 
         this.readyToEngage = true;
 
@@ -1073,7 +1074,7 @@ class Segment {
         this._extentLonLat = this._extent.inverseMercator();
     }
 
-    protected _createExtentNormals(){
+    protected _createExtentNormals() {
         const ellipsoid = this.planet.ellipsoid;
         const extent = this._extentLonLat;
 
