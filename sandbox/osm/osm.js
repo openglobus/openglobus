@@ -70,14 +70,16 @@ let osm = new XYZ("OpenStreetMap", {
 });
 
 var highResTerrain = new MapboxTerrain(null, {
-    maxZoom: 17,
-    url: "https://terrain.openglobus.org/public/eu10/{z}/{x}/{y}.png",
+    //maxNativeZoom: 6,
+    maxNativeZoom: 6,
+    //maxZoom: 6,
+    //url: "https://terrain.openglobus.org/public/eu10/{z}/{x}/{y}.png",
     //url: "https://andorra.utm.microavia.com/Andora_dsm_las/{z}/{x}/{y}.png",
     //url: "//terrain.openglobus.org/public/zion/{z}/{x}/{y}.png",
     //equalizeVertices: false,
     //url: "//terrain.openglobus.org/public/nz/{z}/{x}/{y}.png",
     //url: "//terrain.openglobus.org/public/london/{z}/{x}/{y}.png",
-    //url: "./tiles/{z}/{x}/{y}.png",
+    url: "../dest/{z}/{x}/{y}.png",
     //url: "https://terrain.openglobus.org/public/chicago/{z}/{x}/{y}.png",
     //heightFactor: 1 / 3.28,
     //imageSize: 129,
@@ -95,8 +97,8 @@ var highResTerrain = new MapboxTerrain(null, {
 const globus = new Globe({
     target: "earth",
     name: "Earth",
-    //terrain: highResTerrain,
-    terrain: new GlobusTerrain(),
+    terrain: highResTerrain,
+    //terrain: new GlobusTerrain(),
     //layers: [sat, st],
     layers: [osm, sat],
     atmosphereEnabled: false,

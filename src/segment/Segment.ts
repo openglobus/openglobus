@@ -1073,7 +1073,7 @@ class Segment {
         this._extentLonLat = this._extent.inverseMercator();
     }
 
-    public createBoundsByExtent() {
+    protected _createExtentNormals(){
         const ellipsoid = this.planet.ellipsoid;
         const extent = this._extentLonLat;
 
@@ -1094,8 +1094,11 @@ class Segment {
         this._nw.copy(coord_nw);
         this._ne.copy(coord_ne);
         this._se.copy(coord_se);
+    }
 
-        this.setBoundingVolume3v(coord_sw, coord_ne);
+    public createBoundsByExtent() {
+        this._createExtentNormals();
+        this.setBoundingVolume3v(this._sw, this._ne);
     }
 
     public createBoundsByParent() {
@@ -1220,6 +1223,7 @@ class Segment {
                     ).addA(v_rb);
                 }
 
+                this._createExtentNormals();
                 this.setBoundingVolume3v(coords_lt, coords_rb);
             }
         } else {
