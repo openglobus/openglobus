@@ -592,9 +592,9 @@ class Segment {
 
     public equalize() {
 
-        if (this.tileZoom < 8 || this.gridSize < 2) {
-            return;
-        }
+        // if (this.tileZoom < 8 || this.gridSize < 2) {
+        //     return;
+        // }
 
         this.readyToEngage = true;
 
