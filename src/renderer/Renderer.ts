@@ -1046,8 +1046,8 @@ class Renderer {
 
             if (pointerEvent) {
                 this._drawPickingBuffer();
-                this.__useDistanceFramebuffer__ && this._drawDistanceBuffer();
             }
+            this.__useDistanceFramebuffer__ && this._drawDistanceBuffer();
         }
 
         sceneFramebuffer.deactivate();
