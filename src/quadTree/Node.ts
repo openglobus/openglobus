@@ -26,7 +26,6 @@ import {
     S,
     SE,
     SW,
-    VISIBLE_DISTANCE,
     W,
     WALKTHROUGH
 } from "./quadTree";
@@ -292,16 +291,19 @@ class Node {
         if (this.inFrustum || this._cameraInside || seg.tileZoom < 3) {
             let h = Math.abs(cam._lonLat.height);
 
-            let eye = cam.eye;
-            let horizonDist = eye.length2() - this.planet.ellipsoid.polarSizeSqr;
+            let horizonDist = cam.eye.length2() - this.planet.ellipsoid.polarSizeSqr;
+            horizonDist = horizonDist < 106876472875.63281 * planet._heightFactor ? 106876472875.63281 * planet._heightFactor : horizonDist;
 
-            let altVis = seg.tileZoom > 19 || (seg.tileZoom < 5 && !seg.terrainReady) || seg.tileZoom < 2;
+            let altVis = seg.tileZoom < 2 || seg.tileZoom > 19 ||
+                /* Could be replaced with camera frustum always looking down check,
+                and not to go througn nodes from the oppositeside of the globe*/
+                (seg.tileZoom < 5 && !seg.terrainReady);
 
-            if (h > 21000) {
-                altVis = altVis || eye.distance2(seg._sw) < horizonDist || eye.distance2(seg._nw) < horizonDist || eye.distance2(seg._ne) < horizonDist || eye.distance2(seg._se) < horizonDist;
-            } else {
-                altVis = altVis || cam.eye.distance(seg.bsphere.center) - seg.bsphere.radius < VISIBLE_DISTANCE * Math.sqrt(h);
-            }
+            altVis = altVis ||
+                cam.eye.distance2(seg._sw) < horizonDist ||
+                cam.eye.distance2(seg._nw) < horizonDist ||
+                cam.eye.distance2(seg._ne) < horizonDist ||
+                cam.eye.distance2(seg._se) < horizonDist;
 
             if ((this.inFrustum && (altVis || h > 10000.0)) || this._cameraInside) {
                 //@todo: replace to the strategy
@@ -310,7 +312,10 @@ class Node {
 
             if (seg.tileZoom < 2) {
                 this.traverseNodes(cam, maxZoom, terrainReadySegment, stopLoading, zoomPassNode);
-            } else if (seg.terrainReady && (!maxZoom && cam.projectedSize(seg.bsphere.center, seg._plainRadius) < planet.lodSize || maxZoom && ((seg.tileZoom === maxZoom) || !altVis))) {
+            } else if (
+                seg.terrainReady && (!maxZoom && cam.projectedSize(seg.bsphere.center, seg._plainRadius) < planet.lodSize
+                    || maxZoom && ((seg.tileZoom === maxZoom) || !altVis))
+            ) {
 
                 if (altVis) {
                     seg.passReady = true;
@@ -605,61 +610,6 @@ class Node {
 
         return -1;
     }
-
-    // // TODO: test test test
-    // public ___getCommonSide___(b: Node) {
-    //     let a = this, as = a.segment, bs = b.segment;
-    //
-    //     if (as.tileZoom === bs.tileZoom) {
-    //         return as.getNeighborSide(bs);
-    //     } else if (as.tileZoom > bs.tileZoom) {
-    //         let dz = as.tileZoom - bs.tileZoom, i = dz, p: Node = this;
-    //
-    //         while (i--) {
-    //             p = p.parentNode!;
-    //         }
-    //
-    //         let side = p.segment.getNeighborSide(bs);
-    //
-    //         if (side !== -1) {
-    //             i = dz;
-    //             p = this;
-    //             let _n = true;
-    //
-    //             while (i--) {
-    //                 _n = _n && COMSIDE[p.partId][side];
-    //             }
-    //
-    //             if (_n) {
-    //                 return side;
-    //             }
-    //         }
-    //     } else {
-    //         let dz = bs.tileZoom - as.tileZoom, i = dz, p = b;
-    //
-    //         while (i--) {
-    //             p = p.parentNode!;
-    //         }
-    //
-    //         let side = p.segment.getNeighborSide(as);
-    //
-    //         if (side !== -1) {
-    //             i = dz;
-    //             p = b;
-    //             let _n = true;
-    //
-    //             while (i--) {
-    //                 _n = _n && COMSIDE[p.partId][side];
-    //             }
-    //
-    //             if (_n) {
-    //                 return OPSIDE[side];
-    //             }
-    //         }
-    //     }
-    //
-    //     return -1;
-    // }
 
     public whileNormalMapCreating() {
 

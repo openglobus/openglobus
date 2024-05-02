@@ -1016,7 +1016,8 @@ class Renderer {
 
         let frustums = this.activeCamera!.frustums;
 
-        let pointerEvent = !(e.mouseState.leftButtonDown || e.mouseState.rightButtonDown || this.activeCamera!.isMoving) && (e.pointerEvent()/* || this.activeCamera!.isMoving*/);
+        let pointerEvent = e.pointerEvent();
+        let mouseHold = e.mouseState.leftButtonDown || e.mouseState.rightButtonDown;
 
         // Rendering scene nodes and entityCollections
         let rn = this._renderNodesArr;
@@ -1044,7 +1045,7 @@ class Renderer {
 
             e.dispatch(e.drawtransparent, this);
 
-            if (pointerEvent) {
+            if (pointerEvent && !mouseHold) {
                 this._drawPickingBuffer();
             }
             this.__useDistanceFramebuffer__ && this._drawDistanceBuffer();
@@ -1055,13 +1056,14 @@ class Renderer {
         this.blitFramebuffer && (sceneFramebuffer as Multisample).blitTo(this.blitFramebuffer, 0);
 
         if (pointerEvent) {
-            // It works ONLY for 0 (closest) frustum
             if (h.isWebGl2()) {
+                // It works ONLY for 0 (closest) frustum
                 this._drawDepthBuffer();
             }
             this._readPickingBuffer();
-            this.__useDistanceFramebuffer__ && this._readDistanceBuffer();
         }
+
+        this.__useDistanceFramebuffer__ && this._readDistanceBuffer();
 
         // Tone mapping followed by rendering on the screen
         this._fnScreenFrame!();

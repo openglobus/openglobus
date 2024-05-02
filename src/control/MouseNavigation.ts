@@ -373,9 +373,11 @@ export class MouseNavigation extends Control {
 
         if (this.pointOnEarth && e.moving) {
             this.renderer!.controlsBag.scaleRot = 1.0;
-            let l = (0.5 / cam.eye.distance(this.pointOnEarth)) * (cam._lonLat.height < 5.0 ? 5.0 : cam._lonLat.height) * math.RADIANS;
+            let l = (0.5 / cam.eye.distance(this.pointOnEarth)) * cam._lonLat.height * math.RADIANS;
             if (l > 0.007) {
                 l = 0.007;
+            } else if (l < 0.003) {
+                l = 0.003;
             }
             cam.rotateHorizontal(l * (e.x - e.prev_x), false, this.pointOnEarth, this.earthUp);
             cam.rotateVertical(l * (e.y - e.prev_y), this.pointOnEarth, this.minSlope);
@@ -406,15 +408,6 @@ export class MouseNavigation extends Control {
             if (this.stepIndex) {
                 r.controlsBag.scaleRot = 1.0;
                 const sf = this.stepsForward![this.stepsCount - this.stepIndex--];
-
-                let maxAlt = cam.maxAltitude + this.planet!.ellipsoid.polarSize;
-                let minAlt = cam.minAltitude + this.planet!.ellipsoid.polarSize;
-                const camAlt = sf.eye.length();
-                if (camAlt > maxAlt || camAlt < minAlt && this._wheelDirection > 0) {
-                    this._wheelDirection = +1;
-                    return;
-                }
-
                 cam.eye = sf.eye;
                 cam._u = sf.v;
                 cam._r = sf.u;

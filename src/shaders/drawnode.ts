@@ -1,7 +1,6 @@
 import * as atmos from "./atmos";
 import {Program} from "../webgl/Program";
 import {UTILS} from './utils';
-
 // REMEMBER!
 // src*(1)+dest*(1-src.alpha)
 // glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -239,10 +238,10 @@ export function drawnode_screen_wl_webgl1NoAtmos(): Program {
                 float maxH = minH * 3.0;
                 float nightCoef = getLerpValue(minH, maxH, camHeight) * nightTextureCoefficient;
                                 
-                if(camHeight > 6000000.0)
-                {
-                    normal = normalize(v_vertex);
-                }
+                // if(camHeight > 6000000.0)
+                // {
+                //     normal = normalize(v_vertex);
+                // }
                                             
                 vec3 lightDir = normalize(sunPos);
                 vec3 viewDir = normalize(cameraPosition - v_vertex);
@@ -435,10 +434,10 @@ export function drawnode_screen_wl_webgl2NoAtmos(): Program {
                 float maxH = minH * 3.0;
                 float nightCoef = getLerpValue(minH, maxH, camHeight) * nightTextureCoefficient;
                                 
-                if(camHeight > 6000000.0)
-                {
-                    normal = normalize(v_vertex);
-                }
+                // if(camHeight > 6000000.0)
+                // {
+                //     normal = normalize(v_vertex);
+                // }
                                             
                 vec3 lightDir = normalize(sunPos);
                 vec3 viewDir = normalize(cameraPosition - v_vertex);
@@ -700,8 +699,12 @@ export function drawnode_screen_wl_webgl2Atmos(): Program {
                 bool hitGround = intersectSphere(camPos, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;                
                 
                 // Fix black dots on the edge of atmosphere                        
-                if(camHeight < 700000.0 || !hitGround)
-                {                          
+                // if(camHeight < 700000.0 || !hitGround)
+                // {                          
+                //     distanceToGround = distance(camPos, v_vertex * SPHERE_TO_ELLIPSOID_SCALE);
+                // }
+                
+                if(length(v_vertex * SPHERE_TO_ELLIPSOID_SCALE) > BOTTOM_RADIUS){
                     distanceToGround = distance(camPos, v_vertex * SPHERE_TO_ELLIPSOID_SCALE);
                 }
                                                                 
@@ -764,10 +767,10 @@ export function drawnode_screen_wl_webgl2Atmos(): Program {
                 float maxH = minH * 3.0;
                 float nightCoef = getLerpValue(minH, maxH, camHeight) * nightTextureCoefficient;
                                 
-                if(camHeight > 6000000.0)
-                {
-                    normal = normalize(v_vertex);
-                }
+                // if(camHeight > 6000000.0)
+                // {
+                //    normal = normalize(v_vertex);
+                // }
                                             
                 vec3 lightDir = normalize(sunPos);
                 vec3 viewDir = normalize(cameraPosition - v_vertex);

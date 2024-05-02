@@ -66,22 +66,22 @@ export class KeyboardNavigation extends Control {
 
     protected onCameraMoveForward() {
         let cam = this.planet!.camera;
-        cam.slide(0, 0, -cam._lonLat.height / this.step);
+        cam.slide(0, 0, -cam.getAltitude() / this.step);
     }
 
     protected onCameraMoveBackward() {
         let cam = this.planet!.camera!;
-        cam.slide(0, 0, cam._lonLat.height / this.step);
+        cam.slide(0, 0, cam.getAltitude() / this.step);
     }
 
     protected onCameraStrifeLeft() {
         let cam = this.planet!.camera;
-        cam.slide(-cam._lonLat.height / this.step, 0, 0);
+        cam.slide(-cam.getAltitude() / this.step, 0, 0);
     }
 
     protected onCameraStrifeRight() {
         let cam = this.planet!.camera;
-        cam.slide(cam._lonLat.height / this.step, 0, 0);
+        cam.slide(cam.getAltitude() / this.step, 0, 0);
     }
 
     protected onCameraLookUp() {
@@ -89,7 +89,7 @@ export class KeyboardNavigation extends Control {
         if (this.renderer!.events.isKeyPressed(input.KEY_SHIFT)) {
             cam.pitch(15 / this.renderer!.handler.deltaTime);
         } else {
-            cam.rotateVertical((cam._lonLat.height / 3000000) * math.RADIANS, Vec3.ZERO);
+            cam.rotateVertical((cam.getAltitude() / 3000000) * math.RADIANS, Vec3.ZERO);
         }
     }
 
@@ -98,7 +98,7 @@ export class KeyboardNavigation extends Control {
         if (this.renderer!.events.isKeyPressed(input.KEY_SHIFT)) {
             cam.pitch(-15 / this.renderer!.handler.deltaTime);
         } else {
-            cam.rotateVertical((-cam._lonLat.height / 3000000) * math.RADIANS, Vec3.ZERO);
+            cam.rotateVertical((-cam.getAltitude() / 3000000) * math.RADIANS, Vec3.ZERO);
         }
     }
 
@@ -107,7 +107,7 @@ export class KeyboardNavigation extends Control {
         if (this.renderer!.events.isKeyPressed(input.KEY_SHIFT)) {
             cam.roll(15 / this.renderer!.handler.deltaTime);
         } else {
-            cam.rotateHorizontal((cam._lonLat.height / 3000000) * math.RADIANS);
+            cam.rotateHorizontal((cam.getAltitude() / 3000000) * math.RADIANS);
         }
     }
 
@@ -116,7 +116,7 @@ export class KeyboardNavigation extends Control {
         if (this.renderer!.events.isKeyPressed(input.KEY_SHIFT)) {
             cam.roll(-15 / this.renderer!.handler.deltaTime);
         } else {
-            cam.rotateHorizontal((-cam._lonLat.height / 3000000) * math.RADIANS);
+            cam.rotateHorizontal((-cam.getAltitude() / 3000000) * math.RADIANS);
         }
     }
 
@@ -125,7 +125,7 @@ export class KeyboardNavigation extends Control {
         if (this.renderer!.events.isKeyPressed(input.KEY_SHIFT)) {
             cam.yaw(15 / this.renderer!.handler.deltaTime);
         } else {
-            cam.rotateHorizontal((cam._lonLat.height / 3000000) * math.RADIANS);
+            cam.rotateHorizontal((cam.getAltitude() / 3000000) * math.RADIANS);
         }
     }
 
@@ -134,7 +134,7 @@ export class KeyboardNavigation extends Control {
         if (this.renderer!.events.isKeyPressed(input.KEY_SHIFT)) {
             cam.yaw(-15 / this.renderer!.handler.deltaTime);
         } else {
-            cam.rotateHorizontal((-cam._lonLat.height / 3000000) * math.RADIANS, false, Vec3.ZERO);
+            cam.rotateHorizontal((-cam.getAltitude() / 3000000) * math.RADIANS, false, Vec3.ZERO);
         }
     }
 
