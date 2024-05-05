@@ -6,7 +6,7 @@ import {isPowerOfTwo} from "../math";
 import {Layer} from "../layer/Layer";
 import {LonLat} from "../LonLat";
 import {Segment} from "../segment/Segment";
-import {TypedArray} from "../utils/shared";
+import {binarySearchFast, TypedArray} from "../utils/shared";
 import {IResponse} from "../utils/Loader";
 
 interface IMapboxTerrainParams extends IGlobusTerrainParams {
@@ -56,6 +56,13 @@ class MapboxTerrain extends GlobusTerrain {
         this._ctx = this._createTemporalCanvas(this._imageSize);
 
         this._imageDataCache = {};
+    }
+
+    static override checkNoDataValue(noDataValues: number[] | TypedArray, value: number): boolean {
+        if (value > 50000) {
+            return true;
+        }
+        return binarySearchFast(noDataValues, value) !== -1;
     }
 
     public override isBlur(segment: Segment): boolean {
