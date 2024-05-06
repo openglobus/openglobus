@@ -1,6 +1,6 @@
 import {htmlColorToFloat32Array, TypedArray} from './utils/shared';
 import {NumberArray3, Vec3} from './math/Vec3';
-import {MAX, MIN} from './math';
+import {MAX, MIN, RADIANS_HALF} from './math';
 import {transformLeftToRightCoordinateSystem, objParser} from "./utils/objParser";
 
 function getColor(color?: number[] | TypedArray | string): Float32Array {
@@ -296,6 +296,70 @@ class Object3d {
 
         return new Object3d({
             'vertices': vertices, 'normals': normals, 'indices': indices
+        });
+    }
+
+    /**
+     * Returns scale parameters for a frustum geoObject created with only Object3d.createFrustum();
+     * @param length
+     * @param horizontalAngle
+     * @param verticalAngle
+     */
+    static getFrustumScaleByCameraParams(length: number, horizontalAngle: number, verticalAngle: number): Vec3 {
+        return new Vec3(
+            2.0 * length * Math.tan(RADIANS_HALF * horizontalAngle),
+            2.0 * length * Math.tan(RADIANS_HALF * verticalAngle),
+            length
+        );
+    }
+
+    static createFrustum(length: number = 1, width: number = 1, height: number = 1,
+                         xOffset: number = 0, yOffset: number = 0, zOffset: number = 0): Object3d {
+
+        width *= 0.5;
+        height *= 0.5;
+
+        return new Object3d({
+            vertices: [
+                //
+                //inside
+                //
+                //top
+                0 + xOffset, 0 + yOffset, 0 + zOffset,
+                -1 * width + xOffset, 1 * height + yOffset, -1 * length + zOffset,
+                1 * width + xOffset, 1 * height + yOffset, -1 * length + zOffset,
+                //bottop
+                0 + xOffset, 0 + yOffset, 0 + zOffset,
+                1 * width + xOffset, -1 * height + yOffset, -1 * length + zOffset,
+                -1 * width + xOffset, -1 * height + yOffset, -1 * length + zOffset,
+                //right
+                0 + xOffset, 0 + yOffset, 0 + zOffset,
+                1 * width + xOffset, 1 * height + yOffset, -1 * length + zOffset,
+                1 * width + xOffset, -1 * height + yOffset, -1 * length + zOffset,
+                //left
+                0 + xOffset, 0 + yOffset, 0 + zOffset,
+                -1 * width + xOffset, -1 * height + yOffset, -1 * length + zOffset,
+                -1 * width + xOffset, 1 * height + yOffset, -1 * length + zOffset,
+                //
+                // outside
+                //
+                //top
+                0 + xOffset, 0 + yOffset, 0 + zOffset,
+                1 * width + xOffset, 1 * height + yOffset, -1 * length + zOffset,
+                -1 * width + xOffset, 1 * height + yOffset, -1 * length + zOffset,
+                //bottop
+                0 + xOffset, 0 + yOffset, 0 + zOffset,
+                -1 * width + xOffset, -1 * height + yOffset, -1 * length + zOffset,
+                1 * width + xOffset, -1 * height + yOffset, -1 * length + zOffset,
+                //right
+                0 + xOffset, 0 + yOffset, 0 + zOffset,
+                1 * width + xOffset, -1 * height + yOffset, -1 * length + zOffset,
+                1 * width + xOffset, 1 * height + yOffset, -1 * length + zOffset,
+                //left
+                0 + xOffset, 0 + yOffset, 0 + zOffset,
+                -1 * width + xOffset, 1 * height + yOffset, -1 * length + zOffset,
+                -1 * width + xOffset, -1 * height + yOffset, -1 * length + zOffset
+            ]
         });
     }
 

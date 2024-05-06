@@ -175,18 +175,18 @@ class InstanceData {
             h.deleteTexture(this._texture);
             this._texture = null;
 
-            gl.deleteBuffer(this._pitchRollBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._sizeBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._vertexBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._positionHighBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._positionLowBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._directionBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._rgbaBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._normalsBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._indicesBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._pickingColorBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._visibleBuffer as WebGLBuffer);
-            gl.deleteBuffer(this._texCoordBuffer as WebGLBuffer);
+            gl.deleteBuffer(this._pitchRollBuffer!);
+            gl.deleteBuffer(this._sizeBuffer!);
+            gl.deleteBuffer(this._vertexBuffer!);
+            gl.deleteBuffer(this._positionHighBuffer!);
+            gl.deleteBuffer(this._positionLowBuffer!);
+            gl.deleteBuffer(this._directionBuffer!);
+            gl.deleteBuffer(this._rgbaBuffer!);
+            gl.deleteBuffer(this._normalsBuffer!);
+            gl.deleteBuffer(this._indicesBuffer!);
+            gl.deleteBuffer(this._pickingColorBuffer!);
+            gl.deleteBuffer(this._visibleBuffer!);
+            gl.deleteBuffer(this._texCoordBuffer!);
         }
 
         this._pitchRollBuffer = null;
@@ -242,11 +242,11 @@ class InstanceData {
 
     public createSizeBuffer() {
         let h = this._geoObjectHandler._planet!.renderer!.handler,
-            numItems = this._sizeArr.length;
+            numItems = this._sizeArr.length / 3;
 
         if (!this._sizeBuffer || this._sizeBuffer.numItems !== numItems) {
-            h.gl!.deleteBuffer(this._sizeBuffer as WebGLBuffer);
-            this._sizeBuffer = h.createStreamArrayBuffer(1, numItems);
+            h.gl!.deleteBuffer(this._sizeBuffer!);
+            this._sizeBuffer = h.createStreamArrayBuffer(3, numItems);
         }
 
         this._sizeArr = makeArrayTyped(this._sizeArr);
@@ -256,7 +256,7 @@ class InstanceData {
 
     public createTexCoordBuffer() {
         const h = this._geoObjectHandler._planet!.renderer!.handler;
-        h.gl!.deleteBuffer(this._texCoordBuffer as WebGLBuffer);
+        h.gl!.deleteBuffer(this._texCoordBuffer!);
         this._texCoordArr = makeArrayTyped(this._texCoordArr);
         this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr as Uint8Array, 2, this._texCoordArr.length / 2);
     }
@@ -266,8 +266,8 @@ class InstanceData {
             numItems = this._positionHighArr.length / 3;
 
         if (!this._positionHighBuffer || this._positionHighBuffer.numItems !== numItems) {
-            h.gl!.deleteBuffer(this._positionHighBuffer as WebGLBuffer);
-            h.gl!.deleteBuffer(this._positionLowBuffer as WebGLBuffer);
+            h.gl!.deleteBuffer(this._positionHighBuffer!);
+            h.gl!.deleteBuffer(this._positionLowBuffer!);
             this._positionHighBuffer = h.createStreamArrayBuffer(3, numItems);
             this._positionLowBuffer = h.createStreamArrayBuffer(3, numItems);
         }
@@ -284,7 +284,7 @@ class InstanceData {
             numItems = this._rgbaArr.length / 4;
 
         if (!this._rgbaBuffer || this._rgbaBuffer.numItems !== numItems) {
-            h.gl!.deleteBuffer(this._rgbaBuffer as WebGLBuffer);
+            h.gl!.deleteBuffer(this._rgbaBuffer!);
             this._rgbaBuffer = h.createStreamArrayBuffer(4, numItems);
         }
 
@@ -298,7 +298,7 @@ class InstanceData {
             numItems = this._directionArr.length / 3;
 
         if (!this._directionBuffer || this._directionBuffer.numItems !== numItems) {
-            h.gl!.deleteBuffer(this._directionBuffer as WebGLBuffer);
+            h.gl!.deleteBuffer(this._directionBuffer!);
             this._directionBuffer = h.createStreamArrayBuffer(3, numItems);
         }
 
@@ -309,21 +309,21 @@ class InstanceData {
 
     public createNormalsBuffer() {
         const h = this._geoObjectHandler._planet!.renderer!.handler;
-        h.gl!.deleteBuffer(this._normalsBuffer as WebGLBuffer);
+        h.gl!.deleteBuffer(this._normalsBuffer!);
         this._normalsArr = makeArrayTyped(this._normalsArr);
         this._normalsBuffer = h.createArrayBuffer(this._normalsArr as Uint8Array, 3, this._normalsArr.length / 3);
     }
 
     public createIndicesBuffer() {
         const h = this._geoObjectHandler._planet!.renderer!.handler;
-        h.gl!.deleteBuffer(this._indicesBuffer as WebGLBuffer);
+        h.gl!.deleteBuffer(this._indicesBuffer!);
         this._indicesArr = makeArrayTyped(this._indicesArr, Uint32Array);
         this._indicesBuffer = h.createElementArrayBuffer(this._indicesArr as Uint32Array, 1, this._indicesArr.length);
     }
 
     public createPickingColorBuffer() {
         const h = this._geoObjectHandler._planet!.renderer!.handler;
-        h.gl!.deleteBuffer(this._pickingColorBuffer as WebGLBuffer);
+        h.gl!.deleteBuffer(this._pickingColorBuffer!);
         this._pickingColorArr = makeArrayTyped(this._pickingColorArr);
         this._pickingColorBuffer = h.createArrayBuffer(this._pickingColorArr as Uint8Array, 3, this._pickingColorArr.length / 3);
     }
@@ -484,9 +484,12 @@ class GeoObjectHandler {
         y = geoObject.getRoll();
         tagData._pitchRollArr = concatArrays(tagData._pitchRollArr, setParametersToArray([], 0, itemSize, itemSize, x, y));
 
-        itemSize = 1;
-
-        tagData._sizeArr = concatArrays(tagData._sizeArr, setParametersToArray([], 0, itemSize, itemSize, geoObject.getScale()));
+        itemSize = 3;
+        let scale = geoObject.getScale();
+        x = scale.x;
+        y = scale.y;
+        z = scale.z;
+        tagData._sizeArr = concatArrays(tagData._sizeArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
     }
 
     public _displayPASS() {
@@ -499,6 +502,8 @@ class GeoObjectHandler {
             ec = this._entityCollection;
 
         sh.activate();
+
+        //gl.disable(gl.CULL_FACE);
 
         //
         // Could be in VAO
@@ -681,8 +686,8 @@ class GeoObjectHandler {
         this._updateTag(tagData);
     }
 
-    public setScaleArr(tagData: InstanceData, tagDataIndex: number, scale: number) {
-        setParametersToArray(tagData._sizeArr, tagDataIndex, 1, 1, scale);
+    public setScaleArr(tagData: InstanceData, tagDataIndex: number, scale: Vec3) {
+        setParametersToArray(tagData._sizeArr, tagDataIndex, 3, 3, scale.x, scale.y, scale.z);
         tagData._changedBuffers[SIZE_BUFFER] = true;
         this._updateTag(tagData);
     }
@@ -799,8 +804,8 @@ class GeoObjectHandler {
         tagData._positionLowArr = spliceArray(tagData._positionLowArr, tdi * 3, 3);
         tagData._directionArr = spliceArray(tagData._directionArr, tdi * 3, 3);
         tagData._pickingColorArr = spliceArray(tagData._pickingColorArr, tdi * 3, 3);
+        tagData._sizeArr = spliceArray(tagData._sizeArr, tdi * 3, 3);
         tagData._pitchRollArr = spliceArray(tagData._pitchRollArr, tdi * 2, 2);
-        tagData._sizeArr = spliceArray(tagData._sizeArr, tdi, 1);
         tagData._visibleArr = spliceArray(tagData._visibleArr, tdi, 1);
 
         geoObject._handlerIndex = -1;

@@ -28,7 +28,7 @@ export const geo_object = (): Program =>
             aDirection: {type: "vec3", divisor: 1},
             aPitchRoll: {type: "vec2", divisor: 1},
             aColor: {type: "vec4", divisor: 1},
-            aScale: {type: "float", divisor: 1},
+            aScale: {type: "vec3", divisor: 1},
             aDispose: {type: "float", divisor: 1}
         },
         vertexShader:
@@ -41,7 +41,7 @@ export const geo_object = (): Program =>
             attribute vec3 aDirection;
             attribute vec2 aPitchRoll;
             attribute vec4 aColor;
-            attribute float aScale;
+            attribute vec3 aScale;
             attribute float aDispose;
             attribute float aUseTexture;
             attribute vec2 aTexCoord;
@@ -126,7 +126,7 @@ export const geo_object = (): Program =>
                 // ... is the same math
                 float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
                 
-                vec3 vert = modelMatrix * aVertexPosition * aScale * scd;
+                vec3 vert = modelMatrix * (aVertexPosition * aScale) * scd;
                 v_vertex = position + vert;
                 
                 // @hack
@@ -194,7 +194,7 @@ export const geo_object_picking = (): Program =>
             aDirection: {type: "vec3", divisor: 1},
             aPitchRoll: {type: "vec2", divisor: 1},
             aPickingColor: {type: "vec3", divisor: 1},
-            aScale: {type: "float", divisor: 1},
+            aScale: {type: "vec3", divisor: 1},
             aDispose: {type: "float", divisor: 1}
         },
         vertexShader: `precision highp float;
@@ -205,7 +205,7 @@ export const geo_object_picking = (): Program =>
             attribute vec3 aDirection;
             attribute vec3 aPickingColor;
             attribute vec2 aPitchRoll;
-            attribute float aScale;
+            attribute vec3 aScale;
             attribute float aDispose;
             
             uniform vec3 eyePositionHigh;
@@ -273,7 +273,7 @@ export const geo_object_picking = (): Program =>
                  // tays in the vert above it affects on Mac Safari jitter
                  float scd = pickingScale * uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
 
-                 vec3 vert = modelMatrix * aVertexPosition * aScale * scd;
+                 vec3 vert = modelMatrix * (aVertexPosition * aScale) * scd;
                  
                  vert += lowDiff;
                                 

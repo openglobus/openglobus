@@ -178,13 +178,19 @@ export function print2d(id: string, text: string, x: number, y: number) {
     el.style.top = `${y}px`;
 }
 
+export function isNumber(value: any): boolean {
+    return typeof value === 'number';
+}
+
 export function defaultString(str?: string, def: string = ""): string {
     return str ? str.trim() : def;
 }
 
-export function createVector3(v?: Vec3 | Vec2 | NumberArray3 | NumberArray2 | null, def?: Vec3): Vec3 {
+export function createVector3(v?: number | Vec3 | Vec2 | NumberArray3 | NumberArray2 | null, def?: Vec3): Vec3 {
     if (v) {
-        if (v instanceof Vec3) {
+        if (isNumber(v)) {
+            return new Vec3(v as number, v as number, v as number);
+        } else if (v instanceof Vec3) {
             return v.clone();
         } else if (v instanceof Array) {
             return Vec3.fromVec(v);
@@ -820,7 +826,9 @@ export function makeArray(arr: TypedArray | number[]): number[] {
  * @param {{ result: number[] }} [out]
  */
 
-export function spliceArray(arr: TypedArray | number[], starting: number, deleteCount: number, out?: { result: number[] } | { result: TypedArray }): TypedArray | number[] {
+export function spliceArray(arr: TypedArray | number[], starting: number, deleteCount: number, out?: {
+    result: number[]
+} | { result: TypedArray }): TypedArray | number[] {
     if (ArrayBuffer.isView(arr)) {
         if (starting < 0) {
             deleteCount = Math.abs(starting);
@@ -848,7 +856,9 @@ export function spliceArray(arr: TypedArray | number[], starting: number, delete
  * @param {Number} deleteCount
  * @param {{ result: TypedArray }} [out]
  */
-export function spliceTypedArray<T extends TypedArray>(arr: T, starting: number, deleteCount: number, out?: { result: T }): T {
+export function spliceTypedArray<T extends TypedArray>(arr: T, starting: number, deleteCount: number, out?: {
+    result: T
+}): T {
     if (arr.length === 0) {
         return arr;
     }

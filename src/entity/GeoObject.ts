@@ -14,7 +14,7 @@ export interface IGeoObjectParams {
     pitch?: number;
     yaw?: number;
     roll?: number;
-    scale?: number;
+    scale?: number | Vec3;
     color?: Vec4 | NumberArray4 | string;
 }
 
@@ -51,7 +51,7 @@ class GeoObject {
     protected _yaw: number;
     protected _roll: number;
 
-    protected _scale: number;
+    protected _scale: Vec3;
 
     /**
      * RGBA color.
@@ -92,7 +92,7 @@ class GeoObject {
         this._yaw = options.yaw || 0.0;
         this._roll = options.roll || 0.0;
 
-        this._scale = options.scale || 1.0;
+        this._scale = utils.createVector3(options.scale, new Vec3(1, 1, 1));
 
         this._color = utils.createColorRGBA(options.color);
 
@@ -249,6 +249,10 @@ class GeoObject {
         this.updateDirection();
     }
 
+    /**
+     *
+     * @param {number} pitch - Pitch in radians
+     */
     public setPitch(pitch: number) {
         this._pitch = pitch;
         this._handler && this._handler.setPitchRollArr(this._tagData!, this._tagDataIndex, pitch, this._roll);
@@ -260,11 +264,16 @@ class GeoObject {
     }
 
     public setScale(scale: number) {
-        this._scale = scale;
+        this._scale.x = this._scale.y = this._scale.z = scale;
+        this._handler && this._handler.setScaleArr(this._tagData!, this._tagDataIndex, this._scale);
+    }
+
+    public setScale3v(scale: Vec3) {
+        this._scale.copy(scale);
         this._handler && this._handler.setScaleArr(this._tagData!, this._tagDataIndex, scale);
     }
 
-    public getScale(): number {
+    public getScale(): Vec3 {
         return this._scale;
     }
 
