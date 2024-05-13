@@ -67,6 +67,8 @@ class Segment {
 
     public _projection: Proj;
 
+    public elevationData: TypedArray | null;
+
     /**
      * Quad tree node of the segment.
      * @type {Node}
@@ -299,6 +301,8 @@ class Segment {
 
         this.tileIndex = "";
 
+        this.elevationData = null;
+
         this._assignTileIndexes();
 
         /**
@@ -510,6 +514,9 @@ class Segment {
 
             let _elevations = new Float32Array(elevations.length);
             _elevations.set(elevations);
+
+            this.elevationData = new Float32Array(elevations.length);
+            this.elevationData.set(elevations);
 
             this.planet._terrainWorker.make({segment: this, elevations: _elevations});
 

@@ -941,14 +941,6 @@ export function getMatrixSubArray32(sourceArr: TypedArray | number[], gridSize: 
 
 /**
  * Returns two float32 triangle coordinate arrays from inside of the source triangle array.
- * @static
- * @param {Array.<number>} sourceArr - Source array
- * @param {number} gridSize - Source array square matrix size
- * @param {number} i0 - First row index source array matrix
- * @param {number} j0 - First column index
- * @param {number} size - Square matrix result size.
- * @param {object} outBounds - Output bounds.
- * @return{Array.<number>} Triangle coordinates array from the source array.
  * @TODO: optimization
  */
 export function getMatrixSubArrayBoundsExt(

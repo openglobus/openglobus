@@ -66,7 +66,7 @@ class BilTerrain extends GlobusTerrain {
         );
     }
 
-    protected override _createHeights(data: number[], tileIndex: string, tileX: number, tileY: number, tileZoom: number, extent: Extent, preventChildren: boolean): TypedArray | number[] {
+    protected override _createHeights(data: number[], segment: Segment | null, tileIndex: string, tileX: number, tileY: number, tileZoom: number, extent: Extent, preventChildren: boolean): TypedArray | number[] {
 
         let bil16 = new Int16Array(data);
 

@@ -78,13 +78,41 @@ class MapboxTerrain extends GlobusTerrain {
         })!;
     }
 
-    protected override _createHeights(data: HTMLImageElement | ImageBitmap, tileIndex: string, tileX: number, tileY: number, tileZoom: number, extent: Extent, preventChildren: boolean): TypedArray | number[] {
+    protected override _createHeights(data: HTMLImageElement | ImageBitmap, segment: Segment | null, tileIndex: string, tileX: number, tileY: number, tileZoom: number, extent: Extent, preventChildren: boolean): TypedArray | number[] {
 
         this._ctx.clearRect(0, 0, this._imageSize, this._imageSize);
         this._ctx.drawImage(data, 0, 0);
         let rgbaData = this._ctx.getImageData(0, 0, this._imageSize, this._imageSize).data;
 
         const SIZE = data.width;
+
+        // let availableParentData: TypedArray | number[] | null = null,
+        //     availableParentOffsetX = 0,
+        //     availableParentOffsetY = 0,
+        //     availableZoomDiff = 0;
+
+        let availableParentTileX = 0,
+            availableParentTileY = 0,
+            availableParentTileZoom = 0,
+            availableParentData: TypedArray | number[] | null = null;
+
+        //
+        // Getting parent segment terrain data, for zero and nodata values for the current segment
+        //
+        if (segment) {
+            if (segment.tileZoom > this.maxNativeZoom) {
+                let pn = segment.node;
+                while (pn && !pn.segment.terrainExists) {
+                    pn = pn.parentNode!;
+                }
+                if (pn) {
+                    availableParentTileX = pn.segment.tileX;
+                    availableParentTileY = pn.segment.tileY;
+                    availableParentTileZoom = pn.segment.tileZoom;
+                    availableParentData = pn.segment.elevationData;
+                }
+            }
+        }
 
         //
         //Non-power of two images
@@ -95,33 +123,35 @@ class MapboxTerrain extends GlobusTerrain {
             return outCurrenElevations;
         }
 
+        //
+        // When image size equals grid size
+        //
         if (this._imageSize === this.plainGridSize) {
+
             let elevationsSize = (this.plainGridSize + 1) * (this.plainGridSize + 1);
             let outCurrenElevations = new Float32Array(elevationsSize);
-            for (let k = 0, len = this._imageSize * this._imageSize; k < len; k++) {
-                let j = k % this._imageSize,
-                    i = Math.floor(k / this._imageSize);
-                let fromInd4 = k * 4;
-                let h = this._heightFactor * rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
-                outCurrenElevations[i * (this._imageSize + 1) + j] = h;
-            }
 
-            for (let i = 0, len = this._imageSize; i < len; i++) {
-                let j = this._imageSize - 1;
-                let fromInd4 = (i * this._imageSize + j) * 4;
-                let h = this._heightFactor * rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
-                outCurrenElevations[i * (this._imageSize + 1) + this._imageSize] = h;
-            }
+            let [
+                availableParentOffsetX,
+                availableParentOffsetY,
+                availableZoomDiff
+            ] =
+                segment ? getTileOffset(
+                    segment.tileX, segment.tileY, segment.tileZoom,
+                    availableParentTileX, availableParentTileY, availableParentTileZoom
+                ) : [0, 0, 0];
 
-            for (let j = 0, len = this._imageSize; j < len; j++) {
-                let i = this._imageSize - 1;
-                let fromInd4 = (i * this._imageSize + j) * 4;
-                let h = this._heightFactor * rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
-                outCurrenElevations[this._imageSize * (this._imageSize + 1) + j] = h;
-            }
-
-            let h = this._heightFactor * rgb2Height(rgbaData[rgbaData.length - 4], rgbaData[rgbaData.length - 3], rgbaData[rgbaData.length - 2]);
-            outCurrenElevations[outCurrenElevations.length - 1] = h;
+            extractElevationSimple(
+                rgbaData,
+                this.noDataValues,
+                availableParentData,
+                availableParentOffsetX,
+                availableParentOffsetY,
+                availableZoomDiff,
+                outCurrenElevations,
+                this._heightFactor,
+                this._imageSize
+            );
 
             return outCurrenElevations;
         }
@@ -144,12 +174,28 @@ class MapboxTerrain extends GlobusTerrain {
         }
 
         if (preventChildren) {
-            extractElevationTilesMapboxNoChildren(rgbaData, this._heightFactor, this.noDataValues, outCurrenElevations);
+            extractElevationTilesMapboxNoChildren(
+                rgbaData,
+                this._heightFactor,
+                this.noDataValues,
+                availableParentData,
+                availableParentTileX,
+                availableParentTileY,
+                availableParentTileZoom,
+                outCurrenElevations
+            );
         } else {
             extractElevationTilesMapbox(
                 rgbaData,
                 this._heightFactor,
                 this.noDataValues,
+                availableParentData,
+                availableParentTileX,
+                availableParentTileY,
+                availableParentTileZoom,
+                segment ? segment.tileX : 0,
+                segment ? segment.tileY : 0,
+                segment ? segment.tileZoom : 0,
                 outCurrenElevations,
                 outChildrenElevations
             );
@@ -157,15 +203,13 @@ class MapboxTerrain extends GlobusTerrain {
 
         this._elevationCache[tileIndex] = {
             heights: outCurrenElevations,
-            extent: extent//segment.getExtent()
+            extent: extent
         };
 
         if (!preventChildren) {
             for (let i = 0; i < d; i++) {
                 for (let j = 0; j < d; j++) {
-                    let x = tileX * 2 + j,
-                        y = tileY * 2 + i,
-                        z = tileZoom + 1;
+                    let [x, y, z] = getChildrenTileIndex(tileX, tileY, tileZoom, j, i);
                     let tileIndex = Layer.getTileIndex(x, y, z);
                     this._elevationCache[tileIndex] = {
                         heights: outChildrenElevations[i][j],
@@ -234,6 +278,90 @@ class MapboxTerrain extends GlobusTerrain {
     }
 }
 
+function getTileOffset(
+    currentTileX: number,
+    currentTileY: number,
+    currentTileZoom: number,
+    parentTileX: number,
+    parentTileY: number,
+    parentTileZoom: number
+): [number, number, number] {
+    let dz2 = 2 << (currentTileZoom - parentTileZoom - 1);
+    return [currentTileX - dz2 * parentTileX, currentTileY - dz2 * parentTileY, 1.0 / dz2];
+}
+
+function getChildrenTileIndex(
+    currentTileX: number,
+    currentTileY: number,
+    currentTileZoom: number,
+    offsetX: number,
+    offsetY: number
+): [number, number, number] {
+    return [currentTileX * 2 + offsetX, currentTileY * 2 + offsetY, currentTileZoom + 1];
+}
+
+function getParentHeight(oneByDz2: number, offsetX: number, offsetY: number, heights: TypedArray | number[], i: number, j: number) {
+    let parentGridSize = Math.sqrt(heights.length);
+    let pi = Math.floor(offsetY * oneByDz2 * parentGridSize + i * oneByDz2),
+        pj = Math.floor(offsetX * oneByDz2 * parentGridSize + j * oneByDz2);
+    let h = heights[pi * parentGridSize + pj];
+    return h < 0 ? h : 0;
+}
+
+function extractElevationSimple(
+    rgbaData: number[] | TypedArray,
+    noDataValues: number[] | TypedArray,
+    availableParentData: TypedArray | number[] | null = null,
+    availableParentOffsetX: number,
+    availableParentOffsetY: number,
+    availableZoomDiff: number,
+    outCurrenElevations: number[] | TypedArray,
+    heightFactor: number = 1,
+    imageSize: number
+) {
+
+    for (let k = 0, len = imageSize * imageSize; k < len; k++) {
+        let j = k % imageSize,
+            i = Math.floor(k / imageSize);
+        let fromInd4 = k * 4;
+        let height = heightFactor * rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
+        let isNoData = MapboxTerrain.checkNoDataValue(noDataValues, height);
+        if ((isNoData || height === 0) && availableParentData) {
+            height = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, i, j);
+        }
+        outCurrenElevations[i * (imageSize + 1) + j] = height;
+    }
+
+    for (let i = 0, len = imageSize; i < len; i++) {
+        let j = imageSize - 1;
+        let fromInd4 = (i * imageSize + j) * 4;
+        let height = heightFactor * rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
+        let isNoData = MapboxTerrain.checkNoDataValue(noDataValues, height);
+        if ((isNoData || height === 0) && availableParentData) {
+            height = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, i, j);
+        }
+        outCurrenElevations[i * (imageSize + 1) + imageSize] = height;
+    }
+
+    for (let j = 0, len = imageSize; j < len; j++) {
+        let i = imageSize - 1;
+        let fromInd4 = (i * imageSize + j) * 4;
+        let height = heightFactor * rgb2Height(rgbaData[fromInd4], rgbaData[fromInd4 + 1], rgbaData[fromInd4 + 2]);
+        let isNoData = MapboxTerrain.checkNoDataValue(noDataValues, height);
+        if ((isNoData || height === 0) && availableParentData) {
+            height = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, i, j);
+        }
+        outCurrenElevations[imageSize * (imageSize + 1) + j] = height;
+    }
+
+    let height = heightFactor * rgb2Height(rgbaData[rgbaData.length - 4], rgbaData[rgbaData.length - 3], rgbaData[rgbaData.length - 2]);
+    let isNoData = MapboxTerrain.checkNoDataValue(noDataValues, height);
+    if ((isNoData || height === 0) && availableParentData) {
+        height = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, imageSize - 1, imageSize - 1);
+    }
+    outCurrenElevations[outCurrenElevations.length - 1] = height;
+}
+
 function extractElevationTilesMapboxNonPowerOfTwo(rgbaData: number[] | TypedArray, outCurrenElevations: number[] | TypedArray, heightFactor: number = 1) {
     for (let i = 0, len = outCurrenElevations.length; i < len; i++) {
         let i4 = i * 4;
@@ -245,6 +373,13 @@ function extractElevationTilesMapbox(
     rgbaData: number[] | TypedArray,
     heightFactor: number,
     noDataValues: number[] | TypedArray,
+    availableParentData: TypedArray | number[] | null = null,
+    availableParentTileX: number,
+    availableParentTileY: number,
+    availableParentTileZoom: number,
+    currentTileX: number,
+    currentTileY: number,
+    currentTileZoom: number,
     outCurrenElevations: number[] | TypedArray,
     outChildrenElevations: number[][][] | TypedArray[][]
 ) {
@@ -282,6 +417,25 @@ function extractElevationTilesMapbox(
             jj = j % destSize;
 
         let destIndex = (ii + tileY) * destSizeOne + jj + tileX;
+
+        //
+        // Try to get current height from the parent data
+        if ((isNoDataCurrent || height === 0) && availableParentData) {
+            let [
+                availableParentOffsetX,
+                availableParentOffsetY,
+                availableZoomDiff
+            ] = getTileOffset(
+                currentTileX,
+                currentTileY,
+                currentTileZoom,
+                availableParentTileX,
+                availableParentTileY,
+                availableParentTileZoom
+            );
+
+            height = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, Math.round(i / dt), Math.round(j / dt));
+        }
 
         destArr[destIndex] = height;
 
@@ -378,6 +532,10 @@ function extractElevationTilesMapboxNoChildren(
     rgbaData: number[] | TypedArray,
     heightFactor: number,
     noDataValues: number[] | TypedArray,
+    availableParentData: TypedArray | number[] | null = null,
+    availableZoomDiff: number,
+    availableParentOffsetX: number,
+    availableParentOffsetY: number,
     outCurrenElevations: number[] | TypedArray
 ) {
     let destSize = Math.sqrt(outCurrenElevations.length) - 1;

@@ -648,7 +648,7 @@ class Node {
 
         if (pn.segment.terrainReady && this.appliedTerrainNodeId !== pn.nodeId) {
 
-            let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1),
+            let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1), // 2 * Math.pow(2, dZ-1)
                 offsetX = seg.tileX - pn.segment.tileX * dZ2,
                 offsetY = seg.tileY - pn.segment.tileY * dZ2;
 
@@ -832,7 +832,8 @@ class Node {
                         seg.normalMapVertices = tempVertices;
                         seg.fileGridSize = Math.sqrt(tempVertices.length / 3) - 1;
 
-                        let fgs = Math.sqrt(pseg.normalMapNormals!.length / 3) - 1, fgsZ = fgs / dZ2;
+                        let fgs = Math.sqrt(pseg.normalMapNormals!.length / 3) - 1,
+                            fgsZ = fgs / dZ2;
 
                         if (fgs > 1) {
                             seg.normalMapNormals = getMatrixSubArray32(pseg.normalMapNormals!, fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);

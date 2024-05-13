@@ -1,6 +1,6 @@
 import {htmlColorToFloat32Array, TypedArray} from './utils/shared';
 import {NumberArray3, Vec3} from './math/Vec3';
-import {MAX, MIN, RADIANS_HALF} from './math';
+import {DEGREES, DEGREES_DOUBLE, MAX, MIN, RADIANS_HALF} from './math';
 import {transformLeftToRightCoordinateSystem, objParser} from "./utils/objParser";
 
 function getColor(color?: number[] | TypedArray | string): Float32Array {
@@ -305,12 +305,23 @@ class Object3d {
      * @param horizontalAngle
      * @param verticalAngle
      */
-    static getFrustumScaleByCameraParams(length: number, horizontalAngle: number, verticalAngle: number): Vec3 {
+    static getFrustumScaleByCameraAngles(length: number, horizontalAngle: number, verticalAngle: number): Vec3 {
         return new Vec3(
             2.0 * length * Math.tan(RADIANS_HALF * horizontalAngle),
             2.0 * length * Math.tan(RADIANS_HALF * verticalAngle),
             length
         );
+    }
+
+    /**
+     * Returns scale parameters for a frustum geoObject created with only Object3d.createFrustum();
+     * @param length
+     * @param horizontalAngle
+     * @param aspectRatio
+     */
+    static getFrustumScaleByCameraAspectRatio(length: number, horizontalAngle: number, aspectRatio: number): Vec3 {
+        let vAngle = DEGREES_DOUBLE * Math.atan(Math.tan(RADIANS_HALF * horizontalAngle) / aspectRatio);
+        return Object3d.getFrustumScaleByCameraAngles(length, horizontalAngle, vAngle);
     }
 
     static createFrustum(length: number = 1, width: number = 1, height: number = 1,

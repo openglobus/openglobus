@@ -3,6 +3,7 @@ import {Mat4, NumberArray16} from "../math/Mat4";
 import {NumberArray4} from "../math/Vec4";
 import {Sphere} from "../bv/Sphere";
 import {Vec3} from "../math/Vec3";
+import {RADIANS_HALF} from "../math";
 
 function planeNormalize(plane: NumberArray4) {
     let t = 1.0 / Math.sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);
@@ -166,12 +167,12 @@ class Frustum {
      * Sets up camera projection matrix.
      * @public
      * @param {number} angle - Camera's view angle.
-     * @param {number} aspect - Screen aspect ration.
+     * @param {number} aspect - Screen aspect ratio.
      * @param {number} near - Near camera distance.
      * @param {number} far - Far camera distance.
      */
     public setProjectionMatrix(angle: number, aspect: number, near: number, far: number) {
-        this.top = near * Math.tan((angle * Math.PI) / 360);
+        this.top = near * Math.tan(angle * RADIANS_HALF);
         this.bottom = -this.top;
         this.right = this.top * aspect;
         this.left = -this.right;

@@ -210,7 +210,7 @@ class GlobusTerrain extends EmptyTerrain {
                 if (response.status === "ready") {
 
                     let cache: TileData = {
-                        heights: this._createHeights(response.data, tileIndex, x, y, z, extent),
+                        heights: this._createHeights(response.data, null, tileIndex, x, y, z, extent),
                         extent: extent
                     };
 
@@ -376,8 +376,11 @@ class GlobusTerrain extends EmptyTerrain {
 
                                 let heights = this._createHeights(
                                     response.data,
+                                    segment,
                                     segment.tileIndex,
-                                    segment.tileX, segment.tileY, segment.tileZoom,
+                                    segment.tileX,
+                                    segment.tileY,
+                                    segment.tileZoom,
                                     segment.getExtent(),
                                     segment.tileZoom === this.maxZoom
                                 );
@@ -455,7 +458,7 @@ class GlobusTerrain extends EmptyTerrain {
      * @public
      * @returns {Array.<number>} -
      */
-    protected _createHeights(data: any, tileIndex?: string, x?: number, y?: number, z?: number, extent?: Extent, isMaxZoom?: boolean): TypedArray | number[] {
+    protected _createHeights(data: any, segment?: Segment | null, tileIndex?: string, x?: number, y?: number, z?: number, extent?: Extent, isMaxZoom?: boolean): TypedArray | number[] {
         if (this._heightFactor !== 1) {
             let res = new Float32Array(data);
             for (let i = 0, len = res.length; i < len; i++) {

@@ -263,6 +263,12 @@ class GeoObject {
         this._handler && this._handler.setPitchRollArr(this._tagData!, this._tagDataIndex, this._pitch, roll);
     }
 
+    public setPitchYawRoll(pitch: number, yaw: number, roll: number) {
+        this.setPitch(pitch);
+        this.setYaw(yaw);
+        this.setRoll(roll);
+    }
+
     public setScale(scale: number) {
         this._scale.x = this._scale.y = this._scale.z = scale;
         this._handler && this._handler.setScaleArr(this._tagData!, this._tagDataIndex, this._scale);
