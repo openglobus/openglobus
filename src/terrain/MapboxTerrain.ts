@@ -86,11 +86,6 @@ class MapboxTerrain extends GlobusTerrain {
 
         const SIZE = data.width;
 
-        // let availableParentData: TypedArray | number[] | null = null,
-        //     availableParentOffsetX = 0,
-        //     availableParentOffsetY = 0,
-        //     availableZoomDiff = 0;
-
         let availableParentTileX = 0,
             availableParentTileY = 0,
             availableParentTileZoom = 0,
@@ -173,18 +168,7 @@ class MapboxTerrain extends GlobusTerrain {
             }
         }
 
-        if (preventChildren) {
-            extractElevationTilesMapboxNoChildren(
-                rgbaData,
-                this._heightFactor,
-                this.noDataValues,
-                availableParentData,
-                availableParentTileX,
-                availableParentTileY,
-                availableParentTileZoom,
-                outCurrenElevations
-            );
-        } else {
+        if (!preventChildren) {
             extractElevationTilesMapbox(
                 rgbaData,
                 this._heightFactor,
@@ -199,17 +183,11 @@ class MapboxTerrain extends GlobusTerrain {
                 outCurrenElevations,
                 outChildrenElevations
             );
-        }
 
-        this._elevationCache[tileIndex] = {
-            heights: outCurrenElevations,
-            extent: extent
-        };
-
-        if (!preventChildren) {
+            // Save children data to cache
             for (let i = 0; i < d; i++) {
                 for (let j = 0; j < d; j++) {
-                    let [x, y, z] = getChildrenTileIndex(tileX, tileY, tileZoom, j, i);
+                    let [x, y, z] = getChildTileIndex(tileX, tileY, tileZoom, j, i);
                     let tileIndex = Layer.getTileIndex(x, y, z);
                     this._elevationCache[tileIndex] = {
                         heights: outChildrenElevations[i][j],
@@ -217,7 +195,27 @@ class MapboxTerrain extends GlobusTerrain {
                     };
                 }
             }
+        } else {
+            extractElevationTilesMapboxNoChildren(
+                rgbaData,
+                this._heightFactor,
+                this.noDataValues,
+                availableParentData,
+                availableParentTileX,
+                availableParentTileY,
+                availableParentTileZoom,
+                segment ? segment.tileX : 0,
+                segment ? segment.tileY : 0,
+                segment ? segment.tileZoom : 0,
+                outCurrenElevations
+            );
         }
+
+        // Save current data to cache
+        this._elevationCache[tileIndex] = {
+            heights: outCurrenElevations,
+            extent: extent
+        };
 
         return outCurrenElevations;
     }
@@ -290,14 +288,14 @@ function getTileOffset(
     return [currentTileX - dz2 * parentTileX, currentTileY - dz2 * parentTileY, 1.0 / dz2];
 }
 
-function getChildrenTileIndex(
-    currentTileX: number,
-    currentTileY: number,
-    currentTileZoom: number,
-    offsetX: number,
-    offsetY: number
+function getChildTileIndex(
+    currentParentTileX: number,
+    currentParentTileY: number,
+    currentParentTileZoom: number,
+    childOffsetX: number,
+    childOffsetY: number
 ): [number, number, number] {
-    return [currentTileX * 2 + offsetX, currentTileY * 2 + offsetY, currentTileZoom + 1];
+    return [currentParentTileX * 2 + childOffsetX, currentParentTileY * 2 + childOffsetY, currentParentTileZoom + 1];
 }
 
 function getParentHeight(oneByDz2: number, offsetX: number, offsetY: number, heights: TypedArray | number[], i: number, j: number) {
@@ -392,6 +390,11 @@ function extractElevationTilesMapbox(
         bottomHeight = 0,
         sourceSize4 = 0;
 
+    let [availableParentOffsetX, availableParentOffsetY, availableZoomDiff] = getTileOffset(
+        currentTileX, currentTileY, currentTileZoom,
+        availableParentTileX, availableParentTileY, availableParentTileZoom
+    );
+
     for (
         let k = 0, currIndex = 0, sourceDataLength = rgbaData.length / 4;
         k < sourceDataLength;
@@ -408,6 +411,12 @@ function extractElevationTilesMapbox(
         let i = Math.floor(k / sourceSize),
             j = k % sourceSize;
 
+        //
+        // Try to get current height from the parent data
+        if ((isNoDataCurrent || height === 0) && availableParentData) {
+            height = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, Math.floor(i / dt), Math.floor(j / dt));
+        }
+
         let tileX = Math.floor(j / destSize),
             tileY = Math.floor(i / destSize);
 
@@ -418,25 +427,6 @@ function extractElevationTilesMapbox(
 
         let destIndex = (ii + tileY) * destSizeOne + jj + tileX;
 
-        //
-        // Try to get current height from the parent data
-        if ((isNoDataCurrent || height === 0) && availableParentData) {
-            let [
-                availableParentOffsetX,
-                availableParentOffsetY,
-                availableZoomDiff
-            ] = getTileOffset(
-                currentTileX,
-                currentTileY,
-                currentTileZoom,
-                availableParentTileX,
-                availableParentTileY,
-                availableParentTileZoom
-            );
-
-            height = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, Math.round(i / dt), Math.round(j / dt));
-        }
-
         destArr[destIndex] = height;
 
         if ((i + tileY) % dt === 0 && (j + tileX) % dt === 0) {
@@ -446,8 +436,13 @@ function extractElevationTilesMapbox(
         if ((j + 1) % destSize === 0 && j !== sourceSize - 1) {
             //current tile
             rightHeight = heightFactor * rgb2Height(rgbaData[k4 + 4], rgbaData[k4 + 5], rgbaData[k4 + 6]);
-
             isNoDataRight = MapboxTerrain.checkNoDataValue(noDataValues, rightHeight);
+
+            //
+            // Try to get right height from the parent data
+            if ((isNoDataRight || rightHeight === 0) && availableParentData) {
+                rightHeight = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, Math.floor(i / dt), Math.floor((j + 1) / dt));
+            }
 
             let middleHeight = height;
 
@@ -472,8 +467,13 @@ function extractElevationTilesMapbox(
             sourceSize4 = sourceSize * 4;
 
             bottomHeight = heightFactor * rgb2Height(rgbaData[k4 + sourceSize4], rgbaData[k4 + sourceSize4 + 1], rgbaData[k4 + sourceSize4 + 2]);
-
             isNoDataBottom = MapboxTerrain.checkNoDataValue(noDataValues, bottomHeight);
+
+            //
+            // Try to get bottom height from the parent data
+            if ((isNoDataBottom || bottomHeight === 0) && availableParentData) {
+                bottomHeight = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, Math.floor((i + 1) / dt), Math.floor(j / dt));
+            }
 
             let middleHeight = (height + bottomHeight) * 0.5;
 
@@ -499,8 +499,13 @@ function extractElevationTilesMapbox(
         ) {
             //current tile
             let rightBottomHeight = heightFactor * rgb2Height(rgbaData[k4 + sourceSize4 + 4], rgbaData[k4 + sourceSize4 + 5], rgbaData[k4 + sourceSize4 + 6]);
-
             let isNoDataRightBottom = MapboxTerrain.checkNoDataValue(noDataValues, rightBottomHeight);
+
+            //
+            // Try to get right bottom height from the parent data
+            if ((isNoDataRightBottom || rightBottomHeight === 0) && availableParentData) {
+                rightBottomHeight = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, Math.floor((i + 1) / dt), Math.floor((j + 1) / dt));
+            }
 
             let middleHeight = height;
 
@@ -533,18 +538,27 @@ function extractElevationTilesMapboxNoChildren(
     heightFactor: number,
     noDataValues: number[] | TypedArray,
     availableParentData: TypedArray | number[] | null = null,
-    availableZoomDiff: number,
-    availableParentOffsetX: number,
-    availableParentOffsetY: number,
+    availableParentTileX: number,
+    availableParentTileY: number,
+    availableParentTileZoom: number,
+    currentTileX: number,
+    currentTileY: number,
+    currentTileZoom: number,
     outCurrenElevations: number[] | TypedArray
 ) {
     let destSize = Math.sqrt(outCurrenElevations.length) - 1;
+    let destSizeOne = destSize + 1;
     let sourceSize = Math.sqrt(rgbaData.length / 4);
     let dt = sourceSize / destSize;
 
     let rightHeight = 0,
         bottomHeight = 0,
         sourceSize4 = 0;
+
+    let [availableParentOffsetX, availableParentOffsetY, availableZoomDiff] = getTileOffset(
+        currentTileX, currentTileY, currentTileZoom,
+        availableParentTileX, availableParentTileY, availableParentTileZoom
+    );
 
     for (
         let k = 0, currIndex = 0, sourceDataLength = rgbaData.length / 4;
@@ -562,6 +576,10 @@ function extractElevationTilesMapboxNoChildren(
         let i = Math.floor(k / sourceSize),
             j = k % sourceSize;
 
+        if ((isNoDataCurrent || height === 0) && availableParentData) {
+            height = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, Math.floor(currIndex / destSizeOne), currIndex % destSizeOne);
+        }
+
         let tileX = Math.floor(j / destSize),
             tileY = Math.floor(i / destSize);
 
@@ -572,8 +590,11 @@ function extractElevationTilesMapboxNoChildren(
         if ((j + 1) % destSize === 0 && j !== sourceSize - 1) {
             //current tile
             rightHeight = heightFactor * rgb2Height(rgbaData[k4 + 4], rgbaData[k4 + 5], rgbaData[k4 + 6]);
-
             isNoDataRight = MapboxTerrain.checkNoDataValue(noDataValues, rightHeight);
+
+            if ((isNoDataRight || rightHeight === 0) && availableParentData) {
+                rightHeight = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, Math.floor(currIndex / destSizeOne), currIndex % destSizeOne);
+            }
 
             let middleHeight = height;
 
@@ -591,8 +612,11 @@ function extractElevationTilesMapboxNoChildren(
             sourceSize4 = sourceSize * 4;
 
             bottomHeight = heightFactor * rgb2Height(rgbaData[k4 + sourceSize4], rgbaData[k4 + sourceSize4 + 1], rgbaData[k4 + sourceSize4 + 2]);
-
             isNoDataBottom = MapboxTerrain.checkNoDataValue(noDataValues, bottomHeight);
+
+            if ((isNoDataBottom || bottomHeight === 0) && availableParentData) {
+                bottomHeight = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, Math.floor(currIndex / destSizeOne), currIndex % destSizeOne);
+            }
 
             let middleHeight = (height + bottomHeight) * 0.5;
 
@@ -611,8 +635,11 @@ function extractElevationTilesMapboxNoChildren(
         ) {
             //current tile
             let rightBottomHeight = heightFactor * rgb2Height(rgbaData[k4 + sourceSize4 + 4], rgbaData[k4 + sourceSize4 + 5], rgbaData[k4 + sourceSize4 + 6]);
-
             let isNoDataRightBottom = MapboxTerrain.checkNoDataValue(noDataValues, rightBottomHeight);
+
+            if ((isNoDataRightBottom || rightBottomHeight === 0) && availableParentData) {
+                rightBottomHeight = getParentHeight(availableZoomDiff, availableParentOffsetX, availableParentOffsetY, availableParentData, Math.floor(currIndex / destSizeOne), currIndex % destSizeOne);
+            }
 
             let middleHeight = height;
 
