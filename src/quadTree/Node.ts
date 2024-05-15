@@ -237,9 +237,6 @@ class Node {
         this.state = WALKTHROUGH;
 
         this.clearNeighbors();
-        // for (let i = 0; i < this._fadingNodes.length; i++) {
-        //     this._fadingNodes[i].neighbors && this._fadingNodes[i].clearNeighbors();
-        // }
 
         let seg = this.segment,
             planet = this.planet;
@@ -429,7 +426,8 @@ class Node {
                     }
 
                     // not sure it's necessary here
-                    //this.parentNode.whileTerrainLoading();
+                    this.parentNode.whileTerrainLoading();
+
                     this._fadingNodes.push(this.parentNode);
                     this.parentNode.segment._transitionOpacity = 2.0;
                     this.parentNode.segment._transitionTimestamp = timestamp;
@@ -438,8 +436,10 @@ class Node {
                     if (this.segment.childrenInitialized() && this.childrenPrevStateEquals(RENDERING)) {
                         for (let i = 0; i < this.nodes.length; i++) {
                             let ni = this.nodes[i];
+
                             // not sure it's necessary here
-                            //ni.whileTerrainLoading();
+                            ni.whileTerrainLoading();
+
                             this._fadingNodes.push(ni);
                             ni.segment._transitionOpacity = 2.0;
                             ni.segment._transitionTimestamp = timestamp;
@@ -454,14 +454,15 @@ class Node {
 
     public clearNeighbors() {
         //this.sideSizeLog2[0] = this.sideSizeLog2[1] = this.sideSizeLog2[2] = this.sideSizeLog2[3] = Math.log2(this.segment.gridSize);
+        if (this.neighbors) {
+            // @ts-ignore
+            this.neighbors[0] = this.neighbors[1] = this.neighbors[2] = this.neighbors[3] = null;
 
-        // @ts-ignore
-        this.neighbors[0] = this.neighbors[1] = this.neighbors[2] = this.neighbors[3] = null;
-
-        this.neighbors[0] = [];
-        this.neighbors[1] = [];
-        this.neighbors[2] = [];
-        this.neighbors[3] = [];
+            this.neighbors[0] = [];
+            this.neighbors[1] = [];
+            this.neighbors[2] = [];
+            this.neighbors[3] = [];
+        }
     }
 
     public _refreshTransitionOpacity() {
@@ -472,7 +473,13 @@ class Node {
                 this.segment._transitionOpacity = 1.0;
                 this._fadingNodes = [];
             } else {
-
+                // Looks like a bug fix for suddenly empty spaces
+                for (let i = 0; i < this._fadingNodes.length; i++) {
+                    if (this.segment._transitionOpacity < 1.0 && this._fadingNodes[i].segment._transitionOpacity === 0) {
+                        this._fadingNodes[i].segment._transitionOpacity = 0;
+                        this.segment._transitionOpacity = 1.0;
+                    }
+                }
                 this.segment.increaseTransitionOpacity();
             }
         }
