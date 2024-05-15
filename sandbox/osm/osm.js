@@ -72,7 +72,6 @@ let osm = new XYZ("OpenStreetMap", {
 var highResTerrain = new MapboxTerrain(null, {
     //maxNativeZoom: 6,
     maxNativeZoom: 6,
-    //maxZoom: 6,
     //equalizeVertices: false,
     url: "https://terrain.openglobus.org/public/all/{z}/{x}/{y}.png",
     //url: "../dest/{z}/{x}/{y}.png",
