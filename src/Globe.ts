@@ -21,7 +21,7 @@ import {RenderNode} from "./scene/RenderNode";
 import {ZoomControl} from "./control/ZoomControl";
 import {Extent} from "./Extent";
 
-interface IGlobeParams {
+export interface IGlobeParams {
     attributionContainer?: HTMLElement;
     target?: string | HTMLElement;
     skybox?: RenderNode;

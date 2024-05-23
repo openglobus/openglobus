@@ -9,7 +9,7 @@ import * as terrain from './terrain/index';
 import * as layer from './layer/index';
 import * as webgl from './webgl/index';
 
-import {Globe} from './Globe';
+export * from './Globe';
 
 import {Geoid} from './terrain/Geoid';
 
@@ -80,18 +80,7 @@ import {
     GeoObject
 } from './entity/index';
 
-import {
-    Layer,
-    Vector,
-    XYZ,
-    CanvasTiles,
-    WMS,
-    GeoImage,
-    GeoVideo,
-    GeoTexture2d,
-    KML,
-    Material
-} from './layer/index';
+export *  from './layer/index';
 
 import {
     EmptyTerrain,
@@ -115,16 +104,6 @@ export {
     layer,
     webgl,
     Framebuffer,
-    Material,
-    KML,
-    Layer,
-    XYZ,
-    Vector,
-    CanvasTiles,
-    WMS,
-    GeoImage,
-    GeoVideo,
-    GeoTexture2d,
     EmptyTerrain,
     GlobusTerrain,
     MapboxTerrain,
@@ -134,7 +113,6 @@ export {
     Ellipsoid,
     Planet,
     PlanetCamera,
-    Globe,
     LightSource,
     Entity,
     EntityCollection,
