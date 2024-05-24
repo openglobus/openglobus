@@ -69,16 +69,7 @@ import {
     Control
 } from './control/Control';
 
-import {
-    Entity,
-    EntityCollection,
-    Billboard,
-    Geometry,
-    Label,
-    PointCloud,
-    Polyline,
-    GeoObject
-} from './entity/index';
+export * from './entity/index';
 
 export *  from './layer/index';
 
@@ -114,15 +105,8 @@ export {
     Planet,
     PlanetCamera,
     LightSource,
-    Entity,
-    EntityCollection,
-    Billboard,
-    Geometry,
-    Label,
-    PointCloud,
-    Polyline,
+
     Program,
-    GeoObject,
     Handler,
     Multisample,
     Renderer,
