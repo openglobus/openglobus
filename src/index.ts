@@ -96,7 +96,7 @@ import {
 import {
     EmptyTerrain,
     GlobusTerrain,
-    MapboxTerrain,
+    RgbTerrain,
     BilTerrain
 } from './terrain/index';
 
@@ -127,7 +127,7 @@ export {
     GeoTexture2d,
     EmptyTerrain,
     GlobusTerrain,
-    MapboxTerrain,
+    RgbTerrain,
     BilTerrain,
     Control,
     Camera,

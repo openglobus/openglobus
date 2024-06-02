@@ -4,7 +4,7 @@ import {
     Vector,
     GlobusTerrain,
     EmptyTerrain,
-    MapboxTerrain,
+    RgbTerrain,
     XYZ,
     control,
     utils,
@@ -69,7 +69,7 @@ let osm = new XYZ("OpenStreetMap", {
     diffuse: [0.9, 0.9, 0.7], //textureFilter: "linear"
 });
 
-var highResTerrain = new MapboxTerrain(null, {
+var highResTerrain = new RgbTerrain(null, {
     //maxNativeZoom: 6,
     maxNativeZoom: 6,
     //equalizeVertices: false,
@@ -79,13 +79,13 @@ var highResTerrain = new MapboxTerrain(null, {
     //imageSize: 129,
     //plainGridSize: 256,
     //plainGridSize: 128,
-    gridSizeByZoom: [
-        64, 32, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 64, 64, 64, 64, 64, 64, 64, 32, 16, 8
-        //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 64, 64, 128, 128, 128, 128, 128, 128, 128, 128, 64, 32
-        //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 64, 64, 128, 128, 128, 256, 256, 256, 128, 64, 32, 16
-        //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 64, 64, 64, 64, 32, 16, 8
-        //8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4
-    ]
+    // gridSizeByZoom: [
+    //     64, 32, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 64, 64, 64, 64, 64, 64, 64, 32, 16, 8
+    //     //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 64, 64, 128, 128, 128, 128, 128, 128, 128, 128, 64, 32
+    //     //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 64, 64, 128, 128, 128, 256, 256, 256, 128, 64, 32, 16
+    //     //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 64, 64, 64, 64, 32, 16, 8
+    //     //8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4
+    // ]
 });
 
 const globus = new Globe({
@@ -97,6 +97,9 @@ const globus = new Globe({
     layers: [osm, sat],
     atmosphereEnabled: false,
     fontsSrc: "../../res/fonts",
+    sun: {
+        stopped: false
+    }
     //transitionOpacityEnabled: false
     //viewExtent: [8.077, 46.69, 8.77, 46.83]
 });

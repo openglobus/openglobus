@@ -127,27 +127,27 @@ export class DebugInfo extends Control {
 
                 let size;
 
-                if (material.segment.isPole) {
-                    let ext = material.segment.getExtentLonLat();
-
-                    ctx.fillStyle = 'black';
-                    ctx.font = 'normal ' + 29 + 'px Verdana';
-
-                    ctx.textAlign = 'center';
-                    ctx.fillText(`${ext.northEast.lon.toFixed(3)} ${ext.northEast.lat.toFixed(3)}`, cnv.width / 2, cnv.height / 2 + 20);
-                    ctx.fillText(`${ext.southWest.lon.toFixed(3)} ${ext.southWest.lat.toFixed(3)}`, cnv.width / 2, cnv.height / 2 - 20);
+                // if (material.segment.isPole) {
+                //     let ext = material.segment.getExtentLonLat();
+                //
+                //     ctx.fillStyle = 'black';
+                //     ctx.font = 'normal ' + 29 + 'px Verdana';
+                //
+                //     ctx.textAlign = 'center';
+                //     ctx.fillText(`${ext.northEast.lon.toFixed(3)} ${ext.northEast.lat.toFixed(3)}`, cnv.width / 2, cnv.height / 2 + 20);
+                //     ctx.fillText(`${ext.southWest.lon.toFixed(3)} ${ext.southWest.lat.toFixed(3)}`, cnv.width / 2, cnv.height / 2 - 20);
+                // } else {
+                //Draw text
+                if (material.segment.tileZoom > 14) {
+                    size = "26";
                 } else {
-                    //Draw text
-                    if (material.segment.tileZoom > 14) {
-                        size = "26";
-                    } else {
-                        size = "32";
-                    }
-                    ctx.fillStyle = 'black';
-                    ctx.font = 'normal ' + size + 'px Verdana';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+                    size = "32";
                 }
+                ctx.fillStyle = 'black';
+                ctx.font = 'normal ' + size + 'px Verdana';
+                ctx.textAlign = 'center';
+                ctx.fillText(material.segment.tileX + "," + material.segment.tileY + "," + material.segment.tileZoom, cnv.width / 2, cnv.height / 2);
+                //}
 
                 //Draw canvas tile
                 applyCanvas(cnv);

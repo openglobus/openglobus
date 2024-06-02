@@ -294,7 +294,7 @@ class Node {
             let altVis = seg.tileZoom < 2 || seg.tileZoom > 19 ||
                 /* Could be replaced with camera frustum always looking down check,
                 and not to go througn nodes from the oppositeside of the globe*/
-                (seg.tileZoom < 5 && !seg.terrainReady);
+                (seg.tileZoom < 4 && !seg.terrainReady);
 
             altVis = altVis ||
                 cam.eye.distance2(seg._sw) < horizonDist ||
