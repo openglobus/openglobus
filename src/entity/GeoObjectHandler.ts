@@ -419,6 +419,37 @@ class GeoObjectHandler {
         this.update();
     }
 
+    updateInstanceData(geoObject: GeoObject) {
+        const tagData = this._instanceDataMap.get(geoObject.tag),
+            object = geoObject.object3d;
+        if (tagData) {
+            if (object.vertices.length !== tagData._vertexArr.length) {
+                tagData._vertexArr = object.vertices;
+                tagData._changedBuffers[VERTEX_BUFFER] = true;
+            }
+            if (object.normals.length !== tagData._normalsArr.length) {
+                tagData._normalsArr = object.normals;
+                tagData._changedBuffers[NORMALS_BUFFER] = true;
+            }
+            if (object.indices.length !== tagData._indicesArr.length) {
+                tagData._indicesArr = object.indices;
+                tagData._changedBuffers[INDEX_BUFFER] = true;
+            }
+            if (object.texCoords.length !== tagData._texCoordArr.length) {
+                tagData._texCoordArr = object.texCoords;
+                tagData._changedBuffers[TEXCOORD_BUFFER] = true;
+            }
+
+            tagData._textureSrc = geoObject.object3d.src;
+
+            this._loadDataTagTexture(tagData);
+
+            this._instanceDataMap.set(geoObject.tag, tagData);
+            this._instanceDataMapValues = Array.from(this._instanceDataMap.values());
+        }
+
+    }
+
     protected _addGeoObjectToArray(geoObject: GeoObject) {
         const tag = geoObject.tag;
 
@@ -700,6 +731,10 @@ class GeoObjectHandler {
     }
 
     public update() {
+        //update obj data
+
+        this
+
         for (let i = 0, len = this._dataTagUpdateQueue.length; i < len; i++) {
             this._dataTagUpdateQueue[i].update();
         }
