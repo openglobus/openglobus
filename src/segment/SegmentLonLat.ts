@@ -102,7 +102,7 @@ class SegmentLonLat extends Segment {
         this.tileYS = this.tileY + 1;
     }
 
-    public override projectToNative(lon: number, lat: number): LonLat {
+    protected override _projToDeg(lon: number, lat: number): LonLat {
         return new LonLat(lon, lat);
     }
 

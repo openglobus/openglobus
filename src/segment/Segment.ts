@@ -600,7 +600,7 @@ class Segment {
     public equalize() {
 
         // Equalization doesnt work correctly for gridSize equals 2
-        if (this.tileZoom <= 1 || this.gridSize < 2) {
+        if (this.gridSize < 2) {
             return;
         }
 
@@ -1423,20 +1423,23 @@ class Segment {
         this.readyToEngage = true;
     }
 
-    public projectToNative(lon: number, lat: number): LonLat {
+    protected _projToDeg(lon: number, lat: number): LonLat {
         return LonLat.inverseMercator(lon, lat);
     }
 
     protected _createPlainVertices() {
         const gridSize = this.planet.terrain!.gridSizeByZoom[this.tileZoom];
-        const e = this._extent;
         const fgs = this.planet.terrain!.plainGridSize;
+        const currGridSize = Math.max(fgs, gridSize);
+        const e = this._extent;
         const lonSize = e.getWidth();
-        const llStep = lonSize / Math.max(fgs, gridSize);
+        const latSize = e.getHeight();
+        const llStep = lonSize / currGridSize;
+        const ltStep = latSize / currGridSize;
         const esw_lon = e.southWest.lon;
         const ene_lat = e.northEast.lat;
         const dg = Math.max(fgs / gridSize, 1);
-        const gs = Math.max(fgs, gridSize) + 1;
+        const gs = currGridSize + 1;
         const r2 = this.planet.ellipsoid._invRadii2;
         const gsgs = gs * gs;
         const gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
@@ -1468,7 +1471,7 @@ class Segment {
                 i = ~~(k / gs);
 
             let v = this.planet.ellipsoid.lonLatToCartesian(
-                this.projectToNative(esw_lon + j * llStep, ene_lat - i * llStep)
+                this._projToDeg(esw_lon + j * llStep, ene_lat - i * ltStep)
             );
 
             let nx = v.x * r2.x,

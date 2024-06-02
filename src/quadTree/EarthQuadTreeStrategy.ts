@@ -14,13 +14,13 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
 
     public override init() {
         this._quadTreeList = [
-            new Node(Segment, this.planet, quadTree.NW, null, 0, 0,
+            new Node(Segment, this.planet, 0, null, 0,
                 Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34])
             ),
-            new Node(SegmentLonLat, this.planet, quadTree.NW, null, 0, 0,
+            new Node(SegmentLonLat, this.planet, 0, null, 0,
                 Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90])
             ),
-            new Node(SegmentLonLat, this.planet, quadTree.NW, null, 0, 0,
+            new Node(SegmentLonLat, this.planet, 0, null, 0,
                 Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT])
             )
         ];

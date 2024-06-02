@@ -70,22 +70,8 @@ let osm = new XYZ("OpenStreetMap", {
 });
 
 var highResTerrain = new RgbTerrain(null, {
-    //maxNativeZoom: 6,
     maxNativeZoom: 6,
-    //equalizeVertices: false,
     url: "https://terrain.openglobus.org/public/all/{z}/{x}/{y}.png",
-    //url: "../dest/{z}/{x}/{y}.png",
-    //heightFactor: 1 / 3.28,
-    //imageSize: 129,
-    //plainGridSize: 256,
-    //plainGridSize: 128,
-    // gridSizeByZoom: [
-    //     64, 32, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 64, 64, 64, 64, 64, 64, 64, 32, 16, 8
-    //     //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 64, 64, 128, 128, 128, 128, 128, 128, 128, 128, 64, 32
-    //     //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 64, 64, 128, 128, 128, 256, 256, 256, 128, 64, 32, 16
-    //     //64, 32, 16, 8, 8, 8, 8, 16, 16, 16, 16, 16, 32, 32, 32, 64, 64, 64, 64, 32, 16, 8
-    //     //8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4
-    // ]
 });
 
 const globus = new Globe({

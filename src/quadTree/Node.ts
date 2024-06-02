@@ -58,6 +58,8 @@ let BOUNDS: BoundsType = {
     xmax: 0.0, ymax: 0.0, zmax: 0.0
 };
 
+let __staticCounter = 0;
+
 /**
  * Quad tree planet segment node.
  * @constructor
@@ -93,7 +95,6 @@ class Node {
         planet: Planet,
         partId: number,
         parent: Node | null,
-        id: number,
         tileZoom: number,
         extent: Extent
     ) {
@@ -103,7 +104,7 @@ class Node {
         this.planet = planet;
         this.parentNode = parent;
         this.partId = partId;
-        this.nodeId = partId + id;
+        this.nodeId = __staticCounter++;//partId + id;
         this.state = null;
         this.prevState = null;
         this.appliedTerrainNodeId = -1;
@@ -130,14 +131,13 @@ class Node {
         const size_y = ext.getHeight() * 0.5;
         const ne = ext.northEast;
         const sw = ext.southWest;
-        const id = this.nodeId * 4 + 1;
         const c = new LonLat(sw.lon + size_x, sw.lat + size_y);
         const nd = this.nodes;
 
-        nd[NW] = new Node(this.SegmentPrototype, p, NW, this, id, z, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)));
-        nd[NE] = new Node(this.SegmentPrototype, p, NE, this, id, z, new Extent(c, new LonLat(ne.lon, ne.lat)));
-        nd[SW] = new Node(this.SegmentPrototype, p, SW, this, id, z, new Extent(new LonLat(sw.lon, sw.lat), c));
-        nd[SE] = new Node(this.SegmentPrototype, p, SE, this, id, z, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)));
+        nd[NW] = new Node(this.SegmentPrototype, p, NW, this, z, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)));
+        nd[NE] = new Node(this.SegmentPrototype, p, NE, this, z, new Extent(c, new LonLat(ne.lon, ne.lat)));
+        nd[SW] = new Node(this.SegmentPrototype, p, SW, this, z, new Extent(new LonLat(sw.lon, sw.lat), c));
+        nd[SE] = new Node(this.SegmentPrototype, p, SE, this, z, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)));
     }
 
     public createBounds() {
