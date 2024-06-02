@@ -78,7 +78,7 @@ const globus = new Globe({
     target: "earth",
     name: "Earth",
     terrain: highResTerrain,
-    //terrain: new GlobusTerrain(),
+    //terrain: new EmptyTerrain(),
     //layers: [sat, st],
     layers: [osm, sat],
     atmosphereEnabled: false,

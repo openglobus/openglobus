@@ -15,12 +15,11 @@ interface IRgbTerrainParams extends IGlobusTerrainParams {
     imageSize?: number;
 }
 
-/**
- * The key doesn't work; just an example!
- */
-const KEY = "pk.eyJ1IjoiZm94bXVsZGVyODMiLCJhIjoiY2pqYmR3dG5oM2Z1bzNrczJqYm5pODhuNSJ9.Y4DRmEPhb-XSlCR9CAXACQ";
-
 const rgb2Height = (r: number, g: number, b: number): number => {
+    // Filter for "yellowish" pixels
+    if (r === 255) {
+        return -10000;
+    }
     return -10000 + 0.1 * (r * 256 * 256 + g * 256 + b);
 };
 
@@ -40,9 +39,8 @@ class RgbTerrain extends GlobusTerrain {
             plainGridSize: options.plainGridSize || 128,
             url: options.url != undefined
                 ? options.url
-                : `//api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${options.key || KEY}`,
+                : `//api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${options.key || "<key>"}`,
             gridSizeByZoom: options.gridSizeByZoom || [
-                //64, 32, 16, 8, 8,  8,  8, 16, 16, 16, 16, 16, 32, 16, 32, 16, 32, 16, 32, 16, 8, 4
                 64, 32, 16, 8, 8, 8, 16, 16, 16, 32, 32, 32, 32, 32, 32, 64, 64, 64, 32, 32, 16, 8
             ],
             ...options

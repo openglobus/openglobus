@@ -105,6 +105,7 @@ class Node {
         this.parentNode = parent;
         this.partId = partId;
         this.nodeId = __staticCounter++;//partId + id;
+        //this.nodeId = partId + (parent ? parent.nodeId * 4 + 1 : 0);
         this.state = null;
         this.prevState = null;
         this.appliedTerrainNodeId = -1;
@@ -597,13 +598,16 @@ class Node {
                     return N;
                 } else if (a_sw_lat === b_ne_lat && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
                     return S;
-                } else if (bs.tileX === 0 && as.tileX === Math.pow(2, as.tileZoom) - 1 && ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))) {
+                }
+                // World edge 180 to -180
+                else if (bs.tileX === 0 && b_sw_lon === -a_ne_lon && ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))) {
                     return E;
-                } else if (as.tileX === 0 && bs.tileX === Math.pow(2, bs.tileZoom) - 1 && ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))) {
+                } else if (as.tileX === 0 && a_sw_lon === -b_ne_lon && ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))) {
                     return W;
                 }
             }
 
+            // @todo: replace to the default strategy
             if (as._tileGroup === TILEGROUP_COMMON && bs._tileGroup === TILEGROUP_NORTH && as.tileY === 0 && bs.tileY === Math.pow(2, bs.tileZoom) - 1 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
                 return N;
             } else if (as._tileGroup === TILEGROUP_SOUTH && bs._tileGroup === TILEGROUP_COMMON && as.tileY === 0 && bs.tileY === Math.pow(2, bs.tileZoom) - 1 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
