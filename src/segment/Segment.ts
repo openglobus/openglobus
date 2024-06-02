@@ -600,7 +600,7 @@ class Segment {
     public equalize() {
 
         // Equalization doesnt work correctly for gridSize equals 2
-        if (this.gridSize < 2) {
+        if (this.tileZoom < 3 || this.gridSize < 2) {
             return;
         }
 
