@@ -76,6 +76,7 @@ class GeoObject {
 
     protected _qNorthFrame: Quat;
     private _textureSrc?: string;
+    _objectSrc?: string;
 
     constructor(options: IGeoObjectParams) {
 
@@ -111,6 +112,7 @@ class GeoObject {
         }
         if (options.objSrc) {
             this.setObjectSrc(options.objSrc)
+            this._objectSrc = options.objSrc;
         }
         this._object3d = options.object3d as Object3d;
         if (options.textureSrc) {
@@ -261,15 +263,11 @@ class GeoObject {
 
     public setObject(object: Object3d) {
         this._object3d = object;
-        this._handler && this._handler.updateInstanceData(this);
     }
 
     public setObjectSrc(src: string) {
-        Object3d.loadObj(src).then((object3d) => {
-            this.setObject(object3d[0]);
-            this._textureSrc && this.setTextureSrc(this._textureSrc)
-            this.updateDirection()
-        })
+        this._objectSrc = src;
+        this._handler && this._handler.setObjectSrc(this);
     }
 
     public setTextureSrc(src: string) {

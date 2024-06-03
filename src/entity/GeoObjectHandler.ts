@@ -6,6 +6,7 @@ import {Planet} from "../scene/Planet";
 import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 import {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
+import {Object3d} from "../Object3d";
 
 const VERTEX_BUFFER = 0;
 const POSITION_BUFFER = 1;
@@ -47,6 +48,7 @@ class InstanceData {
 
     public _texture: WebGLTextureExt | null;
     public _textureSrc: string | null;
+    public _objectSrc?: string ;
 
     public _pitchRollArr: number[] | TypedArray;
     public _sizeArr: number[] | TypedArray;
@@ -419,7 +421,7 @@ class GeoObjectHandler {
         this.update();
     }
 
-    setTexture(src: string, tag: string) {
+    public setTexture(src: string, tag: string) {
         const tagData = this._instanceDataMap.get(tag);
         if (tagData) {
             tagData._textureSrc = src;
@@ -429,13 +431,27 @@ class GeoObjectHandler {
         }
     }
 
-    public updateInstanceData(geoObject: GeoObject) {
-        const tagData = this._instanceDataMap.get(geoObject.tag),
-            object = geoObject.object3d;
+    public setObjectSrc(geoObject: GeoObject) {
+        const tagData = this._instanceDataMap.get(geoObject.tag);
+        if (geoObject._objectSrc) {
+            if (tagData && tagData._objectSrc !== geoObject._objectSrc) {
+                tagData._objectSrc = geoObject._objectSrc;
+
+                Object3d.loadObj(geoObject._objectSrc).then((object3d) => {
+                    this._updateInstanceData(object3d[0], geoObject.tag);
+
+                })
+            }
+        }
+    }
+
+    public _updateInstanceData(object: Object3d, tag: string) {
+        const tagData = this._instanceDataMap.get(tag);
         if (tagData) {
             if (object.vertices.length !== tagData._vertexArr.length) {
                 tagData._vertexArr = object.vertices;
                 tagData._changedBuffers[VERTEX_BUFFER] = true;
+                tagData._changedBuffers[DIRECTION_BUFFER] = true;
             }
             if (object.normals.length !== tagData._normalsArr.length) {
                 tagData._normalsArr = object.normals;
@@ -450,11 +466,11 @@ class GeoObjectHandler {
                 tagData._changedBuffers[TEXCOORD_BUFFER] = true;
             }
 
-            tagData._textureSrc = geoObject.object3d.src;
+            tagData._textureSrc = object.src;
 
             this._loadDataTagTexture(tagData);
 
-            this._instanceDataMap.set(geoObject.tag, tagData);
+            this._updateTag(tagData);
             this._instanceDataMapValues = Array.from(this._instanceDataMap.values());
         }
 
@@ -799,6 +815,7 @@ class GeoObjectHandler {
             geoObject._tagData!.refresh();
 
             this._updateTag(geoObject._tagData!);
+            geoObject.setObjectSrc(geoObject._objectSrc!);
         }
     }
 
