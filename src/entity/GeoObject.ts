@@ -9,9 +9,9 @@ import {Object3d} from "../Object3d";
 export interface IGeoObjectParams {
     object3d?: Object3d;
     objSrc?: string;
+    textureSrc?: string;
     tag?: string;
     position?: Vec3 | NumberArray3;
-    opacity?: number;
     pitch?: number;
     yaw?: number;
     roll?: number;
@@ -75,6 +75,7 @@ class GeoObject {
     protected _visibility: boolean;
 
     protected _qNorthFrame: Quat;
+    private _textureSrc?: string;
 
     constructor(options: IGeoObjectParams) {
 
@@ -105,13 +106,16 @@ class GeoObject {
 
         this._tagData = null;
         this._tagDataIndex = -1;
-        if((!options.object3d ||  options.object3d?.vertices.length === 0)) {
+        if ((!options.object3d || options.object3d?.vertices.length === 0)) {
             options.object3d = new Object3d();
         }
         if (options.objSrc) {
-           this.setObjectSrc(options.objSrc)
+            this.setObjectSrc(options.objSrc)
         }
         this._object3d = options.object3d as Object3d;
+        if (options.textureSrc) {
+            this.setTextureSrc(options.textureSrc)
+        }
         this._visibility = (options.visibility != undefined ? options.visibility : true);
 
         this._qNorthFrame = new Quat();
@@ -255,7 +259,7 @@ class GeoObject {
         this.updateDirection();
     }
 
-    public setObject(object: Object3d ) {
+    public setObject(object: Object3d) {
         this._object3d = object;
         this._handler && this._handler.updateInstanceData(this);
     }
@@ -263,8 +267,19 @@ class GeoObject {
     public setObjectSrc(src: string) {
         Object3d.loadObj(src).then((object3d) => {
             this.setObject(object3d[0]);
+            this._textureSrc && this.setTextureSrc(this._textureSrc)
             this.updateDirection()
         })
+    }
+
+    public setTextureSrc(src: string) {
+        this._textureSrc = src;
+        this._object3d && (this._object3d.src = src);
+        this._handler && this._handler.setTexture(src, this.tag);
+    }
+
+    public setColorHTML(color: string) {
+        this.setColor4v(utils.htmlColorToRgba(color));
     }
 
     /**

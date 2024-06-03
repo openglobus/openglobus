@@ -419,7 +419,17 @@ class GeoObjectHandler {
         this.update();
     }
 
-    updateInstanceData(geoObject: GeoObject) {
+    setTexture(src: string, tag: string) {
+        const tagData = this._instanceDataMap.get(tag);
+        if (tagData) {
+            tagData._textureSrc = src;
+
+            this._instanceDataMap.set(tag, tagData);
+            this._loadDataTagTexture(tagData);
+        }
+    }
+
+    public updateInstanceData(geoObject: GeoObject) {
         const tagData = this._instanceDataMap.get(geoObject.tag),
             object = geoObject.object3d;
         if (tagData) {
