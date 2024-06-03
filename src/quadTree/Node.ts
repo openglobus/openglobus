@@ -72,6 +72,7 @@ let __staticCounter = 0;
  * @param {Extent} extent - Planet segment extent.
  */
 class Node {
+    public __id: number;
     public SegmentPrototype: typeof Segment;
     public planet: Planet;
     public parentNode: Node | null;
@@ -100,12 +101,13 @@ class Node {
     ) {
         planet._createdNodesCount++;
 
+        this.__id = __staticCounter++;
+
         this.SegmentPrototype = SegmentPrototype;
         this.planet = planet;
         this.parentNode = parent;
         this.partId = partId;
-        this.nodeId = __staticCounter++;//partId + id;
-        //this.nodeId = partId + (parent ? parent.nodeId * 4 + 1 : 0);
+        this.nodeId = partId + (parent ? parent.nodeId * 4 + 1 : 0);
         this.state = null;
         this.prevState = null;
         this.appliedTerrainNodeId = -1;

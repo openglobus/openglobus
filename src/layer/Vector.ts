@@ -143,6 +143,9 @@ class Vector extends Layer {
      */
     public _nodeCapacity: number;
 
+    /**
+     * @todo: remove, or replace with node strategy
+     */
     protected _entityCollectionsTree: EntityCollectionNode | null;
     protected _entityCollectionsTreeNorth: EntityCollectionNodeWGS84 | null;
     protected _entityCollectionsTreeSouth: EntityCollectionNodeWGS84 | null;
@@ -652,7 +655,6 @@ class Vector extends Layer {
                 this,
                 quadTree.NW,
                 null,
-                0,
                 Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]),
                 this._planet,
                 0
@@ -662,7 +664,6 @@ class Vector extends Layer {
                 this,
                 quadTree.NW,
                 null,
-                0,
                 Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90]),
                 this._planet,
                 0
@@ -672,7 +673,6 @@ class Vector extends Layer {
                 this,
                 quadTree.NW,
                 null,
-                0,
                 Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT]),
                 this._planet,
                 0

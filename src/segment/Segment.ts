@@ -600,7 +600,7 @@ class Segment {
     public equalize() {
 
         // Equalization doesnt work correctly for gridSize equals 2
-        if (this.tileZoom < 3 || this.gridSize < 2) {
+        if (this.tileZoom < 2 || this.gridSize < 2) {
             return;
         }
 
@@ -1709,8 +1709,8 @@ class Segment {
         while (i--) {
             let n = this.node._fadingNodes[i];
             if (n.segment) {
-                if (n.segment._transitionOpacity > 0 && !this.planet._fadingNodes.has(n.nodeId)) {
-                    this.planet._fadingNodes.set(n.nodeId, n);
+                if (n.segment._transitionOpacity > 0 && !this.planet._fadingNodes.has(n.__id)) {
+                    this.planet._fadingNodes.set(n.__id, n);
                     n.segment._transitionOpacity = 2.0 - this._transitionOpacity;
                     if (n.segment._transitionOpacity === 0) {
                         this.node._fadingNodes.splice(i, 1);
@@ -1838,7 +1838,7 @@ class Segment {
      * @todo: replace to the strategy
      */
     public _collectVisibleNodes() {
-        this.planet._visibleNodes[this.node.nodeId] = this.node;
+        this.planet._visibleNodes[this.node.__id] = this.node;
     }
 
     public layerOverlap(layer: Layer): boolean {
@@ -1865,7 +1865,7 @@ class Segment {
      * @todo replace to the strategy
      */
     public getNodeState(): number {
-        let vn = this.planet._visibleNodes[this.node.nodeId];
+        let vn = this.planet._visibleNodes[this.node.__id];
         return (vn && vn.state) || NOTRENDERING;
     }
 
