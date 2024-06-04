@@ -154,6 +154,17 @@ class Label extends BaseBillboard {
             this._handler.setText(this._handlerIndex, text, this._fontIndex, this._align, this._isRTL);
         }
     }
+    /**
+     * Change text direction.
+     * @public
+     * @param {boolean} isRTL - Text string.
+     */
+    public setRtl(isRTL: boolean) {
+        this._isRTL = isRTL;
+        if (this._isReady && this._handler) {
+            this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align, this._isRTL);
+        }
+    }
 
     /**
      * Gets current text string.
