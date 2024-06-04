@@ -9,6 +9,7 @@ export interface ILabelParams extends IBaseBillboardParams {
     text?: string;
     face?: string;
     size?: number;
+    opacity?: number;
     outline?: number;
     outlineColor?: string | NumberArray4 | Vec4;
     align?: string;
