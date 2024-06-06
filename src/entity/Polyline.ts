@@ -9,8 +9,12 @@ import {PolylineHandler} from "./PolylineHandler";
 import {RenderNode} from "../scene/RenderNode";
 import {WebGLBufferExt} from "../webgl/Handler";
 import {
-    cloneArray, htmlColorToFloat32Array,
-    htmlColorToRgba, makeArray, makeArrayTyped, TypedArray
+    cloneArray,
+    htmlColorToFloat32Array,
+    htmlColorToRgba,
+    makeArray,
+    makeArrayTyped,
+    TypedArray
 } from "../utils/shared";
 import {Ellipsoid} from "../ellipsoid/Ellipsoid";
 
@@ -25,16 +29,16 @@ const G = 1;
 const B = 2;
 const A = 3;
 
-type Geodetic = LonLat | NumberArray2 | NumberArray3
-type Cartesian = Vec3 | NumberArray3;
+export type Geodetic = LonLat | NumberArray2 | NumberArray3
+export type Cartesian = Vec3 | NumberArray3;
 
-type SegmentPath3vExt = Cartesian[];
-type SegmentPathLonLatExt = Geodetic[];
+export type SegmentPath3vExt = Cartesian[];
+export type SegmentPathLonLatExt = Geodetic[];
 
-type SegmentPathColor = NumberArray4[];
+export type SegmentPathColor = NumberArray4[];
 
-type SegmentPath3v = Vec3[];
-type SegmentPathLonLat = LonLat[];
+export type SegmentPath3v = Vec3[];
+export type SegmentPathLonLat = LonLat[];
 
 
 export interface IPolylineParams {
@@ -694,6 +698,67 @@ class Polyline {
         outOrders.push(1, -1, 2, -2);
     }
 
+    static appendColor(
+        pathLonLat: SegmentPathLonLatExt[],
+        pathColors: SegmentPathColor[],
+        defaultColor: NumberArray4,
+        outColors: number[]
+    ) {
+        for (let j = 0, len = pathLonLat.length; j < len; j++) {
+            var path = pathLonLat[j],
+                pathColors_j = pathColors[j];
+
+            if (path.length === 0) {
+                continue;
+            }
+
+            let color = defaultColor;
+            if (pathColors_j && pathColors_j[0]) {
+                color = pathColors_j[0];
+            }
+
+            let r = color[R],
+                g = color[G],
+                b = color[B],
+                a = color[A] != undefined ? color[A] : 1.0;
+
+            if (j > 0) {
+                outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
+            }
+
+            for (let i = 0, len = path.length; i < len; i++) {
+                var cur = path[i];
+
+                if (cur instanceof Array) {
+                    cur = new LonLat(cur[0], cur[1], cur[2]);
+                }
+
+                if (pathColors_j && pathColors_j[i]) {
+                    color = pathColors_j[i];
+                }
+
+                r = color[R];
+                g = color[G];
+                b = color[B];
+                a = color[A] != undefined ? color[A] : 1.0;
+
+                outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
+
+            }
+
+            if (pathColors_j && pathColors_j[path.length - 1]) {
+                color = pathColors_j[path.length - 1];
+            }
+
+            r = color[R];
+            g = color[G];
+            b = color[B];
+            a = color[A] != undefined ? color[A] : 1.0;
+
+            outColors.push(r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a);
+        }
+    }
+
     /**
      * Appends to the line array new geodetic coordinates line data.
      * @static
@@ -726,9 +791,9 @@ class Polyline {
 
         if (outIndexes.length > 0) {
             index = outIndexes[outIndexes.length - 5] + 9;
-            outIndexes.push(index, index);
+            outIndexes.push(index);
         } else {
-            outIndexes.push(0, 0);
+            outIndexes.push(0);
         }
 
         for (let j = 0, len = pathLonLat.length; j < len; j++) {
@@ -1685,6 +1750,15 @@ class Polyline {
      * @public
      * @param {number} thickness - Thickness.
      */
+    public setAltitude(altitude: number) {
+        this.altitude = altitude;
+    }
+
+    /**
+     * Sets Polyline thickness in screen pixels.
+     * @public
+     * @param {number} thickness - Thickness.
+     */
     public setThickness(thickness: number) {
         this.thickness = thickness;
     }
@@ -1876,11 +1950,18 @@ class Polyline {
      * @todo
      * @param {NumberArray4[][]} pathColors
      */
-    setPathColors(pathColors: NumberArray4[][]) {
-        if (this._renderNode) {
-            //
-            // ...
-            //
+    setPathColors(pathColors: SegmentPathColor[]) {
+        if (pathColors) {
+            this._colors = [];
+            this._pathColors = ([] as SegmentPathColor[]).concat(pathColors);
+            Polyline.appendColor(
+                this._pathLonLat,
+                pathColors,
+                this._defaultColor as NumberArray4,
+                this._colors
+            );
+            // Mark the colors buffer as changed
+            this._changedBuffers[COLORS_BUFFER] = true;
         }
     }
 
