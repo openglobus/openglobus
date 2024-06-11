@@ -1,7 +1,7 @@
 import {BaseGeoImage, IBaseGeoImageParams} from "./BaseGeoImage";
 import {Material} from "./Material";
 
-interface IGeoVideoParams extends IBaseGeoImageParams {
+export interface IGeoVideoParams extends IBaseGeoImageParams {
     videoElement?: HTMLVideoElement;
     src?: string;
 }
@@ -46,7 +46,7 @@ class GeoVideo extends BaseGeoImage {
      * @public
      * @param {string} src - Video url path.
      */
-    public setSrc(src: string) {
+    public  setSrc(src: string) {
         this._planet && this._planet._geoImageCreator.remove(this);
         this._src = src;
         this._sourceReady = false;
