@@ -15,6 +15,8 @@ export interface IEmptyTerrainParams {
     gridSizeByZoom?: number[]
 }
 
+export type UrlRewriteFunc = (segment: Segment, url?: string) => string | null | undefined;
+
 /**
  * Class represents terrain provider without elevation data.
  * @param {IEmptyTerrainParams} [options] - Provider options:
@@ -155,6 +157,14 @@ class EmptyTerrain {
         //         return callback(mslAlt);
         //     },
         // ];
+    }
+
+    /**
+     * Sets url rewrite callback, used for custom url rewriting for every tile loading.
+     * @public
+     * @param {UrlRewriteFunc} ur - The callback that returns tile custom created url.
+     */
+    public setUrlRewriteCallback(ur: UrlRewriteFunc) {
     }
 
     public get isIdle(): boolean {

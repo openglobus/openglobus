@@ -391,8 +391,8 @@ class Layer {
         };
     }
 
-    static getTileIndex(...arr: number[]): string {
-        return arr.join("_");
+    static getTileIndex(x: number, y: number, z: number): string {
+        return `${x}_${y}_${z}`;
     }
 
     public get instanceName(): string {

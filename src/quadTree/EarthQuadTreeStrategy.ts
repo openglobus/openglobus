@@ -24,5 +24,11 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
                 Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT])
             )
         ];
+
+        // this._planet.terrain!.setUrlRewriteCallback((segment: Segment) => {
+        //     if (segment.isPole) {
+        //         return `../../dest/${segment.tileZoom}/${segment.tileY}/${segment.tileX}.png`;
+        //     }
+        // });
     }
 }

@@ -28,7 +28,7 @@ type TileData = {
     extent: Extent | null
 }
 
-type UrlRewriteFunc = (segment: Segment, url: string) => string;
+type UrlRewriteFunc = (segment: Segment, url: string) => string | null | undefined;
 
 /**
  * Class that loads segment elevation data, converts it to the array and passes it to the planet segment.
@@ -441,7 +441,11 @@ class GlobusTerrain extends EmptyTerrain {
      * @returns {string} - Url string.
      */
     protected _getHTTPRequestString(segment: Segment): string {
-        return this._urlRewriteCallback ? this._urlRewriteCallback(segment, this.url) : this._createUrl(segment);
+        if (this._urlRewriteCallback) {
+            return this._urlRewriteCallback(segment, this.url) || this._createUrl(segment);
+        } else {
+            return this._createUrl(segment);
+        }
     }
 
     /**
@@ -449,7 +453,7 @@ class GlobusTerrain extends EmptyTerrain {
      * @public
      * @param {UrlRewriteFunc} ur - The callback that returns tile custom created url.
      */
-    public setUrlRewriteCallback(ur: UrlRewriteFunc) {
+    public override setUrlRewriteCallback(ur: UrlRewriteFunc) {
         this._urlRewriteCallback = ur;
     }
 
