@@ -25,10 +25,10 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
             )
         ];
 
-        // this._planet.terrain!.setUrlRewriteCallback((segment: Segment) => {
-        //     if (segment.isPole) {
-        //         return `../../dest/${segment.tileZoom}/${segment.tileY}/${segment.tileX}.png`;
-        //     }
-        // });
+        this._planet.terrain!.setUrlRewriteCallback((segment: Segment): string | undefined => {
+            if (segment.isPole) {
+                return `../../dest/${segment.tileZoom}/${segment.tileX}/${segment.tileY}.png`;
+            }
+        });
     }
 }

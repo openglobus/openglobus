@@ -168,6 +168,15 @@ class GlobusTerrain extends EmptyTerrain {
         return segment.tileZoom >= 6;
     }
 
+    public setElevationCache(tileIndex: string, tileData: TileData) {
+        //this._elevationCache[tileIndex] = tileData;
+    }
+
+    public getElevationCache(tileIndex: string): TileData | undefined {
+        //return this._elevationCache[tileIndex];
+        return undefined;
+    }
+
     public override getHeightAsync(lonLat: LonLat, callback: (h: number) => void, zoom?: number, firstAttempt?: boolean): boolean {
         if (!lonLat || lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
             callback(0);
@@ -185,7 +194,7 @@ class GlobusTerrain extends EmptyTerrain {
 
         let tileIndex = Layer.getTileIndex(x, y, z);
 
-        let cache = this._elevationCache[tileIndex];
+        let cache = this.getElevationCache(tileIndex);
 
         if (cache) {
             if (cache.heights) {
@@ -195,15 +204,16 @@ class GlobusTerrain extends EmptyTerrain {
             }
             return true;
         } else {
-            if (!this._fetchCache[tileIndex]) {
-                let url = this._buildURL(x, y, z);
-                this._fetchCache[tileIndex] = this._loader.fetch({
-                    src: url,
+            let def = this._fetchCache[tileIndex];
+            if (!def) {
+                def = this._loader.fetch({
+                    src: this._buildURL(x, y, z),
                     type: this._dataType
                 });
+                //this._fetchCache[tileIndex] = def;
             }
 
-            this._fetchCache[tileIndex].then((response: IResponse) => {
+            def!.then((response: IResponse) => {
 
                 let extent = mercator.getTileExtent(x, y, z);
 
@@ -214,7 +224,8 @@ class GlobusTerrain extends EmptyTerrain {
                         extent: extent
                     };
 
-                    this._elevationCache[tileIndex] = cache;
+                    this.setElevationCache(tileIndex, cache);
+
                     callback(this._getGroundHeightMerc(merc, cache));
 
                 } else if (response.status === "error") {
@@ -224,10 +235,10 @@ class GlobusTerrain extends EmptyTerrain {
                         return;
                     }
 
-                    this._elevationCache[tileIndex] = {
+                    this.setElevationCache(tileIndex, {
                         heights: null,
                         extent: extent
-                    };
+                    });
 
                     callback(0);
 
@@ -240,22 +251,6 @@ class GlobusTerrain extends EmptyTerrain {
         }
 
         return false;
-    }
-
-    public getTileCache(lonLat: LonLat, z: number): TileData | undefined {
-        if (!lonLat || lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
-            return;
-        }
-
-        let z2 = Math.pow(2, z),
-            size = mercator.POLE2 / z2,
-            merc = mercator.forward(lonLat),
-            x = Math.floor((mercator.POLE + merc.lon) / size),
-            y = Math.floor((mercator.POLE - merc.lat) / size);
-
-        let tileIndex = Layer.getTileIndex(x, y, z);
-
-        return this._elevationCache[tileIndex];
     }
 
     protected _getGroundHeightMerc(merc: LonLat, tileData: TileData): number {
@@ -359,7 +354,7 @@ class GlobusTerrain extends EmptyTerrain {
 
             if (this.isReadyToLoad(segment)) {
 
-                let cache = this._elevationCache[segment.tileIndex];
+                let cache = this.getElevationCache(segment.tileIndex);
 
                 if (cache) {
                     this._applyElevationsData(segment, cache.heights);
@@ -385,10 +380,10 @@ class GlobusTerrain extends EmptyTerrain {
                                     segment.tileZoom === this.maxZoom
                                 );
 
-                                this._elevationCache[segment.tileIndex] = {
+                                this.setElevationCache(segment.tileIndex, {
                                     heights: heights,
                                     extent: segment.getExtent()
-                                };
+                                });
 
                                 this._applyElevationsData(segment, heights);
 

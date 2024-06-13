@@ -193,10 +193,13 @@ class RgbTerrain extends GlobusTerrain {
                 for (let j = 0; j < d; j++) {
                     let [x, y, z] = getChildTileIndex(tileX, tileY, tileZoom, j, i);
                     let tileIndex = Layer.getTileIndex(x, y, z);
-                    this._elevationCache[tileIndex] = {
+                    this.setElevationCache(tileIndex, {
                         heights: outChildrenElevations[i][j],
+                        //
+                        // @todo: must work for any grids
+                        //
                         extent: getTileExtent(x, y, z)
-                    };
+                    });
                 }
             }
         } else {
@@ -217,10 +220,10 @@ class RgbTerrain extends GlobusTerrain {
         }
 
         // Save current data to cache
-        this._elevationCache[tileIndex] = {
+        this.setElevationCache(tileIndex, {
             heights: outCurrenElevations,
             extent: extent
-        };
+        });
 
         return outCurrenElevations;
     }
@@ -253,15 +256,16 @@ class RgbTerrain extends GlobusTerrain {
             return true;
         }
 
-        if (!this._fetchCache[tileIndex]) {
-            let url = this._buildURL(x, y, z);
-            this._fetchCache[tileIndex] = this._loader.fetch({
-                src: url,
+        let def = this._fetchCache[tileIndex];
+        if (!def) {
+            def = this._loader.fetch({
+                src: this._buildURL(x, y, z),
                 type: this._dataType
             });
+            //this._fetchCache[tileIndex] = def;
         }
 
-        this._fetchCache[tileIndex].then((response: IResponse) => {
+        def!.then((response: IResponse) => {
             if (response.status === "ready") {
                 this._ctx.clearRect(0, 0, this._imageSize, this._imageSize);
                 this._ctx.drawImage(response.data, 0, 0);

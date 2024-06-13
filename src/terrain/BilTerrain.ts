@@ -97,10 +97,10 @@ class BilTerrain extends GlobusTerrain {
 
         extractElevationTiles(bil16, this.noDataValues, outCurrenElevations, outChildrenElevations);
 
-        this._elevationCache[tileIndex] = {
+        this.setElevationCache(tileIndex, {
             heights: outCurrenElevations,
             extent: extent
-        };
+        });
 
         let dd = this._imageSize / this.plainGridSize;
 
@@ -110,10 +110,10 @@ class BilTerrain extends GlobusTerrain {
                     y = tileY * 2 + i,
                     z = tileZoom + 1;
                 let tileIndex = Layer.getTileIndex(x, y, z);
-                this._elevationCache[tileIndex] = {
+                this.setElevationCache(tileIndex, {
                     heights: outChildrenElevations[i][j],
                     extent: getTileExtent(x, y, z)
-                };
+                });
             }
         }
 
