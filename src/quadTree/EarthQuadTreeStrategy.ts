@@ -1,5 +1,4 @@
 import * as mercator from "../mercator";
-import * as quadTree from "../quadTree/quadTree";
 import {Extent} from "../Extent";
 import {Node} from "../quadTree/Node";
 import {Planet} from "../scene/Planet";
@@ -27,7 +26,7 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
 
         this._planet.terrain!.setUrlRewriteCallback((segment: Segment): string | undefined => {
             if (segment.isPole) {
-                return `../../dest/${segment.tileZoom}/${segment.tileX}/${segment.tileY}.png`;
+                return `./${segment.groupName}/${segment.tileZoom}/${segment.tileX}/${segment.tileY}.png`;
             }
         });
     }

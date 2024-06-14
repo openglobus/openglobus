@@ -59,6 +59,8 @@ _V[W] = true;
  */
 class Segment {
 
+    public groupName: string;
+
     public _isNorth?: boolean;
 
     public isPole: boolean;
@@ -252,6 +254,9 @@ class Segment {
     public _transitionTimestamp: number;
 
     constructor(node: Node, planet: Planet, tileZoom: number, extent: Extent) {
+
+        this.groupName = "default";
+        
         this.isPole = false;
 
         this._tileGroup = TILEGROUP_COMMON;
