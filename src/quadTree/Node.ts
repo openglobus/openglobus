@@ -586,10 +586,13 @@ class Node {
             const a = as._extentLonLat;
             const b = bs._extentLonLat;
 
-            let a_ne = a.northEast, a_sw = a.southWest, b_ne = b.northEast, b_sw = b.southWest;
+            let a_ne = a.northEast, a_sw = a.southWest,
+                b_ne = b.northEast, b_sw = b.southWest;
 
-            let a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat, a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat, b_ne_lon = b_ne.lon,
-                b_ne_lat = b_ne.lat, b_sw_lon = b_sw.lon, b_sw_lat = b_sw.lat;
+            let a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat,
+                a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat,
+                b_ne_lon = b_ne.lon, b_ne_lat = b_ne.lat,
+                b_sw_lon = b_sw.lon, b_sw_lat = b_sw.lat;
 
             if (as._tileGroup === bs._tileGroup) {
                 if (a_ne_lon === b_sw_lon && ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))) {
