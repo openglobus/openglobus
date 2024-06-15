@@ -7,16 +7,12 @@ import {Node} from "../quadTree/Node";
 import {Planet} from "../scene/Planet";
 import {Segment, TILEGROUP_NORTH, TILEGROUP_SOUTH} from "./Segment";
 import {LonLat} from "../LonLat";
-import {Vec3} from "../math/Vec3";
 import {Entity} from "../entity/Entity";
 import {PlanetCamera} from "../camera/PlanetCamera";
 import {WebGLTextureExt} from "../webgl/Handler";
 
 const MAX_POLE_ZOOM = 7;
 export const POLE_PIECE_SIZE = (90.0 - mercator.MAX_LAT) / Math.pow(2, MAX_POLE_ZOOM);
-
-let _tempHigh = new Vec3(),
-    _tempLow = new Vec3();
 
 /**
  * Planet segment Web Mercator tile class that stored and rendered with quad tree.

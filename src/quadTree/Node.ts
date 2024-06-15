@@ -11,7 +11,6 @@ import {Segment} from "../segment/Segment";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import {
-    COMSIDE,
     E,
     MAX_RENDERED_NODES,
     N,
@@ -615,10 +614,10 @@ class Node {
             // @todo: replace to the default strategy
             if (as._tileGroup === TILEGROUP_COMMON && bs._tileGroup === TILEGROUP_NORTH && as.tileY === 0 && bs.tileY === Math.pow(2, bs.tileZoom) - 1 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
                 return N;
+            } else if (as._tileGroup === TILEGROUP_COMMON && bs._tileGroup === TILEGROUP_SOUTH && as.tileY === Math.pow(2, as.tileZoom) - 1 && bs.tileY === 0 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
+                return S;
             } else if (as._tileGroup === TILEGROUP_SOUTH && bs._tileGroup === TILEGROUP_COMMON && as.tileY === 0 && bs.tileY === Math.pow(2, bs.tileZoom) - 1 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
                 return N;
-            } else if (bs._tileGroup === TILEGROUP_NORTH && as._tileGroup === TILEGROUP_COMMON && as.tileY === Math.pow(2, as.tileZoom) - 1 && bs.tileY === 0 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
-                return S;
             } else if (as._tileGroup === TILEGROUP_NORTH && bs._tileGroup === TILEGROUP_COMMON && as.tileY === Math.pow(2, as.tileZoom) - 1 && bs.tileY === 0 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
                 return S;
             }
