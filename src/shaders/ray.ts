@@ -53,21 +53,18 @@ export function rayScreen(): Program {
                 float focalSize = 2.0 * dist * resolution;
                 vec3 vert = right * a_thickness * focalSize * a_vertices.x;
 
-                vec3 highDiff;
-                vec3 lowDiff;
-
                 if(a_vertices.y == 0.0){
-                    highDiff = a_startPosHigh - eyePositionHigh;
+                    vec3 highDiff = a_startPosHigh - eyePositionHigh;
                     vert += a_startPosLow - eyePositionLow;
                 }else{
-                    highDiff = a_endPosHigh - eyePositionHigh;
+                    vec3 highDiff = a_endPosHigh - eyePositionHigh;
                     vert += a_endPosLow - eyePositionLow;
                 }
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
                 
-                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + vert, 1.0);
+                gl_Position = projectionMatrix * viewMatrixRTE * vec4(vert, 1.0);
             }`,
         fragmentShader:
             `precision highp float;
