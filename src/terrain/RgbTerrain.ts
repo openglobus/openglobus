@@ -5,7 +5,7 @@ import {GlobusTerrain, IGlobusTerrainParams} from "./GlobusTerrain";
 import {isPowerOfTwo} from "../math";
 import {Layer} from "../layer/Layer";
 import {LonLat} from "../LonLat";
-import {Segment} from "../segment/Segment";
+import {getTileGroupByLat, Segment} from "../segment/Segment";
 import {binarySearchFast, TypedArray} from "../utils/shared";
 import {IResponse} from "../utils/Loader";
 
@@ -77,7 +77,7 @@ class RgbTerrain extends GlobusTerrain {
         })!;
     }
 
-    protected override _createHeights(data: HTMLImageElement | ImageBitmap, segment: Segment | null, tileIndex: string, tileX: number, tileY: number, tileZoom: number, extent: Extent, preventChildren: boolean): TypedArray | number[] {
+    protected override _createHeights(data: HTMLImageElement | ImageBitmap, segment: Segment | null, tileGroup: number, tileX: number, tileY: number, tileZoom: number, extent: Extent, preventChildren: boolean): TypedArray | number[] {
 
         this._ctx.clearRect(0, 0, this._imageSize, this._imageSize);
         this._ctx.drawImage(data, 0, 0);
@@ -192,7 +192,7 @@ class RgbTerrain extends GlobusTerrain {
             for (let i = 0; i < d; i++) {
                 for (let j = 0; j < d; j++) {
                     let [x, y, z] = getChildTileIndex(tileX, tileY, tileZoom, j, i);
-                    let tileIndex = Layer.getTileIndex(x, y, z);
+                    let tileIndex = Layer.getTileIndex(x, y, z, tileGroup);
                     this.setElevationCache(tileIndex, {
                         heights: outChildrenElevations[i][j],
                         //
@@ -219,6 +219,8 @@ class RgbTerrain extends GlobusTerrain {
             );
         }
 
+        let tileIndex = Layer.getTileIndex(tileX, tileY, tileZoom, tileGroup);
+
         // Save current data to cache
         this.setElevationCache(tileIndex, {
             heights: outCurrenElevations,
@@ -240,7 +242,9 @@ class RgbTerrain extends GlobusTerrain {
             x = Math.floor((mercator.POLE + merc.lon) / size),
             y = Math.floor((mercator.POLE - merc.lat) / size);
 
-        let tileIndex = Layer.getTileIndex(x, y, z),
+        let tileGroup = getTileGroupByLat(lonLat.lat, mercator.MAX_LAT);
+
+        let tileIndex = Layer.getTileIndex(x, y, z, tileGroup),
             extent = mercator.getTileExtent(x, y, z);
 
         let sizeImgW = extent.getWidth() / (this._imageSize - 1),

@@ -391,8 +391,8 @@ class Layer {
         };
     }
 
-    static getTileIndex(x: number, y: number, z: number): string {
-        return `${x}_${y}_${z}`;
+    static getTileIndex(x: number, y: number, z: number, tileGroup: number): string {
+        return `${tileGroup}::${x}_${y}_${z}`;
     }
 
     public get instanceName(): string {

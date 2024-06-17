@@ -76,7 +76,7 @@ class SegmentLonLat extends Segment {
     protected override _assignTileIndexes() {
         this._assignTileXIndexes(this._extent);
         this._assignTileYIndexes(this._extent);
-        this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, this.tileZoom);
+        this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, this.tileZoom, this._tileGroup);
     }
 
     protected _assignTileXIndexes(extent: Extent) {

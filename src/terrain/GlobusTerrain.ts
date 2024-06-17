@@ -8,7 +8,7 @@ import {Layer} from "../layer/Layer";
 import {IResponse, Loader} from "../utils/Loader";
 import {LonLat} from "../LonLat";
 import {NOTRENDERING} from "../quadTree/quadTree";
-import {Segment} from "../segment/Segment";
+import {getTileGroupByLat, Segment} from "../segment/Segment";
 // import { QueueArray } from '../QueueArray';
 import {Ray} from "../math/Ray";
 import {Vec3} from "../math/Vec3";
@@ -169,19 +169,18 @@ class GlobusTerrain extends EmptyTerrain {
     }
 
     public setElevationCache(tileIndex: string, tileData: TileData) {
-        //this._elevationCache[tileIndex] = tileData;
+        this._elevationCache[tileIndex] = tileData;
     }
 
     public getElevationCache(tileIndex: string): TileData | undefined {
-        //return this._elevationCache[tileIndex];
-        return undefined;
+        return this._elevationCache[tileIndex];
     }
 
     public override getHeightAsync(lonLat: LonLat, callback: (h: number) => void, zoom?: number, firstAttempt?: boolean): boolean {
-        if (!lonLat || lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
-            callback(0);
-            return true;
-        }
+        // if (!lonLat || lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
+        //     callback(0);
+        //     return true;
+        // }
 
         firstAttempt = firstAttempt != undefined ? firstAttempt : true;
 
@@ -192,7 +191,9 @@ class GlobusTerrain extends EmptyTerrain {
             x = Math.floor((mercator.POLE + merc.lon) / size),
             y = Math.floor((mercator.POLE - merc.lat) / size);
 
-        let tileIndex = Layer.getTileIndex(x, y, z);
+        let tileGroup = getTileGroupByLat(lonLat.lat, mercator.MAX_LAT);
+
+        let tileIndex = Layer.getTileIndex(x, y, z, tileGroup);
 
         let cache = this.getElevationCache(tileIndex);
 
@@ -210,7 +211,7 @@ class GlobusTerrain extends EmptyTerrain {
                     src: this._buildURL(x, y, z),
                     type: this._dataType
                 });
-                //this._fetchCache[tileIndex] = def;
+                this._fetchCache[tileIndex] = def;
             }
 
             def!.then((response: IResponse) => {
@@ -220,7 +221,7 @@ class GlobusTerrain extends EmptyTerrain {
                 if (response.status === "ready") {
 
                     let cache: TileData = {
-                        heights: this._createHeights(response.data, null, tileIndex, x, y, z, extent),
+                        heights: this._createHeights(response.data, null, tileGroup, x, y, z, extent),
                         extent: extent
                     };
 
@@ -372,7 +373,7 @@ class GlobusTerrain extends EmptyTerrain {
                                 let heights = this._createHeights(
                                     response.data,
                                     segment,
-                                    segment.tileIndex,
+                                    segment._tileGroup,
                                     segment.tileX,
                                     segment.tileY,
                                     segment.tileZoom,
@@ -457,7 +458,7 @@ class GlobusTerrain extends EmptyTerrain {
      * @public
      * @returns {Array.<number>} -
      */
-    protected _createHeights(data: any, segment?: Segment | null, tileIndex?: string, x?: number, y?: number, z?: number, extent?: Extent, isMaxZoom?: boolean): TypedArray | number[] {
+    protected _createHeights(data: any, segment?: Segment | null, tileGroup?: number, x?: number, y?: number, z?: number, extent?: Extent, isMaxZoom?: boolean): TypedArray | number[] {
         if (this._heightFactor !== 1) {
             let res = new Float32Array(data);
             for (let i = 0, len = res.length; i < len; i++) {

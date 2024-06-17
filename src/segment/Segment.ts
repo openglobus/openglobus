@@ -21,10 +21,20 @@ import {Slice} from "./Slice";
 import {Ray} from "../math/Ray";
 import {Vec3} from "../math/Vec3";
 import {IPlainSegmentWorkerData} from "../utils/PlainSegmentWorker";
+import {MAX_LAT, MIN_LAT, POLE} from "../mercator";
 
 export const TILEGROUP_COMMON = 0;
 export const TILEGROUP_NORTH = 1;
 export const TILEGROUP_SOUTH = 2;
+
+export function getTileGroupByLat(lat: number, maxLat: number = MAX_LAT): number {
+    if (lat > maxLat) {
+        return TILEGROUP_NORTH;
+    } else if (lat < -maxLat) {
+        return TILEGROUP_SOUTH;
+    }
+    return TILEGROUP_COMMON;
+}
 
 let _tempHigh = new Vec3();
 let _tempLow = new Vec3();
@@ -256,7 +266,7 @@ class Segment {
     constructor(node: Node, planet: Planet, tileZoom: number, extent: Extent) {
 
         this.groupName = "default";
-        
+
         this.isPole = false;
 
         this._tileGroup = TILEGROUP_COMMON;
@@ -1352,7 +1362,7 @@ class Segment {
         this.tileYN = this.tileY - 1;
         this.tileYS = this.tileY + 1;
 
-        this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom);
+        this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom, this._tileGroup);
     }
 
     public initialize() {

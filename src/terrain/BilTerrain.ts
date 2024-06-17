@@ -66,7 +66,7 @@ class BilTerrain extends GlobusTerrain {
         );
     }
 
-    protected override _createHeights(data: number[], segment: Segment | null, tileIndex: string, tileX: number, tileY: number, tileZoom: number, extent: Extent, preventChildren: boolean): TypedArray | number[] {
+    protected override _createHeights(data: number[], segment: Segment | null, tileGroup: number, tileX: number, tileY: number, tileZoom: number, extent: Extent, preventChildren: boolean): TypedArray | number[] {
 
         let bil16 = new Int16Array(data);
 
@@ -97,6 +97,8 @@ class BilTerrain extends GlobusTerrain {
 
         extractElevationTiles(bil16, this.noDataValues, outCurrenElevations, outChildrenElevations);
 
+        let tileIndex = Layer.getTileIndex(tileX, tileY, tileZoom, tileGroup);
+
         this.setElevationCache(tileIndex, {
             heights: outCurrenElevations,
             extent: extent
@@ -109,7 +111,7 @@ class BilTerrain extends GlobusTerrain {
                 let x = tileX * 2 + j,
                     y = tileY * 2 + i,
                     z = tileZoom + 1;
-                let tileIndex = Layer.getTileIndex(x, y, z);
+                let tileIndex = Layer.getTileIndex(x, y, z, tileGroup);
                 this.setElevationCache(tileIndex, {
                     heights: outChildrenElevations[i][j],
                     extent: getTileExtent(x, y, z)
