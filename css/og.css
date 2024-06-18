@@ -640,11 +640,15 @@ input {
     width: 100%;
 }
 
-.og-lighing .og-slider .og-slider-label {
+.og-lighing .og-slider .og-slider-label,
+.og-lighing .og-color-label {
     width: 100px;
     font-size: 12px;
 }
 
+.og-lighing .og-color {
+    padding-right: 10px;
+}
 
 .og-lighing #layers {
     font-family: monospace;
@@ -1092,6 +1096,16 @@ TIMELINE
     flex-direction: row;
     justify-content: center;
     align-items: center;
+}
+
+.og-simpleskybackground {
+    display: flex;
+}
+
+.og-color-label {
+    color: var(--grey6);
+    font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
 }
 
 @keyframes ldio-p0v5a1f6oz {

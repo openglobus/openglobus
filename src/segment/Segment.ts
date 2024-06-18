@@ -24,8 +24,8 @@ import {IPlainSegmentWorkerData} from "../utils/PlainSegmentWorker";
 import {MAX_LAT, MIN_LAT, POLE} from "../mercator";
 
 export const TILEGROUP_COMMON = 0;
-export const TILEGROUP_NORTH = 1;
-export const TILEGROUP_SOUTH = 2;
+export const TILEGROUP_NORTH = 20;
+export const TILEGROUP_SOUTH = 300;
 
 export function getTileGroupByLat(lat: number, maxLat: number = MAX_LAT): number {
     if (lat > maxLat) {
