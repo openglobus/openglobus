@@ -356,14 +356,13 @@ export function drawnode_screen_wl_webgl2NoAtmos(): Program {
 
             void main(void) {
 
-                // I replace it here (from the bottom) because it 
-                // somehow affects on float precision on MacPC Chrome
+                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;                
+                vec3 nh = height * normalize(aVertexPosition);
+                
                 vTextureCoord.xy = aTextureCoord;
                 vGlobalTextureCoord = uGlobalTextureCoord.xy + (uGlobalTextureCoord.zw - uGlobalTextureCoord.xy) * aTextureCoord;
                 vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + uNormalMapBias.xy );
 
-                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;                
-                vec3 nh = height * normalize(aVertexPosition);
                 cameraPosition = eyePositionHigh + eyePositionLow;
                 
                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
