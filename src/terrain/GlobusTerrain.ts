@@ -177,25 +177,20 @@ class GlobusTerrain extends EmptyTerrain {
     }
 
     public override getHeightAsync(lonLat: LonLat, callback: (h: number) => void, zoom?: number, firstAttempt?: boolean): boolean {
-        // if (!lonLat || lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
-        //     callback(0);
-        //     return true;
-        // }
+        if (!lonLat || lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
+            callback(0);
+            return true;
+        }
 
         firstAttempt = firstAttempt != undefined ? firstAttempt : true;
 
-        let z = zoom || this.maxZoom,
-            z2 = (1 << z),//Math.pow(2, z),
-            size = mercator.POLE2 / z2,
-            merc = mercator.forward(lonLat),
-            x = Math.floor((mercator.POLE + merc.lon) / size),
-            y = Math.floor((mercator.POLE - merc.lat) / size);
-
-        let tileGroup = getTileGroupByLat(lonLat.lat, mercator.MAX_LAT);
+        const [x, y, z, tileGroup] = this._planet!.quadTreeStrategy.getTileXY(lonLat, zoom || this.maxZoom);
 
         let tileIndex = Layer.getTileIndex(x, y, z, tileGroup);
 
         let cache = this.getElevationCache(tileIndex);
+
+        let merc = mercator.forward(lonLat)
 
         if (cache) {
             if (cache.heights) {

@@ -1,11 +1,10 @@
-import * as mercator from "../mercator";
 import {Extent} from "../Extent";
 import {getTileExtent} from "../mercator";
 import {GlobusTerrain, IGlobusTerrainParams} from "./GlobusTerrain";
 import {isPowerOfTwo} from "../math";
 import {Layer} from "../layer/Layer";
 import {LonLat} from "../LonLat";
-import {getTileGroupByLat, Segment} from "../segment/Segment";
+import {Segment} from "../segment/Segment";
 import {binarySearchFast, TypedArray} from "../utils/shared";
 import {IResponse} from "../utils/Loader";
 
@@ -231,27 +230,13 @@ class RgbTerrain extends GlobusTerrain {
     }
 
     public override getHeightAsync(lonLat: LonLat, callback: (h: number) => void, zoom?: number): boolean {
-        if (!lonLat || lonLat.lat > mercator.MAX_LAT || lonLat.lat < mercator.MIN_LAT) {
-            callback(0);
-            return true;
-        }
 
-        let z = zoom || this.maxZoom,
-            size = mercator.POLE2 / (1 << z)/*Math.pow(2, z)*/,
-            merc = mercator.forward(lonLat),
-            x = Math.floor((mercator.POLE + merc.lon) / size),
-            y = Math.floor((mercator.POLE - merc.lat) / size);
+        const [x, y, z, tileGroup] = this._planet!.quadTreeStrategy.getTileXY(lonLat, zoom || this.maxZoom);
 
-        let tileGroup = getTileGroupByLat(lonLat.lat, mercator.MAX_LAT);
+        let tileIndex = Layer.getTileIndex(x, y, z, tileGroup);
 
-        let tileIndex = Layer.getTileIndex(x, y, z, tileGroup),
-            extent = mercator.getTileExtent(x, y, z);
+        const [i, j] = this._planet!.quadTreeStrategy.getLonLatTileOffset(lonLat, x, y, z, this._imageSize);
 
-        let sizeImgW = extent.getWidth() / (this._imageSize - 1),
-            sizeImgH = extent.getHeight() / (this._imageSize - 1);
-
-        let i = this._imageSize - Math.ceil((merc.lat - extent.southWest.lat) / sizeImgH) - 1,
-            j = Math.floor((merc.lon - extent.southWest.lon) / sizeImgW);
         let index = (i * this._imageSize + j) * 4;
 
         if (this._imageDataCache[tileIndex]) {
@@ -266,7 +251,7 @@ class RgbTerrain extends GlobusTerrain {
                 src: this._buildURL(x, y, z),
                 type: this._dataType
             });
-            //this._fetchCache[tileIndex] = def;
+            this._fetchCache[tileIndex] = def;
         }
 
         def!.then((response: IResponse) => {

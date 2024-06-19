@@ -3,6 +3,7 @@ import {Layer} from "../layer/Layer";
 import {Node} from "../quadTree/Node";
 import {Planet} from "../scene/Planet";
 import {Proj} from "../proj/Proj";
+import {LonLat} from "../LonLat";
 
 export class QuadTreeStrategy {
     public name: string;
@@ -96,5 +97,13 @@ export class QuadTreeStrategy {
 
     public get quadTreeList(): Node[] {
         return this._quadTreeList;
+    }
+
+    public getTileXY(lonLat: LonLat, zoom?: number): [number, number, number, number] {
+        return [-1, -1, -1, -1];
+    }
+
+    public getLonLatTileOffset(lonLat: LonLat, x: number, y: number, z: number, gridSize: number): [number, number] {
+        return [0, 0];
     }
 }
