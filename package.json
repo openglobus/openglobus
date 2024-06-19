@@ -9,7 +9,7 @@
   "types": "./lib/js/index.d.ts",
   "style": "./css/og.css",
   "scripts": {
-    "docs": "jsdoc -r ./src/ -c ./jsdoc.conf.json -d ./docs",
+    "docs": "jsdoc -r ./lib/js -c ./jsdoc.conf.json -d ./docs",
     "serve": "ws -p 8080",
     "build": "rollup -c --bundleConfigAsCjs",
     "clean": "rm -rf ./lib ./docs",
