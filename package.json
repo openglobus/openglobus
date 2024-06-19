@@ -10,6 +10,7 @@
   "style": "./css/og.css",
   "scripts": {
     "docs": "jsdoc -r ./src/ -c ./jsdoc.conf.json -d ./docs",
+    "serve_docs": "cd docs; ws -p 8088",
     "serve": "ws -p 8080",
     "build": "rollup -c --bundleConfigAsCjs",
     "clean": "rm -rf ./lib ./docs",
