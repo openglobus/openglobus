@@ -185,7 +185,7 @@ class GlobusTerrain extends EmptyTerrain {
         firstAttempt = firstAttempt != undefined ? firstAttempt : true;
 
         let z = zoom || this.maxZoom,
-            z2 = Math.pow(2, z),
+            z2 = (1 << z),//Math.pow(2, z),
             size = mercator.POLE2 / z2,
             merc = mercator.forward(lonLat),
             x = Math.floor((mercator.POLE + merc.lon) / size),

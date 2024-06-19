@@ -103,5 +103,3 @@ globus.planet.addControl(new control.ElevationProfileControl());
 globus.planet.addControl(new control.ToggleWireframe());
 globus.planet.addControl(new control.LayerSwitcher());
 //globus.planet.addControl(new control.ToggleWireframe());
-
-console.log(mercator.MAX_LAT, mercator.MIN_LAT);

@@ -237,7 +237,7 @@ class RgbTerrain extends GlobusTerrain {
         }
 
         let z = zoom || this.maxZoom,
-            size = mercator.POLE2 / Math.pow(2, z),
+            size = mercator.POLE2 / (1 << z)/*Math.pow(2, z)*/,
             merc = mercator.forward(lonLat),
             x = Math.floor((mercator.POLE + merc.lon) / size),
             y = Math.floor((mercator.POLE - merc.lat) / size);

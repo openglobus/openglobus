@@ -145,6 +145,12 @@ class Segment {
     public tileZoom: number;
 
     /**
+     * Equals to pow(2, tileZoom).
+     * @type {number}
+     */
+    public powTileZoom: number;
+
+    /**
      * Horizontal tile index.
      * @type {number}
      */
@@ -301,6 +307,8 @@ class Segment {
         this.fileGridSize = 0;
 
         this.tileZoom = tileZoom;
+
+        this.powTileZoom = 1 << tileZoom; //Math.pow(2, tileZoom);
 
         this.tileX = 0;
 
@@ -1354,7 +1362,7 @@ class Segment {
         this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
         this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat));
 
-        const p2 = Math.pow(2, tileZoom);
+        const p2 = this.powTileZoom;//Math.pow(2, tileZoom);
 
         this.tileXE = (this.tileX + 1) % p2;
         this.tileXW = (p2 + this.tileX - 1) % p2;
