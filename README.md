@@ -45,7 +45,7 @@ npm i @openglobus/openglobus-react
 
 - [Examples](https://sandbox.openglobus.org)
 - [Wiki](https://github.com/openglobus/openglobus/wiki)
-- [API documentation](https://www.openglobus.org/api/)
+- [API documentation](https://openglobus.github.io/docs/)
 
 ## Get Started to contribute
 
@@ -97,7 +97,7 @@ Third, try an example from the sandbox:
 
 ### Other scripts
 
-`npm run docs` - build [api documentation](https://www.openglobus.org/api/) into /api folder
+`npm run docs` - build [api documentation](https://openglobus.github.io/docs/) into /api folder
 
 `npm run serve` - run local web server for develop and watch examples
 
