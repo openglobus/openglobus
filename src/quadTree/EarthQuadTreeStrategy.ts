@@ -26,19 +26,19 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
         ];
 
         this._planet.terrain!.setUrlRewriteCallback((segment: Segment): string | undefined => {
-
-            let urlPref: Record<number, string> = {
-                [TILEGROUP_NORTH]: "north",
-                [TILEGROUP_SOUTH]: "south"
-            }
-
-            let g = urlPref[segment._tileGroup],
-                z = segment.tileZoom,
-                x = segment.tileX,
-                y = segment.tileY;
-
-            if (g) return `./${g}/${z}/${x}/${y}.png`;
+            return this.getTerrainUrl(segment.tileX, segment.tileY, segment.tileZoom, segment._tileGroup);
         });
+    }
+
+    public override getTerrainUrl(tileX: number, tileY: number, tileZoom: number, tileGroup: number): string | undefined {
+        let urlPref: Record<number, string> = {
+            [TILEGROUP_NORTH]: "north",
+            [TILEGROUP_SOUTH]: "south"
+        }
+
+        let g = urlPref[tileGroup];
+
+        if (g) return `./${g}/${tileZoom}/${tileX}/${tileY}.png`;
     }
 
     public override getTileXY(lonLat: LonLat, zoom: number): [number, number, number, number] {

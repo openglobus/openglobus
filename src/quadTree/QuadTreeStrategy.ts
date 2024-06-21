@@ -106,4 +106,9 @@ export class QuadTreeStrategy {
     public getLonLatTileOffset(lonLat: LonLat, x: number, y: number, z: number, gridSize: number): [number, number] {
         return [0, 0];
     }
+
+    public getTerrainUrl(tileX: number, tileY: number, tileZoom: number, tileGroup: number): string | undefined {
+        return "";
+    }
+
 }

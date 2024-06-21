@@ -231,11 +231,13 @@ class RgbTerrain extends GlobusTerrain {
 
     public override getHeightAsync(lonLat: LonLat, callback: (h: number) => void, zoom?: number): boolean {
 
-        const [x, y, z, tileGroup] = this._planet!.quadTreeStrategy.getTileXY(lonLat, zoom || this.maxZoom);
+        let qts = this._planet!.quadTreeStrategy;
+
+        const [x, y, z, tileGroup] = qts.getTileXY(lonLat, zoom || this.maxZoom);
 
         let tileIndex = Layer.getTileIndex(x, y, z, tileGroup);
 
-        const [i, j] = this._planet!.quadTreeStrategy.getLonLatTileOffset(lonLat, x, y, z, this._imageSize);
+        const [i, j] = qts.getLonLatTileOffset(lonLat, x, y, z, this._imageSize);
 
         let index = (i * this._imageSize + j) * 4;
 
@@ -248,7 +250,7 @@ class RgbTerrain extends GlobusTerrain {
         let def = this._fetchCache[tileIndex];
         if (!def) {
             def = this._loader.fetch({
-                src: this._buildURL(x, y, z),
+                src: qts.getTerrainUrl(x, y, z, tileGroup) || this._buildURL(x, y, z),
                 type: this._dataType
             });
             this._fetchCache[tileIndex] = def;
