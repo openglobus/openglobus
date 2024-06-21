@@ -3,7 +3,7 @@ import {Extent} from "../Extent";
 import {Node} from "../quadTree/Node";
 import {Planet} from "../scene/Planet";
 import {QuadTreeStrategy} from "./QuadTreeStrategy";
-import {Segment, TILEGROUP_COMMON, TILEGROUP_NORTH, TILEGROUP_SOUTH, getTileGroupByLat} from "../segment/Segment";
+import {Segment, TILEGROUP_NORTH, TILEGROUP_SOUTH, getTileGroupByLat} from "../segment/Segment";
 import {SegmentLonLat} from "../segment/SegmentLonLat";
 import {LonLat} from "../LonLat";
 
@@ -26,9 +26,18 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
         ];
 
         this._planet.terrain!.setUrlRewriteCallback((segment: Segment): string | undefined => {
-            if (segment.isPole) {
-                return `./${segment.groupName}/${segment.tileZoom}/${segment.tileX}/${segment.tileY}.png`;
+
+            let urlPref: Record<number, string> = {
+                [TILEGROUP_NORTH]: "north",
+                [TILEGROUP_SOUTH]: "south"
             }
+
+            let g = urlPref[segment._tileGroup],
+                z = segment.tileZoom,
+                x = segment.tileX,
+                y = segment.tileY;
+
+            if (g) return `./${g}/${z}/${x}/${y}.png`;
         });
     }
 

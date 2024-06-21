@@ -34,12 +34,6 @@ class SegmentLonLat extends Segment {
 
         this._isNorth = this._extent.northEast.lat > 0;
 
-        if (this._isNorth) {
-            this.groupName = "north";
-        } else {
-            this.groupName = "south";
-        }
-
         this.isPole = true;
     }
 
