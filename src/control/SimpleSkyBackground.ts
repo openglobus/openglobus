@@ -17,8 +17,8 @@ export class SimpleSkyBackground extends Control {
             ...options
         });
 
-        this._colorOne = new Float32Array([1.0, 1.0, 1.0]);
-        this._colorTwo = new Float32Array([0.0, 153.0 / 255.0, 221.0 / 255.0]);
+        this._colorOne = new Float32Array([128 / 255, 223 / 255, 255 / 255]);
+        this._colorTwo = new Float32Array([10 / 255, 15 / 255, 56 / 255]);
     }
 
     public get colorOne(): string {
