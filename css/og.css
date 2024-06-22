@@ -685,7 +685,7 @@ input {
 
 .og-lat-val,
 .og-lon-val {
-    width: 79px;
+    width: 90px;
     padding-right: 3px;
     text-align: left;
     text-overflow: unset;
@@ -693,7 +693,7 @@ input {
 }
 
 .og-height {
-    width: 36px;
+    width: 50px;
     text-align: right;
     text-overflow: ellipsis;
     padding-left: 3px;

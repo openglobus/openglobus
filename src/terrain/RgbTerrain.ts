@@ -231,15 +231,18 @@ class RgbTerrain extends GlobusTerrain {
 
     public override getHeightAsync(lonLat: LonLat, callback: (h: number) => void, zoom?: number): boolean {
 
-        let qts = this._planet!.quadTreeStrategy;
+        zoom = zoom != undefined ? zoom : this.maxZoom;
 
-        const [x, y, z, tileGroup] = qts.getTileXY(lonLat, zoom || this.maxZoom);
+        if (zoom === 0) {
+            callback(0);
+            return true;
+        }
 
-        let tileIndex = Layer.getTileIndex(x, y, z, tileGroup);
-
+        const qts = this._planet!.quadTreeStrategy;
+        const [x, y, z, tileGroup] = qts.getTileXY(lonLat, zoom);
         const [i, j] = qts.getLonLatTileOffset(lonLat, x, y, z, this._imageSize);
-
-        let index = (i * this._imageSize + j) * 4;
+        const index = (i * this._imageSize + j) * 4;
+        const tileIndex = Layer.getTileIndex(x, y, z, tileGroup);
 
         if (this._imageDataCache[tileIndex]) {
             let data = this._imageDataCache[tileIndex];
@@ -262,9 +265,16 @@ class RgbTerrain extends GlobusTerrain {
                 this._ctx.drawImage(response.data, 0, 0);
                 let data = this._ctx.getImageData(0, 0, 256, 256).data;
                 this._imageDataCache[tileIndex] = data;
-                callback(this._heightFactor * rgb2Height(data[index], data[index + 1], data[index + 2]));
+
+                let height = this._heightFactor * rgb2Height(data[index], data[index + 1], data[index + 2]);
+                let isNoData = RgbTerrain.checkNoDataValue(this.noDataValues, height);
+                if (isNoData) {
+                    return this.getHeightAsync(lonLat, callback, zoom - 1);
+                } else {
+                    callback(this._heightFactor * rgb2Height(data[index], data[index + 1], data[index + 2]));
+                }
             } else if (response.status === "error") {
-                callback(0);
+                return this.getHeightAsync(lonLat, callback, zoom - 1);
             } else {
                 //@ts-ignore
                 this._fetchCache[tileIndex] = null;
