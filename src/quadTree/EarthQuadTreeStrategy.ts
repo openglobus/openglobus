@@ -52,14 +52,14 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
             let sizeLon = 360 / pz;
             let sizeLat = (90 - mercator.MAX_LAT) / pz;
             x = Math.floor((180 + lonLat.lon) / sizeLon);
-            y = Math.round((90.0 - lonLat.lat) / sizeLat);
+            y = Math.floor((90.0 - lonLat.lat) / sizeLat);
             console.log(tileGroup, x, y, z);
         } else if (tileGroup === TILEGROUP_SOUTH) {
             let pz = (1 << z)/*Math.pow(2, z)*/;
             let sizeLon = 360 / pz;
             let sizeLat = (90 - mercator.MAX_LAT) / pz;
             x = Math.floor((180 + lonLat.lon) / sizeLon);
-            y = Math.round((mercator.MIN_LAT - lonLat.lat) / sizeLat);
+            y = Math.floor((mercator.MIN_LAT - lonLat.lat) / sizeLat);
             console.log(tileGroup, x, y, z);
         } else {
             let size = mercator.POLE2 / (1 << z)/*Math.pow(2, z)*/,
