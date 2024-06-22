@@ -90,9 +90,7 @@ class SegmentLonLat extends Segment {
             this.tileY = Math.round((90.0 - lat) / (extent.northEast.lat - extent.southWest.lat));
         } else {
             this._tileGroup = TILEGROUP_SOUTH;
-            this.tileY = Math.round(
-                (mercator.MIN_LAT - lat) / (extent.northEast.lat - extent.southWest.lat)
-            );
+            this.tileY = Math.round((mercator.MIN_LAT - lat) / (extent.northEast.lat - extent.southWest.lat));
         }
         this.tileYN = this.tileY - 1;
         this.tileYS = this.tileY + 1;

@@ -42,26 +42,53 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
     }
 
     public override getTileXY(lonLat: LonLat, zoom: number): [number, number, number, number] {
-        let tileGroup = getTileGroupByLat(lonLat.lat, mercator.MAX_LAT);
+        let tileGroup = getTileGroupByLat(lonLat.lat, mercator.MAX_LAT),
+            z = zoom,
+            x = -1,
+            y = -1;
 
-        let z = zoom,
-            size = mercator.POLE2 / (1 << z)/*Math.pow(2, z)*/,
-            merc = mercator.forward(lonLat),
-            x = Math.floor((mercator.POLE + merc.lon) / size),
+        if (tileGroup === TILEGROUP_NORTH) {
+            let pz = (1 << z)/*Math.pow(2, z)*/;
+            let sizeLon = 360 / pz;
+            let sizeLat = (90 - mercator.MAX_LAT) / pz;
+            x = Math.floor((180 + lonLat.lon) / sizeLon);
+            y = Math.round((90.0 - lonLat.lat) / sizeLat);
+            console.log(tileGroup, x, y, z);
+        } else if (tileGroup === TILEGROUP_SOUTH) {
+            let pz = (1 << z)/*Math.pow(2, z)*/;
+            let sizeLon = 360 / pz;
+            let sizeLat = (90 - mercator.MAX_LAT) / pz;
+            x = Math.floor((180 + lonLat.lon) / sizeLon);
+            y = Math.round((mercator.MIN_LAT - lonLat.lat) / sizeLat);
+            console.log(tileGroup, x, y, z);
+        } else {
+            let size = mercator.POLE2 / (1 << z)/*Math.pow(2, z)*/,
+                merc = mercator.forward(lonLat);
+            x = Math.floor((mercator.POLE + merc.lon) / size);
             y = Math.floor((mercator.POLE - merc.lat) / size);
+        }
 
         return [x, y, z, tileGroup];
     }
 
     public override getLonLatTileOffset(lonLat: LonLat, x: number, y: number, z: number, gridSize: number): [number, number] {
-        let merc = mercator.forward(lonLat);
-        let extent = mercator.getTileExtent(x, y, z);
+        let coords = lonLat;
+        let extent = new Extent();
+
+        if (lonLat.lat > mercator.MAX_LAT) {
+
+        } else if (lonLat.lat < mercator.MIN_LAT) {
+
+        } else {
+            coords = mercator.forward(lonLat);
+            extent = mercator.getTileExtent(x, y, z);
+        }
 
         let sizeImgW = extent.getWidth() / (gridSize - 1),
             sizeImgH = extent.getHeight() / (gridSize - 1);
 
-        let i = gridSize - Math.ceil((merc.lat - extent.southWest.lat) / sizeImgH) - 1,
-            j = Math.floor((merc.lon - extent.southWest.lon) / sizeImgW);
+        let i = gridSize - Math.ceil((coords.lat - extent.southWest.lat) / sizeImgH) - 1,
+            j = Math.floor((coords.lon - extent.southWest.lon) / sizeImgW);
 
         return [i, j];
     }
