@@ -3,7 +3,14 @@ import {Extent} from "../Extent";
 import {Node} from "../quadTree/Node";
 import {Planet} from "../scene/Planet";
 import {QuadTreeStrategy} from "./QuadTreeStrategy";
-import {Segment, TILEGROUP_NORTH, TILEGROUP_SOUTH, getTileGroupByLat} from "../segment/Segment";
+import {
+    Segment,
+    TILEGROUP_NORTH,
+    TILEGROUP_SOUTH,
+    getTileGroupByLat,
+    getTileCellExtent,
+    getTileCellIndex
+} from "../segment/Segment";
 import {SegmentLonLat} from "../segment/SegmentLonLat";
 import {LonLat} from "../LonLat";
 
@@ -45,27 +52,19 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
         let tileGroup = getTileGroupByLat(lonLat.lat, mercator.MAX_LAT),
             z = zoom,
             x = -1,
-            y = -1;
+            y = -1,
+            pz = (1 << z)/*Math.pow(2, z)*/;
 
         if (tileGroup === TILEGROUP_NORTH) {
-            let pz = (1 << z)/*Math.pow(2, z)*/;
-            let sizeLon = 360 / pz;
-            let sizeLat = (90 - mercator.MAX_LAT) / pz;
-            x = Math.floor((180 + lonLat.lon) / sizeLon);
-            y = Math.floor((90.0 - lonLat.lat) / sizeLat);
-            console.log(tileGroup, x, y, z);
+            x = getTileCellIndex(lonLat.lon, 360 / pz, -180);
+            y = getTileCellIndex(lonLat.lat, (90 - mercator.MAX_LAT) / pz, 90);
         } else if (tileGroup === TILEGROUP_SOUTH) {
-            let pz = (1 << z)/*Math.pow(2, z)*/;
-            let sizeLon = 360 / pz;
-            let sizeLat = (90 - mercator.MAX_LAT) / pz;
-            x = Math.floor((180 + lonLat.lon) / sizeLon);
-            y = Math.floor((mercator.MIN_LAT - lonLat.lat) / sizeLat);
-            console.log(tileGroup, x, y, z);
+            x = getTileCellIndex(lonLat.lon, 360 / pz, -180);
+            y = getTileCellIndex(lonLat.lat, (90 - mercator.MAX_LAT) / pz, mercator.MIN_LAT);
         } else {
-            let size = mercator.POLE2 / (1 << z)/*Math.pow(2, z)*/,
-                merc = mercator.forward(lonLat);
-            x = Math.floor((mercator.POLE + merc.lon) / size);
-            y = Math.floor((mercator.POLE - merc.lat) / size);
+            let merc = mercator.forward(lonLat);
+            x = getTileCellIndex(merc.lon, mercator.POLE2 / pz, -mercator.POLE);
+            y = getTileCellIndex(merc.lat, mercator.POLE2 / pz, mercator.POLE);
         }
 
         return [x, y, z, tileGroup];
@@ -76,9 +75,11 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
         let extent = new Extent();
 
         if (lonLat.lat > mercator.MAX_LAT) {
-
+            let worldExtent = Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90]);
+            extent = getTileCellExtent(x, y, z, worldExtent);
         } else if (lonLat.lat < mercator.MIN_LAT) {
-
+            let worldExtent = Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT]);
+            extent = getTileCellExtent(x, y, z, worldExtent);
         } else {
             coords = mercator.forward(lonLat);
             extent = mercator.getTileExtent(x, y, z);

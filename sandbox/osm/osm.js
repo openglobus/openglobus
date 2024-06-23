@@ -72,7 +72,7 @@ let osm = new XYZ("OpenStreetMap", {
 
 var highResTerrain = new RgbTerrain(null, {
     maxNativeZoom: 6,
-    maxZoom: 12,
+    maxZoom: 17,
     url: "https://terrain.openglobus.org/public/all/{z}/{x}/{y}.png",
     //url: "//127.0.0.1:8080/dest/{z}/{x}/{y}.png"
 });

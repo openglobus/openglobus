@@ -23,6 +23,28 @@ import {Vec3} from "../math/Vec3";
 import {IPlainSegmentWorkerData} from "../utils/PlainSegmentWorker";
 import {MAX_LAT, MIN_LAT, POLE} from "../mercator";
 
+//Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
+
+export function getTileCellIndex(coordinate: number, tileSize: number, worldEdge: number): number {
+    return Math.floor(Math.abs(worldEdge - coordinate) / tileSize);
+    //return Math.round(Math.abs(poleSize - coordinate) / tileSize);
+}
+
+export function getTileCellExtent(x: number, y: number, z: number, worldExtent: Extent): Extent {
+    let pz = 1.0 / (1 << z);
+
+    let worldWidth = worldExtent.getWidth(),
+        worldHeight = worldExtent.getHeight();
+
+    let w = worldWidth * pz,
+        h = worldHeight * pz;
+
+    let sw_lon = worldExtent.southWest.lon + x * w,
+        ne_lat = worldExtent.northEast.lat - y * h;
+
+    return new Extent(new LonLat(sw_lon, ne_lat - h), new LonLat(sw_lon + w, ne_lat));
+}
+
 export const TILEGROUP_COMMON = 0;
 export const TILEGROUP_NORTH = 20;
 export const TILEGROUP_SOUTH = 300;
@@ -1355,8 +1377,10 @@ class Segment {
         const extent = this._extent;
         const pole = mercator.POLE;
 
-        this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
-        this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat));
+        // this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
+        // this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat));
+        this.tileX = getTileCellIndex(extent.getCenter().lon, extent.getWidth(), -pole);
+        this.tileY = getTileCellIndex(extent.getCenter().lat, extent.getHeight(), pole);
 
         const p2 = this.powTileZoom;//Math.pow(2, tileZoom);
 

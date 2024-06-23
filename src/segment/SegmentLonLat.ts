@@ -5,7 +5,7 @@ import {Extent} from "../Extent";
 import {Layer} from "../layer/Layer";
 import {Node} from "../quadTree/Node";
 import {Planet} from "../scene/Planet";
-import {Segment, TILEGROUP_NORTH, TILEGROUP_SOUTH} from "./Segment";
+import {getTileCellIndex, Segment, TILEGROUP_NORTH, TILEGROUP_SOUTH} from "./Segment";
 import {LonLat} from "../LonLat";
 import {Entity} from "../entity/Entity";
 import {PlanetCamera} from "../camera/PlanetCamera";
@@ -74,9 +74,10 @@ class SegmentLonLat extends Segment {
     }
 
     protected _assignTileXIndexes(extent: Extent) {
-        this.tileX = Math.round(
-            Math.abs(-180.0 - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon)
-        );
+        // this.tileX = Math.round(
+        //     Math.abs(-180.0 - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon)
+        // );
+        this.tileX = getTileCellIndex(extent.getCenter().lon, extent.getWidth(), -180);
 
         let p2 = 1 << this.tileZoom;
         this.tileXE = (this.tileX + 1) % p2;
@@ -84,13 +85,15 @@ class SegmentLonLat extends Segment {
     }
 
     protected _assignTileYIndexes(extent: Extent) {
-        const lat = extent.northEast.lat;
+        const lat = extent.getCenter().lat;//extent.northEast.lat;
         if (lat > 0) {
             this._tileGroup = TILEGROUP_NORTH;
-            this.tileY = Math.round((90.0 - lat) / (extent.northEast.lat - extent.southWest.lat));
+            //this.tileY = Math.round((90.0 - lat) / (extent.northEast.lat - extent.southWest.lat));
+            this.tileY = getTileCellIndex(lat, extent.getHeight(), 90.0);
         } else {
             this._tileGroup = TILEGROUP_SOUTH;
-            this.tileY = Math.round((mercator.MIN_LAT - lat) / (extent.northEast.lat - extent.southWest.lat));
+            //this.tileY = Math.round((mercator.MIN_LAT - lat) / (extent.northEast.lat - extent.southWest.lat));
+            this.tileY = getTileCellIndex(lat, extent.getHeight(), mercator.MIN_LAT);
         }
         this.tileYN = this.tileY - 1;
         this.tileYS = this.tileY + 1;
