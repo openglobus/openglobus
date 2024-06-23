@@ -246,8 +246,14 @@ class RgbTerrain extends GlobusTerrain {
 
         if (this._imageDataCache[tileIndex]) {
             let data = this._imageDataCache[tileIndex];
-            callback(this._heightFactor * rgb2Height(data[index], data[index + 1], data[index + 2]));
-            return true;
+            let height = this._heightFactor * rgb2Height(data[index], data[index + 1], data[index + 2]);
+            let isNoData = RgbTerrain.checkNoDataValue(this.noDataValues, height);
+            if (isNoData) {
+                return this.getHeightAsync(lonLat, callback, zoom - 1);
+            } else {
+                callback(this._heightFactor * rgb2Height(data[index], data[index + 1], data[index + 2]));
+                return true;
+            }
         }
 
         let def = this._fetchCache[tileIndex];
