@@ -301,7 +301,7 @@ input {
 }
 
 .og-layerSwitcher__layerButton.og-layerSwitcher__visible {
-    border: 2px solid white;
+    border: 2px solid #00ff14;
 }
 
 .og-layerSwitcher__layerButton.og-layerSwitcher__visible img {

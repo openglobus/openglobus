@@ -27,7 +27,6 @@ import {MAX_LAT, MIN_LAT, POLE} from "../mercator";
 
 export function getTileCellIndex(coordinate: number, tileSize: number, worldEdge: number): number {
     return Math.floor(Math.abs(worldEdge - coordinate) / tileSize);
-    //return Math.round(Math.abs(poleSize - coordinate) / tileSize);
 }
 
 export function getTileCellExtent(x: number, y: number, z: number, worldExtent: Extent): Extent {
@@ -1877,11 +1876,8 @@ class Segment {
         return cache.buffer;
     }
 
-    /**
-     * @todo: replace to the strategy
-     */
     public _collectVisibleNodes() {
-        this.planet._visibleNodes[this.node.__id] = this.node;
+        this.planet._visibleNodes[this.node.nodeId] = this.node;
     }
 
     public layerOverlap(layer: Layer): boolean {
@@ -1902,14 +1898,6 @@ class Segment {
 
     public getExtent(): Extent {
         return this._extent;
-    }
-
-    /**
-     * @todo replace to the strategy
-     */
-    public getNodeState(): number {
-        let vn = this.planet._visibleNodes[this.node.__id];
-        return (vn && vn.state) || NOTRENDERING;
     }
 
     public getNeighborSide(b: Segment) {

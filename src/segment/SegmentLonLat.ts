@@ -74,11 +74,7 @@ class SegmentLonLat extends Segment {
     }
 
     protected _assignTileXIndexes(extent: Extent) {
-        // this.tileX = Math.round(
-        //     Math.abs(-180.0 - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon)
-        // );
         this.tileX = getTileCellIndex(extent.getCenter().lon, extent.getWidth(), -180);
-
         let p2 = 1 << this.tileZoom;
         this.tileXE = (this.tileX + 1) % p2;
         this.tileXW = (p2 + this.tileX - 1) % p2;
@@ -88,11 +84,9 @@ class SegmentLonLat extends Segment {
         const lat = extent.getCenter().lat;//extent.northEast.lat;
         if (lat > 0) {
             this._tileGroup = TILEGROUP_NORTH;
-            //this.tileY = Math.round((90.0 - lat) / (extent.northEast.lat - extent.southWest.lat));
             this.tileY = getTileCellIndex(lat, extent.getHeight(), 90.0);
         } else {
             this._tileGroup = TILEGROUP_SOUTH;
-            //this.tileY = Math.round((mercator.MIN_LAT - lat) / (extent.northEast.lat - extent.southWest.lat));
             this.tileY = getTileCellIndex(lat, extent.getHeight(), mercator.MIN_LAT);
         }
         this.tileYN = this.tileY - 1;
@@ -153,18 +147,6 @@ class SegmentLonLat extends Segment {
         return this._extent;
     }
 
-    /**
-     * @todo: replace to the strategy
-     */
-    public override getNodeState(): number {
-        let vn;
-        if (this._isNorth) {
-            vn = this.planet._visibleNodesNorth[this.node.nodeId];
-        } else {
-            vn = this.planet._visibleNodesSouth[this.node.nodeId];
-        }
-        return (vn && vn.state) || quadTree.NOTRENDERING;
-    }
 }
 
 export {SegmentLonLat};
