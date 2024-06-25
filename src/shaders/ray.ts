@@ -70,9 +70,8 @@ export function rayScreen(): Program {
                 // if(length(highDiff) < 1.0){
                 //     highDiff = vec3(0.0);
                 // }
-                highDiff *= step(1.0, length(highDiff));
                 
-                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + vert, 1.0);
+                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
             }`,
         fragmentShader:
             `precision highp float;

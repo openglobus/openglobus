@@ -130,7 +130,7 @@ export const geo_object = (): Program =>
                 
                 vert += lowDiff;
                                
-                gl_Position = projectionMatrix * viewMatrixRTE  * vec4(highDiff + vert, 1.0);
+                gl_Position = projectionMatrix * viewMatrixRTE  * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
                 
                 v_vertex = position + vert;
             }`,
@@ -276,7 +276,7 @@ export const geo_object_picking = (): Program =>
                  
                  vert += lowDiff;
                                 
-                 gl_Position = projectionMatrix * viewMatrixRTE  * vec4(highDiff + vert, 1.0);
+                 gl_Position = projectionMatrix * viewMatrixRTE  * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
             }`,
         fragmentShader:
             `precision highp float;

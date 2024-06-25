@@ -75,9 +75,8 @@ export class VectorTileCreator {
                 
                 vec2 proj(vec2 coordHigh, vec2 coordLow) {
                     vec2 highDiff = coordHigh - extentParamsHigh.xy;
-                    highDiff *= step(1.0, length(highDiff));
-                    vec2 lowDiff = coordLow - extentParamsLow.xy;
-                    return vec2(-1.0 + (highDiff + lowDiff) * extentParamsHigh.zw) * vec2(1.0, -1.0);
+                    vec2 lowDiff = coordLow - extentParamsLow.xy;                    
+                    return vec2(-1.0 + (highDiff * step(1.0, length(highDiff)) + lowDiff) * extentParamsHigh.zw) * vec2(1.0, -1.0);
                 }
                 
                 void main(){
@@ -171,9 +170,8 @@ export class VectorTileCreator {
 
                 vec2 proj(vec2 coordHigh, vec2 coordLow) {
                     vec2 highDiff = coordHigh - extentParamsHigh.xy;
-                    highDiff *= step(1.0, length(highDiff));
                     vec2 lowDiff = coordLow - extentParamsLow.xy;
-                    return vec2(-1.0 + (highDiff + lowDiff) * extentParamsHigh.zw) * vec2(1.0, -1.0);
+                    return vec2(-1.0 + (highDiff * step(1.0, length(highDiff)) + lowDiff) * extentParamsHigh.zw) * vec2(1.0, -1.0);
                 }
 
                 void main() { 
