@@ -53,18 +53,26 @@ export function rayScreen(): Program {
                 float focalSize = 2.0 * dist * resolution;
                 vec3 vert = right * a_thickness * focalSize * a_vertices.x;
 
+                vec3 highDiff;
                 if(a_vertices.y == 0.0){
-                    vec3 highDiff = a_startPosHigh - eyePositionHigh;
+                    highDiff = a_startPosHigh - eyePositionHigh;
                     vert += a_startPosLow - eyePositionLow;
                 }else{
-                    vec3 highDiff = a_endPosHigh - eyePositionHigh;
+                    highDiff = a_endPosHigh - eyePositionHigh;
                     vert += a_endPosLow - eyePositionLow;
                 }
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
                 
-                gl_Position = projectionMatrix * viewMatrixRTE * vec4(vert, 1.0);
+                // Hack for iMac M1, looks like it doesnt 
+                // work correctly with zeroes in highDiff
+                // if(length(highDiff) < 1.0){
+                //     highDiff = vec3(0.0);
+                // }
+                highDiff *= step(1.0, length(highDiff));
+                
+                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + vert, 1.0);
             }`,
         fragmentShader:
             `precision highp float;
