@@ -275,12 +275,12 @@ class RgbTerrain extends GlobusTerrain {
                 let height = this._heightFactor * rgb2Height(data[index], data[index + 1], data[index + 2]);
                 let isNoData = RgbTerrain.checkNoDataValue(this.noDataValues, height);
                 if (isNoData) {
-                    return this.getHeightAsync(lonLat, callback, zoom - 1);
+                    return this.getHeightAsync(lonLat, callback, zoom! - 1);
                 } else {
                     callback(this._heightFactor * rgb2Height(data[index], data[index + 1], data[index + 2]));
                 }
             } else if (response.status === "error") {
-                return this.getHeightAsync(lonLat, callback, zoom - 1);
+                return this.getHeightAsync(lonLat, callback, zoom! - 1);
             } else {
                 //@ts-ignore
                 this._fetchCache[tileIndex] = null;
