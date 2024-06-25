@@ -3,12 +3,12 @@
     "include" : [
       "README.md"
     ],
-    "includePattern" : ".ts$",
+    "includePattern" : "(.js$|.ts$)",
     "excludePattern" : "(node_modules/|docs)"
   },
   "plugins" : [
     "plugins/markdown",
-
+    "node_modules/jsdoc-babel"
   ],
   "opts" : {
     "encoding" : "utf8",
@@ -25,6 +25,13 @@
       "homepageTitle": "OpenGlobus",
       "title": "OpenGlobus"
     }
+  },
+  "babel": {
+    "extensions": ["ts", "tsx"],
+    "ignore": ["**/*.(test|spec).ts"],
+    "babelrc": false,
+    "presets": [["@babel/preset-env", { "targets": { "node": true } }], "@babel/preset-typescript"],
+    "plugins": ["@babel/proposal-class-properties", "@babel/proposal-object-rest-spread"]
   },
   "markdown" : {
     "hardwrap" : false,

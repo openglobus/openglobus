@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/main
-      - run: npm run docs
+      - run: npm run docs || true
       - name: Deploy to openglobus.github.io
         uses: cpina/github-action-push-to-another-repository@main
         env:
