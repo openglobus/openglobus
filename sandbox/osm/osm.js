@@ -4,7 +4,7 @@ import {
     XYZ,
     control,
     utils,
-    LonLat,
+    LonLat, GlobusTerrain,
 } from "../../lib/@openglobus/og.esm.js";
 
 
@@ -87,6 +87,7 @@ const globus = new Globe({
     target: "earth",
     name: "Earth",
     terrain: highResTerrain,
+    //terrain: new GlobusTerrain(),
     layers: [osm, sat],
     atmosphereEnabled: false,
     fontsSrc: "../../res/fonts",

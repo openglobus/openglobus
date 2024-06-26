@@ -7,7 +7,7 @@ import {Layer} from "../layer/Layer";
 import {IResponse, Loader} from "../utils/Loader";
 import {LonLat} from "../LonLat";
 import {NOTRENDERING} from "../quadTree/quadTree";
-import {Segment} from "../segment/Segment";
+import {Segment, TILEGROUP_COMMON} from "../segment/Segment";
 // import { QueueArray } from '../QueueArray';
 import {Ray} from "../math/Ray";
 import {Vec3} from "../math/Vec3";
@@ -329,7 +329,7 @@ class GlobusTerrain extends EmptyTerrain {
     }
 
     public isReadyToLoad(segment: Segment): boolean {
-        return /*segment._projection.equal(EPSG3857) &&*/ this._extent.overlaps(segment.getExtentLonLat());
+        return segment._tileGroup === TILEGROUP_COMMON && this._extent.overlaps(segment.getExtentLonLat());
     }
 
     /**

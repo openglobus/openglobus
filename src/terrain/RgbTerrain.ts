@@ -229,6 +229,10 @@ class RgbTerrain extends GlobusTerrain {
         return outCurrenElevations;
     }
 
+    public override isReadyToLoad(segment: Segment): boolean {
+        return this._extent.overlaps(segment.getExtentLonLat());
+    }
+
     public override getHeightAsync(lonLat: LonLat, callback: (h: number) => void, zoom?: number): boolean {
 
         zoom = zoom != undefined ? zoom : this.maxZoom;
