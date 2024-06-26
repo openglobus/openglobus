@@ -259,7 +259,7 @@ class RgbTerrain extends GlobusTerrain {
         let def = this._fetchCache[tileIndex];
         if (!def) {
             def = this._loader.fetch({
-                src: qts.getTerrainUrl(x, y, z, tileGroup) || this._buildURL(x, y, z),
+                src: this._urlRewriteCallback && this._urlRewriteCallback(x, y, z, tileGroup) || this.buildURL(x, y, z, tileGroup),
                 type: this._dataType
             });
             this._fetchCache[tileIndex] = def;

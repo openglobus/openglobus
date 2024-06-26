@@ -1,15 +1,10 @@
 import {
     Globe,
-    Entity,
-    Vector,
-    GlobusTerrain,
-    EmptyTerrain,
     RgbTerrain,
     XYZ,
     control,
     utils,
     LonLat,
-    mercator
 } from "../../lib/@openglobus/og.esm.js";
 
 
@@ -73,24 +68,31 @@ let osm = new XYZ("OpenStreetMap", {
 var highResTerrain = new RgbTerrain(null, {
     maxNativeZoom: 6,
     maxZoom: 17,
-    url: "https://terrain.openglobus.org/public/all/{z}/{x}/{y}.png",
-    //url: "//127.0.0.1:8080/dest/{z}/{x}/{y}.png"
+    url: "https://{s}.terrain.openglobus.org/public/all/{z}/{x}/{y}.png",
+});
+
+let urlPref = {
+    20: "north",
+    300: "south"
+}
+
+highResTerrain.setUrlRewriteCallback((tileX, tileY, tileZoom, tileGroup) => {
+
+    let g = urlPref[tileGroup];
+
+    if (g) return `https://terrain.openglobus.org/public/poles/${g}/${tileZoom}/${tileX}/${tileY}.png`;
 });
 
 const globus = new Globe({
     target: "earth",
     name: "Earth",
     terrain: highResTerrain,
-    //terrain: new EmptyTerrain(),
-    //layers: [sat, st],
     layers: [osm, sat],
     atmosphereEnabled: false,
     fontsSrc: "../../res/fonts",
     sun: {
         stopped: false
     }
-    //transitionOpacityEnabled: false
-    //viewExtent: [8.077, 46.69, 8.77, 46.83]
 });
 
 //globus.planet.addControl(new control.ElevationProfileControl());

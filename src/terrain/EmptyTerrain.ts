@@ -15,7 +15,7 @@ export interface IEmptyTerrainParams {
     gridSizeByZoom?: number[]
 }
 
-export type UrlRewriteFunc = (segment: Segment, url?: string) => string | null | undefined;
+export type UrlRewriteFunc = (tileX: number, tileY: number, tileZoom: number, tileGroup: number) => string | null | undefined;
 
 /**
  * Class represents terrain provider without elevation data.

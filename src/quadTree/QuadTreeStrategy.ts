@@ -130,8 +130,4 @@ export class QuadTreeStrategy {
         return [i, j];
     }
 
-    public getTerrainUrl(tileX: number, tileY: number, tileZoom: number, tileGroup: number): string | undefined {
-        return "";
-    }
-
 }

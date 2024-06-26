@@ -1,14 +1,13 @@
 import * as mercator from "../mercator";
 import {createEvents, EventsHandler} from "../Events";
 import {createExtent, stringTemplate, TypedArray} from "../utils/shared";
-import {EPSG3857} from "../proj/EPSG3857";
-import {EmptyTerrain, IEmptyTerrainParams} from "./EmptyTerrain";
+import {EmptyTerrain, IEmptyTerrainParams, UrlRewriteFunc} from "./EmptyTerrain";
 import {Extent} from "../Extent";
 import {Layer} from "../layer/Layer";
 import {IResponse, Loader} from "../utils/Loader";
 import {LonLat} from "../LonLat";
 import {NOTRENDERING} from "../quadTree/quadTree";
-import {getTileGroupByLat, Segment} from "../segment/Segment";
+import {Segment} from "../segment/Segment";
 // import { QueueArray } from '../QueueArray';
 import {Ray} from "../math/Ray";
 import {Vec3} from "../math/Vec3";
@@ -27,8 +26,6 @@ type TileData = {
     heights: number[] | TypedArray | null,
     extent: Extent | null
 }
-
-type UrlRewriteFunc = (segment: Segment, url: string) => string | null | undefined;
 
 /**
  * Class that loads segment elevation data, converts it to the array and passes it to the planet segment.
@@ -203,7 +200,7 @@ class GlobusTerrain extends EmptyTerrain {
             let def = this._fetchCache[tileIndex];
             if (!def) {
                 def = this._loader.fetch({
-                    src: this._buildURL(x, y, z),
+                    src: this.buildURL(x, y, z, tileGroup),
                     type: this._dataType
                 });
                 this._fetchCache[tileIndex] = def;
@@ -406,7 +403,7 @@ class GlobusTerrain extends EmptyTerrain {
         return this._s[Math.floor(this._requestCount % (this._requestsPeerSubdomain * this._s.length) / this._requestsPeerSubdomain)];
     }
 
-    public _buildURL(x: number, y: number, z: number): string {
+    public buildURL(x: number, y: number, z: number, tileGroup: number): string {
         return stringTemplate(this.url, {
             s: this._getSubdomain(),
             x: x.toString(),
@@ -422,7 +419,7 @@ class GlobusTerrain extends EmptyTerrain {
      * @returns {string} -
      */
     protected _createUrl(segment: Segment): string {
-        return this._buildURL(segment.tileX, segment.tileY, segment.tileZoom);
+        return this.buildURL(segment.tileX, segment.tileY, segment.tileZoom, segment._tileGroup);
     }
 
     /**
@@ -433,7 +430,7 @@ class GlobusTerrain extends EmptyTerrain {
      */
     protected _getHTTPRequestString(segment: Segment): string {
         if (this._urlRewriteCallback) {
-            return this._urlRewriteCallback(segment, this.url) || this._createUrl(segment);
+            return this._urlRewriteCallback(segment.tileX, segment.tileY, segment.tileZoom, segment._tileGroup) || this._createUrl(segment);
         } else {
             return this._createUrl(segment);
         }
