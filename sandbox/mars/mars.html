@@ -1,0 +1,56 @@
+<html>
+
+<head>
+    <title>OpenGlobus - Mars planet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../lib/@openglobus/og.css" type="text/css"/>
+</head>
+
+</html>
+
+<body>
+<div id="globus"></div>
+<script type="module" id="og-sandbox-script">
+
+    'use strict';
+
+    import {
+        Globe,
+        EmptyTerrain,
+        XYZ,
+        control,
+        RgbTerrain,
+        quadTreeStrategyType,
+        CanvasTiles
+    } from "../../lib/@openglobus/og.esm.js";
+
+    const osm = new XYZ("OSM", {
+        'isBaseLayer': true,
+        //'url': "https://astro.arcgis.com/arcgis/rest/services/OnMars/MDIM/MapServer/tile/{z}/{y}/{x}?blankTile=false",
+        url: "https://terrain.openglobus.org/public/mars/sat/{z}/{x}/{y}.png",
+        'visibility': true,
+        maxNativeZoom: 8,
+    });
+
+    var highResTerrain = new RgbTerrain(null, {
+        geoid: null,
+        maxZoom: 6,
+        url: "https://{s}.terrain.openglobus.org/public/mars/elv/{z}/{x}/{y}.png",
+        heightFactor: 7
+    });
+
+    window.globe = new Globe({
+        name: "mars",
+        quadTreeStrategyPrototype: quadTreeStrategyType.mars,
+        target: "globus",
+        terrain: highResTerrain,
+        layers: [osm],
+        nightTextureSrc: null,
+        specularTextureSrc: null,
+    });
+
+    globe.planet.addControl(new control.ToggleWireframe());
+    globe.planet.addControl(new control.DebugInfo());
+
+</script>
+</body>
