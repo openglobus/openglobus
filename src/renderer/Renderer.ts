@@ -531,7 +531,7 @@ class Renderer {
         if (obj._pickingColor && !obj._pickingColor.isZero()) {
             let c = obj._pickingColor;
             if (!c.isZero()) {
-                this.colorObjects?.delete(`${c.x}_${c.y}_${c.z}`);
+                this.colorObjects.delete(`${c.x}_${c.y}_${c.z}`);
                 c.x = c.y = c.z = 0;
             }
         }

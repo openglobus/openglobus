@@ -76,7 +76,7 @@ class GeoObject {
 
     protected _qNorthFrame: Quat;
     private _textureSrc?: string;
-    _objectSrc?: string;
+    public _objectSrc?: string;
 
     constructor(options: IGeoObjectParams) {
 
@@ -107,14 +107,15 @@ class GeoObject {
 
         this._tagData = null;
         this._tagDataIndex = -1;
+        let object3d = options.object3d;
         if ((!options.object3d || options.object3d?.vertices.length === 0)) {
-            options.object3d = new Object3d();
+            object3d = new Object3d();
         }
         if (options.objSrc) {
             this.setObjectSrc(options.objSrc)
             this._objectSrc = options.objSrc;
         }
-        this._object3d = options.object3d as Object3d;
+        this._object3d = object3d as Object3d;
         if (options.textureSrc) {
             this.setTextureSrc(options.textureSrc)
         }
@@ -267,13 +268,13 @@ class GeoObject {
 
     public setObjectSrc(src: string) {
         this._objectSrc = src;
-        this._handler && this._handler.setObjectSrc(this);
+        this._handler && this._handler.setObjectSrc(src, this.tag);
     }
 
     public setTextureSrc(src: string) {
         this._textureSrc = src;
         this._object3d && (this._object3d.src = src);
-        this._handler && this._handler.setTexture(src, this.tag);
+        this._handler && this._handler.setTextureTag(src, this.tag);
     }
 
     public setColorHTML(color: string) {

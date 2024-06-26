@@ -421,7 +421,7 @@ class GeoObjectHandler {
         this.update();
     }
 
-    public setTexture(src: string, tag: string) {
+    public setTextureTag(src: string, tag: string) {
         const tagData = this._instanceDataMap.get(tag);
         if (tagData) {
             tagData._textureSrc = src;
@@ -431,15 +431,14 @@ class GeoObjectHandler {
         }
     }
 
-    public setObjectSrc(geoObject: GeoObject) {
-        const tagData = this._instanceDataMap.get(geoObject.tag);
-        if (geoObject._objectSrc) {
-            if (tagData && tagData._objectSrc !== geoObject._objectSrc) {
-                tagData._objectSrc = geoObject._objectSrc;
+    public setObjectSrc(src: string, tag: string) {
+        const tagData = this._instanceDataMap.get(tag);
+        if (src) {
+            if (tagData && tagData._objectSrc !== src) {
+                tagData._objectSrc = src;
 
-                Object3d.loadObj(geoObject._objectSrc).then((object3d) => {
-                    this._updateInstanceData(object3d[0], geoObject.tag);
-
+                Object3d.loadObj(src).then((object3d) => {
+                    this._updateInstanceData(object3d[0], tag);
                 })
             }
         }
@@ -757,9 +756,6 @@ class GeoObjectHandler {
     }
 
     public update() {
-        //update obj data
-
-        this
 
         for (let i = 0, len = this._dataTagUpdateQueue.length; i < len; i++) {
             this._dataTagUpdateQueue[i].update();

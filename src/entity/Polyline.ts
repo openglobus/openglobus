@@ -698,7 +698,7 @@ class Polyline {
         outOrders.push(1, -1, 2, -2);
     }
 
-    static appendColor(
+    static setPathColors(
         pathLonLat: SegmentPathLonLatExt[],
         pathColors: SegmentPathColor[],
         defaultColor: NumberArray4,
@@ -1954,7 +1954,7 @@ class Polyline {
         if (pathColors) {
             this._colors = [];
             this._pathColors = ([] as SegmentPathColor[]).concat(pathColors);
-            Polyline.appendColor(
+            Polyline.setPathColors(
                 this._pathLonLat,
                 pathColors,
                 this._defaultColor as NumberArray4,
