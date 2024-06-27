@@ -90,7 +90,9 @@ import {
     GeoVideo,
     GeoTexture2d,
     KML,
-    Material
+    Material,
+    OpenStreetMap,
+    Bing
 } from './layer/index';
 
 import {
@@ -120,6 +122,8 @@ export {
     KML,
     Layer,
     XYZ,
+    OpenStreetMap,
+    Bing,
     Vector,
     CanvasTiles,
     WMS,

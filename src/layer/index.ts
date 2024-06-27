@@ -8,5 +8,7 @@ import {Vector} from './Vector';
 import {WMS} from './WMS';
 import {XYZ} from './XYZ';
 import {Material} from './Material';
+import {OpenStreetMap} from './OpenStreetMap';
+import {Bing} from './Bing';
 
-export {CanvasTiles, GeoImage, GeoTexture2d, GeoVideo, KML, Layer, Vector, WMS, XYZ, Material};
+export {CanvasTiles, GeoImage, GeoTexture2d, GeoVideo, KML, Layer, Vector, WMS, XYZ, Material, OpenStreetMap, Bing};
