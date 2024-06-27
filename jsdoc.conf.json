@@ -22,8 +22,8 @@
       "default_theme" : "dark",
       "base_url": "https://openglobus.github.io/docs/",
       "favicon": "https://openglobus.github.io/favicon.ico",
-      "homepageTitle": "Openglobus",
-      "title": "Openglobus"
+      "homepageTitle": "OpenGlobus",
+      "title": "OpenGlobus"
     }
   },
   "babel": {

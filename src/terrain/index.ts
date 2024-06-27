@@ -1,6 +1,7 @@
-import { BilTerrain } from './BilTerrain';
-import { EmptyTerrain } from './EmptyTerrain';
-import { GlobusTerrain } from './GlobusTerrain';
-import { MapboxTerrain } from './MapboxTerrain';
+import {BilTerrain} from './BilTerrain';
+import {EmptyTerrain} from './EmptyTerrain';
+import {GlobusTerrain} from './GlobusTerrain';
+import {RgbTerrain} from './RgbTerrain';
+import {GlobusRgbTerrain} from './GlobusRgbTerrain';
 
-export { EmptyTerrain, GlobusTerrain, MapboxTerrain, BilTerrain };
+export {EmptyTerrain, GlobusTerrain, RgbTerrain, BilTerrain, GlobusRgbTerrain};

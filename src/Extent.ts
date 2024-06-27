@@ -86,8 +86,8 @@ export class Extent {
         z: number,
         width: number = mercator.POLE_DOUBLE,
         height: number = mercator.POLE_DOUBLE): Extent {
-        const H = Math.pow(2, z);
-        const W = Math.pow(2, z);
+        const H = 1 << z;//Math.pow(2, z);
+        const W = H;//Math.pow(2, z);
         const lnSize = width / W;
         const ltSize = height / H;
 

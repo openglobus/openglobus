@@ -127,13 +127,12 @@ export const geo_object = (): Program =>
                 float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
                 
                 vec3 vert = modelMatrix * (aVertexPosition * aScale) * scd;
-                v_vertex = position + vert;
                 
-                // @hack
-                // Mac/Safari affects on lowDiff somehow. 
                 vert += lowDiff;
                                
-                gl_Position = projectionMatrix * viewMatrixRTE  * vec4(highDiff + vert, 1.0);
+                gl_Position = projectionMatrix * viewMatrixRTE  * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
+                
+                v_vertex = position + vert;
             }`,
 
         fragmentShader: `precision highp float;
@@ -277,7 +276,7 @@ export const geo_object_picking = (): Program =>
                  
                  vert += lowDiff;
                                 
-                 gl_Position = projectionMatrix * viewMatrixRTE  * vec4(highDiff + vert, 1.0);
+                 gl_Position = projectionMatrix * viewMatrixRTE  * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
             }`,
         fragmentShader:
             `precision highp float;

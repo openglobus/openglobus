@@ -81,7 +81,7 @@ class StripHandler {
                             mat4 viewMatrixRTE = viewMatrix;
                             viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
-                            gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+                            gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
                         }`,
                     fragmentShader: `precision highp float;
                         uniform vec4 uColor;

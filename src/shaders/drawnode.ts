@@ -74,7 +74,7 @@ export function drawnode_screen_nl(): Program {
                 vec3 lowDiff = aVertexPositionLow - eyePositionLow + nh;
                 
                 // This is works for Mac Chrome, prevent some weird optimization I suppose
-                gl_Position =  m * vec4(highDiff + lowDiff, 1.0);
+                gl_Position =  m * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
             }`,
 
         fragmentShader: `precision highp float;
@@ -166,14 +166,13 @@ export function drawnode_screen_wl_webgl1NoAtmos(): Program {
 
             void main(void) {
 
-                // I replace it here (from the bottom) because it 
-                // somehow affects on float precision on MacPC Chrome
+                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;                
+                vec3 nh = height * normalize(aVertexPosition);
+
                 vTextureCoord.xy = aTextureCoord;
                 vGlobalTextureCoord = uGlobalTextureCoord.xy + (uGlobalTextureCoord.zw - uGlobalTextureCoord.xy) * aTextureCoord;
                 vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + uNormalMapBias.xy );
 
-                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;                
-                vec3 nh = height * normalize(aVertexPosition);
                 cameraPosition = eyePositionHigh + eyePositionLow;
                 
                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
@@ -185,7 +184,7 @@ export function drawnode_screen_wl_webgl1NoAtmos(): Program {
                 v_height = height;
                 v_vertex = aVertexPosition + nh;
                             
-                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
             }`,
 
         fragmentShader:
@@ -356,14 +355,13 @@ export function drawnode_screen_wl_webgl2NoAtmos(): Program {
 
             void main(void) {
 
-                // I replace it here (from the bottom) because it 
-                // somehow affects on float precision on MacPC Chrome
+                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;                
+                vec3 nh = height * normalize(aVertexPosition);
+                
                 vTextureCoord.xy = aTextureCoord;
                 vGlobalTextureCoord = uGlobalTextureCoord.xy + (uGlobalTextureCoord.zw - uGlobalTextureCoord.xy) * aTextureCoord;
                 vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + uNormalMapBias.xy );
 
-                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;                
-                vec3 nh = height * normalize(aVertexPosition);
                 cameraPosition = eyePositionHigh + eyePositionLow;
                 
                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
@@ -375,7 +373,7 @@ export function drawnode_screen_wl_webgl2NoAtmos(): Program {
                 v_height = height;
                 v_vertex = aVertexPosition + nh;
                             
-                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
             }`,
 
         fragmentShader:
@@ -563,14 +561,13 @@ export function drawnode_screen_wl_webgl2Atmos(): Program {
 
             void main(void) {
 
-                // I replace it here (from the bottom) because it 
-                // somehow affects on float precision on MacPC Chrome
+                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;                
+                vec3 nh = height * normalize(aVertexPosition);
+
                 vTextureCoord.xy = aTextureCoord;
                 vGlobalTextureCoord = uGlobalTextureCoord.xy + (uGlobalTextureCoord.zw - uGlobalTextureCoord.xy) * aTextureCoord;
                 vTextureCoord.zw = uNormalMapBias.z * ( aTextureCoord + uNormalMapBias.xy );
 
-                vec3 aVertexPosition = aVertexPositionHigh + aVertexPositionLow;                
-                vec3 nh = height * normalize(aVertexPosition);
                 cameraPosition = eyePositionHigh + eyePositionLow;
                 
                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
@@ -582,7 +579,7 @@ export function drawnode_screen_wl_webgl2Atmos(): Program {
                 v_height = height;
                 v_vertex = aVertexPosition + nh;
                             
-                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
             }`,
 
         fragmentShader:
@@ -891,7 +888,7 @@ export function drawnode_colorPicking(): Program {
                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
                 vec3 lowDiff = aVertexPositionLow - eyePositionLow + nh;
 
-                gl_Position = m * vec4(highDiff + lowDiff, 1.0);
+                gl_Position = m * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
             }`,
 
         fragmentShader:
@@ -976,7 +973,7 @@ export function drawnode_heightPicking(): Program {
                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
                 vec3 lowDiff = aVertexPositionLow - eyePositionLow + nh;
                 
-                gl_Position =  m * vec4(highDiff + lowDiff, 1.0);         
+                gl_Position =  m * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);         
             }`,
 
         fragmentShader:
@@ -1048,7 +1045,7 @@ export function drawnode_depth(): Program {
                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
                 vec3 lowDiff = aVertexPositionLow - eyePositionLow + nh;
                 
-                gl_Position =  m * vec4(highDiff + lowDiff, 1.0);    
+                gl_Position =  m * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);    
             }`,
 
         fragmentShader:

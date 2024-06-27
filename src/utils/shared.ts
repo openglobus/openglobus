@@ -46,6 +46,24 @@ export function isString(s: any): boolean {
     return typeof s === "string" || s instanceof String;
 }
 
+function d2h(val: number): string {
+    return val.toString(16).padStart(2, '0');
+}
+
+export function rgbToStringHTML(rgb: NumberArray3 | Vec3): string {
+    let r: string, g: string, b: string;
+    if (rgb instanceof Array) {
+        r = d2h(rgb[0]);
+        g = d2h(rgb[1]);
+        b = d2h(rgb[2]);
+    } else {
+        r = d2h(rgb.x);
+        g = d2h(rgb.y);
+        b = d2h(rgb.z);
+    }
+    return `#${r}${g}${b}`;
+}
+
 /**
  * Convert html color string to the RGBA number vector.
  * @param {string} htmlColor - HTML string("#C6C6C6" or "#EF5" or "rgb(8,8,8)" or "rgba(8,8,8)") color.
@@ -941,14 +959,6 @@ export function getMatrixSubArray32(sourceArr: TypedArray | number[], gridSize: 
 
 /**
  * Returns two float32 triangle coordinate arrays from inside of the source triangle array.
- * @static
- * @param {Array.<number>} sourceArr - Source array
- * @param {number} gridSize - Source array square matrix size
- * @param {number} i0 - First row index source array matrix
- * @param {number} j0 - First column index
- * @param {number} size - Square matrix result size.
- * @param {object} outBounds - Output bounds.
- * @return{Array.<number>} Triangle coordinates array from the source array.
  * @TODO: optimization
  */
 export function getMatrixSubArrayBoundsExt(

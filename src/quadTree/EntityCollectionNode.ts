@@ -33,12 +33,13 @@ class EntityCollectionNode {
 
     public _inTheQueue: boolean;
 
-    constructor(layer: Vector, partId: number, parent: EntityCollectionNode | null, id: number, extent: Extent, planet: Planet, zoom: number) {
+    constructor(layer: Vector, partId: number, parent: EntityCollectionNode | null, extent: Extent, planet: Planet, zoom: number) {
         this.layer = layer;
         this.parentNode = parent;
         this.childrenNodes = [];
         this.partId = partId;
-        this.nodeId = partId + id;
+        //this.nodeId = partId + id;
+        this.nodeId = partId + (parent ? parent.nodeId * 4 + 1 : 0);
         this.state = null;
         this.extent = extent;
         this.count = 0;
@@ -164,16 +165,15 @@ class EntityCollectionNode {
         const size_y = ext.getHeight() * 0.5;
         const ne = ext.northEast;
         const sw = ext.southWest;
-        const id = this.nodeId * 4 + 1;
         const c = new LonLat(sw.lon + size_x, sw.lat + size_y);
         const nd = this.childrenNodes;
         const p = this.layer._planet!;
         const z = this.zoom + 1;
 
-        nd[NW] = new EntityCollectionNode(l, NW, this, id, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)), p, z);
-        nd[NE] = new EntityCollectionNode(l, NE, this, id, new Extent(c, new LonLat(ne.lon, ne.lat)), p, z);
-        nd[SW] = new EntityCollectionNode(l, SW, this, id, new Extent(new LonLat(sw.lon, sw.lat), c), p, z);
-        nd[SE] = new EntityCollectionNode(l, SE, this, id, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
+        nd[NW] = new EntityCollectionNode(l, NW, this, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)), p, z);
+        nd[NE] = new EntityCollectionNode(l, NE, this, new Extent(c, new LonLat(ne.lon, ne.lat)), p, z);
+        nd[SW] = new EntityCollectionNode(l, SW, this, new Extent(new LonLat(sw.lon, sw.lat), c), p, z);
+        nd[SE] = new EntityCollectionNode(l, SE, this, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
     }
 
     public collectRenderCollectionsPASS1(visibleNodes: NodesDict, outArr: EntityCollection[]) {
@@ -315,8 +315,8 @@ class EntityCollectionNodeWGS84 extends EntityCollectionNode {
 
     public isNorth: boolean;
 
-    constructor(layer: Vector, partId: number, parent: EntityCollectionNodeWGS84 | null, id: number, extent: Extent, planet: Planet, zoom: number) {
-        super(layer, partId, parent, id, extent, planet, zoom);
+    constructor(layer: Vector, partId: number, parent: EntityCollectionNodeWGS84 | null, extent: Extent, planet: Planet, zoom: number) {
+        super(layer, partId, parent, extent, planet, zoom);
         this.isNorth = false;
     }
 
@@ -327,16 +327,15 @@ class EntityCollectionNodeWGS84 extends EntityCollectionNode {
         const size_y = ext.getHeight() * 0.5;
         const ne = ext.northEast;
         const sw = ext.southWest;
-        const id = this.nodeId * 4 + 1;
         const c = new LonLat(sw.lon + size_x, sw.lat + size_y);
         const nd = this.childrenNodes;
         const p = this.layer._planet!;
         const z = this.zoom + 1;
 
-        nd[NW] = new EntityCollectionNodeWGS84(l, NW, this, id, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)), p, z);
-        nd[NE] = new EntityCollectionNodeWGS84(l, NE, this, id, new Extent(c, new LonLat(ne.lon, ne.lat)), p, z);
-        nd[SW] = new EntityCollectionNodeWGS84(l, SW, this, id, new Extent(new LonLat(sw.lon, sw.lat), c), p, z);
-        nd[SE] = new EntityCollectionNodeWGS84(l, SE, this, id, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
+        nd[NW] = new EntityCollectionNodeWGS84(l, NW, this, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)), p, z);
+        nd[NE] = new EntityCollectionNodeWGS84(l, NE, this, new Extent(c, new LonLat(ne.lon, ne.lat)), p, z);
+        nd[SW] = new EntityCollectionNodeWGS84(l, SW, this, new Extent(new LonLat(sw.lon, sw.lat), c), p, z);
+        nd[SE] = new EntityCollectionNodeWGS84(l, SE, this, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
     }
 
     protected override _setExtentBounds() {

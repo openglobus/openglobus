@@ -76,8 +76,9 @@ export *  from './layer/index';
 import {
     EmptyTerrain,
     GlobusTerrain,
-    MapboxTerrain,
-    BilTerrain
+    RgbTerrain,
+    BilTerrain,
+    GlobusRgbTerrain
 } from './terrain/index';
 
 export {
@@ -97,7 +98,8 @@ export {
     Framebuffer,
     EmptyTerrain,
     GlobusTerrain,
-    MapboxTerrain,
+    RgbTerrain,
+    GlobusRgbTerrain,
     BilTerrain,
     Control,
     Camera,

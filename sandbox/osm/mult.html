@@ -1,0 +1,93 @@
+﻿<html>
+
+<head>
+    <title>OpenGlobus - Earth planet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../lib/@openglobus/og.css" type="text/css" />
+</head>
+
+<body>
+    <div id="globus1" style="width:50%;height:100%;float: left;"></div>
+    <div id="globus2" style="width:50%;height:100%;float: left;"></div>
+    <script type="module">
+
+        import {
+            Globe,
+            Entity,
+            Vector,
+            GlobusTerrain,
+            EmptyTerrain,
+            MapboxTerrain,
+            XYZ,
+            control,
+            utils,
+            LonLat
+        } from "../../lib/@openglobus/og.esm.js";
+
+        function copyCamera(src, dst) {
+            let e = src.eye.clone(),
+                f = src.getForward().clone(),
+                u = src.getUp().clone();
+            dst.set(e, e.add(f), u);
+            dst.update();
+        }
+
+        var osm1 = new XYZ("OpenStreetMap", {
+            isBaseLayer: true,
+            url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            visibility: true,
+            attribution: 'Data @ OpenStreetMap contributors, ODbL'
+        });
+
+        var highResTerrain1 = new MapboxTerrain(null, {
+            maxNativeZoom: 6,
+            url: "https://terrain.openglobus.org/public/all/{z}/{x}/{y}.png",
+        });
+
+        window.globus1 = new Globe({
+            "target": "globus1",
+            "name": "Earth One",
+            "terrain": highResTerrain1,
+            "layers": [osm1]
+        });
+
+        window.globus1.renderer.events.on("draw", () => {
+            copyCamera(
+                window.globus1.planet.camera,
+                window.globus2.planet.camera
+            );
+        });
+
+        var osm2 = new XYZ("OpenStreetMap", {
+            isBaseLayer: true,
+            url: "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            visibility: true,
+            attribution: 'Data @ OpenStreetMap contributors, ODbL'
+        });
+
+        var highResTerrain2 = new MapboxTerrain(null, {
+            //maxZoom: 14,
+            maxNativeZoom: 7,
+            url: "../norway_dest/{z}/{x}/{y}.png",
+        });
+
+        window.globus2 = new Globe({
+            "target": "globus2",
+            "name": "Earth Two",
+            "terrain": highResTerrain2,
+            "layers": [osm2]
+        });
+
+        window.globus2.planet.addControl(new control.DebugInfo());
+
+        window.globus2.renderer.events.on("draw", () => {
+            copyCamera(
+                window.globus2.planet.camera,
+                window.globus1.planet.camera
+            );
+        });
+
+    </script>
+</body>
+
+</html>

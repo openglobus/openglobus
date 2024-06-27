@@ -1,5 +1,5 @@
-import { Extent } from "./Extent";
-import { LonLat } from './LonLat';
+import {Extent} from "./Extent";
+import {LonLat} from './LonLat';
 
 /**
  * Mercator size.
@@ -85,7 +85,7 @@ export function inverse_lat(lat: number): number {
 }
 
 /**
- * Returns mercator map tile grid horizontal coordinate index by geodetic 
+ * Returns mercator map tile grid horizontal coordinate index by geodetic
  * longitude and zoom level. Where top left corner of the grid is 0 coordinate index.
  * @function
  * @param {number} lon - Geodetic degrees longitude.
@@ -97,7 +97,7 @@ export function getTileX(lon: number, zoom: number): number {
 }
 
 /**
- * Returns mercator map tile grid vertical coordinate index by geodetic 
+ * Returns mercator map tile grid vertical coordinate index by geodetic
  * latitude and zoom level. Where top left corner of the grid is 0 coordinate index.
  * @function
  * @param {number} lat - Geodetic degrees latitude.
@@ -123,7 +123,7 @@ export function forwardArray(lonlatArr: LonLat[]): LonLat[] {
 }
 
 export function getTileExtent(x: number, y: number, z: number): Extent {
-    let size = POLE2 / Math.pow(2, z),
+    let size = POLE2 / (1 << z),//Math.pow(2, z),
         sw = new LonLat(-POLE + x * size, POLE - y * size - size);
     return new Extent(sw, new LonLat(sw.lon + size, sw.lat + size));
 }

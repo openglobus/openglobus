@@ -1320,12 +1320,14 @@ export class Planet extends RenderNode {
                 ri._refreshTransitionOpacity();
 
                 if (ri.segment._transitionOpacity >= 1.0) {
+                    ri.clearNeighbors();
                     ri.getRenderedNodesNeighbors(opaqueNodes);
                     opaqueNodes.push(ri);
                 } else {
                     for (let j = 0; j < ri._fadingNodes.length; j++) {
                         let rij = ri._fadingNodes[j];
                         if (rij.segment && rij.segment._transitionOpacity >= 1.0) {
+                            rij.clearNeighbors();
                             rij.getRenderedNodesNeighbors(opaqueNodes);
                             opaqueNodes.push(rij);
                         }
@@ -1616,8 +1618,8 @@ export class Planet extends RenderNode {
 
         for (let j = 0, len = currentNode._fadingNodes.length; j < len; j++) {
             let f = currentNode._fadingNodes[j].segment;
-            if (this._fadingNodes.has(currentNode._fadingNodes[0].nodeId) && !nodes.has(f.node.nodeId)) {
-                nodes.set(f.node.nodeId, true);
+            if (this._fadingNodes.has(currentNode._fadingNodes[0].__id) && !nodes.has(f.node.__id)) {
+                nodes.set(f.node.__id, true);
 
                 if (f._transitionOpacity < 1.0) {
                     outTransparentSegments!.push(f);
@@ -1644,8 +1646,8 @@ export class Planet extends RenderNode {
 
         for (let j = 0, len = currentNode._fadingNodes.length; j < len; j++) {
             let f = currentNode._fadingNodes[j].segment;
-            if (this._fadingNodes.has(currentNode._fadingNodes[0].nodeId) && !nodes.has(f.node.nodeId)) {
-                nodes.set(f.node.nodeId, true);
+            if (this._fadingNodes.has(currentNode._fadingNodes[0].__id) && !nodes.has(f.node.__id)) {
+                nodes.set(f.node.__id, true);
                 if (isFirstPass) {
                     isEq && f.equalize();
                     f.readyToEngage && f.engage();

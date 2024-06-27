@@ -21,10 +21,41 @@ import {Slice} from "./Slice";
 import {Ray} from "../math/Ray";
 import {Vec3} from "../math/Vec3";
 import {IPlainSegmentWorkerData} from "../utils/PlainSegmentWorker";
+import {MAX_LAT, MIN_LAT, POLE} from "../mercator";
+
+//Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
+
+export function getTileCellIndex(coordinate: number, tileSize: number, worldEdge: number): number {
+    return Math.floor(Math.abs(worldEdge - coordinate) / tileSize);
+}
+
+export function getTileCellExtent(x: number, y: number, z: number, worldExtent: Extent): Extent {
+    let pz = 1.0 / (1 << z);
+
+    let worldWidth = worldExtent.getWidth(),
+        worldHeight = worldExtent.getHeight();
+
+    let w = worldWidth * pz,
+        h = worldHeight * pz;
+
+    let sw_lon = worldExtent.southWest.lon + x * w,
+        ne_lat = worldExtent.northEast.lat - y * h;
+
+    return new Extent(new LonLat(sw_lon, ne_lat - h), new LonLat(sw_lon + w, ne_lat));
+}
 
 export const TILEGROUP_COMMON = 0;
-export const TILEGROUP_NORTH = 1;
-export const TILEGROUP_SOUTH = 2;
+export const TILEGROUP_NORTH = 20;
+export const TILEGROUP_SOUTH = 300;
+
+export function getTileGroupByLat(lat: number, maxLat: number = MAX_LAT): number {
+    if (lat > maxLat) {
+        return TILEGROUP_NORTH;
+    } else if (lat < -maxLat) {
+        return TILEGROUP_SOUTH;
+    }
+    return TILEGROUP_COMMON;
+}
 
 let _tempHigh = new Vec3();
 let _tempLow = new Vec3();
@@ -66,6 +97,8 @@ class Segment {
     public _tileGroup: number;
 
     public _projection: Proj;
+
+    public elevationData: TypedArray | null;
 
     /**
      * Quad tree node of the segment.
@@ -129,6 +162,12 @@ class Segment {
      * @type {number}
      */
     public tileZoom: number;
+
+    /**
+     * Equals to pow(2, tileZoom).
+     * @type {number}
+     */
+    public powTileZoom: number;
 
     /**
      * Horizontal tile index.
@@ -250,6 +289,7 @@ class Segment {
     public _transitionTimestamp: number;
 
     constructor(node: Node, planet: Planet, tileZoom: number, extent: Extent) {
+
         this.isPole = false;
 
         this._tileGroup = TILEGROUP_COMMON;
@@ -285,6 +325,8 @@ class Segment {
 
         this.tileZoom = tileZoom;
 
+        this.powTileZoom = 1 << tileZoom; //Math.pow(2, tileZoom);
+
         this.tileX = 0;
 
         this.tileXE = 0;
@@ -298,6 +340,8 @@ class Segment {
         this.tileY = 0;
 
         this.tileIndex = "";
+
+        this.elevationData = null;
 
         this._assignTileIndexes();
 
@@ -511,6 +555,9 @@ class Segment {
             let _elevations = new Float32Array(elevations.length);
             _elevations.set(elevations);
 
+            this.elevationData = new Float32Array(elevations.length);
+            this.elevationData.set(elevations);
+
             this.planet._terrainWorker.make({segment: this, elevations: _elevations});
 
             this.plainVerticesHigh = null;
@@ -593,7 +640,7 @@ class Segment {
     public equalize() {
 
         // Equalization doesnt work correctly for gridSize equals 2
-        if (this.gridSize < 2) {
+        if (this.tileZoom < 2 || this.gridSize < 2) {
             return;
         }
 
@@ -1329,10 +1376,12 @@ class Segment {
         const extent = this._extent;
         const pole = mercator.POLE;
 
-        this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
-        this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat));
+        // this.tileX = Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
+        // this.tileY = Math.round(Math.abs(pole - extent.northEast.lat) / (extent.northEast.lat - extent.southWest.lat));
+        this.tileX = getTileCellIndex(extent.getCenter().lon, extent.getWidth(), -pole);
+        this.tileY = getTileCellIndex(extent.getCenter().lat, extent.getHeight(), pole);
 
-        const p2 = Math.pow(2, tileZoom);
+        const p2 = this.powTileZoom;//Math.pow(2, tileZoom);
 
         this.tileXE = (this.tileX + 1) % p2;
         this.tileXW = (p2 + this.tileX - 1) % p2;
@@ -1340,7 +1389,7 @@ class Segment {
         this.tileYN = this.tileY - 1;
         this.tileYS = this.tileY + 1;
 
-        this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom);
+        this.tileIndex = Layer.getTileIndex(this.tileX, this.tileY, tileZoom, this._tileGroup);
     }
 
     public initialize() {
@@ -1416,16 +1465,23 @@ class Segment {
         this.readyToEngage = true;
     }
 
+    protected _projToDeg(lon: number, lat: number): LonLat {
+        return LonLat.inverseMercator(lon, lat);
+    }
+
     protected _createPlainVertices() {
         const gridSize = this.planet.terrain!.gridSizeByZoom[this.tileZoom];
-        const e = this._extent;
         const fgs = this.planet.terrain!.plainGridSize;
+        const currGridSize = Math.max(fgs, gridSize);
+        const e = this._extent;
         const lonSize = e.getWidth();
-        const llStep = lonSize / Math.max(fgs, gridSize);
+        const latSize = e.getHeight();
+        const llStep = lonSize / currGridSize;
+        const ltStep = latSize / currGridSize;
         const esw_lon = e.southWest.lon;
         const ene_lat = e.northEast.lat;
         const dg = Math.max(fgs / gridSize, 1);
-        const gs = Math.max(fgs, gridSize) + 1;
+        const gs = currGridSize + 1;
         const r2 = this.planet.ellipsoid._invRadii2;
         const gsgs = gs * gs;
         const gridSize3 = (gridSize + 1) * (gridSize + 1) * 3;
@@ -1457,7 +1513,7 @@ class Segment {
                 i = ~~(k / gs);
 
             let v = this.planet.ellipsoid.lonLatToCartesian(
-                LonLat.inverseMercator(esw_lon + j * llStep, ene_lat - i * llStep)
+                this._projToDeg(esw_lon + j * llStep, ene_lat - i * ltStep)
             );
 
             let nx = v.x * r2.x,
@@ -1695,8 +1751,8 @@ class Segment {
         while (i--) {
             let n = this.node._fadingNodes[i];
             if (n.segment) {
-                if (n.segment._transitionOpacity > 0 && !this.planet._fadingNodes.has(n.nodeId)) {
-                    this.planet._fadingNodes.set(n.nodeId, n);
+                if (n.segment._transitionOpacity > 0 && !this.planet._fadingNodes.has(n.__id)) {
+                    this.planet._fadingNodes.set(n.__id, n);
                     n.segment._transitionOpacity = 2.0 - this._transitionOpacity;
                     if (n.segment._transitionOpacity === 0) {
                         this.node._fadingNodes.splice(i, 1);
@@ -1820,9 +1876,6 @@ class Segment {
         return cache.buffer;
     }
 
-    /**
-     * @todo: replace to the strategy
-     */
     public _collectVisibleNodes() {
         this.planet._visibleNodes[this.node.nodeId] = this.node;
     }
@@ -1845,14 +1898,6 @@ class Segment {
 
     public getExtent(): Extent {
         return this._extent;
-    }
-
-    /**
-     * @todo replace to the strategy
-     */
-    public getNodeState(): number {
-        let vn = this.planet._visibleNodes[this.node.nodeId];
-        return (vn && vn.state) || NOTRENDERING;
     }
 
     public getNeighborSide(b: Segment) {

@@ -11,7 +11,6 @@ import {Segment} from "../segment/Segment";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import {
-    COMSIDE,
     E,
     MAX_RENDERED_NODES,
     N,
@@ -58,6 +57,8 @@ let BOUNDS: BoundsType = {
     xmax: 0.0, ymax: 0.0, zmax: 0.0
 };
 
+let __staticCounter = 0;
+
 /**
  * Quad tree planet segment node.
  * @constructor
@@ -70,6 +71,7 @@ let BOUNDS: BoundsType = {
  * @param {Extent} extent - Planet segment extent.
  */
 class Node {
+    public __id: number;
     public SegmentPrototype: typeof Segment;
     public planet: Planet;
     public parentNode: Node | null;
@@ -93,17 +95,18 @@ class Node {
         planet: Planet,
         partId: number,
         parent: Node | null,
-        id: number,
         tileZoom: number,
         extent: Extent
     ) {
         planet._createdNodesCount++;
 
+        this.__id = __staticCounter++;
+
         this.SegmentPrototype = SegmentPrototype;
         this.planet = planet;
         this.parentNode = parent;
         this.partId = partId;
-        this.nodeId = partId + id;
+        this.nodeId = partId + (parent ? parent.nodeId * 4 + 1 : 0);
         this.state = null;
         this.prevState = null;
         this.appliedTerrainNodeId = -1;
@@ -130,14 +133,13 @@ class Node {
         const size_y = ext.getHeight() * 0.5;
         const ne = ext.northEast;
         const sw = ext.southWest;
-        const id = this.nodeId * 4 + 1;
         const c = new LonLat(sw.lon + size_x, sw.lat + size_y);
         const nd = this.nodes;
 
-        nd[NW] = new Node(this.SegmentPrototype, p, NW, this, id, z, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)));
-        nd[NE] = new Node(this.SegmentPrototype, p, NE, this, id, z, new Extent(c, new LonLat(ne.lon, ne.lat)));
-        nd[SW] = new Node(this.SegmentPrototype, p, SW, this, id, z, new Extent(new LonLat(sw.lon, sw.lat), c));
-        nd[SE] = new Node(this.SegmentPrototype, p, SE, this, id, z, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)));
+        nd[NW] = new Node(this.SegmentPrototype, p, NW, this, z, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)));
+        nd[NE] = new Node(this.SegmentPrototype, p, NE, this, z, new Extent(c, new LonLat(ne.lon, ne.lat)));
+        nd[SW] = new Node(this.SegmentPrototype, p, SW, this, z, new Extent(new LonLat(sw.lon, sw.lat), c));
+        nd[SE] = new Node(this.SegmentPrototype, p, SE, this, z, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)));
     }
 
     public createBounds() {
@@ -237,9 +239,6 @@ class Node {
         this.state = WALKTHROUGH;
 
         this.clearNeighbors();
-        // for (let i = 0; i < this._fadingNodes.length; i++) {
-        //     this._fadingNodes[i].neighbors && this._fadingNodes[i].clearNeighbors();
-        // }
 
         let seg = this.segment,
             planet = this.planet;
@@ -297,7 +296,7 @@ class Node {
             let altVis = seg.tileZoom < 2 || seg.tileZoom > 19 ||
                 /* Could be replaced with camera frustum always looking down check,
                 and not to go througn nodes from the oppositeside of the globe*/
-                (seg.tileZoom < 5 && !seg.terrainReady);
+                (seg.tileZoom < 6 && !seg.terrainReady);
 
             altVis = altVis ||
                 cam.eye.distance2(seg._sw) < horizonDist ||
@@ -429,7 +428,8 @@ class Node {
                     }
 
                     // not sure it's necessary here
-                    //this.parentNode.whileTerrainLoading();
+                    this.parentNode.whileTerrainLoading();
+
                     this._fadingNodes.push(this.parentNode);
                     this.parentNode.segment._transitionOpacity = 2.0;
                     this.parentNode.segment._transitionTimestamp = timestamp;
@@ -438,8 +438,10 @@ class Node {
                     if (this.segment.childrenInitialized() && this.childrenPrevStateEquals(RENDERING)) {
                         for (let i = 0; i < this.nodes.length; i++) {
                             let ni = this.nodes[i];
+
                             // not sure it's necessary here
-                            //ni.whileTerrainLoading();
+                            ni.whileTerrainLoading();
+
                             this._fadingNodes.push(ni);
                             ni.segment._transitionOpacity = 2.0;
                             ni.segment._transitionTimestamp = timestamp;
@@ -454,14 +456,15 @@ class Node {
 
     public clearNeighbors() {
         //this.sideSizeLog2[0] = this.sideSizeLog2[1] = this.sideSizeLog2[2] = this.sideSizeLog2[3] = Math.log2(this.segment.gridSize);
+        if (this.neighbors) {
+            // @ts-ignore
+            this.neighbors[0] = this.neighbors[1] = this.neighbors[2] = this.neighbors[3] = null;
 
-        // @ts-ignore
-        this.neighbors[0] = this.neighbors[1] = this.neighbors[2] = this.neighbors[3] = null;
-
-        this.neighbors[0] = [];
-        this.neighbors[1] = [];
-        this.neighbors[2] = [];
-        this.neighbors[3] = [];
+            this.neighbors[0] = [];
+            this.neighbors[1] = [];
+            this.neighbors[2] = [];
+            this.neighbors[3] = [];
+        }
     }
 
     public _refreshTransitionOpacity() {
@@ -472,7 +475,13 @@ class Node {
                 this.segment._transitionOpacity = 1.0;
                 this._fadingNodes = [];
             } else {
-
+                // Looks like a bug fix for suddenly empty spaces
+                for (let i = 0; i < this._fadingNodes.length; i++) {
+                    if (this.segment._transitionOpacity < 1.0 && this._fadingNodes[i].segment._transitionOpacity === 0) {
+                        this._fadingNodes[i].segment._transitionOpacity = 0;
+                        this.segment._transitionOpacity = 1.0;
+                    }
+                }
                 this.segment.increaseTransitionOpacity();
             }
         }
@@ -576,10 +585,13 @@ class Node {
             const a = as._extentLonLat;
             const b = bs._extentLonLat;
 
-            let a_ne = a.northEast, a_sw = a.southWest, b_ne = b.northEast, b_sw = b.southWest;
+            let a_ne = a.northEast, a_sw = a.southWest,
+                b_ne = b.northEast, b_sw = b.southWest;
 
-            let a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat, a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat, b_ne_lon = b_ne.lon,
-                b_ne_lat = b_ne.lat, b_sw_lon = b_sw.lon, b_sw_lat = b_sw.lat;
+            let a_ne_lon = a_ne.lon, a_ne_lat = a_ne.lat,
+                a_sw_lon = a_sw.lon, a_sw_lat = a_sw.lat,
+                b_ne_lon = b_ne.lon, b_ne_lat = b_ne.lat,
+                b_sw_lon = b_sw.lon, b_sw_lat = b_sw.lat;
 
             if (as._tileGroup === bs._tileGroup) {
                 if (a_ne_lon === b_sw_lon && ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))) {
@@ -590,20 +602,23 @@ class Node {
                     return N;
                 } else if (a_sw_lat === b_ne_lat && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
                     return S;
-                } else if (bs.tileX === 0 && as.tileX === Math.pow(2, as.tileZoom) - 1 && ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))) {
+                }
+                // World edge 180 to -180
+                else if (bs.tileX === 0 && b_sw_lon === -a_ne_lon && ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))) {
                     return E;
-                } else if (as.tileX === 0 && bs.tileX === Math.pow(2, bs.tileZoom) - 1 && ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))) {
+                } else if (as.tileX === 0 && a_sw_lon === -b_ne_lon && ((a_ne_lat <= b_ne_lat && a_sw_lat >= b_sw_lat) || (a_ne_lat >= b_ne_lat && a_sw_lat <= b_sw_lat))) {
                     return W;
                 }
             }
 
-            if (as._tileGroup === TILEGROUP_COMMON && bs._tileGroup === TILEGROUP_NORTH && as.tileY === 0 && bs.tileY === Math.pow(2, bs.tileZoom) - 1 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
+            // @todo: replace to the default strategy
+            if (as._tileGroup === TILEGROUP_COMMON && bs._tileGroup === TILEGROUP_NORTH && as.tileY === 0 && bs.tileY === bs.powTileZoom/*Math.pow(2, bs.tileZoom)*/ - 1 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
                 return N;
-            } else if (as._tileGroup === TILEGROUP_SOUTH && bs._tileGroup === TILEGROUP_COMMON && as.tileY === 0 && bs.tileY === Math.pow(2, bs.tileZoom) - 1 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
-                return N;
-            } else if (bs._tileGroup === TILEGROUP_NORTH && as._tileGroup === TILEGROUP_COMMON && as.tileY === Math.pow(2, as.tileZoom) - 1 && bs.tileY === 0 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
+            } else if (as._tileGroup === TILEGROUP_COMMON && bs._tileGroup === TILEGROUP_SOUTH && as.tileY === as.powTileZoom/*Math.pow(2, as.tileZoom)*/ - 1 && bs.tileY === 0 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
                 return S;
-            } else if (as._tileGroup === TILEGROUP_NORTH && bs._tileGroup === TILEGROUP_COMMON && as.tileY === Math.pow(2, as.tileZoom) - 1 && bs.tileY === 0 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
+            } else if (as._tileGroup === TILEGROUP_SOUTH && bs._tileGroup === TILEGROUP_COMMON && as.tileY === 0 && bs.tileY === bs.powTileZoom/*Math.pow(2, bs.tileZoom)*/ - 1 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
+                return N;
+            } else if (as._tileGroup === TILEGROUP_NORTH && bs._tileGroup === TILEGROUP_COMMON && as.tileY === as.powTileZoom/*Math.pow(2, as.tileZoom)*/ - 1 && bs.tileY === 0 && ((a_sw_lon >= b_sw_lon && a_ne_lon <= b_ne_lon) || (a_sw_lon <= b_sw_lon && a_ne_lon >= b_ne_lon))) {
                 return S;
             }
         }
@@ -648,7 +663,7 @@ class Node {
 
         if (pn.segment.terrainReady && this.appliedTerrainNodeId !== pn.nodeId) {
 
-            let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1),
+            let dZ2 = 2 << (seg.tileZoom - pn.segment.tileZoom - 1), // 2 * Math.pow(2, dZ-1)
                 offsetX = seg.tileX - pn.segment.tileX * dZ2,
                 offsetY = seg.tileY - pn.segment.tileY * dZ2;
 
@@ -832,7 +847,8 @@ class Node {
                         seg.normalMapVertices = tempVertices;
                         seg.fileGridSize = Math.sqrt(tempVertices.length / 3) - 1;
 
-                        let fgs = Math.sqrt(pseg.normalMapNormals!.length / 3) - 1, fgsZ = fgs / dZ2;
+                        let fgs = Math.sqrt(pseg.normalMapNormals!.length / 3) - 1,
+                            fgsZ = fgs / dZ2;
 
                         if (fgs > 1) {
                             seg.normalMapNormals = getMatrixSubArray32(pseg.normalMapNormals!, fgs, fgsZ * offsetY, fgsZ * offsetX, fgsZ);

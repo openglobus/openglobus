@@ -12,11 +12,14 @@ export class Wgs84QuadTreeStrategy extends QuadTreeStrategy {
     }
 
     public override init() {
-
-        let wgs84QuadTree = new Node(SegmentLonLatWgs84, this.planet, quadTree.NW, null, 0, 0,
-            Extent.createFromArray([-180, -90, 180, 90])
-        );
-
-        this._quadTreeList.push(wgs84QuadTree);
+        this._quadTreeList = [
+            new Node(
+                SegmentLonLatWgs84,
+                this.planet,
+                0, null,
+                0,
+                Extent.createFromArray([-180, -90, 180, 90])
+            )
+        ];
     }
 }

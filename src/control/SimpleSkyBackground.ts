@@ -1,6 +1,7 @@
 import {Control, IControlParams} from "./Control";
-import {htmlColorToRgb} from "../utils/shared";
+import {htmlColorToRgb, rgbToStringHTML} from "../utils/shared";
 import {Program} from '../webgl/Program';
+import {NumberArray3} from "../math/Vec3";
 
 interface ISimpleSkyBackgroundParams extends IControlParams {
 
@@ -16,8 +17,20 @@ export class SimpleSkyBackground extends Control {
             ...options
         });
 
-        this._colorOne = new Float32Array([1.0, 1.0, 1.0]);
-        this._colorTwo = new Float32Array([0.0, 153.0 / 255.0, 221.0 / 255.0]);
+        this._colorOne = new Float32Array([128 / 255, 223 / 255, 255 / 255]);
+        this._colorTwo = new Float32Array([10 / 255, 15 / 255, 56 / 255]);
+    }
+
+    public get colorOne(): string {
+        let c = this._colorOne;
+        let arr: NumberArray3 = [Math.round(c[0] * 255), Math.round(c[1] * 255), Math.round(c[2] * 255)];
+        return rgbToStringHTML(arr);
+    }
+
+    public get colorTwo(): string {
+        let c = this._colorTwo;
+        let arr: NumberArray3 = [Math.round(c[0] * 255), Math.round(c[1] * 255), Math.round(c[2] * 255)];
+        return rgbToStringHTML(arr);
     }
 
     public set colorOne(htmlColor: string) {
