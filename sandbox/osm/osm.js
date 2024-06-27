@@ -4,7 +4,9 @@ import {
     XYZ,
     control,
     utils,
-    LonLat, GlobusTerrain,
+    LonLat,
+    GlobusTerrain,
+    GlobusRgbTerrain
 } from "../../lib/@openglobus/og.esm.js";
 
 
@@ -65,23 +67,14 @@ let osm = new XYZ("OpenStreetMap", {
     diffuse: [0.9, 0.9, 0.7], //textureFilter: "linear"
 });
 
-var highResTerrain = new RgbTerrain(null, {
-    maxNativeZoom: 6,
-    maxZoom: 17,
-    url: "https://{s}.terrain.openglobus.org/public/all/{z}/{x}/{y}.png",
-});
+// var highResTerrain = new RgbTerrain(null, {
+//     maxNativeZoom: 6,
+//     maxZoom: 17,
+//     url: "https://{s}.terrain.openglobus.org/public/all/{z}/{x}/{y}.png",
+// });
 
-let urlPref = {
-    20: "north",
-    300: "south"
-}
+var highResTerrain = new GlobusRgbTerrain();
 
-highResTerrain.setUrlRewriteCallback((tileX, tileY, tileZoom, tileGroup) => {
-
-    let g = urlPref[tileGroup];
-
-    if (g) return `https://terrain.openglobus.org/public/poles/${g}/${tileZoom}/${tileX}/${tileY}.png`;
-});
 
 const globus = new Globe({
     target: "earth",

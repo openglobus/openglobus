@@ -8,7 +8,7 @@ import {Segment} from "../segment/Segment";
 import {binarySearchFast, TypedArray} from "../utils/shared";
 import {IResponse} from "../utils/Loader";
 
-interface IRgbTerrainParams extends IGlobusTerrainParams {
+export interface IRgbTerrainParams extends IGlobusTerrainParams {
     equalizeNormals?: boolean;
     key?: string;
     imageSize?: number;
@@ -227,10 +227,6 @@ class RgbTerrain extends GlobusTerrain {
         });
 
         return outCurrenElevations;
-    }
-
-    public override isReadyToLoad(segment: Segment): boolean {
-        return this._extent.overlaps(segment.getExtentLonLat());
     }
 
     public override getHeightAsync(lonLat: LonLat, callback: (h: number) => void, zoom?: number): boolean {

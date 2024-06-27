@@ -97,7 +97,8 @@ import {
     EmptyTerrain,
     GlobusTerrain,
     RgbTerrain,
-    BilTerrain
+    BilTerrain,
+    GlobusRgbTerrain
 } from './terrain/index';
 
 export {
@@ -128,6 +129,7 @@ export {
     EmptyTerrain,
     GlobusTerrain,
     RgbTerrain,
+    GlobusRgbTerrain,
     BilTerrain,
     Control,
     Camera,
