@@ -145,7 +145,7 @@ class PolygonDrawingScene extends RenderNode {
     }
 
     public get geometryType(): string {
-        return "Polygon";
+        return "POLYGON";
     }
 
     public getCoordinates(): CoordinatesType[] {
@@ -189,7 +189,7 @@ class PolygonDrawingScene extends RenderNode {
     }
 
     protected _onChange = (e: PolygonDrawingScene) => {
-        if (e.geometryType === "Polygon") {
+        if (e.geometryType === "POLYGON") {
             let coords = this.getCoordinates();
             let entity = new Entity({
                 'geometry': {

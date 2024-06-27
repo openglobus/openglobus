@@ -7,6 +7,14 @@ import {NumberArray4, Vec4} from "../math/Vec4";
 import {NumberArray2} from "../math/Vec2";
 import {NumberArray3} from "../math/Vec3";
 
+export enum GeometryTypeEnum {
+    POINT = 1,
+    LINESTRING = 2,
+    POLYGON = 3,
+    MULTIPOLYGON = 4,
+    MULTILINESTRING = 5,
+}
+
 const GeometryType: Record<string, number> = {
     POINT: 1,
     LINESTRING: 2,
@@ -121,12 +129,20 @@ export type IGeometryCoordinates =
     ILineStringCoordinates |
     IMultiLineStringCoordinates;
 
-interface IGeometry {
-    type: string;
-    coordinates: IGeometryCoordinates;
+export type GeometryTypeToCoordinates = {
+    POINT: IPointCoordinates;
+    LINESTRING: ILineStringCoordinates;
+    POLYGON: IPolygonCoordinates;
+    MULTIPOLYGON: IMultiPolygonCoordinates;
+    MULTILINESTRING: IMultiLineStringCoordinates;
+};
+
+interface IGeometry<T extends keyof typeof GeometryTypeEnum = keyof typeof GeometryTypeEnum> {
+    type: T;
+    coordinates: GeometryTypeToCoordinates[T];
 }
 
-interface IGeometryStyle {
+export interface IGeometryStyle {
     fillColor?: string | NumberArray4 | Vec4;
     lineColor?: string | NumberArray4 | Vec4;
     strokeColor?: string | NumberArray4 | Vec4;
@@ -142,9 +158,9 @@ interface IGeometryStyleInternal {
     strokeWidth: number;
 }
 
-export interface IGeometryParams {
-    type?: string;
-    coordinates?: IGeometryCoordinates;
+export interface IGeometryParams<T extends keyof typeof GeometryTypeEnum = keyof typeof GeometryTypeEnum> {
+    type?: T;
+    coordinates?:  GeometryTypeToCoordinates[T];
     style?: IGeometryStyle;
     visibility?: boolean;
 }
@@ -185,7 +201,7 @@ class Geometry {
     public _lineIndexesHandlerIndex: number;
     public _lineThicknessHandlerIndex: number;
     public _lineColorsHandlerIndex: number;
-    protected _type: number;
+    protected _type: GeometryTypeEnum;
     public _coordinates: IGeometryCoordinates;
     protected _extent: Extent;
     public _style: IGeometryStyleInternal;
@@ -221,10 +237,10 @@ class Geometry {
         this._lineThicknessHandlerIndex = -1;
         this._lineColorsHandlerIndex = -1;
 
-        this._type = (options.type && Geometry.getType(options.type)) || GeometryType.POINT;
-        this._coordinates = [];
+        this._type = (options.type && Geometry.getType(options.type)) || GeometryTypeEnum.POINT;
+        this._coordinates = options.coordinates || [];
         this._extent = Geometry.getExtent({
-                type: options.type || "Point",
+                type: options.type || "POINT",
                 coordinates: options.coordinates || []
             },
             this._coordinates
@@ -254,7 +270,7 @@ class Geometry {
         return this._type;
     }
 
-    static getType(typeStr: string): number {
+    static getType(typeStr: keyof typeof GeometryTypeEnum): GeometryTypeEnum {
         return GeometryType[typeStr.toUpperCase()];
     }
 
@@ -269,7 +285,7 @@ class Geometry {
         let res = new Extent(new LonLat(180.0, 90.0), new LonLat(-180.0, -90.0));
         let t = Geometry.getType(geometryObj.type);
 
-        if (t === GeometryType.POINT) {
+        if (t === GeometryTypeEnum.POINT) {
             let lon: number = geometryObj.coordinates[0] as number,
                 lat: number = geometryObj.coordinates[1] as number;
             res.southWest.lon = lon;
@@ -277,7 +293,7 @@ class Geometry {
             res.northEast.lon = lon;
             res.northEast.lat = lat;
             outCoordinates && (outCoordinates[0] = lon) && (outCoordinates[1] = lat);
-        } else if (t === GeometryType.LINESTRING) {
+        } else if (t === GeometryTypeEnum.LINESTRING) {
             let c: ILineStringCoordinates = geometryObj.coordinates as ILineStringCoordinates;
             for (let i = 0; i < c.length; i++) {
                 let lon = c[i][0],
@@ -288,7 +304,7 @@ class Geometry {
                 if (lat > res.northEast.lat) res.northEast.lat = lat;
                 outCoordinates && ((outCoordinates as ILineStringCoordinates)[i] = [lon, lat]);
             }
-        } else if (t === GeometryType.POLYGON) {
+        } else if (t === GeometryTypeEnum.POLYGON) {
             let c: IPolygonCoordinates = geometryObj.coordinates as IPolygonCoordinates;
             for (let i = 0; i < c.length; i++) {
                 let ci: CoordinatesType[] = c[i];
@@ -304,7 +320,7 @@ class Geometry {
                     outCoordinates && ((outCoordinates as IPolygonCoordinates)[i][j] = [lon, lat]);
                 }
             }
-        } else if (t === GeometryType.MULTIPOLYGON) {
+        } else if (t === GeometryTypeEnum.MULTIPOLYGON) {
             let p = geometryObj.coordinates;
             for (let i = 0; i < p.length; i++) {
                 let pi: IPolygonCoordinates = p[i] as IPolygonCoordinates;
@@ -324,7 +340,7 @@ class Geometry {
                     }
                 }
             }
-        } else if (t === GeometryType.MULTILINESTRING) {
+        } else if (t === GeometryTypeEnum.MULTILINESTRING) {
             let c = geometryObj.coordinates;
             for (let i = 0; i < c.length; i++) {
                 let ci: ILineStringCoordinates = c[i] as ILineStringCoordinates;
@@ -483,4 +499,4 @@ class Geometry {
     }
 }
 
-export {Geometry, GeometryType};
+export {Geometry};

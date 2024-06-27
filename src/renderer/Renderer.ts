@@ -1421,6 +1421,7 @@ class Renderer {
 
         this._entityCollections = [];
 
+        this.handler.ONCANVASRESIZE = null;
         this.handler.destroy();
 
         // @ts-ignore

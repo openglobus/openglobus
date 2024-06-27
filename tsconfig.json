@@ -14,6 +14,7 @@
     "strictNullChecks" : true,
     "allowJs" : true,
     "target" : "es2021",
+    "declaration" : true,
     "module" : "ESNext",
     "esModuleInterop" : true,
     "forceConsistentCasingInFileNames" : true,

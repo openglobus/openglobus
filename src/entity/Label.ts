@@ -9,6 +9,7 @@ export interface ILabelParams extends IBaseBillboardParams {
     text?: string;
     face?: string;
     size?: number;
+    opacity?: number;
     outline?: number;
     outlineColor?: string | NumberArray4 | Vec4;
     align?: string;
@@ -151,6 +152,17 @@ class Label extends BaseBillboard {
         this._text = text.toString();
         if (this._isReady && this._handler) {
             this._handler.setText(this._handlerIndex, text, this._fontIndex, this._align, this._isRTL);
+        }
+    }
+    /**
+     * Change text direction.
+     * @public
+     * @param {boolean} isRTL - Text string.
+     */
+    public setRtl(isRTL: boolean) {
+        this._isRTL = isRTL;
+        if (this._isReady && this._handler) {
+            this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align, this._isRTL);
         }
     }
 

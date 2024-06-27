@@ -6,6 +6,7 @@ import {Planet} from "../scene/Planet";
 import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 import {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
+import {Object3d} from "../Object3d";
 
 const VERTEX_BUFFER = 0;
 const POSITION_BUFFER = 1;
@@ -47,6 +48,7 @@ class InstanceData {
 
     public _texture: WebGLTextureExt | null;
     public _textureSrc: string | null;
+    public _objectSrc?: string ;
 
     public _pitchRollArr: number[] | TypedArray;
     public _sizeArr: number[] | TypedArray;
@@ -419,6 +421,60 @@ class GeoObjectHandler {
         this.update();
     }
 
+    public setTextureTag(src: string, tag: string) {
+        const tagData = this._instanceDataMap.get(tag);
+        if (tagData) {
+            tagData._textureSrc = src;
+
+            this._instanceDataMap.set(tag, tagData);
+            this._loadDataTagTexture(tagData);
+        }
+    }
+
+    public setObjectSrc(src: string, tag: string) {
+        const tagData = this._instanceDataMap.get(tag);
+        if (src) {
+            if (tagData && tagData._objectSrc !== src) {
+                tagData._objectSrc = src;
+
+                Object3d.loadObj(src).then((object3d) => {
+                    this._updateInstanceData(object3d[0], tag);
+                })
+            }
+        }
+    }
+
+    public _updateInstanceData(object: Object3d, tag: string) {
+        const tagData = this._instanceDataMap.get(tag);
+        if (tagData) {
+            if (object.vertices.length !== tagData._vertexArr.length) {
+                tagData._vertexArr = object.vertices;
+                tagData._changedBuffers[VERTEX_BUFFER] = true;
+                tagData._changedBuffers[DIRECTION_BUFFER] = true;
+            }
+            if (object.normals.length !== tagData._normalsArr.length) {
+                tagData._normalsArr = object.normals;
+                tagData._changedBuffers[NORMALS_BUFFER] = true;
+            }
+            if (object.indices.length !== tagData._indicesArr.length) {
+                tagData._indicesArr = object.indices;
+                tagData._changedBuffers[INDEX_BUFFER] = true;
+            }
+            if (object.texCoords.length !== tagData._texCoordArr.length) {
+                tagData._texCoordArr = object.texCoords;
+                tagData._changedBuffers[TEXCOORD_BUFFER] = true;
+            }
+
+            tagData._textureSrc = object.src;
+
+            this._loadDataTagTexture(tagData);
+
+            this._updateTag(tagData);
+            this._instanceDataMapValues = Array.from(this._instanceDataMap.values());
+        }
+
+    }
+
     protected _addGeoObjectToArray(geoObject: GeoObject) {
         const tag = geoObject.tag;
 
@@ -700,6 +756,7 @@ class GeoObjectHandler {
     }
 
     public update() {
+
         for (let i = 0, len = this._dataTagUpdateQueue.length; i < len; i++) {
             this._dataTagUpdateQueue[i].update();
         }
@@ -754,6 +811,7 @@ class GeoObjectHandler {
             geoObject._tagData!.refresh();
 
             this._updateTag(geoObject._tagData!);
+            geoObject.setObjectSrc(geoObject._objectSrc!);
         }
     }
 

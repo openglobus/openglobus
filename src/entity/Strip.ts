@@ -180,6 +180,24 @@ class Strip {
         this._deleteBuffers();
     }
 
+    /**
+     * Sets RGBA color. Each channel from 0.0 to 1.0.
+     * @public
+     * @param {Vec4} color - RGBA vector.
+     */
+    public setColor4v(color: Vec4) {
+        this.setColor(color.x, color.y, color.z, color.w);
+    }
+
+    /**
+     * Sets strip color.
+     * @public
+     * @param {string} color - HTML style color.
+     */
+    public setColorHTML(color: string) {
+        this.setColor4v(utils.htmlColorToRgba(color));
+    }
+
     public setColor(r: number, g: number, b: number, a?: number) {
         a = a || this.color[3];
         this.color[0] = r;

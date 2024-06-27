@@ -10,12 +10,11 @@ import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 import {
     CoordinatesType,
-    GeometryType,
     Geometry,
     IMultiLineStringCoordinates,
     ILineStringCoordinates,
     IMultiPolygonCoordinates,
-    IPolygonCoordinates
+    IPolygonCoordinates, GeometryTypeEnum
 } from "./Geometry";
 
 import {earcut, flatten} from "../utils/earcut";
@@ -452,7 +451,7 @@ class GeometryHandler {
             geometry._lineVerticesLowMerc = [];
 
             if ((geometry._coordinates as IPolygonCoordinates)[0].length) {
-                if (geometry.type === GeometryType.POLYGON) {
+                if (geometry.type === GeometryTypeEnum.POLYGON) {
                     let coordinates = geometry._coordinates as IPolygonCoordinates;
                     let ci: IPolygonCoordinates = [];
                     for (let j = 0; j < coordinates.length; j++) {
@@ -531,7 +530,7 @@ class GeometryHandler {
                     geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
                     geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex;
 
-                } else if (geometry.type === GeometryType.MULTIPOLYGON) {
+                } else if (geometry.type === GeometryTypeEnum.MULTIPOLYGON) {
 
                     let coordinates = geometry._coordinates as IMultiPolygonCoordinates;
                     let vertices: number[] = [],
@@ -627,7 +626,7 @@ class GeometryHandler {
                     geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
                     geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex;
 
-                } else if (geometry.type === GeometryType.LINESTRING) {
+                } else if (geometry.type === GeometryTypeEnum.LINESTRING) {
 
                     let coordinates: ILineStringCoordinates = geometry._coordinates as ILineStringCoordinates;
                     let ci = new Array(coordinates.length);
@@ -669,7 +668,7 @@ class GeometryHandler {
                     geometry._lineColorsLength = this._lineColors.length - geometry._lineColorsHandlerIndex;
                     geometry._lineThicknessLength = this._lineThickness.length - geometry._lineThicknessHandlerIndex;
 
-                } else if (geometry.type === GeometryType.MULTILINESTRING) {
+                } else if (geometry.type === GeometryTypeEnum.MULTILINESTRING) {
 
                     let coordinates = geometry._coordinates as IMultiLineStringCoordinates;
                     let ci: IMultiLineStringCoordinates = [];

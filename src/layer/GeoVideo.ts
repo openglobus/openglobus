@@ -1,7 +1,7 @@
 import {BaseGeoImage, IBaseGeoImageParams} from "./BaseGeoImage";
 import {Material} from "./Material";
 
-interface IGeoVideoParams extends IBaseGeoImageParams {
+export interface IGeoVideoParams extends IBaseGeoImageParams {
     videoElement?: HTMLVideoElement;
     src?: string;
 }
