@@ -9,7 +9,7 @@ import * as terrain from './terrain/index';
 import * as layer from './layer/index';
 import * as webgl from './webgl/index';
 
-import {Globe} from './Globe';
+export * from './Globe';
 
 import {Geoid} from './terrain/Geoid';
 
@@ -69,31 +69,9 @@ import {
     Control
 } from './control/Control';
 
-import {
-    Entity,
-    EntityCollection,
-    Billboard,
-    Geometry,
-    Label,
-    PointCloud,
-    Polyline,
-    GeoObject
-} from './entity/index';
+export * from './entity/index';
 
-import {
-    Layer,
-    Vector,
-    XYZ,
-    CanvasTiles,
-    WMS,
-    GeoImage,
-    GeoVideo,
-    GeoTexture2d,
-    KML,
-    Material,
-    OpenStreetMap,
-    Bing
-} from './layer/index';
+export *  from './layer/index';
 
 import {
     EmptyTerrain,
@@ -118,18 +96,6 @@ export {
     layer,
     webgl,
     Framebuffer,
-    Material,
-    KML,
-    Layer,
-    XYZ,
-    OpenStreetMap,
-    Bing,
-    Vector,
-    CanvasTiles,
-    WMS,
-    GeoImage,
-    GeoVideo,
-    GeoTexture2d,
     EmptyTerrain,
     GlobusTerrain,
     RgbTerrain,
@@ -140,17 +106,9 @@ export {
     Ellipsoid,
     Planet,
     PlanetCamera,
-    Globe,
     LightSource,
-    Entity,
-    EntityCollection,
-    Billboard,
-    Geometry,
-    Label,
-    PointCloud,
-    Polyline,
+
     Program,
-    GeoObject,
     Handler,
     Multisample,
     Renderer,

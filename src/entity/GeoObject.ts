@@ -1,14 +1,15 @@
 import * as utils from "../utils/shared";
 import {Entity} from "./Entity";
 import {Quat, Vec3, Vec4} from "../math/index";
-import {InstanceData} from "./GeoObjectHandler";
+import {GeoObjectHandler, InstanceData} from "./GeoObjectHandler";
 import {NumberArray3} from "../math/Vec3";
 import {NumberArray4} from "../math/Vec4";
 import {Object3d} from "../Object3d";
-import {GeoObjectHandler} from "./GeoObjectHandler";
 
 export interface IGeoObjectParams {
-    object3d: Object3d;
+    object3d?: Object3d;
+    objSrc?: string;
+    textureSrc?: string;
     tag?: string;
     position?: Vec3 | NumberArray3;
     pitch?: number;
@@ -16,6 +17,7 @@ export interface IGeoObjectParams {
     roll?: number;
     scale?: number | Vec3;
     color?: Vec4 | NumberArray4 | string;
+    visibility?: boolean;
 }
 
 /**
@@ -73,6 +75,8 @@ class GeoObject {
     protected _visibility: boolean;
 
     protected _qNorthFrame: Quat;
+    private _textureSrc?: string;
+    public _objectSrc?: string;
 
     constructor(options: IGeoObjectParams) {
 
@@ -103,10 +107,19 @@ class GeoObject {
 
         this._tagData = null;
         this._tagDataIndex = -1;
-
-        this._object3d = options.object3d;
-
-        this._visibility = true;
+        let object3d = options.object3d;
+        if ((!options.object3d || options.object3d?.vertices.length === 0)) {
+            object3d = new Object3d();
+        }
+        if (options.objSrc) {
+            this.setObjectSrc(options.objSrc)
+            this._objectSrc = options.objSrc;
+        }
+        this._object3d = object3d as Object3d;
+        if (options.textureSrc) {
+            this.setTextureSrc(options.textureSrc)
+        }
+        this._visibility = (options.visibility != undefined ? options.visibility : true);
 
         this._qNorthFrame = new Quat();
     }
@@ -247,6 +260,25 @@ class GeoObject {
     public setYaw(yaw: number) {
         this._yaw = yaw;
         this.updateDirection();
+    }
+
+    public setObject(object: Object3d) {
+        this._object3d = object;
+    }
+
+    public setObjectSrc(src: string) {
+        this._objectSrc = src;
+        this._handler && this._handler.setObjectSrc(src, this.tag);
+    }
+
+    public setTextureSrc(src: string) {
+        this._textureSrc = src;
+        this._object3d && (this._object3d.src = src);
+        this._handler && this._handler.setTextureTag(src, this.tag);
+    }
+
+    public setColorHTML(color: string) {
+        this.setColor4v(utils.htmlColorToRgba(color));
     }
 
     /**

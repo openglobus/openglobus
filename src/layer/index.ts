@@ -1,14 +1,12 @@
-import {CanvasTiles} from './CanvasTiles';
-import {GeoImage} from './GeoImage';
-import {GeoTexture2d} from './GeoTexture2d';
-import {GeoVideo} from './GeoVideo';
-import {KML} from './KML';
-import {Layer} from './Layer';
-import {Vector} from './Vector';
-import {WMS} from './WMS';
-import {XYZ} from './XYZ';
-import {Material} from './Material';
-import {OpenStreetMap} from './OpenStreetMap';
-import {Bing} from './Bing';
-
-export {CanvasTiles, GeoImage, GeoTexture2d, GeoVideo, KML, Layer, Vector, WMS, XYZ, Material, OpenStreetMap, Bing};
+export * from './CanvasTiles';
+export * from './GeoImage';
+export * from './GeoTexture2d';
+export * from './GeoVideo';
+export * from './KML';
+export * from './Layer';
+export * from './Vector';
+export * from './WMS';
+export * from './XYZ';
+export * from './Material';
+export * from './OpenStreetMap';
+export * from './Bing';

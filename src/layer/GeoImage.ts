@@ -3,7 +3,7 @@ import {BaseGeoImage, IBaseGeoImageParams} from "./BaseGeoImage";
 import {isImageLoaded} from "../utils/shared";
 import {Material} from "./Material";
 
-interface IGeoImageParams extends IBaseGeoImageParams {
+export interface IGeoImageParams extends IBaseGeoImageParams {
     image?: HTMLImageElement | HTMLCanvasElement | ImageBitmap;
     src?: string;
 }
