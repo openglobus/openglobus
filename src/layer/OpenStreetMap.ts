@@ -4,7 +4,7 @@ export class OpenStreetMap extends XYZ {
     constructor(name: string | null, options: IXYZParams = {}) {
         super(name || "OpenStreetMap", {
             iconSrc: "https://tile.openstreetmap.org/8/138/95.png",
-            url: "http://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             attribution: 'Data @ OpenStreetMap contributors, ODbL',
             isBaseLayer: true,
             maxNativeZoom: 19,
