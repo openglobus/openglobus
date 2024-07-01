@@ -364,6 +364,8 @@ class Globe {
 
     public destroy() {
         this.detach();
+        this.planet.layers.forEach(l=> l.remove())
+        this.planet.destroy()
         this.renderer.destroy();
     }
 }
