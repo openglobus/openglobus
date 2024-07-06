@@ -17,7 +17,7 @@ const TEMPLATE =
          <div class="og-option og-atmosphere-opacity">
          </div>
                   
-        <div class="og-lighting-emptyline"></div>
+        <div class="og-emptyline"></div>
        
     </div>`;
 

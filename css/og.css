@@ -620,6 +620,7 @@ input {
     position: relative;
 }
 
+.og-emptyline,
 .og-lighing .og-lighting-emptyline {
     width: 100%;
     padding: 3px;
@@ -715,6 +716,18 @@ input {
     right: 50%;
     position: absolute;
     pointer-events: none;
+}
+
+
+/*
+==========================
+    Atmosphere Config
+==========================
+ */
+.og-atmosphere_button {
+    position: absolute;
+    left: 60px;
+    top: 65px;
 }
 
 /*
