@@ -8,6 +8,7 @@ import {NumberArray2, Vec2} from "../math/Vec2";
 import {ProgramController} from "./ProgramController";
 import {Program} from "./Program";
 import {Stack} from "../Stack";
+import {throttle} from "../utils/shared";
 
 export type WebGLContextExt = { type: string } & WebGL2RenderingContext;
 export type WebGLBufferExt = { numItems: number; itemSize: number } & WebGLBuffer;
@@ -62,6 +63,8 @@ const MAX_LEVELS = 2;
  * @param {Array.<string>} [params.extensions] - Additional WebGL extension list. Available by default: EXT_texture_filter_anisotropic.
  */
 class Handler {
+
+    protected _throttledDrawFrame: () => void
 
     /**
      * Events.
@@ -193,6 +196,8 @@ class Handler {
 
         this.events = createEvents<["visibilitychange", "resize"]>(["visibilitychange", "resize"]);
 
+        this._throttledDrawFrame = this.drawFrame;
+        
         this.defaultClock = new Clock();
 
         this._clocks = [];
@@ -257,6 +262,14 @@ class Handler {
 
         if (params.autoActivate || isEmpty(params.autoActivate)) {
             this.initialize();
+        }
+    }
+
+    public set frameDelay(delay: number) {
+        if (delay === 0) {
+            this._throttledDrawFrame = this.drawFrame;
+        } else {
+            this._throttledDrawFrame = throttle(this.drawFrame, delay);
         }
     }
 
@@ -1137,7 +1150,7 @@ class Handler {
      * Draw single frame.
      * @public
      */
-    public drawFrame() {
+    public drawFrame = () => {
         /** Calculating frame time */
         let now = window.performance.now();
         this.deltaTime = now - this._lastAnimationFrameTime;
@@ -1210,7 +1223,7 @@ class Handler {
      */
     protected _animationFrameCallback() {
         this._requestAnimationFrameId = window.requestAnimationFrame(() => {
-            this.drawFrame();
+            this._throttledDrawFrame();
             this._requestAnimationFrameId && this._animationFrameCallback();
         });
     }
