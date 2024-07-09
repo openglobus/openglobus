@@ -40,7 +40,7 @@ const ATMOSPHERE_SVG_ICON = `<?xml version="1.0" encoding="utf-8"?><!-- Uploaded
 
 
 const TEMPLATE =
-    `<div class="og-lighing">
+    `<div class="og-lighing og-options-container">
 
          <div class="og-option">
            <div class="og-suncontrol"></div>

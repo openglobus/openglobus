@@ -140,19 +140,33 @@ input {
     visibility: hidden !important;
 }
 
-/*.og-dialog {
-    position: absolute;
-    right: 52px;
-    width: 13em;
-    border-radius: 4px;
-    box-shadow: 3px 3px 4px rgba(15, 15, 15, 0.17);
-    background-color: rgba(64, 59, 59, 0.85);
-    z-index: 25000;
-    padding: 0;
-    margin: 0;
-    font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
-    overflow: hidden;
-}*/
+.og-options-container {
+    position: relative;
+    padding: 12px;
+    height: calc(100% - 30px);
+    color: #b6b6b6;
+}
+
+.og-option {
+    width: 100%;
+    position: relative;
+    display: inline-block;
+    flex-direction: row;
+    padding-bottom: 7px;
+    text-overflow: ellipsis;
+    align-items: center;
+    justify-content: left;
+}
+
+.og-option .og-slider {
+    width: 100%;
+}
+
+.og-option .og-slider .og-slider-label,
+.og-option .og-color-label {
+    width: 100px;
+    font-size: 12px;
+}
 
 .og-ddialog {
     position: absolute;
@@ -626,17 +640,6 @@ input {
     padding: 3px;
 }
 
-.og-lighing .og-option {
-    width: 100%;
-    position: relative;
-    display: inline-block;
-    flex-direction: row;
-    padding-bottom: 7px;
-    text-overflow: ellipsis;
-    align-items: center;
-    justify-content: left;
-}
-
 .og-lighing .og-slider {
     width: 100%;
 }
@@ -726,8 +729,8 @@ input {
  */
 .og-atmosphere_button {
     position: absolute;
-    left: 60px;
-    top: 65px;
+    left: 10px;
+    top: 230px;
 }
 
 /*

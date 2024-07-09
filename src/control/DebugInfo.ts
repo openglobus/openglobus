@@ -324,9 +324,10 @@ export class DebugInfo extends Control {
     }
 
     protected _frame() {
-        for (let i = 0; i < this._watch.length; i++) {
-            let w = this._watch[i];
-            w.valEl!.innerHTML = w.frame ? String(w.frame()) : "";
-        }
+        this._watch.forEach((w) => {
+            if (w.valEl) {
+                w.valEl.innerHTML = w.frame ? String(w.frame()) : "";
+            }
+        });
     }
 }

@@ -11,13 +11,39 @@ interface IAtmosphereConfigParams extends IControlParams {
 
 }
 
+// const float mieScatteringCoefficient = 3.996e-06;
+// const float mieExtinctionCoefficient = 4.440e-06;
+// const vec3 ozoneAbsorptionCoefficient = vec3(0.650, 1.881, 0.085) * 1e-6;
+//
+// const float SUN_ANGULAR_RADIUS = 0.004685;
+// const float SUN_INTENSITY = 1.0;
+//earthAlbedo
+
 const TEMPLATE =
-    `<div class="og-atmosphere">
+    `<div class="og-atmosphere og-options-container">
          
-         <div class="og-option og-atmosphere-opacity">
+         <div class="og-option og-atmosphere-maxOpacity">
          </div>
+         
+         <div class="og-option og-atmosphere-minOpacity">
+         </div>
+         
+         <div class="og-emptyline"></div>
+         
+         <div class="og-option og-atmosphere-rayleight">
+         </div>
+         
+         <div class="og-option og-atmosphere-mie">
+         </div>
+         
+         <div class="og-emptyline"></div>
                   
-        <div class="og-emptyline"></div>
+         <div class="og-option og-atmosphere-height">
+         </div>
+         
+         <div class="og-option og-atmosphere-planetRadius">
+         </div>
+       
        
     </div>`;
 
@@ -32,8 +58,29 @@ export class AtmosphereConfig extends Control {
     protected _dialog: Dialog<null>;
     protected _panel: View<null>;
 
+    public $maxOpacity: HTMLElement | null;
+    public $minOpacity: HTMLElement | null;
+    public $rayleight: HTMLElement | null;
+    public $mie: HTMLElement | null;
+    public $height: HTMLElement | null;
+    public $planetRadius: HTMLElement | null;
+
+    protected _maxOpacity: Slider;
+    protected _minOpacity: Slider;
+    protected _rayleight: Slider;
+    protected _mie: Slider;
+    protected _height: Slider;
+    protected _planetRadius: Slider;
+
     constructor(options: IAtmosphereConfigParams = {}) {
         super(options);
+
+        this.$maxOpacity = null;
+        this.$minOpacity = null;
+        this.$rayleight = null;
+        this.$mie = null;
+        this.$height = null;
+        this.$planetRadius = null;
 
         this._toggleBtn = new ToggleButton({
             classList: ["og-map-button", "og-atmosphere_button"],
@@ -56,6 +103,36 @@ export class AtmosphereConfig extends Control {
         this._panel = new View({
             template: TEMPLATE
         });
+
+        this._maxOpacity = new Slider({
+            label: "Max.opacity",
+            max: 5
+        });
+
+        this._minOpacity = new Slider({
+            label: "Min.opacity",
+            max: 5
+        });
+
+        this._rayleight = new Slider({
+            label: "Rayleight Scale",
+            max: 2.0
+        });
+
+        this._mie = new Slider({
+            label: "Mie Scale",
+            max: 2.0
+        });
+
+        this._height = new Slider({
+            label: "Height",
+            max: 10000000.0
+        });
+
+        this._planetRadius = new Slider({
+            label: "Planet Radius",
+            max: 5 * 6356752.3142451793
+        });
     }
 
     public override oninit() {
@@ -64,12 +141,56 @@ export class AtmosphereConfig extends Control {
         this._dialog.appendTo(this.renderer!.div!);
         this._panel.appendTo(this._dialog.container!);
 
+        if (this._panel.el) {
+            this.$height = this._panel.el.querySelector(".og-option.og-atmosphere-height");
+            this.$maxOpacity = this._panel.el.querySelector(".og-option.og-atmosphere-maxOpacity");
+            this.$minOpacity = this._panel.el.querySelector(".og-option.og-atmosphere-minOpacity");
+            this.$rayleight = this._panel.el.querySelector(".og-option.og-atmosphere-rayleight");
+            this.$mie = this._panel.el.querySelector(".og-option.og-atmosphere-mie");
+            this.$planetRadius= this._panel.el.querySelector(".og-option.og-atmosphere-planetRadius");
+        }
+
         this._toggleBtn.events.on("change", (isActive: boolean) => {
             this._dialog.setVisibility(isActive);
+        });
+
+        this._maxOpacity.appendTo(this.$maxOpacity!);
+        this._minOpacity.appendTo(this.$minOpacity!);
+        this._height.appendTo(this.$height!);
+        this._rayleight.appendTo(this.$rayleight!);
+        this._mie.appendTo(this.$mie!);
+        this._planetRadius.appendTo(this.$planetRadius!);
+
+        this._minOpacity.value = this.planet!.atmosphereMinOpacity;
+        this._minOpacity.events.on("change", (val: number) => {
+            this.planet!.atmosphereMinOpacity = val;
+        });
+
+        this._maxOpacity.value = this.planet!.atmosphereMaxOpacity;
+        this._maxOpacity.events.on("change", (val: number) => {
+            this.planet!.atmosphereMaxOpacity = val;
+            //let atmos = this.planet!.renderer!.controls.Atmosphere as Atmosphere;
+            //atmos.opacity = val;
+        });
+
+        this._rayleight.events.on("change", (val: number) => {
+            this._update();
+        });
+
+        this._mie.events.on("change", (val: number) => {
+            this._update();
+        });
+
+        this._height.events.on("change", (val: number) => {
+            this._update();
+        });
+
+        this._planetRadius.events.on("change", (val: number) => {
+            this._update();
         });
     }
 
     protected _update() {
-
+        console.log("update");
     }
 }
