@@ -6,6 +6,7 @@ import {ToggleButton} from "../ui/ToggleButton";
 import {View} from '../ui/View';
 import {Atmosphere} from "./Atmosphere";
 import {Color} from "../ui/Color";
+import {AtmosphereParameters} from "../shaders/atmos";
 
 interface IAtmosphereConfigParams extends IControlParams {
 
@@ -31,6 +32,12 @@ const TEMPLATE =
          
          <div class="og-option og-atmosphere-mieScatteringCoefficient"></div>  
          <div class="og-option og-atmosphere-mieExtinctionCoefficient"></div>
+         
+       <div class="og-emptyline-2"></div>
+         
+         <div class="og-option og-atmosphere-rayleighScatteringCoefficientA"></div>    
+         <div class="og-option og-atmosphere-rayleighScatteringCoefficientB"></div>    
+         <div class="og-option og-atmosphere-rayleighScatteringCoefficientC"></div>
          
        <div class="og-emptyline-2"></div>
          
@@ -65,6 +72,9 @@ export class AtmosphereConfig extends Control {
     public $bottomRadius: HTMLElement | null;
     public $mieScatteringCoefficient: HTMLElement | null;
     public $mieExtinctionCoefficient: HTMLElement | null;
+    public $rayleighScatteringCoefficientA: HTMLElement | null;
+    public $rayleighScatteringCoefficientB: HTMLElement | null;
+    public $rayleighScatteringCoefficientC: HTMLElement | null;
     public $ozoneAbsorptionCoefficientA: HTMLElement | null;
     public $ozoneAbsorptionCoefficientB: HTMLElement | null;
     public $ozoneAbsorptionCoefficientC: HTMLElement | null;
@@ -80,12 +90,17 @@ export class AtmosphereConfig extends Control {
     protected _bottomRadius: Slider;
     protected _mieScatteringCoefficient: Slider;
     protected _mieExtinctionCoefficient: Slider;
+    protected _rayleighScatteringCoefficientA: Slider;
+    protected _rayleighScatteringCoefficientB: Slider;
+    protected _rayleighScatteringCoefficientC: Slider;
     protected _ozoneAbsorptionCoefficientA: Slider;
     protected _ozoneAbsorptionCoefficientB: Slider;
     protected _ozoneAbsorptionCoefficientC: Slider;
     protected _sunAngularRadius: Slider;
     protected _sunIntensity: Slider;
     protected _groundAlbedo: Slider;
+
+    protected _parameters: AtmosphereParameters;
 
     constructor(options: IAtmosphereConfigParams = {}) {
         super(options);
@@ -98,6 +113,9 @@ export class AtmosphereConfig extends Control {
         this.$bottomRadius = null;
         this.$mieScatteringCoefficient = null;
         this.$mieExtinctionCoefficient = null;
+        this.$rayleighScatteringCoefficientA = null;
+        this.$rayleighScatteringCoefficientB = null;
+        this.$rayleighScatteringCoefficientC = null;
         this.$ozoneAbsorptionCoefficientA = null;
         this.$ozoneAbsorptionCoefficientB = null;
         this.$ozoneAbsorptionCoefficientC = null;
@@ -168,6 +186,21 @@ export class AtmosphereConfig extends Control {
             max: 10 * 4.440
         });
 
+        this._rayleighScatteringCoefficientA = new Slider({
+            label: "Rayleight Scattering Coef A.e-6",
+            max: 10 * 0.650
+        });
+
+        this._rayleighScatteringCoefficientB = new Slider({
+            label: "Rayleight Scattering Coef B.e-6",
+            max: 10 * 1.881
+        });
+
+        this._rayleighScatteringCoefficientC = new Slider({
+            label: "Rayleight Scattering Coef C.e-6",
+            max: 10 * 0.085
+        });
+
         this._ozoneAbsorptionCoefficientA = new Slider({
             label: "Ozone absorbtion Coef A.e-6",
             max: 10 * 0.650
@@ -197,6 +230,20 @@ export class AtmosphereConfig extends Control {
             label: "Earth Albedo",
             max: 10 * 0.05
         });
+
+        this._parameters = {
+            ATMOS_HEIGHT: 0,
+            RAYLEIGH_SCALE: 0,
+            MIE_SCALE: 0,
+            GROUND_ALBEDO: 0,
+            BOTTOM_RADIUS: 0,
+            rayleighScatteringCoefficient: [0, 0, 0],
+            mieScatteringCoefficient: 0,
+            mieExtinctionCoefficient: 0,
+            ozoneAbsorptionCoefficient: [0, 0, 0],
+            SUN_ANGULAR_RADIUS: 0,
+            SUN_INTENSITY: 0,
+        }
     }
 
     public override oninit() {
@@ -214,6 +261,9 @@ export class AtmosphereConfig extends Control {
             this.$bottomRadius = this._panel.el.querySelector(".og-option.og-atmosphere-bottomRadius");
             this.$mieScatteringCoefficient = this._panel.el.querySelector(".og-option.og-atmosphere-mieScatteringCoefficient");
             this.$mieExtinctionCoefficient = this._panel.el.querySelector(".og-option.og-atmosphere-mieExtinctionCoefficient");
+            this.$rayleighScatteringCoefficientA = this._panel.el.querySelector(".og-option.og-atmosphere-rayleighScatteringCoefficientA");
+            this.$rayleighScatteringCoefficientB = this._panel.el.querySelector(".og-option.og-atmosphere-rayleighScatteringCoefficientB");
+            this.$rayleighScatteringCoefficientC = this._panel.el.querySelector(".og-option.og-atmosphere-rayleighScatteringCoefficientC");
             this.$ozoneAbsorptionCoefficientA = this._panel.el.querySelector(".og-option.og-atmosphere-ozoneAbsorptionCoefficientA");
             this.$ozoneAbsorptionCoefficientB = this._panel.el.querySelector(".og-option.og-atmosphere-ozoneAbsorptionCoefficientB");
             this.$ozoneAbsorptionCoefficientC = this._panel.el.querySelector(".og-option.og-atmosphere-ozoneAbsorptionCoefficientC");
@@ -234,6 +284,9 @@ export class AtmosphereConfig extends Control {
         this._bottomRadius.appendTo(this.$bottomRadius!);
         this._mieScatteringCoefficient.appendTo(this.$mieScatteringCoefficient!);
         this._mieExtinctionCoefficient.appendTo(this.$mieExtinctionCoefficient!);
+        this._rayleighScatteringCoefficientA.appendTo(this.$rayleighScatteringCoefficientA!);
+        this._rayleighScatteringCoefficientB.appendTo(this.$rayleighScatteringCoefficientB!);
+        this._rayleighScatteringCoefficientC.appendTo(this.$rayleighScatteringCoefficientC!);
         this._ozoneAbsorptionCoefficientA.appendTo(this.$ozoneAbsorptionCoefficientA!);
         this._ozoneAbsorptionCoefficientB.appendTo(this.$ozoneAbsorptionCoefficientB!);
         this._ozoneAbsorptionCoefficientC.appendTo(this.$ozoneAbsorptionCoefficientC!);
@@ -251,6 +304,9 @@ export class AtmosphereConfig extends Control {
             this._bottomRadius.value = atmosParams.BOTTOM_RADIUS;
             this._mieScatteringCoefficient.value = atmosParams.mieScatteringCoefficient;
             this._mieExtinctionCoefficient.value = atmosParams.mieExtinctionCoefficient;
+            this._rayleighScatteringCoefficientA.value = atmosParams.rayleighScatteringCoefficient[0];
+            this._rayleighScatteringCoefficientB.value = atmosParams.rayleighScatteringCoefficient[1];
+            this._rayleighScatteringCoefficientC.value = atmosParams.rayleighScatteringCoefficient[2];
             this._ozoneAbsorptionCoefficientA.value = atmosParams.ozoneAbsorptionCoefficient[0];
             this._ozoneAbsorptionCoefficientB.value = atmosParams.ozoneAbsorptionCoefficient[1];
             this._ozoneAbsorptionCoefficientC.value = atmosParams.ozoneAbsorptionCoefficient[2];
@@ -273,61 +329,84 @@ export class AtmosphereConfig extends Control {
         });
 
         this._rayleight.events.on("change", (val: number) => {
+            this._parameters.RAYLEIGH_SCALE = val;
             this._update();
         });
 
         this._mie.events.on("change", (val: number) => {
+            this._parameters.MIE_SCALE = val;
             this._update();
         });
 
         this._height.events.on("change", (val: number) => {
+            this._parameters.ATMOS_HEIGHT = val;
             this._update();
         });
 
         this._bottomRadius.events.on("change", (val: number) => {
+            this._parameters.BOTTOM_RADIUS = val;
             this._update();
         });
 
         this._mieScatteringCoefficient.events.on("change", (val: number) => {
+            this._parameters.mieScatteringCoefficient = val;
             this._update();
         });
 
         this._mieExtinctionCoefficient.events.on("change", (val: number) => {
+            this._parameters.mieExtinctionCoefficient = val;
+            this._update();
+        });
+
+        this._rayleighScatteringCoefficientA.events.on("change", (val: number) => {
+            this._parameters.rayleighScatteringCoefficient[0] = val;
+            this._update();
+        });
+
+        this._rayleighScatteringCoefficientB.events.on("change", (val: number) => {
+            this._parameters.rayleighScatteringCoefficient[1] = val;
+            this._update();
+        });
+
+        this._rayleighScatteringCoefficientC.events.on("change", (val: number) => {
+            this._parameters.rayleighScatteringCoefficient[2] = val;
             this._update();
         });
 
         this._ozoneAbsorptionCoefficientA.events.on("change", (val: number) => {
+            this._parameters.ozoneAbsorptionCoefficient[0] = val;
             this._update();
         });
 
         this._ozoneAbsorptionCoefficientB.events.on("change", (val: number) => {
+            this._parameters.ozoneAbsorptionCoefficient[1] = val;
             this._update();
         });
 
         this._ozoneAbsorptionCoefficientC.events.on("change", (val: number) => {
+            this._parameters.ozoneAbsorptionCoefficient[2] = val;
             this._update();
         });
 
         this._sunAngularRadius.events.on("change", (val: number) => {
+            this._parameters.SUN_ANGULAR_RADIUS = val;
             this._update();
         });
 
         this._sunIntensity.events.on("change", (val: number) => {
+            this._parameters.SUN_INTENSITY = val;
             this._update();
         });
 
         this._groundAlbedo.events.on("change", (val: number) => {
+            this._parameters.GROUND_ALBEDO = val;
             this._update();
         });
     }
 
     protected _update() {
-        let p = this.planet;
-        if (p) {
-            p.atmosphereControl.initLookupTexturesShaders();
-            p.atmosphereControl.drawLookupTextures();
-            p.atmosphereControl.removeLookupTexturesShaders();
-            p.atmosphereControl.initPlanetAtmosphereShader();
+        if (this.planet) {
+            this.planet.atmosphereControl.setParameters(this._parameters);
         }
     }
 }

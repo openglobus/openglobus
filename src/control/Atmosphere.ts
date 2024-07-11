@@ -51,6 +51,16 @@ export class Atmosphere extends Control {
         }
     }
 
+    public setParameters(parameters: AtmosphereParameters) {
+
+        this._parameters = JSON.parse(JSON.stringify(parameters));
+
+        this.initLookupTexturesShaders();
+        this.drawLookupTextures();
+        this.removeLookupTexturesShaders();
+        this.initPlanetAtmosphereShader();
+    }
+
     public get parameters(): AtmosphereParameters {
         return JSON.parse(JSON.stringify(this._parameters));
     }
