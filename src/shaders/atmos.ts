@@ -3,34 +3,35 @@ import {UTILS} from './utils';
 import {NumberArray3} from "../math/Vec3";
 
 export interface AtmosphereParameters {
-    ATMOS_HEIGHT?: number | undefined,
-    RAYLEIGH_SCALE?: number | undefined,
-    MIE_SCALE?: number | undefined,
-    GROUND_ALBEDO?: number | undefined,
-    BOTTOM_RADIUS?: number | undefined,
-    rayleighScatteringCoefficient?: NumberArray3 | undefined,
-    mieScatteringCoefficient?: number | undefined,
-    mieExtinctionCoefficient?: number | undefined,
-    ozoneAbsorptionCoefficient?: NumberArray3 | undefined,
-    SUN_ANGULAR_RADIUS?: number | undefined,
-    SUN_INTENSITY?: number | undefined,
+    ATMOS_HEIGHT: number,
+    RAYLEIGH_SCALE: number,
+    MIE_SCALE: number,
+    GROUND_ALBEDO: number,
+    BOTTOM_RADIUS: number
+    rayleighScatteringCoefficient: NumberArray3,
+    mieScatteringCoefficient: number,
+    mieExtinctionCoefficient: number,
+    ozoneAbsorptionCoefficient: NumberArray3,
+    SUN_ANGULAR_RADIUS: number,
+    SUN_INTENSITY: number,
 }
 
-export const COMMON = ({
-                           ATMOS_HEIGHT = 100000.0,
-                           RAYLEIGH_SCALE = 0.08,
-                           MIE_SCALE = 0.012,
-                           GROUND_ALBEDO = 0.05,
-                           BOTTOM_RADIUS = 6356752.3142451793,
-                           rayleighScatteringCoefficient = [5.802, 13.558, 33.100],
-                           mieScatteringCoefficient = 3.996,
-                           mieExtinctionCoefficient = 4.440,
-                           ozoneAbsorptionCoefficient = [0.650, 1.881, 0.085],
-                           SUN_ANGULAR_RADIUS = 0.004685,
-                           SUN_INTENSITY = 1.0,
-                       }: AtmosphereParameters): string =>
-    `
-    
+const DEFAULT_PARAMS: AtmosphereParameters = {
+    ATMOS_HEIGHT: 100000.0,
+    RAYLEIGH_SCALE: 0.08,
+    MIE_SCALE: 0.012,
+    GROUND_ALBEDO: 0.05,
+    BOTTOM_RADIUS: 6356752.3142451793,
+    rayleighScatteringCoefficient: [5.802, 13.558, 33.100],
+    mieScatteringCoefficient: 3.996,
+    mieExtinctionCoefficient: 4.440,
+    ozoneAbsorptionCoefficient: [0.650, 1.881, 0.085],
+    SUN_ANGULAR_RADIUS: 0.004685,
+    SUN_INTENSITY: 1.0,
+}
+
+export const COMMON = (atmosParams: AtmosphereParameters = DEFAULT_PARAMS): string =>
+    `    
     ${UTILS}
     
     #define PI 3.1415926538
@@ -118,7 +119,7 @@ export const COMMON = ({
         return exp(-(rayleighScatteringCoefficient * opticalDepth.x + mieExtinctionCoefficient * opticalDepth.y + ozoneAbsorptionCoefficient * opticalDepth.z));
     }`;
 
-export function transmittance(): Program {
+export function transmittance(atmosParams?: AtmosphereParameters): Program {
     return new Program("transmittance", {
         uniforms: {
             iResolution: "vec2"
@@ -140,7 +141,7 @@ export function transmittance(): Program {
             `
             precision highp float;
             
-            ${COMMON({})}
+            ${COMMON(atmosParams)}
                        
             uniform vec2 iResolution;
                         
@@ -154,7 +155,7 @@ export function transmittance(): Program {
     });
 }
 
-export function scattering(): Program {
+export function scattering(atmosParams?: AtmosphereParameters): Program {
     return new Program("scattering", {
         uniforms: {
             iResolution: "vec2",
@@ -180,7 +181,7 @@ export function scattering(): Program {
             uniform sampler2D transmittanceTexture;
             uniform vec2 iResolution;
             
-            ${COMMON({})}
+            ${COMMON(atmosParams)}
             
             vec3 transmittanceFromTexture(float height, float angle) 
             {

@@ -1,4 +1,4 @@
-import {COMMON} from "./atmos";
+import {AtmosphereParameters, COMMON} from "./atmos";
 import {Program} from "../webgl/Program";
 import {UTILS} from './utils';
 
@@ -499,7 +499,7 @@ export function drawnode_screen_wl_webgl2NoAtmos(): Program {
 }
 
 
-export function drawnode_screen_wl_webgl2Atmos(): Program {
+export function drawnode_screen_wl_webgl2Atmos(atmosParams?: AtmosphereParameters): Program {
     return new Program("drawnode_screen_wl", {
         uniforms: {
             projectionMatrix: "mat4",
@@ -630,7 +630,7 @@ export function drawnode_screen_wl_webgl2Atmos(): Program {
 
             ${DEF_BLEND}
             
-            ${COMMON({})}            
+            ${COMMON(atmosParams)}            
             
             vec3 transmittanceFromTexture(float height, float angle) 
             {

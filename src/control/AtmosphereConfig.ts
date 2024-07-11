@@ -17,28 +17,28 @@ const TEMPLATE =
          <div class="og-option og-atmosphere-maxOpacity"></div> 
          <div class="og-option og-atmosphere-minOpacity"></div>
          
-       <div class="og-emptyline"></div>
+       <div class="og-emptyline-2"></div>
          
          <div class="og-option og-atmosphere-rayleight"></div>
          <div class="og-option og-atmosphere-mie"></div>
          
-       <div class="og-emptyline"></div>
+       <div class="og-emptyline-2"></div>
                   
          <div class="og-option og-atmosphere-height"></div> 
-         <div class="og-option og-atmosphere-planetRadius"></div>
+         <div class="og-option og-atmosphere-bottomRadius"></div>
          
-       <div class="og-emptyline"></div>
+       <div class="og-emptyline-2"></div>
          
          <div class="og-option og-atmosphere-mieScatteringCoefficient"></div>  
          <div class="og-option og-atmosphere-mieExtinctionCoefficient"></div>
          
-       <div class="og-emptyline"></div>
+       <div class="og-emptyline-2"></div>
          
          <div class="og-option og-atmosphere-ozoneAbsorptionCoefficientA"></div>    
          <div class="og-option og-atmosphere-ozoneAbsorptionCoefficientB"></div>    
          <div class="og-option og-atmosphere-ozoneAbsorptionCoefficientC"></div>
          
-       <div class="og-emptyline"></div>
+       <div class="og-emptyline-2"></div>
          
          <div class="og-option og-atmosphere-sunAngularRadius"></div> 
          <div class="og-option og-atmosphere-sunIntensity"></div> 
@@ -62,7 +62,7 @@ export class AtmosphereConfig extends Control {
     public $rayleight: HTMLElement | null;
     public $mie: HTMLElement | null;
     public $height: HTMLElement | null;
-    public $planetRadius: HTMLElement | null;
+    public $bottomRadius: HTMLElement | null;
     public $mieScatteringCoefficient: HTMLElement | null;
     public $mieExtinctionCoefficient: HTMLElement | null;
     public $ozoneAbsorptionCoefficientA: HTMLElement | null;
@@ -77,7 +77,7 @@ export class AtmosphereConfig extends Control {
     protected _rayleight: Slider;
     protected _mie: Slider;
     protected _height: Slider;
-    protected _planetRadius: Slider;
+    protected _bottomRadius: Slider;
     protected _mieScatteringCoefficient: Slider;
     protected _mieExtinctionCoefficient: Slider;
     protected _ozoneAbsorptionCoefficientA: Slider;
@@ -95,7 +95,7 @@ export class AtmosphereConfig extends Control {
         this.$rayleight = null;
         this.$mie = null;
         this.$height = null;
-        this.$planetRadius = null;
+        this.$bottomRadius = null;
         this.$mieScatteringCoefficient = null;
         this.$mieExtinctionCoefficient = null;
         this.$ozoneAbsorptionCoefficientA = null;
@@ -104,6 +104,7 @@ export class AtmosphereConfig extends Control {
         this.$sunAngularRadius = null;
         this.$sunIntensity = null;
         this.$groundAlbedo = null;
+
 
         this._toggleBtn = new ToggleButton({
             classList: ["og-map-button", "og-atmosphere_button"],
@@ -152,7 +153,7 @@ export class AtmosphereConfig extends Control {
             max: 10000000.0
         });
 
-        this._planetRadius = new Slider({
+        this._bottomRadius = new Slider({
             label: "Planet Radius",
             max: 5 * 6356752.3142451793
         });
@@ -210,7 +211,7 @@ export class AtmosphereConfig extends Control {
             this.$minOpacity = this._panel.el.querySelector(".og-option.og-atmosphere-minOpacity");
             this.$rayleight = this._panel.el.querySelector(".og-option.og-atmosphere-rayleight");
             this.$mie = this._panel.el.querySelector(".og-option.og-atmosphere-mie");
-            this.$planetRadius = this._panel.el.querySelector(".og-option.og-atmosphere-planetRadius");
+            this.$bottomRadius = this._panel.el.querySelector(".og-option.og-atmosphere-bottomRadius");
             this.$mieScatteringCoefficient = this._panel.el.querySelector(".og-option.og-atmosphere-mieScatteringCoefficient");
             this.$mieExtinctionCoefficient = this._panel.el.querySelector(".og-option.og-atmosphere-mieExtinctionCoefficient");
             this.$ozoneAbsorptionCoefficientA = this._panel.el.querySelector(".og-option.og-atmosphere-ozoneAbsorptionCoefficientA");
@@ -230,7 +231,7 @@ export class AtmosphereConfig extends Control {
         this._height.appendTo(this.$height!);
         this._rayleight.appendTo(this.$rayleight!);
         this._mie.appendTo(this.$mie!);
-        this._planetRadius.appendTo(this.$planetRadius!);
+        this._bottomRadius.appendTo(this.$bottomRadius!);
         this._mieScatteringCoefficient.appendTo(this.$mieScatteringCoefficient!);
         this._mieExtinctionCoefficient.appendTo(this.$mieExtinctionCoefficient!);
         this._ozoneAbsorptionCoefficientA.appendTo(this.$ozoneAbsorptionCoefficientA!);
@@ -239,6 +240,25 @@ export class AtmosphereConfig extends Control {
         this._sunAngularRadius.appendTo(this.$sunAngularRadius!);
         this._sunIntensity.appendTo(this.$sunIntensity!);
         this._groundAlbedo.appendTo(this.$groundAlbedo!);
+
+
+        if (this.planet) {
+            let atmosParams = this.planet.atmosphereControl.parameters;
+
+            this._height.value = atmosParams.ATMOS_HEIGHT;
+            this._rayleight.value = atmosParams.RAYLEIGH_SCALE;
+            this._mie.value = atmosParams.MIE_SCALE;
+            this._bottomRadius.value = atmosParams.BOTTOM_RADIUS;
+            this._mieScatteringCoefficient.value = atmosParams.mieScatteringCoefficient;
+            this._mieExtinctionCoefficient.value = atmosParams.mieExtinctionCoefficient;
+            this._ozoneAbsorptionCoefficientA.value = atmosParams.ozoneAbsorptionCoefficient[0];
+            this._ozoneAbsorptionCoefficientB.value = atmosParams.ozoneAbsorptionCoefficient[1];
+            this._ozoneAbsorptionCoefficientC.value = atmosParams.ozoneAbsorptionCoefficient[2];
+            this._sunAngularRadius.value = atmosParams.SUN_ANGULAR_RADIUS;
+            this._sunIntensity.value = atmosParams.SUN_INTENSITY;
+            this._groundAlbedo.value = atmosParams.GROUND_ALBEDO;
+        }
+
 
         this._minOpacity.value = this.planet!.atmosphereMinOpacity;
         this._minOpacity.events.on("change", (val: number) => {
@@ -264,7 +284,7 @@ export class AtmosphereConfig extends Control {
             this._update();
         });
 
-        this._planetRadius.events.on("change", (val: number) => {
+        this._bottomRadius.events.on("change", (val: number) => {
             this._update();
         });
 

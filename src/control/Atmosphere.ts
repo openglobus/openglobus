@@ -2,8 +2,20 @@ import {AtmosphereParameters, COMMON, transmittance, scattering} from "../shader
 import {Framebuffer} from "../webgl/Framebuffer";
 import {Program} from '../webgl/Program';
 import {Control, IControlParams} from "./Control";
+import {NumberArray3} from '../math/Vec3';
 
 interface IAtmosphereParams extends IControlParams {
+    height?: number,
+    rayleighScale?: number,
+    mieScale?: number,
+    groundAlbedo?: number,
+    bottomRadius?: number,
+    rayleighScatteringCoefficient?: NumberArray3,
+    mieScatteringCoefficient?: number,
+    mieExtinctionCoefficient?: number,
+    ozoneAbsorptionCoefficient?: NumberArray3,
+    sunAngularRadius?: number,
+    sunIntensity?: number,
 }
 
 export class Atmosphere extends Control {
@@ -25,18 +37,22 @@ export class Atmosphere extends Control {
         this.opacity = 1.0;
 
         this._parameters = {
-            ATMOS_HEIGHT: 100000.0,
-            RAYLEIGH_SCALE: 0.08,
-            MIE_SCALE: 0.012,
-            GROUND_ALBEDO: 0.05,
-            BOTTOM_RADIUS: 6356752.3142451793,
-            rayleighScatteringCoefficient: [5.802, 13.558, 33.100],
-            mieScatteringCoefficient: 3.996,
-            mieExtinctionCoefficient: 4.440,
-            ozoneAbsorptionCoefficient: [0.650, 1.881, 0.085],
-            SUN_ANGULAR_RADIUS: 0.004685,
-            SUN_INTENSITY: 1.0,
+            ATMOS_HEIGHT: options.height || 100000.0,
+            RAYLEIGH_SCALE: options.rayleighScale || 0.08,
+            MIE_SCALE: options.mieScale || 0.012,
+            GROUND_ALBEDO: options.groundAlbedo || 0.05,
+            BOTTOM_RADIUS: options.bottomRadius || 6356752.3142451793,
+            rayleighScatteringCoefficient: options.rayleighScatteringCoefficient || [5.802, 13.558, 33.100],
+            mieScatteringCoefficient: options.mieScatteringCoefficient || 3.996,
+            mieExtinctionCoefficient: options.mieExtinctionCoefficient || 4.440,
+            ozoneAbsorptionCoefficient: options.ozoneAbsorptionCoefficient || [0.650, 1.881, 0.085],
+            SUN_ANGULAR_RADIUS: options.sunAngularRadius || 0.004685,
+            SUN_INTENSITY: options.sunIntensity || 1.0,
         }
+    }
+
+    public get parameters(): AtmosphereParameters {
+        return JSON.parse(JSON.stringify(this._parameters));
     }
 
     public override oninit() {
@@ -45,27 +61,38 @@ export class Atmosphere extends Control {
             //
             // Draw atmosphere look-up textures
             //
+            this._initLookupTextures();
+
             this.initLookupTexturesShaders();
-            this.initLookupTextures();
             this.drawLookupTextures();
             this.removeLookupTexturesShaders();
 
-            //
-            // Init atmosphere background (disk around a planet) shader
-            //
-            this.renderer.handler.addProgram(atmosphereBackgroundShader(), true);
+            this.initBackgroundShader();
+
             this.activate();
         }
     }
 
     public initLookupTexturesShaders() {
         if (this.renderer) {
-            this.renderer.handler.addProgram(transmittance(), true);
-            this.renderer.handler.addProgram(scattering(), true);
+            this.renderer.handler.addProgram(transmittance(this._parameters), true);
+            this.renderer.handler.addProgram(scattering(this._parameters), true);
         }
     }
 
-    protected removeLookupTexturesShaders() {
+    public initBackgroundShader() {
+        if (this.renderer) {
+            this.renderer.handler.addProgram(atmosphereBackgroundShader(this._parameters), true);
+        }
+    }
+
+    public removeBackgroundShader() {
+        if (this.renderer) {
+            this.renderer.handler.removeProgram("atmosphereBackground");
+        }
+    }
+
+    public removeLookupTexturesShaders() {
         if (this.renderer) {
             let h = this.renderer.handler;
 
@@ -89,7 +116,7 @@ export class Atmosphere extends Control {
         this.planet && this.planet.events.off("draw", this._drawBackground);
     }
 
-    public initLookupTextures() {
+    protected _initLookupTextures() {
 
         let width = 1024,
             height = 1024;
@@ -218,7 +245,7 @@ export class Atmosphere extends Control {
     }
 }
 
-function atmosphereBackgroundShader(): Program {
+function atmosphereBackgroundShader(atmosParams?: AtmosphereParameters): Program {
     return new Program("atmosphereBackground", {
         uniforms: {
             iResolution: "vec2",
@@ -244,7 +271,7 @@ function atmosphereBackgroundShader(): Program {
             `                                   
             precision lowp float;
             
-            ${COMMON({})}
+            ${COMMON(atmosParams)}
             
             uniform mat4 viewMatrix;
             uniform vec3 sunPos;
