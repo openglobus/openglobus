@@ -1,4 +1,4 @@
-import * as atmos from "../shaders/atmos";
+import {AtmosphereParameters, COMMON, transmittance, scattering} from "../shaders/atmos";
 import {Framebuffer} from "../webgl/Framebuffer";
 import {Program} from '../webgl/Program';
 import {Control, IControlParams} from "./Control";
@@ -11,6 +11,8 @@ export class Atmosphere extends Control {
     public _scatteringBuffer: Framebuffer | null;
     public opacity: number;
 
+    protected _parameters: AtmosphereParameters;
+
     constructor(options: IAtmosphereParams = {}) {
         super({
             name: "Atmosphere",
@@ -21,6 +23,20 @@ export class Atmosphere extends Control {
         this._scatteringBuffer = null;
 
         this.opacity = 1.0;
+
+        this._parameters = {
+            ATMOS_HEIGHT: 100000.0,
+            RAYLEIGH_SCALE: 0.08,
+            MIE_SCALE: 0.012,
+            GROUND_ALBEDO: 0.05,
+            BOTTOM_RADIUS: 6356752.3142451793,
+            rayleighScatteringCoefficient: [5.802, 13.558, 33.100],
+            mieScatteringCoefficient: 3.996,
+            mieExtinctionCoefficient: 4.440,
+            ozoneAbsorptionCoefficient: [0.650, 1.881, 0.085],
+            SUN_ANGULAR_RADIUS: 0.004685,
+            SUN_INTENSITY: 1.0,
+        }
     }
 
     public override oninit() {
@@ -44,8 +60,8 @@ export class Atmosphere extends Control {
 
     public initLookupTexturesShaders() {
         if (this.renderer) {
-            this.renderer.handler.addProgram(atmos.transmittance(), true);
-            this.renderer.handler.addProgram(atmos.scattering(), true);
+            this.renderer.handler.addProgram(transmittance(), true);
+            this.renderer.handler.addProgram(scattering(), true);
         }
     }
 
@@ -228,7 +244,7 @@ function atmosphereBackgroundShader(): Program {
             `                                   
             precision lowp float;
             
-            ${atmos.COMMON}
+            ${COMMON({})}
             
             uniform mat4 viewMatrix;
             uniform vec3 sunPos;

@@ -1,7 +1,34 @@
-import { Program } from '../webgl/Program';
-import { UTILS } from './utils';
+import {Program} from '../webgl/Program';
+import {UTILS} from './utils';
+import {NumberArray3} from "../math/Vec3";
 
-export const COMMON =
+export interface AtmosphereParameters {
+    ATMOS_HEIGHT?: number | undefined,
+    RAYLEIGH_SCALE?: number | undefined,
+    MIE_SCALE?: number | undefined,
+    GROUND_ALBEDO?: number | undefined,
+    BOTTOM_RADIUS?: number | undefined,
+    rayleighScatteringCoefficient?: NumberArray3 | undefined,
+    mieScatteringCoefficient?: number | undefined,
+    mieExtinctionCoefficient?: number | undefined,
+    ozoneAbsorptionCoefficient?: NumberArray3 | undefined,
+    SUN_ANGULAR_RADIUS?: number | undefined,
+    SUN_INTENSITY?: number | undefined,
+}
+
+export const COMMON = ({
+                           ATMOS_HEIGHT = 100000.0,
+                           RAYLEIGH_SCALE = 0.08,
+                           MIE_SCALE = 0.012,
+                           GROUND_ALBEDO = 0.05,
+                           BOTTOM_RADIUS = 6356752.3142451793,
+                           rayleighScatteringCoefficient = [5.802, 13.558, 33.100],
+                           mieScatteringCoefficient = 3.996,
+                           mieExtinctionCoefficient = 4.440,
+                           ozoneAbsorptionCoefficient = [0.650, 1.881, 0.085],
+                           SUN_ANGULAR_RADIUS = 0.004685,
+                           SUN_INTENSITY = 1.0,
+                       }: AtmosphereParameters): string =>
     `
     
     ${UTILS}
@@ -18,7 +45,7 @@ export const COMMON =
 
     // Sphere
     const float BOTTOM_RADIUS = 6356752.3142451793;
-    const float TOP_RADIUS = 6356752.3142451793 + ATMOS_HEIGHT;
+    const float TOP_RADIUS = BOTTOM_RADIUS + ATMOS_HEIGHT;
         
     // Ellipsoid
     const vec3 bottomRadii = vec3(6378137.0, 6378137.0, 6356752.3142451793);           
@@ -30,8 +57,8 @@ export const COMMON =
      
     const vec3 rayleighScatteringCoefficient = vec3(5.802, 13.558, 33.100) * 1e-6;
     
-    const float mieScatteringCoefficient = 3.996e-06;
-    const float mieExtinctionCoefficient = 4.440e-06;
+    const float mieScatteringCoefficient = 3.996 * 1e-6;
+    const float mieExtinctionCoefficient = 4.440 * 1e-6;
     const vec3 ozoneAbsorptionCoefficient = vec3(0.650, 1.881, 0.085) * 1e-6;
     
     const float SUN_ANGULAR_RADIUS = 0.004685;
@@ -113,7 +140,7 @@ export function transmittance(): Program {
             `
             precision highp float;
             
-            ${COMMON}
+            ${COMMON({})}
                        
             uniform vec2 iResolution;
                         
@@ -153,7 +180,7 @@ export function scattering(): Program {
             uniform sampler2D transmittanceTexture;
             uniform vec2 iResolution;
             
-            ${COMMON}
+            ${COMMON({})}
             
             vec3 transmittanceFromTexture(float height, float angle) 
             {
@@ -235,8 +262,7 @@ export function scattering(): Program {
                             vec3 hitPoint = rayOrigin + rayDirection * distanceToGround;
                             vec3 normal = normalize(hitPoint);
                             float diffuseAngle = max(dot(normal, lightDirection), 0.0); 
-                            float earthAlbedo = 0.05;
-                            light += transmittanceCamera * transmittanceLight * (earthAlbedo / PI) * diffuseAngle;
+                            light += transmittanceCamera * transmittanceLight * GROUND_ALBEDO * diffuseAngle;
                         }
                     }
                 }

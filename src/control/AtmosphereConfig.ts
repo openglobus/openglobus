@@ -70,7 +70,7 @@ export class AtmosphereConfig extends Control {
     public $ozoneAbsorptionCoefficientC: HTMLElement | null;
     public $sunAngularRadius: HTMLElement | null;
     public $sunIntensity: HTMLElement | null;
-    public $earthAlbedo: HTMLElement | null;
+    public $groundAlbedo: HTMLElement | null;
 
     protected _maxOpacity: Slider;
     protected _minOpacity: Slider;
@@ -85,7 +85,7 @@ export class AtmosphereConfig extends Control {
     protected _ozoneAbsorptionCoefficientC: Slider;
     protected _sunAngularRadius: Slider;
     protected _sunIntensity: Slider;
-    protected _earthAlbedo: Slider;
+    protected _groundAlbedo: Slider;
 
     constructor(options: IAtmosphereConfigParams = {}) {
         super(options);
@@ -103,7 +103,7 @@ export class AtmosphereConfig extends Control {
         this.$ozoneAbsorptionCoefficientC = null;
         this.$sunAngularRadius = null;
         this.$sunIntensity = null;
-        this.$earthAlbedo = null;
+        this.$groundAlbedo = null;
 
         this._toggleBtn = new ToggleButton({
             classList: ["og-map-button", "og-atmosphere_button"],
@@ -192,7 +192,7 @@ export class AtmosphereConfig extends Control {
             max: 10 * 1.0
         });
 
-        this._earthAlbedo = new Slider({
+        this._groundAlbedo = new Slider({
             label: "Earth Albedo",
             max: 10 * 0.05
         });
@@ -218,7 +218,7 @@ export class AtmosphereConfig extends Control {
             this.$ozoneAbsorptionCoefficientC = this._panel.el.querySelector(".og-option.og-atmosphere-ozoneAbsorptionCoefficientC");
             this.$sunAngularRadius = this._panel.el.querySelector(".og-option.og-atmosphere-sunAngularRadius");
             this.$sunIntensity = this._panel.el.querySelector(".og-option.og-atmosphere-sunIntensity");
-            this.$earthAlbedo = this._panel.el.querySelector(".og-option.og-atmosphere-earthAlbedo");
+            this.$groundAlbedo = this._panel.el.querySelector(".og-option.og-atmosphere-earthAlbedo");
         }
 
         this._toggleBtn.events.on("change", (isActive: boolean) => {
@@ -232,13 +232,13 @@ export class AtmosphereConfig extends Control {
         this._mie.appendTo(this.$mie!);
         this._planetRadius.appendTo(this.$planetRadius!);
         this._mieScatteringCoefficient.appendTo(this.$mieScatteringCoefficient!);
-        this._mieExtinctionCoefficient.appendTo(this.$mieScatteringCoefficient!);
+        this._mieExtinctionCoefficient.appendTo(this.$mieExtinctionCoefficient!);
         this._ozoneAbsorptionCoefficientA.appendTo(this.$ozoneAbsorptionCoefficientA!);
         this._ozoneAbsorptionCoefficientB.appendTo(this.$ozoneAbsorptionCoefficientB!);
         this._ozoneAbsorptionCoefficientC.appendTo(this.$ozoneAbsorptionCoefficientC!);
         this._sunAngularRadius.appendTo(this.$sunAngularRadius!);
         this._sunIntensity.appendTo(this.$sunIntensity!);
-        this._earthAlbedo.appendTo(this.$earthAlbedo!);
+        this._groundAlbedo.appendTo(this.$groundAlbedo!);
 
         this._minOpacity.value = this.planet!.atmosphereMinOpacity;
         this._minOpacity.events.on("change", (val: number) => {
@@ -296,7 +296,7 @@ export class AtmosphereConfig extends Control {
             this._update();
         });
 
-        this._earthAlbedo.events.on("change", (val: number) => {
+        this._groundAlbedo.events.on("change", (val: number) => {
             this._update();
         });
     }
