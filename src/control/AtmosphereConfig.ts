@@ -322,6 +322,11 @@ export class AtmosphereConfig extends Control {
     }
 
     protected _update() {
-        console.log("update");
+        let p = this.planet;
+        if (p) {
+            p.atmosphereControl.initLookupTexturesShaders();
+            p.atmosphereControl.drawLookupTextures();
+            p.atmosphereControl.removeLookupTexturesShaders();
+        }
     }
 }

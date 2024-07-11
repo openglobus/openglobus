@@ -884,9 +884,9 @@ export class Planet extends RenderNode {
 
             if (!this.renderer.controls.Atmosphere) {
                 this.addControl(this._atmosphere);
-            } else {
-                this._atmosphere.activate();
             }
+
+            this._atmosphere.activate();
 
             if (h.isWebGl2()) {
                 h.addProgram(shaders.drawnode_screen_wl_webgl2Atmos(this._atmosphere.parameters), true);
