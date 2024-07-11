@@ -327,6 +327,7 @@ export class AtmosphereConfig extends Control {
             p.atmosphereControl.initLookupTexturesShaders();
             p.atmosphereControl.drawLookupTextures();
             p.atmosphereControl.removeLookupTexturesShaders();
+            p.atmosphereControl.initPlanetAtmosphereShader();
         }
     }
 }

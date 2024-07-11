@@ -55,11 +55,15 @@ export class Atmosphere extends Control {
         return JSON.parse(JSON.stringify(this._parameters));
     }
 
+    public initPlanetAtmosphereShader() {
+        this.planet?.initAtmosphereShader(this._parameters);
+    }
+
     public override oninit() {
         if (this.renderer) {
 
             //
-            // Draw atmosphere look-up textures
+            // Draw atmosphere lookup textures
             //
             this._initLookupTextures();
 
