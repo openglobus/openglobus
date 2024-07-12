@@ -135,7 +135,7 @@ export class AtmosphereConfig extends Control {
             useHide: true,
             top: 60,
             left: 60,
-            width: 600
+            width: 720
         });
 
         this._dialog.events.on("visibility", (v: boolean) => {
@@ -168,7 +168,7 @@ export class AtmosphereConfig extends Control {
 
         this._height = new Slider({
             label: "Height",
-            max: 10000000.0
+            max: 1000000.0
         });
 
         this._bottomRadius = new Slider({
@@ -188,17 +188,17 @@ export class AtmosphereConfig extends Control {
 
         this._rayleighScatteringCoefficientA = new Slider({
             label: "Rayleight Scattering Coef A.e-6",
-            max: 10 * 0.650
+            max: 10 * 5.802
         });
 
         this._rayleighScatteringCoefficientB = new Slider({
             label: "Rayleight Scattering Coef B.e-6",
-            max: 10 * 1.881
+            max: 10 * 13.558
         });
 
         this._rayleighScatteringCoefficientC = new Slider({
             label: "Rayleight Scattering Coef C.e-6",
-            max: 10 * 0.085
+            max: 10 * 33.100
         });
 
         this._ozoneAbsorptionCoefficientA = new Slider({
@@ -296,23 +296,24 @@ export class AtmosphereConfig extends Control {
 
 
         if (this.planet) {
-            let atmosParams = this.planet.atmosphereControl.parameters;
 
-            this._height.value = atmosParams.ATMOS_HEIGHT;
-            this._rayleight.value = atmosParams.RAYLEIGH_SCALE;
-            this._mie.value = atmosParams.MIE_SCALE;
-            this._bottomRadius.value = atmosParams.BOTTOM_RADIUS;
-            this._mieScatteringCoefficient.value = atmosParams.mieScatteringCoefficient;
-            this._mieExtinctionCoefficient.value = atmosParams.mieExtinctionCoefficient;
-            this._rayleighScatteringCoefficientA.value = atmosParams.rayleighScatteringCoefficient[0];
-            this._rayleighScatteringCoefficientB.value = atmosParams.rayleighScatteringCoefficient[1];
-            this._rayleighScatteringCoefficientC.value = atmosParams.rayleighScatteringCoefficient[2];
-            this._ozoneAbsorptionCoefficientA.value = atmosParams.ozoneAbsorptionCoefficient[0];
-            this._ozoneAbsorptionCoefficientB.value = atmosParams.ozoneAbsorptionCoefficient[1];
-            this._ozoneAbsorptionCoefficientC.value = atmosParams.ozoneAbsorptionCoefficient[2];
-            this._sunAngularRadius.value = atmosParams.SUN_ANGULAR_RADIUS;
-            this._sunIntensity.value = atmosParams.SUN_INTENSITY;
-            this._groundAlbedo.value = atmosParams.GROUND_ALBEDO;
+            this._parameters = this.planet.atmosphereControl.parameters;
+
+            this._height.value = this._parameters.ATMOS_HEIGHT;
+            this._rayleight.value = this._parameters.RAYLEIGH_SCALE;
+            this._mie.value = this._parameters.MIE_SCALE;
+            this._bottomRadius.value = this._parameters.BOTTOM_RADIUS;
+            this._mieScatteringCoefficient.value = this._parameters.mieScatteringCoefficient;
+            this._mieExtinctionCoefficient.value = this._parameters.mieExtinctionCoefficient;
+            this._rayleighScatteringCoefficientA.value = this._parameters.rayleighScatteringCoefficient[0];
+            this._rayleighScatteringCoefficientB.value = this._parameters.rayleighScatteringCoefficient[1];
+            this._rayleighScatteringCoefficientC.value = this._parameters.rayleighScatteringCoefficient[2];
+            this._ozoneAbsorptionCoefficientA.value = this._parameters.ozoneAbsorptionCoefficient[0];
+            this._ozoneAbsorptionCoefficientB.value = this._parameters.ozoneAbsorptionCoefficient[1];
+            this._ozoneAbsorptionCoefficientC.value = this._parameters.ozoneAbsorptionCoefficient[2];
+            this._sunAngularRadius.value = this._parameters.SUN_ANGULAR_RADIUS;
+            this._sunIntensity.value = this._parameters.SUN_INTENSITY;
+            this._groundAlbedo.value = this._parameters.GROUND_ALBEDO;
         }
 
 

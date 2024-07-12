@@ -739,9 +739,13 @@ input {
 }
 
 .og-atmosphere.og-options-container .og-slider-label {
-    width: 286px;
+    width: 300px;
     overflow: hidden;
     height: 20px;
+}
+
+.og-atmosphere.og-options-container  .og-slider input{
+    width: 87px;
 }
 
 /*

@@ -35,9 +35,9 @@ export const COMMON = (atmosParams: AtmosphereParameters = DEFAULT_PARAMS): stri
     ${UTILS}
     
     #define PI 3.1415926538
-    #define ATMOS_HEIGHT 100000.0
-    #define RAYLEIGH_SCALE 0.08
-    #define MIE_SCALE 0.012
+    #define ATMOS_HEIGHT ${atmosParams.ATMOS_HEIGHT.toFixed(2)}
+    #define RAYLEIGH_SCALE ${atmosParams.RAYLEIGH_SCALE.toFixed(5)}
+    #define MIE_SCALE ${atmosParams.MIE_SCALE.toFixed(5)}
     
     #define SAMPLE_COUNT 16
     #define SQRT_SAMPLE_COUNT 4

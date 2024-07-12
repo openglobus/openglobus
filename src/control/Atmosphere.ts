@@ -58,6 +58,7 @@ export class Atmosphere extends Control {
         this.initLookupTexturesShaders();
         this.drawLookupTextures();
         this.removeLookupTexturesShaders();
+
         this.initPlanetAtmosphereShader();
     }
 
