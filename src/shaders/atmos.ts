@@ -42,10 +42,10 @@ export const COMMON = (atmosParams: AtmosphereParameters = DEFAULT_PARAMS): stri
     #define SAMPLE_COUNT 16
     #define SQRT_SAMPLE_COUNT 4
             
-    const float GROUND_ALBEDO = 0.05 / PI;
+    const float GROUND_ALBEDO = ${atmosParams.GROUND_ALBEDO.toFixed(2)} / PI;
 
     // Sphere
-    const float BOTTOM_RADIUS = 6356752.3142451793;
+    const float BOTTOM_RADIUS = ${atmosParams.BOTTOM_RADIUS.toFixed(10)};
     const float TOP_RADIUS = BOTTOM_RADIUS + ATMOS_HEIGHT;
         
     // Ellipsoid
@@ -56,14 +56,14 @@ export const COMMON = (atmosParams: AtmosphereParameters = DEFAULT_PARAMS): stri
     
     const vec2 rayleighMieHeights = vec2(RAYLEIGH_SCALE, MIE_SCALE) * ATMOS_HEIGHT;
      
-    const vec3 rayleighScatteringCoefficient = vec3(5.802, 13.558, 33.100) * 1e-6;
+    const vec3 rayleighScatteringCoefficient = vec3(${atmosParams.rayleighScatteringCoefficient[0].toFixed(5)}, ${atmosParams.rayleighScatteringCoefficient[1].toFixed(5)}, ${atmosParams.rayleighScatteringCoefficient[2].toFixed(5)}) * 1e-6;
     
-    const float mieScatteringCoefficient = 3.996 * 1e-6;
-    const float mieExtinctionCoefficient = 4.440 * 1e-6;
-    const vec3 ozoneAbsorptionCoefficient = vec3(0.650, 1.881, 0.085) * 1e-6;
+    const float mieScatteringCoefficient = ${atmosParams.mieScatteringCoefficient.toFixed(3)} * 1e-6;
+    const float mieExtinctionCoefficient = ${atmosParams.mieExtinctionCoefficient.toFixed(3)} * 1e-6;
+    const vec3 ozoneAbsorptionCoefficient = vec3(${atmosParams.ozoneAbsorptionCoefficient[0].toFixed(5)}, ${atmosParams.ozoneAbsorptionCoefficient[1].toFixed(5)}, ${atmosParams.ozoneAbsorptionCoefficient[2].toFixed(5)}) * 1e-6;
     
-    const float SUN_ANGULAR_RADIUS = 0.004685;
-    const float SUN_INTENSITY = 1.0;        
+    const float SUN_ANGULAR_RADIUS = ${atmosParams.SUN_ANGULAR_RADIUS.toFixed(10)};
+    const float SUN_INTENSITY = ${atmosParams.SUN_INTENSITY.toFixed(2)};        
     
     vec3 sunWithBloom(vec3 rayDir, vec3 sunDir) 
     {
