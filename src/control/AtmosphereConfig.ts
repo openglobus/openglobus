@@ -47,6 +47,11 @@ const TEMPLATE =
          
        <div class="og-emptyline-2"></div>
          
+         <div class="og-option og-atmosphere-ozoneDensityHeight"></div>    
+         <div class="og-option og-atmosphere-ozoneDensityWide"></div>    
+         
+       <div class="og-emptyline-2"></div>
+         
          <div class="og-option og-atmosphere-sunAngularRadius"></div> 
          <div class="og-option og-atmosphere-sunIntensity"></div> 
          <div class="og-option og-atmosphere-earthAlbedo"></div>
@@ -81,6 +86,8 @@ export class AtmosphereConfig extends Control {
     public $sunAngularRadius: HTMLElement | null;
     public $sunIntensity: HTMLElement | null;
     public $groundAlbedo: HTMLElement | null;
+    public $ozoneDensityHeight: HTMLElement | null;
+    public $ozoneDensityWide: HTMLElement | null;
 
     protected _maxOpacity: Slider;
     protected _minOpacity: Slider;
@@ -99,6 +106,8 @@ export class AtmosphereConfig extends Control {
     protected _sunAngularRadius: Slider;
     protected _sunIntensity: Slider;
     protected _groundAlbedo: Slider;
+    protected _ozoneDensityHeight: Slider;
+    protected _ozoneDensityWide: Slider;
 
     protected _parameters: AtmosphereParameters;
 
@@ -122,7 +131,8 @@ export class AtmosphereConfig extends Control {
         this.$sunAngularRadius = null;
         this.$sunIntensity = null;
         this.$groundAlbedo = null;
-
+        this.$ozoneDensityHeight = null;
+        this.$ozoneDensityWide = null;
 
         this._toggleBtn = new ToggleButton({
             classList: ["og-map-button", "og-atmosphere_button"],
@@ -216,6 +226,16 @@ export class AtmosphereConfig extends Control {
             max: 10 * 0.085
         });
 
+        this._ozoneDensityHeight = new Slider({
+            label: "Ozone Density Height",
+            max: 10 * 25000
+        });
+
+        this._ozoneDensityWide = new Slider({
+            label: "Ozone Density Wide",
+            max: 10 * 25000
+        });
+
         this._sunAngularRadius = new Slider({
             label: "Sun Angular Radius",
             max: 10 * 0.004685
@@ -243,6 +263,8 @@ export class AtmosphereConfig extends Control {
             ozoneAbsorptionCoefficient: [0, 0, 0],
             SUN_ANGULAR_RADIUS: 0,
             SUN_INTENSITY: 0,
+            ozoneDensityHeight: 0,
+            ozoneDensityWide: 0,
         }
     }
 
@@ -270,6 +292,8 @@ export class AtmosphereConfig extends Control {
             this.$sunAngularRadius = this._panel.el.querySelector(".og-option.og-atmosphere-sunAngularRadius");
             this.$sunIntensity = this._panel.el.querySelector(".og-option.og-atmosphere-sunIntensity");
             this.$groundAlbedo = this._panel.el.querySelector(".og-option.og-atmosphere-earthAlbedo");
+            this.$ozoneDensityHeight = this._panel.el.querySelector(".og-option.og-atmosphere-ozoneDensityHeight");
+            this.$ozoneDensityWide = this._panel.el.querySelector(".og-option.og-atmosphere-ozoneDensityWide");
         }
 
         this._toggleBtn.events.on("change", (isActive: boolean) => {
@@ -293,7 +317,8 @@ export class AtmosphereConfig extends Control {
         this._sunAngularRadius.appendTo(this.$sunAngularRadius!);
         this._sunIntensity.appendTo(this.$sunIntensity!);
         this._groundAlbedo.appendTo(this.$groundAlbedo!);
-
+        this._ozoneDensityHeight.appendTo(this.$ozoneDensityHeight!);
+        this._ozoneDensityWide.appendTo(this.$ozoneDensityWide!);
 
         if (this.planet) {
 
@@ -314,6 +339,8 @@ export class AtmosphereConfig extends Control {
             this._sunAngularRadius.value = this._parameters.SUN_ANGULAR_RADIUS;
             this._sunIntensity.value = this._parameters.SUN_INTENSITY;
             this._groundAlbedo.value = this._parameters.GROUND_ALBEDO;
+            this._ozoneDensityHeight.value = this._parameters.ozoneDensityHeight;
+            this._ozoneDensityWide.value = this._parameters.ozoneDensityWide;
         }
 
 
@@ -401,6 +428,16 @@ export class AtmosphereConfig extends Control {
 
         this._groundAlbedo.events.on("change", (val: number) => {
             this._parameters.GROUND_ALBEDO = val;
+            this._update();
+        });
+
+        this._ozoneDensityHeight.events.on("change", (val: number) => {
+            this._parameters.ozoneDensityHeight = val;
+            this._update();
+        });
+
+        this._ozoneDensityWide.events.on("change", (val: number) => {
+            this._parameters.ozoneDensityWide = val;
             this._update();
         });
     }

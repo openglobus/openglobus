@@ -14,6 +14,8 @@ export interface AtmosphereParameters {
     ozoneAbsorptionCoefficient: NumberArray3,
     SUN_ANGULAR_RADIUS: number,
     SUN_INTENSITY: number,
+    ozoneDensityHeight: number,
+    ozoneDensityWide: number,
 }
 
 const DEFAULT_PARAMS: AtmosphereParameters = {
@@ -28,6 +30,8 @@ const DEFAULT_PARAMS: AtmosphereParameters = {
     ozoneAbsorptionCoefficient: [0.650, 1.881, 0.085],
     SUN_ANGULAR_RADIUS: 0.004685,
     SUN_INTENSITY: 1.0,
+    ozoneDensityHeight: 25e3,
+    ozoneDensityWide: 15e3,
 }
 
 export const COMMON = (atmosParams: AtmosphereParameters = DEFAULT_PARAMS): string =>
@@ -64,6 +68,9 @@ export const COMMON = (atmosParams: AtmosphereParameters = DEFAULT_PARAMS): stri
     
     const float SUN_ANGULAR_RADIUS = ${atmosParams.SUN_ANGULAR_RADIUS.toFixed(10)};
     const float SUN_INTENSITY = ${atmosParams.SUN_INTENSITY.toFixed(2)};        
+    
+    const float ozoneDensityHeight = ${atmosParams.ozoneDensityHeight.toFixed(1)};//25e3;
+    const float ozoneDensityWide = ${atmosParams.ozoneDensityWide.toFixed(1)};//15e3;
     
     vec3 sunWithBloom(vec3 rayDir, vec3 sunDir) 
     {
@@ -106,7 +113,7 @@ export const COMMON = (atmosParams: AtmosphereParameters = DEFAULT_PARAMS): stri
             
             // density of the ozone layer is modeled as a triangular 
             // function that is 30 km wide and centered at 25 km altitude
-            opticalDepth.z += (1.0 - min(abs(height - 25e3) / 15e3, 1.0)) * segmentLength;  
+            opticalDepth.z += (1.0 - min(abs(height - ozoneDensityHeight) / ozoneDensityWide, 1.0)) * segmentLength;  
             t += segmentLength;
         }
         

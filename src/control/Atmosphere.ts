@@ -16,6 +16,8 @@ interface IAtmosphereParams extends IControlParams {
     ozoneAbsorptionCoefficient?: NumberArray3,
     sunAngularRadius?: number,
     sunIntensity?: number,
+    ozoneDensityHeight?: number,
+    ozoneDensityWide?: number,
 }
 
 export class Atmosphere extends Control {
@@ -48,6 +50,8 @@ export class Atmosphere extends Control {
             ozoneAbsorptionCoefficient: options.ozoneAbsorptionCoefficient || [0.650, 1.881, 0.085],
             SUN_ANGULAR_RADIUS: options.sunAngularRadius || 0.004685,
             SUN_INTENSITY: options.sunIntensity || 1.0,
+            ozoneDensityHeight: options.ozoneDensityHeight || 25e3,
+            ozoneDensityWide: options.ozoneDensityWide || 15e3,
         }
     }
 
