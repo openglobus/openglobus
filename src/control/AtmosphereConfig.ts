@@ -168,12 +168,14 @@ export class AtmosphereConfig extends Control {
 
         this._rayleight = new Slider({
             label: "Rayleight Scale",
-            max: 2.0
+            min: -10.0,
+            max: 10.0
         });
 
         this._mie = new Slider({
             label: "Mie Scale",
-            max: 2.0
+            min: -10.0,
+            max: 10.0
         });
 
         this._height = new Slider({
@@ -188,57 +190,65 @@ export class AtmosphereConfig extends Control {
 
         this._mieScatteringCoefficient = new Slider({
             label: "Mie Scattering Coefficient e-6",
+            min: -10 * 3.996,
             max: 10 * 3.996
         });
 
         this._mieExtinctionCoefficient = new Slider({
             label: "Mie Extinction Coef.e-6",
+            min: -10 * 4.440,
             max: 10 * 4.440
         });
 
         this._rayleighScatteringCoefficientA = new Slider({
             label: "Rayleight Scattering Coef A.e-6",
+            min: -10 * 5.802,
             max: 10 * 5.802
         });
 
         this._rayleighScatteringCoefficientB = new Slider({
             label: "Rayleight Scattering Coef B.e-6",
+            min: 10 * 13.558,
             max: 10 * 13.558
         });
 
         this._rayleighScatteringCoefficientC = new Slider({
             label: "Rayleight Scattering Coef C.e-6",
+            min: -10 * 33.100,
             max: 10 * 33.100
         });
 
         this._ozoneAbsorptionCoefficientA = new Slider({
             label: "Ozone absorbtion Coef A.e-6",
+            min: -10 * 0.650,
             max: 10 * 0.650
         });
 
         this._ozoneAbsorptionCoefficientB = new Slider({
             label: "Ozone absorbtion Coef B.e-6",
+            min: -10 * 0.650,
             max: 10 * 1.881
         });
 
         this._ozoneAbsorptionCoefficientC = new Slider({
             label: "Ozone absorbtion Coef C.e-6",
+            min: -10 * 0.085,
             max: 10 * 0.085
         });
 
         this._ozoneDensityHeight = new Slider({
             label: "Ozone Density Height",
-            max: 10 * 25000
+            max: 100 * 25000
         });
 
         this._ozoneDensityWide = new Slider({
             label: "Ozone Density Wide",
-            max: 10 * 25000
+            max: 100 * 25000
         });
 
         this._sunAngularRadius = new Slider({
             label: "Sun Angular Radius",
-            max: 10 * 0.004685
+            max: 1000 * 0.004685
         });
 
         this._sunIntensity = new Slider({

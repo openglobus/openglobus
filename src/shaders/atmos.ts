@@ -50,10 +50,11 @@ export const COMMON = (atmosParams: AtmosphereParameters = DEFAULT_PARAMS): stri
 
     // Sphere
     const float BOTTOM_RADIUS = ${atmosParams.BOTTOM_RADIUS.toFixed(10)};
-    const float TOP_RADIUS = BOTTOM_RADIUS + ATMOS_HEIGHT;
-        
+    const float TOP_RADIUS = BOTTOM_RADIUS + ATMOS_HEIGHT;   
+    const float EQUATORIAL_RADIUS = 6378137.0;
+    
     // Ellipsoid
-    const vec3 bottomRadii = vec3(6378137.0, 6378137.0, 6356752.3142451793);           
+    const vec3 bottomRadii = vec3(EQUATORIAL_RADIUS, EQUATORIAL_RADIUS, BOTTOM_RADIUS);           
     const vec3 topRadii = bottomRadii + ATMOS_HEIGHT;
     
     const vec3 SPHERE_TO_ELLIPSOID_SCALE = vec3(BOTTOM_RADIUS) / bottomRadii;           
@@ -110,9 +111,6 @@ export const COMMON = (atmosParams: AtmosphereParameters = DEFAULT_PARAMS): stri
             vec3 position = rayOrigin + t * rayDirection;
             float height = length(position) - BOTTOM_RADIUS;
             opticalDepth.xy += exp(-height / rayleighMieHeights) * segmentLength;
-            
-            // density of the ozone layer is modeled as a triangular 
-            // function that is 30 km wide and centered at 25 km altitude
             opticalDepth.z += (1.0 - min(abs(height - ozoneDensityHeight) / ozoneDensityWide, 1.0)) * segmentLength;  
             t += segmentLength;
         }
