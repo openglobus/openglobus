@@ -208,7 +208,7 @@ export class AtmosphereConfig extends Control {
 
         this._rayleighScatteringCoefficientB = new Slider({
             label: "Rayleight Scattering Coef B.e-6",
-            min: 10 * 13.558,
+            min: -10 * 13.558,
             max: 10 * 13.558
         });
 
