@@ -1,6 +1,7 @@
-import * as atmos from "./atmos";
+import {AtmosphereParameters, COMMON} from "./atmos";
 import {Program} from "../webgl/Program";
 import {UTILS} from './utils';
+
 // REMEMBER!
 // src*(1)+dest*(1-src.alpha)
 // glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -498,7 +499,7 @@ export function drawnode_screen_wl_webgl2NoAtmos(): Program {
 }
 
 
-export function drawnode_screen_wl_webgl2Atmos(): Program {
+export function drawnode_screen_wl_webgl2Atmos(atmosParams?: AtmosphereParameters): Program {
     return new Program("drawnode_screen_wl", {
         uniforms: {
             projectionMatrix: "mat4",
@@ -629,7 +630,7 @@ export function drawnode_screen_wl_webgl2Atmos(): Program {
 
             ${DEF_BLEND}
             
-            ${atmos.COMMON}            
+            ${COMMON(atmosParams)}            
             
             vec3 transmittanceFromTexture(float height, float angle) 
             {
@@ -694,12 +695,6 @@ export function drawnode_screen_wl_webgl2Atmos(): Program {
                 float distanceToGround = 0.0;
                 
                 bool hitGround = intersectSphere(camPos, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;                
-                
-                // Fix black dots on the edge of atmosphere                        
-                // if(camHeight < 700000.0 || !hitGround)
-                // {                          
-                //     distanceToGround = distance(camPos, v_vertex * SPHERE_TO_ELLIPSOID_SCALE);
-                // }
                 
                 if(length(v_vertex * SPHERE_TO_ELLIPSOID_SCALE) > BOTTOM_RADIUS){
                     distanceToGround = distance(camPos, v_vertex * SPHERE_TO_ELLIPSOID_SCALE);

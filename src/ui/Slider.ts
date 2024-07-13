@@ -88,14 +88,14 @@ class Slider extends View<null> {
     }
 
     protected _onResize = () => {
-        this._setOffset(this._value * this.$panel!.clientWidth / (this._max - this._min));
+        this._setOffset((this._value - this._min) * this.$panel!.clientWidth / (this._max - this._min));
     }
 
     public set value(val: number) {
         if (val !== this._value) {
             this._value = clamp(val, this._min, this._max);
             this.$input!.value = this._value.toString();
-            this._setOffset(this._value * this.$panel!.clientWidth / (this._max - this._min));
+            this._setOffset((this._value - this._min) * this.$panel!.clientWidth / (this._max - this._min));
             this.events.dispatch(this.events.change, this._value, this);
         }
     }
@@ -171,7 +171,7 @@ class Slider extends View<null> {
         let clientX = clamp(e.clientX, rect.left, rect.right);
         let dx = this._startPosX - clientX;
         this._startPosX = clientX;
-        this.value = (this.$pointer!.offsetLeft - dx) * (this._max - this._min) / this.$panel!.clientWidth;
+        this.value = this._value - dx * (this._max - this._min) / this.$panel!.clientWidth;
     }
 
     protected _onMouseUp = () => {

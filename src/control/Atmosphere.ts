@@ -1,15 +1,31 @@
-import * as atmos from "../shaders/atmos";
+import {AtmosphereParameters, COMMON, transmittance, scattering} from "../shaders/atmos";
 import {Framebuffer} from "../webgl/Framebuffer";
 import {Program} from '../webgl/Program';
 import {Control, IControlParams} from "./Control";
+import {NumberArray3} from '../math/Vec3';
 
 interface IAtmosphereParams extends IControlParams {
+    height?: number,
+    rayleighScale?: number,
+    mieScale?: number,
+    groundAlbedo?: number,
+    bottomRadius?: number,
+    rayleighScatteringCoefficient?: NumberArray3,
+    mieScatteringCoefficient?: number,
+    mieExtinctionCoefficient?: number,
+    ozoneAbsorptionCoefficient?: NumberArray3,
+    sunAngularRadius?: number,
+    sunIntensity?: number,
+    ozoneDensityHeight?: number,
+    ozoneDensityWide?: number,
 }
 
 export class Atmosphere extends Control {
     public _transmittanceBuffer: Framebuffer | null;
     public _scatteringBuffer: Framebuffer | null;
     public opacity: number;
+
+    protected _parameters: AtmosphereParameters;
 
     constructor(options: IAtmosphereParams = {}) {
         super({
@@ -21,16 +37,91 @@ export class Atmosphere extends Control {
         this._scatteringBuffer = null;
 
         this.opacity = 1.0;
+
+        this._parameters = {
+            ATMOS_HEIGHT: options.height || 100000.0,
+            RAYLEIGH_SCALE: options.rayleighScale || 0.08,
+            MIE_SCALE: options.mieScale || 0.012,
+            GROUND_ALBEDO: options.groundAlbedo || 0.05,
+            BOTTOM_RADIUS: options.bottomRadius || 6356752.3142451793,
+            rayleighScatteringCoefficient: options.rayleighScatteringCoefficient || [5.802, 13.558, 33.100],
+            mieScatteringCoefficient: options.mieScatteringCoefficient || 3.996,
+            mieExtinctionCoefficient: options.mieExtinctionCoefficient || 4.440,
+            ozoneAbsorptionCoefficient: options.ozoneAbsorptionCoefficient || [0.650, 1.881, 0.085],
+            SUN_ANGULAR_RADIUS: options.sunAngularRadius || 0.004685,
+            SUN_INTENSITY: options.sunIntensity || 1.0,
+            ozoneDensityHeight: options.ozoneDensityHeight || 25e3,
+            ozoneDensityWide: options.ozoneDensityWide || 15e3,
+        }
+    }
+
+    public setParameters(parameters: AtmosphereParameters) {
+
+        this._parameters = JSON.parse(JSON.stringify(parameters));
+
+        this.initLookupTexturesShaders();
+        this.drawLookupTextures();
+        this.removeLookupTexturesShaders();
+
+        this.initPlanetAtmosphereShader();
+    }
+
+    public get parameters(): AtmosphereParameters {
+        return JSON.parse(JSON.stringify(this._parameters));
+    }
+
+    public initPlanetAtmosphereShader() {
+        this.planet?.initAtmosphereShader(this._parameters);
     }
 
     public override oninit() {
         if (this.renderer) {
-            this.renderer.handler.addProgram(atmos.transmittance(), true);
-            this.renderer.handler.addProgram(atmos.scattering(), true);
-            this.renderer.handler.addProgram(atmosphereBackgroundShader(), true);
 
-            this._drawAtmosphereTextures();
+            //
+            // Draw atmosphere lookup textures
+            //
+            this._initLookupTextures();
+
+            this.initLookupTexturesShaders();
+            this.drawLookupTextures();
+            this.removeLookupTexturesShaders();
+
+            this.initBackgroundShader();
+
             this.activate();
+        }
+    }
+
+    public initLookupTexturesShaders() {
+        if (this.renderer) {
+            this.renderer.handler.addProgram(transmittance(this._parameters), true);
+            this.renderer.handler.addProgram(scattering(this._parameters), true);
+        }
+    }
+
+    public initBackgroundShader() {
+        if (this.renderer) {
+            this.renderer.handler.addProgram(atmosphereBackgroundShader(this._parameters), true);
+        }
+    }
+
+    public removeBackgroundShader() {
+        if (this.renderer) {
+            this.renderer.handler.removeProgram("atmosphereBackground");
+        }
+    }
+
+    public removeLookupTexturesShaders() {
+        if (this.renderer) {
+            let h = this.renderer.handler;
+
+            if (this._scatteringBuffer?.isComplete()) {
+                h.removeProgram("scattering");
+            }
+
+            if (this._transmittanceBuffer?.isComplete()) {
+                h.removeProgram("transmittance");
+            }
         }
     }
 
@@ -44,7 +135,7 @@ export class Atmosphere extends Control {
         this.planet && this.planet.events.off("draw", this._drawBackground);
     }
 
-    protected _drawAtmosphereTextures() {
+    protected _initLookupTextures() {
 
         let width = 1024,
             height = 1024;
@@ -70,67 +161,69 @@ export class Atmosphere extends Control {
         });
 
         this._scatteringBuffer.init();
+    }
 
-        let positionBuffer = this.renderer!.screenFramePositionBuffer;
+    protected _renderLookupTextures() {
+        if (!this.renderer) return;
 
-        let h = this.renderer!.handler;
+        let positionBuffer = this.renderer.screenFramePositionBuffer;
+
+        let h = this.renderer.handler;
         let gl = h.gl!;
 
         //
         // Draw transmittance texture
         //
-        this._transmittanceBuffer.activate();
+        if (this._transmittanceBuffer) {
+            this._transmittanceBuffer.activate();
 
-        let p = h.programs.transmittance;
-        let sha = p._program.attributes;
-        let shu = p._program.uniforms;
-        p.activate();
+            let p = h.programs.transmittance;
+            let sha = p._program.attributes;
+            let shu = p._program.uniforms;
+            p.activate();
 
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        gl.uniform2fv(shu.iResolution, [this._transmittanceBuffer.width, this._transmittanceBuffer.height]);
+            gl.uniform2fv(shu.iResolution, [this._transmittanceBuffer.width, this._transmittanceBuffer.height]);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer!);
-        gl.vertexAttribPointer(sha.a_position, positionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer!.numItems);
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer!);
+            gl.vertexAttribPointer(sha.a_position, positionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer!.numItems);
 
-        this._transmittanceBuffer.deactivate();
+            this._transmittanceBuffer.deactivate();
+        }
 
         //
         // Draw scattering texture
         //
-        this._scatteringBuffer.activate();
+        if (this._scatteringBuffer && this._transmittanceBuffer) {
+            this._scatteringBuffer.activate();
 
-        p = h.programs.scattering;
-        sha = p._program.attributes;
-        shu = p._program.uniforms;
-        p.activate();
+            let p = h.programs.scattering;
+            let sha = p._program.attributes;
+            let shu = p._program.uniforms;
+            p.activate();
 
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        gl.uniform2fv(shu.iResolution, [this._scatteringBuffer.width, this._scatteringBuffer.height]);
+            gl.uniform2fv(shu.iResolution, [this._scatteringBuffer.width, this._scatteringBuffer.height]);
 
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this._transmittanceBuffer.textures[0]);
-        gl.uniform1i(shu.transmittanceTexture, 0);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this._transmittanceBuffer.textures[0]);
+            gl.uniform1i(shu.transmittanceTexture, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer!);
-        gl.vertexAttribPointer(sha.a_position, positionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer!.numItems);
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer!);
+            gl.vertexAttribPointer(sha.a_position, positionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, positionBuffer!.numItems);
 
-        this._scatteringBuffer.deactivate();
-
-        //
-        // remove shaders
-        if (this._scatteringBuffer.isComplete()) {
-            h.removeProgram("scattering");
+            this._scatteringBuffer.deactivate();
         }
+    }
 
-        if (this._transmittanceBuffer.isComplete()) {
-            h.removeProgram("transmittance");
-        }
+    public drawLookupTextures() {
+        this._renderLookupTextures();
     }
 
     protected _drawBackground() {
@@ -171,7 +264,7 @@ export class Atmosphere extends Control {
     }
 }
 
-function atmosphereBackgroundShader(): Program {
+function atmosphereBackgroundShader(atmosParams?: AtmosphereParameters): Program {
     return new Program("atmosphereBackground", {
         uniforms: {
             iResolution: "vec2",
@@ -197,7 +290,7 @@ function atmosphereBackgroundShader(): Program {
             `                                   
             precision lowp float;
             
-            ${atmos.COMMON}
+            ${COMMON(atmosParams)}
             
             uniform mat4 viewMatrix;
             uniform vec3 sunPos;

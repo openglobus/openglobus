@@ -1,41 +1,77 @@
-import { Program } from '../webgl/Program';
-import { UTILS } from './utils';
+import {Program} from '../webgl/Program';
+import {UTILS} from './utils';
+import {NumberArray3} from "../math/Vec3";
 
-export const COMMON =
-    `
-    
+export interface AtmosphereParameters {
+    ATMOS_HEIGHT: number,
+    RAYLEIGH_SCALE: number,
+    MIE_SCALE: number,
+    GROUND_ALBEDO: number,
+    BOTTOM_RADIUS: number
+    rayleighScatteringCoefficient: NumberArray3,
+    mieScatteringCoefficient: number,
+    mieExtinctionCoefficient: number,
+    ozoneAbsorptionCoefficient: NumberArray3,
+    SUN_ANGULAR_RADIUS: number,
+    SUN_INTENSITY: number,
+    ozoneDensityHeight: number,
+    ozoneDensityWide: number,
+}
+
+const DEFAULT_PARAMS: AtmosphereParameters = {
+    ATMOS_HEIGHT: 100000.0,
+    RAYLEIGH_SCALE: 0.08,
+    MIE_SCALE: 0.012,
+    GROUND_ALBEDO: 0.05,
+    BOTTOM_RADIUS: 6356752.3142451793,
+    rayleighScatteringCoefficient: [5.802, 13.558, 33.100],
+    mieScatteringCoefficient: 3.996,
+    mieExtinctionCoefficient: 4.440,
+    ozoneAbsorptionCoefficient: [0.650, 1.881, 0.085],
+    SUN_ANGULAR_RADIUS: 0.004685,
+    SUN_INTENSITY: 1.0,
+    ozoneDensityHeight: 25e3,
+    ozoneDensityWide: 15e3,
+}
+
+export const COMMON = (atmosParams: AtmosphereParameters = DEFAULT_PARAMS): string =>
+    `    
     ${UTILS}
     
     #define PI 3.1415926538
-    #define ATMOS_HEIGHT 100000.0
-    #define RAYLEIGH_SCALE 0.08
-    #define MIE_SCALE 0.012
+    #define ATMOS_HEIGHT ${atmosParams.ATMOS_HEIGHT.toFixed(2)}
+    #define RAYLEIGH_SCALE ${atmosParams.RAYLEIGH_SCALE.toFixed(5)}
+    #define MIE_SCALE ${atmosParams.MIE_SCALE.toFixed(5)}
     
     #define SAMPLE_COUNT 16
     #define SQRT_SAMPLE_COUNT 4
             
-    const float GROUND_ALBEDO = 0.05 / PI;
+    const float GROUND_ALBEDO = ${atmosParams.GROUND_ALBEDO.toFixed(2)} / PI;
 
     // Sphere
-    const float BOTTOM_RADIUS = 6356752.3142451793;
-    const float TOP_RADIUS = 6356752.3142451793 + ATMOS_HEIGHT;
-        
+    const float BOTTOM_RADIUS = ${atmosParams.BOTTOM_RADIUS.toFixed(10)};
+    const float TOP_RADIUS = BOTTOM_RADIUS + ATMOS_HEIGHT;   
+    const float EQUATORIAL_RADIUS = 6378137.0;
+    
     // Ellipsoid
-    const vec3 bottomRadii = vec3(6378137.0, 6378137.0, 6356752.3142451793);           
+    const vec3 bottomRadii = vec3(EQUATORIAL_RADIUS, EQUATORIAL_RADIUS, BOTTOM_RADIUS);           
     const vec3 topRadii = bottomRadii + ATMOS_HEIGHT;
     
     const vec3 SPHERE_TO_ELLIPSOID_SCALE = vec3(BOTTOM_RADIUS) / bottomRadii;           
     
     const vec2 rayleighMieHeights = vec2(RAYLEIGH_SCALE, MIE_SCALE) * ATMOS_HEIGHT;
      
-    const vec3 rayleighScatteringCoefficient = vec3(5.802, 13.558, 33.100) * 1e-6;
+    const vec3 rayleighScatteringCoefficient = vec3(${atmosParams.rayleighScatteringCoefficient[0].toFixed(5)}, ${atmosParams.rayleighScatteringCoefficient[1].toFixed(5)}, ${atmosParams.rayleighScatteringCoefficient[2].toFixed(5)}) * 1e-6;
     
-    const float mieScatteringCoefficient = 3.996e-06;
-    const float mieExtinctionCoefficient = 4.440e-06;
-    const vec3 ozoneAbsorptionCoefficient = vec3(0.650, 1.881, 0.085) * 1e-6;
+    const float mieScatteringCoefficient = ${atmosParams.mieScatteringCoefficient.toFixed(3)} * 1e-6;
+    const float mieExtinctionCoefficient = ${atmosParams.mieExtinctionCoefficient.toFixed(3)} * 1e-6;
+    const vec3 ozoneAbsorptionCoefficient = vec3(${atmosParams.ozoneAbsorptionCoefficient[0].toFixed(5)}, ${atmosParams.ozoneAbsorptionCoefficient[1].toFixed(5)}, ${atmosParams.ozoneAbsorptionCoefficient[2].toFixed(5)}) * 1e-6;
     
-    const float SUN_ANGULAR_RADIUS = 0.004685;
-    const float SUN_INTENSITY = 1.0;        
+    const float SUN_ANGULAR_RADIUS = ${atmosParams.SUN_ANGULAR_RADIUS.toFixed(10)};
+    const float SUN_INTENSITY = ${atmosParams.SUN_INTENSITY.toFixed(2)};        
+    
+    const float ozoneDensityHeight = ${atmosParams.ozoneDensityHeight.toFixed(1)};//25e3;
+    const float ozoneDensityWide = ${atmosParams.ozoneDensityWide.toFixed(1)};//15e3;
     
     vec3 sunWithBloom(vec3 rayDir, vec3 sunDir) 
     {
@@ -75,10 +111,7 @@ export const COMMON =
             vec3 position = rayOrigin + t * rayDirection;
             float height = length(position) - BOTTOM_RADIUS;
             opticalDepth.xy += exp(-height / rayleighMieHeights) * segmentLength;
-            
-            // density of the ozone layer is modeled as a triangular 
-            // function that is 30 km wide and centered at 25 km altitude
-            opticalDepth.z += (1.0 - min(abs(height - 25e3) / 15e3, 1.0)) * segmentLength;  
+            opticalDepth.z += (1.0 - min(abs(height - ozoneDensityHeight) / ozoneDensityWide, 1.0)) * segmentLength;  
             t += segmentLength;
         }
         
@@ -91,7 +124,7 @@ export const COMMON =
         return exp(-(rayleighScatteringCoefficient * opticalDepth.x + mieExtinctionCoefficient * opticalDepth.y + ozoneAbsorptionCoefficient * opticalDepth.z));
     }`;
 
-export function transmittance(): Program {
+export function transmittance(atmosParams?: AtmosphereParameters): Program {
     return new Program("transmittance", {
         uniforms: {
             iResolution: "vec2"
@@ -113,7 +146,7 @@ export function transmittance(): Program {
             `
             precision highp float;
             
-            ${COMMON}
+            ${COMMON(atmosParams)}
                        
             uniform vec2 iResolution;
                         
@@ -127,7 +160,7 @@ export function transmittance(): Program {
     });
 }
 
-export function scattering(): Program {
+export function scattering(atmosParams?: AtmosphereParameters): Program {
     return new Program("scattering", {
         uniforms: {
             iResolution: "vec2",
@@ -153,7 +186,7 @@ export function scattering(): Program {
             uniform sampler2D transmittanceTexture;
             uniform vec2 iResolution;
             
-            ${COMMON}
+            ${COMMON(atmosParams)}
             
             vec3 transmittanceFromTexture(float height, float angle) 
             {
@@ -235,8 +268,7 @@ export function scattering(): Program {
                             vec3 hitPoint = rayOrigin + rayDirection * distanceToGround;
                             vec3 normal = normalize(hitPoint);
                             float diffuseAngle = max(dot(normal, lightDirection), 0.0); 
-                            float earthAlbedo = 0.05;
-                            light += transmittanceCamera * transmittanceLight * (earthAlbedo / PI) * diffuseAngle;
+                            light += transmittanceCamera * transmittanceLight * GROUND_ALBEDO * diffuseAngle;
                         }
                     }
                 }

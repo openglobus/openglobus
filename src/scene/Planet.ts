@@ -37,9 +37,8 @@ import {VectorTileCreator} from "../utils/VectorTileCreator";
 import {wgs84} from "../ellipsoid/wgs84";
 import {WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams, WebGLContextExt} from "../webgl/Handler";
 import {Program} from "../webgl/Program";
-import {RENDERING} from "../quadTree/quadTree";
 import {Segment} from "../segment/Segment";
-import {Slice} from "../segment/Slice";
+import {AtmosphereParameters} from "../shaders/atmos";
 
 export interface IPlanetParams {
     name?: string;
@@ -427,8 +426,12 @@ export class Planet extends RenderNode {
 
     protected _transitionOpacityEnabled: boolean;
 
+    protected _atmosphere: Atmosphere;
+
     constructor(options: IPlanetParams = {}) {
         super(options.name);
+
+        this._atmosphere = new Atmosphere();
 
         this._prevNodes = new Map<number, Node>();
         this._currNodes = new Map<number, Node>();
@@ -850,8 +853,28 @@ export class Planet extends RenderNode {
         }
     }
 
+    public initAtmosphereShader(atmosParams?: AtmosphereParameters) {
+        if (this.renderer && this.renderer.handler && this._atmosphereEnabled) {
+            let h = this.renderer.handler;
+            if (h.isWebGl2()) {
+                h.removeProgram("drawnode_screen_wl");
+                h.addProgram(shaders.drawnode_screen_wl_webgl2Atmos(atmosParams), true);
+            } else {
+                console.warn("Atmosphere WebGL2 only");
+            }
+        }
+    }
+
+    public get atmosphereControl(): Atmosphere {
+        return this._atmosphere;
+    }
+
     protected _initializeAtmosphere() {
-        let h = this.renderer!.handler;
+
+        if (!this.renderer) return;
+
+        let h = this.renderer.handler;
+
         h.removeProgram("drawnode_screen_wl");
 
         if (this._atmosphereEnabled) {
@@ -859,20 +882,20 @@ export class Planet extends RenderNode {
             this._renderScreenNodesPASS = this._renderScreenNodesPASSAtmos;
             this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSAtmos;
 
+            if (!this.renderer.controls.Atmosphere) {
+                this.addControl(this._atmosphere);
+            }
+
+            this._atmosphere.activate();
+
             if (h.isWebGl2()) {
-                h.addProgram(shaders.drawnode_screen_wl_webgl2Atmos(), true);
+                h.addProgram(shaders.drawnode_screen_wl_webgl2Atmos(this._atmosphere.parameters), true);
             } else {
                 h.addProgram(shaders.drawnode_screen_wl_webgl1NoAtmos(), true);
             }
 
-            if (!this.renderer!.controls.Atmosphere) {
-                this.addControl(new Atmosphere());
-            } else {
-                this.renderer!.controls.Atmosphere.activate();
-            }
-
-            if (this.renderer!.controls.SimpleSkyBackground) {
-                this.renderer!.controls.SimpleSkyBackground.deactivate();
+            if (this.renderer.controls.SimpleSkyBackground) {
+                this.renderer.controls.SimpleSkyBackground.deactivate();
             }
 
         } else {
@@ -880,14 +903,12 @@ export class Planet extends RenderNode {
             this._renderScreenNodesPASS = this._renderScreenNodesPASSNoAtmos;
             this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSNoAtmos;
 
-            if (this.renderer!.controls.Atmosphere) {
-                this.renderer!.controls.Atmosphere.deactivate();
-            }
+            this._atmosphere.deactivate();
 
-            if (!this.renderer!.controls.SimpleSkyBackground) {
+            if (!this.renderer.controls.SimpleSkyBackground) {
                 this.addControl(new SimpleSkyBackground());
             } else {
-                this.renderer!.controls.SimpleSkyBackground.activate();
+                this.renderer.controls.SimpleSkyBackground.activate();
             }
 
             if (h.isWebGl2()) {
