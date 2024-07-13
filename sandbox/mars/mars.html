@@ -47,10 +47,13 @@
         layers: [osm],
         nightTextureSrc: null,
         specularTextureSrc: null,
+        atmosphereEnabled: true
     });
 
     globe.planet.addControl(new control.ToggleWireframe());
     globe.planet.addControl(new control.DebugInfo());
+    globe.planet.addControl(new control.Lighting());
+    globe.planet.addControl(new control.AtmosphereConfig());
 
 </script>
 </body>

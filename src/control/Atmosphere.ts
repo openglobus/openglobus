@@ -4,7 +4,7 @@ import {Program} from '../webgl/Program';
 import {Control, IControlParams} from "./Control";
 import {NumberArray3} from '../math/Vec3';
 
-interface IAtmosphereParams extends IControlParams {
+export interface IAtmosphereParams extends IControlParams {
     height?: number,
     rayleighScale?: number,
     mieScale?: number,

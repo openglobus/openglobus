@@ -2,7 +2,7 @@ import * as math from "../math";
 import * as segmentHelper from "../segment/segmentHelper";
 import * as shaders from "../shaders/drawnode";
 import * as utils from "../utils/shared";
-import {Atmosphere} from "../control/Atmosphere";
+import {Atmosphere, IAtmosphereParams} from "../control/Atmosphere";
 import {Control} from "../control/Control";
 import {createColorRGB, isUndef} from "../utils/shared";
 import {createEvents, EventsHandler} from "../Events";
@@ -60,6 +60,7 @@ export interface IPlanetParams {
     maxLoadingRequests?: number;
     atmosphereEnabled?: boolean;
     transitionOpacityEnabled?: boolean;
+    atmosphereParameters?: IAtmosphereParams;
 }
 
 export type PlanetEventsList = [
@@ -431,7 +432,7 @@ export class Planet extends RenderNode {
     constructor(options: IPlanetParams = {}) {
         super(options.name);
 
-        this._atmosphere = new Atmosphere();
+        this._atmosphere = new Atmosphere(options.atmosphereParameters);
 
         this._prevNodes = new Map<number, Node>();
         this._currNodes = new Map<number, Node>();

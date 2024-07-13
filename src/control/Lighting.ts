@@ -440,16 +440,24 @@ export class Lighting extends Control {
         // Simple Sky Background parameters
         //
         let simpleSkyBackgroundControl = this.planet!.renderer!.controls.SimpleSkyBackground as SimpleSkyBackground;
-        this._simpleSkyBackgroundColorOne.value = simpleSkyBackgroundControl.colorOne;
+        if (simpleSkyBackgroundControl) {
+            this._simpleSkyBackgroundColorOne.value = simpleSkyBackgroundControl.colorOne;
+            this._simpleSkyBackgroundColorTwo.value = simpleSkyBackgroundControl.colorTwo;
+        }
+
         this._simpleSkyBackgroundColorOne.events.on("input", (val: string) => {
-            simpleSkyBackgroundControl.colorOne = val;
+            let simpleSkyBackgroundControl = this.planet!.renderer!.controls.SimpleSkyBackground as SimpleSkyBackground;
+            if (simpleSkyBackgroundControl) {
+                simpleSkyBackgroundControl.colorOne = val;
+            }
         });
 
-        this._simpleSkyBackgroundColorTwo.value = simpleSkyBackgroundControl.colorTwo;
         this._simpleSkyBackgroundColorTwo.events.on("input", (val: string) => {
-            simpleSkyBackgroundControl.colorTwo = val;
+            let simpleSkyBackgroundControl = this.planet!.renderer!.controls.SimpleSkyBackground as SimpleSkyBackground;
+            if (simpleSkyBackgroundControl) {
+                simpleSkyBackgroundControl.colorTwo = val;
+            }
         });
-
 
         //
         // Planet options
