@@ -658,14 +658,21 @@ export function drawnode_screen_wl_webgl2Atmos(atmosParams?: AtmosphereParameter
             }
            
             void atmosGroundColor(out vec4 fragColor, in vec3 normal)
-            {                                                                                                                                
+            {      
+                vec3 cameraPosition = cameraPosition;           
+                
+                if(length(cameraPosition * SPHERE_TO_ELLIPSOID_SCALE) < BOTTOM_RADIUS + 1.0){
+                    cameraPosition = normalize(cameraPosition * SPHERE_TO_ELLIPSOID_SCALE) * (BOTTOM_RADIUS + 1.0) / SPHERE_TO_ELLIPSOID_SCALE;
+                }             
+                                                                                
                 vec3 rayDirection = normalize(v_vertex - cameraPosition);
                 vec3 lightDir = normalize(sunPos);
                 
                 rayDirection = normalize(rayDirection * SPHERE_TO_ELLIPSOID_SCALE);
                 vec3 camPos = cameraPosition * SPHERE_TO_ELLIPSOID_SCALE;
                 lightDir = normalize(lightDir * SPHERE_TO_ELLIPSOID_SCALE);
-            
+               
+
                 vec3 light = vec3(0.0);
                 vec3 transmittanceFromCameraToSpace = vec3(1.0);
                 float offset = 0.0;
@@ -695,7 +702,9 @@ export function drawnode_screen_wl_webgl2Atmos(atmosParams?: AtmosphereParameter
                 float distanceToGround = 0.0;
                 
                 bool hitGround = intersectSphere(camPos, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;                
-                
+                //intersectSphere(camPos, rayDirection, BOTTOM_RADIUS, distanceToGround);
+               
+
                 if(length(v_vertex * SPHERE_TO_ELLIPSOID_SCALE) > BOTTOM_RADIUS){
                     distanceToGround = distance(camPos, v_vertex * SPHERE_TO_ELLIPSOID_SCALE);
                 }
