@@ -379,6 +379,10 @@ function atmosphereBackgroundShader(atmosParams?: AtmosphereParameters): Program
                 rayDirection = normalize(rayDirection * SPHERE_TO_ELLIPSOID_SCALE);
                 cameraPosition *= SPHERE_TO_ELLIPSOID_SCALE;
                 lightDirection = normalize(lightDirection * SPHERE_TO_ELLIPSOID_SCALE);
+                
+                if(length(cameraPosition) < BOTTOM_RADIUS + 100.0){
+                    cameraPosition = normalize(cameraPosition) * (BOTTOM_RADIUS + 100.0); 
+                }
                                                 
                 if (intersectSphere(cameraPosition, rayDirection, TOP_RADIUS, offset, distanceToSpace)) 
                 {    
@@ -404,7 +408,7 @@ function atmosphereBackgroundShader(atmosParams?: AtmosphereParameters): Program
                     
                     bool hitGround = intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS, distanceToGround) && distanceToGround > 0.0;
                     
-                    if(intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS - 15000.0, distanceToGround) && hitGround)
+                    if(intersectSphere(cameraPosition, rayDirection, BOTTOM_RADIUS - 100000.0, distanceToGround) && hitGround)
                     {
                         discard;
                     }
