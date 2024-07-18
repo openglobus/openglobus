@@ -12,16 +12,17 @@
 <div id="globus"></div>
 <script type="module">
 
-    'use strict';
-
-    import {Globe} from '../../src/og/Globe.js';
-    import {EmptyTerrain} from '../../src/og/terrain/EmptyTerrain.js';
-    import {XYZ} from '../../src/og/layer/XYZ.js';
-    import {ToggleWireframe} from '../../src/og/control/ToggleWireframe.js';
-    import {KeyboardNavigation} from '../../src/og/control/KeyboardNavigation.js';
-    import {quadTreeStrategyType} from '../../src/og/quadTree/index.js';
-    import {CanvasTiles} from '../../src/og/layer/CanvasTiles.js';
-    import {LayerSwitcher} from "../../src/og/control/LayerSwitcher.js";
+    import {
+        Globe,
+        RgbTerrain,
+        XYZ,
+        control,
+        utils,
+        LonLat,
+        quadTreeStrategyType,
+        CanvasTiles,
+        EmptyTerrain
+    } from "../../lib/@openglobus/og.esm.js";
 
     const tg = new CanvasTiles("Tile grid", {
         visibility: true,
@@ -90,8 +91,8 @@
         useSpecularTexture: false
     });
 
-    globe.planet.addControl(new ToggleWireframe());
-    globe.planet.addControl(new KeyboardNavigation());
-    globe.planet.addControl(new LayerSwitcher());
+    globe.planet.addControl(new control.ToggleWireframe());
+    globe.planet.addControl(new control.KeyboardNavigation());
+    globe.planet.addControl(new control.LayerSwitcher());
 </script>
 </body>
