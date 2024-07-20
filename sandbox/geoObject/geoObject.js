@@ -19,20 +19,26 @@ async function main() {
     const planeObj3d = await Object3d.loadObj('./airplane.obj');
 
     let myObjects = new Vector("MyObjects", {
-        scaleByDistance: [200, 60000, 1]
+        scaleByDistance: [200, 190000, 1]
     });
 
-    new Entity({
-        lonlat: [0, 0, 100000],
-        geoObject: {
-            scale: 0.2,
-            instanced: true,
-            tag: "plane",
-            object3d: planeObj3d,
-            yaw: 0,
-            pitch: 0
+    for (let i = -70; i < 70; i += 10) {
+        for (let j = -180; j < 180; j += 10) {
+            myObjects.add(new Entity({
+                    lonlat: [j, i, 20000],
+                    geoObject: {
+                        color: "green",
+                        scale: 10.0,
+                        instanced: true,
+                        tag: "plane",
+                        object3d: planeObj3d[0],
+                        yaw: 0,
+                        pitch: 0
+                    }
+                })
+            );
         }
-    })
+    }
 
     const globus = new Globe({
         target: "earth",
@@ -41,6 +47,7 @@ async function main() {
         layers: [osm, sat, myObjects],
         atmosphereEnabled: false,
         fontsSrc: "../../res/fonts",
+        frustums: [[500000, 40000000]],
         sun: {
             stopped: false
         }
