@@ -12,14 +12,24 @@ import {
 } from "../../lib/@openglobus/og.esm.js";
 
 
+let myObjects = new Vector("MyObjects", {
+    scaleByDistance: [200, 190000, 1]
+});
+
 async function main() {
     let sat = new Bing();
     let osm = new OpenStreetMap();
 
     const planeObj3d = await Object3d.loadObj('./airplane.obj');
 
-    let myObjects = new Vector("MyObjects", {
-        scaleByDistance: [200, 190000, 1]
+    document.querySelector(".gpitch").addEventListener("change", (e) => {
+        setPitch();
+    });
+    document.querySelector(".gyaw").addEventListener("change", (e) => {
+        setYaw();
+    });
+    document.querySelector(".groll").addEventListener("change", (e) => {
+        setRoll();
     });
 
     for (let i = -70; i < 70; i += 10) {
