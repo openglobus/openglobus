@@ -249,11 +249,11 @@ class Layer {
 
         this._hasImageryTiles = true;
 
-        this._opacity = options.opacity || 1.0;
+        this._opacity = options.opacity != undefined ? options.opacity : 1.0;
 
         this.minZoom = options.minZoom || 0;
 
-        this.maxZoom = options.maxZoom || 50;
+        this.maxZoom = options.maxZoom != undefined ? options.maxZoom : 50;
 
         this._planet = null;
 
