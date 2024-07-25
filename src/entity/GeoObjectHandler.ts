@@ -5,6 +5,7 @@ import {GeoObject} from "./GeoObject";
 import {Planet} from "../scene/Planet";
 import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
+import {Quat} from "../math/Quat";
 import {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
 import {Object3d} from "../Object3d";
 
@@ -19,6 +20,7 @@ const SIZE_BUFFER = 7;
 const PICKINGCOLOR_BUFFER = 8;
 const VISIBLE_BUFFER = 9;
 const TEXCOORD_BUFFER = 10;
+const QROT_BUFFER = 11;
 
 function setParametersToArray(arr: number[] | TypedArray, index: number = 0, length: number = 0, itemSize: number = 1, ...params: number[]): number[] | TypedArray {
     const currIndex = index * length;
@@ -56,6 +58,7 @@ class InstanceData {
     public _positionHighArr: number[] | TypedArray;
     public _positionLowArr: number[] | TypedArray;
     public _directionArr: number[] | TypedArray;
+    public _qRotArr: number[] | TypedArray;
     public _rgbaArr: number[] | TypedArray;
     public _normalsArr: number[] | TypedArray;
     public _indicesArr: number[] | TypedArray;
@@ -69,6 +72,7 @@ class InstanceData {
     public _positionHighBuffer: WebGLBufferExt | null;
     public _positionLowBuffer: WebGLBufferExt | null;
     public _directionBuffer: WebGLBufferExt | null;
+    public _qRotBuffer: WebGLBufferExt | null;
     public _rgbaBuffer: WebGLBufferExt | null;
     public _normalsBuffer: WebGLBufferExt | null;
     public _indicesBuffer: WebGLBufferExt | null;
@@ -99,6 +103,7 @@ class InstanceData {
         this._positionHighArr = [];
         this._positionLowArr = [];
         this._directionArr = [];
+        this._qRotArr = [];
         this._rgbaArr = [];
         this._normalsArr = [];
         this._indicesArr = [];
@@ -112,6 +117,7 @@ class InstanceData {
         this._positionHighBuffer = null;
         this._positionLowBuffer = null;
         this._directionBuffer = null;
+        this._qRotBuffer = null;
         this._rgbaBuffer = null;
         this._normalsBuffer = null;
         this._indicesBuffer = null;
@@ -131,6 +137,7 @@ class InstanceData {
         this._buffersUpdateCallbacks[PITCH_ROLL_BUFFER] = this.createPitchRollBuffer;
         this._buffersUpdateCallbacks[VISIBLE_BUFFER] = this.createVisibleBuffer;
         this._buffersUpdateCallbacks[TEXCOORD_BUFFER] = this.createTexCoordBuffer;
+        this._buffersUpdateCallbacks[QROT_BUFFER] = this.createQRotBuffer;
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
     }
@@ -153,6 +160,7 @@ class InstanceData {
         this._positionHighArr = [];
         this._positionLowArr = [];
         this._directionArr = [];
+        this._qRotArr = [];
         this._rgbaArr = [];
         this._normalsArr = [];
         this._indicesArr = [];
@@ -183,6 +191,7 @@ class InstanceData {
             gl.deleteBuffer(this._positionHighBuffer!);
             gl.deleteBuffer(this._positionLowBuffer!);
             gl.deleteBuffer(this._directionBuffer!);
+            gl.deleteBuffer(this._qRotBuffer!);
             gl.deleteBuffer(this._rgbaBuffer!);
             gl.deleteBuffer(this._normalsBuffer!);
             gl.deleteBuffer(this._indicesBuffer!);
@@ -197,6 +206,7 @@ class InstanceData {
         this._positionHighBuffer = null;
         this._positionLowBuffer = null;
         this._directionBuffer = null;
+        this._qRotBuffer = null;
         this._rgbaBuffer = null;
         this._normalsBuffer = null;
         this._indicesBuffer = null;
@@ -307,6 +317,20 @@ class InstanceData {
         this._directionArr = makeArrayTyped(this._directionArr);
 
         h.setStreamArrayBuffer(this._directionBuffer, this._directionArr as Float32Array);
+    }
+
+    public createQRotBuffer() {
+        let h = this._geoObjectHandler._planet!.renderer!.handler,
+            numItems = this._qRotArr.length / 4;
+
+        if (!this._qRotBuffer || this._qRotBuffer.numItems !== numItems) {
+            h.gl!.deleteBuffer(this._qRotBuffer!);
+            this._qRotBuffer = h.createStreamArrayBuffer(4, numItems);
+        }
+
+        this._qRotArr = makeArrayTyped(this._qRotArr);
+
+        h.setStreamArrayBuffer(this._qRotBuffer, this._qRotArr as Float32Array);
     }
 
     public createNormalsBuffer() {
@@ -528,6 +552,12 @@ class GeoObjectHandler {
 
         itemSize = 4;
 
+        x = geoObject._qRot.x;
+        y = geoObject._qRot.y;
+        z = geoObject._qRot.z;
+        w = geoObject._qRot.w;
+        tagData._qRotArr = concatArrays(tagData._qRotArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z, w));
+
         x = geoObject._color.x;
         y = geoObject._color.y;
         z = geoObject._color.z;
@@ -582,6 +612,9 @@ class GeoObjectHandler {
             //
             //  Instance individual data
             //
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._qRotBuffer!);
+            gl.vertexAttribPointer(a.qRot, tagData._qRotBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._directionBuffer!);
             gl.vertexAttribPointer(a.aDirection, tagData._directionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -702,6 +735,12 @@ class GeoObjectHandler {
     public setDirectionArr(tagData: InstanceData, tagDataIndex: number, direction: Vec3) {
         setParametersToArray(tagData._directionArr, tagDataIndex, 3, 3, direction.x, direction.y, direction.z);
         tagData._changedBuffers[DIRECTION_BUFFER] = true;
+        this._updateTag(tagData);
+    }
+
+    public setQRotArr(tagData: InstanceData, tagDataIndex: number, qRot: Quat) {
+        setParametersToArray(tagData._qRotArr, tagDataIndex, 4, 4, qRot.x, qRot.y, qRot.z, qRot.w);
+        tagData._changedBuffers[QROT_BUFFER] = true;
         this._updateTag(tagData);
     }
 
@@ -861,6 +900,7 @@ class GeoObjectHandler {
         tagData._positionHighArr = spliceArray(tagData._positionHighArr, tdi * 3, 3);
         tagData._positionLowArr = spliceArray(tagData._positionLowArr, tdi * 3, 3);
         tagData._directionArr = spliceArray(tagData._directionArr, tdi * 3, 3);
+        tagData._qRotArr = spliceArray(tagData._qRotArr, tdi * 4, 4);
         tagData._pickingColorArr = spliceArray(tagData._pickingColorArr, tdi * 3, 3);
         tagData._sizeArr = spliceArray(tagData._sizeArr, tdi * 3, 3);
         tagData._pitchRollArr = spliceArray(tagData._pitchRollArr, tdi * 2, 2);

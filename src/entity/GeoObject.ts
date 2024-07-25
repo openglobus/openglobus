@@ -5,6 +5,7 @@ import {GeoObjectHandler, InstanceData} from "./GeoObjectHandler";
 import {NumberArray3} from "../math/Vec3";
 import {NumberArray4} from "../math/Vec4";
 import {Object3d} from "../Object3d";
+import {DEGREES, RADIANS} from "../math";
 
 export interface IGeoObjectParams {
     object3d?: Object3d;
@@ -64,6 +65,8 @@ class GeoObject {
 
     public _direction: Vec3;
 
+    public _qRot: Quat;
+
     public _handler: GeoObjectHandler | null;
     public _handlerIndex = -1;
 
@@ -101,6 +104,8 @@ class GeoObject {
         this._color = utils.createColorRGBA(options.color);
 
         this._direction = new Vec3(0, 1, 0);
+
+        this._qRot = Quat.IDENTITY;
 
         this._handler = null;
         this._handlerIndex = -1;
@@ -288,11 +293,13 @@ class GeoObject {
     public setPitch(pitch: number) {
         this._pitch = pitch;
         this._handler && this._handler.setPitchRollArr(this._tagData!, this._tagDataIndex, pitch, this._roll);
+        this.updateDirection();
     }
 
     public setRoll(roll: number) {
         this._roll = roll;
         this._handler && this._handler.setPitchRollArr(this._tagData!, this._tagDataIndex, this._pitch, roll);
+        this.updateDirection();
     }
 
     public setPitchYawRoll(pitch: number, yaw: number, roll: number) {
@@ -336,9 +343,14 @@ class GeoObject {
     public updateDirection() {
         if (this._handler && this._handler._planet) {
             this._qNorthFrame = this._handler._planet.getNorthFrameRotation(this._position);
-            let qq = Quat.yRotation(this._yaw).mul(this._qNorthFrame).conjugate();
+            //let qq = Quat.yRotation(this._yaw).mul(this._qNorthFrame).conjugate();
+            let qq = Quat.setFromEulerAngles(this._pitch * DEGREES, this._yaw * DEGREES, this._roll * DEGREES).mul(this._qNorthFrame).conjugate();
             this._direction = qq.mulVec3(new Vec3(0.0, 0.0, -1.0)).normalize();
             this._handler.setDirectionArr(this._tagData!, this._tagDataIndex, this._direction);
+
+            this._qRot = qq;
+
+            this._handler.setQRotArr(this._tagData!, this._tagDataIndex, this._qRot);
         }
     }
 }

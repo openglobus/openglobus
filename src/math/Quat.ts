@@ -214,6 +214,11 @@ export class Quat {
         return Quat.axisAngleToQuat(rotAxis, rotAngle);
     }
 
+    static setFromEulerAngles(pitch: number, yaw: number, roll: number): Quat {
+        let res = new Quat();
+        return res.setFromEulerAngles(pitch, yaw, roll);
+    }
+
     /**
      * Returns true if the components are zero.
      * @public

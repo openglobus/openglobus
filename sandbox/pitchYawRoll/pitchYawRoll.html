@@ -1,0 +1,149 @@
+﻿<html>
+
+<head>
+    <title>OpenStreetMap Base Layer</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="geoObject.js" type="module"></script>
+    <link rel="stylesheet" href="../../css/og.css" type="text/css"/>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        .ginput {
+            position: relative;
+            padding: 10px;
+            display: flex;
+            flex-direction: row;
+        }
+
+        .ginput input {
+            width: 150px;
+            font-size: 1.3em;
+        }
+
+        .ginput div {
+            width: 100px;
+        }
+    </style>
+</head>
+
+<body>
+<div id="earth" style="position: absolute; width:100%;height:100%"></div>
+<div style="font-size: 1.3em; background: white; position: absolute; right:100px; top:20px;display: flex;flex-direction: column">
+    <div class="ginput">
+        <div>PITCH</div>
+        <input type="number" class="gpitch" value="0"/></div>
+    <div class="ginput">
+        <div>YAW</div>
+        <input type="number" class="gyaw" value="0"/></div>
+    <div class="ginput">
+        <div>ROLL</div>
+        <input type="number" class="groll" value="0"/></div>
+</div>
+
+<script type="module" id="og-sandbox-script">
+    import {
+        math,
+        Globe,
+        control,
+        utils,
+        LonLat,
+        GlobusTerrain,
+        Vector,
+        OpenStreetMap,
+        Entity,
+        Bing,
+        GlobusRgbTerrain,
+        Object3d,
+        EmptyTerrain
+    } from "../../lib/@openglobus/og.esm.js";
+
+    let myObjects = new Vector("MyObjects", {
+        //scaleByDistance: [200, 190000, 0.0]
+        scaleByDistance: [1.0, 1.0, 1.0]
+    });
+
+    //Object3d.
+
+    function setPitch(a) {
+        myObjects.each((e) => {
+            e.geoObject.setPitch(a)
+        });
+    }
+
+    function setYaw(a) {
+        myObjects.each((e) => {
+            e.geoObject.setYaw(a);
+        });
+    }
+
+    function setRoll(a) {
+        myObjects.each((e) => {
+            e.geoObject.setRoll(a);
+        });
+    }
+
+    async function main() {
+        let sat = new Bing();
+        let osm = new OpenStreetMap();
+
+        const planeObj3d = await Object3d.loadObj('./airplane.obj');
+
+        document.querySelector(".gpitch").addEventListener("input", (e) => {
+            setPitch(Number(e.target.value) * math.RADIANS);
+        });
+        document.querySelector(".gyaw").addEventListener("input", (e) => {
+            setYaw(Number(e.target.value) * math.RADIANS);
+        });
+        document.querySelector(".groll").addEventListener("input", (e) => {
+            setRoll(Number(e.target.value) * math.RADIANS);
+        });
+
+        for (let i = -90; i <= 90; i += 5) {
+            for (let j = -180; j < 180; j += 10) {
+                myObjects.add(new Entity({
+                    lonlat: [j, i, 0], geoObject: {
+                        color: "green",
+                        scale: 7000.0,
+                        instanced: true,
+                        tag: "plane",
+                        object3d: planeObj3d[0],
+                        yaw: 0,
+                        pitch: 0
+                    }
+                }));
+            }
+        }
+
+        const globus = new Globe({
+            target: "earth",
+            name: "Earth",
+            // terrain: new GlobusRgbTerrain("x5", {
+            //     heightFactor: 5
+            // }),
+            terrain: new EmptyTerrain(),
+            layers: [osm, sat, myObjects],
+            atmosphereEnabled: false,
+            fontsSrc: "../../res/fonts",
+            sun: {
+                stopped: false
+            }
+        });
+
+        globus.planet.addControl(new control.DebugInfo({
+
+        }));
+        globus.planet.addControl(new control.KeyboardNavigation());
+        globus.planet.addControl(new control.ToggleWireframe());
+        globus.planet.addControl(new control.LayerSwitcher());
+    }
+
+    main()
+
+</script>
+</body>
+
+</html>

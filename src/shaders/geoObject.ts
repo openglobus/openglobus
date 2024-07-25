@@ -29,7 +29,8 @@ export const geo_object = (): Program =>
             aPitchRoll: {type: "vec2", divisor: 1},
             aColor: {type: "vec4", divisor: 1},
             aScale: {type: "vec3", divisor: 1},
-            aDispose: {type: "float", divisor: 1}
+            aDispose: {type: "float", divisor: 1},
+            qRot: {type: "vec4", divisor: 1}
         },
         vertexShader:
             `precision highp float;
@@ -45,6 +46,7 @@ export const geo_object = (): Program =>
             attribute float aDispose;
             attribute float aUseTexture;
             attribute vec2 aTexCoord;
+            attribute vec4 qRot;
             
             uniform vec3 uScaleByDistance;
             uniform mat4 projectionMatrix;
@@ -64,6 +66,10 @@ export const geo_object = (): Program =>
             const float PI = 3.141592653589793;
             
             const float RADIANS = PI / 180.0;
+            
+            vec3 qRotate(vec4 q, vec3 v){
+                return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
+            }
            
             void main(void) {
                         
@@ -124,9 +130,11 @@ export const geo_object = (): Program =>
                 //     scd = lookLength / uScaleByDistance[0];
                 // }
                 // ... is the same math
+                // use scaleByDistance: [1.0, 1.0, 1.0] for real sized objects 
                 float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
                 
                 vec3 vert = modelMatrix * (aVertexPosition * aScale) * scd;
+                vert = qRotate(qRot, (aVertexPosition * aScale)) * scd;
                 
                 vert += lowDiff;
                                

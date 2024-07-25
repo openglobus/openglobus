@@ -75,6 +75,7 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
  *      First index - near distance to the entity, after entity becomes full scale.
  *      Second index - far distance to the entity, when entity becomes zero scale.
  *      Third index - far distance to the entity, when entity becomes invisible.
+ *      Use [1.0, 1.0, 1.0] for real sized objects
  * @param {number} [options.nodeCapacity=30] - Maximum entities quantity in the tree node. Rendering optimization parameter. 30 is default.
  * @param {boolean} [options.async=true] - Asynchronous vector data handling before rendering. True for optimization huge data.
  * @param {boolean} [options.clampToGround = false] - Clamp vector data to the ground.
