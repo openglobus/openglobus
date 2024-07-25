@@ -63,10 +63,6 @@ export const geo_object = (): Program =>
             varying vec2 vTexCoords;
             //varying float useLighting;
             
-            const float PI = 3.141592653589793;
-            
-            const float RADIANS = PI / 180.0;
-            
             vec3 qRotate(vec4 q, vec3 v){
                 return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
             }
@@ -223,8 +219,6 @@ export const geo_object_picking = (): Program =>
             uniform float pickingScale;
 
             varying vec3 vColor;
-            
-            const float RADIANS = 3.141592653589793 / 180.0;
 
             void main(void) {
 

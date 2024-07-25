@@ -93,21 +93,21 @@
         const planeObj3d = await Object3d.loadObj('./airplane.obj');
 
         document.querySelector(".gpitch").addEventListener("input", (e) => {
-            setPitch(Number(e.target.value) * math.RADIANS);
+            setPitch(Number(e.target.value));
         });
         document.querySelector(".gyaw").addEventListener("input", (e) => {
-            setYaw(Number(e.target.value) * math.RADIANS);
+            setYaw(Number(e.target.value));
         });
         document.querySelector(".groll").addEventListener("input", (e) => {
-            setRoll(Number(e.target.value) * math.RADIANS);
+            setRoll(Number(e.target.value));
         });
 
         for (let i = -90; i <= 90; i += 5) {
             for (let j = -180; j < 180; j += 10) {
                 myObjects.add(new Entity({
-                    lonlat: [j, i, 0], geoObject: {
+                    lonlat: [j, i, 25000], geoObject: {
                         color: "green",
-                        scale: 7000.0,
+                        scale: 3000.0,
                         instanced: true,
                         tag: "plane",
                         object3d: planeObj3d[0],

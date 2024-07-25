@@ -340,15 +340,70 @@ class GeoObject {
         this._handler && this._handler.setPickingColorArr(this._tagData!, this._tagDataIndex, color);
     }
 
+    /*
+        float cos_roll = cos(aPitchRoll.y);
+        float sin_roll = sin(aPitchRoll.y);
+
+        mat3 rotZ = mat3(
+            vec3(cos_roll, sin_roll, 0.0),
+            vec3(-sin_roll, cos_roll, 0.0),
+            vec3(0.0, 0.0, 1.0)
+        );
+
+        float cos_pitch = cos(aPitchRoll.x);
+        float sin_pitch = sin(aPitchRoll.x);
+
+        mat3 rotX = mat3(
+            vec3(1.0, 0.0, 0.0),
+            vec3(0.0, cos_pitch, sin_pitch),
+            vec3(0.0, -sin_pitch, cos_pitch)
+        );
+
+        vec3 r = cross(normalize(-position), aDirection);
+        mat3 modelMatrix = mat3(r, normalize(position), -aDirection) * rotX * rotZ;
+    */
     public updateDirection() {
+
+        const fromAxisAngle = (axis: Vec3, angle: number) => {
+            const halfAngle = angle * 0.5;
+            const s = Math.sin(halfAngle);
+            return new Quat(
+                axis.x * s,
+                axis.y * s,
+                axis.z * s,
+                Math.cos(halfAngle)
+            );
+        }
+
+        const fromDirection = (from: Vec3, to: Vec3) => {
+            const f = from.normalize();
+            const t = to.normalize();
+
+            const dot = f.dot(t);
+            if (dot >= 1.0) return new Quat(0, 0, 0, 1);
+
+            const axis = f.cross(t).normalize();
+            const angle = Math.acos(dot);
+
+            return fromAxisAngle(axis, angle);
+        }
+
         if (this._handler && this._handler._planet) {
             this._qNorthFrame = this._handler._planet.getNorthFrameRotation(this._position);
-            //let qq = Quat.yRotation(this._yaw).mul(this._qNorthFrame).conjugate();
-            let qq = Quat.setFromEulerAngles(this._pitch * DEGREES, this._yaw * DEGREES, this._roll * DEGREES).mul(this._qNorthFrame).conjugate();
+            let qq = Quat.yRotation(this._yaw * RADIANS).mul(this._qNorthFrame).conjugate();
+
+            //let qq = Quat.setFromEulerAngles(0, this._yaw, this._roll).mul(this._qNorthFrame).conjugate();
+            //let yr = Quat.setFromEulerAngles(this._pitch, this._yaw, this._roll);
+
+            let qp = Quat.xRotation(this._pitch * RADIANS);
+            let qy = Quat.yRotation(this._yaw * RADIANS);
+            let qr = Quat.zRotation(this._roll * RADIANS);
+
+
             this._direction = qq.mulVec3(new Vec3(0.0, 0.0, -1.0)).normalize();
             this._handler.setDirectionArr(this._tagData!, this._tagDataIndex, this._direction);
 
-            this._qRot = qq;
+            this._qRot = qy.mul(qp).mul(qr).mul(this._qNorthFrame).conjugate();
 
             this._handler.setQRotArr(this._tagData!, this._tagDataIndex, this._qRot);
         }
