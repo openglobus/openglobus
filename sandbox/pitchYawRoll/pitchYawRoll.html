@@ -63,7 +63,8 @@
 
     let myObjects = new Vector("MyObjects", {
         //scaleByDistance: [200, 190000, 0.0]
-        scaleByDistance: [1.0, 1.0, 1.0]
+        scaleByDistance: [1.0, 1.0, 1.0],
+        useLighting: false
     });
 
     //Object3d.
@@ -133,9 +134,7 @@
             }
         });
 
-        globus.planet.addControl(new control.DebugInfo({
-
-        }));
+        globus.planet.addControl(new control.DebugInfo({}));
         globus.planet.addControl(new control.KeyboardNavigation());
         globus.planet.addControl(new control.ToggleWireframe());
         globus.planet.addControl(new control.LayerSwitcher());

@@ -20,7 +20,8 @@ export const geo_object = (): Program =>
             lightsParamsf: "float",
 
             uTexture: "sampler2d",
-            uUseTexture: "float"
+            uUseTexture: "float",
+            useLighting: "float"
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -61,7 +62,6 @@ export const geo_object = (): Program =>
             varying vec4 vColor;
             varying float vDispose;
             varying vec2 vTexCoords;
-            //varying float useLighting;
             
             ${QROT}
            
@@ -76,11 +76,6 @@ export const geo_object = (): Program =>
                 
                 vec3 look = cameraPosition - position;
                 float lookLength = length(look);
-
-                // useLighting = 1.0;                
-                // if(lookLength > 2000000.0){
-                //      useLighting = 0.0;
-                // }
 
                 vColor = aColor;
                 vTexCoords = aTexCoord;
@@ -123,19 +118,19 @@ export const geo_object = (): Program =>
                 uniform float lightsParamsf[MAX_POINT_LIGHTS];
                 uniform sampler2D uTexture;
                 uniform float uUseTexture;
+                uniform float useLighting;                
                             
                 varying vec3 cameraPosition;
                 varying vec3 v_vertex;                
                 varying vec4 vColor;
                 varying vec3 vNormal;
                 varying vec2 vTexCoords;
-                //varying float useLighting;
                 
                 void main(void) {        
                                         
                     vec3 lightWeighting = vec3(1.0);
                 
-                    //if(useLighting != 0.0){
+                    if(useLighting != 0.0){
                         vec3 normal = normalize(vNormal);
                         vec3 lightDir = normalize(lightsPositions[0]);
                         vec3 viewDir = normalize(cameraPosition - v_vertex);                
@@ -144,7 +139,7 @@ export const geo_object = (): Program =>
                         float specularLightWeighting = pow( reflection, lightsParamsf[0]);                                        
                         float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
                         lightWeighting = lightsParamsv[0] + lightsParamsv[1] * diffuseLightWeighting + lightsParamsv[2] * specularLightWeighting;
-                    //}
+                    }
                                        
                     if(uUseTexture > 0.0) {
                         vec4 tColor = texture2D(uTexture, vTexCoords);

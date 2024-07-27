@@ -535,6 +535,7 @@ class GeoObjectHandler {
         // Could be in VAO
         //
         gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
+        gl.uniform1f(u.useLighting, ec._useLighting);
 
         gl.uniform3fv(u.eyePositionHigh, r.activeCamera!.eyeHigh);
         gl.uniform3fv(u.eyePositionLow, r.activeCamera!.eyeLow);
@@ -545,6 +546,7 @@ class GeoObjectHandler {
         gl.uniform3fv(u.lightsPositions, this._planet!._lightsPositions);
         gl.uniform3fv(u.lightsParamsv, this._planet!._lightsParamsv);
         gl.uniform1fv(u.lightsParamsf, this._planet!._lightsParamsf);
+
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             let tagData = this._instanceDataMapValues[i];
