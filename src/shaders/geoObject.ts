@@ -91,7 +91,7 @@ export const geo_object = (): Program =>
                 vec3 highDiff = aPositionHigh - eyePositionHigh;
                 vec3 lowDiff = aPositionLow - eyePositionLow;
              
-                vNormal = aVertexNormal;
+                vNormal = qRotate(qRot, aVertexNormal);
                                
                 // if(lookLength > uScaleByDistance[1])
                 // {
