@@ -14,13 +14,11 @@ const POSITION_BUFFER = 1;
 const RGBA_BUFFER = 2;
 const NORMALS_BUFFER = 3;
 const INDEX_BUFFER = 4;
-const DIRECTION_BUFFER = 5;
-const PITCH_ROLL_BUFFER = 6;
-const SIZE_BUFFER = 7;
-const PICKINGCOLOR_BUFFER = 8;
-const VISIBLE_BUFFER = 9;
-const TEXCOORD_BUFFER = 10;
-const QROT_BUFFER = 11;
+const QROT_BUFFER = 5;
+const SIZE_BUFFER = 6;
+const PICKINGCOLOR_BUFFER = 7;
+const VISIBLE_BUFFER = 8;
+const TEXCOORD_BUFFER = 9;
 
 function setParametersToArray(arr: number[] | TypedArray, index: number = 0, length: number = 0, itemSize: number = 1, ...params: number[]): number[] | TypedArray {
     const currIndex = index * length;
@@ -52,12 +50,10 @@ class InstanceData {
     public _textureSrc: string | null;
     public _objectSrc?: string ;
 
-    public _pitchRollArr: number[] | TypedArray;
     public _sizeArr: number[] | TypedArray;
     public _vertexArr: number[] | TypedArray;
     public _positionHighArr: number[] | TypedArray;
     public _positionLowArr: number[] | TypedArray;
-    public _directionArr: number[] | TypedArray;
     public _qRotArr: number[] | TypedArray;
     public _rgbaArr: number[] | TypedArray;
     public _normalsArr: number[] | TypedArray;
@@ -66,12 +62,10 @@ class InstanceData {
     public _visibleArr: number[] | TypedArray;
     public _texCoordArr: number[] | TypedArray;
 
-    public _pitchRollBuffer: WebGLBufferExt | null;
     public _sizeBuffer: WebGLBufferExt | null;
     public _vertexBuffer: WebGLBufferExt | null;
     public _positionHighBuffer: WebGLBufferExt | null;
     public _positionLowBuffer: WebGLBufferExt | null;
-    public _directionBuffer: WebGLBufferExt | null;
     public _qRotBuffer: WebGLBufferExt | null;
     public _rgbaBuffer: WebGLBufferExt | null;
     public _normalsBuffer: WebGLBufferExt | null;
@@ -97,12 +91,10 @@ class InstanceData {
         this._texture = null;
         this._textureSrc = null;
 
-        this._pitchRollArr = [];
         this._sizeArr = [];
         this._vertexArr = [];
         this._positionHighArr = [];
         this._positionLowArr = [];
-        this._directionArr = [];
         this._qRotArr = [];
         this._rgbaArr = [];
         this._normalsArr = [];
@@ -111,12 +103,10 @@ class InstanceData {
         this._visibleArr = [];
         this._texCoordArr = [];
 
-        this._pitchRollBuffer = null;
         this._sizeBuffer = null;
         this._vertexBuffer = null;
         this._positionHighBuffer = null;
         this._positionLowBuffer = null;
-        this._directionBuffer = null;
         this._qRotBuffer = null;
         this._rgbaBuffer = null;
         this._normalsBuffer = null;
@@ -128,13 +118,11 @@ class InstanceData {
         this._buffersUpdateCallbacks = [];
         this._buffersUpdateCallbacks[PICKINGCOLOR_BUFFER] = this.createPickingColorBuffer;
         this._buffersUpdateCallbacks[POSITION_BUFFER] = this.createPositionBuffer;
-        this._buffersUpdateCallbacks[DIRECTION_BUFFER] = this.createDirectionBuffer;
         this._buffersUpdateCallbacks[NORMALS_BUFFER] = this.createNormalsBuffer;
         this._buffersUpdateCallbacks[RGBA_BUFFER] = this.createRgbaBuffer;
         this._buffersUpdateCallbacks[INDEX_BUFFER] = this.createIndicesBuffer;
         this._buffersUpdateCallbacks[VERTEX_BUFFER] = this.createVertexBuffer;
         this._buffersUpdateCallbacks[SIZE_BUFFER] = this.createSizeBuffer;
-        this._buffersUpdateCallbacks[PITCH_ROLL_BUFFER] = this.createPitchRollBuffer;
         this._buffersUpdateCallbacks[VISIBLE_BUFFER] = this.createVisibleBuffer;
         this._buffersUpdateCallbacks[TEXCOORD_BUFFER] = this.createTexCoordBuffer;
         this._buffersUpdateCallbacks[QROT_BUFFER] = this.createQRotBuffer;
@@ -154,12 +142,10 @@ class InstanceData {
 
         this.geoObjects = [];
 
-        this._pitchRollArr = [];
         this._sizeArr = [];
         this._vertexArr = [];
         this._positionHighArr = [];
         this._positionLowArr = [];
-        this._directionArr = [];
         this._qRotArr = [];
         this._rgbaArr = [];
         this._normalsArr = [];
@@ -185,12 +171,10 @@ class InstanceData {
             h.deleteTexture(this._texture);
             this._texture = null;
 
-            gl.deleteBuffer(this._pitchRollBuffer!);
             gl.deleteBuffer(this._sizeBuffer!);
             gl.deleteBuffer(this._vertexBuffer!);
             gl.deleteBuffer(this._positionHighBuffer!);
             gl.deleteBuffer(this._positionLowBuffer!);
-            gl.deleteBuffer(this._directionBuffer!);
             gl.deleteBuffer(this._qRotBuffer!);
             gl.deleteBuffer(this._rgbaBuffer!);
             gl.deleteBuffer(this._normalsBuffer!);
@@ -200,12 +184,10 @@ class InstanceData {
             gl.deleteBuffer(this._texCoordBuffer!);
         }
 
-        this._pitchRollBuffer = null;
         this._sizeBuffer = null;
         this._vertexBuffer = null;
         this._positionHighBuffer = null;
         this._positionLowBuffer = null;
-        this._directionBuffer = null;
         this._qRotBuffer = null;
         this._rgbaBuffer = null;
         this._normalsBuffer = null;
@@ -220,21 +202,6 @@ class InstanceData {
         h.gl!.deleteBuffer(this._vertexBuffer!);
         this._vertexArr = makeArrayTyped(this._vertexArr);
         this._vertexBuffer = h.createArrayBuffer(this._vertexArr as Float32Array, 3, this._vertexArr.length / 3);
-    }
-
-    public createPitchRollBuffer() {
-
-        let h = this._geoObjectHandler._planet!.renderer!.handler,
-            numItems = this._pitchRollArr.length / 2;
-
-        if (!this._pitchRollBuffer || this._pitchRollBuffer.numItems !== numItems) {
-            h.gl!.deleteBuffer(this._pitchRollBuffer!);
-            this._pitchRollBuffer = h.createStreamArrayBuffer(2, numItems);
-        }
-
-        this._pitchRollArr = makeArrayTyped(this._pitchRollArr);
-
-        h.setStreamArrayBuffer(this._pitchRollBuffer, this._pitchRollArr as Float32Array);
     }
 
     public createVisibleBuffer() {
@@ -303,20 +270,6 @@ class InstanceData {
         this._rgbaArr = makeArrayTyped(this._rgbaArr);
 
         h.setStreamArrayBuffer(this._rgbaBuffer, this._rgbaArr as Uint8Array);
-    }
-
-    public createDirectionBuffer() {
-        let h = this._geoObjectHandler._planet!.renderer!.handler,
-            numItems = this._directionArr.length / 3;
-
-        if (!this._directionBuffer || this._directionBuffer.numItems !== numItems) {
-            h.gl!.deleteBuffer(this._directionBuffer!);
-            this._directionBuffer = h.createStreamArrayBuffer(3, numItems);
-        }
-
-        this._directionArr = makeArrayTyped(this._directionArr);
-
-        h.setStreamArrayBuffer(this._directionBuffer, this._directionArr as Float32Array);
     }
 
     public createQRotBuffer() {
@@ -439,7 +392,7 @@ class GeoObjectHandler {
         }
 
         for (let i = 0; i < this._geoObjects.length; i++) {
-            this._geoObjects[i].updateDirection();
+            this._geoObjects[i].updateRotation();
         }
 
         this.update();
@@ -474,7 +427,6 @@ class GeoObjectHandler {
             if (object.vertices.length !== tagData._vertexArr.length) {
                 tagData._vertexArr = object.vertices;
                 tagData._changedBuffers[VERTEX_BUFFER] = true;
-                tagData._changedBuffers[DIRECTION_BUFFER] = true;
             }
             if (object.normals.length !== tagData._normalsArr.length) {
                 tagData._normalsArr = object.normals;
@@ -496,7 +448,6 @@ class GeoObjectHandler {
             this._updateTag(tagData);
             this._instanceDataMapValues = Array.from(this._instanceDataMap.values());
         }
-
     }
 
     protected _addGeoObjectToArray(geoObject: GeoObject) {
@@ -545,11 +496,6 @@ class GeoObjectHandler {
         z = geoObject._entity!._pickingColor.z / 255;
         tagData._pickingColorArr = concatArrays(tagData._pickingColorArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
 
-        x = geoObject._direction.x;
-        y = geoObject._direction.y;
-        z = geoObject._direction.z;
-        tagData._directionArr = concatArrays(tagData._directionArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
-
         itemSize = 4;
 
         x = geoObject._qRot.x;
@@ -563,12 +509,6 @@ class GeoObjectHandler {
         z = geoObject._color.z;
         w = geoObject._color.w;
         tagData._rgbaArr = concatArrays(tagData._rgbaArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z, w));
-
-        itemSize = 2;
-
-        x = geoObject.getPitch();
-        y = geoObject.getRoll();
-        tagData._pitchRollArr = concatArrays(tagData._pitchRollArr, setParametersToArray([], 0, itemSize, itemSize, x, y));
 
         itemSize = 3;
         let scale = geoObject.getScale();
@@ -615,14 +555,8 @@ class GeoObjectHandler {
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._qRotBuffer!);
             gl.vertexAttribPointer(a.qRot, tagData._qRotBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._directionBuffer!);
-            gl.vertexAttribPointer(a.aDirection, tagData._directionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._sizeBuffer!);
             gl.vertexAttribPointer(a.aScale, tagData._sizeBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._pitchRollBuffer!);
-            gl.vertexAttribPointer(a.aPitchRoll, tagData._pitchRollBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._rgbaBuffer!);
             gl.vertexAttribPointer(a.aColor, tagData._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
@@ -693,14 +627,11 @@ class GeoObjectHandler {
             //
             // Instance individual data
             //
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._directionBuffer!);
-            gl.vertexAttribPointer(a.aDirection, tagData._directionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._qRotBuffer!);
+            gl.vertexAttribPointer(a.qRot, tagData._qRotBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._sizeBuffer!);
             gl.vertexAttribPointer(a.aScale, tagData._sizeBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._pitchRollBuffer!);
-            gl.vertexAttribPointer(a.aPitchRoll, tagData._pitchRollBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._pickingColorBuffer!);
             gl.vertexAttribPointer(a.aPickingColor, tagData._pickingColorBuffer!.itemSize, gl.FLOAT, false, 0, 0);
@@ -730,12 +661,6 @@ class GeoObjectHandler {
             const image = await loadImage(tagData._textureSrc);
             tagData.createTexture(image);
         }
-    }
-
-    public setDirectionArr(tagData: InstanceData, tagDataIndex: number, direction: Vec3) {
-        setParametersToArray(tagData._directionArr, tagDataIndex, 3, 3, direction.x, direction.y, direction.z);
-        tagData._changedBuffers[DIRECTION_BUFFER] = true;
-        this._updateTag(tagData);
     }
 
     public setQRotArr(tagData: InstanceData, tagDataIndex: number, qRot: Quat) {
@@ -774,12 +699,6 @@ class GeoObjectHandler {
     //     tagData._changedBuffers[TEXCOORD_BUFFER] = true;
     //     this._updateTag(tagData);
     // }
-
-    public setPitchRollArr(tagData: InstanceData, tagDataIndex: number, pitch: number, roll: number) {
-        setParametersToArray(tagData._pitchRollArr, tagDataIndex, 2, 2, pitch, roll);
-        tagData._changedBuffers[PITCH_ROLL_BUFFER] = true;
-        this._updateTag(tagData);
-    }
 
     public setScaleArr(tagData: InstanceData, tagDataIndex: number, scale: Vec3) {
         setParametersToArray(tagData._sizeArr, tagDataIndex, 3, 3, scale.x, scale.y, scale.z);
@@ -845,7 +764,7 @@ class GeoObjectHandler {
             this._geoObjects.push(geoObject);
             this._addGeoObjectToArray(geoObject);
 
-            geoObject.updateDirection();
+            geoObject.updateRotation();
 
             geoObject._tagData!.refresh();
 
@@ -899,11 +818,9 @@ class GeoObjectHandler {
         tagData._rgbaArr = spliceArray(tagData._rgbaArr, tdi * 4, 4);
         tagData._positionHighArr = spliceArray(tagData._positionHighArr, tdi * 3, 3);
         tagData._positionLowArr = spliceArray(tagData._positionLowArr, tdi * 3, 3);
-        tagData._directionArr = spliceArray(tagData._directionArr, tdi * 3, 3);
         tagData._qRotArr = spliceArray(tagData._qRotArr, tdi * 4, 4);
         tagData._pickingColorArr = spliceArray(tagData._pickingColorArr, tdi * 3, 3);
         tagData._sizeArr = spliceArray(tagData._sizeArr, tdi * 3, 3);
-        tagData._pitchRollArr = spliceArray(tagData._pitchRollArr, tdi * 2, 2);
         tagData._visibleArr = spliceArray(tagData._visibleArr, tdi, 1);
 
         geoObject._handlerIndex = -1;

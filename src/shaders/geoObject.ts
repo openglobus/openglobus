@@ -1,5 +1,9 @@
 import {Program} from "../webgl/Program";
 
+const QROT = `vec3 qRotate(vec4 q, vec3 v){
+    return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
+}`;
+
 export const geo_object = (): Program =>
     new Program("geo_object", {
         uniforms: {
@@ -25,8 +29,6 @@ export const geo_object = (): Program =>
 
             aPositionHigh: {type: "vec3", divisor: 1},
             aPositionLow: {type: "vec3", divisor: 1},
-            aDirection: {type: "vec3", divisor: 1},
-            aPitchRoll: {type: "vec2", divisor: 1},
             aColor: {type: "vec4", divisor: 1},
             aScale: {type: "vec3", divisor: 1},
             aDispose: {type: "float", divisor: 1},
@@ -39,8 +41,6 @@ export const geo_object = (): Program =>
             attribute vec3 aVertexNormal; 
             attribute vec3 aPositionHigh;
             attribute vec3 aPositionLow;    
-            attribute vec3 aDirection;
-            attribute vec2 aPitchRoll;
             attribute vec4 aColor;
             attribute vec3 aScale;
             attribute float aDispose;
@@ -63,9 +63,7 @@ export const geo_object = (): Program =>
             varying vec2 vTexCoords;
             //varying float useLighting;
             
-            vec3 qRotate(vec4 q, vec3 v){
-                return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
-            }
+            ${QROT}
            
             void main(void) {
                         
@@ -84,38 +82,16 @@ export const geo_object = (): Program =>
                 //      useLighting = 0.0;
                 // }
 
-            
                 vColor = aColor;
                 vTexCoords = aTexCoord;
               
-                float cos_roll = cos(aPitchRoll.y);
-                float sin_roll = sin(aPitchRoll.y);
-                
-                mat3 rotZ = mat3(
-                     vec3(cos_roll, sin_roll, 0.0),
-                     vec3(-sin_roll, cos_roll, 0.0), 
-                     vec3(0.0, 0.0, 1.0) 
-                );
-
-                float cos_pitch = cos(aPitchRoll.x);
-                float sin_pitch = sin(aPitchRoll.x);
-
-                mat3 rotX = mat3(
-                    vec3(1.0, 0.0, 0.0),
-                    vec3(0.0, cos_pitch, sin_pitch), 
-                    vec3(0.0, -sin_pitch, cos_pitch) 
-               );
-
-                vec3 r = cross(normalize(-position), aDirection);
-                mat3 modelMatrix = mat3(r, normalize(position), -aDirection) * rotX * rotZ;
-
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
                 vec3 highDiff = aPositionHigh - eyePositionHigh;
                 vec3 lowDiff = aPositionLow - eyePositionLow;
              
-                vNormal = modelMatrix * aVertexNormal;
+                vNormal = aVertexNormal;
                                
                 // if(lookLength > uScaleByDistance[1])
                 // {
@@ -129,8 +105,7 @@ export const geo_object = (): Program =>
                 // use scaleByDistance: [1.0, 1.0, 1.0] for real sized objects 
                 float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
                 
-                vec3 vert = modelMatrix * (aVertexPosition * aScale) * scd;
-                vert = qRotate(qRot, (aVertexPosition * aScale)) * scd;
+                vec3 vert = qRotate(qRot, (aVertexPosition * aScale)) * scd;
                 
                 vert += lowDiff;
                                
@@ -194,22 +169,20 @@ export const geo_object_picking = (): Program =>
             aVertexPosition: "vec3",
             aPositionHigh: {type: "vec3", divisor: 1},
             aPositionLow: {type: "vec3", divisor: 1},
-            aDirection: {type: "vec3", divisor: 1},
-            aPitchRoll: {type: "vec2", divisor: 1},
             aPickingColor: {type: "vec3", divisor: 1},
             aScale: {type: "vec3", divisor: 1},
-            aDispose: {type: "float", divisor: 1}
+            aDispose: {type: "float", divisor: 1},
+            qRot: {type: "vec4", divisor: 1}
         },
         vertexShader: `precision highp float;
 
             attribute vec3 aVertexPosition;
             attribute vec3 aPositionHigh;
-            attribute vec3 aPositionLow;    
-            attribute vec3 aDirection;
-            attribute vec3 aPickingColor;
-            attribute vec2 aPitchRoll;
+            attribute vec3 aPositionLow;
+            attribute vec3 aPickingColor;    
             attribute vec3 aScale;
             attribute float aDispose;
+            attribute vec4 qRot;
             
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
@@ -219,6 +192,8 @@ export const geo_object_picking = (): Program =>
             uniform float pickingScale;
 
             varying vec3 vColor;
+            
+            ${QROT}
 
             void main(void) {
 
@@ -227,29 +202,9 @@ export const geo_object_picking = (): Program =>
                  }
             
                  vColor = aPickingColor;
-               
-                float cos_roll = cos(aPitchRoll.y);
-                float sin_roll = sin(aPitchRoll.y);
                 
-                mat3 rotZ = mat3(
-                     vec3(cos_roll, sin_roll, 0.0),
-                     vec3(-sin_roll, cos_roll, 0.0), 
-                     vec3(0.0, 0.0, 1.0) 
-                );
-
-                float cos_pitch = cos(aPitchRoll.x);
-                float sin_pitch = sin(aPitchRoll.x);
-
-                mat3 rotX = mat3(
-                    vec3(1.0, 0.0, 0.0),
-                    vec3(0.0, cos_pitch, sin_pitch), 
-                    vec3(0.0, -sin_pitch, cos_pitch) 
-               );
- 
                  vec3 position = aPositionHigh + aPositionLow;
                  vec3 cameraPosition = eyePositionHigh + eyePositionLow;
-                 vec3 r = cross(normalize(-position), aDirection);
-                 mat3 modelMatrix = mat3(r, normalize(position), -aDirection) * rotX * rotZ;
  
                  mat4 viewMatrixRTE = viewMatrix;
                  viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
@@ -274,7 +229,7 @@ export const geo_object_picking = (): Program =>
                  // tays in the vert above it affects on Mac Safari jitter
                  float scd = pickingScale * uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
 
-                 vec3 vert = modelMatrix * (aVertexPosition * aScale) * scd;
+                 vec3 vert = qRotate(qRot, (aVertexPosition * aScale)) * scd;
                  
                  vert += lowDiff;
                                 
