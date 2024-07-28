@@ -83,6 +83,8 @@ class GeoObject {
     private _textureSrc?: string;
     public _objectSrc?: string;
 
+    protected _children: GeoObject[];
+
     constructor(options: IGeoObjectParams) {
 
         this._tag = options.tag || "none";
