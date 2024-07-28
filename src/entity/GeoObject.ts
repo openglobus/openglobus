@@ -352,9 +352,9 @@ class GeoObject {
         if (this._handler && this._handler._planet) {
             this._qNorthFrame = this._handler._planet.getNorthFrameRotation(this._position);
 
-            let qp = Quat.xRotation(this._pitchRad);
+            let qp = Quat.xRotation(-this._pitchRad);
             let qy = Quat.yRotation(this._yawRad);
-            let qr = Quat.zRotation(this._rollRad);
+            let qr = Quat.zRotation(-this._rollRad);
 
             this._qRot = qr.mul(qp).mul(qy).mul(this._qNorthFrame).conjugate();
 
