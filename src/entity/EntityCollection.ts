@@ -26,7 +26,7 @@ interface IEntityCollectionParams {
     scaleByDistance?: NumberArray3;
     pickingScale?: number;
     opacity?: number;
-
+    useLighting?: boolean;
     entities?: Entity[];
 }
 
@@ -213,6 +213,8 @@ class EntityCollection {
     public _layer?: Vector;
     public _quadNode?: EntityCollectionNode;
 
+    public _useLighting: number;
+
     constructor(options: IEntityCollectionParams = {}) {
 
         this.__id = EntityCollection.__counter__++;
@@ -256,6 +258,8 @@ class EntityCollection {
 
         this.events = this.rendererEvents = createEvents<EntityCollectionEventList>(ENTITYCOLLECTION_EVENTS, this);
 
+        this._useLighting = options.useLighting != undefined ? (options.useLighting ? 1.0 : 0.0) : 1.0;
+
         // initialize current entities
         if (options.entities) {
             this.addEntities(options.entities);
@@ -264,6 +268,14 @@ class EntityCollection {
 
     get id(): number {
         return this.__id;
+    }
+
+    public get useLighting(): boolean{
+        return Boolean(this._useLighting)
+    }
+
+    public set useLighting(f:boolean){
+        this._useLighting = Number(f);
     }
 
     public isEqual(ec: EntityCollection): boolean {

@@ -13,14 +13,16 @@ import {
 
 
 let sat = new Bing();
-let osm = new OpenStreetMap();
+let osm = new OpenStreetMap("OSM", {
+    isBaseLayer: false,
+});
 
 const globus = new Globe({
     target: "earth",
     name: "Earth",
     terrain: new GlobusRgbTerrain(),
     //terrain: new GlobusTerrain(),
-    layers: [osm, sat],
+    layers: [osm],
     atmosphereEnabled: false,
     fontsSrc: "../../res/fonts",
     sun: {

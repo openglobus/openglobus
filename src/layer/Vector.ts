@@ -28,6 +28,7 @@ export interface IVectorParams extends ILayerParams {
     pickingScale?: number;
     scaleByDistance?: NumberArray3;
     labelMaxLetters?: number;
+    useLighting?: boolean;
 }
 
 type VectorEventsList = [
@@ -75,6 +76,7 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
  *      First index - near distance to the entity, after entity becomes full scale.
  *      Second index - far distance to the entity, when entity becomes zero scale.
  *      Third index - far distance to the entity, when entity becomes invisible.
+ *      Use [1.0, 1.0, 1.0] for real sized objects
  * @param {number} [options.nodeCapacity=30] - Maximum entities quantity in the tree node. Rendering optimization parameter. 30 is default.
  * @param {boolean} [options.async=true] - Asynchronous vector data handling before rendering. True for optimization huge data.
  * @param {boolean} [options.clampToGround = false] - Clamp vector data to the ground.
@@ -170,6 +172,7 @@ class Vector extends Layer {
 
     protected _labelMaxLetters: number;
 
+    protected _useLighting: boolean;
 
     constructor(name?: string | null, options: IVectorParams = {}) {
         super(name, options);
@@ -182,6 +185,8 @@ class Vector extends Layer {
         this._hasImageryTiles = false;
 
         this.scaleByDistance = options.scaleByDistance || [math.MAX32, math.MAX32, math.MAX32];
+
+        this._useLighting = options.useLighting !== undefined ? options.useLighting : true;
 
         this.pickingScale = options.pickingScale || 1;
 
@@ -208,7 +213,8 @@ class Vector extends Layer {
         this._bindEventsDefault(this._polylineEntityCollection);
 
         this._geoObjectEntityCollection = new EntityCollection({
-            pickingEnabled: this.pickingEnabled
+            pickingEnabled: this.pickingEnabled,
+            useLighting: this._useLighting
         });
         this._bindEventsDefault(this._geoObjectEntityCollection);
 
@@ -234,6 +240,17 @@ class Vector extends Layer {
         this.pickingEnabled = this._pickingEnabled;
 
         this._secondPASS = [];
+    }
+
+    public get useLighting(): boolean {
+        return this._useLighting;
+    }
+
+    public set useLighting(f: boolean) {
+        if (f !== this._useLighting) {
+            this._geoObjectEntityCollection.useLighting = f;
+            this._useLighting = f;
+        }
     }
 
     public get labelMaxLetters(): number {
@@ -507,6 +524,9 @@ class Vector extends Layer {
 
         this._geoObjectEntityCollection.setPickingEnabled(picking);
 
+        /**
+         * todo: it must be in the quadtree strategy
+         */
         this._entityCollectionsTree && this._entityCollectionsTree.traverseTree((node: EntityCollectionNode) => {
             node.entityCollection!.setPickingEnabled(picking);
         });

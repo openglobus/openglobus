@@ -5,6 +5,7 @@ import {GeoObjectHandler, InstanceData} from "./GeoObjectHandler";
 import {NumberArray3} from "../math/Vec3";
 import {NumberArray4} from "../math/Vec4";
 import {Object3d} from "../Object3d";
+import {DEGREES, RADIANS} from "../math";
 
 export interface IGeoObjectParams {
     object3d?: Object3d;
@@ -53,6 +54,10 @@ class GeoObject {
     protected _yaw: number;
     protected _roll: number;
 
+    protected _pitchRad: number;
+    protected _yawRad: number;
+    protected _rollRad: number;
+
     protected _scale: Vec3;
 
     /**
@@ -62,7 +67,7 @@ class GeoObject {
      */
     public _color: Vec4;
 
-    public _direction: Vec3;
+    public _qRot: Quat;
 
     public _handler: GeoObjectHandler | null;
     public _handlerIndex = -1;
@@ -96,11 +101,15 @@ class GeoObject {
         this._yaw = options.yaw || 0.0;
         this._roll = options.roll || 0.0;
 
+        this._pitchRad = this._pitch * RADIANS;
+        this._yawRad = this._yaw * RADIANS;
+        this._rollRad = this._roll * RADIANS;
+
         this._scale = utils.createVector3(options.scale, new Vec3(1, 1, 1));
 
         this._color = utils.createColorRGBA(options.color);
 
-        this._direction = new Vec3(0, 1, 0);
+        this._qRot = Quat.IDENTITY;
 
         this._handler = null;
         this._handlerIndex = -1;
@@ -142,10 +151,6 @@ class GeoObject {
 
     public getRoll(): number {
         return this._roll;
-    }
-
-    public getDirection(): Vec3 {
-        return this._direction;
     }
 
     public get object3d(): Object3d {
@@ -240,7 +245,7 @@ class GeoObject {
         Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
         this._handler &&
         this._handler.setPositionArr(this._tagData!, this._tagDataIndex, this._positionHigh, this._positionLow);
-        this.updateDirection();
+        this.updateRotation();
     }
 
     /**
@@ -254,12 +259,13 @@ class GeoObject {
         this._position.z = position.z;
         Vec3.doubleToTwoFloats(position, this._positionHigh, this._positionLow);
         this._handler && this._handler.setPositionArr(this._tagData!, this._tagDataIndex, this._positionHigh, this._positionLow);
-        this.updateDirection();
+        this.updateRotation();
     }
 
     public setYaw(yaw: number) {
         this._yaw = yaw;
-        this.updateDirection();
+        this._yawRad = yaw * RADIANS;
+        this.updateRotation();
     }
 
     public setObject(object: Object3d) {
@@ -287,18 +293,26 @@ class GeoObject {
      */
     public setPitch(pitch: number) {
         this._pitch = pitch;
-        this._handler && this._handler.setPitchRollArr(this._tagData!, this._tagDataIndex, pitch, this._roll);
+        this._pitchRad = pitch * RADIANS;
+        this.updateRotation();
     }
 
     public setRoll(roll: number) {
         this._roll = roll;
-        this._handler && this._handler.setPitchRollArr(this._tagData!, this._tagDataIndex, this._pitch, roll);
+        this._rollRad = roll * RADIANS;
+        this.updateRotation();
     }
 
     public setPitchYawRoll(pitch: number, yaw: number, roll: number) {
-        this.setPitch(pitch);
-        this.setYaw(yaw);
-        this.setRoll(roll);
+        this._pitch = pitch;
+        this._yaw = yaw;
+        this._roll = roll;
+
+        this._pitchRad = pitch * RADIANS;
+        this._yawRad = yaw * RADIANS;
+        this._rollRad = roll * RADIANS;
+
+        this.updateRotation();
     }
 
     public setScale(scale: number) {
@@ -333,12 +347,18 @@ class GeoObject {
         this._handler && this._handler.setPickingColorArr(this._tagData!, this._tagDataIndex, color);
     }
 
-    public updateDirection() {
+    public updateRotation() {
+
         if (this._handler && this._handler._planet) {
             this._qNorthFrame = this._handler._planet.getNorthFrameRotation(this._position);
-            let qq = Quat.yRotation(this._yaw).mul(this._qNorthFrame).conjugate();
-            this._direction = qq.mulVec3(new Vec3(0.0, 0.0, -1.0)).normalize();
-            this._handler.setDirectionArr(this._tagData!, this._tagDataIndex, this._direction);
+
+            let qp = Quat.xRotation(-this._pitchRad);
+            let qy = Quat.yRotation(this._yawRad);
+            let qr = Quat.zRotation(-this._rollRad);
+
+            this._qRot = qr.mul(qp).mul(qy).mul(this._qNorthFrame).conjugate();
+
+            this._handler.setQRotArr(this._tagData!, this._tagDataIndex, this._qRot);
         }
     }
 }
