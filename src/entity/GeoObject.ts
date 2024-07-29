@@ -69,6 +69,8 @@ class GeoObject {
 
     public _qRot: Quat;
 
+    protected _direction: Vec3;
+
     public _handler: GeoObjectHandler | null;
     public _handlerIndex = -1;
 
@@ -129,6 +131,8 @@ class GeoObject {
             this.setTextureSrc(options.textureSrc)
         }
         this._visibility = (options.visibility != undefined ? options.visibility : true);
+
+        this._direction = new Vec3();
 
         this._qNorthFrame = new Quat();
     }
@@ -358,8 +362,14 @@ class GeoObject {
 
             this._qRot = qr.mul(qp).mul(qy).mul(this._qNorthFrame).conjugate();
 
+            this._direction = this._qRot.mulVec3(new Vec3(0.0, 0.0, -1.0)).normalize();
+
             this._handler.setQRotArr(this._tagData!, this._tagDataIndex, this._qRot);
         }
+    }
+
+    public getDirection(): Vec3 {
+        return this._direction.clone();
     }
 }
 
