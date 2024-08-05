@@ -132,6 +132,8 @@ class GeoObject {
         }
         this._visibility = (options.visibility != undefined ? options.visibility : true);
 
+        this._children = [];
+
         this._qNorthFrame = new Quat();
     }
 
