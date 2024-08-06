@@ -47,10 +47,9 @@ type GeoObjectSceneEventsList = [
 class GeoObjectEditorScene extends RenderNode {
     public events: EventsHandler<GeoObjectSceneEventsList>;
     protected _planet: Planet | null;
-    protected _pickedCorner: Entity | null;
     protected _startPos: Vec2 | null;
     protected _startClick: Vec2;
-    protected _arrowsLayer: Vector;
+    protected _axisLayer: Vector;
     protected _rotLayer: Vector;
 
     constructor(options: IGeoObjectEditorSceneParams = {}) {
@@ -63,7 +62,15 @@ class GeoObjectEditorScene extends RenderNode {
         this._startPos = null;
         this._startClick = new Vec2();
 
-        this._arrowsLayer = new Vector("track", {
+        this._axisLayer = new Vector("axis", {
+            entities: [],
+            pickingEnabled: false,
+            polygonOffsetUnits: -1.0,
+            relativeToGround: true,
+            hideInLayerSwitcher: true
+        });
+
+        this._rotLayer = new Vector("rotation", {
             entities: [],
             pickingEnabled: false,
             polygonOffsetUnits: -1.0,
@@ -125,7 +132,7 @@ class GeoObjectEditorScene extends RenderNode {
     }
 
     public clear() {
-        this._planet!.removeLayer(this._arrowsLayer);
+        this._planet!.removeLayer(this._axisLayer);
         this._planet!.removeLayer(this._rotLayer);
     }
 

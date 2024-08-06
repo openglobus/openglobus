@@ -4,7 +4,7 @@ import {
 
 
 let myObjects = new Vector("MyObjects", {
-    scaleByDistance: [200, 190000, 1]
+    scaleByDistance: [1, math.MAX32, 1]
 });
 
 function setPitch(a) {
@@ -25,31 +25,31 @@ function setRoll(a) {
     });
 }
 
-async function main() {
-    let sat = new Bing();
+function main() {
     let osm = new OpenStreetMap();
 
-    const planeObj3d = await Object3d.loadObj('./airplane.obj');
+    const obj = Object3d.createCylinder(0.01, 0.01, 1);
 
     document.querySelector(".gpitch").addEventListener("input", (e) => {
-        setPitch(Number(e.target.value) * math.RADIANS);
+        setPitch(Number(e.target.value));
     });
     document.querySelector(".gyaw").addEventListener("input", (e) => {
-        setYaw(Number(e.target.value) * math.RADIANS);
+        setYaw(Number(e.target.value));
     });
     document.querySelector(".groll").addEventListener("input", (e) => {
-        setRoll(Number(e.target.value) * math.RADIANS);
+        setRoll(Number(e.target.value));
     });
 
     for (let i = -80; i < 80; i += 10) {
         for (let j = -180; j < 180; j += 10) {
             myObjects.add(new Entity({
-                lonlat: [j, i, 20000], geoObject: {
+                lonlat: [j, i, 20000],
+                geoObject: {
                     color: "green",
-                    scale: 10.0,
+                    scale: 0.1,
                     instanced: true,
                     tag: "plane",
-                    object3d: planeObj3d[0],
+                    object3d: obj,
                     yaw: 0,
                     pitch: 0
                 }
@@ -61,7 +61,7 @@ async function main() {
         target: "earth",
         name: "Earth",
         terrain: new GlobusRgbTerrain(),
-        layers: [osm, sat, myObjects],
+        layers: [osm, myObjects],
         atmosphereEnabled: false,
         fontsSrc: "../../res/fonts",
         sun: {
