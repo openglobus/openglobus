@@ -32,6 +32,7 @@ export const geo_object = (): Program =>
             aPositionLow: {type: "vec3", divisor: 1},
             aColor: {type: "vec4", divisor: 1},
             aScale: {type: "vec3", divisor: 1},
+            aTranslate: {type: "vec3", divisor: 1},
             aDispose: {type: "float", divisor: 1},
             qRot: {type: "vec4", divisor: 1}
         },
@@ -44,6 +45,7 @@ export const geo_object = (): Program =>
             attribute vec3 aPositionLow;    
             attribute vec4 aColor;
             attribute vec3 aScale;
+            attribute vec3 aTranslate;
             attribute float aDispose;
             attribute float aUseTexture;
             attribute vec2 aTexCoord;
@@ -100,7 +102,7 @@ export const geo_object = (): Program =>
                 // use scaleByDistance: [1.0, 1.0, 1.0] for real sized objects 
                 float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
                 
-                vec3 vert = qRotate(qRot, (aVertexPosition * aScale)) * scd;
+                vec3 vert = qRotate(qRot, (aVertexPosition * aScale + aTranslate)) * scd;
                 
                 vert += lowDiff;
                                
@@ -166,6 +168,7 @@ export const geo_object_picking = (): Program =>
             aPositionLow: {type: "vec3", divisor: 1},
             aPickingColor: {type: "vec3", divisor: 1},
             aScale: {type: "vec3", divisor: 1},
+            aTranslate: {type: "vec3", divisor: 1},
             aDispose: {type: "float", divisor: 1},
             qRot: {type: "vec4", divisor: 1}
         },
@@ -176,6 +179,7 @@ export const geo_object_picking = (): Program =>
             attribute vec3 aPositionLow;
             attribute vec3 aPickingColor;    
             attribute vec3 aScale;
+            attribute vec3 aTranslate;
             attribute float aDispose;
             attribute vec4 qRot;
             
@@ -224,7 +228,7 @@ export const geo_object_picking = (): Program =>
                  // tays in the vert above it affects on Mac Safari jitter
                  float scd = pickingScale * uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
 
-                 vec3 vert = qRotate(qRot, (aVertexPosition * aScale)) * scd;
+                 vec3 vert = qRotate(qRot, (aVertexPosition * aScale + aTranslate)) * scd;
                  
                  vert += lowDiff;
                                 
