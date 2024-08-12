@@ -19,6 +19,7 @@ const SIZE_BUFFER = 6;
 const PICKINGCOLOR_BUFFER = 7;
 const VISIBLE_BUFFER = 8;
 const TEXCOORD_BUFFER = 9;
+const TRANSLATE_BUFFER = 10;
 
 function setParametersToArray(arr: number[] | TypedArray, index: number = 0, length: number = 0, itemSize: number = 1, ...params: number[]): number[] | TypedArray {
     const currIndex = index * length;
@@ -48,9 +49,10 @@ class InstanceData {
 
     public _texture: WebGLTextureExt | null;
     public _textureSrc: string | null;
-    public _objectSrc?: string ;
+    public _objectSrc?: string;
 
     public _sizeArr: number[] | TypedArray;
+    public _translateArr: number[] | TypedArray;
     public _vertexArr: number[] | TypedArray;
     public _positionHighArr: number[] | TypedArray;
     public _positionLowArr: number[] | TypedArray;
@@ -63,6 +65,7 @@ class InstanceData {
     public _texCoordArr: number[] | TypedArray;
 
     public _sizeBuffer: WebGLBufferExt | null;
+    public _translateBuffer: WebGLBufferExt | null;
     public _vertexBuffer: WebGLBufferExt | null;
     public _positionHighBuffer: WebGLBufferExt | null;
     public _positionLowBuffer: WebGLBufferExt | null;
@@ -92,6 +95,7 @@ class InstanceData {
         this._textureSrc = null;
 
         this._sizeArr = [];
+        this._translateArr = [];
         this._vertexArr = [];
         this._positionHighArr = [];
         this._positionLowArr = [];
@@ -104,6 +108,7 @@ class InstanceData {
         this._texCoordArr = [];
 
         this._sizeBuffer = null;
+        this._translateBuffer = null;
         this._vertexBuffer = null;
         this._positionHighBuffer = null;
         this._positionLowBuffer = null;
@@ -126,6 +131,7 @@ class InstanceData {
         this._buffersUpdateCallbacks[VISIBLE_BUFFER] = this.createVisibleBuffer;
         this._buffersUpdateCallbacks[TEXCOORD_BUFFER] = this.createTexCoordBuffer;
         this._buffersUpdateCallbacks[QROT_BUFFER] = this.createQRotBuffer;
+        this._buffersUpdateCallbacks[TRANSLATE_BUFFER] = this.createTranslateBuffer;
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
     }
@@ -143,6 +149,7 @@ class InstanceData {
         this.geoObjects = [];
 
         this._sizeArr = [];
+        this._translateArr = [];
         this._vertexArr = [];
         this._positionHighArr = [];
         this._positionLowArr = [];
@@ -172,6 +179,7 @@ class InstanceData {
             this._texture = null;
 
             gl.deleteBuffer(this._sizeBuffer!);
+            gl.deleteBuffer(this._translateBuffer!);
             gl.deleteBuffer(this._vertexBuffer!);
             gl.deleteBuffer(this._positionHighBuffer!);
             gl.deleteBuffer(this._positionLowBuffer!);
@@ -185,6 +193,7 @@ class InstanceData {
         }
 
         this._sizeBuffer = null;
+        this._translateBuffer = null;
         this._vertexBuffer = null;
         this._positionHighBuffer = null;
         this._positionLowBuffer = null;
@@ -231,6 +240,20 @@ class InstanceData {
         this._sizeArr = makeArrayTyped(this._sizeArr);
 
         h.setStreamArrayBuffer(this._sizeBuffer, this._sizeArr as Float32Array);
+    }
+
+    public createTranslateBuffer() {
+        let h = this._geoObjectHandler._planet!.renderer!.handler,
+            numItems = this._translateArr.length / 3;
+
+        if (!this._translateBuffer || this._translateBuffer.numItems !== numItems) {
+            h.gl!.deleteBuffer(this._translateBuffer!);
+            this._translateBuffer = h.createStreamArrayBuffer(3, numItems);
+        }
+
+        this._translateArr = makeArrayTyped(this._translateArr);
+
+        h.setStreamArrayBuffer(this._translateBuffer, this._translateArr as Float32Array);
     }
 
     public createTexCoordBuffer() {
@@ -516,6 +539,12 @@ class GeoObjectHandler {
         y = scale.y;
         z = scale.z;
         tagData._sizeArr = concatArrays(tagData._sizeArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
+
+        let translate = geoObject.getTranslate();
+        x = translate.x;
+        y = translate.y;
+        z = translate.z;
+        tagData._translateArr = concatArrays(tagData._translateArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
     }
 
     public _displayPASS() {
@@ -559,6 +588,9 @@ class GeoObjectHandler {
 
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._sizeBuffer!);
             gl.vertexAttribPointer(a.aScale, tagData._sizeBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._translateBuffer!);
+            gl.vertexAttribPointer(a.aScale, tagData._translateBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._rgbaBuffer!);
             gl.vertexAttribPointer(a.aColor, tagData._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
@@ -635,6 +667,9 @@ class GeoObjectHandler {
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._sizeBuffer!);
             gl.vertexAttribPointer(a.aScale, tagData._sizeBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._translateBuffer!);
+            gl.vertexAttribPointer(a.aTranslate, tagData._translateBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._pickingColorBuffer!);
             gl.vertexAttribPointer(a.aPickingColor, tagData._pickingColorBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -705,6 +740,12 @@ class GeoObjectHandler {
     public setScaleArr(tagData: InstanceData, tagDataIndex: number, scale: Vec3) {
         setParametersToArray(tagData._sizeArr, tagDataIndex, 3, 3, scale.x, scale.y, scale.z);
         tagData._changedBuffers[SIZE_BUFFER] = true;
+        this._updateTag(tagData);
+    }
+
+    public setTranslateArr(tagData: InstanceData, tagDataIndex: number, translate: Vec3) {
+        setParametersToArray(tagData._translateArr, tagDataIndex, 3, 3, translate.x, translate.y, translate.z);
+        tagData._changedBuffers[TRANSLATE_BUFFER] = true;
         this._updateTag(tagData);
     }
 
@@ -823,6 +864,7 @@ class GeoObjectHandler {
         tagData._qRotArr = spliceArray(tagData._qRotArr, tdi * 4, 4);
         tagData._pickingColorArr = spliceArray(tagData._pickingColorArr, tdi * 3, 3);
         tagData._sizeArr = spliceArray(tagData._sizeArr, tdi * 3, 3);
+        tagData._translateArr = spliceArray(tagData._translateArr, tdi * 3, 3);
         tagData._visibleArr = spliceArray(tagData._visibleArr, tdi, 1);
 
         geoObject._handlerIndex = -1;
