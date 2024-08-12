@@ -4,7 +4,6 @@
     <title>OpenStreetMap Base Layer</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="geoObject.js" type="module"></script>
     <link rel="stylesheet" href="../../css/og.css" type="text/css"/>
     <style>
         body {
@@ -82,8 +81,8 @@
     } from "../../lib/@openglobus/og.esm.js";
 
     let myObjects = new Vector("MyObjects", {
-        //scaleByDistance: [200, 190000, 0.0]
-        scaleByDistance: [1.0, 1.0, 1.0],
+        //scaleByDistance: [1.0, 1.0, 1.0],
+        scaleByDistance: [1, math.MAX32, 1],
         useLighting: false
     });
 
@@ -123,7 +122,7 @@
         let sat = new Bing();
         let osm = new OpenStreetMap();
 
-        const planeObj3d = await Object3d.loadObj('./airplane.obj');
+        const obj = Object3d.createCylinder(0.01, 0.01, 1);
 
         document.querySelector(".gpitch").addEventListener("input", (e) => {
             setPitch(Number(e.target.value));
@@ -139,7 +138,7 @@
             return {
                 x: Number(document.querySelector(".gscale_x").value),
                 y: Number(document.querySelector(".gscale_y").value),
-                z: Number(document.querySelector(".gscale_z").value);
+                z: Number(document.querySelector(".gscale_z").value)
             }
         }
 
@@ -160,7 +159,7 @@
             return {
                 x: Number(document.querySelector(".gtrans_x").value),
                 y: Number(document.querySelector(".gtrans_y").value),
-                z: Number(document.querySelector(".gtrans_z").value);
+                z: Number(document.querySelector(".gtrans_z").value)
             }
         }
 
@@ -177,7 +176,7 @@
             setTranslate(x, y, z);
         });
 
-        const SCALE = 3000;
+        const SCALE = 0.1;
 
         for (let i = -90; i <= 90; i += 5) {
             for (let j = -180; j < 180; j += 10) {
@@ -187,7 +186,7 @@
                         scale: SCALE,
                         instanced: true,
                         tag: "plane",
-                        object3d: planeObj3d[0],
+                        object3d: obj,
                         yaw: 0,
                         pitch: 0
                     }

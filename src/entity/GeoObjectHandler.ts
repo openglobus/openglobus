@@ -590,7 +590,7 @@ class GeoObjectHandler {
             gl.vertexAttribPointer(a.aScale, tagData._sizeBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._translateBuffer!);
-            gl.vertexAttribPointer(a.aScale, tagData._translateBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(a.aTranslate, tagData._translateBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._rgbaBuffer!);
             gl.vertexAttribPointer(a.aColor, tagData._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
