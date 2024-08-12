@@ -177,12 +177,14 @@
             setTranslate(x, y, z);
         });
 
+        const SCALE = 3000;
+
         for (let i = -90; i <= 90; i += 5) {
             for (let j = -180; j < 180; j += 10) {
                 myObjects.add(new Entity({
                     lonlat: [j, i, 25000], geoObject: {
                         color: "green",
-                        scale: 3000.0,
+                        scale: SCALE,
                         instanced: true,
                         tag: "plane",
                         object3d: planeObj3d[0],
@@ -192,6 +194,10 @@
                 }));
             }
         }
+
+        document.querySelector(".gscale_x").value = SCALE;
+        document.querySelector(".gscale_y").value = SCALE;
+        document.querySelector(".gscale_z").value = SCALE;
 
         const globus = new Globe({
             target: "earth",
