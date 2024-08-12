@@ -42,6 +42,26 @@
     <div class="ginput">
         <div>ROLL</div>
         <input type="number" class="groll" value="0"/></div>
+    <br/>
+    <div class="ginput">
+        <div>SCALE_X</div>
+        <input type="number" class="gscale_x" value="0"/></div>
+    <div class="ginput">
+        <div>SCALE_Y</div>
+        <input type="number" class="gscale_y" value="0"/></div>
+    <div class="ginput">
+        <div>SCALE_Z</div>
+        <input type="number" class="gscale_z" value="0"/></div>
+    <br/>
+    <div class="ginput">
+        <div>TRANS_X</div>
+        <input type="number" class="gtrans_x" value="0"/></div>
+    <div class="ginput">
+        <div>TRANS_Y</div>
+        <input type="number" class="gtrans_y" value="0"/></div>
+    <div class="ginput">
+        <div>TRANS_Z</div>
+        <input type="number" class="gtrans_z" value="0"/></div>
 </div>
 
 <script type="module" id="og-sandbox-script">
@@ -87,6 +107,18 @@
         });
     }
 
+    function setScale(x, y, z) {
+        myObjects.each((e) => {
+            e.geoObject.setScale3v(new Vec3(x, y, z));
+        });
+    }
+
+    function setTranslate(x, y, z) {
+        myObjects.each((e) => {
+            e.geoObject.setTranslate3v(new Vec3(x, y, z));
+        });
+    }
+
     async function main() {
         let sat = new Bing();
         let osm = new OpenStreetMap();
@@ -101,6 +133,48 @@
         });
         document.querySelector(".groll").addEventListener("input", (e) => {
             setRoll(Number(e.target.value));
+        });
+
+        function getScale() {
+            return {
+                x: Number(document.querySelector(".gscale_x").value),
+                y: Number(document.querySelector(".gscale_y").value),
+                z: Number(document.querySelector(".gscale_z").value);
+            }
+        }
+
+        document.querySelector(".gscale_x").addEventListener("input", (e) => {
+            let {x, y, z} = getScale();
+            setScale(x, y, z);
+        });
+        document.querySelector(".gscale_y").addEventListener("input", (e) => {
+            let {x, y, z} = getScale();
+            setScale(x, y, z);
+        });
+        document.querySelector(".gscale_z").addEventListener("input", (e) => {
+            let {x, y, z} = getScale();
+            setScale(x, y, z);
+        });
+
+        function getTranslate() {
+            return {
+                x: Number(document.querySelector(".gtrans_x").value),
+                y: Number(document.querySelector(".gtrans_y").value),
+                z: Number(document.querySelector(".gtrans_z").value);
+            }
+        }
+
+        document.querySelector(".gtrans_x").addEventListener("input", (e) => {
+            let {x, y, z} = getScale();
+            setTranslate(x, y, z);
+        });
+        document.querySelector(".gtrans_y").addEventListener("input", (e) => {
+            let {x, y, z} = getScale();
+            setTranslate(x, y, z);
+        });
+        document.querySelector(".gtrans_z").addEventListener("input", (e) => {
+            let {x, y, z} = getScale();
+            setTranslate(x, y, z);
         });
 
         for (let i = -90; i <= 90; i += 5) {
