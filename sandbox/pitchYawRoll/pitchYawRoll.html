@@ -77,13 +77,15 @@
         Bing,
         GlobusRgbTerrain,
         Object3d,
-        EmptyTerrain
+        EmptyTerrain,
+        Mat4,
+        Vec3
     } from "../../lib/@openglobus/og.esm.js";
 
     let myObjects = new Vector("MyObjects", {
         //scaleByDistance: [1.0, 1.0, 1.0],
         scaleByDistance: [1, math.MAX32, 1],
-        useLighting: false
+        useLighting: true
     });
 
     //Object3d.
@@ -122,8 +124,11 @@
         let sat = new Bing();
         let osm = new OpenStreetMap();
 
-        const lineObj = Object3d.createCylinder(0.01, 0.01, 1);
-        const tipObj = Object3d.createCylinder(0, 1, 1, 16, 16, false);
+        let rot = new Mat4();
+        rot.setRotation(new Vec3(1, 0, 0), 90 * Math.PI / 180);
+
+        const lineObj = Object3d.createCylinder(0.01, 0.01, 0.8).applyMat4(rot);
+        const tipObj = Object3d.createCylinder(0, 0.055, 0.2, 16, 16, false).applyMat4(rot).translate(new Vec3());
 
         document.querySelector(".gpitch").addEventListener("input", (e) => {
             setPitch(Number(e.target.value));
@@ -187,7 +192,7 @@
                         color: "green",
                         scale: SCALE,
                         instanced: true,
-                        tag: "plane",
+                        tag: "line",
                         object3d: lineObj,
                         yaw: 0,
                         pitch: 0
@@ -196,10 +201,10 @@
 
                 myObjects.add(new Entity({
                     lonlat: [j, i, 25000], geoObject: {
-                        color: "green",
+                        color: "red",
                         scale: SCALE,
                         instanced: true,
-                        tag: "plane",
+                        tag: "tip",
                         object3d: tipObj,
                         yaw: 0,
                         pitch: 0
