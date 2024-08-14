@@ -128,7 +128,7 @@
         rot.setRotation(new Vec3(1, 0, 0), 90 * Math.PI / 180);
 
         const lineObj = Object3d.createCylinder(0.01, 0.01, 0.8).applyMat4(rot);
-        const tipObj = Object3d.createCylinder(0, 0.055, 0.2, 16, 16, false).applyMat4(rot).translate(new Vec3());
+        const tipObj = Object3d.createCylinder(0, 0.055, 0.2, 16, 16, false, true, 0, 0.8).applyMat4(rot).translate(new Vec3());
 
         document.querySelector(".gpitch").addEventListener("input", (e) => {
             setPitch(Number(e.target.value));
