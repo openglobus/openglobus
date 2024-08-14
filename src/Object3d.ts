@@ -1,6 +1,7 @@
 import {htmlColorToFloat32Array, TypedArray} from './utils/shared';
 import {NumberArray3, Vec3} from './math/Vec3';
 import {DEGREES, DEGREES_DOUBLE, MAX, MIN, RADIANS_HALF} from './math';
+import {Mat4} from "./math/Mat4";
 import {transformLeftToRightCoordinateSystem, objParser} from "./utils/objParser";
 
 function getColor(color?: number[] | TypedArray | string): Float32Array {
@@ -102,6 +103,39 @@ class Object3d {
         }
     }
 
+    public centering(): this {
+        Object3d.centering(this._vertices);
+        return this;
+    }
+
+    public applyMat4(m: Mat4): this {
+        for (let i = 0, len = this._vertices.length; i < len; i += 3) {
+            let v = new Vec3(this._vertices[i], this._vertices[i + 1], this._vertices[i + 2]),
+                n = new Vec3(this._normals[i], this._normals[i + 1], this._normals[i + 2]);
+
+            v = m.mulVec3(v);
+            n = m.mulVec3(n);
+
+            this._vertices[i] += v.x;
+            this._vertices[i + 1] += v.y;
+            this._vertices[i + 2] += v.z;
+
+            this._normals[i] += n.x;
+            this._normals[i + 1] += n.y;
+            this._normals[i + 2] += n.z;
+        }
+        return this;
+    }
+
+    public translate(v: Vec3): this {
+        for (let i = 0, len = this._vertices.length; i < len; i += 3) {
+            this._vertices[i] += v.x;
+            this._vertices[i + 1] += v.y;
+            this._vertices[i + 2] += v.z;
+        }
+        return this;
+    }
+
     public get src(): string | null {
         return this._src;
     }
@@ -158,9 +192,9 @@ class Object3d {
 
     static translate(vertices: number[], v: NumberArray3) {
         for (let i = 0; i < vertices.length; i += 3) {
-            vertices[i] -= v[0];
-            vertices[i + 1] -= v[1];
-            vertices[i + 2] -= v[2];
+            vertices[i] += v[0];
+            vertices[i + 1] += v[1];
+            vertices[i + 2] += v[2];
         }
     }
 

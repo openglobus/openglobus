@@ -122,7 +122,8 @@
         let sat = new Bing();
         let osm = new OpenStreetMap();
 
-        const obj = Object3d.createCylinder(0.01, 0.01, 1);
+        const lineObj = Object3d.createCylinder(0.01, 0.01, 1);
+        const tipObj = Object3d.createCylinder(0, 1, 1, 16, 16, false);
 
         document.querySelector(".gpitch").addEventListener("input", (e) => {
             setPitch(Number(e.target.value));
@@ -180,13 +181,26 @@
 
         for (let i = -90; i <= 90; i += 5) {
             for (let j = -180; j < 180; j += 10) {
+
                 myObjects.add(new Entity({
                     lonlat: [j, i, 25000], geoObject: {
                         color: "green",
                         scale: SCALE,
                         instanced: true,
                         tag: "plane",
-                        object3d: obj,
+                        object3d: lineObj,
+                        yaw: 0,
+                        pitch: 0
+                    }
+                }));
+
+                myObjects.add(new Entity({
+                    lonlat: [j, i, 25000], geoObject: {
+                        color: "green",
+                        scale: SCALE,
+                        instanced: true,
+                        tag: "plane",
+                        object3d: tipObj,
                         yaw: 0,
                         pitch: 0
                     }
