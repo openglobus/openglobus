@@ -107,13 +107,13 @@
     let spins = new Vector("spins", {
         //scaleByDistance: [1.0, 1.0, 1.0],
         scaleByDistance: [1, math.MAX32, 1],
-        useLighting: true
+        useLighting: false
     });
 
     let tips = new Vector("tips", {
         //scaleByDistance: [1.0, 1.0, 1.0],
         scaleByDistance: [1, math.MAX32, 1],
-        useLighting: true
+        useLighting: false
     });
 
     //Object3d.
@@ -172,8 +172,8 @@
 
         const SCALE = 0.1;
 
-        const lineObj = Object3d.createCylinder(0.01, 0.01, 0.8).scale(new Vec3(SCALE, SCALE, SCALE)).applyMat4(rot);
-        const tipObj = Object3d.createCylinder(0, 0.047, 0.2, 16, 16, false, true, 0, -0.2).scale(new Vec3(SCALE, SCALE, SCALE)).applyMat4(rot);
+        const lineObj = Object3d.createCylinder(0.0055, 0.0055, 0.83).scale(new Vec3(SCALE, SCALE, SCALE)).applyMat4(rot);
+        const tipObj = Object3d.createCylinder(0, 0.04, 0.17, 16, 16, false, true, 0, -0.17).scale(new Vec3(SCALE, SCALE, SCALE)).applyMat4(rot);
 
         document.querySelector(".gpitch").addEventListener("input", (e) => {
             setPitch(Number(e.target.value));
@@ -228,10 +228,8 @@
         });
 
         function setArrowLength(spin, tip, length) {
-            spin.setScale3v(new Vec3(1, 1, (length - 0.2) / (1.0 - 0.2)));
+            spin.setScale3v(new Vec3(1, 1, (length - 0.17) / (1.0 - 0.17)));
             tip.setTranslate3v(new Vec3(0, 0, -length * SCALE));
-
-            //let s = (length - 0.2) / (1.0 - 0.2);
         }
 
         document.querySelector(".glength").addEventListener("input", (e) => {
@@ -248,7 +246,7 @@
 
                 spins.add(new Entity({
                     lonlat: [j, i, 25000], geoObject: {
-                        color: "green",
+                        color: "red",
                         scale: 1.0,
                         instanced: true,
                         tag: "line",
