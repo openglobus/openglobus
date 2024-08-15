@@ -22,7 +22,7 @@ interface IObject3dParams {
     center?: boolean;
     src?: string;
     color?: number[] | TypedArray | string;
-    scale?: number;
+    scale?: Vec3;
 }
 
 class Object3d {
@@ -116,14 +116,19 @@ class Object3d {
             v = m.mulVec3(v);
             n = m.mulVec3(n);
 
-            this._vertices[i] += v.x;
-            this._vertices[i + 1] += v.y;
-            this._vertices[i + 2] += v.z;
+            this._vertices[i] = v.x;
+            this._vertices[i + 1] = v.y;
+            this._vertices[i + 2] = v.z;
 
-            this._normals[i] += n.x;
-            this._normals[i + 1] += n.y;
-            this._normals[i + 2] += n.z;
+            this._normals[i] = n.x;
+            this._normals[i + 1] = n.y;
+            this._normals[i + 2] = n.z;
         }
+        return this;
+    }
+
+    public scale(s: Vec3): this {
+        Object3d.scale(this._vertices, s);
         return this;
     }
 
@@ -168,9 +173,11 @@ class Object3d {
         return this._numVertices;
     }
 
-    static scale(vertices: number[], s: number) {
-        for (let i = 0; i < vertices.length; i++) {
-            vertices[i] *= s;
+    static scale(vertices: number[], s: Vec3) {
+        for (let i = 0; i < vertices.length; i += 3) {
+            vertices[i] *= s.x;
+            vertices[i + 1] *= s.y;
+            vertices[i + 2] *= s.z;
         }
     }
 

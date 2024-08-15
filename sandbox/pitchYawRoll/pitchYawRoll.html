@@ -49,37 +49,37 @@
 
     <div class="ginput">
         <div>SCALE_X</div>
-        <input type="number" class="gscale_x" value="0"/>
+        <input type="number" class="gscale_x" value="0" step="0.1"/>
     </div>
     <div class="ginput">
         <div>SCALE_Y</div>
-        <input type="number" class="gscale_y" value="0"/>
+        <input type="number" class="gscale_y" value="0" step="0.1"/>
     </div>
     <div class="ginput">
         <div>SCALE_Z</div>
-        <input type="number" class="gscale_z" value="0"/>
+        <input type="number" class="gscale_z" value="0" step="0.1"/>
     </div>
 
     <br/>
 
     <div class="ginput">
         <div>TRANS_X</div>
-        <input type="number" class="gtrans_x" value="0"/>
+        <input type="number" class="gtrans_x" value="0" step="0.1"/>
     </div>
     <div class="ginput">
         <div>TRANS_Y</div>
-        <input type="number" class="gtrans_y" value="0"/>
+        <input type="number" class="gtrans_y" value="0" step="0.1"/>
     </div>
     <div class="ginput">
         <div>TRANS_Z</div>
-        <input type="number" class="gtrans_z" value="0"/>
+        <input type="number" class="gtrans_z" value="0" step="0.1"/>
     </div>
 
     <br/>
 
     <div class="ginput">
         <div>LENGTH</div>
-        <input type="number" class="glength" value="1"/>
+        <input type="number" class="glength" value="1" step="0.1"/>
     </div>
 
 
@@ -170,8 +170,10 @@
         let rot = new Mat4();
         rot.setRotation(new Vec3(1, 0, 0), 90 * Math.PI / 180);
 
-        const lineObj = Object3d.createCylinder(0.01, 0.01, 0.8).applyMat4(rot);
-        const tipObj = Object3d.createCylinder(0, 0.055, 0.2, 16, 16, false, true, 0, 0.8).applyMat4(rot).translate(new Vec3());
+        const SCALE = 0.1;
+
+        const lineObj = Object3d.createCylinder(0.01, 0.01, 0.8).scale(new Vec3(SCALE, SCALE, SCALE)).applyMat4(rot);
+        const tipObj = Object3d.createCylinder(0, 0.047, 0.2, 16, 16, false, true, 0, -0.2).scale(new Vec3(SCALE, SCALE, SCALE)).applyMat4(rot);
 
         document.querySelector(".gpitch").addEventListener("input", (e) => {
             setPitch(Number(e.target.value));
@@ -226,8 +228,10 @@
         });
 
         function setArrowLength(spin, tip, length) {
-            spin.setScale3v(new Vec3(1, 1, length));
-            tip.setTranslate3v(new Vec3(0, 0, length));
+            spin.setScale3v(new Vec3(1, 1, (length - 0.2) / (1.0 - 0.2)));
+            tip.setTranslate3v(new Vec3(0, 0, -length * SCALE));
+
+            //let s = (length - 0.2) / (1.0 - 0.2);
         }
 
         document.querySelector(".glength").addEventListener("input", (e) => {
@@ -235,11 +239,9 @@
                     tipEntities = tips.getEntities();
 
             for (let i = 0; i < spinEntities.length; i++) {
-                setArrowLength(spinEntities[i].geoObject, tipEntities[i].geoObject, Number(e.value));
+                setArrowLength(spinEntities[i].geoObject, tipEntities[i].geoObject, Number(e.target.value));
             }
         });
-
-        const SCALE = 0.1;
 
         for (let i = -90; i <= 90; i += 5) {
             for (let j = -180; j < 180; j += 10) {
@@ -247,7 +249,7 @@
                 spins.add(new Entity({
                     lonlat: [j, i, 25000], geoObject: {
                         color: "green",
-                        scale: SCALE,
+                        scale: 1.0,
                         instanced: true,
                         tag: "line",
                         object3d: lineObj,
@@ -259,7 +261,7 @@
                 tips.add(new Entity({
                     lonlat: [j, i, 25000], geoObject: {
                         color: "red",
-                        scale: SCALE,
+                        scale: 1.0,
                         instanced: true,
                         tag: "tip",
                         object3d: tipObj,
