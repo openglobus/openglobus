@@ -34,33 +34,55 @@
 <div style="font-size: 1.3em; background: white; position: absolute; right:100px; top:20px;display: flex;flex-direction: column">
     <div class="ginput">
         <div>PITCH</div>
-        <input type="number" class="gpitch" value="0"/></div>
+        <input type="number" class="gpitch" value="0"/>
+    </div>
     <div class="ginput">
         <div>YAW</div>
-        <input type="number" class="gyaw" value="0"/></div>
+        <input type="number" class="gyaw" value="0"/>
+    </div>
     <div class="ginput">
         <div>ROLL</div>
-        <input type="number" class="groll" value="0"/></div>
+        <input type="number" class="groll" value="0"/>
+    </div>
+
     <br/>
+
     <div class="ginput">
         <div>SCALE_X</div>
-        <input type="number" class="gscale_x" value="0"/></div>
+        <input type="number" class="gscale_x" value="0"/>
+    </div>
     <div class="ginput">
         <div>SCALE_Y</div>
-        <input type="number" class="gscale_y" value="0"/></div>
+        <input type="number" class="gscale_y" value="0"/>
+    </div>
     <div class="ginput">
         <div>SCALE_Z</div>
-        <input type="number" class="gscale_z" value="0"/></div>
+        <input type="number" class="gscale_z" value="0"/>
+    </div>
+
     <br/>
+
     <div class="ginput">
         <div>TRANS_X</div>
-        <input type="number" class="gtrans_x" value="0"/></div>
+        <input type="number" class="gtrans_x" value="0"/>
+    </div>
     <div class="ginput">
         <div>TRANS_Y</div>
-        <input type="number" class="gtrans_y" value="0"/></div>
+        <input type="number" class="gtrans_y" value="0"/>
+    </div>
     <div class="ginput">
         <div>TRANS_Z</div>
-        <input type="number" class="gtrans_z" value="0"/></div>
+        <input type="number" class="gtrans_z" value="0"/>
+    </div>
+
+    <br/>
+
+    <div class="ginput">
+        <div>LENGTH</div>
+        <input type="number" class="glength" value="1"/>
+    </div>
+
+
 </div>
 
 <script type="module" id="og-sandbox-script">
@@ -82,7 +104,13 @@
         Vec3
     } from "../../lib/@openglobus/og.esm.js";
 
-    let myObjects = new Vector("MyObjects", {
+    let spins = new Vector("spins", {
+        //scaleByDistance: [1.0, 1.0, 1.0],
+        scaleByDistance: [1, math.MAX32, 1],
+        useLighting: true
+    });
+
+    let tips = new Vector("tips", {
         //scaleByDistance: [1.0, 1.0, 1.0],
         scaleByDistance: [1, math.MAX32, 1],
         useLighting: true
@@ -91,31 +119,46 @@
     //Object3d.
 
     function setPitch(a) {
-        myObjects.each((e) => {
+        spins.each((e) => {
+            e.geoObject.setPitch(a)
+        });
+        tips.each((e) => {
             e.geoObject.setPitch(a)
         });
     }
 
     function setYaw(a) {
-        myObjects.each((e) => {
+        spins.each((e) => {
+            e.geoObject.setYaw(a);
+        });
+        tips.each((e) => {
             e.geoObject.setYaw(a);
         });
     }
 
     function setRoll(a) {
-        myObjects.each((e) => {
+        spins.each((e) => {
+            e.geoObject.setRoll(a);
+        });
+        tips.each((e) => {
             e.geoObject.setRoll(a);
         });
     }
 
     function setScale(x, y, z) {
-        myObjects.each((e) => {
+        spins.each((e) => {
+            e.geoObject.setScale3v(new Vec3(x, y, z));
+        });
+        tips.each((e) => {
             e.geoObject.setScale3v(new Vec3(x, y, z));
         });
     }
 
     function setTranslate(x, y, z) {
-        myObjects.each((e) => {
+        spins.each((e) => {
+            e.geoObject.setTranslate3v(new Vec3(x, y, z));
+        });
+        tips.each((e) => {
             e.geoObject.setTranslate3v(new Vec3(x, y, z));
         });
     }
@@ -170,16 +213,30 @@
         }
 
         document.querySelector(".gtrans_x").addEventListener("input", (e) => {
-            let {x, y, z} = getScale();
+            let {x, y, z} = getTranslate();
             setTranslate(x, y, z);
         });
         document.querySelector(".gtrans_y").addEventListener("input", (e) => {
-            let {x, y, z} = getScale();
+            let {x, y, z} = getTranslate();
             setTranslate(x, y, z);
         });
         document.querySelector(".gtrans_z").addEventListener("input", (e) => {
-            let {x, y, z} = getScale();
+            let {x, y, z} = getTranslate();
             setTranslate(x, y, z);
+        });
+
+        function setArrowLength(spin, tip, length) {
+            spin.setScale3v(new Vec3(1, 1, length));
+            tip.setTranslate3v(new Vec3(0, 0, length));
+        }
+
+        document.querySelector(".glength").addEventListener("input", (e) => {
+            let spinEntities = spins.getEntities(),
+                    tipEntities = tips.getEntities();
+
+            for (let i = 0; i < spinEntities.length; i++) {
+                setArrowLength(spinEntities[i].geoObject, tipEntities[i].geoObject, Number(e.value));
+            }
         });
 
         const SCALE = 0.1;
@@ -187,7 +244,7 @@
         for (let i = -90; i <= 90; i += 5) {
             for (let j = -180; j < 180; j += 10) {
 
-                myObjects.add(new Entity({
+                spins.add(new Entity({
                     lonlat: [j, i, 25000], geoObject: {
                         color: "green",
                         scale: SCALE,
@@ -199,7 +256,7 @@
                     }
                 }));
 
-                myObjects.add(new Entity({
+                tips.add(new Entity({
                     lonlat: [j, i, 25000], geoObject: {
                         color: "red",
                         scale: SCALE,
@@ -224,7 +281,7 @@
             //     heightFactor: 5
             // }),
             terrain: new EmptyTerrain(),
-            layers: [osm, sat, myObjects],
+            layers: [osm, sat, spins, tips],
             atmosphereEnabled: false,
             fontsSrc: "../../res/fonts",
             sun: {
