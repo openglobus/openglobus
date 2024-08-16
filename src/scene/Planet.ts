@@ -2266,6 +2266,19 @@ export class Planet extends RenderNode {
         this.quadTreeStrategy.destroyBranches();
         this._renderedNodes = [];
     }
+
+    // function checkTerrainCollision(entity) {
+    //     let _tempTerrPoint = new Vec3();
+    //     let nodes = globus.planet._renderedNodes;
+    //     for (let j = 0; j < nodes.length; j++) {
+    //         let seg = nodes[j].segment;
+    //         if (seg && seg._extentLonLat.isInside(entity.getLonLat())) {
+    //             seg.getEntityTerrainPoint(entity, _tempTerrPoint);
+    //             entity.setCartesian3v(_tempTerrPoint);
+    //             break;
+    //         }
+    //     }
+    // }
 }
 
 const PLANET_EVENTS: PlanetEventsList = [
