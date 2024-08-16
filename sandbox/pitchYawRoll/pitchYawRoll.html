@@ -110,56 +110,38 @@
         useLighting: false
     });
 
-    let tips = new Vector("tips", {
-        //scaleByDistance: [1.0, 1.0, 1.0],
-        scaleByDistance: [1, math.MAX32, 1],
-        useLighting: false
-    });
-
-    //Object3d.
-
     function setPitch(a) {
         spins.each((e) => {
-            e.geoObject.setPitch(a)
-        });
-        tips.each((e) => {
-            e.geoObject.setPitch(a)
+            e.geoObject.setPitch(a);
+            e.childrenNodes[0].geoObject.setPitch(a);
         });
     }
 
     function setYaw(a) {
         spins.each((e) => {
             e.geoObject.setYaw(a);
-        });
-        tips.each((e) => {
-            e.geoObject.setYaw(a);
+            e.childrenNodes[0].geoObject.setYaw(a);
         });
     }
 
     function setRoll(a) {
         spins.each((e) => {
             e.geoObject.setRoll(a);
-        });
-        tips.each((e) => {
-            e.geoObject.setRoll(a);
+            e.childrenNodes[0].geoObject.setRoll(a);
         });
     }
 
     function setScale(x, y, z) {
         spins.each((e) => {
             e.geoObject.setScale3v(new Vec3(x, y, z));
-        });
-        tips.each((e) => {
-            e.geoObject.setScale3v(new Vec3(x, y, z));
+            e.childrenNodes[0].geoObject.setScale3v(new Vec3(x, y, z));
         });
     }
 
     function setTranslate(x, y, z) {
         spins.each((e) => {
             e.geoObject.setTranslate3v(new Vec3(x, y, z));
-        });
-        tips.each((e) => {
-            e.geoObject.setTranslate3v(new Vec3(x, y, z));
+            e.childrenNodes[0].geoObject.setTranslate3v(new Vec3(x, y, z));
         });
     }
 
@@ -227,25 +209,27 @@
             setTranslate(x, y, z);
         });
 
-        function setArrowLength(spin, tip, length) {
+        function setArrowLength(arrow, length) {
+            let spin = arrow.geoObject;
+            let tip = arrow.childrenNodes[0].geoObject;
+
             spin.setScale3v(new Vec3(1, 1, (length - 0.17) / (1.0 - 0.17)));
             tip.setTranslate3v(new Vec3(0, 0, -length * SCALE));
         }
 
         document.querySelector(".glength").addEventListener("input", (e) => {
-            let spinEntities = spins.getEntities(),
-                    tipEntities = tips.getEntities();
+            let spinEntities = spins.getEntities();
 
             for (let i = 0; i < spinEntities.length; i++) {
-                setArrowLength(spinEntities[i].geoObject, tipEntities[i].geoObject, Number(e.target.value));
+                setArrowLength(spinEntities[i], Number(e.target.value));
             }
         });
 
         for (let i = -90; i <= 90; i += 5) {
             for (let j = -180; j < 180; j += 10) {
 
-                spins.add(new Entity({
-                    lonlat: [j, i, 25000], geoObject: {
+                let spin = new Entity({
+                    geoObject: {
                         color: "red",
                         scale: 1.0,
                         instanced: true,
@@ -254,10 +238,10 @@
                         yaw: 0,
                         pitch: 0
                     }
-                }));
+                });
 
-                tips.add(new Entity({
-                    lonlat: [j, i, 25000], geoObject: {
+                spin.appendChild(new Entity({
+                    geoObject: {
                         color: "red",
                         scale: 1.0,
                         instanced: true,
@@ -266,7 +250,9 @@
                         yaw: 0,
                         pitch: 0
                     }
-                }));
+                }))
+
+                spins.add(spin);
             }
         }
 
@@ -281,7 +267,7 @@
             //     heightFactor: 5
             // }),
             terrain: new EmptyTerrain(),
-            layers: [osm, sat, spins, tips],
+            layers: [osm, sat, spins],
             atmosphereEnabled: false,
             fontsSrc: "../../res/fonts",
             sun: {
@@ -295,6 +281,14 @@
         globus.planet.addControl(new control.LayerSwitcher());
         globus.planet.addControl(new control.Lighting());
         globus.planet.addControl(new control.TimelineControl());
+
+        let arr = spins.getEntities();
+        let counter = 0;
+        for (let i = -90; i <= 90; i += 5) {
+            for (let j = -180; j < 180; j += 10) {
+                arr[counter++].setLonLat2(j, i, 25000);
+            }
+        }
     }
 
     main()
