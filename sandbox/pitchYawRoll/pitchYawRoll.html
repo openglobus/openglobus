@@ -157,6 +157,14 @@
         const lineObj = Object3d.createCylinder(0.0055, 0.0055, 0.83).scale(new Vec3(SCALE, SCALE, SCALE)).applyMat4(rot);
         const tipObj = Object3d.createCylinder(0, 0.04, 0.17, 16, 16, false, true, 0, -0.17).scale(new Vec3(SCALE, SCALE, SCALE)).applyMat4(rot);
 
+        function setArrowLength(arrow, length) {
+            let spin = arrow.geoObject;
+            let tip = arrow.childrenNodes[0].geoObject;
+
+            spin.setScale3v(new Vec3(1, 1, (length - 0.17) / (1.0 - 0.17)));
+            tip.setTranslate3v(new Vec3(0, 0, -length * SCALE));
+        }
+
         document.querySelector(".gpitch").addEventListener("input", (e) => {
             setPitch(Number(e.target.value));
         });
@@ -209,14 +217,6 @@
             setTranslate(x, y, z);
         });
 
-        function setArrowLength(arrow, length) {
-            let spin = arrow.geoObject;
-            let tip = arrow.childrenNodes[0].geoObject;
-
-            spin.setScale3v(new Vec3(1, 1, (length - 0.17) / (1.0 - 0.17)));
-            tip.setTranslate3v(new Vec3(0, 0, -length * SCALE));
-        }
-
         document.querySelector(".glength").addEventListener("input", (e) => {
             let spinEntities = spins.getEntities();
 
@@ -231,7 +231,7 @@
                 let spin = new Entity({
                     geoObject: {
                         color: "red",
-                        scale: 1.0,
+                        //scale: 1.0,
                         instanced: true,
                         tag: "line",
                         object3d: lineObj,
@@ -243,7 +243,7 @@
                 spin.appendChild(new Entity({
                     geoObject: {
                         color: "red",
-                        scale: 1.0,
+                        //scale: 1.0,
                         instanced: true,
                         tag: "tip",
                         object3d: tipObj,
@@ -286,7 +286,9 @@
         let counter = 0;
         for (let i = -90; i <= 90; i += 5) {
             for (let j = -180; j < 180; j += 10) {
-                arr[counter++].setLonLat2(j, i, 25000);
+                let ai = arr[counter++];
+                ai.setLonLat2(j, i, 25000);
+                setArrowLength(ai, 1);
             }
         }
     }
