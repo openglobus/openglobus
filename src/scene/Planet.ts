@@ -1708,7 +1708,7 @@ export class Planet extends RenderNode {
         let isEq = this.terrain!.equalizeVertices;
         let i = renderedNodes.length;
 
-        if (cam.slope > 0.8 /*|| cam.getAltitude() > 10000*/) {
+        if (cam.slope > 0.8 || !this.terrain || this.terrain.isEmpty /*|| cam.getAltitude() > 10000*/) {
             while (i--) {
                 let ri = renderedNodes[i];
                 let s = ri.segment;
