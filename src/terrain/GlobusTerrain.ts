@@ -28,6 +28,8 @@ type TileData = {
 }
 
 /**
+ * @deprecated
+ * Use GlobusRgbTerrain
  * Class that loads segment elevation data, converts it to the array and passes it to the planet segment.
  * @class
  * @extends {GlobusTerrain}
