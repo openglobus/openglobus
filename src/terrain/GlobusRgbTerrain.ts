@@ -16,7 +16,7 @@ export class GlobusRgbTerrain extends RgbTerrain {
         super(name || "GlobusEarthRgb", {
             maxNativeZoom: 6,
             maxZoom: 17,
-            url: "https://{s}.terrain.openglobus.org/public/all/{z}/{x}/{y}.png",
+            url: "https://{s}.terrain.openglobus.org/all/{z}/{x}/{y}.png",
             urlRewrite: urlRewriteFunc,
             ...options
         });
