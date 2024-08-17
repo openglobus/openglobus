@@ -8,7 +8,7 @@ const urlPref: Record<number, string> = {
 
 const urlRewriteFunc = (tileX: number, tileY: number, tileZoom: number, tileGroup: number): string | undefined => {
     let g = urlPref[tileGroup];
-    if (g) return `https://terrain.openglobus.org/public/poles/${g}/${tileZoom}/${tileX}/${tileY}.png`;
+    if (g) return `https://terrain.openglobus.org/poles/${g}/${tileZoom}/${tileX}/${tileY}.png`;
 }
 
 export class GlobusRgbTerrain extends RgbTerrain {
