@@ -104,42 +104,43 @@
         Vec3
     } from "../../lib/@openglobus/og.esm.js";
 
-    let spins = new Vector("spins", {
+
+    let axesLayer = new Vector("axesLayer", {
         //scaleByDistance: [1.0, 1.0, 1.0],
         scaleByDistance: [1, math.MAX32, 1],
         useLighting: false
     });
 
     function setPitch(a) {
-        spins.each((e) => {
+        axesLayer.each((e) => {
             e.geoObject.setPitch(a);
             e.childrenNodes[0].geoObject.setPitch(a);
         });
     }
 
     function setYaw(a) {
-        spins.each((e) => {
+        axesLayer.each((e) => {
             e.geoObject.setYaw(a);
             e.childrenNodes[0].geoObject.setYaw(a);
         });
     }
 
     function setRoll(a) {
-        spins.each((e) => {
+        axesLayer.each((e) => {
             e.geoObject.setRoll(a);
             e.childrenNodes[0].geoObject.setRoll(a);
         });
     }
 
     function setScale(x, y, z) {
-        spins.each((e) => {
+        axesLayer.each((e) => {
             e.geoObject.setScale3v(new Vec3(x, y, z));
             e.childrenNodes[0].geoObject.setScale3v(new Vec3(x, y, z));
         });
     }
 
     function setTranslate(x, y, z) {
-        spins.each((e) => {
+        axesLayer.each((e) => {
             e.geoObject.setTranslate3v(new Vec3(x, y, z));
             e.childrenNodes[0].geoObject.setTranslate3v(new Vec3(x, y, z));
         });
@@ -150,19 +151,46 @@
         let osm = new OpenStreetMap();
 
         let rot = new Mat4();
-        rot.setRotation(new Vec3(1, 0, 0), 90 * Math.PI / 180);
 
         const SCALE = 0.1;
+        const SCALE_VEC = new Vec3(SCALE, SCALE, SCALE);
 
-        const lineObj = Object3d.createCylinder(0.0055, 0.0055, 0.83).scale(new Vec3(SCALE, SCALE, SCALE)).applyMat4(rot);
-        const tipObj = Object3d.createCylinder(0, 0.04, 0.17, 16, 16, false, true, 0, -0.17).scale(new Vec3(SCALE, SCALE, SCALE)).applyMat4(rot);
+        const lineObjY = Object3d.createCylinder(0.0055, 0.0055, 0.83).scale(SCALE_VEC);
+        const tipObjY = Object3d.createCylinder(0, 0.04, 0.17, 16, 16, false, true, 0, -0.17).scale(SCALE_VEC);
 
-        function setArrowLength(arrow, length) {
+        rot.setRotation(new Vec3(1, 0, 0), 90 * Math.PI / 180);
+        const lineObjZ = Object3d.createCylinder(0.0055, 0.0055, 0.83).scale(SCALE_VEC).applyMat4(rot);
+        const tipObjZ = Object3d.createCylinder(0, 0.04, 0.17, 16, 16, false, true, 0, -0.17).scale(SCALE_VEC).applyMat4(rot);
+
+        rot.setRotation(new Vec3(0, 0, 1), 90 * Math.PI / 180);
+        const lineObjX = Object3d.createCylinder(0.0055, 0.0055, 0.83).scale(SCALE_VEC).applyMat4(rot);
+        const tipObjX = Object3d.createCylinder(0, 0.04, 0.17, 16, 16, false, true, 0, -0.17).scale(SCALE_VEC).applyMat4(rot);
+
+        function setArrowLength(axis, length) {
+            let arrow = axis.childrenNodes[0];
             let spin = arrow.geoObject;
             let tip = arrow.childrenNodes[0].geoObject;
 
-            spin.setScale3v(new Vec3(1, 1, (length - 0.17) / (1.0 - 0.17)));
-            tip.setTranslate3v(new Vec3(0, 0, -length * SCALE));
+            const scale = (length - 0.17) / (1.0 - 0.17);
+            const trans = length * SCALE;
+
+            // X
+            spin.setScale3v(new Vec3(scale, 1, 1));
+            tip.setTranslate3v(new Vec3(trans, 0, 0));
+
+            // Y
+            arrow = axis.childrenNodes[1];
+            spin = arrow.geoObject;
+            tip = arrow.childrenNodes[0].geoObject;
+            spin.setScale3v(new Vec3(1, scale, 1));
+            tip.setTranslate3v(new Vec3(0, trans, 0));
+
+            // Z
+            arrow = axis.childrenNodes[2];
+            spin = arrow.geoObject;
+            tip = arrow.childrenNodes[0].geoObject;
+            spin.setScale3v(new Vec3(1, 1, scale));
+            tip.setTranslate3v(new Vec3(0, 0, -trans));
         }
 
         document.querySelector(".gpitch").addEventListener("input", (e) => {
@@ -218,7 +246,7 @@
         });
 
         document.querySelector(".glength").addEventListener("input", (e) => {
-            let spinEntities = spins.getEntities();
+            let spinEntities = axesLayer.getEntities();
 
             for (let i = 0; i < spinEntities.length; i++) {
                 setArrowLength(spinEntities[i], Number(e.target.value));
@@ -228,31 +256,88 @@
         for (let i = -90; i <= 90; i += 5) {
             for (let j = -180; j < 180; j += 10) {
 
-                let spin = new Entity({
+                let axisEntity = new Entity({
+                    geoObject: {}
+                });
+
+                let arrowX = new Entity({
                     geoObject: {
-                        color: "red",
-                        //scale: 1.0,
+                        color: "green",
+                        scale: 1.0,
                         instanced: true,
-                        tag: "line",
-                        object3d: lineObj,
+                        tag: "line_x",
+                        object3d: lineObjX,
                         yaw: 0,
                         pitch: 0
                     }
                 });
 
-                spin.appendChild(new Entity({
+                arrowX.appendChild(new Entity({
                     geoObject: {
-                        color: "red",
-                        //scale: 1.0,
+                        color: "green",
+                        scale: 1.0,
                         instanced: true,
-                        tag: "tip",
-                        object3d: tipObj,
+                        tag: "tip_x",
+                        object3d: tipObjX,
                         yaw: 0,
                         pitch: 0
                     }
-                }))
+                }));
 
-                spins.add(spin);
+
+                let arrowY = new Entity({
+                    geoObject: {
+                        color: "blue",
+                        scale: 1.0,
+                        instanced: true,
+                        tag: "line_y",
+                        object3d: lineObjY,
+                        yaw: 0,
+                        pitch: 0
+                    }
+                });
+
+                arrowY.appendChild(new Entity({
+                    geoObject: {
+                        color: "blue",
+                        scale: 1.0,
+                        instanced: true,
+                        tag: "tip_y",
+                        object3d: tipObjY,
+                        yaw: 0,
+                        pitch: 0
+                    }
+                }));
+
+                let arrowZ = new Entity({
+                    geoObject: {
+                        color: "red",
+                        scale: 1.0,
+                        instanced: true,
+                        tag: "line_z",
+                        object3d: lineObjZ,
+                        yaw: 0,
+                        pitch: 0
+                    }
+                });
+
+                arrowZ.appendChild(new Entity({
+                    geoObject: {
+                        color: "red",
+                        scale: 1.0,
+                        instanced: true,
+                        tag: "tip_z",
+                        object3d: tipObjZ,
+                        yaw: 0,
+                        pitch: 0
+                    }
+                }));
+
+                axisEntity.appendChild(arrowX);
+                axisEntity.appendChild(arrowY);
+                axisEntity.appendChild(arrowZ);
+
+                axesLayer.add(axisEntity);
             }
         }
 
@@ -267,7 +352,7 @@
             //     heightFactor: 5
             // }),
             terrain: new EmptyTerrain(),
-            layers: [osm, sat, spins],
+            layers: [osm, sat, axesLayer],
             atmosphereEnabled: false,
             fontsSrc: "../../res/fonts",
             sun: {
@@ -282,7 +367,7 @@
         globus.planet.addControl(new control.Lighting());
         globus.planet.addControl(new control.TimelineControl());
 
-        let arr = spins.getEntities();
+        let arr = axesLayer.getEntities();
         let counter = 0;
         for (let i = -90; i <= 90; i += 5) {
             for (let j = -180; j < 180; j += 10) {
