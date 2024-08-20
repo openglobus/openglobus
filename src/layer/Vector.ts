@@ -134,9 +134,11 @@ class Vector extends Layer {
     public relativeToGround: boolean;
 
 
+    /** todo: combine into one */
     protected _stripEntityCollection: EntityCollection;
     protected _polylineEntityCollection: EntityCollection;
     protected _geoObjectEntityCollection: EntityCollection;
+
     public _geometryHandler: GeometryHandler;
 
     /**
@@ -372,6 +374,8 @@ class Vector extends Layer {
     protected _proceedEntity(entity: Entity, rightNow: boolean = false) {
         let temp = this._hasImageryTiles;
 
+        let isEmpty = !(entity.strip || entity.polyline || entity.ray || entity.geoObject || entity.geometry);
+
         if (entity.strip) {
             this._stripEntityCollection.add(entity);
         }
@@ -380,7 +384,7 @@ class Vector extends Layer {
             this._polylineEntityCollection.add(entity);
         }
 
-        if (entity.geoObject) {
+        if (entity.geoObject || isEmpty) {
             this._geoObjectEntityCollection.add(entity);
         }
 
@@ -392,7 +396,7 @@ class Vector extends Layer {
             }
         }
 
-        if (entity.billboard || entity.label || entity.geoObject) {
+        if (entity.billboard || entity.label || entity.geoObject || isEmpty) {
             if (this._planet) {
                 if (entity._cartesian.isZero() && !entity._lonLat.isZero()) {
                     entity._setCartesian3vSilent(
@@ -638,11 +642,13 @@ class Vector extends Layer {
             ei._layer = this;
             ei._layerIndex = i;
 
+            let isEmpty = !(ei.strip || ei.polyline || ei.ray || ei.geoObject || ei.billboard || ei.label);
+
             if (ei.strip) {
                 this._stripEntityCollection.add(ei);
             } else if (ei.polyline || ei.ray) {
                 this._polylineEntityCollection.add(ei);
-            } else if (ei.geoObject) {
+            } else if (ei.geoObject || isEmpty) {
                 this._geoObjectEntityCollection.add(ei);
             } else if (ei.billboard || ei.label) {
                 entitiesForTree.push(ei);
