@@ -108,7 +108,8 @@
     let axesLayer = new Vector("axesLayer", {
         //scaleByDistance: [1.0, 1.0, 1.0],
         scaleByDistance: [1, math.MAX32, 1],
-        useLighting: false
+        useLighting: false,
+        pickingScale: 1
     });
 
     function setPitch(a) {
@@ -259,6 +260,7 @@
                 let axisEntity = new Entity();
 
                 let arrowX = new Entity({
+                    independentPicking: true,
                     geoObject: {
                         color: "green",
                         scale: 1.0,
@@ -284,6 +286,7 @@
 
 
                 let arrowY = new Entity({
+                    independentPicking: true,
                     geoObject: {
                         color: "blue",
                         scale: 1.0,
@@ -308,6 +311,7 @@
                 }));
 
                 let arrowZ = new Entity({
+                    independentPicking: true,
                     geoObject: {
                         color: "red",
                         scale: 1.0,

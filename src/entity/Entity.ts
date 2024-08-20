@@ -32,6 +32,7 @@ export interface IEntityParams {
     geometry?: Geometry | IGeometryParams;
     geoObject?: GeoObject | IGeoObjectParams;
     strip?: Strip;
+    independentPicking?: boolean;
 }
 
 /**
@@ -156,6 +157,8 @@ class Entity {
      */
     public _pickingColor: Vec3;
 
+    public _independentPicking: boolean;
+
     protected _featureConstructorArray: Record<string, [any, Function]>;
 
     /**
@@ -249,6 +252,8 @@ class Entity {
         this._layerIndex = -1;
 
         this._pickingColor = new Vec3(0, 0, 0);
+
+        this._independentPicking = options.independentPicking || false;
 
         this._featureConstructorArray = {
             billboard: [Billboard, this.setBillboard],
@@ -711,7 +716,9 @@ class Entity {
      */
     public appendChild(entity: Entity) {
         entity._entityCollection = this._entityCollection;
-        entity._pickingColor = this._pickingColor;
+        if (!entity._independentPicking) {
+            entity._pickingColor = this._pickingColor;
+        }
         entity.parent = this;
         this.childrenNodes.push(entity);
         this._entityCollection && this._entityCollection.appendChildEntity(entity);

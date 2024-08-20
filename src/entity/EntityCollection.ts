@@ -270,11 +270,11 @@ class EntityCollection {
         return this.__id;
     }
 
-    public get useLighting(): boolean{
+    public get useLighting(): boolean {
         return Boolean(this._useLighting)
     }
 
-    public set useLighting(f:boolean){
+    public set useLighting(f: boolean) {
         this._useLighting = Number(f);
     }
 
@@ -376,10 +376,17 @@ class EntityCollection {
 
         this.events.dispatch(this.events.entityadd, entity);
 
+        let rn: RenderNode | null = this.renderNode;
         for (let i = 0; i < entity.childrenNodes.length; i++) {
             entity.childrenNodes[i]._entityCollection = this;
             entity.childrenNodes[i]._entityCollectionIndex = entity._entityCollectionIndex;
-            entity.childrenNodes[i]._pickingColor = entity._pickingColor;
+            if (entity.childrenNodes[i]._independentPicking) {
+                if (rn) {
+                    rn.renderer && rn.renderer.assignPickingColor<Entity>(entity.childrenNodes[i]);
+                }
+            } else {
+                entity.childrenNodes[i]._pickingColor = entity._pickingColor;
+            }
             this._addRecursively(entity.childrenNodes[i]);
         }
     }
