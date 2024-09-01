@@ -647,7 +647,7 @@ class GeoObjectHandler {
 
         gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
 
-        gl.uniform1f(u.pickingScale, ec.pickingScale);
+        gl.uniform3fv(u.pickingScale, ec.pickingScale);
 
         gl.uniform3fv(u.eyePositionHigh, r.activeCamera!.eyeHigh);
         gl.uniform3fv(u.eyePositionLow, r.activeCamera!.eyeLow);

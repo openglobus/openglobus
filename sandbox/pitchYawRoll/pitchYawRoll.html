@@ -109,27 +109,63 @@
         //scaleByDistance: [1.0, 1.0, 1.0],
         scaleByDistance: [1, math.MAX32, 1],
         useLighting: false,
-        pickingScale: 1
+        pickingScale: [5, 1.1, 5]
     });
 
     function setPitch(a) {
         axesLayer.each((e) => {
-            e.geoObject.setPitch(a);
-            e.childrenNodes[0].geoObject.setPitch(a);
+            let line = e.childrenNodes[0];
+            let tip = line.childrenNodes[0];
+            line.geoObject.setPitch(a);
+            tip.geoObject.setPitch(a);
+
+            line = e.childrenNodes[1];
+            tip = line.childrenNodes[0];
+            line.geoObject.setPitch(a);
+            tip.geoObject.setPitch(a);
+
+            line = e.childrenNodes[2];
+            tip = line.childrenNodes[0];
+            line.geoObject.setPitch(a + 90);
+            tip.geoObject.setPitch(a + 90);
         });
     }
 
     function setYaw(a) {
         axesLayer.each((e) => {
-            e.geoObject.setYaw(a);
-            e.childrenNodes[0].geoObject.setYaw(a);
+            let line = e.childrenNodes[0];
+            let tip = line.childrenNodes[0];
+            line.geoObject.setYaw(a);
+            tip.geoObject.setYaw(a);
+
+            line = e.childrenNodes[1];
+            tip = line.childrenNodes[0];
+            line.geoObject.setYaw(a);
+            tip.geoObject.setYaw(a);
+
+            line = e.childrenNodes[2];
+            tip = line.childrenNodes[0];
+            line.geoObject.setYaw(a);
+            tip.geoObject.setYaw(a);
         });
     }
 
     function setRoll(a) {
         axesLayer.each((e) => {
-            e.geoObject.setRoll(a);
-            e.childrenNodes[0].geoObject.setRoll(a);
+            let line = e.childrenNodes[0];
+            let tip = line.childrenNodes[0];
+            line.geoObject.setRoll(a + 90);
+            tip.geoObject.setRoll(a + 90);
+
+            line = e.childrenNodes[1];
+            tip = line.childrenNodes[0];
+            line.geoObject.setRoll(a);
+            tip.geoObject.setRoll(a);
+
+            // line = e.childrenNodes[2];
+            // tip = line.childrenNodes[0];
+            // line.geoObject.setRoll(a);
+            // tip.geoObject.setRoll(a);
         });
     }
 
@@ -156,16 +192,14 @@
         const SCALE = 0.1;
         const SCALE_VEC = new Vec3(SCALE, SCALE, SCALE);
 
+        const lineObjX = Object3d.createCylinder(0.0055, 0.0055, 0.83).scale(SCALE_VEC);
+        const tipObjX = Object3d.createCylinder(0, 0.04, 0.17, 16, 16, false, true, 0, -0.17).scale(SCALE_VEC);
+
         const lineObjY = Object3d.createCylinder(0.0055, 0.0055, 0.83).scale(SCALE_VEC);
         const tipObjY = Object3d.createCylinder(0, 0.04, 0.17, 16, 16, false, true, 0, -0.17).scale(SCALE_VEC);
 
-        rot.setRotation(new Vec3(1, 0, 0), 90 * Math.PI / 180);
-        const lineObjZ = Object3d.createCylinder(0.0055, 0.0055, 0.83).scale(SCALE_VEC).applyMat4(rot);
-        const tipObjZ = Object3d.createCylinder(0, 0.04, 0.17, 16, 16, false, true, 0, -0.17).scale(SCALE_VEC).applyMat4(rot);
-
-        rot.setRotation(new Vec3(0, 0, 1), 90 * Math.PI / 180);
-        const lineObjX = Object3d.createCylinder(0.0055, 0.0055, 0.83).scale(SCALE_VEC).applyMat4(rot);
-        const tipObjX = Object3d.createCylinder(0, 0.04, 0.17, 16, 16, false, true, 0, -0.17).scale(SCALE_VEC).applyMat4(rot);
+        const lineObjZ = Object3d.createCylinder(0.0055, 0.0055, 0.83).scale(SCALE_VEC);
+        const tipObjZ = Object3d.createCylinder(0, 0.04, 0.17, 16, 16, false, true, 0, -0.17).scale(SCALE_VEC);
 
         function setArrowLength(axis, length) {
             let arrow = axis.childrenNodes[0];
@@ -176,8 +210,8 @@
             const trans = length * SCALE;
 
             // X
-            spin.setScale3v(new Vec3(scale, 1, 1));
-            tip.setTranslate3v(new Vec3(trans, 0, 0));
+            spin.setScale3v(new Vec3(1, scale, 1));
+            tip.setTranslate3v(new Vec3(0, trans, 0));
 
             // Y
             arrow = axis.childrenNodes[1];
@@ -190,8 +224,8 @@
             arrow = axis.childrenNodes[2];
             spin = arrow.geoObject;
             tip = arrow.childrenNodes[0].geoObject;
-            spin.setScale3v(new Vec3(1, 1, scale));
-            tip.setTranslate3v(new Vec3(0, 0, -trans));
+            spin.setScale3v(new Vec3(1, scale, 1));
+            tip.setTranslate3v(new Vec3(0, trans, 0));
         }
 
         document.querySelector(".gpitch").addEventListener("input", (e) => {
@@ -268,7 +302,8 @@
                         tag: "line_x",
                         object3d: lineObjX,
                         yaw: 0,
-                        pitch: 0
+                        pitch: 0,
+                        roll: 90
                     }
                 });
 
@@ -280,7 +315,8 @@
                         tag: "tip_x",
                         object3d: tipObjX,
                         yaw: 0,
-                        pitch: 0
+                        pitch: 0,
+                        roll: 90
                     }
                 }));
 
@@ -319,7 +355,7 @@
                         tag: "line_z",
                         object3d: lineObjZ,
                         yaw: 0,
-                        pitch: 0
+                        pitch: 90
                     }
                 });
 
@@ -331,7 +367,7 @@
                         tag: "tip_z",
                         object3d: tipObjZ,
                         yaw: 0,
-                        pitch: 0
+                        pitch: 90
                     }
                 }));
 

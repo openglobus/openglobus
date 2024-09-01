@@ -102,7 +102,7 @@ export const geo_object = (): Program =>
                 // use scaleByDistance: [1.0, 1.0, 1.0] for real sized objects 
                 float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
                 
-                vec3 vert = qRotate(qRot, (aVertexPosition * aScale + aTranslate) * scd );
+                vec3 vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate));
                 
                 vert += lowDiff;
                                
@@ -160,7 +160,7 @@ export const geo_object_picking = (): Program =>
             uScaleByDistance: "vec3",
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
-            pickingScale: "float"
+            pickingScale: "vec3"
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -188,7 +188,7 @@ export const geo_object_picking = (): Program =>
             uniform vec3 uScaleByDistance;
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
-            uniform float pickingScale;
+            uniform vec3 pickingScale;
 
             varying vec3 vColor;
             
@@ -226,9 +226,10 @@ export const geo_object_picking = (): Program =>
                  // @hack
                  // pickingScale replace to this line, because when it s
                  // tays in the vert above it affects on Mac Safari jitter
-                 float scd = pickingScale * uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
+                 float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
 
-                 vec3 vert = qRotate(qRot, (aVertexPosition * aScale + aTranslate)) * scd;
+                 //vec3 vert = qRotate(qRot, (aVertexPosition * aScale + aTranslate) * pickingScale) * scd;
+                 vec3 vert = qRotate(qRot, scd * pickingScale * (aVertexPosition * aScale + aTranslate));
                  
                  vert += lowDiff;
                                 
