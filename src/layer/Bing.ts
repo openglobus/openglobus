@@ -21,6 +21,7 @@ export class Bing extends XYZ {
             subdomains: ['t0', 't1', 't2', 't3'],
             url: "https://ecn.{s}.tiles.virtualearth.net/tiles/a{quad}.jpeg?n=z&g=7146",
             isBaseLayer: true,
+            textureFilter: "LINEAR",
             maxNativeZoom: 17,
             defaultTextures: [{color: "#001522"}, {color: "#E4E6F3"}],
             attribution: `<div style="transform: scale(0.8); margin-top:-2px;"><a href="https://www.bing.com" target="_blank"><img style="position: relative; top: 2px;" title="Bing Imagery" src="https://sandcastle.cesium.com/CesiumUnminified/Assets/Images/bing_maps_credit.png"></a> © 2021 Microsoft Corporation</div>`,
