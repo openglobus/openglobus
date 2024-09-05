@@ -18,7 +18,7 @@
     "dev": "rollup -c -w --bundleConfigAsCjs --environment NODE_ENV:development",
     "test": "jest --env=jsdom --runInBand --ci --coverage=false",
     "test_watch": "jest --env=jsdom --watch",
-    "lint": "eslint -c ./.eslintrc.js src/",
+    "lint": "eslint src/",
     "gen_js": "tsc --build tsconfig.json --declaration",
     "font": "node ./fonts/index.js"
   },
