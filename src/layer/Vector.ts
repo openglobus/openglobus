@@ -577,6 +577,7 @@ class Vector extends Layer {
      * @public
      */
     public override clear() {
+        super.clear();
         let temp: Entity[] = new Array(this._entities.length);
 
         for (let i = 0; i < temp.length; i++) {
@@ -597,6 +598,7 @@ class Vector extends Layer {
         this._entityCollectionsTree = null;
         this._entityCollectionsTreeNorth = null;
         this._entityCollectionsTreeSouth = null;
+        this._geometryHandler.clear()
     }
 
     /**
@@ -979,7 +981,7 @@ class Vector extends Layer {
 
     protected _execDeferredNode(node: EntityCollectionNode) {
         this._counter++;
-        setTimeout(() => {
+        requestAnimationFrame(() => {
             node.applyCollection();
             this._counter--;
             if (this._deferredEntitiesPendingQueue.length && this._counter < 1) {
@@ -992,7 +994,7 @@ class Vector extends Layer {
                     }
                 }
             }
-        }, 0);
+        });
     }
 
     /**
