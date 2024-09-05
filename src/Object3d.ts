@@ -499,6 +499,27 @@ class Object3d {
             texCoords: textures
         }));
     }
+
+    merge(other: Object3d): Object3d {
+        const mergedVertices = [...this._vertices, ...other.vertices];
+        const mergedNormals = [...this._normals, ...other.normals];
+        const mergedTexCoords = [...this._texCoords, ...other.texCoords];
+
+        const offset = this._vertices.length / 3;
+        const mergedIndices = [
+            ...this._indices,
+            ...other.indices.map(index => index + offset)
+        ];
+
+        return new Object3d({
+            name: `${this._name}_${other.name}`,
+            vertices: mergedVertices,
+            texCoords: mergedTexCoords,
+            indices: mergedIndices,
+            normals: mergedNormals,
+            color: this.color
+        });
+    }
 }
 
 export {Object3d};
