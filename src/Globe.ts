@@ -341,7 +341,7 @@ class Globe {
         this._canvas.style.opacity = "0";
     }
 
-    public attachTo(target: HTMLElement | string) {
+    public attachTo(target: HTMLElement | string, isFirst?: boolean) {
 
         this.detach();
 
@@ -354,7 +354,11 @@ class Globe {
 
         if (t) {
             this.$target = t as HTMLElement;
-            t.appendChild(this.$inner);
+            if (isFirst && this.$target.firstChild) {
+                this.$target.insertBefore(this.$inner, this.$target.firstChild);
+            } else {
+                t.appendChild(this.$inner);
+            }
         }
     }
 

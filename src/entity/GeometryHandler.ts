@@ -1,7 +1,7 @@
 import * as mercator from "../mercator";
 import * as quadTree from "../quadTree/quadTree";
 import {Extent} from "../Extent";
-import {Handler} from "../webgl/Handler";
+import {Handler, WebGLBufferExt} from "../webgl/Handler";
 import {doubleToTwoFloatsV2} from "../math/coder";
 import {Vector} from "../layer/Vector";
 import {NumberArray2, Vec2} from "../math/Vec2";
@@ -11,14 +11,14 @@ import {Vec4} from "../math/Vec4";
 import {
     CoordinatesType,
     Geometry,
-    IMultiLineStringCoordinates,
+    GeometryTypeEnum,
     ILineStringCoordinates,
+    IMultiLineStringCoordinates,
     IMultiPolygonCoordinates,
-    IPolygonCoordinates, GeometryTypeEnum
+    IPolygonCoordinates
 } from "./Geometry";
 
 import {earcut, flatten} from "../utils/earcut";
-import {WebGLBufferExt} from "../webgl/Handler";
 
 const POLYVERTICES_BUFFER = 0;
 const POLYINDEXES_BUFFER = 1;
@@ -1175,6 +1175,77 @@ class GeometryHandler {
             4,
             this._lineStrokeColors.length / 4
         );
+    }
+
+    public clear() {
+        this._geometries = [];
+        this._polyVerticesHighMerc = [];
+        this._polyVerticesLowMerc = [];
+        this._polyIndexes = [];
+        this._polyColors = [];
+        this._polyPickingColors = [];
+
+        this._lineVerticesHighMerc = [];
+        this._lineVerticesLowMerc = [];
+        this._lineOrders = [];
+        this._lineIndexes = [];
+        this._lineColors = [];
+        this._linePickingColors = [];
+        this._lineThickness = [];
+        this._lineStrokeColors = [];
+        this._lineStrokes = [];
+
+        this._deleteBuffers();
+
+        this._polyVerticesHighBufferMerc = null;
+        this._polyVerticesLowBufferMerc = null;
+        this._polyIndexesBuffer = null;
+        this._polyColorsBuffer = null;
+        this._polyPickingColorsBuffer = null;
+
+        this._lineVerticesHighBufferMerc = null;
+        this._lineVerticesLowBufferMerc = null;
+        this._lineIndexesBuffer = null;
+        this._lineOrdersBuffer = null;
+        this._lineColorsBuffer = null;
+        this._linePickingColorsBuffer = null;
+        this._lineThicknessBuffer = null;
+        this._lineStrokeColorsBuffer = null;
+        this._lineStrokesBuffer = null;
+
+        this._updatedGeometryArr = [];
+        this._updatedGeometry = {};
+
+        this._removeGeometryExtentArr = [];
+        this._removeGeometryExtents = {};
+
+        this.refresh();
+    }
+
+    public _deleteBuffers() {
+        if (this._layer._planet && this._layer._planet.renderer) {
+
+            let h = this._layer._planet.renderer.handler,
+                gl = h.gl!;
+
+            gl.deleteBuffer(this._polyVerticesHighBufferMerc!);
+            gl.deleteBuffer(this._polyVerticesLowBufferMerc!);
+            gl.deleteBuffer(this._polyIndexesBuffer!);
+            gl.deleteBuffer(this._polyColorsBuffer!);
+            gl.deleteBuffer(this._polyPickingColorsBuffer!);
+
+            gl.deleteBuffer(this._lineVerticesHighBufferMerc);
+            gl.deleteBuffer(this._lineVerticesLowBufferMerc);
+            gl.deleteBuffer(this._lineIndexesBuffer);
+            gl.deleteBuffer(this._lineOrdersBuffer);
+            gl.deleteBuffer(this._lineColorsBuffer);
+            gl.deleteBuffer(this._linePickingColorsBuffer);
+            gl.deleteBuffer(this._lineThicknessBuffer);
+            gl.deleteBuffer(this._lineStrokeColorsBuffer);
+            gl.deleteBuffer(this._lineStrokesBuffer);
+
+
+        }
     }
 }
 
