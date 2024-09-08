@@ -32,7 +32,7 @@ class RgbTerrain extends GlobusTerrain {
         super(name || "RgbTerrain", {
             equalizeVertices: options.equalizeVertices != undefined ? options.equalizeVertices : true,
             maxZoom: options.maxZoom || 17,
-            noDataValues: options.noDataValues || [-65537, -10000],
+            noDataValues: options.noDataValues || [options.minHeight != undefined ? options.minHeight : -10000],
             plainGridSize: options.plainGridSize || 128,
             url: options.url != undefined
                 ? options.url
