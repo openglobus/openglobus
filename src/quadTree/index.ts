@@ -7,7 +7,7 @@ import {Wgs84QuadTreeStrategy} from "./Wgs84QuadTreeStrategy";
 const quadTreeStrategyType = {
     epsg4326: EPSG4326QuadTreeStrategy,
     earth: EarthQuadTreeStrategy,
-    mars: EquiQuadTreeStrategy,
+    equi: EquiQuadTreeStrategy,
     wgs84: Wgs84QuadTreeStrategy
 }
 
