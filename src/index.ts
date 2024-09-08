@@ -17,7 +17,9 @@ import {input} from './input/input';
 
 import {
     Ellipsoid,
-    wgs84
+    wgs84,
+    moon,
+    mars
 } from './ellipsoid/index';
 
 import {
@@ -71,7 +73,7 @@ import {
 
 export * from './entity/index';
 
-export *  from './layer/index';
+export * from './layer/index';
 
 import {
     EmptyTerrain,
@@ -92,6 +94,8 @@ export {
     scene,
     quadTreeStrategyType,
     wgs84,
+    moon,
+    mars,
     terrain,
     layer,
     webgl,

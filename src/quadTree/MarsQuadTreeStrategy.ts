@@ -68,9 +68,9 @@ export class MarsQuadTreeStrategy extends QuadTreeStrategy {
         let extent = new Extent();
 
         if (lonLat.lon > 0) {
-            extent = getTileCellExtent(x - (1 << z), y, z, this._westExtent);
+            extent = getTileCellExtent(x - (1 << z), y, z, this._eastExtent);
         } else {
-            extent = getTileCellExtent(x, y, z, this._eastExtent);
+            extent = getTileCellExtent(x, y, z, this._westExtent);
         }
 
         let sizeImgW = extent.getWidth() / (gridSize - 1),
