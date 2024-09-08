@@ -14,7 +14,7 @@ import {
 import * as mercator from "../mercator";
 
 
-export class MarsQuadTreeStrategy extends QuadTreeStrategy {
+export class EquiQuadTreeStrategy extends QuadTreeStrategy {
 
     private _westExtent: Extent;
     private _eastExtent: Extent;

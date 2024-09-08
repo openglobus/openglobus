@@ -52,7 +52,7 @@ import {Popup} from './Popup';
 
 import {
     EarthQuadTreeStrategy,
-    MarsQuadTreeStrategy,
+    EquiQuadTreeStrategy,
     QuadTreeStrategy,
     quadTreeStrategyType,
     Wgs84QuadTreeStrategy
@@ -134,7 +134,7 @@ export {
     Geoid,
     Popup,
     QuadTreeStrategy,
-    MarsQuadTreeStrategy,
+    EquiQuadTreeStrategy,
     EarthQuadTreeStrategy,
     Wgs84QuadTreeStrategy,
     Object3d
