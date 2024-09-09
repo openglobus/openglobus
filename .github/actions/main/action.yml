@@ -5,7 +5,7 @@ runs:
     - name: Setup node
       uses: actions/setup-node@v3
       with:
-        node-version: 17
+        node-version: 20.16.0
         cache: 'npm'
         cache-dependency-path: '**/package-lock.json'
         registry-url: https://registry.npmjs.org/
