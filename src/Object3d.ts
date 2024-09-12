@@ -22,7 +22,7 @@ interface IObject3dParams {
     center?: boolean;
     src?: string;
     color?: number[] | TypedArray | string;
-    scale?: Vec3;
+    scale?: number | Vec3;
 }
 
 class Object3d {
@@ -65,7 +65,14 @@ class Object3d {
         this.color = getColor(data.color);
 
         if (data.scale) {
-            Object3d.scale(this._vertices, data.scale);
+            let s = data.scale;
+            let scale: Vec3;
+            if (typeof s === 'number') {
+                scale = new Vec3(s, s, s);
+            } else {
+                scale = s;
+            }
+            Object3d.scale(this._vertices, scale);
         }
 
         if (data.indices) {
