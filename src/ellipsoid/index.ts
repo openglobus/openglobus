@@ -1,4 +1,4 @@
-import {Ellipsoid} from './Ellipsoid';
-import {wgs84} from './wgs84';
-
-export {Ellipsoid, wgs84};
+export * from './Ellipsoid';
+export * from './wgs84';
+export * from './mars';
+export * from './moon';

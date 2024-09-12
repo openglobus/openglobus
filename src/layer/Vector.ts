@@ -25,7 +25,7 @@ export interface IVectorParams extends ILayerParams {
     relativeToGround?: boolean;
     clampToGround?: boolean;
     async?: boolean;
-    pickingScale?: number;
+    pickingScale?: number | NumberArray3;
     scaleByDistance?: NumberArray3;
     labelMaxLetters?: number;
     useLighting?: boolean;
@@ -110,7 +110,7 @@ class Vector extends Layer {
      */
     public scaleByDistance: NumberArray3;
 
-    public pickingScale: number;
+    public pickingScale: Float32Array;
 
     /**
      * Asynchronous data handling before rendering.
@@ -134,9 +134,11 @@ class Vector extends Layer {
     public relativeToGround: boolean;
 
 
+    /** todo: combine into one */
     protected _stripEntityCollection: EntityCollection;
     protected _polylineEntityCollection: EntityCollection;
     protected _geoObjectEntityCollection: EntityCollection;
+
     public _geometryHandler: GeometryHandler;
 
     /**
@@ -188,7 +190,21 @@ class Vector extends Layer {
 
         this._useLighting = options.useLighting !== undefined ? options.useLighting : true;
 
-        this.pickingScale = options.pickingScale || 1;
+
+        let pickingScale: Float32Array = new Float32Array([1.0, 1.0, 1.0]);
+        if (options.pickingScale !== undefined) {
+            if (options.pickingScale instanceof Array) {
+                pickingScale[0] = options.pickingScale[0] || pickingScale[0];
+                pickingScale[1] = options.pickingScale[1] || pickingScale[1];
+                pickingScale[2] = options.pickingScale[2] || pickingScale[2];
+            } else if (typeof options.pickingScale === 'number') {
+                pickingScale[0] = options.pickingScale;
+                pickingScale[1] = options.pickingScale;
+                pickingScale[2] = options.pickingScale;
+            }
+        }
+
+        this.pickingScale = pickingScale;
 
         this.async = options.async !== undefined ? options.async : true;
 
@@ -372,6 +388,8 @@ class Vector extends Layer {
     protected _proceedEntity(entity: Entity, rightNow: boolean = false) {
         let temp = this._hasImageryTiles;
 
+        let isEmpty = !(entity.strip || entity.polyline || entity.ray || entity.geoObject || entity.geometry);
+
         if (entity.strip) {
             this._stripEntityCollection.add(entity);
         }
@@ -380,7 +398,7 @@ class Vector extends Layer {
             this._polylineEntityCollection.add(entity);
         }
 
-        if (entity.geoObject) {
+        if (entity.geoObject || isEmpty) {
             this._geoObjectEntityCollection.add(entity);
         }
 
@@ -392,7 +410,7 @@ class Vector extends Layer {
             }
         }
 
-        if (entity.billboard || entity.label || entity.geoObject) {
+        if (entity.billboard || entity.label || entity.geoObject || isEmpty) {
             if (this._planet) {
                 if (entity._cartesian.isZero() && !entity._lonLat.isZero()) {
                     entity._setCartesian3vSilent(
@@ -640,11 +658,13 @@ class Vector extends Layer {
             ei._layer = this;
             ei._layerIndex = i;
 
+            let isEmpty = !(ei.strip || ei.polyline || ei.ray || ei.geoObject || ei.billboard || ei.label);
+
             if (ei.strip) {
                 this._stripEntityCollection.add(ei);
             } else if (ei.polyline || ei.ray) {
                 this._polylineEntityCollection.add(ei);
-            } else if (ei.geoObject) {
+            } else if (ei.geoObject || isEmpty) {
                 this._geoObjectEntityCollection.add(ei);
             } else if (ei.billboard || ei.label) {
                 entitiesForTree.push(ei);

@@ -17,7 +17,9 @@ import {input} from './input/input';
 
 import {
     Ellipsoid,
-    wgs84
+    wgs84,
+    moon,
+    mars
 } from './ellipsoid/index';
 
 import {
@@ -50,7 +52,7 @@ import {Popup} from './Popup';
 
 import {
     EarthQuadTreeStrategy,
-    MarsQuadTreeStrategy,
+    EquiQuadTreeStrategy,
     QuadTreeStrategy,
     quadTreeStrategyType,
     Wgs84QuadTreeStrategy
@@ -71,7 +73,7 @@ import {
 
 export * from './entity/index';
 
-export *  from './layer/index';
+export * from './layer/index';
 
 import {
     EmptyTerrain,
@@ -92,6 +94,8 @@ export {
     scene,
     quadTreeStrategyType,
     wgs84,
+    moon,
+    mars,
     terrain,
     layer,
     webgl,
@@ -130,7 +134,7 @@ export {
     Geoid,
     Popup,
     QuadTreeStrategy,
-    MarsQuadTreeStrategy,
+    EquiQuadTreeStrategy,
     EarthQuadTreeStrategy,
     Wgs84QuadTreeStrategy,
     Object3d

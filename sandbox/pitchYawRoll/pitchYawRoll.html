@@ -4,7 +4,6 @@
     <title>OpenStreetMap Base Layer</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="geoObject.js" type="module"></script>
     <link rel="stylesheet" href="../../css/og.css" type="text/css"/>
     <style>
         body {
@@ -35,13 +34,25 @@
 <div style="font-size: 1.3em; background: white; position: absolute; right:100px; top:20px;display: flex;flex-direction: column">
     <div class="ginput">
         <div>PITCH</div>
-        <input type="number" class="gpitch" value="0"/></div>
+        <input type="number" class="gpitch" value="0"/>
+    </div>
     <div class="ginput">
         <div>YAW</div>
-        <input type="number" class="gyaw" value="0"/></div>
+        <input type="number" class="gyaw" value="0"/>
+    </div>
     <div class="ginput">
         <div>ROLL</div>
-        <input type="number" class="groll" value="0"/></div>
+        <input type="number" class="groll" value="0"/>
+    </div>
+
+    <br/>
+
+    <div class="ginput">
+        <div>LENGTH</div>
+        <input type="number" class="glength" value="1" step="0.1"/>
+    </div>
+
+
 </div>
 
 <script type="module" id="og-sandbox-script">
@@ -58,40 +69,112 @@
         Bing,
         GlobusRgbTerrain,
         Object3d,
-        EmptyTerrain
+        EmptyTerrain,
+        Mat4,
+        Vec3
     } from "../../lib/@openglobus/og.esm.js";
 
-    let myObjects = new Vector("MyObjects", {
-        //scaleByDistance: [200, 190000, 0.0]
-        scaleByDistance: [1.0, 1.0, 1.0],
-        useLighting: false
+
+    let axesLayer = new Vector("axesLayer", {
+        //scaleByDistance: [1.0, 1.0, 1.0],
+        scaleByDistance: [1, math.MAX32, 1],
+        useLighting: false,
+        pickingScale: [5, 1.1, 5]
     });
 
-    //Object3d.
+    axesLayer.events.on("mouseenter", (e) => {
+        e.renderer.handler.canvas.style.cursor = "pointer";
+    });
+
+    axesLayer.events.on("mouseleave", (e) => {
+        e.renderer.handler.canvas.style.cursor = "default";
+    });
 
     function setPitch(a) {
-        myObjects.each((e) => {
-            e.geoObject.setPitch(a)
+        axesLayer.each((e) => {
+            let line = e.childrenNodes[0];
+            let tip = line.childrenNodes[0];
+            line.geoObject.setPitch(a);
+            tip.geoObject.setPitch(a);
+
+            line = e.childrenNodes[1];
+            tip = line.childrenNodes[0];
+            line.geoObject.setPitch(a);
+            tip.geoObject.setPitch(a);
+
+            line = e.childrenNodes[2];
+            tip = line.childrenNodes[0];
+            line.geoObject.setPitch(a + 90);
+            tip.geoObject.setPitch(a + 90);
         });
     }
 
     function setYaw(a) {
-        myObjects.each((e) => {
-            e.geoObject.setYaw(a);
+        axesLayer.each((e) => {
+            let line = e.childrenNodes[0];
+            let tip = line.childrenNodes[0];
+            line.geoObject.setYaw(a);
+            tip.geoObject.setYaw(a);
+
+            line = e.childrenNodes[1];
+            tip = line.childrenNodes[0];
+            line.geoObject.setYaw(a);
+            tip.geoObject.setYaw(a);
+
+            line = e.childrenNodes[2];
+            tip = line.childrenNodes[0];
+            line.geoObject.setYaw(a);
+            tip.geoObject.setYaw(a);
         });
     }
 
     function setRoll(a) {
-        myObjects.each((e) => {
-            e.geoObject.setRoll(a);
+        axesLayer.each((e) => {
+            let line = e.childrenNodes[0];
+            let tip = line.childrenNodes[0];
+            line.geoObject.setRoll(a + 90);
+            tip.geoObject.setRoll(a + 90);
+
+            line = e.childrenNodes[1];
+            tip = line.childrenNodes[0];
+            line.geoObject.setRoll(a);
+            tip.geoObject.setRoll(a);
         });
     }
 
     async function main() {
-        let sat = new Bing();
-        let osm = new OpenStreetMap();
 
-        const planeObj3d = await Object3d.loadObj('./airplane.obj');
+        const SCALE = 0.1;
+        const SCALE_VEC = new Vec3(SCALE, SCALE, SCALE);
+        const TIP_LENGTH = 0.17;
+        const TIP_RADIUS = 0.04;
+        const SPIN_RADIUS = 0.0055;
+
+        const lineObj = Object3d.createCylinder(SPIN_RADIUS, SPIN_RADIUS, 1.0 - TIP_LENGTH).scale(SCALE_VEC);
+        const tipObj = Object3d.createCylinder(0, TIP_RADIUS, TIP_LENGTH, 16, 16, false, true, 0, -TIP_LENGTH).scale(SCALE_VEC);
+
+        function setArrowLength(axis, length) {
+            const scale = new Vec3(1, (length - TIP_LENGTH) / (1.0 - TIP_LENGTH), 1);
+            const trans = new Vec3(0, length * SCALE, 0);
+
+            // X
+            let line = axis.childrenNodes[0];
+            let tip = line.childrenNodes[0];
+            line.geoObject.setScale3v(scale);
+            tip.geoObject.setTranslate3v(trans);
+
+            // Y
+            line = axis.childrenNodes[1];
+            tip = line.childrenNodes[0];
+            line.geoObject.setScale3v(scale);
+            tip.geoObject.setTranslate3v(trans);
+
+            // Z
+            line = axis.childrenNodes[2];
+            tip = line.childrenNodes[0];
+            line.geoObject.setScale3v(scale);
+            tip.geoObject.setTranslate3v(trans);
+        }
 
         document.querySelector(".gpitch").addEventListener("input", (e) => {
             setPitch(Number(e.target.value));
@@ -103,19 +186,103 @@
             setRoll(Number(e.target.value));
         });
 
+        document.querySelector(".glength").addEventListener("input", (e) => {
+            let spinEntities = axesLayer.getEntities();
+            for (let i = 0; i < spinEntities.length; i++) {
+                setArrowLength(spinEntities[i], Number(e.target.value));
+            }
+        });
+
         for (let i = -90; i <= 90; i += 5) {
             for (let j = -180; j < 180; j += 10) {
-                myObjects.add(new Entity({
-                    lonlat: [j, i, 25000], geoObject: {
+
+                let axisEntity = new Entity();
+
+                let arrowX = new Entity({
+                    independentPicking: true,
+                    geoObject: {
                         color: "green",
-                        scale: 3000.0,
+                        scale: 1.0,
                         instanced: true,
-                        tag: "plane",
-                        object3d: planeObj3d[0],
+                        tag: "line",
+                        object3d: lineObj,
+                        yaw: 0,
+                        pitch: 0,
+                        roll: 90
+                    }
+                });
+
+                arrowX.appendChild(new Entity({
+                    geoObject: {
+                        color: "green",
+                        scale: 1.0,
+                        instanced: true,
+                        tag: "tip",
+                        object3d: tipObj,
+                        yaw: 0,
+                        pitch: 0,
+                        roll: 90
+                    }
+                }));
+
+
+                let arrowY = new Entity({
+                    independentPicking: true,
+                    geoObject: {
+                        color: "blue",
+                        scale: 1.0,
+                        instanced: true,
+                        tag: "line",
+                        object3d: lineObj,
+                        yaw: 0,
+                        pitch: 0
+                    }
+                });
+
+                arrowY.appendChild(new Entity({
+                    geoObject: {
+                        color: "blue",
+                        scale: 1.0,
+                        instanced: true,
+                        tag: "tip",
+                        object3d: tipObj,
                         yaw: 0,
                         pitch: 0
                     }
                 }));
+
+                let arrowZ = new Entity({
+                    independentPicking: true,
+                    geoObject: {
+                        color: "red",
+                        scale: 1.0,
+                        instanced: true,
+                        tag: "line",
+                        object3d: lineObj,
+                        yaw: 0,
+                        pitch: 90
+                    }
+                });
+
+                arrowZ.appendChild(new Entity({
+                    geoObject: {
+                        color: "red",
+                        scale: 1.0,
+                        instanced: true,
+                        tag: "tip",
+                        object3d: tipObj,
+                        yaw: 0,
+                        pitch: 90
+                    }
+                }));
+
+                axisEntity.appendChild(arrowX);
+                axisEntity.appendChild(arrowY);
+                axisEntity.appendChild(arrowZ);
+
+                setArrowLength(axisEntity, 1);
+
+                axesLayer.add(axisEntity);
             }
         }
 
@@ -126,7 +293,7 @@
             //     heightFactor: 5
             // }),
             terrain: new EmptyTerrain(),
-            layers: [osm, sat, myObjects],
+            layers: [new OpenStreetMap(), new Bing(), axesLayer],
             atmosphereEnabled: false,
             fontsSrc: "../../res/fonts",
             sun: {
@@ -140,6 +307,15 @@
         globus.planet.addControl(new control.LayerSwitcher());
         globus.planet.addControl(new control.Lighting());
         globus.planet.addControl(new control.TimelineControl());
+
+        let arr = axesLayer.getEntities();
+        let counter = 0;
+        for (let i = -90; i <= 90; i += 5) {
+            for (let j = -180; j < 180; j += 10) {
+                let ai = arr[counter++];
+                ai.setLonLat2(j, i, 25000);
+            }
+        }
     }
 
     main()

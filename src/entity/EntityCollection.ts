@@ -24,7 +24,7 @@ interface IEntityCollectionParams {
     labelMaxLetters?: number;
     pickingEnabled?: boolean;
     scaleByDistance?: NumberArray3;
-    pickingScale?: number;
+    pickingScale?: number | NumberArray3;
     opacity?: number;
     useLighting?: boolean;
     entities?: Entity[];
@@ -182,7 +182,7 @@ class EntityCollection {
      */
     public scaleByDistance: NumberArray3;
 
-    public pickingScale: number;
+    public pickingScale: Float32Array;
 
     /**
      * Global opacity.
@@ -250,7 +250,20 @@ class EntityCollection {
 
         this.scaleByDistance = options.scaleByDistance || [math.MAX32, math.MAX32, math.MAX32];
 
-        this.pickingScale = options.pickingScale || 1.0;
+        let pickingScale: Float32Array = new Float32Array([1.0, 1.0, 1.0]);
+        if (options.pickingScale !== undefined) {
+            if (options.pickingScale instanceof Array) {
+                pickingScale[0] = options.pickingScale[0] || pickingScale[0];
+                pickingScale[1] = options.pickingScale[1] || pickingScale[1];
+                pickingScale[2] = options.pickingScale[2] || pickingScale[2];
+            } else if (typeof options.pickingScale === 'number') {
+                pickingScale[0] = options.pickingScale;
+                pickingScale[1] = options.pickingScale;
+                pickingScale[2] = options.pickingScale;
+            }
+        }
+
+        this.pickingScale = pickingScale;
 
         this._opacity = options.opacity == undefined ? 1.0 : options.opacity;
 
@@ -270,11 +283,11 @@ class EntityCollection {
         return this.__id;
     }
 
-    public get useLighting(): boolean{
+    public get useLighting(): boolean {
         return Boolean(this._useLighting)
     }
 
-    public set useLighting(f:boolean){
+    public set useLighting(f: boolean) {
         this._useLighting = Number(f);
     }
 
@@ -376,10 +389,17 @@ class EntityCollection {
 
         this.events.dispatch(this.events.entityadd, entity);
 
+        let rn: RenderNode | null = this.renderNode;
         for (let i = 0; i < entity.childrenNodes.length; i++) {
             entity.childrenNodes[i]._entityCollection = this;
             entity.childrenNodes[i]._entityCollectionIndex = entity._entityCollectionIndex;
-            entity.childrenNodes[i]._pickingColor = entity._pickingColor;
+            if (entity.childrenNodes[i]._independentPicking) {
+                if (rn) {
+                    rn.renderer && rn.renderer.assignPickingColor<Entity>(entity.childrenNodes[i]);
+                }
+            } else {
+                entity.childrenNodes[i]._pickingColor = entity._pickingColor;
+            }
             this._addRecursively(entity.childrenNodes[i]);
         }
     }

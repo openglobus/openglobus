@@ -5,7 +5,7 @@ import {GeoObjectHandler, InstanceData} from "./GeoObjectHandler";
 import {NumberArray3} from "../math/Vec3";
 import {NumberArray4} from "../math/Vec4";
 import {Object3d} from "../Object3d";
-import {DEGREES, RADIANS} from "../math";
+import {RADIANS} from "../math";
 
 export interface IGeoObjectParams {
     object3d?: Object3d;
@@ -16,7 +16,8 @@ export interface IGeoObjectParams {
     pitch?: number;
     yaw?: number;
     roll?: number;
-    scale?: number | Vec3;
+    scale?: number | Vec3 | NumberArray3;
+    translate?: Vec3 | NumberArray3;
     color?: Vec4 | NumberArray4 | string;
     visibility?: boolean;
 }
@@ -59,6 +60,7 @@ class GeoObject {
     protected _rollRad: number;
 
     protected _scale: Vec3;
+    protected _translate: Vec3;
 
     /**
      * RGBA color.
@@ -85,6 +87,8 @@ class GeoObject {
     private _textureSrc?: string;
     public _objectSrc?: string;
 
+    protected _children: GeoObject[];
+
     constructor(options: IGeoObjectParams) {
 
         this._tag = options.tag || "none";
@@ -108,6 +112,7 @@ class GeoObject {
         this._rollRad = this._roll * RADIANS;
 
         this._scale = utils.createVector3(options.scale, new Vec3(1, 1, 1));
+        this._translate = utils.createVector3(options.translate, new Vec3());
 
         this._color = utils.createColorRGBA(options.color);
 
@@ -131,6 +136,8 @@ class GeoObject {
             this.setTextureSrc(options.textureSrc)
         }
         this._visibility = (options.visibility != undefined ? options.visibility : true);
+
+        this._children = [];
 
         this._direction = new Vec3();
 
@@ -331,6 +338,15 @@ class GeoObject {
 
     public getScale(): Vec3 {
         return this._scale;
+    }
+
+    public setTranslate3v(translate: Vec3) {
+        this._translate.copy(translate);
+        this._handler && this._handler.setTranslateArr(this._tagData!, this._tagDataIndex, translate);
+    }
+
+    public getTranslate(): Vec3 {
+        return this._translate;
     }
 
     /**

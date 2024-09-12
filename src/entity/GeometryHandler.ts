@@ -1228,23 +1228,23 @@ class GeometryHandler {
             let h = this._layer._planet.renderer.handler,
                 gl = h.gl!;
 
-            gl.deleteBuffer(this._polyVerticesHighBufferMerc!);
-            gl.deleteBuffer(this._polyVerticesLowBufferMerc!);
-            gl.deleteBuffer(this._polyIndexesBuffer!);
-            gl.deleteBuffer(this._polyColorsBuffer!);
-            gl.deleteBuffer(this._polyPickingColorsBuffer!);
+            if (gl) {
+                gl.deleteBuffer(this._polyVerticesHighBufferMerc!);
+                gl.deleteBuffer(this._polyVerticesLowBufferMerc!);
+                gl.deleteBuffer(this._polyIndexesBuffer!);
+                gl.deleteBuffer(this._polyColorsBuffer!);
+                gl.deleteBuffer(this._polyPickingColorsBuffer!);
 
-            gl.deleteBuffer(this._lineVerticesHighBufferMerc);
-            gl.deleteBuffer(this._lineVerticesLowBufferMerc);
-            gl.deleteBuffer(this._lineIndexesBuffer);
-            gl.deleteBuffer(this._lineOrdersBuffer);
-            gl.deleteBuffer(this._lineColorsBuffer);
-            gl.deleteBuffer(this._linePickingColorsBuffer);
-            gl.deleteBuffer(this._lineThicknessBuffer);
-            gl.deleteBuffer(this._lineStrokeColorsBuffer);
-            gl.deleteBuffer(this._lineStrokesBuffer);
-
-
+                gl.deleteBuffer(this._lineVerticesHighBufferMerc);
+                gl.deleteBuffer(this._lineVerticesLowBufferMerc);
+                gl.deleteBuffer(this._lineIndexesBuffer);
+                gl.deleteBuffer(this._lineOrdersBuffer);
+                gl.deleteBuffer(this._lineColorsBuffer);
+                gl.deleteBuffer(this._linePickingColorsBuffer);
+                gl.deleteBuffer(this._lineThicknessBuffer);
+                gl.deleteBuffer(this._lineStrokeColorsBuffer);
+                gl.deleteBuffer(this._lineStrokesBuffer);
+            }
         }
     }
 }

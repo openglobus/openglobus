@@ -1,6 +1,7 @@
 import {htmlColorToFloat32Array, TypedArray} from './utils/shared';
 import {NumberArray3, Vec3} from './math/Vec3';
 import {DEGREES, DEGREES_DOUBLE, MAX, MIN, RADIANS_HALF} from './math';
+import {Mat4} from "./math/Mat4";
 import {transformLeftToRightCoordinateSystem, objParser} from "./utils/objParser";
 
 function getColor(color?: number[] | TypedArray | string): Float32Array {
@@ -21,7 +22,7 @@ interface IObject3dParams {
     center?: boolean;
     src?: string;
     color?: number[] | TypedArray | string;
-    scale?: number;
+    scale?: number | Vec3;
 }
 
 class Object3d {
@@ -64,7 +65,14 @@ class Object3d {
         this.color = getColor(data.color);
 
         if (data.scale) {
-            Object3d.scale(this._vertices, data.scale);
+            let s = data.scale;
+            let scale: Vec3;
+            if (typeof s === 'number') {
+                scale = new Vec3(s, s, s);
+            } else {
+                scale = s;
+            }
+            Object3d.scale(this._vertices, scale);
         }
 
         if (data.indices) {
@@ -102,6 +110,44 @@ class Object3d {
         }
     }
 
+    public centering(): this {
+        Object3d.centering(this._vertices);
+        return this;
+    }
+
+    public applyMat4(m: Mat4): this {
+        for (let i = 0, len = this._vertices.length; i < len; i += 3) {
+            let v = new Vec3(this._vertices[i], this._vertices[i + 1], this._vertices[i + 2]),
+                n = new Vec3(this._normals[i], this._normals[i + 1], this._normals[i + 2]);
+
+            v = m.mulVec3(v);
+            n = m.mulVec3(n);
+
+            this._vertices[i] = v.x;
+            this._vertices[i + 1] = v.y;
+            this._vertices[i + 2] = v.z;
+
+            this._normals[i] = n.x;
+            this._normals[i + 1] = n.y;
+            this._normals[i + 2] = n.z;
+        }
+        return this;
+    }
+
+    public scale(s: Vec3): this {
+        Object3d.scale(this._vertices, s);
+        return this;
+    }
+
+    public translate(v: Vec3): this {
+        for (let i = 0, len = this._vertices.length; i < len; i += 3) {
+            this._vertices[i] += v.x;
+            this._vertices[i + 1] += v.y;
+            this._vertices[i + 2] += v.z;
+        }
+        return this;
+    }
+
     public get src(): string | null {
         return this._src;
     }
@@ -134,9 +180,11 @@ class Object3d {
         return this._numVertices;
     }
 
-    static scale(vertices: number[], s: number) {
-        for (let i = 0; i < vertices.length; i++) {
-            vertices[i] *= s;
+    static scale(vertices: number[], s: Vec3) {
+        for (let i = 0; i < vertices.length; i += 3) {
+            vertices[i] *= s.x;
+            vertices[i + 1] *= s.y;
+            vertices[i + 2] *= s.z;
         }
     }
 
@@ -158,9 +206,9 @@ class Object3d {
 
     static translate(vertices: number[], v: NumberArray3) {
         for (let i = 0; i < vertices.length; i += 3) {
-            vertices[i] -= v[0];
-            vertices[i + 1] -= v[1];
-            vertices[i + 2] -= v[2];
+            vertices[i] += v[0];
+            vertices[i + 1] += v[1];
+            vertices[i + 2] += v[2];
         }
     }
 
