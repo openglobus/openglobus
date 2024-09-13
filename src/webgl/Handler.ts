@@ -197,7 +197,7 @@ class Handler {
         this.events = createEvents<["visibilitychange", "resize"]>(["visibilitychange", "resize"]);
 
         this._throttledDrawFrame = this.drawFrame;
-        
+
         this.defaultClock = new Clock();
 
         this._clocks = [];
@@ -918,7 +918,7 @@ class Handler {
         this._setDefaults();
 
         this.intersectionObserver = new IntersectionObserver((entries) => {
-            this._toggleVisibilityChange(entries[0].isIntersecting);
+            this._toggleVisibilityChange(entries[entries.length - 1].isIntersecting);
         }, {threshold: 0});
 
         this.intersectionObserver.observe(this.canvas);
