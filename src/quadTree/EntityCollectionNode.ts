@@ -311,11 +311,11 @@ class EntityCollectionNode {
     }
 }
 
-class EntityCollectionNodeWGS84 extends EntityCollectionNode {
+class EntityCollectionNodeLonLat extends EntityCollectionNode {
 
     public isNorth: boolean;
 
-    constructor(layer: Vector, partId: number, parent: EntityCollectionNodeWGS84 | null, extent: Extent, planet: Planet, zoom: number) {
+    constructor(layer: Vector, partId: number, parent: EntityCollectionNodeLonLat | null, extent: Extent, planet: Planet, zoom: number) {
         super(layer, partId, parent, extent, planet, zoom);
         this.isNorth = false;
     }
@@ -332,10 +332,10 @@ class EntityCollectionNodeWGS84 extends EntityCollectionNode {
         const p = this.layer._planet!;
         const z = this.zoom + 1;
 
-        nd[NW] = new EntityCollectionNodeWGS84(l, NW, this, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)), p, z);
-        nd[NE] = new EntityCollectionNodeWGS84(l, NE, this, new Extent(c, new LonLat(ne.lon, ne.lat)), p, z);
-        nd[SW] = new EntityCollectionNodeWGS84(l, SW, this, new Extent(new LonLat(sw.lon, sw.lat), c), p, z);
-        nd[SE] = new EntityCollectionNodeWGS84(l, SE, this, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
+        nd[NW] = new EntityCollectionNodeLonLat(l, NW, this, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)), p, z);
+        nd[NE] = new EntityCollectionNodeLonLat(l, NE, this, new Extent(c, new LonLat(ne.lon, ne.lat)), p, z);
+        nd[SW] = new EntityCollectionNodeLonLat(l, SW, this, new Extent(new LonLat(sw.lon, sw.lat), c), p, z);
+        nd[SE] = new EntityCollectionNodeLonLat(l, SE, this, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
     }
 
     protected override _setExtentBounds() {
@@ -391,4 +391,4 @@ class EntityCollectionNodeWGS84 extends EntityCollectionNode {
     }
 }
 
-export {EntityCollectionNode, EntityCollectionNodeWGS84};
+export {EntityCollectionNode, EntityCollectionNodeLonLat};

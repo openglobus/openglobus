@@ -248,9 +248,9 @@ class Node {
         // Search a node which the camera is flying over.
         if (!this.parentNode || this.parentNode._cameraInside) {
             let inside;
-            if (Math.abs(cam._lonLat.lat) <= MAX_LAT && seg._projection.id === EPSG3857.id) {
+            if (/*Math.abs(cam._lonLat.lat) <= MAX_LAT && */seg._projection.id === EPSG3857.id) {
                 inside = seg._extent.isInside(cam._lonLatMerc);
-            } else if (seg._projection.id === EPSG4326.id) {
+            } else /*if (seg._projection.id === EPSG4326.id)*/ {
                 inside = seg._extent.isInside(cam._lonLat);
             }
 
@@ -271,16 +271,13 @@ class Node {
                 }
             }
         } else {
-            let commonFrustumFlag = 1 << (numFrustums - 1 - 1);
-            for (let i = 0; commonFrustumFlag && i < numFrustums; i++) {
+            for (let i = 0; i < numFrustums; i++) {
                 if (seg.terrainReady) {
                     if (frustums[i].containsBox(seg.bbox)) {
-                        commonFrustumFlag >>= 1;
                         this.inFrustum |= 1 << i;
                     }
                 } else {
                     if (frustums[i].containsSphere(seg.bsphere)) {
-                        commonFrustumFlag >>= 1;
                         this.inFrustum |= 1 << i;
                     }
                 }

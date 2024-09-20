@@ -3,10 +3,12 @@ import {Node} from "../quadTree/Node";
 import {Planet} from "../scene/Planet";
 import {SegmentLonLat} from "./SegmentLonLat";
 import {getTileCellIndex, TILEGROUP_COMMON, TILEGROUP_NORTH} from "./Segment";
+import {equi} from "../proj/equi";
 
-export class SegmentLonLatWgs84 extends SegmentLonLat {
+export class SegmentLonLatEqui extends SegmentLonLat {
     constructor(node: Node, planet: Planet, tileZoom: number, extent: Extent) {
         super(node, planet, tileZoom, extent);
+        this._projection = equi;
         this.isPole = false;
         this._tileGroup = TILEGROUP_COMMON;
     }

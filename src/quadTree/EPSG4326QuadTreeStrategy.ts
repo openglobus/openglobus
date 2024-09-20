@@ -4,7 +4,7 @@ import {EPSG4326} from "../proj/EPSG4326";
 import {Node} from "../quadTree/Node";
 import {Planet} from "../scene/Planet";
 import {QuadTreeStrategy} from "./QuadTreeStrategy";
-import {SegmentLonLatWgs84} from "../segment/SegmentLonLatWgs84";
+import {SegmentLonLatEqui} from "../segment/SegmentLonLatEqui";
 
 export class EPSG4326QuadTreeStrategy extends QuadTreeStrategy {
     constructor(planet: Planet) {
@@ -14,7 +14,7 @@ export class EPSG4326QuadTreeStrategy extends QuadTreeStrategy {
     public override init() {
         this._quadTreeList = [
             new Node(
-                SegmentLonLatWgs84,
+                SegmentLonLatEqui,
                 this.planet,
                 0,
                 null,
@@ -22,7 +22,7 @@ export class EPSG4326QuadTreeStrategy extends QuadTreeStrategy {
                 Extent.createFromArray([-180, -90, 0, 90])
             ),
             new Node(
-                SegmentLonLatWgs84,
+                SegmentLonLatEqui,
                 this.planet,
                 0,
                 null,

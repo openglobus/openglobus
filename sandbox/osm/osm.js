@@ -17,14 +17,10 @@ let osm = new OpenStreetMap();
 let vec = new Vector("", { isBaseLayer: false, visibility: true });
 
 const globus = new Globe({
+    frustums: [[1,101100],[100000,1000000000]],
     target: "earth",
     name: "Earth",
-    terrain: new RgbTerrain("", {
-        url: "https://terrain.openglobus.org/nz/{z}/{x}/{y}.png",
-        maxNativeZoom: 17,
-        maxZoom: 17
-    }),
-    //terrain: new GlobusTerrain(),
+    terrain: new GlobusRgbTerrain(),
     layers: [osm],
     atmosphereEnabled: false,
     fontsSrc: "../../res/fonts",
@@ -32,33 +28,6 @@ const globus = new Globe({
         stopped: false
     }
 });
-let counter = 1;
-
-let entity = new Entity({
-    'geometry': {
-        type: "LINESTRING",
-        coordinates: [[0, 0], [0, 1]]
-    }
-});
-
-vec.add(entity);
-
-setInterval(() => {
-    entity.setGeometry(new Geometry({
-            type: "LINESTRING",
-            coordinates: [[0, 0], [0, counter += 0.1]]
-        })
-    );
-}, 100);
-
-let b0 = new LonLat(650234.4081999999471009, 5725428.4599000001326203).inverseMercator();
-let b1 = new LonLat(1175988.1869000000879169, 6084292.2588999997824430).inverseMercator();
-
-let width = globus.planet.ellipsoid.getGreatCircleDistance(b0, new LonLat(b1.lon, b0.lat));
-let height = globus.planet.ellipsoid.getGreatCircleDistance(b0, new LonLat(b0.lon, b1.lat));
-
-console.log(width / 36030, height / 24593);
-
 
 function m_px(x, y, z) {
     const PX = 33;

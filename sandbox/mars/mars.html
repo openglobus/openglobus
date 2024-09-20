@@ -21,39 +21,43 @@
         control,
         RgbTerrain,
         quadTreeStrategyType,
-        CanvasTiles
+        mars
     } from "../../lib/@openglobus/og.esm.js";
 
-    const osm = new XYZ("OSM", {
+    const sat = new XYZ("OSM", {
         'isBaseLayer': true,
         //'url': "https://astro.arcgis.com/arcgis/rest/services/OnMars/MDIM/MapServer/tile/{z}/{y}/{x}?blankTile=false",
-        url: "https://terrain.openglobus.org/public/mars/sat/{z}/{x}/{y}.png",
+        url: "https://terrain.openglobus.org/mars/sat/{z}/{x}/{y}.png",
         'visibility': true,
         maxNativeZoom: 8,
     });
 
     var highResTerrain = new RgbTerrain(null, {
-        geoid: null,
-        maxZoom: 6,
-        url: "https://{s}.terrain.openglobus.org/public/mars/elv/{z}/{x}/{y}.png",
-        heightFactor: 5
+        geoidSrc: null,
+        maxNativeZoom: 8,
+        maxZoom: 8,
+        url: "https://terrain.openglobus.org/mars/dem/{z}/{x}/{y}.png",
+        heightFactor: 1
     });
 
     window.globe = new Globe({
+        ellipsoid: mars,
         name: "mars",
-        quadTreeStrategyPrototype: quadTreeStrategyType.mars,
+        quadTreeStrategyPrototype: quadTreeStrategyType.equi,
         target: "globus",
         terrain: highResTerrain,
-        layers: [osm],
+        layers: [sat],
         nightTextureSrc: null,
         specularTextureSrc: null,
-        atmosphereEnabled: true
+        atmosphereEnabled: false
     });
 
     globe.planet.addControl(new control.ToggleWireframe());
     globe.planet.addControl(new control.DebugInfo());
     globe.planet.addControl(new control.Lighting());
-    globe.planet.addControl(new control.AtmosphereConfig());
+
+    globe.planet.renderer.controls.SimpleSkyBackground.colorOne = "rgb(0, 0, 0)";
+    globe.planet.renderer.controls.SimpleSkyBackground.colorTwo = "rgb(0, 0, 0)";
 
 </script>
 </body>

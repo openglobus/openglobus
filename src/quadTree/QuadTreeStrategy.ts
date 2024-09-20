@@ -129,5 +129,4 @@ export class QuadTreeStrategy {
 
         return [i, j];
     }
-
 }

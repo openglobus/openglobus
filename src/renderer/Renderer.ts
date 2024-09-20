@@ -24,6 +24,8 @@ interface IRendererParams {
     msaa?: number;
     autoActivate?: boolean;
     fontsSrc?: string;
+    gamma?: number;
+    exposure?: number;
 }
 
 interface IPickingObject {
@@ -278,9 +280,9 @@ class Renderer {
 
         this.handler = handler;
 
-        this.exposure = 3.01;
+        this.exposure = params.exposure || 3.01;
 
-        this.gamma = 0.47;
+        this.gamma = params.gamma || 0.47;
 
         this.whitepoint = 1.0;
 

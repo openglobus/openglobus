@@ -5,7 +5,7 @@ import {Entity, IEntityParams} from "../entity/Entity";
 import {EntityCollection} from "../entity/EntityCollection";
 import {
     EntityCollectionNode,
-    EntityCollectionNodeWGS84
+    EntityCollectionNodeLonLat
 } from "../quadTree/EntityCollectionNode";
 import {EventsHandler} from "../Events";
 import {Extent} from "../Extent";
@@ -151,8 +151,8 @@ class Vector extends Layer {
      * @todo: remove, or replace with node strategy
      */
     protected _entityCollectionsTree: EntityCollectionNode | null;
-    protected _entityCollectionsTreeNorth: EntityCollectionNodeWGS84 | null;
-    protected _entityCollectionsTreeSouth: EntityCollectionNodeWGS84 | null;
+    protected _entityCollectionsTreeNorth: EntityCollectionNodeLonLat | null;
+    protected _entityCollectionsTreeSouth: EntityCollectionNodeLonLat | null;
 
     public _renderingNodes: Record<number, boolean>;
     public _renderingNodesNorth: Record<number, boolean>;
@@ -410,8 +410,8 @@ class Vector extends Layer {
             }
         }
 
-        if (entity.billboard || entity.label || entity.geoObject || isEmpty) {
-            if (this._planet) {
+        if (this._planet) {
+            if (entity.billboard || entity.label || entity.geoObject || isEmpty) {
                 if (entity._cartesian.isZero() && !entity._lonLat.isZero()) {
                     entity._setCartesian3vSilent(
                         this._planet.ellipsoid.lonLatToCartesian(entity._lonLat)
@@ -419,8 +419,9 @@ class Vector extends Layer {
                 } else {
                     entity._lonLat = this._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
                 }
+            }
 
-                // north tree
+            if (entity.billboard || entity.label) {
                 if (entity._lonLat.lat > mercator.MAX_LAT) {
                     this._entityCollectionsTreeNorth!.__setLonLat__(entity);
                     this._entityCollectionsTreeNorth!.insertEntity(entity, rightNow);
@@ -549,11 +550,11 @@ class Vector extends Layer {
             node.entityCollection!.setPickingEnabled(picking);
         });
 
-        this._entityCollectionsTreeNorth && this._entityCollectionsTreeNorth.traverseTree((node: EntityCollectionNodeWGS84) => {
+        this._entityCollectionsTreeNorth && this._entityCollectionsTreeNorth.traverseTree((node: EntityCollectionNodeLonLat) => {
             node.entityCollection!.setPickingEnabled(picking);
         });
 
-        this._entityCollectionsTreeSouth && this._entityCollectionsTreeSouth.traverseTree((node: EntityCollectionNodeWGS84) => {
+        this._entityCollectionsTreeSouth && this._entityCollectionsTreeSouth.traverseTree((node: EntityCollectionNodeLonLat) => {
             node.entityCollection!.setPickingEnabled(picking);
         });
     }
@@ -702,7 +703,7 @@ class Vector extends Layer {
                 0
             );
 
-            this._entityCollectionsTreeNorth = new EntityCollectionNodeWGS84(
+            this._entityCollectionsTreeNorth = new EntityCollectionNodeLonLat(
                 this,
                 quadTree.NW,
                 null,
@@ -711,7 +712,7 @@ class Vector extends Layer {
                 0
             );
 
-            this._entityCollectionsTreeSouth = new EntityCollectionNodeWGS84(
+            this._entityCollectionsTreeSouth = new EntityCollectionNodeLonLat(
                 this,
                 quadTree.NW,
                 null,

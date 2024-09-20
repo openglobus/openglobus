@@ -1,9 +1,9 @@
 import * as quadTree from "../quadTree/quadTree";
 import {Extent} from "../Extent";
-import {EPSG4326} from "../proj/EPSG4326";
+import {equi} from "../proj/equi";
 import {Node} from "../quadTree/Node";
 import {Planet} from "../scene/Planet";
-import {SegmentLonLatWgs84} from "../segment/SegmentLonLatWgs84";
+import {SegmentLonLatEqui} from "../segment/SegmentLonLatEqui";
 import {QuadTreeStrategy} from "./QuadTreeStrategy";
 import {LonLat} from "../LonLat";
 import {
@@ -11,8 +11,6 @@ import {
     getTileCellIndex,
     TILEGROUP_COMMON
 } from "../segment/Segment";
-import * as mercator from "../mercator";
-
 
 export class EquiQuadTreeStrategy extends QuadTreeStrategy {
 
@@ -20,7 +18,7 @@ export class EquiQuadTreeStrategy extends QuadTreeStrategy {
     private _eastExtent: Extent;
 
     constructor(planet: Planet) {
-        super(planet, "Mars", EPSG4326);
+        super(planet, "Mars", equi);
         this._westExtent = Extent.createFromArray([-180, -90, 0, 90]);
         this._eastExtent = Extent.createFromArray([0, -90, 180, 90]);
     }
@@ -28,7 +26,7 @@ export class EquiQuadTreeStrategy extends QuadTreeStrategy {
     public override init() {
         this._quadTreeList = [
             new Node(
-                SegmentLonLatWgs84,
+                SegmentLonLatEqui,
                 this.planet,
                 0,
                 null,
@@ -36,7 +34,7 @@ export class EquiQuadTreeStrategy extends QuadTreeStrategy {
                 this._westExtent
             ),
             new Node(
-                SegmentLonLatWgs84,
+                SegmentLonLatEqui,
                 this.planet,
                 0,
                 null,
