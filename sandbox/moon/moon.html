@@ -1,0 +1,93 @@
+<html>
+
+<head>
+    <title>OpenGlobus - Mars planet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../lib/@openglobus/og.css" type="text/css"/>
+</head>
+
+</html>
+
+<body>
+<div id="globus"></div>
+<script type="module" id="og-sandbox-script">
+
+    'use strict';
+
+    import {
+        Globe,
+        EmptyTerrain,
+        XYZ,
+        control,
+        RgbTerrain,
+        quadTreeStrategyType,
+        CanvasTiles,
+        moon,
+        Entity,
+        Vector
+    } from "../../lib/@openglobus/og.esm.js";
+
+    const mountains = new Vector("Mountains");
+
+    const sat = new XYZ("moon", {
+        isBaseLayer: true,
+        url: "https://{s}.terrain.openglobus.org/moon/sat/{z}/{x}/{y}.png",
+        visibility: true,
+        maxNativeZoom: 10,
+        diffuse: [1.4, 1.4, 1.8],
+        ambient: [0.01, 0.01, 0.02],
+    });
+
+    const appoloSat = new XYZ("APPOLO_SAT", {
+        isBaseLayer: false,
+        url: "https://{s}.terrain.openglobus.org/moon/sat_appolo/{z}/{x}/{y}.png",
+        visibility: true,
+        maxNativeZoom: 12,
+        extent: [[30.4294, 19.9771], [30.9162, 20.3639]]
+    });
+
+    var highResTerrain = new RgbTerrain(null, {
+        geoidSrc: null,
+        maxZoom: 7,
+        //maxNativeZoom: 7,
+        url: "https://{s}.terrain.openglobus.org/moon/dem/{z}/{x}/{y}.png",
+        heightFactor: 1
+    });
+
+    window.globe = new Globe({
+        ellipsoid: moon,
+        name: "mars",
+        quadTreeStrategyPrototype: quadTreeStrategyType.equi,
+        target: "globus",
+        terrain: highResTerrain,
+        layers: [sat, appoloSat, mountains],
+        nightTextureSrc: null,
+        specularTextureSrc: null,
+        atmosphereEnabled: false,
+        gamma: 1.014,
+        exposure: 2.264
+    });
+
+    globe.planet.addControl(new control.AtmosphereConfig());
+    globe.planet.addControl(new control.ToggleWireframe());
+    globe.planet.addControl(new control.DebugInfo());
+    globe.planet.addControl(new control.Lighting());
+    globe.planet.addControl(new control.LayerSwitcher());
+    globe.planet.addControl(new control.ElevationProfileControl());
+
+    globe.planet.renderer.controls.SimpleSkyBackground.colorOne = "rgb(0, 0, 0)";
+    globe.planet.renderer.controls.SimpleSkyBackground.colorTwo = "rgb(0, 0, 0)";
+
+    fetch("./mountains.json").then((r) => r.json()).then((data) => {
+        let entities = data.features.map((f) => new Entity({
+            lonlat: [f.geometry.coordinates[0], f.geometry.coordinates[1], 1000],
+            label: {
+                text: `${f.properties.name} - ${f.properties.height_km}`
+            }
+        }));
+
+        mountains.setEntities(entities);
+    });
+
+</script>
+</body>

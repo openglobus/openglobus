@@ -1,0 +1,173 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Palus Epidemiarum",
+        "english_name": "Marsh of Epidemics",
+        "diameter_km": 286
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-28.2, -32.0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Palus Putredinis",
+        "english_name": "Marsh of Decay",
+        "diameter_km": 161
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [0.4, 26.5]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Palus Somni",
+        "english_name": "Marsh of Sleep",
+        "diameter_km": 143
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [45.0, 14.1]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sinus Aestuum",
+        "english_name": "Seething Bay",
+        "diameter_km": 290
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.8, 10.9]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sinus Amoris",
+        "english_name": "Bay of Love",
+        "diameter_km": 130
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [39.1, 18.1]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sinus Asperitatis",
+        "english_name": "Bay of Roughness",
+        "diameter_km": 206
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [27.4, -3.8]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sinus Concordiae",
+        "english_name": "Bay of Harmony",
+        "diameter_km": 142
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [43.2, 10.8]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sinus Fidei",
+        "english_name": "Bay of Trust",
+        "diameter_km": 70
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [2.0, 18.0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sinus Honoris",
+        "english_name": "Bay of Honor",
+        "diameter_km": 109
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [18.1, 11.7]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sinus Iridum",
+        "english_name": "Bay of Rainbows",
+        "diameter_km": 236
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-31.5, 44.1]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sinus Lunicus",
+        "english_name": "Lunik Bay",
+        "diameter_km": 126
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-1.4, 31.8]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sinus Medii",
+        "english_name": "Bay of the center",
+        "diameter_km": 335
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [1.7, 2.4]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sinus Roris",
+        "english_name": "Bay of Dew",
+        "diameter_km": 202
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-56.6, 54.0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sinus Successus",
+        "english_name": "Bay of Success",
+        "diameter_km": 132
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [59.0, 0.9]
+      }
+    }
+  ]
+}

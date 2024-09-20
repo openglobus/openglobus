@@ -1,0 +1,245 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "latin_name": "Lacus Aestatis",
+        "english_name": "Lake of Summer",
+        "diameter_km": 90
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-69.0, -15.0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "latin_name": "Lacus Autumni",
+        "english_name": "Lake of Autumn",
+        "diameter_km": 183
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-83.9, -9.9]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "latin_name": "Lacus Bonitatis",
+        "english_name": "Lake of Goodness",
+        "diameter_km": 92
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [43.7, 23.2]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "latin_name": "Lacus Doloris",
+        "english_name": "Lake of Sorrow",
+        "diameter_km": 110
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [9.0, 17.1]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "latin_name": "Lacus Excellentiae",
+        "english_name": "Lake of Excellence",
+        "diameter_km": 184
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-44.0, -35.4]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "latin_name": "Lacus Felicitatis",
+        "english_name": "Lake of Happiness",
+        "diameter_km": 90
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.0, 19.0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "latin_name": "Lacus Gaudii",
+        "english_name": "Lake of Joy",
+        "diameter_km": 113
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [12.6, 16.2]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "latin_name": "Lacus Hiemalis",
+        "english_name": "Lake of Winter",
+        "diameter_km": 50
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [14.0, 15.0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "latin_name": "Lacus Lenitatis",
+        "english_name": "Lake of Softness",
+        "diameter_km": 80
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [12.0, 14.0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "latin_name": "Lacus Luxuriae",
+        "english_name": "Lake of Luxury",
+        "diameter_km": 50
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [176.0, 19.0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "latin_name": "Lacus Mortis",
+        "english_name": "Lake of Death",
+        "diameter_km": 151
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [27.2, 45.0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "latin_name": "Lacus Oblivionis",
+        "english_name": "Lake of Forgetfulness",
+        "diameter_km": 50
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-168.0, -21.0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "latin_name": "Lacus Odii",
+        "english_name": "Lake of Hatred",
+        "diameter_km": 70
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [7.0, 19.0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "latin_name": "Lacus Perseverantiae",
+        "english_name": "Lake of Perseverance",
+        "diameter_km": 70
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [62.0, 8.0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "latin_name": "Lacus Solitudinis",
+        "english_name": "Lake of Solitude",
+        "diameter_km": 139
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [104.3, -27.8]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "latin_name": "Lacus Somniorum",
+        "english_name": "Lake of Dreams",
+        "diameter_km": 384
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [29.2, 38.0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "latin_name": "Lacus Spei",
+        "english_name": "Lake of Hope",
+        "diameter_km": 80
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [65.0, 43.0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "latin_name": "Lacus Temporis",
+        "english_name": "Lake of Time",
+        "diameter_km": 117
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [58.4, 45.9]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "latin_name": "Lacus Timoris",
+        "english_name": "Lake of Fear",
+        "diameter_km": 117
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-27.3, -38.8]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "latin_name": "Lacus Veris",
+        "english_name": "Lake of Spring",
+        "diameter_km": 396
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-86.1, -16.5]
+      }
+    }
+  ]
+}
