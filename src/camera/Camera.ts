@@ -7,7 +7,7 @@ import {Renderer} from "../renderer/Renderer";
 import {Vec2, NumberArray2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
-import {Sphere} from "../bv";
+import {Sphere} from "../bv/Sphere";
 
 type CameraEvents = ["viewchange", "moveend"];
 
