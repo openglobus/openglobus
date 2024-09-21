@@ -7,7 +7,7 @@ import {Control} from "../control/Control";
 import {createColorRGB, isUndef} from "../utils/shared";
 import {createEvents, EventsHandler} from "../Events";
 import {decodeFloatFromRGBAArr} from "../math/coder";
-import {EarthQuadTreeStrategy} from "../quadTree/EarthQuadTreeStrategy";
+import {EarthQuadTreeStrategy} from "../quadTree/earth/EarthQuadTreeStrategy";
 import {EmptyTerrain} from "../terrain/EmptyTerrain";
 import {Extent} from "../Extent";
 import {Entity} from "../entity/Entity";

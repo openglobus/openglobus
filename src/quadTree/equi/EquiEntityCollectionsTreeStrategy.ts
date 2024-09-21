@@ -1,10 +1,10 @@
-import {Vector} from "../layer/Vector";
-import * as quadTree from "./quadTree";
-import {Extent} from "../Extent";
-import {Entity} from "../entity/Entity";
-import {EntityCollection} from "../entity/EntityCollection";
+import {Vector} from "../../layer/Vector";
+import * as quadTree from "../quadTree";
+import {Extent} from "../../Extent";
+import {Entity} from "../../entity/Entity";
+import {EntityCollection} from "../../entity/EntityCollection";
 import {EquiQuadTreeStrategy} from "./EquiQuadTreeStrategy";
-import {EntityCollectionsTreeStrategy} from "./EntityCollectionsTreeStrategy";
+import {EntityCollectionsTreeStrategy} from "../EntityCollectionsTreeStrategy";
 import {EquiEntityCollectionNodeLonLat} from "./EquiEntityCollectionNodeLonLat";
 
 export class EquiEntityCollectionsTreeStrategy extends EntityCollectionsTreeStrategy {

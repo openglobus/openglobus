@@ -1,8 +1,8 @@
-import * as mercator from "../mercator";
-import {Extent} from "../Extent";
-import {Node} from "../quadTree/Node";
-import {Planet} from "../scene/Planet";
-import {QuadTreeStrategy} from "./QuadTreeStrategy";
+import * as mercator from "../../mercator";
+import {Extent} from "../../Extent";
+import {Node} from "../Node";
+import {Planet} from "../../scene/Planet";
+import {QuadTreeStrategy} from "../QuadTreeStrategy";
 import {
     Segment,
     TILEGROUP_NORTH,
@@ -10,10 +10,10 @@ import {
     getTileGroupByLat,
     getTileCellExtent,
     getTileCellIndex
-} from "../segment/Segment";
-import {SegmentLonLat} from "../segment/SegmentLonLat";
-import {LonLat} from "../LonLat";
-import {Vector} from "../layer/Vector";
+} from "../../segment/Segment";
+import {SegmentLonLat} from "../../segment/SegmentLonLat";
+import {LonLat} from "../../LonLat";
+import {Vector} from "../../layer/Vector";
 import {EarthEntityCollectionsTreeStrategy} from "./EarthEntityCollectionsTreeStrategy";
 
 export class EarthQuadTreeStrategy extends QuadTreeStrategy {

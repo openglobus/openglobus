@@ -1,10 +1,10 @@
-import * as quadTree from "../quadTree/quadTree";
-import {Extent} from "../Extent";
-import {EPSG4326} from "../proj/EPSG4326";
-import {Node} from "../quadTree/Node";
-import {Planet} from "../scene/Planet";
-import {QuadTreeStrategy} from "./QuadTreeStrategy";
-import {SegmentLonLatEqui} from "../segment/SegmentLonLatEqui";
+import * as quadTree from "../quadTree";
+import {Extent} from "../../Extent";
+import {EPSG4326} from "../../proj/EPSG4326";
+import {Node} from "../Node";
+import {Planet} from "../../scene/Planet";
+import {QuadTreeStrategy} from "../QuadTreeStrategy";
+import {SegmentLonLatEqui} from "../../segment/SegmentLonLatEqui";
 
 export class EPSG4326QuadTreeStrategy extends QuadTreeStrategy {
     constructor(planet: Planet) {

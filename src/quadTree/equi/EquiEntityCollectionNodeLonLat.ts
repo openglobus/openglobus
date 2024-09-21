@@ -1,22 +1,20 @@
-import {EarthEntityCollectionsTreeStrategy} from "./EarthEntityCollectionsTreeStrategy";
-import {Extent} from "../Extent";
-import {Planet} from "../scene/Planet";
-import {LonLat} from "../LonLat";
-import {NE, NW, SE, SW} from "./quadTree";
-import {Entity} from "../entity/Entity";
-import {EntityCollection} from "../entity/EntityCollection";
-import {EntityCollectionNode, NodesDict} from "./EntityCollectionNode";
+import {EntityCollectionsTreeStrategy} from "../EntityCollectionsTreeStrategy";
+import {Extent} from "../../Extent";
+import {Planet} from "../../scene/Planet";
+import {LonLat} from "../../LonLat";
+import {NE, NW, SE, SW} from "../quadTree";
+import {Entity} from "../../entity/Entity";
+import {EntityCollection} from "../../entity/EntityCollection";
+import {EntityCollectionNode, NodesDict} from "../EntityCollectionNode";
+import {EquiEntityCollectionsTreeStrategy} from "./EquiEntityCollectionsTreeStrategy";
 
-export class EarthEntityCollectionNodeLonLat extends EntityCollectionNode {
+export class EquiEntityCollectionNodeLonLat extends EntityCollectionNode {
 
-    public isNorth: boolean;
+    public override strategy: EquiEntityCollectionsTreeStrategy;
 
-    public override strategy: EarthEntityCollectionsTreeStrategy;
-
-    constructor(strategy: EarthEntityCollectionsTreeStrategy, partId: number, parent: EarthEntityCollectionNodeLonLat | null, extent: Extent, planet: Planet, zoom: number) {
+    constructor(strategy: EquiEntityCollectionsTreeStrategy, partId: number, parent: EquiEntityCollectionNodeLonLat | null, extent: Extent, planet: Planet, zoom: number) {
         super(strategy, partId, parent, extent, planet, zoom);
         this.strategy = strategy;
-        this.isNorth = false;
     }
 
     public override createChildrenNodes() {
@@ -31,16 +29,13 @@ export class EarthEntityCollectionNodeLonLat extends EntityCollectionNode {
         const p = this.layer._planet!;
         const z = this.zoom + 1;
 
-        nd[NW] = new EarthEntityCollectionNodeLonLat(s, NW, this, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)), p, z);
-        nd[NE] = new EarthEntityCollectionNodeLonLat(s, NE, this, new Extent(c, new LonLat(ne.lon, ne.lat)), p, z);
-        nd[SW] = new EarthEntityCollectionNodeLonLat(s, SW, this, new Extent(new LonLat(sw.lon, sw.lat), c), p, z);
-        nd[SE] = new EarthEntityCollectionNodeLonLat(s, SE, this, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
+        nd[NW] = new EquiEntityCollectionNodeLonLat(s, NW, this, new Extent(new LonLat(sw.lon, sw.lat + size_y), new LonLat(sw.lon + size_x, ne.lat)), p, z);
+        nd[NE] = new EquiEntityCollectionNodeLonLat(s, NE, this, new Extent(c, new LonLat(ne.lon, ne.lat)), p, z);
+        nd[SW] = new EquiEntityCollectionNodeLonLat(s, SW, this, new Extent(new LonLat(sw.lon, sw.lat), c), p, z);
+        nd[SE] = new EquiEntityCollectionNodeLonLat(s, SE, this, new Extent(new LonLat(sw.lon + size_x, sw.lat), new LonLat(ne.lon, sw.lat + size_y)), p, z);
     }
 
     protected override _setExtentBounds() {
-        if (this.extent.northEast.lat > 0) {
-            this.isNorth = true;
-        }
         this.bsphere.setFromExtent(this.layer._planet!.ellipsoid, this.extent);
     }
 
@@ -52,9 +47,9 @@ export class EarthEntityCollectionNodeLonLat extends EntityCollectionNode {
     }
 
     public override isVisible(): boolean {
-        if (this.isNorth && this.strategy._renderingNodesNorth[this.nodeId]) {
+        if (this.strategy._renderingNodesWest[this.nodeId]) {
             return true;
-        } else if (this.strategy._renderingNodesSouth[this.nodeId]) {
+        } else if (this.strategy._renderingNodesEast[this.nodeId]) {
             return true;
         }
         return false;
@@ -66,10 +61,10 @@ export class EarthEntityCollectionNodeLonLat extends EntityCollectionNode {
 
     public override renderCollection(outArr: EntityCollection[], visibleNodes: NodesDict, renderingNode: number) {
 
-        if (this.isNorth) {
-            this.strategy._renderingNodesNorth[this.nodeId] = true;
+        if (this.extent.southWest.lon < 0) {
+            this.strategy._renderingNodesWest[this.nodeId] = true;
         } else {
-            this.strategy._renderingNodesSouth[this.nodeId] = true;
+            this.strategy._renderingNodesEast[this.nodeId] = true;
         }
 
         if (this.deferredEntities.length && !this._inTheQueue) {

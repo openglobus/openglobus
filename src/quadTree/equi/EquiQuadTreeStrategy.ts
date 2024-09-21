@@ -1,18 +1,18 @@
-import * as quadTree from "../quadTree/quadTree";
-import {Extent} from "../Extent";
-import {equi} from "../proj/equi";
-import {Node} from "../quadTree/Node";
-import {Planet} from "../scene/Planet";
-import {SegmentLonLatEqui} from "../segment/SegmentLonLatEqui";
-import {QuadTreeStrategy} from "./QuadTreeStrategy";
-import {LonLat} from "../LonLat";
+import * as quadTree from "../quadTree";
+import {Extent} from "../../Extent";
+import {equi} from "../../proj/equi";
+import {Node} from "../Node";
+import {Planet} from "../../scene/Planet";
+import {SegmentLonLatEqui} from "../../segment/SegmentLonLatEqui";
+import {QuadTreeStrategy} from "../QuadTreeStrategy";
+import {LonLat} from "../../LonLat";
 import {
     getTileCellExtent,
     getTileCellIndex,
     TILEGROUP_COMMON
-} from "../segment/Segment";
-import {Vector} from "../layer/Vector";
-import {EntityCollectionsTreeStrategy} from "./EntityCollectionsTreeStrategy";
+} from "../../segment/Segment";
+import {Vector} from "../../layer/Vector";
+import {EntityCollectionsTreeStrategy} from "../EntityCollectionsTreeStrategy";
 import {EquiEntityCollectionsTreeStrategy} from "./EquiEntityCollectionsTreeStrategy";
 
 export class EquiQuadTreeStrategy extends QuadTreeStrategy {
