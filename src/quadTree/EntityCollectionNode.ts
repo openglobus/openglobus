@@ -206,7 +206,7 @@ class EntityCollectionNode {
         const altVis = (cam.eye.distance(this.bsphere.center) - this.bsphere.radius <
             VISIBLE_DISTANCE * Math.sqrt(cam._lonLat.height)) || cam._lonLat.height > 10000;
 
-        if (this.count > 0 && altVis && cam.frustum.containsSphere(this.bsphere)) {
+        if (this.count > 0 && altVis && cam.containsSphere(this.bsphere)) {
 
             const cn = this.childrenNodes;
 

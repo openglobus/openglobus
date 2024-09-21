@@ -1,13 +1,8 @@
 import {Vector} from "../layer/Vector";
 import {EntityCollectionNode} from "./EntityCollectionNode";
-import {EntityCollectionNodeLonLat} from "./EntityCollectionNode";
 import {Entity} from "../entity/Entity";
 import {EntityCollection} from "../entity/EntityCollection";
-import * as mercator from "../mercator";
 import {QueueArray} from "../QueueArray";
-import * as quadTree from "./quadTree";
-import {Extent} from "../Extent";
-import {EarthQuadTreeStrategy} from "./EarthQuadTreeStrategy";
 
 export class EntityCollectionsTreeStrategy {
 
