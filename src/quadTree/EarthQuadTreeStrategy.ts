@@ -13,10 +13,16 @@ import {
 } from "../segment/Segment";
 import {SegmentLonLat} from "../segment/SegmentLonLat";
 import {LonLat} from "../LonLat";
+import {Vector} from "../layer/Vector";
+import {EarthEntityCollectionsTreeStrategy} from "./EntityCollectionsTreeStrategy";
 
 export class EarthQuadTreeStrategy extends QuadTreeStrategy {
     constructor(planet: Planet) {
         super(planet, "Earth");
+    }
+
+    public override createEntitiCollectionsTreeStrategy(layer: Vector, nodeCapacity: number): EarthEntityCollectionsTreeStrategy {
+        return new EarthEntityCollectionsTreeStrategy(layer, nodeCapacity);
     }
 
     public override init() {

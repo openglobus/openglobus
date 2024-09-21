@@ -1,12 +1,13 @@
 import {EPSG3857} from "../proj/EPSG3857";
 import {Layer} from "../layer/Layer";
+import {Vector} from "../layer/Vector";
 import {Node} from "../quadTree/Node";
 import {Planet} from "../scene/Planet";
 import {Proj} from "../proj/Proj";
 import {LonLat} from "../LonLat";
 import {getTileCellExtent, getTileCellIndex, TILEGROUP_COMMON} from "../segment/Segment";
 import {Extent} from "../Extent";
-import * as mercator from "../mercator";
+import {EntityCollectionsTreeStrategy} from "./EntityCollectionsTreeStrategy";
 
 export class QuadTreeStrategy {
     public name: string;
@@ -25,6 +26,10 @@ export class QuadTreeStrategy {
         this.projection = proj;
         this._planet = planet;
         this._quadTreeList = [];
+    }
+
+    public createEntitiCollectionsTreeStrategy(layer: Vector, nodeCapacity: number): EntityCollectionsTreeStrategy {
+        return new EntityCollectionsTreeStrategy(layer, nodeCapacity);
     }
 
     public destroyBranches() {
