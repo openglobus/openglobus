@@ -287,12 +287,12 @@ class Node {
         if (this.inFrustum || this._cameraInside || seg.tileZoom < 3) {
             let h = Math.abs(cam._lonLat.height);
 
-            let horizonDist = cam.eye.length2() - this.planet.ellipsoid.polarSizeSqr;
+            let horizonDist = cam.eye.length2() - planet.ellipsoid.polarSizeSqr;
             horizonDist = horizonDist < 106876472875.63281 * planet._heightFactor ? 106876472875.63281 * planet._heightFactor : horizonDist;
 
             let altVis = seg.tileZoom < 2 || seg.tileZoom > 19 ||
                 /* Could be replaced with camera frustum always looking down check,
-                and not to go througn nodes from the oppositeside of the globe*/
+                and not to go through nodes from the opposite of the globe*/
                 (seg.tileZoom < 6 && !seg.terrainReady);
 
             altVis = altVis ||
@@ -302,8 +302,7 @@ class Node {
                 cam.eye.distance2(seg._se) < horizonDist;
 
             if ((this.inFrustum && (altVis || h > 10000.0)) || this._cameraInside) {
-                //@todo: replace to the strategy
-                seg._collectVisibleNodes();
+                planet.quadTreeStrategy.collectVisibleNode(this);
             }
 
             if (seg.tileZoom < 2) {

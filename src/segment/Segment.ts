@@ -1876,10 +1876,6 @@ class Segment {
         return cache.buffer;
     }
 
-    public _collectVisibleNodes() {
-        this.planet._visibleNodes[this.node.nodeId] = this.node;
-    }
-
     public layerOverlap(layer: Layer): boolean {
         return this._extent.overlaps(layer._extentMerc);
     }

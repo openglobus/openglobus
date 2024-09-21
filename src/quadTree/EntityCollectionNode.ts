@@ -394,7 +394,9 @@ class EntityCollectionNodeLonLat extends EntityCollectionNode {
         ec.scaleByDistance = this.layer.scaleByDistance;
         ec.pickingScale = this.layer.pickingScale;
 
-        outArr.push(ec);
+        if (!ec.isEmpty()) {
+            outArr.push(ec);
+        }
     }
 }
 

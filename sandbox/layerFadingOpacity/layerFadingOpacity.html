@@ -4,7 +4,7 @@
     <title>Layer Fading Opacity Example</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../external/og/lib/@openglobus/og.css" type="text/css"/>
+    <link rel="stylesheet" href="../../lib/@openglobus/og.css" type="text/css"/>
 </head>
 
 <body>
@@ -15,7 +15,8 @@
         Entity,
         Globe,
         GlobusRgbTerrain,
-        XYZ
+        XYZ,
+        control
     } from "../../lib/@openglobus/og.esm.js";
 
     let osm = new XYZ("OSM", {
@@ -75,45 +76,47 @@
         //credentials: 'include',
         method: 'GET'
     })
-        .then(function (resp) {
-            return resp.json();
-        })
-        .then(function (resp) {
-            let labels = [],
-                markers = [];
-            for (let i = 0; i < resp.length; i++) {
-                let ri = resp[i];
-                markers.push(new Entity({
-                    'lonlat': [parseFloat(ri.lon), parseFloat(ri.lat)],
-                    'billboard': {
-                        'src': "./marker.png",
-                        'width': 12,
-                        'height': 12,
-                        'offset': [0, 6]
-                    },
-                    'properties': {
-                        'name': ri.name
-                    }
-                }));
+            .then(function (resp) {
+                return resp.json();
+            })
+            .then(function (resp) {
+                let labels = [],
+                        markers = [];
+                for (let i = 0; i < resp.length; i++) {
+                    let ri = resp[i];
+                    markers.push(new Entity({
+                        'lonlat': [parseFloat(ri.lon), parseFloat(ri.lat)],
+                        'billboard': {
+                            'src': "./marker.png",
+                            'width': 12,
+                            'height': 12,
+                            'offset': [0, 6]
+                        },
+                        'properties': {
+                            'name': ri.name
+                        }
+                    }));
 
-                labels.push(new Entity({
-                    'lonlat': [parseFloat(ri.lon), parseFloat(ri.lat)],
-                    'label': {
-                        'text': ri.name,
-                        'size': 16,
-                        'outline': 0.17,
-                        'outlineColor': "rgba(0,0,0,0.12)",
-                        'color': "rgba(0,0,0,0.88)",
-                        'align': "center"
-                    },
-                    'properties': {
-                        'name': ri.name
-                    }
-                }));
-            }
-            townLabels.setEntities(labels);
-            townMarkers.setEntities(markers);
-        });
+                    labels.push(new Entity({
+                        'lonlat': [parseFloat(ri.lon), parseFloat(ri.lat)],
+                        'label': {
+                            'text': ri.name,
+                            'size': 16,
+                            'outline': 0.17,
+                            'outlineColor': "rgba(0,0,0,0.12)",
+                            'color': "rgba(0,0,0,0.88)",
+                            'align': "center"
+                        },
+                        'properties': {
+                            'name': ri.name
+                        }
+                    }));
+                }
+                townLabels.setEntities(labels);
+                townMarkers.setEntities(markers);
+            });
+
+    globe.planet.addControl(new control.DebugInfo());
 
 </script>
 </body>

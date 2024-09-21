@@ -7,6 +7,7 @@ import * as mercator from "../mercator";
 import {QueueArray} from "../QueueArray";
 import * as quadTree from "./quadTree";
 import {Extent} from "../Extent";
+import {EarthQuadTreeStrategy} from "./EarthQuadTreeStrategy";
 
 export class EntityCollectionsTreeStrategy {
 
@@ -195,30 +196,30 @@ export class EarthEntityCollectionsTreeStrategy extends EntityCollectionsTreeStr
         this._renderingNodesNorth = {};
         this._renderingNodesSouth = {};
 
-        let p = this._layer._planet!;
+        let pqs = this._layer._planet!.quadTreeStrategy as EarthQuadTreeStrategy;
 
         // Merc nodes
         this._secondPASS = [];
-        this._entityCollectionsTree && this._entityCollectionsTree.collectRenderCollectionsPASS1(p._visibleNodes, outArr);
+        this._entityCollectionsTree && this._entityCollectionsTree.collectRenderCollectionsPASS1(pqs._visibleNodes, outArr);
         let i = this._secondPASS.length;
         while (i--) {
-            this._secondPASS[i].collectRenderCollectionsPASS2(p._visibleNodes, outArr, this._secondPASS[i].nodeId);
+            this._secondPASS[i].collectRenderCollectionsPASS2(pqs._visibleNodes, outArr, this._secondPASS[i].nodeId);
         }
 
         // North nodes
         this._secondPASS = [];
-        this._entityCollectionsTreeNorth && this._entityCollectionsTreeNorth.collectRenderCollectionsPASS1(p._visibleNodesNorth, outArr);
+        this._entityCollectionsTreeNorth && this._entityCollectionsTreeNorth.collectRenderCollectionsPASS1(pqs._visibleNodesNorth, outArr);
         i = this._secondPASS.length;
         while (i--) {
-            this._secondPASS[i].collectRenderCollectionsPASS2(p._visibleNodesNorth, outArr, this._secondPASS[i].nodeId);
+            this._secondPASS[i].collectRenderCollectionsPASS2(pqs._visibleNodesNorth, outArr, this._secondPASS[i].nodeId);
         }
 
         // South nodes
         this._secondPASS = [];
-        this._entityCollectionsTreeSouth && this._entityCollectionsTreeSouth.collectRenderCollectionsPASS1(p._visibleNodesSouth, outArr);
+        this._entityCollectionsTreeSouth && this._entityCollectionsTreeSouth.collectRenderCollectionsPASS1(pqs._visibleNodesSouth, outArr);
         i = this._secondPASS.length;
         while (i--) {
-            this._secondPASS[i].collectRenderCollectionsPASS2(p._visibleNodesSouth, outArr, this._secondPASS[i].nodeId);
+            this._secondPASS[i].collectRenderCollectionsPASS2(pqs._visibleNodesSouth, outArr, this._secondPASS[i].nodeId);
         }
     }
 }

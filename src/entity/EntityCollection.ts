@@ -279,6 +279,10 @@ class EntityCollection {
         }
     }
 
+    public isEmpty(): boolean {
+        return this._entities.length == 0;
+    }
+
     get id(): number {
         return this.__id;
     }

@@ -244,36 +244,6 @@ export class Planet extends RenderNode {
     public _fadingNodesInFrustum: Node[][];
 
     /**
-     * Current visible mercator segments tree nodes array.
-     * @public
-     * @type {Node}
-     *
-     * @todo
-     * _visibleNodes, _visibleNodesNorth and _visibleNodesSouth should
-     * be replaced to strategy and Vector layer reworked in collecting methods.
-     * _visibleNodes, and _visibleNodesNorth and South are used in Vector
-     * layer only, for entity terrain collision
-     *
-     */
-    public _visibleNodes: Record<number, Node>;
-
-    /**
-     * Current visible north pole nodes tree nodes array.
-     * @public
-     * @type {Node}
-     * @todo
-     */
-    public _visibleNodesNorth: Record<number, Node>;
-
-    /**
-     * Current visible south pole nodes tree nodes array.
-     * @public
-     * @type {Node}
-     * @todo
-     */
-    public _visibleNodesSouth: Record<number, Node>;
-
-    /**
      * Layers activity lock.
      * @public
      * @type {Lock}
@@ -497,12 +467,6 @@ export class Planet extends RenderNode {
 
         this._fadingNodes = new Map<number, Node>;
         this._fadingNodesInFrustum = [];
-
-        this._visibleNodes = {};
-
-        this._visibleNodesNorth = {};
-
-        this._visibleNodesSouth = {};
 
         this.layerLock = new Lock();
 
@@ -1313,11 +1277,6 @@ export class Planet extends RenderNode {
 
         this._viewExtent.southWest.set(180, 180);
         this._viewExtent.northEast.set(-180, -180);
-
-        // todo: replace to camera
-        this._visibleNodes = {};
-        this._visibleNodesNorth = {};
-        this._visibleNodesSouth = {};
 
         // todo: replace to camera
         this.minCurrZoom = math.MAX;
