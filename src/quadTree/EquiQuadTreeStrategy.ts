@@ -11,16 +11,25 @@ import {
     getTileCellIndex,
     TILEGROUP_COMMON
 } from "../segment/Segment";
+import {Vector} from "../layer/Vector";
+import {EntityCollectionsTreeStrategy} from "./EntityCollectionsTreeStrategy";
+import {EquiEntityCollectionsTreeStrategy} from "./EquiEntityCollectionsTreeStrategy";
 
 export class EquiQuadTreeStrategy extends QuadTreeStrategy {
 
     private _westExtent: Extent;
     private _eastExtent: Extent;
 
+    public _visibleNodesWest: Record<number, Node>;
+    public _visibleNodesEast: Record<number, Node>;
+
     constructor(planet: Planet) {
         super(planet, "Mars", equi);
         this._westExtent = Extent.createFromArray([-180, -90, 0, 90]);
         this._eastExtent = Extent.createFromArray([0, -90, 180, 90]);
+
+        this._visibleNodesWest = {};
+        this._visibleNodesEast = {};
     }
 
     public override init() {
@@ -78,5 +87,23 @@ export class EquiQuadTreeStrategy extends QuadTreeStrategy {
             j = Math.floor((coords.lon - extent.southWest.lon) / sizeImgW);
 
         return [i, j];
+    }
+
+    public override createEntitiCollectionsTreeStrategy(layer: Vector, nodeCapacity: number): EntityCollectionsTreeStrategy {
+        return new EquiEntityCollectionsTreeStrategy(layer, nodeCapacity);
+    }
+
+    public override collectVisibleNode(node: Node) {
+        let ext = node.segment.getExtent();
+        if (ext.southWest.lon < 0) {
+            this._visibleNodesWest[node.nodeId] = node;
+        } else {
+            this._visibleNodesEast[node.nodeId] = node;
+        }
+    }
+
+    protected override _clearVisibleNodes() {
+        this._visibleNodesWest = {};
+        this._visibleNodesEast = {};
     }
 }
