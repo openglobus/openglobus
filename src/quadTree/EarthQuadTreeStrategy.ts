@@ -14,7 +14,7 @@ import {
 import {SegmentLonLat} from "../segment/SegmentLonLat";
 import {LonLat} from "../LonLat";
 import {Vector} from "../layer/Vector";
-import {EarthEntityCollectionsTreeStrategy} from "./EntityCollectionsTreeStrategy";
+import {EarthEntityCollectionsTreeStrategy} from "./EarthEntityCollectionsTreeStrategy";
 
 export class EarthQuadTreeStrategy extends QuadTreeStrategy {
 

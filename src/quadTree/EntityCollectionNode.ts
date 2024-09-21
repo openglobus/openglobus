@@ -10,7 +10,8 @@ import {Segment} from "../segment/Segment";
 import {Vec3} from '../math/Vec3';
 import {Vector} from "../layer/Vector";
 import {Entity} from "../entity/Entity";
-import {EarthEntityCollectionsTreeStrategy, EntityCollectionsTreeStrategy} from "./EntityCollectionsTreeStrategy";
+import {EntityCollectionsTreeStrategy} from "./EntityCollectionsTreeStrategy";
+import {EarthEntityCollectionsTreeStrategy} from "./EarthEntityCollectionsTreeStrategy";
 
 type NodesDict = Record<number, Node>;
 
