@@ -55,10 +55,13 @@
 
     var highResTerrain = new RgbTerrain(null, {
         geoidSrc: null,
-        maxZoom: 7,
+        maxZoom: 11,
         //maxNativeZoom: 7,
-        url: "https://{s}.terrain.openglobus.org/moon/dem/{z}/{x}/{y}.png",
-        heightFactor: 1
+        //url: "https://{s}.terrain.openglobus.org/moon/dem/{z}/{x}/{y}.png",
+        url: "./dem/{z}/{x}/{y}.png",
+        heightFactor: 1,
+        minHeight: -15000,
+        resolution: 1
     });
 
     window.globe = new Globe({
@@ -67,13 +70,13 @@
         quadTreeStrategyPrototype: quadTreeStrategyType.equi,
         target: "globus",
         terrain: highResTerrain,
-        layers: [sat, appoloSat, mountains, mountains2, catena, lacus, maria, vallis, sinusAndPaludes],
+        layers: [sat, appoloSat, mountains],
         nightTextureSrc: null,
         specularTextureSrc: null,
         atmosphereEnabled: false,
         gamma: 1.25,
         exposure: 2.195,
-        fontsSrc: "../../res/fonts"
+        fontsSrc: "./fonts"
     });
 
     globe.planet.addControl(new control.AtmosphereConfig());
@@ -90,21 +93,11 @@
     fetch("./mountains.json").then((r) => r.json()).then((data) => {
         let entities = data.features.map((f) => createLabelEntity(
                 new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
-                f.properties.height_km ? `${f.properties.name} - ${f.properties.height_km} km` : f.properties.name,
+                f.properties["Feature Name"],
                 "Ephesis-Regular",
                 21)
         );
         mountains.setEntities(entities);
-    });
-
-    fetch("./mountains2.json").then((r) => r.json()).then((data) => {
-        let entities = data.features.map((f) => createLabelEntity(
-                new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
-                f.properties.height_km ? `${f.properties.name} - ${f.properties.height_km} km` : f.properties.name,
-                "Ephesis-Regular",
-                21)
-        );
-        mountains2.setEntities(entities);
     });
 
     fetch("./catena.json").then((r) => r.json()).then((data) => {
@@ -192,7 +185,7 @@
         });
 
         return res;
-    };
+    }
 
 </script>
 </body>

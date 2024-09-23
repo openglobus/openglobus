@@ -212,7 +212,7 @@ class Vector extends Layer {
 
         this._geometryHandler = new GeometryHandler(this);
 
-        this._nodeCapacity = options.nodeCapacity || 30;
+        this._nodeCapacity = options.nodeCapacity || 60;
 
         this._entityCollectionsTreeStrategy = null;
 

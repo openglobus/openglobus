@@ -39,6 +39,7 @@ const POINTER_BILLBOARD_OPTIONS: IBillboardParams = {
 
 const POINTER_LABEL_OPTIONS: ILabelParams = {
     text: "",
+    face: "arial",
     size: 10.5,
     color: "rgba(455,455,455,1.0)",
     outlineColor: "rgba(0,0,0,0.34)",
@@ -48,6 +49,7 @@ const POINTER_LABEL_OPTIONS: ILabelParams = {
 };
 
 const LABEL_OPTIONS: ILabelParams = {
+    face: "arial",
     text: "",
     size: 10.5,
     color: "rgba(455,455,455,1.0)",
@@ -203,7 +205,12 @@ class ElevationProfileScene extends RenderNode {
         return this._planet;
     }
 
-    protected _createGroundPointer(groundCart: Vec3, altitude: number = 10): { headEntity: Entity, groundEntity: Entity, columnEntity: Entity, heightLabelEntity: Entity } {
+    protected _createGroundPointer(groundCart: Vec3, altitude: number = 10): {
+        headEntity: Entity,
+        groundEntity: Entity,
+        columnEntity: Entity,
+        heightLabelEntity: Entity
+    } {
 
         let surfaceNormal = this.ellipsoid!.getSurfaceNormal3v(groundCart);
         let headCart = groundCart.add(surfaceNormal.scale(altitude));

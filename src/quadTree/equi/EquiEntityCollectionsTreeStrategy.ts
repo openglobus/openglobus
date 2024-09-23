@@ -96,7 +96,7 @@ export class EquiEntityCollectionsTreeStrategy extends EntityCollectionsTreeStra
 
         let pqs = this._layer._planet!.quadTreeStrategy as EquiQuadTreeStrategy;
 
-        // North nodes
+        // Wset
         this._secondPASS = [];
         this._entityCollectionsTreeWest.collectRenderCollectionsPASS1(pqs._visibleNodesWest, outArr);
         let i = this._secondPASS.length;
@@ -104,7 +104,7 @@ export class EquiEntityCollectionsTreeStrategy extends EntityCollectionsTreeStra
             this._secondPASS[i].collectRenderCollectionsPASS2(pqs._visibleNodesWest, outArr, this._secondPASS[i].nodeId);
         }
 
-        // South nodes
+        // East
         this._secondPASS = [];
         this._entityCollectionsTreeEast.collectRenderCollectionsPASS1(pqs._visibleNodesEast, outArr);
         i = this._secondPASS.length;
