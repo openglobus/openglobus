@@ -24,10 +24,17 @@
         CanvasTiles,
         moon,
         Entity,
-        Vector
+        Vector,
+        LonLat
     } from "../../lib/@openglobus/og.esm.js";
 
     const mountains = new Vector("Mountains");
+    const mountains2 = new Vector("Mountains");
+    const catena = new Vector("Catena");
+    const lacus = new Vector("Lacus");
+    const maria = new Vector("maria");
+    const vallis = new Vector("vallis");
+    const sinusAndPaludes = new Vector("Sinus and Paludes");
 
     const sat = new XYZ("moon", {
         isBaseLayer: true,
@@ -60,12 +67,12 @@
         quadTreeStrategyPrototype: quadTreeStrategyType.equi,
         target: "globus",
         terrain: highResTerrain,
-        layers: [sat, appoloSat, mountains],
+        layers: [sat, appoloSat, mountains, mountains2, catena, lacus, maria, vallis, sinusAndPaludes],
         nightTextureSrc: null,
         specularTextureSrc: null,
         atmosphereEnabled: false,
-        gamma: 1.014,
-        exposure: 2.264,
+        gamma: 1.25,
+        exposure: 2.195,
         fontsSrc: "../../res/fonts"
     });
 
@@ -79,16 +86,113 @@
     globe.planet.renderer.controls.SimpleSkyBackground.colorOne = "rgb(0, 0, 0)";
     globe.planet.renderer.controls.SimpleSkyBackground.colorTwo = "rgb(0, 0, 0)";
 
-    fetch("./mountains.json").then((r) => r.json()).then((data) => {
-        let entities = data.features.map((f) => new Entity({
-            lonlat: [f.geometry.coordinates[0], f.geometry.coordinates[1], 1000],
-            label: {
-                text: `${f.properties.name} - ${f.properties.height_km}`
-            }
-        }));
 
+    fetch("./mountains.json").then((r) => r.json()).then((data) => {
+        let entities = data.features.map((f) => createLabelEntity(
+                new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
+                f.properties.height_km ? `${f.properties.name} - ${f.properties.height_km} km` : f.properties.name,
+                "Ephesis-Regular",
+                21)
+        );
         mountains.setEntities(entities);
     });
+
+    fetch("./mountains2.json").then((r) => r.json()).then((data) => {
+        let entities = data.features.map((f) => createLabelEntity(
+                new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
+                f.properties.height_km ? `${f.properties.name} - ${f.properties.height_km} km` : f.properties.name,
+                "Ephesis-Regular",
+                21)
+        );
+        mountains2.setEntities(entities);
+    });
+
+    fetch("./catena.json").then((r) => r.json()).then((data) => {
+        let entities = data.features.map((f) => createLabelEntity(
+                new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
+                f.properties.name,
+                "Ephesis-Regular",
+                21)
+        );
+        catena.setEntities(entities);
+    });
+
+    fetch("./lacus.json").then((r) => r.json()).then((data) => {
+        let entities = data.features.map((f) => createLabelEntity(
+                new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
+                f.properties.name,
+                "Ephesis-Regular",
+                21)
+        );
+        lacus.setEntities(entities);
+    });
+
+
+    fetch("./maria.json").then((r) => r.json()).then((data) => {
+        let entities = data.features.map((f) => createLabelEntity(
+                new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
+                f.properties.name,
+                "Ephesis-Regular",
+                21)
+        );
+        maria.setEntities(entities);
+    });
+
+    fetch("./vallis.json").then((r) => r.json()).then((data) => {
+        let entities = data.features.map((f) => createLabelEntity(
+                new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
+                f.properties.name,
+                "Ephesis-Regular",
+                21)
+        );
+        vallis.setEntities(entities);
+    });
+
+    fetch("./sinus_and_paludes.json").then((r) => r.json()).then((data) => {
+        let entities = data.features.map((f) => createLabelEntity(
+                new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
+                f.properties.name,
+                "Ephesis-Regular",
+                21)
+        );
+        sinusAndPaludes.setEntities(entities);
+    });
+
+    function createLabelEntity(lonlat, text, fontFace = "Ephesis-Regular", fontSize = 21) {
+        const ell = globe.planet.ellipsoid;
+
+        let ll = new LonLat(lonlat.lon, lonlat.lat, 1000);
+
+        let res = new Entity({
+            lonlat: ll,
+            label: {
+                size: fontSize,
+                face: fontFace,
+                text: text,
+                align: "center",
+                offset: [0, fontSize + 3]
+            }
+        });
+
+        highResTerrain.getHeightAsync(ll, (h) => {
+            ll.height = h + 1000;
+
+            let ray = new Entity({
+                ray: {
+                    startPosition: ell.lonLatToCartesian(new LonLat(ll.lon, ll.lat, h)),
+                    endPosition: ell.lonLatToCartesian(ll),
+                    startColor: "white",
+                    endColor: "white",
+                    thickness: 2.5
+                }
+            });
+
+            res.appendChild(ray);
+            res.setLonLat(ll);
+        });
+
+        return res;
+    };
 
 </script>
 </body>
