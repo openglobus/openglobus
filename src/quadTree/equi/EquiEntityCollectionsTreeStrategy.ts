@@ -73,17 +73,21 @@ export class EquiEntityCollectionsTreeStrategy extends EntityCollectionsTreeStra
     }
 
     public override insertEntities(entitiesForTree: Entity[]) {
+        let westEntities: Entity[] = [],
+            eastEntities: Entity[] = [];
         for (let i = 0, len = entitiesForTree.length; i < len; i++) {
             let entity = entitiesForTree[i];
             if (entity._lonLat.lon < 0) {
+                westEntities.push(entity);
                 this._entityCollectionsTreeWest.__setLonLat__(entity);
             } else {
+                eastEntities.push(entity);
                 this._entityCollectionsTreeEast.__setLonLat__(entity);
             }
         }
 
-        this._entityCollectionsTreeWest.buildTree(entitiesForTree);
-        this._entityCollectionsTreeEast.buildTree(entitiesForTree);
+        this._entityCollectionsTreeWest.buildTree(westEntities);
+        this._entityCollectionsTreeEast.buildTree(eastEntities);
     }
 
     public override collectVisibleEntityCollections(outArr: EntityCollection[]) {

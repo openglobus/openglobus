@@ -96,22 +96,27 @@ export class EarthEntityCollectionsTreeStrategy extends EntityCollectionsTreeStr
     }
 
     public override insertEntities(entitiesForTree: Entity[]) {
+        let northEntities: Entity[] = [],
+            southEntities: Entity[] = [],
+            mercEntities: Entity[] = [];
         for (let i = 0, len = entitiesForTree.length; i < len; i++) {
             let entity = entitiesForTree[i];
             // north tree
             if (entity._lonLat.lat > mercator.MAX_LAT) {
+                northEntities.push(entity);
                 this._entityCollectionsTreeNorth.__setLonLat__(entity);
             } else if (entity._lonLat.lat < mercator.MIN_LAT) {
-                // south tree
+                southEntities.push(entity);
                 this._entityCollectionsTreeSouth.__setLonLat__(entity);
             } else {
+                mercEntities.push(entity);
                 this._entityCollectionsTree.__setLonLat__(entity);
             }
         }
 
-        this._entityCollectionsTree.buildTree(entitiesForTree);
-        this._entityCollectionsTreeNorth.buildTree(entitiesForTree);
-        this._entityCollectionsTreeSouth.buildTree(entitiesForTree);
+        this._entityCollectionsTree.buildTree(mercEntities);
+        this._entityCollectionsTreeNorth.buildTree(northEntities);
+        this._entityCollectionsTreeSouth.buildTree(southEntities);
     }
 
     public override collectVisibleEntityCollections(outArr: EntityCollection[]) {

@@ -183,7 +183,7 @@ class Ellipsoid {
     }
 
     /**
-     * Gets cartesian ECEF from Wgs84 geodetic coordinates.
+     * Gets cartesian ECEF 3d coordinates from geodetic coordinates.
      * @public
      * @param {Number} lon - Longitude.
      * @param {Number} lat - Latitude.
