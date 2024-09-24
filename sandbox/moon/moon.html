@@ -28,7 +28,9 @@
         LonLat
     } from "../../lib/@openglobus/og.esm.js";
 
-    const mountains = new Vector("Mountains");
+    const mountains = new Vector("Mountains",{
+        fading: true
+    });
     const mountains2 = new Vector("Mountains");
     const catena = new Vector("Catena");
     const lacus = new Vector("Lacus");
@@ -55,13 +57,13 @@
 
     var highResTerrain = new RgbTerrain(null, {
         geoidSrc: null,
-        maxZoom: 11,
+        maxZoom: 7,
         //maxNativeZoom: 7,
-        //url: "https://{s}.terrain.openglobus.org/moon/dem/{z}/{x}/{y}.png",
-        url: "./dem/{z}/{x}/{y}.png",
-        heightFactor: 1,
-        minHeight: -15000,
-        resolution: 1
+        url: "https://{s}.terrain.openglobus.org/moon/dem/{z}/{x}/{y}.png",
+        //url: "./dem/{z}/{x}/{y}.png",
+        heightFactor: 0.5,
+        minHeight: -20000,
+        resolution: 0.1021
     });
 
     window.globe = new Globe({
@@ -154,7 +156,7 @@
     function createLabelEntity(lonlat, text, fontFace = "Ephesis-Regular", fontSize = 21) {
         const ell = globe.planet.ellipsoid;
 
-        let ll = new LonLat(lonlat.lon, lonlat.lat, 1000);
+        let ll = new LonLat(lonlat.lon, lonlat.lat, 15000);
 
         let res = new Entity({
             lonlat: ll,
@@ -168,7 +170,9 @@
         });
 
         highResTerrain.getHeightAsync(ll, (h) => {
-            ll.height = h + 1000;
+            console.log(h);
+
+            ll.height = h + 10000;
 
             let ray = new Entity({
                 ray: {
@@ -176,7 +180,7 @@
                     endPosition: ell.lonLatToCartesian(ll),
                     startColor: "white",
                     endColor: "white",
-                    thickness: 2.5
+                    thickness: 3
                 }
             });
 
