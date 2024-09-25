@@ -20,7 +20,11 @@ const globus = new Globe({
     frustums: [[1,101100],[100000,1000000000]],
     target: "earth",
     name: "Earth",
-    terrain: new GlobusRgbTerrain(),
+    terrain: new RgbTerrain("",{
+        //maxNativeZoom: 6,
+        maxZoom: 18,
+        url: "https://{s}.terrain.openglobus.org/kingcounty/{z}/{x}/{y}.png",
+    }),
     layers: [osm],
     atmosphereEnabled: false,
     fontsSrc: "../../res/fonts",

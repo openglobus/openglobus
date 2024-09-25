@@ -1,0 +1,305 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Lacus Aestatis",
+                "description": "Lake of Summer",
+                "diameter": 90
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -69.0,
+                    -15.0
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Lacus Autumni",
+                "description": "Lake of Autumn",
+                "diameter": 183
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -83.9,
+                    -9.9
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Lacus Bonitatis",
+                "description": "Lake of Goodness",
+                "diameter": 92
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    43.7,
+                    23.2
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Lacus Doloris",
+                "description": "Lake of Sorrow",
+                "diameter": 110
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    9.0,
+                    17.1
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Lacus Excellentiae",
+                "description": "Lake of Excellence",
+                "diameter": 184
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -44.0,
+                    -35.4
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Lacus Felicitatis",
+                "description": "Lake of Happiness",
+                "diameter": 90
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    5.0,
+                    19.0
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Lacus Gaudii",
+                "description": "Lake of Joy",
+                "diameter": 113
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    12.6,
+                    16.2
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Lacus Hiemalis",
+                "description": "Lake of Winter",
+                "diameter": 50
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.0,
+                    15.0
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Lacus Lenitatis",
+                "description": "Lake of Softness",
+                "diameter": 80
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    12.0,
+                    14.0
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Lacus Luxuriae",
+                "description": "Lake of Luxury",
+                "diameter": 50
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    176.0,
+                    19.0
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Lacus Mortis",
+                "description": "Lake of Death",
+                "diameter": 151
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    27.2,
+                    45.0
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Lacus Oblivionis",
+                "description": "Lake of Forgetfulness",
+                "diameter": 50
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -168.0,
+                    -21.0
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Lacus Odii",
+                "description": "Lake of Hatred",
+                "diameter": 70
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    7.0,
+                    19.0
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Lacus Perseverantiae",
+                "description": "Lake of Perseverance",
+                "diameter": 70
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    62.0,
+                    8.0
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Lacus Solitudinis",
+                "description": "Lake of Solitude",
+                "diameter": 139
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    104.3,
+                    -27.8
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Lacus Somniorum",
+                "description": "Lake of Dreams",
+                "diameter": 384
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    29.2,
+                    38.0
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Lacus Spei",
+                "description": "Lake of Hope",
+                "diameter": 80
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    65.0,
+                    43.0
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Lacus Temporis",
+                "description": "Lake of Time",
+                "diameter": 117
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    58.4,
+                    45.9
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Lacus Timoris",
+                "description": "Lake of Fear",
+                "diameter": 117
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -27.3,
+                    -38.8
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Lacus Veris",
+                "description": "Lake of Spring",
+                "diameter": 396
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -86.1,
+                    -16.5
+                ]
+            }
+        }
+    ]
+}

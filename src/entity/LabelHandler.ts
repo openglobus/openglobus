@@ -523,6 +523,8 @@ class LabelHandler extends BaseBillboardHandler {
             }
         }
 
+        offset += 5;
+
         // 49/512 - font atlas left border letter offset
         if (align === ALIGN.CENTER) {
             offset *= -0.5;

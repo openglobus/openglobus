@@ -28,15 +28,12 @@
         LonLat
     } from "../../lib/@openglobus/og.esm.js";
 
-    const mountains = new Vector("Mountains",{
+    const mountains = new Vector("Mountains", {
         fading: true
     });
-    const mountains2 = new Vector("Mountains");
-    const catena = new Vector("Catena");
-    const lacus = new Vector("Lacus");
-    const maria = new Vector("maria");
-    const vallis = new Vector("vallis");
-    const sinusAndPaludes = new Vector("Sinus and Paludes");
+    //const lacus = new Vector("Lacus");
+    const maria = new Vector("Seas And Oceans");
+    //const vallis = new Vector("vallis");
 
     const sat = new XYZ("moon", {
         isBaseLayer: true,
@@ -60,7 +57,6 @@
         maxZoom: 7,
         //maxNativeZoom: 7,
         url: "https://{s}.terrain.openglobus.org/moon/dem/{z}/{x}/{y}.png",
-        //url: "./dem/{z}/{x}/{y}.png",
         heightFactor: 0.5,
         minHeight: -20000,
         resolution: 0.1021
@@ -72,7 +68,7 @@
         quadTreeStrategyPrototype: quadTreeStrategyType.equi,
         target: "globus",
         terrain: highResTerrain,
-        layers: [sat, appoloSat, mountains],
+        layers: [sat, appoloSat, mountains, maria],
         nightTextureSrc: null,
         specularTextureSrc: null,
         atmosphereEnabled: false,
@@ -102,16 +98,6 @@
         mountains.setEntities(entities);
     });
 
-    fetch("./catena.json").then((r) => r.json()).then((data) => {
-        let entities = data.features.map((f) => createLabelEntity(
-                new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
-                f.properties.name,
-                "Ephesis-Regular",
-                21)
-        );
-        catena.setEntities(entities);
-    });
-
     fetch("./lacus.json").then((r) => r.json()).then((data) => {
         let entities = data.features.map((f) => createLabelEntity(
                 new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
@@ -122,13 +108,13 @@
         lacus.setEntities(entities);
     });
 
-
     fetch("./maria.json").then((r) => r.json()).then((data) => {
         let entities = data.features.map((f) => createLabelEntity(
                 new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
                 f.properties.name,
-                "Ephesis-Regular",
-                21)
+                "Karla-Medium",
+                35,
+                false)
         );
         maria.setEntities(entities);
     });
@@ -143,17 +129,14 @@
         vallis.setEntities(entities);
     });
 
-    fetch("./sinus_and_paludes.json").then((r) => r.json()).then((data) => {
-        let entities = data.features.map((f) => createLabelEntity(
-                new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
-                f.properties.name,
-                "Ephesis-Regular",
-                21)
-        );
-        sinusAndPaludes.setEntities(entities);
-    });
-
-    function createLabelEntity(lonlat, text, fontFace = "Ephesis-Regular", fontSize = 21) {
+    function createLabelEntity(
+            lonlat,
+            text,
+            fontFace = "Ephesis-Regular",
+            fontSize = 21,
+            showSpin = true,
+            color = "white"
+    ) {
         const ell = globe.planet.ellipsoid;
 
         let ll = new LonLat(lonlat.lon, lonlat.lat, 15000);
@@ -165,7 +148,8 @@
                 face: fontFace,
                 text: text,
                 align: "center",
-                offset: [0, fontSize + 3]
+                offset: [0, fontSize + 3],
+                color: color
             }
         });
 
@@ -174,17 +158,19 @@
 
             ll.height = h + 10000;
 
-            let ray = new Entity({
-                ray: {
-                    startPosition: ell.lonLatToCartesian(new LonLat(ll.lon, ll.lat, h)),
-                    endPosition: ell.lonLatToCartesian(ll),
-                    startColor: "white",
-                    endColor: "white",
-                    thickness: 3
-                }
-            });
+            if (showSpin) {
+                let ray = new Entity({
+                    ray: {
+                        startPosition: ell.lonLatToCartesian(new LonLat(ll.lon, ll.lat, h)),
+                        endPosition: ell.lonLatToCartesian(ll),
+                        startColor: "white",
+                        endColor: "white",
+                        thickness: 3
+                    }
+                });
+                res.appendChild(ray);
+            }
 
-            res.appendChild(ray);
             res.setLonLat(ll);
         });
 
