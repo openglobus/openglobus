@@ -31,9 +31,15 @@
     const mountains = new Vector("Mountains", {
         fading: true
     });
-    const lacus = new Vector("Lakes");
-    const maria = new Vector("Seas And Oceans");
-    const vallis = new Vector("Valleys");
+    const lacus = new Vector("Lakes", {
+        fading: true
+    });
+    const maria = new Vector("Seas And Oceans", {
+        fading: true
+    });
+    const vallis = new Vector("Valleys", {
+        fading: true
+    });
 
     const sat = new XYZ("moon", {
         isBaseLayer: true,
@@ -114,7 +120,7 @@
     fetch("./mare.json").then((r) => r.json()).then((data) => {
         let entities = data.features.map((f) => createLabelEntity(
                 new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
-                f.properties.description,
+                f.properties.description.toUpperCase(),
                 "Karla-Light",
                 35,
                 false)
