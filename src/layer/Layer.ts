@@ -867,7 +867,7 @@ class Layer {
             if (this._fadingOpacity <= 0) {
                 this._fadingOpacity = 0.0;
             }
-            return !this._visibility;
+            return false;
         }
     }
 

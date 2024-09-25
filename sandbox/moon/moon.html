@@ -31,9 +31,9 @@
     const mountains = new Vector("Mountains", {
         fading: true
     });
-    //const lacus = new Vector("Lacus");
+    const lacus = new Vector("Lakes");
     const maria = new Vector("Seas And Oceans");
-    //const vallis = new Vector("vallis");
+    const vallis = new Vector("Valleys");
 
     const sat = new XYZ("moon", {
         isBaseLayer: true,
@@ -59,7 +59,10 @@
         url: "https://{s}.terrain.openglobus.org/moon/dem/{z}/{x}/{y}.png",
         heightFactor: 0.5,
         minHeight: -20000,
-        resolution: 0.1021
+        resolution: 0.1021,
+        gridSizeByZoom: [
+            64, 32, 16, 16, 32, 64, 64, 32, 16, 8, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2
+        ]
     });
 
     window.globe = new Globe({
@@ -68,7 +71,7 @@
         quadTreeStrategyPrototype: quadTreeStrategyType.equi,
         target: "globus",
         terrain: highResTerrain,
-        layers: [sat, appoloSat, mountains, maria],
+        layers: [sat, appoloSat, mountains, maria, vallis, lacus],
         nightTextureSrc: null,
         specularTextureSrc: null,
         atmosphereEnabled: false,
@@ -108,11 +111,11 @@
         lacus.setEntities(entities);
     });
 
-    fetch("./maria.json").then((r) => r.json()).then((data) => {
+    fetch("./mare.json").then((r) => r.json()).then((data) => {
         let entities = data.features.map((f) => createLabelEntity(
                 new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
-                f.properties.name,
-                "Karla-Medium",
+                f.properties.description,
+                "Karla-Light",
                 35,
                 false)
         );
@@ -123,8 +126,9 @@
         let entities = data.features.map((f) => createLabelEntity(
                 new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
                 f.properties.name,
-                "Ephesis-Regular",
-                21)
+                "Karla-Italic",
+                18,
+                false)
         );
         vallis.setEntities(entities);
     });
@@ -154,7 +158,6 @@
         });
 
         highResTerrain.getHeightAsync(ll, (h) => {
-            console.log(h);
 
             ll.height = h + 10000;
 
