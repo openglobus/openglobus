@@ -12,7 +12,7 @@ import {Vec3, NumberArray3} from "../math/Vec3";
 import {NumberArray4} from "../math/Vec4";
 import {IDefaultTextureParams, WebGLTextureExt} from "../webgl/Handler";
 
-const FADING_RATIO = 18.8;
+const FADING_RATIO = 30;
 
 export interface ILayerParams {
     properties?: any;

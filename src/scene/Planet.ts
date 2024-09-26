@@ -413,7 +413,7 @@ export class Planet extends RenderNode {
 
         this.lightEnabled = true;
 
-        this._planetRadius2 = this.ellipsoid.getPolarSize() * this.ellipsoid.getPolarSize();
+        this._planetRadius2 = (this.ellipsoid.getPolarSize() - 10000.0) * (this.ellipsoid.getPolarSize() - 10000.0);
 
         this._layers = [];
 

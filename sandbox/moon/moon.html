@@ -30,23 +30,29 @@
 
     const mountains = new Vector("Mountains", {
         fading: true,
-        minZoom: 4
+        minZoom: 4,
+        scaleByDistance: [0, 3500000, 3800000],
     });
 
     const craters = new Vector("Craters", {
-        fading: true
+        fading: true,
+        scaleByDistance: [0, 15000000, 25000000],
     });
 
     const lacus = new Vector("Lakes", {
         fading: true,
         minZoom: 4
     });
+
     const maria = new Vector("Seas And Oceans", {
         fading: true,
-        maxZoom: 8
+        maxZoom: 8,
+        scaleByDistance: [0, 15000000, 25000000],
     });
+
     const vallis = new Vector("Valleys", {
-        fading: true
+        fading: true,
+        scaleByDistance: [0, 15000000, 25000000],
     });
 
     const sat = new XYZ("moon", {
@@ -123,9 +129,12 @@
                 f.properties["Feature Name"],
                 0,
                 0,
-                27 + 3,
+                30 + 3,
                 "Ephesis-Regular",
-                27)
+                30,
+                true,
+                /*"rgb(144,245,455)"*/
+                "rgb(355,355,355)")
         );
         mountains.setEntities(entities);
     });
@@ -138,7 +147,7 @@
                 0.12,
                 0,
                 "Karla-Medium",
-                18,
+                16,
                 false,
                 "rgba(255,165,48,1.0)")
         );
@@ -234,8 +243,10 @@
                         ray: {
                             startPosition: ell.lonLatToCartesian(new LonLat(ll.lon, ll.lat, h)),
                             endPosition: ell.lonLatToCartesian(ll),
-                            startColor: "white",
-                            endColor: "white",
+                            //startColor: "rgba(144,245,455,0.7)",
+                            //endColor: "rgba(144,245,455,0.0)",
+                            startColor: "rgba(255,255,255,0.7)",
+                            endColor: "rgba(255,255,255,0.0)",
                             thickness: 3
                         }
                     });
