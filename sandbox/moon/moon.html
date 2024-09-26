@@ -29,13 +29,21 @@
     } from "../../lib/@openglobus/og.esm.js";
 
     const mountains = new Vector("Mountains", {
+        fading: true,
+        minZoom: 4
+    });
+
+    const craters = new Vector("Craters", {
         fading: true
     });
+
     const lacus = new Vector("Lakes", {
-        fading: true
+        fading: true,
+        minZoom: 4
     });
     const maria = new Vector("Seas And Oceans", {
-        fading: true
+        fading: true,
+        maxZoom: 8
     });
     const vallis = new Vector("Valleys", {
         fading: true
@@ -46,8 +54,20 @@
         url: "https://{s}.terrain.openglobus.org/moon/sat/{z}/{x}/{y}.png",
         visibility: true,
         maxNativeZoom: 10,
-        diffuse: [1.4, 1.4, 1.8],
+        attribution: "Lunar Reconnaissance Orbiter - Global Morphology Mosaic 100m",
+        diffuse: [1.1, 1.1, 1.3],
         ambient: [0.01, 0.01, 0.02],
+    });
+
+    const sat2 = new XYZ("Lunar QuickMap", {
+        isBaseLayer: true,
+        url: "https://lroc-tiles.quickmap.io/tiles/wac_nac_nacroi/lunar-fulleqc/{z}/{x}/{y}.jpg",
+        visibility: false,
+        attribution: `<a href="https://lunar.quickmap.io">Lunar QuickMap</a>, a collaboration between NASA, Arizona State University & Applied Coherent Technology Corp.`,
+        //maxNativeZoom: 10,
+        diffuse: [1.1, 1.1, 1.3],
+        ambient: [0.01, 0.01, 0.02],
+        urlRewrite: (s) => `https://lroc-tiles.quickmap.io/tiles/wac_nac_nacroi/lunar-fulleqc/${s.tileZoom + 1}/${s.tileX}/${s.tileY}.jpg`
     });
 
     const appoloSat = new XYZ("APPOLO_SAT", {
@@ -77,19 +97,19 @@
         quadTreeStrategyPrototype: quadTreeStrategyType.equi,
         target: "globus",
         terrain: highResTerrain,
-        layers: [sat, appoloSat, mountains, maria, vallis, lacus],
+        layers: [sat, sat2, appoloSat, mountains, craters, maria, vallis, lacus],
         nightTextureSrc: null,
         specularTextureSrc: null,
         atmosphereEnabled: false,
         gamma: 1.25,
         exposure: 2.195,
-        fontsSrc: "./fonts"
+        fontsSrc: "./fonts",
+        sun: {
+            stopped: true
+        }
     });
 
-    globe.planet.addControl(new control.AtmosphereConfig());
-    globe.planet.addControl(new control.ToggleWireframe());
-    globe.planet.addControl(new control.DebugInfo());
-    globe.planet.addControl(new control.Lighting());
+    globe.planet.addControl(new control.TimelineControl());
     globe.planet.addControl(new control.LayerSwitcher());
     globe.planet.addControl(new control.ElevationProfileControl());
 
@@ -101,18 +121,42 @@
         let entities = data.features.map((f) => createLabelEntity(
                 new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
                 f.properties["Feature Name"],
+                0,
+                0,
+                27 + 3,
                 "Ephesis-Regular",
-                21)
+                27)
         );
         mountains.setEntities(entities);
+    });
+
+    fetch("./craters.json").then((r) => r.json()).then((data) => {
+        let entities = data.features.map((f) => createLabelEntity(
+                new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
+                `${f.properties.name} ${f.properties.diameter} km`,
+                0,
+                0.12,
+                0,
+                "Karla-Medium",
+                18,
+                false,
+                "rgba(255,165,48,1.0)")
+        );
+        craters.setEntities(entities);
     });
 
     fetch("./lacus.json").then((r) => r.json()).then((data) => {
         let entities = data.features.map((f) => createLabelEntity(
                 new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
                 f.properties.name,
-                "Ephesis-Regular",
-                21)
+                0,
+                0,
+                26 + 3,
+                "Karla-Light",
+                26,
+                false,
+                "rgba(155,155,355,0.85)",
+                15000)
         );
         lacus.setEntities(entities);
     });
@@ -121,9 +165,14 @@
         let entities = data.features.map((f) => createLabelEntity(
                 new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
                 f.properties.description.toUpperCase(),
+                0.2,
+                0,
+                35 + 3,
                 "Karla-Light",
                 35,
-                false)
+                false,
+                "rgba(155,155,355,0.65)",
+                15000)
         );
         maria.setEntities(entities);
     });
@@ -132,9 +181,14 @@
         let entities = data.features.map((f) => createLabelEntity(
                 new LonLat(f.geometry.coordinates[0], f.geometry.coordinates[1]),
                 f.properties.name,
+                0,
+                0,
+                21 + 3,
                 "Karla-Italic",
-                18,
-                false)
+                21,
+                false,
+                "rgba(255,196,137,1.0)",
+                12000)
         );
         vallis.setEntities(entities);
     });
@@ -142,46 +196,55 @@
     function createLabelEntity(
             lonlat,
             text,
+            letterSpacing = 0,
+            outline = 0,
+            offsetY = 0,
             fontFace = "Ephesis-Regular",
             fontSize = 21,
             showSpin = true,
-            color = "white"
+            color = "white",
+            forceHeight
     ) {
         const ell = globe.planet.ellipsoid;
 
-        let ll = new LonLat(lonlat.lon, lonlat.lat, 15000);
+        let ll = new LonLat(lonlat.lon, lonlat.lat, forceHeight != undefined ? forceHeight : 15000);
 
         let res = new Entity({
             lonlat: ll,
             label: {
                 size: fontSize,
                 face: fontFace,
+                letterSpacing: letterSpacing,
+                outline: outline,
+                outlineColor: "rgba(0,0,0,0.89)",
                 text: text,
                 align: "center",
-                offset: [0, fontSize + 3],
+                offset: [0, offsetY],
                 color: color
             }
         });
 
-        highResTerrain.getHeightAsync(ll, (h) => {
+        if (!forceHeight) {
+            highResTerrain.getHeightAsync(ll, (h) => {
 
-            ll.height = h + 10000;
+                ll.height = h + 10000;
 
-            if (showSpin) {
-                let ray = new Entity({
-                    ray: {
-                        startPosition: ell.lonLatToCartesian(new LonLat(ll.lon, ll.lat, h)),
-                        endPosition: ell.lonLatToCartesian(ll),
-                        startColor: "white",
-                        endColor: "white",
-                        thickness: 3
-                    }
-                });
-                res.appendChild(ray);
-            }
+                if (showSpin) {
+                    let ray = new Entity({
+                        ray: {
+                            startPosition: ell.lonLatToCartesian(new LonLat(ll.lon, ll.lat, h)),
+                            endPosition: ell.lonLatToCartesian(ll),
+                            startColor: "white",
+                            endColor: "white",
+                            thickness: 3
+                        }
+                    });
+                    res.appendChild(ray);
+                }
 
-            res.setLonLat(ll);
-        });
+                res.setLonLat(ll);
+            });
+        }
 
         return res;
     }
