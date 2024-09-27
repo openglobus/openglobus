@@ -814,7 +814,9 @@ class Vector extends Layer {
             this._collectPolylineCollectionPASS(outArr);
             this._collectGeoObjectCollectionPASS(outArr);
 
-            this._entityCollectionsTreeStrategy!.collectVisibleEntityCollections(outArr);
+            if (this._entityCollectionsTreeStrategy) {
+                this._entityCollectionsTreeStrategy.collectVisibleEntityCollections(outArr);
+            }
         }
     }
 
