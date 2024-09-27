@@ -409,7 +409,7 @@ class Layer {
                 if (opacity > this._opacity) {
                     this._fadingFactor = (opacity - this._opacity) / FADING_RATIO;
                 } else if (opacity < this._opacity) {
-                    this._fadingFactor = (opacity - this._opacity) / FADING_RATIO;
+                    this._fadingFactor = (this._opacity - opacity) / FADING_RATIO;
                 }
             } else {
                 this._fadingOpacity = opacity;
