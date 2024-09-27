@@ -10,6 +10,7 @@ import {NumberArray3, Vec3} from "../math/Vec3";
 import {Planet} from "../scene/Planet";
 import {Material} from "./Material";
 import {NumberArray4} from "../math/Vec4";
+import * as mercator from "../mercator";
 
 export interface IVectorParams extends ILayerParams {
     entities?: Entity[] | IEntityParams[];
@@ -355,6 +356,13 @@ class Vector extends Layer {
                     );
                 } else {
                     entity._lonLat = this._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
+
+                    // IT's important event for degrees proj strategies
+                    if (Math.abs(entity._lonLat.lat) < mercator.MAX_LAT) {
+                        entity._lonLatMerc = entity._lonLat.forwardMercator();
+                    } else {
+                        entity._lonLatMerc.lon = entity._lonLatMerc.lat = entity._lonLatMerc.height = 0;
+                    }
                 }
             }
 
