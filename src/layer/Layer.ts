@@ -274,7 +274,7 @@ class Layer {
         this._fadingFactor = this._opacity / FADING_RATIO;
 
         if (this._fading) {
-            this._fadingOpacity = this._visibility ? this._opacity : 0.0;
+            this._fadingOpacity = 0;
         } else {
             this._fadingOpacity = this._opacity;
         }
