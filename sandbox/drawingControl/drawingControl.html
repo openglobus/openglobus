@@ -1,0 +1,54 @@
+﻿
+<html>
+
+<head>
+    <title>OpenStreetMap Base Layer</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="./drawingControl.js" type="module"></script>
+    <link rel="stylesheet" href="../../lib/@openglobus/og.css" type="text/css" />
+</head>
+
+<body>
+    <div id="earth" style="width:100%;height:100%"></div>
+    <script type="module" id="og-sandbox-script">
+import {
+    XYZ,
+    Globe,
+    Extent,
+    LonLat,
+    GlobusRgbTerrain,
+    control
+} from "../../lib/@openglobus/og.esm.js";
+
+let osm = new XYZ("osm", {
+    isBaseLayer: true,
+    url: "http://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    visibility: true,
+    attribution: 'Data @ OpenStreetMap contributors, ODbL',
+    maxNativeZoom: 19,
+    defaultTextures: [{ color: "#AAD3DF" }, { color: "#F2EFE9" }],
+    isSRGB: false,
+    shininess: 18,
+    specular: [0.00063, 0.00055, 0.00032],
+    ambient: [0.2, 0.2, 0.3],
+    diffuse: [0.9, 0.9, 0.7],
+});
+
+var globus = new Globe({
+    target: "earth",
+    name: "Earth",
+    maxAltitude: 15000000,
+    terrain: new GlobusRgbTerrain(),
+    layers: [osm],
+    resourcesSrc: "../../external/og/lib/@openglobus/res",
+    fontsSrc: "../../external/og/lib/@openglobus/res/fonts"
+});
+
+globus.planet.viewExtent(new Extent(new LonLat(158.31010, 54.45445), new LonLat(158.55687, 54.56659)));
+
+globus.planet.addControl(new control.DrawingSwitcher());
+</script>
+</body>
+
+</html>
