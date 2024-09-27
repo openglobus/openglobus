@@ -31,7 +31,7 @@ export interface IEntityParams {
     pointCloud?: PointCloud | IPointCloudParams;
     geometry?: Geometry | IGeometryParams;
     geoObject?: GeoObject | IGeoObjectParams;
-    strip?: Strip;
+    strip?: Strip | IStripParams;
     independentPicking?: boolean;
 }
 
