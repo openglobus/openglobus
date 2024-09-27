@@ -1,0 +1,197 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Vallis Alpes",
+                "description": "Latin name meaning 'Alpine valley'",
+                "length_km": 166,
+                "named_after": null
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    3.2,
+                    48.5
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Vallis Baade",
+                "description": "Named after Walter Baade",
+                "length_km": 203,
+                "named_after": "Baade"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -76.2,
+                    -45.9
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Vallis Bohr",
+                "description": "Named after Niels Bohr",
+                "length_km": 80,
+                "named_after": "Bohr"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -86.6,
+                    12.4
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Vallis Bouvard",
+                "description": "Named after Alexis Bouvard",
+                "length_km": 284,
+                "named_after": null
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -83.1,
+                    -38.3
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Vallis Capella",
+                "description": "Named after Martianus Capella",
+                "length_km": 49,
+                "named_after": "Capella"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    34.9,
+                    -7.6
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Vallis Inghirami",
+                "description": "Named after Giovanni Inghirami",
+                "length_km": 148,
+                "named_after": "Inghirami"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -72.2,
+                    -43.8
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Vallis Palitzsch",
+                "description": "Named after Johann Palitzsch",
+                "length_km": 132,
+                "named_after": "Palitzsch"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    64.3,
+                    -26.4
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Vallis Planck",
+                "description": "Named after Max Planck",
+                "length_km": 451,
+                "named_after": "Planck"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    126.1,
+                    -58.4
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Vallis Rheita",
+                "description": "Named after Anton Maria Schyrleus of Rheita",
+                "length_km": 445,
+                "named_after": "Rheita"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    51.5,
+                    -42.5
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Vallis Schr\u00f6dinger",
+                "description": "Named after Erwin Schr\u00f6dinger",
+                "length_km": 310,
+                "named_after": "Schr\u00f6dinger"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    105.0,
+                    -67.0
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Vallis Schr\u00f6teri",
+                "description": "Named after Johann Hieronymus Schr\u00f6ter",
+                "length_km": 168,
+                "named_after": "Schr\u00f6ter"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -50.8,
+                    26.2
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Vallis Snellius",
+                "description": "Named after Willebrord Snell",
+                "length_km": 592,
+                "named_after": "Snellius"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    56.0,
+                    -31.1
+                ]
+            }
+        }
+    ]
+}

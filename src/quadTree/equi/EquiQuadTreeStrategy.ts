@@ -1,34 +1,41 @@
-import * as quadTree from "../quadTree/quadTree";
-import {Extent} from "../Extent";
-import {EPSG4326} from "../proj/EPSG4326";
-import {Node} from "../quadTree/Node";
-import {Planet} from "../scene/Planet";
-import {SegmentLonLatWgs84} from "../segment/SegmentLonLatWgs84";
-import {QuadTreeStrategy} from "./QuadTreeStrategy";
-import {LonLat} from "../LonLat";
+import * as quadTree from "../quadTree";
+import {Extent} from "../../Extent";
+import {equi} from "../../proj/equi";
+import {Node} from "../Node";
+import {Planet} from "../../scene/Planet";
+import {SegmentLonLatEqui} from "../../segment/SegmentLonLatEqui";
+import {QuadTreeStrategy} from "../QuadTreeStrategy";
+import {LonLat} from "../../LonLat";
 import {
     getTileCellExtent,
     getTileCellIndex,
     TILEGROUP_COMMON
-} from "../segment/Segment";
-import * as mercator from "../mercator";
-
+} from "../../segment/Segment";
+import {Vector} from "../../layer/Vector";
+import {EntityCollectionsTreeStrategy} from "../EntityCollectionsTreeStrategy";
+import {EquiEntityCollectionsTreeStrategy} from "./EquiEntityCollectionsTreeStrategy";
 
 export class EquiQuadTreeStrategy extends QuadTreeStrategy {
 
     private _westExtent: Extent;
     private _eastExtent: Extent;
 
+    public _visibleNodesWest: Record<number, Node>;
+    public _visibleNodesEast: Record<number, Node>;
+
     constructor(planet: Planet) {
-        super(planet, "Mars", EPSG4326);
+        super(planet, "Mars", equi);
         this._westExtent = Extent.createFromArray([-180, -90, 0, 90]);
         this._eastExtent = Extent.createFromArray([0, -90, 180, 90]);
+
+        this._visibleNodesWest = {};
+        this._visibleNodesEast = {};
     }
 
     public override init() {
         this._quadTreeList = [
             new Node(
-                SegmentLonLatWgs84,
+                SegmentLonLatEqui,
                 this.planet,
                 0,
                 null,
@@ -36,7 +43,7 @@ export class EquiQuadTreeStrategy extends QuadTreeStrategy {
                 this._westExtent
             ),
             new Node(
-                SegmentLonLatWgs84,
+                SegmentLonLatEqui,
                 this.planet,
                 0,
                 null,
@@ -80,5 +87,23 @@ export class EquiQuadTreeStrategy extends QuadTreeStrategy {
             j = Math.floor((coords.lon - extent.southWest.lon) / sizeImgW);
 
         return [i, j];
+    }
+
+    public override createEntitiCollectionsTreeStrategy(layer: Vector, nodeCapacity: number): EntityCollectionsTreeStrategy {
+        return new EquiEntityCollectionsTreeStrategy(layer, nodeCapacity);
+    }
+
+    public override collectVisibleNode(node: Node) {
+        let ext = node.segment.getExtent();
+        if (ext.southWest.lon < 0) {
+            this._visibleNodesWest[node.nodeId] = node;
+        } else {
+            this._visibleNodesEast[node.nodeId] = node;
+        }
+    }
+
+    protected override _clearVisibleNodes() {
+        this._visibleNodesWest = {};
+        this._visibleNodesEast = {};
     }
 }

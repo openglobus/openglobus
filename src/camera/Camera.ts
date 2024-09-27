@@ -7,6 +7,7 @@ import {Renderer} from "../renderer/Renderer";
 import {Vec2, NumberArray2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
+import {Sphere} from "../bv/Sphere";
 
 type CameraEvents = ["viewchange", "moveend"];
 
@@ -656,6 +657,15 @@ class Camera {
 
     public getCurrentFrustum(): number {
         return this.currentFrustumIndex;
+    }
+
+    public containsSphere(sphere: Sphere): boolean {
+        for (let i = 0; i < this.frustums.length; i++) {
+            if (this.frustums[i].containsSphere(sphere)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public get frustum(): Frustum {

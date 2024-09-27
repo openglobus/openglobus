@@ -1,10 +1,10 @@
-import * as quadTree from "../quadTree/quadTree";
-import {Extent} from "../Extent";
-import {EPSG4326} from "../proj/EPSG4326";
-import {Node} from "../quadTree/Node";
-import {Planet} from "../scene/Planet";
-import {SegmentLonLatWgs84} from "../segment/SegmentLonLatWgs84";
-import {QuadTreeStrategy} from "./QuadTreeStrategy";
+import * as quadTree from "../quadTree";
+import {Extent} from "../../Extent";
+import {EPSG4326} from "../../proj/EPSG4326";
+import {Node} from "../Node";
+import {Planet} from "../../scene/Planet";
+import {SegmentLonLatEqui} from "../../segment/SegmentLonLatEqui";
+import {QuadTreeStrategy} from "../QuadTreeStrategy";
 
 export class Wgs84QuadTreeStrategy extends QuadTreeStrategy {
     constructor(planet: Planet) {
@@ -14,7 +14,7 @@ export class Wgs84QuadTreeStrategy extends QuadTreeStrategy {
     public override init() {
         this._quadTreeList = [
             new Node(
-                SegmentLonLatWgs84,
+                SegmentLonLatEqui,
                 this.planet,
                 0, null,
                 0,

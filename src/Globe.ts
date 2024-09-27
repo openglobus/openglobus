@@ -58,6 +58,8 @@ export interface IGlobeParams {
     fontsSrc?: string;
     resourcesSrc?: string;
     atmosphereParameters?: IAtmosphereParams;
+    gamma?: number;
+    exposure?: number;
 }
 
 const DEFAULT_NIGHT_SRC = `/night.png`;
@@ -118,6 +120,8 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {boolean} [options.atmosphereEnabled] - Enables atmosphere effect.
  * @param {boolean} [options.transtitionOpacityEnabled] - Enables terrain smooth opacity transition effect.
  * @param {IAtmosphereParams} [options.atmosphereParameters] - Atmosphere model parameters.
+ * @param {number} [options.gamma] - Gamma
+ * @param {number} [options.exposure] - Exposure
  */
 
 class Globe {
@@ -215,7 +219,9 @@ class Globe {
             }), {
                 autoActivate: false,
                 msaa: options.msaa,
-                fontsSrc: options.fontsSrc
+                fontsSrc: options.fontsSrc,
+                gamma: options.gamma,
+                exposure: options.exposure,
             }
         );
 
@@ -244,7 +250,7 @@ class Globe {
             maxLoadingRequests: options.maxLoadingRequests,
             atmosphereEnabled: options.atmosphereEnabled,
             transitionOpacityEnabled: options.transitionOpacityEnabled,
-            atmosphereParameters: options.atmosphereParameters
+            atmosphereParameters: options.atmosphereParameters,
         });
 
         // Attach terrain provider (can be one object or array)

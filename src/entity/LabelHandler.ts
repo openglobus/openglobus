@@ -415,7 +415,7 @@ class LabelHandler extends BaseBillboardHandler {
         label._isReady = false;
     }
 
-    public setText(index: number, text: string, fontIndex: number, align: number, isRTL: boolean = false) {
+    public setText(index: number, text: string, fontIndex: number, align: number, letterSpacing: number = 0, isRTL: boolean = false) {
 
         text = text.normalize('NFKC');
 
@@ -514,12 +514,12 @@ class LabelHandler extends BaseBillboardHandler {
             if (k && text[c + 1]) {
                 let kk = k[text[c + 1].charCodeAt(0)];
                 if (kk) {
-                    offset += m.nAdvance + kk;
+                    offset += m.nAdvance + kk + letterSpacing;
                 } else {
-                    offset += m.nAdvance;
+                    offset += m.nAdvance + letterSpacing;
                 }
             } else {
-                offset += m.nAdvance;
+                offset += m.nAdvance + letterSpacing;
             }
         }
 

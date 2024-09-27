@@ -106,17 +106,6 @@ class SegmentLonLat extends Segment {
     }
 
     /**
-     * @todo: replace to the strategy
-     */
-    public override _collectVisibleNodes() {
-        if (this._isNorth) {
-            this.planet._visibleNodesNorth[this.node.nodeId] = this.node;
-        } else {
-            this.planet._visibleNodesSouth[this.node.nodeId] = this.node;
-        }
-    }
-
-    /**
      * @param layer
      * @protected
      *

@@ -1,20 +1,13 @@
 import * as math from "../math";
-import * as mercator from "../mercator";
-import * as quadTree from "../quadTree/quadTree";
 import {Entity, IEntityParams} from "../entity/Entity";
 import {EntityCollection} from "../entity/EntityCollection";
-import {
-    EntityCollectionNode,
-    EntityCollectionNodeWGS84
-} from "../quadTree/EntityCollectionNode";
+import {EntityCollectionsTreeStrategy} from "../quadTree/EntityCollectionsTreeStrategy";
 import {EventsHandler} from "../Events";
-import {Extent} from "../Extent";
 import {GeometryHandler} from "../entity/GeometryHandler";
 import {IMouseState, ITouchState} from "../renderer/RendererEvents";
 import {ILayerParams, Layer, LayerEventsList} from "./Layer";
 import {NumberArray3, Vec3} from "../math/Vec3";
 import {Planet} from "../scene/Planet";
-import {QueueArray} from "../QueueArray";
 import {Material} from "./Material";
 import {NumberArray4} from "../math/Vec4";
 
@@ -120,6 +113,12 @@ class Vector extends Layer {
     public async: boolean;
 
     /**
+     * Maximum entities quantity in the tree node.
+     * @public
+     */
+    public _nodeCapacity: number;
+
+    /**
      * Clamp vector data to the ground.
      * @public
      * @type {boolean}
@@ -133,7 +132,6 @@ class Vector extends Layer {
      */
     public relativeToGround: boolean;
 
-
     /** todo: combine into one */
     protected _stripEntityCollection: EntityCollection;
     protected _polylineEntityCollection: EntityCollection;
@@ -141,27 +139,9 @@ class Vector extends Layer {
 
     public _geometryHandler: GeometryHandler;
 
-    /**
-     * Maximum entities quantity in the tree node.
-     * @public
-     */
-    public _nodeCapacity: number;
+    protected _entityCollectionsTreeStrategy: EntityCollectionsTreeStrategy | null;
 
-    /**
-     * @todo: remove, or replace with node strategy
-     */
-    protected _entityCollectionsTree: EntityCollectionNode | null;
-    protected _entityCollectionsTreeNorth: EntityCollectionNodeWGS84 | null;
-    protected _entityCollectionsTreeSouth: EntityCollectionNodeWGS84 | null;
-
-    public _renderingNodes: Record<number, boolean>;
-    public _renderingNodesNorth: Record<number, boolean>;
-    public _renderingNodesSouth: Record<number, boolean>;
-
-    protected _counter: number;
-    protected _deferredEntitiesPendingQueue: QueueArray<EntityCollectionNode>;
-
-    protected _pendingsQueue: Entity[];
+    //protected _pendingsQueue: Entity[];
 
     /**
      * Specifies the scale Units for gl.polygonOffset function to calculate depth values, 0.0 is default.
@@ -169,8 +149,6 @@ class Vector extends Layer {
      * @type {Number}
      */
     public polygonOffsetUnits: number;
-
-    public _secondPASS: EntityCollectionNode[];
 
     protected _labelMaxLetters: number;
 
@@ -212,8 +190,6 @@ class Vector extends Layer {
 
         this.relativeToGround = options.relativeToGround || false;
 
-        this._nodeCapacity = options.nodeCapacity || 30;
-
         this._entities = _entitiesConstructor(options.entities || []);
 
         this._labelMaxLetters = options.labelMaxLetters || 24;
@@ -236,26 +212,15 @@ class Vector extends Layer {
 
         this._geometryHandler = new GeometryHandler(this);
 
-        this._entityCollectionsTree = null;
-        this._entityCollectionsTreeNorth = null;
-        this._entityCollectionsTreeSouth = null;
+        this._nodeCapacity = options.nodeCapacity || 60;
 
-        this._renderingNodes = {};
-        this._renderingNodesNorth = {};
-        this._renderingNodesSouth = {};
-
-        this._counter = 0;
-        this._deferredEntitiesPendingQueue = new QueueArray<EntityCollectionNode>();
-
-        this._pendingsQueue = [];
+        this._entityCollectionsTreeStrategy = null;
 
         this.setEntities(this._entities);
 
         this.polygonOffsetUnits = options.polygonOffsetUnits != undefined ? options.polygonOffsetUnits : 0.0;
 
         this.pickingEnabled = this._pickingEnabled;
-
-        this._secondPASS = [];
     }
 
     public get useLighting(): boolean {
@@ -314,34 +279,6 @@ class Vector extends Layer {
     public getEntities(): Entity[] {
         return ([] as Entity[]).concat(this._entities);
     }
-
-    //_fitExtent(entity) {
-    //    var ee = entity.getExtent(),
-    //        e = this._extent,
-    //        maxLon = -180, maxLat = -90,
-    //        minLon = 180, minLat = 90;
-
-    //    if (this._entities.length !== 0) {
-    //        maxLon = e.southWest.lon;
-    //        minLon = e.northEast.lon;
-    //        maxLat = e.northEast.lat;
-    //        minLat = e.southWest.lat;
-    //    }
-
-    //    if (ee.southWest.lon < minLon) {
-    //        e.southWest.lon = ee.southWest.lon;
-    //    }
-    //    if (ee.southWest.lat < minLat) {
-    //        e.southWest.lat = ee.southWest.lat;
-    //    }
-    //    if (ee.northEast.lon > maxLon) {
-    //        e.northEast.lon = ee.northEast.lon;
-    //    }
-    //    if (ee.northEast.lat > maxLat) {
-    //        e.northEast.lat = ee.northEast.lat;
-    //    }
-    //    this.setExtent(this._extent);
-    //}
 
     /**
      * Adds entity to the layer.
@@ -410,8 +347,8 @@ class Vector extends Layer {
             }
         }
 
-        if (entity.billboard || entity.label || entity.geoObject || isEmpty) {
-            if (this._planet) {
+        if (this._planet) {
+            if (entity.billboard || entity.label || entity.geoObject || isEmpty) {
                 if (entity._cartesian.isZero() && !entity._lonLat.isZero()) {
                     entity._setCartesian3vSilent(
                         this._planet.ellipsoid.lonLatToCartesian(entity._lonLat)
@@ -419,18 +356,10 @@ class Vector extends Layer {
                 } else {
                     entity._lonLat = this._planet.ellipsoid.cartesianToLonLat(entity._cartesian);
                 }
+            }
 
-                // north tree
-                if (entity._lonLat.lat > mercator.MAX_LAT) {
-                    this._entityCollectionsTreeNorth!.__setLonLat__(entity);
-                    this._entityCollectionsTreeNorth!.insertEntity(entity, rightNow);
-                } else if (entity._lonLat.lat < mercator.MIN_LAT) {
-                    this._entityCollectionsTreeSouth!.__setLonLat__(entity);
-                    this._entityCollectionsTreeSouth!.insertEntity(entity, rightNow);
-                } else {
-                    this._entityCollectionsTree!.__setLonLat__(entity);
-                    this._entityCollectionsTree!.insertEntity(entity, rightNow);
-                }
+            if (entity.billboard || entity.label) {
+                this._entityCollectionsTreeStrategy?.insertEntity(entity);
             }
         }
 
@@ -512,11 +441,9 @@ class Vector extends Layer {
                 }
             }
 
-            if (entity.geometry) {
-                if (this._planet) {
-                    this._geometryHandler.remove(entity.geometry);
-                    this._planet.renderer!.clearPickingColor(entity);
-                }
+            if (this._planet && entity.geometry) {
+                this._geometryHandler.remove(entity.geometry);
+                this._planet.renderer!.clearPickingColor(entity);
             }
 
             entity._nodePtr = undefined;
@@ -533,29 +460,11 @@ class Vector extends Layer {
      * @param {boolean} picking - Picking enable flag.
      */
     public override set pickingEnabled(picking: boolean) {
-
         this._pickingEnabled = picking;
-
         this._stripEntityCollection.setPickingEnabled(picking);
-
         this._polylineEntityCollection.setPickingEnabled(picking);
-
         this._geoObjectEntityCollection.setPickingEnabled(picking);
-
-        /**
-         * todo: it must be in the quadtree strategy
-         */
-        this._entityCollectionsTree && this._entityCollectionsTree.traverseTree((node: EntityCollectionNode) => {
-            node.entityCollection!.setPickingEnabled(picking);
-        });
-
-        this._entityCollectionsTreeNorth && this._entityCollectionsTreeNorth.traverseTree((node: EntityCollectionNodeWGS84) => {
-            node.entityCollection!.setPickingEnabled(picking);
-        });
-
-        this._entityCollectionsTreeSouth && this._entityCollectionsTreeSouth.traverseTree((node: EntityCollectionNodeWGS84) => {
-            node.entityCollection!.setPickingEnabled(picking);
-        });
+        this._entityCollectionsTreeStrategy?.setPickingEnabled(picking);
     }
 
     /**
@@ -584,14 +493,8 @@ class Vector extends Layer {
         return this;
     }
 
-    // public setScaleByDistance(near, far, farInvisible) {
-    //     this.scaleByDistance[0] = near;
-    //     this.scaleByDistance[1] = far;
-    //     this.scaleByDistance[2] = farInvisible || math.MAX32;
-    // }
-
     /**
-     * TODO: Clear the layer.
+     * Clear the layer.
      * @public
      */
     public override clear() {
@@ -613,9 +516,8 @@ class Vector extends Layer {
             this._entities[i] = temp[i];
         }
 
-        this._entityCollectionsTree = null;
-        this._entityCollectionsTreeNorth = null;
-        this._entityCollectionsTreeSouth = null;
+        this._entityCollectionsTreeStrategy?.dispose();
+        this._entityCollectionsTreeStrategy = null;
         this._geometryHandler.clear()
     }
 
@@ -686,61 +588,15 @@ class Vector extends Layer {
         return this;
     }
 
-    /**
-     * @todo: replace to a strategy node collecting algorithm
-     */
     protected _createEntityCollectionsTree(entitiesForTree: Entity[]) {
-
         if (this._planet) {
-
-            this._entityCollectionsTree = new EntityCollectionNode(
-                this,
-                quadTree.NW,
-                null,
-                Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34]),
-                this._planet,
-                0
-            );
-
-            this._entityCollectionsTreeNorth = new EntityCollectionNodeWGS84(
-                this,
-                quadTree.NW,
-                null,
-                Extent.createFromArray([-180, mercator.MAX_LAT, 180, 90]),
-                this._planet,
-                0
-            );
-
-            this._entityCollectionsTreeSouth = new EntityCollectionNodeWGS84(
-                this,
-                quadTree.NW,
-                null,
-                Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT]),
-                this._planet,
-                0
-            );
-
-            for (let i = 0, len = entitiesForTree.length; i < len; i++) {
-                let entity = entitiesForTree[i];
-                // north tree
-                if (entity._lonLat.lat > mercator.MAX_LAT) {
-                    this._entityCollectionsTreeNorth.__setLonLat__(entity);
-                } else if (entity._lonLat.lat < mercator.MIN_LAT) {
-                    // south tree
-                    this._entityCollectionsTreeSouth.__setLonLat__(entity);
-                } else {
-                    this._entityCollectionsTree.__setLonLat__(entity);
-                }
-            }
-
-            this._entityCollectionsTree.buildTree(entitiesForTree);
-            this._entityCollectionsTreeNorth.buildTree(entitiesForTree);
-            this._entityCollectionsTreeSouth.buildTree(entitiesForTree);
+            this._entityCollectionsTreeStrategy = this._planet.quadTreeStrategy.createEntitiCollectionsTreeStrategy(this, this._nodeCapacity);
+            this._entityCollectionsTreeStrategy.insertEntities(entitiesForTree);
         }
     }
 
     /**
-     * @todo (refactoring) could be used in somethig like bindEntityCollectionQuad(...)
+     * @todo (refactoring) could be used in something like bindEntityCollectionQuad(...)
      * @param entityCollection
      */
     public _bindEventsDefault(entityCollection: EntityCollection) {
@@ -953,68 +809,13 @@ class Vector extends Layer {
             (this._fading && this._fadingOpacity > 0.0) ||
             (this.minZoom <= p.maxCurrZoom && this.maxZoom >= p.maxCurrZoom)
         ) {
-            this._renderingNodes = {};
-            this._renderingNodesNorth = {};
-            this._renderingNodesSouth = {};
-
             // Common collections first
             this._collectStripCollectionPASS(outArr);
             this._collectPolylineCollectionPASS(outArr);
             this._collectGeoObjectCollectionPASS(outArr);
 
-            // Merc nodes
-            this._secondPASS = [];
-            this._entityCollectionsTree && this._entityCollectionsTree.collectRenderCollectionsPASS1(p._visibleNodes, outArr);
-            let i = this._secondPASS.length;
-            while (i--) {
-                this._secondPASS[i].collectRenderCollectionsPASS2(p._visibleNodes, outArr, this._secondPASS[i].nodeId);
-            }
-
-            // North nodes
-            this._secondPASS = [];
-            this._entityCollectionsTreeNorth && this._entityCollectionsTreeNorth.collectRenderCollectionsPASS1(p._visibleNodesNorth, outArr);
-            i = this._secondPASS.length;
-            while (i--) {
-                this._secondPASS[i].collectRenderCollectionsPASS2(p._visibleNodesNorth, outArr, this._secondPASS[i].nodeId);
-            }
-
-            // South nodes
-            this._secondPASS = [];
-            this._entityCollectionsTreeSouth && this._entityCollectionsTreeSouth.collectRenderCollectionsPASS1(p._visibleNodesSouth, outArr);
-            i = this._secondPASS.length;
-            while (i--) {
-                this._secondPASS[i].collectRenderCollectionsPASS2(p._visibleNodesSouth, outArr, this._secondPASS[i].nodeId);
-            }
+            this._entityCollectionsTreeStrategy!.collectVisibleEntityCollections(outArr);
         }
-    }
-
-    public _queueDeferredNode(node: EntityCollectionNode) {
-        if (this._visibility) {
-            node._inTheQueue = true;
-            if (this._counter >= 1) {
-                this._deferredEntitiesPendingQueue.push(node);
-            } else {
-                this._execDeferredNode(node);
-            }
-        }
-    }
-
-    protected _execDeferredNode(node: EntityCollectionNode) {
-        this._counter++;
-        requestAnimationFrame(() => {
-            node.applyCollection();
-            this._counter--;
-            if (this._deferredEntitiesPendingQueue.length && this._counter < 1) {
-                while (this._deferredEntitiesPendingQueue.length) {
-                    let n = this._deferredEntitiesPendingQueue.pop()!;
-                    n._inTheQueue = false;
-                    if (n.isVisible()) {
-                        this._execDeferredNode(n);
-                        return;
-                    }
-                }
-            }
-        });
     }
 
     /**

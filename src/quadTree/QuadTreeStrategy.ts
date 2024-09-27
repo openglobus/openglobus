@@ -1,12 +1,13 @@
 import {EPSG3857} from "../proj/EPSG3857";
 import {Layer} from "../layer/Layer";
+import {Vector} from "../layer/Vector";
 import {Node} from "../quadTree/Node";
 import {Planet} from "../scene/Planet";
 import {Proj} from "../proj/Proj";
 import {LonLat} from "../LonLat";
 import {getTileCellExtent, getTileCellIndex, TILEGROUP_COMMON} from "../segment/Segment";
 import {Extent} from "../Extent";
-import * as mercator from "../mercator";
+import {EntityCollectionsTreeStrategy} from "./EntityCollectionsTreeStrategy";
 
 export class QuadTreeStrategy {
     public name: string;
@@ -20,11 +21,23 @@ export class QuadTreeStrategy {
      */
     protected _quadTreeList: Node[];
 
+    /**
+     * Current visible mercator segments tree nodes array.
+     * @public
+     * @type {Node}
+     */
+    public _visibleNodes: Record<number, Node>;
+
     constructor(planet: Planet, name: string = "", proj: Proj = EPSG3857) {
         this.name = name;
         this.projection = proj;
         this._planet = planet;
         this._quadTreeList = [];
+        this._visibleNodes = {};
+    }
+
+    public createEntitiCollectionsTreeStrategy(layer: Vector, nodeCapacity: number): EntityCollectionsTreeStrategy {
+        return new EntityCollectionsTreeStrategy(layer, nodeCapacity);
     }
 
     public destroyBranches() {
@@ -86,7 +99,12 @@ export class QuadTreeStrategy {
         }
     }
 
+    protected _clearVisibleNodes() {
+        this._visibleNodes = {};
+    }
+
     public collectRenderNodes() {
+        this._clearVisibleNodes();
         for (let i = 0; i < this._quadTreeList.length; i++) {
             this._quadTreeList[i].renderTree(this._planet.camera, 0, null);
         }
@@ -130,4 +148,7 @@ export class QuadTreeStrategy {
         return [i, j];
     }
 
+    public collectVisibleNode(node: Node) {
+        this._visibleNodes[node.nodeId] = node;
+    }
 }

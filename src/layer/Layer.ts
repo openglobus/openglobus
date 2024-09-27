@@ -12,7 +12,7 @@ import {Vec3, NumberArray3} from "../math/Vec3";
 import {NumberArray4} from "../math/Vec4";
 import {IDefaultTextureParams, WebGLTextureExt} from "../webgl/Handler";
 
-const FADING_RATIO = 15.8;
+const FADING_RATIO = 30;
 
 export interface ILayerParams {
     properties?: any;
@@ -409,7 +409,7 @@ class Layer {
                 if (opacity > this._opacity) {
                     this._fadingFactor = (opacity - this._opacity) / FADING_RATIO;
                 } else if (opacity < this._opacity) {
-                    this._fadingFactor = (opacity - this._opacity) / FADING_RATIO;
+                    this._fadingFactor = (this._opacity - opacity) / FADING_RATIO;
                 }
             } else {
                 this._fadingOpacity = opacity;
@@ -863,8 +863,11 @@ class Layer {
 
             return false;
         } else {
-            this._fadingOpacity = 0.0;
-            return !this._visibility;
+            this._fadingOpacity -= this._fadingFactor;
+            if (this._fadingOpacity <= 0) {
+                this._fadingOpacity = 0.0;
+            }
+            return false;
         }
     }
 

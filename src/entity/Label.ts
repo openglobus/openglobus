@@ -14,6 +14,7 @@ export interface ILabelParams extends IBaseBillboardParams {
     outlineColor?: string | NumberArray4 | Vec4;
     align?: string;
     isRTL?: boolean;
+    letterSpacing?: number;
 }
 
 const ALIGN: Record<string, number> = {
@@ -115,6 +116,8 @@ class Label extends BaseBillboard {
 
     protected _isRTL: boolean;
 
+    protected _letterSpacing: number;
+
     constructor(options: ILabelParams = {}) {
         super(options);
 
@@ -140,6 +143,8 @@ class Label extends BaseBillboard {
         this._fontAtlas = null;
 
         this._isRTL = options.isRTL || false;
+
+        this._letterSpacing = options.letterSpacing || 0;
     }
 
     /**
@@ -151,9 +156,31 @@ class Label extends BaseBillboard {
     public setText(text: string) {
         this._text = text.toString();
         if (this._isReady && this._handler) {
-            this._handler.setText(this._handlerIndex, text, this._fontIndex, this._align, this._isRTL);
+            this._handler.setText(this._handlerIndex, text, this._fontIndex, this._align, this._letterSpacing, this._isRTL);
         }
     }
+
+    /**
+     * Set text letter spacing.
+     * @public
+     * @param {number} spacing - Letter spacing.
+     */
+    public setLetterSpacing(letterSpacing: number) {
+        this._letterSpacing = letterSpacing;
+        if (this._isReady && this._handler) {
+            this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align, letterSpacing, this._isRTL);
+        }
+    }
+
+    /**
+     * Returns label text letter spacing.
+     * @public
+     * @param {number} spacing - Letter spacing.
+     */
+    public getLetterSpacing(): number {
+        return this._letterSpacing;
+    }
+
     /**
      * Change text direction.
      * @public
@@ -162,7 +189,7 @@ class Label extends BaseBillboard {
     public setRtl(isRTL: boolean) {
         this._isRTL = isRTL;
         if (this._isReady && this._handler) {
-            this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align, this._isRTL);
+            this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align, this._letterSpacing, this._isRTL);
         }
     }
 
@@ -183,7 +210,7 @@ class Label extends BaseBillboard {
     public setAlign(align: string) {
         this._align = STR2ALIGN[align.trim().toLowerCase()] as number;
         if (this._isReady && this._handler) {
-            this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align, this._isRTL);
+            this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align, this._letterSpacing, this._isRTL);
         } else if (this._lockId !== LOCK_FREE) {
             this._lockId = LOCK_UPDATE;
         }
@@ -364,7 +391,7 @@ class Label extends BaseBillboard {
         this._fontIndex = fontIndex;
         if (this._isReady && this._handler) {
             this._handler.setFontIndexArr(this._handlerIndex, this._fontIndex);
-            this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align, this._isRTL);
+            this._handler.setText(this._handlerIndex, this._text, this._fontIndex, this._align, this._letterSpacing, this._isRTL);
         } else if (this._lockId !== LOCK_FREE) {
             this._lockId = LOCK_UPDATE;
         }
@@ -383,7 +410,7 @@ class Label extends BaseBillboard {
     }
 
     public override serializeWorkerData(workerId: number): Float32Array | null {
-        if(this._handler) {
+        if (this._handler) {
             return new Float32Array([
                 /*0*/workerId,
                 /*1*/this._handler!._maxLetters,

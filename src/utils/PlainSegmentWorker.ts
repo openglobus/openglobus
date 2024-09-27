@@ -1,5 +1,6 @@
 // import { QueueArray } from '../QueueArray.js';
 import {EPSG4326} from "../proj/EPSG4326";
+import {equi} from "../proj/equi";
 import {BaseWorker} from "./BaseWorker";
 import {Segment} from "../segment/Segment";
 import {Geoid} from "../terrain/Geoid";
@@ -83,9 +84,11 @@ class PlainSegmentWorker extends BaseWorker<Segment> {
 
                 this._source.set(this._sourceId, segment);
 
+                let isLonLat = (segment._projection.id === EPSG4326.id || segment._projection.id === equi.id) ? 1.0 : 0.0;
+
                 let params = new Float64Array([
                     this._sourceId,
-                    segment._projection.id === EPSG4326.id ? 1.0 : 0.0,
+                    isLonLat,
                     segment.planet.terrain!.gridSizeByZoom[segment.tileZoom],
                     segment.planet.terrain!.plainGridSize,
                     segment._extent.southWest.lon,

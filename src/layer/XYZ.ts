@@ -172,7 +172,7 @@ export class XYZ extends Layer {
     }
 
     public _checkSegment(segment: Segment) {
-        return segment._projection.id === this._planet!.quadTreeStrategy.projection.id;// EPSG4326.id;// EPSG3857.id;
+        return segment._projection.id === this._planet!.quadTreeStrategy.projection.id;
     }
 
     /**

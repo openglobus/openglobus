@@ -16,6 +16,17 @@ export interface IRgbTerrainParams extends IGlobusTerrainParams {
     resolution?: number;
 }
 
+/**
+ * @class
+ * @extends {GlobusTerrain}
+ * @param {string} [name=""] - Terrain provider name.
+ * @param {IRgbTerrainParams} [options]:
+ * @param {boolean} [equalizeNormals=true] - Make normal equalization on the edges of the tiles.
+ * @param {string} [key=""] - API key.
+ * @param {number} [imageSize=256] - Image size.
+ * @param {number} [minHeight=-10000] - Minimal height for rgb to height converter.
+ * @param {number} [resolution=0.1] - Height converter resolution.
+ */
 class RgbTerrain extends GlobusTerrain {
 
     protected _imageSize: number;
