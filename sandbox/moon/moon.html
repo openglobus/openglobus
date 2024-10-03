@@ -25,8 +25,27 @@
         moon,
         Entity,
         Vector,
-        LonLat
+        LonLat,
+        GeoImage
     } from "../../lib/@openglobus/og.esm.js";
+
+    //23.47297, 0.67408
+    let img = new GeoImage("appolo11", {
+        src: "appolo11.jpg",
+        corners: [[23.467865481959162, 0.6815705372693073], [23.500267995336845, 0.6809434352018111], [23.50129015125243, 0.6622480587716235], [23.467409762757814, 0.6615124379470941]],
+        visibility: true,
+        isBaseLayer: false,
+        attribution: '<a href="https://airandspace.si.edu/explore/stories/apollo-11-moon-landing">https://airandspace.si.edu/explore/stories/apollo-11-moon-landing</a>',
+        opacity: 0.8
+    });
+
+    let boot = new GeoImage("appolo11-bootprint", {
+        src: "Apollo_11_bootprint.jpg",
+        corners: [[23.472863189869507,0.6741820158147549],[23.472875965256673,0.6742034484125434],[23.47289972371483,0.6741897726836334],[23.47288761783829,0.6741678165041379]],
+        visibility: true,
+        isBaseLayer: false,
+        opacity: 1.0
+    });
 
     const mountains = new Vector("Mountains", {
         fading: true,
@@ -94,7 +113,10 @@
         resolution: 0.1021,
         gridSizeByZoom: [
             64, 32, 16, 16, 32, 64, 64, 32, 16, 8, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2
-        ]
+        ],
+        // gridSizeByZoom: [
+        //     64, 32, 16, 16, 32, 64, 64, 32,
+        // ]
     });
 
     window.globe = new Globe({
@@ -104,21 +126,25 @@
         target: "globus",
         maxAltitude: 5841727,
         terrain: highResTerrain,
-        layers: [sat, sat2, appoloSat, mountains, craters, maria, vallis, lacus],
+        layers: [sat, sat2, boot, appoloSat, mountains, craters, maria, vallis, lacus],
         nightTextureSrc: null,
         specularTextureSrc: null,
         atmosphereEnabled: false,
         gamma: 1.25,
         exposure: 2.195,
         fontsSrc: "./fonts",
-        sun: {
-            stopped: true
-        }
+        //minAltitude: 0.1,
+        //frustums: [[0.1, 1.1], [1, 100 + 0.075], [100, 1000 + 0.075], [1000, 1e6 + 10000], [1e6, 1e9]]
+        // sun: {
+        //     stopped: true
+        // }
     });
 
     globe.planet.addControl(new control.TimelineControl());
     globe.planet.addControl(new control.LayerSwitcher());
     globe.planet.addControl(new control.ElevationProfileControl());
+    globe.planet.addControl(new control.KeyboardNavigation());
+    globe.planet.addControl(new control.GeoImageDragControl());
 
     globe.planet.renderer.controls.SimpleSkyBackground.colorOne = "rgb(0, 0, 0)";
     globe.planet.renderer.controls.SimpleSkyBackground.colorTwo = "rgb(0, 0, 0)";
