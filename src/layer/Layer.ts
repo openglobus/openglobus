@@ -743,7 +743,6 @@ class Layer {
             for (let i = 0, len = p.quadTreeStrategy.quadTreeList.length; i < len; i++) {
                 this._preLoadRecursive(p.quadTreeStrategy.quadTreeList[i], maxZoom);
             }
-
         }
     }
 
@@ -876,31 +875,7 @@ class Layer {
     }
 
     public redraw() {
-        if (this._planet) {
-
-            this._planet.quadTreeStrategy.clearLayerMaterial(this);
-
-            // this._planet._quadTree.traverseTree((n: Node) => {
-            //         if (n.segment.materials[this.__id]) {
-            //             n.segment.materials[this.__id].clear();
-            //         }
-            //     }
-            // );
-            //
-            // this._planet._quadTreeNorth.traverseTree((n: Node) => {
-            //         if (n.segment.materials[this.__id]) {
-            //             n.segment.materials[this.__id].clear();
-            //         }
-            //     }
-            // );
-            //
-            // this._planet._quadTreeSouth.traverseTree((n: Node) => {
-            //         if (n.segment.materials[this.__id]) {
-            //             n.segment.materials[this.__id].clear();
-            //         }
-            //     }
-            // );
-        }
+        this._planet?.quadTreeStrategy.clearLayerMaterial(this);
     }
 
     public abortMaterialLoading(material: Material) {

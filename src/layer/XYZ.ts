@@ -225,7 +225,6 @@ export class XYZ extends Layer {
                             }
                         }
                     }
-                    //,this.__id
                 );
             } else {
                 material.textureNotExists();
@@ -371,13 +370,14 @@ export class XYZ extends Layer {
             em.southWest.lon = -ENLARGE_MERCATOR_LON;
         }
 
-        if (e.northEast.lat >= mercator.MAX_LAT) {
-            e.northEast.lat = mercator.MAX_LAT;
-        }
-
-        if (e.northEast.lat <= mercator.MIN_LAT) {
-            e.northEast.lat = mercator.MIN_LAT;
-        }
+        // WHY!???
+        // if (e.northEast.lat >= mercator.MAX_LAT) {
+        //     e.northEast.lat = mercator.MAX_LAT;
+        // }
+        //
+        // if (e.northEast.lat <= mercator.MIN_LAT) {
+        //     e.northEast.lat = mercator.MIN_LAT;
+        // }
     }
 }
 

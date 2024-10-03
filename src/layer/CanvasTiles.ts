@@ -139,16 +139,6 @@ class CanvasTiles extends Layer {
      * @public
      */
     public override abortLoading() {
-        //const q = this._pendingsQueue;
-        // for (let i = q._shiftIndex + 1; i < q._popIndex + 1; i++) {
-        //     if (q._array[i]) {
-        //         this.abortMaterialLoading(q._array[i]);
-        //     }
-        // }
-        // this._pendingsQueue.clear();
-        // for (let i = 0; i < q.length; i++) {
-        //     this.abortMaterialLoading(q[i]);
-        // }
         this._pendingsQueue.forEach((qi: Material) => {
             this.abortMaterialLoading(qi);
         })
@@ -180,7 +170,7 @@ class CanvasTiles extends Layer {
         let seg = material.segment;
 
         if (this._isBaseLayer) {
-            material.texture = seg._isNorth ? seg.planet.solidTextureOne : seg.planet.solidTextureTwo;
+            material.texture = seg.getDefaultTexture();
         } else {
             material.texture = seg.planet.transparentTexture;
         }
