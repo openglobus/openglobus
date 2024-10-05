@@ -75,7 +75,7 @@
     });
 
     const sat = new XYZ("moon", {
-        isBaseLayer: true,
+        isBaseLayer: false,
         url: "https://{s}.terrain.openglobus.org/moon/sat/{z}/{x}/{y}.png",
         visibility: true,
         maxNativeZoom: 10,
@@ -145,6 +145,7 @@
     globe.planet.addControl(new control.ElevationProfileControl());
     globe.planet.addControl(new control.KeyboardNavigation());
     globe.planet.addControl(new control.GeoImageDragControl());
+    globe.planet.addControl(new control.DebugInfo());
 
     globe.planet.renderer.controls.SimpleSkyBackground.colorOne = "rgb(0, 0, 0)";
     globe.planet.renderer.controls.SimpleSkyBackground.colorTwo = "rgb(0, 0, 0)";
