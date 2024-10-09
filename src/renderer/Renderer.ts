@@ -905,30 +905,10 @@ class Renderer {
     }
 
     /**
-     * Draws opaque items entity collections.
-     * @protected
-     */
-    protected _drawOpaqueEntityCollections() {
-        let ec = this._entityCollections;
-
-        if (ec.length) {
-
-            this.enableBlendDefault();
-
-            // pointClouds pass
-            let i = ec.length;
-            while (i--) {
-                ec[i]._fadingOpacity && ec[i].pointCloudHandler.draw();
-            }
-        }
-    }
-
-
-    /**
      * Draws transparent items entity collections.
      * @protected
      */
-    protected _drawTransparentEntityCollections() {
+    protected _drawEntityCollections() {
         let ec = this._entityCollections;
 
         if (ec.length) {
@@ -936,8 +916,14 @@ class Renderer {
 
             this.enableBlendDefault();
 
-            // GeoObjects
+            // Point Clouds
             let i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].pointCloudHandler.draw();
+            }
+
+            // GeoObjects
+            i = ec.length;
             while (i--) {
                 let eci = ec[i];
                 if (ec[i]._fadingOpacity) {
@@ -1034,15 +1020,13 @@ class Renderer {
                 rn[i].preDrawNode();
             }
 
-            this._drawOpaqueEntityCollections();
-
             i = rn.length;
             while (i--) {
                 this.enableBlendDefault();
                 rn[i].drawNode();
             }
 
-            this._drawTransparentEntityCollections();
+            this._drawEntityCollections();
             this._clearEntityCollectionQueue();
 
             e.dispatch(e.drawtransparent, this);

@@ -6,8 +6,9 @@ import {Planet} from "../scene/Planet";
 import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 import {Quat} from "../math/Quat";
-import {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
+import {WebGLBufferExt, WebGLContextExt, WebGLTextureExt} from "../webgl/Handler";
 import {Object3d} from "../Object3d";
+import {Program} from "../webgl/Program";
 
 const VERTEX_BUFFER = 0;
 const POSITION_BUFFER = 1;
@@ -28,14 +29,6 @@ function setParametersToArray(arr: number[] | TypedArray, index: number = 0, len
     }
     return arr;
 }
-
-// function setParametersToArrayArr(arr: number[] | TypedArray, index: number = 0, length: number = 0, itemSize: number = 1, paramsArr: number[]): number[] | TypedArray {
-//     const currIndex = index * length;
-//     for (let i = currIndex, len = currIndex + length; i < len; i++) {
-//         arr[i] = paramsArr[i % itemSize];
-//     }
-//     return arr;
-// }
 
 class InstanceData {
 
@@ -134,6 +127,98 @@ class InstanceData {
         this._buffersUpdateCallbacks[TRANSLATE_BUFFER] = this.createTranslateBuffer;
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
+    }
+
+    //
+    //  Instance individual data
+    //
+    public drawOpaque(p: Program) {
+
+        let gl = p.gl!,
+            u = p.uniforms,
+            a = p.attributes;
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._qRotBuffer!);
+        gl.vertexAttribPointer(a.qRot, this._qRotBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer!);
+        gl.vertexAttribPointer(a.aScale, this._sizeBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._translateBuffer!);
+        gl.vertexAttribPointer(a.aTranslate, this._translateBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._visibleBuffer!);
+        gl.vertexAttribPointer(a.aDispose, this._visibleBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.uniform1f(u.uUseTexture, this._texture ? 1 : 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer!);
+        gl.vertexAttribPointer(a.aColor, this._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        this._drawElementsInstanced(p);
+    }
+
+    //
+    //  Instance individual data
+    //
+    public drawTransparent(p: Program) {
+
+        let gl = p.gl!,
+            u = p.uniforms,
+            a = p.attributes;
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._qRotBuffer!);
+        gl.vertexAttribPointer(a.qRot, this._qRotBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._sizeBuffer!);
+        gl.vertexAttribPointer(a.aScale, this._sizeBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._translateBuffer!);
+        gl.vertexAttribPointer(a.aTranslate, this._translateBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._visibleBuffer!);
+        gl.vertexAttribPointer(a.aDispose, this._visibleBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.uniform1f(u.uUseTexture, this._texture ? 1 : 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer!);
+        gl.vertexAttribPointer(a.aColor, this._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        this._drawElementsInstanced(p);
+    }
+
+    //
+    // Instance common data(could be in VAO)
+    //
+    protected _drawElementsInstanced(p: Program) {
+
+        let gl = p.gl!,
+            u = p.uniforms,
+            a = p.attributes;
+
+        let r = this._geoObjectHandler!._planet!.renderer!;
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer!);
+        gl.vertexAttribPointer(a.aPositionHigh, this._positionHighBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer!);
+        gl.vertexAttribPointer(a.aPositionLow, this._positionLowBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._normalsBuffer!);
+        gl.vertexAttribPointer(a.aVertexNormal, this._normalsBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer!);
+        gl.vertexAttribPointer(a.aVertexPosition, this._vertexBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this._texture || r.handler.defaultTexture);
+        gl.uniform1i(u.uTexture, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer!);
+        gl.vertexAttribPointer(a.aTexCoord, this._texCoordBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer!);
+        p.drawElementsInstanced!(gl.TRIANGLES, this._indicesBuffer!.numItems, gl.UNSIGNED_INT, 0, this.numInstances);
     }
 
     public createTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
@@ -547,22 +632,18 @@ class GeoObjectHandler {
         tagData._translateArr = concatArrays(tagData._translateArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
     }
 
-    public _displayPASS() {
+    //
+    // Could be in VAO
+    //
+    protected _bindCommon() {
+
         let r = this._planet!.renderer!,
             sh = r.handler.programs.geo_object,
             p = sh._program,
             u = p.uniforms,
-            a = p.attributes,
             gl = r.handler.gl!,
             ec = this._entityCollection;
 
-        sh.activate();
-
-        //gl.disable(gl.CULL_FACE);
-
-        //
-        // Could be in VAO
-        //
         gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
         gl.uniform1f(u.useLighting, ec._useLighting);
 
@@ -575,55 +656,37 @@ class GeoObjectHandler {
         gl.uniform3fv(u.lightsPositions, this._planet!._lightsPositions);
         gl.uniform3fv(u.lightsParamsv, this._planet!._lightsParamsv);
         gl.uniform1fv(u.lightsParamsf, this._planet!._lightsParamsf);
+    }
 
+    public _displayOpaquePASS() {
+        let r = this._planet!.renderer!,
+            sh = r.handler.programs.geo_object,
+            p = sh._program;
+
+        sh.activate();
+
+        //gl.disable(gl.CULL_FACE);
+
+        this._bindCommon();
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
-            let tagData = this._instanceDataMapValues[i];
+            this._instanceDataMapValues[i].drawOpaque(p);
+        }
+    }
 
-            //
-            //  Instance individual data
-            //
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._qRotBuffer!);
-            gl.vertexAttribPointer(a.qRot, tagData._qRotBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+    public _displayTransparentPASS() {
+        let r = this._planet!.renderer!,
+            sh = r.handler.programs.geo_object,
+            p = sh._program;
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._sizeBuffer!);
-            gl.vertexAttribPointer(a.aScale, tagData._sizeBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+        sh.activate();
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._translateBuffer!);
-            gl.vertexAttribPointer(a.aTranslate, tagData._translateBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+        //gl.disable(gl.CULL_FACE);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._rgbaBuffer!);
-            gl.vertexAttribPointer(a.aColor, tagData._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+        this._bindCommon();
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._visibleBuffer!);
-            gl.vertexAttribPointer(a.aDispose, tagData._visibleBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-
-            gl.uniform1f(u.uUseTexture, tagData._texture ? 1 : 0);
-
-            //
-            // Instance common data(could be in VAO)
-            //
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._positionHighBuffer!);
-            gl.vertexAttribPointer(a.aPositionHigh, tagData._positionHighBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._positionLowBuffer!);
-            gl.vertexAttribPointer(a.aPositionLow, tagData._positionLowBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._normalsBuffer!);
-            gl.vertexAttribPointer(a.aVertexNormal, tagData._normalsBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._vertexBuffer!);
-            gl.vertexAttribPointer(a.aVertexPosition, tagData._vertexBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, (tagData._texture || r.handler.defaultTexture)!);
-            gl.uniform1i(u.uTexture, 0);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._texCoordBuffer!);
-            gl.vertexAttribPointer(a.aTexCoord, tagData._texCoordBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer!);
-            p.drawElementsInstanced!(gl.TRIANGLES, tagData._indicesBuffer!.numItems, gl.UNSIGNED_INT, 0, tagData.numInstances);
+        for (let i = 0; i < this._instanceDataMapValues.length; i++) {
+            this._instanceDataMapValues[i].drawTransparent(p);
         }
     }
 
@@ -646,12 +709,9 @@ class GeoObjectHandler {
         sh.activate();
 
         gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
-
         gl.uniform3fv(u.pickingScale, ec.pickingScale);
-
         gl.uniform3fv(u.eyePositionHigh, r.activeCamera!.eyeHigh);
         gl.uniform3fv(u.eyePositionLow, r.activeCamera!.eyeLow);
-
         gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera!.getViewMatrix());
 
@@ -793,7 +853,13 @@ class GeoObjectHandler {
     public draw() {
         if (this._geoObjects.length) {
             this.update();
-            this._displayPASS();
+            this._displayOpaquePASS();
+        }
+    }
+
+    public drawTransparent() {
+        if (this._geoObjects.length) {
+            this._displayTransparentPASS();
         }
     }
 
