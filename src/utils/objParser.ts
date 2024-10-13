@@ -114,16 +114,12 @@ export function objParser(text: string) {
         s: () => {
         },
         mtllib(parts: string[], unparsedArgs: string) {
-            console.log("**** mtlib *****");
-            console.warn(parts, unparsedArgs);
             // the spec says there can be multiple filenames here
             // but many exist with spaces in a single filename
             materialLibs.push(unparsedArgs);
         },
         usemtl(parts: string[], unparsedArgs: string) {
             material = unparsedArgs;
-            console.log("**** usemtl *****");
-            console.warn(parts, unparsedArgs);
             newGeometry();
         },
         g(parts: string[]) {
@@ -199,7 +195,7 @@ export function transformLeftToRightCoordinateSystem(objData: IObjData): {
             const x = normals[i];
             const y = normals[i + 1];
             const z = normals[i + 2];
-            convertedNormals.push(x, y, z);
+            convertedNormals.push(x, y, -z);
         }
 
         // Convert textures
