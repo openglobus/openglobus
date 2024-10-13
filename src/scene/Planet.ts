@@ -637,9 +637,13 @@ export class Planet extends RenderNode {
         return this.layers;
     }
 
+    public get sun(): Sun | undefined {
+        if (this.renderer && this.renderer.controls.sun)
+            return this.renderer.controls.sun as Sun;
+    }
 
     public get sunPos(): Vec3 {
-        return (this.renderer!.controls.sun as Sun).sunlight.getPosition();
+        return this.sun!.sunlight.getPosition();
     }
 
     /**

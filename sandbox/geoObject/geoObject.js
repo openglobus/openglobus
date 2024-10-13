@@ -40,18 +40,18 @@ async function main() {
     let sat = new Bing();
     let osm = new OpenStreetMap();
 
-    const dock = await Object3d.loadObj('./dockxxx.obj');
-    const crane = await Object3d.loadObj('./crane.obj');
+    const dock = await Object3d.loadObj('./dock.obj');
+    const crane = await Object3d.loadObj('./crane2.obj');
 
-    document.querySelector(".gpitch").addEventListener("input", (e) => {
-        setPitch(Number(e.target.value));
-    });
-    document.querySelector(".gyaw").addEventListener("input", (e) => {
-        setYaw(Number(e.target.value));
-    });
-    document.querySelector(".groll").addEventListener("input", (e) => {
-        setRoll(Number(e.target.value));
-    });
+    // document.querySelector(".gpitch").addEventListener("input", (e) => {
+    //     setPitch(Number(e.target.value));
+    // });
+    // document.querySelector(".gyaw").addEventListener("input", (e) => {
+    //     setYaw(Number(e.target.value));
+    // });
+    // document.querySelector(".groll").addEventListener("input", (e) => {
+    //     setRoll(Number(e.target.value));
+    // });
 
     for (let i = 0; i < dock.length; i++) {
         dockLayer.add(new Entity({
@@ -70,26 +70,100 @@ async function main() {
 
 
     for (let i = 0; i < crane.length; i++) {
-        cranesLayer.add(new Entity({
+
+        let c1 = new Entity({
             lonlat: [33.2017379, 69.0821338, 19],
             geoObject: {
                 color: "white",
-                scale: 3.0,
+                scale: 4.0,
                 instanced: true,
                 tag: `crane-${i}`,
                 object3d: crane[i],
-                yaw: -52,
+                yaw: 87,
                 pitch: 0
             }
-        }));
+        });
+
+        let c2 = new Entity({
+            lonlat: [33.2037625, 69.0814592, 24],
+            geoObject: {
+                color: "white",
+                scale: 4.0,
+                instanced: true,
+                tag: `crane-${i}`,
+                object3d: crane[i],
+                yaw: 24,
+                pitch: 0
+            }
+        });
+
+        let c3 = new Entity({
+            lonlat: [33.2045480, 69.0818760, 20],
+            geoObject: {
+                color: "white",
+                scale: 4.0,
+                instanced: true,
+                tag: `crane-${i}`,
+                object3d: crane[i],
+                yaw: -95,
+                pitch: 0
+            }
+        });
+
+        let c4 = new Entity({
+            lonlat: [33.2024654, 69.0824443, 21],
+            geoObject: {
+                color: "white",
+                scale: 4.0,
+                instanced: true,
+                tag: `crane-${i}`,
+                object3d: crane[i],
+                yaw: -160,
+                pitch: 0
+            }
+        });
+
+        let c5 = new Entity({
+            lonlat: [33.2027773, 69.0817816, 21],
+            geoObject: {
+                color: "white",
+                scale: 4.0,
+                instanced: true,
+                tag: `crane-${i}`,
+                object3d: crane[i],
+                yaw: 42,
+                pitch: 0
+            }
+        });
+
+        let c6 = new Entity({
+            lonlat: [33.2035357, 69.0821616, 21],
+            geoObject: {
+                color: "white",
+                scale: 4.0,
+                instanced: true,
+                tag: `crane-${i}`,
+                object3d: crane[i],
+                yaw: -229,
+                pitch: 0
+            }
+        });
+
+        cranesLayer.add(c1);
+        cranesLayer.add(c2);
+        cranesLayer.add(c3);
+        cranesLayer.add(c4);
+        cranesLayer.add(c5);
+        cranesLayer.add(c6);
     }
+
 
     const globus = new Globe({
         target: "earth",
         name: "Earth",
         terrain: new GlobusRgbTerrain(),
-        layers: [osm, sat, dockLayer, cranesLayer],
-        atmosphereEnabled: false,
+        layers: [sat, dockLayer, cranesLayer],
+        atmosphereEnabled: true,
         fontsSrc: "../../res/fonts",
         sun: {
             stopped: false
@@ -102,6 +176,7 @@ async function main() {
     globus.planet.addControl(new control.ToggleWireframe());
     globus.planet.addControl(new control.LayerSwitcher());
     globus.planet.addControl(new control.RulerSwitcher());
+    globus.planet.addControl(new control.TimelineControl());
 }
 
 main()
