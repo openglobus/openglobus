@@ -17,13 +17,13 @@ let osm = new OpenStreetMap();
 let vec = new Vector("", { isBaseLayer: false, visibility: true });
 
 const globus = new Globe({
-    frustums: [[1,101100],[100000,1000000000]],
+    //frustums: [[1,101100],[100000,1000000000]],
     target: "earth",
     name: "Earth",
     terrain: new RgbTerrain("",{
         //maxNativeZoom: 6,
-        maxZoom: 18,
-        url: "https://{s}.terrain.openglobus.org/kingcounty/{z}/{x}/{y}.png",
+        maxZoom: 16,
+        url: "https://{s}.terrain.openglobus.org/japan/{z}/{x}/{y}.png",
     }),
     layers: [osm],
     atmosphereEnabled: false,

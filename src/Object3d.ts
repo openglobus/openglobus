@@ -2,7 +2,7 @@ import {htmlColorToFloat32Array, TypedArray} from './utils/shared';
 import {NumberArray3, Vec3} from './math/Vec3';
 import {DEGREES, DEGREES_DOUBLE, MAX, MIN, RADIANS_HALF} from './math';
 import {Mat4} from "./math/Mat4";
-import {transformLeftToRightCoordinateSystem, objParser} from "./utils/objParser";
+import {transformLeftToRightCoordinateSystem, objParser, IObjGeometry} from "./utils/objParser";
 
 function getColor(color?: number[] | TypedArray | string): Float32Array {
     if (color instanceof Array) {
@@ -541,11 +541,14 @@ class Object3d {
             .then((data) => transformLeftToRightCoordinateSystem(objParser(data)))
             .catch(() => []);
 
-        return obj.geometries.map(({data: {vertices, normals, textures}}: any) => new Object3d({
-            vertices,
-            normals,
-            texCoords: textures
-        }));
+        return obj.geometries.map(
+            (obj: IObjGeometry) => new Object3d({
+                name: obj.object,
+                vertices: obj.data.vertices,
+                normals: obj.data.normals,
+                texCoords: obj.data.textures
+            })
+        );
     }
 
     merge(other: Object3d): Object3d {

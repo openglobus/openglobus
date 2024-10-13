@@ -1,10 +1,10 @@
-interface IObjGeometryData {
+export interface IObjGeometryData {
     vertices: number[];
     textures: number[];
     normals: number[];
 }
 
-interface IObjGeometry {
+export interface IObjGeometry {
     object: string;
     groups: string[];
     material: string;
@@ -174,7 +174,7 @@ export function transformLeftToRightCoordinateSystem(objData: IObjData): {
     const convertedGeometries: IObjGeometry[] = objData.geometries.map(geometry => {
         const vertices = geometry.data.vertices;
         const normals = geometry.data.normals;
-        const textures = geometry.data.textures;
+        const textures = geometry.data.textures || [];
 
         rotateObject(geometry.data, 0);
 
