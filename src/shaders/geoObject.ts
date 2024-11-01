@@ -278,9 +278,6 @@ export const geo_object_distance = (): Program =>
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
             
-            //varying vec3 cameraPosition;
-            //varying vec3 vertexPosition;
-            
             varying float dist;
             
             ${QROT}
@@ -309,23 +306,20 @@ export const geo_object_distance = (): Program =>
                  
                  vert += lowDiff;
                  
-                 vec4 vvv = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
+                 vec4 v = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
                  
-                 dist = length(vvv.xyz);
+                 dist = length(v.xyz);
                                 
-                 gl_Position = projectionMatrix * vvv;
+                 gl_Position = projectionMatrix * v;
             }`,
         fragmentShader:
             `precision highp float;
             
-            //varying vec3 cameraPosition;
-            //varying vec3 vertexPosition;
             varying float dist;
             
             ${ENCODE24}
             
             void main () {
-                float range = dist;
-                gl_FragColor = vec4(encode24(range), 1.0);
+                gl_FragColor = vec4(encode24(dist), 1.0);
             }`
     });

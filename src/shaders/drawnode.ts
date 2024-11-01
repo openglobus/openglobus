@@ -967,16 +967,10 @@ export function drawnode_heightPicking(): Program {
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
             uniform float height;
-
-            //varying vec3 eyePosition;
-            //varying vec3 vertexPosition;
             
             varying float dist;
 
             void main(void) {
-
-                // This code is works for Mac Chrome and Safari
-                // any other code probably will produce jittering
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
@@ -989,26 +983,22 @@ export function drawnode_heightPicking(): Program {
                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
                 vec3 lowDiff = aVertexPositionLow - eyePositionLow + nh;
                 
-                vec4 vvv = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
+                vec4 vert = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
                 
-                dist = length(vvv.xyz);
+                dist = length(vert.xyz);
                 
-                gl_Position =  projectionMatrix * vvv;         
+                gl_Position =  projectionMatrix * vert;         
             }`,
 
         fragmentShader:
             `precision highp float;
-
-            //varying vec3 eyePosition;
-            //varying vec3 vertexPosition;
             
             varying float dist;
 
             ${ENCODE24}
 
             void main(void) {
-                float range = dist;
-                gl_FragColor = vec4(encode24(range), 1.0);
+                gl_FragColor = vec4(encode24(dist), 1.0);
             }`
     });
 }
