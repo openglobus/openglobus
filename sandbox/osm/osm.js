@@ -17,7 +17,7 @@ let osm = new OpenStreetMap();
 let vec = new Vector("", { isBaseLayer: false, visibility: true });
 
 const globus = new Globe({
-    //frustums: [[1,101100],[100000,1000000000]],
+    //frustums: [[1, 101100], [100000, 1000000000]],
     target: "earth",
     name: "Earth",
     terrain: new RgbTerrain("",{
