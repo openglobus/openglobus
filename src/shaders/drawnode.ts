@@ -28,6 +28,18 @@ const DEF_BLEND_PICKING = `#define blendPicking(DEST, OFFSET, SAMPLER, MASK, COL
 
 const SLICE_SIZE = 4;
 
+export const ENCODE24 = `vec3 encode24(highp float f) {
+                float F = abs(f);
+                float s = step( 0.0, -f );
+                float e = floor( log2(F) );
+                float m = exp2(- e) * F;
+                e = floor( log2(F) + 127.0 ) + floor( log2(m) );
+                return vec3(
+                    ( 128.0 * s + floor( e * exp2(-1.0) ) ) / 255.0,
+                    ( 128.0 * mod( e, 2.0 ) + mod( floor( m * 128.0 ), 128.0 ) ) / 255.0,
+                    floor( mod( floor( m * exp2( 23.0 - 8.0) ), exp2(8.0) ) ) / 255.0);
+            }`
+
 export function drawnode_screen_nl(): Program {
     return new Program("drawnode_screen_nl", {
         uniforms: {
@@ -956,8 +968,10 @@ export function drawnode_heightPicking(): Program {
             uniform vec3 eyePositionLow;
             uniform float height;
 
-            varying vec3 eyePosition;
-            varying vec3 vertexPosition;
+            //varying vec3 eyePosition;
+            //varying vec3 vertexPosition;
+            
+            varying float dist;
 
             void main(void) {
 
@@ -967,39 +981,33 @@ export function drawnode_heightPicking(): Program {
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
-                mat4 m = projectionMatrix * viewMatrixRTE;
-
                 vec3 nh = height * normalize(aVertexPositionHigh + aVertexPositionLow);
 
-                eyePosition = eyePositionHigh + eyePositionLow;
-                vertexPosition = aVertexPositionHigh + aVertexPositionLow;
+                vec3 eyePosition = eyePositionHigh + eyePositionLow;
+                vec3 vertexPosition = aVertexPositionHigh + aVertexPositionLow;
 
                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
                 vec3 lowDiff = aVertexPositionLow - eyePositionLow + nh;
                 
-                gl_Position =  m * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);         
+                vec4 vvv = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
+                
+                dist = length(vvv.xyz);
+                
+                gl_Position =  projectionMatrix * vvv;         
             }`,
 
         fragmentShader:
             `precision highp float;
 
-            varying vec3 eyePosition;
-            varying vec3 vertexPosition;
+            //varying vec3 eyePosition;
+            //varying vec3 vertexPosition;
+            
+            varying float dist;
 
-            vec3 encode24(highp float f) {
-                float F = abs(f);
-                float s = step( 0.0, -f );
-                float e = floor( log2(F) );
-                float m = exp2(- e) * F;
-                e = floor( log2(F) + 127.0 ) + floor( log2(m) );
-                return vec3(
-                    ( 128.0 * s + floor( e * exp2(-1.0) ) ) / 255.0,
-                    ( 128.0 * mod( e, 2.0 ) + mod( floor( m * 128.0 ), 128.0 ) ) / 255.0,
-                    floor( mod( floor( m * exp2( 23.0 - 8.0) ), exp2(8.0) ) ) / 255.0);
-            }
+            ${ENCODE24}
 
             void main(void) {
-                float range = distance(eyePosition, vertexPosition);
+                float range = dist;
                 gl_FragColor = vec4(encode24(range), 1.0);
             }`
     });

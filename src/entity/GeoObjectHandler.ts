@@ -458,6 +458,8 @@ class GeoObjectHandler {
     protected _instanceDataMapValues: InstanceData[];
     protected _dataTagUpdateQueue: InstanceData[];
 
+    //protected _distancePickingCallbackID: number;
+
     constructor(entityCollection: EntityCollection) {
 
         this.__id = GeoObjectHandler.__counter__++;
@@ -474,6 +476,8 @@ class GeoObjectHandler {
         this._instanceDataMapValues = [];
 
         this._dataTagUpdateQueue = [];
+
+        //this._distancePickingCallbackID = -1;
     }
 
     public initProgram() {
@@ -484,7 +488,22 @@ class GeoObjectHandler {
             if (!this._planet.renderer.handler.programs.geo_object_picking) {
                 this._planet.renderer.handler.addProgram(shaders.geo_object_picking());
             }
+            if (!this._planet.renderer.handler.programs.geo_object_distance) {
+                this._planet.renderer.handler.addProgram(shaders.geo_object_distance());
+            }
         }
+    }
+
+    protected _initDistancePickingCallback() {
+        if (this._planet && this._planet.renderer) {
+            // propably don't need this id here
+            //this._planet.renderer.removeDepthCallback(this._distancePickingCallbackID);
+            this._planet.renderer.addDistanceCallback(this, this._renderDistanceFramebufferPASS);
+        }
+    }
+
+    protected _renderDistanceFramebufferPASS() {
+        this._distancePASS();
     }
 
     public setRenderNode(renderNode: Planet) {
@@ -492,6 +511,7 @@ class GeoObjectHandler {
         this._planet = renderNode;
 
         this.initProgram();
+        this._initDistancePickingCallback();
 
         //
         // in case of lazy initialization loading data here
@@ -687,6 +707,58 @@ class GeoObjectHandler {
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawTransparent(p);
+        }
+    }
+
+    protected _distancePASS(){
+        let r = this._planet!.renderer!,
+            sh = r.handler.programs.geo_object_distance,
+            p = sh._program,
+            u = p.uniforms,
+            a = p.attributes,
+            gl = r.handler.gl!,
+            ec = this._entityCollection;
+
+        sh.activate();
+
+        gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
+        gl.uniform3fv(u.eyePositionHigh, r.activeCamera!.eyeHigh);
+        gl.uniform3fv(u.eyePositionLow, r.activeCamera!.eyeLow);
+        gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
+        gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera!.getViewMatrix());
+
+        for (let i = 0; i < this._instanceDataMapValues.length; i++) {
+            let tagData = this._instanceDataMapValues[i];
+
+            //
+            // Instance individual data
+            //
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._qRotBuffer!);
+            gl.vertexAttribPointer(a.qRot, tagData._qRotBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._sizeBuffer!);
+            gl.vertexAttribPointer(a.aScale, tagData._sizeBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._translateBuffer!);
+            gl.vertexAttribPointer(a.aTranslate, tagData._translateBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._positionHighBuffer!);
+            gl.vertexAttribPointer(a.aPositionHigh, tagData._positionHighBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._positionLowBuffer!);
+            gl.vertexAttribPointer(a.aPositionLow, tagData._positionLowBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._visibleBuffer!);
+            gl.vertexAttribPointer(a.aDispose, tagData._visibleBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            //
+            // Instance common data(could be in VAO)
+            //
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._vertexBuffer!);
+            gl.vertexAttribPointer(a.aVertexPosition, tagData._vertexBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer!);
+            p.drawElementsInstanced!(gl.TRIANGLES, tagData._indicesBuffer!.numItems, gl.UNSIGNED_INT, 0, tagData.numInstances);
         }
     }
 

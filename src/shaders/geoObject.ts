@@ -1,4 +1,5 @@
 import {Program} from "../webgl/Program";
+import {ENCODE24} from "./drawnode";
 
 const QROT = `vec3 qRotate(vec4 q, vec3 v){
     return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
@@ -240,5 +241,91 @@ export const geo_object_picking = (): Program =>
             varying vec3 vColor;
             void main () {
                 gl_FragColor = vec4(vColor, 1.0);
+            }`
+    });
+
+export const geo_object_distance = (): Program =>
+    new Program("geo_object_distance", {
+        uniforms: {
+            viewMatrix: "mat4",
+            projectionMatrix: "mat4",
+            uScaleByDistance: "vec3",
+            eyePositionHigh: "vec3",
+            eyePositionLow: "vec3"
+        },
+        attributes: {
+            aVertexPosition: "vec3",
+            aPositionHigh: {type: "vec3", divisor: 1},
+            aPositionLow: {type: "vec3", divisor: 1},
+            aScale: {type: "vec3", divisor: 1},
+            aTranslate: {type: "vec3", divisor: 1},
+            aDispose: {type: "float", divisor: 1},
+            qRot: {type: "vec4", divisor: 1}
+        },
+        vertexShader: `precision highp float;
+
+            attribute vec3 aVertexPosition;
+            attribute vec3 aPositionHigh;
+            attribute vec3 aPositionLow;
+            attribute vec3 aScale;
+            attribute vec3 aTranslate;
+            attribute float aDispose;
+            attribute vec4 qRot;
+            
+            uniform vec3 eyePositionHigh;
+            uniform vec3 eyePositionLow;
+            uniform vec3 uScaleByDistance;
+            uniform mat4 projectionMatrix;
+            uniform mat4 viewMatrix;
+            
+            //varying vec3 cameraPosition;
+            //varying vec3 vertexPosition;
+            
+            varying float dist;
+            
+            ${QROT}
+
+            void main(void) {
+
+                if (aDispose == 0.0) {
+                    return;
+                 }
+                
+                 vec3 position = aPositionHigh + aPositionLow;
+                 vec3 cameraPosition = eyePositionHigh + eyePositionLow;
+ 
+                 mat4 viewMatrixRTE = viewMatrix;
+                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
+ 
+                 vec3 highDiff = aPositionHigh - eyePositionHigh;
+                 vec3 lowDiff = aPositionLow - eyePositionLow;
+              
+                 vec3 look = cameraPosition - position;
+                 float lookLength = length(look);
+                                
+                 float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
+
+                 vec3 vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate));
+                 
+                 vert += lowDiff;
+                 
+                 vec4 vvv = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
+                 
+                 dist = length(vvv.xyz);
+                                
+                 gl_Position = projectionMatrix * vvv;
+            }`,
+        fragmentShader:
+            `precision highp float;
+            
+            //varying vec3 cameraPosition;
+            //varying vec3 vertexPosition;
+            varying float dist;
+            
+            ${ENCODE24}
+            
+            void main () {
+                float range = dist;
+                gl_FragColor = vec4(encode24(range), 1.0);
             }`
     });

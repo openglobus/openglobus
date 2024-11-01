@@ -252,8 +252,6 @@ class Renderer {
 
     public labelWorker: LabelWorker;
 
-    public __useDistanceFramebuffer__: boolean;
-
     public screenDepthFramebuffer: Framebuffer | null;
 
     public screenFramePositionBuffer: WebGLBufferExt | null;
@@ -372,8 +370,6 @@ class Renderer {
         this._fnScreenFrame = null;
 
         this.labelWorker = new LabelWorker(4);
-
-        this.__useDistanceFramebuffer__ = true;
 
         this.screenDepthFramebuffer = null;
 
@@ -1034,7 +1030,7 @@ class Renderer {
             if (pointerEvent && !mouseHold) {
                 this._drawPickingBuffer();
             }
-            this.__useDistanceFramebuffer__ && this._drawDistanceBuffer();
+            this._drawDistanceBuffer();
         }
 
         sceneFramebuffer.deactivate();
@@ -1049,7 +1045,7 @@ class Renderer {
             this._readPickingBuffer();
         }
 
-        this.__useDistanceFramebuffer__ && this._readDistanceBuffer();
+        this._readDistanceBuffer();
 
         // Tone mapping followed by rendering on the screen
         this._fnScreenFrame!();
@@ -1114,7 +1110,7 @@ class Renderer {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
         gl.uniform1i(p.uniforms.texture, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         gl.enable(gl.DEPTH_TEST);
