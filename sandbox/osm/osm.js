@@ -20,11 +20,6 @@ const globus = new Globe({
     //frustums: [[1, 101100], [100000, 1000000000]],
     target: "earth",
     name: "Earth",
-    // terrain: new RgbTerrain("",{
-    //     //maxNativeZoom: 6,
-    //     maxZoom: 16,
-    //     url: "https://{s}.terrain.openglobus.org/japan/{z}/{x}/{y}.png",
-    // }),
     terrain: new GlobusRgbTerrain(),
     layers: [osm],
     atmosphereEnabled: false,

@@ -1030,10 +1030,6 @@ export function drawnode_depth(): Program {
 
             void main(void) {
 
-                // @hack
-                // This code is works for Mac Chrome and Safari
-                // any other code probably will produce jittering
-
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 

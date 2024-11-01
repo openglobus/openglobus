@@ -499,11 +499,16 @@ class GeoObjectHandler {
             // propably don't need this id here
             //this._planet.renderer.removeDepthCallback(this._distancePickingCallbackID);
             this._planet.renderer.addDistanceCallback(this, this._renderDistanceFramebufferPASS);
+            this._planet.renderer.addDepthCallback(this, this._renderDepthFramebufferPASS);
         }
     }
 
     protected _renderDistanceFramebufferPASS() {
         this._distancePASS();
+    }
+
+    protected _renderDepthFramebufferPASS() {
+        this._depthPASS();
     }
 
     public setRenderNode(renderNode: Planet) {
@@ -710,7 +715,11 @@ class GeoObjectHandler {
         }
     }
 
-    protected _distancePASS(){
+    protected _depthPASS() {
+
+    }
+
+    protected _distancePASS() {
         let r = this._planet!.renderer!,
             sh = r.handler.programs.geo_object_distance,
             p = sh._program,

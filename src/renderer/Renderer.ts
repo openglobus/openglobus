@@ -1067,7 +1067,7 @@ class Renderer {
 
         gl.disable(gl.DEPTH_TEST);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
         this.toneMappingFramebuffer!.activate();
@@ -1209,10 +1209,10 @@ class Renderer {
         //
         // PASS to depth visualization
         this.screenDepthFramebuffer!.activate();
-        let sh = h.programs.depth, p = sh._program;
+        let sh = h.programs.depth,
+            p = sh._program;
 
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
         sh.activate();
