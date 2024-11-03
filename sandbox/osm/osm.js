@@ -17,10 +17,14 @@ let osm = new OpenStreetMap();
 let vec = new Vector("", { isBaseLayer: false, visibility: true });
 
 const globus = new Globe({
-    //frustums: [[1, 101100], [100000, 1000000000]],
+    //frustums: [[1,101100],[100000,1000000000]],
     target: "earth",
     name: "Earth",
-    terrain: new GlobusRgbTerrain(),
+    terrain: new RgbTerrain("",{
+        maxNativeZoom: 13,
+        maxZoom: 13,
+        url: "http://127.0.0.1:8080/sandbox/osm/dest_geoid/{z}/{x}/{y}.png",
+    }),
     layers: [osm],
     atmosphereEnabled: false,
     fontsSrc: "../../res/fonts",
@@ -29,8 +33,7 @@ const globus = new Globe({
     }
 });
 
-function m_px(x, y, z) {
-    const PX = 33;
+function m_px_merc(x, y, z, PX = 128) {
     let ext = mercator.getTileExtent(x, y, z);
     let b0 = ext.getSouthWest().inverseMercator(),
         b1 = ext.getNorthEast().inverseMercator();
@@ -40,16 +43,16 @@ function m_px(x, y, z) {
     return [width / PX, height / PX];
 }
 
-console.log(1, m_px(0, 0, 1));
-console.log(7, m_px(66, 44, 7));
-console.log(10, m_px(536, 358, 10));
-console.log(12, m_px(2149, 1446, 12));
-console.log(13, m_px(4301, 2892, 13));
-console.log(14, m_px(8582, 5736, 14));
-console.log(15, m_px(17205, 11569, 15));
-console.log(16, m_px(34419, 23138, 16));
-console.log(17, m_px(68661, 45892, 17));
-console.log(18, m_px(137650, 92555, 18));
+console.log(1, m_px_merc(0, 0, 1));
+console.log(7, m_px_merc(66, 44, 7));
+console.log(10, m_px_merc(536, 358, 10));
+console.log(12, m_px_merc(2149, 1446, 12));
+console.log(13, m_px_merc(4301, 2892, 13));
+console.log(14, m_px_merc(8582, 5736, 14));
+console.log(15, m_px_merc(17205, 11569, 15));
+console.log(16, m_px_merc(34419, 23138, 16));
+console.log(17, m_px_merc(68661, 45892, 17));
+console.log(18, m_px_merc(137650, 92555, 18));
 
 globus.planet.addControl(new control.DebugInfo());
 globus.planet.addControl(new control.KeyboardNavigation());
