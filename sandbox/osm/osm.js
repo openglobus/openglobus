@@ -4,17 +4,30 @@ import {
     Vector,
     LonLat,
     Entity,
-    Geometry,
     OpenStreetMap,
-    Bing,
     GlobusRgbTerrain,
-    RgbTerrain,
+    Object3d,
     mercator
 } from "../../lib/@openglobus/og.esm.js";
 
 let osm = new OpenStreetMap();
 
-let vec = new Vector("", { isBaseLayer: false, visibility: true });
+let dockLayer = new Vector("dock", {
+    scaleByDistance: [1, 1, 1]
+});
+
+dockLayer.add(new Entity({
+    lonlat: [0, 0, 10000],
+    geoObject: {
+        color: "red",
+        scale: 1.0,
+        instanced: true,
+        tag: `dock`,
+        object3d: Object3d.createCube(10000, 10000, 10000),
+        yaw: -52,
+        pitch: 0
+    }
+}));
 
 const globus = new Globe({
     //frustums: [[1,101100],[100000,1000000000]],
@@ -25,7 +38,7 @@ const globus = new Globe({
         maxZoom: 13,
         url: "http://127.0.0.1:8080/sandbox/osm/dest_geoid/{z}/{x}/{y}.png",
     }),
-    layers: [osm],
+    layers: [osm, dockLayer],
     atmosphereEnabled: false,
     fontsSrc: "../../res/fonts",
     sun: {
