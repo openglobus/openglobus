@@ -83,7 +83,7 @@ import {
     GlobusRgbTerrain
 } from './terrain/index';
 
-import {AxisEntity} from "./control/editor/AxisEntity";
+import {AxisEntity} from "./control/geoObjectEditor/AxisEntity";
 
 export {
     bv,
