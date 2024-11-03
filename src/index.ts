@@ -83,6 +83,8 @@ import {
     GlobusRgbTerrain
 } from './terrain/index';
 
+import {AxisEntity} from "./control/editor/AxisEntity";
+
 export {
     bv,
     jd,
@@ -137,5 +139,7 @@ export {
     EquiQuadTreeStrategy,
     EarthQuadTreeStrategy,
     Wgs84QuadTreeStrategy,
-    Object3d
+    Object3d,
+
+    AxisEntity,
 };
