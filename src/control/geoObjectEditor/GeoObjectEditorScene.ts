@@ -1,7 +1,5 @@
-import {Entity} from '../../entity/Entity';
-import {createEvents, EventsHandler} from '../../Events';
-import {LonLat} from "../../LonLat";
-import {Object3d} from '../../Object3d';
+import {createEvents, EventCallback, EventsHandler} from '../../Events';
+import {MAX32} from "../../math";
 import {Planet} from "../../scene/Planet";
 import {RenderNode} from '../../scene/RenderNode';
 import {Vector} from '../../layer/Vector';
@@ -9,12 +7,14 @@ import {Vec2} from '../../math/Vec2';
 import {Vec3} from '../../math/Vec3';
 import {IMouseState} from "../../renderer/RendererEvents";
 import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
+import {LonLat} from "../../LonLat";
+import {Entity} from "../../entity/Entity";
+import {AxisEntity} from "./AxisEntity";
 
 export interface IGeoObjectEditorSceneParams {
     planet?: Planet;
+    name?: string;
 }
-
-let obj3d = Object3d.createCylinder(1.1, 0, 2.7, 20, 1, true, false, 0, 0, 0);
 
 type GeoObjectSceneEventsList = [
     "mousemove",
@@ -52,8 +52,12 @@ class GeoObjectEditorScene extends RenderNode {
     protected _axisLayer: Vector;
     protected _rotLayer: Vector;
 
+    protected _selectedEntity: Entity | null;
+
+    protected _axisEntity: AxisEntity;
+
     constructor(options: IGeoObjectEditorSceneParams = {}) {
-        super("GeoObjectEditorScene");
+        super(options.name || 'GeoObjectEditorScene');
 
         this.events = createEvents(GEOOBJECTEDITORCENE_EVENTS);
 
@@ -62,21 +66,28 @@ class GeoObjectEditorScene extends RenderNode {
         this._startPos = null;
         this._startClick = new Vec2();
 
+        this._axisEntity = new AxisEntity();
+
         this._axisLayer = new Vector("axis", {
-            entities: [],
-            pickingEnabled: false,
-            polygonOffsetUnits: -1.0,
-            relativeToGround: true,
-            hideInLayerSwitcher: true
+            scaleByDistance: [1, MAX32, 1],
+            useLighting: false,
+            pickingScale: [5, 1.1, 5],
+            visibility: false
         });
 
         this._rotLayer = new Vector("rotation", {
-            entities: [],
-            pickingEnabled: false,
-            polygonOffsetUnits: -1.0,
-            relativeToGround: true,
-            hideInLayerSwitcher: true
+            scaleByDistance: [1, MAX32, 1],
+            useLighting: false,
+            pickingScale: [5, 1.1, 5],
+            visibility: false
         });
+
+        this._selectedEntity = null;
+    }
+
+    public bindPlanet(planet: Planet) {
+        this._planet = planet;
+        this._addAxisLayers();
     }
 
     public override init() {
@@ -87,16 +98,28 @@ class GeoObjectEditorScene extends RenderNode {
         this._deactivate();
     }
 
+    protected _addAxisLayers() {
+        if (this._planet) {
+            this._axisLayer.addTo(this._planet);
+            this._rotLayer.addTo(this._planet);
+
+            this._axisLayer.add(this._axisEntity);
+        }
+    }
+
+    protected _removeAxisLayers() {
+        this._axisLayer.remove();
+        this._rotLayer.remove()
+    }
+
     public _activate() {
         this.renderer!.events.on("lclick", this._onLclick, this);
-        this.renderer!.events.on("mousemove", this._onMouseMove, this);
-        this.renderer!.events.on("lup", this._onLUp, this);
+        this._addAxisLayers();
     }
 
     protected _deactivate() {
         this.renderer!.events.off("lclick", this._onLclick);
-        this.renderer!.events.off("mousemove", this._onMouseMove);
-        this.renderer!.events.off("lup", this._onLUp);
+        this._removeAxisLayers();
         this.clear();
     }
 
@@ -107,9 +130,9 @@ class GeoObjectEditorScene extends RenderNode {
     //         this._startPos = this._planet!.getPixelFromCartesian(coords);
     // }
 
-    protected _onLUp = () => {
-            this.renderer!.controls.mouseNavigation?.activate();
-    }
+    // protected _onLUp = () => {
+    //     this.renderer!.controls.mouseNavigation?.activate();
+    // }
 
     // protected _onGeoObjectEnter = (e: IMouseState) => {
     //     e.renderer.handler.canvas!.style.cursor = "pointer";
@@ -119,16 +142,33 @@ class GeoObjectEditorScene extends RenderNode {
     //     e.renderer.handler.canvas!.style.cursor = "default";
     // }
 
-    public setVisibility(visibility: boolean) {
+    public setAxisCartesian3v(cartesian: Vec3) {
+    }
 
+    public setAxisLonLat(lonLat: LonLat) {
+    }
+
+    public setVisibility(visibility: boolean) {
+        this._axisLayer.setVisibility(visibility);
+        this._rotLayer.setVisibility(visibility);
+    }
+
+    public startEditing(entity: Entity) {
+        if (!entity.isEqual(this._selectedEntity)) {
+            this._selectedEntity = entity
+            this.setVisibility(true);
+        }
+    }
+
+    public stopEditing() {
+        this.setVisibility(false);
+        this._selectedEntity = null;
     }
 
     protected _onLclick = (e: IMouseState) => {
-
-    }
-
-    protected _onMouseMove = (e: IMouseState) => {
-
+        if (e.pickingObject && (e.pickingObject instanceof Entity)) {
+            this.startEditing(e.pickingObject);
+        }
     }
 
     public clear() {
