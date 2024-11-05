@@ -985,8 +985,6 @@ export function drawnode_heightPicking(): Program {
                 
                 vert = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
                 
-                //dist = length(vert.xyz);
-                
                 gl_Position =  projectionMatrix * vert;         
             }`,
 

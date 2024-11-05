@@ -307,8 +307,6 @@ export const geo_object_distance = (): Program =>
                  vert += lowDiff;
                  
                  v = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
-                 
-                 //dist = length(v.xyz);
                                 
                  gl_Position = projectionMatrix * v;
             }`,

@@ -458,8 +458,6 @@ class GeoObjectHandler {
     protected _instanceDataMapValues: InstanceData[];
     protected _dataTagUpdateQueue: InstanceData[];
 
-    //protected _distancePickingCallbackID: number;
-
     constructor(entityCollection: EntityCollection) {
 
         this.__id = GeoObjectHandler.__counter__++;
@@ -504,7 +502,9 @@ class GeoObjectHandler {
     }
 
     protected _renderDistanceFramebufferPASS() {
-        this._distancePASS();
+        if (this._entityCollection._layer && this._entityCollection._layer.getVisibility()) {
+            this._distancePASS();
+        }
     }
 
     protected _renderDepthFramebufferPASS() {
@@ -684,6 +684,7 @@ class GeoObjectHandler {
     }
 
     public _displayOpaquePASS() {
+
         let r = this._planet!.renderer!,
             sh = r.handler.programs.geo_object,
             p = sh._program;
@@ -773,7 +774,7 @@ class GeoObjectHandler {
 
     public drawPicking() {
         if (this._geoObjects.length && this.pickingEnabled) {
-            this.update();
+            //this.update();
             this._pickingPASS();
         }
     }

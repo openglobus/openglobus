@@ -2031,8 +2031,6 @@ export class Planet extends RenderNode {
 
             dist = decodeFloatFromRGBAArr(_tempPickingPix_);
 
-            console.log(dist);
-
             if (!(_tempPickingPix_[0] || _tempPickingPix_[1] || _tempPickingPix_[2])) {
                 dist = this.getDistanceFromPixelEllipsoid(px) || 0;
             } else if (dist < DEPTH_DISTANCE) {

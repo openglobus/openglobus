@@ -145,9 +145,11 @@ class GeoObjectEditorScene extends RenderNode {
     // }
 
     public setAxisCartesian3v(cartesian: Vec3) {
+        this._axisEntity.setCartesian3v(cartesian);
     }
 
     public setAxisLonLat(lonLat: LonLat) {
+        this._axisEntity.setLonLat(lonLat);
     }
 
     public setVisibility(visibility: boolean) {
