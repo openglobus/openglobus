@@ -5,7 +5,7 @@ import {
     LonLat,
     Entity,
     OpenStreetMap,
-    GlobusRgbTerrain,
+    RgbTerrain,
     Object3d,
     mercator
 } from "../../lib/@openglobus/og.esm.js";
@@ -36,7 +36,7 @@ const globus = new Globe({
     terrain: new RgbTerrain("",{
         maxNativeZoom: 13,
         maxZoom: 13,
-        url: "http://127.0.0.1:8080/sandbox/osm/dest_geoid/{z}/{x}/{y}.png",
+        url: "https://{s}.terrain.openglobus.org/arctic/{z}/{x}/{y}.png",
     }),
     layers: [osm, dockLayer],
     atmosphereEnabled: false,

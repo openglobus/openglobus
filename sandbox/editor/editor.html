@@ -1,0 +1,84 @@
+﻿<html>
+
+<head>
+    <title>OpenStreetMap Base Layer</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../css/og.css" type="text/css"/>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+<div id="earth" style="position: absolute; width:100%;height:100%"></div>
+<div style="font-size: 1.3em; background: white; position: absolute; right:100px; top:20px;display: flex;flex-direction: column">
+</div>
+
+<script type="module" id="og-sandbox-script">
+    import {
+        Globe,
+        control,
+        OpenStreetMap,
+        Bing,
+        GlobusRgbTerrain,
+        Object3d,
+        Vector,
+        Entity
+    } from "../../lib/@openglobus/og.esm.js";
+
+    async function main() {
+
+        let objectLayer = new Vector("objects", {
+            scaleByDistance: [1, 1, 1]
+        });
+
+        const cube = Object3d.createCube(10000, 10000, 10000);
+
+        for (let i = -90; i < 90; i += 10) {
+            for (let j = -180; j < 180; j += 10) {
+                objectLayer.add(new Entity({
+                            lonlat: [i, j, 10000],
+                            geoObject: {
+                                color: "red",
+                                scale: 3.0,
+                                instanced: true,
+                                tag: 'cube',
+                                object3d: cube,
+                                yaw: 0,
+                                pitch: 0
+                            }
+                        })
+                );
+            }
+        }
+
+        const globus = new Globe({
+            target: "earth",
+            name: "Earth",
+            terrain: new GlobusRgbTerrain(),
+            layers: [new OpenStreetMap(), new Bing(), objectLayer],
+            atmosphereEnabled: false,
+            fontsSrc: "../../res/fonts",
+            sun: {
+                stopped: false
+            }
+        });
+
+        globus.planet.addControl(new control.DebugInfo({}));
+        globus.planet.addControl(new control.KeyboardNavigation());
+        globus.planet.addControl(new control.ToggleWireframe());
+        globus.planet.addControl(new control.LayerSwitcher());
+        globus.planet.addControl(new control.Lighting());
+    }
+
+
+    main()
+
+</script>
+</body>
+
+</html>

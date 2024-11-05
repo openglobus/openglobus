@@ -43,16 +43,6 @@ async function main() {
     const dock = await Object3d.loadObj('./dock.obj');
     const crane = await Object3d.loadObj('./crane2.obj');
 
-    // document.querySelector(".gpitch").addEventListener("input", (e) => {
-    //     setPitch(Number(e.target.value));
-    // });
-    // document.querySelector(".gyaw").addEventListener("input", (e) => {
-    //     setYaw(Number(e.target.value));
-    // });
-    // document.querySelector(".groll").addEventListener("input", (e) => {
-    //     setRoll(Number(e.target.value));
-    // });
-
     for (let i = 0; i < dock.length; i++) {
         dockLayer.add(new Entity({
             lonlat: [33.2017379, 69.0821338, 19],

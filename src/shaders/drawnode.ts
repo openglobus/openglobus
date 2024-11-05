@@ -968,7 +968,7 @@ export function drawnode_heightPicking(): Program {
             uniform vec3 eyePositionLow;
             uniform float height;
             
-            varying float dist;
+            varying vec4 vert;
 
             void main(void) {
 
@@ -983,9 +983,9 @@ export function drawnode_heightPicking(): Program {
                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
                 vec3 lowDiff = aVertexPositionLow - eyePositionLow + nh;
                 
-                vec4 vert = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
+                vert = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
                 
-                dist = length(vert.xyz);
+                //dist = length(vert.xyz);
                 
                 gl_Position =  projectionMatrix * vert;         
             }`,
@@ -993,12 +993,12 @@ export function drawnode_heightPicking(): Program {
         fragmentShader:
             `precision highp float;
             
-            varying float dist;
+            varying vec4 vert;
 
             ${ENCODE24}
 
             void main(void) {
-                gl_FragColor = vec4(encode24(dist), 1.0);
+                gl_FragColor = vec4(encode24(length(vert.xyz)), 1.0);
             }`
     });
 }

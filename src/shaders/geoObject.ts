@@ -278,7 +278,7 @@ export const geo_object_distance = (): Program =>
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
             
-            varying float dist;
+            varying vec4 v;
             
             ${QROT}
 
@@ -306,20 +306,20 @@ export const geo_object_distance = (): Program =>
                  
                  vert += lowDiff;
                  
-                 vec4 v = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
+                 v = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
                  
-                 dist = length(v.xyz);
+                 //dist = length(v.xyz);
                                 
                  gl_Position = projectionMatrix * v;
             }`,
         fragmentShader:
             `precision highp float;
             
-            varying float dist;
+            varying vec4 v;
             
             ${ENCODE24}
             
             void main () {
-                gl_FragColor = vec4(encode24(dist), 1.0);
+                gl_FragColor = vec4(encode24(length(v.xyz)), 1.0);
             }`
     });

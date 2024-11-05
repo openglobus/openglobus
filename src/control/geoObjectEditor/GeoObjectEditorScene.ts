@@ -41,7 +41,9 @@ type GeoObjectSceneEventsList = [
     "touchend",
     "doubletouch",
     "touchleave",
-    "touchenter"
+    "touchenter",
+    "startedit",
+    "stopedit",
 ];
 
 class GeoObjectEditorScene extends RenderNode {
@@ -153,16 +155,23 @@ class GeoObjectEditorScene extends RenderNode {
         this._rotLayer.setVisibility(visibility);
     }
 
+    public readyToEdit(entity: Entity): boolean {
+        return true;
+    }
+
     public startEditing(entity: Entity) {
-        if (!entity.isEqual(this._selectedEntity)) {
-            this._selectedEntity = entity
+        if (this._selectedEntity && !entity.isEqual(this._selectedEntity) && this.readyToEdit(entity)) {
+            this._selectedEntity = entity;
             this.setVisibility(true);
+            this.events.dispatch(this.events.startedit, this._selectedEntity);
         }
     }
 
     public stopEditing() {
         this.setVisibility(false);
+        let selectedEntity = this._selectedEntity;
         this._selectedEntity = null;
+        this.events.dispatch(this.events.stopedit, selectedEntity);
     }
 
     protected _onLclick = (e: IMouseState) => {
@@ -177,7 +186,9 @@ class GeoObjectEditorScene extends RenderNode {
     }
 
     public override frame() {
-
+        if (this._selectedEntity) {
+            this._axisEntity.setCartesian3v(this._selectedEntity.getCartesian());
+        }
     }
 
     public get ellipsoid(): Ellipsoid | null {
@@ -210,7 +221,9 @@ const GEOOBJECTEDITORCENE_EVENTS: GeoObjectSceneEventsList = [
     "touchend",
     "doubletouch",
     "touchleave",
-    "touchenter"
+    "touchenter",
+    "startedit",
+    "stopedit"
 ];
 
 export {GeoObjectEditorScene};
