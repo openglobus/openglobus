@@ -669,6 +669,13 @@ class GeoObjectHandler {
             gl = r.handler.gl!,
             ec = this._entityCollection;
 
+        if (ec._layer!.name === "axis") {
+            gl.clear(gl.DEPTH_BUFFER_BIT);
+            // gl.enable(gl.POLYGON_OFFSET_FILL);
+            // //@ts-ignore
+            // gl.polygonOffset(window.OFFSET_FACTOR || 0, window.OFFSET_UNITS || 0);
+        }
+
         gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
         gl.uniform1f(u.useLighting, ec._useLighting);
 
@@ -698,6 +705,8 @@ class GeoObjectHandler {
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawOpaque(p);
         }
+
+        r.handler!.gl!.disable(r.handler!.gl!.POLYGON_OFFSET_FILL);
     }
 
     public _displayTransparentPASS() {

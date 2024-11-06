@@ -22,16 +22,18 @@ export class AxisEntity extends Entity {
 
     constructor(params: IAxisEntityParams = {}) {
         super(params);
-        this._size = params.size != undefined ? params.size : 1.0;
+        this._size = params.size != undefined ? params.size : 1.5;
         this._initArrows();
     }
 
     private _initArrows() {
+        const scale = 1.5;
+
         let arrowX = new Entity({
             independentPicking: true,
             geoObject: {
                 color: "green",
-                scale: 1.0,
+                scale,
                 instanced: true,
                 tag: "line",
                 object3d: lineObj,
@@ -44,7 +46,7 @@ export class AxisEntity extends Entity {
         arrowX.appendChild(new Entity({
             geoObject: {
                 color: "green",
-                scale: 1.0,
+                scale,
                 instanced: true,
                 tag: "tip",
                 object3d: tipObj,
@@ -59,7 +61,7 @@ export class AxisEntity extends Entity {
             independentPicking: true,
             geoObject: {
                 color: "blue",
-                scale: 1.0,
+                scale,
                 instanced: true,
                 tag: "line",
                 object3d: lineObj,
@@ -71,7 +73,7 @@ export class AxisEntity extends Entity {
         arrowY.appendChild(new Entity({
             geoObject: {
                 color: "blue",
-                scale: 1.0,
+                scale,
                 instanced: true,
                 tag: "tip",
                 object3d: tipObj,
@@ -84,7 +86,7 @@ export class AxisEntity extends Entity {
             independentPicking: true,
             geoObject: {
                 color: "red",
-                scale: 1.0,
+                scale,
                 instanced: true,
                 tag: "line",
                 object3d: lineObj,
@@ -96,7 +98,7 @@ export class AxisEntity extends Entity {
         arrowZ.appendChild(new Entity({
             geoObject: {
                 color: "red",
-                scale: 1.0,
+                scale,
                 instanced: true,
                 tag: "tip",
                 object3d: tipObj,
