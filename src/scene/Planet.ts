@@ -1864,21 +1864,42 @@ export class Planet extends RenderNode {
     }
 
     protected _collectVectorLayerCollections() {
+
+        let k = this._visibleVectorLayersByDepthOrder.length;
         this._visibleEntityCollections.length = 0;
-        this._visibleEntityCollections = [[]];
-
-        let i = this.visibleVectorLayers.length;
-
-        while (i--) {
-            let vi = this.visibleVectorLayers[i];
-
-            if (vi._fading && vi._refreshFadingOpacity()) {
-                this.visibleVectorLayers.splice(i, 1);
-            }
-
-            vi.collectVisibleCollections(this._visibleEntityCollections[0]);
-            vi.update();
+        this._visibleEntityCollections = new Array(k);
+        for (let i = 0; i < this._visibleEntityCollections.length; i++) {
+            this._visibleEntityCollections[i] = [];
         }
+
+        while (k--) {
+            let group = this._visibleVectorLayersByDepthOrder[k];
+            let j = group.length;
+            while (j--) {
+                let vi = group[j];
+                if (vi._fading && vi._refreshFadingOpacity()) {
+                    group.splice(j, 1);
+                    if (group.length === 0) {
+                        this._visibleVectorLayersByDepthOrder.splice(k, 1);
+                    }
+                }
+
+                vi.collectVisibleCollections(this._visibleEntityCollections[k]);
+                vi.update();
+            }
+        }
+
+        //let i = this.visibleVectorLayers.length;
+        // while (i--) {
+        //     let vi = this.visibleVectorLayers[i];
+        //
+        //     if (vi._fading && vi._refreshFadingOpacity()) {
+        //         this.visibleVectorLayers.splice(i, 1);
+        //     }
+        //
+        //     vi.collectVisibleCollections(this._visibleEntityCollections[0]);
+        //     vi.update();
+        // }
     }
 
     protected _frustumEntityCollectionPickingCallback() {
