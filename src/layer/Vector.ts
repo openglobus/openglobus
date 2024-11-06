@@ -260,6 +260,11 @@ class Vector extends Layer {
             this._polylineEntityCollection.addTo(planet, true);
             this._stripEntityCollection.addTo(planet, true);
             this._geoObjectEntityCollection.addTo(planet, true);
+
+            this._polylineEntityCollection._layer = this;
+            this._stripEntityCollection._layer = this;
+            this._geoObjectEntityCollection._layer = this;
+
             this.setEntities(this._entities);
         }
     }
@@ -269,6 +274,11 @@ class Vector extends Layer {
         this._polylineEntityCollection.remove();
         this._stripEntityCollection.remove();
         this._geoObjectEntityCollection.remove();
+
+        this._polylineEntityCollection._layer = undefined;
+        this._stripEntityCollection._layer = undefined;
+        this._geoObjectEntityCollection._layer = undefined;
+
         return this;
     }
 
