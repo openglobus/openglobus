@@ -106,7 +106,33 @@ class GeoObjectEditorScene extends RenderNode {
             this._rotLayer.addTo(this._planet);
 
             this._axisLayer.add(this._axisEntity);
+
+            this._axisLayer.events.on("mouseenter", this._onAxisLayerMouseEnter);
+            this._axisLayer.events.on("mouseleave", this._onAxisLayerMouseLeave);
+            this._axisLayer.events.on("lup", this._onAxisLayerLUp);
+            this._axisLayer.events.on("ldown", this._onAxisLayerLDown);
+            this._planet!.renderer!.events.off("mousemove", this._onMouseMove);
         }
+    }
+
+    protected _onAxisLayerMouseEnter = (e: MouseEvent) => {
+        this._planet!.renderer!.handler!.canvas!.style.cursor = "pointer";
+    }
+
+    protected _onAxisLayerMouseLeave = (e: MouseEvent) => {
+        this._planet!.renderer!.handler!.canvas!.style.cursor = "default";
+    }
+
+    protected _onAxisLayerLUp = (e: MouseEvent) => {
+
+    }
+
+    protected _onAxisLayerLDown = (e: MouseEvent) => {
+
+    }
+
+    protected _onMouseMove = (e: MouseEvent) => {
+
     }
 
     protected _removeAxisLayers() {
