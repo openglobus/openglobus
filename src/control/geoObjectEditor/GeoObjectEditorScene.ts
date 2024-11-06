@@ -93,11 +93,11 @@ class GeoObjectEditorScene extends RenderNode {
     }
 
     public override init() {
-        this._activate();
+        this.activate();
     }
 
     public override onremove() {
-        this._deactivate();
+        this.deactivate();
     }
 
     protected _addAxisLayers() {
@@ -114,12 +114,12 @@ class GeoObjectEditorScene extends RenderNode {
         this._rotLayer.remove()
     }
 
-    public _activate() {
+    public activate() {
         this.renderer!.events.on("lclick", this._onLclick, this);
         this._addAxisLayers();
     }
 
-    protected _deactivate() {
+    protected deactivate() {
         this.renderer!.events.off("lclick", this._onLclick);
         this._removeAxisLayers();
         this.clear();
@@ -162,7 +162,7 @@ class GeoObjectEditorScene extends RenderNode {
     }
 
     public startEditing(entity: Entity) {
-        if (this._selectedEntity && !entity.isEqual(this._selectedEntity) && this.readyToEdit(entity)) {
+        if ((!this._selectedEntity || this._selectedEntity && !entity.isEqual(this._selectedEntity)) && this.readyToEdit(entity)) {
             this._selectedEntity = entity;
             this.setVisibility(true);
             this.events.dispatch(this.events.startedit, this._selectedEntity);

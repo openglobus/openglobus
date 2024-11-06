@@ -17,6 +17,7 @@ export class GeoObjectEditor extends Control {
 
     public override oninit() {
         this._geoObjectEditopScene.bindPlanet(this.planet!);
+        this.activate();
     }
 
     public override onactivate() {
