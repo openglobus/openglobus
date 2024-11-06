@@ -342,8 +342,8 @@ class RenderNode extends BaseNode {
         }
     }
 
-    public drawEntityCollections(ec: EntityCollection[]) {
-        this.renderer!.enqueueEntityCollectionsToDraw(ec);
+    public drawEntityCollections(ec: EntityCollection[], depthOrder: number = 0) {
+        this.renderer!.enqueueEntityCollectionsToDraw(ec, depthOrder);
     }
 
     /**

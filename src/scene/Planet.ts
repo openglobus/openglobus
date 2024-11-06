@@ -1430,7 +1430,9 @@ export class Planet extends RenderNode {
             this._collectVectorLayerCollections();
         }
 
-        this.drawEntityCollections(this._visibleEntityCollections[0]);
+        for (let i = 0; i < this._visibleEntityCollections.length; i++) {
+            this.drawEntityCollections(this._visibleEntityCollections[i], i);
+        }
     }
 
     /**

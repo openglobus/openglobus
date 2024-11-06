@@ -244,7 +244,7 @@ class Renderer {
      */
     public fontAtlas: FontAtlas;
 
-    protected _entityCollections: EntityCollection[];
+    protected _entityCollections: EntityCollection[][];
 
     protected _currentOutput: string;
 
@@ -363,7 +363,7 @@ class Renderer {
          */
         this.fontAtlas = new FontAtlas(params.fontsSrc);
 
-        this._entityCollections = [];
+        this._entityCollections = [[]];
 
         this._currentOutput = "screen";
 
@@ -896,16 +896,18 @@ class Renderer {
     /**
      * TODO: replace with cache friendly linked list by BillboardHandler, LabelHandler etc.
      */
-    public enqueueEntityCollectionsToDraw(ecArr: EntityCollection[]) {
-        this._entityCollections.push.apply(this._entityCollections, ecArr);
+    public enqueueEntityCollectionsToDraw(ecArr: EntityCollection[], depthOrder: number = 0) {
+        if (!this._entityCollections[depthOrder]) {
+            this._entityCollections[depthOrder] = [];
+        }
+        this._entityCollections[depthOrder].push(...ecArr);
     }
 
     /**
-     * Draws transparent items entity collections.
      * @protected
      */
-    protected _drawEntityCollections() {
-        let ec = this._entityCollections;
+    protected _drawEntityCollections(depthOrder: number) {
+        let ec = this._entityCollections[depthOrder];
 
         if (ec.length) {
             let gl = this.handler.gl!;
@@ -970,9 +972,9 @@ class Renderer {
         }
     }
 
-    protected _clearEntityCollectionQueue() {
-        this._entityCollections.length = 0;
-        this._entityCollections = [];
+    protected _clearEntityCollectionQueue(depthOrder: number) {
+        this._entityCollections[depthOrder].length = 0;
+        this._entityCollections[depthOrder] = [];
     }
 
     /**
@@ -1022,8 +1024,8 @@ class Renderer {
                 rn[i].drawNode();
             }
 
-            this._drawEntityCollections();
-            this._clearEntityCollectionQueue();
+            this._drawEntityCollections(0);
+            this._clearEntityCollectionQueue(0);
 
             e.dispatch(e.drawtransparent, this);
 
@@ -1031,6 +1033,16 @@ class Renderer {
                 this._drawPickingBuffer();
             }
             this._drawDistanceBuffer();
+        }
+
+        for (let i = 1; i < this._entityCollections.length; i++) {
+            gl.clear(gl.DEPTH_BUFFER_BIT);
+            let k = frustums.length;
+            while (k--) {
+                this.activeCamera!.setCurrentFrustum(k);
+                this._drawEntityCollections(i);
+                this._clearEntityCollectionQueue(i);
+            }
         }
 
         sceneFramebuffer.deactivate();
@@ -1401,7 +1413,7 @@ class Renderer {
         //this.geoObjectsTextureAtlas.clear()
         //this.fontAtlas.clear();
 
-        this._entityCollections = [];
+        this._entityCollections = [[]];
 
         this.handler.ONCANVASRESIZE = null;
         this.handler.destroy();
