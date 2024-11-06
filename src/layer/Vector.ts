@@ -23,6 +23,7 @@ export interface IVectorParams extends ILayerParams {
     scaleByDistance?: NumberArray3;
     labelMaxLetters?: number;
     useLighting?: boolean;
+    depthOrder?: number;
 }
 
 type VectorEventsList = [
@@ -88,6 +89,8 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
 class Vector extends Layer {
 
     public override events: VectorEventsType;
+
+    protected _depthOrder: number;
 
     /**
      * Entities collection.
@@ -222,6 +225,19 @@ class Vector extends Layer {
         this.polygonOffsetUnits = options.polygonOffsetUnits != undefined ? options.polygonOffsetUnits : 0.0;
 
         this.pickingEnabled = this._pickingEnabled;
+
+        this._depthOrder = options.depthOrder || 0;
+    }
+
+    public get depthOrder(): number {
+        return this._depthOrder;
+    }
+
+    public set depthOrder(d: number) {
+        if (d !== this._depthOrder) {
+            this._depthOrder = d;
+            this._planet && this._planet.updateVisibleLayers();
+        }
     }
 
     public get useLighting(): boolean {

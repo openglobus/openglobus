@@ -4,7 +4,7 @@ import * as shaders from "../shaders/drawnode";
 import * as utils from "../utils/shared";
 import {Atmosphere, IAtmosphereParams} from "../control/Atmosphere";
 import {Control} from "../control/Control";
-import {createColorRGB, isUndef} from "../utils/shared";
+import {binaryInsert, createColorRGB, isUndef} from "../utils/shared";
 import {createEvents, EventsHandler} from "../Events";
 import {decodeFloatFromRGBAArr} from "../math/coder";
 import {EarthQuadTreeStrategy} from "../quadTree/earth/EarthQuadTreeStrategy";
@@ -163,16 +163,17 @@ export class Planet extends RenderNode {
      * @protected
      * @type {Array.<Layer>}
      */
-    protected visibleVectorLayers: Layer[];
+    protected visibleVectorLayers: Vector[];
+    protected _visibleVectorLayersByDepthOrder: Vector[][];
 
     protected _visibleTileLayerSlices: Layer[][];
 
     /**
      * Vector layers visible nodes with collections.
      * @protected
-     * @type {Array.<EntityCollection>}
+     * @type {EntityCollection[][]}
      */
-    protected _frustumEntityCollections: EntityCollection[];
+    protected _visibleEntityCollections: EntityCollection[][];
 
     /**
      * There is only one base layer on the globe when layer.isBaseLayer is true.
@@ -422,10 +423,11 @@ export class Planet extends RenderNode {
         this.visibleTileLayers = [];
 
         this.visibleVectorLayers = [];
+        this._visibleVectorLayersByDepthOrder = [];
 
         this._visibleTileLayerSlices = [];
 
-        this._frustumEntityCollections = [];
+        this._visibleEntityCollections = [[]];
 
         this.baseLayer = null;
 
@@ -1144,7 +1146,7 @@ export class Planet extends RenderNode {
                 }
 
                 if (li.isVector) {
-                    this.visibleVectorLayers.push(li);
+                    this.visibleVectorLayers.push(li as Vector);
                 }
 
                 if (li.getAttribution().length) {
@@ -1157,7 +1159,7 @@ export class Planet extends RenderNode {
                 }
 
                 if (li.isVector) {
-                    this.visibleVectorLayers.push(li);
+                    this.visibleVectorLayers.push(li as Vector);
                 }
             }
         }
@@ -1190,6 +1192,20 @@ export class Planet extends RenderNode {
     protected _sortLayers() {
 
         this.visibleVectorLayers.sort((a, b) => (a.getZIndex() - b.getZIndex()) || (a.getHeight() - b.getHeight()));
+
+        let grouped: Record<number, Vector[]> = {};
+        for (const vi of this.visibleVectorLayers) {
+            if (!grouped[vi.depthOrder]) {
+                grouped[vi.depthOrder] = [];
+            }
+            grouped[vi.depthOrder].push(vi);
+        }
+
+        this._visibleVectorLayersByDepthOrder.length = 0;
+        this._visibleVectorLayersByDepthOrder = [];
+        this._visibleVectorLayersByDepthOrder = Object.keys(grouped)
+            .sort((a, b) => Number(a) - Number(b))
+            .map(key => grouped[Number(key)]);
 
         this._visibleTileLayerSlices = [];
         this._visibleTileLayerSlices.length = 0;
@@ -1414,7 +1430,7 @@ export class Planet extends RenderNode {
             this._collectVectorLayerCollections();
         }
 
-        this.drawEntityCollections(this._frustumEntityCollections);
+        this.drawEntityCollections(this._visibleEntityCollections[0]);
     }
 
     /**
@@ -1848,24 +1864,25 @@ export class Planet extends RenderNode {
     }
 
     protected _collectVectorLayerCollections() {
-        this._frustumEntityCollections.length = 0;
-        this._frustumEntityCollections = [];
+        this._visibleEntityCollections.length = 0;
+        this._visibleEntityCollections = [[]];
 
         let i = this.visibleVectorLayers.length;
+
         while (i--) {
-            let vi = this.visibleVectorLayers[i] as Vector;
+            let vi = this.visibleVectorLayers[i];
 
             if (vi._fading && vi._refreshFadingOpacity()) {
                 this.visibleVectorLayers.splice(i, 1);
             }
 
-            vi.collectVisibleCollections(this._frustumEntityCollections);
+            vi.collectVisibleCollections(this._visibleEntityCollections[0]);
             vi.update();
         }
     }
 
     protected _frustumEntityCollectionPickingCallback() {
-        this.drawPickingEntityCollections(this._frustumEntityCollections);
+        this.drawPickingEntityCollections(this._visibleEntityCollections[0]);
     }
 
     /**
