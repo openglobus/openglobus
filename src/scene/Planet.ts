@@ -1191,7 +1191,7 @@ export class Planet extends RenderNode {
 
         this.visibleVectorLayers.sort((a, b) => (a.getZIndex() - b.getZIndex()) || (a.getHeight() - b.getHeight()));
 
-        let grouped: Record<number, Vector[]> = {};
+        let grouped: Record<number, Vector[]> = {0: []};
         for (const vi of this.visibleVectorLayers) {
             if (!grouped[vi.depthOrder]) {
                 grouped[vi.depthOrder] = [];
