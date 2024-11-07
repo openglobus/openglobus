@@ -989,8 +989,6 @@ export class Planet extends RenderNode {
 
         this._updateVisibleLayers();
 
-        //this.renderer!.addPickingCallback(this, this._frustumEntityCollectionPickingCallback);
-
         // loading Earth night glowing texture
         if (this._nightTextureSrc) {
 
@@ -1890,23 +1888,7 @@ export class Planet extends RenderNode {
                 vi.update();
             }
         }
-
-        //let i = this.visibleVectorLayers.length;
-        // while (i--) {
-        //     let vi = this.visibleVectorLayers[i];
-        //
-        //     if (vi._fading && vi._refreshFadingOpacity()) {
-        //         this.visibleVectorLayers.splice(i, 1);
-        //     }
-        //
-        //     vi.collectVisibleCollections(this._visibleEntityCollections[0]);
-        //     vi.update();
-        // }
     }
-
-    // protected _frustumEntityCollectionPickingCallback() {
-    //     this.drawPickingEntityCollections(this._visibleEntityCollections[0]);
-    // }
 
     /**
      * Starts clear memory thread.
