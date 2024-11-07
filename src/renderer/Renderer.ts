@@ -1032,7 +1032,7 @@ class Renderer {
             if (pointerEvent && !mouseHold) {
                 this._drawPickingBuffer();
             }
-            this._drawDistanceBuffer();
+            //this._drawDistanceBuffer();
         }
 
         for (let i = 1; i < this._entityCollections.length; i++) {
@@ -1041,8 +1041,8 @@ class Renderer {
             while (k--) {
                 this.activeCamera!.setCurrentFrustum(k);
                 this._drawEntityCollections(i);
-                this._clearEntityCollectionQueue(i);
             }
+            this._clearEntityCollectionQueue(i);
         }
 
         sceneFramebuffer.deactivate();

@@ -74,7 +74,8 @@ class GeoObjectEditorScene extends RenderNode {
             scaleByDistance: [1, MAX32, 1],
             useLighting: false,
             pickingScale: [5, 1.1, 5],
-            visibility: false
+            visibility: false,
+            depthOrder: 1000
         });
 
         this._rotLayer = new Vector("rotation", {
