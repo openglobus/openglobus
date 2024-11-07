@@ -17,7 +17,7 @@ export interface IAxisEntityParams extends IEntityParams {
     size?: number;
 }
 
-export class AxisEntity extends Entity {
+export class MoveAxisEntity extends Entity {
     protected _size: number;
 
     constructor(params: IAxisEntityParams = {}) {

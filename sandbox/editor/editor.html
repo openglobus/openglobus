@@ -33,8 +33,7 @@
     async function main() {
 
         let cubesLayer = new Vector("objects", {
-            scaleByDistance: [1, 1, 1],
-            depthOrder: 1,
+            scaleByDistance: [1, 1, 1]
         });
 
         const cube = Object3d.createCube(10000, 10000, 10000);
@@ -59,7 +58,7 @@
 
         let spheresLayer = new Vector("spheres", {
             scaleByDistance: [1, 1, 1],
-            depthOrder: 2
+            depthOrder: 0
         });
 
         const sphere = Object3d.createSphere(16, 16, 5000);

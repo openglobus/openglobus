@@ -83,7 +83,7 @@ import {
     GlobusRgbTerrain
 } from './terrain/index';
 
-import {AxisEntity} from "./control/geoObjectEditor/AxisEntity";
+import {MoveAxisEntity} from "./control/geoObjectEditor/MoveAxisEntity";
 
 export {
     bv,
@@ -141,5 +141,5 @@ export {
     Wgs84QuadTreeStrategy,
     Object3d,
 
-    AxisEntity,
+    MoveAxisEntity,
 };

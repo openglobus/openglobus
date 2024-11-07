@@ -9,7 +9,7 @@ import {IMouseState} from "../../renderer/RendererEvents";
 import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
 import {LonLat} from "../../LonLat";
 import {Entity} from "../../entity/Entity";
-import {AxisEntity} from "./AxisEntity";
+import {MoveAxisEntity} from "./MoveAxisEntity";
 
 export interface IGeoObjectEditorSceneParams {
     planet?: Planet;
@@ -51,12 +51,12 @@ class GeoObjectEditorScene extends RenderNode {
     protected _planet: Planet | null;
     protected _startPos: Vec2 | null;
     protected _startClick: Vec2;
-    protected _axisLayer: Vector;
-    protected _rotLayer: Vector;
+    protected _moveAxisLayer: Vector;
+    protected _rotationLayer: Vector;
 
     protected _selectedEntity: Entity | null;
 
-    protected _axisEntity: AxisEntity;
+    protected _axisEntity: MoveAxisEntity;
 
     constructor(options: IGeoObjectEditorSceneParams = {}) {
         super(options.name || 'GeoObjectEditorScene');
@@ -68,9 +68,9 @@ class GeoObjectEditorScene extends RenderNode {
         this._startPos = null;
         this._startClick = new Vec2();
 
-        this._axisEntity = new AxisEntity();
+        this._axisEntity = new MoveAxisEntity();
 
-        this._axisLayer = new Vector("axis", {
+        this._moveAxisLayer = new Vector("axis", {
             scaleByDistance: [1, MAX32, 1],
             useLighting: false,
             pickingScale: [5, 1.1, 5],
@@ -78,7 +78,7 @@ class GeoObjectEditorScene extends RenderNode {
             depthOrder: 1000
         });
 
-        this._rotLayer = new Vector("rotation", {
+        this._rotationLayer = new Vector("rotation", {
             scaleByDistance: [1, MAX32, 1],
             useLighting: false,
             pickingScale: [5, 1.1, 5],
@@ -103,15 +103,15 @@ class GeoObjectEditorScene extends RenderNode {
 
     protected _addAxisLayers() {
         if (this._planet) {
-            this._axisLayer.addTo(this._planet);
-            this._rotLayer.addTo(this._planet);
+            this._moveAxisLayer.addTo(this._planet);
+            this._rotationLayer.addTo(this._planet);
 
-            this._axisLayer.add(this._axisEntity);
+            this._moveAxisLayer.add(this._axisEntity);
 
-            this._axisLayer.events.on("mouseenter", this._onAxisLayerMouseEnter);
-            this._axisLayer.events.on("mouseleave", this._onAxisLayerMouseLeave);
-            this._axisLayer.events.on("lup", this._onAxisLayerLUp);
-            this._axisLayer.events.on("ldown", this._onAxisLayerLDown);
+            this._moveAxisLayer.events.on("mouseenter", this._onAxisLayerMouseEnter);
+            this._moveAxisLayer.events.on("mouseleave", this._onAxisLayerMouseLeave);
+            this._moveAxisLayer.events.on("lup", this._onAxisLayerLUp);
+            this._moveAxisLayer.events.on("ldown", this._onAxisLayerLDown);
             this._planet!.renderer!.events.off("mousemove", this._onMouseMove);
         }
     }
@@ -137,8 +137,8 @@ class GeoObjectEditorScene extends RenderNode {
     }
 
     protected _removeAxisLayers() {
-        this._axisLayer.remove();
-        this._rotLayer.remove()
+        this._moveAxisLayer.remove();
+        this._rotationLayer.remove()
     }
 
     public activate() {
@@ -180,8 +180,8 @@ class GeoObjectEditorScene extends RenderNode {
     }
 
     public setVisibility(visibility: boolean) {
-        this._axisLayer.setVisibility(visibility);
-        this._rotLayer.setVisibility(visibility);
+        this._moveAxisLayer.setVisibility(visibility);
+        this._rotationLayer.setVisibility(visibility);
     }
 
     public readyToEdit(entity: Entity): boolean {
@@ -210,8 +210,8 @@ class GeoObjectEditorScene extends RenderNode {
     }
 
     public clear() {
-        this._planet!.removeLayer(this._axisLayer);
-        this._planet!.removeLayer(this._rotLayer);
+        this._planet!.removeLayer(this._moveAxisLayer);
+        this._planet!.removeLayer(this._rotationLayer);
     }
 
     public override frame() {
