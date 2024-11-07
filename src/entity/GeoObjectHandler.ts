@@ -492,31 +492,31 @@ class GeoObjectHandler {
         }
     }
 
-    protected _initDistancePickingCallback() {
-        if (this._planet && this._planet.renderer) {
-            // propably don't need this id here
-            //this._planet.renderer.removeDepthCallback(this._distancePickingCallbackID);
-            this._planet.renderer.addDistanceCallback(this, this._renderDistanceFramebufferPASS);
-            this._planet.renderer.addDepthCallback(this, this._renderDepthFramebufferPASS);
-        }
-    }
+    // protected _initDistancePickingCallback() {
+    //     if (this._planet && this._planet.renderer) {
+    //         // propably don't need this id here
+    //         //this._planet.renderer.removeDepthCallback(this._distancePickingCallbackID);
+    //         //this._planet.renderer.addDistanceCallback(this, this._renderDistanceFramebufferPASS);
+    //         //this._planet.renderer.addDepthCallback(this, this._renderDepthFramebufferPASS);
+    //     }
+    // }
 
-    protected _renderDistanceFramebufferPASS() {
-        if (this._entityCollection._layer && this._entityCollection._layer.getVisibility()) {
-            this._distancePASS();
-        }
-    }
+    // protected _renderDistanceFramebufferPASS() {
+    //     if (this._entityCollection._layer && this._entityCollection._layer.getVisibility()) {
+    //         this._distancePASS();
+    //     }
+    // }
 
-    protected _renderDepthFramebufferPASS() {
-        this._depthPASS();
-    }
+    // protected _renderDepthFramebufferPASS() {
+    //     this._depthPASS();
+    // }
 
     public setRenderNode(renderNode: Planet) {
 
         this._planet = renderNode;
 
         this.initProgram();
-        this._initDistancePickingCallback();
+        //this._initDistancePickingCallback();
 
         //
         // in case of lazy initialization loading data here
@@ -669,13 +669,6 @@ class GeoObjectHandler {
             gl = r.handler.gl!,
             ec = this._entityCollection;
 
-        if (ec._layer!.name === "axis") {
-            //gl.clear(gl.DEPTH_BUFFER_BIT);
-            // gl.enable(gl.POLYGON_OFFSET_FILL);
-            // //@ts-ignore
-            // gl.polygonOffset(window.OFFSET_FACTOR || 0, window.OFFSET_UNITS || 0);
-        }
-
         gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
         gl.uniform1f(u.useLighting, ec._useLighting);
 
@@ -698,15 +691,11 @@ class GeoObjectHandler {
 
         sh.activate();
 
-        //gl.disable(gl.CULL_FACE);
-
         this._bindCommon();
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._instanceDataMapValues[i].drawOpaque(p);
         }
-
-        //r.handler!.gl!.disable(r.handler!.gl!.POLYGON_OFFSET_FILL);
     }
 
     public _displayTransparentPASS() {
@@ -778,6 +767,12 @@ class GeoObjectHandler {
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer!);
             p.drawElementsInstanced!(gl.TRIANGLES, tagData._indicesBuffer!.numItems, gl.UNSIGNED_INT, 0, tagData.numInstances);
+        }
+    }
+
+    public drawDistance() {
+        if (this._geoObjects.length) {
+            this._distancePASS();
         }
     }
 

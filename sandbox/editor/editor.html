@@ -32,15 +32,16 @@
 
     async function main() {
 
-        let objectLayer = new Vector("objects", {
-            scaleByDistance: [1, 1, 1]
+        let cubesLayer = new Vector("objects", {
+            scaleByDistance: [1, 1, 1],
+            //depthOrder: 0,
         });
 
         const cube = Object3d.createCube(10000, 10000, 10000);
 
         for (let i = -90; i < 90; i += 10) {
             for (let j = -180; j < 180; j += 10) {
-                objectLayer.add(new Entity({
+                cubesLayer.add(new Entity({
                             lonlat: [i, j, 10000],
                             geoObject: {
                                 color: "white",
@@ -56,11 +57,36 @@
             }
         }
 
+        let spheresLayer = new Vector("spheres", {
+            scaleByDistance: [1, 1, 1],
+            depthOrder: 1
+        });
+
+        const sphere = Object3d.createSphere(16, 16, 5000);
+
+        for (let i = -90; i < 90; i += 10) {
+            for (let j = -180; j < 180; j += 10) {
+                spheresLayer.add(new Entity({
+                            lonlat: [i + 0.1, j, 10000],
+                            geoObject: {
+                                color: "red",
+                                scale: 3.0,
+                                instanced: true,
+                                tag: 'sphere',
+                                object3d: sphere,
+                                yaw: 0,
+                                pitch: 0
+                            }
+                        })
+                );
+            }
+        }
+
         const globus = new Globe({
             target: "earth",
             name: "Earth",
             terrain: new GlobusRgbTerrain(),
-            layers: [new OpenStreetMap(), new Bing(), objectLayer],
+            layers: [new OpenStreetMap(), new Bing(), cubesLayer, spheresLayer],
             atmosphereEnabled: false,
             fontsSrc: "../../res/fonts",
             sun: {

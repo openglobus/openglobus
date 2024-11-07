@@ -972,6 +972,75 @@ class Renderer {
         }
     }
 
+    protected _drawPickingEntityCollections(depthOrder: number) {
+        let ec = this._entityCollections[depthOrder];
+        if (ec.length) {
+            // billboard pass
+            let i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].billboardHandler.drawPicking();
+            }
+            // geoObject pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].geoObjectHandler.drawPicking();
+            }
+            // label pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].labelHandler.drawPicking();
+            }
+            // ray pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].rayHandler.drawPicking();
+            }
+            // polyline pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._visibility && ec[i].polylineHandler.drawPicking();
+            }
+            //Strip pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._visibility && ec[i].stripHandler.drawPicking();
+            }
+            // //pointClouds pass
+            // i = ec.length;
+            // while (i--) {
+            //    ec[i]._visibility && ec[i].pointCloudHandler.drawPicking();
+            // }
+        }
+    }
+
+    protected _drawDistanceEntityCollections(depthOrder: number) {
+        let ec = this._entityCollections[depthOrder];
+        if (ec.length) {
+            // geoObject pass
+            let i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].geoObjectHandler.drawDistance();
+            }
+
+            // i = ec.length;
+            // while (i--) {
+            //     ec[i]._fadingOpacity && ec[i].rayHandler.drawDistance();
+            // }
+            //
+            // // polyline pass
+            // i = ec.length;
+            // while (i--) {
+            //     ec[i]._visibility && ec[i].polylineHandler.drawDistance();
+            // }
+            //
+            // //Strip pass
+            // i = ec.length;
+            // while (i--) {
+            //     ec[i]._visibility && ec[i].stripHandler.drawDistance();
+            // }
+        }
+    }
+
     protected _clearEntityCollectionQueue(depthOrder: number) {
         this._entityCollections[depthOrder].length = 0;
         this._entityCollections[depthOrder] = [];
@@ -1025,14 +1094,16 @@ class Renderer {
             }
 
             this._drawEntityCollections(0);
-            this._clearEntityCollectionQueue(0);
 
             e.dispatch(e.drawtransparent, this);
 
             if (pointerEvent && !mouseHold) {
-                this._drawPickingBuffer();
+                this._drawPickingBuffer(0);
             }
-            //this._drawDistanceBuffer();
+
+            this._drawDistanceBuffer(0);
+
+            this._clearEntityCollectionQueue(0);
         }
 
         for (let i = 1; i < this._entityCollections.length; i++) {
@@ -1040,8 +1111,16 @@ class Renderer {
             let k = frustums.length;
             while (k--) {
                 this.activeCamera!.setCurrentFrustum(k);
+
                 this._drawEntityCollections(i);
+
+                if (pointerEvent && !mouseHold) {
+                    this._drawPickingBuffer(i);
+                }
+
+                this._drawDistanceBuffer(i);
             }
+
             this._clearEntityCollectionQueue(i);
         }
 
@@ -1132,33 +1211,38 @@ class Renderer {
      * Draw picking objects framebuffer.
      * @private
      */
-    protected _drawPickingBuffer() {
+    protected _drawPickingBuffer(depthOrder: number) {
         this.pickingFramebuffer!.activate();
 
         let h = this.handler;
         let gl = h.gl!;
 
-        if (this.activeCamera!.isFirstPass) {
+        if (this.activeCamera!.isFirstPass && depthOrder === 0) {
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         } else {
             gl.clear(gl.DEPTH_BUFFER_BIT);
         }
 
-        let dp = this._pickingCallbacks;
-        for (let i = 0, len = dp.length; i < len; i++) {
-            //
-            // draw picking scenes, usually we don't need blending,
-            // but sometimes set it manually in the callbacks
-            //
-            gl.disable(gl.BLEND);
+        //
+        // draw picking scenes, usually we don't need blending,
+        // but sometimes set it manually in the callbacks
+        //
+        gl.disable(gl.BLEND);
 
-            /**
-             * This callback renders picking frame.
-             */
-            dp[i].callback.call(dp[i].sender);
-            gl.enable(gl.BLEND);
+        if (depthOrder === 0) {
+            let dp = this._pickingCallbacks;
+            for (let i = 0, len = dp.length; i < len; i++) {
+                /**
+                 * This callback renders picking frame.
+                 */
+                dp[i].callback.call(dp[i].sender);
+            }
         }
+
+        this._drawPickingEntityCollections(depthOrder);
+
+        gl.enable(gl.BLEND);
 
         this.pickingFramebuffer!.deactivate();
     }
@@ -1167,13 +1251,13 @@ class Renderer {
      * Draw picking objects framebuffer.
      * @protected
      */
-    protected _drawDistanceBuffer() {
+    protected _drawDistanceBuffer(depthOrder: number) {
         this.distanceFramebuffer!.activate();
 
         let h = this.handler;
         let gl = h.gl!;
 
-        if (this.activeCamera!.isFirstPass) {
+        if (this.activeCamera!.isFirstPass && depthOrder === 0) {
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         } else {
@@ -1182,14 +1266,18 @@ class Renderer {
 
         gl.disable(gl.BLEND);
 
-        let dp = this._distanceCallbacks;
-        let i = dp.length;
-        while (i--) {
-            /**
-             * This callback renders distance frame.
-             */
-            dp[i].callback.call(dp[i].sender);
+        if (depthOrder === 0) {
+            let dp = this._distanceCallbacks;
+            let i = dp.length;
+            while (i--) {
+                /**
+                 * This callback renders distance frame.
+                 */
+                dp[i].callback.call(dp[i].sender);
+            }
         }
+
+        this._drawDistanceEntityCollections(depthOrder);
 
         gl.enable(gl.BLEND);
 
