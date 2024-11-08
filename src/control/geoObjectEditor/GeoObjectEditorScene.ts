@@ -51,12 +51,16 @@ class GeoObjectEditorScene extends RenderNode {
     protected _planet: Planet | null;
     protected _startPos: Vec2 | null;
     protected _startClick: Vec2;
-    protected _moveAxisLayer: Vector;
-    protected _rotationLayer: Vector;
+    protected _moveLayer: Vector;
+    protected _rotateLayer: Vector;
 
     protected _selectedEntity: Entity | null;
 
     protected _axisEntity: MoveAxisEntity;
+
+    protected _selectedMove: string | null;
+
+    protected _ops: Record<string, () => void>;
 
     constructor(options: IGeoObjectEditorSceneParams = {}) {
         super(options.name || 'GeoObjectEditorScene');
@@ -70,7 +74,7 @@ class GeoObjectEditorScene extends RenderNode {
 
         this._axisEntity = new MoveAxisEntity();
 
-        this._moveAxisLayer = new Vector("axis", {
+        this._moveLayer = new Vector("move", {
             scaleByDistance: [1, MAX32, 1],
             useLighting: false,
             pickingScale: [5, 1.1, 5],
@@ -78,7 +82,7 @@ class GeoObjectEditorScene extends RenderNode {
             depthOrder: 1000
         });
 
-        this._rotationLayer = new Vector("rotation", {
+        this._rotateLayer = new Vector("rotate", {
             scaleByDistance: [1, MAX32, 1],
             useLighting: false,
             pickingScale: [5, 1.1, 5],
@@ -86,6 +90,24 @@ class GeoObjectEditorScene extends RenderNode {
         });
 
         this._selectedEntity = null;
+
+        this._selectedMove = null;
+
+        this._ops = {
+            move_x: this._moveX,
+            move_y: this._moveY,
+            move_z: this._moveZ,
+            move_xz: this._moveXZ,
+            move_xy: this._moveXY,
+            move_zy: this._moveZY,
+            rotate_pitch: this._rotatePitch,
+            rotate_yaw: this._rotateYaw,
+            rotate_roll: this._rotateRoll,
+            scale: this._scale,
+            scale_x: this._scaleX,
+            scale_y: this._scaleY,
+            scale_z: this._scaleZ,
+        }
     }
 
     public bindPlanet(planet: Planet) {
@@ -103,51 +125,56 @@ class GeoObjectEditorScene extends RenderNode {
 
     protected _addAxisLayers() {
         if (this._planet) {
-            this._moveAxisLayer.addTo(this._planet);
-            this._rotationLayer.addTo(this._planet);
+            this._moveLayer.addTo(this._planet);
+            this._rotateLayer.addTo(this._planet);
 
-            this._moveAxisLayer.add(this._axisEntity);
+            this._moveLayer.add(this._axisEntity);
 
-            this._moveAxisLayer.events.on("mouseenter", this._onAxisLayerMouseEnter);
-            this._moveAxisLayer.events.on("mouseleave", this._onAxisLayerMouseLeave);
-            this._moveAxisLayer.events.on("lup", this._onAxisLayerLUp);
-            this._moveAxisLayer.events.on("ldown", this._onAxisLayerLDown);
-            this._planet!.renderer!.events.off("mousemove", this._onMouseMove);
+            this._moveLayer.events.on("mouseenter", this._onAxisLayerMouseEnter);
+            this._moveLayer.events.on("mouseleave", this._onAxisLayerMouseLeave);
+            this._moveLayer.events.on("lup", this._onAxisLayerLUp);
+            this._moveLayer.events.on("ldown", this._onAxisLayerLDown);
         }
     }
 
-    protected _onAxisLayerMouseEnter = (e: MouseEvent) => {
+    protected _onAxisLayerMouseEnter = (e: IMouseState) => {
         this._planet!.renderer!.handler!.canvas!.style.cursor = "pointer";
     }
 
-    protected _onAxisLayerMouseLeave = (e: MouseEvent) => {
+    protected _onAxisLayerMouseLeave = (e: IMouseState) => {
         this._planet!.renderer!.handler!.canvas!.style.cursor = "default";
     }
 
-    protected _onAxisLayerLUp = (e: MouseEvent) => {
-
+    protected _onAxisLayerLUp = (e: IMouseState) => {
+        this._selectedMove = null;
+        this._planet!.renderer!.controls.mouseNavigation.activate();
     }
 
-    protected _onAxisLayerLDown = (e: MouseEvent) => {
-
+    protected _onAxisLayerLDown = (e: IMouseState) => {
+        this._selectedMove = e.pickingObject.properties.opName;
+        this._planet!.renderer!.controls.mouseNavigation.deactivate();
     }
 
-    protected _onMouseMove = (e: MouseEvent) => {
-
+    protected _onMouseMove = (e: IMouseState) => {
+        if (this._selectedMove && this._ops[this._selectedMove]) {
+            this._ops[this._selectedMove]();
+        }
     }
 
     protected _removeAxisLayers() {
-        this._moveAxisLayer.remove();
-        this._rotationLayer.remove()
+        this._moveLayer.remove();
+        this._rotateLayer.remove()
     }
 
     public activate() {
-        this.renderer!.events.on("lclick", this._onLclick, this);
+        this.renderer!.events.on("lclick", this._onLclick);
+        this.renderer!.events.on("mousemove", this._onMouseMove);
         this._addAxisLayers();
     }
 
     protected deactivate() {
         this.renderer!.events.off("lclick", this._onLclick);
+        this.renderer!.events.off("mousemove", this._onMouseMove);
         this._removeAxisLayers();
         this.clear();
     }
@@ -180,8 +207,8 @@ class GeoObjectEditorScene extends RenderNode {
     }
 
     public setVisibility(visibility: boolean) {
-        this._moveAxisLayer.setVisibility(visibility);
-        this._rotationLayer.setVisibility(visibility);
+        this._moveLayer.setVisibility(visibility);
+        this._rotateLayer.setVisibility(visibility);
     }
 
     public readyToEdit(entity: Entity): boolean {
@@ -210,8 +237,8 @@ class GeoObjectEditorScene extends RenderNode {
     }
 
     public clear() {
-        this._planet!.removeLayer(this._moveAxisLayer);
-        this._planet!.removeLayer(this._rotationLayer);
+        this._planet!.removeLayer(this._moveLayer);
+        this._planet!.removeLayer(this._rotateLayer);
     }
 
     public override frame() {
@@ -222,6 +249,51 @@ class GeoObjectEditorScene extends RenderNode {
 
     public get ellipsoid(): Ellipsoid | null {
         return this._planet ? this._planet.ellipsoid : null;
+    }
+
+    protected _moveX = () => {
+        console.log("moveX");
+    }
+
+    protected _moveY = () => {
+        console.log("moveY");
+    }
+
+    protected _moveZ = () => {
+        console.log("moveZ");
+    }
+
+    protected _moveXZ = () => {
+        console.log("moveXZ");
+    }
+
+    protected _moveXY = () => {
+        console.log("moveXY");
+    }
+
+    protected _moveZY = () => {
+        console.log("moveZY");
+    }
+
+    protected _rotatePitch = () => {
+    }
+
+    protected _rotateYaw = () => {
+    }
+
+    protected _rotateRoll = () => {
+    }
+
+    protected _scale = () => {
+    }
+
+    protected _scaleX = () => {
+    }
+
+    protected _scaleY = () => {
+    }
+
+    protected _scaleZ = () => {
     }
 }
 

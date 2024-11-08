@@ -34,9 +34,9 @@ export class MoveAxisEntity extends Entity {
     private _initArrows() {
         const scale = 1.5;
 
-        const propX = {name: "X"};
-        const propY = {name: "Y"};
-        const propZ = {name: "Z"};
+        const propX = {opName: "move_x"};
+        const propY = {opName: "move_y"};
+        const propZ = {opName: "move_z"};
 
         let arrowX = new Entity({
             independentPicking: true,
