@@ -10,6 +10,7 @@ import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
 import {LonLat} from "../../LonLat";
 import {Entity} from "../../entity/Entity";
 import {MoveAxisEntity} from "./MoveAxisEntity";
+import {Ray} from "../../math/Ray";
 
 export interface IGeoObjectEditorSceneParams {
     planet?: Planet;
@@ -17,6 +18,7 @@ export interface IGeoObjectEditorSceneParams {
 }
 
 type GeoObjectSceneEventsList = [
+    "move",
     "mousemove",
     "mouseenter",
     "mouseleave",
@@ -42,8 +44,8 @@ type GeoObjectSceneEventsList = [
     "doubletouch",
     "touchleave",
     "touchenter",
-    "startedit",
-    "stopedit",
+    "select",
+    "unselect",
 ];
 
 class GeoObjectEditorScene extends RenderNode {
@@ -55,12 +57,15 @@ class GeoObjectEditorScene extends RenderNode {
     protected _rotateLayer: Vector;
 
     protected _selectedEntity: Entity | null;
+    protected _selectedEntityCart: Vec3;
+    protected _selectedEntityLonLat: LonLat;
+    protected _clickPos: Vec2;
 
     protected _axisEntity: MoveAxisEntity;
 
     protected _selectedMove: string | null;
 
-    protected _ops: Record<string, () => void>;
+    protected _ops: Record<string, (mouseState: IMouseState) => void>;
 
     constructor(options: IGeoObjectEditorSceneParams = {}) {
         super(options.name || 'GeoObjectEditorScene');
@@ -90,6 +95,7 @@ class GeoObjectEditorScene extends RenderNode {
         });
 
         this._selectedEntity = null;
+        this._clickPos = new Vec2();
 
         this._selectedMove = null;
 
@@ -151,13 +157,22 @@ class GeoObjectEditorScene extends RenderNode {
     }
 
     protected _onAxisLayerLDown = (e: IMouseState) => {
+        this._clickPos = e.pos.clone();
+
+        if (this._selectedEntity) {
+            this._selectedEntityCart = this._selectedEntity.getCartesian().clone();
+            this._selectedEntityLonLat = this._selectedEntity.getLonLat().clone();
+        }
+
+        console.log(this._clickPos.x, this._clickPos.y);
         this._selectedMove = e.pickingObject.properties.opName;
         this._planet!.renderer!.controls.mouseNavigation.deactivate();
     }
 
     protected _onMouseMove = (e: IMouseState) => {
-        if (this._selectedMove && this._ops[this._selectedMove]) {
-            this._ops[this._selectedMove]();
+        if (this._selectedEntity && this._selectedMove && this._ops[this._selectedMove]) {
+            this._ops[this._selectedMove](e);
+            this.events.dispatch(this.events.move, this._selectedEntity);
         }
     }
 
@@ -215,24 +230,28 @@ class GeoObjectEditorScene extends RenderNode {
         return true;
     }
 
-    public startEditing(entity: Entity) {
+    public select(entity: Entity) {
         if ((!this._selectedEntity || this._selectedEntity && !entity.isEqual(this._selectedEntity)) && this.readyToEdit(entity)) {
+            if (this._selectedEntity) {
+                this.unselect();
+            }
             this._selectedEntity = entity;
+
             this.setVisibility(true);
-            this.events.dispatch(this.events.startedit, this._selectedEntity);
+            this.events.dispatch(this.events.select, this._selectedEntity);
         }
     }
 
-    public stopEditing() {
+    public unselect() {
         this.setVisibility(false);
         let selectedEntity = this._selectedEntity;
         this._selectedEntity = null;
-        this.events.dispatch(this.events.stopedit, selectedEntity);
+        this.events.dispatch(this.events.unselect, selectedEntity);
     }
 
     protected _onLclick = (e: IMouseState) => {
         if (e.pickingObject && (e.pickingObject instanceof Entity)) {
-            this.startEditing(e.pickingObject);
+            this.select(e.pickingObject);
         }
     }
 
@@ -255,8 +274,30 @@ class GeoObjectEditorScene extends RenderNode {
         console.log("moveX");
     }
 
-    protected _moveY = () => {
-        console.log("moveY");
+    protected _moveY = (e: IMouseState) => {
+
+        if (!this._selectedEntity) return;
+
+        let cam = this._planet!.camera;
+        let p0 = this._selectedEntityCart;
+        let groundNormal = this._planet!.ellipsoid.getSurfaceNormal3v(p0);
+        let p1 = p0.add(groundNormal);
+        let p2 = p0.add(cam.getRight());
+        let px = new Vec3();
+
+        let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
+
+        if (new Ray(cam.eye, clickDir).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
+
+            let clickCart = Vec3.proj_b_to_a(px, groundNormal);
+
+            if (new Ray(cam.eye, e.direction).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
+                let dragCart = Vec3.proj_b_to_a(px, groundNormal);
+                let dragVec = dragCart.sub(clickCart);
+                let pos = this._selectedEntityCart.add(dragVec);
+                this._selectedEntity.setCartesian3v(pos);
+            }
+        }
     }
 
     protected _moveZ = () => {
@@ -298,6 +339,7 @@ class GeoObjectEditorScene extends RenderNode {
 }
 
 const GEOOBJECTEDITORCENE_EVENTS: GeoObjectSceneEventsList = [
+    "move",
     "mousemove",
     "mouseenter",
     "mouseleave",
@@ -323,8 +365,8 @@ const GEOOBJECTEDITORCENE_EVENTS: GeoObjectSceneEventsList = [
     "doubletouch",
     "touchleave",
     "touchenter",
-    "startedit",
-    "stopedit"
+    "select",
+    "unselect"
 ];
 
 export {GeoObjectEditorScene};
