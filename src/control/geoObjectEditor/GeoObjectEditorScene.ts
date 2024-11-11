@@ -13,6 +13,9 @@ import {Entity} from "../../entity/Entity";
 import {MoveAxisEntity} from "./MoveAxisEntity";
 import {Ray} from "../../math/Ray";
 import {Sphere} from "../../bv/Sphere";
+import {Object3d} from "../../Object3d";
+
+const planeObj = Object3d.createPlane(1, 1, -0.5, 0, 0.5);
 
 export interface IGeoObjectEditorSceneParams {
     planet?: Planet;
@@ -56,6 +59,7 @@ class GeoObjectEditorScene extends RenderNode {
     protected _startPos: Vec2 | null;
     protected _startClick: Vec2;
     protected _moveLayer: Vector;
+    protected _planeLayer: Vector;
     protected _rotateLayer: Vector;
 
     protected _selectedEntity: Entity | null;
@@ -63,6 +67,7 @@ class GeoObjectEditorScene extends RenderNode {
     protected _clickPos: Vec2;
 
     protected _axisEntity: MoveAxisEntity;
+    protected _planeXZ: Entity;
 
     protected _selectedMove: string | null;
 
@@ -80,10 +85,33 @@ class GeoObjectEditorScene extends RenderNode {
 
         this._axisEntity = new MoveAxisEntity();
 
+        this._planeXZ = new Entity({
+            independentPicking: true,
+            geoObject: {
+                color: "rgba(255,255,255,0.7)",
+                scale: 0.02,
+                instanced: true,
+                tag: "plane",
+                object3d: planeObj,
+                yaw: 0,
+                pitch: 0,
+                roll: 0
+            },
+            properties: {opName: "move_xz"}
+        });
+
         this._moveLayer = new Vector("move", {
             scaleByDistance: [1, MAX32, 1],
             useLighting: false,
             pickingScale: [5, 1.1, 5],
+            visibility: false,
+            depthOrder: 1000
+        });
+
+        this._planeLayer = new Vector("move-plane", {
+            scaleByDistance: [1, MAX32, 1],
+            useLighting: false,
+            //pickingScale: [5, 1.1, 5],
             visibility: false,
             depthOrder: 1000
         });
@@ -133,14 +161,20 @@ class GeoObjectEditorScene extends RenderNode {
     protected _addAxisLayers() {
         if (this._planet) {
             this._moveLayer.addTo(this._planet);
+            this._planeLayer.addTo(this._planet);
             this._rotateLayer.addTo(this._planet);
 
             this._moveLayer.add(this._axisEntity);
-
             this._moveLayer.events.on("mouseenter", this._onAxisLayerMouseEnter);
             this._moveLayer.events.on("mouseleave", this._onAxisLayerMouseLeave);
             this._moveLayer.events.on("lup", this._onAxisLayerLUp);
             this._moveLayer.events.on("ldown", this._onAxisLayerLDown);
+
+            this._planeLayer.add(this._planeXZ);
+            this._planeLayer.events.on("mouseenter", this._onPlaneLayerMouseEnter);
+            this._planeLayer.events.on("mouseleave", this._onPlaneLayerMouseLeave);
+            this._planeLayer.events.on("lup", this._onPlaneLayerLUp);
+            this._planeLayer.events.on("ldown", this._onPlaneLayerLDown);
         }
     }
 
@@ -169,6 +203,31 @@ class GeoObjectEditorScene extends RenderNode {
         this._planet!.renderer!.controls.mouseNavigation.deactivate();
     }
 
+    protected _onPlaneLayerMouseEnter = (e: IMouseState) => {
+        this._planet!.renderer!.handler!.canvas!.style.cursor = "pointer";
+    }
+
+    protected _onPlaneLayerMouseLeave = (e: IMouseState) => {
+        this._planet!.renderer!.handler!.canvas!.style.cursor = "default";
+    }
+
+    protected _onPlaneLayerLUp = (e: IMouseState) => {
+        this._selectedMove = null;
+        this._planet!.renderer!.controls.mouseNavigation.activate();
+    }
+
+    protected _onPlaneLayerLDown = (e: IMouseState) => {
+        this._clickPos = e.pos.clone();
+
+        if (this._selectedEntity) {
+            this._selectedEntityCart = this._selectedEntity.getCartesian().clone();
+        }
+
+        console.log(this._clickPos.x, this._clickPos.y);
+        this._selectedMove = e.pickingObject.properties.opName;
+        this._planet!.renderer!.controls.mouseNavigation.deactivate();
+    }
+
     protected _onMouseMove = (e: IMouseState) => {
         if (this._selectedEntity && this._selectedMove && this._ops[this._selectedMove]) {
             this._ops[this._selectedMove](e);
@@ -178,6 +237,7 @@ class GeoObjectEditorScene extends RenderNode {
 
     protected _removeAxisLayers() {
         this._moveLayer.remove();
+        this._planeLayer.remove();
         this._rotateLayer.remove()
     }
 
@@ -215,14 +275,17 @@ class GeoObjectEditorScene extends RenderNode {
 
     public setAxisCartesian3v(cartesian: Vec3) {
         this._axisEntity.setCartesian3v(cartesian);
+        this._planeXZ.setCartesian3v(cartesian);
     }
 
     public setAxisLonLat(lonLat: LonLat) {
         this._axisEntity.setLonLat(lonLat);
+        this._planeXZ.setLonLat(lonLat);
     }
 
     public setVisibility(visibility: boolean) {
         this._moveLayer.setVisibility(visibility);
+        this._planeLayer.setVisibility(visibility);
         this._rotateLayer.setVisibility(visibility);
     }
 
@@ -257,12 +320,14 @@ class GeoObjectEditorScene extends RenderNode {
 
     public clear() {
         this._planet!.removeLayer(this._moveLayer);
+        this._planet!.removeLayer(this._planeLayer);
         this._planet!.removeLayer(this._rotateLayer);
     }
 
     public override frame() {
         if (this._selectedEntity) {
             this._axisEntity.setCartesian3v(this._selectedEntity.getCartesian());
+            this._planeXZ.setCartesian3v(this._selectedEntity.getCartesian());
         }
     }
 

@@ -524,6 +524,19 @@ class Object3d {
         });
     }
 
+    static createPlane(width: number = 1, height: number = 1, xOffset: number = 0, yOffset: number = 0, zOffset: number = 0): Object3d {
+        let sx = width * 0.5, sy = yOffset, sz = height * 0.5;
+
+        return new Object3d({
+            vertices: [
+                //bottom
+                -sx + xOffset, sy, sz + zOffset, sx + xOffset, sy, -sz + zOffset, sx + xOffset, sy, sz + zOffset, -sx + xOffset, sy, sz + zOffset, -sx + xOffset, sy, -sz + zOffset, sx + xOffset, sy, -sz + zOffset,
+                //top
+                -sx + xOffset, sy, sz + zOffset, sx + xOffset, sy, sz + zOffset, sx + xOffset, sy, -sz + zOffset, -sx + xOffset, sy, sz + zOffset, sx + xOffset, sy, -sz + zOffset, -sx + xOffset, sy, -sz + zOffset
+            ]
+        });
+    }
+
     static createArrow(back: number = 0.0, height: number = 2.1, front: number = -15): Object3d {
         return new Object3d({
             vertices: [0, height, 0, 7, 0, 6, 0, 0, front,
