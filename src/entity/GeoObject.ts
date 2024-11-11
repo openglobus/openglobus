@@ -387,6 +387,10 @@ class GeoObject {
     public getDirection(): Vec3 {
         return this._direction.clone();
     }
+
+    get rotation(): Quat {
+        return this._qRot;
+    }
 }
 
 export {GeoObject};

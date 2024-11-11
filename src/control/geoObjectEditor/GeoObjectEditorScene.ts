@@ -5,12 +5,14 @@ import {RenderNode} from '../../scene/RenderNode';
 import {Vector} from '../../layer/Vector';
 import {Vec2} from '../../math/Vec2';
 import {Vec3} from '../../math/Vec3';
+import {Quat} from '../../math/Quat';
 import {IMouseState} from "../../renderer/RendererEvents";
 import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
 import {LonLat} from "../../LonLat";
 import {Entity} from "../../entity/Entity";
 import {MoveAxisEntity} from "./MoveAxisEntity";
 import {Ray} from "../../math/Ray";
+import {Sphere} from "../../bv/Sphere";
 
 export interface IGeoObjectEditorSceneParams {
     planet?: Planet;
@@ -58,7 +60,6 @@ class GeoObjectEditorScene extends RenderNode {
 
     protected _selectedEntity: Entity | null;
     protected _selectedEntityCart: Vec3;
-    protected _selectedEntityLonLat: LonLat;
     protected _clickPos: Vec2;
 
     protected _axisEntity: MoveAxisEntity;
@@ -96,7 +97,7 @@ class GeoObjectEditorScene extends RenderNode {
 
         this._selectedEntity = null;
         this._clickPos = new Vec2();
-
+        this._selectedEntityCart = new Vec3();
         this._selectedMove = null;
 
         this._ops = {
@@ -161,7 +162,6 @@ class GeoObjectEditorScene extends RenderNode {
 
         if (this._selectedEntity) {
             this._selectedEntityCart = this._selectedEntity.getCartesian().clone();
-            this._selectedEntityLonLat = this._selectedEntity.getLonLat().clone();
         }
 
         console.log(this._clickPos.x, this._clickPos.y);
@@ -270,8 +270,31 @@ class GeoObjectEditorScene extends RenderNode {
         return this._planet ? this._planet.ellipsoid : null;
     }
 
-    protected _moveX = () => {
-        console.log("moveX");
+    protected _moveX = (e: IMouseState) => {
+        if (!this._selectedEntity) return;
+
+        let cam = this._planet!.camera;
+        let p0 = this._selectedEntityCart;
+
+        let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
+
+        let clickCart = new Ray(cam.eye, clickDir).hitSphere(new Sphere(p0.length(), new Vec3()))!;
+        let currCart = new Ray(cam.eye, e.direction).hitSphere(new Sphere(p0.length(), new Vec3()))!;
+
+        let rot = Quat.getRotationBetweenVectors(
+            clickCart.normal(),
+            currCart.normal()
+        );
+
+
+        let px = rot.mulVec3(p0);
+
+        let p0_lonLat = this._planet?.ellipsoid.cartesianToLonLat(p0)!;
+        let px_lonLat = this._planet?.ellipsoid.cartesianToLonLat(px)!;
+
+        this._planet?.ellipsoid.lonLatToCartesianRes(new LonLat(px_lonLat.lon, p0_lonLat.lat, p0_lonLat.height), px);
+
+        this._selectedEntity.setCartesian3v(px);
     }
 
     protected _moveY = (e: IMouseState) => {
@@ -280,7 +303,8 @@ class GeoObjectEditorScene extends RenderNode {
 
         let cam = this._planet!.camera;
         let p0 = this._selectedEntityCart;
-        let groundNormal = this._planet!.ellipsoid.getSurfaceNormal3v(p0);
+        //let groundNormal = this._planet!.ellipsoid.getSurfaceNormal3v(p0);
+        let groundNormal = this._axisEntity.getY();
         let p1 = p0.add(groundNormal);
         let p2 = p0.add(cam.getRight());
         let px = new Vec3();
@@ -288,9 +312,7 @@ class GeoObjectEditorScene extends RenderNode {
         let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
 
         if (new Ray(cam.eye, clickDir).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
-
             let clickCart = Vec3.proj_b_to_a(px, groundNormal);
-
             if (new Ray(cam.eye, e.direction).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
                 let dragCart = Vec3.proj_b_to_a(px, groundNormal);
                 let dragVec = dragCart.sub(clickCart);
@@ -300,41 +322,80 @@ class GeoObjectEditorScene extends RenderNode {
         }
     }
 
-    protected _moveZ = () => {
-        console.log("moveZ");
+    protected _moveZ = (e: IMouseState) => {
+        if (!this._selectedEntity) return;
+
+        let cam = this._planet!.camera;
+        let p0 = this._selectedEntityCart;
+
+        let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
+
+        let clickCart = new Ray(cam.eye, clickDir).hitSphere(new Sphere(p0.length(), new Vec3()))!;
+        let currCart = new Ray(cam.eye, e.direction).hitSphere(new Sphere(p0.length(), new Vec3()))!;
+
+        let rot = Quat.getRotationBetweenVectors(
+            clickCart.normal(),
+            currCart.normal()
+        );
+
+        let px = rot.mulVec3(p0);
+
+        let p0_lonLat = this._planet?.ellipsoid.cartesianToLonLat(p0)!;
+        let px_lonLat = this._planet?.ellipsoid.cartesianToLonLat(px)!;
+
+        this._planet?.ellipsoid.lonLatToCartesianRes(new LonLat(p0_lonLat.lon, px_lonLat.lat, p0_lonLat.height), px);
+
+        this._selectedEntity.setCartesian3v(px);
     }
 
-    protected _moveXZ = () => {
-        console.log("moveXZ");
+    protected _moveXZ = (e: IMouseState) => {
+        if (!this._selectedEntity) return;
+
+        let cam = this._planet!.camera;
+        let p0 = this._selectedEntityCart;
+
+        let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
+
+        let clickCart = new Ray(cam.eye, clickDir).hitSphere(new Sphere(p0.length(), new Vec3()))!;
+        let currCart = new Ray(cam.eye, e.direction).hitSphere(new Sphere(p0.length(), new Vec3()))!;
+
+        let rot = Quat.getRotationBetweenVectors(
+            clickCart.normal(),
+            currCart.normal()
+        );
+
+        let px = rot.mulVec3(p0);
+
+        this._selectedEntity.setCartesian3v(px);
     }
 
-    protected _moveXY = () => {
+    protected _moveXY = (e: IMouseState) => {
         console.log("moveXY");
     }
 
-    protected _moveZY = () => {
+    protected _moveZY = (e: IMouseState) => {
         console.log("moveZY");
     }
 
-    protected _rotatePitch = () => {
+    protected _rotatePitch = (e: IMouseState) => {
     }
 
-    protected _rotateYaw = () => {
+    protected _rotateYaw = (e: IMouseState) => {
     }
 
-    protected _rotateRoll = () => {
+    protected _rotateRoll = (e: IMouseState) => {
     }
 
-    protected _scale = () => {
+    protected _scale = (e: IMouseState) => {
     }
 
-    protected _scaleX = () => {
+    protected _scaleX = (e: IMouseState) => {
     }
 
-    protected _scaleY = () => {
+    protected _scaleY = (e: IMouseState) => {
     }
 
-    protected _scaleZ = () => {
+    protected _scaleZ = (e: IMouseState) => {
     }
 }
 

@@ -199,4 +199,16 @@ export class MoveAxisEntity extends Entity {
         line.geoObject!.setRoll(a);
         tip.geoObject!.setRoll(a);
     }
+
+    public getX(): Vec3 {
+        return this.childrenNodes[0].geoObject!.rotation.mulVec3(new Vec3(0.0, 1.0, 0.0)).normalize();
+    }
+
+    public getY(): Vec3 {
+        return this.childrenNodes[1].geoObject!.rotation.mulVec3(new Vec3(0.0, 1.0, 0.0)).normalize();
+    }
+
+    public getZ(): Vec3 {
+        return this.childrenNodes[2].geoObject!.rotation.mulVec3(new Vec3(0.0, 1.0, 0.0)).normalize();
+    }
 }
