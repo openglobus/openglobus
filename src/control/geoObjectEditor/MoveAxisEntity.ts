@@ -28,10 +28,10 @@ export class MoveAxisEntity extends Entity {
     constructor(params: IAxisEntityParams = {}) {
         super(params);
         this._size = params.size != undefined ? params.size : 1.5;
-        this._initArrows();
+        this._init();
     }
 
-    private _initArrows() {
+    private _init() {
         const scale = 1.5;
 
         const propX = {opName: "move_x"};
