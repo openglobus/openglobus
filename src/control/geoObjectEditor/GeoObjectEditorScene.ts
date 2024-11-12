@@ -11,11 +11,9 @@ import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
 import {LonLat} from "../../LonLat";
 import {Entity} from "../../entity/Entity";
 import {MoveAxisEntity} from "./MoveAxisEntity";
+import {MovePlaneEntity} from "./MovePlaneEntity";
 import {Ray} from "../../math/Ray";
 import {Sphere} from "../../bv/Sphere";
-import {Object3d} from "../../Object3d";
-
-const planeObj = Object3d.createPlane(1, 1, -0.5, 0, 0.5);
 
 export interface IGeoObjectEditorSceneParams {
     planet?: Planet;
@@ -67,7 +65,7 @@ class GeoObjectEditorScene extends RenderNode {
     protected _clickPos: Vec2;
 
     protected _axisEntity: MoveAxisEntity;
-    protected _planeXZ: Entity;
+    protected _planeEntity: MovePlaneEntity;
 
     protected _selectedMove: string | null;
 
@@ -84,21 +82,7 @@ class GeoObjectEditorScene extends RenderNode {
         this._startClick = new Vec2();
 
         this._axisEntity = new MoveAxisEntity();
-
-        this._planeXZ = new Entity({
-            independentPicking: true,
-            geoObject: {
-                color: "rgba(255,255,255,0.7)",
-                scale: 0.02,
-                instanced: true,
-                tag: "plane",
-                object3d: planeObj,
-                yaw: 0,
-                pitch: 0,
-                roll: 0
-            },
-            properties: {opName: "move_xz"}
-        });
+        this._planeEntity = new MovePlaneEntity()
 
         this._moveLayer = new Vector("move", {
             scaleByDistance: [1, MAX32, 1],
@@ -170,7 +154,7 @@ class GeoObjectEditorScene extends RenderNode {
             this._moveLayer.events.on("lup", this._onAxisLayerLUp);
             this._moveLayer.events.on("ldown", this._onAxisLayerLDown);
 
-            this._planeLayer.add(this._planeXZ);
+            this._planeLayer.add(this._planeEntity);
             this._planeLayer.events.on("mouseenter", this._onPlaneLayerMouseEnter);
             this._planeLayer.events.on("mouseleave", this._onPlaneLayerMouseLeave);
             this._planeLayer.events.on("lup", this._onPlaneLayerLUp);
@@ -275,12 +259,12 @@ class GeoObjectEditorScene extends RenderNode {
 
     public setAxisCartesian3v(cartesian: Vec3) {
         this._axisEntity.setCartesian3v(cartesian);
-        this._planeXZ.setCartesian3v(cartesian);
+        this._planeEntity.setCartesian3v(cartesian);
     }
 
     public setAxisLonLat(lonLat: LonLat) {
         this._axisEntity.setLonLat(lonLat);
-        this._planeXZ.setLonLat(lonLat);
+        this._planeEntity.setLonLat(lonLat);
     }
 
     public setVisibility(visibility: boolean) {
@@ -327,7 +311,7 @@ class GeoObjectEditorScene extends RenderNode {
     public override frame() {
         if (this._selectedEntity) {
             this._axisEntity.setCartesian3v(this._selectedEntity.getCartesian());
-            this._planeXZ.setCartesian3v(this._selectedEntity.getCartesian());
+            this._planeEntity.setCartesian3v(this._selectedEntity.getCartesian());
         }
     }
 
