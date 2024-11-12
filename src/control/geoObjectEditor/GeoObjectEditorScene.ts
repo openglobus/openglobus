@@ -12,6 +12,7 @@ import {LonLat} from "../../LonLat";
 import {Entity} from "../../entity/Entity";
 import {MoveAxisEntity} from "./MoveAxisEntity";
 import {MovePlaneEntity} from "./MovePlaneEntity";
+import {RotateEntity} from "./RotateEntity";
 import {Ray} from "../../math/Ray";
 import {Sphere} from "../../bv/Sphere";
 
@@ -66,6 +67,7 @@ class GeoObjectEditorScene extends RenderNode {
 
     protected _axisEntity: MoveAxisEntity;
     protected _planeEntity: MovePlaneEntity;
+    protected _rotateEntity: RotateEntity;
 
     protected _selectedMove: string | null;
 
@@ -82,7 +84,8 @@ class GeoObjectEditorScene extends RenderNode {
         this._startClick = new Vec2();
 
         this._axisEntity = new MoveAxisEntity();
-        this._planeEntity = new MovePlaneEntity()
+        this._planeEntity = new MovePlaneEntity();
+        this._rotateEntity = new RotateEntity();
 
         this._moveLayer = new Vector("move", {
             scaleByDistance: [1, MAX32, 1],
@@ -101,9 +104,7 @@ class GeoObjectEditorScene extends RenderNode {
         });
 
         this._rotateLayer = new Vector("rotate", {
-            scaleByDistance: [1, MAX32, 1],
             useLighting: false,
-            pickingScale: [5, 1.1, 5],
             visibility: false
         });
 
@@ -159,6 +160,12 @@ class GeoObjectEditorScene extends RenderNode {
             this._planeLayer.events.on("mouseleave", this._onPlaneLayerMouseLeave);
             this._planeLayer.events.on("lup", this._onPlaneLayerLUp);
             this._planeLayer.events.on("ldown", this._onPlaneLayerLDown);
+
+            this._rotateLayer.add(this._rotateEntity);
+            this._rotateLayer.events.on("mouseenter", this._onRotateLayerMouseEnter);
+            this._rotateLayer.events.on("mouseleave", this._onRotateLayerMouseLeave);
+            this._rotateLayer.events.on("lup", this._onRotateLayerLUp);
+            this._rotateLayer.events.on("ldown", this._onRotateLayerLDown);
         }
     }
 
@@ -182,7 +189,6 @@ class GeoObjectEditorScene extends RenderNode {
             this._selectedEntityCart = this._selectedEntity.getCartesian().clone();
         }
 
-        console.log(this._clickPos.x, this._clickPos.y);
         this._selectedMove = e.pickingObject.properties.opName;
         this._planet!.renderer!.controls.mouseNavigation.deactivate();
     }
@@ -207,7 +213,30 @@ class GeoObjectEditorScene extends RenderNode {
             this._selectedEntityCart = this._selectedEntity.getCartesian().clone();
         }
 
-        console.log(this._clickPos.x, this._clickPos.y);
+        this._selectedMove = e.pickingObject.properties.opName;
+        this._planet!.renderer!.controls.mouseNavigation.deactivate();
+    }
+
+    protected _onRotateLayerMouseEnter = (e: IMouseState) => {
+        this._planet!.renderer!.handler!.canvas!.style.cursor = "pointer";
+    }
+
+    protected _onRotateLayerMouseLeave = (e: IMouseState) => {
+        this._planet!.renderer!.handler!.canvas!.style.cursor = "default";
+    }
+
+    protected _onRotateLayerLUp = (e: IMouseState) => {
+        this._selectedMove = null;
+        this._planet!.renderer!.controls.mouseNavigation.activate();
+    }
+
+    protected _onRotateLayerLDown = (e: IMouseState) => {
+        this._clickPos = e.pos.clone();
+
+        if (this._selectedEntity) {
+            this._selectedEntityCart = this._selectedEntity.getCartesian().clone();
+        }
+
         this._selectedMove = e.pickingObject.properties.opName;
         this._planet!.renderer!.controls.mouseNavigation.deactivate();
     }
@@ -260,11 +289,7 @@ class GeoObjectEditorScene extends RenderNode {
     public setAxisCartesian3v(cartesian: Vec3) {
         this._axisEntity.setCartesian3v(cartesian);
         this._planeEntity.setCartesian3v(cartesian);
-    }
-
-    public setAxisLonLat(lonLat: LonLat) {
-        this._axisEntity.setLonLat(lonLat);
-        this._planeEntity.setLonLat(lonLat);
+        this._rotateEntity.setCartesian3v(cartesian);
     }
 
     public setVisibility(visibility: boolean) {
@@ -312,6 +337,7 @@ class GeoObjectEditorScene extends RenderNode {
         if (this._selectedEntity) {
             this._axisEntity.setCartesian3v(this._selectedEntity.getCartesian());
             this._planeEntity.setCartesian3v(this._selectedEntity.getCartesian());
+            this._rotateEntity.setCartesian3v(this._selectedEntity.getCartesian());
         }
     }
 

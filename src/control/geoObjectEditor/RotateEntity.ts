@@ -3,7 +3,7 @@ import {Entity, IEntityParams} from "../../entity/Entity";
 export interface IRotationEntityParams extends IEntityParams {
 }
 
-export class RotationEntity extends Entity {
+export class RotateEntity extends Entity {
 
     constructor(params: IRotationEntityParams = {}) {
         super(params);
@@ -11,11 +11,11 @@ export class RotationEntity extends Entity {
     }
 
     private _init() {
-        let planeXZ = new Entity({
+        let yaw = new Entity({
             independentPicking: true,
-            properties: {opName: "move_xz"}
+            properties: {opName: "rotate_yaw"}
         });
 
-        this.appendChild(planeXZ);
+        this.appendChild(yaw);
     }
 }
