@@ -1,9 +1,13 @@
 import {Entity, IEntityParams} from "../../entity/Entity";
 import {Vec3} from "../../math/Vec3";
 import {Quat} from "../../math/Quat";
-import {RADIANS} from "../../math";
+import {MAX32, RADIANS} from "../../math";
 
 export interface IRotationEntityParams extends IEntityParams {
+}
+
+function getScale(camPos: Vec3, center: Vec3): number {
+    return camPos.distance(center);
 }
 
 export class RotateEntity extends Entity {
@@ -31,7 +35,7 @@ export class RotateEntity extends Entity {
             polyline: {
                 path3v: [circle],
                 thickness: 2.5,
-                color: "red",
+                color: "rgba(355,0,0,0.7)",
                 isClosed: true
             },
             properties: {opName: "rotate_yaw"}
@@ -42,5 +46,16 @@ export class RotateEntity extends Entity {
 
     public override setCartesian3v(cart: Vec3) {
         super.setCartesian3v(cart);
+        if (this._layer && this._layer._planet) {
+            let dist = this._layer._planet.camera.eye.distance(cart) * 0.15;
+            let coords = [];
+            for (let i = 0; i < 360; i++) {
+                let a = i * RADIANS;
+                let p = new Vec3(Math.cos(a), Math.sin(a), 0)
+                coords.push(p.scale(dist).add(cart));
+            }
+
+            this.childrenNodes[0].polyline!.setPath3v([coords], undefined, true);
+        }
     }
 }
