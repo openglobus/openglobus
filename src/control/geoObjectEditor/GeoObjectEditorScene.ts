@@ -87,7 +87,7 @@ class GeoObjectEditorScene extends RenderNode {
         this._planeEntity = new MovePlaneEntity();
         this._rotateEntity = new RotateEntity();
 
-        this._moveLayer = new Vector("move", {
+        this._moveLayer = new Vector("move-axis", {
             scaleByDistance: [1, MAX32, 1],
             useLighting: false,
             pickingScale: [5, 1.1, 5],
@@ -103,9 +103,10 @@ class GeoObjectEditorScene extends RenderNode {
             depthOrder: 1000
         });
 
-        this._rotateLayer = new Vector("rotate", {
+        this._rotateLayer = new Vector("rotate-circles", {
             useLighting: false,
-            visibility: false
+            visibility: false,
+            depthOrder: 1000
         });
 
         this._selectedEntity = null;
