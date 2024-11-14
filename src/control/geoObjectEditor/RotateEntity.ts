@@ -47,12 +47,17 @@ export class RotateEntity extends Entity {
     public override setCartesian3v(cart: Vec3) {
         super.setCartesian3v(cart);
         if (this._layer && this._layer._planet) {
-            let dist = this._layer._planet.camera.eye.distance(cart) * 0.15;
+            let pl = this._layer._planet;
+            let qNorthFrame = pl.getNorthFrameRotation(cart);
+            let dist = pl.camera.eye.distance(cart) * 0.15;
             let coords = [];
             for (let i = 0; i < 360; i++) {
                 let a = i * RADIANS;
-                let p = new Vec3(Math.cos(a), Math.sin(a), 0)
-                coords.push(p.scale(dist).add(cart));
+                let p = new Vec3(Math.cos(a), Math.sin(a), 0);
+
+                let pos = qNorthFrame.mulVec3(p.scale(dist).add(cart)).sub(cart);
+
+                coords.push(p.add(cart));
             }
 
             this.childrenNodes[0].polyline!.setPath3v([coords], undefined, true);

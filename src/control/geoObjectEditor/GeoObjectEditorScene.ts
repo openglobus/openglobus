@@ -336,9 +336,10 @@ class GeoObjectEditorScene extends RenderNode {
 
     public override frame() {
         if (this._selectedEntity) {
-            this._axisEntity.setCartesian3v(this._selectedEntity.getCartesian());
-            this._planeEntity.setCartesian3v(this._selectedEntity.getCartesian());
-            this._rotateEntity.setCartesian3v(this._selectedEntity.getCartesian());
+            let cart = this._selectedEntity.getCartesian();
+            this._axisEntity.setCartesian3v(cart);
+            this._planeEntity.setCartesian3v(cart);
+            this._rotateEntity.setCartesian3v(cart);
         }
     }
 
@@ -356,6 +357,8 @@ class GeoObjectEditorScene extends RenderNode {
 
         let clickCart = new Ray(cam.eye, clickDir).hitSphere(new Sphere(p0.length(), new Vec3()))!;
         let currCart = new Ray(cam.eye, e.direction).hitSphere(new Sphere(p0.length(), new Vec3()))!;
+
+        if (!currCart) return;
 
         let rot = Quat.getRotationBetweenVectors(
             clickCart.normal(),
@@ -409,6 +412,8 @@ class GeoObjectEditorScene extends RenderNode {
         let clickCart = new Ray(cam.eye, clickDir).hitSphere(new Sphere(p0.length(), new Vec3()))!;
         let currCart = new Ray(cam.eye, e.direction).hitSphere(new Sphere(p0.length(), new Vec3()))!;
 
+        if (!currCart) return;
+
         let rot = Quat.getRotationBetweenVectors(
             clickCart.normal(),
             currCart.normal()
@@ -434,6 +439,8 @@ class GeoObjectEditorScene extends RenderNode {
 
         let clickCart = new Ray(cam.eye, clickDir).hitSphere(new Sphere(p0.length(), new Vec3()))!;
         let currCart = new Ray(cam.eye, e.direction).hitSphere(new Sphere(p0.length(), new Vec3()))!;
+
+        if (!currCart) return;
 
         let rot = Quat.getRotationBetweenVectors(
             clickCart.normal(),
