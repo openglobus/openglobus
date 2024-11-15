@@ -106,7 +106,8 @@ class GeoObjectEditorScene extends RenderNode {
         this._rotateLayer = new Vector("rotate-circles", {
             useLighting: false,
             visibility: false,
-            depthOrder: 1000
+            depthOrder: 1000,
+            pickingScale: 5
         });
 
         this._selectedEntity = null;
