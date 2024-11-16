@@ -39,6 +39,17 @@ export const UTILS = `
         return true;
     }
     
+    float intersectSphere( vec3 ro, vec3 rd, vec4 sph )
+    {
+        vec3 oc = ro - sph.xyz;
+        float b = dot( oc, rd );
+        float c = dot( oc, oc ) - sph.w*sph.w;
+        float h = b*b - c;
+        if( h<0.0 ) return -1.0;
+        h = sqrt( h );
+        return -b - h;
+    }
+    
     bool intersectEllipsoid( in vec3 ro, in vec3 rd, in vec3 ra, inout float t )
     {
         vec3 ocn = ro/ra;

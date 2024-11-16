@@ -10,6 +10,7 @@ import {RenderNode} from "../scene/RenderNode";
 import {WebGLBufferExt} from "../webgl/Handler";
 import {
     cloneArray,
+    createVector3,
     htmlColorToFloat32Array,
     htmlColorToRgba,
     makeArray,
@@ -51,6 +52,8 @@ export interface IPolylineParams {
     pathColors?: SegmentPathColor[];
     path3v?: SegmentPath3vExt[];
     pathLonLat?: SegmentPathLonLatExt[];
+    visibleSpherePosition?: Cartesian,
+    visibleSphereRadius?: number
 }
 
 /**
@@ -173,6 +176,8 @@ class Polyline {
     protected _buffersUpdateCallbacks: Function[];
     protected _changedBuffers: boolean[];
 
+    protected _visibleSphere: Float32Array;
+
     constructor(options: IPolylineParams = {}) {
 
         this.__id = Polyline.__counter__++;
@@ -232,6 +237,10 @@ class Polyline {
         this._buffersUpdateCallbacks[COLORS_BUFFER] = this._createColorsBuffer;
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
+
+        let c = createVector3(options.visibleSpherePosition).toArray();
+        let r = options.visibleSphereRadius || 0;
+        this._visibleSphere = new Float32Array([...c, r]);
 
         // create path
         if (options.pathLonLat) {
@@ -2064,7 +2073,6 @@ class Polyline {
             sh.activate();
 
             gl.disable(gl.CULL_FACE);
-
             gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
 
             gl.uniformMatrix4fv(shu.proj, false, r.activeCamera!.getProjectionMatrix());
@@ -2074,6 +2082,8 @@ class Polyline {
 
             gl.uniform3fv(shu.eyePositionHigh, r.activeCamera!.eyeHigh);
             gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
+
+            gl.uniform4fv(shu.visibleSphere, this._visibleSphere);
 
             //gl.uniform2fv(shu.uFloatParams, [(rn as Planet)._planetRadius2 || 0.0, r.activeCamera!._tanViewAngle_hradOneByHeight]);
             gl.uniform2fv(shu.viewport, [r.handler.canvas!.width, r.handler.canvas!.height]);
@@ -2115,11 +2125,13 @@ class Polyline {
                 sha = p.attributes,
                 shu = p.uniforms;
 
+            let ec = this._handler!._entityCollection;
+
             sh.activate();
 
             gl.disable(gl.CULL_FACE);
 
-            gl.uniform1f(shu.depthOffset, this._handler!._entityCollection.polygonOffsetUnits);
+            gl.uniform1f(shu.depthOffset, ec.polygonOffsetUnits);
 
             gl.uniformMatrix4fv(shu.proj, false, r.activeCamera!.getProjectionMatrix());
             gl.uniformMatrix4fv(shu.view, false, r.activeCamera!.getViewMatrix());
@@ -2137,7 +2149,7 @@ class Polyline {
             gl.uniform2fv(shu.uFloatParams, [(rn as Planet)._planetRadius2 || 0.0, r.activeCamera!._tanViewAngle_hradOneByHeight]);
             //@todo: replace to the handler property
             gl.uniform2fv(shu.viewport, [r.handler.canvas!.width, r.handler.canvas!.height]);
-            gl.uniform1f(shu.thickness, this.thickness * 0.5);
+            gl.uniform1f(shu.thickness, this.thickness * 0.5 * ec.pickingScale[0]);
 
             let v = this._verticesHighBuffer!;
             gl.bindBuffer(gl.ARRAY_BUFFER, v);
@@ -2257,6 +2269,15 @@ class Polyline {
         this._colors = makeArrayTyped(this._colors);
         this._colorsBuffer = h.createArrayBuffer(new Float32Array(this._colors), 4, this._colors.length / 4);
     }
+
+    public setVisibleSphere(p: Vec3, r: number) {
+
+        this._visibleSphere[0] = p.x;
+        this._visibleSphere[1] = p.y;
+        this._visibleSphere[2] = p.z;
+        this._visibleSphere[3] = r;
+    }
+
 }
 
 export {Polyline};

@@ -16,6 +16,10 @@ function getScale(camPos: Vec3, center: Vec3): number {
     return camPos.distance(center);
 }
 
+const pitchCoords = new Array(SEG_SIZE);
+const yawCoords = new Array(SEG_SIZE);
+const rollCoords = new Array(SEG_SIZE);
+
 export class RotateEntity extends Entity {
 
     constructor(params: IRotationEntityParams = {}) {
@@ -79,25 +83,29 @@ export class RotateEntity extends Entity {
 
             let pl = this._layer._planet;
             let qNorthFrame = pl.getNorthFrameRotation(cart).conjugate();
-            let dist = pl.camera.eye.distance(cart) * 0.15;
-            let pitchCoords = [];
-            let yawCoords = [];
-            let rollCoords = [];
+            let r = pl.camera.eye.distance(cart) * 0.15;
 
-            for (let i = 0, step = 360 / SEG_SIZE; i < SEG_SIZE; i += step) {
-                let a = i * RADIANS;
-                let pitch_p = qNorthFrame.mulVec3(new Vec3(0, Math.sin(a), Math.cos(a))).normalize().scale(dist).add(cart);
-                let yaw_p = qNorthFrame.mulVec3(new Vec3(Math.cos(a), 0, Math.sin(a))).normalize().scale(dist).add(cart);
-                let roll_p = qNorthFrame.mulVec3(new Vec3(Math.cos(a), Math.sin(a), 0)).normalize().scale(dist).add(cart);
+            for (let i = 0, j = 0, step = 360 / SEG_SIZE; i < SEG_SIZE; i += step, j++) {
+                let a = i * RADIANS,
+                    cos_a = Math.cos(a),
+                    sin_a = Math.sin(a);
 
-                pitchCoords.push(pitch_p);
-                yawCoords.push(yaw_p);
-                rollCoords.push(roll_p);
+                let pitch_p = qNorthFrame.mulVec3(new Vec3(0, sin_a, cos_a)).normalize().scale(r).add(cart);
+                let yaw_p = qNorthFrame.mulVec3(new Vec3(cos_a, 0, sin_a)).normalize().scale(r).add(cart);
+                let roll_p = qNorthFrame.mulVec3(new Vec3(cos_a, sin_a, 0)).normalize().scale(r).add(cart);
+
+                pitchCoords[j] = pitch_p;
+                yawCoords[j] = yaw_p;
+                rollCoords[j] = roll_p;
             }
 
             this.childrenNodes[0].polyline!.setPath3v([pitchCoords], undefined, true);
             this.childrenNodes[1].polyline!.setPath3v([yawCoords], undefined, true);
             this.childrenNodes[2].polyline!.setPath3v([rollCoords], undefined, true);
+
+            this.childrenNodes[0].polyline!.setVisibleSphere(cart, r);
+            this.childrenNodes[1].polyline!.setVisibleSphere(cart, r);
+            this.childrenNodes[2].polyline!.setVisibleSphere(cart, r);
         }
     }
 }
