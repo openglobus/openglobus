@@ -63,6 +63,7 @@ export class ArrowEntity extends Entity {
     }
 
     public setSize(size: number) {
+        this._size = size;
         const scale = new Vec3(1, (this._size - TIP_LENGTH) / (1.0 - TIP_LENGTH), 1);
         const trans = new Vec3(0, this._size * SCALE, 0);
 

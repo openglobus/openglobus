@@ -3,19 +3,18 @@ import {Vec3} from "../../math/Vec3";
 import {X_COLOR, Y_COLOR, Z_COLOR} from "./colors";
 import {ArrowEntity} from "./ArrowEntity";
 
-const SCALE = 0.1;
-const TIP_LENGTH = 0.17;
-
 export interface IAxisEntityParams extends IEntityParams {
     size?: number;
 }
 
 export class MoveAxisEntity extends Entity {
     protected _size: number;
+    public override childrenNodes: ArrowEntity[];
 
     constructor(params: IAxisEntityParams = {}) {
         super(params);
         this._size = params.size != undefined ? params.size : 1.5;
+        this.childrenNodes = [];
         this._init();
     }
 
@@ -53,28 +52,9 @@ export class MoveAxisEntity extends Entity {
     }
 
     public setSize(size: number) {
-        this._size = size;
-
-        const scale = new Vec3(1, (this._size - TIP_LENGTH) / (1.0 - TIP_LENGTH), 1);
-        const trans = new Vec3(0, this._size * SCALE, 0);
-
-        // X
-        let line = this.childrenNodes[0];
-        let tip = line.childrenNodes[0];
-        line.geoObject!.setScale3v(scale);
-        tip.geoObject!.setTranslate3v(trans);
-
-        // Y
-        line = this.childrenNodes[1];
-        tip = line.childrenNodes[0];
-        line.geoObject!.setScale3v(scale);
-        tip.geoObject!.setTranslate3v(trans);
-
-        // Z
-        line = this.childrenNodes[2];
-        tip = line.childrenNodes[0];
-        line.geoObject!.setScale3v(scale);
-        tip.geoObject!.setTranslate3v(trans);
+        this.childrenNodes[0].setSize(size);
+        this.childrenNodes[1].setSize(size);
+        this.childrenNodes[2].setSize(size);
     }
 
     public setPitch(a: number) {
