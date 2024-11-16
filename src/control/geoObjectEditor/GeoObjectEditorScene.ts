@@ -314,7 +314,7 @@ class GeoObjectEditorScene extends RenderNode {
     }
 
     public readyToEdit(entity: Entity): boolean {
-        return true;
+        return !entity.properties || !entity.properties.noEdit
     }
 
     public select(entity: Entity) {

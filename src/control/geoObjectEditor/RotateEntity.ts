@@ -32,7 +32,7 @@ export class RotateEntity extends Entity {
                 color: X_COLOR,
                 isClosed: true
             },
-            properties: {opName: "rotate_pitch"}
+            properties: {opName: "rotate_pitch", noEdit: true}
         });
 
         let yaw = new Entity({
@@ -43,7 +43,7 @@ export class RotateEntity extends Entity {
                 color: Y_COLOR,
                 isClosed: true
             },
-            properties: {opName: "rotate_yaw"}
+            properties: {opName: "rotate_yaw", noEdit: true}
         });
 
         let roll = new Entity({
@@ -54,7 +54,7 @@ export class RotateEntity extends Entity {
                 color: Z_COLOR,
                 isClosed: true
             },
-            properties: {opName: "rotate_roll"}
+            properties: {opName: "rotate_roll", noEdit: true}
         });
 
         this.appendChild(pitch);
