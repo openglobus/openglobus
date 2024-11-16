@@ -1,18 +1,10 @@
 import {Entity, IEntityParams} from "../../entity/Entity";
 import {Vec3} from "../../math/Vec3";
-import {Object3d} from "../../Object3d";
 import {X_COLOR, Y_COLOR, Z_COLOR} from "./colors";
 import {ArrowEntity} from "./ArrowEntity";
 
 const SCALE = 0.1;
-const SCALE_VEC = new Vec3(SCALE, SCALE, SCALE);
 const TIP_LENGTH = 0.17;
-const TIP_RADIUS = 0.04;
-const SPIN_RADIUS = 0.0075;
-
-const lineObj = Object3d.createCylinder(SPIN_RADIUS, SPIN_RADIUS, 1.0 - TIP_LENGTH).scale(SCALE_VEC);
-const tipObj = Object3d.createCylinder(0, TIP_RADIUS, TIP_LENGTH, 16, 16,
-    false, true, 0, -TIP_LENGTH).scale(SCALE_VEC);
 
 export interface IAxisEntityParams extends IEntityParams {
     size?: number;
@@ -28,7 +20,6 @@ export class MoveAxisEntity extends Entity {
     }
 
     private _init() {
-        const scale = 1.5;
 
         let arrowX = new ArrowEntity({
             color: X_COLOR,
@@ -53,90 +44,6 @@ export class MoveAxisEntity extends Entity {
             roll: 0,
             properties: {opName: "move_z", noEdit: true}
         });
-
-        // let arrowX = new Entity({
-        //     independentPicking: true,
-        //     geoObject: {
-        //         color: X_COLOR,
-        //         scale,
-        //         instanced: true,
-        //         tag: "line",
-        //         object3d: lineObj,
-        //         yaw: 0,
-        //         pitch: 0,
-        //         roll: 90
-        //     },
-        //     properties: propX
-        // });
-        //
-        // arrowX.appendChild(new Entity({
-        //     geoObject: {
-        //         color: X_COLOR,
-        //         scale,
-        //         instanced: true,
-        //         tag: "tip",
-        //         object3d: tipObj,
-        //         yaw: 0,
-        //         pitch: 0,
-        //         roll: 90
-        //     },
-        //     properties: propX
-        // }));
-
-
-        // let arrowY = new Entity({
-        //     independentPicking: true,
-        //     geoObject: {
-        //         color: Y_COLOR,
-        //         scale,
-        //         instanced: true,
-        //         tag: "line",
-        //         object3d: lineObj,
-        //         yaw: 0,
-        //         pitch: 0
-        //     },
-        //     properties: propY
-        // });
-        //
-        // arrowY.appendChild(new Entity({
-        //     geoObject: {
-        //         color: Y_COLOR,
-        //         scale,
-        //         instanced: true,
-        //         tag: "tip",
-        //         object3d: tipObj,
-        //         yaw: 0,
-        //         pitch: 0
-        //     },
-        //     properties: propY
-        // }));
-
-        // let arrowZ = new Entity({
-        //     independentPicking: true,
-        //     geoObject: {
-        //         color: Z_COLOR,
-        //         scale,
-        //         instanced: true,
-        //         tag: "line",
-        //         object3d: lineObj,
-        //         yaw: 0,
-        //         pitch: 90
-        //     },
-        //     properties: propZ
-        // });
-        //
-        // arrowZ.appendChild(new Entity({
-        //     geoObject: {
-        //         color: Z_COLOR,
-        //         scale,
-        //         instanced: true,
-        //         tag: "tip",
-        //         object3d: tipObj,
-        //         yaw: 0,
-        //         pitch: 90
-        //     },
-        //     properties: propZ
-        // }));
 
         this.appendChild(arrowX);
         this.appendChild(arrowY);
