@@ -1,5 +1,6 @@
 import {createEvents, EventCallback, EventsHandler} from '../../Events';
-import {MAX32} from "../../math";
+import {DEGREES, MAX32} from "../../math";
+import {Plane} from "../../math/Plane";
 import {Planet} from "../../scene/Planet";
 import {RenderNode} from '../../scene/RenderNode';
 import {Vector} from '../../layer/Vector';
@@ -63,6 +64,9 @@ class GeoObjectEditorScene extends RenderNode {
 
     protected _selectedEntity: Entity | null;
     protected _selectedEntityCart: Vec3;
+    protected _selectedEntityPitch: number;
+    protected _selectedEntityYaw: number;
+    protected _selectedEntityRoll: number;
     protected _clickPos: Vec2;
 
     protected _axisEntity: MoveAxisEntity;
@@ -113,6 +117,9 @@ class GeoObjectEditorScene extends RenderNode {
         this._selectedEntity = null;
         this._clickPos = new Vec2();
         this._selectedEntityCart = new Vec3();
+        this._selectedEntityPitch = 0;
+        this._selectedEntityYaw = 0;
+        this._selectedEntityRoll = 0;
         this._selectedMove = null;
 
         this._ops = {
@@ -243,6 +250,11 @@ class GeoObjectEditorScene extends RenderNode {
 
         if (this._selectedEntity) {
             this._selectedEntityCart = this._selectedEntity.getCartesian().clone();
+            if (this._selectedEntity.geoObject) {
+                this._selectedEntityPitch = this._selectedEntity.geoObject.getPitch();
+                this._selectedEntityYaw = this._selectedEntity.geoObject.getYaw();
+                this._selectedEntityRoll = this._selectedEntity.geoObject.getRoll();
+            }
         }
 
         this._selectedMove = e.pickingObject.properties.opName;
@@ -468,15 +480,87 @@ class GeoObjectEditorScene extends RenderNode {
     }
 
     protected _rotatePitch = (e: IMouseState) => {
-        console.log("rotatePitch");
+        if (!this._selectedEntity) return;
+
+        let cam = this._planet!.camera;
+        let p0 = this._selectedEntityCart;
+        let qNorthFrame = this._planet!.getNorthFrameRotation(p0).conjugate();
+        let norm = qNorthFrame.mulVec3(new Vec3(1, 0, 0)).normalize();
+
+        let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
+
+        let pl = new Plane(p0, norm);
+
+        let clickCart = new Vec3(),
+            dragCart = new Vec3();
+
+        if (new Ray(cam.eye, clickDir).hitPlane2(pl, clickCart) === Ray.INSIDE) {
+            if (new Ray(cam.eye, e.direction).hitPlane2(pl, dragCart) === Ray.INSIDE) {
+
+                let c0 = clickCart.sub(p0).normalize(),
+                    c1 = dragCart.sub(p0).normalize();
+
+                let sig = Math.sign(c0.cross(c1).dot(norm));
+                let angle = Math.acos(c0.dot(c1)) * DEGREES;
+                this._selectedEntity.geoObject!.setPitch(this._selectedEntityPitch + sig * angle);
+            }
+        }
     }
 
     protected _rotateYaw = (e: IMouseState) => {
-        console.log("rotateYaw");
+        if (!this._selectedEntity) return;
+
+        let cam = this._planet!.camera;
+        let p0 = this._selectedEntityCart;
+        let qNorthFrame = this._planet!.getNorthFrameRotation(p0).conjugate();
+        let norm = qNorthFrame.mulVec3(new Vec3(0, 1, 0)).normalize();
+
+        let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
+
+        let pl = new Plane(p0, norm);
+
+        let clickCart = new Vec3(),
+            dragCart = new Vec3();
+
+        if (new Ray(cam.eye, clickDir).hitPlane2(pl, clickCart) === Ray.INSIDE) {
+            if (new Ray(cam.eye, e.direction).hitPlane2(pl, dragCart) === Ray.INSIDE) {
+
+                let c0 = clickCart.sub(p0).normalize(),
+                    c1 = dragCart.sub(p0).normalize();
+
+                let sig = Math.sign(c1.cross(c0).dot(norm));
+                let angle = Math.acos(c0.dot(c1)) * DEGREES;
+                this._selectedEntity.geoObject!.setYaw(this._selectedEntityYaw + sig * angle);
+            }
+        }
     }
 
     protected _rotateRoll = (e: IMouseState) => {
-        console.log("rotateRoll");
+        if (!this._selectedEntity) return;
+
+        let cam = this._planet!.camera;
+        let p0 = this._selectedEntityCart;
+        let qNorthFrame = this._planet!.getNorthFrameRotation(p0).conjugate();
+        let norm = qNorthFrame.mulVec3(new Vec3(0, 0, 1)).normalize();
+
+        let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
+
+        let pl = new Plane(p0, norm);
+
+        let clickCart = new Vec3(),
+            dragCart = new Vec3();
+
+        if (new Ray(cam.eye, clickDir).hitPlane2(pl, clickCart) === Ray.INSIDE) {
+            if (new Ray(cam.eye, e.direction).hitPlane2(pl, dragCart) === Ray.INSIDE) {
+
+                let c0 = clickCart.sub(p0).normalize(),
+                    c1 = dragCart.sub(p0).normalize();
+
+                let sig = Math.sign(c0.cross(c1).dot(norm));
+                let angle = Math.acos(c0.dot(c1)) * DEGREES;
+                this._selectedEntity.geoObject!.setRoll(this._selectedEntityRoll + sig * angle);
+            }
+        }
     }
 
     protected _scale = (e: IMouseState) => {
