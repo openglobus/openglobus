@@ -8,6 +8,7 @@ const YAW_COLOR = "rgba(70, 70, 355, 0.85)";
 const ROLL_COLOR = "rgba(7, 255, 7, 0.85)";
 
 const SEG_SIZE = 360;
+const VISIBLESPHERE_DOT_THRESHOLD = 0.95
 
 export interface IRotationEntityParams extends IEntityParams {
 }
@@ -99,13 +100,17 @@ export class RotateEntity extends Entity {
                 rollCoords[j] = roll_p;
             }
 
+            let dir_pitch = qNorthFrame.mulVec3(new Vec3(1, 0, 0)).normalize();
+            let dir_yaw = qNorthFrame.mulVec3(new Vec3(0, 1, 0)).normalize();
+            let dir_roll = qNorthFrame.mulVec3(new Vec3(0, 0, 1)).normalize();
+
             this.childrenNodes[0].polyline!.setPath3v([pitchCoords], undefined, true);
             this.childrenNodes[1].polyline!.setPath3v([yawCoords], undefined, true);
             this.childrenNodes[2].polyline!.setPath3v([rollCoords], undefined, true);
 
-            this.childrenNodes[0].polyline!.setVisibleSphere(cart, r);
-            this.childrenNodes[1].polyline!.setVisibleSphere(cart, r);
-            this.childrenNodes[2].polyline!.setVisibleSphere(cart, r);
+            this.childrenNodes[0].polyline!.setVisibleSphere(cart, Math.abs(dir_pitch.dot(pl.camera.getForward())) > VISIBLESPHERE_DOT_THRESHOLD ? 0.0 : r);
+            this.childrenNodes[1].polyline!.setVisibleSphere(cart, Math.abs(dir_yaw.dot(pl.camera.getForward())) > VISIBLESPHERE_DOT_THRESHOLD ? 0.0 : r);
+            this.childrenNodes[2].polyline!.setVisibleSphere(cart, Math.abs(dir_roll.dot(pl.camera.getForward())) > VISIBLESPHERE_DOT_THRESHOLD ? 0.0 : r);
         }
     }
 }
