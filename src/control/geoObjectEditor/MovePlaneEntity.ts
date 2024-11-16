@@ -1,6 +1,6 @@
 import {Entity, IEntityParams} from "../../entity/Entity";
 import {Object3d} from "../../Object3d";
-import {XZ_COLOR} from "./colors";
+import {SEL_XZ_COLOR, XZ_COLOR} from "./colors";
 
 const planeObj = Object3d.createPlane(1, 1, -0.5, 0, 0.5);
 
@@ -27,7 +27,14 @@ export class MovePlaneEntity extends Entity {
                 pitch: 0,
                 roll: 0
             },
-            properties: {opName: "move_xz", noEdit: true}
+            properties: {
+                opName: "move_xz",
+                noEdit: true,
+                style: {
+                    color: XZ_COLOR,
+                    selectColor: SEL_XZ_COLOR
+                }
+            }
         });
 
         this.appendChild(planeXZ);

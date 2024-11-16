@@ -1,7 +1,7 @@
 import {Entity, IEntityParams} from "../../entity/Entity";
 import {Vec3} from "../../math/Vec3";
 import {RADIANS} from "../../math";
-import {X_COLOR, Y_COLOR, Z_COLOR} from "./colors";
+import {SEL_X_COLOR, SEL_Y_COLOR, SEL_Z_COLOR, X_COLOR, Y_COLOR, Z_COLOR} from "./colors";
 
 const SEG_SIZE = 360;
 const VISIBLESPHERE_DOT_THRESHOLD = 0.95
@@ -32,7 +32,14 @@ export class RotateEntity extends Entity {
                 color: X_COLOR,
                 isClosed: true
             },
-            properties: {opName: "rotate_pitch", noEdit: true}
+            properties: {
+                opName: "rotate_pitch",
+                noEdit: true,
+                style: {
+                    color: X_COLOR,
+                    selectColor: SEL_X_COLOR
+                }
+            }
         });
 
         let yaw = new Entity({
@@ -43,7 +50,14 @@ export class RotateEntity extends Entity {
                 color: Y_COLOR,
                 isClosed: true
             },
-            properties: {opName: "rotate_yaw", noEdit: true}
+            properties: {
+                opName: "rotate_yaw",
+                noEdit: true,
+                style: {
+                    color: Y_COLOR,
+                    selectColor: SEL_Y_COLOR
+                }
+            }
         });
 
         let roll = new Entity({
@@ -54,7 +68,14 @@ export class RotateEntity extends Entity {
                 color: Z_COLOR,
                 isClosed: true
             },
-            properties: {opName: "rotate_roll", noEdit: true}
+            properties: {
+                opName: "rotate_roll",
+                noEdit: true,
+                style: {
+                    color: Z_COLOR,
+                    selectColor: SEL_Z_COLOR
+                }
+            }
         });
 
         this.appendChild(pitch);

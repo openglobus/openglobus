@@ -9,7 +9,6 @@ export function polyline_screen(): Program {
             view: "mat4",
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
-            //uFloatParams: "vec2",
             thickness: "float",
             opacity: "float",
             depthOffset: "float",
@@ -203,10 +202,10 @@ export function polyline_picking(): Program {
             view: "mat4",
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
-            //uFloatParams: "vec2",
             color: "vec4",
             thickness: "float",
-            depthOffset: "float"
+            depthOffset: "float",
+            visibleSphere: "vec4",
         },
         attributes: {
             prevHigh: "vec3",
@@ -359,16 +358,22 @@ export function polyline_picking(): Program {
 
         fragmentShader:
             `precision highp float;
-                //uniform vec2 uFloatParams;
+            
+                uniform vec4 visibleSphere;
+                            
                 varying vec3 uCamPos;
                 varying vec4 vColor;
                 varying vec3 vPos;
+                
                 void main() {
-                    vec3 look = vPos - uCamPos;
-                    float lookLength = length(look);
-                    //float a = vColor.a * step(lookLength, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(vPos,vPos) - uFloatParams[0]));
-                    float a = vColor.a;                    
-                    gl_FragColor = vec4(vColor.rgb, a);
+                    if(visibleSphere.w != 0.0) {                  
+                        vec3 cam_dir = normalize(vPos - uCamPos);
+                        vec3 sph_dir = normalize(vPos - visibleSphere.xyz);
+                        if( dot(cam_dir, sph_dir) > 0.11 ){
+                            discard;
+                        }
+                    }                 
+                    gl_FragColor = vec4(vColor.rgb, vColor.a);
                 }`
     });
 }

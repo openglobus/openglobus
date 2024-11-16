@@ -2155,8 +2155,8 @@ class Polyline {
             gl.uniform3fv(shu.eyePositionHigh, r.activeCamera!.eyeHigh);
             gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
 
-            gl.uniform2fv(shu.uFloatParams, [(rn as Planet)._planetRadius2 || 0.0, r.activeCamera!._tanViewAngle_hradOneByHeight]);
-            //@todo: replace to the handler property
+            gl.uniform4fv(shu.visibleSphere, this._visibleSphere);
+
             gl.uniform2fv(shu.viewport, [r.handler.canvas!.width, r.handler.canvas!.height]);
             gl.uniform1f(shu.thickness, this.thickness * 0.5 * ec.pickingScale[0]);
 

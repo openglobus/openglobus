@@ -73,8 +73,6 @@ class GeoObjectEditorScene extends RenderNode {
 
     protected _ops: Record<string, (mouseState: IMouseState) => void>;
 
-    protected _currentMouseOpacity: number;
-
     constructor(options: IGeoObjectEditorSceneParams = {}) {
         super(options.name || 'GeoObjectEditorScene');
 
@@ -88,8 +86,6 @@ class GeoObjectEditorScene extends RenderNode {
         this._axisEntity = new MoveAxisEntity();
         this._planeEntity = new MovePlaneEntity();
         this._rotateEntity = new RotateEntity();
-
-        this._currentMouseOpacity = 0.0;
 
         this._moveLayer = new Vector("move-axis", {
             scaleByDistance: [1, MAX32, 1],
@@ -177,13 +173,12 @@ class GeoObjectEditorScene extends RenderNode {
 
     protected _onAxisLayerMouseEnter = (e: IMouseState) => {
         this._planet!.renderer!.handler!.canvas!.style.cursor = "pointer";
-        this._currentMouseOpacity = e.pickingObject.geoObject.getOpacity();
-        e.pickingObject.geoObject.setOpacity(1.0);
+        e.pickingObject.setColorHTML(e.pickingObject.properties.style.selectColor);
     }
 
     protected _onAxisLayerMouseLeave = (e: IMouseState) => {
         this._planet!.renderer!.handler!.canvas!.style.cursor = "default";
-        e.pickingObject.geoObject.setOpacity(this._currentMouseOpacity);
+        e.pickingObject.setColorHTML(e.pickingObject.properties.style.color);
     }
 
     protected _onAxisLayerLUp = (e: IMouseState) => {
@@ -204,13 +199,12 @@ class GeoObjectEditorScene extends RenderNode {
 
     protected _onPlaneLayerMouseEnter = (e: IMouseState) => {
         this._planet!.renderer!.handler!.canvas!.style.cursor = "pointer";
-        this._currentMouseOpacity = e.pickingObject.geoObject.getOpacity();
-        e.pickingObject.geoObject.setOpacity(1.0);
+        e.pickingObject.geoObject.setColorHTML(e.pickingObject.properties.style.selectColor);
     }
 
     protected _onPlaneLayerMouseLeave = (e: IMouseState) => {
         this._planet!.renderer!.handler!.canvas!.style.cursor = "default";
-        e.pickingObject.geoObject.setOpacity(this._currentMouseOpacity);
+        e.pickingObject.geoObject.setColorHTML(e.pickingObject.properties.style.color);
     }
 
     protected _onPlaneLayerLUp = (e: IMouseState) => {
@@ -231,13 +225,12 @@ class GeoObjectEditorScene extends RenderNode {
 
     protected _onRotateLayerMouseEnter = (e: IMouseState) => {
         this._planet!.renderer!.handler!.canvas!.style.cursor = "pointer";
-        this._currentMouseOpacity = e.pickingObject.polyline.getOpacity();
-        e.pickingObject.polyline.setOpacity(1.0);
+        e.pickingObject.polyline!.setColorHTML(e.pickingObject.properties.style.selectColor);
     }
 
     protected _onRotateLayerMouseLeave = (e: IMouseState) => {
         this._planet!.renderer!.handler!.canvas!.style.cursor = "default";
-        e.pickingObject.polyline.setOpacity(this._currentMouseOpacity);
+        e.pickingObject.polyline!.setColorHTML(e.pickingObject.properties.style.color);
     }
 
     protected _onRotateLayerLUp = (e: IMouseState) => {
@@ -475,12 +468,15 @@ class GeoObjectEditorScene extends RenderNode {
     }
 
     protected _rotatePitch = (e: IMouseState) => {
+        console.log("rotatePitch");
     }
 
     protected _rotateYaw = (e: IMouseState) => {
+        console.log("rotateYaw");
     }
 
     protected _rotateRoll = (e: IMouseState) => {
+        console.log("rotateRoll");
     }
 
     protected _scale = (e: IMouseState) => {

@@ -28,7 +28,7 @@ export class ArrowEntity extends Entity {
 
     constructor(params: IArrowEntityParams = {}) {
 
-        const scale = 1.5;
+        const scale = 1.0;
 
         super({
             independentPicking: true,
@@ -45,7 +45,7 @@ export class ArrowEntity extends Entity {
             properties: params.properties
         });
 
-        this._size = params.size != undefined ? params.size : 1.5;
+        this._size = params.size != undefined ? params.size : 1.0;
 
         this.appendChild(new Entity({
             geoObject: {
@@ -71,5 +71,12 @@ export class ArrowEntity extends Entity {
         let tip = line.childrenNodes[0];
         line.geoObject!.setScale3v(scale);
         tip.geoObject!.setTranslate3v(trans);
+    }
+
+    public setColorHTML(color: string) {
+        let line = this;
+        let tip = line.childrenNodes[0];
+        line.geoObject!.setColorHTML(color);
+        tip.geoObject!.setColorHTML(color);
     }
 }

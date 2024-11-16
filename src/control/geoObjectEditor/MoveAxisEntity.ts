@@ -1,6 +1,6 @@
 import {Entity, IEntityParams} from "../../entity/Entity";
 import {Vec3} from "../../math/Vec3";
-import {X_COLOR, Y_COLOR, Z_COLOR} from "./colors";
+import {SEL_X_COLOR, SEL_Y_COLOR, SEL_Z_COLOR, X_COLOR, Y_COLOR, Z_COLOR} from "./colors";
 import {ArrowEntity} from "./ArrowEntity";
 
 export interface IAxisEntityParams extends IEntityParams {
@@ -13,7 +13,7 @@ export class MoveAxisEntity extends Entity {
 
     constructor(params: IAxisEntityParams = {}) {
         super(params);
-        this._size = params.size != undefined ? params.size : 1.5;
+        this._size = params.size != undefined ? params.size : 1.0;
         this.childrenNodes = [];
         this._init();
     }
@@ -25,7 +25,14 @@ export class MoveAxisEntity extends Entity {
             yaw: 0,
             pitch: 0,
             roll: 90,
-            properties: {opName: "move_x", noEdit: true}
+            properties: {
+                opName: "move_x",
+                noEdit: true,
+                style: {
+                    color: X_COLOR,
+                    selectColor: SEL_X_COLOR
+                }
+            }
         });
 
         let arrowY = new ArrowEntity({
@@ -33,7 +40,14 @@ export class MoveAxisEntity extends Entity {
             yaw: 0,
             pitch: 0,
             roll: 0,
-            properties: {opName: "move_y", noEdit: true}
+            properties: {
+                opName: "move_y",
+                noEdit: true,
+                style: {
+                    color: Y_COLOR,
+                    selectColor: SEL_Y_COLOR
+                }
+            }
         });
 
         let arrowZ = new ArrowEntity({
@@ -41,7 +55,14 @@ export class MoveAxisEntity extends Entity {
             yaw: 0,
             pitch: 90,
             roll: 0,
-            properties: {opName: "move_z", noEdit: true}
+            properties: {
+                opName: "move_z",
+                noEdit: true,
+                style: {
+                    color: Z_COLOR,
+                    selectColor: SEL_Z_COLOR
+                }
+            }
         });
 
         this.appendChild(arrowX);
