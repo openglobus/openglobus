@@ -1755,6 +1755,15 @@ class Polyline {
     }
 
     /**
+     * Gets polyline opacity.
+     * @public
+     * @param {number} opacity - Opacity.
+     */
+    public getOpacity(): number {
+        return this._opacity;
+    }
+
+    /**
      * Sets Polyline thickness in screen pixels.
      * @public
      * @param {number} thickness - Thickness.

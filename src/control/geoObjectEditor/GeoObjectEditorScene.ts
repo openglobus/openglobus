@@ -73,6 +73,8 @@ class GeoObjectEditorScene extends RenderNode {
 
     protected _ops: Record<string, (mouseState: IMouseState) => void>;
 
+    protected _currentMouseOpacity: number;
+
     constructor(options: IGeoObjectEditorSceneParams = {}) {
         super(options.name || 'GeoObjectEditorScene');
 
@@ -86,6 +88,8 @@ class GeoObjectEditorScene extends RenderNode {
         this._axisEntity = new MoveAxisEntity();
         this._planeEntity = new MovePlaneEntity();
         this._rotateEntity = new RotateEntity();
+
+        this._currentMouseOpacity = 0.0;
 
         this._moveLayer = new Vector("move-axis", {
             scaleByDistance: [1, MAX32, 1],
@@ -173,10 +177,13 @@ class GeoObjectEditorScene extends RenderNode {
 
     protected _onAxisLayerMouseEnter = (e: IMouseState) => {
         this._planet!.renderer!.handler!.canvas!.style.cursor = "pointer";
+        this._currentMouseOpacity = e.pickingObject.geoObject.getOpacity();
+        e.pickingObject.geoObject.setOpacity(1.0);
     }
 
     protected _onAxisLayerMouseLeave = (e: IMouseState) => {
         this._planet!.renderer!.handler!.canvas!.style.cursor = "default";
+        e.pickingObject.geoObject.setOpacity(this._currentMouseOpacity);
     }
 
     protected _onAxisLayerLUp = (e: IMouseState) => {
@@ -197,10 +204,13 @@ class GeoObjectEditorScene extends RenderNode {
 
     protected _onPlaneLayerMouseEnter = (e: IMouseState) => {
         this._planet!.renderer!.handler!.canvas!.style.cursor = "pointer";
+        this._currentMouseOpacity = e.pickingObject.geoObject.getOpacity();
+        e.pickingObject.geoObject.setOpacity(1.0);
     }
 
     protected _onPlaneLayerMouseLeave = (e: IMouseState) => {
         this._planet!.renderer!.handler!.canvas!.style.cursor = "default";
+        e.pickingObject.geoObject.setOpacity(this._currentMouseOpacity);
     }
 
     protected _onPlaneLayerLUp = (e: IMouseState) => {
@@ -221,10 +231,13 @@ class GeoObjectEditorScene extends RenderNode {
 
     protected _onRotateLayerMouseEnter = (e: IMouseState) => {
         this._planet!.renderer!.handler!.canvas!.style.cursor = "pointer";
+        this._currentMouseOpacity = e.pickingObject.polyline.getOpacity();
+        e.pickingObject.polyline.setOpacity(1.0);
     }
 
     protected _onRotateLayerMouseLeave = (e: IMouseState) => {
         this._planet!.renderer!.handler!.canvas!.style.cursor = "default";
+        e.pickingObject.polyline.setOpacity(this._currentMouseOpacity);
     }
 
     protected _onRotateLayerLUp = (e: IMouseState) => {

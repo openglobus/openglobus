@@ -1,7 +1,6 @@
 import {Entity, IEntityParams} from "../../entity/Entity";
 import {Object3d} from "../../Object3d";
-
-const XZ_COLOR = "rgba(255,255,255,0.7)";
+import {XZ_COLOR} from "./colors";
 
 const planeObj = Object3d.createPlane(1, 1, -0.5, 0, 0.5);
 
@@ -20,7 +19,7 @@ export class MovePlaneEntity extends Entity {
             independentPicking: true,
             geoObject: {
                 color: XZ_COLOR,
-                scale: 0.02,
+                scale: 0.025,
                 instanced: true,
                 tag: "plane",
                 object3d: planeObj,
@@ -28,7 +27,7 @@ export class MovePlaneEntity extends Entity {
                 pitch: 0,
                 roll: 0
             },
-            properties: {opName: "move_xz"}
+            properties: {opName: "move_xz", noEdit: true}
         });
 
         this.appendChild(planeXZ);

@@ -1,20 +1,12 @@
 import {Entity, IEntityParams} from "../../entity/Entity";
 import {Vec3} from "../../math/Vec3";
-import {Quat} from "../../math/Quat";
-import {MAX32, RADIANS} from "../../math";
-
-const PITCH_COLOR = "rgba(355, 40, 40, 0.85)";
-const YAW_COLOR = "rgba(70, 70, 355, 0.85)";
-const ROLL_COLOR = "rgba(7, 255, 7, 0.85)";
+import {RADIANS} from "../../math";
+import {X_COLOR, Y_COLOR, Z_COLOR} from "./colors";
 
 const SEG_SIZE = 360;
 const VISIBLESPHERE_DOT_THRESHOLD = 0.95
 
 export interface IRotationEntityParams extends IEntityParams {
-}
-
-function getScale(camPos: Vec3, center: Vec3): number {
-    return camPos.distance(center);
 }
 
 const pitchCoords = new Array(SEG_SIZE);
@@ -30,12 +22,6 @@ export class RotateEntity extends Entity {
 
     private _init() {
 
-        // var circle = [];
-        //
-        // for (let i = 0; i < 360; i += 1) {
-        //     circle.push(new Vec3());
-        // }
-
         const length = SEG_SIZE;
 
         let pitch = new Entity({
@@ -43,7 +29,7 @@ export class RotateEntity extends Entity {
             polyline: {
                 path3v: [Array.from({length}, (_, i) => new Vec3())],
                 thickness: 2.5,
-                color: PITCH_COLOR,
+                color: X_COLOR,
                 isClosed: true
             },
             properties: {opName: "rotate_pitch"}
@@ -54,7 +40,7 @@ export class RotateEntity extends Entity {
             polyline: {
                 path3v: [Array.from({length}, (_, i) => new Vec3())],
                 thickness: 2.5,
-                color: YAW_COLOR,
+                color: Y_COLOR,
                 isClosed: true
             },
             properties: {opName: "rotate_yaw"}
@@ -65,7 +51,7 @@ export class RotateEntity extends Entity {
             polyline: {
                 path3v: [Array.from({length}, (_, i) => new Vec3())],
                 thickness: 2.5,
-                color: ROLL_COLOR,
+                color: Z_COLOR,
                 isClosed: true
             },
             properties: {opName: "rotate_roll"}

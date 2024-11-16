@@ -194,6 +194,10 @@ class GeoObject {
         this.setColor(this._color.x, this._color.y, this._color.z, a);
     }
 
+    public getOpacity(): number {
+        return this._color.w;
+    }
+
     /**
      * Sets color.
      * @public
