@@ -1,7 +1,6 @@
-import {clamp} from '../math';
 import {EventsHandler} from "../Events";
 import {IViewParams, View, ViewEventsList} from './View';
-import {stringTemplate} from '../utils/shared';
+import {stringTemplate, toFixedMax} from '../utils/shared';
 
 interface IInputParams extends IViewParams {
     label?: string;
@@ -9,14 +8,15 @@ interface IInputParams extends IViewParams {
     min?: number;
     max?: number;
     type?: string;
+    maxFixed?: number;
 }
 
 type InputEventsList = ["change"];
 
 const SLIDER_EVENTS: InputEventsList = ["change"];
 
-const TEMPLATE = `<div class="og-slider">
-      <div class="og-slider-label">{label}</div>
+const TEMPLATE = `<div class="og-input">
+      <div class="og-input-label">{label}</div>
       <input type="{type}"/>
     </div>`;
 
@@ -28,6 +28,8 @@ class Input extends View<null> {
 
     protected $label: HTMLElement | null;
     protected $input: HTMLInputElement | null;
+
+    protected _maxFixed: number;
 
     constructor(options: IInputParams = {}) {
         super({
@@ -42,6 +44,8 @@ class Input extends View<null> {
 
         this._value = options.value || "";
 
+        this._maxFixed = options.maxFixed != undefined ? options.maxFixed : -1;
+
         this.$label = null;
         this.$input = null;
     }
@@ -50,7 +54,7 @@ class Input extends View<null> {
 
         super.render(params);
 
-        this.$label = this.select(".og-slider-label")!;
+        this.$label = this.select(".og-input-label")!;
         if (this.$label.innerHTML === "") {
             this.$label.style.display = "none";
         }
@@ -66,9 +70,13 @@ class Input extends View<null> {
 
     public set value(val: string | number) {
         if (val !== this._value) {
-            this._value = val.toString();
+            if (typeof val === "number") {
+                this._value = toFixedMax(val, this._maxFixed);
+            } else {
+                this._value = val;
+            }
             this.$input!.value = this._value;
-           this.events.dispatch(this.events.change, this._value, this);
+            this.events.dispatch(this.events.change, this._value, this);
         }
     }
 

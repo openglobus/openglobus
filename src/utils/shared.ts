@@ -1110,7 +1110,7 @@ export function getUrlParam(paramName: string): number | undefined {
  * console.log(17, getTileImageResolution(68661, 45892, 17));
  * console.log(18, getTileImageResolution(137650, 92555, 18));
  */
-function getTileImageResolution(x: number, y: number, z: number, imageSize = 256, ellipsoid: Ellipsoid = wgs84) {
+export function getTileImageResolution(x: number, y: number, z: number, imageSize = 256, ellipsoid: Ellipsoid = wgs84) {
     let ext = mercator.getTileExtent(x, y, z);
     let b0 = ext.getSouthWest().inverseMercator(),
         b1 = ext.getNorthEast().inverseMercator();
@@ -1118,4 +1118,12 @@ function getTileImageResolution(x: number, y: number, z: number, imageSize = 256
         height = ellipsoid.getGreatCircleDistance(b0, new LonLat(b0.lon, b1.lat));
 
     return [width / imageSize, height / imageSize];
+}
+
+export function toFixedMax(value: number, maxFixed: number = -1): string {
+    if (maxFixed < 0) {
+        return value.toString();
+    }
+    const factor = Math.pow(10, maxFixed);
+    return (Math.round(value * factor) / factor).toString();
 }

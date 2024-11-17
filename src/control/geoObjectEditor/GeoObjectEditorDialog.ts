@@ -26,11 +26,11 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         super({
             title: "GeoObject Properties",
             visible: false,
-            resizable: false,
+            resizable: true,
             useHide: true,
-            top: 175,
-            left: 65,
-            width: 150,
+            top: 10,
+            left: window.screen.width - 250 - 65,
+            width: 180,
             height: 400,
             minHeight: 100,
             minWidth: 100,
@@ -41,84 +41,94 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
             label: "Lon",
             type: "number",
             min: -180,
-            max: 180
+            max: 180,
+            maxFixed: 7
         });
 
         this._latView = new Input({
             label: "Lat",
             type: "number",
             min: -90,
-            max: 90
+            max: 90,
+            maxFixed: 7
         });
 
         this._pitchView = new Input({
             label: "Pitch",
-            type: "number"
+            type: "number",
+            maxFixed: 2
         });
 
         this._yawView = new Input({
             label: "Yaw",
-            type: "number"
+            type: "number",
+            maxFixed: 2
         });
 
         this._rollView = new Input({
             label: "Roll",
-            type: "number"
+            type: "number",
+            maxFixed: 2
         });
 
         this._scaleView = new Input({
             label: "Scale",
-            type: "number"
+            type: "number",
+            maxFixed: 2
         });
 
         this._scaleXView = new Input({
             label: "Scale X",
-            type: "number"
+            type: "number",
+            maxFixed: 2
         });
 
         this._scaleYView = new Input({
             label: "Scale Y",
-            type: "number"
+            type: "number",
+            maxFixed: 2
         });
 
         this._scaleZView = new Input({
             label: "Scale Z",
-            type: "number"
+            type: "number",
+            maxFixed: 2
         });
 
         this._groundBtn = new Button({
-            text: "Ground",
+            text: "Put ground",
             title: "Put on the ground",
-            name: "ground"
+            name: "ground",
+            classList: ["og-editor-ground_button"]
         });
     }
 
     public override render(params: any): this {
         super.render(params);
-        //this._initSceneEvents();
-        this.events.on("close", this._onClose);
-        this.events.on("show", this._onShow);
 
-        this._lonView.appendTo(this.el!);
-        this._latView.appendTo(this.el!);
-        this._pitchView.appendTo(this.el!);
-        this._yawView.appendTo(this.el!);
-        this._rollView.appendTo(this.el!);
-        this._scaleView.appendTo(this.el!);
-        this._scaleXView.appendTo(this.el!);
-        this._scaleYView.appendTo(this.el!);
-        this._scaleZView.appendTo(this.el!);
-        this._groundBtn.appendTo(this.el!);
+        this._initSceneEvents();
+
+        this.events.on("visibility", this._onVisibility);
+
+        let c = this.container!;
+
+        this._lonView.appendTo(c);
+        this._latView.appendTo(c);
+        this._pitchView.appendTo(c);
+        this._yawView.appendTo(c);
+        this._rollView.appendTo(c);
+        this._scaleView.appendTo(c);
+        this._scaleXView.appendTo(c);
+        this._scaleYView.appendTo(c);
+        this._scaleZView.appendTo(c);
+        this._groundBtn.appendTo(c);
 
         return this;
     }
 
-    protected _onShow = () => {
-        this._initSceneEvents();
-    }
-
-    protected _onClose = () => {
-        this._clearSceneEvents();
+    protected _onVisibility = (vis: boolean) => {
+        this.model.setVisibility(vis);
+        //this._initSceneEvents();
     }
 
     public override remove(): void {

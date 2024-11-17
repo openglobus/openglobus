@@ -24,18 +24,6 @@ export class GeoObjectEditor extends Control {
     public override oninit() {
         this._geoObjectEditopScene.bindPlanet(this.planet!);
         this._dialog.appendTo(this.planet!.renderer!.div!);
-
-        this._dialog.events.on("visibility", (v: boolean) => {
-            if (v) {
-                this.activate();
-            } else {
-                this.deactivate();
-            }
-        });
-
-        //this._geoObjectEditopScene.events.on("change", (isActive: boolean) => {})
-        //this._geoObjectEditopScene.events.on("select", (isActive: boolean) => {})
-
         this.activate();
     }
 
