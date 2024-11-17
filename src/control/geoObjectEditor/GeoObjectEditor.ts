@@ -1,6 +1,5 @@
 import {Control, IControlParams} from "../Control";
 import {GeoObjectEditorScene} from "./GeoObjectEditorScene";
-import {Dialog} from "../../ui/Dialog";
 import {GeoObjectPropertiesDialog} from "./GeoObjectEditorDialog";
 
 export interface IGeoObjectEditorParams extends IControlParams {
@@ -13,10 +12,12 @@ export class GeoObjectEditor extends Control {
     constructor(options: IGeoObjectEditorParams = {}) {
         super(options);
 
-        this._dialog = new GeoObjectPropertiesDialog();
-
         this._geoObjectEditopScene = new GeoObjectEditorScene({
             name: `geoObjectEditorScene:${this.__id}`
+        });
+
+        this._dialog = new GeoObjectPropertiesDialog({
+            model: this._geoObjectEditopScene
         });
     }
 
@@ -31,6 +32,9 @@ export class GeoObjectEditor extends Control {
                 this.deactivate();
             }
         });
+
+        this._geoObjectEditopScene.events.on("change", (isActive: boolean) => {})
+        this._geoObjectEditopScene.events.on("select", (isActive: boolean) => {})
 
         this.activate();
     }

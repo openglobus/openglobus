@@ -23,7 +23,6 @@ export interface IGeoObjectEditorSceneParams {
 }
 
 type GeoObjectSceneEventsList = [
-    "move",
     "mousemove",
     "mouseenter",
     "mouseleave",
@@ -51,6 +50,12 @@ type GeoObjectSceneEventsList = [
     "touchenter",
     "select",
     "unselect",
+    "change",
+    "position",
+    "pitch",
+    "yaw",
+    "roll",
+    "scale"
 ];
 
 class GeoObjectEditorScene extends RenderNode {
@@ -102,7 +107,6 @@ class GeoObjectEditorScene extends RenderNode {
         this._planeLayer = new Vector("move-plane", {
             scaleByDistance: [1, MAX32, 1],
             useLighting: false,
-            //pickingScale: [5, 1.1, 5],
             visibility: false,
             depthOrder: 1000
         });
@@ -264,7 +268,6 @@ class GeoObjectEditorScene extends RenderNode {
     protected _onMouseMove = (e: IMouseState) => {
         if (this._selectedEntity && this._selectedMove && this._ops[this._selectedMove]) {
             this._ops[this._selectedMove](e);
-            this.events.dispatch(this.events.move, this._selectedEntity);
         }
     }
 
@@ -384,7 +387,6 @@ class GeoObjectEditorScene extends RenderNode {
             currCart.normal()
         );
 
-
         let px = rot.mulVec3(p0);
 
         let p0_lonLat = this._planet?.ellipsoid.cartesianToLonLat(p0)!;
@@ -393,6 +395,9 @@ class GeoObjectEditorScene extends RenderNode {
         this._planet?.ellipsoid.lonLatToCartesianRes(new LonLat(px_lonLat.lon, p0_lonLat.lat, p0_lonLat.height), px);
 
         this._selectedEntity.setCartesian3v(px);
+
+        this.events.dispatch(this.events.position, px, this._selectedEntity);
+        this.events.dispatch(this.events.change, this._selectedEntity);
     }
 
     protected _moveY = (e: IMouseState) => {
@@ -416,6 +421,9 @@ class GeoObjectEditorScene extends RenderNode {
                 let dragVec = dragCart.sub(clickCart);
                 let pos = this._selectedEntityCart.add(dragVec);
                 this._selectedEntity.setCartesian3v(pos);
+
+                this.events.dispatch(this.events.position, px, this._selectedEntity);
+                this.events.dispatch(this.events.change, this._selectedEntity);
             }
         }
     }
@@ -446,6 +454,9 @@ class GeoObjectEditorScene extends RenderNode {
         this._planet?.ellipsoid.lonLatToCartesianRes(new LonLat(p0_lonLat.lon, px_lonLat.lat, p0_lonLat.height), px);
 
         this._selectedEntity.setCartesian3v(px);
+
+        this.events.dispatch(this.events.position, px, this._selectedEntity);
+        this.events.dispatch(this.events.change, this._selectedEntity);
     }
 
     protected _moveXZ = (e: IMouseState) => {
@@ -469,6 +480,9 @@ class GeoObjectEditorScene extends RenderNode {
         let px = rot.mulVec3(p0);
 
         this._selectedEntity.setCartesian3v(px);
+
+        this.events.dispatch(this.events.position, px, this._selectedEntity);
+        this.events.dispatch(this.events.change, this._selectedEntity);
     }
 
     protected _moveXY = (e: IMouseState) => {
@@ -502,7 +516,11 @@ class GeoObjectEditorScene extends RenderNode {
 
                 let sig = Math.sign(c0.cross(c1).dot(norm));
                 let angle = Math.acos(c0.dot(c1)) * DEGREES;
-                this._selectedEntity.geoObject!.setPitch(this._selectedEntityPitch + sig * angle);
+                let deg = this._selectedEntityPitch + sig * angle;
+                this._selectedEntity.geoObject!.setPitch(deg);
+
+                this.events.dispatch(this.events.pitch, deg, this._selectedEntity);
+                this.events.dispatch(this.events.change, this._selectedEntity);
             }
         }
     }
@@ -530,7 +548,11 @@ class GeoObjectEditorScene extends RenderNode {
 
                 let sig = Math.sign(c1.cross(c0).dot(norm));
                 let angle = Math.acos(c0.dot(c1)) * DEGREES;
-                this._selectedEntity.geoObject!.setYaw(this._selectedEntityYaw + sig * angle);
+                let deg = this._selectedEntityYaw + sig * angle;
+                this._selectedEntity.geoObject!.setYaw(deg);
+
+                this.events.dispatch(this.events.yaw, deg, this._selectedEntity);
+                this.events.dispatch(this.events.change, this._selectedEntity);
             }
         }
     }
@@ -558,12 +580,19 @@ class GeoObjectEditorScene extends RenderNode {
 
                 let sig = Math.sign(c0.cross(c1).dot(norm));
                 let angle = Math.acos(c0.dot(c1)) * DEGREES;
-                this._selectedEntity.geoObject!.setRoll(this._selectedEntityRoll + sig * angle);
+                let deg = this._selectedEntityRoll + sig * angle;
+                this._selectedEntity.geoObject!.setRoll(deg);
+
+                this.events.dispatch(this.events.roll, deg, this._selectedEntity);
+                this.events.dispatch(this.events.change, this._selectedEntity);
             }
         }
     }
 
     protected _scale = (e: IMouseState) => {
+        let scale = 1;
+        this.events.dispatch(this.events.scale, scale, this._selectedEntity);
+        this.events.dispatch(this.events.change, this._selectedEntity);
     }
 
     protected _scaleX = (e: IMouseState) => {
@@ -577,7 +606,6 @@ class GeoObjectEditorScene extends RenderNode {
 }
 
 const GEOOBJECTEDITORCENE_EVENTS: GeoObjectSceneEventsList = [
-    "move",
     "mousemove",
     "mouseenter",
     "mouseleave",
@@ -604,7 +632,13 @@ const GEOOBJECTEDITORCENE_EVENTS: GeoObjectSceneEventsList = [
     "touchleave",
     "touchenter",
     "select",
-    "unselect"
+    "unselect",
+    "change",
+    "position",
+    "pitch",
+    "yaw",
+    "roll",
+    "scale"
 ];
 
 export {GeoObjectEditorScene};
