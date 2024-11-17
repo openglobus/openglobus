@@ -870,6 +870,7 @@ TIMELINE
     flex-direction: row;
     width: 200px;
     /*height: 20px;*/
+    gap: 5px;
 }
 
 .og-slider .og-slider-label {
@@ -890,6 +891,7 @@ TIMELINE
     height: 20px;
     background-color: var(--grey1);
     z-index: 1;
+    border-radius: 5px;
 }
 
 .og-slider .og-slider-panel .og-slider-progress {
@@ -897,6 +899,8 @@ TIMELINE
     height: 100%;
     background-color: var(--grey7);
     pointer-events: none;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
 }
 
 .og-slider .og-slider-panel .og-slider-pointer {
@@ -919,6 +923,7 @@ TIMELINE
     color: var(--grey3);
     padding-left: 5px;
     width: 60px;
+    border-radius: 5px;
 }
 
 .og-slider input:focus-visible {
@@ -968,6 +973,7 @@ TIMELINE
     z-index: 0;
     color: var(--grey3);
     padding-left: 5px;
+    border-radius: 5px;
 }
 
 .og-input input:focus-visible {
