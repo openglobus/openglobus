@@ -16,7 +16,7 @@ export interface IDialogParams extends IViewParams {
     maxHeight?: number;
     minWidth?: number;
     maxWidth?: number;
-    useHide?: boolean;
+    useHide?: boolean;     // Using hide instead of remove when close
 }
 
 type DialogEventsList = ["resize", "focus", "visibility", "dragstart", "dragend"];
