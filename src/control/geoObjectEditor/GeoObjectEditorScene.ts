@@ -606,6 +606,10 @@ class GeoObjectEditorScene extends RenderNode {
 
     protected _scaleZ = (e: IMouseState) => {
     }
+
+    public getSelectedEntity(): Entity | null {
+        return this._selectedEntity;
+    }
 }
 
 const GEOOBJECTEDITORCENE_EVENTS: GeoObjectSceneEventsList = [

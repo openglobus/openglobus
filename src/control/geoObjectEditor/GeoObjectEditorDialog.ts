@@ -110,25 +110,37 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
 
         this.events.on("visibility", this._onVisibility);
 
-        let c = this.container!;
+        this._lonView.appendTo(this.container!);
+        this._latView.appendTo(this.container!);
+        this._pitchView.appendTo(this.container!);
+        this._yawView.appendTo(this.container!);
+        this._rollView.appendTo(this.container!);
+        this._scaleView.appendTo(this.container!);
+        this._scaleXView.appendTo(this.container!);
+        this._scaleYView.appendTo(this.container!);
+        this._scaleZView.appendTo(this.container!);
+        this._groundBtn.appendTo(this.container!);
 
-        this._lonView.appendTo(c);
-        this._latView.appendTo(c);
-        this._pitchView.appendTo(c);
-        this._yawView.appendTo(c);
-        this._rollView.appendTo(c);
-        this._scaleView.appendTo(c);
-        this._scaleXView.appendTo(c);
-        this._scaleYView.appendTo(c);
-        this._scaleZView.appendTo(c);
-        this._groundBtn.appendTo(c);
+        this._lonView.events.on("change", this._onChangeLon);
+        this._latView.events.on("change", this._onChangeLat);
+        this._pitchView.events.on("change", this._onChangePitch);
+        this._yawView.events.on("change", this._onChangeYaw);
+        this._rollView.events.on("change", this._onChangeRoll);
+        this._scaleView.events.on("change", this._onChangeScale);
+        this._scaleXView.events.on("change", this._onChangeScaleX);
+        this._scaleYView.events.on("change", this._onChangeScaleY);
+        this._scaleZView.events.on("change", this._onChangeScaleZ);
+
+        this._groundBtn.appendTo(this.container!);
+
+        this._groundBtn.events.on("click", this._onGround);
+
 
         return this;
     }
 
     protected _onVisibility = (vis: boolean) => {
         this.model.setVisibility(vis);
-        //this._initSceneEvents();
     }
 
     public override remove(): void {
@@ -156,14 +168,29 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
 
     protected _onSelect = (entity: Entity) => {
         this.show();
-        this._lonView.value = entity.getLonLat().lon;
-        this._latView.value = entity.getLonLat().lat;
-        this._pitchView.value = entity.geoObject!.getPitch();
-        this._yawView.value = entity.geoObject!.getYaw();
-        this._rollView.value = entity.geoObject!.getRoll();
-        this._scaleXView.value = entity.geoObject!.getScale().x;
-        this._scaleYView.value = entity.geoObject!.getScale().y;
-        this._scaleZView.value = entity.geoObject!.getScale().z;
+        this._refresh(entity);
+    }
+
+    protected _refresh(entity: Entity) {
+        let ll = entity.getLonLat(),
+            go = entity.geoObject!,
+            scl = go.getScale();
+
+        this._lonView.value = ll.lon;
+        this._latView.value = ll.lat;
+        this._pitchView.value = go.getPitch();
+        this._yawView.value = go.getYaw();
+        this._rollView.value = go.getRoll();
+
+        if ((scl.x === scl.y) && (scl.y === scl.z)) {
+            this._scaleView.value = scl.x;
+        } else {
+            this._scaleView.value = 1;
+        }
+
+        this._scaleXView.value = scl.x;
+        this._scaleYView.value = scl.y;
+        this._scaleZView.value = scl.z;
     }
 
     protected _onUnselect = (entity: Entity) => {
@@ -185,5 +212,67 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
 
     protected _onRoll = (a: number, entity: Entity) => {
         this._rollView.value = entity.geoObject!.getRoll();
+    }
+
+    protected _onChangeLon = (val: string) => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+
+        }
+    }
+    protected _onChangeLat = (val: string) => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+
+        }
+    }
+    protected _onChangePitch = (val: string) => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+
+        }
+    }
+    protected _onChangeYaw = (val: string) => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+
+        }
+    }
+    protected _onChangeRoll = (val: string) => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+
+        }
+    }
+    protected _onChangeScale = (val: string) => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+
+        }
+    }
+    protected _onChangeScaleX = (val: string) => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+
+        }
+    }
+    protected _onChangeScaleY = (val: string) => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+
+        }
+    }
+    protected _onChangeScaleZ = (val: string) => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+
+        }
+    }
+
+    protected _onGround = () => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+
+        }
     }
 }
