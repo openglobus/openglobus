@@ -33,8 +33,8 @@ export class GeoObjectEditor extends Control {
             }
         });
 
-        this._geoObjectEditopScene.events.on("change", (isActive: boolean) => {})
-        this._geoObjectEditopScene.events.on("select", (isActive: boolean) => {})
+        //this._geoObjectEditopScene.events.on("change", (isActive: boolean) => {})
+        //this._geoObjectEditopScene.events.on("select", (isActive: boolean) => {})
 
         this.activate();
     }

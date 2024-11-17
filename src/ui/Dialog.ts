@@ -156,6 +156,10 @@ class Dialog<M> extends View<M> {
         }
     }
 
+    public getVisibility(): boolean {
+        return this._visibility;
+    }
+
     protected _initButtons() {
         this._closeBtn.events.on("click", this._onCloseBtnClick);
         this._closeBtn.appendTo(this.$buttons!);
