@@ -744,7 +744,7 @@ input {
     height: 20px;
 }
 
-.og-atmosphere.og-options-container  .og-slider input{
+.og-atmosphere.og-options-container .og-slider input {
     width: 87px;
 }
 
@@ -936,6 +936,60 @@ TIMELINE
 .og-slider input[type=number] {
     -moz-appearance: textfield;
 }
+
+
+/*
+    INPUT
+*/
+
+.og-input {
+    display: flex;
+    flex-direction: row;
+    width: 200px;
+    /*height: 20px;*/
+}
+
+.og-input .og-slider-label {
+    width: 100%;
+    height: 100%;
+    color: var(--grey6);
+    font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    text-align: left;
+    margin-right: 5px;
+}
+
+.og-input input {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    background: var(--grey5);
+    border: 1px solid var(--grey1);
+    z-index: 0;
+    color: var(--grey3);
+    padding-left: 5px;
+    width: 60px;
+}
+
+.og-input input:focus-visible {
+    outline: none;
+}
+
+/* Chrome, Safari, Edge, Opera */
+.og-input input::-webkit-outer-spin-button,
+.og-input input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+.og-input input[type=number] {
+    -moz-appearance: textfield;
+}
+
+
 
 .og-selection_button {
     top: 117px;
