@@ -1259,5 +1259,6 @@ TIMELINE
     width: fit-content;
     background: var(--grey1);
     padding: 4px 6px 8px;
-    margin: 10px;
+    margin-left: 5px;
+    margin-top: 15px;
 }

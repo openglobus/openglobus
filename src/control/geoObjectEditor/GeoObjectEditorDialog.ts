@@ -28,10 +28,10 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
             visible: false,
             resizable: true,
             useHide: true,
-            top: 10,
-            left: window.screen.width - 250 - 65,
+            top: 25,
+            right: 85,
             width: 180,
-            height: 400,
+            height: 295,
             minHeight: 100,
             minWidth: 100,
             model: params.model
