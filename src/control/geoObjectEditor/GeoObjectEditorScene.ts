@@ -101,21 +101,24 @@ class GeoObjectEditorScene extends RenderNode {
             useLighting: false,
             pickingScale: [5, 1.1, 5],
             visibility: false,
-            depthOrder: 1000
+            depthOrder: 1000,
+            hideInLayerSwitcher: true
         });
 
         this._planeLayer = new Vector("move-plane", {
             scaleByDistance: [1, MAX32, 1],
             useLighting: false,
             visibility: false,
-            depthOrder: 1000
+            depthOrder: 1000,
+            hideInLayerSwitcher: true
         });
 
         this._rotateLayer = new Vector("rotate-circles", {
             useLighting: false,
             visibility: false,
             depthOrder: 1000,
-            pickingScale: 5
+            pickingScale: 5,
+            hideInLayerSwitcher: true
         });
 
         this._selectedEntity = null;
