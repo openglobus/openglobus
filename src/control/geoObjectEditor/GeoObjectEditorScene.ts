@@ -16,6 +16,7 @@ import {MovePlaneEntity} from "./MovePlaneEntity";
 import {RotateEntity} from "./RotateEntity";
 import {Ray} from "../../math/Ray";
 import {Sphere} from "../../bv/Sphere";
+import {AxisTrackEntity} from "./AxisTrackEntity";
 
 export interface IGeoObjectEditorSceneParams {
     planet?: Planet;
@@ -66,6 +67,7 @@ class GeoObjectEditorScene extends RenderNode {
     protected _moveLayer: Vector;
     protected _planeLayer: Vector;
     protected _rotateLayer: Vector;
+    protected _axisTrackLayer: Vector;
 
     protected _selectedEntity: Entity | null;
     protected _selectedEntityCart: Vec3;
@@ -77,10 +79,13 @@ class GeoObjectEditorScene extends RenderNode {
     protected _axisEntity: MoveAxisEntity;
     protected _planeEntity: MovePlaneEntity;
     protected _rotateEntity: RotateEntity;
+    protected _axisTrackEntity: AxisTrackEntity;
 
     protected _selectedMove: string | null;
 
     protected _ops: Record<string, (mouseState: IMouseState) => void>;
+
+    protected _axisTrackVisibility: boolean;
 
     constructor(options: IGeoObjectEditorSceneParams = {}) {
         super(options.name || 'GeoObjectEditorScene');
@@ -95,6 +100,7 @@ class GeoObjectEditorScene extends RenderNode {
         this._axisEntity = new MoveAxisEntity();
         this._planeEntity = new MovePlaneEntity();
         this._rotateEntity = new RotateEntity();
+        this._axisTrackEntity = new AxisTrackEntity();
 
         this._moveLayer = new Vector("move-axis", {
             scaleByDistance: [1, MAX32, 1],
@@ -128,6 +134,18 @@ class GeoObjectEditorScene extends RenderNode {
         this._selectedEntityYaw = 0;
         this._selectedEntityRoll = 0;
         this._selectedMove = null;
+
+        this._axisTrackVisibility = false;
+
+        this._axisTrackLayer = new Vector("axis-track", {
+            useLighting: false,
+            visibility: false,
+            depthOrder: 0,
+            pickingScale: 5,
+            hideInLayerSwitcher: false,
+            pickingEnabled: false,
+            opacity: 0.6
+        });
 
         this._ops = {
             move_x: this._moveX,
@@ -164,6 +182,7 @@ class GeoObjectEditorScene extends RenderNode {
             this._moveLayer.addTo(this._planet);
             this._planeLayer.addTo(this._planet);
             this._rotateLayer.addTo(this._planet);
+            this._axisTrackLayer.addTo(this._planet);
 
             this._moveLayer.add(this._axisEntity);
             this._moveLayer.events.on("mouseenter", this._onAxisLayerMouseEnter);
@@ -182,6 +201,8 @@ class GeoObjectEditorScene extends RenderNode {
             this._rotateLayer.events.on("mouseleave", this._onRotateLayerMouseLeave);
             this._rotateLayer.events.on("lup", this._onRotateLayerLUp);
             this._rotateLayer.events.on("ldown", this._onRotateLayerLDown);
+
+            this._axisTrackLayer.add(this._axisTrackEntity);
         }
     }
 
@@ -198,6 +219,7 @@ class GeoObjectEditorScene extends RenderNode {
     protected _onAxisLayerLUp = (e: IMouseState) => {
         this._selectedMove = null;
         this._planet!.renderer!.controls.mouseNavigation.activate();
+        this._setAxisTrackVisibility(false);
     }
 
     protected _onAxisLayerLDown = (e: IMouseState) => {
@@ -205,6 +227,7 @@ class GeoObjectEditorScene extends RenderNode {
 
         if (this._selectedEntity) {
             this._selectedEntityCart = this._selectedEntity.getCartesian().clone();
+            this._setAxisTrackVisibility(true);
         }
 
         this._selectedMove = e.pickingObject.properties.opName;
@@ -224,6 +247,7 @@ class GeoObjectEditorScene extends RenderNode {
     protected _onPlaneLayerLUp = (e: IMouseState) => {
         this._selectedMove = null;
         this._planet!.renderer!.controls.mouseNavigation.activate();
+        this._setAxisTrackVisibility(false);
     }
 
     protected _onPlaneLayerLDown = (e: IMouseState) => {
@@ -231,6 +255,7 @@ class GeoObjectEditorScene extends RenderNode {
 
         if (this._selectedEntity) {
             this._selectedEntityCart = this._selectedEntity.getCartesian().clone();
+            this._setAxisTrackVisibility(true);
         }
 
         this._selectedMove = e.pickingObject.properties.opName;
@@ -293,6 +318,13 @@ class GeoObjectEditorScene extends RenderNode {
         this.clear();
     }
 
+    protected _setAxisTrackVisibility(visibility: boolean) {
+        if (visibility !== this._axisTrackVisibility) {
+            this._axisTrackVisibility = visibility;
+            this._axisTrackLayer.setVisibility(visibility);
+        }
+    }
+
     // protected _onCornerLdown = (e: IMouseState) => {
     //         this.renderer?.controls.mouseNavigation?.deactivate();
     //         this._startClick.set(e.x, e.y);
@@ -311,12 +343,6 @@ class GeoObjectEditorScene extends RenderNode {
     // protected _onGeoObjectLeave = (e: IMouseState) => {
     //     e.renderer.handler.canvas!.style.cursor = "default";
     // }
-
-    public setAxisCartesian3v(cartesian: Vec3) {
-        this._axisEntity.setCartesian3v(cartesian);
-        this._planeEntity.setCartesian3v(cartesian);
-        this._rotateEntity.setCartesian3v(cartesian);
-    }
 
     public setVisibility(visibility: boolean) {
         this._moveLayer.setVisibility(visibility);
@@ -365,6 +391,7 @@ class GeoObjectEditorScene extends RenderNode {
             this._axisEntity.setCartesian3v(cart);
             this._planeEntity.setCartesian3v(cart);
             this._rotateEntity.setCartesian3v(cart);
+            this._axisTrackEntity.setCartesian3v(cart);
         }
     }
 
