@@ -13,6 +13,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
 
     protected _lonView: Input;
     protected _latView: Input;
+    protected _heightView: Input;
     protected _pitchView: Input;
     protected _yawView: Input;
     protected _rollView: Input;
@@ -31,7 +32,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
             top: 25,
             right: 85,
             width: 180,
-            height: 295,
+            height: 345,
             minHeight: 100,
             minWidth: 100,
             model: params.model
@@ -51,6 +52,12 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
             min: -90,
             max: 90,
             maxFixed: 7
+        });
+
+        this._heightView = new Input({
+            label: "Height",
+            type: "number",
+            maxFixed: 2
         });
 
         this._pitchView = new Input({
@@ -112,6 +119,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
 
         this._lonView.appendTo(this.container!);
         this._latView.appendTo(this.container!);
+        this._heightView.appendTo(this.container!);
         this._pitchView.appendTo(this.container!);
         this._yawView.appendTo(this.container!);
         this._rollView.appendTo(this.container!);
@@ -123,6 +131,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
 
         this._lonView.events.on("change", this._onChangeLon);
         this._latView.events.on("change", this._onChangeLat);
+        this._heightView.events.on("change", this._onChangeHeight);
         this._pitchView.events.on("change", this._onChangePitch);
         this._yawView.events.on("change", this._onChangeYaw);
         this._rollView.events.on("change", this._onChangeRoll);
@@ -198,8 +207,10 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     }
 
     protected _onPosition = (pos: Vec3, entity: Entity) => {
-        this._lonView.value = entity.getLonLat().lon;
-        this._latView.value = entity.getLonLat().lat;
+        let ll = entity.getLonLat();
+        this._lonView.value = ll.lon;
+        this._latView.value = ll.lat;
+        this._heightView.value = ll.height;
     }
 
     protected _onPitch = (a: number, entity: Entity) => {
@@ -217,55 +228,77 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     protected _onChangeLon = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-
+            let ll = entity.getLonLat();
+            entity.setLonLat2(parseFloat(val), ll.lat, ll.height);
         }
     }
+
     protected _onChangeLat = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-
+            let ll = entity.getLonLat();
+            entity.setLonLat2(ll.lon, parseFloat(val), ll.height);
         }
     }
+
+    protected _onChangeHeight = (val: string) => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+            let ll = entity.getLonLat();
+            entity.setLonLat2(ll.lon, ll.lat, parseFloat(val));
+        }
+    }
+
     protected _onChangePitch = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-
+            entity.geoObject!.setPitch(parseFloat(val));
         }
     }
     protected _onChangeYaw = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-
+            entity.geoObject!.setYaw(parseFloat(val));
         }
     }
     protected _onChangeRoll = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-
+            entity.geoObject!.setRoll(parseFloat(val));
         }
     }
     protected _onChangeScale = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-
+            let s = parseFloat(val);
+            entity.geoObject!.setScale(s);
+            this._scaleXView.events.stopPropagation();
+            this._scaleXView.value = s;
+            this._scaleYView.events.stopPropagation();
+            this._scaleYView.value = s;
+            this._scaleZView.events.stopPropagation();
+            this._scaleZView.value = s;
         }
     }
     protected _onChangeScaleX = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-
+            let s = entity.geoObject!.getScale();
+            entity.geoObject!.setScale3v(new Vec3(parseFloat(val), s.y, s.z));
         }
     }
     protected _onChangeScaleY = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-
+            let s = entity.geoObject!.getScale();
+            entity.geoObject!.setScale3v(new Vec3(s.x, parseFloat(val), s.z));
         }
     }
     protected _onChangeScaleZ = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-
+            let s = entity.geoObject!.getScale();
+            entity.geoObject!.setScale3v(new Vec3(s.x, s.y, parseFloat(val)));
         }
     }
 

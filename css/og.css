@@ -981,11 +981,11 @@ TIMELINE
 }
 
 /* Chrome, Safari, Edge, Opera */
-.og-input input::-webkit-outer-spin-button,
-.og-input input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
+/*.og-input input::-webkit-outer-spin-button,*/
+/*.og-input input::-webkit-inner-spin-button {*/
+/*    -webkit-appearance: none;*/
+/*    margin: 0;*/
+/*}*/
 
 /* Firefox */
 .og-input input[type=number] {

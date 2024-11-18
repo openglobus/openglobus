@@ -80,6 +80,17 @@ class Input extends View<null> {
         }
     }
 
+    protected _setValue(val: string | number) {
+        if (val !== this._value) {
+            if (typeof val === "number") {
+                this._value = toFixedMax(val, this._maxFixed);
+            } else {
+                this._value = val;
+            }
+            this.events.dispatch(this.events.change, this._value, this);
+        }
+    }
+
     public get value(): string {
         return this._value;
     }
@@ -115,7 +126,7 @@ class Input extends View<null> {
         e.preventDefault();
         e.stopPropagation();
         //@ts-ignore
-        this.value = e.target.value;
+        this._setValue(e.target.value);
     }
 
 
