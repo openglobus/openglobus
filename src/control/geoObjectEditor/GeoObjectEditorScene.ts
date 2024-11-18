@@ -513,6 +513,11 @@ class GeoObjectEditorScene extends RenderNode {
 
         let px = rot.mulVec3(p0);
 
+        let lonLat = this._planet?.ellipsoid.cartesianToLonLat(px)!;
+        let height = this._selectedEntity.getLonLat().height;
+
+        this._planet?.ellipsoid.lonLatToCartesianRes(new LonLat(lonLat.lon, lonLat.lat, height), px);
+
         this._selectedEntity.setCartesian3v(px);
 
         this.events.dispatch(this.events.position, px, this._selectedEntity);
