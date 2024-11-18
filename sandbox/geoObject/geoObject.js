@@ -41,7 +41,7 @@ async function main() {
     let osm = new OpenStreetMap();
 
     const dock = await Object3d.loadObj('./dock.obj');
-    const crane = await Object3d.loadObj('./crane2.obj');
+    const crane = await Object3d.loadObj('./crane.obj');
 
     for (let i = 0; i < dock.length; i++) {
         dockLayer.add(new Entity({
@@ -58,11 +58,33 @@ async function main() {
         }));
     }
 
+    let c1 = new Entity({
+        lonlat: [33.2017379, 69.0821338, 19],
+    });
+
+    let c2 = new Entity({
+        lonlat: [33.2037625, 69.0814592, 24],
+    });
+
+    let c3 = new Entity({
+        lonlat: [33.2045480, 69.0818760, 20],
+    });
+
+    let c4 = new Entity({
+        lonlat: [33.2024654, 69.0824443, 21],
+    });
+
+    let c5 = new Entity({
+        lonlat: [33.2027773, 69.0817816, 21],
+    });
+
+    let c6 = new Entity({
+        lonlat: [33.2035357, 69.0821616, 21],
+    });
 
     for (let i = 0; i < crane.length; i++) {
 
-        let c1 = new Entity({
-            lonlat: [33.2017379, 69.0821338, 19],
+        c1.appendChild(new Entity({
             geoObject: {
                 color: "white",
                 scale: 4.0,
@@ -72,10 +94,9 @@ async function main() {
                 yaw: 87,
                 pitch: 0
             }
-        });
+        }));
 
-        let c2 = new Entity({
-            lonlat: [33.2037625, 69.0814592, 24],
+        c2.appendChild(new Entity({
             geoObject: {
                 color: "white",
                 scale: 4.0,
@@ -85,10 +106,9 @@ async function main() {
                 yaw: 24,
                 pitch: 0
             }
-        });
+        }));
 
-        let c3 = new Entity({
-            lonlat: [33.2045480, 69.0818760, 20],
+        c3.appendChild(new Entity({
             geoObject: {
                 color: "white",
                 scale: 4.0,
@@ -98,10 +118,9 @@ async function main() {
                 yaw: -95,
                 pitch: 0
             }
-        });
+        }));
 
-        let c4 = new Entity({
-            lonlat: [33.2024654, 69.0824443, 21],
+        c4.appendChild(new Entity({
             geoObject: {
                 color: "white",
                 scale: 4.0,
@@ -111,10 +130,9 @@ async function main() {
                 yaw: -160,
                 pitch: 0
             }
-        });
+        }));
 
-        let c5 = new Entity({
-            lonlat: [33.2027773, 69.0817816, 21],
+        c5.appendChild(new Entity({
             geoObject: {
                 color: "white",
                 scale: 4.0,
@@ -124,10 +142,9 @@ async function main() {
                 yaw: 42,
                 pitch: 0
             }
-        });
+        }));
 
-        let c6 = new Entity({
-            lonlat: [33.2035357, 69.0821616, 21],
+        c6.appendChild(new Entity({
             geoObject: {
                 color: "white",
                 scale: 4.0,
@@ -137,15 +154,15 @@ async function main() {
                 yaw: -229,
                 pitch: 0
             }
-        });
-
-        cranesLayer.add(c1);
-        cranesLayer.add(c2);
-        cranesLayer.add(c3);
-        cranesLayer.add(c4);
-        cranesLayer.add(c5);
-        cranesLayer.add(c6);
+        }));
     }
+
+    cranesLayer.add(c1);
+    cranesLayer.add(c2);
+    cranesLayer.add(c3);
+    cranesLayer.add(c4);
+    cranesLayer.add(c5);
+    cranesLayer.add(c6);
 
 
     const globus = new Globe({
@@ -163,10 +180,9 @@ async function main() {
 
     globus.planet.addControl(new control.DebugInfo());
     globus.planet.addControl(new control.KeyboardNavigation());
-    globus.planet.addControl(new control.ToggleWireframe());
     globus.planet.addControl(new control.LayerSwitcher());
-    globus.planet.addControl(new control.RulerSwitcher());
     globus.planet.addControl(new control.TimelineControl());
+    globus.planet.addControl(new control.GeoObjectEditor());
 }
 
 main()

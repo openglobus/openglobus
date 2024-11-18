@@ -4,6 +4,14 @@ import {Entity} from "../../entity/Entity";
 import {Input} from "../../ui/Input";
 import {Button} from "../../ui/Button";
 import {Vec3} from "../../math/Vec3";
+import {
+    getGeoObject,
+    setEntityPitch,
+    setEntityYaw,
+    setEntityRoll,
+    setEntityScale,
+    setEntityScale3v
+} from "./GeoObjectEditorScene";
 
 interface IGeoObjectPropertiesDialog extends IDialogParams {
     model: GeoObjectEditorScene
@@ -181,8 +189,9 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
 
     protected _refresh(entity: Entity) {
         let ll = entity.getLonLat(),
-            go = entity.geoObject!,
-            scl = go.getScale();
+            go = getGeoObject(entity);
+
+        let scl = go.getScale();
 
         this._lonView.value = ll.lon;
         this._latView.value = ll.lat;
@@ -214,15 +223,15 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     }
 
     protected _onPitch = (a: number, entity: Entity) => {
-        this._pitchView.value = entity.geoObject!.getPitch();
+        this._pitchView.value = getGeoObject(entity).getPitch();
     }
 
     protected _onYaw = (a: number, entity: Entity) => {
-        this._yawView.value = entity.geoObject!.getYaw();
+        this._yawView.value = getGeoObject(entity).getYaw();
     }
 
     protected _onRoll = (a: number, entity: Entity) => {
-        this._rollView.value = entity.geoObject!.getRoll();
+        this._rollView.value = getGeoObject(entity).getRoll();
     }
 
     protected _onChangeLon = (val: string) => {
@@ -252,26 +261,26 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     protected _onChangePitch = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            entity.geoObject!.setPitch(parseFloat(val));
+            setEntityPitch(entity, parseFloat(val));
         }
     }
     protected _onChangeYaw = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            entity.geoObject!.setYaw(parseFloat(val));
+            setEntityYaw(entity, parseFloat(val));
         }
     }
     protected _onChangeRoll = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            entity.geoObject!.setRoll(parseFloat(val));
+            setEntityRoll(entity, parseFloat(val));
         }
     }
     protected _onChangeScale = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
             let s = parseFloat(val);
-            entity.geoObject!.setScale(s);
+            setEntityScale(entity, s);
             this._scaleXView.events.stopPropagation();
             this._scaleXView.value = s;
             this._scaleYView.events.stopPropagation();
@@ -283,22 +292,22 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     protected _onChangeScaleX = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            let s = entity.geoObject!.getScale();
-            entity.geoObject!.setScale3v(new Vec3(parseFloat(val), s.y, s.z));
+            let s = getGeoObject(entity).getScale();
+            setEntityScale3v(entity, new Vec3(parseFloat(val), s.y, s.z));
         }
     }
     protected _onChangeScaleY = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            let s = entity.geoObject!.getScale();
-            entity.geoObject!.setScale3v(new Vec3(s.x, parseFloat(val), s.z));
+            let s = getGeoObject(entity).getScale();
+            setEntityScale3v(entity, new Vec3(s.x, parseFloat(val), s.z));
         }
     }
     protected _onChangeScaleZ = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            let s = entity.geoObject!.getScale();
-            entity.geoObject!.setScale3v(new Vec3(s.x, s.y, parseFloat(val)));
+            let s = getGeoObject(entity).getScale();
+            setEntityScale3v(entity, new Vec3(s.x, s.y, parseFloat(val)));
         }
     }
 

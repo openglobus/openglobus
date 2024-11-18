@@ -17,6 +17,47 @@ import {RotateEntity} from "./RotateEntity";
 import {Ray} from "../../math/Ray";
 import {Sphere} from "../../bv/Sphere";
 import {AxisTrackEntity} from "./AxisTrackEntity";
+import {GeoObject} from "../../entity/GeoObject";
+
+
+export function getGeoObject(entity: Entity): GeoObject {
+    return entity.geoObject! || entity.childrenNodes[0].geoObject;
+}
+
+export function setEntityPitch(entity: Entity, val: number) {
+    entity.geoObject?.setPitch(val);
+    entity.childrenNodes.forEach((e: Entity) => {
+        e.geoObject?.setPitch(val);
+    });
+}
+
+export function setEntityYaw(entity: Entity, val: number) {
+    entity.geoObject?.setYaw(val);
+    entity.childrenNodes.forEach((e: Entity) => {
+        e.geoObject?.setYaw(val);
+    });
+}
+
+export function setEntityRoll(entity: Entity, val: number) {
+    entity.geoObject?.setRoll(val);
+    entity.childrenNodes.forEach((e: Entity) => {
+        e.geoObject?.setRoll(val);
+    });
+}
+
+export function setEntityScale(entity: Entity, val: number) {
+    entity.geoObject?.setScale(val);
+    entity.childrenNodes.forEach((e: Entity) => {
+        e.geoObject?.setScale(val);
+    });
+}
+
+export function setEntityScale3v(entity: Entity, val: Vec3) {
+    entity.geoObject?.setScale3v(val);
+    entity.childrenNodes.forEach((e: Entity) => {
+        e.geoObject?.setScale3v(val);
+    });
+}
 
 export interface IGeoObjectEditorSceneParams {
     planet?: Planet;
@@ -286,10 +327,10 @@ class GeoObjectEditorScene extends RenderNode {
 
         if (this._selectedEntity) {
             this._selectedEntityCart = this._selectedEntity.getCartesian().clone();
-            if (this._selectedEntity.geoObject) {
-                this._selectedEntityPitch = this._selectedEntity.geoObject.getPitch();
-                this._selectedEntityYaw = this._selectedEntity.geoObject.getYaw();
-                this._selectedEntityRoll = this._selectedEntity.geoObject.getRoll();
+            if (getGeoObject(this._selectedEntity)) {
+                this._selectedEntityPitch = getGeoObject(this._selectedEntity).getPitch();
+                this._selectedEntityYaw = getGeoObject(this._selectedEntity).getYaw();
+                this._selectedEntityRoll = getGeoObject(this._selectedEntity).getRoll();
             }
         }
 
@@ -556,7 +597,7 @@ class GeoObjectEditorScene extends RenderNode {
                 let sig = Math.sign(c0.cross(c1).dot(norm));
                 let angle = Math.acos(c0.dot(c1)) * DEGREES;
                 let deg = this._selectedEntityPitch + sig * angle;
-                this._selectedEntity.geoObject!.setPitch(deg);
+                setEntityPitch(this._selectedEntity, deg);
 
                 this.events.dispatch(this.events.pitch, deg, this._selectedEntity);
                 this.events.dispatch(this.events.change, this._selectedEntity);
@@ -588,7 +629,7 @@ class GeoObjectEditorScene extends RenderNode {
                 let sig = Math.sign(c1.cross(c0).dot(norm));
                 let angle = Math.acos(c0.dot(c1)) * DEGREES;
                 let deg = this._selectedEntityYaw + sig * angle;
-                this._selectedEntity.geoObject!.setYaw(deg);
+                setEntityYaw(this._selectedEntity, deg);
 
                 this.events.dispatch(this.events.yaw, deg, this._selectedEntity);
                 this.events.dispatch(this.events.change, this._selectedEntity);
@@ -620,7 +661,7 @@ class GeoObjectEditorScene extends RenderNode {
                 let sig = Math.sign(c0.cross(c1).dot(norm));
                 let angle = Math.acos(c0.dot(c1)) * DEGREES;
                 let deg = this._selectedEntityRoll + sig * angle;
-                this._selectedEntity.geoObject!.setRoll(deg);
+                setEntityRoll(this._selectedEntity, deg);
 
                 this.events.dispatch(this.events.roll, deg, this._selectedEntity);
                 this.events.dispatch(this.events.change, this._selectedEntity);
