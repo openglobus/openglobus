@@ -3,6 +3,7 @@ import {Vec3} from "../../math/Vec3";
 import {SEL_X_COLOR, SEL_Y_COLOR, SEL_Z_COLOR} from "./colors";
 import {LonLat} from "../../LonLat";
 import {htmlColorToFloat32Array} from "../../utils/shared";
+import {SegmentPathColor} from "../../entity/Polyline";
 
 const SEG_SIZE = 100;
 
@@ -20,9 +21,9 @@ export class AxisTrackEntity extends Entity {
 
         const length = SEG_SIZE;
 
-        let lonColors = [],
-            latCoords = [],
-            yColors = [];
+        let lonColors: SegmentPathColor = [],
+            latCoords: SegmentPathColor = [],
+            yColors: SegmentPathColor = [];
 
         let lonCol = htmlColorToFloat32Array(SEL_X_COLOR),
             yCol = htmlColorToFloat32Array(SEL_Y_COLOR),
@@ -47,7 +48,6 @@ export class AxisTrackEntity extends Entity {
             polyline: {
                 path3v: [Array.from({length}, (_, i) => new Vec3())],
                 thickness: 2.5,
-                //color: SEL_X_COLOR,
                 pathColors: [lonColors],
                 isClosed: false
             }
@@ -57,7 +57,6 @@ export class AxisTrackEntity extends Entity {
             polyline: {
                 path3v: [Array.from({length}, (_, i) => new Vec3())],
                 thickness: 2.5,
-                //color: SEL_Y_COLOR,
                 pathColors: [yColors],
                 isClosed: false
             }
@@ -67,7 +66,6 @@ export class AxisTrackEntity extends Entity {
             polyline: {
                 path3v: [Array.from({length}, (_, i) => new Vec3())],
                 thickness: 2.5,
-                //color: SEL_Z_COLOR,
                 pathColors: [latCoords],
                 isClosed: false
             }
@@ -85,7 +83,6 @@ export class AxisTrackEntity extends Entity {
         if (this._layer && this._layer._planet) {
 
             let pl = this._layer._planet;
-            // let qNorthFrame = pl.getNorthFrameRotation(cart).conjugate();
             let r = pl.camera.eye.distance(cart) * 0.05;
 
             let yCoords: Vec3[] = [],
@@ -101,9 +98,9 @@ export class AxisTrackEntity extends Entity {
                 yCoords.push(cart.add(n.scaleTo(i * r)));
             }
 
-            this.childrenNodes[0].polyline!.setPathLonLat([lonCoords], undefined, true);
-            this.childrenNodes[1].polyline!.setPath3v([yCoords], undefined, true);
-            this.childrenNodes[2].polyline!.setPathLonLat([latCoords], undefined, true);
+            this.childrenNodes[0].polyline!.setPathLonLatFast([lonCoords],);
+            this.childrenNodes[1].polyline!.setPath3vFast([yCoords]);
+            this.childrenNodes[2].polyline!.setPathLonLatFast([latCoords]);
         }
     }
 }

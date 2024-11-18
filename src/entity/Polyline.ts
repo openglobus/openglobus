@@ -2014,13 +2014,26 @@ class Polyline {
         this._changedBuffers[COLORS_BUFFER] = true;
     }
 
+    public setPathLonLatFast(pathLonLat: SegmentPathLonLatExt[], pathColors?: SegmentPathColor[]) {
+        this.setPathLonLat(pathLonLat, pathColors, true);
+    }
+
+    public setPath3vFast(path3v: SegmentPath3vExt[], pathColors?: SegmentPathColor[]) {
+        this.setPath3v(path3v, pathColors, true);
+    }
+
     /**
      * Sets polyline geodetic coordinates.
      * @public
      * @param {SegmentPathLonLat[]} pathLonLat - Polyline path cartesian coordinates.
      * @param {Boolean} [forceEqual=false] - OPTIMIZATION FLAG: Makes assigning faster for size equal coordinates array.
      */
-    public setPathLonLat(pathLonLat: SegmentPathLonLatExt[], forceEqual: boolean = false) {
+    public setPathLonLat(pathLonLat: SegmentPathLonLatExt[], pathColors?: SegmentPathColor[], forceEqual: boolean = false) {
+
+        if (pathColors) {
+            this._pathColors = ([] as SegmentPathColor[]).concat(pathColors);
+        }
+
         if (this._renderNode && (this._renderNode as Planet).ellipsoid) {
             if (forceEqual) {
                 this._setEqualPathLonLat(pathLonLat as SegmentPathLonLat[]);

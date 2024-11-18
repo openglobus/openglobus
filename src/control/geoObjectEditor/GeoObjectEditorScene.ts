@@ -164,6 +164,10 @@ class GeoObjectEditorScene extends RenderNode {
         }
     }
 
+    get planet(): Planet | null {
+        return this._planet;
+    }
+
     public bindPlanet(planet: Planet) {
         this._planet = planet;
         this._addAxisLayers();

@@ -144,7 +144,6 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
 
         this._groundBtn.events.on("click", this._onGround);
 
-
         return this;
     }
 
@@ -187,6 +186,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
 
         this._lonView.value = ll.lon;
         this._latView.value = ll.lat;
+        this._heightView.value = ll.height;
         this._pitchView.value = go.getPitch();
         this._yawView.value = go.getYaw();
         this._rollView.value = go.getRoll();
@@ -304,8 +304,14 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
 
     protected _onGround = () => {
         let entity = this.model.getSelectedEntity();
-        if (entity) {
-
+        if (entity && this.model.planet) {
+            if (this.model.planet.terrain) {
+                this.model.planet.terrain.getHeightAsync(entity.getLonLat(), (height: number) => {
+                    this._heightView.value = height;
+                });
+            } else {
+                this._heightView.value = 0;
+            }
         }
     }
 }
