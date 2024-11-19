@@ -1,5 +1,5 @@
 import {createEvents, EventCallback, EventsHandler} from '../../Events';
-import {DEGREES, MAX32} from "../../math";
+import {DEGREES, MAX32, RADIANS} from "../../math";
 import {Plane} from "../../math/Plane";
 import {Planet} from "../../scene/Planet";
 import {RenderNode} from '../../scene/RenderNode';
@@ -579,7 +579,15 @@ class GeoObjectEditorScene extends RenderNode {
         let cam = this._planet!.camera;
         let p0 = this._selectedEntityCart;
         let qNorthFrame = this._planet!.getNorthFrameRotation(p0).conjugate();
-        let norm = qNorthFrame.mulVec3(new Vec3(1, 0, 0)).normalize();
+
+        let qp = Quat.xRotation(0);
+        let qy = Quat.yRotation(getGeoObject(this._selectedEntity).getYaw() * RADIANS);
+        let qr = Quat.zRotation(0);
+
+        let qRot = qr.mul(qp).mul(qy).mul(this._planet!.getNorthFrameRotation(p0)).conjugate();
+
+        //let norm = qNorthFrame.mulVec3(new Vec3(1, 0, 0)).normalize();
+        let norm = qRot.mulVec3(new Vec3(1, 0, 0)).normalize();
 
         let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
 
@@ -643,7 +651,15 @@ class GeoObjectEditorScene extends RenderNode {
         let cam = this._planet!.camera;
         let p0 = this._selectedEntityCart;
         let qNorthFrame = this._planet!.getNorthFrameRotation(p0).conjugate();
-        let norm = qNorthFrame.mulVec3(new Vec3(0, 0, 1)).normalize();
+
+        let qp = Quat.xRotation(0);
+        let qy = Quat.yRotation(getGeoObject(this._selectedEntity).getYaw() * RADIANS);
+        let qr = Quat.zRotation(0);
+
+        let qRot = qr.mul(qp).mul(qy).mul(this._planet!.getNorthFrameRotation(p0)).conjugate();
+
+        //let norm = qNorthFrame.mulVec3(new Vec3(0, 0, 1)).normalize();
+        let norm = qRot.mulVec3(new Vec3(0, 0, 1)).normalize();
 
         let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
 
