@@ -1628,7 +1628,7 @@ export class Planet extends RenderNode {
         }
     }
 
-    protected _renderingFadingNodesNoDepth = (nodes: Map<number, boolean>, sh: Program, currentNode: Node, sl: Layer[], sliceIndex: number) => {
+    protected _renderingFadingNodesNoDepth = (nodes: Map<number, boolean>, sh: Program, currentNode: Node, sl: Layer[], sliceIndex: number, outOpaqueSegments?: Segment[]) => {
 
         let isFirstPass = sliceIndex === 0;
         let isEq = this.terrain!.equalizeVertices;
@@ -1644,6 +1644,7 @@ export class Planet extends RenderNode {
                     isEq && f.equalize();
                     f.readyToEngage && f.engage();
                     f.screenRendering(sh, sl, sliceIndex);
+                    outOpaqueSegments!.push(f);
                 } else {
                     f.screenRendering(sh, sl, sliceIndex, this.transparentTexture, true);
                 }
@@ -1685,7 +1686,7 @@ export class Planet extends RenderNode {
                 let ri = renderedNodes[i];
                 let s = ri.segment;
 
-                this._renderingFadingNodesNoDepth(nodes, sh, ri, sl[0], 0);
+                this._renderingFadingNodesNoDepth(nodes, sh, ri, sl[0], 0, this._fadingOpaqueSegments);
 
                 isEq && s.equalize();
                 s.readyToEngage && s.engage();
