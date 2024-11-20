@@ -1602,7 +1602,7 @@ export class Planet extends RenderNode {
         return sh;
     }
 
-    protected _renderingFadingNodes = (nodes: Map<number, boolean>, sh: Program, currentNode: Node, sl: Layer[], sliceIndex: number, outTransparentSegments?: Segment[]) => {
+    protected _renderingFadingNodes = (nodes: Map<number, boolean>, sh: Program, currentNode: Node, sl: Layer[], sliceIndex: number, outTransparentSegments?: Segment[], outOpaqueSegments?: Segment[]) => {
 
         let isFirstPass = sliceIndex === 0;
         let isEq = this.terrain!.equalizeVertices;
@@ -1619,6 +1619,7 @@ export class Planet extends RenderNode {
                         isEq && f.equalize();
                         f.readyToEngage && f.engage();
                         f.screenRendering(sh, sl, sliceIndex);
+                        outOpaqueSegments!.push(f);
                     } else {
                         f.screenRendering(sh, sl, sliceIndex, this.transparentTexture, true);
                     }
@@ -1677,6 +1678,8 @@ export class Planet extends RenderNode {
         let isEq = this.terrain!.equalizeVertices;
         let i = renderedNodes.length;
 
+        this._fadingOpaqueSegments = [];
+
         if (cam.slope > 0.8 || !this.terrain || this.terrain.isEmpty /*|| cam.getAltitude() > 10000*/) {
             while (i--) {
                 let ri = renderedNodes[i];
@@ -1697,7 +1700,7 @@ export class Planet extends RenderNode {
                 let ri = renderedNodes[i];
                 let s = ri.segment;
 
-                this._renderingFadingNodes(nodes, sh, ri, sl[0], 0, transparentSegments);
+                this._renderingFadingNodes(nodes, sh, ri, sl[0], 0, transparentSegments, this._fadingOpaqueSegments);
 
                 if (s._transitionOpacity < 1) {
                     transparentSegments.push(s);
@@ -1791,12 +1794,16 @@ export class Planet extends RenderNode {
         //
         let i = rn.length;
         while (i--) {
-            this._renderingFadingNodes(nodes, sh, rn[i], sl[0], 0, transparentSegments);
+            //this._renderingFadingNodes(nodes, sh, rn[i], sl[0], 0, transparentSegments);
             if (rn[i].segment._transitionOpacity < 1) {
 
             } else {
                 rn[i].segment.colorPickingRendering(sh, sl[0], 0);
             }
+        }
+
+        for (let i = 0; i < this._fadingOpaqueSegments.length; ++i) {
+            this._fadingOpaqueSegments[i].colorPickingRendering(sh, sl[0], 0);
         }
 
         // Here is set blending for transparent overlays
@@ -1810,17 +1817,6 @@ export class Planet extends RenderNode {
                 rn[i].segment.colorPickingRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
-        /*
-                while (i--) {
-                    let ri = renderedNodes[i];
-                    this._renderingFadingNodes(nodes, sh, ri, sl[j], j, transparentSegments);
-                    if (ri.segment._transitionOpacity < 1) {
-                        ri.segment.initSlice(j);
-                    } else {
-                        ri.segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
-                    }
-                }
-         */
 
         gl.disable(gl.POLYGON_OFFSET_FILL);
     }
@@ -1852,7 +1848,15 @@ export class Planet extends RenderNode {
 
         let i = rn.length;
         while (i--) {
-            rn[i].segment.depthRendering(sh, sl[0]);
+            if (rn[i].segment._transitionOpacity < 1) {
+
+            } else {
+                rn[i].segment.depthRendering(sh, sl[0]);
+            }
+        }
+
+        for (let i = 0; i < this._fadingOpaqueSegments.length; ++i) {
+            this._fadingOpaqueSegments[i].depthRendering(sh, sl[0]);
         }
 
         gl.enable(gl.BLEND);
