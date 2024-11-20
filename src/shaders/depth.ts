@@ -1,9 +1,9 @@
-import { Program } from '../webgl/Program';
+import {Program} from '../webgl/Program';
 
 export function depth() {
     return new Program("depth", {
         uniforms: {
-            depthTexture: "sampler2d"
+            depthTexture: "sampler2D"
         },
         attributes: {
             corners: "vec2"
@@ -24,8 +24,6 @@ export function depth() {
 
             precision highp float;
 
-            #define MAX_FRUSTUMS 4
-
             uniform sampler2D depthTexture;
            
             in vec2 tc;
@@ -34,8 +32,7 @@ export function depth() {
 
             float LinearizeDepth(in vec2 uv)
             {
-                float depth = texture(depthTexture, tc).x;
-                return depth;//(2.0 * zNear) / (zFar + zNear - depth * (zFar - zNear));
+                return texture(depthTexture, tc).r;
             }
             
             void main(void) {

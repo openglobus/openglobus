@@ -78,11 +78,6 @@ const CUR_LOD_SIZE = 250; //px
 const MIN_LOD_SIZE = 312; //px
 const MAX_LOD_SIZE = 190; //px
 
-let _tempPickingPix_ = new Uint8Array(4);
-let _tempDepthColor_ = new Uint8Array(4);
-
-const DEPTH_DISTANCE = 11;//m
-
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
  * @const
@@ -900,7 +895,6 @@ export class Planet extends RenderNode {
 
         this.renderer!.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
         this.renderer!.addDepthCallback(this, this._renderDepthFramebufferPASS);
-        this.renderer!.addDistanceCallback(this, this._renderDistanceFramebufferPASS);
     }
 
     protected _onLayerLoadend(layer: Layer) {
@@ -1759,36 +1753,6 @@ export class Planet extends RenderNode {
         gl.enable(gl.CULL_FACE);
     }
 
-    protected _renderDistanceFramebufferPASS() {
-        if (!this.terrain!.isEmpty) {
-
-            let sh;
-            let renderer = this.renderer!;
-            let h = renderer.handler;
-            let gl = h.gl!;
-            let cam = renderer.activeCamera as PlanetCamera;
-
-            h.programs.drawnode_heightPicking.activate();
-            sh = h.programs.drawnode_heightPicking._program;
-            let shu = sh.uniforms;
-
-            gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
-            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
-
-            gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
-            gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
-
-            // drawing planet nodes
-            let rn = this._renderedNodesInFrustum[cam.currentFrustumIndex];
-            let sl = this._visibleTileLayerSlices;
-
-            let i = rn.length;
-            while (i--) {
-                rn[i].segment.heightPickingRendering(sh, sl[0]);
-            }
-        }
-    }
-
     protected _renderColorPickingFramebufferPASS() {
         let sh;
         let renderer = this.renderer!;
@@ -1849,7 +1813,7 @@ export class Planet extends RenderNode {
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
-        gl.uniform3fv(shu.frustumPickingColor, cam.frustum._pickingColorU);
+        gl.uniform1f(shu.frustumPickingColor, ((cam.currentFrustumIndex + 1) * 10.0) / 255.0);
 
         // drawing planet nodes
         let rn = this._renderedNodesInFrustum[cam.getCurrentFrustum()],
@@ -2035,41 +1999,11 @@ export class Planet extends RenderNode {
      * @returns {number | undefined} -
      */
     public getDistanceFromPixel(px: Vec2 | IBaseInputState): number {
-        if (this.terrain!.isEmpty) {
-            return this.getDistanceFromPixelEllipsoid(px) || 0;
-        } else {
-
-            let r = this.renderer!;
-            let cnv = r.handler!.canvas!;
-
-            let spx = px.x / cnv.width;
-            let spy = (cnv.height - px.y) / cnv.height;
-
-            _tempPickingPix_[0] = _tempPickingPix_[1] = _tempPickingPix_[2] = 0.0;
-
-            let dist = 0;
-
-            r.readDistanceColor(spx, spy, _tempPickingPix_);
-
-            dist = decodeFloatFromRGBAArr(_tempPickingPix_);
-
-            if (!(_tempPickingPix_[0] || _tempPickingPix_[1] || _tempPickingPix_[2])) {
-                dist = this.getDistanceFromPixelEllipsoid(px) || 0;
-            } else if (dist < DEPTH_DISTANCE) {
-                r.screenDepthFramebuffer!.activate();
-
-                //if (r.screenDepthFramebuffer.isComplete()) {
-                r.screenDepthFramebuffer!.readPixels(_tempDepthColor_, spx, spy);
-                let screenPos = new Vec4(spx * 2.0 - 1.0, spy * 2.0 - 1.0, (_tempDepthColor_[0] / 255.0) * 2.0 - 1.0, 1.0 * 2.0 - 1.0);
-                let viewPosition = this.camera.frustums[0].inverseProjectionMatrix.mulVec4(screenPos);
-                let dir = (px as IBaseInputState).direction || r.activeCamera!.unproject(px.x, px.y);
-                dist = -(viewPosition.z / viewPosition.w) / dir.dot(r.activeCamera!.getForward());
-                //}
-
-                r.screenDepthFramebuffer!.deactivate();
-            }
-            return dist;
-        }
+        // if (this.terrain!.isEmpty) {
+        //     return this.getDistanceFromPixelEllipsoid(px) || 0;
+        // } else {
+        return this.renderer!.getDistanceFromPixel(px) || this.getDistanceFromPixelEllipsoid(px) || 0;
+        //}
     }
 
     /**

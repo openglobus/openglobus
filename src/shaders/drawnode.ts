@@ -1009,16 +1009,19 @@ export function drawnode_depth(): Program {
             height: "float",
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
-            frustumPickingColor: "vec3"
+            frustumPickingColor: "float"
         }, attributes: {
-            aVertexPositionHigh: "vec3", aVertexPositionLow: "vec3"
+            aVertexPositionHigh: "vec3",
+            aVertexPositionLow: "vec3"
         },
 
         vertexShader:
-            `precision highp float;
+            `#version 300 es
+            
+            precision highp float;
 
-            attribute vec3 aVertexPositionHigh;
-            attribute vec3 aVertexPositionLow;
+            in vec3 aVertexPositionHigh;
+            in vec3 aVertexPositionLow;
 
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
@@ -1045,11 +1048,18 @@ export function drawnode_depth(): Program {
             }`,
 
         fragmentShader:
-            `precision highp float;
-            uniform vec3 frustumPickingColor;
+            `#version 300 es
+            
+            precision highp float;
+            
+            uniform float frustumPickingColor;
+
+            layout(location = 0) out vec4 frustumColor;
+            layout(location = 1) out vec4 depthColor;
 
             void main(void) {
-                gl_FragColor = vec4(frustumPickingColor, 1.0);
-            } `
+                frustumColor = vec4(frustumPickingColor, frustumPickingColor, frustumPickingColor, 1.0);
+                depthColor = vec4(gl_FragCoord.z, gl_FragCoord.z, gl_FragCoord.z, 1.0);
+            }`
     });
 }

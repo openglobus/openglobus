@@ -486,30 +486,11 @@ class GeoObjectHandler {
             if (!this._planet.renderer.handler.programs.geo_object_picking) {
                 this._planet.renderer.handler.addProgram(shaders.geo_object_picking());
             }
-            if (!this._planet.renderer.handler.programs.geo_object_distance) {
-                this._planet.renderer.handler.addProgram(shaders.geo_object_distance());
+            if (!this._planet.renderer.handler.programs.geo_object_depth) {
+                this._planet.renderer.handler.addProgram(shaders.geo_object_depth());
             }
         }
     }
-
-    // protected _initDistancePickingCallback() {
-    //     if (this._planet && this._planet.renderer) {
-    //         // propably don't need this id here
-    //         //this._planet.renderer.removeDepthCallback(this._distancePickingCallbackID);
-    //         //this._planet.renderer.addDistanceCallback(this, this._renderDistanceFramebufferPASS);
-    //         //this._planet.renderer.addDepthCallback(this, this._renderDepthFramebufferPASS);
-    //     }
-    // }
-
-    // protected _renderDistanceFramebufferPASS() {
-    //     if (this._entityCollection._layer && this._entityCollection._layer.getVisibility()) {
-    //         this._distancePASS();
-    //     }
-    // }
-
-    // protected _renderDepthFramebufferPASS() {
-    //     this._depthPASS();
-    // }
 
     public setRenderNode(renderNode: Planet) {
 
@@ -715,17 +696,15 @@ class GeoObjectHandler {
     }
 
     protected _depthPASS() {
-
-    }
-
-    protected _distancePASS() {
         let r = this._planet!.renderer!,
-            sh = r.handler.programs.geo_object_distance,
+            sh = r.handler.programs.geo_object_depth,
             p = sh._program,
             u = p.uniforms,
             a = p.attributes,
             gl = r.handler.gl!,
             ec = this._entityCollection;
+
+        let cam = r.activeCamera!;
 
         sh.activate();
 
@@ -734,6 +713,8 @@ class GeoObjectHandler {
         gl.uniform3fv(u.eyePositionLow, r.activeCamera!.eyeLow);
         gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera!.getViewMatrix());
+
+        gl.uniform1f(u.frustumPickingColor, ((cam.currentFrustumIndex + 1) * 10.0) / 255.0);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             let tagData = this._instanceDataMapValues[i];
@@ -770,9 +751,9 @@ class GeoObjectHandler {
         }
     }
 
-    public drawDistance() {
+    public drawDepth() {
         if (this._geoObjects.length) {
-            this._distancePASS();
+            this._depthPASS();
         }
     }
 

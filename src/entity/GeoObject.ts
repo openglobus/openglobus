@@ -373,8 +373,13 @@ class GeoObject {
 
     public updateRotation() {
 
-        if (this._handler && this._handler._planet) {
-            this._qNorthFrame = this._handler._planet.getNorthFrameRotation(this._position);
+        if (this._handler) {
+
+            if (!this._handler._planet || this._position.isZero()) {
+                this._qNorthFrame = Quat.IDENTITY;
+            } else {
+                this._qNorthFrame = this._handler._planet.getNorthFrameRotation(this._position);
+            }
 
             let qp = Quat.xRotation(-this._pitchRad);
             let qy = Quat.yRotation(this._yawRad);

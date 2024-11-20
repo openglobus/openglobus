@@ -244,14 +244,15 @@ export const geo_object_picking = (): Program =>
             }`
     });
 
-export const geo_object_distance = (): Program =>
-    new Program("geo_object_distance", {
+export const geo_object_depth = (): Program =>
+    new Program("geo_object_depth", {
         uniforms: {
             viewMatrix: "mat4",
             projectionMatrix: "mat4",
             uScaleByDistance: "vec3",
             eyePositionHigh: "vec3",
-            eyePositionLow: "vec3"
+            eyePositionLow: "vec3",
+            frustumPickingColor: "float"
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -262,24 +263,23 @@ export const geo_object_distance = (): Program =>
             aDispose: {type: "float", divisor: 1},
             qRot: {type: "vec4", divisor: 1}
         },
-        vertexShader: `precision highp float;
+        vertexShader: `#version 300 es
+            precision highp float;
 
-            attribute vec3 aVertexPosition;
-            attribute vec3 aPositionHigh;
-            attribute vec3 aPositionLow;
-            attribute vec3 aScale;
-            attribute vec3 aTranslate;
-            attribute float aDispose;
-            attribute vec4 qRot;
+            in vec3 aVertexPosition;
+            in vec3 aPositionHigh;
+            in vec3 aPositionLow;
+            in vec3 aScale;
+            in vec3 aTranslate;
+            in float aDispose;
+            in vec4 qRot;
             
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
             uniform vec3 uScaleByDistance;
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
-            
-            varying vec4 v;
-            
+                      
             ${QROT}
 
             void main(void) {
@@ -305,19 +305,20 @@ export const geo_object_distance = (): Program =>
                  vec3 vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate));
                  
                  vert += lowDiff;
-                 
-                 v = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
                                 
-                 gl_Position = projectionMatrix * v;
+                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
             }`,
         fragmentShader:
-            `precision highp float;
+            `#version 300 es
+            precision highp float;
+                        
+            uniform float frustumPickingColor;
             
-            varying vec4 v;
-            
-            ${ENCODE24}
-            
+            layout(location = 0) out vec4 frustumColor;
+            layout(location = 1) out vec4 depthColor;
+                        
             void main () {
-                gl_FragColor = vec4(encode24(length(v.xyz)), 1.0);
+                frustumColor = vec4(frustumPickingColor, frustumPickingColor, frustumPickingColor, 1.0);
+                depthColor = vec4(gl_FragCoord.z, gl_FragCoord.z, gl_FragCoord.z, 1.0);
             }`
     });
