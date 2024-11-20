@@ -1689,6 +1689,10 @@ export class Planet extends RenderNode {
                 s.screenRendering(sh, sl[0], 0);
             }
         } else {
+
+            //
+            // Render opaque segments on the first pass, remove transparent ones into second pass
+            //
             while (i--) {
                 let ri = renderedNodes[i];
                 let s = ri.segment;
@@ -1704,6 +1708,9 @@ export class Planet extends RenderNode {
                 }
             }
 
+            //
+            // Render transparent segments
+            //
             for (let j = 0; j < transparentSegments.length; j++) {
                 let tj = transparentSegments[j];
 
@@ -1775,9 +1782,21 @@ export class Planet extends RenderNode {
         let rn = this._renderedNodesInFrustum[cam.getCurrentFrustum()];
         let sl = this._visibleTileLayerSlices;
 
+
+        let nodes = new Map<number, boolean>;
+        let transparentSegments: Segment[] = [];
+
+        //
+        // TOOD: HEREIT IS
+        //
         let i = rn.length;
         while (i--) {
-            rn[i].segment.colorPickingRendering(sh, sl[0], 0);
+            this._renderingFadingNodes(nodes, sh, rn[i], sl[0], 0, transparentSegments);
+            if (rn[i].segment._transitionOpacity < 1) {
+
+            } else {
+                rn[i].segment.colorPickingRendering(sh, sl[0], 0);
+            }
         }
 
         // Here is set blending for transparent overlays
@@ -1791,6 +1810,18 @@ export class Planet extends RenderNode {
                 rn[i].segment.colorPickingRendering(sh, sl[j], j, this.transparentTexture, true);
             }
         }
+        /*
+                while (i--) {
+                    let ri = renderedNodes[i];
+                    this._renderingFadingNodes(nodes, sh, ri, sl[j], j, transparentSegments);
+                    if (ri.segment._transitionOpacity < 1) {
+                        ri.segment.initSlice(j);
+                    } else {
+                        ri.segment.screenRendering(sh, sl[j], j, this.transparentTexture, true);
+                    }
+                }
+         */
+
         gl.disable(gl.POLYGON_OFFSET_FILL);
     }
 
