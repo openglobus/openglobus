@@ -619,10 +619,15 @@ class Renderer {
         this._tempPickingPix_ = new Uint8Array(this.pickingFramebuffer.width * this.pickingFramebuffer.height * 4);
 
         this.depthFramebuffer = new Framebuffer(this.handler, {
-            size: 2,
-            internalFormat: ["RGBA", "RGBA16F"],
-            type: ["UNSIGNED_BYTE", "FLOAT"],
-            attachment: ["COLOR_ATTACHMENT", "COLOR_ATTACHMENT"],
+            targets: [{
+                internalFormat: "RGBA",
+                type: "UNSIGNED_BYTE",
+                attachment: "COLOR_ATTACHMENT",
+            }, {
+                internalFormat: "RGBA16F",
+                type: "FLOAT",
+                attachment: "COLOR_ATTACHMENT",
+            }],
             useDepth: true
         });
 
@@ -672,10 +677,12 @@ class Renderer {
             this.blitFramebuffer = new Framebuffer(this.handler, {
                 size: 1,
                 useDepth: false,
-                internalFormat: this._internalFormat,
-                format: this._format,
-                type: this._type,
-                filter: "NEAREST"
+                targets: [{
+                    internalFormat: this._internalFormat,
+                    format: this._format,
+                    type: this._type,
+                    filter: "NEAREST"
+                }]
             });
 
             this.blitFramebuffer.init();
@@ -1400,7 +1407,7 @@ class Renderer {
         let ind = (y * w + x) * 4;
 
         outDepth[0] = this._tempDepthPix_[ind];
-        outDepth[1] = Math.round(this._tempFrustumPix_[ind] / 10.0) - 1.0;
+        outDepth[1] = Math.round(this._tempFrustumPix_[ind] / 10.0) - 1.0; // See Camera.frustumColorIndex
     }
 
     /**

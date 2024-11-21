@@ -2,13 +2,27 @@ import {BaseFramebuffer, IBaseFramebufferParams} from "./BaseFramebuffer";
 import {ImageCanvas} from "../ImageCanvas";
 import {Handler} from "./Handler";
 
+export interface ITargetParams {
+    internalFormat?: string;
+    format?: string;
+    type?: string;
+    attachment?: string;
+    filter?: string;
+}
+
 export interface IFrameBufferParams extends IBaseFramebufferParams {
     isBare?: boolean;
-    format?: string | string[];
-    type?: string | string[];
-    attachment?: string | string[];
     renderbufferTarget?: string;
     textures?: WebGLTexture[];
+    targets?: ITargetParams[];
+}
+
+interface ITarget {
+    internalFormat: string;
+    format: string;
+    type: string;
+    attachment: string;
+    filter: string;
 }
 
 /**
@@ -19,17 +33,9 @@ export interface IFrameBufferParams extends IBaseFramebufferParams {
  */
 export class Framebuffer extends BaseFramebuffer {
 
-    protected _isBare: boolean;
-
-    protected _internalFormatArr: string[];
-
-    protected _formatArr: string[];
-
-    protected _typeArr: string[];
-
-    protected _attachmentArr: string[];
-
     protected _renderbufferTarget: string;
+
+    protected _targets: ITarget[];
 
     /**
      * Framebuffer texture.
@@ -42,24 +48,25 @@ export class Framebuffer extends BaseFramebuffer {
 
         super(handler, options);
 
-        this._isBare = options.isBare || false;
-
-        this._internalFormatArr = options.internalFormat instanceof Array ? options.internalFormat : [options.internalFormat || "RGBA"];
-
-        this._formatArr = options.format instanceof Array ? options.format : [options.format || "RGBA"];
-
-        this._typeArr = options.type instanceof Array ? options.type : [options.type || "UNSIGNED_BYTE"];
-
-        if (options.attachment instanceof Array) {
-            this._attachmentArr = options.attachment.map((a: string, i: number) => {
-                let res = a.toUpperCase();
-                if (res === "COLOR_ATTACHMENT") {
-                    return `${res}${i.toString()}`;
+        if (options.targets) {
+            this._size = options.targets.length;
+            this._targets = options.targets.map<ITarget>((ti): ITarget => {
+                return {
+                    internalFormat: ti.internalFormat || "RGBA",
+                    format: ti.format || "RGBA",
+                    type: ti.type || "UNSIGNED_BYTE",
+                    attachment: ti.attachment || "COLOR_ATTACHMENT",
+                    filter: ti.filter || "NEAREST",
                 }
-                return res;
             })
         } else {
-            this._attachmentArr = [options.attachment as string || "COLOR_ATTACHMENT0"];
+            this._targets = [{
+                internalFormat: "RGBA",
+                format: "RGBA",
+                type: "UNSIGNED_BYTE",
+                attachment: "COLOR_ATTACHMENT",
+                filter: "NEAREST",
+            }]
         }
 
         this._renderbufferTarget = options.renderbufferTarget != undefined ? options.renderbufferTarget : "DEPTH_ATTACHMENT";
@@ -116,24 +123,23 @@ export class Framebuffer extends BaseFramebuffer {
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
 
-        if (!this._isBare) {
-            let attachmentArr = [];
-            for (let i = 0; i < this.textures.length; i++) {
-                let ti = this.textures[i] || this.handler.createEmptyTexture2DExt(this._width, this._height, this._filter, this._internalFormatArr[i], this._formatArr[i], this._typeArr[i]);
+        let attachmentArr = [];
+        for (let i = 0; i < this.textures.length; i++) {
+            let tr = this._targets[i];
+            let ti = this.textures[i] || this.handler.createEmptyTexture2DExt(this._width, this._height, tr.filter, tr.internalFormat, tr.format, tr.type);
 
-                let att_i = (gl as any)[this._attachmentArr[i]];
+            let att_i = (gl as any)[tr.attachment === "COLOR_ATTACHMENT" ? `COLOR_ATTACHMENT${i}` : tr.attachment];
 
-                if (ti) {
-                    this.bindOutputTexture(ti, att_i);
-                    this.textures[i] = ti;
-                }
-
-                if (this._attachmentArr[i] != "DEPTH_ATTACHMENT") {
-                    attachmentArr.push(att_i);
-                }
+            if (ti) {
+                this.bindOutputTexture(ti, att_i);
+                this.textures[i] = ti;
             }
-            gl.drawBuffers && gl.drawBuffers(attachmentArr);
+
+            if (tr.attachment !== "DEPTH_ATTACHMENT") {
+                attachmentArr.push(att_i);
+            }
         }
+        gl.drawBuffers && gl.drawBuffers(attachmentArr);
 
         if (this._useDepth) {
             this._depthRenderbuffer = gl.createRenderbuffer();
@@ -173,7 +179,7 @@ export class Framebuffer extends BaseFramebuffer {
         let gl = this.handler.gl!;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
         gl.readBuffer && gl.readBuffer(gl.COLOR_ATTACHMENT0 + index || 0);
-        gl.readPixels(nx * this._width, ny * this._height, w, h, gl.RGBA, (gl as any)[this._typeArr[index]], res);
+        gl.readPixels(nx * this._width, ny * this._height, w, h, gl.RGBA, (gl as any)[this._targets[index].type], res);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null!);
     }
 
@@ -187,7 +193,7 @@ export class Framebuffer extends BaseFramebuffer {
         let gl = this.handler.gl!;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
         gl.readBuffer && gl.readBuffer(gl.COLOR_ATTACHMENT0 + attachmentIndex);
-        gl.readPixels(0, 0, this._width, this._height, gl.RGBA, (gl as any)[this._typeArr[attachmentIndex]], res);
+        gl.readPixels(0, 0, this._width, this._height, gl.RGBA, (gl as any)[this._targets[attachmentIndex].type], res);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null!);
     }
 

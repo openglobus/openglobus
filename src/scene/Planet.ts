@@ -239,6 +239,8 @@ export class Planet extends RenderNode {
 
     public _fadingNodesInFrustum: Node[][];
 
+    protected _fadingOpaqueSegments: Segment[];
+
     /**
      * Layers activity lock.
      * @public
@@ -464,6 +466,7 @@ export class Planet extends RenderNode {
 
         this._fadingNodes = new Map<number, Node>;
         this._fadingNodesInFrustum = [];
+        this._fadingOpaqueSegments = [];
 
         this.layerLock = new Lock();
 
@@ -1679,6 +1682,11 @@ export class Planet extends RenderNode {
         let isEq = this.terrain!.equalizeVertices;
         let i = renderedNodes.length;
 
+        //
+        // Collect fading opaque segments, because we need them in the framebuffer passes,
+        // as the segments with equalized sides, which means that there are no gaps
+        // between currently rendered neighbours
+        //
         this._fadingOpaqueSegments = [];
 
         if (cam.slope > 0.8 || !this.terrain || this.terrain.isEmpty /*|| cam.getAltitude() > 10000*/) {
@@ -1786,19 +1794,9 @@ export class Planet extends RenderNode {
         let rn = this._renderedNodesInFrustum[cam.getCurrentFrustum()];
         let sl = this._visibleTileLayerSlices;
 
-
-        let nodes = new Map<number, boolean>;
-        let transparentSegments: Segment[] = [];
-
-        //
-        // TOOD: HEREIT IS
-        //
         let i = rn.length;
         while (i--) {
-            //this._renderingFadingNodes(nodes, sh, rn[i], sl[0], 0, transparentSegments);
-            if (rn[i].segment._transitionOpacity < 1) {
-
-            } else {
+            if (rn[i].segment._transitionOpacity >= 1) {
                 rn[i].segment.colorPickingRendering(sh, sl[0], 0);
             }
         }
@@ -1841,7 +1839,7 @@ export class Planet extends RenderNode {
         gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
-        gl.uniform1f(shu.frustumPickingColor, ((cam.currentFrustumIndex + 1) * 10.0) / 255.0);
+        gl.uniform1f(shu.frustumPickingColor, cam.frustumColorIndex);
 
         // drawing planet nodes
         let rn = this._renderedNodesInFrustum[cam.getCurrentFrustum()],
@@ -1849,9 +1847,7 @@ export class Planet extends RenderNode {
 
         let i = rn.length;
         while (i--) {
-            if (rn[i].segment._transitionOpacity < 1) {
-
-            } else {
+            if (rn[i].segment._transitionOpacity >= 1) {
                 rn[i].segment.depthRendering(sh, sl[0]);
             }
         }

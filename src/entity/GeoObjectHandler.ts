@@ -714,7 +714,7 @@ class GeoObjectHandler {
         gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera!.getViewMatrix());
 
-        gl.uniform1f(u.frustumPickingColor, ((cam.currentFrustumIndex + 1) * 10.0) / 255.0);
+        gl.uniform1f(u.frustumPickingColor, cam.frustumColorIndex);
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             let tagData = this._instanceDataMapValues[i];
