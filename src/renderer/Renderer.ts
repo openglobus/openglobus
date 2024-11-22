@@ -1245,7 +1245,7 @@ class Renderer {
 
         let ind = (y * w + x) * 4;
 
-        let _tempPickingPix_ = this.pickingFramebuffer?.getPixelBufferData(0)!;
+        let _tempPickingPix_ = this.pickingFramebuffer?.pixelBuffers[0].data;
 
         if (_tempPickingPix_) {
             outColor[0] = _tempPickingPix_[ind];
@@ -1264,8 +1264,8 @@ class Renderer {
 
         let ind = (y * w + x) * 4;
 
-        let _tempDepthPix_ = this.depthFramebuffer?.getPixelBufferData(1)!;
-        let _tempFrustumPix_ = this.depthFramebuffer?.getPixelBufferData(0)!;
+        let _tempDepthPix_ = this.depthFramebuffer?.pixelBuffers[1].data;
+        let _tempFrustumPix_ = this.depthFramebuffer?.pixelBuffers[0].data!;
 
         if (_tempDepthPix_) {
             outDepth[0] = _tempDepthPix_[ind];

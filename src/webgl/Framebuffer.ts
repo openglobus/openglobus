@@ -79,7 +79,7 @@ export class Framebuffer extends BaseFramebuffer {
      */
     public textures: WebGLTexture[];
 
-    protected _pixelBuffers: IPixelBuffer[];
+    public pixelBuffers: IPixelBuffer[];
 
     protected _skipFrame: boolean;
 
@@ -95,7 +95,7 @@ export class Framebuffer extends BaseFramebuffer {
 
         this.textures = options.textures || new Array(this._size);
 
-        this._pixelBuffers = [];
+        this.pixelBuffers = [];
 
         this._skipFrame = false;
     }
@@ -159,11 +159,11 @@ export class Framebuffer extends BaseFramebuffer {
         }
         this.textures = new Array(this._size);
 
-        for (let i = 0; i < this._pixelBuffers.length; i++) {
-            this._pixelBuffers[i].data = null;
-            gl.deleteBuffer(this._pixelBuffers[i].buffer);
+        for (let i = 0; i < this.pixelBuffers.length; i++) {
+            this.pixelBuffers[i].data = null;
+            gl.deleteBuffer(this.pixelBuffers[i].buffer);
         }
-        this._pixelBuffers = [];
+        this.pixelBuffers = [];
 
         gl.deleteFramebuffer(this._fbo);
         gl.deleteRenderbuffer(this._depthRenderbuffer);
@@ -232,7 +232,7 @@ export class Framebuffer extends BaseFramebuffer {
         let w = this.width,
             h = this.height;
 
-        let pb = this._pixelBuffers;
+        let pb = this.pixelBuffers;
 
         this.activate();
 
@@ -268,16 +268,16 @@ export class Framebuffer extends BaseFramebuffer {
 
     public getPixelBufferData(targetIndex: number): TypedArray | null {
         let pbInd = this._targets[targetIndex].pixelBufferIndex;
-        return pbInd !== -1 ? this._pixelBuffers[pbInd].data : null;
+        return pbInd !== -1 ? this.pixelBuffers[pbInd].data : null;
     }
 
     protected _createPixelBuffer(target: ITarget) {
         let gl = this.handler.gl!;
         let pbInd = target.pixelBufferIndex;
-        let pb = this._pixelBuffers[pbInd];
+        let pb = this.pixelBuffers[pbInd];
 
         if (!pb) {
-            pb = this._pixelBuffers[pbInd] = {
+            pb = this.pixelBuffers[pbInd] = {
                 buffer: null,
                 data: null,
                 glType: -1,
