@@ -183,7 +183,7 @@ class GeoObjectEditorScene extends RenderNode {
             visibility: false,
             depthOrder: 0,
             pickingScale: 5,
-            hideInLayerSwitcher: false,
+            hideInLayerSwitcher: true,
             pickingEnabled: false,
             opacity: 0.6
         });
