@@ -256,7 +256,7 @@ export class Framebuffer extends BaseFramebuffer {
 
             for (let i = 0; i < pb.length; i++) {
                 let pbi = pb[i];
-                if (gl.isBuffer(pbi.buffer)) {
+                if (pbi.data) {
                     gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pbi.buffer);
                     gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, pbi.data!);
                 }
