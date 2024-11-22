@@ -1,6 +1,7 @@
 import {BaseFramebuffer, IBaseFramebufferParams} from "./BaseFramebuffer";
 import {ImageCanvas} from "../ImageCanvas";
 import {Handler} from "./Handler";
+import {TypedArray} from "../utils/shared";
 
 export interface ITargetParams {
     internalFormat?: string;
@@ -8,6 +9,7 @@ export interface ITargetParams {
     type?: string;
     attachment?: string;
     filter?: string;
+    readAsync?: boolean;
 }
 
 export interface IFrameBufferParams extends IBaseFramebufferParams {
@@ -17,12 +19,45 @@ export interface IFrameBufferParams extends IBaseFramebufferParams {
     targets?: ITargetParams[];
 }
 
+type TypedArrayConstructor = Uint8ArrayConstructor | Float32ArrayConstructor;
+
 interface ITarget {
     internalFormat: string;
     format: string;
     type: string;
     attachment: string;
     filter: string;
+    pixelBufferIndex: number;
+    TypeArrayConstructor: TypedArrayConstructor
+}
+
+interface IPixelBuffer {
+    buffer: WebGLBuffer | null;
+    data: TypedArray | null;
+    glType: number;
+    glAttachment: number;
+}
+
+const TypeArrayConstructor: Record<string, TypedArrayConstructor> = {
+    "UNSIGNED_BYTE": Uint8Array,
+    "FLOAT": Float32Array
+}
+
+export function clientWaitAsync(gl: WebGL2RenderingContext, sync: WebGLSync, flags: number): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        function check() {
+            const res = gl.clientWaitSync(sync, flags, 0);
+            if (res == gl.WAIT_FAILED) {
+                reject();
+            } else if (res == gl.TIMEOUT_EXPIRED) {
+                requestAnimationFrame(check);
+            } else {
+                resolve();
+            }
+        }
+
+        check();
+    });
 }
 
 /**
@@ -44,34 +79,58 @@ export class Framebuffer extends BaseFramebuffer {
      */
     public textures: WebGLTexture[];
 
+    protected _pixelBuffers: IPixelBuffer[];
+
+    protected _skipFrame: boolean;
+
     constructor(handler: Handler, options: IFrameBufferParams = {}) {
 
         super(handler, options);
 
-        if (options.targets) {
-            this._size = options.targets.length;
-            this._targets = options.targets.map<ITarget>((ti): ITarget => {
-                return {
-                    internalFormat: ti.internalFormat || "RGBA",
-                    format: ti.format || "RGBA",
-                    type: ti.type || "UNSIGNED_BYTE",
-                    attachment: ti.attachment || "COLOR_ATTACHMENT",
-                    filter: ti.filter || "NEAREST",
-                }
-            })
-        } else {
-            this._targets = [{
-                internalFormat: "RGBA",
-                format: "RGBA",
-                type: "UNSIGNED_BYTE",
-                attachment: "COLOR_ATTACHMENT",
-                filter: "NEAREST",
-            }]
-        }
+        this._targets = Framebuffer.createTargets(options.targets);
+
+        this._size = this._targets.length;
 
         this._renderbufferTarget = options.renderbufferTarget != undefined ? options.renderbufferTarget : "DEPTH_ATTACHMENT";
 
         this.textures = options.textures || new Array(this._size);
+
+        this._pixelBuffers = [];
+
+        this._skipFrame = false;
+    }
+
+    static createTargets(targets?: ITargetParams[]): ITarget[] {
+        let attInd = 0;
+        let pbInd = 0;
+        if (targets) {
+            return targets.map<ITarget>((ti): ITarget => {
+                let attachment = ti.attachment || "COLOR_ATTACHMENT";
+                if (attachment === "COLOR_ATTACHMENT") {
+                    attachment = `COLOR_ATTACHMENT${attInd++}`;
+                }
+                let type = ti.type || "UNSIGNED_BYTE";
+                return {
+                    internalFormat: ti.internalFormat || "RGBA",
+                    format: ti.format || "RGBA",
+                    type,
+                    attachment,
+                    filter: ti.filter || "NEAREST",
+                    pixelBufferIndex: ti.readAsync ? pbInd++ : -1,
+                    TypeArrayConstructor: TypeArrayConstructor[type]
+                }
+            });
+        }
+
+        return [{
+            internalFormat: "RGBA",
+            format: "RGBA",
+            type: "UNSIGNED_BYTE",
+            attachment: "COLOR_ATTACHMENT0",
+            filter: "NEAREST",
+            pixelBufferIndex: -1,
+            TypeArrayConstructor: TypeArrayConstructor.UNSIGNED_BYTE
+        }];
     }
 
     // static blit(sourceFramebuffer: Framebuffer, destFramebuffer: Framebuffer, glAttachment: number, glMask: number, glFilter: number) {
@@ -100,6 +159,12 @@ export class Framebuffer extends BaseFramebuffer {
         }
         this.textures = new Array(this._size);
 
+        for (let i = 0; i < this._pixelBuffers.length; i++) {
+            this._pixelBuffers[i].data = null;
+            gl.deleteBuffer(this._pixelBuffers[i].buffer);
+        }
+        this._pixelBuffers = [];
+
         gl.deleteFramebuffer(this._fbo);
         gl.deleteRenderbuffer(this._depthRenderbuffer);
 
@@ -124,11 +189,10 @@ export class Framebuffer extends BaseFramebuffer {
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
 
         let attachmentArr = [];
-        for (let i = 0; i < this.textures.length; i++) {
+        for (let i = 0; i < this._targets.length; i++) {
             let tr = this._targets[i];
             let ti = this.textures[i] || this.handler.createEmptyTexture2DExt(this._width, this._height, tr.filter, tr.internalFormat, tr.format, tr.type);
-
-            let att_i = (gl as any)[tr.attachment === "COLOR_ATTACHMENT" ? `COLOR_ATTACHMENT${i}` : tr.attachment];
+            let att_i = (gl as any)[tr.attachment];
 
             if (ti) {
                 this.bindOutputTexture(ti, att_i);
@@ -138,7 +202,12 @@ export class Framebuffer extends BaseFramebuffer {
             if (tr.attachment !== "DEPTH_ATTACHMENT") {
                 attachmentArr.push(att_i);
             }
+
+            if (tr.pixelBufferIndex !== -1) {
+                this._createPixelBuffer(tr);
+            }
         }
+
         gl.drawBuffers && gl.drawBuffers(attachmentArr);
 
         if (this._useDepth) {
@@ -150,6 +219,92 @@ export class Framebuffer extends BaseFramebuffer {
         }
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null!);
+    }
+
+    public readPixelBuffersAsync = () => {
+
+        const gl = this.handler.gl!;
+
+        if (this._skipFrame) return;
+
+        this._skipFrame = true;
+
+        let w = this.width,
+            h = this.height;
+
+        let pb = this._pixelBuffers;
+
+        this.activate();
+
+        for (let i = 0; i < pb.length; i++) {
+            let pbi = pb[i];
+            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pbi.buffer);
+            gl.bufferData(gl.PIXEL_PACK_BUFFER, pbi.data!.byteLength, gl.STREAM_READ);
+            gl.readBuffer(pbi.glAttachment);
+            gl.readPixels(0, 0, w, h, gl.RGBA, pbi.glType, 0);
+            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+        }
+
+        this.deactivate();
+
+        const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0)!;
+        gl.flush();
+
+        clientWaitAsync(gl, sync, 0).then(() => {
+            this._skipFrame = false;
+            gl.deleteSync(sync);
+
+            for (let i = 0; i < pb.length; i++) {
+                let pbi = pb[i];
+                if (gl.isBuffer(pbi.buffer)) {
+                    gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pbi.buffer);
+                    gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, pbi.data!);
+                }
+            }
+
+            // gl.bindBuffer(gl.PIXEL_PACK_BUFFER, frustumBuf);
+            // gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, destFrustum);
+            //
+            // gl.bindBuffer(gl.PIXEL_PACK_BUFFER, depthBuf);
+            // gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, destDepth);
+
+            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+        });
+    }
+
+    public getPixelBufferData(targetIndex: number): TypedArray | null {
+        let pbInd = this._targets[targetIndex].pixelBufferIndex;
+        return this._pixelBuffers[pbInd].data;
+    }
+
+    protected _createPixelBuffer(target: ITarget) {
+        let gl = this.handler.gl!;
+        let pbInd = target.pixelBufferIndex;
+        let pb = this._pixelBuffers[pbInd];
+
+        if (!pb) {
+            pb = this._pixelBuffers[pbInd] = {
+                buffer: null,
+                data: null,
+                glType: -1,
+                glAttachment: -1
+            };
+        }
+
+        let size = this.width * this.height * 4;
+
+        // clear current pixel buffer
+        pb.data = null;
+        pb.data = new target.TypeArrayConstructor(size);
+
+        //gl.deleteBuffer(pb.buffer);
+        pb.buffer = gl.createBuffer();
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pb.buffer);
+        gl.bufferData(gl.PIXEL_PACK_BUFFER, size, gl.STREAM_READ);
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+
+        pb.glType = (gl as any)[target.type];
+        pb.glAttachment = (gl as any)[target.attachment];
     }
 
     /**
