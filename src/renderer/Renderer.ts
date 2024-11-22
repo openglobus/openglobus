@@ -98,8 +98,6 @@ function clientWaitAsync(gl: WebGL2RenderingContext, sync: WebGLSync, flags: num
  * @fires EventsHandler<RendererEventsType>#touchenter
  */
 
-let __resizeTimeout: any;
-
 export interface HTMLDivElementExt extends HTMLDivElement {
     attributions?: HTMLElement;
 }
@@ -186,12 +184,6 @@ class Renderer {
      */
     public pickingFramebuffer: Framebuffer | null;
 
-    protected _tempPickingPix_: Uint8Array;
-
-    protected _tempDepthPix_: Float32Array;
-
-    protected _tempFrustumPix_: Uint8Array;
-
     /**
      * Depth objects rendering queue.
      * @type {Function[]}
@@ -251,18 +243,6 @@ class Renderer {
 
     public outputTexture: WebGLTexture | null;
 
-    protected _skipDepthFrame: boolean;
-
-    protected _distancePixelBuffer: WebGLBuffer | null;
-
-    protected _frustumPixelBuffer: WebGLBuffer | null;
-
-    protected _depthPixelBuffer: WebGLBuffer | null;
-
-    protected _skipPickingFrame: boolean;
-
-    protected _pickingPixelBuffer: WebGLBuffer | null;
-
     protected _readPickingBuffer: () => void;
 
     constructor(handler: Handler, params: IRendererParams = {}) {
@@ -302,10 +282,6 @@ class Renderer {
         this._pickingCallbacks = [];
 
         this.pickingFramebuffer = null;
-
-        this._tempPickingPix_ = new Uint8Array([]);
-        this._tempFrustumPix_ = new Uint8Array([]);
-        this._tempDepthPix_ = new Float32Array([]);
 
         this._depthCallbacks = [];
 
@@ -367,17 +343,6 @@ class Renderer {
         this.screenTexture = {};
 
         this.outputTexture = null;
-
-        this._skipDepthFrame = false;
-
-        this._distancePixelBuffer = null;
-
-        this._frustumPixelBuffer = null;
-        this._depthPixelBuffer = null;
-
-        this._skipPickingFrame = false;
-
-        this._pickingPixelBuffer = null;
 
         this._readPickingBuffer = this._readPickingBuffer_webgl2;
 
@@ -612,29 +577,30 @@ class Renderer {
         this.handler.addProgram(screenFrame());
 
         this.pickingFramebuffer = new Framebuffer(this.handler, {
-            width: 640, height: 480
+            width: 640,
+            height: 480,
+            targets: [{
+                readAsync: true
+            }]
         });
         this.pickingFramebuffer.init();
-
-        this._tempPickingPix_ = new Uint8Array(this.pickingFramebuffer.width * this.pickingFramebuffer.height * 4);
 
         this.depthFramebuffer = new Framebuffer(this.handler, {
             targets: [{
                 internalFormat: "RGBA",
                 type: "UNSIGNED_BYTE",
                 attachment: "COLOR_ATTACHMENT",
+                readAsync: true
             }, {
                 internalFormat: "RGBA16F",
                 type: "FLOAT",
                 attachment: "COLOR_ATTACHMENT",
+                readAsync: true
             }],
             useDepth: true
         });
 
         this.depthFramebuffer.init();
-
-        this._tempFrustumPix_ = new Uint8Array(this.depthFramebuffer.width * this.depthFramebuffer.height * 4);
-        this._tempDepthPix_ = new Float32Array(this.depthFramebuffer.width * this.depthFramebuffer.height * 4);
 
         this.screenDepthFramebuffer = new Framebuffer(this.handler, {
             useDepth: false
@@ -701,8 +667,6 @@ class Renderer {
                 depth: this.screenDepthFramebuffer!.textures[0],
                 frustum: this.depthFramebuffer!.textures[0]
             };
-
-            this._initReadPixelsBuffers();
         }
 
         this.handler.ONCANVASRESIZE = () => {
@@ -724,15 +688,6 @@ class Renderer {
         this._initializeRenderNodes();
 
         this._initializeControls();
-    }
-
-    _initReadPixelsBuffers() {
-        let gl = this.handler.gl!;
-
-        this._pickingPixelBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, this._pickingPixelBuffer);
-        gl.bufferData(gl.PIXEL_PACK_BUFFER, this.pickingFramebuffer!.width * this.pickingFramebuffer!.height * 4, gl.STREAM_READ);
-        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
     }
 
     public _initializeControls() {
@@ -771,30 +726,7 @@ class Renderer {
 
         this.toneMappingFramebuffer && this.toneMappingFramebuffer.setSize(c.width, c.height, true);
         this.screenDepthFramebuffer && this.screenDepthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
-
-        if (this.depthFramebuffer) {
-            this.depthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
-
-            //@ts-ignore
-            this._tempFrustumPix_ = null;
-            this._tempFrustumPix_ = new Uint8Array(this.depthFramebuffer.width * this.depthFramebuffer.height * 4);
-
-            //@ts-ignore
-            this._tempDepthPix_ = null;
-            this._tempDepthPix_ = new Float32Array(this.depthFramebuffer.width * this.depthFramebuffer.height * 4);
-
-            let gl = this.handler.gl!;
-
-            this._frustumPixelBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, this._frustumPixelBuffer);
-            gl.bufferData(gl.PIXEL_PACK_BUFFER, this.depthFramebuffer!.width * this.depthFramebuffer!.height * 4, gl.STREAM_READ);
-            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
-
-            this._depthPixelBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, this._depthPixelBuffer);
-            gl.bufferData(gl.PIXEL_PACK_BUFFER, this.depthFramebuffer!.width * this.depthFramebuffer!.height * 4, gl.STREAM_READ);
-            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
-        }
+        this.depthFramebuffer && this.depthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
 
         if (this.handler.gl!.type === "webgl") {
             this.screenTexture.screen = (this.sceneFramebuffer as Framebuffer)!.textures[0];
@@ -1292,94 +1224,16 @@ class Renderer {
         }
     }
 
-    protected _readPickingBuffer_webgl1 = () => {
-        this.pickingFramebuffer!.activate();
-        this.pickingFramebuffer!.readAllPixels(this._tempPickingPix_);
-        this.pickingFramebuffer!.deactivate();
+    protected _readDepthBuffer() {
+        this.depthFramebuffer!.readPixelBuffersAsync();
     }
 
-    protected _readPickingBuffer_webgl2 = () => {
-
-        const gl = this.handler.gl!;
-        const buf = this._pickingPixelBuffer;
-
-        if (!this._skipPickingFrame) {
-
-            this._skipPickingFrame = true;
-
-            let dest = this._tempPickingPix_;
-
-            let w = this.pickingFramebuffer!.width,
-                h = this.pickingFramebuffer!.height;
-
-            this.pickingFramebuffer!.activate();
-            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buf);
-            gl.bufferData(gl.PIXEL_PACK_BUFFER, dest.byteLength, gl.STREAM_READ);
-            gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, 0);
-            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
-            this.pickingFramebuffer!.deactivate();
-
-            const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0)!;
-            gl.flush();
-
-            clientWaitAsync(gl, sync, 0).then(() => {
-                this._skipPickingFrame = false;
-                gl.deleteSync(sync);
-                gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buf);
-                gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, dest);
-                gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
-            });
-        }
+    protected _readPickingBuffer_webgl1() {
+        this.pickingFramebuffer!.readPixelBuffersAsync();
     }
 
-    protected _readDepthBuffer = () => {
-
-        const gl = this.handler.gl!;
-        const frustumBuf = this._frustumPixelBuffer;
-        const depthBuf = this._depthPixelBuffer;
-
-        if (frustumBuf && depthBuf && !this._skipDepthFrame) {
-
-            this._skipDepthFrame = true;
-
-            let destFrustum = this._tempFrustumPix_;
-            let destDepth = this._tempDepthPix_;
-
-            let w = this.depthFramebuffer!.width,
-                h = this.depthFramebuffer!.height;
-
-            this.depthFramebuffer!.activate();
-
-            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, frustumBuf);
-            gl.bufferData(gl.PIXEL_PACK_BUFFER, destFrustum.byteLength, gl.STREAM_READ);
-            gl.readBuffer(gl.COLOR_ATTACHMENT0);
-            gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, 0);
-            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
-
-            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, depthBuf);
-            gl.bufferData(gl.PIXEL_PACK_BUFFER, destDepth.byteLength, gl.STREAM_READ);
-            gl.readBuffer(gl.COLOR_ATTACHMENT1);
-            gl.readPixels(0, 0, w, h, gl.RGBA, gl.FLOAT, 0);
-            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
-
-            this.depthFramebuffer!.deactivate();
-
-            const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0)!;
-            gl.flush();
-
-            clientWaitAsync(gl, sync, 0).then(() => {
-                this._skipDepthFrame = false;
-                gl.deleteSync(sync);
-
-                gl.bindBuffer(gl.PIXEL_PACK_BUFFER, frustumBuf);
-                gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, destFrustum);
-
-                gl.bindBuffer(gl.PIXEL_PACK_BUFFER, depthBuf);
-                gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, destDepth);
-
-                gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
-            });
-        }
+    protected _readPickingBuffer_webgl2() {
+        this.pickingFramebuffer!.readPixelBuffersAsync();
     }
 
     public readPickingColor(x: number, y: number, outColor: NumberArray3 | Uint8Array) {
@@ -1391,9 +1245,13 @@ class Renderer {
 
         let ind = (y * w + x) * 4;
 
-        outColor[0] = this._tempPickingPix_[ind];
-        outColor[1] = this._tempPickingPix_[ind + 1];
-        outColor[2] = this._tempPickingPix_[ind + 2];
+        let _tempPickingPix_ = this.pickingFramebuffer?.getPixelBufferData(0)!;
+
+        if (_tempPickingPix_) {
+            outColor[0] = _tempPickingPix_[ind];
+            outColor[1] = _tempPickingPix_[ind + 1];
+            outColor[2] = _tempPickingPix_[ind + 2];
+        }
     }
 
     public readDepth(x: number, y: number, outDepth: NumberArray3 | Float32Array) {
@@ -1406,8 +1264,13 @@ class Renderer {
 
         let ind = (y * w + x) * 4;
 
-        outDepth[0] = this._tempDepthPix_[ind];
-        outDepth[1] = Math.round(this._tempFrustumPix_[ind] / 10.0) - 1.0; // See Camera.frustumColorIndex
+        let _tempDepthPix_ = this.depthFramebuffer?.getPixelBufferData(1)!;
+        let _tempFrustumPix_ = this.depthFramebuffer?.getPixelBufferData(0)!;
+
+        if (_tempDepthPix_) {
+            outDepth[0] = _tempDepthPix_[ind];
+            outDepth[1] = Math.round(_tempFrustumPix_[ind] / 10.0) - 1.0; // See Camera.frustumColorIndex
+        }
     }
 
     /**

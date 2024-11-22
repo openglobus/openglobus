@@ -262,19 +262,13 @@ export class Framebuffer extends BaseFramebuffer {
                 }
             }
 
-            // gl.bindBuffer(gl.PIXEL_PACK_BUFFER, frustumBuf);
-            // gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, destFrustum);
-            //
-            // gl.bindBuffer(gl.PIXEL_PACK_BUFFER, depthBuf);
-            // gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, destDepth);
-
             gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
         });
     }
 
     public getPixelBufferData(targetIndex: number): TypedArray | null {
         let pbInd = this._targets[targetIndex].pixelBufferIndex;
-        return this._pixelBuffers[pbInd].data;
+        return pbInd !== -1 ? this._pixelBuffers[pbInd].data : null;
     }
 
     protected _createPixelBuffer(target: ITarget) {
