@@ -1403,7 +1403,7 @@ export class Planet extends RenderNode {
 
             this._skipPreRender = true;
 
-            this.transformLights();
+            //this.transformLights();
 
             // creates terrain normal maps
             this._normalMapCreator.frame();
@@ -1490,7 +1490,7 @@ export class Planet extends RenderNode {
             sh = h.programs.drawnode_screen_wl._program;
             shu = sh.uniforms;
 
-            gl.uniform3fv(shu.lightsPositions, this._lightsPositions);
+            gl.uniform3fv(shu.lightPosition, this._lightPosition);
             gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
             gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
@@ -1549,7 +1549,7 @@ export class Planet extends RenderNode {
             sh = h.programs.drawnode_screen_wl._program;
             shu = sh.uniforms;
 
-            gl.uniform3fv(shu.lightsPositions, this._lightsPositions);
+            gl.uniform3fv(shu.lightPosition, this._lightPosition);
             gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
             gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 

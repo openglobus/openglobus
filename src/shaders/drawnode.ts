@@ -144,7 +144,7 @@ export function drawnode_screen_wl_webgl1NoAtmos(): Program {
             uNormalMap: "sampler2d",
             nightTexture: "sampler2d",
             specularTexture: "sampler2d",
-            lightsPositions: "vec3",
+            lightPosition: "vec3",
             diffuse: "vec3",
             ambient: "vec3",
             specular: "vec4",
@@ -204,7 +204,6 @@ export function drawnode_screen_wl_webgl1NoAtmos(): Program {
             `
             precision highp float;
             
-            #define MAX_POINT_LIGHTS 1
             #define SLICE_SIZE ${SLICE_SIZE + 1}
 
             uniform vec4 specular;
@@ -218,7 +217,7 @@ export function drawnode_screen_wl_webgl1NoAtmos(): Program {
             uniform sampler2D samplerArr[SLICE_SIZE];
 
             uniform vec4 tileOffsetArr[SLICE_SIZE];
-            uniform vec3 lightsPositions[MAX_POINT_LIGHTS];
+            uniform vec3 lightPosition;
             uniform float layerOpacityArr[SLICE_SIZE];
 
             uniform int samplerCount;
@@ -241,7 +240,7 @@ export function drawnode_screen_wl_webgl1NoAtmos(): Program {
                                                
             void main(void) {
             
-                sunPos = lightsPositions[0];
+                sunPos = lightPosition;
                                 
                 vec3 texNormal = texture2D(uNormalMap, vTextureCoord.zw).rgb;
                 vec3 normal = normalize((texNormal - 0.5) * 2.0);
@@ -328,7 +327,7 @@ export function drawnode_screen_wl_webgl2NoAtmos(): Program {
             uNormalMap: "sampler2d",
             nightTexture: "sampler2d",
             specularTexture: "sampler2d",
-            lightsPositions: "vec3",
+            lightPosition: "vec3",
             diffuse: "vec3",
             ambient: "vec3",
             specular: "vec4",
@@ -394,7 +393,7 @@ export function drawnode_screen_wl_webgl2NoAtmos(): Program {
 
             precision highp float;
             
-            #define MAX_POINT_LIGHTS 1
+
             #define SLICE_SIZE ${SLICE_SIZE + 1}
 
             uniform vec4 specular;
@@ -408,7 +407,7 @@ export function drawnode_screen_wl_webgl2NoAtmos(): Program {
             uniform sampler2D samplerArr[SLICE_SIZE];
 
             uniform vec4 tileOffsetArr[SLICE_SIZE];
-            uniform vec3 lightsPositions[MAX_POINT_LIGHTS];
+            uniform vec3 lightPosition;
             uniform float layerOpacityArr[SLICE_SIZE];
 
             uniform int samplerCount;
@@ -436,7 +435,7 @@ export function drawnode_screen_wl_webgl2NoAtmos(): Program {
                                                
             void main(void) {
             
-                sunPos = lightsPositions[0];
+                sunPos = lightPosition;
                                 
                 vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
                 vec3 normal = normalize((texNormal - 0.5) * 2.0);
@@ -531,7 +530,7 @@ export function drawnode_screen_wl_webgl2Atmos(atmosParams?: AtmosphereParameter
             uNormalMap: "sampler2d",
             nightTexture: "sampler2d",
             specularTexture: "sampler2d",
-            lightsPositions: "vec3",
+            lightPosition: "vec3",
             diffuse: "vec3",
             ambient: "vec3",
             specular: "vec4",
@@ -600,14 +599,13 @@ export function drawnode_screen_wl_webgl2Atmos(atmosParams?: AtmosphereParameter
 
             precision highp float;
             
-            #define MAX_POINT_LIGHTS 1
             #define SLICE_SIZE ${SLICE_SIZE + 1}
 
             uniform vec4 specular;
             uniform vec3 diffuse;
             uniform vec3 ambient;
 
-            uniform vec3 lightsPositions[MAX_POINT_LIGHTS];
+            uniform vec3 lightPosition;
 
             uniform sampler2D uNormalMap;
             uniform sampler2D nightTexture;
@@ -771,7 +769,7 @@ export function drawnode_screen_wl_webgl2Atmos(atmosParams?: AtmosphereParameter
 
             void main(void) {
             
-                sunPos = lightsPositions[0];
+                sunPos = lightPosition;
                                 
                 vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
                 vec3 normal = normalize((texNormal - 0.5) * 2.0);

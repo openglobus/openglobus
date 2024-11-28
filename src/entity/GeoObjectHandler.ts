@@ -712,7 +712,7 @@ class GeoObjectHandler {
 
         //
         // Global sun position
-        gl.uniform3fv(u.sunPosition, this._planet!._lightsPositions);
+        gl.uniform3fv(u.sunPosition, this._planet!._lightPosition);
 
     }
 
