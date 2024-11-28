@@ -20,6 +20,10 @@ export interface IGeoObjectParams {
     translate?: Vec3 | NumberArray3;
     color?: Vec4 | NumberArray4 | string;
     visibility?: boolean;
+    diffuse?: string | NumberArray3 | Vec3;
+    ambient?: string | NumberArray3 | Vec3;
+    specular?: string | NumberArray3 | Vec3;
+    shininess?: number;
 }
 
 /**
@@ -32,6 +36,8 @@ export interface IGeoObjectParams {
  */
 class GeoObject {
     protected _tag: string;
+
+    static __counter__: number = 0;
 
     public instanced: boolean;
 
@@ -69,6 +75,11 @@ class GeoObject {
      */
     public _color: Vec4;
 
+    public _ambient: Vec3;
+    public _diffuse: Vec3;
+    public _specular: Vec3;
+    public _shininess: number;
+
     public _qRot: Quat;
 
     protected _direction: Vec3;
@@ -84,14 +95,14 @@ class GeoObject {
     protected _visibility: boolean;
 
     protected _qNorthFrame: Quat;
-    private _textureSrc?: string;
+    protected _textureSrc?: string;
     public _objectSrc?: string;
 
     protected _children: GeoObject[];
 
     constructor(options: IGeoObjectParams) {
 
-        this._tag = options.tag || "none";
+        this._tag = options.tag || `tag_${GeoObject.__counter__++}`;
 
         this.instanced = true;
 
@@ -115,6 +126,11 @@ class GeoObject {
         this._translate = utils.createVector3(options.translate, new Vec3());
 
         this._color = utils.createColorRGBA(options.color);
+
+        this._ambient = utils.createColorRGB(options.ambient, new Vec3(0.5, 0.5, 0.5));
+        this._diffuse = utils.createColorRGB(options.diffuse, new Vec3(1.0, 1.0, 1.0));
+        this._specular = utils.createColorRGB(options.specular, new Vec3(0.7, 0.7, 0.7));
+        this._shininess = options.shininess != undefined ? options.shininess : 100;
 
         this._qRot = Quat.IDENTITY;
 
@@ -212,6 +228,72 @@ class GeoObject {
         this._color.z = b;
         a != undefined && (this._color.w = a);
         this._handler && this._handler.setRgbaArr(this._tagData!, this._tagDataIndex, this._color);
+    }
+
+    /**
+     * Sets material ambient color.
+     * @public
+     * @param {number} r - Red.
+     * @param {number} g - Green.
+     * @param {number} b - Blue.
+     */
+    public setMaterialAmbient(r: number, g: number, b: number) {
+        this._ambient.x = r;
+        this._ambient.y = g;
+        this._ambient.z = b;
+        this._tagData?.setMaterialAmbient(r, g, b);
+    }
+
+    /**
+     * Sets material diffuse color.
+     * @public
+     * @param {number} r - Red.
+     * @param {number} g - Green.
+     * @param {number} b - Blue.
+     */
+    public setMaterialDiffuse(r: number, g: number, b: number) {
+        this._diffuse.x = r;
+        this._diffuse.y = g;
+        this._diffuse.z = b;
+        this._tagData?.setMaterialDiffuse(r, g, b);
+    }
+
+    /**
+     * Sets material specular color.
+     * @public
+     * @param {number} r - Red.
+     * @param {number} g - Green.
+     * @param {number} b - Blue.
+     */
+    public setMaterialSpecular(r: number, g: number, b: number) {
+        this._specular.x = r;
+        this._specular.y = g;
+        this._specular.z = b;
+        this._tagData?.setMaterialSpecular(r, g, b);
+    }
+
+    /**
+     * Sets material specular color.
+     * @public
+     * @param {number} r - Red.
+     * @param {number} g - Green.
+     * @param {number} b - Blue.
+     */
+    public setMaterialShininess(shininess: number) {
+        this._shininess = shininess;
+        this._tagData?.setMaterialShininess(shininess);
+    }
+
+    public setMaterialDiffuseHTML(color: string) {
+
+    }
+
+    public setMaterialAmbientHTML(color: string) {
+
+    }
+
+    public setMaterialSpecularHTML(color: string) {
+
     }
 
     /**

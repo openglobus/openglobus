@@ -22,6 +22,16 @@ const VISIBLE_BUFFER = 8;
 const TEXCOORD_BUFFER = 9;
 const TRANSLATE_BUFFER = 10;
 
+const AMBIENT_R = 0;
+const AMBIENT_G = 1;
+const AMBIENT_B = 2;
+const DIFFUSE_R = 3;
+const DIFFUSE_G = 4;
+const DIFFUSE_B = 5;
+const SPECULAR_R = 6;
+const SPECULAR_G = 7;
+const SPECULAR_B = 8;
+
 function setParametersToArray(arr: number[] | TypedArray, index: number = 0, length: number = 0, itemSize: number = 1, ...params: number[]): number[] | TypedArray {
     const currIndex = index * length;
     for (let i = currIndex, len = currIndex + length; i < len; i++) {
@@ -74,6 +84,9 @@ class InstanceData {
 
     public _changedBuffers: boolean[];
 
+    public _materialParams: Float32Array;
+    public _materialShininess: number;
+
     constructor(geoObjectHandler: GeoObjectHandler) {
 
         this.isFree = true;
@@ -113,6 +126,9 @@ class InstanceData {
         this._visibleBuffer = null;
         this._texCoordBuffer = null;
 
+        this._materialParams = new Float32Array(9);
+        this._materialShininess = 0;
+
         this._buffersUpdateCallbacks = [];
         this._buffersUpdateCallbacks[PICKINGCOLOR_BUFFER] = this.createPickingColorBuffer;
         this._buffersUpdateCallbacks[POSITION_BUFFER] = this.createPositionBuffer;
@@ -127,6 +143,35 @@ class InstanceData {
         this._buffersUpdateCallbacks[TRANSLATE_BUFFER] = this.createTranslateBuffer;
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
+    }
+
+    public setMaterialAmbient(r: number, g: number, b: number) {
+        this._materialParams[AMBIENT_R] = r;
+        this._materialParams[AMBIENT_G] = g;
+        this._materialParams[AMBIENT_B] = b;
+    }
+
+    public setMaterialDiffuse(r: number, g: number, b: number) {
+        this._materialParams[DIFFUSE_R] = r;
+        this._materialParams[DIFFUSE_G] = g;
+        this._materialParams[DIFFUSE_B] = b;
+    }
+
+    public setMaterialSpecular(r: number, g: number, b: number) {
+        this._materialParams[SPECULAR_R] = r;
+        this._materialParams[SPECULAR_G] = g;
+        this._materialParams[SPECULAR_B] = b;
+    }
+
+    public setMaterialShininess(shininess: number) {
+        this._materialShininess = shininess;
+    }
+
+    public setMaterialParams(ambient: Vec3, diffuse: Vec3, specular: Vec3, shininess: number) {
+        this.setMaterialAmbient(ambient.x, ambient.y, ambient.z);
+        this.setMaterialDiffuse(diffuse.x, diffuse.y, diffuse.z);
+        this.setMaterialSpecular(specular.x, specular.y, specular.z);
+        this.setMaterialShininess(shininess);
     }
 
     //
@@ -155,6 +200,9 @@ class InstanceData {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer!);
         gl.vertexAttribPointer(a.aColor, this._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
+        gl.uniform3fv(u.materialParams, this._materialParams);
+        gl.uniform1f(u.materialShininess, this._materialShininess);
+
         this._drawElementsInstanced(p);
     }
 
@@ -180,6 +228,9 @@ class InstanceData {
         gl.vertexAttribPointer(a.aDispose, this._visibleBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.uniform1f(u.uUseTexture, this._texture ? 1 : 0);
+
+        gl.uniform3fv(u.materialParams, this._materialParams);
+        gl.uniform1f(u.materialShininess, this._materialShininess);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer!);
         gl.vertexAttribPointer(a.aColor, this._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
@@ -474,8 +525,6 @@ class GeoObjectHandler {
         this._instanceDataMapValues = [];
 
         this._dataTagUpdateQueue = [];
-
-        //this._distancePickingCallbackID = -1;
     }
 
     public initProgram() {
@@ -582,6 +631,8 @@ class GeoObjectHandler {
             tagData._texCoordArr = geoObject.texCoords;
             tagData._textureSrc = geoObject.object3d.src;
 
+            tagData.setMaterialParams(geoObject._ambient, geoObject._diffuse, geoObject._specular, geoObject._shininess);
+
             this._loadDataTagTexture(tagData);
         }
 
@@ -659,9 +710,10 @@ class GeoObjectHandler {
         gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera!.getViewMatrix());
 
-        gl.uniform3fv(u.lightsPositions, this._planet!._lightsPositions);
-        gl.uniform3fv(u.lightsParamsv, this._planet!._lightsParamsv);
-        gl.uniform1fv(u.lightsParamsf, this._planet!._lightsParamsf);
+        //
+        // Global sun position
+        gl.uniform3fv(u.sunPosition, this._planet!._lightsPositions);
+
     }
 
     public _displayOpaquePASS() {

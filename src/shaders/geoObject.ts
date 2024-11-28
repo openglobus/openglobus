@@ -16,9 +16,9 @@ export const geo_object = (): Program =>
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
 
-            lightsPositions: "vec3",
-            lightsParamsv: "vec3",
-            lightsParamsf: "float",
+            sunPosition: "vec3",
+            materialParams: "vec3",
+            shininess: "float",
 
             uTexture: "sampler2d",
             uUseTexture: "float",
@@ -113,12 +113,10 @@ export const geo_object = (): Program =>
             }`,
 
         fragmentShader: `precision highp float;
-
-                #define MAX_POINT_LIGHTS 1
                 
-                uniform vec3 lightsPositions[MAX_POINT_LIGHTS];
-                uniform vec3 lightsParamsv[MAX_POINT_LIGHTS * 3];
-                uniform float lightsParamsf[MAX_POINT_LIGHTS];
+                uniform vec3 sunPosition;
+                uniform vec3 materialParams[3];
+                uniform float shininess;
                 uniform sampler2D uTexture;
                 uniform float uUseTexture;
                 uniform float useLighting;                
@@ -135,13 +133,13 @@ export const geo_object = (): Program =>
                 
                     if(useLighting != 0.0){
                         vec3 normal = normalize(vNormal);
-                        vec3 lightDir = normalize(lightsPositions[0]);
+                        vec3 lightDir = normalize(sunPosition);
                         vec3 viewDir = normalize(cameraPosition - v_vertex);                
                         vec3 reflectionDirection = reflect(-lightDir, normal);
                         float reflection = max( dot(reflectionDirection, viewDir), 0.0);
-                        float specularLightWeighting = pow( reflection, lightsParamsf[0]);                                        
+                        float specularLightWeighting = pow( reflection, shininess);                                        
                         float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
-                        lightWeighting = lightsParamsv[0] + lightsParamsv[1] * diffuseLightWeighting + lightsParamsv[2] * specularLightWeighting;
+                        lightWeighting = materialParams[0] + materialParams[1] * diffuseLightWeighting + materialParams[2] * specularLightWeighting;
                     }
                                        
                     if(uUseTexture > 0.0) {
