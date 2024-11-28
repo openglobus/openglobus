@@ -18,7 +18,7 @@ export const geo_object = (): Program =>
 
             sunPosition: "vec3",
             materialParams: "vec3",
-            shininess: "float",
+            materialShininess: "float",
 
             uTexture: "sampler2d",
             uUseTexture: "float",
@@ -116,7 +116,7 @@ export const geo_object = (): Program =>
                 
                 uniform vec3 sunPosition;
                 uniform vec3 materialParams[3];
-                uniform float shininess;
+                uniform float materialShininess;
                 uniform sampler2D uTexture;
                 uniform float uUseTexture;
                 uniform float useLighting;                
@@ -137,7 +137,7 @@ export const geo_object = (): Program =>
                         vec3 viewDir = normalize(cameraPosition - v_vertex);                
                         vec3 reflectionDirection = reflect(-lightDir, normal);
                         float reflection = max( dot(reflectionDirection, viewDir), 0.0);
-                        float specularLightWeighting = pow( reflection, shininess);                                        
+                        float specularLightWeighting = pow( reflection, materialShininess);                                        
                         float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
                         lightWeighting = materialParams[0] + materialParams[1] * diffuseLightWeighting + materialParams[2] * specularLightWeighting;
                     }
