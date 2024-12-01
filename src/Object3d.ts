@@ -2,7 +2,7 @@ import {htmlColorToFloat32Array, TypedArray} from './utils/shared';
 import {NumberArray3, Vec3} from './math/Vec3';
 import {DEGREES, DEGREES_DOUBLE, MAX, MIN, RADIANS_HALF} from './math';
 import {Mat4} from "./math/Mat4";
-import {transformLeftToRightCoordinateSystem, objParser, IObjGeometry} from "./utils/objParser";
+import {transformLeftToRightCoordinateSystem, IObjGeometry, Obj} from "./utils/objParser";
 
 function getColor(color?: number[] | TypedArray | string): Float32Array {
     if (color instanceof Array) {
@@ -23,6 +23,10 @@ interface IObject3dParams {
     src?: string;
     color?: number[] | TypedArray | string;
     scale?: number | Vec3;
+    ambient?: string | NumberArray3;
+    diffuse?: string | NumberArray3;
+    specular?: string | NumberArray3;
+    shininess?: number;
 }
 
 class Object3d {
@@ -50,6 +54,8 @@ class Object3d {
         this._vertices = data.vertices || [];
         this._numVertices = this._vertices.length / 3;
         this._texCoords = data.texCoords || new Array(2 * this._numVertices);
+
+        this._ambient = createColorRGB(data.ambient);
 
         if (data.center) {
             Object3d.centering(this._vertices);
@@ -549,17 +555,24 @@ class Object3d {
 
 
     static async loadObj(src: string): Promise<Object3d[]> {
-        const obj: any = await fetch(src, {mode: "cors",})
+
+        let obj = new Obj();
+
+        const res: any = await fetch(src, {mode: "cors",})
             .then((response) => response.text())
-            .then((data) => transformLeftToRightCoordinateSystem(objParser(data)))
+            .then((data) => transformLeftToRightCoordinateSystem(obj.parse(data)))
             .catch(() => []);
 
-        return obj.geometries.map(
+        return res.geometries.map(
             (obj: IObjGeometry) => new Object3d({
                 name: obj.object,
                 vertices: obj.data.vertices,
                 normals: obj.data.normals,
-                texCoords: obj.data.textures
+                texCoords: obj.data.textures,
+                shininess: obj.shininess,
+                diffuse: obj.diffuse,
+                ambient: obj.ambient,
+                specular: obj.specular
             })
         );
     }
