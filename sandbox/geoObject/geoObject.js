@@ -40,34 +40,14 @@ async function main() {
     let sat = new Bing();
     let osm = new OpenStreetMap();
 
-    const dock = await Object3d.loadObj('./piano.obj');
-
-    let piano = new Entity({
-        lonlat: [33.2017379, 69.0821338, 19],
-    });
-
-    for (let i = 0; i < dock.length; i++) {
-        piano.appendChild(new Entity({
-            geoObject: {
-                color: "white",
-                scale: 3.0,
-                instanced: true,
-                tag: `dock-${i}`,
-                object3d: dock[i],
-                yaw: -52,
-                pitch: 0
-            }
-        }));
-    }
-
-    piano.addTo(dockLayer);
+    const dock = await Object3d.loadObj('./dock.obj');
 
     const globus = new Globe({
         target: "earth",
         name: "Earth",
         terrain: new GlobusRgbTerrain(),
-        layers: [sat, dockLayer],
-        atmosphereEnabled: true,
+        layers: [sat],
+        //atmosphereEnabled: true,
         fontsSrc: "../../res/fonts",
         sun: {
             stopped: false
@@ -75,11 +55,35 @@ async function main() {
         viewExtent: [33.1758537, 69.0755299, 33.2251571, 69.08960050]
     });
 
+    for (let i = 0; i < dock.length; i++) {
+
+        let layer = new Vector(dock[i].name, {
+            scaleByDistance: [1, 1, 1],
+            entities: [
+                new Entity({
+                    lonlat: [33.2017379, 69.0821338, 19],
+                    geoObject: {
+                        color: "white",
+                        scale: 3.0,
+                        instanced: true,
+                        tag: `dock-${i}`,
+                        object3d: dock[i],
+                        yaw: -52,
+                        pitch: 0
+                    }
+                })
+            ]
+        });
+
+        layer.addTo(globus.planet);
+    }
+
     globus.planet.addControl(new control.DebugInfo());
     globus.planet.addControl(new control.KeyboardNavigation());
     globus.planet.addControl(new control.LayerSwitcher());
     globus.planet.addControl(new control.TimelineControl());
     globus.planet.addControl(new control.GeoObjectEditor());
+    globus.planet.addControl(new control.ToggleWireframe());
 }
 
 main()

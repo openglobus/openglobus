@@ -55,7 +55,7 @@ class Object3d {
         this._numVertices = this._vertices.length / 3;
         this._texCoords = data.texCoords || new Array(2 * this._numVertices);
 
-        this._ambient = createColorRGB(data.ambient);
+        //this._ambient = createColorRGB(data.ambient);
 
         if (data.center) {
             Object3d.centering(this._vertices);
@@ -560,7 +560,7 @@ class Object3d {
 
         const res: any = await fetch(src, {mode: "cors",})
             .then((response) => response.text())
-            .then((data) => transformLeftToRightCoordinateSystem(obj.parse(data)))
+            .then((data) => obj.parse(data))
             .catch(() => []);
 
         return res.geometries.map(
@@ -569,10 +569,10 @@ class Object3d {
                 vertices: obj.data.vertices,
                 normals: obj.data.normals,
                 texCoords: obj.data.textures,
-                shininess: obj.shininess,
-                diffuse: obj.diffuse,
-                ambient: obj.ambient,
-                specular: obj.specular
+                // shininess: obj.data.shininess,
+                // diffuse: obj.data.diffuse,
+                // ambient: obj.data.ambient,
+                // specular: obj.data.specular
             })
         );
     }
