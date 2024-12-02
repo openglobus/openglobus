@@ -13,9 +13,19 @@ export interface IObjGeometry {
     data: IObjGeometryData
 }
 
+export interface IObjMaterial {
+    ambient?: NumberArray3;
+    diffuse?: NumberArray3;
+    specular?: NumberArray3;
+    shininess?: number;
+    color?: NumberArray3;
+    opacity?: number;
+    illum?: number
+}
+
 interface IObjData {
     geometries: IObjGeometry[];
-    materialLibs: string[];
+    materials: any;
 }
 
 export class Obj {
@@ -26,13 +36,14 @@ export class Obj {
     public objVertexData: [number[][], number[][], number[][]];
     public vertexData: [number[], number[], number[]];
 
-    public materialLibs: string[];
+    public _materialLibs: string[];
     public geometries: IObjGeometry[];
     public geometry: IObjGeometry | null;
+    public materials: Record<string, IObjMaterial>;
+    public material: IObjMaterial;
 
     public object: string;
     public groups: string[];
-    public material: string;
 
     public keywords: Record<string, (parts: string[], unparsedArgs: string) => void>;
 
@@ -56,13 +67,14 @@ export class Obj {
             [],   // normals
         ];
 
-        this.materialLibs = [];
+        this._materialLibs = [];
         this.geometries = [];
         this.geometry = null;
+        this.materials = {};
+        this.material = {};
 
         this.object = 'default';
         this.groups = ['default'];
-        this.material = 'default';
 
         this.keywords = {
             v: (parts: string[]) => {
@@ -89,11 +101,13 @@ export class Obj {
             mtllib: (parts: string[], unparsedArgs: string) => {
                 // the spec says there can be multiple filenames here
                 // but many exist with spaces in a single filename
-                this.materialLibs.push(unparsedArgs);
+                this._materialLibs.push(unparsedArgs);
             },
             usemtl: (parts: string[], unparsedArgs: string) => {
-                this.material = unparsedArgs;
                 this.newGeometry();
+                if (this.geometry) {
+                    this.geometry.material = unparsedArgs;
+                }
             },
             g: (parts: string[]) => {
                 this.groups = parts;
@@ -104,46 +118,48 @@ export class Obj {
                 this.newGeometry();
             },
             newmtl: (parts: string[], unparsedArgs: string) => {
-                console.log(parts, unparsedArgs);
+                const material = {};
+                this.material = material;
+                this.materials[unparsedArgs] = material;
             },
             Ns: (parts: string[], unparsedArgs: string) => {
-                console.log(parts, unparsedArgs);
+                this.material.shininess = parseFloat(unparsedArgs);
             },
             Ni: (parts: string[], unparsedArgs: string) => {
-                console.log(parts, unparsedArgs);
+                //...
             },
             Ka: (parts: string[], unparsedArgs: string) => {
-                console.log(parts, unparsedArgs);
+                this.material.ambient = parts.map(v => parseFloat(v)) as NumberArray3;
             },
             Kd: (parts: string[], unparsedArgs: string) => {
-                console.log(parts, unparsedArgs);
+                this.material.diffuse = parts.map(v => parseFloat(v)) as NumberArray3;
             },
             Ks: (parts: string[], unparsedArgs: string) => {
-                console.log(parts, unparsedArgs);
+                this.material.specular = parts.map(v => parseFloat(v)) as NumberArray3;
             },
             Ke: (parts: string[], unparsedArgs: string) => {
-                console.log(parts, unparsedArgs);
+                this.material.color = parts.map(v => parseFloat(v)) as NumberArray3;
             },
             illum: (parts: string[], unparsedArgs: string) => {
-                console.log(parts, unparsedArgs);
+                this.material.illum = parseFloat(unparsedArgs);
             },
             d: (parts: string[], unparsedArgs: string) => {
-                console.log(parts, unparsedArgs);
+                this.material.opacity = parseFloat(unparsedArgs);
             },
             Tr: (parts: string[], unparsedArgs: string) => {
-                console.log(parts, unparsedArgs);
+                this.material.opacity = parseFloat(unparsedArgs);
             },
             Tf: (parts: string[], unparsedArgs: string) => {
-                console.log(parts, unparsedArgs);
+                //...
             },
             map_Ka: (parts: string[], unparsedArgs: string) => {
-                console.log(parts, unparsedArgs);
+                //...
             },
             map_Kd: (parts: string[], unparsedArgs: string) => {
-                console.log(parts, unparsedArgs);
+                //...
             },
             map_Bump: (parts: string[], unparsedArgs: string) => {
-                console.log(parts, unparsedArgs);
+                //...
             },
         };
     }
@@ -172,7 +188,7 @@ export class Obj {
             this.geometry = {
                 object: this.object,
                 groups: this.groups,
-                material: this.material,
+                material: "",
                 data: {
                     vertices,
                     textures,
@@ -231,12 +247,12 @@ export class Obj {
         }
 
         // fetch materials
-        let defArr = this.materialLibs.map(url => fetch(url).then((response) => response.text()));
+        let defArr = this._materialLibs.map(url => fetch(url).then((response) => response.text()));
         return Promise.all(defArr).then((mtlArr) => {
             mtlArr.forEach(mtlStr => this._innerParser(mtlStr));
             return {
                 geometries: this.geometries,
-                materialLibs: this.materialLibs
+                materials: this.materials
             };
         });
     }
@@ -244,7 +260,7 @@ export class Obj {
 
 export function transformLeftToRightCoordinateSystem(objData: IObjData): {
     geometries: IObjGeometry[],
-    materialLibs: string[]
+    materials: Record<string, any>
 } {
 
     const convertedGeometries: IObjGeometry[] = objData.geometries.map(geometry => {
@@ -295,7 +311,7 @@ export function transformLeftToRightCoordinateSystem(objData: IObjData): {
 
     return {
         geometries: convertedGeometries,
-        materialLibs: objData.materialLibs
+        materials: objData.materials
     };
 }
 
