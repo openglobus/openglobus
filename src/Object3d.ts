@@ -20,13 +20,14 @@ interface IObject3dParams {
     indices?: number[];
     normals?: number[];
     center?: boolean;
-    src?: string;
     color?: number[] | TypedArray | string;
     scale?: number | Vec3;
     ambient?: string | NumberArray3;
     diffuse?: string | NumberArray3;
     specular?: string | NumberArray3;
     shininess?: number;
+    colorTexture?: string;
+    normalTexture?: string;
 }
 
 class Object3d {
@@ -35,13 +36,6 @@ class Object3d {
     protected _vertices: number[];
     protected _numVertices: number;
     protected _texCoords: number[];
-
-    /**
-     * Image src.
-     * @protected
-     * @type {string}
-     */
-    protected _src: string | null;
 
     protected color: Float32Array;
 
@@ -60,13 +54,6 @@ class Object3d {
         if (data.center) {
             Object3d.centering(this._vertices);
         }
-
-        /**
-         * Image src.
-         * @protected
-         * @type {string}
-         */
-        this._src = data.src || null;
 
         this.color = getColor(data.color);
 
@@ -152,14 +139,6 @@ class Object3d {
             this._vertices[i + 2] += v.z;
         }
         return this;
-    }
-
-    public get src(): string | null {
-        return this._src;
-    }
-
-    public set src(src: string | null) {
-        this._src = src;
     }
 
     public get name(): string {
@@ -563,17 +542,25 @@ class Object3d {
             .then((data) => obj.parse(data))
             .catch(() => []);
 
+        let materials = res.materials;
+
         return res.geometries.map(
-            (obj: IObjGeometry) => new Object3d({
-                name: obj.object,
-                vertices: obj.data.vertices,
-                normals: obj.data.normals,
-                texCoords: obj.data.textures,
-                // shininess: obj.data.shininess,
-                // diffuse: obj.data.diffuse,
-                // ambient: obj.data.ambient,
-                // specular: obj.data.specular
-            })
+            (obj: IObjGeometry) => {
+                let mat = materials[obj.material];
+                return new Object3d({
+                    name: obj.object,
+                    vertices: obj.data.vertices,
+                    normals: obj.data.normals,
+                    texCoords: obj.data.textures,
+                    ambient: mat.ambient,
+                    diffuse: mat.diffuse,
+                    specular: mat.specular,
+                    shininess: mat.shihiness,
+                    color: mat.color,
+                    colorTexture: mat.diffuseSrc,
+                    normalTexture: mat.bumpSrc,
+                })
+            }
         );
     }
 
