@@ -15,12 +15,14 @@ export interface IObjGeometry {
 
 export interface IObjMaterial {
     ambient?: NumberArray3;
-    diffuse?: NumberArray3;
-    specular?: NumberArray3;
-    shininess?: number;
-    color?: NumberArray3;
+    diffuse?: NumberArray3; // baseDiffuseFactor
+    specular?: NumberArray3; // metalicFactor, specularFactor
+    shininess?: number; // roughnessFactor, glossinessFactor
+    color?: NumberArray3; // baseColorFactor
     opacity?: number;
     illum?: number
+    diffuseSrc?: string; // baseColorTexture
+    bumpSrc?: string; // normalTexture
 }
 
 interface IObjData {
@@ -156,10 +158,10 @@ export class Obj {
                 //...
             },
             map_Kd: (parts: string[], unparsedArgs: string) => {
-                //...
+                this.material.diffuseSrc = unparsedArgs;
             },
             map_Bump: (parts: string[], unparsedArgs: string) => {
-                //...
+                this.material.bumpSrc = unparsedArgs;
             },
         };
     }
