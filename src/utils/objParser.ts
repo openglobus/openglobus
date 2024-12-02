@@ -99,6 +99,7 @@ export class Obj {
                 }
             },
             s: () => {
+                // skip texture scale
             },
             mtllib: (parts: string[], unparsedArgs: string) => {
                 // the spec says there can be multiple filenames here
@@ -128,7 +129,7 @@ export class Obj {
                 this.material.shininess = parseFloat(unparsedArgs);
             },
             Ni: (parts: string[], unparsedArgs: string) => {
-                //...
+                // skip refraction
             },
             Ka: (parts: string[], unparsedArgs: string) => {
                 this.material.ambient = parts.map(v => parseFloat(v)) as NumberArray3;
@@ -152,10 +153,10 @@ export class Obj {
                 this.material.opacity = parseFloat(unparsedArgs);
             },
             Tf: (parts: string[], unparsedArgs: string) => {
-                //...
+                // skip transmission filter
             },
             map_Ka: (parts: string[], unparsedArgs: string) => {
-                //...
+                // skip ambient texture
             },
             map_Kd: (parts: string[], unparsedArgs: string) => {
                 this.material.diffuseSrc = unparsedArgs;
