@@ -25,9 +25,11 @@ export interface IObjMaterial {
     bumpSrc?: string; // normalTexture
 }
 
-interface IObjData {
+type MaterialMap = Record<string, IObjMaterial>;
+
+export interface IObj {
     geometries: IObjGeometry[];
-    materials: any;
+    materials: MaterialMap;
 }
 
 export class Obj {
@@ -41,7 +43,7 @@ export class Obj {
     public _materialLibs: string[];
     public geometries: IObjGeometry[];
     public geometry: IObjGeometry | null;
-    public materials: Record<string, IObjMaterial>;
+    public materials: MaterialMap;
     public material: IObjMaterial;
 
     public object: string;
@@ -238,7 +240,7 @@ export class Obj {
         }
     }
 
-    public parse(text: string): Promise<any> {
+    public parse(text: string): Promise<IObj> {
 
         this._innerParser(text);
 
@@ -261,10 +263,7 @@ export class Obj {
     }
 }
 
-export function transformLeftToRightCoordinateSystem(objData: IObjData): {
-    geometries: IObjGeometry[],
-    materials: Record<string, any>
-} {
+export function transformLeftToRightCoordinateSystem(objData: IObj): IObj {
 
     const convertedGeometries: IObjGeometry[] = objData.geometries.map(geometry => {
         const vertices = geometry.data.vertices;

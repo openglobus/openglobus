@@ -74,14 +74,15 @@ class GeoObject {
      * @type {Vec4}
      */
     public _color: Vec4;
-
     public _ambient: Vec3;
     public _diffuse: Vec3;
     public _specular: Vec3;
     public _shininess: number;
+    protected _colorTexture?: string;
+    protected _normalTexture?: string;
 
+    protected _qNorthFrame: Quat;
     public _qRot: Quat;
-
     protected _direction: Vec3;
 
     public _handler: GeoObjectHandler | null;
@@ -91,12 +92,9 @@ class GeoObject {
     public _tagDataIndex: number;
 
     protected _object3d: Object3d;
+    public _objectSrc?: string;
 
     protected _visibility: boolean;
-
-    protected _qNorthFrame: Quat;
-    protected _textureSrc?: string;
-    public _objectSrc?: string;
 
     protected _children: GeoObject[];
 
@@ -126,7 +124,6 @@ class GeoObject {
         this._translate = utils.createVector3(options.translate, new Vec3());
 
         this._color = utils.createColorRGBA(options.color);
-
         this._ambient = utils.createColorRGB(options.ambient, new Vec3(0.5, 0.5, 0.5));
         this._diffuse = utils.createColorRGB(options.diffuse, new Vec3(1.0, 1.0, 1.0));
         this._specular = utils.createColorRGB(options.specular, new Vec3(0.7, 0.7, 0.7));
