@@ -2,7 +2,7 @@ import {htmlColorToFloat32Array, TypedArray} from './utils/shared';
 import {NumberArray3, Vec3} from './math/Vec3';
 import {DEGREES, DEGREES_DOUBLE, MAX, MIN, RADIANS_HALF} from './math';
 import {Mat4} from "./math/Mat4";
-import {transformLeftToRightCoordinateSystem, IObjGeometry, Obj} from "./utils/objParser";
+import {transformLeftToRightCoordinateSystem, IObjGeometry, Obj, IObj} from "./utils/objParser";
 
 function getColor(color?: number[] | TypedArray | string): Float32Array {
     if (color instanceof Array) {
@@ -11,6 +11,21 @@ function getColor(color?: number[] | TypedArray | string): Float32Array {
         return htmlColorToFloat32Array(color);
     }
     return new Float32Array([1.0, 1.0, 1.0, 1.0]);
+}
+
+function getColor3v(color?: NumberArray3 | TypedArray | string): Float32Array {
+    let res = new Float32Array([1.0, 1.0, 1.0]);
+    if (color instanceof Array) {
+        res[0] = color[0];
+        res[1] = color[1];
+        res[2] = color[2];
+    } else if (typeof color === 'string') {
+        let c = htmlColorToFloat32Array(color);
+        res[0] = c[0];
+        res[1] = c[1];
+        res[2] = c[2];
+    }
+    return res;
 }
 
 interface IObject3dParams {
@@ -55,16 +70,14 @@ class Object3d {
         this._numVertices = this._vertices.length / 3;
         this._texCoords = data.texCoords || new Array(2 * this._numVertices);
 
-        //this._ambient = createColorRGB(data.ambient);
-
         if (data.center) {
             Object3d.centering(this._vertices);
         }
 
         this.color = getColor(data.color);
-        this.ambient = getColor(data.ambient);
-        this.diffuse = getColor(data.diffuse);
-        this.specular = getColor(data.specular);
+        this.ambient = getColor3v(data.ambient);
+        this.diffuse = getColor3v(data.diffuse);
+        this.specular = getColor3v(data.specular);
         this.shininess = data.shininess || 100;
         this.colorTexture = data.colorTexture || "";
         this.normalTexture = data.normalTexture || "";
@@ -549,10 +562,12 @@ class Object3d {
 
         let obj = new Obj();
 
-        const res: any = await fetch(src, {mode: "cors",})
+        const res: IObj | null = await fetch(src, {mode: "cors",})
             .then((response) => response.text())
             .then((data) => obj.parse(data))
-            .catch(() => []);
+            .catch(() => null);
+
+        if (!res) return [];
 
         let materials = res.materials;
 
@@ -567,7 +582,7 @@ class Object3d {
                     ambient: mat.ambient,
                     diffuse: mat.diffuse,
                     specular: mat.specular,
-                    shininess: mat.shihiness,
+                    shininess: mat.shininess,
                     color: mat.color,
                     colorTexture: mat.colorTexture,
                     normalTexture: mat.normalTexture,
