@@ -3,10 +3,10 @@ import {concatArrays, loadImage, makeArrayTyped, spliceArray, TypedArray} from "
 import {EntityCollection} from "./EntityCollection";
 import {GeoObject} from "./GeoObject";
 import {Planet} from "../scene/Planet";
-import {Vec3} from "../math/Vec3";
+import {Vec3, NumberArray3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 import {Quat} from "../math/Quat";
-import {WebGLBufferExt, WebGLContextExt, WebGLTextureExt} from "../webgl/Handler";
+import {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
 import {Object3d} from "../Object3d";
 import {Program} from "../webgl/Program";
 
@@ -173,10 +173,10 @@ class InstanceData {
         this._materialShininess = shininess;
     }
 
-    public setMaterialParams(ambient: Vec3, diffuse: Vec3, specular: Vec3, shininess: number) {
-        this.setMaterialAmbient(ambient.x, ambient.y, ambient.z);
-        this.setMaterialDiffuse(diffuse.x, diffuse.y, diffuse.z);
-        this.setMaterialSpecular(specular.x, specular.y, specular.z);
+    public setMaterialParams(ambient: Float32Array, diffuse: Float32Array, specular: Float32Array, shininess: number) {
+        this.setMaterialAmbient(ambient[0], ambient[1], ambient[2]);
+        this.setMaterialDiffuse(diffuse[0], diffuse[1], diffuse[2]);
+        this.setMaterialSpecular(specular[0], specular[1], specular[2]);
         this.setMaterialShininess(shininess);
     }
 
@@ -655,7 +655,12 @@ class GeoObjectHandler {
             tagData._textureSrc = geoObject.object3d.colorTexture;
             tagData._normalTextureSrc = geoObject.object3d.normalTexture;
 
-            tagData.setMaterialParams(geoObject._ambient, geoObject._diffuse, geoObject._specular, geoObject._shininess);
+            tagData.setMaterialParams(
+                geoObject.object3d.ambient,
+                geoObject.object3d.diffuse,
+                geoObject.object3d.specular,
+                geoObject.object3d.shininess
+            );
 
             this._loadColorTexture(tagData);
             this._loadNormalTexture(tagData);

@@ -40,13 +40,13 @@ class Object3d {
     protected _indices: number[];
     protected _normals: number[];
 
-    protected color: Float32Array;
-    ambient: Float32Array;
-    diffuse: Float32Array;
-    specular: Float32Array;
-    shininess: number;
-    colorTexture: string;
-    normalTexture: string;
+    public color: Float32Array;
+    public ambient: Float32Array;
+    public diffuse: Float32Array;
+    public specular: Float32Array;
+    public shininess: number;
+    public colorTexture: string;
+    public normalTexture: string;
 
     constructor(data: IObject3dParams = {}) {
 

@@ -19,12 +19,6 @@ export interface IGeoObjectParams {
     translate?: Vec3 | NumberArray3;
     color?: Vec4 | NumberArray4 | string;
     visibility?: boolean;
-    diffuse?: string | NumberArray3 | Vec3;
-    ambient?: string | NumberArray3 | Vec3;
-    specular?: string | NumberArray3 | Vec3;
-    shininess?: number;
-    colorTexture?: string;
-    normalTexture?: string;
 }
 
 /**
@@ -75,12 +69,6 @@ class GeoObject {
      * @type {Vec4}
      */
     public _color: Vec4;
-    public _ambient: Vec3;
-    public _diffuse: Vec3;
-    public _specular: Vec3;
-    public _shininess: number;
-    protected _colorTexture?: string;
-    protected _normalTexture?: string;
 
     protected _qNorthFrame: Quat;
     public _qRot: Quat;
@@ -125,10 +113,6 @@ class GeoObject {
         this._translate = utils.createVector3(options.translate, new Vec3());
 
         this._color = utils.createColorRGBA(options.color);
-        this._ambient = utils.createColorRGB(options.ambient, new Vec3(0.5, 0.5, 0.5));
-        this._diffuse = utils.createColorRGB(options.diffuse, new Vec3(1.0, 1.0, 1.0));
-        this._specular = utils.createColorRGB(options.specular, new Vec3(0.7, 0.7, 0.7));
-        this._shininess = options.shininess != undefined ? options.shininess : 100;
 
         this._qRot = Quat.IDENTITY;
 
@@ -148,13 +132,9 @@ class GeoObject {
 
         this._object3d = object3d as Object3d;
 
-        if (options.colorTexture) {
-            this.setColorTexture(options.colorTexture)
-        }
-
-        if (options.normalTexture) {
-            this.setNormalTexture(options.normalTexture)
-        }
+        // if (options.colorTexture) {
+        //     this.setColorTexture(options.colorTexture)
+        // }
 
         this._visibility = (options.visibility != undefined ? options.visibility : true);
 
@@ -236,72 +216,6 @@ class GeoObject {
     }
 
     /**
-     * Sets material ambient color.
-     * @public
-     * @param {number} r - Red.
-     * @param {number} g - Green.
-     * @param {number} b - Blue.
-     */
-    public setMaterialAmbient(r: number, g: number, b: number) {
-        this._ambient.x = r;
-        this._ambient.y = g;
-        this._ambient.z = b;
-        this._tagData?.setMaterialAmbient(r, g, b);
-    }
-
-    /**
-     * Sets material diffuse color.
-     * @public
-     * @param {number} r - Red.
-     * @param {number} g - Green.
-     * @param {number} b - Blue.
-     */
-    public setMaterialDiffuse(r: number, g: number, b: number) {
-        this._diffuse.x = r;
-        this._diffuse.y = g;
-        this._diffuse.z = b;
-        this._tagData?.setMaterialDiffuse(r, g, b);
-    }
-
-    /**
-     * Sets material specular color.
-     * @public
-     * @param {number} r - Red.
-     * @param {number} g - Green.
-     * @param {number} b - Blue.
-     */
-    public setMaterialSpecular(r: number, g: number, b: number) {
-        this._specular.x = r;
-        this._specular.y = g;
-        this._specular.z = b;
-        this._tagData?.setMaterialSpecular(r, g, b);
-    }
-
-    /**
-     * Sets material specular color.
-     * @public
-     * @param {number} r - Red.
-     * @param {number} g - Green.
-     * @param {number} b - Blue.
-     */
-    public setMaterialShininess(shininess: number) {
-        this._shininess = shininess;
-        this._tagData?.setMaterialShininess(shininess);
-    }
-
-    public setMaterialDiffuseHTML(color: string) {
-
-    }
-
-    public setMaterialAmbientHTML(color: string) {
-
-    }
-
-    public setMaterialSpecularHTML(color: string) {
-
-    }
-
-    /**
      * Sets color.
      * @public
      * @param {Vec3 | Vec4} color - RGBA vector.
@@ -379,17 +293,17 @@ class GeoObject {
         this._handler && this._handler.setObjectSrc(src, this.tag);
     }
 
-    public setColorTexture(src: string) {
-        this._colorTexture = src;
-        //this._object3d && (this._object3d.colorTexture = src);
-        this._handler && this._handler.setColorTextureTag(src, this.tag);
-    }
+    // public setColorTexture(src: string) {
+    //     this._colorTexture = src;
+    //     //this._object3d && (this._object3d.colorTexture = src);
+    //     this._handler && this._handler.setColorTextureTag(src, this.tag);
+    // }
 
-    public setNormalTexture(src: string) {
-        this._normalTexture = src;
-        //this._object3d && (this._object3d.normalTexture = src);
-        this._handler && this._handler.setNormalTextureTag(src, this.tag);
-    }
+    // public setNormalTexture(src: string) {
+    //     this._normalTexture = src;
+    //     //this._object3d && (this._object3d.normalTexture = src);
+    //     this._handler && this._handler.setNormalTextureTag(src, this.tag);
+    // }
 
     public setColorHTML(color: string) {
         this.setColor4v(utils.htmlColorToRgba(color));
