@@ -10,7 +10,6 @@ import {RADIANS} from "../math";
 export interface IGeoObjectParams {
     object3d?: Object3d;
     objSrc?: string;
-    textureSrc?: string;
     tag?: string;
     position?: Vec3 | NumberArray3;
     pitch?: number;
@@ -24,6 +23,8 @@ export interface IGeoObjectParams {
     ambient?: string | NumberArray3 | Vec3;
     specular?: string | NumberArray3 | Vec3;
     shininess?: number;
+    colorTexture?: string;
+    normalTexture?: string;
 }
 
 /**
@@ -144,10 +145,17 @@ class GeoObject {
             this.setObjectSrc(options.objSrc)
             this._objectSrc = options.objSrc;
         }
+
         this._object3d = object3d as Object3d;
-        if (options.textureSrc) {
-            this.setTextureSrc(options.textureSrc)
+
+        if (options.colorTexture) {
+            this.setColorTexture(options.colorTexture)
         }
+
+        if (options.normalTexture) {
+            this.setNormalTexture(options.normalTexture)
+        }
+
         this._visibility = (options.visibility != undefined ? options.visibility : true);
 
         this._children = [];
@@ -371,10 +379,16 @@ class GeoObject {
         this._handler && this._handler.setObjectSrc(src, this.tag);
     }
 
-    public setTextureSrc(src: string) {
-        this._textureSrc = src;
-        this._object3d && (this._object3d.src = src);
-        this._handler && this._handler.setTextureTag(src, this.tag);
+    public setColorTexture(src: string) {
+        this._colorTexture = src;
+        //this._object3d && (this._object3d.colorTexture = src);
+        this._handler && this._handler.setColorTextureTag(src, this.tag);
+    }
+
+    public setNormalTexture(src: string) {
+        this._normalTexture = src;
+        //this._object3d && (this._object3d.normalTexture = src);
+        this._handler && this._handler.setNormalTextureTag(src, this.tag);
     }
 
     public setColorHTML(color: string) {

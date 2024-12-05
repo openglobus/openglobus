@@ -2,7 +2,7 @@ import {NumberArray3} from "../math/Vec3";
 
 export interface IObjGeometryData {
     vertices: number[];
-    textures: number[];
+    texCoords: number[];
     normals: number[];
 }
 
@@ -21,8 +21,8 @@ export interface IObjMaterial {
     color?: NumberArray3; // baseColorFactor
     opacity?: number;
     illum?: number
-    diffuseSrc?: string; // baseColorTexture
-    bumpSrc?: string; // normalTexture
+    colorTexture?: string; // baseColorTexture
+    normalTexture?: string; // normalTexture
 }
 
 type MaterialMap = Record<string, IObjMaterial>;
@@ -161,10 +161,10 @@ export class Obj {
                 // skip ambient texture
             },
             map_Kd: (parts: string[], unparsedArgs: string) => {
-                this.material.diffuseSrc = unparsedArgs;
+                this.material.colorTexture = unparsedArgs;
             },
             map_Bump: (parts: string[], unparsedArgs: string) => {
-                this.material.bumpSrc = unparsedArgs;
+                this.material.normalTexture = unparsedArgs;
             },
         };
     }
@@ -181,12 +181,12 @@ export class Obj {
         if (!this.geometry) {
 
             const vertices: number[] = [];
-            const textures: number[] = [];
+            const texCoords: number[] = [];
             const normals: number[] = [];
 
             this.vertexData = [
                 vertices,
-                textures,
+                texCoords,
                 normals,
             ];
 
@@ -196,7 +196,7 @@ export class Obj {
                 material: "",
                 data: {
                     vertices,
-                    textures,
+                    texCoords,
                     normals,
                 },
             };
@@ -268,13 +268,13 @@ export function transformLeftToRightCoordinateSystem(objData: IObj): IObj {
     const convertedGeometries: IObjGeometry[] = objData.geometries.map(geometry => {
         const vertices = geometry.data.vertices;
         const normals = geometry.data.normals;
-        const textures = geometry.data.textures || [];
+        const texCoords = geometry.data.texCoords || [];
 
         rotateObject(geometry.data, 0);
 
         let convertedVertices: number[] = [];
         let convertedNormals: number[] = [];
-        let convertedTextures: number[] = [];
+        let convertedTexCoords: number[] = [];
 
         // Convert positions
         for (let i = 0; i < vertices.length; i += 3) {
@@ -292,11 +292,11 @@ export function transformLeftToRightCoordinateSystem(objData: IObj): IObj {
             convertedNormals.push(x, y, -z);
         }
 
-        // Convert textures
-        for (let i = 0; i < textures.length; i += 2) {
-            const s = textures[i];
-            const t = 1 - textures[i + 1];
-            convertedTextures.push(s, t);
+        // Convert texture coordinates
+        for (let i = 0; i < texCoords.length; i += 2) {
+            const s = texCoords[i];
+            const t = 1 - texCoords[i + 1];
+            convertedTexCoords.push(s, t);
         }
 
         return {
@@ -306,7 +306,7 @@ export function transformLeftToRightCoordinateSystem(objData: IObj): IObj {
             data: {
                 vertices: convertedVertices,
                 normals: convertedNormals,
-                textures: convertedTextures
+                texCoords: convertedTexCoords
             }
         };
     });

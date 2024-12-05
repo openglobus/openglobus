@@ -41,9 +41,9 @@ class Object3d {
     protected _normals: number[];
 
     protected color: Float32Array;
-    ambient: NumberArray3;
-    diffuse: NumberArray3;
-    specular: NumberArray3;
+    ambient: Float32Array;
+    diffuse: Float32Array;
+    specular: Float32Array;
     shininess: number;
     colorTexture: string;
     normalTexture: string;
@@ -62,6 +62,12 @@ class Object3d {
         }
 
         this.color = getColor(data.color);
+        this.ambient = getColor(data.ambient);
+        this.diffuse = getColor(data.diffuse);
+        this.specular = getColor(data.specular);
+        this.shininess = data.shininess || 100;
+        this.colorTexture = data.colorTexture || "";
+        this.normalTexture = data.normalTexture || "";
 
         if (data.scale) {
             let s = data.scale;
@@ -557,14 +563,14 @@ class Object3d {
                     name: obj.object,
                     vertices: obj.data.vertices,
                     normals: obj.data.normals,
-                    texCoords: obj.data.textures,
+                    texCoords: obj.data.texCoords,
                     ambient: mat.ambient,
                     diffuse: mat.diffuse,
                     specular: mat.specular,
                     shininess: mat.shihiness,
                     color: mat.color,
-                    colorTexture: mat.diffuseSrc,
-                    normalTexture: mat.bumpSrc,
+                    colorTexture: mat.colorTexture,
+                    normalTexture: mat.normalTexture,
                 })
             }
         );

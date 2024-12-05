@@ -51,7 +51,10 @@ class InstanceData {
     public numInstances: number;
 
     public _texture: WebGLTextureExt | null;
+    public _normalTexture: WebGLTextureExt | null;
+
     public _textureSrc: string | null;
+    public _normalTextureSrc: string | null;
     public _objectSrc?: string;
 
     public _sizeArr: number[] | TypedArray;
@@ -99,6 +102,9 @@ class InstanceData {
 
         this._texture = null;
         this._textureSrc = null;
+
+        this._normalTexture = null;
+        this._normalTextureSrc = null;
 
         this._sizeArr = [];
         this._translateArr = [];
@@ -272,9 +278,15 @@ class InstanceData {
         p.drawElementsInstanced!(gl.TRIANGLES, this._indicesBuffer!.numItems, gl.UNSIGNED_INT, 0, this.numInstances);
     }
 
-    public createTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
+    public createColorTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
         if (this._geoObjectHandler && this._geoObjectHandler._planet) {
             this._texture = this._geoObjectHandler._planet.renderer!.handler.createTextureDefault(image);
+        }
+    }
+
+    public createNormalTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
+        if (this._geoObjectHandler && this._geoObjectHandler._planet) {
+            this._normalTexture = this._geoObjectHandler._planet.renderer!.handler.createTextureDefault(image);
         }
     }
 
@@ -551,7 +563,8 @@ class GeoObjectHandler {
         //
         // in case of lazy initialization loading data here
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
-            this._loadDataTagTexture(this._instanceDataMapValues[i]);
+            this._loadColorTexture(this._instanceDataMapValues[i]);
+            this._loadNormalTexture(this._instanceDataMapValues[i]);
         }
 
         for (let i = 0; i < this._geoObjects.length; i++) {
@@ -561,13 +574,21 @@ class GeoObjectHandler {
         this.update();
     }
 
-    public setTextureTag(src: string, tag: string) {
+    public setColorTextureTag(src: string, tag: string) {
         const tagData = this._instanceDataMap.get(tag);
         if (tagData) {
             tagData._textureSrc = src;
-
             this._instanceDataMap.set(tag, tagData);
-            this._loadDataTagTexture(tagData);
+            this._loadColorTexture(tagData);
+        }
+    }
+
+    public setNormalTextureTag(src: string, tag: string) {
+        const tagData = this._instanceDataMap.get(tag);
+        if (tagData) {
+            tagData._normalTextureSrc = src;
+            this._instanceDataMap.set(tag, tagData);
+            this._loadNormalTexture(tagData);
         }
     }
 
@@ -604,9 +625,11 @@ class GeoObjectHandler {
                 tagData._changedBuffers[TEXCOORD_BUFFER] = true;
             }
 
-            tagData._textureSrc = object.src;
+            tagData._textureSrc = object.colorTexture;
+            tagData._normalTextureSrc = object.normalTexture;
 
-            this._loadDataTagTexture(tagData);
+            this._loadColorTexture(tagData);
+            this._loadNormalTexture(tagData);
 
             this._updateTag(tagData);
             this._instanceDataMapValues = Array.from(this._instanceDataMap.values());
@@ -629,11 +652,13 @@ class GeoObjectHandler {
             tagData._normalsArr = geoObject.normals;
             tagData._indicesArr = geoObject.indices;
             tagData._texCoordArr = geoObject.texCoords;
-            tagData._textureSrc = geoObject.object3d.src;
+            tagData._textureSrc = geoObject.object3d.colorTexture;
+            tagData._normalTextureSrc = geoObject.object3d.normalTexture;
 
             tagData.setMaterialParams(geoObject._ambient, geoObject._diffuse, geoObject._specular, geoObject._shininess);
 
-            this._loadDataTagTexture(tagData);
+            this._loadColorTexture(tagData);
+            this._loadNormalTexture(tagData);
         }
 
         geoObject._tagDataIndex = tagData.numInstances++;
@@ -871,10 +896,17 @@ class GeoObjectHandler {
         }
     }
 
-    async _loadDataTagTexture(tagData: InstanceData) {
+    async _loadColorTexture(tagData: InstanceData) {
         if (this._planet && tagData._textureSrc) {
             const image = await loadImage(tagData._textureSrc);
-            tagData.createTexture(image);
+            tagData.createColorTexture(image);
+        }
+    }
+
+    async _loadNormalTexture(tagData: InstanceData) {
+        if (this._planet && tagData._normalTextureSrc) {
+            const image = await loadImage(tagData._normalTextureSrc);
+            tagData.createNormalTexture(image);
         }
     }
 
