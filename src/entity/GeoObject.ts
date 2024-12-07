@@ -111,8 +111,9 @@ class GeoObject {
 
         this._scale = utils.createVector3(options.scale, new Vec3(1, 1, 1));
         this._translate = utils.createVector3(options.translate, new Vec3());
+        this._translate = utils.createVector3(options.translate, new Vec3());
 
-        this._color = utils.createColorRGBA(options.color);
+        this._color = utils.createColorRGBA(options.color, new Vec4(0.15, 0.15, 0.15, 1.0));
 
         this._qRot = Quat.IDENTITY;
 

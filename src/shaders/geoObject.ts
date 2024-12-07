@@ -139,14 +139,16 @@ export const geo_object = (): Program =>
                         float reflection = max( dot(reflectionDirection, viewDir), 0.0);
                         float specularLightWeighting = pow( reflection, materialShininess);                                        
                         float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
-                        lightWeighting = materialParams[0] + materialParams[1] * diffuseLightWeighting + materialParams[2] * specularLightWeighting;
+                        lightWeighting = vColor.rgb * materialParams[0] + materialParams[1] * diffuseLightWeighting + materialParams[2] * specularLightWeighting;
+                    } else {
+                        lightWeighting = vColor.rgb;
                     }
                                        
                     if(uUseTexture > 0.0) {
-                        vec4 tColor = texture2D(uTexture, vTexCoords);
-                        gl_FragColor = vec4(tColor.rgb * lightWeighting, tColor.a);
+                        vec4 texColor = texture2D(uTexture, vTexCoords);
+                        gl_FragColor = vec4(texColor.rgb * lightWeighting, texColor.a);
                     } else {
-                        gl_FragColor = vec4(vColor.rgb * lightWeighting, vColor.a);
+                        gl_FragColor = vec4(lightWeighting, vColor.a);
                     }
                 }`
     });

@@ -110,6 +110,7 @@ export class Obj {
             },
             usemtl: (parts: string[], unparsedArgs: string) => {
                 this.newGeometry();
+                this.setGeometry();
                 if (this.geometry) {
                     this.geometry.material = unparsedArgs;
                 }

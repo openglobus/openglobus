@@ -63,7 +63,7 @@ async function main() {
                 new Entity({
                     lonlat: [33.2017379, 69.0821338, 19],
                     geoObject: {
-                        color: "white",
+                        //color: "rgb(0,0,0)",
                         scale: 3.0,
                         instanced: true,
                         tag: `dock-${i}`,
