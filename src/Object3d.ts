@@ -2,7 +2,7 @@ import {htmlColorToFloat32Array, TypedArray} from './utils/shared';
 import {NumberArray3, Vec3} from './math/Vec3';
 import {DEGREES, DEGREES_DOUBLE, MAX, MIN, RADIANS_HALF} from './math';
 import {Mat4} from "./math/Mat4";
-import {transformLeftToRightCoordinateSystem, objParser} from "./utils/objParser";
+import {transformLeftToRightCoordinateSystem, IObjGeometry, Obj, IObj} from "./utils/objParser";
 
 function getColor(color?: number[] | TypedArray | string): Float32Array {
     if (color instanceof Array) {
@@ -13,6 +13,21 @@ function getColor(color?: number[] | TypedArray | string): Float32Array {
     return new Float32Array([1.0, 1.0, 1.0, 1.0]);
 }
 
+function getColor3v(color?: NumberArray3 | TypedArray | string): Float32Array {
+    let res = new Float32Array([1.0, 1.0, 1.0]);
+    if (color instanceof Array) {
+        res[0] = color[0];
+        res[1] = color[1];
+        res[2] = color[2];
+    } else if (typeof color === 'string') {
+        let c = htmlColorToFloat32Array(color);
+        res[0] = c[0];
+        res[1] = c[1];
+        res[2] = c[2];
+    }
+    return res;
+}
+
 interface IObject3dParams {
     name?: string;
     vertices?: number[];
@@ -20,9 +35,14 @@ interface IObject3dParams {
     indices?: number[];
     normals?: number[];
     center?: boolean;
-    src?: string;
     color?: number[] | TypedArray | string;
     scale?: number | Vec3;
+    ambient?: string | NumberArray3;
+    diffuse?: string | NumberArray3;
+    specular?: string | NumberArray3;
+    shininess?: number;
+    colorTexture?: string;
+    normalTexture?: string;
 }
 
 class Object3d {
@@ -32,17 +52,16 @@ class Object3d {
     protected _numVertices: number;
     protected _texCoords: number[];
 
-    /**
-     * Image src.
-     * @protected
-     * @type {string}
-     */
-    protected _src: string | null;
-
-    protected color: Float32Array;
-
     protected _indices: number[];
     protected _normals: number[];
+
+    public color: Float32Array;
+    public ambient: Float32Array;
+    public diffuse: Float32Array;
+    public specular: Float32Array;
+    public shininess: number;
+    public colorTexture: string;
+    public normalTexture: string;
 
     constructor(data: IObject3dParams = {}) {
 
@@ -55,14 +74,13 @@ class Object3d {
             Object3d.centering(this._vertices);
         }
 
-        /**
-         * Image src.
-         * @protected
-         * @type {string}
-         */
-        this._src = data.src || null;
-
         this.color = getColor(data.color);
+        this.ambient = getColor3v(data.ambient);
+        this.diffuse = getColor3v(data.diffuse);
+        this.specular = getColor3v(data.specular);
+        this.shininess = data.shininess || 100;
+        this.colorTexture = data.colorTexture || "";
+        this.normalTexture = data.normalTexture || "";
 
         if (data.scale) {
             let s = data.scale;
@@ -79,7 +97,7 @@ class Object3d {
             this._indices = data.indices;
             this._normals = data.normals || [];
         } else {
-            this._normals = Object3d.getNormals(this._vertices);
+            this._normals = data.normals || Object3d.getNormals(this._vertices);
             this._indices = new Array(this._vertices.length / 3);
             for (let i = 0, len = this._indices.length; i < len; i++) {
                 this._indices[i] = i;
@@ -146,14 +164,6 @@ class Object3d {
             this._vertices[i + 2] += v.z;
         }
         return this;
-    }
-
-    public get src(): string | null {
-        return this._src;
-    }
-
-    public set src(src: string | null) {
-        this._src = src;
     }
 
     public get name(): string {
@@ -524,6 +534,19 @@ class Object3d {
         });
     }
 
+    static createPlane(width: number = 1, height: number = 1, xOffset: number = 0, yOffset: number = 0, zOffset: number = 0): Object3d {
+        let sx = width * 0.5, sy = yOffset, sz = height * 0.5;
+
+        return new Object3d({
+            vertices: [
+                //bottom
+                -sx + xOffset, sy, sz + zOffset, sx + xOffset, sy, -sz + zOffset, sx + xOffset, sy, sz + zOffset, -sx + xOffset, sy, sz + zOffset, -sx + xOffset, sy, -sz + zOffset, sx + xOffset, sy, -sz + zOffset,
+                //top
+                -sx + xOffset, sy, sz + zOffset, sx + xOffset, sy, sz + zOffset, sx + xOffset, sy, -sz + zOffset, -sx + xOffset, sy, sz + zOffset, sx + xOffset, sy, -sz + zOffset, -sx + xOffset, sy, -sz + zOffset
+            ]
+        });
+    }
+
     static createArrow(back: number = 0.0, height: number = 2.1, front: number = -15): Object3d {
         return new Object3d({
             vertices: [0, height, 0, 7, 0, 6, 0, 0, front,
@@ -536,38 +559,58 @@ class Object3d {
 
 
     static async loadObj(src: string): Promise<Object3d[]> {
-        const obj: any = await fetch(src, {mode: "cors",})
+
+        let obj = new Obj();
+
+        const res: IObj | null = await fetch(src, {mode: "cors",})
             .then((response) => response.text())
-            .then((data) => transformLeftToRightCoordinateSystem(objParser(data)))
-            .catch(() => []);
+            .then((data) => obj.parse(data))
+            .catch(() => null);
 
-        return obj.geometries.map(({data: {vertices, normals, textures}}: any) => new Object3d({
-            vertices,
-            normals,
-            texCoords: textures
-        }));
+        if (!res) return [];
+
+        let materials = res.materials;
+
+        return res.geometries.map(
+            (obj: IObjGeometry) => {
+                let mat = materials[obj.material];
+                return new Object3d({
+                    name: obj.object,
+                    vertices: obj.data.vertices,
+                    normals: obj.data.normals,
+                    texCoords: obj.data.texCoords,
+                    ambient: mat.ambient,
+                    diffuse: mat.diffuse,
+                    specular: mat.specular,
+                    shininess: mat.shininess,
+                    color: mat.color,
+                    colorTexture: mat.colorTexture,
+                    normalTexture: mat.normalTexture,
+                })
+            }
+        );
     }
 
-    merge(other: Object3d): Object3d {
-        const mergedVertices = [...this._vertices, ...other.vertices];
-        const mergedNormals = [...this._normals, ...other.normals];
-        const mergedTexCoords = [...this._texCoords, ...other.texCoords];
-
-        const offset = this._vertices.length / 3;
-        const mergedIndices = [
-            ...this._indices,
-            ...other.indices.map(index => index + offset)
-        ];
-
-        return new Object3d({
-            name: `${this._name}_${other.name}`,
-            vertices: mergedVertices,
-            texCoords: mergedTexCoords,
-            indices: mergedIndices,
-            normals: mergedNormals,
-            color: this.color
-        });
-    }
+    // merge(other: Object3d): Object3d {
+    //     const mergedVertices = [...this._vertices, ...other.vertices];
+    //     const mergedNormals = [...this._normals, ...other.normals];
+    //     const mergedTexCoords = [...this._texCoords, ...other.texCoords];
+    //
+    //     const offset = this._vertices.length / 3;
+    //     const mergedIndices = [
+    //         ...this._indices,
+    //         ...other.indices.map(index => index + offset)
+    //     ];
+    //
+    //     return new Object3d({
+    //         name: `${this._name}_${other.name}`,
+    //         vertices: mergedVertices,
+    //         texCoords: mergedTexCoords,
+    //         indices: mergedIndices,
+    //         normals: mergedNormals,
+    //         color: this.color
+    //     });
+    // }
 }
 
 export {Object3d};

@@ -2,6 +2,7 @@ import {EPS10} from "../math";
 import {Box} from "../bv/Box";
 import {Sphere} from "../bv/Sphere";
 import {Vec3} from "./Vec3";
+import {Plane} from "./Plane";
 
 /**
  * Represents a ray that extends infinitely from the provided origin in the provided direction.
@@ -65,10 +66,9 @@ export class Ray {
     }
 
     /**
-     * Computes the point along the ray on the distance.
-     * @public
-     * @param {number} distance - Point distance.
-     * @returns {Vec3}
+     * Get a point on the ray at a given distance `t`.
+     * @param {number} distance - Distance from the origin along the ray.
+     * @returns {Vec3} The point at distance `t`.
      */
     public getPoint(distance: number): Vec3 {
         return Vec3.add(this.origin, this.direction.scaleTo(distance));
@@ -229,5 +229,28 @@ export class Ray {
         //
         // TODO
         //
+    }
+
+    /**
+     * Finds the intersection of the ray with a plane.
+     * @param {Plane} plane - The plane to intersect with.
+     * @returns {Vec3 | null} The intersection point or null if no intersection.
+     */
+    public hitPlane2(plane: Plane, res: Vec3): number {
+        const d = this.direction.dot(plane.n);
+
+        if (Math.abs(d) < EPS10) {
+            return Ray.OUTSIDE;
+        }
+
+        const t = plane.p.sub(this.origin).dot(plane.n) / d;
+
+        if (t < 0) {
+            return Ray.AWAY;
+        }
+
+        res.copy(this.getPoint(t));
+
+        return Ray.INSIDE;
     }
 }

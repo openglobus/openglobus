@@ -341,10 +341,6 @@ class Program {
                     this.drawElementsInstanced = ext.drawElementsInstancedANGLE.bind(ext);
                 }
             }
-            // this.drawElementsInstanced =
-            //     gl.drawElementsInstanced ?
-            //         gl.drawElementsInstanced.bind(gl) :
-            //         gl.getExtension('ANGLE_instanced_arrays').drawElementsInstancedANGLE.bind(gl.getExtension('ANGLE_instanced_arrays'));
         }
 
         if (!this.vertexAttribDivisor) {
@@ -356,10 +352,6 @@ class Program {
                     this.vertexAttribDivisor = ext.vertexAttribDivisorANGLE.bind(ext);
                 }
             }
-            // this.vertexAttribDivisor =
-            //     gl.vertexAttribDivisor ?
-            //         gl.vertexAttribDivisor.bind(gl) :
-            //         gl.getExtension('ANGLE_instanced_arrays').vertexAttribDivisorANGLE.bind(gl.getExtension('ANGLE_instanced_arrays'));
         }
 
 

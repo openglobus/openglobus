@@ -1,186 +1,281 @@
-interface IObjGeometryData {
+import {NumberArray3} from "../math/Vec3";
+
+export interface IObjGeometryData {
     vertices: number[];
-    textures: number[];
+    texCoords: number[];
     normals: number[];
 }
 
-interface IObjGeometry {
+export interface IObjGeometry {
     object: string;
     groups: string[];
     material: string;
     data: IObjGeometryData
 }
 
-interface IObjData {
-    geometries: IObjGeometry[];
-    materialLibs: string[];
+export interface IObjMaterial {
+    ambient?: NumberArray3;
+    diffuse?: NumberArray3; // baseDiffuseFactor
+    specular?: NumberArray3; // metalicFactor, specularFactor
+    shininess?: number; // roughnessFactor, glossinessFactor
+    color?: NumberArray3; // baseColorFactor
+    opacity?: number;
+    illum?: number
+    colorTexture?: string; // baseColorTexture
+    normalTexture?: string; // normalTexture
 }
 
-export function objParser(text: string) {
-    const objPositions: number[][] = [[0, 0, 0]];
-    const objTexcoords: number[][] = [[0, 0]];
-    const objNormals: number[][] = [[0, 0, 0]];
+type MaterialMap = Record<string, IObjMaterial>;
 
-    // same order as `f` indices
-    const objVertexData: [number[][], number[][], number[][]] = [
-        objPositions,
-        objTexcoords,
-        objNormals,
-    ];
+export interface IObj {
+    geometries: IObjGeometry[];
+    materials: MaterialMap;
+}
 
-    // same order as `f` indices
-    let vertexData: [number[], number[], number[]] = [
-        [],   // positions
-        [],   // texcoords
-        [],   // normals
-    ];
+export class Obj {
 
-    const materialLibs: string[] = [];
-    const geometries: IObjGeometry[] = [];
-    let geometry: IObjGeometry | null;
+    public objPositions: number[][];
+    public objTexcoords: number[][];
+    public objNormals: number[][];
+    public objVertexData: [number[][], number[][], number[][]];
+    public vertexData: [number[], number[], number[]];
 
-    let groups: string[] = ['default'];
-    let material: string = 'default';
-    let object: string = 'default';
+    public _materialLibs: string[];
+    public geometries: IObjGeometry[];
+    public geometry: IObjGeometry | null;
+    public materials: MaterialMap;
+    public material: IObjMaterial;
 
-    function newGeometry() {
+    public object: string;
+    public groups: string[];
+
+    public keywords: Record<string, (parts: string[], unparsedArgs: string) => void>;
+
+    constructor() {
+
+        this.objPositions = [[0, 0, 0]];
+        this.objTexcoords = [[0, 0]];
+        this.objNormals = [[0, 0, 0]];
+
+        // same order as `f` indices
+        this.objVertexData = [
+            this.objPositions,
+            this.objTexcoords,
+            this.objNormals,
+        ];
+
+        // same order as `f` indices
+        this.vertexData = [
+            [],   // positions
+            [],   // texcoords
+            [],   // normals
+        ];
+
+        this._materialLibs = [];
+        this.geometries = [];
+        this.geometry = null;
+        this.materials = {};
+        this.material = {};
+
+        this.object = 'default';
+        this.groups = ['default'];
+
+        this.keywords = {
+            v: (parts: string[]) => {
+                this.objPositions.push(parts.map(parseFloat));
+            },
+            vn: (parts: string[]) => {
+                this.objNormals.push(parts.map(parseFloat));
+            },
+            vt: (parts: string[]) => {
+                // should check for missing v and extra w?
+                this.objTexcoords.push(parts.map(parseFloat));
+            },
+            f: (parts: string[]) => {
+                this.setGeometry();
+                const numTriangles = parts.length - 2;
+                for (let tri = 0; tri < numTriangles; ++tri) {
+                    this.addVertex(parts[0]);
+                    this.addVertex(parts[tri + 1]);
+                    this.addVertex(parts[tri + 2]);
+                }
+            },
+            s: () => {
+                // skip texture scale
+            },
+            mtllib: (parts: string[], unparsedArgs: string) => {
+                // the spec says there can be multiple filenames here
+                // but many exist with spaces in a single filename
+                this._materialLibs.push(unparsedArgs);
+            },
+            usemtl: (parts: string[], unparsedArgs: string) => {
+                this.newGeometry();
+                this.setGeometry();
+                if (this.geometry) {
+                    this.geometry.material = unparsedArgs;
+                }
+            },
+            g: (parts: string[]) => {
+                this.groups = parts;
+                this.newGeometry();
+            },
+            o: (parts: string[], unparsedArgs: string) => {
+                this.object = unparsedArgs;
+                this.newGeometry();
+            },
+            newmtl: (parts: string[], unparsedArgs: string) => {
+                const material = {};
+                this.material = material;
+                this.materials[unparsedArgs] = material;
+            },
+            Ns: (parts: string[], unparsedArgs: string) => {
+                this.material.shininess = parseFloat(unparsedArgs);
+            },
+            Ni: (parts: string[], unparsedArgs: string) => {
+                // skip refraction
+            },
+            Ka: (parts: string[], unparsedArgs: string) => {
+                this.material.ambient = parts.map(v => parseFloat(v)) as NumberArray3;
+            },
+            Kd: (parts: string[], unparsedArgs: string) => {
+                this.material.diffuse = parts.map(v => parseFloat(v)) as NumberArray3;
+            },
+            Ks: (parts: string[], unparsedArgs: string) => {
+                this.material.specular = parts.map(v => parseFloat(v)) as NumberArray3;
+            },
+            Ke: (parts: string[], unparsedArgs: string) => {
+                this.material.color = parts.map(v => parseFloat(v)) as NumberArray3;
+            },
+            illum: (parts: string[], unparsedArgs: string) => {
+                this.material.illum = parseFloat(unparsedArgs);
+            },
+            d: (parts: string[], unparsedArgs: string) => {
+                this.material.opacity = parseFloat(unparsedArgs);
+            },
+            Tr: (parts: string[], unparsedArgs: string) => {
+                this.material.opacity = parseFloat(unparsedArgs);
+            },
+            Tf: (parts: string[], unparsedArgs: string) => {
+                // skip transmission filter
+            },
+            map_Ka: (parts: string[], unparsedArgs: string) => {
+                // skip ambient texture
+            },
+            map_Kd: (parts: string[], unparsedArgs: string) => {
+                this.material.colorTexture = unparsedArgs;
+            },
+            map_Bump: (parts: string[], unparsedArgs: string) => {
+                this.material.normalTexture = unparsedArgs;
+            },
+        };
+    }
+
+    public newGeometry() {
         // If there is an existing geometry and it's
         // not empty then start a new one.
-        if (geometry && geometry.data.vertices.length) {
-            geometry = null;
+        if (this.geometry && this.geometry.data.vertices.length) {
+            this.geometry = null;
         }
     }
 
-    function setGeometry() {
-        if (!geometry) {
+    public setGeometry() {
+        if (!this.geometry) {
 
             const vertices: number[] = [];
-            const textures: number[] = [];
+            const texCoords: number[] = [];
             const normals: number[] = [];
 
-            vertexData = [
+            this.vertexData = [
                 vertices,
-                textures,
+                texCoords,
                 normals,
             ];
 
-            geometry = {
-                object,
-                groups,
-                material,
+            this.geometry = {
+                object: this.object,
+                groups: this.groups,
+                material: "",
                 data: {
                     vertices,
-                    textures,
+                    texCoords,
                     normals,
                 },
             };
 
-            geometries.push(geometry);
+            this.geometries.push(this.geometry!);
         }
     }
 
-    function addVertex(vert: string) {
+    public addVertex(vert: string) {
         const ptn = vert.split('/');
         ptn.forEach((objIndexStr: string, i: number) => {
             if (!objIndexStr) {
                 return;
             }
             const objIndex = parseInt(objIndexStr);
-            const index = objIndex + (objIndex >= 0 ? 0 : objVertexData[i].length);
-            vertexData[i].push(...objVertexData[i][index]);
+            const index = objIndex + (objIndex >= 0 ? 0 : this.objVertexData[i].length);
+            this.vertexData[i].push(...this.objVertexData[i][index]);
         });
     }
 
-    const keywords: Record<string, (parts: string[], unparsedArgs: string) => void> = {
-        v(parts: string[]) {
-            objPositions.push(parts.map(parseFloat));
-        },
-        vn(parts: string[]) {
-            objNormals.push(parts.map(parseFloat));
-        },
-        vt(parts: string[]) {
-            // should check for missing v and extra w?
-            objTexcoords.push(parts.map(parseFloat));
-        },
-        f(parts: string[]) {
-            setGeometry();
-            const numTriangles = parts.length - 2;
-            for (let tri = 0; tri < numTriangles; ++tri) {
-                addVertex(parts[0]);
-                addVertex(parts[tri + 1]);
-                addVertex(parts[tri + 2]);
+    protected _innerParser(text: string) {
+        const keywordRE = /(\w*)(?: )*(.*)/;
+        const lines = text.split('\n');
+        for (let lineNo = 0; lineNo < lines.length; ++lineNo) {
+            const line = lines[lineNo].trim();
+            if (line === '' || line.startsWith('#')) {
+                continue;
             }
-        },
-        s: () => {
-        },    // smoothing group
-        mtllib(parts: string[], unparsedArgs: string) {
-            // the spec says there can be multiple filenames here
-            // but many exist with spaces in a single filename
-            materialLibs.push(unparsedArgs);
-        },
-        usemtl(parts: string[], unparsedArgs: string) {
-            material = unparsedArgs;
-            newGeometry();
-        },
-        g(parts: string[]) {
-            groups = parts;
-            newGeometry();
-        },
-        o(parts: string[], unparsedArgs: string) {
-            object = unparsedArgs;
-            newGeometry();
-        },
-    };
-
-    const keywordRE = /(\w*)(?: )*(.*)/;
-    const lines = text.split('\n');
-    for (let lineNo = 0; lineNo < lines.length; ++lineNo) {
-        const line = lines[lineNo].trim();
-        if (line === '' || line.startsWith('#')) {
-            continue;
+            const m = keywordRE.exec(line);
+            if (!m) {
+                continue;
+            }
+            const [, keyword, unparsedArgs] = m;
+            const parts = line.split(/\s+/).slice(1);
+            const handler = this.keywords[keyword];
+            if (!handler) {
+                console.warn('unhandled keyword:', keyword);  // eslint-disable-line no-console
+                continue;
+            }
+            handler(parts, unparsedArgs);
         }
-        const m = keywordRE.exec(line);
-        if (!m) {
-            continue;
-        }
-        const [, keyword, unparsedArgs] = m;
-        const parts = line.split(/\s+/).slice(1);
-        const handler = keywords[keyword];
-        if (!handler) {
-            console.warn('unhandled keyword:', keyword);  // eslint-disable-line no-console
-            continue;
-        }
-        handler(parts, unparsedArgs);
     }
 
-    // remove any arrays that have no entries.
-    for (const geometry of geometries) {
-        geometry.data = Object.fromEntries(
-            Object.entries(geometry.data).filter(([key, array]) => array.length > 0)
-        ) as IObjGeometryData;
-    }
+    public parse(text: string): Promise<IObj> {
 
-    return {
-        geometries,
-        materialLibs,
-    };
+        this._innerParser(text);
+
+        // remove any arrays that have no entries.
+        for (const geometry of this.geometries) {
+            geometry.data = Object.fromEntries(
+                Object.entries(geometry.data).filter(([key, array]) => array.length > 0)
+            ) as IObjGeometryData;
+        }
+
+        // fetch materials
+        let defArr = this._materialLibs.map(url => fetch(url).then((response) => response.text()));
+        return Promise.all(defArr).then((mtlArr) => {
+            mtlArr.forEach(mtlStr => this._innerParser(mtlStr));
+            return {
+                geometries: this.geometries,
+                materials: this.materials
+            };
+        });
+    }
 }
 
-export function transformLeftToRightCoordinateSystem(objData: IObjData): {
-    geometries: IObjGeometry[],
-    materialLibs: string[]
-} {
+export function transformLeftToRightCoordinateSystem(objData: IObj): IObj {
 
     const convertedGeometries: IObjGeometry[] = objData.geometries.map(geometry => {
         const vertices = geometry.data.vertices;
         const normals = geometry.data.normals;
-        const textures = geometry.data.textures;
+        const texCoords = geometry.data.texCoords || [];
 
         rotateObject(geometry.data, 0);
 
         let convertedVertices: number[] = [];
         let convertedNormals: number[] = [];
-        let convertedTextures: number[] = [];
+        let convertedTexCoords: number[] = [];
 
         // Convert positions
         for (let i = 0; i < vertices.length; i += 3) {
@@ -198,11 +293,11 @@ export function transformLeftToRightCoordinateSystem(objData: IObjData): {
             convertedNormals.push(x, y, -z);
         }
 
-        // Convert textures
-        for (let i = 0; i < textures.length; i += 2) {
-            const s = textures[i];
-            const t = 1 - textures[i + 1];
-            convertedTextures.push(s, t);
+        // Convert texture coordinates
+        for (let i = 0; i < texCoords.length; i += 2) {
+            const s = texCoords[i];
+            const t = 1 - texCoords[i + 1];
+            convertedTexCoords.push(s, t);
         }
 
         return {
@@ -212,14 +307,14 @@ export function transformLeftToRightCoordinateSystem(objData: IObjData): {
             data: {
                 vertices: convertedVertices,
                 normals: convertedNormals,
-                textures: convertedTextures
+                texCoords: convertedTexCoords
             }
         };
     });
 
     return {
         geometries: convertedGeometries,
-        materialLibs: objData.materialLibs
+        materials: objData.materials
     };
 }
 
