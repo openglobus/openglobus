@@ -11,7 +11,7 @@ interface IScaleControlParams extends IControlParams {
 }
 
 const scale: number[] = [
-    1, 2, 3, 5, 10, 20, 30, 50, 100, 200, 300, 500, 1e3, 2e3, 3e3, 5e3, 10e3, 20e3, 30e3, 50e3,
+    0.01, 0.05, 0.1, 0.2, 0.5, 1, 2, 3, 5, 10, 20, 30, 50, 100, 200, 300, 500, 1e3, 2e3, 3e3, 5e3, 10e3, 20e3, 30e3, 50e3,
     100e3, 200e3, 300e3, 500e3, 1000e3, 2000e3, 3000e3, 5000e3, 10000e3
 ];
 
@@ -120,9 +120,12 @@ export class ScaleControl extends Control {
 
         if (minMeters > 1000) {
             this._scaleLabelEl!.innerText = `${minMeters / 1000} km`;
-        } else {
+        } else if (minMeters > 1) {
             this._scaleLabelEl!.innerText = `${minMeters} m`;
+        } else {
+            this._scaleLabelEl!.innerText = `${minMeters * 100} cm`;
         }
+
 
         this._metersInMinSize = metersInMinSize;
 

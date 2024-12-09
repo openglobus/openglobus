@@ -10,7 +10,6 @@ import {RADIANS} from "../math";
 export interface IGeoObjectParams {
     object3d?: Object3d;
     objSrc?: string;
-    textureSrc?: string;
     tag?: string;
     position?: Vec3 | NumberArray3;
     pitch?: number;
@@ -32,6 +31,8 @@ export interface IGeoObjectParams {
  */
 class GeoObject {
     protected _tag: string;
+
+    static __counter__: number = 0;
 
     public instanced: boolean;
 
@@ -69,8 +70,8 @@ class GeoObject {
      */
     public _color: Vec4;
 
+    protected _qNorthFrame: Quat;
     public _qRot: Quat;
-
     protected _direction: Vec3;
 
     public _handler: GeoObjectHandler | null;
@@ -80,18 +81,15 @@ class GeoObject {
     public _tagDataIndex: number;
 
     protected _object3d: Object3d;
+    public _objectSrc?: string;
 
     protected _visibility: boolean;
-
-    protected _qNorthFrame: Quat;
-    private _textureSrc?: string;
-    public _objectSrc?: string;
 
     protected _children: GeoObject[];
 
     constructor(options: IGeoObjectParams) {
 
-        this._tag = options.tag || "none";
+        this._tag = options.tag || `tag_${GeoObject.__counter__++}`;
 
         this.instanced = true;
 
@@ -113,8 +111,9 @@ class GeoObject {
 
         this._scale = utils.createVector3(options.scale, new Vec3(1, 1, 1));
         this._translate = utils.createVector3(options.translate, new Vec3());
+        this._translate = utils.createVector3(options.translate, new Vec3());
 
-        this._color = utils.createColorRGBA(options.color);
+        this._color = utils.createColorRGBA(options.color, new Vec4(0.15, 0.15, 0.15, 1.0));
 
         this._qRot = Quat.IDENTITY;
 
@@ -131,10 +130,13 @@ class GeoObject {
             this.setObjectSrc(options.objSrc)
             this._objectSrc = options.objSrc;
         }
+
         this._object3d = object3d as Object3d;
-        if (options.textureSrc) {
-            this.setTextureSrc(options.textureSrc)
-        }
+
+        // if (options.colorTexture) {
+        //     this.setColorTexture(options.colorTexture)
+        // }
+
         this._visibility = (options.visibility != undefined ? options.visibility : true);
 
         this._children = [];
@@ -192,6 +194,10 @@ class GeoObject {
     public setOpacity(a: number) {
         this._color.w = a;
         this.setColor(this._color.x, this._color.y, this._color.z, a);
+    }
+
+    public getOpacity(): number {
+        return this._color.w;
     }
 
     /**
@@ -288,11 +294,17 @@ class GeoObject {
         this._handler && this._handler.setObjectSrc(src, this.tag);
     }
 
-    public setTextureSrc(src: string) {
-        this._textureSrc = src;
-        this._object3d && (this._object3d.src = src);
-        this._handler && this._handler.setTextureTag(src, this.tag);
-    }
+    // public setColorTexture(src: string) {
+    //     this._colorTexture = src;
+    //     //this._object3d && (this._object3d.colorTexture = src);
+    //     this._handler && this._handler.setColorTextureTag(src, this.tag);
+    // }
+
+    // public setNormalTexture(src: string) {
+    //     this._normalTexture = src;
+    //     //this._object3d && (this._object3d.normalTexture = src);
+    //     this._handler && this._handler.setNormalTextureTag(src, this.tag);
+    // }
 
     public setColorHTML(color: string) {
         this.setColor4v(utils.htmlColorToRgba(color));
@@ -369,8 +381,13 @@ class GeoObject {
 
     public updateRotation() {
 
-        if (this._handler && this._handler._planet) {
-            this._qNorthFrame = this._handler._planet.getNorthFrameRotation(this._position);
+        if (this._handler) {
+
+            if (!this._handler._planet || this._position.isZero()) {
+                this._qNorthFrame = Quat.IDENTITY;
+            } else {
+                this._qNorthFrame = this._handler._planet.getNorthFrameRotation(this._position);
+            }
 
             let qp = Quat.xRotation(-this._pitchRad);
             let qy = Quat.yRotation(this._yawRad);
@@ -386,6 +403,10 @@ class GeoObject {
 
     public getDirection(): Vec3 {
         return this._direction.clone();
+    }
+
+    get rotation(): Quat {
+        return this._qRot;
     }
 }
 
