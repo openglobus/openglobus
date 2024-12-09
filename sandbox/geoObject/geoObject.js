@@ -9,44 +9,131 @@ import {
     Object3d
 } from "../../lib/@openglobus/og.esm.js";
 
-
-let dockLayer = new Vector("dock", {
-    scaleByDistance: [1, 1, 1]
-});
-
 let cranesLayer = new Vector("crane", {
     scaleByDistance: [1, 1, 1]
 });
 
-function setPitch(a) {
-    cranesLayer.each((e) => {
-        e.geoObject.setPitch(a)
-    });
-}
-
-function setYaw(a) {
-    cranesLayer.each((e) => {
-        e.geoObject.setYaw(a);
-    });
-}
-
-function setRoll(a) {
-    cranesLayer.each((e) => {
-        e.geoObject.setRoll(a);
-    });
-}
-
 async function main() {
+
+
     let sat = new Bing();
     let osm = new OpenStreetMap();
 
     const dock = await Object3d.loadObj('./dock.obj');
+    const crane = await Object3d.loadObj('./crane.obj');
+
+    let c1 = new Entity({
+        lonlat: [33.2017379, 69.0821338, 19],
+    });
+
+    let c2 = new Entity({
+        lonlat: [33.2037625, 69.0814592, 24],
+    });
+
+    let c3 = new Entity({
+        lonlat: [33.2045480, 69.0818760, 20],
+    });
+
+    let c4 = new Entity({
+        lonlat: [33.2024654, 69.0824443, 21],
+    });
+
+    let c5 = new Entity({
+        lonlat: [33.2027773, 69.0817816, 21],
+    });
+
+    let c6 = new Entity({
+        lonlat: [33.2035357, 69.0821616, 21],
+    });
+
+    for (let i = 0; i < crane.length; i++) {
+
+        c1.appendChild(new Entity({
+            geoObject: {
+                //color: "white",
+                scale: 4.0,
+                instanced: true,
+                tag: `crane-${i}`,
+                object3d: crane[i],
+                yaw: 87,
+                pitch: 0
+            }
+        }));
+
+        c2.appendChild(new Entity({
+            geoObject: {
+                //color: "white",
+                scale: 4.0,
+                instanced: true,
+                tag: `crane-${i}`,
+                object3d: crane[i],
+                yaw: 24,
+                pitch: 0
+            }
+        }));
+
+        c3.appendChild(new Entity({
+            geoObject: {
+                //color: "white",
+                scale: 4.0,
+                instanced: true,
+                tag: `crane-${i}`,
+                object3d: crane[i],
+                yaw: -95,
+                pitch: 0
+            }
+        }));
+
+        c4.appendChild(new Entity({
+            geoObject: {
+                //color: "white",
+                scale: 4.0,
+                instanced: true,
+                tag: `crane-${i}`,
+                object3d: crane[i],
+                yaw: -160,
+                pitch: 0
+            }
+        }));
+
+        c5.appendChild(new Entity({
+            geoObject: {
+                //color: "white",
+                scale: 4.0,
+                instanced: true,
+                tag: `crane-${i}`,
+                object3d: crane[i],
+                yaw: 42,
+                pitch: 0
+            }
+        }));
+
+        c6.appendChild(new Entity({
+            geoObject: {
+                //color: "white",
+                scale: 4.0,
+                instanced: true,
+                tag: `crane-${i}`,
+                object3d: crane[i],
+                yaw: -229,
+                pitch: 0
+            }
+        }));
+    }
+
+    cranesLayer.add(c1);
+    cranesLayer.add(c2);
+    cranesLayer.add(c3);
+    cranesLayer.add(c4);
+    cranesLayer.add(c5);
+    cranesLayer.add(c6);
 
     const globus = new Globe({
+        frustums: [[0.1, 1 + 0.075], [1, 100 + 0.075], [100, 1000 + 0.075], [1000, 1e6 + 10000], [1e6, 1e9]],
         target: "earth",
         name: "Earth",
         terrain: new GlobusRgbTerrain(),
-        layers: [sat],
+        layers: [sat, osm, cranesLayer],
         //atmosphereEnabled: true,
         fontsSrc: "../../res/fonts",
         sun: {
@@ -63,7 +150,6 @@ async function main() {
                 new Entity({
                     lonlat: [33.2017379, 69.0821338, 19],
                     geoObject: {
-                        //color: "rgb(0,0,0)",
                         scale: 3.0,
                         instanced: true,
                         tag: `dock-${i}`,
@@ -87,3 +173,4 @@ async function main() {
 }
 
 main()
+
