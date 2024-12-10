@@ -32,7 +32,8 @@ class Color extends View<null> {
         super({
             template: stringTemplate(TEMPLATE, {
                 id: `color-${__labelCounter__++}`,
-                label: options.label || ""
+                label: options.label || "",
+                value: options.value || "#000000",
             })
         });
 
