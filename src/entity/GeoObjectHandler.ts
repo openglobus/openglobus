@@ -21,6 +21,7 @@ const PICKINGCOLOR_BUFFER = 7;
 const VISIBLE_BUFFER = 8;
 const TEXCOORD_BUFFER = 9;
 const TRANSLATE_BUFFER = 10;
+const RTC_POSITION_BUFFER = 11;
 
 const AMBIENT_R = 0;
 const AMBIENT_G = 1;
@@ -62,6 +63,10 @@ class InstanceData {
     public _vertexArr: number[] | TypedArray;
     public _positionHighArr: number[] | TypedArray;
     public _positionLowArr: number[] | TypedArray;
+
+    public _rtcPositionHighArr: number[] | TypedArray;
+    public _rtcPositionLowArr: number[] | TypedArray;
+
     public _qRotArr: number[] | TypedArray;
     public _rgbaArr: number[] | TypedArray;
     public _normalsArr: number[] | TypedArray;
@@ -75,6 +80,8 @@ class InstanceData {
     public _vertexBuffer: WebGLBufferExt | null;
     public _positionHighBuffer: WebGLBufferExt | null;
     public _positionLowBuffer: WebGLBufferExt | null;
+    public _rtcPositionHighBuffer: WebGLBufferExt | null;
+    public _rtcPositionLowBuffer: WebGLBufferExt | null;
     public _qRotBuffer: WebGLBufferExt | null;
     public _rgbaBuffer: WebGLBufferExt | null;
     public _normalsBuffer: WebGLBufferExt | null;
@@ -111,6 +118,8 @@ class InstanceData {
         this._vertexArr = [];
         this._positionHighArr = [];
         this._positionLowArr = [];
+        this._rtcPositionHighArr = [];
+        this._rtcPositionLowArr = [];
         this._qRotArr = [];
         this._rgbaArr = [];
         this._normalsArr = [];
@@ -124,6 +133,8 @@ class InstanceData {
         this._vertexBuffer = null;
         this._positionHighBuffer = null;
         this._positionLowBuffer = null;
+        this._rtcPositionHighBuffer = null;
+        this._rtcPositionLowBuffer = null;
         this._qRotBuffer = null;
         this._rgbaBuffer = null;
         this._normalsBuffer = null;
@@ -147,6 +158,7 @@ class InstanceData {
         this._buffersUpdateCallbacks[TEXCOORD_BUFFER] = this.createTexCoordBuffer;
         this._buffersUpdateCallbacks[QROT_BUFFER] = this.createQRotBuffer;
         this._buffersUpdateCallbacks[TRANSLATE_BUFFER] = this.createTranslateBuffer;
+        this._buffersUpdateCallbacks[RTC_POSITION_BUFFER] = this.createRTCPositionBuffer;
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
     }
@@ -209,6 +221,7 @@ class InstanceData {
         gl.uniform3fv(u.materialParams, this._materialParams);
         gl.uniform1f(u.materialShininess, this._materialShininess);
 
+
         this._drawElementsInstanced(p);
     }
 
@@ -261,6 +274,15 @@ class InstanceData {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer!);
         gl.vertexAttribPointer(a.aPositionLow, this._positionLowBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
+        //
+        // RTC
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._rtcPositionHighBuffer!);
+        gl.vertexAttribPointer(a.aRTCPositionHigh, this._rtcPositionHighBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._rtcPositionLowBuffer!);
+        gl.vertexAttribPointer(a.aRTCPositionLow, this._rtcPositionLowBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this._normalsBuffer!);
         gl.vertexAttribPointer(a.aVertexNormal, this._normalsBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -301,6 +323,8 @@ class InstanceData {
         this._vertexArr = [];
         this._positionHighArr = [];
         this._positionLowArr = [];
+        this._rtcPositionHighArr = [];
+        this._rtcPositionLowArr = [];
         this._qRotArr = [];
         this._rgbaArr = [];
         this._normalsArr = [];
@@ -331,6 +355,8 @@ class InstanceData {
             gl.deleteBuffer(this._vertexBuffer!);
             gl.deleteBuffer(this._positionHighBuffer!);
             gl.deleteBuffer(this._positionLowBuffer!);
+            gl.deleteBuffer(this._rtcPositionHighBuffer!);
+            gl.deleteBuffer(this._rtcPositionLowBuffer!);
             gl.deleteBuffer(this._qRotBuffer!);
             gl.deleteBuffer(this._rgbaBuffer!);
             gl.deleteBuffer(this._normalsBuffer!);
@@ -345,6 +371,8 @@ class InstanceData {
         this._vertexBuffer = null;
         this._positionHighBuffer = null;
         this._positionLowBuffer = null;
+        this._rtcPositionHighBuffer = null;
+        this._rtcPositionLowBuffer = null;
         this._qRotBuffer = null;
         this._rgbaBuffer = null;
         this._normalsBuffer = null;
@@ -428,6 +456,25 @@ class InstanceData {
         h.setStreamArrayBuffer(this._positionHighBuffer!, this._positionHighArr as Float32Array);
         h.setStreamArrayBuffer(this._positionLowBuffer!, this._positionLowArr as Float32Array);
     }
+
+    public createRTCPositionBuffer() {
+        let h = this._geoObjectHandler._planet!.renderer!.handler,
+            numItems = this._rtcPositionHighArr.length / 3;
+
+        if (!this._rtcPositionHighBuffer || this._rtcPositionHighBuffer.numItems !== numItems) {
+            h.gl!.deleteBuffer(this._rtcPositionHighBuffer!);
+            h.gl!.deleteBuffer(this._rtcPositionLowBuffer!);
+            this._rtcPositionHighBuffer = h.createStreamArrayBuffer(3, numItems);
+            this._rtcPositionLowBuffer = h.createStreamArrayBuffer(3, numItems);
+        }
+
+        this._rtcPositionHighArr = makeArrayTyped(this._rtcPositionHighArr);
+        this._rtcPositionLowArr = makeArrayTyped(this._rtcPositionLowArr);
+
+        h.setStreamArrayBuffer(this._rtcPositionHighBuffer!, this._rtcPositionHighArr as Float32Array);
+        h.setStreamArrayBuffer(this._rtcPositionLowBuffer!, this._rtcPositionLowArr as Float32Array);
+    }
+
 
     public createRgbaBuffer() {
         let h = this._geoObjectHandler._planet!.renderer!.handler,
@@ -674,6 +721,8 @@ class GeoObjectHandler {
 
         tagData._visibleArr = concatArrays(tagData._visibleArr, setParametersToArray([], 0, 1, 1, geoObject.getVisibility() ? 1 : 0));
 
+        //
+        // Global coordinates
         let x = geoObject._positionHigh.x,
             y = geoObject._positionHigh.y,
             z = geoObject._positionHigh.z,
@@ -685,6 +734,16 @@ class GeoObjectHandler {
         y = geoObject._positionLow.y;
         z = geoObject._positionLow.z;
         tagData._positionLowArr = concatArrays(tagData._positionLowArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
+
+        //
+        // RTC coordinates
+        tagData._rtcPositionHighArr = concatArrays(tagData._rtcPositionHighArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
+
+        x = geoObject._positionLow.x;
+        y = geoObject._positionLow.y;
+        z = geoObject._positionLow.z;
+        tagData._rtcPositionLowArr = concatArrays(tagData._rtcPositionLowArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
+
 
         x = geoObject._entity!._pickingColor.x / 255;
         y = geoObject._entity!._pickingColor.y / 255;
@@ -758,7 +817,8 @@ class GeoObjectHandler {
         this._bindCommon();
 
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
-            this._instanceDataMapValues[i].drawOpaque(p);
+            let instanceData = this._instanceDataMapValues[i];
+            instanceData.drawOpaque(p);
         }
     }
 
@@ -935,6 +995,13 @@ class GeoObjectHandler {
         this._updateTag(tagData);
     }
 
+    public setRTCPositionArr(tagData: InstanceData, tagDataIndex: number, rtcPositionHigh: Vec3, rtcPositionLow: Vec3) {
+        setParametersToArray(tagData._rtcPositionHighArr, tagDataIndex, 3, 3, rtcPositionHigh.x, rtcPositionHigh.y, rtcPositionHigh.z);
+        setParametersToArray(tagData._rtcPositionLowArr, tagDataIndex, 3, 3, rtcPositionLow.x, rtcPositionLow.y, rtcPositionLow.z);
+        tagData._changedBuffers[RTC_POSITION_BUFFER] = true;
+        this._updateTag(tagData);
+    }
+
     public setRgbaArr(tagData: InstanceData, tagDataIndex: number, rgba: Vec4) {
         setParametersToArray(tagData._rgbaArr, tagDataIndex, 4, 4, rgba.x, rgba.y, rgba.z, rgba.w);
         tagData._changedBuffers[RGBA_BUFFER] = true;
@@ -1008,7 +1075,27 @@ class GeoObjectHandler {
 
     public draw() {
         if (this._geoObjects.length) {
+
+            let camPos = this._planet!.camera.eye;
+
+            for (let i = 0; i < this._instanceDataMapValues.length; i++) {
+                let instanceData = this._instanceDataMapValues[i];
+                let geoObjects = instanceData.geoObjects;
+
+                let rtcPositionHigh = new Vec3(),
+                    rtcPositionLow = new Vec3();
+
+                for (let i = 0; i < geoObjects.length; i++) {
+                    let gi = geoObjects[i],
+                        objPos = gi.getPosition();
+                    let rtcPosition = gi.object3d.center.add(objPos).sub(camPos);
+                    Vec3.doubleToTwoFloats(rtcPosition, rtcPositionHigh, rtcPositionLow);
+                    this.setRTCPositionArr(instanceData, gi._tagDataIndex, rtcPositionHigh, rtcPositionLow);
+                }
+            }
+
             this.update();
+
             this._displayOpaquePASS();
         }
     }
@@ -1083,6 +1170,8 @@ class GeoObjectHandler {
         tagData._rgbaArr = spliceArray(tagData._rgbaArr, tdi * 4, 4);
         tagData._positionHighArr = spliceArray(tagData._positionHighArr, tdi * 3, 3);
         tagData._positionLowArr = spliceArray(tagData._positionLowArr, tdi * 3, 3);
+        tagData._rtcPositionHighArr = spliceArray(tagData._rtcPositionHighArr, tdi * 3, 3);
+        tagData._rtcPositionLowArr = spliceArray(tagData._rtcPositionLowArr, tdi * 3, 3);
         tagData._qRotArr = spliceArray(tagData._qRotArr, tdi * 4, 4);
         tagData._pickingColorArr = spliceArray(tagData._pickingColorArr, tdi * 3, 3);
         tagData._sizeArr = spliceArray(tagData._sizeArr, tdi * 3, 3);

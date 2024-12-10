@@ -32,6 +32,10 @@ export const geo_object = (): Program =>
 
             aPositionHigh: {type: "vec3", divisor: 1},
             aPositionLow: {type: "vec3", divisor: 1},
+
+            aRTCPositionHigh: {type: "vec3", divisor: 1},
+            aRTCPositionLow: {type: "vec3", divisor: 1},
+
             aColor: {type: "vec4", divisor: 1},
             aScale: {type: "vec3", divisor: 1},
             aTranslate: {type: "vec3", divisor: 1},
@@ -44,7 +48,11 @@ export const geo_object = (): Program =>
             attribute vec3 aVertexPosition;
             attribute vec3 aVertexNormal; 
             attribute vec3 aPositionHigh;
-            attribute vec3 aPositionLow;    
+            attribute vec3 aPositionLow;
+            
+            attribute vec3 aRTCPositionHigh;
+            attribute vec3 aRTCPositionLow;    
+            
             attribute vec4 aColor;
             attribute vec3 aScale;
             attribute vec3 aTranslate;
@@ -79,7 +87,9 @@ export const geo_object = (): Program =>
                 vec3 position = aPositionHigh + aPositionLow;
                 cameraPosition = eyePositionHigh + eyePositionLow;
                 
-                vec3 look = cameraPosition - position;
+                vec3 rtcPos = aRTCPositionHigh + aRTCPositionLow;
+                
+                vec3 look = cameraPosition - position + rtcPos - rtcPos;
                 float lookLength = length(look);
 
                 vColor = aColor;
@@ -112,6 +122,9 @@ export const geo_object = (): Program =>
                 viewMatrixRTE = projectionViewRTEMatrix;
                                
                 gl_Position = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
+               
+                
+                gl_Position = viewMatrixRTE * vec4(aVertexPosition + rtcPos, 1.0);
                 
                 v_vertex = position + vert;
             }`,

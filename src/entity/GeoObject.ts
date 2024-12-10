@@ -260,8 +260,9 @@ class GeoObject {
         this._position.y = y;
         this._position.z = z;
         Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
-        this._handler &&
-        this._handler.setPositionArr(this._tagData!, this._tagDataIndex, this._positionHigh, this._positionLow);
+        if (this._handler) {
+            this._handler.setPositionArr(this._tagData!, this._tagDataIndex, this._positionHigh, this._positionLow);
+        }
         this.updateRotation();
     }
 
@@ -271,12 +272,7 @@ class GeoObject {
      * @param {Vec3} position - Cartesian coordinates.
      */
     public setPosition3v(position: Vec3) {
-        this._position.x = position.x;
-        this._position.y = position.y;
-        this._position.z = position.z;
-        Vec3.doubleToTwoFloats(position, this._positionHigh, this._positionLow);
-        this._handler && this._handler.setPositionArr(this._tagData!, this._tagDataIndex, this._positionHigh, this._positionLow);
-        this.updateRotation();
+        this.setPosition(position.x, position.y, position.z);
     }
 
     public setYaw(yaw: number) {

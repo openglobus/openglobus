@@ -60,73 +60,73 @@ async function main() {
             }
         }));
 
-        c2.appendChild(new Entity({
-            geoObject: {
-                //color: "white",
-                scale: 1.0,
-                instanced: true,
-                tag: `crane-${i}`,
-                object3d: crane[i],
-                yaw: 24,
-                pitch: 0
-            }
-        }));
-
-        c3.appendChild(new Entity({
-            geoObject: {
-                //color: "white",
-                scale: 4.0,
-                instanced: true,
-                tag: `crane-${i}`,
-                object3d: crane[i],
-                yaw: -95,
-                pitch: 0
-            }
-        }));
-
-        c4.appendChild(new Entity({
-            geoObject: {
-                //color: "white",
-                scale: 1.0,
-                instanced: true,
-                tag: `crane-${i}`,
-                object3d: crane[i],
-                yaw: -160,
-                pitch: 0
-            }
-        }));
-
-        c5.appendChild(new Entity({
-            geoObject: {
-                //color: "white",
-                scale: 1.0,
-                instanced: true,
-                tag: `crane-${i}`,
-                object3d: crane[i],
-                yaw: 42,
-                pitch: 0
-            }
-        }));
-
-        c6.appendChild(new Entity({
-            geoObject: {
-                //color: "white",
-                scale: 1.0,
-                instanced: true,
-                tag: `crane-${i}`,
-                object3d: crane[i],
-                yaw: -229,
-                pitch: 0
-            }
-        }));
+        // c2.appendChild(new Entity({
+        //     geoObject: {
+        //         //color: "white",
+        //         scale: 1.0,
+        //         instanced: true,
+        //         tag: `crane-${i}`,
+        //         object3d: crane[i],
+        //         yaw: 24,
+        //         pitch: 0
+        //     }
+        // }));
+        //
+        // c3.appendChild(new Entity({
+        //     geoObject: {
+        //         //color: "white",
+        //         scale: 4.0,
+        //         instanced: true,
+        //         tag: `crane-${i}`,
+        //         object3d: crane[i],
+        //         yaw: -95,
+        //         pitch: 0
+        //     }
+        // }));
+        //
+        // c4.appendChild(new Entity({
+        //     geoObject: {
+        //         //color: "white",
+        //         scale: 1.0,
+        //         instanced: true,
+        //         tag: `crane-${i}`,
+        //         object3d: crane[i],
+        //         yaw: -160,
+        //         pitch: 0
+        //     }
+        // }));
+        //
+        // c5.appendChild(new Entity({
+        //     geoObject: {
+        //         //color: "white",
+        //         scale: 1.0,
+        //         instanced: true,
+        //         tag: `crane-${i}`,
+        //         object3d: crane[i],
+        //         yaw: 42,
+        //         pitch: 0
+        //     }
+        // }));
+        //
+        // c6.appendChild(new Entity({
+        //     geoObject: {
+        //         //color: "white",
+        //         scale: 1.0,
+        //         instanced: true,
+        //         tag: `crane-${i}`,
+        //         object3d: crane[i],
+        //         yaw: -229,
+        //         pitch: 0
+        //     }
+        // }));
     }
 
     cranesLayer.add(c1);
-    cranesLayer.add(c2);
-    cranesLayer.add(c3);
-    cranesLayer.add(c4);
-    cranesLayer.add(c5);
-    cranesLayer.add(c6);
+    // cranesLayer.add(c2);
+    // cranesLayer.add(c3);
+    // cranesLayer.add(c4);
+    // cranesLayer.add(c5);
+    // cranesLayer.add(c6);
 
     const globus = new Globe({
         frustums: [[0.01, 0.1 + 0.0075], [0.1, 1 + 0.075], [1, 100 + 0.075], [100, 1000 + 0.075], [1000, 1e6 + 10000], [1e6, 1e9]],
@@ -161,7 +161,7 @@ async function main() {
             ]
         });
 
-        layer.addTo(globus.planet);
+        //layer.addTo(globus.planet);
     }
 
     globus.planet.addControl(new control.DebugInfo());
@@ -180,6 +180,9 @@ async function main() {
     cubeLayer.addTo(globus.planet);
 
     globus.renderer.events.on("lclick", (e) => {
+
+        if (e.pickingObject.geoObject) return;
+
         let cart = globus.planet.getCartesianFromMouseTerrain();
         if (cart) {
             let dist = globus.planet.camera.eye.distance(cart);
