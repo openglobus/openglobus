@@ -62,6 +62,7 @@ class Object3d {
     public shininess: number;
     public colorTexture: string;
     public normalTexture: string;
+    public center: Vec3;
 
     constructor(data: IObject3dParams = {}) {
 
@@ -73,6 +74,8 @@ class Object3d {
         if (data.center) {
             Object3d.centering(this._vertices);
         }
+
+        this.center = Object3d.getCenter(this._vertices);
 
         this.color = getColor(data.color);
         this.ambient = getColor3v(data.ambient);
@@ -105,8 +108,11 @@ class Object3d {
         }
     }
 
-    static centering(verts: number[]) {
-        let min_x = MAX, min_y = MAX, min_z = MAX, max_x = MIN, max_y = MIN, max_z = MIN;
+    static getCenter(verts: number[]): Vec3 {
+
+        let min_x = MAX, min_y = MAX, min_z = MAX,
+            max_x = MIN, max_y = MIN, max_z = MIN;
+
         for (let i = 0, len = verts.length; i < len; i += 3) {
             let x = verts[i], y = verts[i + 1], z = verts[i + 2];
             if (x < min_x) min_x = x;
@@ -117,14 +123,19 @@ class Object3d {
             if (z > max_z) max_z = z;
         }
 
-        let c_x = min_x + (max_x - min_x) * 0.5;
-        let c_y = min_y + (max_y - min_y) * 0.5;
-        let c_z = min_z + (max_z - min_z) * 0.5;
+        return new Vec3(
+            min_x + (max_x - min_x) * 0.5,
+            min_y + (max_y - min_y) * 0.5,
+            min_z + (max_z - min_z) * 0.5
+        );
+    }
 
+    static centering(verts: number[]) {
+        let c = Object3d.getCenter(verts);
         for (let i = 0, len = verts.length; i < len; i += 3) {
-            verts[i] -= c_x;
-            verts[i + 1] -= c_y;
-            verts[i + 2] -= c_z;
+            verts[i] -= c.x;
+            verts[i + 1] -= c.y;
+            verts[i + 2] -= c.z;
         }
     }
 

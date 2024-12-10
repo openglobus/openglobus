@@ -144,7 +144,7 @@ class GeoObjectEditorScene extends RenderNode {
         this._axisTrackEntity = new AxisTrackEntity();
 
         this._moveLayer = new Vector("move-axis", {
-            scaleByDistance: [1, MAX32, 1],
+            scaleByDistance: [0.1, MAX32, 0.1],
             useLighting: false,
             pickingScale: [5, 1.1, 5],
             visibility: false,
@@ -153,7 +153,7 @@ class GeoObjectEditorScene extends RenderNode {
         });
 
         this._planeLayer = new Vector("move-plane", {
-            scaleByDistance: [1, MAX32, 1],
+            scaleByDistance: [0.1, MAX32, 0.1],
             useLighting: false,
             visibility: false,
             depthOrder: 1000,

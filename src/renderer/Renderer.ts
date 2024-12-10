@@ -1302,6 +1302,8 @@ class Renderer {
         let depth = _tempDepth_[0],
             frustum = camera.frustums[_tempDepth_[1]];
 
+        if (!frustum) return;
+
         let screenPos = new Vec4(spx * 2.0 - 1.0, spy * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0 * 2.0 - 1.0);
         let viewPosition = frustum.inverseProjectionMatrix.mulVec4(screenPos);
         let dir = (px as IBaseInputState).direction || r.activeCamera!.unproject(px.x, px.y);

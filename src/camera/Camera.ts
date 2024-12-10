@@ -107,6 +107,7 @@ class Camera {
      * @type {Mat4}
      */
     protected _viewMatrix: Mat4;
+    protected _viewMatrixRTE: Mat4;
 
     /**
      * Camera normal matrix.
@@ -177,6 +178,7 @@ class Camera {
         this._viewAngle = options.viewAngle || 47.0;
 
         this._viewMatrix = new Mat4();
+        this._viewMatrixRTE = new Mat4();
 
         this._normalMatrix = new Mat3();
 
@@ -346,11 +348,19 @@ class Camera {
             -eye.dot(u), -eye.dot(v), -eye.dot(n), 1.0
         ]);
 
+        this._viewMatrixRTE.set([
+            u.x, v.x, n.x, 0.0,
+            u.y, v.y, n.y, 0.0,
+            u.z, v.z, n.z, 0.0,
+            0, 0, 0, 1.0
+        ]);
+
         // do not clean up, someday it will be using
         //this._normalMatrix = this._viewMatrix.toMatrix3(); // this._viewMatrix.toInverseMatrix3().transposeTo();
 
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             this.frustums[i].setViewMatrix(this._viewMatrix);
+            this.frustums[i].setProjectionViewRTEMatrix(this._viewMatrixRTE);
         }
 
         this.events.dispatch(this.events.viewchange, this);
@@ -692,6 +702,15 @@ class Camera {
      */
     public getProjectionViewMatrix(): NumberArray16 {
         return this.frustum.projectionViewMatrix._m;
+    }
+
+    /**
+     * Returns projection and model RTE matrix product.
+     * @public
+     * @return {Mat4} - Projection-view matrix.
+     */
+    public getProjectionViewRTEMatrix(): NumberArray16 {
+        return this.frustum.projectionViewRTEMatrix._m;
     }
 
     /**

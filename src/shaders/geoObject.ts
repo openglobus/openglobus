@@ -10,6 +10,7 @@ export const geo_object = (): Program =>
         uniforms: {
             viewMatrix: "mat4",
             projectionMatrix: "mat4",
+            projectionViewRTEMatrix: "mat4",
 
             uScaleByDistance: "vec3",
 
@@ -55,6 +56,7 @@ export const geo_object = (): Program =>
             uniform vec3 uScaleByDistance;
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
+            uniform mat4 projectionViewRTEMatrix;
             
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
@@ -84,7 +86,7 @@ export const geo_object = (): Program =>
                 vTexCoords = aTexCoord;
               
                 mat4 viewMatrixRTE = viewMatrix;
-                viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
+                viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);               
 
                 vec3 highDiff = aPositionHigh - eyePositionHigh;
                 vec3 lowDiff = aPositionLow - eyePositionLow;
@@ -102,12 +104,14 @@ export const geo_object = (): Program =>
                 // ... is the same math
                 // use scaleByDistance: [1.0, 1.0, 1.0] for real sized objects 
                 float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
-                
                 vec3 vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate));
-                
                 vert += lowDiff;
+                
+                viewMatrixRTE = projectionMatrix * viewMatrixRTE;
+                
+                viewMatrixRTE = projectionViewRTEMatrix;
                                
-                gl_Position = projectionMatrix * viewMatrixRTE  * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
+                gl_Position = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
                 
                 v_vertex = position + vert;
             }`,

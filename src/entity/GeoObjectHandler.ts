@@ -739,6 +739,7 @@ class GeoObjectHandler {
 
         gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera!.getViewMatrix());
+        gl.uniformMatrix4fv(u.projectionViewRTEMatrix, false, r.activeCamera!.getProjectionViewRTEMatrix());
 
         //
         // Global sun position

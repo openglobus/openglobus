@@ -51,7 +51,7 @@ async function main() {
         c1.appendChild(new Entity({
             geoObject: {
                 //color: "white",
-                scale: 4.0,
+                scale: 1.0,
                 instanced: true,
                 tag: `crane-${i}`,
                 object3d: crane[i],
@@ -63,7 +63,7 @@ async function main() {
         c2.appendChild(new Entity({
             geoObject: {
                 //color: "white",
-                scale: 4.0,
+                scale: 1.0,
                 instanced: true,
                 tag: `crane-${i}`,
                 object3d: crane[i],
@@ -87,7 +87,7 @@ async function main() {
         c4.appendChild(new Entity({
             geoObject: {
                 //color: "white",
-                scale: 4.0,
+                scale: 1.0,
                 instanced: true,
                 tag: `crane-${i}`,
                 object3d: crane[i],
@@ -99,7 +99,7 @@ async function main() {
         c5.appendChild(new Entity({
             geoObject: {
                 //color: "white",
-                scale: 4.0,
+                scale: 1.0,
                 instanced: true,
                 tag: `crane-${i}`,
                 object3d: crane[i],
@@ -111,7 +111,7 @@ async function main() {
         c6.appendChild(new Entity({
             geoObject: {
                 //color: "white",
-                scale: 4.0,
+                scale: 1.0,
                 instanced: true,
                 tag: `crane-${i}`,
                 object3d: crane[i],
@@ -129,7 +129,7 @@ async function main() {
     cranesLayer.add(c6);
 
     const globus = new Globe({
-        frustums: [[0.1, 1 + 0.075], [1, 100 + 0.075], [100, 1000 + 0.075], [1000, 1e6 + 10000], [1e6, 1e9]],
+        frustums: [[0.01, 0.1 + 0.0075], [0.1, 1 + 0.075], [1, 100 + 0.075], [100, 1000 + 0.075], [1000, 1e6 + 10000], [1e6, 1e9]],
         target: "earth",
         name: "Earth",
         terrain: new GlobusRgbTerrain(),
@@ -170,7 +170,36 @@ async function main() {
     globus.planet.addControl(new control.TimelineControl());
     globus.planet.addControl(new control.GeoObjectEditor());
     globus.planet.addControl(new control.ToggleWireframe());
+
+    let cubeObj = Object3d.createCube(0.01, 0.01, 0.01);
+
+    let cubeLayer = new Vector("Cubes", {
+        scaleByDistance: [1, 1, 1]
+    });
+
+    cubeLayer.addTo(globus.planet);
+
+    globus.renderer.events.on("lclick", (e) => {
+        let cart = globus.planet.getCartesianFromMouseTerrain();
+        if (cart) {
+            let dist = globus.planet.camera.eye.distance(cart);
+            let cube = new Entity({
+                cartesian: cart,
+                geoObject: {
+                    color: "white",
+                    scale: 1.0,
+                    instanced: true,
+                    tag: `cube`,
+                    object3d: cubeObj,
+                    yaw: 0,
+                    pitch: 0
+                }
+            });
+            cubeLayer.add(cube);
+            console.log(dist);
+        }
+    })
 }
 
-main()
+main();
 
