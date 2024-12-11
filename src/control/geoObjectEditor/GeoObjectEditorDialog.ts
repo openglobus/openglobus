@@ -51,7 +51,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
             type: "number",
             min: -180,
             max: 180,
-            maxFixed: 7
+            maxFixed: 10
         });
 
         this._latView = new Input({
@@ -59,13 +59,13 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
             type: "number",
             min: -90,
             max: 90,
-            maxFixed: 7
+            maxFixed: 10
         });
 
         this._heightView = new Input({
             label: "Height",
             type: "number",
-            maxFixed: 2
+            maxFixed: 4
         });
 
         this._pitchView = new Input({
@@ -216,6 +216,11 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     }
 
     protected _onPosition = (pos: Vec3, entity: Entity) => {
+
+        this._lonView.events.stopPropagation();
+        this._latView.events.stopPropagation();
+        this._heightView.events.stopPropagation();
+
         let ll = entity.getLonLat();
         this._lonView.value = ll.lon;
         this._latView.value = ll.lat;
@@ -223,14 +228,17 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     }
 
     protected _onPitch = (a: number, entity: Entity) => {
+        this._pitchView.events.stopPropagation();
         this._pitchView.value = getGeoObject(entity).getPitch();
     }
 
     protected _onYaw = (a: number, entity: Entity) => {
+        this._yawView.events.stopPropagation();
         this._yawView.value = getGeoObject(entity).getYaw();
     }
 
     protected _onRoll = (a: number, entity: Entity) => {
+        this._rollView.events.stopPropagation();
         this._rollView.value = getGeoObject(entity).getRoll();
     }
 

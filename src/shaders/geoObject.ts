@@ -123,8 +123,10 @@ export const geo_object = (): Program =>
                                
                 gl_Position = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
                
+               
+                vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate));
                 
-                gl_Position = viewMatrixRTE * vec4(aVertexPosition + rtcPos, 1.0);
+                gl_Position = viewMatrixRTE * vec4(vert + rtcPos, 1.0);
                 
                 v_vertex = position + vert;
             }`,

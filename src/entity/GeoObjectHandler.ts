@@ -1088,7 +1088,9 @@ class GeoObjectHandler {
                 for (let i = 0; i < geoObjects.length; i++) {
                     let gi = geoObjects[i],
                         objPos = gi.getPosition();
-                    let rtcPosition = gi.object3d.center.add(objPos).sub(camPos);
+
+                    let rtcPosition = objPos.sub(camPos);
+
                     Vec3.doubleToTwoFloats(rtcPosition, rtcPositionHigh, rtcPositionLow);
                     this.setRTCPositionArr(instanceData, gi._tagDataIndex, rtcPositionHigh, rtcPositionLow);
                 }

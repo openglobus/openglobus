@@ -51,7 +51,7 @@ async function main() {
         c1.appendChild(new Entity({
             geoObject: {
                 //color: "white",
-                scale: 1.0,
+                scale: 5.0,
                 instanced: true,
                 tag: `crane-${i}`,
                 object3d: crane[i],
@@ -171,7 +171,7 @@ async function main() {
     globus.planet.addControl(new control.GeoObjectEditor());
     globus.planet.addControl(new control.ToggleWireframe());
 
-    let cubeObj = Object3d.createCube(0.01, 0.01, 0.01);
+    let cubeObj = Object3d.createCube(0.001, 0.001, 0.001);
 
     let cubeLayer = new Vector("Cubes", {
         scaleByDistance: [1, 1, 1]
@@ -181,7 +181,7 @@ async function main() {
 
     globus.renderer.events.on("lclick", (e) => {
 
-        if (e.pickingObject.geoObject) return;
+        //if (e.pickingObject.geoObject) return;
 
         let cart = globus.planet.getCartesianFromMouseTerrain();
         if (cart) {

@@ -495,7 +495,11 @@ class GeoObjectEditorScene extends RenderNode {
                 let dragCart = Vec3.proj_b_to_a(px, groundNormal);
                 let dragVec = dragCart.sub(clickCart);
                 let pos = this._selectedEntityCart.add(dragVec);
+
+                console.log(pos);
+
                 this._selectedEntity.setCartesian3v(pos);
+
 
                 this.events.dispatch(this.events.position, px, this._selectedEntity);
                 this.events.dispatch(this.events.change, this._selectedEntity);
