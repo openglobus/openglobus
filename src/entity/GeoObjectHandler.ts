@@ -568,6 +568,8 @@ class GeoObjectHandler {
     protected _instanceDataMapValues: InstanceData[];
     protected _dataTagUpdateQueue: InstanceData[];
 
+    protected _relativeCenter: Vec3;
+
     constructor(entityCollection: EntityCollection) {
 
         this.__id = GeoObjectHandler.__counter__++;
@@ -584,6 +586,9 @@ class GeoObjectHandler {
         this._instanceDataMapValues = [];
 
         this._dataTagUpdateQueue = [];
+
+        this._relativeCenter = new Vec3();
+
     }
 
     public initProgram() {
@@ -795,6 +800,16 @@ class GeoObjectHandler {
 
         gl.uniform3fv(u.eyePositionHigh, r.activeCamera!.eyeHigh);
         gl.uniform3fv(u.eyePositionLow, r.activeCamera!.eyeLow);
+
+        let rtcEyePosition = r.activeCamera!.eye.sub(this._relativeCenter);
+
+        let rtcEyePositionHigh = new Float32Array([0, 0, 0]),
+            rtcEyePositionLow = new Float32Array([0, 0, 0]);
+
+        Vec3.doubleToTwoFloat32Array(rtcEyePosition, rtcEyePositionHigh, rtcEyePositionLow);
+
+        gl.uniform3fv(u.rtcEyePositionHigh, rtcEyePositionHigh);
+        gl.uniform3fv(u.rtcEyePositionLow, rtcEyePositionLow);
 
         gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera!.getViewMatrix());
@@ -1085,12 +1100,12 @@ class GeoObjectHandler {
                 let rtcPositionHigh = new Vec3(),
                     rtcPositionLow = new Vec3();
 
+                //@ts-ignore
+                this._relativeCenter = geoObjects[0].getPosition().clone();//window.savedPos || camPos.clone();//new Vec3(0, 0, 0);
+
                 for (let i = 0; i < geoObjects.length; i++) {
-                    let gi = geoObjects[i],
-                        objPos = gi.getPosition();
-
-                    let rtcPosition = objPos.sub(camPos);
-
+                    let gi = geoObjects[i];
+                    let rtcPosition = gi.getPosition().sub(this._relativeCenter);//objPos.sub(camPos);
                     Vec3.doubleToTwoFloats(rtcPosition, rtcPositionHigh, rtcPositionLow);
                     this.setRTCPositionArr(instanceData, gi._tagDataIndex, rtcPositionHigh, rtcPositionLow);
                 }

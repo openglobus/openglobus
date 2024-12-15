@@ -181,6 +181,8 @@ async function main() {
 
     globus.renderer.events.on("lclick", (e) => {
 
+        window.savedPos = globus.planet.camera.eye.clone();
+
         //if (e.pickingObject.geoObject) return;
 
         let cart = globus.planet.getCartesianFromMouseTerrain();

@@ -17,6 +17,9 @@ export const geo_object = (): Program =>
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
 
+            rtcEyePositionHigh: "vec3",
+            rtcEyePositionLow: "vec3",
+
             sunPosition: "vec3",
             materialParams: "vec3",
             materialShininess: "float",
@@ -68,6 +71,9 @@ export const geo_object = (): Program =>
             
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
+            
+            uniform vec3 rtcEyePositionHigh;
+            uniform vec3 rtcEyePositionLow;
 
             varying vec3 cameraPosition;
             varying vec3 vNormal;
@@ -89,7 +95,7 @@ export const geo_object = (): Program =>
                 
                 vec3 rtcPos = aRTCPositionHigh + aRTCPositionLow;
                 
-                vec3 look = cameraPosition - position + rtcPos - rtcPos;
+                vec3 look = cameraPosition - position;
                 float lookLength = length(look);
 
                 vColor = aColor;
@@ -100,6 +106,9 @@ export const geo_object = (): Program =>
 
                 vec3 highDiff = aPositionHigh - eyePositionHigh;
                 vec3 lowDiff = aPositionLow - eyePositionLow;
+                
+                highDiff = aRTCPositionHigh - rtcEyePositionHigh;
+                lowDiff = aRTCPositionLow - rtcEyePositionLow;
              
                 vNormal = qRotate(qRot, aVertexNormal);
                                
@@ -123,10 +132,9 @@ export const geo_object = (): Program =>
                                
                 gl_Position = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
                
-               
-                vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate));
-                
-                gl_Position = viewMatrixRTE * vec4(vert + rtcPos, 1.0);
+                            
+                //vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate)); 
+                //gl_Position = viewMatrixRTE * vec4(vert + rtcPos, 1.0);
                 
                 v_vertex = position + vert;
             }`,
