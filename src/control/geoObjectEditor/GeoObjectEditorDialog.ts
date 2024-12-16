@@ -211,6 +211,12 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         this._scaleZView.value = scl.z;
     }
 
+    protected override hide() {
+        super.hide();
+        this.model.events.stopPropagation();
+        this.model.unselect();
+    }
+
     protected _onUnselect = (entity: Entity) => {
         this.hide();
     }
