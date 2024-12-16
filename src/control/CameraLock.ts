@@ -184,7 +184,7 @@ export class CameraLock extends Control {
         }
     }
 
-    private _onLockViewDraw() {
+    private _onLockViewDraw = () => {
         if (this.planet && this._lockEntity) {
             if (this._isFromTheBack) {
                 // let cam = this.planet.camera;
@@ -208,7 +208,7 @@ export class CameraLock extends Control {
         }
     }
 
-    protected _onMouseWheel(e: IMouseState) {
+    protected _onMouseWheel = (e: IMouseState) => {
         if (this.planet && this._lockEntity) {
             if (this._isFromTheBack) {
                 //...
@@ -223,7 +223,7 @@ export class CameraLock extends Control {
         }
     }
 
-    protected _onMouseMove(ms: IMouseState) {
+    protected _onMouseMove = (ms: IMouseState) => {
         if (this._lockEntity && this.planet) {
             if (ms.rightButtonDown || this.planet.renderer && this.planet.renderer.events.isKeyPressed(input.KEY_ALT)) {
 

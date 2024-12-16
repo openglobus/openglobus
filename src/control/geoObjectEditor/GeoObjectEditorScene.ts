@@ -18,6 +18,7 @@ import {Ray} from "../../math/Ray";
 import {Sphere} from "../../bv/Sphere";
 import {AxisTrackEntity} from "./AxisTrackEntity";
 import {GeoObject} from "../../entity/GeoObject";
+import {CameraLock} from "../CameraLock";
 
 
 export function getGeoObject(entity: Entity): GeoObject {
@@ -393,6 +394,7 @@ class GeoObjectEditorScene extends RenderNode {
         this._moveLayer.setVisibility(visibility);
         this._planeLayer.setVisibility(visibility);
         this._rotateLayer.setVisibility(visibility);
+        this.unlockView();
     }
 
     public readyToEdit(entity: Entity): boolean {
@@ -701,6 +703,20 @@ class GeoObjectEditorScene extends RenderNode {
 
     public getSelectedEntity(): Entity | null {
         return this._selectedEntity;
+    }
+
+    public lockView() {
+        if (this.renderer && this._selectedEntity) {
+            let camLock = this.renderer.controls.CameraLock as CameraLock;
+            camLock.lockView(this._selectedEntity);
+        }
+    }
+
+    public unlockView() {
+        if (this.renderer && this._selectedEntity) {
+            let camLock = this.renderer.controls.CameraLock as CameraLock;
+            camLock.unlockView();
+        }
     }
 }
 

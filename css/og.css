@@ -1268,3 +1268,15 @@ TIMELINE
     margin-left: 5px;
     margin-top: 15px;
 }
+
+.og-editor_toolbar {
+    padding-bottom: 8px;
+    display: flex;
+}
+
+.og-editor_toolbar-button {
+    width: 25px;
+    height: 25px;
+    float: left;
+    margin: 3px;
+}

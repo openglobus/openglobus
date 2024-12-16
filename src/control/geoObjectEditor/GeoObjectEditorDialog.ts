@@ -12,6 +12,12 @@ import {
     setEntityScale,
     setEntityScale3v
 } from "./GeoObjectEditorScene";
+import {ToggleButton} from "../../ui/ToggleButton";
+import {CameraLock} from "../CameraLock";
+
+const ICON_LOCK_BUTTON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" id="filter-center-focus">
+  <path d="M5 15H3v4c0 1.1.9 2 2 2h4v-2H5v-4zM5 5h4V3H5c-1.1 0-2 .9-2 2v4h2V5zm14-2h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm0 16h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zM12 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+</svg>`;
 
 interface IGeoObjectPropertiesDialog extends IDialogParams {
     model: GeoObjectEditorScene
@@ -39,8 +45,8 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
             useHide: true,
             top: 25,
             right: 85,
-            width: 180,
-            height: 345,
+            width: 252,
+            height: 380,
             minHeight: 100,
             minWidth: 100,
             model: params.model
@@ -122,6 +128,32 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         super.render(params);
 
         this._initSceneEvents();
+
+        let $toolbar = document.createElement("div");
+        $toolbar.classList.add("og-editor_toolbar");
+        this.container?.appendChild($toolbar);
+
+        let cameraLockBtn = new ToggleButton({
+            classList: ["og-editor_toolbar-button"],
+            icon: ICON_LOCK_BUTTON_SVG,
+            title: "Lock/Unlock camera view"
+        });
+        cameraLockBtn.appendTo($toolbar);
+
+        cameraLockBtn.events.on("change", (isActive: boolean) => {
+            if (isActive) {
+                this.model.lockView();
+            } else {
+                this.model.unlockView();
+            }
+        });
+
+        this.events.on("visibility", (vis: boolean) => {
+            if (!vis) {
+                cameraLockBtn.events.stopPropagation();
+                cameraLockBtn.setActive(false);
+            }
+        })
 
         this.events.on("visibility", this._onVisibility);
 
@@ -211,7 +243,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         this._scaleZView.value = scl.z;
     }
 
-    protected override hide() {
+    public override hide() {
         super.hide();
         this.model.events.stopPropagation();
         this.model.unselect();
