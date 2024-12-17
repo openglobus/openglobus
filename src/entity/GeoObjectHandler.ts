@@ -268,20 +268,11 @@ class InstanceData {
 
         let r = this._geoObjectHandler!._planet!.renderer!;
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionHighBuffer!);
-        gl.vertexAttribPointer(a.aPositionHigh, this._positionHighBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._positionLowBuffer!);
-        gl.vertexAttribPointer(a.aPositionLow, this._positionLowBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-
-        //
-        // RTC
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rtcPositionHighBuffer!);
         gl.vertexAttribPointer(a.aRTCPositionHigh, this._rtcPositionHighBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rtcPositionLowBuffer!);
         gl.vertexAttribPointer(a.aRTCPositionLow, this._rtcPositionLowBuffer!.itemSize, gl.FLOAT, false, 0, 0);
-
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._normalsBuffer!);
         gl.vertexAttribPointer(a.aVertexNormal, this._normalsBuffer!.itemSize, gl.FLOAT, false, 0, 0);
@@ -813,7 +804,6 @@ class GeoObjectHandler {
 
         gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera!.getViewMatrix());
-        gl.uniformMatrix4fv(u.projectionViewRTEMatrix, false, r.activeCamera!.getProjectionViewRTEMatrix());
 
         //
         // Global sun position
@@ -1091,8 +1081,6 @@ class GeoObjectHandler {
     public draw() {
         if (this._geoObjects.length) {
 
-            let camPos = this._planet!.camera.eye;
-
             for (let i = 0; i < this._instanceDataMapValues.length; i++) {
                 let instanceData = this._instanceDataMapValues[i];
                 let geoObjects = instanceData.geoObjects;
@@ -1101,11 +1089,11 @@ class GeoObjectHandler {
                     rtcPositionLow = new Vec3();
 
                 //@ts-ignore
-                this._relativeCenter = geoObjects[0].getPosition().clone();//window.savedPos || camPos.clone();//new Vec3(0, 0, 0);
+                this._relativeCenter = geoObjects[0].getPosition().clone();
 
                 for (let i = 0; i < geoObjects.length; i++) {
                     let gi = geoObjects[i];
-                    let rtcPosition = gi.getPosition().sub(this._relativeCenter);//objPos.sub(camPos);
+                    let rtcPosition = gi.getPosition().sub(this._relativeCenter);
                     Vec3.doubleToTwoFloats(rtcPosition, rtcPositionHigh, rtcPositionLow);
                     this.setRTCPositionArr(instanceData, gi._tagDataIndex, rtcPositionHigh, rtcPositionLow);
                 }

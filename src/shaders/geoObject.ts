@@ -10,7 +10,6 @@ export const geo_object = (): Program =>
         uniforms: {
             viewMatrix: "mat4",
             projectionMatrix: "mat4",
-            projectionViewRTEMatrix: "mat4",
 
             uScaleByDistance: "vec3",
 
@@ -33,9 +32,6 @@ export const geo_object = (): Program =>
             aVertexNormal: "vec3",
             aTexCoord: "vec2",
 
-            aPositionHigh: {type: "vec3", divisor: 1},
-            aPositionLow: {type: "vec3", divisor: 1},
-
             aRTCPositionHigh: {type: "vec3", divisor: 1},
             aRTCPositionLow: {type: "vec3", divisor: 1},
 
@@ -50,8 +46,6 @@ export const geo_object = (): Program =>
             
             attribute vec3 aVertexPosition;
             attribute vec3 aVertexNormal; 
-            attribute vec3 aPositionHigh;
-            attribute vec3 aPositionLow;
             
             attribute vec3 aRTCPositionHigh;
             attribute vec3 aRTCPositionLow;    
@@ -67,7 +61,6 @@ export const geo_object = (): Program =>
             uniform vec3 uScaleByDistance;
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
-            uniform mat4 projectionViewRTEMatrix;
             
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
@@ -90,53 +83,31 @@ export const geo_object = (): Program =>
                    return;
                 }
                 
-                vec3 position = aPositionHigh + aPositionLow;
+                vColor = aColor;
+                vTexCoords = aTexCoord;      
+                
+                mat4 viewMatrixRTE = viewMatrix;
+                viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
+                
+                vec3 highDiff = aRTCPositionHigh - rtcEyePositionHigh;
+                vec3 lowDiff = aRTCPositionLow - rtcEyePositionLow;
+               
                 cameraPosition = eyePositionHigh + eyePositionLow;
                 
-                vec3 rtcPos = aRTCPositionHigh + aRTCPositionLow;
+                highDiff = highDiff * step(1.0, length(highDiff));
                 
-                vec3 look = cameraPosition - position;
-                float lookLength = length(look);
+                vec4 positionInViewSpace = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
 
-                vColor = aColor;
-                vTexCoords = aTexCoord;
-              
-                mat4 viewMatrixRTE = viewMatrix;
-                viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);               
-
-                vec3 highDiff = aPositionHigh - eyePositionHigh;
-                vec3 lowDiff = aPositionLow - eyePositionLow;
-                
-                highDiff = aRTCPositionHigh - rtcEyePositionHigh;
-                lowDiff = aRTCPositionLow - rtcEyePositionLow;
-             
+                float lookLength = length(positionInViewSpace.xyz);
+                             
                 vNormal = qRotate(qRot, aVertexNormal);
                                
-                // if(lookLength > uScaleByDistance[1])
-                // {
-                //     scd = uScaleByDistance[1] / uScaleByDistance[0];
-                // }
-                // else if(lookLength > uScaleByDistance[0])
-                // {
-                //     scd = lookLength / uScaleByDistance[0];
-                // }
-                // ... is the same math
-                // use scaleByDistance: [1.0, 1.0, 1.0] for real sized objects 
                 float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
                 vec3 vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate));
-                vert += lowDiff;
+                 
+                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff + vert, 1.0);
                 
-                viewMatrixRTE = projectionMatrix * viewMatrixRTE;
-                
-                viewMatrixRTE = projectionViewRTEMatrix;
-                               
-                gl_Position = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
-               
-                            
-                //vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate)); 
-                //gl_Position = viewMatrixRTE * vec4(vert + rtcPos, 1.0);
-                
-                v_vertex = position + vert;
+                v_vertex = positionInViewSpace.xyz + vert;
             }`,
 
         fragmentShader: `precision highp float;
