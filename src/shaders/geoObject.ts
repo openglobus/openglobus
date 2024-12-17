@@ -157,9 +157,9 @@ export const geo_object_picking = (): Program =>
             viewMatrix: "mat4",
             projectionMatrix: "mat4",
             uScaleByDistance: "vec3",
-            eyePositionHigh: "vec3",
-            eyePositionLow: "vec3",
-            pickingScale: "vec3"
+            pickingScale: "vec3",
+            rtcEyePositionHigh: "vec3",
+            rtcEyePositionLow: "vec3",
         },
         attributes: {
             aVertexPosition: "vec3",
@@ -174,16 +174,17 @@ export const geo_object_picking = (): Program =>
         vertexShader: `precision highp float;
 
             attribute vec3 aVertexPosition;
-            attribute vec3 aPositionHigh;
-            attribute vec3 aPositionLow;
+            attribute vec3 aRTCPositionHigh;
+            attribute vec3 aRTCPositionLow;
             attribute vec3 aPickingColor;    
             attribute vec3 aScale;
             attribute vec3 aTranslate;
             attribute float aDispose;
             attribute vec4 qRot;
             
-            uniform vec3 eyePositionHigh;
-            uniform vec3 eyePositionLow;
+            uniform vec3 rtcEyePositionHigh;
+            uniform vec3 rtcEyePositionLow;
+            
             uniform vec3 uScaleByDistance;
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
@@ -197,42 +198,27 @@ export const geo_object_picking = (): Program =>
 
                 if (aDispose == 0.0) {
                     return;
-                 }
-            
-                 vColor = aPickingColor;
+                }          
                 
-                 vec3 position = aPositionHigh + aPositionLow;
-                 vec3 cameraPosition = eyePositionHigh + eyePositionLow;
- 
-                 mat4 viewMatrixRTE = viewMatrix;
-                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
- 
-                 vec3 highDiff = aPositionHigh - eyePositionHigh;
-                 vec3 lowDiff = aPositionLow - eyePositionLow;
-              
-                 vec3 look = cameraPosition - position;
-                 float lookLength = length(look);
-                                
-                 // if(lookLength > uScaleByDistance[1])
-                 // {
-                 //     scd = uScaleByDistance[1] / uScaleByDistance[0];
-                 // }
-                 // else if(lookLength > uScaleByDistance[0])
-                 // {
-                 //     scd = lookLength / uScaleByDistance[0];
-                 // }
-                 // ... is the same math above
-                 // @hack
-                 // pickingScale replace to this line, because when it s
-                 // tays in the vert above it affects on Mac Safari jitter
-                 float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
-
-                 //vec3 vert = qRotate(qRot, (aVertexPosition * aScale + aTranslate) * pickingScale) * scd;
-                 vec3 vert = qRotate(qRot, scd * pickingScale * (aVertexPosition * aScale + aTranslate));
+                vColor = aPickingColor;
                  
-                 vert += lowDiff;
+                mat4 viewMatrixRTE = viewMatrix;
+                viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
+                
+                vec3 highDiff = aRTCPositionHigh - rtcEyePositionHigh;
+                vec3 lowDiff = aRTCPositionLow - rtcEyePositionLow;  
+                
+                highDiff = highDiff * step(1.0, length(highDiff));
+                
+                vec4 positionInViewSpace = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
+
+                float lookLength = length(positionInViewSpace.xyz);
                                 
-                 gl_Position = projectionMatrix * viewMatrixRTE  * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
+                float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
+
+                vec3 vert = qRotate(qRot, scd * pickingScale * (aVertexPosition * aScale + aTranslate));
+                    
+                gl_Position = projectionMatrix * viewMatrixRTE  * vec4(highDiff + lowDiff + vert, 1.0);
             }`,
         fragmentShader:
             `precision highp float;
