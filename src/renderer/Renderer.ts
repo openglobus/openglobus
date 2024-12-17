@@ -141,7 +141,7 @@ class Renderer {
      * @public
      * @type {Camera}
      */
-    public activeCamera: Camera | null;
+    public activeCamera: Camera;
 
     /**
      * Renderer events. Represents interface for setting events like mousemove, draw, keypress etc.
@@ -263,7 +263,9 @@ class Renderer {
 
         this.renderNodes = {};
 
-        this.activeCamera = null;
+        this.activeCamera = new Camera(this, {
+            eye: new Vec3(0, 0, 0), look: new Vec3(0, 0, -1), up: new Vec3(0, 1, 0)
+        });
 
         this.events = createRendererEvents(this);
 
@@ -561,10 +563,6 @@ class Renderer {
 
         this.handler.setFrameCallback(() => {
             this.draw();
-        });
-
-        this.activeCamera = new Camera(this, {
-            eye: new Vec3(0, 0, 0), look: new Vec3(0, 0, -1), up: new Vec3(0, 1, 0)
         });
 
         this.events.initialize();
@@ -1338,6 +1336,7 @@ class Renderer {
 
         this.renderNodes = {};
 
+        //@ts-ignore
         this.activeCamera = null;
 
         this.controls = {};
