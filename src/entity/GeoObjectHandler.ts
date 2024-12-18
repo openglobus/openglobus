@@ -1046,13 +1046,17 @@ class GeoObjectHandler {
         }
     }
 
+    public _updateRTCEyePosition() {
+        let r = this._planet!.renderer!;
+        if (r.activeCamera.isFirstPass) {
+            let rtcEyePosition = r.activeCamera.eye.sub(this._relativeCenter);
+            Vec3.doubleToTwoFloat32Array(rtcEyePosition, this._rtcEyePositionHigh, this._rtcEyePositionLow);
+        }
+    }
+
     public draw() {
         if (this._geoObjects.length) {
-            let r = this._planet!.renderer!;
-            if (r.activeCamera.isFirstPass) {
-                let rtcEyePosition = r.activeCamera.eye.sub(this._relativeCenter);
-                Vec3.doubleToTwoFloat32Array(rtcEyePosition, this._rtcEyePositionHigh, this._rtcEyePositionLow);
-            }
+            this._updateRTCEyePosition();
             this.update();
             this._displayOpaquePASS();
         }
