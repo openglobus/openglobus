@@ -11,7 +11,7 @@ import {Object3d} from "../Object3d";
 import {Program} from "../webgl/Program";
 
 const VERTEX_BUFFER = 0;
-const POSITION_BUFFER = 1;
+const RTC_POSITION_BUFFER = 1;
 const RGBA_BUFFER = 2;
 const NORMALS_BUFFER = 3;
 const INDEX_BUFFER = 4;
@@ -21,7 +21,6 @@ const PICKINGCOLOR_BUFFER = 7;
 const VISIBLE_BUFFER = 8;
 const TEXCOORD_BUFFER = 9;
 const TRANSLATE_BUFFER = 10;
-const RTC_POSITION_BUFFER = 11;
 
 const AMBIENT_R = 0;
 const AMBIENT_G = 1;
@@ -40,9 +39,6 @@ function setParametersToArray(arr: number[] | TypedArray, index: number = 0, len
     }
     return arr;
 }
-
-let __rtcEyePositionHigh__ = new Float32Array([0, 0, 0]),
-    __rtcEyePositionLow__ = new Float32Array([0, 0, 0]);
 
 class InstanceData {
 
@@ -64,8 +60,6 @@ class InstanceData {
     public _sizeArr: number[] | TypedArray;
     public _translateArr: number[] | TypedArray;
     public _vertexArr: number[] | TypedArray;
-    public _positionHighArr: number[] | TypedArray;
-    public _positionLowArr: number[] | TypedArray;
 
     public _rtcPositionHighArr: number[] | TypedArray;
     public _rtcPositionLowArr: number[] | TypedArray;
@@ -81,8 +75,6 @@ class InstanceData {
     public _sizeBuffer: WebGLBufferExt | null;
     public _translateBuffer: WebGLBufferExt | null;
     public _vertexBuffer: WebGLBufferExt | null;
-    public _positionHighBuffer: WebGLBufferExt | null;
-    public _positionLowBuffer: WebGLBufferExt | null;
     public _rtcPositionHighBuffer: WebGLBufferExt | null;
     public _rtcPositionLowBuffer: WebGLBufferExt | null;
     public _qRotBuffer: WebGLBufferExt | null;
@@ -119,8 +111,6 @@ class InstanceData {
         this._sizeArr = [];
         this._translateArr = [];
         this._vertexArr = [];
-        this._positionHighArr = [];
-        this._positionLowArr = [];
         this._rtcPositionHighArr = [];
         this._rtcPositionLowArr = [];
         this._qRotArr = [];
@@ -134,8 +124,6 @@ class InstanceData {
         this._sizeBuffer = null;
         this._translateBuffer = null;
         this._vertexBuffer = null;
-        this._positionHighBuffer = null;
-        this._positionLowBuffer = null;
         this._rtcPositionHighBuffer = null;
         this._rtcPositionLowBuffer = null;
         this._qRotBuffer = null;
@@ -151,7 +139,6 @@ class InstanceData {
 
         this._buffersUpdateCallbacks = [];
         this._buffersUpdateCallbacks[PICKINGCOLOR_BUFFER] = this.createPickingColorBuffer;
-        this._buffersUpdateCallbacks[POSITION_BUFFER] = this.createPositionBuffer;
         this._buffersUpdateCallbacks[NORMALS_BUFFER] = this.createNormalsBuffer;
         this._buffersUpdateCallbacks[RGBA_BUFFER] = this.createRgbaBuffer;
         this._buffersUpdateCallbacks[INDEX_BUFFER] = this.createIndicesBuffer;
@@ -315,8 +302,6 @@ class InstanceData {
         this._sizeArr = [];
         this._translateArr = [];
         this._vertexArr = [];
-        this._positionHighArr = [];
-        this._positionLowArr = [];
         this._rtcPositionHighArr = [];
         this._rtcPositionLowArr = [];
         this._qRotArr = [];
@@ -347,8 +332,6 @@ class InstanceData {
             gl.deleteBuffer(this._sizeBuffer!);
             gl.deleteBuffer(this._translateBuffer!);
             gl.deleteBuffer(this._vertexBuffer!);
-            gl.deleteBuffer(this._positionHighBuffer!);
-            gl.deleteBuffer(this._positionLowBuffer!);
             gl.deleteBuffer(this._rtcPositionHighBuffer!);
             gl.deleteBuffer(this._rtcPositionLowBuffer!);
             gl.deleteBuffer(this._qRotBuffer!);
@@ -363,8 +346,6 @@ class InstanceData {
         this._sizeBuffer = null;
         this._translateBuffer = null;
         this._vertexBuffer = null;
-        this._positionHighBuffer = null;
-        this._positionLowBuffer = null;
         this._rtcPositionHighBuffer = null;
         this._rtcPositionLowBuffer = null;
         this._qRotBuffer = null;
@@ -431,24 +412,6 @@ class InstanceData {
         h.gl!.deleteBuffer(this._texCoordBuffer!);
         this._texCoordArr = makeArrayTyped(this._texCoordArr);
         this._texCoordBuffer = h.createArrayBuffer(this._texCoordArr as Uint8Array, 2, this._texCoordArr.length / 2);
-    }
-
-    public createPositionBuffer() {
-        let h = this._geoObjectHandler._planet!.renderer!.handler,
-            numItems = this._positionHighArr.length / 3;
-
-        if (!this._positionHighBuffer || this._positionHighBuffer.numItems !== numItems) {
-            h.gl!.deleteBuffer(this._positionHighBuffer!);
-            h.gl!.deleteBuffer(this._positionLowBuffer!);
-            this._positionHighBuffer = h.createStreamArrayBuffer(3, numItems);
-            this._positionLowBuffer = h.createStreamArrayBuffer(3, numItems);
-        }
-
-        this._positionHighArr = makeArrayTyped(this._positionHighArr);
-        this._positionLowArr = makeArrayTyped(this._positionLowArr);
-
-        h.setStreamArrayBuffer(this._positionHighBuffer!, this._positionHighArr as Float32Array);
-        h.setStreamArrayBuffer(this._positionLowBuffer!, this._positionLowArr as Float32Array);
     }
 
     public createRTCPositionBuffer() {
@@ -564,6 +527,9 @@ class GeoObjectHandler {
 
     protected _relativeCenter: Vec3;
 
+    protected _rtcEyePositionHigh: Float32Array;
+    protected _rtcEyePositionLow: Float32Array;
+
     constructor(entityCollection: EntityCollection) {
 
         this.__id = GeoObjectHandler.__counter__++;
@@ -583,6 +549,8 @@ class GeoObjectHandler {
 
         this._relativeCenter = new Vec3();
 
+        this._rtcEyePositionHigh = new Float32Array([0, 0, 0]);
+        this._rtcEyePositionLow = new Float32Array([0, 0, 0]);
     }
 
     public initProgram() {
@@ -722,25 +690,16 @@ class GeoObjectHandler {
 
         //
         // Global coordinates
-        let x = geoObject._positionHigh.x,
-            y = geoObject._positionHigh.y,
-            z = geoObject._positionHigh.z,
+        let x = geoObject._rtcPositionHigh.x,
+            y = geoObject._rtcPositionHigh.y,
+            z = geoObject._rtcPositionHigh.z,
             w;
 
-        tagData._positionHighArr = concatArrays(tagData._positionHighArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
-
-        x = geoObject._positionLow.x;
-        y = geoObject._positionLow.y;
-        z = geoObject._positionLow.z;
-        tagData._positionLowArr = concatArrays(tagData._positionLowArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
-
-        //
-        // RTC coordinates
         tagData._rtcPositionHighArr = concatArrays(tagData._rtcPositionHighArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
 
-        x = geoObject._positionLow.x;
-        y = geoObject._positionLow.y;
-        z = geoObject._positionLow.z;
+        x = geoObject._rtcPositionLow.x;
+        y = geoObject._rtcPositionLow.y;
+        z = geoObject._rtcPositionLow.z;
         tagData._rtcPositionLowArr = concatArrays(tagData._rtcPositionLowArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
 
 
@@ -795,12 +754,8 @@ class GeoObjectHandler {
         gl.uniform3fv(u.eyePositionHigh, r.activeCamera.eyeHigh);
         gl.uniform3fv(u.eyePositionLow, r.activeCamera.eyeLow);
 
-        let rtcEyePosition = r.activeCamera.eye.sub(this._relativeCenter);
-
-        Vec3.doubleToTwoFloat32Array(rtcEyePosition, __rtcEyePositionHigh__, __rtcEyePositionLow__);
-
-        gl.uniform3fv(u.rtcEyePositionHigh, __rtcEyePositionHigh__);
-        gl.uniform3fv(u.rtcEyePositionLow, __rtcEyePositionLow__);
+        gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);
+        gl.uniform3fv(u.rtcEyePositionLow, this._rtcEyePositionLow);
 
         gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera.getViewMatrix());
@@ -857,8 +812,10 @@ class GeoObjectHandler {
         sh.activate();
 
         gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
-        gl.uniform3fv(u.eyePositionHigh, r.activeCamera!.eyeHigh);
-        gl.uniform3fv(u.eyePositionLow, r.activeCamera!.eyeLow);
+
+        gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);
+        gl.uniform3fv(u.rtcEyePositionLow, this._rtcEyePositionLow);
+
         gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera!.getViewMatrix());
 
@@ -879,11 +836,11 @@ class GeoObjectHandler {
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._translateBuffer!);
             gl.vertexAttribPointer(a.aTranslate, tagData._translateBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._positionHighBuffer!);
-            gl.vertexAttribPointer(a.aPositionHigh, tagData._positionHighBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._rtcPositionHighBuffer!);
+            gl.vertexAttribPointer(a.aRTCPositionHigh, tagData._rtcPositionHighBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._positionLowBuffer!);
-            gl.vertexAttribPointer(a.aPositionLow, tagData._positionLowBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._rtcPositionLowBuffer!);
+            gl.vertexAttribPointer(a.aRTCPositionLow, tagData._rtcPositionLowBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._visibleBuffer!);
             gl.vertexAttribPointer(a.aDispose, tagData._visibleBuffer!.itemSize, gl.FLOAT, false, 0, 0);
@@ -924,8 +881,10 @@ class GeoObjectHandler {
 
         gl.uniform3fv(u.uScaleByDistance, ec.scaleByDistance);
         gl.uniform3fv(u.pickingScale, ec.pickingScale);
-        gl.uniform3fv(u.rtcEyePositionHigh, r.activeCamera.eyeHigh);
-        gl.uniform3fv(u.rtcEyePositionLow, r.activeCamera.eyeLow);
+
+        gl.uniform3fv(u.rtcEyePositionHigh, this._rtcEyePositionHigh);
+        gl.uniform3fv(u.rtcEyePositionLow, this._rtcEyePositionLow);
+
         gl.uniformMatrix4fv(u.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
         gl.uniformMatrix4fv(u.viewMatrix, false, r.activeCamera.getViewMatrix());
 
@@ -990,13 +949,6 @@ class GeoObjectHandler {
     public setVisibility(tagData: InstanceData, tagDataIndex: number, visibility: boolean) {
         setParametersToArray(tagData._visibleArr, tagDataIndex, 1, 1, visibility ? 1 : 0);
         tagData._changedBuffers[VISIBLE_BUFFER] = true;
-        this._updateTag(tagData);
-    }
-
-    public setPositionArr(tagData: InstanceData, tagDataIndex: number, positionHigh: Vec3, positionLow: Vec3) {
-        setParametersToArray(tagData._positionHighArr, tagDataIndex, 3, 3, positionHigh.x, positionHigh.y, positionHigh.z);
-        setParametersToArray(tagData._positionLowArr, tagDataIndex, 3, 3, positionLow.x, positionLow.y, positionLow.z);
-        tagData._changedBuffers[POSITION_BUFFER] = true;
         this._updateTag(tagData);
     }
 
@@ -1078,24 +1030,29 @@ class GeoObjectHandler {
         this._removeAll();
     }
 
+    public getRTCPosition(pos: Vec3, rtcPositionHigh: Vec3, rtcPositionLow: Vec3) {
+        let rtcPosition = pos.sub(this._relativeCenter);
+        Vec3.doubleToTwoFloats(rtcPosition, rtcPositionHigh, rtcPositionLow);
+    }
+
     public setRelativeCenter(c: Vec3) {
         this._relativeCenter.copy(c);
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             let instanceData = this._instanceDataMapValues[i];
             let geoObjects = instanceData.geoObjects;
-            let rtcPosHigh = new Vec3(),
-                rtcPosLow = new Vec3();
             for (let j = 0; j < geoObjects.length; j++) {
-                let gi = geoObjects[j];
-                let rtcPosition = gi.getPosition().sub(this._relativeCenter);
-                Vec3.doubleToTwoFloats(rtcPosition, rtcPosHigh, rtcPosLow);
-                this.setRTCPositionArr(instanceData, gi._tagDataIndex, rtcPosHigh, rtcPosLow);
+                geoObjects[j].updateRTCPosition();
             }
         }
     }
 
     public draw() {
         if (this._geoObjects.length) {
+            let r = this._planet!.renderer!;
+            if (r.activeCamera.isFirstPass) {
+                let rtcEyePosition = r.activeCamera.eye.sub(this._relativeCenter);
+                Vec3.doubleToTwoFloat32Array(rtcEyePosition, this._rtcEyePositionHigh, this._rtcEyePositionLow);
+            }
             this.update();
             this._displayOpaquePASS();
         }
@@ -1169,8 +1126,6 @@ class GeoObjectHandler {
         }
 
         tagData._rgbaArr = spliceArray(tagData._rgbaArr, tdi * 4, 4);
-        tagData._positionHighArr = spliceArray(tagData._positionHighArr, tdi * 3, 3);
-        tagData._positionLowArr = spliceArray(tagData._positionLowArr, tdi * 3, 3);
         tagData._rtcPositionHighArr = spliceArray(tagData._rtcPositionHighArr, tdi * 3, 3);
         tagData._rtcPositionLowArr = spliceArray(tagData._rtcPositionLowArr, tdi * 3, 3);
         tagData._qRotArr = spliceArray(tagData._qRotArr, tdi * 4, 4);

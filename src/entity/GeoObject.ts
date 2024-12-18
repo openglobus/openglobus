@@ -49,8 +49,8 @@ class GeoObject {
      * @type {Vec3}
      */
     protected _position: Vec3;
-    public _positionHigh: Vec3;
-    public _positionLow: Vec3;
+    public _rtcPositionHigh: Vec3;
+    public _rtcPositionLow: Vec3;
 
     protected _pitch: number;
     protected _yaw: number;
@@ -97,9 +97,8 @@ class GeoObject {
 
         this._position = utils.createVector3(options.position);
 
-        this._positionHigh = new Vec3();
-        this._positionLow = new Vec3();
-        Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
+        this._rtcPositionHigh = new Vec3();
+        this._rtcPositionLow = new Vec3();
 
         this._pitch = options.pitch || 0.0;
         this._yaw = options.yaw || 0.0;
@@ -259,11 +258,16 @@ class GeoObject {
         this._position.x = x;
         this._position.y = y;
         this._position.z = z;
-        Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
-        if (this._handler) {
-            this._handler.setPositionArr(this._tagData!, this._tagDataIndex, this._positionHigh, this._positionLow);
-        }
+        this.updateRTCPosition();
         this.updateRotation();
+    }
+
+    public updateRTCPosition() {
+        Vec3.doubleToTwoFloats(this._position, this._rtcPositionHigh, this._rtcPositionLow);
+        if (this._handler) {
+            this._handler.getRTCPosition(this._position, this._rtcPositionHigh, this._rtcPositionLow);
+            this._handler.setRTCPositionArr(this._tagData!, this._tagDataIndex, this._rtcPositionHigh, this._rtcPositionLow);
+        }
     }
 
     /**

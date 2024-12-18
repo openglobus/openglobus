@@ -163,8 +163,8 @@ export const geo_object_picking = (): Program =>
         },
         attributes: {
             aVertexPosition: "vec3",
-            aPositionHigh: {type: "vec3", divisor: 1},
-            aPositionLow: {type: "vec3", divisor: 1},
+            aRTCPositionHigh: {type: "vec3", divisor: 1},
+            aRTCPositionLow: {type: "vec3", divisor: 1},
             aPickingColor: {type: "vec3", divisor: 1},
             aScale: {type: "vec3", divisor: 1},
             aTranslate: {type: "vec3", divisor: 1},
@@ -234,14 +234,14 @@ export const geo_object_depth = (): Program =>
             viewMatrix: "mat4",
             projectionMatrix: "mat4",
             uScaleByDistance: "vec3",
-            eyePositionHigh: "vec3",
-            eyePositionLow: "vec3",
+            rtcEyePositionHigh: "vec3",
+            rtcEyePositionLow: "vec3",
             frustumPickingColor: "float"
         },
         attributes: {
             aVertexPosition: "vec3",
-            aPositionHigh: {type: "vec3", divisor: 1},
-            aPositionLow: {type: "vec3", divisor: 1},
+            aRTCPositionHigh: {type: "vec3", divisor: 1},
+            aRTCPositionLow: {type: "vec3", divisor: 1},
             aScale: {type: "vec3", divisor: 1},
             aTranslate: {type: "vec3", divisor: 1},
             aDispose: {type: "float", divisor: 1},
@@ -251,15 +251,15 @@ export const geo_object_depth = (): Program =>
             precision highp float;
 
             in vec3 aVertexPosition;
-            in vec3 aPositionHigh;
-            in vec3 aPositionLow;
+            in vec3 aRTCPositionHigh;
+            in vec3 aRTCPositionLow;
             in vec3 aScale;
             in vec3 aTranslate;
             in float aDispose;
             in vec4 qRot;
             
-            uniform vec3 eyePositionHigh;
-            uniform vec3 eyePositionLow;
+            uniform vec3 rtcEyePositionHigh;
+            uniform vec3 rtcEyePositionLow;
             uniform vec3 uScaleByDistance;
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
@@ -272,25 +272,23 @@ export const geo_object_depth = (): Program =>
                     return;
                  }
                 
-                 vec3 position = aPositionHigh + aPositionLow;
-                 vec3 cameraPosition = eyePositionHigh + eyePositionLow;
- 
-                 mat4 viewMatrixRTE = viewMatrix;
-                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
- 
-                 vec3 highDiff = aPositionHigh - eyePositionHigh;
-                 vec3 lowDiff = aPositionLow - eyePositionLow;
-              
-                 vec3 look = cameraPosition - position;
-                 float lookLength = length(look);
-                                
-                 float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
+                mat4 viewMatrixRTE = viewMatrix;
+                viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
+                
+                vec3 highDiff = aRTCPositionHigh - rtcEyePositionHigh;
+                vec3 lowDiff = aRTCPositionLow - rtcEyePositionLow;  
+                
+                highDiff = highDiff * step(1.0, length(highDiff));
+                
+                vec4 positionInViewSpace = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
 
-                 vec3 vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate));
-                 
-                 vert += lowDiff;
+                float lookLength = length(positionInViewSpace.xyz);
                                 
-                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + vert, 1.0);
+                float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
+
+                vec3 vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate));
+                                                 
+                gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff + vert, 1.0);
             }`,
         fragmentShader:
             `#version 300 es

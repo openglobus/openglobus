@@ -182,13 +182,13 @@ async function main() {
     cubeLayer.addTo(globus.planet);
 
     globus.renderer.events.on("lclick", (e) => {
-
-        window.savedPos = globus.planet.camera.eye.clone();
-
         //if (e.pickingObject.geoObject) return;
 
         let cart = globus.planet.getCartesianFromMouseTerrain();
         if (cart) {
+
+            e.pickingObject.entityCollection.geoObjectHandler.setRelativeCenter(globus.planet.camera.eye);
+
             let dist = globus.planet.camera.eye.distance(cart);
             let cube = new Entity({
                 cartesian: cart,
