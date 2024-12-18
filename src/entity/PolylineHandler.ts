@@ -3,6 +3,7 @@ import {EntityCollection} from "./EntityCollection";
 import {Polyline} from "./Polyline";
 import {Renderer} from "../renderer/Renderer";
 import {RenderNode} from "../scene/RenderNode";
+import {Vec3} from "../math";
 
 class PolylineHandler {
     static __counter__: number = 0;
@@ -97,6 +98,30 @@ class PolylineHandler {
         }
         this._polylines.length = 0;
         this._polylines = [];
+    }
+
+    public getRTCPosition(pos: Vec3, rtcPositionHigh: Vec3, rtcPositionLow: Vec3) {
+        let rtcPosition = pos.sub(this._relativeCenter);
+        Vec3.doubleToTwoFloats(rtcPosition, rtcPositionHigh, rtcPositionLow);
+    }
+
+    public setRelativeCenter(c: Vec3) {
+        this._relativeCenter.copy(c);
+        for (let i = 0; i < this._instanceDataMapValues.length; i++) {
+            let instanceData = this._instanceDataMapValues[i];
+            let geoObjects = instanceData.geoObjects;
+            for (let j = 0; j < geoObjects.length; j++) {
+                geoObjects[j].updateRTCPosition();
+            }
+        }
+    }
+
+    public _updateRTCEyePosition() {
+        let r = this._planet!.renderer!;
+        if (r.activeCamera.isFirstPass) {
+            let rtcEyePosition = r.activeCamera.eye.sub(this._relativeCenter);
+            Vec3.doubleToTwoFloat32Array(rtcEyePosition, this._rtcEyePositionHigh, this._rtcEyePositionLow);
+        }
     }
 }
 
