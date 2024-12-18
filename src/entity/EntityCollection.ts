@@ -600,6 +600,7 @@ class EntityCollection {
 
     protected _onChangeRelativeCenter = (c: Vec3) => {
         this.geoObjectHandler.setRelativeCenter(c);
+        this.polylineHandler.setRelativeCenter(c);
     }
 
     /**
