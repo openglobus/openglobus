@@ -14,6 +14,7 @@ export function createRendererEvents(renderer: Renderer) {
 }
 
 export type RendererEventsType = [
+    "changerelativecenter",
     "draw",
     "drawtransparent",
     "postdraw",
@@ -1014,6 +1015,8 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
 }
 
 const RENDERER_EVENTS: RendererEventsType = [
+    "changerelativecenter",
+
     /**
      * Triggered before scene frame is rendered(before render nodes).
      * @event og.RendererEvents#draw

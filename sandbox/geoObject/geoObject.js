@@ -20,8 +20,8 @@ async function main() {
 
     const dock = await Object3d.loadObj('./dock.obj');
 
-    //const crane = await Object3d.loadObj('./crane.obj');
-    const crane = await Object3d.loadObj('./Center city Sci-Fi/Center City Sci-Fi.obj');
+    const crane = await Object3d.loadObj('./crane.obj');
+    //const crane = await Object3d.loadObj('./Center city Sci-Fi/Center City Sci-Fi.obj');
 
     let c1 = new Entity({
         lonlat: [33.2017379, 69.0821338, 19],
@@ -187,7 +187,7 @@ async function main() {
         let cart = globus.planet.getCartesianFromMouseTerrain();
         if (cart) {
 
-            e.pickingObject.entityCollection.geoObjectHandler.setRelativeCenter(globus.planet.camera.eye);
+            globus.renderer.setRelativeCenter(globus.planet.camera.eye);
 
             let dist = globus.planet.camera.eye.distance(cart);
             let cube = new Entity({

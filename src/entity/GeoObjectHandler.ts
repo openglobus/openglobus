@@ -690,6 +690,8 @@ class GeoObjectHandler {
 
         //
         // Global coordinates
+        this.getRTCPosition(geoObject.getPosition(), geoObject._rtcPositionHigh, geoObject._rtcPositionLow);
+
         let x = geoObject._rtcPositionHigh.x,
             y = geoObject._rtcPositionHigh.y,
             z = geoObject._rtcPositionHigh.z,

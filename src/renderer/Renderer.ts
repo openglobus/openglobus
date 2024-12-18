@@ -1,7 +1,7 @@
 import {Camera} from "../camera/Camera";
 import {Control} from "../control/Control";
 import {cons} from "../cons";
-import {createRendererEvents, IBaseInputState, RendererEvents, RendererEventsHandler} from "./RendererEvents";
+import {createRendererEvents, IBaseInputState, RendererEventsHandler} from "./RendererEvents";
 import {depth} from "../shaders/depth";
 import {EntityCollection} from "../entity/EntityCollection";
 import {Framebuffer, Multisample} from "../webgl/index";
@@ -367,6 +367,10 @@ class Renderer {
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
     }
 
+    public setRelativeCenter(c: Vec3) {
+        this.events.dispatch(this.events.changerelativecenter, c);
+    }
+    
     /**
      * Sets renderer events activity.
      * @param {Boolean} activity - Events activity.
