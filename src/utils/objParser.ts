@@ -51,6 +51,8 @@ export class Obj {
 
     public keywords: Record<string, (parts: string[], unparsedArgs: string) => void>;
 
+    protected _path: string;
+
     constructor() {
 
         this.objPositions = [[0, 0, 0]];
@@ -79,6 +81,8 @@ export class Obj {
 
         this.object = 'default';
         this.groups = ['default'];
+
+        this._path = "";
 
         this.keywords = {
             v: (parts: string[]) => {
@@ -162,10 +166,10 @@ export class Obj {
                 // skip ambient texture
             },
             map_Kd: (parts: string[], unparsedArgs: string) => {
-                this.material.colorTexture = unparsedArgs;
+                this.material.colorTexture = `${this._path}/${unparsedArgs}`;
             },
             map_Bump: (parts: string[], unparsedArgs: string) => {
-                this.material.normalTexture = unparsedArgs;
+                this.material.normalTexture = `${this._path}/${unparsedArgs}`;
             },
         };
     }
@@ -218,7 +222,7 @@ export class Obj {
         });
     }
 
-    protected _innerParser(text: string) {
+    protected _innerParser(text: string, fileName: string) {
         const keywordRE = /(\w*)(?: )*(.*)/;
         const lines = text.split('\n');
         for (let lineNo = 0; lineNo < lines.length; ++lineNo) {
@@ -234,33 +238,60 @@ export class Obj {
             const parts = line.split(/\s+/).slice(1);
             const handler = this.keywords[keyword];
             if (!handler) {
-                console.warn('unhandled keyword:', keyword);  // eslint-disable-line no-console
+                console.warn(`Unknown keyword '${keyword}' in '${fileName}:${lineNo}'`);  // eslint-disable-line no-console
                 continue;
             }
             handler(parts, unparsedArgs);
         }
     }
 
-    public parse(text: string): Promise<IObj> {
+    get data(): IObj {
+        return {
+            geometries: this.geometries,
+            materials: this.materials
+        }
+    }
 
-        this._innerParser(text);
+    public async load(src: string) {
 
-        // remove any arrays that have no entries.
+        this._path = src.substring(0, src.lastIndexOf("/"));
+
+        // Fetch geometry
+        await fetch(src, {mode: "cors",})
+            .then((response) => {
+                if (!response.ok) {
+                    throw Error(`Unable to load '${src}'`);
+                }
+                return response.text();
+            }).then((data) => {
+                this._innerParser(data, src);
+                this._cleanupGeometryArrays();
+            })
+            .catch(() => null);
+
+        // fetch materials
+        let defArr = this._materialLibs.map(filename => {
+            filename = `${this._path}/${filename}`;
+            return fetch(filename)
+                .then((response) => response.text())
+                .then((text: string) => {
+                    return {text, filename}
+                })
+        });
+
+        await Promise.all(defArr).then((mtlArr) => {
+            mtlArr.forEach(mtl => this._innerParser(mtl.text, mtl.filename));
+        });
+
+        return this.data;
+    }
+
+    protected _cleanupGeometryArrays() {
         for (const geometry of this.geometries) {
             geometry.data = Object.fromEntries(
                 Object.entries(geometry.data).filter(([key, array]) => array.length > 0)
             ) as IObjGeometryData;
         }
-
-        // fetch materials
-        let defArr = this._materialLibs.map(url => fetch(url).then((response) => response.text()));
-        return Promise.all(defArr).then((mtlArr) => {
-            mtlArr.forEach(mtlStr => this._innerParser(mtlStr));
-            return {
-                geometries: this.geometries,
-                materials: this.materials
-            };
-        });
     }
 }
 

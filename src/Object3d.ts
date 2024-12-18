@@ -573,12 +573,7 @@ class Object3d {
 
         let obj = new Obj();
 
-        const res: IObj | null = await fetch(src, {mode: "cors",})
-            .then((response) => response.text())
-            .then((data) => obj.parse(data))
-            .catch(() => null);
-
-        if (!res) return [];
+        const res = await obj.load(src);
 
         let materials = res.materials;
 

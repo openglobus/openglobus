@@ -15,36 +15,37 @@ let cranesLayer = new Vector("crane", {
 
 async function main() {
 
-
     let sat = new Bing();
     let osm = new OpenStreetMap();
 
     const dock = await Object3d.loadObj('./dock.obj');
-    const crane = await Object3d.loadObj('./crane.obj');
+
+    //const crane = await Object3d.loadObj('./crane.obj');
+    const crane = await Object3d.loadObj('./Center city Sci-Fi/Center City Sci-Fi.obj');
 
     let c1 = new Entity({
         lonlat: [33.2017379, 69.0821338, 19],
     });
 
-    let c2 = new Entity({
-        lonlat: [33.2037625, 69.0814592, 24],
-    });
-
-    let c3 = new Entity({
-        lonlat: [33.2045480, 69.0818760, 20],
-    });
-
-    let c4 = new Entity({
-        lonlat: [33.2024654, 69.0824443, 21],
-    });
-
-    let c5 = new Entity({
-        lonlat: [33.2027773, 69.0817816, 21],
-    });
-
-    let c6 = new Entity({
-        lonlat: [33.2035357, 69.0821616, 21],
-    });
+    // let c2 = new Entity({
+    //     lonlat: [33.2037625, 69.0814592, 24],
+    // });
+    //
+    // let c3 = new Entity({
+    //     lonlat: [33.2045480, 69.0818760, 20],
+    // });
+    //
+    // let c4 = new Entity({
+    //     lonlat: [33.2024654, 69.0824443, 21],
+    // });
+    //
+    // let c5 = new Entity({
+    //     lonlat: [33.2027773, 69.0817816, 21],
+    // });
+    //
+    // let c6 = new Entity({
+    //     lonlat: [33.2035357, 69.0821616, 21],
+    // });
 
     for (let i = 0; i < crane.length; i++) {
 
