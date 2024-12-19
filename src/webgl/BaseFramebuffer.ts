@@ -1,7 +1,6 @@
 import {Handler} from "./Handler";
 
 export interface IBaseFramebufferParams {
-    internalFormat?: string | string[];
     width?: number;
     height?: number;
     useDepth?: boolean;

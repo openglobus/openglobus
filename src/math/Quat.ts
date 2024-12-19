@@ -368,6 +368,10 @@ export class Quat {
         return this;
     }
 
+    public get xyz() {
+        return new Vec3(this.x, this.y, this.z);
+    }
+
     /**
      * Sets rotation with the given heading and up vectors.
      * @static

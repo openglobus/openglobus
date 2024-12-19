@@ -283,6 +283,10 @@ class Entity {
         this.strip = this._createOptionFeature<Strip, IStripParams>("strip", options.strip);
     }
 
+    public get entityCollection(): EntityCollection | null {
+        return this._entityCollection;
+    }
+
     public get id(): number {
         return this.__id;
     }
