@@ -3,7 +3,7 @@ import {EntityCollection} from "./EntityCollection";
 import {Polyline} from "./Polyline";
 import {Renderer} from "../renderer/Renderer";
 import {RenderNode} from "../scene/RenderNode";
-import {Vec3} from "../math";
+import {Vec3} from "../math/Vec3";
 
 class PolylineHandler {
     static __counter__: number = 0;
@@ -12,6 +12,9 @@ class PolylineHandler {
     public pickingEnabled: boolean;
     protected _renderer: Renderer | null;
     protected _polylines: Polyline[];
+    public _relativeCenter: Vec3;
+    public _rtcEyePositionHigh: Float32Array;
+    public _rtcEyePositionLow: Float32Array;
 
     constructor(entityCollection: EntityCollection) {
 
@@ -24,6 +27,12 @@ class PolylineHandler {
         this._polylines = [];
 
         this.pickingEnabled = true;
+
+        this._relativeCenter = new Vec3();
+
+        this._rtcEyePositionHigh = new Float32Array([0, 0, 0]);
+
+        this._rtcEyePositionLow = new Float32Array([0, 0, 0]);
     }
 
     protected _initProgram() {
@@ -49,9 +58,12 @@ class PolylineHandler {
         if (polyline._handlerIndex === -1) {
             polyline._handler = this;
             polyline._handlerIndex = this._polylines.length;
+            polyline.__doubleToTwoFloats = this.getRTCPosition.bind(this);
             this._polylines.push(polyline);
-            this._entityCollection && this._entityCollection.renderNode &&
-            polyline.setRenderNode(this._entityCollection.renderNode);
+            if (this._entityCollection && this._entityCollection.renderNode) {
+                polyline.setRenderNode(this._entityCollection.renderNode);
+                polyline.updateRTCPosition();
+            }
         }
     }
 
@@ -74,6 +86,7 @@ class PolylineHandler {
     }
 
     public draw() {
+        this._updateRTCEyePosition();
         let i = this._polylines.length;
         while (i--) {
             this._polylines[i].draw();
@@ -107,17 +120,13 @@ class PolylineHandler {
 
     public setRelativeCenter(c: Vec3) {
         this._relativeCenter.copy(c);
-        for (let i = 0; i < this._instanceDataMapValues.length; i++) {
-            let instanceData = this._instanceDataMapValues[i];
-            let geoObjects = instanceData.geoObjects;
-            for (let j = 0; j < geoObjects.length; j++) {
-                geoObjects[j].updateRTCPosition();
-            }
+        for (let i = 0; i < this._polylines.length; i++) {
+            this._polylines[i].updateRTCPosition();
         }
     }
 
-    public _updateRTCEyePosition() {
-        let r = this._planet!.renderer!;
+    protected _updateRTCEyePosition() {
+        let r = this._renderer!;
         if (r.activeCamera.isFirstPass) {
             let rtcEyePosition = r.activeCamera.eye.sub(this._relativeCenter);
             Vec3.doubleToTwoFloat32Array(rtcEyePosition, this._rtcEyePositionHigh, this._rtcEyePositionLow);

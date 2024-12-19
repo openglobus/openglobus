@@ -263,7 +263,7 @@ class GeoObject {
     }
 
     public updateRTCPosition() {
-        Vec3.doubleToTwoFloats(this._position, this._rtcPositionHigh, this._rtcPositionLow);
+        //Vec3.doubleToTwoFloats(this._position, this._rtcPositionHigh, this._rtcPositionLow);
         if (this._handler) {
             this._handler.getRTCPosition(this._position, this._rtcPositionHigh, this._rtcPositionLow);
             this._handler.setRTCPositionArr(this._tagData!, this._tagDataIndex, this._rtcPositionHigh, this._rtcPositionLow);

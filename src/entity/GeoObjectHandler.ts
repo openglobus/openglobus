@@ -1048,7 +1048,7 @@ class GeoObjectHandler {
         }
     }
 
-    public _updateRTCEyePosition() {
+    protected _updateRTCEyePosition() {
         let r = this._planet!.renderer!;
         if (r.activeCamera.isFirstPass) {
             let rtcEyePosition = r.activeCamera.eye.sub(this._relativeCenter);

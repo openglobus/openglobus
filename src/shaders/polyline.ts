@@ -9,6 +9,8 @@ export function polyline_screen(): Program {
             view: "mat4",
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
+            rtcEyePositionHigh: "vec3",
+            rtcEyePositionLow: "vec3",
             thickness: "float",
             opacity: "float",
             depthOffset: "float",
@@ -51,6 +53,9 @@ export function polyline_screen(): Program {
                 uniform vec3 eyePositionLow;
                 uniform float opacity;
                 uniform float depthOffset;
+                
+                uniform vec3 rtcEyePositionHigh;
+                uniform vec3 rtcEyePositionLow;
 
                 varying vec4 vColor;
                 varying vec3 vPos;
@@ -90,16 +95,19 @@ export function polyline_screen(): Program {
 
                     vec3 highDiff, lowDiff;
 
-                    highDiff = currentHigh - eyePositionHigh;
-                    lowDiff = currentLow - eyePositionLow;
+                    highDiff = currentHigh - rtcEyePositionHigh;
+                    highDiff = highDiff * step(1.0, length(highDiff));
+                    lowDiff = currentLow - rtcEyePositionLow;                   
                     vec4 vCurrent = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
 
-                    highDiff = prevHigh - eyePositionHigh;
-                    lowDiff = prevLow - eyePositionLow;
+                    highDiff = prevHigh - rtcEyePositionHigh;
+                    highDiff = highDiff * step(1.0, length(highDiff));
+                    lowDiff = prevLow - rtcEyePositionLow;
                     vec4 vPrev = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
 
-                    highDiff = nextHigh - eyePositionHigh;
-                    lowDiff = nextLow - eyePositionLow;
+                    highDiff = nextHigh - rtcEyePositionHigh;
+                    highDiff = highDiff * step(1.0, length(highDiff));
+                    lowDiff = nextLow - rtcEyePositionLow;
                     vec4 vNext = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
 
                     /*Clip near plane, the point behind view plane*/
@@ -184,9 +192,9 @@ export function polyline_screen(): Program {
                     if(visibleSphere.w != 0.0) {                  
                         vec3 cam_dir = normalize(vPos - uCamPos);
                         vec3 sph_dir = normalize(vPos - visibleSphere.xyz);
-                        if( dot(cam_dir, sph_dir) > 0.11 ){
-                            discard;
-                        }
+                        //if( dot(cam_dir, sph_dir) > 0.11 ){
+                        //    discard;
+                        //}
                    }
                    
                     gl_FragColor = vec4(vColor.rgb, vColor.a);
