@@ -7,8 +7,6 @@ export function polyline_screen(): Program {
             viewport: "vec2",
             proj: "mat4",
             view: "mat4",
-            //eyePositionHigh: "vec3",
-            //eyePositionLow: "vec3",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
             thickness: "float",
@@ -49,13 +47,11 @@ export function polyline_screen(): Program {
                 uniform mat4 proj;
                 uniform mat4 view;
                 uniform vec2 viewport;
-                //uniform vec3 eyePositionHigh;
-                //uniform vec3 eyePositionLow;
-                uniform float opacity;
-                uniform float depthOffset;
-                
                 uniform vec3 rtcEyePositionHigh;
                 uniform vec3 rtcEyePositionLow;
+                uniform float opacity;
+                uniform float depthOffset;
+               
 
                 varying vec4 vColor;
                 varying vec3 vPos;
@@ -205,8 +201,8 @@ export function polyline_picking(): Program {
             viewport: "vec2",
             proj: "mat4",
             view: "mat4",
-            eyePositionHigh: "vec3",
-            eyePositionLow: "vec3",
+            rtcEyePositionHigh: "vec3",
+            rtcEyePositionLow: "vec3",
             color: "vec4",
             thickness: "float",
             depthOffset: "float",
@@ -242,8 +238,8 @@ export function polyline_picking(): Program {
                 uniform mat4 proj;
                 uniform mat4 view;
                 uniform vec2 viewport;
-                uniform vec3 eyePositionHigh;
-                uniform vec3 eyePositionLow;
+                uniform vec3 rtcEyePositionHigh;
+                uniform vec3 rtcEyePositionLow;
                 uniform float depthOffset;
 
                 varying vec4 vColor;
@@ -272,29 +268,28 @@ export function polyline_picking(): Program {
                 
                 void main(){
 
-                    uCamPos = eyePositionHigh + eyePositionLow;
-
-                    vColor = color;
-
-                    vec3 current = currentHigh + currentLow;
-
-                    vPos = current;                    
+                    uCamPos = rtcEyePositionHigh + rtcEyePositionLow;
+                    vPos = currentHigh + currentLow;
+                    vColor = color;               
 
                     vec3 highDiff, lowDiff;
 
                     mat4 viewMatrixRTE = view;
                     viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
-
-                    highDiff = currentHigh - eyePositionHigh;
-                    lowDiff = currentLow - eyePositionLow;
+                    
+                    highDiff = currentHigh - rtcEyePositionHigh;
+                    highDiff = highDiff * step(1.0, length(highDiff));
+                    lowDiff = currentLow - rtcEyePositionLow;
                     vec4 vCurrent = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
 
-                    highDiff = prevHigh - eyePositionHigh;
-                    lowDiff = prevLow - eyePositionLow;    
+                    highDiff = prevHigh - rtcEyePositionHigh;
+                    highDiff = highDiff * step(1.0, length(highDiff));
+                    lowDiff = prevLow - rtcEyePositionLow;    
                     vec4 vPrev = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
 
-                    highDiff = nextHigh - eyePositionHigh;
-                    lowDiff = nextLow - eyePositionLow;    
+                    highDiff = nextHigh - rtcEyePositionHigh;
+                    highDiff = highDiff * step(1.0, length(highDiff));
+                    lowDiff = nextLow - rtcEyePositionLow;    
                     vec4 vNext = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
 
                     /*Clip near plane*/

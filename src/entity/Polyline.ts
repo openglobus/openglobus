@@ -2105,9 +2105,6 @@ class Polyline {
 
             // gl.uniform4fv(shu.color, [this.color.x, this.color.y, this.color.z, this.color.w * this._handler._entityCollection._fadingOpacity]);
 
-            gl.uniform3fv(shu.eyePositionHigh, r.activeCamera!.eyeHigh);
-            gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
-
             gl.uniform3fv(shu.rtcEyePositionHigh, this._handler!._rtcEyePositionHigh);
             gl.uniform3fv(shu.rtcEyePositionLow, this._handler!._rtcEyePositionLow);
 
@@ -2171,8 +2168,8 @@ class Polyline {
                 1.0
             ]);
 
-            gl.uniform3fv(shu.eyePositionHigh, r.activeCamera!.eyeHigh);
-            gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
+            gl.uniform3fv(shu.rtcEyePositionHigh, this._handler!._rtcEyePositionHigh);
+            gl.uniform3fv(shu.rtcEyePositionLow, this._handler!._rtcEyePositionLow);
 
             gl.uniform4fv(shu.visibleSphere, this._visibleSphere);
 
