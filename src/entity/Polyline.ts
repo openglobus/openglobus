@@ -2299,15 +2299,19 @@ class Polyline {
     }
 
     public setVisibleSphere(p: Vec3, r: number) {
-
-        this._visibleSphere[0] = p.x;
-        this._visibleSphere[1] = p.y;
-        this._visibleSphere[2] = p.z;
+        if (this._handler) {
+            this._visibleSphere[0] = p.x - this._handler._relativeCenter.x;
+            this._visibleSphere[1] = p.y - this._handler._relativeCenter.y;
+            this._visibleSphere[2] = p.z - this._handler._relativeCenter.z;
+        }
         this._visibleSphere[3] = r;
     }
 
     public updateRTCPosition() {
         if (this._handler && this._renderNode) {
+            this._visibleSphere[0] = this._visibleSphere[0] - this._handler._relativeCenter.x;
+            this._visibleSphere[1] = this._visibleSphere[1] - this._handler._relativeCenter.y;
+            this._visibleSphere[2] = this._visibleSphere[2] - this._handler._relativeCenter.z;
             this._setEqualPath3v(this._path3v);
         }
         this._changedBuffers[VERTICES_BUFFER] = true;

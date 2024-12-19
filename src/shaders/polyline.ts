@@ -7,8 +7,8 @@ export function polyline_screen(): Program {
             viewport: "vec2",
             proj: "mat4",
             view: "mat4",
-            eyePositionHigh: "vec3",
-            eyePositionLow: "vec3",
+            //eyePositionHigh: "vec3",
+            //eyePositionLow: "vec3",
             rtcEyePositionHigh: "vec3",
             rtcEyePositionLow: "vec3",
             thickness: "float",
@@ -49,8 +49,8 @@ export function polyline_screen(): Program {
                 uniform mat4 proj;
                 uniform mat4 view;
                 uniform vec2 viewport;
-                uniform vec3 eyePositionHigh;
-                uniform vec3 eyePositionLow;
+                //uniform vec3 eyePositionHigh;
+                //uniform vec3 eyePositionLow;
                 uniform float opacity;
                 uniform float depthOffset;
                 
@@ -82,13 +82,10 @@ export function polyline_screen(): Program {
 
                 void main(){
 
-                    uCamPos = eyePositionHigh + eyePositionLow;
-
+                    uCamPos = rtcEyePositionHigh + rtcEyePositionLow;
+                    vPos = currentHigh + currentLow;
+                    
                     vColor = vec4(color.rgb, color.a * opacity);
-
-                    vec3 current = currentHigh + currentLow;
-
-                    vPos = current;
 
                     mat4 viewMatrixRTE = view;
                     viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
@@ -192,9 +189,9 @@ export function polyline_screen(): Program {
                     if(visibleSphere.w != 0.0) {                  
                         vec3 cam_dir = normalize(vPos - uCamPos);
                         vec3 sph_dir = normalize(vPos - visibleSphere.xyz);
-                        //if( dot(cam_dir, sph_dir) > 0.11 ){
-                        //    discard;
-                        //}
+                        if( dot(cam_dir, sph_dir) > 0.11 ){
+                            discard;
+                        }
                    }
                    
                     gl_FragColor = vec4(vColor.rgb, vColor.a);
