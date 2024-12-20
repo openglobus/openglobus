@@ -50,11 +50,14 @@ class InstanceData {
 
     public numInstances: number;
 
-    public _texture: WebGLTextureExt | null;
+    public _colorTexture: WebGLTextureExt | null;
     public _normalTexture: WebGLTextureExt | null;
+    public _metallicRoughnessTexture: WebGLTextureExt | null;
 
-    public _textureSrc: string | null;
+    public _colorTextureSrc: string | null;
     public _normalTextureSrc: string | null;
+    public _metallicRoughnessTextureSrc: string | null;
+
     public _objectSrc?: string;
 
     public _sizeArr: number[] | TypedArray;
@@ -102,11 +105,14 @@ class InstanceData {
 
         this.numInstances = 0;
 
-        this._texture = null;
-        this._textureSrc = null;
+        this._colorTexture = null;
+        this._colorTextureSrc = null;
 
         this._normalTexture = null;
         this._normalTextureSrc = null;
+
+        this._metallicRoughnessTexture = null;
+        this._metallicRoughnessTextureSrc = null;
 
         this._sizeArr = [];
         this._translateArr = [];
@@ -203,7 +209,7 @@ class InstanceData {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._visibleBuffer!);
         gl.vertexAttribPointer(a.aDispose, this._visibleBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.uniform1f(u.uUseTexture, this._texture ? 1 : 0);
+        gl.uniform1f(u.uUseTexture, this._colorTexture ? 1 : 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._rgbaBuffer!);
         gl.vertexAttribPointer(a.aColor, this._rgbaBuffer!.itemSize, gl.FLOAT, false, 0, 0);
@@ -236,7 +242,7 @@ class InstanceData {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._visibleBuffer!);
         gl.vertexAttribPointer(a.aDispose, this._visibleBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.uniform1f(u.uUseTexture, this._texture ? 1 : 0);
+        gl.uniform1f(u.uUseTexture, this._colorTexture ? 1 : 0);
 
         gl.uniform3fv(u.materialParams, this._materialParams);
         gl.uniform1f(u.materialShininess, this._materialShininess);
@@ -271,7 +277,7 @@ class InstanceData {
         gl.vertexAttribPointer(a.aVertexPosition, this._vertexBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this._texture || r.handler.defaultTexture);
+        gl.bindTexture(gl.TEXTURE_2D, this._colorTexture || r.handler.defaultTexture);
         gl.uniform1i(u.uTexture, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._texCoordBuffer!);
@@ -283,13 +289,19 @@ class InstanceData {
 
     public createColorTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
         if (this._geoObjectHandler && this._geoObjectHandler._planet) {
-            this._texture = this._geoObjectHandler._planet.renderer!.handler.createTextureDefault(image);
+            this._colorTexture = this._geoObjectHandler._planet.renderer!.handler.createTextureDefault(image);
         }
     }
 
     public createNormalTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
         if (this._geoObjectHandler && this._geoObjectHandler._planet) {
             this._normalTexture = this._geoObjectHandler._planet.renderer!.handler.createTextureDefault(image);
+        }
+    }
+
+    public createMetallicRoughnessTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
+        if (this._geoObjectHandler && this._geoObjectHandler._planet) {
+            this._metallicRoughnessTexture = this._geoObjectHandler._planet.renderer!.handler.createTextureDefault(image);
         }
     }
 
@@ -326,8 +338,13 @@ class InstanceData {
             let h = this._geoObjectHandler._planet.renderer.handler,
                 gl = h.gl!;
 
-            h.deleteTexture(this._texture);
-            this._texture = null;
+            h.deleteTexture(this._colorTexture);
+            h.deleteTexture(this._normalTexture);
+            h.deleteTexture(this._metallicRoughnessTexture);
+
+            this._colorTexture = null;
+            this._normalTexture = null;
+            this._metallicRoughnessTexture = null;
 
             gl.deleteBuffer(this._sizeBuffer!);
             gl.deleteBuffer(this._translateBuffer!);
@@ -579,6 +596,7 @@ class GeoObjectHandler {
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
             this._loadColorTexture(this._instanceDataMapValues[i]);
             this._loadNormalTexture(this._instanceDataMapValues[i]);
+            this._loadMetallicRoughnessTexture(this._instanceDataMapValues[i]);
         }
 
         for (let i = 0; i < this._geoObjects.length; i++) {
@@ -591,7 +609,7 @@ class GeoObjectHandler {
     public setColorTextureTag(src: string, tag: string) {
         const tagData = this._instanceDataMap.get(tag);
         if (tagData) {
-            tagData._textureSrc = src;
+            tagData._colorTextureSrc = src;
             this._instanceDataMap.set(tag, tagData);
             this._loadColorTexture(tagData);
         }
@@ -603,6 +621,15 @@ class GeoObjectHandler {
             tagData._normalTextureSrc = src;
             this._instanceDataMap.set(tag, tagData);
             this._loadNormalTexture(tagData);
+        }
+    }
+
+    public setMetallicRoughnessTextureTag(src: string, tag: string) {
+        const tagData = this._instanceDataMap.get(tag);
+        if (tagData) {
+            tagData._metallicRoughnessTextureSrc = src;
+            this._instanceDataMap.set(tag, tagData);
+            this._loadMetallicRoughnessTexture(tagData);
         }
     }
 
@@ -639,11 +666,13 @@ class GeoObjectHandler {
                 tagData._changedBuffers[TEXCOORD_BUFFER] = true;
             }
 
-            tagData._textureSrc = object.colorTexture;
+            tagData._colorTextureSrc = object.colorTexture;
             tagData._normalTextureSrc = object.normalTexture;
+            tagData._metallicRoughnessTexture = object.metallicRoughnessTexture;
 
             this._loadColorTexture(tagData);
             this._loadNormalTexture(tagData);
+            this._loadMetallicRoughnessTexture(tagData);
 
             this._updateTag(tagData);
             this._instanceDataMapValues = Array.from(this._instanceDataMap.values());
@@ -666,8 +695,10 @@ class GeoObjectHandler {
             tagData._normalsArr = geoObject.normals;
             tagData._indicesArr = geoObject.indices;
             tagData._texCoordArr = geoObject.texCoords;
-            tagData._textureSrc = geoObject.object3d.colorTexture;
+
+            tagData._colorTextureSrc = geoObject.object3d.colorTexture;
             tagData._normalTextureSrc = geoObject.object3d.normalTexture;
+            tagData._metallicRoughnessTextureSrc = geoObject.object3d.metallicRoughnessTexture;
 
             tagData.setMaterialParams(
                 geoObject.object3d.ambient,
@@ -678,6 +709,7 @@ class GeoObjectHandler {
 
             this._loadColorTexture(tagData);
             this._loadNormalTexture(tagData);
+            this._loadMetallicRoughnessTexture(tagData);
         }
 
         geoObject._tagDataIndex = tagData.numInstances++;
@@ -929,8 +961,8 @@ class GeoObjectHandler {
     }
 
     async _loadColorTexture(tagData: InstanceData) {
-        if (this._planet && tagData._textureSrc) {
-            const image = await loadImage(tagData._textureSrc);
+        if (this._planet && tagData._colorTextureSrc) {
+            const image = await loadImage(tagData._colorTextureSrc);
             tagData.createColorTexture(image);
         }
     }
@@ -939,6 +971,13 @@ class GeoObjectHandler {
         if (this._planet && tagData._normalTextureSrc) {
             const image = await loadImage(tagData._normalTextureSrc);
             tagData.createNormalTexture(image);
+        }
+    }
+
+    async _loadMetallicRoughnessTexture(tagData: InstanceData) {
+        if (this._planet && tagData._metallicRoughnessTextureSrc) {
+            const image = await loadImage(tagData._metallicRoughnessTextureSrc);
+            tagData.createMetallicRoughnessTexture(image);
         }
     }
 

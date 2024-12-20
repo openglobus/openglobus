@@ -23,6 +23,7 @@ export interface IObjMaterial {
     illum?: number
     colorTexture?: string; // baseColorTexture
     normalTexture?: string; // normalTexture
+    metallicRoughnessTexture?: string;//R - roughness, B - metallic; specular glossiness or glossinessTexture
 }
 
 type MaterialMap = Record<string, IObjMaterial>;
@@ -170,6 +171,9 @@ export class Obj {
             },
             map_Bump: (parts: string[], unparsedArgs: string) => {
                 this.material.normalTexture = `${this._path}/${unparsedArgs}`;
+            },
+            map_Ns: (parts: string[], unparsedArgs: string) => {
+                this.material.metallicRoughnessTexture = `${this._path}/${unparsedArgs}`;
             },
         };
     }

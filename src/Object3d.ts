@@ -43,6 +43,7 @@ interface IObject3dParams {
     shininess?: number;
     colorTexture?: string;
     normalTexture?: string;
+    metallicRoughnessTexture?: string;
 }
 
 class Object3d {
@@ -62,6 +63,7 @@ class Object3d {
     public shininess: number;
     public colorTexture: string;
     public normalTexture: string;
+    public metallicRoughnessTexture: string;
     public center: Vec3;
 
     constructor(data: IObject3dParams = {}) {
@@ -84,6 +86,7 @@ class Object3d {
         this.shininess = data.shininess || 100;
         this.colorTexture = data.colorTexture || "";
         this.normalTexture = data.normalTexture || "";
+        this.metallicRoughnessTexture = data.metallicRoughnessTexture || "";
 
         if (data.scale) {
             let s = data.scale;
@@ -592,6 +595,7 @@ class Object3d {
                     color: mat.color,
                     colorTexture: mat.colorTexture,
                     normalTexture: mat.normalTexture,
+                    metallicRoughnessTexture: mat.metallicRoughnessTexture
                 })
             }
         );
