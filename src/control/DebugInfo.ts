@@ -226,11 +226,21 @@ export class DebugInfo extends Control {
                     frame: () => p.getViewExtent().toString()
                 },
                 {
-                    label: "height/alt (km)",
+                    label: "Mouse distance, m",
+                    frame: () => {
+                        let cart = p.getCartesianFromMouseTerrain();
+                        if (cart) {
+                            return p.camera.eye.distance(cart).toFixed(3);
+                        }
+                        return "";
+                    }
+                },
+                {
+                    label: "height/alt, m",
                     frame: () =>
-                        `<div style="width:190px">${(p.camera._lonLat.height / 1000.0).toFixed(2) +
+                        `<div style="width:190px">${(p.camera._lonLat.height).toFixed(2) +
                         " / " +
-                        (p.camera.getAltitude() / 1000.0).toFixed(2)}</div>`
+                        (p.camera.getAltitude()).toFixed(2)}</div>`
                 },
                 {
                     label: "cam.slope",
