@@ -6,7 +6,8 @@ import {
     OpenStreetMap,
     Entity,
     Bing,
-    Object3d
+    Object3d,
+    input
 } from "../../lib/@openglobus/og.esm.js";
 
 let cranesLayer = new Vector("crane", {
@@ -18,14 +19,16 @@ async function main() {
     let sat = new Bing();
     let osm = new OpenStreetMap();
 
-    const dock = await Object3d.loadObj('./dock.obj');
+    // const dock = await Object3d.loadObj('./dock.obj');
+    //
+    // const crane = await Object3d.loadObj('./crane.obj');
 
-    const crane = await Object3d.loadObj('./crane.obj');
-    //const crane = await Object3d.loadObj('./Center city Sci-Fi/Center City Sci-Fi.obj');
+    const wind = await Object3d.loadObj('./ready/windTurbineBasic.obj');
+    const bf = await Object3d.loadObj('./ready/Butterfly.obj');
 
-    let c1 = new Entity({
-        lonlat: [33.2017379, 69.0821338, 19],
-    });
+    // let c1 = new Entity({
+    //     lonlat: [33.2017379, 69.0821338, 19],
+    // });
 
     // let c2 = new Entity({
     //     lonlat: [33.2037625, 69.0814592, 24],
@@ -47,82 +50,82 @@ async function main() {
     //     lonlat: [33.2035357, 69.0821616, 21],
     // });
 
-    for (let i = 0; i < crane.length; i++) {
+    // for (let i = 0; i < crane.length; i++) {
+    //
+    //     c1.appendChild(new Entity({
+    //         geoObject: {
+    //             //color: "white",
+    //             scale: 5.0,
+    //             instanced: true,
+    //             tag: `crane-${i}`,
+    //             object3d: crane[i],
+    //             yaw: 87,
+    //             pitch: 0
+    //         }
+    //     }));
+    //
+    //     // c2.appendChild(new Entity({
+    //     //     geoObject: {
+    //     //         //color: "white",
+    //     //         scale: 1.0,
+    //     //         instanced: true,
+    //     //         tag: `crane-${i}`,
+    //     //         object3d: crane[i],
+    //     //         yaw: 24,
+    //     //         pitch: 0
+    //     //     }
+    //     // }));
+    //     //
+    //     // c3.appendChild(new Entity({
+    //     //     geoObject: {
+    //     //         //color: "white",
+    //     //         scale: 4.0,
+    //     //         instanced: true,
+    //     //         tag: `crane-${i}`,
+    //     //         object3d: crane[i],
+    //     //         yaw: -95,
+    //     //         pitch: 0
+    //     //     }
+    //     // }));
+    //     //
+    //     // c4.appendChild(new Entity({
+    //     //     geoObject: {
+    //     //         //color: "white",
+    //     //         scale: 1.0,
+    //     //         instanced: true,
+    //     //         tag: `crane-${i}`,
+    //     //         object3d: crane[i],
+    //     //         yaw: -160,
+    //     //         pitch: 0
+    //     //     }
+    //     // }));
+    //     //
+    //     // c5.appendChild(new Entity({
+    //     //     geoObject: {
+    //     //         //color: "white",
+    //     //         scale: 1.0,
+    //     //         instanced: true,
+    //     //         tag: `crane-${i}`,
+    //     //         object3d: crane[i],
+    //     //         yaw: 42,
+    //     //         pitch: 0
+    //     //     }
+    //     // }));
+    //     //
+    //     // c6.appendChild(new Entity({
+    //     //     geoObject: {
+    //     //         //color: "white",
+    //     //         scale: 1.0,
+    //     //         instanced: true,
+    //     //         tag: `crane-${i}`,
+    //     //         object3d: crane[i],
+    //     //         yaw: -229,
+    //     //         pitch: 0
+    //     //     }
+    //     // }));
+    // }
 
-        c1.appendChild(new Entity({
-            geoObject: {
-                //color: "white",
-                scale: 5.0,
-                instanced: true,
-                tag: `crane-${i}`,
-                object3d: crane[i],
-                yaw: 87,
-                pitch: 0
-            }
-        }));
-
-        // c2.appendChild(new Entity({
-        //     geoObject: {
-        //         //color: "white",
-        //         scale: 1.0,
-        //         instanced: true,
-        //         tag: `crane-${i}`,
-        //         object3d: crane[i],
-        //         yaw: 24,
-        //         pitch: 0
-        //     }
-        // }));
-        //
-        // c3.appendChild(new Entity({
-        //     geoObject: {
-        //         //color: "white",
-        //         scale: 4.0,
-        //         instanced: true,
-        //         tag: `crane-${i}`,
-        //         object3d: crane[i],
-        //         yaw: -95,
-        //         pitch: 0
-        //     }
-        // }));
-        //
-        // c4.appendChild(new Entity({
-        //     geoObject: {
-        //         //color: "white",
-        //         scale: 1.0,
-        //         instanced: true,
-        //         tag: `crane-${i}`,
-        //         object3d: crane[i],
-        //         yaw: -160,
-        //         pitch: 0
-        //     }
-        // }));
-        //
-        // c5.appendChild(new Entity({
-        //     geoObject: {
-        //         //color: "white",
-        //         scale: 1.0,
-        //         instanced: true,
-        //         tag: `crane-${i}`,
-        //         object3d: crane[i],
-        //         yaw: 42,
-        //         pitch: 0
-        //     }
-        // }));
-        //
-        // c6.appendChild(new Entity({
-        //     geoObject: {
-        //         //color: "white",
-        //         scale: 1.0,
-        //         instanced: true,
-        //         tag: `crane-${i}`,
-        //         object3d: crane[i],
-        //         yaw: -229,
-        //         pitch: 0
-        //     }
-        // }));
-    }
-
-    cranesLayer.add(c1);
+    //cranesLayer.add(c1);
     // cranesLayer.add(c2);
     // cranesLayer.add(c3);
     // cranesLayer.add(c4);
@@ -140,30 +143,30 @@ async function main() {
         sun: {
             stopped: false
         },
-        viewExtent: [33.1758537, 69.0755299, 33.2251571, 69.08960050]
+        //viewExtent: [33.1758537, 69.0755299, 33.2251571, 69.08960050]
     });
 
-    for (let i = 0; i < dock.length; i++) {
-
-        let layer = new Vector(dock[i].name, {
-            scaleByDistance: [1, 1, 1],
-            entities: [
-                new Entity({
-                    lonlat: [33.2017379, 69.0821338, 19],
-                    geoObject: {
-                        scale: 3.0,
-                        instanced: true,
-                        tag: `dock-${i}`,
-                        object3d: dock[i],
-                        yaw: -52,
-                        pitch: 0
-                    }
-                })
-            ]
-        });
-
-        //layer.addTo(globus.planet);
-    }
+    // for (let i = 0; i < dock.length; i++) {
+    //
+    //     let layer = new Vector(dock[i].name, {
+    //         scaleByDistance: [1, 1, 1],
+    //         entities: [
+    //             new Entity({
+    //                 lonlat: [33.2017379, 69.0821338, 19],
+    //                 geoObject: {
+    //                     scale: 3.0,
+    //                     instanced: true,
+    //                     tag: `dock-${i}`,
+    //                     object3d: dock[i],
+    //                     yaw: -52,
+    //                     pitch: 0
+    //                 }
+    //             })
+    //         ]
+    //     });
+    //
+    //     //layer.addTo(globus.planet);
+    // }
 
     globus.planet.addControl(new control.DebugInfo());
     globus.planet.addControl(new control.KeyboardNavigation());
@@ -189,21 +192,59 @@ async function main() {
 
             globus.renderer.setRelativeCenter(globus.planet.camera.eye);
 
-            let dist = globus.planet.camera.eye.distance(cart);
-            let cube = new Entity({
-                cartesian: cart,
-                geoObject: {
-                    color: "white",
-                    scale: 1.0,
-                    instanced: true,
-                    tag: `cube`,
-                    object3d: cubeObj,
-                    yaw: 0,
-                    pitch: 0
-                }
-            });
-            cubeLayer.add(cube);
-            console.log(dist);
+            let cube;
+
+            if (globus.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
+                cube = new Entity({
+                    cartesian: cart,
+                    geoObject: {
+                        color: "white",
+                        scale: 0.1,
+                        instanced: true,
+                        tag: `btf`,
+                        object3d: bf[0],
+                        yaw: 0,
+                        pitch: 0
+                    }
+                });
+            } else if (globus.renderer.events.isKeyPressed(input.KEY_CTRL)) {
+
+                let wind0 = new Entity({
+                    cartesian: cart,
+                    geoObject: {
+                        color: "white",
+                        scale: 0.5,
+                        instanced: true,
+                        tag: `wind-0`,
+                        object3d: wind[0],
+                        yaw: 0,
+                        pitch: 0
+                    }
+                });
+
+                let wind1 = new Entity({
+                    cartesian: cart,
+                    geoObject: {
+                        color: "white",
+                        scale: 0.5,
+                        instanced: true,
+                        tag: `wind-1`,
+                        object3d: wind[1],
+                        yaw: 0,
+                        pitch: 0
+                    }
+                });
+
+                cube = new Entity({
+                    cartesian: cart,
+                });
+
+                cube.appendChild(wind0);
+                cube.appendChild(wind1);
+            }
+            if (cube) {
+                cubeLayer.add(cube);
+            }
         }
     })
 }

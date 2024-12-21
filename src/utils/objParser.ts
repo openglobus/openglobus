@@ -56,9 +56,9 @@ export class Obj {
 
     constructor() {
 
-        this.objPositions = [[0, 0, 0]];
-        this.objTexcoords = [[0, 0]];
-        this.objNormals = [[0, 0, 0]];
+        this.objPositions = [];
+        this.objTexcoords = [];
+        this.objNormals = [];
 
         // same order as `f` indices
         this.objVertexData = [
@@ -94,7 +94,7 @@ export class Obj {
             },
             vt: (parts: string[]) => {
                 // should check for missing v and extra w?
-                this.objTexcoords.push(parts.map(parseFloat));
+                this.objTexcoords.push([parseFloat(parts[0]), 1.0 - parseFloat(parts[1])]);
             },
             f: (parts: string[]) => {
                 this.setGeometry();
@@ -220,8 +220,7 @@ export class Obj {
             if (!objIndexStr) {
                 return;
             }
-            const objIndex = parseInt(objIndexStr);
-            const index = objIndex + (objIndex >= 0 ? 0 : this.objVertexData[i].length);
+            const index = parseInt(objIndexStr) - 1;
             this.vertexData[i].push(...this.objVertexData[i][index]);
         });
     }
@@ -299,59 +298,6 @@ export class Obj {
     }
 }
 
-export function transformLeftToRightCoordinateSystem(objData: IObj): IObj {
-
-    const convertedGeometries: IObjGeometry[] = objData.geometries.map(geometry => {
-        const vertices = geometry.data.vertices;
-        const normals = geometry.data.normals;
-        const texCoords = geometry.data.texCoords || [];
-
-        rotateObject(geometry.data, 0);
-
-        let convertedVertices: number[] = [];
-        let convertedNormals: number[] = [];
-        let convertedTexCoords: number[] = [];
-
-        // Convert positions
-        for (let i = 0; i < vertices.length; i += 3) {
-            const x = vertices[i];
-            const y = vertices[i + 1];
-            const z = vertices[i + 2];
-            convertedVertices.push(x, y, z);
-        }
-
-        // Convert normals
-        for (let i = 0; i < normals.length; i += 3) {
-            const x = normals[i];
-            const y = normals[i + 1];
-            const z = normals[i + 2];
-            convertedNormals.push(x, y, -z);
-        }
-
-        // Convert texture coordinates
-        for (let i = 0; i < texCoords.length; i += 2) {
-            const s = texCoords[i];
-            const t = 1 - texCoords[i + 1];
-            convertedTexCoords.push(s, t);
-        }
-
-        return {
-            object: geometry.object,
-            groups: geometry.groups,
-            material: geometry.material,
-            data: {
-                vertices: convertedVertices,
-                normals: convertedNormals,
-                texCoords: convertedTexCoords
-            }
-        };
-    });
-
-    return {
-        geometries: convertedGeometries,
-        materials: objData.materials
-    };
-}
 
 function rotateObject(obj: IObjGeometryData, angle: number): { vertices: number[], normals: number[] } {
     const cosA = Math.cos(angle);
