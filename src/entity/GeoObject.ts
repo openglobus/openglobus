@@ -1,11 +1,14 @@
 import * as utils from "../utils/shared";
 import {Entity} from "./Entity";
 import {Quat, Vec3, Vec4} from "../math/index";
-import {GeoObjectHandler, InstanceData} from "./GeoObjectHandler";
+import {GeoObjectHandler} from "./GeoObjectHandler";
+import {InstanceData} from "./InstanceData";
 import {NumberArray3} from "../math/Vec3";
 import {NumberArray4} from "../math/Vec4";
 import {Object3d} from "../Object3d";
 import {RADIANS} from "../math";
+
+const LOCAL_FORWARD = new Vec3(0.0, 0.0, -1.0);
 
 export interface IGeoObjectParams {
     object3d?: Object3d;
@@ -70,7 +73,7 @@ class GeoObject {
      */
     public _color: Vec4;
 
-    protected _qNorthFrame: Quat;
+    protected _qFrame: Quat;
     public _qRot: Quat;
     protected _direction: Vec3;
 
@@ -142,7 +145,7 @@ class GeoObject {
 
         this._direction = new Vec3();
 
-        this._qNorthFrame = new Quat();
+        this._qFrame = new Quat();
     }
 
     public get tag() {
@@ -383,19 +386,19 @@ class GeoObject {
 
         if (this._handler) {
 
-            if (!this._handler._planet || this._position.isZero()) {
-                this._qNorthFrame = Quat.IDENTITY;
+            if (!this._handler._renderNode || this._position.isZero()) {
+                this._qFrame = Quat.IDENTITY;
             } else {
-                this._qNorthFrame = this._handler._planet.getNorthFrameRotation(this._position);
+                this._qFrame = this._handler._renderNode.getFrameRotation(this._position);
             }
 
             let qp = Quat.xRotation(-this._pitchRad);
             let qy = Quat.yRotation(this._yawRad);
             let qr = Quat.zRotation(-this._rollRad);
 
-            this._qRot = qr.mul(qp).mul(qy).mul(this._qNorthFrame).conjugate();
+            this._qRot = qr.mul(qp).mul(qy).mul(this._qFrame).conjugate();
 
-            this._direction = this._qRot.mulVec3(new Vec3(0.0, 0.0, -1.0)).normalize();
+            this._direction = this._qRot.mulVec3(LOCAL_FORWARD).normalize();
 
             this._handler.setQRotArr(this._tagData!, this._tagDataIndex, this._qRot);
         }

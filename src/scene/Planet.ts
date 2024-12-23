@@ -569,8 +569,13 @@ export class Planet extends RenderNode {
     }
 
     public getNorthFrameRotation(cartesian: Vec3): Quat {
+        return this.getFrameRotation(cartesian);
+    }
+
+    public override getFrameRotation(cartesian: Vec3): Quat {
         return this.ellipsoid.getNorthFrameRotation(cartesian);
     }
+
 
     public set atmosphereMaxOpacity(opacity: number) {
         this._atmosphereMaxMinOpacity[0] = opacity;

@@ -2,6 +2,8 @@ import {BaseNode} from "./BaseNode";
 import {Renderer} from "../renderer/Renderer";
 import {LightSource} from "../light/LightSource";
 import {EntityCollection} from "../entity/EntityCollection";
+import {Quat} from "../math/Quat";
+import {Vec3} from "../math/Vec3";
 
 /**
  * Render node is a logical part of a render mechanism. Represents scene rendering.
@@ -81,6 +83,10 @@ class RenderNode extends BaseNode {
         this.entityCollections = [];
 
         this._pickingId = -1;
+    }
+
+    public getFrameRotation(cartesian: Vec3): Quat {
+        return Quat.IDENTITY;
     }
 
     /**

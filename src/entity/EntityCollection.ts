@@ -585,7 +585,7 @@ class EntityCollection {
             this.labelHandler.setRenderer(renderNode.renderer);
             this.rayHandler.setRenderer(renderNode.renderer);
 
-            this.geoObjectHandler.setRenderNode(renderNode as Planet);
+            this.geoObjectHandler.setRenderNode(renderNode);
             this.polylineHandler.setRenderNode(renderNode);
             this.pointCloudHandler.setRenderNode(renderNode);
             this.stripHandler.setRenderNode(renderNode);

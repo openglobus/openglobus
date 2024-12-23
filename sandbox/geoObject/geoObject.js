@@ -213,7 +213,7 @@ async function main() {
                     cartesian: cart,
                     geoObject: {
                         color: "white",
-                        scale: 0.5,
+                        scale: 2,
                         instanced: true,
                         tag: `wind-0`,
                         object3d: wind[0],
@@ -226,7 +226,7 @@ async function main() {
                     cartesian: cart,
                     geoObject: {
                         color: "white",
-                        scale: 0.5,
+                        scale: 2,
                         instanced: true,
                         tag: `wind-1`,
                         object3d: wind[1],
