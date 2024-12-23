@@ -27,6 +27,7 @@
     } from "../../lib/@openglobus/og.esm.js";
 
     let renderer = new Renderer("frame", {
+
         controls: [new control.SimpleNavigation({speed: 0.01})],
         autoActivate: true
     });
@@ -60,12 +61,12 @@
 
     const obj3d = await Object3d.loadObj('./piano.obj');
 
-    //const obj3d = await Object3d.createCube(1, 1, 1);
+    const sphere = await Object3d.createSphere(12, 12, 0.5);
 
     let parts = [];
     for (let i = 0; i < obj3d.length; i++) {
         parts.push(new Entity({
-            cartesian: new Vec3(0, 0, 0),
+            cartesian: new Vec3(2, 2, 2),
             geoObject: {
                 //color: "white",
                 scale: 2,

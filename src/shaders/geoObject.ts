@@ -100,7 +100,7 @@ export const geo_object = (): Program =>
 
                 float lookLength = length(positionInViewSpace.xyz);
                              
-                vNormal = qRotate(qRot, aVertexNormal);
+                vNormal = normalize(qRotate(qRot, aVertexNormal));
                                
                 float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
                 vec3 vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate));
@@ -130,7 +130,7 @@ export const geo_object = (): Program =>
                     vec3 lightWeighting = vec3(1.0);
                 
                     if(useLighting != 0.0){
-                        vec3 normal = normalize(vNormal);
+                        vec3 normal = vNormal;
                         vec3 lightDir = normalize(sunPosition);
                         vec3 viewDir = normalize(cameraPosition - v_vertex);                
                         vec3 reflectionDirection = reflect(-lightDir, normal);

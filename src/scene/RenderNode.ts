@@ -4,6 +4,7 @@ import {LightSource} from "../light/LightSource";
 import {EntityCollection} from "../entity/EntityCollection";
 import {Quat} from "../math/Quat";
 import {Vec3} from "../math/Vec3";
+import {MAX32} from "../math";
 
 /**
  * Render node is a logical part of a render mechanism. Represents scene rendering.
@@ -76,7 +77,7 @@ class RenderNode extends BaseNode {
 
         this.lightEnabled = false;
 
-        this._lightPosition = new Float32Array(3);
+        this._lightPosition = new Float32Array([MAX32, MAX32, MAX32]);
         this._lightParams = new Float32Array(9);
         this._lightShininess = 100.0;
 

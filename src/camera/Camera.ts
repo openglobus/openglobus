@@ -219,8 +219,8 @@ class Camera {
                 this.frustumColors.push(fr._pickingColorU[0], fr._pickingColorU[1], fr._pickingColorU[2]);
             }
         } else {
-            let near = 1.0,
-                far = 10000.0;
+            let near = 0.1,
+                far = 1000.0;
 
             let fr = new Frustum({
                 fov: this._viewAngle,
