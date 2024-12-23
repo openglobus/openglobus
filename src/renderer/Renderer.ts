@@ -117,6 +117,7 @@ class Renderer {
      * @type {Handler}
      */
     public handler: Handler;
+
     public exposure: number;
     public gamma: number;
     public whitepoint: number;
@@ -245,11 +246,17 @@ class Renderer {
 
     protected _readPickingBuffer: () => void;
 
-    constructor(handler: Handler, params: IRendererParams = {}) {
+    constructor(handler: Handler | string | HTMLCanvasElement, params: IRendererParams = {}) {
 
         this.div = null;
 
-        this.handler = handler;
+        if (handler instanceof Handler) {
+            this.handler = handler;
+        } else {
+            this.handler = new Handler(handler, {
+                'autoActivate': true
+            });
+        }
 
         this.exposure = params.exposure || 3.01;
 
@@ -370,7 +377,7 @@ class Renderer {
     public setRelativeCenter(c: Vec3) {
         this.events.dispatch(this.events.changerelativecenter, c);
     }
-    
+
     /**
      * Sets renderer events activity.
      * @param {Boolean} activity - Events activity.

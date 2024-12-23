@@ -247,7 +247,7 @@ class EntityCollection {
 
         this._entities = [];
 
-        this.scaleByDistance = options.scaleByDistance || [math.MAX32, math.MAX32, math.MAX32];
+        this.scaleByDistance = options.scaleByDistance || [1.0, 1.0, 1.0];
 
         let pickingScale: Float32Array = new Float32Array([1.0, 1.0, 1.0]);
         if (options.pickingScale !== undefined) {

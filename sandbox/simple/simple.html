@@ -1,0 +1,88 @@
+<html>
+
+<head>
+    <title>Simple Renderer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../lib/@openglobus/og.css" type="text/css"/>
+</head>
+
+<body>
+
+<div style="width:100%;height:100%">
+    <canvas id="frame" style="width:100%;height:100%"/>
+</div>
+
+<script type="module" id="og-sandbox-script">
+
+    import {
+        control,
+        Entity,
+        Object3d,
+        input,
+        RenderNode,
+        Renderer,
+        EntityCollection,
+        scene,
+        Vec3
+    } from "../../lib/@openglobus/og.esm.js";
+
+    let renderer = new Renderer("frame", {
+        controls: [new control.SimpleNavigation({speed: 0.01})],
+        autoActivate: true
+    });
+
+    class MyScene extends RenderNode {
+        constructor() {
+            super("MyScene");
+
+            this.ec = new EntityCollection({
+                //scaleByDistance: [1, 1, 1],
+                //useLighting: true,
+                entities: []
+            });
+        }
+
+        init() {
+
+            this.ec.addTo(this);
+
+            this.renderer.activeCamera.eye.set(0, 0, 10);
+            this.renderer.activeCamera.update();
+        }
+
+        frame() {
+            //this.renderer.setRelativeCenter(this.renderer.activeCamera.eye);
+        }
+    }
+
+    let myScene = new MyScene();
+    renderer.addNodes([new scene.Axes(), myScene]);
+
+    const obj3d = await Object3d.loadObj('./piano.obj');
+
+    //const obj3d = await Object3d.createCube(1, 1, 1);
+
+    let parts = [];
+    for (let i = 0; i < obj3d.length; i++) {
+        parts.push(new Entity({
+            cartesian: new Vec3(0, 0, 0),
+            geoObject: {
+                //color: "white",
+                scale: 2,
+                instanced: true,
+                tag: `part-${i}`,
+                object3d: obj3d[i],
+                yaw: 0,
+                pitch: 0,
+                roll: 0
+            }
+        }));
+    }
+
+    myScene.ec.addEntities(parts);
+
+</script>
+
+</body>
+
+</html>
