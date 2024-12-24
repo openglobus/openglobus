@@ -1322,6 +1322,20 @@ class Renderer {
     }
 
     /**
+     * Returns 3d coordinates from screen coordinates
+     * @public
+     * @param {Vec2 | IBaseInputState} px - Screen coordinates.
+     * @returns {Vec3 | undefined} -
+     */
+    public getCartesianFromPixel(px: Vec2 | IBaseInputState): Vec3 | undefined {
+        let distance = this.getDistanceFromPixel(px);
+        if (distance) {
+            let direction = (px as IBaseInputState).direction || this.activeCamera.unproject(px.x, px.y);
+            return direction.scaleTo(distance).addA(this.activeCamera.eye);
+        }
+    }
+
+    /**
      * Function starts renderer
      * @public
      */

@@ -59,28 +59,37 @@
     let myScene = new MyScene();
     renderer.addNodes([new scene.Axes(), myScene]);
 
-    const obj3d = await Object3d.loadObj('./piano.obj');
+    const base = Object3d.createCube(0.1, 2, 0.1).translate(new Vec3(0, 1, 0));
+    const view = Object3d.createFrustum(3, 2, 1);
 
-    const sphere = await Object3d.createSphere(12, 12, 0.5);
+    let baseEntity = new Entity({
+        cartesian: new Vec3(0, 0, 0),
+        geoObject: {
+            scale: 1,
+            instanced: true,
+            tag: `base`,
+            object3d: base,
+            yaw: 0,
+            pitch: 0,
+            roll: 0
+        }
+    });
 
-    let parts = [];
-    for (let i = 0; i < obj3d.length; i++) {
-        parts.push(new Entity({
-            cartesian: new Vec3(2, 2, 2),
-            geoObject: {
-                //color: "white",
-                scale: 2,
-                instanced: true,
-                tag: `part-${i}`,
-                object3d: obj3d[i],
-                yaw: 0,
-                pitch: 0,
-                roll: 0
-            }
-        }));
-    }
+    let viewEntity = new Entity({
+        cartesian: new Vec3(0, 0, 0),
+        geoObject: {
+            instanced: true,
+            tag: `view`,
+            object3d: view,
+            yaw: 0,
+            pitch: 0,
+            roll: 0
+        }
+    });
 
-    myScene.ec.addEntities(parts);
+    baseEntity.appendChild(viewEntity);
+
+    myScene.ec.add(baseEntity);
 
 </script>
 

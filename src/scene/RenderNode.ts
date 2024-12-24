@@ -77,7 +77,7 @@ class RenderNode extends BaseNode {
 
         this.lightEnabled = false;
 
-        this._lightPosition = new Float32Array([MAX32, MAX32, MAX32]);
+        this._lightPosition = new Float32Array([100, 100, 100]);
         this._lightParams = new Float32Array(9);
         this._lightShininess = 100.0;
 
