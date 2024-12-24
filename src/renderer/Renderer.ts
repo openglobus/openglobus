@@ -26,6 +26,7 @@ interface IRendererParams {
     fontsSrc?: string;
     gamma?: number;
     exposure?: number;
+    dpi?: number;
 }
 
 interface IPickingObject {
@@ -254,7 +255,8 @@ class Renderer {
             this.handler = handler;
         } else {
             this.handler = new Handler(handler, {
-                'autoActivate': true
+                pixelRatio: params.dpi || (window.devicePixelRatio + 0.15),
+                autoActivate: true
             });
         }
 

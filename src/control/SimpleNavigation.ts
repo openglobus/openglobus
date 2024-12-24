@@ -3,6 +3,7 @@ import {Control, IControlParams} from "./Control";
 import {input} from "../input/input";
 import {IMouseState} from "../renderer/RendererEvents";
 import {Vec3} from "../math/Vec3";
+import * as math from "../math";
 
 interface ISimpleNavigationParams extends IControlParams {
     speed?: number;
@@ -17,6 +18,9 @@ export class SimpleNavigation extends Control {
     public vel: Vec3;
     public mass: number;
 
+    protected _lookPos: Vec3 | null;
+    protected _up: Vec3 | null;
+
     constructor(options: ISimpleNavigationParams = {}) {
         super({
             name: "SimpleNavigation",
@@ -26,6 +30,9 @@ export class SimpleNavigation extends Control {
         this.force = new Vec3();
         this.vel = new Vec3();
         this.mass = 1;
+
+        this._lookPos = null;
+        this._up = null;
     }
 
     override oninit() {
@@ -48,6 +55,9 @@ export class SimpleNavigation extends Control {
         r.events.on("keypress", input.KEY_Q, this.onCameraRollLeft, this);
         r.events.on("keypress", input.KEY_E, this.onCameraRollRight, this);
 
+        r.events.on("rhold", this._onRHold, this);
+        r.events.on("rdown", this._onRDown, this);
+
         r.events.on("draw", this.onDraw, this, -1000);
     }
 
@@ -66,10 +76,37 @@ export class SimpleNavigation extends Control {
         r.events.off("keypress", input.KEY_Q, this.onCameraRollLeft);
         r.events.off("keypress", input.KEY_E, this.onCameraRollRight);
 
+        r.events.off("rhold", this._onRHold);
+        r.events.off("rdown", this._onRDown);
+
         r.events.off("draw", this.onDraw);
     }
 
-    protected onMouseWheel(e: IMouseState) {
+    protected _onRHold = (e: IMouseState) => {
+        if (this._lookPos && e.moving && this.renderer) {
+            const cam = this.renderer.activeCamera;
+            this.renderer!.controlsBag.scaleRot = 1.0;
+            let l = (0.5 / cam.eye.distance(this._lookPos)) * math.RADIANS;
+            if (l > 0.007) {
+                l = 0.007;
+            } else if (l < 0.003) {
+                l = 0.003;
+            }
+            cam.rotateHorizontal(l * (e.x - e.prev_x), false, this._lookPos, this._up);
+            cam.rotateVertical(l * (e.y - e.prev_y), this._lookPos);
+        }
+    }
+
+    protected _onRDown = (e: IMouseState) => {
+        if (this.renderer) {
+            this._lookPos = this.renderer?.getCartesianFromPixel(e.pos)!;
+            if (this._lookPos) {
+                this._up = Vec3.UP;//this.renderer.activeCamera.getUp();
+            }
+        }
+    }
+
+    protected onMouseWheel = (e: IMouseState) => {
         if (this.renderer) {
             let pos = this.renderer.getCartesianFromPixel(e);
             if (pos) {
@@ -78,59 +115,59 @@ export class SimpleNavigation extends Control {
         }
     }
 
-    protected onCameraMoveForward() {
+    protected onCameraMoveForward = () => {
         this.force.addA(this.renderer!.activeCamera.getForward()).normalize();
     }
 
-    protected onCameraMoveBackward() {
+    protected onCameraMoveBackward = () => {
         this.force.addA(this.renderer!.activeCamera.getBackward()).normalize();
     }
 
-    protected onCameraStrifeLeft() {
+    protected onCameraStrifeLeft = () => {
         this.force.addA(this.renderer!.activeCamera.getLeft()).normalize();
     }
 
-    protected onCameraStrifeRight() {
+    protected onCameraStrifeRight = () => {
         this.force.addA(this.renderer!.activeCamera.getRight()).normalize();
     }
 
-    protected onCameraLookUp() {
+    protected onCameraLookUp = () => {
         let cam = this.renderer!.activeCamera!;
         cam.pitch(0.5);
         cam.update();
     }
 
-    protected onCameraLookDown() {
+    protected onCameraLookDown = () => {
         let cam = this.renderer!.activeCamera!;
         cam.pitch(-0.5);
         cam.update();
     }
 
-    protected onCameraTurnLeft() {
+    protected onCameraTurnLeft = () => {
         let cam = this.renderer!.activeCamera!;
         cam.yaw(0.5);
         cam.update();
     }
 
-    protected onCameraTurnRight() {
+    protected onCameraTurnRight = () => {
         let cam = this.renderer!.activeCamera!;
         cam.yaw(-0.5);
         cam.update();
     }
 
-    protected onCameraRollLeft() {
+    protected onCameraRollLeft = () => {
         let cam = this.renderer!.activeCamera!;
         cam.roll(-0.5);
         cam.update();
     }
 
-    protected onCameraRollRight() {
+    protected onCameraRollRight = () => {
         let cam = this.renderer!.activeCamera!;
         cam.roll(0.5);
         cam.update();
     }
 
-    public get dt(): number {
+    protected get dt(): number {
         let dt = this.renderer!.handler.deltaTime;
         if (dt > 3) {
             dt = 3;
@@ -148,7 +185,7 @@ export class SimpleNavigation extends Control {
 
             this.vel.addA(acc);
 
-            this.vel.scale(0.99);
+            this.vel.scale(0.96);
 
             cam.eye = cam.eye.add(this.vel.scaleTo(this.dt));
 
