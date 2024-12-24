@@ -2,6 +2,7 @@ import {Camera} from "../camera/Camera";
 import {Control, IControlParams} from "./Control";
 import {input} from "../input/input";
 import {IMouseState} from "../renderer/RendererEvents";
+import {Vec3} from "../math/Vec3";
 
 interface ISimpleNavigationParams extends IControlParams {
     speed?: number;
@@ -12,6 +13,9 @@ interface ISimpleNavigationParams extends IControlParams {
  */
 export class SimpleNavigation extends Control {
     public speed: number;
+    public force: Vec3;
+    public vel: Vec3;
+    public mass: number;
 
     constructor(options: ISimpleNavigationParams = {}) {
         super({
@@ -19,6 +23,9 @@ export class SimpleNavigation extends Control {
             autoActivate: true, ...options
         });
         this.speed = options.speed || 1.0; // m/s
+        this.force = new Vec3();
+        this.vel = new Vec3();
+        this.mass = 1;
     }
 
     override oninit() {
@@ -72,71 +79,82 @@ export class SimpleNavigation extends Control {
     }
 
     protected onCameraMoveForward() {
-        if (this._active) {
-            let cam = this.renderer!.activeCamera!;
-            cam.slide(0, 0, -this.speed);
-            //cam.update();
-        }
+        this.force.addA(this.renderer!.activeCamera.getForward()).normalize();
     }
 
     protected onCameraMoveBackward() {
-        let cam = this.renderer!.activeCamera!;
-        cam.slide(0, 0, this.speed);
-        //cam.update();
+        this.force.addA(this.renderer!.activeCamera.getBackward()).normalize();
     }
 
     protected onCameraStrifeLeft() {
-        let cam = this.renderer!.activeCamera!;
-        cam.slide(-this.speed, 0, 0);
-        //cam.update();
+        this.force.addA(this.renderer!.activeCamera.getLeft()).normalize();
     }
 
     protected onCameraStrifeRight() {
-        let cam = this.renderer!.activeCamera!;
-        cam.slide(this.speed, 0, 0);
-        //cam.update();
+        this.force.addA(this.renderer!.activeCamera.getRight()).normalize();
     }
 
     protected onCameraLookUp() {
         let cam = this.renderer!.activeCamera!;
         cam.pitch(0.5);
-        //cam.update();
+        cam.update();
     }
 
     protected onCameraLookDown() {
         let cam = this.renderer!.activeCamera!;
         cam.pitch(-0.5);
-        //cam.update();
+        cam.update();
     }
 
     protected onCameraTurnLeft() {
         let cam = this.renderer!.activeCamera!;
         cam.yaw(0.5);
-        //cam.update();
+        cam.update();
     }
 
     protected onCameraTurnRight() {
         let cam = this.renderer!.activeCamera!;
         cam.yaw(-0.5);
-        //cam.update();
+        cam.update();
     }
 
     protected onCameraRollLeft() {
         let cam = this.renderer!.activeCamera!;
         cam.roll(-0.5);
-        //cam.update();
+        cam.update();
     }
 
     protected onCameraRollRight() {
         let cam = this.renderer!.activeCamera!;
         cam.roll(0.5);
-        //cam.update();
+        cam.update();
+    }
+
+    public get dt(): number {
+        let dt = this.renderer!.handler.deltaTime;
+        if (dt > 3) {
+            dt = 3;
+        } else if (dt < 1) {
+            dt = 1;
+        }
+        return 0.001 * dt;
     }
 
     protected onDraw() {
         if (this.renderer) {
-            let frame = this.renderer.handler.deltaTime * 1000;
-            this.renderer!.activeCamera.update();
+            let cam = this.renderer.activeCamera;
+
+            let acc = this.force.scale(1.0 / this.mass);
+
+            this.vel.addA(acc);
+
+            this.vel.scale(0.99);
+
+            cam.eye = cam.eye.add(this.vel.scaleTo(this.dt));
+
+            cam.update();
+
+            this.force.set(0, 0, 0);
         }
     }
 }
