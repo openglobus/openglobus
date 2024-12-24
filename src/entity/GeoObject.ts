@@ -1,16 +1,18 @@
 import * as utils from "../utils/shared";
 import {Entity} from "./Entity";
 import {Quat, Vec3, Vec4} from "../math/index";
-import {GeoObjectHandler, InstanceData} from "./GeoObjectHandler";
+import {GeoObjectHandler} from "./GeoObjectHandler";
+import {InstanceData} from "./InstanceData";
 import {NumberArray3} from "../math/Vec3";
 import {NumberArray4} from "../math/Vec4";
 import {Object3d} from "../Object3d";
 import {RADIANS} from "../math";
 
+const LOCAL_FORWARD = new Vec3(0.0, 0.0, -1.0);
+
 export interface IGeoObjectParams {
     object3d?: Object3d;
     objSrc?: string;
-    textureSrc?: string;
     tag?: string;
     position?: Vec3 | NumberArray3;
     pitch?: number;
@@ -33,6 +35,8 @@ export interface IGeoObjectParams {
 class GeoObject {
     protected _tag: string;
 
+    static __counter__: number = 0;
+
     public instanced: boolean;
 
     /**
@@ -48,8 +52,8 @@ class GeoObject {
      * @type {Vec3}
      */
     protected _position: Vec3;
-    public _positionHigh: Vec3;
-    public _positionLow: Vec3;
+    public _rtcPositionHigh: Vec3;
+    public _rtcPositionLow: Vec3;
 
     protected _pitch: number;
     protected _yaw: number;
@@ -69,8 +73,8 @@ class GeoObject {
      */
     public _color: Vec4;
 
+    protected _qFrame: Quat;
     public _qRot: Quat;
-
     protected _direction: Vec3;
 
     public _handler: GeoObjectHandler | null;
@@ -80,18 +84,15 @@ class GeoObject {
     public _tagDataIndex: number;
 
     protected _object3d: Object3d;
+    public _objectSrc?: string;
 
     protected _visibility: boolean;
-
-    protected _qNorthFrame: Quat;
-    private _textureSrc?: string;
-    public _objectSrc?: string;
 
     protected _children: GeoObject[];
 
     constructor(options: IGeoObjectParams) {
 
-        this._tag = options.tag || "none";
+        this._tag = options.tag || `tag_${GeoObject.__counter__++}`;
 
         this.instanced = true;
 
@@ -99,9 +100,8 @@ class GeoObject {
 
         this._position = utils.createVector3(options.position);
 
-        this._positionHigh = new Vec3();
-        this._positionLow = new Vec3();
-        Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
+        this._rtcPositionHigh = new Vec3();
+        this._rtcPositionLow = new Vec3();
 
         this._pitch = options.pitch || 0.0;
         this._yaw = options.yaw || 0.0;
@@ -113,8 +113,9 @@ class GeoObject {
 
         this._scale = utils.createVector3(options.scale, new Vec3(1, 1, 1));
         this._translate = utils.createVector3(options.translate, new Vec3());
+        this._translate = utils.createVector3(options.translate, new Vec3());
 
-        this._color = utils.createColorRGBA(options.color);
+        this._color = utils.createColorRGBA(options.color, new Vec4(0.15, 0.15, 0.15, 1.0));
 
         this._qRot = Quat.IDENTITY;
 
@@ -131,17 +132,20 @@ class GeoObject {
             this.setObjectSrc(options.objSrc)
             this._objectSrc = options.objSrc;
         }
+
         this._object3d = object3d as Object3d;
-        if (options.textureSrc) {
-            this.setTextureSrc(options.textureSrc)
-        }
+
+        // if (options.colorTexture) {
+        //     this.setColorTexture(options.colorTexture)
+        // }
+
         this._visibility = (options.visibility != undefined ? options.visibility : true);
 
         this._children = [];
 
         this._direction = new Vec3();
 
-        this._qNorthFrame = new Quat();
+        this._qFrame = new Quat();
     }
 
     public get tag() {
@@ -192,6 +196,10 @@ class GeoObject {
     public setOpacity(a: number) {
         this._color.w = a;
         this.setColor(this._color.x, this._color.y, this._color.z, a);
+    }
+
+    public getOpacity(): number {
+        return this._color.w;
     }
 
     /**
@@ -253,10 +261,16 @@ class GeoObject {
         this._position.x = x;
         this._position.y = y;
         this._position.z = z;
-        Vec3.doubleToTwoFloats(this._position, this._positionHigh, this._positionLow);
-        this._handler &&
-        this._handler.setPositionArr(this._tagData!, this._tagDataIndex, this._positionHigh, this._positionLow);
+        this.updateRTCPosition();
         this.updateRotation();
+    }
+
+    public updateRTCPosition() {
+        //Vec3.doubleToTwoFloats(this._position, this._rtcPositionHigh, this._rtcPositionLow);
+        if (this._handler) {
+            this._handler.getRTCPosition(this._position, this._rtcPositionHigh, this._rtcPositionLow);
+            this._handler.setRTCPositionArr(this._tagData!, this._tagDataIndex, this._rtcPositionHigh, this._rtcPositionLow);
+        }
     }
 
     /**
@@ -265,12 +279,7 @@ class GeoObject {
      * @param {Vec3} position - Cartesian coordinates.
      */
     public setPosition3v(position: Vec3) {
-        this._position.x = position.x;
-        this._position.y = position.y;
-        this._position.z = position.z;
-        Vec3.doubleToTwoFloats(position, this._positionHigh, this._positionLow);
-        this._handler && this._handler.setPositionArr(this._tagData!, this._tagDataIndex, this._positionHigh, this._positionLow);
-        this.updateRotation();
+        this.setPosition(position.x, position.y, position.z);
     }
 
     public setYaw(yaw: number) {
@@ -288,11 +297,17 @@ class GeoObject {
         this._handler && this._handler.setObjectSrc(src, this.tag);
     }
 
-    public setTextureSrc(src: string) {
-        this._textureSrc = src;
-        this._object3d && (this._object3d.src = src);
-        this._handler && this._handler.setTextureTag(src, this.tag);
-    }
+    // public setColorTexture(src: string) {
+    //     this._colorTexture = src;
+    //     //this._object3d && (this._object3d.colorTexture = src);
+    //     this._handler && this._handler.setColorTextureTag(src, this.tag);
+    // }
+
+    // public setNormalTexture(src: string) {
+    //     this._normalTexture = src;
+    //     //this._object3d && (this._object3d.normalTexture = src);
+    //     this._handler && this._handler.setNormalTextureTag(src, this.tag);
+    // }
 
     public setColorHTML(color: string) {
         this.setColor4v(utils.htmlColorToRgba(color));
@@ -369,16 +384,21 @@ class GeoObject {
 
     public updateRotation() {
 
-        if (this._handler && this._handler._planet) {
-            this._qNorthFrame = this._handler._planet.getNorthFrameRotation(this._position);
+        if (this._handler) {
+
+            if (!this._handler._renderNode || this._position.isZero()) {
+                this._qFrame = Quat.IDENTITY;
+            } else {
+                this._qFrame = this._handler._renderNode.getFrameRotation(this._position);
+            }
 
             let qp = Quat.xRotation(-this._pitchRad);
             let qy = Quat.yRotation(this._yawRad);
             let qr = Quat.zRotation(-this._rollRad);
 
-            this._qRot = qr.mul(qp).mul(qy).mul(this._qNorthFrame).conjugate();
+            this._qRot = qr.mul(qp).mul(qy).mul(this._qFrame).conjugate();
 
-            this._direction = this._qRot.mulVec3(new Vec3(0.0, 0.0, -1.0)).normalize();
+            this._direction = this._qRot.mulVec3(LOCAL_FORWARD).normalize();
 
             this._handler.setQRotArr(this._tagData!, this._tagDataIndex, this._qRot);
         }
@@ -386,6 +406,10 @@ class GeoObject {
 
     public getDirection(): Vec3 {
         return this._direction.clone();
+    }
+
+    get rotation(): Quat {
+        return this._qRot;
     }
 }
 

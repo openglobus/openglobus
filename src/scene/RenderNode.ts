@@ -2,6 +2,9 @@ import {BaseNode} from "./BaseNode";
 import {Renderer} from "../renderer/Renderer";
 import {LightSource} from "../light/LightSource";
 import {EntityCollection} from "../entity/EntityCollection";
+import {Quat} from "../math/Quat";
+import {Vec3} from "../math/Vec3";
+import {MAX32} from "../math";
 
 /**
  * Render node is a logical part of a render mechanism. Represents scene rendering.
@@ -46,11 +49,9 @@ class RenderNode extends BaseNode {
      * @public
      * @type {Array.<LightSource>}
      */
-    public _lights: LightSource[];
-    public _lightsNames: string[];
-    public _lightsPositions: number[];
-    public _lightsParamsv: number[];
-    public _lightsParamsf: number[];
+    public _lightPosition: Float32Array;
+    public _lightParams: Float32Array;
+    public _lightShininess: number;
 
     /**
      * Entity collection array.
@@ -76,15 +77,17 @@ class RenderNode extends BaseNode {
 
         this.lightEnabled = false;
 
-        this._lights = [];
-        this._lightsNames = [];
-        this._lightsPositions = [];
-        this._lightsParamsv = [];
-        this._lightsParamsf = [];
+        this._lightPosition = new Float32Array([100, 100, 100]);
+        this._lightParams = new Float32Array(9);
+        this._lightShininess = 100.0;
 
         this.entityCollections = [];
 
         this._pickingId = -1;
+    }
+
+    public getFrameRotation(cartesian: Vec3): Quat {
+        return Quat.IDENTITY;
     }
 
     /**
@@ -182,26 +185,6 @@ class RenderNode extends BaseNode {
     }
 
     /**
-     * Gets light object by its name.
-     * @public
-     * @param {string} name - Point light name.
-     * @returns {LightSource}
-     */
-    public getLightByName(name: string): LightSource | undefined {
-        let li = this._lightsNames.indexOf(name);
-        return this._lights[li];
-    }
-
-    /**
-     * Removes light source.
-     * @public
-     * @param {LightSource} light - Light source object.
-     */
-    public removeLight(light: LightSource) {
-        light.remove();
-    }
-
-    /**
      * Calls render frame node's callback. Used in renderer.
      * @public
      */
@@ -266,35 +249,26 @@ class RenderNode extends BaseNode {
         }
     }
 
-    /**
-     * IMPORTANT: This function have to be called manually in each render node frame callback, before drawing scene geometry.
-     * @public
-     */
-    public transformLights() {
-        for (let i = 0; i < this._lights.length; i++) {
-            let ii = i * 3;
-            let tp;
-            tp = this._lights[i]._position;
-            this._lightsPositions[ii] = tp.x;
-            this._lightsPositions[ii + 1] = tp.y;
-            this._lightsPositions[ii + 2] = tp.z;
-        }
-
-        // for (let i = 0; i < this._lights.length; i++) {
-        //     var ii = i * 4;
-        //     var tp;
-        //     if (this._lights[i].directional) {
-        //         tp = r.activeCamera._normalMatrix.mulVec(this._lights[i]._position);
-        //         this._lightsTransformedPositions[ii + 3] = 0;
-        //     } else {
-        //         tp = r.activeCamera._viewMatrix.mulVec3(this._lights[i]._position);
-        //         this._lightsTransformedPositions[ii + 3] = 1;
-        //     }
-        //     this._lightsTransformedPositions[ii] = tp.x;
-        //     this._lightsTransformedPositions[ii + 1] = tp.y;
-        //     this._lightsTransformedPositions[ii + 2] = tp.z;
-        // }
-    }
+    // /**
+    //  * IMPORTANT: This function have to be called manually in each render node frame callback, before drawing scene geometry.
+    //  * @public
+    //  */
+    // public transformLights() {
+    //     // for (let i = 0; i < this._lights.length; i++) {
+    //     //     var ii = i * 4;
+    //     //     var tp;
+    //     //     if (this._lights[i].directional) {
+    //     //         tp = r.activeCamera._normalMatrix.mulVec(this._lights[i]._position);
+    //     //         this._lightsTransformedPositions[ii + 3] = 0;
+    //     //     } else {
+    //     //         tp = r.activeCamera._viewMatrix.mulVec3(this._lights[i]._position);
+    //     //         this._lightsTransformedPositions[ii + 3] = 1;
+    //     //     }
+    //     //     this._lightsTransformedPositions[ii] = tp.x;
+    //     //     this._lightsTransformedPositions[ii + 1] = tp.y;
+    //     //     this._lightsTransformedPositions[ii + 2] = tp.z;
+    //     // }
+    // }
 
     public updateBillboardsTexCoords() {
         for (let i = 0; i < this.entityCollections.length; i++) {
@@ -342,8 +316,8 @@ class RenderNode extends BaseNode {
         }
     }
 
-    public drawEntityCollections(ec: EntityCollection[]) {
-        this.renderer!.enqueueEntityCollectionsToDraw(ec);
+    public drawEntityCollections(ec: EntityCollection[], depthOrder: number = 0) {
+        this.renderer!.enqueueEntityCollectionsToDraw(ec, depthOrder);
     }
 
     /**

@@ -40,7 +40,7 @@ export class Sun extends Control {
 
         this.offsetHorizontal = options.offsetHorizontal || 5000000;
 
-        this.sunlight = new LightSource("Sun", {
+        this.sunlight = new LightSource({
             ambient: new Vec3(0.15, 0.15, 0.25),
             diffuse: new Vec3(0.9, 0.9, 0.8),
             specular: new Vec3(0.1, 0.1, 0.06),

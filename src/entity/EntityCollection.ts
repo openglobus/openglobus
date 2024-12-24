@@ -5,9 +5,8 @@ import {Entity} from "./Entity";
 import {Ellipsoid} from "../ellipsoid/Ellipsoid";
 import {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
 import {GeoObjectHandler} from "./GeoObjectHandler";
-import {Label} from "./Label";
 import {LabelHandler} from "./LabelHandler";
-import {NumberArray3} from "../math/Vec3";
+import {Vec3, NumberArray3} from "../math/Vec3";
 import {Planet} from "../scene/Planet";
 import {PointCloudHandler} from "./PointCloudHandler";
 import {PolylineHandler} from "./PolylineHandler";
@@ -248,7 +247,7 @@ class EntityCollection {
 
         this._entities = [];
 
-        this.scaleByDistance = options.scaleByDistance || [math.MAX32, math.MAX32, math.MAX32];
+        this.scaleByDistance = options.scaleByDistance || [1.0, 1.0, 1.0];
 
         let pickingScale: Float32Array = new Float32Array([1.0, 1.0, 1.0]);
         if (options.pickingScale !== undefined) {
@@ -586,15 +585,22 @@ class EntityCollection {
             this.labelHandler.setRenderer(renderNode.renderer);
             this.rayHandler.setRenderer(renderNode.renderer);
 
-            this.geoObjectHandler.setRenderNode(renderNode as Planet);
+            this.geoObjectHandler.setRenderNode(renderNode);
             this.polylineHandler.setRenderNode(renderNode);
             this.pointCloudHandler.setRenderNode(renderNode);
             this.stripHandler.setRenderNode(renderNode);
+
+            renderNode.renderer.events.on("changerelativecenter", this._onChangeRelativeCenter);
 
             this.updateBillboardsTextureAtlas();
             this.updateLabelsFontAtlas();
             this.createPickingColors();
         }
+    }
+
+    protected _onChangeRelativeCenter = (c: Vec3) => {
+        this.geoObjectHandler.setRelativeCenter(c);
+        this.polylineHandler.setRelativeCenter(c);
     }
 
     /**
@@ -650,6 +656,7 @@ class EntityCollection {
                     this.renderNode.entityCollections[i]._renderNodeIndex = i;
                 }
             }
+            this.renderNode.renderer?.events.off("changerelativecenter", this._onChangeRelativeCenter);
             this.renderNode = null;
             this._renderNodeIndex = -1;
             this.events.dispatch(this.events.remove, this);
