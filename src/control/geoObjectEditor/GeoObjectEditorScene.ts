@@ -253,18 +253,18 @@ class GeoObjectEditorScene extends RenderNode {
     }
 
     protected _onAxisLayerMouseEnter = (e: IMouseState) => {
-        this._planet!.renderer!.handler!.canvas!.style.cursor = "pointer";
+        this.renderer!.handler!.canvas!.style.cursor = "pointer";
         e.pickingObject.setColorHTML(e.pickingObject.properties.style.selectColor);
     }
 
     protected _onAxisLayerMouseLeave = (e: IMouseState) => {
-        this._planet!.renderer!.handler!.canvas!.style.cursor = "default";
+        this.renderer!.handler!.canvas!.style.cursor = "default";
         e.pickingObject.setColorHTML(e.pickingObject.properties.style.color);
     }
 
     protected _onAxisLayerLUp = (e: IMouseState) => {
         this._selectedMove = null;
-        this._planet!.renderer!.controls.mouseNavigation.activate();
+        this.renderer!.controls.mouseNavigation.activate();
         this._setAxisTrackVisibility(false);
     }
 
@@ -277,22 +277,22 @@ class GeoObjectEditorScene extends RenderNode {
         }
 
         this._selectedMove = e.pickingObject.properties.opName;
-        this._planet!.renderer!.controls.mouseNavigation.deactivate();
+        this.renderer!.controls.mouseNavigation.deactivate();
     }
 
     protected _onPlaneLayerMouseEnter = (e: IMouseState) => {
-        this._planet!.renderer!.handler!.canvas!.style.cursor = "pointer";
+        this.renderer!.handler!.canvas!.style.cursor = "pointer";
         e.pickingObject.geoObject.setColorHTML(e.pickingObject.properties.style.selectColor);
     }
 
     protected _onPlaneLayerMouseLeave = (e: IMouseState) => {
-        this._planet!.renderer!.handler!.canvas!.style.cursor = "default";
+        this.renderer!.handler!.canvas!.style.cursor = "default";
         e.pickingObject.geoObject.setColorHTML(e.pickingObject.properties.style.color);
     }
 
     protected _onPlaneLayerLUp = (e: IMouseState) => {
         this._selectedMove = null;
-        this._planet!.renderer!.controls.mouseNavigation.activate();
+        this.renderer!.controls.mouseNavigation.activate();
         this._setAxisTrackVisibility(false);
     }
 
@@ -305,22 +305,22 @@ class GeoObjectEditorScene extends RenderNode {
         }
 
         this._selectedMove = e.pickingObject.properties.opName;
-        this._planet!.renderer!.controls.mouseNavigation.deactivate();
+        this.renderer!.controls.mouseNavigation.deactivate();
     }
 
     protected _onRotateLayerMouseEnter = (e: IMouseState) => {
-        this._planet!.renderer!.handler!.canvas!.style.cursor = "pointer";
+        this.renderer!.handler!.canvas!.style.cursor = "pointer";
         e.pickingObject.polyline!.setColorHTML(e.pickingObject.properties.style.selectColor);
     }
 
     protected _onRotateLayerMouseLeave = (e: IMouseState) => {
-        this._planet!.renderer!.handler!.canvas!.style.cursor = "default";
+        this.renderer!.handler!.canvas!.style.cursor = "default";
         e.pickingObject.polyline!.setColorHTML(e.pickingObject.properties.style.color);
     }
 
     protected _onRotateLayerLUp = (e: IMouseState) => {
         this._selectedMove = null;
-        this._planet!.renderer!.controls.mouseNavigation.activate();
+        this.renderer!.controls.mouseNavigation.activate();
     }
 
     protected _onRotateLayerLDown = (e: IMouseState) => {
@@ -336,7 +336,7 @@ class GeoObjectEditorScene extends RenderNode {
         }
 
         this._selectedMove = e.pickingObject.properties.opName;
-        this._planet!.renderer!.controls.mouseNavigation.deactivate();
+        this.renderer!.controls.mouseNavigation.deactivate();
     }
 
     protected _onMouseMove = (e: IMouseState) => {
@@ -449,7 +449,7 @@ class GeoObjectEditorScene extends RenderNode {
     protected _moveX = (e: IMouseState) => {
         if (!this._selectedEntity) return;
 
-        let cam = this._planet!.camera;
+        let cam = this.renderer!.activeCamera;
         let p0 = this._selectedEntityCart;
 
         let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
@@ -466,10 +466,10 @@ class GeoObjectEditorScene extends RenderNode {
 
         let px = rot.mulVec3(p0);
 
-        let p0_lonLat = this._planet?.ellipsoid.cartesianToLonLat(p0)!;
-        let px_lonLat = this._planet?.ellipsoid.cartesianToLonLat(px)!;
+        let p0_lonLat = this._planet!.ellipsoid.cartesianToLonLat(p0)!;
+        let px_lonLat = this._planet!.ellipsoid.cartesianToLonLat(px)!;
 
-        this._planet?.ellipsoid.lonLatToCartesianRes(new LonLat(px_lonLat.lon, p0_lonLat.lat, p0_lonLat.height), px);
+        this._planet!.ellipsoid.lonLatToCartesianRes(new LonLat(px_lonLat.lon, p0_lonLat.lat, p0_lonLat.height), px);
 
         this._selectedEntity.setCartesian3v(px);
 
@@ -481,9 +481,8 @@ class GeoObjectEditorScene extends RenderNode {
 
         if (!this._selectedEntity) return;
 
-        let cam = this._planet!.camera;
+        let cam = this.renderer!.activeCamera;
         let p0 = this._selectedEntityCart;
-        //let groundNormal = this._planet!.ellipsoid.getSurfaceNormal3v(p0);
         let groundNormal = this._axisEntity.getY();
         let p1 = p0.add(groundNormal);
         let p2 = p0.add(cam.getRight());
@@ -507,7 +506,7 @@ class GeoObjectEditorScene extends RenderNode {
     protected _moveZ = (e: IMouseState) => {
         if (!this._selectedEntity) return;
 
-        let cam = this._planet!.camera;
+        let cam = this.renderer!.activeCamera;
         let p0 = this._selectedEntityCart;
 
         let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
@@ -524,10 +523,10 @@ class GeoObjectEditorScene extends RenderNode {
 
         let px = rot.mulVec3(p0);
 
-        let p0_lonLat = this._planet?.ellipsoid.cartesianToLonLat(p0)!;
-        let px_lonLat = this._planet?.ellipsoid.cartesianToLonLat(px)!;
+        let p0_lonLat = this._planet!.ellipsoid.cartesianToLonLat(p0)!;
+        let px_lonLat = this._planet!.ellipsoid.cartesianToLonLat(px)!;
 
-        this._planet?.ellipsoid.lonLatToCartesianRes(new LonLat(p0_lonLat.lon, px_lonLat.lat, p0_lonLat.height), px);
+        this._planet!.ellipsoid.lonLatToCartesianRes(new LonLat(p0_lonLat.lon, px_lonLat.lat, p0_lonLat.height), px);
 
         this._selectedEntity.setCartesian3v(px);
 
@@ -538,7 +537,7 @@ class GeoObjectEditorScene extends RenderNode {
     protected _moveXZ = (e: IMouseState) => {
         if (!this._selectedEntity) return;
 
-        let cam = this._planet!.camera;
+        let cam = this.renderer!.activeCamera;
         let p0 = this._selectedEntityCart;
 
         let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
@@ -555,10 +554,10 @@ class GeoObjectEditorScene extends RenderNode {
 
         let px = rot.mulVec3(p0);
 
-        let lonLat = this._planet?.ellipsoid.cartesianToLonLat(px)!;
+        let lonLat = this._planet!.ellipsoid.cartesianToLonLat(px)!;
         let height = this._selectedEntity.getLonLat().height;
 
-        this._planet?.ellipsoid.lonLatToCartesianRes(new LonLat(lonLat.lon, lonLat.lat, height), px);
+        this._planet!.ellipsoid.lonLatToCartesianRes(new LonLat(lonLat.lon, lonLat.lat, height), px);
 
         this._selectedEntity.setCartesian3v(px);
 
@@ -577,7 +576,7 @@ class GeoObjectEditorScene extends RenderNode {
     protected _rotatePitch = (e: IMouseState) => {
         if (!this._selectedEntity) return;
 
-        let cam = this._planet!.camera;
+        let cam = this.renderer!.activeCamera;
         let p0 = this._selectedEntityCart;
         let qNorthFrame = this._planet!.getNorthFrameRotation(p0).conjugate();
 
@@ -617,7 +616,7 @@ class GeoObjectEditorScene extends RenderNode {
     protected _rotateYaw = (e: IMouseState) => {
         if (!this._selectedEntity) return;
 
-        let cam = this._planet!.camera;
+        let cam = this.renderer!.activeCamera;
         let p0 = this._selectedEntityCart;
         let qNorthFrame = this._planet!.getNorthFrameRotation(p0).conjugate();
         let norm = qNorthFrame.mulVec3(new Vec3(0, 1, 0)).normalize();
@@ -649,7 +648,7 @@ class GeoObjectEditorScene extends RenderNode {
     protected _rotateRoll = (e: IMouseState) => {
         if (!this._selectedEntity) return;
 
-        let cam = this._planet!.camera;
+        let cam = this.renderer!.activeCamera;
         let p0 = this._selectedEntityCart;
         let qNorthFrame = this._planet!.getNorthFrameRotation(p0).conjugate();
 
