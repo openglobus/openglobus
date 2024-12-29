@@ -2053,6 +2053,10 @@ class Polyline {
         }
     }
 
+    public getSize(index: number = 0): number {
+        return this._path3v[index].length;
+    }
+
     /**
      * Sets Polyline cartesian coordinates.
      * @public

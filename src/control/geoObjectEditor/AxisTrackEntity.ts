@@ -6,7 +6,7 @@ import {htmlColorToFloat32Array} from "../../utils/shared";
 import {SegmentPathColor} from "../../entity/Polyline";
 import {GeoObjectEditorScene} from "./GeoObjectEditorScene";
 
-const SEG_SIZE = 100;
+const SEG_SIZE = 20;
 
 export interface IAxisTrackEntityParams extends IEntityParams {
 }
@@ -31,7 +31,7 @@ export class AxisTrackEntity extends Entity {
             latCol = htmlColorToFloat32Array(SEL_Z_COLOR);
 
 
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < length; i++) {
             let op = 1;
             if (i < 5) {
                 let t = i / 5;
@@ -97,7 +97,8 @@ export class AxisTrackEntity extends Entity {
 
                 let ll = this._lonLat;
 
-                for (let i = -10; i < 10; i++) {
+                let size = SEG_SIZE / 2;
+                for (let i = -size; i < size; i++) {
                     latCoords.push(new LonLat(ll.lon, ll.lat + i, ll.height));
                     lonCoords.push(new LonLat(ll.lon + i, ll.lat, ll.height));
                     yCoords.push(cart.add(n.scaleTo(i * r)));
@@ -117,8 +118,8 @@ export class AxisTrackEntity extends Entity {
                     x = Vec3.UNIT_X,
                     z = Vec3.UNIT_Z;
 
-
-                for (let i = -10; i < 10; i++) {
+                let size = SEG_SIZE / 2;
+                for (let i = -size; i < size; i++) {
                     xCoords.push(cart.add(x.scaleTo(i * r)));
                     yCoords.push(cart.add(y.scaleTo(i * r)));
                     zCoords.push(cart.add(z.scaleTo(i * r)));

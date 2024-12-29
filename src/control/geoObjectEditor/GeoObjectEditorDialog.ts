@@ -28,13 +28,20 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     protected _lonView: Input;
     protected _latView: Input;
     protected _heightView: Input;
+
+    protected _xView: Input;
+    protected _yView: Input;
+    protected _zView: Input;
+
     protected _pitchView: Input;
     protected _yawView: Input;
     protected _rollView: Input;
+
     protected _scaleView: Input;
     protected _scaleXView: Input;
     protected _scaleYView: Input;
     protected _scaleZView: Input;
+
     protected _groundBtn: Button;
 
     constructor(params: IGeoObjectPropertiesDialog) {
@@ -72,6 +79,22 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
             label: "Height",
             type: "number",
             maxFixed: 4
+        });
+
+        this._xView = new Input({
+            label: "X",
+            type: "number",
+            maxFixed: 10
+        });
+
+        this._yView = new Input({
+            label: "Y",
+            type: "number",
+        });
+
+        this._zView = new Input({
+            label: "Z",
+            type: "number",
         });
 
         this._pitchView = new Input({
@@ -157,20 +180,33 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
 
         this.events.on("visibility", this._onVisibility);
 
-        this._lonView.appendTo(this.container!);
-        this._latView.appendTo(this.container!);
-        this._heightView.appendTo(this.container!);
+        if (this.model.planet) {
+            this._lonView.appendTo(this.container!);
+            this._latView.appendTo(this.container!);
+            this._heightView.appendTo(this.container!);
+        }
+        this._xView.appendTo(this.container!);
+        this._yView.appendTo(this.container!);
+        this._zView.appendTo(this.container!);
+
         this._pitchView.appendTo(this.container!);
         this._yawView.appendTo(this.container!);
         this._rollView.appendTo(this.container!);
+
         this._scaleView.appendTo(this.container!);
         this._scaleXView.appendTo(this.container!);
         this._scaleYView.appendTo(this.container!);
         this._scaleZView.appendTo(this.container!);
-        this._groundBtn.appendTo(this.container!);
+
+        if (this.model.planet) {
+            this._groundBtn.appendTo(this.container!);
+        }
 
         this._lonView.events.on("change", this._onChangeLon);
         this._latView.events.on("change", this._onChangeLat);
+        this._xView.events.on("change", this._onChangeX);
+        this._yView.events.on("change", this._onChangeY);
+        this._zView.events.on("change", this._onChangeZ);
         this._heightView.events.on("change", this._onChangeHeight);
         this._pitchView.events.on("change", this._onChangePitch);
         this._yawView.events.on("change", this._onChangeYaw);
@@ -220,18 +256,22 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     }
 
     protected _refresh(entity: Entity) {
-        let ll = entity.getLonLat(),
-            go = getGeoObject(entity);
-
-        let scl = go.getScale();
-
+        let ll = entity.getLonLat();
         this._lonView.value = ll.lon;
         this._latView.value = ll.lat;
         this._heightView.value = ll.height;
+
+        let cart = entity.getCartesian();
+        this._xView.value = cart.x;
+        this._yView.value = cart.y;
+        this._zView.value = cart.z;
+
+        let go = getGeoObject(entity);
         this._pitchView.value = go.getPitch();
         this._yawView.value = go.getYaw();
         this._rollView.value = go.getRoll();
 
+        let scl = go.getScale();
         if ((scl.x === scl.y) && (scl.y === scl.z)) {
             this._scaleView.value = scl.x;
         } else {
@@ -263,6 +303,16 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         this._lonView.value = ll.lon;
         this._latView.value = ll.lat;
         this._heightView.value = ll.height;
+
+
+        this._xView.events.stopPropagation();
+        this._yView.events.stopPropagation();
+        this._zView.events.stopPropagation();
+
+        let cart = entity.getCartesian();
+        this._xView.value = cart.x;
+        this._yView.value = cart.y;
+        this._zView.value = cart.z;
     }
 
     protected _onPitch = (a: number, entity: Entity) => {
@@ -301,6 +351,30 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         if (entity) {
             let ll = entity.getLonLat();
             entity.setLonLat2(ll.lon, ll.lat, parseFloat(val));
+        }
+    }
+
+    protected _onChangeX = (val: string) => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+            let cart = entity.getCartesian();
+            entity.setCartesian(parseFloat(val), cart.y, cart.z);
+        }
+    }
+
+    protected _onChangeY = (val: string) => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+            let cart = entity.getCartesian();
+            entity.setCartesian(cart.x, parseFloat(val), cart.z);
+        }
+    }
+
+    protected _onChangeZ = (val: string) => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+            let cart = entity.getCartesian();
+            entity.setLonLat2(cart.x, cart.y, parseFloat(val));
         }
     }
 

@@ -75,7 +75,9 @@ class Input extends View<null> {
             } else {
                 this._value = val;
             }
-            this.$input!.value = this._value;
+            if (this.$input) {
+                this.$input.value = this._value;
+            }
             this.events.dispatch(this.events.change, this._value, this);
         }
     }
@@ -133,6 +135,16 @@ class Input extends View<null> {
     public override remove() {
         this._clearEvents();
         super.remove();
+    }
+
+    set visibility(visibility: boolean) {
+        if (this.el) {
+            if (visibility) {
+                this.el.style.display = "";
+            } else {
+                this.el.style.display = "none";
+            }
+        }
     }
 }
 

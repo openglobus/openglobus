@@ -26,7 +26,7 @@ export class GeoObjectEditor extends Control {
         if (this.renderer) {
             this.renderer.addControl(new CameraLock());
             this._geoObjectEditopScene.bindPlanet(this.planet!);
-            this._dialog.appendTo(this.renderer!.div!);
+            this._dialog.appendTo(this.renderer.div || document.body);
             this.activate();
         }
     }
