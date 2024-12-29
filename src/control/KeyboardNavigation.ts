@@ -17,7 +17,7 @@ export class KeyboardNavigation extends Control {
     constructor(options: IKeyboardNavigationParams = {}) {
         options = options || {};
         super({name: "KeyboardNavigation", ...options});
-        this.step = options.step || 250;
+        this.step = options.step || 25000;
     }
 
     public override onactivate() {

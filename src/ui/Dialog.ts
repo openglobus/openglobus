@@ -11,12 +11,13 @@ export interface IDialogParams extends IViewParams {
     width?: number;
     height?: number;
     left?: number;
+    right?: number;
     top?: number;
     minHeight?: number;
     maxHeight?: number;
     minWidth?: number;
     maxWidth?: number;
-    useHide?: boolean;
+    useHide?: boolean;     // Using hide instead of remove when close
 }
 
 type DialogEventsList = ["resize", "focus", "visibility", "dragstart", "dragend"];
@@ -51,6 +52,8 @@ class Dialog<M> extends View<M> {
     protected _closeBtn: Button;
 
     protected _visibility: boolean;
+
+    protected _right: number | null;
 
     constructor(options: IDialogParams = {}) {
         super({
@@ -89,6 +92,8 @@ class Dialog<M> extends View<M> {
         this.useHide = options.useHide || false;
 
         this._visibility = getDefault(options.visible, true);
+
+        this._right = options.right != undefined ? options.right : null;
     }
 
     public setContainer(htmlStr: string) {
@@ -120,6 +125,25 @@ class Dialog<M> extends View<M> {
         this.$buttons = this.select(".og-ddialog-header__buttons");
         this._initEvents();
         this._initButtons();
+
+        if (this._right != null) {
+            this.el!.style.visibility = "hidden";
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        this.el!.style.visibility = "visible";
+                        //@ts-ignore
+                        if(this.el!.parentNode) {
+                            this.setPosition((this.el!.parentNode as HTMLElement).clientWidth - this.el!.clientWidth - this._right!);
+                            obs.disconnect();
+                        }
+                    }
+                });
+            });
+
+            observer.observe(this.el!);
+        }
+
         return this;
     }
 
@@ -154,6 +178,10 @@ class Dialog<M> extends View<M> {
         } else {
             this.hide();
         }
+    }
+
+    public getVisibility(): boolean {
+        return this._visibility;
     }
 
     protected _initButtons() {

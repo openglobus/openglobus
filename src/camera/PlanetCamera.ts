@@ -359,7 +359,7 @@ class PlanetCamera extends Camera {
         );
     }
 
-    public viewDistance(cartesian: Vec3, distance: number = 10000.0) {
+    public override viewDistance(cartesian: Vec3, distance: number = 10000.0) {
         let p0 = this.eye.add(this.getForward().scaleTo(distance));
         let _rot = Quat.getRotationBetweenVectors(p0.getNormal(), cartesian.getNormal());
         if (_rot.isZero()) {

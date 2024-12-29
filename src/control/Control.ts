@@ -120,7 +120,7 @@ export class Control {
             this.renderer = renderer;
             renderer.controls[this.name] = this;
             this.onadd && this.onadd();
-            if (renderer.isInitialized()) {
+            if (renderer.isInitialized() && !this._initialized) {
                 this._initialized = true;
                 this.oninit && this.oninit();
                 if (this.autoActivate) {
