@@ -4,7 +4,7 @@ import {LightSource} from "../light/LightSource";
 import {EntityCollection} from "../entity/EntityCollection";
 import {Quat} from "../math/Quat";
 import {Vec3} from "../math/Vec3";
-import {MAX32} from "../math";
+import {Planet} from "./Planet";
 
 /**
  * Render node is a logical part of a render mechanism. Represents scene rendering.
@@ -60,6 +60,8 @@ class RenderNode extends BaseNode {
      */
     public entityCollections: EntityCollection[];
 
+    protected _entityCollectionsByDepthOrder: EntityCollection[][];
+
     protected _pickingId: number;
 
     constructor(name?: string) {
@@ -82,6 +84,8 @@ class RenderNode extends BaseNode {
         this._lightShininess = 100.0;
 
         this.entityCollections = [];
+
+        this._entityCollectionsByDepthOrder = [];
 
         this._pickingId = -1;
     }
@@ -159,9 +163,23 @@ class RenderNode extends BaseNode {
      * @param {boolean} [isHidden] - If it's true that this collection has specific rendering.
      * @returns {RenderNode} -
      */
-    public addEntityCollection(entityCollection: EntityCollection, isHidden?: boolean): RenderNode {
-        entityCollection.addTo(this, isHidden);
-        return this;
+    public addEntityCollection(entityCollection: EntityCollection, isHidden?: boolean): void {
+
+        if (!entityCollection.renderNode) {
+            entityCollection.renderNode = this;
+
+            if (!isHidden) {
+                this.entityCollections.push(entityCollection);
+                this.updateEntityCollectionsDepthOrder();
+            }
+
+            //@ts-ignore
+            (this as Planet).ellipsoid && entityCollection._updateGeodeticCoordinates((this as Planet).ellipsoid);
+
+            entityCollection.bindRenderNode(this);
+
+            entityCollection.events.dispatch(entityCollection.events.add, this);
+        }
     }
 
     /**
@@ -170,7 +188,30 @@ class RenderNode extends BaseNode {
      * @param {EntityCollection} entityCollection - Entity collection for remove.
      */
     public removeEntityCollection(entityCollection: EntityCollection) {
-        entityCollection.remove();
+        for (let i = 0; i < this.entityCollections.length; i++) {
+            if (this.entityCollections[i].isEqual(entityCollection)) {
+                this.entityCollections.splice(i, 1);
+                this.updateEntityCollectionsDepthOrder();
+                return;
+            }
+        }
+    }
+
+    public updateEntityCollectionsDepthOrder() {
+
+        let grouped: Record<number, EntityCollection[]> = {0: []};
+        for (const ec of this.entityCollections) {
+            if (!grouped[ec.depthOrder]) {
+                grouped[ec.depthOrder] = [];
+            }
+            grouped[ec.depthOrder].push(ec);
+        }
+
+        this._entityCollectionsByDepthOrder.length = 0;
+        this._entityCollectionsByDepthOrder = [];
+        this._entityCollectionsByDepthOrder = Object.keys(grouped)
+            .sort((a, b) => Number(a) - Number(b))
+            .map(key => grouped[Number(key)]);
     }
 
     /**
@@ -300,7 +341,9 @@ class RenderNode extends BaseNode {
         if (this.show) {
             //this.lightEnabled && this.transformLights();
             this.preFrame();
-            this.drawEntityCollections(this.entityCollections);
+            for (let i = 0; i < this._entityCollectionsByDepthOrder.length; i++) {
+                this.drawEntityCollections(this._entityCollectionsByDepthOrder[i], i);
+            }
         }
     }
 

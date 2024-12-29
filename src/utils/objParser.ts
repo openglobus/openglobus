@@ -33,6 +33,13 @@ export interface IObj {
     materials: MaterialMap;
 }
 
+function getTexturePath(path: string) {
+    let p = path.split('/');
+    let filename = p[p.length - 1];
+    let folder = p[p.length - 2];
+    return `${folder ? folder + "/" : ""}${filename}`;
+}
+
 export class Obj {
 
     public objPositions: number[][];
@@ -167,13 +174,13 @@ export class Obj {
                 // skip ambient texture
             },
             map_Kd: (parts: string[], unparsedArgs: string) => {
-                this.material.colorTexture = `${this._path}/${unparsedArgs}`;
+                this.material.colorTexture = `${this._path}/${getTexturePath(unparsedArgs)}`;
             },
             map_Bump: (parts: string[], unparsedArgs: string) => {
-                this.material.normalTexture = `${this._path}/${unparsedArgs}`;
+                this.material.normalTexture = `${this._path}/${getTexturePath(unparsedArgs)}`;
             },
             map_Ns: (parts: string[], unparsedArgs: string) => {
-                this.material.metallicRoughnessTexture = `${this._path}/${unparsedArgs}`;
+                this.material.metallicRoughnessTexture = `${this._path}/${getTexturePath(unparsedArgs)}`;
             },
         };
     }

@@ -18,7 +18,6 @@
         control,
         Entity,
         Object3d,
-        input,
         RenderNode,
         Renderer,
         EntityCollection,
@@ -28,7 +27,7 @@
 
     let renderer = new Renderer("frame", {
 
-        controls: [new control.SimpleNavigation({speed: 0.01})],
+        controls: [new control.SimpleNavigation({speed: 0.01}), new control.GeoObjectEditor()],
         autoActivate: true
     });
 
@@ -62,6 +61,23 @@
     const base = Object3d.createCube(0.1, 2, 0.1).translate(new Vec3(0, 1, 0));
     const view = Object3d.createFrustum(3, 2, 1);
 
+    //const lunar = await Object3d.loadObj('./Lunar Lander.obj');
+    // let lunarParts = [];
+    // for (let i = 0; i < lunar.length; i++) {
+    //     lunarParts.push(new Entity({
+    //         cartesian: new Vec3(0, 0, 0),
+    //         geoObject: {
+    //             scale: 1,
+    //             instanced: true,
+    //             tag: `part:${i}`,
+    //             object3d: lunar[i],
+    //             yaw: 0,
+    //             pitch: 0,
+    //             roll: 0
+    //         }
+    //     }));
+    // }
+
     let baseEntity = new Entity({
         cartesian: new Vec3(0, 0, 0),
         geoObject: {
@@ -88,8 +104,9 @@
     });
 
     baseEntity.appendChild(viewEntity);
-
     myScene.ec.add(baseEntity);
+
+    //myScene.ec.addEntities(lunarParts);
 
 </script>
 

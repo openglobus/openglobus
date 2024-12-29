@@ -27,6 +27,7 @@ interface IEntityCollectionParams {
     opacity?: number;
     useLighting?: boolean;
     entities?: Entity[];
+    depthOrder?: number;
 }
 
 /**
@@ -87,13 +88,6 @@ class EntityCollection {
      * @readonly
      */
     protected __id: number;
-
-    /**
-     * Render node collections array index.
-     * @protected
-     * @type {number}
-     */
-    protected _renderNodeIndex: number;
 
     /**
      * Render node context.
@@ -214,11 +208,11 @@ class EntityCollection {
 
     public _useLighting: number;
 
+    protected _depthOrder: number;
+
     constructor(options: IEntityCollectionParams = {}) {
 
         this.__id = EntityCollection.__counter__++;
-
-        this._renderNodeIndex = -1;
 
         this.renderNode = null;
 
@@ -262,6 +256,8 @@ class EntityCollection {
             }
         }
 
+        this._depthOrder = options.depthOrder || 0;
+
         this.pickingScale = pickingScale;
 
         this._opacity = options.opacity == undefined ? 1.0 : options.opacity;
@@ -275,6 +271,17 @@ class EntityCollection {
         // initialize current entities
         if (options.entities) {
             this.addEntities(options.entities);
+        }
+    }
+
+    public get depthOrder(): number {
+        return this._depthOrder;
+    }
+
+    public set depthOrder(depghOrder: number) {
+        this._depthOrder = depghOrder;
+        if (this.renderNode) {
+            this.renderNode.updateEntityCollectionsDepthOrder();
         }
     }
 
@@ -294,8 +301,8 @@ class EntityCollection {
         this._useLighting = Number(f);
     }
 
-    public isEqual(ec: EntityCollection): boolean {
-        return this.__id === ec.__id;
+    public isEqual(ec: EntityCollection | null): boolean {
+        return ec !== null && (this.__id === ec.__id);
     }
 
     /**
@@ -451,7 +458,7 @@ class EntityCollection {
      * @returns {boolean} -
      */
     public belongs(entity: Entity) {
-        return entity._entityCollection && this._renderNodeIndex === entity._entityCollection._renderNodeIndex;
+        return this.isEqual(entity._entityCollection);
     }
 
     protected _removeRecursively(entity: Entity) {
@@ -557,18 +564,7 @@ class EntityCollection {
      */
     public addTo(renderNode: RenderNode, isHidden: boolean = false) {
         if (!this.renderNode) {
-            this.renderNode = renderNode;
-
-            if (!isHidden) {
-                this._renderNodeIndex = renderNode.entityCollections.length;
-                renderNode.entityCollections.push(this);
-            }
-
-            (renderNode as Planet).ellipsoid && this._updateGeodeticCoordinates((renderNode as Planet).ellipsoid);
-
-            this.bindRenderNode(renderNode);
-
-            this.events.dispatch(this.events.add, this);
+            renderNode.addEntityCollection(this, isHidden);
         }
         return this;
     }
@@ -649,16 +645,9 @@ class EntityCollection {
      */
     public remove() {
         if (this.renderNode) {
-            if (this._renderNodeIndex !== -1) {
-                this.renderNode.entityCollections.splice(this._renderNodeIndex, 1);
-                // reindex in the renderNode
-                for (let i = this._renderNodeIndex; i < this.renderNode.entityCollections.length; i++) {
-                    this.renderNode.entityCollections[i]._renderNodeIndex = i;
-                }
-            }
+            this.renderNode.removeEntityCollection(this);
             this.renderNode.renderer?.events.off("changerelativecenter", this._onChangeRelativeCenter);
             this.renderNode = null;
-            this._renderNodeIndex = -1;
             this.events.dispatch(this.events.remove, this);
         }
     }

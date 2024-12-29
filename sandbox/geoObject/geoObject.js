@@ -174,7 +174,7 @@ async function main() {
     globus.planet.addControl(new control.TimelineControl());
     globus.planet.addControl(new control.GeoObjectEditor());
     globus.planet.addControl(new control.ToggleWireframe());
-    globus.planet.addControl(new control.SimpleNavigation());
+    //globus.planet.addControl(new control.SimpleNavigation());
 
 
     let cubeObj = Object3d.createCube(0.001, 0.001, 0.001);
