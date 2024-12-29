@@ -602,17 +602,11 @@ class GeoObjectEditorScene extends RenderNode {
         } else {
             let p1 = p0.add(Vec3.UNIT_X),
                 p2 = p0.add(Vec3.UNIT_Z);
-
-            if (new Ray(cam.eye, clickDir).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
-                let clickCartX = Vec3.proj_b_to_a(px, Vec3.UNIT_X);
-                let clickCartZ = Vec3.proj_b_to_a(px, Vec3.UNIT_Z);
-                if (new Ray(cam.eye, e.direction).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
-                    let dragCartX = Vec3.proj_b_to_a(px, Vec3.UNIT_X);
-                    let dragCartZ = Vec3.proj_b_to_a(px, Vec3.UNIT_Z);
-                    dragCartX = dragCartX.sub(clickCartX);
-                    dragCartZ = dragCartZ.sub(clickCartZ);
-                    let dragCart = dragCartX.add(dragCartZ);
-                    let dragVec = dragCart.sub(clickCartX.add(clickCartZ));
+            let clickCart = new Vec3(),
+                dragCart = new Vec3();
+            if (new Ray(cam.eye, clickDir).hitPlane(p0, p1, p2, clickCart) === Ray.INSIDE) {
+                if (new Ray(cam.eye, e.direction).hitPlane(p0, p1, p2, dragCart) === Ray.INSIDE) {
+                    let dragVec = dragCart.sub(clickCart);
                     px = p0.add(dragVec);
                 }
             }
