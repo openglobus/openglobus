@@ -65,24 +65,28 @@ export class CameraLock extends Control {
     }
 
     public flyCartesian(cartesian: Vec3, dist = MIN_VIEW_DISTANCE) {
-        if (cartesian.isZero() || !this.planet) {
+        if (cartesian.isZero() || !this.renderer) {
             return;
         }
         this.unlockView();
-        let cam = this.planet.camera;
-        if (this.isVisibleDistance(cartesian)) {
-            cam.flyDistance(cartesian, dist);
-        }
-        if (cam.eye.distance(cartesian) < 1000000.0) {
-            cam.flyDistance(cartesian, dist);
+        if (this.planet) {
+            let cam = this.planet.camera;
+            if (this.isVisibleDistance(cartesian)) {
+                cam.flyDistance(cartesian, dist);
+            }
+            if (cam.eye.distance(cartesian) < 1000000.0) {
+                cam.flyDistance(cartesian, dist);
+            } else {
+                cam.viewDistance(cartesian, dist);
+            }
         } else {
-            cam.viewDistance(cartesian, dist);
+            this.renderer.activeCamera.viewDistance(cartesian, dist);
         }
     }
 
     public lockView(entity: Entity, fromTheBack = false) {
 
-        if (!this.planet || !this.renderer) return;
+        if (!this.renderer) return;
 
         this._lockDistance = this._getDistance(entity, this._lockEntity);
 
@@ -91,11 +95,13 @@ export class CameraLock extends Control {
         this._deactivateLockViewEvents();
 
         this._lockEntity = entity;
-        let cam = this.planet.camera;
-        cam.stopFlying();
+        let cam = this.renderer.activeCamera;
+        if (this.planet) {
+            this.planet.camera.stopFlying();
+        }
         cam.viewDistance(entity.getCartesian(), this._lockDistance);
-        this.renderer.controls.mouseNavigation.deactivate();
-        (this.renderer.controls.mouseNavigation as MouseNavigation).stopRotation();
+
+        this._deactivateNav();
 
         this._activateLockViewEvents();
 
@@ -104,31 +110,50 @@ export class CameraLock extends Control {
         this.events.dispatch(this.events.lockview, this._lockEntity, fromTheBack);
     }
 
+    protected _activateNav() {
+        if (this.renderer && this.renderer.controls.mouseNavigation) {
+            this.renderer.controls.mouseNavigation.activate();
+        }
+
+        if (this.renderer && this.renderer.controls.simpleNavigation) {
+            this.renderer.controls.simpleNavigation.activate();
+        }
+    }
+
+    protected _deactivateNav() {
+        if (this.renderer && this.renderer.controls.mouseNavigation) {
+            this.renderer.controls.mouseNavigation.deactivate();
+            (this.renderer.controls.mouseNavigation as MouseNavigation).stopRotation();
+        }
+
+        if (this.renderer && this.renderer.controls.simpleNavigation) {
+            this.renderer.controls.simpleNavigation.deactivate();
+        }
+    }
+
     public unlockView() {
         if (this._lockEntity) {
             this._deactivateLockViewEvents();
-            if (this.renderer) {
-                this.renderer.controls.mouseNavigation.activate();
-            }
+            this._activateNav();
             this.events.dispatch(this.events.unlockview, this._lockEntity);
             this._lockEntity = null;
         }
     }
 
     private _getCenterDist(): number {
-        if (this.planet && this.renderer) {
-            return this.planet.getDistanceFromPixel(this.renderer.handler.getCenter());
+        if (this.renderer) {
+            return this.renderer.getDistanceFromPixel(this.renderer.handler.getCenter()) || 0;
         }
         return 0;
     }
 
     protected _getDistance(entity: Entity, prevEntity?: Entity | null): number {
-        if (this.planet) {
+        if (this.renderer) {
 
             let cartesian = entity.getCartesian();
-            let cam = this.planet.camera;
+            let cam = this.renderer.activeCamera;
 
-            let dist = MIN_VIEW_DISTANCE;
+            let dist = cam.eye.distance(cartesian);
             if (prevEntity) {
                 dist = cam.eye.distance(prevEntity.getCartesian());
             }
@@ -152,7 +177,7 @@ export class CameraLock extends Control {
             let camDist = eye.distance(cart);
             return camDist < Math.sqrt(eye.length2() - R * R) + C;
         }
-        return false;
+        return true;
     }
 
     public get lockEntity() {
@@ -185,7 +210,7 @@ export class CameraLock extends Control {
     }
 
     private _onLockViewDraw = () => {
-        if (this.planet && this._lockEntity) {
+        if (this.renderer && this._lockEntity) {
             if (this._isFromTheBack) {
                 // let cam = this.planet.camera;
                 // let vehPos = this._lockEntity.getCartesian(),
@@ -203,38 +228,42 @@ export class CameraLock extends Control {
                 // cam.set(newPos, vehPos, vehPos.normal());
                 // cam.update();
             } else {
-                this.planet.camera.viewDistance(this._lockEntity.getCartesian(), this._lockDistance);
+                this.renderer.activeCamera.viewDistance(this._lockEntity.getCartesian(), this._lockDistance);
             }
         }
     }
 
     protected _onMouseWheel = (e: IMouseState) => {
-        if (this.planet && this._lockEntity) {
+        if (this.renderer && this._lockEntity) {
             if (this._isFromTheBack) {
                 //...
             } else {
-                let d = this.planet.camera.eye.distance(this._lockEntity.getCartesian());
+                let d = this.renderer.activeCamera.eye.distance(this._lockEntity.getCartesian());
                 this._lockDistance -= 0.33 * d * Math.sign(e.wheelDelta);
                 if (this._lockDistance < MIN_LOCK_DISTANCE) {
                     this._lockDistance = MIN_LOCK_DISTANCE;
                 }
-                this.planet.camera.viewDistance(this._lockEntity.getCartesian(), this._lockDistance);
+                this.renderer.activeCamera.viewDistance(this._lockEntity.getCartesian(), this._lockDistance);
             }
         }
     }
 
     protected _onMouseMove = (ms: IMouseState) => {
-        if (this._lockEntity && this.planet) {
-            if (ms.rightButtonDown || this.planet.renderer && this.planet.renderer.events.isKeyPressed(input.KEY_ALT)) {
+        if (this._lockEntity && this.renderer) {
+            if (ms.rightButtonDown || this.renderer.events.isKeyPressed(input.KEY_ALT)) {
 
                 let p = this._lockEntity.getCartesian(),
-                    cam = this.planet.camera,
-                    l = 0.5 / cam.eye.distance(p) * Math.abs(cam._lonLat.height) * RADIANS;
+                    cam = this.renderer.activeCamera,
+                    l = 0.5 / RADIANS;
 
                 if (l > 0.007) l = 0.007;
 
-                cam.rotateHorizontal(l * (ms.x - ms.prev_x), false, p, p.normal());
-                cam.rotateVertical(l * (ms.y - ms.prev_y), p, 0.1);
+                if (this.planet) {
+                    cam.rotateHorizontal(l * (ms.x - ms.prev_x), false, p, p.isZero() ? Vec3.UP : p.normal());
+                } else {
+                    cam.rotateHorizontal(l * (ms.x - ms.prev_x), false, p, Vec3.UP);
+                }
+                cam.rotateVertical(l * (ms.y - ms.prev_y), p);
 
                 this._viewDir = p.sub(cam.eye).normalize();
             }

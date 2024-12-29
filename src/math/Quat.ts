@@ -229,6 +229,15 @@ export class Quat {
     }
 
     /**
+     * Returns true if a component is NaN.
+     * @public
+     * @returns {boolean} -
+     */
+    public isNaN(): boolean {
+        return isNaN(this.x) || isNaN(this.y) || isNaN(this.z) || isNaN(this.w);
+    }
+
+    /**
      * Clear Quat. Sets zeroes.
      * @public
      * @returns {Quat} -

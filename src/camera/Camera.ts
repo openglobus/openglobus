@@ -8,6 +8,7 @@ import {Vec2, NumberArray2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 import {Sphere} from "../bv/Sphere";
+import {Quat} from "../math/Quat";
 
 type CameraEvents = ["viewchange", "moveend"];
 
@@ -729,6 +730,14 @@ class Camera {
      */
     public getInverseProjectionMatrix(): NumberArray16 {
         return this.frustum.inverseProjectionMatrix._m;
+    }
+
+    public viewDistance(cartesian: Vec3, distance: number = 10000.0) {
+        let p0 = this.eye.add(this.getForward().scaleTo(distance));
+        let _rot = Quat.getRotationBetweenVectors(p0.getNormal(), cartesian.getNormal());
+        let newPos = cartesian.add(this.getBackward().scaleTo(distance));
+        this.set(newPos, cartesian);
+        this.update();
     }
 }
 
