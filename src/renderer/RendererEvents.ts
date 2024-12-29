@@ -305,7 +305,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
             renderer: renderer
         };
 
-        this._isMouseInside = false;
+        this._isMouseInside = true;
         this._entityPickingEventsActive = true;
 
         this._dblTchCoords = new Vec2();
