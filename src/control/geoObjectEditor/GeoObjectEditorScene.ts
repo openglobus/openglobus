@@ -169,7 +169,6 @@ class GeoObjectEditorScene extends RenderNode {
             pickingScale: [5, 1.1, 5],
             visibility: false,
             depthOrder: 1000,
-            //hideInLayerSwitcher: true
         });
 
         this._planeLayer = new EntityCollection({

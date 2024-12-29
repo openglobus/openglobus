@@ -4,6 +4,7 @@ import {SEL_X_COLOR, SEL_Y_COLOR, SEL_Z_COLOR} from "./colors";
 import {LonLat} from "../../LonLat";
 import {htmlColorToFloat32Array} from "../../utils/shared";
 import {SegmentPathColor} from "../../entity/Polyline";
+import {GeoObjectEditorScene} from "./GeoObjectEditorScene";
 
 const SEG_SIZE = 100;
 
@@ -80,27 +81,53 @@ export class AxisTrackEntity extends Entity {
 
         super.setCartesian3v(cart);
 
-        if (this._layer && this._layer._planet) {
+        if (this._entityCollection && this._entityCollection.renderNode) {
 
-            let pl = this._layer._planet;
-            let r = pl.camera.eye.distance(cart) * 0.05;
+            let rn = this._entityCollection.renderNode as GeoObjectEditorScene;
+            let cam = rn.renderer!.activeCamera;
+            let r = cam.eye.distance(cart) * 0.05;
 
-            let yCoords: Vec3[] = [],
-                lonCoords: LonLat[] = [],
-                latCoords: LonLat[] = [];
+            if (rn.planet) {
 
-            let n = pl!.ellipsoid.getSurfaceNormal3v(cart);
-            let ll = this._lonLat;
+                let yCoords: Vec3[] = [],
+                    lonCoords: LonLat[] = [],
+                    latCoords: LonLat[] = [];
 
-            for (let i = -10; i < 10; i++) {
-                latCoords.push(new LonLat(ll.lon, ll.lat + i, ll.height));
-                lonCoords.push(new LonLat(ll.lon + i, ll.lat, ll.height));
-                yCoords.push(cart.add(n.scaleTo(i * r)));
+                let n = rn.planet.ellipsoid.getSurfaceNormal3v(cart);
+
+                let ll = this._lonLat;
+
+                for (let i = -10; i < 10; i++) {
+                    latCoords.push(new LonLat(ll.lon, ll.lat + i, ll.height));
+                    lonCoords.push(new LonLat(ll.lon + i, ll.lat, ll.height));
+                    yCoords.push(cart.add(n.scaleTo(i * r)));
+                }
+
+                this.childrenNodes[0].polyline!.setPathLonLatFast([lonCoords],);
+                this.childrenNodes[1].polyline!.setPath3vFast([yCoords]);
+                this.childrenNodes[2].polyline!.setPathLonLatFast([latCoords]);
+
+            } else {
+
+                let zCoords: Vec3[] = [],
+                    xCoords: Vec3[] = [],
+                    yCoords: Vec3[] = [];
+
+                let y = Vec3.UNIT_Y,
+                    x = Vec3.UNIT_X,
+                    z = Vec3.UNIT_Z;
+
+
+                for (let i = -10; i < 10; i++) {
+                    xCoords.push(cart.add(x.scaleTo(i * r)));
+                    yCoords.push(cart.add(y.scaleTo(i * r)));
+                    zCoords.push(cart.add(z.scaleTo(i * r)));
+                }
+
+                this.childrenNodes[0].polyline!.setPath3vFast([xCoords]);
+                this.childrenNodes[1].polyline!.setPath3vFast([yCoords]);
+                this.childrenNodes[2].polyline!.setPath3vFast([zCoords]);
             }
-
-            this.childrenNodes[0].polyline!.setPathLonLatFast([lonCoords],);
-            this.childrenNodes[1].polyline!.setPath3vFast([yCoords]);
-            this.childrenNodes[2].polyline!.setPathLonLatFast([latCoords]);
         }
     }
 }

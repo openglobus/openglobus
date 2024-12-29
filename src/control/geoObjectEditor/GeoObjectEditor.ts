@@ -23,10 +23,12 @@ export class GeoObjectEditor extends Control {
     }
 
     public override oninit() {
-        //this.planet.addControl(new CameraLock());
-        this._geoObjectEditopScene.bindPlanet(this.planet!);
-        this._dialog.appendTo(this.renderer!.div!);
-        this.activate();
+        if (this.renderer) {
+            this.renderer.addControl(new CameraLock());
+            this._geoObjectEditopScene.bindPlanet(this.planet!);
+            this._dialog.appendTo(this.renderer!.div!);
+            this.activate();
+        }
     }
 
     public override onactivate() {
