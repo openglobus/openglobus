@@ -260,10 +260,10 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         this._latView.value = ll.lat;
         this._heightView.value = ll.height;
 
-        let cart = entity.getCartesian();
-        this._xView.value = cart.x;
-        this._yView.value = cart.y;
-        this._zView.value = cart.z;
+        // let cart = entity.getCartesian();
+        // this._xView.value = cart.x;
+        // this._yView.value = cart.y;
+        // this._zView.value = cart.z;
 
         let go = getGeoObject(entity);
         this._pitchView.value = go.getPitch();

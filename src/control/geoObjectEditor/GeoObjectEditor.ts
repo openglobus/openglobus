@@ -24,7 +24,7 @@ export class GeoObjectEditor extends Control {
 
     public override oninit() {
         if (this.renderer) {
-            this.renderer.addControl(new CameraLock());
+            this.renderer.addControl(new CameraLock({planet: this.planet}));
             this._geoObjectEditopScene.bindPlanet(this.planet!);
             this._dialog.appendTo(this.renderer.div || document.body);
             this.activate();

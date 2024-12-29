@@ -2,11 +2,11 @@ import {Control, IControlParams} from "./Control";
 import {LonLat} from "../LonLat";
 import {Quat} from "../math/Quat";
 import {Vec3} from "../math/Vec3";
-import {createEvents, Events, EventsHandler} from "../Events";
+import {createEvents, EventsHandler} from "../Events";
 import {Entity} from "../entity/Entity";
 import {IMouseState} from "../renderer/RendererEvents";
 import {MouseNavigation} from "./MouseNavigation";
-import {Plane} from "../math/Plane";
+import {Planet} from "../scene/Planet";
 import {input} from "../input/input";
 import {RADIANS} from "../math";
 
@@ -22,6 +22,7 @@ const CameraLockEvents: CameraLockEventsList = ["lockview", "unlockview"];
 
 
 interface ICameraLockParams extends IControlParams {
+    planet?: Planet | null
 }
 
 export class CameraLock extends Control {
@@ -39,6 +40,8 @@ export class CameraLock extends Control {
         this.events = createEvents(CameraLockEvents);
 
         this._name = "CameraLock";
+
+        this.planet = options.planet || null;
 
         this._lockDistance = 0;
         this._isFromTheBack = false;
