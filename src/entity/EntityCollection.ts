@@ -313,6 +313,7 @@ class EntityCollection {
     public setVisibility(visibility: boolean) {
         this._visibility = visibility;
         this._fadingOpacity = this._opacity * (visibility ? 1 : 0);
+        this.renderNode?.updateEntityCollectionsDepthOrder();
         this.events.dispatch(this.events.visibilitychange, this);
     }
 

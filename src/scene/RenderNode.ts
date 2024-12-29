@@ -201,10 +201,12 @@ class RenderNode extends BaseNode {
 
         let grouped: Record<number, EntityCollection[]> = {0: []};
         for (const ec of this.entityCollections) {
-            if (!grouped[ec.depthOrder]) {
-                grouped[ec.depthOrder] = [];
+            if (ec.getVisibility()) {
+                if (!grouped[ec.depthOrder]) {
+                    grouped[ec.depthOrder] = [];
+                }
+                grouped[ec.depthOrder].push(ec);
             }
-            grouped[ec.depthOrder].push(ec);
         }
 
         this._entityCollectionsByDepthOrder.length = 0;
@@ -416,7 +418,9 @@ class RenderNode extends BaseNode {
     }
 
     protected _entityCollectionPickingCallback() {
-        this.drawPickingEntityCollections(this.entityCollections);
+        // for (let i = 0; i < this._entityCollectionsByDepthOrder.length; i++) {
+        //     this.drawPickingEntityCollections(this._entityCollectionsByDepthOrder[i]);
+        // }
     }
 }
 
