@@ -66,6 +66,24 @@ export interface IGeoObjectEditorSceneParams {
     name?: string;
 }
 
+//dragSimpleRes(Vec3.UNIT_X, cam.eye, clickDir, p0, px);
+
+function dragSimpleRes(unit: Vec3, eye: Vec3, clickDir: Vec3, direction: Vec3, p0: Vec3, res: Vec3) {
+    let p1 = p0.add(Vec3.UP),
+        p2 = p0.add(unit);
+
+    let px = new Vec3();
+
+    if (new Ray(eye, clickDir).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
+        let clickCart = Vec3.proj_b_to_a(px, unit);
+        if (new Ray(eye, direction).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
+            let dragCart = Vec3.proj_b_to_a(px, unit);
+            let dragVec = dragCart.sub(clickCart);
+            res.copy(p0.add(dragVec));
+        }
+    }
+}
+
 type GeoObjectSceneEventsList = [
     "mousemove",
     "mouseenter",
@@ -159,7 +177,6 @@ class GeoObjectEditorScene extends RenderNode {
             useLighting: false,
             visibility: false,
             depthOrder: 1000,
-            //hideInLayerSwitcher: true
         });
 
         this._rotateLayer = new EntityCollection({
@@ -167,7 +184,6 @@ class GeoObjectEditorScene extends RenderNode {
             visibility: false,
             depthOrder: 1000,
             pickingScale: 5,
-            //hideInLayerSwitcher: true
         });
 
         this._selectedEntity = null;
@@ -183,9 +199,7 @@ class GeoObjectEditorScene extends RenderNode {
         this._axisTrackLayer = new EntityCollection({
             useLighting: false,
             visibility: false,
-            //depthOrder: 0,
             pickingScale: 5,
-            //hideInLayerSwitcher: true,
             pickingEnabled: false,
             opacity: 0.6
         });
@@ -207,18 +221,12 @@ class GeoObjectEditorScene extends RenderNode {
         }
     }
 
-    // public override preFrame() {
-    //     this.drawEntityCollections([this._axisTrackLayer], 0);
-    //     this.drawEntityCollections([this._moveLayer, this._planeLayer, this._rotateLayer], 1);
-    // }
-
     get planet(): Planet | null {
         return this._planet;
     }
 
     public bindPlanet(planet: Planet) {
         this._planet = planet;
-        //this._addAxisLayers();
     }
 
     public override init() {
@@ -230,7 +238,6 @@ class GeoObjectEditorScene extends RenderNode {
     }
 
     protected _addAxisLayers() {
-        //if (this._planet) {
         this._moveLayer.addTo(this);
         this._planeLayer.addTo(this);
         this._rotateLayer.addTo(this);
@@ -255,7 +262,6 @@ class GeoObjectEditorScene extends RenderNode {
         this._rotateLayer.events.on("ldown", this._onRotateLayerLDown);
 
         this._axisTrackLayer.add(this._axisTrackEntity);
-        //}
     }
 
     protected _onAxisLayerMouseEnter = (e: IMouseState) => {
@@ -268,14 +274,26 @@ class GeoObjectEditorScene extends RenderNode {
         e.pickingObject.setColorHTML(e.pickingObject.properties.style.color);
     }
 
-    protected _navActivate(){
-        this.renderer!.controls.mouseNavigation && this.renderer!.controls.mouseNavigation.activate();
-        this.renderer!.controls.simpleNavigation && this.renderer!.controls.simpleNavigation.activate();
+    protected _navActivate() {
+        if (this.renderer) {
+            if (this.renderer.controls.mouseNavigation) {
+                this.renderer.controls.mouseNavigation.activate();
+            }
+            if (this.renderer.controls.SimpleNavigation) {
+                this.renderer.controls.SimpleNavigation.activate();
+            }
+        }
     }
 
-    protected _navDeactivate(){
-        this.renderer!.controls.mouseNavigation && this.renderer!.controls.mouseNavigation.deactivate();
-        this.renderer!.controls.simpleNavigation && this.renderer!.controls.simpleNavigation.deactivate();
+    protected _navDeactivate() {
+        if (this.renderer) {
+            if (this.renderer.controls.mouseNavigation) {
+                this.renderer.controls.mouseNavigation.deactivate();
+            }
+            if (this.renderer.controls.SimpleNavigation) {
+                this.renderer.controls.SimpleNavigation.deactivate();
+            }
+        }
     }
 
     protected _onAxisLayerLUp = (e: IMouseState) => {
@@ -424,9 +442,6 @@ class GeoObjectEditorScene extends RenderNode {
     }
 
     public clear() {
-        //this._planet!.removeLayer(this._moveLayer);
-        //this._planet!.removeLayer(this._planeLayer);
-        //this._planet!.removeLayer(this._rotateLayer);
         this.removeEntityCollection(this._moveLayer);
         this.removeEntityCollection(this._planeLayer);
         this.removeEntityCollection(this._rotateLayer);
@@ -454,23 +469,29 @@ class GeoObjectEditorScene extends RenderNode {
 
         let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
 
-        let clickCart = new Ray(cam.eye, clickDir).hitSphere(new Sphere(p0.length(), new Vec3()))!;
-        let currCart = new Ray(cam.eye, e.direction).hitSphere(new Sphere(p0.length(), new Vec3()))!;
+        let px = new Vec3();
 
-        if (!currCart) return;
+        if (this.planet) {
+            let clickCart = new Ray(cam.eye, clickDir).hitSphere(new Sphere(p0.length(), new Vec3()))!;
+            let currCart = new Ray(cam.eye, e.direction).hitSphere(new Sphere(p0.length(), new Vec3()))!;
 
-        let rot = Quat.getRotationBetweenVectors(
-            clickCart.normal(),
-            currCart.normal()
-        );
+            if (!currCart) return;
 
-        let px = rot.mulVec3(p0);
+            let rot = Quat.getRotationBetweenVectors(
+                clickCart.normal(),
+                currCart.normal()
+            );
 
-        if (this._ellipsoid) {
-            let p0_lonLat = this._ellipsoid.cartesianToLonLat(p0)!;
-            let px_lonLat = this._ellipsoid.cartesianToLonLat(px)!;
+            px = rot.mulVec3(p0);
 
-            this._ellipsoid.lonLatToCartesianRes(new LonLat(px_lonLat.lon, p0_lonLat.lat, p0_lonLat.height), px);
+            if (this._ellipsoid) {
+                let p0_lonLat = this._ellipsoid.cartesianToLonLat(p0)!;
+                let px_lonLat = this._ellipsoid.cartesianToLonLat(px)!;
+
+                this._ellipsoid.lonLatToCartesianRes(new LonLat(px_lonLat.lon, p0_lonLat.lat, p0_lonLat.height), px);
+            }
+        } else {
+            dragSimpleRes(Vec3.UNIT_X, cam.eye, clickDir, e.direction, p0, px);
         }
 
         this._selectedEntity.setCartesian3v(px);
@@ -485,7 +506,10 @@ class GeoObjectEditorScene extends RenderNode {
 
         let cam = this.renderer!.activeCamera;
         let p0 = this._selectedEntityCart;
-        let groundNormal = this._axisEntity.getY();
+        let groundNormal = Vec3.UP;
+        if (this.planet) {
+            groundNormal = this._axisEntity.getY();
+        }
         let p1 = p0.add(groundNormal);
         let p2 = p0.add(cam.getRight());
         let px = new Vec3();
@@ -513,23 +537,30 @@ class GeoObjectEditorScene extends RenderNode {
 
         let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
 
-        let clickCart = new Ray(cam.eye, clickDir).hitSphere(new Sphere(p0.length(), new Vec3()))!;
-        let currCart = new Ray(cam.eye, e.direction).hitSphere(new Sphere(p0.length(), new Vec3()))!;
+        let px = new Vec3();
 
-        if (!currCart) return;
+        if (this.planet) {
 
-        let rot = Quat.getRotationBetweenVectors(
-            clickCart.normal(),
-            currCart.normal()
-        );
+            let clickCart = new Ray(cam.eye, clickDir).hitSphere(new Sphere(p0.length(), new Vec3()))!;
+            let currCart = new Ray(cam.eye, e.direction).hitSphere(new Sphere(p0.length(), new Vec3()))!;
 
-        let px = rot.mulVec3(p0);
+            if (!currCart) return;
 
-        if (this._ellipsoid) {
-            let p0_lonLat = this._ellipsoid.cartesianToLonLat(p0)!;
-            let px_lonLat = this._ellipsoid.cartesianToLonLat(px)!;
+            let rot = Quat.getRotationBetweenVectors(
+                clickCart.normal(),
+                currCart.normal()
+            );
 
-            this._ellipsoid.lonLatToCartesianRes(new LonLat(p0_lonLat.lon, px_lonLat.lat, p0_lonLat.height), px);
+            px = rot.mulVec3(p0);
+
+            if (this._ellipsoid) {
+                let p0_lonLat = this._ellipsoid.cartesianToLonLat(p0)!;
+                let px_lonLat = this._ellipsoid.cartesianToLonLat(px)!;
+
+                this._ellipsoid.lonLatToCartesianRes(new LonLat(p0_lonLat.lon, px_lonLat.lat, p0_lonLat.height), px);
+            }
+        } else {
+            dragSimpleRes(Vec3.UNIT_Z, cam.eye, clickDir, e.direction, p0, px);
         }
 
         this._selectedEntity.setCartesian3v(px);
@@ -546,23 +577,45 @@ class GeoObjectEditorScene extends RenderNode {
 
         let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
 
-        let clickCart = new Ray(cam.eye, clickDir).hitSphere(new Sphere(p0.length(), new Vec3()))!;
-        let currCart = new Ray(cam.eye, e.direction).hitSphere(new Sphere(p0.length(), new Vec3()))!;
+        let px = new Vec3();
 
-        if (!currCart) return;
+        if (this.planet) {
 
-        let rot = Quat.getRotationBetweenVectors(
-            clickCart.normal(),
-            currCart.normal()
-        );
+            let clickCart = new Ray(cam.eye, clickDir).hitSphere(new Sphere(p0.length(), new Vec3()))!;
+            let currCart = new Ray(cam.eye, e.direction).hitSphere(new Sphere(p0.length(), new Vec3()))!;
 
-        let px = rot.mulVec3(p0);
+            if (!currCart) return;
 
-        if (this._ellipsoid) {
-            let lonLat = this._ellipsoid.cartesianToLonLat(px)!;
-            let height = this._selectedEntity.getLonLat().height;
+            let rot = Quat.getRotationBetweenVectors(
+                clickCart.normal(),
+                currCart.normal()
+            );
 
-            this._ellipsoid.lonLatToCartesianRes(new LonLat(lonLat.lon, lonLat.lat, height), px);
+            let px = rot.mulVec3(p0);
+
+            if (this._ellipsoid) {
+                let lonLat = this._ellipsoid.cartesianToLonLat(px)!;
+                let height = this._selectedEntity.getLonLat().height;
+
+                this._ellipsoid.lonLatToCartesianRes(new LonLat(lonLat.lon, lonLat.lat, height), px);
+            }
+        } else {
+            let p1 = p0.add(Vec3.UNIT_X),
+                p2 = p0.add(Vec3.UNIT_Z);
+
+            if (new Ray(cam.eye, clickDir).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
+                let clickCartX = Vec3.proj_b_to_a(px, Vec3.UNIT_X);
+                let clickCartZ = Vec3.proj_b_to_a(px, Vec3.UNIT_Z);
+                if (new Ray(cam.eye, e.direction).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
+                    let dragCartX = Vec3.proj_b_to_a(px, Vec3.UNIT_X);
+                    let dragCartZ = Vec3.proj_b_to_a(px, Vec3.UNIT_Z);
+                    dragCartX = dragCartX.sub(clickCartX);
+                    dragCartZ = dragCartZ.sub(clickCartZ);
+                    let dragCart = dragCartX.add(dragCartZ);
+                    let dragVec = dragCart.sub(clickCartX.add(clickCartZ));
+                    px = p0.add(dragVec);
+                }
+            }
         }
 
         this._selectedEntity.setCartesian3v(px);
