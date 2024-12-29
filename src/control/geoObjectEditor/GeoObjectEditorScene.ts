@@ -590,7 +590,7 @@ class GeoObjectEditorScene extends RenderNode {
                 currCart.normal()
             );
 
-            let px = rot.mulVec3(p0);
+            px = rot.mulVec3(p0);
 
             if (this._ellipsoid) {
                 let lonLat = this._ellipsoid.cartesianToLonLat(px)!;
