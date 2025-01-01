@@ -2,7 +2,8 @@ name: Release CI
 
 on:
   release:
-    types: [ published ]
+    types: [ published ]  
+  workflow_dispatch:
 
 jobs:
   publish-npm:
@@ -21,6 +22,9 @@ jobs:
       - run: npm run build
 
       - run: npm run docs || true
+
+      - name: Disable Jekyll
+        run: echo > docs/.nojekyll
 
       - name: Deploy to openglobus.github.io
         uses: cpina/github-action-push-to-another-repository@main
