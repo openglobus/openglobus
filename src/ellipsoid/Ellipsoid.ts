@@ -624,6 +624,25 @@ class Ellipsoid {
         }
         return (Math.atan2(dLon, dPhi) * DEGREES + 360) % 360;
     }
+
+    public getLonLatVisibilitySimple(eye: Vec3, lonLat: LonLat, forward?: Vec3): boolean {
+        const cart = this.lonLatToCartesian(lonLat);
+        const height = lonLat.height;
+
+        const f = this.polarSize + height;
+        const g = Math.max(eye.length() - this.polarSize, 0);
+        const look = cart.sub(eye);
+
+        let maxVisibleDistance;
+        if (g > 0) {
+            maxVisibleDistance = Math.sqrt((f + g) ** 2 - f ** 2);
+        } else {
+            maxVisibleDistance = f;
+        }
+
+        return maxVisibleDistance > look.length() &&
+            (!forward || forward.dot(look.normalize()) > 0.0);
+    }
 }
 
 export {Ellipsoid};
