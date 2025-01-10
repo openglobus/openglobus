@@ -473,10 +473,11 @@ class Entity {
 
         if (this._relativePosition && this.parent) {
             let par: Entity | null = this.parent;
-            do {
+            while (par && par._relativePosition) {
                 this._absoluteCartesian.addA(par._cartesian);
                 par = par.parent;
-            } while (par && par._relativePosition);
+            }
+            this._absoluteCartesian.addA(par!._cartesian);
         }
 
         // billboards

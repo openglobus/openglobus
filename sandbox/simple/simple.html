@@ -60,6 +60,7 @@
 
     const base = Object3d.createCube(0.4, 2, 0.4).translate(new Vec3(0, 1, 0));
     const view = Object3d.createFrustum(3, 2, 1);
+    const view2 = Object3d.createFrustum(3, 2, 1);
 
     //const lunar = await Object3d.loadObj('./Lunar Lander.obj');
     // let lunarParts = [];
@@ -106,6 +107,21 @@
         }
     });
 
+    let childChildEntity = new Entity({
+        cartesian: new Vec3(0, 2, 0),
+        independentPicking: true,
+        relativePosition: true,
+        geoObject: {
+            instanced: true,
+            tag: `view2`,
+            object3d: view2,
+            yaw: 0,
+            pitch: 0,
+            roll: 0
+        }
+    });
+
+    childEntity.appendChild(childChildEntity);
     parentEntity.appendChild(childEntity);
     myScene.ec.add(parentEntity);
 
