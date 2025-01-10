@@ -33,6 +33,10 @@ export interface IEntityParams {
     geoObject?: GeoObject | IGeoObjectParams;
     strip?: Strip | IStripParams;
     independentPicking?: boolean;
+    relativePosition?: boolean;
+    pitch?: number;
+    yaw?: number;
+    roll?: number;
 }
 
 /**
@@ -93,6 +97,13 @@ class Entity {
      * @type {Vec3}
      */
     public _cartesian: Vec3;
+
+    /**
+     * Entity absolute cartesian position.
+     * @protected
+     * @type {Vec3}
+     */
+    public _absoluteCartesian: Vec3;
 
     /**
      * Geodetic entity coordinates.
@@ -219,6 +230,11 @@ class Entity {
 
     public _nodePtr?: EntityCollectionNode;
 
+    protected _relativePosition: boolean;
+    protected _pitch: number;
+    protected _yaw: number;
+    protected _roll: number;
+
     constructor(options: IEntityParams = {}) {
 
         options.properties = options.properties || {};
@@ -234,6 +250,8 @@ class Entity {
         this.parent = null;
 
         this._cartesian = utils.createVector3(options.cartesian);
+
+        this._absoluteCartesian = new Vec3();
 
         this._lonLat = utils.createLonLat(options.lonlat);
 
@@ -254,6 +272,11 @@ class Entity {
         this._pickingColor = new Vec3(0, 0, 0);
 
         this._independentPicking = options.independentPicking || false;
+
+        this._relativePosition = options.relativePosition || false;
+        this._pitch = options.pitch || 0;
+        this._yaw = options.yaw || 0;
+        this._roll = options.roll || 0;
 
         this._featureConstructorArray = {
             billboard: [Billboard, this.setBillboard],
@@ -281,6 +304,15 @@ class Entity {
         this.geoObject = this._createOptionFeature<GeoObject, IGeoObjectParams>("geoObject", options.geoObject);
 
         this.strip = this._createOptionFeature<Strip, IStripParams>("strip", options.strip);
+    }
+
+    public set relativePosition(isRelative: boolean) {
+        this._relativePosition = isRelative;
+        //...
+    }
+
+    public get relativePosition(): boolean {
+        return this._relativePosition;
     }
 
     public get entityCollection(): EntityCollection | null {
@@ -388,6 +420,45 @@ class Entity {
         this.setCartesian(cartesian.x, cartesian.y, cartesian.z);
     }
 
+    public setPitch(val: number) {
+
+        this.geoObject && this.geoObject.setPitch(val);
+
+        for (let i = 0; i < this.childrenNodes.length; i++) {
+            this.childrenNodes[i].setPitch(val);
+        }
+    }
+
+    public setYaw(val: number) {
+
+        this.geoObject && this.geoObject.setYaw(val);
+
+        for (let i = 0; i < this.childrenNodes.length; i++) {
+            this.childrenNodes[i].setYaw(val);
+        }
+    }
+
+    public setRoll(val: number) {
+
+        this.geoObject && this.geoObject.setRoll(val);
+
+        for (let i = 0; i < this.childrenNodes.length; i++) {
+            this.childrenNodes[i].setRoll(val);
+        }
+    }
+
+    public getPitch(): number {
+        return this._pitch;
+    }
+
+    public getYaw(): number {
+        return this._yaw;
+    }
+
+    public getRoll(): number {
+        return this._roll;
+    }
+
     /**
      * Sets entity cartesian position.
      * @public
@@ -396,36 +467,36 @@ class Entity {
      * @param {number} z - 3d space Z - position.
      */
     public setCartesian(x?: number, y?: number, z?: number) {
-        let p = this._cartesian;
 
-        p.x = x || 0.0;
-        p.y = y || 0.0;
-        p.z = z || 0.0;
+        this._cartesian.set(x || 0.0, this._cartesian.y = y || 0.0, this._cartesian.z = z || 0.0);
+        this._absoluteCartesian.copy(this._cartesian);
+
+        if (this._relativePosition && this.parent) {
+            let par: Entity | null = this.parent;
+            do {
+                this._absoluteCartesian.addA(par._cartesian);
+                par = par.parent;
+            } while (par && par._relativePosition);
+        }
 
         // billboards
-        this.billboard && this.billboard.setPosition3v(p);
+        this.billboard && this.billboard.setPosition3v(this._absoluteCartesian);
 
         // geoObject
-        this.geoObject && this.geoObject.setPosition3v(p);
+        this.geoObject && this.geoObject.setPosition3v(this._absoluteCartesian);
 
         // labels
-        this.label && this.label.setPosition3v(p);
+        this.label && this.label.setPosition3v(this._absoluteCartesian);
 
         for (let i = 0; i < this.childrenNodes.length; i++) {
-            this.childrenNodes[i].setCartesian(x, y, z);
-        }
-
-        let ec = this._entityCollection;
-
-        if (ec && ec.renderNode && (ec.renderNode as Planet).ellipsoid) {
-            this._lonLat = (ec.renderNode as Planet).ellipsoid.cartesianToLonLat(p);
-
-            if (Math.abs(this._lonLat.lat) < mercator.MAX_LAT) {
-                this._lonLatMerc = this._lonLat.forwardMercator();
+            if (this.childrenNodes[i]._relativePosition) {
+                this.childrenNodes[i].setCartesian3v(this.childrenNodes[i].getCartesian());
             } else {
-                this._lonLatMerc.lon = this._lonLatMerc.lat = this._lonLatMerc.height = 0;
+                this.childrenNodes[i].setCartesian(x, y, z);
             }
         }
+
+        this._updateLonLat();
 
         //ec && ec.events.dispatch(ec.events.entitymove, this);
     }
@@ -437,34 +508,46 @@ class Entity {
      * @param {boolean} skipLonLat - skip geodetic calculation.
      */
     public _setCartesian3vSilent(cartesian: Vec3, skipLonLat: boolean = false) {
-        let p = this._cartesian;
 
-        p.x = cartesian.x || 0.0;
-        p.y = cartesian.y || 0.0;
-        p.z = cartesian.z || 0.0;
+        this._cartesian.copy(cartesian);
+        this._absoluteCartesian.copy(this._cartesian);
 
-        // billboards
-        this.billboard && this.billboard.setPosition3v(p);
-
-        // geoObject
-        this.geoObject && this.geoObject.setPosition3v(p);
-
-        // labels
-        this.label && this.label.setPosition3v(p);
-
-        for (let i = 0; i < this.childrenNodes.length; i++) {
-            this.childrenNodes[i].setCartesian(p.x, p.y, p.z);
+        if (this._relativePosition && this.parent) {
+            let par: Entity | null = this.parent;
+            do {
+                this._absoluteCartesian.addA(par._cartesian);
+                par = par.parent;
+            } while (par && par._relativePosition);
         }
 
+        // billboards
+        this.billboard && this.billboard.setPosition3v(this._absoluteCartesian);
+
+        // geoObject
+        this.geoObject && this.geoObject.setPosition3v(this._absoluteCartesian);
+
+        // labels
+        this.label && this.label.setPosition3v(this._absoluteCartesian);
+
+        for (let i = 0; i < this.childrenNodes.length; i++) {
+            this.childrenNodes[i].setCartesian(this._cartesian.x, this._cartesian.y, this._cartesian.z);
+        }
+
+        if (!skipLonLat) {
+            this._updateLonLat();
+        }
+    }
+
+    protected _updateLonLat() {
         let ec = this._entityCollection;
 
-        if (!skipLonLat && ec && ec.renderNode && (ec.renderNode as Planet).ellipsoid) {
-            this._lonLat = (ec.renderNode as Planet).ellipsoid.cartesianToLonLat(p);
+        if (ec && ec.renderNode && (ec.renderNode as Planet).ellipsoid) {
+            this._lonLat = (ec.renderNode as Planet).ellipsoid.cartesianToLonLat(this._absoluteCartesian);
 
             if (Math.abs(this._lonLat.lat) < mercator.MAX_LAT) {
                 this._lonLatMerc = this._lonLat.forwardMercator();
             } else {
-                //this._lonLatMerc = null;
+                this._lonLatMerc.lon = this._lonLatMerc.lat = 0;
             }
         }
     }
@@ -555,6 +638,15 @@ class Entity {
      */
     public getCartesian(): Vec3 {
         return this._cartesian.clone();
+    }
+
+    /**
+     * Returns cartesian position.
+     * @public
+     * @returns {Vec3} -
+     */
+    public getAbsoluteCartesian(): Vec3 {
+        return this._absoluteCartesian.clone();
     }
 
     /**

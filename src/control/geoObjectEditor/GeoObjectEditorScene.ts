@@ -448,7 +448,7 @@ class GeoObjectEditorScene extends RenderNode {
 
     public override frame() {
         if (this._selectedEntity) {
-            let cart = this._selectedEntity.getCartesian();
+            let cart = this._selectedEntity.getAbsoluteCartesian();
             this._axisEntity.setCartesian3v(cart);
             this._planeEntity.setCartesian3v(cart);
             this._rotateEntity.setCartesian3v(cart, getGeoObject(this._selectedEntity).getYaw());

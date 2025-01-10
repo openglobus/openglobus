@@ -78,7 +78,7 @@ export class MoveAxisEntity extends Entity {
         this.childrenNodes[2].setSize(size);
     }
 
-    public setPitch(a: number) {
+    public override setPitch(a: number) {
         let line = this.childrenNodes[0];
         let tip = line.childrenNodes[0];
         line.geoObject!.setPitch(a);
@@ -95,7 +95,7 @@ export class MoveAxisEntity extends Entity {
         tip.geoObject!.setPitch(a + 90);
     }
 
-    public setYaw(a: number) {
+    public override setYaw(a: number) {
         let line = this.childrenNodes[0];
         let tip = line.childrenNodes[0];
         line.geoObject!.setYaw(a);
@@ -112,7 +112,7 @@ export class MoveAxisEntity extends Entity {
         tip.geoObject!.setYaw(a);
     }
 
-    public setRoll(a: number) {
+    public override setRoll(a: number) {
         let line = this.childrenNodes[0];
         let tip = line.childrenNodes[0];
         line.geoObject!.setRoll(a + 90);

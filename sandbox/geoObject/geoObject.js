@@ -146,28 +146,6 @@ async function main() {
         //viewExtent: [33.1758537, 69.0755299, 33.2251571, 69.08960050]
     });
 
-    // for (let i = 0; i < dock.length; i++) {
-    //
-    //     let layer = new Vector(dock[i].name, {
-    //         scaleByDistance: [1, 1, 1],
-    //         entities: [
-    //             new Entity({
-    //                 lonlat: [33.2017379, 69.0821338, 19],
-    //                 geoObject: {
-    //                     scale: 3.0,
-    //                     instanced: true,
-    //                     tag: `dock-${i}`,
-    //                     object3d: dock[i],
-    //                     yaw: -52,
-    //                     pitch: 0
-    //                 }
-    //             })
-    //         ]
-    //     });
-    //
-    //     //layer.addTo(globus.planet);
-    // }
-
     globus.planet.addControl(new control.DebugInfo());
     globus.planet.addControl(new control.KeyboardNavigation());
     globus.planet.addControl(new control.LayerSwitcher());

@@ -58,7 +58,7 @@
     let myScene = new MyScene();
     renderer.addNodes([new scene.Axes(), myScene]);
 
-    const base = Object3d.createCube(0.1, 2, 0.1).translate(new Vec3(0, 1, 0));
+    const base = Object3d.createCube(0.4, 2, 0.4).translate(new Vec3(0, 1, 0));
     const view = Object3d.createFrustum(3, 2, 1);
 
     //const lunar = await Object3d.loadObj('./Lunar Lander.obj');
@@ -78,8 +78,9 @@
     //     }));
     // }
 
-    let baseEntity = new Entity({
+    let parentEntity = new Entity({
         cartesian: new Vec3(0, 0, 0),
+        independentPicking: true,
         geoObject: {
             scale: 1,
             instanced: true,
@@ -91,8 +92,10 @@
         }
     });
 
-    let viewEntity = new Entity({
+    let childEntity = new Entity({
         cartesian: new Vec3(0, 0, 0),
+        independentPicking: true,
+        relativePosition: true,
         geoObject: {
             instanced: true,
             tag: `view`,
@@ -103,12 +106,15 @@
         }
     });
 
-    baseEntity.appendChild(viewEntity);
-    myScene.ec.add(baseEntity);
+    parentEntity.appendChild(childEntity);
+    myScene.ec.add(parentEntity);
 
     window.renderer = renderer;
 
     //myScene.ec.addEntities(lunarParts);
+
+    window.parentEntity = parentEntity;
+    window.childEntity = childEntity;
 
 </script>
 
