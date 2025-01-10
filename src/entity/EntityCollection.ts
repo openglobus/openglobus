@@ -377,6 +377,9 @@ class EntityCollection {
     }
 
     protected _addRecursively(entity: Entity) {
+
+        entity._updateAbsolutePosition();
+
         // billboard
         entity.billboard && this.billboardHandler.add(entity.billboard);
 

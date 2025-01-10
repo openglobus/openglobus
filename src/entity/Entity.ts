@@ -469,8 +469,24 @@ class Entity {
     public setCartesian(x?: number, y?: number, z?: number) {
 
         this._cartesian.set(x || 0.0, this._cartesian.y = y || 0.0, this._cartesian.z = z || 0.0);
-        this._absoluteCartesian.copy(this._cartesian);
 
+        this._updateAbsolutePosition();
+
+        for (let i = 0; i < this.childrenNodes.length; i++) {
+            if (this.childrenNodes[i]._relativePosition) {
+                this.childrenNodes[i].setCartesian3v(this.childrenNodes[i].getCartesian());
+            } else {
+                this.childrenNodes[i].setCartesian(x, y, z);
+            }
+        }
+
+        this._updateLonLat();
+
+        //ec && ec.events.dispatch(ec.events.entitymove, this);
+    }
+
+    public _updateAbsolutePosition() {
+        this._absoluteCartesian.copy(this._cartesian);
         if (this._relativePosition && this.parent) {
             let par: Entity | null = this.parent;
             while (par && par._relativePosition) {
@@ -488,18 +504,6 @@ class Entity {
 
         // labels
         this.label && this.label.setPosition3v(this._absoluteCartesian);
-
-        for (let i = 0; i < this.childrenNodes.length; i++) {
-            if (this.childrenNodes[i]._relativePosition) {
-                this.childrenNodes[i].setCartesian3v(this.childrenNodes[i].getCartesian());
-            } else {
-                this.childrenNodes[i].setCartesian(x, y, z);
-            }
-        }
-
-        this._updateLonLat();
-
-        //ec && ec.events.dispatch(ec.events.entitymove, this);
     }
 
     /**
@@ -511,24 +515,8 @@ class Entity {
     public _setCartesian3vSilent(cartesian: Vec3, skipLonLat: boolean = false) {
 
         this._cartesian.copy(cartesian);
-        this._absoluteCartesian.copy(this._cartesian);
 
-        if (this._relativePosition && this.parent) {
-            let par: Entity | null = this.parent;
-            do {
-                this._absoluteCartesian.addA(par._cartesian);
-                par = par.parent;
-            } while (par && par._relativePosition);
-        }
-
-        // billboards
-        this.billboard && this.billboard.setPosition3v(this._absoluteCartesian);
-
-        // geoObject
-        this.geoObject && this.geoObject.setPosition3v(this._absoluteCartesian);
-
-        // labels
-        this.label && this.label.setPosition3v(this._absoluteCartesian);
+        this._updateAbsolutePosition();
 
         for (let i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i].setCartesian(this._cartesian.x, this._cartesian.y, this._cartesian.z);
@@ -818,6 +806,7 @@ class Entity {
         }
         entity.parent = this;
         this.childrenNodes.push(entity);
+        this._updateAbsolutePosition();
         this._entityCollection && this._entityCollection.appendChildEntity(entity);
     }
 
