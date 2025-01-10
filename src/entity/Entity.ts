@@ -486,7 +486,9 @@ class Entity {
     }
 
     public _updateAbsolutePosition() {
+
         this._absoluteCartesian.copy(this._cartesian);
+
         if (this._relativePosition && this.parent) {
             let par: Entity | null = this.parent;
             while (par && par._relativePosition) {
