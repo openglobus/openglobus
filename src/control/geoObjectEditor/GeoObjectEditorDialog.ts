@@ -260,10 +260,14 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         this._latView.value = ll.lat;
         this._heightView.value = ll.height;
 
-        // let cart = entity.getCartesian();
-        // this._xView.value = cart.x;
-        // this._yView.value = cart.y;
-        // this._zView.value = cart.z;
+        this._xView.events.stopPropagation();
+        this._yView.events.stopPropagation();
+        this._zView.events.stopPropagation();
+
+        let cart = entity.getCartesian();
+        this._xView.value = cart.x;
+        this._yView.value = cart.y;
+        this._zView.value = cart.z;
 
         let go = getGeoObject(entity);
         this._pitchView.value = go.getPitch();
@@ -373,7 +377,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         let entity = this.model.getSelectedEntity();
         if (entity) {
             let cart = entity.getCartesian();
-            entity.setLonLat2(cart.x, cart.y, parseFloat(val));
+            entity.setCartesian(cart.x, cart.y, parseFloat(val));
         }
     }
 
