@@ -377,7 +377,22 @@ class EntityCollection {
     }
 
     protected _addRecursively(entity: Entity) {
+        let rn: RenderNode | null = this.renderNode;
+        if (rn) {
+            if (entity._independentPicking || !entity.parent) {
+                if (rn) {
+                    rn.renderer && rn.renderer.assignPickingColor<Entity>(entity);
+                }
+            } else {
+                entity._pickingColor = entity.parent._pickingColor;
+            }
+            rn.renderer && rn.renderer.assignPickingColor<Entity>(entity);
 
+            if ((rn as Planet).ellipsoid && entity._cartesian.isZero()) {
+                entity.setCartesian3v((rn as Planet).ellipsoid.lonLatToCartesian(entity._lonLat));
+            }
+        }
+        entity.setPickingColor();
         entity._updateAbsolutePosition();
 
         // billboard
@@ -403,17 +418,9 @@ class EntityCollection {
 
         this.events.dispatch(this.events.entityadd, entity);
 
-        let rn: RenderNode | null = this.renderNode;
         for (let i = 0; i < entity.childrenNodes.length; i++) {
             entity.childrenNodes[i]._entityCollection = this;
             entity.childrenNodes[i]._entityCollectionIndex = entity._entityCollectionIndex;
-            if (entity.childrenNodes[i]._independentPicking) {
-                if (rn) {
-                    rn.renderer && rn.renderer.assignPickingColor<Entity>(entity.childrenNodes[i]);
-                }
-            } else {
-                entity.childrenNodes[i]._pickingColor = entity._pickingColor;
-            }
             this._addRecursively(entity.childrenNodes[i]);
         }
     }
@@ -429,15 +436,7 @@ class EntityCollection {
             entity._entityCollection = this;
             entity._entityCollectionIndex = this._entities.length;
             this._entities.push(entity);
-            let rn: RenderNode | null = this.renderNode;
-            if (rn) {
-                rn.renderer && rn.renderer.assignPickingColor<Entity>(entity);
-                if ((rn as Planet).ellipsoid && entity._cartesian.isZero()) {
-                    entity.setCartesian3v((rn as Planet).ellipsoid.lonLatToCartesian(entity._lonLat));
-                }
-            }
             this._addRecursively(entity);
-            entity.setPickingColor();
         }
         return this;
     }

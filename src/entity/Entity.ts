@@ -808,7 +808,6 @@ class Entity {
         }
         entity.parent = this;
         this.childrenNodes.push(entity);
-        this._updateAbsolutePosition();
         this._entityCollection && this._entityCollection.appendChildEntity(entity);
     }
 

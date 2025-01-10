@@ -80,7 +80,7 @@
     // }
 
     let parentEntity = new Entity({
-        cartesian: new Vec3(0, 0, 0),
+        cartesian: new Vec3(1, 1, 1),
         independentPicking: true,
         geoObject: {
             scale: 1,
@@ -123,6 +123,7 @@
 
     childEntity.appendChild(childChildEntity);
     parentEntity.appendChild(childEntity);
+
     myScene.ec.add(parentEntity);
 
     window.renderer = renderer;
