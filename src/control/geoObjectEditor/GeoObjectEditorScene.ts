@@ -26,26 +26,26 @@ export function getGeoObject(entity: Entity): GeoObject {
     return entity.geoObject! || entity.childrenNodes[0].geoObject;
 }
 
-export function setEntityPitch(entity: Entity, val: number) {
-    entity.geoObject?.setPitch(val);
-    entity.childrenNodes.forEach((e: Entity) => {
-        e.geoObject?.setPitch(val);
-    });
-}
-
-export function setEntityYaw(entity: Entity, val: number) {
-    entity.geoObject?.setYaw(val);
-    entity.childrenNodes.forEach((e: Entity) => {
-        e.geoObject?.setYaw(val);
-    });
-}
-
-export function setEntityRoll(entity: Entity, val: number) {
-    entity.geoObject?.setRoll(val);
-    entity.childrenNodes.forEach((e: Entity) => {
-        e.geoObject?.setRoll(val);
-    });
-}
+// export function setEntityPitch(entity: Entity, val: number) {
+//     entity.geoObject?.setPitch(val);
+//     entity.childrenNodes.forEach((e: Entity) => {
+//         e.geoObject?.setPitch(val);
+//     });
+// }
+//
+// export function setEntityYaw(entity: Entity, val: number) {
+//     entity.geoObject?.setYaw(val);
+//     entity.childrenNodes.forEach((e: Entity) => {
+//         e.geoObject?.setYaw(val);
+//     });
+// }
+//
+// export function setEntityRoll(entity: Entity, val: number) {
+//     entity.geoObject?.setRoll(val);
+//     entity.childrenNodes.forEach((e: Entity) => {
+//         e.geoObject?.setRoll(val);
+//     });
+// }
 
 export function setEntityScale(entity: Entity, val: number) {
     entity.geoObject?.setScale(val);
@@ -661,7 +661,8 @@ class GeoObjectEditorScene extends RenderNode {
                 let sig = Math.sign(c0.cross(c1).dot(norm));
                 let angle = Math.acos(c0.dot(c1)) * DEGREES;
                 let deg = this._selectedEntityPitch + sig * angle;
-                setEntityPitch(this._selectedEntity, deg);
+                //setEntityPitch(this._selectedEntity, deg);
+                this._selectedEntity.setPitch(deg);
 
                 this.events.dispatch(this.events.pitch, deg, this._selectedEntity);
                 this.events.dispatch(this.events.change, this._selectedEntity);
@@ -693,7 +694,8 @@ class GeoObjectEditorScene extends RenderNode {
                 let sig = Math.sign(c1.cross(c0).dot(norm));
                 let angle = Math.acos(c0.dot(c1)) * DEGREES;
                 let deg = this._selectedEntityYaw + sig * angle;
-                setEntityYaw(this._selectedEntity, deg);
+                //setEntityYaw(this._selectedEntity, deg);
+                this._selectedEntity.setYaw(deg);
 
                 this.events.dispatch(this.events.yaw, deg, this._selectedEntity);
                 this.events.dispatch(this.events.change, this._selectedEntity);
@@ -733,7 +735,8 @@ class GeoObjectEditorScene extends RenderNode {
                 let sig = Math.sign(c0.cross(c1).dot(norm));
                 let angle = Math.acos(c0.dot(c1)) * DEGREES;
                 let deg = this._selectedEntityRoll + sig * angle;
-                setEntityRoll(this._selectedEntity, deg);
+                //setEntityRoll(this._selectedEntity, deg);
+                this._selectedEntity.setRoll(deg);
 
                 this.events.dispatch(this.events.roll, deg, this._selectedEntity);
                 this.events.dispatch(this.events.change, this._selectedEntity);
