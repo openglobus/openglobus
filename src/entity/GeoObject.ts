@@ -117,8 +117,6 @@ class GeoObject {
 
         this._color = utils.createColorRGBA(options.color, new Vec4(0.15, 0.15, 0.15, 1.0));
 
-        this._qRot = Quat.IDENTITY;
-
         this._handler = null;
         this._handlerIndex = -1;
 
@@ -146,6 +144,8 @@ class GeoObject {
         this._direction = new Vec3();
 
         this._qFrame = new Quat();
+
+        this._qRot = Quat.IDENTITY;
     }
 
     public get tag() {
@@ -382,6 +382,14 @@ class GeoObject {
         this._handler && this._handler.setPickingColorArr(this._tagData!, this._tagDataIndex, color);
     }
 
+    public setRotation(qRot: Quat) {
+        this._qRot = qRot;
+        this._direction = this._qRot.mulVec3(LOCAL_FORWARD).normalize();
+        if (this._handler) {
+            this._handler.setQRotArr(this._tagData!, this._tagDataIndex, this._qRot);
+        }
+    }
+
     public updateRotation() {
 
         if (this._handler) {
@@ -396,11 +404,7 @@ class GeoObject {
             let qy = Quat.yRotation(this._yawRad);
             let qr = Quat.zRotation(-this._rollRad);
 
-            this._qRot = qr.mul(qp).mul(qy).mul(this._qFrame).conjugate();
-
-            this._direction = this._qRot.mulVec3(LOCAL_FORWARD).normalize();
-
-            this._handler.setQRotArr(this._tagData!, this._tagDataIndex, this._qRot);
+            this.setRotation(qr.mul(qp).mul(qy).mul(this._qFrame).conjugate());
         }
     }
 

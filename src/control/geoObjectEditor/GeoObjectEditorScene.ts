@@ -22,9 +22,9 @@ import {CameraLock} from "../CameraLock";
 import {EntityCollection} from "../../entity/EntityCollection";
 
 
-export function getGeoObject(entity: Entity): GeoObject {
-    return entity.geoObject! || entity.childrenNodes[0].geoObject;
-}
+// export function getGeoObject(entity: Entity): GeoObject {
+//     return entity.geoObject! || entity.childrenNodes[0].geoObject;
+// }
 
 // export function setEntityPitch(entity: Entity, val: number) {
 //     entity.geoObject?.setPitch(val);
@@ -361,10 +361,10 @@ class GeoObjectEditorScene extends RenderNode {
 
         if (this._selectedEntity) {
             this._selectedEntityCart = this._selectedEntity.getCartesian().clone();
-            if (getGeoObject(this._selectedEntity)) {
-                this._selectedEntityPitch = getGeoObject(this._selectedEntity).getPitch();
-                this._selectedEntityYaw = getGeoObject(this._selectedEntity).getYaw();
-                this._selectedEntityRoll = getGeoObject(this._selectedEntity).getRoll();
+            if (this._selectedEntity) {
+                this._selectedEntityPitch = this._selectedEntity.getPitch();
+                this._selectedEntityYaw = this._selectedEntity.getYaw();
+                this._selectedEntityRoll = this._selectedEntity.getRoll();
             }
         }
 
@@ -451,7 +451,7 @@ class GeoObjectEditorScene extends RenderNode {
             let cart = this._selectedEntity.getAbsoluteCartesian();
             this._axisEntity.setCartesian3v(cart);
             this._planeEntity.setCartesian3v(cart);
-            this._rotateEntity.setCartesian3v(cart, getGeoObject(this._selectedEntity).getYaw());
+            this._rotateEntity.setCartesian3v(cart, this._selectedEntity.getYaw());
             this._axisTrackEntity.setCartesian3v(cart);
         }
     }
@@ -637,7 +637,7 @@ class GeoObjectEditorScene extends RenderNode {
         let qNorthFrame = this.getFrameRotation(p0).conjugate();
 
         let qp = Quat.xRotation(0);
-        let qy = Quat.yRotation(getGeoObject(this._selectedEntity).getYaw() * RADIANS);
+        let qy = Quat.yRotation(this._selectedEntity.getYaw() * RADIANS);
         let qr = Quat.zRotation(0);
 
         let qRot = qr.mul(qp).mul(qy).mul(this.getFrameRotation(p0)).conjugate();
@@ -711,7 +711,7 @@ class GeoObjectEditorScene extends RenderNode {
         let qNorthFrame = this.getFrameRotation(p0).conjugate();
 
         let qp = Quat.xRotation(0);
-        let qy = Quat.yRotation(getGeoObject(this._selectedEntity).getYaw() * RADIANS);
+        let qy = Quat.yRotation(this._selectedEntity.getYaw() * RADIANS);
         let qr = Quat.zRotation(0);
 
         let qRot = qr.mul(qp).mul(qy).mul(this.getFrameRotation(p0)).conjugate();

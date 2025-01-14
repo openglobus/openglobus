@@ -16,6 +16,8 @@ import {IRayParams, Ray} from "./Ray";
 import {Strip, IStripParams} from "./Strip";
 import {Vector, VectorEventsType} from "../layer/Vector";
 import {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
+import {Quat} from "../math/Quat";
+import {RADIANS} from "../math";
 
 export interface IEntityParams {
     name?: string;
@@ -234,6 +236,12 @@ class Entity {
     protected _pitch: number;
     protected _yaw: number;
     protected _roll: number;
+    protected _pitchRad: number;
+    protected _yawRad: number;
+    protected _rollRad: number;
+    protected _scale: Vec3;
+    protected _qFrame: Quat;
+    protected _qRot: Quat;
 
     constructor(options: IEntityParams = {}) {
 
@@ -277,6 +285,15 @@ class Entity {
         this._pitch = options.pitch || 0;
         this._yaw = options.yaw || 0;
         this._roll = options.roll || 0;
+
+        this._pitchRad = this._pitch * RADIANS;
+        this._yawRad = this._yaw * RADIANS;
+        this._rollRad = this._roll * RADIANS;
+
+        this._scale = new Vec3(1, 1, 1);
+
+        this._qFrame = new Quat();
+        this._qRot = Quat.IDENTITY;
 
         this._featureConstructorArray = {
             billboard: [Billboard, this.setBillboard],
@@ -420,9 +437,28 @@ class Entity {
         this.setCartesian(cartesian.x, cartesian.y, cartesian.z);
     }
 
+    public getScale(): Vec3 {
+        return this._scale;
+    }
+
+    public setScale(val: number) {
+
+        this._scale.set(val, val, val);
+
+        this.geoObject && this.geoObject.setScale(val);
+
+        for (let i = 0; i < this.childrenNodes.length; i++) {
+            this.childrenNodes[i].setScale(val);
+        }
+    }
+
     public setPitch(val: number) {
 
-        this.geoObject && this.geoObject.setPitch(val);
+        this._pitch = val;
+        this._pitchRad = val * RADIANS;
+        this.updateRotation();
+
+        this.geoObject && this.geoObject.setPitch(this._pitch);
 
         for (let i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i].setPitch(val);
@@ -431,7 +467,11 @@ class Entity {
 
     public setYaw(val: number) {
 
-        this.geoObject && this.geoObject.setYaw(val);
+        this._yaw = val;
+        this._yawRad = val * RADIANS;
+        this.updateRotation();
+
+        this.geoObject && this.geoObject.setYaw(this._yaw);
 
         for (let i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i].setYaw(val);
@@ -440,7 +480,11 @@ class Entity {
 
     public setRoll(val: number) {
 
-        this.geoObject && this.geoObject.setRoll(val);
+        this._roll = val;
+        this._rollRad = val * RADIANS;
+        this.updateRotation();
+
+        this.geoObject && this.geoObject.setRoll(this._roll);
 
         for (let i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i].setRoll(val);
@@ -879,6 +923,23 @@ class Entity {
         }
 
         return res;
+    }
+
+    public updateRotation() {
+
+        if (!this._entityCollection || this._cartesian.isZero()) {
+            this._qFrame = Quat.IDENTITY;
+        } else if (this._entityCollection.renderNode) {
+            this._qFrame = this._entityCollection.renderNode.getFrameRotation(this._cartesian);
+        }
+
+        let qp = Quat.xRotation(-this._pitchRad);
+        let qy = Quat.yRotation(this._yawRad);
+        let qr = Quat.zRotation(-this._rollRad);
+
+        this._qRot = qr.mul(qp).mul(qy).mul(this._qFrame).conjugate();
+
+        //this._direction = this._qRot.mulVec3(LOCAL_FORWARD).normalize();
     }
 }
 

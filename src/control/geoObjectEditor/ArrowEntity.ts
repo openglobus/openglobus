@@ -7,7 +7,7 @@ const SCALE = 0.1;
 const SCALE_VEC = new Vec3(SCALE, SCALE, SCALE);
 const TIP_LENGTH = 0.17;
 const TIP_RADIUS = 0.04;
-const SPIN_RADIUS = 0.0075;
+const SPIN_RADIUS = 0.0095;
 
 const lineObj = Object3d.createCylinder(SPIN_RADIUS, SPIN_RADIUS, 1.0 - TIP_LENGTH).scale(SCALE_VEC);
 const tipObj = Object3d.createCylinder(0, TIP_RADIUS, TIP_LENGTH, 16, 16,

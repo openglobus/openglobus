@@ -5,10 +5,6 @@ import {Input} from "../../ui/Input";
 import {Button} from "../../ui/Button";
 import {Vec3} from "../../math/Vec3";
 import {
-    getGeoObject,
-    setEntityPitch,
-    setEntityYaw,
-    setEntityRoll,
     setEntityScale,
     setEntityScale3v
 } from "./GeoObjectEditorScene";
@@ -139,7 +135,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         });
 
         this._groundBtn = new Button({
-            text: "Put ground",
+            text: "Ground",
             title: "Put on the ground",
             name: "ground",
             classList: ["og-editor-ground_button"]
@@ -269,12 +265,11 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         this._yView.value = cart.y;
         this._zView.value = cart.z;
 
-        let go = getGeoObject(entity);
-        this._pitchView.value = go.getPitch();
-        this._yawView.value = go.getYaw();
-        this._rollView.value = go.getRoll();
+        this._pitchView.value = entity.getPitch();
+        this._yawView.value = entity.getYaw();
+        this._rollView.value = entity.getRoll();
 
-        let scl = go.getScale();
+        let scl = entity.getScale();
         if ((scl.x === scl.y) && (scl.y === scl.z)) {
             this._scaleView.value = scl.x;
         } else {
@@ -320,17 +315,17 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
 
     protected _onPitch = (a: number, entity: Entity) => {
         this._pitchView.events.stopPropagation();
-        this._pitchView.value = getGeoObject(entity).getPitch();
+        this._pitchView.value = entity.getPitch();
     }
 
     protected _onYaw = (a: number, entity: Entity) => {
         this._yawView.events.stopPropagation();
-        this._yawView.value = getGeoObject(entity).getYaw();
+        this._yawView.value = entity.getYaw();
     }
 
     protected _onRoll = (a: number, entity: Entity) => {
         this._rollView.events.stopPropagation();
-        this._rollView.value = getGeoObject(entity).getRoll();
+        this._rollView.value = entity.getRoll();
     }
 
     protected _onChangeLon = (val: string) => {
@@ -384,19 +379,19 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     protected _onChangePitch = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            setEntityPitch(entity, parseFloat(val));
+            entity.setPitch(parseFloat(val));
         }
     }
     protected _onChangeYaw = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            setEntityYaw(entity, parseFloat(val));
+            entity.setYaw(parseFloat(val));
         }
     }
     protected _onChangeRoll = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            setEntityRoll(entity, parseFloat(val));
+            entity.setRoll(parseFloat(val));
         }
     }
     protected _onChangeScale = (val: string) => {
@@ -415,21 +410,21 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     protected _onChangeScaleX = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            let s = getGeoObject(entity).getScale();
+            let s = entity.getScale();
             setEntityScale3v(entity, new Vec3(parseFloat(val), s.y, s.z));
         }
     }
     protected _onChangeScaleY = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            let s = getGeoObject(entity).getScale();
+            let s = entity.getScale();
             setEntityScale3v(entity, new Vec3(s.x, parseFloat(val), s.z));
         }
     }
     protected _onChangeScaleZ = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            let s = getGeoObject(entity).getScale();
+            let s = entity.getScale();
             setEntityScale3v(entity, new Vec3(s.x, s.y, parseFloat(val)));
         }
     }
