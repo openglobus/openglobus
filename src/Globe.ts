@@ -214,7 +214,8 @@ class Globe {
                 context: {
                     //alpha: false,
                     antialias: false,
-                    premultipliedAlpha: false
+                    premultipliedAlpha: false,
+                    preserveDrawingBuffer: false
                 }
             }), {
                 autoActivate: false,
