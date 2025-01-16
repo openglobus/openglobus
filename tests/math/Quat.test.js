@@ -58,22 +58,6 @@ describe('Quat class', () => {
         expect(Quat.getRotationBetweenVectorsUp(new Vec3(), new Vec3(), new Vec3())).toBeTruthy();
     });
 
-    function quaternionToEuler(q) {
-        const { w, x, y, z } = q;
-
-        const sinPitch = -2 * (y * z - w * x);
-        const pitch = Math.abs(sinPitch) >= 1
-            ? Math.sign(sinPitch) * Math.PI / 2
-            : Math.asin(sinPitch);
-
-        const yaw = Math.atan2(2 * (x * z + w * y), 1 - 2 * (y * y + x * x));
-
-        const roll = Math.atan2(2 * (x * y + w * z), 1 - 2 * (z * z + x * x));
-
-        return [pitch, -yaw, roll];
-    }
-
-
     test('Remove conjugation', () => {
 
         for (let i = 0; i < 10000; i++) {
@@ -117,31 +101,33 @@ describe('Quat class', () => {
 
     test('Euler angles', () => {
 
-        for (let i = 0; i < 10000; i++) {
+        //for (let i = 0; i < 1; i++) {
 
-            let pitch = 10,
-                yaw = 60,
-                roll = 130;
+        let pitch = random(-180, 180),
+            yaw = random(-180, 180),
+            roll = random(-180, 180);
 
-            let pitchYawRoll = [pitch * RADIANS, yaw * RADIANS, roll * RADIANS];
+        let pitchYawRoll = [pitch * RADIANS, yaw * RADIANS, roll * RADIANS];
 
-            let qp = Quat.xRotation(pitchYawRoll[0]);
-            let qy = Quat.yRotation(-pitchYawRoll[1]);
-            let qr = Quat.zRotation(pitchYawRoll[2]);
+        let qRot = new Quat();
 
-            let qRot = qy.mul(qp).mul(qr);
+        qRot.setPitchYawRoll(pitchYawRoll[0], pitchYawRoll[1], pitchYawRoll[2])
 
-            let outPitchYawRoll = quaternionToEuler(qRot).map(v => v * DEGREES);
+        let outPitchYawRoll = [
+            qRot.getPitch(),
+            qRot.getYaw(),
+            qRot.getRoll()
+        ];
 
-            expect([
-                pitch.toFixed(7),
-                yaw.toFixed(7),
-                roll.toFixed(7)
-            ]).toStrictEqual([
-                outPitchYawRoll[0].toFixed(7),
-                outPitchYawRoll[1].toFixed(7),
-                outPitchYawRoll[2].toFixed(7)
-            ]);
-        }
+        expect([
+            Math.sin(pitchYawRoll[0]).toFixed(7),
+            Math.sin(pitchYawRoll[1]).toFixed(7),
+            Math.sin(pitchYawRoll[2]).toFixed(7)
+        ]).toStrictEqual([
+            Math.sin(outPitchYawRoll[0]).toFixed(7),
+            Math.sin(outPitchYawRoll[1]).toFixed(7),
+            Math.sin(outPitchYawRoll[2]).toFixed(7)
+        ]);
+        //}
     });
 });

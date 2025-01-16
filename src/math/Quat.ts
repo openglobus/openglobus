@@ -523,10 +523,6 @@ export class Quat {
         return Math.atan2(2 * (this.x * this.y + this.w * this.z), 1 - 2 * (this.z * this.z + this.x * this.x));
     }
 
-    public getPitchYawRoll(q: Quat): NumberArray3 {
-        return [this.getPitch(), this.getYaw(), this.getRoll()];
-    }
-
     public setPitchYawRoll(pitchRad: number, yawRad: number, rollRad: number, frame: Quat = Quat.IDENTITY): Quat {
         let qp = Quat.xRotation(-pitchRad);
         let qy = Quat.yRotation(yawRad);
