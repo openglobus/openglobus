@@ -582,7 +582,7 @@ class Object3d {
 
         return res.geometries.map(
             (obj: IObjGeometry) => {
-                let mat = materials[obj.material];
+                let mat = materials[obj.material] || {};
                 return new Object3d({
                     name: obj.object,
                     vertices: obj.data.vertices,

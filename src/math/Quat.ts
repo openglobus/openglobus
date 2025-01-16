@@ -527,11 +527,11 @@ export class Quat {
         return [this.getPitch(), this.getYaw(), this.getRoll()];
     }
 
-    public setPitchYawRoll(pitchRad: number, yawRad: number, rollRad: number): Quat {
-        let qp = Quat.xRotation(pitchRad);
-        let qy = Quat.yRotation(-yawRad);
-        let qr = Quat.zRotation(rollRad);
-        return this.copy(qy.mul(qp).mul(qr));
+    public setPitchYawRoll(pitchRad: number, yawRad: number, rollRad: number, frame: Quat = Quat.IDENTITY): Quat {
+        let qp = Quat.xRotation(-pitchRad);
+        let qy = Quat.yRotation(yawRad);
+        let qr = Quat.zRotation(-rollRad);
+        return this.copy(qr.mul(qp).mul(qy).mul(frame).conjugate());
     }
 
     // /**

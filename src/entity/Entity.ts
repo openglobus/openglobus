@@ -560,13 +560,7 @@ class Entity {
             this._qFrame = this._entityCollection.renderNode.getFrameRotation(this._cartesian);
         }
 
-        // let qp = Quat.xRotation(this._pitchRad);
-        // let qy = Quat.yRotation(-this._yawRad);
-        // let qr = Quat.zRotation(this._rollRad);
-        //
-        // this._qRot.copy(this._qFrame.mul(qy).mul(qp).mul(qr));
-
-        this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
+        this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad, this._qFrame);
 
         //this._direction = this._qRot.mulVec3(LOCAL_FORWARD).normalize();
     }

@@ -382,7 +382,7 @@ class GeoObject {
         this._handler && this._handler.setPickingColorArr(this._tagData!, this._tagDataIndex, color);
     }
 
-    protected _setQRot(qRot: Quat){
+    protected _setQRot(qRot: Quat) {
         this._qRot.copy(qRot);
         this._direction = this._qRot.mulVec3(LOCAL_FORWARD).normalize();
         if (this._handler) {
@@ -424,13 +424,15 @@ class GeoObject {
                 this._qFrame = this._handler._renderNode.getFrameRotation(this._position);
             }
 
-            // let qp = Quat.xRotation(this._pitchRad);
-            // let qy = Quat.yRotation(-this._yawRad);
-            // let qr = Quat.zRotation(this._rollRad);
+            // let qp = Quat.xRotation(-this._pitchRad);
+            // let qy = Quat.yRotation(this._yawRad);
+            // let qr = Quat.zRotation(-this._rollRad);
             //
-            // this.setRotation(this._qFrame.mul(qy).mul(qp).mul(qr));
-            this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
-            this._setQRot(this._qFrame.mul(this._qRot));
+            // this._setQRot(qr.mul(qp).mul(qy).mul(this._qFrame).conjugate());
+
+            this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad, this._qFrame);
+
+            this._setQRot(this._qRot);
         }
     }
 
