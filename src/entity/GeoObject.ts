@@ -6,7 +6,7 @@ import {InstanceData} from "./InstanceData";
 import {NumberArray3} from "../math/Vec3";
 import {NumberArray4} from "../math/Vec4";
 import {Object3d} from "../Object3d";
-import {RADIANS} from "../math";
+import {DEGREES, RADIANS} from "../math";
 
 const LOCAL_FORWARD = new Vec3(0.0, 0.0, -1.0);
 
@@ -382,12 +382,36 @@ class GeoObject {
         this._handler && this._handler.setPickingColorArr(this._tagData!, this._tagDataIndex, color);
     }
 
-    public setRotation(qRot: Quat) {
-        this._qRot = qRot;
+    protected _setQRot(qRot: Quat){
+        this._qRot.copy(qRot);
         this._direction = this._qRot.mulVec3(LOCAL_FORWARD).normalize();
         if (this._handler) {
             this._handler.setQRotArr(this._tagData!, this._tagDataIndex, this._qRot);
         }
+    }
+
+    public setRotation(qRot: Quat) {
+        this._pitchRad = qRot.getPitch();
+        this._yawRad = qRot.getYaw();
+        this._rollRad = qRot.getRoll();
+
+        this._pitch = this._pitchRad * DEGREES;
+        this._yaw = this._yawRad * DEGREES;
+        this._roll = this._rollRad * DEGREES;
+
+        this._setQRot(qRot);
+    }
+
+    public setRotationPitchYawRoll(qRot: Quat, pitch: number, yaw: number, roll: number) {
+        this._pitch = pitch;
+        this._yaw = yaw;
+        this._roll = roll;
+
+        this._pitchRad = pitch * RADIANS;
+        this._yawRad = yaw * RADIANS;
+        this._rollRad = roll * RADIANS;
+
+        this._setQRot(qRot);
     }
 
     public updateRotation() {
@@ -400,11 +424,13 @@ class GeoObject {
                 this._qFrame = this._handler._renderNode.getFrameRotation(this._position);
             }
 
-            let qp = Quat.xRotation(-this._pitchRad);
-            let qy = Quat.yRotation(this._yawRad);
-            let qr = Quat.zRotation(-this._rollRad);
-
-            this.setRotation(qr.mul(qp).mul(qy).mul(this._qFrame).conjugate());
+            // let qp = Quat.xRotation(this._pitchRad);
+            // let qy = Quat.yRotation(-this._yawRad);
+            // let qr = Quat.zRotation(this._rollRad);
+            //
+            // this.setRotation(this._qFrame.mul(qy).mul(qp).mul(qr));
+            this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
+            this._setQRot(this._qFrame.mul(this._qRot));
         }
     }
 

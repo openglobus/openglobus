@@ -1,7 +1,8 @@
 import * as math from "../math";
-import {Vec3} from "./Vec3";
+import {NumberArray3, Vec3} from "./Vec3";
 import {Mat4} from "./Mat4";
 import {Mat3} from "./Mat3";
+import {PI_TWO} from "../math";
 
 /**
  * A set of 4-dimensional coordinates used to represent rotation in 3-dimensional space.
@@ -214,10 +215,10 @@ export class Quat {
         return Quat.axisAngleToQuat(rotAxis, rotAngle);
     }
 
-    static setFromEulerAngles(pitch: number, yaw: number, roll: number): Quat {
-        let res = new Quat();
-        return res.setFromEulerAngles(pitch, yaw, roll);
-    }
+    // static setFromEulerAngles(pitch: number, yaw: number, roll: number): Quat {
+    //     let res = new Quat();
+    //     return res.setFromEulerAngles(pitch, yaw, roll);
+    // }
 
     /**
      * Returns true if the components are zero.
@@ -353,30 +354,6 @@ export class Quat {
         return [this.x, this.y, this.z, this.w];
     }
 
-    /**
-     * Sets current quaternion by spherical coordinates.
-     * @public
-     * @param {number} lat - Latitude.
-     * @param {number} lon - Longitude.
-     * @param {number} angle - Angle in radians.
-     * @returns {Quat} -
-     */
-    public setFromSphericalCoords(lat: number, lon: number, angle: number): Quat {
-        let sin_a = Math.sin(angle / 2);
-        let cos_a = Math.cos(angle / 2);
-        let sin_lat = Math.sin(lat);
-        let cos_lat = Math.cos(lat);
-        let sin_long = Math.sin(lon);
-        let cos_long = Math.cos(lon);
-
-        this.x = sin_a * cos_lat * sin_long;
-        this.y = sin_a * sin_lat;
-        this.z = sin_a * sin_lat * cos_long;
-        this.w = cos_a;
-
-        return this;
-    }
-
     public get xyz() {
         return new Vec3(this.x, this.y, this.z);
     }
@@ -424,11 +401,35 @@ export class Quat {
     }
 
     /**
+     * Sets current quaternion by spherical coordinates.
+     * @public
+     * @param {number} lat - Latitude.
+     * @param {number} lon - Longitude.
+     * @param {number} angle - Angle in radians.
+     * @returns {Quat} -
+     */
+    public setFromSphericalCoords(lat: number, lon: number, angle: number): Quat {
+        let sin_a = Math.sin(angle / 2);
+        let cos_a = Math.cos(angle / 2);
+        let sin_lat = Math.sin(lat);
+        let cos_lat = Math.cos(lat);
+        let sin_long = Math.sin(lon);
+        let cos_long = Math.cos(lon);
+
+        this.x = sin_a * cos_lat * sin_long;
+        this.y = sin_a * sin_lat;
+        this.z = sin_a * sin_lat * cos_long;
+        this.w = cos_a;
+
+        return this;
+    }
+
+    /**
      * Gets spherical coordinates.
      * @public
      * @returns {Object} Returns object with latitude, longitude and alpha.
      */
-    public toSphericalCoords(): any {
+    public getSphericalCoords(): any {
 
         let cos_a = this.w;
         let sin_a = Math.sqrt(1.0 - cos_a * cos_a);
@@ -479,9 +480,9 @@ export class Quat {
     /**
      * Returns axis and angle of the current Quat.
      * @public
-     * @returns {Object} -
+     * @returns { axis: Vec3, angle: number } -
      */
-    public getAxisAngle(): any {
+    public getAxisAngle(): { axis: Vec3, angle: number } {
         let x = this.x,
             y = this.y,
             z = this.z,
@@ -507,70 +508,96 @@ export class Quat {
         };
     }
 
-    /**
-     * Sets current Quat by Euler's angles.
-     * @public
-     * @param {number} pitch - Pitch angle in degrees.
-     * @param {number} yaw - Yaw angle in degrees.
-     * @param {number} roll - Roll angle in degrees.
-     * @returns {Quat} -
-     */
-    public setFromEulerAngles(pitch: number, yaw: number, roll: number): Quat {
-        let ex = pitch * math.RADIANS_HALF,
-            ey = yaw * math.RADIANS_HALF,
-            ez = roll * math.RADIANS_HALF;
-
-        let cr = Math.cos(ex),
-            cp = Math.cos(ey),
-            cy = Math.cos(ez);
-
-        let sr = Math.sin(ex),
-            sp = Math.sin(ey),
-            sy = Math.sin(ez);
-
-        let cpcy = cp * cy,
-            spsy = sp * sy;
-
-        this.w = cr * cpcy + sr * spsy;
-        this.x = sr * cpcy - cr * spsy;
-        this.y = cr * sp * cy + sr * cp * sy;
-        this.z = cr * cp * sy - sr * sp * cy;
-
-        return this.normalize();
+    public getPitch(): number {
+        let sinPitch = -2 * (this.y * this.z - this.w * this.x);
+        return Math.abs(sinPitch) >= 1
+            ? Math.sign(sinPitch) * PI_TWO
+            : Math.asin(sinPitch);
     }
 
-    /**
-     * Returns Euler's angles of the current Quat.
-     * @public
-     * @returns {Object} -
-     */
-    public getEulerAngles(): any {
-        let x = this.x,
-            y = this.y,
-            z = this.z,
-            w = this.w;
-
-        let sqy = y * y;
-
-        let roll = Math.atan2(2.0 * (w * x + y * z), 1.0 - 2.0 * (x * x + sqy));
-
-        let a = w * y - z * x;
-
-        if (a < -1.0) {
-            a = -1.0;
-        } else if (a > 1.0) {
-            a = 1.0;
-        }
-        let pitch = Math.asin(2.0 * a);
-
-        let yaw = Math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (sqy + z * z));
-
-        return {
-            roll,
-            pitch,
-            yaw
-        };
+    public getYaw(): number {
+        return -Math.atan2(2 * (this.x * this.z + this.w * this.y), 1 - 2 * (this.y * this.y + this.x * this.x));
     }
+
+    public getRoll() {
+        return Math.atan2(2 * (this.x * this.y + this.w * this.z), 1 - 2 * (this.z * this.z + this.x * this.x));
+    }
+
+    public getPitchYawRoll(q: Quat): NumberArray3 {
+        return [this.getPitch(), this.getYaw(), this.getRoll()];
+    }
+
+    public setPitchYawRoll(pitchRad: number, yawRad: number, rollRad: number): Quat {
+        let qp = Quat.xRotation(pitchRad);
+        let qy = Quat.yRotation(-yawRad);
+        let qr = Quat.zRotation(rollRad);
+        return this.copy(qy.mul(qp).mul(qr));
+    }
+
+    // /**
+    //  * Sets current Quat by Euler's angles.
+    //  * @public
+    //  * @param {number} pitch - Pitch angle in degrees.
+    //  * @param {number} yaw - Yaw angle in degrees.
+    //  * @param {number} roll - Roll angle in degrees.
+    //  * @returns {Quat} -
+    //  */
+    // public setFromEulerAngles(pitch: number, yaw: number, roll: number): Quat {
+    //     let ex = pitch * math.RADIANS_HALF,
+    //         ey = yaw * math.RADIANS_HALF,
+    //         ez = roll * math.RADIANS_HALF;
+    //
+    //     let cr = Math.cos(ex),
+    //         cp = Math.cos(ey),
+    //         cy = Math.cos(ez);
+    //
+    //     let sr = Math.sin(ex),
+    //         sp = Math.sin(ey),
+    //         sy = Math.sin(ez);
+    //
+    //     let cpcy = cp * cy,
+    //         spsy = sp * sy;
+    //
+    //     this.w = cr * cpcy + sr * spsy;
+    //     this.x = sr * cpcy - cr * spsy;
+    //     this.y = cr * sp * cy + sr * cp * sy;
+    //     this.z = cr * cp * sy - sr * sp * cy;
+    //
+    //     return this.normalize();
+    // }
+    //
+    // /**
+    //  * Returns Euler's angles of the current Quat.
+    //  * @public
+    //  * @returns {Object} -
+    //  */
+    // public getEulerAngles(): any {
+    //     let x = this.x,
+    //         y = this.y,
+    //         z = this.z,
+    //         w = this.w;
+    //
+    //     let sqy = y * y;
+    //
+    //     let roll = Math.atan2(2.0 * (w * x + y * z), 1.0 - 2.0 * (x * x + sqy));
+    //
+    //     let a = w * y - z * x;
+    //
+    //     if (a < -1.0) {
+    //         a = -1.0;
+    //     } else if (a > 1.0) {
+    //         a = 1.0;
+    //     }
+    //     let pitch = Math.asin(2.0 * a);
+    //
+    //     let yaw = Math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (sqy + z * z));
+    //
+    //     return {
+    //         roll,
+    //         pitch,
+    //         yaw
+    //     };
+    // }
 
     /**
      * Computes a Quat from the provided 4x4 matrix instance.
@@ -920,84 +947,84 @@ export class Quat {
         );
     }
 
-    /**
-     * Returns a roll angle in radians.
-     * @public
-     * @param {Boolean} [reprojectAxis] -
-     * @returns {Number} -
-     */
-    public getRoll(reprojectAxis: boolean = false): number {
-
-        let x = this.x,
-            y = this.y,
-            z = this.z,
-            w = this.w;
-
-        if (reprojectAxis) {
-            let fTy = 2.0 * y;
-            let fTz = 2.0 * z;
-            let fTwz = fTz * w;
-            let fTxy = fTy * x;
-            let fTyy = fTy * y;
-            let fTzz = fTz * z;
-            return Math.atan2(fTxy + fTwz, 1.0 - (fTyy + fTzz));
-        } else {
-            return Math.atan2(2 * (x * y + w * z), w * w + x * x - y * y - z * z);
-        }
-    }
-
-    /**
-     * Returns a pitch angle in radians.
-     * @public
-     * @param {Boolean} [reprojectAxis] -
-     * @returns {number} -
-     */
-    public getPitch(reprojectAxis: boolean = false): number {
-
-        let x = this.x,
-            y = this.y,
-            z = this.z,
-            w = this.w;
-
-        if (reprojectAxis) {
-            let fTx = 2.0 * x;
-            let fTz = 2.0 * z;
-            let fTwx = fTx * w;
-            let fTxx = fTx * x;
-            let fTyz = fTz * y;
-            let fTzz = fTz * z;
-            return Math.atan2(fTyz + fTwx, 1.0 - (fTxx + fTzz));
-        } else {
-            return Math.atan2(2 * (y * z + w * x), w * w - x * x - y * y + z * z);
-        }
-    }
-
-    /**
-     * Returns a yaw angle in radians.
-     * @public
-     * @param {Boolean} [reprojectAxis] -
-     * @returns {number} -
-     */
-    public getYaw(reprojectAxis: boolean = false): number {
-
-        let x = this.x,
-            y = this.y,
-            z = this.z,
-            w = this.w;
-
-        if (reprojectAxis) {
-            let fTx = 2.0 * x;
-            let fTy = 2.0 * y;
-            let fTz = 2.0 * z;
-            let fTwy = fTy * w;
-            let fTxx = fTx * x;
-            let fTxz = fTz * x;
-            let fTyy = fTy * y;
-            return Math.atan2(fTxz + fTwy, 1.0 - (fTxx + fTyy));
-        } else {
-            return Math.asin(-2 * (x * z - w * y));
-        }
-    }
+    // /**
+    //  * Returns a roll angle in radians.
+    //  * @public
+    //  * @param {Boolean} [reprojectAxis] -
+    //  * @returns {Number} -
+    //  */
+    // public getRoll(reprojectAxis: boolean = false): number {
+    //
+    //     let x = this.x,
+    //         y = this.y,
+    //         z = this.z,
+    //         w = this.w;
+    //
+    //     if (reprojectAxis) {
+    //         let fTy = 2.0 * y;
+    //         let fTz = 2.0 * z;
+    //         let fTwz = fTz * w;
+    //         let fTxy = fTy * x;
+    //         let fTyy = fTy * y;
+    //         let fTzz = fTz * z;
+    //         return Math.atan2(fTxy + fTwz, 1.0 - (fTyy + fTzz));
+    //     } else {
+    //         return Math.atan2(2 * (x * y + w * z), w * w + x * x - y * y - z * z);
+    //     }
+    // }
+    //
+    // /**
+    //  * Returns a pitch angle in radians.
+    //  * @public
+    //  * @param {Boolean} [reprojectAxis] -
+    //  * @returns {number} -
+    //  */
+    // public getPitch(reprojectAxis: boolean = false): number {
+    //
+    //     let x = this.x,
+    //         y = this.y,
+    //         z = this.z,
+    //         w = this.w;
+    //
+    //     if (reprojectAxis) {
+    //         let fTx = 2.0 * x;
+    //         let fTz = 2.0 * z;
+    //         let fTwx = fTx * w;
+    //         let fTxx = fTx * x;
+    //         let fTyz = fTz * y;
+    //         let fTzz = fTz * z;
+    //         return Math.atan2(fTyz + fTwx, 1.0 - (fTxx + fTzz));
+    //     } else {
+    //         return Math.atan2(2 * (y * z + w * x), w * w - x * x - y * y + z * z);
+    //     }
+    // }
+    //
+    // /**
+    //  * Returns a yaw angle in radians.
+    //  * @public
+    //  * @param {Boolean} [reprojectAxis] -
+    //  * @returns {number} -
+    //  */
+    // public getYaw(reprojectAxis: boolean = false): number {
+    //
+    //     let x = this.x,
+    //         y = this.y,
+    //         z = this.z,
+    //         w = this.w;
+    //
+    //     if (reprojectAxis) {
+    //         let fTx = 2.0 * x;
+    //         let fTy = 2.0 * y;
+    //         let fTz = 2.0 * z;
+    //         let fTwy = fTy * w;
+    //         let fTxx = fTx * x;
+    //         let fTxz = fTz * x;
+    //         let fTyy = fTy * y;
+    //         return Math.atan2(fTxz + fTwy, 1.0 - (fTxx + fTyy));
+    //     } else {
+    //         return Math.asin(-2 * (x * z - w * y));
+    //     }
+    // }
 }
 
 /**

@@ -456,9 +456,9 @@ class Entity {
 
         this._pitch = val;
         this._pitchRad = val * RADIANS;
-        this.updateRotation();
+        this._updateRotation();
 
-        this.geoObject && this.geoObject.setPitch(this._pitch);
+        this.geoObject && this.geoObject.setRotationPitchYawRoll(this._qRot, this._pitch, this._yaw, this._roll);
 
         for (let i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i].setPitch(val);
@@ -469,9 +469,9 @@ class Entity {
 
         this._yaw = val;
         this._yawRad = val * RADIANS;
-        this.updateRotation();
+        this._updateRotation();
 
-        this.geoObject && this.geoObject.setYaw(this._yaw);
+        this.geoObject && this.geoObject.setRotationPitchYawRoll(this._qRot, this._pitch, this._yaw, this._roll);
 
         for (let i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i].setYaw(val);
@@ -482,9 +482,9 @@ class Entity {
 
         this._roll = val;
         this._rollRad = val * RADIANS;
-        this.updateRotation();
+        this._updateRotation();
 
-        this.geoObject && this.geoObject.setRoll(this._roll);
+        this.geoObject && this.geoObject.setRotationPitchYawRoll(this._qRot, this._pitch, this._yaw, this._roll);
 
         for (let i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i].setRoll(val);
@@ -550,6 +550,25 @@ class Entity {
 
         // labels
         this.label && this.label.setPosition3v(this._absoluteCartesian);
+    }
+
+    protected _updateRotation() {
+
+        if (!this._entityCollection || this._cartesian.isZero()) {
+            this._qFrame = Quat.IDENTITY;
+        } else if (this._entityCollection.renderNode) {
+            this._qFrame = this._entityCollection.renderNode.getFrameRotation(this._cartesian);
+        }
+
+        // let qp = Quat.xRotation(this._pitchRad);
+        // let qy = Quat.yRotation(-this._yawRad);
+        // let qr = Quat.zRotation(this._rollRad);
+        //
+        // this._qRot.copy(this._qFrame.mul(qy).mul(qp).mul(qr));
+
+        this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
+
+        //this._direction = this._qRot.mulVec3(LOCAL_FORWARD).normalize();
     }
 
     /**
@@ -923,23 +942,6 @@ class Entity {
         }
 
         return res;
-    }
-
-    public updateRotation() {
-
-        if (!this._entityCollection || this._cartesian.isZero()) {
-            this._qFrame = Quat.IDENTITY;
-        } else if (this._entityCollection.renderNode) {
-            this._qFrame = this._entityCollection.renderNode.getFrameRotation(this._cartesian);
-        }
-
-        let qp = Quat.xRotation(-this._pitchRad);
-        let qy = Quat.yRotation(this._yawRad);
-        let qr = Quat.zRotation(-this._rollRad);
-
-        this._qRot = qr.mul(qp).mul(qy).mul(this._qFrame).conjugate();
-
-        //this._direction = this._qRot.mulVec3(LOCAL_FORWARD).normalize();
     }
 }
 

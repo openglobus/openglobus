@@ -17,35 +17,8 @@ import {RotateEntity} from "./RotateEntity";
 import {Ray} from "../../math/Ray";
 import {Sphere} from "../../bv/Sphere";
 import {AxisTrackEntity} from "./AxisTrackEntity";
-import {GeoObject} from "../../entity/GeoObject";
 import {CameraLock} from "../CameraLock";
 import {EntityCollection} from "../../entity/EntityCollection";
-
-
-// export function getGeoObject(entity: Entity): GeoObject {
-//     return entity.geoObject! || entity.childrenNodes[0].geoObject;
-// }
-
-// export function setEntityPitch(entity: Entity, val: number) {
-//     entity.geoObject?.setPitch(val);
-//     entity.childrenNodes.forEach((e: Entity) => {
-//         e.geoObject?.setPitch(val);
-//     });
-// }
-//
-// export function setEntityYaw(entity: Entity, val: number) {
-//     entity.geoObject?.setYaw(val);
-//     entity.childrenNodes.forEach((e: Entity) => {
-//         e.geoObject?.setYaw(val);
-//     });
-// }
-//
-// export function setEntityRoll(entity: Entity, val: number) {
-//     entity.geoObject?.setRoll(val);
-//     entity.childrenNodes.forEach((e: Entity) => {
-//         e.geoObject?.setRoll(val);
-//     });
-// }
 
 export function setEntityScale(entity: Entity, val: number) {
     entity.geoObject?.setScale(val);
@@ -65,8 +38,6 @@ export interface IGeoObjectEditorSceneParams {
     planet?: Planet;
     name?: string;
 }
-
-//dragSimpleRes(Vec3.UNIT_X, cam.eye, clickDir, p0, px);
 
 function dragSimpleRes(unit: Vec3, eye: Vec3, clickDir: Vec3, direction: Vec3, p0: Vec3, res: Vec3) {
     let p1 = p0.add(Vec3.UP),
