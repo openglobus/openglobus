@@ -390,17 +390,17 @@ class GeoObject {
         }
     }
 
-    // public setRotation(qRot: Quat) {
-    //     this._pitchRad = qRot.getPitch();
-    //     this._yawRad = qRot.getYaw();
-    //     this._rollRad = qRot.getRoll();
-    //
-    //     this._pitch = this._pitchRad * DEGREES;
-    //     this._yaw = this._yawRad * DEGREES;
-    //     this._roll = this._rollRad * DEGREES;
-    //
-    //     this._setQRot(qRot);
-    // }
+    public setRotation(qRot: Quat) {
+        this._pitchRad = qRot.getPitch();
+        this._yawRad = qRot.getYaw();
+        this._rollRad = qRot.getRoll();
+
+        this._pitch = this._pitchRad * DEGREES;
+        this._yaw = this._yawRad * DEGREES;
+        this._roll = this._rollRad * DEGREES;
+
+        this._setQRot(qRot);
+    }
 
     public setRotationPitchYawRoll(qRot: Quat, pitch: number, yaw: number, roll: number) {
         this._pitch = pitch;
