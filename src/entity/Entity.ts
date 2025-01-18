@@ -457,19 +457,19 @@ class Entity {
     public setPitch(val: number) {
         this._pitch = val;
         this._pitchRad = val * RADIANS;
-        this._updateAbsoluteRotation();
+        this._updateAbsolute();
     }
 
     public setYaw(val: number) {
         this._yaw = val;
         this._yawRad = val * RADIANS;
-        this._updateAbsoluteRotation();
+        this._updateAbsolute();
     }
 
     public setRoll(val: number) {
         this._roll = val;
         this._rollRad = val * RADIANS;
-        this._updateAbsoluteRotation();
+        this._updateAbsolute();
     }
 
     public getPitch(): number {
@@ -502,7 +502,7 @@ class Entity {
 
         this._cartesian.set(x, y, z);
 
-        this._updateAbsoluteRotation();
+        this._updateAbsolute();
 
         for (let i = 0; i < this.childrenNodes.length; i++) {
             if (this.childrenNodes[i]._relativePosition) {
@@ -517,48 +517,34 @@ class Entity {
         //ec && ec.events.dispatch(ec.events.entitymove, this);
     }
 
-    public _updateAbsolutePosition() {
-
-        if (this.parent && this._relativePosition) {
-            let rotCart = this.parent._absoluteQRot.mulVec3(this._cartesian);
-            this._absoluteCartesian = this.parent._absoluteCartesian.add(rotCart);
-        } else {
-            this._absoluteCartesian.copy(this._cartesian);
-        }
-
-        // billboards
-        this.billboard && this.billboard.setPosition3v(this._absoluteCartesian);
-
-        // geoObject
-        this.geoObject && this.geoObject.setPosition3v(this._absoluteCartesian);
-
-        // labels
-        this.label && this.label.setPosition3v(this._absoluteCartesian);
-    }
-
-    public _updateAbsoluteRotation() {
+    public _updateAbsolute() {
 
         if (this.parent && this._relativePosition) {
             this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
             let qRot = this.parent._absoluteQRot.mul(this._qRot);
             this._absoluteQRot.copy(qRot);
-        } else {
 
+            let rotCart = this.parent._absoluteQRot.mulVec3(this._cartesian);
+            this._absoluteCartesian = this.parent._absoluteCartesian.add(rotCart);
+        } else {
             let qFrame = Quat.IDENTITY;
             if (this._entityCollection && this._entityCollection.renderNode) {
                 qFrame = this._entityCollection.renderNode.getFrameRotation(this._cartesian);
             }
-
             this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad, qFrame);
             this._absoluteQRot.copy(this._qRot);
+            this._absoluteCartesian.copy(this._cartesian);
         }
 
-        this.geoObject && this.geoObject.setRotationPitchYawRoll(this._absoluteQRot, this._pitch, this._yaw, this._roll);
+        this.billboard && this.billboard.setPosition3v(this._absoluteCartesian);
 
-        this._updateAbsolutePosition();
+        this.geoObject && this.geoObject.setRotation(this._absoluteQRot);
+        this.geoObject && this.geoObject.setPosition3v(this._absoluteCartesian);
+
+        this.label && this.label.setPosition3v(this._absoluteCartesian);
 
         for (let i = 0; i < this.childrenNodes.length; i++) {
-            this.childrenNodes[i]._updateAbsoluteRotation();
+            this.childrenNodes[i]._updateAbsolute();
         }
     }
 
@@ -572,7 +558,7 @@ class Entity {
 
         this._cartesian.copy(cartesian);
 
-        this._updateAbsoluteRotation();
+        this._updateAbsolute();
 
         for (let i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i].setCartesian(this._cartesian.x, this._cartesian.y, this._cartesian.z);

@@ -393,7 +393,7 @@ class EntityCollection {
             }
         }
         entity.setPickingColor();
-        entity._updateAbsoluteRotation();
+        entity._updateAbsolute();
 
         // billboard
         entity.billboard && this.billboardHandler.add(entity.billboard);

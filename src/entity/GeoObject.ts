@@ -6,7 +6,6 @@ import {InstanceData} from "./InstanceData";
 import {NumberArray3} from "../math/Vec3";
 import {NumberArray4} from "../math/Vec4";
 import {Object3d} from "../Object3d";
-import {DEGREES, RADIANS} from "../math";
 
 const LOCAL_FORWARD = new Vec3(0.0, 0.0, -1.0);
 
@@ -55,14 +54,6 @@ class GeoObject {
     public _rtcPositionHigh: Vec3;
     public _rtcPositionLow: Vec3;
 
-    protected _pitch: number;
-    protected _yaw: number;
-    protected _roll: number;
-
-    protected _pitchRad: number;
-    protected _yawRad: number;
-    protected _rollRad: number;
-
     protected _scale: Vec3;
     protected _translate: Vec3;
 
@@ -102,14 +93,6 @@ class GeoObject {
 
         this._rtcPositionHigh = new Vec3();
         this._rtcPositionLow = new Vec3();
-
-        this._pitch = options.pitch || 0.0;
-        this._yaw = options.yaw || 0.0;
-        this._roll = options.roll || 0.0;
-
-        this._pitchRad = this._pitch * RADIANS;
-        this._yawRad = this._yaw * RADIANS;
-        this._rollRad = this._roll * RADIANS;
 
         this._scale = utils.createVector3(options.scale, new Vec3(1, 1, 1));
         this._translate = utils.createVector3(options.translate, new Vec3());
@@ -154,18 +137,6 @@ class GeoObject {
 
     public getPosition(): Vec3 {
         return this._position;
-    }
-
-    public getPitch(): number {
-        return this._pitch;
-    }
-
-    public getYaw(): number {
-        return this._yaw;
-    }
-
-    public getRoll(): number {
-        return this._roll;
     }
 
     public get object3d(): Object3d {
@@ -291,55 +262,9 @@ class GeoObject {
         this._handler && this._handler.setObjectSrc(src, this.tag);
     }
 
-    // public setColorTexture(src: string) {
-    //     this._colorTexture = src;
-    //     //this._object3d && (this._object3d.colorTexture = src);
-    //     this._handler && this._handler.setColorTextureTag(src, this.tag);
-    // }
-
-    // public setNormalTexture(src: string) {
-    //     this._normalTexture = src;
-    //     //this._object3d && (this._object3d.normalTexture = src);
-    //     this._handler && this._handler.setNormalTextureTag(src, this.tag);
-    // }
-
     public setColorHTML(color: string) {
         this.setColor4v(utils.htmlColorToRgba(color));
     }
-
-
-    public setPitch(pitch: number) {
-        this._pitch = pitch;
-        this._pitchRad = pitch * RADIANS;
-
-        this.updateRotation();
-    }
-
-    public setYaw(yaw: number) {
-        this._yaw = yaw;
-        this._yawRad = yaw * RADIANS;
-
-        this.updateRotation();
-    }
-
-    public setRoll(roll: number) {
-        this._roll = roll;
-        this._rollRad = roll * RADIANS;
-
-        this.updateRotation();
-    }
-
-    // public setPitchYawRoll(pitch: number, yaw: number, roll: number) {
-    //     this._pitch = pitch;
-    //     this._yaw = yaw;
-    //     this._roll = roll;
-    //
-    //     this._pitchRad = pitch * RADIANS;
-    //     this._yawRad = yaw * RADIANS;
-    //     this._rollRad = roll * RADIANS;
-    //
-    //     this.updateRotation();
-    // }
 
     public setScale(scale: number) {
         this._scale.x = this._scale.y = this._scale.z = scale;
@@ -382,50 +307,22 @@ class GeoObject {
         this._handler && this._handler.setPickingColorArr(this._tagData!, this._tagDataIndex, color);
     }
 
-    protected _setQRot(qRot: Quat) {
+    public setRotation(qRot: Quat) {
         this._qRot.copy(qRot);
         this._direction = this._qRot.mulVec3(LOCAL_FORWARD).normalize();
-        if (this._handler) {
-            this._handler.setQRotArr(this._tagData!, this._tagDataIndex, this._qRot);
-        }
+        this.updateRotation();
     }
 
-    public setRotationPitchYawRoll(qRot: Quat, pitch: number, yaw: number, roll: number) {
-        this._pitch = pitch;
-        this._yaw = yaw;
-        this._roll = roll;
-
-        this._pitchRad = pitch * RADIANS;
-        this._yawRad = yaw * RADIANS;
-        this._rollRad = roll * RADIANS;
-
-        this._setQRot(qRot);
+    public getRotation(): Quat {
+        return this._qRot;
     }
 
     public updateRotation() {
-
-        if (this._handler) {
-
-            // if (this._entity && !this._entity.relativePosition) {
-            //     if (!this._handler._renderNode || this._position.isZero()) {
-            //         this._qFrame = Quat.IDENTITY;
-            //     } else {
-            //         this._qFrame = this._handler._renderNode.getFrameRotation(this._position);
-            //     }
-            //
-            //     this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad, this._qFrame);
-            // }
-
-            this._setQRot(this._qRot);
-        }
+        this._handler && this._handler.setQRotArr(this._tagData!, this._tagDataIndex, this._qRot);
     }
 
     public getDirection(): Vec3 {
         return this._direction.clone();
-    }
-
-    get rotation(): Quat {
-        return this._qRot;
     }
 }
 
