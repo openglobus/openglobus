@@ -81,47 +81,47 @@ export class MoveAxisEntity extends Entity {
     public override setPitch(a: number) {
         let line = this.childrenNodes[0];
         let tip = line.childrenNodes[0];
-        line.geoObject!.setPitch(a);
-        tip.geoObject!.setPitch(a);
+        line.setPitch(a);
+        tip.setPitch(a);
 
         line = this.childrenNodes[1];
         tip = line.childrenNodes[0];
-        line.geoObject!.setPitch(a);
-        tip.geoObject!.setPitch(a);
+        line.setPitch(a);
+        tip.setPitch(a);
 
         line = this.childrenNodes[2];
         tip = line.childrenNodes[0];
-        line.geoObject!.setPitch(a + 90);
-        tip.geoObject!.setPitch(a + 90);
+        line.setPitch(a + 90);
+        tip.setPitch(a + 90);
     }
 
     public override setYaw(a: number) {
         let line = this.childrenNodes[0];
         let tip = line.childrenNodes[0];
-        line.geoObject!.setYaw(a);
-        tip.geoObject!.setYaw(a);
+        line.setYaw(a);
+        tip.setYaw(a);
 
         line = this.childrenNodes[1];
         tip = line.childrenNodes[0];
-        line.geoObject!.setYaw(a);
-        tip.geoObject!.setYaw(a);
+        line.setYaw(a);
+        tip.setYaw(a);
 
         line = this.childrenNodes[2];
         tip = line.childrenNodes[0];
-        line.geoObject!.setYaw(a);
-        tip.geoObject!.setYaw(a);
+        line.setYaw(a);
+        tip.setYaw(a);
     }
 
     public override setRoll(a: number) {
         let line = this.childrenNodes[0];
         let tip = line.childrenNodes[0];
-        line.geoObject!.setRoll(a + 90);
-        tip.geoObject!.setRoll(a + 90);
+        line.setRoll(a + 90);
+        tip.setRoll(a + 90);
 
         line = this.childrenNodes[1];
         tip = line.childrenNodes[0];
-        line.geoObject!.setRoll(a);
-        tip.geoObject!.setRoll(a);
+        line.setRoll(a);
+        tip.setRoll(a);
     }
 
     public getY(): Vec3 {

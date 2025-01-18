@@ -32,15 +32,15 @@ export class ArrowEntity extends Entity {
 
         super({
             independentPicking: true,
+            yaw: params.yaw || 0,
+            pitch: params.pitch || 0,
+            roll: params.roll || 0,
             geoObject: {
                 color: params.color || X_COLOR,
                 scale,
                 instanced: true,
                 tag: "line",
                 object3d: lineObj,
-                yaw: params.yaw || 0,
-                pitch: params.pitch || 0,
-                roll: params.roll || 0
             },
             properties: params.properties
         });
@@ -48,15 +48,15 @@ export class ArrowEntity extends Entity {
         this._size = params.size != undefined ? params.size : 1.0;
 
         this.appendChild(new Entity({
+            yaw: params.yaw || 0,
+            pitch: params.pitch || 0,
+            roll: params.roll || 0,
             geoObject: {
                 color: params.color || X_COLOR,
                 scale,
                 instanced: true,
                 tag: "tip",
                 object3d: tipObj,
-                yaw: params.yaw || 0,
-                pitch: params.pitch || 0,
-                roll: params.roll || 0
             },
             properties: params.properties
         }));

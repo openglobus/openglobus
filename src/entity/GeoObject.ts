@@ -282,12 +282,6 @@ class GeoObject {
         this.setPosition(position.x, position.y, position.z);
     }
 
-    public setYaw(yaw: number) {
-        this._yaw = yaw;
-        this._yawRad = yaw * RADIANS;
-        this.updateRotation();
-    }
-
     public setObject(object: Object3d) {
         this._object3d = object;
     }
@@ -313,33 +307,39 @@ class GeoObject {
         this.setColor4v(utils.htmlColorToRgba(color));
     }
 
-    /**
-     *
-     * @param {number} pitch - Pitch in radians
-     */
+
     public setPitch(pitch: number) {
         this._pitch = pitch;
         this._pitchRad = pitch * RADIANS;
+
+        this.updateRotation();
+    }
+
+    public setYaw(yaw: number) {
+        this._yaw = yaw;
+        this._yawRad = yaw * RADIANS;
+
         this.updateRotation();
     }
 
     public setRoll(roll: number) {
         this._roll = roll;
         this._rollRad = roll * RADIANS;
-        this.updateRotation();
-    }
-
-    public setPitchYawRoll(pitch: number, yaw: number, roll: number) {
-        this._pitch = pitch;
-        this._yaw = yaw;
-        this._roll = roll;
-
-        this._pitchRad = pitch * RADIANS;
-        this._yawRad = yaw * RADIANS;
-        this._rollRad = roll * RADIANS;
 
         this.updateRotation();
     }
+
+    // public setPitchYawRoll(pitch: number, yaw: number, roll: number) {
+    //     this._pitch = pitch;
+    //     this._yaw = yaw;
+    //     this._roll = roll;
+    //
+    //     this._pitchRad = pitch * RADIANS;
+    //     this._yawRad = yaw * RADIANS;
+    //     this._rollRad = roll * RADIANS;
+    //
+    //     this.updateRotation();
+    // }
 
     public setScale(scale: number) {
         this._scale.x = this._scale.y = this._scale.z = scale;
@@ -390,18 +390,6 @@ class GeoObject {
         }
     }
 
-    public setRotation(qRot: Quat) {
-        this._pitchRad = qRot.getPitch();
-        this._yawRad = qRot.getYaw();
-        this._rollRad = qRot.getRoll();
-
-        this._pitch = this._pitchRad * DEGREES;
-        this._yaw = this._yawRad * DEGREES;
-        this._roll = this._rollRad * DEGREES;
-
-        this._setQRot(qRot);
-    }
-
     public setRotationPitchYawRoll(qRot: Quat, pitch: number, yaw: number, roll: number) {
         this._pitch = pitch;
         this._yaw = yaw;
@@ -418,18 +406,15 @@ class GeoObject {
 
         if (this._handler) {
 
-            if (!this._handler._renderNode || this._position.isZero()) {
-                this._qFrame = Quat.IDENTITY;
-            } else {
-                this._qFrame = this._handler._renderNode.getFrameRotation(this._position);
-            }
-
-            // let qp = Quat.xRotation(-this._pitchRad);
-            // let qy = Quat.yRotation(this._yawRad);
-            // let qr = Quat.zRotation(-this._rollRad);
-            // this._setQRot(qr.mul(qp).mul(qy).mul(this._qFrame).conjugate());
-
-            this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad, this._qFrame);
+            // if (this._entity && !this._entity.relativePosition) {
+            //     if (!this._handler._renderNode || this._position.isZero()) {
+            //         this._qFrame = Quat.IDENTITY;
+            //     } else {
+            //         this._qFrame = this._handler._renderNode.getFrameRotation(this._position);
+            //     }
+            //
+            //     this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad, this._qFrame);
+            // }
 
             this._setQRot(this._qRot);
         }

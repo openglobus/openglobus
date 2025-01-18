@@ -7,7 +7,8 @@ import {
     Entity,
     Bing,
     Object3d,
-    input
+    input,
+    Vec3
 } from "../../lib/@openglobus/og.esm.js";
 
 let cranesLayer = new Vector("crane", {
@@ -19,121 +20,58 @@ async function main() {
     let sat = new Bing();
     let osm = new OpenStreetMap();
 
-    // const dock = await Object3d.loadObj('./dock.obj');
-    //
-    // const crane = await Object3d.loadObj('./crane.obj');
+    const base = Object3d.createCube(0.4, 2, 0.4).translate(new Vec3(0, 1, 0));
+    const view = Object3d.createFrustum(3, 2, 1);
+    const view2 = Object3d.createFrustum(3, 2, 1);
 
-    const wind = await Object3d.loadObj('./ready/windTurbineBasic.obj');
-    const bf = await Object3d.loadObj('./ready/Butterfly.obj');
+    let parentEntity = new Entity({
+        cartesian: new Vec3(1, 1, 1),
+        independentPicking: true,
+        geoObject: {
+            scale: 1,
+            instanced: true,
+            tag: `base`,
+            object3d: base,
+            yaw: 0,
+            pitch: 0,
+            roll: 0
+        }
+    });
 
-    // let c1 = new Entity({
-    //     lonlat: [33.2017379, 69.0821338, 19],
-    // });
+    let childEntity = new Entity({
+        cartesian: new Vec3(0, 1, 0),
+        independentPicking: true,
+        relativePosition: true,
+        geoObject: {
+            instanced: true,
+            tag: `view`,
+            object3d: view,
+            yaw: 0,
+            pitch: 0,
+            roll: 0
+        }
+    });
 
-    // let c2 = new Entity({
-    //     lonlat: [33.2037625, 69.0814592, 24],
-    // });
-    //
-    // let c3 = new Entity({
-    //     lonlat: [33.2045480, 69.0818760, 20],
-    // });
-    //
-    // let c4 = new Entity({
-    //     lonlat: [33.2024654, 69.0824443, 21],
-    // });
-    //
-    // let c5 = new Entity({
-    //     lonlat: [33.2027773, 69.0817816, 21],
-    // });
-    //
-    // let c6 = new Entity({
-    //     lonlat: [33.2035357, 69.0821616, 21],
-    // });
+    let childChildEntity = new Entity({
+        cartesian: new Vec3(0, 3, -1),
+        independentPicking: true,
+        relativePosition: true,
+        geoObject: {
+            instanced: true,
+            tag: `view2`,
+            object3d: view2,
+            yaw: 0,
+            pitch: 0,
+            roll: 0
+        }
+    });
 
-    // for (let i = 0; i < crane.length; i++) {
-    //
-    //     c1.appendChild(new Entity({
-    //         geoObject: {
-    //             //color: "white",
-    //             scale: 5.0,
-    //             instanced: true,
-    //             tag: `crane-${i}`,
-    //             object3d: crane[i],
-    //             yaw: 87,
-    //             pitch: 0
-    //         }
-    //     }));
-    //
-    //     // c2.appendChild(new Entity({
-    //     //     geoObject: {
-    //     //         //color: "white",
-    //     //         scale: 1.0,
-    //     //         instanced: true,
-    //     //         tag: `crane-${i}`,
-    //     //         object3d: crane[i],
-    //     //         yaw: 24,
-    //     //         pitch: 0
-    //     //     }
-    //     // }));
-    //     //
-    //     // c3.appendChild(new Entity({
-    //     //     geoObject: {
-    //     //         //color: "white",
-    //     //         scale: 4.0,
-    //     //         instanced: true,
-    //     //         tag: `crane-${i}`,
-    //     //         object3d: crane[i],
-    //     //         yaw: -95,
-    //     //         pitch: 0
-    //     //     }
-    //     // }));
-    //     //
-    //     // c4.appendChild(new Entity({
-    //     //     geoObject: {
-    //     //         //color: "white",
-    //     //         scale: 1.0,
-    //     //         instanced: true,
-    //     //         tag: `crane-${i}`,
-    //     //         object3d: crane[i],
-    //     //         yaw: -160,
-    //     //         pitch: 0
-    //     //     }
-    //     // }));
-    //     //
-    //     // c5.appendChild(new Entity({
-    //     //     geoObject: {
-    //     //         //color: "white",
-    //     //         scale: 1.0,
-    //     //         instanced: true,
-    //     //         tag: `crane-${i}`,
-    //     //         object3d: crane[i],
-    //     //         yaw: 42,
-    //     //         pitch: 0
-    //     //     }
-    //     // }));
-    //     //
-    //     // c6.appendChild(new Entity({
-    //     //     geoObject: {
-    //     //         //color: "white",
-    //     //         scale: 1.0,
-    //     //         instanced: true,
-    //     //         tag: `crane-${i}`,
-    //     //         object3d: crane[i],
-    //     //         yaw: -229,
-    //     //         pitch: 0
-    //     //     }
-    //     // }));
-    // }
+    childEntity.appendChild(childChildEntity);
+    parentEntity.appendChild(childEntity);
 
-    //cranesLayer.add(c1);
-    // cranesLayer.add(c2);
-    // cranesLayer.add(c3);
-    // cranesLayer.add(c4);
-    // cranesLayer.add(c5);
-    // cranesLayer.add(c6);
 
     const globus = new Globe({
-        frustums: [[0.01, 0.1 + 0.0075], [0.1, 1 + 0.075], [1, 100 + 0.075], [100, 1000 + 0.075], [1000, 1e6 + 10000], [1e6, 1e9]],
+        //frustums: [[0.01, 0.1 + 0.0075], [0.1, 1 + 0.075], [1, 100 + 0.075], [100, 1000 + 0.075], [1000, 1e6 + 10000], [1e6, 1e9]],
         target: "earth",
         name: "Earth",
         terrain: new GlobusRgbTerrain(),
@@ -152,10 +90,7 @@ async function main() {
     globus.planet.addControl(new control.TimelineControl());
     globus.planet.addControl(new control.GeoObjectEditor());
     globus.planet.addControl(new control.ToggleWireframe());
-    //globus.planet.addControl(new control.SimpleNavigation());
 
-
-    let cubeObj = Object3d.createCube(0.001, 0.001, 0.001);
 
     let cubeLayer = new Vector("Cubes", {
         scaleByDistance: [1, 1, 1]
@@ -167,62 +102,58 @@ async function main() {
         //if (e.pickingObject.geoObject) return;
 
         let cart = globus.planet.getCartesianFromMouseTerrain();
-        if (cart) {
 
+        if (cart) {
             globus.renderer.setRelativeCenter(globus.planet.camera.eye);
 
-            let cube;
+            if (globus.renderer.events.isKeyPressed(input.KEY_CTRL)) {
 
-            if (globus.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
-                cube = new Entity({
+                let parentEntity = new Entity({
                     cartesian: cart,
+                    independentPicking: true,
                     geoObject: {
-                        color: "white",
-                        scale: 0.1,
+                        scale: 1,
                         instanced: true,
-                        tag: `btf`,
-                        object3d: bf[0],
+                        tag: `base`,
+                        object3d: base,
                         yaw: 0,
-                        pitch: 0
-                    }
-                });
-            } else if (globus.renderer.events.isKeyPressed(input.KEY_CTRL)) {
-
-                let wind0 = new Entity({
-                    cartesian: cart,
-                    geoObject: {
-                        color: "white",
-                        scale: 2,
-                        instanced: true,
-                        tag: `wind-0`,
-                        object3d: wind[0],
-                        yaw: 0,
-                        pitch: 0
+                        pitch: 0,
+                        roll: 0
                     }
                 });
 
-                let wind1 = new Entity({
-                    cartesian: cart,
+                let childEntity = new Entity({
+                    cartesian: new Vec3(0, 1, 0),
+                    independentPicking: true,
+                    relativePosition: true,
                     geoObject: {
-                        color: "white",
-                        scale: 2,
                         instanced: true,
-                        tag: `wind-1`,
-                        object3d: wind[1],
+                        tag: `view`,
+                        object3d: view,
                         yaw: 0,
-                        pitch: 0
+                        pitch: 0,
+                        roll: 0
                     }
                 });
 
-                cube = new Entity({
-                    cartesian: cart,
+                let childChildEntity = new Entity({
+                    cartesian: new Vec3(0, 3, -1),
+                    independentPicking: true,
+                    relativePosition: true,
+                    geoObject: {
+                        instanced: true,
+                        tag: `view2`,
+                        object3d: view2,
+                        yaw: 0,
+                        pitch: 0,
+                        roll: 0
+                    }
                 });
 
-                cube.appendChild(wind0);
-                cube.appendChild(wind1);
-            }
-            if (cube) {
-                cubeLayer.add(cube);
+                childEntity.appendChild(childChildEntity);
+                parentEntity.appendChild(childEntity);
+
+                cubeLayer.add(parentEntity);
             }
         }
     })

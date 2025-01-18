@@ -62,23 +62,6 @@
     const view = Object3d.createFrustum(3, 2, 1);
     const view2 = Object3d.createFrustum(3, 2, 1);
 
-    //const lunar = await Object3d.loadObj('./Lunar Lander.obj');
-    // let lunarParts = [];
-    // for (let i = 0; i < lunar.length; i++) {
-    //     lunarParts.push(new Entity({
-    //         cartesian: new Vec3(0, 0, 0),
-    //         geoObject: {
-    //             scale: 1,
-    //             instanced: true,
-    //             tag: `part:${i}`,
-    //             object3d: lunar[i],
-    //             yaw: 0,
-    //             pitch: 0,
-    //             roll: 0
-    //         }
-    //     }));
-    // }
-
     let parentEntity = new Entity({
         cartesian: new Vec3(1, 1, 1),
         independentPicking: true,
