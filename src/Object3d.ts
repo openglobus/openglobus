@@ -601,26 +601,46 @@ class Object3d {
         );
     }
 
-    // merge(other: Object3d): Object3d {
-    //     const mergedVertices = [...this._vertices, ...other.vertices];
-    //     const mergedNormals = [...this._normals, ...other.normals];
-    //     const mergedTexCoords = [...this._texCoords, ...other.texCoords];
-    //
-    //     const offset = this._vertices.length / 3;
-    //     const mergedIndices = [
-    //         ...this._indices,
-    //         ...other.indices.map(index => index + offset)
-    //     ];
-    //
-    //     return new Object3d({
-    //         name: `${this._name}_${other.name}`,
-    //         vertices: mergedVertices,
-    //         texCoords: mergedTexCoords,
-    //         indices: mergedIndices,
-    //         normals: mergedNormals,
-    //         color: this.color
-    //     });
-    // }
+    public merge(other: Object3d): Object3d {
+        const offset = this._vertices.length / 3;
+
+        let temp = this._vertices.length;
+        this._vertices.length = temp + other._vertices.length;
+        for (let i = 0; i < other._vertices.length; i++) {
+            this._vertices[temp + i] = other._vertices[i];
+        }
+
+        temp = this._normals.length;
+        this._normals.length = temp + other._normals.length;
+        for (let i = 0; i < other._normals.length; i++) {
+            this._normals[temp + i] = other._normals[i];
+        }
+
+        temp = this._texCoords.length;
+        this._texCoords.length = temp + other._texCoords.length;
+        for (let i = 0; i < other._texCoords.length; i++) {
+            this._texCoords[temp + i] = other._texCoords[i];
+        }
+
+        temp = this._indices.length;
+        this._indices.length = temp + other._indices.length;
+        for (let i = 0; i < other._indices.length; i++) {
+            this._indices[temp + i] = other._indices[i] + offset;
+        }
+
+        this._numVertices = this._vertices.length / 3;
+
+        return this;
+    }
+
+    static merge(objects: Object3d[], maxSize?: number): Object3d {
+        let res = new Object3d();
+        let size = maxSize ? maxSize : objects.length;
+        for (let i = 0; i < size; i++) {
+            res.merge(objects[i]);
+        }
+        return res;
+    }
 }
 
 export {Object3d};

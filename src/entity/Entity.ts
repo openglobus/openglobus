@@ -39,6 +39,7 @@ export interface IEntityParams {
     pitch?: number;
     yaw?: number;
     roll?: number;
+    scale?: number | Vec3 | NumberArray3;
 }
 
 /**
@@ -291,7 +292,7 @@ class Entity {
         this._yawRad = this._yaw * RADIANS;
         this._rollRad = this._roll * RADIANS;
 
-        this._scale = new Vec3(1, 1, 1);
+        this._scale = utils.createVector3(options.scale, new Vec3(1, 1, 1));
 
         //this._qFrame = new Quat();
         this._qRot = Quat.IDENTITY;
@@ -457,19 +458,19 @@ class Entity {
     public setPitch(val: number) {
         this._pitch = val;
         this._pitchRad = val * RADIANS;
-        this._updateAbsolute();
+        this._updateAbsolutePosition();
     }
 
     public setYaw(val: number) {
         this._yaw = val;
         this._yawRad = val * RADIANS;
-        this._updateAbsolute();
+        this._updateAbsolutePosition();
     }
 
     public setRoll(val: number) {
         this._roll = val;
         this._rollRad = val * RADIANS;
-        this._updateAbsolute();
+        this._updateAbsolutePosition();
     }
 
     public getPitch(): number {
@@ -502,7 +503,7 @@ class Entity {
 
         this._cartesian.set(x, y, z);
 
-        this._updateAbsolute();
+        this._updateAbsolutePosition();
 
         for (let i = 0; i < this.childrenNodes.length; i++) {
             if (this.childrenNodes[i]._relativePosition) {
@@ -517,7 +518,7 @@ class Entity {
         //ec && ec.events.dispatch(ec.events.entitymove, this);
     }
 
-    public _updateAbsolute() {
+    public _updateAbsolutePosition() {
 
         if (this.parent && this._relativePosition) {
             this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
@@ -544,7 +545,7 @@ class Entity {
         this.label && this.label.setPosition3v(this._absoluteCartesian);
 
         for (let i = 0; i < this.childrenNodes.length; i++) {
-            this.childrenNodes[i]._updateAbsolute();
+            this.childrenNodes[i]._updateAbsolutePosition();
         }
     }
 
@@ -558,7 +559,7 @@ class Entity {
 
         this._cartesian.copy(cartesian);
 
-        this._updateAbsolute();
+        this._updateAbsolutePosition();
 
         for (let i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i].setCartesian(this._cartesian.x, this._cartesian.y, this._cartesian.z);
