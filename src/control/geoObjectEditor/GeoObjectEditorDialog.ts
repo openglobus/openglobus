@@ -4,10 +4,6 @@ import {Entity} from "../../entity/Entity";
 import {Input} from "../../ui/Input";
 import {Button} from "../../ui/Button";
 import {Vec3} from "../../math/Vec3";
-import {
-    setEntityScale,
-    setEntityScale3v
-} from "./GeoObjectEditorScene";
 import {ToggleButton} from "../../ui/ToggleButton";
 
 const ICON_LOCK_BUTTON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" id="filter-center-focus">
@@ -398,7 +394,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         let entity = this.model.getSelectedEntity();
         if (entity) {
             let s = parseFloat(val);
-            setEntityScale(entity, s);
+            entity.setScale(s);
             this._scaleXView.events.stopPropagation();
             this._scaleXView.value = s;
             this._scaleYView.events.stopPropagation();
@@ -411,21 +407,21 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         let entity = this.model.getSelectedEntity();
         if (entity) {
             let s = entity.getScale();
-            setEntityScale3v(entity, new Vec3(parseFloat(val), s.y, s.z));
+            entity.setScale3v(new Vec3(parseFloat(val), s.y, s.z));
         }
     }
     protected _onChangeScaleY = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
             let s = entity.getScale();
-            setEntityScale3v(entity, new Vec3(s.x, parseFloat(val), s.z));
+            entity.setScale3v(new Vec3(s.x, parseFloat(val), s.z));
         }
     }
     protected _onChangeScaleZ = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
             let s = entity.getScale();
-            setEntityScale3v(entity, new Vec3(s.x, s.y, parseFloat(val)));
+            entity.setScale3v(new Vec3(s.x, s.y, parseFloat(val)));
         }
     }
 

@@ -17,9 +17,9 @@ export class MovePlaneEntity extends Entity {
     private _init() {
         let planeXZ = new Entity({
             independentPicking: true,
+            scale: 0.025,
             geoObject: {
                 color: XZ_COLOR,
-                scale: 0.025,
                 instanced: true,
                 tag: "plane",
                 object3d: planeObj,

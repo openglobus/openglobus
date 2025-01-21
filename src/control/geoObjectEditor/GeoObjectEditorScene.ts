@@ -20,20 +20,6 @@ import {AxisTrackEntity} from "./AxisTrackEntity";
 import {CameraLock} from "../CameraLock";
 import {EntityCollection} from "../../entity/EntityCollection";
 
-export function setEntityScale(entity: Entity, val: number) {
-    entity.geoObject?.setScale(val);
-    entity.childrenNodes.forEach((e: Entity) => {
-        e.geoObject?.setScale(val);
-    });
-}
-
-export function setEntityScale3v(entity: Entity, val: Vec3) {
-    entity.geoObject?.setScale3v(val);
-    entity.childrenNodes.forEach((e: Entity) => {
-        e.geoObject?.setScale3v(val);
-    });
-}
-
 export interface IGeoObjectEditorSceneParams {
     planet?: Planet;
     name?: string;
@@ -276,7 +262,7 @@ class GeoObjectEditorScene extends RenderNode {
         this._clickPos = e.pos.clone();
 
         if (this._selectedEntity) {
-            this._selectedEntityCart = this._selectedEntity.getCartesian().clone();
+            this._selectedEntityCart = this._selectedEntity.getAbsoluteCartesian();
             this._setAxisTrackVisibility(true);
         }
 
@@ -304,7 +290,7 @@ class GeoObjectEditorScene extends RenderNode {
         this._clickPos = e.pos.clone();
 
         if (this._selectedEntity) {
-            this._selectedEntityCart = this._selectedEntity.getCartesian().clone();
+            this._selectedEntityCart = this._selectedEntity.getAbsoluteCartesian();
             this._setAxisTrackVisibility(true);
         }
 
@@ -331,7 +317,7 @@ class GeoObjectEditorScene extends RenderNode {
         this._clickPos = e.pos.clone();
 
         if (this._selectedEntity) {
-            this._selectedEntityCart = this._selectedEntity.getCartesian().clone();
+            this._selectedEntityCart = this._selectedEntity.getAbsoluteCartesian();
             if (this._selectedEntity) {
                 this._selectedEntityPitch = this._selectedEntity.getPitch();
                 this._selectedEntityYaw = this._selectedEntity.getYaw();
@@ -464,7 +450,7 @@ class GeoObjectEditorScene extends RenderNode {
             dragSimpleRes(Vec3.UNIT_X, cam.eye, clickDir, e.direction, p0, px);
         }
 
-        this._selectedEntity.setCartesian3v(px);
+        this._selectedEntity.setAbsoluteCartesian3v(px);
 
         this.events.dispatch(this.events.position, px, this._selectedEntity);
         this.events.dispatch(this.events.change, this._selectedEntity);
@@ -492,7 +478,7 @@ class GeoObjectEditorScene extends RenderNode {
                 let dragCart = Vec3.proj_b_to_a(px, groundNormal);
                 let dragVec = dragCart.sub(clickCart);
                 let pos = this._selectedEntityCart.add(dragVec);
-                this._selectedEntity.setCartesian3v(pos);
+                this._selectedEntity.setAbsoluteCartesian3v(pos);
                 this.events.dispatch(this.events.position, px, this._selectedEntity);
                 this.events.dispatch(this.events.change, this._selectedEntity);
             }
@@ -533,7 +519,7 @@ class GeoObjectEditorScene extends RenderNode {
             dragSimpleRes(Vec3.UNIT_Z, cam.eye, clickDir, e.direction, p0, px);
         }
 
-        this._selectedEntity.setCartesian3v(px);
+        this._selectedEntity.setAbsoluteCartesian3v(px);
 
         this.events.dispatch(this.events.position, px, this._selectedEntity);
         this.events.dispatch(this.events.change, this._selectedEntity);
@@ -582,7 +568,7 @@ class GeoObjectEditorScene extends RenderNode {
             }
         }
 
-        this._selectedEntity.setCartesian3v(px);
+        this._selectedEntity.setAbsoluteCartesian3v(px);
 
         this.events.dispatch(this.events.position, px, this._selectedEntity);
         this.events.dispatch(this.events.change, this._selectedEntity);
@@ -632,7 +618,6 @@ class GeoObjectEditorScene extends RenderNode {
                 let sig = Math.sign(c0.cross(c1).dot(norm));
                 let angle = Math.acos(c0.dot(c1)) * DEGREES;
                 let deg = this._selectedEntityPitch + sig * angle;
-                //setEntityPitch(this._selectedEntity, deg);
                 this._selectedEntity.setPitch(deg);
 
                 this.events.dispatch(this.events.pitch, deg, this._selectedEntity);
@@ -665,7 +650,6 @@ class GeoObjectEditorScene extends RenderNode {
                 let sig = Math.sign(c1.cross(c0).dot(norm));
                 let angle = Math.acos(c0.dot(c1)) * DEGREES;
                 let deg = this._selectedEntityYaw + sig * angle;
-                //setEntityYaw(this._selectedEntity, deg);
                 this._selectedEntity.setYaw(deg);
 
                 this.events.dispatch(this.events.yaw, deg, this._selectedEntity);
@@ -706,7 +690,6 @@ class GeoObjectEditorScene extends RenderNode {
                 let sig = Math.sign(c0.cross(c1).dot(norm));
                 let angle = Math.acos(c0.dot(c1)) * DEGREES;
                 let deg = this._selectedEntityRoll + sig * angle;
-                //setEntityRoll(this._selectedEntity, deg);
                 this._selectedEntity.setRoll(deg);
 
                 this.events.dispatch(this.events.roll, deg, this._selectedEntity);

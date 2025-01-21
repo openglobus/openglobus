@@ -873,6 +873,13 @@ export class Vec3 {
         return Vec3.add(this.scaleTo(scale0), v2.scale(scale1));
     }
 
+    public mulVecA(a: Vec3): Vec3 {
+        this.x *= a.x;
+        this.y *= a.y;
+        this.z *= a.z;
+        return this;
+    }
+
     /**
      * Gets the shortest arc quaternion to rotate this vector to the destination vector.
      * @param {Vec3} dest -

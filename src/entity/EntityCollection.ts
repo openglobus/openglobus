@@ -394,6 +394,7 @@ class EntityCollection {
         }
         entity.setPickingColor();
         entity._updateAbsolutePosition();
+        entity.setScale3v(entity.getScale());
 
         // billboard
         entity.billboard && this.billboardHandler.add(entity.billboard);

@@ -444,6 +444,17 @@ class Entity {
         return this._scale;
     }
 
+    public setScale3v(scale: Vec3) {
+
+        this._scale.copy(scale);
+
+        this.geoObject && this.geoObject.setScale3v(this._scale);
+
+        for (let i = 0; i < this.childrenNodes.length; i++) {
+            this.childrenNodes[i].setScale3v(this.childrenNodes[i].getScale());
+        }
+    }
+
     public setScale(val: number) {
 
         this._scale.set(val, val, val);
@@ -451,7 +462,7 @@ class Entity {
         this.geoObject && this.geoObject.setScale(val);
 
         for (let i = 0; i < this.childrenNodes.length; i++) {
-            this.childrenNodes[i].setScale(val);
+            this.childrenNodes[i].setScale3v(this.childrenNodes[i].getScale());
         }
     }
 
@@ -487,9 +498,12 @@ class Entity {
 
     public setAbsoluteCartesian3v(absolutCartesian: Vec3) {
         let temp = this.relativePosition;
-        this.relativePosition = false;
-        this.setCartesian3v(absolutCartesian);
-        this.relativePosition = temp;
+        let pos = absolutCartesian;
+        if (this.parent) {
+            pos = absolutCartesian.sub(this.parent._absoluteCartesian);
+            pos = this.parent._absoluteQRot.conjugate().mulVec3(pos);
+        }
+        this.setCartesian3v(pos);
     }
 
     /**

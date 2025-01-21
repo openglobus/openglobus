@@ -222,14 +222,24 @@ export class Obj {
     }
 
     public addVertex(vert: string) {
-        const ptn = vert.split('/');
-        ptn.forEach((objIndexStr: string, i: number) => {
+        let ptn = vert.split('/');
+        for (let i = 0; i < ptn.length; i++) {
+            let objIndexStr = ptn[i];
             if (!objIndexStr) {
-                return;
+                continue;
             }
-            const index = parseInt(objIndexStr) - 1;
-            this.vertexData[i].push(...this.objVertexData[i][index]);
-        });
+            let index = parseInt(objIndexStr) - 1;
+
+            let v = this.vertexData[i];
+            let len = v.length;
+            let d = this.objVertexData[i][index];
+            let dlen = d.length;
+
+            this.vertexData[i].length = len + dlen;
+            for (let j = 0; j < dlen; j++) {
+                v[len + j] = d[j];
+            }
+        }
     }
 
     protected _innerParser(text: string, fileName: string) {
@@ -266,20 +276,32 @@ export class Obj {
 
         this._path = src.substring(0, src.lastIndexOf("/"));
 
-        // Fetch geometry
-        await fetch(src, {mode: "cors",})
-            .then((response) => {
-                if (!response.ok) {
-                    throw Error(`Unable to load '${src}'`);
-                }
-                return response.text();
-            }).then((data) => {
-                this._innerParser(data, src);
-                this._cleanupGeometryArrays();
-            })
-            .catch(() => null);
+        const response = await fetch(src);
+        if (!response.ok) {
+            throw new Error(`Unable to load '${src}'`);
+        }
 
-        // fetch materials
+        const reader = response.body!.getReader();
+        const decoder = new TextDecoder();
+        let {value, done} = await reader.read();
+        let partialLine = '';
+
+        while (!done) {
+            const text = decoder.decode(value, {stream: true});
+            const lines = (partialLine + text).split('\n');
+            partialLine = lines.pop()!;
+            for (const line of lines) {
+                this._innerParser(line, src);
+            }
+            ({value, done} = await reader.read());
+        }
+
+        if (partialLine) {
+            this._innerParser(partialLine, src);
+        }
+
+        this._cleanupGeometryArrays();
+
         let defArr = this._materialLibs.map(filename => {
             filename = `${this._path}/${filename}`;
             return fetch(filename)
