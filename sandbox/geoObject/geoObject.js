@@ -11,6 +11,8 @@ import {
     Vec3
 } from "../../lib/@openglobus/og.esm.js";
 
+window.Vec3 = Vec3;
+
 let cranesLayer = new Vector("crane", {
     scaleByDistance: [1, 1, 1]
 });
@@ -31,10 +33,7 @@ async function main() {
             scale: 1,
             instanced: true,
             tag: `base`,
-            object3d: base,
-            yaw: 0,
-            pitch: 0,
-            roll: 0
+            object3d: base
         }
     });
 
@@ -46,9 +45,6 @@ async function main() {
             instanced: true,
             tag: `view`,
             object3d: view,
-            yaw: 0,
-            pitch: 0,
-            roll: 0
         }
     });
 
@@ -59,10 +55,7 @@ async function main() {
         geoObject: {
             instanced: true,
             tag: `view2`,
-            object3d: view2,
-            yaw: 0,
-            pitch: 0,
-            roll: 0
+            object3d: view2
         }
     });
 
@@ -93,7 +86,7 @@ async function main() {
 
 
     let cubeLayer = new Vector("Cubes", {
-        scaleByDistance: [1, 1, 1]
+        scaleByDistance: [20, 590000, 1]
     });
 
     cubeLayer.addTo(globus.planet);
@@ -144,9 +137,6 @@ async function main() {
                         instanced: true,
                         tag: `view2`,
                         object3d: view2,
-                        yaw: 0,
-                        pitch: 0,
-                        roll: 0
                     }
                 });
 

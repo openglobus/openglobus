@@ -108,6 +108,8 @@ class Entity {
      */
     public _absoluteCartesian: Vec3;
 
+    public _absoluteTranslate: Vec3;
+
     /**
      * Geodetic entity coordinates.
      * @public
@@ -262,6 +264,8 @@ class Entity {
         this._cartesian = utils.createVector3(options.cartesian);
 
         this._absoluteCartesian = new Vec3();
+
+        this._absoluteTranslate = new Vec3();
 
         this._lonLat = utils.createLonLat(options.lonlat);
 
@@ -541,6 +545,9 @@ class Entity {
 
             let rotCart = this.parent._absoluteQRot.mulVec3(this._cartesian);
             this._absoluteCartesian = this.parent._absoluteCartesian.add(rotCart);
+            this._absoluteTranslate = this.parent._absoluteTranslate.add(this._cartesian);
+
+            this.geoObject && this.geoObject.setTranslate3v(this._absoluteTranslate);
         } else {
             let qFrame = Quat.IDENTITY;
             if (this._entityCollection && this._entityCollection.renderNode) {
@@ -549,6 +556,7 @@ class Entity {
             this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad, qFrame);
             this._absoluteQRot.copy(this._qRot);
             this._absoluteCartesian.copy(this._cartesian);
+            this._absoluteTranslate.set(0, 0, 0);
         }
 
         this.billboard && this.billboard.setPosition3v(this._absoluteCartesian);
