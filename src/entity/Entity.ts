@@ -533,7 +533,6 @@ class Entity {
     public getAbsoluteCartesian(): Vec3 {
         if (this.parent && this._relativePosition) {
             let scd = this._getScaleByDistance();
-            //return this._rootCartesian.add(this._absoluteLocalPosition);
             return this._rootCartesian.add(this._absoluteLocalPosition.scaleTo(scd));
         }
         return this._cartesian.clone();
@@ -627,6 +626,7 @@ class Entity {
         let ec = this._entityCollection;
 
         if (ec && ec.renderNode && (ec.renderNode as Planet).ellipsoid) {
+            //let cart = this._rootCartesian.add(this._absoluteLocalPosition);
             this._lonLat = (ec.renderNode as Planet).ellipsoid.cartesianToLonLat(this.getAbsoluteCartesian());
 
             if (Math.abs(this._lonLat.lat) < mercator.MAX_LAT) {
