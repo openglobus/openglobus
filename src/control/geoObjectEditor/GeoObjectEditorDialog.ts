@@ -44,7 +44,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
             top: 25,
             right: 85,
             width: 252,
-            height: 380,
+            height: 480,
             minHeight: 100,
             minWidth: 100,
             model: params.model

@@ -17,7 +17,7 @@ import {Strip, IStripParams} from "./Strip";
 import {Vector, VectorEventsType} from "../layer/Vector";
 import {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
 import {Quat} from "../math/Quat";
-import {RADIANS} from "../math";
+import {RADIANS, clamp} from "../math";
 
 export interface IEntityParams {
     name?: string;
@@ -102,13 +102,13 @@ class Entity {
     public _cartesian: Vec3;
 
     /**
-     * Entity absolute cartesian position.
+     * Entity cartesian is equal root entity absolute cartesian.
      * @protected
      * @type {Vec3}
      */
-    public _absoluteCartesian: Vec3;
+    public _rootCartesian: Vec3;
 
-    public _absoluteTranslate: Vec3;
+    public _absoluteLocalPosition: Vec3;
 
     /**
      * Geodetic entity coordinates.
@@ -263,9 +263,9 @@ class Entity {
 
         this._cartesian = utils.createVector3(options.cartesian);
 
-        this._absoluteCartesian = new Vec3();
+        this._rootCartesian = new Vec3();
 
-        this._absoluteTranslate = new Vec3();
+        this._absoluteLocalPosition = new Vec3();
 
         this._lonLat = utils.createLonLat(options.lonlat);
 
@@ -500,14 +500,43 @@ class Entity {
         return this._roll;
     }
 
+    protected _getScaleByDistance(): number {
+        let scd = 1;
+        if (this._entityCollection) {
+            let scaleByDistance = this._entityCollection.scaleByDistance;
+            let lookLength = 1;
+            if (this._entityCollection.renderNode && this._entityCollection.renderNode.renderer) {
+                lookLength = this._entityCollection.renderNode.renderer.activeCamera.eye.distance(this._rootCartesian);
+            }
+            scd = scaleByDistance[2] * clamp(lookLength, scaleByDistance[0], scaleByDistance[1]) / scaleByDistance[0];
+        }
+        return scd;
+    }
+
     public setAbsoluteCartesian3v(absolutCartesian: Vec3) {
-        let temp = this.relativePosition;
         let pos = absolutCartesian;
+
         if (this.parent) {
-            pos = absolutCartesian.sub(this.parent._absoluteCartesian);
+            let scd = this._getScaleByDistance();
+            pos = absolutCartesian.sub(this.parent.getAbsoluteCartesian()).scale(1 / scd);
             pos = this.parent._absoluteQRot.conjugate().mulVec3(pos);
         }
+
         this.setCartesian3v(pos);
+    }
+
+    /**
+     * Returns cartesian position.
+     * @public
+     * @returns {Vec3} -
+     */
+    public getAbsoluteCartesian(): Vec3 {
+        if (this.parent && this._relativePosition) {
+            let scd = this._getScaleByDistance();
+            //return this._rootCartesian.add(this._absoluteLocalPosition);
+            return this._rootCartesian.add(this._absoluteLocalPosition.scaleTo(scd));
+        }
+        return this._cartesian.clone();
     }
 
     /**
@@ -539,15 +568,16 @@ class Entity {
     public _updateAbsolutePosition() {
 
         if (this.parent && this._relativePosition) {
+
+            this._rootCartesian = this.parent._rootCartesian;
+
             this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
             let qRot = this.parent._absoluteQRot.mul(this._qRot);
             this._absoluteQRot.copy(qRot);
 
             let rotCart = this.parent._absoluteQRot.mulVec3(this._cartesian);
-            this._absoluteCartesian = this.parent._absoluteCartesian.add(rotCart);
-            this._absoluteTranslate = this.parent._absoluteTranslate.add(this._cartesian);
-
-            this.geoObject && this.geoObject.setTranslate3v(this._absoluteTranslate);
+            this._absoluteLocalPosition = this.parent._absoluteLocalPosition.add(rotCart);
+            this.geoObject && this.geoObject.setLocalPosition3v(this._absoluteLocalPosition);
         } else {
             let qFrame = Quat.IDENTITY;
             if (this._entityCollection && this._entityCollection.renderNode) {
@@ -555,16 +585,17 @@ class Entity {
             }
             this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad, qFrame);
             this._absoluteQRot.copy(this._qRot);
-            this._absoluteCartesian.copy(this._cartesian);
-            this._absoluteTranslate.set(0, 0, 0);
+            this._rootCartesian.copy(this._cartesian);
+            this._absoluteLocalPosition.set(0, 0, 0);
         }
 
-        this.billboard && this.billboard.setPosition3v(this._absoluteCartesian);
+        if (this.geoObject) {
+            this.geoObject.setRotation(this._absoluteQRot);
+            this.geoObject.setPosition3v(this._rootCartesian);
+        }
 
-        this.geoObject && this.geoObject.setRotation(this._absoluteQRot);
-        this.geoObject && this.geoObject.setPosition3v(this._absoluteCartesian);
-
-        this.label && this.label.setPosition3v(this._absoluteCartesian);
+        this.billboard && this.billboard.setPosition3v(this._rootCartesian);
+        this.label && this.label.setPosition3v(this._rootCartesian);
 
         for (let i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i]._updateAbsolutePosition();
@@ -596,7 +627,7 @@ class Entity {
         let ec = this._entityCollection;
 
         if (ec && ec.renderNode && (ec.renderNode as Planet).ellipsoid) {
-            this._lonLat = (ec.renderNode as Planet).ellipsoid.cartesianToLonLat(this._absoluteCartesian);
+            this._lonLat = (ec.renderNode as Planet).ellipsoid.cartesianToLonLat(this._rootCartesian);
 
             if (Math.abs(this._lonLat.lat) < mercator.MAX_LAT) {
                 this._lonLatMerc = this._lonLat.forwardMercator();
@@ -635,8 +666,9 @@ class Entity {
                 //this._lonLatMerc = null;
             }
 
-            (ec.renderNode as Planet).ellipsoid.lonLatToCartesianRes(l, this._absoluteCartesian);
-            this.setAbsoluteCartesian3v(this._absoluteCartesian);
+            let temp = new Vec3();
+            (ec.renderNode as Planet).ellipsoid.lonLatToCartesianRes(l, temp);
+            this.setAbsoluteCartesian3v(temp);
         }
     }
 
@@ -663,7 +695,7 @@ class Entity {
             }
 
             (ec.renderNode as Planet).ellipsoid.lonLatToCartesianRes(l, this._cartesian);
-            this.setAbsoluteCartesian3v(this._absoluteCartesian);
+            this.setAbsoluteCartesian3v(this.getAbsoluteCartesian());
         }
     }
 
@@ -692,15 +724,6 @@ class Entity {
      */
     public getCartesian(): Vec3 {
         return this._cartesian.clone();
-    }
-
-    /**
-     * Returns cartesian position.
-     * @public
-     * @returns {Vec3} -
-     */
-    public getAbsoluteCartesian(): Vec3 {
-        return this._absoluteCartesian.clone();
     }
 
     /**

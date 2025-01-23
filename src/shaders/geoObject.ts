@@ -32,6 +32,8 @@ export const geo_object = (): Program =>
             aVertexNormal: "vec3",
             aTexCoord: "vec2",
 
+            aLocalPosition: {type: "vec3", divisor: 1},
+
             aRTCPositionHigh: {type: "vec3", divisor: 1},
             aRTCPositionLow: {type: "vec3", divisor: 1},
 
@@ -57,6 +59,7 @@ export const geo_object = (): Program =>
             attribute float aUseTexture;
             attribute vec2 aTexCoord;
             attribute vec4 qRot;
+            attribute vec3 aLocalPosition;
             
             uniform vec3 uScaleByDistance;
             uniform mat4 projectionMatrix;
@@ -103,7 +106,7 @@ export const geo_object = (): Program =>
                 vNormal = normalize(qRotate(qRot, aVertexNormal));
                                
                 float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
-                vec3 vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate));
+                vec3 vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate)) + scd * aLocalPosition;
                  
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff + vert, 1.0);
                 
@@ -168,6 +171,7 @@ export const geo_object_picking = (): Program =>
             aPickingColor: {type: "vec3", divisor: 1},
             aScale: {type: "vec3", divisor: 1},
             aTranslate: {type: "vec3", divisor: 1},
+            aLocalPosition: {type: "vec3", divisor: 1},
             aDispose: {type: "float", divisor: 1},
             qRot: {type: "vec4", divisor: 1}
         },
@@ -181,6 +185,8 @@ export const geo_object_picking = (): Program =>
             attribute vec3 aTranslate;
             attribute float aDispose;
             attribute vec4 qRot;
+            
+            attribute vec3 aLocalPosition;
             
             uniform vec3 rtcEyePositionHigh;
             uniform vec3 rtcEyePositionLow;
@@ -216,7 +222,7 @@ export const geo_object_picking = (): Program =>
                                 
                 float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
 
-                vec3 vert = qRotate(qRot, scd * pickingScale * (aVertexPosition * aScale + aTranslate));
+                vec3 vert = qRotate(qRot, scd * pickingScale * (aVertexPosition * aScale + aTranslate)) + scd * aLocalPosition;
                     
                 gl_Position = projectionMatrix * viewMatrixRTE  * vec4(highDiff + lowDiff + vert, 1.0);
             }`,
@@ -245,7 +251,8 @@ export const geo_object_depth = (): Program =>
             aScale: {type: "vec3", divisor: 1},
             aTranslate: {type: "vec3", divisor: 1},
             aDispose: {type: "float", divisor: 1},
-            qRot: {type: "vec4", divisor: 1}
+            qRot: {type: "vec4", divisor: 1},
+            aLocalPosition: {type: "vec3", divisor: 1},
         },
         vertexShader: `#version 300 es
             precision highp float;
@@ -257,6 +264,7 @@ export const geo_object_depth = (): Program =>
             in vec3 aTranslate;
             in float aDispose;
             in vec4 qRot;
+            in vec3 aLocalPosition;
             
             uniform vec3 rtcEyePositionHigh;
             uniform vec3 rtcEyePositionLow;
@@ -286,7 +294,7 @@ export const geo_object_depth = (): Program =>
                                 
                 float scd = uScaleByDistance[2] * clamp(lookLength, uScaleByDistance[0], uScaleByDistance[1]) / uScaleByDistance[0];
 
-                vec3 vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate));
+                vec3 vert = qRotate(qRot, scd * (aVertexPosition * aScale + aTranslate)) + scd * aLocalPosition;
                                                  
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff + vert, 1.0);
             }`,

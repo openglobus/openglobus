@@ -56,6 +56,7 @@ class GeoObject {
 
     protected _scale: Vec3;
     protected _translate: Vec3;
+    protected _localPosition: Vec3;
 
     /**
      * RGBA color.
@@ -96,7 +97,8 @@ class GeoObject {
 
         this._scale = utils.createVector3(options.scale, new Vec3(1, 1, 1));
         this._translate = utils.createVector3(options.translate, new Vec3());
-        this._translate = utils.createVector3(options.translate, new Vec3());
+
+        this._localPosition = new Vec3();
 
         this._color = utils.createColorRGBA(options.color, new Vec4(0.15, 0.15, 0.15, 1.0));
 
@@ -286,7 +288,16 @@ class GeoObject {
     }
 
     public getTranslate(): Vec3 {
-        return this._translate;
+        return this._translate.clone();
+    }
+
+    public setLocalPosition3v(localPosition: Vec3) {
+        this._localPosition.copy(localPosition);
+        this._handler && this._handler.setLocalPositionArr(this._tagData!, this._tagDataIndex, localPosition);
+    }
+
+    public getLocalPosition(): Vec3 {
+        return this._localPosition.clone();
     }
 
     /**

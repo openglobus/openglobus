@@ -29,7 +29,7 @@ export class RotateEntity extends Entity {
             independentPicking: true,
             polyline: {
                 path3v: [Array.from({length}, (_, i) => new Vec3())],
-                thickness: 2.5,
+                thickness: 3.1,
                 color: X_COLOR,
                 isClosed: true
             },

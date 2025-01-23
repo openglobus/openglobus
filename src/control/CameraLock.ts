@@ -102,13 +102,13 @@ export class CameraLock extends Control {
         if (this.planet) {
             this.planet.camera.stopFlying();
         }
-        cam.viewDistance(entity.getCartesian(), this._lockDistance);
+        cam.viewDistance(entity.getAbsoluteCartesian(), this._lockDistance);
 
         this._deactivateNav();
 
         this._activateLockViewEvents();
 
-        this._viewDir = entity.getCartesian().sub(cam.eye).normalize();
+        this._viewDir = entity.getAbsoluteCartesian().sub(cam.eye).normalize();
 
         this.events.dispatch(this.events.lockview, this._lockEntity, fromTheBack);
     }
@@ -153,12 +153,12 @@ export class CameraLock extends Control {
     protected _getDistance(entity: Entity, prevEntity?: Entity | null): number {
         if (this.renderer) {
 
-            let cartesian = entity.getCartesian();
+            let cartesian = entity.getAbsoluteCartesian();
             let cam = this.renderer.activeCamera;
 
             let dist = cam.eye.distance(cartesian);
             if (prevEntity) {
-                dist = cam.eye.distance(prevEntity.getCartesian());
+                dist = cam.eye.distance(prevEntity.getAbsoluteCartesian());
             }
 
             if (this.isVisibleDistance(cartesian)) {
@@ -231,7 +231,7 @@ export class CameraLock extends Control {
                 // cam.set(newPos, vehPos, vehPos.normal());
                 // cam.update();
             } else {
-                this.renderer.activeCamera.viewDistance(this._lockEntity.getCartesian(), this._lockDistance);
+                this.renderer.activeCamera.viewDistance(this._lockEntity.getAbsoluteCartesian(), this._lockDistance);
             }
         }
     }
@@ -241,12 +241,12 @@ export class CameraLock extends Control {
             if (this._isFromTheBack) {
                 //...
             } else {
-                let d = this.renderer.activeCamera.eye.distance(this._lockEntity.getCartesian());
+                let d = this.renderer.activeCamera.eye.distance(this._lockEntity.getAbsoluteCartesian());
                 this._lockDistance -= 0.33 * d * Math.sign(e.wheelDelta);
                 if (this._lockDistance < MIN_LOCK_DISTANCE) {
                     this._lockDistance = MIN_LOCK_DISTANCE;
                 }
-                this.renderer.activeCamera.viewDistance(this._lockEntity.getCartesian(), this._lockDistance);
+                this.renderer.activeCamera.viewDistance(this._lockEntity.getAbsoluteCartesian(), this._lockDistance);
             }
         }
     }
@@ -255,7 +255,7 @@ export class CameraLock extends Control {
         if (this._lockEntity && this.renderer) {
             if (ms.rightButtonDown || this.renderer.events.isKeyPressed(input.KEY_ALT)) {
 
-                let p = this._lockEntity.getCartesian(),
+                let p = this._lockEntity.getAbsoluteCartesian(),
                     cam = this.renderer.activeCamera,
                     l = 0.5 / RADIANS;
 

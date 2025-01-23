@@ -14,7 +14,8 @@ import {
     PICKINGCOLOR_BUFFER,
     VISIBLE_BUFFER,
     TEXCOORD_BUFFER,
-    TRANSLATE_BUFFER
+    TRANSLATE_BUFFER,
+    LOCALPOSITION_BUFFER
 } from "./GeoObjectHandler";
 
 const AMBIENT_R = 0;
@@ -62,6 +63,8 @@ export class InstanceData {
     public _visibleArr: number[] | TypedArray;
     public _texCoordArr: number[] | TypedArray;
 
+    public _localPositionArr: number[] | TypedArray;
+
     public _sizeBuffer: WebGLBufferExt | null;
     public _translateBuffer: WebGLBufferExt | null;
     public _vertexBuffer: WebGLBufferExt | null;
@@ -74,6 +77,7 @@ export class InstanceData {
     public _pickingColorBuffer: WebGLBufferExt | null;
     public _visibleBuffer: WebGLBufferExt | null;
     public _texCoordBuffer: WebGLBufferExt | null;
+    public _localPositionBuffer: WebGLBufferExt | null;
 
     public _buffersUpdateCallbacks: Function[];
 
@@ -113,6 +117,7 @@ export class InstanceData {
         this._pickingColorArr = [];
         this._visibleArr = [];
         this._texCoordArr = [];
+        this._localPositionArr = [];
 
         this._sizeBuffer = null;
         this._translateBuffer = null;
@@ -126,6 +131,7 @@ export class InstanceData {
         this._pickingColorBuffer = null;
         this._visibleBuffer = null;
         this._texCoordBuffer = null;
+        this._localPositionBuffer = null;
 
         this._materialParams = new Float32Array(9);
         this._materialShininess = 0;
@@ -142,6 +148,7 @@ export class InstanceData {
         this._buffersUpdateCallbacks[QROT_BUFFER] = this.createQRotBuffer;
         this._buffersUpdateCallbacks[TRANSLATE_BUFFER] = this.createTranslateBuffer;
         this._buffersUpdateCallbacks[RTC_POSITION_BUFFER] = this.createRTCPositionBuffer;
+        this._buffersUpdateCallbacks[LOCALPOSITION_BUFFER] = this.createLocalPositionBuffer;
 
         this._changedBuffers = new Array(this._buffersUpdateCallbacks.length);
     }
@@ -193,6 +200,9 @@ export class InstanceData {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._translateBuffer!);
         gl.vertexAttribPointer(a.aTranslate, this._translateBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._localPositionBuffer!);
+        gl.vertexAttribPointer(a.aLocalPosition, this._localPositionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this._visibleBuffer!);
         gl.vertexAttribPointer(a.aDispose, this._visibleBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -225,6 +235,9 @@ export class InstanceData {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._translateBuffer!);
         gl.vertexAttribPointer(a.aTranslate, this._translateBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._localPositionBuffer!);
+        gl.vertexAttribPointer(a.aLocalPosition, this._localPositionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._visibleBuffer!);
         gl.vertexAttribPointer(a.aDispose, this._visibleBuffer!.itemSize, gl.FLOAT, false, 0, 0);
@@ -310,6 +323,7 @@ export class InstanceData {
         this._pickingColorArr = [];
         this._visibleArr = [];
         this._texCoordArr = [];
+        this._localPositionArr = [];
 
         this._deleteBuffers();
 
@@ -345,6 +359,7 @@ export class InstanceData {
             gl.deleteBuffer(this._pickingColorBuffer!);
             gl.deleteBuffer(this._visibleBuffer!);
             gl.deleteBuffer(this._texCoordBuffer!);
+            gl.deleteBuffer(this._localPositionBuffer!);
         }
 
         this._sizeBuffer = null;
@@ -359,6 +374,7 @@ export class InstanceData {
         this._pickingColorBuffer = null;
         this._visibleBuffer = null;
         this._texCoordBuffer = null;
+        this._localPositionBuffer = null;
     }
 
     public createVertexBuffer() {
@@ -409,6 +425,20 @@ export class InstanceData {
         this._translateArr = makeArrayTyped(this._translateArr);
 
         h.setStreamArrayBuffer(this._translateBuffer, this._translateArr as Float32Array);
+    }
+
+    public createLocalPositionBuffer() {
+        let h = this._geoObjectHandler._renderer!.handler,
+            numItems = this._localPositionArr.length / 3;
+
+        if (!this._localPositionBuffer || this._localPositionBuffer.numItems !== numItems) {
+            h.gl!.deleteBuffer(this._localPositionBuffer!);
+            this._localPositionBuffer = h.createStreamArrayBuffer(3, numItems);
+        }
+
+        this._localPositionArr = makeArrayTyped(this._localPositionArr);
+
+        h.setStreamArrayBuffer(this._localPositionBuffer, this._localPositionArr as Float32Array);
     }
 
     public createTexCoordBuffer() {

@@ -22,6 +22,7 @@ export const PICKINGCOLOR_BUFFER = 7;
 export const VISIBLE_BUFFER = 8;
 export const TEXCOORD_BUFFER = 9;
 export const TRANSLATE_BUFFER = 10;
+export const LOCALPOSITION_BUFFER = 11;
 
 function setParametersToArray(arr: number[] | TypedArray, index: number = 0, length: number = 0, itemSize: number = 1, ...params: number[]): number[] | TypedArray {
     const currIndex = index * length;
@@ -282,6 +283,12 @@ export class GeoObjectHandler {
         y = translate.y;
         z = translate.z;
         tagData._translateArr = concatArrays(tagData._translateArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
+
+        let localPosition = geoObject.getLocalPosition();
+        x = localPosition.x;
+        y = localPosition.y;
+        z = localPosition.z;
+        tagData._localPositionArr = concatArrays(tagData._localPositionArr, setParametersToArray([], 0, itemSize, itemSize, x, y, z));
     }
 
     //
@@ -384,6 +391,9 @@ export class GeoObjectHandler {
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._translateBuffer!);
             gl.vertexAttribPointer(a.aTranslate, tagData._translateBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._localPositionBuffer!);
+            gl.vertexAttribPointer(a.aLocalPosition, tagData._localPositionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._rtcPositionHighBuffer!);
             gl.vertexAttribPointer(a.aRTCPositionHigh, tagData._rtcPositionHighBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -450,6 +460,9 @@ export class GeoObjectHandler {
 
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._translateBuffer!);
             gl.vertexAttribPointer(a.aTranslate, tagData._translateBuffer!.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, tagData._localPositionBuffer!);
+            gl.vertexAttribPointer(a.aLocalPosition, tagData._localPositionBuffer!.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, tagData._pickingColorBuffer!);
             gl.vertexAttribPointer(a.aPickingColor, tagData._pickingColorBuffer!.itemSize, gl.FLOAT, false, 0, 0);
@@ -541,6 +554,12 @@ export class GeoObjectHandler {
     public setTranslateArr(tagData: InstanceData, tagDataIndex: number, translate: Vec3) {
         setParametersToArray(tagData._translateArr, tagDataIndex, 3, 3, translate.x, translate.y, translate.z);
         tagData._changedBuffers[TRANSLATE_BUFFER] = true;
+        this._updateTag(tagData);
+    }
+
+    public setLocalPositionArr(tagData: InstanceData, tagDataIndex: number, localPosition: Vec3) {
+        setParametersToArray(tagData._localPositionArr, tagDataIndex, 3, 3, localPosition.x, localPosition.y, localPosition.z);
+        tagData._changedBuffers[LOCALPOSITION_BUFFER] = true;
         this._updateTag(tagData);
     }
 
@@ -691,6 +710,7 @@ export class GeoObjectHandler {
         tagData._pickingColorArr = spliceArray(tagData._pickingColorArr, tdi * 3, 3);
         tagData._sizeArr = spliceArray(tagData._sizeArr, tdi * 3, 3);
         tagData._translateArr = spliceArray(tagData._translateArr, tdi * 3, 3);
+        tagData._localPositionArr = spliceArray(tagData._localPositionArr, tdi * 3, 3);
         tagData._visibleArr = spliceArray(tagData._visibleArr, tdi, 1);
 
         geoObject._handlerIndex = -1;
