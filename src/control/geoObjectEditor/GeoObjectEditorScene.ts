@@ -379,6 +379,10 @@ class GeoObjectEditorScene extends RenderNode {
             }
             this._selectedEntity = entity;
 
+            if (this.renderer) {
+                this.renderer.setRelativeCenter(this._selectedEntity.getAbsoluteCartesian());
+            }
+
             this.setVisibility(true);
             this.events.dispatch(this.events.select, this._selectedEntity);
         }

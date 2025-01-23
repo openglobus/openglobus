@@ -247,6 +247,10 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     }
 
     protected _refresh(entity: Entity) {
+        this._lonView.events.stopPropagation();
+        this._latView.events.stopPropagation();
+        this._heightView.events.stopPropagation();
+
         let ll = entity.getLonLat();
         this._lonView.value = ll.lon;
         this._latView.value = ll.lat;
