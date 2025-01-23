@@ -627,7 +627,7 @@ class Entity {
         let ec = this._entityCollection;
 
         if (ec && ec.renderNode && (ec.renderNode as Planet).ellipsoid) {
-            this._lonLat = (ec.renderNode as Planet).ellipsoid.cartesianToLonLat(this._rootCartesian);
+            this._lonLat = (ec.renderNode as Planet).ellipsoid.cartesianToLonLat(this.getAbsoluteCartesian());
 
             if (Math.abs(this._lonLat.lat) < mercator.MAX_LAT) {
                 this._lonLatMerc = this._lonLat.forwardMercator();
@@ -694,8 +694,9 @@ class Entity {
                 this._lonLatMerc.lon = this._lonLatMerc.lat = this._lonLatMerc.height = 0;
             }
 
-            (ec.renderNode as Planet).ellipsoid.lonLatToCartesianRes(l, this._cartesian);
-            this.setAbsoluteCartesian3v(this.getAbsoluteCartesian());
+            let temp = new Vec3();
+            (ec.renderNode as Planet).ellipsoid.lonLatToCartesianRes(l, temp);
+            this.setAbsoluteCartesian3v(temp);
         }
     }
 
