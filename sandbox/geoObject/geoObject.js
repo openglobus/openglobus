@@ -86,8 +86,8 @@ async function main() {
 
 
     let cubeLayer = new Vector("Cubes", {
-        scaleByDistance: [20, 590000, 1]
-        //scaleByDistance: [1, 1, 1]
+        //scaleByDistance: [20, 590000, 1]
+        scaleByDistance: [1, 1, 1]
     });
 
     cubeLayer.addTo(globus.planet);

@@ -559,7 +559,7 @@ class Entity {
             }
         }
 
-        this._updateLonLat();
+        //this._updateLonLat();
 
         //ec && ec.events.dispatch(ec.events.entitymove, this);
     }
@@ -599,6 +599,8 @@ class Entity {
         for (let i = 0; i < this.childrenNodes.length; i++) {
             this.childrenNodes[i]._updateAbsolutePosition();
         }
+
+        this._updateLonLat();
     }
 
     /**
@@ -668,6 +670,7 @@ class Entity {
 
             let temp = new Vec3();
             (ec.renderNode as Planet).ellipsoid.lonLatToCartesianRes(l, temp);
+
             this.setAbsoluteCartesian3v(temp);
         }
     }
@@ -696,6 +699,7 @@ class Entity {
 
             let temp = new Vec3();
             (ec.renderNode as Planet).ellipsoid.lonLatToCartesianRes(l, temp);
+
             this.setAbsoluteCartesian3v(temp);
         }
     }
