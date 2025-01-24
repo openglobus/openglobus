@@ -379,9 +379,7 @@ class GeoObjectEditorScene extends RenderNode {
             }
             this._selectedEntity = entity;
 
-            if (this.renderer) {
-                this.renderer.setRelativeCenter(this._selectedEntity.getAbsoluteCartesian());
-            }
+            this.renderer && this.renderer.setRelativeCenter();
 
             this.setVisibility(true);
             this.events.dispatch(this.events.select, this._selectedEntity);
@@ -412,7 +410,7 @@ class GeoObjectEditorScene extends RenderNode {
             let cart = this._selectedEntity.getAbsoluteCartesian();
             this._axisEntity.setCartesian3v(cart);
             this._planeEntity.setCartesian3v(cart);
-            this._rotateEntity.setCartesian3v(cart, this._selectedEntity.getYaw());
+            this._rotateEntity.setCartesian3v(cart, this._selectedEntity.getAbsoluteYaw());
             this._axisTrackEntity.setCartesian3v(cart);
         }
     }

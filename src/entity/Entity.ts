@@ -500,6 +500,51 @@ class Entity {
         return this._roll;
     }
 
+    public setAbsolutePitch(val: number) {
+        if (this.parent && this._relativePosition) {
+
+        } else {
+            this.setPitch(val);
+        }
+    }
+
+    public setAbsoluteYaw(val: number) {
+        if (this.parent && this._relativePosition) {
+
+        } else {
+            this.setYaw(val);
+        }
+    }
+
+    public setAbsoluteRoll(val: number) {
+        if (this.parent && this._relativePosition) {
+
+        } else {
+            this.setRoll(val);
+        }
+    }
+
+    public getAbsolutePitch(): number {
+        if (this.parent && this._relativePosition) {
+
+        }
+        return this._pitch;
+    }
+
+    public getAbsoluteYaw(): number {
+        if (this.parent && this._relativePosition) {
+
+        }
+        return this._yaw;
+    }
+
+    public getAbsoluteRoll(): number {
+        if (this.parent && this._relativePosition) {
+
+        }
+        return this._roll;
+    }
+
     protected _getScaleByDistance(): number {
         let scd = 1;
         if (this._entityCollection) {

@@ -24,7 +24,7 @@ async function main() {
 
     const base = Object3d.createCube(0.4, 2, 0.4).translate(new Vec3(0, 1, 0));
     const view = Object3d.createFrustum(3, 2, 1);
-    const view2 = Object3d.createFrustum(3, 2, 1);
+    //const view2 = Object3d.createFrustum(3, 2, 1);
 
     let parentEntity = new Entity({
         cartesian: new Vec3(1, 1, 1),
@@ -54,8 +54,8 @@ async function main() {
         relativePosition: true,
         geoObject: {
             instanced: true,
-            tag: `view2`,
-            object3d: view2
+            tag: `view`,
+            object3d: view
         }
     });
 
@@ -110,9 +110,6 @@ async function main() {
                         instanced: true,
                         tag: `base`,
                         object3d: base,
-                        yaw: 0,
-                        pitch: 0,
-                        roll: 0
                     }
                 });
 
@@ -124,9 +121,6 @@ async function main() {
                         instanced: true,
                         tag: `view`,
                         object3d: view,
-                        yaw: 0,
-                        pitch: 0,
-                        roll: 0
                     }
                 });
 
@@ -136,8 +130,8 @@ async function main() {
                     relativePosition: true,
                     geoObject: {
                         instanced: true,
-                        tag: `view2`,
-                        object3d: view2,
+                        tag: `view`,
+                        object3d: view,
                     }
                 });
 
@@ -146,12 +140,12 @@ async function main() {
 
                 cubeLayer.add(parentEntity);
 
-                let counter = 0;
-                globus.planet.renderer.events.on("draw", () => {
-                    childEntity.setYaw(-counter);
-                    childChildEntity.setYaw(counter);
-                    counter += 0.4;
-                })
+                // let counter = 0;
+                // globus.planet.renderer.events.on("draw", () => {
+                //     childEntity.setYaw(-counter);
+                //     childChildEntity.setYaw(counter);
+                //     counter += 0.4;
+                // })
             }
         }
     })

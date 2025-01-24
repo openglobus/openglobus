@@ -376,8 +376,8 @@ class Renderer {
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
     }
 
-    public setRelativeCenter(c: Vec3) {
-        this.events.dispatch(this.events.changerelativecenter, c);
+    public setRelativeCenter(c?: Vec3) {
+        this.events.dispatch(this.events.changerelativecenter, c || this.activeCamera.eye);
     }
 
     /**
