@@ -145,6 +145,13 @@ async function main() {
                 parentEntity.appendChild(childEntity);
 
                 cubeLayer.add(parentEntity);
+
+                let counter = 0;
+                globus.planet.renderer.events.on("draw", () => {
+                    childEntity.setYaw(-counter);
+                    childChildEntity.setYaw(counter);
+                    counter += 0.4;
+                })
             }
         }
     })

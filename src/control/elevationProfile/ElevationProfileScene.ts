@@ -420,7 +420,7 @@ class ElevationProfileScene extends RenderNode {
                 groundEntity.setCartesian3v(groundPos);
                 heightLabelEntity.setCartesian3v(headPos);
                 heightLabelEntity.label!.setText(`${hEll.toFixed(1)} m`);
-                heightLabelEntity.childrenNodes[0].label!.setText(`${altitude.toFixed(1)} m`);
+                heightLabelEntity.childEntities[0].label!.setText(`${altitude.toFixed(1)} m`);
                 headEntity.properties.altitude = altitude;
                 headEntity.setCartesian3v(headPos);
                 headEntity.properties.columnEntity.ray!.setStartPosition3v(groundPos);
@@ -472,7 +472,7 @@ class ElevationProfileScene extends RenderNode {
                 let headPos = groundPos.add(groundNormal.scale(altitude));
                 heightLabelEntity.setCartesian3v(headPos);
                 heightLabelEntity.label!.setText(`${hEll.toFixed(1)} m`);
-                heightLabelEntity.childrenNodes[0].label!.setText(`${altitude.toFixed(1)} m`);
+                heightLabelEntity.childEntities[0].label!.setText(`${altitude.toFixed(1)} m`);
                 headEntity.setCartesian3v(headPos);
                 headEntity.properties.columnEntity.ray!.setEndPosition3v(headPos);
                 this._trackEntity.polyline?.setPoint3v(headPos, headEntity.properties.index);
@@ -536,7 +536,7 @@ class ElevationProfileScene extends RenderNode {
             headEntity.setCartesian3v(headPos);
             headEntity.properties.columnEntity.ray!.setEndPosition3v(headPos);
             headEntity.properties.heightLabelEntity.setCartesian3v(headPos);
-            headEntity.properties.heightLabelEntity.childrenNodes[0].label!.setText(`${altitude.toFixed(1)} m`);
+            headEntity.properties.heightLabelEntity.childEntities[0].label!.setText(`${altitude.toFixed(1)} m`);
 
             this._trackEntity.polyline!.setPoint3v(headPos, entityIndex);
 
@@ -571,7 +571,7 @@ class ElevationProfileScene extends RenderNode {
 
             heightLabelEntity.setCartesian3v(headPos);
             heightLabelEntity.label!.setText(`${lonLat.height.toFixed(1)} m`);
-            heightLabelEntity.childrenNodes[0].label!.setText(`${altitude.toFixed(1)} m`);
+            heightLabelEntity.childEntities[0].label!.setText(`${altitude.toFixed(1)} m`);
 
             this.events.dispatch(this.events.change, groundEntity.properties.headEntity);
         }

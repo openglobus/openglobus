@@ -104,9 +104,9 @@ export class AxisTrackEntity extends Entity {
                     yCoords.push(cart.add(n.scaleTo(i * r)));
                 }
 
-                this.childrenNodes[0].polyline!.setPathLonLatFast([lonCoords],);
-                this.childrenNodes[1].polyline!.setPath3vFast([yCoords]);
-                this.childrenNodes[2].polyline!.setPathLonLatFast([latCoords]);
+                this.childEntities[0].polyline!.setPathLonLatFast([lonCoords],);
+                this.childEntities[1].polyline!.setPath3vFast([yCoords]);
+                this.childEntities[2].polyline!.setPathLonLatFast([latCoords]);
 
             } else {
 
@@ -125,9 +125,9 @@ export class AxisTrackEntity extends Entity {
                     zCoords.push(cart.add(z.scaleTo(i * r)));
                 }
 
-                this.childrenNodes[0].polyline!.setPath3vFast([xCoords]);
-                this.childrenNodes[1].polyline!.setPath3vFast([yCoords]);
-                this.childrenNodes[2].polyline!.setPath3vFast([zCoords]);
+                this.childEntities[0].polyline!.setPath3vFast([xCoords]);
+                this.childEntities[1].polyline!.setPath3vFast([yCoords]);
+                this.childEntities[2].polyline!.setPath3vFast([zCoords]);
             }
         }
     }

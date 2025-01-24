@@ -116,18 +116,18 @@ export class RotateEntity extends Entity {
                 rollCoords[j] = roll_p;
             }
 
-            this.childrenNodes[0].polyline!.setPath3v([pitchCoords], undefined, true);
-            this.childrenNodes[1].polyline!.setPath3v([yawCoords], undefined, true);
-            this.childrenNodes[2].polyline!.setPath3v([rollCoords], undefined, true);
+            this.childEntities[0].polyline!.setPath3v([pitchCoords], undefined, true);
+            this.childEntities[1].polyline!.setPath3v([yawCoords], undefined, true);
+            this.childEntities[2].polyline!.setPath3v([rollCoords], undefined, true);
 
             // Gets whole circle visibility
             let dir_pitch = qRot.mulVec3(new Vec3(1, 0, 0)).normalize();
             let dir_yaw = qNorthFrame.mulVec3(new Vec3(0, 1, 0)).normalize();
             let dir_roll = qRot.mulVec3(new Vec3(0, 0, 1)).normalize();
 
-            this.childrenNodes[0].polyline!.setVisibleSphere(cart, Math.abs(dir_pitch.dot(cam.getForward())) > VISIBLESPHERE_DOT_THRESHOLD ? 0.0 : r);
-            this.childrenNodes[1].polyline!.setVisibleSphere(cart, Math.abs(dir_yaw.dot(cam.getForward())) > VISIBLESPHERE_DOT_THRESHOLD ? 0.0 : r);
-            this.childrenNodes[2].polyline!.setVisibleSphere(cart, Math.abs(dir_roll.dot(cam.getForward())) > VISIBLESPHERE_DOT_THRESHOLD ? 0.0 : r);
+            this.childEntities[0].polyline!.setVisibleSphere(cart, Math.abs(dir_pitch.dot(cam.getForward())) > VISIBLESPHERE_DOT_THRESHOLD ? 0.0 : r);
+            this.childEntities[1].polyline!.setVisibleSphere(cart, Math.abs(dir_yaw.dot(cam.getForward())) > VISIBLESPHERE_DOT_THRESHOLD ? 0.0 : r);
+            this.childEntities[2].polyline!.setVisibleSphere(cart, Math.abs(dir_roll.dot(cam.getForward())) > VISIBLESPHERE_DOT_THRESHOLD ? 0.0 : r);
         }
     }
 }

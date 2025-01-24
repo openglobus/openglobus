@@ -85,7 +85,7 @@ class Entity {
      * @public
      * @type {Array.<Entity>}
      */
-    public childrenNodes: Entity[];
+    public childEntities: Entity[];
 
     /**
      * Parent entity.
@@ -257,7 +257,7 @@ class Entity {
 
         this.properties.name = this.properties.name != undefined ? this.properties.name : "";
 
-        this.childrenNodes = [];
+        this.childEntities = [];
 
         this.parent = null;
 
@@ -421,8 +421,8 @@ class Entity {
         // geometry
         this.geometry && this.geometry.setVisibility(visibility);
 
-        for (let i = 0; i < this.childrenNodes.length; i++) {
-            this.childrenNodes[i].setVisibility(visibility);
+        for (let i = 0; i < this.childEntities.length; i++) {
+            this.childEntities[i].setVisibility(visibility);
         }
     }
 
@@ -454,8 +454,8 @@ class Entity {
 
         this.geoObject && this.geoObject.setScale3v(this._scale);
 
-        for (let i = 0; i < this.childrenNodes.length; i++) {
-            this.childrenNodes[i].setScale3v(this.childrenNodes[i].getScale());
+        for (let i = 0; i < this.childEntities.length; i++) {
+            this.childEntities[i].setScale3v(this.childEntities[i].getScale());
         }
     }
 
@@ -465,8 +465,8 @@ class Entity {
 
         this.geoObject && this.geoObject.setScale(val);
 
-        for (let i = 0; i < this.childrenNodes.length; i++) {
-            this.childrenNodes[i].setScale3v(this.childrenNodes[i].getScale());
+        for (let i = 0; i < this.childEntities.length; i++) {
+            this.childEntities[i].setScale3v(this.childEntities[i].getScale());
         }
     }
 
@@ -508,6 +508,7 @@ class Entity {
             if (this._entityCollection.renderNode && this._entityCollection.renderNode.renderer) {
                 lookLength = this._entityCollection.renderNode.renderer.activeCamera.eye.distance(this._rootCartesian);
             }
+            //the same in the shader
             scd = scaleByDistance[2] * clamp(lookLength, scaleByDistance[0], scaleByDistance[1]) / scaleByDistance[0];
         }
         return scd;
@@ -551,11 +552,11 @@ class Entity {
 
         this._updateAbsolutePosition();
 
-        for (let i = 0; i < this.childrenNodes.length; i++) {
-            if (this.childrenNodes[i]._relativePosition) {
-                this.childrenNodes[i].setCartesian3v(this.childrenNodes[i].getCartesian());
+        for (let i = 0; i < this.childEntities.length; i++) {
+            if (this.childEntities[i]._relativePosition) {
+                this.childEntities[i].setCartesian3v(this.childEntities[i].getCartesian());
             } else {
-                this.childrenNodes[i].setCartesian(x, y, z);
+                this.childEntities[i].setCartesian(x, y, z);
             }
         }
 
@@ -596,8 +597,8 @@ class Entity {
         this.billboard && this.billboard.setPosition3v(this._rootCartesian);
         this.label && this.label.setPosition3v(this._rootCartesian);
 
-        for (let i = 0; i < this.childrenNodes.length; i++) {
-            this.childrenNodes[i]._updateAbsolutePosition();
+        for (let i = 0; i < this.childEntities.length; i++) {
+            this.childEntities[i]._updateAbsolutePosition();
         }
 
         this._updateLonLat();
@@ -615,8 +616,8 @@ class Entity {
 
         this._updateAbsolutePosition();
 
-        for (let i = 0; i < this.childrenNodes.length; i++) {
-            this.childrenNodes[i].setCartesian(this._cartesian.x, this._cartesian.y, this._cartesian.z);
+        for (let i = 0; i < this.childEntities.length; i++) {
+            this.childEntities[i].setCartesian(this._cartesian.x, this._cartesian.y, this._cartesian.z);
         }
 
         if (!skipLonLat) {
@@ -898,7 +899,7 @@ class Entity {
             entity._pickingColor = this._pickingColor;
         }
         entity.parent = this;
-        this.childrenNodes.push(entity);
+        this.childEntities.push(entity);
         this._entityCollection && this._entityCollection.appendChildEntity(entity);
     }
 
@@ -921,8 +922,8 @@ class Entity {
 
         this.geoObject && this.geoObject.setPickingColor3v(c);
 
-        for (let i = 0; i < this.childrenNodes.length; i++) {
-            this.childrenNodes[i].setPickingColor();
+        for (let i = 0; i < this.childEntities.length; i++) {
+            this.childEntities[i].setPickingColor();
         }
     }
 
@@ -961,8 +962,8 @@ class Entity {
             if (e.northEast.lat > ne.lat) ne.lat = e.northEast.lat;
         }
 
-        for (let i = 0; i < this.childrenNodes.length; i++) {
-            let e = this.childrenNodes[i].getExtent();
+        for (let i = 0; i < this.childEntities.length; i++) {
+            let e = this.childEntities[i].getExtent();
             if (e.southWest.lon < sw.lon) sw.lon = e.southWest.lon;
             if (e.southWest.lat < sw.lat) sw.lat = e.southWest.lat;
             if (e.northEast.lon > ne.lon) ne.lon = e.northEast.lon;

@@ -9,12 +9,12 @@ export interface IAxisEntityParams extends IEntityParams {
 
 export class MoveAxisEntity extends Entity {
     protected _size: number;
-    public override childrenNodes: ArrowEntity[];
+    public override childEntities: ArrowEntity[];
 
     constructor(params: IAxisEntityParams = {}) {
         super(params);
         this._size = params.size != undefined ? params.size : 1.0;
-        this.childrenNodes = [];
+        this.childEntities = [];
         this._init();
     }
 
@@ -73,58 +73,58 @@ export class MoveAxisEntity extends Entity {
     }
 
     public setSize(size: number) {
-        this.childrenNodes[0].setSize(size);
-        this.childrenNodes[1].setSize(size);
-        this.childrenNodes[2].setSize(size);
+        this.childEntities[0].setSize(size);
+        this.childEntities[1].setSize(size);
+        this.childEntities[2].setSize(size);
     }
 
     public override setPitch(a: number) {
-        let line = this.childrenNodes[0];
-        let tip = line.childrenNodes[0];
+        let line = this.childEntities[0];
+        let tip = line.childEntities[0];
         line.setPitch(a);
         tip.setPitch(a);
 
-        line = this.childrenNodes[1];
-        tip = line.childrenNodes[0];
+        line = this.childEntities[1];
+        tip = line.childEntities[0];
         line.setPitch(a);
         tip.setPitch(a);
 
-        line = this.childrenNodes[2];
-        tip = line.childrenNodes[0];
+        line = this.childEntities[2];
+        tip = line.childEntities[0];
         line.setPitch(a + 90);
         tip.setPitch(a + 90);
     }
 
     public override setYaw(a: number) {
-        let line = this.childrenNodes[0];
-        let tip = line.childrenNodes[0];
+        let line = this.childEntities[0];
+        let tip = line.childEntities[0];
         line.setYaw(a);
         tip.setYaw(a);
 
-        line = this.childrenNodes[1];
-        tip = line.childrenNodes[0];
+        line = this.childEntities[1];
+        tip = line.childEntities[0];
         line.setYaw(a);
         tip.setYaw(a);
 
-        line = this.childrenNodes[2];
-        tip = line.childrenNodes[0];
+        line = this.childEntities[2];
+        tip = line.childEntities[0];
         line.setYaw(a);
         tip.setYaw(a);
     }
 
     public override setRoll(a: number) {
-        let line = this.childrenNodes[0];
-        let tip = line.childrenNodes[0];
+        let line = this.childEntities[0];
+        let tip = line.childEntities[0];
         line.setRoll(a + 90);
         tip.setRoll(a + 90);
 
-        line = this.childrenNodes[1];
-        tip = line.childrenNodes[0];
+        line = this.childEntities[1];
+        tip = line.childEntities[0];
         line.setRoll(a);
         tip.setRoll(a);
     }
 
     public getY(): Vec3 {
-        return this.childrenNodes[1].geoObject!.getRotation().mulVec3(new Vec3(0.0, 1.0, 0.0)).normalize();
+        return this.childEntities[1].geoObject!.getRotation().mulVec3(new Vec3(0.0, 1.0, 0.0)).normalize();
     }
 }

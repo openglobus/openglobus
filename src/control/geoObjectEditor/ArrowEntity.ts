@@ -68,14 +68,14 @@ export class ArrowEntity extends Entity {
         const trans = new Vec3(0, this._size * SCALE, 0);
 
         let line = this;
-        let tip = line.childrenNodes[0];
+        let tip = line.childEntities[0];
         line.geoObject!.setScale3v(scale);
         tip.geoObject!.setTranslate3v(trans);
     }
 
     public setColorHTML(color: string) {
         let line = this;
-        let tip = line.childrenNodes[0];
+        let tip = line.childEntities[0];
         line.geoObject!.setColorHTML(color);
         tip.geoObject!.setColorHTML(color);
     }

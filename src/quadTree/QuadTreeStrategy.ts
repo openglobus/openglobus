@@ -73,7 +73,7 @@ export class QuadTreeStrategy {
         for (let i = 0; i < this._quadTreeList.length; i++) {
 
             let quadTree = this._quadTreeList[i];
-            quadTree.createChildrenNodes();
+            quadTree.createChildNodes();
             quadTree.segment.createPlainSegment();
 
             for (let j = 0; j < quadTree.nodes.length; j++) {

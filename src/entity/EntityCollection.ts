@@ -419,10 +419,10 @@ class EntityCollection {
 
         this.events.dispatch(this.events.entityadd, entity);
 
-        for (let i = 0; i < entity.childrenNodes.length; i++) {
-            entity.childrenNodes[i]._entityCollection = this;
-            entity.childrenNodes[i]._entityCollectionIndex = entity._entityCollectionIndex;
-            this._addRecursively(entity.childrenNodes[i]);
+        for (let i = 0; i < entity.childEntities.length; i++) {
+            entity.childEntities[i]._entityCollection = this;
+            entity.childEntities[i]._entityCollectionIndex = entity._entityCollectionIndex;
+            this._addRecursively(entity.childEntities[i]);
         }
     }
 
@@ -490,8 +490,8 @@ class EntityCollection {
         // geoObject
         entity.geoObject && this.geoObjectHandler.remove(entity.geoObject);
 
-        for (let i = 0; i < entity.childrenNodes.length; i++) {
-            this._removeRecursively(entity.childrenNodes[i]);
+        for (let i = 0; i < entity.childEntities.length; i++) {
+            this._removeRecursively(entity.childEntities[i]);
         }
     }
 
@@ -714,8 +714,8 @@ class EntityCollection {
     protected _clearEntity(entity: Entity) {
         entity._entityCollection = null;
         entity._entityCollectionIndex = -1;
-        for (let i = 0; i < entity.childrenNodes.length; i++) {
-            this._clearEntity(entity.childrenNodes[i]);
+        for (let i = 0; i < entity.childEntities.length; i++) {
+            this._clearEntity(entity.childEntities[i]);
         }
     }
 }
