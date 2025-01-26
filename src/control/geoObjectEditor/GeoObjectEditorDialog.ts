@@ -28,6 +28,10 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     protected _yawView: Input;
     protected _rollView: Input;
 
+    protected _absolutePitchView: Input;
+    protected _absoluteYawView: Input;
+    protected _absoluteRollView: Input;
+
     protected _scaleView: Input;
     protected _scaleXView: Input;
     protected _scaleYView: Input;
@@ -102,6 +106,24 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
 
         this._rollView = new Input({
             label: "Roll",
+            type: "number",
+            maxFixed: 2
+        });
+
+        this._absolutePitchView = new Input({
+            label: "Absolute pitch",
+            type: "number",
+            maxFixed: 2
+        });
+
+        this._absoluteYawView = new Input({
+            label: "Absolute yaw",
+            type: "number",
+            maxFixed: 2
+        });
+
+        this._absoluteRollView = new Input({
+            label: "Absolute roll",
             type: "number",
             maxFixed: 2
         });
@@ -184,6 +206,10 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         this._yawView.appendTo(this.container!);
         this._rollView.appendTo(this.container!);
 
+        this._absolutePitchView.appendTo(this.container!);
+        this._absoluteYawView.appendTo(this.container!);
+        this._absoluteRollView.appendTo(this.container!);
+
         this._scaleView.appendTo(this.container!);
         this._scaleXView.appendTo(this.container!);
         this._scaleYView.appendTo(this.container!);
@@ -195,13 +221,20 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
 
         this._lonView.events.on("change", this._onChangeLon);
         this._latView.events.on("change", this._onChangeLat);
+        this._heightView.events.on("change", this._onChangeHeight);
+
         this._xView.events.on("change", this._onChangeX);
         this._yView.events.on("change", this._onChangeY);
         this._zView.events.on("change", this._onChangeZ);
-        this._heightView.events.on("change", this._onChangeHeight);
+
         this._pitchView.events.on("change", this._onChangePitch);
         this._yawView.events.on("change", this._onChangeYaw);
         this._rollView.events.on("change", this._onChangeRoll);
+
+        this._absolutePitchView.events.on("change", this._onChangeAbsolutePitch);
+        this._absoluteYawView.events.on("change", this._onChangeAbsoluteYaw);
+        this._absoluteRollView.events.on("change", this._onChangeAbsoluteRoll);
+
         this._scaleView.events.on("change", this._onChangeScale);
         this._scaleXView.events.on("change", this._onChangeScaleX);
         this._scaleYView.events.on("change", this._onChangeScaleY);
@@ -247,27 +280,35 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     }
 
     protected _refresh(entity: Entity) {
-        this._lonView.events.stopPropagation();
-        this._latView.events.stopPropagation();
-        this._heightView.events.stopPropagation();
-
         let ll = entity.getLonLat();
+        this._lonView.stopPropagation();
+        this._latView.stopPropagation();
+        this._heightView.stopPropagation();
         this._lonView.value = ll.lon;
         this._latView.value = ll.lat;
         this._heightView.value = ll.height;
 
-        this._xView.events.stopPropagation();
-        this._yView.events.stopPropagation();
-        this._zView.events.stopPropagation();
-
         let cart = entity.getCartesian();
+        this._xView.stopPropagation();
+        this._yView.stopPropagation();
+        this._zView.stopPropagation();
         this._xView.value = cart.x;
         this._yView.value = cart.y;
         this._zView.value = cart.z;
 
+        this._pitchView.stopPropagation();
+        this._yawView.stopPropagation();
+        this._rollView.stopPropagation();
         this._pitchView.value = entity.getPitch();
         this._yawView.value = entity.getYaw();
         this._rollView.value = entity.getRoll();
+
+        this._absolutePitchView.stopPropagation();
+        this._absoluteYawView.stopPropagation();
+        this._absoluteRollView.stopPropagation();
+        this._absolutePitchView.value = entity.getAbsolutePitch();
+        this._absoluteYawView.value = entity.getAbsoluteYaw();
+        this._absoluteRollView.value = entity.getAbsoluteRoll();
 
         let scl = entity.getScale();
         if ((scl.x === scl.y) && (scl.y === scl.z)) {
@@ -293,39 +334,45 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
 
     protected _onPosition = (pos: Vec3, entity: Entity) => {
 
-        this._lonView.events.stopPropagation();
-        this._latView.events.stopPropagation();
-        this._heightView.events.stopPropagation();
-
         let ll = entity.getLonLat();
+        this._lonView.stopPropagation();
+        this._latView.stopPropagation();
+        this._heightView.stopPropagation();
         this._lonView.value = ll.lon;
         this._latView.value = ll.lat;
         this._heightView.value = ll.height;
 
-
-        this._xView.events.stopPropagation();
-        this._yView.events.stopPropagation();
-        this._zView.events.stopPropagation();
-
         let cart = entity.getCartesian();
+        this._xView.stopPropagation();
+        this._yView.stopPropagation();
+        this._zView.stopPropagation();
         this._xView.value = cart.x;
         this._yView.value = cart.y;
         this._zView.value = cart.z;
     }
 
     protected _onPitch = (a: number, entity: Entity) => {
-        this._pitchView.events.stopPropagation();
+        this._pitchView.stopPropagation();
         this._pitchView.value = entity.getPitch();
+
+        this._absolutePitchView.stopPropagation();
+        this._absolutePitchView.value = entity.getAbsolutePitch();
     }
 
     protected _onYaw = (a: number, entity: Entity) => {
-        this._yawView.events.stopPropagation();
+        this._yawView.stopPropagation();
         this._yawView.value = entity.getYaw();
+
+        this._absoluteYawView.stopPropagation();
+        this._absoluteYawView.value = entity.getAbsoluteYaw();
     }
 
     protected _onRoll = (a: number, entity: Entity) => {
-        this._rollView.events.stopPropagation();
+        this._rollView.stopPropagation();
         this._rollView.value = entity.getRoll();
+
+        this._absoluteRollView.stopPropagation();
+        this._absoluteRollView.value = entity.getAbsoluteRoll();
     }
 
     protected _onChangeLon = (val: string) => {
@@ -380,30 +427,61 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         let entity = this.model.getSelectedEntity();
         if (entity) {
             entity.setPitch(parseFloat(val));
+            this._refresh(entity);
         }
     }
+
     protected _onChangeYaw = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
             entity.setYaw(parseFloat(val));
+            this._refresh(entity);
+
         }
     }
+
     protected _onChangeRoll = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
             entity.setRoll(parseFloat(val));
+            this._refresh(entity);
         }
     }
+
+    protected _onChangeAbsolutePitch = (val: string) => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+            entity.setAbsolutePitch(parseFloat(val));
+            this._refresh(entity);
+        }
+    }
+
+    protected _onChangeAbsoluteYaw = (val: string) => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+            entity.setAbsoluteYaw(parseFloat(val));
+            this._refresh(entity);
+        }
+    }
+
+    protected _onChangeAbsoluteRoll = (val: string) => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+            entity.setAbsoluteRoll(parseFloat(val));
+            this._refresh(entity);
+        }
+    }
+
     protected _onChangeScale = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
             let s = parseFloat(val);
             entity.setScale(s);
-            this._scaleXView.events.stopPropagation();
+            this._scaleXView.stopPropagation();
+            this._scaleYView.stopPropagation();
+            this._scaleZView.stopPropagation();
             this._scaleXView.value = s;
-            this._scaleYView.events.stopPropagation();
             this._scaleYView.value = s;
-            this._scaleZView.events.stopPropagation();
             this._scaleZView.value = s;
         }
     }

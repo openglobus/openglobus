@@ -503,7 +503,7 @@ class Entity {
 
     public setAbsolutePitch(val: number) {
         if (this.parent && this._relativePosition) {
-
+            return;
         } else {
             this.setPitch(val);
         }
@@ -511,7 +511,7 @@ class Entity {
 
     public setAbsoluteYaw(val: number) {
         if (this.parent && this._relativePosition) {
-
+            return;
         } else {
             this.setYaw(val);
         }
@@ -519,7 +519,7 @@ class Entity {
 
     public setAbsoluteRoll(val: number) {
         if (this.parent && this._relativePosition) {
-
+            return;
         } else {
             this.setRoll(val);
         }
@@ -527,30 +527,38 @@ class Entity {
 
     public getAbsolutePitch(): number {
         if (this.parent && this._relativePosition) {
+            let f = this._absoluteQRot.mulVec3(LOCAL_FORWARD).normalize();
+            let p0 = this.getAbsoluteCartesian();
+            let p1 = p0.add(f);
 
+            let pn = p0.normal();
+
+            let cross = p1.cross(pn);
+            let sign = Math.sign(cross.dot(pn));
+            let pitch = sign * Vec3.angle(p1, pn) * DEGREES;
+
+            return pitch;
         }
         return this._pitch;
     }
 
     public getAbsoluteYaw(): number {
         if (this.parent && this._relativePosition) {
-            let f = this._absoluteQRot.mulVec3(LOCAL_FORWARD).normalize();
+            let f = this._absoluteQRot.mulVec3(LOCAL_FORWARD);
             let p0 = this.getAbsoluteCartesian();
-            let pn = p0.normal();
             let p1 = p0.add(f);
+            let pn = p0.normal();
 
-            let north = p0.add(this._qFrame.mulVec3(LOCAL_FORWARD).normalize());
+            let north = p0.sub(this._qFrame.mulVec3(LOCAL_FORWARD));
 
             let pp1 = Vec3.proj_b_to_plane(p1, pn);
             let ppn = Vec3.proj_b_to_plane(north, pn);
-
             let cross = pp1.cross(ppn);
             let sign = Math.sign(cross.dot(pn));
+
             let yaw = sign * Vec3.angle(pp1, ppn) * DEGREES;
 
             return yaw;
-
-            //(this._entityCollection.renderNode as Planet).ellipsoid.getSurfaceNormal3v(p0);
         }
         return this._yaw;
     }
