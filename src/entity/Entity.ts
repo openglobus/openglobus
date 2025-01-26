@@ -527,15 +527,19 @@ class Entity {
 
     public getAbsolutePitch(): number {
         if (this.parent && this._relativePosition) {
-            let f = this._absoluteQRot.mulVec3(LOCAL_FORWARD).normalize();
             let p0 = this.getAbsoluteCartesian();
-            let p1 = p0.add(f);
-
+            let qFrame = this._entityCollection!.renderNode!.getFrameRotation(p0);
+            let north = qFrame.conjugate().mulVec3(LOCAL_FORWARD);
+            let f = this._absoluteQRot.mulVec3(LOCAL_FORWARD);
             let pn = p0.normal();
 
-            let cross = p1.cross(pn);
-            let sign = Math.sign(cross.dot(pn));
-            let pitch = sign * Vec3.angle(p1, pn) * DEGREES;
+            let r = north.cross(pn);
+            let pp1 = Vec3.proj_b_to_plane(f, r);
+            let ppn = Vec3.proj_b_to_plane(north, r);
+
+            let cross = ppn.cross(pp1);
+            let sign = Math.sign(cross.dot(r));
+            let pitch = sign * Vec3.angle(pp1, ppn) * DEGREES;
 
             return pitch;
         }
@@ -564,7 +568,20 @@ class Entity {
 
     public getAbsoluteRoll(): number {
         if (this.parent && this._relativePosition) {
+            let p0 = this.getAbsoluteCartesian();
+            let qFrame = this._entityCollection!.renderNode!.getFrameRotation(p0);
+            let north = qFrame.conjugate().mulVec3(LOCAL_FORWARD);
+            let f = this._absoluteQRot.mulVec3(Vec3.UP);
+            let pn = p0.normal();
 
+            let pp1 = Vec3.proj_b_to_plane(f, north);
+            let ppn = Vec3.proj_b_to_plane(pn, north);
+
+            let cross = pp1.cross(ppn);
+            let sign = Math.sign(cross.dot(north));
+            let roll = sign * Vec3.angle(pp1, ppn) * DEGREES;
+
+            return roll;
         }
         return this._roll;
     }
