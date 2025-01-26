@@ -547,17 +547,16 @@ class Entity {
 
             let p0 = this.getAbsoluteCartesian();
             let qFrame = this._entityCollection!.renderNode!.getFrameRotation(p0);
-            let north = p0.add(qFrame.conjugate().mulVec3(LOCAL_FORWARD));
-
+            let north = qFrame.conjugate().mulVec3(LOCAL_FORWARD);
             let f = this._absoluteQRot.mulVec3(LOCAL_FORWARD);
-            let p1 = p0.add(f);
             let pn = p0.normal();
             //let pn = (this._entityCollection!.renderNode as Planet).ellipsoid.getSurfaceNormal3v(p0);
-            let pp1 = Vec3.proj_b_to_plane(p1, pn);
+            let pp1 = Vec3.proj_b_to_plane(f, pn);
             let ppn = Vec3.proj_b_to_plane(north, pn);
             let cross = pp1.cross(ppn);
             let sign = Math.sign(cross.dot(pn));
             let yaw = sign * Vec3.angle(pp1, ppn) * DEGREES;
+
             return yaw;
         }
         return this._yaw;
