@@ -7,7 +7,7 @@ import {NumberArray3} from "../math/Vec3";
 import {NumberArray4} from "../math/Vec4";
 import {Object3d} from "../Object3d";
 
-const LOCAL_FORWARD = new Vec3(0.0, 0.0, -1.0);
+export const LOCAL_FORWARD = new Vec3(0.0, 0.0, -1.0);
 
 export interface IGeoObjectParams {
     object3d?: Object3d;

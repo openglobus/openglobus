@@ -4,7 +4,7 @@ import {Billboard, IBillboardParams} from "./Billboard";
 import {EntityCollection, EntityCollectionEvents} from "./EntityCollection";
 import {Extent} from "../Extent";
 import {Geometry, IGeometryParams} from "./Geometry";
-import {GeoObject, IGeoObjectParams} from "./GeoObject";
+import {GeoObject, IGeoObjectParams, LOCAL_FORWARD} from "./GeoObject";
 import {LonLat} from "../LonLat";
 import {Label, ILabelParams} from "./Label";
 import {NumberArray3, Vec3} from "../math/Vec3";
@@ -17,7 +17,8 @@ import {Strip, IStripParams} from "./Strip";
 import {Vector, VectorEventsType} from "../layer/Vector";
 import {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
 import {Quat} from "../math/Quat";
-import {RADIANS, clamp} from "../math";
+import {RADIANS, clamp, DEGREES} from "../math";
+import {Plane} from "../math/Plane";
 
 export interface IEntityParams {
     name?: string;
@@ -243,9 +244,9 @@ class Entity {
     protected _yawRad: number;
     protected _rollRad: number;
     protected _scale: Vec3;
-    //protected _qFrame: Quat;
+    protected _qFrame: Quat;
     protected _qRot: Quat;
-    protected _absoluteQRot: Quat;
+    public _absoluteQRot: Quat;
 
     constructor(options: IEntityParams = {}) {
 
@@ -298,7 +299,7 @@ class Entity {
 
         this._scale = utils.createVector3(options.scale, new Vec3(1, 1, 1));
 
-        //this._qFrame = new Quat();
+        this._qFrame = Quat.IDENTITY;
         this._qRot = Quat.IDENTITY;
         this._absoluteQRot = Quat.IDENTITY;
 
@@ -533,7 +534,23 @@ class Entity {
 
     public getAbsoluteYaw(): number {
         if (this.parent && this._relativePosition) {
+            let f = this._absoluteQRot.mulVec3(LOCAL_FORWARD).normalize();
+            let p0 = this.getAbsoluteCartesian();
+            let pn = p0.normal();
+            let p1 = p0.add(f);
 
+            let north = p0.add(this._qFrame.mulVec3(LOCAL_FORWARD).normalize());
+
+            let pp1 = Vec3.proj_b_to_plane(p1, pn);
+            let ppn = Vec3.proj_b_to_plane(north, pn);
+
+            let cross = pp1.cross(ppn);
+            let sign = Math.sign(cross.dot(pn));
+            let yaw = sign * Vec3.angle(pp1, ppn) * DEGREES;
+
+            return yaw;
+
+            //(this._entityCollection.renderNode as Planet).ellipsoid.getSurfaceNormal3v(p0);
         }
         return this._yaw;
     }
@@ -624,11 +641,11 @@ class Entity {
             this._absoluteLocalPosition = this.parent._absoluteLocalPosition.add(rotCart);
             this.geoObject && this.geoObject.setLocalPosition3v(this._absoluteLocalPosition);
         } else {
-            let qFrame = Quat.IDENTITY;
+            this._qFrame = Quat.IDENTITY;
             if (this._entityCollection && this._entityCollection.renderNode) {
-                qFrame = this._entityCollection.renderNode.getFrameRotation(this._cartesian);
+                this._qFrame = this._entityCollection.renderNode.getFrameRotation(this._cartesian);
             }
-            this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad, qFrame);
+            this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad, this._qFrame);
             this._absoluteQRot.copy(this._qRot);
             this._rootCartesian.copy(this._cartesian);
             this._absoluteLocalPosition.set(0, 0, 0);
