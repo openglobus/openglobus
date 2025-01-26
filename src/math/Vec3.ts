@@ -197,6 +197,7 @@ export class Vec3 {
      * @returns {number} -
      */
     static angle(a: Vec3, b: Vec3): number {
+        // the same
         // let d = a.dot(b) / Math.sqrt(a.length2() * b.length2());
         // return Math.acos(Math.max(-1, Math.min(1, d)));
         let dotProduct = a.dot(b);
