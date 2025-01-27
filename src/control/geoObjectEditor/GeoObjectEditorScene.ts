@@ -319,9 +319,9 @@ class GeoObjectEditorScene extends RenderNode {
         if (this._selectedEntity) {
             this._selectedEntityCart = this._selectedEntity.getAbsoluteCartesian();
             if (this._selectedEntity) {
-                this._selectedEntityPitch = this._selectedEntity.getPitch();
-                this._selectedEntityYaw = this._selectedEntity.getYaw();
-                this._selectedEntityRoll = this._selectedEntity.getRoll();
+                this._selectedEntityPitch = this._selectedEntity.getAbsolutePitch();
+                this._selectedEntityYaw = this._selectedEntity.getAbsoluteYaw();
+                this._selectedEntityRoll = this._selectedEntity.getAbsoluteRoll();
             }
         }
 
@@ -593,7 +593,6 @@ class GeoObjectEditorScene extends RenderNode {
 
         let cam = this.renderer!.activeCamera;
         let p0 = this._selectedEntityCart;
-        let qNorthFrame = this.getFrameRotation(p0).conjugate();
 
         let qp = Quat.xRotation(0);
         let qy = Quat.yRotation(this._selectedEntity.getYaw() * RADIANS);
@@ -620,7 +619,7 @@ class GeoObjectEditorScene extends RenderNode {
                 let sig = Math.sign(c0.cross(c1).dot(norm));
                 let angle = Math.acos(c0.dot(c1)) * DEGREES;
                 let deg = this._selectedEntityPitch + sig * angle;
-                this._selectedEntity.setPitch(deg);
+                this._selectedEntity.setAbsolutePitch(deg);
 
                 this.events.dispatch(this.events.pitch, deg, this._selectedEntity);
                 this.events.dispatch(this.events.change, this._selectedEntity);
@@ -652,7 +651,7 @@ class GeoObjectEditorScene extends RenderNode {
                 let sig = Math.sign(c1.cross(c0).dot(norm));
                 let angle = Math.acos(c0.dot(c1)) * DEGREES;
                 let deg = this._selectedEntityYaw + sig * angle;
-                this._selectedEntity.setYaw(deg);
+                this._selectedEntity.setAbsoluteYaw(deg);
 
                 this.events.dispatch(this.events.yaw, deg, this._selectedEntity);
                 this.events.dispatch(this.events.change, this._selectedEntity);
@@ -692,7 +691,7 @@ class GeoObjectEditorScene extends RenderNode {
                 let sig = Math.sign(c0.cross(c1).dot(norm));
                 let angle = Math.acos(c0.dot(c1)) * DEGREES;
                 let deg = this._selectedEntityRoll + sig * angle;
-                this._selectedEntity.setRoll(deg);
+                this._selectedEntity.setAbsoluteRoll(deg);
 
                 this.events.dispatch(this.events.roll, deg, this._selectedEntity);
                 this.events.dispatch(this.events.change, this._selectedEntity);

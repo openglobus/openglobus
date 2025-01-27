@@ -508,22 +508,6 @@ class Entity {
         return this._roll;
     }
 
-    protected _updatePitchYawRoll() {
-        if (this.parent) {
-            this._qRot = this.parent._absoluteQRot.conjugate().mul(this._absoluteQRot);
-
-            this._pitchRad = this._qRot.getPitch();
-            this._yawRad = this._qRot.getYaw();
-            this._rollRad = this._qRot.getRoll();
-
-            this._pitch = this._pitchRad * DEGREES;
-            this._yaw = this._yawRad * DEGREES;
-            this._roll = this._rollRad * DEGREES;
-
-            this._updateAbsolutePosition();
-        }
-    }
-
     public setAbsolutePitch(val: number) {
         if (this._relativePosition) {
             this._absoluteQRot.setPitchYawRoll(val * RADIANS, this.getAbsoluteYaw() * RADIANS, this.getAbsoluteRoll() * RADIANS, this._qFrame);
@@ -553,55 +537,22 @@ class Entity {
 
     public getAbsolutePitch(): number {
         if (this.parent && this._relativePosition) {
-
-            let p0 = this._rootCartesian;
-            let north = this._qFrame.conjugate().mulVec3(LOCAL_FORWARD);
-            let f = this._absoluteQRot.mulVec3(LOCAL_FORWARD);
-            let pn = p0.getNormal();
-            let r = north.cross(pn);
-            let pp1 = Vec3.proj_b_to_plane(f, r);
-            let ppn = Vec3.proj_b_to_plane(north, r);
-            let cross = ppn.cross(pp1);
-            let sign = Math.sign(cross.dot(r));
-            let res = sign * Vec3.angle(pp1, ppn) * DEGREES;
-
-            return res;
+            return this._qFrame.conjugate().inverse().mul(this._absoluteQRot).getPitch() * DEGREES;
         }
+
         return this._pitch;
     }
 
     public getAbsoluteYaw(): number {
         if (this.parent && this._relativePosition) {
-
-            let p0 = this._rootCartesian;
-            let north = this._qFrame.conjugate().mulVec3(LOCAL_FORWARD);
-            let f = this._absoluteQRot.mulVec3(LOCAL_FORWARD);
-            let pn = p0.getNormal();
-            let pp1 = Vec3.proj_b_to_plane(f, pn);
-            let ppn = Vec3.proj_b_to_plane(north, pn);
-            let cross = pp1.cross(ppn);
-            let sign = Math.sign(cross.dot(pn));
-            let res = sign * Vec3.angle(pp1, ppn) * DEGREES;
-
-            return res;
+            return this._qFrame.conjugate().inverse().mul(this._absoluteQRot).getYaw() * DEGREES;
         }
         return this._yaw;
     }
 
     public getAbsoluteRoll(): number {
         if (this.parent && this._relativePosition) {
-
-            let p0 = this._rootCartesian;
-            let north = this._qFrame.conjugate().mulVec3(LOCAL_FORWARD);
-            let f = this._absoluteQRot.mulVec3(Vec3.UP);
-            let pn = p0.getNormal();
-            let pp1 = Vec3.proj_b_to_plane(f, north);
-            let ppn = Vec3.proj_b_to_plane(pn, north);
-            let cross = pp1.cross(ppn);
-            let sign = Math.sign(cross.dot(north));
-            let res = sign * Vec3.angle(pp1, ppn) * DEGREES;
-
-            return res;
+            return this._qFrame.conjugate().inverse().mul(this._absoluteQRot).getRoll() * DEGREES;
         }
         return this._roll;
     }
@@ -666,22 +617,58 @@ class Entity {
             }
         }
 
-        //this._updateLonLat();
+        this._updateLonLat();
 
         //ec && ec.events.dispatch(ec.events.entitymove, this);
     }
 
-    public _updateAbsolutePosition() {
+    protected _updatePitchYawRoll() {
+        if (this.parent) {
+            // this._qRot = this.parent._absoluteQRot.conjugate().mul(this._absoluteQRot);
+            //
+            // this._pitchRad = this._qRot.getPitch();
+            // this._yawRad = this._qRot.getYaw();
+            // this._rollRad = this._qRot.getRoll();
+            //
+            // this._pitch = this._pitchRad * DEGREES;
+            // this._yaw = this._yawRad * DEGREES;
+            // this._roll = this._rollRad * DEGREES;
+            //
+            // this._updateAbsolutePosition(true);
+
+            this._qRot = this.parent._absoluteQRot.conjugate().mul(this._absoluteQRot);
+
+            this._pitchRad = this._qRot.getPitch();
+            this._yawRad = this._qRot.getYaw();
+            this._rollRad = this._qRot.getRoll();
+
+            this._pitch = this._pitchRad * DEGREES;
+            this._yaw = this._yawRad * DEGREES;
+            this._roll = this._rollRad * DEGREES;
+
+            if (this.geoObject) {
+                this.geoObject.setRotation(this._absoluteQRot);
+            }
+
+            for (let i = 0; i < this.childEntities.length; i++) {
+                this.childEntities[i]._updateAbsolutePosition();
+            }
+        }
+    }
+
+    public _updateAbsolutePosition(skipQRot?: boolean) {
 
         let parent = this.parent;
 
         if (parent && this._relativePosition) {
 
-            this._qFrame = parent._qFrame;
-            this._rootCartesian = parent._rootCartesian;
+            if (!skipQRot) {
+                this._qFrame = parent._qFrame;
+                this._rootCartesian = parent._rootCartesian;
 
-            this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
-            this._absoluteQRot = parent._absoluteQRot.mul(this._qRot);
+                this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
+                this._absoluteQRot = parent._absoluteQRot.mul(this._qRot);
+            }
 
             let rotCart = parent._absoluteQRot.mulVec3(this._cartesian);
             this._absoluteLocalPosition = parent._absoluteLocalPosition.add(rotCart);
@@ -709,7 +696,7 @@ class Entity {
             this.childEntities[i]._updateAbsolutePosition();
         }
 
-        this._updateLonLat();
+        //this._updateLonLat();
     }
 
     /**

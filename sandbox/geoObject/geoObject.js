@@ -26,41 +26,41 @@ async function main() {
     const view = Object3d.createFrustum(3, 2, 1);
     //const view2 = Object3d.createFrustum(3, 2, 1);
 
-    let parentEntity = new Entity({
-        cartesian: new Vec3(1, 1, 1),
-        independentPicking: true,
-        geoObject: {
-            scale: 1,
-            instanced: true,
-            tag: `base`,
-            object3d: base
-        }
-    });
-
-    let childEntity = new Entity({
-        cartesian: new Vec3(0, 1, 0),
-        independentPicking: true,
-        relativePosition: true,
-        geoObject: {
-            instanced: true,
-            tag: `view`,
-            object3d: view,
-        }
-    });
-
-    let childChildEntity = new Entity({
-        cartesian: new Vec3(0, 3, -1),
-        independentPicking: true,
-        relativePosition: true,
-        geoObject: {
-            instanced: true,
-            tag: `view`,
-            object3d: view
-        }
-    });
-
-    childEntity.appendChild(childChildEntity);
-    parentEntity.appendChild(childEntity);
+    // let parentEntity = new Entity({
+    //     cartesian: new Vec3(1, 1, 1),
+    //     independentPicking: true,
+    //     geoObject: {
+    //         scale: 1,
+    //         instanced: true,
+    //         tag: `base`,
+    //         object3d: base
+    //     }
+    // });
+    //
+    // let childEntity = new Entity({
+    //     cartesian: new Vec3(0, 1, 0),
+    //     independentPicking: true,
+    //     relativePosition: true,
+    //     geoObject: {
+    //         instanced: true,
+    //         tag: `view`,
+    //         object3d: view,
+    //     }
+    // });
+    //
+    // let childChildEntity = new Entity({
+    //     cartesian: new Vec3(0, 3, -1),
+    //     independentPicking: true,
+    //     relativePosition: true,
+    //     geoObject: {
+    //         instanced: true,
+    //         tag: `view`,
+    //         object3d: view
+    //     }
+    // });
+    //
+    // childEntity.appendChild(childChildEntity);
+    // parentEntity.appendChild(childEntity);
 
 
     const globus = new Globe({
@@ -84,6 +84,7 @@ async function main() {
     globus.planet.addControl(new control.GeoObjectEditor());
     globus.planet.addControl(new control.ToggleWireframe());
 
+    globus.planet.addControl(new control.Lighting());
 
     let cubeLayer = new Vector("Cubes", {
         scaleByDistance: [20, 590000, 1]
@@ -91,6 +92,24 @@ async function main() {
     });
 
     cubeLayer.addTo(globus.planet);
+
+    globus.renderer.events.on("mousemove", (e) => {
+        if (globus.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
+            let cart = globus.planet.getCartesianFromMouseTerrain();
+            let lonLat1 = globus.planet.ellipsoid.cartesianToLonLat(cart);
+
+            let entities = cubeLayer.getEntities();
+            for (let i = 0; i < entities.length; i++) {
+                let childEntity = entities[i].childEntities[0];
+                let lonLat0 = childEntity.getLonLat();
+
+                let inv = globus.planet.ellipsoid.inverse(lonLat0, lonLat1);
+                childEntity.setAbsoluteYaw(inv.initialAzimuth);
+                console.log(inv.initialAzimuth, inv.distance);
+            }
+
+        }
+    });
 
     globus.renderer.events.on("lclick", (e) => {
         //if (e.pickingObject.geoObject) return;

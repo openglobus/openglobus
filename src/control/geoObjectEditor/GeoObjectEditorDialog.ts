@@ -444,31 +444,58 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         let entity = this.model.getSelectedEntity();
         if (entity) {
             entity.setRoll(parseFloat(val));
-            this._refresh(entity);
+            //this._refresh(entity);
         }
     }
 
     protected _onChangeAbsolutePitch = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
+            this._absolutePitchView.stopPropagation();
             entity.setAbsolutePitch(parseFloat(val));
-            this._refresh(entity);
+
+            this._pitchView.stopPropagation();
+            this._pitchView.value = entity.getPitch();
+
+            this._yawView.stopPropagation();
+            this._yawView.value = entity.getYaw();
+
+            this._rollView.stopPropagation();
+            this._rollView.value = entity.getRoll();
         }
     }
 
     protected _onChangeAbsoluteYaw = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
+            this._absoluteYawView.stopPropagation();
             entity.setAbsoluteYaw(parseFloat(val));
-            this._refresh(entity);
+
+            this._pitchView.stopPropagation();
+            this._pitchView.value = entity.getPitch();
+
+            this._yawView.stopPropagation();
+            this._yawView.value = entity.getYaw();
+
+            this._rollView.stopPropagation();
+            this._rollView.value = entity.getRoll();
         }
     }
 
     protected _onChangeAbsoluteRoll = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
+            this._absoluteRollView.stopPropagation();
             entity.setAbsoluteRoll(parseFloat(val));
-            this._refresh(entity);
+
+            this._pitchView.stopPropagation();
+            this._pitchView.value = entity.getPitch();
+
+            this._yawView.stopPropagation();
+            this._yawView.value = entity.getYaw();
+
+            this._rollView.stopPropagation();
+            this._rollView.value = entity.getRoll();
         }
     }
 
