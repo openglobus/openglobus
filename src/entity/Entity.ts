@@ -508,47 +508,44 @@ class Entity {
         return this._roll;
     }
 
+    protected _updatePitchYawRoll() {
+        if (this.parent) {
+            this._qRot = this.parent._absoluteQRot.conjugate().mul(this._absoluteQRot);
+
+            this._pitchRad = this._qRot.getPitch();
+            this._yawRad = this._qRot.getYaw();
+            this._rollRad = this._qRot.getRoll();
+
+            this._pitch = this._pitchRad * DEGREES;
+            this._yaw = this._yawRad * DEGREES;
+            this._roll = this._rollRad * DEGREES;
+
+            this._updateAbsolutePosition();
+        }
+    }
+
     public setAbsolutePitch(val: number) {
-        if (this.parent && this._relativePosition) {
-            //...
+        if (this._relativePosition) {
+            this._absoluteQRot.setPitchYawRoll(val * RADIANS, this.getAbsoluteYaw() * RADIANS, this.getAbsoluteRoll() * RADIANS, this._qFrame);
+            this._updatePitchYawRoll();
         } else {
             this.setPitch(val);
         }
     }
 
     public setAbsoluteYaw(val: number) {
-        if (this.parent && this._relativePosition) {
-            let p0 = this.getAbsoluteCartesian();
-            let qFrame = this._entityCollection!.renderNode!.getFrameRotation(p0);
-            // let north = qFrame.conjugate().mulVec3(LOCAL_FORWARD);
-            //
-            // //let yawRot = Quat.yRotation(val * RADIANS);
-            //
-            let yaw = this.getAbsoluteYaw();
-            let yawRot = new Quat();
-            yawRot.setPitchYawRoll(this.getAbsolutePitch() * RADIANS, val * RADIANS, this.getAbsoluteRoll() * RADIANS, qFrame);
-
-            //let absYawRot = yawRot.mul(qFrame).conjugate();
-
-            this._absoluteQRot = yawRot;
-
-            this.geoObject?.setRotation(this._absoluteQRot);
-            // let f = this._absoluteQRot.mulVec3(LOCAL_FORWARD);
-            // let pn = p0.normal();
-            // //let pn = (this._entityCollection!.renderNode as Planet).ellipsoid.getSurfaceNormal3v(p0);
-            // let pp1 = Vec3.proj_b_to_plane(f, pn);
-            // let ppn = Vec3.proj_b_to_plane(north, pn);
-            // let cross = pp1.cross(ppn);
-            // let sign = Math.sign(cross.dot(pn));
-            // let yaw = sign * Vec3.angle(pp1, ppn) * DEGREES;
+        if (this._relativePosition) {
+            this._absoluteQRot.setPitchYawRoll(this.getAbsolutePitch() * RADIANS, val * RADIANS, this.getAbsoluteRoll() * RADIANS, this._qFrame);
+            this._updatePitchYawRoll();
         } else {
             this.setYaw(val);
         }
     }
 
     public setAbsoluteRoll(val: number) {
-        if (this.parent && this._relativePosition) {
-            //...
+        if (this._relativePosition) {
+            this._absoluteQRot.setPitchYawRoll(this.getAbsolutePitch() * RADIANS, this.getAbsoluteYaw() * RADIANS, val * RADIANS, this._qFrame);
+            this._updatePitchYawRoll();
         } else {
             this.setRoll(val);
         }
@@ -556,21 +553,19 @@ class Entity {
 
     public getAbsolutePitch(): number {
         if (this.parent && this._relativePosition) {
-            let p0 = this.getAbsoluteCartesian();
-            let qFrame = this._entityCollection!.renderNode!.getFrameRotation(p0);
-            let north = qFrame.conjugate().mulVec3(LOCAL_FORWARD);
-            let f = this._absoluteQRot.mulVec3(LOCAL_FORWARD);
-            let pn = p0.normal();
 
+            let p0 = this._rootCartesian;
+            let north = this._qFrame.conjugate().mulVec3(LOCAL_FORWARD);
+            let f = this._absoluteQRot.mulVec3(LOCAL_FORWARD);
+            let pn = p0.getNormal();
             let r = north.cross(pn);
             let pp1 = Vec3.proj_b_to_plane(f, r);
             let ppn = Vec3.proj_b_to_plane(north, r);
-
             let cross = ppn.cross(pp1);
             let sign = Math.sign(cross.dot(r));
-            let pitch = sign * Vec3.angle(pp1, ppn) * DEGREES;
+            let res = sign * Vec3.angle(pp1, ppn) * DEGREES;
 
-            return pitch;
+            return res;
         }
         return this._pitch;
     }
@@ -578,39 +573,35 @@ class Entity {
     public getAbsoluteYaw(): number {
         if (this.parent && this._relativePosition) {
 
-            let p0 = this.getAbsoluteCartesian();
-            let qFrame = this._entityCollection!.renderNode!.getFrameRotation(p0);
-            let north = qFrame.conjugate().mulVec3(LOCAL_FORWARD);
+            let p0 = this._rootCartesian;
+            let north = this._qFrame.conjugate().mulVec3(LOCAL_FORWARD);
             let f = this._absoluteQRot.mulVec3(LOCAL_FORWARD);
-            let pn = p0.normal();
-            //let pn = (this._entityCollection!.renderNode as Planet).ellipsoid.getSurfaceNormal3v(p0);
+            let pn = p0.getNormal();
             let pp1 = Vec3.proj_b_to_plane(f, pn);
             let ppn = Vec3.proj_b_to_plane(north, pn);
             let cross = pp1.cross(ppn);
             let sign = Math.sign(cross.dot(pn));
-            let yaw = sign * Vec3.angle(pp1, ppn) * DEGREES;
+            let res = sign * Vec3.angle(pp1, ppn) * DEGREES;
 
-            return yaw;
+            return res;
         }
         return this._yaw;
     }
 
     public getAbsoluteRoll(): number {
         if (this.parent && this._relativePosition) {
-            let p0 = this.getAbsoluteCartesian();
-            let qFrame = this._entityCollection!.renderNode!.getFrameRotation(p0);
-            let north = qFrame.conjugate().mulVec3(LOCAL_FORWARD);
-            let f = this._absoluteQRot.mulVec3(Vec3.UP);
-            let pn = p0.normal();
 
+            let p0 = this._rootCartesian;
+            let north = this._qFrame.conjugate().mulVec3(LOCAL_FORWARD);
+            let f = this._absoluteQRot.mulVec3(Vec3.UP);
+            let pn = p0.getNormal();
             let pp1 = Vec3.proj_b_to_plane(f, north);
             let ppn = Vec3.proj_b_to_plane(pn, north);
-
             let cross = pp1.cross(ppn);
             let sign = Math.sign(cross.dot(north));
-            let roll = sign * Vec3.angle(pp1, ppn) * DEGREES;
+            let res = sign * Vec3.angle(pp1, ppn) * DEGREES;
 
-            return roll;
+            return res;
         }
         return this._roll;
     }
