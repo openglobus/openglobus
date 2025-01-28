@@ -18,7 +18,6 @@ import {Vector, VectorEventsType} from "../layer/Vector";
 import {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
 import {Quat} from "../math/Quat";
 import {RADIANS, clamp, DEGREES} from "../math";
-import {Plane} from "../math/Plane";
 
 export interface IEntityParams {
     name?: string;
@@ -41,6 +40,7 @@ export interface IEntityParams {
     yaw?: number;
     roll?: number;
     scale?: number | Vec3 | NumberArray3;
+    forceGlobalPosition?: boolean;
 }
 
 /**
@@ -48,7 +48,7 @@ export interface IEntityParams {
  * They can be created manually and added to entity collection.
  *
  * @class
- * @param {Object} [options] - Entity options:
+ * @param {IEntityParams} [options] - Entity options:
  * @param {string} [options.name] - A human-readable name to display to users. It does not have to be unique.
  * @param {Vec3|Array.<number>} [options.cartesian] - Spatial entities like billboard, label etc. cartesian position.
  * @param {LonLat} [options.lonlat] - Geodetic coordinates for an entities like billboard, label etc.
@@ -87,6 +87,8 @@ class Entity {
      * @type {Array.<Entity>}
      */
     public childEntities: Entity[];
+
+    public forceGlobalPosition: boolean;
 
     /**
      * Parent entity.
@@ -261,6 +263,8 @@ class Entity {
         this.childEntities = [];
 
         this.parent = null;
+
+        this.forceGlobalPosition = options.forceGlobalPosition || false;
 
         this._cartesian = utils.createVector3(options.cartesian);
 
@@ -629,10 +633,11 @@ class Entity {
         this._updateAbsolutePosition();
 
         for (let i = 0; i < this.childEntities.length; i++) {
-            if (this.childEntities[i]._relativePosition) {
-                this.childEntities[i].setCartesian3v(this.childEntities[i].getCartesian());
-            } else {
-                this.childEntities[i].setCartesian(x, y, z);
+            let chi = this.childEntities[i];
+            if (chi._relativePosition) {
+                chi.setCartesian3v(chi.getCartesian());
+            } else if (this.childEntities[i].forceGlobalPosition) {
+                chi.setCartesian(x, y, z);
             }
         }
 
@@ -691,7 +696,6 @@ class Entity {
 
             let rotCart = parent._absoluteQRot.mulVec3(this._cartesian);
             this._absoluteLocalPosition = parent._absoluteLocalPosition.add(rotCart);
-            //this.geoObject && this.geoObject.setLocalPosition3v(this._absoluteLocalPosition);
         } else {
             this._qFrame = Quat.IDENTITY;
             if (this._entityCollection && this._entityCollection.renderNode) {

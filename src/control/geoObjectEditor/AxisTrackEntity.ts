@@ -14,7 +14,7 @@ export interface IAxisTrackEntityParams extends IEntityParams {
 export class AxisTrackEntity extends Entity {
 
     constructor(params: IAxisTrackEntityParams = {}) {
-        super(params);
+        super({...params, forceGlobalPosition: true});
         this._init();
     }
 

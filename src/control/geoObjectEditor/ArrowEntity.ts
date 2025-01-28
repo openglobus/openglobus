@@ -35,6 +35,7 @@ export class ArrowEntity extends Entity {
             yaw: params.yaw || 0,
             pitch: params.pitch || 0,
             roll: params.roll || 0,
+            forceGlobalPosition: true,
             geoObject: {
                 color: params.color || X_COLOR,
                 scale,
@@ -51,6 +52,7 @@ export class ArrowEntity extends Entity {
             yaw: params.yaw || 0,
             pitch: params.pitch || 0,
             roll: params.roll || 0,
+            forceGlobalPosition: true,
             geoObject: {
                 color: params.color || X_COLOR,
                 scale,
