@@ -593,7 +593,7 @@ class Entity {
     public setAbsoluteCartesian3v(absolutCartesian: Vec3) {
         let pos = absolutCartesian;
 
-        if (this.parent) {
+        if (this.parent && this._relativePosition) {
             let scd = this._getScaleByDistance();
             pos = absolutCartesian.sub(this.parent.getAbsoluteCartesian()).scale(1 / scd);
             pos = this.parent._absoluteQRot.conjugate().mulVec3(pos);
@@ -691,7 +691,7 @@ class Entity {
 
             let rotCart = parent._absoluteQRot.mulVec3(this._cartesian);
             this._absoluteLocalPosition = parent._absoluteLocalPosition.add(rotCart);
-            this.geoObject && this.geoObject.setLocalPosition3v(this._absoluteLocalPosition);
+            //this.geoObject && this.geoObject.setLocalPosition3v(this._absoluteLocalPosition);
         } else {
             this._qFrame = Quat.IDENTITY;
             if (this._entityCollection && this._entityCollection.renderNode) {
@@ -706,6 +706,7 @@ class Entity {
         if (this.geoObject) {
             this.geoObject.setRotation(this._absoluteQRot);
             this.geoObject.setPosition3v(this._rootCartesian);
+            this.geoObject.setLocalPosition3v(this._absoluteLocalPosition);
         }
 
         this.billboard && this.billboard.setPosition3v(this._rootCartesian);

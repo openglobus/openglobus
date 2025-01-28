@@ -402,21 +402,22 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
 
     protected _onPosition = (pos: Vec3, entity: Entity) => {
 
-        let ll = entity.getLonLat();
-        this._lonView.stopPropagation();
-        this._latView.stopPropagation();
-        this._heightView.stopPropagation();
-        this._lonView.value = ll.lon;
-        this._latView.value = ll.lat;
-        this._heightView.value = ll.height;
-
-        let cart = entity.getCartesian();
-        this._xView.stopPropagation();
-        this._yView.stopPropagation();
-        this._zView.stopPropagation();
-        this._xView.value = cart.x;
-        this._yView.value = cart.y;
-        this._zView.value = cart.z;
+        this._refresh(entity);
+        // let ll = entity.getLonLat();
+        // this._lonView.stopPropagation();
+        // this._latView.stopPropagation();
+        // this._heightView.stopPropagation();
+        // this._lonView.value = ll.lon;
+        // this._latView.value = ll.lat;
+        // this._heightView.value = ll.height;
+        //
+        // let cart = entity.getCartesian();
+        // this._xView.stopPropagation();
+        // this._yView.stopPropagation();
+        // this._zView.stopPropagation();
+        // this._xView.value = cart.x;
+        // this._yView.value = cart.y;
+        // this._zView.value = cart.z;
     }
 
     protected _onPitch = (a: number, entity: Entity) => {
@@ -448,6 +449,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         if (entity) {
             let ll = entity.getLonLat();
             entity.setLonLat2(parseFloat(val), ll.lat, ll.height);
+            this._refresh(entity);
         }
     }
 
@@ -456,6 +458,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         if (entity) {
             let ll = entity.getLonLat();
             entity.setLonLat2(ll.lon, parseFloat(val), ll.height);
+            this._refresh(entity);
         }
     }
 
@@ -464,6 +467,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         if (entity) {
             let ll = entity.getLonLat();
             entity.setLonLat2(ll.lon, ll.lat, parseFloat(val));
+            this._refresh(entity);
         }
     }
 
@@ -472,6 +476,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         if (entity) {
             let cart = entity.getCartesian();
             entity.setCartesian(parseFloat(val), cart.y, cart.z);
+            this._refresh(entity);
         }
     }
 
@@ -480,6 +485,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         if (entity) {
             let cart = entity.getCartesian();
             entity.setCartesian(cart.x, parseFloat(val), cart.z);
+            this._refresh(entity);
         }
     }
 
@@ -488,6 +494,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         if (entity) {
             let cart = entity.getCartesian();
             entity.setCartesian(cart.x, cart.y, parseFloat(val));
+            this._refresh(entity);
         }
     }
 
@@ -495,7 +502,8 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         let entity = this.model.getSelectedEntity();
         if (entity) {
             let cart = entity.getAbsoluteCartesian();
-            entity.setAbsoluteCartesian((parseFloat(val), cart.y, cart.z);
+            entity.setAbsoluteCartesian(parseFloat(val), cart.y, cart.z);
+            this._refresh(entity);
         }
     }
 
@@ -504,6 +512,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         if (entity) {
             let cart = entity.getAbsoluteCartesian();
             entity.setAbsoluteCartesian(cart.x, parseFloat(val), cart.z);
+            this._refresh(entity);
         }
     }
 
@@ -512,6 +521,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         if (entity) {
             let cart = entity.getAbsoluteCartesian();
             entity.setAbsoluteCartesian(cart.x, cart.y, parseFloat(val));
+            this._refresh(entity);
         }
     }
 
