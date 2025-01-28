@@ -332,12 +332,19 @@ class Entity {
     }
 
     public set relativePosition(isRelative: boolean) {
+
+        let cart = this.getAbsoluteCartesian(),
+            pitch = this.getAbsolutePitch(),
+            yaw = this.getAbsoluteYaw(),
+            roll = this.getAbsoluteRoll();
+
         this._relativePosition = isRelative;
+
         if (!isRelative) {
-            this.setCartesian3v(this.getAbsoluteCartesian());
-            this.setPitch(this.getAbsolutePitch());
-            this.setYaw(this.getAbsoluteYaw());
-            this.setRoll(this.getAbsoluteRoll());
+            this.setCartesian3v(cart);
+            this.setPitch(pitch);
+            this.setYaw(yaw);
+            this.setRoll(roll);
         } else {
             //...
         }
@@ -571,6 +578,18 @@ class Entity {
         return scd;
     }
 
+    /**
+     * Sets absolute cartesian position.
+     * @public
+     */
+    public setAbsoluteCartesian(x: number, y: number, z: number) {
+        this.setAbsoluteCartesian3v(new Vec3(x, y, z));
+    }
+
+    /**
+     * Sets absolute cartesian position.
+     * @public
+     */
     public setAbsoluteCartesian3v(absolutCartesian: Vec3) {
         let pos = absolutCartesian;
 
@@ -696,7 +715,7 @@ class Entity {
             this.childEntities[i]._updateAbsolutePosition();
         }
 
-        //this._updateLonLat();
+        this._updateLonLat();
     }
 
     /**

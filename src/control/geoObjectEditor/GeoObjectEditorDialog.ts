@@ -2,6 +2,7 @@ import {Dialog, IDialogParams} from "../../ui/Dialog";
 import {GeoObjectEditorScene} from "./GeoObjectEditorScene";
 import {Entity} from "../../entity/Entity";
 import {Input} from "../../ui/Input";
+import {Checkbox} from "../../ui/Checkbox";
 import {Button} from "../../ui/Button";
 import {Vec3} from "../../math/Vec3";
 import {ToggleButton} from "../../ui/ToggleButton";
@@ -16,6 +17,8 @@ interface IGeoObjectPropertiesDialog extends IDialogParams {
 
 export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
 
+    protected _relativePositionView: Checkbox;
+
     protected _lonView: Input;
     protected _latView: Input;
     protected _heightView: Input;
@@ -23,6 +26,10 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     protected _xView: Input;
     protected _yView: Input;
     protected _zView: Input;
+
+    protected _absXView: Input;
+    protected _absYView: Input;
+    protected _absZView: Input;
 
     protected _pitchView: Input;
     protected _yawView: Input;
@@ -52,6 +59,10 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
             minHeight: 100,
             minWidth: 100,
             model: params.model
+        });
+
+        this._relativePositionView = new Checkbox({
+            label: "Relative position"
         });
 
         this._lonView = new Input({
@@ -89,6 +100,22 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
 
         this._zView = new Input({
             label: "Z",
+            type: "number",
+        });
+
+        this._absXView = new Input({
+            label: "Absolute X",
+            type: "number",
+            maxFixed: 10
+        });
+
+        this._absYView = new Input({
+            label: "Absolute Y",
+            type: "number",
+        });
+
+        this._absZView = new Input({
+            label: "Absolute Z",
             type: "number",
         });
 
@@ -193,6 +220,8 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
 
         this.events.on("visibility", this._onVisibility);
 
+        this._relativePositionView.appendTo(this.container!);
+
         if (this.model.planet) {
             this._lonView.appendTo(this.container!);
             this._latView.appendTo(this.container!);
@@ -201,6 +230,10 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         this._xView.appendTo(this.container!);
         this._yView.appendTo(this.container!);
         this._zView.appendTo(this.container!);
+
+        this._absXView.appendTo(this.container!);
+        this._absYView.appendTo(this.container!);
+        this._absZView.appendTo(this.container!);
 
         this._pitchView.appendTo(this.container!);
         this._yawView.appendTo(this.container!);
@@ -219,6 +252,8 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
             this._groundBtn.appendTo(this.container!);
         }
 
+        this._relativePositionView.events.on("change", this._onChangeRelativePosition);
+
         this._lonView.events.on("change", this._onChangeLon);
         this._latView.events.on("change", this._onChangeLat);
         this._heightView.events.on("change", this._onChangeHeight);
@@ -226,6 +261,10 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         this._xView.events.on("change", this._onChangeX);
         this._yView.events.on("change", this._onChangeY);
         this._zView.events.on("change", this._onChangeZ);
+
+        this._absXView.events.on("change", this._onChangeAbsoluteX);
+        this._absYView.events.on("change", this._onChangeAbsoluteY);
+        this._absZView.events.on("change", this._onChangeAbsoluteZ);
 
         this._pitchView.events.on("change", this._onChangePitch);
         this._yawView.events.on("change", this._onChangeYaw);
@@ -280,6 +319,15 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     }
 
     protected _refresh(entity: Entity) {
+
+        if (!entity.parent) {
+            this._relativePositionView.disabled = true;
+        } else {
+            this._relativePositionView.disabled = false;
+        }
+        this._relativePositionView.stopPropagation();
+        this._relativePositionView.checked = entity.relativePosition;
+
         let ll = entity.getLonLat();
         this._lonView.stopPropagation();
         this._latView.stopPropagation();
@@ -296,6 +344,14 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         this._yView.value = cart.y;
         this._zView.value = cart.z;
 
+        cart = entity.getAbsoluteCartesian();
+        this._absXView.stopPropagation();
+        this._absYView.stopPropagation();
+        this._absZView.stopPropagation();
+        this._absXView.value = cart.x;
+        this._absYView.value = cart.y;
+        this._absZView.value = cart.z;
+
         this._pitchView.stopPropagation();
         this._yawView.stopPropagation();
         this._rollView.stopPropagation();
@@ -310,6 +366,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         this._absoluteYawView.value = entity.getAbsoluteYaw();
         this._absoluteRollView.value = entity.getAbsoluteRoll();
 
+        this._scaleView.stopPropagation();
         let scl = entity.getScale();
         if ((scl.x === scl.y) && (scl.y === scl.z)) {
             this._scaleView.value = scl.x;
@@ -317,6 +374,9 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
             this._scaleView.value = 1;
         }
 
+        this._scaleXView.stopPropagation();
+        this._scaleYView.stopPropagation();
+        this._scaleZView.stopPropagation();
         this._scaleXView.value = scl.x;
         this._scaleYView.value = scl.y;
         this._scaleZView.value = scl.z;
@@ -330,6 +390,14 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
 
     protected _onUnselect = (entity: Entity) => {
         this.hide();
+    }
+
+    protected _onChangeRelativePosition = (checked: boolean) => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+            entity.relativePosition = checked;
+            this._refresh(entity);
+        }
     }
 
     protected _onPosition = (pos: Vec3, entity: Entity) => {
@@ -423,6 +491,30 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         }
     }
 
+    protected _onChangeAbsoluteX = (val: string) => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+            let cart = entity.getAbsoluteCartesian();
+            entity.setAbsoluteCartesian((parseFloat(val), cart.y, cart.z);
+        }
+    }
+
+    protected _onChangeAbsoluteY = (val: string) => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+            let cart = entity.getAbsoluteCartesian();
+            entity.setAbsoluteCartesian(cart.x, parseFloat(val), cart.z);
+        }
+    }
+
+    protected _onChangeAbsoluteZ = (val: string) => {
+        let entity = this.model.getSelectedEntity();
+        if (entity) {
+            let cart = entity.getAbsoluteCartesian();
+            entity.setAbsoluteCartesian(cart.x, cart.y, parseFloat(val));
+        }
+    }
+
     protected _onChangePitch = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
@@ -444,58 +536,31 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         let entity = this.model.getSelectedEntity();
         if (entity) {
             entity.setRoll(parseFloat(val));
-            //this._refresh(entity);
+            this._refresh(entity);
         }
     }
 
     protected _onChangeAbsolutePitch = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            this._absolutePitchView.stopPropagation();
             entity.setAbsolutePitch(parseFloat(val));
-
-            this._pitchView.stopPropagation();
-            this._pitchView.value = entity.getPitch();
-
-            this._yawView.stopPropagation();
-            this._yawView.value = entity.getYaw();
-
-            this._rollView.stopPropagation();
-            this._rollView.value = entity.getRoll();
+            this._refresh(entity);
         }
     }
 
     protected _onChangeAbsoluteYaw = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            this._absoluteYawView.stopPropagation();
             entity.setAbsoluteYaw(parseFloat(val));
-
-            this._pitchView.stopPropagation();
-            this._pitchView.value = entity.getPitch();
-
-            this._yawView.stopPropagation();
-            this._yawView.value = entity.getYaw();
-
-            this._rollView.stopPropagation();
-            this._rollView.value = entity.getRoll();
+            this._refresh(entity);
         }
     }
 
     protected _onChangeAbsoluteRoll = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            this._absoluteRollView.stopPropagation();
             entity.setAbsoluteRoll(parseFloat(val));
-
-            this._pitchView.stopPropagation();
-            this._pitchView.value = entity.getPitch();
-
-            this._yawView.stopPropagation();
-            this._yawView.value = entity.getYaw();
-
-            this._rollView.stopPropagation();
-            this._rollView.value = entity.getRoll();
+            this._refresh(entity);
         }
     }
 
