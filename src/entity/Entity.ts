@@ -337,20 +337,26 @@ class Entity {
 
     public set relativePosition(isRelative: boolean) {
 
-        let cart = this.getAbsoluteCartesian(),
-            pitch = this.getAbsolutePitch(),
-            yaw = this.getAbsoluteYaw(),
-            roll = this.getAbsoluteRoll();
+        if (isRelative !== this._relativePosition) {
 
-        this._relativePosition = isRelative;
+            let cart = this.getAbsoluteCartesian(),
+                pitch = this.getAbsolutePitch(),
+                yaw = this.getAbsoluteYaw(),
+                roll = this.getAbsoluteRoll();
 
-        if (!isRelative) {
-            this.setCartesian3v(cart);
-            this.setPitch(pitch);
-            this.setYaw(yaw);
-            this.setRoll(roll);
-        } else {
-            //...
+            this._relativePosition = isRelative;
+
+            if (!isRelative) {
+                this.setCartesian3v(cart);
+                this.setPitch(pitch);
+                this.setYaw(yaw);
+                this.setRoll(roll);
+            } else if (this.parent) {
+                this.setAbsoluteCartesian3v(cart);
+                this.setAbsolutePitch(pitch);
+                this.setAbsoluteYaw(yaw);
+                this.setAbsoluteRoll(roll);
+            }
         }
     }
 
@@ -636,7 +642,7 @@ class Entity {
             let chi = this.childEntities[i];
             if (chi._relativePosition) {
                 chi.setCartesian3v(chi.getCartesian());
-            } else if (this.childEntities[i].forceGlobalPosition) {
+            } else if (chi.forceGlobalPosition) {
                 chi.setCartesian(x, y, z);
             }
         }
@@ -680,19 +686,17 @@ class Entity {
         }
     }
 
-    public _updateAbsolutePosition(skipQRot?: boolean) {
+    public _updateAbsolutePosition() {
 
         let parent = this.parent;
 
         if (parent && this._relativePosition) {
 
-            if (!skipQRot) {
-                this._qFrame = parent._qFrame;
-                this._rootCartesian = parent._rootCartesian;
+            this._qFrame.copy(parent._qFrame);
+            this._rootCartesian.copy(parent._rootCartesian);
 
-                this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
-                this._absoluteQRot = parent._absoluteQRot.mul(this._qRot);
-            }
+            this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
+            this._absoluteQRot = parent._absoluteQRot.mul(this._qRot);
 
             let rotCart = parent._absoluteQRot.mulVec3(this._cartesian);
             this._absoluteLocalPosition = parent._absoluteLocalPosition.add(rotCart);
