@@ -325,7 +325,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         } else {
             this._relativePositionView.disabled = false;
         }
-        this._relativePositionView.stopPropagation();
+        //this._relativePositionView.stopPropagation();
         this._relativePositionView.checked = entity.relativePosition;
 
         let ll = entity.getLonLat();
