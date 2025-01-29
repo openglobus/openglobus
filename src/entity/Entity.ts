@@ -335,6 +335,17 @@ class Entity {
         this.strip = this._createOptionFeature<Strip, IStripParams>("strip", options.strip);
     }
 
+    public get rootEntity(): Entity {
+        let pn: Entity | null = this;
+        while (pn) {
+            if (!pn.parent) {
+                return pn;
+            }
+            pn = pn.parent;
+        }
+        return this;
+    }
+
     public set relativePosition(isRelative: boolean) {
 
         if (isRelative !== this._relativePosition) {
@@ -345,6 +356,11 @@ class Entity {
                 roll = this.getAbsoluteRoll();
 
             this._relativePosition = isRelative;
+
+            // propably need to take root this.rootEntity
+            if (this.parent) {
+                this._rootCartesian.copy(this.parent._rootCartesian);
+            }
 
             if (!isRelative) {
                 this.setCartesian3v(cart);
@@ -654,18 +670,6 @@ class Entity {
 
     protected _updatePitchYawRoll() {
         if (this.parent) {
-            // this._qRot = this.parent._absoluteQRot.conjugate().mul(this._absoluteQRot);
-            //
-            // this._pitchRad = this._qRot.getPitch();
-            // this._yawRad = this._qRot.getYaw();
-            // this._rollRad = this._qRot.getRoll();
-            //
-            // this._pitch = this._pitchRad * DEGREES;
-            // this._yaw = this._yawRad * DEGREES;
-            // this._roll = this._rollRad * DEGREES;
-            //
-            // this._updateAbsolutePosition(true);
-
             this._qRot = this.parent._absoluteQRot.conjugate().mul(this._absoluteQRot);
 
             this._pitchRad = this._qRot.getPitch();
