@@ -696,10 +696,10 @@ class Entity {
             this._rootCartesian.copy(parent._rootCartesian);
 
             this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
-            this._absoluteQRot = parent._absoluteQRot.mul(this._qRot);
+            parent._absoluteQRot.mulRes(this._qRot, this._absoluteQRot);
 
             let rotCart = parent._absoluteQRot.mulVec3(this._cartesian);
-            this._absoluteLocalPosition = parent._absoluteLocalPosition.add(rotCart);
+            parent._absoluteLocalPosition.addRes(rotCart, this._absoluteLocalPosition);
         } else {
             this._qFrame = Quat.IDENTITY;
             if (this._entityCollection && this._entityCollection.renderNode) {
@@ -720,7 +720,7 @@ class Entity {
         this.billboard && this.billboard.setPosition3v(this._rootCartesian);
         this.label && this.label.setPosition3v(this._rootCartesian);
 
-        for (let i = 0; i < this.childEntities.length; i++) {
+        for (let i = 0, len = this.childEntities.length; i < len; i++) {
             this.childEntities[i]._updateAbsolutePosition();
         }
 

@@ -312,6 +312,16 @@ export class Quat {
     }
 
     /**
+     * Computes the componentwise sum of two Quats.
+     * @public
+     * @param {Quat} q - Quat to add.
+     * @returns {Quat} -
+     */
+    public addRes(q: Quat, res: Quat): Quat {
+        return res.set(this.x + q.x, this.y + q.y, this.z + q.z, this.w + q.w);
+    }
+
+    /**
      * Computes the componentwise difference of two Quats.
      * @public
      * @param {Quat} q - Quat to subtract.
@@ -764,6 +774,31 @@ export class Quat {
             b = q.w;
 
         return new Quat(
+            d * b + a * f + e * i - g * h,
+            e * b + a * h + g * f - d * i,
+            g * b + a * i + d * h - e * f,
+            a * b - d * f - e * h - g * i
+        );
+    }
+
+    /**
+     * Computes the product of two Quats.
+     * @public
+     * @param {Quat} q - Quat to multiply.
+     * @returns {Quat} -
+     */
+    public mulRes(q: Quat, res: Quat): Quat {
+        let d = this.x,
+            e = this.y,
+            g = this.z,
+            a = this.w;
+
+        let f = q.x,
+            h = q.y,
+            i = q.z,
+            b = q.w;
+
+        return res.set(
             d * b + a * f + e * i - g * h,
             e * b + a * h + g * f - d * i,
             g * b + a * i + d * h - e * f,

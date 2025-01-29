@@ -2071,6 +2071,34 @@ export class Planet extends RenderNode {
      * @returns {Extent} -
      */
     public getViewExtent(): Extent {
+        if (this.renderer) {
+
+            let w = this.renderer.handler.getWidth(),
+                h = this.renderer.handler.getHeight();
+
+            let extent = [
+                this.getLonLatFromPixelTerrain(new Vec2(0, 0)),
+                this.getLonLatFromPixelTerrain(new Vec2(w, 0)),
+                this.getLonLatFromPixelTerrain(new Vec2(w, h)),
+                this.getLonLatFromPixelTerrain(new Vec2(0, h))
+            ];
+
+            if (extent[0] && extent[1] && extent[2] && extent[3]) {
+
+                let min_lon = extent[0].lon, min_lat = extent[2].lat,
+                    max_lon = extent[1].lon, max_lat = extent[0].lat;
+
+                for (let i = 0; i < extent.length; i++) {
+                    if (extent[i]!.lon > max_lon) max_lon = extent[i]!.lon;
+                    if (extent[i]!.lat > max_lat) max_lat = extent[i]!.lat;
+                    if (extent[i]!.lon < min_lon) min_lon = extent[i]!.lon;
+                    if (extent[i]!.lat < min_lat) min_lat = extent[i]!.lat;
+                }
+
+                return new Extent(new LonLat(min_lon, min_lat), new LonLat(max_lon, max_lat));
+            }
+        }
+
         return this._viewExtent;
     }
 

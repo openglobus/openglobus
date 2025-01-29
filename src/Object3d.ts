@@ -571,6 +571,34 @@ class Object3d {
         });
     }
 
+    static async readFileObj(objFile: File, mtlFile?: File): Promise<Object3d[]> {
+
+        let obj = new Obj();
+
+        const res = await obj.readFile(objFile, mtlFile);
+
+        let materials = res.materials;
+
+        return res.geometries.map(
+            (obj: IObjGeometry) => {
+                let mat = materials[obj.material] || {};
+                return new Object3d({
+                    name: obj.object,
+                    vertices: obj.data.vertices,
+                    normals: obj.data.normals,
+                    texCoords: obj.data.texCoords,
+                    ambient: mat.ambient,
+                    diffuse: mat.diffuse,
+                    specular: mat.specular,
+                    shininess: mat.shininess,
+                    color: mat.color,
+                    colorTexture: mat.colorTexture,
+                    normalTexture: mat.normalTexture,
+                    metallicRoughnessTexture: mat.metallicRoughnessTexture
+                })
+            }
+        );
+    }
 
     static async loadObj(src: string): Promise<Object3d[]> {
 

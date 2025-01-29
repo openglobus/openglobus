@@ -318,6 +318,44 @@ export class Obj {
         return this.data;
     }
 
+    protected async _readAndParse(file: File) {
+        const stream = file.stream();
+        const reader = stream.getReader();
+        const decoder = new TextDecoder();
+        let {value, done} = await reader.read();
+        let partialLine = "";
+
+        while (!done) {
+            const text = decoder.decode(value, {stream: true});
+            const lines = (partialLine + text).split("\n");
+            partialLine = lines.pop()!;
+
+            for (const line of lines) {
+                this._innerParser(line, file.name);
+            }
+
+            ({value, done} = await reader.read());
+        }
+
+        if (partialLine) {
+            this._innerParser(partialLine, file.name);
+        }
+    }
+
+    public async readFile(objFile: File, mtlFile?: File) {
+        this._path = "";
+
+        await this._readAndParse(objFile);
+
+        this._cleanupGeometryArrays();
+
+        if (mtlFile) {
+            await this._readAndParse(mtlFile);
+        }
+
+        return this.data;
+    }
+
     protected _cleanupGeometryArrays() {
         for (const geometry of this.geometries) {
             geometry.data = Object.fromEntries(

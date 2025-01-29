@@ -463,6 +463,16 @@ export class Vec3 {
     }
 
     /**
+     * Gets two vectors summarization.
+     * @public
+     * @param {Vec3} p - Vector to add.
+     * @returns {Vec3} Returns a sum vector.
+     */
+    public addRes(p: Vec3, res: Vec3): Vec3 {
+        return res.set(this.x + p.x, this.y + p.y, this.z + p.z);
+    }
+
+    /**
      * Subtract vector from the current.
      * @public
      * @param {Vec3} p - Subtract vector.
@@ -529,6 +539,16 @@ export class Vec3 {
      */
     public mul(vec: Vec3): Vec3 {
         return new Vec3(this.x * vec.x, this.y * vec.y, this.z * vec.z);
+    }
+
+    /**
+     * Multiply current vector object to another and returns new vector instance.
+     * @public
+     * @param {Vec3} vec - Multiply vector.
+     * @returns {Vec3} -
+     */
+    public mulRes(vec: Vec3, res: Vec3): Vec3 {
+        return res.set(this.x * vec.x, this.y * vec.y, this.z * vec.z);
     }
 
     /**

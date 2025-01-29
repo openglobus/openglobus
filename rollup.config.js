@@ -16,6 +16,9 @@ const DEV = [{
         format: "esm",
         sourcemap: true
     },
+    watch: {
+        clearScreen: false
+    },
     plugins: [
         json(),
         typescript({ tsconfig: './tsconfig.json' }),
