@@ -525,9 +525,10 @@ class Entity {
         let rot;
         if (this._entityCollection) {
             let up = (this._entityCollection.renderNode as Planet).ellipsoid.getSurfaceNormal3v(p0);
-            rot = lq.setLookRotation(cart, up);
+            rot = lq.setLookRotation(cart.sub(p0), up).conjugate();
+
         } else {
-            rot = lq.setLookRotation(cart, Vec3.UP);
+            rot = lq.setLookRotation(cart.sub(p0), Vec3.UP).conjugate();
         }
         this.setAbsoluteRotation(rot);
     }
@@ -545,7 +546,10 @@ class Entity {
     }
 
     public setRotation(rot: Quat) {
-        this._qRot.copy(rot);
+        //this._qRot.copy(rot);
+        //
+        //@todo when necessary
+        //
     }
 
     public setPitch(val: number) {
