@@ -4,7 +4,7 @@ import {Billboard, IBillboardParams} from "./Billboard";
 import {EntityCollection, EntityCollectionEvents} from "./EntityCollection";
 import {Extent} from "../Extent";
 import {Geometry, IGeometryParams} from "./Geometry";
-import {GeoObject, IGeoObjectParams, LOCAL_FORWARD} from "./GeoObject";
+import {GeoObject, IGeoObjectParams} from "./GeoObject";
 import {LonLat} from "../LonLat";
 import {Label, ILabelParams} from "./Label";
 import {NumberArray3, Vec3} from "../math/Vec3";
@@ -357,7 +357,7 @@ class Entity {
 
             this._relativePosition = isRelative;
 
-            // propably need to take root this.rootEntity
+            // probably need to take root this.rootEntity
             if (this.parent) {
                 this._rootCartesian.copy(this.parent._rootCartesian);
             }
@@ -419,10 +419,10 @@ class Entity {
      * Adds current entity into the specified entity collection.
      * @public
      * @param {EntityCollection | Vector} collection - Specified entity collection or vector layer.
-     * @param {Boolean} [rightNow=false] - Entity insertion option for vector layer.
+     * @param {boolean} [rightNow=false] - Entity insertion option for vector layer.
      * @returns {Entity} - This object.
      */
-    public addTo(collection: EntityCollection | Vector, rightNow: boolean = false) {
+    public addTo(collection: EntityCollection | Vector, rightNow: boolean = false): Entity {
         collection.add(this, rightNow);
         return this;
     }
