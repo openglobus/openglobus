@@ -103,16 +103,17 @@ async function main() {
                 let childEntity = entities[i].childEntities[0];
                 let childEntity2 = childEntity.childEntities[0];
 
-                let lonLat0 = childEntity.getLonLat();
-
-                let inv = globus.planet.ellipsoid.inverse(lonLat0, lonLat1);
-                childEntity.setAbsoluteYaw(inv.initialAzimuth);
-
-                let pitch = childEntity.getAbsoluteCartesian().normal().negateTo().angle(cart.sub(childEntity.getAbsoluteCartesian()).normalize()) * 180 / Math.PI;
-                childEntity.setAbsolutePitch(-90 + pitch);
-
-                pitch = childEntity2.getAbsoluteCartesian().normal().negateTo().angle(cart.sub(childEntity2.getAbsoluteCartesian()).normalize()) * 180 / Math.PI;
-                childEntity2.setAbsolutePitch(-90 + pitch);
+                childEntity.setLook3v(cart);
+                // let lonLat0 = childEntity.getLonLat();
+                //
+                // let inv = globus.planet.ellipsoid.inverse(lonLat0, lonLat1);
+                // childEntity.setAbsoluteYaw(inv.initialAzimuth);
+                //
+                // let pitch = childEntity.getAbsoluteCartesian().normal().negateTo().angle(cart.sub(childEntity.getAbsoluteCartesian()).normalize()) * 180 / Math.PI;
+                // childEntity.setAbsolutePitch(-90 + pitch);
+                //
+                // pitch = childEntity2.getAbsoluteCartesian().normal().negateTo().angle(cart.sub(childEntity2.getAbsoluteCartesian()).normalize()) * 180 / Math.PI;
+                // childEntity2.setAbsolutePitch(-90 + pitch);
             }
 
         }

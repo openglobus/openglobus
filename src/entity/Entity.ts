@@ -511,6 +511,40 @@ class Entity {
         }
     }
 
+    public getAbsoluteRotation(): Quat {
+        return this._absoluteQRot.clone();
+    }
+
+    public getRotation(): Quat {
+        return this._qRot;
+    }
+
+    public setLook3v(cart: Vec3) {
+        let lq = new Quat();
+        let p0 = this.getAbsoluteCartesian();
+        let rot;
+        if (this._entityCollection) {
+            let up = (this._entityCollection.renderNode as Planet).ellipsoid.getSurfaceNormal3v(p0);
+            rot = lq.setLookRotation(cart, up);
+        } else {
+            rot = lq.setLookRotation(cart, Vec3.UP);
+        }
+        this.setAbsoluteRotation(rot);
+    }
+
+    public setLookLonLat(lonLat: LonLat) {
+
+    }
+
+    public setAbsoluteRotation(rot: Quat) {
+        this._absoluteQRot.copy(rot);
+        this._updatePitchYawRoll();
+    }
+
+    public setRotation(rot: Quat) {
+        this._qRot.copy(rot);
+    }
+
     public setPitch(val: number) {
         this._pitch = val;
         this._pitchRad = val * RADIANS;
