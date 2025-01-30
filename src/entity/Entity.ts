@@ -533,7 +533,10 @@ class Entity {
     }
 
     public setLookLonLat(lonLat: LonLat) {
-
+        if (this._entityCollection) {
+            let cart = (this._entityCollection.renderNode as Planet).ellipsoid.lonLatToCartesian(lonLat);
+            this.setLook3v(cart);
+        }
     }
 
     public setAbsoluteRotation(rot: Quat) {
@@ -729,7 +732,6 @@ class Entity {
         let parent = this.parent;
 
         if (parent && this._relativePosition) {
-
             this._qFrame.copy(parent._qFrame);
             this._rootCartesian.copy(parent._rootCartesian);
 
