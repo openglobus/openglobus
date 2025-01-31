@@ -94,6 +94,7 @@ class Handler {
      * @type {number}
      */
     public deltaTime: number;
+    public prevDeltaTime: number;
 
     /**
      * WebGL rendering canvas element.
@@ -204,6 +205,7 @@ class Handler {
 
         this._clocks = [];
 
+        this.prevDeltaTime = 0;
         this.deltaTime = 0;
 
         this.canvas = null;
@@ -1155,7 +1157,15 @@ class Handler {
     public drawFrame = () => {
         /** Calculating frame time */
         let now = window.performance.now();
-        this.deltaTime = now - this._lastAnimationFrameTime;
+        let prevDeltaTime = this.deltaTime;
+        //Make some filter:)
+        this.deltaTime = (now - this._lastAnimationFrameTime + this.prevDeltaTime) * 0.5;
+        if (this.deltaTime > 3) {
+            this.deltaTime = 3;
+        } else if (this.deltaTime < 1) {
+            this.deltaTime = 1;
+        }
+        this.prevDeltaTime = prevDeltaTime;
         this._lastAnimationFrameTime = now;
 
         this.defaultClock.tick(this.deltaTime);

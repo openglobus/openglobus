@@ -28,6 +28,18 @@ const DEF_BLEND_PICKING = `#define blendPicking(DEST, OFFSET, SAMPLER, MASK, COL
 
 const SLICE_SIZE = 4;
 
+export const ENCODE24 = `vec3 encode24(highp float f) {
+                float F = abs(f);
+                float s = step( 0.0, -f );
+                float e = floor( log2(F) );
+                float m = exp2(- e) * F;
+                e = floor( log2(F) + 127.0 ) + floor( log2(m) );
+                return vec3(
+                    ( 128.0 * s + floor( e * exp2(-1.0) ) ) / 255.0,
+                    ( 128.0 * mod( e, 2.0 ) + mod( floor( m * 128.0 ), 128.0 ) ) / 255.0,
+                    floor( mod( floor( m * exp2( 23.0 - 8.0) ), exp2(8.0) ) ) / 255.0);
+            }`
+
 export function drawnode_screen_nl(): Program {
     return new Program("drawnode_screen_nl", {
         uniforms: {
@@ -132,7 +144,7 @@ export function drawnode_screen_wl_webgl1NoAtmos(): Program {
             uNormalMap: "sampler2d",
             nightTexture: "sampler2d",
             specularTexture: "sampler2d",
-            lightsPositions: "vec3",
+            lightPosition: "vec3",
             diffuse: "vec3",
             ambient: "vec3",
             specular: "vec4",
@@ -192,7 +204,6 @@ export function drawnode_screen_wl_webgl1NoAtmos(): Program {
             `
             precision highp float;
             
-            #define MAX_POINT_LIGHTS 1
             #define SLICE_SIZE ${SLICE_SIZE + 1}
 
             uniform vec4 specular;
@@ -206,7 +217,7 @@ export function drawnode_screen_wl_webgl1NoAtmos(): Program {
             uniform sampler2D samplerArr[SLICE_SIZE];
 
             uniform vec4 tileOffsetArr[SLICE_SIZE];
-            uniform vec3 lightsPositions[MAX_POINT_LIGHTS];
+            uniform vec3 lightPosition;
             uniform float layerOpacityArr[SLICE_SIZE];
 
             uniform int samplerCount;
@@ -229,7 +240,7 @@ export function drawnode_screen_wl_webgl1NoAtmos(): Program {
                                                
             void main(void) {
             
-                sunPos = lightsPositions[0];
+                sunPos = lightPosition;
                                 
                 vec3 texNormal = texture2D(uNormalMap, vTextureCoord.zw).rgb;
                 vec3 normal = normalize((texNormal - 0.5) * 2.0);
@@ -316,7 +327,7 @@ export function drawnode_screen_wl_webgl2NoAtmos(): Program {
             uNormalMap: "sampler2d",
             nightTexture: "sampler2d",
             specularTexture: "sampler2d",
-            lightsPositions: "vec3",
+            lightPosition: "vec3",
             diffuse: "vec3",
             ambient: "vec3",
             specular: "vec4",
@@ -382,7 +393,7 @@ export function drawnode_screen_wl_webgl2NoAtmos(): Program {
 
             precision highp float;
             
-            #define MAX_POINT_LIGHTS 1
+
             #define SLICE_SIZE ${SLICE_SIZE + 1}
 
             uniform vec4 specular;
@@ -396,7 +407,7 @@ export function drawnode_screen_wl_webgl2NoAtmos(): Program {
             uniform sampler2D samplerArr[SLICE_SIZE];
 
             uniform vec4 tileOffsetArr[SLICE_SIZE];
-            uniform vec3 lightsPositions[MAX_POINT_LIGHTS];
+            uniform vec3 lightPosition;
             uniform float layerOpacityArr[SLICE_SIZE];
 
             uniform int samplerCount;
@@ -424,7 +435,7 @@ export function drawnode_screen_wl_webgl2NoAtmos(): Program {
                                                
             void main(void) {
             
-                sunPos = lightsPositions[0];
+                sunPos = lightPosition;
                                 
                 vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
                 vec3 normal = normalize((texNormal - 0.5) * 2.0);
@@ -519,7 +530,7 @@ export function drawnode_screen_wl_webgl2Atmos(atmosParams?: AtmosphereParameter
             uNormalMap: "sampler2d",
             nightTexture: "sampler2d",
             specularTexture: "sampler2d",
-            lightsPositions: "vec3",
+            lightPosition: "vec3",
             diffuse: "vec3",
             ambient: "vec3",
             specular: "vec4",
@@ -588,14 +599,13 @@ export function drawnode_screen_wl_webgl2Atmos(atmosParams?: AtmosphereParameter
 
             precision highp float;
             
-            #define MAX_POINT_LIGHTS 1
             #define SLICE_SIZE ${SLICE_SIZE + 1}
 
             uniform vec4 specular;
             uniform vec3 diffuse;
             uniform vec3 ambient;
 
-            uniform vec3 lightsPositions[MAX_POINT_LIGHTS];
+            uniform vec3 lightPosition;
 
             uniform sampler2D uNormalMap;
             uniform sampler2D nightTexture;
@@ -759,7 +769,7 @@ export function drawnode_screen_wl_webgl2Atmos(atmosParams?: AtmosphereParameter
 
             void main(void) {
             
-                sunPos = lightsPositions[0];
+                sunPos = lightPosition;
                                 
                 vec3 texNormal = texture(uNormalMap, vTextureCoord.zw).rgb;
                 vec3 normal = normalize((texNormal - 0.5) * 2.0);
@@ -955,52 +965,36 @@ export function drawnode_heightPicking(): Program {
             uniform vec3 eyePositionHigh;
             uniform vec3 eyePositionLow;
             uniform float height;
-
-            varying vec3 eyePosition;
-            varying vec3 vertexPosition;
+            
+            varying vec4 vert;
 
             void main(void) {
-
-                // This code is works for Mac Chrome and Safari
-                // any other code probably will produce jittering
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
-                mat4 m = projectionMatrix * viewMatrixRTE;
-
                 vec3 nh = height * normalize(aVertexPositionHigh + aVertexPositionLow);
 
-                eyePosition = eyePositionHigh + eyePositionLow;
-                vertexPosition = aVertexPositionHigh + aVertexPositionLow;
+                vec3 eyePosition = eyePositionHigh + eyePositionLow;
+                vec3 vertexPosition = aVertexPositionHigh + aVertexPositionLow;
 
                 vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
                 vec3 lowDiff = aVertexPositionLow - eyePositionLow + nh;
                 
-                gl_Position =  m * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);         
+                vert = viewMatrixRTE * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
+                
+                gl_Position =  projectionMatrix * vert;         
             }`,
 
         fragmentShader:
             `precision highp float;
+            
+            varying vec4 vert;
 
-            varying vec3 eyePosition;
-            varying vec3 vertexPosition;
-
-            vec3 encode24(highp float f) {
-                float F = abs(f);
-                float s = step( 0.0, -f );
-                float e = floor( log2(F) );
-                float m = exp2(- e) * F;
-                e = floor( log2(F) + 127.0 ) + floor( log2(m) );
-                return vec3(
-                    ( 128.0 * s + floor( e * exp2(-1.0) ) ) / 255.0,
-                    ( 128.0 * mod( e, 2.0 ) + mod( floor( m * 128.0 ), 128.0 ) ) / 255.0,
-                    floor( mod( floor( m * exp2( 23.0 - 8.0) ), exp2(8.0) ) ) / 255.0);
-            }
+            ${ENCODE24}
 
             void main(void) {
-                float range = distance(eyePosition, vertexPosition);
-                gl_FragColor = vec4(encode24(range), 1.0);
+                gl_FragColor = vec4(encode24(length(vert.xyz)), 1.0);
             }`
     });
 }
@@ -1013,16 +1007,19 @@ export function drawnode_depth(): Program {
             height: "float",
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
-            frustumPickingColor: "vec3"
+            frustumPickingColor: "float"
         }, attributes: {
-            aVertexPositionHigh: "vec3", aVertexPositionLow: "vec3"
+            aVertexPositionHigh: "vec3",
+            aVertexPositionLow: "vec3"
         },
 
         vertexShader:
-            `precision highp float;
+            `#version 300 es
+            
+            precision highp float;
 
-            attribute vec3 aVertexPositionHigh;
-            attribute vec3 aVertexPositionLow;
+            in vec3 aVertexPositionHigh;
+            in vec3 aVertexPositionLow;
 
             uniform mat4 projectionMatrix;
             uniform mat4 viewMatrix;
@@ -1031,10 +1028,6 @@ export function drawnode_depth(): Program {
             uniform float height;
 
             void main(void) {
-
-                // @hack
-                // This code is works for Mac Chrome and Safari
-                // any other code probably will produce jittering
 
                 mat4 viewMatrixRTE = viewMatrix;
                 viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
@@ -1053,11 +1046,18 @@ export function drawnode_depth(): Program {
             }`,
 
         fragmentShader:
-            `precision highp float;
-            uniform vec3 frustumPickingColor;
+            `#version 300 es
+            
+            precision highp float;
+            
+            uniform float frustumPickingColor;
+
+            layout(location = 0) out vec4 frustumColor;
+            layout(location = 1) out vec4 depthColor;
 
             void main(void) {
-                gl_FragColor = vec4(frustumPickingColor, 1.0);
-            } `
+                frustumColor = vec4(frustumPickingColor, frustumPickingColor, frustumPickingColor, 1.0);
+                depthColor = vec4(gl_FragCoord.z, gl_FragCoord.z, gl_FragCoord.z, 1.0);
+            }`
     });
 }

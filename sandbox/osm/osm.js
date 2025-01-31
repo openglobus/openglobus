@@ -4,54 +4,116 @@ import {
     Vector,
     LonLat,
     Entity,
-    Geometry,
     OpenStreetMap,
-    Bing,
-    GlobusRgbTerrain,
     RgbTerrain,
-    mercator
+    GlobusRgbTerrain,
+    Object3d,
+    mercator,
+    Bing,
+    GeoVideo,
+    XYZ,
+    utils
 } from "../../lib/@openglobus/og.esm.js";
 
-let osm = new OpenStreetMap();
+var countries = new Vector("Countries", {
+    'visibility': true,
+    'isBaseLayer': false,
+    'diffuse': [0, 0, 0],
+    'ambient': [1, 1, 1]
+});
 
-let vec = new Vector("", { isBaseLayer: false, visibility: true });
+fetch("./countries.json")
+    .then(r => {
+        return r.json();
+    }).then(data => {
+
+    var f = data.features;
+    for (let i = 0; i < f.length; i++) {
+        var fi = f[i];
+        countries.add(new Entity({
+            'geometry': {
+                'type': fi.geometry.type,
+                'coordinates': fi.geometry.coordinates,
+                'style': {
+                    'fillColor': "rgba(255,255,255,0.6)"
+                }
+            }
+        }));
+    }
+});
+
+let l0 = new XYZ("Stamen Watercolor", {
+    url: "https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg",
+    attribution: '',
+    isBaseLayer: false,
+    maxNativeZoom: 19,
+    opacity: 0.5,
+    //defaultTextures: [{color: "#AAD3DF"}, {color: "#F2EFE9"}],
+    isSRGB: false,
+});
+
+let l2 = new XYZ("Stadia", {
+    url: "https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}.png",
+    attribution: '',
+    isBaseLayer: false,
+    maxNativeZoom: 19,
+    opacity: 0.5,
+
+    //defaultTextures: [{color: "#AAD3DF"}, {color: "#F2EFE9"}],
+    isSRGB: false,
+});
+
+let foursources = new GeoVideo("SOS_TaggedCO2_10-6-2023a_co2_foursources_quality_ScienceOnASphere_2048p30.mp4", {
+    src: "./SOS_TaggedCO2_10-6-2023a_co2_foursources_quality_ScienceOnASphere_2048p30.mp4",
+    corners: [[-180, 90], [180, 90], [180, -90], [-180, -90]],
+    visibility: true,
+    isBaseLayer: false,
+    opacity: 0.5,
+    attribution: 'Four Sources',
+    fullExtent: true
+});
+
+
+let imergac = new GeoVideo("USA precipitation 08.05.2016", {
+    minZoom: 0,
+    maxZoom: 10,
+    src: "imergac_20160508_NASA.mp4",
+    corners: [[-134.7904382939764, 55.07955352950936], [-54.984314759410594, 54.98843914299802], [-55.041854075913825, 19.820153025849297], [-134.89882012831265, 19.631495126944017]],
+    visibility: true,
+    isBaseLayer: false,
+    attribution: 'USA precipitation 08.05.2016, nasasearch.nasa.gov',
+    opacity: 0.7
+});
+
+let layers = [new OpenStreetMap(), new Bing("Micr.Bing", {
+    isBaseLayer: false
+}), countries, l0, l2, foursources, imergac];
+
+
+function setHeight(h) {
+    for (let i = 0; i < layers.length; i++) {
+        layers[i].setHeight(i * h * 10000);
+    }
+}
 
 const globus = new Globe({
-    frustums: [[1, 1100], [1000, 100000000]],
     target: "earth",
     name: "Earth",
     terrain: new GlobusRgbTerrain(),
-    layers: [osm],
+    layers: layers,
     atmosphereEnabled: false,
     fontsSrc: "../../res/fonts",
     sun: {
         stopped: false
-    }
+    },
+    transitionOpacityEnabled: false
 });
 
-function m_px(x, y, z) {
-    const PX = 33;
-    let ext = mercator.getTileExtent(x, y, z);
-    let b0 = ext.getSouthWest().inverseMercator(),
-        b1 = ext.getNorthEast().inverseMercator();
-    let width = globus.planet.ellipsoid.getGreatCircleDistance(b0, new LonLat(b1.lon, b0.lat)),
-        height = globus.planet.ellipsoid.getGreatCircleDistance(b0, new LonLat(b0.lon, b1.lat));
-
-    return [width / PX, height / PX];
-}
-
-console.log(1, m_px(0, 0, 1));
-console.log(7, m_px(66, 44, 7));
-console.log(10, m_px(536, 358, 10));
-console.log(12, m_px(2149, 1446, 12));
-console.log(13, m_px(4301, 2892, 13));
-console.log(14, m_px(8582, 5736, 14));
-console.log(15, m_px(17205, 11569, 15));
-console.log(16, m_px(34419, 23138, 16));
-console.log(17, m_px(68661, 45892, 17));
-console.log(18, m_px(137650, 92555, 18));
-
 globus.planet.addControl(new control.DebugInfo());
-globus.planet.addControl(new control.KeyboardNavigation());
-globus.planet.addControl(new control.ToggleWireframe());
 globus.planet.addControl(new control.LayerSwitcher());
+
+window.setHeight = setHeight;
+
+document.body.querySelector("#slider").addEventListener("input", function (event) {
+    setHeight(parseFloat(event.target.value));
+})

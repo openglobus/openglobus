@@ -197,7 +197,12 @@ export class Vec3 {
      * @returns {number} -
      */
     static angle(a: Vec3, b: Vec3): number {
-        return Math.acos(a.dot(b) / Math.sqrt(a.length2() * b.length2()));
+        // the same
+        // let d = a.dot(b) / Math.sqrt(a.length2() * b.length2());
+        // return Math.acos(Math.max(-1, Math.min(1, d)));
+        let dotProduct = a.dot(b);
+        let crossProduct = a.cross(b).length();
+        return Math.atan2(crossProduct, dotProduct);
     }
 
     /**
@@ -458,6 +463,16 @@ export class Vec3 {
     }
 
     /**
+     * Gets two vectors summarization.
+     * @public
+     * @param {Vec3} p - Vector to add.
+     * @returns {Vec3} Returns a sum vector.
+     */
+    public addRes(p: Vec3, res: Vec3): Vec3 {
+        return res.set(this.x + p.x, this.y + p.y, this.z + p.z);
+    }
+
+    /**
      * Subtract vector from the current.
      * @public
      * @param {Vec3} p - Subtract vector.
@@ -524,6 +539,16 @@ export class Vec3 {
      */
     public mul(vec: Vec3): Vec3 {
         return new Vec3(this.x * vec.x, this.y * vec.y, this.z * vec.z);
+    }
+
+    /**
+     * Multiply current vector object to another and returns new vector instance.
+     * @public
+     * @param {Vec3} vec - Multiply vector.
+     * @returns {Vec3} -
+     */
+    public mulRes(vec: Vec3, res: Vec3): Vec3 {
+        return res.set(this.x * vec.x, this.y * vec.y, this.z * vec.z);
     }
 
     /**
@@ -871,6 +896,13 @@ export class Vec3 {
         }
 
         return Vec3.add(this.scaleTo(scale0), v2.scale(scale1));
+    }
+
+    public mulVecA(a: Vec3): Vec3 {
+        this.x *= a.x;
+        this.y *= a.y;
+        this.z *= a.z;
+        return this;
     }
 
     /**

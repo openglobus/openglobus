@@ -84,7 +84,7 @@ export function log(n: number, base: number): number {
 /**
  * Clamp the number.
  * @function
- * @param {number} number - Input number.
+ * @param {number} value - Input number.
  * @param {number} min - Minimal edge.
  * @param {number} max - Maximal edge.
  * @returns {number} -
@@ -92,8 +92,8 @@ export function log(n: number, base: number): number {
  * clamp(12, 1, 5)
  * //returns 5
  */
-export function clamp(number: number, min: number, max: number): number {
-    return Math.max(min, Math.min(number, max));
+export function clamp(value: number, min: number, max: number): number {
+    return Math.max(min, Math.min(value, max));
 }
 
 /**

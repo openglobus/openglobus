@@ -2,6 +2,9 @@ import {BaseNode} from "./BaseNode";
 import {Renderer} from "../renderer/Renderer";
 import {LightSource} from "../light/LightSource";
 import {EntityCollection} from "../entity/EntityCollection";
+import {Quat} from "../math/Quat";
+import {Vec3} from "../math/Vec3";
+import {Planet} from "./Planet";
 
 /**
  * Render node is a logical part of a render mechanism. Represents scene rendering.
@@ -46,11 +49,9 @@ class RenderNode extends BaseNode {
      * @public
      * @type {Array.<LightSource>}
      */
-    public _lights: LightSource[];
-    public _lightsNames: string[];
-    public _lightsPositions: number[];
-    public _lightsParamsv: number[];
-    public _lightsParamsf: number[];
+    public _lightPosition: Float32Array;
+    public _lightParams: Float32Array;
+    public _lightShininess: number;
 
     /**
      * Entity collection array.
@@ -58,6 +59,8 @@ class RenderNode extends BaseNode {
      * @type {Array.<EntityCollection>}
      */
     public entityCollections: EntityCollection[];
+
+    protected _entityCollectionsByDepthOrder: EntityCollection[][];
 
     protected _pickingId: number;
 
@@ -76,15 +79,19 @@ class RenderNode extends BaseNode {
 
         this.lightEnabled = false;
 
-        this._lights = [];
-        this._lightsNames = [];
-        this._lightsPositions = [];
-        this._lightsParamsv = [];
-        this._lightsParamsf = [];
+        this._lightPosition = new Float32Array([100, 100, 100]);
+        this._lightParams = new Float32Array(9);
+        this._lightShininess = 100.0;
 
         this.entityCollections = [];
 
+        this._entityCollectionsByDepthOrder = [];
+
         this._pickingId = -1;
+    }
+
+    public getFrameRotation(cartesian: Vec3): Quat {
+        return Quat.IDENTITY;
     }
 
     /**
@@ -156,9 +163,23 @@ class RenderNode extends BaseNode {
      * @param {boolean} [isHidden] - If it's true that this collection has specific rendering.
      * @returns {RenderNode} -
      */
-    public addEntityCollection(entityCollection: EntityCollection, isHidden?: boolean): RenderNode {
-        entityCollection.addTo(this, isHidden);
-        return this;
+    public addEntityCollection(entityCollection: EntityCollection, isHidden?: boolean): void {
+
+        if (!entityCollection.renderNode) {
+            entityCollection.renderNode = this;
+
+            if (!isHidden) {
+                this.entityCollections.push(entityCollection);
+                this.updateEntityCollectionsDepthOrder();
+            }
+
+            //@ts-ignore
+            (this as Planet).ellipsoid && entityCollection._updateGeodeticCoordinates((this as Planet).ellipsoid);
+
+            entityCollection.bindRenderNode(this);
+
+            entityCollection.events.dispatch(entityCollection.events.add, this);
+        }
     }
 
     /**
@@ -167,7 +188,32 @@ class RenderNode extends BaseNode {
      * @param {EntityCollection} entityCollection - Entity collection for remove.
      */
     public removeEntityCollection(entityCollection: EntityCollection) {
-        entityCollection.remove();
+        for (let i = 0; i < this.entityCollections.length; i++) {
+            if (this.entityCollections[i].isEqual(entityCollection)) {
+                this.entityCollections.splice(i, 1);
+                this.updateEntityCollectionsDepthOrder();
+                return;
+            }
+        }
+    }
+
+    public updateEntityCollectionsDepthOrder() {
+
+        let grouped: Record<number, EntityCollection[]> = {0: []};
+        for (const ec of this.entityCollections) {
+            if (ec.getVisibility()) {
+                if (!grouped[ec.depthOrder]) {
+                    grouped[ec.depthOrder] = [];
+                }
+                grouped[ec.depthOrder].push(ec);
+            }
+        }
+
+        this._entityCollectionsByDepthOrder.length = 0;
+        this._entityCollectionsByDepthOrder = [];
+        this._entityCollectionsByDepthOrder = Object.keys(grouped)
+            .sort((a, b) => Number(a) - Number(b))
+            .map(key => grouped[Number(key)]);
     }
 
     /**
@@ -179,26 +225,6 @@ class RenderNode extends BaseNode {
     public addLight(light: LightSource): RenderNode {
         light.addTo(this);
         return this;
-    }
-
-    /**
-     * Gets light object by its name.
-     * @public
-     * @param {string} name - Point light name.
-     * @returns {LightSource}
-     */
-    public getLightByName(name: string): LightSource | undefined {
-        let li = this._lightsNames.indexOf(name);
-        return this._lights[li];
-    }
-
-    /**
-     * Removes light source.
-     * @public
-     * @param {LightSource} light - Light source object.
-     */
-    public removeLight(light: LightSource) {
-        light.remove();
     }
 
     /**
@@ -266,35 +292,26 @@ class RenderNode extends BaseNode {
         }
     }
 
-    /**
-     * IMPORTANT: This function have to be called manually in each render node frame callback, before drawing scene geometry.
-     * @public
-     */
-    public transformLights() {
-        for (let i = 0; i < this._lights.length; i++) {
-            let ii = i * 3;
-            let tp;
-            tp = this._lights[i]._position;
-            this._lightsPositions[ii] = tp.x;
-            this._lightsPositions[ii + 1] = tp.y;
-            this._lightsPositions[ii + 2] = tp.z;
-        }
-
-        // for (let i = 0; i < this._lights.length; i++) {
-        //     var ii = i * 4;
-        //     var tp;
-        //     if (this._lights[i].directional) {
-        //         tp = r.activeCamera._normalMatrix.mulVec(this._lights[i]._position);
-        //         this._lightsTransformedPositions[ii + 3] = 0;
-        //     } else {
-        //         tp = r.activeCamera._viewMatrix.mulVec3(this._lights[i]._position);
-        //         this._lightsTransformedPositions[ii + 3] = 1;
-        //     }
-        //     this._lightsTransformedPositions[ii] = tp.x;
-        //     this._lightsTransformedPositions[ii + 1] = tp.y;
-        //     this._lightsTransformedPositions[ii + 2] = tp.z;
-        // }
-    }
+    // /**
+    //  * IMPORTANT: This function have to be called manually in each render node frame callback, before drawing scene geometry.
+    //  * @public
+    //  */
+    // public transformLights() {
+    //     // for (let i = 0; i < this._lights.length; i++) {
+    //     //     var ii = i * 4;
+    //     //     var tp;
+    //     //     if (this._lights[i].directional) {
+    //     //         tp = r.activeCamera._normalMatrix.mulVec(this._lights[i]._position);
+    //     //         this._lightsTransformedPositions[ii + 3] = 0;
+    //     //     } else {
+    //     //         tp = r.activeCamera._viewMatrix.mulVec3(this._lights[i]._position);
+    //     //         this._lightsTransformedPositions[ii + 3] = 1;
+    //     //     }
+    //     //     this._lightsTransformedPositions[ii] = tp.x;
+    //     //     this._lightsTransformedPositions[ii + 1] = tp.y;
+    //     //     this._lightsTransformedPositions[ii + 2] = tp.z;
+    //     // }
+    // }
 
     public updateBillboardsTexCoords() {
         for (let i = 0; i < this.entityCollections.length; i++) {
@@ -326,7 +343,9 @@ class RenderNode extends BaseNode {
         if (this.show) {
             //this.lightEnabled && this.transformLights();
             this.preFrame();
-            this.drawEntityCollections(this.entityCollections);
+            for (let i = 0; i < this._entityCollectionsByDepthOrder.length; i++) {
+                this.drawEntityCollections(this._entityCollectionsByDepthOrder[i], i);
+            }
         }
     }
 
@@ -342,8 +361,8 @@ class RenderNode extends BaseNode {
         }
     }
 
-    public drawEntityCollections(ec: EntityCollection[]) {
-        this.renderer!.enqueueEntityCollectionsToDraw(ec);
+    public drawEntityCollections(ec: EntityCollection[], depthOrder: number = 0) {
+        this.renderer!.enqueueEntityCollectionsToDraw(ec, depthOrder);
     }
 
     /**
@@ -399,7 +418,9 @@ class RenderNode extends BaseNode {
     }
 
     protected _entityCollectionPickingCallback() {
-        this.drawPickingEntityCollections(this.entityCollections);
+        // for (let i = 0; i < this._entityCollectionsByDepthOrder.length; i++) {
+        //     this.drawPickingEntityCollections(this._entityCollectionsByDepthOrder[i]);
+        // }
     }
 }
 

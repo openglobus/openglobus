@@ -89,6 +89,7 @@ class TimelineControl extends Control {
         });
 
         this._timelineView.events.on("startdrag", () => {
+            this.planet?.sun!.stop();
             this.renderer && this.renderer.controls.mouseNavigation.deactivate();
         });
 
@@ -97,6 +98,7 @@ class TimelineControl extends Control {
         });
 
         this._timelineView.events.on("startdragcurrent", () => {
+            this.planet?.sun!.stop();
             this.renderer && this.renderer.controls.mouseNavigation.deactivate();
         });
 

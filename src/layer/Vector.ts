@@ -23,6 +23,7 @@ export interface IVectorParams extends ILayerParams {
     scaleByDistance?: NumberArray3;
     labelMaxLetters?: number;
     useLighting?: boolean;
+    depthOrder?: number;
 }
 
 type VectorEventsList = [
@@ -88,6 +89,8 @@ function _entitiesConstructor(entities: Entity[] | IEntityParams[]): Entity[] {
 class Vector extends Layer {
 
     public override events: VectorEventsType;
+
+    protected _depthOrder: number;
 
     /**
      * Entities collection.
@@ -222,6 +225,19 @@ class Vector extends Layer {
         this.polygonOffsetUnits = options.polygonOffsetUnits != undefined ? options.polygonOffsetUnits : 0.0;
 
         this.pickingEnabled = this._pickingEnabled;
+
+        this._depthOrder = options.depthOrder || 0;
+    }
+
+    public get depthOrder(): number {
+        return this._depthOrder;
+    }
+
+    public set depthOrder(d: number) {
+        if (d !== this._depthOrder) {
+            this._depthOrder = d;
+            this._planet && this._planet.updateVisibleLayers();
+        }
     }
 
     public get useLighting(): boolean {
@@ -260,6 +276,11 @@ class Vector extends Layer {
             this._polylineEntityCollection.addTo(planet, true);
             this._stripEntityCollection.addTo(planet, true);
             this._geoObjectEntityCollection.addTo(planet, true);
+
+            this._polylineEntityCollection._layer = this;
+            this._stripEntityCollection._layer = this;
+            this._geoObjectEntityCollection._layer = this;
+
             this.setEntities(this._entities);
         }
     }
@@ -269,6 +290,11 @@ class Vector extends Layer {
         this._polylineEntityCollection.remove();
         this._stripEntityCollection.remove();
         this._geoObjectEntityCollection.remove();
+
+        this._polylineEntityCollection._layer = undefined;
+        this._stripEntityCollection._layer = undefined;
+        this._geoObjectEntityCollection._layer = undefined;
+
         return this;
     }
 

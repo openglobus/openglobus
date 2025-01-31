@@ -51,6 +51,8 @@ class Frustum {
      */
     public projectionViewMatrix: Mat4;
 
+    public projectionViewRTEMatrix: Mat4;
+
     /**
      * Inverse projectionView Matrix.
      * @protected
@@ -102,6 +104,8 @@ class Frustum {
         this.inverseProjectionMatrix = new Mat4();
 
         this.projectionViewMatrix = new Mat4();
+
+        this.projectionViewRTEMatrix = new Mat4();
 
         this.inverseProjectionViewMatrix = new Mat4();
 
@@ -155,6 +159,10 @@ class Frustum {
         return this.projectionViewMatrix._m;
     }
 
+    public getProjectionViewRTEMatrix(): NumberArray16 {
+        return this.projectionViewRTEMatrix._m;
+    }
+
     public getProjectionMatrix(): NumberArray16 {
         return this.projectionMatrix._m;
     }
@@ -188,6 +196,10 @@ class Frustum {
             far
         );
         this.projectionMatrix.inverseTo(this.inverseProjectionMatrix);
+    }
+
+    public setProjectionViewRTEMatrix(viewRTEMatrix: Mat4) {
+        this.projectionViewRTEMatrix = this.projectionMatrix.mul(viewRTEMatrix);
     }
 
     /**

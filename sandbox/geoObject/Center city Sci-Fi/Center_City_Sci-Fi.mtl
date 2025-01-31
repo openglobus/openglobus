@@ -1,0 +1,616 @@
+newmtl default_tubes
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/sc1_01_01_01.jpg
+
+newmtl default
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/aw2.jpg
+
+newmtl default_glass
+d 0.8
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 0 0 0
+Ks 1 1 1
+Km 0
+
+newmtl default_lamp_poles
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+
+newmtl default_lights
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+
+newmtl default_Area
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 0.156863 0.14902 0.176471
+Ks 1 1 1
+Km 0
+map_Kd /Maps/Form3_texture.jpg
+
+newmtl default_floor
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/antenna_04_01_01_01.jpg
+
+newmtl default_city_base
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/dr2b_01_01_01.jpg
+
+newmtl default_access
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/derf1_01_01_01.jpg
+
+newmtl default_water_canal
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/fl1.jpg
+
+newmtl default_tubes_city_base.2
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/sc1_01_01_01.jpg
+
+newmtl default_city_base.2
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/aw2.jpg
+
+newmtl default_glass_city_base.2
+d 0.8
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 0 0 0
+Ks 1 1 1
+Km 0
+
+newmtl default_lamp_poles_city_base.2
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+
+newmtl default_lights_city_base.2
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+
+newmtl default_Area_city_base.2
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 0.156863 0.14902 0.176471
+Ks 1 1 1
+Km 0
+map_Kd /Maps/Form3_texture.jpg
+
+newmtl default_floor_city_base.2
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/antenna_04_01_01_01.jpg
+
+newmtl default_city_base_city_base.2
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/dr2b_01_01_01.jpg
+
+newmtl default_access_city_base.2
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/derf1_01_01_01.jpg
+
+newmtl default_water_canal_city_base.2
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/fl1.jpg
+
+newmtl default_tubes_city_base.2_1
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/sc1_01_01_01.jpg
+
+newmtl default_city_base.2_1
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/aw2.jpg
+
+newmtl default_glass_city_base.2_1
+d 0.8
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 0 0 0
+Ks 1 1 1
+Km 0
+
+newmtl default_lamp_poles_city_base.2_1
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+
+newmtl default_lights_city_base.2_1
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+
+newmtl default_Area_city_base.2_1
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 0.156863 0.14902 0.176471
+Ks 1 1 1
+Km 0
+map_Kd /Maps/Form3_texture.jpg
+
+newmtl default_floor_city_base.2_1
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/antenna_04_01_01_01.jpg
+
+newmtl default_city_base_city_base.2_1
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/dr2b_01_01_01.jpg
+
+newmtl default_access_city_base.2_1
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/derf1_01_01_01.jpg
+
+newmtl default_water_canal_city_base.2_1
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/fl1.jpg
+
+newmtl default_tubes_city_base.2_2
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/sc1_01_01_01.jpg
+
+newmtl default_city_base.2_2
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/aw2.jpg
+
+newmtl default_glass_city_base.2_2
+d 0.8
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 0 0 0
+Ks 1 1 1
+Km 0
+
+newmtl default_lamp_poles_city_base.2_2
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+
+newmtl default_lights_city_base.2_2
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+
+newmtl default_Area_city_base.2_2
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 0.156863 0.14902 0.176471
+Ks 1 1 1
+Km 0
+map_Kd /Maps/Form3_texture.jpg
+
+newmtl default_floor_city_base.2_2
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/antenna_04_01_01_01.jpg
+
+newmtl default_city_base_city_base.2_2
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/dr2b_01_01_01.jpg
+
+newmtl default_access_city_base.2_2
+d 1
+Ns 0.75
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/derf1_01_01_01.jpg
+
+newmtl default_water_canal_city_base.2_2
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/fl1.jpg
+
+newmtl default_city_bldgs.2
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/axcv1.jpg
+
+newmtl default_sign_mult
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/b12.jpg
+
+newmtl default_sign2
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/b10.jpg
+
+newmtl default_sign3
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/b15b.jpg
+
+newmtl default_sign4
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/v1.jpg
+
+newmtl default_sign5
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/v2.jpg
+
+newmtl default_sign6
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/d1.jpg
+
+newmtl default_sign7
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/g3.jpg
+
+newmtl default_sign8
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/g1.jpg
+
+newmtl default_sign9
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/g4.jpg
+
+newmtl default_sign10
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/b9.jpg
+
+newmtl default_holders
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 0 0 0
+Ks 1 1 1
+Km 0
+
+newmtl default_sign_mult_1
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/a2.jpg
+
+newmtl default_sign2_sign_mult
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/a5.jpg
+
+newmtl default_sign3_sign_mult
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/a7.jpg
+
+newmtl default_sign4_sign_mult
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/a9.jpg
+
+newmtl default_sign5_sign_mult
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/b1.jpg
+
+newmtl default_sign6_sign_mult
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/b4.jpg
+
+newmtl default_sign7_sign_mult
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/b8.jpg
+
+newmtl default_sign8_sign_mult
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/b13.jpg
+
+newmtl default_sign9_sign_mult
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/b14.jpg
+
+newmtl default_sign10_sign_mult
+d 1
+Ns 1
+Ni 0
+Ka 1 1 1
+Kd 1 1 1
+Ks 1 1 1
+Km 0
+map_Kd /Maps/a4.jpg
+
+newmtl default_holders_sign_mult
+d 1
+Ns 1
+Ni 0
+Ka 0 0 0
+Kd 0 0 0
+Ks 1 1 1
+Km 0
+

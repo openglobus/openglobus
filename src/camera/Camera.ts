@@ -8,6 +8,7 @@ import {Vec2, NumberArray2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 import {Sphere} from "../bv/Sphere";
+import {Quat} from "../math/Quat";
 
 type CameraEvents = ["viewchange", "moveend"];
 
@@ -107,6 +108,7 @@ class Camera {
      * @type {Mat4}
      */
     protected _viewMatrix: Mat4;
+    protected _viewMatrixRTE: Mat4;
 
     /**
      * Camera normal matrix.
@@ -157,6 +159,8 @@ class Camera {
 
     public currentFrustumIndex: number;
 
+    public frustumColorIndex: number;
+
     public isFirstPass: boolean;
 
     constructor(renderer: Renderer | null, options: ICameraParams = {}) {
@@ -175,6 +179,7 @@ class Camera {
         this._viewAngle = options.viewAngle || 47.0;
 
         this._viewMatrix = new Mat4();
+        this._viewMatrixRTE = new Mat4();
 
         this._normalMatrix = new Mat3();
 
@@ -215,8 +220,8 @@ class Camera {
                 this.frustumColors.push(fr._pickingColorU[0], fr._pickingColorU[1], fr._pickingColorU[2]);
             }
         } else {
-            let near = 1.0,
-                far = 10000.0;
+            let near = 0.1,
+                far = 1000.0;
 
             let fr = new Frustum({
                 fov: this._viewAngle,
@@ -234,6 +239,7 @@ class Camera {
         this.FARTHEST_FRUSTUM_INDEX = this.frustums.length - 1;
 
         this.currentFrustumIndex = 0;
+        this.frustumColorIndex = 0;
 
         this.isFirstPass = false;
 
@@ -343,11 +349,19 @@ class Camera {
             -eye.dot(u), -eye.dot(v), -eye.dot(n), 1.0
         ]);
 
+        this._viewMatrixRTE.set([
+            u.x, v.x, n.x, 0.0,
+            u.y, v.y, n.y, 0.0,
+            u.z, v.z, n.z, 0.0,
+            0, 0, 0, 1.0
+        ]);
+
         // do not clean up, someday it will be using
         //this._normalMatrix = this._viewMatrix.toMatrix3(); // this._viewMatrix.toInverseMatrix3().transposeTo();
 
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             this.frustums[i].setViewMatrix(this._viewMatrix);
+            this.frustums[i].setProjectionViewRTEMatrix(this._viewMatrixRTE);
         }
 
         this.events.dispatch(this.events.viewchange, this);
@@ -652,6 +666,7 @@ class Camera {
 
     public setCurrentFrustum(k: number) {
         this.currentFrustumIndex = k;
+        this.frustumColorIndex = (k + 1) * 10.0 / 255.0;
         this.isFirstPass = k === this.FARTHEST_FRUSTUM_INDEX;
     }
 
@@ -691,6 +706,15 @@ class Camera {
     }
 
     /**
+     * Returns projection and model RTE matrix product.
+     * @public
+     * @return {Mat4} - Projection-view matrix.
+     */
+    public getProjectionViewRTEMatrix(): NumberArray16 {
+        return this.frustum.projectionViewRTEMatrix._m;
+    }
+
+    /**
      * Returns inverse projection and model matrix product.
      * @public
      * @returns {Mat4} - Inverse projection-view matrix.
@@ -706,6 +730,14 @@ class Camera {
      */
     public getInverseProjectionMatrix(): NumberArray16 {
         return this.frustum.inverseProjectionMatrix._m;
+    }
+
+    public viewDistance(cartesian: Vec3, distance: number = 10000.0) {
+        let p0 = this.eye.add(this.getForward().scaleTo(distance));
+        let _rot = Quat.getRotationBetweenVectors(p0.getNormal(), cartesian.getNormal());
+        let newPos = cartesian.add(this.getBackward().scaleTo(distance));
+        this.set(newPos, cartesian);
+        this.update();
     }
 }
 

@@ -1,4 +1,5 @@
-import { Program } from '../webgl/Program';
+import {Program} from '../webgl/Program';
+import {UTILS} from "./utils";
 
 export function polyline_screen(): Program {
     return new Program("polyline_screen", {
@@ -6,12 +7,12 @@ export function polyline_screen(): Program {
             viewport: "vec2",
             proj: "mat4",
             view: "mat4",
-            eyePositionHigh: "vec3",
-            eyePositionLow: "vec3",
-            //uFloatParams: "vec2",
+            rtcEyePositionHigh: "vec3",
+            rtcEyePositionLow: "vec3",
             thickness: "float",
             opacity: "float",
-            depthOffset: "float"
+            depthOffset: "float",
+            visibleSphere: "vec4",
         },
         attributes: {
             prevHigh: "vec3",
@@ -46,10 +47,11 @@ export function polyline_screen(): Program {
                 uniform mat4 proj;
                 uniform mat4 view;
                 uniform vec2 viewport;
-                uniform vec3 eyePositionHigh;
-                uniform vec3 eyePositionLow;
+                uniform vec3 rtcEyePositionHigh;
+                uniform vec3 rtcEyePositionLow;
                 uniform float opacity;
                 uniform float depthOffset;
+               
 
                 varying vec4 vColor;
                 varying vec3 vPos;
@@ -76,29 +78,29 @@ export function polyline_screen(): Program {
 
                 void main(){
 
-                    uCamPos = eyePositionHigh + eyePositionLow;
-
+                    uCamPos = rtcEyePositionHigh + rtcEyePositionLow;
+                    vPos = currentHigh + currentLow;
+                    
                     vColor = vec4(color.rgb, color.a * opacity);
-
-                    vec3 current = currentHigh + currentLow;
-
-                    vPos = current;
 
                     mat4 viewMatrixRTE = view;
                     viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
 
                     vec3 highDiff, lowDiff;
 
-                    highDiff = currentHigh - eyePositionHigh;
-                    lowDiff = currentLow - eyePositionLow;
+                    highDiff = currentHigh - rtcEyePositionHigh;
+                    highDiff = highDiff * step(1.0, length(highDiff));
+                    lowDiff = currentLow - rtcEyePositionLow;                   
                     vec4 vCurrent = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
 
-                    highDiff = prevHigh - eyePositionHigh;
-                    lowDiff = prevLow - eyePositionLow;
+                    highDiff = prevHigh - rtcEyePositionHigh;
+                    highDiff = highDiff * step(1.0, length(highDiff));
+                    lowDiff = prevLow - rtcEyePositionLow;
                     vec4 vPrev = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
 
-                    highDiff = nextHigh - eyePositionHigh;
-                    lowDiff = nextLow - eyePositionLow;
+                    highDiff = nextHigh - rtcEyePositionHigh;
+                    highDiff = highDiff * step(1.0, length(highDiff));
+                    lowDiff = nextLow - rtcEyePositionLow;
                     vec4 vNext = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
 
                     /*Clip near plane, the point behind view plane*/
@@ -169,16 +171,26 @@ export function polyline_screen(): Program {
 
         fragmentShader:
             `precision highp float;
-                //uniform vec2 uFloatParams;
+            
+                uniform vec4 visibleSphere;
+                            
                 varying vec3 uCamPos;
                 varying vec4 vColor;
-                varying vec3 vPos;
+                varying vec3 vPos;               
+                
+                ${UTILS}
+            
                 void main() {
-                    vec3 look = vPos - uCamPos;
-                    float lookLength = length(look);
-                    //float a = vColor.a * step(lookLength, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(vPos,vPos) - uFloatParams[0]));
-                    float a = vColor.a;
-                    gl_FragColor = vec4(vColor.rgb, a);
+                    
+                    if(visibleSphere.w != 0.0) {                  
+                        vec3 cam_dir = normalize(vPos - uCamPos);
+                        vec3 sph_dir = normalize(vPos - visibleSphere.xyz);
+                        if( dot(cam_dir, sph_dir) > 0.11 ){
+                            discard;
+                        }
+                   }
+                   
+                    gl_FragColor = vec4(vColor.rgb, vColor.a);
                 }`
     });
 }
@@ -189,12 +201,12 @@ export function polyline_picking(): Program {
             viewport: "vec2",
             proj: "mat4",
             view: "mat4",
-            eyePositionHigh: "vec3",
-            eyePositionLow: "vec3",
-            //uFloatParams: "vec2",
+            rtcEyePositionHigh: "vec3",
+            rtcEyePositionLow: "vec3",
             color: "vec4",
             thickness: "float",
-            depthOffset: "float"
+            depthOffset: "float",
+            visibleSphere: "vec4",
         },
         attributes: {
             prevHigh: "vec3",
@@ -226,8 +238,8 @@ export function polyline_picking(): Program {
                 uniform mat4 proj;
                 uniform mat4 view;
                 uniform vec2 viewport;
-                uniform vec3 eyePositionHigh;
-                uniform vec3 eyePositionLow;
+                uniform vec3 rtcEyePositionHigh;
+                uniform vec3 rtcEyePositionLow;
                 uniform float depthOffset;
 
                 varying vec4 vColor;
@@ -256,29 +268,28 @@ export function polyline_picking(): Program {
                 
                 void main(){
 
-                    uCamPos = eyePositionHigh + eyePositionLow;
-
-                    vColor = color;
-
-                    vec3 current = currentHigh + currentLow;
-
-                    vPos = current;                    
+                    uCamPos = rtcEyePositionHigh + rtcEyePositionLow;
+                    vPos = currentHigh + currentLow;
+                    vColor = color;               
 
                     vec3 highDiff, lowDiff;
 
                     mat4 viewMatrixRTE = view;
                     viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
-
-                    highDiff = currentHigh - eyePositionHigh;
-                    lowDiff = currentLow - eyePositionLow;
+                    
+                    highDiff = currentHigh - rtcEyePositionHigh;
+                    highDiff = highDiff * step(1.0, length(highDiff));
+                    lowDiff = currentLow - rtcEyePositionLow;
                     vec4 vCurrent = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
 
-                    highDiff = prevHigh - eyePositionHigh;
-                    lowDiff = prevLow - eyePositionLow;    
+                    highDiff = prevHigh - rtcEyePositionHigh;
+                    highDiff = highDiff * step(1.0, length(highDiff));
+                    lowDiff = prevLow - rtcEyePositionLow;    
                     vec4 vPrev = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
 
-                    highDiff = nextHigh - eyePositionHigh;
-                    lowDiff = nextLow - eyePositionLow;    
+                    highDiff = nextHigh - rtcEyePositionHigh;
+                    highDiff = highDiff * step(1.0, length(highDiff));
+                    lowDiff = nextLow - rtcEyePositionLow;    
                     vec4 vNext = viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
 
                     /*Clip near plane*/
@@ -347,16 +358,22 @@ export function polyline_picking(): Program {
 
         fragmentShader:
             `precision highp float;
-                //uniform vec2 uFloatParams;
+            
+                uniform vec4 visibleSphere;
+                            
                 varying vec3 uCamPos;
                 varying vec4 vColor;
                 varying vec3 vPos;
+                
                 void main() {
-                    vec3 look = vPos - uCamPos;
-                    float lookLength = length(look);
-                    //float a = vColor.a * step(lookLength, sqrt(dot(uCamPos,uCamPos) - uFloatParams[0]) + sqrt(dot(vPos,vPos) - uFloatParams[0]));
-                    float a = vColor.a;                    
-                    gl_FragColor = vec4(vColor.rgb, a);
+                    if(visibleSphere.w != 0.0) {                  
+                        vec3 cam_dir = normalize(vPos - uCamPos);
+                        vec3 sph_dir = normalize(vPos - visibleSphere.xyz);
+                        if( dot(cam_dir, sph_dir) > 0.11 ){
+                            discard;
+                        }
+                    }                 
+                    gl_FragColor = vec4(vColor.rgb, vColor.a);
                 }`
     });
 }

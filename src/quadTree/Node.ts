@@ -123,7 +123,7 @@ class Node {
         this.createBounds();
     }
 
-    public createChildrenNodes() {
+    public createChildNodes() {
         this.ready = true;
         const p = this.planet;
         const ps = this.segment;
@@ -217,7 +217,7 @@ class Node {
 
     public traverseNodes(cam: PlanetCamera, maxZoom?: number | null, terrainReadySegment?: Segment | null, stopLoading?: boolean, zoomPassNode?: Node) {
         if (!this.ready) {
-            this.createChildrenNodes();
+            this.createChildNodes();
         }
 
         let n = this.nodes;

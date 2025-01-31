@@ -23,7 +23,7 @@ class EntityCollectionNode {
     public layer: Vector;
     public strategy: EntityCollectionsTreeStrategy
     public parentNode: EntityCollectionNode | null;
-    public childrenNodes: EntityCollectionNode[];
+    public childNodes: EntityCollectionNode[];
     public partId: number;
     public nodeId: number;
     public state: number | null;
@@ -40,7 +40,7 @@ class EntityCollectionNode {
         this.strategy = strategy;
         this.layer = strategy._layer;
         this.parentNode = parent;
-        this.childrenNodes = [];
+        this.childNodes = [];
         this.partId = partId;
         //this.nodeId = partId + id;
         this.nodeId = partId + (parent ? parent.nodeId * 4 + 1 : 0);
@@ -116,9 +116,9 @@ class EntityCollectionNode {
         this.count += entities.length;
 
         if (entities.length > this.layer._nodeCapacity) {
-            const cn = this.childrenNodes;
+            const cn = this.childNodes;
             if (!cn.length) {
-                this.createChildrenNodes();
+                this.createChildNodes();
             }
 
             let en_nw = [],
@@ -162,7 +162,7 @@ class EntityCollectionNode {
         }
     }
 
-    public createChildrenNodes() {
+    public createChildNodes() {
         const s = this.strategy;
         const ext = this.extent;
         const size_x = ext.getWidth() * 0.5;
@@ -170,7 +170,7 @@ class EntityCollectionNode {
         const ne = ext.northEast;
         const sw = ext.southWest;
         const c = new LonLat(sw.lon + size_x, sw.lat + size_y);
-        const nd = this.childrenNodes;
+        const nd = this.childNodes;
         const p = this.layer._planet!;
         const z = this.zoom + 1;
 
@@ -183,7 +183,7 @@ class EntityCollectionNode {
     public collectRenderCollectionsPASS1(visibleNodes: NodesDict, outArr: EntityCollection[]) {
         const n = visibleNodes[this.nodeId];
         if (n) {
-            const cn = this.childrenNodes;
+            const cn = this.childNodes;
             if (this.entityCollection) {
                 this.renderCollection(outArr, visibleNodes);
             } else if (cn.length) {
@@ -208,7 +208,7 @@ class EntityCollectionNode {
 
         if (this.count > 0 && altVis && cam.containsSphere(this.bsphere)) {
 
-            const cn = this.childrenNodes;
+            const cn = this.childNodes;
 
             if (this.entityCollection) {
                 this.renderCollection(outArr, visibleNodes, renderingNodeId);
@@ -230,7 +230,7 @@ class EntityCollectionNode {
 
     public traverseTree(callback: Function) {
 
-        const cn = this.childrenNodes;
+        const cn = this.childNodes;
 
         if (this.entityCollection) {
             callback(this);

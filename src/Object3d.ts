@@ -2,7 +2,7 @@ import {htmlColorToFloat32Array, TypedArray} from './utils/shared';
 import {NumberArray3, Vec3} from './math/Vec3';
 import {DEGREES, DEGREES_DOUBLE, MAX, MIN, RADIANS_HALF} from './math';
 import {Mat4} from "./math/Mat4";
-import {transformLeftToRightCoordinateSystem, objParser} from "./utils/objParser";
+import {IObjGeometry, Obj} from "./utils/objParser";
 
 function getColor(color?: number[] | TypedArray | string): Float32Array {
     if (color instanceof Array) {
@@ -13,6 +13,21 @@ function getColor(color?: number[] | TypedArray | string): Float32Array {
     return new Float32Array([1.0, 1.0, 1.0, 1.0]);
 }
 
+function getColor3v(color?: NumberArray3 | TypedArray | string): Float32Array {
+    let res = new Float32Array([1.0, 1.0, 1.0]);
+    if (color instanceof Array) {
+        res[0] = color[0];
+        res[1] = color[1];
+        res[2] = color[2];
+    } else if (typeof color === 'string') {
+        let c = htmlColorToFloat32Array(color);
+        res[0] = c[0];
+        res[1] = c[1];
+        res[2] = c[2];
+    }
+    return res;
+}
+
 interface IObject3dParams {
     name?: string;
     vertices?: number[];
@@ -20,9 +35,15 @@ interface IObject3dParams {
     indices?: number[];
     normals?: number[];
     center?: boolean;
-    src?: string;
     color?: number[] | TypedArray | string;
     scale?: number | Vec3;
+    ambient?: string | NumberArray3;
+    diffuse?: string | NumberArray3;
+    specular?: string | NumberArray3;
+    shininess?: number;
+    colorTexture?: string;
+    normalTexture?: string;
+    metallicRoughnessTexture?: string;
 }
 
 class Object3d {
@@ -32,17 +53,18 @@ class Object3d {
     protected _numVertices: number;
     protected _texCoords: number[];
 
-    /**
-     * Image src.
-     * @protected
-     * @type {string}
-     */
-    protected _src: string | null;
-
-    protected color: Float32Array;
-
     protected _indices: number[];
     protected _normals: number[];
+
+    public color: Float32Array;
+    public ambient: Float32Array;
+    public diffuse: Float32Array;
+    public specular: Float32Array;
+    public shininess: number;
+    public colorTexture: string;
+    public normalTexture: string;
+    public metallicRoughnessTexture: string;
+    public center: Vec3;
 
     constructor(data: IObject3dParams = {}) {
 
@@ -50,19 +72,21 @@ class Object3d {
         this._vertices = data.vertices || [];
         this._numVertices = this._vertices.length / 3;
         this._texCoords = data.texCoords || new Array(2 * this._numVertices);
+        // if (data.texCoords) {
+        //     this._texCoords = data.texCoords;
+        // } else {
+        //     this._texCoords = Array.from({length: 2 * this._numVertices}, (_, i) => 0);
+        // }
 
-        if (data.center) {
-            Object3d.centering(this._vertices);
-        }
-
-        /**
-         * Image src.
-         * @protected
-         * @type {string}
-         */
-        this._src = data.src || null;
 
         this.color = getColor(data.color);
+        this.ambient = getColor3v(data.ambient);
+        this.diffuse = getColor3v(data.diffuse);
+        this.specular = getColor3v(data.specular);
+        this.shininess = data.shininess || 100;
+        this.colorTexture = data.colorTexture || "";
+        this.normalTexture = data.normalTexture || "";
+        this.metallicRoughnessTexture = data.metallicRoughnessTexture || "";
 
         if (data.scale) {
             let s = data.scale;
@@ -75,11 +99,17 @@ class Object3d {
             Object3d.scale(this._vertices, scale);
         }
 
+        if (data.center) {
+            Object3d.centering(this._vertices);
+        }
+
+        this.center = Object3d.getCenter(this._vertices);
+
         if (data.indices) {
             this._indices = data.indices;
             this._normals = data.normals || [];
         } else {
-            this._normals = Object3d.getNormals(this._vertices);
+            this._normals = data.normals || Object3d.getNormals(this._vertices);
             this._indices = new Array(this._vertices.length / 3);
             for (let i = 0, len = this._indices.length; i < len; i++) {
                 this._indices[i] = i;
@@ -87,8 +117,11 @@ class Object3d {
         }
     }
 
-    static centering(verts: number[]) {
-        let min_x = MAX, min_y = MAX, min_z = MAX, max_x = MIN, max_y = MIN, max_z = MIN;
+    static getCenter(verts: number[]): Vec3 {
+
+        let min_x = MAX, min_y = MAX, min_z = MAX,
+            max_x = MIN, max_y = MIN, max_z = MIN;
+
         for (let i = 0, len = verts.length; i < len; i += 3) {
             let x = verts[i], y = verts[i + 1], z = verts[i + 2];
             if (x < min_x) min_x = x;
@@ -99,14 +132,19 @@ class Object3d {
             if (z > max_z) max_z = z;
         }
 
-        let c_x = min_x + (max_x - min_x) * 0.5;
-        let c_y = min_y + (max_y - min_y) * 0.5;
-        let c_z = min_z + (max_z - min_z) * 0.5;
+        return new Vec3(
+            min_x + (max_x - min_x) * 0.5,
+            min_y + (max_y - min_y) * 0.5,
+            min_z + (max_z - min_z) * 0.5
+        );
+    }
 
+    static centering(verts: number[]) {
+        let c = Object3d.getCenter(verts);
         for (let i = 0, len = verts.length; i < len; i += 3) {
-            verts[i] -= c_x;
-            verts[i + 1] -= c_y;
-            verts[i + 2] -= c_z;
+            verts[i] -= c.x;
+            verts[i + 1] -= c.y;
+            verts[i + 2] -= c.z;
         }
     }
 
@@ -146,14 +184,6 @@ class Object3d {
             this._vertices[i + 2] += v.z;
         }
         return this;
-    }
-
-    public get src(): string | null {
-        return this._src;
-    }
-
-    public set src(src: string | null) {
-        this._src = src;
     }
 
     public get name(): string {
@@ -524,6 +554,19 @@ class Object3d {
         });
     }
 
+    static createPlane(width: number = 1, height: number = 1, xOffset: number = 0, yOffset: number = 0, zOffset: number = 0): Object3d {
+        let sx = width * 0.5, sy = yOffset, sz = height * 0.5;
+
+        return new Object3d({
+            vertices: [
+                //bottom
+                -sx + xOffset, sy, sz + zOffset, sx + xOffset, sy, -sz + zOffset, sx + xOffset, sy, sz + zOffset, -sx + xOffset, sy, sz + zOffset, -sx + xOffset, sy, -sz + zOffset, sx + xOffset, sy, -sz + zOffset,
+                //top
+                -sx + xOffset, sy, sz + zOffset, sx + xOffset, sy, sz + zOffset, sx + xOffset, sy, -sz + zOffset, -sx + xOffset, sy, sz + zOffset, sx + xOffset, sy, -sz + zOffset, -sx + xOffset, sy, -sz + zOffset
+            ]
+        });
+    }
+
     static createArrow(back: number = 0.0, height: number = 2.1, front: number = -15): Object3d {
         return new Object3d({
             vertices: [0, height, 0, 7, 0, 6, 0, 0, front,
@@ -534,39 +577,103 @@ class Object3d {
         });
     }
 
+    static async readFileObj(objFile: File, mtlFile?: File): Promise<Object3d[]> {
 
-    static async loadObj(src: string): Promise<Object3d[]> {
-        const obj: any = await fetch(src, {mode: "cors",})
-            .then((response) => response.text())
-            .then((data) => transformLeftToRightCoordinateSystem(objParser(data)))
-            .catch(() => []);
+        let obj = new Obj();
 
-        return obj.geometries.map(({data: {vertices, normals, textures}}: any) => new Object3d({
-            vertices,
-            normals,
-            texCoords: textures
-        }));
+        const res = await obj.readFile(objFile, mtlFile);
+
+        let materials = res.materials;
+
+        return res.geometries.map(
+            (obj: IObjGeometry) => {
+                let mat = materials[obj.material] || {};
+                return new Object3d({
+                    name: obj.object,
+                    vertices: obj.data.vertices,
+                    normals: obj.data.normals,
+                    texCoords: obj.data.texCoords,
+                    ambient: mat.ambient,
+                    diffuse: mat.diffuse,
+                    specular: mat.specular,
+                    shininess: mat.shininess,
+                    color: mat.color,
+                    colorTexture: mat.colorTexture,
+                    normalTexture: mat.normalTexture,
+                    metallicRoughnessTexture: mat.metallicRoughnessTexture
+                })
+            }
+        );
     }
 
-    merge(other: Object3d): Object3d {
-        const mergedVertices = [...this._vertices, ...other.vertices];
-        const mergedNormals = [...this._normals, ...other.normals];
-        const mergedTexCoords = [...this._texCoords, ...other.texCoords];
+    static async loadObj(src: string): Promise<Object3d[]> {
 
+        let obj = new Obj();
+
+        const res = await obj.load(src);
+
+        let materials = res.materials;
+
+        return res.geometries.map(
+            (obj: IObjGeometry) => {
+                let mat = materials[obj.material] || {};
+                return new Object3d({
+                    name: obj.object,
+                    vertices: obj.data.vertices,
+                    normals: obj.data.normals,
+                    texCoords: obj.data.texCoords,
+                    ambient: mat.ambient,
+                    diffuse: mat.diffuse,
+                    specular: mat.specular,
+                    shininess: mat.shininess,
+                    color: mat.color,
+                    colorTexture: mat.colorTexture,
+                    normalTexture: mat.normalTexture,
+                    metallicRoughnessTexture: mat.metallicRoughnessTexture
+                })
+            }
+        );
+    }
+
+    public merge(other: Object3d): Object3d {
         const offset = this._vertices.length / 3;
-        const mergedIndices = [
-            ...this._indices,
-            ...other.indices.map(index => index + offset)
-        ];
 
-        return new Object3d({
-            name: `${this._name}_${other.name}`,
-            vertices: mergedVertices,
-            texCoords: mergedTexCoords,
-            indices: mergedIndices,
-            normals: mergedNormals,
-            color: this.color
-        });
+        let temp = this._vertices.length;
+        this._vertices.length = temp + other._vertices.length;
+        for (let i = 0; i < other._vertices.length; i++) {
+            this._vertices[temp + i] = other._vertices[i];
+        }
+
+        temp = this._normals.length;
+        this._normals.length = temp + other._normals.length;
+        for (let i = 0; i < other._normals.length; i++) {
+            this._normals[temp + i] = other._normals[i];
+        }
+
+        temp = this._texCoords.length;
+        this._texCoords.length = temp + other._texCoords.length;
+        for (let i = 0; i < other._texCoords.length; i++) {
+            this._texCoords[temp + i] = other._texCoords[i];
+        }
+
+        temp = this._indices.length;
+        this._indices.length = temp + other._indices.length;
+        for (let i = 0; i < other._indices.length; i++) {
+            this._indices[temp + i] = other._indices[i] + offset;
+        }
+
+        this._numVertices = this._vertices.length / 3;
+
+        return this;
+    }
+
+    static merge(objects: Object3d[], maxSize?: number): Object3d {
+        let res = new Object3d();
+        let size = maxSize ? maxSize : objects.length;
+        for (let i = 0; i < size; i++) {
+            res.merge(objects[i]);
+        }
+        return res;
     }
 }
 

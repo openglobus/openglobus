@@ -16,7 +16,34 @@ import {IRayParams, Ray} from "./Ray";
 import {Strip, IStripParams} from "./Strip";
 import {Vector, VectorEventsType} from "../layer/Vector";
 import {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
+import {Quat} from "../math/Quat";
+import {RADIANS, clamp, DEGREES} from "../math";
 
+/**
+ * Interface for Entity parameters.
+ * @typedef {Object} IEntityParams
+ * @property {string} [name] - Name of the entity.
+ * @property {any} [properties] - Additional properties of the entity.
+ * @property {Vec3 | NumberArray3} [cartesian] - Cartesian position.
+ * @property {LonLat | NumberArray3 | NumberArray2} [lonlat] - Geographic coordinates.
+ * @property {number} [altitude] - Altitude.
+ * @property {boolean} [visibility] - Visibility flag.
+ * @property {Billboard | IBillboardParams} [billboard] - Billboard object or parameters.
+ * @property {Label | ILabelParams} [label] - Label object or parameters.
+ * @property {Polyline | IPolylineParams} [polyline] - Polyline object or parameters.
+ * @property {Ray | IRayParams} [ray] - Ray object or parameters.
+ * @property {PointCloud | IPointCloudParams} [pointCloud] - Point cloud object or parameters.
+ * @property {Geometry | IGeometryParams} [geometry] - Geometry object or parameters.
+ * @property {GeoObject | IGeoObjectParams} [geoObject] - Geo object or parameters.
+ * @property {Strip | IStripParams} [strip] - Strip object or parameters.
+ * @property {boolean} [independentPicking] - Independent picking flag.
+ * @property {boolean} [relativePosition] - Parent relative position flag, otherwise position is absolute.
+ * @property {number} [pitch] - Rotation around local X-axis.
+ * @property {number} [yaw] - Rotation around local Y-axis.
+ * @property {number} [roll] - Rotation around local Z-axis.
+ * @property {number | Vec3 | NumberArray3} [scale] - Scaling factor.
+ * @property {boolean} [forceGlobalPosition] - Forces global position for children entities make them the same position as the parent.
+ */
 export interface IEntityParams {
     name?: string;
     properties?: any;
@@ -33,6 +60,13 @@ export interface IEntityParams {
     geoObject?: GeoObject | IGeoObjectParams;
     strip?: Strip | IStripParams;
     independentPicking?: boolean;
+    relativePosition?: boolean;
+    pitch?: number;
+    yaw?: number;
+    roll?: number;
+    scale?: number | Vec3 | NumberArray3;
+    forceGlobalPosition?: boolean;
+    localPosition?: Vec3 | NumberArray3;
 }
 
 /**
@@ -40,19 +74,28 @@ export interface IEntityParams {
  * They can be created manually and added to entity collection.
  *
  * @class
- * @param {Object} [options] - Entity options:
- * @param {string} [options.name] - A human-readable name to display to users. It does not have to be unique.
- * @param {Vec3|Array.<number>} [options.cartesian] - Spatial entities like billboard, label etc. cartesian position.
- * @param {LonLat} [options.lonlat] - Geodetic coordinates for an entities like billboard, label etc.
- * @param {boolean} [options.aground] - True for entities that have to be placed on the relief.
- * @param {boolean} [options.visibility] - Entity visibility.
- * @param {*} [options.billboard] - Billboard options(see {@link Billboard}).
- * @param {*} [options.label] - Label options(see {@link Label}).
- * @param {*} [options.polyline] - Polyline options(see {@link Polyline}).
- * @param {*} [options.ray] - Ray options(see {@link Ray}).
- * @param {*} [options.pointCloud] - Point cloud options(see {@link PointCloud}).
- * @param {*} [options.geometry] - Geometry options (see {@link Geometry}), available for vector layer only.
- * @param {*} [options.properties] - Entity custom properties.
+ * @param {IEntityParams} [options] - Entity options:
+ * @param {string} [options.name] - Name of the entity.
+ * @param {any} [options.properties] - Additional properties of the entity.
+ * @param {Vec3 | NumberArray3} [options.cartesian] - Cartesian position.
+ * @param {LonLat | NumberArray3 | NumberArray2} [options.lonlat] - Geographic coordinates.
+ * @param {number} [options.altitude] - Altitude.
+ * @param {boolean} [options.visibility] - Visibility flag.
+ * @param {Billboard | IBillboardParams} [options.billboard] - Billboard object or parameters.
+ * @param {Label | ILabelParams} [options.label] - Label object or parameters.
+ * @param {Polyline | IPolylineParams} [options.polyline] - Polyline object or parameters.
+ * @param {Ray | IRayParams} [options.ray] - Ray object or parameters.
+ * @param {PointCloud | IPointCloudParams} [options.pointCloud] - Point cloud object or parameters.
+ * @param {Geometry | IGeometryParams} [options.geometry] - Geometry object or parameters.
+ * @param {GeoObject | IGeoObjectParams} [options.geoObject] - Geo object or parameters.
+ * @param {Strip | IStripParams} [options.strip] - Strip object or parameters.
+ * @param {boolean} [options.independentPicking] - Independent picking flag.
+ * @param {boolean} [options.relativePosition] - Parent relative position flag, otherwise position is absolute.
+ * @param {number} [options.pitch] - Rotation around local X-axis.
+ * @param {number} [options.yaw] - Rotation around local Y-axis.
+ * @param {number} [options.roll] - Rotation around local Z-axis.
+ * @param {number | Vec3 | NumberArray3} [options.scale] - Scaling factor.
+ * @param {boolean} [options.forceGlobalPosition] - Forces global position for children entities make them the same position as the parent.
  */
 class Entity {
 
@@ -78,7 +121,9 @@ class Entity {
      * @public
      * @type {Array.<Entity>}
      */
-    public childrenNodes: Entity[];
+    public childEntities: Entity[];
+
+    public forceGlobalPosition: boolean;
 
     /**
      * Parent entity.
@@ -93,6 +138,16 @@ class Entity {
      * @type {Vec3}
      */
     public _cartesian: Vec3;
+
+    /**
+     * Entity cartesian is equal root entity absolute cartesian.
+     * @protected
+     * @type {Vec3}
+     */
+    protected _rootCartesian: Vec3;
+
+    protected _localPosition: Vec3;
+    protected _absoluteLocalPosition: Vec3;
 
     /**
      * Geodetic entity coordinates.
@@ -219,6 +274,18 @@ class Entity {
 
     public _nodePtr?: EntityCollectionNode;
 
+    protected _relativePosition: boolean;
+    protected _pitch: number;
+    protected _yaw: number;
+    protected _roll: number;
+    protected _pitchRad: number;
+    protected _yawRad: number;
+    protected _rollRad: number;
+    protected _scale: Vec3;
+    protected _qFrame: Quat;
+    protected _qRot: Quat;
+    public _absoluteQRot: Quat;
+
     constructor(options: IEntityParams = {}) {
 
         options.properties = options.properties || {};
@@ -229,11 +296,18 @@ class Entity {
 
         this.properties.name = this.properties.name != undefined ? this.properties.name : "";
 
-        this.childrenNodes = [];
+        this.childEntities = [];
 
         this.parent = null;
 
+        this.forceGlobalPosition = options.forceGlobalPosition || false;
+
         this._cartesian = utils.createVector3(options.cartesian);
+
+        this._rootCartesian = new Vec3();
+
+        this._localPosition = utils.createVector3(options.localPosition);
+        this._absoluteLocalPosition = new Vec3();
 
         this._lonLat = utils.createLonLat(options.lonlat);
 
@@ -254,6 +328,21 @@ class Entity {
         this._pickingColor = new Vec3(0, 0, 0);
 
         this._independentPicking = options.independentPicking || false;
+
+        this._relativePosition = options.relativePosition || false;
+        this._pitch = options.pitch || 0;
+        this._yaw = options.yaw || 0;
+        this._roll = options.roll || 0;
+
+        this._pitchRad = this._pitch * RADIANS;
+        this._yawRad = this._yaw * RADIANS;
+        this._rollRad = this._roll * RADIANS;
+
+        this._scale = utils.createVector3(options.scale, new Vec3(1, 1, 1));
+
+        this._qFrame = Quat.IDENTITY;
+        this._qRot = Quat.IDENTITY;
+        this._absoluteQRot = Quat.IDENTITY;
 
         this._featureConstructorArray = {
             billboard: [Billboard, this.setBillboard],
@@ -283,18 +372,104 @@ class Entity {
         this.strip = this._createOptionFeature<Strip, IStripParams>("strip", options.strip);
     }
 
+    /**
+     * Returns root entity object.
+     * @public
+     * @return {Entity}
+     */
+    public get rootEntity(): Entity {
+        let pn: Entity | null = this;
+        while (pn) {
+            if (!pn.parent) {
+                return pn;
+            }
+            pn = pn.parent;
+        }
+        return this;
+    }
+
+    /**
+     * Sets relative position property
+     * @param isRelative
+     */
+    public set relativePosition(isRelative: boolean) {
+
+        if (isRelative !== this._relativePosition) {
+
+            let cart = this.getAbsoluteCartesian(),
+                pitch = this.getAbsolutePitch(),
+                yaw = this.getAbsoluteYaw(),
+                roll = this.getAbsoluteRoll();
+
+            this._relativePosition = isRelative;
+
+            // probably need to take root this.rootEntity
+            if (this.parent) {
+                this._rootCartesian.copy(this.parent._rootCartesian);
+            }
+
+            if (!isRelative) {
+                this.setCartesian3v(cart);
+                this.setPitch(pitch);
+                this.setYaw(yaw);
+                this.setRoll(roll);
+            } else if (this.parent) {
+                this.setAbsoluteCartesian3v(cart);
+                this.setAbsolutePitch(pitch);
+                this.setAbsoluteYaw(yaw);
+                this.setAbsoluteRoll(roll);
+            }
+        }
+    }
+
+    /**
+     * Gets relative position property
+     * @public
+     * @returns{boolean}
+     */
+    public get relativePosition(): boolean {
+        return this._relativePosition;
+    }
+
+    /**
+     * Gets current entity collection container.
+     * @public
+     * @returns {EntityCollection | null}
+     */
+    public get entityCollection(): EntityCollection | null {
+        return this._entityCollection;
+    }
+
+    /**
+     * Gets entity uniq id
+     * @public
+     * @returns {number}
+     */
     public get id(): number {
         return this.__id;
     }
 
+    /**
+     * Checks if the given entity is equal to the current entity.
+     * @param {Entity} entity - The entity to compare.
+     * @returns {boolean} True if entities are equal, otherwise false.
+     */
     public isEqual(entity: Entity): boolean {
         return this.__id === entity.__id;
     }
 
+    /**
+     * Gets the layer index of the entity.
+     * @returns {number} The layer index.
+     */
     public get layerIndex(): number {
         return this._layerIndex;
     }
 
+    /**
+     * Gets the instance class name of the entity.
+     * @returns {string} The instance name "Entity".
+     */
     public get instanceName(): string {
         return "Entity";
     }
@@ -310,6 +485,10 @@ class Entity {
         return null;
     }
 
+    /**
+     * Gets the collection index of the entity.
+     * @returns {number} The entity collection index.
+     */
     public getCollectionIndex(): number {
         return this._entityCollectionIndex;
     }
@@ -318,16 +497,16 @@ class Entity {
      * Adds current entity into the specified entity collection.
      * @public
      * @param {EntityCollection | Vector} collection - Specified entity collection or vector layer.
-     * @param {Boolean} [rightNow=false] - Entity insertion option for vector layer.
+     * @param {boolean} [rightNow=false] - Entity insertion option for vector layer.
      * @returns {Entity} - This object.
      */
-    public addTo(collection: EntityCollection | Vector, rightNow: boolean = false) {
+    public addTo(collection: EntityCollection | Vector, rightNow: boolean = false): Entity {
         collection.add(this, rightNow);
         return this;
     }
 
     /**
-     * Removes current entity from collection and layer.
+     * Removes current entity from its collection or layer.
      * @public
      */
     public remove() {
@@ -361,8 +540,8 @@ class Entity {
         // geometry
         this.geometry && this.geometry.setVisibility(visibility);
 
-        for (let i = 0; i < this.childrenNodes.length; i++) {
-            this.childrenNodes[i].setVisibility(visibility);
+        for (let i = 0; i < this.childEntities.length; i++) {
+            this.childEntities[i].setVisibility(visibility);
         }
     }
 
@@ -385,45 +564,395 @@ class Entity {
     }
 
     /**
+     * Gets scale factor
+     * @public
+     * @returns {Vec3}
+     */
+    public getScale(): Vec3 {
+        return this._scale;
+    }
+
+    /**
+     * Sets XYZ axis scale for the inner object such as GeoObject
+     * @public
+     * @param {Vec3} scale - Scale factor
+     */
+    public setScale3v(scale: Vec3) {
+
+        this._scale.copy(scale);
+
+        this.geoObject && this.geoObject.setScale3v(this._scale);
+
+        for (let i = 0; i < this.childEntities.length; i++) {
+            this.childEntities[i].setScale3v(this.childEntities[i].getScale());
+        }
+    }
+
+    /**
+     * Sets scale for the inner object such as GeoObject
+     * @public
+     * @param {number} val - Scale factor
+     */
+    public setScale(val: number) {
+
+        this._scale.set(val, val, val);
+
+        this.geoObject && this.geoObject.setScale(val);
+
+        for (let i = 0; i < this.childEntities.length; i++) {
+            this.childEntities[i].setScale3v(this.childEntities[i].getScale());
+        }
+    }
+
+    /**
+     * Gets the absolute rotation direction of the entity.
+     * @public
+     * @returns {Quat} The absolute rotation quaternion.
+     */
+    public getAbsoluteRotation(): Quat {
+        return this._absoluteQRot.clone();
+    }
+
+    /**
+     * Gets the local rotation of the entity. For the root entity it is equal to the absolute rotation.
+     * @public
+     * @returns {Quat} The rotation quaternion.
+     */
+    public getRotation(): Quat {
+        return this._qRot;
+    }
+
+    /**
+     * Rotates the entity to look at a given point in world coordinates.
+     * @public
+     * @param {Vec3} cart - The target position to look at.
+     */
+    public setLook3v(cart: Vec3) {
+        let lq = new Quat();
+        let p0 = this.getAbsoluteCartesian();
+        let rot;
+        if (this._entityCollection) {
+            let up = (this._entityCollection.renderNode as Planet).ellipsoid.getSurfaceNormal3v(p0);
+            rot = lq.setLookRotation(cart.sub(p0), up).conjugate();
+
+        } else {
+            rot = lq.setLookRotation(cart.sub(p0), Vec3.UP).conjugate();
+        }
+        this.setAbsoluteRotation(rot);
+    }
+
+    /**
+     * Rotates the entity to look at a given geographic coordinate.
+     * @public
+     * @param {LonLat} lonLat - The longitude and latitude to look at.
+     */
+    public setLookLonLat(lonLat: LonLat) {
+        if (this._entityCollection) {
+            let cart = (this._entityCollection.renderNode as Planet).ellipsoid.lonLatToCartesian(lonLat);
+            this.setLook3v(cart);
+        }
+    }
+
+    /**
+     * Sets the absolute rotation of the entity.
+     * @public
+     * @param {Quat} rot - The new absolute rotation quaternion.
+     */
+    public setAbsoluteRotation(rot: Quat) {
+        this._absoluteQRot.copy(rot);
+        this._updatePitchYawRoll();
+    }
+
+    /**
+     * Sets the local rotation of the entity.
+     * @param {Quat} rot - The new rotation quaternion.
+     */
+    public setRotation(rot: Quat) {
+        //this._qRot.copy(rot);
+        //
+        //@todo when necessary
+        //
+    }
+
+    /**
+     * Sets the pitch rotation of the entity.
+     * @param {number} val - The new pitch angle in degrees.
+     */
+    public setPitch(val: number) {
+        this._pitch = val;
+        this._pitchRad = val * RADIANS;
+        this._updateAbsolutePosition();
+    }
+
+    /**
+     * Sets the yaw rotation of the entity.
+     * @param {number} val - The new yaw angle in degrees.
+     */
+    public setYaw(val: number) {
+        this._yaw = val;
+        this._yawRad = val * RADIANS;
+        this._updateAbsolutePosition();
+    }
+
+    /**
+     * Sets the roll rotation of the entity.
+     * @public
+     * @param {number} val - The new roll angle in degrees.
+     */
+    public setRoll(val: number) {
+        this._roll = val;
+        this._rollRad = val * RADIANS;
+        this._updateAbsolutePosition();
+    }
+
+    /**
+     * Gets the pitch angle of the entity.
+     * @public
+     * @returns {number} The pitch angle in degrees.
+     */
+    public getPitch(): number {
+        return this._pitch;
+    }
+
+    /**
+     * Gets the yaw angle of the entity.
+     * @public
+     * @returns {number} The yaw angle in degrees.
+     */
+    public getYaw(): number {
+        return this._yaw;
+    }
+
+    /**
+     * Gets the roll angle of the entity.
+     * @public
+     * @returns {number} The roll angle in degrees.
+     */
+    public getRoll(): number {
+        return this._roll;
+    }
+
+    /**
+     * Sets the absolute pitch of the entity.
+     * @public
+     * @param {number} val - The absolute pitch angle in degrees.
+     */
+    public setAbsolutePitch(val: number) {
+        if (this._relativePosition) {
+            this._absoluteQRot.setPitchYawRoll(val * RADIANS, this.getAbsoluteYaw() * RADIANS, this.getAbsoluteRoll() * RADIANS, this._qFrame);
+            this._updatePitchYawRoll();
+        } else {
+            this.setPitch(val);
+        }
+    }
+
+    /**
+     * Sets the absolute yaw of the entity.
+     * @public
+     * @param {number} val - The absolute yaw angle in degrees.
+     */
+    public setAbsoluteYaw(val: number) {
+        if (this._relativePosition) {
+            this._absoluteQRot.setPitchYawRoll(this.getAbsolutePitch() * RADIANS, val * RADIANS, this.getAbsoluteRoll() * RADIANS, this._qFrame);
+            this._updatePitchYawRoll();
+        } else {
+            this.setYaw(val);
+        }
+    }
+
+    /**
+     * Sets the absolute roll of the entity.
+     * @public
+     * @param {number} val - The absolute roll angle in degrees.
+     */
+    public setAbsoluteRoll(val: number) {
+        if (this._relativePosition) {
+            this._absoluteQRot.setPitchYawRoll(this.getAbsolutePitch() * RADIANS, this.getAbsoluteYaw() * RADIANS, val * RADIANS, this._qFrame);
+            this._updatePitchYawRoll();
+        } else {
+            this.setRoll(val);
+        }
+    }
+
+    /**
+     * Gets the absolute pitch angle of the entity.
+     * @public
+     * @returns {number} The absolute pitch angle in degrees.
+     */
+    public getAbsolutePitch(): number {
+        if (this.parent && this._relativePosition) {
+            return this._qFrame.conjugate().inverse().mul(this._absoluteQRot).getPitch() * DEGREES;
+        }
+
+        return this._pitch;
+    }
+
+    /**
+     * Gets the absolute yaw angle of the entity.
+     * @public
+     * @returns {number} The absolute yaw angle in degrees.
+     */
+    public getAbsoluteYaw(): number {
+        if (this.parent && this._relativePosition) {
+            return this._qFrame.conjugate().inverse().mul(this._absoluteQRot).getYaw() * DEGREES;
+        }
+        return this._yaw;
+    }
+
+    /**
+     * Gets the absolute roll angle of the entity.
+     * @public
+     * @returns {number} The absolute roll angle in degrees.
+     */
+    public getAbsoluteRoll(): number {
+        if (this.parent && this._relativePosition) {
+            return this._qFrame.conjugate().inverse().mul(this._absoluteQRot).getRoll() * DEGREES;
+        }
+        return this._roll;
+    }
+
+    protected _getScaleByDistance(): number {
+        let scd = 1;
+        if (this._entityCollection) {
+            let scaleByDistance = this._entityCollection.scaleByDistance;
+            let lookLength = 1;
+            if (this._entityCollection.renderNode && this._entityCollection.renderNode.renderer) {
+                lookLength = this._entityCollection.renderNode.renderer.activeCamera.eye.distance(this._rootCartesian);
+            }
+            //the same in the shader
+            scd = scaleByDistance[2] * clamp(lookLength, scaleByDistance[0], scaleByDistance[1]) / scaleByDistance[0];
+        }
+        return scd;
+    }
+
+    /**
+     * Sets the absolute cartesian position of the entity.
+     * @public
+     * @param {number} x - X coordinate.
+     * @param {number} y - Y coordinate.
+     * @param {number} z - Z coordinate.
+     */
+    public setAbsoluteCartesian(x: number, y: number, z: number) {
+        this.setAbsoluteCartesian3v(new Vec3(x, y, z));
+    }
+
+    /**
+     * Sets the absolute cartesian position of the entity using a Vec3.
+     * @public
+     * @param {Vec3} absolutCartesian - The absolute cartesian position.
+     */
+    public setAbsoluteCartesian3v(absolutCartesian: Vec3) {
+        let pos = absolutCartesian;
+
+        if (this.parent && this._relativePosition) {
+            let scd = this._getScaleByDistance();
+            pos = absolutCartesian.sub(this.parent.getAbsoluteCartesian()).scale(1 / scd);
+            pos = this.parent._absoluteQRot.conjugate().mulVec3(pos);
+        }
+
+        this.setCartesian3v(pos);
+    }
+
+    /**
+     * Returns absolute cartesian position.
+     * @public
+     * @returns {Vec3} -
+     */
+    public getAbsoluteCartesian(): Vec3 {
+        if (this.parent && this._relativePosition) {
+            let scd = this._getScaleByDistance();
+            return this._rootCartesian.add(this._absoluteLocalPosition.scaleTo(scd));
+        }
+        return this._cartesian.clone();
+    }
+
+    /**
      * Sets entity cartesian position.
      * @public
      * @param {number} x - 3d space X - position.
      * @param {number} y - 3d space Y - position.
      * @param {number} z - 3d space Z - position.
      */
-    public setCartesian(x?: number, y?: number, z?: number) {
-        let p = this._cartesian;
+    public setCartesian(x: number, y: number, z: number) {
 
-        p.x = x || 0.0;
-        p.y = y || 0.0;
-        p.z = z || 0.0;
+        this._cartesian.set(x, y, z);
 
-        // billboards
-        this.billboard && this.billboard.setPosition3v(p);
+        this._updateAbsolutePosition();
 
-        // geoObject
-        this.geoObject && this.geoObject.setPosition3v(p);
-
-        // labels
-        this.label && this.label.setPosition3v(p);
-
-        for (let i = 0; i < this.childrenNodes.length; i++) {
-            this.childrenNodes[i].setCartesian(x, y, z);
-        }
-
-        let ec = this._entityCollection;
-
-        if (ec && ec.renderNode && (ec.renderNode as Planet).ellipsoid) {
-            this._lonLat = (ec.renderNode as Planet).ellipsoid.cartesianToLonLat(p);
-
-            if (Math.abs(this._lonLat.lat) < mercator.MAX_LAT) {
-                this._lonLatMerc = this._lonLat.forwardMercator();
-            } else {
-                this._lonLatMerc.lon = this._lonLatMerc.lat = this._lonLatMerc.height = 0;
+        for (let i = 0; i < this.childEntities.length; i++) {
+            let chi = this.childEntities[i];
+            if (chi._relativePosition) {
+                chi.setCartesian3v(chi.getCartesian());
+            } else if (chi.forceGlobalPosition) {
+                chi.setCartesian(x, y, z);
             }
         }
 
+        this._updateLonLat();
+
         //ec && ec.events.dispatch(ec.events.entitymove, this);
+    }
+
+    protected _updatePitchYawRoll() {
+        if (this.parent) {
+            this._qRot = this.parent._absoluteQRot.conjugate().mul(this._absoluteQRot);
+
+            this._pitchRad = this._qRot.getPitch();
+            this._yawRad = this._qRot.getYaw();
+            this._rollRad = this._qRot.getRoll();
+
+            this._pitch = this._pitchRad * DEGREES;
+            this._yaw = this._yawRad * DEGREES;
+            this._roll = this._rollRad * DEGREES;
+
+            if (this.geoObject) {
+                this.geoObject.setRotation(this._absoluteQRot);
+            }
+
+            for (let i = 0; i < this.childEntities.length; i++) {
+                this.childEntities[i]._updateAbsolutePosition();
+            }
+        }
+    }
+
+    public _updateAbsolutePosition() {
+
+        let parent = this.parent;
+
+        if (parent && this._relativePosition) {
+            this._qFrame.copy(parent._qFrame);
+            this._rootCartesian.copy(parent._rootCartesian);
+
+            this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
+            parent._absoluteQRot.mulRes(this._qRot, this._absoluteQRot);
+
+            let rotCart = parent._absoluteQRot.mulVec3(this._cartesian.add(this._localPosition));
+            parent._absoluteLocalPosition.addRes(rotCart, this._absoluteLocalPosition);
+        } else {
+            this._qFrame = Quat.IDENTITY;
+            if (this._entityCollection && this._entityCollection.renderNode) {
+                this._qFrame = this._entityCollection.renderNode.getFrameRotation(this._cartesian);
+            }
+            this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad, this._qFrame);
+            this._absoluteQRot.copy(this._qRot);
+            this._rootCartesian.copy(this._cartesian);
+            this._absoluteLocalPosition.copy(this._localPosition);
+        }
+
+        if (this.geoObject) {
+            this.geoObject.setRotation(this._absoluteQRot);
+            this.geoObject.setPosition3v(this._rootCartesian);
+            this.geoObject.setLocalPosition3v(this._absoluteLocalPosition);
+        }
+
+        this.billboard && this.billboard.setPosition3v(this._rootCartesian);
+        this.label && this.label.setPosition3v(this._rootCartesian);
+
+        for (let i = 0, len = this.childEntities.length; i < len; i++) {
+            this.childEntities[i]._updateAbsolutePosition();
+        }
+
+        this._updateLonLat();
     }
 
     /**
@@ -433,34 +962,31 @@ class Entity {
      * @param {boolean} skipLonLat - skip geodetic calculation.
      */
     public _setCartesian3vSilent(cartesian: Vec3, skipLonLat: boolean = false) {
-        let p = this._cartesian;
 
-        p.x = cartesian.x || 0.0;
-        p.y = cartesian.y || 0.0;
-        p.z = cartesian.z || 0.0;
+        this._cartesian.copy(cartesian);
 
-        // billboards
-        this.billboard && this.billboard.setPosition3v(p);
+        this._updateAbsolutePosition();
 
-        // geoObject
-        this.geoObject && this.geoObject.setPosition3v(p);
-
-        // labels
-        this.label && this.label.setPosition3v(p);
-
-        for (let i = 0; i < this.childrenNodes.length; i++) {
-            this.childrenNodes[i].setCartesian(p.x, p.y, p.z);
+        for (let i = 0; i < this.childEntities.length; i++) {
+            this.childEntities[i].setCartesian(this._cartesian.x, this._cartesian.y, this._cartesian.z);
         }
 
+        if (!skipLonLat) {
+            this._updateLonLat();
+        }
+    }
+
+    protected _updateLonLat() {
         let ec = this._entityCollection;
 
-        if (!skipLonLat && ec && ec.renderNode && (ec.renderNode as Planet).ellipsoid) {
-            this._lonLat = (ec.renderNode as Planet).ellipsoid.cartesianToLonLat(p);
+        if (ec && ec.renderNode && (ec.renderNode as Planet).ellipsoid) {
+            //let cart = this._rootCartesian.add(this._absoluteLocalPosition);
+            this._lonLat = (ec.renderNode as Planet).ellipsoid.cartesianToLonLat(this.getAbsoluteCartesian());
 
             if (Math.abs(this._lonLat.lat) < mercator.MAX_LAT) {
                 this._lonLatMerc = this._lonLat.forwardMercator();
             } else {
-                //this._lonLatMerc = null;
+                this._lonLatMerc.lon = this._lonLatMerc.lat = 0;
             }
         }
     }
@@ -477,7 +1003,7 @@ class Entity {
     /**
      * Sets geodetic coordinates of the entity point object.
      * @public
-     * @param {LonLat} lonlat - WGS84 coordinates.
+     * @param {LonLat} lonlat - coordinates.
      */
     public setLonLat(lonlat: LonLat) {
         let l = this._lonLat;
@@ -494,8 +1020,10 @@ class Entity {
                 //this._lonLatMerc = null;
             }
 
-            (ec.renderNode as Planet).ellipsoid.lonLatToCartesianRes(l, this._cartesian);
-            this.setCartesian3v(this._cartesian);
+            let temp = new Vec3();
+            (ec.renderNode as Planet).ellipsoid.lonLatToCartesianRes(l, temp);
+
+            this.setAbsoluteCartesian3v(temp);
         }
     }
 
@@ -521,8 +1049,10 @@ class Entity {
                 this._lonLatMerc.lon = this._lonLatMerc.lat = this._lonLatMerc.height = 0;
             }
 
-            (ec.renderNode as Planet).ellipsoid.lonLatToCartesianRes(l, this._cartesian);
-            this.setCartesian3v(this._cartesian);
+            let temp = new Vec3();
+            (ec.renderNode as Planet).ellipsoid.lonLatToCartesianRes(l, temp);
+
+            this.setAbsoluteCartesian3v(temp);
         }
     }
 
@@ -696,6 +1226,11 @@ class Entity {
         return strip;
     }
 
+    /**
+     * Gets layer container
+     * @public
+     * @returns {Vector | null}
+     */
     public get layer(): Vector | null {
         return this._layer;
     }
@@ -720,7 +1255,7 @@ class Entity {
             entity._pickingColor = this._pickingColor;
         }
         entity.parent = this;
-        this.childrenNodes.push(entity);
+        this.childEntities.push(entity);
         this._entityCollection && this._entityCollection.appendChildEntity(entity);
     }
 
@@ -743,8 +1278,8 @@ class Entity {
 
         this.geoObject && this.geoObject.setPickingColor3v(c);
 
-        for (let i = 0; i < this.childrenNodes.length; i++) {
-            this.childrenNodes[i].setPickingColor();
+        for (let i = 0; i < this.childEntities.length; i++) {
+            this.childEntities[i].setPickingColor();
         }
     }
 
@@ -783,8 +1318,8 @@ class Entity {
             if (e.northEast.lat > ne.lat) ne.lat = e.northEast.lat;
         }
 
-        for (let i = 0; i < this.childrenNodes.length; i++) {
-            let e = this.childrenNodes[i].getExtent();
+        for (let i = 0; i < this.childEntities.length; i++) {
+            let e = this.childEntities[i].getExtent();
             if (e.southWest.lon < sw.lon) sw.lon = e.southWest.lon;
             if (e.southWest.lat < sw.lat) sw.lat = e.southWest.lat;
             if (e.northEast.lon > ne.lon) ne.lon = e.northEast.lon;

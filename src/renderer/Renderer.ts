@@ -1,7 +1,7 @@
 import {Camera} from "../camera/Camera";
 import {Control} from "../control/Control";
 import {cons} from "../cons";
-import {createRendererEvents, RendererEvents, RendererEventsHandler} from "./RendererEvents";
+import {createRendererEvents, IBaseInputState, RendererEventsHandler} from "./RendererEvents";
 import {depth} from "../shaders/depth";
 import {EntityCollection} from "../entity/EntityCollection";
 import {Framebuffer, Multisample} from "../webgl/index";
@@ -26,6 +26,7 @@ interface IRendererParams {
     fontsSrc?: string;
     gamma?: number;
     exposure?: number;
+    dpi?: number;
 }
 
 interface IPickingObject {
@@ -45,7 +46,7 @@ let __pickingCallbackCounter__ = 0;
 
 let __depthCallbackCounter__ = 0;
 
-let __distanceCallbackCounter__ = 0;
+let _tempDepth_ = new Float32Array(2);
 
 function clientWaitAsync(gl: WebGL2RenderingContext, sync: WebGLSync, flags: number): Promise<void> {
     return new Promise<void>((resolve, reject) => {
@@ -98,8 +99,6 @@ function clientWaitAsync(gl: WebGL2RenderingContext, sync: WebGLSync, flags: num
  * @fires EventsHandler<RendererEventsType>#touchenter
  */
 
-let __resizeTimeout: any;
-
 export interface HTMLDivElementExt extends HTMLDivElement {
     attributions?: HTMLElement;
 }
@@ -119,6 +118,7 @@ class Renderer {
      * @type {Handler}
      */
     public handler: Handler;
+
     public exposure: number;
     public gamma: number;
     public whitepoint: number;
@@ -143,7 +143,7 @@ class Renderer {
      * @public
      * @type {Camera}
      */
-    public activeCamera: Camera | null;
+    public activeCamera: Camera;
 
     /**
      * Renderer events. Represents interface for setting events like mousemove, draw, keypress etc.
@@ -185,21 +185,6 @@ class Renderer {
      * @type {Framebuffer}
      */
     public pickingFramebuffer: Framebuffer | null;
-
-    protected _tempPickingPix_: Uint8Array;
-
-    /**
-     * @public
-     * @type {Framebuffer}
-     */
-    public distanceFramebuffer: Framebuffer | null;
-
-    /**
-     * @type {Function[]}
-     */
-    protected _distanceCallbacks: IFrameCallbackHandler[];
-
-    protected _tempDistancePix_: Uint8Array;
 
     /**
      * Depth objects rendering queue.
@@ -244,15 +229,13 @@ class Renderer {
      */
     public fontAtlas: FontAtlas;
 
-    protected _entityCollections: EntityCollection[];
+    protected _entityCollections: EntityCollection[][];
 
     protected _currentOutput: string;
 
     protected _fnScreenFrame: Function | null;
 
     public labelWorker: LabelWorker;
-
-    public __useDistanceFramebuffer__: boolean;
 
     public screenDepthFramebuffer: Framebuffer | null;
 
@@ -262,23 +245,20 @@ class Renderer {
 
     public outputTexture: WebGLTexture | null;
 
-    protected _skipDistanceFrame: boolean;
-
-    protected _distancePixelBuffer: WebGLBuffer | null;
-
-    protected _skipPickingFrame: boolean;
-
-    protected _pickingPixelBuffer: WebGLBuffer | null;
-
-    protected _readDistanceBuffer: () => void;
-
     protected _readPickingBuffer: () => void;
 
-    constructor(handler: Handler, params: IRendererParams = {}) {
+    constructor(handler: Handler | string | HTMLCanvasElement, params: IRendererParams = {}) {
 
         this.div = null;
 
-        this.handler = handler;
+        if (handler instanceof Handler) {
+            this.handler = handler;
+        } else {
+            this.handler = new Handler(handler, {
+                pixelRatio: params.dpi || (window.devicePixelRatio + 0.15),
+                autoActivate: true
+            });
+        }
 
         this.exposure = params.exposure || 3.01;
 
@@ -292,7 +272,9 @@ class Renderer {
 
         this.renderNodes = {};
 
-        this.activeCamera = null;
+        this.activeCamera = new Camera(this, {
+            eye: new Vec3(0, 0, 0), look: new Vec3(0, 0, -1), up: new Vec3(0, 1, 0)
+        });
 
         this.events = createRendererEvents(this);
 
@@ -311,14 +293,6 @@ class Renderer {
         this._pickingCallbacks = [];
 
         this.pickingFramebuffer = null;
-
-        this._tempPickingPix_ = new Uint8Array([]);
-
-        this.distanceFramebuffer = null;
-
-        this._distanceCallbacks = [];
-
-        this._tempDistancePix_ = new Uint8Array([]);
 
         this._depthCallbacks = [];
 
@@ -365,15 +339,13 @@ class Renderer {
          */
         this.fontAtlas = new FontAtlas(params.fontsSrc);
 
-        this._entityCollections = [];
+        this._entityCollections = [[]];
 
         this._currentOutput = "screen";
 
         this._fnScreenFrame = null;
 
         this.labelWorker = new LabelWorker(4);
-
-        this.__useDistanceFramebuffer__ = true;
 
         this.screenDepthFramebuffer = null;
 
@@ -382,16 +354,6 @@ class Renderer {
         this.screenTexture = {};
 
         this.outputTexture = null;
-
-        this._skipDistanceFrame = false;
-
-        this._distancePixelBuffer = null;
-
-        this._skipPickingFrame = false;
-
-        this._pickingPixelBuffer = null;
-
-        this._readDistanceBuffer = this._readDistanceBuffer_webgl2;
 
         this._readPickingBuffer = this._readPickingBuffer_webgl2;
 
@@ -412,6 +374,10 @@ class Renderer {
         gl.enable(gl.BLEND);
         gl.blendEquation(gl.FUNC_ADD);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+    }
+
+    public setRelativeCenter(c?: Vec3) {
+        this.events.dispatch(this.events.changerelativecenter, c || this.activeCamera.eye);
     }
 
     /**
@@ -438,24 +404,6 @@ class Renderer {
             }
         }
     }
-
-    public addDistanceCallback(sender: any, callback: Function) {
-        let id = __distanceCallbackCounter__++;
-        this._distanceCallbacks.push({
-            id: id, callback: callback, sender: sender
-        });
-        return id;
-    }
-
-    public removeDistanceCallback(id: number) {
-        for (let i = 0; i < this._distanceCallbacks.length; i++) {
-            if (id === this._distanceCallbacks[i].id) {
-                this._distanceCallbacks.splice(i, 1);
-                break;
-            }
-        }
-    }
-
 
     /**
      * Adds picking rendering callback function.
@@ -630,10 +578,6 @@ class Renderer {
             this.draw();
         });
 
-        this.activeCamera = new Camera(this, {
-            eye: new Vec3(0, 0, 0), look: new Vec3(0, 0, -1), up: new Vec3(0, 1, 0)
-        });
-
         this.events.initialize();
 
         // Bind console key
@@ -644,28 +588,29 @@ class Renderer {
         this.handler.addProgram(screenFrame());
 
         this.pickingFramebuffer = new Framebuffer(this.handler, {
-            width: 640, height: 480
+            width: 640,
+            height: 480,
+            targets: [{
+                readAsync: true
+            }]
         });
         this.pickingFramebuffer.init();
 
-        this._tempPickingPix_ = new Uint8Array(this.pickingFramebuffer.width * this.pickingFramebuffer.height * 4);
-
-        this.distanceFramebuffer = new Framebuffer(this.handler, {
-            width: 320, height: 240
-        });
-        this.distanceFramebuffer.init();
-
-        this._tempDistancePix_ = new Uint8Array(this.distanceFramebuffer.width * this.distanceFramebuffer.height * 4);
-        //this._tempDistancePix_ = new Uint8Array(4);
-
         this.depthFramebuffer = new Framebuffer(this.handler, {
-            size: 2,
-            internalFormat: ["RGBA", "DEPTH_COMPONENT24"],
-            format: ["RGBA", "DEPTH_COMPONENT"],
-            type: ["UNSIGNED_BYTE", "UNSIGNED_INT"],
-            attachment: ["COLOR_ATTACHMENT", "DEPTH_ATTACHMENT"],
-            useDepth: false
+            targets: [{
+                internalFormat: "RGBA",
+                type: "UNSIGNED_BYTE",
+                attachment: "COLOR_ATTACHMENT",
+                readAsync: true
+            }, {
+                internalFormat: "RGBA16F",
+                type: "FLOAT",
+                attachment: "COLOR_ATTACHMENT",
+                readAsync: true
+            }],
+            useDepth: true
         });
+
         this.depthFramebuffer.init();
 
         this.screenDepthFramebuffer = new Framebuffer(this.handler, {
@@ -674,7 +619,6 @@ class Renderer {
         this.screenDepthFramebuffer.init();
 
         if (this.handler.gl!.type === "webgl") {
-            this._readDistanceBuffer = this._readDistanceBuffer_webgl1;
             this._readPickingBuffer = this._readPickingBuffer_webgl1;
 
             this.sceneFramebuffer = new Framebuffer(this.handler);
@@ -685,7 +629,6 @@ class Renderer {
             this.screenTexture = {
                 screen: this.sceneFramebuffer!.textures[0],
                 picking: this.pickingFramebuffer!.textures[0],
-                distance: this.distanceFramebuffer!.textures[0],
                 depth: this.screenDepthFramebuffer!.textures[0]
             };
         } else {
@@ -711,10 +654,12 @@ class Renderer {
             this.blitFramebuffer = new Framebuffer(this.handler, {
                 size: 1,
                 useDepth: false,
-                internalFormat: this._internalFormat,
-                format: this._format,
-                type: this._type,
-                filter: "NEAREST"
+                targets: [{
+                    internalFormat: this._internalFormat,
+                    format: this._format,
+                    type: this._type,
+                    filter: "NEAREST"
+                }]
             });
 
             this.blitFramebuffer.init();
@@ -730,12 +675,9 @@ class Renderer {
             this.screenTexture = {
                 screen: this.toneMappingFramebuffer!.textures[0],
                 picking: this.pickingFramebuffer!.textures[0],
-                distance: this.distanceFramebuffer!.textures[0],
                 depth: this.screenDepthFramebuffer!.textures[0],
                 frustum: this.depthFramebuffer!.textures[0]
             };
-
-            this._initReadPixelsBuffers();
         }
 
         this.handler.ONCANVASRESIZE = () => {
@@ -757,20 +699,6 @@ class Renderer {
         this._initializeRenderNodes();
 
         this._initializeControls();
-    }
-
-    _initReadPixelsBuffers() {
-        let gl = this.handler.gl!;
-
-        this._distancePixelBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, this._distancePixelBuffer);
-        gl.bufferData(gl.PIXEL_PACK_BUFFER, this.distanceFramebuffer!.width * this.distanceFramebuffer!.height * 4, gl.STREAM_READ);
-        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
-
-        this._pickingPixelBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, this._pickingPixelBuffer);
-        gl.bufferData(gl.PIXEL_PACK_BUFFER, this.pickingFramebuffer!.width * this.pickingFramebuffer!.height * 4, gl.STREAM_READ);
-        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
     }
 
     public _initializeControls() {
@@ -808,19 +736,17 @@ class Renderer {
         this.blitFramebuffer && this.blitFramebuffer.setSize(c.width, c.height, true);
 
         this.toneMappingFramebuffer && this.toneMappingFramebuffer.setSize(c.width, c.height, true);
-        this.depthFramebuffer && this.depthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
         this.screenDepthFramebuffer && this.screenDepthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
+        this.depthFramebuffer && this.depthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
 
         if (this.handler.gl!.type === "webgl") {
             this.screenTexture.screen = (this.sceneFramebuffer as Framebuffer)!.textures[0];
             this.screenTexture.picking = this.pickingFramebuffer!.textures[0];
-            this.screenTexture.distance = this.distanceFramebuffer!.textures[0];
             this.screenTexture.depth = this.screenDepthFramebuffer!.textures[0];
             this.screenTexture.frustum = this.depthFramebuffer!.textures[0];
         } else {
             this.screenTexture.screen = this.toneMappingFramebuffer!.textures[0];
             this.screenTexture.picking = this.pickingFramebuffer!.textures[0];
-            this.screenTexture.distance = this.distanceFramebuffer!.textures[0];
             this.screenTexture.depth = this.screenDepthFramebuffer!.textures[0];
             this.screenTexture.frustum = this.depthFramebuffer!.textures[0];
         }
@@ -900,44 +826,32 @@ class Renderer {
     /**
      * TODO: replace with cache friendly linked list by BillboardHandler, LabelHandler etc.
      */
-    public enqueueEntityCollectionsToDraw(ecArr: EntityCollection[]) {
-        this._entityCollections.push.apply(this._entityCollections, ecArr);
-    }
-
-    /**
-     * Draws opaque items entity collections.
-     * @protected
-     */
-    protected _drawOpaqueEntityCollections() {
-        let ec = this._entityCollections;
-
-        if (ec.length) {
-
-            this.enableBlendDefault();
-
-            // pointClouds pass
-            let i = ec.length;
-            while (i--) {
-                ec[i]._fadingOpacity && ec[i].pointCloudHandler.draw();
-            }
+    public enqueueEntityCollectionsToDraw(ecArr: EntityCollection[], depthOrder: number = 0) {
+        if (!this._entityCollections[depthOrder]) {
+            this._entityCollections[depthOrder] = [];
         }
+        this._entityCollections[depthOrder].push(...ecArr);
     }
 
-
     /**
-     * Draws transparent items entity collections.
      * @protected
      */
-    protected _drawTransparentEntityCollections() {
-        let ec = this._entityCollections;
+    protected _drawEntityCollections(depthOrder: number) {
+        let ec = this._entityCollections[depthOrder];
 
         if (ec.length) {
             let gl = this.handler.gl!;
 
             this.enableBlendDefault();
 
-            // GeoObjects
+            // Point Clouds
             let i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].pointCloudHandler.draw();
+            }
+
+            // GeoObjects
+            i = ec.length;
             while (i--) {
                 let eci = ec[i];
                 if (ec[i]._fadingOpacity) {
@@ -988,9 +902,78 @@ class Renderer {
         }
     }
 
-    protected _clearEntityCollectionQueue() {
-        this._entityCollections.length = 0;
-        this._entityCollections = [];
+    protected _drawPickingEntityCollections(depthOrder: number) {
+        let ec = this._entityCollections[depthOrder];
+        if (ec.length) {
+            // billboard pass
+            let i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].billboardHandler.drawPicking();
+            }
+            // geoObject pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].geoObjectHandler.drawPicking();
+            }
+            // label pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].labelHandler.drawPicking();
+            }
+            // ray pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].rayHandler.drawPicking();
+            }
+            // polyline pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._visibility && ec[i].polylineHandler.drawPicking();
+            }
+            //Strip pass
+            i = ec.length;
+            while (i--) {
+                ec[i]._visibility && ec[i].stripHandler.drawPicking();
+            }
+            // //pointClouds pass
+            // i = ec.length;
+            // while (i--) {
+            //    ec[i]._visibility && ec[i].pointCloudHandler.drawPicking();
+            // }
+        }
+    }
+
+    protected _drawDepthEntityCollections(depthOrder: number) {
+        let ec = this._entityCollections[depthOrder];
+        if (ec.length) {
+            // geoObject pass
+            let i = ec.length;
+            while (i--) {
+                ec[i]._fadingOpacity && ec[i].geoObjectHandler.drawDepth();
+            }
+
+            // i = ec.length;
+            // while (i--) {
+            //     ec[i]._fadingOpacity && ec[i].rayHandler.drawDepth();
+            // }
+            //
+            // // polyline pass
+            // i = ec.length;
+            // while (i--) {
+            //     ec[i]._visibility && ec[i].polylineHandler.drawDepth();
+            // }
+            //
+            // //Strip pass
+            // i = ec.length;
+            // while (i--) {
+            //     ec[i]._visibility && ec[i].stripHandler.drawDepth();
+            // }
+        }
+    }
+
+    protected _clearEntityCollectionQueue(depthOrder: number) {
+        this._entityCollections[depthOrder].length = 0;
+        this._entityCollections[depthOrder] = [];
     }
 
     /**
@@ -1025,6 +1008,9 @@ class Renderer {
         let rn = this._renderNodesArr;
         let k = frustums.length;
 
+        //
+        // RenderNodes PASS
+        //
         while (k--) {
             this.activeCamera!.setCurrentFrustum(k);
             gl.clear(gl.DEPTH_BUFFER_BIT);
@@ -1034,23 +1020,44 @@ class Renderer {
                 rn[i].preDrawNode();
             }
 
-            this._drawOpaqueEntityCollections();
-
             i = rn.length;
             while (i--) {
                 this.enableBlendDefault();
                 rn[i].drawNode();
             }
 
-            this._drawTransparentEntityCollections();
-            this._clearEntityCollectionQueue();
+            this._drawEntityCollections(0);
 
             e.dispatch(e.drawtransparent, this);
 
             if (pointerEvent && !mouseHold) {
-                this._drawPickingBuffer();
+                this._drawPickingBuffer(0);
             }
-            this.__useDistanceFramebuffer__ && this._drawDistanceBuffer();
+
+            this._drawDepthBuffer(0);
+
+            this._clearEntityCollectionQueue(0);
+        }
+
+        //
+        // EntityCollections PASS
+        //
+        for (let i = 1; i < this._entityCollections.length; i++) {
+            gl.clear(gl.DEPTH_BUFFER_BIT);
+            let k = frustums.length;
+            while (k--) {
+                this.activeCamera!.setCurrentFrustum(k);
+
+                this._drawEntityCollections(i);
+
+                if (pointerEvent && !mouseHold) {
+                    this._drawPickingBuffer(i);
+                }
+
+                this._drawDepthBuffer(i);
+            }
+
+            this._clearEntityCollectionQueue(i);
         }
 
         sceneFramebuffer.deactivate();
@@ -1058,14 +1065,10 @@ class Renderer {
         this.blitFramebuffer && (sceneFramebuffer as Multisample).blitTo(this.blitFramebuffer, 0);
 
         if (pointerEvent) {
-            if (h.isWebGl2()) {
-                // It works ONLY for 0 (closest) frustum
-                this._drawDepthBuffer();
-            }
             this._readPickingBuffer();
         }
 
-        this.__useDistanceFramebuffer__ && this._readDistanceBuffer();
+        this._readDepthBuffer();
 
         // Tone mapping followed by rendering on the screen
         this._fnScreenFrame!();
@@ -1092,7 +1095,7 @@ class Renderer {
 
         gl.disable(gl.DEPTH_TEST);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
         this.toneMappingFramebuffer!.activate();
@@ -1135,7 +1138,7 @@ class Renderer {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.outputTexture);
         gl.uniform1i(p.uniforms.texture, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer as WebGLBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
         gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         gl.enable(gl.DEPTH_TEST);
@@ -1145,190 +1148,108 @@ class Renderer {
      * Draw picking objects framebuffer.
      * @private
      */
-    protected _drawPickingBuffer() {
+    protected _drawPickingBuffer(depthOrder: number) {
         this.pickingFramebuffer!.activate();
 
         let h = this.handler;
         let gl = h.gl!;
 
-        if (this.activeCamera!.isFirstPass) {
+        if (this.activeCamera!.isFirstPass && depthOrder === 0) {
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         } else {
             gl.clear(gl.DEPTH_BUFFER_BIT);
         }
 
-        let dp = this._pickingCallbacks;
-        for (let i = 0, len = dp.length; i < len; i++) {
-            //
-            // draw picking scenes, usually we don't need blending,
-            // but sometimes set it manually in the callbacks
-            //
-            gl.disable(gl.BLEND);
+        //
+        // draw picking scenes, usually we don't need blending,
+        // but sometimes set it manually in the callbacks
+        //
+        gl.disable(gl.BLEND);
 
-            /**
-             * This callback renders picking frame.
-             */
-            dp[i].callback.call(dp[i].sender);
-            gl.enable(gl.BLEND);
+        if (depthOrder === 0) {
+            let dp = this._pickingCallbacks;
+            for (let i = 0, len = dp.length; i < len; i++) {
+                /**
+                 * This callback renders picking frame.
+                 */
+                dp[i].callback.call(dp[i].sender);
+            }
         }
+
+        this._drawPickingEntityCollections(depthOrder);
+
+        gl.enable(gl.BLEND);
 
         this.pickingFramebuffer!.deactivate();
     }
 
-    /**
-     * Draw picking objects framebuffer.
-     * @protected
-     */
-    protected _drawDistanceBuffer() {
-        this.distanceFramebuffer!.activate();
-
-        let h = this.handler;
-        let gl = h.gl!;
-
-        if (this.activeCamera!.isFirstPass) {
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        } else {
-            gl.clear(gl.DEPTH_BUFFER_BIT);
-        }
-
-        gl.disable(gl.BLEND);
-
-        let dp = this._distanceCallbacks;
-        let i = dp.length;
-        while (i--) {
-            /**
-             * This callback renders distance frame.
-             */
-            dp[i].callback.call(dp[i].sender);
-        }
-
-        gl.enable(gl.BLEND);
-
-        this.distanceFramebuffer!.deactivate();
-    }
-
-    protected _drawDepthBuffer() {
+    protected _drawDepthBuffer(depthOrder: number) {
         this.depthFramebuffer!.activate();
 
         let h = this.handler;
         let gl = h.gl!;
 
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.disable(gl.BLEND);
 
-        gl.enable(gl.DEPTH_TEST);
-
-        let dp = this._depthCallbacks;
-        let i = dp.length;
-        while (i--) {
-            /**
-             * This callback renders depth frame.
-             */
-            dp[i].callback.call(dp[i].sender);
+        if (this.activeCamera!.isFirstPass && depthOrder === 0) {
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        } else {
+            gl.clear(gl.DEPTH_BUFFER_BIT);
         }
+
+        if (depthOrder === 0) {
+            let dp = this._depthCallbacks;
+            let i = dp.length;
+            while (i--) {
+                /**
+                 * This callback renders depth frame.
+                 */
+                dp[i].callback.call(dp[i].sender);
+            }
+        }
+
+        this._drawDepthEntityCollections(depthOrder);
 
         this.depthFramebuffer!.deactivate();
 
         //
-        // PASS to depth visualization
-        this.screenDepthFramebuffer!.activate();
-        let sh = h.programs.depth, p = sh._program;
+        // DEBUG SCREEN OUTPUTS
+        //
+        if (this._currentOutput === "depth" || this._currentOutput === "frustum") {
+            //
+            // PASS to depth visualization
+            this.screenDepthFramebuffer!.activate();
+            let sh = h.programs.depth,
+                p = sh._program;
 
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
+            gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer as WebGLBuffer);
-        gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+            sh.activate();
 
-        sh.activate();
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer!.textures[1]);
+            gl.uniform1i(p.uniforms.depthTexture, 0);
 
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer!.textures[1]);
-        gl.uniform1i(p.uniforms.depthTexture, 0);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-        this.screenDepthFramebuffer!.deactivate();
-    }
-
-    protected _readPickingBuffer_webgl1 = () => {
-        this.pickingFramebuffer!.activate();
-        this.pickingFramebuffer!.readAllPixels(this._tempPickingPix_);
-        this.pickingFramebuffer!.deactivate();
-    }
-
-    protected _readPickingBuffer_webgl2 = () => {
-
-        const gl = this.handler.gl!;
-        const buf = this._pickingPixelBuffer;
-
-        if (!this._skipPickingFrame) {
-
-            this._skipPickingFrame = true;
-
-            let dest = this._tempPickingPix_;
-
-            let w = this.pickingFramebuffer!.width,
-                h = this.pickingFramebuffer!.height;
-
-            this.pickingFramebuffer!.activate();
-            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buf);
-            gl.bufferData(gl.PIXEL_PACK_BUFFER, dest.byteLength, gl.STREAM_READ);
-            gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, 0);
-            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
-            this.pickingFramebuffer!.deactivate();
-
-            const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0)!;
-            gl.flush();
-
-            clientWaitAsync(gl, sync, 0).then(() => {
-                this._skipPickingFrame = false;
-                gl.deleteSync(sync);
-                gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buf);
-                gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, dest);
-                gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
-            });
+            this.screenDepthFramebuffer!.deactivate();
+            gl.enable(gl.BLEND);
         }
     }
 
-    protected _readDistanceBuffer_webgl1 = () => {
-        this.distanceFramebuffer!.activate();
-        this.distanceFramebuffer!.readAllPixels(this._tempDistancePix_);
-        this.distanceFramebuffer!.deactivate();
+    protected _readDepthBuffer() {
+        this.depthFramebuffer!.readPixelBuffersAsync();
     }
 
-    protected _readDistanceBuffer_webgl2 = () => {
+    protected _readPickingBuffer_webgl1() {
+        this.pickingFramebuffer!.readPixelBuffersAsync();
+    }
 
-        const gl = this.handler.gl!;
-        const buf = this._distancePixelBuffer;
-
-        if (!this._skipDistanceFrame) {
-
-            this._skipDistanceFrame = true;
-
-            let dest = this._tempDistancePix_;
-
-            let w = this.distanceFramebuffer!.width,
-                h = this.distanceFramebuffer!.height;
-
-            this.distanceFramebuffer!.activate();
-            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buf);
-            gl.bufferData(gl.PIXEL_PACK_BUFFER, dest.byteLength, gl.STREAM_READ);
-            gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, 0);
-            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
-            this.distanceFramebuffer!.deactivate();
-
-            const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0)!;
-            gl.flush();
-
-            clientWaitAsync(gl, sync, 0).then(() => {
-                this._skipDistanceFrame = false;
-                gl.deleteSync(sync);
-                gl.bindBuffer(gl.PIXEL_PACK_BUFFER, buf);
-                gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, dest);
-                gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
-            });
-        }
+    protected _readPickingBuffer_webgl2() {
+        this.pickingFramebuffer!.readPixelBuffersAsync();
     }
 
     public readPickingColor(x: number, y: number, outColor: NumberArray3 | Uint8Array) {
@@ -1340,24 +1261,85 @@ class Renderer {
 
         let ind = (y * w + x) * 4;
 
-        outColor[0] = this._tempPickingPix_[ind];
-        outColor[1] = this._tempPickingPix_[ind + 1];
-        outColor[2] = this._tempPickingPix_[ind + 2];
+        let _tempPickingPix_ = this.pickingFramebuffer?.pixelBuffers[0].data;
+
+        if (_tempPickingPix_) {
+            outColor[0] = _tempPickingPix_[ind];
+            outColor[1] = _tempPickingPix_[ind + 1];
+            outColor[2] = _tempPickingPix_[ind + 2];
+        }
     }
 
-    public readDistanceColor(x: number, y: number, outColor: NumberArray3 | Uint8Array) {
+    public readDepth(x: number, y: number, outDepth: NumberArray3 | Float32Array) {
 
-        let w = this.distanceFramebuffer!.width;
-        let h = this.distanceFramebuffer!.height;
+        let w = this.depthFramebuffer!.width;
+        let h = this.depthFramebuffer!.height;
 
         x = Math.round(x * w);
         y = Math.round(y * h);
 
         let ind = (y * w + x) * 4;
 
-        outColor[0] = this._tempDistancePix_[ind];
-        outColor[1] = this._tempDistancePix_[ind + 1];
-        outColor[2] = this._tempDistancePix_[ind + 2];
+        let _tempDepthPix_ = this.depthFramebuffer?.pixelBuffers[1].data;
+        let _tempFrustumPix_ = this.depthFramebuffer?.pixelBuffers[0].data!;
+
+        if (_tempDepthPix_) {
+            outDepth[0] = _tempDepthPix_[ind];
+            outDepth[1] = Math.round(_tempFrustumPix_[ind] / 10.0) - 1.0; // See Camera.frustumColorIndex
+        }
+    }
+
+    /**
+     * Returns the distance from the active (screen) camera to the 3d-surface using the defined screen coordinates
+     * @public
+     * @param {Vec2 | IBaseInputState} px - Screen coordinates.
+     * @returns {number | undefined} -
+     */
+    public getDistanceFromPixel(px: Vec2 | IBaseInputState, camera?: Camera | null): number | undefined {
+
+        camera = camera || this.activeCamera!;
+
+        let r = this!;
+        let cnv = r.handler!.canvas!;
+
+        let spx = px.x / cnv.width;
+        let spy = (cnv.height - px.y) / cnv.height;
+
+        _tempDepth_[0] = _tempDepth_[1] = 0.0;
+
+        let dist = 0;
+
+        r.readDepth(spx, spy, _tempDepth_);
+
+        if (_tempDepth_[1] === -1) {
+            return;
+        }
+
+        let depth = _tempDepth_[0],
+            frustum = camera.frustums[_tempDepth_[1]];
+
+        if (!frustum) return;
+
+        let screenPos = new Vec4(spx * 2.0 - 1.0, spy * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0 * 2.0 - 1.0);
+        let viewPosition = frustum.inverseProjectionMatrix.mulVec4(screenPos);
+        let dir = (px as IBaseInputState).direction || r.activeCamera!.unproject(px.x, px.y);
+        dist = -(viewPosition.z / viewPosition.w) / dir.dot(r.activeCamera!.getForward());
+
+        return dist;
+    }
+
+    /**
+     * Returns 3d coordinates from screen coordinates
+     * @public
+     * @param {Vec2 | IBaseInputState} px - Screen coordinates.
+     * @returns {Vec3 | undefined} -
+     */
+    public getCartesianFromPixel(px: Vec2 | IBaseInputState): Vec3 | undefined {
+        let distance = this.getDistanceFromPixel(px);
+        if (distance) {
+            let direction = (px as IBaseInputState).direction || this.activeCamera.unproject(px.x, px.y);
+            return direction.scaleTo(distance).addA(this.activeCamera.eye);
+        }
     }
 
     /**
@@ -1386,6 +1368,7 @@ class Renderer {
 
         this.renderNodes = {};
 
+        //@ts-ignore
         this.activeCamera = null;
 
         this.controls = {};
@@ -1404,13 +1387,6 @@ class Renderer {
         //@ts-ignore
         this._tempPickingPix_ = null;
 
-        this.distanceFramebuffer = null;
-
-        this._distanceCallbacks = [];
-
-        //@ts-ignore
-        this._tempDistancePix_ = null;
-
         this._depthCallbacks = [];
 
         this.depthFramebuffer = null;
@@ -1426,7 +1402,7 @@ class Renderer {
         //this.geoObjectsTextureAtlas.clear()
         //this.fontAtlas.clear();
 
-        this._entityCollections = [];
+        this._entityCollections = [[]];
 
         this.handler.ONCANVASRESIZE = null;
         this.handler.destroy();

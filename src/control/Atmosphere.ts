@@ -144,9 +144,11 @@ export class Atmosphere extends Control {
             width: width,
             height: height,
             useDepth: false,
-            filter: "LINEAR",
-            type: "FLOAT",
-            internalFormat: "RGBA16F"
+            targets: [{
+                filter: "LINEAR",
+                type: "FLOAT",
+                internalFormat: "RGBA16F"
+            }]
         });
 
         this._transmittanceBuffer.init();
@@ -155,9 +157,11 @@ export class Atmosphere extends Control {
             width: width,
             height: height,
             useDepth: false,
-            filter: "LINEAR",
-            type: "FLOAT",
-            internalFormat: "RGBA16F"
+            targets: [{
+                filter: "LINEAR",
+                type: "FLOAT",
+                internalFormat: "RGBA16F"
+            }]
         });
 
         this._scatteringBuffer.init();

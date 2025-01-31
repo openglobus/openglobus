@@ -5,9 +5,8 @@ import {Entity} from "./Entity";
 import {Ellipsoid} from "../ellipsoid/Ellipsoid";
 import {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
 import {GeoObjectHandler} from "./GeoObjectHandler";
-import {Label} from "./Label";
 import {LabelHandler} from "./LabelHandler";
-import {NumberArray3} from "../math/Vec3";
+import {Vec3, NumberArray3} from "../math/Vec3";
 import {Planet} from "../scene/Planet";
 import {PointCloudHandler} from "./PointCloudHandler";
 import {PolylineHandler} from "./PolylineHandler";
@@ -28,6 +27,7 @@ interface IEntityCollectionParams {
     opacity?: number;
     useLighting?: boolean;
     entities?: Entity[];
+    depthOrder?: number;
 }
 
 /**
@@ -88,13 +88,6 @@ class EntityCollection {
      * @readonly
      */
     protected __id: number;
-
-    /**
-     * Render node collections array index.
-     * @protected
-     * @type {number}
-     */
-    protected _renderNodeIndex: number;
 
     /**
      * Render node context.
@@ -215,11 +208,11 @@ class EntityCollection {
 
     public _useLighting: number;
 
+    protected _depthOrder: number;
+
     constructor(options: IEntityCollectionParams = {}) {
 
         this.__id = EntityCollection.__counter__++;
-
-        this._renderNodeIndex = -1;
 
         this.renderNode = null;
 
@@ -248,7 +241,7 @@ class EntityCollection {
 
         this._entities = [];
 
-        this.scaleByDistance = options.scaleByDistance || [math.MAX32, math.MAX32, math.MAX32];
+        this.scaleByDistance = options.scaleByDistance || [1.0, 1.0, 1.0];
 
         let pickingScale: Float32Array = new Float32Array([1.0, 1.0, 1.0]);
         if (options.pickingScale !== undefined) {
@@ -263,6 +256,8 @@ class EntityCollection {
             }
         }
 
+        this._depthOrder = options.depthOrder || 0;
+
         this.pickingScale = pickingScale;
 
         this._opacity = options.opacity == undefined ? 1.0 : options.opacity;
@@ -276,6 +271,17 @@ class EntityCollection {
         // initialize current entities
         if (options.entities) {
             this.addEntities(options.entities);
+        }
+    }
+
+    public get depthOrder(): number {
+        return this._depthOrder;
+    }
+
+    public set depthOrder(depghOrder: number) {
+        this._depthOrder = depghOrder;
+        if (this.renderNode) {
+            this.renderNode.updateEntityCollectionsDepthOrder();
         }
     }
 
@@ -295,8 +301,8 @@ class EntityCollection {
         this._useLighting = Number(f);
     }
 
-    public isEqual(ec: EntityCollection): boolean {
-        return this.__id === ec.__id;
+    public isEqual(ec: EntityCollection | null): boolean {
+        return ec !== null && (this.__id === ec.__id);
     }
 
     /**
@@ -307,6 +313,7 @@ class EntityCollection {
     public setVisibility(visibility: boolean) {
         this._visibility = visibility;
         this._fadingOpacity = this._opacity * (visibility ? 1 : 0);
+        this.renderNode?.updateEntityCollectionsDepthOrder();
         this.events.dispatch(this.events.visibilitychange, this);
     }
 
@@ -370,6 +377,25 @@ class EntityCollection {
     }
 
     protected _addRecursively(entity: Entity) {
+        let rn: RenderNode | null = this.renderNode;
+        if (rn) {
+            if (entity._independentPicking || !entity.parent) {
+                if (rn) {
+                    rn.renderer && rn.renderer.assignPickingColor<Entity>(entity);
+                }
+            } else {
+                entity._pickingColor = entity.parent._pickingColor;
+            }
+            rn.renderer && rn.renderer.assignPickingColor<Entity>(entity);
+
+            if ((rn as Planet).ellipsoid && entity._cartesian.isZero()) {
+                entity.setCartesian3v((rn as Planet).ellipsoid.lonLatToCartesian(entity._lonLat));
+            }
+        }
+        entity.setPickingColor();
+        entity._updateAbsolutePosition();
+        entity.setScale3v(entity.getScale());
+
         // billboard
         entity.billboard && this.billboardHandler.add(entity.billboard);
 
@@ -393,18 +419,10 @@ class EntityCollection {
 
         this.events.dispatch(this.events.entityadd, entity);
 
-        let rn: RenderNode | null = this.renderNode;
-        for (let i = 0; i < entity.childrenNodes.length; i++) {
-            entity.childrenNodes[i]._entityCollection = this;
-            entity.childrenNodes[i]._entityCollectionIndex = entity._entityCollectionIndex;
-            if (entity.childrenNodes[i]._independentPicking) {
-                if (rn) {
-                    rn.renderer && rn.renderer.assignPickingColor<Entity>(entity.childrenNodes[i]);
-                }
-            } else {
-                entity.childrenNodes[i]._pickingColor = entity._pickingColor;
-            }
-            this._addRecursively(entity.childrenNodes[i]);
+        for (let i = 0; i < entity.childEntities.length; i++) {
+            entity.childEntities[i]._entityCollection = this;
+            entity.childEntities[i]._entityCollectionIndex = entity._entityCollectionIndex;
+            this._addRecursively(entity.childEntities[i]);
         }
     }
 
@@ -419,15 +437,7 @@ class EntityCollection {
             entity._entityCollection = this;
             entity._entityCollectionIndex = this._entities.length;
             this._entities.push(entity);
-            let rn: RenderNode | null = this.renderNode;
-            if (rn) {
-                rn.renderer && rn.renderer.assignPickingColor<Entity>(entity);
-                if ((rn as Planet).ellipsoid && entity._cartesian.isZero()) {
-                    entity.setCartesian3v((rn as Planet).ellipsoid.lonLatToCartesian(entity._lonLat));
-                }
-            }
             this._addRecursively(entity);
-            entity.setPickingColor();
         }
         return this;
     }
@@ -452,7 +462,7 @@ class EntityCollection {
      * @returns {boolean} -
      */
     public belongs(entity: Entity) {
-        return entity._entityCollection && this._renderNodeIndex === entity._entityCollection._renderNodeIndex;
+        return this.isEqual(entity._entityCollection);
     }
 
     protected _removeRecursively(entity: Entity) {
@@ -480,8 +490,8 @@ class EntityCollection {
         // geoObject
         entity.geoObject && this.geoObjectHandler.remove(entity.geoObject);
 
-        for (let i = 0; i < entity.childrenNodes.length; i++) {
-            this._removeRecursively(entity.childrenNodes[i]);
+        for (let i = 0; i < entity.childEntities.length; i++) {
+            this._removeRecursively(entity.childEntities[i]);
         }
     }
 
@@ -558,18 +568,7 @@ class EntityCollection {
      */
     public addTo(renderNode: RenderNode, isHidden: boolean = false) {
         if (!this.renderNode) {
-            this.renderNode = renderNode;
-
-            if (!isHidden) {
-                this._renderNodeIndex = renderNode.entityCollections.length;
-                renderNode.entityCollections.push(this);
-            }
-
-            (renderNode as Planet).ellipsoid && this._updateGeodeticCoordinates((renderNode as Planet).ellipsoid);
-
-            this.bindRenderNode(renderNode);
-
-            this.events.dispatch(this.events.add, this);
+            renderNode.addEntityCollection(this, isHidden);
         }
         return this;
     }
@@ -586,15 +585,22 @@ class EntityCollection {
             this.labelHandler.setRenderer(renderNode.renderer);
             this.rayHandler.setRenderer(renderNode.renderer);
 
-            this.geoObjectHandler.setRenderNode(renderNode as Planet);
+            this.geoObjectHandler.setRenderNode(renderNode);
             this.polylineHandler.setRenderNode(renderNode);
             this.pointCloudHandler.setRenderNode(renderNode);
             this.stripHandler.setRenderNode(renderNode);
+
+            renderNode.renderer.events.on("changerelativecenter", this._onChangeRelativeCenter);
 
             this.updateBillboardsTextureAtlas();
             this.updateLabelsFontAtlas();
             this.createPickingColors();
         }
+    }
+
+    protected _onChangeRelativeCenter = (c: Vec3) => {
+        this.geoObjectHandler.setRelativeCenter(c);
+        this.polylineHandler.setRelativeCenter(c);
     }
 
     /**
@@ -643,15 +649,9 @@ class EntityCollection {
      */
     public remove() {
         if (this.renderNode) {
-            if (this._renderNodeIndex !== -1) {
-                this.renderNode.entityCollections.splice(this._renderNodeIndex, 1);
-                // reindex in the renderNode
-                for (let i = this._renderNodeIndex; i < this.renderNode.entityCollections.length; i++) {
-                    this.renderNode.entityCollections[i]._renderNodeIndex = i;
-                }
-            }
+            this.renderNode.removeEntityCollection(this);
+            this.renderNode.renderer?.events.off("changerelativecenter", this._onChangeRelativeCenter);
             this.renderNode = null;
-            this._renderNodeIndex = -1;
             this.events.dispatch(this.events.remove, this);
         }
     }
@@ -714,8 +714,8 @@ class EntityCollection {
     protected _clearEntity(entity: Entity) {
         entity._entityCollection = null;
         entity._entityCollectionIndex = -1;
-        for (let i = 0; i < entity.childrenNodes.length; i++) {
-            this._clearEntity(entity.childrenNodes[i]);
+        for (let i = 0; i < entity.childEntities.length; i++) {
+            this._clearEntity(entity.childEntities[i]);
         }
     }
 }

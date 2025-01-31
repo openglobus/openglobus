@@ -19,7 +19,7 @@ export class EarthEntityCollectionNodeLonLat extends EntityCollectionNode {
         this.isNorth = false;
     }
 
-    public override createChildrenNodes() {
+    public override createChildNodes() {
         const s = this.strategy;
         const ext = this.extent;
         const size_x = ext.getWidth() * 0.5;
@@ -27,7 +27,7 @@ export class EarthEntityCollectionNodeLonLat extends EntityCollectionNode {
         const ne = ext.northEast;
         const sw = ext.southWest;
         const c = new LonLat(sw.lon + size_x, sw.lat + size_y);
-        const nd = this.childrenNodes;
+        const nd = this.childNodes;
         const p = this.layer._planet!;
         const z = this.zoom + 1;
 
