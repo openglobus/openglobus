@@ -72,12 +72,12 @@ class Object3d {
         this._vertices = data.vertices || [];
         this._numVertices = this._vertices.length / 3;
         this._texCoords = data.texCoords || new Array(2 * this._numVertices);
+        // if (data.texCoords) {
+        //     this._texCoords = data.texCoords;
+        // } else {
+        //     this._texCoords = Array.from({length: 2 * this._numVertices}, (_, i) => 0);
+        // }
 
-        if (data.center) {
-            Object3d.centering(this._vertices);
-        }
-
-        this.center = Object3d.getCenter(this._vertices);
 
         this.color = getColor(data.color);
         this.ambient = getColor3v(data.ambient);
@@ -98,6 +98,12 @@ class Object3d {
             }
             Object3d.scale(this._vertices, scale);
         }
+
+        if (data.center) {
+            Object3d.centering(this._vertices);
+        }
+
+        this.center = Object3d.getCenter(this._vertices);
 
         if (data.indices) {
             this._indices = data.indices;
