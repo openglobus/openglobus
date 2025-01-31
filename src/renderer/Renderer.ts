@@ -1081,6 +1081,11 @@ class Renderer {
         e.touchState.moving = false;
     }
 
+    public getImageDataURL(type: string = "image/png", quality: number = 1.0): string {
+        this.draw();
+        return this.handler.canvas ? this.handler.canvas.toDataURL(type, quality) : "";
+    }
+
     protected _screenFrameMSAA() {
         let h = this.handler;
 

@@ -26,6 +26,7 @@ export interface IHandlerParameters {
         alpha?: boolean;
         antialias?: boolean;
         premultipliedAlpha?: boolean;
+        preserveDrawingBuffer?: boolean;
     },
     extensions?: string[];
     autoActivate?: boolean;
@@ -138,6 +139,7 @@ class Handler {
             alpha?: boolean;
             antialias?: boolean;
             premultipliedAlpha?: boolean;
+            preserveDrawingBuffer?: boolean;
         };
         extensions: string[];
     };
