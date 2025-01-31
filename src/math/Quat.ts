@@ -540,70 +540,70 @@ export class Quat {
         return this.copy(qr.mul(qp).mul(qy).mul(frame).conjugate());
     }
 
-    // /**
-    //  * Sets current Quat by Euler's angles.
-    //  * @public
-    //  * @param {number} pitch - Pitch angle in degrees.
-    //  * @param {number} yaw - Yaw angle in degrees.
-    //  * @param {number} roll - Roll angle in degrees.
-    //  * @returns {Quat} -
-    //  */
-    // public setFromEulerAngles(pitch: number, yaw: number, roll: number): Quat {
-    //     let ex = pitch * math.RADIANS_HALF,
-    //         ey = yaw * math.RADIANS_HALF,
-    //         ez = roll * math.RADIANS_HALF;
-    //
-    //     let cr = Math.cos(ex),
-    //         cp = Math.cos(ey),
-    //         cy = Math.cos(ez);
-    //
-    //     let sr = Math.sin(ex),
-    //         sp = Math.sin(ey),
-    //         sy = Math.sin(ez);
-    //
-    //     let cpcy = cp * cy,
-    //         spsy = sp * sy;
-    //
-    //     this.w = cr * cpcy + sr * spsy;
-    //     this.x = sr * cpcy - cr * spsy;
-    //     this.y = cr * sp * cy + sr * cp * sy;
-    //     this.z = cr * cp * sy - sr * sp * cy;
-    //
-    //     return this.normalize();
-    // }
-    //
-    // /**
-    //  * Returns Euler's angles of the current Quat.
-    //  * @public
-    //  * @returns {Object} -
-    //  */
-    // public getEulerAngles(): any {
-    //     let x = this.x,
-    //         y = this.y,
-    //         z = this.z,
-    //         w = this.w;
-    //
-    //     let sqy = y * y;
-    //
-    //     let roll = Math.atan2(2.0 * (w * x + y * z), 1.0 - 2.0 * (x * x + sqy));
-    //
-    //     let a = w * y - z * x;
-    //
-    //     if (a < -1.0) {
-    //         a = -1.0;
-    //     } else if (a > 1.0) {
-    //         a = 1.0;
-    //     }
-    //     let pitch = Math.asin(2.0 * a);
-    //
-    //     let yaw = Math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (sqy + z * z));
-    //
-    //     return {
-    //         roll,
-    //         pitch,
-    //         yaw
-    //     };
-    // }
+    /**
+     * Sets current Quat by Euler's angles.
+     * @public
+     * @param {number} pitch - Pitch angle in degrees.
+     * @param {number} yaw - Yaw angle in degrees.
+     * @param {number} roll - Roll angle in degrees.
+     * @returns {Quat} -
+     */
+    public setFromEulerAngles(pitch: number, yaw: number, roll: number): Quat {
+        let ex = pitch * math.RADIANS_HALF,
+            ey = yaw * math.RADIANS_HALF,
+            ez = roll * math.RADIANS_HALF;
+
+        let cr = Math.cos(ex),
+            cp = Math.cos(ey),
+            cy = Math.cos(ez);
+
+        let sr = Math.sin(ex),
+            sp = Math.sin(ey),
+            sy = Math.sin(ez);
+
+        let cpcy = cp * cy,
+            spsy = sp * sy;
+
+        this.w = cr * cpcy + sr * spsy;
+        this.x = sr * cpcy - cr * spsy;
+        this.y = cr * sp * cy + sr * cp * sy;
+        this.z = cr * cp * sy - sr * sp * cy;
+
+        return this.normalize();
+    }
+
+    /**
+     * Returns Euler's angles of the current Quat.
+     * @public
+     * @returns {Object} -
+     */
+    public getEulerAngles(): any {
+        let x = this.x,
+            y = this.y,
+            z = this.z,
+            w = this.w;
+
+        let sqy = y * y;
+
+        let roll = Math.atan2(2.0 * (w * x + y * z), 1.0 - 2.0 * (x * x + sqy));
+
+        let a = w * y - z * x;
+
+        if (a < -1.0) {
+            a = -1.0;
+        } else if (a > 1.0) {
+            a = 1.0;
+        }
+        let pitch = Math.asin(2.0 * a);
+
+        let yaw = Math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (sqy + z * z));
+
+        return {
+            roll,
+            pitch,
+            yaw
+        };
+    }
 
     /**
      * Computes a Quat from the provided 4x4 matrix instance.

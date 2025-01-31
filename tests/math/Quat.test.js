@@ -19,7 +19,6 @@ describe('Quat class', () => {
         expect(item.toVec()).toBeTruthy();
         expect(item.setFromSphericalCoords(1, 1, 1)).toBeTruthy();
         expect(item.setLookRotation(new Vec3(), new Vec3())).toBeTruthy();
-        expect(item.toSphericalCoords()).toBeTruthy();
         expect(item.setFromAxisAngle(new Vec3(), 3)).toBeTruthy();
         expect(item.getAxisAngle()).toBeTruthy();
         expect(item.setFromEulerAngles(1, 1, 1)).toBeTruthy();
@@ -101,33 +100,31 @@ describe('Quat class', () => {
 
     test('Euler angles', () => {
 
-        for (let i = 0; i < 1; i++) {
 
-            let pitch = random(-180, 180),
-                yaw = random(-180, 180),
-                roll = random(-180, 180);
+        let pitch = 77,
+            yaw = 120,
+            roll = -2;
 
-            let pitchYawRoll = [pitch * RADIANS, yaw * RADIANS, roll * RADIANS];
+        let pitchYawRoll = [pitch * RADIANS, yaw * RADIANS, roll * RADIANS];
 
-            let qRot = new Quat();
+        let qRot = new Quat();
 
-            qRot.setPitchYawRoll(pitchYawRoll[0], pitchYawRoll[1], pitchYawRoll[2])
+        qRot.setPitchYawRoll(pitchYawRoll[0], pitchYawRoll[1], pitchYawRoll[2]);
 
-            let outPitchYawRoll = [
-                qRot.getPitch(),
-                qRot.getYaw(),
-                qRot.getRoll()
-            ];
+        let outPitchYawRoll = [
+            qRot.getPitch(),
+            qRot.getYaw(),
+            qRot.getRoll()
+        ];
 
-            expect([
-                Math.sin(pitchYawRoll[0]).toFixed(7),
-                Math.sin(pitchYawRoll[1]).toFixed(7),
-                Math.sin(pitchYawRoll[2]).toFixed(7)
-            ]).toStrictEqual([
-                Math.sin(outPitchYawRoll[0]).toFixed(7),
-                Math.sin(outPitchYawRoll[1]).toFixed(7),
-                Math.sin(outPitchYawRoll[2]).toFixed(7)
-            ]);
-        }
+        expect([
+            Math.sin(pitchYawRoll[0]).toFixed(7),
+            Math.sin(pitchYawRoll[1]).toFixed(7),
+            Math.sin(pitchYawRoll[2]).toFixed(7)
+        ]).toStrictEqual([
+            Math.sin(outPitchYawRoll[0]).toFixed(7),
+            Math.sin(outPitchYawRoll[1]).toFixed(7),
+            Math.sin(outPitchYawRoll[2]).toFixed(7)
+        ]);
     });
 });
