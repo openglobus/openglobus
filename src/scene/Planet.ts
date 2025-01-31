@@ -546,7 +546,7 @@ export class Planet extends RenderNode {
         this._renderScreenNodesWithHeightPASS = this._renderScreenNodesWithHeightPASSNoAtmos;
 
         this._atmosphereEnabled = options.atmosphereEnabled || false;
-        this._atmosphereMaxMinOpacity = new Float32Array([1.0, 0.41]);
+        this._atmosphereMaxMinOpacity = new Float32Array([0.95, 0.28]);
 
         this.solidTextureOne = null;
         this.solidTextureTwo = null;
