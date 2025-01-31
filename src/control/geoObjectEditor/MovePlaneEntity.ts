@@ -21,7 +21,6 @@ export class MovePlaneEntity extends Entity {
             forceGlobalPosition: true,
             geoObject: {
                 color: XZ_COLOR,
-                instanced: true,
                 tag: "plane",
                 object3d: planeObj,
                 yaw: 0,

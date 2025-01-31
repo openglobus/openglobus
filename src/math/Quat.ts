@@ -757,6 +757,38 @@ export class Quat {
     }
 
     /**
+     * Returns quaternion and vector production.
+     * @public
+     * @param {Vec3} v - 3d Vector.
+     * @returns {Vec3} -
+     */
+    public mulVec3Res(v: Vec3, res: Vec3): Vec3 {
+        // t = 2 * cross(q.xyz, v)
+        // v' = v + q.w * t + cross(q.xyz, t)
+
+        let d = v.x,
+            e = v.y,
+            g = v.z;
+
+        let b = this.x,
+            f = this.y,
+            h = this.z,
+            a = this.w;
+
+        let i = a * d + f * g - h * e,
+            j = a * e + h * d - b * g,
+            k = a * g + b * e - f * d;
+
+        d = -b * d - f * e - h * g;
+
+        return res.set(
+            i * a + d * -b + j * -h - k * -f,
+            j * a + d * -f + k * -b - i * -h,
+            k * a + d * -h + i * -f - j * -b
+        );
+    }
+
+    /**
      * Computes the product of two Quats.
      * @public
      * @param {Quat} q - Quat to multiply.

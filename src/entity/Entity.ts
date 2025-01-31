@@ -19,6 +19,31 @@ import {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
 import {Quat} from "../math/Quat";
 import {RADIANS, clamp, DEGREES} from "../math";
 
+/**
+ * Interface for Entity parameters.
+ * @typedef {Object} IEntityParams
+ * @property {string} [name] - Name of the entity.
+ * @property {any} [properties] - Additional properties of the entity.
+ * @property {Vec3 | NumberArray3} [cartesian] - Cartesian position.
+ * @property {LonLat | NumberArray3 | NumberArray2} [lonlat] - Geographic coordinates.
+ * @property {number} [altitude] - Altitude.
+ * @property {boolean} [visibility] - Visibility flag.
+ * @property {Billboard | IBillboardParams} [billboard] - Billboard object or parameters.
+ * @property {Label | ILabelParams} [label] - Label object or parameters.
+ * @property {Polyline | IPolylineParams} [polyline] - Polyline object or parameters.
+ * @property {Ray | IRayParams} [ray] - Ray object or parameters.
+ * @property {PointCloud | IPointCloudParams} [pointCloud] - Point cloud object or parameters.
+ * @property {Geometry | IGeometryParams} [geometry] - Geometry object or parameters.
+ * @property {GeoObject | IGeoObjectParams} [geoObject] - Geo object or parameters.
+ * @property {Strip | IStripParams} [strip] - Strip object or parameters.
+ * @property {boolean} [independentPicking] - Independent picking flag.
+ * @property {boolean} [relativePosition] - Parent relative position flag, otherwise position is absolute.
+ * @property {number} [pitch] - Rotation around local X-axis.
+ * @property {number} [yaw] - Rotation around local Y-axis.
+ * @property {number} [roll] - Rotation around local Z-axis.
+ * @property {number | Vec3 | NumberArray3} [scale] - Scaling factor.
+ * @property {boolean} [forceGlobalPosition] - Forces global position for children entities make them the same position as the parent.
+ */
 export interface IEntityParams {
     name?: string;
     properties?: any;
@@ -49,18 +74,27 @@ export interface IEntityParams {
  *
  * @class
  * @param {IEntityParams} [options] - Entity options:
- * @param {string} [options.name] - A human-readable name to display to users. It does not have to be unique.
- * @param {Vec3|Array.<number>} [options.cartesian] - Spatial entities like billboard, label etc. cartesian position.
- * @param {LonLat} [options.lonlat] - Geodetic coordinates for an entities like billboard, label etc.
- * @param {boolean} [options.aground] - True for entities that have to be placed on the relief.
- * @param {boolean} [options.visibility] - Entity visibility.
- * @param {*} [options.billboard] - Billboard options(see {@link Billboard}).
- * @param {*} [options.label] - Label options(see {@link Label}).
- * @param {*} [options.polyline] - Polyline options(see {@link Polyline}).
- * @param {*} [options.ray] - Ray options(see {@link Ray}).
- * @param {*} [options.pointCloud] - Point cloud options(see {@link PointCloud}).
- * @param {*} [options.geometry] - Geometry options (see {@link Geometry}), available for vector layer only.
- * @param {*} [options.properties] - Entity custom properties.
+ * @param {string} [options.name] - Name of the entity.
+ * @param {any} [options.properties] - Additional properties of the entity.
+ * @param {Vec3 | NumberArray3} [options.cartesian] - Cartesian position.
+ * @param {LonLat | NumberArray3 | NumberArray2} [options.lonlat] - Geographic coordinates.
+ * @param {number} [options.altitude] - Altitude.
+ * @param {boolean} [options.visibility] - Visibility flag.
+ * @param {Billboard | IBillboardParams} [options.billboard] - Billboard object or parameters.
+ * @param {Label | ILabelParams} [options.label] - Label object or parameters.
+ * @param {Polyline | IPolylineParams} [options.polyline] - Polyline object or parameters.
+ * @param {Ray | IRayParams} [options.ray] - Ray object or parameters.
+ * @param {PointCloud | IPointCloudParams} [options.pointCloud] - Point cloud object or parameters.
+ * @param {Geometry | IGeometryParams} [options.geometry] - Geometry object or parameters.
+ * @param {GeoObject | IGeoObjectParams} [options.geoObject] - Geo object or parameters.
+ * @param {Strip | IStripParams} [options.strip] - Strip object or parameters.
+ * @param {boolean} [options.independentPicking] - Independent picking flag.
+ * @param {boolean} [options.relativePosition] - Parent relative position flag, otherwise position is absolute.
+ * @param {number} [options.pitch] - Rotation around local X-axis.
+ * @param {number} [options.yaw] - Rotation around local Y-axis.
+ * @param {number} [options.roll] - Rotation around local Z-axis.
+ * @param {number | Vec3 | NumberArray3} [options.scale] - Scaling factor.
+ * @param {boolean} [options.forceGlobalPosition] - Forces global position for children entities make them the same position as the parent.
  */
 class Entity {
 
@@ -335,6 +369,11 @@ class Entity {
         this.strip = this._createOptionFeature<Strip, IStripParams>("strip", options.strip);
     }
 
+    /**
+     * Returns root entity object.
+     * @public
+     * @return {Entity}
+     */
     public get rootEntity(): Entity {
         let pn: Entity | null = this;
         while (pn) {
@@ -346,6 +385,10 @@ class Entity {
         return this;
     }
 
+    /**
+     * Sets relative position property
+     * @param isRelative
+     */
     public set relativePosition(isRelative: boolean) {
 
         if (isRelative !== this._relativePosition) {
@@ -376,26 +419,54 @@ class Entity {
         }
     }
 
+    /**
+     * Gets relative position property
+     * @public
+     * @returns{boolean}
+     */
     public get relativePosition(): boolean {
         return this._relativePosition;
     }
 
+    /**
+     * Gets current entity collection container.
+     * @public
+     * @returns {EntityCollection | null}
+     */
     public get entityCollection(): EntityCollection | null {
         return this._entityCollection;
     }
 
+    /**
+     * Gets entity uniq id
+     * @public
+     * @returns {number}
+     */
     public get id(): number {
         return this.__id;
     }
 
+    /**
+     * Checks if the given entity is equal to the current entity.
+     * @param {Entity} entity - The entity to compare.
+     * @returns {boolean} True if entities are equal, otherwise false.
+     */
     public isEqual(entity: Entity): boolean {
         return this.__id === entity.__id;
     }
 
+    /**
+     * Gets the layer index of the entity.
+     * @returns {number} The layer index.
+     */
     public get layerIndex(): number {
         return this._layerIndex;
     }
 
+    /**
+     * Gets the instance class name of the entity.
+     * @returns {string} The instance name "Entity".
+     */
     public get instanceName(): string {
         return "Entity";
     }
@@ -411,6 +482,10 @@ class Entity {
         return null;
     }
 
+    /**
+     * Gets the collection index of the entity.
+     * @returns {number} The entity collection index.
+     */
     public getCollectionIndex(): number {
         return this._entityCollectionIndex;
     }
@@ -428,7 +503,7 @@ class Entity {
     }
 
     /**
-     * Removes current entity from collection and layer.
+     * Removes current entity from its collection or layer.
      * @public
      */
     public remove() {
@@ -485,10 +560,20 @@ class Entity {
         this.setCartesian(cartesian.x, cartesian.y, cartesian.z);
     }
 
+    /**
+     * Gets scale factor
+     * @public
+     * @returns {Vec3}
+     */
     public getScale(): Vec3 {
         return this._scale;
     }
 
+    /**
+     * Sets XYZ axis scale for the inner object such as GeoObject
+     * @public
+     * @param {Vec3} scale - Scale factor
+     */
     public setScale3v(scale: Vec3) {
 
         this._scale.copy(scale);
@@ -500,6 +585,11 @@ class Entity {
         }
     }
 
+    /**
+     * Sets scale for the inner object such as GeoObject
+     * @public
+     * @param {number} val - Scale factor
+     */
     public setScale(val: number) {
 
         this._scale.set(val, val, val);
@@ -511,14 +601,29 @@ class Entity {
         }
     }
 
+    /**
+     * Gets the absolute rotation direction of the entity.
+     * @public
+     * @returns {Quat} The absolute rotation quaternion.
+     */
     public getAbsoluteRotation(): Quat {
         return this._absoluteQRot.clone();
     }
 
+    /**
+     * Gets the local rotation of the entity. For the root entity it is equal to the absolute rotation.
+     * @public
+     * @returns {Quat} The rotation quaternion.
+     */
     public getRotation(): Quat {
         return this._qRot;
     }
 
+    /**
+     * Rotates the entity to look at a given point in world coordinates.
+     * @public
+     * @param {Vec3} cart - The target position to look at.
+     */
     public setLook3v(cart: Vec3) {
         let lq = new Quat();
         let p0 = this.getAbsoluteCartesian();
@@ -533,6 +638,11 @@ class Entity {
         this.setAbsoluteRotation(rot);
     }
 
+    /**
+     * Rotates the entity to look at a given geographic coordinate.
+     * @public
+     * @param {LonLat} lonLat - The longitude and latitude to look at.
+     */
     public setLookLonLat(lonLat: LonLat) {
         if (this._entityCollection) {
             let cart = (this._entityCollection.renderNode as Planet).ellipsoid.lonLatToCartesian(lonLat);
@@ -540,11 +650,20 @@ class Entity {
         }
     }
 
+    /**
+     * Sets the absolute rotation of the entity.
+     * @public
+     * @param {Quat} rot - The new absolute rotation quaternion.
+     */
     public setAbsoluteRotation(rot: Quat) {
         this._absoluteQRot.copy(rot);
         this._updatePitchYawRoll();
     }
 
+    /**
+     * Sets the local rotation of the entity.
+     * @param {Quat} rot - The new rotation quaternion.
+     */
     public setRotation(rot: Quat) {
         //this._qRot.copy(rot);
         //
@@ -552,36 +671,69 @@ class Entity {
         //
     }
 
+    /**
+     * Sets the pitch rotation of the entity.
+     * @param {number} val - The new pitch angle in degrees.
+     */
     public setPitch(val: number) {
         this._pitch = val;
         this._pitchRad = val * RADIANS;
         this._updateAbsolutePosition();
     }
 
+    /**
+     * Sets the yaw rotation of the entity.
+     * @param {number} val - The new yaw angle in degrees.
+     */
     public setYaw(val: number) {
         this._yaw = val;
         this._yawRad = val * RADIANS;
         this._updateAbsolutePosition();
     }
 
+    /**
+     * Sets the roll rotation of the entity.
+     * @public
+     * @param {number} val - The new roll angle in degrees.
+     */
     public setRoll(val: number) {
         this._roll = val;
         this._rollRad = val * RADIANS;
         this._updateAbsolutePosition();
     }
 
+    /**
+     * Gets the pitch angle of the entity.
+     * @public
+     * @returns {number} The pitch angle in degrees.
+     */
     public getPitch(): number {
         return this._pitch;
     }
 
+    /**
+     * Gets the yaw angle of the entity.
+     * @public
+     * @returns {number} The yaw angle in degrees.
+     */
     public getYaw(): number {
         return this._yaw;
     }
 
+    /**
+     * Gets the roll angle of the entity.
+     * @public
+     * @returns {number} The roll angle in degrees.
+     */
     public getRoll(): number {
         return this._roll;
     }
 
+    /**
+     * Sets the absolute pitch of the entity.
+     * @public
+     * @param {number} val - The absolute pitch angle in degrees.
+     */
     public setAbsolutePitch(val: number) {
         if (this._relativePosition) {
             this._absoluteQRot.setPitchYawRoll(val * RADIANS, this.getAbsoluteYaw() * RADIANS, this.getAbsoluteRoll() * RADIANS, this._qFrame);
@@ -591,6 +743,11 @@ class Entity {
         }
     }
 
+    /**
+     * Sets the absolute yaw of the entity.
+     * @public
+     * @param {number} val - The absolute yaw angle in degrees.
+     */
     public setAbsoluteYaw(val: number) {
         if (this._relativePosition) {
             this._absoluteQRot.setPitchYawRoll(this.getAbsolutePitch() * RADIANS, val * RADIANS, this.getAbsoluteRoll() * RADIANS, this._qFrame);
@@ -600,6 +757,11 @@ class Entity {
         }
     }
 
+    /**
+     * Sets the absolute roll of the entity.
+     * @public
+     * @param {number} val - The absolute roll angle in degrees.
+     */
     public setAbsoluteRoll(val: number) {
         if (this._relativePosition) {
             this._absoluteQRot.setPitchYawRoll(this.getAbsolutePitch() * RADIANS, this.getAbsoluteYaw() * RADIANS, val * RADIANS, this._qFrame);
@@ -609,6 +771,11 @@ class Entity {
         }
     }
 
+    /**
+     * Gets the absolute pitch angle of the entity.
+     * @public
+     * @returns {number} The absolute pitch angle in degrees.
+     */
     public getAbsolutePitch(): number {
         if (this.parent && this._relativePosition) {
             return this._qFrame.conjugate().inverse().mul(this._absoluteQRot).getPitch() * DEGREES;
@@ -617,6 +784,11 @@ class Entity {
         return this._pitch;
     }
 
+    /**
+     * Gets the absolute yaw angle of the entity.
+     * @public
+     * @returns {number} The absolute yaw angle in degrees.
+     */
     public getAbsoluteYaw(): number {
         if (this.parent && this._relativePosition) {
             return this._qFrame.conjugate().inverse().mul(this._absoluteQRot).getYaw() * DEGREES;
@@ -624,6 +796,11 @@ class Entity {
         return this._yaw;
     }
 
+    /**
+     * Gets the absolute roll angle of the entity.
+     * @public
+     * @returns {number} The absolute roll angle in degrees.
+     */
     public getAbsoluteRoll(): number {
         if (this.parent && this._relativePosition) {
             return this._qFrame.conjugate().inverse().mul(this._absoluteQRot).getRoll() * DEGREES;
@@ -646,16 +823,20 @@ class Entity {
     }
 
     /**
-     * Sets absolute cartesian position.
+     * Sets the absolute cartesian position of the entity.
      * @public
+     * @param {number} x - X coordinate.
+     * @param {number} y - Y coordinate.
+     * @param {number} z - Z coordinate.
      */
     public setAbsoluteCartesian(x: number, y: number, z: number) {
         this.setAbsoluteCartesian3v(new Vec3(x, y, z));
     }
 
     /**
-     * Sets absolute cartesian position.
+     * Sets the absolute cartesian position of the entity using a Vec3.
      * @public
+     * @param {Vec3} absolutCartesian - The absolute cartesian position.
      */
     public setAbsoluteCartesian3v(absolutCartesian: Vec3) {
         let pos = absolutCartesian;
@@ -670,7 +851,7 @@ class Entity {
     }
 
     /**
-     * Returns cartesian position.
+     * Returns absolute cartesian position.
      * @public
      * @returns {Vec3} -
      */
@@ -819,7 +1000,7 @@ class Entity {
     /**
      * Sets geodetic coordinates of the entity point object.
      * @public
-     * @param {LonLat} lonlat - WGS84 coordinates.
+     * @param {LonLat} lonlat - coordinates.
      */
     public setLonLat(lonlat: LonLat) {
         let l = this._lonLat;
@@ -1042,6 +1223,11 @@ class Entity {
         return strip;
     }
 
+    /**
+     * Gets layer container
+     * @public
+     * @returns {Vector | null}
+     */
     public get layer(): Vector | null {
         return this._layer;
     }

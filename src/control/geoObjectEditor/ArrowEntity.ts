@@ -39,7 +39,6 @@ export class ArrowEntity extends Entity {
             geoObject: {
                 color: params.color || X_COLOR,
                 scale,
-                instanced: true,
                 tag: "line",
                 object3d: lineObj,
             },
@@ -56,7 +55,6 @@ export class ArrowEntity extends Entity {
             geoObject: {
                 color: params.color || X_COLOR,
                 scale,
-                instanced: true,
                 tag: "tip",
                 object3d: tipObj,
             },
