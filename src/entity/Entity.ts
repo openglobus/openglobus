@@ -66,6 +66,7 @@ export interface IEntityParams {
     roll?: number;
     scale?: number | Vec3 | NumberArray3;
     forceGlobalPosition?: boolean;
+    localPosition?: Vec3 | NumberArray3;
 }
 
 /**
@@ -143,9 +144,10 @@ class Entity {
      * @protected
      * @type {Vec3}
      */
-    public _rootCartesian: Vec3;
+    protected _rootCartesian: Vec3;
 
-    public _absoluteLocalPosition: Vec3;
+    protected _localPosition: Vec3;
+    protected _absoluteLocalPosition: Vec3;
 
     /**
      * Geodetic entity coordinates.
@@ -304,6 +306,7 @@ class Entity {
 
         this._rootCartesian = new Vec3();
 
+        this._localPosition = utils.createVector3(options.localPosition);
         this._absoluteLocalPosition = new Vec3();
 
         this._lonLat = utils.createLonLat(options.lonlat);
@@ -923,7 +926,7 @@ class Entity {
             this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
             parent._absoluteQRot.mulRes(this._qRot, this._absoluteQRot);
 
-            let rotCart = parent._absoluteQRot.mulVec3(this._cartesian);
+            let rotCart = parent._absoluteQRot.mulVec3(this._cartesian.add(this._localPosition));
             parent._absoluteLocalPosition.addRes(rotCart, this._absoluteLocalPosition);
         } else {
             this._qFrame = Quat.IDENTITY;
@@ -933,7 +936,7 @@ class Entity {
             this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad, this._qFrame);
             this._absoluteQRot.copy(this._qRot);
             this._rootCartesian.copy(this._cartesian);
-            this._absoluteLocalPosition.set(0, 0, 0);
+            this._absoluteLocalPosition.copy(this._localPosition);
         }
 
         if (this.geoObject) {

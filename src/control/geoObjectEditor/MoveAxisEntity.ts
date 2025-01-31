@@ -125,6 +125,6 @@ export class MoveAxisEntity extends Entity {
     }
 
     public getY(): Vec3 {
-        return this.childEntities[1].geoObject!.getRotation().mulVec3(new Vec3(0.0, 1.0, 0.0)).normalize();
+        return this.childEntities[1].getAbsoluteRotation().mulVec3(Vec3.UP).normalize();
     }
 }

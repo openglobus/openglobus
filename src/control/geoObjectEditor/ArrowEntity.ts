@@ -69,7 +69,7 @@ export class ArrowEntity extends Entity {
 
         let line = this;
         let tip = line.childEntities[0];
-        line.geoObject!.setScale3v(scale);
+        line.setScale3v(scale);
         tip.geoObject!.setTranslate3v(trans);
     }
 
