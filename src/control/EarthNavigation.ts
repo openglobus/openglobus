@@ -7,239 +7,174 @@ import {Ray} from "../math/Ray";
 import {Sphere} from "../bv/Sphere";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
+import {input} from "../input/input";
+import * as math from "../math";
 
 interface IEarthNavigationParams extends IControlParams {
-
+    speed?: number;
 }
 
-class TouchExt {
-    public x: number;
-    public y: number;
-    public prev_x: number;
-    public prev_y: number;
-    public grabbedPoint: Vec3 | null;
-    public grabbedSpheroid: Sphere;
-
-    constructor() {
-        this.x = 0;
-        this.y = 0;
-        this.prev_x = 0;
-        this.prev_y = 0;
-        this.grabbedPoint = new Vec3();
-        this.grabbedSpheroid = new Sphere();
-    }
-
-    public dX(): number {
-        return this.x - this.prev_x;
-    }
-
-    public dY(): number {
-        return this.y - this.prev_y;
-    }
-}
 
 export class EarthNavigation extends Control {
-    protected grabbedPoint: Vec3 | null;
-    protected grabbedDir: Vec3;
-    public inertia: number;
-    protected grabbedSpheroid: Sphere;
-    protected _vRot: Quat;
-    protected _hRot: Quat;
-    protected scaleRot: number;
-    protected currState: number;
-    protected touches: TouchExt[];
+
+    public speed: number;
+    public force: Vec3;
+    public vel: Vec3;
+    public mass: number;
+
+    protected _lookPos: Vec3 | undefined;
+    protected _up: Vec3 | null;
+
+    protected _grabbedPoint: Vec3 | undefined;
+    protected _eye0: Vec3;
 
     constructor(options: IEarthNavigationParams = {}) {
         super(options);
 
-        this.grabbedPoint = new Vec3();
-        this.grabbedDir = new Vec3();
-        this.inertia = 0.007;
-        this.grabbedSpheroid = new Sphere();
-        this.planet = null;
-        this._vRot = new Quat();
-        this._hRot = new Quat();
-        this.scaleRot = 0;
-        this.currState = 0;
+        this.speed = options.speed || 1.0; // m/s
+        this.force = new Vec3();
+        this.vel = new Vec3();
+        this.mass = 1;
 
-        this.touches = [new TouchExt(), new TouchExt()];
+        this._lookPos = undefined;
+        this._grabbedPoint = undefined;
+        this._up = null;
+
+        this._eye0 = new Vec3();
+
     }
 
-    protected onMouseWheel(event: IMouseState) {
-    }
+    override oninit() {
 
-    public override oninit() {
-        this.activate();
     }
 
     public override onactivate() {
-
+        super.onactivate();
         let r = this.renderer!;
 
-        r.events.on("mousewheel", this.onMouseWheel, this);
-        r.events.on("lhold", this.onMouseLeftButtonDown, this);
-        r.events.on("ldown", this.onMouseLeftButtonClick, this);
-        r.events.on("lup", this.onMouseLeftButtonUp, this);
+        r.events.on("mousewheel", this._onMouseWheel);
 
-        // r.events.on("touchstart", this.onTouchStart, this);
-        // r.events.on("touchend", this.onTouchEnd, this);
-        // r.events.on("touchmove", this.onTouchMove, this);
+        r.events.on("rhold", this._onRHold, this);
+        r.events.on("rdown", this._onRDown, this);
 
-        r.events.on("draw", this.onDraw, this);
+        r.events.on("lhold", this._onMouseLeftButtonHold);
+        r.events.on("ldown", this._onMouseLeftButtonDown);
+        r.events.on("lup", this._onMouseLeftButtonUp);
+
+        r.events.on("draw", this.onDraw, this, -1000);
     }
 
-    // protected onTouchStart(e: ITouchState) {
-    //     if (e.sys!.touches.length == 1) {
-    //         const t = this.touches[0];
-    //
-    //         t.x = e.sys!.touches.item(0)!.pageX - e.sys!.offsetLeft;
-    //         t.y = e.sys!.touches.item(0)!.pageY - e.sys!.offsetTop;
-    //         t.prev_x = e.sys!.touches.item(0)!.pageX - e.sys!.offsetLeft;
-    //         t.prev_y = e.sys!.touches.item(0)!.pageY - e.sys!.offsetTop;
-    //
-    //         // t.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(t, true);
-    //         t.grabbedPoint = this.planet!.getCartesianFromPixelTerrain(new Vec2(t.x, t.y)) || null;
-    //
-    //         if (t.grabbedPoint) {
-    //             t.grabbedSpheroid.radius = t.grabbedPoint.length();
-    //             this.stopRotation();
-    //         }
-    //     }
-    // }
-    //
-    // protected onTouchEnd(e: ITouchState) {
-    //     if (e.sys!.touches.length == 0) {
-    //         this.scaleRot = 1;
-    //
-    //         if (
-    //             Math.abs(this.touches[0].x - this.touches[0].prev_x) < 3 &&
-    //             Math.abs(this.touches[0].y - this.touches[0].prev_y) < 3
-    //         )
-    //             this.stopRotation();
-    //     }
-    // }
-    //
-    // protected onTouchMove(e: ITouchState) {
-    //     if (e.sys!.touches.length == 1) {
-    //         let cam = this.planet!.camera;
-    //
-    //         let t = this.touches[0];
-    //
-    //         t.prev_x = t.x;
-    //         t.prev_y = t.y;
-    //
-    //         t.x = e.sys!.touches.item(0)!.pageX - e.sys!.offsetLeft;
-    //         t.y = e.sys!.touches.item(0)!.pageY - e.sys!.offsetTop;
-    //
-    //         if (!t.grabbedPoint) return;
-    //
-    //         let direction = cam.unproject(t.x, t.y);
-    //         let targetPoint = new Ray(cam.eye, direction).hitSphere(t.grabbedSpheroid);
-    //
-    //         if (targetPoint) {
-    //             this._a =
-    //                 Math.acos(t.grabbedPoint.y / t.grabbedSpheroid.radius) -
-    //                 Math.acos(targetPoint.y / t.grabbedSpheroid.radius);
-    //             this._vRot = Quat.axisAngleToQuat(cam._u, this._a);
-    //             this._hRot = Quat.getRotationBetweenVectors(
-    //                 new Vec3(targetPoint.x, 0.0, targetPoint.z).normal(),
-    //                 new Vec3(t.grabbedPoint.x, 0.0, t.grabbedPoint.z).normal()
-    //             );
-    //
-    //             let rot = this._hRot.mul(this._vRot);
-    //
-    //             let state = this.positionState[this.currState];
-    //
-    //             let lim = rot.mulVec3(cam.eye).normal().dot(Vec3.NORTH);
-    //
-    //             if (lim > state.max || lim < state.min) {
-    //                 rot = Quat.yRotation(rot.getYaw());
-    //             }
-    //
-    //             cam.set(rot.mulVec3(cam.eye), Vec3.ZERO, Vec3.NORTH);
-    //             cam.update();
-    //         }
-    //     }
-    // }
+    public override ondeactivate() {
+        super.ondeactivate();
+        let r = this.renderer!;
+        r.events.off("mousewheel", this._onMouseWheel);
 
-    protected onMouseLeftButtonClick(e: IMouseState) {
-        this.renderer!.handler.canvas!.classList.add("ogGrabbingPoiner");
-        this.grabbedPoint = this.planet!.getCartesianFromMouseTerrain() || null;
-        this.grabbedDir.copy(e.direction);
-        if (this.grabbedPoint) {
-            this.grabbedSpheroid.radius = this.grabbedPoint.length();
-            this.stopRotation();
-        }
+        r.events.off("rhold", this._onRHold);
+        r.events.off("rdown", this._onRDown);
+
+        r.events.off("lhold", this._onMouseLeftButtonHold);
+        r.events.off("ldown", this._onMouseLeftButtonDown);
+        r.events.off("lup", this._onMouseLeftButtonUp);
+
+        r.events.off("draw", this.onDraw);
     }
 
-    public stopRotation() {
-        this.scaleRot = 0.0;
-        this._vRot.clear();
-        this._hRot.clear();
-    }
-
-    protected onMouseLeftButtonUp(e: IMouseState) {
-        this.scaleRot = 1;
-        this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
-        if (Math.abs(e.x - e.prev_x) < 3 && Math.abs(e.y - e.prev_y) < 3) this.stopRotation();
-    }
-
-    protected onMouseLeftButtonDown(e: IMouseState) {
-        let cam = this.planet!.camera;
-
-        if (!this.grabbedPoint) return;
-
-        if (this.renderer!.events.mouseState.moving) {
-            let targetPoint = new Ray(cam.eye, e.direction).hitSphere(this.grabbedSpheroid);
-
-            if (targetPoint) {
-
-                let _a = Math.acos(this.grabbedPoint.y / this.grabbedSpheroid.radius) -
-                    Math.acos(targetPoint.y / this.grabbedSpheroid.radius);
-
-                let rot = this._vRot = Quat.axisAngleToQuat(cam._u, _a);
-
-                cam.set(rot.mulVec3(cam.eye), Vec3.ZERO, rot.mulVec3(cam.getUp()));
-
-                this._hRot = Quat.getRotationBetweenVectors(
-                    new Vec3(targetPoint.x, 0.0, targetPoint.z).normal(),
-                    new Vec3(this.grabbedPoint.x, 0.0, this.grabbedPoint.z).normal()
-                );
-
-                rot = this._hRot;
-
-                cam.set(rot.mulVec3(cam.eye), Vec3.ZERO, rot.mulVec3(cam.getUp()));
-                cam.update();
+    protected _onMouseLeftButtonDown = (e: IMouseState) => {
+        if (this._active && this.renderer) {
+            this.renderer.handler.canvas!.classList.add("ogGrabbingPoiner");
+            this._grabbedPoint = this.renderer.getCartesianFromPixel(e);
+            if (this._grabbedPoint) {
+                this._eye0.copy(this.renderer.activeCamera.eye);
             }
-        } else {
-            this.scaleRot = 0;
         }
+    }
+
+    protected _onMouseLeftButtonUp = (e: IMouseState) => {
+        this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
+        if (e.x === e.prev_x && e.y === e.prev_y) {
+            //this.force.set(0, 0, 0);
+        }
+    }
+
+    protected _onMouseLeftButtonHold = (e: IMouseState) => {
+        if (this._active && this.renderer) {
+            if (!this._grabbedPoint) {
+                return;
+            }
+
+            if (e.moving) {
+                let cam = this.renderer.activeCamera;
+
+                let camSlope = Math.abs(cam.getForward().dot(Vec3.UP));
+
+                let p0 = this._grabbedPoint, p1, p2;
+
+                if (camSlope > 0.7) {
+                    p1 = Vec3.add(p0, Vec3.LEFT);
+                    p2 = Vec3.add(p0, cam.getRight());
+                } else {
+                    p1 = Vec3.add(p0, cam.getRight());
+                    p2 = Vec3.add(p0, Vec3.UP);
+                }
+
+                let px = new Vec3();
+                if (new Ray(cam.eye, e.direction).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
+                    cam.eye = this._eye0.addA(px.subA(p0).negate());
+                }
+            }
+        }
+    }
+
+    protected _onRHold = (e: IMouseState) => {
+        if (this._lookPos && e.moving && this.renderer) {
+            const cam = this.renderer.activeCamera;
+            this.renderer!.controlsBag.scaleRot = 1.0;
+            let l = (0.5 / cam.eye.distance(this._lookPos)) * math.RADIANS;
+            if (l > 0.007) {
+                l = 0.007;
+            } else if (l < 0.003) {
+                l = 0.003;
+            }
+            cam.rotateHorizontal(l * (e.x - e.prev_x), false, this._lookPos, this._up);
+            cam.rotateVertical(l * (e.y - e.prev_y), this._lookPos);
+        }
+    }
+
+    protected _onRDown = (e: IMouseState) => {
+        if (this.renderer) {
+            this._lookPos = this.renderer.getCartesianFromPixel(e.pos);
+            if (this._lookPos) {
+                this._up = Vec3.UP;//this.renderer.activeCamera.getUp();
+            }
+        }
+    }
+
+    protected _onMouseWheel = (e: IMouseState) => {
+        if (this.renderer) {
+            let pos = this.renderer.getCartesianFromPixel(e),
+                dist = 10;
+            if (pos) {
+                dist = this.renderer.activeCamera.eye.distance(pos);
+            }
+            this.force.addA(e.direction.scale(e.wheelDelta)).normalize().scale(dist);
+        }
+    }
+
+    protected get dt(): number {
+        return 0.001 * this.renderer!.handler.deltaTime;
     }
 
     protected onDraw() {
-        // let r = this.renderer!;
-        // let cam = this.planet!.camera;
-        //
-        // if (r.events.mouseState.leftButtonDown || !this.scaleRot) return;
-        //
-        // this.scaleRot -= this.inertia;
-        // if (this.scaleRot <= 0) {
-        //     this.scaleRot = 0;
-        // } else {
-        //     this._vRot = Quat.axisAngleToQuat(cam._u, this._a);
-        //
-        //     let rot = this._vRot.mul(this._hRot);
-        //
-        //     r.controlsBag.scaleRot = this.scaleRot;
-        //
-        //     rot = rot.slerp(Quat.IDENTITY, 1 - this.scaleRot * this.scaleRot * this.scaleRot).normalize();
-        //
-        //     if (!(rot.x || rot.y || rot.z)) {
-        //         this.scaleRot = 0;
-        //     }
-        //
-        //     cam.set(rot.mulVec3(cam.eye), Vec3.ZERO, Vec3.NORTH);
-        //     cam.update();
-        // }
+        if (this.renderer) {
+
+            let acc = this.force.scale(1.0 / this.mass);
+            this.vel.addA(acc);
+            this.vel.scale(0.96);
+            this.force.set(0, 0, 0);
+
+            let cam = this.renderer.activeCamera;
+            cam.eye = cam.eye.add(this.vel.scaleTo(this.dt));
+            cam.update();
+        }
     }
 }
