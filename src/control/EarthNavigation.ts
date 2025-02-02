@@ -28,8 +28,14 @@ export class EarthNavigation extends Control {
     protected _grabbedPoint: Vec3 | undefined;
     protected _eye0: Vec3;
 
+    public targetPoint: Vec3 | undefined;
+
     constructor(options: IEarthNavigationParams = {}) {
-        super(options);
+        super({
+            name: "EarthNavigation",
+            autoActivate: true,
+            ...options
+        });
 
         this.speed = options.speed || 1.0; // m/s
         this.force = new Vec3();
@@ -41,6 +47,8 @@ export class EarthNavigation extends Control {
         this._up = null;
 
         this._eye0 = new Vec3();
+
+        this.targetPoint = undefined;
 
     }
 
@@ -80,6 +88,7 @@ export class EarthNavigation extends Control {
     }
 
     protected _onMouseLeftButtonDown = (e: IMouseState) => {
+        return;
         if (this._active && this.renderer) {
             this.renderer.handler.canvas!.classList.add("ogGrabbingPoiner");
             this._grabbedPoint = this.renderer.getCartesianFromPixel(e);
@@ -90,6 +99,7 @@ export class EarthNavigation extends Control {
     }
 
     protected _onMouseLeftButtonUp = (e: IMouseState) => {
+        return;
         this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
         if (e.x === e.prev_x && e.y === e.prev_y) {
             //this.force.set(0, 0, 0);
@@ -97,6 +107,7 @@ export class EarthNavigation extends Control {
     }
 
     protected _onMouseLeftButtonHold = (e: IMouseState) => {
+        return;
         if (this._active && this.renderer) {
             if (!this._grabbedPoint) {
                 return;
@@ -126,6 +137,7 @@ export class EarthNavigation extends Control {
     }
 
     protected _onRHold = (e: IMouseState) => {
+        return;
         if (this._lookPos && e.moving && this.renderer) {
             const cam = this.renderer.activeCamera;
             this.renderer!.controlsBag.scaleRot = 1.0;
@@ -141,6 +153,7 @@ export class EarthNavigation extends Control {
     }
 
     protected _onRDown = (e: IMouseState) => {
+        return;
         if (this.renderer) {
             this._lookPos = this.renderer.getCartesianFromPixel(e.pos);
             if (this._lookPos) {
@@ -151,10 +164,10 @@ export class EarthNavigation extends Control {
 
     protected _onMouseWheel = (e: IMouseState) => {
         if (this.renderer) {
-            let pos = this.renderer.getCartesianFromPixel(e),
-                dist = 10;
-            if (pos) {
-                dist = this.renderer.activeCamera.eye.distance(pos);
+            this.targetPoint = this.renderer.getCartesianFromPixel(e);
+            let dist = 10;
+            if (this.targetPoint) {
+                dist = this.renderer.activeCamera.eye.distance(this.targetPoint) * 0.1;
             }
             this.force.addA(e.direction.scale(e.wheelDelta)).normalize().scale(dist);
         }
@@ -172,9 +185,13 @@ export class EarthNavigation extends Control {
             this.vel.scale(0.96);
             this.force.set(0, 0, 0);
 
-            let cam = this.renderer.activeCamera;
-            cam.eye = cam.eye.add(this.vel.scaleTo(this.dt));
-            cam.update();
+            let cam = this.planet!.camera;
+            let eye = cam.eye.clone();//cam.eye.add(this.vel.scaleTo(this.dt));
+            let qFrame = this.planet!.getFrameRotation(eye);
+            let up = qFrame.conjugate().mulVec3(new Vec3(0, 0, -1));
+            console.log(up.x, up.y, up.z);
+            cam.set(eye, this.targetPoint, up);
+            //cam.update();
         }
     }
 }
