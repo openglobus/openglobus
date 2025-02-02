@@ -289,19 +289,22 @@ export class InstanceData {
 
     public createColorTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
         if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
-            this._colorTexture = this._geoObjectHandler._renderer!.handler.createTextureDefault(image);
+            let h = this._geoObjectHandler._renderer.handler;
+            this._colorTexture = h.createTextureDefault(image, null, h.gl!.REPEAT);
         }
     }
 
     public createNormalTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
         if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
-            this._normalTexture = this._geoObjectHandler._renderer!.handler.createTextureDefault(image);
+            let h = this._geoObjectHandler._renderer.handler;
+            this._normalTexture = h.createTextureDefault(image, null, h.gl!.REPEAT);
         }
     }
 
     public createMetallicRoughnessTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
         if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
-            this._metallicRoughnessTexture = this._geoObjectHandler._renderer!.handler.createTextureDefault(image);
+            let h = this._geoObjectHandler._renderer.handler;
+            this._metallicRoughnessTexture = h.createTextureDefault(image, null, h.gl!.REPEAT);
         }
     }
 
