@@ -168,10 +168,17 @@ export class EarthNavigation extends Control {
 
             let cam = this.planet.camera;
             let a = this.planet.getCartesianFromPixelTerrain(e);
+
             if (!a) return;
-            let dir = a.sub(cam.eye);
+
+            let dir = e.direction;//a.sub(cam.eye).normalize();
             let eye = cam.eye.clone();
-            let d = eye.distance(a) * 0.01;
+
+            //@ts-ignore
+            let d = eye.distance(a) * 0.1 * Math.sign(e.wheelDelta);
+            if (isNaN(d)) {
+                debugger;
+            }
             let scale = cam.getForward().scaleTo(d);
             let sphere = new Sphere(a.length());
             eye.addA(scale);
@@ -180,12 +187,28 @@ export class EarthNavigation extends Control {
 
             if (!b) return;
 
-            let rot = new Mat4().rotateBetweenVectors(a.normal(), b.normal());
+            let rot = Quat.getRotationBetweenVectors(a.normal(), b.normal()).inverse();
 
-            cam.eye = rot.mulVec3(eye);
-            cam._b = rot.mulVec3(cam._b);
-            cam._u = rot.mulVec3(cam._u);
-            cam._r = rot.mulVec3(cam._r);
+            let newEye = rot.mulVec3(eye);
+
+            if (isNaN(newEye.x)) {
+                debugger;
+            }
+
+            let qFrame = this.planet.getFrameRotation(newEye).conjugate();
+
+            // cam.eye = newEye;
+            // cam._b = rot.mulVec3(cam._b);
+            // cam._u = rot.mulVec3(cam._u);
+            // cam._r = rot.mulVec3(cam._r);
+
+            let up = qFrame.mulVec3(new Vec3(0, 0, -1));
+            cam.set(newEye, undefined, up)
+
+            // cam._b = qFrame.mulVec3(new Vec3(0, 0, 1));
+            // cam._u = qFrame.mulVec3(new Vec3(0, 1, 0));
+            // cam._r = qFrame.mulVec3(new Vec3(1, 0, 0));
+
 
             cam.update();
 

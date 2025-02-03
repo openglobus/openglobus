@@ -28,5 +28,6 @@ const globus = new Globe({
     },
 });
 
+globus.planet.addControl(new control.CompassButton());
 globus.planet.addControl(new control.DebugInfo());
 globus.planet.addControl(new control.LayerSwitcher());
