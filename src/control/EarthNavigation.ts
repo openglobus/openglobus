@@ -7,6 +7,7 @@ import {Ray} from "../math/Ray";
 import {Sphere} from "../bv/Sphere";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
+import {Mat4} from "../math/Mat4";
 import {input} from "../input/input";
 import * as math from "../math";
 
@@ -90,10 +91,10 @@ export class EarthNavigation extends Control {
     protected _onMouseLeftButtonDown = (e: IMouseState) => {
         return;
         if (this._active && this.renderer) {
-            this.renderer.handler.canvas!.classList.add("ogGrabbingPoiner");
-            this._grabbedPoint = this.renderer.getCartesianFromPixel(e);
+            this.renderer!.handler.canvas!.classList.add("ogGrabbingPoiner");
+            this._grabbedPoint = this.renderer!.getCartesianFromPixel(e);
             if (this._grabbedPoint) {
-                this._eye0.copy(this.renderer.activeCamera.eye);
+                this._eye0.copy(this.renderer!.activeCamera.eye);
             }
         }
     }
@@ -114,11 +115,11 @@ export class EarthNavigation extends Control {
             }
 
             if (e.moving) {
-                let cam = this.renderer.activeCamera;
+                let cam = this.renderer!.activeCamera;
 
                 let camSlope = Math.abs(cam.getForward().dot(Vec3.UP));
 
-                let p0 = this._grabbedPoint, p1, p2;
+                let p0 = this._grabbedPoint!, p1, p2;
 
                 if (camSlope > 0.7) {
                     p1 = Vec3.add(p0, Vec3.LEFT);
@@ -139,9 +140,9 @@ export class EarthNavigation extends Control {
     protected _onRHold = (e: IMouseState) => {
         return;
         if (this._lookPos && e.moving && this.renderer) {
-            const cam = this.renderer.activeCamera;
+            const cam = this.renderer!.activeCamera;
             this.renderer!.controlsBag.scaleRot = 1.0;
-            let l = (0.5 / cam.eye.distance(this._lookPos)) * math.RADIANS;
+            let l = (0.5 / cam.eye.distance(this._lookPos!)) * math.RADIANS;
             if (l > 0.007) {
                 l = 0.007;
             } else if (l < 0.003) {
@@ -155,7 +156,7 @@ export class EarthNavigation extends Control {
     protected _onRDown = (e: IMouseState) => {
         return;
         if (this.renderer) {
-            this._lookPos = this.renderer.getCartesianFromPixel(e.pos);
+            this._lookPos = this.renderer!.getCartesianFromPixel(e.pos);
             if (this._lookPos) {
                 this._up = Vec3.UP;//this.renderer.activeCamera.getUp();
             }
@@ -163,13 +164,37 @@ export class EarthNavigation extends Control {
     }
 
     protected _onMouseWheel = (e: IMouseState) => {
-        if (this.renderer) {
-            this.targetPoint = this.renderer.getCartesianFromPixel(e);
-            let dist = 10;
-            if (this.targetPoint) {
-                dist = this.renderer.activeCamera.eye.distance(this.targetPoint) * 0.1;
-            }
-            this.force.addA(e.direction.scale(e.wheelDelta)).normalize().scale(dist);
+        if (this.renderer && this.planet) {
+
+            let cam = this.planet.camera;
+            let a = this.planet.getCartesianFromPixelTerrain(e);
+            if (!a) return;
+            let dir = a.sub(cam.eye);
+            let eye = cam.eye.clone();
+            let d = eye.distance(a) * 0.01;
+            let scale = cam.getForward().scaleTo(d);
+            let sphere = new Sphere(a.length());
+            eye.addA(scale);
+
+            let b = new Ray(eye, dir).hitSphere(sphere);
+
+            if (!b) return;
+
+            let rot = new Mat4().rotateBetweenVectors(a.normal(), b.normal());
+
+            cam.eye = rot.mulVec3(eye);
+            cam._b = rot.mulVec3(cam._b);
+            cam._u = rot.mulVec3(cam._u);
+            cam._r = rot.mulVec3(cam._r);
+
+            cam.update();
+
+            // this.targetPoint = this.renderer.getCartesianFromPixel(e);
+            // let dist = 10;
+            // if (this.targetPoint) {
+            //     dist = this.renderer.activeCamera.eye.distance(this.targetPoint) * 0.1;
+            // }
+            // this.force.addA(e.direction.scale(e.wheelDelta)).normalize().scale(dist);
         }
     }
 
@@ -180,17 +205,17 @@ export class EarthNavigation extends Control {
     protected onDraw() {
         if (this.renderer) {
 
-            let acc = this.force.scale(1.0 / this.mass);
-            this.vel.addA(acc);
-            this.vel.scale(0.96);
-            this.force.set(0, 0, 0);
-
-            let cam = this.planet!.camera;
-            let eye = cam.eye.clone();//cam.eye.add(this.vel.scaleTo(this.dt));
-            let qFrame = this.planet!.getFrameRotation(eye);
-            let up = qFrame.conjugate().mulVec3(new Vec3(0, 0, -1));
-            console.log(up.x, up.y, up.z);
-            cam.set(eye, this.targetPoint, up);
+            // let acc = this.force.scale(1.0 / this.mass);
+            // this.vel.addA(acc);
+            // this.vel.scale(0.96);
+            // this.force.set(0, 0, 0);
+            //
+            // let cam = this.planet!.camera;
+            // let eye = cam.eye.clone();//cam.eye.add(this.vel.scaleTo(this.dt));
+            // let qFrame = this.planet!.getFrameRotation(eye);
+            // let up = qFrame.conjugate().mulVec3(new Vec3(0, 0, -1));
+            // console.log(up.x, up.y, up.z);
+            // cam.set(eye, this.targetPoint, up);
             //cam.update();
         }
     }
