@@ -31,6 +31,8 @@ export class EarthNavigation extends Control {
 
     public targetPoint: Vec3 | undefined;
 
+    protected _wheelDirection: number;
+
     constructor(options: IEarthNavigationParams = {}) {
         super({
             name: "EarthNavigation",
@@ -51,6 +53,7 @@ export class EarthNavigation extends Control {
 
         this.targetPoint = undefined;
 
+        this._wheelDirection = 0;
     }
 
     override oninit() {
@@ -165,17 +168,29 @@ export class EarthNavigation extends Control {
 
     protected _onMouseWheel = (e: IMouseState) => {
         if (this.planet) {
-            this.vel.set(0, 0, 0);
-            if(alt > xxx) {
-                this.targetPoint = this.planet.getCartesianFromPixelEllipsoid(e);
-            }else {
-                this.targetPoint = this.planet.getCartesianFromPixelTerrain(e);
-            }
+            //this.vel.set(0, 0, 0);
+            //if(alt > xxx) {
+            this.targetPoint = this.planet.getCartesianFromPixelEllipsoid(e);
+            // }else {
+            //     this.targetPoint = this.planet.getCartesianFromPixelTerrain(e);
+            // }
             let dist = 0;
             if (this.targetPoint) {
-                dist = this.planet.camera.eye.distance(this.targetPoint) * 5.0;
+                dist = this.planet.camera.eye.distance(this.targetPoint) * 2;
             }
-            this.force = (e.direction.scale(Math.sign(e.wheelDelta))).normalize().scale(dist);
+            if (Math.sign(e.wheelDelta) !== this._wheelDirection) {
+                this.vel.set(0, 0, 0);
+            }
+
+            //let dd = this.targetPoint!.distance(this.planet.camera.eye);
+            // let brk = 1;
+            // if (this._wheelDirection > 0 && dd < 5000) {
+            //     this.vel.set(0, 0, 0);
+            //     brk = dist / 5000;
+            // }
+
+            this._wheelDirection = Math.sign(e.wheelDelta);
+            this.force = (e.direction.scale(Math.sign(this._wheelDirection))).normalize().scale(dist);
         }
     }
 
@@ -195,8 +210,14 @@ export class EarthNavigation extends Control {
 
             let velMag = Math.sign(this.vel.normal().dot(cam.getForward()));
 
-            //@ts-ignore
-            let d = this.vel.scaleTo(this.dt).length() * velMag;
+            let dist = a.distance(cam.eye);
+
+            let brk = 1;
+            if (velMag > 0 && dist < 5000) {
+                brk = dist / 9000;
+            }
+
+            let d = this.vel.scaleTo(this.dt).length() * velMag * brk;
             let scale = cam.getForward().scaleTo(d);
             let sphere = new Sphere(a.length());
             eye.addA(scale);
@@ -212,8 +233,6 @@ export class EarthNavigation extends Control {
             let qFrame = this.planet!.getFrameRotation(newEye).conjugate();
             let up = qFrame.mulVec3(new Vec3(0, 0, -1));
             cam.set(newEye, undefined,);
-
-            //cam.update();
         }
     }
 
