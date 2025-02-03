@@ -228,15 +228,33 @@ export class EarthNavigation extends Control {
 
             let rot = Quat.getRotationBetweenVectors(b.normal(), a.normal());
 
-            // let qFrame = this.planet!.getFrameRotation(newEye).conjugate();
-            // let up = qFrame.mulVec3(new Vec3(0, 0, -1));
-
             cam.eye = rot.mulVec3(eye);
             cam._b = rot.mulVec3(cam._b);
             cam._r = rot.mulVec3(cam._r);
             cam._u = rot.mulVec3(cam._u);
-            //cam.update();
-            //cam.set(newEye, undefined,);
+
+
+            // rot UP
+            let qFrame = this.planet!.getFrameRotation(cam.eye).conjugate();
+            cam._u = qFrame.mulVec3(new Vec3(0, 0, -1));
+            cam._r = cam._u.cross(cam.getBackward()).normalize();
+            cam._b = cam._r.cross(cam._u).normalize();
+
+
+            // dir = rot.mulVec3(dir);
+            // //dir = a.sub(cam.eye).normalize();
+            // eye = cam.eye.clone();
+            //
+            // b = new Ray(eye, dir).hitSphere(sphere);
+            //
+            // if (!b) return;
+            //
+            // rot = Quat.getRotationBetweenVectors(b.normal(), a.normal());
+            //
+            // cam.eye = rot.mulVec3(eye);
+            // cam._b = rot.mulVec3(cam._b);
+            // cam._r = rot.mulVec3(cam._r);
+            // cam._u = rot.mulVec3(cam._u);
         }
     }
 
