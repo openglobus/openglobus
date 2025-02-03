@@ -164,21 +164,39 @@ export class EarthNavigation extends Control {
     }
 
     protected _onMouseWheel = (e: IMouseState) => {
-        if (this.renderer && this.planet) {
+        if (this.planet) {
+            this.vel.set(0, 0, 0);
+            if(alt > xxx) {
+                this.targetPoint = this.planet.getCartesianFromPixelEllipsoid(e);
+            }else {
+                this.targetPoint = this.planet.getCartesianFromPixelTerrain(e);
+            }
+            let dist = 0;
+            if (this.targetPoint) {
+                dist = this.planet.camera.eye.distance(this.targetPoint) * 5.0;
+            }
+            this.force = (e.direction.scale(Math.sign(e.wheelDelta))).normalize().scale(dist);
+        }
+    }
 
-            let cam = this.planet.camera;
-            let a = this.planet.getCartesianFromPixelTerrain(e);
+    protected onDraw() {
+        if (this.targetPoint) {
 
-            if (!a) return;
+            let acc = this.force.scale(1.0 / this.mass);
+            this.vel.addA(acc);
+            this.vel.scale(0.96);
+            this.force.set(0, 0, 0);
 
-            let dir = e.direction;//a.sub(cam.eye).normalize();
+            let cam = this.planet!.camera;
+            let a = this.targetPoint;
+
+            let dir = a.sub(cam.eye).normalize();
             let eye = cam.eye.clone();
 
+            let velMag = Math.sign(this.vel.normal().dot(cam.getForward()));
+
             //@ts-ignore
-            let d = eye.distance(a) * 0.1 * Math.sign(e.wheelDelta);
-            if (isNaN(d)) {
-                debugger;
-            }
+            let d = this.vel.scaleTo(this.dt).length() * velMag;
             let scale = cam.getForward().scaleTo(d);
             let sphere = new Sphere(a.length());
             eye.addA(scale);
@@ -187,59 +205,19 @@ export class EarthNavigation extends Control {
 
             if (!b) return;
 
-            let rot = Quat.getRotationBetweenVectors(a.normal(), b.normal()).inverse();
+            let rot = Quat.getRotationBetweenVectors(b.normal(), a.normal());
 
             let newEye = rot.mulVec3(eye);
 
-            if (isNaN(newEye.x)) {
-                debugger;
-            }
-
-            let qFrame = this.planet.getFrameRotation(newEye).conjugate();
-
-            // cam.eye = newEye;
-            // cam._b = rot.mulVec3(cam._b);
-            // cam._u = rot.mulVec3(cam._u);
-            // cam._r = rot.mulVec3(cam._r);
-
+            let qFrame = this.planet!.getFrameRotation(newEye).conjugate();
             let up = qFrame.mulVec3(new Vec3(0, 0, -1));
-            cam.set(newEye, undefined, up)
+            cam.set(newEye, undefined,);
 
-            // cam._b = qFrame.mulVec3(new Vec3(0, 0, 1));
-            // cam._u = qFrame.mulVec3(new Vec3(0, 1, 0));
-            // cam._r = qFrame.mulVec3(new Vec3(1, 0, 0));
-
-
-            cam.update();
-
-            // this.targetPoint = this.renderer.getCartesianFromPixel(e);
-            // let dist = 10;
-            // if (this.targetPoint) {
-            //     dist = this.renderer.activeCamera.eye.distance(this.targetPoint) * 0.1;
-            // }
-            // this.force.addA(e.direction.scale(e.wheelDelta)).normalize().scale(dist);
+            //cam.update();
         }
     }
 
     protected get dt(): number {
         return 0.001 * this.renderer!.handler.deltaTime;
-    }
-
-    protected onDraw() {
-        if (this.renderer) {
-
-            // let acc = this.force.scale(1.0 / this.mass);
-            // this.vel.addA(acc);
-            // this.vel.scale(0.96);
-            // this.force.set(0, 0, 0);
-            //
-            // let cam = this.planet!.camera;
-            // let eye = cam.eye.clone();//cam.eye.add(this.vel.scaleTo(this.dt));
-            // let qFrame = this.planet!.getFrameRotation(eye);
-            // let up = qFrame.conjugate().mulVec3(new Vec3(0, 0, -1));
-            // console.log(up.x, up.y, up.z);
-            // cam.set(eye, this.targetPoint, up);
-            //cam.update();
-        }
     }
 }
