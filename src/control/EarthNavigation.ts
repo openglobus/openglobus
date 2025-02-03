@@ -169,11 +169,11 @@ export class EarthNavigation extends Control {
     protected _onMouseWheel = (e: IMouseState) => {
         if (this.planet) {
             //this.vel.set(0, 0, 0);
-            //if(alt > xxx) {
-            this.targetPoint = this.planet.getCartesianFromPixelEllipsoid(e);
-            // }else {
-            //     this.targetPoint = this.planet.getCartesianFromPixelTerrain(e);
-            // }
+            if (this.planet.camera.getAltitude() > 10000) {
+                this.targetPoint = this.planet.getCartesianFromPixelEllipsoid(e);
+            } else {
+                this.targetPoint = this.planet.getCartesianFromPixelTerrain(e);
+            }
             let dist = 0;
             if (this.targetPoint) {
                 dist = this.planet.camera.eye.distance(this.targetPoint) * 2;
@@ -182,8 +182,8 @@ export class EarthNavigation extends Control {
                 this.vel.set(0, 0, 0);
             }
 
-            //let dd = this.targetPoint!.distance(this.planet.camera.eye);
-            // let brk = 1;
+            let dd = this.targetPoint!.distance(this.planet.camera.eye);
+            let brk = 1;
             // if (this._wheelDirection > 0 && dd < 5000) {
             //     this.vel.set(0, 0, 0);
             //     brk = dist / 5000;
@@ -213,9 +213,9 @@ export class EarthNavigation extends Control {
             let dist = a.distance(cam.eye);
 
             let brk = 1;
-            if (velMag > 0 && dist < 5000) {
-                brk = dist / 9000;
-            }
+            // if (/*velMag > 0 &&*/ dist < 5000) {
+            //     brk = dist / 1000;
+            // }
 
             let d = this.vel.scaleTo(this.dt).length() * velMag * brk;
             let scale = cam.getForward().scaleTo(d);
@@ -228,11 +228,15 @@ export class EarthNavigation extends Control {
 
             let rot = Quat.getRotationBetweenVectors(b.normal(), a.normal());
 
-            let newEye = rot.mulVec3(eye);
+            // let qFrame = this.planet!.getFrameRotation(newEye).conjugate();
+            // let up = qFrame.mulVec3(new Vec3(0, 0, -1));
 
-            let qFrame = this.planet!.getFrameRotation(newEye).conjugate();
-            let up = qFrame.mulVec3(new Vec3(0, 0, -1));
-            cam.set(newEye, undefined,);
+            cam.eye = rot.mulVec3(eye);
+            cam._b = rot.mulVec3(cam._b);
+            cam._r = rot.mulVec3(cam._r);
+            cam._u = rot.mulVec3(cam._u);
+            //cam.update();
+            //cam.set(newEye, undefined,);
         }
     }
 
