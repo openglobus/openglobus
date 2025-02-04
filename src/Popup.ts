@@ -182,7 +182,7 @@ class Popup extends View<null> {
 
             if (v > look.length() && cam.getForward().dot(look.normalize()) > 0.0) {
                 this.el!.style.display = "block";
-                this.setScreen(cam.project(cart));
+                this.setScreen(cam.project3v(cart));
             } else {
                 this.el!.style.display = "none";
             }

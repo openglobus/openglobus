@@ -1999,7 +1999,7 @@ export class Planet extends RenderNode {
      * @returns {Vec2} - Screen coordinates.
      */
     public getPixelFromCartesian(coords: Vec3): Vec2 {
-        return this.renderer!.activeCamera!.project(coords);
+        return this.renderer!.activeCamera!.project3v(coords);
     }
 
     /**
@@ -2011,7 +2011,7 @@ export class Planet extends RenderNode {
     public getPixelFromLonLat(lonlat: LonLat): Vec2 | undefined {
         let coords = this.ellipsoid.lonLatToCartesian(lonlat);
         if (coords) {
-            return this.renderer!.activeCamera!.project(coords);
+            return this.renderer!.activeCamera!.project3v(coords);
         }
     }
 

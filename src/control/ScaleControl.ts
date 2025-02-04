@@ -97,13 +97,13 @@ export class ScaleControl extends Control {
         let s0 = px;
         let dist = this.planet!.getDistanceFromPixel(s0) || 0;
         if (dist === 0) {
-            s0 = cam.project(Vec3.ZERO);
+            s0 = cam.project3v(Vec3.ZERO);
             dist = this.planet!.getDistanceFromPixel(s0) || 0;
         }
         let p0 = cam.getForward().scaleTo(dist).addA(cam.eye);
         let tempSize = dist * Math.tan(cam.viewAngle * RADIANS);
         let p1 = p0.add(cam.getRight().scaleTo(tempSize));
-        let s1 = cam.project(p1);
+        let s1 = cam.project3v(p1);
         this._mPx = tempSize / s1.distance(s0);
 
         let metersInMinSize = this._mPx * this._minWidth;

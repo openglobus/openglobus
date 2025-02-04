@@ -10,6 +10,7 @@ import {Vec3} from "../math/Vec3";
 import {Mat4} from "../math/Mat4";
 import {input} from "../input/input";
 import * as math from "../math";
+import {DEGREES} from "../math";
 
 interface IEarthNavigationParams extends IControlParams {
     speed?: number;
@@ -33,6 +34,9 @@ export class EarthNavigation extends Control {
 
     protected _wheelDirection: number;
 
+
+    protected currScreenPos: Vec2;
+
     constructor(options: IEarthNavigationParams = {}) {
         super({
             name: "EarthNavigation",
@@ -54,6 +58,8 @@ export class EarthNavigation extends Control {
         this.targetPoint = undefined;
 
         this._wheelDirection = 0;
+
+        this.currScreenPos = new Vec2();
     }
 
     override oninit() {
@@ -65,6 +71,8 @@ export class EarthNavigation extends Control {
         let r = this.renderer!;
 
         r.events.on("mousewheel", this._onMouseWheel);
+        r.events.on("touchstart", this._onTouchStart);
+        r.events.on("touchend", this._onTouchEnd);
 
         r.events.on("rhold", this._onRHold, this);
         r.events.on("rdown", this._onRDown, this);
@@ -80,6 +88,8 @@ export class EarthNavigation extends Control {
         super.ondeactivate();
         let r = this.renderer!;
         r.events.off("mousewheel", this._onMouseWheel);
+        r.events.off("touchstart", this._onTouchStart);
+        r.events.off("touchend", this._onTouchEnd);
 
         r.events.off("rhold", this._onRHold);
         r.events.off("rdown", this._onRDown);
@@ -166,6 +176,13 @@ export class EarthNavigation extends Control {
         }
     }
 
+    protected _onTouchStart = (e: ITouchState) => {
+    }
+
+    protected _onTouchEnd = (e: ITouchState) => {
+
+    }
+
     protected _onMouseWheel = (e: IMouseState) => {
         if (this.planet) {
             //this.vel.set(0, 0, 0);
@@ -191,6 +208,8 @@ export class EarthNavigation extends Control {
 
             this._wheelDirection = Math.sign(e.wheelDelta);
             this.force = (e.direction.scale(Math.sign(this._wheelDirection))).normalize().scale(dist);
+
+            this.currScreenPos.set(e.x, e.y);
         }
     }
 
@@ -210,17 +229,24 @@ export class EarthNavigation extends Control {
 
             let velMag = Math.sign(this.vel.normal().dot(cam.getForward()));
 
-            let dist = a.distance(cam.eye);
-
+            //let dist = a.distance(cam.eye);
             let brk = 1;
             // if (/*velMag > 0 &&*/ dist < 5000) {
             //     brk = dist / 1000;
             // }
 
             let d = this.vel.scaleTo(this.dt).length() * velMag * brk;
-            let scale = cam.getForward().scaleTo(d);
+            let scale = cam.getForward().add(this.vel.scaleTo(d));
             let sphere = new Sphere(a.length());
             eye.addA(scale);
+
+
+            // rot UP
+            let qFrame = this.planet!.getFrameRotation(eye).conjugate();
+            cam._u = qFrame.mulVec3(new Vec3(0, 0, -1));
+            cam._r = cam._u.cross(cam.getBackward()).normalize();
+            cam._b = cam._r.cross(cam._u).normalize();
+
 
             let b = new Ray(eye, dir).hitSphere(sphere);
 
@@ -234,12 +260,21 @@ export class EarthNavigation extends Control {
             cam._u = rot.mulVec3(cam._u);
 
 
-            // rot UP
-            let qFrame = this.planet!.getFrameRotation(cam.eye).conjugate();
-            cam._u = qFrame.mulVec3(new Vec3(0, 0, -1));
-            cam._r = cam._u.cross(cam.getBackward()).normalize();
-            cam._b = cam._r.cross(cam._u).normalize();
-
+            // // rot UP
+            // let qFrame = this.planet!.getFrameRotation(cam.eye).conjugate();
+            // cam._u = qFrame.mulVec3(new Vec3(0, 0, -1));
+            // cam._r = cam._u.cross(cam.getBackward()).normalize();
+            // cam._b = cam._r.cross(cam._u).normalize();
+            //
+            // cam.update();
+            //
+            // let newDir = cam.unproject2v(this.currScreenPos);
+            //
+            // let deg = Math.acos(dir.dot(newDir)) * DEGREES;
+            //
+            // if (deg > 1) {
+            //     console.log(deg);
+            // }
 
             // dir = rot.mulVec3(dir);
             // //dir = a.sub(cam.eye).normalize();

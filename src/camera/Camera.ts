@@ -556,6 +556,17 @@ class Camera {
         );
     }
 
+
+    /**
+     * Returns normal vector direction to the unprojected screen point from camera eye
+     * @public
+     * @param {Vec2} pos - Screen X coordinate
+     * @returns {Vec3} - Direction vector
+     */
+    public unproject2v(pos: Vec2) {
+        return this.unproject(pos.x, pos.y);
+    }
+
     /**
      * Returns normal vector direction to the unprojected screen point from camera eye
      * @public
@@ -583,8 +594,20 @@ class Camera {
      * @param {Vec3} v - Cartesian 3d coordinates
      * @returns {Vec2} - Screen point coordinates
      */
-    public project(v: Vec3): Vec2 {
-        let r = this.frustums[0].projectionViewMatrix.mulVec4(v.toVec4()),
+    public project3v(v: Vec3): Vec2 {
+        return this.project(v.x, v.y, v.z);
+    }
+
+    /**
+     * Gets projected 3d point to the 2d screen coordinates
+     * @public
+     * @param {number} x - X coordinate
+     * @param {number} y - Y coordinate
+     * @param {number} z - Z coordinate
+     * @returns {Vec2} - Screen point coordinates
+     */
+    public project(x: number, y: number, z: number): Vec2 {
+        let r = this.frustums[0].projectionViewMatrix.mulVec4(new Vec4(x, y, z, 1.0)),
             c = this.renderer!.handler.canvas!;
         return new Vec2((1 + r.x / r.w) * c.width * 0.5, (1 - r.y / r.w) * c.height * 0.5);
     }
