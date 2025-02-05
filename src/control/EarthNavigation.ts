@@ -10,13 +10,14 @@ import {Vec3} from "../math/Vec3";
 import {Mat4} from "../math/Mat4";
 import {input} from "../input/input";
 import * as math from "../math";
-import {DEGREES} from "../math";
+import {DEGREES, RADIANS} from "../math";
+import {Plane} from "../math/Plane";
 
 interface IEarthNavigationParams extends IControlParams {
     speed?: number;
 }
 
-let prevAng = 0;
+let curRot = new Quat();
 
 export class EarthNavigation extends Control {
 
@@ -213,18 +214,7 @@ export class EarthNavigation extends Control {
             this.force = (e.direction.scale(Math.sign(this._wheelDirection))).normalize().scale(dist);
 
             this.currScreenPos.set(e.x, e.y);
-            prevAng = 1000000;
         }
-    }
-
-    protected _updateVel() {
-        let acc = this.force.scale(1.0 / this.mass);
-        this.vel.addA(acc);
-        this.vel.scale(0.96);
-        if (this.vel.length() < 0.001) {
-            this.vel.set(0, 0, 0);
-        }
-        this.force.set(0, 0, 0);
     }
 
     protected onDraw() {
@@ -235,17 +225,17 @@ export class EarthNavigation extends Control {
 
             let cam = this.planet!.camera;
             let a = this.targetPoint;
-
             let dir = a.sub(cam.eye).normalize();
             let eye = cam.eye.clone();
+            let velDir = Math.sign(this.vel.normal().dot(cam.getForward()));
 
-            let velMag = Math.sign(this.vel.normal().dot(cam.getForward()));
+            let d_v = this.vel.scaleTo(this.dt);
+            //let d_s = d_v.projToVec(cam.getForward().scale(velDir));
+            let d_s = cam.getForward().scaleTo(velDir * d_v.length());
 
-            let d = this.vel.scaleTo(this.dt).length() * velMag;
-            let scale = cam.getForward().scaleTo(d);
+            eye.addA(d_s);
+
             let sphere = new Sphere(a.length());
-            eye.addA(scale);
-
             let b = new Ray(eye, dir).hitSphere(sphere);
 
             if (!b) return;
@@ -263,19 +253,40 @@ export class EarthNavigation extends Control {
             cam._r = cam._u.cross(cam.getBackward()).normalize();
             cam._b = cam._r.cross(cam._u).normalize();
 
-            cam.update();
-            let dir2 = cam.unproject2v(this.currScreenPos);
-            let rotd = Quat.getRotationBetweenVectors(dir, dir2);
+            //@ts-ignore
+            if (!window.XXX) {
+                cam.update();
 
-            let dot = Math.max(-1, Math.min(1, dir.dot(dir2)));
-            let curAng = Math.acos(dot) * DEGREES;
-            //console.log(Math.abs(curAng - prevAng).toFixed(3));
-            //if ((velMag < 0 || velMag > 0 && curAng <= prevAng) && cam._lonLat.height > 1000000) {
-            prevAng = curAng;
-            let newEye = rotd.mulVec3(eye);
-            cam.eye = newEye;
-            //}
+                let dirCurr = cam.unproject2v(this.currScreenPos); // = dir
+                let dirNew = this.targetPoint.sub(cam.eye).normalize();
+
+                // rot = Quat.getRotationBetweenVectors(dirNew, dirCurr);
+                // let newEye = rot.mulVec3(cam.eye);
+
+                //console.log(cam.eye.sub(newEye).length());
+                //let stableEye = cam.eye.clone();
+                //cam.eye = newEye;
+
+                cam.update();
+
+                let pp = cam.project3v(this.targetPoint);
+                let d = pp.sub(this.currScreenPos);
+
+                console.log(Math.round(d.x), Math.round(d.y));
+            }
+
+            //this.vel.set(0, 0, 0)
         }
+    }
+
+    protected _updateVel() {
+        let acc = this.force.scale(1.0 / this.mass);
+        this.vel.addA(acc);
+        this.vel.scale(0.96);
+        if (this.vel.length() < 0.001) {
+            this.vel.set(0, 0, 0);
+        }
+        this.force.set(0, 0, 0);
     }
 
     protected get dt(): number {
