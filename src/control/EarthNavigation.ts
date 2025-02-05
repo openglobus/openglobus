@@ -7,7 +7,7 @@ import {Ray} from "../math/Ray";
 import {Sphere} from "../bv/Sphere";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
-import {Mat4} from "../math/Mat4";
+import {Mat3} from "../math/Mat3";
 import {input} from "../input/input";
 import * as math from "../math";
 import {DEGREES, RADIANS} from "../math";
@@ -227,7 +227,7 @@ export class EarthNavigation extends Control {
             let a = this.targetPoint;
             let dir = a.sub(cam.eye).normalize();
             let eye = cam.eye.clone();
-            let velDir = Math.sign(this.vel.normal().dot(cam.getForward()));
+            let velDir = Math.sign(this.vel.getNormal().dot(cam.getForward()));
 
             let d_v = this.vel.scaleTo(this.dt);
             //let d_s = d_v.projToVec(cam.getForward().scale(velDir));
@@ -256,23 +256,33 @@ export class EarthNavigation extends Control {
             //@ts-ignore
             if (!window.XXX) {
                 cam.update();
-
-                let dirCurr = cam.unproject2v(this.currScreenPos); // = dir
+                //
+                let dirCurr = cam.unproject2v(this.currScreenPos);
                 let dirNew = this.targetPoint.sub(cam.eye).normalize();
-
-                // rot = Quat.getRotationBetweenVectors(dirNew, dirCurr);
-                // let newEye = rot.mulVec3(cam.eye);
-
-                //console.log(cam.eye.sub(newEye).length());
-                //let stableEye = cam.eye.clone();
-                //cam.eye = newEye;
+                //
+                // let dot = dirCurr.dot(dirNew);
+                // let ang = Math.acos(Math.min(dot, 1.0)) * DEGREES;
+                //
+                rot = Quat.getRotationBetweenVectors(dirNew, dirCurr);
+                //cam.eye = rot.mulVec3(cam.eye);
 
                 cam.update();
-
-                let pp = cam.project3v(this.targetPoint);
+                let pp = cam.project3v(a);
                 let d = pp.sub(this.currScreenPos);
 
-                console.log(Math.round(d.x), Math.round(d.y));
+                let px0 = new Vec3();
+                new Ray(cam.eye, dirCurr).hitPlane(a, a.add(cam.getUp()), a.add(cam.getRight()), px0);
+
+                let px1 = new Vec3();
+                new Ray(cam.eye, dirNew).hitPlane(a, a.add(cam.getUp()), a.add(cam.getRight()), px1);
+
+                // let px0 = new Ray(cam.eye, dirCurr).hitSphere(sphere)!;
+                // let px1 = new Ray(cam.eye, dirNew).hitSphere(sphere)!;
+
+                let dp = px1.sub(px0);
+                cam.eye = cam.eye.add(dp);
+
+                // console.log(Math.round(d.x), Math.round(d.y));
             }
 
             //this.vel.set(0, 0, 0)
