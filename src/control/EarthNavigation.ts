@@ -200,24 +200,22 @@ export class EarthNavigation extends Control {
             let dist = this.planet.camera.eye.distance(this.targetPoint) * 2;
 
             if (Math.sign(e.wheelDelta) !== this._wheelDirection) {
-                //this.vel.set(0, 0, 0);
                 this.vel.scale(0.3);
+                this.currScreenPos.set(e.x, e.y);
                 this._wheelDirection = Math.sign(e.wheelDelta);
                 return;
             }
 
-            let dd = this.targetPoint!.distance(this.planet.camera.eye);
-
+            //let dd = this.targetPoint!.distance(this.planet.camera.eye);
             // let brk = 1;
             // if (this._wheelDirection > 0 && dd < 5000) {
             //     this.vel.set(0, 0, 0);
             //     brk = dist / 5000;
             // }
 
+            this.currScreenPos.set(e.x, e.y);
             this._wheelDirection = Math.sign(e.wheelDelta);
             this.force = (e.direction.scale(Math.sign(this._wheelDirection))).normalize().scale(dist);
-
-            this.currScreenPos.set(e.x, e.y);
         }
     }
 
