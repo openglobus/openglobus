@@ -31,9 +31,9 @@ function dragSimpleRes(unit: Vec3, eye: Vec3, clickDir: Vec3, direction: Vec3, p
 
     let px = new Vec3();
 
-    if (new Ray(eye, clickDir).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
+    if (new Ray(eye, clickDir).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
         let clickCart = Vec3.proj_b_to_a(px, unit);
-        if (new Ray(eye, direction).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
+        if (new Ray(eye, direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
             let dragCart = Vec3.proj_b_to_a(px, unit);
             let dragVec = dragCart.sub(clickCart);
             res.copy(p0.add(dragVec));
@@ -474,9 +474,9 @@ class GeoObjectEditorScene extends RenderNode {
 
         let clickDir = cam.unproject(this._clickPos.x, this._clickPos.y);
 
-        if (new Ray(cam.eye, clickDir).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
+        if (new Ray(cam.eye, clickDir).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
             let clickCart = Vec3.proj_b_to_a(px, groundNormal);
-            if (new Ray(cam.eye, e.direction).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
+            if (new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
                 let dragCart = Vec3.proj_b_to_a(px, groundNormal);
                 let dragVec = dragCart.sub(clickCart);
                 let pos = this._selectedEntityCart.add(dragVec);
@@ -562,8 +562,8 @@ class GeoObjectEditorScene extends RenderNode {
                 p2 = p0.add(Vec3.UNIT_Z);
             let clickCart = new Vec3(),
                 dragCart = new Vec3();
-            if (new Ray(cam.eye, clickDir).hitPlane(p0, p1, p2, clickCart) === Ray.INSIDE) {
-                if (new Ray(cam.eye, e.direction).hitPlane(p0, p1, p2, dragCart) === Ray.INSIDE) {
+            if (new Ray(cam.eye, clickDir).hitPlaneRes(Plane.fromPoints(p0, p1, p2), clickCart) === Ray.INSIDE) {
+                if (new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), dragCart) === Ray.INSIDE) {
                     let dragVec = dragCart.sub(clickCart);
                     px = p0.add(dragVec);
                 }
@@ -610,8 +610,8 @@ class GeoObjectEditorScene extends RenderNode {
         let clickCart = new Vec3(),
             dragCart = new Vec3();
 
-        if (new Ray(cam.eye, clickDir).hitPlane2(pl, clickCart) === Ray.INSIDE) {
-            if (new Ray(cam.eye, e.direction).hitPlane2(pl, dragCart) === Ray.INSIDE) {
+        if (new Ray(cam.eye, clickDir).hitPlaneRes(pl, clickCart) === Ray.INSIDE) {
+            if (new Ray(cam.eye, e.direction).hitPlaneRes(pl, dragCart) === Ray.INSIDE) {
 
                 let c0 = clickCart.sub(p0).normalize(),
                     c1 = dragCart.sub(p0).normalize();
@@ -642,8 +642,8 @@ class GeoObjectEditorScene extends RenderNode {
         let clickCart = new Vec3(),
             dragCart = new Vec3();
 
-        if (new Ray(cam.eye, clickDir).hitPlane2(pl, clickCart) === Ray.INSIDE) {
-            if (new Ray(cam.eye, e.direction).hitPlane2(pl, dragCart) === Ray.INSIDE) {
+        if (new Ray(cam.eye, clickDir).hitPlaneRes(pl, clickCart) === Ray.INSIDE) {
+            if (new Ray(cam.eye, e.direction).hitPlaneRes(pl, dragCart) === Ray.INSIDE) {
 
                 let c0 = clickCart.sub(p0).normalize(),
                     c1 = dragCart.sub(p0).normalize();
@@ -682,8 +682,8 @@ class GeoObjectEditorScene extends RenderNode {
         let clickCart = new Vec3(),
             dragCart = new Vec3();
 
-        if (new Ray(cam.eye, clickDir).hitPlane2(pl, clickCart) === Ray.INSIDE) {
-            if (new Ray(cam.eye, e.direction).hitPlane2(pl, dragCart) === Ray.INSIDE) {
+        if (new Ray(cam.eye, clickDir).hitPlaneRes(pl, clickCart) === Ray.INSIDE) {
+            if (new Ray(cam.eye, e.direction).hitPlaneRes(pl, dragCart) === Ray.INSIDE) {
 
                 let c0 = clickCart.sub(p0).normalize(),
                     c1 = dragCart.sub(p0).normalize();

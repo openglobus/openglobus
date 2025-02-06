@@ -14,6 +14,7 @@ import {ILabelParams} from "../../entity/Label";
 import {IRayParams} from "../../entity/Ray";
 import {IBillboardParams} from "../../entity/Billboard";
 import {Ray} from "../../math/Ray";
+import {Plane} from "../../math/Plane";
 
 export interface IElevationProfileSceneParams {
     name?: string;
@@ -510,7 +511,7 @@ class ElevationProfileScene extends RenderNode {
             let p2 = p0.add(cam.getRight());
             let px = new Vec3();
 
-            if (new Ray(cam.eye, e.direction).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
+            if (new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
                 let h = Vec3.proj_b_to_a(px, p0);
                 let s = h.sub(p0).dot(p0);
                 let headPos = p0.add(groundNormal.scale(Math.sign(s) * h.distance(p0)));

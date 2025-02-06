@@ -5,6 +5,7 @@ import {Line3} from "./Line3";
 const DISJOINT = 0
 const COINCIDE = 1;
 const INTERSECT = 2;
+
 /**
  * Plane class.
  * @constructor
@@ -15,9 +16,21 @@ class Plane {
     public p: Vec3;
     public n: Vec3;
 
-    constructor(p: Vec3, n: Vec3) {
+    constructor(p?: Vec3, n?: Vec3) {
         this.p = p ? p.clone() : new Vec3();
-        this.n = n ? n.clone() : this.p.normal();
+        this.n = n ? n.clone() : (this.p.isZero() ? Vec3.UP : this.p.getNormal());
+    }
+
+    public setByPoints(v0: Vec3, v1: Vec3, v2: Vec3): Plane {
+        let u = Vec3.sub(v1, v0);
+        let v = Vec3.sub(v2, v0);
+        this.n = u.cross(v);
+        this.p.copy(v0);
+        return this;
+    }
+
+    static fromPoints(v0: Vec3, v1: Vec3, v2: Vec3): Plane {
+        return new Plane().setByPoints(v0, v1, v2);
     }
 
     public set(p: Vec3, n: Vec3) {

@@ -288,13 +288,13 @@ class GlobusTerrain extends EmptyTerrain {
             ray = new Ray(xyz, new Vec3(0, -1, 0));
 
         let res = new Vec3();
-        let d = ray.hitTriangle(v0, v1, v2, res);
+        let d = ray.hitTriangleRes(v0, v1, v2, res);
 
         if (d === Ray.INSIDE) {
             return res.y;
         }
 
-        d = ray.hitTriangle(v1, v3, v2, res);
+        d = ray.hitTriangleRes(v1, v3, v2, res);
         if (d === Ray.INSIDE) {
             return res.y;
         }

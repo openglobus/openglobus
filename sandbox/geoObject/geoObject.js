@@ -71,21 +71,18 @@ async function main() {
         layers: [sat, osm, cranesLayer],
         //atmosphereEnabled: true,
         fontsSrc: "../../res/fonts",
-        controls: [
-            new control.EarthNavigation(),
-        ],
         sun: {
             stopped: false
         },
         //viewExtent: [33.1758537, 69.0755299, 33.2251571, 69.08960050]
     });
     //
-    // globus.planet.addControl(new control.DebugInfo());
-    // globus.planet.addControl(new control.KeyboardNavigation());
-    // globus.planet.addControl(new control.LayerSwitcher());
-    // globus.planet.addControl(new control.TimelineControl());
-    // globus.planet.addControl(new control.GeoObjectEditor());
-    // globus.planet.addControl(new control.ToggleWireframe());
+    globus.planet.addControl(new control.DebugInfo());
+    globus.planet.addControl(new control.KeyboardNavigation());
+    globus.planet.addControl(new control.LayerSwitcher());
+    globus.planet.addControl(new control.TimelineControl());
+    globus.planet.addControl(new control.GeoObjectEditor());
+    globus.planet.addControl(new control.ToggleWireframe());
 
     globus.planet.addControl(new control.Lighting());
 

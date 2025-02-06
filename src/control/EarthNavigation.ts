@@ -145,7 +145,7 @@ export class EarthNavigation extends Control {
                 }
 
                 let px = new Vec3();
-                if (new Ray(cam.eye, e.direction).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
+                if (new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
                     cam.eye = this._eye0.addA(px.subA(p0).negate());
                 }
             }
@@ -227,7 +227,7 @@ export class EarthNavigation extends Control {
             let a = this.targetPoint;
             let dir = a.sub(cam.eye).normalize();
             let eye = cam.eye.clone();
-            let velDir = Math.sign(this.vel.getNormal().dot(cam.getForward()));
+            let velDir = Math.sign(this.vel.normal().dot(cam.getForward()));
 
             let d_v = this.vel.scaleTo(this.dt);
             //let d_s = d_v.projToVec(cam.getForward().scale(velDir));
@@ -259,22 +259,16 @@ export class EarthNavigation extends Control {
                 //
                 let dirCurr = cam.unproject2v(this.currScreenPos);
                 let dirNew = this.targetPoint.sub(cam.eye).normalize();
-                //
-                // let dot = dirCurr.dot(dirNew);
-                // let ang = Math.acos(Math.min(dot, 1.0)) * DEGREES;
-                //
-                rot = Quat.getRotationBetweenVectors(dirNew, dirCurr);
-                //cam.eye = rot.mulVec3(cam.eye);
 
-                cam.update();
-                let pp = cam.project3v(a);
-                let d = pp.sub(this.currScreenPos);
+                // cam.update();
+                // let pp = cam.project3v(a);
+                // let d = pp.sub(this.currScreenPos);
 
                 let px0 = new Vec3();
-                new Ray(cam.eye, dirCurr).hitPlane(a, a.add(cam.getUp()), a.add(cam.getRight()), px0);
+                new Ray(cam.eye, dirCurr).hitPlaneRes(Plane.fromPoints(a, a.add(cam.getUp()), a.add(cam.getRight())), px0);
 
                 let px1 = new Vec3();
-                new Ray(cam.eye, dirNew).hitPlane(a, a.add(cam.getUp()), a.add(cam.getRight()), px1);
+                new Ray(cam.eye, dirNew).hitPlaneRes(Plane.fromPoints(a, a.add(cam.getUp()), a.add(cam.getRight())), px1);
 
                 // let px0 = new Ray(cam.eye, dirCurr).hitSphere(sphere)!;
                 // let px1 = new Ray(cam.eye, dirNew).hitSphere(sphere)!;

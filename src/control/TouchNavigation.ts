@@ -8,6 +8,7 @@ import {Sphere} from "../bv/Sphere";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import {ITouchState} from "../renderer/RendererEvents";
+import {Plane} from "../math/Plane";
 
 interface ITouchNavigationParams extends IControlParams {
 
@@ -300,10 +301,10 @@ export class TouchNavigation extends Control {
                 } else {
                     let p0 = t.grabbedPoint,
                         p1 = Vec3.add(p0, cam._u),
-                        p2 = Vec3.add(p0, p0.normal());
+                        p2 = Vec3.add(p0, p0.getNormal());
                     let dir = cam.unproject(t.x, t.y);
                     let px = new Vec3();
-                    if (new Ray(cam.eye, dir).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
+                    if (new Ray(cam.eye, dir).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
                         cam.eye = this._eye0.addA(px.subA(p0).negate());
                         cam.checkTerrainCollision();
                         cam.update();

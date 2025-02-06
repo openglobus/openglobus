@@ -479,13 +479,13 @@ class Segment {
             _v1.set(verts[ind_v0 + 3], verts[ind_v0 + 4], verts[ind_v0 + 5]);
             _v2.set(verts[ind_v2], verts[ind_v2 + 1], verts[ind_v2 + 2]);
 
-            let d = _ray.hitTriangle(_v0, _v1, _v2, res);
+            let d = _ray.hitTriangleRes(_v0, _v1, _v2, res);
 
             if (d === Ray.INSIDE) {
                 return xyz.distance(res);
             } else if (d === Ray.AWAY) {
                 _rayEx.set(xyz, norm);
-                let d = _rayEx.hitTriangle(_v0, _v1, _v2, res);
+                let d = _rayEx.hitTriangleRes(_v0, _v1, _v2, res);
                 if (d === Ray.INSIDE) {
                     return -xyz.distance(res);
                 }
@@ -493,12 +493,12 @@ class Segment {
 
             _v3.set(verts[ind_v2 + 3], verts[ind_v2 + 4], verts[ind_v2 + 5]);
 
-            d = _ray.hitTriangle(_v1, _v3, _v2, res);
+            d = _ray.hitTriangleRes(_v1, _v3, _v2, res);
             if (d === Ray.INSIDE) {
                 return xyz.distance(res);
             } else if (d === Ray.AWAY) {
                 _rayEx.set(xyz, norm);
-                let d = _rayEx.hitTriangle(_v1, _v3, _v2, res);
+                let d = _rayEx.hitTriangleRes(_v1, _v3, _v2, res);
                 if (d === Ray.INSIDE) {
                     return -xyz.distance(res);
                 }

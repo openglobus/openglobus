@@ -5,6 +5,7 @@ import {IMouseState} from "../renderer/RendererEvents";
 import {Vec3} from "../math/Vec3";
 import * as math from "../math";
 import {Ray} from "../math/Ray";
+import {Plane} from "../math/Plane";
 
 interface ISimpleNavigationParams extends IControlParams {
     speed?: number;
@@ -136,7 +137,7 @@ export class SimpleNavigation extends Control {
                 }
 
                 let px = new Vec3();
-                if (new Ray(cam.eye, e.direction).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
+                if (new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
                     cam.eye = this._eye0.addA(px.subA(p0).negate());
                 }
             }

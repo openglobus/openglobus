@@ -12,6 +12,7 @@ import {Vec2} from "../math/Vec2";
 import {Planet} from "../scene/Planet";
 import {PlanetCamera} from "../camera/PlanetCamera";
 import {IMouseState} from "../renderer/RendererEvents";
+import {Plane} from "../math/Plane";
 
 export interface IStepForward {
     eye: Vec3;
@@ -351,7 +352,7 @@ export class MouseNavigation extends Control {
                         p2 = Vec3.add(p0, p0.normal());
 
                     let px = new Vec3();
-                    if (new Ray(cam.eye, e.direction).hitPlane(p0, p1, p2, px) === Ray.INSIDE) {
+                    if (new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
                         cam.eye = this._eye0.addA(px.subA(p0).negate());
                     }
                 }
