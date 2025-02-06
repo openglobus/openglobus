@@ -242,6 +242,7 @@ export class EarthNavigation extends Control {
             let velDir = Math.sign(this.vel.getNormal().dot(cam.getForward()));
             let d_v = this.vel.scaleTo(this.dt);
             let d_s = d_v.projToVec(cam.getForward().scale(velDir));
+            //let d_s = cam.getForward().scaleTo(velDir * d_v.length());
 
             // Brake
             let destDist = cam.eye.distance(a);
@@ -250,7 +251,6 @@ export class EarthNavigation extends Control {
                 d_s.normalize().scale(temp * 0.5);
                 this.vel.scale(0.5);
             }
-            //let d_s = cam.getForward().scaleTo(velDir * d_v.length());
 
             eye.addA(d_s);
 
@@ -270,8 +270,8 @@ export class EarthNavigation extends Control {
                 // rot UP
                 let qFrame = this.planet!.getFrameRotation(cam.eye).conjugate();
                 cam._u = qFrame.mulVec3(new Vec3(0, 0, -1));
-                cam._r = cam._u.cross(cam.getBackward()).normalize();
-                cam._b = cam._r.cross(cam._u).normalize();
+                cam._r = qFrame.mulVec3(new Vec3(1, 0, 0));
+                cam._b = qFrame.mulVec3(new Vec3(0, 1, 0));
 
                 cam.update();
                 let dirCurr = cam.unproject2v(this._currScreenPos);
@@ -290,7 +290,6 @@ export class EarthNavigation extends Control {
                 // ver.2
                 // let px0 = new Ray(cam.eye, dirCurr).hitSphere(this._grabbedSphere)!;
                 // let px1 = new Ray(cam.eye, dirNew).hitSphere(this._grabbedSphere)!;
-
             }
         }
     }
