@@ -109,7 +109,7 @@ export class Mat4 {
      * @public
      * @returns {Mat3} -
      */
-    public toMatrix3(): Mat3 {
+    public getMat3(): Mat3 {
         let res = new Mat3();
         let a = this._m,
             b = res._m;

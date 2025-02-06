@@ -138,6 +138,13 @@ class Camera {
      */
     public _b: Vec3;
 
+    /**
+     * Camera forward vector.
+     * @public
+     * @type {Vec3}
+     */
+    public _f: Vec3;
+
     protected _pr: Vec3;
     protected _pu: Vec3;
     protected _pb: Vec3;
@@ -184,10 +191,9 @@ class Camera {
         this._normalMatrix = new Mat3();
 
         this._r = new Vec3(1.0, 0.0, 0.0);
-
         this._u = new Vec3(0.0, 1.0, 0.0);
-
         this._b = new Vec3(0.0, 0.0, 1.0);
+        this._f = this._b.negateTo();
 
         // Previous frame values
         this._pr = this._r.clone();
@@ -322,7 +328,7 @@ class Camera {
     }
 
     public getForward(): Vec3 {
-        return this._b.negateTo();
+        return this._f.clone();
     }
 
     public getBackward(): Vec3 {
@@ -463,6 +469,7 @@ class Camera {
         this._b.normalize();
         this._r.normalize();
         this._u.copy(this._b.cross(this._r));
+        this._f.set(-this._b.x, -this._b.y, -this._b.z);
         return this;
     }
 
@@ -476,6 +483,7 @@ class Camera {
         this._b.set(this.eye.x - look.x, this.eye.y - look.y, this.eye.z - look.z);
         this._r.copy((up || this._u).cross(this._b));
         this._b.normalize();
+        this._f.set(-this._b.x, -this._b.y, -this._b.z);
         this._r.normalize();
         this._u.copy(this._b.cross(this._r));
     }
@@ -522,7 +530,7 @@ class Camera {
     public pitch(angle: number) {
         let cs = Math.cos(math.RADIANS * angle);
         let sn = Math.sin(math.RADIANS * angle);
-        let t = this._b.clone();
+        let t = this._b;
         this._b.set(
             cs * t.x - sn * this._u.x,
             cs * t.y - sn * this._u.y,
@@ -543,7 +551,7 @@ class Camera {
     public yaw(angle: number) {
         let cs = Math.cos(math.RADIANS * angle);
         let sn = Math.sin(math.RADIANS * angle);
-        let t = this._r.clone();
+        let t = this._r;
         this._r.set(
             cs * t.x - sn * this._b.x,
             cs * t.y - sn * this._b.y,
@@ -554,6 +562,13 @@ class Camera {
             sn * t.y + cs * this._b.y,
             sn * t.z + cs * this._b.z
         );
+    }
+
+    /**
+     * Returns camera quaternion
+     */
+    public getRotation(): Quat {
+        return Quat.getLookRotation(this._f, this._u).conjugate();
     }
 
 
@@ -634,6 +649,7 @@ class Camera {
         this._u = rot.mulVec3(this._u).normalize();
         this._r = rot.mulVec3(this._r).normalize();
         this._b = rot.mulVec3(this._b).normalize();
+        this._f.set(-this._b.x, -this._b.y, -this._b.z);
     }
 
     /**

@@ -15,6 +15,7 @@ import {Plane} from "../math/Plane";
 
 interface IEarthNavigationParams extends IControlParams {
     speed?: number;
+    fixedUp?: boolean;
 }
 
 let curRot = new Quat();
@@ -40,6 +41,12 @@ export class EarthNavigation extends Control {
 
     protected _currScreenPos: Vec2;
 
+    protected _tUp: Vec3;
+
+    protected _shiftBusy = false;
+
+    protected fixedUp: boolean;
+
     constructor(options: IEarthNavigationParams = {}) {
         super({
             name: "EarthNavigation",
@@ -60,15 +67,22 @@ export class EarthNavigation extends Control {
 
         this._targetPoint = undefined;
 
+        this._tUp = new Vec3();
+
         this._wheelDirection = 1;
 
         this._currScreenPos = new Vec2();
 
         this._grabbedSphere = new Sphere();
+
+        this.fixedUp = options.fixedUp != undefined ? options.fixedUp : true;
     }
 
     override oninit() {
-
+        if (this.renderer) {
+            this.renderer.events.on("keyfree", input.KEY_ALT, this._onShiftFree);
+            this.renderer.events.on("keyfree", input.KEY_PRINTSCREEN, this._onShiftFree);
+        }
     }
 
     public override onactivate() {
@@ -79,14 +93,18 @@ export class EarthNavigation extends Control {
         r.events.on("touchstart", this._onTouchStart);
         r.events.on("touchend", this._onTouchEnd);
 
-        r.events.on("rhold", this._onRHold, this);
-        r.events.on("rdown", this._onRDown, this);
+        r.events.on("rhold", this._onRHold);
+        r.events.on("rdown", this._onRDown);
 
         r.events.on("lhold", this._onMouseLeftButtonHold);
         r.events.on("ldown", this._onMouseLeftButtonDown);
         r.events.on("lup", this._onMouseLeftButtonUp);
 
         r.events.on("draw", this.onDraw, this, -1000);
+
+        r.events.on("mousemove", this._onMouseMove);
+        r.events.on("mouseleave", this._onMouseLeave);
+        r.events.on("mouseenter", this._onMouseEnter);
     }
 
     public override ondeactivate() {
@@ -104,6 +122,10 @@ export class EarthNavigation extends Control {
         r.events.off("lup", this._onMouseLeftButtonUp);
 
         r.events.off("draw", this.onDraw);
+
+        r.events.off("mousemove", this._onMouseMove);
+        r.events.off("mouseleave", this._onMouseLeave);
+        r.events.off("mouseenter", this._onMouseEnter);
     }
 
     protected _onMouseLeftButtonDown = (e: IMouseState) => {
@@ -135,7 +157,7 @@ export class EarthNavigation extends Control {
             if (e.moving) {
                 let cam = this.renderer!.activeCamera;
 
-                let camSlope = Math.abs(cam.getForward().dot(Vec3.UP));
+                let camSlope = Math.abs(cam._f.dot(Vec3.UP));
 
                 let p0 = this._grabbedPoint!, p1, p2;
 
@@ -155,29 +177,63 @@ export class EarthNavigation extends Control {
         }
     }
 
+    public _onShiftFree = () => {
+        this._shiftBusy = false;
+    }
+
+    protected _onMouseMove(e: IMouseState) {
+        if (this._active && this.renderer!.events.isKeyPressed(input.KEY_ALT)) {
+            if (!this._shiftBusy) {
+                this._shiftBusy = true;
+                this._onRHold(e);
+            }
+
+            this._onRDown(e);
+        }
+    }
+
+    protected _onMouseEnter = (e: IMouseState) => {
+        const renderEvents = this.renderer!.events;
+        if (renderEvents.isKeyPressed(input.KEY_ALT)) {
+            renderEvents.releaseKeys();
+        }
+
+        renderEvents.updateButtonsStates(e.sys!.buttons);
+        if (renderEvents.mouseState.leftButtonDown) {
+            this.renderer!.handler.canvas!.classList.add("ogGrabbingPoiner");
+        } else {
+            this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
+        }
+    }
+
+    protected _onMouseLeave = () => {
+        if (this.renderer!.events.mouseState.leftButtonDown) {
+            this.vel.scale(0);
+        }
+        this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
+    }
+
     protected _onRHold = (e: IMouseState) => {
-        return;
-        if (this._lookPos && e.moving && this.renderer) {
-            const cam = this.renderer!.activeCamera;
-            this.renderer!.controlsBag.scaleRot = 1.0;
-            let l = (0.5 / cam.eye.distance(this._lookPos!)) * math.RADIANS;
+        let cam = this.planet!.camera;
+
+        if (this._targetPoint && e.moving) {
+            let l = (0.5 / cam.eye.distance(this._targetPoint)) * cam._lonLat.height * math.RADIANS;
             if (l > 0.007) {
                 l = 0.007;
             } else if (l < 0.003) {
                 l = 0.003;
             }
-            cam.rotateHorizontal(l * (e.x - e.prev_x), false, this._lookPos, this._up);
-            cam.rotateVertical(l * (e.y - e.prev_y), this._lookPos);
+            cam.rotateHorizontal(l * (e.x - e.prev_x), false, this._targetPoint, this._tUp);
+            cam.rotateVertical(l * (e.y - e.prev_y), this._targetPoint, 0.1);
         }
     }
 
     protected _onRDown = (e: IMouseState) => {
-        return;
-        if (this.renderer) {
-            this._lookPos = this.renderer!.getCartesianFromPixel(e.pos);
-            if (this._lookPos) {
-                this._up = Vec3.UP;//this.renderer.activeCamera.getUp();
-            }
+        this.planet!.stopFlying();
+        this._targetPoint = this._getTargetPoint(e.pos)!;
+        if (this._targetPoint) {
+            this.vel.scale(0);
+            this._tUp = this._targetPoint.normal();
         }
     }
 
@@ -239,12 +295,12 @@ export class EarthNavigation extends Control {
             let a = this._targetPoint;
             let dir = a.sub(cam.eye).normalize();
             let eye = cam.eye.clone();
-            let velDir = Math.sign(this.vel.getNormal().dot(cam.getForward()));
+            let velDir = Math.sign(this.vel.getNormal().dot(cam._f));
             let d_v = this.vel.scaleTo(this.dt);
             let d_s = d_v.projToVec(cam.getForward().scale(velDir));
             //let d_s = cam.getForward().scaleTo(velDir * d_v.length());
 
-            // Brake
+            // Braking tweak
             let destDist = cam.eye.distance(a);
             if (d_s.length() * 10 > destDist) {
                 let temp = d_s.length();
@@ -264,8 +320,7 @@ export class EarthNavigation extends Control {
             cam._r = rot.mulVec3(cam._r);
             cam._u = rot.mulVec3(cam._u);
 
-            //@ts-ignore
-            if (!window.XXX) {
+            if (this.fixedUp) {
 
                 // rot UP
                 let qFrame = this.planet!.getFrameRotation(cam.eye).conjugate();
