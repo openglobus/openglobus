@@ -59,7 +59,7 @@ export class EarthNavigation extends Control {
 
         this.targetPoint = undefined;
 
-        this._wheelDirection = 0;
+        this._wheelDirection = 1;
 
         this.currScreenPos = new Vec2();
     }
@@ -187,7 +187,7 @@ export class EarthNavigation extends Control {
 
     protected _onMouseWheel = (e: IMouseState) => {
         if (this.planet) {
-            //this.vel.set(0, 0, 0);
+
             if (this.planet.camera.getAltitude() > 10000) {
                 this.targetPoint = this.planet.getCartesianFromPixelEllipsoid(e);
             } else {
@@ -200,11 +200,15 @@ export class EarthNavigation extends Control {
             let dist = this.planet.camera.eye.distance(this.targetPoint) * 2;
 
             if (Math.sign(e.wheelDelta) !== this._wheelDirection) {
-                this.vel.set(0, 0, 0);
+                //this.vel.set(0, 0, 0);
+                this.vel.scale(0.3);
+                this._wheelDirection = Math.sign(e.wheelDelta);
+                return;
             }
 
             let dd = this.targetPoint!.distance(this.planet.camera.eye);
-            let brk = 1;
+
+            // let brk = 1;
             // if (this._wheelDirection > 0 && dd < 5000) {
             //     this.vel.set(0, 0, 0);
             //     brk = dist / 5000;
@@ -227,11 +231,18 @@ export class EarthNavigation extends Control {
             let a = this.targetPoint;
             let dir = a.sub(cam.eye).normalize();
             let eye = cam.eye.clone();
-            let velDir = Math.sign(this.vel.normal().dot(cam.getForward()));
+            let velDir = Math.sign(this.vel.getNormal().dot(cam.getForward()));
 
             let d_v = this.vel.scaleTo(this.dt);
-            //let d_s = d_v.projToVec(cam.getForward().scale(velDir));
-            let d_s = cam.getForward().scaleTo(velDir * d_v.length());
+            let d_s = d_v.projToVec(cam.getForward().scale(velDir));
+
+            let destDist = cam.eye.distance(a);
+            if (d_s.length() * 10 > destDist) {
+                let temp = d_s.length();
+                d_s.normalize().scale(temp * 0.5);
+                this.vel.scale(0.5);
+            }
+            //let d_s = cam.getForward().scaleTo(velDir * d_v.length());
 
             eye.addA(d_s);
 
@@ -240,46 +251,41 @@ export class EarthNavigation extends Control {
 
             if (!b) return;
 
-            let rot = Quat.getRotationBetweenVectors(b.normal(), a.normal());
+            let rot = Quat.getRotationBetweenVectors(b.getNormal(), a.getNormal());
 
             cam.eye = rot.mulVec3(eye);
             cam._b = rot.mulVec3(cam._b);
             cam._r = rot.mulVec3(cam._r);
             cam._u = rot.mulVec3(cam._u);
 
-            // rot UP
-            let qFrame = this.planet!.getFrameRotation(cam.eye).conjugate();
-            cam._u = qFrame.mulVec3(new Vec3(0, 0, -1));
-            cam._r = cam._u.cross(cam.getBackward()).normalize();
-            cam._b = cam._r.cross(cam._u).normalize();
-
             //@ts-ignore
             if (!window.XXX) {
+
+                // rot UP
+                let qFrame = this.planet!.getFrameRotation(cam.eye).conjugate();
+                cam._u = qFrame.mulVec3(new Vec3(0, 0, -1));
+                cam._r = cam._u.cross(cam.getBackward()).normalize();
+                cam._b = cam._r.cross(cam._u).normalize();
+
                 cam.update();
-                //
                 let dirCurr = cam.unproject2v(this.currScreenPos);
                 let dirNew = this.targetPoint.sub(cam.eye).normalize();
 
-                // cam.update();
-                // let pp = cam.project3v(a);
-                // let d = pp.sub(this.currScreenPos);
-
                 let px0 = new Vec3();
-                new Ray(cam.eye, dirCurr).hitPlaneRes(Plane.fromPoints(a, a.add(cam.getUp()), a.add(cam.getRight())), px0);
-
                 let px1 = new Vec3();
-                new Ray(cam.eye, dirNew).hitPlaneRes(Plane.fromPoints(a, a.add(cam.getUp()), a.add(cam.getRight())), px1);
+                let pl = Plane.fromPoints(a, a.add(cam.getUp()), a.add(cam.getRight()));
 
-                // let px0 = new Ray(cam.eye, dirCurr).hitSphere(sphere)!;
-                // let px1 = new Ray(cam.eye, dirNew).hitSphere(sphere)!;
+                new Ray(cam.eye, dirCurr).hitPlaneRes(pl, px0);
+                new Ray(cam.eye, dirNew).hitPlaneRes(pl, px1);
 
                 let dp = px1.sub(px0);
                 cam.eye = cam.eye.add(dp);
 
-                // console.log(Math.round(d.x), Math.round(d.y));
-            }
+                // ver.2
+                // let px0 = new Ray(cam.eye, dirCurr).hitSphere(sphere)!;
+                // let px1 = new Ray(cam.eye, dirNew).hitSphere(sphere)!;
 
-            //this.vel.set(0, 0, 0)
+            }
         }
     }
 
