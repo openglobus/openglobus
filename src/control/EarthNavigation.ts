@@ -32,12 +32,13 @@ export class EarthNavigation extends Control {
     protected _grabbedPoint: Vec3 | undefined;
     protected _eye0: Vec3;
 
-    public targetPoint: Vec3 | undefined;
+    protected _targetPoint: Vec3 | undefined;
+
+    protected _grabbedSphere: Sphere;
 
     protected _wheelDirection: number;
 
-
-    protected currScreenPos: Vec2;
+    protected _currScreenPos: Vec2;
 
     constructor(options: IEarthNavigationParams = {}) {
         super({
@@ -57,11 +58,13 @@ export class EarthNavigation extends Control {
 
         this._eye0 = new Vec3();
 
-        this.targetPoint = undefined;
+        this._targetPoint = undefined;
 
         this._wheelDirection = 1;
 
-        this.currScreenPos = new Vec2();
+        this._currScreenPos = new Vec2();
+
+        this._grabbedSphere = new Sphere();
     }
 
     override oninit() {
@@ -185,23 +188,28 @@ export class EarthNavigation extends Control {
 
     }
 
+    protected _getTargetPoint(p: Vec2): Vec3 | undefined {
+        if (this.planet) {
+            if (this.planet.camera.getAltitude() > 10000) {
+                return this.planet.getCartesianFromPixelEllipsoid(p);
+            }
+            return this.planet.getCartesianFromPixelTerrain(p);
+        }
+    }
+
     protected _onMouseWheel = (e: IMouseState) => {
         if (this.planet) {
 
-            if (this.planet.camera.getAltitude() > 10000) {
-                this.targetPoint = this.planet.getCartesianFromPixelEllipsoid(e);
-            } else {
-                this.targetPoint = this.planet.getCartesianFromPixelTerrain(e);
-            }
+            this._targetPoint = this._getTargetPoint(e.pos);
 
-            if (!this.targetPoint)
+            if (!this._targetPoint)
                 return;
 
-            let dist = this.planet.camera.eye.distance(this.targetPoint) * 2;
+            this._grabbedSphere.radius = this._targetPoint.length();
 
             if (Math.sign(e.wheelDelta) !== this._wheelDirection) {
                 this.vel.scale(0.3);
-                this.currScreenPos.set(e.x, e.y);
+                this._currScreenPos.set(e.x, e.y);
                 this._wheelDirection = Math.sign(e.wheelDelta);
                 return;
             }
@@ -213,8 +221,9 @@ export class EarthNavigation extends Control {
             //     brk = dist / 5000;
             // }
 
-            this.currScreenPos.set(e.x, e.y);
+            this._currScreenPos.set(e.x, e.y);
             this._wheelDirection = Math.sign(e.wheelDelta);
+            let dist = this.planet.camera.eye.distance(this._targetPoint) * 2;
             this.force = (e.direction.scale(Math.sign(this._wheelDirection))).normalize().scale(dist);
         }
     }
@@ -223,17 +232,18 @@ export class EarthNavigation extends Control {
 
         this._updateVel();
 
-        if (this.targetPoint && this.vel.length() > 0.0) {
+        if (this._targetPoint && this.vel.length() > 0.0) {
 
+            // Common
             let cam = this.planet!.camera;
-            let a = this.targetPoint;
+            let a = this._targetPoint;
             let dir = a.sub(cam.eye).normalize();
             let eye = cam.eye.clone();
             let velDir = Math.sign(this.vel.getNormal().dot(cam.getForward()));
-
             let d_v = this.vel.scaleTo(this.dt);
             let d_s = d_v.projToVec(cam.getForward().scale(velDir));
 
+            // Brake
             let destDist = cam.eye.distance(a);
             if (d_s.length() * 10 > destDist) {
                 let temp = d_s.length();
@@ -244,13 +254,11 @@ export class EarthNavigation extends Control {
 
             eye.addA(d_s);
 
-            let sphere = new Sphere(a.length());
-            let b = new Ray(eye, dir).hitSphere(sphere);
+            let b = new Ray(eye, dir).hitSphere(this._grabbedSphere);
 
             if (!b) return;
 
             let rot = Quat.getRotationBetweenVectors(b.getNormal(), a.getNormal());
-
             cam.eye = rot.mulVec3(eye);
             cam._b = rot.mulVec3(cam._b);
             cam._r = rot.mulVec3(cam._r);
@@ -266,8 +274,8 @@ export class EarthNavigation extends Control {
                 cam._b = cam._r.cross(cam._u).normalize();
 
                 cam.update();
-                let dirCurr = cam.unproject2v(this.currScreenPos);
-                let dirNew = this.targetPoint.sub(cam.eye).normalize();
+                let dirCurr = cam.unproject2v(this._currScreenPos);
+                let dirNew = this._targetPoint.sub(cam.eye).normalize();
 
                 let px0 = new Vec3();
                 let px1 = new Vec3();
@@ -280,8 +288,8 @@ export class EarthNavigation extends Control {
                 cam.eye = cam.eye.add(dp);
 
                 // ver.2
-                // let px0 = new Ray(cam.eye, dirCurr).hitSphere(sphere)!;
-                // let px1 = new Ray(cam.eye, dirNew).hitSphere(sphere)!;
+                // let px0 = new Ray(cam.eye, dirCurr).hitSphere(this._grabbedSphere)!;
+                // let px1 = new Ray(cam.eye, dirNew).hitSphere(this._grabbedSphere)!;
 
             }
         }
