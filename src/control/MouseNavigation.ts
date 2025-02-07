@@ -80,9 +80,9 @@ export class MouseNavigation extends Control {
         const steps: IStepForward[] = [];
 
         let eye = cam.eye.clone(),
-            n = cam._b.clone(),
-            u = cam._r.clone(),
-            v = cam._u.clone();
+            n = cam.getBackward(),
+            u = cam.getRight(),
+            v = cam.getUp();
 
         let a = planet.getCartesianFromPixelTerrain(point);
 
@@ -342,14 +342,15 @@ export class MouseNavigation extends Control {
                         );
                         let rot = this.qRot;
                         cam.eye = rot.mulVec3(cam.eye);
-                        cam._u = rot.mulVec3(cam._u);
-                        cam._r = rot.mulVec3(cam._r);
-                        cam._b = rot.mulVec3(cam._b);
-                        cam._f.set(-cam._b.x, -cam._b.y, -cam._b.z);
+                        cam.rotate(rot);
+                        // cam._u = rot.mulVec3(cam._u);
+                        // cam._r = rot.mulVec3(cam._r);
+                        // cam._b = rot.mulVec3(cam._b);
+                        // cam._f.set(-cam._b.x, -cam._b.y, -cam._b.z);
                     }
                 } else {
                     let p0 = this.grabbedPoint,
-                        p1 = Vec3.add(p0, cam._r),
+                        p1 = Vec3.add(p0, cam.getRight()),
                         p2 = Vec3.add(p0, p0.normal());
 
                     let px = new Vec3();
@@ -411,9 +412,13 @@ export class MouseNavigation extends Control {
                 r.controlsBag.scaleRot = 1.0;
                 const sf = this.stepsForward![this.stepsCount - this.stepIndex--];
                 cam.eye = sf.eye;
+                //@ts-ignore
                 cam._u = sf.v;
+                //@ts-ignore
                 cam._r = sf.u;
+                //@ts-ignore
                 cam._b = sf.n;
+                //@ts-ignore
                 cam._f.set(-cam._b.x, -cam._b.y, -cam._b.z);
             } else {
                 if (this._deactivate) {
@@ -438,10 +443,11 @@ export class MouseNavigation extends Control {
                     this.scaleRot = 0.0;
                 }
                 cam.eye = rot.mulVec3(cam.eye);
-                cam._u = rot.mulVec3(cam._u);
-                cam._r = rot.mulVec3(cam._r);
-                cam._b = rot.mulVec3(cam._b);
-                cam._f.set(-cam._b.x, -cam._b.y, -cam._b.z);
+                cam.rotate(rot);
+                // cam._u = rot.mulVec3(cam._u);
+                // cam._r = rot.mulVec3(cam._r);
+                // cam._b = rot.mulVec3(cam._b);
+                // cam._f.set(-cam._b.x, -cam._b.y, -cam._b.z);
             }
 
             if (cam.eye.distance(prevEye) / cam.getAltitude() > 0.01) {

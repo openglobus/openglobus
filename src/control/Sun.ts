@@ -114,14 +114,14 @@ export class Sun extends Control {
                 let n = cam.eye.normal(),
                     u = cam.getForward();
 
-                u.scale(Math.sign(cam._u.dot(n))); // up
+                u.scale(Math.sign(cam.getUp().dot(n))); // up
 
                 if (cam.slope > 0.99) {
-                    u = cam._u;
+                    u = cam.getUp();
                 }
 
                 let tu = Vec3.proj_b_to_plane(u, n, u).normalize().scale(this.offsetVertical);
-                let tr = Vec3.proj_b_to_plane(cam._r, n, cam._r)
+                let tr = Vec3.proj_b_to_plane(cam.getRight(), n, cam.getRight())
                     .normalize()
                     .scale(this.offsetHorizontal); // right
 

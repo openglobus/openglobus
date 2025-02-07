@@ -28,10 +28,8 @@ export class EarthNavigation extends Control {
     public mass: number;
 
     protected _lookPos: Vec3 | undefined;
-    protected _up: Vec3 | null;
 
     protected _grabbedPoint: Vec3 | undefined;
-    protected _eye0: Vec3;
 
     protected _targetPoint: Vec3 | undefined;
 
@@ -61,9 +59,6 @@ export class EarthNavigation extends Control {
 
         this._lookPos = undefined;
         this._grabbedPoint = undefined;
-        this._up = null;
-
-        this._eye0 = new Vec3();
 
         this._targetPoint = undefined;
 
@@ -129,52 +124,13 @@ export class EarthNavigation extends Control {
     }
 
     protected _onMouseLeftButtonDown = (e: IMouseState) => {
-        return;
-        if (this._active && this.renderer) {
-            this.renderer!.handler.canvas!.classList.add("ogGrabbingPoiner");
-            this._grabbedPoint = this.renderer!.getCartesianFromPixel(e);
-            if (this._grabbedPoint) {
-                this._eye0.copy(this.renderer!.activeCamera.eye);
-            }
-        }
+
     }
 
     protected _onMouseLeftButtonUp = (e: IMouseState) => {
-        return;
-        this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
-        if (e.x === e.prev_x && e.y === e.prev_y) {
-            //this.force.set(0, 0, 0);
-        }
     }
 
     protected _onMouseLeftButtonHold = (e: IMouseState) => {
-        return;
-        if (this._active && this.renderer) {
-            if (!this._grabbedPoint) {
-                return;
-            }
-
-            if (e.moving) {
-                let cam = this.renderer!.activeCamera;
-
-                let camSlope = Math.abs(cam._f.dot(Vec3.UP));
-
-                let p0 = this._grabbedPoint!, p1, p2;
-
-                if (camSlope > 0.7) {
-                    p1 = Vec3.add(p0, Vec3.LEFT);
-                    p2 = Vec3.add(p0, cam.getRight());
-                } else {
-                    p1 = Vec3.add(p0, cam.getRight());
-                    p2 = Vec3.add(p0, Vec3.UP);
-                }
-
-                let px = new Vec3();
-                if (new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
-                    cam.eye = this._eye0.addA(px.subA(p0).negate());
-                }
-            }
-        }
     }
 
     public _onShiftFree = () => {
@@ -295,7 +251,7 @@ export class EarthNavigation extends Control {
             let a = this._targetPoint;
             let dir = a.sub(cam.eye).normalize();
             let eye = cam.eye.clone();
-            let velDir = Math.sign(this.vel.getNormal().dot(cam._f));
+            let velDir = Math.sign(this.vel.getNormal().dot(cam.getForward()));
             let d_v = this.vel.scaleTo(this.dt);
             let d_s = d_v.projToVec(cam.getForward().scale(velDir));
             //let d_s = cam.getForward().scaleTo(velDir * d_v.length());
@@ -316,17 +272,17 @@ export class EarthNavigation extends Control {
 
             let rot = Quat.getRotationBetweenVectors(b.getNormal(), a.getNormal());
             cam.eye = rot.mulVec3(eye);
-            cam._b = rot.mulVec3(cam._b);
-            cam._r = rot.mulVec3(cam._r);
-            cam._u = rot.mulVec3(cam._u);
+            cam.rotate(rot);
 
             if (this.fixedUp) {
 
                 // rot UP
                 let qFrame = this.planet!.getFrameRotation(cam.eye).conjugate();
-                cam._u = qFrame.mulVec3(new Vec3(0, 0, -1));
-                cam._r = qFrame.mulVec3(new Vec3(1, 0, 0));
-                cam._b = qFrame.mulVec3(new Vec3(0, 1, 0));
+                cam.setRotation(qFrame,
+                    new Vec3(0, 0, -1),
+                    new Vec3(1, 0, 0),
+                    new Vec3(0, 1, 0)
+                );
 
                 cam.update();
                 let dirCurr = cam.unproject2v(this._currScreenPos);

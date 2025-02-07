@@ -10,7 +10,6 @@ export * from "./LayerAnimation";
 export * from "./LayerSwitcher";
 export * from "./Lighting";
 export * from "./MouseNavigation";
-export * from "./MouseWheelZoomControl";
 export * from "./RulerSwitcher";
 export * from "./ScaleControl";
 export * from "./ShowFps";

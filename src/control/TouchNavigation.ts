@@ -292,15 +292,16 @@ export class TouchNavigation extends Control {
                     );
                     let rot = this.qRot;
                     cam.eye = rot.mulVec3(cam.eye);
-                    cam._r = rot.mulVec3(cam._r);
-                    cam._u = rot.mulVec3(cam._u);
-                    cam._b = rot.mulVec3(cam._b);
+                    cam.rotate(rot);
+                    // cam._r = rot.mulVec3(cam._r);
+                    // cam._u = rot.mulVec3(cam._u);
+                    // cam._b = rot.mulVec3(cam._b);
                     cam.checkTerrainCollision();
                     cam.update();
                     this.scaleRot = 1;
                 } else {
                     let p0 = t.grabbedPoint,
-                        p1 = Vec3.add(p0, cam._u),
+                        p1 = Vec3.add(p0, cam.getUp()),
                         p2 = Vec3.add(p0, p0.getNormal());
                     let dir = cam.unproject(t.x, t.y);
                     let px = new Vec3();
@@ -344,9 +345,10 @@ export class TouchNavigation extends Control {
                 this.scaleRot = 0;
             }
             cam.eye = rot.mulVec3(cam.eye);
-            cam._r = rot.mulVec3(cam._r);
-            cam._u = rot.mulVec3(cam._u);
-            cam._b = rot.mulVec3(cam._b);
+            cam.rotate(rot);
+            // cam._r = rot.mulVec3(cam._r);
+            // cam._u = rot.mulVec3(cam._u);
+            // cam._b = rot.mulVec3(cam._b);
             cam.checkTerrainCollision();
             cam.update();
         }
