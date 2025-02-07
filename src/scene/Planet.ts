@@ -1251,7 +1251,7 @@ export class Planet extends RenderNode {
 
             for (let i = 0, len = temp.length; i < len; i++) {
                 let ri = temp[i];
-                let ht = ri.segment.centerNormal.dot(cam._b);
+                let ht = ri.segment.centerNormal.dot(cam.getBackward());
                 if (ri.segment.tileZoom === this.maxCurrZoom || ht < HORIZON_TANGENT) {
                     this._renderedNodes.push(ri);
                     let k = 0, inFrustum = ri.inFrustum;

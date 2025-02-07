@@ -120,31 +120,31 @@ class Camera {
 
     /**
      * Camera right vector.
-     * @public
+     * @protected
      * @type {Vec3}
      */
-    public _r: Vec3;
+    protected _r: Vec3;
 
     /**
      * Camera up vector.
-     * @public
+     * @protected
      * @type {Vec3}
      */
-    public _u: Vec3;
+    protected _u: Vec3;
 
     /**
      * Camera backward vector.
-     * @public
+     * @protected
      * @type {Vec3}
      */
-    public _b: Vec3;
+    protected _b: Vec3;
 
     /**
      * Camera forward vector.
-     * @public
+     * @protected
      * @type {Vec3}
      */
-    public _f: Vec3;
+    protected _f: Vec3;
 
     protected _pr: Vec3;
     protected _pu: Vec3;
@@ -594,6 +594,13 @@ class Camera {
         this._u = rot.mulVec3(new Vec3(0, 1, 0));
         this._r = rot.mulVec3(new Vec3(1, 0, 0));
         this._b = rot.mulVec3(new Vec3(0, 0, 1));
+        this._f.set(-this._b.x, -this._b.y, -this._b.z);
+    }
+
+    public rotate(rot: Quat, up?: Vec3, right?: Vec3, back?: Vec3) {
+        rot.mulVec3Res(up || this._u, this._u);
+        rot.mulVec3Res(right || this._r, this._r);
+        rot.mulVec3Res(back || this._b, this._b);
         this._f.set(-this._b.x, -this._b.y, -this._b.z);
     }
 

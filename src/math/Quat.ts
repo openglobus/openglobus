@@ -760,6 +760,7 @@ export class Quat {
      * Returns quaternion and vector production.
      * @public
      * @param {Vec3} v - 3d Vector.
+     * @param {Vec3} res - result output vector.
      * @returns {Vec3} -
      */
     public mulVec3Res(v: Vec3, res: Vec3): Vec3 {
