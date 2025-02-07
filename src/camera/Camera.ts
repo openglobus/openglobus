@@ -591,9 +591,9 @@ class Camera {
     }
 
     public setRotation(rot: Quat, up?: Vec3, right?: Vec3, back?: Vec3) {
-        this._u = rot.mulVec3(up || new Vec3(0, 1, 0));
-        this._r = rot.mulVec3(right || new Vec3(1, 0, 0));
-        this._b = rot.mulVec3(back || new Vec3(0, 0, 1));
+        rot.mulVec3Res(up || new Vec3(0, 1, 0), this._u);
+        rot.mulVec3Res(right || new Vec3(1, 0, 0), this._r);
+        rot.mulVec3Res(back || new Vec3(0, 0, 1), this._b);
         this._f.set(-this._b.x, -this._b.y, -this._b.z);
     }
 
