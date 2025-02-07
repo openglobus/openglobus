@@ -509,7 +509,7 @@ class Camera {
      */
     public setRoll(angle: number) {
         let cs = Math.cos(angle);
-        let sn = Math.sin( angle);
+        let sn = Math.sin(angle);
         let t = this._r.clone();
         this._r.set(
             cs * t.x - sn * this._u.x,
@@ -591,9 +591,9 @@ class Camera {
     }
 
     public setRotation(rot: Quat) {
-        this._u = rot.mulVec3(this._u);
-        this._r = rot.mulVec3(this._r);
-        this._b = rot.mulVec3(this._b);
+        this._u = rot.mulVec3(new Vec3(0, 1, 0));
+        this._r = rot.mulVec3(new Vec3(1, 0, 0));
+        this._b = rot.mulVec3(new Vec3(0, 0, 1));
         this._f.set(-this._b.x, -this._b.y, -this._b.z);
     }
 
