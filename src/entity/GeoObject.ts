@@ -16,9 +16,6 @@ export const LOCAL_FORWARD = new Vec3(0.0, 0.0, -1.0);
  * @property {string} [objSrc] - Source url of the 3D object.
  * @property {string} [tag] - Unique instancing drawing identifier tag.
  * @property {Vec3 | NumberArray3} [position] - Position in Cartesian coordinates.
- * @property {number} [pitch] - Rotation around X-axis in degrees.
- * @property {number} [yaw] - Rotation around Y-axis in degrees.
- * @property {number} [roll] - Rotation around Z-axis in degrees.
  * @property {number | Vec3 | NumberArray3} [scale] - Scale of the object.
  * @property {Vec3 | NumberArray3} [translate] - Translation offset.
  * @property {Vec4 | NumberArray4 | string} [color] - RGBA color or HTML color string.
@@ -29,9 +26,6 @@ export interface IGeoObjectParams {
     objSrc?: string;
     tag?: string;
     position?: Vec3 | NumberArray3;
-    pitch?: number;
-    yaw?: number;
-    roll?: number;
     scale?: number | Vec3 | NumberArray3;
     translate?: Vec3 | NumberArray3;
     color?: Vec4 | NumberArray4 | string;
@@ -46,9 +40,6 @@ export interface IGeoObjectParams {
  * @param {string} [options.objSrc] - Source url of the 3D object.
  * @param {string} [options.tag] - Unique instancing drawing identifier tag.
  * @param {Vec3 | NumberArray3} [options.position] - Position in Cartesian coordinates.
- * @param {number} [options.pitch=0] - Rotation around X-axis in degrees.
- * @param {number} [options.yaw=0] - Rotation around Y-axis in degrees.
- * @param {number} [options.roll=0] - Rotation around Z-axis in degrees.
  * @param {number | Vec3 | NumberArray3} [options.scale=1] - Scale of the object.
  * @param {Vec3 | NumberArray3} [options.translate] - Translation offset.
  * @param {Vec4 | NumberArray4 | string} [options.color] - RGBA color or HTML color string.

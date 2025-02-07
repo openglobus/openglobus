@@ -9,6 +9,7 @@ import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 import {Sphere} from "../bv/Sphere";
 import {Quat} from "../math/Quat";
+import {DEGREES, RADIANS} from "../math";
 
 type CameraEvents = ["viewchange", "moveend"];
 
@@ -506,9 +507,9 @@ class Camera {
      * @public
      * @param {number} angle - Delta roll angle in degrees
      */
-    public roll(angle: number) {
-        let cs = Math.cos(math.RADIANS * angle);
-        let sn = Math.sin(math.RADIANS * angle);
+    public setRoll(angle: number) {
+        let cs = Math.cos(angle);
+        let sn = Math.sin( angle);
         let t = this._r.clone();
         this._r.set(
             cs * t.x - sn * this._u.x,
@@ -527,9 +528,9 @@ class Camera {
      * @public
      * @param {number} angle - Delta pitch angle in degrees
      */
-    public pitch(angle: number) {
-        let cs = Math.cos(math.RADIANS * angle);
-        let sn = Math.sin(math.RADIANS * angle);
+    public setPitch(angle: number) {
+        let cs = Math.cos(angle);
+        let sn = Math.sin(angle);
         let t = this._b;
         this._b.set(
             cs * t.x - sn * this._u.x,
@@ -548,9 +549,9 @@ class Camera {
      * @public
      * @param {number} angle - Delta yaw angle in degrees
      */
-    public yaw(angle: number) {
-        let cs = Math.cos(math.RADIANS * angle);
-        let sn = Math.sin(math.RADIANS * angle);
+    public setYaw(angle: number) {
+        let cs = Math.cos(angle);
+        let sn = Math.sin(angle);
         let t = this._r;
         this._r.set(
             cs * t.x - sn * this._b.x,
@@ -562,6 +563,12 @@ class Camera {
             sn * t.y + cs * this._b.y,
             sn * t.z + cs * this._b.z
         );
+    }
+
+    public setPitchYawRoll(pitch: number, yaw: number, roll: number) {
+        let qRot = new Quat();
+        qRot.setPitchYawRoll(pitch, yaw, roll);
+        this.setRotation(qRot);
     }
 
     public getPitch(): number {
@@ -583,6 +590,12 @@ class Camera {
         return Quat.getLookRotation(this._f, this._u).conjugate();
     }
 
+    public setRotation(rot: Quat) {
+        this._u = rot.mulVec3(this._u);
+        this._r = rot.mulVec3(this._r);
+        this._b = rot.mulVec3(this._b);
+        this._f.set(-this._b.x, -this._b.y, -this._b.z);
+    }
 
     /**
      * Returns normal vector direction to the unprojected screen point from camera eye

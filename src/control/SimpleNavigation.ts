@@ -197,37 +197,37 @@ export class SimpleNavigation extends Control {
 
     protected onCameraLookUp = () => {
         let cam = this.renderer!.activeCamera!;
-        cam.pitch(0.5);
+        cam.setPitch(0.5);
         cam.update();
     }
 
     protected onCameraLookDown = () => {
         let cam = this.renderer!.activeCamera!;
-        cam.pitch(-0.5);
+        cam.setPitch(-0.5);
         cam.update();
     }
 
     protected onCameraTurnLeft = () => {
         let cam = this.renderer!.activeCamera!;
-        cam.yaw(0.5);
+        cam.setYaw(0.5);
         cam.update();
     }
 
     protected onCameraTurnRight = () => {
         let cam = this.renderer!.activeCamera!;
-        cam.yaw(-0.5);
+        cam.setYaw(-0.5);
         cam.update();
     }
 
     protected onCameraRollLeft = () => {
         let cam = this.renderer!.activeCamera!;
-        cam.roll(-0.5);
+        cam.setRoll(-0.5);
         cam.update();
     }
 
     protected onCameraRollRight = () => {
         let cam = this.renderer!.activeCamera!;
-        cam.roll(0.5);
+        cam.setRoll(0.5);
         cam.update();
     }
 

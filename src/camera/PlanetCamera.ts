@@ -10,6 +10,7 @@ import {Ray} from "../math/Ray";
 import {Vec3} from "../math/Vec3";
 import {Extent} from "../Extent";
 import {Segment} from "../segment/Segment";
+import {DEGREES, RADIANS} from "../math";
 
 interface IPlanetCameraParams extends ICameraParams {
     minAltitude?: number;
@@ -700,6 +701,9 @@ class PlanetCamera extends Camera {
         return R * Math.acos(R / (R + this._lonLat.height + d));
     }
 
+    /**
+     * should be yje same as getYaw
+     */
     public getHeading(): number {
         let u = this.eye.getNormal();
         let f = Vec3.proj_b_to_plane(
@@ -724,6 +728,9 @@ class PlanetCamera extends Camera {
         return qFrame.conjugate().inverse().mul(this.getRotation()).getPitch();
     }
 
+    /**
+     * should be yje same as getHeading
+     */
     public override getYaw(): number {
         let qFrame = this.planet.getFrameRotation(this.eye);
         return qFrame.conjugate().inverse().mul(this.getRotation()).getYaw();
@@ -734,23 +741,33 @@ class PlanetCamera extends Camera {
         return qFrame.conjugate().inverse().mul(this.getRotation()).getRoll();
     }
 
-    // _calcOrientation() {
-    //     let qq = Quat.yRotation(this.yaw * RADIANS).mul(this._qNorthFrame).conjugate();
-    //     this.orientation = qq.mulVec3(MODEL_FORWARD).normalize();
-    //     this._uOrientation[0] = this.orientation.x;
-    //     this._uOrientation[1] = this.orientation.y;
-    //     this._uOrientation[2] = this.orientation.z;
-    // }
-    //
-    // _updatePrediction(now) {
-    //
-    //     this._qNorthFrame = Planet.getBearingNorthRotationQuat(this.eye);
-    //
-    //     let dt = (now - this._positionTime) * 0.001;
-    //     this._positionTime = now;
-    //
-    //     this._predMapPosCart = this.eye.add(this._velCartesian.scaleTo(dt));
-    // }
+    public override setPitch(a: number) {
+        let qFrame = this.planet.getFrameRotation(this.eye);
+        let qRot = new Quat();
+        qRot.setPitchYawRoll(a, this.getYaw(), this.getRoll(), qFrame);
+        this.setRotation(qRot);
+    }
+
+    public override setYaw(a: number) {
+        let qFrame = this.planet.getFrameRotation(this.eye);
+        let qRot = new Quat();
+        qRot.setPitchYawRoll(this.getYaw(), a, this.getRoll(), qFrame);
+        this.setRotation(qRot);
+    }
+
+    public override setRoll(a: number) {
+        let qFrame = this.planet.getFrameRotation(this.eye);
+        let qRot = new Quat();
+        qRot.setPitchYawRoll(this.getPitch(), this.getYaw(), a, qFrame);
+        this.setRotation(qRot);
+    }
+
+    public override setPitchYawRoll(pitch: number, yaw: number, roll: number) {
+        let qFrame = this.planet.getFrameRotation(this.eye);
+        let qRot = new Quat();
+        qRot.setPitchYawRoll(pitch, yaw, roll, qFrame);
+        this.setRotation(qRot);
+    }
 }
 
 export {PlanetCamera};

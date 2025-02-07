@@ -22,10 +22,7 @@ export class MovePlaneEntity extends Entity {
             geoObject: {
                 color: XZ_COLOR,
                 tag: "plane",
-                object3d: planeObj,
-                yaw: 0,
-                pitch: 0,
-                roll: 0
+                object3d: planeObj
             },
             properties: {
                 opName: "move_xz",
