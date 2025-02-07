@@ -97,7 +97,7 @@ export class RotateEntity extends Entity {
             let r = cam.eye.distance(cart) * 0.15;
 
             let qp = Quat.xRotation(0);
-            let qy = Quat.yRotation(yaw * RADIANS);
+            let qy = Quat.yRotation(yaw);
             let qr = Quat.zRotation(0);
 
             let qRot = qr.mul(qp).mul(qy).mul(rn.getFrameRotation(cart)).conjugate();

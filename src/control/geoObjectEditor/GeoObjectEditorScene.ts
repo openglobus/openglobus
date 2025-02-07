@@ -1,9 +1,8 @@
-import {createEvents, EventCallback, EventsHandler} from '../../Events';
-import {DEGREES, MAX32, RADIANS} from "../../math";
+import {createEvents, EventsHandler} from '../../Events';
+import {MAX32} from "../../math";
 import {Plane} from "../../math/Plane";
 import {Planet} from "../../scene/Planet";
 import {RenderNode} from '../../scene/RenderNode';
-import {Vector} from '../../layer/Vector';
 import {Vec2} from '../../math/Vec2';
 import {Vec3} from '../../math/Vec3';
 import {Quat} from '../../math/Quat';
@@ -595,7 +594,7 @@ class GeoObjectEditorScene extends RenderNode {
         let p0 = this._selectedEntityCart;
 
         let qp = Quat.xRotation(0);
-        let qy = Quat.yRotation(this._selectedEntity.getYaw() * RADIANS);
+        let qy = Quat.yRotation(this._selectedEntity.getYaw());
         let qr = Quat.zRotation(0);
 
         let qRot = qr.mul(qp).mul(qy).mul(this.getFrameRotation(p0)).conjugate();
@@ -617,7 +616,7 @@ class GeoObjectEditorScene extends RenderNode {
                     c1 = dragCart.sub(p0).normalize();
 
                 let sig = Math.sign(c0.cross(c1).dot(norm));
-                let angle = Math.acos(c0.dot(c1)) * DEGREES;
+                let angle = Math.acos(c0.dot(c1));
                 let deg = this._selectedEntityPitch + sig * angle;
                 this._selectedEntity.setAbsolutePitch(deg);
 
@@ -649,7 +648,7 @@ class GeoObjectEditorScene extends RenderNode {
                     c1 = dragCart.sub(p0).normalize();
 
                 let sig = Math.sign(c1.cross(c0).dot(norm));
-                let angle = Math.acos(c0.dot(c1)) * DEGREES;
+                let angle = Math.acos(c0.dot(c1));
                 let deg = this._selectedEntityYaw + sig * angle;
                 this._selectedEntity.setAbsoluteYaw(deg);
 
@@ -667,7 +666,7 @@ class GeoObjectEditorScene extends RenderNode {
         let qNorthFrame = this.getFrameRotation(p0).conjugate();
 
         let qp = Quat.xRotation(0);
-        let qy = Quat.yRotation(this._selectedEntity.getYaw() * RADIANS);
+        let qy = Quat.yRotation(this._selectedEntity.getYaw());
         let qr = Quat.zRotation(0);
 
         let qRot = qr.mul(qp).mul(qy).mul(this.getFrameRotation(p0)).conjugate();
@@ -689,7 +688,7 @@ class GeoObjectEditorScene extends RenderNode {
                     c1 = dragCart.sub(p0).normalize();
 
                 let sig = Math.sign(c0.cross(c1).dot(norm));
-                let angle = Math.acos(c0.dot(c1)) * DEGREES;
+                let angle = Math.acos(c0.dot(c1));
                 let deg = this._selectedEntityRoll + sig * angle;
                 this._selectedEntity.setAbsoluteRoll(deg);
 

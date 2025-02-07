@@ -2,6 +2,7 @@ import {Entity, IEntityParams} from "../../entity/Entity";
 import {Vec3} from "../../math/Vec3";
 import {SEL_X_COLOR, SEL_Y_COLOR, SEL_Z_COLOR, X_COLOR, Y_COLOR, Z_COLOR} from "./colors";
 import {ArrowEntity} from "./ArrowEntity";
+import {RADIANS} from "../../math";
 
 export interface IAxisEntityParams extends IEntityParams {
     size?: number;
@@ -24,7 +25,7 @@ export class MoveAxisEntity extends Entity {
             color: X_COLOR,
             yaw: 0,
             pitch: 0,
-            roll: 90,
+            roll: 90 * RADIANS,
             properties: {
                 opName: "move_x",
                 noEdit: true,
@@ -53,7 +54,7 @@ export class MoveAxisEntity extends Entity {
         let arrowZ = new ArrowEntity({
             color: Z_COLOR,
             yaw: 0,
-            pitch: 90,
+            pitch: 90 * RADIANS,
             roll: 0,
             properties: {
                 opName: "move_z",

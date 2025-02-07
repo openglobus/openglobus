@@ -6,6 +6,7 @@ import {Checkbox} from "../../ui/Checkbox";
 import {Button} from "../../ui/Button";
 import {Vec3} from "../../math/Vec3";
 import {ToggleButton} from "../../ui/ToggleButton";
+import {DEGREES, RADIANS} from "../../math";
 
 const ICON_LOCK_BUTTON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" id="filter-center-focus">
   <path d="M5 15H3v4c0 1.1.9 2 2 2h4v-2H5v-4zM5 5h4V3H5c-1.1 0-2 .9-2 2v4h2V5zm14-2h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm0 16h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zM12 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
@@ -355,16 +356,16 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
         this._pitchView.stopPropagation();
         this._yawView.stopPropagation();
         this._rollView.stopPropagation();
-        this._pitchView.value = entity.getPitch();
-        this._yawView.value = entity.getYaw();
-        this._rollView.value = entity.getRoll();
+        this._pitchView.value = entity.getPitch() * DEGREES;
+        this._yawView.value = entity.getYaw() * DEGREES;
+        this._rollView.value = entity.getRoll() * DEGREES;
 
         this._absolutePitchView.stopPropagation();
         this._absoluteYawView.stopPropagation();
         this._absoluteRollView.stopPropagation();
-        this._absolutePitchView.value = entity.getAbsolutePitch();
-        this._absoluteYawView.value = entity.getAbsoluteYaw();
-        this._absoluteRollView.value = entity.getAbsoluteRoll();
+        this._absolutePitchView.value = entity.getAbsolutePitch() * DEGREES;
+        this._absoluteYawView.value = entity.getAbsoluteYaw() * DEGREES;
+        this._absoluteRollView.value = entity.getAbsoluteRoll() * DEGREES;
 
         this._scaleView.stopPropagation();
         let scl = entity.getScale();
@@ -401,47 +402,31 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     }
 
     protected _onPosition = (pos: Vec3, entity: Entity) => {
-
         this._refresh(entity);
-        // let ll = entity.getLonLat();
-        // this._lonView.stopPropagation();
-        // this._latView.stopPropagation();
-        // this._heightView.stopPropagation();
-        // this._lonView.value = ll.lon;
-        // this._latView.value = ll.lat;
-        // this._heightView.value = ll.height;
-        //
-        // let cart = entity.getCartesian();
-        // this._xView.stopPropagation();
-        // this._yView.stopPropagation();
-        // this._zView.stopPropagation();
-        // this._xView.value = cart.x;
-        // this._yView.value = cart.y;
-        // this._zView.value = cart.z;
     }
 
     protected _onPitch = (a: number, entity: Entity) => {
         this._pitchView.stopPropagation();
-        this._pitchView.value = entity.getPitch();
+        this._pitchView.value = entity.getPitch() * DEGREES;
 
         this._absolutePitchView.stopPropagation();
-        this._absolutePitchView.value = entity.getAbsolutePitch();
+        this._absolutePitchView.value = entity.getAbsolutePitch() * DEGREES;
     }
 
     protected _onYaw = (a: number, entity: Entity) => {
         this._yawView.stopPropagation();
-        this._yawView.value = entity.getYaw();
+        this._yawView.value = entity.getYaw() * DEGREES;
 
         this._absoluteYawView.stopPropagation();
-        this._absoluteYawView.value = entity.getAbsoluteYaw();
+        this._absoluteYawView.value = entity.getAbsoluteYaw() * DEGREES;
     }
 
     protected _onRoll = (a: number, entity: Entity) => {
         this._rollView.stopPropagation();
-        this._rollView.value = entity.getRoll();
+        this._rollView.value = entity.getRoll() * DEGREES;
 
         this._absoluteRollView.stopPropagation();
-        this._absoluteRollView.value = entity.getAbsoluteRoll();
+        this._absoluteRollView.value = entity.getAbsoluteRoll() * DEGREES;
     }
 
     protected _onChangeLon = (val: string) => {
@@ -528,7 +513,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     protected _onChangePitch = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            entity.setPitch(parseFloat(val));
+            entity.setPitch(parseFloat(val) * RADIANS);
             this._refresh(entity);
         }
     }
@@ -536,7 +521,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     protected _onChangeYaw = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            entity.setYaw(parseFloat(val));
+            entity.setYaw(parseFloat(val) * RADIANS);
             this._refresh(entity);
 
         }
@@ -545,7 +530,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     protected _onChangeRoll = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            entity.setRoll(parseFloat(val));
+            entity.setRoll(parseFloat(val) * RADIANS);
             this._refresh(entity);
         }
     }
@@ -553,7 +538,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     protected _onChangeAbsolutePitch = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            entity.setAbsolutePitch(parseFloat(val));
+            entity.setAbsolutePitch(parseFloat(val) * RADIANS);
             this._refresh(entity);
         }
     }
@@ -561,7 +546,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     protected _onChangeAbsoluteYaw = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            entity.setAbsoluteYaw(parseFloat(val));
+            entity.setAbsoluteYaw(parseFloat(val) * RADIANS);
             this._refresh(entity);
         }
     }
@@ -569,7 +554,7 @@ export class GeoObjectPropertiesDialog extends Dialog<GeoObjectEditorScene> {
     protected _onChangeAbsoluteRoll = (val: string) => {
         let entity = this.model.getSelectedEntity();
         if (entity) {
-            entity.setAbsoluteRoll(parseFloat(val));
+            entity.setAbsoluteRoll(parseFloat(val) * RADIANS);
             this._refresh(entity);
         }
     }

@@ -91,9 +91,9 @@ export interface IEntityParams {
  * @param {Strip | IStripParams} [options.strip] - Strip object or parameters.
  * @param {boolean} [options.independentPicking] - Independent picking flag.
  * @param {boolean} [options.relativePosition] - Parent relative position flag, otherwise position is absolute.
- * @param {number} [options.pitch] - Rotation around local X-axis.
- * @param {number} [options.yaw] - Rotation around local Y-axis.
- * @param {number} [options.roll] - Rotation around local Z-axis.
+ * @param {number} [options.pitch] - Rotation around local X-axis in radians.
+ * @param {number} [options.yaw] - Rotation around local Y-axis in radians.
+ * @param {number} [options.roll] - Rotation around local Z-axis in radians.
  * @param {number | Vec3 | NumberArray3} [options.scale] - Scaling factor.
  * @param {boolean} [options.forceGlobalPosition] - Forces global position for children entities make them the same position as the parent.
  */
@@ -275,9 +275,6 @@ class Entity {
     public _nodePtr?: EntityCollectionNode;
 
     protected _relativePosition: boolean;
-    protected _pitch: number;
-    protected _yaw: number;
-    protected _roll: number;
     protected _pitchRad: number;
     protected _yawRad: number;
     protected _rollRad: number;
@@ -330,13 +327,10 @@ class Entity {
         this._independentPicking = options.independentPicking || false;
 
         this._relativePosition = options.relativePosition || false;
-        this._pitch = options.pitch || 0;
-        this._yaw = options.yaw || 0;
-        this._roll = options.roll || 0;
 
-        this._pitchRad = this._pitch * RADIANS;
-        this._yawRad = this._yaw * RADIANS;
-        this._rollRad = this._roll * RADIANS;
+        this._pitchRad = options.pitch || 0;
+        this._yawRad = options.yaw || 0;
+        this._rollRad = options.roll || 0;
 
         this._scale = utils.createVector3(options.scale, new Vec3(1, 1, 1));
 
@@ -676,70 +670,67 @@ class Entity {
 
     /**
      * Sets the pitch rotation of the entity.
-     * @param {number} val - The new pitch angle in degrees.
+     * @param {number} val - The new pitch angle in radians.
      */
     public setPitch(val: number) {
-        this._pitch = val;
-        this._pitchRad = val * RADIANS;
+        this._pitchRad = val;
         this._updateAbsolutePosition();
     }
 
     /**
      * Sets the yaw rotation of the entity.
-     * @param {number} val - The new yaw angle in degrees.
+     * @param {number} val - The new yaw angle in radians.
      */
     public setYaw(val: number) {
-        this._yaw = val;
-        this._yawRad = val * RADIANS;
+        this._yawRad = val;
         this._updateAbsolutePosition();
     }
 
     /**
      * Sets the roll rotation of the entity.
      * @public
-     * @param {number} val - The new roll angle in degrees.
+     * @param {number} val - The new roll angle in radians.
      */
     public setRoll(val: number) {
-        this._roll = val;
-        this._rollRad = val * RADIANS;
+        this._rollRad = val;
         this._updateAbsolutePosition();
     }
 
     /**
      * Gets the pitch angle of the entity.
      * @public
-     * @returns {number} The pitch angle in degrees.
+     * @returns {number} The pitch angle in radians.
      */
     public getPitch(): number {
-        return this._pitch;
+        return this._pitchRad;
     }
 
     /**
      * Gets the yaw angle of the entity.
      * @public
-     * @returns {number} The yaw angle in degrees.
+     * @returns {number} The yaw angle in radians.
      */
     public getYaw(): number {
-        return this._yaw;
+        return this._yawRad;
     }
 
     /**
      * Gets the roll angle of the entity.
      * @public
-     * @returns {number} The roll angle in degrees.
+     * @returns {number} The roll angle in radians.
      */
     public getRoll(): number {
-        return this._roll;
+        return this._rollRad;
     }
 
     /**
      * Sets the absolute pitch of the entity.
      * @public
-     * @param {number} val - The absolute pitch angle in degrees.
+     * @param {number} val - The absolute pitch angle in radians.
      */
     public setAbsolutePitch(val: number) {
         if (this._relativePosition) {
-            this._absoluteQRot.setPitchYawRoll(val * RADIANS, this.getAbsoluteYaw() * RADIANS, this.getAbsoluteRoll() * RADIANS, this._qFrame);
+            this._absoluteQRot.setPitchYawRoll(val, this.getAbsoluteYaw(), this.getAbsoluteRoll(), this._qFrame);
             this._updatePitchYawRoll();
         } else {
             this.setPitch(val);
@@ -749,11 +740,11 @@ class Entity {
     /**
      * Sets the absolute yaw of the entity.
      * @public
-     * @param {number} val - The absolute yaw angle in degrees.
+     * @param {number} val - The absolute yaw angle in radians.
      */
     public setAbsoluteYaw(val: number) {
         if (this._relativePosition) {
-            this._absoluteQRot.setPitchYawRoll(this.getAbsolutePitch() * RADIANS, val * RADIANS, this.getAbsoluteRoll() * RADIANS, this._qFrame);
+            this._absoluteQRot.setPitchYawRoll(this.getAbsolutePitch(), val, this.getAbsoluteRoll(), this._qFrame);
             this._updatePitchYawRoll();
         } else {
             this.setYaw(val);
@@ -763,11 +754,11 @@ class Entity {
     /**
      * Sets the absolute roll of the entity.
      * @public
-     * @param {number} val - The absolute roll angle in degrees.
+     * @param {number} val - The absolute roll angle in radians.
      */
     public setAbsoluteRoll(val: number) {
         if (this._relativePosition) {
-            this._absoluteQRot.setPitchYawRoll(this.getAbsolutePitch() * RADIANS, this.getAbsoluteYaw() * RADIANS, val * RADIANS, this._qFrame);
+            this._absoluteQRot.setPitchYawRoll(this.getAbsolutePitch(), this.getAbsoluteYaw(), val, this._qFrame);
             this._updatePitchYawRoll();
         } else {
             this.setRoll(val);
@@ -777,38 +768,38 @@ class Entity {
     /**
      * Gets the absolute pitch angle of the entity.
      * @public
-     * @returns {number} The absolute pitch angle in degrees.
+     * @returns {number} The absolute pitch angle in radians.
      */
     public getAbsolutePitch(): number {
         if (this.parent && this._relativePosition) {
-            return this._qFrame.conjugate().inverse().mul(this._absoluteQRot).getPitch() * DEGREES;
+            return this._qFrame.conjugate().inverse().mul(this._absoluteQRot).getPitch();
         }
 
-        return this._pitch;
+        return this._pitchRad;
     }
 
     /**
      * Gets the absolute yaw angle of the entity.
      * @public
-     * @returns {number} The absolute yaw angle in degrees.
+     * @returns {number} The absolute yaw angle in radians.
      */
     public getAbsoluteYaw(): number {
         if (this.parent && this._relativePosition) {
-            return this._qFrame.conjugate().inverse().mul(this._absoluteQRot).getYaw() * DEGREES;
+            return this._qFrame.conjugate().inverse().mul(this._absoluteQRot).getYaw();
         }
-        return this._yaw;
+        return this._yawRad;
     }
 
     /**
      * Gets the absolute roll angle of the entity.
      * @public
-     * @returns {number} The absolute roll angle in degrees.
+     * @returns {number} The absolute roll angle in radians.
      */
     public getAbsoluteRoll(): number {
         if (this.parent && this._relativePosition) {
-            return this._qFrame.conjugate().inverse().mul(this._absoluteQRot).getRoll() * DEGREES;
+            return this._qFrame.conjugate().inverse().mul(this._absoluteQRot).getRoll();
         }
-        return this._roll;
+        return this._rollRad;
     }
 
     protected _getScaleByDistance(): number {
@@ -901,9 +892,9 @@ class Entity {
             this._yawRad = this._qRot.getYaw();
             this._rollRad = this._qRot.getRoll();
 
-            this._pitch = this._pitchRad * DEGREES;
-            this._yaw = this._yawRad * DEGREES;
-            this._roll = this._rollRad * DEGREES;
+            // this._pitch = this._pitchRad * DEGREES;
+            // this._yaw = this._yawRad * DEGREES;
+            // this._roll = this._rollRad * DEGREES;
 
             if (this.geoObject) {
                 this.geoObject.setRotation(this._absoluteQRot);
