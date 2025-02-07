@@ -45,6 +45,12 @@ export class EarthNavigation extends Control {
 
     protected fixedUp: boolean;
 
+    protected _curPitch: number;
+
+    protected _curYaw: number;
+
+    protected _curRoll: number;
+
     constructor(options: IEarthNavigationParams = {}) {
         super({
             name: "EarthNavigation",
@@ -71,6 +77,10 @@ export class EarthNavigation extends Control {
         this._grabbedSphere = new Sphere();
 
         this.fixedUp = options.fixedUp != undefined ? options.fixedUp : true;
+
+        this._curPitch = 0;
+        this._curYaw = 0;
+        this._curRoll = 0;
     }
 
     override oninit() {
@@ -219,6 +229,10 @@ export class EarthNavigation extends Control {
 
             this._grabbedSphere.radius = this._targetPoint.length();
 
+            this._curPitch = this.planet.camera.getPitch();
+            this._curYaw  = this.planet.camera.getYaw();
+            this._curRoll = this.planet.camera.getRoll();
+
             if (Math.sign(e.wheelDelta) !== this._wheelDirection) {
                 this.vel.scale(0.3);
                 this._currScreenPos.set(e.x, e.y);
@@ -283,7 +297,7 @@ export class EarthNavigation extends Control {
                 //     new Vec3(1, 0, 0),
                 //     new Vec3(0, 1, 0)
                 // );
-                cam.setPitchYawRoll(-90 * RADIANS, 0, 0);
+                cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
 
                 cam.update();
                 let dirCurr = cam.unproject2v(this._currScreenPos);
