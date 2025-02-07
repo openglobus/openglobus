@@ -9,7 +9,7 @@ import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 import {Sphere} from "../bv/Sphere";
 import {Quat} from "../math/Quat";
-import {DEGREES, RADIANS} from "../math";
+import {RADIANS} from "../math";
 
 type CameraEvents = ["viewchange", "moveend"];
 
@@ -415,7 +415,7 @@ class Camera {
         this._tanViewAngle_hradOneByHeight =
             this._tanViewAngle_hrad * this.renderer!.handler._oneByHeight;
         let c = this.renderer!.handler.canvas!;
-        this._projSizeConst = Math.min(c.clientWidth < 512 ? 512 : c.clientWidth, c.clientHeight < 512 ? 512 : c.clientHeight) / (angle * math.RADIANS);
+        this._projSizeConst = Math.min(c.clientWidth < 512 ? 512 : c.clientWidth, c.clientHeight < 512 ? 512 : c.clientHeight) / (angle * RADIANS);
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             this.frustums[i].setProjectionMatrix(
                 angle,
@@ -503,9 +503,9 @@ class Camera {
     }
 
     /**
-     * Roll the camera to the angle in degrees
+     * Roll the camera to the angle in radians
      * @public
-     * @param {number} angle - Delta roll angle in degrees
+     * @param {number} angle - Delta roll angle in radians
      */
     public setRoll(angle: number) {
         let cs = Math.cos(angle);
@@ -524,9 +524,9 @@ class Camera {
     }
 
     /**
-     * Pitch the camera to the angle in degrees
+     * Pitch the camera to the angle in radians
      * @public
-     * @param {number} angle - Delta pitch angle in degrees
+     * @param {number} angle - Delta pitch angle in radians
      */
     public setPitch(angle: number) {
         let cs = Math.cos(angle);
@@ -545,9 +545,9 @@ class Camera {
     }
 
     /**
-     * Yaw the camera to the angle in degrees
+     * Yaw the camera to the angle in radians
      * @public
-     * @param {number} angle - Delta yaw angle in degrees
+     * @param {number} angle - Delta yaw angle in radians
      */
     public setYaw(angle: number) {
         let cs = Math.cos(angle);

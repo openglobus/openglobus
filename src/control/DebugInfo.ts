@@ -3,6 +3,7 @@ import {Dialog} from "../ui/Dialog";
 import {ToggleButton} from "../ui/ToggleButton";
 import {GlobusTerrain} from "../terrain/GlobusTerrain";
 import {CanvasTiles} from "../layer/CanvasTiles";
+import {DEGREES} from "../math";
 
 const ICON_LOCK_BUTTON_SVG = `<?xml version="1.0" encoding="utf-8"?>
 <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
@@ -236,17 +237,6 @@ export class DebugInfo extends Control {
                     }
                 },
                 {
-                    label: "height/alt, m",
-                    frame: () =>
-                        `<div style="width:190px">${(p.camera._lonLat.height).toFixed(2) +
-                        " / " +
-                        (p.camera.getAltitude()).toFixed(2)}</div>`
-                },
-                {
-                    label: "cam.slope",
-                    frame: () => p.camera.slope.toFixed(3)
-                },
-                {
                     label: "lodSize",
                     frame: () => Math.round(p.lodSize)
                 },
@@ -258,6 +248,32 @@ export class DebugInfo extends Control {
                         </div> <div style="float: left">
                         ${Math.round(1000.0 / p.renderer!.handler.deltaTime)}
                         </div></div>`
+                },
+                {
+                    label: "-------------------------"
+                },
+                {
+                    label: "Pitch, deg",
+                    frame: () => (p.camera.getPitch() * DEGREES).toFixed(2)
+                },
+                {
+                    label: "Yaw, deg",
+                    frame: () => (p.camera.getYaw() * DEGREES).toFixed(2)
+                },
+                {
+                    label: "Roll, deg",
+                    frame: () => (p.camera.getRoll() * DEGREES).toFixed(2)
+                },
+                {
+                    label: "height/alt, m",
+                    frame: () =>
+                        `<div style="width:190px">${(p.camera._lonLat.height).toFixed(2) +
+                        " / " +
+                        (p.camera.getAltitude()).toFixed(2)}</div>`
+                },
+                {
+                    label: "cam.slope",
+                    frame: () => p.camera.slope.toFixed(3)
                 },
                 {
                     label: "-------------------------"

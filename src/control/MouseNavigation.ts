@@ -345,6 +345,7 @@ export class MouseNavigation extends Control {
                         cam._u = rot.mulVec3(cam._u);
                         cam._r = rot.mulVec3(cam._r);
                         cam._b = rot.mulVec3(cam._b);
+                        cam._f.set(-cam._b.x, -cam._b.y, -cam._b.z);
                     }
                 } else {
                     let p0 = this.grabbedPoint,
@@ -413,6 +414,7 @@ export class MouseNavigation extends Control {
                 cam._u = sf.v;
                 cam._r = sf.u;
                 cam._b = sf.n;
+                cam._f.set(-cam._b.x, -cam._b.y, -cam._b.z);
             } else {
                 if (this._deactivate) {
                     this._deactivate = false;
@@ -439,6 +441,7 @@ export class MouseNavigation extends Control {
                 cam._u = rot.mulVec3(cam._u);
                 cam._r = rot.mulVec3(cam._r);
                 cam._b = rot.mulVec3(cam._b);
+                cam._f.set(-cam._b.x, -cam._b.y, -cam._b.z);
             }
 
             if (cam.eye.distance(prevEye) / cam.getAltitude() > 0.01) {

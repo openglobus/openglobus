@@ -308,7 +308,7 @@ class PlanetCamera extends Camera {
             Math.abs(right.dot(southWest))
         );
 
-        let tanPhi = Math.tan(this._viewAngle * math.RADIANS * 0.5);
+        let tanPhi = Math.tan(this._viewAngle * RADIANS * 0.5);
         let tanTheta = this._aspect * tanPhi;
         let d = Math.max(_w / tanTheta, _h / tanPhi);
 
@@ -574,7 +574,7 @@ class PlanetCamera extends Camera {
      * @param {boolean} [spin] - If its true rotates around globe spin.
      */
     public rotateLeft(angle: number, spin: boolean) {
-        this.rotateHorizontal(angle * math.RADIANS, spin !== true, Vec3.ZERO);
+        this.rotateHorizontal(angle, spin !== true, Vec3.ZERO);
         this.update();
     }
 
@@ -585,7 +585,7 @@ class PlanetCamera extends Camera {
      * @param {boolean} [spin] - If its true rotates around globe spin.
      */
     public rotateRight(angle: number, spin: boolean) {
-        this.rotateHorizontal(-angle * math.RADIANS, spin !== true, Vec3.ZERO);
+        this.rotateHorizontal(-angle, spin !== true, Vec3.ZERO);
         this.update();
     }
 
@@ -595,7 +595,7 @@ class PlanetCamera extends Camera {
      * @param {number} angle - Rotation angle.
      */
     public rotateUp(angle: number) {
-        this.rotateVertical(angle * math.RADIANS, Vec3.ZERO);
+        this.rotateVertical(angle, Vec3.ZERO);
         this.update();
     }
 
@@ -605,7 +605,7 @@ class PlanetCamera extends Camera {
      * @param {number} angle - Rotation angle.
      */
     public rotateDown(angle: number) {
-        this.rotateVertical(-angle * math.RADIANS, Vec3.ZERO);
+        this.rotateVertical(-angle, Vec3.ZERO);
         this.update();
     }
 
@@ -637,12 +637,14 @@ class PlanetCamera extends Camera {
                 this._u = u;
                 this._r = r;
                 this._b = b;
+                this._f.set(-b.x, -b.y, -b.z);
             }
         } else {
             this.eye = eye;
             this._u = u;
             this._r = r;
             this._b = b;
+            this._f.set(-b.x, -b.y, -b.z);
         }
     }
 
@@ -662,6 +664,7 @@ class PlanetCamera extends Camera {
             this._r = this._framesArr[c].u;
             this._u = this._framesArr[c].v;
             this._b = this._framesArr[c].n;
+            this._f.set(-this._b.x, -this._b.y, -this._b.z);
 
             if (this._frameCallback) {
                 this._frameCallback();
@@ -729,7 +732,7 @@ class PlanetCamera extends Camera {
     }
 
     /**
-     * should be yje same as getHeading
+     * should be the same as getHeading
      */
     public override getYaw(): number {
         let qFrame = this.planet.getFrameRotation(this.eye);
