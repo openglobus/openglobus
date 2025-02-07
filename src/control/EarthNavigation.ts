@@ -230,7 +230,7 @@ export class EarthNavigation extends Control {
             this._grabbedSphere.radius = this._targetPoint.length();
 
             this._curPitch = this.planet.camera.getPitch();
-            this._curYaw  = this.planet.camera.getYaw();
+            this._curYaw = this.planet.camera.getYaw();
             this._curRoll = this.planet.camera.getRoll();
 
             if (Math.sign(e.wheelDelta) !== this._wheelDirection) {
@@ -290,13 +290,7 @@ export class EarthNavigation extends Control {
 
             if (this.fixedUp) {
 
-                // rot UP
-                let qFrame = this.planet!.getFrameRotation(cam.eye).conjugate();
-                // cam.setRotation(qFrame,
-                //     new Vec3(0, 0, -1),
-                //     new Vec3(1, 0, 0),
-                //     new Vec3(0, 1, 0)
-                // );
+                // restore camera direction
                 cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
 
                 cam.update();
