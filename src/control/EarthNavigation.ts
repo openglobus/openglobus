@@ -278,11 +278,12 @@ export class EarthNavigation extends Control {
 
                 // rot UP
                 let qFrame = this.planet!.getFrameRotation(cam.eye).conjugate();
-                cam.setRotation(qFrame,
-                    new Vec3(0, 0, -1),
-                    new Vec3(1, 0, 0),
-                    new Vec3(0, 1, 0)
-                );
+                // cam.setRotation(qFrame,
+                //     new Vec3(0, 0, -1),
+                //     new Vec3(1, 0, 0),
+                //     new Vec3(0, 1, 0)
+                // );
+                cam.setPitchYawRoll(-90 * RADIANS, 0, 0);
 
                 cam.update();
                 let dirCurr = cam.unproject2v(this._currScreenPos);
