@@ -719,6 +719,21 @@ class PlanetCamera extends Camera {
         return this.eye.distance(poi) < Math.sqrt(e * e - this.planet.ellipsoid.equatorialSizeSqr);
     }
 
+    public override getPitch(): number {
+        let qFrame = this.planet.getFrameRotation(this.eye);
+        return qFrame.conjugate().inverse().mul(this.getRotation()).getPitch();
+    }
+
+    public override getYaw(): number {
+        let qFrame = this.planet.getFrameRotation(this.eye);
+        return qFrame.conjugate().inverse().mul(this.getRotation()).getYaw();
+    }
+
+    public override getRoll(): number {
+        let qFrame = this.planet.getFrameRotation(this.eye);
+        return qFrame.conjugate().inverse().mul(this.getRotation()).getRoll();
+    }
+
     // _calcOrientation() {
     //     let qq = Quat.yRotation(this.yaw * RADIANS).mul(this._qNorthFrame).conjugate();
     //     this.orientation = qq.mulVec3(MODEL_FORWARD).normalize();

@@ -564,6 +564,18 @@ class Camera {
         );
     }
 
+    public getPitch(): number {
+        return this.getRotation().getPitch();
+    }
+
+    public getYaw(): number {
+        return this.getRotation().getYaw();
+    }
+
+    public getRoll(): number {
+        return this.getRotation().getRoll();
+    }
+
     /**
      * Returns camera quaternion
      */
