@@ -42,7 +42,8 @@ import {RADIANS, clamp, DEGREES} from "../math";
  * @property {number} [yaw] - Rotation around local Y-axis.
  * @property {number} [roll] - Rotation around local Z-axis.
  * @property {number | Vec3 | NumberArray3} [scale] - Scaling factor.
- * @property {boolean} [forceGlobalPosition] - Forces global position for children entities make them the same position as the parent.
+ * @property {boolean} [forceGlobalPosition] - Forces global position for entity make the same position as its parent.
+ * @property {boolean} [forceGlobalRotation] - Forces global rotation for the entity make the same rotation as its parent.
  */
 export interface IEntityParams {
     name?: string;
@@ -66,6 +67,7 @@ export interface IEntityParams {
     roll?: number;
     scale?: number | Vec3 | NumberArray3;
     forceGlobalPosition?: boolean;
+    forceGlobalRotation?: boolean;
     localPosition?: Vec3 | NumberArray3;
 }
 
@@ -124,6 +126,8 @@ class Entity {
     public childEntities: Entity[];
 
     public forceGlobalPosition: boolean;
+
+    public forceGlobalRotation: boolean;
 
     /**
      * Parent entity.
@@ -301,6 +305,8 @@ class Entity {
         this.parent = null;
 
         this.forceGlobalPosition = options.forceGlobalPosition || false;
+
+        this.forceGlobalRotation = options.forceGlobalRotation || false;
 
         this._cartesian = utils.createVector3(options.cartesian);
 
@@ -933,7 +939,11 @@ class Entity {
             if (this._entityCollection && this._entityCollection.renderNode) {
                 this._qFrame = this._entityCollection.renderNode.getFrameRotation(this._cartesian);
             }
-            this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad, this._qFrame);
+            if (parent && this.forceGlobalRotation) {
+                this._qRot.setPitchYawRoll(parent._pitchRad, parent._yawRad, parent._rollRad, this._qFrame);
+            } else {
+                this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad, this._qFrame);
+            }
             this._absoluteQRot.copy(this._qRot);
             this._rootCartesian.copy(this._cartesian);
             this._absoluteLocalPosition.copy(this._localPosition);
