@@ -68,6 +68,7 @@ export interface IEntityParams {
     scale?: number | Vec3 | NumberArray3;
     forceGlobalPosition?: boolean;
     forceGlobalRotation?: boolean;
+    forceGlobalScale?: boolean;
     localPosition?: Vec3 | NumberArray3;
 }
 
@@ -97,7 +98,9 @@ export interface IEntityParams {
  * @param {number} [options.yaw] - Rotation around local Y-axis.
  * @param {number} [options.roll] - Rotation around local Z-axis.
  * @param {number | Vec3 | NumberArray3} [options.scale] - Scaling factor.
- * @param {boolean} [options.forceGlobalPosition] - Forces global position for children entities make them the same position as the parent.
+ * @param {boolean} [options.forceGlobalPosition] - Forces global position for the entity make the same position as its parent.
+ * @param {boolean} [options.forceGlobalRotation] - Forces global rotation for the entity make the same rotation as its parent.
+ * @param {boolean} [options.forceGlobalScale] - Forces global scale for the entity make the same scale as its parent.
  */
 class Entity {
 
@@ -128,6 +131,8 @@ class Entity {
     public forceGlobalPosition: boolean;
 
     public forceGlobalRotation: boolean;
+
+    public forceGlobalScale: boolean;
 
     /**
      * Parent entity.
@@ -307,6 +312,8 @@ class Entity {
         this.forceGlobalPosition = options.forceGlobalPosition || false;
 
         this.forceGlobalRotation = options.forceGlobalRotation || false;
+
+        this.forceGlobalScale = options.forceGlobalScale || false;
 
         this._cartesian = utils.createVector3(options.cartesian);
 
@@ -590,7 +597,12 @@ class Entity {
         this.geoObject && this.geoObject.setScale3v(this._scale);
 
         for (let i = 0; i < this.childEntities.length; i++) {
-            this.childEntities[i].setScale3v(this.childEntities[i].getScale());
+            let chi = this.childEntities[i];
+            if (chi.forceGlobalScale) {
+                chi.setScale3v(this._scale);
+            } else {
+                chi.setScale3v(this.childEntities[i].getScale());
+            }
         }
     }
 
@@ -606,7 +618,12 @@ class Entity {
         this.geoObject && this.geoObject.setScale(val);
 
         for (let i = 0; i < this.childEntities.length; i++) {
-            this.childEntities[i].setScale3v(this.childEntities[i].getScale());
+            let chi = this.childEntities[i];
+            if (chi.forceGlobalScale) {
+                chi.setScale(val);
+            } else {
+                chi.setScale3v(this.childEntities[i].getScale());
+            }
         }
     }
 
