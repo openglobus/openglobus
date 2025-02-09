@@ -366,6 +366,8 @@ class Globe {
             } else {
                 t.appendChild(this.$inner);
             }
+        } else {
+            console.warn(`Target container not found. Provided target: ${target}`);
         }
     }
 
