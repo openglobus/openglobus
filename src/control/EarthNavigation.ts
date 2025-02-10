@@ -57,6 +57,8 @@ export class EarthNavigation extends Control {
 
     protected _eye0: Vec3;
 
+    protected _newEye: Vec3;
+
     constructor(options: IEarthNavigationParams = {}) {
         super({
             name: "EarthNavigation",
@@ -93,6 +95,7 @@ export class EarthNavigation extends Control {
         this._curRoll = 0;
 
         this._eye0 = new Vec3();
+        this._newEye = new Vec3();
     }
 
     override oninit() {
@@ -285,7 +288,7 @@ export class EarthNavigation extends Control {
     }
 
     protected _onLHold = (e: IMouseState) => {
-        if (this._grabbedPoint && this.planet && e.moving) {
+        if (this._grabbedPoint && this.planet) {
 
             this._targetZoomPoint = undefined;
 
@@ -295,18 +298,32 @@ export class EarthNavigation extends Control {
 
             if (!this._targetDragPoint) return;
 
-            let rot = Quat.getRotationBetweenVectors(
+            this._rot = Quat.getRotationBetweenVectors(
                 this._targetDragPoint.normal(),
                 this._grabbedPoint.normal()
             );
-            cam.eye = rot.mulVec3(cam.eye);
-            cam.rotate(rot);
+
+            //cam.rotate(this._rot);
+
+            this._newEye = this._rot.mulVec3(cam.eye);
+            this.force = this._newEye.sub(cam.eye);
         }
     }
 
     protected _handleDrag() {
-        if (this.planet && this._targetDragPoint && this._grabbedPoint /*&& this.vel.length() > 0.0*/) {
+        if (this.planet && this._targetDragPoint && this._grabbedPoint && this.vel.length() > 0.0) {
             let cam = this.planet!.camera;
+
+            let eye = cam.eye.clone();
+
+            let d_v = this.vel.scaleTo(this.dt);
+
+            let d_s = d_v.projToVec(cam.getRight()).add(d_v.projToVec(cam.getUp()));
+
+            eye.addA(d_s);
+
+            cam.eye = eye;
+
             cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
         }
     }
