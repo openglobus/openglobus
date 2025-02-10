@@ -33,7 +33,7 @@ export class EarthNavigation extends Control {
 
     protected _targetZoomPoint: Vec3 | undefined;
 
-    protected _targetDragPoint: Vec3 | null;
+    protected _targetPoint: Vec3 | null;
 
     protected _grabbedSphere: Sphere;
 
@@ -76,7 +76,7 @@ export class EarthNavigation extends Control {
 
         this._targetZoomPoint = undefined;
 
-        this._targetDragPoint = null;
+        this._targetPoint = null;
 
         this._tUp = new Vec3();
 
@@ -227,7 +227,7 @@ export class EarthNavigation extends Control {
     protected _onMouseWheel = (e: IMouseState) => {
         if (this.planet) {
 
-            this._targetDragPoint = null;
+            this._targetPoint = null;
             this._targetZoomPoint = this._getTargetPoint(e.pos);
 
             if (!this._targetZoomPoint)
@@ -283,10 +283,6 @@ export class EarthNavigation extends Control {
         this._curRoll = this.planet.camera.getRoll();
     }
 
-    protected _onLUp = (e: IMouseState) => {
-        //this._grabbedPoint = undefined;
-    }
-
     protected _onLHold = (e: IMouseState) => {
         if (this._grabbedPoint && this.planet) {
 
@@ -294,22 +290,25 @@ export class EarthNavigation extends Control {
 
             let cam = this.planet.camera;
 
-            this._targetDragPoint = new Ray(cam.eye, e.direction).hitSphere(this._grabbedSphere);
+            this._targetPoint = new Ray(cam.eye, e.direction).hitSphere(this._grabbedSphere);
 
-            if (!this._targetDragPoint) return;
+            if (!this._targetPoint) return;
 
             this._rot = Quat.getRotationBetweenVectors(
-                this._targetDragPoint.normal(),
+                this._targetPoint.normal(),
                 this._grabbedPoint.normal()
             );
 
             this._newEye = this._rot.mulVec3(cam.eye);
-            this.force = this._newEye.sub(cam.eye).scale(5);
+            this.force = this._newEye.sub(cam.eye).scale(40);
+            this.vel.scale(0.5);
+
+            //this._grabbedPoint = this._targetPoint.clone();
         }
     }
 
     protected _handleDrag() {
-        if (this.planet && this._targetDragPoint && this._grabbedPoint && this.vel.length() > 0.0) {
+        if (this.planet && this._targetPoint && this._grabbedPoint && this.vel.length() > 0.0) {
 
             let cam = this.planet!.camera;
             let eye = cam.eye.clone();
@@ -320,8 +319,12 @@ export class EarthNavigation extends Control {
 
             cam.eye = eye;
 
-            //cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
+            cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
         }
+    }
+
+    protected _onLUp = (e: IMouseState) => {
+        //this._grabbedPoint = undefined;
     }
 
     protected _handlerZoom() {
