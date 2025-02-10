@@ -303,28 +303,24 @@ export class EarthNavigation extends Control {
                 this._grabbedPoint.normal()
             );
 
-            //cam.rotate(this._rot);
-
             this._newEye = this._rot.mulVec3(cam.eye);
-            this.force = this._newEye.sub(cam.eye);
+            this.force = this._newEye.sub(cam.eye).scale(5);
         }
     }
 
     protected _handleDrag() {
         if (this.planet && this._targetDragPoint && this._grabbedPoint && this.vel.length() > 0.0) {
+
             let cam = this.planet!.camera;
-
             let eye = cam.eye.clone();
-
             let d_v = this.vel.scaleTo(this.dt);
-
             let d_s = d_v.projToVec(cam.getRight()).add(d_v.projToVec(cam.getUp()));
 
             eye.addA(d_s);
 
             cam.eye = eye;
 
-            cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
+            //cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
         }
     }
 
