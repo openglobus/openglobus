@@ -315,7 +315,7 @@ export class EarthNavigation extends Control {
             let d_v = this.vel.scaleTo(this.dt);
             let d_s = d_v.projToVec(cam.getRight()).add(d_v.projToVec(cam.getUp()));
 
-            eye.addA(d_s);
+            eye.addA(d_v);
 
             cam.eye = eye;
 
