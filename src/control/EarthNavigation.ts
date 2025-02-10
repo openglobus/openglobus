@@ -31,7 +31,9 @@ export class EarthNavigation extends Control {
 
     protected _grabbedPoint: Vec3 | undefined;
 
-    protected _targetPoint: Vec3 | undefined;
+    protected _targetZoomPoint: Vec3 | undefined;
+
+    protected _targetDragPoint: Vec3 | null;
 
     protected _grabbedSphere: Sphere;
 
@@ -51,6 +53,10 @@ export class EarthNavigation extends Control {
 
     protected _curRoll: number;
 
+    protected _rot: Quat;
+
+    protected _eye0: Vec3;
+
     constructor(options: IEarthNavigationParams = {}) {
         super({
             name: "EarthNavigation",
@@ -66,7 +72,9 @@ export class EarthNavigation extends Control {
         this._lookPos = undefined;
         this._grabbedPoint = undefined;
 
-        this._targetPoint = undefined;
+        this._targetZoomPoint = undefined;
+
+        this._targetDragPoint = null;
 
         this._tUp = new Vec3();
 
@@ -78,9 +86,13 @@ export class EarthNavigation extends Control {
 
         this.fixedUp = options.fixedUp != undefined ? options.fixedUp : true;
 
+        this._rot = new Quat();
+
         this._curPitch = 0;
         this._curYaw = 0;
         this._curRoll = 0;
+
+        this._eye0 = new Vec3();
     }
 
     override oninit() {
@@ -101,9 +113,9 @@ export class EarthNavigation extends Control {
         r.events.on("rhold", this._onRHold);
         r.events.on("rdown", this._onRDown);
 
-        r.events.on("lhold", this._onMouseLeftButtonHold);
-        r.events.on("ldown", this._onMouseLeftButtonDown);
-        r.events.on("lup", this._onMouseLeftButtonUp);
+        r.events.on("lhold", this._onLHold);
+        r.events.on("ldown", this._onLDown);
+        r.events.on("lup", this._onLUp);
 
         r.events.on("draw", this.onDraw, this, -1000);
 
@@ -122,9 +134,9 @@ export class EarthNavigation extends Control {
         r.events.off("rhold", this._onRHold);
         r.events.off("rdown", this._onRDown);
 
-        r.events.off("lhold", this._onMouseLeftButtonHold);
-        r.events.off("ldown", this._onMouseLeftButtonDown);
-        r.events.off("lup", this._onMouseLeftButtonUp);
+        r.events.off("lhold", this._onLHold);
+        r.events.off("ldown", this._onLDown);
+        r.events.off("lup", this._onLUp);
 
         r.events.off("draw", this.onDraw);
 
@@ -133,21 +145,11 @@ export class EarthNavigation extends Control {
         r.events.off("mouseenter", this._onMouseEnter);
     }
 
-    protected _onMouseLeftButtonDown = (e: IMouseState) => {
-
-    }
-
-    protected _onMouseLeftButtonUp = (e: IMouseState) => {
-    }
-
-    protected _onMouseLeftButtonHold = (e: IMouseState) => {
-    }
-
     public _onShiftFree = () => {
         this._shiftBusy = false;
     }
 
-    protected _onMouseMove(e: IMouseState) {
+    protected _onMouseMove = (e: IMouseState) => {
         if (this._active && this.renderer!.events.isKeyPressed(input.KEY_ALT)) {
             if (!this._shiftBusy) {
                 this._shiftBusy = true;
@@ -182,24 +184,24 @@ export class EarthNavigation extends Control {
     protected _onRHold = (e: IMouseState) => {
         let cam = this.planet!.camera;
 
-        if (this._targetPoint && e.moving) {
-            let l = (0.5 / cam.eye.distance(this._targetPoint)) * cam._lonLat.height * math.RADIANS;
+        if (this._targetZoomPoint && e.moving) {
+            let l = (0.5 / cam.eye.distance(this._targetZoomPoint)) * cam._lonLat.height * math.RADIANS;
             if (l > 0.007) {
                 l = 0.007;
             } else if (l < 0.003) {
                 l = 0.003;
             }
-            cam.rotateHorizontal(l * (e.x - e.prev_x), false, this._targetPoint, this._tUp);
-            cam.rotateVertical(l * (e.y - e.prev_y), this._targetPoint, 0.1);
+            cam.rotateHorizontal(l * (e.x - e.prev_x), false, this._targetZoomPoint, this._tUp);
+            cam.rotateVertical(l * (e.y - e.prev_y), this._targetZoomPoint, 0.1);
         }
     }
 
     protected _onRDown = (e: IMouseState) => {
         this.planet!.stopFlying();
-        this._targetPoint = this._getTargetPoint(e.pos)!;
-        if (this._targetPoint) {
+        this._targetZoomPoint = this._getTargetPoint(e.pos)!;
+        if (this._targetZoomPoint) {
             this.vel.scale(0);
-            this._tUp = this._targetPoint.normal();
+            this._tUp = this._targetZoomPoint.normal();
         }
     }
 
@@ -222,12 +224,13 @@ export class EarthNavigation extends Control {
     protected _onMouseWheel = (e: IMouseState) => {
         if (this.planet) {
 
-            this._targetPoint = this._getTargetPoint(e.pos);
+            this._targetDragPoint = null;
+            this._targetZoomPoint = this._getTargetPoint(e.pos);
 
-            if (!this._targetPoint)
+            if (!this._targetZoomPoint)
                 return;
 
-            this._grabbedSphere.radius = this._targetPoint.length();
+            this._grabbedSphere.radius = this._targetZoomPoint.length();
 
             this._curPitch = this.planet.camera.getPitch();
             this._curYaw = this.planet.camera.getYaw();
@@ -249,20 +252,71 @@ export class EarthNavigation extends Control {
 
             this._currScreenPos.set(e.x, e.y);
             this._wheelDirection = Math.sign(e.wheelDelta);
-            let dist = this.planet.camera.eye.distance(this._targetPoint) * 2;
+            let dist = this.planet.camera.eye.distance(this._targetZoomPoint) * 2;
             this.force = (e.direction.scale(Math.sign(this._wheelDirection))).normalize().scale(dist);
         }
     }
 
     protected onDraw() {
-
         this._updateVel();
+        this._handlerZoom();
+        this._handleDrag();
+    }
 
-        if (this._targetPoint && this.vel.length() > 0.0) {
+    protected _onLDown = (e: IMouseState) => {
+
+        if (!this.planet) return;
+
+        this._grabbedPoint = this._getTargetPoint(e.pos);
+
+        if (!this._grabbedPoint) return;
+
+        this._grabbedSphere.radius = this._grabbedPoint.length();
+
+        this._eye0 = this.planet.camera.eye.clone();
+
+        this._curPitch = this.planet.camera.getPitch();
+        this._curYaw = this.planet.camera.getYaw();
+        this._curRoll = this.planet.camera.getRoll();
+    }
+
+    protected _onLUp = (e: IMouseState) => {
+        //this._grabbedPoint = undefined;
+    }
+
+    protected _onLHold = (e: IMouseState) => {
+        if (this._grabbedPoint && this.planet && e.moving) {
+
+            this._targetZoomPoint = undefined;
+
+            let cam = this.planet.camera;
+
+            this._targetDragPoint = new Ray(cam.eye, e.direction).hitSphere(this._grabbedSphere);
+
+            if (!this._targetDragPoint) return;
+
+            let rot = Quat.getRotationBetweenVectors(
+                this._targetDragPoint.normal(),
+                this._grabbedPoint.normal()
+            );
+            cam.eye = rot.mulVec3(cam.eye);
+            cam.rotate(rot);
+        }
+    }
+
+    protected _handleDrag() {
+        if (this.planet && this._targetDragPoint && this._grabbedPoint /*&& this.vel.length() > 0.0*/) {
+            let cam = this.planet!.camera;
+            cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
+        }
+    }
+
+    protected _handlerZoom() {
+        if (this._targetZoomPoint && this.vel.length() > 0.0) {
 
             // Common
             let cam = this.planet!.camera;
-            let a = this._targetPoint;
+            let a = this._targetZoomPoint;
             let dir = a.sub(cam.eye).normalize();
             let eye = cam.eye.clone();
             let velDir = Math.sign(this.vel.getNormal().dot(cam.getForward()));
@@ -295,7 +349,7 @@ export class EarthNavigation extends Control {
 
                 cam.update();
                 let dirCurr = cam.unproject2v(this._currScreenPos);
-                let dirNew = this._targetPoint.sub(cam.eye).normalize();
+                let dirNew = this._targetZoomPoint.sub(cam.eye).normalize();
 
                 let px0 = new Vec3();
                 let px1 = new Vec3();
