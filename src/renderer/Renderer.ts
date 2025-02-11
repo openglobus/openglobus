@@ -597,6 +597,8 @@ class Renderer {
         this.pickingFramebuffer.init();
 
         this.depthFramebuffer = new Framebuffer(this.handler, {
+            width: 640,
+            height: 480,
             targets: [{
                 internalFormat: "RGBA",
                 type: "UNSIGNED_BYTE",
@@ -737,7 +739,7 @@ class Renderer {
 
         this.toneMappingFramebuffer && this.toneMappingFramebuffer.setSize(c.width, c.height, true);
         this.screenDepthFramebuffer && this.screenDepthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
-        this.depthFramebuffer && this.depthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
+        //this.depthFramebuffer && this.depthFramebuffer.setSize(c.clientWidth, c.clientHeight, true);
 
         if (this.handler.gl!.type === "webgl") {
             this.screenTexture.screen = (this.sceneFramebuffer as Framebuffer)!.textures[0];
@@ -1064,11 +1066,10 @@ class Renderer {
 
         this.blitFramebuffer && (sceneFramebuffer as Multisample).blitTo(this.blitFramebuffer, 0);
 
-        if (pointerEvent) {
+        if (pointerEvent && !mouseHold) {
             this._readPickingBuffer();
+            this._readDepthBuffer();
         }
-
-        this._readDepthBuffer();
 
         // Tone mapping followed by rendering on the screen
         this._fnScreenFrame!();

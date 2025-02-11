@@ -1182,12 +1182,11 @@ class Handler {
         let prevDeltaTime = this.deltaTime;
         //Make some filter:)
         this.deltaTime = (now - this._lastAnimationFrameTime + this.prevDeltaTime) * 0.5;
-        // if (this.deltaTime > 3) {
-        //     this.deltaTime = 3;
-        // } else if (this.deltaTime < 1) {
-        //     this.deltaTime = 1;
-        // }
-        this.deltaTime = now - this._lastAnimationFrameTime;
+        if (this.deltaTime > 3) {
+            this.deltaTime = 3;
+        } else if (this.deltaTime < 1) {
+            this.deltaTime = 1;
+        }
         this.prevDeltaTime = prevDeltaTime;
         this._lastAnimationFrameTime = now;
 
