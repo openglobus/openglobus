@@ -204,10 +204,12 @@ export class EarthNavigation extends Control {
         if (this.planet) {
 
             this._targetDragPoint = null;
-            this._targetZoomPoint = this._getTargetPoint(e.pos);
+            let _targetZoomPoint = this._getTargetPoint(e.pos);
 
-            if (!this._targetZoomPoint)
+            if (!_targetZoomPoint)
                 return;
+
+            this._targetZoomPoint = _targetZoomPoint;
 
             this._grabbedSphere.radius = this._targetZoomPoint.length();
 
@@ -269,9 +271,13 @@ export class EarthNavigation extends Control {
 
             let cam = this.planet.camera;
 
-            this._targetDragPoint = new Ray(cam.eye, e.direction).hitSphere(this._grabbedSphere);
+            let _targetDragPoint = new Ray(cam.eye, e.direction).hitSphere(this._grabbedSphere);
 
-            if (!this._targetDragPoint) return;
+            if (!_targetDragPoint) {
+                return;
+            }
+
+            this._targetDragPoint = _targetDragPoint;
 
             this._rot = Quat.getRotationBetweenVectors(
                 this._targetDragPoint.normal(),
@@ -301,6 +307,7 @@ export class EarthNavigation extends Control {
     public stop() {
         this.vel.set(0, 0, 0);
         this._targetZoomPoint = undefined;
+        this._grabbedPoint = undefined;
     }
 
     protected _handleZoom() {
