@@ -246,6 +246,8 @@ export class EarthNavigation extends Control {
 
     protected _onLDown = (e: IMouseState) => {
 
+        this.stop();
+
         this._targetZoomPoint = undefined;
 
         if (!this.planet) return;
