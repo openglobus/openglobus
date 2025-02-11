@@ -300,7 +300,7 @@ export class EarthNavigation extends Control {
             );
 
             this._newEye = this._rot.mulVec3(cam.eye);
-            this.force = this._newEye.sub(cam.eye).scale(40);
+            this.force = this._newEye.sub(cam.eye).scale(140);
             this.vel.scale(0.0);
         }
     }
