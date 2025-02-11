@@ -57,6 +57,8 @@ export class EarthNavigation extends Control {
 
     protected _eye0: Vec3;
 
+    protected _grabbedCameraHeight: number;
+
     protected _newEye: Vec3;
 
     constructor(options: IEarthNavigationParams = {}) {
@@ -96,6 +98,7 @@ export class EarthNavigation extends Control {
 
         this._eye0 = new Vec3();
         this._newEye = new Vec3();
+        this._grabbedCameraHeight = 0;
     }
 
     override oninit() {
@@ -279,6 +282,7 @@ export class EarthNavigation extends Control {
         this._grabbedSphere.radius = this._grabbedPoint.length();
 
         this._eye0 = this.planet.camera.eye.clone();
+        this._grabbedCameraHeight = this._eye0.length();
 
         this._curPitch = this.planet.camera.getPitch();
         this._curYaw = this.planet.camera.getYaw();
@@ -307,16 +311,10 @@ export class EarthNavigation extends Control {
 
     protected _handleDrag() {
         if (this.planet && this._targetPoint && this._grabbedPoint && this.vel.length() > 0.0) {
-
             let cam = this.planet!.camera;
-            let eye = cam.eye.clone();
             let d_v = this.vel.scaleTo(this.dt);
-            let d_s = Vec3.proj_b_to_plane(d_v, eye.getNormal());
-
-            eye.addA(d_s);
-
-            cam.eye = eye;
-
+            let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
+            cam.eye.addA(d_s).normalize().scale(this._grabbedCameraHeight);
             cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
         }
     }
@@ -350,7 +348,10 @@ export class EarthNavigation extends Control {
 
             let b = new Ray(eye, dir).hitSphere(this._grabbedSphere);
 
-            if (!b) return;
+            if (!b) {
+                this.vel.set(0, 0, 0);
+                return;
+            }
 
             let rot = Quat.getRotationBetweenVectors(b.getNormal(), a.getNormal());
             cam.eye = rot.mulVec3(eye);

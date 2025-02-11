@@ -265,6 +265,11 @@ export class DebugInfo extends Control {
                     frame: () => (p.camera.getRoll() * DEGREES).toFixed(2)
                 },
                 {
+                    label: "Lon, Lat",
+                    frame: () =>
+                        `<div style="width:190px">${(p.camera._lonLat.lon).toFixed(7)}, ${(p.camera._lonLat.lon).toFixed(7)}</div>`
+                },
+                {
                     label: "height/alt, m",
                     frame: () =>
                         `<div style="width:190px">${(p.camera._lonLat.height).toFixed(2) +
