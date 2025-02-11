@@ -268,6 +268,8 @@ export class EarthNavigation extends Control {
 
     protected _onLDown = (e: IMouseState) => {
 
+        this._targetZoomPoint = undefined;
+
         if (!this.planet) return;
 
         this._grabbedPoint = this._getTargetPoint(e.pos);
@@ -285,8 +287,6 @@ export class EarthNavigation extends Control {
 
     protected _onLHold = (e: IMouseState) => {
         if (this._grabbedPoint && this.planet) {
-
-            this._targetZoomPoint = undefined;
 
             let cam = this.planet.camera;
 
