@@ -1004,7 +1004,7 @@ class Renderer {
         let frustums = this.activeCamera!.frustums;
 
         let pointerEvent = e.pointerEvent();
-        let mouseHold = e.mouseState.leftButtonDown || e.mouseState.rightButtonDown;
+        let mouseFree = !e.mouseState.leftButtonDown && !e.mouseState.rightButtonDown;
 
         // Rendering scene nodes and entityCollections
         let rn = this._renderNodesArr;
@@ -1032,7 +1032,7 @@ class Renderer {
 
             e.dispatch(e.drawtransparent, this);
 
-            if (pointerEvent && !mouseHold) {
+            if (pointerEvent && mouseFree) {
                 this._drawPickingBuffer(0);
             }
 
@@ -1052,7 +1052,7 @@ class Renderer {
 
                 this._drawEntityCollections(i);
 
-                if (pointerEvent && !mouseHold) {
+                if (pointerEvent && mouseFree) {
                     this._drawPickingBuffer(i);
                 }
 
@@ -1066,8 +1066,11 @@ class Renderer {
 
         this.blitFramebuffer && (sceneFramebuffer as Multisample).blitTo(this.blitFramebuffer, 0);
 
-        if (pointerEvent && !mouseHold) {
+        if (pointerEvent && mouseFree) {
             this._readPickingBuffer();
+        }
+
+        if (mouseFree) {
             this._readDepthBuffer();
         }
 
