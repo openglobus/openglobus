@@ -262,7 +262,7 @@ export class EarthNavigation extends Control {
 
     protected onDraw() {
         this._updateVel();
-        this._handlerZoom();
+        this._handleZoom();
         this._handleDrag();
     }
 
@@ -301,9 +301,7 @@ export class EarthNavigation extends Control {
 
             this._newEye = this._rot.mulVec3(cam.eye);
             this.force = this._newEye.sub(cam.eye).scale(40);
-            this.vel.scale(0.5);
-
-            //this._grabbedPoint = this._targetPoint.clone();
+            this.vel.scale(0.0);
         }
     }
 
@@ -313,9 +311,9 @@ export class EarthNavigation extends Control {
             let cam = this.planet!.camera;
             let eye = cam.eye.clone();
             let d_v = this.vel.scaleTo(this.dt);
-            let d_s = d_v.projToVec(cam.getRight()).add(d_v.projToVec(cam.getUp()));
+            let d_s = Vec3.proj_b_to_plane(d_v, eye.getNormal());
 
-            eye.addA(d_v);
+            eye.addA(d_s);
 
             cam.eye = eye;
 
@@ -327,7 +325,7 @@ export class EarthNavigation extends Control {
         //this._grabbedPoint = undefined;
     }
 
-    protected _handlerZoom() {
+    protected _handleZoom() {
         if (this._targetZoomPoint && this.vel.length() > 0.0) {
 
             // Common
