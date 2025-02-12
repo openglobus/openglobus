@@ -119,6 +119,7 @@ export interface IMouseState extends IBaseInputState {
     wheelDelta: number;
     /** JavaScript mouse system event message. */
     sys: MouseEvent | null;
+    isTouchPad: boolean;
 }
 
 export interface ITouchState extends IBaseInputState {
@@ -279,7 +280,8 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
             wheelDelta: 0,
             sys: null,
             pickingObject: null,
-            renderer: renderer
+            renderer: renderer,
+            isTouchPad: false
         };
 
         this.touchState = {
@@ -425,6 +427,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
      * @protected
      */
     protected onMouseWheel(event: MouseEventExt) {
+        this.mouseState.isTouchPad = event.isTouchPad || false;
         this.mouseState.sys = event;
         this.mouseState.wheelDelta = event.wheelDelta || 0;
     }

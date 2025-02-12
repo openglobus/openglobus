@@ -227,13 +227,18 @@ export class EarthNavigation extends Control {
             //let dd = this.targetPoint!.distance(this.planet.camera.eye);
             // let brk = 1;
             // if (this._wheelDirection > 0 && dd < 5000) {
-            //     this.vel.set(0, 0, 0);
+            //this.vel.scale(0.3);
             //     brk = dist / 5000;
             // }
 
             this._currScreenPos.set(e.x, e.y);
             this._wheelDirection = Math.sign(e.wheelDelta);
-            let dist = this.planet.camera.eye.distance(this._targetZoomPoint) * 2;
+            let scale = 2;
+            if (e.isTouchPad) {
+                scale = 2;
+                this.vel.scale(0.0);
+            }
+            let dist = this.planet.camera.eye.distance(this._targetZoomPoint) * scale;
             this.force = (e.direction.scale(Math.sign(this._wheelDirection))).normalize().scale(dist);
         }
     }
@@ -297,7 +302,8 @@ export class EarthNavigation extends Control {
             let cam = this.planet!.camera;
             let d_v = this.vel.scaleTo(this.dt);
             let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
-            cam.eye.addA(d_s).normalize().scale(this._grabbedCameraHeight);
+            let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
+            cam.eye.copy(newEye);
             cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
         }
     }
@@ -314,7 +320,6 @@ export class EarthNavigation extends Control {
 
     protected _handleZoom() {
         if (this._targetZoomPoint && this.vel.length() > 0.0) {
-
             // Common
             let cam = this.planet!.camera;
             let a = this._targetZoomPoint;

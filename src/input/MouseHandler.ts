@@ -1,4 +1,4 @@
-export type MouseEventExt = MouseEvent & { wheelDelta?: number; deltaY?: number };
+export type MouseEventExt = MouseEvent & { wheelDelta?: number; deltaY?: number; isTouchPad?: boolean };
 
 export interface MouseHandlerEvent {
     button?: number;
@@ -7,6 +7,11 @@ export interface MouseHandlerEvent {
 }
 
 type MouseHandlerEventCallback = (sys: MouseEvent, event?: MouseHandlerEvent) => void;
+
+function _checkTouchPad(e: MouseEventExt): boolean {
+    //@ts-ignore
+    return e.wheelDeltaY ? e.wheelDeltaY === -3 * e.deltaY : e.deltaMode === 0
+}
 
 class MouseHandler {
 
@@ -28,12 +33,15 @@ class MouseHandler {
                 //     event.preventDefault();
                 // }, false);
 
-                this._htmlObject.addEventListener('wheel', function (event: MouseEventExt) {
+                this._htmlObject.addEventListener('wheel', (event: MouseEventExt) => {
                     let delta = event.deltaY || event.detail || event.wheelDelta || 0;
 
                     if (event.wheelDelta == undefined) {
                         event.wheelDelta = delta * (-120);
                     }
+
+                    event.isTouchPad = _checkTouchPad(event);
+
                     callback.call(sender, event);
                     event.preventDefault();
                 }, false);
