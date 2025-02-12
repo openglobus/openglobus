@@ -55,6 +55,8 @@ export class EarthNavigation extends Control {
 
     protected _newEye: Vec3;
 
+    protected _isTouchPad: boolean;
+
     constructor(options: IEarthNavigationParams = {}) {
         super({
             name: "EarthNavigation",
@@ -93,6 +95,8 @@ export class EarthNavigation extends Control {
         this._eye0 = new Vec3();
         this._newEye = new Vec3();
         this._grabbedCameraHeight = 0;
+
+        this._isTouchPad = false;
     }
 
     override oninit() {
@@ -234,9 +238,9 @@ export class EarthNavigation extends Control {
             this._currScreenPos.set(e.x, e.y);
             this._wheelDirection = Math.sign(e.wheelDelta);
             let scale = 2;
+            this._isTouchPad = e.isTouchPad;
             if (e.isTouchPad) {
                 scale = 2;
-                this.vel.scale(0.0);
             }
             let dist = this.planet.camera.eye.distance(this._targetZoomPoint) * scale;
             this.force = (e.direction.scale(Math.sign(this._wheelDirection))).normalize().scale(dist);
@@ -320,6 +324,12 @@ export class EarthNavigation extends Control {
 
     protected _handleZoom() {
         if (this._targetZoomPoint && this.vel.length() > 0.0) {
+
+            if (this._isTouchPad) {
+                this.vel.scale(0.7);
+                //this._isTouchPad = false;
+            }
+
             // Common
             let cam = this.planet!.camera;
             let a = this._targetZoomPoint;
