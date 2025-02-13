@@ -14,6 +14,8 @@ interface IEarthNavigationParams extends IControlParams {
     fixedUp?: boolean;
 }
 
+const DEFAULT_VELINERTIA = 0.96;
+
 export class EarthNavigation extends Control {
 
     public speed: number;
@@ -57,6 +59,8 @@ export class EarthNavigation extends Control {
 
     protected _isTouchPad: boolean;
 
+    protected _velInertia: number;
+
     constructor(options: IEarthNavigationParams = {}) {
         super({
             name: "EarthNavigation",
@@ -68,6 +72,7 @@ export class EarthNavigation extends Control {
         this.force = new Vec3();
         this.vel = new Vec3();
         this.mass = 1;
+        this._velInertia = DEFAULT_VELINERTIA;
 
         this._lookPos = undefined;
         this._grabbedPoint = undefined;
@@ -240,7 +245,10 @@ export class EarthNavigation extends Control {
             let scale = 2;
             this._isTouchPad = e.isTouchPad;
             if (e.isTouchPad) {
-                scale = 2;
+                this._velInertia = 0.5;
+                scale = 5;
+            } else {
+                this._velInertia = DEFAULT_VELINERTIA;
             }
             let dist = this.planet.camera.eye.distance(this._targetZoomPoint) * scale;
             this.force = (e.direction.scale(Math.sign(this._wheelDirection))).normalize().scale(dist);
@@ -303,6 +311,7 @@ export class EarthNavigation extends Control {
 
     protected _handleDrag() {
         if (this.planet && this._targetDragPoint && this._grabbedPoint && this.vel.length() > 0.0) {
+            this._velInertia = DEFAULT_VELINERTIA;
             let cam = this.planet!.camera;
             let d_v = this.vel.scaleTo(this.dt);
             let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
@@ -318,17 +327,13 @@ export class EarthNavigation extends Control {
 
     public stop() {
         this.vel.set(0, 0, 0);
+        this._velInertia = DEFAULT_VELINERTIA;
         this._targetZoomPoint = undefined;
         this._grabbedPoint = undefined;
     }
 
     protected _handleZoom() {
         if (this._targetZoomPoint && this.vel.length() > 0.0) {
-
-            if (this._isTouchPad) {
-                this.vel.scale(0.7);
-                //this._isTouchPad = false;
-            }
 
             // Common
             let cam = this.planet!.camera;
@@ -390,7 +395,7 @@ export class EarthNavigation extends Control {
     protected _updateVel() {
         let acc = this.force.scale(1.0 / this.mass);
         this.vel.addA(acc);
-        this.vel.scale(0.96);
+        this.vel.scale(this._velInertia);
         if (this.vel.length() < 0.001) {
             this.vel.set(0, 0, 0);
         }
