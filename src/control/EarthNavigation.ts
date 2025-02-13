@@ -245,8 +245,8 @@ export class EarthNavigation extends Control {
             let scale = 2;
             this._isTouchPad = e.isTouchPad;
             if (e.isTouchPad) {
-                this._velInertia = 0.5;
-                scale = 5;
+                this._velInertia = 0.88;
+                scale = 0.5;
             } else {
                 this._velInertia = DEFAULT_VELINERTIA;
             }
