@@ -316,8 +316,15 @@ export class EarthNavigation extends Control {
             let d_v = this.vel.scaleTo(this.dt);
             let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
             let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
+
+            // free rotation
+            let rot = Quat.getRotationBetweenVectors(cam.eye.normal(), newEye.normal());
+            cam.rotate(rot);
+
+            // keep direction
+            //cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
+
             cam.eye.copy(newEye);
-            cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
         }
     }
 
