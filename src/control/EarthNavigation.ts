@@ -298,14 +298,16 @@ export class EarthNavigation extends Control {
 
             this._targetDragPoint = _targetDragPoint;
 
-            this._rot = Quat.getRotationBetweenVectors(
-                this._targetDragPoint.normal(),
-                this._grabbedPoint.normal()
+            let rot = Quat.getRotationBetweenVectors(
+                this._targetDragPoint.getNormal(),
+                this._grabbedPoint.getNormal()
             );
 
-            this._newEye = this._rot.mulVec3(cam.eye);
-            this.force = this._newEye.sub(cam.eye).scale(140);
+            let newEye = rot.mulVec3(cam.eye);
+            this.force = newEye.sub(cam.eye).scale(14);
             this.vel.scale(0.0);
+
+            this._currScreenPos.copy(e.pos);
         }
     }
 
@@ -317,14 +319,29 @@ export class EarthNavigation extends Control {
             let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
             let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
 
-            // free rotation
-            let rot = Quat.getRotationBetweenVectors(cam.eye.normal(), newEye.normal());
-            cam.rotate(rot);
+            if (this.fixedUp) {
+                cam.eye.copy(newEye);
+                cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
 
-            // keep direction
-            //cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
+                cam.update();
+                let dirCurr = cam.unproject2v(this._currScreenPos);
+                let dirNew = this._targetDragPoint.sub(cam.eye).normalize();
 
-            cam.eye.copy(newEye);
+                let px0 = new Vec3();
+                let px1 = new Vec3();
+                let pl = Plane.fromPoints(this._targetDragPoint, this._targetDragPoint.add(cam.getUp()), this._targetDragPoint.add(cam.getRight()));
+
+                new Ray(cam.eye, dirCurr).hitPlaneRes(pl, px0);
+                new Ray(cam.eye, dirNew).hitPlaneRes(pl, px1);
+
+                let dp = px1.sub(px0);
+                cam.eye = cam.eye.add(dp);
+
+            } else {
+                let rot = Quat.getRotationBetweenVectors(cam.eye.getNormal(), newEye.getNormal());
+                cam.rotate(rot);
+                cam.eye.copy(newEye);
+            }
         }
     }
 
@@ -380,7 +397,7 @@ export class EarthNavigation extends Control {
 
                 cam.update();
                 let dirCurr = cam.unproject2v(this._currScreenPos);
-                let dirNew = this._targetZoomPoint.sub(cam.eye).normalize();
+                let dirNew = a.sub(cam.eye).normalize();
 
                 let px0 = new Vec3();
                 let px1 = new Vec3();
