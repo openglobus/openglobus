@@ -153,6 +153,22 @@ export class Vec2 {
     }
 
     /**
+     * Get projection of the vector to plane where n - normal to the plane.
+     * @static
+     * @param {Vec2} b - Vector to project.
+     * @param {Vec2} n - Plane normal.
+     * @param {Vec2} [def] - Default value for non existed result.
+     * @returns {Vec2} -
+     */
+    static proj_b_to_plane(b: Vec2, n: Vec2, def?: Vec3): Vec2 {
+        let res = b.sub(n.scaleTo(n.dot(b) / n.dot(n)));
+        if (def && res.isZero()) {
+            return new Vec2(def.x, def.y);
+        }
+        return res;
+    }
+
+    /**
      * Converts to 3d vector, third value is 0.0.
      * @public
      * @returns {Vec3}
@@ -351,10 +367,20 @@ export class Vec2 {
 
     /**
      * Returns normalized vector.
+     * @deprecated
      * @public
      * @returns {Vec2}
      */
     public normal(): Vec2 {
+        return this.getNormal();
+    }
+
+    /**
+     * Returns normalized vector.
+     * @public
+     * @returns {Vec2}
+     */
+    public getNormal(): Vec2 {
         let res = new Vec2();
         res.copy(this);
 
@@ -514,6 +540,15 @@ export class Vec2 {
         }
 
         return Vec2.add(this.scale(scale0), v2.scale(scale1));
+    }
+
+    /**
+     * Returns true if vector's values are zero.
+     * @public
+     * @returns {boolean} -
+     */
+    public isZero(): boolean {
+        return !(this.x || this.y);
     }
 }
 
