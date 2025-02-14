@@ -294,7 +294,6 @@ export class EarthNavigation extends Control {
 
     protected _onLHold = (e: IMouseState) => {
         if (this._grabbedPoint && this.planet) {
-
             let cam = this.planet.camera;
 
             let _targetDragPoint = new Ray(cam.eye, e.direction).hitSphere(this._grabbedSphere);
@@ -303,9 +302,30 @@ export class EarthNavigation extends Control {
                 return;
             }
 
-            let rad = new Vec3(this._grabbedPoint.x, this._grabbedPoint.y, 0);
-            let tar = new Vec3(_targetDragPoint.x, _targetDragPoint.y, 0);
-            console.log(tar.length() - rad.length());
+            // let grabbedPoint_screen = cam.project3v(this._grabbedPoint);
+            // let targetDragPoint_screen = cam.project3v(_targetDragPoint);
+            // let northPoint_screen = cam.project3v(new Vec3(0, 0, this._grabbedSphere.radius));
+            //
+            // let tar = targetDragPoint_screen.sub(northPoint_screen),
+            //     grb = grabbedPoint_screen.sub(northPoint_screen);
+            //
+            // let tar_n = tar.getNormal();
+            // let grb_n = grb.getNormal();
+
+            // let v = targetDragPoint_screen.sub(grabbedPoint_screen);
+            // let dist = v.dot(grb_n);
+            // let targetDragPoint_screen_proj = targetDragPoint_screen.sub(grb_n.scale(-dist));
+            //
+            // if (targetDragPoint_screen_proj.y < northPoint_screen.y) {
+            //     targetDragPoint_screen_proj.y = northPoint_screen.y + 10;
+            // }
+
+            // let limDir = cam.unproject2v(targetDragPoint_screen_proj);
+            // _targetDragPoint = new Ray(cam.eye, limDir).hitSphere(this._grabbedSphere);
+            //
+            // if (!_targetDragPoint) {
+            //     return;
+            // }
 
             this._targetDragPoint = _targetDragPoint;
 
@@ -313,20 +333,6 @@ export class EarthNavigation extends Control {
                 this._targetDragPoint.getNormal(),
                 this._grabbedPoint.getNormal()
             );
-
-            // let grabbedPoint_screen = cam.project3v(this._grabbedPoint);
-            // let targetDragPoint_screen = cam.project3v(this._targetDragPoint);
-            // let northPoint_screen = cam.project3v(new Vec3(0, this._grabbedSphere.radius, 0));
-            //
-            // let tar = targetDragPoint_screen.sub(northPoint_screen),
-            //     grb = grabbedPoint_screen.sub(northPoint_screen);
-            //
-            // let tar_n = tar.getNormal();
-            // let grb_n = grb.getNormal();
-            //
-            // if(tar_n.dot(grb_n) > 0.99999 && tar.length() > grb.length()){
-            //     console.log("LOST");
-            // }
 
             let newEye = rot.mulVec3(cam.eye);
             this.force = newEye.sub(cam.eye).scale(14);
@@ -348,10 +354,10 @@ export class EarthNavigation extends Control {
             let cam = this.planet!.camera;
 
             let d_v = this.vel.scaleTo(this.dt);
-            // let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
-            // let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
-            let d_s = d_v;
+            let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
             let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
+            // let d_s = d_v;
+            // let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
 
             if (this.fixedUp) {
                 cam.eye.copy(newEye);
