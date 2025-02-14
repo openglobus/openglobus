@@ -61,6 +61,8 @@ export class EarthNavigation extends Control {
 
     protected _velInertia: number;
 
+    protected _hold: boolean = false;
+
     constructor(options: IEarthNavigationParams = {}) {
         super({
             name: "EarthNavigation",
@@ -304,10 +306,19 @@ export class EarthNavigation extends Control {
             );
 
             let newEye = rot.mulVec3(cam.eye);
+
+            // let ll = this.planet.ellipsoid.cartesianToLonLat(newEye);
+            // if (ll.lat > 85) {
+            //     ll.lat = 85;
+            //     newEye = this.planet.ellipsoid.lonLatToCartesian(ll);
+            // }
+
             this.force = newEye.sub(cam.eye).scale(14);
             this.vel.scale(0.0);
 
             this._currScreenPos.copy(e.pos);
+
+            this._hold = true;
         }
     }
 
@@ -320,22 +331,36 @@ export class EarthNavigation extends Control {
             let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
 
             if (this.fixedUp) {
+                // let ll = this.planet.ellipsoid.cartesianToLonLat(newEye);
+                // if (ll.lat > 85) {
+                //     ll.lat = 85;
+                //     newEye = this.planet.ellipsoid.lonLatToCartesian(ll);
+                // }
+
                 cam.eye.copy(newEye);
                 cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
 
-                cam.update();
-                let dirCurr = cam.unproject2v(this._currScreenPos);
-                let dirNew = this._targetDragPoint.sub(cam.eye).normalize();
-
-                let px0 = new Vec3();
-                let px1 = new Vec3();
-                let pl = Plane.fromPoints(this._targetDragPoint, this._targetDragPoint.add(cam.getUp()), this._targetDragPoint.add(cam.getRight()));
-
-                new Ray(cam.eye, dirCurr).hitPlaneRes(pl, px0);
-                new Ray(cam.eye, dirNew).hitPlaneRes(pl, px1);
-
-                let dp = px1.sub(px0);
-                cam.eye = cam.eye.add(dp);
+                // if (this._hold) {
+                //     cam.update();
+                //
+                //     // let targetScreenPos = cam.project3v(this._grabbedPoint);
+                //     // let v = this._currScreenPos.sub(targetScreenPos);
+                //     //console.log(v.length());
+                //
+                //     let dirCurr = cam.unproject2v(this._currScreenPos);
+                //     let dirNew = this._targetDragPoint.sub(cam.eye).normalize();
+                //
+                //     let px0 = new Vec3();
+                //     let px1 = new Vec3();
+                //     let pl = Plane.fromPoints(this._targetDragPoint, this._targetDragPoint.add(cam.getUp()), this._targetDragPoint.add(cam.getRight()));
+                //
+                //     new Ray(cam.eye, dirCurr).hitPlaneRes(pl, px0);
+                //     new Ray(cam.eye, dirNew).hitPlaneRes(pl, px1);
+                //
+                //     let dp = px0.sub(px1);
+                //
+                //     cam.eye = cam.eye.add(dp);
+                // }
 
             } else {
                 let rot = Quat.getRotationBetweenVectors(cam.eye.getNormal(), newEye.getNormal());
@@ -346,6 +371,7 @@ export class EarthNavigation extends Control {
     }
 
     protected _onLUp = (e: IMouseState) => {
+        this._hold = false;
         this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
     }
 
