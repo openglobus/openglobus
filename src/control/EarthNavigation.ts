@@ -269,12 +269,13 @@ export class EarthNavigation extends Control {
     }
 
     protected _onLDown = (e: IMouseState) => {
-
         this.stop();
 
         this._targetZoomPoint = undefined;
 
         if (!this.planet) return;
+
+        console.log(this.planet!.camera.getUp().dot(new Vec3(0, 0, 1)));
 
         this._grabbedPoint = this._getTargetPoint(e.pos);
 
@@ -292,6 +293,10 @@ export class EarthNavigation extends Control {
         this._curRoll = this.planet.camera.getRoll();
 
         this._currScreenPos.copy(e.pos);
+
+        if (this.planet!.camera.getUp().dot(Vec3.UP) > 0.3) {
+            this.fixedUp = true;
+        }
     }
 
     protected _onLHold = (e: IMouseState) => {
@@ -312,7 +317,7 @@ export class EarthNavigation extends Control {
             );
 
             let newEye = rot.mulVec3(cam.eye);
-            this.force = newEye.sub(cam.eye).scale(14);
+            this.force = newEye.sub(cam.eye).scale(70);
 
             this.vel.set(0.0, 0.0, 0.0);
 
@@ -332,7 +337,6 @@ export class EarthNavigation extends Control {
 
             if (!this._screenPosIsChanged) {
                 if (this.vel.length() > this._prevVel.length()) {
-                    console.log("LOST");
                     this.fixedUp = false;
                 }
             }
