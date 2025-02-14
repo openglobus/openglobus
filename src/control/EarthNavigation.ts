@@ -290,6 +290,8 @@ export class EarthNavigation extends Control {
         this._curPitch = this.planet.camera.getPitch();
         this._curYaw = this.planet.camera.getYaw();
         this._curRoll = this.planet.camera.getRoll();
+
+        this._currScreenPos.copy(e.pos);
     }
 
     protected _onLHold = (e: IMouseState) => {
@@ -301,31 +303,6 @@ export class EarthNavigation extends Control {
             if (!_targetDragPoint) {
                 return;
             }
-
-            // let grabbedPoint_screen = cam.project3v(this._grabbedPoint);
-            // let targetDragPoint_screen = cam.project3v(_targetDragPoint);
-            // let northPoint_screen = cam.project3v(new Vec3(0, 0, this._grabbedSphere.radius));
-            //
-            // let tar = targetDragPoint_screen.sub(northPoint_screen),
-            //     grb = grabbedPoint_screen.sub(northPoint_screen);
-            //
-            // let tar_n = tar.getNormal();
-            // let grb_n = grb.getNormal();
-
-            // let v = targetDragPoint_screen.sub(grabbedPoint_screen);
-            // let dist = v.dot(grb_n);
-            // let targetDragPoint_screen_proj = targetDragPoint_screen.sub(grb_n.scale(-dist));
-            //
-            // if (targetDragPoint_screen_proj.y < northPoint_screen.y) {
-            //     targetDragPoint_screen_proj.y = northPoint_screen.y + 10;
-            // }
-
-            // let limDir = cam.unproject2v(targetDragPoint_screen_proj);
-            // _targetDragPoint = new Ray(cam.eye, limDir).hitSphere(this._grabbedSphere);
-            //
-            // if (!_targetDragPoint) {
-            //     return;
-            // }
 
             this._targetDragPoint = _targetDragPoint;
 
@@ -352,6 +329,17 @@ export class EarthNavigation extends Control {
         if (this.planet && this._targetDragPoint && this._grabbedPoint && this.vel.length() > 0.0) {
             this._velInertia = DEFAULT_VELINERTIA;
             let cam = this.planet!.camera;
+
+            if (!this._screenPosIsChanged) {
+                if (this.vel.length() > this._prevVel.length()) {
+                    console.log("LOST");
+                    this.fixedUp = false;
+                }
+            }
+
+            this._screenPosIsChanged = false;
+
+            this._prevVel.copy(this.vel);
 
             let d_v = this.vel.scaleTo(this.dt);
             let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
