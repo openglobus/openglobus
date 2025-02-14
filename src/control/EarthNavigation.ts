@@ -275,8 +275,6 @@ export class EarthNavigation extends Control {
 
         if (!this.planet) return;
 
-        console.log(this.planet!.camera.getUp().dot(new Vec3(0, 0, 1)));
-
         this._grabbedPoint = this._getTargetPoint(e.pos);
 
         if (!this._grabbedPoint) return;
@@ -294,7 +292,7 @@ export class EarthNavigation extends Control {
 
         this._currScreenPos.copy(e.pos);
 
-        if (this.planet!.camera.getUp().dot(Vec3.UP) > 0.3) {
+        if (this.planet!.camera.getUp().dot(new Vec3(0, 0, 1)) > 0.3) {
             this.fixedUp = true;
         }
     }
