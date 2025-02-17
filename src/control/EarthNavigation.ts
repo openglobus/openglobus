@@ -374,6 +374,7 @@ export class EarthNavigation extends Control {
             } else {
                 let d_s = d_v;
                 let newEye = cam.eye.add(d_s);
+                console.log(newEye.distance(this._targetDragPoint));
                 cam.eye.copy(newEye);
             }
         }
