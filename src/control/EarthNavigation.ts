@@ -301,17 +301,17 @@ export class EarthNavigation extends Control {
         if (this._grabbedPoint && this.planet) {
             let cam = this.planet.camera;
 
-            let _targetDragPoint = new Ray(cam.eye, e.direction).hitSphere(this._grabbedSphere);
-
-            if (!_targetDragPoint) {
-                return;
-            }
-
-            this._targetDragPoint = _targetDragPoint;
-
-            let newEye = new Vec3();
-
             if (cam.slope > 0.2) {
+                let _targetDragPoint = new Ray(cam.eye, e.direction).hitSphere(this._grabbedSphere);
+
+                if (!_targetDragPoint) {
+                    return;
+                }
+
+                this._targetDragPoint = _targetDragPoint;
+
+                let newEye = new Vec3();
+
                 let rot = Quat.getRotationBetweenVectors(
                     this._targetDragPoint.getNormal(),
                     this._grabbedPoint.getNormal()
@@ -326,8 +326,10 @@ export class EarthNavigation extends Control {
 
                 let px = new Vec3();
                 new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px);
-                newEye = this._eye0.addA(px.subA(p0).negate());
+                let newEye = this._eye0.addA(px.subA(p0).negate());
                 this.force = newEye.sub(cam.eye).scale(1);
+                this._targetDragPoint = newEye;
+                //this._newEye.copy(newEye);
             }
 
             this.vel.set(0.0, 0.0, 0.0);
