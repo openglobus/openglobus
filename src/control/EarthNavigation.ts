@@ -309,13 +309,26 @@ export class EarthNavigation extends Control {
 
             this._targetDragPoint = _targetDragPoint;
 
-            let rot = Quat.getRotationBetweenVectors(
-                this._targetDragPoint.getNormal(),
-                this._grabbedPoint.getNormal()
-            );
+            let newEye = new Vec3();
 
-            let newEye = rot.mulVec3(cam.eye);
-            this.force = newEye.sub(cam.eye).scale(70);
+            if (cam.slope > 0.2) {
+                let rot = Quat.getRotationBetweenVectors(
+                    this._targetDragPoint.getNormal(),
+                    this._grabbedPoint.getNormal()
+                );
+
+                newEye.copy(rot.mulVec3(cam.eye));
+                this.force = newEye.sub(cam.eye).scale(70);
+            } else {
+                let p0 = this._grabbedPoint,
+                    p1 = Vec3.add(p0, cam.getRight()),
+                    p2 = Vec3.add(p0, p0.getNormal());
+
+                let px = new Vec3();
+                new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px);
+                newEye = this._eye0.addA(px.subA(p0).negate());
+                this.force = newEye.sub(cam.eye).scale(1);
+            }
 
             this.vel.set(0.0, 0.0, 0.0);
 
@@ -338,23 +351,27 @@ export class EarthNavigation extends Control {
                     this.fixedUp = false;
                 }
             }
-
             this._screenPosIsChanged = false;
-
             this._prevVel.copy(this.vel);
 
             let d_v = this.vel.scaleTo(this.dt);
-            let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
-            let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
             // let d_s = d_v;
             // let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
 
-            if (this.fixedUp) {
-                cam.eye.copy(newEye);
-                cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
+            if (cam.slope > 0.2) {
+                let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
+                let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
+                if (this.fixedUp) {
+                    cam.eye.copy(newEye);
+                    cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
+                } else {
+                    let rot = Quat.getRotationBetweenVectors(cam.eye.getNormal(), newEye.getNormal());
+                    cam.rotate(rot);
+                    cam.eye.copy(newEye);
+                }
             } else {
-                let rot = Quat.getRotationBetweenVectors(cam.eye.getNormal(), newEye.getNormal());
-                cam.rotate(rot);
+                let d_s = d_v;
+                let newEye = cam.eye.add(d_s);
                 cam.eye.copy(newEye);
             }
         }
