@@ -326,10 +326,11 @@ export class EarthNavigation extends Control {
 
                 let px = new Vec3();
                 new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px);
-                let newEye = this._eye0.addA(px.subA(p0).negate());
-                this.force = newEye.sub(cam.eye).scale(1);
-                this._targetDragPoint = newEye;
-                //this._newEye.copy(newEye);
+                let newEye = cam.eye.add(px.subA(p0).negate());
+                this.force = newEye.sub(cam.eye).scale(70);
+
+                this._targetDragPoint = px;
+                this._newEye = newEye;
             }
 
             this.vel.set(0.0, 0.0, 0.0);
@@ -356,11 +357,10 @@ export class EarthNavigation extends Control {
             this._screenPosIsChanged = false;
             this._prevVel.copy(this.vel);
 
-            let d_v = this.vel.scaleTo(this.dt);
-            // let d_s = d_v;
-            // let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
-
             if (cam.slope > 0.2) {
+                let d_v = this.vel.scaleTo(this.dt);
+                // let d_s = d_v;
+                // let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
                 let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
                 let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
                 if (this.fixedUp) {
@@ -372,9 +372,25 @@ export class EarthNavigation extends Control {
                     cam.eye.copy(newEye);
                 }
             } else {
+
+                const stiffness = 1.5;
+                const damping = 2.0;
+
+                let d = this._newEye.sub(cam.eye);
+                let distance = d.length();
+
+                if (distance < 0.01) {
+                    this.vel.set(0, 0, 0);
+                }
+
+                console.log(this._targetDragPoint.distance(this._grabbedPoint).toFixed(2));
+
+                //let a = d.scaleTo(-stiffness).sub(this.vel.scaleTo(-damping));
+
+                let d_v = this.vel.scaleTo(this.dt);
                 let d_s = d_v;
                 let newEye = cam.eye.add(d_s);
-                console.log(newEye.distance(this._targetDragPoint));
+
                 cam.eye.copy(newEye);
             }
         }
