@@ -362,6 +362,10 @@ export class EarthNavigation extends Control {
             this._velInertia = DEFAULT_VELINERTIA;
             let cam = this.planet!.camera;
 
+            if (Math.abs(cam.eyeNorm.dot(Vec3.NORTH)) > 0.9) {
+                this.fixedUp = false;
+            }
+
             if (!this._screenPosIsChanged) {
                 if (this.vel.length() > this._prevVel.length()) {
                     this.fixedUp = false;
