@@ -41,6 +41,7 @@ export class EarthNavigation extends Control {
     protected _currScreenPos: Vec2;
 
     protected _tUp: Vec3;
+    protected _tRad: number;
 
     protected _shiftBusy = false;
 
@@ -90,6 +91,7 @@ export class EarthNavigation extends Control {
         this._targetDragPoint = null;
         this._targetRotationPoint = null;
         this._tUp = new Vec3();
+        this._tRad = 0;
 
         this._wheelDirection = 1;
 
@@ -200,11 +202,14 @@ export class EarthNavigation extends Control {
     }
 
     protected _onRDown = (e: IMouseState) => {
-        this.planet!.stopFlying();
-        this._targetRotationPoint = this._getTargetPoint(e.pos)!;
-        if (this._targetRotationPoint) {
-            this.vel.scale(0);
-            this._tUp = this._targetRotationPoint.normal();
+        if (this.planet) {
+            this.planet.stopFlying();
+            this._targetRotationPoint = this._getTargetPoint(e.pos)!;
+            if (this._targetRotationPoint) {
+                this.vel.scale(0);
+                this._tUp = this._targetRotationPoint.getNormal();
+                this._tRad = this.planet.camera.eye.distance(this._targetRotationPoint);
+            }
         }
     }
 
@@ -449,7 +454,10 @@ export class EarthNavigation extends Control {
     }
 
     protected _handleRotation() {
+        if (this.planet && this._targetRotationPoint && this.vel.length() > 0.0) {
+            let cam = this.planet!.camera;
 
+        }
     }
 
     protected _updateVel() {
