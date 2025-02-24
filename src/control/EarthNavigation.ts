@@ -8,7 +8,7 @@ import {Vec3} from "../math/Vec3";
 import {input} from "../input/input";
 import * as math from "../math";
 import {Plane} from "../math/Plane";
-import {DEGREES} from "../math";
+import {Mat4} from "../math/Mat4";
 
 interface IEarthNavigationParams extends IControlParams {
     speed?: number;
@@ -16,6 +16,7 @@ interface IEarthNavigationParams extends IControlParams {
 }
 
 const DEFAULT_VELINERTIA = 0.96;
+
 
 export class EarthNavigation extends Control {
 
@@ -198,6 +199,13 @@ export class EarthNavigation extends Control {
             }
             cam.rotateHorizontal(l * (e.x - e.prev_x), false, this._targetRotationPoint, this._tUp);
             cam.rotateVertical(l * (e.y - e.prev_y), this._targetRotationPoint, 0.1);
+
+            // let dx = e.x - e.prev_x,
+            //     dy = e.y - e.prev_y;
+            //
+            //
+            // let newEye = cam.eye.add(px.subA(p0).negate());
+            // this.force = newEye.sub(cam.eye).scale(70);
         }
     }
 
@@ -461,6 +469,26 @@ export class EarthNavigation extends Control {
         if (this.planet && this._targetRotationPoint && this.vel.length() > 0.0) {
             let cam = this.planet!.camera;
 
+
+            // let d_v = this.vel.scaleTo(this.dt);
+            // // let d_s = d_v;
+            // // let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
+            // let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
+            // // let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
+            // //
+            // // let rot = Quat.getRotationBetweenVectors(cam.eye.getNormal(), newEye.getNormal());
+            // // cam.rotate(rot);
+            // // cam.eye.copy(newEye);
+            //
+            // // let l = (0.5 / cam.eye.distance(this._targetRotationPoint)) * cam._lonLat.height * math.RADIANS;
+            // // if (l > 0.007) {
+            // //     l = 0.007;
+            // // } else if (l < 0.003) {
+            // //     l = 0.003;
+            // // }
+            // let l = 0.001;
+            // cam.rotateHorizontal(l * (e.x - e.prev_x), false, this._targetRotationPoint, this._tUp);
+            // cam.rotateVertical(l * (e.y - e.prev_y), this._targetRotationPoint, 0.1);
         }
     }
 

@@ -58,6 +58,24 @@ export class Mat4 {
     }
 
     /**
+     * Get rotation matrix around the point
+     * @public
+     * @param {number} angle - Rotation angle in radians
+     * @param {Vec3} [center] - Point that the camera rotates around
+     * @param {Vec3} [up] - Camera up vector
+     */
+    static getRotationAroundPoint(angle: number, center: Vec3 = Vec3.ZERO, up: Vec3 = Vec3.UP): Mat4 {
+        let rot = Mat4.getRotation(angle, up);
+        let tr = new Mat4().setIdentity().translate(center);
+        let ntr = new Mat4().setIdentity().translate(center.negateTo());
+        return tr.mul(rot).mul(ntr);
+    }
+
+    static getRotation(angle: number, up: Vec3 = Vec3.UP): Mat4 {
+        return new Mat4().setRotation(up, angle);
+    }
+
+    /**
      * Sets column-major order array matrix.
      * @public
      * @param {Array.<number>} m - Matrix array.
