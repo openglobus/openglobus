@@ -26,11 +26,13 @@ export class EarthNavigation extends Control {
 
     protected _lookPos: Vec3 | undefined;
 
-    protected _grabbedPoint: Vec3 | undefined;
+    protected _grabbedPoint: Vec3 | null;
 
-    protected _targetZoomPoint: Vec3 | undefined;
+    protected _targetZoomPoint: Vec3 | null;
 
     protected _targetDragPoint: Vec3 | null;
+
+    protected _targetRotationPoint: Vec3 | null;
 
     protected _grabbedSphere: Sphere;
 
@@ -82,12 +84,11 @@ export class EarthNavigation extends Control {
         this._velInertia = DEFAULT_VELINERTIA;
 
         this._lookPos = undefined;
-        this._grabbedPoint = undefined;
+        this._grabbedPoint = null;
 
-        this._targetZoomPoint = undefined;
-
+        this._targetZoomPoint = null;
         this._targetDragPoint = null;
-
+        this._targetRotationPoint = null;
         this._tUp = new Vec3();
 
         this._wheelDirection = 1;
@@ -186,39 +187,41 @@ export class EarthNavigation extends Control {
     protected _onRHold = (e: IMouseState) => {
         let cam = this.planet!.camera;
 
-        if (this._targetZoomPoint && e.moving) {
-            let l = (0.5 / cam.eye.distance(this._targetZoomPoint)) * cam._lonLat.height * math.RADIANS;
+        if (this._targetRotationPoint && e.moving) {
+            let l = (0.5 / cam.eye.distance(this._targetRotationPoint)) * cam._lonLat.height * math.RADIANS;
             if (l > 0.007) {
                 l = 0.007;
             } else if (l < 0.003) {
                 l = 0.003;
             }
-            cam.rotateHorizontal(l * (e.x - e.prev_x), false, this._targetZoomPoint, this._tUp);
-            cam.rotateVertical(l * (e.y - e.prev_y), this._targetZoomPoint, 0.1);
+            cam.rotateHorizontal(l * (e.x - e.prev_x), false, this._targetRotationPoint, this._tUp);
+            cam.rotateVertical(l * (e.y - e.prev_y), this._targetRotationPoint, 0.1);
         }
     }
 
     protected _onRDown = (e: IMouseState) => {
         this.planet!.stopFlying();
-        this._targetZoomPoint = this._getTargetPoint(e.pos)!;
-        if (this._targetZoomPoint) {
+        this._targetRotationPoint = this._getTargetPoint(e.pos)!;
+        if (this._targetRotationPoint) {
             this.vel.scale(0);
-            this._tUp = this._targetZoomPoint.normal();
+            this._tUp = this._targetRotationPoint.normal();
         }
     }
 
-    protected _getTargetPoint(p: Vec2): Vec3 | undefined {
+    protected _getTargetPoint(p: Vec2): Vec3 | null {
         if (this.planet) {
             if (this.planet.camera.getAltitude() > 10000) {
-                return this.planet.getCartesianFromPixelEllipsoid(p);
+                return this.planet.getCartesianFromPixelEllipsoid(p) || null;
             }
-            return this.planet.getCartesianFromPixelTerrain(p);
+            return this.planet.getCartesianFromPixelTerrain(p) || null;
         }
+        return null;
     }
 
     protected _onMouseWheel = (e: IMouseState) => {
         if (this.planet) {
 
+            this._targetRotationPoint = null;
             this._targetDragPoint = null;
             let _targetZoomPoint = this._getTargetPoint(e.pos);
 
@@ -266,12 +269,14 @@ export class EarthNavigation extends Control {
         this._updateVel();
         this._handleZoom();
         this._handleDrag();
+        this._handleRotation();
     }
 
     protected _onLDown = (e: IMouseState) => {
         this.stop();
 
-        this._targetZoomPoint = undefined;
+        this._targetRotationPoint = null
+        this._targetZoomPoint = null;
 
         if (!this.planet) return;
 
@@ -342,6 +347,11 @@ export class EarthNavigation extends Control {
         }
     }
 
+    protected _onLUp = (e: IMouseState) => {
+        this._hold = false;
+        this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
+    }
+
     protected _handleDrag() {
         if (this.planet && this._targetDragPoint && this._grabbedPoint && this.vel.length() > 0.0) {
             this._velInertia = DEFAULT_VELINERTIA;
@@ -376,18 +386,6 @@ export class EarthNavigation extends Control {
                 cam.checkTerrainCollision();
             }
         }
-    }
-
-    protected _onLUp = (e: IMouseState) => {
-        this._hold = false;
-        this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
-    }
-
-    public stop() {
-        this.vel.set(0, 0, 0);
-        this._velInertia = DEFAULT_VELINERTIA;
-        this._targetZoomPoint = undefined;
-        this._grabbedPoint = undefined;
     }
 
     protected _handleZoom() {
@@ -450,6 +448,10 @@ export class EarthNavigation extends Control {
         }
     }
 
+    protected _handleRotation() {
+
+    }
+
     protected _updateVel() {
         let acc = this.force.scale(1.0 / this.mass);
         this.vel.addA(acc);
@@ -462,5 +464,13 @@ export class EarthNavigation extends Control {
 
     protected get dt(): number {
         return 0.001 * this.renderer!.handler.deltaTime;
+    }
+
+    public stop() {
+        this.vel.set(0, 0, 0);
+        this._velInertia = DEFAULT_VELINERTIA;
+        this._targetZoomPoint = null;
+        this._grabbedPoint = null;
+        this._targetRotationPoint = null;
     }
 }
