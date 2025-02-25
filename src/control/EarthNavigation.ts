@@ -206,14 +206,19 @@ export class EarthNavigation extends Control {
         let cam = this.planet!.camera;
 
         if (this._targetRotationPoint) {
-            let l = (0.5 / cam.eye.distance(this._targetRotationPoint)) * math.RADIANS;
+            let l = (0.5 / this._tRad) * math.RADIANS;
             if (l > 0.007) {
                 l = 0.007;
             } else if (l < 0.003) {
                 l = 0.003;
             }
-            // cam.rotateHorizontal(l * (e.x - e.prev_x), false, this._targetRotationPoint, this._tUp);
-            // cam.rotateVertical(l * (e.y - e.prev_y), this._targetRotationPoint, 0.1);
+
+            if (e.moving) {
+                cam.rotateHorizontal(l * (e.x - e.prev_x), false, this._targetRotationPoint, this._tUp);
+                cam.rotateVertical(l * (e.y - e.prev_y), this._targetRotationPoint, 0.1);
+            }
+
+            //return;
 
             if (e.moving) {
                 this._rotHDir = e.x - e.prev_x;
@@ -222,15 +227,11 @@ export class EarthNavigation extends Control {
 
             let h_trm = Mat4.getRotationAroundPoint((e.x - e.prev_x) * l, this._targetRotationPoint, this._tUp);
             let h_eye = h_trm.mulVec3(cam.eye);
-            this.force_h = h_eye.sub(cam.eye).scale(150);
+            this.force_h = h_eye.sub(cam.eye).scale(120);
 
             let v_trm = Mat4.getRotationAroundPoint((e.y - e.prev_y) * l, this._targetRotationPoint, cam.getRight());
             let v_eye = v_trm.mulVec3(cam.eye);
             this.force_v = v_eye.sub(cam.eye).scale(100);
-
-            //this.vel.set(0, 0, 0);
-            // this.vel_h.set(0, 0, 0);
-            // this.vel_v.set(0, 0, 0);
         }
     }
 
