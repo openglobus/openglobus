@@ -22,7 +22,11 @@ export class EarthNavigation extends Control {
 
     public speed: number;
     public force: Vec3;
+    public force_1: Vec3;
+    public force_2: Vec3;
     public vel: Vec3;
+    public vel_1: Vec3;
+    public vel_2: Vec3;
     public mass: number;
 
     protected _lookPos: Vec3 | undefined;
@@ -81,7 +85,13 @@ export class EarthNavigation extends Control {
 
         this.speed = options.speed || 1.0; // m/s
         this.force = new Vec3();
+        this.force_1 = new Vec3();
+        this.force_2 = new Vec3();
+
         this.vel = new Vec3();
+        this.vel_1 = new Vec3();
+        this.vel_2 = new Vec3();
+
         this.mass = 1;
         this._velInertia = DEFAULT_VELINERTIA;
 
@@ -190,22 +200,51 @@ export class EarthNavigation extends Control {
     protected _onRHold = (e: IMouseState) => {
         let cam = this.planet!.camera;
 
-        if (this._targetRotationPoint && e.moving) {
+        if (this._targetRotationPoint) {
             let l = (0.5 / cam.eye.distance(this._targetRotationPoint)) * cam._lonLat.height * math.RADIANS;
             if (l > 0.007) {
                 l = 0.007;
             } else if (l < 0.003) {
                 l = 0.003;
             }
-            cam.rotateHorizontal(l * (e.x - e.prev_x), false, this._targetRotationPoint, this._tUp);
-            cam.rotateVertical(l * (e.y - e.prev_y), this._targetRotationPoint, 0.1);
+            // cam.rotateHorizontal(l * (e.x - e.prev_x), false, this._targetRotationPoint, this._tUp);
+            // cam.rotateVertical(l * (e.y - e.prev_y), this._targetRotationPoint, 0.1);
 
-            // let dx = e.x - e.prev_x,
-            //     dy = e.y - e.prev_y;
-            //
-            //
-            // let newEye = cam.eye.add(px.subA(p0).negate());
-            // this.force = newEye.sub(cam.eye).scale(70);
+            let h_trm = Mat4.getRotationAroundPoint(l * (e.x - e.prev_x), this._targetRotationPoint, this._tUp);
+            let h_eye = h_trm.mulVec3(cam.eye);
+            this.force_1 = h_eye.sub(cam.eye).scale(10);
+
+            let v_trm = Mat4.getRotationAroundPoint(l * (e.y - e.prev_y), this._targetRotationPoint, cam.getRight());
+            let v_eye = v_trm.mulVec3(cam.eye);
+            this.force_2 = v_eye.sub(cam.eye).scale(10);
+            this.vel.set(0, 0, 0);
+        }
+    }
+
+    protected _handleRotation() {
+        if (this.planet && this._targetRotationPoint && (this.vel.length() > 0.0 || this.vel_1.length() > 0.0 || this.vel_2.length() > 0.0)) {
+            let cam = this.planet!.camera;
+
+            let d_v_1 = this.vel_1.scaleTo(this.dt);
+            let d_s_1 = d_v_1;
+
+            let d_v_2 = this.vel_2.scaleTo(this.dt);
+            let d_s_2 = d_v_2;
+
+            let fEye = cam.eye.add(d_s_1.add(d_s_2));
+            let rotEye = fEye.sub(this._targetRotationPoint).normalize().scale(this._tRad);
+            let newEye = this._targetRotationPoint.add(rotEye);
+
+            let rot = Quat.getRotationBetweenVectors(cam.eye.sub(this._targetRotationPoint).normalize(), newEye.sub(this._targetRotationPoint).normalize());
+            cam.rotate(rot);
+            cam.eye.copy(newEye);
+
+
+            // let rot = Mat4.getRotation(angle, this._tUp);
+            // cam._u = rot.mulVec3(cam._u).normalize();
+            // cam._r = rot.mulVec3(cam._r).normalize();
+            // cam._b = rot.mulVec3(cam._b).normalize();
+            // cam._f.set(-cam._b.x, -cam._b.y, -cam._b.z);
         }
     }
 
@@ -214,7 +253,11 @@ export class EarthNavigation extends Control {
             this.planet.stopFlying();
             this._targetRotationPoint = this._getTargetPoint(e.pos)!;
             if (this._targetRotationPoint) {
-                this.vel.scale(0);
+
+                this._targetZoomPoint = null;
+                this._targetDragPoint = null;
+
+                this.vel.set(0, 0, 0);
                 this._tUp = this._targetRotationPoint.getNormal();
                 this._tRad = this.planet.camera.eye.distance(this._targetRotationPoint);
             }
@@ -465,33 +508,6 @@ export class EarthNavigation extends Control {
         }
     }
 
-    protected _handleRotation() {
-        if (this.planet && this._targetRotationPoint && this.vel.length() > 0.0) {
-            let cam = this.planet!.camera;
-
-
-            // let d_v = this.vel.scaleTo(this.dt);
-            // // let d_s = d_v;
-            // // let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
-            // let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
-            // // let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
-            // //
-            // // let rot = Quat.getRotationBetweenVectors(cam.eye.getNormal(), newEye.getNormal());
-            // // cam.rotate(rot);
-            // // cam.eye.copy(newEye);
-            //
-            // // let l = (0.5 / cam.eye.distance(this._targetRotationPoint)) * cam._lonLat.height * math.RADIANS;
-            // // if (l > 0.007) {
-            // //     l = 0.007;
-            // // } else if (l < 0.003) {
-            // //     l = 0.003;
-            // // }
-            // let l = 0.001;
-            // cam.rotateHorizontal(l * (e.x - e.prev_x), false, this._targetRotationPoint, this._tUp);
-            // cam.rotateVertical(l * (e.y - e.prev_y), this._targetRotationPoint, 0.1);
-        }
-    }
-
     protected _updateVel() {
         let acc = this.force.scale(1.0 / this.mass);
         this.vel.addA(acc);
@@ -500,7 +516,31 @@ export class EarthNavigation extends Control {
             this.vel.set(0, 0, 0);
         }
         this.force.set(0, 0, 0);
+
+        this._updateVel_1();
+        this._updateVel_2();
     }
+
+    protected _updateVel_1() {
+        let acc = this.force_1.scale(1.0 / this.mass);
+        this.vel_1.addA(acc);
+        this.vel_1.scale(this._velInertia);
+        if (this.vel_1.length() < 0.001) {
+            this.vel_1.set(0, 0, 0);
+        }
+        this.force_1.set(0, 0, 0);
+    }
+
+    protected _updateVel_2() {
+        let acc = this.force_2.scale(1.0 / this.mass);
+        this.vel_2.addA(acc);
+        this.vel_2.scale(this._velInertia);
+        if (this.vel_2.length() < 0.001) {
+            this.vel_2.set(0, 0, 0);
+        }
+        this.force_2.set(0, 0, 0);
+    }
+
 
     protected get dt(): number {
         return 0.001 * this.renderer!.handler.deltaTime;

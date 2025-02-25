@@ -669,18 +669,9 @@ class Camera {
      * @param {Vec3} [up] - Camera up vector
      */
     public rotateAround(angle: number, isArc: boolean = false, center: Vec3 = Vec3.ZERO, up: Vec3 = Vec3.UP) {
-        // center = center || Vec3.ZERO;
-        // up = up || Vec3.UP;
-        //
-        // let rot = new Mat4().setRotation(isArc ? this._u : up, angle);
-        // let tr = new Mat4().setIdentity().translate(center);
-        // let ntr = new Mat4().setIdentity().translate(center.negateTo());
-        // let trm = tr.mul(rot).mul(ntr);
-
         up = isArc ? this._u : up;
         let rot = Mat4.getRotation(angle, up);
         let trm = Mat4.getRotationAroundPoint(angle, center, up);
-
         this.eye = trm.mulVec3(this.eye);
         this._u = rot.mulVec3(this._u).normalize();
         this._r = rot.mulVec3(this._r).normalize();
