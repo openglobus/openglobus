@@ -22,11 +22,11 @@ export class EarthNavigation extends Control {
 
     public speed: number;
     public force: Vec3;
-    public force_1: Vec3;
-    public force_2: Vec3;
+    public force_h: Vec3;
+    public force_v: Vec3;
     public vel: Vec3;
-    public vel_1: Vec3;
-    public vel_2: Vec3;
+    public vel_h: Vec3;
+    public vel_v: Vec3;
     public mass: number;
 
     protected _lookPos: Vec3 | undefined;
@@ -88,12 +88,12 @@ export class EarthNavigation extends Control {
 
         this.speed = options.speed || 1.0; // m/s
         this.force = new Vec3();
-        this.force_1 = new Vec3();
-        this.force_2 = new Vec3();
+        this.force_h = new Vec3();
+        this.force_v = new Vec3();
 
         this.vel = new Vec3();
-        this.vel_1 = new Vec3();
-        this.vel_2 = new Vec3();
+        this.vel_h = new Vec3();
+        this.vel_v = new Vec3();
 
         this.mass = 1;
         this._velInertia = DEFAULT_VELINERTIA;
@@ -215,49 +215,38 @@ export class EarthNavigation extends Control {
             // cam.rotateHorizontal(l * (e.x - e.prev_x), false, this._targetRotationPoint, this._tUp);
             // cam.rotateVertical(l * (e.y - e.prev_y), this._targetRotationPoint, 0.1);
 
-            this._rotHDir = e.x - e.prev_x;
-            this._rotVDir = e.y - e.prev_y;
+            if (e.moving) {
+                this._rotHDir = e.x - e.prev_x;
+                this._rotVDir = e.y - e.prev_y;
+            }
 
-            let h_trm = Mat4.getRotationAroundPoint(this._rotHDir, this._targetRotationPoint, this._tUp);
+            let h_trm = Mat4.getRotationAroundPoint((e.x - e.prev_x) * l, this._targetRotationPoint, this._tUp);
             let h_eye = h_trm.mulVec3(cam.eye);
-            this.force_1 = h_eye.sub(cam.eye).scale(1);
+            this.force_h = h_eye.sub(cam.eye).scale(150);
 
-            let v_trm = Mat4.getRotationAroundPoint(this._rotVDir, this._targetRotationPoint, cam.getRight());
+            let v_trm = Mat4.getRotationAroundPoint((e.y - e.prev_y) * l, this._targetRotationPoint, cam.getRight());
             let v_eye = v_trm.mulVec3(cam.eye);
-            this.force_2 = v_eye.sub(cam.eye).scale(1);
+            this.force_v = v_eye.sub(cam.eye).scale(100);
 
             //this.vel.set(0, 0, 0);
-            //this.vel_1.set(0, 0, 0);
-            //this.vel_2.set(0, 0, 0);
+            // this.vel_h.set(0, 0, 0);
+            // this.vel_v.set(0, 0, 0);
         }
     }
 
     protected _handleRotation() {
-        if (this.planet && this._targetRotationPoint && (this.vel.length() > 0.0 || this.vel_1.length() > 0.0 || this.vel_2.length() > 0.0)) {
+        if (this.planet && this._targetRotationPoint) {
             let cam = this.planet!.camera;
 
-            let d_v_1 = this.vel_1.scaleTo(this.dt * 0.0000001);
-            let d_s_1 = d_v_1;
+            let d_v_1 = this.vel_h.scaleTo(this.dt);
 
-            let d_v_2 = this.vel_2.scaleTo(this.dt * 0.0000001);
-            let d_s_2 = d_v_2;
+            let d_v_2 = this.vel_v.scaleTo(this.dt);
 
-            cam.rotateHorizontal(d_s_1.length() * Math.sign(this._rotHDir), false, this._targetRotationPoint, this._tUp);
-            cam.rotateVertical(d_s_2.length() * Math.sign(this._rotVDir), this._targetRotationPoint, 0.1);
+            let theta_h = d_v_1.length() / this._tRad,
+                theta_v = d_v_2.length() / this._tRad;
 
-            // let d_v_1 = this.vel_1.scaleTo(this.dt);
-            // let d_s_1 = d_v_1;
-            //
-            // let d_v_2 = this.vel_2.scaleTo(this.dt);
-            // let d_s_2 = d_v_2;
-            //
-            // let fEye = cam.eye.add(d_s_1.add(d_s_2));
-            // let rotEye = fEye.sub(this._targetRotationPoint).normalize().scale(this._tRad);
-            // let newEye = this._targetRotationPoint.add(rotEye);
-            //
-            // let rot = Quat.getRotationBetweenVectors(cam.eye.sub(this._targetRotationPoint).normalize(), newEye.sub(this._targetRotationPoint).normalize());
-            // cam.rotate(rot);
-            // cam.eye.copy(newEye);
+            cam.rotateHorizontal(theta_h * Math.sign(this._rotHDir) * 0.2, false, this._targetRotationPoint, this._tUp);
+            cam.rotateVertical(theta_v * Math.sign(this._rotVDir) * 0.2, this._targetRotationPoint, 0.1);
         }
     }
 
@@ -530,28 +519,28 @@ export class EarthNavigation extends Control {
         }
         this.force.set(0, 0, 0);
 
-        this._updateVel_1();
-        this._updateVel_2();
+        this._updateVel_h();
+        this._updateVel_v();
     }
 
-    protected _updateVel_1() {
-        let acc = this.force_1.scale(1.0 / this.mass);
-        this.vel_1.addA(acc);
-        this.vel_1.scale(this._velInertia);
-        if (this.vel_1.length() < 0.001) {
-            this.vel_1.set(0, 0, 0);
+    protected _updateVel_h() {
+        let acc = this.force_h.scale(1.0 / this.mass);
+        this.vel_h.addA(acc);
+        this.vel_h.scale(this._velInertia);
+        if (this.vel_h.length() < 0.001) {
+            this.vel_h.set(0, 0, 0);
         }
-        this.force_1.set(0, 0, 0);
+        this.force_h.set(0, 0, 0);
     }
 
-    protected _updateVel_2() {
-        let acc = this.force_2.scale(1.0 / this.mass);
-        this.vel_2.addA(acc);
-        this.vel_2.scale(this._velInertia);
-        if (this.vel_2.length() < 0.001) {
-            this.vel_2.set(0, 0, 0);
+    protected _updateVel_v() {
+        let acc = this.force_v.scale(1.0 / this.mass);
+        this.vel_v.addA(acc);
+        this.vel_v.scale(this._velInertia);
+        if (this.vel_v.length() < 0.001) {
+            this.vel_v.set(0, 0, 0);
         }
-        this.force_2.set(0, 0, 0);
+        this.force_v.set(0, 0, 0);
     }
 
 
