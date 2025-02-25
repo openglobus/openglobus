@@ -76,6 +76,9 @@ export class EarthNavigation extends Control {
 
     protected _screenPosIsChanged: boolean = true;
 
+    protected _rotHDir: number;
+    protected _rotVDir: number;
+
     constructor(options: IEarthNavigationParams = {}) {
         super({
             name: "EarthNavigation",
@@ -103,6 +106,8 @@ export class EarthNavigation extends Control {
         this._targetRotationPoint = null;
         this._tUp = new Vec3();
         this._tRad = 0;
+        this._rotHDir = 0;
+        this._rotVDir = 0;
 
         this._wheelDirection = 1;
 
@@ -201,7 +206,7 @@ export class EarthNavigation extends Control {
         let cam = this.planet!.camera;
 
         if (this._targetRotationPoint) {
-            let l = (0.5 / cam.eye.distance(this._targetRotationPoint)) * cam._lonLat.height * math.RADIANS;
+            let l = (0.5 / cam.eye.distance(this._targetRotationPoint)) * math.RADIANS;
             if (l > 0.007) {
                 l = 0.007;
             } else if (l < 0.003) {
@@ -210,14 +215,20 @@ export class EarthNavigation extends Control {
             // cam.rotateHorizontal(l * (e.x - e.prev_x), false, this._targetRotationPoint, this._tUp);
             // cam.rotateVertical(l * (e.y - e.prev_y), this._targetRotationPoint, 0.1);
 
-            let h_trm = Mat4.getRotationAroundPoint(l * (e.x - e.prev_x), this._targetRotationPoint, this._tUp);
-            let h_eye = h_trm.mulVec3(cam.eye);
-            this.force_1 = h_eye.sub(cam.eye).scale(10);
+            this._rotHDir = e.x - e.prev_x;
+            this._rotVDir = e.y - e.prev_y;
 
-            let v_trm = Mat4.getRotationAroundPoint(l * (e.y - e.prev_y), this._targetRotationPoint, cam.getRight());
+            let h_trm = Mat4.getRotationAroundPoint(this._rotHDir, this._targetRotationPoint, this._tUp);
+            let h_eye = h_trm.mulVec3(cam.eye);
+            this.force_1 = h_eye.sub(cam.eye).scale(1);
+
+            let v_trm = Mat4.getRotationAroundPoint(this._rotVDir, this._targetRotationPoint, cam.getRight());
             let v_eye = v_trm.mulVec3(cam.eye);
-            this.force_2 = v_eye.sub(cam.eye).scale(10);
-            this.vel.set(0, 0, 0);
+            this.force_2 = v_eye.sub(cam.eye).scale(1);
+
+            //this.vel.set(0, 0, 0);
+            //this.vel_1.set(0, 0, 0);
+            //this.vel_2.set(0, 0, 0);
         }
     }
 
@@ -225,26 +236,28 @@ export class EarthNavigation extends Control {
         if (this.planet && this._targetRotationPoint && (this.vel.length() > 0.0 || this.vel_1.length() > 0.0 || this.vel_2.length() > 0.0)) {
             let cam = this.planet!.camera;
 
-            let d_v_1 = this.vel_1.scaleTo(this.dt);
+            let d_v_1 = this.vel_1.scaleTo(this.dt * 0.0000001);
             let d_s_1 = d_v_1;
 
-            let d_v_2 = this.vel_2.scaleTo(this.dt);
+            let d_v_2 = this.vel_2.scaleTo(this.dt * 0.0000001);
             let d_s_2 = d_v_2;
 
-            let fEye = cam.eye.add(d_s_1.add(d_s_2));
-            let rotEye = fEye.sub(this._targetRotationPoint).normalize().scale(this._tRad);
-            let newEye = this._targetRotationPoint.add(rotEye);
+            cam.rotateHorizontal(d_s_1.length() * Math.sign(this._rotHDir), false, this._targetRotationPoint, this._tUp);
+            cam.rotateVertical(d_s_2.length() * Math.sign(this._rotVDir), this._targetRotationPoint, 0.1);
 
-            let rot = Quat.getRotationBetweenVectors(cam.eye.sub(this._targetRotationPoint).normalize(), newEye.sub(this._targetRotationPoint).normalize());
-            cam.rotate(rot);
-            cam.eye.copy(newEye);
-
-
-            // let rot = Mat4.getRotation(angle, this._tUp);
-            // cam._u = rot.mulVec3(cam._u).normalize();
-            // cam._r = rot.mulVec3(cam._r).normalize();
-            // cam._b = rot.mulVec3(cam._b).normalize();
-            // cam._f.set(-cam._b.x, -cam._b.y, -cam._b.z);
+            // let d_v_1 = this.vel_1.scaleTo(this.dt);
+            // let d_s_1 = d_v_1;
+            //
+            // let d_v_2 = this.vel_2.scaleTo(this.dt);
+            // let d_s_2 = d_v_2;
+            //
+            // let fEye = cam.eye.add(d_s_1.add(d_s_2));
+            // let rotEye = fEye.sub(this._targetRotationPoint).normalize().scale(this._tRad);
+            // let newEye = this._targetRotationPoint.add(rotEye);
+            //
+            // let rot = Quat.getRotationBetweenVectors(cam.eye.sub(this._targetRotationPoint).normalize(), newEye.sub(this._targetRotationPoint).normalize());
+            // cam.rotate(rot);
+            // cam.eye.copy(newEye);
         }
     }
 
