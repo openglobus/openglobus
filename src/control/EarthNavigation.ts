@@ -207,15 +207,8 @@ export class EarthNavigation extends Control {
         if (this._targetRotationPoint) {
             let _noRotationInertia = false;
             this._velInertia = 0.8;
-            if (_noRotationInertia) {
-                this.force_h = 0.77 * (e.x - e.prev_x);
-                this.force_v = 0.77 * (e.y - e.prev_y);
-                this.vel_h = 0;
-                this.vel_v = 0;
-            } else {
-                this.force_h = 0.07 * (e.x - e.prev_x);
-                this.force_v = 0.07 * (e.y - e.prev_y);
-            }
+            this.force_h = 0.2 * (e.x - e.prev_x);
+            this.force_v = 0.2 * (e.y - e.prev_y);
         }
     }
 
