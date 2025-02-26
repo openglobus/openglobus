@@ -158,6 +158,7 @@ export class EarthNavigation extends Control {
         r.events.off("mousewheel", this._onMouseWheel);
         r.events.off("rhold", this._onRHold);
         r.events.off("rdown", this._onRDown);
+        r.events.off("rip", this._onRUp);
         r.events.off("lhold", this._onLHold);
         r.events.off("ldown", this._onLDown);
         r.events.off("lup", this._onLUp);
@@ -205,14 +206,15 @@ export class EarthNavigation extends Control {
     protected _onRHold = (e: IMouseState) => {
         if (this._targetRotationPoint) {
             let _noRotationInertia = false;
+            this._velInertia = 0.8;
             if (_noRotationInertia) {
-                this.force_h = 200 * (e.x - e.prev_x);
-                this.force_v = 200 * (e.y - e.prev_y);
+                this.force_h = 0.77 * (e.x - e.prev_x);
+                this.force_v = 0.77 * (e.y - e.prev_y);
                 this.vel_h = 0;
                 this.vel_v = 0;
             } else {
-                this.force_h = 10 * (e.x - e.prev_x);
-                this.force_v = 10 * (e.y - e.prev_y);
+                this.force_h = 0.07 * (e.x - e.prev_x);
+                this.force_v = 0.07 * (e.y - e.prev_y);
             }
         }
     }
@@ -221,19 +223,25 @@ export class EarthNavigation extends Control {
         if (this.planet && this._targetRotationPoint) {
             let cam = this.planet!.camera;
 
-            let l = (0.3 / this._tRad) * math.RADIANS;
-            if (l > 0.007) {
-                l = 0.007;
-            } else if (l < 0.003) {
-                l = 0.003;
-            }
+            // let l = (0.3 / this._tRad) * math.RADIANS;
+            // if (l > 0.007) {
+            //     l = 0.007;
+            // } else if (l < 0.003) {
+            //     l = 0.003;
+            // }
 
-            let d_v_h = l * this.vel_h * this.dt;
-            let d_v_v = l * this.vel_v * this.dt;
+            let d_v_h = this.vel_h * this.dt;
+            let d_v_v = this.vel_v * this.dt;
 
             cam.rotateHorizontal(d_v_h, false, this._targetRotationPoint, this._tUp);
             cam.rotateVertical(d_v_v, this._targetRotationPoint, 0.1);
+
+            this._velInertia = DEFAULT_VELINERTIA;
         }
+    }
+
+    protected _onRUp = (e: IMouseState) => {
+        this._velInertia = DEFAULT_VELINERTIA;
     }
 
     protected _onRDown = (e: IMouseState) => {
