@@ -204,8 +204,16 @@ export class EarthNavigation extends Control {
 
     protected _onRHold = (e: IMouseState) => {
         if (this._targetRotationPoint) {
-            this.force_h = 10 * (e.x - e.prev_x);
-            this.force_v = 10 * (e.y - e.prev_y);
+            let _noRotationInertia = false;
+            if (_noRotationInertia) {
+                this.force_h = 200 * (e.x - e.prev_x);
+                this.force_v = 200 * (e.y - e.prev_y);
+                this.vel_h = 0;
+                this.vel_v = 0;
+            } else {
+                this.force_h = 10 * (e.x - e.prev_x);
+                this.force_v = 10 * (e.y - e.prev_y);
+            }
         }
     }
 
