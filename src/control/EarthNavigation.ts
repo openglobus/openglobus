@@ -22,11 +22,11 @@ export class EarthNavigation extends Control {
 
     public speed: number;
     public force: Vec3;
-    public force_h: Vec3;
-    public force_v: Vec3;
+    public force_h: number;
+    public force_v: number;
     public vel: Vec3;
-    public vel_h: Vec3;
-    public vel_v: Vec3;
+    public vel_h: number;
+    public vel_v: number;
     public mass: number;
 
     protected _lookPos: Vec3 | undefined;
@@ -88,12 +88,12 @@ export class EarthNavigation extends Control {
 
         this.speed = options.speed || 1.0; // m/s
         this.force = new Vec3();
-        this.force_h = new Vec3();
-        this.force_v = new Vec3();
+        this.force_h = 0;
+        this.force_v = 0;
 
         this.vel = new Vec3();
-        this.vel_h = new Vec3();
-        this.vel_v = new Vec3();
+        this.vel_h = 0;
+        this.vel_v = 0;
 
         this.mass = 1;
         this._velInertia = DEFAULT_VELINERTIA;
@@ -203,35 +203,9 @@ export class EarthNavigation extends Control {
     }
 
     protected _onRHold = (e: IMouseState) => {
-        let cam = this.planet!.camera;
-
         if (this._targetRotationPoint) {
-            let l = (0.3 / this._tRad) * math.RADIANS;
-            if (l > 0.007) {
-                l = 0.007;
-            } else if (l < 0.003) {
-                l = 0.003;
-            }
-
-            if (e.moving) {
-                cam.rotateHorizontal(l * (e.x - e.prev_x), false, this._targetRotationPoint, this._tUp);
-                cam.rotateVertical(l * (e.y - e.prev_y), this._targetRotationPoint, 0.1);
-            }
-
-            //return;
-
-            if (e.moving) {
-                this._rotHDir = e.x - e.prev_x;
-                this._rotVDir = e.y - e.prev_y;
-            }
-
-            let h_trm = Mat4.getRotationAroundPoint((e.x - e.prev_x) * l, this._targetRotationPoint, this._tUp);
-            let h_eye = h_trm.mulVec3(cam.eye);
-            this.force_h = h_eye.sub(cam.eye).scale(150);
-
-            let v_trm = Mat4.getRotationAroundPoint((e.y - e.prev_y) * l, this._targetRotationPoint, cam.getRight());
-            let v_eye = v_trm.mulVec3(cam.eye);
-            this.force_v = v_eye.sub(cam.eye).scale(100);
+            this.force_h = 10 * (e.x - e.prev_x);
+            this.force_v = 10 * (e.y - e.prev_y);
         }
     }
 
@@ -239,15 +213,18 @@ export class EarthNavigation extends Control {
         if (this.planet && this._targetRotationPoint) {
             let cam = this.planet!.camera;
 
-            let d_v_1 = this.vel_h.scaleTo(this.dt);
+            let l = (0.3 / this._tRad) * math.RADIANS;
+            if (l > 0.007) {
+                l = 0.007;
+            } else if (l < 0.003) {
+                l = 0.003;
+            }
 
-            let d_v_2 = this.vel_v.scaleTo(this.dt);
+            let d_v_h = l * this.vel_h * this.dt;
+            let d_v_v = l * this.vel_v * this.dt;
 
-            let theta_h = d_v_1.length() / this._tRad,
-                theta_v = d_v_2.length() / this._tRad;
-
-            cam.rotateHorizontal(theta_h * Math.sign(this._rotHDir) * 0.2, false, this._targetRotationPoint, this._tUp);
-            cam.rotateVertical(theta_v * Math.sign(this._rotVDir) * 0.2, this._targetRotationPoint, 0.1);
+            cam.rotateHorizontal(d_v_h, false, this._targetRotationPoint, this._tUp);
+            cam.rotateVertical(d_v_v, this._targetRotationPoint, 0.1);
         }
     }
 
@@ -525,23 +502,17 @@ export class EarthNavigation extends Control {
     }
 
     protected _updateVel_h() {
-        let acc = this.force_h.scale(1.0 / this.mass);
-        this.vel_h.addA(acc);
-        this.vel_h.scale(this._velInertia);
-        if (this.vel_h.length() < 0.001) {
-            this.vel_h.set(0, 0, 0);
-        }
-        this.force_h.set(0, 0, 0);
+        let acc = this.force_h * 1.0 / this.mass;
+        this.vel_h += acc;
+        this.vel_h *= this._velInertia;
+        this.force_h = 0;
     }
 
     protected _updateVel_v() {
-        let acc = this.force_v.scale(1.0 / this.mass);
-        this.vel_v.addA(acc);
-        this.vel_v.scale(this._velInertia);
-        if (this.vel_v.length() < 0.001) {
-            this.vel_v.set(0, 0, 0);
-        }
-        this.force_v.set(0, 0, 0);
+        let acc = this.force_v * 1.0 / this.mass;
+        this.vel_v += acc;
+        this.vel_v *= this._velInertia;
+        this.force_v = 0;
     }
 
 
