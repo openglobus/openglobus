@@ -460,6 +460,13 @@ export class EarthNavigation extends Control {
 
             eye.addA(d_s);
 
+            // Check max camera distance
+            let maxAlt = cam.maxAltitude + this.planet!.ellipsoid.getEquatorialSize();
+            if (eye.length() > maxAlt) {
+                eye.copy(eye.getNormal().scale(maxAlt));
+                return;
+            }
+
             let b = new Ray(eye, dir).hitSphere(this._grabbedSphere);
 
             if (!b) {
@@ -494,6 +501,8 @@ export class EarthNavigation extends Control {
                 // let px0 = new Ray(cam.eye, dirCurr).hitSphere(this._grabbedSphere)!;
                 // let px1 = new Ray(cam.eye, dirNew).hitSphere(this._grabbedSphere)!;
             }
+
+            cam.checkTerrainCollision();
         }
     }
 
