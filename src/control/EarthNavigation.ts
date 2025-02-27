@@ -158,7 +158,6 @@ export class EarthNavigation extends Control {
         r.events.off("mousewheel", this._onMouseWheel);
         r.events.off("rhold", this._onRHold);
         r.events.off("rdown", this._onRDown);
-        r.events.off("rip", this._onRUp);
         r.events.off("lhold", this._onLHold);
         r.events.off("ldown", this._onLDown);
         r.events.off("lup", this._onLUp);
@@ -166,6 +165,13 @@ export class EarthNavigation extends Control {
         r.events.off("mousemove", this._onMouseMove);
         r.events.off("mouseleave", this._onMouseLeave);
         r.events.off("mouseenter", this._onMouseEnter);
+    }
+
+    protected onDraw() {
+        this._updateVel();
+        this._handleZoom();
+        this._handleDrag();
+        this._handleRotation();
     }
 
     public _onShiftFree = () => {
@@ -231,10 +237,6 @@ export class EarthNavigation extends Control {
 
             this._velInertia = DEFAULT_VELINERTIA;
         }
-    }
-
-    protected _onRUp = (e: IMouseState) => {
-        this._velInertia = DEFAULT_VELINERTIA;
     }
 
     protected _onRDown = (e: IMouseState) => {
@@ -310,20 +312,16 @@ export class EarthNavigation extends Control {
         }
     }
 
-    protected onDraw() {
-        this._updateVel();
-        this._handleZoom();
-        this._handleDrag();
-        this._handleRotation();
-    }
-
     protected _onLDown = (e: IMouseState) => {
+
         this.stop();
 
         this._targetRotationPoint = null
         this._targetZoomPoint = null;
 
         if (!this.planet) return;
+
+        this.planet.stopFlying();
 
         this._grabbedPoint = this._getTargetPoint(e.pos);
 
@@ -520,14 +518,14 @@ export class EarthNavigation extends Control {
     }
 
     protected _updateVel_h() {
-        let acc = this.force_h * 1.0 / this.mass;
+        let acc = this.force_h / this.mass;
         this.vel_h += acc;
         this.vel_h *= this._velInertia;
         this.force_h = 0;
     }
 
     protected _updateVel_v() {
-        let acc = this.force_v * 1.0 / this.mass;
+        let acc = this.force_v / this.mass;
         this.vel_v += acc;
         this.vel_v *= this._velInertia;
         this.force_v = 0;
@@ -540,9 +538,12 @@ export class EarthNavigation extends Control {
 
     public stop() {
         this.vel.set(0, 0, 0);
+        this.vel_h = 0;
+        this.vel_v = 0;
         this._velInertia = DEFAULT_VELINERTIA;
         this._targetZoomPoint = null;
         this._grabbedPoint = null;
         this._targetRotationPoint = null;
+        this._targetDragPoint = null;
     }
 }
