@@ -5,7 +5,7 @@ import {Vec3} from "../math/Vec3";
 import {createEvents, EventsHandler} from "../Events";
 import {Entity} from "../entity/Entity";
 import {IMouseState} from "../renderer/RendererEvents";
-import {MouseNavigation} from "./MouseNavigation";
+import {OldMouseNavigation} from "./OldMouseNavigation";
 import {Planet} from "../scene/Planet";
 import {input} from "../input/input";
 import {RADIANS} from "../math";
@@ -126,7 +126,7 @@ export class CameraLock extends Control {
     protected _deactivateNav() {
         if (this.renderer && this.renderer.controls.mouseNavigation) {
             this.renderer.controls.mouseNavigation.deactivate();
-            (this.renderer.controls.mouseNavigation as MouseNavigation).stopRotation();
+            (this.renderer.controls.mouseNavigation as OldMouseNavigation).stopRotation();
         }
 
         if (this.renderer && this.renderer.controls.simpleNavigation) {

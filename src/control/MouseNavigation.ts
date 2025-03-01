@@ -1,217 +1,198 @@
-import * as math from "../math";
 import {Control, IControlParams} from "./Control";
-import {input} from "../input/input";
-import {Key} from "../Lock";
-import {LonLat} from "../LonLat";
-import {Mat4} from "../math/Mat4";
+import {IMouseState} from "../renderer/RendererEvents";
 import {Quat} from "../math/Quat";
 import {Ray} from "../math/Ray";
 import {Sphere} from "../bv/Sphere";
-import {Vec3} from "../math/Vec3";
 import {Vec2} from "../math/Vec2";
-import {Planet} from "../scene/Planet";
-import {PlanetCamera} from "../camera/PlanetCamera";
-import {IMouseState} from "../renderer/RendererEvents";
+import {Vec3} from "../math/Vec3";
+import {input} from "../input/input";
 import {Plane} from "../math/Plane";
 
-export interface IStepForward {
-    eye: Vec3;
-    v: Vec3;
-    u: Vec3;
-    n: Vec3;
+interface IEarthNavigationParams extends IControlParams {
+    speed?: number;
+    fixedUp?: boolean;
 }
 
-interface IMouseNavigationParams extends IControlParams {
-    minSlope?: number;
-}
+const DEFAULT_VELINERTIA = 0.96;
 
-/**
- * Mouse planet camera dragging control.
- */
+
 export class MouseNavigation extends Control {
-    protected grabbedPoint: Vec3;
-    protected _eye0: Vec3;
-    protected pointOnEarth: Vec3;
-    protected earthUp: Vec3;
-    public inertia: number;
-    protected grabbedSpheroid: Sphere;
-    protected qRot: Quat;
-    protected scaleRot: number;
-    protected distDiff: number;
-    protected stepsCount: number;
-    protected stepsForward: IStepForward[] | null;
-    protected stepIndex: number;
-    protected _lmbDoubleClickActive: boolean;
-    public minSlope: number;
+
+    public speed: number;
+    public force: Vec3;
+    public force_h: number;
+    public force_v: number;
+    public vel: Vec3;
+    public vel_h: number;
+    public vel_v: number;
+    public mass: number;
+
+    public vel_roll: number;
+    public force_roll: number;
+
+    protected _lookPos: Vec3 | undefined;
+
+    protected _grabbedPoint: Vec3 | null;
+
+    protected _targetZoomPoint: Vec3 | null;
+
+    protected _targetDragPoint: Vec3 | null;
+
+    protected _targetRotationPoint: Vec3 | null;
+
+    protected _grabbedSphere: Sphere;
+
     protected _wheelDirection: number;
-    protected _keyLock: Key;
-    protected _deactivate = false;
+
+    protected _currScreenPos: Vec2;
+
+    protected _tUp: Vec3;
+    protected _tRad: number;
+
     protected _shiftBusy = false;
 
-    constructor(options: IMouseNavigationParams = {}) {
-        super(options);
+    protected fixedUp: boolean;
 
-        this._name = "mouseNavigation";
+    protected _curPitch: number;
 
-        this.grabbedPoint = new Vec3();
+    protected _curYaw: number;
+
+    protected _curRoll: number;
+
+    protected _rot: Quat;
+
+    protected _eye0: Vec3;
+
+    protected _grabbedCameraHeight: number;
+
+    protected _newEye: Vec3;
+
+    protected _isTouchPad: boolean;
+
+    protected _velInertia: number;
+
+    protected _hold: boolean = false;
+
+    protected _prevVel: Vec3 = new Vec3();
+
+    protected _screenPosIsChanged: boolean = true;
+
+    protected _rotHDir: number;
+    protected _rotVDir: number;
+
+    constructor(options: IEarthNavigationParams = {}) {
+        super({
+            name: "mouseNavigation",
+            autoActivate: true,
+            ...options
+        });
+
+        this.speed = options.speed || 1.0; // m/s
+        this.force = new Vec3();
+        this.force_h = 0;
+        this.force_v = 0;
+
+        this.vel = new Vec3();
+        this.vel_h = 0;
+        this.vel_v = 0;
+
+        this.vel_roll = 0;
+        this.force_roll = 0;
+
+        this.mass = 1;
+        this._velInertia = DEFAULT_VELINERTIA;
+
+        this._lookPos = undefined;
+        this._grabbedPoint = null;
+
+        this._targetZoomPoint = null;
+        this._targetDragPoint = null;
+        this._targetRotationPoint = null;
+        this._tUp = new Vec3();
+        this._tRad = 0;
+        this._rotHDir = 0;
+        this._rotVDir = 0;
+
+        this._wheelDirection = 1;
+
+        this._currScreenPos = new Vec2();
+
+        this._grabbedSphere = new Sphere();
+
+        this.fixedUp = options.fixedUp != undefined ? options.fixedUp : true;
+
+        this._rot = new Quat();
+
+        this._curPitch = 0;
+        this._curYaw = 0;
+        this._curRoll = 0;
+
         this._eye0 = new Vec3();
-        this.pointOnEarth = new Vec3();
-        this.earthUp = new Vec3();
-        this.inertia = 0.007;
-        this.grabbedSpheroid = new Sphere();
-        this.qRot = new Quat();
-        this.scaleRot = 0.0;
+        this._newEye = new Vec3();
+        this._grabbedCameraHeight = 0;
 
-        this.distDiff = 0.3;
-        this.stepsCount = 8;
-        this.stepsForward = null;
-        this.stepIndex = 0;
-
-        this._lmbDoubleClickActive = true;
-
-        this.minSlope = options.minSlope || 0.1;
-
-        this._wheelDirection = +1;
-
-        this._keyLock = new Key();
+        this._isTouchPad = false;
     }
 
-    static getMovePointsFromPixelTerrain(cam: PlanetCamera, planet: Planet, stepsCount: number, delta: number, point: Vec2, forward: boolean, dir?: Vec3 | null): IStepForward[] | undefined {
-        const steps: IStepForward[] = [];
-
-        let eye = cam.eye.clone(),
-            n = cam.getBackward(),
-            u = cam.getRight(),
-            v = cam.getUp();
-
-        let a = planet.getCartesianFromPixelTerrain(point);
-
-        if (!a) {
-            a = planet.getCartesianFromPixelTerrain(planet.renderer!.handler.getCenter());
-        }
-
-        if (a) {
-            if (!dir) {
-                dir = Vec3.sub(a, cam.eye).normalize();
-            }
-
-            let d = (delta * cam.eye.distance(a)) / stepsCount;
-
-            if (forward) {
-                d = -1.25 * d;
-            } else {
-                d *= 2;
-            }
-
-            const scaled_n = n.scaleTo(d);
-
-            const slope = dir.dot(cam.eye.normal().negate());
-
-            if (slope >= 0.1) {
-                const grabbedSpheroid = new Sphere();
-                grabbedSpheroid.radius = a.length();
-
-                let rotArr = [],
-                    eyeArr = [];
-
-                let breaked = false;
-                for (let i = 0; i < stepsCount; i++) {
-                    eye.addA(scaled_n);
-                    const b = new Ray(eye, dir).hitSphere(grabbedSpheroid);
-                    eyeArr[i] = eye.clone();
-                    if (b) {
-                        rotArr[i] = new Mat4().rotateBetweenVectors(a.normal(), b.normal());
-                    } else {
-                        breaked = true;
-                        break;
-                    }
-                }
-
-                if (!breaked) {
-                    for (let i = 0; i < stepsCount; i++) {
-                        let rot = rotArr[i];
-                        steps[i] = {
-                            eye: rot.mulVec3(eyeArr[i]),
-                            v: rot.mulVec3(v),
-                            u: rot.mulVec3(u),
-                            n: rot.mulVec3(n)
-                        };
-                    }
-                } else {
-                    eye = cam.eye.clone();
-                    for (let i = 0; i < stepsCount; i++) {
-                        steps[i] = {
-                            eye: eye.addA(scaled_n).clone(),
-                            v: v,
-                            u: u,
-                            n: n,
-                        };
-                    }
-                }
-            } else {
-                for (let i = 0; i < stepsCount; i++) {
-                    steps[i] = {
-                        eye: eye.addA(dir.scaleTo(-d)).clone(),
-                        v: v,
-                        u: u,
-                        n: n,
-                    };
-                }
-            }
-
-            return steps;
+    override oninit() {
+        if (this.renderer) {
+            this.renderer.events.on("keyfree", input.KEY_ALT, this._onShiftFree);
+            this.renderer.events.on("keyfree", input.KEY_PRINTSCREEN, this._onShiftFree);
         }
     }
 
     public override onactivate() {
-        if (this.renderer) {
-            this.renderer.events.on("mousewheel", this.onMouseWheel, this);
-            this.renderer.events.on("lhold", this.onMouseLeftButtonDown, this);
-            this.renderer.events.on("rhold", this.onMouseRightButtonDown, this);
-            this.renderer.events.on("ldown", this.onMouseLeftButtonClick, this);
-            this.renderer.events.on("lup", this.onMouseLeftButtonUp, this);
-            this.renderer.events.on("rdown", this.onMouseRightButtonClick, this);
-            this.renderer.events.on("draw", this.onDraw, this, -1000);
-            this.renderer.events.on("mousemove", this.onMouseMove, this);
-            this.renderer.events.on("mouseleave", this.onMouseLeave, this);
-            this.renderer.events.on("mouseenter", this.onMouseEnter, this);
-
-            if (this._lmbDoubleClickActive) {
-                this.renderer.events.on("ldblclick", this.onMouseLeftButtonDoubleClick, this);
-            }
-        }
+        super.onactivate();
+        let r = this.renderer!;
+        r.events.on("mousewheel", this._onMouseWheel);
+        r.events.on("rhold", this._onRHold);
+        r.events.on("rdown", this._onRDown);
+        r.events.on("lhold", this._onLHold);
+        r.events.on("ldown", this._onLDown);
+        r.events.on("lup", this._onLUp);
+        r.events.on("draw", this.onDraw, this, -1000);
+        r.events.on("mousemove", this._onMouseMove);
+        r.events.on("mouseleave", this._onMouseLeave);
+        r.events.on("mouseenter", this._onMouseEnter);
     }
 
     public override ondeactivate() {
-        if (this.renderer) {
-            this.renderer.events.off("mousewheel", this.onMouseWheel);
-            this.renderer.events.off("lhold", this.onMouseLeftButtonDown);
-            this.renderer.events.off("rhold", this.onMouseRightButtonDown);
-            this.renderer.events.off("ldown", this.onMouseLeftButtonClick);
-            this.renderer.events.off("lup", this.onMouseLeftButtonUp);
-            this.renderer.events.off("rdown", this.onMouseRightButtonClick);
-            this.renderer.events.off("draw", this.onDraw);
-            this.renderer.events.off("ldblclick", this.onMouseLeftButtonDoubleClick);
-            this.renderer.events.off("mouseleave", this.onMouseLeave);
-            this.renderer.events.off("mouseenter", this.onMouseEnter);
+        super.ondeactivate();
+        let r = this.renderer!;
+        r.events.off("mousewheel", this._onMouseWheel);
+        r.events.off("rhold", this._onRHold);
+        r.events.off("rdown", this._onRDown);
+        r.events.off("lhold", this._onLHold);
+        r.events.off("ldown", this._onLDown);
+        r.events.off("lup", this._onLUp);
+        r.events.off("draw", this.onDraw);
+        r.events.off("mousemove", this._onMouseMove);
+        r.events.off("mouseleave", this._onMouseLeave);
+        r.events.off("mouseenter", this._onMouseEnter);
+    }
+
+    protected onDraw() {
+        this._updateVel();
+        this._handleZoom();
+        this._handleDrag();
+        this._handleRotation();
+    }
+
+    public _onShiftFree = () => {
+        this._shiftBusy = false;
+    }
+
+    protected _onMouseMove = (e: IMouseState) => {
+        if (this._active && this.renderer!.events.isKeyPressed(input.KEY_ALT)) {
+            if (!this._shiftBusy) {
+                this._shiftBusy = true;
+                this._onRHold(e);
+            }
+            this._onRDown(e);
         }
     }
 
-    public activateDoubleClickZoom() {
-        if (!this._lmbDoubleClickActive) {
-            this._lmbDoubleClickActive = true;
-            this.renderer && this.renderer.events.on("ldblclick", this.onMouseLeftButtonDoubleClick, this);
-        }
-    }
-
-    public deactivateDoubleClickZoom() {
-        if (this._lmbDoubleClickActive) {
-            this._lmbDoubleClickActive = false;
-            this.renderer && this.renderer.events.off("ldblclick", this.onMouseLeftButtonDoubleClick);
-        }
-    }
-
-    protected onMouseEnter(e: IMouseState) {
+    protected _onMouseEnter = (e: IMouseState) => {
         const renderEvents = this.renderer!.events;
         if (renderEvents.isKeyPressed(input.KEY_ALT)) {
             renderEvents.releaseKeys();
@@ -225,248 +206,373 @@ export class MouseNavigation extends Control {
         }
     }
 
-    protected onMouseLeave() {
+    protected _onMouseLeave = () => {
         if (this.renderer!.events.mouseState.leftButtonDown) {
-            this.scaleRot = 0;
+            this.vel.scale(0);
         }
         this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
     }
 
-    protected onMouseWheel(e: IMouseState) {
-        if (this.stepIndex) {
-            return;
-        }
-
-        this.planet!.stopFlying();
-
-        this.stopRotation();
-
-        this._deactivate = true;
-
-        this.lockPlanet(true);
-
-        this.stepsForward = MouseNavigation.getMovePointsFromPixelTerrain(
-            this.planet!.camera,
-            this.planet!,
-            this.stepsCount,
-            this.distDiff,
-            e.pos,
-            e.wheelDelta > 0,
-            e.direction
-        ) || null;
-
-        this._wheelDirection = e.wheelDelta;
-
-        if (this.stepsForward) {
-            this.stepIndex = this.stepsCount;
+    protected _onRHold = (e: IMouseState) => {
+        if (this._targetRotationPoint) {
+            let _noRotationInertia = false;
+            this._velInertia = 0.8;
+            this.force_h = 0.2 * (e.x - e.prev_x);
+            this.force_v = 0.2 * (e.y - e.prev_y);
         }
     }
 
-    public override oninit() {
-        this.activate();
-        if (this.renderer) {
-            this.renderer.events.on("keyfree", input.KEY_ALT, this.onShiftFree, this);
-            this.renderer.events.on("keyfree", input.KEY_PRINTSCREEN, this.onShiftFree, this);
+    protected _handleRotation() {
+        if (this.planet && this._targetRotationPoint) {
+            let cam = this.planet!.camera;
+
+            // let l = (0.3 / this._tRad) * math.RADIANS;
+            // if (l > 0.007) {
+            //     l = 0.007;
+            // } else if (l < 0.003) {
+            //     l = 0.003;
+            // }
+
+            let d_v_h = this.vel_h * this.dt;
+            let d_v_v = this.vel_v * this.dt;
+
+            cam.rotateHorizontal(d_v_h, false, this._targetRotationPoint, this._tUp);
+            cam.rotateVertical(d_v_v, this._targetRotationPoint, 0.1);
+
+            this._curPitch = cam.getPitch();
+            this._curYaw = cam.getYaw();
+            this._curRoll = cam.getRoll();
+
+            this._velInertia = DEFAULT_VELINERTIA;
         }
     }
 
-    protected onMouseLeftButtonDoubleClick(e: IMouseState) {
-        this.planet!.stopFlying();
-        this.stopRotation();
-        const p = this.planet!.getCartesianFromPixelTerrain(e.pos);
-        if (p) {
-            const cam = this.planet!.camera;
-            let maxAlt = cam.maxAltitude + this.planet!.ellipsoid.polarSize;
-            let minAlt = cam.minAltitude + this.planet!.ellipsoid.polarSize;
-            const camAlt = cam.eye.length();
-            const g = this.planet!.ellipsoid.cartesianToLonLat(p);
-            if (camAlt > maxAlt || camAlt < minAlt) {
-                this.planet!.flyLonLat(new LonLat(g.lon, g.lat))
+    protected _onRDown = (e: IMouseState) => {
+        if (this.planet) {
+            this.planet.stopFlying();
+            this._targetRotationPoint = this._getTargetPoint(e.pos)!;
+            if (this._targetRotationPoint) {
+
+                this._targetZoomPoint = null;
+                this._targetDragPoint = null;
+
+                this.vel.set(0, 0, 0);
+                this._tUp = this._targetRotationPoint.getNormal();
+                this._tRad = this.planet.camera.eye.distance(this._targetRotationPoint);
+            }
+        }
+    }
+
+    protected _getTargetPoint(p: Vec2): Vec3 | null {
+        if (this.planet) {
+            if (this.planet.camera.getAltitude() > 10000) {
+                return this.planet.getCartesianFromPixelEllipsoid(p) || null;
+            }
+            return this.planet.getCartesianFromPixelTerrain(p) || null;
+        }
+        return null;
+    }
+
+    protected _onMouseWheel = (e: IMouseState) => {
+        if (this.planet) {
+
+            this._targetRotationPoint = null;
+            this._targetDragPoint = null;
+            let _targetZoomPoint = this._getTargetPoint(e.pos);
+
+            if (!_targetZoomPoint)
+                return;
+
+            this._targetZoomPoint = _targetZoomPoint;
+
+            this._grabbedSphere.radius = this._targetZoomPoint.length();
+
+            this._curPitch = this.planet.camera.getPitch();
+            this._curYaw = this.planet.camera.getYaw();
+            this._curRoll = this.planet.camera.getRoll();
+
+            if (Math.sign(e.wheelDelta) !== this._wheelDirection) {
+                this.vel.scale(0.3);
+                this._currScreenPos.set(e.x, e.y);
+                this._wheelDirection = Math.sign(e.wheelDelta);
                 return;
             }
 
-            if (this.renderer!.events.isKeyPressed(input.KEY_ALT)) {
-                this.planet!.flyLonLat(
-                    new LonLat(g.lon, g.lat, cam.eye.distance(p) * 2.0)
-                );
+            //let dd = this.targetPoint!.distance(this.planet.camera.eye);
+            // let brk = 1;
+            // if (this._wheelDirection > 0 && dd < 5000) {
+            //this.vel.scale(0.3);
+            //     brk = dist / 5000;
+            // }
+
+            this._currScreenPos.set(e.x, e.y);
+            this._wheelDirection = Math.sign(e.wheelDelta);
+            let scale = 2;
+            this._isTouchPad = e.isTouchPad;
+            if (e.isTouchPad) {
+                this._velInertia = 0.88;
+                scale = 0.5;
             } else {
-                this.planet!.flyLonLat(
-                    new LonLat(g.lon, g.lat, cam.eye.distance(p) * 0.57)
+                this._velInertia = DEFAULT_VELINERTIA;
+            }
+            let dist = this.planet.camera.eye.distance(this._targetZoomPoint) * scale;
+            this.force = (e.direction.scale(Math.sign(this._wheelDirection))).normalize().scale(dist);
+
+            this.force_roll = this._curRoll;
+        }
+    }
+
+    protected _onLDown = (e: IMouseState) => {
+
+        this.stop();
+
+        this._targetRotationPoint = null
+        this._targetZoomPoint = null;
+
+        if (!this.planet) return;
+
+        this.planet.stopFlying();
+
+        this._grabbedPoint = this._getTargetPoint(e.pos);
+
+        if (!this._grabbedPoint) return;
+
+        this.renderer!.handler.canvas!.classList.add("ogGrabbingPoiner");
+
+        this._grabbedSphere.radius = this._grabbedPoint.length();
+
+        this._eye0 = this.planet.camera.eye.clone();
+        this._grabbedCameraHeight = this._eye0.length();
+
+        this._curPitch = this.planet.camera.getPitch();
+        this._curYaw = this.planet.camera.getYaw();
+        this._curRoll = this.planet.camera.getRoll();
+
+        this._currScreenPos.copy(e.pos);
+
+        if (this.planet!.camera.getUp().dot(new Vec3(0, 0, 1)) > 0.3) {
+            this.fixedUp = true;
+        }
+    }
+
+    protected _onLHold = (e: IMouseState) => {
+        if (this._grabbedPoint && this.planet) {
+            let cam = this.planet.camera;
+
+            if (cam.slope > 0.2) {
+                let _targetDragPoint = new Ray(cam.eye, e.direction).hitSphere(this._grabbedSphere);
+
+                if (!_targetDragPoint) {
+                    return;
+                }
+
+                this._targetDragPoint = _targetDragPoint;
+
+                let newEye = new Vec3();
+
+                let rot = Quat.getRotationBetweenVectors(
+                    this._targetDragPoint.getNormal(),
+                    this._grabbedPoint.getNormal()
                 );
+
+                newEye.copy(rot.mulVec3(cam.eye));
+                this.force = newEye.sub(cam.eye).scale(70);
+            } else {
+                let p0 = this._grabbedPoint,
+                    p1 = Vec3.add(p0, cam.getRight()),
+                    p2 = Vec3.add(p0, p0.getNormal());
+
+                let px = new Vec3();
+                new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px);
+                let newEye = cam.eye.add(px.subA(p0).negate());
+                this.force = newEye.sub(cam.eye).scale(70);
+                this._targetDragPoint = px;
             }
+
+            this.vel.set(0.0, 0.0, 0.0);
+
+            if (!this._currScreenPos.equal(e.pos)) {
+                this._screenPosIsChanged = true;
+                this._currScreenPos.copy(e.pos);
+            }
+
+            this._hold = true;
         }
     }
 
-    protected onMouseLeftButtonClick() {
-        if (this._active) {
-            this.renderer!.handler.canvas!.classList.add("ogGrabbingPoiner");
-            this.grabbedPoint = this.planet!.getCartesianFromMouseTerrain()!;
-            if (this.grabbedPoint) {
-                this._eye0.copy(this.planet!.camera.eye);
-                this.grabbedSpheroid.radius = this.grabbedPoint.length();
-                this.stopRotation();
-            }
-        }
-    }
-
-    public stopRotation() {
-        this.qRot.clear();
-        this.freePlanet();
-    }
-
-    protected onMouseLeftButtonUp(e: IMouseState) {
+    protected _onLUp = (e: IMouseState) => {
+        this._hold = false;
         this.renderer!.handler.canvas!.classList.remove("ogGrabbingPoiner");
-        if (e.x === e.prev_x && e.y === e.prev_y) {
-            this.scaleRot = 0.0;
-        }
     }
 
-    protected onMouseLeftButtonDown(e: IMouseState) {
-        if (this._active) {
-            if (!this.grabbedPoint) {
-                return;
+    protected _handleDrag() {
+        if (this.planet && this._targetDragPoint && this._grabbedPoint && this.vel.length() > 0.0) {
+            this._velInertia = DEFAULT_VELINERTIA;
+            let cam = this.planet!.camera;
+
+            if (Math.abs(cam.eyeNorm.dot(Vec3.NORTH)) > 0.9) {
+                this.fixedUp = false;
             }
 
-            this.planet!.stopFlying();
+            if (!this._screenPosIsChanged) {
+                if (this.vel.length() > this._prevVel.length()) {
+                    this.fixedUp = false;
+                }
+            }
+            this._screenPosIsChanged = false;
+            this._prevVel.copy(this.vel);
 
-            if (e.moving) {
-                let cam = this.planet!.camera;
-
-                if (cam.slope > 0.2) {
-                    const targetPoint = new Ray(cam.eye, e.direction).hitSphere(this.grabbedSpheroid);
-                    if (targetPoint) {
-                        this.scaleRot = 1.0;
-                        this.qRot = Quat.getRotationBetweenVectors(
-                            targetPoint.normal(),
-                            this.grabbedPoint.normal()
-                        );
-                        let rot = this.qRot;
-                        cam.eye = rot.mulVec3(cam.eye);
-                        cam.rotate(rot);
-                        // cam._u = rot.mulVec3(cam._u);
-                        // cam._r = rot.mulVec3(cam._r);
-                        // cam._b = rot.mulVec3(cam._b);
-                        // cam._f.set(-cam._b.x, -cam._b.y, -cam._b.z);
-                    }
+            if (cam.slope > 0.2) {
+                let d_v = this.vel.scaleTo(this.dt);
+                // let d_s = d_v;
+                // let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
+                let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
+                let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
+                if (this.fixedUp) {
+                    cam.eye.copy(newEye);
+                    this._corrRoll();
+                    cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
                 } else {
-                    let p0 = this.grabbedPoint,
-                        p1 = Vec3.add(p0, cam.getRight()),
-                        p2 = Vec3.add(p0, p0.normal());
-
-                    let px = new Vec3();
-                    if (new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px) === Ray.INSIDE) {
-                        cam.eye = this._eye0.addA(px.subA(p0).negate());
-                    }
+                    let rot = Quat.getRotationBetweenVectors(cam.eye.getNormal(), newEye.getNormal());
+                    cam.rotate(rot);
+                    cam.eye.copy(newEye);
                 }
-            }
-        }
-    }
-
-    protected onMouseRightButtonClick(e: IMouseState) {
-        this.stopRotation();
-        this.planet!.stopFlying();
-        this.pointOnEarth = this.planet!.getCartesianFromPixelTerrain(e.pos)!;
-        if (this.pointOnEarth) {
-            this.earthUp = this.pointOnEarth.normal();
-        }
-    }
-
-    protected onMouseRightButtonDown(e: IMouseState) {
-        const cam = this.planet!.camera;
-
-        if (this.pointOnEarth && e.moving) {
-            this.renderer!.controlsBag.scaleRot = 1.0;
-            let l = (0.5 / cam.eye.distance(this.pointOnEarth)) * cam._lonLat.height * math.RADIANS;
-            if (l > 0.007) {
-                l = 0.007;
-            } else if (l < 0.003) {
-                l = 0.003;
-            }
-            cam.rotateHorizontal(l * (e.x - e.prev_x), false, this.pointOnEarth, this.earthUp);
-            cam.rotateVertical(l * (e.y - e.prev_y), this.pointOnEarth, this.minSlope);
-        }
-    }
-
-    public onShiftFree() {
-        this._shiftBusy = false;
-    }
-
-    protected onMouseMove(e: IMouseState) {
-        if (this._active && this.renderer!.events.isKeyPressed(input.KEY_ALT)) {
-            if (!this._shiftBusy) {
-                this._shiftBusy = true;
-                this.onMouseRightButtonClick(e);
-            }
-
-            this.onMouseRightButtonDown(e);
-        }
-    }
-
-    protected onDraw() {
-        if (this._active) {
-            const r = this.renderer!;
-            const cam = this.planet!.camera;
-            let prevEye = cam.eye.clone();
-
-            if (this.stepIndex) {
-                r.controlsBag.scaleRot = 1.0;
-                const sf = this.stepsForward![this.stepsCount - this.stepIndex--];
-                cam.eye = sf.eye;
-                //@ts-ignore
-                cam._u = sf.v;
-                //@ts-ignore
-                cam._r = sf.u;
-                //@ts-ignore
-                cam._b = sf.n;
-                //@ts-ignore
-                cam._f.set(-cam._b.x, -cam._b.y, -cam._b.z);
             } else {
-                if (this._deactivate) {
-                    this._deactivate = false;
-                    this.freePlanet();
-                }
+                let d_v = this.vel.scaleTo(this.dt);
+                let newEye = cam.eye.add(d_v);
+                cam.eye.copy(newEye);
+                cam.checkTerrainCollision();
+            }
+        }
+    }
+
+    protected _corrRoll() {
+        if (this.planet!.camera.slope < 0.5) {
+            this._curRoll -= this.vel_roll * this.dt;
+            if (this._curRoll < 0.01 * Math.PI / 180) {
+                this._curRoll = 0.01 * Math.PI / 180;
+            }
+        }
+    }
+
+    protected _handleZoom() {
+        if (this._targetZoomPoint && this.vel.length() > 0.0) {
+
+            // Common
+            let cam = this.planet!.camera;
+            let a = this._targetZoomPoint;
+            let dir = a.sub(cam.eye).normalize();
+            let eye = cam.eye.clone();
+            let velDir = Math.sign(this.vel.getNormal().dot(cam.getForward()));
+            let d_v = this.vel.scaleTo(this.dt);
+            let d_s = d_v.projToVec(cam.getForward().scale(velDir));
+
+            //let d_s = cam.getForward().scaleTo(velDir * d_v.length());
+
+            // Braking tweak
+            let destDist = cam.eye.distance(a);
+            if (d_s.length() * 10 > destDist) {
+                let temp = d_s.length();
+                d_s.normalize().scale(temp * 0.5);
+                this.vel.scale(0.5);
             }
 
-            if (r.events.mouseState.leftButtonDown || !this.scaleRot) {
+            eye.addA(d_s);
+
+            // Check max camera distance
+            let maxAlt = cam.maxAltitude + this.planet!.ellipsoid.getEquatorialSize();
+            if (eye.length() > maxAlt) {
+                eye.copy(eye.getNormal().scale(maxAlt));
                 return;
             }
 
-            this.scaleRot -= this.inertia;
-            if (this.scaleRot <= 0.0) {
-                this.scaleRot = 0.0;
-            } else {
-                r.controlsBag.scaleRot = this.scaleRot;
-                let rot = this.qRot
-                    .slerp(Quat.IDENTITY, 1.0 - this.scaleRot * this.scaleRot * this.scaleRot)
-                    .normalize();
-                if (!(rot.x || rot.y || rot.z)) {
-                    this.scaleRot = 0.0;
-                }
-                cam.eye = rot.mulVec3(cam.eye);
-                cam.rotate(rot);
-                // cam._u = rot.mulVec3(cam._u);
-                // cam._r = rot.mulVec3(cam._r);
-                // cam._b = rot.mulVec3(cam._b);
-                // cam._f.set(-cam._b.x, -cam._b.y, -cam._b.z);
+            let b = new Ray(eye, dir).hitSphere(this._grabbedSphere);
+
+            if (!b) {
+                this.vel.set(0, 0, 0);
+                return;
             }
 
-            if (cam.eye.distance(prevEye) / cam.getAltitude() > 0.01) {
-                this.lockPlanet();
-            } else {
-                this.freePlanet();
+            let rot = Quat.getRotationBetweenVectors(b.getNormal(), a.getNormal());
+            cam.eye = rot.mulVec3(eye);
+            cam.rotate(rot);
+
+            if (this.fixedUp) {
+
+                this._corrRoll();
+                // restore camera direction
+                cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
+
+                cam.update();
+                let dirCurr = cam.unproject2v(this._currScreenPos);
+                let dirNew = a.sub(cam.eye).normalize();
+
+                let px0 = new Vec3();
+                let px1 = new Vec3();
+                let pl = Plane.fromPoints(a, a.add(cam.getUp()), a.add(cam.getRight()));
+
+                new Ray(cam.eye, dirCurr).hitPlaneRes(pl, px0);
+                new Ray(cam.eye, dirNew).hitPlaneRes(pl, px1);
+
+                let dp = px1.sub(px0);
+                cam.eye = cam.eye.add(dp);
+
+                // ver.2
+                // let px0 = new Ray(cam.eye, dirCurr).hitSphere(this._grabbedSphere)!;
+                // let px1 = new Ray(cam.eye, dirNew).hitSphere(this._grabbedSphere)!;
             }
+
+            cam.checkTerrainCollision();
         }
     }
 
-    public lockPlanet(skipTerrain?: boolean) {
-        this.planet!.layerLock.lock(this._keyLock);
-        !skipTerrain && this.planet!.terrainLock.lock(this._keyLock);
-        this.planet!._normalMapCreator.lock(this._keyLock);
+    protected _updateVel() {
+        let acc = this.force.scale(1.0 / this.mass);
+        this.vel.addA(acc);
+        this.vel.scale(this._velInertia);
+        if (this.vel.length() < 0.001) {
+            this.vel.set(0, 0, 0);
+        }
+        this.force.set(0, 0, 0);
+
+        this._updateVel_h();
+        this._updateVel_v();
+        this._updateVel_roll();
     }
 
-    public freePlanet() {
-        this.planet!.layerLock.free(this._keyLock);
-        this.planet!.terrainLock.free(this._keyLock);
-        this.planet!._normalMapCreator.free(this._keyLock);
+    protected _updateVel_h() {
+        let acc = this.force_h / this.mass;
+        this.vel_h += acc;
+        this.vel_h *= this._velInertia;
+        this.force_h = 0;
+    }
+
+    protected _updateVel_v() {
+        let acc = this.force_v / this.mass;
+        this.vel_v += acc;
+        this.vel_v *= this._velInertia;
+        this.force_v = 0;
+    }
+
+    protected _updateVel_roll() {
+        let acc = this.force_roll / this.mass;
+        this.vel_roll += acc;
+        this.vel_roll *= this._velInertia;
+        this.force_roll = 0;
+    }
+
+    protected get dt(): number {
+        return 0.001 * this.renderer!.handler.deltaTime;
+    }
+
+    public stop() {
+        this.vel.set(0, 0, 0);
+        this.vel_h = 0;
+        this.vel_v = 0;
+        this._velInertia = DEFAULT_VELINERTIA;
+        this._targetZoomPoint = null;
+        this._grabbedPoint = null;
+        this._targetRotationPoint = null;
+        this._targetDragPoint = null;
     }
 }

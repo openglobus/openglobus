@@ -3,7 +3,7 @@ import {createEvents, EventsHandler} from '../../Events';
 import {CoordinatesType} from "../../entity/Geometry";
 import {Entity} from '../../entity/Entity';
 import {IMouseState} from "../../renderer/RendererEvents";
-import {MouseNavigation} from "../MouseNavigation";
+import {OldMouseNavigation} from "../OldMouseNavigation";
 import {LonLat} from '../../LonLat';
 import {Line3} from '../../math/Line3';
 import {Object3d} from '../../Object3d';
@@ -181,7 +181,7 @@ class PolygonDrawingScene extends RenderNode {
         this.showGhostPointer();
         this.startNewPoint();
 
-        (this._planet!.renderer!.controls.mouseNavigation as MouseNavigation).deactivateDoubleClickZoom();
+        (this._planet!.renderer!.controls.mouseNavigation as OldMouseNavigation).deactivateDoubleClickZoom();
 
         this._geometryLayer.addTo(this._planet!);
 
@@ -304,7 +304,7 @@ class PolygonDrawingScene extends RenderNode {
     }
 
     protected _onLup = (e: IMouseState) => {
-        (this._planet!.renderer!.controls.mouseNavigation as MouseNavigation).activate();
+        (this._planet!.renderer!.controls.mouseNavigation as OldMouseNavigation).activate();
         if (this._pickedCorner || this._pickedCenter) {
             this.events.dispatch(this.events.change, this);
             this.setGhostPointerPosition(this._planet!.getCartesianFromPixelTerrain(e)!);
@@ -315,7 +315,7 @@ class PolygonDrawingScene extends RenderNode {
     }
 
     protected _getLdown(e: IMouseState): Entity | null {
-        (this._planet!.renderer!.controls.mouseNavigation as MouseNavigation).deactivate();
+        (this._planet!.renderer!.controls.mouseNavigation as OldMouseNavigation).deactivate();
         this._startClick.set(e.x, e.y);
         let coords = e.pickingObject.getCartesian();
         this._startPos = this._planet!.getPixelFromCartesian(coords);
