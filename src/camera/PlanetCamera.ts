@@ -556,6 +556,8 @@ class PlanetCamera extends Camera {
         this._framesArr = [];
         this._framesCounter = -1;
         this._frameCallback = null;
+
+        this.planet.stopDragging();
     }
 
     /**

@@ -23,7 +23,6 @@ const globus = new Globe({
     layers: [new OpenStreetMap(), new Bing()],
     atmosphereEnabled: false,
     fontsSrc: "../../res/fonts",
-    controls: [new control.EarthNavigation()],
     sun: {
         stopped: false
     },

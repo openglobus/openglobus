@@ -3,7 +3,6 @@
 import {CompassButton} from "./control/CompassButton";
 import {Control} from "./control/Control";
 import {EarthCoordinates} from "./control/EarthCoordinates";
-import {EarthNavigation} from "./control/EarthNavigation";
 import {Ellipsoid} from "./ellipsoid/Ellipsoid";
 import {EmptyTerrain} from "./terrain/EmptyTerrain";
 import {Handler} from "./webgl/Handler";
@@ -45,7 +44,6 @@ export interface IGlobeParams {
     transitionOpacityEnabled?: boolean;
     terrain?: EmptyTerrain;
     controls?: Control[];
-    useEarthNavigation?: boolean;
     minSlope?: number;
     sun?: {
         active?: boolean;
@@ -274,7 +272,7 @@ class Globe {
         } else {
             this.planet.addControls([
                 new ZoomControl(),
-                options.useEarthNavigation ? new EarthNavigation() : new MouseNavigation({minSlope: options.minSlope}),
+                new MouseNavigation(),
                 new TouchNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),

@@ -1,5 +1,6 @@
 import { ray, Ray } from '../../src/math/Ray';
 import { Vec3 } from '../../src/math/Vec3';
+import { Plane } from '../../src/math/Plane';
 
 describe('Ray class', () => {
     test('methods', () => {
@@ -11,7 +12,7 @@ describe('Ray class', () => {
         expect(item.set(new Vec3(), new Vec3())).toBeTruthy();
         expect(item.getPoint(1000)).toBeTruthy();
         expect(item.hitTriangleRes(new Vec3(), new Vec3(), new Vec3(), new Vec3(), 1000)).toBeTruthy();
-        expect(item.hitPlaneRes(new Vec3(), new Vec3(), new Vec3(), new Vec3())).toBe(0);
+        expect(item.hitPlaneRes(new Plane(), new Vec3())).toBe(0);
         // expect(item.hitPlane(new Sphere(1, new Vec3()))).toBeTruthy();
         expect(item).toBeTruthy();
     });

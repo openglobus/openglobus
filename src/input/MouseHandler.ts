@@ -9,8 +9,17 @@ export interface MouseHandlerEvent {
 type MouseHandlerEventCallback = (sys: MouseEvent, event?: MouseHandlerEvent) => void;
 
 function _checkTouchPad(e: MouseEventExt): boolean {
+
     //@ts-ignore
-    return e.wheelDeltaY ? e.wheelDeltaY === -3 * e.deltaY : e.deltaMode === 0
+    if (e.deltaMode !== 0) {
+        return false;
+    }
+
+    //@ts-ignore
+    return Math.abs(e.deltaY) < 50;
+
+    //@ts-ignore
+    //return e.wheelDeltaY ? e.wheelDeltaY === -3 * e.deltaY : e.deltaMode === 0
 }
 
 class MouseHandler {

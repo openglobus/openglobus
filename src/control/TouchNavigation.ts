@@ -253,14 +253,14 @@ export class TouchNavigation extends Control {
 
                 let d = distanceToPointOnEarth * -(1 - scale);
                 cam.eye.addA(cam.getForward().scale(d));
-                cam.rotateAround(-deltaAngle, false, this.pointOnEarth, this.earthUp);
+                cam.rotateAround(-deltaAngle, false, this.pointOnEarth, this.earthUp!);
 
                 const panCur = t0.vec.add(t1.vec).scale(0.5);
                 const panPrev = t0.vecPrev.add(t1.vecPrev).scale(0.5);
                 const panOffset = panCur.sub(panPrev).scale(-1);
                 var l = 0.5 / distanceToPointOnEarth * cam._lonLat.height * math.RADIANS;
                 if (l > 0.003) l = 0.003;
-                cam.rotateHorizontal(l * -panOffset.x, false, this.pointOnEarth, this.earthUp);
+                cam.rotateHorizontal(l * -panOffset.x, false, this.pointOnEarth, this.earthUp!);
                 cam.rotateVertical(l * -panOffset.y, this.pointOnEarth);
 
                 cam.checkTerrainCollision();

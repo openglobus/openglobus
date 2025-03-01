@@ -154,7 +154,7 @@ export class SimpleNavigation extends Control {
             } else if (l < 0.003) {
                 l = 0.003;
             }
-            cam.rotateHorizontal(l * (e.x - e.prev_x), false, this._lookPos, this._up);
+            cam.rotateHorizontal(l * (e.x - e.prev_x), false, this._lookPos, this._up!);
             cam.rotateVertical(l * (e.y - e.prev_y), this._lookPos);
         }
     }
