@@ -129,7 +129,7 @@ export class Sun extends Control {
                 let pos = cam.eye.add(d);
 
                 if (this._k > 0) {
-                    this._k -= 0.01;
+                    this._k -= 0.001;
                     let rot = Quat.getRotationBetweenVectors(
                         this.sunlight._position.normal(),
                         pos.normal()
@@ -142,7 +142,7 @@ export class Sun extends Control {
             } else {
                 this._k = 1;
                 if (this._f > 0) {
-                    this._f -= 0.01;
+                    this._f -= 0.001;
                     let rot = Quat.getRotationBetweenVectors(
                         this.sunlight._position.normal(),
                         getSunPosition(this._currDate).normal()

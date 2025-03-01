@@ -432,6 +432,7 @@ export class EarthNavigation extends Control {
                 let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
                 if (this.fixedUp) {
                     cam.eye.copy(newEye);
+                    this._corrRoll();
                     cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
                 } else {
                     let rot = Quat.getRotationBetweenVectors(cam.eye.getNormal(), newEye.getNormal());
@@ -468,8 +469,6 @@ export class EarthNavigation extends Control {
             let d_v = this.vel.scaleTo(this.dt);
             let d_s = d_v.projToVec(cam.getForward().scale(velDir));
 
-
-            this._corrRoll();
             //let d_s = cam.getForward().scaleTo(velDir * d_v.length());
 
             // Braking tweak
@@ -502,8 +501,7 @@ export class EarthNavigation extends Control {
 
             if (this.fixedUp) {
 
-                console.log(this._curRoll);
-
+                this._corrRoll();
                 // restore camera direction
                 cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
 
