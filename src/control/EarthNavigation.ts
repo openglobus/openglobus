@@ -29,6 +29,9 @@ export class EarthNavigation extends Control {
     public vel_v: number;
     public mass: number;
 
+    public vel_roll: number;
+    public force_roll: number;
+
     protected _lookPos: Vec3 | undefined;
 
     protected _grabbedPoint: Vec3 | null;
@@ -94,6 +97,9 @@ export class EarthNavigation extends Control {
         this.vel = new Vec3();
         this.vel_h = 0;
         this.vel_v = 0;
+
+        this.vel_roll = 0;
+        this.force_roll = 0;
 
         this.mass = 1;
         this._velInertia = DEFAULT_VELINERTIA;
@@ -235,6 +241,10 @@ export class EarthNavigation extends Control {
             cam.rotateHorizontal(d_v_h, false, this._targetRotationPoint, this._tUp);
             cam.rotateVertical(d_v_v, this._targetRotationPoint, 0.1);
 
+            this._curPitch = cam.getPitch();
+            this._curYaw = cam.getYaw();
+            this._curRoll = cam.getRoll();
+
             this._velInertia = DEFAULT_VELINERTIA;
         }
     }
@@ -309,6 +319,8 @@ export class EarthNavigation extends Control {
             }
             let dist = this.planet.camera.eye.distance(this._targetZoomPoint) * scale;
             this.force = (e.direction.scale(Math.sign(this._wheelDirection))).normalize().scale(dist);
+
+            this.force_roll = this._curRoll;
         }
     }
 
@@ -435,6 +447,15 @@ export class EarthNavigation extends Control {
         }
     }
 
+    protected _corrRoll() {
+        if (this.planet!.camera.slope < 0.5) {
+            this._curRoll -= this.vel_roll * this.dt;
+            if (this._curRoll < 0.01 * Math.PI / 180) {
+                this._curRoll = 0.01 * Math.PI / 180;
+            }
+        }
+    }
+
     protected _handleZoom() {
         if (this._targetZoomPoint && this.vel.length() > 0.0) {
 
@@ -446,6 +467,9 @@ export class EarthNavigation extends Control {
             let velDir = Math.sign(this.vel.getNormal().dot(cam.getForward()));
             let d_v = this.vel.scaleTo(this.dt);
             let d_s = d_v.projToVec(cam.getForward().scale(velDir));
+
+
+            this._corrRoll();
             //let d_s = cam.getForward().scaleTo(velDir * d_v.length());
 
             // Braking tweak
@@ -477,6 +501,8 @@ export class EarthNavigation extends Control {
             cam.rotate(rot);
 
             if (this.fixedUp) {
+
+                console.log(this._curRoll);
 
                 // restore camera direction
                 cam.setPitchYawRoll(this._curPitch, this._curYaw, this._curRoll);
@@ -515,6 +541,7 @@ export class EarthNavigation extends Control {
 
         this._updateVel_h();
         this._updateVel_v();
+        this._updateVel_roll();
     }
 
     protected _updateVel_h() {
@@ -531,6 +558,12 @@ export class EarthNavigation extends Control {
         this.force_v = 0;
     }
 
+    protected _updateVel_roll() {
+        let acc = this.force_roll / this.mass;
+        this.vel_roll += acc;
+        this.vel_roll *= this._velInertia;
+        this.force_roll = 0;
+    }
 
     protected get dt(): number {
         return 0.001 * this.renderer!.handler.deltaTime;
