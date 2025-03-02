@@ -22,6 +22,6 @@
     "skipLibCheck" : true,
     "isolatedModules" : true,
     "outDir" : "lib/js",
-    "verbatimModuleSyntax" : true
+    "verbatimModuleSyntax" : false
   }
 }
