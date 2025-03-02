@@ -1,5 +1,4 @@
-// #StandWithUkraine
-
+// #StandWith
 import {CompassButton} from "./control/CompassButton";
 import {Control} from "./control/Control";
 import {EarthCoordinates} from "./control/EarthCoordinates";
