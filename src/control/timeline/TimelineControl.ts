@@ -1,6 +1,6 @@
 import {Dialog} from "../../ui/Dialog";
 import {ToggleButton} from "../../ui/ToggleButton";
-import {Control, IControlParams} from '../Control';
+import {Control, type IControlParams} from '../Control';
 import {TimelineView} from './TimelineView';
 
 interface ITimelineControlParams extends IControlParams {

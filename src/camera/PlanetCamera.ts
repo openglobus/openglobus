@@ -1,6 +1,6 @@
 import * as mercator from "../mercator";
 import * as math from "../math";
-import {Camera, ICameraParams} from "./Camera";
+import {Camera, type ICameraParams} from "./Camera";
 import {Key} from "../Lock";
 import {LonLat} from "../LonLat";
 import {Mat4} from "../math/Mat4";
@@ -10,7 +10,7 @@ import {Ray} from "../math/Ray";
 import {Vec3} from "../math/Vec3";
 import {Extent} from "../Extent";
 import {Segment} from "../segment/Segment";
-import {DEGREES, RADIANS} from "../math";
+import {RADIANS} from "../math";
 
 interface IPlanetCameraParams extends ICameraParams {
     minAltitude?: number;

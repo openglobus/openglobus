@@ -1,4 +1,4 @@
-import {Dialog, IDialogParams} from "../../ui/Dialog";
+import {Dialog, type IDialogParams} from "../../ui/Dialog";
 import {GeoObjectEditorScene} from "./GeoObjectEditorScene";
 import {Entity} from "../../entity/Entity";
 import {Input} from "../../ui/Input";

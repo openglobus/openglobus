@@ -1,5 +1,4 @@
-// #StandWithUkraine
-
+// #StandWith
 import {CompassButton} from "./control/CompassButton";
 import {Control} from "./control/Control";
 import {EarthCoordinates} from "./control/EarthCoordinates";
@@ -9,17 +8,18 @@ import {Handler} from "./webgl/Handler";
 import {isEmpty} from "./utils/shared";
 import {Layer} from "./layer/Layer";
 import {MouseNavigation} from "./control/MouseNavigation";
-import {NumberArray2} from "./math/Vec2";
-import {NumberArray4} from "./math/Vec4";
+import type {NumberArray2} from "./math/Vec2";
+import type {NumberArray4} from "./math/Vec4";
 import {Planet} from "./scene/Planet";
 import {ScaleControl} from "./control/ScaleControl";
 import {Sun} from "./control/Sun";
 import {TouchNavigation} from "./control/TouchNavigation";
-import {HTMLDivElementExt, Renderer} from "./renderer/Renderer";
+import {Renderer} from "./renderer/Renderer";
+import type {HTMLDivElementExt} from "./renderer/Renderer";
 import {RenderNode} from "./scene/RenderNode";
 import {ZoomControl} from "./control/ZoomControl";
 import {Extent} from "./Extent";
-import {IAtmosphereParams} from "./control/Atmosphere";
+import type {IAtmosphereParams} from "./control/Atmosphere";
 
 export interface IGlobeParams {
     attributionContainer?: HTMLElement;
@@ -68,6 +68,11 @@ const DEFAULT_RESOURCES_SRC = '/res';
 const PLANET_NAME_PREFIX = "globus_planet_";
 
 /**
+ * @typedef {Array<number>} LonLatCoordinate
+ * @typedef {Array<LonLatCoordinate>} ExtentBoundingBox
+ */
+
+/**
  * Creates a WebGL context with globe.
  * @class
  *
@@ -98,7 +103,7 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  * @param {EmptyTerrain} [options.terrain] - Terrain provider. Default no terrain - og.terrain.EmptyTerrain.
  * @param {Array.<Control>} [options.controls] - Renderer controls array.
  * @param {Array.<Layer>} [options.layers] - Planet layers.
- * @param {Extent| [[number, number],[number, number]]} [options.viewExtent] - Viewable starting extent.
+ * @param {Extent | ExtentBoundingBox} [options.viewExtent] [options.viewExtent] - Viewable starting extent.
  * @param {boolean} [options.autoActivate=true] - Globe rendering auto activation flag. True is default.
  * @param {HTMLElement} [options.attributionContainer] - Container for attribution list.
  * @param {number} [options.maxGridSize=128] = Maximal segment grid size. 128 is default

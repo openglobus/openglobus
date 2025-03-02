@@ -1,4 +1,5 @@
-import {Control, IControlParams} from "./Control";
+import {Control} from "./Control";
+import type {IControlParams} from "./Control";
 import {Dialog} from '../ui/Dialog';
 import {Layer} from "../layer/Layer";
 import {Slider} from "../ui/Slider";

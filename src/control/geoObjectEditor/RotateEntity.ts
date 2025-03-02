@@ -1,4 +1,4 @@
-import {Entity, IEntityParams} from "../../entity/Entity";
+import {Entity, type IEntityParams} from "../../entity/Entity";
 import {Vec3} from "../../math/Vec3";
 import {RADIANS} from "../../math";
 import {Quat} from "../../math/Quat";

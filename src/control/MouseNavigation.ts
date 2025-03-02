@@ -1,5 +1,6 @@
-import {Control, IControlParams} from "./Control";
-import {IMouseState} from "../renderer/RendererEvents";
+import {Control} from "./Control";
+import type {IControlParams} from "./Control";
+import type {IMouseState} from "../renderer/RendererEvents";
 import {Quat} from "../math/Quat";
 import {Ray} from "../math/Ray";
 import {Sphere} from "../bv/Sphere";

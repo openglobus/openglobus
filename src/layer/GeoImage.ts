@@ -1,5 +1,6 @@
 import {nextHighestPowerOfTwo} from "../math";
-import {BaseGeoImage, IBaseGeoImageParams} from "./BaseGeoImage";
+import {BaseGeoImage} from "./BaseGeoImage";
+import type {IBaseGeoImageParams} from "./BaseGeoImage";
 import {isImageLoaded} from "../utils/shared";
 import {Material} from "./Material";
 

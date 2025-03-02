@@ -1,5 +1,6 @@
 import {input} from "../input/input";
-import {Control, IControlParams} from "./Control";
+import {Control} from "./Control";
+import type {IControlParams} from "./Control";
 
 interface IToggleWireframe extends IControlParams {
     isActive?: boolean;

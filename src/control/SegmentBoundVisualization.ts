@@ -1,6 +1,7 @@
 import {Entity} from "../entity/Entity";
 import {EntityCollection} from "../entity/EntityCollection";
-import {Control, IControlParams} from "./Control";
+import {Control} from "./Control";
+import type {IControlParams} from "./Control";
 import {Segment} from '../segment/Segment';
 
 interface SegmentExt extends Segment {

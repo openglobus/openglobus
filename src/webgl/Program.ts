@@ -1,7 +1,8 @@
 import {cons} from "../cons";
-import {ProgramVariable, variableHandlers} from "./variableHandlers";
+import type {ProgramVariable} from "./variableHandlers";
+import {variableHandlers} from "./variableHandlers";
 import {types, typeStr} from "./types";
-import {WebGLBufferExt} from "./Handler";
+import type {WebGLBufferExt} from "./Handler";
 
 const itemTypes: string[] = ["BYTE", "SHORT", "UNSIGNED_BYTE", "UNSIGNED_SHORT", "FLOAT", "HALF_FLOAT"];
 

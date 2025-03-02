@@ -5,7 +5,8 @@ import {Planet} from "../scene/Planet";
 import {Program} from "../webgl/Program";
 import {QueueArray} from "../QueueArray";
 import {Segment} from "../segment/Segment";
-import {WebGLBufferExt, WebGLTextureExt, Handler} from "../webgl/Handler";
+import {Handler} from "../webgl/Handler";
+import type {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
 
 interface INormalMapCreatorParams {
     minTableSize?: number;

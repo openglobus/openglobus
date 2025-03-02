@@ -1,5 +1,6 @@
 import * as math from "../math";
-import {Control, IControlParams} from "./Control";
+import {Control} from "./Control";
+import type {IControlParams} from "./Control";
 import {input} from "../input/input";
 import {Key} from "../Lock";
 import {LonLat} from "../LonLat";
@@ -11,7 +12,7 @@ import {Vec3} from "../math/Vec3";
 import {Vec2} from "../math/Vec2";
 import {Planet} from "../scene/Planet";
 import {PlanetCamera} from "../camera/PlanetCamera";
-import {IMouseState} from "../renderer/RendererEvents";
+import type {IMouseState} from "../renderer/RendererEvents";
 import {Plane} from "../math/Plane";
 
 export interface IStepForward {

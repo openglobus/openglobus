@@ -1,4 +1,4 @@
-import {Entity, IEntityParams} from "../../entity/Entity";
+import {Entity, type IEntityParams} from "../../entity/Entity";
 import {Object3d} from "../../Object3d";
 import {SEL_XZ_COLOR, XZ_COLOR} from "./colors";
 

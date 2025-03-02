@@ -2,10 +2,9 @@ import {Extent} from "../Extent";
 import {Node} from "../quadTree/Node";
 import {Planet} from "../scene/Planet";
 import {SegmentLonLat} from "./SegmentLonLat";
-import {getTileCellIndex, TILEGROUP_COMMON, TILEGROUP_NORTH} from "./Segment";
+import {getTileCellIndex, TILEGROUP_COMMON} from "./Segment";
 import {equi} from "../proj/equi";
-import * as mercator from "../mercator";
-import {WebGLTextureExt} from "../webgl/Handler";
+import type {WebGLTextureExt} from "../webgl/Handler";
 
 const MAX_POLE_ZOOM = 5;
 export const POLE_PIECE_SIZE = 5 / Math.pow(2, MAX_POLE_ZOOM);

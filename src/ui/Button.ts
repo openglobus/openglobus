@@ -1,6 +1,7 @@
 import {stringTemplate} from '../utils/shared';
-import {IViewParams, View, ViewEventsList} from './View';
-import {EventsHandler} from "../Events";
+import {View} from './View';
+import type {IViewParams, ViewEventsList} from './View';
+import type {EventsHandler} from "../Events";
 
 const TEMPLATE =
     `<div class="og-button" title="{title}">

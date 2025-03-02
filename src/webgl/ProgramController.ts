@@ -1,4 +1,5 @@
-import {Handler, WebGLBufferExt} from "./Handler";
+import {Handler} from "./Handler";
+import type {WebGLBufferExt} from "./Handler";
 import {Program} from "./Program";
 
 /**

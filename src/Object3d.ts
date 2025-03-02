@@ -1,8 +1,11 @@
-import {htmlColorToFloat32Array, TypedArray} from './utils/shared';
-import {NumberArray3, Vec3} from './math/Vec3';
-import {DEGREES, DEGREES_DOUBLE, MAX, MIN, RADIANS_HALF} from './math';
+import {htmlColorToFloat32Array} from './utils/shared';
+import type {TypedArray} from './utils/shared';
+import {Vec3} from './math/Vec3';
+import type {NumberArray3} from './math/Vec3';
+import {DEGREES_DOUBLE, MAX, MIN, RADIANS_HALF} from './math';
 import {Mat4} from "./math/Mat4";
-import {IObjGeometry, Obj} from "./utils/objParser";
+import {Obj} from "./utils/objParser";
+import type {IObjGeometry} from "./utils/objParser";
 
 function getColor(color?: number[] | TypedArray | string): Float32Array {
     if (color instanceof Array) {

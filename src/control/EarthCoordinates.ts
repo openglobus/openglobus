@@ -1,9 +1,9 @@
 import * as units from '../utils/units';
-import {Control, IControlParams} from './Control';
+import {Control, type IControlParams} from './Control';
 import {heightMode} from '../utils/units';
 import {LonLat} from '../LonLat';
 import {throttle} from '../utils/shared';
-import {IMouseState} from "../renderer/RendererEvents";
+import type {IMouseState} from "../renderer/RendererEvents";
 
 interface IEarthCoordinatesParams extends IControlParams {
     heightMode?: string;

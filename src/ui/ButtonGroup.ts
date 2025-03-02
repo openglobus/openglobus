@@ -1,5 +1,6 @@
 import {ToggleButton} from "./ToggleButton";
-import {createEvents, EventsHandler} from '../Events';
+import {createEvents} from '../Events';
+import type {EventsHandler} from '../Events';
 
 interface IButtonGroupParams {
     buttons?: ToggleButton[];

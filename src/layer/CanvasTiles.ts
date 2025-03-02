@@ -1,8 +1,9 @@
 import * as quadTree from "../quadTree/quadTree";
-import {EventCallback, EventsHandler} from "../Events";
-import {ILayerParams, Layer, LayerEventsList} from "./Layer";
+import type {EventCallback, EventsHandler} from "../Events";
+import {Layer} from "./Layer";
+import type {ILayerParams, LayerEventsList} from "./Layer";
 import {Material} from "../layer/Material";
-import {NumberArray4} from "../math/Vec4";
+import type {NumberArray4} from "../math/Vec4";
 import {Planet} from "../scene/Planet";
 
 type ApplyImageFunc = (material: HTMLCanvasElement | ImageBitmap | HTMLImageElement) => void;

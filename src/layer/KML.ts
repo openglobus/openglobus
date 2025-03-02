@@ -1,9 +1,11 @@
-import {Billboard, IBillboardParams} from "../entity/Billboard";
+import {Billboard} from "../entity/Billboard";
+import type {IBillboardParams} from "../entity/Billboard";
 import {Entity} from "../entity/Entity";
 import {Extent} from "../Extent";
 import {LonLat} from "../LonLat";
-import {Vector, IVectorParams} from "./Vector";
-import {NumberArray3} from "../math/Vec3";
+import {Vector} from "./Vector";
+import type {IVectorParams} from "./Vector";
+import type {NumberArray3} from "../math/Vec3";
 
 interface IKMLParams extends IVectorParams {
     color?: string;
@@ -62,7 +64,7 @@ export class KML extends Vector {
 
     /**
      * @protected
-     returns array of longitude, latitude, altitude (altitude optional)
+     * @returns array of longitude, latitude, altitude (altitude optional)
      */
     protected _parseKMLcoordinates(coords: Element): number[][] {
         const coordinates = coords.innerHTML.trim()

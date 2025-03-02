@@ -1,6 +1,8 @@
 import * as utils from "../utils/shared";
-import {NumberArray3, Vec3} from "../math/Vec3";
-import {NumberArray4, Vec4} from "../math/Vec4";
+import {Vec3} from "../math/Vec3";
+import {Vec4} from "../math/Vec4";
+import type {NumberArray3} from "../math/Vec3";
+import type {NumberArray4} from "../math/Vec4";
 import {Entity} from "./Entity";
 import {RayHandler} from "./RayHandler";
 
@@ -76,6 +78,7 @@ class Ray {
      * @type {number}
      */
     public _handlerIndex: number;
+
     constructor(options: IRayParams = {}) {
 
         this.__id = Ray.__counter__++;

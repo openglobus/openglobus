@@ -1,23 +1,34 @@
 import * as mercator from "../mercator";
 import * as utils from "../utils/shared";
-import {Billboard, IBillboardParams} from "./Billboard";
-import {EntityCollection, EntityCollectionEvents} from "./EntityCollection";
+import {Billboard} from "./Billboard";
+import {EntityCollection} from "./EntityCollection";
+import type {IBillboardParams} from "./Billboard";
+import type {EntityCollectionEvents} from "./EntityCollection";
 import {Extent} from "../Extent";
-import {Geometry, IGeometryParams} from "./Geometry";
-import {GeoObject, IGeoObjectParams} from "./GeoObject";
+import {Geometry} from "./Geometry";
+import {GeoObject} from "./GeoObject";
+import type {IGeometryParams} from "./Geometry";
+import type {IGeoObjectParams} from "./GeoObject";
 import {LonLat} from "../LonLat";
-import {Label, ILabelParams} from "./Label";
-import {NumberArray3, Vec3} from "../math/Vec3";
-import {NumberArray2} from "../math/Vec2";
+import {Label} from "./Label";
+import type {ILabelParams} from "./Label";
+import {Vec3} from "../math/Vec3";
+import type {NumberArray3} from "../math/Vec3";
+import type {NumberArray2} from "../math/Vec2";
 import {Planet} from "../scene/Planet";
-import {IPointCloudParams, PointCloud} from "./PointCloud";
-import {IPolylineParams, Polyline} from "./Polyline";
-import {IRayParams, Ray} from "./Ray";
-import {Strip, IStripParams} from "./Strip";
-import {Vector, VectorEventsType} from "../layer/Vector";
+import {PointCloud} from "./PointCloud";
+import {Polyline} from "./Polyline";
+import type {IPointCloudParams} from "./PointCloud";
+import type {IPolylineParams} from "./Polyline";
+import {Ray} from "./Ray";
+import type {IRayParams} from "./Ray";
+import {Strip} from "./Strip";
+import type {IStripParams} from "./Strip";
+import {Vector} from "../layer/Vector";
+import type {VectorEventsType} from "../layer/Vector";
 import {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
 import {Quat} from "../math/Quat";
-import {RADIANS, clamp, DEGREES} from "../math";
+import {clamp} from "../math";
 
 /**
  * Interface for Entity parameters.

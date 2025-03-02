@@ -1,5 +1,4 @@
 import * as mercator from "../mercator";
-import * as quadTree from "../quadTree/quadTree";
 import {EPSG4326} from "../proj/EPSG4326";
 import {Extent} from "../Extent";
 import {Layer} from "../layer/Layer";
@@ -9,7 +8,7 @@ import {getTileCellIndex, Segment, TILEGROUP_NORTH, TILEGROUP_SOUTH} from "./Seg
 import {LonLat} from "../LonLat";
 import {Entity} from "../entity/Entity";
 import {PlanetCamera} from "../camera/PlanetCamera";
-import {WebGLTextureExt} from "../webgl/Handler";
+import type {WebGLTextureExt} from "../webgl/Handler";
 
 const MAX_POLE_ZOOM = 7;
 export const POLE_PIECE_SIZE = (90.0 - mercator.MAX_LAT) / Math.pow(2, MAX_POLE_ZOOM);

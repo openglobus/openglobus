@@ -5,9 +5,11 @@
 import {Extent} from "../Extent";
 import {LonLat} from "../LonLat";
 import {Vec2} from "../math/Vec2";
-import {NumberArray2} from "../math/Vec2";
-import {NumberArray3, Vec3} from "../math/Vec3";
-import {NumberArray4, Vec4} from "../math/Vec4";
+import type {NumberArray2} from "../math/Vec2";
+import {Vec3} from "../math/Vec3";
+import type {NumberArray3} from "../math/Vec3";
+import {Vec4} from "../math/Vec4";
+import type {NumberArray4} from "../math/Vec4";
 import {colorTable} from "./colorTable";
 import {Ellipsoid} from "../ellipsoid/Ellipsoid";
 import {wgs84} from "../ellipsoid/wgs84";

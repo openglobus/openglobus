@@ -2,7 +2,7 @@ import {Deferred} from '../Deferred';
 import {Rectangle} from '../Rectangle';
 import {TextureAtlas, TextureAtlasNode} from './TextureAtlas';
 import {Handler} from "../webgl/Handler";
-import {HTMLImageElementExt} from "./ImagesCacheManager";
+import type {HTMLImageElementExt} from "./ImagesCacheManager";
 
 //@todo: get the value from shader module
 const MAX_SIZE = 11;

@@ -1,4 +1,4 @@
-import {Entity, IEntityParams} from "../../entity/Entity";
+import {Entity, type IEntityParams} from "../../entity/Entity";
 import {X_COLOR} from "./colors";
 import {Object3d} from "../../Object3d";
 import {Vec3} from "../../math/Vec3";

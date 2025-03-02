@@ -2,10 +2,12 @@ import * as utils from "../utils/shared";
 import {Entity} from "./Entity";
 import {Line3} from "../math/Line3";
 import {RenderNode} from "../scene/RenderNode";
-import {NumberArray3, Vec3} from "../math/Vec3";
-import {NumberArray4, Vec4} from "../math/Vec4";
+import {Vec3} from "../math/Vec3";
+import {Vec4} from "../math/Vec4";
+import type {NumberArray3} from "../math/Vec3";
+import type {NumberArray4} from "../math/Vec4";
 import {StripHandler} from "./StripHandler";
-import {WebGLBufferExt} from "../webgl/Handler";
+import type {WebGLBufferExt} from "../webgl/Handler";
 
 type TPoiExt = Vec3 | NumberArray3;
 type TStripExt = [TPoiExt, TPoiExt];

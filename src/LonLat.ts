@@ -1,6 +1,6 @@
 import * as mercator from "./mercator";
-import {NumberArray2} from "./math/Vec2";
-import {NumberArray3} from "./math/Vec3";
+import type {NumberArray2} from "./math/Vec2";
+import type {NumberArray3} from "./math/Vec3";
 
 const HALF_PI = Math.PI * 0.5;
 const INV_PI_BY_180 = 180.0 / Math.PI;

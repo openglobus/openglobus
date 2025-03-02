@@ -1,6 +1,6 @@
 import {Box} from "../bv/Box";
-import {Mat4, NumberArray16} from "../math/Mat4";
-import {NumberArray4} from "../math/Vec4";
+import {Mat4, type NumberArray16} from "../math/Mat4";
+import type {NumberArray4} from "../math/Vec4";
 import {Sphere} from "../bv/Sphere";
 import {Vec3} from "../math/Vec3";
 import {RADIANS_HALF} from "../math";

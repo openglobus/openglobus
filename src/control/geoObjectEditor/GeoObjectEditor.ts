@@ -1,4 +1,4 @@
-import {Control, IControlParams} from "../Control";
+import {Control, type IControlParams} from "../Control";
 import {GeoObjectEditorScene} from "./GeoObjectEditorScene";
 import {GeoObjectPropertiesDialog} from "./GeoObjectEditorDialog";
 import {CameraLock} from "../CameraLock";

@@ -1,11 +1,15 @@
-import {Events, EventsHandler, EventCallback} from "../Events";
+import {Events} from "../Events";
+import type {EventsHandler, EventCallback} from "../Events";
 import {input} from "../input/input";
 import {KeyboardHandler} from "../input/KeyboardHandler";
-import {MouseHandler, MouseHandlerEvent, MouseEventExt} from "../input/MouseHandler";
+import {MouseHandler} from "../input/MouseHandler";
+import type {MouseHandlerEvent, MouseEventExt} from "../input/MouseHandler";
 import {Renderer} from "./Renderer";
-import {TouchEventExt, TouchHandler} from "../input/TouchHandler";
+import {TouchHandler} from "../input/TouchHandler";
+import type {TouchEventExt} from "../input/TouchHandler";
 import {Vec2} from "../math/Vec2";
-import {NumberArray3, Vec3} from "../math/Vec3";
+import {Vec3} from "../math/Vec3";
+import type {NumberArray3} from "../math/Vec3";
 
 export type RendererEventsHandler = RendererEvents & EventsHandler<RendererEventsType>;
 
@@ -148,14 +152,14 @@ const NOTBLACK = (c: NumberArray3 | Uint8Array): boolean => !!(c[0] || c[1] || c
 
 /**
  * Stores current picking rgb color.
- * @type {Array.<number>} - (exactly 3 entries)
+ * @type {Array.<number>}
  */
 let _currPickingColor = new Uint8Array(4);
 let _tempCurrPickingColor = new Uint8Array(4);
 
 /**
  * Stores previous picked rgb color.
- * @type {Array.<number>} - (exactly 3 entries)
+ * @type {Array.<number>}
  */
 let _prevPickingColor = new Uint8Array(4);
 

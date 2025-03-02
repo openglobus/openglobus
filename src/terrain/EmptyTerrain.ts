@@ -1,4 +1,5 @@
-import {binarySearchFast, TypedArray} from "../utils/shared";
+import {binarySearchFast} from "../utils/shared";
+import type {TypedArray} from "../utils/shared";
 import {Geoid} from "./Geoid";
 import {LonLat} from "../LonLat";
 import {Planet} from "../scene/Planet";

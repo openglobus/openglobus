@@ -1,8 +1,8 @@
-import {AtmosphereParameters, COMMON, transmittance, scattering} from "../shaders/atmos";
+import {type AtmosphereParameters, COMMON, transmittance, scattering} from "../shaders/atmos";
 import {Framebuffer} from "../webgl/Framebuffer";
 import {Program} from '../webgl/Program';
-import {Control, IControlParams} from "./Control";
-import {NumberArray3} from '../math/Vec3';
+import {Control, type IControlParams} from "./Control";
+import type {NumberArray3} from '../math/Vec3';
 
 export interface IAtmosphereParams extends IControlParams {
     height?: number,

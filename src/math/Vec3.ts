@@ -1,6 +1,7 @@
 import {Quat} from "./Quat";
-import {Vec4, NumberArray4} from "./Vec4";
-import {NumberArray2} from "./Vec2";
+import {Vec4} from "./Vec4";
+import type {NumberArray4} from "./Vec4";
+import type {NumberArray2} from "./Vec2";
 
 export type NumberArray3 = [number, number, number];
 

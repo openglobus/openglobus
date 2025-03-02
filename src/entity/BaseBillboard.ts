@@ -1,9 +1,12 @@
 import * as utils from "../utils/shared";
 import {Entity} from "./Entity";
 import {LOCK_FREE, LOCK_UPDATE} from "./LabelWorker";
-import {NumberArray2, Vec2} from "../math/Vec2";
-import {NumberArray3, Vec3} from "../math/Vec3";
-import {NumberArray4, Vec4} from "../math/Vec4";
+import {Vec2} from "../math/Vec2";
+import {Vec3} from "../math/Vec3";
+import {Vec4} from "../math/Vec4";
+import type {NumberArray2} from "../math/Vec2";
+import type {NumberArray3} from "../math/Vec3";
+import type {NumberArray4} from "../math/Vec4";
 import {BaseBillboardHandler} from "./BaseBillboardHandler";
 
 export interface IBaseBillboardParams {

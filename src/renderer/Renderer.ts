@@ -1,12 +1,14 @@
 import {Camera} from "../camera/Camera";
 import {Control} from "../control/Control";
 import {cons} from "../cons";
-import {createRendererEvents, IBaseInputState, RendererEventsHandler} from "./RendererEvents";
+import {createRendererEvents} from "./RendererEvents";
+import type {IBaseInputState, RendererEventsHandler} from "./RendererEvents";
 import {depth} from "../shaders/depth";
 import {EntityCollection} from "../entity/EntityCollection";
 import {Framebuffer, Multisample} from "../webgl/index";
 import {FontAtlas} from "../utils/FontAtlas";
-import {Handler, WebGLBufferExt} from "../webgl/Handler";
+import {Handler} from "../webgl/Handler";
+import type {WebGLBufferExt} from "../webgl/Handler";
 import {input} from "../input/input";
 import {isEmpty} from "../utils/shared";
 import {LabelWorker} from "../entity/LabelWorker";
@@ -16,7 +18,8 @@ import {screenFrame} from "../shaders/screenFrame";
 import {toneMapping} from "../shaders/toneMapping";
 import {TextureAtlas} from "../utils/TextureAtlas";
 import {Vec2} from "../math/Vec2";
-import {NumberArray3, Vec3} from "../math/Vec3";
+import {Vec3} from "../math/Vec3";
+import type {NumberArray3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 
 interface IRendererParams {

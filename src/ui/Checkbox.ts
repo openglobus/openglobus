@@ -1,5 +1,6 @@
-import {EventsHandler} from "../Events";
-import {IViewParams, View, ViewEventsList} from './View';
+import type {EventsHandler} from "../Events";
+import {View} from './View';
+import type {IViewParams, ViewEventsList} from './View';
 import {stringTemplate, toFixedMax} from '../utils/shared';
 
 interface ICheckboxParams extends IViewParams {

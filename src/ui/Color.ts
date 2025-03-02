@@ -1,6 +1,6 @@
-import {clamp} from '../math';
-import {EventsHandler} from "../Events";
-import {IViewParams, View, ViewEventsList} from './View';
+import type {EventsHandler} from "../Events";
+import {View} from './View';
+import type {IViewParams, ViewEventsList} from './View';
 import {stringTemplate} from '../utils/shared';
 
 interface IColorParams extends IViewParams {

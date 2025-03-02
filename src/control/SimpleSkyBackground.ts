@@ -1,7 +1,8 @@
-import {Control, IControlParams} from "./Control";
+import {Control} from "./Control";
+import type {IControlParams} from "./Control";
 import {htmlColorToRgb, rgbToStringHTML} from "../utils/shared";
 import {Program} from '../webgl/Program';
-import {NumberArray3} from "../math/Vec3";
+import type {NumberArray3} from "../math/Vec3";
 
 interface ISimpleSkyBackgroundParams extends IControlParams {
 

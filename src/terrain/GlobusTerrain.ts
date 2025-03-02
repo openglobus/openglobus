@@ -1,10 +1,14 @@
 import * as mercator from "../mercator";
-import {createEvents, EventsHandler} from "../Events";
-import {createExtent, stringTemplate, TypedArray} from "../utils/shared";
-import {EmptyTerrain, IEmptyTerrainParams, UrlRewriteFunc} from "./EmptyTerrain";
+import {createEvents} from "../Events";
+import type {EventsHandler} from "../Events";
+import {createExtent, stringTemplate} from "../utils/shared";
+import type {TypedArray} from "../utils/shared";
+import {EmptyTerrain} from "./EmptyTerrain";
+import type {IEmptyTerrainParams, UrlRewriteFunc} from "./EmptyTerrain";
 import {Extent} from "../Extent";
 import {Layer} from "../layer/Layer";
-import {IResponse, Loader} from "../utils/Loader";
+import {Loader} from "../utils/Loader";
+import type {IResponse} from "../utils/Loader";
 import {LonLat} from "../LonLat";
 import {NOTRENDERING} from "../quadTree/quadTree";
 import {Segment, TILEGROUP_COMMON} from "../segment/Segment";
@@ -79,7 +83,7 @@ class GlobusTerrain extends EmptyTerrain {
     /**
      * Rewrites elevation storage url query.
      * @protected
-     * @type {Function} -
+     * @type {Function}
      */
     protected _urlRewriteCallback: UrlRewriteFunc | null;
 

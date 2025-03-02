@@ -1,8 +1,10 @@
-import {Control, IControlParams} from "./Control";
+import {Control} from "./Control";
+import type {IControlParams} from "./Control";
 import {Dialog} from "../ui/Dialog";
 import {Layer} from "../layer/Layer";
 import {ToggleButton} from "../ui/ToggleButton";
-import {IViewParams, View} from "../ui/View";
+import {View} from "../ui/View";
+import type {IViewParams} from "../ui/View";
 import {stringTemplate} from "../utils/shared";
 
 interface ILayerSwitcherParams extends IControlParams {

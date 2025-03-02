@@ -1,5 +1,5 @@
-import {Control, IControlParams} from "../Control";
-import {Dialog, IDialogParams} from "../../ui/Dialog";
+import {Control, type IControlParams} from "../Control";
+import {Dialog} from "../../ui/Dialog";
 import {View} from "../../ui/View";
 import {ToggleButton} from "../../ui/ToggleButton";
 import {ElevationProfileView} from "./ElevationProfileView";
@@ -8,7 +8,7 @@ import {OldMouseNavigation} from "../OldMouseNavigation";
 import {throttle} from "../../utils/shared";
 import {ElevationProfileButtonsView} from "./ElevationProfileButtonsView";
 import {PointListDialog} from "./PointListDialog";
-import {GroundItem, TrackItem} from "./ElevationProfile";
+import type {GroundItem, TrackItem} from "./ElevationProfile";
 import {ElevationProfileLegend} from "./ElevationProfileLegend";
 
 const TEMPLATE =
