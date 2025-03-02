@@ -1,11 +1,11 @@
 import {Entity} from '../../entity/Entity';
 import {LonLat} from "../../LonLat";
 import {Object3d} from "../../Object3d";
-import {RulerScene, IRulerSceneParams} from "../ruler/RulerScene";
+import {RulerScene, type IRulerSceneParams} from "../ruler/RulerScene";
 import {Vector} from "../../layer/Vector";
 import {Vec3} from "../../math/Vec3";
-import {ILabelParams} from "../../entity/Label";
-import {IRayParams} from "../../entity/Ray";
+import type {ILabelParams} from "../../entity/Label";
+import type {IRayParams} from "../../entity/Ray";
 
 let obj3d = Object3d.createCylinder(1.1, 0, 2, 6, 1, true, true, 0, 0, 0);
 

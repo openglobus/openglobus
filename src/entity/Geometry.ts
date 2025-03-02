@@ -3,9 +3,10 @@ import {Entity} from "./Entity";
 import {Extent} from "../Extent";
 import {GeometryHandler} from "./GeometryHandler";
 import {LonLat} from "../LonLat";
-import {NumberArray4, Vec4} from "../math/Vec4";
-import {NumberArray2} from "../math/Vec2";
-import {NumberArray3} from "../math/Vec3";
+import {Vec4} from "../math/Vec4";
+import type {NumberArray4} from "../math/Vec4";
+import type {NumberArray2} from "../math/Vec2";
+import type {NumberArray3} from "../math/Vec3";
 
 export enum GeometryTypeEnum {
     POINT = 1,
@@ -160,7 +161,7 @@ interface IGeometryStyleInternal {
 
 export interface IGeometryParams<T extends keyof typeof GeometryTypeEnum = keyof typeof GeometryTypeEnum> {
     type?: T;
-    coordinates?:  GeometryTypeToCoordinates[T];
+    coordinates?: GeometryTypeToCoordinates[T];
     style?: IGeometryStyle;
     visibility?: boolean;
 }

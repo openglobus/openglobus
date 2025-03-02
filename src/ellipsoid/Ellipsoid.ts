@@ -399,7 +399,7 @@ class Ellipsoid {
      * @param {LonLat} lonLat - Origin coordinates
      * @param {number} azimuth - View azimuth in degrees
      * @param {number} dist - Distance to the destination point coordinates in meters
-     * @returns {{ destination: LonLat; finalAzimuth: number }} - Destination point coordinates
+     * @returns {{destination: LonLat, finalAzimuth: number}} - Destination point coordinates
      */
     public direct(lonLat: LonLat, azimuth: number, dist: number): IDirectResult {
 

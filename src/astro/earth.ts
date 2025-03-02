@@ -3,7 +3,7 @@ import { Quat } from "../math/Quat";
 import { Vec3 } from "../math/Vec3";
 import * as astro from "./astro";
 import * as jd from "./jd";
-import {JulianDate} from "./jd";
+import type {JulianDate} from "./jd";
 
 /**
  * Returns Sun position in the geocentric coordinate system by the time.

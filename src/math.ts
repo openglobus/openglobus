@@ -370,11 +370,11 @@ export function solve_iteration_fixed(f: (x: number) => number, x0: number, maxI
  * Solve using iteration; terminate when error is below err or the maximum
  * number of iterations is reached. Used in Euler's equation(see og.orbit) solving.
  * @function
- * @param {(x: number) => number} f - Equation.
+ * @param {function(number): number} f - Equation.
  * @param {number} x0 - First approximation.
  * @param {number} err - Maximal accepted error value.
  * @param {number} maxIter - Maximum iterations.
- * @returns {number} -
+ * @returns {number} - The computed solution.
  */
 export function solve_iteration(f: (x: number) => number, x0: number, err: number, maxIter: number = 50): number {
     let x = 0;

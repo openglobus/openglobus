@@ -1,4 +1,4 @@
-import {Control, IControlParams} from "../Control";
+import {Control, type IControlParams} from "../Control";
 import {LineStringDrawingScene} from "./LineStringDrawingScene";
 import {PolygonDrawingScene} from "./PolygonDrawingScene";
 

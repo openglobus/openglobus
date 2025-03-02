@@ -1,4 +1,4 @@
-import {JulianDate, ONE_BY_SECONDS_PER_DAY, J2000} from "./jd";
+import {type JulianDate, ONE_BY_SECONDS_PER_DAY, J2000} from "./jd";
 
 /**
  * Angle between J2000 mean equator and the ecliptic plane.

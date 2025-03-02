@@ -1,10 +1,10 @@
-import {Control, IControlParams} from "./Control";
+import {Control, type IControlParams} from "./Control";
 import {LonLat} from "../LonLat";
 import {Quat} from "../math/Quat";
 import {Vec3} from "../math/Vec3";
-import {createEvents, EventsHandler} from "../Events";
+import {createEvents, type EventsHandler} from "../Events";
 import {Entity} from "../entity/Entity";
-import {IMouseState} from "../renderer/RendererEvents";
+import type {IMouseState} from "../renderer/RendererEvents";
 import {MouseNavigation} from "./MouseNavigation";
 import {Planet} from "../scene/Planet";
 import {input} from "../input/input";

@@ -1,5 +1,5 @@
 import * as math from "../math";
-import {NumberArray3, Vec3} from "./Vec3";
+import {Vec3} from "./Vec3";
 import {Mat4} from "./Mat4";
 import {Mat3} from "./Mat3";
 import {PI_TWO} from "../math";
@@ -488,9 +488,15 @@ export class Quat {
     }
 
     /**
+     * @typedef {Object} QuatAxisAngle
+     * @property {Vec3} axis - The rotation axis.
+     * @property {number} angle - The rotation angle in radians.
+     */
+
+    /**
      * Returns axis and angle of the current Quat.
      * @public
-     * @returns { axis: Vec3, angle: number } -
+     * @returns QuatAxisAngle -
      */
     public getAxisAngle(): { axis: Vec3, angle: number } {
         let x = this.x,

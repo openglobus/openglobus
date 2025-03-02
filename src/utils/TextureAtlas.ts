@@ -1,7 +1,9 @@
 import {ImageCanvas} from "../ImageCanvas";
 import {Rectangle} from "../Rectangle";
-import {ImagesCacheManager, HTMLImageElementExt, ImagesCacheManagerCallback} from "./ImagesCacheManager";
-import {Handler, WebGLTextureExt} from "../webgl/Handler";
+import {ImagesCacheManager} from "./ImagesCacheManager";
+import type {HTMLImageElementExt, ImagesCacheManagerCallback} from "./ImagesCacheManager";
+import {Handler} from "../webgl/Handler";
+import type {WebGLTextureExt} from "../webgl/Handler";
 
 /**
  * Texture atlas stores images in one texture. Each image has its own

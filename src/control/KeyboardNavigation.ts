@@ -1,5 +1,5 @@
 import * as math from "../math";
-import {Control, IControlParams} from "./Control";
+import {Control, type IControlParams} from "./Control";
 import {input} from "../input/input";
 import {Vec3} from "../math/Vec3";
 

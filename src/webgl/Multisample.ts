@@ -1,4 +1,5 @@
-import {BaseFramebuffer, IBaseFramebufferParams} from "./BaseFramebuffer";
+import {BaseFramebuffer} from "./BaseFramebuffer";
+import type {IBaseFramebufferParams} from "./BaseFramebuffer";
 import {Handler} from "./Handler";
 
 interface IMultisampleParams extends IBaseFramebufferParams {

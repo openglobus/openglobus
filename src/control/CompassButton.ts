@@ -1,5 +1,5 @@
 ﻿import {Button} from "../ui/Button";
-import {Control, IControlParams} from "./Control";
+import {Control, type IControlParams} from "./Control";
 
 const ICON_BUTTON_SVG = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg

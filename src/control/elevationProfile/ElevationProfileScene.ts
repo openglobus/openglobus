@@ -1,5 +1,5 @@
 import {Entity} from '../../entity/Entity';
-import {createEvents, EventsHandler} from '../../Events';
+import {createEvents, type EventsHandler} from '../../Events';
 import {LonLat} from "../../LonLat";
 import {Extent} from "../../Extent";
 import {Object3d} from '../../Object3d';
@@ -8,11 +8,11 @@ import {RenderNode} from '../../scene/RenderNode';
 import {Vector} from '../../layer/Vector';
 import {Vec2} from '../../math/Vec2';
 import {Vec3} from '../../math/Vec3';
-import {IMouseState} from "../../renderer/RendererEvents";
+import type {IMouseState} from "../../renderer/RendererEvents";
 import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
-import {ILabelParams} from "../../entity/Label";
-import {IRayParams} from "../../entity/Ray";
-import {IBillboardParams} from "../../entity/Billboard";
+import type {ILabelParams} from "../../entity/Label";
+import type {IRayParams} from "../../entity/Ray";
+import type {IBillboardParams} from "../../entity/Billboard";
 import {Ray} from "../../math/Ray";
 import {Plane} from "../../math/Plane";
 

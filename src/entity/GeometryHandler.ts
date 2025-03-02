@@ -1,22 +1,25 @@
 import * as mercator from "../mercator";
 import * as quadTree from "../quadTree/quadTree";
 import {Extent} from "../Extent";
-import {Handler, WebGLBufferExt} from "../webgl/Handler";
+import {Handler} from "../webgl/Handler";
+import type {WebGLBufferExt} from "../webgl/Handler";
 import {doubleToTwoFloatsV2} from "../math/coder";
 import {Vector} from "../layer/Vector";
-import {NumberArray2, Vec2} from "../math/Vec2";
+import {Vec2} from "../math/Vec2";
+import type {NumberArray2} from "../math/Vec2";
 import {Node} from "../quadTree/Node";
 import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
-import {
+import type {
     CoordinatesType,
     Geometry,
-    GeometryTypeEnum,
     ILineStringCoordinates,
     IMultiLineStringCoordinates,
     IMultiPolygonCoordinates,
     IPolygonCoordinates
 } from "./Geometry";
+
+import {GeometryTypeEnum} from "./Geometry";
 
 import {earcut, flatten} from "../utils/earcut";
 

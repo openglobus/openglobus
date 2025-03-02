@@ -5,7 +5,8 @@ import {LonLat} from "../../LonLat";
 import {NE, NW, SE, SW} from "../quadTree";
 import {Entity} from "../../entity/Entity";
 import {EntityCollection} from "../../entity/EntityCollection";
-import {EntityCollectionNode, NodesDict} from "../EntityCollectionNode";
+import {EntityCollectionNode} from "../EntityCollectionNode";
+import type {NodesDict} from "../EntityCollectionNode";
 import {EquiEntityCollectionsTreeStrategy} from "./EquiEntityCollectionsTreeStrategy";
 
 export class EquiEntityCollectionNodeLonLat extends EntityCollectionNode {

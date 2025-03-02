@@ -1,16 +1,21 @@
-import {EventsHandler} from "../../Events";
-import {IViewParams, View, ViewEventsList} from '../../ui/View';
+import type {EventsHandler} from "../../Events";
+import {View} from '../../ui/View';
+import type {IViewParams, ViewEventsList} from '../../ui/View';
 import {
     SAFE,
     WARNING,
     COLLISION,
     ElevationProfile,
+} from './ElevationProfile';
+
+import type {
     ElevationProfileDrawData,
     GroundItem,
     TrackItem
 } from './ElevationProfile';
+
 import {distanceFormatExt, binarySearch} from "../../utils/shared";
-import {MouseEventExt} from "../../input/MouseHandler";
+import type {MouseEventExt} from "../../input/MouseHandler";
 
 const FILL_COLOR = "rgb(63, 63, 63)";
 const TRACK_COLOR = "rgb(0, 255, 50)";

@@ -1,12 +1,14 @@
 import * as math from "../math";
 import {BillboardHandler} from "./BillboardHandler";
-import {createEvents, EventsHandler} from "../Events";
+import {createEvents} from "../Events";
+import type {EventsHandler} from "../Events";
 import {Entity} from "./Entity";
 import {Ellipsoid} from "../ellipsoid/Ellipsoid";
 import {EntityCollectionNode} from "../quadTree/EntityCollectionNode";
 import {GeoObjectHandler} from "./GeoObjectHandler";
 import {LabelHandler} from "./LabelHandler";
-import {Vec3, NumberArray3} from "../math/Vec3";
+import {Vec3} from "../math/Vec3";
+import type {NumberArray3} from "../math/Vec3";
 import {Planet} from "../scene/Planet";
 import {PointCloudHandler} from "./PointCloudHandler";
 import {PolylineHandler} from "./PolylineHandler";
@@ -171,7 +173,7 @@ class EntityCollection {
      * Second index - far distance to the entity, when entity becomes zero scale.
      * Third index - far distance to the entity, when entity becomes invisible.
      * @public
-     * @type {Array.<number>} - (exactly 3 entries)
+     * @type {Array.<number>}
      */
     public scaleByDistance: NumberArray3;
 

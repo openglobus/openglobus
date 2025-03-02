@@ -1,12 +1,13 @@
 import * as mercator from "../mercator";
-import {Layer, ILayerParams, LayerEventsList} from "./Layer";
+import {Layer} from "./Layer";
+import type {ILayerParams, LayerEventsList} from "./Layer";
 import {RENDERING} from "../quadTree/quadTree";
 import {Segment} from "../segment/Segment";
 import {stringTemplate} from "../utils/shared";
-import {EventsHandler} from "../Events";
+import type {EventsHandler} from "../Events";
 import {Material} from "./Material";
-import {NumberArray4} from "../math/Vec4";
-import {IResponse} from "../utils/Loader";
+import type {NumberArray4} from "../math/Vec4";
+import type {IResponse} from "../utils/Loader";
 
 export interface IXYZParams extends ILayerParams {
     url?: string;

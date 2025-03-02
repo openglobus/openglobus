@@ -1,5 +1,4 @@
-import {IViewParams, View, ViewEventsList} from '../../ui/View';
-import {ElevationProfile} from "./ElevationProfile";
+import {type IViewParams, View} from '../../ui/View';
 import {distanceFormatExt} from "../../utils/shared";
 
 const TEMPLATE =

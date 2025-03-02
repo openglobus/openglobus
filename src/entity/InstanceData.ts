@@ -1,6 +1,7 @@
 import {GeoObject} from "./GeoObject";
-import {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
-import {makeArrayTyped, TypedArray} from "../utils/shared";
+import type {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
+import {makeArrayTyped} from "../utils/shared";
+import type {TypedArray} from "../utils/shared";
 import {Program} from "../webgl/Program";
 import {GeoObjectHandler} from "./GeoObjectHandler";
 import {

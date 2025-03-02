@@ -1,6 +1,6 @@
 import * as shaders from '../shaders/skybox';
 import {RenderNode} from './RenderNode';
-import {WebGLBufferExt, WebGLTextureExt, Texture3DParams} from "../webgl/Handler";
+import type {WebGLBufferExt, WebGLTextureExt, Texture3DParams} from "../webgl/Handler";
 
 class SkyBox extends RenderNode {
 

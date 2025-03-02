@@ -1,4 +1,4 @@
-import {Ruler, IRulerParams} from "../ruler/Ruler";
+import {Ruler, type IRulerParams} from "../ruler/Ruler";
 import {HeightRulerScene} from "./HeightRulerScene";
 
 interface IHeightRulerParams extends IRulerParams {

@@ -20,7 +20,8 @@
     "forceConsistentCasingInFileNames" : true,
     "strict" : true,
     "skipLibCheck" : true,
-    "isolatedModules": true,
-    "outDir" : "lib/js"
+    "isolatedModules" : true,
+    "outDir" : "lib/js",
+    "verbatimModuleSyntax" : true
   }
 }

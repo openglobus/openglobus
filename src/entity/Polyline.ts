@@ -1,22 +1,23 @@
 import {Entity} from "./Entity";
 import {Extent} from "../Extent";
 import {LonLat} from "../LonLat";
-import {NumberArray3, Vec3} from "../math/Vec3";
-import {NumberArray2} from "../math/Vec2";
-import {NumberArray4} from "../math/Vec4";
+import {Vec3} from "../math/Vec3";
+import type {NumberArray3} from "../math/Vec3";
+import type {NumberArray2} from "../math/Vec2";
+import type {NumberArray4} from "../math/Vec4";
 import {Planet} from "../scene/Planet";
 import {PolylineHandler} from "./PolylineHandler";
 import {RenderNode} from "../scene/RenderNode";
-import {WebGLBufferExt} from "../webgl/Handler";
+import type {WebGLBufferExt} from "../webgl/Handler";
 import {
     cloneArray,
     createVector3,
     htmlColorToFloat32Array,
     htmlColorToRgba,
     makeArray,
-    makeArrayTyped,
-    TypedArray
+    makeArrayTyped
 } from "../utils/shared";
+import type {TypedArray} from "../utils/shared";
 import {Ellipsoid} from "../ellipsoid/Ellipsoid";
 
 const VERTICES_BUFFER = 0;
@@ -94,7 +95,7 @@ class Polyline {
     /**
      * Polyline RGBA color.
      * @protected
-     * @type {Float32Array} - (exactly 4 entries)
+     * @type {Float32Array}
      */
     protected _defaultColor: Float32Array | NumberArray4;
 
@@ -1968,7 +1969,8 @@ class Polyline {
     }
 
     /**
-     * @todo
+     * Sets polyline colors.
+     * @todo - Test the function.
      * @param {NumberArray4[][]} pathColors
      */
     setPathColors(pathColors: SegmentPathColor[]) {

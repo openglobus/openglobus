@@ -1,4 +1,4 @@
-import {Control, IControlParams} from "./Control";
+import {Control, type IControlParams} from "./Control";
 import {Dialog} from "../ui/Dialog";
 import {ToggleButton} from "../ui/ToggleButton";
 import {GlobusTerrain} from "../terrain/GlobusTerrain";

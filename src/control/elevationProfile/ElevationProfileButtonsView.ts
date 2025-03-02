@@ -1,9 +1,9 @@
-import {View, IViewParams, ViewEventsList} from "../../ui/View";
+import {View} from "../../ui/View";
+import type {IViewParams, ViewEventsList} from "../../ui/View";
 import {Button} from "../../ui/Button";
 import {ToggleButton} from "../../ui/ToggleButton";
-import {EventsHandler} from "../../Events";
+import type {EventsHandler} from "../../Events";
 import {ElevationProfile} from "./ElevationProfile";
-import {Dialog} from "../../ui/Dialog";
 
 const TEMPLATE = '<div class="og-elevationprofile-buttons"></div>';
 

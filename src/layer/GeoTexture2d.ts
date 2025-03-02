@@ -1,7 +1,8 @@
-import {BaseGeoImage, IBaseGeoImageParams} from './BaseGeoImage';
+import {BaseGeoImage} from './BaseGeoImage';
+import type {IBaseGeoImageParams} from './BaseGeoImage';
 import {Material} from "../layer/Material";
 import {nextHighestPowerOfTwo} from '../math';
-import {WebGLTextureExt} from "../webgl/Handler";
+import type {WebGLTextureExt} from "../webgl/Handler";
 
 interface IGeoTexture2dParams extends IBaseGeoImageParams {
     texture?: WebGLTextureExt;

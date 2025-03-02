@@ -1,4 +1,5 @@
-import {AtmosphereParameters, COMMON} from "./atmos";
+import {COMMON} from "./atmos";
+import type {AtmosphereParameters} from "./atmos";
 import {Program} from "../webgl/Program";
 import {UTILS} from './utils';
 

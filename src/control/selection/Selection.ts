@@ -1,4 +1,5 @@
-import {Control, IControlParams} from "../Control";
+import {Control} from "../Control";
+import type {IControlParams} from "../Control";
 import {SelectionScene} from "./SelectionScene";
 import {ToggleButton} from "../../ui/ToggleButton";
 
@@ -42,7 +43,7 @@ interface ISelectionParams extends IControlParams {
  *           });
  *
  *           vectorSource.loadFeatures(extent);
- *           
+ *
  *           console.log(extent);
  *
  *       }

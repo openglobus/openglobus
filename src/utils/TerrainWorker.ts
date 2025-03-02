@@ -2,7 +2,7 @@
 
 import {BaseWorker} from "./BaseWorker";
 import {Segment} from "../segment/Segment";
-import {NumberArray6} from "../bv/Sphere";
+import type {NumberArray6} from "../bv/Sphere";
 
 interface TerrainInfo {
     segment: Segment;

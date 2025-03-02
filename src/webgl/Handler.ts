@@ -1,10 +1,13 @@
 import {BaseFramebuffer} from "./BaseFramebuffer";
 import {Clock} from "../Clock";
 import {cons} from "../cons";
-import {EventsHandler, createEvents} from "../Events";
-import {getUrlParam, isEmpty, TypedArray} from "../utils/shared";
+import {createEvents} from "../Events";
+import type {EventsHandler} from "../Events";
+import {getUrlParam, isEmpty} from "../utils/shared";
+import type {TypedArray} from "../utils/shared";
 import {ImageCanvas} from "../ImageCanvas";
-import {NumberArray2, Vec2} from "../math/Vec2";
+import {Vec2} from "../math/Vec2";
+import type {NumberArray2} from "../math/Vec2";
 import {ProgramController} from "./ProgramController";
 import {Program} from "./Program";
 import {Stack} from "../Stack";
@@ -53,6 +56,10 @@ const CONTEXT_TYPE = ["webgl2", "webgl"];
 const MAX_LEVELS = 2;
 
 /**
+ * @typedef {"visibilitychange" | "resize"} HandlerEventType
+ */
+
+/**
  * A WebGL handler for accessing low-level WebGL capabilities.
  * @class
  * @param {string | HTMLCanvasElement} canvasTarget - Canvas element target.
@@ -70,7 +77,7 @@ class Handler {
     /**
      * Events.
      * @public
-     * @type {EventsHandler<["visibilitychange", "resize"]>}
+     * @type {EventsHandler<Array<HandlerEventType>>}
      */
     public events: EventsHandler<["visibilitychange", "resize"]>;
 
@@ -1263,10 +1270,10 @@ class Handler {
     }
 
     /**
-     * Creates default texture object
+     * Creates default texture object.
      * @public
-     * @param {IDefaultTextureParams | null} params - Texture parameters:
-     * @param {(texture: WebGLTextureExt) => void} [success] - Creation callback
+     * @param {IDefaultTextureParams | null} params - Texture parameters.
+     * @param {function(WebGLTextureExt): void} [success] - Creation callback.
      */
     public createDefaultTexture(params: IDefaultTextureParams | null, success: (texture: WebGLTextureExt) => void) {
 

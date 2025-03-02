@@ -1,10 +1,11 @@
 import {binarySearch, parseHTML} from "../utils/shared";
-import {Control, IControlParams} from "./Control";
+import {Control} from "./Control";
+import type {IControlParams} from "./Control";
 import {RADIANS} from "../math";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import {GlobusTerrain} from "../terrain/GlobusTerrain";
-import {IMouseState} from "../renderer/RendererEvents";
+import type {IMouseState} from "../renderer/RendererEvents";
 
 interface IScaleControlParams extends IControlParams {
     isCenter?: boolean

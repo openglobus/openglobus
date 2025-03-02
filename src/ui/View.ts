@@ -1,4 +1,5 @@
-import {createEvents, EventCallback, EventsHandler} from '../Events';
+import {createEvents} from '../Events';
+import type {EventCallback, EventsHandler} from '../Events';
 import {parseHTML, stringTemplate} from '../utils/shared';
 
 export interface IViewParams {
