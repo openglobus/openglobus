@@ -181,8 +181,6 @@ class PolygonDrawingScene extends RenderNode {
         this.showGhostPointer();
         this.startNewPoint();
 
-        (this._planet!.renderer!.controls.mouseNavigation as OldMouseNavigation).deactivateDoubleClickZoom();
-
         this._geometryLayer.addTo(this._planet!);
 
         this.events.on("change", this._onChange, this);
