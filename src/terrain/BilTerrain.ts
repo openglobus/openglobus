@@ -1,11 +1,12 @@
 import {getTileExtent} from "../mercator";
-import {GlobusTerrain, IGlobusTerrainParams} from "./GlobusTerrain";
+import {GlobusTerrain} from "./GlobusTerrain";
+import type {IGlobusTerrainParams} from "./GlobusTerrain";
 import {Layer} from "../layer/Layer";
 import {WMS} from "../layer/WMS";
 import {isPowerOfTwo, nextHighestPowerOfTwo} from "../math";
 import {Segment} from "../segment/Segment";
 import {Extent} from "../Extent";
-import {TypedArray} from "../utils/shared";
+import type {TypedArray} from "../utils/shared";
 
 interface IBilTerrainParams extends IGlobusTerrainParams {
     layers?: string;

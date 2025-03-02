@@ -1,4 +1,4 @@
-import {createEvents, EventsHandler} from '../../Events';
+import {createEvents, type EventsHandler} from '../../Events';
 import {MAX32} from "../../math";
 import {Plane} from "../../math/Plane";
 import {Planet} from "../../scene/Planet";
@@ -6,7 +6,7 @@ import {RenderNode} from '../../scene/RenderNode';
 import {Vec2} from '../../math/Vec2';
 import {Vec3} from '../../math/Vec3';
 import {Quat} from '../../math/Quat';
-import {IMouseState} from "../../renderer/RendererEvents";
+import type {IMouseState} from "../../renderer/RendererEvents";
 import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
 import {LonLat} from "../../LonLat";
 import {Entity} from "../../entity/Entity";

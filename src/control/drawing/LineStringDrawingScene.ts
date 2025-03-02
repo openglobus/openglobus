@@ -8,7 +8,7 @@ import {
     OUTLINE_ALT,
     OUTLINE_OPTIONS,
     PolygonDrawingScene,
-    IPolygonDrawingSceneParams
+    type IPolygonDrawingSceneParams
 } from "./PolygonDrawingScene";
 
 class LineStringDrawingScene extends PolygonDrawingScene {

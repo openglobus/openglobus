@@ -1,6 +1,7 @@
-import {Button, IButtonParams, ButtonEventsList} from './Button';
-import {EventsHandler} from "../Events";
-import {ViewEventsList} from "./View";
+import {Button} from './Button';
+import type {IButtonParams, ButtonEventsList} from './Button';
+import type {EventsHandler} from "../Events";
+import type {ViewEventsList} from "./View";
 
 interface IToggleButtonParams extends IButtonParams {
     isActive?: boolean;

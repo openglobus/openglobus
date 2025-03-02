@@ -1,4 +1,5 @@
-import {EventsHandler, createEvents} from '../Events';
+import {createEvents} from '../Events';
+import type {EventsHandler} from '../Events';
 import {Planet} from "../scene/Planet";
 import {Segment} from "../segment/Segment";
 

@@ -1,6 +1,6 @@
 import {input} from './input';
 import {stamp} from "../utils/shared";
-import {EventCallback, EventCallbackStamp} from "../Events";
+import type {EventCallback, EventCallbackStamp} from "../Events";
 
 const STAMP_SPACER = "_";
 

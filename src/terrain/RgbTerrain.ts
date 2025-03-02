@@ -1,12 +1,14 @@
 import {Extent} from "../Extent";
 import {getTileExtent} from "../mercator";
-import {GlobusTerrain, IGlobusTerrainParams} from "./GlobusTerrain";
+import {GlobusTerrain} from "./GlobusTerrain";
+import type {IGlobusTerrainParams} from "./GlobusTerrain";
 import {isPowerOfTwo} from "../math";
 import {Layer} from "../layer/Layer";
 import {LonLat} from "../LonLat";
 import {Segment} from "../segment/Segment";
-import {binarySearchFast, TypedArray} from "../utils/shared";
-import {IResponse} from "../utils/Loader";
+import {binarySearchFast} from "../utils/shared";
+import type {TypedArray} from "../utils/shared";
+import type {IResponse} from "../utils/Loader";
 
 export interface IRgbTerrainParams extends IGlobusTerrainParams {
     equalizeNormals?: boolean;

@@ -1,6 +1,6 @@
 import {Button} from "../../ui/Button";
 import {View} from "../../ui/View";
-import {IDialogParams, Dialog} from "../../ui/Dialog";
+import {type IDialogParams, Dialog} from "../../ui/Dialog";
 import {ElevationProfileScene} from "./ElevationProfileScene";
 import {LonLat} from "../../LonLat";
 

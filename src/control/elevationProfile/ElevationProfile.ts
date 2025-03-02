@@ -1,5 +1,5 @@
 import {Deferred} from '../../Deferred';
-import {createEvents, EventsHandler} from '../../Events';
+import {createEvents, type EventsHandler} from '../../Events';
 import {Vec3} from "../../math/Vec3";
 import {Planet} from "../../scene/Planet";
 import {LonLat} from "../../LonLat";

@@ -1,8 +1,8 @@
 import * as math from "../../math";
-import {createEvents, EventsHandler} from '../../Events';
-import {CoordinatesType} from "../../entity/Geometry";
+import {createEvents, type EventsHandler} from '../../Events';
+import type {CoordinatesType} from "../../entity/Geometry";
 import {Entity} from '../../entity/Entity';
-import {IMouseState} from "../../renderer/RendererEvents";
+import type {IMouseState} from "../../renderer/RendererEvents";
 import {OldMouseNavigation} from "../OldMouseNavigation";
 import {LonLat} from '../../LonLat';
 import {Line3} from '../../math/Line3';

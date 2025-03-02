@@ -5,9 +5,12 @@ import {Mat4} from './Mat4';
 import {Plane} from './Plane';
 import {Quat} from './Quat';
 import {Ray} from './Ray';
-import {Vec2, NumberArray2} from './Vec2';
-import {Vec3, NumberArray3} from './Vec3';
-import {Vec4, NumberArray4} from './Vec4';
+import {Vec2} from './Vec2';
+import {Vec3} from './Vec3';
+import {Vec4} from './Vec4';
+import type {NumberArray2} from './Vec2';
+import type {NumberArray3} from './Vec3';
+import type {NumberArray4} from './Vec4';
 
 export {
     Line2,

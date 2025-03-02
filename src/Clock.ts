@@ -1,6 +1,6 @@
 import * as jd from "./astro/jd";
-import {EventsHandler, createEvents} from "./Events";
-import {JulianDate} from "./astro/jd";
+import {type EventsHandler, createEvents} from "./Events";
+import type {JulianDate} from "./astro/jd";
 import {Handler} from "./webgl/Handler";
 
 type ClockEventsList = ["tick", "end", "start", "stop"];

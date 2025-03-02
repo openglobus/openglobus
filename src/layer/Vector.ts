@@ -1,15 +1,18 @@
 import * as math from "../math";
-import {Entity, IEntityParams} from "../entity/Entity";
+import {Entity} from "../entity/Entity";
+import type {IEntityParams} from "../entity/Entity";
 import {EntityCollection} from "../entity/EntityCollection";
 import {EntityCollectionsTreeStrategy} from "../quadTree/EntityCollectionsTreeStrategy";
-import {EventsHandler} from "../Events";
+import type {EventsHandler} from "../Events";
 import {GeometryHandler} from "../entity/GeometryHandler";
-import {IMouseState, ITouchState} from "../renderer/RendererEvents";
-import {ILayerParams, Layer, LayerEventsList} from "./Layer";
-import {NumberArray3, Vec3} from "../math/Vec3";
+import type {IMouseState, ITouchState} from "../renderer/RendererEvents";
+import {Layer} from "./Layer";
+import type {ILayerParams, LayerEventsList} from "./Layer";
+import {Vec3} from "../math/Vec3";
+import type {NumberArray3} from "../math/Vec3";
 import {Planet} from "../scene/Planet";
 import {Material} from "./Material";
-import {NumberArray4} from "../math/Vec4";
+import type {NumberArray4} from "../math/Vec4";
 import * as mercator from "../mercator";
 
 export interface IVectorParams extends ILayerParams {
@@ -103,7 +106,7 @@ class Vector extends Layer {
      * Second index - far distance to the entity, when entity becomes zero scale.
      * Third index - far distance to the entity, when entity becomes invisible.
      * @public
-     * @type {NumberArray3} - (exactly 3 entries)
+     * @type {NumberArray3}
      */
     public scaleByDistance: NumberArray3;
 
@@ -558,7 +561,7 @@ class Vector extends Layer {
     /**
      * Safety entities loop.
      * @public
-     * @param {(entity: Entity, index?: number) => void} callback - Entity callback.
+     * @param {function(Entity, number): void} callback - Entity callback.
      */
     public each(callback: (entity: Entity, index?: number) => void) {
         let e = this._entities;

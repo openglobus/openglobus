@@ -22,7 +22,6 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
      * Current visible north pole nodes tree nodes array.
      * @public
      * @type {Node}
-     * @todo
      */
     public _visibleNodesNorth: Record<number, Node>;
 
@@ -30,7 +29,6 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
      * Current visible south pole nodes tree nodes array.
      * @public
      * @type {Node}
-     * @todo
      */
     public _visibleNodesSouth: Record<number, Node>;
 

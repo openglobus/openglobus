@@ -1,11 +1,14 @@
 import {CLOSE_ICON} from './ui/icons';
 import {createLonLat, stringTemplate} from "./utils/shared";
-import {EventsHandler} from "./Events";
+import type {EventsHandler} from "./Events";
 import {LonLat} from "./LonLat";
 import {Planet} from "./scene/Planet";
-import {NumberArray2, Vec2} from "./math/Vec2";
-import {NumberArray3, Vec3} from "./math/Vec3";
-import {View, IViewParams, ViewEventsList} from './ui/View';
+import {Vec2} from "./math/Vec2";
+import {Vec3} from "./math/Vec3";
+import type {NumberArray2} from "./math/Vec2";
+import type {NumberArray3} from "./math/Vec3";
+import {View} from './ui/View';
+import type {IViewParams, ViewEventsList} from './ui/View';
 
 const TEMPLATE = `<div class="og-popup {className}">
       <div class="og-popup-content-wrapper">

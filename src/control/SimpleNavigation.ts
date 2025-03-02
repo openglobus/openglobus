@@ -1,7 +1,7 @@
-import {Camera} from "../camera/Camera";
-import {Control, IControlParams} from "./Control";
+import {Control} from "./Control";
+import type {IControlParams} from "./Control";
 import {input} from "../input/input";
-import {IMouseState} from "../renderer/RendererEvents";
+import type {IMouseState} from "../renderer/RendererEvents";
 import {Vec3} from "../math/Vec3";
 import * as math from "../math";
 import {Ray} from "../math/Ray";

@@ -1,4 +1,5 @@
-import {Control, IControlParams} from "./Control";
+import {Control} from "./Control";
+import type {IControlParams} from "./Control";
 import {Key} from "../Lock";
 import {LonLat} from "../LonLat";
 import {math} from "../index";
@@ -7,7 +8,7 @@ import {Ray} from "../math/Ray";
 import {Sphere} from "../bv/Sphere";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
-import {ITouchState} from "../renderer/RendererEvents";
+import type {ITouchState} from "../renderer/RendererEvents";
 import {Plane} from "../math/Plane";
 
 interface ITouchNavigationParams extends IControlParams {

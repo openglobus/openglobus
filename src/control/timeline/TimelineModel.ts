@@ -1,4 +1,4 @@
-import {EventsHandler, createEvents} from '../../Events';
+import {type EventsHandler, createEvents} from '../../Events';
 import {addSeconds} from "./timelineUtils";
 
 type TimelineEventsList = ["change", "current"];

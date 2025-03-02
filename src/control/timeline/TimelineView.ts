@@ -1,6 +1,7 @@
-import {EventsHandler} from "../../Events";
+import type {EventsHandler} from "../../Events";
 import {ButtonGroup} from "../../ui/ButtonGroup";
-import {IViewParams, View, ViewEventsList} from '../../ui/View';
+import {View} from '../../ui/View';
+import type {IViewParams, ViewEventsList} from '../../ui/View';
 import {ToggleButton} from "../../ui/ToggleButton";
 import {TimelineModel} from './TimelineModel';
 import {
@@ -12,7 +13,7 @@ import {
     getNearestTimeLeft,
     getScale
 } from './timelineUtils';
-import {MouseEventExt} from "../../input/MouseHandler";
+import type {MouseEventExt} from "../../input/MouseHandler";
 
 interface ITimelineViewParams extends IViewParams {
     currentDate?: Date;

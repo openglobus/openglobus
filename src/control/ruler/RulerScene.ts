@@ -1,5 +1,6 @@
 ﻿import {Entity} from '../../entity/Entity';
-import {createEvents, EventsHandler} from '../../Events';
+import {createEvents} from '../../Events';
+import type {EventsHandler} from '../../Events';
 import {LonLat} from "../../LonLat";
 import {Object3d} from '../../Object3d';
 import {Planet} from "../../scene/Planet";
@@ -7,9 +8,9 @@ import {RenderNode} from '../../scene/RenderNode';
 import {Vector} from '../../layer/Vector';
 import {Vec2} from '../../math/Vec2';
 import {Vec3} from '../../math/Vec3';
-import {IMouseState} from "../../renderer/RendererEvents";
+import type {IMouseState} from "../../renderer/RendererEvents";
 import {Ellipsoid} from "../../ellipsoid/Ellipsoid";
-import {ILabelParams} from "../../entity/Label";
+import type {ILabelParams} from "../../entity/Label";
 
 const OUTLINE_COUNT = 120;
 

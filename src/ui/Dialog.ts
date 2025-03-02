@@ -1,8 +1,9 @@
 import {getDefault, stringTemplate} from '../utils/shared';
 import {Button} from './Button';
 import {CLOSE_ICON} from './icons';
-import {IViewParams, View, ViewEventsList} from './View';
-import {EventsHandler} from "../Events";
+import {View} from './View';
+import type {IViewParams, ViewEventsList} from './View';
+import type {EventsHandler} from "../Events";
 
 export interface IDialogParams extends IViewParams {
     title?: string;
@@ -133,7 +134,7 @@ class Dialog<M> extends View<M> {
                     if (entry.isIntersecting) {
                         this.el!.style.visibility = "visible";
                         //@ts-ignore
-                        if(this.el!.parentNode) {
+                        if (this.el!.parentNode) {
                             this.setPosition((this.el!.parentNode as HTMLElement).clientWidth - this.el!.clientWidth - this._right!);
                             obs.disconnect();
                         }

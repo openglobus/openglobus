@@ -3,7 +3,7 @@ import {PointCloudHandler} from "./PointCloudHandler";
 import {RenderNode} from "../scene/RenderNode";
 import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
-import {WebGLBufferExt} from "../webgl/Handler";
+import type {WebGLBufferExt} from "../webgl/Handler";
 import {EntityCollection} from "./EntityCollection";
 
 export interface IPointCloudParams {

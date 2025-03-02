@@ -1,5 +1,6 @@
 import * as shaders from "../shaders/geoObject";
-import {concatArrays, loadImage, spliceArray, TypedArray} from "../utils/shared";
+import {concatArrays, loadImage, spliceArray} from "../utils/shared";
+import type {TypedArray} from "../utils/shared";
 import {EntityCollection} from "./EntityCollection";
 import {GeoObject} from "./GeoObject";
 import {Vec3} from "../math/Vec3";

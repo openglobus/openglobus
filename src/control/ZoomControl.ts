@@ -1,6 +1,7 @@
 import {Key} from "../Lock";
 import {Button} from "../ui/Button";
-import {Control, IControlParams} from "./Control";
+import {Control} from "./Control";
+import type {IControlParams} from "./Control";
 import {Renderer} from "../renderer/Renderer";
 import {Vec2} from "../math/Vec2";
 

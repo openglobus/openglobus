@@ -1,6 +1,6 @@
 import {Program} from '../webgl/Program';
 import {RenderNode} from './RenderNode';
-import {WebGLBufferExt} from "../webgl/Handler";
+import type {WebGLBufferExt} from "../webgl/Handler";
 
 class Axes extends RenderNode {
 

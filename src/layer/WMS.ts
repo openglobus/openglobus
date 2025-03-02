@@ -2,7 +2,8 @@ import * as mercator from "../mercator";
 import {Extent} from "../Extent";
 import {LonLat} from "../LonLat";
 import {Segment} from "../segment/Segment";
-import {XYZ, IXYZParams} from "./XYZ";
+import {XYZ} from "./XYZ";
+import type {IXYZParams} from "./XYZ";
 
 interface IWMSParams extends IXYZParams {
     extra?: any;

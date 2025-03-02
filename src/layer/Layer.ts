@@ -1,16 +1,18 @@
 import * as mercator from "../mercator";
 import * as utils from "../utils/shared";
 import {createColorRGB} from "../utils/shared";
-import {createEvents, Events, EventsHandler} from "../Events";
+import {createEvents} from "../Events";
+import type {EventsHandler} from "../Events";
 import {Extent} from "../Extent";
 import {LonLat} from "../LonLat";
 import {Node} from "../quadTree/Node";
 import {Material} from "./Material";
 import {Planet} from "../scene/Planet";
 import {Segment} from "../segment/Segment";
-import {Vec3, NumberArray3} from "../math/Vec3";
-import {NumberArray4} from "../math/Vec4";
-import {IDefaultTextureParams, WebGLTextureExt} from "../webgl/Handler";
+import {Vec3} from "../math/Vec3";
+import type {NumberArray3} from "../math/Vec3";
+import type {NumberArray4} from "../math/Vec4";
+import type {IDefaultTextureParams} from "../webgl/Handler";
 
 const FADING_RATIO = 30;
 

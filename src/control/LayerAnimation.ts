@@ -1,6 +1,6 @@
-import {EventsHandler, createEvents} from '../Events';
+import {type EventsHandler, createEvents} from '../Events';
 import {Layer} from '../layer/Layer';
-import {Control, IControlParams} from "./Control";
+import {Control, type IControlParams} from "./Control";
 
 type LayerAnimationEventsList = ["change", "idle", "play", "pause", "stop"];
 

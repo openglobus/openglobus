@@ -1,4 +1,5 @@
-import {IRgbTerrainParams, RgbTerrain} from "./RgbTerrain";
+import {RgbTerrain} from "./RgbTerrain";
+import type {IRgbTerrainParams} from "./RgbTerrain";
 import {Segment, TILEGROUP_NORTH, TILEGROUP_SOUTH} from "../segment/Segment";
 
 const urlPref: Record<number, string> = {

@@ -1,4 +1,5 @@
-import {XYZ, IXYZParams} from "./XYZ";
+import {XYZ} from "./XYZ";
+import type {IXYZParams} from "./XYZ";
 import {Segment} from "../segment/Segment";
 import {stringTemplate} from "../utils/shared";
 

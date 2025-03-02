@@ -4,7 +4,7 @@
 
 import {types} from "./types";
 import {Program} from "./Program";
-import {WebGLBufferExt} from "./Handler";
+import type {WebGLBufferExt} from "./Handler";
 
 export type VariableHandler = {
     u: { [id: number]: Function },

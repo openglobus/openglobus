@@ -3,9 +3,12 @@
  */
 
 import * as math from "../math";
-import {NumberArray4, Vec4} from "./Vec4";
-import {NumberArray3} from "./Vec3";
-import {NumberArray2, Vec2} from "./Vec2";
+import {Vec4} from "./Vec4";
+import {Vec2} from "./Vec2";
+
+import type {NumberArray4} from "./Vec4";
+import type {NumberArray3} from "./Vec3";
+import type {NumberArray2} from "./Vec2";
 
 /**
  * Encode 32 bit float value to the RGBA vector.

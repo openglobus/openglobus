@@ -1,7 +1,8 @@
-import {BaseFramebuffer, IBaseFramebufferParams} from "./BaseFramebuffer";
+import {BaseFramebuffer} from "./BaseFramebuffer";
+import type {IBaseFramebufferParams} from "./BaseFramebuffer";
 import {ImageCanvas} from "../ImageCanvas";
 import {Handler} from "./Handler";
-import {TypedArray} from "../utils/shared";
+import type {TypedArray} from "../utils/shared";
 
 export interface ITargetParams {
     internalFormat?: string;

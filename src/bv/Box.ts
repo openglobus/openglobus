@@ -1,5 +1,5 @@
 import {Vec3} from "../math/Vec3";
-import {NumberArray6} from "./Sphere";
+import type {NumberArray6} from "./Sphere";
 import {Ellipsoid} from "../ellipsoid/Ellipsoid";
 import {Extent} from "../Extent";
 

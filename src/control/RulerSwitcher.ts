@@ -1,4 +1,5 @@
-import {Control, IControlParams} from "./Control";
+import {Control} from "./Control";
+import type {IControlParams} from "./Control";
 import {ToggleButton} from "../ui/ToggleButton";
 import {HeightRuler} from "./heightRuler/HeightRuler";
 
