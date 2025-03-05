@@ -1,4 +1,3 @@
-// #StandWith
 import {CompassButton} from "./control/CompassButton";
 import {Control} from "./control/Control";
 import {EarthCoordinates} from "./control/EarthCoordinates";
@@ -78,30 +77,28 @@ const PLANET_NAME_PREFIX = "globus_planet_";
  *
  * @example <caption>Basic initialization</caption>
  * globus = new Globe({
- *     'atmosphere': false,
- *     'target': 'globus',
- *     'name': 'Earth',
- *     'controls': [
- *          new control.MouseNavigation({ autoActivate: true }),
- *          new control.KeyboardNavigation({ autoActivate: true }),
- *          new control.EarthCoordinates({ autoActivate: true, center: false }),
- *          new control.LayerSwitcher({ autoActivate: true }),
- *          new control.ZoomControl({ autoActivate: true }),
- *          new control.TouchNavigation({ autoActivate: true }),
- *          new control.Sun({ autoActivate: true })
+ *     atmosphere: false,
+ *     target: 'globus',
+ *     name: 'Earth',
+ *     controls: [
+ *          new control.MouseNavigation(),
+ *          new control.KeyboardNavigation(),
+ *          new control.EarthCoordinates(),
+ *          new control.LayerSwitcher({),
+ *          new control.ZoomControl(),
+ *          new control.TouchNavigation(),
+ *          new control.Sun()
  *      ],
- *     'terrain': new GlobusTerrain(),
- *     'layers': [
- *          new XYZ("OpenStreetMap", { isBaseLayer: true, url: "http://b.tile.openstreetmap.org/{z}/{x}/{y}.png", visibility: true, attribution: 'Data @ <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://www.openstreetmap.org/copyright">ODbL</a>' })
- *      ],
- *     'autoActivate': true
+ *     terrain: new GlobusRGBTerrain(),
+ *     layers: [new OpenStreetMap(), new Bing()],
+ *     atmosphereEnabled: true
  * });
  *
  * @param {IGlobeParams} options - Options:
  * @param {string|HTMLElement} options.target - HTML element id where planet canvas have to be created.
  * @param {string} [options.name] - Planet name. Default is uniq identifier.
  * @param {EmptyTerrain} [options.terrain] - Terrain provider. Default no terrain - og.terrain.EmptyTerrain.
- * @param {Array.<Control>} [options.controls] - Renderer controls array.
+ * @param {Array.<Control>} [options.controls] - Controls.
  * @param {Array.<Layer>} [options.layers] - Planet layers.
  * @param {Extent | ExtentBoundingBox} [options.viewExtent] [options.viewExtent] - Viewable starting extent.
  * @param {boolean} [options.autoActivate=true] - Globe rendering auto activation flag. True is default.
