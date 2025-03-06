@@ -1,16 +1,27 @@
-import {Dialog, type IDialogParams} from "../../ui/Dialog";
+import {Dialog, type IDialogParams, type DialogEventsList} from "../../ui/Dialog";
 import {IObject3dItem, Object3dCollection} from "./Object3dCollection";
 import {Button} from "../../ui/Button";
 import {Object3dCollectionView} from "./Object3dCollectionView";
+import {type EventsHandler, createEvents} from "../../Events";
+import {type ViewEventsList} from "../../ui/View";
 
-/*<div>Icons made from <a href="https://www.onlinewebfonts.com/icon">svg icons</a>is licensed by CC BY 4.0</div>*/
+type Object3dManagerDialogEvents = ["select"];
+
+const EVENT_NAMES: Object3dManagerDialogEvents = [
+    "select",
+];
+
 const ICON_LOAD_BUTTON_SVG = `<svg class="svg-icon" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M426.666667 170.666667H170.666667c-47.146667 0-84.906667 38.186667-84.906667 85.333333L85.333333 768c0 47.146667 38.186667 85.333333 85.333334 85.333333h682.666666c47.146667 0 85.333333-38.186667 85.333334-85.333333V341.333333c0-47.146667-38.186667-85.333333-85.333334-85.333333H512l-85.333333-85.333333z"  /></svg>`;
 
 interface IObject3dManagerDialogParams extends IDialogParams {
     model: Object3dCollection
 }
 
+type Object3dManagerDialogEventsExt = EventsHandler<Object3dManagerDialogEvents> & EventsHandler<DialogEventsList> & EventsHandler<ViewEventsList>;
+
 export class Object3dManagerDialog extends Dialog<null> {
+
+    public override events: Object3dManagerDialogEventsExt;
 
     protected _object3dCollectionView: Object3dCollectionView;
 
@@ -29,6 +40,9 @@ export class Object3dManagerDialog extends Dialog<null> {
             minWidth: 100,
         });
 
+        //@ts-ignore
+        this.events = createEventsEventsHandler<Object3dManagerDialogEventsExt>(EVENT_NAMES);
+
         this._object3dCollectionView = new Object3dCollectionView({model: params.model});
     }
 
@@ -46,8 +60,6 @@ export class Object3dManagerDialog extends Dialog<null> {
         });
         loadBtn.appendTo($toolbar);
 
-        this.events.on("visibility", this._onVisibility);
-
         this._object3dCollectionView.appendTo(this.container!);
 
         this._object3dCollectionView.events.on("select", this._onSelect);
@@ -56,20 +68,6 @@ export class Object3dManagerDialog extends Dialog<null> {
     }
 
     protected _onSelect = (item: IObject3dItem): void => {
-        console.log(item);
+        this.events.dispatch(this.events.select, item);
     }
-
-    protected _onVisibility = (vis: boolean) => {
-    }
-
-    public override remove(): void {
-        super.remove();
-        //this._clearEvents();
-    }
-
-    // protected _initEvents() {
-    // }
-    //
-    // protected _clearEvents() {
-    // }
 }
