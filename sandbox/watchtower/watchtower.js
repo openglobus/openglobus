@@ -45,7 +45,7 @@ async function main() {
     globus.planet.addControl(new control.GeoObjectEditor());
     globus.planet.addControl(new control.ToggleWireframe());
     globus.planet.addControl(new control.Lighting());
-    globus.planet.addControl(new control.GeoObjectManager({
+    globus.planet.addControl(new control.Object3dManager({
         collection: [
             { name: "tower", objects: tower },
             { name: "table", objects: table },
