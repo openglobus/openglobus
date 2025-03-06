@@ -37,7 +37,11 @@ async function main() {
             stopped: false
         }
     });
-    //
+
+    let sceneLayer = new Vector("scene", {
+        scaleByDistance: [1, 1, 1]
+    });
+
     globus.planet.addControl(new control.DebugInfo());
     globus.planet.addControl(new control.KeyboardNavigation());
     globus.planet.addControl(new control.LayerSwitcher());
@@ -46,6 +50,7 @@ async function main() {
     globus.planet.addControl(new control.ToggleWireframe());
     globus.planet.addControl(new control.Lighting());
     globus.planet.addControl(new control.Object3dManager({
+        layer: sceneLayer,
         collection: [
             { name: "tower", objects: tower },
             { name: "table", objects: table },
@@ -56,43 +61,7 @@ async function main() {
         ]
     }))
 
-    let sceneLayer = new Vector("scene", {
-        scaleByDistance: [1, 1, 1]
-    });
-
     sceneLayer.addTo(globus.planet);
-
-    globus.renderer.events.on("mousemove", (e) => {
-        if (globus.renderer.events.isKeyPressed(input.KEY_SHIFT)) {
-        }
-    });
-
-    globus.renderer.events.on("lclick", (e) => {
-
-        let lonLat = globus.planet.getLonLatFromPixelTerrain(e.pos);
-
-        if (lonLat) {
-            globus.renderer.setRelativeCenter(globus.planet.camera.eye);
-            if (globus.renderer.events.isKeyPressed(input.KEY_CTRL)) {
-
-                let towerEntity = new Entity({
-                    lonlat: lonLat,
-                    scale: 1,
-                    pitch: 0,
-                    yaw: 0,
-                    roll: 0,
-                    geoObject: {
-                        instanced: true,
-                        tag: `tower`,
-                        object3d: tower[0]
-                    }
-                });
-
-                sceneLayer.add(towerEntity);
-
-            }
-        }
-    })
 }
 
 main();

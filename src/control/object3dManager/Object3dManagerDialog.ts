@@ -17,7 +17,10 @@ interface IObject3dManagerDialogParams extends IDialogParams {
     model: Object3dCollection
 }
 
-type Object3dManagerDialogEventsExt = EventsHandler<Object3dManagerDialogEvents> & EventsHandler<DialogEventsList> & EventsHandler<ViewEventsList>;
+type Object3dManagerDialogEventsExt =
+    EventsHandler<Object3dManagerDialogEvents>
+    & EventsHandler<DialogEventsList>
+    & EventsHandler<ViewEventsList>;
 
 export class Object3dManagerDialog extends Dialog<null> {
 
@@ -41,7 +44,7 @@ export class Object3dManagerDialog extends Dialog<null> {
         });
 
         //@ts-ignore
-        this.events = createEventsEventsHandler<Object3dManagerDialogEventsExt>(EVENT_NAMES);
+        this.events = createEvents<Object3dManagerDialogEventsExt>(EVENT_NAMES);
 
         this._object3dCollectionView = new Object3dCollectionView({model: params.model});
     }
@@ -62,12 +65,10 @@ export class Object3dManagerDialog extends Dialog<null> {
 
         this._object3dCollectionView.appendTo(this.container!);
 
-        this._object3dCollectionView.events.on("select", this._onSelect);
+        this._object3dCollectionView.events.on("select", (item: IObject3dItem): void => {
+            this.events.dispatch(this.events.select, item);
+        });
 
         return this;
-    }
-
-    protected _onSelect = (item: IObject3dItem): void => {
-        this.events.dispatch(this.events.select, item);
     }
 }
