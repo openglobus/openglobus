@@ -92,13 +92,14 @@ export class Object3dManager extends Control {
     protected _createEntity(item: IObject3dItem, lonLat: LonLat): Entity {
 
         let name = item.name;
+        let scale = item.scale;
 
         let entity = new Entity({
             lonlat: lonLat,
-            scale: 1,
             pitch: 0,
             yaw: 0,
-            roll: 0
+            roll: 0,
+            scale,
         });
 
         for (let i = 0; i < item.objects.length; i++) {
@@ -106,6 +107,7 @@ export class Object3dManager extends Control {
             let childEntity = new Entity({
                 forceGlobalPosition: true,
                 forceGlobalRotation: true,
+                forceGlobalScale: true,
                 geoObject: {
                     tag: `${name}:${i.toString()}`,
                     object3d: obj3d

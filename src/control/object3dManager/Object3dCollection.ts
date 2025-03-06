@@ -11,6 +11,7 @@ const EVENT_NAMES: Object3dCollectionEvents = [
 export interface IObject3dItem {
     name: string;
     objects: Object3d[];
+    scale?: number
 }
 
 interface Object3dCollectionParams {
@@ -19,7 +20,7 @@ interface Object3dCollectionParams {
 
 export class Object3dCollection {
 
-    protected _items: Map<string, Object3d[]>;
+    protected _items: Map<string, IObject3dItem>;
 
     public events: EventsHandler<Object3dCollectionEvents>;
 
@@ -30,26 +31,26 @@ export class Object3dCollection {
         this._items = Object3dCollection.createItemsMap(params.collection || []);
     }
 
-    static createItemsMap(items: IObject3dItem[]): Map<string, Object3d[]> {
-        let res: Map<string, Object3d[]> = new Map();
+    static createItemsMap(items: IObject3dItem[]): Map<string, IObject3dItem> {
+        let res: Map<string, IObject3dItem> = new Map();
         for (let i = 0; i < items.length; i++) {
-            res.set(items[i].name, items[i].objects);
+            res.set(items[i].name, items[i]);
         }
         return res;
     }
 
-    public getItem(name: string): Object3d[] | undefined {
+    public getItem(name: string): IObject3dItem | undefined {
         return this._items.get(name);
     }
 
-    public addItem(name: string, objects: Object3d[], force: boolean = false) {
+    public addItem(name: string, objects: Object3d[], scale?: number, force: boolean = false) {
         if (!this._items.has(name) || force) {
-            this._items.set(name, objects);
+            this._items.set(name, {name, objects, scale});
             this.events.dispatch(this.events.add, name, objects, this._items);
         }
     }
 
     public getItems(): IObject3dItem[] {
-        return Array.from(this._items, ([name, objects]) => ({name, objects}));
+        return Array.from(this._items, ([name, objects]) => (objects));
     }
 }
