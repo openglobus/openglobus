@@ -4,7 +4,7 @@ import {Button} from "../../ui/Button";
 import {Object3dCollectionView} from "./Object3dCollectionView";
 
 /*<div>Icons made from <a href="https://www.onlinewebfonts.com/icon">svg icons</a>is licensed by CC BY 4.0</div>*/
-const ICON_LOAD_BUTTON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-0.5 -0.5 16 16" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" id="Folder-Open--Streamline-Tabler" height="16" width="16"><desc>Folder Open Streamline Icon: https://streamlinehq.com</desc><path d="m3.125 11.875 1.723125 -4.594375A0.625 0.625 0 0 1 5.4331249999999995 6.875H13.125a0.625 0.625 0 0 1 0.61625 0.7274999999999999l-0.6225 3.256875A1.25 1.25 0 0 1 11.89125 11.875H3.125a1.25 1.25 0 0 1 -1.25 -1.25V3.75a1.25 1.25 0 0 1 1.25 -1.25h2.5l1.875 1.875h4.375a1.25 1.25 0 0 1 1.25 1.25v1.25" stroke-width="1"></path></svg>`;
+const ICON_LOAD_BUTTON_SVG = `<svg class="svg-icon" style="vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M426.666667 170.666667H170.666667c-47.146667 0-84.906667 38.186667-84.906667 85.333333L85.333333 768c0 47.146667 38.186667 85.333333 85.333334 85.333333h682.666666c47.146667 0 85.333333-38.186667 85.333334-85.333333V341.333333c0-47.146667-38.186667-85.333333-85.333334-85.333333H512l-85.333333-85.333333z"  /></svg>`;
 
 interface IObject3dManagerDialogParams extends IDialogParams {
     model: Object3dCollection
