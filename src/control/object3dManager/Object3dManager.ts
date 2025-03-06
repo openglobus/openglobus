@@ -7,7 +7,7 @@ export interface IObject3dManagerParams extends IControlParams {
     collection?: IObject3dItem[]
 }
 
-export class GeoObjectManager extends Control {
+export class Object3dManager extends Control {
     protected _dialog: Object3dManagerDialog;
     protected _collection: Object3dCollection;
 
