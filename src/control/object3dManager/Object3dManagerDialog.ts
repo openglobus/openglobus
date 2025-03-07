@@ -4,6 +4,8 @@ import {Button} from "../../ui/Button";
 import {Object3dCollectionView} from "./Object3dCollectionView";
 import {type EventsHandler, createEvents} from "../../Events";
 import {type ViewEventsList} from "../../ui/View";
+import {View} from "../../ui/View";
+import {Object3d} from "../../Object3d";
 
 type Object3dManagerDialogEvents = ["select"];
 
@@ -63,6 +65,8 @@ export class Object3dManagerDialog extends Dialog<null> {
         });
         loadBtn.appendTo($toolbar);
 
+        loadBtn.events.on("click", this._onLoadClick);
+
         this._object3dCollectionView.appendTo(this.container!);
 
         this._object3dCollectionView.events.on("select", (item: IObject3dItem): void => {
@@ -71,4 +75,45 @@ export class Object3dManagerDialog extends Dialog<null> {
 
         return this;
     }
+
+    protected _onLoadClick = () => {
+
+        let fileInp = new View({
+            initRender: true,
+            template: `<input type="file" accept=".obj,.mtl" multiple />`
+        });
+
+        if (fileInp.el) {
+            fileInp.el.addEventListener("change", (e) => {
+                const target = e.target as HTMLInputElement;
+                if (target.files?.length == 1) {
+                    console.log(target.files);
+                    loadFiles(target.files).then(this._addObjects);
+                }
+            });
+            fileInp.el.click();
+        }
+    }
+
+    protected _addObjects = (objects: { fileName: string; objects: Object3d[] }[]) => {
+        for (let i = 0; i < objects.length; i++) {
+            let oi = objects[i];
+            this._object3dCollectionView.model.addItem(oi.fileName, oi.objects);
+        }
+    }
+}
+
+async function loadFiles(files: FileList): Promise<{ fileName: string; objects: Object3d[] }[]> {
+    let promises = [];
+
+    for (const file of files) {
+        promises.push(
+            Object3d.readFileObj(file).then(objects => ({
+                fileName: file.name,
+                objects: objects
+            }))
+        );
+    }
+
+    return await Promise.all(promises);
 }

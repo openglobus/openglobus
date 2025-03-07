@@ -45,8 +45,9 @@ export class Object3dCollection {
 
     public addItem(name: string, objects: Object3d[], scale?: number, force: boolean = false) {
         if (!this._items.has(name) || force) {
-            this._items.set(name, {name, objects, scale});
-            this.events.dispatch(this.events.add, name, objects, this._items);
+            let item = {name, objects, scale};
+            this._items.set(name, item);
+            this.events.dispatch(this.events.add, item);
         }
     }
 
