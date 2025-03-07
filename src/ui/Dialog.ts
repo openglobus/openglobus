@@ -21,7 +21,7 @@ export interface IDialogParams extends IViewParams {
     useHide?: boolean;     // Using hide instead of remove when close
 }
 
-type DialogEventsList = ["resize", "focus", "visibility", "dragstart", "dragend"];
+export type DialogEventsList = ["resize", "focus", "visibility", "dragstart", "dragend"];
 
 const DIALOG_EVENTS: DialogEventsList = ["resize", "focus", "visibility", "dragstart", "dragend"];
 

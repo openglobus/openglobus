@@ -580,7 +580,7 @@ class Object3d {
         });
     }
 
-    static async readFileObj(objFile: File, mtlFile?: File): Promise<Object3d[]> {
+    static async readFileObj(objFile: File, mtlFile?: File | null, baseUrl?: string): Promise<Object3d[]> {
 
         let obj = new Obj();
 
@@ -601,9 +601,9 @@ class Object3d {
                     specular: mat.specular,
                     shininess: mat.shininess,
                     color: mat.color,
-                    colorTexture: mat.colorTexture,
-                    normalTexture: mat.normalTexture,
-                    metallicRoughnessTexture: mat.metallicRoughnessTexture
+                    colorTexture: baseUrl ? `${baseUrl}/${mat.colorTexture}` : mat.colorTexture,
+                    normalTexture: baseUrl ? `${baseUrl}/${mat.normalTexture}` : mat.normalTexture,
+                    metallicRoughnessTexture: baseUrl ? `${baseUrl}/${mat.metallicRoughnessTexture}` : mat.metallicRoughnessTexture
                 })
             }
         );

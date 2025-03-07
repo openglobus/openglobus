@@ -342,7 +342,7 @@ export class Obj {
         }
     }
 
-    public async readFile(objFile: File, mtlFile?: File) {
+    public async readFile(objFile: File, mtlFile?: File | null) {
         this._path = "";
 
         await this._readAndParse(objFile);
