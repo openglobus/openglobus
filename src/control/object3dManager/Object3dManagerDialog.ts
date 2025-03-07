@@ -86,34 +86,27 @@ export class Object3dManagerDialog extends Dialog<null> {
         if (fileInp.el) {
             fileInp.el.addEventListener("change", (e) => {
                 const target = e.target as HTMLInputElement;
-                if (target.files?.length == 1) {
-                    console.log(target.files);
-                    loadFiles(target.files).then(this._addObjects);
+                if (target.files?.length == 2) {
+                    const files = Array.from(target.files);
+                    const objFile = files.find(file => file.name.toLowerCase().endsWith(".obj"));
+                    const mtlFile = files.find(file => file.name.toLowerCase().endsWith(".mtl"));
+                    if (objFile) {
+                        loadObj(objFile, mtlFile).then(this._addObject);
+                    }
                 }
             });
             fileInp.el.click();
         }
     }
 
-    protected _addObjects = (objects: { fileName: string; objects: Object3d[] }[]) => {
-        for (let i = 0; i < objects.length; i++) {
-            let oi = objects[i];
-            this._object3dCollectionView.model.addItem(oi.fileName, oi.objects);
-        }
+    protected _addObject = (item: { name: string; objects: Object3d[] }) => {
+        this._object3dCollectionView.model.addItem(item);
     }
 }
 
-async function loadFiles(files: FileList): Promise<{ fileName: string; objects: Object3d[] }[]> {
-    let promises = [];
-
-    for (const file of files) {
-        promises.push(
-            Object3d.readFileObj(file).then(objects => ({
-                fileName: file.name,
-                objects: objects
-            }))
-        );
-    }
-
-    return await Promise.all(promises);
+async function loadObj(objFile: File, mtlFile?: File): Promise<{ name: string; objects: Object3d[] }> {
+    return await Object3d.readFileObj(objFile, mtlFile).then(objects => ({
+        name: objFile.name,
+        objects: objects
+    }))
 }

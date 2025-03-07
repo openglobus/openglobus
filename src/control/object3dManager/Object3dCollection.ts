@@ -43,10 +43,9 @@ export class Object3dCollection {
         return this._items.get(name);
     }
 
-    public addItem(name: string, objects: Object3d[], scale?: number, force: boolean = false) {
-        if (!this._items.has(name) || force) {
-            let item = {name, objects, scale};
-            this._items.set(name, item);
+    public addItem(item: IObject3dItem, force: boolean = false) {
+        if (!this._items.has(item.name) || force) {
+            this._items.set(item.name, item);
             this.events.dispatch(this.events.add, item);
         }
     }
