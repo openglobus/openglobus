@@ -86,7 +86,7 @@ export class Object3dManagerDialog extends Dialog<null> {
         if (fileInp.el) {
             fileInp.el.addEventListener("change", (e) => {
                 const target = e.target as HTMLInputElement;
-                if (target.files?.length == 2) {
+                if (target.files) {
                     const files = Array.from(target.files);
                     const objFile = files.find(file => file.name.toLowerCase().endsWith(".obj"));
                     const mtlFile = files.find(file => file.name.toLowerCase().endsWith(".mtl"));
@@ -107,6 +107,6 @@ export class Object3dManagerDialog extends Dialog<null> {
 async function loadObj(objFile: File, mtlFile?: File): Promise<{ name: string; objects: Object3d[] }> {
     return await Object3d.readFileObj(objFile, mtlFile).then(objects => ({
         name: objFile.name,
-        objects: objects
+        objects: mtlFile ? objects : [Object3d.merge(objects)]
     }))
 }

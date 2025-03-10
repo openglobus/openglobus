@@ -52,12 +52,12 @@ async function main() {
     globus.planet.addControl(new control.Object3dManager({
         layer: sceneLayer,
         collection: [
-            // { name: "tower", objects: tower, scale: 1.1 },
-            // { name: "table", objects: table, scale: 0.8 },
-            // { name: "chair", objects: chair, scale: 0.8 },
-            // { name: "radio", objects: radio, scale: 0.04 },
-            // { name: "trans", objects: trans, scale: 0.01 },
-            // { name: "antenna", objects: antenna, scale: 0.01 }
+            { name: "tower", objects: tower, scale: 1.1 },
+            { name: "table", objects: table, scale: 0.8 },
+            { name: "chair", objects: chair, scale: 0.8 },
+            { name: "radio", objects: radio, scale: 0.04 },
+            { name: "trans", objects: trans, scale: 0.01 },
+            { name: "antenna", objects: antenna, scale: 0.01 }
         ]
     }))
 
