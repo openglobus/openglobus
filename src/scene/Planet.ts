@@ -1052,7 +1052,8 @@ export class Planet extends RenderNode {
         }
 
         this.renderer!.activeCamera = this.camera;
-        this.camera.bindRenderer(this.renderer!);
+        //this.camera.bindRenderer(this.renderer!);
+        this.camera.bindFrustumsPickingColors(this.renderer!);
         this.camera.update();
     }
 

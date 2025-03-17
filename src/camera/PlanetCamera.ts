@@ -113,7 +113,7 @@ class PlanetCamera extends Camera {
     public eyeNorm: Vec3;
 
     constructor(planet: Planet, options: IPlanetCameraParams = {}) {
-        super(planet.renderer, {
+        super({
                 ...options,
                 frustums: options.frustums || [[1, 100 + 0.075], [100, 1000 + 0.075], [1000, 1e6 + 10000], [1e6, 1e9]],
             }

@@ -32,17 +32,19 @@ const EVENT_NAMES: CameraEvents = [
 
 export interface ICameraParams {
     eye?: Vec3;
-    aspect?: number;
+    //aspect?: number;
     viewAngle?: number;
     look?: Vec3;
     up?: Vec3;
     frustums?: NumberArray2[]
+    width?: number;
+    height?: number;
 }
 
 /**
  * Camera class.
  * @class
- * @param {Renderer} [renderer] - Renderer uses the camera instance.
+ * //@param {Renderer} [renderer] - Renderer uses the camera instance.
  * @param {Object} [options] - Camera options:
  * @param {Object} [options.name] - Camera name.
  * @param {number} [options.viewAngle=47] - Camera angle of view. Default is 47.0
@@ -57,12 +59,12 @@ export interface ICameraParams {
  */
 class Camera {
 
-    /**
-     * Assigned renderer
-     * @public
-     * @type {Renderer}
-     */
-    public renderer: Renderer | null;
+    // /**
+    //  * Assigned renderer
+    //  * @public
+    //  * @type {Renderer}
+    //  */
+    // public renderer: Renderer | null;
 
     /**
      * Camera events handler
@@ -92,12 +94,12 @@ class Camera {
      */
     public eyeLow: Float32Array;
 
-    /**
-     * Aspect ratio.
-     * @protected
-     * @type {Number}
-     */
-    protected _aspect: number;
+    // /**
+    //  * Aspect ratio.
+    //  * @protected
+    //  * @type {Number}
+    //  */
+    // protected _aspect: number;
 
     /**
      * Camera view angle in degrees
@@ -174,10 +176,18 @@ class Camera {
 
     public isFirstPass: boolean;
 
-    constructor(renderer: Renderer | null, options: ICameraParams = {}) {
-        this.renderer = renderer;
+    public _width: number;
+
+    public _height: number;
+
+    constructor(options: ICameraParams = {}) {
+        //this.renderer = renderer;
 
         this.events = createEvents<CameraEvents>(EVENT_NAMES, this);
+
+        this._width = options.width || 1;
+
+        this._height = options.height || 1;
 
         this.eye = options.eye || new Vec3();
 
@@ -185,7 +195,7 @@ class Camera {
 
         this.eyeLow = new Float32Array(3);
 
-        this._aspect = options.aspect || 1.0;
+        //this._aspect = options.aspect || 1.0;
 
         this._viewAngle = options.viewAngle || 47.0;
 
@@ -219,7 +229,7 @@ class Camera {
 
                 let fr = new Frustum({
                     fov: this._viewAngle,
-                    aspect: this._aspect,
+                    aspect: this.getAspectRatio(),//this._aspect,
                     near: fi[0],
                     far: fi[1]
                 });
@@ -289,15 +299,15 @@ class Camera {
         }
     }
 
-    public bindRenderer(renderer: Renderer) {
-        this.renderer = renderer;
-        for (let i = 0; i < this.frustums.length; i++) {
-            this.renderer.assignPickingColor<Frustum>(this.frustums[i]);
-        }
-        this._aspect = this.renderer.handler.getClientAspect();
-
-        this._setProj(this._viewAngle, this._aspect);
-    }
+    // public bindRenderer(renderer: Renderer) {
+    //     this.renderer = renderer;
+    //     for (let i = 0; i < this.frustums.length; i++) {
+    //         this.renderer.assignPickingColor<Frustum>(this.frustums[i]);
+    //     }
+    //     this._aspect = this.renderer.handler.getClientAspect();
+    //
+    //     this._setProj(this._viewAngle, this._aspect);
+    // }
 
     /**
      * Camera initialization.
@@ -392,13 +402,19 @@ class Camera {
         this.update();
     }
 
-    /**
-     * Sets aspect ratio
-     * @public
-     * @param {Number} aspect - Camera aspect ratio
-     */
-    public setAspectRatio(aspect: number) {
-        this._aspect = aspect;
+    // /**
+    //  * Sets aspect ratio
+    //  * @public
+    //  * @param {Number} aspect - Camera aspect ratio
+    //  */
+    // public setAspectRatio(aspect: number) {
+    //     this._aspect = aspect;
+    //     this.refresh();
+    // }
+
+    public setViewportSize(width: number, height: number) {
+        this._width = width;
+        this._height = height;
         this.refresh();
     }
 
@@ -408,7 +424,7 @@ class Camera {
      * @returns {number} - Aspect ratio
      */
     public getAspectRatio(): number {
-        return this._aspect;
+        return this._width / this._height;//this._aspect;
     }
 
     /**
@@ -419,7 +435,7 @@ class Camera {
      */
     protected _setProj(angle: number, aspect: number) {
         this._viewAngle = angle;
-        this._aspect = aspect;
+        //this._aspect = aspect;
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             this.frustums[i].setProjectionMatrix(
                 angle,
