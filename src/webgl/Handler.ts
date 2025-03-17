@@ -151,7 +151,7 @@ class Handler {
         extensions: string[];
     };
 
-    public _oneByHeight: number;
+    //public _oneByHeight: number;
 
     /**
      * Current WebGL extensions. Becomes here after context initialization.
@@ -234,7 +234,7 @@ class Handler {
             context: params.context || {}
         }
 
-        this._oneByHeight = 1.0 / (this._params.height * this._params.pixelRatio);
+        //this._oneByHeight = 1.0 / (this._params.height * this._params.pixelRatio);
 
         this.extensions = {};
 
@@ -1125,7 +1125,7 @@ class Handler {
             this._canvasSize[0] = this.canvas.width;
             this._canvasSize[1] = this.canvas.height;
 
-            this._oneByHeight = 1.0 / this.canvas.height;
+            //this._oneByHeight = 1.0 / this.canvas.height;
 
             this.gl && this.gl.viewport(0, 0, w, h);
             this.ONCANVASRESIZE && this.ONCANVASRESIZE(this.canvas);

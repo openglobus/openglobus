@@ -448,10 +448,13 @@ class Camera {
     }
 
     protected _setViewportParameters() {
+        // this._tanViewAngle_hrad = Math.tan(this._viewAngle * math.RADIANS_HALF);
+        // this._tanViewAngle_hradOneByHeight = this._tanViewAngle_hrad * this.renderer!.handler._oneByHeight;
+        // let c = this.renderer!.handler.canvas!;
+        // this._projSizeConst = Math.min(c.clientWidth < 512 ? 512 : c.clientWidth, c.clientHeight < 512 ? 512 : c.clientHeight) / (this._viewAngle * RADIANS);
         this._tanViewAngle_hrad = Math.tan(this._viewAngle * math.RADIANS_HALF);
-        this._tanViewAngle_hradOneByHeight = this._tanViewAngle_hrad * this.renderer!.handler._oneByHeight;
-        let c = this.renderer!.handler.canvas!;
-        this._projSizeConst = Math.min(c.clientWidth < 512 ? 512 : c.clientWidth, c.clientHeight < 512 ? 512 : c.clientHeight) / (this._viewAngle * RADIANS);
+        this._tanViewAngle_hradOneByHeight = this._tanViewAngle_hrad * (1.0 / this._height);
+        this._projSizeConst = Math.min(this._width < 512 ? 512 : this._width, this._height < 512 ? 512 : this._height) / (this._viewAngle * RADIANS);
     }
 
     /**
