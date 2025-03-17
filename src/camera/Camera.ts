@@ -283,6 +283,12 @@ class Camera {
         this._peye.copy(eye);
     }
 
+    public bindFrustumsPickingColors(renderer: Renderer) {
+        for (let i = 0; i < this.frustums.length; i++) {
+            renderer.assignPickingColor<Frustum>(this.frustums[i]);
+        }
+    }
+
     public bindRenderer(renderer: Renderer) {
         this.renderer = renderer;
         for (let i = 0; i < this.frustums.length; i++) {
@@ -414,11 +420,6 @@ class Camera {
     protected _setProj(angle: number, aspect: number) {
         this._viewAngle = angle;
         this._aspect = aspect;
-        this._tanViewAngle_hrad = Math.tan(angle * math.RADIANS_HALF);
-        this._tanViewAngle_hradOneByHeight =
-            this._tanViewAngle_hrad * this.renderer!.handler._oneByHeight;
-        let c = this.renderer!.handler.canvas!;
-        this._projSizeConst = Math.min(c.clientWidth < 512 ? 512 : c.clientWidth, c.clientHeight < 512 ? 512 : c.clientHeight) / (angle * RADIANS);
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             this.frustums[i].setProjectionMatrix(
                 angle,
@@ -427,6 +428,14 @@ class Camera {
                 this.frustums[i].far
             );
         }
+        this._setViewportParameters();
+    }
+
+    protected _setViewportParameters() {
+        this._tanViewAngle_hrad = Math.tan(this._viewAngle * math.RADIANS_HALF);
+        this._tanViewAngle_hradOneByHeight = this._tanViewAngle_hrad * this.renderer!.handler._oneByHeight;
+        let c = this.renderer!.handler.canvas!;
+        this._projSizeConst = Math.min(c.clientWidth < 512 ? 512 : c.clientWidth, c.clientHeight < 512 ? 512 : c.clientHeight) / (this._viewAngle * RADIANS);
     }
 
     /**
