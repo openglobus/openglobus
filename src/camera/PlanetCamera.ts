@@ -309,7 +309,7 @@ class PlanetCamera extends Camera {
         );
 
         let tanPhi = Math.tan(this._viewAngle * RADIANS * 0.5);
-        let tanTheta = this._aspect * tanPhi;
+        let tanTheta = this.getAspectRatio() * tanPhi;
         let d = Math.max(_w / tanTheta, _h / tanPhi);
 
         center.normalize();

@@ -29,7 +29,7 @@ const globus = new Globe({
     sun: {
         stopped: false
     },
-    dpi: 0.8
+    //dpi: 0.8
 });
 
 globus.planet.addControl(new control.TimelineControl());

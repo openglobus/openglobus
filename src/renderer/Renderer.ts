@@ -51,55 +51,55 @@ let __depthCallbackCounter__ = 0;
 
 let _tempDepth_ = new Float32Array(2);
 
-function clientWaitAsync(gl: WebGL2RenderingContext, sync: WebGLSync, flags: number): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-        function check() {
-            const res = gl.clientWaitSync(sync, flags, 0);
-            if (res == gl.WAIT_FAILED) {
-                reject();
-            } else if (res == gl.TIMEOUT_EXPIRED) {
-                requestAnimationFrame(check);
-            } else {
-                resolve();
-            }
-        }
-
-        check();
-    });
-}
+// function clientWaitAsync(gl: WebGL2RenderingContext, sync: WebGLSync, flags: number): Promise<void> {
+//     return new Promise<void>((resolve, reject) => {
+//         function check() {
+//             const res = gl.clientWaitSync(sync, flags, 0);
+//             if (res == gl.WAIT_FAILED) {
+//                 reject();
+//             } else if (res == gl.TIMEOUT_EXPIRED) {
+//                 requestAnimationFrame(check);
+//             } else {
+//                 resolve();
+//             }
+//         }
+//
+//         check();
+//     });
+// }
 
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
  * @class
  * @param {Handler} handler - WebGL handler context.
  * @param {Object} [params] - Renderer parameters:
- * @fires EventsHandler<RendererEventsType>#draw
- * @fires EventsHandler<RendererEventsType>#resize
- * @fires EventsHandler<RendererEventsType>#mousemove
- * @fires EventsHandler<RendererEventsType>#mousestop
- * @fires EventsHandler<RendererEventsType>#lclick
- * @fires EventsHandler<RendererEventsType>#rclick
- * @fires EventsHandler<RendererEventsType>#mclick
- * @fires EventsHandler<RendererEventsType>#ldblclick
- * @fires EventsHandler<RendererEventsType>#rdblclick
- * @fires EventsHandler<RendererEventsType>#mdblclick
- * @fires EventsHandler<RendererEventsType>#lup
- * @fires EventsHandler<RendererEventsType>#rup
- * @fires EventsHandler<RendererEventsType>#mup
- * @fires EventsHandler<RendererEventsType>#ldown
- * @fires EventsHandler<RendererEventsType>#rdown
- * @fires EventsHandler<RendererEventsType>#mdown
- * @fires EventsHandler<RendererEventsType>#lhold
- * @fires EventsHandler<RendererEventsType>#rhold
- * @fires EventsHandler<RendererEventsType>#mhold
- * @fires EventsHandler<RendererEventsType>#mousewheel
- * @fires EventsHandler<RendererEventsType>#touchstart
- * @fires EventsHandler<RendererEventsType>#touchend
- * @fires EventsHandler<RendererEventsType>#touchcancel
- * @fires EventsHandler<RendererEventsType>#touchmove
- * @fires EventsHandler<RendererEventsType>#doubletouch
- * @fires EventsHandler<RendererEventsType>#touchleave
- * @fires EventsHandler<RendererEventsType>#touchenter
+ * @fires RendererEventsHandler<RendererEventsType>#draw
+ * @fires RendererEventsHandler<RendererEventsType>#resize
+ * @fires RendererEventsHandler<RendererEventsType>#mousemove
+ * @fires RendererEventsHandler<RendererEventsType>#mousestop
+ * @fires RendererEventsHandler<RendererEventsType>#lclick
+ * @fires RendererEventsHandler<RendererEventsType>#rclick
+ * @fires RendererEventsHandler<RendererEventsType>#mclick
+ * @fires RendererEventsHandler<RendererEventsType>#ldblclick
+ * @fires RendererEventsHandler<RendererEventsType>#rdblclick
+ * @fires RendererEventsHandler<RendererEventsType>#mdblclick
+ * @fires RendererEventsHandler<RendererEventsType>#lup
+ * @fires RendererEventsHandler<RendererEventsType>#rup
+ * @fires RendererEventsHandler<RendererEventsType>#mup
+ * @fires RendererEventsHandler<RendererEventsType>#ldown
+ * @fires RendererEventsHandler<RendererEventsType>#rdown
+ * @fires RendererEventsHandler<RendererEventsType>#mdown
+ * @fires RendererEventsHandler<RendererEventsType>#lhold
+ * @fires RendererEventsHandler<RendererEventsType>#rhold
+ * @fires RendererEventsHandler<RendererEventsType>#mhold
+ * @fires RendererEventsHandler<RendererEventsType>#mousewheel
+ * @fires RendererEventsHandler<RendererEventsType>#touchstart
+ * @fires RendererEventsHandler<RendererEventsType>#touchend
+ * @fires RendererEventsHandler<RendererEventsType>#touchcancel
+ * @fires RendererEventsHandler<RendererEventsType>#touchmove
+ * @fires RendererEventsHandler<RendererEventsType>#doubletouch
+ * @fires RendererEventsHandler<RendererEventsType>#touchleave
+ * @fires RendererEventsHandler<RendererEventsType>#touchenter
  */
 
 export interface HTMLDivElementExt extends HTMLDivElement {
@@ -275,8 +275,12 @@ class Renderer {
 
         this.renderNodes = {};
 
-        this.activeCamera = new Camera(this, {
-            eye: new Vec3(0, 0, 0), look: new Vec3(0, 0, -1), up: new Vec3(0, 1, 0)
+        this.activeCamera = new Camera({
+            width: this.handler.canvas?.width,
+            height: this.handler.canvas?.height,
+            eye: new Vec3(0, 0, 0),
+            look: new Vec3(0, 0, -1),
+            up: new Vec3(0, 1, 0)
         });
 
         this.events = createRendererEvents(this);
@@ -728,7 +732,7 @@ class Renderer {
     public _resizeStart() {
         let c = this.handler.canvas!;
 
-        this.activeCamera!.setAspectRatio(c.width / c.height);
+        this.activeCamera!.setViewportSize(c.width, c.height);
         this.sceneFramebuffer!.setSize(c.width * 0.5, c.height * 0.5);
         this.blitFramebuffer && this.blitFramebuffer.setSize(c.width * 0.5, c.height * 0.5, true);
     }
@@ -736,7 +740,7 @@ class Renderer {
     public _resizeEnd() {
         let c = this.handler.canvas!;
 
-        this.activeCamera!.setAspectRatio(c.width / c.height);
+        this.activeCamera!.setViewportSize(c.width, c.height);
         this.sceneFramebuffer!.setSize(c.width, c.height);
         this.blitFramebuffer && this.blitFramebuffer.setSize(c.width, c.height, true);
 

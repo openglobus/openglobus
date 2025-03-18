@@ -32,7 +32,6 @@ const EVENT_NAMES: CameraEvents = [
 
 export interface ICameraParams {
     eye?: Vec3;
-    //aspect?: number;
     viewAngle?: number;
     look?: Vec3;
     up?: Vec3;
@@ -195,8 +194,6 @@ class Camera {
 
         this.eyeLow = new Float32Array(3);
 
-        //this._aspect = options.aspect || 1.0;
-
         this._viewAngle = options.viewAngle || 47.0;
 
         this._viewMatrix = new Mat4();
@@ -245,7 +242,7 @@ class Camera {
 
             let fr = new Frustum({
                 fov: this._viewAngle,
-                aspect: this._aspect,
+                aspect: this.getAspectRatio(),
                 near: near,
                 far: far
             });
@@ -322,7 +319,7 @@ class Camera {
      */
     protected _init(options: ICameraParams) {
 
-        this._setProj(this._viewAngle, this._aspect);
+        this._setProj(this._viewAngle, this.getAspectRatio());
 
         this.set(
             options.eye || new Vec3(0.0, 0.0, 1.0),
@@ -398,7 +395,7 @@ class Camera {
      * @public
      */
     public refresh() {
-        this._setProj(this._viewAngle, this._aspect);
+        this._setProj(this._viewAngle, this.getAspectRatio());
         this.update();
     }
 
@@ -435,7 +432,6 @@ class Camera {
      */
     protected _setProj(angle: number, aspect: number) {
         this._viewAngle = angle;
-        //this._aspect = aspect;
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             this.frustums[i].setProjectionMatrix(
                 angle,
@@ -444,10 +440,10 @@ class Camera {
                 this.frustums[i].far
             );
         }
-        this._setViewportParameters();
+        this._updateViewportParameters();
     }
 
-    protected _setViewportParameters() {
+    protected _updateViewportParameters() {
         // this._tanViewAngle_hrad = Math.tan(this._viewAngle * math.RADIANS_HALF);
         // this._tanViewAngle_hradOneByHeight = this._tanViewAngle_hrad * this.renderer!.handler._oneByHeight;
         // let c = this.renderer!.handler.canvas!;
@@ -653,9 +649,12 @@ class Camera {
      * @returns {Vec3} - Direction vector
      */
     public unproject(x: number, y: number) {
-        let c = this.renderer!.handler.canvas!,
-            w = c.width * 0.5,
-            h = c.height * 0.5;
+        // let c = this.renderer!.handler.canvas!,
+        //     w = c.width * 0.5,
+        //     h = c.height * 0.5;
+
+        let w = this._width * 0.5,
+            h = this._height * 0.5;
 
         let px = (x - w) / w,
             py = -(y - h) / h;
@@ -685,9 +684,9 @@ class Camera {
      * @returns {Vec2} - Screen point coordinates
      */
     public project(x: number, y: number, z: number): Vec2 {
-        let r = this.frustums[0].projectionViewMatrix.mulVec4(new Vec4(x, y, z, 1.0)),
-            c = this.renderer!.handler.canvas!;
-        return new Vec2((1 + r.x / r.w) * c.width * 0.5, (1 - r.y / r.w) * c.height * 0.5);
+        let r = this.frustums[0].projectionViewMatrix.mulVec4(new Vec4(x, y, z, 1.0));
+            //c = this.renderer!.handler.canvas!;
+        return new Vec2((1 + r.x / r.w) * this._width * 0.5, (1 - r.y / r.w) * this._height * 0.5);
     }
 
     /**
