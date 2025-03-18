@@ -409,6 +409,14 @@ class Camera {
     //     this.refresh();
     // }
 
+    public get width(): number {
+        return this._width;
+    }
+
+    public get height(): number {
+        return this._height;
+    }
+
     public setViewportSize(width: number, height: number) {
         this._width = width;
         this._height = height;
@@ -685,7 +693,7 @@ class Camera {
      */
     public project(x: number, y: number, z: number): Vec2 {
         let r = this.frustums[0].projectionViewMatrix.mulVec4(new Vec4(x, y, z, 1.0));
-            //c = this.renderer!.handler.canvas!;
+        //c = this.renderer!.handler.canvas!;
         return new Vec2((1 + r.x / r.w) * this._width * 0.5, (1 - r.y / r.w) * this._height * 0.5);
     }
 

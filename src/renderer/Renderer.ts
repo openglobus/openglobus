@@ -1283,16 +1283,18 @@ class Renderer {
 
     public readDepth(x: number, y: number, outDepth: NumberArray3 | Float32Array) {
 
-        let w = this.depthFramebuffer!.width;
-        let h = this.depthFramebuffer!.height;
+        let depthFramebuffer = this.depthFramebuffer!;
+
+        let w = depthFramebuffer.width;
+        let h = depthFramebuffer.height;
 
         x = Math.round(x * w);
         y = Math.round(y * h);
 
         let ind = (y * w + x) * 4;
 
-        let _tempDepthPix_ = this.depthFramebuffer?.pixelBuffers[1].data;
-        let _tempFrustumPix_ = this.depthFramebuffer?.pixelBuffers[0].data!;
+        let _tempDepthPix_ = depthFramebuffer.pixelBuffers[1].data;
+        let _tempFrustumPix_ = depthFramebuffer.pixelBuffers[0].data!;
 
         if (_tempDepthPix_) {
             outDepth[0] = _tempDepthPix_[ind];
