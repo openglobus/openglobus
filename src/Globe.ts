@@ -58,6 +58,8 @@ export interface IGlobeParams {
     fontsSrc?: string;
     resourcesSrc?: string;
     atmosphereParameters?: IAtmosphereParams;
+    minDistanceBeforeMemClear?: number;
+    vectorTileSize?: number;
     gamma?: number;
     exposure?: number;
 }
@@ -251,6 +253,8 @@ class Globe {
             atmosphereEnabled: options.atmosphereEnabled,
             transitionOpacityEnabled: options.transitionOpacityEnabled,
             atmosphereParameters: options.atmosphereParameters,
+            minDistanceBeforeMemClear: options.minDistanceBeforeMemClear,
+            vectorTileSize: options.vectorTileSize,
         });
 
         // Attach terrain provider (can be one object or array)

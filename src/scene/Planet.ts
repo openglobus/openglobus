@@ -61,6 +61,8 @@ export interface IPlanetParams {
     atmosphereEnabled?: boolean;
     transitionOpacityEnabled?: boolean;
     atmosphereParameters?: IAtmosphereParams;
+    minDistanceBeforeMemClear?: number;
+    vectorTileSize?: number;
 }
 
 export type PlanetEventsList = [
@@ -398,6 +400,7 @@ export class Planet extends RenderNode {
     protected _transitionOpacityEnabled: boolean;
 
     protected _atmosphere: Atmosphere;
+    private _minDistanceBeforeMemClear: number = 0;
 
     constructor(options: IPlanetParams = {}) {
         super(options.name);
@@ -512,7 +515,7 @@ export class Planet extends RenderNode {
 
         this._geoImageCreator = new GeoImageCreator(this);
 
-        this._vectorTileCreator = new VectorTileCreator(this);
+        this._vectorTileCreator = new VectorTileCreator(this, options.vectorTileSize, options.vectorTileSize);
 
         this._normalMapCreator = new NormalMapCreator(this);
 
@@ -1362,7 +1365,7 @@ export class Planet extends RenderNode {
         cam.checkFly();
 
         // free memory
-        if (this._createdNodesCount > MAX_NODES && this._distBeforeMemClear > 1000.0) {
+        if (this._createdNodesCount > MAX_NODES && this._distBeforeMemClear > this._minDistanceBeforeMemClear) {
             this.terrain!.clearCache();
             this.memClear();
         }
