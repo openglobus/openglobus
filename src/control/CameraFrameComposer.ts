@@ -1,11 +1,12 @@
 import {Control, IControlParams} from "./Control";
 import {Camera} from "../camera/Camera";
 import {Framebuffer} from "../webgl/Framebuffer";
+import {WebGLContextExt} from "../webgl/Handler";
 
 export interface ICameraFrameHadler {
     camera: Camera,
     frameBuffer: Framebuffer,
-    handler: (camera?: Camera) => void
+    handler: (camera?: Camera, framebuffer?: Framebuffer, gl?: WebGLContextExt) => void
 }
 
 export interface ICameraFrameComposerParams extends IControlParams {
@@ -15,7 +16,7 @@ export interface ICameraFrameComposerParams extends IControlParams {
 export class CameraFrameHandler {
     public camera: Camera;
     public frameBuffer: Framebuffer;
-    public handler: (camera?: Camera) => void | null;
+    public handler: (camera?: Camera, framebuffer?: Framebuffer, gl?: WebGLContextExt) => void | null;
     protected _composer: CameraFrameComposer | null;
     protected _composerIndex: number;
 
@@ -48,7 +49,7 @@ export class CameraFrameHandler {
     public frame() {
         if (this.handler) {
             this.frameBuffer.activate();
-            this.handler(this.camera);
+            this.handler(this.frameBuffer, this.camera, this.frameBuffer.handler.gl);
             this.frameBuffer.deactivate();
         }
     }

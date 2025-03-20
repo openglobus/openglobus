@@ -13,7 +13,9 @@ import {
     Bing,
     GeoVideo,
     XYZ,
-    utils
+    utils,
+    PlanetCamera,
+    Framebuffer
 } from "../../lib/@openglobus/og.esm.js";
 
 const globus = new Globe({
@@ -36,4 +38,14 @@ globus.planet.addControl(new control.TimelineControl());
 globus.planet.addControl(new control.CompassButton());
 globus.planet.addControl(new control.DebugInfo());
 globus.planet.addControl(new control.LayerSwitcher());
-globus.planet.addControl(new control.CameraFrameComposer());
+globus.planet.addControl(new control.CameraFrameComposer(new control.CameraFrameHandler({
+    camera: new PlanetCamera(globus.planet, {
+        width: 640,
+        height: 480,
+        viewAngle: 45
+    }),
+    frameBuffer: new Framebuffer(globus.planet.renderer.handler),
+    handler: (gl, camera, framebuffer) => {
+
+    }
+})));
