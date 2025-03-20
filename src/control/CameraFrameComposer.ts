@@ -5,7 +5,7 @@ import {Framebuffer} from "../webgl/Framebuffer";
 interface ICameraFrameHadler {
     camera: Camera,
     frameBuffer: Framebuffer,
-    handler: Function
+    handler: (camera?: Camera) => void
 }
 
 export interface ICameraFrameComposerParams extends IControlParams {
@@ -15,7 +15,7 @@ export interface ICameraFrameComposerParams extends IControlParams {
 export class CameraFrameHandler {
     public camera: Camera;
     public frameBuffer: Framebuffer;
-    public handler: Function | null;
+    public handler: (camera?: Camera) => void | null;
 
     constructor(params: ICameraFrameHadler) {
         this.camera = params.camera;
@@ -24,7 +24,11 @@ export class CameraFrameHandler {
     }
 
     public frame() {
-
+        if (this.handler) {
+            this.frameBuffer.activate();
+            this.handler(this.camera);
+            this.frameBuffer.deactivate();
+        }
     }
 }
 
