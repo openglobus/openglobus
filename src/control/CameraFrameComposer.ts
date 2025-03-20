@@ -2,7 +2,7 @@ import {Control, IControlParams} from "./Control";
 import {Camera} from "../camera/Camera";
 import {Framebuffer} from "../webgl/Framebuffer";
 
-interface ICameraFrameHadler {
+export interface ICameraFrameHadler {
     camera: Camera,
     frameBuffer: Framebuffer,
     handler: (camera?: Camera) => void
@@ -16,11 +16,33 @@ export class CameraFrameHandler {
     public camera: Camera;
     public frameBuffer: Framebuffer;
     public handler: (camera?: Camera) => void | null;
+    protected _composer: CameraFrameComposer | null;
+    protected _composerIndex: number;
 
     constructor(params: ICameraFrameHadler) {
         this.camera = params.camera;
         this.frameBuffer = params.frameBuffer;
         this.handler = params.handler || null;
+        this._composer = null;
+        this._composerIndex = -1;
+    }
+
+    public addTo(composer: CameraFrameComposer) {
+        if (!this._composer) {
+            this._composer = composer;
+            this._composerIndex = composer.handlers.length;
+            //@ts-ignore
+            this._composer._handlers.push(this);
+        }
+    }
+
+    public remove() {
+        if (this._composer) {
+            //@ts-ignore
+            this._composer._handlers.splice(this._composerIndex, 1);
+            this._composer = null;
+            this._composerIndex = -1;
+        }
     }
 
     public frame() {
@@ -44,6 +66,14 @@ export class CameraFrameComposer extends Control {
         });
 
         this._handlers = [];
+    }
+
+    public get handlers(): CameraFrameHandler[] {
+        return [...this._handlers];
+    }
+
+    public add(handler: CameraFrameHandler) {
+        handler.addTo(this);
     }
 
     public override oninit() {
