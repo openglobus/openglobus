@@ -1,16 +1,45 @@
 import {Control, IControlParams} from "./Control";
+import {Camera} from "../camera/Camera";
+import {Framebuffer} from "../webgl/Framebuffer";
+
+interface ICameraFrameHadler {
+    camera: Camera,
+    frameBuffer: Framebuffer,
+    handler: Function
+}
 
 export interface ICameraFrameComposerParams extends IControlParams {
 
 }
 
+export class CameraFrameHandler {
+    public camera: Camera;
+    public frameBuffer: Framebuffer;
+    public handler: Function | null;
+
+    constructor(params: ICameraFrameHadler) {
+        this.camera = params.camera;
+        this.frameBuffer = params.frameBuffer;
+        this.handler = params.handler || null;
+    }
+
+    public frame() {
+
+    }
+}
+
 export class CameraFrameComposer extends Control {
+
+    protected _handlers: CameraFrameHandler[];
+
     constructor(params: ICameraFrameComposerParams) {
         super({
             name: "CameraFrameComposer",
             autoActivate: true,
             ...params
         });
+
+        this._handlers = [];
     }
 
     public override oninit() {
@@ -28,5 +57,8 @@ export class CameraFrameComposer extends Control {
     }
 
     protected _onPostdraw = () => {
+        for (let i = 0; i < this._handlers.length; i++) {
+            this._handlers[i].frame();
+        }
     }
 }
