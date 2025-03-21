@@ -843,6 +843,14 @@ class Camera {
         this.set(newPos, cartesian);
         this.update();
     }
+
+    public copy(cam: Camera) {
+        this.eye.copy(cam.eye);
+        this._r.copy(cam.getRight());
+        this._u.copy(cam.getUp());
+        this._b.copy(cam.getBackward());
+        this.setViewAngle(cam.viewAngle);
+    }
 }
 
 export {Camera};
