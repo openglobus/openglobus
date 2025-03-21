@@ -3,20 +3,18 @@ import {Camera} from "../camera/Camera";
 import {Framebuffer} from "../webgl/Framebuffer";
 import {WebGLContextExt} from "../webgl/Handler";
 
+type HandlerFunc = (camera?: Camera, framebuffer?: Framebuffer, gl?: WebGLContextExt | null) => void;
+
 export interface ICameraFrameHadler {
     camera: Camera,
     frameBuffer: Framebuffer,
-    handler: (camera?: Camera, framebuffer?: Framebuffer, gl?: WebGLContextExt) => void
-}
-
-export interface ICameraFrameComposerParams extends IControlParams {
-
+    handler: HandlerFunc
 }
 
 export class CameraFrameHandler {
     public camera: Camera;
     public frameBuffer: Framebuffer;
-    public handler: (camera?: Camera, framebuffer?: Framebuffer, gl?: WebGLContextExt) => void | null;
+    public handler: HandlerFunc | null;
     protected _composer: CameraFrameComposer | null;
     protected _composerIndex: number;
 
@@ -26,6 +24,7 @@ export class CameraFrameHandler {
         this.handler = params.handler || null;
         this._composer = null;
         this._composerIndex = -1;
+        this.frameBuffer.init();
     }
 
     public addTo(composer: CameraFrameComposer) {
@@ -49,10 +48,14 @@ export class CameraFrameHandler {
     public frame() {
         if (this.handler) {
             this.frameBuffer.activate();
-            this.handler(this.frameBuffer, this.camera, this.frameBuffer.handler.gl);
+            this.handler(this.camera, this.frameBuffer, this.frameBuffer.handler.gl);
             this.frameBuffer.deactivate();
         }
     }
+}
+
+export interface ICameraFrameComposerParams extends IControlParams {
+    handlers: CameraFrameHandler[]
 }
 
 export class CameraFrameComposer extends Control {
@@ -66,7 +69,7 @@ export class CameraFrameComposer extends Control {
             ...params
         });
 
-        this._handlers = [];
+        this._handlers = params.handlers || [];
     }
 
     public get handlers(): CameraFrameHandler[] {
