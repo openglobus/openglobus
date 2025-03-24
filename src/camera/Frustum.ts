@@ -174,7 +174,7 @@ class Frustum {
     /**
      * Sets up camera projection matrix.
      * @public
-     * @param {number} angle - Camera's view angle.
+     * @param {number} angle - Camera's vertical fov view angle.
      * @param {number} aspect - Screen aspect ratio.
      * @param {number} near - Near camera distance.
      * @param {number} far - Far camera distance.

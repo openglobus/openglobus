@@ -1844,7 +1844,7 @@ class Segment {
         }
     }
 
-    public depthRendering(sh: Program, layerSlice: Layer[]) {
+    public depthRendering(sh: Program, layerSlice?: Layer[]) {
         const gl = this.handler.gl!;
         const sha = sh.attributes;
         const shu = sh.uniforms;

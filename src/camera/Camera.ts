@@ -12,7 +12,7 @@ import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 import {Sphere} from "../bv/Sphere";
 import {Quat} from "../math/Quat";
-import {RADIANS} from "../math";
+import {DEGREES_DOUBLE, RADIANS, RADIANS_HALF} from "../math";
 
 type CameraEvents = ["viewchange", "moveend"];
 
@@ -39,6 +39,8 @@ export interface ICameraParams {
     width?: number;
     height?: number;
 }
+
+const getHorizontalViewAngleByFov = (fov: number, aspect: number) => DEGREES_DOUBLE * Math.atan(Math.tan(RADIANS_HALF * fov) * aspect);
 
 /**
  * Camera class.
@@ -106,6 +108,8 @@ class Camera {
      * @type {Number}
      */
     protected _viewAngle: number;
+
+    protected _horizontalViewAngle: number;
 
     /**
      * Camera view matrix.
@@ -195,6 +199,8 @@ class Camera {
         this.eyeLow = new Float32Array(3);
 
         this._viewAngle = options.viewAngle || 47.0;
+
+        this._horizontalViewAngle = 0;
 
         this._viewMatrix = new Mat4();
         this._viewMatrixRTE = new Mat4();
@@ -448,14 +454,13 @@ class Camera {
                 this.frustums[i].far
             );
         }
+
+        this._horizontalViewAngle = getHorizontalViewAngleByFov(angle, aspect);
+
         this._updateViewportParameters();
     }
 
     protected _updateViewportParameters() {
-        // this._tanViewAngle_hrad = Math.tan(this._viewAngle * math.RADIANS_HALF);
-        // this._tanViewAngle_hradOneByHeight = this._tanViewAngle_hrad * this.renderer!.handler._oneByHeight;
-        // let c = this.renderer!.handler.canvas!;
-        // this._projSizeConst = Math.min(c.clientWidth < 512 ? 512 : c.clientWidth, c.clientHeight < 512 ? 512 : c.clientHeight) / (this._viewAngle * RADIANS);
         this._tanViewAngle_hrad = Math.tan(this._viewAngle * math.RADIANS_HALF);
         this._tanViewAngle_hradOneByHeight = this._tanViewAngle_hrad * (1.0 / this._height);
         this._projSizeConst = Math.min(this._width < 512 ? 512 : this._width, this._height < 512 ? 512 : this._height) / (this._viewAngle * RADIANS);
@@ -482,6 +487,14 @@ class Camera {
 
     public get viewAngle(): number {
         return this._viewAngle;
+    }
+
+    public get verticalViewAngle(): number {
+        return this._viewAngle;
+    }
+
+    public get horizontalViewAngle(): number {
+        return this._horizontalViewAngle;
     }
 
     /**
