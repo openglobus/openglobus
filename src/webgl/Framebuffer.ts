@@ -380,8 +380,8 @@ export class Framebuffer extends BaseFramebuffer {
         const w = this.width;
         const h = this.height;
 
-        const x = nx * w;
-        const y = ny * h;
+        const x = Math.round(nx * w);
+        const y = Math.round(ny * h);
 
         const ind = ((y - 1) * w + x - 1) * 4;
 

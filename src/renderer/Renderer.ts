@@ -1283,29 +1283,36 @@ class Renderer {
 
     public readDepth(x: number, y: number, outDepth: NumberArray3 | Float32Array) {
 
+        if (x > 1 || y > 1) {
+            debugger;
+        }
+
         let depthFramebuffer = this.depthFramebuffer!;
 
-        // let w = depthFramebuffer.width;
-        // let h = depthFramebuffer.height;
-        //
-        // x = Math.round(x * w);
-        // y = Math.round(y * h);
-        //
-        // let ind = (y * w + x) * 4;
-        //
-        // let _tempDepthPix_ = depthFramebuffer.pixelBuffers[1].data;
-        // let _tempFrustumPix_ = depthFramebuffer.pixelBuffers[0].data!;
-        //
-        // if (_tempDepthPix_) {
-        //     outDepth[0] = _tempDepthPix_[ind];
-        //     outDepth[1] = Math.round(_tempFrustumPix_[ind] / 10.0) - 1.0; // See Camera.frustumColorIndex
-        // }
+
+        let w = depthFramebuffer.width;
+        let h = depthFramebuffer.height;
+
+        let sx = Math.round(x * w);
+        let sy = Math.round(y * h);
+
+        let ind = (sy * w + sx) * 4;
+
+        let _tempDepthPix_ = depthFramebuffer.pixelBuffers[1].data;
+        let _tempFrustumPix_ = depthFramebuffer.pixelBuffers[0].data!;
+
+        if (_tempDepthPix_) {
+            outDepth[0] = _tempDepthPix_[ind];
+            outDepth[1] = Math.round(_tempFrustumPix_[ind] / 10.0) - 1.0; // See Camera.frustumColorIndex
+        }
+
+        //////
 
         let ddd = new Float32Array(4);
         let fff = new Uint8Array(4);
 
-        depthFramebuffer.readData(x, y, ddd, 0);
-        depthFramebuffer.readData(x, y, fff, 1);
+        depthFramebuffer.readData(x, y, fff, 0);
+        depthFramebuffer.readData(x, y, ddd, 1);
 
         outDepth[0] = ddd[0];
         outDepth[1] = Math.round(fff[0] / 10.0) - 1.0; // See Camera.frustumColorIndex
