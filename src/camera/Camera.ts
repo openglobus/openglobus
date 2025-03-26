@@ -435,7 +435,7 @@ class Camera {
      * @returns {number} - Aspect ratio
      */
     public getAspectRatio(): number {
-        return this._width / this._height;//this._aspect;
+        return this._width / this._height;
     }
 
     /**
@@ -862,6 +862,8 @@ class Camera {
         this._r.copy(cam.getRight());
         this._u.copy(cam.getUp());
         this._b.copy(cam.getBackward());
+        this._width = cam.width;
+        this._height = cam.height;
         this.setViewAngle(cam.viewAngle);
     }
 }

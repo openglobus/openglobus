@@ -20,7 +20,7 @@ import {TextureAtlas} from "../utils/TextureAtlas";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import type {NumberArray3} from "../math/Vec3";
-import {Vec4} from "../math/Vec4";
+import {NumberArray4, Vec4} from "../math/Vec4";
 
 interface IRendererParams {
     controls?: Control[];
@@ -1228,27 +1228,27 @@ class Renderer {
         //
         // DEBUG SCREEN OUTPUTS
         //
-        if (this._currentOutput === "depth" || this._currentOutput === "frustum") {
-            //
-            // PASS to depth visualization
-            this.screenDepthFramebuffer!.activate();
-            let sh = h.programs.depth,
-                p = sh._program;
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
-            gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-
-            sh.activate();
-
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer!.textures[1]);
-            gl.uniform1i(p.uniforms.depthTexture, 0);
-
-            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-            this.screenDepthFramebuffer!.deactivate();
-            gl.enable(gl.BLEND);
-        }
+        // if (this._currentOutput === "depth" || this._currentOutput === "frustum") {
+        //     //
+        //     // PASS to depth visualization
+        //     this.screenDepthFramebuffer!.activate();
+        //     let sh = h.programs.depth,
+        //         p = sh._program;
+        //
+        //     gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
+        //     gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+        //
+        //     sh.activate();
+        //
+        //     gl.activeTexture(gl.TEXTURE0);
+        //     gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer!.textures[1]);
+        //     gl.uniform1i(p.uniforms.depthTexture, 0);
+        //
+        //     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        //
+        //     this.screenDepthFramebuffer!.deactivate();
+        //     gl.enable(gl.BLEND);
+        // }
     }
 
     protected _readDepthBuffer() {
@@ -1285,21 +1285,30 @@ class Renderer {
 
         let depthFramebuffer = this.depthFramebuffer!;
 
-        let w = depthFramebuffer.width;
-        let h = depthFramebuffer.height;
+        // let w = depthFramebuffer.width;
+        // let h = depthFramebuffer.height;
+        //
+        // x = Math.round(x * w);
+        // y = Math.round(y * h);
+        //
+        // let ind = (y * w + x) * 4;
+        //
+        // let _tempDepthPix_ = depthFramebuffer.pixelBuffers[1].data;
+        // let _tempFrustumPix_ = depthFramebuffer.pixelBuffers[0].data!;
+        //
+        // if (_tempDepthPix_) {
+        //     outDepth[0] = _tempDepthPix_[ind];
+        //     outDepth[1] = Math.round(_tempFrustumPix_[ind] / 10.0) - 1.0; // See Camera.frustumColorIndex
+        // }
 
-        x = Math.round(x * w);
-        y = Math.round(y * h);
+        let ddd = new Float32Array(4);
+        let fff = new Uint8Array(4);
 
-        let ind = (y * w + x) * 4;
+        depthFramebuffer.readData(x, y, ddd, 0);
+        depthFramebuffer.readData(x, y, fff, 1);
 
-        let _tempDepthPix_ = depthFramebuffer.pixelBuffers[1].data;
-        let _tempFrustumPix_ = depthFramebuffer.pixelBuffers[0].data!;
-
-        if (_tempDepthPix_) {
-            outDepth[0] = _tempDepthPix_[ind];
-            outDepth[1] = Math.round(_tempFrustumPix_[ind] / 10.0) - 1.0; // See Camera.frustumColorIndex
-        }
+        outDepth[0] = ddd[0];
+        outDepth[1] = Math.round(fff[0] / 10.0) - 1.0; // See Camera.frustumColorIndex
     }
 
     /**
@@ -1312,8 +1321,7 @@ class Renderer {
 
         camera = camera || this.activeCamera!;
 
-        let r = this!;
-        let cnv = r.handler!.canvas!;
+        let cnv = this.handler!.canvas!;
 
         let spx = px.x / cnv.width;
         let spy = (cnv.height - px.y) / cnv.height;
@@ -1322,7 +1330,7 @@ class Renderer {
 
         let dist = 0;
 
-        r.readDepth(spx, spy, _tempDepth_);
+        this.readDepth(spx, spy, _tempDepth_);
 
         if (_tempDepth_[1] === -1) {
             return;
@@ -1335,8 +1343,8 @@ class Renderer {
 
         let screenPos = new Vec4(spx * 2.0 - 1.0, spy * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0 * 2.0 - 1.0);
         let viewPosition = frustum.inverseProjectionMatrix.mulVec4(screenPos);
-        let dir = (px as IBaseInputState).direction || r.activeCamera!.unproject(px.x, px.y);
-        dist = -(viewPosition.z / viewPosition.w) / dir.dot(r.activeCamera!.getForward());
+        let dir = (px as IBaseInputState).direction || camera.unproject(px.x, px.y);
+        dist = -(viewPosition.z / viewPosition.w) / dir.dot(camera.getForward());
 
         return dist;
     }

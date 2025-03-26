@@ -47,9 +47,7 @@ export class CameraFrameHandler {
 
     public frame() {
         if (this.handler) {
-            this.frameBuffer.activate();
             this.handler(this.camera, this.frameBuffer, this.frameBuffer.handler.gl);
-            this.frameBuffer.deactivate();
         }
     }
 }

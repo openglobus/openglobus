@@ -17,7 +17,8 @@ import {
     PlanetCamera,
     Framebuffer,
     input,
-    Program
+    Program,
+    Vec4
 } from "../../lib/@openglobus/og.esm.js";
 
 let cameraLayer = new Vector("camera", {
@@ -84,10 +85,6 @@ globus.planet.renderer.events.on("charkeypress", input.KEY_V, () => {
     restoreCamera();
 });
 
-// let aspectRatio = payload['image-width'] / payload['image-height'];
-// let hAngle = Math.atan(Math.pow(2, 1 - zoom / 100)) * 360 / Math.PI;
-// let vAngle = math.DEGREES_DOUBLE * Math.atan(Math.tan(hAngle * math.RADIANS_HALF) / aspectRatio);
-
 let cameraObj = Object3d.createFrustum();
 let frustumScale = Object3d.getFrustumScaleByCameraAspectRatio(1000, globus.planet.camera.getViewAngle(), globus.planet.camera.getAspectRatio());
 //let frustumScale = Object3d.getFrustumScaleByCameraAngles(140, 35, 35);
@@ -98,7 +95,7 @@ let cameraEntity = new Entity({
     geoObject: {
         //visibility: false,
         tag: "frustum",
-        color: "rgba(100,255,100,0.1)",
+        color: "rgba(255,255,30,0.25)",
         object3d: cameraObj
     }
 });
@@ -167,25 +164,53 @@ function camera_depth() {
 
 globus.planet.renderer.handler.addProgram(camera_depth());
 
+function getDistanceFromPixel(sx, sy, camera, framebuffer) {
+
+    let nx = sx / framebuffer.width,
+        ny = sy / framebuffer.height;
+
+    let dist = 0;
+
+    let _tempDepth_ = [];
+
+    framebuffer.readData(nx, ny, _tempDepth_);
+
+    let depth = _tempDepth_[0];
+
+    let screenPos = new Vec4(nx * 2.0 - 1.0, ny * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
+    let viewPosition = camera.frustums[0].inverseProjectionMatrix.mulVec4(screenPos);
+    let dir = camera.unproject(nx * camera.width, ny * camera.height);
+    dist = -(viewPosition.z / viewPosition.w) / dir.dot(camera.getForward());
+
+    return dist;
+}
+
+const CAM_WIDTH = 640;
+const CAM_HEIGHT = 480;
+
+let framebuffer = new Framebuffer(globus.planet.renderer.handler, {
+    width: CAM_WIDTH,
+    height: CAM_HEIGHT,
+    targets: [{
+        internalFormat: "RGBA16F",
+        type: "FLOAT",
+        attachment: "COLOR_ATTACHMENT",
+        readAsync: true
+    }],
+    useDepth: true
+});
+
 let depthHandler = new control.CameraFrameHandler({
         camera: new PlanetCamera(globus.planet, {
-            frustums: [[1, 1000000]],
-            width: 640,
-            height: 480,
+            frustums: [[1, 10000]],
+            width: CAM_WIDTH,
+            height: CAM_HEIGHT,
             viewAngle: 45
         }),
-        frameBuffer: new Framebuffer(globus.planet.renderer.handler, {
-            width: 640,
-            height: 480,
-            targets: [{
-                internalFormat: "RGBA16F",
-                type: "FLOAT",
-                attachment: "COLOR_ATTACHMENT",
-                readAsync: true
-            }],
-            useDepth: true
-        }),
+        frameBuffer: framebuffer,
         handler: (cam, framebuffer, gl) => {
+
+            framebuffer.activate();
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             gl.disable(gl.BLEND);
@@ -196,16 +221,11 @@ let depthHandler = new control.CameraFrameHandler({
             sh = h.programs.camera_depth._program;
             let shu = sh.uniforms;
 
-            gl.disable(gl.BLEND);
-            gl.disable(gl.POLYGON_OFFSET_FILL);
-
             gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
             gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
 
             gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
             gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
-
-            gl.uniform1f(shu.frustumPickingColor, cam.frustumColorIndex);
 
             // drawing planet nodes
             let rn = globus.planet._renderedNodes;
@@ -221,14 +241,70 @@ let depthHandler = new control.CameraFrameHandler({
                 globus.planet._fadingOpaqueSegments[i].depthRendering(sh);
             }
 
-            gl.enable(gl.BLEND);
+            framebuffer.deactivate();
+
+            //gl.enable(gl.BLEND);
 
             framebuffer.readPixelBuffersAsync();
 
-            console.log(framebuffer.pixelBuffers[0].data);
+            let lt = getDistanceFromPixel(0, 0, cam, framebuffer),
+                rt = getDistanceFromPixel(framebuffer.width, 0, cam, framebuffer);
+
+            let rb = getDistanceFromPixel(framebuffer.width, framebuffer.height, cam, framebuffer),
+                lb = getDistanceFromPixel(0, framebuffer.height, cam, framebuffer);
+
+            let c = getDistanceFromPixel(framebuffer.width / 2, framebuffer.height / 2, cam, framebuffer);
+
+            console.log([c, lt, rt, rb, lb]);
+
+            let r = globus.renderer;
+
+            // PASS to depth visualization
+            r.screenDepthFramebuffer.activate();
+            sh = h.programs.depth;
+            let p = sh._program;
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer);
+            gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+
+            sh.activate();
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, framebuffer.textures[0]);
+            gl.uniform1i(p.uniforms.depthTexture, 0);
+
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            r.screenDepthFramebuffer.deactivate();
+            gl.enable(gl.BLEND);
         }
     }
 );
+
+
+globus.renderer.events.on("draw", () => {
+    let r = globus.renderer;
+    let h = globus.renderer.handler;
+    let gl = h.gl;
+
+    r.screenDepthFramebuffer.activate();
+    let sh = h.programs.depth;
+    let p = sh._program;
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer);
+    gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+
+    sh.activate();
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, framebuffer.textures[0]);
+    gl.uniform1i(p.uniforms.depthTexture, 0);
+
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    r.screenDepthFramebuffer.deactivate();
+    gl.enable(gl.BLEND);
+});
 
 globus.planet.addControl(new control.CameraFrameComposer({
         handlers: [depthHandler]
