@@ -859,12 +859,14 @@ class Camera {
 
     public copy(cam: Camera) {
         this.eye.copy(cam.eye);
-        this._r.copy(cam.getRight());
-        this._u.copy(cam.getUp());
-        this._b.copy(cam.getBackward());
+        this._r.copy(cam._r);
+        this._u.copy(cam._u);
+        this._b.copy(cam._b);
+        this._f.copy(cam._f);
         this._width = cam.width;
         this._height = cam.height;
         this.setViewAngle(cam.viewAngle);
+        this.update();
     }
 }
 

@@ -1283,36 +1283,31 @@ class Renderer {
 
     public readDepth(x: number, y: number, outDepth: NumberArray3 | Float32Array) {
 
-        if (x > 1 || y > 1) {
-            debugger;
-        }
-
-        let depthFramebuffer = this.depthFramebuffer!;
-
-
-        let w = depthFramebuffer.width;
-        let h = depthFramebuffer.height;
-
-        let sx = Math.round(x * w);
-        let sy = Math.round(y * h);
-
-        let ind = (sy * w + sx) * 4;
-
-        let _tempDepthPix_ = depthFramebuffer.pixelBuffers[1].data;
-        let _tempFrustumPix_ = depthFramebuffer.pixelBuffers[0].data!;
-
-        if (_tempDepthPix_) {
-            outDepth[0] = _tempDepthPix_[ind];
-            outDepth[1] = Math.round(_tempFrustumPix_[ind] / 10.0) - 1.0; // See Camera.frustumColorIndex
-        }
+        // let depthFramebuffer = this.depthFramebuffer!;
+        //
+        // let w = depthFramebuffer.width;
+        // let h = depthFramebuffer.height;
+        //
+        // let sx = Math.round(x * w);
+        // let sy = Math.round(y * h);
+        //
+        // let ind = (sy * w + sx) * 4;
+        //
+        // let _tempDepthPix_ = depthFramebuffer.pixelBuffers[1].data;
+        // let _tempFrustumPix_ = depthFramebuffer.pixelBuffers[0].data!;
+        //
+        // if (_tempDepthPix_) {
+        //     outDepth[0] = _tempDepthPix_[ind];
+        //     outDepth[1] = Math.round(_tempFrustumPix_[ind] / 10.0) - 1.0; // See Camera.frustumColorIndex
+        // }
 
         //////
 
         let ddd = new Float32Array(4);
         let fff = new Uint8Array(4);
 
-        depthFramebuffer.readData(x, y, fff, 0);
-        depthFramebuffer.readData(x, y, ddd, 1);
+        this.depthFramebuffer!.readData(x, y, fff, 0);
+        this.depthFramebuffer!.readData(x, y, ddd, 1);
 
         outDepth[0] = ddd[0];
         outDepth[1] = Math.round(fff[0] / 10.0) - 1.0; // See Camera.frustumColorIndex
@@ -1324,20 +1319,20 @@ class Renderer {
      * @param {Vec2 | IBaseInputState} px - Screen coordinates.
      * @returns {number | undefined} -
      */
-    public getDistanceFromPixel(px: Vec2 | IBaseInputState, camera?: Camera | null): number | undefined {
+    public getDistanceFromPixel(px: Vec2 | IBaseInputState): number | undefined {
 
-        camera = camera || this.activeCamera!;
+       let camera = this.activeCamera!;
 
         let cnv = this.handler!.canvas!;
 
-        let spx = px.x / cnv.width;
-        let spy = (cnv.height - px.y) / cnv.height;
+        let nx = px.x / cnv.width;
+        let ny = (cnv.height - px.y) / cnv.height;
 
         _tempDepth_[0] = _tempDepth_[1] = 0.0;
 
         let dist = 0;
 
-        this.readDepth(spx, spy, _tempDepth_);
+        this.readDepth(nx, ny, _tempDepth_);
 
         if (_tempDepth_[1] === -1) {
             return;
@@ -1348,7 +1343,7 @@ class Renderer {
 
         if (!frustum) return;
 
-        let screenPos = new Vec4(spx * 2.0 - 1.0, spy * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0 * 2.0 - 1.0);
+        let screenPos = new Vec4(nx * 2.0 - 1.0, ny * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
         let viewPosition = frustum.inverseProjectionMatrix.mulVec4(screenPos);
         let dir = (px as IBaseInputState).direction || camera.unproject(px.x, px.y);
         dist = -(viewPosition.z / viewPosition.w) / dir.dot(camera.getForward());
