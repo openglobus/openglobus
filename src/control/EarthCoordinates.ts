@@ -74,7 +74,7 @@ export class EarthCoordinates extends Control {
 
         this._lonLat = null;
 
-        this._centerMode = options.centerMode != undefined ? options.centerMode : true;
+        this._centerMode = false;//options.centerMode != undefined ? options.centerMode : true;
     }
 
     protected _SHOW_DECIMAL(ll?: LonLat | null) {
