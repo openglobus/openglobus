@@ -28,7 +28,7 @@ export class KeyboardNavigation extends Control {
         super({name: "KeyboardNavigation", ...options});
         this._camera = options.camera || null;
 
-        this.speed = options.speed || 1.0;
+        this.speed = options.speed || 10.0;
         this.force = new Vec3();
         this.vel = new Vec3();
         this.mass = 1;
@@ -44,9 +44,8 @@ export class KeyboardNavigation extends Control {
         // r.events.on("keypress", input.KEY_PGDN, this.onCameraMoveBackward, this);
         // r.events.on("keypress", input.KEY_PLUS, this.onCameraMoveForward, this);
         // r.events.on("keypress", input.KEY_EQUALS, this.onCameraMoveForward, this);
-        // r.events.on("keypress", input.KEY_MINUS, this.onCameraMoveBackward, this);
+        r.events.on("keypress", input.KEY_S, this.onCameraMoveBackward, this);
         r.events.on("keypress", input.KEY_W, this.onCameraMoveForward, this);
-        // r.events.on("keypress", input.KEY_S, this.onCameraMoveBackward, this);
         // r.events.on("keypress", input.KEY_A, this.onCameraStrifeLeft, this);
         // r.events.on("keypress", input.KEY_D, this.onCameraStrifeRight, this);
         r.events.on("keypress", input.KEY_UP, this.onCameraPitchUp, this);
@@ -96,6 +95,12 @@ export class KeyboardNavigation extends Control {
     protected onCameraMoveForward = () => {
         if (this._camera) {
             this.force.addA(this._camera.getForward()).normalize();
+        }
+    }
+
+    protected onCameraMoveBackward = () => {
+        if (this._camera) {
+            this.force.addA(this._camera.getBackward()).normalize();
         }
     }
 
