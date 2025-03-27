@@ -49,8 +49,8 @@ export class KeyboardNavigation extends Control {
         // r.events.on("keypress", input.KEY_S, this.onCameraMoveBackward, this);
         // r.events.on("keypress", input.KEY_A, this.onCameraStrifeLeft, this);
         // r.events.on("keypress", input.KEY_D, this.onCameraStrifeRight, this);
-        //r.events.on("keypress", input.KEY_UP, this.onCameraLookUp, this);
-        //r.events.on("keypress", input.KEY_DOWN, this.onCameraLookDown, this);
+        r.events.on("keypress", input.KEY_UP, this.onCameraPitchUp, this);
+        r.events.on("keypress", input.KEY_DOWN, this.onCameraPitchDown, this);
         r.events.on("keypress", input.KEY_LEFT, this.onCameraYawLeft, this);
         r.events.on("keypress", input.KEY_RIGHT, this.onCameraYawRight, this);
 
@@ -69,17 +69,27 @@ export class KeyboardNavigation extends Control {
         return 0.001 * this.renderer!.handler.deltaTime;
     }
 
+    protected onCameraPitchUp = () => {
+        if (this._camera) {
+            this._camera.setPitch(this._camera.getPitch() + 0.1 * RADIANS);
+        }
+    }
+
+    protected onCameraPitchDown = () => {
+        if (this._camera) {
+            this._camera.setPitch(this._camera.getPitch() - 0.1 * RADIANS);
+        }
+    }
+
     protected onCameraYawLeft = () => {
         if (this._camera) {
-            this._camera.setYaw(this._camera.getYaw() + 0.1 * RADIANS);
-            //this.force.addA(this._camera.getForward()).normalize();
+            this._camera.setYaw(this._camera.getYaw() - 0.1 * RADIANS);
         }
     }
 
     protected onCameraYawRight = () => {
         if (this._camera) {
-            this._camera.setYaw(this._camera.getYaw() - 0.1 * RADIANS);
-            //this.force.addA(this._camera.getForward()).normalize();
+            this._camera.setYaw(this._camera.getYaw() + 0.1 * RADIANS);
         }
     }
 

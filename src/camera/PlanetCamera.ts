@@ -756,7 +756,7 @@ class PlanetCamera extends Camera {
     public override setYaw(a: number) {
         let qFrame = this.planet.getFrameRotation(this.eye);
         let qRot = new Quat();
-        qRot.setPitchYawRoll(this.getYaw(), a, this.getRoll(), qFrame);
+        qRot.setPitchYawRoll(this.getPitch(), a, this.getRoll(), qFrame);
         this.setRotation(qRot);
     }
 
