@@ -206,7 +206,7 @@ class PlanetCamera extends Camera {
      * Gets altitude over the terrain.
      * @public
      */
-    public getAltitude(): number {
+    public override getAltitude(): number {
         return this._terrainAltitude;
     }
 

@@ -19,7 +19,8 @@ import {
     input,
     Program,
     Vec4,
-    Vec2
+    Vec2,
+    GeoImage
 } from "../../lib/@openglobus/og.esm.js";
 
 let cameraLayer = new Vector("camera", {
@@ -27,14 +28,22 @@ let cameraLayer = new Vector("camera", {
     scaleByDistance: [100, 1000000, 1.0]
 });
 
+let camProj = new GeoImage("Cam.Proj", {
+    src: "test4.jpg",
+    corners: [[0, 1], [1, 1], [1, 0], [0, 0]],
+    visibility: true,
+    isBaseLayer: false,
+    opacity: 0.7
+});
+
 const globus = new Globe({
     target: "earth",
     name: "Earth",
-    terrain: new GlobusRgbTerrain("mt", {
+    terrain: new GlobusRgbTerrain("mt"/*, {
         maxZoom: 17,
         imageSize: 256
-    }),
-    layers: [new OpenStreetMap(), new Bing(), cameraLayer],
+    }*/),
+    layers: [new OpenStreetMap(), new Bing(), cameraLayer, camProj],
     atmosphereEnabled: false,
     fontsSrc: "../../res/fonts",
     sun: {
@@ -57,7 +66,7 @@ function saveCamera() {
     tempCamera.copy(cam);
     depthHandler.camera.copy(cam);
 
-    const length = 1000;
+    const length = 100;
 
     const vert = cam.verticalViewAngle;
     const horiz = cam.horizontalViewAngle;
@@ -165,11 +174,11 @@ function camera_depth() {
 
 globus.planet.renderer.handler.addProgram(camera_depth());
 
-const CAM_WIDTH = 640;
-const CAM_HEIGHT = 480;
+const CAM_WIDTH = 2048;
+const CAM_HEIGHT = 2048;
 
 let depthCamera = new PlanetCamera(globus.planet, {
-    frustums: [[1, 10000]],
+    frustums: [[10, 10000]],
     width: CAM_WIDTH,
     height: CAM_HEIGHT,
     viewAngle: 45
@@ -189,8 +198,6 @@ let depthFramebuffer = new Framebuffer(globus.planet.renderer.handler, {
 
 function getDistanceFromPixel(x, y, camera, framebuffer) {
 
-    //let globCamera = __globus__.planet.camera;
-
     let px = new Vec2(x, y);
 
     let nx = px.x / framebuffer.width;
@@ -201,6 +208,11 @@ function getDistanceFromPixel(x, y, camera, framebuffer) {
     let dist = 0;
 
     framebuffer.readData(nx, ny, ddd, 0);
+
+
+    if (ddd[0] === 0) {
+        return 0;
+    }
 
     let depth = ddd[0],
         proj = camera.frustums[0].inverseProjectionMatrix;
@@ -217,6 +229,9 @@ function getDistanceFromPixel(x, y, camera, framebuffer) {
 
 function getCartesianFromPixelTerrain(x, y, camera, framebuffer) {
     let distance = getDistanceFromPixel(x, y, camera, framebuffer);
+    if (distance === 0) {
+        return;
+    }
     let nx = x / framebuffer.width;
     let ny = (framebuffer.height - y) / framebuffer.height;
     let direction = camera.unproject(nx * camera.width, (1 - ny) * camera.height);
@@ -229,6 +244,11 @@ function getLonLatFromPixelTerrain(x, y, camera, framebuffer) {
         return __globus__.planet.ellipsoid.cartesianToLonLat(coords);
     }
 }
+
+
+globus.planet.addControl(new control.KeyboardNavigation({
+    camera: depthCamera
+}));
 
 let depthHandler = new control.CameraFrameHandler({
         camera: depthCamera,
@@ -273,34 +293,43 @@ let depthHandler = new control.CameraFrameHandler({
 
             framebuffer.readPixelBuffersAsync();
 
-            let lt = getLonLatFromPixelTerrain(0, 0, cam, framebuffer),
-                rt = getLonLatFromPixelTerrain(framebuffer.width, 0, cam, framebuffer);
+            let lt = getLonLatFromPixelTerrain(1, 1, cam, framebuffer),
+                rt = getLonLatFromPixelTerrain(framebuffer.width - 1, 1, cam, framebuffer);
 
-            let rb = getLonLatFromPixelTerrain(framebuffer.width, framebuffer.height, cam, framebuffer),
-                lb = getLonLatFromPixelTerrain(0, framebuffer.height, cam, framebuffer);
+            let rb = getLonLatFromPixelTerrain(framebuffer.width - 1, framebuffer.height - 1, cam, framebuffer),
+                lb = getLonLatFromPixelTerrain(1, framebuffer.height - 1, cam, framebuffer);
 
-            console.log(`[${lt.lon}, ${lt.lat}, ${lt.height}], [${rt.lon}, ${rt.lat}, ${rt.height}], [${rb.lon}, ${rb.lat}, ${rb.height}], [${lb.lon}, ${lb.lat}, ${lb.height}]`);
+            if (lt && rt && rb && lb) {
+                //console.log(`[${lt.lon}, ${lt.lat}, ${lt.height}], [${rt.lon}, ${rt.lat}, ${rt.height}], [${rb.lon}, ${rb.lat}, ${rb.height}], [${lb.lon}, ${lb.lat}, ${lb.height}]`);
+                camProj.setCorners([[lt.lon, lt.lat], [rt.lon, rt.lat], [rb.lon, rb.lat], [lb.lon, lb.lat]]);
+            }
 
-            // let r = globus.renderer;
-            //
-            // // PASS to depth visualization
-            // r.screenDepthFramebuffer.activate();
-            // sh = h.programs.depth;
-            // let p = sh._program;
-            //
-            // gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer);
-            // gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-            //
-            // sh.activate();
-            //
-            // gl.activeTexture(gl.TEXTURE0);
-            // gl.bindTexture(gl.TEXTURE_2D, framebuffer.textures[0]);
-            // gl.uniform1i(p.uniforms.depthTexture, 0);
-            //
-            // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-            //
-            // r.screenDepthFramebuffer.deactivate();
-            // gl.enable(gl.BLEND);
+            let r = globus.renderer;
+
+            // PASS to depth visualization
+            r.screenDepthFramebuffer.activate();
+            sh = h.programs.depth;
+            let p = sh._program;
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer);
+            gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+
+            sh.activate();
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, framebuffer.textures[0]);
+            gl.uniform1i(p.uniforms.depthTexture, 0);
+
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            r.screenDepthFramebuffer.deactivate();
+            gl.enable(gl.BLEND);
+
+
+            cameraEntity.setCartesian3v(depthCamera.eye);
+            cameraEntity.setPitch(depthCamera.getPitch());
+            cameraEntity.setYaw(depthCamera.getYaw());
+            cameraEntity.setRoll(depthCamera.getRoll());
         }
     }
 );

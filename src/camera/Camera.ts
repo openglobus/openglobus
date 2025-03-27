@@ -868,6 +868,10 @@ class Camera {
         this.setViewAngle(cam.viewAngle);
         this.update();
     }
+
+    public getAltitude(): number {
+        return this.eye.y;
+    }
 }
 
 export {Camera};
