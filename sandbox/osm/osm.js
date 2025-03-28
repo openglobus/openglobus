@@ -300,30 +300,29 @@ let depthHandler = new control.CameraFrameHandler({
                 lb = getLonLatFromPixelTerrain(1, framebuffer.height - 1, cam, framebuffer);
 
             if (lt && rt && rb && lb) {
-                //console.log(`[${lt.lon}, ${lt.lat}, ${lt.height}], [${rt.lon}, ${rt.lat}, ${rt.height}], [${rb.lon}, ${rb.lat}, ${rb.height}], [${lb.lon}, ${lb.lat}, ${lb.height}]`);
                 camProj.setCorners([[lt.lon, lt.lat], [rt.lon, rt.lat], [rb.lon, rb.lat], [lb.lon, lb.lat]]);
             }
 
-            let r = globus.renderer;
-
-            // PASS to depth visualization
-            r.screenDepthFramebuffer.activate();
-            sh = h.programs.depth;
-            let p = sh._program;
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer);
-            gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-
-            sh.activate();
-
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, framebuffer.textures[0]);
-            gl.uniform1i(p.uniforms.depthTexture, 0);
-
-            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-            r.screenDepthFramebuffer.deactivate();
-            gl.enable(gl.BLEND);
+            // let r = globus.renderer;
+            //
+            // // PASS to depth visualization
+            // r.screenDepthFramebuffer.activate();
+            // sh = h.programs.depth;
+            // let p = sh._program;
+            //
+            // gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer);
+            // gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+            //
+            // sh.activate();
+            //
+            // gl.activeTexture(gl.TEXTURE0);
+            // gl.bindTexture(gl.TEXTURE_2D, framebuffer.textures[0]);
+            // gl.uniform1i(p.uniforms.depthTexture, 0);
+            //
+            // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            //
+            // r.screenDepthFramebuffer.deactivate();
+            // gl.enable(gl.BLEND);
 
 
             cameraEntity.setCartesian3v(depthCamera.eye);
