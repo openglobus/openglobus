@@ -113,7 +113,7 @@ class PlanetCamera extends Camera {
     public eyeNorm: Vec3;
 
     constructor(planet: Planet, options: IPlanetCameraParams = {}) {
-        super(planet.renderer, {
+        super({
                 ...options,
                 frustums: options.frustums || [[1, 100 + 0.075], [100, 1000 + 0.075], [1000, 1e6 + 10000], [1e6, 1e9]],
             }
@@ -206,7 +206,7 @@ class PlanetCamera extends Camera {
      * Gets altitude over the terrain.
      * @public
      */
-    public getAltitude(): number {
+    public override getAltitude(): number {
         return this._terrainAltitude;
     }
 
@@ -309,7 +309,7 @@ class PlanetCamera extends Camera {
         );
 
         let tanPhi = Math.tan(this._viewAngle * RADIANS * 0.5);
-        let tanTheta = this._aspect * tanPhi;
+        let tanTheta = this.getAspectRatio() * tanPhi;
         let d = Math.max(_w / tanTheta, _h / tanPhi);
 
         center.normalize();
@@ -756,7 +756,7 @@ class PlanetCamera extends Camera {
     public override setYaw(a: number) {
         let qFrame = this.planet.getFrameRotation(this.eye);
         let qRot = new Quat();
-        qRot.setPitchYawRoll(this.getYaw(), a, this.getRoll(), qFrame);
+        qRot.setPitchYawRoll(this.getPitch(), a, this.getRoll(), qFrame);
         this.setRotation(qRot);
     }
 

@@ -29,3 +29,4 @@ export * from "./AtmosphereConfig";
 export * from "./geoObjectEditor/GeoObjectEditor";
 export * from "./CameraLock";
 export * from "./object3dManager/Object3dManager";
+export * from "./CameraFrameComposer";

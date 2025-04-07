@@ -12,7 +12,7 @@ import {Vec3} from "../math/Vec3";
 import {Vec4} from "../math/Vec4";
 import {Sphere} from "../bv/Sphere";
 import {Quat} from "../math/Quat";
-import {RADIANS} from "../math";
+import {DEGREES_DOUBLE, RADIANS, RADIANS_HALF} from "../math";
 
 type CameraEvents = ["viewchange", "moveend"];
 
@@ -32,17 +32,20 @@ const EVENT_NAMES: CameraEvents = [
 
 export interface ICameraParams {
     eye?: Vec3;
-    aspect?: number;
     viewAngle?: number;
     look?: Vec3;
     up?: Vec3;
     frustums?: NumberArray2[]
+    width?: number;
+    height?: number;
 }
+
+const getHorizontalViewAngleByFov = (fov: number, aspect: number) => DEGREES_DOUBLE * Math.atan(Math.tan(RADIANS_HALF * fov) * aspect);
 
 /**
  * Camera class.
  * @class
- * @param {Renderer} [renderer] - Renderer uses the camera instance.
+ * //@param {Renderer} [renderer] - Renderer uses the camera instance.
  * @param {Object} [options] - Camera options:
  * @param {Object} [options.name] - Camera name.
  * @param {number} [options.viewAngle=47] - Camera angle of view. Default is 47.0
@@ -57,12 +60,12 @@ export interface ICameraParams {
  */
 class Camera {
 
-    /**
-     * Assigned renderer
-     * @public
-     * @type {Renderer}
-     */
-    public renderer: Renderer | null;
+    // /**
+    //  * Assigned renderer
+    //  * @public
+    //  * @type {Renderer}
+    //  */
+    // public renderer: Renderer | null;
 
     /**
      * Camera events handler
@@ -92,12 +95,12 @@ class Camera {
      */
     public eyeLow: Float32Array;
 
-    /**
-     * Aspect ratio.
-     * @protected
-     * @type {Number}
-     */
-    protected _aspect: number;
+    // /**
+    //  * Aspect ratio.
+    //  * @protected
+    //  * @type {Number}
+    //  */
+    // protected _aspect: number;
 
     /**
      * Camera view angle in degrees
@@ -105,6 +108,8 @@ class Camera {
      * @type {Number}
      */
     protected _viewAngle: number;
+
+    protected _horizontalViewAngle: number;
 
     /**
      * Camera view matrix.
@@ -174,10 +179,18 @@ class Camera {
 
     public isFirstPass: boolean;
 
-    constructor(renderer: Renderer | null, options: ICameraParams = {}) {
-        this.renderer = renderer;
+    public _width: number;
+
+    public _height: number;
+
+    constructor(options: ICameraParams = {}) {
+        //this.renderer = renderer;
 
         this.events = createEvents<CameraEvents>(EVENT_NAMES, this);
+
+        this._width = options.width || 1;
+
+        this._height = options.height || 1;
 
         this.eye = options.eye || new Vec3();
 
@@ -185,9 +198,9 @@ class Camera {
 
         this.eyeLow = new Float32Array(3);
 
-        this._aspect = options.aspect || 1.0;
-
         this._viewAngle = options.viewAngle || 47.0;
+
+        this._horizontalViewAngle = 0;
 
         this._viewMatrix = new Mat4();
         this._viewMatrixRTE = new Mat4();
@@ -219,7 +232,7 @@ class Camera {
 
                 let fr = new Frustum({
                     fov: this._viewAngle,
-                    aspect: this._aspect,
+                    aspect: this.getAspectRatio(),//this._aspect,
                     near: fi[0],
                     far: fi[1]
                 });
@@ -235,7 +248,7 @@ class Camera {
 
             let fr = new Frustum({
                 fov: this._viewAngle,
-                aspect: this._aspect,
+                aspect: this.getAspectRatio(),
                 near: near,
                 far: far
             });
@@ -283,15 +296,21 @@ class Camera {
         this._peye.copy(eye);
     }
 
-    public bindRenderer(renderer: Renderer) {
-        this.renderer = renderer;
+    public bindFrustumsPickingColors(renderer: Renderer) {
         for (let i = 0; i < this.frustums.length; i++) {
-            this.renderer.assignPickingColor<Frustum>(this.frustums[i]);
+            renderer.assignPickingColor<Frustum>(this.frustums[i]);
         }
-        this._aspect = this.renderer.handler.getClientAspect();
-
-        this._setProj(this._viewAngle, this._aspect);
     }
+
+    // public bindRenderer(renderer: Renderer) {
+    //     this.renderer = renderer;
+    //     for (let i = 0; i < this.frustums.length; i++) {
+    //         this.renderer.assignPickingColor<Frustum>(this.frustums[i]);
+    //     }
+    //     this._aspect = this.renderer.handler.getClientAspect();
+    //
+    //     this._setProj(this._viewAngle, this._aspect);
+    // }
 
     /**
      * Camera initialization.
@@ -306,7 +325,7 @@ class Camera {
      */
     protected _init(options: ICameraParams) {
 
-        this._setProj(this._viewAngle, this._aspect);
+        this._setProj(this._viewAngle, this.getAspectRatio());
 
         this.set(
             options.eye || new Vec3(0.0, 0.0, 1.0),
@@ -382,17 +401,31 @@ class Camera {
      * @public
      */
     public refresh() {
-        this._setProj(this._viewAngle, this._aspect);
+        this._setProj(this._viewAngle, this.getAspectRatio());
         this.update();
     }
 
-    /**
-     * Sets aspect ratio
-     * @public
-     * @param {Number} aspect - Camera aspect ratio
-     */
-    public setAspectRatio(aspect: number) {
-        this._aspect = aspect;
+    // /**
+    //  * Sets aspect ratio
+    //  * @public
+    //  * @param {Number} aspect - Camera aspect ratio
+    //  */
+    // public setAspectRatio(aspect: number) {
+    //     this._aspect = aspect;
+    //     this.refresh();
+    // }
+
+    public get width(): number {
+        return this._width;
+    }
+
+    public get height(): number {
+        return this._height;
+    }
+
+    public setViewportSize(width: number, height: number) {
+        this._width = width;
+        this._height = height;
         this.refresh();
     }
 
@@ -402,7 +435,7 @@ class Camera {
      * @returns {number} - Aspect ratio
      */
     public getAspectRatio(): number {
-        return this._aspect;
+        return this._width / this._height;
     }
 
     /**
@@ -413,12 +446,6 @@ class Camera {
      */
     protected _setProj(angle: number, aspect: number) {
         this._viewAngle = angle;
-        this._aspect = aspect;
-        this._tanViewAngle_hrad = Math.tan(angle * math.RADIANS_HALF);
-        this._tanViewAngle_hradOneByHeight =
-            this._tanViewAngle_hrad * this.renderer!.handler._oneByHeight;
-        let c = this.renderer!.handler.canvas!;
-        this._projSizeConst = Math.min(c.clientWidth < 512 ? 512 : c.clientWidth, c.clientHeight < 512 ? 512 : c.clientHeight) / (angle * RADIANS);
         for (let i = 0, len = this.frustums.length; i < len; i++) {
             this.frustums[i].setProjectionMatrix(
                 angle,
@@ -427,6 +454,16 @@ class Camera {
                 this.frustums[i].far
             );
         }
+
+        this._horizontalViewAngle = getHorizontalViewAngleByFov(angle, aspect);
+
+        this._updateViewportParameters();
+    }
+
+    protected _updateViewportParameters() {
+        this._tanViewAngle_hrad = Math.tan(this._viewAngle * math.RADIANS_HALF);
+        this._tanViewAngle_hradOneByHeight = this._tanViewAngle_hrad * (1.0 / this._height);
+        this._projSizeConst = Math.min(this._width < 512 ? 512 : this._width, this._height < 512 ? 512 : this._height) / (this._viewAngle * RADIANS);
     }
 
     /**
@@ -450,6 +487,14 @@ class Camera {
 
     public get viewAngle(): number {
         return this._viewAngle;
+    }
+
+    public get verticalViewAngle(): number {
+        return this._viewAngle;
+    }
+
+    public get horizontalViewAngle(): number {
+        return this._horizontalViewAngle;
     }
 
     /**
@@ -625,9 +670,12 @@ class Camera {
      * @returns {Vec3} - Direction vector
      */
     public unproject(x: number, y: number) {
-        let c = this.renderer!.handler.canvas!,
-            w = c.width * 0.5,
-            h = c.height * 0.5;
+        // let c = this.renderer!.handler.canvas!,
+        //     w = c.width * 0.5,
+        //     h = c.height * 0.5;
+
+        let w = this._width * 0.5,
+            h = this._height * 0.5;
 
         let px = (x - w) / w,
             py = -(y - h) / h;
@@ -657,9 +705,8 @@ class Camera {
      * @returns {Vec2} - Screen point coordinates
      */
     public project(x: number, y: number, z: number): Vec2 {
-        let r = this.frustums[0].projectionViewMatrix.mulVec4(new Vec4(x, y, z, 1.0)),
-            c = this.renderer!.handler.canvas!;
-        return new Vec2((1 + r.x / r.w) * c.width * 0.5, (1 - r.y / r.w) * c.height * 0.5);
+        let r = this.frustums[0].projectionViewMatrix.mulVec4(new Vec4(x, y, z, 1.0));
+        return new Vec2((1 + r.x / r.w) * this._width * 0.5, (1 - r.y / r.w) * this._height * 0.5);
     }
 
     /**
@@ -807,6 +854,22 @@ class Camera {
         let newPos = cartesian.add(this.getBackward().scaleTo(distance));
         this.set(newPos, cartesian);
         this.update();
+    }
+
+    public copy(cam: Camera) {
+        this.eye.copy(cam.eye);
+        this._r.copy(cam._r);
+        this._u.copy(cam._u);
+        this._b.copy(cam._b);
+        this._f.copy(cam._f);
+        this._width = cam.width;
+        this._height = cam.height;
+        this.setViewAngle(cam.viewAngle);
+        this.update();
+    }
+
+    public getAltitude(): number {
+        return this.eye.y;
     }
 }
 

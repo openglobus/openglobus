@@ -20,7 +20,7 @@ import {TextureAtlas} from "../utils/TextureAtlas";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import type {NumberArray3} from "../math/Vec3";
-import {Vec4} from "../math/Vec4";
+import {NumberArray4, Vec4} from "../math/Vec4";
 
 interface IRendererParams {
     controls?: Control[];
@@ -51,55 +51,55 @@ let __depthCallbackCounter__ = 0;
 
 let _tempDepth_ = new Float32Array(2);
 
-function clientWaitAsync(gl: WebGL2RenderingContext, sync: WebGLSync, flags: number): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-        function check() {
-            const res = gl.clientWaitSync(sync, flags, 0);
-            if (res == gl.WAIT_FAILED) {
-                reject();
-            } else if (res == gl.TIMEOUT_EXPIRED) {
-                requestAnimationFrame(check);
-            } else {
-                resolve();
-            }
-        }
-
-        check();
-    });
-}
+// function clientWaitAsync(gl: WebGL2RenderingContext, sync: WebGLSync, flags: number): Promise<void> {
+//     return new Promise<void>((resolve, reject) => {
+//         function check() {
+//             const res = gl.clientWaitSync(sync, flags, 0);
+//             if (res == gl.WAIT_FAILED) {
+//                 reject();
+//             } else if (res == gl.TIMEOUT_EXPIRED) {
+//                 requestAnimationFrame(check);
+//             } else {
+//                 resolve();
+//             }
+//         }
+//
+//         check();
+//     });
+// }
 
 /**
  * Represents high level WebGL context interface that starts WebGL handler working in real time.
  * @class
  * @param {Handler} handler - WebGL handler context.
  * @param {Object} [params] - Renderer parameters:
- * @fires EventsHandler<RendererEventsType>#draw
- * @fires EventsHandler<RendererEventsType>#resize
- * @fires EventsHandler<RendererEventsType>#mousemove
- * @fires EventsHandler<RendererEventsType>#mousestop
- * @fires EventsHandler<RendererEventsType>#lclick
- * @fires EventsHandler<RendererEventsType>#rclick
- * @fires EventsHandler<RendererEventsType>#mclick
- * @fires EventsHandler<RendererEventsType>#ldblclick
- * @fires EventsHandler<RendererEventsType>#rdblclick
- * @fires EventsHandler<RendererEventsType>#mdblclick
- * @fires EventsHandler<RendererEventsType>#lup
- * @fires EventsHandler<RendererEventsType>#rup
- * @fires EventsHandler<RendererEventsType>#mup
- * @fires EventsHandler<RendererEventsType>#ldown
- * @fires EventsHandler<RendererEventsType>#rdown
- * @fires EventsHandler<RendererEventsType>#mdown
- * @fires EventsHandler<RendererEventsType>#lhold
- * @fires EventsHandler<RendererEventsType>#rhold
- * @fires EventsHandler<RendererEventsType>#mhold
- * @fires EventsHandler<RendererEventsType>#mousewheel
- * @fires EventsHandler<RendererEventsType>#touchstart
- * @fires EventsHandler<RendererEventsType>#touchend
- * @fires EventsHandler<RendererEventsType>#touchcancel
- * @fires EventsHandler<RendererEventsType>#touchmove
- * @fires EventsHandler<RendererEventsType>#doubletouch
- * @fires EventsHandler<RendererEventsType>#touchleave
- * @fires EventsHandler<RendererEventsType>#touchenter
+ * @fires RendererEventsHandler<RendererEventsType>#draw
+ * @fires RendererEventsHandler<RendererEventsType>#resize
+ * @fires RendererEventsHandler<RendererEventsType>#mousemove
+ * @fires RendererEventsHandler<RendererEventsType>#mousestop
+ * @fires RendererEventsHandler<RendererEventsType>#lclick
+ * @fires RendererEventsHandler<RendererEventsType>#rclick
+ * @fires RendererEventsHandler<RendererEventsType>#mclick
+ * @fires RendererEventsHandler<RendererEventsType>#ldblclick
+ * @fires RendererEventsHandler<RendererEventsType>#rdblclick
+ * @fires RendererEventsHandler<RendererEventsType>#mdblclick
+ * @fires RendererEventsHandler<RendererEventsType>#lup
+ * @fires RendererEventsHandler<RendererEventsType>#rup
+ * @fires RendererEventsHandler<RendererEventsType>#mup
+ * @fires RendererEventsHandler<RendererEventsType>#ldown
+ * @fires RendererEventsHandler<RendererEventsType>#rdown
+ * @fires RendererEventsHandler<RendererEventsType>#mdown
+ * @fires RendererEventsHandler<RendererEventsType>#lhold
+ * @fires RendererEventsHandler<RendererEventsType>#rhold
+ * @fires RendererEventsHandler<RendererEventsType>#mhold
+ * @fires RendererEventsHandler<RendererEventsType>#mousewheel
+ * @fires RendererEventsHandler<RendererEventsType>#touchstart
+ * @fires RendererEventsHandler<RendererEventsType>#touchend
+ * @fires RendererEventsHandler<RendererEventsType>#touchcancel
+ * @fires RendererEventsHandler<RendererEventsType>#touchmove
+ * @fires RendererEventsHandler<RendererEventsType>#doubletouch
+ * @fires RendererEventsHandler<RendererEventsType>#touchleave
+ * @fires RendererEventsHandler<RendererEventsType>#touchenter
  */
 
 export interface HTMLDivElementExt extends HTMLDivElement {
@@ -275,8 +275,12 @@ class Renderer {
 
         this.renderNodes = {};
 
-        this.activeCamera = new Camera(this, {
-            eye: new Vec3(0, 0, 0), look: new Vec3(0, 0, -1), up: new Vec3(0, 1, 0)
+        this.activeCamera = new Camera({
+            width: this.handler.canvas?.width,
+            height: this.handler.canvas?.height,
+            eye: new Vec3(0, 0, 0),
+            look: new Vec3(0, 0, -1),
+            up: new Vec3(0, 1, 0)
         });
 
         this.events = createRendererEvents(this);
@@ -728,7 +732,7 @@ class Renderer {
     public _resizeStart() {
         let c = this.handler.canvas!;
 
-        this.activeCamera!.setAspectRatio(c.width / c.height);
+        this.activeCamera!.setViewportSize(c.width, c.height);
         this.sceneFramebuffer!.setSize(c.width * 0.5, c.height * 0.5);
         this.blitFramebuffer && this.blitFramebuffer.setSize(c.width * 0.5, c.height * 0.5, true);
     }
@@ -736,7 +740,7 @@ class Renderer {
     public _resizeEnd() {
         let c = this.handler.canvas!;
 
-        this.activeCamera!.setAspectRatio(c.width / c.height);
+        this.activeCamera!.setViewportSize(c.width, c.height);
         this.sceneFramebuffer!.setSize(c.width, c.height);
         this.blitFramebuffer && this.blitFramebuffer.setSize(c.width, c.height, true);
 
@@ -1224,27 +1228,27 @@ class Renderer {
         //
         // DEBUG SCREEN OUTPUTS
         //
-        if (this._currentOutput === "depth" || this._currentOutput === "frustum") {
-            //
-            // PASS to depth visualization
-            this.screenDepthFramebuffer!.activate();
-            let sh = h.programs.depth,
-                p = sh._program;
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
-            gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-
-            sh.activate();
-
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer!.textures[1]);
-            gl.uniform1i(p.uniforms.depthTexture, 0);
-
-            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-            this.screenDepthFramebuffer!.deactivate();
-            gl.enable(gl.BLEND);
-        }
+        // if (this._currentOutput === "depth" || this._currentOutput === "frustum") {
+        //     //
+        //     // PASS to depth visualization
+        //     this.screenDepthFramebuffer!.activate();
+        //     let sh = h.programs.depth,
+        //         p = sh._program;
+        //
+        //     gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
+        //     gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+        //
+        //     sh.activate();
+        //
+        //     gl.activeTexture(gl.TEXTURE0);
+        //     gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer!.textures[1]);
+        //     gl.uniform1i(p.uniforms.depthTexture, 0);
+        //
+        //     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        //
+        //     this.screenDepthFramebuffer!.deactivate();
+        //     gl.enable(gl.BLEND);
+        // }
     }
 
     protected _readDepthBuffer() {
@@ -1279,21 +1283,34 @@ class Renderer {
 
     public readDepth(x: number, y: number, outDepth: NumberArray3 | Float32Array) {
 
-        let w = this.depthFramebuffer!.width;
-        let h = this.depthFramebuffer!.height;
+        // let depthFramebuffer = this.depthFramebuffer!;
+        //
+        // let w = depthFramebuffer.width;
+        // let h = depthFramebuffer.height;
+        //
+        // let sx = Math.round(x * w);
+        // let sy = Math.round(y * h);
+        //
+        // let ind = (sy * w + sx) * 4;
+        //
+        // let _tempDepthPix_ = depthFramebuffer.pixelBuffers[1].data;
+        // let _tempFrustumPix_ = depthFramebuffer.pixelBuffers[0].data!;
+        //
+        // if (_tempDepthPix_) {
+        //     outDepth[0] = _tempDepthPix_[ind];
+        //     outDepth[1] = Math.round(_tempFrustumPix_[ind] / 10.0) - 1.0; // See Camera.frustumColorIndex
+        // }
 
-        x = Math.round(x * w);
-        y = Math.round(y * h);
+        //////
 
-        let ind = (y * w + x) * 4;
+        let ddd = new Float32Array(4);
+        let fff = new Uint8Array(4);
 
-        let _tempDepthPix_ = this.depthFramebuffer?.pixelBuffers[1].data;
-        let _tempFrustumPix_ = this.depthFramebuffer?.pixelBuffers[0].data!;
+        this.depthFramebuffer!.readData(x, y, fff, 0);
+        this.depthFramebuffer!.readData(x, y, ddd, 1);
 
-        if (_tempDepthPix_) {
-            outDepth[0] = _tempDepthPix_[ind];
-            outDepth[1] = Math.round(_tempFrustumPix_[ind] / 10.0) - 1.0; // See Camera.frustumColorIndex
-        }
+        outDepth[0] = ddd[0];
+        outDepth[1] = Math.round(fff[0] / 10.0) - 1.0; // See Camera.frustumColorIndex
     }
 
     /**
@@ -1302,21 +1319,20 @@ class Renderer {
      * @param {Vec2 | IBaseInputState} px - Screen coordinates.
      * @returns {number | undefined} -
      */
-    public getDistanceFromPixel(px: Vec2 | IBaseInputState, camera?: Camera | null): number | undefined {
+    public getDistanceFromPixel(px: Vec2 | IBaseInputState): number | undefined {
 
-        camera = camera || this.activeCamera!;
+       let camera = this.activeCamera!;
 
-        let r = this!;
-        let cnv = r.handler!.canvas!;
+        let cnv = this.handler!.canvas!;
 
-        let spx = px.x / cnv.width;
-        let spy = (cnv.height - px.y) / cnv.height;
+        let nx = px.x / cnv.width;
+        let ny = (cnv.height - px.y) / cnv.height;
 
         _tempDepth_[0] = _tempDepth_[1] = 0.0;
 
         let dist = 0;
 
-        r.readDepth(spx, spy, _tempDepth_);
+        this.readDepth(nx, ny, _tempDepth_);
 
         if (_tempDepth_[1] === -1) {
             return;
@@ -1327,10 +1343,10 @@ class Renderer {
 
         if (!frustum) return;
 
-        let screenPos = new Vec4(spx * 2.0 - 1.0, spy * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0 * 2.0 - 1.0);
+        let screenPos = new Vec4(nx * 2.0 - 1.0, ny * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
         let viewPosition = frustum.inverseProjectionMatrix.mulVec4(screenPos);
-        let dir = (px as IBaseInputState).direction || r.activeCamera!.unproject(px.x, px.y);
-        dist = -(viewPosition.z / viewPosition.w) / dir.dot(r.activeCamera!.getForward());
+        let dir = (px as IBaseInputState).direction || camera.unproject(px.x, px.y);
+        dist = -(viewPosition.z / viewPosition.w) / dir.dot(camera.getForward());
 
         return dist;
     }

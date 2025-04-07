@@ -3,6 +3,7 @@ import type {IBaseFramebufferParams} from "./BaseFramebuffer";
 import {ImageCanvas} from "../ImageCanvas";
 import {Handler} from "./Handler";
 import type {TypedArray} from "../utils/shared";
+import type {NumberArray4} from "../math/Vec4";
 
 export interface ITargetParams {
     internalFormat?: string;
@@ -222,7 +223,7 @@ export class Framebuffer extends BaseFramebuffer {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null!);
     }
 
-    public readPixelBuffersAsync = () => {
+    public readPixelBuffersAsync = (callback?: (buf: this) => void) => {
 
         const gl = this.handler.gl!;
 
@@ -260,6 +261,7 @@ export class Framebuffer extends BaseFramebuffer {
                 if (pbi.data) {
                     gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pbi.buffer);
                     gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, pbi.data!);
+                    callback && callback(this);
                 }
             }
 
@@ -318,14 +320,14 @@ export class Framebuffer extends BaseFramebuffer {
     /**
      * Gets pixel RGBA color from framebuffer by coordinates.
      * @public
-     * @param {Uint8Array} res - Normalized x - coordinate.
+     * @param {TypedArray} res - Normalized x - coordinate.
      * @param {number} nx - Normalized x - coordinate.
      * @param {number} ny - Normalized y - coordinate.
      * @param {number} [w=1] - Normalized width.
      * @param {number} [h=1] - Normalized height.
      * @param {number} [index=0] - color attachment index.
      */
-    public readPixels(res: Uint8Array, nx: number, ny: number, index: number = 0, w: number = 1, h: number = 1) {
+    public readPixels(res: TypedArray, nx: number, ny: number, index: number = 0, w: number = 1, h: number = 1) {
         let gl = this.handler.gl!;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
         gl.readBuffer && gl.readBuffer(gl.COLOR_ATTACHMENT0 + index || 0);
@@ -336,10 +338,10 @@ export class Framebuffer extends BaseFramebuffer {
     /**
      * Reads all pixels(RGBA colors) from framebuffer.
      * @public
-     * @param {Uint8Array} res - Result array.
+     * @param {TypedArray} res - Result array.
      * @param {number} [attachmentIndex=0] - color attachment index.
      */
-    public readAllPixels(res: Uint8Array, attachmentIndex: number = 0) {
+    public readAllPixels(res: TypedArray, attachmentIndex: number = 0) {
         let gl = this.handler.gl!;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._fbo);
         gl.readBuffer && gl.readBuffer(gl.COLOR_ATTACHMENT0 + attachmentIndex);
@@ -358,5 +360,38 @@ export class Framebuffer extends BaseFramebuffer {
         let imageCanvas = new ImageCanvas(this._width, this._height);
         imageCanvas.setData(data);
         return imageCanvas.getImage();
+    }
+
+    /**
+     * Reads pixel data from the buffer at the specified normalized coordinates.
+     *
+     * @param {number} nx - Normalized X coordinate in the range [0, 1], multiplied by the buffer width.
+     * @param {number} ny - Normalized Y coordinate in the range [0, 1], multiplied by the buffer height.
+     * @param {NumberArray4 | Float32Array} outData - Output array where the RGBA pixel values will be written.
+     * @param {number} [attachmentIndex=0] - Index of the color attachment (buffer) to read from.
+     *
+     * @returns {void}
+     *
+     * @example
+     * const color = new Float32Array(4);
+     * framebuffer.readData(0.5, 0.5, color); // Reads the color at the center of the buffer
+     */
+    public readData(nx: number, ny: number, outData: NumberArray4 | TypedArray, attachmentIndex: number = 0) {
+        const w = this.width;
+        const h = this.height;
+
+        const x = Math.floor(nx * (w - 1));
+        const y = Math.floor(ny * (h - 1));
+
+        const ind = (y * w + x) * 4;
+
+        const data = this.pixelBuffers[attachmentIndex].data;
+
+        if (data) {
+            outData[0] = data[ind];
+            outData[1] = data[ind + 1];
+            outData[2] = data[ind + 2];
+            outData[3] = data[ind + 3];
+        }
     }
 }
