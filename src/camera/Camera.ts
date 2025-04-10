@@ -183,6 +183,10 @@ class Camera {
 
     public _height: number;
 
+    // public dirForwardNED: Vec3;
+    // public dirUpNED: Vec3;
+    // public dirRightNED: Vec3;
+
     constructor(options: ICameraParams = {}) {
         //this.renderer = renderer;
 
