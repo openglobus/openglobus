@@ -1,9 +1,12 @@
-import path from 'path';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import terser from '@rollup/plugin-terser';
-import {viteStaticCopy} from 'vite-plugin-static-copy'
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 import forceTerserPlugin from './vite-plugin-force-terser.js';
 import glsl from 'vite-plugin-glsl';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 /**
  * @param {{ mode: 'development' | 'production' }} param0
  * @returns {import('vite').UserConfig}
