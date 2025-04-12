@@ -1,3 +1,5 @@
+import {isString} from "./shared";
+
 export class BaseWorker<T> {
     protected _sourceId: number;
     protected _source: Map<number, T>;
@@ -5,7 +7,7 @@ export class BaseWorker<T> {
     protected _numWorkers: number;
     protected _workerQueue: Worker[];
 
-    constructor(numWorkers: number = 2, program?: string) {
+    constructor(numWorkers: number = 2, program?: any) {
         this._sourceId = 0;
         this._source = new Map<number, T>();
         this._pendingQueue = [];
@@ -22,16 +24,28 @@ export class BaseWorker<T> {
         }
     }
 
-    public setProgram(program: string) {
-        let p = new Blob([program], {type: "application/javascript"});
-        for (let i = 0; i < this._numWorkers; i++) {
-            let w = new Worker(URL.createObjectURL(p));
-            w.onmessage = (e: MessageEvent) => {
-                this._onMessage(e);
-                this._workerQueue && this._workerQueue.unshift(e.target as Worker);
-                this.check();
+    public setProgram(program: any) {
+        if (isString(program)) {
+            let p = new Blob([program], {type: "application/javascript"});
+            for (let i = 0; i < this._numWorkers; i++) {
+                let w = new Worker(URL.createObjectURL(p));
+                w.onmessage = (e: MessageEvent) => {
+                    this._onMessage(e);
+                    this._workerQueue && this._workerQueue.unshift(e.target as Worker);
+                    this.check();
+                }
+                this._workerQueue.push(w);
             }
-            this._workerQueue.push(w);
+        } else {
+            for (let i = 0; i < this._numWorkers; i++) {
+                let w = new program();
+                w.onmessage = (e: MessageEvent) => {
+                    this._onMessage(e);
+                    this._workerQueue && this._workerQueue.unshift(e.target as Worker);
+                    this.check();
+                }
+                this._workerQueue.push(w);
+            }
         }
     }
 

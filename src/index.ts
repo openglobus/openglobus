@@ -1,3 +1,5 @@
+import '../css/og.css';
+
 import * as jd from './astro/jd';
 import * as math from './math';
 import * as mercator from './mercator';

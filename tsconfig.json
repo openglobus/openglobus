@@ -1,6 +1,7 @@
 {
   "include" : [
-    "./src/**/*"
+    "./src/**/*",
+    "vite.config.ts"
   ],
   "exclude" : [
     "node_modules",
@@ -15,13 +16,19 @@
     "allowJs" : true,
     "target" : "es2021",
     "declaration" : true,
-    "module" : "ESNext",
+    "module" : "NodeNext",
+    "moduleResolution" : "NodeNext",
+    "types" : [
+      "vite",
+      "node"
+    ],
     "esModuleInterop" : true,
     "forceConsistentCasingInFileNames" : true,
     "strict" : true,
     "skipLibCheck" : true,
     "isolatedModules" : true,
     "outDir" : "lib/js",
-    "verbatimModuleSyntax" : false
+    "verbatimModuleSyntax" : false,
+    "resolveJsonModule" : true
   }
 }
