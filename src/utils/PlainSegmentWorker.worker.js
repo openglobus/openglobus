@@ -1,3 +1,4 @@
+/* eslint-env worker */
 'use strict';
 
 let model = null;
@@ -107,7 +108,7 @@ var geodeticToCartesian = function (lon, lat, heightFactor, res) {
     res.z = (N * (1 - E2) + h) * slt;
 };
 
-var geodeticToCartesianInverse = function (lon, lat, heightFactor, res){
+var geodeticToCartesianInverse = function (lon, lat, heightFactor, res) {
     geodeticToCartesian(
         lon * INV_POLE_BY_180,
         INV_PI_BY_360 * Math.atan(Math.exp(lat * PI_BY_POLE)) - INV_PI_BY_180_HALF_PI,
@@ -119,46 +120,48 @@ var v = new Vec3(0.0, 0.0, 0.0);
 var _tempHigh = new Vec3(0.0, 0.0, 0.0);
 var _tempLow = new Vec3(0.0, 0.0, 0.0);
 
-var doubleToTwoFloats = function(v, high, low) {
+var doubleToTwoFloats = function (v, high, low) {
 
     let x = v.x, y = v.y, z = v.z;
 
+    var doubleHigh;
+
     if (x >= 0.0) {
-        var doubleHigh = Math.floor(x / 65536.0) * 65536.0;
+        doubleHigh = Math.floor(x / 65536.0) * 65536.0;
         high.x = Math.fround(doubleHigh);
         low.x = Math.fround(x - doubleHigh);
     } else {
-        var doubleHigh = Math.floor(-x / 65536.0) * 65536.0;
+        doubleHigh = Math.floor(-x / 65536.0) * 65536.0;
         high.x = Math.fround(-doubleHigh);
         low.x = Math.fround(x + doubleHigh);
     }
 
     if (y >= 0.0) {
-        var doubleHigh = Math.floor(y / 65536.0) * 65536.0;
+        doubleHigh = Math.floor(y / 65536.0) * 65536.0;
         high.y = Math.fround(doubleHigh);
         low.y = Math.fround(y - doubleHigh);
     } else {
-        var doubleHigh = Math.floor(-y / 65536.0) * 65536.0;
+        doubleHigh = Math.floor(-y / 65536.0) * 65536.0;
         high.y = Math.fround(-doubleHigh);
         low.y = Math.fround(y + doubleHigh);
     }
 
     if (z >= 0.0) {
-        var doubleHigh = Math.floor(z / 65536.0) * 65536.0;
+        doubleHigh = Math.floor(z / 65536.0) * 65536.0;
         high.z = Math.fround(doubleHigh);
         low.z = Math.fround(z - doubleHigh);
     } else {
-        var doubleHigh = Math.floor(-z / 65536.0) * 65536.0;
+        doubleHigh = Math.floor(-z / 65536.0) * 65536.0;
         high.z = Math.fround(-doubleHigh);
         low.z = Math.fround(z + doubleHigh);
     }
 };
 
 self.onmessage = function (msg) {
-    if(msg.data.model) {
+    if (msg.data.model) {
         model = msg.data.model;
         model.rawfile = msg.data.rawfile;
-    } else if(msg.data.params) {
+    } else if (msg.data.params) {
 
         let xmin = 549755748352.0, xmax = -549755748352.0,
             ymin = 549755748352.0, ymax = -549755748352.0,
@@ -173,11 +176,11 @@ self.onmessage = function (msg) {
             r2_y = msg.data.params[11],
             r2_z = msg.data.params[12];
 
-        let heightFactor =  msg.data.params[13];
+        let heightFactor = msg.data.params[13];
 
-        if(msg.data.params[1] === 0.0){
+        if (msg.data.params[1] === 0.0) {
             _projFunc = geodeticToCartesianInverse;
-        }else{
+        } else {
             _projFunc = geodeticToCartesian;
         }
 
@@ -256,9 +259,12 @@ self.onmessage = function (msg) {
                 plainVerticesLow[ind] = _tempLow.z;
                 plainNormals[ind++] = nzl;
 
-                if (v.x < xmin) xmin = v.x; if (v.x > xmax) xmax = v.x;
-                if (v.y < ymin) ymin = v.y; if (v.y > ymax) ymax = v.y;
-                if (v.z < zmin) zmin = v.z; if (v.z > zmax) zmax = v.z;
+                if (v.x < xmin) xmin = v.x;
+                if (v.x > xmax) xmax = v.x;
+                if (v.y < ymin) ymin = v.y;
+                if (v.y > ymax) ymax = v.y;
+                if (v.z < zmin) zmin = v.z;
+                if (v.z > zmax) zmax = v.z;
             }
         }
 
