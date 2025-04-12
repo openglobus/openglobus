@@ -21,7 +21,7 @@ import {
     Vec4,
     Vec2,
     GeoImage
-} from "../../lib/@openglobus/og.esm.js";
+} from "../../lib/@openglobus/og.es.js";
 
 let cameraLayer = new Vector("camera", {
     pickingEnabled: false,
