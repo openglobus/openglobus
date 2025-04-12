@@ -20,7 +20,8 @@
     "moduleResolution" : "NodeNext",
     "types" : [
       "vite",
-      "node"
+      "node",
+      "vite-plugin-glsl/ext"
     ],
     "esModuleInterop" : true,
     "forceConsistentCasingInFileNames" : true,

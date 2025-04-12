@@ -2,6 +2,7 @@ import path from 'path';
 import terser from '@rollup/plugin-terser';
 import {viteStaticCopy} from 'vite-plugin-static-copy'
 import forceTerserPlugin from './vite-plugin-force-terser.js';
+import glsl from 'vite-plugin-glsl';
 
 /**
  * @param {{ mode: 'development' | 'production' }} param0
@@ -41,6 +42,20 @@ export default function ({mode}: { mode: 'development' | 'production' }) {
             }
         },
         plugins: [
+            glsl({
+                include: [                      // Glob pattern, or array of glob patterns to import
+                    '**/*.glsl', '**/*.wgsl',
+                    '**/*.vert', '**/*.frag',
+                    '**/*.vs', '**/*.fs'
+                ],
+                defaultExtension: 'glsl',
+                exclude: undefined,
+                warnDuplicatedImports: true,
+                removeDuplicatedImports: false,
+                minify: false,
+                watch: true,
+                root: '/'
+            }),
             // this works for esm modules
             !isDev && forceTerserPlugin({filePath: "./lib/@openglobus/og.es.js"}),
             viteStaticCopy({
