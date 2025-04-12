@@ -11,5 +11,9 @@ module.exports = {
     testRegex: [
         "\\.test\\.js$",
         "\\.test\\.ts$",
-    ]
+    ],
+    moduleNameMapper: {
+        '\\.worker\\.js\\?worker&inline$': '<rootDir>/tests/__mocks__/workerMock.js',
+        '\\.glsl$': '<rootDir>/tests/__mocks__/glslMock.js'
+    }
 };
