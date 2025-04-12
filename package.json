@@ -20,7 +20,7 @@
     "type" : "git",
     "url" : "git+https://github.com/openglobus/openglobus.git"
   },
-  "author" : "Zemledelec",
+  "author" : "Michael Gevlich(Zemledelec)",
   "license" : "MIT",
   "bugs" : {
     "url" : "https://github.com/openglobus/openglobus/issues",
