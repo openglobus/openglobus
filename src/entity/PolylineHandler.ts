@@ -1,4 +1,4 @@
-import * as shaders from '../shaders/polyline';
+import * as shaders from '../shaders/polyline/polyline';
 import {EntityCollection} from "./EntityCollection";
 import {Polyline} from "./Polyline";
 import {Renderer} from "../renderer/Renderer";

@@ -1,5 +1,5 @@
-import {Program} from '../webgl/Program';
-import {UTILS} from "./utils";
+import {Program} from '../../webgl/Program';
+import {UTILS} from "../utils";
 
 export function polyline_screen(): Program {
     return new Program("polyline_screen", {

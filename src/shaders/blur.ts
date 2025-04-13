@@ -1,28 +1,5 @@
 import {Program} from '../webgl/Program';
 
-export function buildKernel(sigma: number): number[] {
-    function gauss(x: number, sigma: number) {
-        return Math.exp(-(x * x) / (2.0 * sigma * sigma));
-    }
-
-    var i, values, sum, halfWidth, kMaxKernelSize = 25, kernelSize = 2 * Math.ceil(sigma * 3.0) + 1;
-
-    if (kernelSize > kMaxKernelSize) kernelSize = kMaxKernelSize;
-    halfWidth = (kernelSize - 1) * 0.5;
-
-    values = new Array(kernelSize);
-    sum = 0.0;
-    for (i = 0; i < kernelSize; ++i) {
-        values[i] = gauss(i - halfWidth, sigma);
-        sum += values[i];
-    }
-
-    // normalize the kernel
-    for (i = 0; i < kernelSize; ++i) values[i] /= sum;
-
-    return values;
-}
-
 export function blur(): Program {
 
     return new Program("blur", {

@@ -1,4 +1,4 @@
-import * as shaders from "../shaders/billboard";
+import * as shaders from "../shaders/billboard/billboard";
 import {spliceTypedArray} from "../utils/shared";
 import type {TypedArray} from "../utils/shared";
 import {EntityCollection} from "./EntityCollection";
