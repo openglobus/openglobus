@@ -11,6 +11,9 @@ import drawnode_screen_wl_webgl1NoAtmos_frag from './drawnode_screen_wl_webgl1No
 import drawnode_screen_wl_webgl2NoAtmos_vert from './drawnode_screen_wl_webgl2NoAtmos.vert.glsl';
 import drawnode_screen_wl_webgl2NoAtmos_frag from './drawnode_screen_wl_webgl2NoAtmos.frag.glsl';
 
+import drawnode_colorPicking_vert from './drawnode_colorPicking.vert.glsl';
+import drawnode_colorPicking_frag from './drawnode_colorPicking.frag.glsl';
+
 // REMEMBER!
 // src*(1)+dest*(1-src.alpha)
 // glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -150,10 +153,8 @@ export function drawnode_screen_wl_webgl2Atmos(atmosParams?: AtmosphereParameter
             eyePositionHigh: "vec3",
             eyePositionLow: "vec3",
             height: "float",
-
             uGlobalTextureCoord: "vec4",
             uNormalMapBias: "vec3",
-
             samplerCount: "int",
             tileOffsetArr: "vec4",
             layerOpacityArr: "float",
@@ -166,20 +167,17 @@ export function drawnode_screen_wl_webgl2Atmos(atmosParams?: AtmosphereParameter
             diffuse: "vec3",
             ambient: "vec3",
             specular: "vec4",
-
             transmittanceTexture: "sampler2D",
             scatteringTexture: "sampler2D",
             camHeight: "float",
             nightTextureCoefficient: "float",
             maxMinOpacity: "vec2",
-
             transitionOpacity: "float"
         }, attributes: {
             aVertexPositionHigh: "vec3",
             aVertexPositionLow: "vec3",
             aTextureCoord: "vec2"
         },
-
         vertexShader:
             `#version 300 es
 
@@ -502,75 +500,12 @@ export function drawnode_colorPicking(): Program {
             pickingColorArr: "vec4",
             height: "float"
         }, attributes: {
-            aVertexPositionHigh: "vec3", aVertexPositionLow: "vec3", aTextureCoord: "vec2"
+            aVertexPositionHigh: "vec3",
+            aVertexPositionLow: "vec3",
+            aTextureCoord: "vec2"
         },
-
-        vertexShader:
-            `precision highp float;
-            
-            attribute vec3 aVertexPositionHigh;
-            attribute vec3 aVertexPositionLow;
-            attribute vec2 aTextureCoord;
-
-            uniform mat4 projectionMatrix;
-            uniform mat4 viewMatrix;
-            uniform vec3 eyePositionHigh;
-            uniform vec3 eyePositionLow;
-            uniform float height;
-
-            varying vec2 vTextureCoord;
-
-            void main(void) {
-
-                vTextureCoord = aTextureCoord;
-
-                mat4 viewMatrixRTE = viewMatrix;
-                viewMatrixRTE[3] = vec4(0.0, 0.0, 0.0, 1.0);
-
-                mat4 m = projectionMatrix * viewMatrixRTE;
-
-                vec3 nh = height * normalize(aVertexPositionHigh + aVertexPositionLow);
-
-                vec3 highDiff = aVertexPositionHigh - eyePositionHigh;
-                vec3 lowDiff = aVertexPositionLow - eyePositionLow + nh;
-
-                gl_Position = m * vec4(highDiff * step(1.0, length(highDiff)) + lowDiff, 1.0);
-            }`,
-
-        fragmentShader:
-            `precision highp float;
-            #define SLICE_SIZE ${SLICE_SIZE + 1}
-            uniform vec4 tileOffsetArr[SLICE_SIZE];
-            uniform vec4 pickingColorArr[SLICE_SIZE];
-            uniform sampler2D samplerArr[SLICE_SIZE];
-            uniform sampler2D pickingMaskArr[SLICE_SIZE];
-            uniform int samplerCount;
-            varying vec2 vTextureCoord;
-
-            ${DEF_BLEND_PICKING}
-
-            void main(void) {
-                gl_FragColor = vec4(0.0);
-                if( samplerCount == 0 ) return;
-
-                vec2 tc;
-                vec4 t;
-                vec4 p;
-
-                blendPicking(gl_FragColor, tileOffsetArr[0], samplerArr[0], pickingMaskArr[0], pickingColorArr[0], 1.0);
-                if( samplerCount == 1 ) return;
-
-                blendPicking(gl_FragColor, tileOffsetArr[1], samplerArr[1], pickingMaskArr[1], pickingColorArr[1], 1.0);
-                if( samplerCount == 2 ) return;
-
-                blendPicking(gl_FragColor, tileOffsetArr[2], samplerArr[2], pickingMaskArr[2], pickingColorArr[2], 1.0);
-                if( samplerCount == 3 ) return;
-
-                blendPicking(gl_FragColor, tileOffsetArr[3], samplerArr[3], pickingMaskArr[3], pickingColorArr[3], 1.0);
-                if( samplerCount == 4 ) return;
-
-                blendPicking(gl_FragColor, tileOffsetArr[4], samplerArr[4], pickingMaskArr[4], pickingColorArr[4], 1.0);
-            }`
+        vertexShader: drawnode_colorPicking_vert,
+        fragmentShader: drawnode_colorPicking_frag
     });
 }
 
