@@ -264,10 +264,14 @@ export class AtmosphereConfig extends Control {
             MIE_SCALE: 0,
             GROUND_ALBEDO: 0,
             BOTTOM_RADIUS: 0,
-            rayleighScatteringCoefficient: [0, 0, 0],
+            rayleighScatteringCoefficient_0: 0,
+            rayleighScatteringCoefficient_1: 0,
+            rayleighScatteringCoefficient_2: 0,
             mieScatteringCoefficient: 0,
             mieExtinctionCoefficient: 0,
-            ozoneAbsorptionCoefficient: [0, 0, 0],
+            ozoneAbsorptionCoefficient_0: 0,
+            ozoneAbsorptionCoefficient_1: 0,
+            ozoneAbsorptionCoefficient_2: 0,
             SUN_ANGULAR_RADIUS: 0,
             SUN_INTENSITY: 0,
             ozoneDensityHeight: 0,
@@ -337,12 +341,12 @@ export class AtmosphereConfig extends Control {
             this._bottomRadius.value = this._parameters.BOTTOM_RADIUS;
             this._mieScatteringCoefficient.value = this._parameters.mieScatteringCoefficient;
             this._mieExtinctionCoefficient.value = this._parameters.mieExtinctionCoefficient;
-            this._rayleighScatteringCoefficientA.value = this._parameters.rayleighScatteringCoefficient[0];
-            this._rayleighScatteringCoefficientB.value = this._parameters.rayleighScatteringCoefficient[1];
-            this._rayleighScatteringCoefficientC.value = this._parameters.rayleighScatteringCoefficient[2];
-            this._ozoneAbsorptionCoefficientA.value = this._parameters.ozoneAbsorptionCoefficient[0];
-            this._ozoneAbsorptionCoefficientB.value = this._parameters.ozoneAbsorptionCoefficient[1];
-            this._ozoneAbsorptionCoefficientC.value = this._parameters.ozoneAbsorptionCoefficient[2];
+            this._rayleighScatteringCoefficientA.value = this._parameters.rayleighScatteringCoefficient_0;
+            this._rayleighScatteringCoefficientB.value = this._parameters.rayleighScatteringCoefficient_1;
+            this._rayleighScatteringCoefficientC.value = this._parameters.rayleighScatteringCoefficient_2;
+            this._ozoneAbsorptionCoefficientA.value = this._parameters.ozoneAbsorptionCoefficient_0;
+            this._ozoneAbsorptionCoefficientB.value = this._parameters.ozoneAbsorptionCoefficient_1;
+            this._ozoneAbsorptionCoefficientC.value = this._parameters.ozoneAbsorptionCoefficient_2;
             this._sunAngularRadius.value = this._parameters.SUN_ANGULAR_RADIUS;
             this._sunIntensity.value = this._parameters.SUN_INTENSITY;
             this._groundAlbedo.value = this._parameters.GROUND_ALBEDO;
@@ -394,32 +398,32 @@ export class AtmosphereConfig extends Control {
         });
 
         this._rayleighScatteringCoefficientA.events.on("change", (val: number) => {
-            this._parameters.rayleighScatteringCoefficient[0] = val;
+            this._parameters.rayleighScatteringCoefficient_0 = val;
             this._update();
         });
 
         this._rayleighScatteringCoefficientB.events.on("change", (val: number) => {
-            this._parameters.rayleighScatteringCoefficient[1] = val;
+            this._parameters.rayleighScatteringCoefficient_1 = val;
             this._update();
         });
 
         this._rayleighScatteringCoefficientC.events.on("change", (val: number) => {
-            this._parameters.rayleighScatteringCoefficient[2] = val;
+            this._parameters.rayleighScatteringCoefficient_2 = val;
             this._update();
         });
 
         this._ozoneAbsorptionCoefficientA.events.on("change", (val: number) => {
-            this._parameters.ozoneAbsorptionCoefficient[0] = val;
+            this._parameters.ozoneAbsorptionCoefficient_0 = val;
             this._update();
         });
 
         this._ozoneAbsorptionCoefficientB.events.on("change", (val: number) => {
-            this._parameters.ozoneAbsorptionCoefficient[1] = val;
+            this._parameters.ozoneAbsorptionCoefficient_1 = val;
             this._update();
         });
 
         this._ozoneAbsorptionCoefficientC.events.on("change", (val: number) => {
-            this._parameters.ozoneAbsorptionCoefficient[2] = val;
+            this._parameters.ozoneAbsorptionCoefficient_2 = val;
             this._update();
         });
 
