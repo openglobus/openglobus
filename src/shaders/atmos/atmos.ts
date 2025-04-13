@@ -1,6 +1,6 @@
-import {Program} from '../webgl/Program';
-import {UTILS} from './utils';
-import type {NumberArray3} from "../math/Vec3";
+import {Program} from '../../webgl/Program';
+import {UTILS} from '../utils';
+import type {NumberArray3} from "../../math/Vec3";
 
 export interface AtmosphereParameters {
     ATMOS_HEIGHT: number,

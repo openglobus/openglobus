@@ -41,7 +41,7 @@ import {wgs84} from "../ellipsoid/wgs84";
 import type {WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams} from "../webgl/Handler";
 import {Program} from "../webgl/Program";
 import {Segment} from "../segment/Segment";
-import type {AtmosphereParameters} from "../shaders/atmos";
+import type {AtmosphereParameters} from "../shaders/atmos/atmos";
 
 export interface IPlanetParams {
     name?: string;

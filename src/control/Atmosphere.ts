@@ -1,4 +1,4 @@
-import {type AtmosphereParameters, COMMON, transmittance, scattering} from "../shaders/atmos";
+import {type AtmosphereParameters, COMMON, transmittance, scattering} from "../shaders/atmos/atmos";
 import {Framebuffer} from "../webgl/Framebuffer";
 import {Program} from '../webgl/Program';
 import {Control, type IControlParams} from "./Control";

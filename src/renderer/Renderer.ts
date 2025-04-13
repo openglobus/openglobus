@@ -15,7 +15,7 @@ import {LabelWorker} from "../entity/LabelWorker";
 import {randomi} from "../math";
 import {RenderNode} from "../scene/RenderNode";
 import {screenFrame} from "../shaders/screenFrame";
-import {toneMapping} from "../shaders/toneMapping";
+import {toneMapping} from "../shaders/tone_mapping/toneMapping";
 import {TextureAtlas} from "../utils/TextureAtlas";
 import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";

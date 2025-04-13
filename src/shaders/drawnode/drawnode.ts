@@ -1,5 +1,5 @@
-import {COMMON} from "../atmos";
-import type {AtmosphereParameters} from "../atmos";
+import {COMMON} from "../atmos/atmos";
+import type {AtmosphereParameters} from "../atmos/atmos";
 import {Program} from "../../webgl/Program";
 
 import drawnode_screen_nl_vert from './drawnode_screen_nl.vert.glsl';
