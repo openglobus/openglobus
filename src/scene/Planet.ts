@@ -1,6 +1,6 @@
 import * as math from "../math";
 import * as segmentHelper from "../segment/segmentHelper";
-import * as shaders from "../shaders/drawnode";
+import * as shaders from "../shaders/drawnode/drawnode";
 import * as utils from "../utils/shared";
 import {Atmosphere} from "../control/Atmosphere";
 import type {IAtmosphereParams} from "../control/Atmosphere";
@@ -902,7 +902,7 @@ export class Planet extends RenderNode {
         h.addProgram(shaders.drawnode_screen_nl(), true);
         h.addProgram(shaders.drawnode_colorPicking(), true);
         h.addProgram(shaders.drawnode_depth(), true);
-        h.addProgram(shaders.drawnode_heightPicking(), true);
+        //h.addProgram(shaders.drawnode_heightPicking(), true);
 
         this.renderer!.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
         this.renderer!.addDepthCallback(this, this._renderDepthFramebufferPASS);

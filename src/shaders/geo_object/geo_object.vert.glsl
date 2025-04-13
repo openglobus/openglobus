@@ -1,6 +1,6 @@
 precision highp float;
 
-#include "./common/qrot.glsl"
+#include "../common/qrot.glsl"
 
 attribute vec3 aVertexPosition;
 attribute vec3 aVertexNormal;

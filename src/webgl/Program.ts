@@ -15,6 +15,20 @@ type ProgramMaterial = {
     fragmentShader: string
 };
 
+function injectWebGL2Define(src: string, isWebGL2: boolean): string {
+    if (!isWebGL2) return src;
+
+    const lines = src.split('\n');
+    const versionIndex = lines.findIndex(line => line.startsWith('#version'));
+
+    if (versionIndex !== -1) {
+        lines.splice(versionIndex + 1, 0, '#define WEBGL2');
+        return lines.join('\n');
+    } else {
+        return src;
+    }
+}
+
 /**
  * Represents more comfortable using WebGL shader program.
  * @class
@@ -229,7 +243,8 @@ class Program {
 
         if (!this.gl) return false;
 
-        this.gl.shaderSource(shader, src);
+        const isWebGL2 = this.gl instanceof WebGL2RenderingContext;
+        this.gl.shaderSource(shader, injectWebGL2Define(src, isWebGL2));
         this.gl.compileShader(shader);
         if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
             cons.logErr(
