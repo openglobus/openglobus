@@ -18,7 +18,7 @@ import type {HTMLDivElementExt} from "./renderer/Renderer";
 import {RenderNode} from "./scene/RenderNode";
 import {ZoomControl} from "./control/ZoomControl";
 import {Extent} from "./Extent";
-import type {IAtmosphereParams} from "./control/Atmosphere";
+import type {IAtmosphereParams} from "./control/atmosphere/Atmosphere";
 
 export interface IGlobeParams {
     attributionContainer?: HTMLElement;

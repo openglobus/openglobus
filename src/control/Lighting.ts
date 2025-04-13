@@ -6,7 +6,7 @@ import {Slider} from "../ui/Slider";
 import {Sun} from "./Sun";
 import {ToggleButton} from "../ui/ToggleButton";
 import {View} from '../ui/View';
-import {Atmosphere} from "./Atmosphere";
+import {Atmosphere} from "./atmosphere/Atmosphere";
 import {Color} from "../ui/Color";
 import {SimpleSkyBackground} from "../control/SimpleSkyBackground";
 

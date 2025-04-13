@@ -1,6 +1,6 @@
 precision lowp float;
 
-#include "../shaders/atmos/common.glsl"
+#include "../../shaders/atmos/common.glsl"
 
 uniform mat4 viewMatrix;
 uniform vec3 sunPos;

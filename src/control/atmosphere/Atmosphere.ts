@@ -1,12 +1,12 @@
-import {type AtmosphereParameters, transmittance, scattering} from "../shaders/atmos/atmos";
-import {Framebuffer} from "../webgl/Framebuffer";
-import {Program} from '../webgl/Program';
-import {Control, type IControlParams} from "./Control";
+import {type AtmosphereParameters, transmittance, scattering} from "../../shaders/atmos/atmos";
+import {Framebuffer} from "../../webgl/Framebuffer";
+import {Program} from '../../webgl/Program';
+import {Control, type IControlParams} from "../Control";
 
 import atmosphere_vert from './atmosphere.vert.glsl';
 import atmosphere_frag from './atmosphere.frag.glsl';
 
-import {stringTemplate2} from "../utils/shared";
+import {stringTemplate2} from "../../utils/shared";
 
 export interface IAtmosphereParams extends IControlParams {
     height?: number,

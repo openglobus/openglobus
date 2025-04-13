@@ -1,9 +1,9 @@
-import {Control, type IControlParams} from "./Control";
-import {Dialog} from '../ui/Dialog';
-import {Slider} from "../ui/Slider";
-import {ToggleButton} from "../ui/ToggleButton";
-import {View} from '../ui/View';
-import type {AtmosphereParameters} from "../shaders/atmos/atmos";
+import {Control, type IControlParams} from "../Control";
+import {Dialog} from '../../ui/Dialog';
+import {Slider} from "../../ui/Slider";
+import {ToggleButton} from "../../ui/ToggleButton";
+import {View} from '../../ui/View';
+import type {AtmosphereParameters} from "../../shaders/atmos/atmos";
 
 interface IAtmosphereConfigParams extends IControlParams {
 
