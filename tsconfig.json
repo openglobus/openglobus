@@ -1,6 +1,7 @@
 {
   "include" : [
-    "./src/**/*"
+    "./src/**/*",
+    "vite.config.ts"
   ],
   "exclude" : [
     "node_modules",
@@ -15,13 +16,21 @@
     "allowJs" : true,
     "target" : "es2021",
     "declaration" : true,
-    "module" : "ESNext",
+    "emitDeclarationOnly": true,
+    "module" : "NodeNext",
+    "moduleResolution" : "NodeNext",
+    "types" : [
+      "vite",
+      "node",
+      "vite-plugin-glsl/ext"
+    ],
     "esModuleInterop" : true,
     "forceConsistentCasingInFileNames" : true,
     "strict" : true,
     "skipLibCheck" : true,
     "isolatedModules" : true,
-    "outDir" : "lib/js",
-    "verbatimModuleSyntax" : false
+    "outDir" : "lib",
+    "verbatimModuleSyntax" : false,
+    "resolveJsonModule" : true
   }
 }

@@ -1,4 +1,4 @@
-import * as shaders from "../shaders/label";
+import * as shaders from "../shaders/label/label";
 import {ALIGN, Label} from "./Label";
 import {BaseBillboardHandler} from "./BaseBillboardHandler";
 import {concatTypedArrays, spliceTypedArray} from "../utils/shared";

@@ -1,4 +1,4 @@
-import * as shaders from "../shaders/ray";
+import * as shaders from "../shaders/ray/ray";
 import {concatArrays, makeArrayTyped, spliceArray} from "../utils/shared";
 import type {TypedArray} from "../utils/shared";
 import {EntityCollection} from "./EntityCollection";

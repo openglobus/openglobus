@@ -21,7 +21,7 @@ import {
     Vec4,
     Vec2,
     GeoImage
-} from "../../lib/@openglobus/og.esm.js";
+} from "../../lib/og.es.js";
 
 let cameraLayer = new Vector("camera", {
     pickingEnabled: false,
@@ -174,8 +174,8 @@ function camera_depth() {
 
 globus.planet.renderer.handler.addProgram(camera_depth());
 
-const CAM_WIDTH = 2048;
-const CAM_HEIGHT = 2048;
+const CAM_WIDTH = 640;
+const CAM_HEIGHT = 480;
 
 let depthCamera = new PlanetCamera(globus.planet, {
     frustums: [[10, 10000]],

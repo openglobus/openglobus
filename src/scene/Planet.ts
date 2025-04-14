@@ -1,9 +1,9 @@
 import * as math from "../math";
 import * as segmentHelper from "../segment/segmentHelper";
-import * as shaders from "../shaders/drawnode";
+import * as shaders from "../shaders/drawnode/drawnode";
 import * as utils from "../utils/shared";
-import {Atmosphere} from "../control/Atmosphere";
-import type {IAtmosphereParams} from "../control/Atmosphere";
+import {Atmosphere} from "../control/atmosphere/Atmosphere";
+import type {IAtmosphereParams} from "../control/atmosphere/Atmosphere";
 import {Control} from "../control/Control";
 import {createColorRGB} from "../utils/shared";
 import {createEvents} from "../Events";
@@ -41,7 +41,7 @@ import {wgs84} from "../ellipsoid/wgs84";
 import type {WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams} from "../webgl/Handler";
 import {Program} from "../webgl/Program";
 import {Segment} from "../segment/Segment";
-import type {AtmosphereParameters} from "../shaders/atmos";
+import type {AtmosphereParameters} from "../shaders/atmos/atmos";
 
 export interface IPlanetParams {
     name?: string;
@@ -902,7 +902,7 @@ export class Planet extends RenderNode {
         h.addProgram(shaders.drawnode_screen_nl(), true);
         h.addProgram(shaders.drawnode_colorPicking(), true);
         h.addProgram(shaders.drawnode_depth(), true);
-        h.addProgram(shaders.drawnode_heightPicking(), true);
+        //h.addProgram(shaders.drawnode_heightPicking(), true);
 
         this.renderer!.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
         this.renderer!.addDepthCallback(this, this._renderDepthFramebufferPASS);

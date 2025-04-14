@@ -1,4 +1,4 @@
-import * as shaders from "../shaders/geoObject";
+import * as shaders from "../shaders/geo_object/geo_object";
 import {concatArrays, loadImage, spliceArray} from "../utils/shared";
 import type {TypedArray} from "../utils/shared";
 import {EntityCollection} from "./EntityCollection";

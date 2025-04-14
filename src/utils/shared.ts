@@ -173,6 +173,27 @@ export function stringTemplate(template: string, params?: any): string {
     });
 }
 
+/**
+ * Replace template substrings between '${...}' tokens.
+ * @param {string} template - String with templates in "${" and "}"
+ * @param {Object} params - Template named object with subsrtings.
+ * @returns {string} -
+ *
+ * @example <caption>Example from og.terrain that replaces tile indexes in url:</caption>
+ * var substrings = {
+ *       "x": 12,
+ *       "y": 15,
+ *       "z": 8
+ * }
+ * og.utils.stringTemplate2("http://earth3.openglobus.org/${z}/${y}/${x}.ddm", substrings);
+ * //returns http://earth3.openglobus.org/8/15/12.ddm
+ */
+export function stringTemplate2(template: string, params?: Record<string, any>): string {
+    return template.replace(/\$\{([^}]+)\}/g, (_, key) => {
+        return params?.[key.trim()] ?? "";
+    });
+}
+
 export function getHTML(template: string, params?: any): string {
     return stringTemplate(template, params);
 }
