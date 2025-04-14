@@ -66,18 +66,16 @@ Run
 npm run build
 ```
 
-Then, it will generate 5 files at `lib/@openglobus/`:
+Then, it will generate files at `lib/`:
 
-- og.umd.js
-- og.umd.js.map
-- og.esm.js
-- og.esm.js.map
+- og.es.js
+- og.es.js.map
 - og.css
 - ./res/...
 
 ### Run examples
 
-First, it starts by watching sources and building into ./lib folder esm module:
+First, it starts by watching sources and building into ./lib folder es module:
 
 ```sh
 npm run dev
@@ -87,6 +85,12 @@ Second, runs local server, then you can browse 127.0.0.1:8080:
 
 ```sh
 npm run serve
+```
+
+or
+
+```sh
+npm run dev_serve
 ```
 
 Third, try an example from the sandbox:

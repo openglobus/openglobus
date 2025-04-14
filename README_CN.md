@@ -105,12 +105,10 @@ yarn
 npm run build
 ```
 
-随后会在 `lib/@openglobus/` 目录下生成下列 5 个文件：
+随后会在 `lib/` 目录下生成下列 5 个文件：
 
-- og.umd.js
-- og.umd.js.map
-- og.esm.js
-- og.esm.js.map
+- og.es.js
+- og.es.js.map
 - og.css
 - ./res/...
 

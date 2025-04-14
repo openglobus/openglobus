@@ -108,12 +108,10 @@ Run
 npm run build
 ```
 
-Then, it will generate 5 files at `lib/@openglobus/`:
+Then, it will generate files at `lib/`:
 
-- og.umd.js
-- og.umd.js.map
-- og.esm.js
-- og.esm.js.map
+- og.es.js
+- og.es.js.map
 - og.css
 - ./res/...
 
