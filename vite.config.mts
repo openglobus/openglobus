@@ -25,7 +25,7 @@ export default function ({mode}: { mode: 'development' | 'production' }) {
                 cssFileName: 'og',
             },
             emptyOutDir: true,
-            outDir: path.resolve(__dirname, './lib/@openglobus'),
+            outDir: path.resolve(__dirname, './lib'),
             sourcemap: isDev,
             rollupOptions: {
                 output: {
@@ -60,7 +60,7 @@ export default function ({mode}: { mode: 'development' | 'production' }) {
                 root: '/'
             }),
             // this works for esm modules
-            !isDev && forceTerserPlugin({filePath: "./lib/@openglobus/og.es.js"}),
+            !isDev && forceTerserPlugin({filePath: "./lib/og.es.js"}),
             viteStaticCopy({
                 targets: [
                     {

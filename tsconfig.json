@@ -29,7 +29,7 @@
     "strict" : true,
     "skipLibCheck" : true,
     "isolatedModules" : true,
-    "outDir" : "lib/@openglobus",
+    "outDir" : "lib",
     "verbatimModuleSyntax" : false,
     "resolveJsonModule" : true
   }
