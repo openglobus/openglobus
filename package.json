@@ -2,18 +2,31 @@
   "name" : "@openglobus/og",
   "version" : "0.25.0",
   "description" : "[openglobus](https://www.openglobus.org/) is a javascript/typescript library designed to display interactive 3d maps and planets with map tiles, imagery and vector data, markers, and 3D objects. It uses the WebGL technology, open source, and completely free.",
+  "main" : "lib/@openglobus/og.es.js",
+  "types" : "lib/@openglobus/index.d.ts",
+  "exports" : {
+    "." : {
+      "import" : "./lib/@openglobus/og.es.js",
+      "types" : "./lib/@openglobus/index.d.ts"
+    }
+  },
+  "publishConfig" : {
+    "access" : "public"
+  },
+  "files" : [
+    "lib/",
+    "res/"
+  ],
   "scripts" : {
     "docs" : "jsdoc -r ./src/ -c ./jsdoc.conf.json -d ./docs",
     "serve_docs" : "cd docs; ws -p 8088",
     "serve" : "ws -p 3000",
-    "build" : "vite build --mode production && npm run gen_js",
+    "build" : "vite build --mode production && npm run dts",
     "clean" : "rm -rf ./lib ./docs",
     "dev" : "vite build --watch --mode development",
     "test" : "jest --env=jsdom --runInBand --ci --coverage=false",
-    "test_watch" : "jest --env=jsdom --watch",
     "lint" : "eslint src/",
-    "gen_js" : "tsc --build tsconfig.json --declaration",
-    "font" : "node ./fonts/index.js",
+    "dts" : "tsc --build tsconfig.json",
     "dev_serve" : "npm-run-all --parallel --continue-on-error --race dev serve"
   },
   "repository" : {

@@ -16,6 +16,7 @@
     "allowJs" : true,
     "target" : "es2021",
     "declaration" : true,
+    "emitDeclarationOnly": true,
     "module" : "NodeNext",
     "moduleResolution" : "NodeNext",
     "types" : [
@@ -28,7 +29,7 @@
     "strict" : true,
     "skipLibCheck" : true,
     "isolatedModules" : true,
-    "outDir" : "lib/js",
+    "outDir" : "lib/@openglobus",
     "verbatimModuleSyntax" : false,
     "resolveJsonModule" : true
   }
