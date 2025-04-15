@@ -2075,7 +2075,7 @@ export class Planet extends RenderNode {
      * @public
      * @returns {Extent} -
      */
-    public getViewExtent(): Extent {
+    public getExtent(): Extent {
         if (this.renderer) {
 
             let w = this.renderer.handler.getWidth(),
@@ -2104,6 +2104,10 @@ export class Planet extends RenderNode {
             }
         }
 
+        return this._viewExtent;
+    }
+
+    public getViewExtent(): Extent {
         return this._viewExtent;
     }
 

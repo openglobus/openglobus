@@ -4,7 +4,7 @@
     <title>Layer Fading Opacity Example</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../lib/@openglobus/og.css" type="text/css"/>
+    <link rel="stylesheet" href="../../lib/og.css" type="text/css"/>
 </head>
 
 <body>
@@ -17,7 +17,7 @@
         GlobusRgbTerrain,
         XYZ,
         control
-    } from "../../lib/@openglobus/og.esm.js";
+    } from "../../lib/og.es.js";
 
     let osm = new XYZ("OSM", {
         'isBaseLayer': true,
@@ -69,7 +69,7 @@
     });
 
     //View at Germany
-    globe.planet.viewExtentArr([-0.895, 47.51, 21.84, 51.65]);
+    globe.planet.viewExtentArr([8.389217264662717, 50.129333035050855, 11.016863349016512, 50.66288338364864]);
 
     //Load points
     fetch("DE.json.txt", {

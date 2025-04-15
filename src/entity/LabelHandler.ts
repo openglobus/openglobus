@@ -253,10 +253,10 @@ class LabelHandler extends BaseBillboardHandler {
 
         gl.uniform1iv(shu.fontTextureArr, r.fontAtlas.samplerArr);
         gl.uniform4fv(shu.sdfParamsArr, r.fontAtlas.sdfParamsArr);
-        gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera!.getViewMatrix());
-        gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
-        gl.uniform3fv(shu.eyePositionHigh, r.activeCamera!.eyeHigh);
-        gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
+        gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera.getViewMatrix());
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
+        gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
+        gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
         gl.uniform3fv(shu.scaleByDistance, ec.scaleByDistance);
         gl.uniform1f(shu.opacity, ec._fadingOpacity);
         gl.uniform1f(shu.planetRadius, (ec.renderNode as Planet)._planetRadius2 || 0);
@@ -333,10 +333,10 @@ class LabelHandler extends BaseBillboardHandler {
 
         gl.disable(gl.CULL_FACE);
 
-        gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera!.getViewMatrix());
-        gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera!.getProjectionMatrix());
-        gl.uniform3fv(shu.eyePositionHigh, r.activeCamera!.eyeHigh);
-        gl.uniform3fv(shu.eyePositionLow, r.activeCamera!.eyeLow);
+        gl.uniformMatrix4fv(shu.viewMatrix, false, r.activeCamera.getViewMatrix());
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, r.activeCamera.getProjectionMatrix());
+        gl.uniform3fv(shu.eyePositionHigh, r.activeCamera.eyeHigh);
+        gl.uniform3fv(shu.eyePositionLow, r.activeCamera.eyeLow);
         gl.uniform3fv(shu.scaleByDistance, ec.scaleByDistance);
         gl.uniform1f(shu.opacity, ec._fadingOpacity);
         gl.uniform1f(shu.planetRadius, (rn as Planet)._planetRadius2 || 0);
