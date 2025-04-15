@@ -1,7 +1,7 @@
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {fileURLToPath} from 'node:url';
 import terser from '@rollup/plugin-terser';
-import { viteStaticCopy } from 'vite-plugin-static-copy';
+import {viteStaticCopy} from 'vite-plugin-static-copy';
 import forceTerserPlugin from './vite-plugin-force-terser.js';
 import glsl from 'vite-plugin-glsl';
 
@@ -55,7 +55,7 @@ export default function ({mode}: { mode: 'development' | 'production' }) {
                 exclude: undefined,
                 warnDuplicatedImports: true,
                 removeDuplicatedImports: false,
-                minify: false,
+                minify: !isDev,
                 watch: true,
                 root: '/'
             }),
@@ -74,6 +74,12 @@ export default function ({mode}: { mode: 'development' | 'production' }) {
             fs: {
                 strict: true,
                 allow: ['src']
+            },
+            watch: {
+                ignored: [
+                    '!**/*.glsl',
+                    '!**/res/**'
+                ]
             }
         },
         optimizeDeps: {
