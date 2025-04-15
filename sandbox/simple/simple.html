@@ -3,7 +3,7 @@
 <head>
     <title>Simple Renderer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../lib/@openglobus/og.css" type="text/css"/>
+    <link rel="stylesheet" href="../../lib/og.css" type="text/css"/>
 </head>
 
 <body>
@@ -23,98 +23,92 @@
         EntityCollection,
         scene,
         Vec3
-    } from "../../lib/@openglobus/og.es.js";
+    } from "../../lib/og.es.js";
 
     let renderer = new Renderer("frame", {
-
-        controls: [new control.SimpleNavigation({speed: 0.01}), new control.GeoObjectEditor()],
+        msaa: 8,
+        controls: [
+            new control.SimpleNavigation({speed: 0.01}),
+            new control.GeoObjectEditor()
+        ],
         autoActivate: true
     });
 
     class MyScene extends RenderNode {
         constructor() {
             super("MyScene");
-
-            this.ec = new EntityCollection({
-                //scaleByDistance: [1, 1, 1],
-                //useLighting: true,
-                entities: []
-            });
         }
 
         init() {
 
-            this.ec.addTo(this);
+            const base = Object3d.createCube(0.4, 2, 0.4).translate(new Vec3(0, 1, 0));
+            const view = Object3d.createFrustum(3, 2, 1);
+            const view2 = Object3d.createFrustum(3, 2, 1);
+
+            let parentEntity = new Entity({
+                cartesian: new Vec3(1, 1, 1),
+                geoObject: {
+                    scale: 1,
+                    instanced: true,
+                    tag: `base`,
+                    object3d: base,
+                    yaw: 0,
+                    pitch: 0,
+                    roll: 0
+                }
+            });
+
+            let childEntity = new Entity({
+                cartesian: new Vec3(0, 1, 0),
+                independentPicking: true,
+                relativePosition: true,
+                geoObject: {
+                    instanced: true,
+                    tag: `view`,
+                    object3d: view,
+                    yaw: 0,
+                    pitch: 0,
+                    roll: 0
+                }
+            });
+
+            let childChildEntity = new Entity({
+                cartesian: new Vec3(0, 3, -1),
+                independentPicking: true,
+                relativePosition: true,
+                geoObject: {
+                    instanced: true,
+                    tag: `view`,
+                    object3d: view2,
+                    yaw: 0,
+                    pitch: 0,
+                    roll: 0
+                }
+            });
+
+            let collection = new EntityCollection({
+                //scaleByDistance: [1, 1, 1],
+                //useLighting: true,
+                entities: []
+            });
+
+            childEntity.appendChild(childChildEntity);
+            parentEntity.appendChild(childEntity);
+            collection.add(parentEntity);
+
+            collection.addTo(this);
+
 
             this.renderer.activeCamera.eye.set(0, 0, 10);
             this.renderer.activeCamera.update();
         }
-
-        frame() {
-            //this.renderer.setRelativeCenter(this.renderer.activeCamera.eye);
-        }
     }
 
-    let myScene = new MyScene();
-    renderer.addNodes([new scene.Axes(), myScene]);
-
-    const base = Object3d.createCube(0.4, 2, 0.4).translate(new Vec3(0, 1, 0));
-    const view = Object3d.createFrustum(3, 2, 1);
-    const view2 = Object3d.createFrustum(3, 2, 1);
-
-    let parentEntity = new Entity({
-        cartesian: new Vec3(1, 1, 1),
-        independentPicking: true,
-        geoObject: {
-            scale: 1,
-            instanced: true,
-            tag: `base`,
-            object3d: base,
-            yaw: 0,
-            pitch: 0,
-            roll: 0
-        }
-    });
-
-    let childEntity = new Entity({
-        cartesian: new Vec3(0, 1, 0),
-        independentPicking: true,
-        relativePosition: true,
-        geoObject: {
-            instanced: true,
-            tag: `view`,
-            object3d: view,
-            yaw: 0,
-            pitch: 0,
-            roll: 0
-        }
-    });
-
-    let childChildEntity = new Entity({
-        cartesian: new Vec3(0, 3, -1),
-        independentPicking: true,
-        relativePosition: true,
-        geoObject: {
-            instanced: true,
-            tag: `view2`,
-            object3d: view2,
-            yaw: 0,
-            pitch: 0,
-            roll: 0
-        }
-    });
-
-    childEntity.appendChild(childChildEntity);
-    parentEntity.appendChild(childEntity);
-
-    myScene.ec.add(parentEntity);
+    renderer.addNodes([new scene.Axes(),
+        new MyScene()
+    ]);
 
     window.renderer = renderer;
-
-    //myScene.ec.addEntities(lunarParts);
-
-    window.parentEntity = parentEntity;
-    window.childEntity = childEntity;
 
 </script>
 

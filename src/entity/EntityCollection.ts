@@ -381,20 +381,12 @@ class EntityCollection {
     protected _addRecursively(entity: Entity) {
         let rn: RenderNode | null = this.renderNode;
         if (rn) {
-            if (entity._independentPicking || !entity.parent) {
-                if (rn) {
-                    rn.renderer && rn.renderer.assignPickingColor<Entity>(entity);
-                }
-            } else {
-                entity._pickingColor = entity.parent._pickingColor;
-            }
-            rn.renderer && rn.renderer.assignPickingColor<Entity>(entity);
-
             if ((rn as Planet).ellipsoid && entity._cartesian.isZero()) {
                 entity.setCartesian3v((rn as Planet).ellipsoid.lonLatToCartesian(entity._lonLat));
             }
         }
-        entity.setPickingColor();
+
+        this._setPickingColor(entity);
         entity._updateAbsolutePosition();
         entity.setScale3v(entity.getScale());
 
@@ -538,14 +530,24 @@ class EntityCollection {
      * Creates or refresh collected entities picking color.
      * @public
      */
-    public createPickingColors() {
+    public createPickingColors(entities: Entity[] = this._entities) {
         if (!(this.renderNode && this.renderNode.renderer)) return;
-        let e = this._entities;
-        for (let i = 0; i < e.length; i++) {
-            if (!e[i].parent) {
-                this.renderNode.renderer.assignPickingColor<Entity>(e[i]);
-                e[i].setPickingColor();
+        for (let i = 0; i < entities.length; i++) {
+            let ei = entities[i];
+            this._setPickingColor(ei);
+            this.createPickingColors(ei.childEntities);
+        }
+    }
+
+    protected _setPickingColor(entity: Entity) {
+        if (this.renderNode && this.renderNode.renderer) {
+            if (entity._independentPicking || !entity.parent) {
+                this.renderNode.renderer.assignPickingColor<Entity>(entity);
+            } else {
+                entity._pickingColor = entity.parent._pickingColor;
             }
+            this.renderNode.renderer.assignPickingColor<Entity>(entity);
+            entity.setPickingColor();
         }
     }
 
