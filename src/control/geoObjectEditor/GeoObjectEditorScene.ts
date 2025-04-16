@@ -176,6 +176,12 @@ class GeoObjectEditorScene extends RenderNode {
         }
     }
 
+    get ellipsoid(): Ellipsoid | undefined {
+        if (this._planet) {
+            return this._planet.ellipsoid;
+        }
+    }
+
     get planet(): Planet | null {
         return this._planet;
     }
