@@ -49,6 +49,9 @@ interface IObject3dParams {
     metallicRoughnessTexture?: string;
 }
 
+type MaterialParams = Pick<IObject3dParams, 'ambient' | 'diffuse' | 'specular' | 'shininess'>;
+
+
 class Object3d {
 
     protected _name: string;
@@ -149,6 +152,31 @@ class Object3d {
             verts[i + 1] -= c.y;
             verts[i + 2] -= c.z;
         }
+    }
+
+    /**
+     * Sets the material properties for the 3D object.
+     *
+     * @param {MaterialParams} data - An object containing material properties.
+     * @param {string | NumberArray3} [data.ambient] - Ambient color of the material, as a hex string (e.g., "#ffffff") or an array of three numbers [r, g, b].
+     * @param {string | NumberArray3} [data.diffuse] - Diffuse color of the material.
+     * @param {string | NumberArray3} [data.specular] - Specular color of the material.
+     * @param {number} [data.shininess=100] - Shininess coefficient of the material, controlling specular highlight size.
+     */
+    public setMaterial(data: MaterialParams) {
+        if (data.ambient) {
+            this.ambient = getColor3v(data.ambient);
+        }
+        if (data.diffuse) {
+            this.diffuse = getColor3v(data.diffuse);
+        }
+        if (data.specular) {
+            this.specular = getColor3v(data.specular);
+        }
+        if (data.shininess !== undefined) {
+            this.shininess = data.shininess;
+        }
+        return this;
     }
 
     public centering(): this {
