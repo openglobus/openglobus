@@ -223,7 +223,7 @@ class PlanetCamera extends Camera {
         let el = this.planet.ellipsoid;
         let newEye = el.lonLatToCartesian(this._lonLat);
         let newLook = lookLonLat ? el.lonLatToCartesian(lookLonLat) : Vec3.ZERO;
-        this.set(newEye, newLook, up || Vec3.NORTH);
+        this.set(newEye, newLook, up || newEye.getNormal());
         this.update();
     }
 
