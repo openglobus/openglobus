@@ -77,9 +77,9 @@ export type PlanetEventsList = [
     "layerloadend"
 ];
 
-const CUR_LOD_SIZE = 250; //px
-const MIN_LOD_SIZE = 312; //px
-const MAX_LOD_SIZE = 190; //px
+const CUR_LOD_SIZE = 256; //px
+const MIN_LOD_SIZE = 512; //px
+const MAX_LOD_SIZE = 256; //px
 
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
