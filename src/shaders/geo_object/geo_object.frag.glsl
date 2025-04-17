@@ -18,14 +18,19 @@ void main(void) {
     vec3 lightWeighting = vec3(1.0);
 
     if (useLighting != 0.0) {
-        vec3 normal = vNormal;
-        vec3 lightDir = normalize(sunPosition);
-        vec3 viewDir = normalize(cameraPosition - v_vertex);
-        vec3 reflectionDirection = reflect(-lightDir, normal);
-        float reflection = max(dot(reflectionDirection, viewDir), 0.0);
-        float specularLightWeighting = pow(reflection, materialShininess);
-        float diffuseLightWeighting = max(dot(normal, lightDir), 0.0);
-        lightWeighting = vColor.rgb * materialParams[0] + materialParams[1] * diffuseLightWeighting + materialParams[2] * specularLightWeighting;
+        vec3 normal = normalize(vNormal);
+        vec3 light_dir = normalize(sunPosition);
+        vec3 look_dir = normalize(cameraPosition - v_vertex);
+
+        float diffuse = max(dot(normal, light_dir), 0.0);
+
+        vec3 refl_dir = reflect(-light_dir, normal);
+        float refl = max(dot(refl_dir, look_dir), 0.0);
+        float specular = pow(refl, materialShininess) * step(1e-4, diffuse);
+
+        lightWeighting = vColor.rgb * materialParams[0]
+        + materialParams[1] * diffuse
+        + materialParams[2] * specular;
     } else {
         lightWeighting = vColor.rgb;
     }
