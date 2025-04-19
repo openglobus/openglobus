@@ -202,50 +202,31 @@ export class Ray {
     }
 
     /**
-     * Returns a ray hit sphere coordiante. If there isn't hit returns null.
+     * Returns a ray hit sphere coordinates. If there isn't hit returns null.
      * @public
      * @param {Sphere} sphere - Sphere object.
      * @returns {Vec3}
      */
     public hitSphere(sphere: Sphere) {
-        let r = sphere.radius,
-            c = sphere.center,
-            o = this.origin,
-            d = this.direction;
+        const oc = Vec3.sub(this.origin, sphere.center);
+        const a = this.direction.dot(this.direction);
+        const b = 2.0 * oc.dot(this.direction);
+        const c = oc.dot(oc) - sphere.radius * sphere.radius;
+        const discriminant = b * b - 4 * a * c;
 
-        let vpc = Vec3.sub(c, o);
-
-        if (vpc.dot(d) < 0) {
-            var l = vpc.length();
-            if (l > r) {
-                return null;
-            } else if (l === r) {
-                return o.clone();
-            }
-            let pc = c.projToRay(o, vpc);
-            var lc = Vec3.sub(pc, c).length();
-            let dist = Math.sqrt(r * r - lc * lc);
-            let di1 = dist - Vec3.sub(pc, o).length();
-            let intersection = Vec3.add(o, d.scaleTo(di1));
-            return intersection;
-        } else {
-            let pc = c.projToRay(o, d);
-            var cpcl = Vec3.sub(c, pc).length();
-            if (cpcl > sphere.radius) {
-                return null;
-            } else {
-                let dist = Math.sqrt(r * r - cpcl * cpcl);
-                let di1;
-                pc.subA(o);
-                if (vpc.length() > r) {
-                    di1 = pc.length() - dist;
-                } else {
-                    di1 = pc.length() + dist;
-                }
-                let intersection = Vec3.add(o, d.scaleTo(di1));
-                return intersection;
-            }
+        if (discriminant < 0) {
+            return null;
         }
+
+        const sqrtDisc = Math.sqrt(discriminant);
+        const t1 = (-b - sqrtDisc) / (2.0 * a);
+        const t2 = (-b + sqrtDisc) / (2.0 * a);
+
+        let t = t1;
+        if (t < 0) t = t2;
+        if (t < 0) return null;
+
+        return Vec3.add(this.origin, this.direction.scaleTo(t));
     }
 
     public hitBox(box: Box) {

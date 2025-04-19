@@ -309,6 +309,13 @@ export class MouseNavigation extends Control {
             //     brk = dist / 5000;
             // }
 
+            let cam = this.planet.camera;
+
+            let eyeNorm = cam.eye.getNormal();
+            let dirSlope = e.direction.dot(eyeNorm);
+
+            //console.log(dirSlope);
+
             this._currScreenPos.set(e.x, e.y);
             this._wheelDirection = Math.sign(e.wheelDelta);
             let scale = 2;
@@ -471,6 +478,12 @@ export class MouseNavigation extends Control {
             let velDir = Math.sign(this.vel.getNormal().dot(cam.getForward()));
             let d_v = this.vel.scaleTo(this.dt);
             //let d_s = d_v.projToVec(cam.getForward().scale(velDir));
+
+            // if camera eye position under the dome of the grabbed sphere
+            if (this._grabbedSphere.radius > eye.length()) {
+                velDir *= -1;
+            }
+
             let d_s = cam.getForward().scaleTo(velDir * d_v.length());
 
             // Slow down if camera moves very fast tweak
@@ -480,6 +493,16 @@ export class MouseNavigation extends Control {
                 d_s.normalize().scale(temp * 0.5);
                 this.vel.scale(0.5);
             }
+
+            // let velSlope = eye.getNormal().dot(this.vel.getNormal());
+            // if (velSlope > 0) {
+            //     console.log(d_v.getNormal().dot(cam.getForward()));
+            //     //let d_v = this.vel.scaleTo(this.dt);
+            //     let newEye = cam.eye.add(d_v);
+            //     cam.eye.copy(newEye);
+            //     cam.checkTerrainCollision();
+            //     return;
+            // }
 
             eye.addA(d_s);
 
