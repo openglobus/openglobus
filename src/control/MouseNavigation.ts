@@ -16,6 +16,9 @@ interface IEarthNavigationParams extends IControlParams {
 
 const DEFAULT_VELINERTIA = 0.96;
 
+// Camera moves vertically (up/down) when slope is less than this threshold
+const MIN_SLOPE = 0.35;
+
 
 export class MouseNavigation extends Control {
 
@@ -266,7 +269,7 @@ export class MouseNavigation extends Control {
 
     protected _getTargetPoint(p: Vec2): Vec3 | null {
         if (this.planet) {
-            if (this.planet.camera.getAltitude() > 10000) {
+            if (this.planet.camera.getAltitude() > 80000) {
                 return this.planet.getCartesianFromPixelEllipsoid(p) || null;
             }
             return this.planet.getCartesianFromPixelTerrain(p) || null;
@@ -360,7 +363,7 @@ export class MouseNavigation extends Control {
         if (this._grabbedPoint && this.planet) {
             let cam = this.planet.camera;
 
-            if (cam.slope > 0.2) {
+            if (cam.slope > MIN_SLOPE) {
                 let _targetDragPoint = new Ray(cam.eye, e.direction).hitSphere(this._grabbedSphere);
 
                 if (!_targetDragPoint) {
@@ -423,7 +426,7 @@ export class MouseNavigation extends Control {
             this._screenPosIsChanged = false;
             this._prevVel.copy(this.vel);
 
-            if (cam.slope > 0.2) {
+            if (cam.slope > MIN_SLOPE) {
                 let d_v = this.vel.scaleTo(this.dt);
                 // let d_s = d_v;
                 // let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
@@ -464,15 +467,15 @@ export class MouseNavigation extends Control {
             let a = this._targetZoomPoint;
             let dir = a.sub(cam.eye).normalize();
             let eye = cam.eye.clone();
+
             let velDir = Math.sign(this.vel.getNormal().dot(cam.getForward()));
             let d_v = this.vel.scaleTo(this.dt);
-            let d_s = d_v.projToVec(cam.getForward().scale(velDir));
+            //let d_s = d_v.projToVec(cam.getForward().scale(velDir));
+            let d_s = cam.getForward().scaleTo(velDir * d_v.length());
 
-            //let d_s = cam.getForward().scaleTo(velDir * d_v.length());
-
-            // Braking tweak
+            // Slow down if camera moves very fast tweak
             let destDist = cam.eye.distance(a);
-            if (d_s.length() * 10 > destDist) {
+            if (destDist < 30 * d_s.length()) {
                 let temp = d_s.length();
                 d_s.normalize().scale(temp * 0.5);
                 this.vel.scale(0.5);
