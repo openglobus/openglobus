@@ -510,7 +510,7 @@ export class MouseNavigation extends Control {
             cam.eye = rot.mulVec3(eye);
             cam.rotate(rot);
 
-            if (this.fixedUp) {
+            if (this.fixedUp && destDist > 10) {
 
                 this._corrRoll();
                 // restore camera direction
