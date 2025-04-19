@@ -322,11 +322,12 @@ export class MouseNavigation extends Control {
             this._isTouchPad = e.isTouchPad;
             if (e.isTouchPad) {
                 this._velInertia = 0.88;
-                scale = 0.5;
+                scale = 0.8;
             } else {
                 this._velInertia = DEFAULT_VELINERTIA;
             }
-            let dist = this.planet.camera.eye.distance(this._targetZoomPoint) * scale;
+            let spdAlt = Math.abs(cam.getAltitude() < 20 ? 20 : cam.getAltitude());
+            let dist = Math.min(spdAlt, this.planet.camera.eye.distance(this._targetZoomPoint)) * scale;
             this.force = (e.direction.scale(Math.sign(this._wheelDirection))).normalize().scale(dist);
 
             this.force_roll = this._curRoll;
