@@ -1,7 +1,50 @@
 import {Dialog, IDialogParams} from "../ui/Dialog";
 import {Framebuffer} from "../webgl/Framebuffer";
-import {Program} from "../../lib/og.es";
+import {Control, IControlParams} from "./Control";
+import {Program} from "../webgl/Program";
 
+function creteCanvas(width: number, height: number) {
+    let canvas = new HTMLCanvasElement();
+    canvas.width = width;
+    canvas.height = height;
+    canvas.style.position = "absolute";
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+    return canvas;
+}
+
+export interface IFramebufferDialogParams extends IControlParams {
+}
+
+export class FramebufferDialog extends Control {
+
+    protected _dialog: Dialog<Framebuffer | null>;
+    public $canvas: HTMLCanvasElement;
+
+    constructor(params: IFramebufferDialogParams) {
+        super({
+            autoActivate: true,
+            ...params
+        });
+        this._dialog = new Dialog<Framebuffer | null>();
+        this.$canvas = creteCanvas(this._dialog.width, this._dialog.height);
+    }
+
+    public override oninit() {
+        super.oninit();
+    }
+
+    public override activate() {
+        super.activate();
+        this._dialog.appendTo(document.body);
+        this._dialog.container?.appendChild(this.$canvas);
+    }
+
+    public override deactivate() {
+        super.deactivate();
+        this._dialog.remove();
+    }
+}
 
 function framebuffer_dialog_screen() {
     return new Program("framebuffer_dialog_screen", {
@@ -60,67 +103,4 @@ function framebuffer_dialog_screen() {
                 depthColor = vec4(gl_FragCoord.z, gl_FragCoord.z, gl_FragCoord.z, 1.0);
             }`
     });
-}
-
-export interface IFrameBufferDialogParams extends IDialogParams {
-}
-
-export class FramebufferDialog extends Dialog<Framebuffer | null> {
-    public $canvas: HTMLCanvasElement | null = null;
-
-    constructor(params: IFrameBufferDialogParams) {
-        super(params);
-    }
-
-    protected _initScreenFramebuffer(): void {
-        this.toneMappingFramebuffer = new Framebuffer(this.handler, {
-            useDepth: false
-        });
-
-        this.toneMappingFramebuffer.init();
-    }
-
-    public override render(params: any): this {
-        super.render(params);
-        this.$canvas = new HTMLCanvasElement();
-        this.$canvas.width = this.width;
-        this.$canvas.height = this.height;
-        this.$canvas.style.position = "absolute";
-        this.$canvas.style.width = "100%";
-        this.$canvas.style.height = "100%";
-        this.$container?.appendChild(this.$canvas);
-        return this;
-    }
-
-    public bindFramebuffer(framebuffer: Framebuffer): void {
-        if (!framebuffer.isEqual(framebuffer)) {
-            this.model = framebuffer;
-        }
-    }
-
-    protected _screenPass() {
-
-        let r = this.renderer;
-        let h = r.handler;
-        let sh = h.programs.screenFrame,
-            p = sh._program,
-            gl = h.gl!;
-
-        gl.disable(gl.DEPTH_TEST);
-        sh.activate();
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.toneMappingFramebuffer!.textures[0]);
-        gl.uniform1i(p.uniforms.texture, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer!);
-        gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        gl.enable(gl.DEPTH_TEST);
-    }
-
-    public refresh() {
-        if (this.model) {
-
-            //this.model.readPixelBuffersAsync()
-        }
-    }
 }
