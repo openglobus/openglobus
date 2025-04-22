@@ -10,6 +10,10 @@ export interface IBaseFramebufferParams {
 }
 
 export class BaseFramebuffer {
+
+    static __counter__: number = 0;
+
+    protected __id: number;
     public handler: Handler;
     public _fbo: WebGLFramebuffer | null;
     protected _depthRenderbuffer: WebGLRenderbuffer | null;
@@ -23,6 +27,7 @@ export class BaseFramebuffer {
 
     constructor(handler: Handler, options: IBaseFramebufferParams = {}) {
         this.handler = handler;
+        this.__id = BaseFramebuffer.__counter__++;
         this._fbo = null;
         this._width = options.width || handler.canvas!.width;
         this._height = options.height || handler.canvas!.height;
@@ -120,5 +125,9 @@ export class BaseFramebuffer {
         } else {
             gl.viewport(0, 0, h.canvas!.width, h.canvas!.height);
         }
+    }
+
+    public isEqual(framebuffer: BaseFramebuffer | null): boolean {
+        return framebuffer ? this.__id === framebuffer.__id : false;
     }
 }
