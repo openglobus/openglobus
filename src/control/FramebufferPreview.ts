@@ -16,7 +16,7 @@ function creteCanvas(width: number, height: number) {
 export interface IFramebufferDialogParams extends IControlParams {
 }
 
-export class FramebufferDialog extends Control {
+export class FramebufferPreview extends Control {
 
     protected _dialog: Dialog<null>;
     public $canvas: HTMLCanvasElement;
