@@ -53,14 +53,14 @@ export class CameraFrameHandler {
 }
 
 export interface ICameraFrameComposerParams extends IControlParams {
-    handlers: CameraFrameHandler[]
+    handlers?: CameraFrameHandler[]
 }
 
 export class CameraFrameComposer extends Control {
 
     protected _handlers: CameraFrameHandler[];
 
-    constructor(params: ICameraFrameComposerParams) {
+    constructor(params: ICameraFrameComposerParams = {}) {
         super({
             name: "CameraFrameComposer",
             autoActivate: true,
