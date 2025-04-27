@@ -334,29 +334,29 @@ let depthHandler = new control.CameraFrameHandler({
 );
 
 
-// globus.renderer.events.on("draw", () => {
-//     let r = globus.renderer;
-//     let h = globus.renderer.handler;
-//     let gl = h.gl;
-//
-//     r.screenDepthFramebuffer.activate();
-//     let sh = h.programs.depth;
-//     let p = sh._program;
-//
-//     gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer);
-//     gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-//
-//     sh.activate();
-//
-//     gl.activeTexture(gl.TEXTURE0);
-//     gl.bindTexture(gl.TEXTURE_2D, depthFramebuffer.textures[0]);
-//     gl.uniform1i(p.uniforms.depthTexture, 0);
-//
-//     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-//
-//     r.screenDepthFramebuffer.deactivate();
-//     gl.enable(gl.BLEND);
-// });
+globus.renderer.events.on("draw", () => {
+    let r = globus.renderer;
+    let h = globus.renderer.handler;
+    let gl = h.gl;
+
+    r.screenDepthFramebuffer.activate();
+    let sh = h.programs.depth;
+    let p = sh._program;
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer);
+    gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+
+    sh.activate();
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, depthFramebuffer.textures[0]);
+    gl.uniform1i(p.uniforms.depthTexture, 0);
+
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    r.screenDepthFramebuffer.deactivate();
+    gl.enable(gl.BLEND);
+});
 
 globus.planet.addControl(new control.CameraFrameComposer({
         handlers: [depthHandler]
