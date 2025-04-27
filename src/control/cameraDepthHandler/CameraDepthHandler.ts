@@ -9,7 +9,10 @@ import {Vec2} from "../../math/Vec2";
 import {Vec4} from "../../math/Vec4";
 import {Vec3} from "../../math/Vec3";
 import {LonLat} from "../../LonLat";
-import {Entity, Object3d} from "../../../lib/og.es";
+import {Entity} from "../../entity/Entity";
+import {Object3d} from "../../Object3d";
+import {Vector} from "../../layer/Vector";
+import {GeoImage} from "../../layer/GeoImage";
 
 
 function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer: Framebuffer): number {
@@ -50,12 +53,11 @@ export interface ICameraDepthhandlerParams extends IControlParams {
 }
 
 let cameraObj = Object3d.createFrustum();
-let frustumScale = Object3d.getFrustumScaleByCameraAspectRatio(1000, globus.planet.camera.getViewAngle(), globus.planet.camera.getAspectRatio());
 //let frustumScale = Object3d.getFrustumScaleByCameraAngles(140, 35, 35);
 
 let cameraEntity = new Entity({
     visibility: true,
-    scale: frustumScale,
+    scale: this._getCameraFrustumScale,
     geoObject: {
         //visibility: false,
         tag: "frustum",
@@ -72,24 +74,34 @@ export class CameraDepthHandler extends Control {
     protected _depthHandler: CameraFrameHandler | null;
     protected _frameComposer: CameraFrameComposer;
 
+    protected _cameraLayer: Vector;
+    protected _camProj: GeoImage;
+
     constructor(params: ICameraDepthhandlerParams) {
         super(params);
 
         this._frameComposer = new CameraFrameComposer();
         this._depthHandler = null;
 
-        let cameraLayer = new Vector("camera", {
+        this._cameraLayer = new Vector("camera", {
             pickingEnabled: false,
             scaleByDistance: [100, 1000000, 1.0]
         });
 
-        let camProj = new GeoImage("Cam.Proj", {
+        this._camProj = new GeoImage("Cam.Proj", {
             src: "test4.jpg",
             corners: [[0, 1], [1, 1], [1, 0], [0, 0]],
             visibility: true,
             isBaseLayer: false,
             opacity: 0.7
         });
+    }
+
+    protected get _getCameraFrustumScale(): Vec3 {
+        if (this.planet) {
+            return Object3d.getFrustumScaleByCameraAspectRatio(1000, this.planet.camera.getViewAngle(), this.planet.camera.getAspectRatio());
+        }
+        return new Vec3(1, 1, 1);
     }
 
     protected _createCamera(): Camera {
