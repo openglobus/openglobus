@@ -4,50 +4,14 @@ import {PlanetCamera} from "../../camera/PlanetCamera";
 import {Framebuffer} from "../../webgl";
 import {camera_depth} from "./camera_depth";
 import {Control, IControlParams} from "../Control";
+import {WebGLContextExt} from "../../webgl/Handler";
+import {Vec2} from "../../math/Vec2";
+import {Vec4} from "../../math/Vec4";
+import {Vec3} from "../../math/Vec3";
+import {LonLat} from "../../LonLat";
 
-const CAM_WIDTH = 640;
-const CAM_HEIGHT = 480;
 
-let depthCamera = new PlanetCamera(globus.planet, {
-    frustums: [[10, 10000]],
-    width: CAM_WIDTH,
-    height: CAM_HEIGHT,
-    viewAngle: 45
-})
-
-let depthFramebuffer = new Framebuffer(globus.planet.renderer.handler, {
-    width: CAM_WIDTH,
-    height: CAM_HEIGHT,
-    targets: [{
-        internalFormat: "RGBA16F",
-        type: "FLOAT",
-        attachment: "COLOR_ATTACHMENT",
-        readAsync: true
-    }],
-    useDepth: true
-});
-
-globus.planet.renderer.handler.addProgram(camera_depth());
-
-function getCartesianFromPixelTerrain(x, y, camera, framebuffer) {
-    let distance = getDistanceFromPixel(x, y, camera, framebuffer);
-    if (distance === 0) {
-        return;
-    }
-    let nx = x / framebuffer.width;
-    let ny = (framebuffer.height - y) / framebuffer.height;
-    let direction = camera.unproject(nx * camera.width, (1 - ny) * camera.height);
-    return direction.scaleTo(distance).addA(camera.eye);
-}
-
-function getLonLatFromPixelTerrain(x, y, camera, framebuffer) {
-    let coords = getCartesianFromPixelTerrain(x, y, camera, framebuffer);
-    if (coords) {
-        return __globus__.planet.ellipsoid.cartesianToLonLat(coords);
-    }
-}
-
-function getDistanceFromPixel(x, y, camera, framebuffer) {
+function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer: Framebuffer): number {
 
     let px = new Vec2(x, y);
 
@@ -78,88 +42,8 @@ function getDistanceFromPixel(x, y, camera, framebuffer) {
     return dist;
 }
 
-let depthHandler = new CameraFrameHandler({
-        camera: depthCamera,
-        frameBuffer: depthFramebuffer,
-        handler: (cam, framebuffer, gl) => {
-
-            framebuffer.activate();
-
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            gl.disable(gl.BLEND);
-
-            let sh;
-            let h = framebuffer.handler;
-            h.programs.camera_depth.activate();
-            sh = h.programs.camera_depth._program;
-            let shu = sh.uniforms;
-
-            gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
-            gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
-
-            gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
-            gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
-
-            // drawing planet nodes
-            let rn = globus.planet._renderedNodes;
-
-            let i = rn.length;
-            while (i--) {
-                if (rn[i].segment._transitionOpacity >= 1) {
-                    rn[i].segment.depthRendering(sh);
-                }
-            }
-
-            for (let i = 0; i < globus.planet._fadingOpaqueSegments.length; ++i) {
-                globus.planet._fadingOpaqueSegments[i].depthRendering(sh);
-            }
-
-            framebuffer.deactivate();
-
-            //gl.enable(gl.BLEND);
-
-            framebuffer.readPixelBuffersAsync();
-
-            let lt = getLonLatFromPixelTerrain(1, 1, cam, framebuffer),
-                rt = getLonLatFromPixelTerrain(framebuffer.width - 1, 1, cam, framebuffer);
-
-            let rb = getLonLatFromPixelTerrain(framebuffer.width - 1, framebuffer.height - 1, cam, framebuffer),
-                lb = getLonLatFromPixelTerrain(1, framebuffer.height - 1, cam, framebuffer);
-
-            if (lt && rt && rb && lb) {
-                camProj.setCorners([[lt.lon, lt.lat], [rt.lon, rt.lat], [rb.lon, rb.lat], [lb.lon, lb.lat]]);
-            }
-
-            // let r = globus.renderer;
-            //
-            // // PASS to depth visualization
-            // r.screenDepthFramebuffer.activate();
-            // sh = h.programs.depth;
-            // let p = sh._program;
-            //
-            // gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer);
-            // gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-            //
-            // sh.activate();
-            //
-            // gl.activeTexture(gl.TEXTURE0);
-            // gl.bindTexture(gl.TEXTURE_2D, framebuffer.textures[0]);
-            // gl.uniform1i(p.uniforms.depthTexture, 0);
-            //
-            // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-            //
-            // r.screenDepthFramebuffer.deactivate();
-            // gl.enable(gl.BLEND);
-
-
-            cameraEntity.setCartesian3v(depthCamera.eye);
-            cameraEntity.setPitch(depthCamera.getPitch());
-            cameraEntity.setYaw(depthCamera.getYaw());
-            cameraEntity.setRoll(depthCamera.getRoll());
-        }
-    }
-);
+const CAM_WIDTH = 640;
+const CAM_HEIGHT = 480;
 
 export interface ICameraDepthhandlerParams extends IControlParams {
 
@@ -167,7 +51,7 @@ export interface ICameraDepthhandlerParams extends IControlParams {
 
 export class CameraDepthHandler extends Control {
 
-    protected _frameHandler: CameraFrameHandler | null;
+    protected _depthHandler: CameraFrameHandler | null;
     protected _frameComposer: CameraFrameComposer;
 
     constructor(params: ICameraDepthhandlerParams) {
@@ -176,11 +60,159 @@ export class CameraDepthHandler extends Control {
         });
 
         this._frameComposer = new CameraFrameComposer();
+        this._depthHandler = null;
     }
 
     public override oninit() {
         super.oninit();
+
+        if (!this.renderer) return;
+
+        this.renderer.handler.addProgram(camera_depth());
+
+        let depthCamera;
+
+        if (this.planet) {
+            depthCamera = new PlanetCamera(this.planet, {
+                frustums: [[10, 10000]],
+                width: CAM_WIDTH,
+                height: CAM_HEIGHT,
+                viewAngle: 45
+            })
+        } else {
+            depthCamera = new Camera({
+                frustums: [[10, 10000]],
+                width: CAM_WIDTH,
+                height: CAM_HEIGHT,
+                viewAngle: 45
+            });
+        }
+
+        let depthFramebuffer = new Framebuffer(this.renderer.handler, {
+            width: CAM_WIDTH,
+            height: CAM_HEIGHT,
+            targets: [{
+                internalFormat: "RGBA16F",
+                type: "FLOAT",
+                attachment: "COLOR_ATTACHMENT",
+                readAsync: true
+            }],
+            useDepth: true
+        });
+
+        this._depthHandler = new CameraFrameHandler({
+            camera: depthCamera,
+            frameBuffer: depthFramebuffer,
+            frameHandler: this._depthHandlerCallback
+        })
     }
+
+    protected _depthHandlerCallback = (cam: Camera, framebuffer: Framebuffer, gl: WebGLContextExt) => {
+
+        if (!this.planet) return;
+
+        framebuffer.activate();
+
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.disable(gl.BLEND);
+
+        let sh;
+        let h = framebuffer.handler;
+        h.programs.camera_depth.activate();
+        sh = h.programs.camera_depth._program;
+        let shu = sh.uniforms;
+
+        gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
+        gl.uniformMatrix4fv(shu.projectionMatrix, false, cam.getProjectionMatrix());
+
+        gl.uniform3fv(shu.eyePositionHigh, cam.eyeHigh);
+        gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
+
+        // drawing planet nodes
+        let rn = this.planet._renderedNodes;
+
+        let i = rn.length;
+        while (i--) {
+            if (rn[i].segment._transitionOpacity >= 1) {
+                rn[i].segment.depthRendering(sh);
+            }
+        }
+
+        //@ts-ignore
+        for (let i = 0; i < this.planet._fadingOpaqueSegments.length; ++i) {
+            //@ts-ignore
+            this.planet._fadingOpaqueSegments[i].depthRendering(sh);
+        }
+
+        framebuffer.deactivate();
+
+        //gl.enable(gl.BLEND);
+
+        framebuffer.readPixelBuffersAsync();
+
+        let lt = this.getLonLatFromPixelTerrain(1, 1, cam, framebuffer),
+            rt = this.getLonLatFromPixelTerrain(framebuffer.width - 1, 1, cam, framebuffer);
+
+        let rb = this.getLonLatFromPixelTerrain(framebuffer.width - 1, framebuffer.height - 1, cam, framebuffer),
+            lb = this.getLonLatFromPixelTerrain(1, framebuffer.height - 1, cam, framebuffer);
+
+        if (lt && rt && rb && lb) {
+            camProj.setCorners([[lt.lon, lt.lat], [rt.lon, rt.lat], [rb.lon, rb.lat], [lb.lon, lb.lat]]);
+        }
+
+        // let r = globus.renderer;
+        //
+        // // PASS to depth visualization
+        // r.screenDepthFramebuffer.activate();
+        // sh = h.programs.depth;
+        // let p = sh._program;
+        //
+        // gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer);
+        // gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+        //
+        // sh.activate();
+        //
+        // gl.activeTexture(gl.TEXTURE0);
+        // gl.bindTexture(gl.TEXTURE_2D, framebuffer.textures[0]);
+        // gl.uniform1i(p.uniforms.depthTexture, 0);
+        //
+        // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        //
+        // r.screenDepthFramebuffer.deactivate();
+        // gl.enable(gl.BLEND);
+
+
+        cameraEntity.setCartesian3v(depthCamera.eye);
+        cameraEntity.setPitch(depthCamera.getPitch());
+        cameraEntity.setYaw(depthCamera.getYaw());
+        cameraEntity.setRoll(depthCamera.getRoll());
+    }
+
+    public getCartesianFromPixelTerrain(x: number, y: number): Vec3 | undefined {
+        if (this._depthHandler) {
+            let framebuffer = this._depthHandler.frameBuffer;
+            let camera = this._depthHandler.camera;
+            let distance = getDistanceFromPixel(x, y, camera, framebuffer);
+            if (distance === 0) {
+                return;
+            }
+            let nx = x / framebuffer.width;
+            let ny = (framebuffer.height - y) / framebuffer.height;
+            let direction = camera.unproject(nx * camera.width, (1 - ny) * camera.height);
+            return direction.scaleTo(distance).addA(camera.eye);
+        }
+    }
+
+    public getLonLatFromPixelTerrain(x: number, y: number): LonLat | undefined {
+        if (this.planet) {
+            let coords = this.getCartesianFromPixelTerrain(x, y);
+            if (coords) {
+                return this.planet.ellipsoid.cartesianToLonLat(coords);
+            }
+        }
+    }
+
 
     public override activate() {
         super.activate();
