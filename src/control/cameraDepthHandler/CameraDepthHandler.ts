@@ -9,6 +9,7 @@ import {Vec2} from "../../math/Vec2";
 import {Vec4} from "../../math/Vec4";
 import {Vec3} from "../../math/Vec3";
 import {LonLat} from "../../LonLat";
+import {Entity, Object3d} from "../../../lib/og.es";
 
 
 function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer: Framebuffer): number {
@@ -23,7 +24,6 @@ function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer:
     let dist = 0;
 
     framebuffer.readData(nx, ny, ddd, 0);
-
 
     if (ddd[0] === 0) {
         return 0;
@@ -49,18 +49,65 @@ export interface ICameraDepthhandlerParams extends IControlParams {
 
 }
 
+let cameraObj = Object3d.createFrustum();
+let frustumScale = Object3d.getFrustumScaleByCameraAspectRatio(1000, globus.planet.camera.getViewAngle(), globus.planet.camera.getAspectRatio());
+//let frustumScale = Object3d.getFrustumScaleByCameraAngles(140, 35, 35);
+
+let cameraEntity = new Entity({
+    visibility: true,
+    scale: frustumScale,
+    geoObject: {
+        //visibility: false,
+        tag: "frustum",
+        color: "rgba(255,255,30,0.25)",
+        object3d: cameraObj
+    }
+});
+
+cameraLayer.add(cameraEntity);
+
+
 export class CameraDepthHandler extends Control {
 
     protected _depthHandler: CameraFrameHandler | null;
     protected _frameComposer: CameraFrameComposer;
 
     constructor(params: ICameraDepthhandlerParams) {
-        super({
-            ...params
-        });
+        super(params);
 
         this._frameComposer = new CameraFrameComposer();
         this._depthHandler = null;
+
+        let cameraLayer = new Vector("camera", {
+            pickingEnabled: false,
+            scaleByDistance: [100, 1000000, 1.0]
+        });
+
+        let camProj = new GeoImage("Cam.Proj", {
+            src: "test4.jpg",
+            corners: [[0, 1], [1, 1], [1, 0], [0, 0]],
+            visibility: true,
+            isBaseLayer: false,
+            opacity: 0.7
+        });
+    }
+
+    protected _createCamera(): Camera {
+        if (this.planet) {
+            return new PlanetCamera(this.planet, {
+                frustums: [[10, 10000]],
+                width: CAM_WIDTH,
+                height: CAM_HEIGHT,
+                viewAngle: 45
+            })
+        } else {
+            return new Camera({
+                frustums: [[10, 10000]],
+                width: CAM_WIDTH,
+                height: CAM_HEIGHT,
+                viewAngle: 45
+            });
+        }
     }
 
     public override oninit() {
@@ -69,24 +116,6 @@ export class CameraDepthHandler extends Control {
         if (!this.renderer) return;
 
         this.renderer.handler.addProgram(camera_depth());
-
-        let depthCamera;
-
-        if (this.planet) {
-            depthCamera = new PlanetCamera(this.planet, {
-                frustums: [[10, 10000]],
-                width: CAM_WIDTH,
-                height: CAM_HEIGHT,
-                viewAngle: 45
-            })
-        } else {
-            depthCamera = new Camera({
-                frustums: [[10, 10000]],
-                width: CAM_WIDTH,
-                height: CAM_HEIGHT,
-                viewAngle: 45
-            });
-        }
 
         let depthFramebuffer = new Framebuffer(this.renderer.handler, {
             width: CAM_WIDTH,
@@ -101,7 +130,7 @@ export class CameraDepthHandler extends Control {
         });
 
         this._depthHandler = new CameraFrameHandler({
-            camera: depthCamera,
+            camera: this._createCamera(),
             frameBuffer: depthFramebuffer,
             frameHandler: this._depthHandlerCallback
         })
@@ -117,10 +146,9 @@ export class CameraDepthHandler extends Control {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.disable(gl.BLEND);
 
-        let sh;
         let h = framebuffer.handler;
         h.programs.camera_depth.activate();
-        sh = h.programs.camera_depth._program;
+        let sh = h.programs.camera_depth._program;
         let shu = sh.uniforms;
 
         gl.uniformMatrix4fv(shu.viewMatrix, false, cam.getViewMatrix());
@@ -151,11 +179,10 @@ export class CameraDepthHandler extends Control {
 
         framebuffer.readPixelBuffersAsync();
 
-        let lt = this.getLonLatFromPixelTerrain(1, 1, cam, framebuffer),
-            rt = this.getLonLatFromPixelTerrain(framebuffer.width - 1, 1, cam, framebuffer);
-
-        let rb = this.getLonLatFromPixelTerrain(framebuffer.width - 1, framebuffer.height - 1, cam, framebuffer),
-            lb = this.getLonLatFromPixelTerrain(1, framebuffer.height - 1, cam, framebuffer);
+        let lt = this.getLonLatFromPixelTerrain(1, 1),
+            rt = this.getLonLatFromPixelTerrain(framebuffer.width - 1, 1);
+        let rb = this.getLonLatFromPixelTerrain(framebuffer.width - 1, framebuffer.height - 1),
+            lb = this.getLonLatFromPixelTerrain(1, framebuffer.height - 1);
 
         if (lt && rt && rb && lb) {
             camProj.setCorners([[lt.lon, lt.lat], [rt.lon, rt.lat], [rb.lon, rb.lat], [lb.lon, lb.lat]]);
