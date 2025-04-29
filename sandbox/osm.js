@@ -23,18 +23,18 @@ import {
     GeoImage
 } from "../../lib/og.es.js";
 
-let cameraLayer = new Vector("camera", {
-    pickingEnabled: false,
-    scaleByDistance: [100, 1000000, 1.0]
-});
+// let cameraLayer = new Vector("camera", {
+//     pickingEnabled: false,
+//     scaleByDistance: [100, 1000000, 1.0]
+// });
 
-let camProj = new GeoImage("Cam.Proj", {
-    src: "test4.jpg",
-    corners: [[0, 1], [1, 1], [1, 0], [0, 0]],
-    visibility: true,
-    isBaseLayer: false,
-    opacity: 0.7
-});
+// let camProj = new GeoImage("Cam.Proj", {
+//     src: "test4.jpg",
+//     corners: [[0, 1], [1, 1], [1, 0], [0, 0]],
+//     visibility: true,
+//     isBaseLayer: false,
+//     opacity: 0.7
+// });
 
 const globus = new Globe({
     target: "earth",
@@ -43,7 +43,7 @@ const globus = new Globe({
         maxZoom: 17,
         imageSize: 256
     }*/),
-    layers: [new OpenStreetMap(), new Bing(), cameraLayer, camProj],
+    layers: [new OpenStreetMap(), new Bing()],
     atmosphereEnabled: false,
     fontsSrc: "../../res/fonts",
     sun: {
@@ -95,22 +95,24 @@ globus.planet.renderer.events.on("charkeypress", input.KEY_V, () => {
     restoreCamera();
 });
 
-let cameraObj = Object3d.createFrustum();
-let frustumScale = Object3d.getFrustumScaleByCameraAspectRatio(1000, globus.planet.camera.getViewAngle(), globus.planet.camera.getAspectRatio());
+globus.planet.addControl(new control.CameraDepthHanler());
+
+//let cameraObj = Object3d.createFrustum();
+//let frustumScale = Object3d.getFrustumScaleByCameraAspectRatio(1000, globus.planet.camera.getViewAngle(), globus.planet.camera.getAspectRatio());
 //let frustumScale = Object3d.getFrustumScaleByCameraAngles(140, 35, 35);
 
-let cameraEntity = new Entity({
-    visibility: true,
-    scale: frustumScale,
-    geoObject: {
-        //visibility: false,
-        tag: "frustum",
-        color: "rgba(255,255,30,0.25)",
-        object3d: cameraObj
-    }
-});
+// let cameraEntity = new Entity({
+//     visibility: true,
+//     scale: frustumScale,
+//     geoObject: {
+//         //visibility: false,
+//         tag: "frustum",
+//         color: "rgba(255,255,30,0.25)",
+//         object3d: cameraObj
+//     }
+// });
 
-cameraLayer.add(cameraEntity);
+//cameraLayer.add(cameraEntity);
 
 
 // function camera_depth() {
@@ -246,9 +248,9 @@ cameraLayer.add(cameraEntity);
 // }
 
 
-globus.planet.addControl(new control.KeyboardNavigation({
-    camera: depthCamera
-}));
+// globus.planet.addControl(new control.KeyboardNavigation({
+//     camera: depthCamera
+// }));
 
 // let depthHandler = new control.CameraFrameHandler({
 //         camera: depthCamera,

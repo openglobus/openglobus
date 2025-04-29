@@ -30,3 +30,5 @@ export * from "./geoObjectEditor/GeoObjectEditor";
 export * from "./CameraLock";
 export * from "./object3dManager/Object3dManager";
 export * from "./CameraFrameComposer";
+export * from "./CameraFrameHandler";
+export * from "./cameraDepthHandler/CameraDepthHandler";
