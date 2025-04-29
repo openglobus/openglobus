@@ -49,7 +49,7 @@ export class CameraFrameComposer extends Control {
     }
 
     protected _onPostdraw = () => {
-        for (let i = 0; i < this._frameHandlers.length; i++) {
+        for (let i = 0, len = this._frameHandlers.length; i < len; i++) {
             this._frameHandlers[i].frame();
         }
     }

@@ -101,7 +101,11 @@ export class CameraDepthHandler extends Control {
             camera: this._createCamera(),
             frameBuffer: depthFramebuffer,
             frameHandler: this._depthHandlerCallback
-        })
+        });
+
+        this._frameComposer.add(this._depthHandler);
+
+        this.renderer.addControl(this._frameComposer);
     }
 
     protected _depthHandlerCallback = (frameHandler: CameraFrameHandler) => {
