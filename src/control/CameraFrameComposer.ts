@@ -8,8 +8,8 @@ export interface ICameraFrameComposerParams extends IControlParams {
 
 export class CameraFrameComposer extends Control {
 
-    protected _frameHandlers: CameraFrameHandler[];
-    protected _cameraLayer: Vector;
+    public readonly _frameHandlers: CameraFrameHandler[];
+    public readonly _cameraLayer: Vector;
 
     constructor(params: ICameraFrameComposerParams = {}) {
         super({
@@ -32,10 +32,18 @@ export class CameraFrameComposer extends Control {
 
     public add(handler: CameraFrameHandler) {
         handler.addTo(this);
+        if (this.planet) {
+            this.planet.addLayer(handler.cameraGeoImage);
+            this._cameraLayer.add(handler.cameraEntity);
+        }
     }
 
     public override oninit() {
         super.oninit();
+        if (this.planet) {
+            this.planet.addLayer(this._cameraLayer);
+        }
+        //else create EntityCollection
     }
 
     public override activate() {

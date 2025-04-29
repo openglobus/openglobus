@@ -19,6 +19,7 @@ import {RenderNode} from "./scene/RenderNode";
 import {ZoomControl} from "./control/ZoomControl";
 import {Extent} from "./Extent";
 import type {IAtmosphereParams} from "./control/atmosphere/Atmosphere";
+import {CameraFrameComposer} from "./control/CameraFrameComposer";
 
 export interface IGlobeParams {
     attributionContainer?: HTMLElement;
@@ -278,7 +279,8 @@ class Globe {
                 new TouchNavigation(),
                 new EarthCoordinates(),
                 new ScaleControl(),
-                new CompassButton()
+                new CompassButton(),
+                new CameraFrameComposer()
             ]);
         }
 

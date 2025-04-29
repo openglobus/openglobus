@@ -110,8 +110,7 @@ export class CameraDepthHandler extends Control {
         });
 
         if (this.renderer.controls.CameraFrameComposer) {
-            //@ts-ignore
-            this._frameComposer = this.renderer.controls.CameraFrameComposer;
+            this._frameComposer = this.renderer.controls.CameraFrameComposer as CameraFrameComposer;
         } else {
             this.renderer.addControl(this._frameComposer);
         }

@@ -64,8 +64,7 @@ export class CameraFrameHandler {
         if (!this._composer) {
             this._composer = composer;
             this._composerIndex = composer.frameHandlers.length;
-            //@ts-ignore
-            this._composer._handlers.push(this);
+            this._composer._frameHandlers.push(this);
         }
     }
 
