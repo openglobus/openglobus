@@ -78,6 +78,12 @@ export class CameraDepthHandler extends Control {
         }
     }
 
+    public get camera(): Camera | undefined {
+        if (this._depthHandler) {
+            return this._depthHandler.camera;
+        }
+    }
+
     public override oninit() {
         super.oninit();
 
@@ -103,9 +109,14 @@ export class CameraDepthHandler extends Control {
             frameHandler: this._depthHandlerCallback
         });
 
-        this._frameComposer.add(this._depthHandler);
+        if (this.renderer.controls.CameraFrameComposer) {
+            //@ts-ignore
+            this._frameComposer = this.renderer.controls.CameraFrameComposer;
+        } else {
+            this.renderer.addControl(this._frameComposer);
+        }
 
-        this.renderer.addControl(this._frameComposer);
+        this._frameComposer.add(this._depthHandler);
     }
 
     protected _depthHandlerCallback = (frameHandler: CameraFrameHandler) => {
