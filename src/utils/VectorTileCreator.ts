@@ -19,7 +19,7 @@ export class VectorTileCreator {
     protected _queue: Material[];
     protected _handler: Handler | null;
 
-    constructor(planet: Planet, width: number = 512, height: number = 512) {
+    constructor(planet: Planet, width: number = 256, height: number = 256) {
         this._width = width;
         this._height = height;
         this._planet = planet;
