@@ -1,9 +1,9 @@
 export default class MockWorker {
     constructor() {
-        this.postMessage = jest.fn();
-        this.terminate = jest.fn();
-        this.addEventListener = jest.fn();
-        this.removeEventListener = jest.fn();
+        this.postMessage = vi.fn();
+        this.terminate = vi.fn();
+        this.addEventListener = vi.fn();
+        this.removeEventListener = vi.fn();
         this.onmessage = null;
         this.onerror = null;
     }

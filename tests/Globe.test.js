@@ -3,7 +3,7 @@ import { Worker } from "./worker";
 window.Worker = Worker;
 
 
-global.URL.createObjectURL = jest.fn(() => "");
+global.URL.createObjectURL = vi.fn(() => "");
 /**
  * TODO
  * mock is not supported webgl2 context?

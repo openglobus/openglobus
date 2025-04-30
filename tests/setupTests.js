@@ -5,4 +5,4 @@ import { Worker } from "./worker";
 window.Worker = Worker;
 
 
-global.URL.createObjectURL = jest.fn(() => "");
+global.URL.createObjectURL = vi.fn(() => "");
