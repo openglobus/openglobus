@@ -60,12 +60,8 @@ const getHorizontalViewAngleByFov = (fov: number, aspect: number) => DEGREES_DOU
  */
 class Camera {
 
-    // /**
-    //  * Assigned renderer
-    //  * @public
-    //  * @type {Renderer}
-    //  */
-    // public renderer: Renderer | null;
+    static __counter__: number = 0;
+    protected __id: number;
 
     /**
      * Camera events handler
@@ -94,13 +90,6 @@ class Camera {
      * @type {Float32Array}
      */
     public eyeLow: Float32Array;
-
-    // /**
-    //  * Aspect ratio.
-    //  * @protected
-    //  * @type {Number}
-    //  */
-    // protected _aspect: number;
 
     /**
      * Camera view angle in degrees
@@ -188,7 +177,8 @@ class Camera {
     // public dirRightNED: Vec3;
 
     constructor(options: ICameraParams = {}) {
-        //this.renderer = renderer;
+
+        this.__id = Camera.__counter__++;
 
         this.events = createEvents<CameraEvents>(EVENT_NAMES, this);
 
@@ -259,7 +249,6 @@ class Camera {
 
             fr.cameraFrustumIndex = this.frustums.length;
             this.frustums.push(fr);
-            //this.frustumColors.push.apply(this.frustumColors, fr._pickingColorU);
             this.frustumColors.push(fr._pickingColorU[0], fr._pickingColorU[1], fr._pickingColorU[2]);
         }
 
@@ -277,6 +266,10 @@ class Camera {
             options.look || new Vec3(),
             options.up || new Vec3(0.0, 1.0, 0.0)
         );
+    }
+
+    public get id(): number {
+        return this.__id;
     }
 
     public checkMoveEnd() {
@@ -305,16 +298,6 @@ class Camera {
             renderer.assignPickingColor<Frustum>(this.frustums[i]);
         }
     }
-
-    // public bindRenderer(renderer: Renderer) {
-    //     this.renderer = renderer;
-    //     for (let i = 0; i < this.frustums.length; i++) {
-    //         this.renderer.assignPickingColor<Frustum>(this.frustums[i]);
-    //     }
-    //     this._aspect = this.renderer.handler.getClientAspect();
-    //
-    //     this._setProj(this._viewAngle, this._aspect);
-    // }
 
     /**
      * Camera initialization.
@@ -408,16 +391,6 @@ class Camera {
         this._setProj(this._viewAngle, this.getAspectRatio());
         this.update();
     }
-
-    // /**
-    //  * Sets aspect ratio
-    //  * @public
-    //  * @param {Number} aspect - Camera aspect ratio
-    //  */
-    // public setAspectRatio(aspect: number) {
-    //     this._aspect = aspect;
-    //     this.refresh();
-    // }
 
     public get width(): number {
         return this._width;
@@ -686,10 +659,6 @@ class Camera {
      * @returns {Vec3} - Direction vector
      */
     public unproject(x: number, y: number) {
-        // let c = this.renderer!.handler.canvas!,
-        //     w = c.width * 0.5,
-        //     h = c.height * 0.5;
-
         let w = this._width * 0.5,
             h = this._height * 0.5;
 
@@ -865,8 +834,6 @@ class Camera {
     }
 
     public viewDistance(cartesian: Vec3, distance: number = 10000.0) {
-        let p0 = this.eye.add(this.getForward().scaleTo(distance));
-        let _rot = Quat.getRotationBetweenVectors(p0.getNormal(), cartesian.getNormal());
         let newPos = cartesian.add(this.getBackward().scaleTo(distance));
         this.set(newPos, cartesian);
         this.update();
