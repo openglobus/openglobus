@@ -40,7 +40,7 @@ export class CameraFrameHandler {
             geoObject: {
                 //visibility: false,
                 tag: "frustum",
-                color: "rgba(255,255,30,0.25)",
+                color: "rgba(0,255,0,0.30)",
                 object3d: cameraFrustumObj
             }
         });
@@ -62,8 +62,7 @@ export class CameraFrameHandler {
 
     public remove() {
         if (this._composer) {
-            //@ts-ignore
-            this._composer._handlers.splice(this._composerIndex, 1);
+            this._composer._frameHandlers.splice(this._composerIndex, 1);
             this._composer = null;
             this._composerIndex = -1;
         }
@@ -78,9 +77,9 @@ export class CameraFrameHandler {
                 let frustumScale = Object3d.getFrustumScaleByCameraAngles(100, cam.horizontalViewAngle, cam.verticalViewAngle);
                 this.cameraEntity.setScale3v(frustumScale);
                 this.cameraEntity.setCartesian3v(cam.eye);
-                this.cameraEntity.setPitch(cam.getPitch());
-                this.cameraEntity.setYaw(cam.getYaw());
-                this.cameraEntity.setRoll(cam.getRoll());
+                this.cameraEntity.setAbsolutePitch(cam.getAbsolutePitch());
+                this.cameraEntity.setAbsoluteYaw(cam.getAbsoluteYaw());
+                this.cameraEntity.setAbsoluteRoll(cam.getAbsoluteRoll());
             }
         }
     }

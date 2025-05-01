@@ -1,6 +1,7 @@
 import {Control, IControlParams} from "./Control";
-import {Vector} from "../layer";
 import {CameraFrameHandler} from "./CameraFrameHandler";
+import {EntityCollection} from "../entity";
+import {RenderNode} from '../scene/RenderNode';
 
 export interface ICameraFrameComposerParams extends IControlParams {
     frameHandlers?: CameraFrameHandler[]
@@ -9,7 +10,8 @@ export interface ICameraFrameComposerParams extends IControlParams {
 export class CameraFrameComposer extends Control {
 
     public readonly _frameHandlers: CameraFrameHandler[];
-    public readonly _cameraLayer: Vector;
+    protected _cameraLayer: EntityCollection;
+    protected _cameraScene: RenderNode;
 
     constructor(params: ICameraFrameComposerParams = {}) {
         super({
@@ -18,10 +20,12 @@ export class CameraFrameComposer extends Control {
             ...params
         });
 
-        this._cameraLayer = new Vector("Cameras", {
+        this._cameraLayer = new EntityCollection({
+            scaleByDistance: [100, 1000000, 1.0],
             pickingEnabled: false,
-            scaleByDistance: [100, 1000000, 1.0]
         });
+
+        this._cameraScene = new RenderNode("CameraScene");
 
         this._frameHandlers = params.frameHandlers || [];
     }
@@ -32,27 +36,28 @@ export class CameraFrameComposer extends Control {
 
     public add(handler: CameraFrameHandler) {
         handler.addTo(this);
-        if (this.planet) {
-            this._cameraLayer.add(handler.cameraEntity);
-        }
+        this._cameraLayer.add(handler.cameraEntity);
     }
 
     public override oninit() {
         super.oninit();
-        if (this.planet) {
-            this.planet.addLayer(this._cameraLayer);
-        }
-        //else create EntityCollection
+        this._cameraLayer.addTo(this._cameraScene);
     }
 
     public override activate() {
         super.activate();
-        this.renderer?.events.on("postdraw", this._onPostdraw);
+        if (this.renderer) {
+            this.renderer.events.on("postdraw", this._onPostdraw);
+            this.renderer.addNode(this._cameraScene);
+        }
     }
 
     public override deactivate() {
         super.deactivate();
-        this.renderer?.events.off("postdraw", this._onPostdraw);
+        if (this.renderer) {
+            this.renderer.events.off("postdraw", this._onPostdraw);
+            this.renderer.removeNode(this._cameraScene);
+        }
     }
 
     protected _onPostdraw = () => {
