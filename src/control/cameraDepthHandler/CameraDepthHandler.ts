@@ -9,6 +9,7 @@ import {Vec2} from "../../math/Vec2";
 import {Vec4} from "../../math/Vec4";
 import {Vec3} from "../../math/Vec3";
 import {LonLat} from "../../LonLat";
+import {GeoImage} from "../../layer/GeoImage";
 
 
 function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer: Framebuffer): number {
@@ -53,11 +54,21 @@ export class CameraDepthHandler extends Control {
     protected _depthHandler: CameraFrameHandler | null;
     protected _frameComposer: CameraFrameComposer;
 
+    public readonly cameraGeoImage: GeoImage;
+
     constructor(params: ICameraDepthhandlerParams) {
         super(params);
 
         this._frameComposer = new CameraFrameComposer();
         this._depthHandler = null;
+
+        this.cameraGeoImage = new GeoImage(`cameraGeoImage:${this.__id}`, {
+            src: "test4.jpg",
+            corners: [[0, 1], [1, 1], [1, 0], [0, 0]],
+            visibility: true,
+            isBaseLayer: false,
+            opacity: 0.7
+        });
     }
 
     protected _createCamera(): Camera {
@@ -90,6 +101,10 @@ export class CameraDepthHandler extends Control {
         if (!this.renderer) return;
 
         this.renderer.handler.addProgram(camera_depth());
+
+        if (this.planet) {
+            this.planet.addLayer(this.cameraGeoImage);
+        }
 
         let depthFramebuffer = new Framebuffer(this.renderer.handler, {
             width: CAM_WIDTH,
@@ -171,7 +186,7 @@ export class CameraDepthHandler extends Control {
             lb = this.getLonLatFromPixelTerrain(1, framebuffer.height - 1);
 
         if (lt && rt && rb && lb) {
-            frameHandler.cameraGeoImage.setCorners([[lt.lon, lt.lat], [rt.lon, rt.lat], [rb.lon, rb.lat], [lb.lon, lb.lat]]);
+            this.cameraGeoImage.setCorners([[lt.lon, lt.lat], [rt.lon, rt.lat], [rb.lon, rb.lat], [lb.lon, lb.lat]]);
         }
 
         // let r = globus.renderer;
@@ -195,11 +210,10 @@ export class CameraDepthHandler extends Control {
         // r.screenDepthFramebuffer.deactivate();
         // gl.enable(gl.BLEND);
 
-
-        frameHandler.cameraEntity.setCartesian3v(cam.eye);
-        frameHandler.cameraEntity.setPitch(cam.getPitch());
-        frameHandler.cameraEntity.setYaw(cam.getYaw());
-        frameHandler.cameraEntity.setRoll(cam.getRoll());
+        // frameHandler.cameraEntity.setCartesian3v(cam.eye);
+        // frameHandler.cameraEntity.setPitch(cam.getPitch());
+        // frameHandler.cameraEntity.setYaw(cam.getYaw());
+        // frameHandler.cameraEntity.setRoll(cam.getRoll());
     }
 
     public getCartesianFromPixelTerrain(x: number, y: number): Vec3 | undefined {

@@ -26,17 +26,10 @@ import {
 const globus = new Globe({
     target: "earth",
     name: "Earth",
-    terrain: new GlobusRgbTerrain("mt"/*, {
-        maxZoom: 17,
-        imageSize: 256
-    }*/),
+    terrain: new GlobusRgbTerrain(),
     layers: [new OpenStreetMap(), new Bing()],
     atmosphereEnabled: false,
     fontsSrc: "../../res/fonts",
-    sun: {
-        stopped: false
-    },
-    //dpi: 0.8
 });
 
 globus.planet.addControl(new control.TimelineControl());
@@ -51,23 +44,7 @@ function saveCamera() {
 
     let cam = globus.planet.camera
     tempCamera.copy(cam);
-    depthHandler.camera.copy(cam);
-
-    const length = 100;
-
-    const vert = cam.verticalViewAngle;
-    const horiz = cam.horizontalViewAngle;
-
-    const aspect = cam.getAspectRatio();
-
-    let frustumScale = Object3d.getFrustumScaleByCameraAngles(length, horiz, vert);
-    cameraEntity.setScale3v(frustumScale);
-
-    cameraEntity.setCartesian3v(cam.eye);
-
-    cameraEntity.setPitch(cam.getPitch());
-    cameraEntity.setYaw(cam.getYaw());
-    cameraEntity.setRoll(cam.getRoll());
+    depthFrameHandler.camera.copy(cam);
 }
 
 function restoreCamera() {
@@ -82,7 +59,9 @@ globus.planet.renderer.events.on("charkeypress", input.KEY_V, () => {
     restoreCamera();
 });
 
-globus.planet.addControl(new control.CameraDepthHandler());
+let depthFrameHandler = new control.CameraDepthHandler();
+
+globus.planet.addControl(depthFrameHandler);
 
 globus.planet.renderer.controls.SimpleSkyBackground.colorOne = "black";
 globus.planet.renderer.controls.SimpleSkyBackground.colorTwo = "black";

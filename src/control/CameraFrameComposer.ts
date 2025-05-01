@@ -33,7 +33,6 @@ export class CameraFrameComposer extends Control {
     public add(handler: CameraFrameHandler) {
         handler.addTo(this);
         if (this.planet) {
-            this.planet.addLayer(handler.cameraGeoImage);
             this._cameraLayer.add(handler.cameraEntity);
         }
     }

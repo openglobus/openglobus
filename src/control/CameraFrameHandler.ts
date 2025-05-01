@@ -1,7 +1,6 @@
 import {Object3d} from "../Object3d";
 import {Camera} from "../camera/Camera";
 import {Framebuffer} from "../webgl/Framebuffer";
-import {GeoImage} from "../layer/GeoImage";
 import {Entity} from "../entity/Entity";
 import {Vec3} from "../math/Vec3";
 import {CameraFrameComposer} from "./CameraFrameComposer";
@@ -14,18 +13,18 @@ export interface ICameraFrameHadler {
     camera: Camera,
     frameBuffer: Framebuffer,
     frameHandler: FrameHandlerFunc
+    showFrustum?: boolean,
 }
 
 export class CameraFrameHandler {
-    public camera: Camera;
-    public frameBuffer: Framebuffer;
+    public readonly camera: Camera;
+    public readonly frameBuffer: Framebuffer;
     public frameHandler: FrameHandlerFunc | null;
     protected _composer: CameraFrameComposer | null;
     protected _composerIndex: number;
 
-    public readonly cameraGeoImage: GeoImage;
-
     public readonly cameraEntity: Entity;
+    public showFrustum: boolean;
 
     constructor(params: ICameraFrameHadler) {
         this.camera = params.camera;
@@ -33,14 +32,7 @@ export class CameraFrameHandler {
         this.frameHandler = params.frameHandler || null;
         this._composer = null;
         this._composerIndex = -1;
-
-        this.cameraGeoImage = new GeoImage("Camera GeoImage", {
-            src: "test4.jpg",
-            corners: [[0, 1], [1, 1], [1, 0], [0, 0]],
-            visibility: true,
-            isBaseLayer: false,
-            opacity: 0.7
-        });
+        this.showFrustum = params.showFrustum != undefined ? params.showFrustum : true;
 
         this.cameraEntity = new Entity({
             visibility: true,
@@ -80,6 +72,16 @@ export class CameraFrameHandler {
     public frame() {
         if (this.frameHandler && this.frameBuffer.handler.gl) {
             this.frameHandler(this);
+
+            if (this.showFrustum) {
+                let cam = this.camera;
+                let frustumScale = Object3d.getFrustumScaleByCameraAngles(100, cam.horizontalViewAngle, cam.verticalViewAngle);
+                this.cameraEntity.setScale3v(frustumScale);
+                this.cameraEntity.setCartesian3v(cam.eye);
+                this.cameraEntity.setPitch(cam.getPitch());
+                this.cameraEntity.setYaw(cam.getYaw());
+                this.cameraEntity.setRoll(cam.getRoll());
+            }
         }
     }
 }
