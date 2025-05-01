@@ -12,7 +12,7 @@ export default function forceTerserPlugin({ filePath }) {
                 compress: true,
                 mangle: true,
                 format: {
-                    comments: false
+                    comments: true
                 }
             });
 
