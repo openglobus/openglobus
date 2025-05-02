@@ -26,7 +26,7 @@ export default function ({mode}: { mode: 'development' | 'production' }) {
             },
             emptyOutDir: true,
             outDir: path.resolve(__dirname, './lib'),
-            sourcemap: true,
+            sourcemap: isDev,
             rollupOptions: {
                 output: {
                     entryFileNames: `og.[format].js`,
