@@ -26,11 +26,12 @@ export default function ({mode}: { mode: 'development' | 'production' }) {
             },
             emptyOutDir: true,
             outDir: path.resolve(__dirname, './lib'),
-            sourcemap: isDev,
+            sourcemap: true,
             rollupOptions: {
                 output: {
                     entryFileNames: `og.[format].js`,
-                    assetFileNames: `[name][extname]`
+                    assetFileNames: `[name][extname]`,
+                    sourcemapExcludeSources: true,
                 },
                 plugins: [
                     // doesn't work for esm modules
