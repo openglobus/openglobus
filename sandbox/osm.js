@@ -44,7 +44,7 @@ function saveCamera() {
 
     let cam = globus.planet.camera
     tempCamera.copy(cam);
-    depthFrameHandler.camera.copy(cam);
+    depthHandler.camera.copy(cam);
 }
 
 function restoreCamera() {
@@ -59,9 +59,15 @@ globus.planet.renderer.events.on("charkeypress", input.KEY_V, () => {
     restoreCamera();
 });
 
-let depthFrameHandler = new control.CameraDepthHandler();
+let depthHandler = new control.CameraDepthHandler();
 
-globus.planet.addControl(depthFrameHandler);
+globus.planet.addControl(depthHandler);
+
+let depthPreview = new control.FramebufferPreview({
+    framebuffer: depthHandler.framebuffer,
+});
+
+globus.planet.addControl(depthPreview);
 
 globus.planet.renderer.controls.SimpleSkyBackground.colorOne = "black";
 globus.planet.renderer.controls.SimpleSkyBackground.colorTwo = "black";

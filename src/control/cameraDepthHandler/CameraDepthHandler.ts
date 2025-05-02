@@ -133,6 +133,12 @@ export class CameraDepthHandler extends Control {
         this._frameComposer.add(this._depthHandler);
     }
 
+    public get framebuffer(): Framebuffer | undefined {
+        if (this._depthHandler) {
+            return this._depthHandler.frameBuffer;
+        }
+    }
+
     protected _depthHandlerCallback = (frameHandler: CameraFrameHandler) => {
 
         if (!this.planet) return;
