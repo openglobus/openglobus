@@ -30,7 +30,8 @@ export default function ({mode}: { mode: 'development' | 'production' }) {
             rollupOptions: {
                 output: {
                     entryFileNames: `og.[format].js`,
-                    assetFileNames: `[name][extname]`
+                    assetFileNames: `[name][extname]`,
+                    sourcemapExcludeSources: true,
                 },
                 plugins: [
                     // doesn't work for esm modules
