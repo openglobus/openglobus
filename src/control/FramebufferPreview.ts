@@ -1,4 +1,4 @@
-import {Dialog, IDialogParams} from "../ui/Dialog";
+import {Dialog} from "../ui/Dialog";
 import {Framebuffer} from "../webgl/Framebuffer";
 import {Control, IControlParams} from "./Control";
 import {Program} from "../webgl/Program";
@@ -14,6 +14,7 @@ function creteCanvas(width: number, height: number) {
 }
 
 export interface IFramebufferDialogParams extends IControlParams {
+    framebuffer?: Framebuffer;
 }
 
 export class FramebufferPreview extends Control {
@@ -37,7 +38,7 @@ export class FramebufferPreview extends Control {
             top: 100,
         });
         this.$canvas = creteCanvas(this._dialog.width, this._dialog.height);
-        this._framebuffer = null;
+        this._framebuffer = params.framebuffer || null;
         this._screenFramebuffer = null;
         this.framebufferCurrentTexture = 0;
     }

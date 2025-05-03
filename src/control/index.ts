@@ -32,3 +32,4 @@ export * from "./object3dManager/Object3dManager";
 export * from "./CameraFrameComposer";
 export * from "./CameraFrameHandler";
 export * from "./cameraDepthHandler/CameraDepthHandler";
+export * from "./FramebufferPreview";
