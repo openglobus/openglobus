@@ -13,24 +13,27 @@ jobs:
     
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.repository.default_branch }}
 
-      - name: Set version from tag
+      - name: Update package.json with release tag
         run: |
-          TAG=${GITHUB_REF##*/}
-          VERSION=${TAG#v}
-          echo "Setting version to $VERSION"
-          npm version --no-git-tag-version "$VERSION"
+          TAG="${{ github.event.release.tag_name }}"
+          echo "Updating package.json version to $TAG"
+          npm version "$TAG" --no-git-tag-version
 
-      - name: Commit updated version
+      - name: Commit and push version update
         run: |
+          TAG="${{ github.event.release.tag_name }}"
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git commit -am "chore: set version to ${VERSION} from tag ${TAG}"
-          git push origin HEAD:master
+          git add package.json package-lock.json
+          git commit -m "Update package.json to version $TAG"
+          git push origin ${{ github.event.repository.default_branch }}
         env:
-          TAG: ${{ github.ref_name }}
-          VERSION: ${{ github.ref_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: ./.github/actions/main
 
