@@ -4,7 +4,7 @@ import {Control, IControlParams} from "./Control";
 import {Program} from "../webgl/Program";
 
 function creteCanvas(width: number, height: number) {
-    let canvas = new HTMLCanvasElement();
+    let canvas = document.createElement("canvas") as HTMLCanvasElement;
     canvas.width = width;
     canvas.height = height;
     canvas.style.position = "absolute";
@@ -31,9 +31,10 @@ export class FramebufferPreview extends Control {
             autoActivate: true,
             ...params
         });
+
         this._dialog = new Dialog<null>({
-            width: 640,
-            height: 480,
+            width: 580,
+            height: 340,
             left: 100,
             top: 100,
         });
@@ -55,6 +56,8 @@ export class FramebufferPreview extends Control {
             this.renderer.handler.addProgram(framebuffer_dialog_screen());
 
             this._screenFramebuffer = new Framebuffer(this.renderer.handler, {
+                width: this._framebuffer?.width,
+                height: this._framebuffer?.height,
                 useDepth: false
             });
             this._screenFramebuffer.init();
@@ -74,7 +77,7 @@ export class FramebufferPreview extends Control {
         this.renderer?.events.off("draw", this._onDraw);
     }
 
-    protected _onDraw() {
+    protected _onDraw = () => {
         if (this._framebuffer) {
             this._framebuffer.readPixelBuffersAsync();
 
@@ -99,6 +102,8 @@ export class FramebufferPreview extends Control {
 
             this._screenFramebuffer!.deactivate();
             gl.enable(gl.BLEND);
+
+            console.log(this._framebuffer.getPixelBufferData(0));
         }
     }
 }
@@ -134,7 +139,7 @@ function framebuffer_dialog_screen(): Program {
             layout(location = 0) out vec4 fragColor;
             
             void main(void) {
-                fragColor = texture(depthTexture, tc);
+                fragColor = texture(inputTexture, tc);
             }`
     });
 }
