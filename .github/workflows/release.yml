@@ -15,6 +15,23 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Set version from tag
+        run: |
+          TAG=${GITHUB_REF##*/}
+          VERSION=${TAG#v}
+          echo "Setting version to $VERSION"
+          npm version --no-git-tag-version "$VERSION"
+
+      - name: Commit updated version
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git commit -am "chore: set version to ${VERSION} from tag ${TAG}"
+          git push origin HEAD:master
+        env:
+          TAG: ${{ github.ref_name }}
+          VERSION: ${{ github.ref_name }}
+
       - uses: ./.github/actions/main
 
       - run: npm run test
