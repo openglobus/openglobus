@@ -119,9 +119,9 @@ export class FramebufferPreview extends Control {
                     ctx.clearRect(0, 0, width, height);
                     let imageData = ctx.getImageData(0, 0, width, height);
                     for (let i = 0; i < size; i += 4) {
-                        let r = Math.round(pixels[i] * 255),
-                            g = Math.round(pixels[i + 1] * 255),
-                            b = Math.round(pixels[i + 2] * 255);
+                        let r = pixels[i],
+                            g = pixels[i + 1],
+                            b = pixels[i + 2];
                         imageData.data[i] = r;
                         imageData.data[i + 1] = g;
                         imageData.data[i + 2] = b;
@@ -164,8 +164,18 @@ function framebuffer_dialog_screen(): Program {
 
             layout(location = 0) out vec4 fragColor;
             
+            float linearizeDepth(float z, float near, float far) {
+                float ndcZ = z * 2.0 - 1.0; // преобразуем в NDC [-1, 1]
+                return (2.0 * near * far) / (far + near - ndcZ * (far - near));
+            }
+            
             void main(void) {
-                fragColor = texture(inputTexture, tc);
+                float near = 10.0;
+                float far = 10000.0;          
+                float depth = texture(inputTexture, tc).r;
+                float linearDepth = linearizeDepth(depth, near, far);
+                float normalized = (linearDepth - near) / (far - near);
+                fragColor = vec4(vec3(normalized), 1.0);
             }`
     });
 }
