@@ -278,7 +278,7 @@ export class Framebuffer extends BaseFramebuffer {
         });
     }
 
-    public getPixelBufferData(targetIndex: number): TypedArray | null {
+    public getPixelBufferData(targetIndex: number = 0): TypedArray | null {
         let pbInd = this._targets[targetIndex].pixelBufferIndex;
         return pbInd !== -1 ? this.pixelBuffers[pbInd].data : null;
     }

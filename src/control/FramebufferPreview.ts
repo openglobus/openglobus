@@ -110,24 +110,19 @@ export class FramebufferPreview extends Control {
             gl.enable(gl.BLEND);
 
             this._screenFramebuffer.readPixelBuffersAsync((f) => {
-                let pixels = f.getPixelBufferData(0);
+                let pixels = f.getPixelBufferData();
                 if (pixels) {
-                    let width = f.width,
-                        height = f.height;
-                    let size = width * height;
+                    let width = f.width;
+                    let height = f.height;
                     let ctx = this.$canvas.getContext("2d")!;
-                    ctx.clearRect(0, 0, width, height);
-                    let imageData = ctx.getImageData(0, 0, width, height);
-                    for (let i = 0; i < size; i += 4) {
-                        let r = pixels[i],
-                            g = pixels[i + 1],
-                            b = pixels[i + 2];
-                        imageData.data[i] = r;
-                        imageData.data[i + 1] = g;
-                        imageData.data[i + 2] = b;
-                        imageData.data[i + 3] = 255;
-                    }
-                    ctx.putImageData(imageData, 0, 0);
+
+                    let clamped = new Uint8ClampedArray(pixels.buffer, pixels.byteOffset, pixels.byteLength);
+                    let imageData = new ImageData(clamped, width, height);
+
+                    createImageBitmap(imageData).then(bitmap => {
+                        ctx.clearRect(0, 0, this.$canvas.width, this.$canvas.height);
+                        ctx.drawImage(bitmap, 0, 0, this.$canvas.width, this.$canvas.height);
+                    });
                 }
             });
         }
