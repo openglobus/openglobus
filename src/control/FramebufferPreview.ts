@@ -58,7 +58,13 @@ export class FramebufferPreview extends Control {
             this._screenFramebuffer = new Framebuffer(this.renderer.handler, {
                 width: this._framebuffer?.width,
                 height: this._framebuffer?.height,
-                useDepth: false
+                useDepth: false,
+                targets: [{
+                    internalFormat: "RGBA",
+                    type: "UNSIGNED_BYTE",
+                    attachment: "COLOR_ATTACHMENT",
+                    readAsync: true
+                }],
             });
             this._screenFramebuffer.init();
         }
@@ -103,36 +109,27 @@ export class FramebufferPreview extends Control {
             this._screenFramebuffer.deactivate();
             gl.enable(gl.BLEND);
 
-            // this._screenFramebuffer.readPixelBuffersAsync((f) => {
-            //     console.log("_screenFramebuffer");
-            // });
-
-            let arr = new Uint8Array(this._screenFramebuffer.width * this._screenFramebuffer.height * 4);
-            this._screenFramebuffer.activate();
-            this._screenFramebuffer.readAllPixels(arr);
-            this._screenFramebuffer.deactivate();
-            console.log(arr);
-            //console.log(this._framebuffer.getPixelBufferData(0));
-            return;
-            let pixels = this._screenFramebuffer.getPixelBufferData(0);
-            if (pixels) {
-                let width = this._screenFramebuffer.width,
-                    height = this._screenFramebuffer.height;
-                let size = width * height;
-                let ctx = this.$canvas.getContext("2d")!;
-                ctx.clearRect(0, 0, width, height);
-                let imageData = ctx.getImageData(0, 0, width, height);
-                for (let i = 0; i < size; i += 4) {
-                    let r = Math.round(pixels[i] * 255),
-                        g = Math.round(pixels[i + 1] * 255),
-                        b = Math.round(pixels[i + 2] * 255);
-                    imageData.data[i] = r;
-                    imageData.data[i + 1] = g;
-                    imageData.data[i + 2] = b;
-                    imageData.data[i + 3] = 255;
+            this._screenFramebuffer.readPixelBuffersAsync((f) => {
+                let pixels = f.getPixelBufferData(0);
+                if (pixels) {
+                    let width = f.width,
+                        height = f.height;
+                    let size = width * height;
+                    let ctx = this.$canvas.getContext("2d")!;
+                    ctx.clearRect(0, 0, width, height);
+                    let imageData = ctx.getImageData(0, 0, width, height);
+                    for (let i = 0; i < size; i += 4) {
+                        let r = Math.round(pixels[i] * 255),
+                            g = Math.round(pixels[i + 1] * 255),
+                            b = Math.round(pixels[i + 2] * 255);
+                        imageData.data[i] = r;
+                        imageData.data[i + 1] = g;
+                        imageData.data[i + 2] = b;
+                        imageData.data[i + 3] = 255;
+                    }
+                    ctx.putImageData(imageData, 0, 0);
                 }
-                ctx.putImageData(imageData, 0, 0);
-            }
+            });
         }
     }
 }
@@ -169,9 +166,6 @@ function framebuffer_dialog_screen(): Program {
             
             void main(void) {
                 fragColor = texture(inputTexture, tc);
-                fragColor.r = 1.0;
-                fragColor.g = 0.0;
-                fragColor.b = 0.0;
             }`
     });
 }

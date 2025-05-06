@@ -223,6 +223,15 @@ export class Framebuffer extends BaseFramebuffer {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null!);
     }
 
+    /**
+     * Check your constructor has targets like this
+     * targets: [{
+     *  internalFormat: "RGBA",
+     *  type: "UNSIGNED_BYTE",
+     *  attachment: "COLOR_ATTACHMENT",
+     *  readAsync: true
+     * }],
+     **/
     public readPixelBuffersAsync = (callback?: (buf: this) => void) => {
 
         const gl = this.handler.gl!;
