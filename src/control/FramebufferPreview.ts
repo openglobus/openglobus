@@ -2,6 +2,7 @@ import {Dialog} from "../ui/Dialog";
 import {Framebuffer} from "../webgl/Framebuffer";
 import {Control, IControlParams} from "./Control";
 import {Program} from "../webgl/Program";
+import {ProgramController} from "../webgl/ProgramController";
 
 function creteCanvas(width: number, height: number) {
     let canvas = document.createElement("canvas") as HTMLCanvasElement;
@@ -29,8 +30,7 @@ export class FramebufferPreview extends Control {
 
     public framebufferCurrentTexture: number;
 
-    protected _common: string | null;
-    protected _image: string | null;
+    protected _program: Program;
 
     constructor(params: IFramebufferDialogParams) {
         super({
@@ -50,8 +50,7 @@ export class FramebufferPreview extends Control {
         this._screenFramebuffer = null;
         this.framebufferCurrentTexture = 0;
 
-        this._common = params.common || null;
-        this._image = params.image || null;
+        this._program = framebuffer_dialog_screen(this.__id, params.common, params.image);
     }
 
     public bindFramebuffer(framebuffer: Framebuffer): void {
@@ -63,8 +62,8 @@ export class FramebufferPreview extends Control {
     public override oninit() {
         super.oninit();
         if (this.renderer) {
-            let program = framebuffer_dialog_screen(this._common, this._image)
-            this.renderer.handler.addProgram(program);
+
+            this.renderer.handler.addProgram(this._program);
 
             this._screenFramebuffer = new Framebuffer(this.renderer.handler, {
                 width: this._framebuffer?.width,
@@ -103,7 +102,7 @@ export class FramebufferPreview extends Control {
 
             gl.disable(gl.BLEND);
             this._screenFramebuffer.activate();
-            let sh = h.programs.framebuffer_dialog_screen,
+            let sh = this._program._programController!,//h.programs.framebuffer_dialog_screen,
                 p = sh._program;
 
             gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer!);
@@ -140,8 +139,8 @@ export class FramebufferPreview extends Control {
     }
 }
 
-function framebuffer_dialog_screen(common?: string | null, mainImage?: string | null): Program {
-    return new Program("framebuffer_dialog_screen", {
+function framebuffer_dialog_screen(id: number = 0, common?: string | null, mainImage?: string | null): Program {
+    return new Program(`framebuffer_dialog_screen:${id.toString()}`, {
         uniforms: {
             inputTexture: "sampler2D"
         },
