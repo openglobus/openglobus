@@ -2,7 +2,6 @@ import {Dialog} from "../ui/Dialog";
 import {Framebuffer} from "../webgl/Framebuffer";
 import {Control, IControlParams} from "./Control";
 import {Program} from "../webgl/Program";
-import {ProgramController} from "../webgl/ProgramController";
 
 function creteCanvas(width: number, height: number) {
     let canvas = document.createElement("canvas") as HTMLCanvasElement;
@@ -19,6 +18,7 @@ export interface IFramebufferDialogParams extends IControlParams {
     title?: string;
     common?: string;
     image?: string;
+    flippedUV?: boolean;
 }
 
 export class FramebufferPreview extends Control {
@@ -50,7 +50,7 @@ export class FramebufferPreview extends Control {
         this._screenFramebuffer = null;
         this.framebufferCurrentTexture = 0;
 
-        this._program = framebuffer_dialog_screen(this.__id, params.common, params.image);
+        this._program = framebuffer_dialog_screen(this.__id, params.common, params.image, params.flippedUV);
     }
 
     public bindFramebuffer(framebuffer: Framebuffer): void {
@@ -139,7 +139,7 @@ export class FramebufferPreview extends Control {
     }
 }
 
-function framebuffer_dialog_screen(id: number = 0, common?: string | null, mainImage?: string | null): Program {
+function framebuffer_dialog_screen(id: number = 0, common?: string | null, mainImage?: string | null, flippedUV?: boolean): Program {
     return new Program(`framebuffer_dialog_screen:${id.toString()}`, {
         uniforms: {
             inputTexture: "sampler2D"
@@ -157,6 +157,7 @@ function framebuffer_dialog_screen(id: number = 0, common?: string | null, mainI
             void main(void) {
                 gl_Position = vec4(corners, 0.0, 1.0);
                 tc = corners * 0.5 + 0.5;
+                ${flippedUV ? `tc.y = 1.0 - tc.y;` : ``}               
             }`,
         fragmentShader:
             `#version 300 es

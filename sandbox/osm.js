@@ -90,6 +90,7 @@ globus.planet.addControl(new control.KeyboardNavigation({
 let toneMappingFramebufferPreview = new control.FramebufferPreview({
     title: "toneMappingFramebuffer",
     framebuffer: globus.renderer.toneMappingFramebuffer,
+    flippedUV: true
 });
 globus.planet.addControl(toneMappingFramebufferPreview);
 
