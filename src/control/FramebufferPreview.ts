@@ -16,6 +16,8 @@ function creteCanvas(width: number, height: number) {
 export interface IFramebufferDialogParams extends IControlParams {
     framebuffer?: Framebuffer;
     title?: string;
+    common?: string;
+    image?: string;
 }
 
 export class FramebufferPreview extends Control {
@@ -26,6 +28,9 @@ export class FramebufferPreview extends Control {
     protected _screenFramebuffer: Framebuffer | null;
 
     public framebufferCurrentTexture: number;
+
+    protected _common: string | null;
+    protected _image: string | null;
 
     constructor(params: IFramebufferDialogParams) {
         super({
@@ -44,6 +49,9 @@ export class FramebufferPreview extends Control {
         this._framebuffer = params.framebuffer || null;
         this._screenFramebuffer = null;
         this.framebufferCurrentTexture = 0;
+
+        this._common = params.common || null;
+        this._image = params.image || null;
     }
 
     public bindFramebuffer(framebuffer: Framebuffer): void {
@@ -55,7 +63,8 @@ export class FramebufferPreview extends Control {
     public override oninit() {
         super.oninit();
         if (this.renderer) {
-            this.renderer.handler.addProgram(framebuffer_dialog_screen());
+            let program = framebuffer_dialog_screen(this._common, this._image)
+            this.renderer.handler.addProgram(program);
 
             this._screenFramebuffer = new Framebuffer(this.renderer.handler, {
                 width: this._framebuffer?.width,
@@ -131,7 +140,7 @@ export class FramebufferPreview extends Control {
     }
 }
 
-function framebuffer_dialog_screen(common: string = "", mainImage?: string): Program {
+function framebuffer_dialog_screen(common?: string | null, mainImage?: string | null): Program {
     return new Program("framebuffer_dialog_screen", {
         uniforms: {
             inputTexture: "sampler2D"
@@ -161,7 +170,7 @@ function framebuffer_dialog_screen(common: string = "", mainImage?: string): Pro
 
             layout(location = 0) out vec4 fragColor;
 
-            ${common}
+            ${common || ""}
             
             ${mainImage ||
             `void mainImage(out vec4 fragColor, in vec2 fragCoord) { 
