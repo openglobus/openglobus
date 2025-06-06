@@ -40,7 +40,7 @@ export class CameraFrameHandler {
             geoObject: {
                 //visibility: false,
                 tag: "frustum",
-                color: "rgba(0,255,0,0.30)",
+                color: "rgba(0,255,0,0.20)",
                 object3d: cameraFrustumObj
             }
         });

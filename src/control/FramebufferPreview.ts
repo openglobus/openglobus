@@ -15,6 +15,7 @@ function creteCanvas(width: number, height: number) {
 
 export interface IFramebufferDialogParams extends IControlParams {
     framebuffer?: Framebuffer;
+    title?: string;
 }
 
 export class FramebufferPreview extends Control {
@@ -33,6 +34,7 @@ export class FramebufferPreview extends Control {
         });
 
         this._dialog = new Dialog<null>({
+            title: params.title || "",
             width: 580,
             height: 340,
             left: 100,
@@ -102,7 +104,7 @@ export class FramebufferPreview extends Control {
 
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, this._framebuffer.textures[this.framebufferCurrentTexture]);
-            gl.uniform1i(p.uniforms.depthTexture, 0);
+            gl.uniform1i(p.uniforms.inputTexture, 0);
 
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
@@ -129,7 +131,7 @@ export class FramebufferPreview extends Control {
     }
 }
 
-function framebuffer_dialog_screen(): Program {
+function framebuffer_dialog_screen(common: string = "", mainImage?: string): Program {
     return new Program("framebuffer_dialog_screen", {
         uniforms: {
             inputTexture: "sampler2D"
@@ -158,19 +160,16 @@ function framebuffer_dialog_screen(): Program {
             in vec2 tc;
 
             layout(location = 0) out vec4 fragColor;
+
+            ${common}
             
-            float linearizeDepth(float z, float near, float far) {
-                float ndcZ = z * 2.0 - 1.0; // преобразуем в NDC [-1, 1]
-                return (2.0 * near * far) / (far + near - ndcZ * (far - near));
-            }
+            ${mainImage ||
+            `void mainImage(out vec4 fragColor, in vec2 fragCoord) { 
+                fragColor = texture(inputTexture, fragCoord);
+            }`}
             
-            void main(void) {
-                float near = 10.0;
-                float far = 10000.0;          
-                float depth = texture(inputTexture, tc).r;
-                float linearDepth = linearizeDepth(depth, near, far);
-                float normalized = (linearDepth - near) / (far - near);
-                fragColor = vec4(vec3(normalized), 1.0);
+            void main(void) {                              
+               mainImage(fragColor, tc);
             }`
     });
 }
