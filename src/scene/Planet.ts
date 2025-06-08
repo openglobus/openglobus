@@ -85,6 +85,7 @@ const MAX_LOD_SIZE = 256; //px
 
 /**
  * Maximum created nodes count. The more nodes count the more memory usage.
+ * When the maximum node count is exceeded, memClear() will be called.
  * @const
  * @type {number}
  * @default
