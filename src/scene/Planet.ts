@@ -149,7 +149,7 @@ export class Planet extends RenderNode {
      * @type {boolean}
      * @protected
      */
-    protected _updateLayer: boolean;
+    protected _updateLayers: boolean;
 
     /**
      * Current visible imagery tile layers array.
@@ -363,8 +363,6 @@ export class Planet extends RenderNode {
 
     protected _initialized: boolean;
 
-    protected always: any[];
-
     public _renderCompleted: boolean
     public _renderCompletedActivated: boolean;
 
@@ -395,9 +393,6 @@ export class Planet extends RenderNode {
 
     public transitionTime: number;
 
-    public _prevNodes: Map<number, Node>;
-    public _currNodes: Map<number, Node>;
-
     protected _transitionOpacityEnabled: boolean;
 
     protected _atmosphere: Atmosphere;
@@ -407,9 +402,6 @@ export class Planet extends RenderNode {
         super(options.name);
 
         this._atmosphere = new Atmosphere(options.atmosphereParameters);
-
-        this._prevNodes = new Map<number, Node>();
-        this._currNodes = new Map<number, Node>();
 
         this.transitionTime = 580;
 
@@ -421,7 +413,7 @@ export class Planet extends RenderNode {
 
         this._layers = [];
 
-        this._updateLayer = false;
+        this._updateLayers = false;
 
         this.visibleTileLayers = [];
 
@@ -537,8 +529,6 @@ export class Planet extends RenderNode {
         this._prevCamEye = new Vec3();
 
         this._initialized = false;
-
-        this.always = [];
 
         this._renderCompleted = false;
         this._renderCompletedActivated = false;
@@ -1129,7 +1119,7 @@ export class Planet extends RenderNode {
     }
 
     public updateVisibleLayers() {
-        this._updateLayer = true;
+        this._updateLayers = true;
     }
 
     protected _updateVisibleLayers() {
@@ -1401,8 +1391,8 @@ export class Planet extends RenderNode {
      */
     public override preFrame() {
 
-        if (this._updateLayer) {
-            this._updateLayer = false;
+        if (this._updateLayers) {
+            this._updateLayers = false;
             this._updateVisibleLayers();
         }
 

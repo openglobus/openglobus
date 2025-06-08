@@ -94,17 +94,12 @@ let toneMappingFramebufferPreview = new control.FramebufferPreview({
 });
 globus.planet.addControl(toneMappingFramebufferPreview);
 
-let screenDepthFramebufferPreview = new control.FramebufferPreview({
-    title: "screenDepthFramebuffer",
-    framebuffer: globus.renderer.screenDepthFramebuffer,
-});
-globus.planet.addControl(screenDepthFramebufferPreview);
-
 let pickingFramebufferPreview = new control.FramebufferPreview({
     title: "pickingFramebuffer",
     framebuffer: globus.renderer.pickingFramebuffer,
+    flippedUV: true
 });
-globus.planet.addControl(screenDepthFramebufferPreview);
+globus.planet.addControl(pickingFramebufferPreview);
 
 
 globus.planet.renderer.controls.SimpleSkyBackground.colorOne = "black";
