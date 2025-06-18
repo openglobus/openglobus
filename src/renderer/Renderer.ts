@@ -1253,7 +1253,6 @@ class Renderer {
 
     protected _readDepthBuffer() {
         this.depthFramebuffer!.readPixelBuffersAsync();
-        console.log("read depth");
     }
 
     protected _readPickingBuffer_webgl1() {
