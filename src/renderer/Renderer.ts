@@ -1075,9 +1075,6 @@ class Renderer {
 
         if (pointerEvent && pointerFree) {
             this._readPickingBuffer();
-        }
-
-        if (pointerFree) {
             this._readDepthBuffer();
         }
 
@@ -1253,6 +1250,7 @@ class Renderer {
 
     protected _readDepthBuffer() {
         this.depthFramebuffer!.readPixelBuffersAsync();
+        console.log("read depth");
     }
 
     protected _readPickingBuffer_webgl1() {
@@ -1321,7 +1319,7 @@ class Renderer {
      */
     public getDistanceFromPixel(px: Vec2 | IBaseInputState): number | undefined {
 
-       let camera = this.activeCamera!;
+        let camera = this.activeCamera!;
 
         let cnv = this.handler!.canvas!;
 
