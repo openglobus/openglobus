@@ -1011,7 +1011,7 @@ class Renderer {
         let frustums = this.activeCamera!.frustums;
 
         let pointerEvent = e.pointerEvent();
-        let mouseFree = !e.mouseState.leftButtonDown && !e.mouseState.rightButtonDown;
+        let pointerFree = !e.mouseState.leftButtonDown && !e.mouseState.rightButtonDown && !e.touchState.touching && !e.touchState.moving;
 
         // Rendering scene nodes and entityCollections
         let rn = this._renderNodesArr;
@@ -1039,7 +1039,7 @@ class Renderer {
 
             e.dispatch(e.drawtransparent, this);
 
-            if (pointerEvent && mouseFree) {
+            if (pointerEvent && pointerFree) {
                 this._drawPickingBuffer(0);
             }
 
@@ -1059,7 +1059,7 @@ class Renderer {
 
                 this._drawEntityCollections(i);
 
-                if (pointerEvent && mouseFree) {
+                if (pointerEvent && pointerFree) {
                     this._drawPickingBuffer(i);
                 }
 
@@ -1073,11 +1073,8 @@ class Renderer {
 
         this.blitFramebuffer && (sceneFramebuffer as Multisample).blitTo(this.blitFramebuffer, 0);
 
-        if (pointerEvent && mouseFree) {
+        if (pointerEvent && pointerFree) {
             this._readPickingBuffer();
-        }
-
-        if (mouseFree) {
             this._readDepthBuffer();
         }
 
@@ -1253,6 +1250,7 @@ class Renderer {
 
     protected _readDepthBuffer() {
         this.depthFramebuffer!.readPixelBuffersAsync();
+        //console.log("read depth");
     }
 
     protected _readPickingBuffer_webgl1() {
@@ -1321,7 +1319,7 @@ class Renderer {
      */
     public getDistanceFromPixel(px: Vec2 | IBaseInputState): number | undefined {
 
-       let camera = this.activeCamera!;
+        let camera = this.activeCamera!;
 
         let cnv = this.handler!.canvas!;
 

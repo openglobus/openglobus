@@ -139,6 +139,8 @@ export interface ITouchState extends IBaseInputState {
     doubleTouchDelay: number;
     /** Double touching responce radius in screen pixels.*/
     doubleTouchRadius: number;
+    /** Currently touching.*/
+    touching: boolean;
     /** JavaScript mouse system event message. */
     sys: TouchEventExt | null;
 }
@@ -289,6 +291,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         };
 
         this.touchState = {
+            touching: false,
             moving: false,
             touchEnd: false,
             touchStart: false,
@@ -634,6 +637,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
         ts.prev_x = ts.x;
         ts.prev_y = ts.y;
         ts.touchStart = true;
+        ts.touching = true;
 
         if (event.touches.length === 1) {
             this._dblTchCoords.x = ts.x;
@@ -1007,6 +1011,7 @@ class RendererEvents extends Events<RendererEventsType> implements RendererEvent
             ts.x = 0;
             ts.y = 0;
             ts.touchEnd = false;
+            ts.touching = false;
         }
 
         if (ts.moving) {
