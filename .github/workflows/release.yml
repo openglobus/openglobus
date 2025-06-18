@@ -2,7 +2,7 @@ name: Release CI
 
 on:
   release:
-    types: [ published ]  
+    types: [ published ]
   workflow_dispatch:
 
 jobs:
@@ -13,7 +13,10 @@ jobs:
     
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.repository.default_branch }}
 
       - uses: ./.github/actions/main
 

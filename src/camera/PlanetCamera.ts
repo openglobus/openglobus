@@ -12,7 +12,7 @@ import {Extent} from "../Extent";
 import {Segment} from "../segment/Segment";
 import {RADIANS} from "../math";
 
-interface IPlanetCameraParams extends ICameraParams {
+export interface IPlanetCameraParams extends ICameraParams {
     minAltitude?: number;
     maxAltitude?: number;
 }

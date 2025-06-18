@@ -15,6 +15,10 @@ function creteCanvas(width: number, height: number) {
 
 export interface IFramebufferDialogParams extends IControlParams {
     framebuffer?: Framebuffer;
+    title?: string;
+    common?: string;
+    image?: string;
+    flippedUV?: boolean;
 }
 
 export class FramebufferPreview extends Control {
@@ -26,6 +30,8 @@ export class FramebufferPreview extends Control {
 
     public framebufferCurrentTexture: number;
 
+    protected _program: Program;
+
     constructor(params: IFramebufferDialogParams) {
         super({
             autoActivate: true,
@@ -33,6 +39,7 @@ export class FramebufferPreview extends Control {
         });
 
         this._dialog = new Dialog<null>({
+            title: params.title || "",
             width: 580,
             height: 340,
             left: 100,
@@ -42,6 +49,8 @@ export class FramebufferPreview extends Control {
         this._framebuffer = params.framebuffer || null;
         this._screenFramebuffer = null;
         this.framebufferCurrentTexture = 0;
+
+        this._program = framebuffer_dialog_screen(this.__id, params.common, params.image, params.flippedUV);
     }
 
     public bindFramebuffer(framebuffer: Framebuffer): void {
@@ -53,7 +62,8 @@ export class FramebufferPreview extends Control {
     public override oninit() {
         super.oninit();
         if (this.renderer) {
-            this.renderer.handler.addProgram(framebuffer_dialog_screen());
+
+            this.renderer.handler.addProgram(this._program);
 
             this._screenFramebuffer = new Framebuffer(this.renderer.handler, {
                 width: this._framebuffer?.width,
@@ -92,7 +102,7 @@ export class FramebufferPreview extends Control {
 
             gl.disable(gl.BLEND);
             this._screenFramebuffer.activate();
-            let sh = h.programs.framebuffer_dialog_screen,
+            let sh = this._program._programController!,//h.programs.framebuffer_dialog_screen,
                 p = sh._program;
 
             gl.bindBuffer(gl.ARRAY_BUFFER, r.screenFramePositionBuffer!);
@@ -102,7 +112,7 @@ export class FramebufferPreview extends Control {
 
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, this._framebuffer.textures[this.framebufferCurrentTexture]);
-            gl.uniform1i(p.uniforms.depthTexture, 0);
+            gl.uniform1i(p.uniforms.inputTexture, 0);
 
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
@@ -129,8 +139,8 @@ export class FramebufferPreview extends Control {
     }
 }
 
-function framebuffer_dialog_screen(): Program {
-    return new Program("framebuffer_dialog_screen", {
+function framebuffer_dialog_screen(id: number = 0, common?: string | null, mainImage?: string | null, flippedUV?: boolean): Program {
+    return new Program(`framebuffer_dialog_screen:${id.toString()}`, {
         uniforms: {
             inputTexture: "sampler2D"
         },
@@ -147,6 +157,7 @@ function framebuffer_dialog_screen(): Program {
             void main(void) {
                 gl_Position = vec4(corners, 0.0, 1.0);
                 tc = corners * 0.5 + 0.5;
+                ${flippedUV ? `tc.y = 1.0 - tc.y;` : ``}               
             }`,
         fragmentShader:
             `#version 300 es
@@ -158,19 +169,16 @@ function framebuffer_dialog_screen(): Program {
             in vec2 tc;
 
             layout(location = 0) out vec4 fragColor;
+
+            ${common || ""}
             
-            float linearizeDepth(float z, float near, float far) {
-                float ndcZ = z * 2.0 - 1.0; // преобразуем в NDC [-1, 1]
-                return (2.0 * near * far) / (far + near - ndcZ * (far - near));
-            }
+            ${mainImage ||
+            `void mainImage(out vec4 fragColor, in vec2 fragCoord) { 
+                fragColor = texture(inputTexture, fragCoord);
+            }`}
             
-            void main(void) {
-                float near = 10.0;
-                float far = 10000.0;          
-                float depth = texture(inputTexture, tc).r;
-                float linearDepth = linearizeDepth(depth, near, far);
-                float normalized = (linearDepth - near) / (far - near);
-                fragColor = vec4(vec3(normalized), 1.0);
+            void main(void) {                              
+               mainImage(fragColor, tc);
             }`
     });
 }

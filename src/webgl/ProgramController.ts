@@ -34,6 +34,7 @@ export class ProgramController {
     public _activated: boolean;
 
     constructor(handler: Handler, program: Program) {
+        program._programController = this;
         this._program = program;
         this._handler = handler;
         this._activated = false;
