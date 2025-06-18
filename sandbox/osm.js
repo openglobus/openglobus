@@ -69,5 +69,9 @@ let depthPreview = new control.FramebufferPreview({
 
 globus.planet.addControl(depthPreview);
 
+globus.planet.addControl(new control.KeyboardNavigation({
+    camera: depthHandler.camera
+}));
+
 globus.planet.renderer.controls.SimpleSkyBackground.colorOne = "black";
 globus.planet.renderer.controls.SimpleSkyBackground.colorTwo = "black";
