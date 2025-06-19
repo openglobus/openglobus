@@ -89,7 +89,7 @@ const MAX_LOD_SIZE = 256; //px
  * @type {number}
  * @default
  */
-const MAX_NODES = 50;
+const MAX_NODES = 200;
 
 const HORIZON_TANGENT = 0.81;
 
