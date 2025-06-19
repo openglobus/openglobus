@@ -877,13 +877,13 @@ class Node {
         }
 
         // @ts-ignore
-        this.neighbors = null;
+        delete this.neighbors;
         // @ts-ignore
-        this.parentNode = null;
+        delete this.parentNode;
         // @ts-ignore
-        this.sideSizeLog2 = null;
+        delete this.sideSizeLog2;
         // @ts-ignore
-        this.segment = null;
+        delete this.segment;
     }
 
     public clearTree() {

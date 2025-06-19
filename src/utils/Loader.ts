@@ -215,7 +215,7 @@ export class Loader<T extends Obj<T>> {
             if (qi && qi.params.sender && sender.isEqual(qi.params.sender)) {
                 qi.callback({'status': "abort"});
                 //@ts-ignore
-                this._queue[i] = null;
+                delete this._queue[i];
             }
         }
     }
@@ -232,7 +232,7 @@ export class Loader<T extends Obj<T>> {
                 }
                 qi.callback({'status': "abort"});
                 //@ts-ignore
-                this._queue[i] = null;
+                delete this._queue[i];
             }
         }
         this._queue = [];

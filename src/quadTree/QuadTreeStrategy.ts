@@ -54,7 +54,7 @@ export class QuadTreeStrategy {
                 if (mats[lid]) {
                     mats[lid].clear();
                     //@ts-ignore
-                    mats[lid] = null;
+                    delete mats[lid];
                     //delete mats[lid];
                 }
             });

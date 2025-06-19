@@ -17,11 +17,11 @@ class Slice {
 
     public clear() {
         // @ts-ignore
-        this.layers = null;
+        delete this.layers;
         // @ts-ignore
-        this.tileOffsetArr = null;
+        delete this.tileOffsetArr;
         // @ts-ignore
-        this.layerOpacityArr = null;
+        delete this.layerOpacityArr;
     }
 
     public append(layer: Layer, material: Material) {

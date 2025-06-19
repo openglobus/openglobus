@@ -421,6 +421,7 @@ export class NormalMapCreator {
             let s = this._queue.pop()!;
             s._inTheQueue = false;
         }
+        this._queue.clear();
     }
 
     /**

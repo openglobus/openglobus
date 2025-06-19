@@ -986,11 +986,16 @@ class Segment {
         gl.deleteBuffer(this.vertexPositionBufferHigh!);
         gl.deleteBuffer(this.vertexPositionBufferLow!);
 
-        this.vertexNormalBuffer = null;
-        this.vertexPositionBuffer = null;
-        this.vertexPositionBufferHigh = null;
-        this.vertexPositionBufferLow = null;
-        this.vertexTextureCoordBuffer = null;
+        // @ts-ignore
+        delete this.vertexNormalBuffer;
+        // @ts-ignore
+        delete this.vertexPositionBuffer;
+        // @ts-ignore
+        delete this.vertexPositionBufferHigh;
+        // @ts-ignore
+        delete this.vertexPositionBufferLow;
+        // @ts-ignore
+        delete this.vertexTextureCoordBuffer;
     }
 
     public deleteMaterials() {
@@ -1001,7 +1006,7 @@ class Segment {
                 mi.clear();
             }
         }
-        this.materials.length = 0;
+        this.materials = [];
     }
 
     public deleteElevations() {
@@ -1009,24 +1014,39 @@ class Segment {
         this.terrainReady = false;
         this.terrainIsLoading = false;
 
-        this.normalMapVertices = null;
-        this.normalMapVerticesHigh = null;
-        this.normalMapVerticesLow = null;
-        this.normalMapNormals = null;
+        // @ts-ignore
+        delete this.normalMapVertices;
+        // @ts-ignore
+        delete this.normalMapVerticesHigh;
+        // @ts-ignore
+        delete this.normalMapVerticesLow;
+        // @ts-ignore
+        delete this.normalMapNormals;
 
-        this.tempVertices = null;
-        this.tempVerticesHigh = null;
-        this.tempVerticesLow = null;
+        // @ts-ignore
+        delete this.tempVertices;
+        // @ts-ignore
+        delete this.tempVerticesHigh;
+        // @ts-ignore
+        delete this.tempVerticesLow;
 
-        this.terrainVertices = null;
-        this.terrainVerticesHigh = null;
-        this.terrainVerticesLow = null;
-        this.noDataVertices = null;
+        // @ts-ignore
+        delete this.terrainVertices;
+        // @ts-ignore
+        delete this.terrainVerticesHigh;
+        // @ts-ignore
+        delete this.terrainVerticesLow;
+        // @ts-ignore
+        delete this.noDataVertices;
 
-        this.plainVertices = null;
-        this.plainVerticesHigh = null;
-        this.plainVerticesLow = null;
-        this.plainNormals = null;
+        // @ts-ignore
+        delete this.plainVertices;
+        // @ts-ignore
+        delete this.plainVerticesHigh;
+        // @ts-ignore
+        delete this.plainVerticesLow;
+        // @ts-ignore
+        delete this.plainNormals;
 
         if (this.normalMapReady) {
             this.handler.gl!.deleteTexture(this.normalMapTexture!);
@@ -1065,56 +1085,77 @@ class Segment {
         }
 
         //@ts-ignore
-        this._slices = null;
+        delete this._slices;
         //@ts-ignore
-        this.node = null;
+        delete this.node;
         //@ts-ignore
-        this.planet = null;
+        delete this.planet;
         //@ts-ignore
-        this.handler = null;
+        delete this.handler;
         //@ts-ignore
-        this.bbox = null;
+        delete this.bbox;
         //@ts-ignore
-        this.bsphere = null;
+        delete this.bsphere;
         //@ts-ignore
-        this._extent = null;
+        delete this._extent;
         //@ts-ignore
-        this.materials = null;
-
-        this.plainVertices = null;
-        this.plainVerticesHigh = null;
-        this.plainVerticesLow = null;
-        this.plainNormals = null;
-
-        this.terrainVertices = null;
-        this.terrainVerticesHigh = null;
-        this.terrainVerticesLow = null;
-        this.noDataVertices = null;
-
-        this.tempVertices = null;
-        this.tempVerticesHigh = null;
-        this.tempVerticesLow = null;
+        this.materials = [];
 
         //@ts-ignore
-        this.normalMapTextureBias = null;
-        this.normalMapTexture = null;
-        this.normalMapVertices = null;
-        this.normalMapVerticesHigh = null;
-        this.normalMapVerticesLow = null;
-        this.normalMapNormals = null;
+        delete this.plainVertices;
+        //@ts-ignore
+        delete this.plainVerticesHigh;
+        //@ts-ignore
+        delete this.plainVerticesLow;
+        //@ts-ignore
+        delete this.plainNormals;
 
-        this.vertexNormalBuffer = null;
-        this.vertexPositionBuffer = null;
-        this.vertexPositionBufferHigh = null;
-        this.vertexPositionBufferLow = null;
-        this.vertexTextureCoordBuffer = null;
+        //@ts-ignore
+        delete this.terrainVertices;
+        //@ts-ignore
+        delete this.terrainVerticesHigh;
+        //@ts-ignore
+        delete this.terrainVerticesLow;
+        //@ts-ignore
+        delete this.noDataVertices;
+
+        //@ts-ignore
+        delete this.tempVertices;
+        //@ts-ignore
+        delete this.tempVerticesHigh;
+        //@ts-ignore
+        delete this.tempVerticesLow;
+
+        //@ts-ignore
+        delete this.normalMapTextureBias;
+        //@ts-ignore
+        delete this.normalMapTexture;
+        //@ts-ignore
+        delete this.normalMapVertices;
+        //@ts-ignore
+        delete this.normalMapVerticesHigh;
+        //@ts-ignore
+        delete this.normalMapVerticesLow;
+        //@ts-ignore
+        delete this.normalMapNormals;
+
+        //@ts-ignore
+        delete this.vertexNormalBuffer;
+        //@ts-ignore
+        delete this.vertexPositionBuffer;
+        //@ts-ignore
+        delete this.vertexPositionBufferHigh;
+        //@ts-ignore
+        delete this.vertexPositionBufferLow;
+        //@ts-ignore
+        delete this.vertexTextureCoordBuffer;
 
         // @ts-ignore
-        this._projection = null;
+        delete this._projection;
         // @ts-ignore
-        this._appliedNeighborsZoom = null;
+        delete this._appliedNeighborsZoom;
         // @ts-ignore
-        this._globalTextureCoordinates = null;
+        delete this._globalTextureCoordinates;
     }
 
     /**

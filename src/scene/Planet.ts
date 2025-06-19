@@ -89,7 +89,7 @@ const MAX_LOD_SIZE = 256; //px
  * @type {number}
  * @default
  */
-const MAX_NODES = 200;
+const MAX_NODES = 50;
 
 const HORIZON_TANGENT = 0.81;
 
@@ -1905,7 +1905,8 @@ export class Planet extends RenderNode {
     public memClear() {
         this._distBeforeMemClear = 0;
 
-        this.camera._insideSegment = null;
+        // @ts-ignore
+        delete this.camera._insideSegment;
 
         this.layerLock.lock(this._memKey);
         this.terrainLock.lock(this._memKey);
