@@ -220,9 +220,9 @@ export class MouseNavigation extends Control {
     protected _onRHold = (e: IMouseState) => {
         if (this._targetRotationPoint) {
             let _noRotationInertia = false;
-            this._velInertia = 0.8;
-            this.force_h = 0.2 * (e.x - e.prev_x);
-            this.force_v = 0.2 * (e.y - e.prev_y);
+            this._velInertia = 0.6; //0.8, 0.2
+            this.force_h = 0.5 * (e.x - e.prev_x);
+            this.force_v = 0.5 * (e.y - e.prev_y);
         }
     }
 
