@@ -321,8 +321,11 @@ export class MouseNavigation extends Control {
             }
 
             let cam = this.planet.camera;
-            let spdAlt = Math.abs(cam.getAltitude() < 20 ? 20 : cam.getAltitude());
-            let dist = Math.min(spdAlt, this.planet.camera.eye.distance(this._targetZoomPoint)) * scale;
+            // let spdAlt = Math.abs(cam.getAltitude() < 20 ? 20 : cam.getAltitude());
+            // let dist = Math.min(spdAlt, this.planet.camera.eye.distance(this._targetZoomPoint)) * scale;
+
+            let dist = this.planet.camera.eye.distance(this._targetZoomPoint) * scale;
+
             this.force = (e.direction.scale(Math.sign(this._wheelDirection))).normalize().scale(dist);
 
             this.force_roll = this._curRoll;
@@ -468,8 +471,17 @@ export class MouseNavigation extends Control {
             // Common
             let cam = this.planet!.camera;
             let a = this._targetZoomPoint;
-            let dir = a.sub(cam.eye).normalize();
             let eye = cam.eye.clone();
+            let dir = a.sub(cam.eye).normalize();
+
+            console.log(Math.round(this.vel.length()), a.distance(eye));
+
+            const MAX_VEL = a.distance(eye) * 5;
+            if (this.vel.length() > MAX_VEL) {
+                this.vel = this.vel.getNormal().scale(MAX_VEL);
+            }
+
+            console.log(this.vel.length(), MAX_VEL);
 
             let velDir = Math.sign(this.vel.getNormal().dot(cam.getForward()));
             let d_v = this.vel.scaleTo(this.dt);
@@ -483,12 +495,12 @@ export class MouseNavigation extends Control {
             let d_s = cam.getForward().scaleTo(velDir * d_v.length());
 
             // Slow down if camera moves very fast tweak
-            let destDist = cam.eye.distance(a);
-            if (destDist < 30 * d_s.length()) {
-                let temp = d_s.length();
-                d_s.normalize().scale(temp * 0.5);
-                this.vel.scale(0.5);
-            }
+            // let destDist = cam.eye.distance(a);
+            // if (destDist < 30 * d_s.length()) {
+            //     let temp = d_s.length();
+            //     d_s.normalize().scale(temp * 0.5);
+            //     this.vel.scale(0.5);
+            // }
 
             eye.addA(d_s);
 
@@ -510,7 +522,7 @@ export class MouseNavigation extends Control {
             cam.eye = rot.mulVec3(eye);
             cam.rotate(rot);
 
-            if (this.fixedUp && destDist > 10) {
+            if (this.fixedUp /*&& destDist > 10*/) {
 
                 this._corrRoll();
                 // restore camera direction
