@@ -311,7 +311,7 @@ export class MouseNavigation extends Control {
 
             this._currScreenPos.set(e.x, e.y);
             this._wheelDirection = Math.sign(e.wheelDelta);
-            let scale = 2;
+            let scale = 12;
             this._isTouchPad = e.isTouchPad;
             if (e.isTouchPad) {
                 this._velInertia = 0.88;
@@ -478,7 +478,7 @@ export class MouseNavigation extends Control {
 
             console.log(Math.round(a.distance(eye)));
 
-            let mult = 10;
+            let mult = 100;
 
             if (a.distance(eye) < 20) {
                 mult = 3;
