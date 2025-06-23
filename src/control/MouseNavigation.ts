@@ -314,10 +314,10 @@ export class MouseNavigation extends Control {
             let scale = 5.8;
             this._isTouchPad = e.isTouchPad;
             if (e.isTouchPad) {
-                this._velInertia = 0.88;
-                scale = 0.8;
+                this._velInertia = 0.68;
+                //scale = 0.8;
             } else {
-                this._velInertia = DEFAULT_VELINERTIA;
+                this._velInertia = 0.78;
             }
 
             let cam = this.planet.camera;
@@ -468,7 +468,7 @@ export class MouseNavigation extends Control {
     protected _handleZoom() {
         if (this._targetZoomPoint && this.vel.length() > 0.0) {
 
-            this._velInertia = 0.77;
+            //this._velInertia = 0.78;
 
             // Common
             let cam = this.planet!.camera;
@@ -500,24 +500,12 @@ export class MouseNavigation extends Control {
 
             //let d_s = d_v.projToVec(cam.getForward().scale(velDir));
 
-            // if (a.distance(eye) > d_v.length()) {
-            //     debugger;
-            // }
-
             // if camera eye position under the dome of the grabbed sphere
             if (this._grabbedSphere.radius > eye.length()) {
                 velDir *= -1;
             }
 
             let d_s = cam.getForward().scaleTo(velDir * d_v.length());
-
-            // Slow down if camera moves very fast tweak
-            // let destDist = cam.eye.distance(a);
-            // if (destDist < 30 * d_s.length()) {
-            //     let temp = d_s.length();
-            //     d_s.normalize().scale(temp * 0.5);
-            //     this.vel.scale(0.5);
-            // }
 
             eye.addA(d_s);
 
