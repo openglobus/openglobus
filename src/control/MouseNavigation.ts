@@ -476,31 +476,33 @@ export class MouseNavigation extends Control {
             let eye = cam.eye.clone();
             let dir = a.sub(cam.eye).normalize();
 
+            let dist = a.distance(eye);
+
             let vel_normal = this.vel.getNormal();
             let velDir = Math.sign(vel_normal.dot(cam.getForward()));
 
             let mult = 50;
 
-            if (a.distance(eye) < 20) {
-                mult = 3;
-            }
-
-            if (a.distance(eye) < 10) {
-                mult = 2;
-            }
-
-            if (a.distance(eye) < 2) {
+            if (dist <= 1 || cam.getAltitude() < 2) {
                 mult = 1;
+            } else if (dist < 10) {
+                mult = 5;
+            } else if (dist < 20) {
+                mult = 10;
             }
 
-            //@ts-ignore
-            const MAX_VEL = (a.distance(eye) - 1) * mult;
-            if (this.vel.length() > MAX_VEL) {
-                this.vel = vel_normal.scaleTo(MAX_VEL);
+            let maxVel = dist * mult;
+            if (this.vel.length() > maxVel) {
+                this.vel = vel_normal.scaleTo(maxVel);
             }
 
             let d_v = this.vel.scaleTo(this.dt);
+
             //let d_s = d_v.projToVec(cam.getForward().scale(velDir));
+
+            // if (a.distance(eye) > d_v.length()) {
+            //     debugger;
+            // }
 
             // if camera eye position under the dome of the grabbed sphere
             if (this._grabbedSphere.radius > eye.length()) {
