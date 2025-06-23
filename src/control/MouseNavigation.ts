@@ -311,7 +311,7 @@ export class MouseNavigation extends Control {
 
             this._currScreenPos.set(e.x, e.y);
             this._wheelDirection = Math.sign(e.wheelDelta);
-            let scale = 12;
+            let scale = 5.8;
             this._isTouchPad = e.isTouchPad;
             if (e.isTouchPad) {
                 this._velInertia = 0.88;
@@ -476,9 +476,10 @@ export class MouseNavigation extends Control {
             let eye = cam.eye.clone();
             let dir = a.sub(cam.eye).normalize();
 
-            console.log(Math.round(a.distance(eye)));
+            let vel_normal = this.vel.getNormal();
+            let velDir = Math.sign(vel_normal.dot(cam.getForward()));
 
-            let mult = 100;
+            let mult = 50;
 
             if (a.distance(eye) < 20) {
                 mult = 3;
@@ -495,10 +496,9 @@ export class MouseNavigation extends Control {
             //@ts-ignore
             const MAX_VEL = (a.distance(eye) - 1) * mult;
             if (this.vel.length() > MAX_VEL) {
-                this.vel = this.vel.getNormal().scale(MAX_VEL);
+                this.vel = vel_normal.scaleTo(MAX_VEL);
             }
 
-            let velDir = Math.sign(this.vel.getNormal().dot(cam.getForward()));
             let d_v = this.vel.scaleTo(this.dt);
             //let d_s = d_v.projToVec(cam.getForward().scale(velDir));
 
