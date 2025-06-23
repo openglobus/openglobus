@@ -468,20 +468,35 @@ export class MouseNavigation extends Control {
     protected _handleZoom() {
         if (this._targetZoomPoint && this.vel.length() > 0.0) {
 
+            this._velInertia = 0.77;
+
             // Common
             let cam = this.planet!.camera;
             let a = this._targetZoomPoint;
             let eye = cam.eye.clone();
             let dir = a.sub(cam.eye).normalize();
 
-            console.log(Math.round(this.vel.length()), a.distance(eye));
+            console.log(Math.round(a.distance(eye)));
 
-            const MAX_VEL = a.distance(eye) * 5;
+            let mult = 10;
+
+            if (a.distance(eye) < 20) {
+                mult = 3;
+            }
+
+            if (a.distance(eye) < 10) {
+                mult = 2;
+            }
+
+            if (a.distance(eye) < 2) {
+                mult = 1;
+            }
+
+            //@ts-ignore
+            const MAX_VEL = (a.distance(eye) - 1) * mult;
             if (this.vel.length() > MAX_VEL) {
                 this.vel = this.vel.getNormal().scale(MAX_VEL);
             }
-
-            console.log(this.vel.length(), MAX_VEL);
 
             let velDir = Math.sign(this.vel.getNormal().dot(cam.getForward()));
             let d_v = this.vel.scaleTo(this.dt);
