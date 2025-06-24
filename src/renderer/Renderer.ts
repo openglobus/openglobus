@@ -1223,29 +1223,29 @@ class Renderer {
         this.depthFramebuffer!.deactivate();
 
         //
-        // DEBUG SCREEN OUTPUTS
+        // DEBUG SCREEN OUTPUTS, for depth and frustum screen testing
         //
-        // if (this._currentOutput === "depth" || this._currentOutput === "frustum") {
-        //     //
-        //     // PASS to depth visualization
-        //     this.screenDepthFramebuffer!.activate();
-        //     let sh = h.programs.depth,
-        //         p = sh._program;
-        //
-        //     gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
-        //     gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
-        //
-        //     sh.activate();
-        //
-        //     gl.activeTexture(gl.TEXTURE0);
-        //     gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer!.textures[1]);
-        //     gl.uniform1i(p.uniforms.depthTexture, 0);
-        //
-        //     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        //
-        //     this.screenDepthFramebuffer!.deactivate();
-        //     gl.enable(gl.BLEND);
-        // }
+        if (this._currentOutput === "depth" || this._currentOutput === "frustum") {
+            //
+            // PASS to depth visualization
+            this.screenDepthFramebuffer!.activate();
+            let sh = h.programs.depth,
+                p = sh._program;
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.screenFramePositionBuffer!);
+            gl.vertexAttribPointer(p.attributes.corners, 2, gl.FLOAT, false, 0, 0);
+
+            sh.activate();
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.depthFramebuffer!.textures[1]);
+            gl.uniform1i(p.uniforms.depthTexture, 0);
+
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            this.screenDepthFramebuffer!.deactivate();
+            gl.enable(gl.BLEND);
+        }
     }
 
     protected _readDepthBuffer() {

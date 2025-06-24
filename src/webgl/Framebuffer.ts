@@ -223,6 +223,15 @@ export class Framebuffer extends BaseFramebuffer {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null!);
     }
 
+    /**
+     * Check your constructor has targets like this
+     * targets: [{
+     *  internalFormat: "RGBA",
+     *  type: "UNSIGNED_BYTE",
+     *  attachment: "COLOR_ATTACHMENT",
+     *  readAsync: true
+     * }],
+     **/
     public readPixelBuffersAsync = (callback?: (buf: this) => void) => {
 
         const gl = this.handler.gl!;
@@ -269,7 +278,7 @@ export class Framebuffer extends BaseFramebuffer {
         });
     }
 
-    public getPixelBufferData(targetIndex: number): TypedArray | null {
+    public getPixelBufferData(targetIndex: number = 0): TypedArray | null {
         let pbInd = this._targets[targetIndex].pixelBufferIndex;
         return pbInd !== -1 ? this.pixelBuffers[pbInd].data : null;
     }

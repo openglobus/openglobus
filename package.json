@@ -48,6 +48,7 @@
     "@babel/plugin-proposal-object-rest-spread": "^7.20.7",
     "@babel/preset-env": "^7.26.9",
     "@babel/preset-typescript": "^7.27.0",
+    "@eslint-community/eslint-utils": "^4.6.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.15.3",

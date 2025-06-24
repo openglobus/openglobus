@@ -420,10 +420,6 @@ class GeoObjectEditorScene extends RenderNode {
         }
     }
 
-    protected get _ellipsoid(): Ellipsoid | null {
-        return this._planet ? this._planet.ellipsoid : null;
-    }
-
     protected _moveX = (e: IMouseState) => {
         if (!this._selectedEntity) return;
 
@@ -447,11 +443,11 @@ class GeoObjectEditorScene extends RenderNode {
 
             px = rot.mulVec3(p0);
 
-            if (this._ellipsoid) {
-                let p0_lonLat = this._ellipsoid.cartesianToLonLat(p0)!;
-                let px_lonLat = this._ellipsoid.cartesianToLonLat(px)!;
+            if (this.ellipsoid) {
+                let p0_lonLat = this.ellipsoid.cartesianToLonLat(p0)!;
+                let px_lonLat = this.ellipsoid.cartesianToLonLat(px)!;
 
-                this._ellipsoid.lonLatToCartesianRes(new LonLat(px_lonLat.lon, p0_lonLat.lat, p0_lonLat.height), px);
+                this.ellipsoid.lonLatToCartesianRes(new LonLat(px_lonLat.lon, p0_lonLat.lat, p0_lonLat.height), px);
             }
         } else {
             dragSimpleRes(Vec3.UNIT_X, cam.eye, clickDir, e.direction, p0, px);
@@ -516,11 +512,11 @@ class GeoObjectEditorScene extends RenderNode {
 
             px = rot.mulVec3(p0);
 
-            if (this._ellipsoid) {
-                let p0_lonLat = this._ellipsoid.cartesianToLonLat(p0)!;
-                let px_lonLat = this._ellipsoid.cartesianToLonLat(px)!;
+            if (this.ellipsoid) {
+                let p0_lonLat = this.ellipsoid.cartesianToLonLat(p0)!;
+                let px_lonLat = this.ellipsoid.cartesianToLonLat(px)!;
 
-                this._ellipsoid.lonLatToCartesianRes(new LonLat(p0_lonLat.lon, px_lonLat.lat, p0_lonLat.height), px);
+                this.ellipsoid.lonLatToCartesianRes(new LonLat(p0_lonLat.lon, px_lonLat.lat, p0_lonLat.height), px);
             }
         } else {
             dragSimpleRes(Vec3.UNIT_Z, cam.eye, clickDir, e.direction, p0, px);
@@ -556,11 +552,11 @@ class GeoObjectEditorScene extends RenderNode {
 
             px = rot.mulVec3(p0);
 
-            if (this._ellipsoid) {
-                let lonLat = this._ellipsoid.cartesianToLonLat(px)!;
+            if (this.ellipsoid) {
+                let lonLat = this.ellipsoid.cartesianToLonLat(px)!;
                 let height = this._selectedEntity.getLonLat().height;
 
-                this._ellipsoid.lonLatToCartesianRes(new LonLat(lonLat.lon, lonLat.lat, height), px);
+                this.ellipsoid.lonLatToCartesianRes(new LonLat(lonLat.lon, lonLat.lat, height), px);
             }
         } else {
             let p1 = p0.add(Vec3.UNIT_X),
