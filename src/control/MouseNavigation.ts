@@ -292,9 +292,11 @@ export class MouseNavigation extends Control {
 
             this._grabbedSphere.radius = this._targetZoomPoint.length();
 
-            this._curPitch = this.planet.camera.getPitch();
-            this._curYaw = this.planet.camera.getYaw();
-            this._curRoll = this.planet.camera.getRoll();
+            let cam = this.planet.camera;
+
+            this._curPitch = cam.getPitch();
+            this._curYaw = cam.getYaw();
+            this._curRoll = cam.getRoll();
 
             if (Math.sign(e.wheelDelta) !== this._wheelDirection) {
                 this.vel.scale(0.3);
@@ -302,13 +304,6 @@ export class MouseNavigation extends Control {
                 this._wheelDirection = Math.sign(e.wheelDelta);
                 return;
             }
-
-            //let dd = this.targetPoint!.distance(this.planet.camera.eye);
-            // let brk = 1;
-            // if (this._wheelDirection > 0 && dd < 5000) {
-            //this.vel.scale(0.3);
-            //     brk = dist / 5000;
-            // }
 
             this._currScreenPos.set(e.x, e.y);
             this._wheelDirection = Math.sign(e.wheelDelta);
@@ -321,7 +316,11 @@ export class MouseNavigation extends Control {
                 scale = 17;
             }
 
-            let cam = this.planet.camera;
+            let dir = this._targetZoomPoint.sub(cam.eye);
+            if (dir.length() > 6000 && this._wheelDirection > 0 && cam.eye.getNormal().negate().dot(dir.normalize()) < 0.3) {
+                this.fixedUp = false;
+                scale = 4.3;
+            }
 
             let dist = this.planet.camera.eye.distance(this._targetZoomPoint) * scale;
 
@@ -435,8 +434,6 @@ export class MouseNavigation extends Control {
 
             if (cam.slope > MIN_SLOPE) {
                 let d_v = this.vel.scaleTo(this.dt);
-                // let d_s = d_v;
-                // let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
                 let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
                 let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
                 if (this.fixedUp) {
@@ -469,19 +466,16 @@ export class MouseNavigation extends Control {
     protected _handleZoom() {
         if (this._targetZoomPoint && this.vel.length() > 0.0) {
 
-            //this._velInertia = 0.78;
-
             // Common
             let cam = this.planet!.camera;
             let a = this._targetZoomPoint;
             let eye = cam.eye.clone();
             let dir = a.sub(cam.eye).normalize();
 
-            let dist = a.distance(eye);
-
             let vel_normal = this.vel.getNormal();
             let velDir = Math.sign(vel_normal.dot(cam.getForward()));
 
+            //let dist = a.distance(eye);
             // let mult = 50;
             //
             // if (dist <= 1 || cam.getAltitude() < 2) {
@@ -499,13 +493,12 @@ export class MouseNavigation extends Control {
 
             let d_v = this.vel.scaleTo(this.dt);
 
-            //let d_s = d_v.projToVec(cam.getForward().scale(velDir));
-
             // if camera eye position under the dome of the grabbed sphere
             if (this._grabbedSphere.radius > eye.length()) {
                 velDir *= -1;
             }
 
+            //let d_s = d_v.projToVec(cam.getForward().scale(velDir));
             let d_s = cam.getForward().scaleTo(velDir * d_v.length());
 
             eye.addA(d_s);
@@ -528,7 +521,7 @@ export class MouseNavigation extends Control {
             cam.eye = rot.mulVec3(eye);
             cam.rotate(rot);
 
-            if (this.fixedUp /*&& destDist > 10*/) {
+            if (this.fixedUp) {
 
                 this._corrRoll();
                 // restore camera direction
