@@ -221,7 +221,6 @@ export class MouseNavigation extends Control {
 
     protected _onRHold = (e: IMouseState) => {
         if (this._targetRotationPoint) {
-            let _noRotationInertia = false;
             this._velInertia = 0.6; //0.8, 0.2
             this.force_h = 0.5 * (e.x - e.prev_x);
             this.force_v = 0.5 * (e.y - e.prev_y);
@@ -313,7 +312,8 @@ export class MouseNavigation extends Control {
 
             this._currScreenPos.set(e.x, e.y);
             this._wheelDirection = Math.sign(e.wheelDelta);
-            let scale = 5.8;
+            let scale = 20;
+            this._velInertia = 0.81;
             this._isTouchPad = e.isTouchPad;
             // if (e.isTouchPad) {
             //     this._velInertia = 0.68;
@@ -328,7 +328,9 @@ export class MouseNavigation extends Control {
 
             let dist = this.planet.camera.eye.distance(this._targetZoomPoint) * scale;
 
-            this.force = (e.direction.scale(Math.sign(this._wheelDirection))).normalize().scale(dist);
+            this.force = (e.direction.scale(this._wheelDirection)).normalize().scale(this._wheelDirection < 0 ? dist * 1.3 : dist);
+
+            this.vel.set(0, 0, 0);
 
             this.force_roll = this._curRoll;
         }
