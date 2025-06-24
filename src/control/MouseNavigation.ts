@@ -84,6 +84,8 @@ export class MouseNavigation extends Control {
     protected _rotHDir: number;
     protected _rotVDir: number;
 
+    protected _dragInertia: number = 170;
+
     constructor(options: IEarthNavigationParams = {}) {
         super({
             name: "mouseNavigation",
@@ -313,12 +315,12 @@ export class MouseNavigation extends Control {
             this._wheelDirection = Math.sign(e.wheelDelta);
             let scale = 5.8;
             this._isTouchPad = e.isTouchPad;
-            if (e.isTouchPad) {
-                this._velInertia = 0.68;
-                //scale = 0.8;
-            } else {
-                this._velInertia = 0.78;
-            }
+            // if (e.isTouchPad) {
+            //     this._velInertia = 0.68;
+            //     //scale = 0.8;
+            // } else {
+            //     this._velInertia = 0.78;
+            // }
 
             let cam = this.planet.camera;
             // let spdAlt = Math.abs(cam.getAltitude() < 20 ? 20 : cam.getAltitude());
@@ -386,7 +388,7 @@ export class MouseNavigation extends Control {
                 );
 
                 newEye.copy(rot.mulVec3(cam.eye));
-                this.force = newEye.sub(cam.eye).scale(70);
+                this.force = newEye.sub(cam.eye).scale(this._dragInertia);
             } else {
                 let p0 = this._grabbedPoint,
                     p1 = Vec3.add(p0, cam.getRight()),
@@ -395,7 +397,7 @@ export class MouseNavigation extends Control {
                 let px = new Vec3();
                 new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px);
                 let newEye = cam.eye.add(px.subA(p0).negate());
-                this.force = newEye.sub(cam.eye).scale(70);
+                this.force = newEye.sub(cam.eye).scale(this._dragInertia);
                 this._targetDragPoint = px;
             }
 
@@ -481,20 +483,20 @@ export class MouseNavigation extends Control {
             let vel_normal = this.vel.getNormal();
             let velDir = Math.sign(vel_normal.dot(cam.getForward()));
 
-            let mult = 50;
+            // let mult = 50;
+            //
+            // if (dist <= 1 || cam.getAltitude() < 2) {
+            //     mult = 1;
+            // } else if (dist < 10) {
+            //     mult = 5;
+            // } else if (dist < 20) {
+            //     mult = 10;
+            // }
 
-            if (dist <= 1 || cam.getAltitude() < 2) {
-                mult = 1;
-            } else if (dist < 10) {
-                mult = 5;
-            } else if (dist < 20) {
-                mult = 10;
-            }
-
-            let maxVel = dist * mult;
-            if (this.vel.length() > maxVel) {
-                this.vel = vel_normal.scaleTo(maxVel);
-            }
+            // let maxVel = dist * mult;
+            // if (this.vel.length() > maxVel) {
+            //     this.vel = vel_normal.scaleTo(maxVel);
+            // }
 
             let d_v = this.vel.scaleTo(this.dt);
 
