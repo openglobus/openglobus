@@ -1,7 +1,7 @@
-import {ButtonGroup} from "../ui/ButtonGroup";
-import {Control} from "./Control";
-import {DrawingControl} from "./drawing/DrawingControl";
-import {ToggleButton} from "../ui/ToggleButton";
+import { ButtonGroup } from "../ui/ButtonGroup";
+import { Control } from "./Control";
+import { DrawingControl } from "./drawing/DrawingControl";
+import { ToggleButton } from "../ui/ToggleButton";
 
 const ICON_POLYGON_SVG = `<?xml version="1.0" encoding="utf-8"?>
 <!-- Generator: Adobe Illustrator 24.1.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
@@ -49,7 +49,7 @@ export class DrawingSwitcher extends Control {
             ...options
         });
 
-        this.drawingControl = new DrawingControl();
+        this.drawingControl = new DrawingControl(options);
     }
 
     public override oninit() {
