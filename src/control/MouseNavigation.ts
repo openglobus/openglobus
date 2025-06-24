@@ -313,18 +313,15 @@ export class MouseNavigation extends Control {
             this._currScreenPos.set(e.x, e.y);
             this._wheelDirection = Math.sign(e.wheelDelta);
             let scale = 20;
-            this._velInertia = 0.81;
+            this._velInertia = 0.83;
+
             this._isTouchPad = e.isTouchPad;
-            // if (e.isTouchPad) {
-            //     this._velInertia = 0.68;
-            //     //scale = 0.8;
-            // } else {
-            //     this._velInertia = 0.78;
-            // }
+            if (e.isTouchPad) {
+                this._velInertia = 0.63;
+                scale = 17;
+            }
 
             let cam = this.planet.camera;
-            // let spdAlt = Math.abs(cam.getAltitude() < 20 ? 20 : cam.getAltitude());
-            // let dist = Math.min(spdAlt, this.planet.camera.eye.distance(this._targetZoomPoint)) * scale;
 
             let dist = this.planet.camera.eye.distance(this._targetZoomPoint) * scale;
 
