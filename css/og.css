@@ -87,6 +87,7 @@
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
+    color: #1f1f1f;
 }
 
 .og-attribution img {
