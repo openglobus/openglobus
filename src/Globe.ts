@@ -60,6 +60,7 @@ export interface IGlobeParams {
     vectorTileSize?: number;
     gamma?: number;
     exposure?: number;
+    maxNodesCount?: number;
 }
 
 const DEFAULT_NIGHT_SRC = `/night.png`;
@@ -257,6 +258,7 @@ class Globe {
             atmosphereParameters: options.atmosphereParameters,
             minDistanceBeforeMemClear: options.minDistanceBeforeMemClear,
             vectorTileSize: options.vectorTileSize,
+            maxNodesCount: options.maxNodesCount,
         });
 
         // Attach terrain provider (can be one object or array)
