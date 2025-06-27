@@ -24,6 +24,12 @@ export interface IGlobusTerrainParams extends IEmptyTerrainParams {
     noDataValues?: number[];
     plainGridSize?: number;
     heightFactor?: number;
+    /**
+     * Fetch RequestCache value
+     * https://developer.mozilla.org/en-US/docs/Web/API/Request/cache
+     * @default "default"
+     */
+    cache?: string;
 }
 
 type TileData = {
@@ -89,6 +95,8 @@ class GlobusTerrain extends EmptyTerrain {
 
     protected _heightFactor: number;
 
+    protected _cache: string;
+
 
     constructor(name: string = "", options: IGlobusTerrainParams = {}) {
 
@@ -137,6 +145,8 @@ class GlobusTerrain extends EmptyTerrain {
         this._elevationCache = {};
 
         this._fetchCache = {};
+
+        this._cache = options.cache || "";
 
         this._loader = new Loader<GlobusTerrain>();
 
@@ -207,7 +217,10 @@ class GlobusTerrain extends EmptyTerrain {
             if (!def) {
                 def = this._loader.fetch({
                     src: this.buildURL(x, y, z, tileGroup),
-                    type: this._dataType
+                    type: this._dataType,
+                    options: {
+                    cache: this._cache
+                }
                 });
                 this._fetchCache[tileIndex] = def;
             }

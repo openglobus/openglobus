@@ -15,6 +15,12 @@ export interface IXYZParams extends ILayerParams {
     minNativeZoom?: number;
     maxNativeZoom?: number;
     urlRewrite?: Function;
+    /**
+     * Fetch RequestCache value
+     * https://developer.mozilla.org/en-US/docs/Web/API/Request/cache
+     * @default "default"
+     */
+    cache?: string;
 }
 
 type XYZEventsList = [
@@ -98,6 +104,8 @@ export class XYZ extends Layer {
 
     protected _requestCount: number;
 
+    protected _cache: string;
+
     constructor(name: string | null, options: IXYZParams = {}) {
         super(name, options);
 
@@ -117,6 +125,8 @@ export class XYZ extends Layer {
         this._requestsPeerSubdomains = 4;
 
         this._requestCount = 0;
+
+        this._cache = options.cache || "default";
     }
 
     /**
@@ -206,7 +216,9 @@ export class XYZ extends Layer {
                         src: this._getHTTPRequestString(material.segment),
                         type: "imageBitmap",
                         filter: () => (seg.initialized && seg.node.getState() === RENDERING) || forceLoading,
-                        options: {}
+                        options: {
+                            cache: this._cache
+                        }
                     },
                     (response: IResponse) => {
                         if (response.status === "ready") {
