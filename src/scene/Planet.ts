@@ -1380,7 +1380,7 @@ export class Planet extends RenderNode {
         cam.checkFly();
 
         // free memory
-        if (this._createdNodesCount > MAX_NODES && this._distBeforeMemClear > this._minDistanceBeforeMemClear) {
+        if (this._createdNodesCount > this._maxNodes && this._distBeforeMemClear > this._minDistanceBeforeMemClear) {
             this.terrain!.clearCache();
             this.memClear();
         }
