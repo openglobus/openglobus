@@ -23,6 +23,9 @@ export interface IDialogParams extends IViewParams {
 
 export type DialogEventsList = ["resize", "focus", "visibility", "dragstart", "dragend"];
 
+const DEFAULT_WIDTH = 300;
+const DEFAULT_HEIGHT = 200;
+
 const DIALOG_EVENTS: DialogEventsList = ["resize", "focus", "visibility", "dragstart", "dragend"];
 
 const TEMPLATE = `<div class="og-ddialog" 
@@ -56,14 +59,17 @@ class Dialog<M> extends View<M> {
 
     protected _right: number | null;
 
+    protected _width: number;
+    protected _height: number;
+
     constructor(options: IDialogParams = {}) {
         super({
             template: stringTemplate(TEMPLATE, {
                 title: options.title || "",
                 display: getDefault(options.visible, true) ? "flex" : "none",
                 resize: getDefault(options.resizable, true) ? "both" : "none",
-                width: options.width || 300,
-                height: options.height ? `height: ${options.height || 200}px` : "",
+                width: options.width || DEFAULT_WIDTH,
+                height: options.height ? `height: ${options.height || DEFAULT_HEIGHT}px` : "",
                 left: options.left || 0,
                 top: options.top || 0,
                 minHeight: options.minHeight ? `${options.minHeight}px` : 'unset',
@@ -76,6 +82,9 @@ class Dialog<M> extends View<M> {
 
         //@ts-ignore
         this.events = this.events.registerNames(DIALOG_EVENTS);
+
+        this._width = options.width || DEFAULT_WIDTH;
+        this._height = options.height || DEFAULT_HEIGHT;
 
         this._startPosX = 0;
         this._startPosY = 0;
@@ -106,11 +115,11 @@ class Dialog<M> extends View<M> {
     }
 
     public get width(): number {
-        return this.el ? parseFloat(this.el.style.width) : 0;
+        return this.el ? parseFloat(this.el.style.width) : this._width;
     }
 
     public get height(): number {
-        return this.el ? parseFloat(this.el.style.height) : 0;
+        return this.el ? parseFloat(this.el.style.height) : this._height;
     }
 
     public bringToFront() {

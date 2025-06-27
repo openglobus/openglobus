@@ -1,10 +1,8 @@
 import {Extent} from "../Extent";
 import {EPSG3857} from "../proj/EPSG3857";
-import {EPSG4326} from "../proj/EPSG4326";
 import {binaryInsert, getMatrixSubArray32, getMatrixSubArray64, getMatrixSubArrayBoundsExt} from "../utils/shared";
 import {LonLat} from "../LonLat";
 import {MAX, MIN} from "../math";
-import {MAX_LAT} from "../mercator";
 import {Planet} from "../scene/Planet";
 import {Segment} from "../segment/Segment";
 

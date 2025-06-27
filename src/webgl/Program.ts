@@ -3,6 +3,7 @@ import type {ProgramVariable} from "./variableHandlers";
 import {variableHandlers} from "./variableHandlers";
 import {types, typeStr} from "./types";
 import type {WebGLBufferExt} from "./Handler";
+import {ProgramController} from "./ProgramController";
 
 const itemTypes: string[] = ["BYTE", "SHORT", "UNSIGNED_BYTE", "UNSIGNED_SHORT", "FLOAT", "HALF_FLOAT"];
 
@@ -46,6 +47,8 @@ class Program {
      * @type {string}
      */
     public name: string;
+
+    public _programController: ProgramController | null;
 
     public attributes: { [id: string]: number };
 
@@ -107,6 +110,8 @@ class Program {
     constructor(name: string, material: ProgramMaterial) {
 
         this.name = name;
+
+        this._programController = null;
 
         this._attributes = {};
         for (let t in material.attributes) {
