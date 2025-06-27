@@ -219,8 +219,8 @@ class GlobusTerrain extends EmptyTerrain {
                     src: this.buildURL(x, y, z, tileGroup),
                     type: this._dataType,
                     options: {
-                    cache: this._cache
-                }
+                        cache: this._cache
+                    }
                 });
                 this._fetchCache[tileIndex] = def;
             }
