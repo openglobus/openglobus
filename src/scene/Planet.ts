@@ -66,6 +66,7 @@ export interface IPlanetParams {
     atmosphereParameters?: IAtmosphereParams;
     minDistanceBeforeMemClear?: number;
     vectorTileSize?: number;
+    maxNodesCount?: number;
 }
 
 export type PlanetEventsList = [
@@ -89,7 +90,7 @@ const MAX_LOD_SIZE = 256; //px
  * @type {number}
  * @default
  */
-const MAX_NODES = 200;
+const DEFAULT_MAX_NODES = 200;
 
 const HORIZON_TANGENT = 0.81;
 
@@ -402,6 +403,7 @@ export class Planet extends RenderNode {
 
     protected _atmosphere: Atmosphere;
     private _minDistanceBeforeMemClear: number = 0;
+    private _maxNodes: number;
 
     constructor(options: IPlanetParams = {}) {
         super(options.name);
@@ -511,6 +513,8 @@ export class Planet extends RenderNode {
         this._curLodSize = CUR_LOD_SIZE;
         this._minLodSize = MIN_LOD_SIZE;
         this._maxLodSize = MAX_LOD_SIZE;
+
+        this._maxNodes = options.maxNodesCount || DEFAULT_MAX_NODES;
 
         this._pickingColorArr = new Float32Array(this.SLICE_SIZE_4);
         this._samplerArr = new Int32Array(this.SLICE_SIZE);
@@ -1385,7 +1389,7 @@ export class Planet extends RenderNode {
         cam.checkFly();
 
         // free memory
-        if (this._createdNodesCount > MAX_NODES && this._distBeforeMemClear > this._minDistanceBeforeMemClear) {
+        if (this._createdNodesCount > this._maxNodes && this._distBeforeMemClear > this._minDistanceBeforeMemClear) {
             this.terrain!.clearCache();
             this.memClear();
         }
