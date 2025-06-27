@@ -3,10 +3,10 @@ import { LineStringDrawingScene } from "./LineStringDrawingScene";
 import { PolygonDrawingScene } from "./PolygonDrawingScene";
 
 export interface IDrawingControlParams extends IControlParams {
-    corner_options?: any;
-    center_options?: any;
-    outline_options?: any;
-    fill_options?: any;
+    cornerStyle?: any;
+    centerStyle?: any;
+    outlineStyle?: any;
+    fillStyle?: any;
 }
 
 class DrawingControl extends Control {
@@ -17,10 +17,10 @@ class DrawingControl extends Control {
 
         this._drawingScene = new LineStringDrawingScene({
             name: `drawingScene:${this.__id}`,
-            corner_options: options.corner_options || {},
-            center_options: options.center_options || {},
-            outline_options: options.outline_options || {},
-            fill_options: options.fill_options || {},
+            cornerStyle: options.cornerStyle || {},
+            centerStyle: options.centerStyle || {},
+            outlineStyle: options.outlineStyle || {},
+            fillStyle: options.fillStyle || {},
         });
     }
 
@@ -28,10 +28,10 @@ class DrawingControl extends Control {
         this.deactivate();
         this._drawingScene = new PolygonDrawingScene({
             name: `polygonDrawingScene:${this.__id}`,
-            corner_options: this._drawingScene._corner_options,
-            center_options: this._drawingScene._center_options,
-            outline_options: this._drawingScene._outline_options,
-            fill_options: this._drawingScene._fill_options,
+            cornerStyle: this._drawingScene._cornerStyle,
+            centerStyle: this._drawingScene._centerStyle,
+            outlineStyle: this._drawingScene._outlineStyle,
+            fillStyle: this._drawingScene._fillStyle,
         });
         this.activate();
     }
@@ -40,10 +40,10 @@ class DrawingControl extends Control {
         this.deactivate();
         this._drawingScene = new LineStringDrawingScene({
             name: `linestringDrawingScene:${this.__id}`,
-            corner_options: this._drawingScene._corner_options,
-            center_options: this._drawingScene._center_options,
-            outline_options: this._drawingScene._outline_options,
-            fill_options: this._drawingScene._fill_options,
+            cornerStyle: this._drawingScene._cornerStyle,
+            centerStyle: this._drawingScene._centerStyle,
+            outlineStyle: this._drawingScene._outlineStyle,
+            fillStyle: this._drawingScene._fillStyle,
         });
         this.activate();
     }

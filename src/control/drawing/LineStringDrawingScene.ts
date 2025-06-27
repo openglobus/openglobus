@@ -28,7 +28,7 @@ class LineStringDrawingScene extends PolygonDrawingScene {
         let prevCorn = corners[segNum];
 
         let corner = new Entity({
-            geoObject: this._corner_options,
+            geoObject: this._cornerStyle,
         });
 
         corner.setCartesian3v(cart);
@@ -56,7 +56,7 @@ class LineStringDrawingScene extends PolygonDrawingScene {
                 polyline: {
                     path3v: [prevPath],
                     isClosed: false,
-                    ...this._outline_options
+                    ...this._outlineStyle
                 }
             });
             entity.polyline!.altitude = OUTLINE_ALT;
@@ -65,7 +65,7 @@ class LineStringDrawingScene extends PolygonDrawingScene {
             let prevCenterCart = vecPrev.scaleTo(distPrev * 0.5).addA(prevCart);
 
             let center = new Entity({
-                geoObject: this._center_options,
+                geoObject: this._centerStyle,
             });
             center.setCartesian3v(prevCenterCart);
             center.addTo(this._centerLayer);
@@ -180,7 +180,7 @@ class LineStringDrawingScene extends PolygonDrawingScene {
                 polyline: {
                     path3v: [],
                     isClosed: false,
-                    ...this._outline_options
+                    ...this._outlineStyle
                 }
             }),
             this._ghostCorner

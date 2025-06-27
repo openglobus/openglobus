@@ -1,6 +1,8 @@
 import * as math from "../../math";
 import { createEvents, type EventsHandler } from '../../Events';
-import type { CoordinatesType } from "../../entity/Geometry";
+import type { CoordinatesType, IGeometryStyle } from "../../entity/Geometry";
+import type { IGeoObjectParams } from "../../entity/GeoObject";
+import type { IPolylineParams } from "../../entity/Polyline";
 import { Entity } from '../../entity/Entity';
 import type { IMouseState } from "../../renderer/RendererEvents";
 import { OldMouseNavigation } from "../OldMouseNavigation";
@@ -19,12 +21,13 @@ const POLYGONDRAWINGSCENE_EVENTS: PolygonDrawingSceneEventsList = ["change", "st
 
 export interface IPolygonDrawingSceneParams {
     coordinates?: CoordinatesType[];
-    corner_options?: Object;
-    center_options?: Object;
-    outline_options?: Object;
-    fill_options?: Object;
+    cornerStyle?: IGeoObjectParams;
+    centerStyle?: IGeoObjectParams;
+    outlineStyle?: IPolylineParams;
+    fillStyle?: IGeometryStyle;
     name: string;
 }
+
 
 const POINTER_OBJ3D = Object3d.createCylinder(1, 1, 2.0, 20, 1, true, false, 0, -0.5, 0);
 
@@ -34,10 +37,10 @@ export const OUTLINE_ALT = 0.3;
 class PolygonDrawingScene extends RenderNode {
     public events: EventsHandler<PolygonDrawingSceneEventsList>;
     public _planet: Planet | null;
-    public _corner_options: Object;
-    public _center_options: Object;
-    public _outline_options: Object;
-    public _fill_options: Object;
+    public _cornerStyle: IGeoObjectParams;
+    public _centerStyle: IGeoObjectParams;
+    public _outlineStyle: IPolylineParams;
+    public _fillStyle: IGeometryStyle;
     protected _initCoordinates: CoordinatesType[];
     protected _pickedCorner: Entity | null;
     protected _pickedCenter: Entity | null;
@@ -74,33 +77,33 @@ class PolygonDrawingScene extends RenderNode {
         //
         // options for vectors
         //
-        this._corner_options = {
+        this._cornerStyle = {
             scale: 0.5,
             instanced: true,
             tag: "corners",
             color: "rgb(350, 350, 0)",
             object3d: POINTER_OBJ3D,
-            ...(options.corner_options || {})
+            ...(options.cornerStyle || {})
         };
 
-        this._center_options = {
+        this._centerStyle = {
             scale: 0.4,
             instanced: true,
             tag: "centers",
             color: "rgb(0, 350, 50)",
             object3d: POINTER_OBJ3D,
-            ...(options.center_options || {})
+            ...(options.centerStyle || {})
         };
 
-        this._outline_options = {
+        this._outlineStyle = {
             thickness: 3.5,
             color: "rgb(0, 350, 50)",
-            ...(options.outline_options || {})
+            ...(options.outlineStyle || {})
         };
 
-        this._fill_options = {
+        this._fillStyle = {
             fillColor: "rgba(0,146,247,0.2)",
-            ...(options.fill_options || {})
+            ...(options.fillStyle || {})
         };
 
         //
@@ -127,7 +130,7 @@ class PolygonDrawingScene extends RenderNode {
                 polyline: {
                     path3v: [],
                     isClosed: false,
-                    ...this._outline_options
+                    ...this._outlineStyle
                 }
             })],
             pickingEnabled: false,
@@ -141,7 +144,7 @@ class PolygonDrawingScene extends RenderNode {
         // Ghost cursor pointer
         //
         this._ghostCorner = new Entity({
-            geoObject: this._corner_options
+            geoObject: this._cornerStyle
         });
 
         this._ghostOutlineLayer = new Vector("ghost-pointer", {
@@ -208,7 +211,7 @@ class PolygonDrawingScene extends RenderNode {
                 'geometry': {
                     'type': e.geometryType,
                     'coordinates': [coords],
-                    'style': this._fill_options
+                    'style': this._fillStyle
                 }
             });
             this._geometryLayer.clear();
@@ -486,7 +489,7 @@ class PolygonDrawingScene extends RenderNode {
         let prevCorn = corners[segNum];
 
         let corner = new Entity({
-            geoObject: this._corner_options,
+            geoObject: this._cornerStyle,
         });
 
         corner.setCartesian3v(cart);
@@ -524,7 +527,7 @@ class PolygonDrawingScene extends RenderNode {
                 polyline: {
                     path3v: [prevPath],
                     isClosed: false,
-                    ...this._outline_options
+                    ...this._outlineStyle
                 }
             });
             entity.polyline!.altitude = OUTLINE_ALT;
@@ -537,7 +540,7 @@ class PolygonDrawingScene extends RenderNode {
                 firstCenterCart = vecFirst.scaleTo(distFirst * 0.5).addA(firstCart);
 
             let center = new Entity({
-                geoObject: this._center_options,
+                geoObject: this._centerStyle,
             });
             center.setCartesian3v(prevCenterCart);
             center.addTo(this._centerLayer);
@@ -551,7 +554,7 @@ class PolygonDrawingScene extends RenderNode {
 
         } else {
             let center = new Entity({
-                geoObject: this._center_options,
+                geoObject: this._centerStyle,
             });
             center.addTo(this._centerLayer);
         }
@@ -723,13 +726,13 @@ class PolygonDrawingScene extends RenderNode {
                 polyline: {
                     path3v: [],
                     isClosed: false,
-                    ...this._outline_options
+                    ...this._outlineStyle
                 }
             }), new Entity({
                 polyline: {
                     path3v: [],
                     isClosed: false,
-                    ...this._outline_options
+                    ...this._outlineStyle
                 }
             }),
             this._ghostCorner
