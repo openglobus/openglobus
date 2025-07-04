@@ -13,7 +13,7 @@ function getColor(color?: number[] | TypedArray | string): Float32Array {
     } else if (typeof color === 'string') {
         return htmlColorToFloat32Array(color);
     }
-    return new Float32Array([1.0, 1.0, 1.0, 1.0]);
+    return new Float32Array([0.5, 0.5, 0.5, 1]);
 }
 
 function getColor3v(color?: NumberArray3 | TypedArray | string): Float32Array {
@@ -44,9 +44,12 @@ interface IObject3dParams {
     diffuse?: string | NumberArray3;
     specular?: string | NumberArray3;
     shininess?: number;
-    colorTexture?: string;
-    normalTexture?: string;
-    metallicRoughnessTexture?: string;
+    colorTextureSrc?: string;
+    normalTextureSrc?: string;
+    metallicRoughnessTextureSrc?: string;
+    colorTextureImage?: HTMLImageElement;
+    normalTextureImage?: HTMLImageElement;
+    metallicRoughnessTextureImage?: HTMLImageElement;
 }
 
 type MaterialParams = Pick<IObject3dParams, 'ambient' | 'diffuse' | 'specular' | 'shininess'>;
@@ -67,13 +70,15 @@ class Object3d {
     public diffuse: Float32Array;
     public specular: Float32Array;
     public shininess: number;
-    public colorTexture: string;
-    public normalTexture: string;
-    public metallicRoughnessTexture: string;
+    public colorTextureSrc: string | null;
+    public colorTextureImage: HTMLImageElement | null;
+    public normalTextureSrc: string | null;
+    public normalTextureImage: HTMLImageElement | null;
+    public metallicRoughnessTextureSrc: string | null;
+    public metallicRoughnessTextureImage: HTMLImageElement | null;
     public center: Vec3;
 
     constructor(data: IObject3dParams = {}) {
-
         this._name = data.name || "noname";
         this._vertices = data.vertices || [];
         this._numVertices = this._vertices.length / 3;
@@ -90,9 +95,12 @@ class Object3d {
         this.diffuse = getColor3v(data.diffuse);
         this.specular = getColor3v(data.specular);
         this.shininess = data.shininess || 100;
-        this.colorTexture = data.colorTexture || "";
-        this.normalTexture = data.normalTexture || "";
-        this.metallicRoughnessTexture = data.metallicRoughnessTexture || "";
+        this.colorTextureSrc = data.colorTextureSrc || null;
+        this.colorTextureImage = data.colorTextureImage || null;
+        this.normalTextureSrc = data.normalTextureSrc || null;
+        this.normalTextureImage = data.normalTextureImage || null;
+        this.metallicRoughnessTextureSrc = data.metallicRoughnessTextureSrc || null;
+        this.metallicRoughnessTextureImage = data.metallicRoughnessTextureImage || null;
 
         if (data.scale) {
             let s = data.scale;
@@ -629,9 +637,9 @@ class Object3d {
                     specular: mat.specular,
                     shininess: mat.shininess,
                     color: mat.color,
-                    colorTexture: baseUrl ? `${baseUrl}/${mat.colorTexture}` : mat.colorTexture,
-                    normalTexture: baseUrl ? `${baseUrl}/${mat.normalTexture}` : mat.normalTexture,
-                    metallicRoughnessTexture: baseUrl ? `${baseUrl}/${mat.metallicRoughnessTexture}` : mat.metallicRoughnessTexture
+                    colorTextureSrc: baseUrl ? `${baseUrl}/${mat.colorTexture}` : mat.colorTexture,
+                    normalTextureSrc: baseUrl ? `${baseUrl}/${mat.normalTexture}` : mat.normalTexture,
+                    metallicRoughnessTextureSrc: baseUrl ? `${baseUrl}/${mat.metallicRoughnessTexture}` : mat.metallicRoughnessTexture
                 })
             }
         );
@@ -658,9 +666,9 @@ class Object3d {
                     specular: mat.specular,
                     shininess: mat.shininess,
                     color: mat.color,
-                    colorTexture: mat.colorTexture,
-                    normalTexture: mat.normalTexture,
-                    metallicRoughnessTexture: mat.metallicRoughnessTexture
+                    colorTextureSrc: mat.colorTexture,
+                    normalTextureSrc: mat.normalTexture,
+                    metallicRoughnessTextureSrc: mat.metallicRoughnessTexture
                 })
             }
         );

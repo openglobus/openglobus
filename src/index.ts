@@ -86,6 +86,7 @@ import {
 } from './terrain/index';
 
 import {MoveAxisEntity} from "./control/geoObjectEditor/MoveAxisEntity";
+import { Gltf } from './utils/gltf/gltfParser';
 
 export {
     bv,
@@ -142,6 +143,6 @@ export {
     EarthQuadTreeStrategy,
     Wgs84QuadTreeStrategy,
     Object3d,
-
+    Gltf,
     MoveAxisEntity,
 };

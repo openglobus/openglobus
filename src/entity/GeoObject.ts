@@ -113,7 +113,11 @@ class GeoObject {
 
         this._localPosition = new Vec3();
 
-        this._color = utils.createColorRGBA(options.color, new Vec4(0.15, 0.15, 0.15, 1.0));
+        this._color = utils.createColorRGBA(
+            options.color, options.object3d?.color
+            ? new Vec4(...Array.from(options.object3d.color))
+            : new Vec4(0.15, 0.15, 0.15, 1.0)
+        );
 
         this._handler = null;
         this._handlerIndex = -1;

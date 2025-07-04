@@ -46,6 +46,9 @@ export class InstanceData {
     public _colorTextureSrc: string | null;
     public _normalTextureSrc: string | null;
     public _metallicRoughnessTextureSrc: string | null;
+    public _colorTextureImage: HTMLImageElement | null;
+    public _normalTextureImage: HTMLImageElement | null;
+    public _metallicRoughnessTextureImage: HTMLImageElement | null;
 
     public _objectSrc?: string;
 
@@ -99,12 +102,15 @@ export class InstanceData {
 
         this._colorTexture = null;
         this._colorTextureSrc = null;
+        this._colorTextureImage = null;
 
         this._normalTexture = null;
         this._normalTextureSrc = null;
+        this._normalTextureImage = null;
 
         this._metallicRoughnessTexture = null;
         this._metallicRoughnessTextureSrc = null;
+        this._metallicRoughnessTextureImage = null;
 
         this._sizeArr = [];
         this._translateArr = [];
@@ -413,7 +419,6 @@ export class InstanceData {
         }
 
         this._sizeArr = makeArrayTyped(this._sizeArr);
-
         h.setStreamArrayBuffer(this._sizeBuffer, this._sizeArr as Float32Array);
     }
 
