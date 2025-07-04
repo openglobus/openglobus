@@ -282,7 +282,10 @@ class RgbTerrain extends GlobusTerrain {
         if (!def) {
             def = this._loader.fetch({
                 src: this._urlRewriteCallback && this._urlRewriteCallback(x, y, z, tileGroup) || this.buildURL(x, y, z, tileGroup),
-                type: this._dataType
+                type: this._dataType,
+                options: {
+                    cache: this._cache
+                }
             });
             this._fetchCache[tileIndex] = def;
         }
