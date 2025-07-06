@@ -616,16 +616,7 @@ class Entity {
      * @param {number} val - Scale factor
      */
     public setScale(val: number) {
-        this._scale.set(val, val, val);
-        this._updateAbsolutePosition();
-        for (let i = 0; i < this.childEntities.length; i++) {
-            let chi = this.childEntities[i];
-            if (chi.forceGlobalScale) {
-                chi.setScale3v(this._scale);
-            } else {
-                chi.setScale3v(this.childEntities[i].getScale());
-            }
-        }  
+        this.setScale3v(new Vec3(val, val, val)); 
     }
 
     /**
@@ -867,7 +858,7 @@ class Entity {
 
         if (this.parent && this._relativePosition) {
             let scd = this._getScaleByDistance();
-            pos = absolutCartesian.sub(this.parent.getAbsoluteCartesian()).scale(1 / scd).divA(this._absoluteScale);
+            pos = absolutCartesian.sub(this.parent.getAbsoluteCartesian()).scale(1 / scd).divA(this.parent._absoluteScale);
             pos = this.parent._absoluteQRot.conjugate().mulVec3(pos);
         }
 
@@ -949,7 +940,7 @@ class Entity {
             this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
             parent._absoluteQRot.mulRes(this._qRot, this._absoluteQRot);
 
-            let rotCart = parent._absoluteQRot.mulVec3(this._cartesian.add(this._localPosition)).mulA(this._absoluteScale);
+            let rotCart = parent._absoluteQRot.mulVec3(this._cartesian.add(this._localPosition)).mulA(parent._absoluteScale);
             parent._absoluteLocalPosition.addRes(rotCart, this._absoluteLocalPosition);
         } else {
             this._qFrame = Quat.IDENTITY;
