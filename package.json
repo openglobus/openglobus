@@ -1,6 +1,6 @@
 {
   "name": "@openglobus/og",
-  "version": "0.25.10",
+  "version": "0.25.11",
   "description": "[openglobus](https://www.openglobus.org/) is a javascript/typescript library designed to display interactive 3d maps and planets with map tiles, imagery and vector data, markers, and 3D objects. It uses the WebGL technology, open source, and completely free.",
   "main": "lib/og.es.js",
   "types": "lib/index.d.ts",
