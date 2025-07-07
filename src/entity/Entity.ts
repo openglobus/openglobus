@@ -299,6 +299,7 @@ class Entity {
     protected _yawRad: number;
     protected _rollRad: number;
     protected _scale: Vec3;
+    protected _absoluteScale: Vec3;
     protected _qFrame: Quat;
     protected _qRot: Quat;
     public _absoluteQRot: Quat;
@@ -357,6 +358,7 @@ class Entity {
         this._rollRad = options.roll || 0;
 
         this._scale = utils.createVector3(options.scale, new Vec3(1, 1, 1));
+        this._absoluteScale = new Vec3();
 
         this._qFrame = Quat.IDENTITY;
         this._qRot = Quat.IDENTITY;
@@ -596,11 +598,8 @@ class Entity {
      * @param {Vec3} scale - Scale factor
      */
     public setScale3v(scale: Vec3) {
-
         this._scale.copy(scale);
-
-        this.geoObject && this.geoObject.setScale3v(this._scale);
-
+        this._updateAbsolutePosition();
         for (let i = 0; i < this.childEntities.length; i++) {
             let chi = this.childEntities[i];
             if (chi.forceGlobalScale) {
@@ -617,19 +616,7 @@ class Entity {
      * @param {number} val - Scale factor
      */
     public setScale(val: number) {
-
-        this._scale.set(val, val, val);
-
-        this.geoObject && this.geoObject.setScale(val);
-
-        for (let i = 0; i < this.childEntities.length; i++) {
-            let chi = this.childEntities[i];
-            if (chi.forceGlobalScale) {
-                chi.setScale(val);
-            } else {
-                chi.setScale3v(this.childEntities[i].getScale());
-            }
-        }
+        this.setScale3v(new Vec3(val, val, val)); 
     }
 
     /**
@@ -871,7 +858,7 @@ class Entity {
 
         if (this.parent && this._relativePosition) {
             let scd = this._getScaleByDistance();
-            pos = absolutCartesian.sub(this.parent.getAbsoluteCartesian()).scale(1 / scd);
+            pos = absolutCartesian.sub(this.parent.getAbsoluteCartesian()).scale(1 / scd).divA(this.parent._absoluteScale);
             pos = this.parent._absoluteQRot.conjugate().mulVec3(pos);
         }
 
@@ -945,13 +932,15 @@ class Entity {
         let parent = this.parent;
 
         if (parent && this._relativePosition) {
+            this._scale.mulRes(parent._absoluteScale, this._absoluteScale);
+            
             this._qFrame.copy(parent._qFrame);
             this._rootCartesian.copy(parent._rootCartesian);
 
             this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
             parent._absoluteQRot.mulRes(this._qRot, this._absoluteQRot);
 
-            let rotCart = parent._absoluteQRot.mulVec3(this._cartesian.add(this._localPosition));
+            let rotCart = parent._absoluteQRot.mulVec3(this._cartesian.add(this._localPosition)).mulA(parent._absoluteScale);
             parent._absoluteLocalPosition.addRes(rotCart, this._absoluteLocalPosition);
         } else {
             this._qFrame = Quat.IDENTITY;
@@ -963,12 +952,14 @@ class Entity {
             } else {
                 this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad, this._qFrame);
             }
+            this._absoluteScale.copy(this._scale);
             this._absoluteQRot.copy(this._qRot);
             this._rootCartesian.copy(this._cartesian);
             this._absoluteLocalPosition.copy(this._localPosition);
         }
 
         if (this.geoObject) {
+            this.geoObject.setScale3v(this._absoluteScale);
             this.geoObject.setRotation(this._absoluteQRot);
             this.geoObject.setPosition3v(this._rootCartesian);
             this.geoObject.setLocalPosition3v(this._absoluteLocalPosition);
