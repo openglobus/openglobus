@@ -352,7 +352,7 @@ input {
     background-color: rgba(0, 0, 0, 0.5);
     position: absolute;
     bottom: 0;
-    width: calc(100% - 6px);
+    width: 100%;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
     max-height: 25px;
