@@ -111,6 +111,7 @@ export enum MimeType {
 
 export interface Accessor {
     bufferView: number;
+    byteOffset?: number;
     componentType: AccessorComponentType;
     count: number;
     type: AccessorDataType;
@@ -123,6 +124,7 @@ export interface BufferView {
     byteLength: number;
     byteOffset: number;
     target?: BufferViewTarget;
+    byteStride?: number;
 }
 
 export enum BufferViewTarget {

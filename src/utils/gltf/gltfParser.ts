@@ -29,7 +29,6 @@ export class Gltf {
         if (this.dracoDecoderModule !== null) {
             await this.dracoDecoderModule.ready;
         }
-        console.log("load glb", data);
         return new Gltf(data);
     }
 
@@ -371,7 +370,6 @@ export class Gltf {
     }
 
     private static toObject3d(primitive: Primitive): Object3d {
-        console.log('building object3d', primitive);
         return new Object3d({
             name: primitive.name,
             vertices: Array.from(primitive.vertices as Float32Array),
@@ -393,22 +391,25 @@ export class Gltf {
     private static access(accessor: Accessor, gltf: GltfData): ArrayBufferLike {
         const bufferView = gltf.gltf.bufferViews[accessor.bufferView];
         const arrbuff = gltf.bin[bufferView.buffer];
-        const offset = bufferView.byteOffset || 0;
+        let offset = bufferView.byteOffset || 0;
+        if (accessor.byteOffset !== undefined) {
+            offset += accessor.byteOffset;
+        }
         const dv = arrbuff.slice(offset, offset + bufferView.byteLength);
         switch (accessor.type) {
             case AccessorDataType.scalar:
-                return this.getTensor(dv, accessor, 1);
+                return this.getTensor(dv, accessor, 1, bufferView.byteStride);
             case AccessorDataType.vec2:
-                return this.getTensor(dv, accessor, 2);
+                return this.getTensor(dv, accessor, 2, bufferView.byteStride);
             case AccessorDataType.vec3:
-                return this.getTensor(dv, accessor, 3);
+                return this.getTensor(dv, accessor, 3, bufferView.byteStride);
             case AccessorDataType.vec4:
             case AccessorDataType.mat2:
-                return this.getTensor(dv, accessor, 4);
+                return this.getTensor(dv, accessor, 4, bufferView.byteStride);
             case AccessorDataType.mat3:
-                return this.getTensor(dv, accessor, 9);
+                return this.getTensor(dv, accessor, 9, bufferView.byteStride);
             case AccessorDataType.mat4:
-                return this.getTensor(dv, accessor, 16);
+                return this.getTensor(dv, accessor, 16, bufferView.byteStride);
             default:
                 throw new Error("Unknown accessor type");
         }
@@ -417,7 +418,8 @@ export class Gltf {
     private static getTensor(
         buffer: ArrayBuffer,
         accessor: Accessor,
-        numOfComponents: number
+        numOfComponents: number,
+        byteStride?: number // TODO: implement byteStride handling if data not tightly packed
     ): ArrayBufferLike {
         if (accessor.componentType === AccessorComponentType.ushort) {
             return new Uint16Array(buffer, 0, accessor.count * numOfComponents);
