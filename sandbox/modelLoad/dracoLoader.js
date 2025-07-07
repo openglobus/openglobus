@@ -68,7 +68,7 @@ class MyScene extends RenderNode {
             const entity = gltf.toEntities()[0];
             entity.setScale(1);
             entity.setCartesian(20, 5, 0);
-            entity.setPitch(90 * (Math.PI / 180));
+            entity.setPitch(-90 * (Math.PI / 180));
             collection.add(entity);
             this.renderer.activeCamera.update();
         });

@@ -1,4 +1,5 @@
 import { Entity } from "../../entity";
+import { Quat } from "../../math/Quat";
 import { Vec3 } from "../../math/Vec3";
 import { Object3d } from "../../Object3d";
 import { Glb } from "./glbParser";
@@ -72,33 +73,36 @@ export class Gltf {
         return result;
     }
 
-    private nodeToEntity(node: GltfNode): Entity {
+    private nodeToEntity(node: GltfNode, parent?: Entity): Entity {
         const entity = new Entity({
             name: `node_${node.name}`,
             cartesian: new Vec3(0, 0, 0),
-            relativePosition: true,
+            relativePosition: true
         });
         let meshEntity: Entity | null = null;
-        if (node.translation !== undefined) {
+        if (node.mesh !== undefined) {
+            meshEntity = this.meshToEntity(this.meshes[node.mesh], parent);
+            entity.appendChild(meshEntity);
+        }
+        if (node.matrix !== undefined) {
+            entity.setCartesian3v(new Vec3(node.matrix[12], node.matrix[13], node.matrix[14]));
+            entity.setRotation(this.getRotation(node.matrix));
+            entity.setScale3v(this.getScaling(node.matrix));
+        }
+        if (node.translation !== undefined && node.matrix === undefined) {
             entity.relativePosition = true;
             entity.setCartesian(node.translation[0], node.translation[1], node.translation[2]);
         }
-        if (node.rotation !== undefined) {
+        if (node.rotation !== undefined && node.matrix === undefined) {
             // TODO: implement rotation by quaternion
         }
-        if (node.matrix !== undefined) {
-            // TODO: implement matrix apply
-        }
-        if (node.scale !== undefined) {
+        if (node.scale !== undefined && node.matrix === undefined) {
             entity.setScale3v(new Vec3(node.scale[0], node.scale[1], node.scale[2]));
         }
-        if (node.mesh !== undefined) {
-            meshEntity = this.meshToEntity(this.meshes[node.mesh]);
-            entity.appendChild(meshEntity);
-        }
+
         if (node.children !== undefined) {
             for (const child of node.children) {
-                const childEntity = this.nodeToEntity(this.gltf.gltf.nodes[child]);
+                const childEntity = this.nodeToEntity(this.gltf.gltf.nodes[child], entity);
                 if (meshEntity) {
                     meshEntity.appendChild(childEntity);
                 } else {
@@ -109,7 +113,74 @@ export class Gltf {
         return entity;
     }
 
-    public meshToEntity(mesh: Mesh): Entity {
+    private getScaling(mat: number[]): Vec3 {
+        let m11 = mat[0];
+        let m12 = mat[1];
+        let m13 = mat[2];
+        let m21 = mat[4];
+        let m22 = mat[5];
+        let m23 = mat[6];
+        let m31 = mat[8];
+        let m32 = mat[9];
+        let m33 = mat[10];
+
+        return new Vec3(
+            Math.sqrt(m11 * m11 + m12 * m12 + m13 * m13),
+            Math.sqrt(m21 * m21 + m22 * m22 + m23 * m23),
+            Math.sqrt(m31 * m31 + m32 * m32 + m33 * m33)
+        );
+    }
+
+    private getRotation(mat: number[]): Quat {
+        let scaling = this.getScaling(mat);
+        const out = [0, 0, 0, 1];
+
+        let is1 = 1 / scaling.x;
+        let is2 = 1 / scaling.y;
+        let is3 = 1 / scaling.z;
+
+        let sm11 = mat[0] * is1;
+        let sm12 = mat[1] * is2;
+        let sm13 = mat[2] * is3;
+        let sm21 = mat[4] * is1;
+        let sm22 = mat[5] * is2;
+        let sm23 = mat[6] * is3;
+        let sm31 = mat[8] * is1;
+        let sm32 = mat[9] * is2;
+        let sm33 = mat[10] * is3;
+
+        let trace = sm11 + sm22 + sm33;
+        let S = 0;
+
+        if (trace > 0) {
+            S = Math.sqrt(trace + 1.0) * 2;
+            out[3] = 0.25 * S;
+            out[0] = (sm23 - sm32) / S;
+            out[1] = (sm31 - sm13) / S;
+            out[2] = (sm12 - sm21) / S;
+        } else if (sm11 > sm22 && sm11 > sm33) {
+            S = Math.sqrt(1.0 + sm11 - sm22 - sm33) * 2;
+            out[3] = (sm23 - sm32) / S;
+            out[0] = 0.25 * S;
+            out[1] = (sm12 + sm21) / S;
+            out[2] = (sm31 + sm13) / S;
+        } else if (sm22 > sm33) {
+            S = Math.sqrt(1.0 + sm22 - sm11 - sm33) * 2;
+            out[3] = (sm31 - sm13) / S;
+            out[0] = (sm12 + sm21) / S;
+            out[1] = 0.25 * S;
+            out[2] = (sm23 + sm32) / S;
+        } else {
+            S = Math.sqrt(1.0 + sm33 - sm11 - sm22) * 2;
+            out[3] = (sm12 - sm21) / S;
+            out[0] = (sm31 + sm13) / S;
+            out[1] = (sm23 + sm32) / S;
+            out[2] = 0.25 * S;
+        }
+        return new Quat(out[0], out[1], out[2], out[3]);
+    }
+
+    public meshToEntity(mesh: Mesh, parent?: Entity): Entity {
         const entity = new Entity({
             name: mesh.name,
             cartesian: new Vec3(0, 0, 0),
@@ -244,13 +315,16 @@ export class Gltf {
 
     private initMeshes() {
         this.meshes = [];
-        for (const meshData of this.gltf.gltf.meshes) {
+        for (let m = 0; m < this.gltf.gltf.meshes.length; m++) {
+            const meshData = this.gltf.gltf.meshes[m];
             const mesh: Mesh = {
                 name: meshData.name,
                 primitives: []
             };
             for (let i = 0; i < meshData.primitives.length; i++) {
-                mesh.primitives.push(this.buildPrimitive(meshData, meshData.primitives[i], i));
+                mesh.primitives.push(
+                    this.buildPrimitive(meshData, meshData.primitives[i], `${m}-${i}`)
+                );
             }
             this.meshes.push(mesh);
         }
@@ -259,7 +333,7 @@ export class Gltf {
     private buildPrimitive(
         meshData: GltfMesh,
         primitiveData: GltfPrimitive,
-        index: number = 0
+        index: string
     ): Primitive {
         let primitive: Primitive | null = null;
         const material = this.materials[primitiveData.material || 0];
@@ -384,7 +458,7 @@ export class Gltf {
             colorTextureSrc: primitive.material?.baseColorTexture?.image.src,
             metallicRoughnessTextureImage: primitive.material?.occlusionTexture?.image.element,
             metallicRoughnessTextureSrc: primitive.material?.occlusionTexture?.image.src,
-            color: primitive.material?.baseColorFactor,
+            color: primitive.material?.baseColorFactor
         });
     }
 
