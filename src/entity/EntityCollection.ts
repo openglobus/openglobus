@@ -381,7 +381,7 @@ class EntityCollection {
     protected _addRecursively(entity: Entity) {
         let rn: RenderNode | null = this.renderNode;
         if (rn) {
-            if ((rn as Planet).ellipsoid && entity._cartesian.isZero()) {
+            if ((rn as Planet).ellipsoid && entity._cartesian.isZero() && !entity.relativePosition) {
                 entity.setCartesian3v((rn as Planet).ellipsoid.lonLatToCartesian(entity._lonLat));
             }
         }
