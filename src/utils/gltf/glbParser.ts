@@ -62,23 +62,26 @@ export class Glb {
     }
 
     private static parseChunks(chunks: GlbChunk[]): GltfData {
-        const result = {
-            gltf: null as unknown as GltfMetadata,
-            bin: [] as ArrayBuffer[],
-        };
+        let gltf: GltfMetadata | undefined, bin: ArrayBuffer[] = [];
         for (const chunk of chunks) {
             switch (chunk.type) {
                 case ChunkType.JSON:
-                    result.gltf = this.parseJsonChunk(chunk);
+                    gltf = this.parseJsonChunk(chunk);
                     break;
                 case ChunkType.BIN:
-                    result.bin.push(chunk.chunkData);
+                    bin.push(chunk.chunkData);
                     break;
                 default:
                     break;
             }
         }
-        return result;
+        if (gltf === undefined) {
+            throw new Error('GLB json data extraction failed');
+        }
+        return {
+            gltf,
+            bin
+        };
     }
 
     private static parseJsonChunk(chunk: GlbChunk): GltfMetadata {

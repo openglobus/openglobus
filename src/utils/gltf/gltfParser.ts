@@ -1,3 +1,4 @@
+import { DecoderModule } from "draco3d";
 import { Entity } from "../../entity";
 import { Quat } from "../../math/Quat";
 import { Vec3 } from "../../math/Vec3";
@@ -13,7 +14,6 @@ import {
     Mesh,
     Primitive,
     PrimitiveMode,
-    Texture,
     MimeType,
     GltfNode,
     GltfMesh,
@@ -21,38 +21,41 @@ import {
 } from "./types";
 
 export class Gltf {
-    private static dracoDecoderModule: any = null;
+    private static _dracoDecoderModule: DecoderModule | null = null;
     public static connectDracoDecoderModule(decoder: any): void {
-        this.dracoDecoderModule = decoder;
+        Gltf._dracoDecoderModule = decoder;
     }
     public static async loadGlb(url: string) {
         const data = await Glb.load(url);
-        if (this.dracoDecoderModule !== null) {
-            await this.dracoDecoderModule.ready;
-        }
         return new Gltf(data);
     }
 
-    private materials: Material[] = [];
-    private images: TextureImage[] = [];
+    private _materials: Material[] = [];
+    private _images: TextureImage[] = [];
     public meshes: Mesh[] = [];
 
     constructor(private gltf: GltfData) {
         if (
             gltf.gltf.extensionsRequired?.includes("KHR_draco_mesh_compression") &&
-            Gltf.dracoDecoderModule === null
+            Gltf._dracoDecoderModule === null
         ) {
             throw new Error("Unable to import GLTF. Draco decoder module is not connected");
         }
-        this.initImages();
-        this.initMaterials();
-        this.initMeshes();
+        this._initImages();
+        this._initMaterials();
+        this._initMeshes();
     }
 
     public getObjects3d(): Object3d[] {
-        return this.meshes
-            .map((mesh) => mesh.primitives.map((primitive) => Gltf.toObject3d(primitive)))
-            .flat();
+        const result: Object3d[] = [];
+        for (let m = 0; m < this.meshes.length; m++) {
+            for (let p = 0; p < this.meshes[m].primitives.length; p++) {
+                if (this.meshes[m].primitives[p].object3d !== undefined) {
+                    result.push(this.meshes[m].primitives[p].object3d!);
+                }
+            }
+        }
+        return result;
     }
 
     public toEntities(): Entity[] {
@@ -66,18 +69,18 @@ export class Gltf {
                 if (nodeData.mesh === undefined && nodeData.children === undefined) {
                     continue;
                 }
-                result.push(this.nodeToEntity(nodeData));
+                result.push(this._nodeToEntity(nodeData));
             }
         }
 
         return result;
     }
 
-    private nodeToEntity(node: GltfNode, parent?: Entity): Entity {
+    private _nodeToEntity(node: GltfNode, parent?: Entity): Entity {
         const entity = new Entity({
             name: `node_${node.name}`,
             cartesian: new Vec3(0, 0, 0),
-            relativePosition: true
+            relativePosition: parent !== undefined,
         });
         let meshEntity: Entity | null = null;
         if (node.mesh !== undefined) {
@@ -86,8 +89,8 @@ export class Gltf {
         }
         if (node.matrix !== undefined) {
             entity.setCartesian3v(new Vec3(node.matrix[12], node.matrix[13], node.matrix[14]));
-            entity.setRotation(this.getRotation(node.matrix));
-            entity.setScale3v(this.getScaling(node.matrix));
+            entity.setRotation(this._getRotation(node.matrix));
+            entity.setScale3v(this._getScaling(node.matrix));
         }
         if (node.translation !== undefined && node.matrix === undefined) {
             entity.relativePosition = true;
@@ -102,7 +105,7 @@ export class Gltf {
 
         if (node.children !== undefined) {
             for (const child of node.children) {
-                const childEntity = this.nodeToEntity(this.gltf.gltf.nodes[child], entity);
+                const childEntity = this._nodeToEntity(this.gltf.gltf.nodes[child], entity);
                 if (meshEntity) {
                     meshEntity.appendChild(childEntity);
                 } else {
@@ -113,7 +116,7 @@ export class Gltf {
         return entity;
     }
 
-    private getScaling(mat: number[]): Vec3 {
+    private _getScaling(mat: number[]): Vec3 {
         let m11 = mat[0];
         let m12 = mat[1];
         let m13 = mat[2];
@@ -131,8 +134,8 @@ export class Gltf {
         );
     }
 
-    private getRotation(mat: number[]): Quat {
-        let scaling = this.getScaling(mat);
+    private _getRotation(mat: number[]): Quat {
+        let scaling = this._getScaling(mat);
         const out = [0, 0, 0, 1];
 
         let is1 = 1 / scaling.x;
@@ -202,21 +205,21 @@ export class Gltf {
         return entity;
     }
 
-    private initImages() {
+    private _initImages() {
         if (!this.gltf.gltf.images) {
             return;
         }
         for (const image of this.gltf.gltf.images) {
-            this.images.push({
+            this._images.push({
                 src: image.uri,
-                element: this.getImage(image.mimeType, image.bufferView),
+                element: this._getImage(image.mimeType, image.bufferView),
                 mimeType: image.mimeType,
                 name: image.name
             });
         }
     }
 
-    private getImage(mimeType?: MimeType, bufferView?: number): HTMLImageElement | undefined {
+    private _getImage(mimeType?: MimeType, bufferView?: number): HTMLImageElement | undefined {
         if (bufferView && mimeType) {
             const view = this.gltf.gltf.bufferViews[bufferView];
             const url = URL.createObjectURL(
@@ -238,7 +241,7 @@ export class Gltf {
         }
     }
 
-    private initMaterials() {
+    private _initMaterials() {
         if (!this.gltf.gltf.materials) {
             return;
         }
@@ -261,7 +264,7 @@ export class Gltf {
                         ].source;
                     if (source !== undefined) {
                         mat.baseColorTexture = {
-                            image: this.images[source],
+                            image: this._images[source],
                             texCoord: material.pbrMetallicRoughness.baseColorTexture.texCoord
                         };
                     }
@@ -273,7 +276,7 @@ export class Gltf {
                         ].source;
                     if (source !== undefined) {
                         mat.metallicRoughnessTexture = {
-                            image: this.images[source],
+                            image: this._images[source],
                             texCoord:
                                 material.pbrMetallicRoughness.metallicRoughnessTexture.texCoord
                         };
@@ -284,7 +287,7 @@ export class Gltf {
                 const source = this.gltf.gltf.textures[material.normalTexture.index].source;
                 if (source !== undefined) {
                     mat.normalTexture = {
-                        image: this.images[source],
+                        image: this._images[source],
                         texCoord: material.normalTexture.texCoord,
                         scale: material.normalTexture.scale
                     };
@@ -294,7 +297,7 @@ export class Gltf {
                 const source = this.gltf.gltf.textures[material.occlusionTexture.index].source;
                 if (source !== undefined) {
                     mat.occlusionTexture = {
-                        image: this.images[source],
+                        image: this._images[source],
                         texCoord: material.occlusionTexture.texCoord,
                         strength: material.occlusionTexture.strength
                     };
@@ -304,16 +307,16 @@ export class Gltf {
                 const source = this.gltf.gltf.textures[material.emissiveTexture.index].source;
                 if (source !== undefined) {
                     mat.emissiveTexture = {
-                        image: this.images[source],
+                        image: this._images[source],
                         texCoord: material.emissiveTexture.texCoord
                     };
                 }
             }
-            this.materials.push(mat);
+            this._materials.push(mat);
         }
     }
 
-    private initMeshes() {
+    private _initMeshes() {
         this.meshes = [];
         for (let m = 0; m < this.gltf.gltf.meshes.length; m++) {
             const meshData = this.gltf.gltf.meshes[m];
@@ -323,20 +326,20 @@ export class Gltf {
             };
             for (let i = 0; i < meshData.primitives.length; i++) {
                 mesh.primitives.push(
-                    this.buildPrimitive(meshData, meshData.primitives[i], `${m}-${i}`)
+                    this._buildPrimitive(meshData, meshData.primitives[i], `${m}-${i}`)
                 );
             }
             this.meshes.push(mesh);
         }
     }
 
-    private buildPrimitive(
+    private _buildPrimitive(
         meshData: GltfMesh,
         primitiveData: GltfPrimitive,
         index: string
     ): Primitive {
         let primitive: Primitive | null = null;
-        const material = this.materials[primitiveData.material || 0];
+        const material = this._materials[primitiveData.material || 0];
         const texcoord = material.baseColorTexture?.texCoord
             ? `TEXCOORD_${material.baseColorTexture.texCoord}`
             : `TEXCOORD_0`;
@@ -344,11 +347,11 @@ export class Gltf {
             const dracoExt = primitiveData.extensions.KHR_draco_mesh_compression;
             const bufferView = this.gltf.gltf.bufferViews[dracoExt.bufferView];
             const bvOffset = bufferView.byteOffset || 0;
-            const draco = Gltf.dracoDecoderModule;
+            const draco: DecoderModule = Gltf._dracoDecoderModule as DecoderModule;
             const decoder = new draco.Decoder();
             const decoderBuffer = new draco.DecoderBuffer();
             decoderBuffer.Init(
-                new Uint8Array(
+                new Int8Array(
                     this.gltf.bin[bufferView.buffer].slice(
                         bvOffset,
                         bvOffset + bufferView.byteLength
@@ -409,7 +412,7 @@ export class Gltf {
                 vertices: attributes.POSITION,
                 indices: indices,
                 mode: primitiveData.mode ? primitiveData.mode : PrimitiveMode.triangles,
-                material: this.materials[primitiveData.material || 0] || undefined,
+                material: this._materials[primitiveData.material || 0] || undefined,
                 normals: attributes.NORMAL,
                 texCoords: undefined
             };
@@ -421,29 +424,29 @@ export class Gltf {
             primitive = {
                 name: `${meshData.name}_${material.name}_${index}`,
                 indices: primitiveData.indices
-                    ? Gltf.access(this.gltf.gltf.accessors[primitiveData.indices], this.gltf)
+                    ? Gltf._access(this.gltf.gltf.accessors[primitiveData.indices], this.gltf)
                     : undefined,
                 mode: primitiveData.mode ? primitiveData.mode : PrimitiveMode.triangles,
-                material: this.materials[primitiveData.material || 0] || undefined,
-                vertices: Gltf.access(
+                material: this._materials[primitiveData.material || 0] || undefined,
+                vertices: Gltf._access(
                     this.gltf.gltf.accessors[primitiveData.attributes.POSITION],
                     this.gltf
                 ),
-                normals: Gltf.access(
+                normals: Gltf._access(
                     this.gltf.gltf.accessors[primitiveData.attributes.NORMAL],
                     this.gltf
                 ),
-                texCoords: texcoordAccessor ? Gltf.access(texcoordAccessor, this.gltf) : undefined
+                texCoords: texcoordAccessor ? Gltf._access(texcoordAccessor, this.gltf) : undefined
             };
         }
         if (primitive === null) {
             throw new Error("Unable to build primitive");
         }
-        primitive.object3d = Gltf.toObject3d(primitive);
+        primitive.object3d = Gltf._toObject3d(primitive);
         return primitive;
     }
 
-    private static toObject3d(primitive: Primitive): Object3d {
+    private static _toObject3d(primitive: Primitive): Object3d {
         return new Object3d({
             name: primitive.name,
             vertices: Array.from(primitive.vertices as Float32Array),
@@ -462,7 +465,7 @@ export class Gltf {
         });
     }
 
-    private static access(accessor: Accessor, gltf: GltfData): ArrayBufferLike {
+    private static _access(accessor: Accessor, gltf: GltfData): ArrayBufferLike {
         const bufferView = gltf.gltf.bufferViews[accessor.bufferView];
         const arrbuff = gltf.bin[bufferView.buffer];
         let offset = bufferView.byteOffset || 0;
@@ -472,24 +475,24 @@ export class Gltf {
         const dv = arrbuff.slice(offset, offset + bufferView.byteLength);
         switch (accessor.type) {
             case AccessorDataType.scalar:
-                return this.getTensor(dv, accessor, 1, bufferView.byteStride);
+                return this._getTensor(dv, accessor, 1, bufferView.byteStride);
             case AccessorDataType.vec2:
-                return this.getTensor(dv, accessor, 2, bufferView.byteStride);
+                return this._getTensor(dv, accessor, 2, bufferView.byteStride);
             case AccessorDataType.vec3:
-                return this.getTensor(dv, accessor, 3, bufferView.byteStride);
+                return this._getTensor(dv, accessor, 3, bufferView.byteStride);
             case AccessorDataType.vec4:
             case AccessorDataType.mat2:
-                return this.getTensor(dv, accessor, 4, bufferView.byteStride);
+                return this._getTensor(dv, accessor, 4, bufferView.byteStride);
             case AccessorDataType.mat3:
-                return this.getTensor(dv, accessor, 9, bufferView.byteStride);
+                return this._getTensor(dv, accessor, 9, bufferView.byteStride);
             case AccessorDataType.mat4:
-                return this.getTensor(dv, accessor, 16, bufferView.byteStride);
+                return this._getTensor(dv, accessor, 16, bufferView.byteStride);
             default:
                 throw new Error("Unknown accessor type");
         }
     }
 
-    private static getTensor(
+    private static _getTensor(
         buffer: ArrayBuffer,
         accessor: Accessor,
         numOfComponents: number,
