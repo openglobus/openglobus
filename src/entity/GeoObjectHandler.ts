@@ -110,9 +110,9 @@ export class GeoObjectHandler {
         //
         // in case of lazy initialization loading data here
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
-            this._loadColorTexture(this._instanceDataMapValues[i]);
-            this._loadNormalTexture(this._instanceDataMapValues[i]);
-            this._loadMetallicRoughnessTexture(this._instanceDataMapValues[i]);
+            this._instanceDataMapValues[i].loadColorTexture();
+            this._instanceDataMapValues[i].loadNormalTexture();
+            this._instanceDataMapValues[i].loadMetallicRoughnessTexture();
         }
 
         for (let i = 0; i < this._geoObjects.length; i++) {
@@ -134,7 +134,7 @@ export class GeoObjectHandler {
                 tagData._colorTextureImage = src;
             }
             this._instanceDataMap.set(tag, tagData);
-            this._loadColorTexture(tagData);
+            tagData.loadColorTexture();
         }
     }
 
@@ -150,7 +150,7 @@ export class GeoObjectHandler {
                 tagData._normalTextureImage = src;
             }
             this._instanceDataMap.set(tag, tagData);
-            this._loadNormalTexture(tagData);
+            tagData.loadNormalTexture();
         }
     }
 
@@ -166,7 +166,7 @@ export class GeoObjectHandler {
                 tagData._metallicRoughnessTextureImage = src;
             }
             this._instanceDataMap.set(tag, tagData);
-            this._loadMetallicRoughnessTexture(tagData);
+            tagData.loadMetallicRoughnessTexture();
         }
     }
 
@@ -211,9 +211,9 @@ export class GeoObjectHandler {
             tagData._metallicRoughnessTextureImage = object.metallicRoughnessTextureImage;
 
 
-            this._loadColorTexture(tagData);
-            this._loadNormalTexture(tagData);
-            this._loadMetallicRoughnessTexture(tagData);
+            tagData.loadColorTexture();
+            tagData.loadNormalTexture();
+            tagData.loadMetallicRoughnessTexture();
 
             this._updateTag(tagData);
             this._instanceDataMapValues = Array.from(this._instanceDataMap.values());
@@ -251,9 +251,9 @@ export class GeoObjectHandler {
                 geoObject.object3d.shininess
             );
 
-            this._loadColorTexture(tagData);
-            this._loadNormalTexture(tagData);
-            this._loadMetallicRoughnessTexture(tagData);
+            tagData.loadColorTexture();
+            tagData.loadNormalTexture();
+            tagData.loadMetallicRoughnessTexture();
         }
 
         geoObject._tagDataIndex = tagData.numInstances++;
@@ -513,54 +513,6 @@ export class GeoObjectHandler {
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer!);
             p.drawElementsInstanced!(gl.TRIANGLES, tagData._indicesBuffer!.numItems, gl.UNSIGNED_INT, 0, tagData.numInstances);
-        }
-    }
-
-    async _loadColorTexture(tagData: InstanceData) {
-        if (!this._renderer) {
-            return;
-        }
-        if (tagData._colorTextureSrc) {
-            const image = await loadImage(tagData._colorTextureSrc);
-            tagData.createColorTexture(image);
-            return;
-        }
-        if (tagData._colorTextureImage) {
-            await tagData._colorTextureImage.decode();
-            tagData.createColorTexture(tagData._colorTextureImage);
-            return;
-        }
-    }
-
-    async _loadNormalTexture(tagData: InstanceData) {
-        if (!this._renderer) {
-            return;
-        }
-        if (tagData._normalTextureSrc) {
-            const image = await loadImage(tagData._normalTextureSrc);
-            tagData.createNormalTexture(image);
-            return;
-        }
-        if (tagData._normalTextureImage) {
-            await tagData._normalTextureImage.decode();
-            tagData.createNormalTexture(tagData._normalTextureImage);
-            return;
-        }
-    }
-
-    async _loadMetallicRoughnessTexture(tagData: InstanceData) {
-        if (!this._renderer) {
-            return;
-        }
-        if (tagData._metallicRoughnessTextureSrc) {
-            const image = await loadImage(tagData._metallicRoughnessTextureSrc);
-            tagData.createMetallicRoughnessTexture(image);
-            return;
-        }
-        if (tagData._metallicRoughnessTextureImage) {
-            await tagData._metallicRoughnessTextureImage.decode();
-            tagData.createMetallicRoughnessTexture(tagData._metallicRoughnessTextureImage);
-            return;
         }
     }
 

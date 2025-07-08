@@ -1,6 +1,6 @@
 import {GeoObject} from "./GeoObject";
 import type {WebGLBufferExt, WebGLTextureExt} from "../webgl/Handler";
-import {makeArrayTyped} from "../utils/shared";
+import {loadImage, makeArrayTyped} from "../utils/shared";
 import type {TypedArray} from "../utils/shared";
 import {Program} from "../webgl/Program";
 import {GeoObjectHandler} from "./GeoObjectHandler";
@@ -294,24 +294,51 @@ export class InstanceData {
         p.drawElementsInstanced!(gl.TRIANGLES, this._indicesBuffer!.numItems, gl.UNSIGNED_INT, 0, this.numInstances);
     }
 
-    public createColorTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
-        if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
-            let h = this._geoObjectHandler._renderer.handler;
-            this._colorTexture = h.createTextureDefault(image, null, h.gl!.REPEAT);
+    public async loadColorTexture() {
+        if (!this._geoObjectHandler._renderer) {
+            return;
+        }
+        if (this._colorTextureSrc) {
+            const image = await loadImage(this._colorTextureSrc);
+            this._createColorTexture(image);
+            return;
+        }
+        if (this._colorTextureImage) {
+            await this._colorTextureImage.decode();
+            this._createColorTexture(this._colorTextureImage);
+            return;
         }
     }
 
-    public createNormalTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
-        if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
-            let h = this._geoObjectHandler._renderer.handler;
-            this._normalTexture = h.createTextureDefault(image, null, h.gl!.REPEAT);
+    public async loadNormalTexture() {
+        if (!this._geoObjectHandler._renderer) {
+            return;
+        }
+        if (this._normalTextureSrc) {
+            const image = await loadImage(this._normalTextureSrc);
+            this._createNormalTexture(image);
+            return;
+        }
+        if (this._normalTextureImage) {
+            await this._normalTextureImage.decode();
+            this._createNormalTexture(this._normalTextureImage);
+            return;
         }
     }
 
-    public createMetallicRoughnessTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
-        if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
-            let h = this._geoObjectHandler._renderer.handler;
-            this._metallicRoughnessTexture = h.createTextureDefault(image, null, h.gl!.REPEAT);
+    public async loadMetallicRoughnessTexture() {
+        if (!this._geoObjectHandler._renderer) {
+            return;
+        }
+        if (this._metallicRoughnessTextureSrc) {
+            const image = await loadImage(this._metallicRoughnessTextureSrc);
+            this._createMetallicRoughnessTexture(image);
+            return;
+        }
+        if (this._metallicRoughnessTextureImage) {
+            await this._metallicRoughnessTextureImage.decode();
+            this._createMetallicRoughnessTexture(this._metallicRoughnessTextureImage);
+            return;
         }
     }
 
@@ -542,6 +569,27 @@ export class InstanceData {
                 }
             }
             this.isFree = true;
+        }
+    }
+
+    private _createColorTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
+        if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
+            let h = this._geoObjectHandler._renderer.handler;
+            this._colorTexture = h.createTextureDefault(image, null, h.gl!.REPEAT);
+        }
+    }
+
+    private _createNormalTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
+        if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
+            let h = this._geoObjectHandler._renderer.handler;
+            this._normalTexture = h.createTextureDefault(image, null, h.gl!.REPEAT);
+        }
+    }
+
+    private _createMetallicRoughnessTexture(image: HTMLCanvasElement | ImageBitmap | ImageData | HTMLImageElement) {
+        if (this._geoObjectHandler && this._geoObjectHandler._renderer) {
+            let h = this._geoObjectHandler._renderer.handler;
+            this._metallicRoughnessTexture = h.createTextureDefault(image, null, h.gl!.REPEAT);
         }
     }
 }
