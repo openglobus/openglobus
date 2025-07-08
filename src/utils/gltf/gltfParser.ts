@@ -2,6 +2,7 @@ import { DecoderModule } from "draco3d";
 import { Entity } from "../../entity";
 import { Quat } from "../../math/Quat";
 import { Vec3 } from "../../math/Vec3";
+import { Mat4, NumberArray16 } from "../../math/Mat4";
 import { Object3d } from "../../Object3d";
 import { Glb } from "./glbParser";
 import {
@@ -88,9 +89,11 @@ export class Gltf {
             entity.appendChild(meshEntity);
         }
         if (node.matrix !== undefined) {
-            entity.setCartesian3v(new Vec3(node.matrix[12], node.matrix[13], node.matrix[14]));
-            entity.setRotation(this._getRotation(node.matrix));
-            entity.setScale3v(this._getScaling(node.matrix));
+            const mat = new Mat4();
+            mat.set(node.matrix as NumberArray16);
+            entity.setCartesian3v(mat.getPosition());
+            entity.setRotation(mat.getQuat());
+            entity.setScale3v(mat.getScaling());
         }
         if (node.translation !== undefined && node.matrix === undefined) {
             entity.relativePosition = true;
@@ -114,73 +117,6 @@ export class Gltf {
             }
         }
         return entity;
-    }
-
-    private _getScaling(mat: number[]): Vec3 {
-        let m11 = mat[0];
-        let m12 = mat[1];
-        let m13 = mat[2];
-        let m21 = mat[4];
-        let m22 = mat[5];
-        let m23 = mat[6];
-        let m31 = mat[8];
-        let m32 = mat[9];
-        let m33 = mat[10];
-
-        return new Vec3(
-            Math.sqrt(m11 * m11 + m12 * m12 + m13 * m13),
-            Math.sqrt(m21 * m21 + m22 * m22 + m23 * m23),
-            Math.sqrt(m31 * m31 + m32 * m32 + m33 * m33)
-        );
-    }
-
-    private _getRotation(mat: number[]): Quat {
-        let scaling = this._getScaling(mat);
-        const out = [0, 0, 0, 1];
-
-        let is1 = 1 / scaling.x;
-        let is2 = 1 / scaling.y;
-        let is3 = 1 / scaling.z;
-
-        let sm11 = mat[0] * is1;
-        let sm12 = mat[1] * is2;
-        let sm13 = mat[2] * is3;
-        let sm21 = mat[4] * is1;
-        let sm22 = mat[5] * is2;
-        let sm23 = mat[6] * is3;
-        let sm31 = mat[8] * is1;
-        let sm32 = mat[9] * is2;
-        let sm33 = mat[10] * is3;
-
-        let trace = sm11 + sm22 + sm33;
-        let S = 0;
-
-        if (trace > 0) {
-            S = Math.sqrt(trace + 1.0) * 2;
-            out[3] = 0.25 * S;
-            out[0] = (sm23 - sm32) / S;
-            out[1] = (sm31 - sm13) / S;
-            out[2] = (sm12 - sm21) / S;
-        } else if (sm11 > sm22 && sm11 > sm33) {
-            S = Math.sqrt(1.0 + sm11 - sm22 - sm33) * 2;
-            out[3] = (sm23 - sm32) / S;
-            out[0] = 0.25 * S;
-            out[1] = (sm12 + sm21) / S;
-            out[2] = (sm31 + sm13) / S;
-        } else if (sm22 > sm33) {
-            S = Math.sqrt(1.0 + sm22 - sm11 - sm33) * 2;
-            out[3] = (sm31 - sm13) / S;
-            out[0] = (sm12 + sm21) / S;
-            out[1] = 0.25 * S;
-            out[2] = (sm23 + sm32) / S;
-        } else {
-            S = Math.sqrt(1.0 + sm33 - sm11 - sm22) * 2;
-            out[3] = (sm12 - sm21) / S;
-            out[0] = (sm31 + sm13) / S;
-            out[1] = (sm23 + sm32) / S;
-            out[2] = 0.25 * S;
-        }
-        return new Quat(out[0], out[1], out[2], out[3]);
     }
 
     public meshToEntity(mesh: Mesh, parent?: Entity): Entity {
