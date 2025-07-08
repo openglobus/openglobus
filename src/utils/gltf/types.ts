@@ -73,23 +73,20 @@ export interface GltfPrimitive {
     indices?: number;
     material?: number;
     mode?: PrimitiveMode;
-    attributes: {
-        POSITION: number;
-        NORMAL: number;
-        [key: string]: any;
-    };
+    attributes: PrimitiveAttributes;
     extensions?: {
         [key: string]: any;
         KHR_draco_mesh_compression?: {
             bufferView: number;
-            attributes: {
-                POSITION: number;
-                NORMAL: number;
-                [key: string]: any;
-            };
-        }
+            attributes: PrimitiveAttributes;
+        };
     };
 }
+
+export type PrimitiveAttributes = {
+    POSITION: number;
+    NORMAL: number;
+} & Record<string, number>;
 
 export interface GltfNode {
     camera?: number;
