@@ -7,7 +7,7 @@ import {stringTemplate} from "../utils/shared";
 import type {EventsHandler} from "../Events";
 import {Material} from "./Material";
 import type {NumberArray4} from "../math/Vec4";
-import type {IResponse} from "../utils/Loader";
+import type {FetchCache, IResponse} from "../utils/Loader";
 
 export interface IXYZParams extends ILayerParams {
     url?: string;
@@ -20,7 +20,7 @@ export interface IXYZParams extends ILayerParams {
      * https://developer.mozilla.org/en-US/docs/Web/API/Request/cache
      * @default "default"
      */
-    cache?: string;
+    cache?: FetchCache;
 }
 
 type XYZEventsList = [
@@ -104,7 +104,7 @@ export class XYZ extends Layer {
 
     protected _requestCount: number;
 
-    protected _cache: string;
+    protected _cache: FetchCache;
 
     constructor(name: string | null, options: IXYZParams = {}) {
         super(name, options);

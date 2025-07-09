@@ -8,7 +8,7 @@ import type {IEmptyTerrainParams, UrlRewriteFunc} from "./EmptyTerrain";
 import {Extent} from "../Extent";
 import {Layer} from "../layer/Layer";
 import {Loader} from "../utils/Loader";
-import type {IResponse} from "../utils/Loader";
+import type {FetchCache, IResponse} from "../utils/Loader";
 import {LonLat} from "../LonLat";
 import {NOTRENDERING} from "../quadTree/quadTree";
 import {Segment, TILEGROUP_COMMON} from "../segment/Segment";
@@ -29,7 +29,7 @@ export interface IGlobusTerrainParams extends IEmptyTerrainParams {
      * https://developer.mozilla.org/en-US/docs/Web/API/Request/cache
      * @default "default"
      */
-    cache?: string;
+    cache?: FetchCache;
 }
 
 type TileData = {
@@ -95,7 +95,7 @@ class GlobusTerrain extends EmptyTerrain {
 
     protected _heightFactor: number;
 
-    protected _cache: string;
+    protected _cache: FetchCache;
 
 
     constructor(name: string = "", options: IGlobusTerrainParams = {}) {
@@ -146,7 +146,7 @@ class GlobusTerrain extends EmptyTerrain {
 
         this._fetchCache = {};
 
-        this._cache = options.cache || "";
+        this._cache = options.cache || "default";
 
         this._loader = new Loader<GlobusTerrain>();
 

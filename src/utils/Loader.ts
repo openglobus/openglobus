@@ -15,6 +15,8 @@ export interface IResponse {
 
 type IResponseCallback = (response: IResponse) => void;
 
+export type FetchCache = 'default' | 'no-store' | 'no-cache' | 'reload' | 'force-cache' | 'only-if-cached';
+
 // interface IResponseHandler {
 //     json: (r: Response) => Promise<any>;
 //     blob: (r: Response) => Promise<Blob>;
