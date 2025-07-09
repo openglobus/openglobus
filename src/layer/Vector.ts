@@ -355,8 +355,6 @@ class Vector extends Layer {
     protected _proceedEntity(entity: Entity, rightNow: boolean = false) {
         let temp = this._hasImageryTiles;
 
-        let isEmpty = !(entity.strip || entity.polyline || entity.ray || entity.geoObject || entity.geometry);
-
         if (entity.strip) {
             this._stripEntityCollection.add(entity);
         }
@@ -365,7 +363,7 @@ class Vector extends Layer {
             this._polylineEntityCollection.add(entity);
         }
 
-        if (entity.geoObject || isEmpty) {
+        if (entity.geoObject || entity.isEmpty) {
             this._geoObjectEntityCollection.add(entity);
         }
 
@@ -378,7 +376,7 @@ class Vector extends Layer {
         }
 
         if (this._planet) {
-            if (entity.billboard || entity.label || entity.geoObject || isEmpty) {
+            if (entity.billboard || entity.label || entity.geoObject || entity.isEmpty) {
                 if (entity._cartesian.isZero() && !entity._lonLat.isZero()) {
                     entity._setCartesian3vSilent(
                         this._planet.ellipsoid.lonLatToCartesian(entity._lonLat)
