@@ -75,6 +75,78 @@ export class Mat4 {
         return new Mat4().setRotation(up, angle);
     }
 
+    public getPosition(): Vec3 {
+        return new Vec3(this._m[12], this._m[13], this._m[14]);
+    }
+
+    public getScaling(): Vec3 {
+        let m11 = this._m[0];
+        let m12 = this._m[1];
+        let m13 = this._m[2];
+        let m21 = this._m[4];
+        let m22 = this._m[5];
+        let m23 = this._m[6];
+        let m31 = this._m[8];
+        let m32 = this._m[9];
+        let m33 = this._m[10];
+
+        return new Vec3(
+            Math.sqrt(m11 * m11 + m12 * m12 + m13 * m13),
+            Math.sqrt(m21 * m21 + m22 * m22 + m23 * m23),
+            Math.sqrt(m31 * m31 + m32 * m32 + m33 * m33)
+        );
+    }
+
+    public getQuat(): Quat {
+        let scaling = this.getScaling();
+        const out = [0, 0, 0, 1];
+
+        let is1 = 1 / scaling.x;
+        let is2 = 1 / scaling.y;
+        let is3 = 1 / scaling.z;
+
+        let sm11 = this._m[0] * is1;
+        let sm12 = this._m[1] * is2;
+        let sm13 = this._m[2] * is3;
+        let sm21 = this._m[4] * is1;
+        let sm22 = this._m[5] * is2;
+        let sm23 = this._m[6] * is3;
+        let sm31 = this._m[8] * is1;
+        let sm32 = this._m[9] * is2;
+        let sm33 = this._m[10] * is3;
+
+        let trace = sm11 + sm22 + sm33;
+        let S = 0;
+
+        if (trace > 0) {
+            S = Math.sqrt(trace + 1.0) * 2;
+            out[3] = 0.25 * S;
+            out[0] = (sm23 - sm32) / S;
+            out[1] = (sm31 - sm13) / S;
+            out[2] = (sm12 - sm21) / S;
+        } else if (sm11 > sm22 && sm11 > sm33) {
+            S = Math.sqrt(1.0 + sm11 - sm22 - sm33) * 2;
+            out[3] = (sm23 - sm32) / S;
+            out[0] = 0.25 * S;
+            out[1] = (sm12 + sm21) / S;
+            out[2] = (sm31 + sm13) / S;
+        } else if (sm22 > sm33) {
+            S = Math.sqrt(1.0 + sm22 - sm11 - sm33) * 2;
+            out[3] = (sm31 - sm13) / S;
+            out[0] = (sm12 + sm21) / S;
+            out[1] = 0.25 * S;
+            out[2] = (sm23 + sm32) / S;
+        } else {
+            S = Math.sqrt(1.0 + sm33 - sm11 - sm22) * 2;
+            out[3] = (sm12 - sm21) / S;
+            out[0] = (sm31 + sm13) / S;
+            out[1] = (sm23 + sm32) / S;
+            out[2] = 0.25 * S;
+        }
+        return new Quat(...out);
+    }
+
+
     /**
      * Sets column-major order array matrix.
      * @public

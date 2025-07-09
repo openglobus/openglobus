@@ -683,10 +683,10 @@ class Entity {
      * @param {Quat} rot - The new rotation quaternion.
      */
     public setRotation(rot: Quat) {
-        //this._qRot.copy(rot);
-        //
-        //@todo when necessary
-        //
+        this._pitchRad = rot.getPitch();
+        this._yawRad = rot.getYaw();
+        this._rollRad = rot.getRoll();
+        this._updateAbsolutePosition();
     }
 
     /**

@@ -110,9 +110,9 @@ export class GeoObjectHandler {
         //
         // in case of lazy initialization loading data here
         for (let i = 0; i < this._instanceDataMapValues.length; i++) {
-            this._loadColorTexture(this._instanceDataMapValues[i]);
-            this._loadNormalTexture(this._instanceDataMapValues[i]);
-            this._loadMetallicRoughnessTexture(this._instanceDataMapValues[i]);
+            this._instanceDataMapValues[i].loadColorTexture();
+            this._instanceDataMapValues[i].loadNormalTexture();
+            this._instanceDataMapValues[i].loadMetallicRoughnessTexture();
         }
 
         for (let i = 0; i < this._geoObjects.length; i++) {
@@ -122,30 +122,51 @@ export class GeoObjectHandler {
         this.update();
     }
 
-    public setColorTextureTag(src: string, tag: string) {
+    public setColorTextureTag(src: string | HTMLImageElement, tag: string) {
         const tagData = this._instanceDataMap.get(tag);
         if (tagData) {
-            tagData._colorTextureSrc = src;
+            if (typeof src === 'string') {
+                tagData._colorTextureSrc = src;
+                tagData._colorTextureImage = null;
+            }
+            if (src instanceof HTMLImageElement) {
+                tagData._colorTextureSrc = null;
+                tagData._colorTextureImage = src;
+            }
             this._instanceDataMap.set(tag, tagData);
-            this._loadColorTexture(tagData);
+            tagData.loadColorTexture();
         }
     }
 
-    public setNormalTextureTag(src: string, tag: string) {
+    public setNormalTextureTag(src: string | HTMLImageElement, tag: string) {
         const tagData = this._instanceDataMap.get(tag);
         if (tagData) {
-            tagData._normalTextureSrc = src;
+            if (typeof src === 'string') {
+                tagData._normalTextureSrc = src;
+                tagData._normalTextureImage = null;
+            }
+            if (src instanceof HTMLImageElement) {
+                tagData._normalTextureSrc = null;
+                tagData._normalTextureImage = src;
+            }
             this._instanceDataMap.set(tag, tagData);
-            this._loadNormalTexture(tagData);
+            tagData.loadNormalTexture();
         }
     }
 
-    public setMetallicRoughnessTextureTag(src: string, tag: string) {
+    public setMetallicRoughnessTextureTag(src: string | HTMLImageElement, tag: string) {
         const tagData = this._instanceDataMap.get(tag);
         if (tagData) {
-            tagData._metallicRoughnessTextureSrc = src;
+            if (typeof src === 'string') {
+                tagData._metallicRoughnessTextureSrc = src;
+                tagData._metallicRoughnessTextureImage = null;
+            }
+            if (src instanceof HTMLImageElement) {
+                tagData._metallicRoughnessTextureSrc = null;
+                tagData._metallicRoughnessTextureImage = src;
+            }
             this._instanceDataMap.set(tag, tagData);
-            this._loadMetallicRoughnessTexture(tagData);
+            tagData.loadMetallicRoughnessTexture();
         }
     }
 
@@ -182,13 +203,17 @@ export class GeoObjectHandler {
                 tagData._changedBuffers[TEXCOORD_BUFFER] = true;
             }
 
-            tagData._colorTextureSrc = object.colorTexture;
-            tagData._normalTextureSrc = object.normalTexture;
-            tagData._metallicRoughnessTexture = object.metallicRoughnessTexture;
+            tagData._colorTextureSrc = object.colorTextureSrc;
+            tagData._normalTextureSrc = object.normalTextureSrc;
+            tagData._metallicRoughnessTexture = object.metallicRoughnessTextureSrc;
+            tagData._colorTextureImage = object.colorTextureImage;
+            tagData._normalTextureImage = object.normalTextureImage;
+            tagData._metallicRoughnessTextureImage = object.metallicRoughnessTextureImage;
 
-            this._loadColorTexture(tagData);
-            this._loadNormalTexture(tagData);
-            this._loadMetallicRoughnessTexture(tagData);
+
+            tagData.loadColorTexture();
+            tagData.loadNormalTexture();
+            tagData.loadMetallicRoughnessTexture();
 
             this._updateTag(tagData);
             this._instanceDataMapValues = Array.from(this._instanceDataMap.values());
@@ -212,9 +237,12 @@ export class GeoObjectHandler {
             tagData._indicesArr = geoObject.indices;
             tagData._texCoordArr = geoObject.texCoords;
 
-            tagData._colorTextureSrc = geoObject.object3d.colorTexture;
-            tagData._normalTextureSrc = geoObject.object3d.normalTexture;
-            tagData._metallicRoughnessTextureSrc = geoObject.object3d.metallicRoughnessTexture;
+            tagData._colorTextureSrc = geoObject.object3d.colorTextureSrc;
+            tagData._normalTextureSrc = geoObject.object3d.normalTextureSrc;
+            tagData._metallicRoughnessTextureSrc = geoObject.object3d.metallicRoughnessTextureSrc;
+            tagData._colorTextureImage = geoObject.object3d.colorTextureImage;
+            tagData._normalTextureImage = geoObject.object3d.normalTextureImage;
+            tagData._metallicRoughnessTextureImage = geoObject.object3d.metallicRoughnessTextureImage;
 
             tagData.setMaterialParams(
                 geoObject.object3d.ambient,
@@ -223,9 +251,9 @@ export class GeoObjectHandler {
                 geoObject.object3d.shininess
             );
 
-            this._loadColorTexture(tagData);
-            this._loadNormalTexture(tagData);
-            this._loadMetallicRoughnessTexture(tagData);
+            tagData.loadColorTexture();
+            tagData.loadNormalTexture();
+            tagData.loadMetallicRoughnessTexture();
         }
 
         geoObject._tagDataIndex = tagData.numInstances++;
@@ -485,27 +513,6 @@ export class GeoObjectHandler {
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tagData._indicesBuffer!);
             p.drawElementsInstanced!(gl.TRIANGLES, tagData._indicesBuffer!.numItems, gl.UNSIGNED_INT, 0, tagData.numInstances);
-        }
-    }
-
-    async _loadColorTexture(tagData: InstanceData) {
-        if (this._renderer && tagData._colorTextureSrc) {
-            const image = await loadImage(tagData._colorTextureSrc);
-            tagData.createColorTexture(image);
-        }
-    }
-
-    async _loadNormalTexture(tagData: InstanceData) {
-        if (this._renderer && tagData._normalTextureSrc) {
-            const image = await loadImage(tagData._normalTextureSrc);
-            tagData.createNormalTexture(image);
-        }
-    }
-
-    async _loadMetallicRoughnessTexture(tagData: InstanceData) {
-        if (this._renderer && tagData._metallicRoughnessTextureSrc) {
-            const image = await loadImage(tagData._metallicRoughnessTextureSrc);
-            tagData.createMetallicRoughnessTexture(image);
         }
     }
 
