@@ -22,7 +22,8 @@
     "types" : [
       "vite",
       "node",
-      "vite-plugin-glsl/ext"
+      "vite-plugin-glsl/ext",
+      "draco3d"
     ],
     "esModuleInterop" : true,
     "forceConsistentCasingInFileNames" : true,
