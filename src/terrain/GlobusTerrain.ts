@@ -216,7 +216,7 @@ class GlobusTerrain extends EmptyTerrain {
             let def = this._fetchCache[tileIndex];
             if (!def) {
                 def = this._loader.fetch({
-                    src: this.buildURL(x, y, z, tileGroup),
+                    src: this._urlRewriteCallback && this._urlRewriteCallback(x, y, z, tileGroup) || this.buildURL(x, y, z, tileGroup),
                     type: this._dataType,
                     options: {
                         cache: this._cache
@@ -376,9 +376,11 @@ class GlobusTerrain extends EmptyTerrain {
                             src: this._getHTTPRequestString(segment),
                             segment: segment,
                             type: this._dataType,
+                            options: {
+                                cache: this._cache
+                            },
                             filter: () => (segment.plainReady && segment.node.getState() !== NOTRENDERING) || forceLoading
                         }, (response: IResponse) => {
-
                             if (response.status === "ready") {
 
                                 let heights = this._createHeights(
