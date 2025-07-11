@@ -145,6 +145,11 @@ export class MouseNavigation extends Control {
             this.renderer.events.on("keyfree", input.KEY_ALT, this._onShiftFree);
             this.renderer.events.on("keyfree", input.KEY_PRINTSCREEN, this._onShiftFree);
         }
+        if (this.planet?.camera) {
+            this.planet.camera.events.on("flyingStart", () => {
+                this.stop();
+            });
+        }
     }
 
     public override onactivate() {

@@ -2266,15 +2266,6 @@ export class Planet extends RenderNode {
     //     }
     // }
 
-    /**
-     * @todo: refactor with events or something better
-     */
-    public stopDragging() {
-        if (this.renderer && this.renderer.controls.EarthNavigation) {
-            //@ts-ignore
-            this.renderer.controls.EarthNavigation.stop();
-        }
-    }
 }
 
 const PLANET_EVENTS: PlanetEventsList = [

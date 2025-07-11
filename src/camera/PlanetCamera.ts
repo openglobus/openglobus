@@ -1,6 +1,6 @@
 import * as mercator from "../mercator";
 import * as math from "../math";
-import {Camera, type ICameraParams} from "./Camera";
+import {Camera, CameraEvents, type ICameraParams} from "./Camera";
 import {Key} from "../Lock";
 import {LonLat} from "../LonLat";
 import {Mat4} from "../math/Mat4";
@@ -11,11 +11,38 @@ import {Vec3} from "../math/Vec3";
 import {Extent} from "../Extent";
 import {Segment} from "../segment/Segment";
 import {RADIANS} from "../math";
+import { EventsHandler } from "../Events";
 
 export interface IPlanetCameraParams extends ICameraParams {
     minAltitude?: number;
     maxAltitude?: number;
 }
+
+export type PlanetCameraEventsList = [
+    "flyingStart",
+    "flyingEnd",
+    "flyingStop",
+];
+
+const PLANET_CAMERA_EVENTS: PlanetCameraEventsList = [
+    /**
+     * Triggered before camera flight.
+     * @event og.PlanetCamera#flyingStart
+     */
+    "flyingStart",
+
+    /**
+     * Triggered when camera finished flight.
+     * @event og.PlanetCamera#flyingEnd
+     */
+    "flyingEnd",
+
+    /**
+     * Triggered when flight was stopped.
+     * @event og.PlanetCamera#flyingStop
+     */
+    "flyingStop",
+];
 
 type CameraFrame = {
     eye: Vec3;
@@ -39,6 +66,11 @@ type CameraFrame = {
  * @param {Vec3} [options.eye] - Camera eye position. Default (0,0,0)
  * @param {Vec3} [options.look] - Camera look position. Default (0,0,0)
  * @param {Vec3} [options.up] - Camera eye position. Default (0,1,0)
+ * @fires og.Camera#viewchange
+ * @fires og.Camera#moveend
+ * @fires og.PlanetCamera#flyingStart
+ * @fires og.PlanetCamera#flyingEnd
+ * @fires og.PlanetCamera#flyingStop
  */
 class PlanetCamera extends Camera {
     /**
@@ -47,6 +79,8 @@ class PlanetCamera extends Camera {
      * @type {Planet}
      */
     public planet: Planet;
+
+    public override events: EventsHandler<PlanetCameraEventsList> & EventsHandler<CameraEvents>;
 
     /**
      * Minimal altitude that camera can reach over the terrain.
@@ -118,6 +152,9 @@ class PlanetCamera extends Camera {
                 frustums: options.frustums || [[1, 100 + 0.075], [100, 1000 + 0.075], [1000, 1e6 + 10000], [1e6, 1e9]],
             }
         );
+
+        //@ts-ignore
+        this.events = this.events.registerNames(PLANET_CAMERA_EVENTS);
 
         this.planet = planet;
 
@@ -506,6 +543,7 @@ class PlanetCamera extends Camera {
 
         this._framesCounter = this._numFrames;
         this._flying = true;
+        this.events.dispatch(this.events.flyingStart, this);
     }
 
     /**
@@ -545,6 +583,9 @@ class PlanetCamera extends Camera {
      * @public
      */
     stopFlying() {
+        if (!this._flying) {
+            return;
+        }
         this.planet.layerLock.free(this._keyLock);
         this.planet.terrainLock.free(this._keyLock);
         this.planet.normalMapCreator.free(this._keyLock);
@@ -554,8 +595,7 @@ class PlanetCamera extends Camera {
         this._framesArr = [];
         this._framesCounter = -1;
         this._frameCallback = null;
-
-        this.planet.stopDragging();
+        this.events.dispatch(this.events.flyingStop, this);
     }
 
     /**
@@ -677,6 +717,7 @@ class PlanetCamera extends Camera {
             if (this._framesCounter < 0) {
                 this.stopFlying();
                 if (this._completeCallback) {
+                    this.events.dispatch(this.events.flyingEnd, this);
                     this._completeCallback();
                     this._completeCallback = null;
                 }
