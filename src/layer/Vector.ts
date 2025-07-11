@@ -752,6 +752,7 @@ class Vector extends Layer {
             let res = new Vec3();
 
             while (e_i--) {
+                let altModifier = e[e_i]._altitude || 0.0;
                 let p = e[e_i].polyline!;
                 if (p && visibleExtent.overlaps(p._extent)) {
                     // TODO:this works only for mercator area.
@@ -769,6 +770,8 @@ class Vector extends Layer {
                                     let cart = p._path3v[c_j][c_j_h] as Vec3;
                                     seg.getTerrainPoint(cart, ll, res);
                                     let alt = (rtg && p.altitude) || 0.0;
+                                    alt += p._pathLonLatMerc[c_j][c_j_h].height || 0.0;
+                                    alt += altModifier;
                                     if (alt) {
                                         let n = this._planet!.ellipsoid.getSurfaceNormal3v(res);
                                         p.setPoint3v(res.addA(n.scale(alt)), c_j_h, c_j, true);
