@@ -14,7 +14,7 @@ import {Sphere} from "../bv/Sphere";
 import {Quat} from "../math/Quat";
 import {DEGREES_DOUBLE, RADIANS, RADIANS_HALF} from "../math";
 
-type CameraEvents = ["viewchange", "moveend"];
+export type CameraEvents = ["viewchange", "moveend"];
 
 const EVENT_NAMES: CameraEvents = [
     /**

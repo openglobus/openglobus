@@ -108,6 +108,11 @@ export class TouchNavigation extends Control {
             this.renderer.events.on("touchmove", this.onTouchMove, this);
             this.renderer.events.on("draw", this.onDraw, this);
         }
+        if (this.planet?.camera) {
+            this.planet.camera.events.on("flyingStart", () => {
+                this.stopRotation();
+            });
+        }
     }
 
     protected onTouchStart(e: ITouchState) {
