@@ -442,9 +442,7 @@ class PlanetCamera extends Camera {
             look = this.planet.ellipsoid.lonLatToCartesian(look);
         }
 
-        let ground_a = this.planet.ellipsoid.lonLatToCartesian(
-            new LonLat(this._lonLat.lon, this._lonLat.lat)
-        );
+        let ground_a = this.eye.clone();
 
         let v_a = this._u,
             n_a = this._b;
