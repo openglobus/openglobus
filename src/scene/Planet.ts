@@ -25,7 +25,7 @@ import {LonLat} from "../LonLat";
 import {Node} from "../quadTree/Node";
 import {NormalMapCreator} from "../utils/NormalMapCreator";
 import {PlainSegmentWorker} from "../utils/PlainSegmentWorker";
-import {PlanetCamera} from "../camera/PlanetCamera";
+import {DEFAULT_EASING, DEFAULT_FLIGHT_DURATION, PlanetCamera} from "../camera/PlanetCamera";
 import {Quat} from "../math/Quat";
 import {QuadTreeStrategy} from "../quadTree/QuadTreeStrategy";
 import {Ray} from "../math/Ray";
@@ -42,6 +42,7 @@ import type {WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams} from "../we
 import {Program} from "../webgl/Program";
 import {Segment} from "../segment/Segment";
 import type {AtmosphereParameters} from "../shaders/atmos/atmos";
+import { Easing, EasingFunction } from "../utils/easing";
 
 export interface IPlanetParams {
     name?: string;
@@ -2136,9 +2137,12 @@ export class Planet extends RenderNode {
         up?: Vec3,
         ampl?: number,
         completeCallback?: Function,
-        startCallback?: Function
+        startCallback?: Function,
+        frameCallback?: Function,
+        duration: number = DEFAULT_FLIGHT_DURATION,
+        ease: EasingFunction = DEFAULT_EASING
     ) {
-        this.camera.flyExtent(extent, height, up, ampl, completeCallback, startCallback);
+        this.camera.flyExtent(extent, height, up, ampl, completeCallback, startCallback, frameCallback, duration, ease);
     }
 
     /**
@@ -2151,6 +2155,8 @@ export class Planet extends RenderNode {
      * @param {Function} [completeCallback] - Call the function in the end of flight
      * @param {Function} [startCallback] - Call the function in the beginning
      * @param {Function} [frameCallback] - Each frame callback
+     * @param {Number} [duration] - Animation duration
+     * @param {EasingFunction} [ease] - Animation easing
      */
     public flyCartesian(
         cartesian: Vec3,
@@ -2159,9 +2165,11 @@ export class Planet extends RenderNode {
         ampl?: number,
         completeCallback?: Function | null,
         startCallback?: Function | null,
-        frameCallback?: Function | null
+        frameCallback?: Function | null,
+        duration: number = DEFAULT_FLIGHT_DURATION,
+        ease: EasingFunction = DEFAULT_EASING
     ) {
-        this.camera.flyCartesian(cartesian, look, up, ampl, completeCallback, startCallback, frameCallback);
+        this.camera.flyCartesian(cartesian, look, up, ampl, completeCallback, startCallback, frameCallback, duration, ease);
     }
 
     /**
@@ -2182,9 +2190,11 @@ export class Planet extends RenderNode {
         ampl?: number,
         completeCallback?: Function,
         startCallback?: Function,
-        frameCallback?: Function
+        frameCallback?: Function,
+        duration: number = DEFAULT_FLIGHT_DURATION,
+        ease: EasingFunction = DEFAULT_EASING
     ) {
-        this.camera.flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback, frameCallback);
+        this.camera.flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback, frameCallback, duration, ease);
     }
 
     /**

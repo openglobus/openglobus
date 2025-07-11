@@ -12,6 +12,7 @@ import {Extent} from "../Extent";
 import {Segment} from "../segment/Segment";
 import {RADIANS} from "../math";
 import { EventsHandler } from "../Events";
+import { Easing, EasingFunction } from "../utils/easing";
 
 export interface IPlanetCameraParams extends ICameraParams {
     minAltitude?: number;
@@ -44,11 +45,20 @@ const PLANET_CAMERA_EVENTS: PlanetCameraEventsList = [
     "flyingStop",
 ];
 
+export const DEFAULT_FLIGHT_DURATION = 800;
+export const DEFAULT_EASING = Easing.CubicInOut;
+
 type CameraFrame = {
     eye: Vec3;
     n: Vec3;
     u: Vec3;
     v: Vec3;
+}
+
+type CameraFlight = {
+    fly: (progress: number) => CameraFrame;
+    duration: number;
+    startedAt: number;
 }
 
 /**
@@ -135,9 +145,7 @@ class PlanetCamera extends Camera {
     public slope: number;
 
     protected _keyLock: Key;
-    protected _framesArr: CameraFrame[];
-    protected _framesCounter: number;
-    protected _numFrames: number;
+    protected _flight: CameraFlight | null;
     protected _completeCallback: Function | null;
     protected _frameCallback: Function | null;
 
@@ -176,9 +184,7 @@ class PlanetCamera extends Camera {
 
         this._keyLock = new Key();
 
-        this._framesArr = [];
-        this._framesCounter = 0;
-        this._numFrames = 50;
+        this._flight = null;
         this._completeCallback = null;
         this._frameCallback = null;
         this._flying = false;
@@ -385,7 +391,9 @@ class PlanetCamera extends Camera {
         ampl?: number | null,
         completeCallback?: Function | null,
         startCallback?: Function | null,
-        frameCallback?: Function | null) {
+        frameCallback?: Function | null,
+        duration: number = DEFAULT_FLIGHT_DURATION,
+        ease: EasingFunction = DEFAULT_EASING) {
         this.flyCartesian(
             this.getExtentPosition(extent, height),
             Vec3.ZERO,
@@ -393,7 +401,9 @@ class PlanetCamera extends Camera {
             ampl == null ? 1 : ampl,
             completeCallback,
             startCallback,
-            frameCallback
+            frameCallback,
+            duration,
+            ease
         );
     }
 
@@ -417,7 +427,9 @@ class PlanetCamera extends Camera {
         ampl: number = 0.0,
         completeCallback?: Function,
         startCallback?: Function,
-        frameCallback?: Function
+        frameCallback?: Function,
+        duration: number = DEFAULT_FLIGHT_DURATION,
+        ease: EasingFunction = DEFAULT_EASING
     ) {
         let p0 = this.eye.add(this.getForward().scaleTo(distance));
         let _rot = Quat.getRotationBetweenVectors(p0.getNormal(), cartesian.getNormal());
@@ -434,7 +446,9 @@ class PlanetCamera extends Camera {
                 ampl,
                 completeCallback,
                 startCallback,
-                frameCallback
+                frameCallback,
+                duration,
+                ease
             );
         }
     }
@@ -460,7 +474,10 @@ class PlanetCamera extends Camera {
         startCallback: Function | null = () => {
         },
         frameCallback: Function | null = () => {
-        }) {
+        },
+        duration: number = DEFAULT_FLIGHT_DURATION,
+        ease: EasingFunction = DEFAULT_EASING
+    ) {
 
         this.stopFlying();
 
@@ -508,40 +525,40 @@ class PlanetCamera extends Camera {
         let max_h = currMaxHeight + 2.5 * hM_a * (maxHeight - currMaxHeight);
         let zero = Vec3.ZERO;
 
-        // camera path and orientations calculation
-        for (let i = 0; i <= this._numFrames; i++) {
-            let d = 1 - i / this._numFrames;
-            d = d * d * (3 - 2 * d);
-            d *= d;
+        this._flight = {
+            fly: (progress: number) => {
+                let t = ease(progress);
+                let d = 1 - t;
+                // camera path and orientations calculation
+                let g_i = ground_a.smerp(ground_b, d).normalize();
+                let ground_i = this.planet.getRayIntersectionEllipsoid(new Ray(zero, g_i));
+                
+                let height_i =
+                    this._lonLat.height * d * d * d +
+                    max_h * 3 * d * d * t +
+                    max_h * 3 * d * t * t +
+                    lonlat_b.height * t * t * t;
 
-            let g_i = ground_a.smerp(ground_b, d).normalize();
-            let ground_i = this.planet.getRayIntersectionEllipsoid(new Ray(zero, g_i));
-            let t = 1 - d;
-            let height_i =
-                this._lonLat.height * d * d * d +
-                max_h * 3 * d * d * t +
-                max_h * 3 * d * t * t +
-                lonlat_b.height * t * t * t;
+                let eye_i = ground_i!.addA(g_i.scale(height_i));
+                let up_i = v_a.smerp(v_b, d);
+                let look_i = Vec3.add(eye_i, n_a.smerp(n_b, d).negateTo());
 
-            let eye_i = ground_i!.addA(g_i.scale(height_i));
-            let up_i = v_a.smerp(v_b, d);
-            let look_i = Vec3.add(eye_i, n_a.smerp(n_b, d).negateTo());
+                let n = new Vec3(eye_i.x - look_i.x, eye_i.y - look_i.y, eye_i.z - look_i.z);
+                let u = up_i.cross(n);
+                n.normalize();
+                u.normalize();
 
-            let n = new Vec3(eye_i.x - look_i.x, eye_i.y - look_i.y, eye_i.z - look_i.z);
-            let u = up_i.cross(n);
-            n.normalize();
-            u.normalize();
-
-            let v = n.cross(u);
-            this._framesArr[i] = {
-                eye: eye_i,
-                n: n,
-                u: u,
-                v: v
-            };
+                let v = n.cross(u);
+                return {
+                    eye: eye_i,
+                    n: n,
+                    u: u,
+                    v: v
+                };
+            },
+            duration,
+            startedAt: Date.now()
         }
-
-        this._framesCounter = this._numFrames;
         this._flying = true;
         this.events.dispatch(this.events.flyingStart, this);
     }
@@ -564,7 +581,9 @@ class PlanetCamera extends Camera {
         ampl?: number,
         completeCallback?: Function,
         startCallback?: Function,
-        frameCallbak?: Function
+        frameCallback?: Function,
+        duration: number = DEFAULT_FLIGHT_DURATION,
+        ease: EasingFunction = DEFAULT_EASING
     ) {
         let _lonLat = new LonLat(lonlat.lon, lonlat.lat, lonlat.height || this._lonLat.height);
         this.flyCartesian(
@@ -574,7 +593,9 @@ class PlanetCamera extends Camera {
             ampl,
             completeCallback,
             startCallback,
-            frameCallbak
+            frameCallback,
+            duration,
+            ease
         );
     }
 
@@ -591,9 +612,7 @@ class PlanetCamera extends Camera {
         this.planet.normalMapCreator.free(this._keyLock);
 
         this._flying = false;
-        this._framesArr.length = 0;
-        this._framesArr = [];
-        this._framesCounter = -1;
+        this._flight = null;
         this._frameCallback = null;
         this.events.dispatch(this.events.flyingStop, this);
     }
@@ -693,17 +712,18 @@ class PlanetCamera extends Camera {
      * @public
      */
     public checkFly() {
-        if (this._flying) {
-            let c = this._numFrames - this._framesCounter;
+        if (this._flying && this._flight !== null) {
+            let progress = Math.min((Date.now() - this._flight.startedAt) / this._flight.duration, 1);
 
             this.planet.layerLock.lock(this._keyLock);
             this.planet.terrainLock.lock(this._keyLock);
             this.planet.normalMapCreator.lock(this._keyLock);
 
-            this.eye = this._framesArr[c].eye;
-            this._r = this._framesArr[c].u;
-            this._u = this._framesArr[c].v;
-            this._b = this._framesArr[c].n;
+            const frame = this._flight.fly(progress);
+            this.eye = frame.eye;
+            this._r = frame.u;
+            this._u = frame.v;
+            this._b = frame.n;
             this._f.set(-this._b.x, -this._b.y, -this._b.z);
 
             if (this._frameCallback) {
@@ -712,9 +732,7 @@ class PlanetCamera extends Camera {
 
             this.update();
 
-            this._framesCounter--;
-
-            if (this._framesCounter < 0) {
+            if (progress >= 1) {
                 this.stopFlying();
                 if (this._completeCallback) {
                     this.events.dispatch(this.events.flyingEnd, this);
