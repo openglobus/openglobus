@@ -79,7 +79,6 @@ class PolygonDrawingScene extends RenderNode {
         //
         this._cornerStyle = {
             scale: 0.5,
-            instanced: true,
             tag: "corners",
             color: "rgb(350, 350, 0)",
             object3d: POINTER_OBJ3D,
@@ -88,7 +87,6 @@ class PolygonDrawingScene extends RenderNode {
 
         this._centerStyle = {
             scale: 0.4,
-            instanced: true,
             tag: "centers",
             color: "rgb(0, 350, 50)",
             object3d: POINTER_OBJ3D,

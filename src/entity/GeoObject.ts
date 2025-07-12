@@ -30,7 +30,6 @@ export interface IGeoObjectParams {
     translate?: Vec3 | NumberArray3;
     color?: Vec4 | NumberArray4 | string;
     visibility?: boolean;
-    instanced?: boolean;
 }
 
 /**
@@ -45,7 +44,6 @@ export interface IGeoObjectParams {
  * @param {Vec3 | NumberArray3} [options.translate] - Translation offset.
  * @param {Vec4 | NumberArray4 | string} [options.color] - RGBA color or HTML color string.
  * @param {boolean} [options.visibility=true] - Visibility flag.
- * @param {boolean} [options.instanced=true] - Whether the object is instanced or not. (unused for now)
  *
  * @todo: GeoObject and GeoObjectHandler provides instanced objects only.
  * It would be nice if it could provide not instanced rendering loop too.
@@ -96,7 +94,6 @@ class GeoObject {
     public _objectSrc?: string;
 
     protected _visibility: boolean;
-    protected _instanced: boolean = true;
 
     protected _children: GeoObject[];
 
