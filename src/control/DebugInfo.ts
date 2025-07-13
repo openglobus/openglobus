@@ -200,11 +200,11 @@ export class DebugInfo extends Control {
             this.addWatches([
                 {
                     label: "Nodes count",
-                    frame: () => p!._renderedNodes.length
+                    frame: () => p!.quadTreeStrategy._renderedNodes.length
                 },
                 {
                     label: "Planet._fadingNodes",
-                    frame: () => p._fadingNodes.size
+                    frame: () => p.quadTreeStrategy._fadingNodes.size
                 },
                 {
                     label: "createdNodes",
@@ -220,7 +220,7 @@ export class DebugInfo extends Control {
                 },
                 {
                     label: "maxZoom/minZoom",
-                    frame: () => p.maxCurrZoom + " / " + p?.minCurrZoom
+                    frame: () => p.quadTreeStrategy.maxCurrZoom + " / " + p?.quadTreeStrategy.minCurrZoom
                 },
                 {
                     label: "viewExtent",
@@ -238,7 +238,7 @@ export class DebugInfo extends Control {
                 },
                 {
                     label: "lodSize",
-                    frame: () => Math.round(p.lodSize)
+                    frame: () => Math.round(p.quadTreeStrategy.lodSize)
                 },
                 {
                     label: "deltaTime/FPS",
@@ -285,11 +285,11 @@ export class DebugInfo extends Control {
                 },
                 {
                     label: "_renderCompleted / renderCompletedActivated",
-                    frame: () => `${p._renderCompleted} / ${p._renderCompletedActivated}`
+                    frame: () => `${p.quadTreeStrategy._renderCompleted} / ${p.quadTreeStrategy._renderCompletedActivated}`
                 },
                 {
                     label: "_terrainCompleted / terrainCompletedActivated",
-                    frame: () => `${p._terrainCompleted} / ${p._terrainCompletedActivated}`
+                    frame: () => `${p.quadTreeStrategy._terrainCompleted} / ${p.quadTreeStrategy._terrainCompletedActivated}`
                 },
                 {
                     label: "PlainWorker",

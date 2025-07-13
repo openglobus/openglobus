@@ -426,7 +426,7 @@ class PolygonDrawingScene extends RenderNode {
 
     protected _checkTerrainCollision(entity: Entity) {
         let _tempTerrPoint = new Vec3();
-        let nodes = this._planet!._renderedNodes;
+        let nodes = this._planet!.quadTreeStrategy._renderedNodes;
         for (let j = 0; j < nodes.length; j++) {
             let seg = nodes[j].segment;
             if (seg && seg._extentLonLat.isInside(entity.getLonLat())) {

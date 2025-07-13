@@ -270,7 +270,6 @@ class Vector extends Layer {
      * Adds layer to the planet.
      * @public
      * @param {Planet} planet - Planet scene object.
-     * @returns {Vector} -
      */
     public override addTo(planet: Planet) {
         if (!this._planet) {
@@ -314,16 +313,15 @@ class Vector extends Layer {
      * Adds entity to the layer.
      * @public
      * @param {Entity} entity - Entity.
-     * @param {boolean} [rightNow=false] - Entity insertion option. False is default.
      * @returns {Vector} - Returns this layer.
      */
-    public add(entity: Entity, rightNow: boolean = false): this {
+    public add(entity: Entity): this {
         if (!(entity._layer || entity._entityCollection)) {
             entity._layer = this;
             entity._layerIndex = this._entities.length;
             //this._fitExtent(entity);
             this._entities.push(entity);
-            this._proceedEntity(entity, rightNow);
+            this._proceedEntity(entity);
         }
         return this;
     }
@@ -333,10 +331,9 @@ class Vector extends Layer {
      * @public
      * @param {Entity} entity - Entity.
      * @param {Number} index - Index position.
-     * @param {boolean} [rightNow] - Entity insertion option. False is default.
      * @returns {Vector} - Returns this layer.
      */
-    public insert(entity: Entity, index: number, rightNow: boolean = false): this {
+    public insert(entity: Entity, index: number): this {
         if (!(entity._layer || entity._entityCollection)) {
             entity._layer = this;
             entity._layerIndex = index;
@@ -346,13 +343,13 @@ class Vector extends Layer {
                 this._entities[i]._layerIndex = i;
             }
 
-            this._proceedEntity(entity, rightNow);
+            this._proceedEntity(entity);
         }
 
         return this;
     }
 
-    protected _proceedEntity(entity: Entity, rightNow: boolean = false) {
+    protected _proceedEntity(entity: Entity) {
         let temp = this._hasImageryTiles;
 
         if (entity.strip) {
@@ -409,13 +406,12 @@ class Vector extends Layer {
      * Adds entity array to the layer.
      * @public
      * @param {Array.<Entity>} entities - Entities array.
-     * @param {boolean} [rightNow=false] - Entity insertion option. False is default.
      * @returns {Vector} - Returns this layer.
      */
-    public addEntities(entities: Entity[], rightNow: boolean = false) {
+    public addEntities(entities: Entity[]): Vector {
         let i = entities.length;
         while (i--) {
-            this.add(entities[i], rightNow);
+            this.add(entities[i]);
         }
         return this;
     }
@@ -625,7 +621,7 @@ class Vector extends Layer {
 
     protected _createEntityCollectionsTree(entitiesForTree: Entity[]) {
         if (this._planet) {
-            this._entityCollectionsTreeStrategy = this._planet.quadTreeStrategy.createEntitiCollectionsTreeStrategy(this, this._nodeCapacity);
+            this._entityCollectionsTreeStrategy = this._planet.quadTreeStrategy.createEntityCollectionsTreeStrategy(this, this._nodeCapacity);
             this._entityCollectionsTreeStrategy.insertEntities(entitiesForTree);
         }
     }
@@ -745,7 +741,7 @@ class Vector extends Layer {
         if (this.clampToGround || this.relativeToGround) {
             let rtg = Number(this.relativeToGround);
 
-            const nodes = this._planet!._renderedNodes;
+            const nodes = this._planet!.quadTreeStrategy._renderedNodes;
             const visibleExtent = this._planet!.getViewExtent();
             let e = ec._entities;
             let e_i = e.length;
@@ -845,7 +841,7 @@ class Vector extends Layer {
 
         if (
             (this._fading && this._fadingOpacity > 0.0) ||
-            (this.minZoom <= p.maxCurrZoom && this.maxZoom >= p.maxCurrZoom)
+            (this.minZoom <= p.quadTreeStrategy.maxCurrZoom && this.maxZoom >= p.quadTreeStrategy.maxCurrZoom)
         ) {
             // Common collections first
             this._collectStripCollectionPASS(outArr);
@@ -891,7 +887,7 @@ class Vector extends Layer {
         material.isReady = false;
     }
 
-    public override applyMaterial(material: Material, isForced: boolean = false): NumberArray4 {
+    public override applyMaterial(material: Material): NumberArray4 {
         if (material.isReady) {
             return [0, 0, 1, 1];
         } else {

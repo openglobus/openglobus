@@ -3,6 +3,7 @@ import {EntityCollectionNode} from "./EntityCollectionNode";
 import {Entity} from "../entity/Entity";
 import {EntityCollection} from "../entity/EntityCollection";
 import {QueueArray} from "../QueueArray";
+import {QuadTreeStrategy} from "./QuadTreeStrategy";
 
 export class EntityCollectionsTreeStrategy {
 
@@ -21,7 +22,10 @@ export class EntityCollectionsTreeStrategy {
 
     public _renderingNodes: Record<number, boolean>;
 
-    constructor(layer: Vector, nodeCapacity: number) {
+    public quadTreeStrategy: QuadTreeStrategy;
+
+    constructor(quadTreeStrategy: QuadTreeStrategy, layer: Vector, nodeCapacity: number) {
+        this.quadTreeStrategy = quadTreeStrategy;
         this._layer = layer;
         this._nodeCapacity = nodeCapacity;
         this._secondPASS = [];

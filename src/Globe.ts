@@ -20,6 +20,7 @@ import {ZoomControl} from "./control/ZoomControl";
 import {Extent} from "./Extent";
 import type {IAtmosphereParams} from "./control/atmosphere/Atmosphere";
 import {CameraFrameComposer} from "./control/CameraFrameComposer";
+import {QuadTreeStrategy} from "./quadTree";
 
 export interface IGlobeParams {
     attributionContainer?: HTMLElement;
@@ -38,7 +39,7 @@ export interface IGlobeParams {
     maxEqualZoomAltitude?: number;
     minEqualZoomAltitude?: number;
     minEqualZoomCameraSlope?: number;
-    quadTreeStrategyPrototype?: any;
+    quadTreeStrategyPrototype?: typeof QuadTreeStrategy;
     maxLoadingRequests?: number;
     atmosphereEnabled?: boolean;
     transitionOpacityEnabled?: boolean;

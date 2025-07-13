@@ -3,12 +3,12 @@ import {EPSG4326} from "../proj/EPSG4326";
 import {Extent} from "../Extent";
 import {Layer} from "../layer/Layer";
 import {Node} from "../quadTree/Node";
-import {Planet} from "../scene/Planet";
 import {getTileCellIndex, Segment, TILEGROUP_NORTH, TILEGROUP_SOUTH} from "./Segment";
 import {LonLat} from "../LonLat";
 import {Entity} from "../entity/Entity";
 import {PlanetCamera} from "../camera/PlanetCamera";
 import type {WebGLTextureExt} from "../webgl/Handler";
+import {QuadTreeStrategy} from "../quadTree";
 
 const MAX_POLE_ZOOM = 7;
 export const POLE_PIECE_SIZE = (90.0 - mercator.MAX_LAT) / Math.pow(2, MAX_POLE_ZOOM);
@@ -19,8 +19,8 @@ export const POLE_PIECE_SIZE = (90.0 - mercator.MAX_LAT) / Math.pow(2, MAX_POLE_
  * @extends {Segment}
  */
 class SegmentLonLat extends Segment {
-    constructor(node: Node, planet: Planet, tileZoom: number, extent: Extent) {
-        super(node, planet, tileZoom, extent);
+    constructor(node: Node, quadTreeStrategy: QuadTreeStrategy, tileZoom: number, extent: Extent) {
+        super(node, quadTreeStrategy, tileZoom, extent);
 
         this._projection = EPSG4326;
 
@@ -49,7 +49,7 @@ class SegmentLonLat extends Segment {
     }
 
     protected _getMaxZoom() {
-        let maxPoleZoom = 0;
+        let maxPoleZoom: number;
         if (this._isNorth) {
             //north pole limits
             let Yz = Math.floor((90.0 - this._extent.northEast.lat) / POLE_PIECE_SIZE);

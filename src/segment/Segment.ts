@@ -24,7 +24,8 @@ import {Slice} from "./Slice";
 import {Ray} from "../math/Ray";
 import {Vec3} from "../math/Vec3";
 import type {IPlainSegmentWorkerData} from "../utils/PlainSegmentWorker";
-import {MAX_LAT, MIN_LAT, POLE} from "../mercator";
+import {MAX_LAT} from "../mercator";
+import {QuadTreeStrategy} from "../quadTree";
 
 //Math.round(Math.abs(-pole - extent.southWest.lon) / (extent.northEast.lon - extent.southWest.lon));
 
@@ -216,13 +217,13 @@ class Segment {
     public initialized: boolean;
 
     /**
-     * Normal map is allready made.
+     * Normal map is already made.
      * @type {boolean}
      */
     public normalMapReady: boolean;
 
     /**
-     * Terrain is allready applied flag.
+     * Terrain is already applied flag.
      * @type {boolean}
      */
     public terrainReady: boolean;
@@ -291,7 +292,9 @@ class Segment {
 
     public _transitionTimestamp: number;
 
-    constructor(node: Node, planet: Planet, tileZoom: number, extent: Extent) {
+    public quadTreeStrategy: QuadTreeStrategy
+
+    constructor(node: Node, quadTreeStrategy: QuadTreeStrategy, tileZoom: number, extent: Extent) {
 
         this.isPole = false;
 
@@ -301,9 +304,11 @@ class Segment {
 
         this.node = node;
 
-        this.planet = planet;
+        this.quadTreeStrategy = quadTreeStrategy;
 
-        this.handler = planet.renderer!.handler;
+        this.planet = quadTreeStrategy.planet;
+
+        this.handler = quadTreeStrategy.planet.renderer!.handler;
 
         this.bsphere = new Sphere();
 
@@ -322,7 +327,7 @@ class Segment {
 
         this._extentLonLat = new Extent();
 
-        this.gridSize = planet.terrain!.gridSizeByZoom[tileZoom];
+        this.gridSize = this.planet.terrain!.gridSizeByZoom[tileZoom];
 
         this.fileGridSize = 0;
 
@@ -642,7 +647,7 @@ class Segment {
 
     public equalize() {
 
-        // Equalization doesnt work correctly for gridSize equals 2
+        // Equalization doesn't work correctly for gridSize equals 2
         if (this.tileZoom < 2 || this.gridSize < 2) {
             return;
         }
@@ -1352,7 +1357,7 @@ class Segment {
     public _addViewExtent() {
         const ext = this._extentLonLat;
 
-        let viewExt = this.planet._viewExtent;
+        let viewExt = this.quadTreeStrategy._viewExtent;
 
         if (ext.southWest.lon < viewExt.southWest.lon) {
             viewExt.southWest.lon = ext.southWest.lon;
@@ -1621,6 +1626,7 @@ class Segment {
 
         const pm = this.materials;
         const p = this.planet;
+        const qts = this.quadTreeStrategy;
 
         let currHeight, li;
         if (layerSlice && layerSlice.length) {
@@ -1648,8 +1654,8 @@ class Segment {
             if (
                 this.layerOverlap(li) &&
                 ((li._fading && li._fadingOpacity > 0.0) ||
-                    ((li.minZoom >= p.minCurrZoom || li.maxZoom >= p.minCurrZoom) &&
-                        (li.minZoom <= p.maxCurrZoom || li.maxZoom <= p.maxCurrZoom)))
+                    ((li.minZoom >= qts.minCurrZoom || li.maxZoom >= qts.minCurrZoom) &&
+                        (li.minZoom <= qts.maxCurrZoom || li.maxZoom <= qts.maxCurrZoom)))
             ) {
                 notEmpty = true;
 
@@ -1660,7 +1666,7 @@ class Segment {
                 }
 
                 if (!m.isReady) {
-                    this.planet._renderCompleted = false;
+                    qts._renderCompleted = false;
                 }
 
                 slice.append(li, m);
@@ -1715,32 +1721,32 @@ class Segment {
         }
     }
 
-    public heightPickingRendering(sh: Program, layerSlice: Layer[]) {
-        const gl = this.handler.gl!;
-        const sha = sh.attributes;
-        const shu = sh.uniforms;
-
-        // var pm = this.materials,
-        //     p = this.planet;
-
-        let currHeight;
-        if (layerSlice && layerSlice.length) {
-            currHeight = layerSlice[0]._height;
-        } else {
-            currHeight = 0;
-        }
-
-        gl.uniform1f(shu.height, currHeight);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh!);
-        gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh!.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferLow!);
-        gl.vertexAttribPointer(sha.aVertexPositionLow, this.vertexPositionBufferLow!.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer!);
-        gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
-    }
+    // public heightPickingRendering(sh: Program, layerSlice: Layer[]) {
+    //     const gl = this.handler.gl!;
+    //     const sha = sh.attributes;
+    //     const shu = sh.uniforms;
+    //
+    //     // var pm = this.materials,
+    //     //     p = this.planet;
+    //
+    //     let currHeight;
+    //     if (layerSlice && layerSlice.length) {
+    //         currHeight = layerSlice[0]._height;
+    //     } else {
+    //         currHeight = 0;
+    //     }
+    //
+    //     gl.uniform1f(shu.height, currHeight);
+    //
+    //     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferHigh!);
+    //     gl.vertexAttribPointer(sha.aVertexPositionHigh, this.vertexPositionBufferHigh!.itemSize, gl.FLOAT, false, 0, 0);
+    //
+    //     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBufferLow!);
+    //     gl.vertexAttribPointer(sha.aVertexPositionLow, this.vertexPositionBufferLow!.itemSize, gl.FLOAT, false, 0, 0);
+    //
+    //     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer!);
+    //     gl.drawElements(gl.TRIANGLE_STRIP, this._indexBuffer!.numItems, gl.UNSIGNED_INT, 0);
+    // }
 
     public increaseTransitionOpacity() {
         //this._transitionOpacity += 0.01;
@@ -1754,8 +1760,8 @@ class Segment {
         while (i--) {
             let n = this.node._fadingNodes[i];
             if (n.segment) {
-                if (n.segment._transitionOpacity > 0 && !this.planet._fadingNodes.has(n.__id)) {
-                    this.planet._fadingNodes.set(n.__id, n);
+                if (n.segment._transitionOpacity > 0 && !this.quadTreeStrategy._fadingNodes.has(n.__id)) {
+                    this.quadTreeStrategy._fadingNodes.set(n.__id, n);
                     n.segment._transitionOpacity = 2.0 - this._transitionOpacity;
                     if (n.segment._transitionOpacity === 0) {
                         this.node._fadingNodes.splice(i, 1);

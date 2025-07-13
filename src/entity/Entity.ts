@@ -529,11 +529,10 @@ class Entity {
      * Adds current entity into the specified entity collection.
      * @public
      * @param {EntityCollection | Vector} collection - Specified entity collection or vector layer.
-     * @param {boolean} [rightNow=false] - Entity insertion option for vector layer.
      * @returns {Entity} - This object.
      */
-    public addTo(collection: EntityCollection | Vector, rightNow: boolean = false): Entity {
-        collection.add(this, rightNow);
+    public addTo(collection: EntityCollection | Vector): Entity {
+        collection.add(this);
         return this;
     }
 
@@ -628,7 +627,7 @@ class Entity {
      * @param {number} val - Scale factor
      */
     public setScale(val: number) {
-        this.setScale3v(new Vec3(val, val, val)); 
+        this.setScale3v(new Vec3(val, val, val));
     }
 
     /**
@@ -945,7 +944,7 @@ class Entity {
 
         if (parent && this._relativePosition) {
             this._scale.mulRes(parent._absoluteScale, this._absoluteScale);
-            
+
             this._qFrame.copy(parent._qFrame);
             this._rootCartesian.copy(parent._rootCartesian);
 

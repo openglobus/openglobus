@@ -528,7 +528,7 @@ class PlanetCamera extends Camera {
         ampl?: number,
         completeCallback?: Function,
         startCallback?: Function,
-        frameCallbak?: Function
+        frameCallback?: Function
     ) {
         let _lonLat = new LonLat(lonlat.lon, lonlat.lat, lonlat.height || this._lonLat.height);
         this.flyCartesian(
@@ -538,7 +538,7 @@ class PlanetCamera extends Camera {
             ampl,
             completeCallback,
             startCallback,
-            frameCallbak
+            frameCallback
         );
     }
 
@@ -556,8 +556,6 @@ class PlanetCamera extends Camera {
         this._framesArr = [];
         this._framesCounter = -1;
         this._frameCallback = null;
-
-        this.planet.stopDragging();
     }
 
     /**
@@ -565,7 +563,7 @@ class PlanetCamera extends Camera {
      * @public
      * @returns {boolean}
      */
-    isFlying() {
+    isFlying(): boolean {
         return this._flying;
     }
 
