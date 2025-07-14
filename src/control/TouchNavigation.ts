@@ -109,7 +109,7 @@ export class TouchNavigation extends Control {
             this.renderer.events.on("draw", this.onDraw, this);
         }
         if (this.planet?.camera) {
-            this.planet.camera.events.on("flyingStart", () => {
+            this.planet.camera.events.on("flystart", () => {
                 this.stopRotation();
             });
         }

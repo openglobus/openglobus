@@ -146,7 +146,7 @@ export class MouseNavigation extends Control {
             this.renderer.events.on("keyfree", input.KEY_PRINTSCREEN, this._onShiftFree);
         }
         if (this.planet?.camera) {
-            this.planet.camera.events.on("flyingStart", () => {
+            this.planet.camera.events.on("flystart", () => {
                 this.stop();
             });
         }

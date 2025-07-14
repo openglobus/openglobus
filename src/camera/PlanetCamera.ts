@@ -20,29 +20,29 @@ export interface IPlanetCameraParams extends ICameraParams {
 }
 
 export type PlanetCameraEventsList = [
-    "flyingStart",
-    "flyingEnd",
-    "flyingStop",
+    "flystart",
+    "flyend",
+    "flystop",
 ];
 
 const PLANET_CAMERA_EVENTS: PlanetCameraEventsList = [
     /**
      * Triggered before camera flight.
-     * @event og.PlanetCamera#flyingStart
+     * @event og.PlanetCamera#flystart
      */
-    "flyingStart",
+    "flystart",
 
     /**
      * Triggered when camera finished flight.
-     * @event og.PlanetCamera#flyingEnd
+     * @event og.PlanetCamera#flyend
      */
-    "flyingEnd",
+    "flyend",
 
     /**
      * Triggered when flight was stopped.
-     * @event og.PlanetCamera#flyingStop
+     * @event og.PlanetCamera#flystop
      */
-    "flyingStop",
+    "flystop",
 ];
 
 export const DEFAULT_FLIGHT_DURATION = 800;
@@ -78,9 +78,9 @@ type CameraFlight = {
  * @param {Vec3} [options.up] - Camera eye position. Default (0,1,0)
  * @fires og.Camera#viewchange
  * @fires og.Camera#moveend
- * @fires og.PlanetCamera#flyingStart
- * @fires og.PlanetCamera#flyingEnd
- * @fires og.PlanetCamera#flyingStop
+ * @fires og.PlanetCamera#flystart
+ * @fires og.PlanetCamera#flyend
+ * @fires og.PlanetCamera#flystop
  */
 class PlanetCamera extends Camera {
     /**
@@ -560,7 +560,7 @@ class PlanetCamera extends Camera {
             startedAt: Date.now()
         }
         this._flying = true;
-        this.events.dispatch(this.events.flyingStart, this);
+        this.events.dispatch(this.events.flystart, this);
     }
 
     /**
@@ -614,7 +614,7 @@ class PlanetCamera extends Camera {
         this._flying = false;
         this._flight = null;
         this._frameCallback = null;
-        this.events.dispatch(this.events.flyingStop, this);
+        this.events.dispatch(this.events.flystop, this);
     }
 
     /**
@@ -735,7 +735,7 @@ class PlanetCamera extends Camera {
             if (progress >= 1) {
                 this.stopFlying();
                 if (this._completeCallback) {
-                    this.events.dispatch(this.events.flyingEnd, this);
+                    this.events.dispatch(this.events.flyend, this);
                     this._completeCallback();
                     this._completeCallback = null;
                 }
