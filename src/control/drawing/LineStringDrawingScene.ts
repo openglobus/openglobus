@@ -1,12 +1,9 @@
-import {Entity} from "../../entity/Entity";
-import {Vec2} from "../../math/Vec2";
-import {Vec3} from "../../math/Vec3";
+import { Entity } from "../../entity/Entity";
+import { Vec2 } from "../../math/Vec2";
+import { Vec3 } from "../../math/Vec3";
 import {
-    CENTER_OPTIONS,
-    CORNER_OPTIONS,
     NUM_SEGMENTS,
     OUTLINE_ALT,
-    OUTLINE_OPTIONS,
     PolygonDrawingScene,
     type IPolygonDrawingSceneParams
 } from "./PolygonDrawingScene";
@@ -31,7 +28,7 @@ class LineStringDrawingScene extends PolygonDrawingScene {
         let prevCorn = corners[segNum];
 
         let corner = new Entity({
-            geoObject: CORNER_OPTIONS,
+            geoObject: this._cornerStyle,
         });
 
         corner.setCartesian3v(cart);
@@ -59,7 +56,7 @@ class LineStringDrawingScene extends PolygonDrawingScene {
                 polyline: {
                     path3v: [prevPath],
                     isClosed: false,
-                    ...OUTLINE_OPTIONS
+                    ...this._outlineStyle
                 }
             });
             entity.polyline!.altitude = OUTLINE_ALT;
@@ -68,7 +65,7 @@ class LineStringDrawingScene extends PolygonDrawingScene {
             let prevCenterCart = vecPrev.scaleTo(distPrev * 0.5).addA(prevCart);
 
             let center = new Entity({
-                geoObject: CENTER_OPTIONS,
+                geoObject: this._centerStyle,
             });
             center.setCartesian3v(prevCenterCart);
             center.addTo(this._centerLayer);
@@ -183,7 +180,7 @@ class LineStringDrawingScene extends PolygonDrawingScene {
                 polyline: {
                     path3v: [],
                     isClosed: false,
-                    ...OUTLINE_OPTIONS
+                    ...this._outlineStyle
                 }
             }),
             this._ghostCorner
@@ -193,4 +190,4 @@ class LineStringDrawingScene extends PolygonDrawingScene {
     }
 }
 
-export {LineStringDrawingScene};
+export { LineStringDrawingScene };
