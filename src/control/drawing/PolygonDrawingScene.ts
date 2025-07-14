@@ -1,19 +1,19 @@
 import * as math from "../../math";
-import { createEvents, type EventsHandler } from '../../Events';
-import type { CoordinatesType, IGeometryStyle } from "../../entity/Geometry";
-import type { IGeoObjectParams } from "../../entity/GeoObject";
-import type { IPolylineParams } from "../../entity/Polyline";
-import { Entity } from '../../entity/Entity';
-import type { IMouseState } from "../../renderer/RendererEvents";
-import { OldMouseNavigation } from "../OldMouseNavigation";
-import { LonLat } from '../../LonLat';
-import { Line3 } from '../../math/Line3';
-import { Object3d } from '../../Object3d';
-import { Planet } from '../../scene/Planet';
-import { RenderNode } from '../../scene/RenderNode';
-import { Vec2 } from '../../math/Vec2';
-import { Vec3 } from '../../math/Vec3';
-import { Vector } from '../../layer/Vector';
+import {createEvents, type EventsHandler} from '../../Events';
+import type {CoordinatesType, IGeometryStyle} from "../../entity/Geometry";
+import type {IGeoObjectParams} from "../../entity/GeoObject";
+import type {IPolylineParams} from "../../entity/Polyline";
+import {Entity} from '../../entity/Entity';
+import type {IMouseState} from "../../renderer/RendererEvents";
+import {OldMouseNavigation} from "../OldMouseNavigation";
+import {LonLat} from '../../LonLat';
+import {Line3} from '../../math/Line3';
+import {Object3d} from '../../Object3d';
+import {Planet} from '../../scene/Planet';
+import {RenderNode} from '../../scene/RenderNode';
+import {Vec2} from '../../math/Vec2';
+import {Vec3} from '../../math/Vec3';
+import {Vector} from '../../layer/Vector';
 
 type PolygonDrawingSceneEventsList = ["change", "startpoint"];
 
@@ -741,4 +741,4 @@ class PolygonDrawingScene extends RenderNode {
     }
 }
 
-export { PolygonDrawingScene };
+export {PolygonDrawingScene};

@@ -1,6 +1,6 @@
-import { Entity } from "../../entity/Entity";
-import { Vec2 } from "../../math/Vec2";
-import { Vec3 } from "../../math/Vec3";
+import {Entity} from "../../entity/Entity";
+import {Vec2} from "../../math/Vec2";
+import {Vec3} from "../../math/Vec3";
 import {
     NUM_SEGMENTS,
     OUTLINE_ALT,
@@ -190,4 +190,4 @@ class LineStringDrawingScene extends PolygonDrawingScene {
     }
 }
 
-export { LineStringDrawingScene };
+export {LineStringDrawingScene};

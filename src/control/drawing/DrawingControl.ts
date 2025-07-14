@@ -1,6 +1,6 @@
-import { Control, type IControlParams } from "../Control";
-import { LineStringDrawingScene } from "./LineStringDrawingScene";
-import { PolygonDrawingScene } from "./PolygonDrawingScene";
+import {Control, type IControlParams} from "../Control";
+import {LineStringDrawingScene} from "./LineStringDrawingScene";
+import {PolygonDrawingScene} from "./PolygonDrawingScene";
 
 export interface IDrawingControlParams extends IControlParams {
     cornerStyle?: any;
@@ -61,4 +61,4 @@ class DrawingControl extends Control {
     }
 }
 
-export { DrawingControl };
+export {DrawingControl};
