@@ -108,12 +108,23 @@ export class TouchNavigation extends Control {
             this.renderer.events.on("touchmove", this.onTouchMove, this);
             this.renderer.events.on("draw", this.onDraw, this);
         }
+    }
+
+    override onadd(): void {
         if (this.planet?.camera) {
-            this.planet.camera.events.on("flystart", () => {
-                this.stopRotation();
-            });
+            this.planet.camera.events.on("flystart", this._onCameraFly);
         }
     }
+
+    override onremove(): void {
+        if (this.planet?.camera) {
+            this.planet.camera.events.off("flystart", this._onCameraFly);
+        }
+    }
+
+    private _onCameraFly = () => {
+        this.stopRotation();
+    };
 
     protected onTouchStart(e: ITouchState) {
         const handler = this.renderer!.handler;

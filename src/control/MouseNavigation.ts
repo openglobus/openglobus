@@ -145,10 +145,17 @@ export class MouseNavigation extends Control {
             this.renderer.events.on("keyfree", input.KEY_ALT, this._onShiftFree);
             this.renderer.events.on("keyfree", input.KEY_PRINTSCREEN, this._onShiftFree);
         }
+    }
+
+    override onadd(): void {
         if (this.planet?.camera) {
-            this.planet.camera.events.on("flystart", () => {
-                this.stop();
-            });
+            this.planet.camera.events.on("flystart", this._onCameraFly);
+        }
+    }
+
+    override onremove(): void {
+        if (this.planet?.camera) {
+            this.planet.camera.events.off("flystart", this._onCameraFly);
         }
     }
 
@@ -192,6 +199,10 @@ export class MouseNavigation extends Control {
     public _onShiftFree = () => {
         this._shiftBusy = false;
     }
+
+    private _onCameraFly = () => {
+        this.stop();
+    };
 
     protected _onMouseMove = (e: IMouseState) => {
         if (this._active && this.renderer!.events.isKeyPressed(input.KEY_ALT)) {
