@@ -2128,21 +2128,24 @@ export class Planet extends RenderNode {
      * @param {Number} [height] - Height on the end of the flight route.
      * @param {Vec3} [up] - Camera UP vector on the end of a flying.
      * @param {Number} [ampl] - Altitude amplitude factor.
+     * @param {Number} [duration] - Animation duration
+     * @param {EasingFunction} [ease] - Animation easing
      * @param {Function} [startCallback] - Callback that calls before the flying begins.
      * @param {Function} [completeCallback] - Callback that calls after flying when flying is finished.
+     * @param {Function} [frameCallback] - Each frame callback
      */
     public flyExtent(
         extent: Extent,
         height?: number,
         up?: Vec3,
         ampl?: number,
+        duration: number = DEFAULT_FLIGHT_DURATION,
+        ease: EasingFunction = DEFAULT_EASING,
         completeCallback?: Function,
         startCallback?: Function,
-        frameCallback?: Function,
-        duration: number = DEFAULT_FLIGHT_DURATION,
-        ease: EasingFunction = DEFAULT_EASING
+        frameCallback?: Function
     ) {
-        this.camera.flyExtent(extent, height, up, ampl, completeCallback, startCallback, frameCallback, duration, ease);
+        this.camera.flyExtent(extent, height, up, ampl, duration, ease, completeCallback, startCallback, frameCallback);
     }
 
     /**
@@ -2152,24 +2155,24 @@ export class Planet extends RenderNode {
      * @param {Vec3} [look] - Camera "look at" point.
      * @param {Vec3} [up] - Camera UP vector on the end of a flying.
      * @param {Number} [ampl] - Altitude amplitude factor.
+     * @param {Number} [duration] - Animation duration
+     * @param {EasingFunction} [ease] - Animation easing
      * @param {Function} [completeCallback] - Call the function in the end of flight
      * @param {Function} [startCallback] - Call the function in the beginning
      * @param {Function} [frameCallback] - Each frame callback
-     * @param {Number} [duration] - Animation duration
-     * @param {EasingFunction} [ease] - Animation easing
      */
     public flyCartesian(
         cartesian: Vec3,
         look?: Vec3 | null,
         up?: Vec3 | null,
         ampl?: number,
+        duration: number = DEFAULT_FLIGHT_DURATION,
+        ease: EasingFunction = DEFAULT_EASING,
         completeCallback?: Function | null,
         startCallback?: Function | null,
         frameCallback?: Function | null,
-        duration: number = DEFAULT_FLIGHT_DURATION,
-        ease: EasingFunction = DEFAULT_EASING
     ) {
-        this.camera.flyCartesian(cartesian, look, up, ampl, completeCallback, startCallback, frameCallback, duration, ease);
+        this.camera.flyCartesian(cartesian, look, up, ampl, duration, ease, completeCallback, startCallback, frameCallback);
     }
 
     /**
@@ -2179,22 +2182,24 @@ export class Planet extends RenderNode {
      * @param {Vec3 | LonLat} [look] - Camera viewpoint in the end of the flight.
      * @param {Vec3} [up] - Camera UP vector on the end of a flying.
      * @param {Number} [ampl] - Altitude amplitude factor.
-     * @param [completeCallback]
-     * @param [startCallback]
-     * @param [frameCallback]
+     * @param {Number} [duration] - Animation duration
+     * @param {EasingFunction} [ease] - Animation easing
+     * @param {Function} [completeCallback] - Call the function in the end of flight
+     * @param {Function} [startCallback] - Call the function in the beginning
+     * @param {Function} [frameCallback] - Each frame callback
      */
     public flyLonLat(
         lonlat: LonLat,
         look?: Vec3 | LonLat,
         up?: Vec3,
         ampl?: number,
+        duration: number = DEFAULT_FLIGHT_DURATION,
+        ease: EasingFunction = DEFAULT_EASING,
         completeCallback?: Function,
         startCallback?: Function,
-        frameCallback?: Function,
-        duration: number = DEFAULT_FLIGHT_DURATION,
-        ease: EasingFunction = DEFAULT_EASING
+        frameCallback?: Function
     ) {
-        this.camera.flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback, frameCallback, duration, ease);
+        this.camera.flyLonLat(lonlat, look, up, ampl, duration, ease, completeCallback, startCallback, frameCallback);
     }
 
     /**

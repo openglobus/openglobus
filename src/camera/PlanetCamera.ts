@@ -380,6 +380,8 @@ class PlanetCamera extends Camera {
      * @param {number} [height] - Destination height.
      * @param {Vec3} [up] - Camera UP in the end of flying. Default - (0,1,0)
      * @param {Number} [ampl] - Altitude amplitude factor.
+     * @param {Number} [duration] - Animation duration
+     * @param {EasingFunction} [ease] - Animation easing
      * @param {Function} [completeCallback] - Callback that calls after flying when flying is finished.
      * @param {Function} [startCallback] - Callback that calls before the flying begins.
      * @param {Function} [frameCallback] - Each frame callback
@@ -389,21 +391,22 @@ class PlanetCamera extends Camera {
         height?: number | null,
         up?: Vec3 | null,
         ampl?: number | null,
+        duration: number = DEFAULT_FLIGHT_DURATION,
+        ease: EasingFunction = DEFAULT_EASING,
         completeCallback?: Function | null,
         startCallback?: Function | null,
-        frameCallback?: Function | null,
-        duration: number = DEFAULT_FLIGHT_DURATION,
-        ease: EasingFunction = DEFAULT_EASING) {
+        frameCallback?: Function | null
+    ) {
         this.flyCartesian(
             this.getExtentPosition(extent, height),
             Vec3.ZERO,
             up,
             ampl == null ? 1 : ampl,
+            duration,
+            ease,
             completeCallback,
             startCallback,
-            frameCallback,
-            duration,
-            ease
+            frameCallback
         );
     }
 
@@ -425,11 +428,11 @@ class PlanetCamera extends Camera {
         cartesian: Vec3,
         distance: number = 10000.0,
         ampl: number = 0.0,
+        duration: number = DEFAULT_FLIGHT_DURATION,
+        ease: EasingFunction = DEFAULT_EASING,
         completeCallback?: Function,
         startCallback?: Function,
-        frameCallback?: Function,
-        duration: number = DEFAULT_FLIGHT_DURATION,
-        ease: EasingFunction = DEFAULT_EASING
+        frameCallback?: Function
     ) {
         let p0 = this.eye.add(this.getForward().scaleTo(distance));
         let _rot = Quat.getRotationBetweenVectors(p0.getNormal(), cartesian.getNormal());
@@ -444,11 +447,11 @@ class PlanetCamera extends Camera {
                 cartesian,
                 newUp,
                 ampl,
+                duration,
+                ease,
                 completeCallback,
                 startCallback,
-                frameCallback,
-                duration,
-                ease
+                frameCallback
             );
         }
     }
@@ -460,6 +463,8 @@ class PlanetCamera extends Camera {
      * @param {Vec3} [look] - Camera LOOK in the end of flying. Default - (0,0,0)
      * @param {Vec3} [up] - Camera UP vector in the end of flying. Default - (0,1,0)
      * @param {Number} [ampl=1.0] - Altitude amplitude factor.
+     * @param {Number} [duration] - Animation duration
+     * @param {EasingFunction} [ease] - Animation easing
      * @param {Function} [completeCallback] - Callback that calls after flying when flying is finished.
      * @param {Function} [startCallback] - Callback that calls before the flying begins.
      * @param {Function} [frameCallback] - Each frame callback
@@ -469,14 +474,14 @@ class PlanetCamera extends Camera {
         look: Vec3 | LonLat | null = Vec3.ZERO,
         up: Vec3 | null = Vec3.NORTH,
         ampl: number = 1.0,
+        duration: number = DEFAULT_FLIGHT_DURATION,
+        ease: EasingFunction = DEFAULT_EASING,
         completeCallback: Function | null = () => {
         },
         startCallback: Function | null = () => {
         },
         frameCallback: Function | null = () => {
-        },
-        duration: number = DEFAULT_FLIGHT_DURATION,
-        ease: EasingFunction = DEFAULT_EASING
+        }
     ) {
 
         this.stopFlying();
@@ -570,6 +575,8 @@ class PlanetCamera extends Camera {
      * @param {Vec3 | LonLat} [look] - Camera LOOK in the end of flying. Default - (0,0,0)
      * @param {Vec3} [up] - Camera UP vector in the end of flying. Default - (0,1,0)
      * @param {number} [ampl] - Altitude amplitude factor.
+     * @param {Number} [duration] - Animation duration
+     * @param {EasingFunction} [ease] - Animation easing
      * @param {Function} [completeCallback] - Callback that calls after flying when flying is finished.
      * @param {Function} [startCallback] - Callback that calls befor the flying begins.
      * @param {Function} [frameCallback] - each frame callback
@@ -579,11 +586,11 @@ class PlanetCamera extends Camera {
         look?: Vec3 | LonLat,
         up?: Vec3,
         ampl?: number,
+        duration: number = DEFAULT_FLIGHT_DURATION,
+        ease: EasingFunction = DEFAULT_EASING,
         completeCallback?: Function,
         startCallback?: Function,
-        frameCallback?: Function,
-        duration: number = DEFAULT_FLIGHT_DURATION,
-        ease: EasingFunction = DEFAULT_EASING
+        frameCallback?: Function
     ) {
         let _lonLat = new LonLat(lonlat.lon, lonlat.lat, lonlat.height || this._lonLat.height);
         this.flyCartesian(
@@ -591,11 +598,11 @@ class PlanetCamera extends Camera {
             look,
             up,
             ampl,
+            duration,
+            ease,
             completeCallback,
             startCallback,
-            frameCallback,
-            duration,
-            ease
+            frameCallback
         );
     }
 
