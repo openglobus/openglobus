@@ -87,6 +87,8 @@ import {
 
 import {MoveAxisEntity} from "./control/geoObjectEditor/MoveAxisEntity";
 import { Gltf } from './utils/gltf/gltfParser';
+import { Easing } from './utils/easing';
+import type { EasingFunction } from './utils/easing';
 
 export {
     bv,
@@ -104,6 +106,8 @@ export {
     terrain,
     layer,
     webgl,
+    Easing,
+    EasingFunction,
     Framebuffer,
     EmptyTerrain,
     GlobusTerrain,

@@ -25,7 +25,7 @@ import {LonLat} from "../LonLat";
 import {Node} from "../quadTree/Node";
 import {NormalMapCreator} from "../utils/NormalMapCreator";
 import {PlainSegmentWorker} from "../utils/PlainSegmentWorker";
-import {PlanetCamera} from "../camera/PlanetCamera";
+import {DEFAULT_EASING, DEFAULT_FLIGHT_DURATION, PlanetCamera} from "../camera/PlanetCamera";
 import {Quat} from "../math/Quat";
 import {QuadTreeStrategy} from "../quadTree/QuadTreeStrategy";
 import {Ray} from "../math/Ray";
@@ -42,6 +42,7 @@ import type {WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams} from "../we
 import {Program} from "../webgl/Program";
 import {Segment} from "../segment/Segment";
 import type {AtmosphereParameters} from "../shaders/atmos/atmos";
+import { Easing, EasingFunction } from "../utils/easing";
 
 export interface IPlanetParams {
     name?: string;
@@ -2127,18 +2128,24 @@ export class Planet extends RenderNode {
      * @param {Number} [height] - Height on the end of the flight route.
      * @param {Vec3} [up] - Camera UP vector on the end of a flying.
      * @param {Number} [ampl] - Altitude amplitude factor.
+     * @param {Number} [duration] - Animation duration
+     * @param {EasingFunction} [ease] - Animation easing
      * @param {Function} [startCallback] - Callback that calls before the flying begins.
      * @param {Function} [completeCallback] - Callback that calls after flying when flying is finished.
+     * @param {Function} [frameCallback] - Each frame callback
      */
     public flyExtent(
         extent: Extent,
         height?: number,
         up?: Vec3,
         ampl?: number,
+        duration: number = DEFAULT_FLIGHT_DURATION,
+        ease: EasingFunction = DEFAULT_EASING,
         completeCallback?: Function,
-        startCallback?: Function
+        startCallback?: Function,
+        frameCallback?: Function
     ) {
-        this.camera.flyExtent(extent, height, up, ampl, completeCallback, startCallback);
+        this.camera.flyExtent(extent, height, up, ampl, duration, ease, completeCallback, startCallback, frameCallback);
     }
 
     /**
@@ -2148,6 +2155,8 @@ export class Planet extends RenderNode {
      * @param {Vec3} [look] - Camera "look at" point.
      * @param {Vec3} [up] - Camera UP vector on the end of a flying.
      * @param {Number} [ampl] - Altitude amplitude factor.
+     * @param {Number} [duration] - Animation duration
+     * @param {EasingFunction} [ease] - Animation easing
      * @param {Function} [completeCallback] - Call the function in the end of flight
      * @param {Function} [startCallback] - Call the function in the beginning
      * @param {Function} [frameCallback] - Each frame callback
@@ -2157,11 +2166,13 @@ export class Planet extends RenderNode {
         look?: Vec3 | null,
         up?: Vec3 | null,
         ampl?: number,
+        duration: number = DEFAULT_FLIGHT_DURATION,
+        ease: EasingFunction = DEFAULT_EASING,
         completeCallback?: Function | null,
         startCallback?: Function | null,
-        frameCallback?: Function | null
+        frameCallback?: Function | null,
     ) {
-        this.camera.flyCartesian(cartesian, look, up, ampl, completeCallback, startCallback, frameCallback);
+        this.camera.flyCartesian(cartesian, look, up, ampl, duration, ease, completeCallback, startCallback, frameCallback);
     }
 
     /**
@@ -2171,20 +2182,24 @@ export class Planet extends RenderNode {
      * @param {Vec3 | LonLat} [look] - Camera viewpoint in the end of the flight.
      * @param {Vec3} [up] - Camera UP vector on the end of a flying.
      * @param {Number} [ampl] - Altitude amplitude factor.
-     * @param [completeCallback]
-     * @param [startCallback]
-     * @param [frameCallback]
+     * @param {Number} [duration] - Animation duration
+     * @param {EasingFunction} [ease] - Animation easing
+     * @param {Function} [completeCallback] - Call the function in the end of flight
+     * @param {Function} [startCallback] - Call the function in the beginning
+     * @param {Function} [frameCallback] - Each frame callback
      */
     public flyLonLat(
         lonlat: LonLat,
         look?: Vec3 | LonLat,
         up?: Vec3,
         ampl?: number,
+        duration: number = DEFAULT_FLIGHT_DURATION,
+        ease: EasingFunction = DEFAULT_EASING,
         completeCallback?: Function,
         startCallback?: Function,
         frameCallback?: Function
     ) {
-        this.camera.flyLonLat(lonlat, look, up, ampl, completeCallback, startCallback, frameCallback);
+        this.camera.flyLonLat(lonlat, look, up, ampl, duration, ease, completeCallback, startCallback, frameCallback);
     }
 
     /**
@@ -2266,15 +2281,6 @@ export class Planet extends RenderNode {
     //     }
     // }
 
-    /**
-     * @todo: refactor with events or something better
-     */
-    public stopDragging() {
-        if (this.renderer && this.renderer.controls.EarthNavigation) {
-            //@ts-ignore
-            this.renderer.controls.EarthNavigation.stop();
-        }
-    }
 }
 
 const PLANET_EVENTS: PlanetEventsList = [

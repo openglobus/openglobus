@@ -147,6 +147,18 @@ export class MouseNavigation extends Control {
         }
     }
 
+    override onadd(): void {
+        if (this.planet?.camera) {
+            this.planet.camera.events.on("flystart", this._onCameraFly);
+        }
+    }
+
+    override onremove(): void {
+        if (this.planet?.camera) {
+            this.planet.camera.events.off("flystart", this._onCameraFly);
+        }
+    }
+
     public override onactivate() {
         super.onactivate();
         let r = this.renderer!;
@@ -187,6 +199,10 @@ export class MouseNavigation extends Control {
     public _onShiftFree = () => {
         this._shiftBusy = false;
     }
+
+    private _onCameraFly = () => {
+        this.stop();
+    };
 
     protected _onMouseMove = (e: IMouseState) => {
         if (this._active && this.renderer!.events.isKeyPressed(input.KEY_ALT)) {
