@@ -119,6 +119,8 @@ export class CompassButton extends Control {
                 null,
                 null,
                 0,
+                undefined,
+                undefined,
                 null,
                 null,
                 () => {

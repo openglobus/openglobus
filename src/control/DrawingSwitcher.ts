@@ -49,7 +49,7 @@ export class DrawingSwitcher extends Control {
             ...options
         });
 
-        this.drawingControl = new DrawingControl();
+        this.drawingControl = new DrawingControl(options);
     }
 
     public override oninit() {
