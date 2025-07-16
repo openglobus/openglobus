@@ -10,10 +10,37 @@ import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import type {ITouchState} from "../renderer/RendererEvents";
 import {Plane} from "../math/Plane";
+import { createEvents, EventsHandler } from "../Events";
 
 interface ITouchNavigationParams extends IControlParams {
-
+    inertia?: number;
 }
+
+export type TouchNavigationEventsList = [
+    "inertiamove",
+    "drag",
+    "doubletapzoom",
+];
+
+const TOUCH_NAVIGATION_EVENTS: TouchNavigationEventsList = [
+    /**
+     * Triggered on inertia rotate.
+     * @event og.TouchNavigation#rotate
+     */
+    "inertiamove",
+
+    /**
+     * Triggered on touch drag/rotate/tilt/zoom.
+     * @event og.TouchNavigation#drag
+     */
+    "drag",
+
+    /**
+     * Triggered on double tap zoom.
+     * @event og.TouchNavigation#doubletapzoom
+     */
+    "doubletapzoom",
+];
 
 class TouchExt {
     public x: number;
@@ -57,11 +84,19 @@ class TouchExt {
 
 /**
  * Touch pad planet camera dragging control.
+ * @class
+ * @extends {Control}
+ * @param {ITouchNavigationParams} [options] - Mouse navigation options:
+ * @param {number} [options.inertia] - inertia factor. Default is 0.007
+ * @fires og.TouchNavigation#inertiamove
+ * @fires og.TouchNavigation#drag
+ * @fires og.TouchNavigation#doubletapzoom
  */
 export class TouchNavigation extends Control {
 
     public grabbedPoint: Vec3;
     public inertia: number;
+    public events: EventsHandler<TouchNavigationEventsList>;
 
     protected grabbedSpheroid: Sphere;
     protected qRot: Quat;
@@ -80,8 +115,9 @@ export class TouchNavigation extends Control {
 
         this._name = "touchNavigation";
 
+        this.events = createEvents<TouchNavigationEventsList>(TOUCH_NAVIGATION_EVENTS, this);
         this.grabbedPoint = new Vec3();
-        this.inertia = 0.007;
+        this.inertia = options.inertia != undefined ? options.inertia : 0.007;
         this.grabbedSpheroid = new Sphere();
         this.planet = null;
         this.qRot = new Quat();
@@ -203,6 +239,7 @@ export class TouchNavigation extends Control {
             this.planet!.flyLonLat(
                 new LonLat(g.lon, g.lat, this.planet!.camera.eye.distance(p) * 0.57)
             );
+            this.events.dispatch(this.events.doubletapzoom, this);
         }
     }
 
@@ -282,6 +319,7 @@ export class TouchNavigation extends Control {
 
                 cam.checkTerrainCollision();
                 cam.update();
+                this.events.dispatch(this.events.drag, this);
             }
             this.scaleRot = 0;
         } else if (e.sys!.touches.length === 1) {
@@ -315,6 +353,7 @@ export class TouchNavigation extends Control {
                     // cam._b = rot.mulVec3(cam._b);
                     cam.checkTerrainCollision();
                     cam.update();
+                    this.events.dispatch(this.events.drag, this);
                     this.scaleRot = 1;
                 } else {
                     let p0 = t.grabbedPoint,
@@ -326,6 +365,7 @@ export class TouchNavigation extends Control {
                         cam.eye = this._eye0.addA(px.subA(p0).negate());
                         cam.checkTerrainCollision();
                         cam.update();
+                        this.events.dispatch(this.events.drag, this);
                         this.scaleRot = 0;
                     }
                 }
@@ -368,6 +408,7 @@ export class TouchNavigation extends Control {
             // cam._b = rot.mulVec3(cam._b);
             cam.checkTerrainCollision();
             cam.update();
+            this.events.dispatch(this.events.inertiamove, this);
         }
 
         if (cam.eye.distance(prevEye) / cam.getAltitude() > 0.01) {

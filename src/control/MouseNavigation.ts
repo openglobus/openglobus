@@ -8,21 +8,67 @@ import {Vec2} from "../math/Vec2";
 import {Vec3} from "../math/Vec3";
 import {input} from "../input/input";
 import {Plane} from "../math/Plane";
+import { createEvents, type EventsHandler } from "../Events";
 
-interface IEarthNavigationParams extends IControlParams {
-    speed?: number;
+interface IMouseNavigationParams extends IControlParams {
     fixedUp?: boolean;
+    inertia?: number;
+    dragInertia?: number;
+    minSlope?: number;
+    mass?: number;
+    zoomSpeed?: number;
 }
 
+export type MouseNavigationEventsList = [
+    "drag",
+    "zoom",
+    "rotate",
+];
+
+const MOUSE_NAVIGATION_EVENTS: MouseNavigationEventsList = [
+    /**
+     * Triggered on view drag.
+     * @event og.MouseNavigation#drag
+     */
+    "drag",
+
+    /**
+     * Triggered on zoom.
+     * @event og.MouseNavigation#zoom
+     */
+    "zoom",
+
+    /**
+     * Triggered on rotate.
+     * @event og.MouseNavigation#rotate
+     */
+    "rotate",
+];
+
 const DEFAULT_VELINERTIA = 0.96;
+
+const DEFAULT_DRAG_INERTIA = 170;
 
 // Camera moves vertically (up/down) when slope is less than this threshold
 const MIN_SLOPE = 0.35;
 
-
+/**
+ * Mouse navigation.
+ * @class
+ * @extends {Control}
+ * @param {IMouseNavigationParams} [options] - Mouse navigation options:
+ * @param {boolean} [options.fixedUp] - fix up at north pole
+ * @param {number} [options.inertia] - inertia factor
+ * @param {number} [options.dragInertia] - drag inertia
+ * @param {number} [options.mass] - camera mass, affects velocity. Default is 1
+ * @param {number} [options.minSlope] - minimal slope for vertical camera movement. Default is 0.35
+ * @param {number} [options.zoomSpeed] - zoom speed factor. Default is 1
+ * @fires og.MouseNavigation#drag
+ * @fires og.MouseNavigation#zoom
+ * @fires og.MouseNavigation#rotate
+ */
 export class MouseNavigation extends Control {
 
-    public speed: number;
     public force: Vec3;
     public force_h: number;
     public force_v: number;
@@ -30,9 +76,15 @@ export class MouseNavigation extends Control {
     public vel_h: number;
     public vel_v: number;
     public mass: number;
+    public minSlope: number;
+    public inertia: number;
+    public dragInertia: number;
+    public zoomSpeed: number;
 
     public vel_roll: number;
     public force_roll: number;
+
+    public events: EventsHandler<MouseNavigationEventsList>;
 
     protected _lookPos: Vec3 | undefined;
 
@@ -84,16 +136,15 @@ export class MouseNavigation extends Control {
     protected _rotHDir: number;
     protected _rotVDir: number;
 
-    protected _dragInertia: number = 170;
-
-    constructor(options: IEarthNavigationParams = {}) {
+    constructor(options: IMouseNavigationParams = {}) {
         super({
             name: "mouseNavigation",
             autoActivate: true,
             ...options
         });
 
-        this.speed = options.speed || 1.0; // m/s
+        this.events = createEvents<MouseNavigationEventsList>(MOUSE_NAVIGATION_EVENTS, this);
+
         this.force = new Vec3();
         this.force_h = 0;
         this.force_v = 0;
@@ -105,8 +156,12 @@ export class MouseNavigation extends Control {
         this.vel_roll = 0;
         this.force_roll = 0;
 
-        this.mass = 1;
+        this.mass = options.mass != undefined ? options.mass : 1;
+        this.inertia = options.inertia != undefined ? options.inertia : 1;
         this._velInertia = DEFAULT_VELINERTIA;
+        this.minSlope = options.minSlope != undefined ? options.minSlope : MIN_SLOPE;
+        this.dragInertia = options.dragInertia != undefined ? options.dragInertia : DEFAULT_DRAG_INERTIA;
+        this.zoomSpeed = options.zoomSpeed != undefined ? options.zoomSpeed : 1;
 
         this._lookPos = undefined;
         this._grabbedPoint = null;
@@ -246,7 +301,9 @@ export class MouseNavigation extends Control {
     protected _handleRotation() {
         if (this.planet && this._targetRotationPoint) {
             let cam = this.planet!.camera;
-
+            if (this.vel_h === 0.0 && this.vel_v === 0.0) {
+                return;
+            }
             // let l = (0.3 / this._tRad) * math.RADIANS;
             // if (l > 0.007) {
             //     l = 0.007;
@@ -256,14 +313,12 @@ export class MouseNavigation extends Control {
 
             let d_v_h = this.vel_h * this.dt;
             let d_v_v = this.vel_v * this.dt;
-
             cam.rotateHorizontal(d_v_h, false, this._targetRotationPoint, this._tUp);
             cam.rotateVertical(d_v_v, this._targetRotationPoint, 0.1);
-
+            this.events.dispatch(this.events.rotate, this);
             this._curPitch = cam.getPitch();
             this._curYaw = cam.getYaw();
             this._curRoll = cam.getRoll();
-
             this._velInertia = DEFAULT_VELINERTIA;
         }
     }
@@ -340,7 +395,10 @@ export class MouseNavigation extends Control {
 
             let dist = this.planet.camera.eye.distance(this._targetZoomPoint) * scale;
 
-            this.force = (e.direction.scale(this._wheelDirection)).normalize().scale(this._wheelDirection < 0 ? dist * 1.3 : dist);
+            this.force = (e.direction.scale(this._wheelDirection))
+                .normalize()
+                .scale(this._wheelDirection < 0 ? dist * 1.3 : dist)
+                .scale(this.zoomSpeed);
 
             this.vel.set(0, 0, 0);
 
@@ -402,7 +460,7 @@ export class MouseNavigation extends Control {
                 );
 
                 newEye.copy(rot.mulVec3(cam.eye));
-                this.force = newEye.sub(cam.eye).scale(this._dragInertia);
+                this.force = newEye.sub(cam.eye).scale(this.dragInertia);
             } else {
                 let p0 = this._grabbedPoint,
                     p1 = Vec3.add(p0, cam.getRight()),
@@ -411,7 +469,7 @@ export class MouseNavigation extends Control {
                 let px = new Vec3();
                 new Ray(cam.eye, e.direction).hitPlaneRes(Plane.fromPoints(p0, p1, p2), px);
                 let newEye = cam.eye.add(px.subA(p0).negate());
-                this.force = newEye.sub(cam.eye).scale(this._dragInertia);
+                this.force = newEye.sub(cam.eye).scale(this.dragInertia);
                 this._targetDragPoint = px;
             }
 
@@ -432,7 +490,7 @@ export class MouseNavigation extends Control {
     }
 
     protected _handleDrag() {
-        if (this.planet && this._targetDragPoint && this._grabbedPoint && this.vel.length() > 0.0) {
+        if (this.planet && this._targetDragPoint && this._grabbedPoint && this.vel.length() > 0.1) {
             this._velInertia = DEFAULT_VELINERTIA;
             let cam = this.planet!.camera;
 
@@ -448,7 +506,7 @@ export class MouseNavigation extends Control {
             this._screenPosIsChanged = false;
             this._prevVel.copy(this.vel);
 
-            if (cam.slope > MIN_SLOPE) {
+            if (cam.slope > this.minSlope) {
                 let d_v = this.vel.scaleTo(this.dt);
                 let d_s = Vec3.proj_b_to_plane(d_v, cam.eyeNorm);
                 let newEye = cam.eye.add(d_s).normalize().scale(this._grabbedCameraHeight);
@@ -467,6 +525,8 @@ export class MouseNavigation extends Control {
                 cam.eye.copy(newEye);
                 cam.checkTerrainCollision();
             }
+
+            this.events.dispatch(this.events.drag, this);
         }
     }
 
@@ -480,7 +540,7 @@ export class MouseNavigation extends Control {
     }
 
     protected _handleZoom() {
-        if (this._targetZoomPoint && this.vel.length() > 0.0) {
+        if (this._targetZoomPoint && this.vel.length() > 0.1) {
 
             // Common
             let cam = this.planet!.camera;
@@ -518,7 +578,7 @@ export class MouseNavigation extends Control {
             let d_s = cam.getForward().scaleTo(velDir * d_v.length());
 
             eye.addA(d_s);
-
+            this.events.dispatch(this.events.zoom, this);
             // Check max camera distance
             let maxAlt = cam.maxAltitude + this.planet!.ellipsoid.getEquatorialSize();
             if (eye.length() > maxAlt) {
@@ -561,7 +621,6 @@ export class MouseNavigation extends Control {
                 // let px0 = new Ray(cam.eye, dirCurr).hitSphere(this._grabbedSphere)!;
                 // let px1 = new Ray(cam.eye, dirNew).hitSphere(this._grabbedSphere)!;
             }
-
             cam.checkTerrainCollision();
         }
     }
@@ -569,7 +628,7 @@ export class MouseNavigation extends Control {
     protected _updateVel() {
         let acc = this.force.scale(1.0 / this.mass);
         this.vel.addA(acc);
-        this.vel.scale(this._velInertia);
+        this.vel.scale(this.velocityInertia);
         if (this.vel.length() < 0.001) {
             this.vel.set(0, 0, 0);
         }
@@ -583,26 +642,36 @@ export class MouseNavigation extends Control {
     protected _updateVel_h() {
         let acc = this.force_h / this.mass;
         this.vel_h += acc;
-        this.vel_h *= this._velInertia;
+        this.vel_h *= this.velocityInertia;
+        if (Math.abs(this.vel_h) < 0.001) {
+            this.vel_h = 0;
+        }
         this.force_h = 0;
     }
 
     protected _updateVel_v() {
         let acc = this.force_v / this.mass;
         this.vel_v += acc;
-        this.vel_v *= this._velInertia;
+        this.vel_v *= this.velocityInertia;
+        if (Math.abs(this.vel_v) < 0.001) {
+            this.vel_v = 0;
+        }
         this.force_v = 0;
     }
 
     protected _updateVel_roll() {
         let acc = this.force_roll / this.mass;
         this.vel_roll += acc;
-        this.vel_roll *= this._velInertia;
+        this.vel_roll *= this.velocityInertia;
         this.force_roll = 0;
     }
 
     protected get dt(): number {
         return 0.001 * this.renderer!.handler.deltaTime;
+    }
+
+    protected get velocityInertia(): number {
+        return this._velInertia * this.inertia;
     }
 
     public stop() {
