@@ -706,6 +706,12 @@ class Entity {
         this._updateAbsolutePosition();
     }
 
+    /**
+     * Sets rotation directly from glTF quaternion with common coordinate system conversion.
+     * This method avoids current pitch/yaw/roll airplane like conversion.
+     * @public
+     * @param {Quat} rot - Quaternion from glTF
+     */
     public setDirectQuaternionRotation(rot: Quat) {
 
         this._qRot.copy(rot);
