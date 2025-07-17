@@ -303,6 +303,7 @@ class Entity {
     protected _qFrame: Quat;
     protected _qRot: Quat;
     public _absoluteQRot: Quat;
+    protected _useDirectQuaternion: boolean;
 
     constructor(options: IEntityParams = {}) {
 
@@ -363,6 +364,7 @@ class Entity {
         this._qFrame = Quat.IDENTITY;
         this._qRot = Quat.IDENTITY;
         this._absoluteQRot = Quat.IDENTITY;
+        this._useDirectQuaternion = false;
 
         this._featureConstructorArray = {
             billboard: [Billboard, this.setBillboard],
@@ -628,7 +630,7 @@ class Entity {
      * @param {number} val - Scale factor
      */
     public setScale(val: number) {
-        this.setScale3v(new Vec3(val, val, val)); 
+        this.setScale3v(new Vec3(val, val, val));
     }
 
     /**
@@ -695,9 +697,24 @@ class Entity {
      * @param {Quat} rot - The new rotation quaternion.
      */
     public setRotation(rot: Quat) {
+        this._useDirectQuaternion = false;
+
         this._pitchRad = rot.getPitch();
         this._yawRad = rot.getYaw();
         this._rollRad = rot.getRoll();
+
+        this._updateAbsolutePosition();
+    }
+
+    public setDirectQuaternionRotation(rot: Quat) {
+
+        this._qRot.copy(rot);
+        this._useDirectQuaternion = true;
+
+        this._pitchRad = this._qRot.getPitch();
+        this._yawRad = this._qRot.getYaw();
+        this._rollRad = this._qRot.getRoll();
+
         this._updateAbsolutePosition();
     }
 
@@ -706,6 +723,7 @@ class Entity {
      * @param {number} val - The new pitch angle in radians.
      */
     public setPitch(val: number) {
+        this._useDirectQuaternion = false;
         this._pitchRad = val;
         this._updateAbsolutePosition();
     }
@@ -715,6 +733,7 @@ class Entity {
      * @param {number} val - The new yaw angle in radians.
      */
     public setYaw(val: number) {
+        this._useDirectQuaternion = false;
         this._yawRad = val;
         this._updateAbsolutePosition();
     }
@@ -725,6 +744,7 @@ class Entity {
      * @param {number} val - The new roll angle in radians.
      */
     public setRoll(val: number) {
+        this._useDirectQuaternion = false;
         this._rollRad = val;
         this._updateAbsolutePosition();
     }
@@ -925,10 +945,6 @@ class Entity {
             this._yawRad = this._qRot.getYaw();
             this._rollRad = this._qRot.getRoll();
 
-            // this._pitch = this._pitchRad * DEGREES;
-            // this._yaw = this._yawRad * DEGREES;
-            // this._roll = this._rollRad * DEGREES;
-
             if (this.geoObject) {
                 this.geoObject.setRotation(this._absoluteQRot);
             }
@@ -945,11 +961,13 @@ class Entity {
 
         if (parent && this._relativePosition) {
             this._scale.mulRes(parent._absoluteScale, this._absoluteScale);
-            
+
             this._qFrame.copy(parent._qFrame);
             this._rootCartesian.copy(parent._rootCartesian);
 
-            this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
+            if (!this._useDirectQuaternion) {
+                this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad);
+            }
             parent._absoluteQRot.mulRes(this._qRot, this._absoluteQRot);
 
             let rotCart = parent._absoluteQRot.mulVec3(this._cartesian.add(this._localPosition)).mulA(parent._absoluteScale);
@@ -959,11 +977,17 @@ class Entity {
             if (this._entityCollection && this._entityCollection.renderNode) {
                 this._qFrame = this._entityCollection.renderNode.getFrameRotation(this._cartesian);
             }
-            if (parent && this.forceGlobalRotation) {
-                this._qRot.setPitchYawRoll(parent._pitchRad, parent._yawRad, parent._rollRad, this._qFrame);
-            } else {
-                this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad, this._qFrame);
+
+            if (!this._useDirectQuaternion) {
+                if (parent && this.forceGlobalRotation) {
+                    this._qRot.setPitchYawRoll(parent._pitchRad, parent._yawRad, parent._rollRad, this._qFrame);
+                } else {
+                    this._qRot.setPitchYawRoll(this._pitchRad, this._yawRad, this._rollRad, this._qFrame);
+                }
+            } else if (!this._qFrame.isEqual(Quat.IDENTITY)) {
+                this._qRot = this._qRot.mul(this._qFrame);
             }
+
             this._absoluteScale.copy(this._scale);
             this._absoluteQRot.copy(this._qRot);
             this._rootCartesian.copy(this._cartesian);
