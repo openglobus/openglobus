@@ -72,6 +72,18 @@ class MyScene extends RenderNode {
             collection.add(entity);
             this.renderer.activeCamera.update();
         });
+
+        Gltf.loadGlb("./pipe3.glb").then((gltf) => {
+            const entity = gltf.toEntities();
+            let baseEntity = new Entity();
+            for (let i = 0; i < entity.length; i++) {
+                entity[i].relativePosition = true;
+                baseEntity.appendChild(entity[i]);
+            }
+            collection.add(baseEntity);
+
+            window.baseEntity = baseEntity;
+        });
     }
 }
 
