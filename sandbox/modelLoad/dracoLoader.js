@@ -60,7 +60,6 @@ class MyScene extends RenderNode {
                 cat.setScale(0.5);
                 cat.setPitch(-90 * (Math.PI / 180));
                 collection.add(cat);
-                this.renderer.activeCamera.update();
             });
         });
 
@@ -70,19 +69,6 @@ class MyScene extends RenderNode {
             entity.setCartesian(20, 5, 0);
             entity.setPitch(-90 * (Math.PI / 180));
             collection.add(entity);
-            this.renderer.activeCamera.update();
-        });
-
-        Gltf.loadGlb("./pipe3.glb").then((gltf) => {
-            const entity = gltf.toEntities();
-            let baseEntity = new Entity();
-            for (let i = 0; i < entity.length; i++) {
-                entity[i].relativePosition = true;
-                baseEntity.appendChild(entity[i]);
-            }
-            collection.add(baseEntity);
-
-            window.baseEntity = baseEntity;
         });
     }
 }
