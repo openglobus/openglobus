@@ -45,22 +45,22 @@ function getDistanceFromPixel(x: number, y: number, camera: Camera, framebuffer:
 const CAM_WIDTH = 640;
 const CAM_HEIGHT = 480;
 
-export interface ICameraDepthhandlerParams extends IControlParams {
+export interface ICameraDepthHandlerParams extends IControlParams {
 
 }
 
 export class CameraDepthHandler extends Control {
 
-    protected _depthHandler: CameraFrameHandler | null;
+    protected _depthCameraFrameHandler: CameraFrameHandler | null;
     protected _frameComposer: CameraFrameComposer;
 
     public readonly cameraGeoImage: GeoImage;
 
-    constructor(params: ICameraDepthhandlerParams) {
+    constructor(params: ICameraDepthHandlerParams) {
         super(params);
 
         this._frameComposer = new CameraFrameComposer();
-        this._depthHandler = null;
+        this._depthCameraFrameHandler = null;
 
         this.cameraGeoImage = new GeoImage(`cameraGeoImage:${this.__id}`, {
             src: "test4.jpg",
@@ -90,8 +90,8 @@ export class CameraDepthHandler extends Control {
     }
 
     public get camera(): Camera | undefined {
-        if (this._depthHandler) {
-            return this._depthHandler.camera;
+        if (this._depthCameraFrameHandler) {
+            return this._depthCameraFrameHandler.camera;
         }
     }
 
@@ -118,7 +118,7 @@ export class CameraDepthHandler extends Control {
             useDepth: true
         });
 
-        this._depthHandler = new CameraFrameHandler({
+        this._depthCameraFrameHandler = new CameraFrameHandler({
             camera: this._createCamera(),
             frameBuffer: depthFramebuffer,
             frameHandler: this._depthHandlerCallback
@@ -130,12 +130,12 @@ export class CameraDepthHandler extends Control {
             this.renderer.addControl(this._frameComposer);
         }
 
-        this._frameComposer.add(this._depthHandler);
+        this._frameComposer.add(this._depthCameraFrameHandler);
     }
 
     public get framebuffer(): Framebuffer | undefined {
-        if (this._depthHandler) {
-            return this._depthHandler.frameBuffer;
+        if (this._depthCameraFrameHandler) {
+            return this._depthCameraFrameHandler.frameBuffer;
         }
     }
 
@@ -165,7 +165,7 @@ export class CameraDepthHandler extends Control {
         gl.uniform3fv(shu.eyePositionLow, cam.eyeLow);
 
         // drawing planet nodes
-        let rn = this.planet._renderedNodes;
+        let rn = this.planet.quadTreeStrategy._renderedNodes;
 
         let i = rn.length;
         while (i--) {
@@ -175,9 +175,9 @@ export class CameraDepthHandler extends Control {
         }
 
         //@ts-ignore
-        for (let i = 0; i < this.planet._fadingOpaqueSegments.length; ++i) {
+        for (let i = 0; i < this.planet.quadTreeStrategy._fadingOpaqueSegments.length; ++i) {
             //@ts-ignore
-            this.planet._fadingOpaqueSegments[i].depthRendering(sh);
+            this.planet.quadTreeStrategy._fadingOpaqueSegments[i].depthRendering(sh);
         }
 
         framebuffer.deactivate();
@@ -223,9 +223,9 @@ export class CameraDepthHandler extends Control {
     }
 
     public getCartesianFromPixelTerrain(x: number, y: number): Vec3 | undefined {
-        if (this._depthHandler) {
-            let framebuffer = this._depthHandler.frameBuffer;
-            let camera = this._depthHandler.camera;
+        if (this._depthCameraFrameHandler) {
+            let framebuffer = this._depthCameraFrameHandler.frameBuffer;
+            let camera = this._depthCameraFrameHandler.camera;
             let distance = getDistanceFromPixel(x, y, camera, framebuffer);
             if (distance === 0) {
                 return;

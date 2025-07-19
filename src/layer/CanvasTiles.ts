@@ -122,7 +122,7 @@ class CanvasTiles extends Layer {
     }
 
     public _onLoadend() {
-        if (this._planet && this._planet._terrainCompletedActivated) {
+        if (this._planet && this._planet.quadTreeStrategy._terrainCompletedActivated) {
             this._planet.events.dispatch(this._planet.events.layerloadend, this);
         }
     }
@@ -241,7 +241,7 @@ class CanvasTiles extends Layer {
                     this._exec(pmat);
                 }
             }
-        } else if (this._counter === 0 && this._planet && this._planet._terrainCompletedActivated) {
+        } else if (this._counter === 0 && this._planet && this._planet.quadTreeStrategy._terrainCompletedActivated) {
             this.events.dispatch(this.events.loadend);
         }
     }

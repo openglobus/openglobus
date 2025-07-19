@@ -2,6 +2,7 @@ import {createEvents} from '../Events';
 import type {EventsHandler} from '../Events';
 import {Planet} from "../scene/Planet";
 import {Segment} from "../segment/Segment";
+import {QuadTreeStrategy} from "../quadTree";
 
 type LoaderEventsList = ["loadend", "layerloadend"];
 
@@ -30,8 +31,8 @@ interface Obj<T> {
     isIdle: boolean;
     isEqual: (obj: T) => boolean;
     events: EventsHandler<any>
-    _planet: Planet | null;
-
+    _planet?: Planet | null;
+    quadTreeStrategy?: QuadTreeStrategy | null;
 }
 
 type QueryParams<T> = {
@@ -139,7 +140,7 @@ export class Loader<T extends Obj<T>> {
     }
 
     protected _checkLoadend(request: RequestCounter<T>, sender: T) {
-        if (request.counter === 0 && (!sender._planet || sender._planet._terrainCompletedActivated)) {
+        if (request.counter === 0 && (!sender._planet || sender.quadTreeStrategy && sender.quadTreeStrategy._terrainCompletedActivated)) {
             sender.events.dispatch(sender.events.loadend, sender);
             this.events.dispatch(this.events.layerloadend, sender);
             request.__requestCounterFrame__ = 0;
