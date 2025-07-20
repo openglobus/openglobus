@@ -1111,35 +1111,35 @@ export class Planet extends RenderNode {
     }
 
     protected _renderScreenNodesPASSNoAtmos() {
-        let cam = this.renderer!.activeCamera as PlanetCamera;
+        let cam = this.camera;
         let sh = this._setUniformsNoAtmos(cam);
         //
         // PASS 0: rendering base slice of layers, which is often zero height
-        this._renderingScreenNodes(sh, cam, this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]);
+        this._renderingScreenNodes(sh, cam);
     }
 
     protected _renderScreenNodesPASSAtmos() {
-        let cam = this.renderer!.activeCamera as PlanetCamera;
+        let cam = this.camera;
         let sh = this._setUniformsAtmos(cam);
         //
         // PASS 0: rendering base slice of layers, which is often zero height
-        this._renderingScreenNodes(sh, cam, this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]);
+        this._renderingScreenNodes(sh, cam);
     }
 
     protected _renderScreenNodesWithHeightPASSNoAtmos() {
-        let cam = this.renderer!.activeCamera as PlanetCamera;
+        let cam = this.camera;
         let sh = this._setUniformsNoAtmos(cam);
         //
         // PASS 1: rendering slices, and layers with heights, without transition opacity effect
-        this._renderingScreenNodesWithHeight(sh, cam, this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]);
+        this._renderingScreenNodesWithHeight(sh, cam);
     }
 
     protected _renderScreenNodesWithHeightPASSAtmos() {
-        let cam = this.renderer!.activeCamera as PlanetCamera;
+        let cam = this.camera;
         let sh = this._setUniformsAtmos(cam);
         //
         // PASS 1: rendering slices, and layers with heights, without transition opacity effect
-        this._renderingScreenNodesWithHeight(sh, cam, this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex]);
+        this._renderingScreenNodesWithHeight(sh, cam);
     }
 
     protected _globalPreDraw() {
@@ -1413,7 +1413,9 @@ export class Planet extends RenderNode {
     /**
      * Drawing nodes
      */
-    protected _renderingScreenNodes(sh: Program, cam: PlanetCamera, renderedNodes: Node[]) {
+    protected _renderingScreenNodes(sh: Program, cam: PlanetCamera) {
+
+        let renderedNodes = this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex];
 
         let firstPass = cam.isFirstPass;
 
@@ -1487,7 +1489,10 @@ export class Planet extends RenderNode {
 
     }
 
-    protected _renderingScreenNodesWithHeight(sh: Program, cam: PlanetCamera, renderedNodes: Node[]) {
+    protected _renderingScreenNodesWithHeight(sh: Program, cam: PlanetCamera) {
+
+        let renderedNodes = this.quadTreeStrategy._renderedNodesInFrustum[cam.currentFrustumIndex];
+
         let gl = this.renderer!.handler.gl!;
         let firstPass = cam.isFirstPass;
 
