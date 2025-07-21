@@ -92,7 +92,7 @@ export class Gltf {
             const mat = new Mat4();
             mat.set(node.matrix as NumberArray16);
             entity.setCartesian3v(mat.getPosition());
-            entity.setRotation(mat.getQuat());
+            entity.setDirectQuaternionRotation(mat.getQuat());
             entity.setScale3v(mat.getScaling());
         }
         if (node.translation !== undefined && node.matrix === undefined) {
@@ -100,7 +100,7 @@ export class Gltf {
             entity.setCartesian(node.translation[0], node.translation[1], node.translation[2]);
         }
         if (node.rotation !== undefined && node.matrix === undefined) {
-            // TODO: implement rotation by quaternion
+            entity.setDirectQuaternionRotation(new Quat(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]));
         }
         if (node.scale !== undefined && node.matrix === undefined) {
             entity.setScale3v(new Vec3(node.scale[0], node.scale[1], node.scale[2]));
