@@ -41,7 +41,7 @@ import type {WebGLBufferExt, WebGLTextureExt, IDefaultTextureParams} from "../we
 import {Program} from "../webgl/Program";
 import {Segment} from "../segment/Segment";
 import type {AtmosphereParameters} from "../shaders/atmos/atmos";
-import { Easing, EasingFunction } from "../utils/easing";
+import {Easing, EasingFunction} from "../utils/easing";
 
 export interface IPlanetParams {
     name?: string;
@@ -726,7 +726,7 @@ export class Planet extends RenderNode {
             let h = this.renderer.handler;
             if (h.isWebGl2()) {
                 h.removeProgram("drawnode_screen_wl");
-                h.addProgram(shaders.drawnode_screen_wl_webgl2Atmos(atmosParams), true);
+                h.addProgram(shaders.drawnode_screen_wl_webgl2Atmos(atmosParams));
             } else {
                 console.warn("Atmosphere WebGL2 only");
             }
@@ -757,9 +757,9 @@ export class Planet extends RenderNode {
             this._atmosphere.activate();
 
             if (h.isWebGl2()) {
-                h.addProgram(shaders.drawnode_screen_wl_webgl2Atmos(this._atmosphere.parameters), true);
+                h.addProgram(shaders.drawnode_screen_wl_webgl2Atmos(this._atmosphere.parameters));
             } else {
-                h.addProgram(shaders.drawnode_screen_wl_webgl1NoAtmos(), true);
+                h.addProgram(shaders.drawnode_screen_wl_webgl1NoAtmos());
             }
 
             if (this.renderer.controls.SimpleSkyBackground) {
@@ -780,22 +780,29 @@ export class Planet extends RenderNode {
             }
 
             if (h.isWebGl2()) {
-                h.addProgram(shaders.drawnode_screen_wl_webgl2NoAtmos(), true);
+                h.addProgram(shaders.drawnode_screen_wl_webgl2NoAtmos());
             } else {
-                h.addProgram(shaders.drawnode_screen_wl_webgl1NoAtmos(), true);
+                h.addProgram(shaders.drawnode_screen_wl_webgl1NoAtmos());
             }
         }
     }
 
     protected _initializeShaders() {
-        let h = this.renderer!.handler;
+        if (!this.renderer) {
+            throw new Error("Renderer is not initialized");
+        }
 
-        h.addProgram(shaders.drawnode_screen_nl(), true);
-        h.addProgram(shaders.drawnode_colorPicking(), true);
-        h.addProgram(shaders.drawnode_depth(), true);
+        let r = this.renderer,
+            h = r.handler;
 
-        this.renderer!.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
-        this.renderer!.addDepthCallback(this, this._renderDepthFramebufferPASS);
+        h.addProgram(shaders.drawnode_screen_nl());
+        h.addProgram(shaders.drawnode_colorPicking());
+        h.addProgram(shaders.drawnode_depth());
+
+        r.addPickingCallback(this, this._renderColorPickingFramebufferPASS);
+        r.addDepthCallback(this, () => {
+            this.renderDepthFramebuffer(this.camera, this.quadTreeStrategy);
+        });
     }
 
     protected _onLayerLoadend(layer: Layer) {
@@ -1578,7 +1585,7 @@ export class Planet extends RenderNode {
         gl.disable(gl.POLYGON_OFFSET_FILL);
     }
 
-    protected _renderDepthFramebufferPASS() {
+    public renderDepthFramebuffer(cam: PlanetCamera, quadTreeStrategy: QuadTreeStrategy) {
         let sh;
         let renderer = this.renderer!;
         let h = renderer.handler;
@@ -1586,7 +1593,6 @@ export class Planet extends RenderNode {
         h.programs.drawnode_depth.activate();
         sh = h.programs.drawnode_depth._program;
         let shu = sh.uniforms;
-        let cam = renderer.activeCamera!;
 
         gl.disable(gl.BLEND);
         gl.disable(gl.POLYGON_OFFSET_FILL);
@@ -1600,7 +1606,7 @@ export class Planet extends RenderNode {
         gl.uniform1f(shu.frustumPickingColor, cam.frustumColorIndex);
 
         // drawing planet nodes
-        let rn = this.quadTreeStrategy._renderedNodesInFrustum[cam.getCurrentFrustum()],
+        let rn = quadTreeStrategy._renderedNodesInFrustum[cam.getCurrentFrustum()],
             sl = this._visibleTileLayerSlices;
 
         let i = rn.length;
@@ -1610,8 +1616,8 @@ export class Planet extends RenderNode {
             }
         }
 
-        for (let i = 0; i < this.quadTreeStrategy._fadingOpaqueSegments.length; ++i) {
-            this.quadTreeStrategy._fadingOpaqueSegments[i].depthRendering(sh, sl[0]);
+        for (let i = 0; i < quadTreeStrategy._fadingOpaqueSegments.length; ++i) {
+            quadTreeStrategy._fadingOpaqueSegments[i].depthRendering(sh, sl[0]);
         }
 
         gl.enable(gl.BLEND);
