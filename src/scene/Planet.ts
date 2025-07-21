@@ -332,8 +332,6 @@ export class Planet extends RenderNode {
     public solidTextureOne: WebGLTextureExt | null;
     public solidTextureTwo: WebGLTextureExt | null;
 
-    protected _skipPreRender: boolean;
-
     protected _nightTextureSrc: string | null;
     protected _specularTextureSrc: string | null;
 
@@ -389,8 +387,6 @@ export class Planet extends RenderNode {
         this.emptyTexture = null;
         this.transparentTexture = null;
         this.defaultTexture = null;
-
-        this._skipPreRender = false;
 
         this._initialViewExtent = null;
 
@@ -870,9 +866,6 @@ export class Planet extends RenderNode {
 
         this.transparentTexture = this.renderer!.handler.transparentTexture;
 
-        // Creating quad trees nodes
-        this.quadTreeStrategy.init(this.camera);
-
         this.drawMode = this.renderer!.handler.gl!.TRIANGLE_STRIP;
 
         // Applying shaders
@@ -921,8 +914,8 @@ export class Planet extends RenderNode {
 
         this.renderer!.events.on("draw", this._globalPreDraw, this, -100);
 
-        // Loading first nodes for better viewing if you have started on a lower altitude.
-        this._preRender();
+        // Creating quad trees nodes
+        this.quadTreeStrategy.init(this.camera);
 
         // this.renderer!.events.on("postdraw", () => {
         //     this._checkRendercompleted();
@@ -963,20 +956,6 @@ export class Planet extends RenderNode {
             ci.buffer = null;
         }
     }
-
-    protected _preRender() {
-        this.quadTreeStrategy.preRender();
-        this.quadTreeStrategy.clearRenderedNodes();
-        this._skipPreRender = false;
-        this.quadTreeStrategy.preLoad();
-        //this._preLoad();
-    }
-
-    // protected _preLoad() {
-    //     this.quadTreeStrategy.clearRenderedNodes();
-    //     this._skipPreRender = false;
-    //     this.quadTreeStrategy.preLoad();
-    // }
 
     /**
      * Creates default textures first for the North Pole and whole globe and second for the South Pole.
@@ -1185,11 +1164,9 @@ export class Planet extends RenderNode {
         if (this.camera.isFirstPass) {
             this.camera.update();
 
-            if (this._skipPreRender && this._collectRenderNodesIsActive) {
+            if (this._collectRenderNodesIsActive) {
                 this.quadTreeStrategy.collectRenderNodes(this.camera);
             }
-
-            this._skipPreRender = true;
 
             //this.transformLights();
 

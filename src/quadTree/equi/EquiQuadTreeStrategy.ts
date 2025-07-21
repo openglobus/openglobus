@@ -34,8 +34,6 @@ export class EquiQuadTreeStrategy extends QuadTreeStrategy {
 
     public override init(camera: PlanetCamera) {
 
-        super.init(camera);
-
         this._quadTreeList = [
             new Node(
                 SegmentLonLatEqui,
@@ -54,6 +52,8 @@ export class EquiQuadTreeStrategy extends QuadTreeStrategy {
                 this._eastExtent
             )
         ];
+
+        super.init(camera);
     }
 
     public override getTileXY(lonLat: LonLat, zoom: number): [number, number, number, number] {

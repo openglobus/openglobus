@@ -13,8 +13,6 @@ export class EPSG4326QuadTreeStrategy extends QuadTreeStrategy {
 
     public override init(camera: PlanetCamera) {
 
-        super.init(camera);
-
         this._quadTreeList = [
             new Node(
                 SegmentLonLatEqui,
@@ -33,5 +31,7 @@ export class EPSG4326QuadTreeStrategy extends QuadTreeStrategy {
                 Extent.createFromArray([0, -90, 180, 90])
             )
         ];
+
+        super.init(camera);
     }
 }

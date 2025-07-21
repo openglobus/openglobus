@@ -108,6 +108,8 @@ export class QuadTreeStrategy {
     public _terrainCompleted: boolean;
     public _terrainCompletedActivated: boolean;
 
+    protected _skipPreRender: boolean = false;
+
     constructor(params: QuadTreeStrategyParams) {
 
         this.events = createEvents<QuadTreeStrategyEventsList>(QUADTREESTRATEGY_EVENTS);
@@ -232,6 +234,10 @@ export class QuadTreeStrategy {
         for (let i = 0, len = this._renderedNodesInFrustum.length; i < len; i++) {
             this._renderedNodesInFrustum[i] = [];
         }
+
+        this.preRender();
+        this.clearRenderedNodes();
+        this.preLoad();
     }
 
     public clearRenderedNodes() {
@@ -301,57 +307,64 @@ export class QuadTreeStrategy {
      * @protected
      */
     public collectRenderNodes(cam: PlanetCamera) {
-        this._lodSize = math.lerp(cam.slope < 0.0 ? 0.0 : cam.slope, this._curLodSize, this._minLodSize);
-        cam._insideSegment = null;
 
-        // clear first
-        this._clearRenderedNodeList();
-        this._clearRenderNodesInFrustum();
+        if (this._skipPreRender) {
 
-        this._viewExtent.southWest.set(180, 180);
-        this._viewExtent.northEast.set(-180, -180);
+            this._lodSize = math.lerp(cam.slope < 0.0 ? 0.0 : cam.slope, this._curLodSize, this._minLodSize);
+            cam._insideSegment = null;
 
-        // todo: replace to camera
-        this.minCurrZoom = math.MAX;
-        this.maxCurrZoom = math.MIN;
+            // clear first
+            this._clearRenderedNodeList();
+            this._clearRenderNodesInFrustum();
 
-        this._collectRenderNodes(cam);
+            this._viewExtent.southWest.set(180, 180);
+            this._viewExtent.northEast.set(-180, -180);
 
-        this._collectRenderedNodesMaxZoom(cam);
+            // todo: replace to camera
+            this.minCurrZoom = math.MAX;
+            this.maxCurrZoom = math.MIN;
 
-        // main camera effect
-        this._fadingNodes.clear();
+            this._collectRenderNodes(cam);
 
-        if (this._transitionOpacityEnabled) {
+            this._collectRenderedNodesMaxZoom(cam);
 
-            let opaqueNodes: Node[] = [];
+            // main camera effect
+            this._fadingNodes.clear();
 
-            for (let i = 0; i < this._renderedNodes.length; i++) {
-                let ri = this._renderedNodes[i];
-                // it's not impossible to move the code into Node.addToRender, because
-                // we can't know actual state before _collectRenderedNodesMaxZoom pass
-                ri._collectFadingNodes();
-                ri._refreshTransitionOpacity();
+            if (this._transitionOpacityEnabled) {
 
-                if (ri.segment._transitionOpacity >= 1.0) {
-                    ri.clearNeighbors();
-                    ri.getRenderedNodesNeighbors(opaqueNodes);
-                    opaqueNodes.push(ri);
-                } else {
-                    for (let j = 0; j < ri._fadingNodes.length; j++) {
-                        let rij = ri._fadingNodes[j];
-                        if (rij.segment && rij.segment._transitionOpacity >= 1.0) {
-                            rij.clearNeighbors();
-                            rij.getRenderedNodesNeighbors(opaqueNodes);
-                            opaqueNodes.push(rij);
+                let opaqueNodes: Node[] = [];
+
+                for (let i = 0; i < this._renderedNodes.length; i++) {
+                    let ri = this._renderedNodes[i];
+                    // it's not impossible to move the code into Node.addToRender, because
+                    // we can't know actual state before _collectRenderedNodesMaxZoom pass
+                    ri._collectFadingNodes();
+                    ri._refreshTransitionOpacity();
+
+                    if (ri.segment._transitionOpacity >= 1.0) {
+                        ri.clearNeighbors();
+                        ri.getRenderedNodesNeighbors(opaqueNodes);
+                        opaqueNodes.push(ri);
+                    } else {
+                        for (let j = 0; j < ri._fadingNodes.length; j++) {
+                            let rij = ri._fadingNodes[j];
+                            if (rij.segment && rij.segment._transitionOpacity >= 1.0) {
+                                rij.clearNeighbors();
+                                rij.getRenderedNodesNeighbors(opaqueNodes);
+                                opaqueNodes.push(rij);
+                            }
                         }
                     }
                 }
             }
         }
+
+        this._skipPreRender = true;
     }
 
     public preRender() {
+        this._skipPreRender = false;
         for (let i = 0; i < this._quadTreeList.length; i++) {
 
             let quadTree = this._quadTreeList[i];

@@ -63,8 +63,6 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
 
     public override init(camera: PlanetCamera) {
 
-        super.init(camera);
-
         this._quadTreeList = [
             new Node(Segment, this, 0, null, 0,
                 Extent.createFromArray([-20037508.34, -20037508.34, 20037508.34, 20037508.34])
@@ -76,6 +74,8 @@ export class EarthQuadTreeStrategy extends QuadTreeStrategy {
                 Extent.createFromArray([-180, -90, 180, mercator.MIN_LAT])
             )
         ];
+
+        super.init(camera);
     }
 
     public override getTileXY(lonLat: LonLat, zoom: number): [number, number, number, number] {
